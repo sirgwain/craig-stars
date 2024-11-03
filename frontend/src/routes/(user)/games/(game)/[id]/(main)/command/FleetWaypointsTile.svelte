@@ -1,10 +1,12 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type DeleteWaypointEvent = {
 		'delete-waypoint': void;
 	};
 </script>
 
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedFleet, Waypoint } from '$lib/types/Fleet';
@@ -24,33 +26,24 @@
 	} = getGameContext();
 	const dispatch = createEventDispatcher<DeleteWaypointEvent>();
 
-	export let fleet: CommandedFleet;
-	export let selectedWaypoint: Waypoint | undefined;
-
-	let selectedWaypointIndex = 0;
-	let previousWaypoint: Waypoint | undefined;
-	let previousWaypointMO: MapObject | undefined;
-	let nextWaypoint: Waypoint | undefined;
-	let nextWaypointMO: MapObject | undefined;
-	let waypointRefs: (HTMLLIElement | null)[] = [];
-
-	let fuelUsageTotal = 0;
-	let runOutOfFuel = false;
-
-	$: {
-		selectedWaypointIndex = fleet.waypoints.findIndex((wp) => wp == selectedWaypoint);
-		if (selectedWaypointIndex == -1) {
-			selectedWaypointIndex = 0;
-		}
-		updateNextPrevWaypoints();
+	interface Props {
+		fleet: CommandedFleet;
+		selectedWaypoint: Waypoint | undefined;
 	}
 
-	$: selectedWaypointPlanet =
-		selectedWaypoint?.targetType == MapObjectType.Planet && selectedWaypoint?.targetNum
-			? $universe.getPlanet(selectedWaypoint?.targetNum)
-			: undefined;
-	$: selectedWaypointPlanetFriendly =
-		selectedWaypointPlanet && $player.isFriend(selectedWaypointPlanet.playerNum);
+	let { fleet = $bindable(), selectedWaypoint = $bindable() }: Props = $props();
+
+	let selectedWaypointIndex = $state(0);
+	let previousWaypoint: Waypoint | undefined = $state();
+	let previousWaypointMO: MapObject | undefined;
+	let nextWaypoint: Waypoint | undefined = $state();
+	let nextWaypointMO: MapObject | undefined;
+	let waypointRefs: (HTMLLIElement | null)[] = $state([]);
+
+	let fuelUsageTotal = $state(0);
+	let runOutOfFuel = $state(false);
+
+
 
 	function getWaypointTarget(wp: Waypoint): MapObject | undefined {
 		if (wp && wp.targetType && wp.targetNum) {
@@ -82,40 +75,8 @@
 		updateNextPrevWaypoints();
 	}
 
-	$: dist =
-		selectedWaypoint && (nextWaypoint || previousWaypoint)
-			? distance(
-					selectedWaypoint.position,
-					previousWaypoint ? previousWaypoint.position : nextWaypoint?.position
-				)
-			: 0;
 
-	// calculate the fuel used per leg of each waypoint, starting at wp1
-	$: fuelUsagePerLeg = fleet.waypoints
-		.slice(1)
-		.map((wp1, index) =>
-			fleet.getFuelCost(
-				$universe,
-				$player.race.spec?.fuelEfficiencyOffset ?? 0,
-				selectedWaypoint === wp1 ? selectedWaypoint.warpSpeed : (wp1.warpSpeed ?? 0),
-				distance(fleet.waypoints[index].position, wp1.position),
-				fleet.spec.cargoCapacity ?? 0
-			)
-		);
 
-	// get the total fuel usage, but accounting for fueling stations
-	// also set our runOutofFuel boolean to update the color on the fuel usage
-	$: {
-		fuelUsageTotal = fuelUsagePerLeg.reduce(
-			(total, wpUsage, i) =>
-				fleet.waypoints[i + 1].targetType === MapObjectType.Planet &&
-				fleet.canFuel($player, $universe.getPlanet(fleet.waypoints[i + 1].targetNum ?? 0))
-					? 0
-					: total + wpUsage,
-			0
-		);
-		runOutOfFuel = fleet.willRunOutOfFuel($player, $universe);
-	}
 
 	// will we run out of fuel at any leg of our journey or the last leg that we are currently updating?
 	// $: runOutOfFuel = fleet.willRunOutOfFuel($player, $universe);
@@ -157,6 +118,51 @@
 			unsubscribeCommandedMapObject();
 		};
 	});
+	run(() => {
+		selectedWaypointIndex = fleet.waypoints.findIndex((wp) => wp == selectedWaypoint);
+		if (selectedWaypointIndex == -1) {
+			selectedWaypointIndex = 0;
+		}
+		updateNextPrevWaypoints();
+	});
+	let selectedWaypointPlanet =
+		$derived(selectedWaypoint?.targetType == MapObjectType.Planet && selectedWaypoint?.targetNum
+			? $universe.getPlanet(selectedWaypoint?.targetNum)
+			: undefined);
+	let selectedWaypointPlanetFriendly =
+		$derived(selectedWaypointPlanet && $player.isFriend(selectedWaypointPlanet.playerNum));
+	let dist =
+		$derived(selectedWaypoint && (nextWaypoint || previousWaypoint)
+			? distance(
+					selectedWaypoint.position,
+					previousWaypoint ? previousWaypoint.position : nextWaypoint?.position
+				)
+			: 0);
+	// calculate the fuel used per leg of each waypoint, starting at wp1
+	let fuelUsagePerLeg = $derived(fleet.waypoints
+		.slice(1)
+		.map((wp1, index) =>
+			fleet.getFuelCost(
+				$universe,
+				$player.race.spec?.fuelEfficiencyOffset ?? 0,
+				selectedWaypoint === wp1 ? selectedWaypoint.warpSpeed : (wp1.warpSpeed ?? 0),
+				distance(fleet.waypoints[index].position, wp1.position),
+				fleet.spec.cargoCapacity ?? 0
+			)
+		));
+	// get the total fuel usage, but accounting for fueling stations
+	// also set our runOutofFuel boolean to update the color on the fuel usage
+	run(() => {
+		fuelUsageTotal = fuelUsagePerLeg.reduce(
+			(total, wpUsage, i) =>
+				fleet.waypoints[i + 1].targetType === MapObjectType.Planet &&
+				fleet.canFuel($player, $universe.getPlanet(fleet.waypoints[i + 1].targetNum ?? 0))
+					? 0
+					: total + wpUsage,
+			0
+		);
+		runOutOfFuel = fleet.willRunOutOfFuel($player, $universe);
+	});
 </script>
 
 {#if fleet.waypoints && selectedWaypoint}
@@ -171,7 +177,7 @@
 						<button
 							type="button"
 							class="text-left w-full h=full"
-							on:click={() => onSelectWaypoint(wp, index)}
+							onclick={() => onSelectWaypoint(wp, index)}
 						>
 							{$universe.getTargetName(wp)}
 						</button>
@@ -184,7 +190,7 @@
 				<button
 					name="deleteWaypoint"
 					class="btn btn-outline btn-sm normal-case btn-secondary"
-					on:click={() => dispatch('delete-waypoint')}
+					onclick={() => dispatch('delete-waypoint')}
 					>Delete
 				</button>
 			</div>
@@ -246,7 +252,7 @@
 
 			<label>
 				<input
-					on:change={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
+					onchange={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
 					bind:checked={fleet.repeatOrders}
 					class="checkbox-xs"
 					type="checkbox"
@@ -277,7 +283,7 @@
 			</div>
 			<label>
 				<input
-					on:change={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
+					onchange={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
 					checked={fleet.repeatOrders}
 					class="checkbox-xs"
 					type="checkbox"

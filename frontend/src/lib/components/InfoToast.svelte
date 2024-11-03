@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 
-	export let text = '';
+	interface Props {
+		text?: string;
+	}
+
+	let { text = $bindable('') }: Props = $props();
 
 	function onFadeOut() {
 		text = '';
@@ -15,7 +19,7 @@
 				class="alert alert-info"
 				in:fade
 				out:fade={{ delay: 3000 }}
-				on:introend={() => onFadeOut()}
+				onintroend={() => onFadeOut()}
 			>
 				<div>
 					<span>{text}</span>

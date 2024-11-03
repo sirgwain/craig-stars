@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { Message } from '$lib/types/Message';
 
-	export let message: Message;
+	interface Props {
+		message: Message;
+	}
+
+	let { message }: Props = $props();
 </script>
 
 {#if message.spec.amount == 1}

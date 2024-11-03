@@ -12,7 +12,11 @@
 
 	const { game, player, universe, settings } = getGameContext();
 
-	export let message: Message;
+	interface Props {
+		message: Message;
+	}
+
+	let { message }: Props = $props();
 </script>
 
 {#if message.type === MessageType.MysteryTraderDiscovered}

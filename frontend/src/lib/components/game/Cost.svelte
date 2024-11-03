@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { Cost } from '$lib/types/Cost';
 
-	export let cost: Cost | undefined;
+	interface Props {
+		cost: Cost | undefined;
+	}
+
+	let { cost }: Props = $props();
 </script>
 
 {#if cost}

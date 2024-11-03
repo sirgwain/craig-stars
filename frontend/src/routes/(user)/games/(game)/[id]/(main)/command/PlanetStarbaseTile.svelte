@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
@@ -12,16 +14,20 @@
 
 	const { game, player, universe, settings, updatePlanetOrders } = getGameContext();
 
-	export let starbase: Fleet | undefined;
-	export let planet: CommandedPlanet;
+	interface Props {
+		starbase: Fleet | undefined;
+		planet: CommandedPlanet;
+	}
 
-	$: stargate = starbase?.spec?.stargate
+	let { starbase, planet = $bindable() }: Props = $props();
+
+	let stargate = $derived(starbase?.spec?.stargate
 		? $techs.getHullComponent(starbase.spec.stargate)
-		: undefined;
+		: undefined);
 
-	$: massDriver = starbase?.spec?.massDriver
+	let massDriver = $derived(starbase?.spec?.massDriver
 		? $techs.getHullComponent(starbase.spec.massDriver)
-		: undefined;
+		: undefined);
 
 	function showDesign(e: PointerEvent) {
 		if (starbase?.tokens && starbase.tokens.length > 0) {
@@ -39,8 +45,8 @@
 
 {#if starbase?.spec}
 	<CommandTile title={starbase.baseName}>
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<div class="cursor-help" on:pointerdown|preventDefault={showDesign}>
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<div class="cursor-help" onpointerdown={preventDefault(showDesign)}>
 			<div class="flex justify-between">
 				<div class="text-tile-item-title">Dock Capacity</div>
 				{#if starbase.spec.spaceDock === UnlimitedSpaceDock}
@@ -72,7 +78,7 @@
 		<div>
 			<div
 				class="flex justify-between cursor-help"
-				on:pointerdown|preventDefault={(e) => stargate && onTechTooltip(e, stargate)}
+				onpointerdown={preventDefault((e) => stargate && onTechTooltip(e, stargate))}
 			>
 				<div class="text-tile-item-title">Stargate</div>
 				{#if stargate}
@@ -87,7 +93,7 @@
 			</div>
 			<div
 				class="flex justify-between cursor-help"
-				on:pointerdown|preventDefault={(e) => massDriver && onTechTooltip(e, massDriver)}
+				onpointerdown={preventDefault((e) => massDriver && onTechTooltip(e, massDriver))}
 			>
 				<div class="text-tile-item-title">Mass Driver</div>
 				{#if starbase.spec.hasMassDriver}
@@ -110,7 +116,7 @@
 				<div class="flex justify-between mt-1 gap-1">
 					<div class="w-32">
 						<button
-							on:click={() => ($settings.setPacketDest = !$settings.setPacketDest)}
+							onclick={() => ($settings.setPacketDest = !$settings.setPacketDest)}
 							class:btn-accent={$settings.setPacketDest}
 							type="button"
 							class="btn btn-outline btn-sm normal-case btn-secondary p-2">Set Dest</button

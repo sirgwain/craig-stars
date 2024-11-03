@@ -1,7 +1,12 @@
 <script lang="ts">
-	export let style: string | undefined = undefined;
-	export let x1 = 50;
-	export let x2 = 50;
+	interface Props {
+		style?: string | undefined;
+		x1?: number;
+		x2?: number;
+		[key: string]: any
+	}
+
+	let { style = undefined, x1 = 50, x2 = 50, ...rest }: Props = $props();
 </script>
 
 
@@ -12,7 +17,7 @@
 		viewBox="0 0 100 100"
 		preserveAspectRatio="none"
 		{style}
-		{...$$restProps}
+		{...rest}
 	>
 		<line
 			x1={x1}

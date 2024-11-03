@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
@@ -11,7 +13,7 @@
 	const { game, player, createDesign } = getGameContext();
 	let hullName = $page.params.hull;
 
-	let design: ShipDesign = {
+	let design: ShipDesign = $state({
 		name: '',
 		gameId: $game.id,
 		playerNum: $player.num ?? 0,
@@ -24,12 +26,14 @@
 			engine: {},
 			techLevel: {}
 		}
-	};
+	});
 
-	$: hull = $techs.getHull(hullName);
-	$: design.hull = hull?.name ?? '';
+	let hull = $derived($techs.getHull(hullName));
+	run(() => {
+		design.hull = hull?.name ?? '';
+	});
 
-	let error = '';
+	let error = $state('');
 
 	onMount(() => {
 		const copyParam = $page.url.searchParams.get('copy');
@@ -62,14 +66,18 @@
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
-		<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
-		<li><a class="cs-link" href={`/games/${$game.id}/designer/create`}>Choose Hull</a></li>
-		<li>{design.name == '' ? 'new' : design.name}</li>
-	</svelte:fragment>
-	<div slot="end" class="flex justify-end mb-1">
-		<button class="btn btn-success mx-1" type="submit" on:click={(e) => onSave()}>Save</button>
-	</div>
+	{#snippet crumbs()}
+	
+			<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
+			<li><a class="cs-link" href={`/games/${$game.id}/designer/create`}>Choose Hull</a></li>
+			<li>{design.name == '' ? 'new' : design.name}</li>
+		
+	{/snippet}
+	{#snippet end()}
+		<div  class="flex justify-end mb-1">
+			<button class="btn btn-success mx-1" type="submit" onclick={(e) => onSave()}>Save</button>
+		</div>
+	{/snippet}
 </Breadcrumb>
 {#if hull && $game}
 	<ShipDesigner bind:design {hull} on:save={(e) => onSave()} bind:error />

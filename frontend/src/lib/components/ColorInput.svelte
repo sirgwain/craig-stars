@@ -1,13 +1,27 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { startCase } from 'lodash-es';
-	export let name: string;
-	export let value: string | undefined;
 
-	export let title: string | undefined = undefined;
-	export let titleClass = 'label-text w-32 text-right';
-	export let required = false;
+	interface Props {
+		name: string;
+		value: string | undefined;
+		title?: string | undefined;
+		titleClass?: string;
+		required?: boolean;
+	}
 
-	$: !title && (title = startCase(name));
+	let {
+		name,
+		value = $bindable(),
+		title = $bindable(undefined),
+		titleClass = 'label-text w-32 text-right',
+		required = false
+	}: Props = $props();
+
+	run(() => {
+		!title && (title = startCase(name));
+	});
 </script>
 
 <div class="w-full flex-grow">

@@ -45,11 +45,11 @@
 	<form>
 		<div class="gap-2 mt-2">
 			{#if $me.id == $game.hostId}
-				<button on:click={onForceGenerate} type="button" class="btn btn-primary"
+				<button onclick={onForceGenerate} type="button" class="btn btn-primary"
 					>Force Generate Turn</button
 				>
 			{/if}
-			<button on:click={onUnsubmitTurn} type="button" class="btn btn-secondary"
+			<button onclick={onUnsubmitTurn} type="button" class="btn btn-secondary"
 				>Unsubmit Turn</button
 			>
 		</div>

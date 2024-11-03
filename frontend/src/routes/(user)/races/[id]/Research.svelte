@@ -3,7 +3,11 @@
 	import { TechField } from '$lib/types/TechLevel';
 	import ResearchCostField from './ResearchCostField.svelte';
 
-	export let race: Race;
+	interface Props {
+		race: Race;
+	}
+
+	let { race = $bindable() }: Props = $props();
 </script>
 
 <div class="flex flex-row flex-wrap justify-center gap-2">

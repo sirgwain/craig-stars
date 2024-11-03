@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
@@ -15,18 +17,22 @@
 
 	const { universe, commandedMapObjectKey, commandMapObject } = getGameContext();
 
-	export let planet: CommandedPlanet;
-	export let fleetsInOrbit: Fleet[];
-	let selectedFleet: Fleet | undefined;
-	let selectedFleetIndex = 0;
+	interface Props {
+		planet: CommandedPlanet;
+		fleetsInOrbit: Fleet[];
+	}
 
-	$: {
+	let { planet, fleetsInOrbit }: Props = $props();
+	let selectedFleet: Fleet | undefined = $state();
+	let selectedFleetIndex = $state(0);
+
+	run(() => {
 		if (fleetsInOrbit.length > 0) {
 			selectedFleet = fleetsInOrbit[selectedFleetIndex];
 		} else {
 			selectedFleet = undefined;
 		}
-	}
+	});
 
 	const onSelectedFleetChange = (index: number) => {
 		selectedFleet = fleetsInOrbit[index];
@@ -52,7 +58,7 @@
 
 <CommandTile title="Fleets In Orbit">
 	<select
-		on:change={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
+		onchange={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
 		class="select select-outline select-secondary select-sm py-0 text-sm"
 	>
 		{#each fleetsInOrbit as fleet, index}
@@ -83,7 +89,7 @@
 		<div class="flex justify-between my-1">
 			<div class="tooltip" data-tip="command fleet">
 				<button
-					on:click={gotoTarget}
+					onclick={gotoTarget}
 					disabled={!selectedFleet}
 					class="btn btn-outline btn-sm normal-case btn-secondary"
 					title="goto"

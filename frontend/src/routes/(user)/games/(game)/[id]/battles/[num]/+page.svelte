@@ -8,7 +8,7 @@
 	const { game, player, universe, gotoBattle } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: battle = $universe.getBattle(num);
+	let battle = $derived($universe.getBattle(num));
 
 	function gotoTarget() {
 		if (!battle) {
@@ -21,17 +21,19 @@
 
 {#if $game && battle}
 	<Breadcrumb>
-		<svelte:fragment slot="crumbs">
-			<li><a class="cs-link" href={`/games/${$game.id}/battles`}>Battles</a></li>
-			<li class="flex flex-row gap-1">
-				{$universe.getBattleLocation(battle)}
-				<button
-					on:click={gotoTarget}
-					class="btn btn-outline btn-sm normal-case btn-secondary p-2"
-					title="goto">Goto</button
-				>
-			</li>
-		</svelte:fragment>
+		{#snippet crumbs()}
+			
+				<li><a class="cs-link" href={`/games/${$game.id}/battles`}>Battles</a></li>
+				<li class="flex flex-row gap-1">
+					{$universe.getBattleLocation(battle)}
+					<button
+						onclick={gotoTarget}
+						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
+						title="goto">Goto</button
+					>
+				</li>
+			
+			{/snippet}
 	</Breadcrumb>
 
 	<div class="grow px-1">

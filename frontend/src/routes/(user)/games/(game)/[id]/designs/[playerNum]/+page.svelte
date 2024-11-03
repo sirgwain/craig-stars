@@ -7,14 +7,16 @@
 	const { game, universe } = getGameContext();
 	let playerNum = parseInt($page.params.playerNum);
 
-	$: designs = $universe.getDesigns(playerNum);
+	let designs = $derived($universe.getDesigns(playerNum));
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
-		<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
-		<li>{$universe.getPlayerPluralName(playerNum)}</li>
-	</svelte:fragment>
+	{#snippet crumbs()}
+	
+			<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
+			<li>{$universe.getPlayerPluralName(playerNum)}</li>
+		
+	{/snippet}
 </Breadcrumb>
 
 <Designs {designs} />

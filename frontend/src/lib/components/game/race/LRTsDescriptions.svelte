@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { getLabelForLRT, LRT, lrts, type Race } from '$lib/types/Race';
 
-	export let race: Race;
+	interface Props {
+		race: Race;
+	}
+
+	let { race }: Props = $props();
 
 	const getDescriptionForLRT = (lrt: LRT) => {
 		switch (lrt) {

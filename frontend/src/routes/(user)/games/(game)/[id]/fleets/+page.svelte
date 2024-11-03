@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { goto } from '$app/navigation';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
@@ -16,13 +18,15 @@
 	};
 
 	// filterable fleets
-	let filteredFleets: Fleet[] = [];
-	let search = '';
+	let filteredFleets: Fleet[] = $state([]);
+	let search = $state('');
 
-	$: filteredFleets =
-		$universe
-			.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
-			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
+	run(() => {
+		filteredFleets =
+			$universe
+				.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
+				.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
+	});
 
 	const columns: TableColumn<Fleet>[] = [
 		{
@@ -101,65 +105,69 @@
 			table: 'table table-zebra table-compact table-auto w-full'
 		}}
 	>
-		<span slot="head" let:column>
-			<SortableTableHeader
-				{column}
-				isSorted={$settings.sortFleetsKey === column.key}
-				sortDescending={$settings.sortFleetsDescending}
-				on:sorted={(e) => {
-					onSorted(column, e.detail.sortDescending);
-				}}
-			/>
-		</span>
+		{#snippet head({ column })}
+				<span  >
+				<SortableTableHeader
+					{column}
+					isSorted={$settings.sortFleetsKey === column.key}
+					sortDescending={$settings.sortFleetsDescending}
+					on:sorted={(e) => {
+						onSorted(column, e.detail.sortDescending);
+					}}
+				/>
+			</span>
+			{/snippet}
 
-		<span slot="cell" let:column let:row let:cell>
-			{#if column.key == 'name'}
-				<button class="cs-link text-xl text-left" on:click={() => selectFleet(row)}>{cell}</button>
-			{:else if column.key == 'location'}
-				{getLocation(row, $universe)}
-			{:else if column.key == 'destination'}
-				{row.waypoints && row.waypoints.length > 1
-					? $universe.getTargetName(row.waypoints[1])
-					: '--'}
-			{:else if column.key == 'eta'}
-				{#if getEta(row) == -1}
-					<span class="text-error">
-						Never
-					</span>
-				{:else if getEta(row) == 0}
-					--
+		{#snippet cell({ column, row, cell })}
+				<span    >
+				{#if column.key == 'name'}
+					<button class="cs-link text-xl text-left" onclick={() => selectFleet(row)}>{cell}</button>
+				{:else if column.key == 'location'}
+					{getLocation(row, $universe)}
+				{:else if column.key == 'destination'}
+					{row.waypoints && row.waypoints.length > 1
+						? $universe.getTargetName(row.waypoints[1])
+						: '--'}
+				{:else if column.key == 'eta'}
+					{#if getEta(row) == -1}
+						<span class="text-error">
+							Never
+						</span>
+					{:else if getEta(row) == 0}
+						--
+					{:else}
+						{getEta(row)}y
+					{/if}
+				{:else if column.key == 'fuel'}
+					{row.fuel}mg
+				{:else if column.key == 'cargo'}
+					<CargoMini cargo={row.cargo} />
+				{:else if column.key == 'composition'}
+					{@const design = $game
+						? $universe.getDesign(
+								$player.num,
+								row.tokens && row.tokens.length ? row.tokens[0].designNum : 0
+							)
+						: undefined}
+					<div class="flex flex-row justify-between">
+						<div>
+							{design ? design.name : ''}
+						</div>
+						<div>
+							{row.tokens && row.tokens.length ? row.tokens[0].quantity : 0}
+						</div>
+					</div>
+				{:else if column.key == 'cloak'}
+					{row.spec && row.spec.cloakPercent ? row.spec.cloakPercent + '%' : ''}
+				{:else if column.key == 'battlePlanNum'}
+					{@const battlePlan = $game ? $player.getBattlePlan(row.battlePlanNum ?? 0) : undefined}
+					{battlePlan?.name ?? ''}
+				{:else if column.key == 'mass'}
+					{row.spec?.mass ?? 0}
 				{:else}
-					{getEta(row)}y
+					{cell}
 				{/if}
-			{:else if column.key == 'fuel'}
-				{row.fuel}mg
-			{:else if column.key == 'cargo'}
-				<CargoMini cargo={row.cargo} />
-			{:else if column.key == 'composition'}
-				{@const design = $game
-					? $universe.getDesign(
-							$player.num,
-							row.tokens && row.tokens.length ? row.tokens[0].designNum : 0
-						)
-					: undefined}
-				<div class="flex flex-row justify-between">
-					<div>
-						{design ? design.name : ''}
-					</div>
-					<div>
-						{row.tokens && row.tokens.length ? row.tokens[0].quantity : 0}
-					</div>
-				</div>
-			{:else if column.key == 'cloak'}
-				{row.spec && row.spec.cloakPercent ? row.spec.cloakPercent + '%' : ''}
-			{:else if column.key == 'battlePlanNum'}
-				{@const battlePlan = $game ? $player.getBattlePlan(row.battlePlanNum ?? 0) : undefined}
-				{battlePlan?.name ?? ''}
-			{:else if column.key == 'mass'}
-				{row.spec?.mass ?? 0}
-			{:else}
-				{cell}
-			{/if}
-		</span>
+			</span>
+			{/snippet}
 	</Table>
 </div>

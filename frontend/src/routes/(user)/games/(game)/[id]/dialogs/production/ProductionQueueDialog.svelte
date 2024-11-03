@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { CommandedPlanet } from '$lib/types/Planet';
 
 	export type ProductionQueueDialogEvent = {
@@ -12,7 +12,11 @@
 
 	const { commandedPlanet, nextMapObject, previousMapObject, updatePlanetOrders } = getGameContext();
 
-	export let show = false;
+	interface Props {
+		show?: boolean;
+	}
+
+	let { show = $bindable(false) }: Props = $props();
 
 	async function onNext() {
 		if ($commandedPlanet) {

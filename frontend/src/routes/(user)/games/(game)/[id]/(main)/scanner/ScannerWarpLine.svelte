@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { MapObjectType, type MovingMapObject } from '$lib/types/MapObject';
 
 	import { getGameContext } from '$lib/services/GameContext';
@@ -14,12 +16,12 @@
 		props: any;
 	};
 
-	let line: Line | undefined;
-	let color = '#ffffff';
+	let line: Line | undefined = $state();
+	let color = $state('#ffffff');
 
-	$: strokeWidth = 1;
+	let strokeWidth = $derived(1);
 
-	$: {
+	run(() => {
 		line = undefined;
 
 		// show the warp line for other player fleets, or mystery traders or mineral packets
@@ -57,7 +59,7 @@
 				};
 			}
 		}
-	}
+	});
 </script>
 
 {#if line}

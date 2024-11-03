@@ -1,5 +1,10 @@
 <script lang="ts">
-	export let color = '#0000FF';
+	interface Props {
+		color?: string;
+		[key: string]: any
+	}
+
+	let { color = '#0000FF', ...rest }: Props = $props();
 
 	const fleetSize = 120;
 	const letterSize = 200;
@@ -10,7 +15,7 @@
 	viewBox="0 0 500 500"
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-	{...$$restProps}
+	{...rest}
 >
 	<text
 		x={letterSize / 2 + 30}

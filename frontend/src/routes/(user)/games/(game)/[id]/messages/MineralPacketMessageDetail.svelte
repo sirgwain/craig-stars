@@ -11,17 +11,21 @@
 
 	const { game, player, universe, settings } = getGameContext();
 
-	export let message: Message;
-	export let mineralPacket: MineralPacket;
-	export let owner: PlayerIntel;
+	interface Props {
+		message: Message;
+		mineralPacket: MineralPacket;
+		owner: PlayerIntel;
+	}
 
-	$: target = $universe.getPlanet(mineralPacket.targetPlanetNum);
-	$: eta = target
+	let { message, mineralPacket, owner }: Props = $props();
+
+	let target = $derived($universe.getPlanet(mineralPacket.targetPlanetNum));
+	let eta = $derived(target
 		? Math.ceil(
 				distance(mineralPacket.position, target.position) /
 					(mineralPacket.warpSpeed * mineralPacket.warpSpeed)
 			)
-		: Unknown;
+		: Unknown);
 </script>
 
 {#if message.text}

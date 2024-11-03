@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import { page } from '$app/stores';
 	import { GameService } from '$lib/services/GameService';
 	import type { Game } from '$lib/types/Game';
@@ -13,9 +15,9 @@
 	import { onMount } from 'svelte';
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
 
-	let game: Game | undefined;
-	let race = Object.assign({}, humanoid());
-	let name = $me.username;
+	let game: Game | undefined = $state();
+	let race = $state(Object.assign({}, humanoid()));
+	let name = $state($me.username);
 
 	onMount(async () => {
 		try {
@@ -45,8 +47,11 @@
 		}
 	};
 
-	let error = '';
-	$: valid = game && game.openPlayerSlots > 0;
+	let error = $state('');
+	let valid;
+	run(() => {
+		valid = game && game.openPlayerSlots > 0;
+	});
 </script>
 
 <ItemTitle>Join Public Game</ItemTitle>
@@ -57,7 +62,7 @@
 		<GameCard {game} />
 	</div>
 
-	<form on:submit|preventDefault={onSubmit}>
+	<form onsubmit={preventDefault(onSubmit)}>
 		{#if $me.role == UserRole.guest}
 			<label class="label" for="name">Name</label>
 			<input name="name" bind:value={name} class="input input-bordered" />

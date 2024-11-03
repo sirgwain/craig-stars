@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { createEventDispatcher } from 'svelte';
 	import { startCase } from 'lodash-es';
 	import { $enum as eu } from 'ts-enum-util';
@@ -7,17 +9,33 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let name: string;
-	export let value: string | undefined;
-	export let title: string | undefined = undefined;
-	export let tooltip: string | undefined = undefined;
-	export let enumType: any;
-	export let titleClass = 'label-text w-32 text-right';
-	export let required = false;
-	export let typeTitle = (type: any) => startCase(type);
-	export let showEmpty = false;
+	interface Props {
+		name: string;
+		value: string | undefined;
+		title?: string | undefined;
+		tooltip?: string | undefined;
+		enumType: any;
+		titleClass?: string;
+		required?: boolean;
+		typeTitle?: any;
+		showEmpty?: boolean;
+	}
 
-	$: !title && (title = startCase(name));
+	let {
+		name,
+		value = $bindable(),
+		title = $bindable(undefined),
+		tooltip = undefined,
+		enumType,
+		titleClass = 'label-text w-32 text-right',
+		required = false,
+		typeTitle = (type: any) => startCase(type),
+		showEmpty = false
+	}: Props = $props();
+
+	run(() => {
+		!title && (title = startCase(name));
+	});
 </script>
 
 <div class="w-full flex-grow">
@@ -28,7 +46,7 @@
 			{name}
 			{required}
 			bind:value
-			on:change={(e) => dispatch('change', e)}
+			onchange={(e) => dispatch('change', e)}
 		>
 			{#each eu(enumType).getValues() as type}
 				{#if showEmpty || `${type}` !== ''}

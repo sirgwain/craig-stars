@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { type PlayerScore } from '$lib/types/Player';
 
 	export type ValueType = keyof PlayerScore;
@@ -16,7 +16,11 @@
 
 	const { game, universe } = getGameContext();
 
-	export let type: ValueType = 'score';
+	interface Props {
+		type?: ValueType;
+	}
+
+	let { type = 'score' }: Props = $props();
 
 	type DataLongTurnValueType = { player: string; turn: number; value: number };
 	type DataLongType = { player: string; playerName: string; values: DataLongTurnValueType[] }[];
@@ -39,25 +43,22 @@
 		}, []);
 
 	// get the number of turns passed, i.e. 2 for 2402
-	$: turnsPassed = $game.year - $game.rules.startingYear;
+	let turnsPassed = $derived($game.year - $game.rules.startingYear);
 
 	// get the highest value from the scores
-	$: highestValue = Math.max(
+	let highestValue = $derived(Math.max(
 		...$universe.scores
 			.filter((score) => score && score.length > 0)
 			.flat()
 			.map((score) => score[type] ?? 0)
-	);
+	));
 
-	let dataLong: DataLongType;
-
-	$: {
-		/* --------------------------------------------
-		 * Create a "long" format that is a grouped series of data points
-		 * Layer Cake uses this data structure and the key names
-		 * set in xKey, yKey and zKey to map your data into each scale.
-		 */
-		dataLong = $universe.players.map((playerIntel, i) => {
+	/* --------------------------------------------
+ * Create a "long" format that is a grouped series of data points
+ * Layer Cake uses this data structure and the key names
+ * set in xKey, yKey and zKey to map your data into each scale.
+ */
+	let dataLong: DataLongType = $derived($universe.players.map((playerIntel, i) => {
 			const name = playerIntel.racePluralName ?? playerIntel.name;
 			const playerScores = $universe.scores[i];
 
@@ -70,8 +71,9 @@
 					[zKey]: String(playerIntel.num)
 				})))
 			}
-		});
-	}
+		}));
+
+	
 </script>
 
 <div class="border border-base-300 bg-base-100 w-full h-full">

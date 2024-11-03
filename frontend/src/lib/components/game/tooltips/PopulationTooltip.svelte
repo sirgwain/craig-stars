@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { roundToNearest100 } from '$lib/services/Math';
 	import { Unexplored } from '$lib/types/Constants';
 	import { type Planet } from '$lib/types/Planet';
@@ -14,9 +14,13 @@
 	import type { PlayerFinder } from '$lib/services/Universe';
 	import { owned, ownedBy } from '$lib/types/MapObject';
 
-	export let playerFinder: PlayerFinder;
-	export let player: Player;
-	export let planet: Planet;
+	interface Props {
+		playerFinder: PlayerFinder;
+		player: Player;
+		planet: Planet;
+	}
+
+	let { playerFinder, player, planet }: Props = $props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

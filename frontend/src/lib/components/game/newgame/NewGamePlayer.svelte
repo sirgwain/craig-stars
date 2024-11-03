@@ -16,8 +16,12 @@
 		AI = 'AI'
 	}
 
-	export let player: NewGamePlayer;
-	export let index: number;
+	interface Props {
+		player: NewGamePlayer;
+		index: number;
+	}
+
+	let { player = $bindable(), index }: Props = $props();
 </script>
 
 {#if player}
@@ -43,7 +47,7 @@
 				</div>
 				<div class="my-auto mx-1">
 					<button
-						on:click={() => dispatch('remove')}
+						onclick={() => dispatch('remove')}
 						type="button"
 						class="btn btn-outline btn-sm my-1 normal-case"><Icon size="16" src={XMark} /></button
 					>

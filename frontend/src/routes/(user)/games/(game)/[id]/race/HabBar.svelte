@@ -1,12 +1,21 @@
 <script lang="ts">
 	import { HabTypes, getHabValueString, type HabType, habTypeString } from '$lib/types/Hab';
 
-	export let habType: HabType;
-	export let habLow: number | undefined;
-	export let habHigh: number | undefined;
-	export let immune: boolean | undefined;
+	interface Props {
+		habType: HabType;
+		habLow: number | undefined;
+		habHigh: number | undefined;
+		immune: boolean | undefined;
+	}
 
-	$: habWidth = (habHigh ?? 0) - (habLow ?? 0);
+	let {
+		habType,
+		habLow,
+		habHigh,
+		immune
+	}: Props = $props();
+
+	let habWidth = $derived((habHigh ?? 0) - (habLow ?? 0));
 </script>
 
 <div class="flex flex-col md:flex-row">

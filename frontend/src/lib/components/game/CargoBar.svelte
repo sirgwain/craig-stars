@@ -1,27 +1,35 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { cargoPercent, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
 	import { createEventDispatcher } from 'svelte';
 	import type { CargoTransferDialogEvent } from '../../../routes/(user)/games/(game)/[id]/dialogs/cargo/CargoTranfserDialog.svelte';
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 
-	export let value: Cargo = {
+
+	interface Props {
+		value?: Cargo;
+		capacity?: number | undefined;
+		canTransferCargo?: boolean;
+	}
+
+	let { value = {
 		ironium: 0,
 		boranium: 0,
 		germanium: 0,
 		colonists: 0
-	};
+	}, capacity = 0, canTransferCargo = false }: Props = $props();
 
-	export let capacity: number | undefined = 0;
-	export let canTransferCargo = false;
+	let percent: Cargo = $state(emptyCargo());
 
-	let percent: Cargo = emptyCargo();
-
-	$: percent = cargoPercent(value, capacity);
+	run(() => {
+		percent = cargoPercent(value, capacity);
+	});
 </script>
 
 <div
-	on:pointerdown={() => canTransferCargo && dispatch('cargo-transfer-dialog')}
+	onpointerdown={() => canTransferCargo && dispatch('cargo-transfer-dialog')}
 	class="border border-secondary h-[1rem] text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={canTransferCargo}
 >

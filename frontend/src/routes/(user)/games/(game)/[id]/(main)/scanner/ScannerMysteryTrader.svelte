@@ -3,6 +3,8 @@
   A mysterytrader that is flying outside of a planet
  -->
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import { radiansToDegrees } from '$lib/services/Math';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
@@ -13,16 +15,20 @@
 	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 	const scale = getContext<Writable<number>>('scale');
 
-	export let mysteryTrader: MysteryTrader;
+	interface Props {
+		mysteryTrader: MysteryTrader;
+	}
 
-	let angle = 0;
+	let { mysteryTrader }: Props = $props();
 
-	$: size = 8 / $scale;
+	let angle = $state(0);
+
+	let size = $derived(8 / $scale);
 
 	// identity or default is rotated 90º, or pointing up and to the right
 	const angleOffset = 225;
 
-	$: {
+	run(() => {
 		if (mysteryTrader && mysteryTrader.heading) {
 			angle =
 				radiansToDegrees(
@@ -30,7 +36,7 @@
 					Math.atan2(mysteryTrader.heading.y, mysteryTrader.heading.x)
 				) + angleOffset;
 		}
-	}
+	});
 </script>
 
 <!-- ScannerMysteryTrader -->

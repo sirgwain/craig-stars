@@ -1,4 +1,9 @@
 <script lang="ts">
+	interface Props {
+		[key: string]: any
+	}
+
+	let { ...rest }: Props = $props();
 	const ironiumSize = 400;
 	const boraniumSize = 200;
 	const germaniumSize = 300;
@@ -10,7 +15,7 @@
 	viewBox="0 0 500 500"
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-	{...$$restProps}
+	{...rest}
 >
 	<path class="stroke-white" stroke-width={lineWidth} fill="none" d={`M0,0L0,500 L500,500`} />
 

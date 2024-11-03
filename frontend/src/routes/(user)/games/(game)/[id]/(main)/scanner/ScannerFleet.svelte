@@ -16,10 +16,19 @@
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const scale = getContext<Writable<number>>('scale');
 
-	export let fleet: Fleet;
-	export let commanded = false;
-	export let color = '#0000FF';
-	export let commandedColor = '#FFFF00';
+	interface Props {
+		fleet: Fleet;
+		commanded?: boolean;
+		color?: string;
+		commandedColor?: string;
+	}
+
+	let {
+		fleet,
+		commanded = false,
+		color = '#0000FF',
+		commandedColor = '#FFFF00'
+	}: Props = $props();
 
 	const size = 8;
 
@@ -34,11 +43,11 @@
 		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
 	}
 
-	$: textColor = ownedBy(fleet, $player.num)
+	let textColor = $derived(ownedBy(fleet, $player.num)
 		? 'fill-orbit'
 		: $player.isFriend(fleet.playerNum)
 			? 'fill-orbit-friends'
-			: 'fill-orbit-enemies';
+			: 'fill-orbit-enemies');
 </script>
 
 <!-- ScannerFleet -->

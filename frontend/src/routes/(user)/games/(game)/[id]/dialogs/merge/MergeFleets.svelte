@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import hotkeys from 'hotkeys-js';
 	import { createEventDispatcher, onMount } from 'svelte';
@@ -7,11 +9,15 @@
 
 	const dispatch = createEventDispatcher<MergeFleetsEvent>();
 
-	export let fleet: CommandedFleet;
-	export let otherFleetsHere: Fleet[];
-	let selectedFleetIndexes: number[] = [];
+	interface Props {
+		fleet: CommandedFleet;
+		otherFleetsHere: Fleet[];
+	}
 
-	let fleetRefs: (HTMLLIElement | null)[] = [];
+	let { fleet, otherFleetsHere }: Props = $props();
+	let selectedFleetIndexes: number[] = $state([]);
+
+	let fleetRefs: (HTMLLIElement | null)[] = $state([]);
 
 	function select(index: number) {
 		if (selectedFleetIndexes.indexOf(index) == -1) {
@@ -68,7 +74,7 @@
 							class="pl-1"
 							class:bg-primary-focus={selectedFleetIndexes.indexOf(index) != -1}
 						>
-							<button class="w-full text-left" type="button" on:click={() => select(index)}>
+							<button class="w-full text-left" type="button" onclick={() => select(index)}>
 								{getMapObjectName(otherFleet)}
 							</button>
 						</li>
@@ -79,22 +85,22 @@
 	</div>
 	<div class="flex flex-col mt-7 ml-2 gap-2">
 		<button
-			on:click|preventDefault={ok}
+			onclick={preventDefault(ok)}
 			type="submit"
 			disabled={selectedFleetIndexes.length == 0}
 			class="btn btn-sm normal-case btn-primary">OK</button
 		>
-		<button on:click={cancel} class="btn btn-outline btn-sm normal-case btn-secondary"
+		<button onclick={cancel} class="btn btn-outline btn-sm normal-case btn-secondary"
 			>Cancel</button
 		>
 		<button
 			type="button"
-			on:click={selectAll}
+			onclick={selectAll}
 			class="btn btn-outline btn-sm normal-case btn-secondary">Select All</button
 		>
 		<button
 			type="button"
-			on:click={unselectAll}
+			onclick={unselectAll}
 			class="btn btn-outline btn-sm normal-case btn-secondary">Unselect All</button
 		>
 	</div>

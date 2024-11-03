@@ -4,7 +4,11 @@
 
 	const { game, player, universe } = getGameContext();
 
-	export let text: string | undefined;
+	interface Props {
+		text: string | undefined;
+	}
+
+	let { text }: Props = $props();
 </script>
 
 <div class="modal" class:modal-open={text !== undefined}>

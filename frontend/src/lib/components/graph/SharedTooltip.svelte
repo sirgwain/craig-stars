@@ -14,20 +14,31 @@
 	const commas = format(',');
 	const titleCase = (d: any) => d.replace(/^\w/, (w: string) => w.toUpperCase());
 
-	/** @type {Function} [formatTitle=d => d] - A function to format the tooltip title, which is `$config.x`. */
-	export let formatTitle = (d: any) => d;
+	
 
-	/** @type {Function} [formatValue=d => isNaN(+d) ? d : commas(d)] - A function to format the value. */
-	export let formatValue = (d: any) => (isNaN(+d) ? d : commas(d));
+	
 
-	/** @type {Function} [formatKey=d => titleCase(d)] - A function to format the series name. */
-	export let formatKey = (d: any) => titleCase(d);
+	
 
-	/** @type {Number} [offset=-20] - A y-offset from the hover point, in pixels. */
-	export let offset = -20;
+	
 
-	/** @type {Array} [dataset] - The dataset to work off of—defaults to $data if left unset. You can pass something custom in here in case you don't want to use the main data or it's in a strange format. */
-	export let dataset: any = undefined;
+	
+	interface Props {
+		formatTitle?: Function;
+		formatValue?: Function;
+		formatKey?: Function;
+		offset?: Number;
+		/** @type {Array} [dataset] - The dataset to work off of—defaults to $data if left unset. You can pass something custom in here in case you don't want to use the main data or it's in a strange format. */
+		dataset?: any;
+	}
+
+	let {
+		formatTitle = (d: any) => d,
+		formatValue = (d: any) => (isNaN(+d) ? d : commas(d)),
+		formatKey = (d: any) => titleCase(d),
+		offset = -20,
+		dataset = undefined
+	}: Props = $props();
 
 	const w = 150;
 	const w2 = w / 2;
@@ -50,27 +61,29 @@
 	}
 </script>
 
-<QuadTree dataset={dataset || $data} y="x" let:x let:y let:visible let:found let:e>
-	{@const foundSorted = sortResult(found)}
-	{#if visible === true}
-		<div style="left:{x}px;" class="line" />
-		<div
-			class="tooltip"
-			style="
-          width:{w}px;
-          display: {visible ? 'block' : 'none'};
-          top:{$yScale(foundSorted[0].value) + offset}px;
-          left:{Math.min(Math.max(w2, x), $width - w2)}px;"
-		>
-			<div class="title">{formatTitle(found[$config.x])}</div>
-			{#each foundSorted as row}
-				<div class="row">
-					<span class="key">{formatKey(row.key)}:</span>
-					{formatValue(row.value)}
-				</div>
-			{/each}
-		</div>
-	{/if}
+<QuadTree dataset={dataset || $data} y="x"     >
+	{#snippet children({ x, y, visible, found, e })}
+		{@const foundSorted = sortResult(found)}
+		{#if visible === true}
+			<div style="left:{x}px;" class="line"></div>
+			<div
+				class="tooltip"
+				style="
+	          width:{w}px;
+	          display: {visible ? 'block' : 'none'};
+	          top:{$yScale(foundSorted[0].value) + offset}px;
+	          left:{Math.min(Math.max(w2, x), $width - w2)}px;"
+			>
+				<div class="title">{formatTitle(found[$config.x])}</div>
+				{#each foundSorted as row}
+					<div class="row">
+						<span class="key">{formatKey(row.key)}:</span>
+						{formatValue(row.value)}
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{/snippet}
 </QuadTree>
 
 <style>

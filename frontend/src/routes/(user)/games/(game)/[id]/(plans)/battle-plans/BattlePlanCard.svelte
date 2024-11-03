@@ -7,9 +7,13 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let plan: BattlePlan;
-	export let href: string;
-	export let showDelete = true;
+	interface Props {
+		plan: BattlePlan;
+		href: string;
+		showDelete?: boolean;
+	}
+
+	let { plan, href, showDelete = true }: Props = $props();
 
 	const deletePlan = async (plan: BattlePlan) => {
 		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
@@ -48,7 +52,7 @@
 		{#if showDelete}
 			<div class="card-actions justify-start">
 				<div>
-					<button class="btn" on:click={(e) => deletePlan(plan)}>
+					<button class="btn" onclick={(e) => deletePlan(plan)}>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				</div>

@@ -1,5 +1,10 @@
 <script lang="ts">
-	export let style: string | undefined = undefined;
+	interface Props {
+		style?: string | undefined;
+		[key: string]: any
+	}
+
+	let { style = undefined, ...rest }: Props = $props();
 </script>
 
 <svg
@@ -7,7 +12,7 @@
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	{style}
-	{...$$restProps}
+	{...rest}
 >
 	<path d="M128,256L384,256 M256,128L256,384" stroke-width="32" />
 </svg>

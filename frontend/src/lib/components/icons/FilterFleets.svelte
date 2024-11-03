@@ -1,5 +1,10 @@
 <script lang="ts">
-	export let primary = 'fill-fleet-owned';
+	interface Props {
+		primary?: string;
+		[key: string]: any
+	}
+
+	let { primary = 'fill-fleet-owned', ...rest }: Props = $props();
 	export const secondary = 'fill-fleet-neutral';
 
 	const size = 120;
@@ -19,7 +24,7 @@
 	viewBox="0 0 500 500"
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-	{...$$restProps}
+	{...rest}
 >
 	{#each primaryPositions as pos}
 		<polygon

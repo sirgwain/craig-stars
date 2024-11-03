@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
@@ -13,11 +15,15 @@
 
 	const { game, player, universe } = getGameContext();
 
-	export let field: TechField;
+	interface Props {
+		field: TechField;
+	}
 
-	$: currentLevel = get($player.techLevels, field);
+	let { field }: Props = $props();
 
-	$: futureTechs = $techs.techs
+	let currentLevel = $derived(get($player.techLevels, field));
+
+	let futureTechs = $derived($techs.techs
 		.filter(
 			(tech) =>
 				get(tech.requirements, field) > currentLevel &&
@@ -44,7 +50,7 @@
 			}
 		})
 		.filter((t) => t != undefined)
-		.sort((t1, t2) => (t1?.distance ?? 0) - (t2?.distance ?? 0)) as FutureTech[];
+		.sort((t1, t2) => (t1?.distance ?? 0) - (t2?.distance ?? 0)) as FutureTech[]);
 </script>
 
 <ul class="pl-1 pt-1">
@@ -57,7 +63,7 @@
 			<button
 				type="button"
 				class="w-full h-full text-left"
-				on:pointerdown|preventDefault={(e) => onTechTooltip(e, futureTech.tech, true)}
+				onpointerdown={preventDefault((e) => onTechTooltip(e, futureTech.tech, true))}
 				>{futureTech.tech.name}</button
 			>
 		</li>

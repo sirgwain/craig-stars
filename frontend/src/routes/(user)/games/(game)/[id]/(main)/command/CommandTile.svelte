@@ -4,7 +4,12 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { readable } from 'svelte/store';
 
-	export let title = '';
+	interface Props {
+		title?: string;
+		children?: import('svelte').Snippet;
+	}
+
+	let { title = '', children }: Props = $props();
 
 	// if we are in a CommandPaneCarousel, show the disclosure chevrons and hide/show the command pane on click
 	let carouselContext = getCarouselContext();
@@ -17,7 +22,7 @@
 		<button
 			class:cursor-default={!showDisclosure}
 			class="w-full"
-			on:click={carouselContext?.onDisclosureClicked}
+			onclick={carouselContext?.onDisclosureClicked}
 		>
 			<div class="flex flex-row items-center mb-1">
 				<div class="flex-1 text-center text-lg font-semibold text-secondary">
@@ -32,6 +37,6 @@
 				{/if}
 			</div>
 		</button>
-		<slot />
+		{@render children?.()}
 	</div>
 </div>

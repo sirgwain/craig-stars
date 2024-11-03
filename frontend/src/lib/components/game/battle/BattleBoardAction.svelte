@@ -7,9 +7,13 @@
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
-	export let battle: Battle;
-	export let action: TokenAction | undefined;
-	export let phase: number;
+	interface Props {
+		battle: Battle;
+		action: TokenAction | undefined;
+		phase: number;
+	}
+
+	let { battle, action, phase }: Props = $props();
 
 	function getTokenDescription(tokenNum?: number): string {
 		if (!tokenNum) {

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { techs } from '$lib/services/Stores';
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
@@ -11,13 +13,25 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let type: HullSlotType = HullSlotType.General;
-	export let capacity: number = 1;
-	export let required = false;
-	export let shipDesignSlot: ShipDesignSlot | undefined = undefined;
-	export let highlighted = false;
-	export let highlightedClass = 'border-accent';
-	export let showTooltips = false;
+	interface Props {
+		type?: HullSlotType;
+		capacity?: number;
+		required?: boolean;
+		shipDesignSlot?: ShipDesignSlot | undefined;
+		highlighted?: boolean;
+		highlightedClass?: string;
+		showTooltips?: boolean;
+	}
+
+	let {
+		type = HullSlotType.General,
+		capacity = 1,
+		required = false,
+		shipDesignSlot = $bindable(undefined),
+		highlighted = false,
+		highlightedClass = 'border-accent',
+		showTooltips = false
+	}: Props = $props();
 
 	function typeDescription() {
 		switch (type) {
@@ -66,14 +80,14 @@
 >
 	<button
 		type="button"
-		on:click={() => {
+		onclick={() => {
 			dispatch('clicked');
 		}}
-		on:pointerdown|preventDefault={(e) => {
+		onpointerdown={preventDefault((e) => {
 			if (shipDesignSlot?.hullComponent && showTooltips) {
 				onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent));
 			}
-		}}
+		})}
 		class="w-full h-full"
 	>
 		<div class="flex flex-col justify-between w-full h-full">
@@ -98,14 +112,14 @@
 		type="button"
 		class="btn btn-sm px-1 z-30"
 		disabled={capacity === shipDesignSlot?.quantity}
-		on:click={() => shipDesignSlot?.quantity && shipDesignSlot.quantity++}
+		onclick={() => shipDesignSlot?.quantity && shipDesignSlot.quantity++}
 	>
 		<Icon src={Plus} size="24" class="hover:stroke-accent" />
 	</button>
 	<button
 		type="button"
 		class="btn btn-sm px-1 z-30"
-		on:click={() => {
+		onclick={() => {
 			if (shipDesignSlot?.quantity != undefined) {
 				shipDesignSlot.quantity--;
 				if (shipDesignSlot.quantity === 0) {
@@ -121,7 +135,7 @@
 	<button
 		type="button"
 		class="btn btn-sm px-1 z-30"
-		on:click={() => {
+		onclick={() => {
 			dispatch('deleted');
 		}}
 	>

@@ -7,7 +7,7 @@
 
 	const { game, player, universe } = getGameContext();
 
-	$: players = $universe.players;
+	let players = $derived($universe.players);
 </script>
 
 <table class="table table-zebra table-fixed mx-auto w-full sm:w-auto">

@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { emptyCargo, type Cargo } from '$lib/types/Cargo';
 
-	export let cargo: Cargo = emptyCargo();
-	export let transferAmount: Cargo = emptyCargo();
+	interface Props {
+		cargo?: Cargo;
+		transferAmount?: Cargo;
+	}
+
+	let { cargo = emptyCargo(), transferAmount = emptyCargo() }: Props = $props();
 </script>
 
 <div class="grid grid-cols-2">

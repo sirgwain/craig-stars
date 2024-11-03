@@ -21,13 +21,17 @@
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
-		<li>Production Plans</li>
-	</svelte:fragment>
+	{#snippet crumbs()}
+	
+			<li>Production Plans</li>
+		
+	{/snippet}
 
-	<div slot="end" class="flex justify-end mb-1">
-		<a class="cs-link btn btn-sm" href={`/games/${$game.id}/production-plans/create`}>Create</a>
-	</div>
+	{#snippet end()}
+		<div  class="flex justify-end mb-1">
+			<a class="cs-link btn btn-sm" href={`/games/${$game.id}/production-plans/create`}>Create</a>
+		</div>
+	{/snippet}
 </Breadcrumb>
 
 {#if $player.productionPlans.length}

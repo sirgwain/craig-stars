@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { CargoTransferRequest } from '$lib/types/Cargo';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type { Planet } from '$lib/types/Planet';
@@ -22,10 +22,14 @@
 
 	const dispatch = createEventDispatcher<CargoTransferEvent>();
 
-	export let src: CommandedFleet;
-	export let dest: Fleet | Planet | Salvage | undefined;
+	interface Props {
+		src: CommandedFleet;
+		dest: Fleet | Planet | Salvage | undefined;
+	}
 
-	let transferAmount = new CargoTransferRequest();
+	let { src = $bindable(), dest }: Props = $props();
+
+	let transferAmount = $state(new CargoTransferRequest());
 
 	function reset() {
 		transferAmount = new CargoTransferRequest();
@@ -66,8 +70,8 @@
 			<div class="flex flex-col h-full w-full">
 				<CargoTransferer {src} {dest} bind:transferAmount />
 				<div class="flex justify-end pt-2">
-					<button on:click={ok} class="btn btn-primary">Ok</button>
-					<button on:click={cancel} class="btn btn-secondary">Cancel</button>
+					<button onclick={ok} class="btn btn-primary">Ok</button>
+					<button onclick={cancel} class="btn btn-secondary">Cancel</button>
 				</div>
 			</div>
 		</div>

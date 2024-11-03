@@ -1,5 +1,9 @@
 <script lang="ts">
-	export let title: string | undefined = '';
+	interface Props {
+		title?: string | undefined;
+	}
+
+	let { title = '' }: Props = $props();
 </script>
 
 <div class="text-xl breadcrumbs">

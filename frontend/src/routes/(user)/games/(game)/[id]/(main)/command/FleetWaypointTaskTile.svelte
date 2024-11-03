@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import DropdownButton from '$lib/components/DropdownButton.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import OtherMapObjectsHere from '$lib/components/game/OtherMapObjectsHere.svelte';
@@ -27,18 +29,24 @@
 
 	const { game, player, universe, updateFleetOrders } = getGameContext();
 
-	export let fleet: CommandedFleet;
-	export let selectedWaypoint: Waypoint | undefined;
+	interface Props {
+		fleet: CommandedFleet;
+		selectedWaypoint: Waypoint | undefined;
+	}
 
-	$: selectedWaypointTask = selectedWaypoint?.task ?? WaypointTask.None;
-	$: selectedWaypointPlanet =
-		selectedWaypoint &&
+	let { fleet, selectedWaypoint = $bindable() }: Props = $props();
+
+	let selectedWaypointTask = $derived(selectedWaypoint?.task ?? WaypointTask.None);
+	let selectedWaypointPlanet =
+		$derived(selectedWaypoint &&
 		selectedWaypoint.targetType == MapObjectType.Planet &&
 		selectedWaypoint.targetNum
 			? $universe.getPlanet(selectedWaypoint.targetNum)
-			: undefined;
+			: undefined);
 
-	$: console.log('selectedWaypoint', selectedWaypoint, selectedWaypointPlanet?.name);
+	run(() => {
+		console.log('selectedWaypoint', selectedWaypoint, selectedWaypointPlanet?.name);
+	});
 
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {
 		if (selectedWaypoint) {
@@ -120,10 +128,10 @@
 				<select
 					class="select select-outline select-secondary select-sm text-sm w-36"
 					value={selectedWaypointTask}
-					on:change|preventDefault={(e) =>
+					onchange={preventDefault((e) =>
 						onSelectedWaypointTaskChange(
 							eu(WaypointTask).getValueOrDefault(e.currentTarget.value, WaypointTask.None)
-						)}
+						))}
 				>
 					{#each eu(WaypointTask).getValues() as task}
 						{#if task === WaypointTask.None}
@@ -146,7 +154,7 @@
 				<div class="ml-auto mt-1 flex flex-row gap-1">
 					<div>
 						<button
-							on:click={() =>
+							onclick={() =>
 								selectedWaypoint &&
 								dispatch('transport-tasks-dialog', { fleet, waypoint: selectedWaypoint })}
 							class="btn btn-outline btn-sm normal-case btn-secondary inline-block p-1"
@@ -192,7 +200,7 @@
 			<select
 				class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
 				bind:value={selectedWaypoint.layMineFieldDuration}
-				on:change|preventDefault={() => onLayMineFieldDurationChanged()}
+				onchange={preventDefault(() => onLayMineFieldDurationChanged())}
 			>
 				<option value={undefined}>Indefinitely</option>
 				<option value={1}>for 1 year</option>
@@ -211,7 +219,7 @@
 					<select
 						class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
 						bind:value={selectedWaypoint.patrolRange}
-						on:change|preventDefault={() => onPatrolRangeChanged()}
+						onchange={preventDefault(() => onPatrolRangeChanged())}
 					>
 						<option value={50}>within 50 l.y.</option>
 						<option value={100}>within 100 l.y.</option>
@@ -244,7 +252,7 @@
 			<select
 				class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
 				bind:value={selectedWaypoint.transferToPlayer}
-				on:change|preventDefault={() => onTransferToPlayerChanged()}
+				onchange={preventDefault(() => onTransferToPlayerChanged())}
 			>
 				<option value={undefined}>None</option>
 				{#each $game.players as otherPlayer}

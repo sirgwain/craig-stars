@@ -1,8 +1,12 @@
 <script lang="ts">
 	import type { Mineral } from '$lib/types/Mineral';
 
-	export let mineral: Mineral | undefined;
-	export let showUnits = false;
+	interface Props {
+		mineral: Mineral | undefined;
+		showUnits?: boolean;
+	}
+
+	let { mineral, showUnits = false }: Props = $props();
 </script>
 
 {#if mineral}

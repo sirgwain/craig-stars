@@ -1,11 +1,16 @@
 <script lang="ts">
-	export let style: string | undefined = undefined;
+	interface Props {
+		style?: string | undefined;
+		[key: string]: any
+	}
+
+	let { style = undefined, ...rest }: Props = $props();
 </script>
 
 <svg
 	xmlns="http://www.w3.org/2000/svg"
 	{style}
-	{...$$restProps}
+	{...rest}
 	viewBox="0 0 16 16"
 >
 	<path

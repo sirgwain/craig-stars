@@ -32,7 +32,7 @@
 		return false;
 	};
 
-	$: planets = $universe.planets;
+	let planets = $derived($universe.planets);
 </script>
 
 <!-- Planets -->

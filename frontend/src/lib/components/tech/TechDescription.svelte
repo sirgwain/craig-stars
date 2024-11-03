@@ -15,17 +15,21 @@
 	import { onMount } from 'svelte';
 	import HullComponent from './hull/HullComponent.svelte';
 
-	export let tech: Tech;
-	export let rules: Rules = defaultRules;
+	interface Props {
+		tech: Tech;
+		rules?: Rules;
+	}
+
+	let { tech, rules = defaultRules }: Props = $props();
 
 	type Stat = {
 		label: string;
 		text: string;
 	};
 
-	let stats: Stat[] = [];
-	let descriptions: string[] = [];
-	let warnings: string[] = [];
+	let stats: Stat[] = $state([]);
+	let descriptions: string[] = $state([]);
+	let warnings: string[] = $state([]);
 
 	onMount(() => {
 		if (tech.category == TechCategory.ShipHull || tech.category == TechCategory.StarbaseHull) {

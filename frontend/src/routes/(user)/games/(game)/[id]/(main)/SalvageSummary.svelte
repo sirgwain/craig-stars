@@ -5,7 +5,11 @@
 
 	const { game, player, universe } = getGameContext();
 
-	export let salvage: Salvage;
+	interface Props {
+		salvage: Salvage;
+	}
+
+	let { salvage }: Props = $props();
 </script>
 
 <div class="flex flex-row min-h-[11rem]">

@@ -5,7 +5,7 @@
 
 	const lightTheme = 'emerald'
 	const darkTheme = 'business'
-	let isDark = false;
+	let isDark = $state(false);
 	onMount(() => {
 		isDark =
 			localStorage.theme === darkTheme ||
@@ -25,7 +25,7 @@
 	}
 </script>
 
-<button on:click={toggleTheme} class="pt-2 pb-3" type="button">
+<button onclick={toggleTheme} class="pt-2 pb-3" type="button">
 	{#if isDark}
 		<Icon src={Sun} size="24" class="hover:stroke-accent" />
 	{:else}

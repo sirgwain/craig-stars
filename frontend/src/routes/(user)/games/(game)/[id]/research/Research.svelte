@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
@@ -29,14 +31,14 @@
 		dispatch('update-player');
 	};
 
-	let spent = 0;
-	$: {
+	let spent = $state(0);
+	run(() => {
 		const field: keyof TechLevel = `${$player.researching}`.toLowerCase() as keyof TechLevel;
 		spent = $player.techLevelsSpent[field] ?? 0;
-	}
+	});
 
-	$: leftToSpend = ($player.spec.currentResearchCost ?? 0) - spent;
-	$: yearsLeft = Math.ceil(leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0));
+	let leftToSpend = $derived(($player.spec.currentResearchCost ?? 0) - spent);
+	let yearsLeft = $derived(Math.ceil(leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0)));
 </script>
 
 <ItemTitle>Research</ItemTitle>
@@ -93,8 +95,12 @@
 			unit="%"
 			on:change={updatePlayerOrders}
 		>
-			<svelte:fragment slot="begin">Research Budget</svelte:fragment>
-			<svelte:fragment slot="end"></svelte:fragment>
+			{#snippet begin()}
+						Research Budget
+					{/snippet}
+			{#snippet end()}
+						<svelte:fragment ></svelte:fragment>
+					{/snippet}
 		</SpinnerNumberText>
 
 		<div class="grid grid-cols-2">
@@ -114,7 +120,7 @@
 							value={field}
 							class="radio radio-sm checked:bg-primary"
 							bind:group={$player.researching}
-							on:change={updatePlayerOrders}
+							onchange={updatePlayerOrders}
 						/>
 					</label>
 				</div>

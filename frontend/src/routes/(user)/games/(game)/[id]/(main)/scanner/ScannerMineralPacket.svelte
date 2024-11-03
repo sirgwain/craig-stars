@@ -10,8 +10,12 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	export let mineralPacket: MineralPacket;
-	export let color = '#0900FF';
+	interface Props {
+		mineralPacket: MineralPacket;
+		color?: string;
+	}
+
+	let { mineralPacket, color = '#0900FF' }: Props = $props();
 
 	const size = 10;
 </script>

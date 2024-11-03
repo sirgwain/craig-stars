@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { User } from '$lib/types/User';
 
-	export let user: User;
+	interface Props {
+		user: User;
+	}
+
+	let { user }: Props = $props();
 </script>
 
 {#if user.discordAvatar && user.discordAvatar != ''}

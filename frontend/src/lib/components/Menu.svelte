@@ -7,11 +7,15 @@
 	import Discord from './icons/Discord.svelte';
 	import GitHub from './icons/GitHub.svelte';
 
-	export let user: User | undefined;
+	interface Props {
+		user: User | undefined;
+	}
+
+	let { user }: Props = $props();
 </script>
 
-<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-<!-- svelte-ignore a11y-label-has-associated-control -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<!-- svelte-ignore a11y_label_has_associated_control -->
 <div class="navbar bg-base-100 flex flex-row">
 	<div class="flex-1">
 		<a class="btn btn-ghost text-xl text-accent" href="/"

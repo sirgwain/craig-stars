@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { page } from '$app/stores';
 
 	import { goto } from '$app/navigation';
@@ -12,7 +14,7 @@
 	import { notify } from '$lib/services/Notifications';
 
 	let id = $page.params.id;
-	let race: Race;
+	let race: Race = $state();
 
 	onMount(async () => {
 		if (id !== 'new') {
@@ -51,11 +53,11 @@
 		notify('Saved ' + race.pluralName);
 	};
 
-	let points = 0;
+	let points = $state(0);
 </script>
 
 {#if race}
-	<form on:submit|preventDefault={onSubmit}>
+	<form onsubmit={preventDefault(onSubmit)}>
 		<div class="w-full flex justify-end gap-2">
 			<button class="btn btn-success" type="submit" disabled={points < 0}>Save</button>
 		</div>

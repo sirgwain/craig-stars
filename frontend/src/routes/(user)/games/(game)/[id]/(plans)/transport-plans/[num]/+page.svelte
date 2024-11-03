@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import { page } from '$app/stores';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
@@ -10,9 +12,12 @@
 	const { game, player, updateTransportPlan } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: plan = $player.transportPlans.find((p) => p.num == num);
+	let plan;
+	run(() => {
+		plan = $player.transportPlans.find((p) => p.num == num);
+	});
 
-	let error = '';
+	let error = $state('');
 
 	const onSubmit = async () => {
 		error = '';
@@ -29,15 +34,19 @@
 	};
 </script>
 
-<form on:submit|preventDefault={onSubmit}>
+<form onsubmit={preventDefault(onSubmit)}>
 	<Breadcrumb>
-		<svelte:fragment slot="crumbs">
-			<li><a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a></li>
-			<li>{plan?.name ?? '<unknown>'}</li>
-		</svelte:fragment>
-		<div slot="end" class="flex justify-end mb-1">
-			<button class="btn btn-success mx-1" type="submit">Save</button>
-		</div>
+		{#snippet crumbs()}
+			
+				<li><a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a></li>
+				<li>{plan?.name ?? '<unknown>'}</li>
+			
+			{/snippet}
+		{#snippet end()}
+				<div  class="flex justify-end mb-1">
+				<button class="btn btn-success mx-1" type="submit">Save</button>
+			</div>
+			{/snippet}
 	</Breadcrumb>
 
 	<FormError {error} />

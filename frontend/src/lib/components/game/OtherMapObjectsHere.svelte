@@ -12,18 +12,25 @@
 	interface Dictionary<T> {
 		[index: string]: T;
 	}
+props.props.props.props.
+	interface Props {
+		fleet: CommandedFleet;
+		otherMapObjectsHere: Dictionary<MapObject[]>;
+		target: Target;
+		position: Vector;
+		[key: string]: any
+	}
 
-	export let fleet: CommandedFleet;
-	export let otherMapObjectsHere: Dictionary<MapObject[]>;
-	export let target: Target;
-	export let position: Vector;
+	let {
+		...props
+	}: Props = $props();
 
 	// true if this mapObject is also our current target
 	function isTarget(mo: MapObject) {
 		return (
-			mo.type === target.targetType &&
-			mo.num === target.targetNum &&
-			(mo.playerNum ?? 0) === (target.targetPlayerNum ?? 0)
+			mo.type === props.target.targetType &&
+			mo.num === props.target.targetNum &&
+			(mo.playerNum ?? 0) === (props.target.targetPlayerNum ?? 0)
 		);
 	}
 
@@ -32,54 +39,54 @@
 		dispatch('selected', selected);
 	}
 
-	$: everythingElse = flatten(
-		keys(otherMapObjectsHere).map((k) =>
+	let everythingElse = $derived(flatten(
+		keys(props.otherMapObjectsHere).map((k) =>
 			k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
-				? otherMapObjectsHere[k]
+				? props.otherMapObjectsHere[k]
 				: []
 		)
-	);
-	$: allObjects = [
-		{ type: MapObjectType.None, position: position },
-		...(otherMapObjectsHere[MapObjectType.Planet] ?? []),
-		...(otherMapObjectsHere[MapObjectType.Fleet] ?? []),
-		...(otherMapObjectsHere[MapObjectType.MineField] ?? []),
+	));
+	let allObjects = $derived([
+		{ type: MapObjectType.None, props.position: props.position },
+		...(props.otherMapObjectsHere[MapObjectType.Planet] ?? []),
+		...(props.otherMapObjectsHere[MapObjectType.Fleet] ?? []),
+		...(props.otherMapObjectsHere[MapObjectType.MineField] ?? []),
 		...everythingElse
-	];
+	]);
 </script>
 
 <select
-	style={target.targetPlayerNum && target.targetPlayerNum != $player.num
-		? `color: ${$universe.getPlayerColor(target.targetPlayerNum)};`
+	style={props.target.targetPlayerNum && props.target.targetPlayerNum != $player.num
+		? `color: ${$universe.getPlayerColor(props.target.targetPlayerNum)};`
 		: ''}
-	on:change={(e) => onSelectChange(parseInt(e.currentTarget.value))}
-	class={`select select-outline select-secondary select-sm text-sm ${$$props.class}`}
+	onchange={(e) => onSelectChange(parseInt(e.currentTarget.value))}
+	class={`select select-outline select-secondary select-sm text-sm ${props.class}`}
 >
 	<!-- allow for the non target -->
 	<optgroup label="Space">
-		<option selected={target.targetType === MapObjectType.None} value={0}
-			>{`Space (${position.x ?? 0}, ${position.y ?? 0})`}</option
+		<option selected={props.target.targetType === MapObjectType.None} value={0}
+			>{`Space (${props.position.x ?? 0}, ${props.position.y ?? 0})`}</option
 		>
 	</optgroup>
 
-	{#if otherMapObjectsHere[MapObjectType.Planet]}
+	{#if props.otherMapObjectsHere[MapObjectType.Planet]}
 		<optgroup label="Planets">
-			{#each otherMapObjectsHere[MapObjectType.Planet] as mo, index}
+			{#each props.otherMapObjectsHere[MapObjectType.Planet] as mo, index}
 				<option selected={isTarget(mo)} value={1 + index}>{mo.name}</option>
 			{/each}
 		</optgroup>
 	{/if}
 
-	{#if otherMapObjectsHere[MapObjectType.Fleet]}
+	{#if props.otherMapObjectsHere[MapObjectType.Fleet]}
 		<optgroup label="Fleets">
-			{#each otherMapObjectsHere[MapObjectType.Fleet] as mo, index}
-				{#if !equal(fleet, mo)}
+			{#each props.otherMapObjectsHere[MapObjectType.Fleet] as mo, index}
+				{#if !equal(props.fleet, mo)}
 					<option
 						style={mo.playerNum != $player.num
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
 							: ''}
 						selected={isTarget(mo)}
-						value={1 + index + (otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0)}
+						value={1 + index + (props.otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0)}
 						>{getMapObjectName(mo)}</option
 					>
 				{/if}
@@ -87,15 +94,15 @@
 		</optgroup>
 	{/if}
 
-	{#if otherMapObjectsHere[MapObjectType.MineField]}
+	{#if props.otherMapObjectsHere[MapObjectType.MineField]}
 		<optgroup label="Mine Fields">
-			{#each otherMapObjectsHere[MapObjectType.MineField] as mo, index}
+			{#each props.otherMapObjectsHere[MapObjectType.MineField] as mo, index}
 				<option
 					selected={isTarget(mo)}
 					value={1 +
 						index +
-						(otherMapObjectsHere[MapObjectType.Planet]?.length ??
-							0 + otherMapObjectsHere[MapObjectType.Fleet]?.length ??
+						(props.otherMapObjectsHere[MapObjectType.Planet]?.length ??
+							0 + props.otherMapObjectsHere[MapObjectType.Fleet]?.length ??
 							0)}>{mo.name}</option
 				>
 			{/each}
@@ -109,9 +116,9 @@
 					selected={isTarget(mo)}
 					value={1 +
 						index +
-						(otherMapObjectsHere[MapObjectType.Planet]?.length ??
-							0 + otherMapObjectsHere[MapObjectType.Fleet]?.length ??
-							0 + otherMapObjectsHere[MapObjectType.MineField]?.length ??
+						(props.otherMapObjectsHere[MapObjectType.Planet]?.length ??
+							0 + props.otherMapObjectsHere[MapObjectType.Fleet]?.length ??
+							0 + props.otherMapObjectsHere[MapObjectType.MineField]?.length ??
 							0)}>{mo.name}</option
 				>
 			{/each}

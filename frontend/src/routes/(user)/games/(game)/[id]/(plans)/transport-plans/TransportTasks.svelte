@@ -2,7 +2,11 @@
 	import { WaypointTaskTransportAction, type WaypointTransportTasks } from '$lib/types/Fleet';
 	import TransportTasks from './TransportTask.svelte';
 
-	export let transportTasks: WaypointTransportTasks;
+	interface Props {
+		transportTasks: WaypointTransportTasks;
+	}
+
+	let { transportTasks = $bindable() }: Props = $props();
 </script>
 
 <div class="grid grid-cols-4 mt-2">

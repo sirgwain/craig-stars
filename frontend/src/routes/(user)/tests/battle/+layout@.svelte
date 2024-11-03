@@ -1,6 +1,11 @@
 <script lang="ts">
 	import Menu from '$lib/components/Menu.svelte';
 	import { me } from '$lib/services/Stores';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 </script>
 
 <main class="p-3 flex flex-col">
@@ -9,7 +14,7 @@
 	</div>
 	<div class="relative">
 		<div class="w-full mx-auto">
-			<slot>This is the main content</slot>
+			{#if children}{@render children()}{:else}This is the main content{/if}
 		</div>
 	</div>
 </main>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import DiscordLink from './DiscordLink.svelte';
 
 	const onSubmit = async () => {
@@ -22,10 +24,11 @@
 		}
 	};
 
-	let user = '';
-	let passwd = '';
-	$: loginError = '';
-	let showAdmin = false;
+	let user = $state('');
+	let passwd = $state('');
+	let loginError = $state('');
+	
+	let showAdmin = $state(false);
 </script>
 
 <div class="flex flex-col p-2">
@@ -35,7 +38,7 @@
 		</div>
 	{/if}
 	<div>
-		<button class="cs-link" on:click={() => (showAdmin = !showAdmin)}>
+		<button class="cs-link" onclick={() => (showAdmin = !showAdmin)}>
 			{#if showAdmin}
 				I'm not an admin
 			{:else}
@@ -46,7 +49,7 @@
 	{#if showAdmin}
 		<div class="text-left mx-auto">
 			<!-- content here -->
-			<form on:submit|preventDefault={onSubmit}>
+			<form onsubmit={preventDefault(onSubmit)}>
 				<label class="label block">
 					<span class="label-text">Username</span>
 					<input bind:value={user} required type="text" name="user" class="input input-bordered" autocapitalize="off" />

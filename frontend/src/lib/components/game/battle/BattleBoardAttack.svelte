@@ -1,22 +1,33 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import TorpedoHit from '$lib/components/icons/TorpedoHit.svelte';
 	import { Battle, TokenActionType } from '$lib/types/Battle';
 	import { subtract } from '$lib/types/Vector';
 
-	export let battle: Battle;
-	export let phase: number;
+	interface Props {
+		battle: Battle;
+		phase: number;
+	}
+
+	let { battle, phase }: Props = $props();
 
 	// let tweenedX = tweened(0);
 	// let tweenedY = tweened(0);
 
-	$: actionToken = battle.getActionToken(phase ?? 0);
-	$: action = battle.getActionForPhase(phase ?? 0);
-	$: targetVector = action && actionToken && subtract(action.to, actionToken);
+	let actionToken = $derived(battle.getActionToken(phase ?? 0));
+	let action = $derived(battle.getActionForPhase(phase ?? 0));
+	let targetVector;
+	run(() => {
+		targetVector = action && actionToken && subtract(action.to, actionToken);
+	});
 
 	// if we are doing a same square attack
-	$: targetVector && targetVector.x === 0 && targetVector.y === 0
-		? (targetVector = { x: 0.5, y: 0.5 })
-		: undefined;
+	run(() => {
+		targetVector && targetVector.x === 0 && targetVector.y === 0
+			? (targetVector = { x: 0.5, y: 0.5 })
+			: undefined;
+	});
 
 	// $: {
 	// 	if (actionToken && action) {

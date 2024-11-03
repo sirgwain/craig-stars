@@ -6,16 +6,20 @@
 	const dispatch = createEventDispatcher();
 
 	type T = $$Generic;
-	export let column: TableColumn<T>;
-	export let isSorted: boolean = false;
-	export let sortDescending: boolean = false;
+	interface Props {
+		column: TableColumn<T>;
+		isSorted?: boolean;
+		sortDescending?: boolean;
+	}
+
+	let { column, isSorted = false, sortDescending = false }: Props = $props();
 </script>
 
 <div class="h-full">
 	{#if column.sortable ?? true}
 		<button
 			class="hover:text-accent cursor-pointer select-none"
-			on:click={() =>
+			onclick={() =>
 				dispatch('sorted', { sortDescending: isSorted ? !sortDescending : false, column })}
 		>
 			{column.title}

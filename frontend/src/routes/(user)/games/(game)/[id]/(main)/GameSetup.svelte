@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { goto } from '$app/navigation';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
@@ -17,7 +19,7 @@
 
 	const { game, loadStatus, startPollingStatus, stopPollingStatus, updateGame } = getGameContext();
 
-	let settings: GameSettings = {
+	let settings: GameSettings = $state({
 		name: $game.name,
 		public: $game.public,
 		quickStartTurns: $game.quickStartTurns,
@@ -33,7 +35,7 @@
 		startMode: $game.startMode,
 		year: $game.year,
 		victoryConditions: $game.victoryConditions
-	};
+	});
 
 	async function onLeave() {
 		const response = await fetch(`/api/games/${$game.id}/leave`, {
@@ -104,7 +106,7 @@
 	}
 	let error = '';
 
-	let player: PlayerResponse | undefined;
+	let player: PlayerResponse | undefined = $state();
 
 	onMount(async () => {
 		player = await GameService.loadFullPlayer($game.id);
@@ -113,9 +115,9 @@
 
 	onDestroy(stopPollingStatus);
 
-	$: isHost = $me.id === $game.hostId;
-	$: myPlayer = $game.players.find((p) => p.userId == $me.id);
-	$: hasGuests = isHost && $game.players.find((p) => p.guest);
+	let isHost = $derived($me.id === $game.hostId);
+	let myPlayer = $derived($game.players.find((p) => p.userId == $me.id));
+	let hasGuests = $derived(isHost && $game.players.find((p) => p.guest));
 </script>
 
 <div class="w-full mx-auto md:max-w-3xl">
@@ -174,13 +176,13 @@
 								<div class="flex grow justify-center mx-2">
 									{#if !playerStatus.aiControlled && playerStatus.userId && index != 0}
 										<button
-											on:click={() => onKickPlayer(playerStatus.num)}
+											onclick={() => onKickPlayer(playerStatus.num)}
 											type="button"
 											class="w-full btn btn-outline btn-sm my-1 normal-case">Kick</button
 										>
 									{:else if playerStatus.aiControlled || !playerStatus.userId}
 										<button
-											on:click={() => onDeletePlayer(playerStatus.num)}
+											onclick={() => onDeletePlayer(playerStatus.num)}
 											type="button"
 											class="w-full btn btn-outline btn-sm my-1 normal-case">Delete</button
 										>
@@ -199,26 +201,26 @@
 		</div>
 		<div class="flex flex-row gap-1 mt-1">
 			{#if isHost}
-				<button type="submit" class="btn btn-primary" on:click|preventDefault={onUpdateGame}
+				<button type="submit" class="btn btn-primary" onclick={preventDefault(onUpdateGame)}
 					>Update Game</button
 				>
-				<button type="button" class="btn btn-secondary" on:click={() => onAddAIPlayer()}
+				<button type="button" class="btn btn-secondary" onclick={() => onAddAIPlayer()}
 					>Add AI</button
 				>
-				<button type="button" class="btn btn-secondary" on:click={() => onAddOpenSlot()}
+				<button type="button" class="btn btn-secondary" onclick={() => onAddOpenSlot()}
 					>Add Open Slot</button
 				>
-				<button type="button" class="btn btn-secondary" on:click={() => onAddGuestPlayer()}
+				<button type="button" class="btn btn-secondary" onclick={() => onAddGuestPlayer()}
 					>Add Guest</button
 				>
 				<button
 					disabled={$game.players.findIndex((p) => !p.ready) != -1}
 					type="button"
 					class="btn btn-secondary ml-auto"
-					on:click={onStartGame}>Start Game</button
+					onclick={onStartGame}>Start Game</button
 				>
 			{:else if $game.players.findIndex((p) => p.userId === $me.id) != -1}
-				<button type="button" class="btn btn-secondary" on:click={onLeave}>Leave Game</button>
+				<button type="button" class="btn btn-secondary" onclick={onLeave}>Leave Game</button>
 			{/if}
 		</div>
 	</form>

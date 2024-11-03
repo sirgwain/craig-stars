@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet, Waypoint } from '$lib/types/Fleet';
 	import { StargateWarpSpeed } from '$lib/types/Constants';
@@ -10,18 +12,22 @@
 	const scale = getContext<Writable<number>>('scale');
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	export let fleet: Fleet;
-	export let commanded = false;
-	export let selectedWaypoint: Waypoint | undefined;
+	interface Props {
+		fleet: Fleet;
+		commanded?: boolean;
+		selectedWaypoint: Waypoint | undefined;
+	}
+
+	let { fleet, commanded = false, selectedWaypoint }: Props = $props();
 
 	type WaypointLineSegment = {
 		path: string;
 		props: any;
 	};
 
-	let segments: WaypointLineSegment[] = [];
+	let segments: WaypointLineSegment[] = $state([]);
 
-	$: {
+	run(() => {
 		segments = [];
 
 		if (fleet.waypoints) {
@@ -54,7 +60,7 @@
 				});
 			}
 		}
-	}
+	});
 </script>
 
 {#each segments as segment}

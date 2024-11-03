@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
@@ -20,9 +22,13 @@
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { player, universe } = getGameContext();
 
-	export let fleet: Fleet;
+	interface Props {
+		fleet: Fleet;
+	}
 
-	let design: ShipDesign | undefined;
+	let { fleet }: Props = $props();
+
+	let design: ShipDesign | undefined = $state();
 
 	function getIcon(fleet: Fleet): string {
 		if (fleet.tokens && fleet.tokens.length > 0) {
@@ -70,7 +76,7 @@
 						type="button"
 						aria-label="Opens ship design tooltip"
 						class="w-full h-full cursor-help"
-						on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
+						onpointerdown={preventDefault((e) => onShipDesignTooltip(e, design))}
 					></button>
 				</div>
 			</div>
@@ -141,8 +147,8 @@
 								<button
 									type="button"
 									class="w-full cursor-help"
-									on:pointerdown|preventDefault={(e) =>
-										onShipDesignTooltip(e, $universe.getDesign(fleet.playerNum, token.designNum))}
+									onpointerdown={preventDefault((e) =>
+										onShipDesignTooltip(e, $universe.getDesign(fleet.playerNum, token.designNum)))}
 								>
 									<span class="flex flex-row justify-between relative">
 										{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}

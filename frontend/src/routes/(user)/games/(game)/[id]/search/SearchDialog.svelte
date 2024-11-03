@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { type MapObject } from '$lib/types/MapObject';
 	export type SearchDialogEvent = {
 		'select-result': MapObject | undefined;
@@ -12,7 +12,11 @@
 
 	const dispatch = createEventDispatcher<SearchDialogEvent>();
 
-	export let show = false;
+	interface Props {
+		show?: boolean;
+	}
+
+	let { show = $bindable(false) }: Props = $props();
 
 	function onOk(mo: MapObject | undefined) {
 		show = false;

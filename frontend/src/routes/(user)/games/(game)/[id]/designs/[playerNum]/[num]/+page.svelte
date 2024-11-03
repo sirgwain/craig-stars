@@ -11,17 +11,19 @@
 	let playerNum = parseInt($page.params.playerNum);
 	let num = parseInt($page.params.num);
 
-	$: design = $universe.getDesign(playerNum, num);
+	let design = $derived($universe.getDesign(playerNum, num));
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
-		<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
-		<li>
-			<a href={`/games/${$game.id}/designs/${playerNum}`}>{$universe.getPlayerPluralName(playerNum)}</a>
-		</li>
-		<li>{design?.name ?? 'not found'}</li>
-	</svelte:fragment>
+	{#snippet crumbs()}
+	
+			<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
+			<li>
+				<a href={`/games/${$game.id}/designs/${playerNum}`}>{$universe.getPlayerPluralName(playerNum)}</a>
+			</li>
+			<li>{design?.name ?? 'not found'}</li>
+		
+	{/snippet}
 </Breadcrumb>
 
 {#if design}

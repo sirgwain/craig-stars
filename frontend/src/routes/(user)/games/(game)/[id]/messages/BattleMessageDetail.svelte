@@ -6,7 +6,11 @@
 
 	const { game, player, universe, settings } = getGameContext();
 
-	export let message: Message;
+	interface Props {
+		message: Message;
+	}
+
+	let { message }: Props = $props();
 
 	type Details = {
 		present: boolean;
@@ -26,7 +30,7 @@
 		}
 	}
 
-	$: details = getBattleMessageDetails(message);
+	let details = $derived(getBattleMessageDetails(message));
 </script>
 
 {#if message.text}

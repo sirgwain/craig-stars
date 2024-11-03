@@ -11,11 +11,11 @@
 	import { PlayerService } from '$lib/services/PlayerService';
 
 	let myGames: Game[];
-	let gamesWaitingToStart: Game[];
-	let openGames: Game[];
-	let newTurnGames: Game[];
-	let singlePlayerGames: Game[];
-	let submittedTurnGames: Game[];
+	let gamesWaitingToStart: Game[] = $state();
+	let openGames: Game[] = $state();
+	let newTurnGames: Game[] = $state();
+	let singlePlayerGames: Game[] = $state();
+	let submittedTurnGames: Game[] = $state();
 	let archivedGames: Game[];
 
 	onMount(() => {

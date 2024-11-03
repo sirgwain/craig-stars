@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import FormError from '$lib/components/FormError.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
@@ -28,28 +30,37 @@
 	const { cs, game, player, universe } = getGameContext();
 	const dispatch = createEventDispatcher();
 
-	export let hull: TechHull;
-	export let design: ShipDesign;
-	export let error: string = '';
-	export let numHullSets = 4;
+	interface Props {
+		hull: TechHull;
+		design: ShipDesign;
+		error?: string;
+		numHullSets?: number;
+	}
 
-	let designSpec: Spec = design?.spec || {};
-	let highlightedSlots: HullSlot[] = [];
+	let {
+		hull,
+		design = $bindable(),
+		error = '',
+		numHullSets = 4
+	}: Props = $props();
+
+	let designSpec: Spec = $state(design?.spec || {});
+	let highlightedSlots: HullSlot[] = $state([]);
 	let highlightedClass: string;
 
 	// only show hull components that actually fit on this hull
 	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotType.None);
 
-	$: {
+	run(() => {
 		if (design) {
 			designSpec = cs.computeShipDesignSpec(design) ?? ({} as Spec);
 		}
-	}
-	$: selectedComponent =
-		$shipDesignerContext.selectedHullComponent ??
+	});
+	let selectedComponent =
+		$derived($shipDesignerContext.selectedHullComponent ??
 		($shipDesignerContext.selectedShipDesignSlot?.hullComponent
 			? $techs.getHullComponent($shipDesignerContext.selectedShipDesignSlot?.hullComponent)
-			: undefined);
+			: undefined));
 
 	onMount(() => {
 		design.hull = hull.name;
@@ -148,7 +159,7 @@
 	};
 </script>
 
-<form on:submit|preventDefault={onSubmit}>
+<form onsubmit={preventDefault(onSubmit)}>
 	<FormError {error} />
 
 	<div class="flex flex-col md:flex-row-reverse justify-center">
@@ -162,7 +173,7 @@
 						<div>
 							<button
 								type="button"
-								on:click={() => updateHullSetNumber(design.hullSetNumber - 1)}
+								onclick={() => updateHullSetNumber(design.hullSetNumber - 1)}
 								class="btn btn-outline btn-xs normal-case btn-secondary"
 							>
 								<Icon src={ChevronLeft} size="16" class="hover:stroke-accent" />
@@ -171,7 +182,7 @@
 						<div>
 							<button
 								type="button"
-								on:click={() => updateHullSetNumber(design.hullSetNumber + 1)}
+								onclick={() => updateHullSetNumber(design.hullSetNumber + 1)}
 								class="btn btn-outline btn-xs normal-case btn-secondary"
 							>
 								<Icon src={ChevronRight} size="16" class="hover:stroke-accent" />
@@ -233,7 +244,7 @@
 								<button
 									type="button"
 									class="w-full h-full"
-									on:click={(e) => onTechHullComponentClicked(hc)}
+									onclick={(e) => onTechHullComponentClicked(hc)}
 								>
 									<div class="flex flex-row place-items-center">
 										<div class="mr-2 pt-1 pl-1">
@@ -255,7 +266,7 @@
 						Cost of one {selectedComponent.name}
 						<span
 							class="inline-block"
-							on:pointerdown|preventDefault={(e) => onTechTooltip(e, selectedComponent)}
+							onpointerdown={preventDefault((e) => onTechTooltip(e, selectedComponent))}
 							><Icon
 								src={QuestionMarkCircle}
 								size="16"

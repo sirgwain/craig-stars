@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import { subtract, normalized } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
@@ -15,11 +17,11 @@
 
 	const strokeWidth = 1;
 
-	$: wormholes = $universe.wormholes.filter((w) => w.destinationNum);
+	let wormholes = $derived($universe.wormholes.filter((w) => w.destinationNum));
 
-	let lines: Line[] = [];
+	let lines: Line[] = $state([]);
 
-	$: {
+	run(() => {
 		const numsUsed = new Set<number>();
 		lines = wormholes
 			.filter((wormhole) => {
@@ -56,7 +58,7 @@
 					}
 				};
 			});
-	}
+	});
 </script>
 
 {#each lines as line}

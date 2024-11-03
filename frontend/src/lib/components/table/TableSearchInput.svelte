@@ -1,5 +1,10 @@
 <script lang="ts">
-	export let value = '';
+	interface Props {
+		value?: string;
+		[key: string]: any
+	}
+
+	let { value = $bindable(''), ...rest }: Props = $props();
 </script>
 
 <input
@@ -12,5 +17,5 @@
 	autocapitalize="off"
 	spellcheck="false"
 	bind:value
-	{...$$restProps}
+	{...rest}
 />

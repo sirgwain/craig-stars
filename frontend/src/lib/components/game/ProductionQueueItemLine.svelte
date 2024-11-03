@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type QueueItemClickedEventDetails = {
 		index: number;
 		queueItem: ProductionQueueItem;
@@ -10,6 +10,8 @@
 </script>
 
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import { NeverBuilt } from '$lib/types/Constants';
 	import type { ProductionQueueItem } from '$lib/types/Production';
@@ -20,21 +22,30 @@
 	const dispatch = createEventDispatcher<QueueItemClickedEvent>();
 	const { universe } = getGameContext();
 
-	export let index: number;
-	export let item: ProductionQueueItem;
-	export let selected = false;
-	export let shortName = false;
+	interface Props {
+		index: number;
+		item: ProductionQueueItem;
+		selected?: boolean;
+		shortName?: boolean;
+	}
 
-	$: yearsToBuildAll = isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll;
-	$: skipped =
-		isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt;
+	let {
+		index,
+		item,
+		selected = false,
+		shortName = false
+	}: Props = $props();
+
+	let yearsToBuildAll = $derived(isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll);
+	let skipped =
+		$derived(isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt);
 </script>
 
 <button
 	type="button"
-	on:click={() => dispatch('queue-item-clicked', { index, queueItem: item })}
-	on:contextmenu|preventDefault={(e) =>
-		onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
+	onclick={() => dispatch('queue-item-clicked', { index, queueItem: item })}
+	oncontextmenu={preventDefault((e) =>
+		onShipDesignTooltip(e, $universe.getMyDesign(item.designNum)))}
 	class:italic={isAuto(item.type)}
 	class:text-queue-item-this-year={!item.skipped &&
 		(item.yearsToBuildOne ?? 0) <= 1 &&

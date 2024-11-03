@@ -7,11 +7,11 @@
 	const { universe, commandedPlanet } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	$: planets = $universe.planets.filter(
+	let planets = $derived($universe.planets.filter(
 		(planet) => planet.packetTargetNum && planet.packetTargetNum != None
-	);
+	));
 
-	$: lines = planets.map((planet) => {
+	let lines = $derived(planets.map((planet) => {
 		// get the target, if it's empty, just point to our planet position (which will render an empty line)
 		// it should not be empty...
 		const target = $universe.getPlanet(planet.packetTargetNum ?? None);
@@ -31,7 +31,7 @@
 				'stroke-dashoffset': `${$xScale(dist / 2) - $xScale(5)}`
 			}
 		};
-	});
+	}));
 </script>
 
 <svg>

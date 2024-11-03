@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { Unexplored } from '$lib/types/Constants';
@@ -13,18 +15,22 @@
 
 	let max = 100; // 100% concentration
 
-	export let planet: Planet;
+	interface Props {
+		planet: Planet;
+	}
+
+	let { planet }: Props = $props();
 
 	const size = 25; // the size of the mineral bars
 	const abovePlanetY = 5;
 
-	let barPercent = {
+	let barPercent = $state({
 		ironium: 0,
 		boranium: 0,
 		germanium: 0
-	};
+	});
 
-	$: {
+	run(() => {
 		if (planet.mineralConcentration) {
 			barPercent = {
 				ironium: clamp(
@@ -44,7 +50,7 @@
 				)
 			};
 		}
-	}
+	});
 </script>
 
 <ScannerPlanetNormal {planet} />

@@ -6,8 +6,12 @@
 
 	const { game, player, universe } = getGameContext();
 
-	export let mineralPacket: MineralPacket;
-	$: target = $universe.getPlanet(mineralPacket.targetPlanetNum);
+	interface Props {
+		mineralPacket: MineralPacket;
+	}
+
+	let { mineralPacket }: Props = $props();
+	let target = $derived($universe.getPlanet(mineralPacket.targetPlanetNum));
 </script>
 
 <div class="flex flex-row min-h-[11rem]">

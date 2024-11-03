@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { createEventDispatcher, onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
@@ -11,17 +13,21 @@
 
 	const { commandedFleet, commandedMapObjectKey, commandMapObject } = getGameContext();
 
-	export let fleet: CommandedFleet;
-	export let fleetsInOrbit: Fleet[];
+	interface Props {
+		fleet: CommandedFleet;
+		fleetsInOrbit: Fleet[];
+	}
 
-	let selectedFleet: Fleet | undefined;
-	let selectedFleetIndex = 0;
+	let { fleet, fleetsInOrbit }: Props = $props();
 
-	$: {
+	let selectedFleet: Fleet | undefined = $state();
+	let selectedFleetIndex = $state(0);
+
+	run(() => {
 		if (fleetsInOrbit.length > 0) {
 			selectedFleet = fleetsInOrbit[selectedFleetIndex];
 		}
-	}
+	});
 
 	const onSelectedFleetChange = (index: number) => {
 		selectedFleetIndex = index;
@@ -54,7 +60,7 @@
 {#if fleet}
 	<CommandTile title="Other Fleets Here">
 		<select
-			on:change={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
+			onchange={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
 			class="select select-outline select-secondary select-sm py-0 text-sm"
 		>
 			{#each fleetsInOrbit as fleet, index}
@@ -66,7 +72,7 @@
 			<div class="flex justify-between my-1 btn-group">
 				<div class="tooltip" data-tip="goto fleet">
 					<button
-						on:click={gotoTarget}
+						onclick={gotoTarget}
 						disabled={!selectedFleet}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto">Goto</button
@@ -74,7 +80,7 @@
 				</div>
 				<div class="tooltip" data-tip="merge fleet">
 					<button
-						on:click={mergeTarget}
+						onclick={mergeTarget}
 						disabled={!selectedFleet}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto"
@@ -83,7 +89,7 @@
 				</div>
 				<div class="tooltip" data-tip="transfer cargo">
 					<button
-						on:click={transfer}
+						onclick={transfer}
 						disabled={!selectedFleet}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto"

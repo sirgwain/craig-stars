@@ -5,11 +5,15 @@
 
 	const { game, player, universe } = getGameContext();
 
-	export let wormhole: Wormhole;
+	interface Props {
+		wormhole: Wormhole;
+	}
 
-	$: destination = wormhole.destinationNum
+	let { wormhole }: Props = $props();
+
+	let destination = $derived(wormhole.destinationNum
 		? $universe.getWormhole(wormhole.destinationNum)
-		: undefined;
+		: undefined);
 </script>
 
 <div class="flex flex-row min-h-[11rem]">

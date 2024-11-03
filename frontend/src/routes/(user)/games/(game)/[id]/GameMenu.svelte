@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: Cannot subscribe to stores that are not declared at the top level of the component -->
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <script lang="ts">
 	import { page } from '$app/stores';

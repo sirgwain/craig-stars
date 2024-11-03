@@ -11,10 +11,12 @@
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
-		<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
-		<li>Choose Hull</li>
-	</svelte:fragment>
+	{#snippet crumbs()}
+	
+			<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
+			<li>Choose Hull</li>
+		
+	{/snippet}
 </Breadcrumb>
 <ul class="px-1">
 	{#each $techs.hulls as hull}

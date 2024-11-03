@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import techjson from '$lib/ssr/techs.json';
 	import { Player, canLearnTech } from '$lib/types/Player';
@@ -13,9 +15,18 @@
 	import { isSafari } from '$lib/safariChecker';
 	import type { CS } from '$lib/wasm';
 
-	// for ssr, we start with techs from a json file
-	export let techStore: TechStore = techjson as TechStore;
-	export let techs: Tech[] = [
+	
+	interface Props {
+		// for ssr, we start with techs from a json file
+		techStore?: TechStore;
+		techs?: Tech[];
+		player?: Player | undefined;
+		cs?: CS | undefined;
+	}
+
+	let {
+		techStore = $bindable(techjson as TechStore),
+		techs = $bindable([
 		...techStore.engines,
 		...techStore.planetaryScanners,
 		...techStore.defenses,
@@ -23,14 +34,15 @@
 		...techStore.hullComponents,
 		...techStore.hulls,
 		...techStore.terraforms
-	];
-	export let player: Player | undefined = undefined;
-	export let cs: CS | undefined = undefined;
+	]),
+		player = undefined,
+		cs = undefined
+	}: Props = $props();
 
-	let filter = '';
-	let showAll = player === undefined;
+	let filter = $state('');
+	let showAll = $state(player === undefined);
 
-	let techsByCategory: Record<TechCategory, Tech[]> = {
+	let techsByCategory: Record<TechCategory, Tech[]> = $state({
 		Armor: [],
 		BeamWeapon: [],
 		Bomb: [],
@@ -49,7 +61,7 @@
 		StarbaseHull: [],
 		Terraforming: [],
 		Torpedo: []
-	};
+	});
 
 	function clearTechsByCategory() {
 		techsByCategory = {
@@ -74,18 +86,18 @@
 		};
 	}
 
-	$: filteredTechs = techs.filter(
+	let filteredTechs = $derived(techs.filter(
 		(t) =>
 			t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
 			t.category.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1
-	);
+	));
 
-	$: {
+	run(() => {
 		clearTechsByCategory();
 		filteredTechs.forEach((tech) => {
 			techsByCategory[tech.category].push(tech);
 		});
-	}
+	});
 
 	onMount(async () => {
 		const response = await fetch(`/api/techs`, {
@@ -110,9 +122,9 @@
 		}
 	});
 
-	$: newTechs =
-		player &&
-		techs.filter((t) => player?.hasTech(t) && levelsAbove(t.requirements, player.techLevels) == 0);
+	let newTechs =
+		$derived(player &&
+		techs.filter((t) => player?.hasTech(t) && levelsAbove(t.requirements, player.techLevels) == 0));
 </script>
 
 <div class="flex justify-between">

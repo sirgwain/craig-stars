@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { assets } from '$app/paths';
 	import type { Race } from '$lib/types/Race';
 	import { loadWasm, type CS } from '$lib/wasm';
@@ -6,10 +8,14 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 
-	export let race: Race;
-	export let points: number;
+	interface Props {
+		race: Race;
+		points: number;
+	}
 
-	let cs: CS | undefined;
+	let { race, points = $bindable() }: Props = $props();
+
+	let cs: CS | undefined = $state();
 
 	onMount(async () => {
 		cs = await loadWasm();
@@ -22,7 +28,9 @@
 		}
 	};
 
-	$: race && cs && computeRacePoints(race);
+	run(() => {
+		race && cs && computeRacePoints(race);
+	});
 </script>
 
 <div class="sticky top-[4rem] z-10">

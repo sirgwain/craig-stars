@@ -3,21 +3,33 @@
 	import type { ValueChangedEvent } from '$lib/ValueChangedEvent';
 	import { createEventDispatcher } from 'svelte';
 
-	export let value = 0;
-	export let capacity = 0;
-	export let min = 0;
-	export let max = capacity;
-	export let color = 'ironium-bar';
-	export let unit = 'kT';
-	export let readonly = false;
+	interface Props {
+		value?: number;
+		capacity?: number;
+		min?: number;
+		max?: any;
+		color?: string;
+		unit?: string;
+		readonly?: boolean;
+	}
+
+	let {
+		value = $bindable(0),
+		capacity = 0,
+		min = 0,
+		max = capacity,
+		color = 'ironium-bar',
+		unit = 'kT',
+		readonly = false
+	}: Props = $props();
 
 	const dispatch = createEventDispatcher<ValueChangedEvent>();
 
-	$: percent = capacity > 0 ? (value / capacity) * 100 : 0;
+	let percent = $derived(capacity > 0 ? (value / capacity) * 100 : 0);
 
 	let pointerDown = false;
 	let touchStarted = false;
-	let ref: HTMLDivElement;
+	let ref: HTMLDivElement = $state();
 
 	function getXFromPointerEvent(e: PointerEvent): number {
 		return (e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect()?.width;
@@ -100,10 +112,10 @@
 	bind:this={ref}
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={!readonly}
-	on:pointerdown={onPointerDown}
-	on:touchstart={onTouchStart}
-	on:touchmove={onTouchMove}
-	on:touchend={onTouchEnd}
+	onpointerdown={onPointerDown}
+	ontouchstart={onTouchStart}
+	ontouchmove={onTouchMove}
+	ontouchend={onTouchEnd}
 >
 	<div
 		class="font-semibold text-sm text-center align-middle text-white mix-blend-difference w-full bg-blend-difference absolute"

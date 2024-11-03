@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { AdminService } from '$lib/services/AdminService';
@@ -6,7 +8,7 @@
 	import type { User } from '$lib/types/User';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import { format, parseJSON } from 'date-fns';
-	import { reverse, sortBy } from 'lodash-es';
+	import { sortBy } from 'lodash-es';
 	import { onMount } from 'svelte';
 
 	const columns: TableColumn<Game>[] = [
@@ -46,30 +48,23 @@
 	];
 
 	// filterable games
-	let games: Game[];
-	let usersById: Map<number, User> = new Map();
-	let filteredGames: Game[] = [];
-	let search = '';
-	let sortKey = 'updatedAt';
-	let descending = true;
-
-	$: filteredGames = games;
-
-	$: filteredGames = sortBy(
+	let games: Game[] = $state();
+	let usersById: Map<number, User> = $state();
+	let sortKey = $state('updatedAt');
+	let descending = $state(true);
+	let sortedGames: Game[] = $derived(sortBy(
 		games?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1),
 		sortKey
-	);
-
-	$: descending && (filteredGames = reverse(filteredGames));
+	));
+	let filteredGames: Game[] = $derived(descending ? sortedGames.toReversed() : sortedGames);
+	let search = $state('');
 
 	onMount(async () => {
 		try {
 			const users = await AdminService.loadUsers();
-			users.forEach((u) => {
-				usersById.set(u.id, u);
-			});
+			usersById = new Map(users.map(u => ([u.id, u])));
 			games = await AdminService.loadGames();
-		} catch (err) {
+		} catch (_err) {
 			// TODO: show error
 		}
 	});
@@ -88,32 +83,36 @@
 			th: 'first:table-cell [&:nth-child(2)]:table-cell [&:nth-child(3)]:table-cell hidden sm:table-cell'
 		}}
 	>
-		<span slot="head" let:isSorted let:sortDescending let:column>
-			<SortableTableHeader
-				{column}
-				isSorted={isSorted || sortKey === column.key}
-				sortDescending={sortDescending || (sortKey === column.key && descending)}
-				on:sorted={(e) => {
-					sortKey = column.key;
-					descending = e.detail.sortDescending;
-				}}
-			/>
-		</span>
+		{#snippet head({ isSorted, sortDescending, column })}
+				<span    >
+				<SortableTableHeader
+					{column}
+					isSorted={isSorted || sortKey === column.key}
+					sortDescending={sortDescending || (sortKey === column.key && descending)}
+					on:sorted={(e) => {
+						sortKey = column.key;
+						descending = e.detail.sortDescending;
+					}}
+				/>
+			</span>
+			{/snippet}
 
-		<span slot="cell" let:column let:row let:cell>
-			{#if column.key == 'name'}
-				<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
-			{:else if column.key == 'createdAt'}
-				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
-			{:else if column.key == 'updatedAt'}
-				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
-			{:else if column.key == 'hostId'}
-				{usersById.get(cell)?.username ?? 'unknown'}
-			{:else if column.key == 'players'}
-				{row.players.length}
-			{:else}
-				{cell}
-			{/if}
-		</span>
+		{#snippet cell({ column, row, cell })}
+				<span    >
+				{#if column.key == 'name'}
+					<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
+				{:else if column.key == 'createdAt'}
+					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+				{:else if column.key == 'updatedAt'}
+					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+				{:else if column.key == 'hostId'}
+					{usersById.get(cell)?.username ?? 'unknown'}
+				{:else if column.key == 'players'}
+					{row.players.length}
+				{:else}
+					{cell}
+				{/if}
+			</span>
+			{/snippet}
 	</Table>
 </div>

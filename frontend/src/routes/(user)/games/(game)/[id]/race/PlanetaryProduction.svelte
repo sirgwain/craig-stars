@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { PRT, type Race } from '$lib/types/Race';
 
-	export let race: Race;
+	interface Props {
+		race: Race;
+	}
+
+	let { race }: Props = $props();
 </script>
 
 {#if race.prt === PRT.AR}

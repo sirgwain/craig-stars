@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { goto } from '$app/navigation';
 
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
@@ -23,15 +25,19 @@
 	import { getColor, getFirstAvailableColor } from './playerColors';
 	import VictoryConditions from './VictoryConditions.svelte';
 
-	export let players = [
+
+	interface Props {
+		players?: any;
+		name?: string;
+	}
+
+	let { players = [
 		{ type: NewGamePlayerType.Host, color: getColor(0) },
 		{ type: NewGamePlayerType.AI, color: getColor(1) },
 		{ type: NewGamePlayerType.AI, color: getColor(2) }
-	];
+	], name = 'A Barefoot Jaywalk' }: Props = $props();
 
-	export let name = 'A Barefoot Jaywalk';
-
-	let settings: GameSettings & NewGamePlayers = {
+	let settings: GameSettings & NewGamePlayers = $state({
 		name,
 		public: false,
 		size: Size.Small,
@@ -60,7 +66,7 @@
 			ownCapitalShips: 100,
 			highestScoreAfterYears: 100
 		}
-	};
+	});
 
 	const onSubmit = async () => {
 		const data = JSON.stringify(settings);
@@ -96,7 +102,7 @@
 	let error = '';
 </script>
 
-<form on:submit|preventDefault={onSubmit}>
+<form onsubmit={preventDefault(onSubmit)}>
 	<div class="w-full flex justify-end gap-2">
 		<button class="btn btn-success" type="submit">Create Game</button>
 	</div>
@@ -106,7 +112,7 @@
 	<GameSettingsEditor bind:settings />
 
 	<SectionHeader>
-		<button class="btn-ghost w-full flex flex-row" on:click|preventDefault={addPlayer}>
+		<button class="btn-ghost w-full flex flex-row" onclick={preventDefault(addPlayer)}>
 			Players
 			<div class="ml-auto">
 				<Icon src={PlusCircle} size="24" class="hover:stroke-accent" />

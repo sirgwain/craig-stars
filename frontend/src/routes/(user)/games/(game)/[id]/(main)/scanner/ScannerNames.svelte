@@ -13,7 +13,11 @@
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const objectScale = getContext<Readable<number>>('objectScale');
 
-	export let transform: ZoomTransform;
+	interface Props {
+		transform: ZoomTransform;
+	}
+
+	let { transform }: Props = $props();
 
 	function fillStyle(left: number, top: number) {
 		return `top:${top}px; left: ${left}px;`;

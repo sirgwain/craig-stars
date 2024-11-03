@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import FleetCount from '$lib/components/icons/FleetCount.svelte';
 	import IdleFleets from '$lib/components/icons/IdleFleets.svelte';
 	import { getGameContext, playerFinderKey } from '$lib/services/GameContext';
@@ -13,6 +15,6 @@
 	class:fill-accent={$settings.showFleetTokenCounts}
 	class:fill-current={!$settings.showFleetTokenCounts}
 	class="btn btn-ghost btn-xs w-full h-full"
-	on:click|preventDefault={() => ($settings.showFleetTokenCounts = !$settings.showFleetTokenCounts)}
+	onclick={preventDefault(() => ($settings.showFleetTokenCounts = !$settings.showFleetTokenCounts))}
 	><FleetCount class="w-6 h-6" /></a
 >

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { page } from '$app/stores';
 	import ErrorPage from '$lib/components/ErrorPage.svelte';
 	import Menu from '$lib/components/Menu.svelte';
@@ -17,16 +19,21 @@
 	import GameLayout from './GameLayout.svelte';
 	import { goto } from '$app/navigation';
 	import { loadWasm } from '$lib/wasm';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 
 	let id = parseInt($page.params.id);
 
-	let context: GameContext | undefined = undefined;
-	let error: string | undefined = undefined;
-	let contextSetup = false;
+	let context: GameContext | undefined = $state(undefined);
+	let error: string | undefined = $state(undefined);
+	let contextSetup = $state(false);
 
-	let unsubscribe: Unsubscriber | undefined;
-	let state: GameState;
-	let year: number;
+	let unsubscribe: Unsubscriber | undefined = $state();
+	let state: GameState = $state();
+	let year: number = $state();
 
 	onMount(async () => {
 		try {
@@ -59,24 +66,6 @@
 		unsubscribe && unsubscribe();
 	});
 
-	// update the context of the game
-	$: {
-		if (context && !contextSetup) {
-			contextSetup = true;
-
-			// store the latest state/year so we can reload if the game changes
-			const game = get(context.game);
-			state = game.state;
-			year = game.year;
-			context.commandHomeWorld();
-
-			// subscribe to game change events so we do a full reload if the year/state changes
-			unsubscribe = context.game.subscribe(onGameChange);
-
-			// setup the context for our child components
-			setContext(gameKey, context);
-		}
-	}
 
 	// every time the game updates, check if we have a new year/state change
 	// and if so, reset the context
@@ -138,11 +127,29 @@
 		}
 	}
 
+	// update the context of the game
+	run(() => {
+		if (context && !contextSetup) {
+			contextSetup = true;
+
+			// store the latest state/year so we can reload if the game changes
+			const game = get(context.game);
+			state = game.state;
+			year = game.year;
+			context.commandHomeWorld();
+
+			// subscribe to game change events so we do a full reload if the year/state changes
+			unsubscribe = context.game.subscribe(onGameChange);
+
+			// setup the context for our child components
+			setContext(gameKey, context);
+		}
+	});
 </script>
 
 {#if contextSetup}
 	<GameLayout on:submit-turn={onSubmitTurn}>
-		<slot>Game</slot>
+		{#if children}{@render children()}{:else}Game{/if}
 	</GameLayout>
 {:else if error}
 	<main class="flex flex-col">

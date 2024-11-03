@@ -7,30 +7,42 @@
 
 	const { padding, xRange, yScale } = getContext('LayerCake');
 
-	/** @type {Boolean} [gridlines=true] - Extend lines from the ticks into the chart space */
-	export let gridlines = true;
+	
 
-	/** @type {Function} [formatTick=d => d] - A function that passes the current tick value and expects a nicely formatted value in return. */
-	export let formatTick: (d: any) => string = (d) => d;
+	
 
-	/** @type {Number|Array|Function} [ticks=4] - If this is a number, it passes that along to the [d3Scale.ticks](https://github.com/d3/d3-scale) function. If this is an array, hardcodes the ticks to those values. If it's a function, passes along the default tick values and expects an array of tick values in return. */
-	export let ticks: Number | Array<any> | Function = 4;
+	
 
-	/** @type {Number} [xTick=-4] - How far over to position the text marker. */
-	export let xTick = -4;
+	
 
-	/** @type {Number} [yTick=-1] - How far up and down to position the text marker. */
-	export let yTick = -1;
+	
+	interface Props {
+		gridlines?: Boolean;
+		/** @type {Function} [formatTick=d => d] - A function that passes the current tick value and expects a nicely formatted value in return. */
+		formatTick?: (d: any) => string;
+		/** @type {Number|Array|Function} [ticks=4] - If this is a number, it passes that along to the [d3Scale.ticks](https://github.com/d3/d3-scale) function. If this is an array, hardcodes the ticks to those values. If it's a function, passes along the default tick values and expects an array of tick values in return. */
+		ticks?: Number | Array<any> | Function;
+		xTick?: Number;
+		yTick?: Number;
+	}
 
-	$: isBandwidth = typeof $yScale.bandwidth === 'function';
+	let {
+		gridlines = true,
+		formatTick = (d) => d,
+		ticks = 4,
+		xTick = -4,
+		yTick = -1
+	}: Props = $props();
 
-	$: tickVals = Array.isArray(ticks)
+	let isBandwidth = $derived(typeof $yScale.bandwidth === 'function');
+
+	let tickVals = $derived(Array.isArray(ticks)
 		? ticks
 		: isBandwidth
 		? $yScale.domain()
 		: typeof ticks === 'function'
 		? ticks($yScale.ticks())
-		: $yScale.ticks(ticks);
+		: $yScale.ticks(ticks));
 </script>
 
 <div class="axis y-axis" style="transform:translate(-{$padding.left}px, 0)">

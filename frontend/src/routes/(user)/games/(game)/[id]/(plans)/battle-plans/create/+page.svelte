@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { goto } from '$app/navigation';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
@@ -11,7 +13,7 @@
 
 	const { game, player, createBattlePlan } = getGameContext();
 
-	let plan: BattlePlan = {
+	let plan: BattlePlan = $state({
 		num: 0,
 		name: '',
 		primaryTarget: BattleTarget.ArmedShips,
@@ -19,9 +21,9 @@
 		tactic: BattleTactic.MaximizeDamageRatio,
 		attackWho: BattleAttackWho.EnemiesAndNeutrals,
 		dumpCargo: false
-	};
+	});
 
-	let error = '';
+	let error = $state('');
 
 	const onSubmit = async () => {
 		error = '';
@@ -41,15 +43,19 @@
 	};
 </script>
 
-<form on:submit|preventDefault={onSubmit}>
+<form onsubmit={preventDefault(onSubmit)}>
 	<Breadcrumb>
-		<svelte:fragment slot="crumbs">
-			<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
-			<li>{plan?.name ?? '<unknown>'}</li>
-		</svelte:fragment>
-		<div slot="end" class="flex justify-end mb-1">
-			<button class="btn btn-success mx-1" type="submit">Save</button>
-		</div>
+		{#snippet crumbs()}
+			
+				<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
+				<li>{plan?.name ?? '<unknown>'}</li>
+			
+			{/snippet}
+		{#snippet end()}
+				<div  class="flex justify-end mb-1">
+				<button class="btn btn-success mx-1" type="submit">Save</button>
+			</div>
+			{/snippet}
 	</Breadcrumb>
 
 	<FormError {error} />

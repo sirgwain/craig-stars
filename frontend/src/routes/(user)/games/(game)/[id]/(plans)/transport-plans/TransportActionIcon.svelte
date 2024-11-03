@@ -4,7 +4,11 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
 
-	export let action: WaypointTaskTransportAction | undefined;
+	interface Props {
+		action: WaypointTaskTransportAction | undefined;
+	}
+
+	let { action }: Props = $props();
 </script>
 
 <span class="inline-block my-auto">

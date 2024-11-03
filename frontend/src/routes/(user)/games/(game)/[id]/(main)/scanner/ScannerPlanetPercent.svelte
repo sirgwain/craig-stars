@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import { Unexplored } from '$lib/types/Constants';
 	import { None } from '$lib/types/Constants';
@@ -14,22 +16,26 @@
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const scale = getContext<Writable<number>>('scale');
 
-	export let planet: Planet;
+	interface Props {
+		planet: Planet;
+	}
 
-	let props = {};
-	let flagColor = '#555';
+	let { planet }: Props = $props();
 
-	$: planetX = $xGet(planet);
-	$: planetY = $yGet(planet);
+	let props = $state({});
+	let flagColor = $state('#555');
+
+	let planetX = $derived($xGet(planet));
+	let planetY = $derived($yGet(planet));
 
 	// area of cirlce is a = πr^2, so r = √(a/π)
 	const fullyHabitableRadius = 15;
 	const fullyHabitableArea = Math.PI * fullyHabitableRadius * fullyHabitableRadius;
 	const minRadius = 3;
 	const minArea = Math.PI * minRadius * minRadius;
-	let radius = minRadius;
+	let radius = $state(minRadius);
 
-	$: {
+	run(() => {
 		// green for us, gray for unexplored, white for explored
 		let color = '#555';
 		let strokeWidth = 0;
@@ -74,7 +80,7 @@
 			stroke: strokeColor,
 			'stroke-width': strokeWidth
 		};
-	}
+	});
 </script>
 
 {#if planet.reportAge !== Unexplored}

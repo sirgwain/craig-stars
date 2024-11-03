@@ -9,11 +9,11 @@
 
 	const { game } = getGameContext();
 
-	let copiedText = '';
+	let copiedText = $state('');
 
 	onMount(async () => {});
 
-	$: link = `${window.location.origin}/join-private-game/${$game.hash}`;
+	let link = $derived(`${window.location.origin}/join-private-game/${$game.hash}`);
 </script>
 
 <InfoToast bind:text={copiedText} />
@@ -31,7 +31,7 @@
 	<div>
 		<div class="tooltip" data-tip="Copy Invite Link">
 			<button
-				on:click={() => {
+				onclick={() => {
 					navigator.clipboard.writeText(link);
 					copiedText = 'Copied invite link to clipboard';
 				}}

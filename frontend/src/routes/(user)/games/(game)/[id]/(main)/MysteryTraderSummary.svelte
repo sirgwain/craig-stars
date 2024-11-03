@@ -5,7 +5,11 @@
 
 	const { game, player, universe } = getGameContext();
 
-	export let mysteryTrader: MysteryTrader;
+	interface Props {
+		mysteryTrader: MysteryTrader;
+	}
+
+	let { mysteryTrader }: Props = $props();
 </script>
 
 <div class="flex flex-row min-h-[11rem]">

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import { goto } from '$app/navigation';
 	import { gameKey, getGameContext } from '$lib/services/GameContext';
 	import { CSError, errors } from '$lib/services/Errors';
@@ -7,9 +9,11 @@
 	import type { Readable } from 'svelte/store';
 	import { fade } from 'svelte/transition';
 
-	let game: Readable<FullGame> | undefined;
-	let resetContext: (fg: FullGame) => void;
-	$: hasContext(gameKey) && ({ game, resetContext } = getGameContext());
+	let game: Readable<FullGame> | undefined = $state();
+	let resetContext: (fg: FullGame) => void = $state();
+	run(() => {
+		hasContext(gameKey) && ({ game, resetContext } = getGameContext());
+	});
 
 	function onFadeOut(err: CSError) {
 		$errors = $errors.filter((e) => e !== err);
@@ -31,7 +35,7 @@
 				class="alert alert-error"
 				in:fade
 				out:fade={getFadeOptions(err)}
-				on:introend={() => err.statusCode != 409 && onFadeOut(err)}
+				onintroend={() => err.statusCode != 409 && onFadeOut(err)}
 			>
 				<div>
 					<span>{err.error}</span>
@@ -40,7 +44,7 @@
 						<button
 							type="button"
 							class="btn btn-outline"
-							on:click|preventDefault={() => {
+							onclick={preventDefault(() => {
 								$errors = [];
 								if ($game && $game.id) {
 									// reload the game
@@ -49,7 +53,7 @@
 								} else {
 									goto('/');
 								}
-							}}>Refresh</button
+							})}>Refresh</button
 						>
 					{/if}
 				</div>

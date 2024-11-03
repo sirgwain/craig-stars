@@ -5,9 +5,13 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let title: string;
-	export let items: any[];
-	export let itemTitle: (item: any) => string = (i) => `${i}`;
+	interface Props {
+		title: string;
+		items: any[];
+		itemTitle?: (item: any) => string;
+	}
+
+	let { title, items, itemTitle = (i) => `${i}` }: Props = $props();
 
 	function onSelect(item: any) {
 		(document.activeElement as HTMLElement)?.blur();
@@ -18,12 +22,12 @@
 </script>
 
 <div class="dropdown dropdown-top dropdown-end">
-	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-	<!-- svelte-ignore a11y-label-has-associated-control -->
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<!-- svelte-ignore a11y_label_has_associated_control -->
 	<label tabindex="0" class="btn btn-outline btn-sm btn-secondary normal-case"
 		>{title} <Icon src={ChevronDown} size="16" class="hover:stroke-accent" /></label
 	>
-	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<div
 		tabindex="0"
 		class="shadow menu dropdown-content bg-base-100 rounded-box w-[13rem] sm:max-h-60 overflow-y-auto absolute"
@@ -31,7 +35,7 @@
 		<ul>
 			{#each items as item}
 				<li>
-					<button type="button" on:click={() => onSelect(item)}>{itemTitle(item)}</button>
+					<button type="button" onclick={() => onSelect(item)}>{itemTitle(item)}</button>
 				</li>
 			{/each}
 		</ul>

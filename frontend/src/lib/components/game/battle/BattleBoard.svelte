@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { playerFinderKey } from '$lib/services/GameContext';
 	import type { PlayerFinder } from '$lib/services/Universe';
 	import { TokenActionType, type Battle, type PhaseToken } from '$lib/types/Battle';
@@ -11,14 +13,21 @@
 
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
-	export let battle: Battle;
-	export let phase: number = 0;
+	interface Props {
+		battle: Battle;
+		phase?: number;
+	}
 
-	let selectedToken: PhaseToken | undefined;
-	let actionToken: PhaseToken | undefined;
-	let target: PhaseToken | undefined;
+	let { battle, phase = $bindable(0) }: Props = $props();
 
-	$: action = battle.getActionForPhase(phase ?? 0);
+	let selectedToken: PhaseToken | undefined = $state();
+	let actionToken: PhaseToken | undefined = $state();
+	let target: PhaseToken | undefined = $state();
+
+	let action;
+	run(() => {
+		action = battle.getActionForPhase(phase ?? 0);
+	});
 </script>
 
 <div class="flex w-full">

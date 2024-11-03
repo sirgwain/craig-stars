@@ -7,11 +7,16 @@
 	import FilterIdleFleets from './FilterIdleFleets.svelte';
 	import FilterMyDesigns from './FilterMyDesigns.svelte';
 	import FilterScanners from './FilterScanners.svelte';
+	interface Props {
+		[key: string]: any
+	}
+
+	let { ...rest }: Props = $props();
 
 	const { player, settings } = getGameContext();
 </script>
 
-<ul {...$$restProps}>
+<ul {...rest}>
 	<li class="h-10 w-10">
 		<FilterFleetCounts />
 	</li>

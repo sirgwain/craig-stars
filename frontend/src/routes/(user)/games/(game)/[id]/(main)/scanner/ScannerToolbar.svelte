@@ -1,10 +1,12 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type ToolbarEvent = {
 		'show-search': void;
 	};
 </script>
 
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { clickOutside } from '$lib/clickOutside';
 	import Habitability from '$lib/components/icons/Habitability.svelte';
 	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
@@ -27,7 +29,7 @@
 	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
 	const dispatch = createEventDispatcher<ToolbarEvent>();
 
-	let planetsViewMenuDropdown: HTMLDetailsElement | undefined;
+	let planetsViewMenuDropdown: HTMLDetailsElement | undefined = $state();
 
 	function closePlanetsMenu() {
 		planetsViewMenuDropdown?.removeAttribute('open');
@@ -53,7 +55,7 @@
 						<a
 							href="#planet-view-states"
 							class="btn btn-xs w-12 h-12"
-							on:click|preventDefault={() => planetsViewMenuDropdown?.toggleAttribute('open')}
+							onclick={preventDefault(() => planetsViewMenuDropdown?.toggleAttribute('open'))}
 						>
 							{#if $settings.planetViewState == PlanetViewState.Normal}
 								<PlanetWithStarbase class="w-6 h-6" />
@@ -91,7 +93,7 @@
 						max={100}
 						step={10}
 						value={$settings.scannerPercent}
-						on:change={(e) => {
+						onchange={(e) => {
 							const val = parseInt(e.currentTarget.value);
 							if (val) {
 								$settings.scannerPercent = clamp(val, 0, 100);
@@ -111,7 +113,7 @@
 					class:fill-accent={$settings.addWaypoint}
 					class:fill-current={!$settings.addWaypoint}
 					class="btn btn-ghost btn-xs h-full border"
-					on:click|preventDefault={() => {
+					onclick={preventDefault(() => {
 						// 3 state toggle
 						if ($settings.addWaypoint && $settings.fastestWaypoint) {
 							$settings.addWaypoint = $settings.fastestWaypoint = false;
@@ -125,7 +127,7 @@
 							// weird state, reset
 							$settings.addWaypoint = $settings.fastestWaypoint = false;
 						}
-					}}
+					})}
 				>
 					{#if $settings.fastestWaypoint}
 						<AddWaypointFast class="w-6 h-6" />
@@ -139,7 +141,7 @@
 				<a
 					href="#messages"
 					class="btn btn-ghost btn-xs h-full indicator"
-					on:click|preventDefault={() => ($settings.showMessagePane = !$settings.showMessagePane)}
+					onclick={preventDefault(() => ($settings.showMessagePane = !$settings.showMessagePane))}
 					><Icon
 						src={Envelope}
 						class={`w-6 h-6 ${$settings.showMessagePane ? 'stroke-accent' : 'stroke-current'}`}
@@ -152,7 +154,7 @@
 
 	<div class="ml-auto">
 		<button
-			on:click={() => dispatch('show-search')}
+			onclick={() => dispatch('show-search')}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="previous"
 			><Icon src={MagnifyingGlass} size="16" class="hover:stroke-accent inline" /></button
@@ -160,7 +162,7 @@
 
 		<div class="tooltip" data-tip="previous">
 			<button
-				on:click={() => previousMapObject()}
+				onclick={() => previousMapObject()}
 				class="btn btn-outline btn-sm normal-case btn-secondary"
 				title="previous"
 				><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /></button
@@ -168,7 +170,7 @@
 		</div>
 		<div class="tooltip" data-tip="next">
 			<button
-				on:click={() => nextMapObject()}
+				onclick={() => nextMapObject()}
 				class="btn btn-outline btn-sm normal-case btn-secondary"
 				title="next"
 				><Icon src={ArrowLongRight} size="16" class="hover:stroke-accent inline" /></button

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import type { PhaseToken } from '$lib/types/Battle';
@@ -10,21 +12,33 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let tokens: PhaseToken[] | undefined = undefined;
-	export let phase: number;
-	export let selectedToken: PhaseToken | undefined;
-	export let selected = false;
+	interface Props {
+		tokens?: PhaseToken[] | undefined;
+		phase: number;
+		selectedToken: PhaseToken | undefined;
+		selected?: boolean;
+	}
 
-	$: targetTokenIndex = tokens?.findIndex((t) => t.target);
-	$: selectedTokenIndex = selectedToken && tokens?.indexOf(selectedToken);
-	$: tokenIndex =
-		targetTokenIndex && targetTokenIndex != -1
-			? targetTokenIndex
-			: selectedTokenIndex && selectedTokenIndex != -1
-			? selectedTokenIndex
-			: 0;
+	let {
+		tokens = undefined,
+		phase,
+		selectedToken,
+		selected = false
+	}: Props = $props();
 
-	$: topToken = tokens && tokens[tokenIndex];
+	let targetTokenIndex = $derived(tokens?.findIndex((t) => t.target));
+	let selectedTokenIndex = $derived(selectedToken && tokens?.indexOf(selectedToken));
+	let tokenIndex;
+	run(() => {
+		tokenIndex =
+			targetTokenIndex && targetTokenIndex != -1
+				? targetTokenIndex
+				: selectedTokenIndex && selectedTokenIndex != -1
+				? selectedTokenIndex
+				: 0;
+	});
+
+	let topToken = $derived(tokens && tokens[tokenIndex]);
 
 	const icon = (tokens: PhaseToken[] | undefined, tokenIndex: number) => {
 		if (
@@ -71,7 +85,7 @@
 			type="button"
 			class="w-full h-full cursor-pointer"
 			aria-label="Selects the token on the board"
-			on:click={() => {
+			onclick={() => {
 				if (tokens) {
 					if (selected) {
 						tokenIndex = (tokenIndex + 1) % (tokens?.length ?? 0);

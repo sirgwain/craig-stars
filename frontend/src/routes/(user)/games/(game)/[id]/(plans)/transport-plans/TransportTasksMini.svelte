@@ -2,7 +2,11 @@
 	import type { WaypointTransportTask, WaypointTransportTasks } from '$lib/types/Fleet';
 	import TransportActionIcon from './TransportActionIcon.svelte';
 
-	export let transportTasks: WaypointTransportTasks;
+	interface Props {
+		transportTasks: WaypointTransportTasks;
+	}
+
+	let { transportTasks }: Props = $props();
 </script>
 
 <div class="flex flex-row justify-between mt-1">

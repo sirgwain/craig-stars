@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type MinesTooltipProps = {
 		planetName: string;
 		mines: number;
@@ -9,11 +9,21 @@
 </script>
 
 <script lang="ts">
-	export let planetName: string;
-	export let mines: number;
-	export let maxMines: number;
-	export let maxPossibleMines: number;
-	export let canBuildMines: boolean;
+	interface Props {
+		planetName: string;
+		mines: number;
+		maxMines: number;
+		maxPossibleMines: number;
+		canBuildMines: boolean;
+	}
+
+	let {
+		planetName,
+		mines,
+		maxMines,
+		maxPossibleMines,
+		canBuildMines
+	}: Props = $props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

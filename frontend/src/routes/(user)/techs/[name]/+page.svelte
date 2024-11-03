@@ -23,9 +23,9 @@
 	];
 
 	let nameSlug = $page.params.name;
-	let tech = techs.find((t) => t.name === startCase(nameSlug));
+	let tech = $state(techs.find((t) => t.name === startCase(nameSlug)));
 
-	$: hull = tech as TechHull;
+	let hull = $derived(tech as TechHull);
 
 	onMount(async () => {
 		const name = startCase(nameSlug);
@@ -44,10 +44,12 @@
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
-		<li><a href={`/techs`}>Techs</a></li>
-		<li>{tech?.name ?? '<unknown>'}</li>
-	</svelte:fragment>
+	{#snippet crumbs()}
+	
+			<li><a href={`/techs`}>Techs</a></li>
+			<li>{tech?.name ?? '<unknown>'}</li>
+		
+	{/snippet}
 </Breadcrumb>
 
 {#if tech}

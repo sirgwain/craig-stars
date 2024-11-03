@@ -10,7 +10,11 @@
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { game, player, universe } = getGameContext();
 
-	export let fleet: CommandedFleet;
+	interface Props {
+		fleet: CommandedFleet;
+	}
+
+	let { fleet }: Props = $props();
 
 	const transfer = () => {
 		dispatch('cargo-transfer-dialog', {

@@ -14,11 +14,11 @@
 		return $universe.getPlayerColor(mineField.playerNum);
 	}
 
-	$: minefields = $universe.mineFields;
-	$: selectedMineField =
-		$selectedMapObject && $selectedMapObject.type === MapObjectType.MineField
+	let minefields = $derived($universe.mineFields);
+	let selectedMineField =
+		$derived($selectedMapObject && $selectedMapObject.type === MapObjectType.MineField
 			? ($selectedMapObject as MineField)
-			: undefined;
+			: undefined);
 </script>
 
 <!-- MineFields -->

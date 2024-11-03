@@ -1,8 +1,13 @@
 <script lang="ts">
-	export let style: string | undefined = undefined;
+	interface Props {
+		style?: string | undefined;
+		[key: string]: any
+	}
+
+	let { style = undefined, ...rest }: Props = $props();
 </script>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" {style} {...$$restProps}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" {style} {...rest}>
 	<path
 		d="M12 21L12 12M12 12L15 15.3333M12 12L9 15.3333"
 		stroke-width="1.5"
