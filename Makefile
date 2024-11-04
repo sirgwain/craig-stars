@@ -41,7 +41,7 @@ build_thing := go build \
 
 run: clean build dev 
 	
-build: build_frontend tidy vendor generate build_server
+build: build_frontend tidy vendor generate build_wasm build_server
 
 build_frontend:
 	cd frontend; npm install; npm run build
