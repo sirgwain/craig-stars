@@ -50,15 +50,12 @@ type FleetOrders struct {
 	RepeatOrders            bool                     `json:"repeatOrders,omitempty"`
 	BattlePlanNum           int                      `json:"battlePlanNum,omitempty"`
 	Purpose                 FleetPurpose             `json:"purpose,omitempty"`
-	ImmediateCargoTransfers []ImmediateCargoTransfer `json:"immediateCargoTransfers"`
+	ImmediateCargoTransfers []ImmediateCargoTransfer `json:"immediateCargoTransfers,omitempty"`
 }
 
 type ImmediateCargoTransfer struct {
-	TargetType      MapObjectType `json:"targetType,omitempty"`
-	TargetNum       int           `json:"targetNum,omitempty"`
-	TargetPlayerNum int           `json:"targetPlayerNum,omitempty"`
-	TargetName      string        `json:"targetName,omitempty"`
-	Cargo           Cargo         `json:"cargo"`
+	Target[MapObjectType]
+	Cargo Cargo `json:"cargo"`
 }
 
 type FleetSpec struct {
@@ -79,6 +76,7 @@ type FleetSpec struct {
 }
 
 type Waypoint struct {
+	Target[MapObjectType]
 	Position             Vector                 `json:"position"`
 	WarpSpeed            int                    `json:"warpSpeed"`
 	EstFuelUsage         int                    `json:"estFuelUsage,omitempty"`
@@ -88,10 +86,6 @@ type Waypoint struct {
 	LayMineFieldDuration int                    `json:"layMineFieldDuration,omitempty"`
 	PatrolRange          int                    `json:"patrolRange,omitempty"`
 	PatrolWarpSpeed      int                    `json:"patrolWarpSpeed,omitempty"`
-	TargetType           MapObjectType          `json:"targetType,omitempty"`
-	TargetNum            int                    `json:"targetNum,omitempty"`
-	TargetPlayerNum      int                    `json:"targetPlayerNum,omitempty"`
-	TargetName           string                 `json:"targetName,omitempty"`
 	TransferToPlayer     int                    `json:"transferToPlayer,omitempty"`
 	PartiallyComplete    bool                   `json:"partiallyComplete,omitempty"`
 	processed            bool                   `json:"-"`
@@ -390,6 +384,22 @@ func (f *Fleet) Jettison() *ImmediateCargoTransfer {
 	return &f.ImmediateCargoTransfers[len(f.ImmediateCargoTransfers)-1]
 }
 
+// Invasion will return the invasion/theft ImmediateCargoTransfer order
+// This is the order that targets a planet
+// A new ImmediateCargoTransfer order will be created if no Invasion order exists
+func (f *Fleet) Invasion() *ImmediateCargoTransfer {
+	for i := range f.ImmediateCargoTransfers {
+		order := &f.ImmediateCargoTransfers[i]
+		if order.TargetType == MapObjectTypePlanet {
+			return order
+		}
+	}
+
+	// create a new jettison order and return it
+	f.ImmediateCargoTransfers = append(f.ImmediateCargoTransfers, ImmediateCargoTransfer{})
+	return &f.ImmediateCargoTransfers[len(f.ImmediateCargoTransfers)-1]
+}
+
 func (f *Fleet) Rename(name string) {
 	f.BaseName = name
 	f.Name = fmt.Sprintf("%s #%d", f.BaseName, f.Num)
@@ -397,42 +407,50 @@ func (f *Fleet) Rename(name string) {
 
 func NewPlanetWaypoint(position Vector, num int, name string, warpSpeed int) Waypoint {
 	return Waypoint{
-		Position:        position,
-		TargetType:      MapObjectTypePlanet,
-		TargetNum:       num,
-		TargetName:      name,
-		TargetPlayerNum: None,
-		WarpSpeed:       warpSpeed,
+		Position: position,
+		Target: Target[MapObjectType]{
+			TargetType:      MapObjectTypePlanet,
+			TargetNum:       num,
+			TargetName:      name,
+			TargetPlayerNum: None,
+		},
+		WarpSpeed: warpSpeed,
 	}
 }
 
 func NewFleetWaypoint(position Vector, num int, playerNum int, name string, warpSpeed int) Waypoint {
 	return Waypoint{
-		Position:        position,
-		TargetType:      MapObjectTypeFleet,
-		TargetNum:       num,
-		TargetPlayerNum: playerNum,
-		TargetName:      name,
-		WarpSpeed:       warpSpeed,
+		Position: position,
+		Target: Target[MapObjectType]{
+			TargetType:      MapObjectTypeFleet,
+			TargetNum:       num,
+			TargetPlayerNum: playerNum,
+			TargetName:      name,
+		},
+		WarpSpeed: warpSpeed,
 	}
 }
 
 func NewMysteryTraderWaypoint(mt *MysteryTrader, warpSpeed int) Waypoint {
 	return Waypoint{
-		Position:   mt.Position,
-		TargetType: mt.Type,
-		TargetNum:  mt.Num,
-		TargetName: mt.Name,
-		WarpSpeed:  warpSpeed,
+		Position: mt.Position,
+		Target: Target[MapObjectType]{
+			TargetType: mt.Type,
+			TargetNum:  mt.Num,
+			TargetName: mt.Name,
+		},
+		WarpSpeed: warpSpeed,
 	}
 }
 
 func NewPositionWaypoint(position Vector, warpSpeed int) Waypoint {
 	return Waypoint{
-		Position:        position,
-		WarpSpeed:       warpSpeed,
-		TargetNum:       None,
-		TargetPlayerNum: None,
+		Position:  position,
+		WarpSpeed: warpSpeed,
+		Target: Target[MapObjectType]{
+			TargetNum:       None,
+			TargetPlayerNum: None,
+		},
 	}
 }
 
@@ -460,25 +478,71 @@ func (wp Waypoint) WithTransportTasks(transportTasks WaypointTransportTasks) Way
 }
 
 // get a list of transport tasks keyed by cargotype
-func (wp Waypoint) getTransportTasks() transportTaskByType {
+func (tt WaypointTransportTasks) getTransportTasks() transportTaskByType {
 	tasks := transportTaskByType{}
-	if wp.TransportTasks.Fuel.Action != TransportActionNone {
-		tasks[Fuel] = wp.TransportTasks.Fuel
+	if tt.Fuel.Action != TransportActionNone {
+		tasks[Fuel] = tt.Fuel
 	}
-	if wp.TransportTasks.Ironium.Action != TransportActionNone {
-		tasks[Ironium] = wp.TransportTasks.Ironium
+	if tt.Ironium.Action != TransportActionNone {
+		tasks[Ironium] = tt.Ironium
 	}
-	if wp.TransportTasks.Boranium.Action != TransportActionNone {
-		tasks[Boranium] = wp.TransportTasks.Boranium
+	if tt.Boranium.Action != TransportActionNone {
+		tasks[Boranium] = tt.Boranium
 	}
-	if wp.TransportTasks.Germanium.Action != TransportActionNone {
-		tasks[Germanium] = wp.TransportTasks.Germanium
+	if tt.Germanium.Action != TransportActionNone {
+		tasks[Germanium] = tt.Germanium
 	}
-	if wp.TransportTasks.Colonists.Action != TransportActionNone {
-		tasks[Colonists] = wp.TransportTasks.Colonists
+	if tt.Colonists.Action != TransportActionNone {
+		tasks[Colonists] = tt.Colonists
 	}
 
 	return tasks
+}
+
+// getUnloadTasks creates a WaypointTransportTask for each positive cargo value in the ImmediateCargoTransfer
+func (o ImmediateCargoTransfer) getUnloadTasks() WaypointTransportTasks {
+	tt := WaypointTransportTasks{}
+	if o.Cargo.Ironium > 0 {
+		tt.Ironium.Action = TransportActionUnloadAmount
+		tt.Ironium.Amount = o.Cargo.Ironium
+	}
+	if o.Cargo.Boranium > 0 {
+		tt.Boranium.Action = TransportActionUnloadAmount
+		tt.Boranium.Amount = o.Cargo.Boranium
+	}
+	if o.Cargo.Germanium > 0 {
+		tt.Germanium.Action = TransportActionUnloadAmount
+		tt.Germanium.Amount = o.Cargo.Germanium
+	}
+	if o.Cargo.Colonists > 0 {
+		tt.Colonists.Action = TransportActionUnloadAmount
+		tt.Colonists.Amount = o.Cargo.Colonists
+	}
+
+	return tt
+}
+
+// getLoadTasks creates a WaypointTransportTask for each negative cargo value in the ImmediateCargoTransfer
+func (o ImmediateCargoTransfer) getLoadTasks() WaypointTransportTasks {
+	tt := WaypointTransportTasks{}
+	if o.Cargo.Ironium < 0 {
+		tt.Ironium.Action = TransportActionUnloadAmount
+		tt.Ironium.Amount = o.Cargo.Ironium
+	}
+	if o.Cargo.Boranium < 0 {
+		tt.Boranium.Action = TransportActionUnloadAmount
+		tt.Boranium.Amount = o.Cargo.Boranium
+	}
+	if o.Cargo.Germanium < 0 {
+		tt.Germanium.Action = TransportActionUnloadAmount
+		tt.Germanium.Amount = o.Cargo.Germanium
+	}
+	if o.Cargo.Colonists < 0 {
+		tt.Colonists.Action = TransportActionUnloadAmount
+		tt.Colonists.Amount = o.Cargo.Colonists
+	}
+
+	return tt
 }
 
 // inject designs into tokens so all the various Compute* functions work
@@ -1317,7 +1381,7 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 	planetResources := 0
 
 	if planet != nil && planet.OwnedBy(player.Num) {
-		planetResources = planet.Spec.ResourcesPerYear + planet.bonusResources
+		planetResources = planet.Spec.ResourcesPerYear + planet.bonusScrapResources
 		// UR races get resources when scrapping
 		if planet.Spec.HasStarbase {
 			// scrapping over a planet we own with a starbase, calculate bonus minerals and resources

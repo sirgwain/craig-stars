@@ -901,18 +901,10 @@ func GetImmediateCargoTransfer(o js.Value) cs.ImmediateCargoTransfer {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.TargetType = GetMapObjectType(o.Get("targetType"))
-	obj.TargetNum = getInt[int](o.Get("targetNum"))
-	obj.TargetPlayerNum = getInt[int](o.Get("targetPlayerNum"))
-	obj.TargetName = string(getString(o.Get("targetName")))
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	return obj
 }
 func SetImmediateCargoTransfer(o js.Value, obj *cs.ImmediateCargoTransfer) {
-	o.Set("targetType", string(obj.TargetType))
-	o.Set("targetNum", obj.TargetNum)
-	o.Set("targetPlayerNum", obj.TargetPlayerNum)
-	o.Set("targetName", obj.TargetName)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
 }
@@ -3498,10 +3490,6 @@ func GetWaypoint(o js.Value) cs.Waypoint {
 	obj.LayMineFieldDuration = getInt[int](o.Get("layMineFieldDuration"))
 	obj.PatrolRange = getInt[int](o.Get("patrolRange"))
 	obj.PatrolWarpSpeed = getInt[int](o.Get("patrolWarpSpeed"))
-	obj.TargetType = GetMapObjectType(o.Get("targetType"))
-	obj.TargetNum = getInt[int](o.Get("targetNum"))
-	obj.TargetPlayerNum = getInt[int](o.Get("targetPlayerNum"))
-	obj.TargetName = string(getString(o.Get("targetName")))
 	obj.TransferToPlayer = getInt[int](o.Get("transferToPlayer"))
 	obj.PartiallyComplete = getBool(o.Get("partiallyComplete"))
 	return obj
@@ -3518,10 +3506,6 @@ func SetWaypoint(o js.Value, obj *cs.Waypoint) {
 	o.Set("layMineFieldDuration", obj.LayMineFieldDuration)
 	o.Set("patrolRange", obj.PatrolRange)
 	o.Set("patrolWarpSpeed", obj.PatrolWarpSpeed)
-	o.Set("targetType", string(obj.TargetType))
-	o.Set("targetNum", obj.TargetNum)
-	o.Set("targetPlayerNum", obj.TargetPlayerNum)
-	o.Set("targetName", obj.TargetName)
 	o.Set("transferToPlayer", obj.TransferToPlayer)
 	o.Set("partiallyComplete", obj.PartiallyComplete)
 }

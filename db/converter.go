@@ -883,14 +883,14 @@ func ExtendFleetMapObject(source Fleet) cs.MapObject {
 
 func ExtendFleetFleetOrders(source Fleet) cs.FleetOrders {
 	// this is a new field, sometimes empty which would be nil
-	immediateCargoTransfers := source.ImmediateCargoTransfers
-	if immediateCargoTransfers == nil {
-		immediateCargoTransfers = &ImmediateCargoTransfers{}
+	var immediateCargoTransfers []cs.ImmediateCargoTransfer
+	if source.ImmediateCargoTransfers != nil {
+		immediateCargoTransfers = *source.ImmediateCargoTransfers
 	}
 	return cs.FleetOrders{
 		BattlePlanNum:           source.BattlePlanNum,
 		Waypoints:               *source.Waypoints,
-		ImmediateCargoTransfers: *immediateCargoTransfers,
+		ImmediateCargoTransfers: immediateCargoTransfers,
 		RepeatOrders:            source.RepeatOrders,
 		Purpose:                 source.Purpose,
 	}

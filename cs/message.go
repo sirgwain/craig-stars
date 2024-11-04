@@ -181,6 +181,8 @@ const (
 	PlayerMessageMysteryTraderMetWithoutReward
 	PlayerMessageMysteryTraderAlreadyRewarded
 	PlayerMessagePlanetBuiltGenesisDevice
+	PlayerMessageFleetStealCargoNotAllowed
+	FleetStealCargoNotComplete
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {

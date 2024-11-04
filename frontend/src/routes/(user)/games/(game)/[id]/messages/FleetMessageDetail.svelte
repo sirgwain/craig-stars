@@ -6,6 +6,8 @@
 	import { MessageType, type Message } from '$lib/types/Message';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
+	import BattleBoard from '$lib/components/game/battle/BattleBoard.svelte';
+	import { totalCargo } from '$lib/types/Cargo';
 
 	const { game, universe, player } = getGameContext();
 
@@ -159,6 +161,27 @@
 	)}.
 {:else if message.type === MessageType.FleetScrapped}
 	{message.targetName} has been dismantled. The scrap was left in deep space.
+{:else if message.type === MessageType.FleetStealCargoNotAllowed}
+	{message.targetName} has been attempted to steal cargo from {message.spec.targetName} but does not
+	have the required technology on BattleBoard.
+{:else if message.type === MessageType.FleetStealCargoNotComplete}
+	{@const cargo = {
+		ironium: message.spec.cargo?.ironium ?? 0,
+		boranium: message.spec.cargo?.boranium ?? 0,
+		germanium: message.spec.cargo?.germanium ?? 0,
+		colonists: message.spec.cargo?.colonists ?? 0
+	}}
+	{message.targetName} has been attempted to steal cargo from {message.spec.targetName} but was
+	{#if totalCargo(message.spec.cargo ?? {}) === 0}
+		unable to steal any cargo.
+	{:else}
+		only able to steal any {andCommaList([
+			cargo.ironium > 0 ? `${cargo.ironium}kT of Ironium` : '',
+			cargo.boranium > 0 ? `${cargo.boranium}kT of Boranium` : '',
+			cargo.germanium > 0 ? `${cargo.germanium}kT of Germanium` : '',
+			cargo.colonists > 0 ? `${cargo.colonists * 100} Colonists` : ''
+		])}.
+	{/if}
 {:else if message.type === MessageType.FleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(
 		message.spec.destPlayerNum

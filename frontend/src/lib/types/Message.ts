@@ -1,4 +1,5 @@
 import type { BattleRecordStats } from './Battle';
+import type { Cargo } from './Cargo';
 import type { Cost } from './Cost';
 import type { Target } from './Fleet';
 import type { Hab } from './Hab';
@@ -25,6 +26,7 @@ export type PlayerMessageSpec = {
 	sourcePlayerNum?: number;
 	destPlayerNum?: number;
 	prevAmount?: number;
+	cargo?: Cargo;
 	cost?: Cost;
 	field?: TechField;
 	nextField?: TechField;
@@ -196,7 +198,9 @@ export enum MessageType {
 	MysteryTraderMetWithReward,
 	MysteryTraderMetWithoutReward,
 	MysteryTraderAlreadyRewarded,
-	PlanetBuiltGensisDevice
+	PlanetBuiltGensisDevice,
+	FleetStealCargoNotAllowed,
+	FleetStealCargoNotComplete
 }
 
 // get the next visible message taking into account filters

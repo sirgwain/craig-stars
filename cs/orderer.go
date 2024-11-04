@@ -161,7 +161,7 @@ func (o *orders) JettisonFleetCargo(player *Player, fleet *Fleet, jettison Cargo
 			return fmt.Errorf("fleet does not have the cargo to jettison")
 		}
 
-		// subtract the jettison from the fleet's jettison cargo (jettison is negative if we are transfering to the jettison, positive if transfering from)
+		// subtract the jettison from the fleet's jettison cargo (jettison is negative if we are transfering to the fleet's jettison, positive if transfering from the fleet's jettison)
 		fleetJettison := fleet.Jettison()
 		fleetJettison.Cargo = fleetJettison.Cargo.Subtract(jettison)
 		if fleetJettison.Cargo.HasNegative() {

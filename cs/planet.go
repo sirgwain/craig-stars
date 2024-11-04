@@ -11,22 +11,23 @@ import (
 type Planet struct {
 	MapObject
 	PlanetOrders
-	Hab                  Hab        `json:"hab,omitempty"`
-	BaseHab              Hab        `json:"baseHab,omitempty"`
-	TerraformedAmount    Hab        `json:"terraformedAmount,omitempty"`
-	MineralConcentration Mineral    `json:"mineralConcentration,omitempty"`
-	MineYears            Mineral    `json:"mineYears,omitempty"`
-	Cargo                Cargo      `json:"cargo,omitempty"`
-	Mines                int        `json:"mines,omitempty"`
-	Factories            int        `json:"factories,omitempty"`
-	Defenses             int        `json:"defenses,omitempty"`
-	Homeworld            bool       `json:"homeworld,omitempty"`
-	Scanner              bool       `json:"scanner,omitempty"`
-	Spec                 PlanetSpec `json:"spec,omitempty"`
-	RandomArtifact       bool       `json:"-"`
-	Starbase             *Fleet     `json:"-"`
-	Dirty                bool       `json:"-"`
-	bonusResources       int
+	Hab                  Hab         `json:"hab,omitempty"`
+	BaseHab              Hab         `json:"baseHab,omitempty"`
+	TerraformedAmount    Hab         `json:"terraformedAmount,omitempty"`
+	MineralConcentration Mineral     `json:"mineralConcentration,omitempty"`
+	MineYears            Mineral     `json:"mineYears,omitempty"`
+	Cargo                Cargo       `json:"cargo,omitempty"`
+	Mines                int         `json:"mines,omitempty"`
+	Factories            int         `json:"factories,omitempty"`
+	Defenses             int         `json:"defenses,omitempty"`
+	Homeworld            bool        `json:"homeworld,omitempty"`
+	Scanner              bool        `json:"scanner,omitempty"`
+	Spec                 PlanetSpec  `json:"spec,omitempty"`
+	RandomArtifact       bool        `json:"-"`
+	Starbase             *Fleet      `json:"-"`
+	Dirty                bool        `json:"-"`
+	bonusScrapResources  int         // track any bonus resources this planet gets from scrapping
+	invasionsByPlayer    map[int]int // track players that transferred colonists to this world
 }
 
 type PlanetOrders struct {
@@ -157,7 +158,6 @@ func (p *Planet) productivePopulation(pop, maxPop int) int {
 func (p *Planet) productiveInstallationPopulation(pop, maxPop int) int {
 	return MinInt(pop, maxPop)
 }
-
 
 func (p *Planet) setPopulation(pop int) {
 	p.Cargo.Colonists = pop / 100
