@@ -39,10 +39,9 @@
 		try {
 			setLoadingModalText('Loading game...');
 
-			
 			// on mount, load the game and setup the context used by the rest of the children
 			const loaded = await GameService.loadFullGame(id);
-			const cs = await loadWasm()
+			const cs = await loadWasm();
 			context = createGameContext(cs, loaded);
 
 			hotkeys.setScope('root');
@@ -65,7 +64,6 @@
 
 		unsubscribe && unsubscribe();
 	});
-
 
 	// every time the game updates, check if we have a new year/state change
 	// and if so, reset the context

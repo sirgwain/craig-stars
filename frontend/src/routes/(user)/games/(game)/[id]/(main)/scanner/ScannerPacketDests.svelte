@@ -7,31 +7,33 @@
 	const { universe, commandedPlanet } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	let planets = $derived($universe.planets.filter(
-		(planet) => planet.packetTargetNum && planet.packetTargetNum != None
-	));
+	let planets = $derived(
+		$universe.planets.filter((planet) => planet.packetTargetNum && planet.packetTargetNum != None)
+	);
 
-	let lines = $derived(planets.map((planet) => {
-		// get the target, if it's empty, just point to our planet position (which will render an empty line)
-		// it should not be empty...
-		const target = $universe.getPlanet(planet.packetTargetNum ?? None);
-		const coords = [
-			{ position: planet.position },
-			{ position: target?.position ?? planet.position }
-		];
+	let lines = $derived(
+		planets.map((planet) => {
+			// get the target, if it's empty, just point to our planet position (which will render an empty line)
+			// it should not be empty...
+			const target = $universe.getPlanet(planet.packetTargetNum ?? None);
+			const coords = [
+				{ position: planet.position },
+				{ position: target?.position ?? planet.position }
+			];
 
-		const strokeWidth = planet.num === $commandedPlanet?.num ? 1.5 : 1;
-		const dist = (planet.packetSpeed ?? 0) * (planet.packetSpeed ?? 0);
+			const strokeWidth = planet.num === $commandedPlanet?.num ? 1.5 : 1;
+			const dist = (planet.packetSpeed ?? 0) * (planet.packetSpeed ?? 0);
 
-		return {
-			path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
-			props: {
-				'stroke-width': strokeWidth,
-				'stroke-dasharray': `${$xScale(dist) - $xScale(5)} ${$xScale(5)}`,
-				'stroke-dashoffset': `${$xScale(dist / 2) - $xScale(5)}`
-			}
-		};
-	}));
+			return {
+				path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
+				props: {
+					'stroke-width': strokeWidth,
+					'stroke-dasharray': `${$xScale(dist) - $xScale(5)} ${$xScale(5)}`,
+					'stroke-dashoffset': `${$xScale(dist / 2) - $xScale(5)}`
+				}
+			};
+		})
+	);
 </script>
 
 <svg>

@@ -16,12 +16,7 @@
 		showDelete?: boolean;
 	}
 
-	let {
-		designFinder,
-		plan,
-		href,
-		showDelete = true
-	}: Props = $props();
+	let { designFinder, plan, href, showDelete = true }: Props = $props();
 
 	const deletePlan = async (plan: ProductionPlan) => {
 		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
@@ -58,7 +53,7 @@
 			</ul>
 			<div>
 				{#if plan.contributesOnlyLeftoverToResearch}
-					 Planet contributes only leftover resources to research
+					Planet contributes only leftover resources to research
 				{/if}
 			</div>
 		</div>

@@ -26,5 +26,7 @@
 		name="techsStartHigh"
 		bind:checked={race.techsStartHigh}
 	/>
-	<span class="ml-2">All 'Costs 75% extra' research fields start at Tech {race.prt == PRT.JoaT ? '4' : '3'}</span>
+	<span class="ml-2"
+		>All 'Costs 75% extra' research fields start at Tech {race.prt == PRT.JoaT ? '4' : '3'}</span
+	>
 </label>

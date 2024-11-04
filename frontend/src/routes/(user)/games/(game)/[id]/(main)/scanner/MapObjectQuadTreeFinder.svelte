@@ -35,9 +35,6 @@
 	const scale = getContext<Writable<number>>('scale');
 	const dispatch = createEventDispatcher<FinderEvent>();
 
-	
-
-	
 	interface Props {
 		// transform to transform our mouse to world coords
 		transform: ZoomTransform;
@@ -125,14 +122,16 @@
 		}
 	}
 
-	let finder = $derived(quadtree<MapObject>()
-		.extent([
-			[-1, -1],
-			[$width + 1, $height + 1]
-		])
-		.x($xGet)
-		.y($yGet)
-		.addAll($data));
+	let finder = $derived(
+		quadtree<MapObject>()
+			.extent([
+				[-1, -1],
+				[$width + 1, $height + 1]
+			])
+			.x($xGet)
+			.y($yGet)
+			.addAll($data)
+	);
 </script>
 
 <div

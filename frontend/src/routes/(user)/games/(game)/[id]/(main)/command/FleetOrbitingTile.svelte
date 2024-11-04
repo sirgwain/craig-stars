@@ -16,7 +16,9 @@
 
 	let { fleet }: Props = $props();
 
-	let planet = $derived(fleet.orbitingPlanetNum != None && $universe.getPlanet(fleet.orbitingPlanetNum));
+	let planet = $derived(
+		fleet.orbitingPlanetNum != None && $universe.getPlanet(fleet.orbitingPlanetNum)
+	);
 	const transfer = () => {
 		dispatch('cargo-transfer-dialog', {
 			src: fleet,

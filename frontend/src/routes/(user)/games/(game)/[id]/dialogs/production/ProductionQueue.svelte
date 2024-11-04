@@ -62,7 +62,6 @@
 	let selectedQueueItem: ProductionQueueItem | undefined = $state();
 	let selectedQueueItemCost: Cost | undefined = $state();
 
-
 	// keep track of the quantity modifier
 	let quantityModifer = $state(1);
 
@@ -413,9 +412,9 @@
 		updateQueueEstimates();
 	}
 
-	let selectedQueueItemPercentComplete = $derived(selectedQueueItem
-		? getPercentComplete(selectedQueueItem)
-		: 0);
+	let selectedQueueItemPercentComplete = $derived(
+		selectedQueueItem ? getPercentComplete(selectedQueueItem) : 0
+	);
 	let updatedPlanet = $derived(Object.assign(new CommandedPlanet(), planet));
 	// clone the production queue whenever the planet is updated
 	run(() => {
@@ -442,7 +441,8 @@
 											onclick={() => availableItemSelected(item)}
 											ondblclick={(e) => addAvailableItem(e, item)}
 											oncontextmenu={preventDefault((e) =>
-												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum)))}
+												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))
+											)}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
@@ -468,7 +468,8 @@
 											onclick={() => availableItemSelected(item)}
 											ondblclick={(e) => addAvailableItem(e, item)}
 											oncontextmenu={preventDefault((e) =>
-												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum)))}
+												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))
+											)}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
@@ -675,12 +676,10 @@
 				</div>
 				<div class="w-1/2 flex flex-row flex-wrap justify-between sm:justify-end">
 					<div class="grow">
-						<button class="btn btn-sm btn-outline btn-secondary w-full" onclick={prev}>Prev</button
-						>
+						<button class="btn btn-sm btn-outline btn-secondary w-full" onclick={prev}>Prev</button>
 					</div>
 					<div class="grow">
-						<button class="btn btn-sm btn-outline btn-secondary w-full" onclick={next}>Next</button
-						>
+						<button class="btn btn-sm btn-outline btn-secondary w-full" onclick={next}>Next</button>
 					</div>
 					<div class="grow">
 						<button onclick={cancel} class="btn btn-sm btn-outline btn-secondary w-full"

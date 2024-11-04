@@ -13,14 +13,12 @@
 {#if design}
 	<Breadcrumb>
 		{#snippet crumbs()}
-			
-				<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
-				<li>{design?.name}</li>
-				{#if !design.spec?.numInstances}
-					<li><a class="cs-link" href={`/games/${$game.id}/designer/${design.num}/edit`}>Edit</a></li>
-				{/if}
-			
-			{/snippet}
+			<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
+			<li>{design?.name}</li>
+			{#if !design.spec?.numInstances}
+				<li><a class="cs-link" href={`/games/${$game.id}/designer/${design.num}/edit`}>Edit</a></li>
+			{/if}
+		{/snippet}
 	</Breadcrumb>
 
 	<div class="grow h-full px-1 md:p-0">

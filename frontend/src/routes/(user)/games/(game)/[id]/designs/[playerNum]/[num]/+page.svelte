@@ -16,13 +16,13 @@
 
 <Breadcrumb>
 	{#snippet crumbs()}
-	
-			<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
-			<li>
-				<a href={`/games/${$game.id}/designs/${playerNum}`}>{$universe.getPlayerPluralName(playerNum)}</a>
-			</li>
-			<li>{design?.name ?? 'not found'}</li>
-		
+		<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
+		<li>
+			<a href={`/games/${$game.id}/designs/${playerNum}`}
+				>{$universe.getPlayerPluralName(playerNum)}</a
+			>
+		</li>
+		<li>{design?.name ?? 'not found'}</li>
 	{/snippet}
 </Breadcrumb>
 

@@ -23,7 +23,6 @@
 			}
 		}
 	});
-
 </script>
 
 {#if $commandedFleet}

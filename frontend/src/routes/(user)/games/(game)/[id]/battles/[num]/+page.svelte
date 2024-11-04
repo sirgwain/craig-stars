@@ -22,18 +22,16 @@
 {#if $game && battle}
 	<Breadcrumb>
 		{#snippet crumbs()}
-			
-				<li><a class="cs-link" href={`/games/${$game.id}/battles`}>Battles</a></li>
-				<li class="flex flex-row gap-1">
-					{$universe.getBattleLocation(battle)}
-					<button
-						onclick={gotoTarget}
-						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
-						title="goto">Goto</button
-					>
-				</li>
-			
-			{/snippet}
+			<li><a class="cs-link" href={`/games/${$game.id}/battles`}>Battles</a></li>
+			<li class="flex flex-row gap-1">
+				{$universe.getBattleLocation(battle)}
+				<button
+					onclick={gotoTarget}
+					class="btn btn-outline btn-sm normal-case btn-secondary p-2"
+					title="goto">Goto</button
+				>
+			</li>
+		{/snippet}
 	</Breadcrumb>
 
 	<div class="grow px-1">

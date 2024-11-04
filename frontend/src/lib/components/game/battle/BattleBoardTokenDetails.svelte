@@ -28,10 +28,12 @@
 	let tokenState = $derived(token && battle.getTokenForPhase(token.num, phase));
 	let armor = $derived(design?.spec?.armor ?? 0);
 	let totalArmor = $derived(armor * (tokenState?.quantity ?? 0));
-	let currentArmor = $derived(token
-		? armor * (tokenState?.quantity ?? 0) -
-			(tokenState?.damage ?? 0) * (tokenState?.quantityDamaged ?? 0)
-		: 0);
+	let currentArmor = $derived(
+		token
+			? armor * (tokenState?.quantity ?? 0) -
+					(tokenState?.damage ?? 0) * (tokenState?.quantityDamaged ?? 0)
+			: 0
+	);
 </script>
 
 <div class="w-full">

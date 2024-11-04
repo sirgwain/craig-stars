@@ -3,8 +3,8 @@
 	import { Moon, Sun } from '@steeze-ui/heroicons';
 	import { onMount } from 'svelte';
 
-	const lightTheme = 'emerald'
-	const darkTheme = 'business'
+	const lightTheme = 'emerald';
+	const darkTheme = 'business';
 	let isDark = $state(false);
 	onMount(() => {
 		isDark =

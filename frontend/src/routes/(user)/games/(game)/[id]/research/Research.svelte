@@ -38,7 +38,9 @@
 	});
 
 	let leftToSpend = $derived(($player.spec.currentResearchCost ?? 0) - spent);
-	let yearsLeft = $derived(Math.ceil(leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0)));
+	let yearsLeft = $derived(
+		Math.ceil(leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0))
+	);
 </script>
 
 <ItemTitle>Research</ItemTitle>
@@ -96,11 +98,11 @@
 			on:change={updatePlayerOrders}
 		>
 			{#snippet begin()}
-						Research Budget
-					{/snippet}
+				Research Budget
+			{/snippet}
 			{#snippet end()}
-						<svelte:fragment ></svelte:fragment>
-					{/snippet}
+				<svelte:fragment></svelte:fragment>
+			{/snippet}
 		</SpinnerNumberText>
 
 		<div class="grid grid-cols-2">

@@ -14,9 +14,9 @@
 
 <div class="flex flex-row min-h-[11rem]">
 	<div class="flex flex-col">
-		<div class="avatar ">
+		<div class="avatar">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">
-				<div class="mapobject-avatar salvage bg-black" ></div>
+				<div class="mapobject-avatar salvage bg-black"></div>
 			</div>
 		</div>
 		<div class="text-center">{$universe.getPlayerPluralName(salvage.playerNum)}</div>

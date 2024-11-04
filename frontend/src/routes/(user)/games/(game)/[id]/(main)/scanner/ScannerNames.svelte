@@ -22,7 +22,6 @@
 	function fillStyle(left: number, top: number) {
 		return `top:${top}px; left: ${left}px;`;
 	}
-
 </script>
 
 <!-- Names -->

@@ -23,13 +23,11 @@
 
 <Breadcrumb>
 	{#snippet crumbs()}
-	
-			<li>Transport Plans</li>
-		
+		<li>Transport Plans</li>
 	{/snippet}
 
 	{#snippet end()}
-		<div  class="flex justify-end mb-1">
+		<div class="flex justify-end mb-1">
 			<a class="cs-link btn btn-sm" href={`/games/${$game.id}/transport-plans/create`}>Create</a>
 		</div>
 	{/snippet}

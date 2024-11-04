@@ -10,7 +10,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
 	interface Props {
-		[key: string]: any
+		[key: string]: any;
 	}
 
 	let { ...props }: Props = $props();

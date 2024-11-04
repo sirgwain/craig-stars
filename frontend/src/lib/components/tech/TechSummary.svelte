@@ -31,14 +31,28 @@
 		hideGraph: boolean;
 	}
 
-	let { tech, player = undefined, cs = undefined, showResearchCost = false, hideGraph = false }: Props = $props();
+	let {
+		tech,
+		player = undefined,
+		cs = undefined,
+		showResearchCost = false,
+		hideGraph = false
+	}: Props = $props();
 
-	let defense = $derived(tech?.category == TechCategory.PlanetaryDefense ? tech as TechDefense : undefined);
-	let hullComponent = $derived(isHullComponent(tech?.category) ? tech as TechHullComponent : undefined);
-	let hull = $derived(tech?.category == TechCategory.ShipHull ?tech as TechHull : undefined);
-	let engine = $derived(tech?.category == TechCategory.Engine ? tech as TechEngine : undefined);
-	let researchCost = $derived(tech && showResearchCost && player && cs ? cs.getResearchCost(tech.requirements) : 0);
-	let above = $derived(tech && player?.hasTech(tech) ? levelsAbove(tech.requirements, player.techLevels) : 0)
+	let defense = $derived(
+		tech?.category == TechCategory.PlanetaryDefense ? (tech as TechDefense) : undefined
+	);
+	let hullComponent = $derived(
+		isHullComponent(tech?.category) ? (tech as TechHullComponent) : undefined
+	);
+	let hull = $derived(tech?.category == TechCategory.ShipHull ? (tech as TechHull) : undefined);
+	let engine = $derived(tech?.category == TechCategory.Engine ? (tech as TechEngine) : undefined);
+	let researchCost = $derived(
+		tech && showResearchCost && player && cs ? cs.getResearchCost(tech.requirements) : 0
+	);
+	let above = $derived(
+		tech && player?.hasTech(tech) ? levelsAbove(tech.requirements, player.techLevels) : 0
+	);
 </script>
 
 {#if tech}
@@ -59,7 +73,7 @@
 								>{tech.name}</a
 							>
 						{:else}
-							<a href="/techs/{kebabCase(tech.name.replaceAll('\'', ''))}">{tech.name}</a>
+							<a href="/techs/{kebabCase(tech.name.replaceAll("'", ''))}">{tech.name}</a>
 						{/if}
 					</div>
 				</div>

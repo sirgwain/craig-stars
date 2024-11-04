@@ -2,10 +2,10 @@
 	interface Props {
 		style?: string | undefined;
 		chevronClass?: string;
-		[key: string]: any
+		[key: string]: any;
 	}
 
-	let { style = undefined, chevronClass = "fill-warning", ...rest }: Props = $props();
+	let { style = undefined, chevronClass = 'fill-warning', ...rest }: Props = $props();
 </script>
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" {style} {...rest}

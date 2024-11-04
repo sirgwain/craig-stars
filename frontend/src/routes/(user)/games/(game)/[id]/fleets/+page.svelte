@@ -106,7 +106,7 @@
 		}}
 	>
 		{#snippet head({ column })}
-				<span  >
+			<span>
 				<SortableTableHeader
 					{column}
 					isSorted={$settings.sortFleetsKey === column.key}
@@ -116,10 +116,10 @@
 					}}
 				/>
 			</span>
-			{/snippet}
+		{/snippet}
 
 		{#snippet cell({ column, row, cell })}
-				<span    >
+			<span>
 				{#if column.key == 'name'}
 					<button class="cs-link text-xl text-left" onclick={() => selectFleet(row)}>{cell}</button>
 				{:else if column.key == 'location'}
@@ -130,9 +130,7 @@
 						: '--'}
 				{:else if column.key == 'eta'}
 					{#if getEta(row) == -1}
-						<span class="text-error">
-							Never
-						</span>
+						<span class="text-error"> Never </span>
 					{:else if getEta(row) == 0}
 						--
 					{:else}
@@ -168,6 +166,6 @@
 					{cell}
 				{/if}
 			</span>
-			{/snippet}
+		{/snippet}
 	</Table>
 </div>

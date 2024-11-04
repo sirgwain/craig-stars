@@ -1,6 +1,6 @@
 import typography from '@tailwindcss/typography';
-import daisy from "daisyui";
-import { business, emerald } from "daisyui/src/theming/themes";
+import daisy from 'daisyui';
+import { business, emerald } from 'daisyui/src/theming/themes';
 import type { Config } from 'tailwindcss';
 
 export default {
@@ -53,5 +53,4 @@ export default {
 		],
 		darkTheme: 'business'
 	}
-
 } as Config;

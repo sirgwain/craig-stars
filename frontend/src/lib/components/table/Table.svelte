@@ -113,16 +113,18 @@
 		});
 	}
 
-	let filteredRows = $derived((() => {
-		if (externalSortAndFilter) {
-			// rows come filtered and sorted, return them as is
-			return rows;
-		}
-		if (lastSortedKey) {
-			sortRowsBy(lastSortedKey, true);
-		}
-		return filterRowsBy(filterBy, rows);
-	})());
+	let filteredRows = $derived(
+		(() => {
+			if (externalSortAndFilter) {
+				// rows come filtered and sorted, return them as is
+				return rows;
+			}
+			if (lastSortedKey) {
+				sortRowsBy(lastSortedKey, true);
+			}
+			return filterRowsBy(filterBy, rows);
+		})()
+	);
 
 	let assignedClasses = $derived({ ...defaultClasses, ...classes });
 </script>
@@ -138,7 +140,12 @@
 						onclick={() => !externalSortAndFilter && sortRowsBy(column.key)}
 					>
 						{#if head}
-							{@render head?.({ column, isSorted: lastSortedKey === column.key, sortDescending, sortable: column.sortable !== false, })}
+							{@render head?.({
+								column,
+								isSorted: lastSortedKey === column.key,
+								sortDescending,
+								sortable: column.sortable !== false
+							})}
 						{:else}
 							<span>{column.title}</span>
 						{/if}
@@ -154,7 +161,7 @@
 					{#if !column.hidden}
 						<td class={assignedClasses.td}>
 							{#if cell}
-								{@render cell?.({ row, column, cell: row[column.key], })}
+								{@render cell?.({ row, column, cell: row[column.key] })}
 							{:else}
 								<span>{row[column.key]}</span>
 							{/if}

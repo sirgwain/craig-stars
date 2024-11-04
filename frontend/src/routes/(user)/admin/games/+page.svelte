@@ -52,17 +52,19 @@
 	let usersById: Map<number, User> = $state();
 	let sortKey = $state('updatedAt');
 	let descending = $state(true);
-	let sortedGames: Game[] = $derived(sortBy(
-		games?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1),
-		sortKey
-	));
+	let sortedGames: Game[] = $derived(
+		sortBy(
+			games?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1),
+			sortKey
+		)
+	);
 	let filteredGames: Game[] = $derived(descending ? sortedGames.toReversed() : sortedGames);
 	let search = $state('');
 
 	onMount(async () => {
 		try {
 			const users = await AdminService.loadUsers();
-			usersById = new Map(users.map(u => ([u.id, u])));
+			usersById = new Map(users.map((u) => [u.id, u]));
 			games = await AdminService.loadGames();
 		} catch (_err) {
 			// TODO: show error
@@ -84,7 +86,7 @@
 		}}
 	>
 		{#snippet head({ isSorted, sortDescending, column })}
-				<span    >
+			<span>
 				<SortableTableHeader
 					{column}
 					isSorted={isSorted || sortKey === column.key}
@@ -95,10 +97,10 @@
 					}}
 				/>
 			</span>
-			{/snippet}
+		{/snippet}
 
 		{#snippet cell({ column, row, cell })}
-				<span    >
+			<span>
 				{#if column.key == 'name'}
 					<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
 				{:else if column.key == 'createdAt'}
@@ -113,6 +115,6 @@
 					{cell}
 				{/if}
 			</span>
-			{/snippet}
+		{/snippet}
 	</Table>
 </div>

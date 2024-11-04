@@ -16,7 +16,9 @@
 	setContext<DesignFinder>(designFinderKey, designFinder);
 	setContext<PlayerFinder>(playerFinderKey, playerFinder);
 
-	let battle = $derived(new Battle(battleRecord.num, battleRecord.position, designFinder, battleRecord));
+	let battle = $derived(
+		new Battle(battleRecord.num, battleRecord.position, designFinder, battleRecord)
+	);
 </script>
 
 <BattleBoard {battle} />

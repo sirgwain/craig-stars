@@ -1,5 +1,4 @@
 <script lang="ts">
-	
 	import type { Tech, TechHullComponent } from '$lib/types/Tech';
 	import { startCase } from 'lodash-es';
 	import { onMount } from 'svelte';

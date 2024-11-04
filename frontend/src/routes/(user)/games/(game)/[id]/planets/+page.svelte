@@ -210,7 +210,7 @@
 		}}
 	>
 		{#snippet head({ column })}
-				<div  >
+			<div>
 				<SortableTableHeader
 					{column}
 					isSorted={$settings.sortPlanetsKey === column.key}
@@ -220,12 +220,13 @@
 					}}
 				/>
 			</div>
-			{/snippet}
+		{/snippet}
 
 		{#snippet cell({ row, column, cell })}
-				<span    >
+			<span>
 				{#if column.key == 'name'}
-					<button class="cs-link text-xl text-left" onclick={() => selectPlanet(row)}>{cell}</button>
+					<button class="cs-link text-xl text-left" onclick={() => selectPlanet(row)}>{cell}</button
+					>
 				{:else if column.key == 'owner'}
 					<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
 						{owned(row) ? ($universe.getPlayerPluralName(row.playerNum) ?? '') : ''}
@@ -241,15 +242,24 @@
 				{:else if column.key == 'starbase'}
 					{row.spec.starbaseDesignName ?? ''}
 				{:else if column.key == 'population'}
-					<div class="cursor-help" onpointerdown={preventDefault((e) => onPopulationTooltip(e, row))}>
+					<div
+						class="cursor-help"
+						onpointerdown={preventDefault((e) => onPopulationTooltip(e, row))}
+					>
 						{row.spec.population ? row.spec.population.toLocaleString() : ''}
 					</div>
 				{:else if column.key == 'populationDensity'}
-					<div class="cursor-help" onpointerdown={preventDefault((e) => onPopulationTooltip(e, row))}>
+					<div
+						class="cursor-help"
+						onpointerdown={preventDefault((e) => onPopulationTooltip(e, row))}
+					>
 						{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
 					</div>
 				{:else if column.key == 'populationGrowth'}
-					<div class="cursor-help" onpointerdown={preventDefault((e) => onPopulationTooltip(e, row))}>
+					<div
+						class="cursor-help"
+						onpointerdown={preventDefault((e) => onPopulationTooltip(e, row))}
+					>
 						{(row.spec.growthAmount ?? 0).toLocaleString()}
 					</div>
 				{:else if column.key == 'habitability'}
@@ -305,7 +315,7 @@
 					{cell}
 				{/if}
 			</span>
-			{/snippet}
+		{/snippet}
 	</Table>
 </div>
 

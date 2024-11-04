@@ -17,17 +17,14 @@
 	let filteredBattles: BattleRecordDetails[] = $state([]);
 	let search = $state('');
 
-	let battleRows = $derived($universe.getBattles(
-		$settings.sortBattlesKey,
-		$settings.sortBattlesDescending,
-		$player
-	));
+	let battleRows = $derived(
+		$universe.getBattles($settings.sortBattlesKey, $settings.sortBattlesDescending, $player)
+	);
 
 	run(() => {
 		filteredBattles =
 			battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
 	});
-
 
 	const columns: TableColumn<BattleRecordDetails>[] = [
 		{
@@ -86,9 +83,7 @@
 
 <Breadcrumb>
 	{#snippet crumbs()}
-	
-			<li>Battles</li>
-		
+		<li>Battles</li>
 	{/snippet}
 </Breadcrumb>
 
@@ -107,7 +102,7 @@
 		}}
 	>
 		{#snippet head({ column })}
-				<span  >
+			<span>
 				<SortableTableHeader
 					{column}
 					isSorted={$settings.sortBattlesKey === column.key}
@@ -117,10 +112,10 @@
 					}}
 				/>
 			</span>
-			{/snippet}
+		{/snippet}
 
 		{#snippet cell({ column, row, cell })}
-				<span    >
+			<span>
 				{#if column.key == 'location'}
 					<div class="flex flex-row justify-between">
 						<a class="cs-link text-xl text-left" href={`/games/${$game.id}/battles/${row.num}`}
@@ -140,6 +135,6 @@
 					{cell ?? ''}
 				{/if}
 			</span>
-			{/snippet}
+		{/snippet}
 	</Table>
 </div>

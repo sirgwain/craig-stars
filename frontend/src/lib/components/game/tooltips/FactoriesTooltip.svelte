@@ -17,13 +17,8 @@
 		canBuildFactories: boolean;
 	}
 
-	let {
-		planetName,
-		factories,
-		maxFactories,
-		maxPossibleFactories,
-		canBuildFactories
-	}: Props = $props();
+	let { planetName, factories, maxFactories, maxPossibleFactories, canBuildFactories }: Props =
+		$props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

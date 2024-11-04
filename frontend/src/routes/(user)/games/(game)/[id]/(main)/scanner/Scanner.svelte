@@ -102,8 +102,6 @@
 		unsubscribe();
 	});
 
-
-
 	// enable drag and zoom, but disable dblclick zoom events
 	function enableDragAndZoom() {
 		select(root).call(zoomBehavior).on('dblclick.zoom', null);
@@ -194,7 +192,6 @@
 	function handleZoomEnd(e: D3ZoomEvent<HTMLElement, any>) {
 		zooming = false;
 	}
-
 
 	// zoom the display to a point on the map
 	function translateViewport(position: Vector, scaleTo?: number) {

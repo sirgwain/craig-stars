@@ -1,7 +1,7 @@
 <script lang="ts">
 	interface Props {
 		color?: string;
-		[key: string]: any
+		[key: string]: any;
 	}
 
 	let { color = '#0000FF', ...rest }: Props = $props();
@@ -18,9 +18,7 @@
 	<polygon
 		points={`0,0 0,${size} ${size},${size}`}
 		fill={color}
-		transform={`translate(350 400) translate(${
-			-size / 2
-		} ${-size / 2})`}
+		transform={`translate(350 400) translate(${-size / 2} ${-size / 2})`}
 	/>
 	<text x="200" y="150" class="text-[200px] text-base-content">32</text>
 </svg>

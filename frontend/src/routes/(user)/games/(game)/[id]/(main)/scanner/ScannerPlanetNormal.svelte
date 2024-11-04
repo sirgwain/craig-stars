@@ -42,10 +42,12 @@
 	let starbaseXOffset = $derived(ringRadius * 0.75);
 	let starbaseYOffset = $derived(ringRadius + starbaseWidth);
 
-	let orbitingFleets = $derived($universe
-		.getMapObjectsByPosition(planet)
-		.filter((mo) => mo.type === MapObjectType.Fleet)
-		.filter((f) => filterFleet($player, f as Fleet, $settings)));
+	let orbitingFleets = $derived(
+		$universe
+			.getMapObjectsByPosition(planet)
+			.filter((mo) => mo.type === MapObjectType.Fleet)
+			.filter((f) => filterFleet($player, f as Fleet, $settings))
+	);
 
 	// setup props for planet circle
 	run(() => {

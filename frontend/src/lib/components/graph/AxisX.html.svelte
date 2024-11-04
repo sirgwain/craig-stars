@@ -7,19 +7,6 @@
 
 	const { xScale } = getContext('LayerCake');
 
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
 	interface Props {
 		gridlines?: Boolean;
 		tickMarks?: Boolean;
@@ -44,13 +31,15 @@
 
 	let isBandwidth = $derived(typeof $xScale.bandwidth === 'function');
 
-	let tickVals = $derived(Array.isArray(ticks)
-		? ticks
-		: isBandwidth
-		? $xScale.domain()
-		: typeof ticks === 'function'
-		? ticks($xScale.ticks())
-		: $xScale.ticks(ticks));
+	let tickVals = $derived(
+		Array.isArray(ticks)
+			? ticks
+			: isBandwidth
+				? $xScale.domain()
+				: typeof ticks === 'function'
+					? ticks($xScale.ticks())
+					: $xScale.ticks(ticks)
+	);
 </script>
 
 <div class="axis x-axis" class:snapTicks>

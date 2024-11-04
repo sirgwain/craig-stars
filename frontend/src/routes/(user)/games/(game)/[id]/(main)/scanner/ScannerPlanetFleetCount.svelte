@@ -22,18 +22,20 @@
 
 	let { planet, yOffset }: Props = $props();
 
-	let orbitingFleets = $derived($universe
-		.getMapObjectsByPosition(planet)
-		.filter((mo) => mo.type === MapObjectType.Fleet));
+	let orbitingFleets = $derived(
+		$universe.getMapObjectsByPosition(planet).filter((mo) => mo.type === MapObjectType.Fleet)
+	);
 
-	let orbitingTokens = $derived(orbitingFleets
-		.map((of) => of as Fleet)
-		.filter((f: Fleet) => filterFleet($player, f, $settings))
-		.reduce(
-			(count, f) =>
-				count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
-			0
-		));
+	let orbitingTokens = $derived(
+		orbitingFleets
+			.map((of) => of as Fleet)
+			.filter((f: Fleet) => filterFleet($player, f, $settings))
+			.reduce(
+				(count, f) =>
+					count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
+				0
+			)
+	);
 	let textColor = $state('fill-orbit');
 	run(() => {
 		const { enemies, friends } = getEnemiesAndFriends(orbitingFleets, $player);

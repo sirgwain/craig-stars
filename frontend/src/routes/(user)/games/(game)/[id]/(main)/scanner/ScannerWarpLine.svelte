@@ -39,7 +39,7 @@
 			if (mo.playerNum) {
 				color = $universe.getPlayerColor(mo.playerNum);
 			} else if (mo.type == MapObjectType.MysteryTrader) {
-				color = '#00FFFF'
+				color = '#00FFFF';
 			}
 
 			if (warpSpeed) {

@@ -72,13 +72,13 @@
 		}}
 	>
 		{#snippet head({ isSorted, sortDescending, column })}
-				<span    >
+			<span>
 				<SortableTableHeader {column} {isSorted} {sortDescending} />
 			</span>
-			{/snippet}
+		{/snippet}
 
 		{#snippet cell({ column, row, cell })}
-				<span    >
+			<span>
 				{#if column.key == 'username'}
 					{cell}
 					{#if row.isGuest()}<a
@@ -93,6 +93,6 @@
 					{cell}
 				{/if}
 			</span>
-			{/snippet}
+		{/snippet}
 	</Table>
 </div>

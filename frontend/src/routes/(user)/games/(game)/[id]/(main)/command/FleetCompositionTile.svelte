@@ -53,7 +53,8 @@
 							type="button"
 							class="w-full cursor-help"
 							onpointerdown={preventDefault((e) =>
-								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum)))}
+								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))
+							)}
 						>
 							<div class="flex flex-row justify-between relative">
 								{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
@@ -107,14 +108,12 @@
 			<div>{fleet.spec.cloakPercent ? fleet.spec.cloakPercent + '%' : 'none'}</div>
 		</div>
 		<div class="flex justify-between">
-			<button onclick={split} class="btn btn-outline btn-sm normal-case btn-secondary"
-				>Split</button
+			<button onclick={split} class="btn btn-outline btn-sm normal-case btn-secondary">Split</button
 			>
 			<button onclick={splitAll} class="btn btn-outline btn-sm normal-case btn-secondary"
 				>Split All</button
 			>
-			<button onclick={merge} class="btn btn-outline btn-sm normal-case btn-secondary"
-				>Merge</button
+			<button onclick={merge} class="btn btn-outline btn-sm normal-case btn-secondary">Merge</button
 			>
 		</div>
 	</CommandTile>

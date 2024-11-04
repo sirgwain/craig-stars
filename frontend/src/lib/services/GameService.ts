@@ -195,5 +195,5 @@ export class GameService {
 		fg.universe.setPlayer(fg.player.num);
 
 		return fg;
-	}	
+	}
 }

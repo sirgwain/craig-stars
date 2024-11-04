@@ -7,9 +7,11 @@
 
 	const { player, universe, settings, commandedFleet, selectedWaypoint } = getGameContext();
 
-	let fleets = $derived($universe.fleets.filter(
-		(f: Fleet) => equal(f, $commandedFleet) || filterFleet($player, f, $settings)
-	));
+	let fleets = $derived(
+		$universe.fleets.filter(
+			(f: Fleet) => equal(f, $commandedFleet) || filterFleet($player, f, $settings)
+		)
+	);
 </script>
 
 {#each fleets as fleet}

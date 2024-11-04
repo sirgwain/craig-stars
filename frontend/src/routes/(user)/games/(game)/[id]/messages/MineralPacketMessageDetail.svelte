@@ -20,12 +20,14 @@
 	let { message, mineralPacket, owner }: Props = $props();
 
 	let target = $derived($universe.getPlanet(mineralPacket.targetPlanetNum));
-	let eta = $derived(target
-		? Math.ceil(
-				distance(mineralPacket.position, target.position) /
-					(mineralPacket.warpSpeed * mineralPacket.warpSpeed)
-			)
-		: Unknown);
+	let eta = $derived(
+		target
+			? Math.ceil(
+					distance(mineralPacket.position, target.position) /
+						(mineralPacket.warpSpeed * mineralPacket.warpSpeed)
+				)
+			: Unknown
+	);
 </script>
 
 {#if message.text}

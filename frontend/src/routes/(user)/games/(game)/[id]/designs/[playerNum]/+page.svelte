@@ -12,10 +12,8 @@
 
 <Breadcrumb>
 	{#snippet crumbs()}
-	
-			<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
-			<li>{$universe.getPlayerPluralName(playerNum)}</li>
-		
+		<li><a href={`/games/${$game.id}/designs`}>Designs</a></li>
+		<li>{$universe.getPlayerPluralName(playerNum)}</li>
 	{/snippet}
 </Breadcrumb>
 

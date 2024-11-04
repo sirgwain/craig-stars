@@ -1,5 +1,5 @@
 <script lang="ts" module>
-		export type MineralTooltipProps = {
+	export type MineralTooltipProps = {
 		mineralType: string;
 		surfaceAmount: number;
 		concentration: number;
@@ -17,13 +17,7 @@
 		homeworld: boolean;
 	}
 
-	let {
-		mineralType,
-		surfaceAmount,
-		concentration,
-		miningRate,
-		homeworld
-	}: Props = $props();
+	let { mineralType, surfaceAmount, concentration, miningRate, homeworld }: Props = $props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

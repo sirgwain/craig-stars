@@ -74,13 +74,13 @@
 		}}
 	>
 		{#snippet head({ isSorted, sortDescending, column })}
-				<span    >
+			<span>
 				<SortableTableHeader {column} {isSorted} {sortDescending} />
 			</span>
-			{/snippet}
+		{/snippet}
 
 		{#snippet cell({ column, row, cell })}
-				<span    >
+			<span>
 				{#if column.key == 'pluralName'}
 					<a class="cs-link text-2xl" href="/races/{row.id}">{cell}</a>
 				{:else if column.key == 'createdAt'}
@@ -97,6 +97,6 @@
 					{cell}
 				{/if}
 			</span>
-			{/snippet}
+		{/snippet}
 	</Table>
 </div>

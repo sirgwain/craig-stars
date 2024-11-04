@@ -36,13 +36,15 @@
 	let { position }: Props = $props();
 
 	let otherMapObjectsHere = $derived($universe.getOtherMapObjectsHereByType(position));
-	let everythingElse = $derived(flatten(
-		keys(otherMapObjectsHere).map((k) =>
-			k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
-				? otherMapObjectsHere[k]
-				: []
+	let everythingElse = $derived(
+		flatten(
+			keys(otherMapObjectsHere).map((k) =>
+				k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
+					? otherMapObjectsHere[k]
+					: []
+			)
 		)
-	));
+	);
 
 	function gotoTarget(mo: MapObject) {
 		if (ownedBy(mo, $player.num)) {

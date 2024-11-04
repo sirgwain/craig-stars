@@ -17,10 +17,14 @@
 	let { message }: { message: Message } = $props();
 
 	let target = $derived($universe.getMapObject(message));
-	let owner = $derived(target && target.playerNum ? $universe.getPlayerIntel(target.playerNum) : undefined);
+	let owner = $derived(
+		target && target.playerNum ? $universe.getPlayerIntel(target.playerNum) : undefined
+	);
 	let planet = $derived(target?.type == MapObjectType.Planet ? (target as Planet) : undefined);
 	let fleet = $derived(target?.type == MapObjectType.Fleet ? (target as Fleet) : undefined);
-	let mineralPacket = $derived(target?.type == MapObjectType.MineralPacket ? (target as MineralPacket) : undefined);
+	let mineralPacket = $derived(
+		target?.type == MapObjectType.MineralPacket ? (target as MineralPacket) : undefined
+	);
 </script>
 
 {#if message.type === MessageType.Battle || message.type === MessageType.BattleAlly}

@@ -44,7 +44,7 @@
 				design.spec = Object.assign({}, copyDesign.spec);
 				design.hullSetNumber = copyDesign.hullSetNumber;
 				design.version = copyDesign.version + 1;
-				design.name = copyDesign.name
+				design.name = copyDesign.name;
 			}
 		}
 	});
@@ -67,14 +67,12 @@
 
 <Breadcrumb>
 	{#snippet crumbs()}
-	
-			<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
-			<li><a class="cs-link" href={`/games/${$game.id}/designer/create`}>Choose Hull</a></li>
-			<li>{design.name == '' ? 'new' : design.name}</li>
-		
+		<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
+		<li><a class="cs-link" href={`/games/${$game.id}/designer/create`}>Choose Hull</a></li>
+		<li>{design.name == '' ? 'new' : design.name}</li>
 	{/snippet}
 	{#snippet end()}
-		<div  class="flex justify-end mb-1">
+		<div class="flex justify-end mb-1">
 			<button class="btn btn-success mx-1" type="submit" onclick={(e) => onSave()}>Save</button>
 		</div>
 	{/snippet}

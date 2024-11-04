@@ -20,21 +20,23 @@
 		unit?: string;
 	}
 
-	let {
-		value = $bindable(),
-		step = 1,
-		min = 0,
-		max = 100,
-		unit = ''
-	}: Props = $props();
+	let { value = $bindable(), step = 1, min = 0, max = 100, unit = '' }: Props = $props();
 
 	function increase(e) {
-		value = clamp(value + step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1), min, max);
+		value = clamp(
+			value + step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1),
+			min,
+			max
+		);
 		dispatch('change', value);
 	}
 
 	function decrease(e) {
-		value = clamp(value - step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1), min, max);
+		value = clamp(
+			value - step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1),
+			min,
+			max
+		);
 		dispatch('change', value);
 	}
 </script>

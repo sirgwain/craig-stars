@@ -15,7 +15,6 @@
 	import { isSafari } from '$lib/safariChecker';
 	import type { CS } from '$lib/wasm';
 
-	
 	interface Props {
 		// for ssr, we start with techs from a json file
 		techStore?: TechStore;
@@ -27,14 +26,14 @@
 	let {
 		techStore = $bindable(techjson as TechStore),
 		techs = $bindable([
-		...techStore.engines,
-		...techStore.planetaryScanners,
-		...techStore.defenses,
-		...techStore.planetaries,
-		...techStore.hullComponents,
-		...techStore.hulls,
-		...techStore.terraforms
-	]),
+			...techStore.engines,
+			...techStore.planetaryScanners,
+			...techStore.defenses,
+			...techStore.planetaries,
+			...techStore.hullComponents,
+			...techStore.hulls,
+			...techStore.terraforms
+		]),
 		player = undefined,
 		cs = undefined
 	}: Props = $props();
@@ -86,11 +85,13 @@
 		};
 	}
 
-	let filteredTechs = $derived(techs.filter(
-		(t) =>
-			t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
-			t.category.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1
-	));
+	let filteredTechs = $derived(
+		techs.filter(
+			(t) =>
+				t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
+				t.category.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1
+		)
+	);
 
 	run(() => {
 		clearTechsByCategory();
@@ -122,9 +123,10 @@
 		}
 	});
 
-	let newTechs =
-		$derived(player &&
-		techs.filter((t) => player?.hasTech(t) && levelsAbove(t.requirements, player.techLevels) == 0));
+	let newTechs = $derived(
+		player &&
+			techs.filter((t) => player?.hasTech(t) && levelsAbove(t.requirements, player.techLevels) == 0)
+	);
 </script>
 
 <div class="flex justify-between">

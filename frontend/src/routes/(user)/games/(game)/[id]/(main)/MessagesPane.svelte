@@ -43,7 +43,6 @@
 	let showFilteredMessages = $state(false);
 	let viewBattle = $state(false);
 
-
 	function onFilterMessageType(type: number) {
 		if ($settings.isMessageVisible(type)) {
 			$settings.filterMessageType(type);
@@ -139,17 +138,12 @@
 		};
 	});
 	let message = $derived(messages.length ? messages[$messageNum] : undefined);
-	let nextVisibleMessageNum = $derived(getNextVisibleMessageNum(
-		$messageNum,
-		showFilteredMessages,
-		messages,
-		$settings
-	));
-	let previousVisibleMessageNum = $derived(getPreviousVisibleMessageNum(
-		$messageNum,
-		showFilteredMessages,
-		messages
-	));
+	let nextVisibleMessageNum = $derived(
+		getNextVisibleMessageNum($messageNum, showFilteredMessages, messages, $settings)
+	);
+	let previousVisibleMessageNum = $derived(
+		getPreviousVisibleMessageNum($messageNum, showFilteredMessages, messages)
+	);
 	let visible;
 	run(() => {
 		visible = (message && $settings.isMessageVisible(message.type)) ?? false;

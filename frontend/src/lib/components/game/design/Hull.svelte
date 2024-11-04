@@ -80,8 +80,10 @@
 			}px; top: ${slot.position.y * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
 			role="link"
 			tabindex="-1"
-			oncontextmenu={preventDefault((e) =>
-				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent)))}
+			oncontextmenu={preventDefault(
+				(e) =>
+					shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))
+			)}
 		>
 			<HullComponent
 				{shipDesignSlot}

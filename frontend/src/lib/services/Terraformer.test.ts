@@ -126,7 +126,6 @@ describe('Terraformer test', () => {
 				player
 			)
 		).toEqual({ grav: 0, temp: 3, rad: 0 });
-
 	});
 
 	it('getMinTerraformAmount - 3 ability, no need to terraform', () => {
@@ -217,5 +216,5 @@ describe('Terraformer test', () => {
 				player
 			)
 		).toEqual({ grav: 1, temp: 2, rad: 0 });
-	});	
+	});
 });

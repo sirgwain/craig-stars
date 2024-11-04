@@ -8,7 +8,6 @@
 	let { modifier = $bindable(1) }: Props = $props();
 
 	let buttonModifer = $state(1);
-	
 
 	function updateModifier(value: number) {
 		modifier = value;

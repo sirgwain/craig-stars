@@ -148,7 +148,8 @@
 									type="button"
 									class="w-full cursor-help"
 									onpointerdown={preventDefault((e) =>
-										onShipDesignTooltip(e, $universe.getDesign(fleet.playerNum, token.designNum)))}
+										onShipDesignTooltip(e, $universe.getDesign(fleet.playerNum, token.designNum))
+									)}
 								>
 									<span class="flex flex-row justify-between relative">
 										{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}

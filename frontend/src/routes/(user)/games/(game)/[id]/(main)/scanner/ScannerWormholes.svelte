@@ -9,7 +9,6 @@
 	const { universe } = getGameContext();
 
 	let wormholes = $derived($universe.wormholes);
-
 </script>
 
 <!-- Wormholes -->

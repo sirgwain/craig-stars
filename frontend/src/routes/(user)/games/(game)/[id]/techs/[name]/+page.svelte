@@ -18,10 +18,8 @@
 
 <Breadcrumb>
 	{#snippet crumbs()}
-	
-			<li><a href={`/games/${$game.id}/techs`}>Techs</a></li>
-			<li>{tech?.name ?? '<unknown>'}</li>
-			
+		<li><a href={`/games/${$game.id}/techs`}>Techs</a></li>
+		<li>{tech?.name ?? '<unknown>'}</li>
 	{/snippet}
 </Breadcrumb>
 

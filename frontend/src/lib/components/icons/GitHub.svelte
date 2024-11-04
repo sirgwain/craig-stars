@@ -1,7 +1,7 @@
 <script lang="ts">
 	interface Props {
 		style?: string | undefined;
-		[key: string]: any
+		[key: string]: any;
 	}
 
 	let { style = undefined, ...rest }: Props = $props();

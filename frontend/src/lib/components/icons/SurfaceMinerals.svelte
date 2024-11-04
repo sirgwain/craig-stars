@@ -1,6 +1,6 @@
 <script lang="ts">
 	interface Props {
-		[key: string]: any
+		[key: string]: any;
 	}
 
 	let { ...rest }: Props = $props();
@@ -35,10 +35,10 @@
 	/>
 	<rect
 		class="germanium-bar"
-		x={lineWidth + width*2 + 40}
+		x={lineWidth + width * 2 + 40}
 		y={500 - germaniumSize - lineWidth}
 		{width}
 		height={germaniumSize}
 	/>
-	<text x=250 y=150 fill="white" class='text-[200px] text-white'>M</text>
+	<text x="250" y="150" fill="white" class="text-[200px] text-white">M</text>
 </svg>

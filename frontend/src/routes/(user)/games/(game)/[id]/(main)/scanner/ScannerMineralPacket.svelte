@@ -22,5 +22,13 @@
 
 <!-- ScannerMineralPacket -->
 <MapObjectScaler mapObject={mineralPacket}>
-	<rect x={-size / 2} y={-size / 2} width={size} height={size} stroke={color} fill="none" stroke-width={2} />
+	<rect
+		x={-size / 2}
+		y={-size / 2}
+		width={size}
+		height={size}
+		stroke={color}
+		fill="none"
+		stroke-width={2}
+	/>
 </MapObjectScaler>

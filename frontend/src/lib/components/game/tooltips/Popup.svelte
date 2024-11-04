@@ -20,8 +20,6 @@
 			.replaceAll('touch-none', '');
 	}
 
-
-
 	let component: HTMLElement | undefined = $state();
 
 	// observe popup component height changes so we can react
@@ -40,11 +38,14 @@
 				componentWidth = Math.max(component?.scrollWidth ?? 0, minWidth);
 			}).observe(component);
 	});
-	let x =
-		$derived($popupLocation.x + componentWidth > window.innerWidth // we overshoot the window, move the popup left so it fits, or 0 if required
+	let x = $derived(
+		$popupLocation.x + componentWidth > window.innerWidth // we overshoot the window, move the popup left so it fits, or 0 if required
 			? Math.max(0, $popupLocation.x - (componentWidth + $popupLocation.x - window.innerWidth) - 20)
-			: $popupLocation.x);
-	let y = $derived(window.scrollY + Math.min($popupLocation.y, window.innerHeight - componentHeight));
+			: $popupLocation.x
+	);
+	let y = $derived(
+		window.scrollY + Math.min($popupLocation.y, window.innerHeight - componentHeight)
+	);
 </script>
 
 {#if $popupComponent}

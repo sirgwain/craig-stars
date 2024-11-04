@@ -49,8 +49,7 @@
 					>Force Generate Turn</button
 				>
 			{/if}
-			<button onclick={onUnsubmitTurn} type="button" class="btn btn-secondary"
-				>Unsubmit Turn</button
+			<button onclick={onUnsubmitTurn} type="button" class="btn btn-secondary">Unsubmit Turn</button
 			>
 		</div>
 	</form>

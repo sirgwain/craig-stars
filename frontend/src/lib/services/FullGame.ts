@@ -7,10 +7,7 @@ import {
 	type Game,
 	type VictoryConditions
 } from '$lib/types/Game';
-import {
-	Player,
-	type PlayerStatus
-} from '$lib/types/Player';
+import { Player, type PlayerStatus } from '$lib/types/Player';
 import { defaultRules } from '$lib/types/Rules';
 import type { ShipDesign } from '$lib/types/ShipDesign';
 import type { Vector } from '$lib/types/Vector';
@@ -85,5 +82,4 @@ export class FullGame implements Game {
 		}
 		return { valid: true };
 	}
-
 }

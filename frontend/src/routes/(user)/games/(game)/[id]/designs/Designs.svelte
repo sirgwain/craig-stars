@@ -35,7 +35,10 @@
 					(i) =>
 						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 						i.hull.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-						$universe.getPlayerPluralName(i.playerNum).toLowerCase().indexOf(search.toLowerCase()) != -1
+						$universe
+							.getPlayerPluralName(i.playerNum)
+							.toLowerCase()
+							.indexOf(search.toLowerCase()) != -1
 				) ?? [];
 	});
 
@@ -108,13 +111,13 @@
 		}}
 	>
 		{#snippet head({ isSorted, sortDescending, column })}
-				<span    >
+			<span>
 				<SortableTableHeader {column} {isSorted} {sortDescending} />
 			</span>
-			{/snippet}
+		{/snippet}
 
 		{#snippet cell({ column, row, cell })}
-				<span    >
+			<span>
 				{#if column.key === 'name'}
 					<div class="flex flex-row">
 						<button
@@ -170,6 +173,6 @@
 					{cell}
 				{/if}
 			</span>
-			{/snippet}
+		{/snippet}
 	</Table>
 </div>

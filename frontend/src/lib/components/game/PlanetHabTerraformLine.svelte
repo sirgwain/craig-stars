@@ -3,12 +3,11 @@
 		style?: string | undefined;
 		x1?: number;
 		x2?: number;
-		[key: string]: any
+		[key: string]: any;
 	}
 
 	let { style = undefined, x1 = 50, x2 = 50, ...rest }: Props = $props();
 </script>
-
 
 <div class="absolute h-full w-full">
 	<svg
@@ -19,13 +18,6 @@
 		{style}
 		{...rest}
 	>
-		<line
-			x1={x1}
-			y1="50"
-			x2={x2}
-			y2="50"
-			vector-effect="non-scaling-stroke"
-			stroke-width="1"			
-		/>
+		<line {x1} y1="50" {x2} y2="50" vector-effect="non-scaling-stroke" stroke-width="1" />
 	</svg>
 </div>

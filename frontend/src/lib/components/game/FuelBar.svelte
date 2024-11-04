@@ -54,24 +54,30 @@
 <div
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative select-none bg-gauge"
 	class:cursor-pointer={editable}
-	onpointerdown={preventDefault((e) =>
-		editable &&
-		onPointerDown(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		))}
-	onpointerup={preventDefault((e) =>
-		editable &&
-		onPointerUp(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		))}
-	onpointermove={preventDefault((e) =>
-		editable &&
-		onPointerMove(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		))}
+	onpointerdown={preventDefault(
+		(e) =>
+			editable &&
+			onPointerDown(
+				(e.clientX - e.currentTarget.getBoundingClientRect().left) /
+					e.currentTarget.getBoundingClientRect().width
+			)
+	)}
+	onpointerup={preventDefault(
+		(e) =>
+			editable &&
+			onPointerUp(
+				(e.clientX - e.currentTarget.getBoundingClientRect().left) /
+					e.currentTarget.getBoundingClientRect().width
+			)
+	)}
+	onpointermove={preventDefault(
+		(e) =>
+			editable &&
+			onPointerMove(
+				(e.clientX - e.currentTarget.getBoundingClientRect().left) /
+					e.currentTarget.getBoundingClientRect().width
+			)
+	)}
 >
 	<div class="font-extrabold text-sm text-center align-middle w-full absolute text-white">
 		{value} of {capacity}mg

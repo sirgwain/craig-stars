@@ -45,10 +45,8 @@
 
 <Breadcrumb>
 	{#snippet crumbs()}
-	
-			<li><a href={`/techs`}>Techs</a></li>
-			<li>{tech?.name ?? '<unknown>'}</li>
-		
+		<li><a href={`/techs`}>Techs</a></li>
+		<li>{tech?.name ?? '<unknown>'}</li>
 	{/snippet}
 </Breadcrumb>
 

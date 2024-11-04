@@ -14,15 +14,6 @@
 	const commas = format(',');
 	const titleCase = (d: any) => d.replace(/^\w/, (w: string) => w.toUpperCase());
 
-	
-
-	
-
-	
-
-	
-
-	
 	interface Props {
 		formatTitle?: Function;
 		formatValue?: Function;
@@ -61,7 +52,7 @@
 	}
 </script>
 
-<QuadTree dataset={dataset || $data} y="x"     >
+<QuadTree dataset={dataset || $data} y="x">
 	{#snippet children({ x, y, visible, found, e })}
 		{@const foundSorted = sortResult(found)}
 		{#if visible === true}
@@ -108,7 +99,9 @@
 	}
 	.tooltip,
 	.line {
-		transition: left 250ms ease-out, top 250ms ease-out;
+		transition:
+			left 250ms ease-out,
+			top 250ms ease-out;
 	}
 	.title {
 		font-weight: bold;

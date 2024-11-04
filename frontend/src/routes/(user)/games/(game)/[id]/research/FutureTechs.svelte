@@ -23,34 +23,36 @@
 
 	let currentLevel = $derived(get($player.techLevels, field));
 
-	let futureTechs = $derived($techs.techs
-		.filter(
-			(tech) =>
-				get(tech.requirements, field) > currentLevel &&
-				canLearnTech($player, tech) &&
-				!hasRequiredLevels($player.techLevels, tech.requirements)
-		)
-		.map((tech) => {
-			const distanceToLearn = subtract(tech.requirements, $player.techLevels);
-			// zero out any level differences we have already achieved
-			// i.e. if we are at level 5 for energy and this tech requires 3, distanceToLearn.Energy will equal -2
-			// this makes it zero
+	let futureTechs = $derived(
+		$techs.techs
+			.filter(
+				(tech) =>
+					get(tech.requirements, field) > currentLevel &&
+					canLearnTech($player, tech) &&
+					!hasRequiredLevels($player.techLevels, tech.requirements)
+			)
+			.map((tech) => {
+				const distanceToLearn = subtract(tech.requirements, $player.techLevels);
+				// zero out any level differences we have already achieved
+				// i.e. if we are at level 5 for energy and this tech requires 3, distanceToLearn.Energy will equal -2
+				// this makes it zero
 
-			(distanceToLearn.energy = Math.max(0, distanceToLearn.energy ?? 0)),
-				(distanceToLearn.weapons = Math.max(0, distanceToLearn.weapons ?? 0)),
-				(distanceToLearn.propulsion = Math.max(0, distanceToLearn.propulsion ?? 0)),
-				(distanceToLearn.construction = Math.max(0, distanceToLearn.construction ?? 0)),
-				(distanceToLearn.electronics = Math.max(0, distanceToLearn.electronics ?? 0)),
-				(distanceToLearn.biotechnology = Math.max(0, distanceToLearn.biotechnology ?? 0));
+				(distanceToLearn.energy = Math.max(0, distanceToLearn.energy ?? 0)),
+					(distanceToLearn.weapons = Math.max(0, distanceToLearn.weapons ?? 0)),
+					(distanceToLearn.propulsion = Math.max(0, distanceToLearn.propulsion ?? 0)),
+					(distanceToLearn.construction = Math.max(0, distanceToLearn.construction ?? 0)),
+					(distanceToLearn.electronics = Math.max(0, distanceToLearn.electronics ?? 0)),
+					(distanceToLearn.biotechnology = Math.max(0, distanceToLearn.biotechnology ?? 0));
 
-			if (sum(distanceToLearn) == get(distanceToLearn, field)) {
-				// if the required tech difference is only in the field we care about
-				// add it to our list of future techs
-				return { tech, distance: get(distanceToLearn, field) };
-			}
-		})
-		.filter((t) => t != undefined)
-		.sort((t1, t2) => (t1?.distance ?? 0) - (t2?.distance ?? 0)) as FutureTech[]);
+				if (sum(distanceToLearn) == get(distanceToLearn, field)) {
+					// if the required tech difference is only in the field we care about
+					// add it to our list of future techs
+					return { tech, distance: get(distanceToLearn, field) };
+				}
+			})
+			.filter((t) => t != undefined)
+			.sort((t1, t2) => (t1?.distance ?? 0) - (t2?.distance ?? 0)) as FutureTech[]
+	);
 </script>
 
 <ul class="pl-1 pt-1">

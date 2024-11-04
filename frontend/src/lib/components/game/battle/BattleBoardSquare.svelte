@@ -19,12 +19,7 @@
 		selected?: boolean;
 	}
 
-	let {
-		tokens = undefined,
-		phase,
-		selectedToken,
-		selected = false
-	}: Props = $props();
+	let { tokens = undefined, phase, selectedToken, selected = false }: Props = $props();
 
 	let targetTokenIndex = $derived(tokens?.findIndex((t) => t.target));
 	let selectedTokenIndex = $derived(selectedToken && tokens?.indexOf(selectedToken));
@@ -34,8 +29,8 @@
 			targetTokenIndex && targetTokenIndex != -1
 				? targetTokenIndex
 				: selectedTokenIndex && selectedTokenIndex != -1
-				? selectedTokenIndex
-				: 0;
+					? selectedTokenIndex
+					: 0;
 	});
 
 	let topToken = $derived(tokens && tokens[tokenIndex]);

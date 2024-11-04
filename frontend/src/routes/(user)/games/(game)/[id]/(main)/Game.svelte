@@ -50,7 +50,8 @@
 	let cargoTransferDetails: CargoTransferDialogEventDetails | undefined = $state(undefined);
 	let mergeFleetsDialogEventDetails: MergeFleetsDialogEventDetails | undefined = $state(undefined);
 	let splitFleetDialogEventDetails: SplitFleetDialogEventDetails | undefined = $state(undefined);
-	let transportTasksDialogEventDetails: TransportTasksDialogEventDetails | undefined = $state(undefined);
+	let transportTasksDialogEventDetails: TransportTasksDialogEventDetails | undefined =
+		$state(undefined);
 
 	onMount(() => {
 		hotkeys('n', 'root', () => {

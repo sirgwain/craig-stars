@@ -10,7 +10,8 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import ProductionQueue from './ProductionQueue.svelte';
 
-	const { commandedPlanet, nextMapObject, previousMapObject, updatePlanetOrders } = getGameContext();
+	const { commandedPlanet, nextMapObject, previousMapObject, updatePlanetOrders } =
+		getGameContext();
 
 	interface Props {
 		show?: boolean;

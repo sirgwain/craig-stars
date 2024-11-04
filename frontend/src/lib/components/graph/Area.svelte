@@ -17,13 +17,14 @@
 
 	let { fill = 'fill-secondary-content opacity-50' }: Props = $props();
 
-	let path =
-		$derived('M' +
-		$data
-			.map((d: any) => {
-				return $xGet(d) + ',' + $yGet(d);
-			})
-			.join('L'));
+	let path = $derived(
+		'M' +
+			$data
+				.map((d: any) => {
+					return $xGet(d) + ',' + $yGet(d);
+				})
+				.join('L')
+	);
 
 	let area: string = $state();
 

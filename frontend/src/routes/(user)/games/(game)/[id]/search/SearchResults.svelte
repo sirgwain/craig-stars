@@ -35,7 +35,6 @@
 
 	let { maxPlanetResults = 10, maxFleetResults = 10, maxMiscResults = 10 }: Props = $props();
 
-
 	function getResults(search: string): Results {
 		if (search == '') {
 			return {
@@ -127,11 +126,11 @@
 	});
 	// the currently selected item
 	let selectedItemIndex = $state(0);
-	
+
 	// when search chnages, update our search results
 	let results = $derived(getResults($settings.searchQuery));
-	let selectedItem =
-		$derived(selectedItemIndex < results.planets.length
+	let selectedItem = $derived(
+		selectedItemIndex < results.planets.length
 			? results.planets[selectedItemIndex]
 			: selectedItemIndex < results.planets.length + results.fleets.length
 				? results.fleets[selectedItemIndex - results.planets.length]
@@ -140,7 +139,8 @@
 					? results.mysteryTraders[
 							selectedItemIndex - results.planets.length + results.fleets.length
 						]
-					: undefined);
+					: undefined
+	);
 </script>
 
 <div class="flex flex-col gap-1 h-full pb-2">

@@ -8,12 +8,7 @@
 		immune: boolean | undefined;
 	}
 
-	let {
-		habType,
-		habLow,
-		habHigh,
-		immune
-	}: Props = $props();
+	let { habType, habLow, habHigh, immune }: Props = $props();
 
 	let habWidth = $derived((habHigh ?? 0) - (habLow ?? 0));
 </script>

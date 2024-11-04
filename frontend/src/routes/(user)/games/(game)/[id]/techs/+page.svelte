@@ -13,9 +13,7 @@
 
 <Breadcrumb>
 	{#snippet crumbs()}
-	
-			<li>Techs</li>
-		
+		<li>Techs</li>
 	{/snippet}
 </Breadcrumb>
 

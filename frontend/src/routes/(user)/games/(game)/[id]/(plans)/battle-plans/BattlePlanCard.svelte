@@ -22,7 +22,9 @@
 	};
 </script>
 
-<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 m-1 w-full sm:w-[350px]">
+<div
+	class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 m-1 w-full sm:w-[350px]"
+>
 	<div class="card-body">
 		<h2 class="card-title">
 			<a class="cs-link" {href}>{plan.name}</a>

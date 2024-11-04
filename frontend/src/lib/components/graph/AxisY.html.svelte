@@ -7,15 +7,6 @@
 
 	const { padding, xRange, yScale } = getContext('LayerCake');
 
-	
-
-	
-
-	
-
-	
-
-	
 	interface Props {
 		gridlines?: Boolean;
 		/** @type {Function} [formatTick=d => d] - A function that passes the current tick value and expects a nicely formatted value in return. */
@@ -36,13 +27,15 @@
 
 	let isBandwidth = $derived(typeof $yScale.bandwidth === 'function');
 
-	let tickVals = $derived(Array.isArray(ticks)
-		? ticks
-		: isBandwidth
-		? $yScale.domain()
-		: typeof ticks === 'function'
-		? ticks($yScale.ticks())
-		: $yScale.ticks(ticks));
+	let tickVals = $derived(
+		Array.isArray(ticks)
+			? ticks
+			: isBandwidth
+				? $yScale.domain()
+				: typeof ticks === 'function'
+					? ticks($yScale.ticks())
+					: $yScale.ticks(ticks)
+	);
 </script>
 
 <div class="axis y-axis" style="transform:translate(-{$padding.left}px, 0)">
@@ -91,5 +84,4 @@
 		width: 100%;
 		font-weight: 100;
 	}
-
 </style>

@@ -27,7 +27,6 @@
 	const minArea = Math.PI * minRadius * minRadius;
 	const population = planet.spec.population ?? 0;
 	let radius = $state(0);
-	
 
 	run(() => {
 		// green for us, gray for unexplored, white for explored
@@ -61,7 +60,7 @@
 	<MapObjectScaler mapObject={planet}>
 		<circle cx={0} cy={0} {...props} />
 	</MapObjectScaler>
-	<ScannerFleetCount {planet} yOffset={radius-3} />
+	<ScannerFleetCount {planet} yOffset={radius - 3} />
 {:else}
 	<ScannerPlanetNormal {planet} />
 {/if}

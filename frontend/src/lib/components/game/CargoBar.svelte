@@ -7,19 +7,22 @@
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 
-
 	interface Props {
 		value?: Cargo;
 		capacity?: number | undefined;
 		canTransferCargo?: boolean;
 	}
 
-	let { value = {
-		ironium: 0,
-		boranium: 0,
-		germanium: 0,
-		colonists: 0
-	}, capacity = 0, canTransferCargo = false }: Props = $props();
+	let {
+		value = {
+			ironium: 0,
+			boranium: 0,
+			germanium: 0,
+			colonists: 0
+		},
+		capacity = 0,
+		canTransferCargo = false
+	}: Props = $props();
 
 	let percent: Cargo = $state(emptyCargo());
 
@@ -42,7 +45,10 @@
 		style={`left: 0%; width: ${percent.ironium?.toFixed()}%`}
 		class="ironium-bar h-full inline-block"
 	></div>
-	<div style={`width: ${percent.boranium?.toFixed()}%`} class="boranium-bar h-full inline-block"></div>
+	<div
+		style={`width: ${percent.boranium?.toFixed()}%`}
+		class="boranium-bar h-full inline-block"
+	></div>
 	<div
 		style={`width: ${percent.germanium?.toFixed()}%`}
 		class="germanium-bar h-full inline-block"

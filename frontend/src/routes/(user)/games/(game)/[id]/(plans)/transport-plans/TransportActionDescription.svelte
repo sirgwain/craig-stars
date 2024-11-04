@@ -11,13 +11,7 @@
 		titleTextClass?: string;
 	}
 
-	let {
-		action,
-		amount,
-		units = '',
-		title,
-		titleTextClass = ''
-	}: Props = $props();
+	let { action, amount, units = '', title, titleTextClass = '' }: Props = $props();
 </script>
 
 <span class="inline-block">

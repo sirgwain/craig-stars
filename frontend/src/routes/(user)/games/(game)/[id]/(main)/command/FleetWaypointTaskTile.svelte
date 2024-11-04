@@ -37,12 +37,13 @@
 	let { fleet, selectedWaypoint = $bindable() }: Props = $props();
 
 	let selectedWaypointTask = $derived(selectedWaypoint?.task ?? WaypointTask.None);
-	let selectedWaypointPlanet =
-		$derived(selectedWaypoint &&
-		selectedWaypoint.targetType == MapObjectType.Planet &&
-		selectedWaypoint.targetNum
+	let selectedWaypointPlanet = $derived(
+		selectedWaypoint &&
+			selectedWaypoint.targetType == MapObjectType.Planet &&
+			selectedWaypoint.targetNum
 			? $universe.getPlanet(selectedWaypoint.targetNum)
-			: undefined);
+			: undefined
+	);
 
 	run(() => {
 		console.log('selectedWaypoint', selectedWaypoint, selectedWaypointPlanet?.name);
@@ -131,7 +132,8 @@
 					onchange={preventDefault((e) =>
 						onSelectedWaypointTaskChange(
 							eu(WaypointTask).getValueOrDefault(e.currentTarget.value, WaypointTask.None)
-						))}
+						)
+					)}
 				>
 					{#each eu(WaypointTask).getValues() as task}
 						{#if task === WaypointTask.None}

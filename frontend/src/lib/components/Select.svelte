@@ -11,7 +11,6 @@
 		title: string;
 	};
 
-
 	interface Props {
 		name: string;
 		value: any | undefined;

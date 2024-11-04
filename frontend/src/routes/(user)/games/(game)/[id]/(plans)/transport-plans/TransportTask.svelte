@@ -11,12 +11,7 @@
 		title: string;
 	}
 
-	let {
-		action = $bindable(),
-		amount = $bindable(),
-		textClass = '',
-		title
-	}: Props = $props();
+	let { action = $bindable(), amount = $bindable(), textClass = '', title }: Props = $props();
 </script>
 
 <div class={textClass}>

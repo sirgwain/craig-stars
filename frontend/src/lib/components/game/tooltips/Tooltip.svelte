@@ -15,8 +15,6 @@
 			.replaceAll('touch-none', '');
 	}
 
-
-
 	let component: HTMLElement | undefined = $state();
 
 	// observe tooltip component height changes so we can react
@@ -36,13 +34,14 @@
 				componentWidth = Math.max(component?.scrollWidth ?? 0, minWidth);
 			}).observe(component);
 	});
-	let x =
-		$derived($tooltipLocation.x + componentWidth > window.innerWidth // we overshoot the window, move the tooltip left so it fits, or 0 if required
+	let x = $derived(
+		$tooltipLocation.x + componentWidth > window.innerWidth // we overshoot the window, move the tooltip left so it fits, or 0 if required
 			? Math.max(
 					0,
 					$tooltipLocation.x - (componentWidth + $tooltipLocation.x - window.innerWidth) - 20
-			  )
-			: $tooltipLocation.x);
+				)
+			: $tooltipLocation.x
+	);
 	let y = $derived(window.scrollY + Math.max($tooltipLocation.y - componentHeight, 0));
 </script>
 

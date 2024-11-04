@@ -43,17 +43,35 @@
 		}
 	}
 
-	let selectedPlanet = $derived($selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined);
-	let selectedFleet = $derived($selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined);
-	let selectedMineField = $derived($selectedMapObject?.type == MapObjectType.MineField
+	let selectedPlanet = $derived(
+		$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined
+	);
+	let selectedFleet = $derived(
+		$selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined
+	);
+	let selectedMineField = $derived(
+		$selectedMapObject?.type == MapObjectType.MineField
 			? ($selectedMapObject as MineField)
-			: undefined);
-	let selectedMineralPacket = $derived($selectedMapObject?.type == MapObjectType.MineralPacket
+			: undefined
+	);
+	let selectedMineralPacket = $derived(
+		$selectedMapObject?.type == MapObjectType.MineralPacket
 			? ($selectedMapObject as MineralPacket)
-			: undefined);
-	let selectedSalvage = $derived($selectedMapObject?.type == MapObjectType.Salvage ? ($selectedMapObject as Salvage) : undefined);
-	let selectedWormhole = $derived($selectedMapObject?.type == MapObjectType.Wormhole ? ($selectedMapObject as Wormhole) : undefined);
-	let selectedMysteryTrader = $derived($selectedMapObject?.type == MapObjectType.MysteryTrader ? ($selectedMapObject as MysteryTrader) : undefined);
+			: undefined
+	);
+	let selectedSalvage = $derived(
+		$selectedMapObject?.type == MapObjectType.Salvage ? ($selectedMapObject as Salvage) : undefined
+	);
+	let selectedWormhole = $derived(
+		$selectedMapObject?.type == MapObjectType.Wormhole
+			? ($selectedMapObject as Wormhole)
+			: undefined
+	);
+	let selectedMysteryTrader = $derived(
+		$selectedMapObject?.type == MapObjectType.MysteryTrader
+			? ($selectedMapObject as MysteryTrader)
+			: undefined
+	);
 </script>
 
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full">
@@ -74,15 +92,27 @@
 			</div>
 			<div>
 				{#if selectedPlanet && selectedPlanet.spec.hasStarbase}
-					<button type="button" onpointerdown={e => { e.preventDefault(); showStarbaseDesign(e); }}>
+					<button
+						type="button"
+						onpointerdown={(e) => {
+							e.preventDefault();
+							showStarbaseDesign(e);
+						}}
+					>
 						<Starbase class="w-4 h-4 starbase" /></button
 					>
 				{/if}
-				<button type="button" onpointerdown={e => { e.preventDefault(); selectNextMapObject(); }}>
+				<button
+					type="button"
+					onpointerdown={(e) => {
+						e.preventDefault();
+						selectNextMapObject();
+					}}
+				>
 					<Cycle class="w-4 h-4 fill-base-content hover:stroke-accent" /></button
 				>
 				{#if carouselContext}
-					<button type="button" onclick={_ => carouselContext.onDisclosureClicked()}>
+					<button type="button" onclick={(_) => carouselContext.onDisclosureClicked()}>
 						{#if $open}
 							<Icon src={ChevronUp} size="16" class="hover:stroke-accent" />
 						{:else}

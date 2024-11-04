@@ -29,23 +29,20 @@
 		shortName?: boolean;
 	}
 
-	let {
-		index,
-		item,
-		selected = false,
-		shortName = false
-	}: Props = $props();
+	let { index, item, selected = false, shortName = false }: Props = $props();
 
 	let yearsToBuildAll = $derived(isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll);
-	let skipped =
-		$derived(isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt);
+	let skipped = $derived(
+		isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt
+	);
 </script>
 
 <button
 	type="button"
 	onclick={() => dispatch('queue-item-clicked', { index, queueItem: item })}
 	oncontextmenu={preventDefault((e) =>
-		onShipDesignTooltip(e, $universe.getMyDesign(item.designNum)))}
+		onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))
+	)}
 	class:italic={isAuto(item.type)}
 	class:text-queue-item-this-year={!item.skipped &&
 		(item.yearsToBuildOne ?? 0) <= 1 &&

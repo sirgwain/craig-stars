@@ -30,12 +30,14 @@
 	let containerWidth = $derived(barContainerRef?.parentElement?.clientWidth ?? 0);
 
 	let habWidth = $derived((habHigh ?? 0) - (habLow ?? 0));
-	let position = $derived(barContainerRef
-		? {
-				x: Math.floor(((habLow ?? 0) / 100) * containerWidth),
-				y: 0
-			}
-		: undefined);
+	let position = $derived(
+		barContainerRef
+			? {
+					x: Math.floor(((habLow ?? 0) / 100) * containerWidth),
+					y: 0
+				}
+			: undefined
+	);
 
 	const onLeft = () => {
 		const width = habWidth;

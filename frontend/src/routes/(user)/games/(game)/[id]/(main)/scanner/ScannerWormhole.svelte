@@ -10,7 +10,6 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-
 	interface Props {
 		wormhole: Wormhole;
 		fill?: string;
@@ -29,8 +28,8 @@
 		height={size}
 		width={size}
 		class="scanner-wormhole"
-		x={-size/2}
-		y={-size/2}
+		x={-size / 2}
+		y={-size / 2}
 	>
 		<g>
 			<path

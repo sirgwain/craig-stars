@@ -46,34 +46,36 @@
 	let turnsPassed = $derived($game.year - $game.rules.startingYear);
 
 	// get the highest value from the scores
-	let highestValue = $derived(Math.max(
-		...$universe.scores
-			.filter((score) => score && score.length > 0)
-			.flat()
-			.map((score) => score[type] ?? 0)
-	));
+	let highestValue = $derived(
+		Math.max(
+			...$universe.scores
+				.filter((score) => score && score.length > 0)
+				.flat()
+				.map((score) => score[type] ?? 0)
+		)
+	);
 
 	/* --------------------------------------------
- * Create a "long" format that is a grouped series of data points
- * Layer Cake uses this data structure and the key names
- * set in xKey, yKey and zKey to map your data into each scale.
- */
-	let dataLong: DataLongType = $derived($universe.players.map((playerIntel, i) => {
+	 * Create a "long" format that is a grouped series of data points
+	 * Layer Cake uses this data structure and the key names
+	 * set in xKey, yKey and zKey to map your data into each scale.
+	 */
+	let dataLong: DataLongType = $derived(
+		$universe.players.map((playerIntel, i) => {
 			const name = playerIntel.racePluralName ?? playerIntel.name;
 			const playerScores = $universe.scores[i];
 
 			return {
 				[zKey]: String(playerIntel.num),
 				playerName: name,
-				values: [...Array(turnsPassed).keys()].map((turn => ({
-					[yKey]: playerScores && playerScores[turn] ? playerScores[turn][type] ?? 0 : 0,
+				values: [...Array(turnsPassed).keys()].map((turn) => ({
+					[yKey]: playerScores && playerScores[turn] ? (playerScores[turn][type] ?? 0) : 0,
 					[xKey]: turn,
 					[zKey]: String(playerIntel.num)
-				})))
-			}
-		}));
-
-	
+				}))
+			};
+		})
+	);
 </script>
 
 <div class="border border-base-300 bg-base-100 w-full h-full">

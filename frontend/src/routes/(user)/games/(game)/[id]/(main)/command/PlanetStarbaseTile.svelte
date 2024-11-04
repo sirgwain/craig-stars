@@ -21,13 +21,13 @@
 
 	let { starbase, planet = $bindable() }: Props = $props();
 
-	let stargate = $derived(starbase?.spec?.stargate
-		? $techs.getHullComponent(starbase.spec.stargate)
-		: undefined);
+	let stargate = $derived(
+		starbase?.spec?.stargate ? $techs.getHullComponent(starbase.spec.stargate) : undefined
+	);
 
-	let massDriver = $derived(starbase?.spec?.massDriver
-		? $techs.getHullComponent(starbase.spec.massDriver)
-		: undefined);
+	let massDriver = $derived(
+		starbase?.spec?.massDriver ? $techs.getHullComponent(starbase.spec.massDriver) : undefined
+	);
 
 	function showDesign(e: PointerEvent) {
 		if (starbase?.tokens && starbase.tokens.length > 0) {

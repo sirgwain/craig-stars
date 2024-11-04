@@ -43,8 +43,6 @@
 	let fuelUsageTotal = $state(0);
 	let runOutOfFuel = $state(false);
 
-
-
 	function getWaypointTarget(wp: Waypoint): MapObject | undefined {
 		if (wp && wp.targetType && wp.targetNum) {
 			return $universe.getMapObject(wp);
@@ -74,9 +72,6 @@
 
 		updateNextPrevWaypoints();
 	}
-
-
-
 
 	// will we run out of fuel at any leg of our journey or the last leg that we are currently updating?
 	// $: runOutOfFuel = fleet.willRunOutOfFuel($player, $universe);
@@ -125,31 +120,36 @@
 		}
 		updateNextPrevWaypoints();
 	});
-	let selectedWaypointPlanet =
-		$derived(selectedWaypoint?.targetType == MapObjectType.Planet && selectedWaypoint?.targetNum
+	let selectedWaypointPlanet = $derived(
+		selectedWaypoint?.targetType == MapObjectType.Planet && selectedWaypoint?.targetNum
 			? $universe.getPlanet(selectedWaypoint?.targetNum)
-			: undefined);
-	let selectedWaypointPlanetFriendly =
-		$derived(selectedWaypointPlanet && $player.isFriend(selectedWaypointPlanet.playerNum));
-	let dist =
-		$derived(selectedWaypoint && (nextWaypoint || previousWaypoint)
+			: undefined
+	);
+	let selectedWaypointPlanetFriendly = $derived(
+		selectedWaypointPlanet && $player.isFriend(selectedWaypointPlanet.playerNum)
+	);
+	let dist = $derived(
+		selectedWaypoint && (nextWaypoint || previousWaypoint)
 			? distance(
 					selectedWaypoint.position,
 					previousWaypoint ? previousWaypoint.position : nextWaypoint?.position
 				)
-			: 0);
+			: 0
+	);
 	// calculate the fuel used per leg of each waypoint, starting at wp1
-	let fuelUsagePerLeg = $derived(fleet.waypoints
-		.slice(1)
-		.map((wp1, index) =>
-			fleet.getFuelCost(
-				$universe,
-				$player.race.spec?.fuelEfficiencyOffset ?? 0,
-				selectedWaypoint === wp1 ? selectedWaypoint.warpSpeed : (wp1.warpSpeed ?? 0),
-				distance(fleet.waypoints[index].position, wp1.position),
-				fleet.spec.cargoCapacity ?? 0
+	let fuelUsagePerLeg = $derived(
+		fleet.waypoints
+			.slice(1)
+			.map((wp1, index) =>
+				fleet.getFuelCost(
+					$universe,
+					$player.race.spec?.fuelEfficiencyOffset ?? 0,
+					selectedWaypoint === wp1 ? selectedWaypoint.warpSpeed : (wp1.warpSpeed ?? 0),
+					distance(fleet.waypoints[index].position, wp1.position),
+					fleet.spec.cargoCapacity ?? 0
+				)
 			)
-		));
+	);
 	// get the total fuel usage, but accounting for fueling stations
 	// also set our runOutofFuel boolean to update the color on the fuel usage
 	run(() => {

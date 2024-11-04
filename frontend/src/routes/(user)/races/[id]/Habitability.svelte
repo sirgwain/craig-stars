@@ -33,11 +33,11 @@
 	/>
 	<SpinnerNumberText min={1} max={20} bind:value={race.growthRate}>
 		{#snippet begin()}
-				Maximum Colonist Growth Rate Per Year
-			{/snippet}
+			Maximum Colonist Growth Rate Per Year
+		{/snippet}
 		{#snippet end()}
-				%.
-			{/snippet}
+			%.
+		{/snippet}
 	</SpinnerNumberText>
 
 	<HabChance {race} />

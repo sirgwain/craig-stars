@@ -15,13 +15,6 @@
 	let found = $state({});
 	let e = $state({});
 
-	
-
-	
-
-	
-
-	
 	interface Props {
 		x?: String;
 		y?: String;
@@ -53,14 +46,16 @@
 		visible = Object.keys(found).length > 0;
 	}
 
-	let finder = $derived(quadtree()
-		.extent([
-			[-1, -1],
-			[$width + 1, $height + 1]
-		])
-		.x(xGetter)
-		.y(yGetter)
-		.addAll(dataset || $data));
+	let finder = $derived(
+		quadtree()
+			.extent([
+				[-1, -1],
+				[$width + 1, $height + 1]
+			])
+			.x(xGetter)
+			.y(yGetter)
+			.addAll(dataset || $data)
+	);
 </script>
 
 <div
@@ -69,7 +64,7 @@
 	onmouseout={() => (visible = false)}
 	onblur={() => (visible = false)}
 ></div>
-{@render children?.({ x: xGetter(found) || 0, y: yGetter(found) || 0, found, visible, e, })}
+{@render children?.({ x: xGetter(found) || 0, y: yGetter(found) || 0, found, visible, e })}
 
 <style>
 	.bg {

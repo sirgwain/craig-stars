@@ -23,12 +23,7 @@
 		commandedColor?: string;
 	}
 
-	let {
-		fleet,
-		commanded = false,
-		color = '#0000FF',
-		commandedColor = '#FFFF00'
-	}: Props = $props();
+	let { fleet, commanded = false, color = '#0000FF', commandedColor = '#FFFF00' }: Props = $props();
 
 	const size = 8;
 
@@ -43,11 +38,13 @@
 		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
 	}
 
-	let textColor = $derived(ownedBy(fleet, $player.num)
-		? 'fill-orbit'
-		: $player.isFriend(fleet.playerNum)
-			? 'fill-orbit-friends'
-			: 'fill-orbit-enemies');
+	let textColor = $derived(
+		ownedBy(fleet, $player.num)
+			? 'fill-orbit'
+			: $player.isFriend(fleet.playerNum)
+				? 'fill-orbit-friends'
+				: 'fill-orbit-enemies'
+	);
 </script>
 
 <!-- ScannerFleet -->

@@ -14,13 +14,14 @@
 
 	let { stroke = 'stroke-primary' }: Props = $props();
 
-	let path =
-		$derived('M' +
-		$data
-			.map((d: any) => {
-				return $xGet(d) + ',' + $yGet(d);
-			})
-			.join('L'));
+	let path = $derived(
+		'M' +
+			$data
+				.map((d: any) => {
+					return $xGet(d) + ',' + $yGet(d);
+				})
+				.join('L')
+	);
 </script>
 
 <!-- <path class='path-line' d='{path}' {stroke}></path> -->

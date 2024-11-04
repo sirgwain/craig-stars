@@ -9,7 +9,6 @@
 
 	const dispatch = createEventDispatcher();
 
-	
 	interface Props {
 		designFinder: DesignFinder;
 		// default to auto tasks
@@ -21,13 +20,13 @@
 	let {
 		designFinder,
 		availableItems = [
-		fromQueueItemType(QueueItemTypes.AutoFactories),
-		fromQueueItemType(QueueItemTypes.AutoMines),
-		fromQueueItemType(QueueItemTypes.AutoDefenses),
-		fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
-		fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
-		fromQueueItemType(QueueItemTypes.AutoMinTerraform)
-	],
+			fromQueueItemType(QueueItemTypes.AutoFactories),
+			fromQueueItemType(QueueItemTypes.AutoMines),
+			fromQueueItemType(QueueItemTypes.AutoDefenses),
+			fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
+			fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
+			fromQueueItemType(QueueItemTypes.AutoMinTerraform)
+		],
 		queueItems = $bindable([]),
 		queueItemDescription = getQueueItemShortName
 	}: Props = $props();

@@ -91,13 +91,13 @@
 		filterBy={search.toLowerCase()}
 	>
 		{#snippet head({ isSorted, sortDescending, column })}
-				<span    >
+			<span>
 				<SortableTableHeader {column} {isSorted} {sortDescending} />
 			</span>
-			{/snippet}
+		{/snippet}
 
 		{#snippet cell({ column, row })}
-				<span   >
+			<span>
 				{#if column.key == 'target'}
 					<button class="cs-link text-xl text-left" onclick={() => selectMessage(row)}
 						>{getTarget(row)}</button
@@ -106,6 +106,6 @@
 					<MessageDetail message={row} />
 				{/if}
 			</span>
-			{/snippet}
+		{/snippet}
 	</Table>
 </div>
