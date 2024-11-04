@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
-
 	import { page } from '$app/stores';
 	import { GameService } from '$lib/services/GameService';
 	import type { Game } from '$lib/types/Game';
@@ -13,7 +11,7 @@
 	import { humanoid } from '$lib/types/Race';
 	import { UserRole } from '$lib/types/User';
 	import { onMount } from 'svelte';
-	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
+	import PlayerChooser from '$lib/components/game/newgame/PlayerChooser.svelte';
 
 	let game: Game | undefined = $state();
 	let race = $state(Object.assign({}, humanoid()));
@@ -43,14 +41,16 @@
 			if (!response.ok) {
 				await Service.throwError(response);
 			}
-			goto(`/games/${game.id}`);
+
+			await goto(`/games/${game.id}`);
 		}
 	};
 
 	let error = $state('');
-	let valid;
-	run(() => {
-		valid = game && game.openPlayerSlots > 0;
+	let valid: boolean = $state(false);
+
+	$effect(() => {
+		valid = !!(game && game.openPlayerSlots > 0);
 	});
 </script>
 
@@ -62,8 +62,13 @@
 		<GameCard {game} />
 	</div>
 
-	<form onsubmit={preventDefault(onSubmit)}>
-		{#if $me.role == UserRole.guest}
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			onSubmit();
+		}}
+	>
+		{#if $me.role === UserRole.guest}
 			<label class="label" for="name">Name</label>
 			<input name="name" bind:value={name} class="input input-bordered" />
 		{/if}

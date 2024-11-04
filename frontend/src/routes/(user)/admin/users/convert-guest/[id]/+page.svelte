@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
@@ -52,7 +50,12 @@
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
-	<form onsubmit={preventDefault(onSubmit)}>
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			onSubmit();
+		}}
+	>
 		<div class="w-full flex justify-end gap-2">
 			<button class="btn btn-success" type="submit">Convert</button>
 		</div>

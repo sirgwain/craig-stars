@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import DiscordLink from './DiscordLink.svelte';
 
 	const onSubmit = async () => {
@@ -27,7 +25,7 @@
 	let user = $state('');
 	let passwd = $state('');
 	let loginError = $state('');
-	
+
 	let showAdmin = $state(false);
 </script>
 
@@ -49,10 +47,22 @@
 	{#if showAdmin}
 		<div class="text-left mx-auto">
 			<!-- content here -->
-			<form onsubmit={preventDefault(onSubmit)}>
+			<form
+				onsubmit={(e) => {
+					e.preventDefault();
+					onSubmit();
+				}}
+			>
 				<label class="label block">
 					<span class="label-text">Username</span>
-					<input bind:value={user} required type="text" name="user" class="input input-bordered" autocapitalize="off" />
+					<input
+						bind:value={user}
+						required
+						type="text"
+						name="user"
+						class="input input-bordered"
+						autocapitalize="off"
+					/>
 				</label>
 
 				<label class="label block">

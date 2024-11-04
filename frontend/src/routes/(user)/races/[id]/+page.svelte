@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { page } from '$app/stores';
 
 	import { goto } from '$app/navigation';
@@ -57,7 +55,12 @@
 </script>
 
 {#if race}
-	<form onsubmit={preventDefault(onSubmit)}>
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			onSubmit();
+		}}
+	>
 		<div class="w-full flex justify-end gap-2">
 			<button class="btn btn-success" type="submit" disabled={points < 0}>Save</button>
 		</div>

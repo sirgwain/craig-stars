@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
-
 	import FormError from '$lib/components/FormError.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
 	import Hull from '$lib/components/game/design/Hull.svelte';
@@ -37,12 +35,7 @@
 		numHullSets?: number;
 	}
 
-	let {
-		hull,
-		design = $bindable(),
-		error = '',
-		numHullSets = 4
-	}: Props = $props();
+	let { hull, design = $bindable(), error = '', numHullSets = 4 }: Props = $props();
 
 	let designSpec: Spec = $state(design?.spec || {});
 	let highlightedSlots: HullSlot[] = $state([]);
@@ -56,11 +49,12 @@
 			designSpec = cs.computeShipDesignSpec(design) ?? ({} as Spec);
 		}
 	});
-	let selectedComponent =
-		$derived($shipDesignerContext.selectedHullComponent ??
-		($shipDesignerContext.selectedShipDesignSlot?.hullComponent
-			? $techs.getHullComponent($shipDesignerContext.selectedShipDesignSlot?.hullComponent)
-			: undefined));
+	let selectedComponent = $derived(
+		$shipDesignerContext.selectedHullComponent ??
+			($shipDesignerContext.selectedShipDesignSlot?.hullComponent
+				? $techs.getHullComponent($shipDesignerContext.selectedShipDesignSlot?.hullComponent)
+				: undefined)
+	);
 
 	onMount(() => {
 		design.hull = hull.name;
@@ -159,7 +153,12 @@
 	};
 </script>
 
-<form onsubmit={preventDefault(onSubmit)}>
+<form
+	onsubmit={(e) => {
+		e.preventDefault();
+		onSubmit();
+	}}
+>
 	<FormError {error} />
 
 	<div class="flex flex-col md:flex-row-reverse justify-center">

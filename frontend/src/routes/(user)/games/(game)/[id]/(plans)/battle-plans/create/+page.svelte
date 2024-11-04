@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { goto } from '$app/navigation';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
@@ -43,19 +41,22 @@
 	};
 </script>
 
-<form onsubmit={preventDefault(onSubmit)}>
+<form
+	onsubmit={(e) => {
+		e.preventDefault();
+		onSubmit();
+	}}
+>
 	<Breadcrumb>
 		{#snippet crumbs()}
-			
-				<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
-				<li>{plan?.name ?? '<unknown>'}</li>
-			
-			{/snippet}
+			<li><a href={`/games/${$game.id}/battle-plans`}>Battle Plans</a></li>
+			<li>{plan?.name ?? '<unknown>'}</li>
+		{/snippet}
 		{#snippet end()}
-				<div  class="flex justify-end mb-1">
+			<div class="flex justify-end mb-1">
 				<button class="btn btn-success mx-1" type="submit">Save</button>
 			</div>
-			{/snippet}
+		{/snippet}
 	</Breadcrumb>
 
 	<FormError {error} />

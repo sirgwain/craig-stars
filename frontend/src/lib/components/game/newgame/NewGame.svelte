@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { goto } from '$app/navigation';
 
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
@@ -25,17 +23,19 @@
 	import { getColor, getFirstAvailableColor } from './playerColors';
 	import VictoryConditions from './VictoryConditions.svelte';
 
-
 	interface Props {
-		players?: any;
+		players?: NewGamePlayer[];
 		name?: string;
 	}
 
-	let { players = [
-		{ type: NewGamePlayerType.Host, color: getColor(0) },
-		{ type: NewGamePlayerType.AI, color: getColor(1) },
-		{ type: NewGamePlayerType.AI, color: getColor(2) }
-	], name = 'A Barefoot Jaywalk' }: Props = $props();
+	let {
+		players = [
+			{ type: NewGamePlayerType.Host, color: getColor(0) },
+			{ type: NewGamePlayerType.AI, color: getColor(1) },
+			{ type: NewGamePlayerType.AI, color: getColor(2) }
+		],
+		name = 'A Barefoot Jaywalk'
+	}: Props = $props();
 
 	let settings: GameSettings & NewGamePlayers = $state({
 		name,
@@ -102,7 +102,12 @@
 	let error = '';
 </script>
 
-<form onsubmit={preventDefault(onSubmit)}>
+<form
+	onsubmit={(e) => {
+		e.preventDefault();
+		onSubmit();
+	}}
+>
 	<div class="w-full flex justify-end gap-2">
 		<button class="btn btn-success" type="submit">Create Game</button>
 	</div>
