@@ -122,4 +122,4 @@ What's probably happening is you're trying to generate go files or build the ser
 Consult this ordered checklist of vague general suggestions:
 1. Read the error message to try and figure out why it's failing. Make (as it's being used here) effectively just copy-pastes its commands into the terminal one by one (expanding variables here and there), so syntax errors in the terminal can oftentimes reflect issues with the makefile itself rather than any device-related issues. 
 2. Try and search online for the error message or similar problems to see if others may have found solutions to the problem for you. 
-3. If all else fails, reach out in the #stars-clones or #craig-stars channels in the discord (ideally with images/text of the commands used and/or resulting error messages) and someone will get back to you.
+3. If all else fails, reach out in the #stars-clones or #craig-stars channels in the discord (ideally with images/text of the commands used and/or resulting error messages).
