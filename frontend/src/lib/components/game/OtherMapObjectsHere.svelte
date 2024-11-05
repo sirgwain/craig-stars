@@ -12,18 +12,16 @@
 	interface Dictionary<T> {
 		[index: string]: T;
 	}
-props.props.props.props.
+
 	interface Props {
 		fleet: CommandedFleet;
 		otherMapObjectsHere: Dictionary<MapObject[]>;
 		target: Target;
 		position: Vector;
-		[key: string]: any
+		[key: string]: any;
 	}
 
-	let {
-		...props
-	}: Props = $props();
+	let { ...props }: Props = $props();
 
 	// true if this mapObject is also our current target
 	function isTarget(mo: MapObject) {
@@ -39,15 +37,17 @@ props.props.props.props.
 		dispatch('selected', selected);
 	}
 
-	let everythingElse = $derived(flatten(
-		keys(props.otherMapObjectsHere).map((k) =>
-			k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
-				? props.otherMapObjectsHere[k]
-				: []
+	let everythingElse = $derived(
+		flatten(
+			keys(props.otherMapObjectsHere).map((k) =>
+				k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
+					? props.otherMapObjectsHere[k]
+					: []
+			)
 		)
-	));
+	);
 	let allObjects = $derived([
-		{ type: MapObjectType.None, props.position: props.position },
+		{ type: MapObjectType.None, position: props.position },
 		...(props.otherMapObjectsHere[MapObjectType.Planet] ?? []),
 		...(props.otherMapObjectsHere[MapObjectType.Fleet] ?? []),
 		...(props.otherMapObjectsHere[MapObjectType.MineField] ?? []),

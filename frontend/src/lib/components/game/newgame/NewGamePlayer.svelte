@@ -5,28 +5,27 @@
 	import AiPlayer from './AIPlayer.svelte';
 	import HostPlayer from './HostPlayer.svelte';
 	import { XMark } from '@steeze-ui/heroicons';
-	import { createEventDispatcher } from 'svelte';
 	import { me } from '$lib/services/Stores';
 
-	const dispatch = createEventDispatcher();
-
+	// eslint-disable-next-line svelte/valid-compile -- catches the enum for some odd reason
 	enum NewGamePlayerChooseType {
 		Open = 'Open',
-		Gueset = 'Guest',
+		Guest = 'Guest',
 		AI = 'AI'
 	}
 
 	interface Props {
 		player: NewGamePlayer;
 		index: number;
+		onremove: () => void;
 	}
 
-	let { player = $bindable(), index }: Props = $props();
+	let { player = $bindable(), index, onremove }: Props = $props();
 </script>
 
 {#if player}
 	<div class="block">
-		{#if index != 1}
+		{#if index !== 1}
 			<div class="flex flex-row justify-end">
 				<div class="grow">
 					{#if !$me.isGuest()}
@@ -47,7 +46,7 @@
 				</div>
 				<div class="my-auto mx-1">
 					<button
-						onclick={() => dispatch('remove')}
+						onclick={() => onremove()}
 						type="button"
 						class="btn btn-outline btn-sm my-1 normal-case"><Icon size="16" src={XMark} /></button
 					>

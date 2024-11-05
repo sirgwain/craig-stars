@@ -100,9 +100,7 @@
 			{#snippet begin()}
 				Research Budget
 			{/snippet}
-			{#snippet end()}
-				<svelte:fragment></svelte:fragment>
-			{/snippet}
+			{#snippet end()}{/snippet}
 		</SpinnerNumberText>
 
 		<div class="grid grid-cols-2">

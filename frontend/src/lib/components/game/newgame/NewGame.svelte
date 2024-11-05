@@ -24,7 +24,7 @@
 	import VictoryConditions from './VictoryConditions.svelte';
 
 	interface Props {
-		players?: NewGamePlayer[];
+		players?: { type: NewGamePlayerType; color: string }[];
 		name?: string;
 	}
 
@@ -98,8 +98,6 @@
 	const removePlayer = (player: Player) => {
 		settings.players = settings.players.filter((p) => p !== player);
 	};
-
-	let error = '';
 </script>
 
 <form
@@ -117,7 +115,13 @@
 	<GameSettingsEditor bind:settings />
 
 	<SectionHeader>
-		<button class="btn-ghost w-full flex flex-row" onclick={preventDefault(addPlayer)}>
+		<button
+			class="btn-ghost w-full flex flex-row"
+			onclick={(e) => {
+				e.preventDefault();
+				addPlayer();
+			}}
+		>
 			Players
 			<div class="ml-auto">
 				<Icon src={PlusCircle} size="24" class="hover:stroke-accent" />
@@ -126,7 +130,11 @@
 	>
 
 	{#each settings.players as player, i}
-		<NewGamePlayer bind:player index={i + 1} on:remove={() => removePlayer(player)} />
+		<NewGamePlayer
+			bind:player={settings.players[i]}
+			index={i + 1}
+			onremove={() => removePlayer(player)}
+		/>
 	{/each}
 
 	<SectionHeader>Victory Conditions</SectionHeader>
