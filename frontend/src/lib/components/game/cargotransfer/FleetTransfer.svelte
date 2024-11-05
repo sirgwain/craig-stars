@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type FleetTransferEvent = {
 		'transfer-fuel': number;
 		'transfer-ironium': number;
@@ -14,11 +14,21 @@
 	import { CargoTransferRequest, add } from '$lib/types/Cargo';
 	import { createEventDispatcher } from 'svelte';
 
-	export let transferAmount = new CargoTransferRequest();
-	export let cargo = new CargoTransferRequest();
-	export let cargoCapacity: number = 0;
-	export let fuelCapacity: number = 0;
-	export let allowFuelTransfers = false;
+	interface Props {
+		transferAmount?: any;
+		cargo?: any;
+		cargoCapacity?: number;
+		fuelCapacity?: number;
+		allowFuelTransfers?: boolean;
+	}
+
+	let {
+		transferAmount = new CargoTransferRequest(),
+		cargo = new CargoTransferRequest(),
+		cargoCapacity = 0,
+		fuelCapacity = 0,
+		allowFuelTransfers = false
+	}: Props = $props();
 
 	const dispatch = createEventDispatcher<FleetTransferEvent>();
 </script>
@@ -42,7 +52,7 @@
 		<CargoBar value={add(cargo, transferAmount)} capacity={cargoCapacity} />
 	</div>
 
-	<div class="col-span-2 mt-10 sm:mt-5" />
+	<div class="col-span-2 mt-10 sm:mt-5"></div>
 
 	<div class="sm:text-right mr-1 h-8">Ironium</div>
 	<div class="my-auto">

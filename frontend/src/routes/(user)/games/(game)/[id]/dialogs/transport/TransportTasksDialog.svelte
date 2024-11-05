@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { CommandedFleet, Waypoint, WaypointTransportTasks } from '$lib/types/Fleet';
 
 	export type TransportTasksDialogEventDetails = {
@@ -16,15 +16,24 @@
 </script>
 
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import TransportTasks from '../../(plans)/transport-plans/TransportTasks.svelte';
 
 	const { updateFleetOrders } = getGameContext();
 
-	export let show = false;
-	export let props: TransportTasksDialogEventDetails | undefined;
+	interface Props {
+		show?: boolean;
+		props: TransportTasksDialogEventDetails | undefined;
+	}
 
-	$: transportTasks = props?.waypoint.transportTasks;
+	let { show = $bindable(false), props = $bindable() }: Props = $props();
+
+	let transportTasks;
+	run(() => {
+		transportTasks = props?.waypoint.transportTasks;
+	});
 
 	const onUpdateTransportTasks = async () => {
 		if (props && transportTasks) {
@@ -47,12 +56,12 @@
 				</div>
 				<div class="flex flex-col mt-7 ml-2 gap-2">
 					<button
-						on:click|preventDefault={() => onUpdateTransportTasks()}
+						onclick={preventDefault(() => onUpdateTransportTasks())}
 						type="submit"
 						class="btn btn-sm normal-case btn-primary">OK</button
 					>
 					<button
-						on:click={() => (show = false)}
+						onclick={() => (show = false)}
 						class="btn btn-outline btn-sm normal-case btn-secondary">Cancel</button
 					>
 				</div>

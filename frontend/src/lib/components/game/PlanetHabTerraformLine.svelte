@@ -1,9 +1,13 @@
 <script lang="ts">
-	export let style: string | undefined = undefined;
-	export let x1 = 50;
-	export let x2 = 50;
-</script>
+	interface Props {
+		style?: string | undefined;
+		x1?: number;
+		x2?: number;
+		[key: string]: any;
+	}
 
+	let { style = undefined, x1 = 50, x2 = 50, ...rest }: Props = $props();
+</script>
 
 <div class="absolute h-full w-full">
 	<svg
@@ -12,15 +16,8 @@
 		viewBox="0 0 100 100"
 		preserveAspectRatio="none"
 		{style}
-		{...$$restProps}
+		{...rest}
 	>
-		<line
-			x1={x1}
-			y1="50"
-			x2={x2}
-			y2="50"
-			vector-effect="non-scaling-stroke"
-			stroke-width="1"			
-		/>
+		<line {x1} y1="50" {x2} y2="50" vector-effect="non-scaling-stroke" stroke-width="1" />
 	</svg>
 </div>

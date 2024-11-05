@@ -5,11 +5,16 @@
 	import PlanetViewStatesNormal from './PlanetViewStateNormal.svelte';
 	import PlanetViewStatePopulation from './PlanetViewStatePopulation.svelte';
 	import PlanetViewStateSurfaceMinerals from './PlanetViewStateSurfaceMinerals.svelte';
+	interface Props {
+		[key: string]: any;
+	}
+
+	let { ...rest }: Props = $props();
 
 	const { settings } = getGameContext();
 </script>
 
-<ul {...$$restProps}>
+<ul {...rest}>
 	<li class="h-10 w-10">
 		<PlanetViewStatesNormal />
 	</li>

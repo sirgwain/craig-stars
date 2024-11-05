@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { getGameContext } from '$lib/services/GameContext';
 	import { CommandedFleet, moveDamagedTokens, type Fleet, type ShipToken } from '$lib/types/Fleet';
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
@@ -31,17 +31,21 @@
 	const dispatch = createEventDispatcher<SplitFleetEvent>();
 	const { game, player, universe } = getGameContext();
 
-	export let src: CommandedFleet;
-	export let dest: Fleet | undefined = undefined;
+	interface Props {
+		src: CommandedFleet;
+		dest?: Fleet | undefined;
+	}
 
-	let transferAmount = new CargoTransferRequest();
-	let srcTokens: ShipToken[] = [];
-	let destTokens: ShipToken[] = [];
-	let srcFuelCapacity: number = src.spec.fuelCapacity ?? 0;
-	let destFuelCapacity: number = dest?.spec?.fuelCapacity ?? 0;
-	let srcCargoCapacity: number = src.spec.cargoCapacity ?? 0;
-	let destCargoCapacity: number = dest?.spec?.cargoCapacity ?? 0;
-	let quantityModifier = 1;
+	let { src, dest = $bindable(undefined) }: Props = $props();
+
+	let transferAmount = $state(new CargoTransferRequest());
+	let srcTokens: ShipToken[] = $state([]);
+	let destTokens: ShipToken[] = $state([]);
+	let srcFuelCapacity: number = $state(src.spec.fuelCapacity ?? 0);
+	let destFuelCapacity: number = $state(dest?.spec?.fuelCapacity ?? 0);
+	let srcCargoCapacity: number = $state(src.spec.cargoCapacity ?? 0);
+	let destCargoCapacity: number = $state(dest?.spec?.cargoCapacity ?? 0);
+	let quantityModifier = $state(1);
 
 	const totalFuel = src.fuel + (dest?.fuel ?? 0);
 
@@ -220,12 +224,12 @@
 				<!-- buttons -->
 				<div class="flex-none flex flex-col">
 					<!-- Keep a 2rem empty header so the buttons line up -->
-					<div class="h-[120px]" />
+					<div class="h-[120px]"></div>
 					<div class="grow p-2 flex flex-col justify-between">
 						{#each srcTokens as token, index}
 							<div class="flex flex-row h-full">
 								<button
-									on:click={(e) => {
+									onclick={(e) => {
 										moveToken(
 											-clamp(quantityModifier, 0, destTokens[index].quantity),
 											token,
@@ -236,7 +240,7 @@
 									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" />
 								</button>
 								<button
-									on:click={(e) => {
+									onclick={(e) => {
 										moveToken(clamp(quantityModifier, 0, srcTokens[index].quantity), token, index);
 									}}
 									class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"
@@ -287,8 +291,8 @@
 			/>
 		</div>
 		<div class="flex flex-none justify-end pt-2 my-auto">
-			<button on:click={ok} class="btn btn-primary">Ok</button>
-			<button on:click={cancel} class="btn btn-secondary">Cancel</button>
+			<button onclick={ok} class="btn btn-primary">Ok</button>
+			<button onclick={cancel} class="btn btn-secondary">Cancel</button>
 		</div>
 	</div>
 {/if}

@@ -1,14 +1,18 @@
 <script lang="ts">
 	import { emptyCargo, type Cargo } from '$lib/types/Cargo';
 
-	export let cargo: Cargo = emptyCargo();
-	export let transferAmount: Cargo = emptyCargo();
+	interface Props {
+		cargo?: Cargo;
+		transferAmount?: Cargo;
+	}
+
+	let { cargo = emptyCargo(), transferAmount = emptyCargo() }: Props = $props();
 </script>
 
 <div class="grid grid-cols-2">
-	<div class="h-16 col-span-2" />
+	<div class="h-16 col-span-2"></div>
 
-	<div class="col-span-2 mt-5" />
+	<div class="col-span-2 mt-5"></div>
 
 	<div class="text-right mr-1 h-8">Ironium</div>
 	<div class="text-right">

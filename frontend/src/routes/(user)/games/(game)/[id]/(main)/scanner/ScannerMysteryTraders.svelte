@@ -11,5 +11,5 @@
 
 <!-- MysteryTraders -->
 {#each $universe.mysteryTraders as mysteryTrader}
-	<ScannerMysteryTrader mysteryTrader={mysteryTrader} />
+	<ScannerMysteryTrader {mysteryTrader} />
 {/each}

@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
@@ -22,8 +22,12 @@
 </script>
 
 <script lang="ts">
-	export let tech: Tech;
-	export let showResearchCost = false;
+	interface Props {
+		tech: Tech;
+		showResearchCost?: boolean;
+	}
+
+	let { tech, showResearchCost = false }: Props = $props();
 
 	const { player, cs } = getGameContext();
 </script>

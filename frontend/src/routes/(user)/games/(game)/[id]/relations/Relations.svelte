@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type PlayerUpdateEvent = {
 		'update-player': void;
 	};
@@ -37,7 +37,7 @@
 						class="radio checked:bg-success"
 						value={PlayerRelation.Friend}
 						bind:group={relation.relation}
-						on:change={updatePlayerOrders}
+						onchange={updatePlayerOrders}
 					/>
 				</label>
 			</div>
@@ -50,7 +50,7 @@
 						class="radio checked:bg-info"
 						value={PlayerRelation.Neutral}
 						bind:group={relation.relation}
-						on:change={updatePlayerOrders}
+						onchange={updatePlayerOrders}
 					/>
 				</label>
 			</div>
@@ -63,7 +63,7 @@
 						class="radio checked:bg-error"
 						value={PlayerRelation.Enemy}
 						bind:group={relation.relation}
-						on:change={updatePlayerOrders}
+						onchange={updatePlayerOrders}
 					/>
 				</label>
 			</div>
@@ -75,7 +75,7 @@
 						name={`player-relation-${index + 1}-share-map`}
 						class="checkbox"
 						bind:checked={relation.shareMap}
-						on:change={updatePlayerOrders}
+						onchange={updatePlayerOrders}
 					/>
 				</label>
 			</div>

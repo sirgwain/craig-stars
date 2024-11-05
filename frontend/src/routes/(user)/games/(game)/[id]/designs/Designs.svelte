@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
@@ -13,23 +15,32 @@
 
 	const { game, player, universe, settings } = getGameContext();
 
-	export let designs: ShipDesign[];
+	interface Props {
+		designs: ShipDesign[];
+	}
+
+	let { designs }: Props = $props();
 
 	// filterable designs
-	let filteredDesigns: ShipDesign[] = [];
-	let search = '';
+	let filteredDesigns: ShipDesign[] = $state([]);
+	let search = $state('');
 
-	$: filteredDesigns =
-		designs
-			.sort((a, b) =>
-				a.playerNum != b.playerNum ? a.playerNum - b.playerNum : (a.num ?? 0) - (b.num ?? 0)
-			)
-			.filter(
-				(i) =>
-					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-					i.hull.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-					$universe.getPlayerPluralName(i.playerNum).toLowerCase().indexOf(search.toLowerCase()) != -1
-			) ?? [];
+	run(() => {
+		filteredDesigns =
+			designs
+				.sort((a, b) =>
+					a.playerNum != b.playerNum ? a.playerNum - b.playerNum : (a.num ?? 0) - (b.num ?? 0)
+				)
+				.filter(
+					(i) =>
+						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+						i.hull.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+						$universe
+							.getPlayerPluralName(i.playerNum)
+							.toLowerCase()
+							.indexOf(search.toLowerCase()) != -1
+				) ?? [];
+	});
 
 	const columns: TableColumn<ShipDesign>[] = [
 		{
@@ -99,64 +110,69 @@
 			table: 'table table-zebra table-compact table-auto w-full'
 		}}
 	>
-		<span slot="head" let:isSorted let:sortDescending let:column>
-			<SortableTableHeader {column} {isSorted} {sortDescending} />
-		</span>
+		{#snippet head({ isSorted, sortDescending, column })}
+			<span>
+				<SortableTableHeader {column} {isSorted} {sortDescending} />
+			</span>
+		{/snippet}
 
-		<span slot="cell" let:column let:row let:cell>
-			{#if column.key === 'name'}
-				<div class="flex flex-row">
+		{#snippet cell({ column, row, cell })}
+			<span>
+				{#if column.key === 'name'}
+					<div class="flex flex-row">
+						<button
+							class="w-full h-full cursor-help text-left"
+							aria-label="Opens ship design visual"
+							onpointerdown={preventDefault((e) => onShipDesignTooltip(e, row))}
+						>
+							<div class="avatar mr-2">
+								<div
+									class="border-2 border-neutral p-2 bg-black"
+									style={`border-color: ${$universe.getPlayerColor(row.playerNum)};`}
+								>
+									<div class="fleet-avatar {icon(row)} bg-black"></div>
+								</div>
+							</div>
+						</button>
+						<div class="text-left w-full my-auto">
+							<a href={`/games/${$game.id}/designs/${row.playerNum}/${row.num}`} class="cs-link">
+								{cell}
+							</a>
+						</div>
+					</div>
+				{:else if column.key === 'num'}
+					{#if row.playerNum === $player.num}
+						<a href={`/games/${$game.id}/designer/${row.num}`} class="cs-link">{cell}</a>
+					{:else}
+						{cell}
+					{/if}
+				{:else if column.key === 'playerNum'}
+					<a href={`/games/${$game.id}/designs/${row.playerNum}`} class="cs-link">
+						{$universe.getPlayerPluralName(row.playerNum)}
+					</a>
+				{:else if column.key === 'mass'}
+					{row.spec.mass ?? ''}
+				{:else if column.key === 'armor'}
+					{row.spec.armor ?? ''}
+				{:else if column.key === 'shields'}
+					{row.spec.shields ?? ''}
+				{:else if column.key === 'rating'}
+					{row.spec.powerRating ?? ''}
+				{:else if column.key === 'initiative'}
+					{row.spec.initiative ?? ''}
+				{:else if column.key === 'movement'}
+					{row.spec.movement ?? ''}
+				{:else if column.key === 'hull'}
 					<button
 						class="w-full h-full cursor-help text-left"
-						on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, row)}
+						onpointerdown={preventDefault((e) => onTechTooltip(e, $techs.getTech(row.hull)))}
+						>{cell}
+						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" /></button
 					>
-						<div class="avatar mr-2">
-							<div
-								class="border-2 border-neutral p-2 bg-black"
-								style={`border-color: ${$universe.getPlayerColor(row.playerNum)};`}
-							>
-								<div class="fleet-avatar {icon(row)} bg-black" />
-							</div>
-						</div>
-					</button>
-					<div class="text-left w-full my-auto">
-						<a href={`/games/${$game.id}/designs/${row.playerNum}/${row.num}`} class="cs-link">
-							{cell}
-						</a>
-					</div>
-				</div>
-			{:else if column.key === 'num'}
-				{#if row.playerNum === $player.num}
-					<a href={`/games/${$game.id}/designer/${row.num}`} class="cs-link">{cell}</a>
 				{:else}
 					{cell}
 				{/if}
-			{:else if column.key === 'playerNum'}
-				<a href={`/games/${$game.id}/designs/${row.playerNum}`} class="cs-link">
-					{$universe.getPlayerPluralName(row.playerNum)}
-				</a>
-			{:else if column.key === 'mass'}
-				{row.spec.mass ?? ''}
-			{:else if column.key === 'armor'}
-				{row.spec.armor ?? ''}
-			{:else if column.key === 'shields'}
-				{row.spec.shields ?? ''}
-			{:else if column.key === 'rating'}
-				{row.spec.powerRating ?? ''}
-			{:else if column.key === 'initiative'}
-				{row.spec.initiative ?? ''}
-			{:else if column.key === 'movement'}
-				{row.spec.movement ?? ''}
-			{:else if column.key === 'hull'}
-				<button
-					class="w-full h-full cursor-help text-left"
-					on:pointerdown|preventDefault={(e) => onTechTooltip(e, $techs.getTech(row.hull))}
-					>{cell}
-					<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" /></button
-				>
-			{:else}
-				{cell}
-			{/if}
-		</span>
+			</span>
+		{/snippet}
 	</Table>
 </div>

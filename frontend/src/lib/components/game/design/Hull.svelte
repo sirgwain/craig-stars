@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
 	import type { HullSlot, TechHull } from '$lib/types/Tech';
 	import { createEventDispatcher } from 'svelte';
@@ -14,12 +16,23 @@
 	const containerWidth = componentSize * 5;
 	const containerHeight = componentSize * 5;
 
-	export let hull: TechHull;
-	export let shipDesignSlots: ShipDesignSlot[] = [];
-	export let highlightedSlots: HullSlot[] = [];
-	export let highlightedClass: string = '';
-	export let cargoCapacity = hull.cargoCapacity ?? 0;
-	export let showTooltips = true;
+	interface Props {
+		hull: TechHull;
+		shipDesignSlots?: ShipDesignSlot[];
+		highlightedSlots?: HullSlot[];
+		highlightedClass?: string;
+		cargoCapacity?: any;
+		showTooltips?: boolean;
+	}
+
+	let {
+		hull,
+		shipDesignSlots = $bindable([]),
+		highlightedSlots = [],
+		highlightedClass = '',
+		cargoCapacity = hull.cargoCapacity ?? 0,
+		showTooltips = true
+	}: Props = $props();
 </script>
 
 <div
@@ -28,7 +41,7 @@
 >
 	{#each hull.slots as slot, index}
 		{@const shipDesignSlot = shipDesignSlots.find((s) => s.hullSlotIndex === index + 1)}
-		{#if index == 1 && cargoCapacity > 0}
+		{#if index === 1 && cargoCapacity > 0}
 			<div
 				class="absolute"
 				style={`left: ${
@@ -44,7 +57,7 @@
 				<CargoComponent capacity={cargoCapacity} />
 			</div>
 		{/if}
-		{#if index == 1 && hull.spaceDock && hull.spaceDock != 0}
+		{#if index === 1 && hull.spaceDock && hull.spaceDock !== 0}
 			<div
 				class="absolute"
 				style={`left: ${
@@ -65,15 +78,19 @@
 			style={`left: ${
 				slot.position.x * componentSize + (containerWidth / 2 - componentSize / 2)
 			}px; top: ${slot.position.y * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
-			on:contextmenu|preventDefault={(e) =>
-				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))}
+			role="link"
+			tabindex="-1"
+			oncontextmenu={preventDefault(
+				(e) =>
+					shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))
+			)}
 		>
 			<HullComponent
 				{shipDesignSlot}
 				type={slot.type}
 				capacity={slot.capacity}
 				required={slot.required}
-				highlighted={highlightedSlots.findIndex((s) => s === slot) != -1}
+				highlighted={highlightedSlots.findIndex((s) => s === slot) !== -1}
 				{highlightedClass}
 				{showTooltips}
 				on:clicked={(e) => {

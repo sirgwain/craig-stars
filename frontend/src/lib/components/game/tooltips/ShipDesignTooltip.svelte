@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { showTooltip } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import ShipDesignTooltip from './ShipDesignTooltip.svelte';
@@ -20,7 +20,11 @@
 <script lang="ts">
 	import Design from '$lib/components/game/design/Design.svelte';
 
-	export let design: ShipDesign;
+	interface Props {
+		design: ShipDesign;
+	}
+
+	let { design }: Props = $props();
 </script>
 
 <div>

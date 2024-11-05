@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
@@ -37,12 +39,14 @@
 	}
 
 	// filterable messages
-	let filteredMessages: Message[] = [];
-	let search = '';
-	let showAllMessages = false;
+	let filteredMessages: Message[] = $state([]);
+	let search = $state('');
+	let showAllMessages = $state(false);
 
-	$: filteredMessages =
-		$player.messages.filter((m) => showAllMessages || $settings.isMessageVisible(m.type)) ?? [];
+	run(() => {
+		filteredMessages =
+			$player.messages.filter((m) => showAllMessages || $settings.isMessageVisible(m.type)) ?? [];
+	});
 	// .filter(
 	// 	(m) =>
 	// 		m.text?.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
@@ -86,18 +90,22 @@
 		}}
 		filterBy={search.toLowerCase()}
 	>
-		<span slot="head" let:isSorted let:sortDescending let:column>
-			<SortableTableHeader {column} {isSorted} {sortDescending} />
-		</span>
+		{#snippet head({ isSorted, sortDescending, column })}
+			<span>
+				<SortableTableHeader {column} {isSorted} {sortDescending} />
+			</span>
+		{/snippet}
 
-		<span slot="cell" let:column let:row>
-			{#if column.key == 'target'}
-				<button class="cs-link text-xl text-left" on:click={() => selectMessage(row)}
-					>{getTarget(row)}</button
-				>
-			{:else}
-				<MessageDetail message={row} />
-			{/if}
-		</span>
+		{#snippet cell({ column, row })}
+			<span>
+				{#if column.key == 'target'}
+					<button class="cs-link text-xl text-left" onclick={() => selectMessage(row)}
+						>{getTarget(row)}</button
+					>
+				{:else}
+					<MessageDetail message={row} />
+				{/if}
+			</span>
+		{/snippet}
 	</Table>
 </div>

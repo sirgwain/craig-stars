@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type SpinnerNumberEvent = {
 		change: number;
 	};
@@ -12,19 +12,31 @@
 
 	const dispatch = createEventDispatcher<SpinnerNumberEvent>();
 
-	export let value: number;
-	export let step = 1;
-	export let min = 0;
-	export let max = 100;
-	export let unit = '';
+	interface Props {
+		value: number;
+		step?: number;
+		min?: number;
+		max?: number;
+		unit?: string;
+	}
+
+	let { value = $bindable(), step = 1, min = 0, max = 100, unit = '' }: Props = $props();
 
 	function increase(e) {
-		value = clamp(value + step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1), min, max);
+		value = clamp(
+			value + step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1),
+			min,
+			max
+		);
 		dispatch('change', value);
 	}
 
 	function decrease(e) {
-		value = clamp(value - step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1), min, max);
+		value = clamp(
+			value - step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1),
+			min,
+			max
+		);
 		dispatch('change', value);
 	}
 </script>
@@ -38,10 +50,10 @@
 			{unit}
 		</div>
 		<div class="flex flex-col">
-			<button type="button" class="btn btn-xs" on:click={(e) => increase(e)}>
+			<button type="button" class="btn btn-xs" onclick={(e) => increase(e)}>
 				<Icon src={ChevronUp} size="12" class="hover:stroke-accent" />
 			</button>
-			<button type="button" class="btn btn-xs" on:click={(e) => decrease(e)}>
+			<button type="button" class="btn btn-xs" onclick={(e) => decrease(e)}>
 				<Icon src={ChevronDown} size="12" class="hover:stroke-accent" />
 			</button>
 		</div>

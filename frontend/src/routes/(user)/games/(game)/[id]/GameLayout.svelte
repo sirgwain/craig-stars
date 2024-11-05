@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type SubmitTurnEvent = {
 		'submit-turn': void;
 	};
@@ -15,6 +15,11 @@
 	import GameMenu from './GameMenu.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import NotificationToast from '$lib/components/NotificationToast.svelte';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 
 	let id = parseInt($page.params.id);
 	const { game } = getGameContext();
@@ -33,7 +38,7 @@
 	<ErrorToast />
 	<NotificationToast />
 	<LoadingModal text={$loadingModalText} />
-	<slot>Game</slot>
+	{#if children}{@render children()}{:else}Game{/if}
 </main>
 <Tooltip />
 <Popup />

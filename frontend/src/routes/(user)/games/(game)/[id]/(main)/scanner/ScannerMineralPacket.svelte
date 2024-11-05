@@ -10,13 +10,25 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	export let mineralPacket: MineralPacket;
-	export let color = '#0900FF';
+	interface Props {
+		mineralPacket: MineralPacket;
+		color?: string;
+	}
+
+	let { mineralPacket, color = '#0900FF' }: Props = $props();
 
 	const size = 10;
 </script>
 
 <!-- ScannerMineralPacket -->
 <MapObjectScaler mapObject={mineralPacket}>
-	<rect x={-size / 2} y={-size / 2} width={size} height={size} stroke={color} fill="none" stroke-width={2} />
+	<rect
+		x={-size / 2}
+		y={-size / 2}
+		width={size}
+		height={size}
+		stroke={color}
+		fill="none"
+		stroke-width={2}
+	/>
 </MapObjectScaler>

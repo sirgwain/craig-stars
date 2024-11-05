@@ -1,27 +1,38 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { cargoPercent, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
 	import { createEventDispatcher } from 'svelte';
 	import type { CargoTransferDialogEvent } from '../../../routes/(user)/games/(game)/[id]/dialogs/cargo/CargoTranfserDialog.svelte';
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 
-	export let value: Cargo = {
-		ironium: 0,
-		boranium: 0,
-		germanium: 0,
-		colonists: 0
-	};
+	interface Props {
+		value?: Cargo;
+		capacity?: number | undefined;
+		canTransferCargo?: boolean;
+	}
 
-	export let capacity: number | undefined = 0;
-	export let canTransferCargo = false;
+	let {
+		value = {
+			ironium: 0,
+			boranium: 0,
+			germanium: 0,
+			colonists: 0
+		},
+		capacity = 0,
+		canTransferCargo = false
+	}: Props = $props();
 
-	let percent: Cargo = emptyCargo();
+	let percent: Cargo = $state(emptyCargo());
 
-	$: percent = cargoPercent(value, capacity);
+	run(() => {
+		percent = cargoPercent(value, capacity);
+	});
 </script>
 
 <div
-	on:pointerdown={() => canTransferCargo && dispatch('cargo-transfer-dialog')}
+	onpointerdown={() => canTransferCargo && dispatch('cargo-transfer-dialog')}
 	class="border border-secondary h-[1rem] text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={canTransferCargo}
 >
@@ -33,14 +44,17 @@
 	<div
 		style={`left: 0%; width: ${percent.ironium?.toFixed()}%`}
 		class="ironium-bar h-full inline-block"
-	/>
-	<div style={`width: ${percent.boranium?.toFixed()}%`} class="boranium-bar h-full inline-block" />
+	></div>
+	<div
+		style={`width: ${percent.boranium?.toFixed()}%`}
+		class="boranium-bar h-full inline-block"
+	></div>
 	<div
 		style={`width: ${percent.germanium?.toFixed()}%`}
 		class="germanium-bar h-full inline-block"
-	/>
+	></div>
 	<div
 		style={`width: ${percent.colonists?.toFixed()}%`}
 		class="colonists-bar h-full inline-block"
-	/>
+	></div>
 </div>

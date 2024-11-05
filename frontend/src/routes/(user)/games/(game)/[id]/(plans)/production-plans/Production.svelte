@@ -9,24 +9,33 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let designFinder: DesignFinder;
-	// default to auto tasks
-	export let availableItems: ProductionQueueItem[] = [
-		fromQueueItemType(QueueItemTypes.AutoFactories),
-		fromQueueItemType(QueueItemTypes.AutoMines),
-		fromQueueItemType(QueueItemTypes.AutoDefenses),
-		fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
-		fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
-		fromQueueItemType(QueueItemTypes.AutoMinTerraform)
-	];
-	export let queueItems: ProductionQueueItem[] = [];
-	export let queueItemDescription = getQueueItemShortName;
+	interface Props {
+		designFinder: DesignFinder;
+		// default to auto tasks
+		availableItems?: ProductionQueueItem[];
+		queueItems?: ProductionQueueItem[];
+		queueItemDescription?: any;
+	}
 
-	let quantityModifier = 1;
+	let {
+		designFinder,
+		availableItems = [
+			fromQueueItemType(QueueItemTypes.AutoFactories),
+			fromQueueItemType(QueueItemTypes.AutoMines),
+			fromQueueItemType(QueueItemTypes.AutoDefenses),
+			fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
+			fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
+			fromQueueItemType(QueueItemTypes.AutoMinTerraform)
+		],
+		queueItems = $bindable([]),
+		queueItemDescription = getQueueItemShortName
+	}: Props = $props();
 
-	let selectedAvailableItem: ProductionQueueItem | undefined;
+	let quantityModifier = $state(1);
 
-	let selectedQueueItemIndex = -1;
+	let selectedAvailableItem: ProductionQueueItem | undefined = $state();
+
+	let selectedQueueItemIndex = $state(-1);
 	let selectedQueueItem: ProductionQueueItem | undefined;
 
 	const availableItemSelected = (item: ProductionQueueItem) => {
@@ -123,8 +132,8 @@
 				<li>
 					<button
 						type="button"
-						on:click={() => availableItemSelected(item)}
-						on:dblclick={(e) => addAvailableItem(e, item)}
+						onclick={() => availableItemSelected(item)}
+						ondblclick={(e) => addAvailableItem(e, item)}
 						class="w-full text-left cursor-default select-none hover:text-secondary-focus {item ==
 						selectedAvailableItem
 							? ' bg-primary'
@@ -156,7 +165,7 @@
 			<li>
 				<button
 					type="button"
-					on:click={() => queueItemClicked(-1)}
+					onclick={() => queueItemClicked(-1)}
 					class="w-full italic pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
 					-1
 						? 'bg-primary'
@@ -170,7 +179,7 @@
 					<li>
 						<button
 							type="button"
-							on:click={() => queueItemClicked(index, queueItem)}
+							onclick={() => queueItemClicked(index, queueItem)}
 							class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
 							index
 								? 'bg-primary'

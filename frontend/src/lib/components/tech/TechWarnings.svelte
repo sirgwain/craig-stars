@@ -1,12 +1,15 @@
 <script lang="ts">
-	
 	import type { Tech, TechHullComponent } from '$lib/types/Tech';
 	import { startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 
-	export let tech: Tech;
+	interface Props {
+		tech: Tech;
+	}
 
-	let warnings: string[] = [];
+	let { tech }: Props = $props();
+
+	let warnings: string[] = $state([]);
 
 	onMount(() => {
 		if ('hullSlotType' in tech) {

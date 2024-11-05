@@ -4,7 +4,11 @@
 	import { BattleAttackWho, BattleTactic, BattleTarget } from '$lib/types/Battle';
 	import type { BattlePlan } from '$lib/types/Player';
 
-	export let plan: BattlePlan;
+	interface Props {
+		plan: BattlePlan;
+	}
+
+	let { plan = $bindable() }: Props = $props();
 </script>
 
 <TextInput name="name" bind:value={plan.name} required />

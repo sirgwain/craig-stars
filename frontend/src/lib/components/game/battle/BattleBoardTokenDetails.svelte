@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import type { Battle, PhaseToken } from '$lib/types/Battle';
@@ -13,19 +15,25 @@
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
-	export let battle: Battle;
-	export let phase: number;
-	export let token: PhaseToken | undefined;
+	interface Props {
+		battle: Battle;
+		phase: number;
+		token: PhaseToken | undefined;
+	}
 
-	$: design = token && designFinder.getDesign(token.playerNum, token.designNum);
-	$: raceName = token && playerFinder.getPlayerIntel(token.playerNum)?.racePluralName;
-	$: tokenState = token && battle.getTokenForPhase(token.num, phase);
-	$: armor = design?.spec?.armor ?? 0;
-	$: totalArmor = armor * (tokenState?.quantity ?? 0);
-	$: currentArmor = token
-		? armor * (tokenState?.quantity ?? 0) -
-			(tokenState?.damage ?? 0) * (tokenState?.quantityDamaged ?? 0)
-		: 0;
+	let { battle, phase, token }: Props = $props();
+
+	let design = $derived(token && designFinder.getDesign(token.playerNum, token.designNum));
+	let raceName = $derived(token && playerFinder.getPlayerIntel(token.playerNum)?.racePluralName);
+	let tokenState = $derived(token && battle.getTokenForPhase(token.num, phase));
+	let armor = $derived(design?.spec?.armor ?? 0);
+	let totalArmor = $derived(armor * (tokenState?.quantity ?? 0));
+	let currentArmor = $derived(
+		token
+			? armor * (tokenState?.quantity ?? 0) -
+					(tokenState?.damage ?? 0) * (tokenState?.quantityDamaged ?? 0)
+			: 0
+	);
 </script>
 
 <div class="w-full">
@@ -40,7 +48,7 @@
 			<button
 				type="button"
 				class="w-full h-full cursor-help"
-				on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
+				onpointerdown={preventDefault((e) => onShipDesignTooltip(e, design))}
 			>
 				<div class="flex flex-col">
 					<div>

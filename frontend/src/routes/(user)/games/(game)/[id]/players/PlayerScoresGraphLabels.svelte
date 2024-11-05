@@ -11,14 +11,13 @@
 	/* --------------------------------------------
 	 * Title case the first letter
 	 */
-	const cap = val => val.replace(/^\w/, d => d.toUpperCase());
+	const cap = (val) => val.replace(/^\w/, (d) => d.toUpperCase());
 
 	/* --------------------------------------------
 	 * Put the label on the highest value
 	 */
-	$: left = values => $xScale(max(values, $x)) / Math.max(...$xRange);
-	$: top = values => $yScale(max(values, $y)) / Math.max(...$yRange);
-
+	let left = $derived((values) => $xScale(max(values, $x)) / Math.max(...$xRange));
+	let top = $derived((values) => $yScale(max(values, $y)) / Math.max(...$yRange));
 </script>
 
 {#each $data as group}
@@ -34,9 +33,9 @@
 {/each}
 
 <style>
-    .label {
-        position: absolute;
-        transform: translate(-100%, -100%) translateY(1px);
-        font-size: 13px;
-    }
+	.label {
+		position: absolute;
+		transform: translate(-100%, -100%) translateY(1px);
+		font-size: 13px;
+	}
 </style>

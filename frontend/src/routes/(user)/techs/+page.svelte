@@ -4,9 +4,9 @@
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
+	{#snippet crumbs()}
 		<li>Techs</li>
-	</svelte:fragment>
+	{/snippet}
 </Breadcrumb>
 
 <div class="mt-2">

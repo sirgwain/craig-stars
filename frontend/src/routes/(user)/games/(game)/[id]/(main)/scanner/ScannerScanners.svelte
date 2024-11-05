@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 
 	import { positionKey } from '$lib/types/MapObject';
@@ -16,8 +18,8 @@
 		scanRangePen: number;
 	};
 
-	let scanners: Scanner[] = [];
-	$: {
+	let scanners: Scanner[] = $state([]);
+	run(() => {
 		if ($data) {
 			const scannersByPosition = new Map<string, Scanner>();
 
@@ -135,9 +137,9 @@
 			scanners = [];
 			scanners = Array.from(scannersByPosition.values());
 		}
-	}
+	});
 
-	$: scannerScale = $settings.scannerPercent / 100.0;
+	let scannerScale = $derived($settings.scannerPercent / 100.0);
 </script>
 
 {#if $settings.showScanners}

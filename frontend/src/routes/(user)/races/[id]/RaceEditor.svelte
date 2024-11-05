@@ -10,7 +10,11 @@
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';
 
-	export let race: Race;
+	interface Props {
+		race: Race;
+	}
+
+	let { race = $bindable() }: Props = $props();
 </script>
 
 <TextInput name="name" bind:value={race.name} />

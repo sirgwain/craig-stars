@@ -9,9 +9,13 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	export let mineField: MineField;
-	export let color = '#0900FF';
-	export let selected = false;
+	interface Props {
+		mineField: MineField;
+		color?: string;
+		selected?: boolean;
+	}
+
+	let { mineField, color = '#0900FF', selected = false }: Props = $props();
 </script>
 
 <!-- ScannerMineField -->

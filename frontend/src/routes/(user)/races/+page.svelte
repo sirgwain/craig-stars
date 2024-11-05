@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { RaceService } from '$lib/services/RaceService';
@@ -29,13 +31,17 @@
 	];
 
 	// filterable races
-	let races: Race[];
-	let filteredRaces: Race[] = [];
-	let search = '';
+	let races: Race[] = $state();
+	let filteredRaces: Race[] = $state([]);
+	let search = $state('');
 
-	$: filteredRaces = races;
+	run(() => {
+		filteredRaces = races;
+	});
 
-	$: filteredRaces = races?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1);
+	run(() => {
+		filteredRaces = races?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1);
+	});
 
 	export const removeItem = async (item: Race) => {
 		if (item.id && confirm(`Are you sure you want to delete ${item.name}`)) {
@@ -67,26 +73,30 @@
 			th: 'first:table-cell [&:nth-child(4)]:table-cell hidden sm:table-cell'
 		}}
 	>
-		<span slot="head" let:isSorted let:sortDescending let:column>
-			<SortableTableHeader {column} {isSorted} {sortDescending} />
-		</span>
+		{#snippet head({ isSorted, sortDescending, column })}
+			<span>
+				<SortableTableHeader {column} {isSorted} {sortDescending} />
+			</span>
+		{/snippet}
 
-		<span slot="cell" let:column let:row let:cell>
-			{#if column.key == 'pluralName'}
-				<a class="cs-link text-2xl" href="/races/{row.id}">{cell}</a>
-			{:else if column.key == 'createdAt'}
-				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
-			{:else if column.key == 'action'}
-				<button on:click|preventDefault={() => removeItem(row)} type="button"
-					><Icon
-						class="h-10 align-middle hover:stroke-primary-focus stroke-error"
-						src={XCircle}
-						size="24"
-					/></button
-				>
-			{:else}
-				{cell}
-			{/if}
-		</span>
+		{#snippet cell({ column, row, cell })}
+			<span>
+				{#if column.key == 'pluralName'}
+					<a class="cs-link text-2xl" href="/races/{row.id}">{cell}</a>
+				{:else if column.key == 'createdAt'}
+					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+				{:else if column.key == 'action'}
+					<button onclick={preventDefault(() => removeItem(row))} type="button"
+						><Icon
+							class="h-10 align-middle hover:stroke-primary-focus stroke-error"
+							src={XCircle}
+							size="24"
+						/></button
+					>
+				{:else}
+					{cell}
+				{/if}
+			</span>
+		{/snippet}
 	</Table>
 </div>

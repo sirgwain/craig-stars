@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { goto } from '$app/navigation';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
@@ -12,18 +14,17 @@
 	const { game, player, universe, settings, gotoBattle } = getGameContext();
 
 	// filterable battles
-	let filteredBattles: BattleRecordDetails[] = [];
-	let search = '';
+	let filteredBattles: BattleRecordDetails[] = $state([]);
+	let search = $state('');
 
-	$: battleRows = $universe.getBattles(
-		$settings.sortBattlesKey,
-		$settings.sortBattlesDescending,
-		$player
+	let battleRows = $derived(
+		$universe.getBattles($settings.sortBattlesKey, $settings.sortBattlesDescending, $player)
 	);
 
-	$: filteredBattles =
-		battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
-
+	run(() => {
+		filteredBattles =
+			battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
+	});
 
 	const columns: TableColumn<BattleRecordDetails>[] = [
 		{
@@ -81,9 +82,9 @@
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
+	{#snippet crumbs()}
 		<li>Battles</li>
-	</svelte:fragment>
+	{/snippet}
 </Breadcrumb>
 
 <div class="w-full">
@@ -100,36 +101,40 @@
 			th: 'first:table-cell hidden sm:table-cell'
 		}}
 	>
-		<span slot="head" let:column>
-			<SortableTableHeader
-				{column}
-				isSorted={$settings.sortBattlesKey === column.key}
-				sortDescending={$settings.sortBattlesDescending}
-				on:sorted={(e) => {
-					onSorted(column, e.detail.sortDescending);
-				}}
-			/>
-		</span>
+		{#snippet head({ column })}
+			<span>
+				<SortableTableHeader
+					{column}
+					isSorted={$settings.sortBattlesKey === column.key}
+					sortDescending={$settings.sortBattlesDescending}
+					on:sorted={(e) => {
+						onSorted(column, e.detail.sortDescending);
+					}}
+				/>
+			</span>
+		{/snippet}
 
-		<span slot="cell" let:column let:row let:cell>
-			{#if column.key == 'location'}
-				<div class="flex flex-row justify-between">
-					<a class="cs-link text-xl text-left" href={`/games/${$game.id}/battles/${row.num}`}
-						>{row.location}</a
-					>
-					<button
-						on:click={(e) => gotoTarget(row)}
-						class="btn btn-outline btn-sm normal-case btn-secondary p-2 mx-1"
-						title="goto">Goto</button
-					>
-				</div>
-			{:else if column.key == 'present'}
-				{#if row.present}
-					<Icon src={Check} size="24" class="stroke-success" />
+		{#snippet cell({ column, row, cell })}
+			<span>
+				{#if column.key == 'location'}
+					<div class="flex flex-row justify-between">
+						<a class="cs-link text-xl text-left" href={`/games/${$game.id}/battles/${row.num}`}
+							>{row.location}</a
+						>
+						<button
+							onclick={(e) => gotoTarget(row)}
+							class="btn btn-outline btn-sm normal-case btn-secondary p-2 mx-1"
+							title="goto">Goto</button
+						>
+					</div>
+				{:else if column.key == 'present'}
+					{#if row.present}
+						<Icon src={Check} size="24" class="stroke-success" />
+					{/if}
+				{:else}
+					{cell ?? ''}
 				{/if}
-			{:else}
-				{cell ?? ''}
-			{/if}
-		</span>
+			</span>
+		{/snippet}
 	</Table>
 </div>

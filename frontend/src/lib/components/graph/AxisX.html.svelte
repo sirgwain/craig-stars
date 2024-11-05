@@ -7,36 +7,39 @@
 
 	const { xScale } = getContext('LayerCake');
 
-	/** @type {Boolean} [gridlines=true] - Extend lines from the ticks into the chart space. */
-	export let gridlines = true;
+	interface Props {
+		gridlines?: Boolean;
+		tickMarks?: Boolean;
+		baseline?: Boolean;
+		snapTicks?: Boolean;
+		/** @type {Function} [formatTick=d => d] - A function that passes the current tick value and expects a nicely formatted value in return. */
+		formatTick?: (d: any) => string;
+		/** @type {Number|Array|Function} [ticks] - If this is a number, it passes that along to the [d3Scale.ticks](https://github.com/d3/d3-scale) function. If this is an array, hardcodes the ticks to those values. If it's a function, passes along the default tick values and expects an array of tick values in return. If nothing, it uses the default ticks supplied by the D3 function. */
+		ticks?: Number | Array<any> | Function | undefined;
+		yTick?: Number;
+	}
 
-	/** @type {Boolean} [tickMarks=false] - Show a vertical mark for each tick. */
-	export let tickMarks = false;
+	let {
+		gridlines = true,
+		tickMarks = false,
+		baseline = false,
+		snapTicks = false,
+		formatTick = (d) => d,
+		ticks = undefined,
+		yTick = 7
+	}: Props = $props();
 
-	/** @type {Boolean} [baseline=false]  Show a solid line at the bottom. */
-	export let baseline = false;
+	let isBandwidth = $derived(typeof $xScale.bandwidth === 'function');
 
-	/** @type {Boolean} [snapTicks=false] - Instead of centering the text on the first and the last items, align them to the edges of the chart. */
-	export let snapTicks = false;
-
-	/** @type {Function} [formatTick=d => d] - A function that passes the current tick value and expects a nicely formatted value in return. */
-	export let formatTick: (d: any) => string = (d) => d;
-
-	/** @type {Number|Array|Function} [ticks] - If this is a number, it passes that along to the [d3Scale.ticks](https://github.com/d3/d3-scale) function. If this is an array, hardcodes the ticks to those values. If it's a function, passes along the default tick values and expects an array of tick values in return. If nothing, it uses the default ticks supplied by the D3 function. */
-	export let ticks: Number | Array<any> | Function | undefined = undefined;
-
-	/** @type {Number} [yTick=7] - The distance from the baseline to place each tick value, in pixels. */
-	export let yTick = 7;
-
-	$: isBandwidth = typeof $xScale.bandwidth === 'function';
-
-	$: tickVals = Array.isArray(ticks)
-		? ticks
-		: isBandwidth
-		? $xScale.domain()
-		: typeof ticks === 'function'
-		? ticks($xScale.ticks())
-		: $xScale.ticks(ticks);
+	let tickVals = $derived(
+		Array.isArray(ticks)
+			? ticks
+			: isBandwidth
+				? $xScale.domain()
+				: typeof ticks === 'function'
+					? ticks($xScale.ticks())
+					: $xScale.ticks(ticks)
+	);
 </script>
 
 <div class="axis x-axis" class:snapTicks>
@@ -45,14 +48,14 @@
 			<div
 				class="border-l border-l-base-content"
 				style="left:{$xScale(tick)}%;top: 0px;bottom: 0;"
-			/>
+			></div>
 		{/if}
 		{#if tickMarks === true}
 			<div
 				class="border-l-base-content"
 				style="left:{$xScale(tick) +
 					(isBandwidth ? $xScale.bandwidth() / 2 : 0)}%;height:6px;bottom: -6px;"
-			/>
+			></div>
 		{/if}
 		<div
 			class="tick tick-{i}"
@@ -62,7 +65,7 @@
 		</div>
 	{/each}
 	{#if baseline === true}
-		<div class="border-t border-t-base-content" style="top: 100%;width: 100%;" />
+		<div class="border-t border-t-base-content" style="top: 100%;width: 100%;"></div>
 	{/if}
 </div>
 

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { clickOutside } from '$lib/clickOutside';
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
@@ -63,19 +65,19 @@
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
 
-	let clientWidth = 100;
-	let clientHeight = 100;
+	let clientWidth = $state(100);
+	let clientHeight = $state(100);
 	let aspectRatio = 1;
-	let transform: ZoomTransform;
-	let zoomBehavior: ZoomBehavior<HTMLElement, any>;
-	let root: HTMLElement;
+	let transform: ZoomTransform = $state();
+	let zoomBehavior: ZoomBehavior<HTMLElement, any> = $state();
+	let root: HTMLElement = $state();
 	let padding = 20; // 20 px, used in zooming
 	let scaleX: ScaleLinear<number, number, never>;
 	let scaleY: ScaleLinear<number, number, never>;
 	let zoomEnabled = true;
 	let zooming = false;
-	let showLocator = false;
-	let shouldAddWaypoint = false;
+	let showLocator = $state(false);
+	let shouldAddWaypoint = $state(false);
 	let fastestWaypoint = false;
 
 	// our map scales for .75 to 10x, but the icons for the planets and fleets are 2x min
@@ -99,39 +101,6 @@
 		hotkeys.unbind('v', 'root', showTargetLocation);
 		unsubscribe();
 	});
-
-	// handle zoom in/out
-	// this behavior controls how the zoom behaves
-	// below we handle zooming events by updating a transform
-	$: {
-		if (root) {
-			handleResize();
-
-			zoomBehavior = zoom<HTMLElement, any>()
-				.extent([
-					[0, 0],
-					[clientWidth, clientHeight]
-				])
-				.scaleExtent([minZoom, maxZoom])
-				.translateExtent([
-					[-20, -20],
-					[clientWidth + padding, clientHeight + padding]
-				])
-				.on('zoom', handleZoom)
-				.on('start', handleZoomStart)
-				.on('end', handleZoomEnd);
-
-			enableDragAndZoom();
-		}
-	}
-
-	$: {
-		if ($settings.addWaypoint && zoomEnabled) {
-			disableDragAndZoom();
-		} else if (!$settings.addWaypoint && !zoomEnabled) {
-			enableDragAndZoom();
-		}
-	}
 
 	// enable drag and zoom, but disable dblclick zoom events
 	function enableDragAndZoom() {
@@ -224,11 +193,6 @@
 		zooming = false;
 	}
 
-	// zoom to the commanded map object every time it changes
-	$: if (root && $zoomTarget) {
-		translateViewport($zoomTarget.position);
-	}
-
 	// zoom the display to a point on the map
 	function translateViewport(position: Vector, scaleTo?: number) {
 		if (root) {
@@ -256,7 +220,7 @@
 
 	let pointerDown = false;
 	let draggingWaypoint = false;
-	let waypointHighlighted = false;
+	let waypointHighlighted = $state(false);
 	let dragAndZoomEnabled = true;
 
 	// set to true if we are moving a waypoint to a position rather than a target
@@ -558,8 +522,45 @@
 		}
 	}
 
-	let data: MapObject[] = [];
-	$: {
+	let data: MapObject[] = $state([]);
+	// handle zoom in/out
+	// this behavior controls how the zoom behaves
+	// below we handle zooming events by updating a transform
+	run(() => {
+		if (root) {
+			handleResize();
+
+			zoomBehavior = zoom<HTMLElement, any>()
+				.extent([
+					[0, 0],
+					[clientWidth, clientHeight]
+				])
+				.scaleExtent([minZoom, maxZoom])
+				.translateExtent([
+					[-20, -20],
+					[clientWidth + padding, clientHeight + padding]
+				])
+				.on('zoom', handleZoom)
+				.on('start', handleZoomStart)
+				.on('end', handleZoomEnd);
+
+			enableDragAndZoom();
+		}
+	});
+	run(() => {
+		if ($settings.addWaypoint && zoomEnabled) {
+			disableDragAndZoom();
+		} else if (!$settings.addWaypoint && !zoomEnabled) {
+			enableDragAndZoom();
+		}
+	});
+	// zoom to the commanded map object every time it changes
+	run(() => {
+		if (root && $zoomTarget) {
+			translateViewport($zoomTarget.position);
+		}
+	});
+	run(() => {
 		const waypoints: MapObject[] = [];
 		if ($commandedFleet?.waypoints) {
 			waypoints.push(
@@ -591,10 +592,10 @@
 			...$universe.mineFields,
 			...$universe.planets
 		];
-	}
+	});
 </script>
 
-<svelte:window on:resize={handleResize} on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
+<svelte:window onresize={handleResize} onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
 
 <div
 	class:cursor-grab={waypointHighlighted}

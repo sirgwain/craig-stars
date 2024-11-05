@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { clamp } from '$lib/services/Math';
 	import { HabTypes, getHabValueString, type HabType, habTypeString } from '$lib/types/Hab';
 	import { draggable, type DragEventData } from '@neodrag/svelte';
@@ -10,21 +12,32 @@
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	export let habType: HabType;
-	export let habLow: number | undefined;
-	export let habHigh: number | undefined;
-	export let immune: boolean | undefined;
+	interface Props {
+		habType: HabType;
+		habLow: number | undefined;
+		habHigh: number | undefined;
+		immune: boolean | undefined;
+	}
 
-	let barContainerRef: HTMLDivElement | null = null;
-	$: containerWidth = barContainerRef?.parentElement?.clientWidth ?? 0;
+	let {
+		habType,
+		habLow = $bindable(),
+		habHigh = $bindable(),
+		immune = $bindable()
+	}: Props = $props();
 
-	$: habWidth = (habHigh ?? 0) - (habLow ?? 0);
-	$: position = barContainerRef
-		? {
-				x: Math.floor(((habLow ?? 0) / 100) * containerWidth),
-				y: 0
-			}
-		: undefined;
+	let barContainerRef: HTMLDivElement | null = $state(null);
+	let containerWidth = $derived(barContainerRef?.parentElement?.clientWidth ?? 0);
+
+	let habWidth = $derived((habHigh ?? 0) - (habLow ?? 0));
+	let position = $derived(
+		barContainerRef
+			? {
+					x: Math.floor(((habLow ?? 0) / 100) * containerWidth),
+					y: 0
+				}
+			: undefined
+	);
 
 	const onLeft = () => {
 		const width = habWidth;
@@ -66,7 +79,7 @@
 	</div>
 	<div class="grow flex flex-col">
 		<div class="flex flex-row h-8">
-			<button type="button" on:click|preventDefault={() => onLeft()} class="btn btn-outline btn-sm"
+			<button type="button" onclick={preventDefault(() => onLeft())} class="btn btn-outline btn-sm"
 				><Icon src={ChevronLeft} size="20" />
 			</button>
 
@@ -75,17 +88,17 @@
 					{#if position}
 						<div
 							use:draggable={{ bounds: 'parent', position }}
-							on:neodrag={(e) => onDrag(e.detail)}
+							onneodrag={(e) => onDrag(e.detail)}
 							style={`width: ${habWidth.toFixed()}%`}
 							class="h-full"
 							class:grav-bar={habType === HabTypes.Gravity}
 							class:temp-bar={habType === HabTypes.Temperature}
 							class:rad-bar={habType === HabTypes.Radiation}
-						/>
+						></div>
 					{/if}
 				</div>
 			</div>
-			<button type="button" on:click|preventDefault={() => onRight()} class="btn btn-outline btn-sm"
+			<button type="button" onclick={preventDefault(() => onRight())} class="btn btn-outline btn-sm"
 				><Icon src={ChevronRight} size="20" />
 			</button>
 		</div>
@@ -93,7 +106,7 @@
 			<div>
 				<button
 					type="button"
-					on:click|preventDefault={() => onGrow()}
+					onclick={preventDefault(() => onGrow())}
 					class="btn btn-outline btn-sm"
 					><Icon src={ChevronDoubleLeft} size="20" />
 					<Icon src={ChevronDoubleRight} size="20" /></button
@@ -107,7 +120,7 @@
 			<div>
 				<button
 					type="button"
-					on:click|preventDefault={() => onShrink()}
+					onclick={preventDefault(() => onShrink())}
 					class="btn btn-outline btn-sm"
 					><Icon src={ChevronDoubleRight} size="20" />
 					<Icon src={ChevronDoubleLeft} size="20" /></button

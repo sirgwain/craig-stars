@@ -1,23 +1,44 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { startCase } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 
-	export let name: string;
-	export let value: number | undefined;
-	export let unit: string | undefined = undefined;
-	export let title: string | undefined = undefined;
-	export let titleClass = 'label-text w-32 text-right';
-	export let inputClass = 'input input-bordered w-full';
-	export let step = 0.01;
-	export let min = 0;
-	export let max: number | undefined = undefined;
-	export let unitLabelClass = 'w-16';
-	export let required = false;
-	export let disabled = false;
+	interface Props {
+		name: string;
+		value: number | undefined;
+		unit?: string | undefined;
+		title?: string | undefined;
+		titleClass?: string;
+		inputClass?: string;
+		step?: number;
+		min?: number;
+		max?: number | undefined;
+		unitLabelClass?: string;
+		required?: boolean;
+		disabled?: boolean;
+	}
 
-	$: !title && (title = startCase(name));
+	let {
+		name,
+		value = $bindable(),
+		unit = undefined,
+		title = $bindable(undefined),
+		titleClass = 'label-text w-32 text-right',
+		inputClass = 'input input-bordered w-full',
+		step = 0.01,
+		min = 0,
+		max = undefined,
+		unitLabelClass = 'w-16',
+		required = false,
+		disabled = false
+	}: Props = $props();
+
+	run(() => {
+		!title && (title = startCase(name));
+	});
 </script>
 
 <div class="w-full flex-grow">
@@ -35,7 +56,7 @@
 					{step}
 					{required}
 					bind:value
-					on:change={(e) => dispatch('change', e)}
+					onchange={(e) => dispatch('change', e)}
 				/>
 				{#if unit}
 					<span class={unitLabelClass}>{unit}</span>

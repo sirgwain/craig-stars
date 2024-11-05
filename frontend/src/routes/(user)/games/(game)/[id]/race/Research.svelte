@@ -3,7 +3,11 @@
 	import { TechField } from '$lib/types/TechLevel';
 	import ResearchCostCard from './ResearchCostCard.svelte';
 
-	export let race: Race;
+	interface Props {
+		race: Race;
+	}
+
+	let { race }: Props = $props();
 </script>
 
 <div class="flex flex-row flex-wrap justify-center gap-2">

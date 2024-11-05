@@ -1,12 +1,23 @@
 <script lang="ts">
 	import type { VictoryCondition } from '$lib/types/Game';
 
-	export let value: number;
-	export let unit: string | undefined = undefined;
-	export let min = 0;
-	export let max = 100;
-	export let step = 1;
-	export let required = true;
+	interface Props {
+		value: number;
+		unit?: string | undefined;
+		min?: number;
+		max?: number;
+		step?: number;
+		required?: boolean;
+	}
+
+	let {
+		value = $bindable(),
+		unit = undefined,
+		min = 0,
+		max = 100,
+		step = 1,
+		required = true
+	}: Props = $props();
 </script>
 
 <div class="join">

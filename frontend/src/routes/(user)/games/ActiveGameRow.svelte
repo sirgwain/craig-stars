@@ -8,10 +8,14 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let game: Game;
-	export let showNumSubmitted = true;
+	interface Props {
+		game: Game;
+		showNumSubmitted?: boolean;
+	}
 
-	$: numSubmitted = game.players.filter((p) => p.submittedTurn).length;
+	let { game, showNumSubmitted = true }: Props = $props();
+
+	let numSubmitted = $derived(game.players.filter((p) => p.submittedTurn).length);
 </script>
 
 <div class="col-span-5">
@@ -30,14 +34,14 @@
 {#if game.hostId == $me.id}
 	<div class="col-span-2 flex justify-center join">
 		<button
-			on:click={() => dispatch('archive')}
+			onclick={() => dispatch('archive')}
 			class="btn btn-error btn-sm rounded-l-md"
 			title="Archive Game"
 		>
 			<Archive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
 		</button>
 		<button
-			on:click={() => dispatch('delete')}
+			onclick={() => dispatch('delete')}
 			class="btn btn-error btn-sm border-l-secondary rounded-r-md"
 			title="Delete Game"
 		>
@@ -47,7 +51,7 @@
 {:else}
 	<div class="col-span-2 flex justify-center">
 		<button
-			on:click={() => dispatch('archive')}
+			onclick={() => dispatch('archive')}
 			class="btn btn-error btn-sm rounded-md"
 			title="Archive Game"
 		>

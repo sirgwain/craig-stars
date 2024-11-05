@@ -7,7 +7,11 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let game: Game;
+	interface Props {
+		game: Game;
+	}
+
+	let { game }: Props = $props();
 
 	function ready(game: Game): boolean {
 		return game.players.find((p) => p.userId == $me.id)?.ready ?? false;
@@ -27,7 +31,7 @@
 {#if game.hostId == $me.id}
 	<div class="col-span-2 flex justify-center">
 		<button
-			on:click={() => dispatch('delete')}
+			onclick={() => dispatch('delete')}
 			class="btn btn-error btn-sm rounded-md"
 			title="Delete Game"
 		>
@@ -35,5 +39,5 @@
 		</button>
 	</div>
 {:else}
-	<div class="col-span-2" />
+	<div class="col-span-2"></div>
 {/if}

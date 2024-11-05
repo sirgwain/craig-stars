@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type ProductionItemsButtonsEvent = {
 		'add-item': MouseEvent;
 		'remove-item': MouseEvent;
@@ -9,6 +9,8 @@
 </script>
 
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import {
 		ArrowLongRight,
 		ArrowLongLeft,
@@ -26,7 +28,7 @@
 	<div class="flex-row flex-none gap-y-2">
 		<button
 			type="button"
-			on:click|preventDefault={(e) => dispatch('add-item', e)}
+			onclick={preventDefault((e) => dispatch('add-item', e))}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><span class="hidden sm:inline">Add </span><Icon
 				src={ArrowLongRight}
@@ -36,7 +38,7 @@
 		>
 		<button
 			type="button"
-			on:click|preventDefault={(e) => dispatch('remove-item', e)}
+			onclick={preventDefault((e) => dispatch('remove-item', e))}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /><span
 				class="hidden sm:inline"
@@ -46,7 +48,7 @@
 		</button>
 		<button
 			type="button"
-			on:click|preventDefault={(e) => dispatch('item-up', e)}
+			onclick={preventDefault((e) => dispatch('item-up', e))}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><span class="hidden sm:inline">Item Up </span><Icon
 				src={ArrowLongUp}
@@ -56,7 +58,7 @@
 		</button>
 		<button
 			type="button"
-			on:click|preventDefault={(e) => dispatch('item-down', e)}
+			onclick={preventDefault((e) => dispatch('item-down', e))}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><span class="hidden sm:inline">Item Down </span><Icon
 				src={ArrowLongDown}
@@ -66,7 +68,7 @@
 		</button>
 		<button
 			type="button"
-			on:click|preventDefault={(e) => dispatch('clear', e)}
+			onclick={preventDefault((e) => dispatch('clear', e))}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><span class="hidden sm:inline">Clear </span><Icon
 				src={XCircle}

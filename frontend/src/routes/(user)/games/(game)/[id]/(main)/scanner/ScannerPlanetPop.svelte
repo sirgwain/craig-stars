@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
@@ -11,18 +13,22 @@
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	export let planet: Planet;
+	interface Props {
+		planet: Planet;
+	}
 
-	let props = {};
+	let { planet }: Props = $props();
+
+	let props = $state({});
 
 	const fullyPopulatedRadius = 18;
 	const fullyPopulatedArea = Math.PI * fullyPopulatedRadius * fullyPopulatedRadius;
 	const minRadius = 2;
 	const minArea = Math.PI * minRadius * minRadius;
 	const population = planet.spec.population ?? 0;
-	$: radius = 0;
+	let radius = $state(0);
 
-	$: {
+	run(() => {
 		// green for us, gray for unexplored, white for explored
 		let color = '#555';
 		let strokeColor = '#555';
@@ -47,14 +53,14 @@
 				'stroke-width': strokeWidth
 			};
 		}
-	}
+	});
 </script>
 
 {#if population > 0}
 	<MapObjectScaler mapObject={planet}>
 		<circle cx={0} cy={0} {...props} />
 	</MapObjectScaler>
-	<ScannerFleetCount {planet} yOffset={radius-3} />
+	<ScannerFleetCount {planet} yOffset={radius - 3} />
 {:else}
 	<ScannerPlanetNormal {planet} />
 {/if}

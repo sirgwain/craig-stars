@@ -7,9 +7,13 @@
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import DesignStats from '../DesignStats.svelte';
 
-	export let design: ShipDesign;
+	interface Props {
+		design: ShipDesign;
+	}
 
-	$: hull = design && $techs.getHull(design.hull);
+	let { design }: Props = $props();
+
+	let hull = $derived(design && $techs.getHull(design.hull));
 </script>
 
 <div class="flex flex-row justify-between">

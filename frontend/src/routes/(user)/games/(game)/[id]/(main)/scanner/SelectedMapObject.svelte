@@ -3,6 +3,8 @@
   Generates an SVG scatter plot. This component can also work if the x- or y-scale is ordinal, i.e. it has a `.bandwidth` method. See the [timeplot chart](https://layercake.graphics/example/Timeplot) for an example.
  -->
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 
 	import SelectedMapObject from '$lib/components/icons/SelectedMapObject.svelte';
@@ -31,8 +33,8 @@
 		return false;
 	};
 
-	let size = 10;
-	$: {
+	let size = $state(10);
+	run(() => {
 		switch ($settings.planetViewState) {
 			case PlanetViewState.Normal:
 			case PlanetViewState.SurfaceMinerals:
@@ -44,7 +46,7 @@
 			case PlanetViewState.None:
 				size = 21;
 		}
-	}
+	});
 </script>
 
 {#if $selectedMapObject}

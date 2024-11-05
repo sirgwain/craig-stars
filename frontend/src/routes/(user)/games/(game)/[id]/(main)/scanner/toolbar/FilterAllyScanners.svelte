@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import FleetCount from '$lib/components/icons/FleetCount.svelte';
 	import IdleFleets from '$lib/components/icons/IdleFleets.svelte';
 	import { getGameContext, playerFinderKey } from '$lib/services/GameContext';
@@ -13,6 +15,6 @@
 	class:fill-ally-selected={$settings.showAllyScanners}
 	class:fill-ally-current={!$settings.showAllyScanners}
 	class="btn btn-ghost btn-xs w-full h-full"
-	on:click|preventDefault={() => ($settings.showAllyScanners = !$settings.showAllyScanners)}
+	onclick={preventDefault(() => ($settings.showAllyScanners = !$settings.showAllyScanners))}
 	><span><Scanner class="w-6 h-6" /></span></a
 >

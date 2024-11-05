@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import PlanetBaseHabPoint from '$lib/components/game/PlanetBaseHabPoint.svelte';
 	import PlanetHabPoint from '$lib/components/game/PlanetHabPoint.svelte';
 	import PlanetHabTerraformLine from '$lib/components/game/PlanetHabTerraformLine.svelte';
@@ -20,44 +22,48 @@
 
 	const { game, player, universe } = getGameContext();
 
-	export let planet: Planet;
+	interface Props {
+		planet: Planet;
+	}
 
-	$: habLow = $player.race.habLow;
-	$: habHigh = $player.race.habHigh;
-	$: habPoint = planet.hab ?? {};
-	$: baseHab = planet.baseHab ?? {};
-	$: terraformHabPoint = add(habPoint, planet.spec.terraformAmount ?? {});
-	$: habWidth = {
+	let { planet }: Props = $props();
+
+	let habLow = $derived($player.race.habLow);
+	let habHigh = $derived($player.race.habHigh);
+	let habPoint = $derived(planet.hab ?? {});
+	let baseHab = $derived(planet.baseHab ?? {});
+	let terraformHabPoint = $derived(add(habPoint, planet.spec.terraformAmount ?? {}));
+	let habWidth = $derived({
 		grav: (habHigh.grav ?? 0) - (habLow.grav ?? 0),
 		temp: (habHigh.temp ?? 0) - (habLow.temp ?? 0),
 		rad: (habHigh.rad ?? 0) - (habLow.rad ?? 0)
-	};
+	});
 
-	$: habPointPercent = {
+	let habPointPercent = $derived({
 		grav: clamp(habPoint.grav ? (habPoint.grav / 100) * 100 : 0, 0, 100),
 		temp: clamp(habPoint.temp ? (habPoint.temp / 100) * 100 : 0, 0, 100),
 		rad: clamp(habPoint.rad ? (habPoint.rad / 100) * 100 : 0, 0, 100)
-	};
-	$: baseHabPercent = {
+	});
+	let baseHabPercent = $derived({
 		grav: clamp(baseHab.grav ? (baseHab.grav / 100) * 100 : 0, 0, 100),
 		temp: clamp(baseHab.temp ? (baseHab.temp / 100) * 100 : 0, 0, 100),
 		rad: clamp(baseHab.rad ? (baseHab.rad / 100) * 100 : 0, 0, 100)
-	};
-	$: terraformHabPointPercent = {
+	});
+	let terraformHabPointPercent = $derived({
 		grav: clamp(terraformHabPoint.grav ? (terraformHabPoint.grav / 100) * 100 : 0, 0, 100),
 		temp: clamp(terraformHabPoint.temp ? (terraformHabPoint.temp / 100) * 100 : 0, 0, 100),
 		rad: clamp(terraformHabPoint.rad ? (terraformHabPoint.rad / 100) * 100 : 0, 0, 100)
-	};
-	$: habLowPercent = {
+	});
+	let habLowPercent = $derived({
 		grav: clamp(habLow.grav ? (habLow.grav / 100) * 100 : 0, 0, 100),
 		temp: clamp(habLow.temp ? (habLow.temp / 100) * 100 : 0, 0, 100),
 		rad: clamp(habLow.rad ? (habLow.rad / 100) * 100 : 0, 0, 100)
-	};
-	$: habWidthPercent = {
+	});
+	let habWidthPercent = $derived({
 		grav: clamp(habWidth.grav ? (habWidth.grav / 100) * 100 : 0, 0, 100),
 		temp: clamp(habWidth.temp ? (habWidth.temp / 100) * 100 : 0, 0, 100),
 		rad: clamp(habWidth.rad ? (habWidth.rad / 100) * 100 : 0, 0, 100)
-	};
+	});
 
 	function onPopulationTooltip(e: PointerEvent) {
 		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
@@ -100,7 +106,7 @@
 	{:else}
 		<div
 			class="flex justify-between cursor-help"
-			on:pointerdown|preventDefault={onPopulationTooltip}
+			onpointerdown={preventDefault(onPopulationTooltip)}
 		>
 			<div class="ml-[5.5rem]">
 				Value: <span
@@ -139,7 +145,7 @@
 			</div>
 		</div>
 
-		<div class="flex flex-row cursor-help" on:pointerdown|preventDefault={onGravityTooltip}>
+		<div class="flex flex-row cursor-help" onpointerdown={preventDefault(onGravityTooltip)}>
 			<div class="text-right w-[5.5rem] text-tile-item-title">Gravity</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
@@ -147,7 +153,7 @@
 						<div
 							style={`left: ${habLowPercent.grav.toFixed()}%; width: ${habWidthPercent.grav?.toFixed()}%`}
 							class="absolute grav-bar h-full"
-						/>
+						></div>
 					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.grav.toFixed()}%;`}
@@ -175,7 +181,7 @@
 			</div>
 			<div class="w-[3rem]">{getGravString(planet.hab?.grav ?? 0)}</div>
 		</div>
-		<div class="flex flex-row cursor-help" on:pointerdown|preventDefault={onTemperatureTooltip}>
+		<div class="flex flex-row cursor-help" onpointerdown={preventDefault(onTemperatureTooltip)}>
 			<div class="text-right w-[5.5rem] text-tile-item-title">Temperature</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
@@ -183,7 +189,7 @@
 						<div
 							style={`left: ${habLowPercent.temp.toFixed()}%; width: ${habWidthPercent.temp?.toFixed()}%`}
 							class="absolute temp-bar h-full"
-						/>
+						></div>
 					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.temp.toFixed()}%;`}
@@ -203,7 +209,7 @@
 			</div>
 			<div class="w-[3rem]">{getTempString(planet.hab?.temp ?? 0)}</div>
 		</div>
-		<div class="flex flex-row cursor-help" on:pointerdown|preventDefault={onRadiationTooltip}>
+		<div class="flex flex-row cursor-help" onpointerdown={preventDefault(onRadiationTooltip)}>
 			<div class="text-right w-[5.5rem] text-tile-item-title">Radiation</div>
 			<div class="grow bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
@@ -211,7 +217,7 @@
 						<div
 							style={`left: ${habLowPercent.rad.toFixed()}%; width: ${habWidthPercent.rad?.toFixed()}%`}
 							class="absolute rad-bar h-full"
-						/>
+						></div>
 					{/if}
 					<PlanetHabPoint
 						style={`left: ${habPointPercent.rad.toFixed()}%;`}
@@ -232,7 +238,7 @@
 			<div class="w-[3rem]">{getRadString(planet.hab?.rad ?? 0)}</div>
 		</div>
 
-		<div class="mb-1" />
+		<div class="mb-1"></div>
 
 		<PlanetMineralsGraph {planet} />
 	{/if}

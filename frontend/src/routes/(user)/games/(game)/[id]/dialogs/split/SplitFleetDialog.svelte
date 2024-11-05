@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 
 	export type SplitFleetDialogEventDetails = {
@@ -17,8 +17,12 @@
 
 	const { split } = getGameContext();
 
-	export let show = false;
-	export let props: SplitFleetDialogEventDetails | undefined;
+	interface Props {
+		show?: boolean;
+		props: SplitFleetDialogEventDetails | undefined;
+	}
+
+	let { show = $bindable(false), props }: Props = $props();
 
 	const onSplitFleet = async (details: SplitFleetEventDetails) => {
 		if (details) {

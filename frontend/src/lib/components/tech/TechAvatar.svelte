@@ -4,11 +4,19 @@
 	import { onTechHullTooltip } from '../game/tooltips/TechHullTooltip.svelte';
 	import { onTechTooltip } from '../game/tooltips/TechTooltip.svelte';
 
-	export let tech: Tech | undefined = undefined;
-	export let hullSetNumber = 0;
-	export let hullTooltip = false;
+	interface Props {
+		tech: Tech | undefined;
+		hullSetNumber?: number;
+		hullTooltip: boolean;
+	}
 
-	let hull: TechHull;
+	let { tech = undefined, hullSetNumber = 0, hullTooltip = false }: Props = $props();
+
+	let hull = $derived(
+		tech && [TechCategory.ShipHull, TechCategory.StarbaseHull].includes(tech.category)
+			? (tech as TechHull)
+			: undefined
+	);
 
 	const icon = (tech: Tech | undefined, hullSetNumber: number) => {
 		const name = kebabCase(tech?.name.replace("'", '').replace(' ', '').replace('±', ''));
@@ -18,21 +26,26 @@
 			return name;
 		}
 	};
-
-	$: tech &&
-		(tech.category == TechCategory.ShipHull || tech.category == TechCategory.StarbaseHull) &&
-		(hull = tech as TechHull);
 </script>
 
 <div
 	class="tech-avatar {icon(tech, hullSetNumber)}"
-	on:contextmenu|preventDefault={(e) => onTechTooltip(e, tech)}
+	role="link"
+	tabindex="-1"
+	oncontextmenu={(e) => {
+		e.preventDefault();
+		onTechTooltip(e, tech);
+	}}
 >
 	{#if hullTooltip && hull}
 		<button
 			type="button"
+			aria-label="Brings up information on technology"
 			class="w-full h-full"
-			on:pointerdown|preventDefault={(e) => onTechHullTooltip(e, hull)}
-		/>
+			onpointerdown={(e) => {
+				e.preventDefault();
+				onTechHullTooltip(e, hull);
+			}}
+		></button>
 	{/if}
 </div>

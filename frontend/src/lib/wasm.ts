@@ -111,7 +111,7 @@ class CSWasmWrapper implements CS {
 	}
 
 	starbaseUpgradeCost(design: ShipDesign, newDesign: ShipDesign): Cost | undefined {
-		const result = this.wasm.starbaseUpgradeCost(design, newDesign)
+		const result = this.wasm.starbaseUpgradeCost(design, newDesign);
 		if (this.checkError()) {
 			return undefined;
 		}

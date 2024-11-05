@@ -6,8 +6,12 @@
 	import type { Tech } from '$lib/types/Tech';
 	import { startCase } from 'lodash-es';
 
-	export let tech: Tech;
-	export let player: PlayerResponse | undefined = undefined;
+	interface Props {
+		tech: Tech;
+		player?: PlayerResponse | undefined;
+	}
+
+	let { tech, player = undefined }: Props = $props();
 
 	const lrts = eu(LRT).getValues();
 </script>

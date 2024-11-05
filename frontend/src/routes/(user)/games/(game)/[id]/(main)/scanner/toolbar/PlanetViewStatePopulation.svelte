@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import Habitability from '$lib/components/icons/Habitability.svelte';
 	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
@@ -14,6 +16,6 @@
 	href="#population-view"
 	class:btn-primary={$settings.planetViewState == PlanetViewState.Population}
 	class:btn-ghost={$settings.planetViewState != PlanetViewState.Population}
-	on:click|preventDefault={() => ($settings.planetViewState = PlanetViewState.Population)}
+	onclick={preventDefault(() => ($settings.planetViewState = PlanetViewState.Population))}
 	class="btn btn-xs h-full fill-current"><Population class="w-6 h-6" /></a
 >

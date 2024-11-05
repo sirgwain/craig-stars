@@ -1,31 +1,54 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { clamp } from '$lib/services/Math';
 	import { createEventDispatcher } from 'svelte';
 
-	export let value: number | undefined = 0;
-	export let min = 0;
-	export let max = 10;
-	export let dangerSpeed = 11; // no danger speed unless doing packet warp bars
-	export let warnSpeed = 10;
-	export let stargateSpeed = 11;
-	export let defaultColor = 'warp-bar';
-	export let warnColor = 'warp-warn-bar';
-	export let dangerColor = 'warp-danger-bar';
-	export let stargateColor = 'warp-stargate-bar';
-	export let packetColor = 'warp-packet-bar';
-	export let useStargate = false;
-	export let isPacket = false;
-	export let warp0Text = 'Warp 0';
+	interface Props {
+		value?: number | undefined;
+		min?: number;
+		max?: number;
+		dangerSpeed?: number;
+		warnSpeed?: number;
+		stargateSpeed?: number;
+		defaultColor?: string;
+		warnColor?: string;
+		dangerColor?: string;
+		stargateColor?: string;
+		packetColor?: string;
+		useStargate?: boolean;
+		isPacket?: boolean;
+		warp0Text?: string;
+	}
 
-	let percent = 0;
-	let color = defaultColor;
+	let {
+		value = $bindable(0),
+		min = 0,
+		max = 10,
+		dangerSpeed = 11,
+		warnSpeed = 10,
+		stargateSpeed = 11,
+		defaultColor = 'warp-bar',
+		warnColor = 'warp-warn-bar',
+		dangerColor = 'warp-danger-bar',
+		stargateColor = 'warp-stargate-bar',
+		packetColor = 'warp-packet-bar',
+		useStargate = false,
+		isPacket = false,
+		warp0Text = 'Warp 0'
+	}: Props = $props();
+
+	let percent = $state(0);
+	let color = $state(defaultColor);
 
 	let pointerDown = false;
 	let touchStarted = false;
 
-	$: percent = max > 0 ? ((value ?? 0) / max) * 100 : 0;
+	run(() => {
+		percent = max > 0 ? ((value ?? 0) / max) * 100 : 0;
+	});
 
-	$: {
+	run(() => {
 		color = defaultColor;
 
 		if (useStargate && (value ?? 0) >= stargateSpeed) {
@@ -37,11 +60,11 @@
 		} else if ((value ?? 0) >= warnSpeed) {
 			color = warnColor;
 		}
-	}
+	});
 
 	const dispatch = createEventDispatcher();
 
-	let ref: HTMLDivElement;
+	let ref: HTMLDivElement = $state();
 
 	const getXFromPointerEvent = (e: PointerEvent) =>
 		(e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect().width;
@@ -119,10 +142,10 @@
 <div
 	bind:this={ref}
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative cursor-pointer select-none"
-	on:pointerdown={onPointerDown}
-	on:touchstart={onTouchStart}
-	on:touchmove={onTouchMove}
-	on:touchend={onTouchEnd}
+	onpointerdown={onPointerDown}
+	ontouchstart={onTouchStart}
+	ontouchmove={onTouchMove}
+	ontouchend={onTouchEnd}
 >
 	<div
 		class="font-semibold text-sm text-center align-middle text-secondary w-full bg-blend-difference absolute"
@@ -135,5 +158,5 @@
 			Warp {value}
 		{/if}
 	</div>
-	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full" />
+	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full"></div>
 </div>

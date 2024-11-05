@@ -1,9 +1,21 @@
 <script lang="ts">
-	export let style: string | undefined = undefined;
-	export let planetColor = '#00FF00';
-	export let starbaseColor = '#FDFD00';
-	export let stargateColor = '#008100';
-	export let massDriverColor = '#8D0085';
+	interface Props {
+		style?: string | undefined;
+		planetColor?: string;
+		starbaseColor?: string;
+		stargateColor?: string;
+		massDriverColor?: string;
+		[key: string]: any;
+	}
+
+	let {
+		style = undefined,
+		planetColor = '#00FF00',
+		starbaseColor = '#FDFD00',
+		stargateColor = '#008100',
+		massDriverColor = '#8D0085',
+		...rest
+	}: Props = $props();
 </script>
 
 <svg
@@ -11,7 +23,7 @@
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	{style}
-	{...$$restProps}
+	{...rest}
 >
 	<path
 		id="Planet"

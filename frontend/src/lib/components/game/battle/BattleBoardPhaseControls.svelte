@@ -12,8 +12,12 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let phase: number;
-	export let battle: Battle;
+	interface Props {
+		phase: number;
+		battle: Battle;
+	}
+
+	let { phase = $bindable(), battle }: Props = $props();
 
 	const previous = () => {
 		phase--;
@@ -48,7 +52,7 @@
 <div class="flex">
 	<div>
 		<button
-			on:click={begin}
+			onclick={begin}
 			disabled={phase === 0}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="begin"
@@ -58,7 +62,7 @@
 
 	<div>
 		<button
-			on:click={previous}
+			onclick={previous}
 			disabled={phase === 0}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="previous"
@@ -69,9 +73,8 @@
 		<input
 			type="number"
 			class="input input-sm input-bordered hide-spinner"
-			on:change={(e) =>
-				(phase = clamp(parseInt(e.currentTarget.value) ?? 0, 0, battle.totalPhases))}
-			on:click={(e) => e.currentTarget.select()}
+			onchange={(e) => (phase = clamp(parseInt(e.currentTarget.value) ?? 0, 0, battle.totalPhases))}
+			onclick={(e) => e.currentTarget.select()}
 			min={0}
 			max={battle.totalPhases}
 			value={phase}
@@ -79,7 +82,7 @@
 	</div>
 	<div>
 		<button
-			on:click={nextAttack}
+			onclick={nextAttack}
 			disabled={phase === battle.totalPhases}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="next attack"
@@ -88,7 +91,7 @@
 	</div>
 	<div>
 		<button
-			on:click={next}
+			onclick={next}
 			disabled={phase === battle.totalPhases}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="next"
@@ -97,7 +100,7 @@
 	</div>
 	<div>
 		<button
-			on:click={end}
+			onclick={end}
 			disabled={phase === battle.totalPhases}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="end"

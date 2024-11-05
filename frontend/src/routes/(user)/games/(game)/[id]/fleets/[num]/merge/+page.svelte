@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { page } from '$app/stores';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
@@ -7,9 +9,9 @@
 	const { game, player, universe, commandedFleet, commandMapObject, merge } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	let fleetsInOrbit: Fleet[] = [];
+	let fleetsInOrbit: Fleet[] = $state([]);
 
-	$: {
+	run(() => {
 		if ($commandedFleet && $commandedFleet.num === num) {
 			fleetsInOrbit = $universe
 				.getMyFleetsByPosition($commandedFleet)
@@ -20,8 +22,7 @@
 				commandMapObject(fleet);
 			}
 		}
-	}
-
+	});
 </script>
 
 {#if $commandedFleet}

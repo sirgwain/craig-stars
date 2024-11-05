@@ -11,9 +11,11 @@
 <div class="overflow-x-auto">
 	<table class="table w-full">
 		<thead>
-			<th>ID</th>
-			<th>Name</th>
-			<th>Created</th>
+			<tr>
+				<th>ID</th>
+				<th>Name</th>
+				<th>Created</th>
+			</tr>
 		</thead>
 		<tbody>
 			{#if games?.length}

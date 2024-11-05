@@ -1,17 +1,29 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { clamp } from '$lib/services/Math';
 	import { createEventDispatcher } from 'svelte';
 	import type { ValueChangedEvent } from '$lib/ValueChangedEvent';
 
 	const dispatch = createEventDispatcher<ValueChangedEvent>();
 
-	export let value = 0;
-	export let capacity = 0;
-	export let min = 0;
-	export let max = capacity;
-	export let editable = false;
+	interface Props {
+		value?: number;
+		capacity?: number;
+		min?: number;
+		max?: any;
+		editable?: boolean;
+	}
 
-	$: percent = capacity > 0 ? clamp((value / capacity) * 100, 0, 100) : 0;
+	let {
+		value = $bindable(0),
+		capacity = 0,
+		min = 0,
+		max = capacity,
+		editable = false
+	}: Props = $props();
+
+	let percent = $derived(capacity > 0 ? clamp((value / capacity) * 100, 0, 100) : 0);
 
 	let pointerdown = false;
 
@@ -42,27 +54,33 @@
 <div
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative select-none bg-gauge"
 	class:cursor-pointer={editable}
-	on:pointerdown|preventDefault={(e) =>
-		editable &&
-		onPointerDown(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		)}
-	on:pointerup|preventDefault={(e) =>
-		editable &&
-		onPointerUp(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		)}
-	on:pointermove|preventDefault={(e) =>
-		editable &&
-		onPointerMove(
-			(e.clientX - e.currentTarget.getBoundingClientRect().left) /
-				e.currentTarget.getBoundingClientRect().width
-		)}
+	onpointerdown={preventDefault(
+		(e) =>
+			editable &&
+			onPointerDown(
+				(e.clientX - e.currentTarget.getBoundingClientRect().left) /
+					e.currentTarget.getBoundingClientRect().width
+			)
+	)}
+	onpointerup={preventDefault(
+		(e) =>
+			editable &&
+			onPointerUp(
+				(e.clientX - e.currentTarget.getBoundingClientRect().left) /
+					e.currentTarget.getBoundingClientRect().width
+			)
+	)}
+	onpointermove={preventDefault(
+		(e) =>
+			editable &&
+			onPointerMove(
+				(e.clientX - e.currentTarget.getBoundingClientRect().left) /
+					e.currentTarget.getBoundingClientRect().width
+			)
+	)}
 >
 	<div class="font-extrabold text-sm text-center align-middle w-full absolute text-white">
 		{value} of {capacity}mg
 	</div>
-	<div style={`width: ${percent.toFixed()}%`} class="fuel-bar h-full" />
+	<div style={`width: ${percent.toFixed()}%`} class="fuel-bar h-full"></div>
 </div>

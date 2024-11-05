@@ -11,16 +11,16 @@
 	const { game, player, universe } = getGameContext();
 
 	let nameSlug = $page.params.name;
-	$: tech = $game.techs.getTech(nameSlug);
+	let tech = $derived($game.techs.getTech(nameSlug));
 
-	$: hull = tech as TechHull;
+	let hull = $derived(tech as TechHull);
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
+	{#snippet crumbs()}
 		<li><a href={`/games/${$game.id}/techs`}>Techs</a></li>
 		<li>{tech?.name ?? '<unknown>'}</li>
-		</svelte:fragment>
+	{/snippet}
 </Breadcrumb>
 
 {#if tech}

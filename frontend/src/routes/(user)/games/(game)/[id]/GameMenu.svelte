@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: Cannot subscribe to stores that are not declared at the top level of the component -->
 <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 <script lang="ts">
 	import { page } from '$app/stores';
@@ -140,7 +141,7 @@
 							<a href={`/games/${$game.id}/techs`} class="justify-between">Techs</a>
 						</li>
 						{#if $me.isAdmin()}
-							<li><div class="divider" /></li>
+							<li><div class="divider"></div></li>
 							<li>
 								<a href={`/admin/games`} class="justify-between">All Games</a>
 							</li>
@@ -148,9 +149,9 @@
 								<a href={`/admin/users`} class="justify-between">Users</a>
 							</li>
 						{/if}
-						<li><div class="divider" /></li>
+						<li><div class="divider"></div></li>
 						<li><a href="/auth/logout">Logout, {$me.username}</a></li>
-						<li><div class="divider" /></li>
+						<li><div class="divider"></div></li>
 						<li class="text-center">version {PKG.version}</li>
 					</ul>
 				</div>

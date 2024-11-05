@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
@@ -9,37 +11,41 @@
 	const { game, player, universe, deleteDesign } = getGameContext();
 
 	// filterable designs
-	let filteredDesigns: ShipDesign[] = [];
-	let search = '';
+	let filteredDesigns: ShipDesign[] = $state([]);
+	let search = $state('');
 
-	$: filteredDesigns =
-		$universe
-			.getMyDesigns()
-			.sort((a, b) => a.name.localeCompare(b.name))
-			.filter(
-				(i) =>
-					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-					i.hull.toLowerCase().indexOf(search.toLocaleLowerCase()) != -1
-			) ?? [];
+	run(() => {
+		filteredDesigns =
+			$universe
+				.getMyDesigns()
+				.sort((a, b) => a.name.localeCompare(b.name))
+				.filter(
+					(i) =>
+						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+						i.hull.toLowerCase().indexOf(search.toLocaleLowerCase()) != -1
+				) ?? [];
+	});
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
+	{#snippet crumbs()}
 		<li>
 			<div class="hidden sm:block">Ship Designs</div>
 			<div class="sm:hidden">Designs</div>
 		</li>
-	</svelte:fragment>
-	<div slot="end" class="flex justify-end mb-1">
-		<div class="flex flex-row justify-between gap-2 m-2">
-			<TableSearchInput bind:value={search} />
-			<div>
-				<a class="cs-link btn btn-sm" href={`/games/${$game.id}/designer/create`}
-					><span class="hidden sm:block">Create</span><span class="sm:hidden">+</span></a
-				>
+	{/snippet}
+	{#snippet end()}
+		<div class="flex justify-end mb-1">
+			<div class="flex flex-row justify-between gap-2 m-2">
+				<TableSearchInput bind:value={search} />
+				<div>
+					<a class="cs-link btn btn-sm" href={`/games/${$game.id}/designer/create`}
+						><span class="hidden sm:block">Create</span><span class="sm:hidden">+</span></a
+					>
+				</div>
 			</div>
 		</div>
-	</div>
+	{/snippet}
 </Breadcrumb>
 
 <div class="flex flex-wrap justify-evenly gap-2">

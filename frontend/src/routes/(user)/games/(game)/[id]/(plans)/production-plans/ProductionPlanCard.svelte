@@ -9,10 +9,14 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let designFinder: DesignFinder;
-	export let plan: ProductionPlan;
-	export let href: string;
-	export let showDelete = true;
+	interface Props {
+		designFinder: DesignFinder;
+		plan: ProductionPlan;
+		href: string;
+		showDelete?: boolean;
+	}
+
+	let { designFinder, plan, href, showDelete = true }: Props = $props();
 
 	const deletePlan = async (plan: ProductionPlan) => {
 		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
@@ -49,14 +53,14 @@
 			</ul>
 			<div>
 				{#if plan.contributesOnlyLeftoverToResearch}
-					 Planet contributes only leftover resources to research
+					Planet contributes only leftover resources to research
 				{/if}
 			</div>
 		</div>
 		{#if showDelete}
 			<div class="card-actions justify-start">
 				<div>
-					<button class="btn" on:click={(e) => deletePlan(plan)}>
+					<button class="btn" onclick={(e) => deletePlan(plan)}>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				</div>

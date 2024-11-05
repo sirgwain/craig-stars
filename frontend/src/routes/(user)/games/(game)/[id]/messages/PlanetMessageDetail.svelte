@@ -10,11 +10,15 @@
 
 	const { game, player, universe, settings } = getGameContext();
 
-	export let message: Message;
-	export let planet: Planet;
-	export let owner: PlayerIntel | undefined;
+	interface Props {
+		message: Message;
+		planet: Planet;
+		owner: PlayerIntel | undefined;
+	}
 
-	$: growthRate = $player.race.growthRate * ($player.race.spec?.growthFactor ?? 0);
+	let { message, planet, owner }: Props = $props();
+
+	let growthRate = $derived($player.race.growthRate * ($player.race.spec?.growthFactor ?? 0));
 </script>
 
 {#if message.text}

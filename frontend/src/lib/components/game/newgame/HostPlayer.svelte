@@ -7,9 +7,13 @@
 	import { onMount } from 'svelte';
 
 	// races for the host
-	let hostRaces: Race[] = [humanoid()];
+	let hostRaces: Race[] = $state([humanoid()]);
 
-	export let player: NewGamePlayer;
+	interface Props {
+		player: NewGamePlayer;
+	}
+
+	let { player = $bindable() }: Props = $props();
 
 	onMount(async () => {
 		player.race = hostRaces[0];

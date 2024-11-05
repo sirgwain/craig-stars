@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { techs } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { QuestionMarkCircle, Trash } from '@steeze-ui/heroicons';
@@ -12,9 +14,13 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let design: ShipDesign;
-	export let href: string;
-	export let copyhref: string;
+	interface Props {
+		design: ShipDesign;
+		href: string;
+		copyhref: string;
+	}
+
+	let { design, href, copyhref }: Props = $props();
 
 	const deleteDesign = async (design: ShipDesign) => {
 		if (design.num != undefined && confirm(`Are you sure you want to delete ${design.name}?`)) {
@@ -41,7 +47,7 @@
 					<button
 						type="button"
 						class="w-full h-full cursor-help"
-						on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
+						onpointerdown={preventDefault((e) => onShipDesignTooltip(e, design))}
 					>
 						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 					</button>
@@ -73,7 +79,7 @@
 				{#if !design.cannotDelete}
 					<button
 						class="btn btn-outline btn-secondary joint-item"
-						on:click={(e) => deleteDesign(design)}
+						onclick={(e) => deleteDesign(design)}
 					>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>

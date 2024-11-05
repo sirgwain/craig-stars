@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { AdminService } from '$lib/services/AdminService';
@@ -33,15 +35,19 @@
 	];
 
 	// filterable users
-	let users: User[];
-	let filteredUsers: UserWithNum[] = [];
-	let search = '';
+	let users: User[] = $state();
+	let filteredUsers: UserWithNum[] = $state([]);
+	let search = $state('');
 
-	$: filteredUsers = users?.map((u, i) => Object.assign(u, { num: i + 1 }));
+	run(() => {
+		filteredUsers = users?.map((u, i) => Object.assign(u, { num: i + 1 }));
+	});
 
-	$: filteredUsers = users
-		?.map((u, i) => Object.assign(u, { num: i + 1 }))
-		.filter((i) => i.username.toLowerCase().indexOf(search.toLowerCase()) != -1);
+	run(() => {
+		filteredUsers = users
+			?.map((u, i) => Object.assign(u, { num: i + 1 }))
+			.filter((i) => i.username.toLowerCase().indexOf(search.toLowerCase()) != -1);
+	});
 
 	onMount(async () => {
 		try {
@@ -65,24 +71,28 @@
 			th: 'first:table-cell [&:nth-child(2)]:table-cell hidden sm:table-cell'
 		}}
 	>
-		<span slot="head" let:isSorted let:sortDescending let:column>
-			<SortableTableHeader {column} {isSorted} {sortDescending} />
-		</span>
+		{#snippet head({ isSorted, sortDescending, column })}
+			<span>
+				<SortableTableHeader {column} {isSorted} {sortDescending} />
+			</span>
+		{/snippet}
 
-		<span slot="cell" let:column let:row let:cell>
-			{#if column.key == 'username'}
-				{cell}
-				{#if row.isGuest()}<a
-						href={`/admin/users/convert-guest/${row.id}`}
-						class="btn btn-ghost btn-outline btn-sm">Convert Guest</a
-					>{/if}
-			{:else if column.key == 'createdAt'}
-				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
-			{:else if column.key == 'lastLogin' && cell}
-				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
-			{:else}
-				{cell}
-			{/if}
-		</span>
+		{#snippet cell({ column, row, cell })}
+			<span>
+				{#if column.key == 'username'}
+					{cell}
+					{#if row.isGuest()}<a
+							href={`/admin/users/convert-guest/${row.id}`}
+							class="btn btn-ghost btn-outline btn-sm">Convert Guest</a
+						>{/if}
+				{:else if column.key == 'createdAt'}
+					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+				{:else if column.key == 'lastLogin' && cell}
+					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+				{:else}
+					{cell}
+				{/if}
+			</span>
+		{/snippet}
 	</Table>
 </div>

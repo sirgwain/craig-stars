@@ -12,8 +12,12 @@
 	import { startCase } from 'lodash-es';
 	import PrivateGameLink from '../../../../routes/(user)/games/(game)/[id]/(main)/PrivateGameLink.svelte';
 
-	export let settings: GameSettings;
-	export let showInviteLink = false;
+	interface Props {
+		settings: GameSettings;
+		showInviteLink?: boolean;
+	}
+
+	let { settings = $bindable(), showInviteLink = false }: Props = $props();
 </script>
 
 <div class="flex flex-row flex-wrap">

@@ -3,7 +3,11 @@
 	import type { TransportPlan } from '$lib/types/Player';
 	import TransportTasks from './TransportTasks.svelte';
 
-	export let plan: TransportPlan;
+	interface Props {
+		plan: TransportPlan;
+	}
+
+	let { plan = $bindable() }: Props = $props();
 </script>
 
 <TextInput name="name" bind:value={plan.name} required />

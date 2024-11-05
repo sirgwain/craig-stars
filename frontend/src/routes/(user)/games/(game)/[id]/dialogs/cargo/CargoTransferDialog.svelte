@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { CargoTransferTarget, CommandedFleet } from '$lib/types/Fleet';
 
 	export type CargoTransferDialogEventDetails = {
@@ -18,8 +18,12 @@
 
 	const { transferCargo } = getGameContext();
 
-	export let show = false;
-	export let props: CargoTransferDialogEventDetails | undefined;
+	interface Props {
+		show?: boolean;
+		props: CargoTransferDialogEventDetails | undefined;
+	}
+
+	let { show = $bindable(false), props }: Props = $props();
 
 	const onTransferCargo = async (detail: TransferCargoEventDetails) => {
 		// close the dialog

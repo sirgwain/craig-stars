@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import CargoTranfserDialog, {
 		type CargoTransferDialogEventDetails
-	} from '../dialogs/cargo/CargoTranfserDialog.svelte';
+	} from '../dialogs/cargo/CargoTransferDialog.svelte';
 	import MergeFleetsDialog, {
 		type MergeFleetsDialogEventDetails
 	} from '../dialogs/merge/MergeFleetsDialog.svelte';
@@ -40,17 +40,18 @@
 		updateFleetOrders
 	} = getGameContext();
 
-	let carouselOpen = true;
-	let showProductionQueueDialog = false;
-	let showCargoTransferDialog = false;
-	let showMergeFleetsDialog = false;
-	let showSplitFleetDialog = false;
-	let showTransportTasksDialog = false;
-	let showSearchDialog = false;
-	let cargoTransferDetails: CargoTransferDialogEventDetails | undefined = undefined;
-	let mergeFleetsDialogEventDetails: MergeFleetsDialogEventDetails | undefined = undefined;
-	let splitFleetDialogEventDetails: SplitFleetDialogEventDetails | undefined = undefined;
-	let transportTasksDialogEventDetails: TransportTasksDialogEventDetails | undefined = undefined;
+	let carouselOpen = $state(true);
+	let showProductionQueueDialog = $state(false);
+	let showCargoTransferDialog = $state(false);
+	let showMergeFleetsDialog = $state(false);
+	let showSplitFleetDialog = $state(false);
+	let showTransportTasksDialog = $state(false);
+	let showSearchDialog = $state(false);
+	let cargoTransferDetails: CargoTransferDialogEventDetails | undefined = $state(undefined);
+	let mergeFleetsDialogEventDetails: MergeFleetsDialogEventDetails | undefined = $state(undefined);
+	let splitFleetDialogEventDetails: SplitFleetDialogEventDetails | undefined = $state(undefined);
+	let transportTasksDialogEventDetails: TransportTasksDialogEventDetails | undefined =
+		$state(undefined);
 
 	onMount(() => {
 		hotkeys('n', 'root', () => {

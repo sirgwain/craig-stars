@@ -119,7 +119,10 @@ export class PlayerService extends Service {
 		return response.json();
 	}
 
-	static async getResearchCost(gameId: number, techLevel: TechLevel): Promise<{ resources: number }> {
+	static async getResearchCost(
+		gameId: number,
+		techLevel: TechLevel
+	): Promise<{ resources: number }> {
 		const response = await fetch(`/api/games/${gameId}/research-cost`, {
 			method: 'POST',
 			headers: {

@@ -6,12 +6,16 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	export let zIsColorCode = false;
+	interface Props {
+		zIsColorCode?: boolean;
+	}
+
+	let { zIsColorCode = false }: Props = $props();
 
 	const { data, xGet, yGet, zGet, xScale, yScale, width, height } =
 		getContext<LayerCake>('LayerCake');
 
-	$: path = (values: any) => {
+	let path = $derived((values: any) => {
 		return (
 			'M' +
 			values
@@ -20,7 +24,7 @@
 				})
 				.join('L')
 		);
-	};
+	});
 </script>
 
 <g class="line-group">

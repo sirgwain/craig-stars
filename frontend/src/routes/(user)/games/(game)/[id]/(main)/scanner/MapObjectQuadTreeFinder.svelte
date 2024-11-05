@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type FinderEventDetails = {
 		event: PointerEvent | MouseEvent | TouchEvent;
 		position: Vector;
@@ -21,6 +21,8 @@
   This component fires events for mouse movement/down/etc
  -->
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import type { MapObject } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';
 	import { quadtree } from 'd3-quadtree';
@@ -33,11 +35,14 @@
 	const scale = getContext<Writable<number>>('scale');
 	const dispatch = createEventDispatcher<FinderEvent>();
 
-	// transform to transform our mouse to world coords
-	export let transform: ZoomTransform;
+	interface Props {
+		// transform to transform our mouse to world coords
+		transform: ZoomTransform;
+		/** The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
+		searchRadius: number;
+	}
 
-	/** The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
-	export let searchRadius: number;
+	let { transform, searchRadius }: Props = $props();
 
 	// find the item under
 	function findItem(x: number, y: number) {
@@ -117,23 +122,27 @@
 		}
 	}
 
-	$: finder = quadtree<MapObject>()
-		.extent([
-			[-1, -1],
-			[$width + 1, $height + 1]
-		])
-		.x($xGet)
-		.y($yGet)
-		.addAll($data);
+	let finder = $derived(
+		quadtree<MapObject>()
+			.extent([
+				[-1, -1],
+				[$width + 1, $height + 1]
+			])
+			.x($xGet)
+			.y($yGet)
+			.addAll($data)
+	);
 </script>
 
 <div
 	class="absolute h-full w-full z-10"
-	on:touchstart={onTouchStart}
-	on:touchmove|preventDefault={onTouchMove}
-	on:touchend={onTouchEnd}
-	on:contextmenu|preventDefault={onContextMenu}
-	on:pointerdown={onPointerDown}
-	on:pointermove={onPointerMove}
-	on:pointerup={onPointerUp}
-/>
+	role="link"
+	tabindex="-1"
+	ontouchstart={onTouchStart}
+	ontouchmove={preventDefault(onTouchMove)}
+	ontouchend={onTouchEnd}
+	oncontextmenu={preventDefault(onContextMenu)}
+	onpointerdown={onPointerDown}
+	onpointermove={onPointerMove}
+	onpointerup={onPointerUp}
+></div>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getDefenseCoverage, getSmartDefenseCoverage, type TechDefense } from '$lib/types/Tech';
 
 	import { scaleOrdinal } from 'd3-scale';
@@ -8,7 +10,11 @@
 	import GroupLabels from '../graph/GroupLabels.svelte';
 	import MultiLine from '../graph/MultiLine.svelte';
 
-	export let defense: TechDefense;
+	interface Props {
+		defense: TechDefense;
+	}
+
+	let { defense }: Props = $props();
 
 	const numTicks = 11;
 
@@ -21,7 +27,7 @@
 
 	type DataQuadTree = DataLongCoverageType[];
 
-	let data: DataType = {};
+	let data: DataType = $state({});
 	let dataQuadTree: DataQuadTree = [];
 
 	const xKey = 'defenses';
@@ -31,7 +37,7 @@
 	const seriesNames: DefenseType[] = ['Standard', 'Smart'];
 	const seriesColors = ['stroke-primary', 'stroke-accent'];
 
-	let dataLong: DataLongType;
+	let dataLong: DataLongType = $state();
 	/* --------------------------------------------
 	 * Make a flat array of the `values` of our nested series
 	 * we can pluck the field set from `yKey` from each item
@@ -42,7 +48,7 @@
 			return memo.concat(group.values);
 		}, []);
 
-	$: {
+	run(() => {
 		data = {
 			Standard: [],
 			Smart: []
@@ -88,7 +94,7 @@
 				})
 			};
 		});
-	}
+	});
 </script>
 
 <div class="border border-base-300 bg-base-100 w-full h-full mt-5 pb-7">

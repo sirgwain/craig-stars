@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getDamagePercentForToken, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
@@ -14,8 +16,12 @@
 	>();
 	const { player, universe, updateFleetOrders } = getGameContext();
 
-	export let fleet: CommandedFleet;
-	export let selectedWaypoint: Waypoint | undefined;
+	interface Props {
+		fleet: CommandedFleet;
+		selectedWaypoint: Waypoint | undefined;
+	}
+
+	let { fleet = $bindable(), selectedWaypoint }: Props = $props();
 
 	const split = () => {
 		dispatch('split-fleet-dialog', { src: fleet });
@@ -46,8 +52,9 @@
 						<button
 							type="button"
 							class="w-full cursor-help"
-							on:pointerdown|preventDefault={(e) =>
-								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))}
+							onpointerdown={preventDefault((e) =>
+								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))
+							)}
 						>
 							<div class="flex flex-row justify-between relative">
 								{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
@@ -57,7 +64,7 @@
 											$universe.getMyDesign(token.designNum)
 										).toFixed()}%`}
 										class="damage-bar h-full absolute opacity-50"
-									/>
+									></div>
 								{/if}
 								<div>
 									{$universe.getDesign($player.num, token.designNum)?.name}
@@ -78,7 +85,7 @@
 					class="select select-outline select-secondary select-sm text-sm"
 					name="battlePlan"
 					bind:value={fleet.battlePlanNum}
-					on:change={(e) => updateBattlePlan(parseInt(e.currentTarget.value))}
+					onchange={(e) => updateBattlePlan(parseInt(e.currentTarget.value))}
 				>
 					{#each $player.battlePlans as battlePlan}
 						<option value={battlePlan.num}>{battlePlan.name}</option>
@@ -101,14 +108,12 @@
 			<div>{fleet.spec.cloakPercent ? fleet.spec.cloakPercent + '%' : 'none'}</div>
 		</div>
 		<div class="flex justify-between">
-			<button on:click={split} class="btn btn-outline btn-sm normal-case btn-secondary"
-				>Split</button
+			<button onclick={split} class="btn btn-outline btn-sm normal-case btn-secondary">Split</button
 			>
-			<button on:click={splitAll} class="btn btn-outline btn-sm normal-case btn-secondary"
+			<button onclick={splitAll} class="btn btn-outline btn-sm normal-case btn-secondary"
 				>Split All</button
 			>
-			<button on:click={merge} class="btn btn-outline btn-sm normal-case btn-secondary"
-				>Merge</button
+			<button onclick={merge} class="btn btn-outline btn-sm normal-case btn-secondary">Merge</button
 			>
 		</div>
 	</CommandTile>

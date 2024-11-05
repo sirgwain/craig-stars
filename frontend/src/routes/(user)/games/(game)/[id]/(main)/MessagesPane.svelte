@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getScannerTarget } from '$lib/types/Battle';
 	import type { MapObject } from '$lib/types/MapObject';
@@ -32,24 +34,14 @@
 		gotoTarget
 	} = getGameContext();
 
-	export let showMessages = false;
-	export let messages: Message[];
-	let showFilteredMessages = false;
-	let viewBattle = false;
+	interface Props {
+		showMessages?: boolean;
+		messages: Message[];
+	}
 
-	$: message = messages.length ? messages[$messageNum] : undefined;
-	$: nextVisibleMessageNum = getNextVisibleMessageNum(
-		$messageNum,
-		showFilteredMessages,
-		messages,
-		$settings
-	);
-	$: previousVisibleMessageNum = getPreviousVisibleMessageNum(
-		$messageNum,
-		showFilteredMessages,
-		messages
-	);
-	$: visible = (message && $settings.isMessageVisible(message.type)) ?? false;
+	let { showMessages = $bindable(false), messages }: Props = $props();
+	let showFilteredMessages = $state(false);
+	let viewBattle = $state(false);
 
 	function onFilterMessageType(type: number) {
 		if ($settings.isMessageVisible(type)) {
@@ -145,6 +137,17 @@
 			hotkeys.unbind('enter', 'root', goto);
 		};
 	});
+	let message = $derived(messages.length ? messages[$messageNum] : undefined);
+	let nextVisibleMessageNum = $derived(
+		getNextVisibleMessageNum($messageNum, showFilteredMessages, messages, $settings)
+	);
+	let previousVisibleMessageNum = $derived(
+		getPreviousVisibleMessageNum($messageNum, showFilteredMessages, messages)
+	);
+	let visible;
+	run(() => {
+		visible = (message && $settings.isMessageVisible(message.type)) ?? false;
+	});
 </script>
 
 <div class:hidden={!showMessages} class:block={showMessages}>
@@ -156,7 +159,7 @@
 						type="checkbox"
 						class="flex-initial checkbox checkbox-xs"
 						checked={visible}
-						on:click={() => message && onFilterMessageType(message.type)}
+						onclick={() => message && onFilterMessageType(message.type)}
 					/>
 				</div>
 
@@ -197,7 +200,7 @@
 						<div class="flex flex-row btn-group">
 							<div class="tooltip" data-tip="previous">
 								<button
-									on:click={previous}
+									onclick={previous}
 									disabled={$messageNum === previousVisibleMessageNum}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="previous"
@@ -206,7 +209,7 @@
 							</div>
 							<div class="tooltip" data-tip="goto">
 								<button
-									on:click={goto}
+									onclick={goto}
 									disabled={!isMessageGotoable(message)}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="goto"
@@ -223,7 +226,7 @@
 							</div>
 							<div class="tooltip" data-tip="next">
 								<button
-									on:click={next}
+									onclick={next}
 									disabled={$messageNum === nextVisibleMessageNum}
 									class="btn btn-outline btn-sm normal-case btn-secondary"
 									title="next"

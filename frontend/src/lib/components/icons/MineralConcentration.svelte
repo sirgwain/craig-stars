@@ -1,4 +1,9 @@
 <script lang="ts">
+	interface Props {
+		[key: string]: any;
+	}
+
+	let { ...rest }: Props = $props();
 	const ironiumSize = 400;
 	const boraniumSize = 200;
 	const germaniumSize = 300;
@@ -10,7 +15,7 @@
 	viewBox="0 0 500 500"
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-	{...$$restProps}
+	{...rest}
 >
 	<path class="stroke-white" stroke-width={lineWidth} fill="none" d={`M0,0L0,500 L500,500`} />
 
@@ -30,10 +35,10 @@
 	/>
 	<rect
 		class="germanium-bar"
-		x={lineWidth + width*2 + 40}
+		x={lineWidth + width * 2 + 40}
 		y={500 - germaniumSize - lineWidth}
 		{width}
 		height={germaniumSize}
 	/>
-	<text x=250 y=150 fill="white" class='text-[200px] text-white'>C</text>
+	<text x="250" y="150" fill="white" class="text-[200px] text-white">C</text>
 </svg>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import Unarchive from '$lib/components/icons/Unarchive.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
@@ -56,20 +58,26 @@
 	];
 
 	// filterable games
-	let games: Game[];
-	let filteredGames: Game[] = [];
-	let search = '';
-	let sortKey = 'updatedAt';
-	let descending = true;
+	let games: Game[] = $state();
+	let filteredGames: Game[] = $state([]);
+	let search = $state('');
+	let sortKey = $state('updatedAt');
+	let descending = $state(true);
 
-	$: filteredGames = games;
+	run(() => {
+		filteredGames = games;
+	});
 
-	$: filteredGames = sortBy(
-		games?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1),
-		sortKey
-	);
+	run(() => {
+		filteredGames = sortBy(
+			games?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1),
+			sortKey
+		);
+	});
 
-	$: descending && (filteredGames = reverse(filteredGames));
+	run(() => {
+		descending && (filteredGames = reverse(filteredGames));
+	});
 
 	async function archiveGame(game: Game) {
 		if (confirm(`Are you sure you want to unarchive ${game.name}?`)) {
@@ -109,63 +117,67 @@
 			th: 'first:table-cell [&:nth-child(2)]:table-cell [&:nth-child(3)]:table-cell hidden sm:table-cell'
 		}}
 	>
-		<span slot="head" let:isSorted let:sortDescending let:column>
-			<SortableTableHeader
-				{column}
-				isSorted={isSorted || sortKey === column.key}
-				sortDescending={sortDescending || (sortKey === column.key && descending)}
-				on:sorted={(e) => {
-					sortKey = column.key;
-					descending = e.detail.sortDescending;
-				}}
-			/>
-		</span>
+		{#snippet head({ isSorted, sortDescending, column })}
+			<span>
+				<SortableTableHeader
+					{column}
+					isSorted={isSorted || sortKey === column.key}
+					sortDescending={sortDescending || (sortKey === column.key && descending)}
+					on:sorted={(e) => {
+						sortKey = column.key;
+						descending = e.detail.sortDescending;
+					}}
+				/>
+			</span>
+		{/snippet}
 
-		<span slot="cell" let:column let:row let:cell>
-			{#if column.key == 'name'}
-				<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
-			{:else if column.key == 'createdAt'}
-				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
-			{:else if column.key == 'updatedAt'}
-				{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
-			{:else if column.key == 'hostId'}
-				{row.players.find((p) => p.userId === row.hostId)?.name}
-			{:else if column.key == 'players'}
-				{row.players.length}
-			{:else if column.key == 'action'}
-				{#if row.hostId == $me.id}
-					<div class="col-span-2 flex justify-center join">
-						<button
-							on:click={() => archiveGame(row)}
-							class="btn btn-info btn-sm rounded-l-md"
-							title="Unarchive Game"
-						>
-							<Unarchive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
-						</button>
-						<button
-							on:click={() => deleteGame(row)}
-							class="btn btn-error btn-sm border-l-secondary rounded-r-md"
-							title="Delete Game"
-						>
-							<Icon src={XMark} size="16" class="hover:stroke-accent" />
-						</button>
-					</div>
-				{:else if row.archived}
-					<span class="text-warning">Archived by host</span>
+		{#snippet cell({ column, row, cell })}
+			<span>
+				{#if column.key == 'name'}
+					<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
+				{:else if column.key == 'createdAt'}
+					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+				{:else if column.key == 'updatedAt'}
+					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+				{:else if column.key == 'hostId'}
+					{row.players.find((p) => p.userId === row.hostId)?.name}
+				{:else if column.key == 'players'}
+					{row.players.length}
+				{:else if column.key == 'action'}
+					{#if row.hostId == $me.id}
+						<div class="col-span-2 flex justify-center join">
+							<button
+								onclick={() => archiveGame(row)}
+								class="btn btn-info btn-sm rounded-l-md"
+								title="Unarchive Game"
+							>
+								<Unarchive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
+							</button>
+							<button
+								onclick={() => deleteGame(row)}
+								class="btn btn-error btn-sm border-l-secondary rounded-r-md"
+								title="Delete Game"
+							>
+								<Icon src={XMark} size="16" class="hover:stroke-accent" />
+							</button>
+						</div>
+					{:else if row.archived}
+						<span class="text-warning">Archived by host</span>
+					{:else}
+						<div class="col-span-2 flex justify-center">
+							<button
+								onclick={() => archiveGame(row)}
+								class="btn btn-info btn-sm rounded-md"
+								title="Unarchive Game"
+							>
+								<Unarchive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
+							</button>
+						</div>
+					{/if}
 				{:else}
-					<div class="col-span-2 flex justify-center">
-						<button
-							on:click={() => archiveGame(row)}
-							class="btn btn-info btn-sm rounded-md"
-							title="Unarchive Game"
-						>
-							<Unarchive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
-						</button>
-					</div>
+					{cell}
 				{/if}
-			{:else}
-				{cell}
-			{/if}
-		</span>
+			</span>
+		{/snippet}
 	</Table>
 </div>

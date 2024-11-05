@@ -3,6 +3,8 @@
   Generates an SVG scatter plot. This component can also work if the x- or y-scale is ordinal, i.e. it has a `.bandwidth` method. See the [timeplot chart](https://layercake.graphics/example/Timeplot) for an example.
  -->
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import { filterFleet } from '$lib/types/Filter';
 	import { type Fleet } from '$lib/types/Fleet';
@@ -11,11 +13,13 @@
 
 	const { player, universe, commandedFleet, settings } = getGameContext();
 
-	let fleets: Fleet[] = [];
+	let fleets: Fleet[] = $state([]);
 
-	$: fleets = $universe.fleets
-		.filter((f: Fleet) => !f.orbitingPlanetNum)
-		.filter((f: Fleet) => equal($commandedFleet, f) || filterFleet($player, f, $settings));
+	run(() => {
+		fleets = $universe.fleets
+			.filter((f: Fleet) => !f.orbitingPlanetNum)
+			.filter((f: Fleet) => equal($commandedFleet, f) || filterFleet($player, f, $settings));
+	});
 </script>
 
 <!-- Fleets -->

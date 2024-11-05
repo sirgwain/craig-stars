@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { createEvent } from '@testing-library/svelte';
 	import { startCase } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
@@ -8,16 +10,28 @@
 		value: any;
 		title: string;
 	};
-	export let name: string;
-	export let value: any | undefined;
 
-	export let title: string | undefined = undefined;
-	export let titleClass = 'label-text w-32 text-right';
-	export let required = false;
+	interface Props {
+		name: string;
+		value: any | undefined;
+		title?: string | undefined;
+		titleClass?: string;
+		required?: boolean;
+		values?: Value[];
+	}
 
-	export let values: Value[] = [];
+	let {
+		name,
+		value = $bindable(),
+		title = $bindable(undefined),
+		titleClass = 'label-text w-32 text-right',
+		required = false,
+		values = []
+	}: Props = $props();
 
-	$: !title && (title = startCase(name));
+	run(() => {
+		!title && (title = startCase(name));
+	});
 </script>
 
 <div class="w-full flex-grow">
@@ -28,7 +42,7 @@
 			name="type"
 			{required}
 			bind:value
-			on:change={(e) => dispatch('change', e.currentTarget.value)}
+			onchange={(e) => dispatch('change', e.currentTarget.value)}
 		>
 			{#each values as value}
 				<option value={value.value}>{value.title}</option>

@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
 <script lang="ts">
 	import { carouselKey, createCarouselContext } from '$lib/services/CarouselContext';
 	import { getGameContext } from '$lib/services/GameContext';
@@ -6,7 +7,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { afterUpdate, createEventDispatcher, onDestroy, setContext } from 'svelte';
 	import type { MouseEventHandler, UIEventHandler } from 'svelte/elements';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
 	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
 	import type { ProductionQueueDialogEvent } from '../../dialogs/production/ProductionQueueDialog.svelte';
 	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';

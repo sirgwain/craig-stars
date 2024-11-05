@@ -12,7 +12,7 @@
 	import Research from './Research.svelte';
 	const { game, player, universe } = getGameContext();
 
-	let race = $player.race;
+	let race = $state($player.race);
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl pb-8">

@@ -3,25 +3,32 @@
   Generates an SVG area shape using the `area` function from [d3-shape](https://github.com/d3/d3-shape).
  -->
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
 	const { data, xGet, yGet, xScale, yScale, extents, width, height } =
 		getContext<LayerCake>('LayerCake');
 
-	export let fill = 'fill-secondary-content opacity-50';
+	interface Props {
+		fill?: string;
+	}
 
-	$: path =
+	let { fill = 'fill-secondary-content opacity-50' }: Props = $props();
+
+	let path = $derived(
 		'M' +
-		$data
-			.map((d: any) => {
-				return $xGet(d) + ',' + $yGet(d);
-			})
-			.join('L');
+			$data
+				.map((d: any) => {
+					return $xGet(d) + ',' + $yGet(d);
+				})
+				.join('L')
+	);
 
-	let area: string;
+	let area: string = $state();
 
-	$: {
+	run(() => {
 		const yRange = $yScale.range();
 		area =
 			path +
@@ -34,7 +41,7 @@
 				',' +
 				yRange[0] +
 				'Z');
-	}
+	});
 </script>
 
 <path class="path-area {fill}" d={area} />

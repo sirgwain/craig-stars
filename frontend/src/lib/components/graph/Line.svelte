@@ -8,15 +8,20 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	export let stroke = 'stroke-primary';
+	interface Props {
+		stroke?: string;
+	}
 
-	$: path =
+	let { stroke = 'stroke-primary' }: Props = $props();
+
+	let path = $derived(
 		'M' +
-		$data
-			.map((d: any) => {
-				return $xGet(d) + ',' + $yGet(d);
-			})
-			.join('L');
+			$data
+				.map((d: any) => {
+					return $xGet(d) + ',' + $yGet(d);
+				})
+				.join('L')
+	);
 </script>
 
 <!-- <path class='path-line' d='{path}' {stroke}></path> -->

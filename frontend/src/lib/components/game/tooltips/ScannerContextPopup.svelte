@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { Vector } from '$lib/types/Vector';
 	import ScannerContextPopup from './ScannerContextPopup.svelte';
 
@@ -29,14 +29,20 @@
 	const { player, universe, commandMapObject, selectMapObject } = getGameContext();
 	const dispatch = createEventDispatcher<PopupEvent>();
 
-	export let position: Vector;
+	interface Props {
+		position: Vector;
+	}
 
-	$: otherMapObjectsHere = $universe.getOtherMapObjectsHereByType(position);
-	$: everythingElse = flatten(
-		keys(otherMapObjectsHere).map((k) =>
-			k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
-				? otherMapObjectsHere[k]
-				: []
+	let { position }: Props = $props();
+
+	let otherMapObjectsHere = $derived($universe.getOtherMapObjectsHereByType(position));
+	let everythingElse = $derived(
+		flatten(
+			keys(otherMapObjectsHere).map((k) =>
+				k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
+					? otherMapObjectsHere[k]
+					: []
+			)
 		)
 	);
 
@@ -64,7 +70,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{mo.name}</button
+							onclick={() => gotoTarget(mo)}>{mo.name}</button
 						>
 					</li>
 				{/each}
@@ -83,7 +89,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{getMapObjectName(mo)}</button
+							onclick={() => gotoTarget(mo)}>{getMapObjectName(mo)}</button
 						>
 					</li>
 				{/each}
@@ -103,7 +109,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}
+							onclick={() => gotoTarget(mo)}
 						>
 							{mo.name}
 						</button>
@@ -124,7 +130,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{mo.name}</button
+							onclick={() => gotoTarget(mo)}>{mo.name}</button
 						>
 					</li>
 				{/each}

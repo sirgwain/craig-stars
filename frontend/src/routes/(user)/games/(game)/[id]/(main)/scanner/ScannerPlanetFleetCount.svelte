@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import { filterFleet } from '$lib/types/Filter';
 	import { type Fleet } from '$lib/types/Fleet';
@@ -13,23 +15,29 @@
 	const { game, player, universe, settings } = getGameContext();
 	const scale = getContext<Writable<number>>('scale');
 
-	export let planet: Planet;
-	export let yOffset: number;
+	interface Props {
+		planet: Planet;
+		yOffset: number;
+	}
 
-	$: orbitingFleets = $universe
-		.getMapObjectsByPosition(planet)
-		.filter((mo) => mo.type === MapObjectType.Fleet);
+	let { planet, yOffset }: Props = $props();
 
-	$: orbitingTokens = orbitingFleets
-		.map((of) => of as Fleet)
-		.filter((f: Fleet) => filterFleet($player, f, $settings))
-		.reduce(
-			(count, f) =>
-				count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
-			0
-		);
-	let textColor = 'fill-orbit';
-	$: {
+	let orbitingFleets = $derived(
+		$universe.getMapObjectsByPosition(planet).filter((mo) => mo.type === MapObjectType.Fleet)
+	);
+
+	let orbitingTokens = $derived(
+		orbitingFleets
+			.map((of) => of as Fleet)
+			.filter((f: Fleet) => filterFleet($player, f, $settings))
+			.reduce(
+				(count, f) =>
+					count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
+				0
+			)
+	);
+	let textColor = $state('fill-orbit');
+	run(() => {
 		const { enemies, friends } = getEnemiesAndFriends(orbitingFleets, $player);
 
 		if (friends && !enemies) {
@@ -39,7 +47,7 @@
 		} else if (friends && enemies) {
 			textColor = 'fill-orbit-friends-and-enemies';
 		}
-	}
+	});
 </script>
 
 {#if $settings.showFleetTokenCounts && orbitingTokens}

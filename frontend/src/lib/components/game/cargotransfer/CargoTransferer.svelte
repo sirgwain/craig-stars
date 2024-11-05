@@ -16,20 +16,34 @@
 
 	const { game, player, universe } = getGameContext();
 
-	export let src: CommandedFleet;
-	export let dest: Fleet | Planet | Salvage | undefined;
-	export let transferAmount = new CargoTransferRequest();
-	export let showHeader = true;
-	export let srcCargoCapacity = src.spec.cargoCapacity ?? 0;
-	export let srcFuelCapacity = src.spec.fuelCapacity ?? 0;
-	export let destCargoCapacity = getCargoCapacity(dest);
-	export let destFuelCapacity = getFuelCapacity(dest);
-	export let quantityModifier = 1;
+	interface Props {
+		src: CommandedFleet;
+		dest: Fleet | Planet | Salvage | undefined;
+		transferAmount?: any;
+		showHeader?: boolean;
+		srcCargoCapacity?: any;
+		srcFuelCapacity?: any;
+		destCargoCapacity?: any;
+		destFuelCapacity?: any;
+		quantityModifier?: number;
+	}
+
+	let {
+		src,
+		dest,
+		transferAmount = $bindable(new CargoTransferRequest()),
+		showHeader = true,
+		srcCargoCapacity = src.spec.cargoCapacity ?? 0,
+		srcFuelCapacity = src.spec.fuelCapacity ?? 0,
+		destCargoCapacity = getCargoCapacity(dest),
+		destFuelCapacity = getFuelCapacity(dest),
+		quantityModifier = $bindable(1)
+	}: Props = $props();
 
 	let srcCargo = new CargoTransferRequest(src.cargo, src.fuel);
 	let destCargo = new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0);
 
-	$: destFleet = dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined;
+	let destFleet = $derived(dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined);
 
 	function getCargoCapacity(dest: Fleet | Planet | Salvage | undefined): number {
 		if (dest && 'spec' in dest && dest.spec && 'cargoCapacity' in dest.spec) {
@@ -194,7 +208,7 @@
 					class="mt-8 sm:mt-2"
 				/>
 			{:else}
-				<div class="h-8" />
+				<div class="h-8"></div>
 			{/if}
 			<div class="mt-28 h-40 sm:mt-16 sm:h-28 flex flex-col justify-between">
 				<TransferButtons

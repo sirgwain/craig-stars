@@ -4,13 +4,17 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { canTransferCargo, type CommandedFleet } from '$lib/types/Fleet';
 	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 
 	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { game, player, universe } = getGameContext();
 
-	export let fleet: CommandedFleet;
+	interface Props {
+		fleet: CommandedFleet;
+	}
+
+	let { fleet }: Props = $props();
 
 	const transfer = () => {
 		dispatch('cargo-transfer-dialog', {

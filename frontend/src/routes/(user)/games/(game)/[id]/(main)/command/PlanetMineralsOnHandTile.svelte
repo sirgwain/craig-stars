@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import FactoriesTooltip, {
 		type FactoriesTooltipProps
 	} from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
@@ -14,7 +16,11 @@
 	import CommandTile from './CommandTile.svelte';
 
 	const { player } = getGameContext();
-	export let planet: CommandedPlanet;
+	interface Props {
+		planet: CommandedPlanet;
+	}
+
+	let { planet }: Props = $props();
 
 	function onIroniumTooltip(e: PointerEvent) {
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
@@ -67,25 +73,25 @@
 
 {#if planet}
 	<CommandTile title="Minerals on Hand">
-		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onIroniumTooltip}>
+		<div class="flex justify-between cursor-help" onpointerdown={preventDefault(onIroniumTooltip)}>
 			<div class="text-tile-item-title text-ironium">Ironium</div>
 			<div>{planet.cargo.ironium ?? 0}kT</div>
 		</div>
-		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onBoraniumTooltip}>
+		<div class="flex justify-between cursor-help" onpointerdown={preventDefault(onBoraniumTooltip)}>
 			<div class="text-tile-item-title text-boranium">Boranium</div>
 			<div>{planet.cargo.boranium ?? 0}kT</div>
 		</div>
 		<div
 			class="flex justify-between cursor-help"
-			on:pointerdown|preventDefault={onGermaniumTooltip}
+			onpointerdown={preventDefault(onGermaniumTooltip)}
 		>
 			<div class="text-tile-item-title text-germanium">Germanium</div>
 			<div>{planet.cargo.germanium ?? 0}kT</div>
 		</div>
 
-		<div class="divider p-0 m-0" />
+		<div class="divider p-0 m-0"></div>
 
-		<div class="flex justify-between cursor-help" on:pointerdown|preventDefault={onMinesTooltip}>
+		<div class="flex justify-between cursor-help" onpointerdown={preventDefault(onMinesTooltip)}>
 			<div class="text-tile-item-title">Mines</div>
 			<div>
 				{#if $player.race.spec?.innateMining}
@@ -97,7 +103,7 @@
 		</div>
 		<div
 			class="flex justify-between cursor-help"
-			on:pointerdown|preventDefault={onFactoriesTooltip}
+			onpointerdown={preventDefault(onFactoriesTooltip)}
 		>
 			<div class="text-tile-item-title">Factories</div>
 			<div>

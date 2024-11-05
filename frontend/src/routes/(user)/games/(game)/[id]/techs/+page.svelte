@@ -12,9 +12,9 @@
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
+	{#snippet crumbs()}
 		<li>Techs</li>
-	</svelte:fragment>
+	{/snippet}
 </Breadcrumb>
 
 <Techs techStore={$game.rules.techs} player={$player} {cs} />

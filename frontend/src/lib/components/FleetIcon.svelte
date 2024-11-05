@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet, ShipToken } from '$lib/types/Fleet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
@@ -10,13 +12,17 @@
 
 	const { game, player, universe } = getGameContext();
 
-	export let fleet: Fleet;
-	export let tokens: ShipToken[] = fleet.tokens ?? [];
+	interface Props {
+		fleet: Fleet;
+		tokens?: ShipToken[];
+	}
 
-	let icon = '';
+	let { fleet, tokens = fleet.tokens ?? [] }: Props = $props();
+
+	let icon = $state('');
 	let design: ShipDesign | undefined;
 
-	$: {
+	run(() => {
 		icon = '';
 		if (tokens && tokens.length > 0) {
 			const designNum = tokens.find((token) => token.quantity > 0)?.designNum ?? None;
@@ -25,7 +31,7 @@
 				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
 			}
 		}
-	}
+	});
 </script>
 
 <div class="avatar mr-2">
@@ -44,8 +50,9 @@
 			<button
 				type="button"
 				class="w-full h-full cursor-help"
-				on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
-			/>
+				aria-label="Opens ship design tooltip"
+				onpointerdown={preventDefault((e) => onShipDesignTooltip(e, design))}
+			></button>
 		</div>
 	</div>
 </div>

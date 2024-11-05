@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	export type MergeFleetsDialogEventDetails = {
 		fleet: CommandedFleet;
@@ -25,8 +25,12 @@
 
 	const { merge } = getGameContext();
 
-	export let show = false;
-	export let props: MergeFleetsDialogEventDetails | undefined;
+	interface Props {
+		show?: boolean;
+		props: MergeFleetsDialogEventDetails | undefined;
+	}
+
+	let { show = $bindable(false), props }: Props = $props();
 
 	const onOk = async (props: MergeFleetsEventDetails) => {
 		if (props) {

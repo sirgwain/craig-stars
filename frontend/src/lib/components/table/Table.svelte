@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export interface TableColumn<T> {
 		key: string;
 		title: string;
@@ -26,14 +26,30 @@
 		td: ''
 	};
 
-	export let classes: TableClasses = defaultClasses;
-	export let columns: TableColumn<T>[] = [];
-	export let rows: T[] = [];
-	export let filterBy = '';
-	export let externalSortAndFilter = false;
+	interface Props {
+		classes?: TableClasses;
+		columns?: TableColumn<T>[];
+		rows?: T[];
+		filterBy?: string;
+		externalSortAndFilter?: boolean;
+		head?: import('svelte').Snippet<[any]>;
+		cell?: import('svelte').Snippet<[any]>;
+		empty?: import('svelte').Snippet;
+	}
 
-	let lastSortedKey = '';
-	let sortDescending = false;
+	let {
+		classes = defaultClasses,
+		columns = [],
+		rows = $bindable([]),
+		filterBy = '',
+		externalSortAndFilter = false,
+		head,
+		cell,
+		empty
+	}: Props = $props();
+
+	let lastSortedKey = $state('');
+	let sortDescending = $state(false);
 
 	/**
 	 * sort rows by a column key
@@ -97,38 +113,39 @@
 		});
 	}
 
-	$: filteredRows = (() => {
-		if (externalSortAndFilter) {
-			// rows come filtered and sorted, return them as is
-			return rows;
-		}
-		if (lastSortedKey) {
-			sortRowsBy(lastSortedKey, true);
-		}
-		return filterRowsBy(filterBy, rows);
-	})();
+	let filteredRows = $derived(
+		(() => {
+			if (externalSortAndFilter) {
+				// rows come filtered and sorted, return them as is
+				return rows;
+			}
+			if (lastSortedKey) {
+				sortRowsBy(lastSortedKey, true);
+			}
+			return filterRowsBy(filterBy, rows);
+		})()
+	);
 
-	$: assignedClasses = { ...defaultClasses, ...classes };
+	let assignedClasses = $derived({ ...defaultClasses, ...classes });
 </script>
 
-<table class={assignedClasses.table} cellspacing="0">
+<table class={assignedClasses.table} style="border-spacing: 0">
 	<thead class={assignedClasses.thead}>
 		<tr class={assignedClasses.headtr}>
-			{#each columns as column, colIdx}
+			{#each columns as column}
 				{#if !column.hidden}
 					<th
 						scope="col"
 						class={assignedClasses.th}
-						on:click={() => !externalSortAndFilter && sortRowsBy(column.key)}
+						onclick={() => !externalSortAndFilter && sortRowsBy(column.key)}
 					>
-						{#if $$slots.head}
-							<slot
-								name="head"
-								{column}
-								isSorted={lastSortedKey === column.key}
-								{sortDescending}
-								sortable={column.sortable !== false}
-							/>
+						{#if head}
+							{@render head?.({
+								column,
+								isSorted: lastSortedKey === column.key,
+								sortDescending,
+								sortable: column.sortable !== false
+							})}
 						{:else}
 							<span>{column.title}</span>
 						{/if}
@@ -138,13 +155,13 @@
 		</tr>
 	</thead>
 	<tbody class={assignedClasses.tbody}>
-		{#each filteredRows as row, rowIndex}
+		{#each filteredRows as row}
 			<tr class={`${assignedClasses.tr}`}>
-				{#each columns as column, columnIndex}
+				{#each columns as column}
 					{#if !column.hidden}
 						<td class={assignedClasses.td}>
-							{#if $$slots.cell}
-								<slot name="cell" {row} {column} cell={row[column.key]} />
+							{#if cell}
+								{@render cell?.({ row, column, cell: row[column.key] })}
 							{:else}
 								<span>{row[column.key]}</span>
 							{/if}
@@ -153,7 +170,7 @@
 				{/each}
 			</tr>
 		{:else}
-			<slot name="empty" />
+			{@render empty?.()}
 		{/each}
 	</tbody>
 </table>

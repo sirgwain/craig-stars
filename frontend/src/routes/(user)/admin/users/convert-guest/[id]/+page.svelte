@@ -10,11 +10,11 @@
 	import type { User } from '$lib/types/User';
 	import { onMount } from 'svelte';
 
-	let users: User[];
-	let games: Game[];
+	let users: User[] = $state();
+	let games: Game[] = $state();
 	let id = $page.params.id;
-	let guestUser: User | undefined;
-	let targetUserId: number | undefined;
+	let guestUser: User | undefined = $state();
+	let targetUserId: number | undefined = $state();
 
 	onMount(async () => {
 		try {
@@ -26,7 +26,7 @@
 			if (guestUser) {
 				games = await AdminService.loadUserGames(guestUser.id);
 			}
-		} catch (err) {
+		} catch (_err) {
 			// TODO: show error
 		}
 	});
@@ -50,7 +50,12 @@
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
-	<form on:submit|preventDefault={onSubmit}>
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			onSubmit();
+		}}
+	>
 		<div class="w-full flex justify-end gap-2">
 			<button class="btn btn-success" type="submit">Convert</button>
 		</div>
