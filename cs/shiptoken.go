@@ -2,12 +2,12 @@ package cs
 
 import "math"
 
-// A Fleet contains multiple ShipTokens, each of which have a design and a quantity. 
+// A Fleet contains multiple ShipTokens, each of which have a design and a quantity.
 type ShipToken struct {
 	DesignNum       int     `json:"designNum,omitempty"`
-	Quantity        int     `json:"quantity,omitempty"`
-	Damage          float64 `json:"damage,omitempty"`
-	QuantityDamaged int     `json:"quantityDamaged,omitempty"`
+	Quantity        int     `json:"quantity,omitempty"`        // the number of ships in the token
+	Damage          float64 `json:"damage,omitempty"`          // damage is stored per ship in the token
+	QuantityDamaged int     `json:"quantityDamaged,omitempty"` // the number of ships in the token that the damage applies to
 	design          *ShipDesign
 }
 
@@ -23,28 +23,33 @@ func (st *ShipToken) applyMineDamage(damage int) tokenDamage {
 	armor := st.design.Spec.Armor
 	possibleDamageToShields := float64(damage) * 0.5
 	actualDamageToShields := math.Min(float64(shields), possibleDamageToShields)
-	remainingDamage := damage - int(actualDamageToShields)
-	existingDamage := st.Damage * float64(st.QuantityDamaged)
+	armorDamage := damage - int(actualDamageToShields)
+	existingStackDamage := st.Damage * float64(st.QuantityDamaged) // get the total stack damage
 
-	st.Damage = float64(existingDamage) + float64(remainingDamage)
+	// get the new stackDamage spread across all ships int he stack
+	stackDamage := math.Floor(float64(existingStackDamage) + float64(armorDamage))
 
-	tokensDestroyed := int(math.Min(float64(st.Quantity), math.Floor(float64(st.Damage)/float64(armor))))
-	st.Quantity -= tokensDestroyed
+	// from the new total stack damage, figure out how many ships were destroyed
+	shipsDestroyed := int(math.Min(float64(st.Quantity), math.Floor(float64(stackDamage)/float64(armor))))
+	st.Quantity -= shipsDestroyed
 
 	if st.Quantity > 0 {
 		// Figure out how much damage we have leftover after destroying
-		// tokens. This will be applied to the rest of the tokens
-		// if we took 100 damage, and we have 40 armor, we lose 2 tokens
-		// and have 20 leftover damage to spread across tokens
-		leftoverDamage := st.Damage - float64(tokensDestroyed*armor)
-		st.Damage = leftoverDamage
+		// ships. This will be applied to the rest of the ships
+		// if we took 100 damage, and we have 40 armor, we lose 2 ships
+		// and have 20 leftover damage to spread across ships
+		leftoverStackDamage := stackDamage - float64(shipsDestroyed*armor)
+		st.Damage = math.Floor(leftoverStackDamage / float64(st.Quantity))
 		st.QuantityDamaged = st.Quantity
 	}
 
-	return tokenDamage{damage: remainingDamage, shipsDestroyed: tokensDestroyed}
+	return tokenDamage{damage: armorDamage, shipsDestroyed: shipsDestroyed}
 }
 
 // Apply damage (if any) to each token that overgated
+// in testing with overgating 12 scouts
+// 479.5 ly with a 250ly gate
+// 1st run 12@20% (12 with 4 damage each), subsequent runs damaged at 40, 60, 80, then destroyed all ships
 func (st *ShipToken) applyOvergateDamage(dist float64, safeRange int, safeSourceMass int, safeDestMass int, maxMassFactor int) tokenDamage {
 	rangeDamageFactor := st.getStargateRangeDamageFactor(dist, safeRange)
 	massDamageFactor := st.getStargateMassDamageFactor(safeSourceMass, safeDestMass, maxMassFactor)
@@ -53,24 +58,36 @@ func (st *ShipToken) applyOvergateDamage(dist float64, safeRange int, safeSource
 
 	// apply damage as a percentage of armor to all tokens
 	armor := st.design.Spec.Armor
-	newDamage := int(math.Round(totalDamageFactor * float64(armor)))
-	st.QuantityDamaged = st.Quantity
-	st.Damage += float64(newDamage)
+	existingDamage := st.Damage
 
-	tokensDestroyed := int(math.Min(float64(st.Quantity), math.Floor(float64(st.Damage)/float64(armor))))
+	var tokensDestroyed int
+	damagePerShip := int(math.Round(totalDamageFactor * float64(armor)))
 
-	st.Quantity = st.Quantity - tokensDestroyed
-	if st.Quantity > 0 {
-		// Figure out how much damage we have leftover after destroying
-		// tokens. This will be applied to the rest of the tokens
-		// if we took 100 damage, and we have 40 armor, we lose 2 tokens
-		// and have 20 leftover damage to spread across tokens
-		leftoverDamage := st.Damage - float64(tokensDestroyed*armor)
-		st.Damage = leftoverDamage
-		st.QuantityDamaged = st.Quantity
+	// ships are never destroyed by overgating if they aren't already damaged
+	if existingDamage == 0 && damagePerShip >= armor {
+		damagePerShip = armor - 1
 	}
 
-	return tokenDamage{newDamage, tokensDestroyed}
+	st.Damage += float64(damagePerShip)
+
+	if st.Damage >= float64(armor) {
+		// our damage exceeds our armor, destroy any previous damaged ships
+		tokensDestroyed = st.QuantityDamaged
+		st.Quantity -= st.QuantityDamaged
+	}
+
+	// apply overgate damage to any leftover tokens
+	if damagePerShip > 0 {
+		st.Damage = float64(damagePerShip)
+		st.QuantityDamaged = st.Quantity
+
+		if st.Quantity == 0 {
+			// can't damage something that isn't there
+			st.Damage = 0
+		}
+	}
+
+	return tokenDamage{damagePerShip, tokensDestroyed}
 }
 
 func (t *ShipToken) getStargateRangeDamageFactor(dist float64, safeRange int) float64 {

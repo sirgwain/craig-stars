@@ -163,7 +163,7 @@ func (ai *aiPlayer) scoutPackets() error {
 				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: queueItemType, Quantity: 1}}, planet.ProductionQueue...)
 				delete(unknownPlanetsByNum, farthest.Num)
 
-				if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
+				if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders, ai.Planets); err != nil {
 					return err
 				}
 

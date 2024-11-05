@@ -1,13 +1,13 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import type { UserConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 const file = fileURLToPath(new URL('package.json', import.meta.url));
 const json = readFileSync(file, 'utf8');
 const pkg = JSON.parse(json);
 
-const config: UserConfig = {
+export default defineConfig({
 	plugins: [sveltekit()],
 	define: {
 		PKG: pkg
@@ -29,6 +29,4 @@ const config: UserConfig = {
 		include: ['fuzzy']
 	},
 	assetsInclude: ['**/*.wasm']
-};
-
-export default config;
+});

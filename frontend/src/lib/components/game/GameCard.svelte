@@ -54,7 +54,7 @@
 					{#if game.openPlayerSlots > 0}
 						{game.numPlayers - game.openPlayerSlots}/ {game.numPlayers}
 					{:else}
-						{game.numPlayers}
+						{game.players.length}
 					{/if}
 				</div>
 			</div>

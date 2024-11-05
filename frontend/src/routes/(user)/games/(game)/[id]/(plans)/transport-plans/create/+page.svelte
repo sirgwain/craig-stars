@@ -62,7 +62,7 @@
 			<li>{plan?.name ?? '<unknown>'}</li>
 		</svelte:fragment>
 		<div slot="end" class="flex justify-end mb-1">
-			<button class="btn btn-success" type="submit">Save</button>
+			<button class="btn btn-success mx-1" type="submit">Save</button>
 		</div>
 	</Breadcrumb>
 

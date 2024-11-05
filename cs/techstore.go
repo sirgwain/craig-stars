@@ -316,7 +316,7 @@ func (store *TechStore) GetBestScanner(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
 		tech := &store.HullComponents[i]
-		if tech.Scanner && (tech.ScanRange >= 0 || tech.ScanRangePen >= 0) && player.HasTech(&tech.Tech) {
+		if (tech.HullSlotType&HullSlotTypeScanner > 0) && tech.Scanner && (tech.ScanRange >= 0 || tech.ScanRangePen >= 0) && player.HasTech(&tech.Tech) {
 			if bestTech == nil || tech.Ranking > bestTech.Ranking {
 				bestTech = tech
 			}
@@ -447,7 +447,7 @@ func (store *TechStore) GetBestFuelTank(player *Player) *TechHullComponent {
 	return bestTech
 }
 
-// get the player's best cargo pod
+// get the best cargo pod for a player
 func (store *TechStore) GetBestCargoPod(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -475,7 +475,7 @@ func (store *TechStore) GetBestColonizationModule(player *Player) *TechHullCompo
 	return bestTech
 }
 
-// get the player's best battle computer
+// get the best battle computer for a player
 func (store *TechStore) GetBestBattleComputer(player *Player) *TechHullComponent {
 	var bestTech *TechHullComponent
 	for i := range store.HullComponents {
@@ -1222,7 +1222,7 @@ var RoboUltraMiner = TechHullComponent{Tech: NewTech("Robo-Ultra-Miner", NewCost
 var OrbitalAdjuster = TechHullComponent{Tech: NewTech("Orbital Adjuster", NewCost(25, 25, 25, 50), TechRequirements{TechLevel: TechLevel{Biotechnology: 6}, PRTsRequired: []PRT{CA}}, 0, TechCategoryMineRobot, TechTagTerraformingRobot),
 
 	Mass:          80,
-	CloakUnits:    25,
+	CloakUnits:    50,
 	TerraformRate: 1,
 	HullSlotType:  HullSlotTypeMining,
 }
@@ -2191,7 +2191,7 @@ var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequir
 	FuelCapacity:   125,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1.5, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
-		{Position: Vector{1.5, 0}, Type: HullSlotTypeScanner, Capacity: 1},
+		{Position: Vector{1.5, 0}, Type: HullSlotTypeScanner, Capacity: 2},
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeGeneral, Capacity: 3},
 		{Position: Vector{-0.5, 0}, Type: HullSlotTypeShieldArmor, Capacity: 2},
 	},
@@ -2229,7 +2229,7 @@ var Cruiser = TechHull{Tech: NewTech("Cruiser", NewCost(40, 5, 8, 85), TechRequi
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeShieldArmor, Capacity: 2},
 	},
 }
-var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 9}, PRTsRequired: []PRT{WM}}, 90, TechCategoryShipHull),
+var BattleCruiser = TechHull{Tech: NewTech("Battle Cruiser", NewCost(55, 8, 12, 120), TechRequirements{TechLevel: TechLevel{Construction: 10}, PRTsRequired: []PRT{WM}}, 90, TechCategoryShipHull),
 	Type:         TechHullTypeFighter,
 	Mass:         120,
 	Armor:        1000,
@@ -2499,7 +2499,7 @@ var FuelTransport = TechHull{Tech: NewTech("Fuel Transport", NewCost(10, 0, 5, 5
 		{Position: Vector{0.5, 0}, Type: HullSlotTypeShield, Capacity: 1},
 	},
 }
-var SuperFuelXport = TechHull{Tech: NewTech("Super Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}}, 270, TechCategoryShipHull),
+var SuperFuelXport = TechHull{Tech: NewTech("Super-Fuel Xport", NewCost(20, 0, 8, 70), TechRequirements{TechLevel: TechLevel{Construction: 7}}, 270, TechCategoryShipHull),
 	Type:           TechHullTypeFuelTransport,
 	Mass:           111,
 	Armor:          12,
@@ -2667,7 +2667,7 @@ var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300,
 		{Position: Vector{0, -1}, Type: HullSlotTypeOrbitalElectrical, Capacity: 1},
 		{Position: Vector{-2, 0.5}, Type: HullSlotTypeWeapon, Capacity: 16},
 		{Position: Vector{-1, 0}, Type: HullSlotTypeElectrical, Capacity: 3},
-		{Position: Vector{2, 0.5}, Type: HullSlotTypeWeapon, Capacity: 6},
+		{Position: Vector{2, 0.5}, Type: HullSlotTypeWeapon, Capacity: 16},
 		{Position: Vector{-1, 1}, Type: HullSlotTypeShield, Capacity: 20},
 		{Position: Vector{1, -1}, Type: HullSlotTypeShield, Capacity: 20},
 		{Position: Vector{1, 0}, Type: HullSlotTypeElectrical, Capacity: 3},

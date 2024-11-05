@@ -22,8 +22,8 @@ func Test_getBeamDamageAtDistance(t *testing.T) {
 		{"1 laser, 0 range", args{damage: 10, weaponRange: 1, dist: 0}, 10},
 		{"1 laser, 1 range", args{damage: 10, weaponRange: 1, dist: 1}, 9},
 		{"2 colloidal phasers, 3 range", args{damage: 52, weaponRange: 3, dist: 3}, 47}, // real Stars! is 48...
-		{"1 laser, 0 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 0, beamDefense: .1}, 9},
-		{"1 laser, 1 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 1, beamDefense: .1}, 8},
+		{"1 laser, 0 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 0, beamDefense: .9}, 9},
+		{"1 laser, 1 range, 1 deflector", args{damage: 10, weaponRange: 1, dist: 1, beamDefense: .9}, 8},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -232,6 +232,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 		slotQuantity       int
 		weaponRange        int
 		damagesShieldsOnly bool
+		hitsAllTargets     bool
 	}
 	type args struct {
 		damage               int
@@ -273,7 +274,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 			want: battleWeaponDamage{armorDamage: 9, damage: 9, quantityDamaged: 1},
 		},
 		{
-			name:   "1 laser, 1 range away, 1 defelctor, 20dp target, 8 damage done",
+			name:   "1 laser, 1 range away, 1 deflector, 20dp target, 8 damage done",
 			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
 			args: args{
 				position:      BattleVector{1, 0},
@@ -281,9 +282,22 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 				tokenQuantity: 1,
 				armor:         20,
 				shields:       0,
-				beamDefense:   .1,
+				beamDefense:   .9,
 			},
 			want: battleWeaponDamage{armorDamage: 8, damage: 8, quantityDamaged: 1},
+		},
+		{
+			name:   "1 gattling, 1 range away, 1 deflector, 20dp target, 9 damage done",
+			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1, hitsAllTargets: true},
+			args: args{
+				position:      BattleVector{1, 0},
+				damage:        10,
+				tokenQuantity: 1,
+				armor:         20,
+				shields:       0,
+				beamDefense:   .9,
+			},
+			want: battleWeaponDamage{armorDamage: 9, damage: 9, quantityDamaged: 1},
 		},
 		{
 			name:   "1 laser, 20 shields 20dp target, 10 damage done",
@@ -367,6 +381,7 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 				weaponType:         battleWeaponTypeBeam,
 				weaponRange:        tt.fields.weaponRange,
 				damagesShieldsOnly: tt.fields.damagesShieldsOnly,
+				hitsAllTargets:     tt.fields.hitsAllTargets,
 			}
 
 			target := &battleToken{

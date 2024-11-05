@@ -48,6 +48,7 @@ type Game struct {
 	AreaY                                     float64            `json:"areaY,omitempty"`
 	Year                                      int                `json:"year,omitempty"`
 	VictorDeclared                            bool               `json:"victorDeclared,omitempty"`
+	Archived                                  bool               `json:"archived,omitempty"`
 }
 
 // we json serialize these types with custom Scan/Value methods
@@ -173,6 +174,7 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 		g.areaY AS 'game.areaY',
 		g.year AS 'game.year',
 		g.victorDeclared AS 'game.victorDeclared',
+		g.archived AS 'game.archived',
 		
 		p.updatedAt AS 'player.updatedAt',
 		COALESCE(p.userId, 0) AS 'player.userId',
@@ -183,7 +185,8 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 		COALESCE(p.guest, 0) AS 'player.guest',
 		COALESCE(p.submittedTurn, 0) AS 'player.submittedTurn',
 		COALESCE(p.color, '') AS 'player.color',
-		COALESCE(p.victor, 0) AS 'player.victor'
+		COALESCE(p.victor, 0) AS 'player.victor',
+		COALESCE(p.archived, 0) AS 'player.archived'
 
 	FROM games g
 	LEFT JOIN players p
@@ -368,7 +371,8 @@ func (c *client) CreateGame(game *cs.Game) error {
 		areaX,
 		areaY,
 		year,
-		victorDeclared
+		victorDeclared,
+		archived
 	)
 	VALUES (
 		CURRENT_TIMESTAMP,
@@ -406,7 +410,8 @@ func (c *client) CreateGame(game *cs.Game) error {
 		:areaX,
 		:areaY,
 		:year,
-		:victorDeclared
+		:victorDeclared,
+		:archived
 	)
 	`, item)
 
@@ -480,7 +485,8 @@ func (c *client) UpdateGame(game *cs.Game) error {
 		areaX = :areaX,
 		areaY = :areaY,
 		year = :year,
-		victorDeclared = :victorDeclared
+		victorDeclared = :victorDeclared,
+		archived = :archived
 
 	WHERE id = :id
 	`, item); err != nil {
@@ -634,7 +640,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Deleted mineralPacket %s", mineralPacket.Name)
 		} else {
-			if err := c.updateMineralPacket(mineralPacket); err != nil {
+			if err := c.UpdateMineralPacket(mineralPacket); err != nil {
 				return fmt.Errorf("update mineralPacket %w", err)
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Updated mineralPacket %s", mineralPacket.Name)

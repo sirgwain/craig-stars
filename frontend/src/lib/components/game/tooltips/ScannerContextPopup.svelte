@@ -20,13 +20,8 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showPopup } from '$lib/services/Stores';
 	import { type Fleet } from '$lib/types/Fleet';
-	import {
-		getMapObjectName,
-		MapObjectType,
-		None,
-		ownedBy,
-		type MapObject
-	} from '$lib/types/MapObject';
+	import { getMapObjectName, MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 	import { flatten, keys } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 	import type { PopupEvent } from './Popup.svelte';
@@ -44,7 +39,6 @@
 				: []
 		)
 	);
-
 
 	function gotoTarget(mo: MapObject) {
 		if (ownedBy(mo, $player.num)) {
@@ -109,8 +103,10 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{mo.name}</button
+							on:click={() => gotoTarget(mo)}
 						>
+							{mo.name}
+						</button>
 					</li>
 				{/each}
 			</ul>

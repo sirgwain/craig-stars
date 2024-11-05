@@ -7,5 +7,7 @@
 			<slot name="crumbs" />
 		</ul>
 	</div>
-	<slot name="end" />
+	<div class="grow">
+		<slot name="end" />
+	</div>
 </div>

@@ -198,9 +198,9 @@ func TestComputeShipDesignSpec(t *testing.T) {
 		design     *ShipDesign
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    ShipDesignSpec
+		name string
+		args args
+		want ShipDesignSpec
 		wanterr bool
 	}{
 		{name: "Humanoid Starter Long Range Scout",
@@ -653,8 +653,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: "BANANA!!!!!!!!", HullSlotIndex: 10, Quantity: 8},
 					}),
-			},
-			want:    ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
+			}, 
+			want: ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
 			wanterr: true,
 		},
 	}

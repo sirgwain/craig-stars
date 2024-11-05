@@ -4,7 +4,7 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import CargoMini from '$lib/components/game/CargoMini.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { fleetsSortBy, getLocation, type Fleet } from '$lib/types/Fleet';
+	import { fleetsSortBy, getLocation, getEta, type Fleet } from '$lib/types/Fleet';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 
 	const { game, player, universe, settings, commandMapObject, zoomToMapObject } = getGameContext();
@@ -122,7 +122,15 @@
 					? $universe.getTargetName(row.waypoints[1])
 					: '--'}
 			{:else if column.key == 'eta'}
-				-- <!-- TODO: fleet class?  -->
+				{#if getEta(row) == -1}
+					<span class="text-error">
+						Never
+					</span>
+				{:else if getEta(row) == 0}
+					--
+				{:else}
+					{getEta(row)}y
+				{/if}
 			{:else if column.key == 'fuel'}
 				{row.fuel}mg
 			{:else if column.key == 'cargo'}

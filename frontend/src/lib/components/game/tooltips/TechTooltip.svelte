@@ -25,9 +25,9 @@
 	export let tech: Tech;
 	export let showResearchCost = false;
 
-	const { game, player } = getGameContext();
+	const { player, cs } = getGameContext();
 </script>
 
 <div class="md:w-[380px] h-[420px]">
-	<TechSummary {tech} {showResearchCost} player={$player} game={$game} />
+	<TechSummary {tech} {showResearchCost} player={$player} {cs} />
 </div>

@@ -33,12 +33,13 @@ type SplitFleetRequest struct {
 // updating planet and fleet psecs after cargo transfer, splitting and merging fleets, updating research, etc.
 type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
-	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error
+	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
-	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders)
+	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
-	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error
+	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest, playerPlanets []*Planet) error
 	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error)
+	TransferMineralPacketCargo(rules *Rules, player *Player, source *Fleet, dest *MineralPacket, transferAmount CargoTransferRequest) error
 	SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet, request SplitFleetRequest) (source, dest *Fleet, err error)
 	SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet) ([]*Fleet, error)
 	Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, error)
@@ -53,6 +54,14 @@ func NewOrderer() Orderer {
 
 func (ctr CargoTransferRequest) Negative() CargoTransferRequest {
 	return CargoTransferRequest{Cargo: ctr.Cargo.Negative(), Fuel: -ctr.Fuel}
+}
+
+func (ctr CargoTransferRequest) HasNegative() bool {
+	return ctr.Ironium < 0 || ctr.Boranium < 0 || ctr.Germanium < 0 || ctr.Fuel < 0 || ctr.Colonists < 0
+}
+
+func (ctr CargoTransferRequest) HasPositive() bool {
+	return ctr.Ironium > 0 || ctr.Boranium > 0 || ctr.Germanium > 0 || ctr.Fuel > 0 || ctr.Colonists > 0
 }
 
 // update a player's orders
@@ -84,8 +93,35 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 }
 
 // update a planet orders
-func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error {
+func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error {
 	planet.PlanetOrders = orders
+	o.updatePlanetSpec(rules, player, planet)
+
+	// update the current planet in our list of planets
+	for i, playerPlanet := range playerPlanets {
+		if playerPlanet.Num == planet.Num {
+			playerPlanets[i] = planet
+			break
+		}
+	}
+
+	// update the player spec with the change in resources for this planet
+	// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
+	player.Spec.PlayerResearchSpec = computePlayerResearchSpec(player, rules, playerPlanets)
+	planet.MarkDirty()
+
+	log.Info().
+		Int64("GameID", player.GameID).
+		Int("PlayerNum", player.Num).
+		Str("Planet", planet.Name).
+		Interface("Orders", orders).
+		Msg("update planet orders")
+
+	return nil
+}
+
+// update a planet spec after some change
+func (o *orders) updatePlanetSpec(rules *Rules, player *Player, planet *Planet) error {
 
 	// make sure if we have a starbase, it has a design so we can compute
 	// upgrade costs
@@ -93,13 +129,7 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 		return err
 	}
 
-	spec := &planet.Spec
-
-	// update the player spec with new values from this planet
-	oldResourcesPerYearResearch := spec.ResourcesPerYearResearch
-	oldResourcesPerYearResearchEstimatedLeftover := spec.ResourcesPerYearResearchEstimatedLeftover
-
-	spec.computeResourcesPerYearAvailable(player, planet)
+	planet.Spec = computePlanetSpec(rules, player, planet)
 	if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 		return err
 	}
@@ -114,23 +144,6 @@ func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet
 	if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
 		return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
 	}
-
-	spec = &planet.Spec
-
-	// update the player spec with the change in resources for this planet
-	// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
-	planetResearchDiff := spec.ResourcesPerYearResearch - oldResourcesPerYearResearch
-	planetLeftoverDiff := spec.ResourcesPerYearResearchEstimatedLeftover - oldResourcesPerYearResearchEstimatedLeftover
-	player.Spec.ResourcesPerYearResearch = player.Spec.ResourcesPerYearResearch + planetResearchDiff
-	player.Spec.ResourcesPerYearResearchEstimated = player.Spec.ResourcesPerYearResearchEstimated + planetResearchDiff + planetLeftoverDiff
-
-	planet.MarkDirty()
-
-	log.Info().
-		Int64("GameID", player.GameID).
-		Int("PlayerNum", player.Num).
-		Str("Planet", planet.Name).
-		Msg("update planet orders")
 
 	return nil
 }
@@ -173,8 +186,16 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 
 }
 
-func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) {
+func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error {
+	if !player.Race.Spec.CanDetonateMineFields {
+		return fmt.Errorf("%s cannot detonate minefields", player.Race.PluralName)
+	}
+	if !minefield.MineFieldType.CanDetonate() {
+		return fmt.Errorf("%s minefields cannot detonate", minefield.MineFieldType)
+	}
+
 	minefield.MineFieldOrders = orders
+	return nil
 }
 
 // transfer cargo from a fleet to/from a fleet
@@ -219,13 +240,15 @@ func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, so
 		Str("Source", source.Name).
 		Str("Dest", dest.Name).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
+		Str("SourceCargo", fmt.Sprintf("%v", source.Cargo)).
+		Str("DestCargo", fmt.Sprintf("%v", dest.Cargo)).
 		Msg("transfer fleet cargo")
 
 	return nil
 }
 
 // transfer cargo from a planet to/from a fleet
-func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest) error {
+func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest, playerPlanets []*Planet) error {
 
 	if source.availableCargoSpace() < transferAmount.Total() {
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
@@ -247,17 +270,29 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
-	if dest.Starbase != nil {
-		dest.Starbase.Tokens[0].design = player.GetDesign(dest.Starbase.Tokens[0].DesignNum)
+	// update this planet and the player's research spec
+	if dest.OwnedBy(player.Num) {
+		o.updatePlanetSpec(rules, player, dest)
+
+		// update the current planet in our list of planets
+		for i, playerPlanet := range playerPlanets {
+			if playerPlanet.Num == dest.Num {
+				playerPlanets[i] = dest
+				break
+			}
+		}
+
+		// update the player spec with the change in resources for this planet
+		// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
+		player.Spec.PlayerResearchSpec = computePlayerResearchSpec(player, rules, playerPlanets)
 	}
-	starbaseSpec := dest.Spec.PlanetStarbaseSpec
-	dest.Spec = computePlanetSpec(rules, player, dest)
-	dest.Spec.PlanetStarbaseSpec = starbaseSpec
+
 	dest.MarkDirty()
 
 	log.Info().
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
+		Str("Planet", dest.Name).
 		Str("Source", source.Name).
 		Str("Dest", dest.Name).
 		Str("SourceCargoInitial", fmt.Sprintf("%v", sourceCargoInitial)).
@@ -266,6 +301,46 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 		Str("DestCargo", fmt.Sprintf("%v", dest.Cargo)).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
 		Msg("transfer planet cargo")
+
+	return nil
+}
+
+// transfer cargo from a planet to/from a mineralPacket
+func (o *orders) TransferMineralPacketCargo(rules *Rules, player *Player, source *Fleet, dest *MineralPacket, transferAmount CargoTransferRequest) error {
+
+	if transferAmount.Total() == 0 {
+		return fmt.Errorf("fleet %s attempted to transfer 0kT of cargo from mineralPacket", source.Name)
+	}
+
+	if source.availableCargoSpace() < transferAmount.Total() {
+		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", source.Name, source.availableCargoSpace(), transferAmount.Total(), dest.Name)
+	}
+
+	if dest != nil && !dest.canTransfer(transferAmount) {
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, the mineralPacket does not have the required cargo", source.Name, transferAmount, dest.Name)
+	}
+
+	if !source.canTransfer(transferAmount.Negative()) {
+		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
+	}
+
+	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
+
+	// transfer the cargo
+	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
+	source.Spec = ComputeFleetSpec(rules, player, source)
+
+	// make our player aware of this mineral packet's new cargo
+	discover := newDiscoverer(log.With().Int64("GameID", player.GameID).Logger(), player)
+	discover.discoverMineralPacketCargo(dest)
+
+	log.Info().
+		Int64("GameID", player.GameID).
+		Int("PlayerNum", player.Num).
+		Str("Source", source.Name).
+		Str("Dest", dest.Name).
+		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
+		Msg("transfer mineralPacket cargo")
 
 	return nil
 }
@@ -300,7 +375,7 @@ func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Flee
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// make our player aware of this salvage
-	discover := newDiscoverer(log.Logger, player)
+	discover := newDiscoverer(log.With().Int64("GameID", player.GameID).Logger(), player)
 	discover.discoverSalvage(dest)
 
 	log.Info().
@@ -326,41 +401,37 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 
 	// build a map of tokens by design
 	tokensByDesign := map[int]*ShipToken{}
-	for _, token := range request.Source.Tokens {
-		t := token
-		t.Damage *= float64(t.QuantityDamaged)
-		tokensByDesign[token.DesignNum] = &t
+	stackDamageByDesign := map[int]int{}
+	for _, token := range source.Tokens {
+		tokensByDesign[token.DesignNum] = &token
+		stackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
 	}
 	if dest != nil {
 		for _, token := range dest.Tokens {
+			stackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
 			if t, found := tokensByDesign[token.DesignNum]; found {
 				t.Quantity += token.Quantity
 				t.QuantityDamaged += token.QuantityDamaged
-				t.Damage += token.Damage * float64(token.QuantityDamaged)
 			} else {
-				t := token
-				t.Damage *= float64(t.QuantityDamaged)
-				tokensByDesign[token.DesignNum] = &t
+				tokensByDesign[token.DesignNum] = &token
 			}
 		}
 	}
 
 	// build a map of the split request tokens by design
 	splitTokensByDesign := map[int]*ShipToken{}
+	splitStackDamageByDesign := map[int]int{}
 	for _, token := range request.SourceTokens {
-		t := token
-		t.Damage *= float64(t.QuantityDamaged)
-		splitTokensByDesign[token.DesignNum] = &t
+		splitTokensByDesign[token.DesignNum] = &token
+		splitStackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
 	}
 	for _, token := range request.DestTokens {
+		splitStackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
 		if t, found := splitTokensByDesign[token.DesignNum]; found {
 			t.Quantity += token.Quantity
 			t.QuantityDamaged += token.QuantityDamaged
-			t.Damage += token.Damage * float64(token.QuantityDamaged)
 		} else {
-			t := token
-			t.Damage *= float64(t.QuantityDamaged)
-			splitTokensByDesign[token.DesignNum] = &t
+			splitTokensByDesign[token.DesignNum] = &token
 		}
 	}
 
@@ -374,7 +445,9 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 			return nil, nil, fmt.Errorf("found token in original fleets but not in split request")
 		}
 
-		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged || splitToken.Damage != token.Damage {
+		stackDamage := stackDamageByDesign[token.DesignNum]
+		splitStackDamage := splitStackDamageByDesign[token.DesignNum]
+		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged || stackDamage != splitStackDamage {
 			return nil, nil, fmt.Errorf("token in original fleet has different quantity/damage that token in split request")
 		}
 	}
@@ -397,7 +470,7 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		fleet.Heading = source.Heading
 		fleet.WarpSpeed = source.WarpSpeed
 		fleet.PreviousPosition = source.PreviousPosition
-		fleet.BattlePlanNum = source.BattlePlanNum
+		fleet.FleetOrders = source.FleetOrders
 
 		// create a slice of empty tokens we will populate
 		fleet.Tokens = make([]ShipToken, len(source.Tokens))
@@ -587,6 +660,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.PreviousPosition = source.PreviousPosition
 	fleet.BattlePlanNum = source.BattlePlanNum
 	fleet.Tokens = tokens
+	fleet.FleetOrders = source.FleetOrders
 
 	// the fleet has some percentage of fuel fullness
 	fleetFuelFullness := float64(source.Fuel) / float64(source.Spec.FuelCapacity)

@@ -93,7 +93,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.FuelTank.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
 				{HullComponent: cs.PulsedSapper.Name, HullSlotIndex: 2, Quantity: 1},
-				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 4, Quantity: 1},
+				{HullComponent: cs.BeamDeflector.Name, HullSlotIndex: 4, Quantity: 1},
 				{HullComponent: cs.PhaserBazooka.Name, HullSlotIndex: 3, Quantity: 1},
 			}),
 	)
@@ -210,8 +210,10 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 			BaseName: "Fleet1",
 			Tokens: []cs.ShipToken{
 				{
-					DesignNum: p1DragonFly.Num,
-					Quantity:  5,
+					DesignNum:       p1DragonFly.Num,
+					Quantity:        5,
+					QuantityDamaged: 5,
+					Damage:          5,
 				},
 				{
 					DesignNum: p1Scout.Num,

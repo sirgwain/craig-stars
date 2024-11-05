@@ -13,7 +13,6 @@
 	const { game, player, universe, settings } = getGameContext();
 
 	export let message: Message;
-	export let mysteryTrader: MysteryTrader;
 </script>
 
 {#if message.type === MessageType.MysteryTraderDiscovered}

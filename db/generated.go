@@ -58,6 +58,7 @@ func (c *GameConverter) ConvertGame(source Game) cs.Game {
 	csGame.Area = ExtendArea(source)
 	csGame.Year = source.Year
 	csGame.VictorDeclared = source.VictorDeclared
+	csGame.Archived = source.Archived
 	return csGame
 }
 func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) *Fleet {
@@ -158,6 +159,7 @@ func (c *GameConverter) ConvertGameGame(source *cs.Game) *Game {
 		dbGame.AreaY = (*source).Area.Y
 		dbGame.Year = (*source).Year
 		dbGame.VictorDeclared = (*source).VictorDeclared
+		dbGame.Archived = (*source).Archived
 		pDbGame = &dbGame
 	}
 	return pDbGame
@@ -346,6 +348,7 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) *Player {
 		dbPlayer.AcquiredTechs = GameAcquiredTechsToAcquiredTechs((*source).AcquiredTechs)
 		dbPlayer.AchievedVictoryConditions = cs.Bitmask((*source).AchievedVictoryConditions)
 		dbPlayer.Victor = (*source).Victor
+		dbPlayer.Archived = (*source).Archived
 		dbPlayer.Spec = GamePlayerSpecToPlayerSpec((*source).Spec)
 		pDbPlayer = &dbPlayer
 	}
@@ -596,6 +599,7 @@ func (c *GameConverter) ConvertPlayer(source Player) cs.Player {
 	csPlayer.AcquiredTechs = AcquiredTechsToGameAcquiredTechs(source.AcquiredTechs)
 	csPlayer.AchievedVictoryConditions = cs.Bitmask(source.AchievedVictoryConditions)
 	csPlayer.Victor = source.Victor
+	csPlayer.Archived = source.Archived
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
 	return csPlayer

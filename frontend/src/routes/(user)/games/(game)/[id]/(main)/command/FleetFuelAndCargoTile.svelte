@@ -13,14 +13,10 @@
 	export let fleet: CommandedFleet;
 
 	const transfer = () => {
-		if (fleet.orbitingPlanetNum) {
-			const planet = $universe.getPlanet(fleet.orbitingPlanetNum);
-			dispatch('cargo-transfer-dialog', { src: fleet, dest: planet });
-		} else {
-			// if there is salvage here, transfer to it
-			const salvage = $universe.getSalvageAtPosition(fleet);
-			dispatch('cargo-transfer-dialog', { src: fleet, dest: salvage });
-		}
+		dispatch('cargo-transfer-dialog', {
+			src: fleet,
+			dest: fleet.getCargoTransferTarget($universe)
+		});
 	};
 </script>
 

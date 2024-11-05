@@ -358,8 +358,10 @@ func (b *battle) runBattle() *BattleRecord {
 		}
 	}
 
-	// record destroyed tokens
+	// record destroyed tokens, update damage to ints
 	for _, token := range b.tokens {
+		// after battle make sure damage is an int
+		token.Damage = math.Floor(token.Damage)
 		if token.quantityDestroyed > 0 {
 			b.record.recordDestroyedToken(token, token.quantityDestroyed)
 		}
@@ -445,7 +447,8 @@ func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) 
 			// we've moved enough to leave the board
 			token.ranAway = true
 			b.board[token.Position.Y][token.Position.X] -= token.Quantity
-			b.record.recordRunAway(b.round, token)
+			action := b.record.recordRunAway(b.round, token)
+			b.log.Debug().Msgf("Round: %d %s", b.round, action)
 			return
 		}
 
@@ -459,7 +462,9 @@ func (b *battle) moveToken(token *battleToken, weaponSlots []*battleWeaponSlot) 
 
 	// update the board after a token moves
 	bestMove := bestMoves[b.rules.random.Intn(len(bestMoves))]
-	b.record.recordMove(b.round, token, token.Position, bestMove)
+	action := b.record.recordMove(b.round, token, token.Position, bestMove)
+	b.log.Debug().Msgf("Round: %d %s", b.round, action)
+
 	token.Position = bestMove
 	b.board[oldPosition.Y][oldPosition.X] -= token.Quantity
 	b.board[token.Position.Y][token.Position.X] += token.Quantity
@@ -732,7 +737,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 
 		// check the damage against this target
 		bwd := weapon.getBeamDamageToTarget(damage, target, b.rules.BeamRangeDropoff)
-		b.log.Debug().Msgf("%v fired a %vx%d at %v (shields: %v, armor: %v, %v@%v damage) for %v damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*weapon.token.Quantity, target, target.totalStackShields, target.armor, target.Quantity, target.Damage, bwd.armorDamage)
+		b.log.Debug().Msgf("%v fired a %vx%d at %v (shields: %v, armor: %v, beamDefense: %f%%, %v@%v damage) for %v armor damage, %v shield damage", weapon.token, weapon.slot.HullComponent, weapon.slotQuantity*weapon.token.Quantity, target, target.totalStackShields, target.armor, target.beamDefense, target.Quantity, target.Damage, bwd.armorDamage, bwd.shieldDamage)
 
 		// update stack shields
 		target.stackShields -= bwd.shieldDamage

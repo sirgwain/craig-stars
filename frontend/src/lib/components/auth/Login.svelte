@@ -48,12 +48,12 @@
 			<!-- content here -->
 			<form on:submit|preventDefault={onSubmit}>
 				<label class="label block">
-					<div class="label-text">Username</div>
-					<input bind:value={user} required type="text" name="user" class="input input-bordered" />
+					<span class="label-text">Username</span>
+					<input bind:value={user} required type="text" name="user" class="input input-bordered" autocapitalize="off" />
 				</label>
 
 				<label class="label block">
-					<div class="label-text">Password</div>
+					<span class="label-text">Password</span>
 					<input
 						bind:value={passwd}
 						required

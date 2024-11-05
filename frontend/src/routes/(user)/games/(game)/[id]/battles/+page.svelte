@@ -119,7 +119,7 @@
 					>
 					<button
 						on:click={(e) => gotoTarget(row)}
-						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
+						class="btn btn-outline btn-sm normal-case btn-secondary p-2 mx-1"
 						title="goto">Goto</button
 					>
 				</div>

@@ -4,10 +4,10 @@
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
+	import { UnlimitedSpaceDock } from '$lib/types/Constants';
 	import type { Fleet } from '$lib/types/Fleet';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
-	import { UnlimitedSpaceDock } from '$lib/types/Tech';
 	import CommandTile from './CommandTile.svelte';
 
 	const { game, player, universe, settings, updatePlanetOrders } = getGameContext();
@@ -119,8 +119,9 @@
 					<div class="w-full my-auto">
 						<WarpSpeedGauge
 							bind:value={planet.packetSpeed}
+							isPacket={true}
 							min={5}
-							max={(planet.spec.safePacketSpeed ?? 0) + 3}
+							max={(planet.spec.basePacketSpeed ?? 0) + $game.rules.packetMaxOverwarpSpeed}
 							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}
 							dangerSpeed={(planet.spec.safePacketSpeed ?? 0) + 3}
 							on:valuechanged={() => updatePlanetOrdrers()}

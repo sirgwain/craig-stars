@@ -657,8 +657,8 @@ var EnigmaPulsar = TechEngine{
 		},
 	},
 }
-var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell", NewCost(14, 5, 5, 52), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 14, Construction: 14, Electronics: 14, Biotechnology: 6}}, 105, TechCategoryArmor, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagScanner, TechTagShield, TechTagTorpedoJammer),
 
+var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell", NewCost(14, 5, 5, 52), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 14, Construction: 14, Electronics: 14, Biotechnology: 6}}, 105, TechCategoryArmor, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagScanner, TechTagShield, TechTagTorpedoJammer),
 	Mass:           20,
 	Shield:         100,
 	Armor:          400,
@@ -667,10 +667,10 @@ var MegaPolyShell = TechHullComponent{Tech: NewTechWithOrigin("Mega Poly Shell",
 	Scanner:        true,
 	ScanRange:      80,
 	ScanRangePen:   40,
-	HullSlotType:   HullSlotTypeShield,
+	HullSlotType:   HullSlotTypeArmor,
 }
-var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", NewCost(6, 1, 4, 12), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 12, Propulsion: 9, Electronics: 9}}, 75, TechCategoryShield, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagScanner, TechTagShield, TechTagTorpedoJammer),
 
+var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", NewCost(6, 1, 4, 12), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 12, Propulsion: 9, Electronics: 9}}, 75, TechCategoryShield, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagScanner, TechTagShield, TechTagTorpedoJammer),
 	Mass:           10,
 	Shield:         125,
 	Armor:          65,
@@ -681,16 +681,16 @@ var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", 
 	ScanRangePen:   25,
 	HullSlotType:   HullSlotTypeShield,
 }
-var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function Pod", NewCost(5, 0, 5, 15), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 11, Propulsion: 11, Electronics: 11}}, 35, TechCategoryElectrical, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagManeuveringJet, TechTagTorpedoJammer),
 
+var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function Pod", NewCost(5, 0, 5, 15), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 11, Propulsion: 11, Electronics: 11}}, 35, TechCategoryElectrical, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagManeuveringJet, TechTagTorpedoJammer),
 	Mass:           2,
 	CloakUnits:     60,
 	TorpedoJamming: .1,
 	MovementBonus:  1,
 	HullSlotType:   HullSlotTypeElectrical,
 }
-var AntiMatterTorpedo = TechHullComponent{Tech: NewTechWithOrigin("Anti Matter Torpedo", NewCost(3, 8, 1, 50), TechRequirements{Acquirable: true, TechLevel: TechLevel{Weapons: 11, Propulsion: 12, Biotechnology: 21}}, 85, TechCategoryTorpedo, OriginMysteryTrader, TechTagTorpedo),
 
+var AntiMatterTorpedo = TechHullComponent{Tech: NewTechWithOrigin("Anti Matter Torpedo", NewCost(3, 8, 1, 50), TechRequirements{Acquirable: true, TechLevel: TechLevel{Weapons: 11, Propulsion: 12, Biotechnology: 21}}, 85, TechCategoryTorpedo, OriginMysteryTrader, TechTagTorpedo),
 	Mass:         8,
 	Initiative:   0,
 	Accuracy:     85,
@@ -698,12 +698,14 @@ var AntiMatterTorpedo = TechHullComponent{Tech: NewTechWithOrigin("Anti Matter T
 	Range:        6,
 	HullSlotType: HullSlotTypeWeapon,
 }
+
 var JumpGate = TechHullComponent{Tech: NewTechWithOrigin("Jump Gate", NewCost(0, 0, 38, 30), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 16, Propulsion: 20, Construction: 20, Electronics: 16}}, 75, TechCategoryMechanical, OriginMysteryTrader),
 	Mass:         10,
 	CanJump:      true, // TODO: add support for this
 	HullSlotType: HullSlotTypeMechanical,
 }
-var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 195, TechCategoryBeamWeapon, OriginMysteryTrader, TechTagBeamWeapon, TechTagBomb, TechTagCloak, TechTagMineLayer, TechTagScanner, TechTagTorpedoBonus, TechTagTorpedoJammer),
+
+var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 195, TechCategoryBeamWeapon, OriginMysteryTrader),
 	Mass:                 8,
 	Initiative:           6,
 	Power:                140,
@@ -718,7 +720,8 @@ var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Co
 	MineLayingRate:       40,
 	HullSlotType:         HullSlotTypeWeapon,
 }
-var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 155, TechCategoryMineRobot, OriginMysteryTrader, TechTagCloak, TechTagManeuveringJet, TechTagMiningRobot, TechTagTorpedoJammer),
+
+var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 155, TechCategoryMineRobot, OriginMysteryTrader),
 	Mass:           20,
 	MiningRate:     10,
 	CloakUnits:     60,
@@ -733,6 +736,7 @@ var MultiCargoPod = TechHullComponent{Tech: NewTechWithOrigin("Multi Cargo Pod",
 	CloakUnits:   20,
 	HullSlotType: HullSlotTypeMechanical,
 }
+
 var MiniMorph = TechHull{Tech: NewTechWithOrigin("Mini Morph", NewCost(30, 8, 8, 100), TechRequirements{Acquirable: true, TechLevel: TechLevel{Construction: 8}}, 305, TechCategoryShipHull, OriginMysteryTrader),
 	Type:              TechHullTypeMultiPurposeFreighter,
 	Mass:              70,
@@ -752,6 +756,7 @@ var MiniMorph = TechHull{Tech: NewTechWithOrigin("Mini Morph", NewCost(30, 8, 8,
 		{Position: Vector{-1, 1}, Type: HullSlotTypeGeneral, Capacity: 2},
 	},
 }
+
 var GenesisDevice = TechPlanetary{Tech: NewTechWithOrigin("Genesis Device", NewCost(0, 0, 0, 5000), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 20, Weapons: 10, Propulsion: 10, Construction: 20, Electronics: 10, Biotechnology: 20}}, 45, TechCategoryPlanetary, OriginMysteryTrader),
 	ResetPlanet: true,
 }

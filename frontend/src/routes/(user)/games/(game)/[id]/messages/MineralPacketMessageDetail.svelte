@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { Unknown } from '$lib/types/MapObject';
+	import { MineralPacketDecayToNothing } from '$lib/types/Constants';
+	import { Unknown } from '$lib/types/Constants';
 	import { MessageType, type Message } from '$lib/types/Message';
-	import { MineralPacketDecayToNothing, type MineralPacket } from '$lib/types/MineralPacket';
+	import { type MineralPacket } from '$lib/types/MineralPacket';
 	import type { PlayerIntel } from '$lib/types/Player';
 	import { distance } from '$lib/types/Vector';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';

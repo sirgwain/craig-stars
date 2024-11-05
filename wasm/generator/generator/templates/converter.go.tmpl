@@ -305,13 +305,27 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 				SetSlice(o.Get("{{.JsonName}}"), obj.{{.Name}}, Set{{.ValueType.TypeName}})
 			{{- end }}
 		{{- else if eq .ValueType.Type "Named" }}
-			SetBasicSlice[{{.ValueType.GoType}}](o.Get("{{.JsonName}}"), obj.{{.Name}})
+			if len(obj.{{.Name}}) > 0 {
+				o.Set("{{.JsonName}}", map[string]any{})
+				SetBasicSlice[{{.ValueType.GoType}}](o.Get("{{.JsonName}}"), obj.{{.Name}})
+			}
 		{{- else }}
 			// unknown package slice type {{.ValueType.TypeName}} {{.ValueType.GoType}} {{.ValueType.Type}}
 		{{- end }}
 	{{- else }}
-		{{- if .ValueType.IsBasic }}
-			o.Set("{{.JsonName}}", obj.{{.Name}})
+		{{- if eq .Type "Array" }}
+			if len(obj.{{.Name}}) > 0 {
+				o.Set("{{.JsonName}}", map[string]any{})
+				{{.JsonName}}Obj := o.Get("{{.JsonName}}")
+				for i := 0; i < len(obj.{{.Name}}); i++ {
+					{{.JsonName}}Obj.SetIndex(i, js.ValueOf(obj.{{.Name}}[i]))
+				}
+			}
+		{{- else if .ValueType.IsBasic }}
+			if len(obj.{{.Name}}) > 0 {
+				o.Set("{{.JsonName}}", map[string]any{})
+				SetBasicSlice[{{.ValueType.GoType}}](o.Get("{{.JsonName}}"), obj.{{.Name}})
+			}
 		{{- else }}
 			// unknown slice type {{.ValueType.Type}} {{.Name}} {{.JsonName}} {{.GoType}}
 		{{- end }}
@@ -406,8 +420,16 @@ func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
 			{{- end }}
 			
 			{{- /* the GetValue function expects two args, a type and a jsObj */}}
-			{{- $context := dict "type" .FieldType "jsObj" $jsObj}}				
-			obj.{{.Name}} = {{ include "GetValue" $context | trim }}
+			{{- $context := dict "type" .FieldType "jsObj" $jsObj}}
+			{{- if eq $context.type.Type "Array" }}
+				{{- /* arrays will panic if you try and cast a slice with the wrong length */}}
+				{{.JsonName}} := {{ include "GetSlice" $context | trim }}
+				if len({{.JsonName}}) == {{$context.type.ArrayLength}} {
+					obj.{{.Name}} = {{$context.type.GoType}}({{.JsonName}})
+				}
+			{{- else }}
+				obj.{{.Name}} = {{ include "GetValue" $context | trim }}
+			{{- end }}
 		{{- end }}
 	{{- else if eq .Type.Type "Named" }}
 		{{- if .Type.UnderlyingType.IsBasic }}

@@ -21,6 +21,7 @@ func Test_getCloakPercentForCloakUnits(t *testing.T) {
 		{"110 cloak units = 51% cloaking", args{110}, 51},
 		{"200 cloak units = 62% cloaking", args{200}, 62},
 		{"400 cloak units = 50% cloaking", args{400}, 79},
+		{"2000 cloak units = 98% cloaking", args{2000}, 98},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -42,9 +43,9 @@ func Test_getCloakFactor(t *testing.T) {
 		want float64
 	}{
 		{"none", args{cloakPercent: 0, cloakReductionFactor: 1}, 1},
-		{"55% cloak", args{cloakPercent: 55, cloakReductionFactor: 1}, .55},
-		{"75% cloak wormhole", args{cloakPercent: 75, cloakReductionFactor: 1}, .75},
-		{"75% cloak wormhole, one tachyon", args{cloakPercent: 75, cloakReductionFactor: .95}, .7125},
+		{"55% cloak", args{cloakPercent: 55, cloakReductionFactor: 1}, .45},
+		{"75% cloak wormhole", args{cloakPercent: 75, cloakReductionFactor: 1}, .25},
+		{"75% cloak wormhole, one tachyon", args{cloakPercent: 75, cloakReductionFactor: .95}, .2875},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

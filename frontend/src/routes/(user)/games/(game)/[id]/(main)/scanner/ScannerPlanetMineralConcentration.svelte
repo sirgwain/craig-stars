@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { Unexplored, type Planet } from '$lib/types/Planet';
+	import { clamp } from '$lib/services/Math';
+	import { Unexplored } from '$lib/types/Constants';
+	import { type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
-	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
-	import type { Mineral } from '$lib/types/Mineral';
-	import { clamp } from '$lib/services/Math';
 	import MapObjectScaler from './MapObjectScaler.svelte';
+	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');

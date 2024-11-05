@@ -24,6 +24,17 @@
 	class:selected
 />
 
+{#if selected}
+	<rect
+		width={$xScale(2)}
+		height={$yScale(2)}
+		rx={0.5}
+		x={$xGet(mineField) - $xScale(1)}
+		y={$yGet(mineField) - $yScale(1)}
+		fill={color}
+	/>
+{/if}
+
 <style>
 	.selected {
 		filter: brightness(0.6);

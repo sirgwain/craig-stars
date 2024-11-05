@@ -29,7 +29,8 @@
 			DeleteWaypointEvent
 	>();
 
-	const { universe, commandedPlanet, commandedFleet, splitAll } = getGameContext();
+	const { universe, commandedPlanet, commandedFleet, selectedWaypoint, splitAll } =
+		getGameContext();
 </script>
 
 {#if $commandedPlanet}
@@ -70,6 +71,7 @@
 		/>
 		<FleetCompositionTile
 			fleet={$commandedFleet}
+			selectedWaypoint={$selectedWaypoint}
 			on:split-all={() => $commandedFleet && splitAll($commandedFleet)}
 			on:split-fleet-dialog={(e) => dispatch('split-fleet-dialog', e.detail)}
 			on:merge-fleets-dialog={(e) => dispatch('merge-fleets-dialog', e.detail)}
@@ -82,10 +84,12 @@
 		/>
 		<FleetWaypointsTile
 			fleet={$commandedFleet}
+			selectedWaypoint={$selectedWaypoint}
 			on:delete-waypoint={(e) => dispatch('delete-waypoint')}
 		/>
 		<FleetWaypointTaskTile
 			fleet={$commandedFleet}
+			selectedWaypoint={$selectedWaypoint}
 			on:transport-tasks-dialog={(e) => dispatch('transport-tasks-dialog', e.detail)}
 		/>
 	</div>

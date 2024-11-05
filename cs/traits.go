@@ -78,7 +78,7 @@ type LRTSpec struct {
 	ScrapResourcesOffsetStarbase  float64         `json:"scrapResourcesOffsetStarbase,omitempty"`
 	StartingPopulationFactorDelta float64         `json:"startingPopulationFactorDelta,omitempty"`
 	StarbaseBuiltInCloakUnits     int             `json:"starbaseBuiltInCloakUnits,omitempty"`
-	StarbaseCostFactorOffset      float64         `json:"starbaseCostFactorOffset,omitempty"`
+	StarbaseCostFactor      float64         `json:"starbaseCostFactor,omitempty"`
 	ResearchFactorOffset          float64         `json:"researchFactorOffset,omitempty"`
 	ResearchSplashDamage          float64         `json:"researchSplashDamage,omitempty"`
 	ShieldStrengthFactorOffset    float64         `json:"shieldStrengthFactorOffset,omitempty"`
@@ -89,7 +89,6 @@ type LRTSpec struct {
 }
 
 type TechCostOffset map[TechTag]float64
-
 
 func (t TechCostOffset) Add(other TechCostOffset) TechCostOffset {
 	for tag, bonus := range t {
@@ -141,6 +140,18 @@ const (
 	StartingFleetHullPrivateer       StartingFleetHull = "Privateer"
 	StartingFleetHullScout           StartingFleetHull = "Scout"
 )
+
+// clone this PRTSpec so we can combine it with an LRTSpec without modifying the original
+func (spec PRTSpec) clone() PRTSpec {
+	clone := spec
+	clone.StartingPlanets = make([]StartingPlanet, len(spec.StartingPlanets))
+	for i, startingPlanet := range spec.StartingPlanets {
+		clone.StartingPlanets[i] = startingPlanet
+		clone.StartingPlanets[i].StartingFleets = make([]StartingFleet, len(startingPlanet.StartingFleets))
+		copy(clone.StartingPlanets[i].StartingFleets, startingPlanet.StartingFleets)
+	}
+	return clone
+}
 
 func defaultPRTSpec() PRTSpec {
 	return PRTSpec{
@@ -531,7 +542,7 @@ func armSpec() LRTSpec {
 func isbSpec() LRTSpec {
 	return LRTSpec{
 		StarbaseBuiltInCloakUnits: 40,  // 20% built in cloaking
-		StarbaseCostFactorOffset:  -.2, // starbases cost 20% less
+		StarbaseCostFactor:  0.8, // starbases cost 20% less (*0.8)
 	}
 }
 
@@ -547,7 +558,7 @@ func urSpec() LRTSpec {
 		// UR gives us 45%/90% of scrapped minerals, versus 33%/80% for races without UR
 		// TODO: Rework scrapping in non-jank way
 		ScrapMineralOffset:           .45 - (1.0 / 3),
-		ScrapMineralOffsetStarbase:   .9 - (1.0 / 3),
+		ScrapMineralOffsetStarbase:   .9 - .8,
 		ScrapResourcesOffset:         .35,
 		ScrapResourcesOffsetStarbase: .7,
 	}

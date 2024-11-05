@@ -40,7 +40,8 @@
 		},
 		{
 			key: 'players',
-			title: 'Players'
+			title: 'Players',
+			sortBy: (a, b) => a.players.length - b.players.length
 		}
 	];
 
@@ -109,7 +110,7 @@
 			{:else if column.key == 'hostId'}
 				{usersById.get(cell)?.username ?? 'unknown'}
 			{:else if column.key == 'players'}
-				{row.numPlayers}
+				{row.players.length}
 			{:else}
 				{cell}
 			{/if}

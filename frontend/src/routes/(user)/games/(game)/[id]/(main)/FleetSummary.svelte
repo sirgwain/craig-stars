@@ -10,7 +10,8 @@
 		canTransferCargo,
 		CommandedFleet
 	} from '$lib/types/Fleet';
-	import { StargateWarpSpeed, ownedBy } from '$lib/types/MapObject';
+	import { ownedBy } from '$lib/types/MapObject';
+	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
@@ -48,14 +49,8 @@
 	}
 
 	function transfer() {
-		if (fleet.orbitingPlanetNum) {
-			const planet = $universe.getPlanet(fleet.orbitingPlanetNum);
-			dispatch('cargo-transfer-dialog', { src: new CommandedFleet(fleet), dest: planet });
-		} else {
-			// if there is salvage here, transfer to it
-			const salvage = $universe.getSalvageAtPosition(fleet);
-			dispatch('cargo-transfer-dialog', { src: new CommandedFleet(fleet), dest: salvage });
-		}
+		const f = new CommandedFleet(fleet);
+		dispatch('cargo-transfer-dialog', { src: f, dest: f.getCargoTransferTarget($universe) });
 	}
 </script>
 

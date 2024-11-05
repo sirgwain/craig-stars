@@ -3,8 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-
-	"github.com/rs/zerolog"
 )
 
 type MineFieldType string
@@ -14,6 +12,24 @@ const (
 	MineFieldTypeHeavy     MineFieldType = "Heavy"
 	MineFieldTypeSpeedBump MineFieldType = "SpeedBump"
 )
+
+func (t MineFieldType) String() string {
+	switch t {
+	case MineFieldTypeSpeedBump:
+		return "Speed Bump"
+	default:
+		return string(t)
+	}
+}
+
+func (t MineFieldType) CanDetonate() bool {
+	switch t {
+	case MineFieldTypeStandard:
+		return true
+	default:
+		return false
+	}
+}
 
 type MineField struct {
 	MapObject
@@ -28,8 +44,9 @@ type MineFieldOrders struct {
 }
 
 type MineFieldSpec struct {
-	Radius    float64 `json:"radius"`
-	DecayRate int     `json:"decayRate"`
+	Radius      float64 `json:"radius"`
+	DecayRate   int     `json:"decayRate"`
+	CanDetonate bool    `json:"canDetonate"`
 }
 
 type MineFieldStats struct {
@@ -44,6 +61,12 @@ type MineFieldStats struct {
 	CanDetonate         bool    `json:"canDetonate"`
 }
 
+type MineFieldDamage struct {
+	Damage         int  `json:"damage,omitempty"`
+	ShipsDestroyed int  `json:"shipsDestroyed,omitempty"`
+	FleetDestroyed bool `json:"fleetDestroyed,omitempty"`
+}
+
 // The radius of a minefield is the sqrt of its mines
 func (mf *MineField) Radius() float64 {
 	return math.Sqrt(float64(mf.NumMines))
@@ -53,6 +76,7 @@ func computeMinefieldSpec(rules *Rules, player *Player, mineField *MineField, nu
 	spec := MineFieldSpec{}
 	spec.Radius = mineField.Radius()
 	spec.DecayRate = mineField.getDecayRate(rules, player, numPlanets)
+	spec.CanDetonate = mineField.MineFieldType.CanDetonate()
 
 	return spec
 }
@@ -63,7 +87,7 @@ func newMineField(player *Player, mineFieldType MineFieldType, numMines int, num
 			Type:      MapObjectTypeMineField,
 			PlayerNum: player.Num,
 			Num:       num,
-			Name:      fmt.Sprintf("%s Mine Field #%d", player.Race.PluralName, num),
+			Name:      fmt.Sprintf("%s %s Mine Field #%d", player.Race.PluralName, mineFieldType.String(), num),
 			Position:  position,
 		},
 		MineFieldType: mineFieldType,
@@ -107,7 +131,7 @@ func (mineField *MineField) getDecayRate(rules *Rules, player *Player, numPlanet
 
 // damage a fleet that hit this minefield
 // https://wiki.starsautohost.org/wiki/Guts_of_Minefields
-func (mineField *MineField) damageFleet(log zerolog.Logger, player *Player, fleet *Fleet, fleetPlayer *Player, stats MineFieldStats) {
+func (mineField *MineField) damageFleet(fleet *Fleet, fleetPlayer *Player, stats MineFieldStats) MineFieldDamage {
 	hasRamScoop := false
 	for _, token := range fleet.Tokens {
 		if token.design.Spec.Engine.FreeSpeed > 1 {
@@ -165,20 +189,11 @@ func (mineField *MineField) damageFleet(log zerolog.Logger, player *Player, flee
 		}
 	}
 
-	messager.fleetMineFieldHit(fleetPlayer, fleet, fleetPlayer, mineField, totalDamage, shipsDestroyed)
-	if mineField.PlayerNum != fleetPlayer.Num {
-		messager.fleetMineFieldHit(player, fleet, fleetPlayer, mineField, totalDamage, shipsDestroyed)
+	return MineFieldDamage{
+		Damage:         totalDamage,
+		ShipsDestroyed: shipsDestroyed,
+		FleetDestroyed: fleet.Spec.TotalShips <= shipsDestroyed,
 	}
-
-	log.Debug().
-		Int("Player", mineField.PlayerNum).
-		Str("MineField", mineField.Name).
-		Str("Fleet", fleet.Name).
-		Int("FleetPlayer", fleetPlayer.Num).
-		Int("TotalDamage", totalDamage).
-		Int("ShipsDestroyed", shipsDestroyed).
-		Msgf("minefield damaged fleet")
-
 }
 
 // When a minefield is collided with, reduce its number of mines
@@ -198,18 +213,36 @@ func (mineField *MineField) reduceMineFieldOnImpact() {
 	mineField.NumMines = numMines
 }
 
-func (mineField *MineField) sweep(rules *Rules, fleet *Fleet, fleetPlayer *Player, mineFieldPlayer *Player) {
+func (mineField *MineField) sweep(rules *Rules, fleetPosition Vector, mineSweep int) int {
+
+	// we can only sweep up to our position in the minefield, so figure out how far we are from the center
+	// and subtract that from the radius to determine the edge amount
+	//		***
+	// 	   *****
+	// 	  *******
+	// 	 *F**C**** // fleet is 1 from the edge, 3 from the center
+	// 	  *******
+	// 	   *****
+	// 	    ***
+	//
+	radius := mineField.Radius()
+	distFromCenter := fleetPosition.DistanceTo(mineField.Position)
+	distFromEdge := mineField.Radius() - distFromCenter
+
+	// radius of a minefield is sqrt(numMines) so we can sweet our dist^2 in mines
+	sweepableMines := mineField.NumMines - int(math.Ceil((radius-distFromEdge)*(radius-distFromEdge)))
+
 	old := mineField.NumMines
-	mineField.NumMines -= int(float64(fleet.Spec.MineSweep) * rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor)
+	mineField.NumMines -= MinInt(sweepableMines, int(float64(mineSweep)*rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor))
 	mineField.NumMines = MaxInt(mineField.NumMines, 0)
 
 	numSwept := old - mineField.NumMines
-	messager.fleetMineFieldSwept(fleetPlayer, fleet, mineField, numSwept)
-	messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
+	return numSwept
 }
 
 // / Check for mine field collisions. If we collide with one, do damage and stop the fleet
-func checkForMineFieldCollision(log zerolog.Logger, rules *Rules, playerGetter playerGetter, mapObjectGetter mapObjectGetter, fleet *Fleet, dest Waypoint, distance float64) float64 {
+func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObjectGetter mapObjectGetter, fleet *Fleet, dest Waypoint, distance float64) (mineField *MineField, distanceTravelled float64) {
+	distanceTravelled = distance
 	fleetPlayer := playerGetter.getPlayer(fleet.PlayerNum)
 	safeWarpBonus := fleetPlayer.Race.Spec.MineFieldSafeWarpBonus
 
@@ -257,19 +290,8 @@ func checkForMineFieldCollision(log zerolog.Logger, rules *Rules, playerGetter p
 						// we stop moving at the hit, so if we made it 8 checks out of 24 for our above example
 						// we only travel 8 lightyears through the field (plus whatever distance we travelled to get to the field)
 						fleet.struckMineField = true
-						actualDistanceTravelled := lightYearsBeforeField + float64(checkNum)
-						mineFieldPlayer := playerGetter.getPlayer(mineField.PlayerNum)
-
-						mineField.damageFleet(log, mineFieldPlayer, fleet, fleetPlayer, stats)
-						mineField.reduceMineFieldOnImpact()
-						if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
-							// SD races discover the exact fleet makeup
-							for _, token := range fleet.Tokens {
-								// SD races discover the exact fleet makeup
-								mineFieldPlayer.discoverer.discoverDesign(token.design, true)
-							}
-						}
-						return actualDistanceTravelled
+						distanceTravelled = lightYearsBeforeField + float64(checkNum)
+						return mineField, distanceTravelled
 					}
 				}
 			}
@@ -277,7 +299,7 @@ func checkForMineFieldCollision(log zerolog.Logger, rules *Rules, playerGetter p
 
 	}
 
-	return distance
+	return mineField, distance
 }
 
 // Move this minefield closer to us (in case it's not in our location)

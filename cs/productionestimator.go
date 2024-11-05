@@ -24,7 +24,7 @@ func NewCompletionEstimator() CompletionEstimator {
 
 // get the estimated years to build one item
 func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int {
-	numBuiltInAYear := yearlyAvailableToSpend.Divide(cost.Minus(item.Allocated).MinusMineral(mineralsOnHand).MinZero())
+	numBuiltInAYear := yearlyAvailableToSpend.Divide(cost.Subtract(item.Allocated).SubtractMineral(mineralsOnHand).MinZero())
 	if numBuiltInAYear == 0 || math.IsInf(numBuiltInAYear, 1) {
 		return Infinite
 	}
@@ -49,6 +49,10 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 	// copy the queue so we can update it
 	items = make([]ProductionQueueItem, len(planet.ProductionQueue))
 	copy(items, planet.ProductionQueue)
+
+	if len(items) == 0 {
+		return items, planet.Spec.ResourcesPerYear, nil
+	}
 
 	// reset any estimates
 	for i := range items {

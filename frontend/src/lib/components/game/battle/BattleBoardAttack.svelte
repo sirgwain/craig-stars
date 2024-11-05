@@ -1,8 +1,7 @@
 <script lang="ts">
 	import TorpedoHit from '$lib/components/icons/TorpedoHit.svelte';
 	import { Battle, TokenActionType } from '$lib/types/Battle';
-	import { emptyVector, minus } from '$lib/types/Vector';
-	import { tweened } from 'svelte/motion';
+	import { subtract } from '$lib/types/Vector';
 
 	export let battle: Battle;
 	export let phase: number;
@@ -12,7 +11,7 @@
 
 	$: actionToken = battle.getActionToken(phase ?? 0);
 	$: action = battle.getActionForPhase(phase ?? 0);
-	$: targetVector = action && actionToken && minus(action.to, actionToken);
+	$: targetVector = action && actionToken && subtract(action.to, actionToken);
 
 	// if we are doing a same square attack
 	$: targetVector && targetVector.x === 0 && targetVector.y === 0
@@ -23,7 +22,7 @@
 	// 	if (actionToken && action) {
 	// 		// $tweenedX = actionToken.x * 66 + 32;
 	// 		// $tweenedY = actionToken.y * 66 + 32;
-	// 		targetVector = minus(action.to, actionToken);
+	// 		targetVector = subtract(action.to, actionToken);
 	// 	} else {
 	// 		targetVector = emptyVector;
 	// 	}

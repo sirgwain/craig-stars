@@ -427,6 +427,57 @@ func Test_computeFleetSpec(t *testing.T) {
 			BaseCloakedCargo: 0,
 			TotalShips:       2,
 		}},
+		{"1 Cloaked Scout + 1 uncloaked scout", args{&rules, starterHumanoidPlayer, &Fleet{
+			BaseName: "Cloaked Scout",
+			Tokens: []ShipToken{
+				{
+					Quantity:  1,
+					DesignNum: 1,
+					design: NewShipDesign(starterHumanoidPlayer, 1).
+						WithHull(Scout.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+							{HullComponent: StealthCloak.Name, HullSlotIndex: 3, Quantity: 1},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer),
+				},
+				{
+					Quantity:  1,
+					DesignNum: 2,
+					design: NewShipDesign(starterHumanoidPlayer, 2).
+						WithHull(Scout.Name).
+						WithSlots([]ShipDesignSlot{
+							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+							{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
+						}).
+						WithSpec(&rules, starterHumanoidPlayer),
+				},
+			},
+		}}, FleetSpec{
+			ShipDesignSpec: ShipDesignSpec{
+				Cost:           Cost{15, 2, 7, 19},
+				FuelCapacity:   350,
+				ReduceCloaking: 1,
+				ScanRange:      66,
+				ScanRangePen:   30,
+				Scanner:        true,
+				Mass:           39,
+				Armor:          40,
+				CloakUnits:     70,
+				CloakPercent:   23, // uncloaked ship counts as cargo
+				Engine: Engine{
+					IdealSpeed:   QuickJump5.IdealSpeed,
+					FreeSpeed:    QuickJump5.FreeSpeed,
+					MaxSafeSpeed: QuickJump5.MaxSafeSpeed,
+				},
+			},
+			Purposes:         map[ShipDesignPurpose]bool{},
+			MassEmpty:        39,
+			BaseCloakedCargo: 20,
+			TotalShips:       2,
+		}},
 		{"0 Scouts", args{&rules, starterHumanoidPlayer, &Fleet{
 			BaseName: "Long Range Scout",
 			Tokens: []ShipToken{
@@ -650,7 +701,7 @@ func TestFleet_moveFleet(t *testing.T) {
 			}
 			universe.buildMaps([]*Player{player})
 
-			tt.fleet.moveFleet(testLogger, &rules, &universe, newTestPlayerGetter(player))
+			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 			assert.Equal(t, tt.want.position, tt.fleet.Waypoints[0].Position)
@@ -711,7 +762,7 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 			rules := NewRules()
 			rules.random = tt.args.random
 
-			tt.fleet.moveFleet(testLogger, &rules, &universe, newTestPlayerGetter(player))
+			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
 			assert.Equal(t, tt.want.position, tt.fleet.Position)
 		})

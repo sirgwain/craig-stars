@@ -45,7 +45,7 @@
 			</label>
 			<ul
 				tabindex="0"
-				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-30"
+				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-48"
 			>
 				{#if user}
 					<li>{user.username}</li>
@@ -55,6 +55,7 @@
 				</li>
 				{#if user}
 					<li class="md:hidden"><a href="/games">Games</a></li>
+					<li><a href="/games/archived">Archived Games</a></li>
 					<li class="md:hidden"><a href="/races">Races</a></li>
 					<li class="md:hidden"><a href="/techs">Techs</a></li>
 					{#if user.isAdmin()}
@@ -81,7 +82,7 @@
 					<li><a href="/auth/logout">Logout, {user.username}</a></li>
 					<li><div class="divider" /></li>
 					<li class="text-center">version {PKG.version}</li>
-					{:else}
+				{:else}
 					<li class="md:hidden"><a href="/techs">Techs</a></li>
 				{/if}
 			</ul>

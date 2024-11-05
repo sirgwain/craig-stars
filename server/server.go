@@ -325,6 +325,8 @@ func Start(config config.Config) error {
 					r.Put("/player/relations", server.updatePlayerRelations)
 					r.Post("/submit-turn", server.submitTurn)
 					r.Post("/unsubmit-turn", server.unSubmitTurn)
+					r.Post("/archive-game", server.archiveGame)
+					r.Post("/unarchive-game", server.unArchiveGame)
 					r.Post("/research-cost", server.getResearchCost)
 
 					// ship designs
@@ -387,7 +389,7 @@ func Start(config config.Config) error {
 						})
 					})
 
-					// planet order updates
+					// fleet order updates
 					r.Route("/fleets", func(r chi.Router) {
 						r.Route("/{num:[0-9]+}", func(r chi.Router) {
 							r.Use(server.fleetCtx)
@@ -400,7 +402,15 @@ func Start(config config.Config) error {
 							r.Post("/rename", server.renameFleet)
 						})
 					})
-
+					
+					// mineField order updates
+					r.Route("/mine-fields", func(r chi.Router) {
+						r.Route("/{num:[0-9]+}", func(r chi.Router) {
+							r.Use(server.mineFieldCtx)
+							r.Get("/", server.mineField)
+							r.Put("/", server.updateMineFieldOrders)
+						})
+					})
 				})
 
 				r.Get("/full-player", server.fullPlayer)

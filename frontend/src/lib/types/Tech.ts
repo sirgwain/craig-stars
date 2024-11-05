@@ -6,13 +6,6 @@ import type { PRT } from './Race';
 import type { TechLevel } from './TechLevel';
 import type { Vector } from './Vector';
 
-export const UnlimitedSpaceDock = -1;
-export const NoScanner = -1;
-export const NoGate = -1;
-export const InfinteGate = 2147483647;
-export const OriginMysteryTrader = 'MysteryTrader';
-export const GenesisDevice = 'Genesis Device';
-
 export type TechStore = {
 	engines: TechEngine[];
 	planetaryScanners: TechPlanetaryScanner[];
@@ -115,27 +108,28 @@ export type TechHullComponent = {
 } & Tech;
 
 export type TechHull = {
-	mass?: number;
 	armor: number;
-	fuelCapacity?: number;
+	builtInScanner?: boolean;
 	cargoCapacity?: number;
+	cargoSlotCircle?: boolean;
 	cargoSlotPosition?: Vector;
 	cargoSlotSize?: Vector;
-	cargoSlotCircle?: boolean;
-	slots: HullSlot[];
-	builtInScanner?: boolean;
-	initiative?: number;
-	repairBonus?: number;
-	mineLayingBonus?: number;
+	fuelCapacity?: number;
+	fuelGeneration?: number;
 	immuneToOwnDetonation?: boolean;
-	rangeBonus?: number;
-	starbase?: boolean;
+	initiative?: number;
+	innateScanRangePenFactor?: number;
+	mass?: number;
+	mineLayingBonus?: number;
 	orbitalConstructionHull?: boolean;
+	rangeBonus?: number;
+	repairBonus?: number;
+	slots: HullSlot[];
 	spaceDock?: number;
+	spaceDockSlotCircle?: boolean;
 	spaceDockSlotPosition?: Vector;
 	spaceDockSlotSize?: Vector;
-	spaceDockSlotCircle?: boolean;
-	innateScanRangePenFactor?: number;
+	starbase?: boolean;
 } & Tech;
 
 export type HullSlot = {
@@ -160,6 +154,7 @@ export enum HullSlotType {
 	Weapon = 1 << 11,
 	Orbital = 1 << 12,
 	MineLayer = 1 << 13,
+	ElectricalMechanical = HullSlotType.Electrical | HullSlotType.Mechanical,
 	OrbitalElectrical = HullSlotType.Orbital | HullSlotType.Electrical,
 	ShieldElectricalMechanical = HullSlotType.Shield |
 		HullSlotType.Electrical |

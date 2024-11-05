@@ -77,7 +77,9 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 		return rc.Biotechnology
 	}
 
-	panic(fmt.Sprintf("invalid field %s to get ResearchCost", field))
+	// this is crashing some games. not sure what's up
+	return ResearchCostStandard
+	//panic(fmt.Sprintf("invalid field %s to get ResearchCost", field))
 }
 
 type RaceSpec struct {
@@ -590,7 +592,7 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 
 // compute the spec for this race
 func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
-	prtSpec := rules.PRTSpecs[PRT(race.PRT)]
+	prtSpec := rules.PRTSpecs[PRT(race.PRT)].clone()
 	spec := RaceSpec{
 		HabCenter:          race.HabCenter(),
 		StartingTechLevels: prtSpec.StartingTechLevels,
@@ -612,6 +614,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 			MiniaturizationMax:      .75,
 			MiniaturizationPerLevel: .04,
 		},
+		ScrapMineralOffsetStarbase:   .8 - (1.0 / 3),
 
 		// PP
 		MineralsPerSingleMineralPacket:   prtSpec.MineralsPerSingleMineralPacket,
@@ -738,7 +741,9 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ScrapResourcesOffsetStarbase += lrtSpec.ScrapResourcesOffsetStarbase
 		spec.StartingPopulationFactor += lrtSpec.StartingPopulationFactorDelta
 		spec.StarbaseBuiltInCloakUnits += lrtSpec.StarbaseBuiltInCloakUnits
-		spec.StarbaseCostFactor = math.Max(spec.StarbaseCostFactor, lrtSpec.StarbaseCostFactorOffset) // this isn't cumulative
+		if lrtSpec.StarbaseCostFactor > 0 {
+			spec.StarbaseCostFactor = math.Min(spec.StarbaseCostFactor, lrtSpec.StarbaseCostFactor) // this isn't cumulative
+		}
 		spec.ResearchFactor += lrtSpec.ResearchFactorOffset
 		spec.ResearchSplashDamage += lrtSpec.ResearchSplashDamage
 		spec.ShieldStrengthFactor += lrtSpec.ShieldStrengthFactorOffset

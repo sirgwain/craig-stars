@@ -1,17 +1,16 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import { Unexplored } from '$lib/types/Constants';
+	import { filterFleet } from '$lib/types/Filter';
+	import { type Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, owned } from '$lib/types/MapObject';
-	import { Unexplored, type Planet } from '$lib/types/Planet';
+	import { type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
-	import type { Readable, Writable } from 'svelte/store';
-	import { clamp } from '$lib/services/Math';
+	import type { Readable } from 'svelte/store';
 	import MapObjectScaler from './MapObjectScaler.svelte';
-	import { type Fleet, idleFleetsFilter } from '$lib/types/Fleet';
-	import { find } from 'lodash-es';
 	import { getEnemiesAndFriends } from './Scanner';
-	import { filterFleet } from '$lib/types/Filter';
+	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 
 	const { settings } = getGameContext();
 	const { game, player, universe } = getGameContext();
@@ -103,7 +102,8 @@
 	<circle {...props} />
 	{#if hasStarbase}
 		<rect
-			class="starbase"
+			class:starbase={planet.spec?.dockCapacity}
+			class:starbase-fort={!planet.spec?.dockCapacity}
 			width={starbaseWidth}
 			height={starbaseWidth}
 			rx={0.5}

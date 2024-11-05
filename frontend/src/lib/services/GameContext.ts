@@ -3,7 +3,8 @@ import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/Cargo';
 import { CommandedFleet, type Fleet, type ShipToken, type Waypoint } from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
-import { MapObjectType, None, equal, key, type MapObject } from '$lib/types/MapObject';
+import { MapObjectType, equal, key, ownedBy, type MapObject } from '$lib/types/MapObject';
+import { None } from '$lib/types/Constants';
 import {
 	MessageTargetType,
 	MessageType,
@@ -43,6 +44,8 @@ import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
 import type { CS } from '$lib/wasm';
+import type { MineField } from '$lib/types/MineField';
+import { MineFieldService } from './MineFieldService';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -111,6 +114,7 @@ export type GameContext = {
 	updateFleetOrders: (fleet: CommandedFleet) => Promise<void>;
 	renameFleet: (fleet: CommandedFleet, name: string) => Promise<void>;
 	updatePlanetOrders: (planet: CommandedPlanet) => Promise<void>;
+	updateMineFieldOrders: (mineField: MineField) => Promise<void>;
 	transferCargo: (
 		fleet: CommandedFleet,
 		dest: Fleet | Planet | Salvage,
@@ -334,6 +338,20 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			}
 		}
 
+		if (message.spec.targetType === MapObjectType.MineField) {
+			const fleet = universe.getFleet(message.targetPlayerNum, message.targetNum);
+			const mf = universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum);
+			if (fleet && ownedBy(fleet, playerNum)) {
+				commandMapObject(fleet);
+			}
+			if (mf) {
+				selectMapObject(mf);
+				zoomToMapObject(mf);
+				goto(`/games/${gameId}`);
+				return;
+			}
+		}
+
 		if (message.targetNum) {
 			moType = getMapObjectTypeForMessageType(targetType);
 			targetTargetMapObjectType = getMapObjectTypeForMessageType(targetTargetType);
@@ -476,7 +494,8 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
-						targetNum: fleet.orbitingPlanetNum
+						targetNum: fleet.orbitingPlanetNum,
+						targetPosition: fleet.position
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -513,7 +532,8 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 					const planet = u.getMapObject({
 						targetType: MapObjectType.Planet,
-						targetNum: fleet.orbitingPlanetNum
+						targetNum: fleet.orbitingPlanetNum,
+						targetPosition: fleet.position
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -565,10 +585,21 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		} else {
 			// command our first planet
 			const planets = u.getMyPlanets(s.sortPlanetsKey, s.sortPlanetsDescending);
+			const fleets = u.getMyFleets(s.sortFleetsKey, s.sortFleetsDescending);
 			if (planets.length > 0) {
 				commandMapObject(planets[0]);
 				selectMapObject(planets[0]);
 				zoomToMapObject(planets[0]);
+			} else if (fleets.length > 0) {
+				commandMapObject(fleets[0]);
+				selectMapObject(fleets[0]);
+				zoomToMapObject(fleets[0]);
+			} else {
+				const planet = u.getPlanet(1);
+				if (planet) {
+					selectMapObject(planet);
+					zoomToMapObject(planet);
+				}
 			}
 		}
 	}
@@ -636,6 +667,22 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		// if we were selecting this planet, reselect it to trigger reactivity
 		if (equal(get(selectedMapObject), planet)) {
 			selectMapObject(planet);
+		}
+
+		// trigger reactivity
+		universe.set(u);
+	}
+
+	// after a mineField is updated from the server, update the mineField in the universe, reset any commanded/selected
+	// state and trigger reactivity
+	function updateMineField(mineField: MineField, updatedMineField: MineField) {
+		mineField = Object.assign(mineField, updatedMineField);
+		const u = get(universe);
+		u.updateMineField(mineField);
+
+		// if we were selecting this mineField, reselect it to trigger reactivity
+		if (equal(get(selectedMapObject), mineField)) {
+			selectMapObject(mineField);
 		}
 
 		// trigger reactivity
@@ -828,12 +875,22 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		updatePlanet(planet, resp.planet);
 	}
 
+	async function updateMineFieldOrders(mineField: MineField): Promise<void> {
+		const updatedMineField = await MineFieldService.updateMineFieldOrders(mineField);
+		updateMineField(mineField, updatedMineField);
+	}
+
 	async function transferCargo(
 		fleet: CommandedFleet,
 		dest: Fleet | Planet | Salvage,
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
 		const result = await FleetService.transferCargo(fleet, dest, transferAmount);
+		const u = get(universe);
+
+		if (result.player) {
+			updatePlayer(result.player);
+		}
 
 		if (result.dest?.type == MapObjectType.Planet) {
 			const planet = result.dest as Planet;
@@ -845,7 +902,24 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 
 		if (result.salvages) {
-			get(universe).updateSalvages(result.salvages);
+			u.updateSalvages(result.salvages);
+		}
+		if (result.mineralPackets) {
+			u.updateMineralPackets(result.mineralPackets);
+		}
+
+		const smo = get(selectedMapObject);
+		if (smo && smo.type == MapObjectType.Salvage) {
+			const salvage = u.getSalvage(smo.num);
+			if (salvage) {
+				selectMapObject(salvage);
+			}
+		}
+		if (smo && smo.type == MapObjectType.MineralPacket) {
+			const mineralPacket = u.getMineralPacket(smo.playerNum, smo.num);
+			if (mineralPacket) {
+				selectMapObject(mineralPacket);
+			}
 		}
 
 		updateFleet(fleet, result.fleet);
@@ -981,6 +1055,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		updateFleetOrders,
 		renameFleet,
 		updatePlanetOrders,
+		updateMineFieldOrders,
 		transferCargo,
 		split,
 		splitAll,

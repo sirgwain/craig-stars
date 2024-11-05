@@ -116,7 +116,7 @@ func (tl TechLevel) Add(other TechLevel) TechLevel {
 	}
 }
 
-func (tl TechLevel) Minus(tl2 TechLevel) TechLevel {
+func (tl TechLevel) Subtract(tl2 TechLevel) TechLevel {
 	return TechLevel{
 		tl.Energy - tl2.Energy,
 		tl.Weapons - tl2.Weapons,
@@ -213,5 +213,5 @@ func (tl TechLevel) LearnableTechFields(rules *Rules) []TechField {
 
 // get the lowest field missing from tl for a requirement
 func (tl TechLevel) LowestMissingLevel(requirement TechLevel) TechField {
-	return requirement.Minus(tl).MinZero().LowestNonZero()
+	return requirement.Subtract(tl).MinZero().LowestNonZero()
 }

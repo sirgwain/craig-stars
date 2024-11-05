@@ -129,7 +129,7 @@ func (m Mineral) AddInt(num int) Mineral {
 }
 
 // subtract two minerals
-func (m Mineral) Minus(m2 Mineral) Mineral {
+func (m Mineral) Subtract(m2 Mineral) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium - m2.Ironium,
 		Boranium:  m.Boranium - m2.Boranium,
@@ -138,7 +138,7 @@ func (m Mineral) Minus(m2 Mineral) Mineral {
 }
 
 // subtract the mineral components of a Cost
-func (m Mineral) MinusCost(m2 Cost) Mineral {
+func (m Mineral) SubtractCost(m2 Cost) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium - m2.Ironium,
 		Boranium:  m.Boranium - m2.Boranium,
@@ -162,26 +162,25 @@ func (m Mineral) Clamp(min, max int) Mineral {
 	}
 }
 
-
 // return the Nth highest MineralType in a Mineral struct 
 // (1 = highest, 2 = middle, 3 = lowest)
 // 
 // Ties are broken in order of precendence (I/B/G) 
 func (m Mineral) HighestType(ranking int) MineralType {
+	var highestType MineralType 
 	copy := m // make copy of struct so we can zero out values without affecting the original
-	var highestType MineralType
 	for i := 0; i < ranking; i++ {
-		// get the highest type in the cost struct
-		highestType = copy.GetTypeFromAmount(MaxInt(copy.Ironium, copy.Boranium, copy.Germanium))
-		// For the record, this will never cause GetTypeFromAmount to panic because we are  
+		// get the largest mineral type in the cost struct
+		// This will never cause GetTypeFromAmount to panic because we are  
 		// comparing the struct's own values against themselves
+		highestType = copy.GetTypeFromAmount(MaxInt(copy.Ironium, copy.Boranium, copy.Germanium))
 		copy.Set(highestType, 0)
 	}
 	return highestType
 }
 
-// return the first valid MineralType in a Mineral struct with the given numerical value
-// returns an error if no MineralType with the corresponding value exists
+// return the first valid MineralType in a Mineral struct with the given numerical value;
+// panics if no MineralType with the corresponding value exists
 func (m Mineral) GetTypeFromAmount(amt int) MineralType {
 	switch amt {
 	case m.Ironium:

@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
+	import { Unexplored } from '$lib/types/Constants';
 	import { type Fleet } from '$lib/types/Fleet';
-	import { Unexplored, type Planet } from '$lib/types/Planet';
+	import { type Planet } from '$lib/types/Planet';
 
 	export type Results = {
 		planets: Planet[];
@@ -17,7 +18,8 @@
 <script lang="ts">
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getMapObjectName, None, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { getMapObjectName, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
 	import { createEventDispatcher, onMount } from 'svelte';
 
@@ -61,7 +63,8 @@
 		const termSearch = (term: string, mo: MapObject): boolean =>
 			mo.name.toLowerCase().indexOf(term.toLowerCase()) != -1 ||
 			(mo.playerNum != None &&
-				$universe.getPlayerPluralName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) != -1);
+				$universe.getPlayerPluralName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) !=
+					-1);
 
 		// reset the selected item when the search is updated
 		selectedItemIndex = 0;
@@ -148,6 +151,7 @@
 		bind:this={searchInput}
 		bind:value={$settings.searchQuery}
 		on:keydown={onSearchKeyDown}
+		on:focus={() => searchInput?.select()}
 	/>
 	<div class="h-full">
 		<div class="mt-2 w-full h-full bg-base-200 border-2 border-base-300 overflow-y-auto pl-2">

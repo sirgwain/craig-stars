@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
-            "args": ["-d", "serve"]
+            "args": ["serve"]
         },
         {
             "name": "serve --generate-test-game",
@@ -18,7 +18,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
-            "args": ["-d", "serve", "--generate-test-game"]
+            "args": ["serve", "--generate-test-game"]
         },
         {
             "name": "generate wasm serializers",
@@ -35,7 +35,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
-            "args": ["-d", "migrate"]
+            "args": ["migrate"]
         },
         {
             "name": "generate",
@@ -43,7 +43,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
-            "args": ["-d", "generate", "game", "--name", "A Barefoot Jaywalk", "--user-id", "1"]
+            "args": ["generate", "game", "--name", "A Barefoot Jaywalk", "--user-id", "1"]
         },
         {
             "name": "test",

@@ -9,6 +9,10 @@ import (
 )
 
 func testStalwartDefender(player *Player) *Fleet {
+	return testStalwartDefenderWithQuantity(player, 1)
+}
+
+func testStalwartDefenderWithQuantity(player *Player, quantity int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
 			PlayerNum: player.Num,
@@ -17,7 +21,7 @@ func testStalwartDefender(player *Player) *Fleet {
 		Tokens: []ShipToken{
 			{
 				DesignNum: 1,
-				Quantity:  1,
+				Quantity:  quantity,
 				design: NewShipDesign(player, 1).
 					WithHull(Destroyer.Name).
 					WithSlots([]ShipDesignSlot{
@@ -1268,7 +1272,7 @@ func Test_battle_runBattleError(t *testing.T) {
 	}
 
 	_, err := RunTestBattle([]*Player{player1, player2}, fleets)
-	// should return error due to incorrect spec on teamster from completely bananas parts
+	// should return error due to incorrect spec on teamster from nonexistent hull/parts
 	assert.Error(t, err)
 }
 

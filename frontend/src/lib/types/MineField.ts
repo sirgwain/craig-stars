@@ -14,6 +14,7 @@ export type MineFieldOrders = {
 export type MineFieldSpec = {
 	radius: number;
 	decayRate: number;
+	canDetonate?: boolean;
 };
 
 export type MineFieldType = (typeof MineFieldTypes)[keyof typeof MineFieldTypes];
@@ -34,4 +35,10 @@ export type MineFieldStats = {
 	sweepFactor: number;
 	minDecay: number;
 	canDetonate: boolean;
+};
+
+export type MineFieldDamage = {
+	damage?: number;
+	shipsDestroyed?: number;
+	fleetDestroyed?: boolean;
 };

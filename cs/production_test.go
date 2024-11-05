@@ -1,12 +1,13 @@
 package cs
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_production_produce(t *testing.T) {
+func Test_production_produceOneConcreteMine(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// build 1 mine
@@ -37,7 +38,7 @@ func Test_production_produce(t *testing.T) {
 	assert.Equal(t, 5, planet.ProductionQueue[0].Quantity)
 }
 
-func Test_production_produce2(t *testing.T) {
+func Test_production_produceAutoFactories(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// build 5 auto factories, leaving them in the queue
@@ -49,15 +50,17 @@ func Test_production_produce2(t *testing.T) {
 
 	// should build 5 mine, leaving the auto build in the queu
 	producer := newProducer(testLogger, &rules, planet, player)
-	producer.produce()
+	result, err := producer.produce()
+	assert.Nil(t, err)
+
 	assert.Equal(t, 5, planet.Factories)
 	assert.Equal(t, 1, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeAutoFactories, planet.ProductionQueue[0].Type)
 	assert.Equal(t, 5, planet.ProductionQueue[0].Quantity)
-
+	assert.Equal(t, 50, result.leftoverResources) // 50 resources leftover after building 5 mines
 }
 
-func Test_production_produce3(t *testing.T) {
+func Test_production_produceFactoriesThenMinesWithLowGerm(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// build 2/5 auto factories and 5 mines
@@ -86,7 +89,7 @@ func Test_production_produce3(t *testing.T) {
 	assert.Equal(t, 5, planet.ProductionQueue[1].Quantity)
 }
 
-func Test_production_produce4(t *testing.T) {
+func Test_production_produceFactoriesToMaxAndPartialMine(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// build 2/5 auto factories and one partial mine
@@ -115,7 +118,7 @@ func Test_production_produce4(t *testing.T) {
 
 }
 
-func Test_production_produce5(t *testing.T) {
+func Test_production_produceDefensesToMax(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// build 100 auto defenses when we have 90 already and one partial in the queue
@@ -137,7 +140,7 @@ func Test_production_produce5(t *testing.T) {
 	assert.Equal(t, 100, planet.ProductionQueue[0].Quantity)
 }
 
-func Test_production_produce6(t *testing.T) {
+func Test_production_produceFactoriesToMaxThenMines(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// auto build up to the max
@@ -166,7 +169,7 @@ func Test_production_produce6(t *testing.T) {
 
 }
 
-func Test_production_produce7(t *testing.T) {
+func Test_production_producePartialMine(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// auto build factories, but we have no mines or minerals, so they'll never build
@@ -182,9 +185,13 @@ func Test_production_produce7(t *testing.T) {
 	// should build nothing, but queue up a mine partially done
 	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
+
+	// nothing built
 	assert.Equal(t, 0, planet.Factories)
 	assert.Equal(t, 0, planet.Mines)
 	assert.Equal(t, 3, len(planet.ProductionQueue))
+
+	// concrete mine partially completed with 2 resources
 	assert.Equal(t, QueueItemTypeMine, planet.ProductionQueue[0].Type)
 	assert.Equal(t, 1, planet.ProductionQueue[0].Quantity)
 	assert.Equal(t, Cost{Resources: 2}, planet.ProductionQueue[0].Allocated)
@@ -197,7 +204,7 @@ func Test_production_produce7(t *testing.T) {
 
 }
 
-func Test_production_produce8(t *testing.T) {
+func Test_production_producePartialFactoryAndMoreAuto(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// build the half completed factory, keep building more factories but don't add a partial mine
@@ -212,15 +219,19 @@ func Test_production_produce8(t *testing.T) {
 	planet.Factories = 16
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 
-	// should build nothing, but queue up a mine partially done
 	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
+
+	// build partial factory, then more factories until out of resources
+	// then allocate to a new concrete factory
 	assert.Equal(t, 20, planet.Factories)
 	assert.Equal(t, 11, planet.Mines)
 	assert.Equal(t, 4, len(planet.ProductionQueue))
 	assert.Equal(t, QueueItemTypeFactory, planet.ProductionQueue[0].Type)
 	assert.Equal(t, 1, planet.ProductionQueue[0].Quantity)
-	assert.Equal(t, Cost{Resources: 7}, planet.ProductionQueue[0].Allocated)
+	assert.Equal(t, Cost{Germanium: 2, Resources: 7}, planet.ProductionQueue[0].Allocated)
+
+	// auto orders remain empty of allocated resources
 	assert.Equal(t, QueueItemTypeAutoMinTerraform, planet.ProductionQueue[1].Type)
 	assert.Equal(t, 1, planet.ProductionQueue[1].Quantity)
 	assert.Equal(t, Cost{}, planet.ProductionQueue[1].Allocated)
@@ -234,7 +245,7 @@ func Test_production_produce8(t *testing.T) {
 
 }
 
-func Test_production_produce9(t *testing.T) {
+func Test_production_producePartialFactory(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// build the half completed factory, keep building more factories but don't add a partial mine
@@ -253,12 +264,13 @@ func Test_production_produce9(t *testing.T) {
 	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
 
-	// don't go negative
-	assert.Equal(t, planet.Cargo, planet.Cargo.MinZero())
+	// We should consume 1kT germanium and allocate appropriate resources to match
+	assert.Equal(t, Cargo{7, 2, 0, 37}, planet.Cargo)
+	assert.Equal(t, Cost{Germanium: 3, Resources: 7}, planet.ProductionQueue[0].Allocated)
 
 }
 
-func Test_production_produce10(t *testing.T) {
+func Test_production_produceBuildToMinesFactoriesToMax(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// make mines/factories cheap so we can build them
@@ -285,6 +297,57 @@ func Test_production_produce10(t *testing.T) {
 	// we should build mines/factories accounting for future growth
 	assert.Equal(t, 115, planet.Mines)
 	assert.Equal(t, 115, planet.Factories)
+
+}
+
+func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
+	player, planet := newTestPlayerPlanet()
+	player.TechLevels = TechLevel{0, 0, 3, 4, 0, 2}
+	player.Race.PRT = SD
+	player.Race.LRTs = Bitmask(IFE) | Bitmask(ARM) | Bitmask(BET) | Bitmask(RS)
+	player.Race.PopEfficiency = 9
+	player.Race.FactoryOutput = 11
+	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+	player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
+
+	// add two designs, a colony ship w/fuel mizer and medium freighter w/fuel mizer
+	player.Designs = append(player.Designs, NewShipDesign(player, 1).
+		WithHull(ColonyShip.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
+		}).
+		WithSpec(&rules, player))
+
+	player.Designs = append(player.Designs, NewShipDesign(player, 2).
+		WithHull(MediumFreighter.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
+		}).
+		WithSpec(&rules, player))
+
+	// add designs plus some auto items
+	planet.ProductionQueue = []ProductionQueueItem{
+		{Type: QueueItemTypeShipToken, Quantity: 1, DesignNum: 1, design: player.Designs[0]},
+		{Type: QueueItemTypeShipToken, Quantity: 2, DesignNum: 2, design: player.Designs[1], Allocated: Cost{Ironium: 40, Germanium: 29, Resources: 75}},
+		{Type: QueueItemTypeAutoMines, Quantity: 250},
+		{Type: QueueItemTypeAutoFactories, Quantity: 250},
+		{Type: QueueItemTypeAutoMaxTerraform, Quantity: 10},
+	}
+	planet.Cargo = Cargo{1000, 1000, 77, 3166}
+	planet.Spec = computePlanetSpec(&rules, player, planet)
+
+	// should build nothing, but queue up a mine partially done
+	producer := newProducer(testLogger, &rules, planet, player)
+	result, err := producer.produce()
+
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(result.itemsBuilt))
+	assert.Equal(t, 1, result.itemsBuilt[0].designNum)
+	assert.Equal(t, 1, result.itemsBuilt[0].numBuilt)
+	assert.Equal(t, 2, result.itemsBuilt[1].designNum)
+	assert.Equal(t, 2, result.itemsBuilt[1].numBuilt)
 
 }
 
@@ -364,12 +427,11 @@ func Test_production_produceMineralPackets(t *testing.T) {
 	planet.PacketTargetNum = 1
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, PlanetStarbaseSpec: PlanetStarbaseSpec{HasMassDriver: true, SafePacketSpeed: 6, BasePacketSpeed: 6}}
 
-	// should build 5 mine, leaving the auto build in the queue
+	// should build 5 mine, leaving the auto build in the queu
 	producer := newProducer(testLogger, &rules, planet, player)
 	result, err := producer.produce()
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(result.packets))
-	assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets[0])
+	assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets)
 	assert.Equal(t, 0, len(planet.ProductionQueue))
 }
 
@@ -387,4 +449,32 @@ func Test_production_produceScanner(t *testing.T) {
 	producer.produce()
 	assert.True(t, planet.Scanner)
 	assert.Equal(t, 0, len(planet.ProductionQueue))
+}
+
+func Test_production_allocatePartialBuild(t *testing.T) {
+	_, planet := newTestPlayerPlanet()
+
+	type args struct {
+		costPerItem Cost
+		allocated   Cost
+	}
+	tests := []struct {
+		name string
+		args args
+		want Cost
+	}{
+		{"Factory 2kT Germ left", args{costPerItem: Cost{0, 0, 4, 10}, allocated: Cost{100, 100, 2, 100}}, Cost{0, 0, 2, 5}},
+		{"Factory 5 resources left", args{costPerItem: Cost{0, 0, 4, 10}, allocated: Cost{100, 100, 100, 5}}, Cost{0, 0, 2, 5}},
+		{"Up to 50% due to ironium shortage", args{costPerItem: Cost{10, 20, 30, 40}, allocated: Cost{5, 100, 100, 100}}, Cost{5, 10, 15, 20}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			production := production{planet: planet}
+
+			if got := production.allocatePartialBuild(tt.args.costPerItem, tt.args.allocated); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Planet.allocatePartialBuild() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

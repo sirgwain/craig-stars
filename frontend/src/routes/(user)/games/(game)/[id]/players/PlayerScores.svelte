@@ -10,7 +10,11 @@
 	<thead>
 		<th />
 		{#each players as player}
-			<th class="h-20 w-20"><div class="origin-bottom -rotate-45">{$universe.getPlayerPluralName(player.num)}</div></th>
+			<th class="h-20 w-20"
+				><div class="origin-bottom -rotate-45 text-ellipsis w-20 overflow-hidden">
+					{$universe.getPlayerPluralName(player.num)}
+				</div></th
+			>
 		{/each}
 	</thead>
 	<tbody>

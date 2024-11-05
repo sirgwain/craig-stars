@@ -43,8 +43,8 @@
 			if (warpSpeed) {
 				const coords = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5].map((dist: number) => ({
 					position: {
-						x: mo.position.x + heading.x * distPerLy * dist,
-						y: mo.position.y + heading.y * distPerLy * dist
+						x: mo.position.x + heading.x * Math.ceil(distPerLy * dist),
+						y: mo.position.y + heading.y * Math.ceil(distPerLy * dist)
 					}
 				}));
 

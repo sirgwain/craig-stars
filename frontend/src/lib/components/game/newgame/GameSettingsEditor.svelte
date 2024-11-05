@@ -2,7 +2,14 @@
 	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { Density, PlayerPositions, Size, type GameSettings } from '$lib/types/Game';
+	import {
+		Density,
+		GameStartMode,
+		PlayerPositions,
+		Size,
+		type GameSettings
+	} from '$lib/types/Game';
+	import { startCase } from 'lodash-es';
 	import PrivateGameLink from '../../../../routes/(user)/games/(game)/[id]/(main)/PrivateGameLink.svelte';
 
 	export let settings: GameSettings;
@@ -32,5 +39,13 @@
 	<CheckboxInput
 		name="computerPlayersFormAlliances"
 		bind:checked={settings.computerPlayersFormAlliances}
+	/>
+	<EnumSelect
+		name="startMode"
+		enumType={GameStartMode}
+		bind:value={settings.startMode}
+		typeTitle={(value) => (!value || value === GameStartMode.Normal ? 'Normal' : startCase(value))}
+		showEmpty={true}
+		tooltip={`Setting mode to Max will create a game with all tech levels, max minerals, etc`}
 	/>
 </div>

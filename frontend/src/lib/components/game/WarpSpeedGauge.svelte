@@ -12,7 +12,9 @@
 	export let warnColor = 'warp-warn-bar';
 	export let dangerColor = 'warp-danger-bar';
 	export let stargateColor = 'warp-stargate-bar';
+	export let packetColor = 'warp-packet-bar';
 	export let useStargate = false;
+	export let isPacket = false;
 	export let warp0Text = 'Warp 0';
 
 	let percent = 0;
@@ -28,6 +30,8 @@
 
 		if (useStargate && (value ?? 0) >= stargateSpeed) {
 			color = stargateColor;
+		} else if (isPacket && (value ?? 0) < warnSpeed) {
+			color = packetColor;
 		} else if ((value ?? 0) >= dangerSpeed) {
 			color = dangerColor;
 		} else if ((value ?? 0) >= warnSpeed) {

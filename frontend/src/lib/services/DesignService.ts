@@ -19,30 +19,6 @@ export class DesignService {
 		return Service.create(design, `/api/games/${gameId}/designs`);
 	}
 
-	/**
-	 * compute a spec for a design
-	 * @param gameId The gameId for the design
-	 * @param design The design to compute a spec for
-	 * @returns the newly computed spec
-	 */
-	static async computeSpec(gameId: number | string, design: ShipDesign): Promise<Spec> {
-		const url = `/api/games/${gameId}/designs/spec`;
-		const response = await fetch(url, {
-			method: 'POST',
-			headers: {
-				accept: 'application/json'
-			},
-			body: JSON.stringify(design)
-		});
-
-		if (!response.ok) {
-			await Service.throwError(response);
-		}
-
-		// update the spec
-		return (await response.json()) as Spec;
-	}
-
 	static async delete(
 		gameId: number | string,
 		num: number | string

@@ -13,11 +13,14 @@
 </script>
 
 {#each fleets as fleet}
-	{#if fleet.waypoints && fleet.waypoints.length > 1}
-		<ScannerWaypointLine
-			{fleet}
-			selectedWaypoint={$selectedWaypoint}
-			commanded={fleet.num === $commandedFleet?.num}
-		/>
+	{#if fleet.waypoints && fleet.waypoints.length > 1 && fleet.num !== $commandedFleet?.num}
+		<ScannerWaypointLine {fleet} selectedWaypoint={$selectedWaypoint} />
 	{/if}
 {/each}
+{#if $commandedFleet && $commandedFleet.waypoints && $commandedFleet.waypoints.length > 1}
+	<ScannerWaypointLine
+		fleet={$commandedFleet}
+		selectedWaypoint={$selectedWaypoint}
+		commanded={true}
+	/>
+{/if}

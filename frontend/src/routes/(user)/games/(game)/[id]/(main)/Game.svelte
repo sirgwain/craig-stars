@@ -75,7 +75,7 @@
 		});
 
 		// on the game view, prevent scrolling
-		document.documentElement.classList.add("overscroll-none")
+		document.documentElement.classList.add('overscroll-none');
 
 		return () => {
 			hotkeys.unbind('n', 'root');
@@ -85,7 +85,7 @@
 			hotkeys.unbind('Backspace', 'root');
 
 			// go back to normal
-			document.documentElement.classList.remove("overscroll-none")
+			document.documentElement.classList.remove('overscroll-none');
 		};
 	});
 
@@ -159,7 +159,7 @@
 	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
 			<ScannerToolbar on:show-search={() => (showSearchDialog = true)} />
-			<Scanner />
+			<Scanner on:delete-waypoint={onDeleteWaypoint} />
 		</div>
 		<div class:hidden={!carouselOpen}>
 			<MapObjectStatsBar />

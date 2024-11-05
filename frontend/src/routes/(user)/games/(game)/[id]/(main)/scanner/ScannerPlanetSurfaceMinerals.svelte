@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { Unexplored, type Planet } from '$lib/types/Planet';
+	import { totalCargo } from '$lib/types/Cargo';
+	import { Unexplored } from '$lib/types/Constants';
+	import { type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
-	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
-	import { totalCargo } from '$lib/types/Cargo';
 	import MapObjectScaler from './MapObjectScaler.svelte';
+	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
@@ -65,7 +65,7 @@
 			class="stroke-white"
 			stroke-width={1}
 			fill="none"
-			d={`M${size/1.5},${-abovePlanetY}L${-size/2},${-abovePlanetY} L${-size/2},${-abovePlanetY - size}`}
+			d={`M${size / 1.5},${-abovePlanetY}L${-size / 2},${-abovePlanetY} L${-size / 2},${-abovePlanetY - size}`}
 		/>
 	</MapObjectScaler>
 {/if}

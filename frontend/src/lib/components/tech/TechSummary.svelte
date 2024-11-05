@@ -17,16 +17,15 @@
 	import TechTraitRequirements from './TechTraitRequirements.svelte';
 
 	import { levelsAbove } from '$lib/types/TechLevel';
+	import type { CS } from '$lib/wasm';
 	import { kebabCase } from 'lodash-es';
 	import TechAvatar from './TechAvatar.svelte';
 	import TechDefenseGraph from './TechDefenseGraph.svelte';
-	import { PlayerService } from '$lib/services/PlayerService';
-	import type { FullGame } from '$lib/services/FullGame';
 	import TechWarnings from './TechWarnings.svelte';
 
 	export let tech: Tech;
 	export let player: Player | undefined = undefined;
-	export let game: FullGame | undefined = undefined;
+	export let cs: CS | undefined = undefined;
 	export let showResearchCost = false;
 	export let hideGraph = false;
 
@@ -43,10 +42,8 @@
 	$: above = player?.hasTech(tech) ? levelsAbove(tech.requirements, player.techLevels) : 0;
 
 	$: {
-		if (showResearchCost && player && game) {
-			PlayerService.getResearchCost(game.id, tech.requirements).then(
-				(result) => (researchCost = result.resources)
-			);
+		if (showResearchCost && player && cs) {
+			researchCost = cs.getResearchCost(tech.requirements) ?? 0;
 		}
 	}
 </script>

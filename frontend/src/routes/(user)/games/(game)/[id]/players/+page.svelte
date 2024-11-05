@@ -40,10 +40,7 @@
 	<div class="flex flex-row flex-wrap gap-1 justify-center">
 		{#each graphTypes as graphType}
 			<div class="form-control">
-				<label
-					class="label cursor-pointer btn w-[11rem]"
-					class:bg-primary={type == graphType}
-				>
+				<label class="label cursor-pointer btn w-[11rem]" class:bg-primary={type == graphType}>
 					<span class="label-text text-center w-full">{startCase(graphType)}</span>
 					<input
 						type="radio"
@@ -60,7 +57,11 @@
 
 <div class="w-full">
 	<ItemTitle>Victory Conditions</ItemTitle>
-	<PlayerVictoryConditions />
+	{#if $game.victoryConditions.conditions}
+		<PlayerVictoryConditions />
+	{:else}
+		<div class="text-center">None</div>
+	{/if}
 </div>
 
 <div class="mb-10" />
