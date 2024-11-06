@@ -79,11 +79,7 @@
 			return true;
 		}
 
-		if (message.type === MessageType.PlayerGainTechLevel) {
-			return true;
-		}
-
-		return false;
+		return message.type === MessageType.PlayerGainTechLevel;
 	}
 
 	const previous = (event: Event) => {
@@ -144,10 +140,7 @@
 	let previousVisibleMessageNum = $derived(
 		getPreviousVisibleMessageNum($messageNum, showFilteredMessages, messages)
 	);
-	let visible;
-	run(() => {
-		visible = (message && $settings.isMessageVisible(message.type)) ?? false;
-	});
+	let visible = $derived((message && $settings.isMessageVisible(message.type)) ?? false);
 </script>
 
 <div class:hidden={!showMessages} class:block={showMessages}>
@@ -185,7 +178,7 @@
 			<div class="flex flex-row">
 				<div class="mt-1 h-12 grow overflow-y-auto">
 					<div class="relative">
-						{#if !visible || message == undefined}
+						{#if !visible || message == null}
 							<div class="absolute w-full text-center">
 								<span class="text-[1.5rem] text-warning -rotate-12">FILTERED</span>
 							</div>

@@ -1,17 +1,10 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import { playerFinderKey } from '$lib/services/GameContext';
-	import type { PlayerFinder } from '$lib/services/Universe';
 	import { TokenActionType, type Battle, type PhaseToken } from '$lib/types/Battle';
-	import { getContext } from 'svelte';
 	import BattleBoardAction from './BattleBoardAction.svelte';
 	import BattleBoardAttack from './BattleBoardAttack.svelte';
 	import BattleBoardPhaseControls from './BattleBoardPhaseControls.svelte';
 	import BattleBoardTokenDetails from './BattleBoardTokenDetails.svelte';
 	import BattleBoardSquare from './BattleBoardSquare.svelte';
-
-	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
 	interface Props {
 		battle: Battle;
@@ -24,10 +17,7 @@
 	let actionToken: PhaseToken | undefined = $state();
 	let target: PhaseToken | undefined = $state();
 
-	let action;
-	run(() => {
-		action = battle.getActionForPhase(phase ?? 0);
-	});
+	let action = $derived(battle.getActionForPhase(phase ?? 0));
 </script>
 
 <div class="flex w-full">

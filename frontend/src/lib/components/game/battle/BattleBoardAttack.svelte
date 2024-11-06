@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import TorpedoHit from '$lib/components/icons/TorpedoHit.svelte';
 	import { Battle, TokenActionType } from '$lib/types/Battle';
 	import { subtract } from '$lib/types/Vector';
@@ -12,42 +10,26 @@
 
 	let { battle, phase }: Props = $props();
 
-	// let tweenedX = tweened(0);
-	// let tweenedY = tweened(0);
-
 	let actionToken = $derived(battle.getActionToken(phase ?? 0));
 	let action = $derived(battle.getActionForPhase(phase ?? 0));
-	let targetVector;
-	run(() => {
-		targetVector = action && actionToken && subtract(action.to, actionToken);
-	});
+	let targetVector = $derived.by(() => {
+		if (action && actionToken) {
+			const target = subtract(action.to, actionToken);
 
-	// if we are doing a same square attack
-	run(() => {
-		targetVector && targetVector.x === 0 && targetVector.y === 0
-			? (targetVector = { x: 0.5, y: 0.5 })
-			: undefined;
-	});
+			if (target.x === 0 && target.y === 0) {
+				target.x = 0.5;
+				target.y = 0.5;
+			}
 
-	// $: {
-	// 	if (actionToken && action) {
-	// 		// $tweenedX = actionToken.x * 66 + 32;
-	// 		// $tweenedY = actionToken.y * 66 + 32;
-	// 		targetVector = subtract(action.to, actionToken);
-	// 	} else {
-	// 		targetVector = emptyVector;
-	// 	}
-	// }
-	// $: {
-	// 	if (actionToken && targetVector != emptyVector) {
-	// 		$tweenedX = actionToken.x * 66 + 32 + targetVector.x * 66 + 32;
-	// 		$tweenedY = actionToken.y * 66 + 32 + targetVector.y * 66 + 32;
-	// 	}
-	// }
+			return target;
+		}
+
+		return undefined;
+	});
 </script>
 
 <div class="absolute w-full h-full z-30 pointer-events-none">
-	{#if actionToken?.action?.type == TokenActionType.BeamFire && targetVector}
+	{#if actionToken?.action?.type === TokenActionType.BeamFire && targetVector}
 		<div class="relative left-0 top-0 w-full h-full">
 			<svg class="w-full h-full">
 				<path
@@ -58,7 +40,7 @@
 				/>
 			</svg>
 		</div>
-	{:else if action?.type == TokenActionType.TorpedoFire}
+	{:else if action?.type === TokenActionType.TorpedoFire}
 		<div class="relative left-0 top-0 w-full h-full">
 			<TorpedoHit
 				class="w-8 h-8 fill-transparent"
