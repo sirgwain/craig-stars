@@ -16,8 +16,6 @@
 </script>
 
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
-
 	import { getGameContext } from '$lib/services/GameContext';
 	import TransportTasks from '../../(plans)/transport-plans/TransportTasks.svelte';
 
@@ -30,8 +28,10 @@
 
 	let { show = $bindable(false), props = $bindable() }: Props = $props();
 
-	let transportTasks;
-	run(() => {
+	let transportTasks: TransportTasksDialogEventDetails['waypoint']['transportTasks'] | undefined =
+		$state();
+
+	$effect(() => {
 		transportTasks = props?.waypoint.transportTasks;
 	});
 
@@ -56,7 +56,10 @@
 				</div>
 				<div class="flex flex-col mt-7 ml-2 gap-2">
 					<button
-						onclick={preventDefault(() => onUpdateTransportTasks())}
+						onclick={(e) => {
+							e.preventDefault();
+							onUpdateTransportTasks();
+						}}
 						type="submit"
 						class="btn btn-sm normal-case btn-primary">OK</button
 					>
