@@ -1,26 +1,27 @@
 <script lang="ts">
+	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { None } from '$lib/types/Constants';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
-	import { None } from '$lib/types/Constants';
-	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 
-	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { player, universe, commandMapObject } = getGameContext();
 
-	interface Props {
+	type Props = {
 		fleet: CommandedFleet;
-	}
+	} & ShowCargoTransferDialogProps;
 
-	let { fleet }: Props = $props();
+	let { fleet, onShowCargoTransferDialog }: Props = $props();
 
 	let planet = $derived(
 		fleet.orbitingPlanetNum != None && $universe.getPlanet(fleet.orbitingPlanetNum)
 	);
 	const transfer = () => {
-		dispatch('cargo-transfer-dialog', {
+		if (!onShowCargoTransferDialog) {
+			return;
+		}
+		onShowCargoTransferDialog({
 			src: fleet,
 			dest: planet ? planet : fleet.getCargoTransferTarget($universe)
 		});

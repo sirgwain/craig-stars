@@ -1,33 +1,21 @@
-<script lang="ts" module>
+<script lang="ts">
 	import { CargoTransferRequest } from '$lib/types/Cargo';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type { Planet } from '$lib/types/Planet';
-
-	export type TransferCargoEventDetails = {
-		src: CommandedFleet;
-		dest?: Fleet | Planet | Salvage;
-		transferAmount: CargoTransferRequest;
-	};
-	export type CargoTransferEvent = {
-		'transfer-cargo': TransferCargoEventDetails;
-		cancel: void;
-	};
-</script>
-
-<script lang="ts">
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
 	import type { Salvage } from '$lib/types/Salvage';
 	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { onMount } from 'svelte';
+	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
 
-	const dispatch = createEventDispatcher<CargoTransferEvent>();
-
-	interface Props {
+	type Props = {
 		src: CommandedFleet;
 		dest: Fleet | Planet | Salvage | undefined;
+		onOk: OnOk<TransferCargoEvent>;
+		onCancel: OnCancel;
 	}
 
-	let { src = $bindable(), dest }: Props = $props();
+	let { src, dest, onOk, onCancel }: Props = $props();
 
 	let transferAmount = $state(new CargoTransferRequest());
 
@@ -37,13 +25,13 @@
 	}
 
 	function ok() {
-		dispatch('transfer-cargo', { src, dest, transferAmount });
+		onOk({ src, dest, transferAmount });
 		reset();
 	}
 
 	function cancel() {
 		reset();
-		dispatch('cancel');
+		onCancel();
 	}
 
 	onMount(() => {

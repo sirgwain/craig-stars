@@ -1,18 +1,19 @@
 <script lang="ts">
+	import type {
+		ShowCargoTransferDialogProps,
+		ShowMergeFleetsDialogProps,
+		ShowProductionQueueDialogProps,
+		ShowSplitFleetDialogProps,
+		ShowTransportTasksDialogEventProps
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
-	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
-	import type { ProductionQueueDialogEvent } from '../../dialogs/production/ProductionQueueDialog.svelte';
-	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
-	import type { TransportTasksDialogEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
 	import FleetCompositionTile from './FleetCompositionTile.svelte';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOrbitingTile from './FleetOrbitingTile.svelte';
 	import FleetOtherFleetsHereTile from './FleetOtherFleetsHereTile.svelte';
 	import FleetSummaryTile from './FleetSummaryTile.svelte';
 	import FleetWaypointTaskTile from './FleetWaypointTaskTile.svelte';
-	import FleetWaypointsTile, { type DeleteWaypointEvent } from './FleetWaypointsTile.svelte';
+	import FleetWaypointsTile from './FleetWaypointsTile.svelte';
 	import PlanetFleetsInOrbitTile from './PlanetFleetsInOrbitTile.svelte';
 	import PlanetMineralsOnHandTile from './PlanetMineralsOnHandTile.svelte';
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
@@ -20,14 +21,24 @@
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 
-	const dispatch = createEventDispatcher<
-		SplitFleetDialogEvent &
-			MergeFleetsDialogEvent &
-			CargoTransferDialogEvent &
-			ProductionQueueDialogEvent &
-			TransportTasksDialogEvent &
-			DeleteWaypointEvent
-	>();
+	type Props = {
+		onDeleteWaypoint: () => Promise<void>;
+		onSplitAll: () => Promise<void>;
+	} & ShowCargoTransferDialogProps &
+		ShowSplitFleetDialogProps &
+		ShowMergeFleetsDialogProps &
+		ShowProductionQueueDialogProps &
+		ShowTransportTasksDialogEventProps;
+
+	const {
+		onDeleteWaypoint,
+		onSplitAll,
+		onShowCargoTransferDialog,
+		onShowSplitFleetDialog,
+		onShowMergeFleetDialog,
+		onShowProductionQueueDialog,
+		onShowTransportTasksDialog
+	}: Props = $props();
 
 	const { universe, commandedPlanet, commandedFleet, selectedWaypoint, splitAll } =
 		getGameContext();
@@ -43,12 +54,9 @@
 		<PlanetFleetsInOrbitTile
 			planet={$commandedPlanet}
 			fleetsInOrbit={$universe.getMyFleetsByPosition($commandedPlanet)}
-			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
+			{onShowCargoTransferDialog}
 		/>
-		<PlanetProductionTile
-			planet={$commandedPlanet}
-			on:change-production={(e) => dispatch('change-production', e.detail)}
-		/>
+		<PlanetProductionTile planet={$commandedPlanet} {onShowProductionQueueDialog} />
 		<PlanetStarbaseTile
 			planet={$commandedPlanet}
 			starbase={$universe.getPlanetStarbase($commandedPlanet.num)}
@@ -57,40 +65,34 @@
 {:else if $commandedFleet}
 	<div class="lg:flex lg:flex-col">
 		<FleetSummaryTile fleet={$commandedFleet} />
-		<FleetOrbitingTile
-			fleet={$commandedFleet}
-			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
-		/>
+		<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		<FleetOtherFleetsHereTile
 			fleet={$commandedFleet}
 			fleetsInOrbit={$universe
 				.getMyFleetsByPosition($commandedFleet)
 				.filter((f) => f.num !== $commandedFleet?.num)}
-			on:split-fleet-dialog={(e) => dispatch('split-fleet-dialog', e.detail)}
-			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
+			{onShowSplitFleetDialog}
+			{onShowCargoTransferDialog}
 		/>
 		<FleetCompositionTile
 			fleet={$commandedFleet}
 			selectedWaypoint={$selectedWaypoint}
-			on:split-all={() => $commandedFleet && splitAll($commandedFleet)}
-			on:split-fleet-dialog={(e) => dispatch('split-fleet-dialog', e.detail)}
-			on:merge-fleets-dialog={(e) => dispatch('merge-fleets-dialog', e.detail)}
+			{onSplitAll}
+			{onShowSplitFleetDialog}
+			{onShowMergeFleetDialog}
 		/>
 	</div>
 	<div class="lg:flex lg:flex-col">
-		<FleetFuelAndCargoTile
-			fleet={$commandedFleet}
-			on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
-		/>
+		<FleetFuelAndCargoTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		<FleetWaypointsTile
 			fleet={$commandedFleet}
 			selectedWaypoint={$selectedWaypoint}
-			on:delete-waypoint={(e) => dispatch('delete-waypoint')}
+			{onDeleteWaypoint}
 		/>
 		<FleetWaypointTaskTile
 			fleet={$commandedFleet}
 			selectedWaypoint={$selectedWaypoint}
-			on:transport-tasks-dialog={(e) => dispatch('transport-tasks-dialog', e.detail)}
+			{onShowTransportTasksDialog}
 		/>
 	</div>
 {/if}

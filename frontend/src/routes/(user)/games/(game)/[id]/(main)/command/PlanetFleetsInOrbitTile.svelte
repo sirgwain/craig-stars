@@ -5,24 +5,22 @@
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { canTransferCargo, CommandedFleet, type Fleet } from '$lib/types/Fleet';
+	import { getMapObjectName } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher, onDestroy } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
+	import { onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	import { getMapObjectName } from '$lib/types/MapObject';
-
-	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
+	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 
 	const { universe, commandedMapObjectKey, commandMapObject } = getGameContext();
 
-	interface Props {
+	type Props = {
 		planet: CommandedPlanet;
 		fleetsInOrbit: Fleet[];
-	}
+	} & ShowCargoTransferDialogProps;
 
-	let { planet, fleetsInOrbit }: Props = $props();
+	let { planet, fleetsInOrbit, onShowCargoTransferDialog }: Props = $props();
 	let selectedFleet: Fleet | undefined = $state();
 	let selectedFleetIndex = $state(0);
 
@@ -40,10 +38,11 @@
 	};
 
 	const transfer = () => {
-		if (selectedFleet) {
-			const commandedFleet = new CommandedFleet(selectedFleet);
-			dispatch('cargo-transfer-dialog', { src: commandedFleet, dest: planet });
+		if (!selectedFleet || !onShowCargoTransferDialog) {
+			return;
 		}
+		const commandedFleet = new CommandedFleet(selectedFleet);
+		onShowCargoTransferDialog({ src: commandedFleet, dest: planet });
 	};
 
 	const gotoTarget = () => {
@@ -78,7 +77,7 @@
 			<div class="w-12">Cargo</div>
 			<div class="ml-1 h-full w-full">
 				<CargoBar
-					on:cargo-transfer-dialog={transfer}
+					onpointerdown={transfer}
 					canTransferCargo={canTransferCargo(selectedFleet, $universe)}
 					value={selectedFleet.cargo}
 					capacity={selectedFleet.spec.cargoCapacity}

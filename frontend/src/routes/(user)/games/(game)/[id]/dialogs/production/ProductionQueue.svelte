@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
+	import { preventDefault, run } from 'svelte/legacy';
 
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
@@ -16,16 +16,16 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import { addError, CSError } from '$lib/services/Errors';
+	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import { NeverBuilt } from '$lib/types/Constants';
+	import { GenesisDevice, NeverBuilt } from '$lib/types/Constants';
 	import { divide, multiply, type Cost } from '$lib/types/Cost';
 	import { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
 	import { getPlanetHabitability } from '$lib/types/Race';
-	import { GenesisDevice } from '$lib/types/Constants';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -37,17 +37,20 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
 	import { clamp } from 'lodash-es';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
 
 	const { cs, game, player, universe } = getGameContext();
-	const dispatch = createEventDispatcher<ProductionQueueEvent>();
 
-	interface Props {
+	type Props = {
 		planet: CommandedPlanet;
-	}
+		onOk: OnOk<CommandedPlanet>;
+		onCancel: OnCancel;
+		onNext: () => void;
+		onPrev: () => void;
+	};
 
-	let { planet = $bindable() }: Props = $props();
+	let { planet = $bindable(), onOk, onCancel, onNext, onPrev }: Props = $props();
 
 	let availableItems: ProductionQueueItem[] = $state([]);
 	let availableShipDesigns: ProductionQueueItem[] = $state([]);
@@ -310,24 +313,24 @@
 	function next() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		dispatch('next');
+		onNext();
 	}
 
 	function prev() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		dispatch('prev');
+		onPrev();
 	}
 
 	function ok() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		dispatch('ok');
+		onOk(planet);
 	}
 	function cancel() {
 		if (planet) {
 			resetQueue();
-			dispatch('cancel');
+			onCancel();
 		}
 	}
 

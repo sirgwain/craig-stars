@@ -2,40 +2,56 @@
 	import { preventDefault } from 'svelte/legacy';
 
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import type {
+		ShowMergeFleetsDialogProps,
+		ShowSplitFleetDialogProps,
+		SplitAllProps
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getDamagePercentForToken, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
 	import { Infinite } from '$lib/types/Constants';
-	import { createEventDispatcher } from 'svelte';
-	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
-	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleet.svelte';
-	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
+	import { getDamagePercentForToken, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
 	import CommandTile from './CommandTile.svelte';
 
-	const dispatch = createEventDispatcher<
-		SplitFleetEvent & SplitFleetDialogEvent & MergeFleetsDialogEvent
-	>();
 	const { player, universe, updateFleetOrders } = getGameContext();
 
-	interface Props {
+	type Props = {
 		fleet: CommandedFleet;
 		selectedWaypoint: Waypoint | undefined;
+	} & ShowSplitFleetDialogProps &
+		ShowMergeFleetsDialogProps &
+		SplitAllProps;
+
+	let {
+		fleet = $bindable(),
+		selectedWaypoint,
+		onShowMergeFleetDialog,
+		onShowSplitFleetDialog,
+		onSplitAll
+	}: Props = $props();
+
+	function split() {
+		if (!onShowSplitFleetDialog) {
+			return;
+		}
+		onShowSplitFleetDialog({ src: fleet });
 	}
 
-	let { fleet = $bindable(), selectedWaypoint }: Props = $props();
+	function splitAll() {
+		if (!onSplitAll) {
+			return;
+		}
+		onSplitAll({ fleet });
+	}
 
-	const split = () => {
-		dispatch('split-fleet-dialog', { src: fleet });
-	};
-
-	const splitAll = async () => {
-		dispatch('split-all', fleet);
-	};
-	const merge = () => {
-		dispatch('merge-fleets-dialog', {
+	function merge() {
+		if (!onShowMergeFleetDialog) {
+			return;
+		}
+		onShowMergeFleetDialog({
 			fleet,
 			otherFleetsHere: $universe.getMyFleetsByPosition(fleet).filter((f) => f.num !== fleet.num)
 		});
-	};
+	}
 
 	const updateBattlePlan = async (num: number) => {
 		fleet.battlePlanNum = num;

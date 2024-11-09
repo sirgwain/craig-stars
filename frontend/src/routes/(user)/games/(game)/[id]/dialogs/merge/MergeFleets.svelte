@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { preventDefault } from 'svelte/legacy';
 
+	import type { MergeFleetsEvent, OnCancel, OnOk } from '$lib/services/Events';
 	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
-	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher, onMount } from 'svelte';
-	import type { MergeFleetsEvent } from './MergeFleetsDialog.svelte';
 	import { getMapObjectName } from '$lib/types/MapObject';
+	import hotkeys from 'hotkeys-js';
+	import { onMount } from 'svelte';
 
-	const dispatch = createEventDispatcher<MergeFleetsEvent>();
-
-	interface Props {
+	type Props = {
 		fleet: CommandedFleet;
 		otherFleetsHere: Fleet[];
-	}
+		onOk: OnOk<MergeFleetsEvent>;
+		onCancel: OnCancel;
+	};
 
-	let { fleet, otherFleetsHere }: Props = $props();
+	let { fleet, otherFleetsHere, onOk, onCancel }: Props = $props();
 	let selectedFleetIndexes: number[] = $state([]);
 
 	let fleetRefs: (HTMLLIElement | null)[] = $state([]);
@@ -38,23 +38,19 @@
 		// TODO: otherFleetsHere[i] is sometimes undefined
 		const fleetNums = selectedFleetIndexes.map((i) => otherFleetsHere[i].num);
 		if (fleetNums.length > 0) {
-			dispatch('merge-fleets', { fleet, fleetNums });
+			onOk({ fleet, fleetNums });
 		}
-	}
-
-	function cancel() {
-		dispatch('cancel');
 	}
 
 	onMount(() => {
 		const originalScope = hotkeys.getScope();
 		const scope = 'cargoTransfer';
-		hotkeys('Esc', scope, cancel);
+		hotkeys('Esc', scope, onCancel);
 		hotkeys('Enter', scope, ok);
 		hotkeys.setScope(scope);
 
 		return () => {
-			hotkeys.unbind('Esc', scope, cancel);
+			hotkeys.unbind('Esc', scope, onCancel);
 			hotkeys.unbind('Enter', scope, ok);
 			hotkeys.deleteScope(scope);
 			hotkeys.setScope(originalScope);
@@ -90,7 +86,7 @@
 			disabled={selectedFleetIndexes.length == 0}
 			class="btn btn-sm normal-case btn-primary">OK</button
 		>
-		<button onclick={cancel} class="btn btn-outline btn-sm normal-case btn-secondary">Cancel</button
+		<button onclick={onCancel} class="btn btn-outline btn-sm normal-case btn-secondary">Cancel</button
 		>
 		<button
 			type="button"

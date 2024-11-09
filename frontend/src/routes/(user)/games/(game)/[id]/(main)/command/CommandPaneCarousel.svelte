@@ -1,17 +1,19 @@
 <!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
 <script lang="ts">
 	import { carouselKey, createCarouselContext } from '$lib/services/CarouselContext';
+	import type {
+		ShowCargoTransferDialogProps,
+		ShowMergeFleetsDialogProps,
+		ShowProductionQueueDialogProps,
+		ShowSplitFleetDialogProps,
+		ShowTransportTasksDialogEventProps
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { equal, getMapObjectName } from '$lib/types/MapObject';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { afterUpdate, createEventDispatcher, onDestroy, setContext } from 'svelte';
+	import { onDestroy, setContext } from 'svelte';
 	import type { MouseEventHandler, UIEventHandler } from 'svelte/elements';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
-	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
-	import type { ProductionQueueDialogEvent } from '../../dialogs/production/ProductionQueueDialog.svelte';
-	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
-	import type { TransportTasksDialogEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
 	import FleetSummary from '../FleetSummary.svelte';
 	import MapObjectSummary from '../MapObjectSummary.svelte';
 	import FleetCompositionTile from './FleetCompositionTile.svelte';
@@ -19,21 +21,13 @@
 	import FleetOrbitingTile from './FleetOrbitingTile.svelte';
 	import FleetOtherFleetsHereTile from './FleetOtherFleetsHereTile.svelte';
 	import FleetWaypointTaskTile from './FleetWaypointTaskTile.svelte';
-	import FleetWaypointsTile, { type DeleteWaypointEvent } from './FleetWaypointsTile.svelte';
+	import FleetWaypointsTile from './FleetWaypointsTile.svelte';
 	import PlanetFleetsInOrbitTile from './PlanetFleetsInOrbitTile.svelte';
 	import PlanetMineralsOnHandTile from './PlanetMineralsOnHandTile.svelte';
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 
-	const dispatch = createEventDispatcher<
-		SplitFleetDialogEvent &
-			MergeFleetsDialogEvent &
-			CargoTransferDialogEvent &
-			ProductionQueueDialogEvent &
-			TransportTasksDialogEvent &
-			DeleteWaypointEvent
-	>();
 	const {
 		universe,
 		commandedFleet,
@@ -41,8 +35,7 @@
 		commandedMapObjectKey,
 		selectedMapObject,
 		selectedWaypoint,
-		currentSelectedWaypointIndex,
-		splitAll
+		currentSelectedWaypointIndex
 	} = getGameContext();
 
 	// setup the carouselContext for our child CommandTiles
@@ -51,14 +44,33 @@
 
 	const { open } = carouselContext;
 
-	export let isOpen: boolean = $open;
-	$: isOpen = $open;
+	type Props = {
+		isOpen: boolean;
+		onDeleteWaypoint: () => Promise<void>;
+		onSplitAll: () => Promise<void>;
+	} & ShowCargoTransferDialogProps &
+		ShowSplitFleetDialogProps &
+		ShowMergeFleetsDialogProps &
+		ShowProductionQueueDialogProps &
+		ShowTransportTasksDialogEventProps;
+
+	let {
+		isOpen = $bindable($open),
+		onDeleteWaypoint,
+		onSplitAll,
+		onShowCargoTransferDialog,
+		onShowSplitFleetDialog,
+		onShowMergeFleetDialog,
+		onShowProductionQueueDialog,
+		onShowTransportTasksDialog
+	}: Props = $props();
 
 	let carousel: HTMLDivElement | undefined;
 	let activeNav = '#summary';
 	let activeWaypointIndex: number | undefined;
 
 	const onNavClicked: MouseEventHandler<HTMLAnchorElement> = (e) => {
+		e.preventDefault();
 		const a = e.currentTarget;
 		const href = a.getAttribute('href') ?? '';
 		if (href != '') {
@@ -153,7 +165,7 @@
 	});
 
 	// wait until the DOM is updated before calling scrollTo
-	afterUpdate(() => {
+	$effect(() => {
 		scrollTo(activeNav);
 	});
 	// unsubscribe on destroy to keep things tidy
@@ -168,27 +180,24 @@
 	class:hidden={!$open}
 	class="carousel w-full md:hidden"
 	bind:this={carousel}
-	on:scrollend={onScroll}
+	onscrollend={onScroll}
 >
 	<div id="summary" class="carousel-item w-full">
 		{#if $commandedFleet && equal($selectedMapObject, $universe.getPlanet($commandedFleet.orbitingPlanetNum))}
 			<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300">
 				<div class="card-body p-2 gap-0">
 					<div class="flex flex-row items-center">
-						<button class="w-full" on:click={carouselContext?.onDisclosureClicked}>
+						<button class="w-full" onclick={carouselContext?.onDisclosureClicked}>
 							<div class="flex-1 text-center text-lg font-semibold text-secondary">
 								{$commandedFleet?.name ?? ''}
 							</div>
 						</button>
 					</div>
-					<FleetSummary
-						fleet={$commandedFleet}
-						on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
-					/>
+					<FleetSummary fleet={$commandedFleet} {onShowCargoTransferDialog} />
 				</div>
 			</div>
 		{:else}
-			<MapObjectSummary />
+			<MapObjectSummary {onShowCargoTransferDialog} />
 		{/if}
 	</div>
 	{#if $commandedPlanet}
@@ -199,10 +208,7 @@
 			<PlanetMineralsOnHandTile planet={$commandedPlanet} />
 		</div>
 		<div id="planet-production-tile" class="carousel-item w-full">
-			<PlanetProductionTile
-				planet={$commandedPlanet}
-				on:change-production={(e) => dispatch('change-production', e?.detail)}
-			/>
+			<PlanetProductionTile planet={$commandedPlanet} {onShowProductionQueueDialog} />
 		</div>
 		{#if $commandedPlanet.spec.hasStarbase}
 			<div id="planet-starbase-tile" class="carousel-item w-full">
@@ -216,7 +222,7 @@
 			<PlanetFleetsInOrbitTile
 				planet={$commandedPlanet}
 				fleetsInOrbit={$universe.getMyFleetsByPosition($commandedPlanet)}
-				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
+				{onShowCargoTransferDialog}
 			/>
 		</div>
 	{:else if $commandedFleet}
@@ -224,35 +230,29 @@
 			<FleetCompositionTile
 				fleet={$commandedFleet}
 				selectedWaypoint={$selectedWaypoint}
-				on:split-all={() => $commandedFleet && splitAll($commandedFleet)}
-				on:split-fleet-dialog={(e) => dispatch('split-fleet-dialog', e?.detail)}
-				on:merge-fleets-dialog={(e) => dispatch('merge-fleets-dialog', e?.detail)}
+				{onShowSplitFleetDialog}
+				{onShowMergeFleetDialog}
+				{onSplitAll}
 			/>
 		</div>
 		<div id="fleet-orbiting-tile" class="carousel-item w-full">
-			<FleetOrbitingTile
-				fleet={$commandedFleet}
-				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
-			/>
+			<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		</div>
 		<div id="fleet-fuel-and-cargo-tile" class="carousel-item w-full">
-			<FleetFuelAndCargoTile
-				fleet={$commandedFleet}
-				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
-			/>
+			<FleetFuelAndCargoTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		</div>
 		<div id="fleet-waypoints-tile" class="carousel-item w-full">
 			<FleetWaypointsTile
 				fleet={$commandedFleet}
 				selectedWaypoint={$selectedWaypoint}
-				on:delete-waypoint={(e) => dispatch('delete-waypoint')}
+				{onDeleteWaypoint}
 			/>
 		</div>
 		<div id="fleet-waypoint-task-tile" class="carousel-item w-full">
 			<FleetWaypointTaskTile
 				fleet={$commandedFleet}
 				selectedWaypoint={$selectedWaypoint}
-				on:transport-tasks-dialog={(e) => dispatch('transport-tasks-dialog', e?.detail)}
+				{onShowTransportTasksDialog}
 			/>
 		</div>
 		<div id="fleet-other-fleets-here-tile" class="carousel-item w-full">
@@ -261,7 +261,8 @@
 				fleetsInOrbit={$universe
 					.getMyFleetsByPosition($commandedFleet)
 					.filter((f) => f.num !== $commandedFleet?.num)}
-				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
+				{onShowCargoTransferDialog}
+				{onShowSplitFleetDialog}
 			/>
 		</div>
 	{/if}
@@ -269,84 +270,84 @@
 <!-- Bottom menu -->
 <div class="flex justify-center w-full md:hidden py-2 gap-2" class:hidden={!$open}>
 	<a
-		on:click|preventDefault={onNavClicked}
+		onclick={onNavClicked}
 		href="#summary"
 		class:btn-accent={activeNav == '#summary'}
 		class="btn btn-xs">S</a
 	>
 	{#if $commandedPlanet}
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#planet-status-tile"
 			class:btn-accent={activeNav == '#planet-status-tile'}
 			class="btn btn-xs">I</a
 		>
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#planet-minerals-on-hand-tile"
 			class:btn-accent={activeNav == '#planet-minerals-on-hand-tile'}
 			class="btn btn-xs">M</a
 		>
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#planet-production-tile"
 			class:btn-accent={activeNav == '#planet-production-tile'}
 			class="btn btn-xs">P</a
 		>
 		{#if $commandedPlanet.spec.hasStarbase}
 			<a
-				on:click|preventDefault={onNavClicked}
+				onclick={onNavClicked}
 				href="#planet-starbase-tile"
 				class:btn-accent={activeNav == '#planet-starbase-tile'}
 				class="btn btn-xs">B</a
 			>
 		{/if}
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#planet-fleets-in-orbit-tile"
 			class:btn-accent={activeNav == '#planet-fleets-in-orbit-tile'}
 			class="btn btn-xs">O</a
 		>
 	{:else if $commandedFleet}
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#fleet-composition-tile"
 			class:btn-accent={activeNav == '#fleet-composition-tile'}
 			class="btn btn-xs">F</a
 		>
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#fleet-orbiting-tile"
 			class:btn-accent={activeNav == '#fleet-orbiting-tile'}
 			class="btn btn-xs">O</a
 		>
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#fleet-fuel-and-cargo-tile"
 			class:btn-accent={activeNav == '#fleet-fuel-and-cargo-tile'}
 			class="btn btn-xs">C</a
 		>
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#fleet-waypoints-tile"
 			class:btn-accent={activeNav == '#fleet-waypoints-tile'}
 			class="btn btn-xs">W</a
 		>
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#fleet-waypoint-task-tile"
 			class:btn-accent={activeNav == '#fleet-waypoint-task-tile'}
 			class="btn btn-xs">T</a
 		>
 		<a
-			on:click|preventDefault={onNavClicked}
+			onclick={onNavClicked}
 			href="#fleet-other-fleets-here-tile"
 			class:btn-accent={activeNav == '#fleet-other-fleets-here-tile'}
 			class="btn btn-xs">H</a
 		>
 	{/if}
 </div>
-<button class:hidden={$open} class="w-full p-2" on:click={carouselContext.onDisclosureClicked}>
+<button class:hidden={$open} class="w-full p-2" onclick={carouselContext.onDisclosureClicked}>
 	<div class="flex flex-row items-center">
 		<div class="flex-1 text-center text-lg font-semibold text-secondary">
 			{#if $commandedFleet && equal($selectedMapObject, $universe.getPlanet($commandedFleet.orbitingPlanetNum))}

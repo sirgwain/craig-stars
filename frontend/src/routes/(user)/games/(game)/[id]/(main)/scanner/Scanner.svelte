@@ -68,9 +68,9 @@
 	let clientWidth = $state(100);
 	let clientHeight = $state(100);
 	let aspectRatio = 1;
-	let transform: ZoomTransform = $state();
-	let zoomBehavior: ZoomBehavior<HTMLElement, any> = $state();
-	let root: HTMLElement = $state();
+	let transform: ZoomTransform | undefined = $state();
+	let zoomBehavior: ZoomBehavior<HTMLElement, any> | undefined = $state();
+	let root: HTMLElement | undefined = $state();
 	let padding = 20; // 20 px, used in zooming
 	let scaleX: ScaleLinear<number, number, never>;
 	let scaleY: ScaleLinear<number, number, never>;
@@ -104,12 +104,18 @@
 
 	// enable drag and zoom, but disable dblclick zoom events
 	function enableDragAndZoom() {
+		if (!root || !zoomBehavior) {
+			return;
+		}
 		select(root).call(zoomBehavior).on('dblclick.zoom', null);
 		dragAndZoomEnabled = true;
 	}
 
 	// disable drag and zoom temporarily
 	function disableDragAndZoom() {
+		if (!root) {
+			return;
+		}
 		select(root).on('.zoom', null);
 		dragAndZoomEnabled = false;
 		zooming = false;

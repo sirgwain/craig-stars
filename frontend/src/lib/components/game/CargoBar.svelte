@@ -2,16 +2,13 @@
 	import { run } from 'svelte/legacy';
 
 	import { cargoPercent, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
-	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../../../routes/(user)/games/(game)/[id]/dialogs/cargo/CargoTranfserDialog.svelte';
 
-	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
-
-	interface Props {
+	type Props = {
 		value?: Cargo;
 		capacity?: number | undefined;
 		canTransferCargo?: boolean;
-	}
+		onpointerdown: (e: PointerEvent) => void | undefined;
+	};
 
 	let {
 		value = {
@@ -21,7 +18,8 @@
 			colonists: 0
 		},
 		capacity = 0,
-		canTransferCargo = false
+		canTransferCargo = false,
+		onpointerdown
 	}: Props = $props();
 
 	let percent: Cargo = $state(emptyCargo());
@@ -32,7 +30,7 @@
 </script>
 
 <div
-	onpointerdown={() => canTransferCargo && dispatch('cargo-transfer-dialog')}
+	onpointerdown={(e) => (canTransferCargo && onpointerdown ? onpointerdown(e) : undefined)}
 	class="border border-secondary h-[1rem] text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={canTransferCargo}
 >

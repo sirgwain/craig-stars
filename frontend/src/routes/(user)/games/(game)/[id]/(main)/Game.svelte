@@ -1,19 +1,23 @@
 <script lang="ts">
+	import type {
+		CargoTransferDialogEvent,
+		MergeFleetsDialogEvent,
+		MergeFleetsEvent,
+		SplitFleetDialogEvent,
+		SplitFleetEvent,
+		TransferCargoEvent,
+		TransportTasksDialogEvent,
+		TransportTasksUpdateEvent
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { newSalvage } from '$lib/types/Salvage';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
-	import CargoTranfserDialog, {
-		type CargoTransferDialogEventDetails
-	} from '../dialogs/cargo/CargoTransferDialog.svelte';
-	import MergeFleetsDialog, {
-		type MergeFleetsDialogEventDetails
-	} from '../dialogs/merge/MergeFleetsDialog.svelte';
+	import CargoTranfserDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
+	import MergeFleetsDialog from '../dialogs/merge/MergeFleetsDialog.svelte';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
-	import SplitFleetDialog, {
-		type SplitFleetDialogEventDetails
-	} from '../dialogs/split/SplitFleetDialog.svelte';
-	import type { TransportTasksDialogEventDetails } from '../dialogs/transport/TransportTasksDialog.svelte';
+	import SplitFleetDialog from '../dialogs/split/SplitFleetDialog.svelte';
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
 	import SearchDialog from '../search/SearchDialog.svelte';
 	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
@@ -22,6 +26,7 @@
 	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
+	import type { CommandedPlanet } from '$lib/types/Planet';
 
 	const {
 		game,
@@ -37,7 +42,12 @@
 		previousMapObject,
 		selectWaypoint,
 		selectMapObject,
-		updateFleetOrders
+		updateFleetOrders,
+		updatePlanetOrders,
+		transferCargo,
+		split,
+		splitAll,
+		merge
 	} = getGameContext();
 
 	let carouselOpen = $state(true);
@@ -47,11 +57,10 @@
 	let showSplitFleetDialog = $state(false);
 	let showTransportTasksDialog = $state(false);
 	let showSearchDialog = $state(false);
-	let cargoTransferDetails: CargoTransferDialogEventDetails | undefined = $state(undefined);
-	let mergeFleetsDialogEventDetails: MergeFleetsDialogEventDetails | undefined = $state(undefined);
-	let splitFleetDialogEventDetails: SplitFleetDialogEventDetails | undefined = $state(undefined);
-	let transportTasksDialogEventDetails: TransportTasksDialogEventDetails | undefined =
-		$state(undefined);
+	let cargoTransferDialogEvent: CargoTransferDialogEvent | undefined = $state(undefined);
+	let mergeFleetsDialogEvent: MergeFleetsDialogEvent | undefined = $state(undefined);
+	let splitFleetDialogEvent: SplitFleetDialogEvent | undefined = $state(undefined);
+	let transportTasksDialogEvent: TransportTasksDialogEvent | undefined = $state(undefined);
 
 	onMount(() => {
 		hotkeys('n', 'root', () => {
@@ -108,6 +117,72 @@
 		}
 	}
 
+	const onUpdateTransportTasks = async (e: TransportTasksUpdateEvent) => {
+		e.waypoint.transportTasks = e.transportTasks;
+		await updateFleetOrders(e.fleet);
+
+		// close the dialog
+		showTransportTasksDialog = false;
+	};
+
+	async function onSplitAll() {
+		if (!$commandedFleet) {
+			return;
+		}
+		splitAll($commandedFleet);
+	}
+
+	async function onTransferCargo(e: TransferCargoEvent) {
+		// close the dialog
+		showCargoTransferDialog = false;
+
+		if (e && e.transferAmount.absoluteSize() > 0) {
+			if (!e.dest) {
+				e.dest = newSalvage();
+			}
+			await transferCargo(e.src, e.dest, e.transferAmount);
+		}
+	}
+
+	async function onUpdatePlanetOrders(planet: CommandedPlanet) {
+		updatePlanetOrders(planet);
+	}
+
+	async function onNextPlanet(updateOrders: boolean) {
+		if (!$commandedPlanet) {
+			return;
+		}
+		if (updateOrders) {
+			await updatePlanetOrders($commandedPlanet);
+		}
+
+		nextMapObject();
+	}
+
+	async function onPrevPlanet(updateOrders: boolean) {
+		if (!$commandedPlanet) {
+			return;
+		}
+		if (updateOrders) {
+			await updatePlanetOrders($commandedPlanet);
+		}
+
+		previousMapObject();
+	}
+
+	async function onMergeFleets(e: MergeFleetsEvent) {
+		await merge(e.fleet, e.fleetNums);
+		// close the dialog
+		showMergeFleetsDialog = false;
+	}
+
+	async function onSplitFleet(e: SplitFleetEvent) {
+		await split(e.src, e.dest, e.srcTokens, e.destTokens, e.transferAmount);
+
+		// close the dialog
+		showSplitFleetDialog = false;
+	}
+
 	function selectSearchResult(mo: MapObject | undefined) {
 		if (mo) {
 			if (ownedBy(mo, $player.num)) {
@@ -116,6 +191,7 @@
 			selectMapObject(mo);
 			zoomToMapObject(mo);
 		}
+		showSearchDialog = false;
 	}
 </script>
 
@@ -127,31 +203,32 @@
 	>
 		<div class="flex flex-row flex-wrap gap-2 justify-center">
 			<CommandPane
-				on:change-production={(e) => (showProductionQueueDialog = true)}
-				on:cargo-transfer-dialog={(e) => {
+				{onDeleteWaypoint}
+				{onSplitAll}
+				onShowProductionQueueDialog={(e) => (showProductionQueueDialog = true)}
+				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
-					cargoTransferDetails = e?.detail;
+					cargoTransferDialogEvent = e;
 				}}
-				on:merge-fleets-dialog={(e) => {
+				onShowMergeFleetDialog={(e) => {
 					showMergeFleetsDialog = true;
-					mergeFleetsDialogEventDetails = e.detail;
+					mergeFleetsDialogEvent = e;
 				}}
-				on:split-fleet-dialog={(e) => {
+				onShowSplitFleetDialog={(e) => {
 					showSplitFleetDialog = true;
-					splitFleetDialogEventDetails = e.detail;
+					splitFleetDialogEvent = e;
 				}}
-				on:transport-tasks-dialog={(e) => {
+				onShowTransportTasksDialog={(e) => {
 					showTransportTasksDialog = true;
-					transportTasksDialogEventDetails = e.detail;
+					transportTasksDialogEvent = e;
 				}}
-				on:delete-waypoint={onDeleteWaypoint}
 			/>
 		</div>
 		<div class="hidden lg:block lg:p-1 mx-2">
 			<MapObjectSummary
-				on:cargo-transfer-dialog={(e) => {
+				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
-					cargoTransferDetails = e?.detail;
+					cargoTransferDialogEvent = e;
 				}}
 			/>
 		</div>
@@ -167,9 +244,9 @@
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
 			<MapObjectSummary
-				on:cargo-transfer-dialog={(e) => {
+				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
-					cargoTransferDetails = e?.detail;
+					cargoTransferDialogEvent = e;
 				}}
 			/>
 		</div>
@@ -179,35 +256,65 @@
 	<div class="flex flex-col flex-0">
 		<CommandPaneCarousel
 			bind:isOpen={carouselOpen}
-			on:change-production={(e) => (showProductionQueueDialog = true)}
-			on:cargo-transfer-dialog={(e) => {
+			{onDeleteWaypoint}
+			{onSplitAll}
+			onShowProductionQueueDialog={(e) => (showProductionQueueDialog = true)}
+			onShowCargoTransferDialog={(e) => {
 				showCargoTransferDialog = true;
-				cargoTransferDetails = e?.detail;
+				cargoTransferDialogEvent = e;
 			}}
-			on:merge-fleets-dialog={(e) => {
+			onShowMergeFleetDialog={(e) => {
 				showMergeFleetsDialog = true;
-				mergeFleetsDialogEventDetails = e.detail;
+				mergeFleetsDialogEvent = e;
 			}}
-			on:split-fleet-dialog={(e) => {
+			onShowSplitFleetDialog={(e) => {
 				showSplitFleetDialog = true;
-				splitFleetDialogEventDetails = e.detail;
+				splitFleetDialogEvent = e;
 			}}
-			on:transport-tasks-dialog={(e) => {
+			onShowTransportTasksDialog={(e) => {
 				showTransportTasksDialog = true;
-				transportTasksDialogEventDetails = e.detail;
+				transportTasksDialogEvent = e;
 			}}
-			on:delete-waypoint={onDeleteWaypoint}
 		/>
 	</div>
 </div>
 
 <!-- dialog modals -->
-<ProductionQueueDialog bind:show={showProductionQueueDialog} />
-<CargoTranfserDialog bind:show={showCargoTransferDialog} bind:props={cargoTransferDetails} />
-<MergeFleetsDialog bind:show={showMergeFleetsDialog} bind:props={mergeFleetsDialogEventDetails} />
-<SplitFleetDialog bind:show={showSplitFleetDialog} bind:props={splitFleetDialogEventDetails} />
-<TransportTasksDialog
-	bind:show={showTransportTasksDialog}
-	bind:props={transportTasksDialogEventDetails}
+<ProductionQueueDialog
+	show={showProductionQueueDialog}
+	onNext={() => onNextPlanet(true)}
+	onPrev={() => onPrevPlanet(true)}
+	onOk={(planet) => {
+		showProductionQueueDialog = false;
+		updatePlanetOrders(planet);
+	}}
+	onCancel={() => (showProductionQueueDialog = false)}
 />
-<SearchDialog bind:show={showSearchDialog} on:select-result={(e) => selectSearchResult(e.detail)} />
+<CargoTranfserDialog
+	show={showCargoTransferDialog}
+	props={cargoTransferDialogEvent}
+	onOk={onTransferCargo}
+	onCancel={() => (showCargoTransferDialog = false)}
+/>
+<MergeFleetsDialog
+	show={showMergeFleetsDialog}
+	props={mergeFleetsDialogEvent}
+	onOk={onMergeFleets}
+	onCancel={() => (showMergeFleetsDialog = false)}
+/>
+<SplitFleetDialog
+	show={showSplitFleetDialog}
+	props={splitFleetDialogEvent}
+	onOk={onSplitFleet}
+	onCancel={() => (showSplitFleetDialog = false)}
+/>
+<TransportTasksDialog
+	props={transportTasksDialogEvent}
+	onOk={onUpdateTransportTasks}
+	onCancel={() => (showTransportTasksDialog = false)}
+/>
+<SearchDialog
+	show={showSearchDialog}
+	onOk={(e) => selectSearchResult(e)}
+	onCancel={() => (showSearchDialog = false)}
+/>

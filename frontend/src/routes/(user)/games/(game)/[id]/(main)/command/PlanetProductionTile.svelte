@@ -2,21 +2,19 @@
 	import { run } from 'svelte/legacy';
 
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
+	import type { ShowProductionQueueDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionQueueItem } from '$lib/types/Production';
-	import { createEventDispatcher } from 'svelte';
-	import type { ProductionQueueDialogEvent } from '../../dialogs/production/ProductionQueueDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 
-	const dispatch = createEventDispatcher<ProductionQueueDialogEvent>();
 	const { cs, game, player, universe, updatePlanetOrders } = getGameContext();
 
-	interface Props {
+	type Props = {
 		planet: CommandedPlanet;
-	}
+	} & ShowProductionQueueDialogProps;
 
-	let { planet = $bindable() }: Props = $props();
+	let { planet = $bindable(), onShowProductionQueueDialog }: Props = $props();
 	let queueItems: ProductionQueueItem[] | undefined = $state(undefined);
 
 	const clear = async () => {
@@ -51,7 +49,7 @@
 	</div>
 	<div class="flex justify-between">
 		<button
-			onclick={() => dispatch('change-production', planet)}
+			onclick={() => onShowProductionQueueDialog && onShowProductionQueueDialog({ planet })}
 			class="btn btn-outline btn-sm normal-case btn-secondary">Change</button
 		>
 		<button onclick={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>

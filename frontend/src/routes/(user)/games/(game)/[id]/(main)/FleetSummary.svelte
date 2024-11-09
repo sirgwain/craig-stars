@@ -4,29 +4,29 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import type {
+		ShowCargoTransferDialogProps
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import {
-		getDamagePercentForToken,
-		type Fleet,
-		WaypointTask,
 		canTransferCargo,
-		CommandedFleet
+		CommandedFleet,
+		getDamagePercentForToken,
+		WaypointTask,
+		type Fleet
 	} from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
-	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { kebabCase, startCase } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../dialogs/cargo/CargoTranfserDialog.svelte';
 
-	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { player, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		fleet: Fleet;
-	}
+	} & ShowCargoTransferDialogProps;
 
-	let { fleet }: Props = $props();
+	let { fleet, onShowCargoTransferDialog }: Props = $props();
 
 	let design: ShipDesign | undefined = $state();
 
@@ -55,8 +55,11 @@
 	}
 
 	function transfer() {
+		if (!onShowCargoTransferDialog) {
+			return;
+		}
 		const f = new CommandedFleet(fleet);
-		dispatch('cargo-transfer-dialog', { src: f, dest: f.getCargoTransferTarget($universe) });
+		onShowCargoTransferDialog({ src: f, dest: f.getCargoTransferTarget($universe) });
 	}
 </script>
 
@@ -107,7 +110,7 @@
 				<div class="w-32 text-tile-item-title">Cargo:</div>
 				<div class="grow">
 					<CargoBar
-						on:cargo-transfer-dialog={() => transfer()}
+						onpointerdown={() => transfer()}
 						canTransferCargo={canTransferCargo(fleet, $universe)}
 						value={fleet.cargo}
 						capacity={fleet.spec?.cargoCapacity}

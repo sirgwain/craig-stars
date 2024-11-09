@@ -1,49 +1,34 @@
-<script lang="ts" module>
-	import type { CommandedFleet, Waypoint, WaypointTransportTasks } from '$lib/types/Fleet';
-
-	export type TransportTasksDialogEventDetails = {
-		fleet: CommandedFleet;
-		waypoint: Waypoint;
-	};
-	export type TransportTasksUpdateEventDetails = {
-		fleet: CommandedFleet;
-		waypoint: Waypoint;
-		transportTasks: WaypointTransportTasks;
-	};
-	export type TransportTasksDialogEvent = {
-		'transport-tasks-dialog': TransportTasksDialogEventDetails;
-	};
-</script>
-
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
+	import type {
+		OnCancel,
+		OnOk,
+		TransportTasksDialogEvent,
+		TransportTasksUpdateEvent
+	} from '$lib/services/Events';
+	import type { WaypointTransportTasks } from '$lib/types/Fleet';
 	import TransportTasks from '../../(plans)/transport-plans/TransportTasks.svelte';
-
-	const { updateFleetOrders } = getGameContext();
 
 	interface Props {
 		show?: boolean;
-		props: TransportTasksDialogEventDetails | undefined;
+		props: TransportTasksDialogEvent | undefined;
+		onOk: OnOk<TransportTasksUpdateEvent>;
+		onCancel: OnCancel;
 	}
 
-	let { show = $bindable(false), props = $bindable() }: Props = $props();
+	let { show = false, props, onOk, onCancel }: Props = $props();
 
-	let transportTasks: TransportTasksDialogEventDetails['waypoint']['transportTasks'] | undefined =
-		$state();
+	let transportTasks: WaypointTransportTasks | undefined = $state();
 
 	$effect(() => {
 		transportTasks = props?.waypoint.transportTasks;
 	});
 
-	const onUpdateTransportTasks = async () => {
-		if (props && transportTasks) {
-			props.waypoint.transportTasks = transportTasks;
-			await updateFleetOrders(props.fleet);
+	function ok() {
+		if (!transportTasks || !props) {
+			return;
 		}
-
-		// close the dialog
-		show = false;
-	};
+		onOk({ fleet: props.fleet, waypoint: props.waypoint, transportTasks });
+	}
 </script>
 
 <div class="modal" class:modal-open={show}>
@@ -58,14 +43,13 @@
 					<button
 						onclick={(e) => {
 							e.preventDefault();
-							onUpdateTransportTasks();
+							ok();
 						}}
 						type="submit"
 						class="btn btn-sm normal-case btn-primary">OK</button
 					>
-					<button
-						onclick={() => (show = false)}
-						class="btn btn-outline btn-sm normal-case btn-secondary">Cancel</button
+					<button onclick={onCancel} class="btn btn-outline btn-sm normal-case btn-secondary"
+						>Cancel</button
 					>
 				</div>
 			</div>

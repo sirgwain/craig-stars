@@ -1,9 +1,3 @@
-<script lang="ts" module>
-	export type DeleteWaypointEvent = {
-		'delete-waypoint': void;
-	};
-</script>
-
 <script lang="ts">
 	import { run } from 'svelte/legacy';
 
@@ -24,14 +18,14 @@
 		selectWaypoint,
 		updateFleetOrders
 	} = getGameContext();
-	const dispatch = createEventDispatcher<DeleteWaypointEvent>();
 
-	interface Props {
+	type Props = {
 		fleet: CommandedFleet;
 		selectedWaypoint: Waypoint | undefined;
-	}
+		onDeleteWaypoint: () => void;
+	};
 
-	let { fleet = $bindable(), selectedWaypoint = $bindable() }: Props = $props();
+	let { fleet = $bindable(), selectedWaypoint = $bindable(), onDeleteWaypoint }: Props = $props();
 
 	let selectedWaypointIndex = $state(0);
 	let previousWaypoint: Waypoint | undefined = $state();
@@ -190,7 +184,7 @@
 				<button
 					name="deleteWaypoint"
 					class="btn btn-outline btn-sm normal-case btn-secondary"
-					onclick={() => dispatch('delete-waypoint')}
+					onclick={onDeleteWaypoint}
 					>Delete
 				</button>
 			</div>

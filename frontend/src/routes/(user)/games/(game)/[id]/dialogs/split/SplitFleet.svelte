@@ -1,42 +1,27 @@
-<script lang="ts" module>
-	import { getGameContext } from '$lib/services/GameContext';
-	import { CommandedFleet, moveDamagedTokens, type Fleet, type ShipToken } from '$lib/types/Fleet';
-	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
-
-	export type SplitFleetEventDetails = {
-		src: CommandedFleet;
-		dest: Fleet | undefined;
-		srcTokens: ShipToken[];
-		destTokens: ShipToken[];
-		transferAmount: CargoTransferRequest;
-	};
-
-	export type SplitFleetEvent = {
-		'split-fleet': SplitFleetEventDetails;
-		'split-all': CommandedFleet;
-		cancel: void;
-	};
-</script>
-
 <script lang="ts">
 	import FleetIcon from '$lib/components/FleetIcon.svelte';
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
+	import type { OnOk, SplitFleetEvent, OnCancel } from '$lib/services/Events';
+	import { getGameContext } from '$lib/services/GameContext';
+	import { clamp } from '$lib/services/Math';
 	import { CargoTransferRequest, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
+	import { CommandedFleet, moveDamagedTokens, type Fleet, type ShipToken } from '$lib/types/Fleet';
+	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
 	import { cloneDeep } from 'lodash-es';
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { clamp } from '$lib/services/Math';
 
-	const dispatch = createEventDispatcher<SplitFleetEvent>();
 	const { game, player, universe } = getGameContext();
 
 	interface Props {
 		src: CommandedFleet;
 		dest?: Fleet | undefined;
+		onOk: OnOk<SplitFleetEvent>;
+		onCancel: OnCancel;
 	}
 
-	let { src, dest = $bindable(undefined) }: Props = $props();
+	let { src, dest = $bindable(undefined), onOk, onCancel }: Props = $props();
 
 	let transferAmount = $state(new CargoTransferRequest());
 	let srcTokens: ShipToken[] = $state([]);
@@ -49,12 +34,8 @@
 
 	const totalFuel = src.fuel + (dest?.fuel ?? 0);
 
-	function ok() {
-		dispatch('split-fleet', { src, dest, srcTokens, destTokens, transferAmount });
-	}
-
-	function cancel() {
-		dispatch('cancel');
+	function split() {
+		onOk({ src, dest, srcTokens, destTokens, transferAmount });
 	}
 
 	// move some number of tokens from the source to the destination
@@ -139,8 +120,8 @@
 	onMount(() => {
 		const originalScope = hotkeys.getScope();
 		const scope = 'cargoTransfer';
-		hotkeys('Esc', scope, cancel);
-		hotkeys('Enter', scope, ok);
+		hotkeys('Esc', scope, onCancel);
+		hotkeys('Enter', scope, split);
 		hotkeys.setScope(scope);
 
 		if (!dest) {
@@ -184,8 +165,8 @@
 		}
 
 		return () => {
-			hotkeys.unbind('Esc', scope, cancel);
-			hotkeys.unbind('Enter', scope, ok);
+			hotkeys.unbind('Esc', scope, onCancel);
+			hotkeys.unbind('Enter', scope, split);
 			hotkeys.deleteScope(scope);
 			hotkeys.setScope(originalScope);
 		};
@@ -291,8 +272,8 @@
 			/>
 		</div>
 		<div class="flex flex-none justify-end pt-2 my-auto">
-			<button onclick={ok} class="btn btn-primary">Ok</button>
-			<button onclick={cancel} class="btn btn-secondary">Cancel</button>
+			<button onclick={split} class="btn btn-primary">Ok</button>
+			<button onclick={onCancel} class="btn btn-secondary">Cancel</button>
 		</div>
 	</div>
 {/if}

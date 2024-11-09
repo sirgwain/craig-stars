@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
+	import { preventDefault } from 'svelte/legacy';
 
 	import DropdownButton from '$lib/components/DropdownButton.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import OtherMapObjectsHere from '$lib/components/game/OtherMapObjectsHere.svelte';
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
+	import type { ShowTransportTasksDialogEventProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { Unexplored } from '$lib/types/Constants';
 	import {
 		CommandedFleet,
 		emptyTransportTasks,
@@ -18,23 +20,18 @@
 	import { PencilSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
-	import type { TransportTasksDialogEvent } from '../../dialogs/transport/TransportTasksDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
-	import { Unexplored } from '$lib/types/Constants';
-
-	const dispatch = createEventDispatcher<TransportTasksDialogEvent>();
 
 	const { game, player, universe, updateFleetOrders } = getGameContext();
 
-	interface Props {
+	type Props = {
 		fleet: CommandedFleet;
 		selectedWaypoint: Waypoint | undefined;
-	}
+	} & ShowTransportTasksDialogEventProps;
 
-	let { fleet, selectedWaypoint = $bindable() }: Props = $props();
+	let { fleet, selectedWaypoint = $bindable(), onShowTransportTasksDialog }: Props = $props();
 
 	let selectedWaypointTask = $derived(selectedWaypoint?.task ?? WaypointTask.None);
 	let selectedWaypointPlanet = $derived(
@@ -44,10 +41,6 @@
 			? $universe.getPlanet(selectedWaypoint.targetNum)
 			: undefined
 	);
-
-	run(() => {
-		console.log('selectedWaypoint', selectedWaypoint, selectedWaypointPlanet?.name);
-	});
 
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {
 		if (selectedWaypoint) {
@@ -158,7 +151,8 @@
 						<button
 							onclick={() =>
 								selectedWaypoint &&
-								dispatch('transport-tasks-dialog', { fleet, waypoint: selectedWaypoint })}
+								onShowTransportTasksDialog &&
+								onShowTransportTasksDialog({ fleet, waypoint: selectedWaypoint })}
 							class="btn btn-outline btn-sm normal-case btn-secondary inline-block p-1"
 							><Icon src={PencilSquare} size="16" class="hover:stroke-accent inline" /></button
 						>

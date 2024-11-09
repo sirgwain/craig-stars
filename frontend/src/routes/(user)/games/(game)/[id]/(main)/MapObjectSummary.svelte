@@ -3,6 +3,7 @@
 	import Cycle from '$lib/components/icons/Cycle.svelte';
 	import Starbase from '$lib/components/icons/Starbase.svelte';
 	import { getCarouselContext } from '$lib/services/CarouselContext';
+	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { type Fleet } from '$lib/types/Fleet';
 	import { getMapObjectName, MapObjectType } from '$lib/types/MapObject';
@@ -12,6 +13,8 @@
 	import type { Planet } from '$lib/types/Planet';
 	import type { Salvage } from '$lib/types/Salvage';
 	import type { Wormhole } from '$lib/types/Wormhole';
+	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import { readable } from 'svelte/store';
 	import FleetSummary from './FleetSummary.svelte';
 	import MineFieldSummary from './MineFieldSummary.svelte';
@@ -21,13 +24,10 @@
 	import SalvageSummary from './SalvageSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
 	import WormholeSummary from './WormholeSummary.svelte';
-	import { ChevronUp, ChevronDown } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../dialogs/cargo/CargoTransferDialog.svelte';
 
-	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { universe, selectNextMapObject, selectedMapObject } = getGameContext();
+
+	let { onShowCargoTransferDialog }: ShowCargoTransferDialogProps = $props();
 
 	// if we are in a CommandPaneCarousel, show the disclosure chevrons and hide/show the command pane on click
 	let carouselContext = getCarouselContext();
@@ -125,10 +125,7 @@
 		{#if selectedPlanet}
 			<PlanetSummary planet={selectedPlanet} />
 		{:else if selectedFleet}
-			<FleetSummary
-				fleet={selectedFleet}
-				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
-			/>
+			<FleetSummary fleet={selectedFleet} {onShowCargoTransferDialog} />
 		{:else if selectedMineField}
 			<MineFieldSummary mineField={selectedMineField} />
 		{:else if selectedMineralPacket}

@@ -8,11 +8,6 @@
 		fleets: Fleet[];
 		mysteryTraders: MysteryTrader[];
 	};
-
-	export type SearchResultsEvent = {
-		ok: MapObject | undefined;
-		cancel: void;
-	};
 </script>
 
 <script lang="ts">
@@ -22,18 +17,26 @@
 	import { None } from '$lib/types/Constants';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import type { OnOk, OnCancel } from '$lib/services/Events';
 
 	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
 		getGameContext();
-	const dispatch = createEventDispatcher<SearchResultsEvent>();
 
-	interface Props {
+	type Props = {
 		maxPlanetResults?: number;
 		maxFleetResults?: number;
 		maxMiscResults?: number;
-	}
+		onOk: OnOk<MapObject | undefined>;
+		onCancel: OnCancel;
+	};
 
-	let { maxPlanetResults = 10, maxFleetResults = 10, maxMiscResults = 10 }: Props = $props();
+	let {
+		maxPlanetResults = 10,
+		maxFleetResults = 10,
+		maxMiscResults = 10,
+		onOk,
+		onCancel
+	}: Props = $props();
 
 	function getResults(search: string): Results {
 		if (search == '') {
@@ -76,10 +79,7 @@
 	}
 
 	function ok() {
-		dispatch('ok', selectedItem);
-	}
-	function cancel() {
-		dispatch('cancel');
+		onOk(selectedItem);
 	}
 
 	function selectPrevious() {
@@ -106,14 +106,14 @@
 				event.preventDefault();
 				break;
 			case 'Enter':
-				ok();
+				onOk(selectedItem);
 				event.preventDefault();
 				break;
 			case 'Escape':
 				if ($settings.searchQuery != '') {
 					$settings.searchQuery = '';
 				} else {
-					cancel();
+					onCancel();
 					event.preventDefault();
 				}
 				break;

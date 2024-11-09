@@ -1,24 +1,25 @@
 <script lang="ts">
 	import { run } from 'svelte/legacy';
 
-	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
-	import { createEventDispatcher, onDestroy } from 'svelte';
-	import CommandTile from './CommandTile.svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTransferDialog.svelte';
-	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
+	import type {
+		ShowCargoTransferDialogProps,
+		ShowSplitFleetDialogProps
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { getMapObjectName } from '$lib/types/MapObject';
-
-	const dispatch = createEventDispatcher<SplitFleetDialogEvent & CargoTransferDialogEvent>();
+	import { onDestroy } from 'svelte';
+	import CommandTile from './CommandTile.svelte';
 
 	const { commandedFleet, commandedMapObjectKey, commandMapObject } = getGameContext();
 
-	interface Props {
+	type Props = {
 		fleet: CommandedFleet;
 		fleetsInOrbit: Fleet[];
-	}
+	} & ShowCargoTransferDialogProps &
+		ShowSplitFleetDialogProps;
 
-	let { fleet, fleetsInOrbit }: Props = $props();
+	let { fleet, fleetsInOrbit, onShowCargoTransferDialog, onShowSplitFleetDialog }: Props = $props();
 
 	let selectedFleet: Fleet | undefined = $state();
 	let selectedFleetIndex = $state(0);
@@ -35,21 +36,24 @@
 	};
 
 	const transfer = () => {
-		if (selectedFleet) {
-			dispatch('cargo-transfer-dialog', { src: fleet, dest: selectedFleet });
+		if (!selectedFleet || !onShowCargoTransferDialog) {
+			return;
 		}
+		onShowCargoTransferDialog({ src: fleet, dest: selectedFleet });
 	};
 
 	const gotoTarget = () => {
-		if (selectedFleet) {
-			commandMapObject(selectedFleet);
+		if (!selectedFleet) {
+			return;
 		}
+		commandMapObject(selectedFleet);
 	};
 
 	const mergeTarget = () => {
-		if ($commandedFleet && selectedFleet) {
-			dispatch('split-fleet-dialog', { src: $commandedFleet, dest: selectedFleet });
+		if (!$commandedFleet || !selectedFleet || !onShowSplitFleetDialog) {
+			return;
 		}
+		onShowSplitFleetDialog({ src: $commandedFleet, dest: selectedFleet });
 	};
 
 	// reset the waypoint index every time the commanded mapobject changes
