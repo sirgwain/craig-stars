@@ -10,8 +10,16 @@
 		TransportTasksUpdateEvent
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Constants';
+	import type { Waypoint, WaypointDest } from '$lib/types/Fleet';
+	import {
+		equal as mapObjectEqual,
+		MapObjectType,
+		ownedBy,
+		type MapObject
+	} from '$lib/types/MapObject';
 	import { newSalvage } from '$lib/types/Salvage';
+	import { equal } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 	import CargoTranfserDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
@@ -26,12 +34,14 @@
 	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
-	import type { CommandedPlanet } from '$lib/types/Planet';
 
 	const {
+		settings,
 		game,
 		universe,
 		player,
+		selectedMapObject,
+		commandedMapObject,
 		commandedPlanet,
 		commandedFleet,
 		selectedWaypoint,
@@ -42,6 +52,9 @@
 		previousMapObject,
 		selectWaypoint,
 		selectMapObject,
+		addWaypoint,
+		updateWaypoint,
+		deleteWaypoint,
 		updateFleetOrders,
 		updatePlanetOrders,
 		transferCargo,
@@ -99,22 +112,20 @@
 		};
 	});
 
+	function onSelectWaypoint(wp: Waypoint) {
+		selectWaypoint(wp);
+	}
+
+	async function onAddWaypoint(dest: WaypointDest, fastestWaypoint: boolean): Promise<boolean> {
+		return addWaypoint(dest, fastestWaypoint);
+	}
+
+	async function onUpdateWaypoint(dest: WaypointDest, fastestWaypoint: boolean, done: boolean) {
+		updateWaypoint(dest, fastestWaypoint, done);
+	}
+
 	async function onDeleteWaypoint() {
-		const selectedWaypointIndex = $currentSelectedWaypointIndex;
-		if (selectedWaypoint && $commandedFleet && selectedWaypointIndex > 0) {
-			$commandedFleet.waypoints = $commandedFleet.waypoints.filter((wp) => wp != $selectedWaypoint);
-
-			// select the previous waypoint
-			const wp = $commandedFleet.waypoints[selectedWaypointIndex - 1];
-			selectWaypoint(wp);
-
-			const mo = $universe.getMapObject(wp);
-			if (mo) {
-				selectMapObject(mo);
-			}
-
-			await updateFleetOrders($commandedFleet);
-		}
+		deleteWaypoint();
 	}
 
 	const onUpdateTransportTasks = async (e: TransportTasksUpdateEvent) => {
@@ -142,10 +153,6 @@
 			}
 			await transferCargo(e.src, e.dest, e.transferAmount);
 		}
-	}
-
-	async function onUpdatePlanetOrders(planet: CommandedPlanet) {
-		updatePlanetOrders(planet);
 	}
 
 	async function onNextPlanet(updateOrders: boolean) {
@@ -193,6 +200,62 @@
 		}
 		showSearchDialog = false;
 	}
+
+	function onSelectMapObject(mo: MapObject) {
+		if ($selectedMapObject !== mo) {
+			// we selected a different object, so just select it
+			selectMapObject(mo);
+
+			// if we selected a mapobject that is a waypoint, select the waypoint as well
+			if ($commandedFleet?.waypoints) {
+				const fleetWaypoint = $commandedFleet.waypoints.find((wp) =>
+					equal(wp.position, mo.position)
+				);
+				if (fleetWaypoint) {
+					selectWaypoint(fleetWaypoint);
+				}
+			}
+		} else {
+			// we selected the same mapobject twice
+			const myMapObjectsAtPosition = $universe.getMyMapObjectsByPosition(mo);
+			if (myMapObjectsAtPosition?.length > 0) {
+				let index = myMapObjectsAtPosition.findIndex((mo) =>
+					mapObjectEqual(mo, $commandedMapObject)
+				);
+				// if our currently commanded map object is not at this location, reset the index
+				if (index == -1) {
+					index = 0;
+				} else {
+					// command the next one
+					index = index >= myMapObjectsAtPosition.length - 1 ? 0 : index + 1;
+				}
+				const nextMapObject = myMapObjectsAtPosition[index];
+
+				commandMapObject(nextMapObject);
+			}
+		}
+	}
+
+	function onSetPacketDest(mo: MapObject) {
+		if (mo.type != MapObjectType.Planet) {
+			return;
+		} else {
+			$settings.setPacketDest = false;
+			// something went wrong, can't set dest on a planet without a massdriver
+			if (!$commandedPlanet?.spec.hasMassDriver) {
+				return;
+			}
+
+			if (mapObjectEqual(mo, $commandedPlanet)) {
+				// clear dest
+				$commandedPlanet.packetTargetNum = None;
+			} else {
+				$commandedPlanet.packetTargetNum = mo.num;
+			}
+
+			updatePlanetOrders($commandedPlanet);
+		}
+	}
 </script>
 
 <!-- for small mobile displays we put the scanner on top and the command pane below it-->
@@ -237,7 +300,13 @@
 	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
 			<ScannerToolbar on:show-search={() => (showSearchDialog = true)} />
-			<Scanner {onDeleteWaypoint} />
+			<Scanner
+				{onSelectWaypoint}
+				{onAddWaypoint}
+				{onUpdateWaypoint}
+				{onSelectMapObject}
+				{onSetPacketDest}
+			/>
 		</div>
 		<div class:hidden={!carouselOpen}>
 			<MapObjectStatsBar />

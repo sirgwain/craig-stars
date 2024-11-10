@@ -175,6 +175,8 @@ export type Spec = {
 	maxPopulation?: number;
 };
 
+// a destination for a waypoint, either a MapObject or a position in space, but not both
+export type WaypointDest = { mo: MapObject; position?: never } | { mo?: never; position: Vector };
 export type CargoTransferTarget = Fleet | Planet | Salvage | MineralPacket | undefined;
 
 export function emptyTransportTasks(): WaypointTransportTasks {
@@ -303,7 +305,7 @@ export class CommandedFleet implements Fleet {
 	addWaypoint(
 		player: Player,
 		universe: Universe,
-		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
+		dest: WaypointDest,
 		currentSelectedWaypointIndex: number,
 		highestShipMass: number,
 		fastestWaypoint: boolean
@@ -388,7 +390,7 @@ export class CommandedFleet implements Fleet {
 	updateWaypoint(
 		player: Player,
 		universe: Universe,
-		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
+		dest: WaypointDest,
 		currentSelectedWaypointIndex: number,
 		highestShipMass: number,
 		fastestWaypoint: boolean
@@ -569,7 +571,7 @@ export class CommandedFleet implements Fleet {
 		designFinder: DesignFinder,
 		dist: number,
 		orbiting: Planet | undefined,
-		dest: { mo: MapObject; position?: never } | { mo?: never; position: Vector },
+		dest: WaypointDest,
 		fuelAlreadyAllocated: number,
 		highestShipMass: number,
 		fastestWaypoint: boolean
@@ -683,8 +685,6 @@ export class CommandedFleet implements Fleet {
 				break;
 			}
 		}
-
-		console.log('max speed for fuel/safety', speed);
 
 		const idealSpeed = this.spec?.engine?.idealSpeed ?? 5;
 		const idealFuelUsed = this.getFuelCost(

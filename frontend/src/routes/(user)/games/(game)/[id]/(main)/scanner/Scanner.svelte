@@ -5,8 +5,8 @@
 	import { clamp } from '$lib/services/Math';
 	import { None } from '$lib/types/Constants';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, equal as mapObjectEqual, type MapObject } from '$lib/types/MapObject';
+	import { type Fleet, type Waypoint, type WaypointDest } from '$lib/types/Fleet';
+	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
@@ -15,9 +15,7 @@
 	import { Html, LayerCake, Svg } from 'layercake';
 	import { onDestroy, onMount, setContext } from 'svelte';
 	import { derived as derivedStore, writable } from 'svelte/store';
-	import MapObjectQuadTreeFinder, {
-		type FinderEventDetails
-	} from './MapObjectQuadTreeFinder.svelte';
+	import MapObjectQuadTreeFinder, { type FinderEvent } from './MapObjectQuadTreeFinder.svelte';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerMapObjectLocation from './ScannerMapObjectLocation.svelte';
 	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
@@ -40,26 +38,30 @@
 		player,
 		universe,
 		settings,
-		commandMapObject,
 		commandedFleet,
-		commandedMapObject,
-		commandedPlanet,
 		currentSelectedWaypointIndex,
 		highlightMapObject,
 		mostRecentMapObject,
-		selectMapObject,
-		selectWaypoint,
-		selectedMapObject,
 		selectedWaypoint,
-		zoomTarget,
-		updatePlanetOrders,
-		updateFleetOrders
+		zoomTarget
 	} = getGameContext();
 
-	let { onDeleteWaypoint }: { onDeleteWaypoint: () => void } = $props();
+	type Props = {
+		onSelectWaypoint: (wp: Waypoint) => void;
+		onAddWaypoint: (dest: WaypointDest, fastestWaypoint: boolean) => Promise<boolean>;
+		onUpdateWaypoint: (dest: WaypointDest, fastestWaypoint: boolean, done: boolean) => void;
+		onSelectMapObject: (mo: MapObject) => void;
+		onSetPacketDest: (mo: MapObject) => void;
+	};
 
-	const xGetter = (mo: MapObject) => mo?.position?.x;
-	const yGetter = (mo: MapObject) => mo?.position?.y;
+	let {
+		onSelectWaypoint,
+		onAddWaypoint,
+		onUpdateWaypoint,
+		onSelectMapObject,
+		onSetPacketDest
+	}: Props = $props();
+
 	const aspectRatio = $game.area.x / $game.area.y;
 	const padding = 20; // 20 px, used in zooming
 
@@ -74,11 +76,9 @@
 	});
 
 	let transform: ZoomTransform | undefined = $state();
-	let zoomEnabled = true;
-	let zooming = false;
 	let showLocator = $state(false);
 	let shouldAddWaypoint = $state(false);
-	let fastestWaypoint = false;
+	let waypointHighlighted = $state(false);
 
 	// our map scales for .75 to 10x, but the icons for the planets and fleets are 2x min
 	const minZoom = 0.75;
@@ -88,6 +88,21 @@
 	const objectScale = derivedStore([scale], ([s]) => clamp(s, minObjectZoom, maxZoom));
 	setContext('scale', scale);
 	setContext('objectScale', objectScale);
+
+	// zoom state that changes but doesn't cause a reaction
+	let zooming = false;
+	let fastestWaypoint = false;
+
+	let pointerDown = false;
+	let draggingWaypoint = false;
+	let dragAndZoomEnabled = true;
+
+	// set to true if we are moving a waypoint to a position rather than a target
+	// this is enabled when the shift key is held
+	let positionWaypoint = false;
+
+	// if we just added a waypoint, don't drag it around
+	let waypointJustAdded = false;
 
 	// zoomBehavior is based on clientWidth/height
 	let zoomBehavior: ZoomBehavior<HTMLElement, any> = $derived(
@@ -108,7 +123,7 @@
 
 	// enable drag and zoom, but disable dblclick zoom events
 	function enableDragAndZoom() {
-		if (!root) {
+		if (!root || dragAndZoomEnabled) {
 			return;
 		}
 		select(root).call(zoomBehavior).on('dblclick.zoom', null);
@@ -117,7 +132,7 @@
 
 	// disable drag and zoom temporarily
 	function disableDragAndZoom() {
-		if (!root) {
+		if (!root || !dragAndZoomEnabled) {
 			return;
 		}
 		select(root).on('.zoom', null);
@@ -188,7 +203,6 @@
 	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
 		transform = e.transform;
 		$scale = transform.k;
-		// console.log('handleZoom', e, transform);
 	}
 
 	function handleZoomStart(e: D3ZoomEvent<HTMLElement, any>) {
@@ -223,21 +237,9 @@
 		select(root).call(zoomBehavior.scaleTo, scaleTo);
 	}
 
-	let pointerDown = false;
-	let draggingWaypoint = false;
-	let waypointHighlighted = $state(false);
-	let dragAndZoomEnabled = true;
-
-	// set to true if we are moving a waypoint to a position rather than a target
-	// this is enabled when the shift key is held
-	let positionWaypoint = false;
-
-	// if we just added a waypoint, don't drag it around
-	let waypointJustAdded = false;
-
 	// turn off dragging
-	function onContextMenu(e: CustomEvent<FinderEventDetails>) {
-		const { event, found } = e.detail;
+	function onContextMenu(e: FinderEvent) {
+		const { event, found } = e;
 
 		if (found && event instanceof MouseEvent) {
 			onScannerContextPopup(event, found.position);
@@ -245,8 +247,8 @@
 	}
 
 	// as the pointer moves, find the items it is under
-	function onPointerMove(e: CustomEvent<FinderEventDetails>) {
-		const { event, found, position } = e.detail;
+	function onPointerMove(e: FinderEvent) {
+		const { event, found, position } = e;
 
 		highlightMapObject(found);
 
@@ -279,12 +281,12 @@
 		// * if we have a commanded fleet
 		if (!waypointJustAdded && !draggingWaypoint && pointerDown && fleetWaypoint) {
 			draggingWaypoint = true;
-			selectWaypoint(fleetWaypoint);
+			onSelectWaypoint(fleetWaypoint);
 		}
 	}
 
-	async function onPointerDown(e: CustomEvent<FinderEventDetails>) {
-		const { event, found, position } = e.detail;
+	async function onPointerDown(e: FinderEvent) {
+		const { event, found, position } = e;
 
 		if (event instanceof MouseEvent && event.button != 0) {
 			// we only care about the first button
@@ -311,8 +313,8 @@
 	}
 
 	// turn off dragging
-	function onPointerUp(e: CustomEvent<FinderEventDetails>) {
-		const { event, found, position } = e.detail;
+	function onPointerUp(e: FinderEvent) {
+		const { event, found, position } = e;
 
 		if (event instanceof MouseEvent && event.button != 0) {
 			// we only care about the first button
@@ -345,64 +347,16 @@
 				}
 			}
 
-			const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
-
-			// get highest mass of the fleet ships (for stargates)
-			const highestShipMass = Math.max(
-				...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-			);
-
-			if (
-				$commandedFleet.updateWaypoint(
-					$player,
-					$universe,
-					dest,
-					$currentSelectedWaypointIndex,
-					highestShipMass,
-					$settings.fastestWaypoint || fastestWaypoint
-				)
-			) {
-				// trigger reaction
-				$selectedWaypoint = $selectedWaypoint;
-			}
+			const dest = mo && !positionWaypoint ? { mo: mo } : { position: position ?? emptyVector };
+			onUpdateWaypoint(dest, fastestWaypoint, false);
 		}
 	}
 
 	async function dragWaypointDone(position: Vector, mo: MapObject | undefined) {
 		// reset waypoint dragging
 		if ($selectedWaypoint && $commandedFleet && draggingWaypoint) {
-			const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
-
-			// get highest mass of the fleet ships (for stargates)
-			const highestShipMass = Math.max(
-				...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-			);
-
-			if (
-				$commandedFleet.updateWaypoint(
-					$player,
-					$universe,
-					dest,
-					$currentSelectedWaypointIndex,
-					highestShipMass,
-					$settings.fastestWaypoint || fastestWaypoint
-				)
-			) {
-				await updateFleetOrders($commandedFleet);
-
-				// select the new waypoint
-				selectWaypoint($commandedFleet.waypoints[$currentSelectedWaypointIndex]);
-				if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
-					const mo = $universe.getMapObject($selectedWaypoint);
-
-					if (mo) {
-						selectMapObject(mo);
-					}
-				}
-			} else {
-				// we dragged a waypoint to the previous position, delete it
-				onDeleteWaypoint();
-			}
+			const dest = mo && !positionWaypoint ? { mo: mo } : { position: position ?? emptyVector };
+			onUpdateWaypoint(dest, fastestWaypoint, true);
 		}
 	}
 
@@ -428,40 +382,9 @@
 			return false;
 		}
 
+		// for add waypoints, we always snap to planet because the "drag" and "add waypoint button" keys (shift) are the same
 		const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
-
-		// get highest mass of the fleet ships (for stargates)
-		const highestShipMass = Math.max(
-			...$commandedFleet.tokens.map((t) => $universe.getMyDesign(t.designNum)?.spec.mass ?? 0)
-		);
-
-		const newlyAddedWaypointIndex = $commandedFleet.addWaypoint(
-			$player,
-			$universe,
-			dest,
-			$currentSelectedWaypointIndex,
-			highestShipMass,
-			$settings.fastestWaypoint || fastestWaypoint
-		);
-
-		if (!newlyAddedWaypointIndex) {
-			return false;
-		}
-
-		waypointJustAdded = true;
-
-		await updateFleetOrders($commandedFleet);
-
-		// select the new waypoint
-		selectWaypoint($commandedFleet.waypoints[newlyAddedWaypointIndex]);
-		if ($selectedWaypoint && $selectedWaypoint.targetType && $selectedWaypoint.targetNum) {
-			const mo = $universe.getMapObject($selectedWaypoint);
-
-			if (mo) {
-				selectMapObject(mo);
-			}
-		}
-
+		waypointJustAdded = await onAddWaypoint(dest, fastestWaypoint);
 		return true;
 	}
 	/**
@@ -472,58 +395,9 @@
 	 */
 	function mapObjectSelected(mo: MapObject) {
 		if ($settings.setPacketDest) {
-			if (mo.type != MapObjectType.Planet) {
-				return;
-			} else {
-				$settings.setPacketDest = false;
-				// something went wrong, can't set dest on a planet without a massdriver
-				if (!$commandedPlanet?.spec.hasMassDriver) {
-					return;
-				}
-
-				if (mapObjectEqual(mo, $commandedPlanet)) {
-					// clear dest
-					$commandedPlanet.packetTargetNum = None;
-				} else {
-					$commandedPlanet.packetTargetNum = mo.num;
-				}
-
-				updatePlanetOrders($commandedPlanet);
-				return;
-			}
-		}
-
-		if ($selectedMapObject !== mo) {
-			// we selected a different object, so just select it
-			selectMapObject(mo);
-
-			// if we selected a mapobject that is a waypoint, select the waypoint as well
-			if ($commandedFleet?.waypoints) {
-				const fleetWaypoint = $commandedFleet.waypoints.find((wp) =>
-					equal(wp.position, mo.position)
-				);
-				if (fleetWaypoint) {
-					selectWaypoint(fleetWaypoint);
-				}
-			}
+			onSetPacketDest(mo);
 		} else {
-			// we selected the same mapobject twice
-			const myMapObjectsAtPosition = $universe.getMyMapObjectsByPosition(mo);
-			if (myMapObjectsAtPosition?.length > 0) {
-				let index = myMapObjectsAtPosition.findIndex((mo) =>
-					mapObjectEqual(mo, $commandedMapObject)
-				);
-				// if our currently commanded map object is not at this location, reset the index
-				if (index == -1) {
-					index = 0;
-				} else {
-					// command the next one
-					index = index >= myMapObjectsAtPosition.length - 1 ? 0 : index + 1;
-				}
-				const nextMapObject = myMapObjectsAtPosition[index];
-
-				commandMapObject(nextMapObject);
-			}
+			onSelectMapObject(mo);
 		}
 	}
 
@@ -542,30 +416,30 @@
 
 		// setup asubscriber to draw the target X and move the viewport to a new target
 		// when the zoomTarget changes
-		const unsubscribe = zoomTarget.subscribe((target) => {
+		const unsubscribeZoomTarget = zoomTarget.subscribe((target) => {
 			if (target) {
 				translateViewport(target.position);
 				showTargetLocation();
 			}
 		});
 
+		// if settings change, enable/disable drag and zoom depending on if the addWaypoint
+		// mode is enabled or disabled
+		const unsubscribeSettings = settings.subscribe((settings) => {
+			settings.addWaypoint ? disableDragAndZoom() : enableDragAndZoom();
+		});
+
 		// bind the v key to show the target with X
 		hotkeys('v', 'root', showTargetLocation);
 
-		return unsubscribe;
+		return () => {
+			unsubscribeZoomTarget();
+			unsubscribeSettings();
+		};
 	});
 
 	onDestroy(() => {
 		hotkeys.unbind('v', 'root', showTargetLocation);
-	});
-
-	// enable/disable zoom on update
-	$effect(() => {
-		if ($settings.addWaypoint && zoomEnabled) {
-			disableDragAndZoom();
-		} else if (!$settings.addWaypoint && !zoomEnabled) {
-			enableDragAndZoom();
-		}
 	});
 
 	// data used by the scanner is derived from the universe/commandedFleet stores
@@ -596,8 +470,8 @@
 >
 	<LayerCake
 		data={$data}
-		x={xGetter}
-		y={yGetter}
+		x={(mo: MapObject | undefined) => mo?.position?.x}
+		y={(mo: MapObject | undefined) => mo?.position?.y}
 		xDomain={[0, $game.area.x]}
 		yDomain={[0, $game.area.y]}
 		xRange={xRange(clientRect.width, clientRect.height)}
@@ -631,11 +505,11 @@
 				<ScannerNames {transform} />
 
 				<MapObjectQuadTreeFinder
-					on:contextmenu={onContextMenu}
-					on:pointermove={onPointerMove}
-					on:pointerdown={onPointerDown}
-					on:pointerup={onPointerUp}
-					on:touchmove={onPointerMove}
+					contextmenu={onContextMenu}
+					pointermove={onPointerMove}
+					pointerdown={onPointerDown}
+					pointerup={onPointerUp}
+					touchmove={onPointerMove}
 					searchRadius={20}
 					{transform}
 				/>

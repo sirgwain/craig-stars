@@ -66,7 +66,7 @@
 	}: Props = $props();
 
 	let carousel: HTMLDivElement | undefined;
-	let activeNav = '#summary';
+	let activeNav = $state('#summary');
 	let activeWaypointIndex: number | undefined;
 
 	const onNavClicked: MouseEventHandler<HTMLAnchorElement> = (e) => {

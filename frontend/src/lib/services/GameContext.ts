@@ -1,7 +1,13 @@
 import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/Cargo';
-import { CommandedFleet, type Fleet, type ShipToken, type Waypoint } from '$lib/types/Fleet';
+import {
+	CommandedFleet,
+	type Fleet,
+	type ShipToken,
+	type Waypoint,
+	type WaypointDest
+} from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
 import { MapObjectType, equal, key, ownedBy, type MapObject } from '$lib/types/MapObject';
 import { None } from '$lib/types/Constants';
@@ -111,8 +117,15 @@ export type GameContext = {
 	createDesign: (design: ShipDesign) => Promise<ShipDesign>;
 	updateDesign: (design: ShipDesign) => Promise<void>;
 	deleteDesign: (num: number) => Promise<void>;
+
+	// fleet waypoint updates
+	addWaypoint: (dest: WaypointDest, fastestWaypoint: boolean) => Promise<boolean>;
+	updateWaypoint: (dest: WaypointDest, fastestWaypoint: boolean, done: boolean) => Promise<void>;
+	deleteWaypoint: () => Promise<void>;
+
 	updateFleetOrders: (fleet: CommandedFleet) => Promise<void>;
 	renameFleet: (fleet: CommandedFleet, name: string) => Promise<void>;
+
 	updatePlanetOrders: (planet: CommandedPlanet) => Promise<void>;
 	updateMineFieldOrders: (mineField: MineField) => Promise<void>;
 	transferCargo: (
@@ -857,6 +870,118 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		commandHomeWorld();
 	}
 
+	async function addWaypoint(dest: WaypointDest, fastestWaypoint: boolean): Promise<boolean> {
+		const fleet = get(commandedFleet);
+		const sw = get(selectedWaypoint);
+		const currentIndex = get(currentSelectedWaypointIndex);
+		const p = get(player);
+		const u = get(universe);
+		const fastest = get(settings).fastestWaypoint || fastestWaypoint;
+		if (!fleet) {
+			return false;
+		}
+
+		// get highest mass of the fleet ships (for stargates)
+		const highestShipMass = Math.max(
+			...fleet.tokens.map((t) => u.getMyDesign(t.designNum)?.spec.mass ?? 0)
+		);
+
+		const newlyAddedWaypointIndex = fleet.addWaypoint(
+			p,
+			u,
+			dest,
+			currentIndex,
+			highestShipMass,
+			fastest
+		);
+
+		if (!newlyAddedWaypointIndex) {
+			return false;
+		}
+
+		await updateFleetOrders(fleet);
+
+		// select the new waypoint
+		selectWaypoint(fleet.waypoints[newlyAddedWaypointIndex]);
+		if (sw && sw.targetType && sw.targetNum) {
+			const mo = u.getMapObject(sw);
+
+			if (mo) {
+				selectMapObject(mo);
+			}
+		}
+
+		return true;
+	}
+
+	async function updateWaypoint(dest: WaypointDest, fastestWaypoint: boolean, done: boolean) {
+		const fleet = get(commandedFleet);
+		const sw = get(selectedWaypoint);
+		const currentIndex = get(currentSelectedWaypointIndex);
+		const p = get(player);
+		const u = get(universe);
+		const fastest = get(settings).fastestWaypoint || fastestWaypoint;
+
+		if (!fleet) {
+			return;
+		}
+
+		// get highest mass of the fleet ships (for stargates)
+		const highestShipMass = Math.max(
+			...fleet.tokens.map((t) => u.getMyDesign(t.designNum)?.spec.mass ?? 0)
+		);
+
+		if (fleet.updateWaypoint(p, u, dest, currentIndex, highestShipMass, fastest)) {
+			// check if we are done updating this waypoint and should save it to the server
+			if (done) {
+				await updateFleetOrders(fleet);
+
+				// select the new waypoint
+				selectWaypoint(fleet.waypoints[currentIndex]);
+				if (sw && sw.targetType && sw.targetNum) {
+					const mo = u.getMapObject(sw);
+
+					if (mo) {
+						selectMapObject(mo);
+					}
+				}
+			} else {
+				// trigger reaction
+				selectedWaypoint.update(() => sw);
+			}
+		} else {
+			// TODO: this logic is hard to follow with deletes and all that
+			if (done) {
+				// we dragged a waypoint to the previous position, delete it
+				deleteWaypoint();
+			}
+		}
+	}
+
+	async function deleteWaypoint() {
+		const fleet = get(commandedFleet);
+		const sw = get(selectedWaypoint);
+		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
+		const u = get(universe);
+
+		if (!fleet || !selectedWaypoint || selectedWaypointIndex == 0) {
+			return;
+		}
+
+		fleet.waypoints = fleet.waypoints.filter((wp) => wp != sw);
+
+		// select the previous waypoint
+		const wp = fleet.waypoints[selectedWaypointIndex - 1];
+		selectWaypoint(wp);
+
+		const mo = u.getMapObject(wp);
+		if (mo) {
+			selectMapObject(mo);
+		}
+
+		updateFleetOrders(fleet);
+	}
+
 	async function updateFleetOrders(fleet: CommandedFleet): Promise<void> {
 		const updatedFleet = await FleetService.updateFleetOrders(fleet);
 		updateFleet(fleet, updatedFleet);
@@ -1052,8 +1177,13 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		createDesign,
 		updateDesign,
 		deleteDesign,
+
+		addWaypoint,
+		updateWaypoint,
+		deleteWaypoint,
 		updateFleetOrders,
 		renameFleet,
+
 		updatePlanetOrders,
 		updateMineFieldOrders,
 		transferCargo,
