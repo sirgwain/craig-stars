@@ -13,7 +13,7 @@
 		dest: Fleet | Planet | Salvage | undefined;
 		onOk: OnOk<TransferCargoEvent>;
 		onCancel: OnCancel;
-	}
+	};
 
 	let { src, dest, onOk, onCancel }: Props = $props();
 

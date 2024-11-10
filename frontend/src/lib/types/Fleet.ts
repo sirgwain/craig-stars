@@ -258,6 +258,23 @@ export class CommandedFleet implements Fleet {
 		return fuelCost;
 	}
 
+	getWaypointMapObjects(universe: Universe): MapObject[] {
+		return this.waypoints.map((wp) => {
+			const mo = universe.getMapObject(wp);
+			if (mo) {
+				return mo;
+			} else {
+				return {
+					position: wp.position,
+					type: wp.targetType ?? MapObjectType.PositionWaypoint,
+					name: wp.targetName ?? '',
+					num: wp.targetNum ?? 0,
+					playerNum: wp.targetPlayerNum ?? 0
+				} as MapObject;
+			}
+		});
+	}
+
 	getSelectedWaypointInfo(currentSelectedWaypointIndex: number = -1): {
 		selectedWaypoint: Waypoint;
 		nextWaypoint: Waypoint | undefined;

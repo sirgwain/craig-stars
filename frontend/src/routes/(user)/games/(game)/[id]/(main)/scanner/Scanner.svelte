@@ -1,23 +1,20 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { clickOutside } from '$lib/clickOutside';
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
+	import { None } from '$lib/types/Constants';
 	import { filterFleet } from '$lib/types/Filter';
 	import { type Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, equal as mapObjectEqual, type MapObject } from '$lib/types/MapObject';
-	import { None } from '$lib/types/Constants';
 	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
-	import type { ScaleLinear } from 'd3-scale';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
 	import { ZoomTransform, zoom, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import hotkeys from 'hotkeys-js';
 	import { Html, LayerCake, Svg } from 'layercake';
-	import { createEventDispatcher, onDestroy, onMount, setContext } from 'svelte';
-	import { derived, writable } from 'svelte/store';
+	import { onDestroy, onMount, setContext } from 'svelte';
+	import { derived as derivedStore, writable } from 'svelte/store';
 	import MapObjectQuadTreeFinder, {
 		type FinderEventDetails
 	} from './MapObjectQuadTreeFinder.svelte';
@@ -37,9 +34,6 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import type { DeleteWaypointEvent } from '../command/FleetWaypointsTile.svelte';
-
-	const dispatch = createEventDispatcher<DeleteWaypointEvent>();
 
 	const {
 		game,
@@ -62,18 +56,24 @@
 		updateFleetOrders
 	} = getGameContext();
 
+	let { onDeleteWaypoint }: { onDeleteWaypoint: () => void } = $props();
+
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
+	const aspectRatio = $game.area.x / $game.area.y;
+	const padding = 20; // 20 px, used in zooming
 
-	let clientWidth = $state(100);
-	let clientHeight = $state(100);
-	let aspectRatio = 1;
-	let transform: ZoomTransform | undefined = $state();
-	let zoomBehavior: ZoomBehavior<HTMLElement, any> | undefined = $state();
 	let root: HTMLElement | undefined = $state();
-	let padding = 20; // 20 px, used in zooming
-	let scaleX: ScaleLinear<number, number, never>;
-	let scaleY: ScaleLinear<number, number, never>;
+	let rect: HTMLDivElement | undefined = $state();
+	let clientRect = $state({ width: 100, height: 100 });
+
+	// compute scales, derived from clientWidth/height
+	let scaler = $derived({
+		x: scaleLinear().range(xRange(clientRect.width, clientRect.height)).domain([0, $game.area.x]),
+		y: scaleLinear().range(yRange(clientRect.width, clientRect.height)).domain([0, $game.area.y])
+	});
+
+	let transform: ZoomTransform | undefined = $state();
 	let zoomEnabled = true;
 	let zooming = false;
 	let showLocator = $state(false);
@@ -85,26 +85,30 @@
 	const maxZoom = 10;
 	const minObjectZoom = 2;
 	const scale = writable(3); // default 3x zoom
-	const objectScale = derived([scale], ([s]) => clamp(s, minObjectZoom, maxZoom));
+	const objectScale = derivedStore([scale], ([s]) => clamp(s, minObjectZoom, maxZoom));
 	setContext('scale', scale);
 	setContext('objectScale', objectScale);
 
-	// $: console.log('scale ', $scale);
-
-	const unsubscribe = zoomTarget.subscribe(() => showTargetLocation());
-
-	onMount(() => {
-		hotkeys('v', 'root', showTargetLocation);
-	});
-
-	onDestroy(() => {
-		hotkeys.unbind('v', 'root', showTargetLocation);
-		unsubscribe();
-	});
+	// zoomBehavior is based on clientWidth/height
+	let zoomBehavior: ZoomBehavior<HTMLElement, any> = $derived(
+		zoom<HTMLElement, any>()
+			.extent([
+				[0, 0],
+				[clientRect.width, clientRect.height]
+			])
+			.scaleExtent([minZoom, maxZoom])
+			.translateExtent([
+				[-20, -20],
+				[clientRect.width + padding, clientRect.height + padding]
+			])
+			.on('zoom', handleZoom)
+			.on('start', handleZoomStart)
+			.on('end', handleZoomEnd)
+	);
 
 	// enable drag and zoom, but disable dblclick zoom events
 	function enableDragAndZoom() {
-		if (!root || !zoomBehavior) {
+		if (!root) {
 			return;
 		}
 		select(root).call(zoomBehavior).on('dblclick.zoom', null);
@@ -121,7 +125,7 @@
 		zooming = false;
 	}
 
-	const xRange = () => {
+	function xRange(clientWidth: number, clientHeight: number) {
 		if (aspectRatio > 1 && clientHeight > clientWidth) {
 			// tall skinny viewport, wide map, so fully expand on the x
 			// but shrink up height
@@ -132,8 +136,9 @@
 			return [0, clientHeight * aspectRatio];
 		}
 		return [0, Math.min(clientWidth, clientHeight)];
-	};
-	const yRange = () => {
+	}
+
+	function yRange(clientWidth: number, clientHeight: number) {
 		if (aspectRatio > 1 && clientHeight > clientWidth) {
 			// tall skinny viewport, wide map, so fully expand on the x
 			// but shrink up height
@@ -143,16 +148,11 @@
 			return [0, clientHeight];
 		}
 		return [0, Math.min(clientWidth, clientHeight)];
-	};
+	}
 
-	function handleResize() {
-		clientWidth = root?.clientWidth ?? 100;
-		clientHeight = root?.clientHeight ?? 100;
-		aspectRatio = $game.area.x / $game.area.y;
-
-		// compute scales
-		scaleX = scaleLinear().range(xRange()).domain([0, $game.area.x]);
-		scaleY = scaleLinear().range(yRange()).domain([0, $game.area.y]);
+	// update clientWidth/height on resize
+	function handleResize(event: UIEvent & { currentTarget: EventTarget & Window }) {
+		clientRect = rect?.getBoundingClientRect() ?? { width: 100, height: 100 };
 	}
 
 	function handleKeyDown(e: KeyboardEvent) {
@@ -199,29 +199,28 @@
 		zooming = false;
 	}
 
-	// zoom the display to a point on the map
-	function translateViewport(position: Vector, scaleTo?: number) {
-		if (root) {
-			select(root).call(zoomBehavior.scaleTo, $scale);
-			const scaled: Vector = {
-				x: scaleX(position.x),
-				y: scaleY(position.y)
-			};
-			let localScale = $scale;
-			if (scaleTo) {
-				localScale = scaleTo;
-			}
-			select(root)
-				.call(zoomBehavior.translateTo, scaled.x, scaled.y)
-				.call(zoomBehavior.scaleTo, localScale);
+	// translate/zoom the display to a point on the map
+	function translateViewport(position: Vector) {
+		if (!root) {
+			return;
 		}
+
+		select(root).call(zoomBehavior.scaleTo, $scale);
+		const scaled: Vector = {
+			x: scaler.x(position.x),
+			y: scaler.y(position.y)
+		};
+		select(root)
+			.call(zoomBehavior.translateTo, scaled.x, scaled.y)
+			.call(zoomBehavior.scaleTo, $scale);
 	}
 
 	// zoom the viewport to a specific scale
 	function zoomViewport(scaleTo: number) {
-		if (root) {
-			select(root).call(zoomBehavior.scaleTo, scaleTo);
+		if (!root || !zoomBehavior) {
+			return;
 		}
+		select(root).call(zoomBehavior.scaleTo, scaleTo);
 	}
 
 	let pointerDown = false;
@@ -402,7 +401,7 @@
 				}
 			} else {
 				// we dragged a waypoint to the previous position, delete it
-				dispatch('delete-waypoint');
+				onDeleteWaypoint();
 			}
 		}
 	}
@@ -528,77 +527,60 @@
 		}
 	}
 
-	let data: MapObject[] = $state([]);
 	// handle zoom in/out
 	// this behavior controls how the zoom behaves
 	// below we handle zooming events by updating a transform
-	run(() => {
-		if (root) {
-			handleResize();
-
-			zoomBehavior = zoom<HTMLElement, any>()
-				.extent([
-					[0, 0],
-					[clientWidth, clientHeight]
-				])
-				.scaleExtent([minZoom, maxZoom])
-				.translateExtent([
-					[-20, -20],
-					[clientWidth + padding, clientHeight + padding]
-				])
-				.on('zoom', handleZoom)
-				.on('start', handleZoomStart)
-				.on('end', handleZoomEnd);
-
-			enableDragAndZoom();
+	onMount(() => {
+		clientRect = rect?.getBoundingClientRect() ?? { width: 100, height: 100 };
+		if (!$zoomTarget) {
+			return;
 		}
+
+		// setup zoom and translate to the zoomTarget
+		translateViewport($zoomTarget.position);
+		enableDragAndZoom();
+
+		// setup asubscriber to draw the target X and move the viewport to a new target
+		// when the zoomTarget changes
+		const unsubscribe = zoomTarget.subscribe((target) => {
+			if (target) {
+				translateViewport(target.position);
+				showTargetLocation();
+			}
+		});
+
+		// bind the v key to show the target with X
+		hotkeys('v', 'root', showTargetLocation);
+
+		return unsubscribe;
 	});
-	run(() => {
+
+	onDestroy(() => {
+		hotkeys.unbind('v', 'root', showTargetLocation);
+	});
+
+	// enable/disable zoom on update
+	$effect(() => {
 		if ($settings.addWaypoint && zoomEnabled) {
 			disableDragAndZoom();
 		} else if (!$settings.addWaypoint && !zoomEnabled) {
 			enableDragAndZoom();
 		}
 	});
-	// zoom to the commanded map object every time it changes
-	run(() => {
-		if (root && $zoomTarget) {
-			translateViewport($zoomTarget.position);
-		}
-	});
-	run(() => {
-		const waypoints: MapObject[] = [];
-		if ($commandedFleet?.waypoints) {
-			waypoints.push(
-				...$commandedFleet.waypoints.map((wp) => {
-					const mo = $universe.getMapObject(wp);
-					if (mo) {
-						return mo;
-					} else {
-						return {
-							position: wp.position,
-							type: wp.targetType ?? MapObjectType.PositionWaypoint,
-							name: wp.targetName ?? '',
-							num: wp.targetNum ?? 0,
-							playerNum: wp.targetPlayerNum ?? 0
-						} as MapObject;
-					}
-				})
-			);
-		}
-		data = [
-			...waypoints,
-			...$universe.fleets.filter(
-				(f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined
-			),
-			...$universe.mysteryTraders,
-			...$universe.mineralPackets,
-			...$universe.salvages,
-			...$universe.wormholes,
-			...$universe.mineFields,
-			...$universe.planets
-		];
-	});
+
+	// data used by the scanner is derived from the universe/commandedFleet stores
+	// when they update, our data updates
+	const data = derivedStore([universe, commandedFleet], ([u, f]) => [
+		// add mapobject waypoints
+		...(f?.getWaypointMapObjects(u) || []),
+		...u.fleets.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
+		...u.mysteryTraders,
+		...u.mineralPackets,
+		...u.salvages,
+		...u.wormholes,
+		...u.mineFields,
+		...u.planets
+	]);
 </script>
 
 <svelte:window onresize={handleResize} onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
@@ -609,20 +591,20 @@
 		(!!$commandedFleet && $settings.addWaypoint) ||
 		$settings.setPacketDest}
 	class={`grow bg-black overflow-hidden p-[${padding}px] select-none`}
+	bind:this={rect}
 	use:clickOutside={disableAddWaypointMode}
 >
 	<LayerCake
-		{data}
+		data={$data}
 		x={xGetter}
 		y={yGetter}
 		xDomain={[0, $game.area.x]}
 		yDomain={[0, $game.area.y]}
-		{xRange}
-		{yRange}
+		xRange={xRange(clientRect.width, clientRect.height)}
+		yRange={yRange(clientRect.width, clientRect.height)}
 		yReverse={true}
 		bind:element={root}
 	>
-		<!-- <Svg viewBox={`0 0 ${game.area.x} ${game.area.y}`}> -->
 		<Svg>
 			<g transform={transform?.toString()}>
 				<ScannerScanners />

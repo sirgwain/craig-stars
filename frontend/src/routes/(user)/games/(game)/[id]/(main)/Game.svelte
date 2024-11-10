@@ -237,7 +237,7 @@
 	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
 			<ScannerToolbar on:show-search={() => (showSearchDialog = true)} />
-			<Scanner on:delete-waypoint={onDeleteWaypoint} />
+			<Scanner {onDeleteWaypoint} />
 		</div>
 		<div class:hidden={!carouselOpen}>
 			<MapObjectStatsBar />

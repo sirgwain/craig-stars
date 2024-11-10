@@ -5,7 +5,7 @@ import type {
 	Fleet,
 	ShipToken,
 	Waypoint,
-    WaypointTransportTasks
+	WaypointTransportTasks
 } from '$lib/types/Fleet';
 import type { CommandedPlanet, Planet } from '$lib/types/Planet';
 import type { Salvage } from '$lib/types/Salvage';

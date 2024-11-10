@@ -86,7 +86,8 @@
 			disabled={selectedFleetIndexes.length == 0}
 			class="btn btn-sm normal-case btn-primary">OK</button
 		>
-		<button onclick={onCancel} class="btn btn-outline btn-sm normal-case btn-secondary">Cancel</button
+		<button onclick={onCancel} class="btn btn-outline btn-sm normal-case btn-secondary"
+			>Cancel</button
 		>
 		<button
 			type="button"

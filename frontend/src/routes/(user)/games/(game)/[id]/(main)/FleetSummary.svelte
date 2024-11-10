@@ -4,9 +4,7 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import type {
-		ShowCargoTransferDialogProps
-	} from '$lib/services/Events';
+	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import {
@@ -28,17 +26,18 @@
 
 	let { fleet, onShowCargoTransferDialog }: Props = $props();
 
-	let design: ShipDesign | undefined = $state();
-
-	function getIcon(fleet: Fleet): string {
+	const design: ShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
-			design = $universe.getDesign(fleet.playerNum, designNum);
-			if (design) {
-				return `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
-			}
+			return $universe.getDesign(fleet.playerNum, designNum);
 		}
-		return '';
+	});
+
+	function getIcon(design: ShipDesign | undefined): string {
+		if (!design) {
+			return '';
+		}
+		return `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
 	}
 
 	// get either warpSpeed as a number, or "stargate"
@@ -74,7 +73,7 @@
 					<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 				{/if}
 
-				<div class="fleet-avatar {getIcon(fleet)} bg-black">
+				<div class="fleet-avatar {getIcon(design)} bg-black">
 					<button
 						type="button"
 						aria-label="Opens ship design tooltip"
