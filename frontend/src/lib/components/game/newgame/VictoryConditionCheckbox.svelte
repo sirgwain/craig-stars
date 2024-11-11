@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { VictoryCondition } from '$lib/types/Game';
 
-	interface Props {
+	type Props = {
 		conditions: number;
 		condition: VictoryCondition;
-	}
+	};
 
 	let { conditions = $bindable(), condition }: Props = $props();
 </script>

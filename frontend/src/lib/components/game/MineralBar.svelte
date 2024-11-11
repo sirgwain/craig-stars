@@ -3,7 +3,7 @@
 	import type { ValueChangedEvent } from '$lib/ValueChangedEvent';
 	import { createEventDispatcher } from 'svelte';
 
-	interface Props {
+	type Props = {
 		value?: number;
 		capacity?: number;
 		min?: number;
@@ -11,7 +11,7 @@
 		color?: string;
 		unit?: string;
 		readonly?: boolean;
-	}
+	};
 
 	let {
 		value = $bindable(0),

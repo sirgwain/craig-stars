@@ -2,9 +2,9 @@
 	import { WaypointTaskTransportAction, type WaypointTransportTasks } from '$lib/types/Fleet';
 	import TransportTasks from './TransportTask.svelte';
 
-	interface Props {
+	type Props = {
 		transportTasks: WaypointTransportTasks;
-	}
+	};
 
 	let { transportTasks = $bindable() }: Props = $props();
 </script>

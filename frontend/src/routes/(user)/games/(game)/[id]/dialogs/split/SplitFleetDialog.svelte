@@ -10,12 +10,12 @@
 
 	const { split } = getGameContext();
 
-	interface Props {
+	type Props = {
 		show?: boolean;
 		props: SplitFleetDialogEvent | undefined;
 		onOk: OnOk<SplitFleetEvent>;
 		onCancel: OnCancel;
-	}
+	};
 
 	let { show = false, props, onOk, onCancel }: Props = $props();
 </script>

@@ -4,12 +4,12 @@
 	import { WaypointTaskTransportAction } from '$lib/types/Fleet';
 	import { startCase } from 'lodash-es';
 
-	interface Props {
+	type Props = {
 		action: WaypointTaskTransportAction | undefined;
 		amount: number | undefined;
 		textClass?: string;
 		title: string;
-	}
+	};
 
 	let { action = $bindable(), amount = $bindable(), textClass = '', title }: Props = $props();
 </script>

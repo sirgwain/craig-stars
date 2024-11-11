@@ -26,7 +26,7 @@
 		td: ''
 	};
 
-	interface Props {
+	type Props = {
 		classes?: TableClasses;
 		columns?: TableColumn<T>[];
 		rows?: T[];
@@ -35,7 +35,7 @@
 		head?: import('svelte').Snippet<[any]>;
 		cell?: import('svelte').Snippet<[any]>;
 		empty?: import('svelte').Snippet;
-	}
+	};
 
 	let {
 		classes = defaultClasses,

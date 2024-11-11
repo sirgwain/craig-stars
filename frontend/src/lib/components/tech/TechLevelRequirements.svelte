@@ -3,10 +3,10 @@
 
 	import type { Tech, TechRequirements } from '$lib/types/Tech';
 
-	interface Props {
+	type Props = {
 		tech: Tech;
 		player?: PlayerResponse | undefined;
-	}
+	};
 
 	let { tech, player = undefined }: Props = $props();
 

@@ -22,10 +22,10 @@
 </script>
 
 <script lang="ts">
-	interface Props {
+	type Props = {
 		tech: Tech;
 		showResearchCost?: boolean;
-	}
+	};
 
 	let { tech, showResearchCost = false }: Props = $props();
 

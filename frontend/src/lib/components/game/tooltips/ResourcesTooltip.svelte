@@ -10,14 +10,14 @@
 </script>
 
 <script lang="ts">
-	interface Props {
+	type Props = {
 		planetName: string;
 		resourcesPerYear: number;
 		resourcesPerYearResearch: number;
 		resourcesPerYearResearchEstimated: number;
 		resourcesPerYearAvailable: number;
 		innateResources: boolean;
-	}
+	};
 
 	let {
 		planetName,

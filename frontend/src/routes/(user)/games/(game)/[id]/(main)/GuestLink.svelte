@@ -10,10 +10,10 @@
 
 	const { game } = getGameContext();
 
-	interface Props {
+	type Props = {
 		player: PlayerStatus;
 		hideText?: boolean;
-	}
+	};
 
 	let { player, hideText = false }: Props = $props();
 

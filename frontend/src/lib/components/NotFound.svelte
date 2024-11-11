@@ -2,9 +2,9 @@
 	import { me } from '$lib/services/Stores';
 	import Menu from './Menu.svelte';
 
-	interface Props {
+	type Props = {
 		title?: string;
-	}
+	};
 
 	let { title = 'Resource not found' }: Props = $props();
 </script>

@@ -15,10 +15,10 @@
 	import { onMount } from 'svelte';
 	import HullComponent from './hull/HullComponent.svelte';
 
-	interface Props {
+	type Props = {
 		tech: Tech;
 		rules?: Rules;
-	}
+	};
 
 	let { tech, rules = defaultRules }: Props = $props();
 

@@ -12,10 +12,10 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		phase: number;
 		battle: Battle;
-	}
+	};
 
 	let { phase = $bindable(), battle }: Props = $props();
 

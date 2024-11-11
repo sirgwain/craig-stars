@@ -8,17 +8,16 @@
 	import type { Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
-	import { getEnemiesAndFriends } from './Scanner';
+	import { getEnemiesAndFriends, getScannerContext } from './Scanner';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 	const { game, player, universe, settings } = getGameContext();
-	const scale = getContext<Writable<number>>('scale');
+	const { scale } = getScannerContext();
 
-	interface Props {
+	type Props = {
 		planet: Planet;
 		yOffset: number;
-	}
+	};
 
 	let { planet, yOffset }: Props = $props();
 
@@ -36,17 +35,17 @@
 				0
 			)
 	);
-	let textColor = $state('fill-orbit');
-	run(() => {
-		const { enemies, friends } = getEnemiesAndFriends(orbitingFleets, $player);
-
+	let { enemies, friends } = $derived(getEnemiesAndFriends(orbitingFleets, $player));
+	
+	let textColor = $derived.by(() => {
 		if (friends && !enemies) {
-			textColor = 'fill-orbit-friends';
+			return 'fill-orbit-friends';
 		} else if (!friends && enemies) {
-			textColor = 'fill-orbit-enemies';
+			return 'fill-orbit-enemies';
 		} else if (friends && enemies) {
-			textColor = 'fill-orbit-friends-and-enemies';
+			return 'fill-orbit-friends-and-enemies';
 		}
+		return 'fill-orbit';
 	});
 </script>
 

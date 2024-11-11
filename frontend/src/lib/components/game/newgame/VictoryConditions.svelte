@@ -3,9 +3,9 @@
 	import VictoryConditionCheckbox from './VictoryConditionCheckbox.svelte';
 	import VictoryConditionInput from './VictoryConditionInput.svelte';
 
-	interface Props {
+	type Props = {
 		settings: GameSettings;
-	}
+	};
 
 	let { settings = $bindable() }: Props = $props();
 </script>

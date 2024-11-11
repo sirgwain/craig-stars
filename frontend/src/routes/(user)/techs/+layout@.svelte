@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Menu from '$lib/components/Menu.svelte';
 	import { me } from '$lib/services/Stores';
-	interface Props {
+	type Props = {
 		children?: import('svelte').Snippet;
-	}
+	};
 
 	let { children }: Props = $props();
 </script>

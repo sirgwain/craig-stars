@@ -12,13 +12,13 @@
 
 	const dispatch = createEventDispatcher<SpinnerNumberEvent>();
 
-	interface Props {
+	type Props = {
 		value: number;
 		step?: number;
 		min?: number;
 		max?: number;
 		unit?: string;
-	}
+	};
 
 	let { value = $bindable(), step = 1, min = 0, max = 100, unit = '' }: Props = $props();
 

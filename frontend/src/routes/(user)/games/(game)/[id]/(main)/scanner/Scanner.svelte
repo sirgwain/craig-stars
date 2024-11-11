@@ -32,6 +32,7 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
+	import { setScannerContext } from './Scanner';
 
 	const {
 		game,
@@ -86,8 +87,7 @@
 	const minObjectZoom = 2;
 	const scale = writable(3); // default 3x zoom
 	const objectScale = derivedStore([scale], ([s]) => clamp(s, minObjectZoom, maxZoom));
-	setContext('scale', scale);
-	setContext('objectScale', objectScale);
+	setScannerContext({ scale, objectScale });
 
 	// zoom state that changes but doesn't cause a reaction
 	let zooming = false;
@@ -95,7 +95,7 @@
 
 	let pointerDown = false;
 	let draggingWaypoint = false;
-	let dragAndZoomEnabled = true;
+	let dragAndZoomEnabled = false;
 
 	// set to true if we are moving a waypoint to a position rather than a target
 	// this is enabled when the shift key is held
@@ -455,6 +455,11 @@
 		...u.mineFields,
 		...u.planets
 	]);
+
+	// all our data in LayerCake are mapObjects/waypoints. Add this custom getter to get the
+	// x/y coords of a mapobject or waypoint
+	const xGet = (mo: MapObject | Waypoint | undefined) => mo?.position?.x;
+	const yGet = (mo: MapObject | Waypoint | undefined) => mo?.position?.y;
 </script>
 
 <svelte:window onresize={handleResize} onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
@@ -470,8 +475,8 @@
 >
 	<LayerCake
 		data={$data}
-		x={(mo: MapObject | undefined) => mo?.position?.x}
-		y={(mo: MapObject | undefined) => mo?.position?.y}
+		x={xGet}
+		y={yGet}
 		xDomain={[0, $game.area.x]}
 		yDomain={[0, $game.area.y]}
 		xRange={xRange(clientRect.width, clientRect.height)}

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { HabTypes, getHabValueString, type HabType, habTypeString } from '$lib/types/Hab';
 
-	interface Props {
+	type Props = {
 		habType: HabType;
 		habLow: number | undefined;
 		habHigh: number | undefined;
 		immune: boolean | undefined;
-	}
+	};
 
 	let { habType, habLow, habHigh, immune }: Props = $props();
 

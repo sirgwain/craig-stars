@@ -7,13 +7,13 @@
 
 	const dispatch = createEventDispatcher<ValueChangedEvent>();
 
-	interface Props {
+	type Props = {
 		value?: number;
 		capacity?: number;
 		min?: number;
 		max?: any;
 		editable?: boolean;
-	}
+	};
 
 	let {
 		value = $bindable(0),

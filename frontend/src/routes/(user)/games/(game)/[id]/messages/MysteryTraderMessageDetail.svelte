@@ -12,9 +12,9 @@
 
 	const { game, player, universe, settings } = getGameContext();
 
-	interface Props {
+	type Props = {
 		message: Message;
-	}
+	};
 
 	let { message }: Props = $props();
 </script>

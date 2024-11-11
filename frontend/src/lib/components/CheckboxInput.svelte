@@ -3,12 +3,12 @@
 
 	import { startCase } from 'lodash-es';
 
-	interface Props {
+	type Props = {
 		name: string;
 		checked: boolean | undefined;
 		title?: string | undefined;
 		titleClass?: string;
-	}
+	};
 
 	let {
 		name,

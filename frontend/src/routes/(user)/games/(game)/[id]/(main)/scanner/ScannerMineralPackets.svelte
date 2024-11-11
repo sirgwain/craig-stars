@@ -4,11 +4,10 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MapObjectType } from '$lib/types/MapObject';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import ScannerMineralPacket from './ScannerMineralPacket.svelte';
 
-	const { player, universe, selectedMapObject } = getGameContext();
+	const { player, universe } = getGameContext();
 
 	function getColor(mineralPacket: MineralPacket) {
 		if (mineralPacket.playerNum === $player.num) {

@@ -5,9 +5,9 @@
 
 	const { game, player, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		wormhole: Wormhole;
-	}
+	};
 
 	let { wormhole }: Props = $props();
 

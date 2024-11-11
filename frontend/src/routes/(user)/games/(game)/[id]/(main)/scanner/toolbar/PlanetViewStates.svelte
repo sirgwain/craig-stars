@@ -5,9 +5,9 @@
 	import PlanetViewStatesNormal from './PlanetViewStateNormal.svelte';
 	import PlanetViewStatePopulation from './PlanetViewStatePopulation.svelte';
 	import PlanetViewStateSurfaceMinerals from './PlanetViewStateSurfaceMinerals.svelte';
-	interface Props {
+	type Props = {
 		[key: string]: any;
-	}
+	};
 
 	let { ...rest }: Props = $props();
 

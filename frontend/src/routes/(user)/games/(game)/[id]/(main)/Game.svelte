@@ -299,7 +299,7 @@
 
 	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
-			<ScannerToolbar on:show-search={() => (showSearchDialog = true)} />
+			<ScannerToolbar onShowSearch={() => (showSearchDialog = true)} />
 			<Scanner
 				{onSelectWaypoint}
 				{onAddWaypoint}

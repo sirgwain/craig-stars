@@ -6,9 +6,9 @@
 
 	const { game, player, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		mineralPacket: MineralPacket;
-	}
+	};
 
 	let { mineralPacket }: Props = $props();
 	let target = $derived($universe.getPlanet(mineralPacket.targetPlanetNum));

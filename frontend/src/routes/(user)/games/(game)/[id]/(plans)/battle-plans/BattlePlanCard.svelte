@@ -7,11 +7,11 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		plan: BattlePlan;
 		href: string;
 		showDelete?: boolean;
-	}
+	};
 
 	let { plan, href, showDelete = true }: Props = $props();
 

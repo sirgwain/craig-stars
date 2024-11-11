@@ -1,22 +1,19 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet, Waypoint } from '$lib/types/Fleet';
 	import { StargateWarpSpeed } from '$lib/types/Constants';
+	import type { Fleet, Waypoint } from '$lib/types/Fleet';
 	import { distance } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import { getScannerContext } from './Scanner';
 
-	const scale = getContext<Writable<number>>('scale');
+	const { scale } = getScannerContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	interface Props {
+	type Props = {
 		fleet: Fleet;
 		commanded?: boolean;
 		selectedWaypoint: Waypoint | undefined;
-	}
+	};
 
 	let { fleet, commanded = false, selectedWaypoint }: Props = $props();
 
@@ -25,10 +22,8 @@
 		props: any;
 	};
 
-	let segments: WaypointLineSegment[] = $state([]);
-
-	run(() => {
-		segments = [];
+	let segments: WaypointLineSegment[] = $derived.by(() => {
+		const result = [];
 
 		if (fleet.waypoints) {
 			const heading = fleet.heading ?? { x: 0, y: 0 };
@@ -47,7 +42,7 @@
 				}
 				const strokeWidth = selectedWaypoint === wp0 ? 6 / $scale : (commanded ? 5 : 3) / $scale;
 
-				segments.push({
+				result.push({
 					path: `M${x1},${y1}L${x2},${y2}`,
 					props: {
 						class: commanded ? 'waypoint-line-commanded' : 'waypoint-line',
@@ -60,6 +55,7 @@
 				});
 			}
 		}
+		return result;
 	});
 </script>
 

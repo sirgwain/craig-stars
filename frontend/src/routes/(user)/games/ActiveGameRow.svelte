@@ -8,10 +8,10 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		game: Game;
 		showNumSubmitted?: boolean;
-	}
+	};
 
 	let { game, showNumSubmitted = true }: Props = $props();
 

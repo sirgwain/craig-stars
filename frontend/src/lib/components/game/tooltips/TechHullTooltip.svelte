@@ -17,9 +17,9 @@
 	import type { TechHull } from '$lib/types/Tech';
 	import Hull from '../design/Hull.svelte';
 
-	interface Props {
+	type Props = {
 		hull: TechHull;
-	}
+	};
 
 	let { hull }: Props = $props();
 </script>

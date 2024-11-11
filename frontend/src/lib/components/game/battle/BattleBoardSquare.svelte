@@ -12,12 +12,12 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		tokens?: PhaseToken[] | undefined;
 		phase: number;
 		selectedToken: PhaseToken | undefined;
 		selected?: boolean;
-	}
+	};
 
 	let { tokens = undefined, phase, selectedToken, selected = false }: Props = $props();
 

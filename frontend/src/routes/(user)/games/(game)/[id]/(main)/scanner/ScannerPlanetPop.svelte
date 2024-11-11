@@ -13,9 +13,9 @@
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	interface Props {
+	type Props = {
 		planet: Planet;
-	}
+	};
 
 	let { planet }: Props = $props();
 

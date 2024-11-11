@@ -1,8 +1,8 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		crumbs?: import('svelte').Snippet;
 		end?: import('svelte').Snippet;
-	}
+	};
 
 	let { crumbs, end }: Props = $props();
 </script>

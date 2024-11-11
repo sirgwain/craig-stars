@@ -2,9 +2,9 @@
 	import type { WaypointTransportTask, WaypointTransportTasks } from '$lib/types/Fleet';
 	import TransportActionIcon from './TransportActionIcon.svelte';
 
-	interface Props {
+	type Props = {
 		transportTasks: WaypointTransportTasks;
-	}
+	};
 
 	let { transportTasks }: Props = $props();
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		error: string;
-	}
+	};
 
 	let { error }: Props = $props();
 </script>

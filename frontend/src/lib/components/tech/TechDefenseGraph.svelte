@@ -10,9 +10,9 @@
 	import GroupLabels from '../graph/GroupLabels.svelte';
 	import MultiLine from '../graph/MultiLine.svelte';
 
-	interface Props {
+	type Props = {
 		defense: TechDefense;
-	}
+	};
 
 	let { defense }: Props = $props();
 

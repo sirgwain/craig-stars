@@ -8,9 +8,9 @@
 
 	const { player, universe, nextMapObject, previousMapObject, renameFleet } = getGameContext();
 
-	interface Props {
+	type Props = {
 		fleet: CommandedFleet;
-	}
+	};
 
 	let { fleet }: Props = $props();
 

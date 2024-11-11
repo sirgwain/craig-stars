@@ -3,10 +3,10 @@
 	import { Battle, TokenActionType } from '$lib/types/Battle';
 	import { subtract } from '$lib/types/Vector';
 
-	interface Props {
+	type Props = {
 		battle: Battle;
 		phase: number;
-	}
+	};
 
 	let { battle, phase }: Props = $props();
 

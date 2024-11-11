@@ -5,9 +5,9 @@
 	import { errors } from '$lib/services/Errors';
 	import { me } from '$lib/services/Stores';
 	import { onMount } from 'svelte';
-	interface Props {
+	type Props = {
 		children?: import('svelte').Snippet;
-	}
+	};
 
 	let { children }: Props = $props();
 

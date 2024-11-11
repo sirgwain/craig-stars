@@ -6,7 +6,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		name: string;
 		value: number | undefined;
 		unit?: string | undefined;
@@ -19,7 +19,7 @@
 		unitLabelClass?: string;
 		required?: boolean;
 		disabled?: boolean;
-	}
+	};
 
 	let {
 		name,

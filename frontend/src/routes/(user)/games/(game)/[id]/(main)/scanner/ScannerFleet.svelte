@@ -6,22 +6,20 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { radiansToDegrees } from '$lib/services/Math';
 	import type { Fleet } from '$lib/types/Fleet';
+	import { ownedBy } from '$lib/types/MapObject';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
 	import MapObjectScaler from './MapObjectScaler.svelte';
-	import { ownedBy } from '$lib/types/MapObject';
 
 	const { settings, player } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
 
-	interface Props {
+	type Props = {
 		fleet: Fleet;
 		commanded?: boolean;
 		color?: string;
 		commandedColor?: string;
-	}
+	};
 
 	let { fleet, commanded = false, color = '#0000FF', commandedColor = '#FFFF00' }: Props = $props();
 

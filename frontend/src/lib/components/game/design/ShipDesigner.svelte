@@ -28,12 +28,12 @@
 	const { cs, game, player, universe } = getGameContext();
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		hull: TechHull;
 		design: ShipDesign;
 		error?: string;
 		numHullSets?: number;
-	}
+	};
 
 	let { hull, design = $bindable(), error = '', numHullSets = 4 }: Props = $props();
 

@@ -5,9 +5,9 @@
 
 	const { nextMapObject, previousMapObject } = getGameContext();
 
-	interface Props {
+	type Props = {
 		planet: CommandedPlanet;
-	}
+	};
 
 	let { planet }: Props = $props();
 	const icon = (planet: CommandedPlanet) => (planet ? `planet-${(planet.num - 1) % 26}` : '');

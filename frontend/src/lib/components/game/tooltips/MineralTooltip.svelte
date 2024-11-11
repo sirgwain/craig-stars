@@ -9,13 +9,13 @@
 </script>
 
 <script lang="ts">
-	interface Props {
+	type Props = {
 		mineralType: string;
 		surfaceAmount: number;
 		concentration: number;
 		miningRate: number;
 		homeworld: boolean;
-	}
+	};
 
 	let { mineralType, surfaceAmount, concentration, miningRate, homeworld }: Props = $props();
 </script>

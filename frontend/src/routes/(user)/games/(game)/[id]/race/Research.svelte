@@ -3,9 +3,9 @@
 	import { TechField } from '$lib/types/TechLevel';
 	import ResearchCostCard from './ResearchCostCard.svelte';
 
-	interface Props {
+	type Props = {
 		race: Race;
-	}
+	};
 
 	let { race }: Props = $props();
 </script>

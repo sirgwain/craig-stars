@@ -7,9 +7,9 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	interface Props {
+	type Props = {
 		show: MapObject | undefined;
-	}
+	};
 
 	let { show }: Props = $props();
 </script>

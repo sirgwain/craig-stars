@@ -5,11 +5,11 @@
 	import { setContext } from 'svelte';
 	import BattleBoard from './BattleBoard.svelte';
 
-	interface Props {
+	type Props = {
 		designFinder: DesignFinder;
 		playerFinder: PlayerFinder;
 		battleRecord: BattleRecord;
-	}
+	};
 
 	let { designFinder, playerFinder, battleRecord }: Props = $props();
 

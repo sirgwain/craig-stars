@@ -22,12 +22,12 @@
 	const dispatch = createEventDispatcher<QueueItemClickedEvent>();
 	const { universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		index: number;
 		item: ProductionQueueItem;
 		selected?: boolean;
 		shortName?: boolean;
-	}
+	};
 
 	let { index, item, selected = false, shortName = false }: Props = $props();
 

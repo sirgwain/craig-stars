@@ -10,10 +10,10 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	interface Props {
+	type Props = {
 		wormhole: Wormhole;
 		fill?: string;
-	}
+	};
 
 	let { wormhole, fill = '#000' }: Props = $props();
 

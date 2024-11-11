@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { PRT } from '$lib/types/Race';
 
-	interface Props {
+	type Props = {
 		prt?: PRT;
-	}
+	};
 
 	let { prt = PRT.JoaT }: Props = $props();
 </script>

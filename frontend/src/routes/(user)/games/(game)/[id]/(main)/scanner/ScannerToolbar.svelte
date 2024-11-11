@@ -1,17 +1,11 @@
-<script lang="ts" module>
-	export type ToolbarEvent = {
-		'show-search': void;
-	};
-</script>
-
 <script lang="ts">
 	import { preventDefault } from 'svelte/legacy';
 
 	import { clickOutside } from '$lib/clickOutside';
-	import Habitability from '$lib/components/icons/Habitability.svelte';
-	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
 	import AddWaypoint from '$lib/components/icons/AddWaypoint.svelte';
 	import AddWaypointFast from '$lib/components/icons/AddWaypointFast.svelte';
+	import Habitability from '$lib/components/icons/Habitability.svelte';
+	import MineralConcentration from '$lib/components/icons/MineralConcentration.svelte';
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
 	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
@@ -20,14 +14,17 @@
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import { ArrowLongLeft, ArrowLongRight, Envelope, MagnifyingGlass } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
 	import MessagesPane from '../MessagesPane.svelte';
 	import MobileViewSettings from './toolbar/MobileViewSettings.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 	import ScannerToolbarFilter from './toolbar/ScannerToolbarFilter.svelte';
 
 	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
-	const dispatch = createEventDispatcher<ToolbarEvent>();
+
+	type Props = {
+		onShowSearch: () => void;
+	};
+	let { onShowSearch }: Props = $props();
 
 	let planetsViewMenuDropdown: HTMLDetailsElement | undefined = $state();
 
@@ -154,7 +151,7 @@
 
 	<div class="ml-auto">
 		<button
-			onclick={() => dispatch('show-search')}
+			onclick={onShowSearch}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="previous"
 			><Icon src={MagnifyingGlass} size="16" class="hover:stroke-accent inline" /></button

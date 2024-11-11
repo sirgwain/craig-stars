@@ -16,7 +16,7 @@
 
 	const { game, player, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		src: CommandedFleet;
 		dest: Fleet | Planet | Salvage | undefined;
 		transferAmount?: any;
@@ -26,7 +26,7 @@
 		destCargoCapacity?: any;
 		destFuelCapacity?: any;
 		quantityModifier?: number;
-	}
+	};
 
 	let {
 		src,

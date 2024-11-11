@@ -14,11 +14,11 @@
 		AI = 'AI'
 	}
 
-	interface Props {
+	type Props = {
 		player: NewGamePlayer;
 		index: number;
 		onremove: () => void;
-	}
+	};
 
 	let { player = $bindable(), index, onremove }: Props = $props();
 </script>

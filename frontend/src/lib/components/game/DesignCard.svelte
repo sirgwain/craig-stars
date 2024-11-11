@@ -14,11 +14,11 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		design: ShipDesign;
 		href: string;
 		copyhref: string;
-	}
+	};
 
 	let { design, href, copyhref }: Props = $props();
 

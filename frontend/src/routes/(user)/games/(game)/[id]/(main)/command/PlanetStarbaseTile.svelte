@@ -14,10 +14,10 @@
 
 	const { game, player, universe, settings, updatePlanetOrders } = getGameContext();
 
-	interface Props {
+	type Props = {
 		starbase: Fleet | undefined;
 		planet: CommandedPlanet;
-	}
+	};
 
 	let { starbase, planet = $bindable() }: Props = $props();
 

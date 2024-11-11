@@ -7,9 +7,9 @@
 	import Discord from './icons/Discord.svelte';
 	import GitHub from './icons/GitHub.svelte';
 
-	interface Props {
+	type Props = {
 		user: User | undefined;
-	}
+	};
 
 	let { user }: Props = $props();
 </script>

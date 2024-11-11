@@ -3,9 +3,9 @@
 	import { TechField } from '$lib/types/TechLevel';
 	import ResearchCostField from './ResearchCostField.svelte';
 
-	interface Props {
+	type Props = {
 		race: Race;
-	}
+	};
 
 	let { race = $bindable() }: Props = $props();
 </script>

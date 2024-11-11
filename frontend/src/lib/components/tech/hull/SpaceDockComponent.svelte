@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { UnlimitedSpaceDock } from '$lib/types/Constants';
 
-	interface Props {
+	type Props = {
 		spaceDock: number;
 		rounded?: boolean;
-	}
+	};
 
 	let { spaceDock, rounded = false }: Props = $props();
 </script>

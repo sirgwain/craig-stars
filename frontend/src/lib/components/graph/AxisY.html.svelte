@@ -7,7 +7,7 @@
 
 	const { padding, xRange, yScale } = getContext('LayerCake');
 
-	interface Props {
+	type Props = {
 		gridlines?: Boolean;
 		/** @type {Function} [formatTick=d => d] - A function that passes the current tick value and expects a nicely formatted value in return. */
 		formatTick?: (d: any) => string;
@@ -15,7 +15,7 @@
 		ticks?: Number | Array<any> | Function;
 		xTick?: Number;
 		yTick?: Number;
-	}
+	};
 
 	let {
 		gridlines = true,

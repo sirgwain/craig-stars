@@ -4,9 +4,9 @@
 	import type { Spec } from '$lib/types/ShipDesign';
 	import { NoScanner } from '$lib/types/Constants';
 
-	interface Props {
+	type Props = {
 		spec: Spec;
-	}
+	};
 
 	let { spec }: Props = $props();
 

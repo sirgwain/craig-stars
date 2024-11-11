@@ -14,12 +14,12 @@
 
 	const { game, player, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		src: CommandedFleet;
 		dest?: Fleet | undefined;
 		onOk: OnOk<SplitFleetEvent>;
 		onCancel: OnCancel;
-	}
+	};
 
 	let { src, dest = $bindable(undefined), onOk, onCancel }: Props = $props();
 

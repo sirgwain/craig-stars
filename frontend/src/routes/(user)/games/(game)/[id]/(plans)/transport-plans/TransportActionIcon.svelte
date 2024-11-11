@@ -4,9 +4,9 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
 
-	interface Props {
+	type Props = {
 		action: WaypointTaskTransportAction | undefined;
-	}
+	};
 
 	let { action }: Props = $props();
 </script>

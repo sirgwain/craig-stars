@@ -4,11 +4,11 @@
 	import { type MapObject } from '$lib/types/MapObject';
 	import SearchResults from './SearchResults.svelte';
 
-	interface Props {
+	type Props = {
 		show?: boolean;
 		onOk: OnOk<MapObject | undefined>;
 		onCancel: OnCancel;
-	}
+	};
 
 	let { show = false, onOk, onCancel }: Props = $props();
 </script>

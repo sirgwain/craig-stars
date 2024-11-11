@@ -15,9 +15,9 @@
 
 	const { game, player, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		field: TechField;
-	}
+	};
 
 	let { field }: Props = $props();
 

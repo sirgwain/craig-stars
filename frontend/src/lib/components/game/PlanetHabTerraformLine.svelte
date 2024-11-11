@@ -1,10 +1,10 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		style?: string | undefined;
 		x1?: number;
 		x2?: number;
 		[key: string]: any;
-	}
+	};
 
 	let { style = undefined, x1 = 50, x2 = 50, ...rest }: Props = $props();
 </script>

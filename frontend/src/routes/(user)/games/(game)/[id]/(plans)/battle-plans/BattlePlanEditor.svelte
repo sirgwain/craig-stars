@@ -4,9 +4,9 @@
 	import { BattleAttackWho, BattleTactic, BattleTarget } from '$lib/types/Battle';
 	import type { BattlePlan } from '$lib/types/Player';
 
-	interface Props {
+	type Props = {
 		plan: BattlePlan;
-	}
+	};
 
 	let { plan = $bindable() }: Props = $props();
 </script>

@@ -16,9 +16,9 @@
 	import CommandTile from './CommandTile.svelte';
 
 	const { player } = getGameContext();
-	interface Props {
+	type Props = {
 		planet: CommandedPlanet;
-	}
+	};
 
 	let { planet }: Props = $props();
 

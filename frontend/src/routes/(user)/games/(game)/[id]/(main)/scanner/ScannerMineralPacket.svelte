@@ -10,10 +10,10 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	interface Props {
+	type Props = {
 		mineralPacket: MineralPacket;
 		color?: string;
-	}
+	};
 
 	let { mineralPacket, color = '#0900FF' }: Props = $props();
 

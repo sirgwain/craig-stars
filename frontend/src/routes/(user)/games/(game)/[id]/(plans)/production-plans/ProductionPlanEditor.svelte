@@ -7,10 +7,10 @@
 	import { QueueItemTypes } from '$lib/types/QueueItemType';
 	import Production from './Production.svelte';
 
-	interface Props {
+	type Props = {
 		designFinder: DesignFinder;
 		plan: ProductionPlan;
-	}
+	};
 
 	let { designFinder, plan = $bindable() }: Props = $props();
 

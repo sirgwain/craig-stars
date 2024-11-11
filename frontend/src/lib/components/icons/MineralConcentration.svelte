@@ -1,7 +1,7 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		[key: string]: any;
-	}
+	};
 
 	let { ...rest }: Props = $props();
 	const ironiumSize = 400;

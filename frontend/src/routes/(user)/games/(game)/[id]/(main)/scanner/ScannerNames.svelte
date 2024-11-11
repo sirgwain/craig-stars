@@ -7,15 +7,15 @@
 	import type { ZoomTransform } from 'd3-zoom';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Readable } from 'svelte/store';
+	import { getScannerContext } from './Scanner';
 
 	const { universe, selectedMapObject, highlightedMapObject } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const objectScale = getContext<Readable<number>>('objectScale');
+	const { objectScale } = getScannerContext();
 
-	interface Props {
+	type Props = {
 		transform: ZoomTransform;
-	}
+	};
 
 	let { transform }: Props = $props();
 

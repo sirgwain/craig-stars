@@ -1,8 +1,8 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		style?: string | undefined;
 		[key: string]: any;
-	}
+	};
 
 	let { style = undefined, ...rest }: Props = $props();
 </script>

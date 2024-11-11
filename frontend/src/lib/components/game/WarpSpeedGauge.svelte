@@ -4,7 +4,7 @@
 	import { clamp } from '$lib/services/Math';
 	import { createEventDispatcher } from 'svelte';
 
-	interface Props {
+	type Props = {
 		value?: number | undefined;
 		min?: number;
 		max?: number;
@@ -19,7 +19,7 @@
 		useStargate?: boolean;
 		isPacket?: boolean;
 		warp0Text?: string;
-	}
+	};
 
 	let {
 		value = $bindable(0),

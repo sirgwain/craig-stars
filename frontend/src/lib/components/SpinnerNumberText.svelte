@@ -4,7 +4,7 @@
 
 	const dispatch = createEventDispatcher<SpinnerNumberEvent>();
 
-	interface Props {
+	type Props = {
 		value: number;
 		step?: number;
 		min?: number;
@@ -13,7 +13,7 @@
 		begin?: import('svelte').Snippet;
 		end?: import('svelte').Snippet;
 		[key: string]: any;
-	}
+	};
 
 	let {
 		value = $bindable(),

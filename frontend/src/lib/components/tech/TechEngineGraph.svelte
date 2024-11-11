@@ -10,9 +10,9 @@
 	import AxisY from '../graph/AxisY.html.svelte';
 	import Line from '../graph/Line.svelte';
 
-	interface Props {
+	type Props = {
 		engine: TechEngine;
-	}
+	};
 
 	let { engine }: Props = $props();
 

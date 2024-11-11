@@ -9,11 +9,11 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	interface Props {
+	type Props = {
 		mineField: MineField;
 		color?: string;
 		selected?: boolean;
-	}
+	};
 
 	let { mineField, color = '#0900FF', selected = false }: Props = $props();
 </script>

@@ -7,11 +7,11 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		game: Game;
 		href?: string | undefined;
 		showDelete?: boolean;
-	}
+	};
 
 	let { game, href = undefined, showDelete = false }: Props = $props();
 

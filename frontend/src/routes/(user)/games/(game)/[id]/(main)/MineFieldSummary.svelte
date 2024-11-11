@@ -14,9 +14,9 @@
 
 	const { game, player, universe, updateMineFieldOrders } = getGameContext();
 
-	interface Props {
+	type Props = {
 		mineField: MineField;
-	}
+	};
 
 	let { mineField = $bindable() }: Props = $props();
 

@@ -5,9 +5,9 @@
 
 	const { game, player, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		mysteryTrader: MysteryTrader;
-	}
+	};
 
 	let { mysteryTrader }: Props = $props();
 </script>

@@ -15,9 +15,9 @@
 
 	const { game, player, universe, settings } = getGameContext();
 
-	interface Props {
+	type Props = {
 		designs: ShipDesign[];
-	}
+	};
 
 	let { designs }: Props = $props();
 

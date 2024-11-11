@@ -15,24 +15,18 @@
 
 	let max = 100; // 100% concentration
 
-	interface Props {
+	type Props = {
 		planet: Planet;
-	}
+	};
 
 	let { planet }: Props = $props();
 
 	const size = 25; // the size of the mineral bars
 	const abovePlanetY = 5;
 
-	let barPercent = $state({
-		ironium: 0,
-		boranium: 0,
-		germanium: 0
-	});
-
-	run(() => {
+	let barPercent = $derived.by(() => {
 		if (planet.mineralConcentration) {
-			barPercent = {
+			return {
 				ironium: clamp(
 					planet.mineralConcentration.ironium ? planet.mineralConcentration.ironium / max : 0,
 					0,
@@ -49,6 +43,8 @@
 					1
 				)
 			};
+		} else {
+			return { ironium: 0, boranium: 0, germanium: 0 };
 		}
 	});
 </script>

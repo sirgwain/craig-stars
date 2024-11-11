@@ -23,13 +23,13 @@
 	import TechDefenseGraph from './TechDefenseGraph.svelte';
 	import TechWarnings from './TechWarnings.svelte';
 
-	interface Props {
+	type Props = {
 		tech: Tech | undefined;
 		player: Player | undefined;
 		cs: CS | undefined;
 		showResearchCost: boolean;
 		hideGraph: boolean;
-	}
+	};
 
 	let {
 		tech,

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { Mineral } from '$lib/types/Mineral';
 
-	interface Props {
+	type Props = {
 		mineral: Mineral | undefined;
 		showUnits?: boolean;
-	}
+	};
 
 	let { mineral, showUnits = false }: Props = $props();
 </script>

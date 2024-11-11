@@ -9,12 +9,12 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		designFinder: DesignFinder;
 		plan: ProductionPlan;
 		href: string;
 		showDelete?: boolean;
-	}
+	};
 
 	let { designFinder, plan, href, showDelete = true }: Props = $props();
 

@@ -29,9 +29,9 @@
 	const { player, universe, commandMapObject, selectMapObject } = getGameContext();
 	const dispatch = createEventDispatcher<PopupEvent>();
 
-	interface Props {
+	type Props = {
 		position: Vector;
-	}
+	};
 
 	let { position }: Props = $props();
 

@@ -2,23 +2,22 @@
 	import { run } from 'svelte/legacy';
 
 	import { getGameContext } from '$lib/services/GameContext';
-	import { Unexplored } from '$lib/types/Constants';
-	import { None } from '$lib/types/Constants';
+	import { None, Unexplored } from '$lib/types/Constants';
 	import { type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
+	import { getScannerContext } from './Scanner';
 
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
+	const { scale } = getScannerContext();
 
-	interface Props {
+	type Props = {
 		planet: Planet;
-	}
+	};
 
 	let { planet }: Props = $props();
 

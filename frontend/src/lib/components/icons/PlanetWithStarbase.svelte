@@ -1,12 +1,12 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		style?: string | undefined;
 		planetColor?: string;
 		starbaseColor?: string;
 		stargateColor?: string;
 		massDriverColor?: string;
 		[key: string]: any;
-	}
+	};
 
 	let {
 		style = undefined,

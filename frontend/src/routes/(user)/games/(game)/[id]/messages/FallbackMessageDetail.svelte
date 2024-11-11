@@ -2,9 +2,9 @@
 	import { MessageType, type Message } from '$lib/types/Message';
 	import { $enum as eu } from 'ts-enum-util';
 
-	interface Props {
+	type Props = {
 		message: Message;
-	}
+	};
 
 	let { message }: Props = $props();
 </script>

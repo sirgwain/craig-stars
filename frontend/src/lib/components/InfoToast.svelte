@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 
-	interface Props {
+	type Props = {
 		text?: string;
-	}
+	};
 
 	let { text = $bindable('') }: Props = $props();
 

@@ -6,10 +6,10 @@
 	import type { Tech } from '$lib/types/Tech';
 	import { startCase } from 'lodash-es';
 
-	interface Props {
+	type Props = {
 		tech: Tech;
 		player?: PlayerResponse | undefined;
-	}
+	};
 
 	let { tech, player = undefined }: Props = $props();
 

@@ -3,9 +3,9 @@
 	import { startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 
-	interface Props {
+	type Props = {
 		tech: Tech;
-	}
+	};
 
 	let { tech }: Props = $props();
 

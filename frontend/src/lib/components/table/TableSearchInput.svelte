@@ -1,8 +1,8 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		value?: string;
 		[key: string]: any;
-	}
+	};
 
 	let { value = $bindable(''), ...rest }: Props = $props();
 </script>

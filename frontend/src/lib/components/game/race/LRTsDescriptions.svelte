@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { getLabelForLRT, LRT, lrts, type Race } from '$lib/types/Race';
 
-	interface Props {
+	type Props = {
 		race: Race;
-	}
+	};
 
 	let { race }: Props = $props();
 

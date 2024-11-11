@@ -1,8 +1,8 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		primary?: string;
 		[key: string]: any;
-	}
+	};
 
 	let { primary = 'fill-fleet-owned', ...rest }: Props = $props();
 	export const secondary = 'fill-fleet-neutral';

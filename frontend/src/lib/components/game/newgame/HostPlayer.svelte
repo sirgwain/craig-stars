@@ -9,9 +9,9 @@
 	// races for the host
 	let hostRaces: Race[] = $state([humanoid()]);
 
-	interface Props {
+	type Props = {
 		player: NewGamePlayer;
-	}
+	};
 
 	let { player = $bindable() }: Props = $props();
 

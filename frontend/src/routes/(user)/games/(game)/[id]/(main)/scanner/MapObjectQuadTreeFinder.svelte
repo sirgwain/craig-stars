@@ -21,12 +21,12 @@
 	import type { ZoomTransform } from 'd3-zoom';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import { getScannerContext } from './Scanner';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
+	const { scale } = getScannerContext();
 
-	interface Props {
+	type Props = {
 		// transform to transform our mouse to world coords
 		transform: ZoomTransform;
 		/** The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
@@ -39,7 +39,7 @@
 		touchstart?: (e: FinderEvent) => void;
 		touchend?: (e: FinderEvent) => void;
 		contextmenu: (e: FinderEvent) => void;
-	}
+	};
 
 	let {
 		transform,

@@ -19,9 +19,9 @@
 	import GameLayout from './GameLayout.svelte';
 	import { goto } from '$app/navigation';
 	import { loadWasm } from '$lib/wasm';
-	interface Props {
+	type Props = {
 		children?: import('svelte').Snippet;
-	}
+	};
 
 	let { children }: Props = $props();
 

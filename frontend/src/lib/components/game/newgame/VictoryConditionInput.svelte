@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { VictoryCondition } from '$lib/types/Game';
 
-	interface Props {
+	type Props = {
 		value: number;
 		unit?: string | undefined;
 		min?: number;
 		max?: number;
 		step?: number;
 		required?: boolean;
-	}
+	};
 
 	let {
 		value = $bindable(),

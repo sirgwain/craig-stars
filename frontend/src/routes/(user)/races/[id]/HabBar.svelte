@@ -12,12 +12,12 @@
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	interface Props {
+	type Props = {
 		habType: HabType;
 		habLow: number | undefined;
 		habHigh: number | undefined;
 		immune: boolean | undefined;
-	}
+	};
 
 	let {
 		habType,

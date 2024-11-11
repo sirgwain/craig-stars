@@ -6,10 +6,10 @@
 </script>
 
 <script lang="ts">
-	interface Props {
+	type Props = {
 		text: string;
 		clazz: string;
-	}
+	};
 
 	let { text, clazz }: Props = $props();
 </script>

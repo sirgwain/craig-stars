@@ -13,13 +13,11 @@
 
 	const { player, universe, commandedFleet, settings } = getGameContext();
 
-	let fleets: Fleet[] = $state([]);
-
-	run(() => {
-		fleets = $universe.fleets
+	let fleets: Fleet[] = $derived(
+		$universe.fleets
 			.filter((f: Fleet) => !f.orbitingPlanetNum)
-			.filter((f: Fleet) => equal($commandedFleet, f) || filterFleet($player, f, $settings));
-	});
+			.filter((f: Fleet) => equal($commandedFleet, f) || filterFleet($player, f, $settings))
+	);
 </script>
 
 <!-- Fleets -->

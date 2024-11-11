@@ -15,9 +15,9 @@
 
 	const { player, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		planet: CommandedPlanet;
-	}
+	};
 
 	let { planet }: Props = $props();
 

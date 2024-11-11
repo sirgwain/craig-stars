@@ -9,9 +9,9 @@
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
-	interface Props {
+	type Props = {
 		[key: string]: any;
-	}
+	};
 
 	let { ...props }: Props = $props();
 

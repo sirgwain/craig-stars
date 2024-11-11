@@ -15,9 +15,9 @@
 	import GameMenu from './GameMenu.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import NotificationToast from '$lib/components/NotificationToast.svelte';
-	interface Props {
+	type Props = {
 		children?: import('svelte').Snippet;
-	}
+	};
 
 	let { children }: Props = $props();
 

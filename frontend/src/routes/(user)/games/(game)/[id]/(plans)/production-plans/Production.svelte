@@ -9,13 +9,13 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		designFinder: DesignFinder;
 		// default to auto tasks
 		availableItems?: ProductionQueueItem[];
 		queueItems?: ProductionQueueItem[];
 		queueItemDescription?: any;
-	}
+	};
 
 	let {
 		designFinder,

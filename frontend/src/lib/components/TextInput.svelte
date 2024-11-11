@@ -3,14 +3,14 @@
 
 	import { startCase } from 'lodash-es';
 
-	interface Props {
+	type Props = {
 		name: string;
 		value: string | undefined;
 		title?: string | undefined;
 		titleClass?: string;
 		required?: boolean;
 		disabled?: boolean;
-	}
+	};
 
 	let {
 		name,

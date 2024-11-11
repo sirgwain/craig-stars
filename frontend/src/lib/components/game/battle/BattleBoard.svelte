@@ -6,10 +6,10 @@
 	import BattleBoardTokenDetails from './BattleBoardTokenDetails.svelte';
 	import BattleBoardSquare from './BattleBoardSquare.svelte';
 
-	interface Props {
+	type Props = {
 		battle: Battle;
 		phase?: number;
-	}
+	};
 
 	let { battle, phase = $bindable(0) }: Props = $props();
 

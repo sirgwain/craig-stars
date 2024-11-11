@@ -12,10 +12,10 @@
 
 	const { game, player, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		fleet: Fleet;
 		tokens?: ShipToken[];
-	}
+	};
 
 	let { fleet, tokens = fleet.tokens ?? [] }: Props = $props();
 

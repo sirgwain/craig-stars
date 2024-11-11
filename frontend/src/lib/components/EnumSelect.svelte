@@ -9,7 +9,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		name: string;
 		value: string | undefined;
 		title?: string | undefined;
@@ -19,7 +19,7 @@
 		required?: boolean;
 		typeTitle?: any;
 		showEmpty?: boolean;
-	}
+	};
 
 	let {
 		name,

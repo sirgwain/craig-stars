@@ -19,11 +19,11 @@
 	} from '$lib/types/Hab';
 	import { getPlanetHabitability, isImmune } from '$lib/types/Race';
 
-	interface Props {
+	type Props = {
 		player: Player;
 		planet: Planet;
 		habType: HabType;
-	}
+	};
 
 	let { player, planet, habType }: Props = $props();
 

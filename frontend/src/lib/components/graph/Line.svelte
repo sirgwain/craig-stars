@@ -8,9 +8,9 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	interface Props {
+	type Props = {
 		stroke?: string;
-	}
+	};
 
 	let { stroke = 'stroke-primary' }: Props = $props();
 

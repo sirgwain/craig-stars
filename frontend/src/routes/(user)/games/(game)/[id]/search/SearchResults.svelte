@@ -12,12 +12,12 @@
 
 <script lang="ts">
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
+	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getMapObjectName, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { None } from '$lib/types/Constants';
+	import { getMapObjectName, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
-	import { createEventDispatcher, onMount } from 'svelte';
-	import type { OnOk, OnCancel } from '$lib/services/Events';
+	import { onMount } from 'svelte';
 
 	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
 		getGameContext();
@@ -59,8 +59,6 @@
 				$universe.getPlayerPluralName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) !=
 					-1);
 
-		// reset the selected item when the search is updated
-		selectedItemIndex = 0;
 		return {
 			planets:
 				planets
@@ -123,6 +121,7 @@
 	let searchInput: HTMLInputElement | undefined = $state();
 	onMount(() => {
 		searchInput?.focus();
+		selectedItemIndex = 0;
 	});
 	// the currently selected item
 	let selectedItemIndex = $state(0);

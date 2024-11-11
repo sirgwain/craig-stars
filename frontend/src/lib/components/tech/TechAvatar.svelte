@@ -4,11 +4,11 @@
 	import { onTechHullTooltip } from '../game/tooltips/TechHullTooltip.svelte';
 	import { onTechTooltip } from '../game/tooltips/TechTooltip.svelte';
 
-	interface Props {
+	type Props = {
 		tech: Tech | undefined;
 		hullSetNumber?: number;
 		hullTooltip: boolean;
-	}
+	};
 
 	let { tech = undefined, hullSetNumber = 0, hullTooltip = false }: Props = $props();
 

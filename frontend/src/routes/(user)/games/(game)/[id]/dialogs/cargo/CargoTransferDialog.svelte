@@ -7,12 +7,12 @@
 	} from '$lib/services/Events';
 	import CargoTransfer from './CargoTransfer.svelte';
 
-	interface Props {
+	type Props = {
 		show?: boolean;
 		props: CargoTransferDialogEvent | undefined;
 		onOk: OnOk<TransferCargoEvent>;
 		onCancel: OnCancel;
-	}
+	};
 
 	let { show, props, onOk, onCancel }: Props = $props();
 </script>

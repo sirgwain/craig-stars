@@ -14,13 +14,13 @@
 	import { CargoTransferRequest, add } from '$lib/types/Cargo';
 	import { createEventDispatcher } from 'svelte';
 
-	interface Props {
+	type Props = {
 		transferAmount?: any;
 		cargo?: any;
 		cargoCapacity?: number;
 		fuelCapacity?: number;
 		allowFuelTransfers?: boolean;
-	}
+	};
 
 	let {
 		transferAmount = new CargoTransferRequest(),

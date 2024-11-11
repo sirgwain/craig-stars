@@ -5,9 +5,9 @@
 	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
 	import HabBar from './HabBar.svelte';
 
-	interface Props {
+	type Props = {
 		race: Race;
-	}
+	};
 
 	let { race = $bindable() }: Props = $props();
 </script>

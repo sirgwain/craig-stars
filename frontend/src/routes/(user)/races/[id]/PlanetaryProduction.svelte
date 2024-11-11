@@ -2,9 +2,9 @@
 	import { PRT, type Race } from '$lib/types/Race';
 	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
 
-	interface Props {
+	type Props = {
 		race: Race;
-	}
+	};
 
 	let { race = $bindable() }: Props = $props();
 

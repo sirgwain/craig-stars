@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { quantityModifier } from '$lib/quantityModifier';
 
-	interface Props {
+	type Props = {
 		modifier?: number;
-	}
+	};
 
 	let { modifier = $bindable(1) }: Props = $props();
 

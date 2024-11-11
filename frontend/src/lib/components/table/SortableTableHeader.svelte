@@ -6,11 +6,11 @@
 	const dispatch = createEventDispatcher();
 
 	type T = $$Generic;
-	interface Props {
+	type Props = {
 		column: TableColumn<T>;
 		isSorted?: boolean;
 		sortDescending?: boolean;
-	}
+	};
 
 	let { column, isSorted = false, sortDescending = false }: Props = $props();
 </script>

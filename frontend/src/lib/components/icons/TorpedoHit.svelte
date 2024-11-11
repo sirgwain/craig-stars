@@ -1,9 +1,9 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		style?: string | undefined;
 		fill?: string;
 		[key: string]: any;
-	}
+	};
 
 	let { style = undefined, fill = '#ffffff', ...rest }: Props = $props();
 </script>

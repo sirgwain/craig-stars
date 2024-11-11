@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Discord from '../icons/Discord.svelte';
 
-	interface Props {
+	type Props = {
 		from?: string;
-	}
+	};
 
 	let { from = '/' }: Props = $props();
 </script>

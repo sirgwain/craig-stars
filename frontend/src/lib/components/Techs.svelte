@@ -15,13 +15,13 @@
 	import { isSafari } from '$lib/safariChecker';
 	import type { CS } from '$lib/wasm';
 
-	interface Props {
+	type Props = {
 		// for ssr, we start with techs from a json file
 		techStore?: TechStore;
 		techs?: Tech[];
 		player?: Player | undefined;
 		cs?: CS | undefined;
-	}
+	};
 
 	let {
 		techStore = $bindable(techjson as TechStore),

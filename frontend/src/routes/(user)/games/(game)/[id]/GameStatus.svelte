@@ -4,11 +4,11 @@
 	import type { Game } from '$lib/types/Game';
 	import PlayersStatus from './players/PlayersStatus.svelte';
 
-	interface Props {
+	type Props = {
 		game: Game;
 		title: string;
 		children?: import('svelte').Snippet;
-	}
+	};
 
 	let { game, title, children }: Props = $props();
 </script>

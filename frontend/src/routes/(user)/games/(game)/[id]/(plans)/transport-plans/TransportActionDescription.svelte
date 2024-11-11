@@ -3,13 +3,13 @@
 	import { startCase } from 'lodash-es';
 	import TransportActionIcon from './TransportActionIcon.svelte';
 
-	interface Props {
+	type Props = {
 		action: WaypointTaskTransportAction | undefined;
 		amount: number | undefined;
 		units?: string;
 		title: string;
 		titleTextClass?: string;
-	}
+	};
 
 	let { action, amount, units = '', title, titleTextClass = '' }: Props = $props();
 </script>

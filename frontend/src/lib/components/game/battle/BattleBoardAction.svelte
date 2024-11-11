@@ -7,11 +7,11 @@
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
-	interface Props {
+	type Props = {
 		battle: Battle;
 		action: TokenAction | undefined;
 		phase: number;
-	}
+	};
 
 	let { battle, action, phase }: Props = $props();
 

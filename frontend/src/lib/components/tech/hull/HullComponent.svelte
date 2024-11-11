@@ -13,7 +13,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		type?: HullSlotType;
 		capacity?: number;
 		required?: boolean;
@@ -21,7 +21,7 @@
 		highlighted?: boolean;
 		highlightedClass?: string;
 		showTooltips?: boolean;
-	}
+	};
 
 	let {
 		type = HullSlotType.General,

@@ -16,9 +16,9 @@
 
 	const { game, universe } = getGameContext();
 
-	interface Props {
+	type Props = {
 		type?: ValueType;
-	}
+	};
 
 	let { type = 'score' }: Props = $props();
 

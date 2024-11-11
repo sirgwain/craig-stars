@@ -9,20 +9,19 @@
 	import { type Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Readable } from 'svelte/store';
 	import MapObjectScaler from './MapObjectScaler.svelte';
-	import { getEnemiesAndFriends } from './Scanner';
+	import { getEnemiesAndFriends, getScannerContext } from './Scanner';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 
 	const { settings } = getGameContext();
 	const { game, player, universe } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const objectScale = getContext<Readable<number>>('objectScale');
+	const { objectScale } = getScannerContext();
 
-	interface Props {
+	type Props = {
 		planet: Planet;
 		commanded?: boolean;
-	}
+	};
 
 	let { planet, commanded = false }: Props = $props();
 

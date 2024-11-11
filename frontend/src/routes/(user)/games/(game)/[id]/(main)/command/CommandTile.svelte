@@ -4,10 +4,10 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { readable } from 'svelte/store';
 
-	interface Props {
+	type Props = {
 		title?: string;
 		children?: import('svelte').Snippet;
-	}
+	};
 
 	let { title = '', children }: Props = $props();
 

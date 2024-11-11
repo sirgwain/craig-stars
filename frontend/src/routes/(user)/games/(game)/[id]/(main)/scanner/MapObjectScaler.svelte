@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { type MapObject } from '$lib/types/MapObject';
 	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
-	import type { Readable } from 'svelte/store';
+	import { getContext, type Snippet } from 'svelte';
+	import { getScannerContext } from './Scanner';
 
 	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
-	const objectScale = getContext<Readable<number>>('objectScale');
+	const { objectScale } = getScannerContext();
 
-	interface Props {
+	type Props = {
 		mapObject: MapObject;
-		children?: import('svelte').Snippet;
-	}
+		children?: Snippet;
+	};
 
 	let { mapObject, children }: Props = $props();
 </script>

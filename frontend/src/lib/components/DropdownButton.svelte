@@ -5,11 +5,11 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		title: string;
 		items: any[];
 		itemTitle?: (item: any) => string;
-	}
+	};
 
 	let { title, items, itemTitle = (i) => `${i}` }: Props = $props();
 

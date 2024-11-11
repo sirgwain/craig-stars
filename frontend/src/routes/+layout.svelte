@@ -11,9 +11,9 @@
 	import '../css/mapobjects.css';
 	import '../css/planets.css';
 	import '../css/techs.css';
-	interface Props {
+	type Props = {
 		children?: import('svelte').Snippet;
-	}
+	};
 
 	let { children }: Props = $props();
 

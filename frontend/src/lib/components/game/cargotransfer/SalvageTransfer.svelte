@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { emptyCargo, type Cargo } from '$lib/types/Cargo';
 
-	interface Props {
+	type Props = {
 		cargo?: Cargo;
 		transferAmount?: Cargo;
-	}
+	};
 
 	let { cargo = emptyCargo(), transferAmount = emptyCargo() }: Props = $props();
 </script>

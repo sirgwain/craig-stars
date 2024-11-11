@@ -11,10 +11,10 @@
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	interface Props {
+	type Props = {
 		salvage: Salvage;
 		color?: string;
-	}
+	};
 
 	let { salvage, color = '#FFFF00' }: Props = $props();
 

@@ -9,13 +9,13 @@
 </script>
 
 <script lang="ts">
-	interface Props {
+	type Props = {
 		planetName: string;
 		factories: number;
 		maxFactories: number;
 		maxPossibleFactories: number;
 		canBuildFactories: boolean;
-	}
+	};
 
 	let { planetName, factories, maxFactories, maxPossibleFactories, canBuildFactories }: Props =
 		$props();

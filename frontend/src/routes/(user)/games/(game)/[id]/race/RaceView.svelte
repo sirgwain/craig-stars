@@ -11,9 +11,9 @@
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';
 
-	interface Props {
+	type Props = {
 		race: Race;
-	}
+	};
 
 	let { race = $bindable() }: Props = $props();
 </script>

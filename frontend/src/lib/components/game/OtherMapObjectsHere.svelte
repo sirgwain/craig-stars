@@ -13,13 +13,13 @@
 		[index: string]: T;
 	}
 
-	interface Props {
+	type Props = {
 		fleet: CommandedFleet;
 		otherMapObjectsHere: Dictionary<MapObject[]>;
 		target: Target;
 		position: Vector;
 		[key: string]: any;
-	}
+	};
 
 	let { ...props }: Props = $props();
 

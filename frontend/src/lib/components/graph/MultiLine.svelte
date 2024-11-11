@@ -6,9 +6,9 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	interface Props {
+	type Props = {
 		zIsColorCode?: boolean;
-	}
+	};
 
 	let { zIsColorCode = false }: Props = $props();
 

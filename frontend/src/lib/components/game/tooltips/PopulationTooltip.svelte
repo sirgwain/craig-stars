@@ -14,11 +14,11 @@
 	import type { PlayerFinder } from '$lib/services/Universe';
 	import { owned, ownedBy } from '$lib/types/MapObject';
 
-	interface Props {
+	type Props = {
 		playerFinder: PlayerFinder;
 		player: Player;
 		planet: Planet;
-	}
+	};
 
 	let { playerFinder, player, planet }: Props = $props();
 </script>

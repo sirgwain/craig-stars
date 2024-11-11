@@ -7,9 +7,9 @@
 
 	const dispatch = createEventDispatcher();
 
-	interface Props {
+	type Props = {
 		game: Game;
-	}
+	};
 
 	let { game }: Props = $props();
 

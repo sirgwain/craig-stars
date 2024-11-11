@@ -20,9 +20,9 @@
 <script lang="ts">
 	import Design from '$lib/components/game/design/Design.svelte';
 
-	interface Props {
+	type Props = {
 		design: ShipDesign;
-	}
+	};
 
 	let { design }: Props = $props();
 </script>

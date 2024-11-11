@@ -1,8 +1,8 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		color?: string;
 		[key: string]: any;
-	}
+	};
 
 	let { color = '#0000FF', ...rest }: Props = $props();
 

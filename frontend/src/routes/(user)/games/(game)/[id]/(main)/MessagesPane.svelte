@@ -34,10 +34,10 @@
 		gotoTarget
 	} = getGameContext();
 
-	interface Props {
+	type Props = {
 		showMessages?: boolean;
 		messages: Message[];
-	}
+	};
 
 	let { showMessages = $bindable(false), messages }: Props = $props();
 	let showFilteredMessages = $state(false);

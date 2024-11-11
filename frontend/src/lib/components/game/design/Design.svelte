@@ -7,9 +7,9 @@
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import DesignStats from '../DesignStats.svelte';
 
-	interface Props {
+	type Props = {
 		design: ShipDesign;
-	}
+	};
 
 	let { design }: Props = $props();
 

@@ -16,9 +16,9 @@
 
 	let max = $settings.mineralScale; // 100% concentration
 
-	interface Props {
+	type Props = {
 		planet: Planet;
-	}
+	};
 
 	let { planet }: Props = $props();
 

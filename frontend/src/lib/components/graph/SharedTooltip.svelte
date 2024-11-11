@@ -14,14 +14,14 @@
 	const commas = format(',');
 	const titleCase = (d: any) => d.replace(/^\w/, (w: string) => w.toUpperCase());
 
-	interface Props {
+	type Props = {
 		formatTitle?: Function;
 		formatValue?: Function;
 		formatKey?: Function;
 		offset?: Number;
 		/** @type {Array} [dataset] - The dataset to work off of—defaults to $data if left unset. You can pass something custom in here in case you don't want to use the main data or it's in a strange format. */
 		dataset?: any;
-	}
+	};
 
 	let {
 		formatTitle = (d: any) => d,

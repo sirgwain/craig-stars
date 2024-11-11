@@ -11,11 +11,11 @@
 
 	const { game, player, universe, settings } = getGameContext();
 
-	interface Props {
+	type Props = {
 		message: Message;
 		mineralPacket: MineralPacket;
 		owner: PlayerIntel;
-	}
+	};
 
 	let { message, mineralPacket, owner }: Props = $props();
 

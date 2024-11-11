@@ -11,14 +11,14 @@
 		title: string;
 	};
 
-	interface Props {
+	type Props = {
 		name: string;
 		value: any | undefined;
 		title?: string | undefined;
 		titleClass?: string;
 		required?: boolean;
 		values?: Value[];
-	}
+	};
 
 	let {
 		name,

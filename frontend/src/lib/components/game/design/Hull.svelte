@@ -16,14 +16,14 @@
 	const containerWidth = componentSize * 5;
 	const containerHeight = componentSize * 5;
 
-	interface Props {
+	type Props = {
 		hull: TechHull;
 		shipDesignSlots?: ShipDesignSlot[];
 		highlightedSlots?: HullSlot[];
 		highlightedClass?: string;
 		cargoCapacity?: any;
 		showTooltips?: boolean;
-	}
+	};
 
 	let {
 		hull,

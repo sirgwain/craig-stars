@@ -3,9 +3,9 @@
 
 	import { LRT, type Race } from '$lib/types/Race';
 
-	interface Props {
+	type Props = {
 		race: Race;
-	}
+	};
 
 	let { race = $bindable() }: Props = $props();
 </script>

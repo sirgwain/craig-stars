@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Cost } from '$lib/types/Cost';
 
-	interface Props {
+	type Props = {
 		cost: Cost | undefined;
-	}
+	};
 
 	let { cost }: Props = $props();
 </script>

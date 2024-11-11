@@ -15,7 +15,7 @@
 	let found = $state({});
 	let e = $state({});
 
-	interface Props {
+	type Props = {
 		x?: String;
 		y?: String;
 		/** @type {String} [searchRadius] – The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
@@ -23,7 +23,7 @@
 		/** @type {Array} [dataset] – The dataset to work off of—defaults to $data if left unset. You can pass override the default here in here in case you don't want to use the main data or it's in a strange format. */
 		dataset?: any;
 		children?: import('svelte').Snippet<[any]>;
-	}
+	};
 
 	let {
 		x = 'x',

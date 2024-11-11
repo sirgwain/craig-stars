@@ -11,9 +11,9 @@
 	const { data, xGet, yGet, xScale, yScale, extents, width, height } =
 		getContext<LayerCake>('LayerCake');
 
-	interface Props {
+	type Props = {
 		fill?: string;
-	}
+	};
 
 	let { fill = 'fill-secondary-content opacity-50' }: Props = $props();
 

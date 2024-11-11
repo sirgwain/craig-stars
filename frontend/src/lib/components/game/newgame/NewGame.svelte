@@ -23,10 +23,10 @@
 	import { getColor, getFirstAvailableColor } from './playerColors';
 	import VictoryConditions from './VictoryConditions.svelte';
 
-	interface Props {
+	type Props = {
 		players?: { type: NewGamePlayerType; color: string }[];
 		name?: string;
-	}
+	};
 
 	let {
 		players = [

@@ -3,10 +3,10 @@
 	import { ResearchCostLevel, type Race } from '$lib/types/Race';
 	import type { TechField } from '$lib/types/TechLevel';
 
-	interface Props {
+	type Props = {
 		field: TechField;
 		value: ResearchCostLevel;
-	}
+	};
 
 	let { field, value }: Props = $props();
 </script>

@@ -8,12 +8,12 @@
 	import type { WaypointTransportTasks } from '$lib/types/Fleet';
 	import TransportTasks from '../../(plans)/transport-plans/TransportTasks.svelte';
 
-	interface Props {
+	type Props = {
 		show?: boolean;
 		props: TransportTasksDialogEvent | undefined;
 		onOk: OnOk<TransportTasksUpdateEvent>;
 		onCancel: OnCancel;
-	}
+	};
 
 	let { show = false, props, onOk, onCancel }: Props = $props();
 

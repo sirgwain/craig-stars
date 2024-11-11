@@ -15,11 +15,11 @@
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
-	interface Props {
+	type Props = {
 		battle: Battle;
 		phase: number;
 		token: PhaseToken | undefined;
-	}
+	};
 
 	let { battle, phase, token }: Props = $props();
 

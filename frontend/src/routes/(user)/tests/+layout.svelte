@@ -4,9 +4,9 @@
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
 	import TestBreadcrumb from './TestBreadcrumb.svelte';
-	interface Props {
+	type Props = {
 		children?: import('svelte').Snippet;
-	}
+	};
 
 	let { children }: Props = $props();
 

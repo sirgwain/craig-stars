@@ -3,9 +3,9 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { fade } from 'svelte/transition';
 
-	interface Props {
+	type Props = {
 		error?: string;
-	}
+	};
 
 	let { error = $bindable('') }: Props = $props();
 </script>

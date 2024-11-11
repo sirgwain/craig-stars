@@ -17,9 +17,9 @@
 <script lang="ts">
 	import CostMini from '../CostMini.svelte';
 
-	interface Props {
+	type Props = {
 		cost: Cost;
-	}
+	};
 
 	let { cost }: Props = $props();
 </script>

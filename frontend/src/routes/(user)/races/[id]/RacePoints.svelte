@@ -8,10 +8,10 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 
-	interface Props {
+	type Props = {
 		race: Race;
 		points: number;
-	}
+	};
 
 	let { race, points = $bindable() }: Props = $props();
 

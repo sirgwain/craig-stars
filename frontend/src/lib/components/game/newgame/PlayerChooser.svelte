@@ -10,10 +10,10 @@
 
 	// races for the host
 	let races: Race[] = $state([]);
-	interface Props {
+	type Props = {
 		race?: Race;
 		valid?: boolean;
-	}
+	};
 
 	let { race = $bindable(humanoid()), valid = $bindable(true) }: Props = $props();
 
