@@ -604,8 +604,7 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 		return MaxInt(0, planet.Spec.MaxPossibleFactories-planet.Factories)
 	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
 		return MaxInt(0, planet.Spec.MaxDefenses-planet.Defenses)
-	case QueueItemTypeTerraformEnvironment:
-	case QueueItemTypeAutoMaxTerraform:
+	case QueueItemTypeTerraformEnvironment, QueueItemTypeAutoMaxTerraform:
 		return planet.Spec.TerraformAmount.absSum()
 	case QueueItemTypeAutoMinTerraform:
 		return planet.Spec.MinTerraformAmount.absSum()
