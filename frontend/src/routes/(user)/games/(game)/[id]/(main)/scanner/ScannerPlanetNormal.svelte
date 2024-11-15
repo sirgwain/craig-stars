@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { getGameContext } from '$lib/services/GameContext';
 	import { Unexplored } from '$lib/types/Constants';
 	import { filterFleet } from '$lib/types/Filter';
@@ -25,12 +23,9 @@
 
 	let { planet, commanded = false }: Props = $props();
 
-	let props = $state({});
-	let ringProps: any | undefined = $state(undefined);
-
-	let hasStarbase = $derived(planet.spec?.hasStarbase);
-	let hasMassDriver = $derived(planet.spec?.hasMassDriver);
-	let hasStargate = $derived(planet.spec?.hasStargate);
+	let hasStarbase = planet.spec?.hasStarbase;
+	let hasMassDriver = planet.spec?.hasMassDriver;
+	let hasStargate = planet.spec?.hasStargate;
 
 	let radius = $derived(owned(planet) ? (commanded ? 6 : 3) : commanded ? 4 : 2);
 	let strokeWidth = $derived(commanded ? 1 : 0.5);
@@ -49,7 +44,7 @@
 	);
 
 	// setup props for planet circle
-	run(() => {
+	let circleProps = $derived.by(() => {
 		// green for us, gray for unexplored, white for explored
 		let color = '#999999';
 		let strokeColor = '#999999';
@@ -63,7 +58,7 @@
 		}
 
 		// setup the properties of our planet circle
-		props = {
+		return {
 			r: radius,
 			fill: color,
 			stroke: strokeColor,
@@ -72,7 +67,7 @@
 	});
 
 	// setup props for the ring
-	run(() => {
+	let ringProps = $derived.by(() => {
 		// if anything is orbiting our planet, put a ring on it
 		if (orbitingFleets?.length > 0) {
 			const { enemies, friends } = getEnemiesAndFriends(orbitingFleets, $player);
@@ -89,15 +84,13 @@
 				strokeDashArray = '10 6';
 			}
 
-			ringProps = {
+			return {
 				class: ringColor,
 				'stroke-dasharray': strokeDashArray,
 				'stroke-width': ringWidth,
 				r: ringRadius,
 				'fill-opacity': 0
 			};
-		} else {
-			ringProps = undefined;
 		}
 	});
 </script>
@@ -106,7 +99,7 @@
 	{#if ringProps}
 		<circle {...ringProps} />
 	{/if}
-	<circle {...props} />
+	<circle {...circleProps} />
 	{#if hasStarbase}
 		<rect
 			class:starbase={planet.spec?.dockCapacity}

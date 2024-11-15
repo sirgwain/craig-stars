@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
+	import { preventDefault, run } from 'svelte/legacy';
 
 	import { getGameContext } from '$lib/services/GameContext';
+	import { None } from '$lib/types/Constants';
 	import type { Fleet, ShipToken } from '$lib/types/Fleet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import { NoSymbol } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';
 	import { onShipDesignTooltip } from './game/tooltips/ShipDesignTooltip.svelte';
-	import { None } from '$lib/types/Constants';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import { NoSymbol, QuestionMarkCircle } from '@steeze-ui/heroicons';
 
 	const { game, player, universe } = getGameContext();
 

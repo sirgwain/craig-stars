@@ -32,11 +32,10 @@
 		return false;
 	};
 
-	let planets = $derived($universe.planets);
 </script>
 
 <!-- Planets -->
-{#each planets as planet}
+{#each $universe.planets as planet (planet.num)}
 	{#if $settings.planetViewState == PlanetViewState.Percent}
 		<ScannerPlanetPercent {planet} />
 	{:else if $settings.planetViewState == PlanetViewState.Population}
