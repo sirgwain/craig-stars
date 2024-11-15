@@ -234,9 +234,14 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 		t.game.createSalvage(fleet.Position, player.Num, cost.ToCargo())
 	}
 
+	planetName := ""
+	if planet != nil {
+		planetName = planet.Name
+	}
+
 	t.log.Debug().
 		Int("Player", fleet.PlayerNum).
-		Str("Planet", planet.Name).
+		Str("Planet", planetName).
 		Str("Fleet", fleet.Name).
 		Str("Cargo", fmt.Sprintf("%v", fleet.Cargo)).
 		Str("Scrap", fmt.Sprintf("%v", cost)).

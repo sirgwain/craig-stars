@@ -31,7 +31,6 @@ func NewCost(
 	return Cost{ironium, boranium, germanium, resources}
 }
 
-
 // return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc etc)
 //
 // Ties are broken by REVERSE order of precendence (I/B/G/R)
@@ -43,7 +42,7 @@ func (c Cost) HighestType(ranking int) CostType {
 		highestType = copy.GetTypeFromAmount(MaxInt(copy.Ironium, copy.Boranium, copy.Germanium, copy.Resources))
 		// For the record, this will never cause GetTypeFromAmount to panic because we are literally
 		// comparing the cost struct's own values against themselves
-		// set it to 0 
+		// set it to 0
 		copy.Set(highestType, 0)
 	}
 	return highestType
@@ -96,21 +95,6 @@ func (c Cost) Set(costType CostType, amt int) Cost {
 	return c
 }
 
-func (c Cost) AddInt(costType CostType, amount int) Cost {
-	switch costType {
-	case Ironium:
-		c.Ironium += amount
-	case Boranium:
-		c.Boranium += amount
-	case Germanium:
-		c.Germanium += amount
-	case Resources:
-		c.Resources += amount
-	default:
-		panic(fmt.Sprintf("AddInt called with invalid CostType %s", costType))
-	}
-	return c
-}
 func FromMineralAndResources(m Mineral, resources int) Cost {
 	return Cost{
 		Ironium:   m.Ironium,
@@ -155,6 +139,22 @@ func (c Cost) Add(other Cost) Cost {
 		Germanium: c.Germanium + other.Germanium,
 		Resources: c.Resources + other.Resources,
 	}
+}
+
+func (c Cost) AddInt(costType CostType, amount int) Cost {
+	switch costType {
+	case Ironium:
+		c.Ironium += amount
+	case Boranium:
+		c.Boranium += amount
+	case Germanium:
+		c.Germanium += amount
+	case Resources:
+		c.Resources += amount
+	default:
+		panic(fmt.Sprintf("AddInt called with invalid CostType %s", costType))
+	}
+	return c
 }
 
 func (c Cost) AddCargoMinerals(other Cargo) Cost {

@@ -2,7 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"math"
 )
 
 type TechCategory string
@@ -138,13 +137,6 @@ func getActualArmorAmount(armor, shield float64, qty int, raceSpec RaceSpec, isA
 	}
 }
 
-// compare 2 mining robots and determine which is more resource efficient (ie higher return on investment)
-func (hc *TechHullComponent) getBestMiningRobot(player *Player, other *TechHullComponent) bool {
-	return float64(other.MiningRate)/float64(hc.MiningRate) > getResourceEfficiencyRatio(player, other, hc) ||
-		(float64(other.MiningRate)/float64(hc.MiningRate) == getResourceEfficiencyRatio(player, other, hc) &&
-			other.Ranking > hc.Ranking)
-}
-
 // compare 2 stargates and determine which one is better
 // 1st priority mass, 2nd priority distance, 3rd priority ranking
 func (hc *TechHullComponent) getBestStargate(other *TechHullComponent) bool {
@@ -184,31 +176,8 @@ func (hc *TechHullComponent) getBestTorpedo(player *Player, other *TechHullCompo
 	}
 
 	// if the 2nd torpedo is more cost efficient (in terms of avg damage/minerals spent) than the new weapon, use it
-	return otherPower/hcPower > getCostEfficiencyRatio(player, hc, other, false) ||
-		otherPower/hcPower == getCostEfficiencyRatio(player, hc, other, false) && other.Ranking >= hc.Ranking
-}
-
-// Returns the ratio of mineral efficiency for 2 TechHullComponents by totaling the tech's Cost struct
-// (numeratorTotal / denominatorTotal)
-//
-// resource indicates whether to consider resources in cost analysis (if false, only minerals will be tallied)
-func getCostEfficiencyRatio(player *Player, numerator, denominator *TechHullComponent, resource bool) float64 {
-	hcCost := numerator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
-	otherCost := denominator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
-	if !resource {
-		// zero out resource costs cuz we don't need em
-		hcCost.Resources = 0
-		otherCost.Resources = 0
-	}
-	return float64(hcCost.Total()) / float64(otherCost.Total())
-}
-
-// Returns the ratio of resource expenditure for 2 TechHullComponents
-// (numeratorTotal / denominatorTotal)
-func getResourceEfficiencyRatio(player *Player, numerator, denominator *TechHullComponent) float64 {
-	hcRes := numerator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).Resources
-	otherRes := denominator.GetPlayerCost(player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset).Resources
-	return float64(hcRes) / float64(otherRes)
+	return otherPower/hcPower > getCostEfficiencyRatio(player, hc, other, Ironium) ||
+		otherPower/hcPower == getCostEfficiencyRatio(player, hc, other, Ironium) && other.Ranking >= hc.Ranking
 }
 
 type Engine struct {
@@ -498,79 +467,3 @@ func (t *TechEngine) String() string           { return t.Name }
 func (t *TechPlanetaryScanner) String() string { return t.Name }
 func (t *TechDefense) String() string          { return t.Name }
 func (t *TechTerraform) String() string        { return t.Name }
-
-// Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
-func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) Cost {
-	// figure out miniaturization
-	// this is 4% per level above the required tech we have.
-	// We count the smallest diff, i.e. if you have
-	// tech level 10 energy, 12 bio and the tech costs 9 energy, 4 bio
-	// the smallest level difference you have is 1 energy level (not 8 bio levels)
-
-	levelDiff := TechLevel{-1, -1, -1, -1, -1, -1}
-
-	// From the diff between the player level and the requirements, find the lowest difference
-	// i.e. 1 energy level in the example above
-	numTechLevelsAboveRequired := math.MaxInt
-	if t.Requirements.Energy > 0 {
-		levelDiff.Energy = techLevels.Energy - t.Requirements.Energy
-		numTechLevelsAboveRequired = MinInt(levelDiff.Energy, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Weapons > 0 {
-		levelDiff.Weapons = techLevels.Weapons - t.Requirements.Weapons
-		numTechLevelsAboveRequired = MinInt(levelDiff.Weapons, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Propulsion > 0 {
-		levelDiff.Propulsion = techLevels.Propulsion - t.Requirements.Propulsion
-		numTechLevelsAboveRequired = MinInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Construction > 0 {
-		levelDiff.Construction = techLevels.Construction - t.Requirements.Construction
-		numTechLevelsAboveRequired = MinInt(levelDiff.Construction, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Electronics > 0 {
-		levelDiff.Electronics = techLevels.Electronics - t.Requirements.Electronics
-		numTechLevelsAboveRequired = MinInt(levelDiff.Electronics, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Biotechnology > 0 {
-		levelDiff.Biotechnology = techLevels.Biotechnology - t.Requirements.Biotechnology
-		numTechLevelsAboveRequired = MinInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
-	}
-
-	// for starter techs, they are all 0 requirements, so just use our lowest field
-	if numTechLevelsAboveRequired == math.MaxInt {
-		numTechLevelsAboveRequired = techLevels.Min()
-	}
-
-	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
-	// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
-	miniaturization := math.Min(spec.MiniaturizationMax, spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
-	// New techs cost BET races 2x
-	// new techs will have 0 for miniaturization.
-	miniaturizationFactor := spec.NewTechCostFactor
-	if numTechLevelsAboveRequired > 0 {
-		miniaturizationFactor = 1 - miniaturization
-	}
-
-	// planetary items don't get miniaturization
-	if t.Category == TechCategoryPlanetary || t.Category == TechCategoryTerraforming || t.Category == TechCategoryPlanetaryDefense || t.Category == TechCategoryPlanetaryScanner {
-		miniaturizationFactor = 1
-	}
-
-	// apply any tech cost offsets to our item cost
-	cost := t.Cost
-	var highestCostMulti float64
-	for tag := range t.Tags {
-		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti)
-	}
-
-	return Cost{
-		int(roundHalfDown(float64(cost.Ironium) * miniaturizationFactor)),
-		int(roundHalfDown(float64(cost.Boranium) * miniaturizationFactor)),
-		int(roundHalfDown(float64(cost.Germanium) * miniaturizationFactor)),
-		int(roundHalfDown(float64(cost.Resources) * miniaturizationFactor)),
-	}
-
-	// if we are at level 26, a beginner tech would cost (26 * .04)
-	// return cost * (1 - Math.Min(.75, .04 * lowestRequiredDiff));
-}

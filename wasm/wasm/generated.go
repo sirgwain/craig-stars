@@ -577,7 +577,7 @@ func GetCostRules(o js.Value) cs.CostRules {
 	obj.FactoryCostGermanium = getInt[int](o.Get("factoryCostGermanium"))
 	obj.MineralAlchemyCost = getInt[int](o.Get("mineralAlchemyCost"))
 	obj.PlanetaryScannerCost = GetCost(o.Get("planetaryScannerCost"))
-	obj.StarbaseComponentCostReduction = getInt[int](o.Get("starbaseComponentCostReduction"))
+	obj.StarbaseComponentCostReduction = getFloat[float64](o.Get("starbaseComponentCostReduction"))
 	obj.TerraformCost = GetCost(o.Get("terraformCost"))
 	obj.TechBaseCost = GetSlice[int](o.Get("techBaseCost"), getInt)
 	return obj

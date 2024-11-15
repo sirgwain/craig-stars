@@ -725,7 +725,8 @@ func (design *ShipDesign) CompareFieldsByTag(player *Player, hc, other *TechHull
 		return true
 	}
 	var score, otherScore float64
-	costEff := false // whether to care about mineral efficiency or not
+	var costTypesToCheck []CostType
+	// which cost types to care about for cost eff calcs, if any
 	// usually only applies for items that make up the bulk of their respective ships' cost
 	// and/or ones with a definitive quantifiable stat we can price
 
@@ -775,33 +776,33 @@ func (design *ShipDesign) CompareFieldsByTag(player *Player, hc, other *TechHull
 	case TechTagBeamWeapon, TechTagShieldSapper, TechTagGatlingGun:
 		score = float64(hc.Power) * math.Pow(float64(hc.Range), 2)
 		otherScore = float64(other.Power) * math.Pow(float64(other.Range), 2)
-		costEff = true
+		costTypesToCheck = []CostType{Resources}
 	case TechTagTorpedo, TechTagCapitalShipMissile:
 		return hc.getBestTorpedo(player, other)
 	case TechTagColonyModule:
 		score = 1
 		otherScore = 1
-		costEff = true // literally ALL we care about is cost efficiency
+		costTypesToCheck = []CostType{} // literally ALL we care about is cost efficiency
 	case TechTagCargoPod:
 		score = float64(hc.CargoBonus)
 		otherScore = float64(other.CargoBonus)
-		costEff = true
+		costTypesToCheck = []CostType{Resources}
 	case TechTagFuelTank:
 		score = float64(hc.FuelBonus + 5*hc.FuelGeneration)
 		otherScore = float64(other.FuelBonus + 5*other.FuelGeneration)
-		costEff = true
+		costTypesToCheck = []CostType{Resources}
 	case TechTagMineLayer, TechTagHeavyMineLayer, TechTagSpeedMineLayer:
 		otherScore = float64(other.MineLayingRate)
 		score = float64(hc.MineLayingRate)
-		costEff = true
+		costTypesToCheck = []CostType{Resources}
 	case TechTagBomb, TechTagSmartBomb:
 		score = float64(hc.KillRate)
 		otherScore = float64(other.KillRate)
-		costEff = true
+		costTypesToCheck = []CostType{}
 	case TechTagStructureBomb:
 		score = float64(hc.StructureDestroyRate)
 		otherScore = float64(other.StructureDestroyRate)
-		costEff = true
+		costTypesToCheck = []CostType{}
 	case TechTagCloak:
 		score = float64(hc.CloakUnits)
 		otherScore = float64(other.CloakUnits)
@@ -816,15 +817,17 @@ func (design *ShipDesign) CompareFieldsByTag(player *Player, hc, other *TechHull
 	case TechTagTerraformingRobot:
 		score = float64(hc.TerraformRate)
 		otherScore = float64(other.TerraformRate)
-		costEff = true
+		costTypesToCheck = []CostType{Resources}
 	case TechTagMiningRobot:
-		return hc.getBestMiningRobot(player, other)
+		score = float64(hc.MiningRate)
+		otherScore = float64(other.MiningRate)
+		costTypesToCheck = []CostType{Resources}
 	}
 
 	scoreRatio := otherScore / score
 	costRatio := 1.0
-	if costEff {
-		costRatio = getCostEfficiencyRatio(player, other, hc, true)
+	if costTypesToCheck != nil {
+		costRatio = getCostEfficiencyRatio(player, other, hc, costTypesToCheck...)
 	}
 	return scoreRatio > costRatio ||
 		scoreRatio == costRatio && other.Ranking > hc.Ranking
