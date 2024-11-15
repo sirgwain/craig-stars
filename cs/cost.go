@@ -78,16 +78,6 @@ func (c Cost) ToMineral() Mineral {
 	}
 }
 
-// convert an int cost to a costfloat64 struct for internal calcs
-func (c Cost) ToCostFloat64() costFloat64 {
-	return costFloat64{
-		Ironium:   float64(c.Ironium),
-		Boranium:  float64(c.Boranium),
-		Germanium: float64(c.Germanium),
-		Resources: float64(c.Resources),
-	}
-}
-
 func (c Cost) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Resources
 }

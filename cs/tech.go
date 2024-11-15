@@ -2,8 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"math"
-	"strings" // only needed for jank temporary solution
 )
 
 type TechCategory string
@@ -354,84 +352,3 @@ func (t *TechEngine) String() string           { return t.Name }
 func (t *TechPlanetaryScanner) String() string { return t.Name }
 func (t *TechDefense) String() string          { return t.Name }
 func (t *TechTerraform) String() string        { return t.Name }
-
-// Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
-// 
-// Returns floating point cost for extra precision
-func (t *Tech) GetPlayerCostFloat(techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) costFloat64 {
-	// figure out miniaturization
-	// this is 4% per level above the required tech we have.
-	// We count the smallest diff, i.e. if you have
-	// tech level 10 energy, 12 bio and the tech costs 9 energy, 4 bio
-	// the smallest level difference you have is 1 energy level (not 8 bio levels)
-
-	levelDiff := TechLevel{-1, -1, -1, -1, -1, -1}
-
-	// From the diff between the player level and the requirements, find the lowest difference
-	// i.e. 1 energy level in the example above
-	numTechLevelsAboveRequired := math.MaxInt
-	if t.Requirements.Energy > 0 {
-		levelDiff.Energy = techLevels.Energy - t.Requirements.Energy
-		numTechLevelsAboveRequired = MinInt(levelDiff.Energy, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Weapons > 0 {
-		levelDiff.Weapons = techLevels.Weapons - t.Requirements.Weapons
-		numTechLevelsAboveRequired = MinInt(levelDiff.Weapons, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Propulsion > 0 {
-		levelDiff.Propulsion = techLevels.Propulsion - t.Requirements.Propulsion
-		numTechLevelsAboveRequired = MinInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Construction > 0 {
-		levelDiff.Construction = techLevels.Construction - t.Requirements.Construction
-		numTechLevelsAboveRequired = MinInt(levelDiff.Construction, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Electronics > 0 {
-		levelDiff.Electronics = techLevels.Electronics - t.Requirements.Electronics
-		numTechLevelsAboveRequired = MinInt(levelDiff.Electronics, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Biotechnology > 0 {
-		levelDiff.Biotechnology = techLevels.Biotechnology - t.Requirements.Biotechnology
-		numTechLevelsAboveRequired = MinInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
-	}
-
-	// for starter techs, they are all 0 requirements, so just use our lowest field
-	if numTechLevelsAboveRequired == math.MaxInt {
-		numTechLevelsAboveRequired = techLevels.Min()
-	}
-
-	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
-	// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
-	miniaturization := math.Min(spec.MiniaturizationMax, spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
-	// New techs cost BET races 2x
-	// new techs will have 0 for miniaturization.
-	miniaturizationFactor := spec.NewTechCostFactor
-	if numTechLevelsAboveRequired > 0 {
-		miniaturizationFactor = 1 - miniaturization
-	}
-
-	// apply any tech cost offsets 
-	// TODO: Implement IT 25% gate discount in actually less janky way
-	cost := t.Cost.ToCostFloat64().multiply(miniaturizationFactor).round(roundHalfDown)
-	switch t.Category {
-	case TechCategoryEngine:
-		cost = cost.multiply(1 + costOffset.Engine)
-	case TechCategoryBeamWeapon:
-		cost = cost.multiply(1 + costOffset.BeamWeapon)
-	case TechCategoryBomb:
-		cost = cost.multiply(1 + costOffset.Bomb)
-	case TechCategoryTorpedo:
-		cost = cost.multiply(1 + costOffset.Torpedo)
-	case TechCategoryOrbital:
-		if strings.Contains(t.Name, "Stargate") {
-			cost = cost.multiply(1 + costOffset.Stargate)
-		}
-	case TechCategoryTerraforming:
-		cost = cost.multiply(1 + costOffset.Terraforming)
-	}
-
-	return cost
-
-	// if we are at level 26, a beginner tech would cost (26 * .04)
-	// return cost * (1 - Math.Min(.75, .04 * lowestRequiredDiff));
-}

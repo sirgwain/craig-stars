@@ -3,6 +3,7 @@ package cs
 import (
 	"fmt"
 	"math"
+	"strings"
 )
 
 // The CostCalculator interface is used to calculate costs of single items or starbase upgrades
@@ -23,101 +24,155 @@ type costCalculate struct {
 // A costFloat64 is otherwise identical to a regular Cost struct, but uses float64s instead of ints
 // used for internal cost calculations before being cast back into a regular Cost
 type costFloat64 struct {
-	Ironium   float64 `json:"ironium,omitempty"`
-	Boranium  float64 `json:"boranium,omitempty"`
-	Germanium float64 `json:"germanium,omitempty"`
-	Resources float64 `json:"resources,omitempty"`
+	ironium   float64
+	boranium  float64
+	germanium float64
+	resources float64
 }
-
-/*
-// extract float value from costFloat64 struct
-func (c costFloat64) getAmount(costType CostType) float64 {
-	switch costType {
-	case Ironium:
-		return c.Ironium
-	case Boranium:
-		return c.Boranium
-	case Germanium:
-		return c.Germanium
-	case Resources:
-		return c.Resources
-	}
-	panic(fmt.Sprintf("GetAmount called with invalid CostType %s", costType))
-}
-*/
 
 // convert a costFloat64 to an int using the specified rounding method
 func (c costFloat64) toCost(roundFunc func(float64) float64) Cost {
 	return Cost{
-		Ironium:   int(roundFunc(c.Ironium)),
-		Boranium:  int(roundFunc(c.Boranium)),
-		Germanium: int(roundFunc(c.Germanium)),
-		Resources: int(roundFunc(c.Resources)),
+		Ironium:   int(roundFunc(c.ironium)),
+		Boranium:  int(roundFunc(c.boranium)),
+		Germanium: int(roundFunc(c.germanium)),
+		Resources: int(roundFunc(c.resources)),
+	}
+}
+
+// convert an int cost to a costfloat64 struct for internal calcs
+func costFloat64fromCost(c Cost) costFloat64 {
+	return costFloat64{
+		ironium:   float64(c.Ironium),
+		boranium:  float64(c.Boranium),
+		germanium: float64(c.Germanium),
+		resources: float64(c.Resources),
 	}
 }
 
 func (c costFloat64) add(other costFloat64) costFloat64 {
 	return costFloat64{
-		Ironium:   c.Ironium + other.Ironium,
-		Boranium:  c.Boranium + other.Boranium,
-		Germanium: c.Germanium + other.Germanium,
-		Resources: c.Resources + other.Resources,
+		ironium:   c.ironium + other.ironium,
+		boranium:  c.boranium + other.boranium,
+		germanium: c.germanium + other.germanium,
+		resources: c.resources + other.resources,
 	}
 }
 
 func (c costFloat64) subtract(other costFloat64) costFloat64 {
 	return costFloat64{
-		Ironium:   c.Ironium - other.Ironium,
-		Boranium:  c.Boranium - other.Boranium,
-		Germanium: c.Germanium - other.Germanium,
-		Resources: c.Resources - other.Resources,
+		ironium:   c.ironium - other.ironium,
+		boranium:  c.boranium - other.boranium,
+		germanium: c.germanium - other.germanium,
+		resources: c.resources - other.resources,
 	}
 }
 
 func (c costFloat64) multiply(factor float64) costFloat64 {
 	return costFloat64{
-		Ironium:   c.Ironium * factor,
-		Boranium:  c.Boranium * factor,
-		Germanium: c.Germanium * factor,
-		Resources: c.Resources * factor,
+		ironium:   c.ironium * factor,
+		boranium:  c.boranium * factor,
+		germanium: c.germanium * factor,
+		resources: c.resources * factor,
 	}
 }
 
 // Return greater of 2 cost structs for all ResourceTypes separately
 func (c costFloat64) max(other costFloat64) costFloat64 {
 	return costFloat64{
-		Ironium:   math.Max(c.Ironium, other.Ironium),
-		Boranium:  math.Max(c.Boranium, other.Boranium),
-		Germanium: math.Max(c.Germanium, other.Germanium),
-		Resources: math.Max(c.Resources, other.Resources),
+		ironium:   math.Max(c.ironium, other.ironium),
+		boranium:  math.Max(c.boranium, other.boranium),
+		germanium: math.Max(c.germanium, other.germanium),
+		resources: math.Max(c.resources, other.resources),
 	}
 }
-
-/*
-// Return greater of 2 cost structs for all ResourceTypes separately
-func (c costFloat64) min(other costFloat64) costFloat64 {
-	return costFloat64{
-		Ironium:   math.Min(c.Ironium, other.Ironium),
-		Boranium:  math.Min(c.Boranium, other.Boranium),
-		Germanium: math.Min(c.Germanium, other.Germanium),
-		Resources: math.Min(c.Resources, other.Resources),
-	}
-}
-*/
-
-func (c costFloat64) total() float64 {
-	return c.Ironium + c.Boranium + c.Germanium + c.Resources
-}
-
 
 // round a cost struct's values with passed in function
 func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
 	return costFloat64{
-		Ironium:   roundFunc(c.Ironium),
-		Boranium:  roundFunc(c.Boranium),
-		Germanium: roundFunc(c.Germanium),
-		Resources: roundFunc(c.Resources),
+		ironium:   roundFunc(c.ironium),
+		boranium:  roundFunc(c.boranium),
+		germanium: roundFunc(c.germanium),
+		resources: roundFunc(c.resources),
 	}
+}
+
+// Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
+//
+// Returns floating point cost for extra precision
+func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) costFloat64 {
+	// figure out miniaturization
+	// this is 4% per level above the required tech we have.
+	// We count the smallest diff, i.e. if you have
+	// tech level 10 energy, 12 bio and the tech costs 9 energy, 4 bio
+	// the smallest level difference you have is 1 energy level (not 8 bio levels)
+
+	levelDiff := TechLevel{-1, -1, -1, -1, -1, -1}
+
+	// From the diff between the player level and the requirements, find the lowest difference
+	// i.e. 1 energy level in the example above
+	numTechLevelsAboveRequired := math.MaxInt
+	if tech.Requirements.Energy > 0 {
+		levelDiff.Energy = techLevels.Energy - tech.Requirements.Energy
+		numTechLevelsAboveRequired = MinInt(levelDiff.Energy, numTechLevelsAboveRequired)
+	}
+	if tech.Requirements.Weapons > 0 {
+		levelDiff.Weapons = techLevels.Weapons - tech.Requirements.Weapons
+		numTechLevelsAboveRequired = MinInt(levelDiff.Weapons, numTechLevelsAboveRequired)
+	}
+	if tech.Requirements.Propulsion > 0 {
+		levelDiff.Propulsion = techLevels.Propulsion - tech.Requirements.Propulsion
+		numTechLevelsAboveRequired = MinInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
+	}
+	if tech.Requirements.Construction > 0 {
+		levelDiff.Construction = techLevels.Construction - tech.Requirements.Construction
+		numTechLevelsAboveRequired = MinInt(levelDiff.Construction, numTechLevelsAboveRequired)
+	}
+	if tech.Requirements.Electronics > 0 {
+		levelDiff.Electronics = techLevels.Electronics - tech.Requirements.Electronics
+		numTechLevelsAboveRequired = MinInt(levelDiff.Electronics, numTechLevelsAboveRequired)
+	}
+	if tech.Requirements.Biotechnology > 0 {
+		levelDiff.Biotechnology = techLevels.Biotechnology - tech.Requirements.Biotechnology
+		numTechLevelsAboveRequired = MinInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
+	}
+
+	// for starter techs, they are all 0 requirements, so just use our lowest field
+	if numTechLevelsAboveRequired == math.MaxInt {
+		numTechLevelsAboveRequired = techLevels.Min()
+	}
+
+	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
+	// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
+	miniaturization := math.Min(spec.MiniaturizationMax, spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
+	// New techs cost BET races 2x
+	// new techs will have 0 for miniaturization.
+	miniaturizationFactor := spec.NewTechCostFactor
+	if numTechLevelsAboveRequired > 0 {
+		miniaturizationFactor = 1 - miniaturization
+	}
+
+	// apply any tech cost offsets
+	// TODO: Implement IT 25% gate discount in actually less janky way
+	cost := costFloat64fromCost(tech.Cost).multiply(miniaturizationFactor).round(roundHalfDown)
+	switch tech.Category {
+	case TechCategoryEngine:
+		cost = cost.multiply(1 + costOffset.Engine)
+	case TechCategoryBeamWeapon:
+		cost = cost.multiply(1 + costOffset.BeamWeapon)
+	case TechCategoryBomb:
+		cost = cost.multiply(1 + costOffset.Bomb)
+	case TechCategoryTorpedo:
+		cost = cost.multiply(1 + costOffset.Torpedo)
+	case TechCategoryOrbital:
+		if strings.Contains(tech.Name, "Stargate") {
+			cost = cost.multiply(1 + costOffset.Stargate)
+		}
+	case TechCategoryTerraforming:
+		cost = cost.multiply(1 + costOffset.Terraforming)
+	}
+
+	return cost
 }
 
 // get the upgrade cost for replacing a starbase with another
@@ -149,8 +204,8 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 
 	// If the hulls are different, add (newHullCost - 0.5*OldHullCost)
 	if design.Hull != newDesign.Hull {
-		oldHullCost := oldHull.Tech.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
-		newHullCost := newHull.Tech.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
+		oldHullCost := getPlayerCostFloat64(oldHull.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
+		newHullCost := getPlayerCostFloat64(newHull.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
 		cost = cost.add(newHullCost).subtract((oldHullCost.multiply(rules.StarbaseHullRefundFactor)))
 	}
 
@@ -186,7 +241,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 				// same amount of item in both bases; remove from both
 				delete(oldComponents, item)
 				delete(newComponents, item)
-		 	case newQuantity > oldQuantity:
+			case newQuantity > oldQuantity:
 				// More copies of item in new design; remove duplicates from new base list
 				newComponentsByCategory[item.Tech.Category] = append(newComponentsByCategory[item.Tech.Category], item)
 				categories[item.Tech.Category] = true
@@ -206,9 +261,9 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		// We can just tally up all our costs for the new stuff and be done for the day
 		for item, qty := range newComponents {
 			if item.Tech.Category == TechCategoryOrbital {
-				cost = cost.add(item.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(qty)))
+				cost = cost.add(getPlayerCostFloat64(item.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(qty)))
 			} else {
-				cost = cost.add(item.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(qty) * rules.StarbaseComponentCostReduction))
+				cost = cost.add(getPlayerCostFloat64(item.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(qty) * rules.StarbaseComponentCostReduction))
 			}
 		}
 		return cost.multiply(raceSpec.StarbaseCostFactor).toCost(math.Ceil).MinZero(), nil
@@ -234,16 +289,16 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 
 		for _, oldItem := range oldComponentsByCategory[category] {
 			if category == TechCategoryOrbital {
-				oldCost = oldCost.add(oldItem.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(oldComponents[oldItem])))
+				oldCost = oldCost.add(getPlayerCostFloat64(oldItem.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(oldComponents[oldItem])))
 			} else {
-				oldCost = oldCost.add(oldItem.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(oldComponents[oldItem]) * rules.StarbaseComponentCostReduction))
+				oldCost = oldCost.add(getPlayerCostFloat64(oldItem.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(oldComponents[oldItem]) * rules.StarbaseComponentCostReduction))
 			}
 		}
 		for _, newItem := range newComponentsByCategory[category] {
 			if category == TechCategoryOrbital {
-				newCost = newCost.add(newItem.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(newComponents[newItem])))
+				newCost = newCost.add(getPlayerCostFloat64(newItem.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(newComponents[newItem])))
 			} else {
-				newCost = newCost.add(newItem.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(newComponents[newItem]) * rules.StarbaseComponentCostReduction))
+				newCost = newCost.add(getPlayerCostFloat64(newItem.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(newComponents[newItem]) * rules.StarbaseComponentCostReduction))
 			}
 		}
 
@@ -251,7 +306,7 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		// this is the part that can be reduced by normal rebates
 		cost = cost.add(newCost.subtract(oldCost).multiply(0.7))
 
-		// add on rest of the cost after category specific rebates 
+		// add on rest of the cost after category specific rebates
 		// higher of (20% new item cost, 30% new item cost - 10% old item cost)
 		// if no old item exists, you pay 100%
 		adjCost := newCost.multiply(0.2).max(
@@ -285,7 +340,7 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 	}
 	starbase := hull.Starbase
 
-	cost := hull.Tech.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
+	cost := getPlayerCostFloat64(hull.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
 
 	// iterate through slots and tally prices up
 	for _, slot := range design.Slots {
@@ -293,7 +348,7 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 		if item == nil {
 			return Cost{}, fmt.Errorf("component %s in design slots not found in tech store", slot.HullComponent)
 		}
-		hcCost := item.Tech.GetPlayerCostFloat(techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(slot.Quantity))
+		hcCost := getPlayerCostFloat64(item.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(slot.Quantity))
 		if starbase && item.Category != TechCategoryOrbital {
 			cost = cost.add(hcCost.multiply(rules.StarbaseComponentCostReduction))
 		} else {
