@@ -34,6 +34,7 @@
 	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
+	import { absoluteSize } from '$lib/types/CargoTransferRequest';
 
 	const {
 		settings,
@@ -147,7 +148,7 @@
 		// close the dialog
 		showCargoTransferDialog = false;
 
-		if (e && e.transferAmount.absoluteSize() > 0) {
+		if (e && absoluteSize(e.transferAmount) > 0) {
 			if (!e.dest) {
 				e.dest = newSalvage();
 			}

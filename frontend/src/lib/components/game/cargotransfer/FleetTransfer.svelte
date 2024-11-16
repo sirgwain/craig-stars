@@ -1,10 +1,12 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import MineralBar from '$lib/components/game/MineralBar.svelte';
-	import { CargoTransferRequest, add, type Cargo } from '$lib/types/Cargo';
+	import { add } from '$lib/types/Cargo';
+	import { type CargoTransferRequest, newCargoTransferRequest } from '$lib/types/CargoTransferRequest';
 
 	type Props = {
 		transferAmount: CargoTransferRequest;
+		ironium?: number;
 		cargo: CargoTransferRequest;
 		cargoCapacity: number;
 		fuelCapacity: number;
@@ -17,11 +19,12 @@
 	};
 
 	let {
-		transferAmount = new CargoTransferRequest(),
-		cargo = new CargoTransferRequest(),
+		transferAmount = newCargoTransferRequest(),
+		cargo = newCargoTransferRequest(),
 		cargoCapacity = 0,
 		fuelCapacity = 0,
 		allowFuelTransfers = false,
+		ironium = 0,
 		ontransferfuel,
 		ontransferironium,
 		ontransferboranium,
@@ -29,8 +32,8 @@
 		ontransfercolonists
 	}: Props = $props();
 
-	let cargoState = $derived(add(cargo, transferAmount));
-	$inspect(transferAmount);
+	$inspect('transferAmount', transferAmount);
+	$inspect('ironium', ironium);
 </script>
 
 <div class="sm:grid sm:grid-cols-label-value">
@@ -49,7 +52,7 @@
 
 	<div class="sm:text-right mr-1 h-8">Cargo Hold</div>
 	<div class="my-auto">
-		<CargoBar value={cargoState} capacity={cargoCapacity} />
+		<CargoBar value={add(cargo, transferAmount)} capacity={cargoCapacity} />
 	</div>
 
 	<div class="col-span-2 mt-10 sm:mt-5"></div>

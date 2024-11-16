@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { CargoTransferRequest } from '$lib/types/Cargo';
+	import {
+		negative,
+		newCargoTransferRequest,
+		type CargoTransferRequest
+	} from '$lib/types/CargoTransferRequest';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type { Planet } from '$lib/types/Planet';
 	import { getGameContext } from '$lib/services/GameContext';
@@ -31,7 +35,7 @@
 	let {
 		src,
 		dest,
-		transferAmount = $bindable(new CargoTransferRequest()),
+		transferAmount = $bindable(newCargoTransferRequest()),
 		showHeader = true,
 		srcCargoCapacity = src.spec.cargoCapacity ?? 0,
 		srcFuelCapacity = src.spec.fuelCapacity ?? 0,
@@ -40,9 +44,11 @@
 		quantityModifier = $bindable(1)
 	}: Props = $props();
 
-	let srcCargo = $derived(new CargoTransferRequest(src.cargo, src.fuel));
+	let ironiumTransferAmount = $state(transferAmount.ironium);
+
+	let srcCargo = $derived(newCargoTransferRequest(src.cargo, src.fuel));
 	let destCargo = $derived(
-		new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0)
+		newCargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0)
 	);
 
 	let destFleet = $derived(dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined);
@@ -145,6 +151,8 @@
 				(srcCargo.ironium ?? 0) + transferAmount.ironium,
 				(destCargo?.ironium ?? 0) - transferAmount.ironium
 			);
+		ironiumTransferAmount = transferAmount.ironium;
+		console.log('transferIronium', transferAmount);
 	}
 
 	function transferBoranium(amount: number) {
@@ -191,6 +199,7 @@
 			</h1>
 			<FleetTransfer
 				{transferAmount}
+				ironium={ironiumTransferAmount}
 				cargo={srcCargo}
 				cargoCapacity={srcCargoCapacity}
 				fuelCapacity={srcFuelCapacity}
@@ -249,13 +258,13 @@
 				{#if dest?.type == MapObjectType.Planet}
 					<PlanetTransfer cargo={destCargo} transferAmount={negativeCargo(transferAmount)} />
 				{:else if !dest || dest?.type == MapObjectType.Salvage}
-					<SalvageTransfer cargo={destCargo} transferAmount={transferAmount.negative()} />
+					<SalvageTransfer cargo={destCargo} transferAmount={negative(transferAmount)} />
 				{:else if !dest || dest?.type == MapObjectType.MineralPacket}
-					<MineralPacketTransfer cargo={destCargo} transferAmount={transferAmount.negative()} />
+					<MineralPacketTransfer cargo={destCargo} transferAmount={negative(transferAmount)} />
 				{:else if destFleet}
 					<FleetTransfer
 						cargo={destCargo}
-						transferAmount={transferAmount.negative()}
+						transferAmount={negative(transferAmount)}
 						cargoCapacity={destCargoCapacity}
 						fuelCapacity={destFuelCapacity}
 						ontransferfuel={(amount) => transferFuel(-amount)}

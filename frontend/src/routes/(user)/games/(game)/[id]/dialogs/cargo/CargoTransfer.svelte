@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { CargoTransferRequest } from '$lib/types/Cargo';
+	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
+	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
+	import { newCargoTransferRequest } from '$lib/types/CargoTransferRequest';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type { Planet } from '$lib/types/Planet';
-	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
 	import type { Salvage } from '$lib/types/Salvage';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
-	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
 
 	type Props = {
 		src: CommandedFleet;
@@ -17,10 +17,10 @@
 
 	let { src, dest, onOk, onCancel }: Props = $props();
 
-	let transferAmount = $state(new CargoTransferRequest());
+	let transferAmount = $state(newCargoTransferRequest());
 
 	function reset() {
-		transferAmount = new CargoTransferRequest();
+		transferAmount = newCargoTransferRequest();
 		src = src;
 	}
 

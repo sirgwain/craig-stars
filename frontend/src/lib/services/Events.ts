@@ -1,4 +1,4 @@
-import type { CargoTransferRequest } from '$lib/types/Cargo';
+import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest';
 import type {
 	CargoTransferTarget,
 	CommandedFleet,

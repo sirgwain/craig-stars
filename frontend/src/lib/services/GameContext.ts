@@ -1,6 +1,6 @@
 import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
-import type { CargoTransferRequest } from '$lib/types/Cargo';
+import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest';
 import {
 	CommandedFleet,
 	type Fleet,
