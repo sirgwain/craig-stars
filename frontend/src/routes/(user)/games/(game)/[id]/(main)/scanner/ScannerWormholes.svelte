@@ -7,11 +7,9 @@
 	import ScannerWormhole from './ScannerWormhole.svelte';
 
 	const { universe } = getGameContext();
-
-	let wormholes = $derived($universe.wormholes);
 </script>
 
 <!-- Wormholes -->
-{#each wormholes as wormhole}
+{#each $universe.wormholes as wormhole}
 	<ScannerWormhole {wormhole} />
 {/each}

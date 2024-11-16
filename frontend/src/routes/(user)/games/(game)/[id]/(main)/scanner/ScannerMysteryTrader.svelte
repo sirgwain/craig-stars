@@ -27,11 +27,12 @@
 		if (!mysteryTrader || !mysteryTrader.heading) {
 			return 0;
 		}
-		return;
-		radiansToDegrees(
-			// Math.atan2(determinant(startHeading, mysterytrader.heading), dot(startHeading, mysterytrader.heading))
-			Math.atan2(mysteryTrader.heading.y, mysteryTrader.heading.x)
-		) + angleOffset;
+		return (
+			radiansToDegrees(
+				// Math.atan2(determinant(startHeading, mysterytrader.heading), dot(startHeading, mysterytrader.heading))
+				Math.atan2(mysteryTrader.heading.y, mysteryTrader.heading.x)
+			) + angleOffset
+		);
 	});
 
 	let size = $derived(8 / $scale);

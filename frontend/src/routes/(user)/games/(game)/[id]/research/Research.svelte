@@ -133,7 +133,7 @@
 			name="nextResearchField"
 			enumType={NextResearchField}
 			bind:value={$player.nextResearchField}
-			on:change={updatePlayerOrders}
+			onchange={updatePlayerOrders}
 		/>
 	</div>
 

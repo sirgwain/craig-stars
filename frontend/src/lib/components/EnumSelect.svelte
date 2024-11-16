@@ -1,53 +1,37 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import { createEventDispatcher } from 'svelte';
-	import { startCase } from 'lodash-es';
-	import { $enum as eu } from 'ts-enum-util';
-	import { Icon } from '@steeze-ui/svelte-icon';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
-
-	const dispatch = createEventDispatcher();
+	import { Icon } from '@steeze-ui/svelte-icon';
+	import { startCase } from 'lodash-es';
+	import type { HTMLSelectAttributes } from 'svelte/elements';
+	import { $enum as eu } from 'ts-enum-util';
 
 	type Props = {
 		name: string;
-		value: string | undefined;
 		title?: string | undefined;
 		tooltip?: string | undefined;
 		enumType: any;
 		titleClass?: string;
-		required?: boolean;
-		typeTitle?: any;
+		typeTitle?: (type: any) => string;
 		showEmpty?: boolean;
-	};
+	} & HTMLSelectAttributes;
 
 	let {
 		name,
 		value = $bindable(),
-		title = $bindable(undefined),
-		tooltip = undefined,
+		title = startCase(name),
+		tooltip,
 		enumType,
 		titleClass = 'label-text w-32 text-right',
-		required = false,
 		typeTitle = (type: any) => startCase(type),
-		showEmpty = false
+		showEmpty = false,
+		...others
 	}: Props = $props();
-
-	run(() => {
-		!title && (title = startCase(name));
-	});
 </script>
 
 <div class="w-full flex-grow">
 	<label class="label"
 		><span class={titleClass}>{title}</span>
-		<select
-			class="select input-bordered ml-2 flex-grow"
-			{name}
-			{required}
-			bind:value
-			onchange={(e) => dispatch('change', e)}
-		>
+		<select class="select input-bordered ml-2 flex-grow" {name} bind:value {...others}>
 			{#each eu(enumType).getValues() as type}
 				{#if showEmpty || `${type}` !== ''}
 					<option value={type}>{typeTitle(type)}</option>

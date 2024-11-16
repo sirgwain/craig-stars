@@ -10,6 +10,7 @@
 		tech: Tech | undefined,
 		showResearchCost = false
 	) {
+		e.preventDefault();
 		if (tech) {
 			showTooltip<TechTooltipProps>(e.x, e.y, TechTooltip, { tech, showResearchCost });
 		}
@@ -22,12 +23,8 @@
 </script>
 
 <script lang="ts">
-	type Props = {
-		tech: Tech;
-		showResearchCost?: boolean;
-	};
 
-	let { tech, showResearchCost = false }: Props = $props();
+	let { tech, showResearchCost = false }: TechTooltipProps = $props();
 
 	const { player, cs } = getGameContext();
 </script>

@@ -39,7 +39,7 @@
 		})}
 		name="Host"
 		value={player.race?.id ?? 0}
-		on:change={(e) => raceChanged(e.detail)}
+		onchange={(e) => raceChanged(parseInt(e.currentTarget.value))}
 	/>
 
 	<!-- <ColorInput bind:value={player.color} name="color" /> -->

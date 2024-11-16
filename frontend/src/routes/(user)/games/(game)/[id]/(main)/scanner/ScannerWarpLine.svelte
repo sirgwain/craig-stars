@@ -6,23 +6,19 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
 
 	const { player, universe, selectedMapObject } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	type Line = {
+		color: string;
 		path: string;
 		props: any;
 	};
 
-	let line: Line | undefined = $state();
-	let color = $state('#ffffff');
-
-	let strokeWidth = $derived(1);
-
-	run(() => {
-		line = undefined;
+	let line: Line | undefined = $derived.by(() => {
+		let color = '#ffffff';
+		let strokeWidth = 1;
 
 		// show the warp line for other player fleets, or mystery traders or mineral packets
 		if (
@@ -50,7 +46,8 @@
 					}
 				}));
 
-				line = {
+				return {
+					color,
 					path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
 					props: {
 						'stroke-width': strokeWidth,
@@ -76,7 +73,7 @@
 				markerHeight="3"
 				orient="auto"
 			>
-				<path d="M 3 0 L 7 5 L 3 10" stroke={color} fill="context-fill" stroke-width={2} />
+				<path d="M 3 0 L 7 5 L 3 10" stroke={line.color} fill="context-fill" stroke-width={2} />
 			</marker>
 		</defs>
 	</svg>

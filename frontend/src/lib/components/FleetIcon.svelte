@@ -1,13 +1,10 @@
 <script lang="ts">
-	import { preventDefault, run } from 'svelte/legacy';
-
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/Constants';
+	import { getHullIcon } from '$lib/techicon';
 	import type { Fleet, ShipToken } from '$lib/types/Fleet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { NoSymbol } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { kebabCase } from 'lodash-es';
 	import { onShipDesignTooltip } from './game/tooltips/ShipDesignTooltip.svelte';
 
 	const { game, player, universe } = getGameContext();
@@ -19,17 +16,10 @@
 
 	let { fleet, tokens = fleet.tokens ?? [] }: Props = $props();
 
-	let icon = $state('');
-	let design: ShipDesign | undefined;
-
-	run(() => {
-		icon = '';
-		if (tokens && tokens.length > 0) {
-			const designNum = tokens.find((token) => token.quantity > 0)?.designNum ?? None;
-			const design = $universe.getDesign(fleet.playerNum, designNum);
-			if (design) {
-				icon = `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
-			}
+	const design: ShipDesign | undefined = $derived.by(() => {
+		if (fleet.tokens && fleet.tokens.length > 0) {
+			const designNum = fleet.tokens[0].designNum;
+			return $universe.getDesign(fleet.playerNum, designNum);
 		}
 	});
 </script>
@@ -43,15 +33,15 @@
 			<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 		{/if}
 
-		<div class="fleet-avatar {icon} bg-black">
-			{#if !icon}
+		<div class="fleet-avatar {getHullIcon(design)} bg-black">
+			{#if !design}
 				<Icon src={NoSymbol} size="64" />
 			{/if}
 			<button
 				type="button"
 				class="w-full h-full cursor-help"
 				aria-label="Opens ship design tooltip"
-				onpointerdown={preventDefault((e) => onShipDesignTooltip(e, design))}
+				onpointerdown={(e) => onShipDesignTooltip(e, design)}
 			></button>
 		</div>
 	</div>

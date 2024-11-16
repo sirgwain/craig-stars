@@ -27,8 +27,8 @@
 		tech: Tech | undefined;
 		player: Player | undefined;
 		cs: CS | undefined;
-		showResearchCost: boolean;
-		hideGraph: boolean;
+		showResearchCost?: boolean;
+		hideGraph?: boolean;
 	};
 
 	let {

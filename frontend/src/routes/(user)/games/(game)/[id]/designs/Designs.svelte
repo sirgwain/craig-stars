@@ -1,17 +1,15 @@
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
-
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
-	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
+	import { getHullIcon } from '$lib/techicon';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { kebabCase } from 'lodash-es';
 
 	const { game, player, universe, settings } = getGameContext();
 
@@ -22,11 +20,9 @@
 	let { designs }: Props = $props();
 
 	// filterable designs
-	let filteredDesigns: ShipDesign[] = $state([]);
 	let search = $state('');
-
-	run(() => {
-		filteredDesigns =
+	let filteredDesigns: ShipDesign[] = $derived.by(() => {
+		return (
 			designs
 				.sort((a, b) =>
 					a.playerNum != b.playerNum ? a.playerNum - b.playerNum : (a.num ?? 0) - (b.num ?? 0)
@@ -39,7 +35,8 @@
 							.getPlayerPluralName(i.playerNum)
 							.toLowerCase()
 							.indexOf(search.toLowerCase()) != -1
-				) ?? [];
+				) ?? []
+		);
 	});
 
 	const columns: TableColumn<ShipDesign>[] = [
@@ -90,13 +87,6 @@
 			sortBy: (a, b) => (a.spec.mass ?? 0) - (b.spec.mass ?? 0)
 		}
 	];
-
-	function icon(design: ShipDesign): string {
-		if (design) {
-			return `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
-		}
-		return '';
-	}
 </script>
 
 <div class="w-full">
@@ -123,14 +113,14 @@
 						<button
 							class="w-full h-full cursor-help text-left"
 							aria-label="Opens ship design visual"
-							onpointerdown={preventDefault((e) => onShipDesignTooltip(e, row))}
+							onpointerdown={(e) => onShipDesignTooltip(e, row)}
 						>
 							<div class="avatar mr-2">
 								<div
 									class="border-2 border-neutral p-2 bg-black"
 									style={`border-color: ${$universe.getPlayerColor(row.playerNum)};`}
 								>
-									<div class="fleet-avatar {icon(row)} bg-black"></div>
+									<div class="fleet-avatar {getHullIcon(row)} bg-black"></div>
 								</div>
 							</div>
 						</button>
@@ -165,7 +155,7 @@
 				{:else if column.key === 'hull'}
 					<button
 						class="w-full h-full cursor-help text-left"
-						onpointerdown={preventDefault((e) => onTechTooltip(e, $techs.getTech(row.hull)))}
+						onpointerdown={(e) => onTechTooltip(e, $techs.getTech(row.hull))}
 						>{cell}
 						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" /></button
 					>

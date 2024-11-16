@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { startCase } from 'lodash-es';
 
 	type Props = {
@@ -13,13 +11,9 @@
 	let {
 		name,
 		checked = $bindable(),
-		title = $bindable(undefined),
+		title = startCase(name),
 		titleClass = 'label-text w-32 text-right'
 	}: Props = $props();
-
-	run(() => {
-		!title && (title = startCase(name));
-	});
 </script>
 
 <div class="w-full flex-grow">

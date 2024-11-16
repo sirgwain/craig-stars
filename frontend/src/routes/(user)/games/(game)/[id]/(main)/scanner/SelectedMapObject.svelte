@@ -33,18 +33,18 @@
 		return false;
 	};
 
-	let size = $state(10);
-	run(() => {
+	let size = $derived.by(() => {
 		switch ($settings.planetViewState) {
 			case PlanetViewState.Normal:
 			case PlanetViewState.SurfaceMinerals:
 			case PlanetViewState.MineralConcentration:
-				size = commanded($selectedMapObject, $commandedMapObject) ? 15 : 10;
-				break;
+				return commanded($selectedMapObject, $commandedMapObject) ? 15 : 10;
 			case PlanetViewState.Percent:
 			case PlanetViewState.Population:
 			case PlanetViewState.None:
-				size = 21;
+				return 21;
+			default:
+				return 10;
 		}
 	});
 </script>

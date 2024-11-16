@@ -1,19 +1,13 @@
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
-
 	import { goto } from '$app/navigation';
-	import { gameKey, getGameContext } from '$lib/services/GameContext';
 	import { CSError, errors } from '$lib/services/Errors';
 	import { FullGame } from '$lib/services/FullGame';
+	import { gameKey, getGameContext } from '$lib/services/GameContext';
 	import { hasContext } from 'svelte';
-	import type { Readable } from 'svelte/store';
 	import { fade } from 'svelte/transition';
 
-	let game: Readable<FullGame> | undefined = $state();
-	let resetContext: (fg: FullGame) => void = $state();
-	run(() => {
-		hasContext(gameKey) && ({ game, resetContext } = getGameContext());
-	});
+	let game = $derived(hasContext(gameKey) ? getGameContext().game : undefined);
+	let resetContext = $derived(hasContext(gameKey) ? getGameContext().resetContext : undefined);
 
 	function onFadeOut(err: CSError) {
 		$errors = $errors.filter((e) => e !== err);
@@ -44,16 +38,17 @@
 						<button
 							type="button"
 							class="btn btn-outline"
-							onclick={preventDefault(() => {
+							onclick={(e) => {
+								e.preventDefault();
 								$errors = [];
-								if ($game && $game.id) {
+								if ($game && $game.id && resetContext) {
 									// reload the game
 									resetContext(new FullGame());
 									goto(`/games/${$game.id}`);
 								} else {
 									goto('/');
 								}
-							})}>Refresh</button
+							}}>Refresh</button
 						>
 					{/if}
 				</div>

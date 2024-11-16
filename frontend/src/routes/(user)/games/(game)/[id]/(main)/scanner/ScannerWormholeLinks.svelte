@@ -17,13 +17,10 @@
 
 	const strokeWidth = 1;
 
-	let wormholes = $derived($universe.wormholes.filter((w) => w.destinationNum));
-
-	let lines: Line[] = $state([]);
-
-	run(() => {
+	let lines: Line[] = $derived.by(() => {
+		let wormholes = $universe.wormholes.filter((w) => w.destinationNum);
 		const numsUsed = new Set<number>();
-		lines = wormholes
+		return wormholes
 			.filter((wormhole) => {
 				const used = numsUsed.has(wormhole.num) || numsUsed.has(wormhole.destinationNum ?? 0);
 				numsUsed.add(wormhole.num);

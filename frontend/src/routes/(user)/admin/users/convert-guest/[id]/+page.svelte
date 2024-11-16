@@ -10,8 +10,8 @@
 	import type { User } from '$lib/types/User';
 	import { onMount } from 'svelte';
 
-	let users: User[] = $state();
-	let games: Game[] = $state();
+	let users: User[] = $state([]);
+	let games: Game[] = $state([]);
 	let id = $page.params.id;
 	let guestUser: User | undefined = $state();
 	let targetUserId: number | undefined = $state();

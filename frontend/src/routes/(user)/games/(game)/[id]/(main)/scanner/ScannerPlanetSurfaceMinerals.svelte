@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { totalCargo } from '$lib/types/Cargo';
@@ -14,8 +12,6 @@
 	const { game, player, universe, settings } = getGameContext();
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
-	let max = $settings.mineralScale; // 100% concentration
-
 	type Props = {
 		planet: Planet;
 	};
@@ -25,20 +21,20 @@
 	const size = 25; // the size of the mineral bars
 	const abovePlanetY = 5;
 
-	let barPercent = $state({
-		ironium: 0,
-		boranium: 0,
-		germanium: 0
-	});
-
-	run(() => {
-		if (planet.cargo) {
-			barPercent = {
-				ironium: clamp(planet.cargo.ironium ? planet.cargo.ironium / max : 0, 0, 1),
-				boranium: clamp(planet.cargo.boranium ? planet.cargo.boranium / max : 0, 0, 1),
-				germanium: clamp(planet.cargo.germanium ? planet.cargo.germanium / max : 0, 0, 1)
+	let barPercent = $derived.by(() => {
+		let max = $settings.mineralScale; // 100% concentration
+		if (!planet.cargo) {
+			return {
+				ironium: 0,
+				boranium: 0,
+				germanium: 0
 			};
 		}
+		return {
+			ironium: clamp(planet.cargo.ironium ? planet.cargo.ironium / max : 0, 0, 1),
+			boranium: clamp(planet.cargo.boranium ? planet.cargo.boranium / max : 0, 0, 1),
+			germanium: clamp(planet.cargo.germanium ? planet.cargo.germanium / max : 0, 0, 1)
+		};
 	});
 </script>
 
