@@ -1,15 +1,19 @@
 package cs
 
-// Compare 2 or more slices without order and return true if they are either equal or
-// if slice 1 contains slice 2 
-//
-// identical determines what to check for - true requires the 2 slices to be strictly identical,
-// while false merely requires that the first slice contains the other
+/* 
+Compare 2 or more slices without order and return true if they are either equal or
+if slice 1 contains slice 2 
+
+identical determines what to check for - true requires the 2 slices to be strictly identical,
+while false merely requires that the first slice contains the other
+*/
 func CompareSlicesUnordered[T comparable, S ~[]T](slice, other S, identical bool) bool {
-	// set A is defined to be a subset of set B if there exists no element(s)
-	// present in set A that are not also present in set B (B contains everything inside A)
-	// If the two are the same length, it *necessarily* follows that the two are equal;
-	// B must have everything in A (subset) and nothing more (as otherwise it'd be larger)
+	/* 
+	* set A is defined to be a subset of set B if there exists no element(s)
+	* present in set A that are not also present in set B (B contains everything inside A)
+	* If the two are the same length, it *necessarily* follows that the two are equal;
+	* B must have everything in A (subset) and nothing more (as otherwise it'd be larger)
+	*/
 	if identical && len(slice) != len(other) {
 		return false
 	}
@@ -56,8 +60,8 @@ func AppendWithoutDuplicates[T comparable, S ~[]T](slice ...S) S {
 	return newSlice
 }
 
-// break down an individual bitmask into a slice of its component bits
-func (mask Bitmask) getBits() []Bitmask {
+/* break down an individual bitmask into a slice of its component bits
+func (mask Bitmask) GetBits() []Bitmask {
 	bits := []Bitmask{}
 
 	for num := Bitmask(1); num <= mask; num <<= 1 {
@@ -66,4 +70,4 @@ func (mask Bitmask) getBits() []Bitmask {
 		}
 	}
 	return bits
-}
+}*/

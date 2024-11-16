@@ -200,7 +200,7 @@ func getCostEfficiencyRatio(player *Player, numerator, denominator *TechHullComp
 // get the upgrade cost for replacing a starbase with another
 //
 // Takes into account part replacement costs and minimum costs
-func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error) {
+func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error) {
 	if design.SlotsEqual(newDesign.Slots) && design.Hull == newDesign.Hull {
 		// Exact same base; no calcs needed
 		return Cost{}, nil

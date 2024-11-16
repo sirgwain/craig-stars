@@ -5,6 +5,31 @@ import (
 	"testing"
 )
 
+// TODO: Fix this shit
+/*
+func TestTechStore_GetBestEngine(t *testing.T) {
+	type args struct {
+		player  *Player
+		hull    *TechHull
+		purpose FleetPurpose
+	}
+	tests := []struct {
+		name string
+		args args
+		want *TechEngine
+	}{
+		{"Base scout", args{testPlayer(), &Scout, FleetPurposeScout}, &QuickJump5},
+		{"Mini Colonizer", args{NewPlayer(0, NewRace().WithPRT(HE).WithSpec(&rules)).withSpec(&rules), &MiniColonyShip, FleetPurposeColonizer}, &SettlersDelight},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := StaticTechStore.GetBestEngine(tt.args.player, tt.args.hull, tt.args.purpose); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TechStore.GetBestEngine() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTechStore_GetBestScanner(t *testing.T) {
 	type args struct {
 		player *Player
@@ -25,7 +50,7 @@ func TestTechStore_GetBestScanner(t *testing.T) {
 			}
 		})
 	}
-}
+}*/
 
 func TestTechStore_GetHullComponentsByCategory(t *testing.T) {
 	type args struct {
@@ -51,28 +76,39 @@ func TestTechStore_GetHullComponentsByCategory(t *testing.T) {
 	}
 }
 
-// TODO: Fix this shit
-/*
-func TestTechStore_GetBestEngine(t *testing.T) {
+func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
+	type fields struct {
+		techLevels TechLevel
+		race *Race
+		mtTechs bool
+	}
 	type args struct {
-		player  *Player
-		hull    *TechHull
-		purpose FleetPurpose
+		slot HullSlotType
 	}
 	tests := []struct {
-		name string
-		args args
-		want *TechEngine
+		name  string
+		fields fields
+		args  args
+		want  []*TechHullComponent
 	}{
-		{"Base scout", args{testPlayer(), &Scout, FleetPurposeScout}, &QuickJump5},
-		{"Mini Colonizer", args{NewPlayer(0, NewRace().WithPRT(HE).WithSpec(&rules)).withSpec(&rules), &MiniColonyShip, FleetPurposeColonizer}, &SettlersDelight},
+		{name: "max tech MT shields with IS", fields: fields{TechLevel{26,26,26,26,26,26}, NewRace().WithPRT(IS), true},
+		args: args{slot: HullSlotTypeShield}, 
+		want: []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &CrobySharmor, &BearNeutrinoBarrier, &LangstonShell, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield}},
+		{name: "Default Shields/Armors", fields: fields{TechLevel{26,26,26,26,26,26}, NewRace().WithPRT(JoaT), false},
+		args: args{slot: HullSlotTypeShieldArmor}, want: []*TechHullComponent{&Tritanium, &Crobmnium, &Carbonic, &Strobnium, &Organic, &Kelarium, &Neutronium, &Valanium, &Superlatanium,
+			&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := StaticTechStore.GetBestEngine(tt.args.player, tt.args.hull, tt.args.purpose); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TechStore.GetBestEngine() = %v, want %v", got, tt.want)
+			player := NewPlayer(1, tt.fields.race.WithSpec(&rules)).WithTechLevels(tt.fields.techLevels)
+			if tt.fields.mtTechs {
+				for _, tech := range MysteryTraderTechs {
+					player.AcquiredTechs[tech.Name] = true
+				}
+			}
+			if got := rules.techs.GetHullComponentsByHullSlotType(player, tt.args.slot, "Nubian"); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TechStore.GetHullComponentsByHullSlotType() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
-*/

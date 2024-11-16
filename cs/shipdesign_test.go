@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -198,9 +199,9 @@ func TestComputeShipDesignSpec(t *testing.T) {
 		design     *ShipDesign
 	}
 	tests := []struct {
-		name string
-		args args
-		want ShipDesignSpec
+		name    string
+		args    args
+		want    ShipDesignSpec
 		wanterr bool
 	}{
 		{name: "Humanoid Starter Long Range Scout",
@@ -653,8 +654,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: "BANANA!!!!!!!!", HullSlotIndex: 10, Quantity: 8},
 					}),
-			}, 
-			want: ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
+			},
+			want:    ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
 			wanterr: true,
 		},
 	}
@@ -801,7 +802,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 			want: 1.75,
 		},
 		{
-			name: "2 battle super comps on 90% computed ship",
+			name: "2 battle super comps on heavily computed ship",
 			args: args{
 				armorMulti: 1, shieldMulti: 1,
 				hc:         &Jammer30,
@@ -820,17 +821,20 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 			name: "1 Mega poly shell on armored starbase w/ RS",
 			args: args{
 				armorMulti: 0.5, shieldMulti: 1.4,
-				hc:         &MegaPolyShell,
-				qty:        1,
-				shield:     460,  // 600 after adding a part
-				armor:      1000, // 1200 after adding a part; effective armor boost multiplied by 0.5x
+				hc:  &MegaPolyShell,
+				qty: 1,
+				// +140 after adding part
+				shield: 460,
+				// +200 after adding part;
+				// effective armor boost multiplied by 0.5 due to overabundance
+				armor:      1000,
 				beamBonus:  1,
 				jamming:    0, // 20% after 1 item
 				computing:  0,
 				deflecting: 0,
 				starbase:   false,
 			},
-			want: 1.3973, // = (1700/1460)*1.2
+			want: 1.3973, // = (1700/1460)*(1.2/1)
 		},
 	}
 	for _, tt := range tests {
@@ -952,120 +956,6 @@ func TestShipDesign_getJamIncrease(t *testing.T) {
 	}
 }
 
-func TestShipDesign_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil pointer runtime panic
-	type fields struct {
-		techLevels    TechLevel
-		race          *Race
-		acquiredParts []string
-		beamShip      bool
-	}
-	type args struct {
-		hullSlotType HullSlotType
-		qty          int
-		tags         []TechTag
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *TechHullComponent
-		wantErr bool
-	}{
-		{
-			name: "Best beam with max techs",
-			fields: fields{
-				techLevels:    TechLevel{1, 1, 26, 1, 1, 1},
-				race:          NewRace().WithPRT(JoaT),
-				acquiredParts: []string{},
-				beamShip:      false,
-			},
-			args: args{
-				hullSlotType: HullSlotTypeWeaponShield,
-				qty:          99,
-				tags:         []TechTag{TechTagBeamWeapon},
-			}, want: &AntiMatterPulverizer, wantErr: false,
-		},
-		{
-			name: "Best shield/armor with tech 14",
-			fields: fields{
-				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
-				race:          NewRace().WithPRT(IS),
-				acquiredParts: []string{"Mega Poly Shell", "Langston Shell", "Multi Cargo Pod"},
-				beamShip:      false,
-			},
-			args: args{
-				hullSlotType: HullSlotTypeGeneral,
-				qty:          1,
-				tags:         []TechTag{TechTagShield, TechTagArmor},
-			}, want: &MegaPolyShell, wantErr: false,
-		},
-		{
-			name: "Best light armor",
-			fields: fields{
-				techLevels:    TechLevel{12, 12, 12, 12, 12, 14},
-				race:          NewRace().WithPRT(WM),
-				acquiredParts: []string{"Multi Cargo Pod"},
-				beamShip:      true,
-			},
-			args: args{
-				hullSlotType: HullSlotTypeGeneral,
-				qty:          1,
-				tags:         []TechTag{TechTagArmor},
-			}, want: &Organic, wantErr: false,
-		},
-		{
-			name: "Best shield/armor with tech 14 and RS",
-			fields: fields{
-				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
-				race:          NewRace().WithPRT(IS).WithLRT(RS),
-				acquiredParts: []string{"Mega Poly Shell", "Langston Shell", "Multi Cargo Pod"},
-				beamShip:      false,
-			},
-			args: args{
-				hullSlotType: HullSlotTypeShieldArmor,
-				qty:          1,
-				tags:         []TechTag{TechTagShield, TechTagArmor},
-			}, want: &MegaPolyShell, wantErr: false,
-		},
-		{
-			name: "no matching part",
-			fields: fields{
-				techLevels:    TechLevel{0, 0, 0, 0, 0, 0},
-				race:          NewRace().WithPRT(AR),
-				acquiredParts: []string{},
-				beamShip:      false,
-			},
-			args: args{
-				hullSlotType: HullSlotTypeGeneral,
-				qty:          99,
-				tags:         []TechTag{TechTagMineLayer},
-			}, want: nil, wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			player := testPlayer().WithTechLevels(tt.fields.techLevels)
-			player.Race = *tt.fields.race
-			if len(tt.fields.acquiredParts) > 0 {
-				for _, tech := range tt.fields.acquiredParts {
-					player = player.WithAcquiredTech(tech)
-				}
-			}
-			design := NewShipDesign(player, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter)
-			if tt.fields.beamShip {
-				design.Purpose = ShipDesignPurposeBeamFighter
-			}
-			got, err := design.GetBestComponentWithTags(&rules, player, tt.args.hullSlotType, tt.args.tags...)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ShipDesign.GetBestComponentWithTags() errored unexpectedly; error = %v", err)
-			}
-			if got != tt.want {
-				t.Errorf("ShipDesign.GetBestComponentWithTags() = %v, want %v", got.Name, tt.want.Name)
-			}
-		})
-	}
-}
-
 func TestDesignShip(t *testing.T) {
 	type args struct {
 		hull         *TechHull
@@ -1077,7 +967,7 @@ func TestDesignShip(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []ShipDesignSlot
+		want    map[string]int
 		wanterr bool
 	}{
 		{
@@ -1089,33 +979,47 @@ func TestDesignShip(t *testing.T) {
 				purpose:      ShipDesignPurposeStartingFighter,
 				fleetPurpose: FleetPurposeScout,
 			},
-			want: []ShipDesignSlot{
-				{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
-				{HullComponent: AlphaTorpedo.Name, HullSlotIndex: 2, Quantity: 1},
-				{HullComponent: XRayLaser.Name, HullSlotIndex: 3, Quantity: 1},
-				{HullComponent: RhinoScanner.Name, HullSlotIndex: 4, Quantity: 1},
-				{HullComponent: Crobmnium.Name, HullSlotIndex: 5, Quantity: 1},
-				{HullComponent: FuelTank.Name, HullSlotIndex: 6, Quantity: 1},
-				{HullComponent: BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
+			want: map[string]int{
+				LongHump6.Name:      1,
+				AlphaTorpedo.Name:   1,
+				XRayLaser.Name:      1,
+				RhinoScanner.Name:   1,
+				Crobmnium.Name:      2,
+				FuelTank.Name:       1,
+				BattleComputer.Name: 1,
 			},
 			wanterr: false,
 		},
 		{
-			name: "AMP nub with mega poly",
+			name: "Privateer",
 			args: args{
-				hull:         &Nubian,
-				techLevels:   TechLevel{14, 26, 12, 26, 14, 10},
-				player:       NewPlayer(1, NewRace().WithPRT(HE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules)).WithNum(1).WithAcquiredTech("MegaPolyShell"),
-				purpose:      ShipDesignPurposeBeamFighter,
-				fleetPurpose: FleetPurposeCapitalShip,
+				hull:         &Privateer,
+				techLevels:   TechLevel{0, 0, 2, 4, 0, 0},
+				player:       NewPlayer(1, NewRace().WithPRT(JoaT).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules)).WithNum(1),
+				purpose:      ShipDesignPurposeFreighter,
+				fleetPurpose: FleetPurposeFreighter,
 			},
-			want: []ShipDesignSlot{
-				{HullComponent: Interspace10.Name, HullSlotIndex: 1, Quantity: 3},
-				{HullComponent: AntiMatterPulverizer.Name, HullSlotIndex: 2, Quantity: 3},
-				{HullComponent: AntiMatterPulverizer.Name, HullSlotIndex: 3, Quantity: 3},
-				{HullComponent: Overthruster.Name, HullSlotIndex: 4, Quantity: 3},
-				{HullComponent: MegaPolyShell.Name, HullSlotIndex: 5, Quantity: 3},
-				{HullComponent: GorillaDelagator.Name, HullSlotIndex: 6, Quantity: 3},
+			want: map[string]int{
+				FuelMizer.Name:        1,
+				CargoPod.Name:        1,
+				FuelTank.Name:        2,
+				MoleSkinShield.Name: 2,
+			},
+			wanterr: false,
+		},
+		{
+			name: "Remote Miner",
+			args: args{
+				hull:         &UltraMiner,
+				techLevels:   TechLevel{0, 0, 2, 15, 8, 0},
+				player:       NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ARM).WithLRT(NRSE).WithSpec(&rules)).WithNum(1),
+				purpose:      ShipDesignPurposeMiner,
+				fleetPurpose: FleetPurposeMiner,
+			},
+			want: map[string]int{
+				FuelMizer.Name:        2,
+				FuelTank.Name:        3,
+				RoboUltraMiner.Name: 12,
 			},
 			wanterr: false,
 		},
@@ -1131,8 +1035,13 @@ func TestDesignShip(t *testing.T) {
 					t.Errorf("DesignShip() errored unexpectedly; returned error %v", err)
 				}
 			}
-			if !CompareSlicesUnordered(got.Slots, tt.want, true) {
-				t.Errorf("ShipDesign from DesignShip() had slots %v, want %v", got.Slots, tt.want)
+
+			tallyMap := map[string]int{}
+			for _, slot := range got.Slots {
+				tallyMap[slot.HullComponent] += slot.Quantity
+			}
+			if !reflect.DeepEqual(tallyMap, tt.want) {
+				t.Errorf("ShipDesign from DesignShip() had parts %v, want %v", tallyMap, tt.want)
 			}
 		})
 	}

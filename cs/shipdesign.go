@@ -494,7 +494,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 	if numTachyonDetectors > 0 {
 		// 95% ^ (SQRT(#_of_detectors) = reduction factor for other players' cloaks (capped at 81% or 17TDs)
-		spec.ReduceCloaking = math.Min(math.Pow((100.0-float64(rules.TachyonCloakReduction))/100, math.Sqrt(float64(numTachyonDetectors))), float64(rules.TachyonMaxCloakReduction)/100)
+		spec.ReduceCloaking = math.Min(math.Pow((1-rules.TachyonCloakReduction), math.Sqrt(float64(numTachyonDetectors))), rules.TachyonMaxCloakReduction)
 	} else {
 		spec.ReduceCloaking = 1
 	}
@@ -664,181 +664,15 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 	spec.Scanner = spec.ScanRange != NoScanner || spec.ScanRangePen != NoScanner
 }
 
-// get the best TechHullComponent for the specified HullSlotType(s) that also contains the specified TechTag(s).
-func (design *ShipDesign) GetBestComponentWithTags(rules *Rules, player *Player, hullSlotType HullSlotType, tags ...TechTag) (*TechHullComponent, error) {
-	// PROGRAMMER'S NOTE: the reason I didn't make this a property of techStore is because
-	// we already have to pass in the Rules struct to check for warship stat hardcaps anyways
-
-	var bestTech *TechHullComponent
-
+// get the most needed component for a warship based on relative bonus of other parts
+func (design *ShipDesign) getMostNeededComponent(rules *Rules, player *Player, hullSlotType HullSlotType, qty int) (*TechHullComponent, error) {
 	store := rules.techs
 	hull := store.GetHull(design.Hull)
 	if hull == nil {
 		return nil, fmt.Errorf("failed to get hull %v from tech store", hull)
 	}
 
-	// get list of components for the TechHullTypes we can use
-	var comps []*TechHullComponent = store.GetHullComponentsByHullSlotType(hullSlotType)
-
-	for _, hc := range comps {
-		if !player.HasTech(&hc.Tech) ||
-			(len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hull.Name)) ||
-			(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hull.Name)) {
-			// we cannot use this part; skip to the next item
-			continue
-		}
-
-		// need only 1 tag to match
-		// we set match to false and catalog the part as soon as a single tag matches our list
-		// and is better than our current item
-		hasTag := false
-		for _, tag := range tags {
-			// manually cover cases for tags being subsets of other categories so we don't end up with
-			// sapper only ships
-			switch tag {
-			case TechTagBomb:
-				hasTag = hc.Tags[TechTagBomb] && !hc.Tags[TechTagStructureBomb] && !hc.Tags[TechTagSmartBomb]
-			case TechTagBeamWeapon:
-				hasTag = hc.Tags[TechTagBeamWeapon] && !hc.Tags[TechTagShieldSapper]
-			default:
-				hasTag = hc.Tags[tag]
-			}
-			if hasTag && design.CompareFieldsByTag(player, hc, bestTech, tag) { // editor's note: this function has a nil check in line 1
-				// we have the tag and it's better than what we already have; tack it on
-				bestTech = hc
-				break
-			}
-		}
-	}
-
-	return bestTech, nil
-}
-
-// Compare 2 TechHullComponents by a field determined by the specified TechTag
-// (alongside cost efficiency in certain cases)
-//
-// Precedence is given to the higher rated component in case of a tie
-func (design *ShipDesign) CompareFieldsByTag(player *Player, hc, other *TechHullComponent, tag TechTag) bool {
-	if other == nil {
-		return false
-	} else if hc == nil {
-		return true
-	}
-	var score, otherScore float64
-	var costTypesToCheck []CostType
-	// which cost types to care about for cost eff calcs, if any
-	// usually only applies for items that make up the bulk of their respective ships' cost
-	// and/or ones with a definitive quantifiable stat we can price
-
-	switch tag {
-	case TechTagArmor, TechTagShield:
-		// grab shield and armor stats and see which one makes number bigggeerr
-		hcArmor, hcShield := getActualArmorAmount(float64(hc.Armor), float64(hc.Shield), 1, player.Race.Spec, hc.Category == TechCategoryArmor)
-		otherArmor, otherShield := getActualArmorAmount(float64(other.Armor), float64(other.Shield), 1, player.Race.Spec, other.Category == TechCategoryArmor)
-		score := hcArmor + hcShield
-		otherScore = otherArmor + otherShield
-
-		if hc.Mass > 30 {
-			score /= float64(hc.Mass-30) / 10
-		}
-		if other.Mass > 30 {
-			otherScore /= float64(other.Mass-30) / 10
-		}
-	case TechTagBeamCapacitor:
-		score = hc.BeamBonus
-		otherScore = other.BeamBonus
-	case TechTagBeamDeflector:
-		score = hc.BeamDefense
-		otherScore = other.BeamDefense
-	case TechTagScanner:
-		if hc.ScanRangePen > 0 {
-			if other.ScanRangePen > 0 {
-				score = float64(hc.ScanRangePen)
-				otherScore = float64(other.ScanRangePen)
-			} else {
-				// 2nd tech doesn't pen scan; 1st wins by default
-				return false
-			}
-		} else if other.ScanRangePen > 0 {
-			// 1st tech doesn't pen scan; 2nd wins by default
-			return true
-		} else {
-			// neither tech can pen scan; just use regular scan ranges
-			score = float64(hc.ScanRange)
-			otherScore = float64(other.ScanRange)
-		}
-	case TechTagInitiativeBonus:
-		score = float64(hc.InitiativeBonus)
-		otherScore = float64(other.InitiativeBonus)
-	case TechTagTorpedoJammer:
-		score = hc.TorpedoJamming
-		otherScore = other.TorpedoJamming
-	case TechTagBeamWeapon, TechTagShieldSapper, TechTagGatlingGun:
-		score = float64(hc.Power) * math.Pow(float64(hc.Range), 2)
-		otherScore = float64(other.Power) * math.Pow(float64(other.Range), 2)
-		costTypesToCheck = []CostType{Resources}
-	case TechTagTorpedo, TechTagCapitalShipMissile:
-		return hc.getBestTorpedo(player, other)
-	case TechTagColonyModule:
-		score = 1
-		otherScore = 1
-		costTypesToCheck = []CostType{} // literally ALL we care about is cost efficiency
-	case TechTagCargoPod:
-		score = float64(hc.CargoBonus)
-		otherScore = float64(other.CargoBonus)
-		costTypesToCheck = []CostType{Resources}
-	case TechTagFuelTank:
-		score = float64(hc.FuelBonus + 5*hc.FuelGeneration)
-		otherScore = float64(other.FuelBonus + 5*other.FuelGeneration)
-		costTypesToCheck = []CostType{Resources}
-	case TechTagMineLayer, TechTagHeavyMineLayer, TechTagSpeedMineLayer:
-		otherScore = float64(other.MineLayingRate)
-		score = float64(hc.MineLayingRate)
-		costTypesToCheck = []CostType{Resources}
-	case TechTagBomb, TechTagSmartBomb:
-		score = float64(hc.KillRate)
-		otherScore = float64(other.KillRate)
-		costTypesToCheck = []CostType{}
-	case TechTagStructureBomb:
-		score = float64(hc.StructureDestroyRate)
-		otherScore = float64(other.StructureDestroyRate)
-		costTypesToCheck = []CostType{}
-	case TechTagCloak:
-		score = float64(hc.CloakUnits)
-		otherScore = float64(other.CloakUnits)
-	case TechTagManeuveringJet:
-		score = float64(hc.MovementBonus)
-		otherScore = float64(other.MovementBonus)
-	case TechTagMassDriver:
-		score = float64(hc.PacketSpeed)
-		otherScore = float64(other.PacketSpeed)
-	case TechTagStargate:
-		return hc.getBestStargate(other)
-	case TechTagTerraformingRobot:
-		score = float64(hc.TerraformRate)
-		otherScore = float64(other.TerraformRate)
-		costTypesToCheck = []CostType{Resources}
-	case TechTagMiningRobot:
-		score = float64(hc.MiningRate)
-		otherScore = float64(other.MiningRate)
-		costTypesToCheck = []CostType{Resources}
-	}
-
-	scoreRatio := otherScore / score
-	costRatio := 1.0
-	if costTypesToCheck != nil {
-		costRatio = getCostEfficiencyRatio(player, other, hc, costTypesToCheck...)
-	}
-	return scoreRatio > costRatio ||
-		scoreRatio == costRatio && other.Ranking > hc.Ranking
-	// FOR THE RECORD, this works out to be equivalent to comparing unit prices
-	// If you don't believe this yourself, do some algebra
-}
-
-// get the most needed component for a warship based on relative bonus of other parts
-func (design *ShipDesign) getMostNeededComponent(rules *Rules, player *Player, hullSlotType HullSlotType, qty int) *TechHullComponent {
-	store := rules.techs
-	comps := store.GetHullComponentsByHullSlotType(hullSlotType)
+	comps := store.GetHullComponentsByHullSlotType(player, hullSlotType, hull.Name)
 	var bestTech *TechHullComponent
 	bestBonus := -1.0
 
@@ -849,21 +683,20 @@ func (design *ShipDesign) getMostNeededComponent(rules *Rules, player *Player, h
 			// we do not have or cannot use this part; skip to the next item
 			continue
 		}
-
 		bonus := design.getWarshipPartBonus(rules, player, hc, qty)
 		if bonus > bestBonus {
 			bestTech = hc
 			bestBonus = bonus
 		}
 	}
-	return bestTech
+	return bestTech, nil
 }
 
 // return the total % amount this TechHullComponent boosts our ship's performance,
 // using its TechTags to evaluate individual bonuses
 //
-// Used to quantitatively assess parts from different categories
-// to determine which one is the most beneficial for us to use
+// Used to assess parts from different categories to determine
+// which one is the best for us to use
 func (design *ShipDesign) getWarshipPartBonus(rules *Rules, player *Player, hc *TechHullComponent, qty int) float64 {
 	relativeBoost := 1.0
 	checkedShield := false
@@ -910,7 +743,7 @@ func (design *ShipDesign) getWarshipPartBonus(rules *Rules, player *Player, hc *
 
 		if design.Purpose.IsBeamShip() && hc.Mass > 30 {
 			// reduce bonus if component is too heavy and we need to go fast
-			relativeBoost = 1 + (1-relativeBoost)/(1+float64(hc.Mass-30)/10)
+			relativeBoost = 1 + (relativeBoost-1)/(1+float64(hc.Mass-30)/10)
 		}
 	}
 	return roundFloat(relativeBoost, 4)
@@ -946,6 +779,7 @@ func (spec *ShipDesignSpec) getJamIncrease(rules *Rules, hc *TechHullComponent, 
 func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
 	techStore := rules.techs
+	tc := NewTechComparer()
 	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name)
 	design.Purpose = purpose
 
@@ -1013,7 +847,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 			bestPartsBySlot[hst] = map[TechTag]*TechHullComponent{}
 			for _, tag := range techTagsToCheck {
 				var err error
-				bestPartsBySlot[hst][tag], err = design.GetBestComponentWithTags(rules, player, hst, tag)
+				bestPartsBySlot[hst][tag], err = tc.GetBestComponentWithTags(rules, player, design, hst, tag)
 				if err != nil {
 					return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags returned error %w", err)
 				}
@@ -1111,7 +945,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 				fallthrough
 			case ShipDesignPurposeFreighter, ShipDesignPurposeColonistFreighter:
 				// add cargo pods or fuel pods
-				if cargoPod != nil && numCargoPods > numFuelTanks {
+				if cargoPod != nil && numCargoPods < numFuelTanks {
 					slot.HullComponent = cargoPod.Name
 					numCargoPods += slot.Quantity
 				}
@@ -1182,6 +1016,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	//* Use the hashtags (#) to jump between sections.
 	techStore := rules.techs
 	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name).WithPurpose(purpose)
+	tc := NewTechComparer()
 
 	// (#) HELPER VARIABLES AND LISTS/COUNTERS
 
@@ -1209,7 +1044,6 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	numSappers := 0
 	numPacketThrowers := 0
 	numStargates := 0
-	var err error
 
 	// (#) CONSTANTS USED IN EXECUTION
 	// These values are used in the code to influence part choice
@@ -1231,7 +1065,11 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	}
 
 	// loop through hull slots in order of increasing flexibility (single item type first, then 2, then 3...)
+	// then in decreasing slot quantity (so bigger slots get used up first)
 	for i := 1; i <= maxNum; i++ {
+		slices.SortFunc(hullSlotsByFlexibility[i], func(m, n int) int {
+			return hull.Slots[n].Capacity - hull.Slots[m].Capacity
+		})
 		list := hullSlotsByFlexibility[i]
 		if list == nil {
 			// if we have no slots with this many different HullSlotTypes, skip
@@ -1241,38 +1079,37 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		var mechCounter int = 1 // counter used to decide which parts to add
 
 		// extract slot numbers from list so we can loop through them
-		for _, sn := range list {
-			hullSlot := hull.Slots[sn]
+		for _, slotNum := range list {
+			hullSlot := hull.Slots[slotNum]
 			hst := hullSlot.Type
-			slot := ShipDesignSlot{HullSlotIndex: sn + 1} // list index 0 gets slot no. 1
-			slot.Quantity = hullSlot.Capacity
+			designSlot := ShipDesignSlot{HullSlotIndex: slotNum + 1} // list index 0 gets slot no. 1
+			designSlot.Quantity = hullSlot.Capacity
 			if hst&(HullSlotTypeShieldArmor|HullSlotTypeWeapon) != 0 { // apply quantity decrease for starbase armaments
 				if purpose == ShipDesignPurposeStarbaseHalf {
-					slot.Quantity /= 2
+					designSlot.Quantity /= 2
 				} else if purpose == ShipDesignPurposeStarbaseQuarter {
-					slot.Quantity /= 4
+					designSlot.Quantity /= 4
 				}
 			}
 
-			var itemToPlace *TechHullComponent
-
 			// (#) PART PLACEMENT LOGIC
+			itemToPlace := &TechHullComponent{}
 			if i == 1 {
 				// only 1 part type means we can just check the slot type and assign parts that way
 				switch hst {
 				case HullSlotTypeEngine: // we should ALWAYS HAVE AN ENGINE TO USE ON OUR SHIPS. IF NOT WE'RE SCREWED
-					slot.HullComponent = engine.Name
-					design.Slots = append(design.Slots, slot)
+					designSlot.HullComponent = engine.Name
+					design.Slots = append(design.Slots, designSlot)
 					design.Spec.Engine = engine.Engine
-					design.Spec.NumEngines = slot.Quantity
+					design.Spec.NumEngines = designSlot.Quantity
 				case HullSlotTypeShield:
-					shield, err := design.GetBestComponentWithTags(rules, player, hst, TechTagShield)
+					shield, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagShield)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagShield, err)
 					}
 					itemToPlace = shield
 				case HullSlotTypeArmor:
-					armor, err := design.GetBestComponentWithTags(rules, player, hst, TechTagArmor)
+					armor, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagArmor)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagArmor, err)
 					}
@@ -1280,19 +1117,19 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 				case HullSlotTypeWeapon:
 					if design.Purpose.IsTorpedoShip() {
 						// add our best torp/missile
-						torpedo, err := design.GetBestComponentWithTags(rules, player, hst, TechTagTorpedo)
+						torpedo, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagTorpedo)
 						if err != nil {
 							return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagTorpedo, err)
 						}
 						itemToPlace = torpedo // for sake of simplicity, we'll assume that if we're making a torpedo ship we actually have a torpedo
-						numWeapons += slot.Quantity
+						numWeapons += designSlot.Quantity
 					} else {
 						// add beems to our beem sheep
-						beamWeapon, err := design.GetBestComponentWithTags(rules, player, hst, TechTagBeamWeapon)
+						beamWeapon, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagBeamWeapon)
 						if err != nil {
 							return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagBeamWeapon, err)
 						}
-						sapper, err := design.GetBestComponentWithTags(rules, player, hst, TechTagShieldSapper)
+						sapper, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagShieldSapper)
 						if err != nil {
 							return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagShieldSapper, err)
 						}
@@ -1302,25 +1139,25 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 							numWeapons*3 > numSappers // 3:1 beam:sapper ratio
 						if shouldUseSapper {
 							itemToPlace = sapper
-							numSappers += slot.Quantity
+							numSappers += designSlot.Quantity
 						} else {
 							itemToPlace = beamWeapon
-							numWeapons += slot.Quantity
+							numWeapons += designSlot.Quantity
 						}
 					}
 				case HullSlotTypeScanner:
-					scanner, err := design.GetBestComponentWithTags(rules, player, hst, TechTagScanner)
+					scanner, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagScanner)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagScanner, err)
 					}
 					itemToPlace = scanner
 					scanners = true
 				case HullSlotTypeOrbital:
-					driver, err := design.GetBestComponentWithTags(rules, player, hst, TechTagMassDriver)
+					driver, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagMassDriver)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagMassDriver, err)
 					}
-					stargate, err := design.GetBestComponentWithTags(rules, player, hst, TechTagStargate)
+					stargate, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagStargate)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagStargate, err)
 					}
@@ -1338,15 +1175,15 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 					}
 				case HullSlotTypeElectrical:
 					// elec stuff (jammers/comps/caps)
-					computer, err := design.GetBestComponentWithTags(rules, player, hst, TechTagTorpedoBonus)
+					computer, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagTorpedoBonus)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagTorpedoBonus, err)
 					}
-					capacitor, err := design.GetBestComponentWithTags(rules, player, hst, TechTagBeamCapacitor)
+					capacitor, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagBeamCapacitor)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagBeamCapacitor, err)
 					}
-					jammer, err := design.GetBestComponentWithTags(rules, player, hst, TechTagTorpedoJammer)
+					jammer, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagTorpedoJammer)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagTorpedoJammer, err)
 					}
@@ -1384,20 +1221,22 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 					fallthrough // nothing else matched so we might as well check for elec deflectors/jets as a failsafe
 				case HullSlotTypeMechanical:
-					deflector, err := design.GetBestComponentWithTags(rules, player, hst, TechTagBeamDeflector)
+					deflector, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagBeamDeflector)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagBeamDeflector, err)
 					}
-					jet, err := design.GetBestComponentWithTags(rules, player, hst, TechTagManeuveringJet)
+					jet, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagManeuveringJet)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagManeuveringJet, err)
 					}
 
-					if mechCounter == 1 && jet != nil && !design.Spec.Starbase && design.Spec.Movement < targetMove {
+					if mechCounter == 1 && jet != nil &&
+						!design.Spec.Starbase && design.Spec.Movement < targetMove {
 						itemToPlace = jet
 					} else if deflector != nil {
 						itemToPlace = deflector
 					} else if jet != nil && !design.Spec.Starbase && design.Spec.Movement < 10 {
+						// TODO: change above once max movement is added to BattleRules
 						itemToPlace = jet
 					}
 
@@ -1406,7 +1245,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 					}
 					fallthrough // just slap on a fuel tank dammit
 				default:
-					fuelTank, err := design.GetBestComponentWithTags(rules, player, hst, TechTagFuelTank)
+					fuelTank, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagFuelTank)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagFuelTank, err)
 					}
@@ -1423,18 +1262,18 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 				if (numWeapons + numSappers) < minWeapons {
 					// add our best torp/missile
 					if design.Purpose.IsTorpedoShip() {
-						torpedo, err := design.GetBestComponentWithTags(rules, player, hst, TechTagTorpedo)
+						torpedo, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagTorpedo)
 						if err != nil {
 							return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagTorpedo, err)
 						}
 						itemToPlace = torpedo
-						numWeapons += slot.Quantity
+						numWeapons += designSlot.Quantity
 					} else {
-						beamWeapon, err := design.GetBestComponentWithTags(rules, player, hst, TechTagBeamWeapon)
+						beamWeapon, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagBeamWeapon)
 						if err != nil {
 							return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagBeamWeapon, err)
 						}
-						sapper, err := design.GetBestComponentWithTags(rules, player, hst, TechTagShieldSapper)
+						sapper, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagShieldSapper)
 						if err != nil {
 							return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagShieldSapper, err)
 						}
@@ -1443,10 +1282,10 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 							numWeapons*3 > numSappers // 3:1 beam:sapper ratio
 						if shouldUseSapper {
 							itemToPlace = sapper
-							numSappers += slot.Quantity
+							numSappers += designSlot.Quantity
 						} else {
 							itemToPlace = beamWeapon
-							numWeapons += slot.Quantity
+							numWeapons += designSlot.Quantity
 						}
 					}
 					break
@@ -1454,11 +1293,11 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 				// add orbital items to starbases
 				if design.Spec.Starbase {
-					driver, err := design.GetBestComponentWithTags(rules, player, hst, TechTagMassDriver)
+					driver, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagMassDriver)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagMassDriver, err)
 					}
-					stargate, err := design.GetBestComponentWithTags(rules, player, hst, TechTagStargate)
+					stargate, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagStargate)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagStargate, err)
 					}
@@ -1477,7 +1316,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 				// add scanners to armed scouts if they don't have them already
 				if purpose == ShipDesignPurposeFighterScout && !scanners {
-					scanner, err := design.GetBestComponentWithTags(rules, player, hst, TechTagScanner)
+					scanner, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagScanner)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagScanner, err)
 					}
@@ -1485,51 +1324,55 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 				}
 
 				// add on items based on what we need the most, using rotary counter to ensure we actually add other things once in a while
-				if AbsInt(elecCounter) == 1 && // absolute value is used to ensure we don't get messed up by previous counter toggling
+				if AbsInt(elecCounter) == 1 &&
 					!design.Spec.Starbase && design.Spec.Movement < 10 {
 					// jets
-					jet, err := design.GetBestComponentWithTags(rules, player, hst, TechTagManeuveringJet)
+					jet, err := tc.GetBestComponentWithTags(rules, player, design, hst, TechTagManeuveringJet)
 					if err != nil {
 						return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagManeuveringJet, err)
 					}
 					itemToPlace = jet
 				} else {
 					// add whatever we need the most
-					mostNeededItem := design.getMostNeededComponent(rules, player, hst, slot.Quantity)
+					mostNeededItem, err := design.getMostNeededComponent(rules, player, hst, designSlot.Quantity)
+					if err != nil {
+						return &ShipDesign{}, fmt.Errorf("getMostNeededComponent failed to get parts for tag %v, error %w", TechTagManeuveringJet, err)
+					}
+
 					itemToPlace = mostNeededItem
 				}
 
 				// reset the counter so we don't get 20 million jets
 				elecCounter += 1
-				if elecCounter > 5 {
+				if elecCounter > 4 {
 					elecCounter = 0
 				}
 			}
 
 			// however we happened to fill the slot, add it and recompute all the fields in our spec we need to keep track of
 			if itemToPlace != nil {
-				design.Spec.Mass += itemToPlace.Mass * slot.Quantity
+				design.Spec.Mass += itemToPlace.Mass * designSlot.Quantity
 				if !design.Spec.Starbase {
-					design.Spec.MovementBonus += itemToPlace.MovementBonus * slot.Quantity
+					design.Spec.MovementBonus += itemToPlace.MovementBonus * designSlot.Quantity
 					design.Spec.Movement = design.getMovement(0)
 				}
 				scanners = scanners || itemToPlace.Scanner
-				design.Spec.TorpedoBonus = roundFloat(1-(1-design.Spec.TorpedoBonus)*math.Pow(1-itemToPlace.TorpedoBonus, float64(slot.Quantity)), 4)
-				design.Spec.TorpedoJamming = roundFloat(1-math.Min((1-design.Spec.TorpedoJamming)*math.Pow(1-itemToPlace.TorpedoJamming, float64(slot.Quantity)), rules.JammerCap[design.Spec.Starbase]), 4)
-				design.Spec.BeamBonus = roundFloat(math.Min(design.Spec.BeamBonus*math.Pow(1+itemToPlace.BeamBonus, float64(slot.Quantity)), rules.BeamBonusCap), 4)
-				design.Spec.BeamDefense = roundFloat(1-(1-design.Spec.BeamDefense)*math.Pow(1-itemToPlace.BeamDefense, float64(slot.Quantity)), 4)
-				a, s := getActualArmorAmount(float64(itemToPlace.Armor), float64(itemToPlace.Shield), slot.Quantity, player.Race.Spec, itemToPlace.Category == TechCategoryArmor)
+				design.Spec.TorpedoBonus = roundFloat(1-(1-design.Spec.TorpedoBonus)*math.Pow(1-itemToPlace.TorpedoBonus, float64(designSlot.Quantity)), 4)
+				design.Spec.TorpedoJamming = roundFloat(1-math.Min((1-design.Spec.TorpedoJamming)*math.Pow(1-itemToPlace.TorpedoJamming, float64(designSlot.Quantity)), rules.JammerCap[design.Spec.Starbase]), 4)
+				design.Spec.BeamBonus = roundFloat(math.Min(design.Spec.BeamBonus*math.Pow(1+itemToPlace.BeamBonus, float64(designSlot.Quantity)), rules.BeamBonusCap), 4)
+				design.Spec.BeamDefense = roundFloat(1-(1-design.Spec.BeamDefense)*math.Pow(1-itemToPlace.BeamDefense, float64(designSlot.Quantity)), 4)
+				a, s := getActualArmorAmount(float64(itemToPlace.Armor), float64(itemToPlace.Shield), designSlot.Quantity, player.Race.Spec, itemToPlace.Category == TechCategoryArmor)
 				design.Spec.Armor += int(a)
 				design.Spec.Shields += int(s)
 				if itemToPlace.Tech.Tags.CountTags() == 1 && itemToPlace.Tags[TechTagBeamCapacitor] { // if all this thing does is boost our beams, check to make sure we aren't overcapping stuff first
-					capacitorSlots = append(capacitorSlots, sn) // tack it on the cap list; we'll circle back to it later
+					capacitorSlots = append(capacitorSlots, slotNum) // tack it on the cap list; we'll circle back to it later
 				} else if itemToPlace.Tech.Tags.CountTags() == 1 && itemToPlace.Tags[TechTagTorpedoJammer] {
-					jammerSlots = append(jammerSlots, sn) // tack it on the jammer list; we'll circle back to it later
+					jammerSlots = append(jammerSlots, slotNum) // tack it on the jammer list; we'll circle back to it later
 				} else {
-					prevJamming = roundFloat(1-math.Min((1-prevJamming)*math.Pow(1-itemToPlace.TorpedoJamming, float64(slot.Quantity)), rules.JammerCap[design.Spec.Starbase]), 4)
-					prevCapacitating = roundFloat(math.Min(prevCapacitating*math.Pow(1+itemToPlace.BeamBonus, float64(slot.Quantity)), rules.BeamBonusCap), 4)
-					slot.HullComponent = itemToPlace.Name
-					design.Slots = append(design.Slots, slot)
+					prevJamming = roundFloat(1-math.Min((1-prevJamming)*math.Pow(1-itemToPlace.TorpedoJamming, float64(designSlot.Quantity)), rules.JammerCap[design.Spec.Starbase]), 4)
+					prevCapacitating = roundFloat(math.Min(prevCapacitating*math.Pow(1+itemToPlace.BeamBonus, float64(designSlot.Quantity)), rules.BeamBonusCap), 4)
+					designSlot.HullComponent = itemToPlace.Name
+					design.Slots = append(design.Slots, designSlot)
 				}
 			}
 		}
@@ -1541,7 +1384,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		for i, id := range capacitorSlots {
 			// place on our best capacitor into the slot
 			hullSlot := hull.Slots[id]
-			capacitor, err := design.GetBestComponentWithTags(rules, player, hullSlot.Type, TechTagBeamCapacitor)
+			capacitor, err := tc.GetBestComponentWithTags(rules, player, design, hullSlot.Type, TechTagBeamCapacitor)
 			if err != nil {
 				return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagBeamCapacitor, err)
 			}
@@ -1560,15 +1403,15 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			// add the finished item to the hullSlot and remove it from the list
 			design.Slots[id] = slot
 			capacitorSlots[i] = 0
+
 		}
 	}
-
 	if len(jammerSlots) > 0 {
 	jamLoop:
 		for i, id := range jammerSlots {
 			// place our best jammer into the slot
 			hullSlot := hull.Slots[id]
-			jammer, err := design.GetBestComponentWithTags(rules, player, hullSlot.Type, TechTagTorpedoJammer)
+			jammer, err := tc.GetBestComponentWithTags(rules, player, design, hullSlot.Type, TechTagTorpedoJammer)
 			if err != nil {
 				return &ShipDesign{}, fmt.Errorf("getBestComponentWithTags failed to get parts for tag %v, error %w", TechTagTorpedoJammer, err)
 			}
@@ -1590,12 +1433,14 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			jammerSlots[i] = 0
 		}
 	}
-	// Note that since we update the spec fields even for parts added to the list,
-	// but only update our counters for parts not in the list,
-	// we should never have more slots' worth of jammers than we can use
-	// (since everything else assumes we're using the max slots avaliable)
+	// Note that since we update the spec fields (used for part selection calcs)
+	// even for parts added to our lists,
+	// but only update prevJamming/prevCapaciting for parts not in the list,
+	// we should never have more slots' worth of jammers or caps than we can use
+	// (since all our part calcs assume we're using as many parts as we can)
 
 	// do 1 last failsafe spec recalculation to fix all the temporary jank we did to the ship
+	var err error
 	design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 	if err != nil {
 		return &ShipDesign{}, fmt.Errorf("error %w in ComputeShipDesignSpec when calculating stats for warship part allocation", err)

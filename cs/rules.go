@@ -27,7 +27,6 @@ type Rules struct {
 	MineFieldStatsByType             map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
 	MineralDecayFactor               int                                 `json:"mineralDecayFactor"`
 	MinMaxPopulationPercent          float64                             `json:"minMaxPopulationPercent"`
-	MovesToRunAway                   int                                 `json:"movesToRunAway"`
 	MysteryTraderRules               MysteryTraderRules                  `json:"mysteryTraderRules"`
 	PacketDecayRate                  map[int]float64                     `json:"packetDecayRate"`
 	PacketMaxOverwarpSpeed           int                                 `json:"packetMaxOverwarpSpeed"`
@@ -55,11 +54,10 @@ type Rules struct {
 	SmartDefenseCoverageFactor       float64                             `json:"smartDefenseCoverageFactor"`
 	StargateMaxHullMassFactor        int                                 `json:"stargateMaxHullMassFactor"`
 	StargateMaxRangeFactor           int                                 `json:"stargateMaxRangeFactor"`
-	TachyonCloakReduction            int                                 `json:"tachyonCloakReduction"`
-	TachyonMaxCloakReduction         int                                 `json:"tachyonMaxCloakReduction"`
+	TachyonCloakReduction            float64                             `json:"tachyonCloakReduction"`
+	TachyonMaxCloakReduction         float64                             `json:"tachyonMaxCloakReduction"`
 	TechsID                          int64                               `json:"techsId"`
 	TechTradeChance                  float64                             `json:"techTradeChance"`
-	TorpedoSplashDamage              float64                             `json:"torpedoSplashDamage"`
 	WormholeCloak                    int                                 `json:"wormholeCloak"`
 	WormholePairsForSize             map[Size]int                        `json:"wormholePairsForSize"`
 	WormholeStatsByStability         map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
@@ -99,10 +97,12 @@ type CostRules struct {
 }
 
 type BattleRules struct {
-	BeamRangeDropoff float64          `json:"beamRangeDropoff"`
-	BeamBonusCap     float64          `json:"beamBonusCap"`
-	NumBattleRounds  int              `json:"numBattleRounds"`
-	JammerCap        map[bool]float64 `json:"jammerCap"`
+	BeamRangeDropoff    float64          `json:"beamRangeDropoff"`
+	BeamBonusCap        float64          `json:"beamBonusCap"`
+	MovesToRunAway      int              `json:"movesToRunAway"`
+	NumBattleRounds     int              `json:"numBattleRounds"`
+	JammerCap           map[bool]float64 `json:"jammerCap"`
+	TorpedoSplashDamage float64          `json:"torpedoSplashDamage"`
 }
 
 type RandomEvent string
@@ -269,6 +269,8 @@ func NewRulesWithSeed(seed int64) Rules {
 				true:  0.75, // starbases have 75% jamming max
 				false: 0.95, // non-starbases (ie fleets) have 95% jamming max
 			},
+			MovesToRunAway:      7,
+			TorpedoSplashDamage: 0.125,
 		},
 		UniverseGenerationRules: UniverseGenerationRules{
 			MaxExtraWorldDistance:                     180,
@@ -295,17 +297,16 @@ func NewRulesWithSeed(seed int64) Rules {
 			StartingYear:              2400,
 			WormholeMinPlanetDistance: 30,
 		},
-		TachyonCloakReduction:            5,
-		TachyonMaxCloakReduction:         81, // tachyon detectors cap at 81% cloaking reduction
+		// TODO: Change tachyon cloak reduction to a property of the technology itself
+		TachyonCloakReduction:            .05, // 5% diminishing cloak reduction per detector
+		TachyonMaxCloakReduction:         .81, // tachyon detectors cap at 81% cloaking reduction
 		MaxPopulation:                    1000000,
-		MinMaxPopulationPercent:          .05,
+		MinMaxPopulationPercent:          .05, // red worlds have 5% max pop
 		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per doubling
 		PopulationOvercrowdDieoffRateMax: .12, // overcrowded pops will not die off more than 12% (3x pop) in a year
 		PopulationScannerError:           0.2,
 		SmartDefenseCoverageFactor:       0.5,
 		InvasionDefenseCoverageFactor:    0.75,
-		MovesToRunAway:                   7,
-		TorpedoSplashDamage:              0.125,
 		SalvageDecayRate:                 0.1,
 		SalvageDecayMin:                  10,
 		MineFieldCloak:                   75,

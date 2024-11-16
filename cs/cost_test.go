@@ -135,3 +135,29 @@ func TestCost_DivideByInt(t *testing.T) {
 		})
 	}
 }
+
+func TestCost_HighestType(t *testing.T) {
+	type args struct {
+		cost Cost
+		ranking int
+	} 
+	tests := []struct {
+		name string
+		args args
+		want CostType
+	}{
+		{"Highest Amount", args{Cost{1, 2, 3, 4}, 1}, Resources},
+		{"4 way tie", args{Cost{1, 1, 1, 1}, 1}, Ironium},
+		{"2nd highest amount", args{Cost{100, 1, 99, 88}, 2}, Germanium},
+		{"lowest amount", args{Cost{100, 9, 100, 888}, 4}, Boranium},
+		{"negative index", args{Cost{100, 9, 100, 888}, -1}, Boranium},
+		{"negative index #2", args{Cost{100, 9, 100, 888}, -2}, Ironium},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.args.cost.HighestType(tt.args.ranking); got != tt.want {
+				t.Errorf("Cost.HighestType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

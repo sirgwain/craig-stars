@@ -137,49 +137,6 @@ func getActualArmorAmount(armor, shield float64, qty int, raceSpec RaceSpec, isA
 	}
 }
 
-// compare 2 stargates and determine which one is better
-// 1st priority mass, 2nd priority distance, 3rd priority ranking
-func (hc *TechHullComponent) getBestStargate(other *TechHullComponent) bool {
-	if hc != other {
-		switch {
-		case hc.SafeHullMass < other.SafeHullMass:
-			return false
-		case hc.SafeHullMass > other.SafeHullMass:
-			return true
-		case hc.SafeRange < other.SafeRange: // same safe mass; check safe distance
-			return false
-		case hc.SafeRange > other.SafeRange:
-			return true
-		case hc.Ranking > other.Ranking: // same distance & range; compare ranking
-			return true
-		}
-	}
-	return false
-}
-
-// return the better of the 2 provided torpedo weapons.
-// Defaults to 1st if both are equal or either one is null and breaks ties by item ranking
-func (hc *TechHullComponent) getBestTorpedo(player *Player, other *TechHullComponent) bool {
-	var hcPower float64
-	var otherPower float64
-	capMissileMulti := 1.5
-	// TODO: Figure out a value multi for capital ship missiles that makes sense
-	// missiles do 2x damage on shieldless foes, but enemies don't always have shields down
-
-	hcPower = float64(hc.Power) * float64(hc.Accuracy+10) / 100 // add a bit of accuracy bonus to account for computing vs jamming
-	if hc.CapitalShipMissile {
-		hcPower *= capMissileMulti
-	}
-	otherPower = float64(other.Power) * float64(other.Accuracy+10) / 100
-	if other.CapitalShipMissile {
-		otherPower *= capMissileMulti
-	}
-
-	// if the 2nd torpedo is more cost efficient (in terms of avg damage/minerals spent) than the new weapon, use it
-	return otherPower/hcPower > getCostEfficiencyRatio(player, hc, other, Ironium) ||
-		otherPower/hcPower == getCostEfficiencyRatio(player, hc, other, Ironium) && other.Ranking >= hc.Ranking
-}
-
 type Engine struct {
 	IdealSpeed   int     `json:"idealSpeed,omitempty"`
 	FreeSpeed    int     `json:"freeSpeed,omitempty"`
@@ -190,21 +147,6 @@ type Engine struct {
 type TechEngine struct {
 	TechHullComponent
 	Engine
-}
-
-// returns the better of the 2 engines
-func (hc *TechEngine) CompareEngine(player *Player, other *TechEngine, purpose FleetPurpose) *TechEngine {
-	tech := hc.TechHullComponent
-	otherTech := other.TechHullComponent
-	if player.HasTech(&tech.Tech) {
-		// colony ships don't want radiating engines if we would lose colonists from it
-		if ((purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating &&
-			!(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85)) ||
-			otherTech.Ranking > tech.Ranking {
-			return other
-		}
-	}
-	return hc
 }
 
 type TechHull struct {

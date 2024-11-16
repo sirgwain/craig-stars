@@ -15,21 +15,20 @@ const Infinite = -1
 // The TechStore contains all techs in the game. Eventually these will be user modifiable and
 // referenced per game, but for now all games use the StaticTechStore, which contains the default Stars! techs.
 type TechStore struct {
-	Engines                  []TechEngine                          `json:"engines"`
-	PlanetaryScanners        []TechPlanetaryScanner                `json:"planetaryScanners"`
-	Terraforms               []TechTerraform                       `json:"terraforms"`
-	Defenses                 []TechDefense                         `json:"defenses"`
-	Planetaries              []TechPlanetary                       `json:"planetaries"`
-	HullComponents           []TechHullComponent                   `json:"hullComponents"`
-	Hulls                    []TechHull                            `json:"hulls,omitempty"`
-	techs                    []*Tech                               `json:"-"`
-	techsByName              map[string]interface{}                `json:"-"`
-	hullComponentsByName     map[string]*TechHullComponent         `json:"-"`
-	hullComponentsByCategory map[TechCategory][]TechHullComponent  `json:"-"`
-	hullComponentsBySlotType map[HullSlotType][]*TechHullComponent `json:"-"` // this has to be a pointer to allow for values to be comparable without requiring nested for loops to extract values
-	hullsByName              map[string]*TechHull                  `json:"-"`
-	hullsByType              map[TechHullType][]*TechHull          `json:"-"`
-	enginesByName            map[string]*TechEngine                `json:"-"`
+	Engines                  []TechEngine                         `json:"engines"`
+	PlanetaryScanners        []TechPlanetaryScanner               `json:"planetaryScanners"`
+	Terraforms               []TechTerraform                      `json:"terraforms"`
+	Defenses                 []TechDefense                        `json:"defenses"`
+	Planetaries              []TechPlanetary                      `json:"planetaries"`
+	HullComponents           []TechHullComponent                  `json:"hullComponents"`
+	Hulls                    []TechHull                           `json:"hulls,omitempty"`
+	techs                    []*Tech                              `json:"-"`
+	techsByName              map[string]interface{}               `json:"-"`
+	hullComponentsByName     map[string]*TechHullComponent        `json:"-"`
+	hullComponentsByCategory map[TechCategory][]TechHullComponent `json:"-"`
+	hullsByName              map[string]*TechHull                 `json:"-"`
+	hullsByType              map[TechHullType][]*TechHull         `json:"-"`
+	enginesByName            map[string]*TechEngine               `json:"-"`
 }
 
 // simple static tech store
@@ -60,6 +59,7 @@ type TechFinder interface {
 	GetHullsByType(techHullType TechHullType) []*TechHull
 	GetHullComponent(name string) *TechHullComponent
 	GetHullComponentsByCategory(category TechCategory) []TechHullComponent
+	GetHullComponentsByHullSlotType(player *Player, slot HullSlotType, hullName string) []*TechHullComponent
 }
 
 func NewTechStore() TechFinder {
@@ -88,7 +88,6 @@ func (store *TechStore) Init() {
 	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
 	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
 	store.hullComponentsByCategory = make(map[TechCategory][]TechHullComponent, len(TechCategories))
-	store.hullComponentsBySlotType = make(map[HullSlotType][]*TechHullComponent, len(BasicHullSlotTypes))
 
 	// we have 11 hull types. if this changes, we should update this make, but it's just for performance
 	store.hullsByType = make(map[TechHullType][]*TechHull, 11)
@@ -121,10 +120,6 @@ func (store *TechStore) Init() {
 			store.hullComponentsByCategory[tech.Category] = []TechHullComponent{}
 		}
 		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], tech.TechHullComponent)
-		if _, ok := store.hullComponentsBySlotType[tech.HullSlotType]; !ok {
-			store.hullComponentsBySlotType[tech.HullSlotType] = []*TechHullComponent{}
-		}
-		store.hullComponentsBySlotType[tech.HullSlotType] = append(store.hullComponentsBySlotType[tech.HullSlotType], &tech.TechHullComponent)
 	}
 
 	for i := range store.HullComponents {
@@ -138,10 +133,6 @@ func (store *TechStore) Init() {
 			store.hullComponentsByCategory[tech.Category] = []TechHullComponent{}
 		}
 		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], *tech)
-		if _, ok := store.hullComponentsBySlotType[tech.HullSlotType]; !ok {
-			store.hullComponentsBySlotType[tech.HullSlotType] = []*TechHullComponent{}
-		}
-		store.hullComponentsBySlotType[tech.HullSlotType] = append(store.hullComponentsBySlotType[tech.HullSlotType], tech)
 	}
 
 	for i := range store.PlanetaryScanners {
@@ -211,14 +202,22 @@ func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []Tec
 	return store.hullComponentsByCategory[category]
 }
 
-// get all techs for the specified hull slot type(s)
-// TODO: Test this to make sure it doesn't bork and returns results reasonably quickly (ie faster than looping through the list once)
-func (store *TechStore) GetHullComponentsByHullSlotType(slot HullSlotType) []*TechHullComponent {
-	list := []*TechHullComponent{} 
-	for _, bit := range Bitmask(slot).getBits() {
-		list = append(list, store.hullComponentsBySlotType[HullSlotType(bit)]...)
+// get all techs for the specified hull slot type(s) that can be used by a player
+func (store *TechStore) GetHullComponentsByHullSlotType(player *Player, slot HullSlotType, hullName string) []*TechHullComponent {
+	tracker := map[*TechHullComponent]bool{}
+	list := []*TechHullComponent{}
+	for _, hc := range store.HullComponents {
+		// if we have and can use this part, add it to the list
+		if player.HasTech(&hc.Tech) &&
+			!(len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hullName)) &&
+			!(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hullName)) &&
+			hc.HullSlotType&slot != 0 &&
+			!tracker[&hc] {
+			tracker[&hc] = true
+			list = append(list, &hc)
+		}
 	}
-	return AppendWithoutDuplicates(list)
+	return list
 }
 
 // get the player's best planetary scanner
@@ -276,7 +275,7 @@ func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull) *Tec
 			// if engine has higher ideal speed than the current selection, use it
 			// ties are broken by the part's ranking (which leans towards cost & fuel efficiency)
 			if bestTech == nil ||
-				(tech.Engine.IdealSpeed + tech.MovementBonus> bestTech.Engine.IdealSpeed ||
+				(tech.Engine.IdealSpeed+tech.MovementBonus > bestTech.Engine.IdealSpeed ||
 					(tech.Engine.IdealSpeed == bestTech.Engine.IdealSpeed && tech.TechHullComponent.Ranking > bestTech.TechHullComponent.Ranking)) {
 				bestTech = tech
 			}
