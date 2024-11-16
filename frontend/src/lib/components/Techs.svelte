@@ -24,8 +24,8 @@
 	};
 
 	let {
-		techStore = $bindable(techjson as TechStore),
-		techs = $bindable([
+		techStore = techjson as TechStore,
+		techs = [
 			...techStore.engines,
 			...techStore.planetaryScanners,
 			...techStore.defenses,
@@ -33,37 +33,24 @@
 			...techStore.hullComponents,
 			...techStore.hulls,
 			...techStore.terraforms
-		]),
-		player = undefined,
-		cs = undefined
+		],
+		player,
+		cs
 	}: Props = $props();
 
 	let filter = $state('');
 	let showAll = $state(player === undefined);
 
-	let techsByCategory: Record<TechCategory, Tech[]> = $state({
-		Armor: [],
-		BeamWeapon: [],
-		Bomb: [],
-		Electrical: [],
-		Engine: [],
-		Mechanical: [],
-		MineLayer: [],
-		MineRobot: [],
-		Orbital: [],
-		Planetary: [],
-		PlanetaryScanner: [],
-		PlanetaryDefense: [],
-		Scanner: [],
-		Shield: [],
-		ShipHull: [],
-		StarbaseHull: [],
-		Terraforming: [],
-		Torpedo: []
-	});
+	let filteredTechs = $derived(
+		techs.filter(
+			(t) =>
+				t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
+				t.category.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1
+		)
+	);
 
-	function clearTechsByCategory() {
-		techsByCategory = {
+	let techsByCategory: Record<TechCategory, Tech[]> = $derived.by(() => {
+		const techsByCategory: Record<TechCategory, Tech[]> = {
 			Armor: [],
 			BeamWeapon: [],
 			Bomb: [],
@@ -83,21 +70,10 @@
 			Terraforming: [],
 			Torpedo: []
 		};
-	}
-
-	let filteredTechs = $derived(
-		techs.filter(
-			(t) =>
-				t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
-				t.category.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1
-		)
-	);
-
-	run(() => {
-		clearTechsByCategory();
 		filteredTechs.forEach((tech) => {
 			techsByCategory[tech.category].push(tech);
 		});
+		return techsByCategory;
 	});
 
 	onMount(async () => {

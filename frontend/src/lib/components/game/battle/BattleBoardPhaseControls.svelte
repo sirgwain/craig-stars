@@ -8,24 +8,21 @@
 		ChevronDoubleRight
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher();
-
 	type Props = {
 		phase: number;
 		battle: Battle;
+		onphaseupdated?: (phase: number) => void;
 	};
 
-	let { phase = $bindable(), battle }: Props = $props();
+	let { phase = $bindable(), battle, onphaseupdated }: Props = $props();
 
 	const previous = () => {
 		phase--;
-		dispatch('phaseupdated', phase);
+		onphaseupdated && onphaseupdated(phase);
 	};
 	const next = () => {
 		phase++;
-		dispatch('phaseupdated', phase);
+		onphaseupdated && onphaseupdated(phase);
 	};
 	const nextAttack = () => {
 		const nextPhase = battle.actions.findIndex(
@@ -36,16 +33,16 @@
 		if (nextPhase != -1) {
 			phase = nextPhase + 1;
 		}
-		dispatch('phaseupdated', phase);
+		onphaseupdated && onphaseupdated(phase);
 	};
 
 	const begin = () => {
 		phase = 0;
-		dispatch('phaseupdated', phase);
+		onphaseupdated && onphaseupdated(phase);
 	};
 	const end = () => {
 		phase = battle.totalPhases;
-		dispatch('phaseupdated', phase);
+		onphaseupdated && onphaseupdated(phase);
 	};
 </script>
 

@@ -19,12 +19,12 @@
 	type Props = {
 		src: CommandedFleet;
 		dest: Fleet | Planet | Salvage | undefined;
-		transferAmount?: any;
+		transferAmount?: CargoTransferRequest;
 		showHeader?: boolean;
-		srcCargoCapacity?: any;
-		srcFuelCapacity?: any;
-		destCargoCapacity?: any;
-		destFuelCapacity?: any;
+		srcCargoCapacity?: number;
+		srcFuelCapacity?: number;
+		destCargoCapacity?: number;
+		destFuelCapacity?: number;
 		quantityModifier?: number;
 	};
 
@@ -40,8 +40,10 @@
 		quantityModifier = $bindable(1)
 	}: Props = $props();
 
-	let srcCargo = new CargoTransferRequest(src.cargo, src.fuel);
-	let destCargo = new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0);
+	let srcCargo = $derived(new CargoTransferRequest(src.cargo, src.fuel));
+	let destCargo = $derived(
+		new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0)
+	);
 
 	let destFleet = $derived(dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined);
 
@@ -193,18 +195,18 @@
 				cargoCapacity={srcCargoCapacity}
 				fuelCapacity={srcFuelCapacity}
 				allowFuelTransfers={dest && 'fuel' in dest}
-				on:transfer-fuel={(e) => transferFuel(e.detail)}
-				on:transfer-ironium={(e) => transferIronium(e.detail)}
-				on:transfer-boranium={(e) => transferBoranium(e.detail)}
-				on:transfer-germanium={(e) => transferGermanium(e.detail)}
-				on:transfer-colonists={(e) => transferColonists(e.detail)}
+				ontransferfuel={(amount) => transferFuel(amount)}
+				ontransferironium={(amount) => transferIronium(amount)}
+				ontransferboranium={(amount) => transferBoranium(amount)}
+				ontransfergermanium={(amount) => transferGermanium(amount)}
+				ontransfercolonists={(amount) => transferColonists(amount)}
 			/>
 		</div>
 		<div class="flex-none flex flex-col mx-0.5 w-20 px-1 mt-8">
 			{#if dest?.type == MapObjectType.Fleet}
 				<TransferButtons
-					on:transfer-to-source={(e) => transferFuel(quantityModifier)}
-					on:transfer-to-dest={(e) => transferFuel(-quantityModifier)}
+					ontransfertosource={() => transferFuel(quantityModifier)}
+					ontransfertodest={() => transferFuel(-quantityModifier)}
 					class="mt-8 sm:mt-2"
 				/>
 			{:else}
@@ -212,20 +214,20 @@
 			{/if}
 			<div class="mt-28 h-40 sm:mt-16 sm:h-28 flex flex-col justify-between">
 				<TransferButtons
-					on:transfer-to-source={(e) => transferIronium(quantityModifier)}
-					on:transfer-to-dest={(e) => transferIronium(-quantityModifier)}
+					ontransfertosource={() => transferIronium(quantityModifier)}
+					ontransfertodest={() => transferIronium(-quantityModifier)}
 				/>
 				<TransferButtons
-					on:transfer-to-source={(e) => transferBoranium(quantityModifier)}
-					on:transfer-to-dest={(e) => transferBoranium(-quantityModifier)}
+					ontransfertosource={() => transferBoranium(quantityModifier)}
+					ontransfertodest={() => transferBoranium(-quantityModifier)}
 				/>
 				<TransferButtons
-					on:transfer-to-source={(e) => transferGermanium(quantityModifier)}
-					on:transfer-to-dest={(e) => transferGermanium(-quantityModifier)}
+					ontransfertosource={() => transferGermanium(quantityModifier)}
+					ontransfertodest={() => transferGermanium(-quantityModifier)}
 				/>
 				<TransferButtons
-					on:transfer-to-source={(e) => transferColonists(quantityModifier)}
-					on:transfer-to-dest={(e) => transferColonists(-quantityModifier)}
+					ontransfertosource={() => transferColonists(quantityModifier)}
+					ontransfertodest={() => transferColonists(-quantityModifier)}
 				/>
 			</div>
 			<div class="flex flex-col justify-between mt-2 gap-1 mx-1">
@@ -256,11 +258,11 @@
 						transferAmount={transferAmount.negative()}
 						cargoCapacity={destCargoCapacity}
 						fuelCapacity={destFuelCapacity}
-						on:transfer-fuel={(e) => transferFuel(-e.detail)}
-						on:transfer-ironium={(e) => transferIronium(-e.detail)}
-						on:transfer-boranium={(e) => transferBoranium(-e.detail)}
-						on:transfer-germanium={(e) => transferGermanium(-e.detail)}
-						on:transfer-colonists={(e) => transferColonists(-e.detail)}
+						ontransferfuel={(amount) => transferFuel(-amount)}
+						ontransferironium={(amount) => transferIronium(-amount)}
+						ontransferboranium={(amount) => transferBoranium(-amount)}
+						ontransfergermanium={(amount) => transferGermanium(-amount)}
+						ontransfercolonists={(amount) => transferColonists(-amount)}
 					/>
 				{:else}
 					Deep Space

@@ -24,14 +24,14 @@
 		titleClass = 'label-text w-32 text-right',
 		typeTitle = (type: any) => startCase(type),
 		showEmpty = false,
-		...others
+		...rest
 	}: Props = $props();
 </script>
 
 <div class="w-full flex-grow">
 	<label class="label"
 		><span class={titleClass}>{title}</span>
-		<select class="select input-bordered ml-2 flex-grow" {name} bind:value {...others}>
+		<select class="select input-bordered ml-2 flex-grow" {name} bind:value {...rest}>
 			{#each eu(enumType).getValues() as type}
 				{#if showEmpty || `${type}` !== ''}
 					<option value={type}>{typeTitle(type)}</option>

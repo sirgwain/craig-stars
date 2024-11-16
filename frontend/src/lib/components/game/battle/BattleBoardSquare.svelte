@@ -1,37 +1,32 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
+	import { getHullIcon } from '$lib/techicon';
 	import type { PhaseToken } from '$lib/types/Battle';
-	import { kebabCase } from 'lodash-es';
-	import { createEventDispatcher, getContext } from 'svelte';
+	import { getContext } from 'svelte';
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
-
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		tokens?: PhaseToken[] | undefined;
 		phase: number;
 		selectedToken: PhaseToken | undefined;
 		selected?: boolean;
+		onselected?: (token: PhaseToken) => void;
 	};
 
-	let { tokens = undefined, phase, selectedToken, selected = false }: Props = $props();
+	let { tokens = undefined, phase, selectedToken, selected = false, onselected }: Props = $props();
 
 	let targetTokenIndex = $derived(tokens?.findIndex((t) => t.target));
 	let selectedTokenIndex = $derived(selectedToken && tokens?.indexOf(selectedToken));
-	let tokenIndex;
-	run(() => {
-		tokenIndex =
-			targetTokenIndex && targetTokenIndex != -1
-				? targetTokenIndex
-				: selectedTokenIndex && selectedTokenIndex != -1
-					? selectedTokenIndex
-					: 0;
-	});
+	let tokenIndex = $derived(
+		targetTokenIndex && targetTokenIndex != -1
+			? targetTokenIndex
+			: selectedTokenIndex && selectedTokenIndex != -1
+				? selectedTokenIndex
+				: 0
+	);
 
 	let topToken = $derived(tokens && tokens[tokenIndex]);
 
@@ -46,8 +41,7 @@
 			if (token) {
 				const design = designFinder.getDesign(token.playerNum, token.designNum);
 				if (design) {
-					const name = kebabCase(design.hull.replace("'", '').replace(' ', '').replace('±', ''));
-					return `hull-${name}-${design.hullSetNumber ?? 0}`;
+					return getHullIcon(design);
 				}
 			}
 		}
@@ -82,10 +76,8 @@
 			aria-label="Selects the token on the board"
 			onclick={() => {
 				if (tokens) {
-					if (selected) {
-						tokenIndex = (tokenIndex + 1) % (tokens?.length ?? 0);
-					}
-					dispatch('selected', tokens[tokenIndex]);
+					const newTokenIndex = selected ? (tokenIndex + 1) % (tokens?.length ?? 0) : tokenIndex;
+					onselected && onselected(tokens[newTokenIndex]);
 				}
 			}}
 		></button>

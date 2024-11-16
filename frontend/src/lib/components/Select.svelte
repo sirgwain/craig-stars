@@ -21,14 +21,14 @@
 		title = startCase(name),
 		titleClass = 'label-text w-32 text-right',
 		values = [],
-		...others
+		...rest
 	}: Props = $props();
 </script>
 
 <div class="w-full flex-grow">
 	<label class="label"
 		><span class={titleClass}>{title}</span>
-		<select class="select input-bordered ml-2 flex-grow" name="type" bind:value {...others}>
+		<select class="select input-bordered ml-2 flex-grow" name="type" bind:value {...rest}>
 			{#each values as value}
 				<option value={value.value}>{value.title}</option>
 			{/each}

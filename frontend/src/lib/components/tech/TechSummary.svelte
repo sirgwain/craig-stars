@@ -24,20 +24,14 @@
 	import TechWarnings from './TechWarnings.svelte';
 
 	type Props = {
-		tech: Tech | undefined;
-		player: Player | undefined;
-		cs: CS | undefined;
+		tech: Tech;
+		player?: Player | undefined;
+		cs?: CS | undefined;
 		showResearchCost?: boolean;
 		hideGraph?: boolean;
 	};
 
-	let {
-		tech,
-		player = undefined,
-		cs = undefined,
-		showResearchCost = false,
-		hideGraph = false
-	}: Props = $props();
+	let { tech, player, cs, showResearchCost = false, hideGraph = false }: Props = $props();
 
 	let defense = $derived(
 		tech?.category == TechCategory.PlanetaryDefense ? (tech as TechDefense) : undefined

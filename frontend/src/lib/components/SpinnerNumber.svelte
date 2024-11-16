@@ -1,16 +1,7 @@
-<script lang="ts" module>
-	export type SpinnerNumberEvent = {
-		change: number;
-	};
-</script>
-
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher<SpinnerNumberEvent>();
 
 	type Props = {
 		value: number;
@@ -18,26 +9,27 @@
 		min?: number;
 		max?: number;
 		unit?: string;
+		onchange?: (value: number) => void;
 	};
 
-	let { value = $bindable(), step = 1, min = 0, max = 100, unit = '' }: Props = $props();
+	let { value = $bindable(), step = 1, min = 0, max = 100, unit = '', onchange }: Props = $props();
 
-	function increase(e) {
+	function increase(e: MouseEvent | PointerEvent) {
 		value = clamp(
 			value + step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1),
 			min,
 			max
 		);
-		dispatch('change', value);
+		onchange && onchange(value);
 	}
 
-	function decrease(e) {
+	function decrease(e: MouseEvent | PointerEvent) {
 		value = clamp(
 			value - step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1),
 			min,
 			max
 		);
-		dispatch('change', value);
+		onchange && onchange(value);
 	}
 </script>
 

@@ -1,25 +1,19 @@
-<script lang="ts" module>
-	export type FleetTransferEvent = {
-		'transfer-fuel': number;
-		'transfer-ironium': number;
-		'transfer-boranium': number;
-		'transfer-germanium': number;
-		'transfer-colonists': number;
-	};
-</script>
-
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import MineralBar from '$lib/components/game/MineralBar.svelte';
-	import { CargoTransferRequest, add } from '$lib/types/Cargo';
-	import { createEventDispatcher } from 'svelte';
+	import { CargoTransferRequest, add, type Cargo } from '$lib/types/Cargo';
 
 	type Props = {
-		transferAmount?: any;
-		cargo?: any;
-		cargoCapacity?: number;
-		fuelCapacity?: number;
+		transferAmount: CargoTransferRequest;
+		cargo: CargoTransferRequest;
+		cargoCapacity: number;
+		fuelCapacity: number;
 		allowFuelTransfers?: boolean;
+		ontransferfuel?: (amount: number) => void;
+		ontransferironium?: (amount: number) => void;
+		ontransferboranium?: (amount: number) => void;
+		ontransfergermanium?: (amount: number) => void;
+		ontransfercolonists?: (amount: number) => void;
 	};
 
 	let {
@@ -27,10 +21,16 @@
 		cargo = new CargoTransferRequest(),
 		cargoCapacity = 0,
 		fuelCapacity = 0,
-		allowFuelTransfers = false
+		allowFuelTransfers = false,
+		ontransferfuel,
+		ontransferironium,
+		ontransferboranium,
+		ontransfergermanium,
+		ontransfercolonists
 	}: Props = $props();
 
-	const dispatch = createEventDispatcher<FleetTransferEvent>();
+	let cargoState = $derived(add(cargo, transferAmount));
+	$inspect(transferAmount);
 </script>
 
 <div class="sm:grid sm:grid-cols-label-value">
@@ -42,14 +42,14 @@
 			color="fuel-bar"
 			unit="mg"
 			readonly={!allowFuelTransfers}
-			on:valuechanged={(e) =>
-				dispatch('transfer-fuel', e.detail - (cargo.fuel + transferAmount.fuel))}
+			onvaluechanged={(value) =>
+				ontransferfuel && ontransferfuel(value - (cargo.fuel + transferAmount.fuel))}
 		/>
 	</div>
 
 	<div class="sm:text-right mr-1 h-8">Cargo Hold</div>
 	<div class="my-auto">
-		<CargoBar value={add(cargo, transferAmount)} capacity={cargoCapacity} />
+		<CargoBar value={cargoState} capacity={cargoCapacity} />
 	</div>
 
 	<div class="col-span-2 mt-10 sm:mt-5"></div>
@@ -60,8 +60,8 @@
 			value={cargo.ironium + transferAmount.ironium}
 			capacity={cargoCapacity}
 			color="ironium-bar"
-			on:valuechanged={(e) =>
-				dispatch('transfer-ironium', e.detail - (cargo.ironium + transferAmount.ironium))}
+			onvaluechanged={(value) =>
+				ontransferironium && ontransferironium(value - (cargo.ironium + transferAmount.ironium))}
 		/>
 	</div>
 	<div class="sm:text-right mr-1 h-8">Boranium</div>
@@ -70,8 +70,9 @@
 			value={cargo.boranium + transferAmount.boranium}
 			capacity={cargoCapacity}
 			color="boranium-bar"
-			on:valuechanged={(e) =>
-				dispatch('transfer-boranium', e.detail - (cargo.boranium + transferAmount.boranium))}
+			onvaluechanged={(value) =>
+				ontransferboranium &&
+				ontransferboranium(value - (cargo.boranium + transferAmount.boranium))}
 		/>
 	</div>
 	<div class="sm:text-right mr-1 h-8">Germanium</div>
@@ -80,8 +81,9 @@
 			value={cargo.germanium + transferAmount.germanium}
 			capacity={cargoCapacity}
 			color="germanium-bar"
-			on:valuechanged={(e) =>
-				dispatch('transfer-germanium', e.detail - (cargo.germanium + transferAmount.germanium))}
+			onvaluechanged={(value) =>
+				ontransfergermanium &&
+				ontransfergermanium(value - (cargo.germanium + transferAmount.germanium))}
 		/>
 	</div>
 
@@ -91,8 +93,9 @@
 			value={cargo.colonists + transferAmount.colonists}
 			capacity={cargoCapacity}
 			color="colonists-bar"
-			on:valuechanged={(e) =>
-				dispatch('transfer-colonists', e.detail - (cargo.colonists + transferAmount.colonists))}
+			onvaluechanged={(value) =>
+				ontransfercolonists &&
+				ontransfercolonists(value - (cargo.colonists + transferAmount.colonists))}
 		/>
 	</div>
 </div>

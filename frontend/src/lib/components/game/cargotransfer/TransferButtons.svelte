@@ -1,31 +1,24 @@
-<script lang="ts" module>
-	export type TransferButtons = {
-		'transfer-to-source': MouseEvent;
-		'transfer-to-dest': MouseEvent;
-	};
-</script>
-
 <script lang="ts">
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { createEventDispatcher } from 'svelte';
+	import type { HTMLAttributes, HTMLButtonAttributes } from 'svelte/elements';
 	type Props = {
-		[key: string]: any;
-	};
+		ontransfertosource: () => void;
+		ontransfertodest: () => void;
+	} & HTMLAttributes<HTMLDivElement>;
 
-	let { ...props }: Props = $props();
-
-	const dispatch = createEventDispatcher();
+	let { ontransfertosource, ontransfertodest, ...props }: Props = $props();
 </script>
 
 <div class="flex justify-center {props.class}">
 	<button
-		onclick={(e) => dispatch('transfer-to-source', e)}
+		onclick={ontransfertosource}
 		class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"
 		><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" />
 	</button>
 	<button
-		onclick={(e) => dispatch('transfer-to-dest', e)}
+		onclick={ontransfertodest}
 		class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"
 		><Icon src={ArrowLongRight} size="16" class="hover:stroke-accent inline" /></button
 	>

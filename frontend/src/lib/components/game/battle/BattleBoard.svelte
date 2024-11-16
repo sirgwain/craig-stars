@@ -3,8 +3,8 @@
 	import BattleBoardAction from './BattleBoardAction.svelte';
 	import BattleBoardAttack from './BattleBoardAttack.svelte';
 	import BattleBoardPhaseControls from './BattleBoardPhaseControls.svelte';
-	import BattleBoardTokenDetails from './BattleBoardTokenDetails.svelte';
 	import BattleBoardSquare from './BattleBoardSquare.svelte';
+	import BattleBoardTokenDetails from './BattleBoardTokenDetails.svelte';
 
 	type Props = {
 		battle: Battle;
@@ -12,12 +12,12 @@
 	};
 
 	let { battle, phase = $bindable(0) }: Props = $props();
-
+	
+	let action = $derived(battle.getActionForPhase(phase ?? 0));
 	let selectedToken: PhaseToken | undefined = $state();
 	let actionToken: PhaseToken | undefined = $state();
-	let target: PhaseToken | undefined = $state();
+	let target: PhaseToken | undefined = $derived(battle.getTargetForPhase(phase));
 
-	let action = $derived(battle.getActionForPhase(phase ?? 0));
 </script>
 
 <div class="flex w-full">
@@ -37,8 +37,8 @@
 								{selectedToken}
 								tokens={battle.getTokensAtLocation(phase, x, y)}
 								selected={selectedToken?.x === x && selectedToken?.y === y}
-								on:selected={(e) => {
-									selectedToken = e.detail;
+								onselected={(token) => {
+									selectedToken = token;
 								}}
 							/>
 						{/each}
@@ -48,13 +48,13 @@
 					<BattleBoardPhaseControls
 						{battle}
 						bind:phase
-						on:phaseupdated={(e) => {
-							action = battle.getActionForPhase(e.detail);
-							selectedToken = action?.tokenNum
-								? battle.getTokenForPhase(action.tokenNum, phase)
+						onphaseupdated={(updatedPhase) => {
+							phase = updatedPhase;
+							const newAction = battle.getActionForPhase(phase);
+							selectedToken = newAction?.tokenNum
+								? battle.getTokenForPhase(newAction.tokenNum, phase)
 								: selectedToken;
 							actionToken = selectedToken;
-							target = battle.getTargetForPhase(phase);
 						}}
 					/>
 				</div>

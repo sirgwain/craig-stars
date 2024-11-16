@@ -18,7 +18,7 @@
 		title = startCase(name),
 		titleClass = 'label-text w-32 text-right',
 		unitLabelClass = 'w-16',
-		...others
+		...rest
 	}: Props = $props();
 </script>
 
@@ -27,7 +27,7 @@
 		><span class={titleClass}>{title}</span>
 		<div class="flex-grow pl-2">
 			<div class="input-group">
-				<input type="number" class="input input-bordered w-full" {name} bind:value {...others} />
+				<input type="number" class="input input-bordered w-full" {name} bind:value {...rest} />
 				{#if unit}
 					<span class={unitLabelClass}>{unit}</span>
 				{/if}

@@ -15,15 +15,12 @@
 	let {
 		name,
 		value = $bindable(),
-		title = $bindable(undefined),
+		title = startCase(name),
 		titleClass = 'label-text w-32 text-right',
 		required = false,
 		disabled = false
 	}: Props = $props();
 
-	run(() => {
-		!title && (title = startCase(name));
-	});
 </script>
 
 <div class="w-full flex-grow">

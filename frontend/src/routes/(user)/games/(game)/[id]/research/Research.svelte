@@ -95,7 +95,7 @@
 			max={100}
 			step={1}
 			unit="%"
-			on:change={updatePlayerOrders}
+			onchange={updatePlayerOrders}
 		>
 			{#snippet begin()}
 				Research Budget

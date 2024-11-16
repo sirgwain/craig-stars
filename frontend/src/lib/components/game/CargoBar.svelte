@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import { cargoPercent, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
+	
+	import { cargoPercent, totalCargo, type Cargo } from '$lib/types/Cargo';
 
 	type Props = {
 		value?: Cargo;
 		capacity?: number | undefined;
 		canTransferCargo?: boolean;
-		onpointerdown: (e: PointerEvent) => void | undefined;
+		onpointerdown?: (e: PointerEvent) => void | undefined;
 	};
 
 	let {
@@ -22,11 +21,7 @@
 		onpointerdown
 	}: Props = $props();
 
-	let percent: Cargo = $state(emptyCargo());
-
-	run(() => {
-		percent = cargoPercent(value, capacity);
-	});
+	let percent: Cargo = $derived(cargoPercent(value, capacity));
 </script>
 
 <div

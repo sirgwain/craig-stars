@@ -8,9 +8,9 @@
 
 	let { race = $bindable() }: Props = $props();
 
-	const updatePopEfficiency = (value: number) => {
+	function updatePopEfficiency(value: number) {
 		race.popEfficiency = value / 100;
-	};
+	}
 </script>
 
 {#if race.prt === PRT.AR}
@@ -29,7 +29,7 @@
 		<SpinnerNumberText
 			step={100}
 			value={race.popEfficiency * 100}
-			on:change={(e) => updatePopEfficiency(e.detail)}
+			onchange={updatePopEfficiency}
 			min={700}
 			max={2500}
 		>

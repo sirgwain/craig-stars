@@ -224,7 +224,7 @@ export type TechRequirements = {
  * @param category The category to check
  * @returns
  */
-export const isHullComponent = (category: TechCategory | undefined): boolean => {
+export function isHullComponent(category: TechCategory | undefined): boolean {
 	switch (category) {
 		case TechCategory.Armor:
 		case TechCategory.BeamWeapon:
@@ -249,7 +249,15 @@ export const isHullComponent = (category: TechCategory | undefined): boolean => 
 		default:
 			return false;
 	}
-};
+}
+
+// return true if this tech is a hull
+export function isHull(tech: Tech | undefined): boolean {
+	if (!tech) {
+		return false;
+	}
+	return [TechCategory.ShipHull, TechCategory.StarbaseHull].includes(tech.category);
+}
 
 export function canFillSlot(hcType: HullSlotType, type: HullSlotType): boolean {
 	return (hcType & type) > 0;

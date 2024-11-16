@@ -4,9 +4,9 @@
 	import NotificationToast from '$lib/components/NotificationToast.svelte';
 	import { errors } from '$lib/services/Errors';
 	import { me } from '$lib/services/Stores';
-	import { onMount } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 	type Props = {
-		children?: import('svelte').Snippet;
+		children?: Snippet;
 	};
 
 	let { children }: Props = $props();

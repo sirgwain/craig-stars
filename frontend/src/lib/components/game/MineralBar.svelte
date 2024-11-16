@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import type { ValueChangedEvent } from '$lib/ValueChangedEvent';
-	import { createEventDispatcher } from 'svelte';
 
 	type Props = {
 		value?: number;
@@ -11,6 +9,7 @@
 		color?: string;
 		unit?: string;
 		readonly?: boolean;
+		onvaluechanged?: (value: number) => void;
 	};
 
 	let {
@@ -20,18 +19,20 @@
 		max = capacity,
 		color = 'ironium-bar',
 		unit = 'kT',
-		readonly = false
+		readonly = false,
+		onvaluechanged
 	}: Props = $props();
-
-	const dispatch = createEventDispatcher<ValueChangedEvent>();
 
 	let percent = $derived(capacity > 0 ? (value / capacity) * 100 : 0);
 
 	let pointerDown = false;
 	let touchStarted = false;
-	let ref: HTMLDivElement = $state();
+	let ref: HTMLDivElement | undefined = $state();
 
 	function getXFromPointerEvent(e: PointerEvent): number {
+		if (!ref) {
+			return 0;
+		}
 		return (e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect()?.width;
 	}
 
@@ -63,6 +64,9 @@
 	}
 
 	function getXFromTouchEvent(e: TouchEvent): number {
+		if (!ref) {
+			return 0;
+		}
 		return (
 			(e.targetTouches[0].clientX - ref.getBoundingClientRect().left) /
 			ref.getBoundingClientRect()?.width
@@ -103,7 +107,7 @@
 		let newValue = clamp(Math.round(x * capacity), min, max);
 		if (newValue != value) {
 			value = newValue;
-			dispatch('valuechanged', value);
+			onvaluechanged && onvaluechanged(value);
 		}
 	}
 </script>

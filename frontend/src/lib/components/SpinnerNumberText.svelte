@@ -1,8 +1,7 @@
 <script lang="ts">
-	import SpinnerNumber, { type SpinnerNumberEvent } from '$lib/components/SpinnerNumber.svelte';
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher<SpinnerNumberEvent>();
+	import SpinnerNumber from '$lib/components/SpinnerNumber.svelte';
+	import { type Snippet } from 'svelte';
+	import type { HTMLAttributes } from 'svelte/elements';
 
 	type Props = {
 		value: number;
@@ -10,10 +9,10 @@
 		min?: number;
 		max?: number;
 		unit?: string;
-		begin?: import('svelte').Snippet;
-		end?: import('svelte').Snippet;
-		[key: string]: any;
-	};
+		begin?: Snippet;
+		end?: Snippet;
+		onchange?: (value: number) => void;
+	} & Omit<HTMLAttributes<HTMLDivElement>, 'onchange'>;
 
 	let {
 		value = $bindable(),
@@ -23,6 +22,7 @@
 		unit = '',
 		begin,
 		end,
+		onchange,
 		...rest
 	}: Props = $props();
 </script>
@@ -31,14 +31,7 @@
 	<div class="my-auto align-middle">
 		{@render begin?.()}
 	</div>
-	<SpinnerNumber
-		bind:value
-		on:change={(e) => dispatch('change', e.detail)}
-		{min}
-		{max}
-		{step}
-		{unit}
-	/>
+	<SpinnerNumber bind:value {onchange} {min} {max} {step} {unit} />
 	<div class="my-auto align-middle">
 		{@render end?.()}
 	</div>
