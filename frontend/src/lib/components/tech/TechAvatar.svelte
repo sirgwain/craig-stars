@@ -1,17 +1,16 @@
 <script lang="ts">
-	import { isHull, TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
-	import { kebabCase } from 'lodash-es';
+	import { getTechIcon } from '$lib/techicon';
+	import { isHull, type Tech, type TechHull } from '$lib/types/Tech';
 	import { onTechHullTooltip } from '../game/tooltips/TechHullTooltip.svelte';
 	import { onTechTooltip } from '../game/tooltips/TechTooltip.svelte';
-	import { getTechIcon } from '$lib/techicon';
 
 	type Props = {
 		tech: Tech | undefined;
 		hullSetNumber?: number;
-		hullTooltip: boolean;
+		hullTooltip?: boolean;
 	};
 
-	let { tech = undefined, hullSetNumber = 0, hullTooltip = false }: Props = $props();
+	let { tech, hullSetNumber = 0, hullTooltip = false }: Props = $props();
 	let hull = $derived(isHull(tech) && (tech as TechHull));
 </script>
 

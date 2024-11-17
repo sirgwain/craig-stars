@@ -17,6 +17,6 @@ export function getTechIcon(tech: Tech | undefined, hullSetNumber: number): stri
 	if ([TechCategory.ShipHull, TechCategory.StarbaseHull].includes(tech?.category)) {
 		return `hull-${name}-${hullSetNumber ?? 0}`;
 	} else {
-		return `${name}-${hullSetNumber ?? 0}`;
+		return `${name}`;
 	}
 }

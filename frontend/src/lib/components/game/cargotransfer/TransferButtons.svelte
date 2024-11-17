@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
-	import type { HTMLAttributes, HTMLButtonAttributes } from 'svelte/elements';
+	import type { HTMLAttributes } from 'svelte/elements';
 	type Props = {
 		ontransfertosource: () => void;
 		ontransfertodest: () => void;

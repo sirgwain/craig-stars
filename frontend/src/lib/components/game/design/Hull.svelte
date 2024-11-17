@@ -1,16 +1,11 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
+	import { techs } from '$lib/services/Stores';
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
 	import type { HullSlot, TechHull } from '$lib/types/Tech';
-	import { createEventDispatcher } from 'svelte';
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
 	import { onTechTooltip } from '../tooltips/TechTooltip.svelte';
-	import { techs } from '$lib/services/Stores';
-
-	const dispatch = createEventDispatcher();
 
 	const componentSize = 64; // each component block is 64px
 	const containerWidth = componentSize * 5;
@@ -23,6 +18,7 @@
 		highlightedClass?: string;
 		cargoCapacity?: any;
 		showTooltips?: boolean;
+		onslotclicked?: (index: number, hullSlot: HullSlot, shipDesignSlot: ShipDesignSlot) => void;
 	};
 
 	let {
@@ -31,7 +27,8 @@
 		highlightedSlots = [],
 		highlightedClass = '',
 		cargoCapacity = hull.cargoCapacity ?? 0,
-		showTooltips = true
+		showTooltips = true,
+		onslotclicked
 	}: Props = $props();
 </script>
 
@@ -80,10 +77,8 @@
 			}px; top: ${slot.position.y * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
 			role="link"
 			tabindex="-1"
-			oncontextmenu={preventDefault(
-				(e) =>
-					shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))
-			)}
+			oncontextmenu={(e) =>
+				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))}
 		>
 			<HullComponent
 				{shipDesignSlot}
@@ -93,13 +88,13 @@
 				highlighted={highlightedSlots.findIndex((s) => s === slot) !== -1}
 				{highlightedClass}
 				{showTooltips}
-				on:clicked={(e) => {
-					dispatch('slot-clicked', { index, slot, shipDesignSlot });
+				onclick={() => {
+					onslotclicked && shipDesignSlot && onslotclicked(index, slot, shipDesignSlot);
 				}}
-				on:deleted={() => {
+				ondelete={() => {
 					shipDesignSlots = shipDesignSlots.filter((s) => s !== shipDesignSlot);
 				}}
-				on:updated={() => {
+				onupdate={() => {
 					shipDesignSlots = shipDesignSlots;
 				}}
 			/>

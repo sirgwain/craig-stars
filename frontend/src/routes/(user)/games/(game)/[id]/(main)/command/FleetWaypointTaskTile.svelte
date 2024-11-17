@@ -122,11 +122,12 @@
 				<select
 					class="select select-outline select-secondary select-sm text-sm w-36"
 					value={selectedWaypointTask}
-					onchange={preventDefault((e) =>
+					onchange={(e) => {
+						e.preventDefault();
 						onSelectedWaypointTaskChange(
 							eu(WaypointTask).getValueOrDefault(e.currentTarget.value, WaypointTask.None)
-						)
-					)}
+						);
+					}}
 				>
 					{#each eu(WaypointTask).getValues() as task}
 						{#if task === WaypointTask.None}
@@ -234,8 +235,8 @@
 				<span class="text-tile-item-title">Warp Factor</span>
 				<span class="flex-1 ml-1">
 					<WarpSpeedGauge
-						on:valuechanged={(e) => onPatrolWarpSpeedChanged(e.detail)}
-						on:valuedragged={(e) => onPatrolWarpSpeedDragged(e.detail)}
+						onvaluechanged={(value) => onPatrolWarpSpeedChanged(value)}
+						onvaluedragged={(value) => onPatrolWarpSpeedDragged(value)}
 						bind:value={selectedWaypoint.patrolWarpSpeed}
 						warnSpeed={fleet.spec.engine.maxSafeSpeed
 							? fleet.spec.engine.maxSafeSpeed + 1

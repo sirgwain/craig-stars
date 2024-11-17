@@ -18,7 +18,7 @@
 	import { hasRequiredLevels } from '$lib/types/TechLevel';
 	import { ChevronLeft, ChevronRight, QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import Cost from '../Cost.svelte';
 	import CostMini from '../CostMini.svelte';
 	import DesignStats from '../DesignStats.svelte';
@@ -26,29 +26,24 @@
 	import { shipDesignerContext } from './ShipDesignerContext';
 
 	const { cs, game, player, universe } = getGameContext();
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		hull: TechHull;
 		design: ShipDesign;
 		error?: string;
 		numHullSets?: number;
+		onsave?: () => void;
 	};
 
-	let { hull, design = $bindable(), error = '', numHullSets = 4 }: Props = $props();
+	let { hull, design = $bindable(), error = '', numHullSets = 4, onsave }: Props = $props();
 
-	let designSpec: Spec = $state(design?.spec || {});
+	let designSpec: Spec = $derived(cs.computeShipDesignSpec(design) ?? ({} as Spec));
 	let highlightedSlots: HullSlot[] = $state([]);
-	let highlightedClass: string;
+	let highlightedClass: string = $state('');
 
 	// only show hull components that actually fit on this hull
 	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotType.None);
 
-	run(() => {
-		if (design) {
-			designSpec = cs.computeShipDesignSpec(design) ?? ({} as Spec);
-		}
-	});
 	let selectedComponent = $derived(
 		$shipDesignerContext.selectedHullComponent ??
 			($shipDesignerContext.selectedShipDesignSlot?.hullComponent
@@ -69,7 +64,7 @@
 		}));
 	});
 
-	const updateHullSetNumber = (num: number) => {
+	function updateHullSetNumber(num: number) {
 		if (num < 0) {
 			design.hullSetNumber = numHullSets - 1;
 		} else if (num >= numHullSets) {
@@ -77,10 +72,10 @@
 		} else {
 			design.hullSetNumber = num;
 		}
-	};
+	}
 
 	// when a tech is selected from the tech tree
-	const onTechHullComponentClicked = (hc: TechHullComponent) => {
+	function onTechHullComponentClicked(hc: TechHullComponent) {
 		if ($shipDesignerContext.selectedSlot && $shipDesignerContext.selectedSlotIndex !== undefined) {
 			// clear out the selected hull component
 			$shipDesignerContext.selectedHullComponent = undefined;
@@ -103,10 +98,10 @@
 						canFillSlot($shipDesignerContext.selectedHullComponent.hullSlotType, slot.type)
 				) ?? [];
 		}
-	};
+	}
 
 	// when a slot is clicked on the hull
-	const onSlotClicked = (index: number, slot: HullSlot, shipDesignSlot: ShipDesignSlot) => {
+	function onSlotClicked(index: number, slot: HullSlot, shipDesignSlot: ShipDesignSlot) {
 		if (
 			$shipDesignerContext.selectedHullComponent &&
 			canFillSlot($shipDesignerContext.selectedHullComponent.hullSlotType, slot.type)
@@ -127,9 +122,9 @@
 				$shipDesignerContext.selectedShipDesignSlot = shipDesignSlot;
 			}
 		}
-	};
+	}
 
-	const addHullComponent = (hc: TechHullComponent, slot: HullSlot, index: number) => {
+	function addHullComponent(hc: TechHullComponent, slot: HullSlot, index: number) {
 		const existingShipDesignSlot = design.slots.find((s) => s.hullSlotIndex === index + 1);
 
 		if (existingShipDesignSlot) {
@@ -146,17 +141,13 @@
 				}
 			];
 		}
-	};
-
-	const onSubmit = async () => {
-		dispatch('save');
-	};
+	}
 </script>
 
 <form
 	onsubmit={(e) => {
 		e.preventDefault();
-		onSubmit();
+		onsave && onsave();
 	}}
 >
 	<FormError {error} />
@@ -199,35 +190,32 @@
 					/>
 				</div>
 			</div>
-			{#if hull}
-				<div class="flex flex-row justify-center">
-					<Hull
-						bind:shipDesignSlots={design.slots}
-						{hull}
-						cargoCapacity={designSpec.cargoCapacity}
-						{highlightedSlots}
-						highlightedClass={'border-accent'}
-						showTooltips={false}
-						on:slot-clicked={(e) =>
-							onSlotClicked(e.detail.index, e.detail.slot, e.detail.shipDesignSlot)}
-					/>
-				</div>
-				<div class="flex flex-row justify-between pl-2">
-					<div class="flex flex-col">
-						<div>Cost of one {design.name}</div>
-						<div class="pl-2 hidden sm:block">
-							<Cost cost={designSpec?.cost} />
-						</div>
-						<div class="pl-2 sm:hidden flex justify-between">
-							<CostMini cost={designSpec?.cost} />
-							<!-- <div class="ml-2"><button type="button" class="btn btn-sm btn-outline btn-secondary">Stats</button></div> -->
-						</div>
+			<div class="flex flex-row justify-center">
+				<Hull
+					bind:shipDesignSlots={design.slots}
+					{hull}
+					cargoCapacity={designSpec.cargoCapacity}
+					{highlightedSlots}
+					highlightedClass={'border-accent'}
+					showTooltips={false}
+					onslotclicked={onSlotClicked}
+				/>
+			</div>
+			<div class="flex flex-row justify-between pl-2">
+				<div class="flex flex-col">
+					<div>Cost of one {design.name}</div>
+					<div class="pl-2 hidden sm:block">
+						<Cost cost={designSpec?.cost} />
 					</div>
-					<div class="hidden sm:block">
-						<DesignStats spec={designSpec} />
+					<div class="pl-2 sm:hidden flex justify-between">
+						<CostMini cost={designSpec?.cost} />
+						<!-- <div class="ml-2"><button type="button" class="btn btn-sm btn-outline btn-secondary">Stats</button></div> -->
 					</div>
 				</div>
-			{/if}
+				<div class="hidden sm:block">
+					<DesignStats spec={designSpec} />
+				</div>
+			</div>
 		</div>
 		<div>
 			<div class="font-bold text-2xl">Hull Components</div>
@@ -263,9 +251,7 @@
 				{#if selectedComponent}
 					<div>
 						Cost of one {selectedComponent.name}
-						<span
-							class="inline-block"
-							onpointerdown={preventDefault((e) => onTechTooltip(e, selectedComponent))}
+						<span class="inline-block" onpointerdown={(e) => onTechTooltip(e, selectedComponent)}
 							><Icon
 								src={QuestionMarkCircle}
 								size="16"

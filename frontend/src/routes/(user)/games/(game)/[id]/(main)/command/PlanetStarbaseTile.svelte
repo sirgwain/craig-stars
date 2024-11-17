@@ -30,6 +30,7 @@
 	);
 
 	function showDesign(e: PointerEvent) {
+		e.preventDefault();
 		if (starbase?.tokens && starbase.tokens.length > 0) {
 			onShipDesignTooltip(
 				e,
@@ -46,7 +47,7 @@
 {#if starbase?.spec}
 	<CommandTile title={starbase.baseName}>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<div class="cursor-help" onpointerdown={preventDefault(showDesign)}>
+		<div class="cursor-help" onpointerdown={showDesign}>
 			<div class="flex justify-between">
 				<div class="text-tile-item-title">Dock Capacity</div>
 				{#if starbase.spec.spaceDock === UnlimitedSpaceDock}
@@ -78,7 +79,7 @@
 		<div>
 			<div
 				class="flex justify-between cursor-help"
-				onpointerdown={preventDefault((e) => stargate && onTechTooltip(e, stargate))}
+				onpointerdown={(e) => stargate && onTechTooltip(e, stargate)}
 			>
 				<div class="text-tile-item-title">Stargate</div>
 				{#if stargate}
@@ -93,7 +94,7 @@
 			</div>
 			<div
 				class="flex justify-between cursor-help"
-				onpointerdown={preventDefault((e) => massDriver && onTechTooltip(e, massDriver))}
+				onpointerdown={(e) => massDriver && onTechTooltip(e, massDriver)}
 			>
 				<div class="text-tile-item-title">Mass Driver</div>
 				{#if starbase.spec.hasMassDriver}
@@ -130,7 +131,7 @@
 							max={(planet.spec.basePacketSpeed ?? 0) + $game.rules.packetMaxOverwarpSpeed}
 							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}
 							dangerSpeed={(planet.spec.safePacketSpeed ?? 0) + 3}
-							on:valuechanged={() => updatePlanetOrdrers()}
+							onvaluechanged={() => updatePlanetOrdrers()}
 						/>
 					</div>
 				</div>

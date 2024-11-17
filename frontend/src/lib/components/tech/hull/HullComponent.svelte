@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { techs } from '$lib/services/Stores';
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
@@ -8,10 +6,7 @@
 	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
-
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		type?: HullSlotType;
@@ -21,16 +16,22 @@
 		highlighted?: boolean;
 		highlightedClass?: string;
 		showTooltips?: boolean;
+		onclick?: () => void;
+		ondelete?: () => void;
+		onupdate?: () => void;
 	};
 
 	let {
 		type = HullSlotType.General,
 		capacity = 1,
 		required = false,
-		shipDesignSlot = $bindable(undefined),
+		shipDesignSlot = $bindable(),
 		highlighted = false,
 		highlightedClass = 'border-accent',
-		showTooltips = false
+		showTooltips = false,
+		onclick,
+		ondelete,
+		onupdate
 	}: Props = $props();
 
 	function typeDescription() {
@@ -80,14 +81,12 @@
 >
 	<button
 		type="button"
-		onclick={() => {
-			dispatch('clicked');
-		}}
-		onpointerdown={preventDefault((e) => {
+		{onclick}
+		onpointerdown={(e) => {
 			if (shipDesignSlot?.hullComponent && showTooltips) {
 				onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent));
 			}
-		})}
+		}}
 		class="w-full h-full"
 	>
 		<div class="flex flex-col justify-between w-full h-full">
@@ -123,22 +122,16 @@
 			if (shipDesignSlot?.quantity != undefined) {
 				shipDesignSlot.quantity--;
 				if (shipDesignSlot.quantity === 0) {
-					dispatch('deleted');
+					ondelete && ondelete();
 				} else {
-					dispatch('updated');
+					onupdate && onupdate();
 				}
 			}
 		}}
 	>
 		<Icon src={Minus} size="24" class="hover:stroke-accent" />
 	</button>
-	<button
-		type="button"
-		class="btn btn-sm px-1 z-30"
-		onclick={() => {
-			dispatch('deleted');
-		}}
-	>
+	<button type="button" class="btn btn-sm px-1 z-30" onclick={ondelete}>
 		<Icon src={Trash} size="24" class="hover:stroke-accent" />
 	</button>
 </div>

@@ -44,8 +44,6 @@
 		quantityModifier = $bindable(1)
 	}: Props = $props();
 
-	let ironiumTransferAmount = $state(transferAmount.ironium);
-
 	let srcCargo = $derived(newCargoTransferRequest(src.cargo, src.fuel));
 	let destCargo = $derived(
 		newCargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0)
@@ -151,8 +149,6 @@
 				(srcCargo.ironium ?? 0) + transferAmount.ironium,
 				(destCargo?.ironium ?? 0) - transferAmount.ironium
 			);
-		ironiumTransferAmount = transferAmount.ironium;
-		console.log('transferIronium', transferAmount);
 	}
 
 	function transferBoranium(amount: number) {
@@ -199,7 +195,6 @@
 			</h1>
 			<FleetTransfer
 				{transferAmount}
-				ironium={ironiumTransferAmount}
 				cargo={srcCargo}
 				cargoCapacity={srcCargoCapacity}
 				fuelCapacity={srcFuelCapacity}

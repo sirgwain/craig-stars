@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
+	
 	import { clamp } from '$lib/services/Math';
-	import { createEventDispatcher } from 'svelte';
-
+	
 	type Props = {
 		value?: number | undefined;
 		min?: number;
@@ -19,6 +17,8 @@
 		useStargate?: boolean;
 		isPacket?: boolean;
 		warp0Text?: string;
+		onvaluedragged?: (value: number) => void;
+		onvaluechanged?: (value: number) => void;
 	};
 
 	let {
@@ -35,21 +35,14 @@
 		packetColor = 'warp-packet-bar',
 		useStargate = false,
 		isPacket = false,
-		warp0Text = 'Warp 0'
+		warp0Text = 'Warp 0',
+		onvaluedragged,
+		onvaluechanged
 	}: Props = $props();
 
-	let percent = $state(0);
-	let color = $state(defaultColor);
-
-	let pointerDown = false;
-	let touchStarted = false;
-
-	run(() => {
-		percent = max > 0 ? ((value ?? 0) / max) * 100 : 0;
-	});
-
-	run(() => {
-		color = defaultColor;
+	let percent = $derived(max > 0 ? ((value ?? 0) / max) * 100 : 0);
+	let color = $derived.by(() => {
+		let color = defaultColor;
 
 		if (useStargate && (value ?? 0) >= stargateSpeed) {
 			color = stargateColor;
@@ -60,14 +53,20 @@
 		} else if ((value ?? 0) >= warnSpeed) {
 			color = warnColor;
 		}
+		return color;
 	});
 
-	const dispatch = createEventDispatcher();
+	let pointerDown = false;
+	let touchStarted = false;
 
-	let ref: HTMLDivElement = $state();
+	let ref: HTMLDivElement | undefined = $state();
 
-	const getXFromPointerEvent = (e: PointerEvent) =>
-		(e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect().width;
+	function getXFromPointerEvent(e: PointerEvent): number {
+		if (!ref) {
+			return 0;
+		}
+		return (e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect()?.width;
+	}
 
 	function onPointerDown(e: PointerEvent) {
 		if (touchStarted) {
@@ -87,7 +86,7 @@
 		document.body.classList.remove('select-none', 'touch-none');
 		document.body.classList.add('touch-manipulation');
 		pointerDown = false;
-		dispatch('valuechanged', value);
+		onvaluechanged && onvaluechanged(value);
 	}
 
 	const onPointerMove = (e: PointerEvent) => {
@@ -97,6 +96,9 @@
 	};
 
 	function getXFromTouchEvent(e: TouchEvent): number {
+		if (!ref) {
+			return 0;
+		}
 		return (
 			(e.targetTouches[0].clientX - ref.getBoundingClientRect().left) /
 			ref.getBoundingClientRect()?.width
@@ -134,7 +136,7 @@
 		const newValue = clamp(Math.round(x * max), min, max);
 		if (newValue != value) {
 			value = newValue;
-			dispatch('valuedragged', value);
+			onvaluedragged && onvaluedragged(value);
 		}
 	};
 </script>

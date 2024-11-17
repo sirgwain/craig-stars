@@ -13,24 +13,21 @@
 	const { game, player, createDesign } = getGameContext();
 	let hullName = $page.params.hull;
 
+	let hull = $derived($techs.getHull(hullName));
+
 	let design: ShipDesign = $state({
 		name: '',
 		gameId: $game.id,
 		playerNum: $player.num ?? 0,
 		originalPlayerNum: 0,
 		version: 0,
-		hull: '',
+		hull: hullName ?? '',
 		hullSetNumber: 0,
 		slots: [],
 		spec: {
 			engine: {},
 			techLevel: {}
 		}
-	});
-
-	let hull = $derived($techs.getHull(hullName));
-	run(() => {
-		design.hull = hull?.name ?? '';
 	});
 
 	let error = $state('');
@@ -49,7 +46,7 @@
 		}
 	});
 
-	const onSave = async () => {
+	async function save() {
 		error = '';
 		try {
 			const { valid, reason } = $game.validateDesign(design);
@@ -62,7 +59,7 @@
 		} catch (e) {
 			error = `${e}`;
 		}
-	};
+	}
 </script>
 
 <Breadcrumb>
@@ -73,10 +70,10 @@
 	{/snippet}
 	{#snippet end()}
 		<div class="flex justify-end mb-1">
-			<button class="btn btn-success mx-1" type="submit" onclick={(e) => onSave()}>Save</button>
+			<button class="btn btn-success mx-1" type="submit" onclick={(e) => save()}>Save</button>
 		</div>
 	{/snippet}
 </Breadcrumb>
 {#if hull && $game}
-	<ShipDesigner bind:design {hull} on:save={(e) => onSave()} bind:error />
+	<ShipDesigner bind:design {hull} onsave={save} {error} />
 {/if}

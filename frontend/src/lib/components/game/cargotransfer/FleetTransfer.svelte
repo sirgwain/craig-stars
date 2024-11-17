@@ -6,7 +6,6 @@
 
 	type Props = {
 		transferAmount: CargoTransferRequest;
-		ironium?: number;
 		cargo: CargoTransferRequest;
 		cargoCapacity: number;
 		fuelCapacity: number;
@@ -24,16 +23,12 @@
 		cargoCapacity = 0,
 		fuelCapacity = 0,
 		allowFuelTransfers = false,
-		ironium = 0,
 		ontransferfuel,
 		ontransferironium,
 		ontransferboranium,
 		ontransfergermanium,
 		ontransfercolonists
 	}: Props = $props();
-
-	$inspect('transferAmount', transferAmount);
-	$inspect('ironium', ironium);
 </script>
 
 <div class="sm:grid sm:grid-cols-label-value">

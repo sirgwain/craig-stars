@@ -7,7 +7,7 @@
 		error?: string;
 	};
 
-	let { error = $bindable('') }: Props = $props();
+	let { error = '' }: Props = $props();
 </script>
 
 {#if error !== ''}

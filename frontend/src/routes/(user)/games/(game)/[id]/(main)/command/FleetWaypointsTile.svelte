@@ -202,8 +202,8 @@
 				<span class="flex-1 ml-1">
 					{#if selectedWaypointPlanet && selectedWaypointPlanetFriendly && selectedWaypointPlanet.spec.hasStargate}
 						<WarpSpeedGauge
-							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
-							on:valuedragged={(e) => onWarpSpeedDragged(e.detail)}
+							onvaluechanged={(value) => onWarpSpeedChanged(value)}
+							onvaluedragged={(value) => onWarpSpeedDragged(value)}
 							bind:value={selectedWaypoint.warpSpeed}
 							warnSpeed={fleet.spec.engine.maxSafeSpeed
 								? fleet.spec.engine.maxSafeSpeed + 1
@@ -213,8 +213,8 @@
 						/>
 					{:else}
 						<WarpSpeedGauge
-							on:valuechanged={(e) => onWarpSpeedChanged(e.detail)}
-							on:valuedragged={(e) => onWarpSpeedDragged(e.detail)}
+							onvaluechanged={(value) => onWarpSpeedChanged(value)}
+							onvaluedragged={(value) => onWarpSpeedDragged(value)}
 							warnSpeed={fleet.spec.engine.maxSafeSpeed
 								? fleet.spec.engine.maxSafeSpeed + 1
 								: undefined}
