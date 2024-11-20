@@ -1,8 +1,11 @@
 package cs
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
-func TestTechComparer_CompareFieldsByTag(t *testing.T) {
+func TestTechComparer_compareFieldsByTag(t *testing.T) {
 	type args struct {
 		hc    *TechHullComponent
 		other *TechHullComponent
@@ -25,6 +28,17 @@ func TestTechComparer_CompareFieldsByTag(t *testing.T) {
 				light: false,
 			},
 			want: false,
+		},
+		{
+			name: "Laser Vs X Ray Laser",
+			args: args{
+				hc:    &Laser,
+				other: &XRayLaser,
+				tag:   TechTagBeamWeapon,
+				RS:    false,
+				light: false,
+			},
+			want: true,
 		},
 		{
 			name: "Jammer 50 vs Jammer 20",
@@ -106,8 +120,8 @@ func TestTechComparer_CompareFieldsByTag(t *testing.T) {
 		{
 			name: "AMG vs Super Fuel Tank",
 			args: args{
-				hc:    &AntiMatterGenerator, // 450 mg / 24 
-				other: &SuperFuelTank, // 500 mg / 16
+				hc:    &AntiMatterGenerator, // 450 mg / 24
+				other: &SuperFuelTank,       // 500 mg / 16
 				tag:   TechTagFuelTank,
 				RS:    false,
 				light: false,
@@ -134,14 +148,14 @@ func TestTechComparer_CompareFieldsByTag(t *testing.T) {
 		player := NewPlayer(1, race.WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
 		tc := NewTechComparer()
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tc.CompareFieldsByTag(player, tt.args.hc, tt.args.other, tt.args.tag, tt.args.light); got != tt.want {
-				t.Errorf("TechComparer.CompareFieldsByTag() = %v, want %v", got, tt.want)
+			if got := tc.compareFieldsByTag(player, tt.args.hc, tt.args.other, tt.args.tag, tt.args.light); got != tt.want {
+				t.Errorf("TechComparer.compareFieldsByTag() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestTechComparer_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil pointer error... again
+func TestTechComparer_GetBestComponentWithTags(t *testing.T) {
 	type fields struct {
 		techLevels    TechLevel
 		race          *Race
@@ -163,7 +177,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil 
 		{
 			name: "Best beam with max techs",
 			fields: fields{
-				techLevels:    TechLevel{1, 1, 26, 1, 1, 1},
+				techLevels:    TechLevel{4, 26, 1, 1, 1, 1},
 				race:          NewRace().WithPRT(JoaT),
 				acquiredParts: []string{},
 				beamShip:      false,
@@ -175,7 +189,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil 
 			}, want: &AntiMatterPulverizer, wantErr: false,
 		},
 		{
-			name: "Best shield/armor with tech 14",
+			name: "Best armor with tech 14",
 			fields: fields{
 				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
 				race:          NewRace().WithPRT(IS),
@@ -185,7 +199,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil 
 			args: args{
 				hullSlotType: HullSlotTypeGeneral,
 				qty:          1,
-				tags:         []TechTag{TechTagShield, TechTagArmor},
+				tags:         []TechTag{TechTagArmor},
 			}, want: &MegaPolyShell, wantErr: false,
 		},
 		{
@@ -197,7 +211,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil 
 				beamShip:      true,
 			},
 			args: args{
-				hullSlotType: HullSlotTypeGeneral,
+				hullSlotType: HullSlotTypeArmor,
 				qty:          1,
 				tags:         []TechTag{TechTagArmor},
 			}, want: &Organic, wantErr: false,
@@ -213,7 +227,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil 
 			args: args{
 				hullSlotType: HullSlotTypeShieldArmor,
 				qty:          1,
-				tags:         []TechTag{TechTagShield, TechTagArmor},
+				tags:         []TechTag{TechTagArmor, TechTagShield},
 			}, want: &MegaPolyShell, wantErr: false,
 		},
 		{
@@ -234,8 +248,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tc := NewTechComparer()
-			player := testPlayer().WithTechLevels(tt.fields.techLevels)
-			player.Race = *tt.fields.race
+			player := NewPlayer(1, tt.fields.race.WithSpec(&rules)).WithTechLevels(tt.fields.techLevels)
 			if len(tt.fields.acquiredParts) > 0 {
 				for _, tech := range tt.fields.acquiredParts {
 					player = player.WithAcquiredTech(tech)
@@ -249,7 +262,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) { // TODO: Fix nil 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TechComparer.GetBestComponentWithTags() errored unexpectedly; error = %v", err)
 			}
-			if got != tt.want {
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TechComparer.GetBestComponentWithTags() = %v, want %v", got.Name, tt.want.Name)
 			}
 		})

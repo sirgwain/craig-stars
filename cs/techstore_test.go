@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// TODO: Fix this shit
+// TODO: Fix this someday
 /*
 func TestTechStore_GetBestEngine(t *testing.T) {
 	type args struct {
@@ -79,24 +79,24 @@ func TestTechStore_GetHullComponentsByCategory(t *testing.T) {
 func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
 	type fields struct {
 		techLevels TechLevel
-		race *Race
-		mtTechs bool
+		race       *Race
+		mtTechs    bool
 	}
 	type args struct {
 		slot HullSlotType
 	}
 	tests := []struct {
-		name  string
+		name   string
 		fields fields
-		args  args
-		want  []*TechHullComponent
+		args   args
+		want   []*TechHullComponent
 	}{
-		{name: "max tech MT shields with IS", fields: fields{TechLevel{26,26,26,26,26,26}, NewRace().WithPRT(IS), true},
-		args: args{slot: HullSlotTypeShield}, 
-		want: []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &CrobySharmor, &BearNeutrinoBarrier, &LangstonShell, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield}},
-		{name: "Default Shields/Armors", fields: fields{TechLevel{26,26,26,26,26,26}, NewRace().WithPRT(JoaT), false},
-		args: args{slot: HullSlotTypeShieldArmor}, want: []*TechHullComponent{&Tritanium, &Crobmnium, &Carbonic, &Strobnium, &Organic, &Kelarium, &Neutronium, &Valanium, &Superlatanium,
-			&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield}},
+		{name: "max tech MT shields with IS", fields: fields{TechLevel{26, 26, 26, 26, 26, 26}, NewRace().WithPRT(IS), true},
+			args: args{slot: HullSlotTypeShield},
+			want: []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &CrobySharmor, &BearNeutrinoBarrier, &LangstonShell, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield}},
+		{name: "Default Shields/Armors", fields: fields{TechLevel{26, 26, 26, 26, 26, 26}, NewRace().WithPRT(JoaT), false},
+			args: args{slot: HullSlotTypeShieldArmor}, want: []*TechHullComponent{&Tritanium, &Crobmnium, &Carbonic, &Strobnium, &Organic, &Kelarium, &Neutronium, &Valanium, &Superlatanium,
+				&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

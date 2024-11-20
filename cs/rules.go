@@ -99,9 +99,9 @@ type CostRules struct {
 type BattleRules struct {
 	BeamRangeDropoff    float64          `json:"beamRangeDropoff"`
 	BeamBonusCap        float64          `json:"beamBonusCap"`
+	JammerCap           map[bool]float64 `json:"jammerCap"`
 	MovesToRunAway      int              `json:"movesToRunAway"`
 	NumBattleRounds     int              `json:"numBattleRounds"`
-	JammerCap           map[bool]float64 `json:"jammerCap"`
 	TorpedoSplashDamage float64          `json:"torpedoSplashDamage"`
 }
 
@@ -224,7 +224,7 @@ func NewRulesWithSeed(seed int64) Rules {
 				Resources: 100,
 			},
 			StarbaseComponentCostReduction: 0.5, // 50% discount on non-orbital components
-			StarbaseHullRefundFactor: 0.5, // 50% of the old base's cost goes towards the new base
+			StarbaseHullRefundFactor:       0.5, // 50% of the old base's cost goes towards the new base
 			TechBaseCost: []int{
 				0,
 				50,
@@ -264,12 +264,12 @@ func NewRulesWithSeed(seed int64) Rules {
 		BattleRules: BattleRules{
 			BeamRangeDropoff: 0.1,
 			BeamBonusCap:     2.55, // 2.55x damage max from caps
-			NumBattleRounds:  16,
 			JammerCap: map[bool]float64{
 				true:  0.75, // starbases have 75% jamming max
 				false: 0.95, // non-starbases (ie fleets) have 95% jamming max
 			},
 			MovesToRunAway:      7,
+			NumBattleRounds:     16,
 			TorpedoSplashDamage: 0.125,
 		},
 		UniverseGenerationRules: UniverseGenerationRules{

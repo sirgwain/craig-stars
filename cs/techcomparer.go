@@ -1,18 +1,16 @@
 package cs
 
 import (
-	"fmt"
 	"math"
-	"slices"
 )
 
 // The TechComparer interface compares techs and techHullComponents
 // to determine the one most suitable for a particular purpose.
+// TODO: Migrate all old tech getters in TechStore and convert them into comparers
 type TechComparer interface {
-	CompareStargates(hc, other *TechHullComponent) bool
-	CompareTorpedos(player *Player, hc, other *TechHullComponent) bool
-	CompareEngine(player *Player, hc, other *TechEngine, purpose FleetPurpose) *TechEngine
-	CompareFieldsByTag(player *Player,  hc, other *TechHullComponent, tag TechTag, light bool) bool
+	compareStargates(hc, other *TechHullComponent) bool
+	compareTorpedos(player *Player, hc, other *TechHullComponent) bool
+	compareFieldsByTag(player *Player, hc, other *TechHullComponent, tag TechTag, light bool) bool
 	GetBestComponentWithTags(rules *Rules, player *Player, design *ShipDesign, hullSlotType HullSlotType, tags ...TechTag) (*TechHullComponent, error)
 }
 
@@ -23,10 +21,10 @@ func NewTechComparer() TechComparer {
 type techCompare struct {
 }
 
-// compare 2 stargates and determine which one is better
-// 
-// 1st priority mass, 2nd priority distance, ranking as tiebreaker
-func (tc *techCompare) CompareStargates(hc, other *TechHullComponent) bool {
+// Compare 2 stargates and return true if the 2nd one is superior.
+//
+// 1st priority mass, 2nd priority distance; ranking used as tiebreaker
+func (tc *techCompare) compareStargates(hc, other *TechHullComponent) bool {
 	if hc != other {
 		switch {
 		case hc.SafeHullMass < other.SafeHullMass:
@@ -44,9 +42,9 @@ func (tc *techCompare) CompareStargates(hc, other *TechHullComponent) bool {
 	return false
 }
 
-// return the better of the 2 provided torpedo weapons.
-// Defaults to 1st if both are equal or either one is null and breaks ties by item ranking
-func (tc *techCompare) CompareTorpedos(player *Player, hc, other *TechHullComponent) bool {
+// Compare 2 torpedoes or missiles and return true if the 2nd one is superior.
+// Breaks ties by item ranking if all else fails
+func (tc *techCompare) compareTorpedos(player *Player, hc, other *TechHullComponent) bool {
 	var hcPower float64
 	var otherPower float64
 	capMissileMulti := 1.5
@@ -67,28 +65,13 @@ func (tc *techCompare) CompareTorpedos(player *Player, hc, other *TechHullCompon
 		otherPower/hcPower == getCostEfficiencyRatio(player, hc, other, Ironium) && other.Ranking >= hc.Ranking
 }
 
-// returns the better of the 2 engines
-func (tc *techCompare) CompareEngine(player *Player, hc, other *TechEngine, purpose FleetPurpose) *TechEngine {
-	tech := hc.TechHullComponent
-	otherTech := other.TechHullComponent
-	if player.HasTech(&tech.Tech) {
-		// colony ships don't want radiating engines if we would lose colonists from it
-		if ((purpose == FleetPurposeColonizer || purpose == FleetPurposeColonistFreighter) && tech.Radiating &&
-			!(player.Race.ImmuneRad || player.Race.Spec.HabCenter.Rad >= 85)) ||
-			otherTech.Ranking > tech.Ranking {
-			return other
-		}
-	}
-	return hc
-}
-
 // Compare 2 TechHullComponents by a field determined by the specified TechTag
 // (alongside cost efficiency in certain cases).
 // Returns true if the 2nd component is superior;
 // precedence is given to the higher rated component in case of a tie.
 //
 // light determines whether to check weight for shields/armors
-func (tc *techCompare) CompareFieldsByTag(player *Player, hc, other *TechHullComponent, tag TechTag, light bool) bool {
+func (tc *techCompare) compareFieldsByTag(player *Player, hc, other *TechHullComponent, tag TechTag, light bool) bool {
 	if other == nil {
 		return false
 	} else if hc == nil {
@@ -96,7 +79,7 @@ func (tc *techCompare) CompareFieldsByTag(player *Player, hc, other *TechHullCom
 	}
 
 	var score, otherScore float64
-	var costTypesToCheck []CostType
+	var costTypesToCheck = []CostType{}
 	// which cost types to care about for cost eff calcs, if any
 	// usually only applies for items that make up the bulk of their respective ships' cost
 	// and/or ones with a definitive quantifiable stat we can price
@@ -111,10 +94,10 @@ func (tc *techCompare) CompareFieldsByTag(player *Player, hc, other *TechHullCom
 
 		if light {
 			if hc.Mass > 30 {
-				score /= float64(hc.Mass-30) / 10
+				score /= (1 + float64(hc.Mass-30)/10)
 			}
 			if other.Mass > 30 {
-				otherScore /= float64(other.Mass-30) / 10
+				otherScore /= 1 + float64(other.Mass-30)/10
 			}
 		}
 	case TechTagBeamCapacitor:
@@ -149,9 +132,8 @@ func (tc *techCompare) CompareFieldsByTag(player *Player, hc, other *TechHullCom
 	case TechTagBeamWeapon, TechTagShieldSapper, TechTagGatlingGun:
 		score = float64(hc.Power) * math.Pow(float64(hc.Range), 2)
 		otherScore = float64(other.Power) * math.Pow(float64(other.Range), 2)
-		costTypesToCheck = []CostType{Resources}
 	case TechTagTorpedo, TechTagCapitalShipMissile:
-		return tc.CompareTorpedos(player, hc, other)
+		return tc.compareTorpedos(player, hc, other)
 	case TechTagColonyModule:
 		score = 1
 		otherScore = 1
@@ -186,7 +168,7 @@ func (tc *techCompare) CompareFieldsByTag(player *Player, hc, other *TechHullCom
 		score = float64(hc.PacketSpeed)
 		otherScore = float64(other.PacketSpeed)
 	case TechTagStargate:
-		return tc.CompareStargates(hc, other)
+		return tc.compareStargates(hc, other)
 	case TechTagTerraformingRobot:
 		score = float64(hc.TerraformRate)
 		otherScore = float64(other.TerraformRate)
@@ -199,13 +181,13 @@ func (tc *techCompare) CompareFieldsByTag(player *Player, hc, other *TechHullCom
 
 	scoreRatio := otherScore / score
 	costRatio := 1.0
-	if costTypesToCheck != nil {
+	if len(costTypesToCheck) > 0 {
 		costRatio = getCostEfficiencyRatio(player, other, hc, costTypesToCheck...)
 	}
 	return scoreRatio > costRatio ||
-		(scoreRatio == costRatio && other.Ranking > hc.Ranking)
+		(scoreRatio == costRatio && other.Ranking >= hc.Ranking)
 	// FOR THE RECORD, this works out to be equivalent to comparing unit prices
-	// If you don't believe this yourself, do some algebra
+	// If no cost ratio is used, it also is equivalent to simply comparing the scores
 }
 
 // get the best TechHullComponent for the specified HullSlotType(s) that also contains the specified TechTag(s).
@@ -213,44 +195,33 @@ func (tc *techCompare) GetBestComponentWithTags(rules *Rules, player *Player, de
 	// PROGRAMMER'S NOTE: the reason I didn't make this a property of techStore is because
 	// we already have to pass in the Rules struct to check for warship stat hardcaps anyways
 
+	store := rules.techs
 	var bestTech *TechHullComponent
 
-	store := rules.techs
-	hull := store.GetHull(design.Hull)
-	if hull == nil {
-		return nil, fmt.Errorf("failed to get hull %v from tech store", hull)
-	}
-
-	// get list of components for the TechHullTypes we can use
-	var comps []*TechHullComponent = store.GetHullComponentsByHullSlotType(player, hullSlotType, hull.Name)
+	// get list of all components we can use for this slot & hull type
+	comps := store.GetHullComponentsByHullSlotType(player, hullSlotType, design.Hull)
 
 	for _, hc := range comps {
-		if !player.HasTech(&hc.Tech) ||
-			(len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hull.Name)) ||
-			(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hull.Name)) {
-			// we cannot use this part; skip to the next item
-			continue
-		}
-
-		// need only 1 tag to match
-		// we set match to false and catalog the part as soon as a single tag matches our list
-		// and is better than our current item
-		hasTag := false
 		for _, tag := range tags {
+			// only 1 tag to match
+			// we set match to false and catalog the part as soon as a single tag matches our list
+			// and is better than our current item
+			hasTag := false
 			// manually cover cases for tags being subsets of other categories so we don't end up with
 			// sapper only ships
 			switch tag {
 			case TechTagBomb:
 				hasTag = hc.Tags[TechTagBomb] && !hc.Tags[TechTagStructureBomb] && !hc.Tags[TechTagSmartBomb]
-			case TechTagBeamWeapon:
-				hasTag = hc.Tags[TechTagBeamWeapon] && !hc.Tags[TechTagShieldSapper]
+			case TechTagBeamWeapon, TechTagTorpedo, TechTagCapitalShipMissile: // backup for IF we get shield sapping torpedoes
+				hasTag = hc.Tags[tag] && !hc.Tags[TechTagShieldSapper]
+			case TechTagShield, TechTagArmor: // for shield/armor, consider items that have both types
+				hasTag = hc.Tags[TechTagShield] || hc.Tags[TechTagArmor]
 			default:
 				hasTag = hc.Tags[tag]
 			}
-			if hasTag && (bestTech == nil || tc.CompareFieldsByTag(player, bestTech, hc, tag, design.Purpose.IsBeamShip())) {
+			if hasTag && tc.compareFieldsByTag(player, bestTech, hc, tag, design.Purpose.IsLightShip()) {
 				// we have the tag and it's better than what we already have; tack it on
 				bestTech = hc
-				break
 			}
 		}
 	}

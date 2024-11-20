@@ -388,19 +388,23 @@ func GetBattleRules(o js.Value) cs.BattleRules {
 	}
 	obj.BeamRangeDropoff = getFloat[float64](o.Get("beamRangeDropoff"))
 	obj.BeamBonusCap = getFloat[float64](o.Get("beamBonusCap"))
-	obj.NumBattleRounds = getInt[int](o.Get("numBattleRounds"))
 	obj.JammerCap = GetStringMap[map[bool]float64](o.Get("jammerCap"), getFloat)
+	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
+	obj.NumBattleRounds = getInt[int](o.Get("numBattleRounds"))
+	obj.TorpedoSplashDamage = getFloat[float64](o.Get("torpedoSplashDamage"))
 	return obj
 }
 func SetBattleRules(o js.Value, obj *cs.BattleRules) {
 	o.Set("beamRangeDropoff", obj.BeamRangeDropoff)
 	o.Set("beamBonusCap", obj.BeamBonusCap)
-	o.Set("numBattleRounds", obj.NumBattleRounds)
 	jammerCapMap := js.ValueOf(map[string]any{})
 	for key, value := range obj.JammerCap {
 		jammerCapMap.Set(fmt.Sprintf("%v", key), value)
 	}
 	o.Set("jammerCap", jammerCapMap)
+	o.Set("movesToRunAway", obj.MovesToRunAway)
+	o.Set("numBattleRounds", obj.NumBattleRounds)
+	o.Set("torpedoSplashDamage", obj.TorpedoSplashDamage)
 }
 
 func GetBattleTactic(o js.Value) cs.BattleTactic {
@@ -578,6 +582,7 @@ func GetCostRules(o js.Value) cs.CostRules {
 	obj.MineralAlchemyCost = getInt[int](o.Get("mineralAlchemyCost"))
 	obj.PlanetaryScannerCost = GetCost(o.Get("planetaryScannerCost"))
 	obj.StarbaseComponentCostReduction = getFloat[float64](o.Get("starbaseComponentCostReduction"))
+	obj.StarbaseHullRefundFactor = getFloat[float64](o.Get("starbaseHullRefundFactor"))
 	obj.TerraformCost = GetCost(o.Get("terraformCost"))
 	obj.TechBaseCost = GetSlice[int](o.Get("techBaseCost"), getInt)
 	return obj
@@ -590,6 +595,7 @@ func SetCostRules(o js.Value, obj *cs.CostRules) {
 	o.Set("planetaryScannerCost", map[string]any{})
 	SetCost(o.Get("planetaryScannerCost"), &obj.PlanetaryScannerCost)
 	o.Set("starbaseComponentCostReduction", obj.StarbaseComponentCostReduction)
+	o.Set("starbaseHullRefundFactor", obj.StarbaseHullRefundFactor)
 	o.Set("terraformCost", map[string]any{})
 	SetCost(o.Get("terraformCost"), &obj.TerraformCost)
 	if len(obj.TechBaseCost) > 0 {
@@ -2576,7 +2582,6 @@ func GetRules(o js.Value) cs.Rules {
 	obj.MineFieldStatsByType = GetStringMap[map[cs.MineFieldType]cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldStats)
 	obj.MineralDecayFactor = getInt[int](o.Get("mineralDecayFactor"))
 	obj.MinMaxPopulationPercent = getFloat[float64](o.Get("minMaxPopulationPercent"))
-	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
 	obj.MysteryTraderRules = GetMysteryTraderRules(o.Get("mysteryTraderRules"))
 	obj.PacketDecayRate = GetIntMap[map[int]float64](o.Get("packetDecayRate"), getFloat)
 	obj.PacketMaxOverwarpSpeed = getInt[int](o.Get("packetMaxOverwarpSpeed"))
@@ -2610,11 +2615,10 @@ func GetRules(o js.Value) cs.Rules {
 	obj.SmartDefenseCoverageFactor = getFloat[float64](o.Get("smartDefenseCoverageFactor"))
 	obj.StargateMaxHullMassFactor = getInt[int](o.Get("stargateMaxHullMassFactor"))
 	obj.StargateMaxRangeFactor = getInt[int](o.Get("stargateMaxRangeFactor"))
-	obj.TachyonCloakReduction = getInt[int](o.Get("tachyonCloakReduction"))
-	obj.TachyonMaxCloakReduction = getInt[int](o.Get("tachyonMaxCloakReduction"))
+	obj.TachyonCloakReduction = getFloat[float64](o.Get("tachyonCloakReduction"))
+	obj.TachyonMaxCloakReduction = getFloat[float64](o.Get("tachyonMaxCloakReduction"))
 	obj.TechsID = getInt[int64](o.Get("techsId"))
 	obj.TechTradeChance = getFloat[float64](o.Get("techTradeChance"))
-	obj.TorpedoSplashDamage = getFloat[float64](o.Get("torpedoSplashDamage"))
 	obj.WormholeCloak = getInt[int](o.Get("wormholeCloak"))
 	obj.WormholePairsForSize = GetStringMap[map[cs.Size]int](o.Get("wormholePairsForSize"), getInt)
 	obj.WormholeStatsByStability = GetStringMap[map[cs.WormholeStability]cs.WormholeStats](o.Get("wormholeStatsByStability"), GetWormholeStats)
@@ -2656,7 +2660,6 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	o.Set("mineFieldStatsByType", mineFieldStatsByTypeMap)
 	o.Set("mineralDecayFactor", obj.MineralDecayFactor)
 	o.Set("minMaxPopulationPercent", obj.MinMaxPopulationPercent)
-	o.Set("movesToRunAway", obj.MovesToRunAway)
 	o.Set("mysteryTraderRules", map[string]any{})
 	SetMysteryTraderRules(o.Get("mysteryTraderRules"), &obj.MysteryTraderRules)
 	packetDecayRateMap := js.ValueOf(map[string]any{})
@@ -2719,7 +2722,6 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	o.Set("tachyonMaxCloakReduction", obj.TachyonMaxCloakReduction)
 	o.Set("techsId", obj.TechsID)
 	o.Set("techTradeChance", obj.TechTradeChance)
-	o.Set("torpedoSplashDamage", obj.TorpedoSplashDamage)
 	o.Set("wormholeCloak", obj.WormholeCloak)
 	wormholePairsForSizeMap := js.ValueOf(map[string]any{})
 	for key, value := range obj.WormholePairsForSize {

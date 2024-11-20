@@ -373,7 +373,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeFighter,
+				HullType:       TechHullTypeCapitalShip,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 76, 168},
@@ -413,7 +413,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeFighter,
+				HullType:       TechHullTypeCapitalShip,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 43, 171},
@@ -453,7 +453,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeFighter,
+				HullType:       TechHullTypeCapitalShip,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 52, 156},
@@ -493,7 +493,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeFighter,
+				HullType:       TechHullTypeCapitalShip,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 44, 150},
@@ -532,7 +532,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeFighter,
+				HullType:       TechHullTypeCapitalShip,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 58, 162},
@@ -652,7 +652,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				design: NewShipDesign(player, 1).
 					WithHull(SpaceStation.Name).
 					WithSlots([]ShipDesignSlot{
-						{HullComponent: "BANANA!!!!!!!!", HullSlotIndex: 10, Quantity: 8},
+						{HullComponent: "ERROR 412: I'M A TEAPOT", HullSlotIndex: 420, Quantity: 69},
 					}),
 			},
 			want:    ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
@@ -805,7 +805,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 			name: "2 battle super comps on heavily computed ship",
 			args: args{
 				armorMulti: 1, shieldMulti: 1,
-				hc:         &Jammer30,
+				hc:         &BattleSuperComputer,
 				qty:        2,
 				shield:     1,
 				armor:      1,
@@ -1000,9 +1000,9 @@ func TestDesignShip(t *testing.T) {
 				fleetPurpose: FleetPurposeFreighter,
 			},
 			want: map[string]int{
-				FuelMizer.Name:        1,
-				CargoPod.Name:        1,
-				FuelTank.Name:        2,
+				FuelMizer.Name:      1,
+				CargoPod.Name:       1,
+				FuelTank.Name:       2,
 				MoleSkinShield.Name: 2,
 			},
 			wanterr: false,
@@ -1017,9 +1017,26 @@ func TestDesignShip(t *testing.T) {
 				fleetPurpose: FleetPurposeMiner,
 			},
 			want: map[string]int{
-				FuelMizer.Name:        2,
-				FuelTank.Name:        3,
+				FuelMizer.Name:      2,
+				FuelTank.Name:       3,
 				RoboUltraMiner.Name: 12,
+			},
+			wanterr: false,
+		},
+		{
+			name: "SD Minelayer",
+			args: args{
+				hull:         &SuperMineLayer,
+				techLevels:   TechLevel{4, 0, 2, 15, 8, 7},
+				player:       NewPlayer(1, NewRace().WithPRT(SD).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules)).WithNum(1),
+				purpose:      ShipDesignPurposeDamageMineLayer,
+				fleetPurpose: FleetPurposeMineLayer,
+			},
+			want: map[string]int{
+				FuelMizer.Name:       2,
+				FuelTank.Name:        3,
+				MineDispenser80.Name: 19,
+				CowHideShield.Name:   4,
 			},
 			wanterr: false,
 		},
@@ -1042,6 +1059,83 @@ func TestDesignShip(t *testing.T) {
 			}
 			if !reflect.DeepEqual(tallyMap, tt.want) {
 				t.Errorf("ShipDesign from DesignShip() had parts %v, want %v", tallyMap, tt.want)
+			}
+		})
+	}
+}
+
+func TestDesignWarship(t *testing.T) {
+	type fields struct {
+		techLevel     TechLevel
+		acquiredParts []string
+		race          *Race
+	}
+	type args struct {
+		hull    *TechHull
+		purpose ShipDesignPurpose
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    map[string]int
+		wantErr bool
+	}{
+		{
+			name: "WM Weps 10 Battlecruiser",
+			fields: fields{
+				techLevel:     TechLevel{7, 10, 3, 10, 4, 0},
+				acquiredParts: []string{},
+				race:          NewRace().WithPRT(WM).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules),
+			},
+			args: args{
+				hull:    &BattleCruiser,
+				purpose: ShipDesignPurposeBeamFighter,
+			},
+			want: map[string]int{
+				FuelMizer.Name:              2,
+				ManeuveringJet.Name:         2,
+				EnergyCapacitor.Name:        2,
+				ColloidalPhaser.Name:        6,
+				PulsedSapper.Name:           3,
+				WolverineDiffuseShield.Name: 4,
+			}, wantErr: false,
+		},
+		{
+			name: "HE Jihad Metamorph",
+			fields: fields{
+				techLevel:     TechLevel{6, 12, 2, 10, 0, 0},
+				acquiredParts: []string{},
+				race:          NewRace().WithPRT(HE).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules),
+			},
+			args: args{
+				hull:    &MetaMorph,
+				purpose: ShipDesignPurposeTorpedoFighter,
+			},
+			want: map[string]int{
+				FuelMizer.Name:              2,
+				JihadMissile.Name:           8,
+				WolverineDiffuseShield.Name: 4,
+				BattleComputer.Name:         6,
+			}, wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := NewPlayer(1, tt.fields.race).WithTechLevels(tt.fields.techLevel)
+			for _, part := range tt.fields.acquiredParts {
+				player.AcquiredTechs[part] = true
+			}
+			got, err := DesignWarship(&rules, tt.args.hull, "Test Warship", player, 1, 2, tt.args.purpose)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DesignWarship() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			tallyMap := map[string]int{}
+			for _, slot := range got.Slots {
+				tallyMap[slot.HullComponent] += slot.Quantity
+			}
+			if !reflect.DeepEqual(tallyMap, tt.want) {
+				t.Errorf("ShipDesign from DesignWarship() had parts %v, want %v", tallyMap, tt.want)
 			}
 		})
 	}

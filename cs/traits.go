@@ -1,5 +1,7 @@
 package cs
 
+import "maps"
+
 type PRTSpec struct {
 	PRT                              PRT              `json:"prt,omitempty"`
 	PointCost                        int              `json:"pointCost,omitempty"`
@@ -90,11 +92,17 @@ type LRTSpec struct {
 
 type TechCostOffset map[TechTag]float64
 
+// add 2 TechCostOffsets' bonuses together and return the sum
 func (t TechCostOffset) Add(other TechCostOffset) TechCostOffset {
-	for tag, bonus := range t {
-		other[tag] += bonus
+	newOffset := TechCostOffset{}
+	maps.Copy(newOffset, t)
+	for tag, bonus := range other {
+		if _, ok := newOffset[tag]; !ok {
+			newOffset[tag] = 0.
+		}
+		newOffset[tag] += bonus
 	}
-	return other
+	return newOffset
 }
 
 type StartingPlanet struct {
