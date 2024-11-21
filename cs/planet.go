@@ -214,7 +214,6 @@ func (p *Planet) reset() {
 	p.BaseHab = Hab{}
 	p.TerraformedAmount = Hab{}
 	p.MineralConcentration = Mineral{}
-	p.ProductionQueue = []ProductionQueueItem{}
 	p.MineYears = Mineral{}
 }
 
@@ -225,6 +224,7 @@ func (p *Planet) emptyPlanet() {
 	p.Scanner = false
 	p.Defenses = 0                  // defenses are all gone, rest of the structures can stay
 	p.PlanetOrders = PlanetOrders{} // clear any orders from previous owner
+	p.ProductionQueue = []ProductionQueueItem{}
 	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
 	// reset any instaforming
