@@ -153,7 +153,8 @@ func (p *Planet) productivePopulation(pop, maxPop int) int {
 	return MinInt(pop, 3*maxPop)
 }
 
-// get the population that will operate installations
+// get the population that will operate installations 
+// and produce resources at 100% efficiency
 // (it just maxes at max pop)
 func (p *Planet) productiveInstallationPopulation(pop, maxPop int) int {
 	return MinInt(pop, maxPop)
@@ -162,9 +163,11 @@ func (p *Planet) productiveInstallationPopulation(pop, maxPop int) int {
 
 func (p *Planet) setPopulation(pop int) {
 	p.Cargo.Colonists = pop / 100
+	p.Spec.PartialPopulation = 0
 }
 
-// true if this planet can build a ship with a given mass
+// return true if this planet is able to build a ship with a given mass
+// Cost of ship not considered
 func (p *Planet) CanBuild(mass int) bool {
 	return p.Spec.HasStarbase && (p.Starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.Starbase.Spec.SpaceDock >= mass)
 }
