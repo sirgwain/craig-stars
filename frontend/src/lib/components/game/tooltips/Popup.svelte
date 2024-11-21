@@ -26,11 +26,13 @@
 	let componentHeight = $state(minHeight);
 	let componentWidth = $state(minWidth);
 	// when the popupComponent is set, register a pointerup listener to hide it
-	run(() => {
+	$effect(() => {
 		if ($popupComponent) {
 			document.body.className = document.body.className + ' select-none touch-none';
 		}
 	});
+	// TODO - JD - 2024-11-20 - This should be run once, I am afraid this could be multiple times
+	// in an effect, update held-over
 	run(() => {
 		component &&
 			new ResizeObserver(() => {

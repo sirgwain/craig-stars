@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
@@ -31,8 +29,9 @@
 		dispatch('update-player');
 	};
 
+	// TODO JD - 2024-11-20 - Consider this might be best as a $derived, it is never written to except by the $effect
 	let spent = $state(0);
-	run(() => {
+	$effect(() => {
 		const field: keyof TechLevel = `${$player.researching}`.toLowerCase() as keyof TechLevel;
 		spent = $player.techLevelsSpent[field] ?? 0;
 	});

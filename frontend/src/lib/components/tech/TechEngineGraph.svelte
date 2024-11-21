@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import type { TechEngine } from '$lib/types/Tech';
 
 	import { scaleSqrt } from 'd3-scale';
@@ -23,7 +21,7 @@
 	const xGetter = (d: DataType) => d[0];
 	const yGetter = (d: DataType) => d[1];
 
-	run(() => {
+	$effect(() => {
 		data = engine?.fuelUsage ? engine.fuelUsage.map((usage, index) => [index, usage]) : [];
 	});
 </script>

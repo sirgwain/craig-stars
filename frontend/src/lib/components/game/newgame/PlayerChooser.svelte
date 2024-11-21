@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { RaceService } from '$lib/services/RaceService';
 	import { humanoid, type Race } from '$lib/types/Race';
 	import { onMount } from 'svelte';
@@ -33,7 +31,7 @@
 	}
 
 	let points = $state(0);
-	run(() => {
+	$effect(() => {
 		valid = points >= 0;
 	});
 </script>
