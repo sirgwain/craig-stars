@@ -54,6 +54,7 @@ type PlanetSpec struct {
 	MaxPossibleFactories                      int     `json:"maxPossibleFactories,omitempty"`
 	MaxPossibleMines                          int     `json:"maxPossibleMines,omitempty"`
 	MiningOutput                              Mineral `json:"miningOutput,omitempty"`
+	PartialPopulation                         int     `json:"partialPopulation,omitempty"` // pop not in multiples of 100
 	Population                                int     `json:"population,omitempty"`
 	PopulationDensity                         float64 `json:"populationDensity,omitempty"`
 	ResourcesPerYear                          int     `json:"resourcesPerYear,omitempty"`
