@@ -5,15 +5,13 @@
 </script>
 
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { clickOutside } from '$lib/clickOutside';
 	import { popupComponent, popupLocation } from '$lib/services/Stores';
 
 	const minWidth = 250;
 	const minHeight = 250;
 
-	function hide(event: MouseEvent) {
+	function hide(_event: MouseEvent) {
 		$popupComponent = undefined;
 		document.body.className = document.body.className
 			.replaceAll('select-none', '')
@@ -21,6 +19,10 @@
 	}
 
 	let component: HTMLElement | undefined = $state();
+	const resizeObserver = new ResizeObserver(() => {
+		componentHeight = Math.max(component?.scrollHeight ?? 0, minHeight);
+		componentWidth = Math.max(component?.scrollWidth ?? 0, minWidth);
+	});
 
 	// observe popup component height changes so we can react
 	let componentHeight = $state(minHeight);
@@ -33,12 +35,13 @@
 	});
 	// TODO - JD - 2024-11-20 - This should be run once, I am afraid this could be multiple times
 	// in an effect, update held-over
-	run(() => {
-		component &&
-			new ResizeObserver(() => {
-				componentHeight = Math.max(component?.scrollHeight ?? 0, minHeight);
-				componentWidth = Math.max(component?.scrollWidth ?? 0, minWidth);
-			}).observe(component);
+	// CORRECTION - moved resizeObserver, above, and did a disconnect and observe.
+	// Also done in Tooltip
+	$effect(() => {
+		if (component) {
+			resizeObserver.disconnect();
+			resizeObserver.observe(component);
+		}
 	});
 	let x = $derived(
 		$popupLocation.x + componentWidth > window.innerWidth // we overshoot the window, move the popup left so it fits, or 0 if required

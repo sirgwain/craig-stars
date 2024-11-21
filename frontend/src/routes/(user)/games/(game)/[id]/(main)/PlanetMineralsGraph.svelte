@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
-
 	import { clamp } from '$lib/services/Math';
 	import type { Mineral } from '$lib/types/Mineral';
 	import type { Planet } from '$lib/types/Planet';
@@ -11,7 +9,7 @@
 	import { showTooltip } from '$lib/services/Stores';
 	import { getGameContext } from '$lib/services/GameContext';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { settings } = getGameContext();
 
 	type Props = {
 		planet: Planet;
@@ -20,66 +18,58 @@
 	let { planet }: Props = $props();
 
 	let max = $settings.mineralScale; // i.e. 0 to 5000 minerals
-	let numDivisions = 6; // gridlines show 20% on line class
+	let numDivisions = 6; // gridlines show 20% online class
 	let divisions: string[] = $state(['0']);
 
 	for (let i = 1; i < numDivisions; i++) {
 		divisions[i] = (i * (max / (numDivisions - 1))).toFixed();
 	}
 
-	let barPercent: Mineral = $state({
-		ironium: 0,
-		boranium: 0,
-		germanium: 0
-	});
+	let barPercent: Mineral = $derived(
+		planet.cargo
+			? {
+					ironium: clamp(planet.cargo.ironium ? (planet.cargo.ironium / max) * 100 : 0, 0, 100),
+					boranium: clamp(planet.cargo.boranium ? (planet.cargo.boranium / max) * 100 : 0, 0, 100),
+					germanium: clamp(
+						planet.cargo.germanium ? (planet.cargo.germanium / max) * 100 : 0,
+						0,
+						100
+					)
+				}
+			: { ironium: 0, boranium: 0, germanium: 0 }
+	);
 
-	let concentrationPercent: Mineral = $state({
-		ironium: 0,
-		boranium: 0,
-		germanium: 0
-	});
-
-	run(() => {
-		if (planet.cargo) {
-			barPercent = {
-				ironium: clamp(planet.cargo.ironium ? (planet.cargo.ironium / max) * 100 : 0, 0, 100),
-				boranium: clamp(planet.cargo.boranium ? (planet.cargo.boranium / max) * 100 : 0, 0, 100),
-				germanium: clamp(planet.cargo.germanium ? (planet.cargo.germanium / max) * 100 : 0, 0, 100)
-			};
-		} else {
-			barPercent = { ironium: 0, boranium: 0, germanium: 0 };
-		}
-	});
-
-	run(() => {
-		if (planet.mineralConcentration) {
-			concentrationPercent = {
-				ironium: clamp(
-					planet.mineralConcentration.ironium
-						? (planet.mineralConcentration.ironium / 100) * 100
-						: 0,
-					0,
-					100
-				),
-				boranium: clamp(
-					planet.mineralConcentration.boranium
-						? (planet.mineralConcentration.boranium / 100) * 100
-						: 0,
-					0,
-					100
-				),
-				germanium: clamp(
-					planet.mineralConcentration.germanium
-						? (planet.mineralConcentration.germanium / 100) * 100
-						: 0,
-					0,
-					100
-				)
-			};
-		}
-	});
+	let concentrationPercent: Mineral = $derived(
+		planet.mineralConcentration
+			? {
+					ironium: clamp(
+						planet.mineralConcentration.ironium
+							? (planet.mineralConcentration.ironium / 100) * 100
+							: 0,
+						0,
+						100
+					),
+					boranium: clamp(
+						planet.mineralConcentration.boranium
+							? (planet.mineralConcentration.boranium / 100) * 100
+							: 0,
+						0,
+						100
+					),
+					germanium: clamp(
+						planet.mineralConcentration.germanium
+							? (planet.mineralConcentration.germanium / 100) * 100
+							: 0,
+						0,
+						100
+					)
+				}
+			: { ironium: 0, boranium: 0, germanium: 0 }
+	);
 
 	function onIroniumTooltip(e: PointerEvent) {
+		e.preventDefault();
+
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
 			mineralType: 'Ironium',
 			surfaceAmount: planet.cargo?.ironium ?? 0,
@@ -89,6 +79,8 @@
 		});
 	}
 	function onBoraniumTooltip(e: PointerEvent) {
+		e.preventDefault();
+
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
 			mineralType: 'Boranium',
 			surfaceAmount: planet.cargo?.boranium ?? 0,
@@ -98,6 +90,8 @@
 		});
 	}
 	function onGermaniumTooltip(e: PointerEvent) {
+		e.preventDefault();
+
 		showTooltip<MineralTooltipProps>(e.x, e.y, MineralTooltip, {
 			mineralType: 'Germanium',
 			surfaceAmount: planet.cargo?.germanium ?? 0,
@@ -115,21 +109,21 @@
 		<div class="text-germanium">Germanium</div>
 	</div>
 	<div class="grow flex flex-col justify-evenly mx-1 px-0.5 py-1 bg-black line gap-2 pr-3">
-		<div class="h-full relative cursor-help" onpointerdown={preventDefault(onIroniumTooltip)}>
+		<div class="h-full relative cursor-help" onpointerdown={onIroniumTooltip}>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.ironium?.toFixed()}%;`}
 				class="absolute ironium-concentration w-auto h-full ironium"
 			/>
 			<div style={`width: ${barPercent.ironium?.toFixed()}%`} class="ironium-bar h-full"></div>
 		</div>
-		<div class="h-full relative cursor-help" onpointerdown={preventDefault(onBoraniumTooltip)}>
+		<div class="h-full relative cursor-help" onpointerdown={onBoraniumTooltip}>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.boranium?.toFixed()}%;`}
 				class="absolute boranium-concentration w-auto h-full boranium"
 			/>
 			<div style={`width: ${barPercent.boranium?.toFixed()}%`} class="boranium-bar h-full"></div>
 		</div>
-		<div class="h-full relative cursor-help" onpointerdown={preventDefault(onGermaniumTooltip)}>
+		<div class="h-full relative cursor-help" onpointerdown={onGermaniumTooltip}>
 			<MineralConcentrationPoint
 				style={`left: ${concentrationPercent.germanium?.toFixed()}%;`}
 				class="absolute germanium-concentration  h-full germanium"

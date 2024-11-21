@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import type {
 		ShowCargoTransferDialogProps,
 		ShowSplitFleetDialogProps
@@ -21,18 +19,13 @@
 
 	let { fleet, fleetsInOrbit, onShowCargoTransferDialog, onShowSplitFleetDialog }: Props = $props();
 
-	let selectedFleet: Fleet | undefined = $state();
 	let selectedFleetIndex = $state(0);
-
-	run(() => {
-		if (fleetsInOrbit.length > 0) {
-			selectedFleet = fleetsInOrbit[selectedFleetIndex];
-		}
-	});
+	let selectedFleet: Fleet | undefined = $derived(
+		fleetsInOrbit.length > 0 ? fleetsInOrbit[selectedFleetIndex] : undefined
+	);
 
 	const onSelectedFleetChange = (index: number) => {
 		selectedFleetIndex = index;
-		selectedFleet = fleetsInOrbit[selectedFleetIndex];
 	};
 
 	const transfer = () => {

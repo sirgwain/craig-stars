@@ -16,24 +16,29 @@
 	}
 
 	let component: HTMLElement | undefined = $state();
+	const resizeObserver = new ResizeObserver(() => {
+		componentHeight = Math.max(component?.scrollHeight ?? 0, minHeight);
+		componentWidth = Math.max(component?.scrollWidth ?? 0, minWidth);
+	});
 
 	// observe tooltip component height changes so we can react
 	let componentHeight = $state(minHeight);
 	let componentWidth = $state(minWidth);
 	// when the tooltipComponent is set, register a pointerup listener to hide it
-	run(() => {
+	$effect(() => {
 		if ($tooltipComponent) {
 			document.body.className = document.body.className + ' select-none touch-none';
 			window.addEventListener('pointerup', onPointerUp);
 		}
 	});
-	run(() => {
-		component &&
-			new ResizeObserver(() => {
-				componentHeight = Math.max(component?.scrollHeight ?? 0, minHeight);
-				componentWidth = Math.max(component?.scrollWidth ?? 0, minWidth);
-			}).observe(component);
+
+	$effect(() => {
+		if (component) {
+			resizeObserver.disconnect();
+			resizeObserver.observe(component);
+		}
 	});
+
 	let x = $derived(
 		$tooltipLocation.x + componentWidth > window.innerWidth // we overshoot the window, move the tooltip left so it fits, or 0 if required
 			? Math.max(

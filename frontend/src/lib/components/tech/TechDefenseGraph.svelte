@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { getDefenseCoverage, getSmartDefenseCoverage, type TechDefense } from '$lib/types/Tech';
 
 	import { scaleOrdinal } from 'd3-scale';
@@ -23,33 +21,12 @@
 	type DataType = { [k: string]: CoverageType[] };
 
 	type DataLongCoverageType = { type: DefenseType; defenses: number; coverage: number };
-	type DataLongType = { type: DefenseType; values: DataLongCoverageType[] }[];
+	type DataLongType = { type: DefenseType; values: DataLongCoverageType[] };
 
-	type DataQuadTree = DataLongCoverageType[];
+	//type DataQuadTree = DataLongCoverageType[];
 
-	let data: DataType = $state({});
-	let dataQuadTree: DataQuadTree = [];
-
-	const xKey = 'defenses';
-	const yKey = 'coverage';
-	const zKey = 'type';
-
-	const seriesNames: DefenseType[] = ['Standard', 'Smart'];
-	const seriesColors = ['stroke-primary', 'stroke-accent'];
-
-	let dataLong: DataLongType = $state();
-	/* --------------------------------------------
-	 * Make a flat array of the `values` of our nested series
-	 * we can pluck the field set from `yKey` from each item
-	 * in the array to measure the full extents
-	 */
-	const flatten = (data: any) =>
-		data.reduce((memo: any, group: []) => {
-			return memo.concat(group.values);
-		}, []);
-
-	run(() => {
-		data = {
+	let data: DataType = $derived.by(() => {
+		const data: DataType = {
 			Standard: [],
 			Smart: []
 		};
@@ -63,7 +40,16 @@
 					defenses: i,
 					coverage: getSmartDefenseCoverage(defense, i) * 100
 				});
+			}
+		}
 
+		return data;
+	});
+
+	/*let dataQuadTree: DataQuadTree = $derived.by(() => {
+		const dataQuadTree: DataQuadTree = [];
+		if (defense) {
+			for (let i = 0; i <= 100; i += 100 / (numTicks - 1)) {
 				dataQuadTree.push({
 					type: 'Standard',
 					defenses: i,
@@ -77,24 +63,39 @@
 			}
 		}
 
-		/* --------------------------------------------
-		 * Create a "long" format that is a grouped series of data points
-		 * Layer Cake uses this data structure and the key names
-		 * set in xKey, yKey and zKey to map your data into each scale.
-		 */
-		dataLong = seriesNames.map((key) => {
-			return {
-				[zKey]: key,
-				values: data[key].map((d) => {
-					return {
-						[yKey]: d.coverage,
-						[xKey]: d.defenses,
-						[zKey]: key
-					};
-				})
-			};
-		});
-	});
+		return dataQuadTree;
+	});*/
+
+	const xKey = 'defenses';
+	const yKey = 'coverage';
+	const zKey = 'type';
+
+	const seriesNames: DefenseType[] = ['Standard', 'Smart'];
+	const seriesColors = ['stroke-primary', 'stroke-accent'];
+
+	/* --------------------------------------------
+	 * Create a "long" format that is a grouped series of data points
+	 * Layer Cake uses this data structure and the key names
+	 * set in xKey, yKey and zKey to map your data into each scale.
+	 */
+	let dataLong: DataLongType[] = $derived(
+		seriesNames.map((key) => ({
+			[zKey]: key,
+			values: data[key].map((d) => {
+				return {
+					[yKey]: d.coverage,
+					[xKey]: d.defenses,
+					[zKey]: key
+				};
+			})
+		}))
+	);
+	/* --------------------------------------------
+	 * Make a flat array of the `values` of our nested series
+	 * we can pluck the field set from `yKey` from each item
+	 * in the array to measure the full extents
+	 */
+	// TODO - JD - SG Can you confirm that the flatMap on line 112 does the same as this function did?
 </script>
 
 <div class="border border-base-300 bg-base-100 w-full h-full mt-5 pb-7">
@@ -108,7 +109,7 @@
 		yRange={[100, 0]}
 		zScale={scaleOrdinal()}
 		zRange={seriesColors}
-		flatData={flatten(dataLong)}
+		flatData={dataLong.flatMap((x) => x.values)}
 		data={dataLong}
 		ssr={true}
 	>

@@ -1,30 +1,21 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { getGameContext } from '$lib/services/GameContext';
 	import { equal, getMapObjectName, type MapObject } from '$lib/types/MapObject';
 	import { distance } from '$lib/types/Vector';
 
 	const { highlightedMapObject, selectedMapObject, commandedMapObject } = getGameContext();
 
-	let dist = $state(0);
-	let from: MapObject | undefined = $state();
-	let to: MapObject | undefined = $state();
-
-	run(() => {
-		if ($highlightedMapObject) {
-			to = $highlightedMapObject;
-			from = equal($selectedMapObject, $highlightedMapObject)
+	let to: MapObject | undefined = $derived(
+		$highlightedMapObject ? $highlightedMapObject : $selectedMapObject
+	);
+	let from: MapObject | undefined = $derived(
+		$highlightedMapObject
+			? equal($selectedMapObject, $highlightedMapObject)
 				? $commandedMapObject
-				: $selectedMapObject;
-		} else {
-			to = $selectedMapObject;
-			from = $commandedMapObject;
-		}
-	});
-	run(() => {
-		dist = from && to ? distance(from.position, to?.position) : 0;
-	});
+				: $selectedMapObject
+			: $commandedMapObject
+	);
+	let dist = $derived(from && to ? distance(from.position, to?.position) : 0);
 </script>
 
 <div class="flex flex-row justify-start gap-3 h-4 text-sm">
