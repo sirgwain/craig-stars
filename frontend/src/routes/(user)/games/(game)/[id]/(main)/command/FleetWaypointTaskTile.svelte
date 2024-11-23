@@ -152,8 +152,7 @@
 						<button
 							onclick={() =>
 								selectedWaypoint &&
-								onShowTransportTasksDialog &&
-								onShowTransportTasksDialog({ fleet, waypoint: selectedWaypoint })}
+								onShowTransportTasksDialog?.({ fleet, waypoint: selectedWaypoint })}
 							class="btn btn-outline btn-sm normal-case btn-secondary inline-block p-1"
 							><Icon src={PencilSquare} size="16" class="hover:stroke-accent inline" /></button
 						>

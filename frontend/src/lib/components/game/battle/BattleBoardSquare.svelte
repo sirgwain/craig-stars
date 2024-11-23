@@ -77,7 +77,7 @@
 			onclick={() => {
 				if (tokens) {
 					const newTokenIndex = selected ? (tokenIndex + 1) % (tokens?.length ?? 0) : tokenIndex;
-					onselected && onselected(tokens[newTokenIndex]);
+					onselected?.(tokens[newTokenIndex]);
 				}
 			}}
 		></button>

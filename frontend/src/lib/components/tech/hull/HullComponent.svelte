@@ -83,7 +83,7 @@
 		type="button"
 		{onclick}
 		onpointerdown={(e) => {
-			if (shipDesignSlot?.hullComponent && showTooltips) {
+			if (highlighted && shipDesignSlot?.hullComponent && showTooltips) {
 				onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent));
 			}
 		}}

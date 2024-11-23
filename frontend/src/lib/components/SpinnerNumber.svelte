@@ -20,7 +20,7 @@
 			min,
 			max
 		);
-		onchange && onchange(value);
+		onchange?.(value);
 	}
 
 	function decrease(e: MouseEvent | PointerEvent) {
@@ -29,7 +29,7 @@
 			min,
 			max
 		);
-		onchange && onchange(value);
+		onchange?.(value);
 	}
 </script>
 

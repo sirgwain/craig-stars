@@ -107,7 +107,7 @@
 		let newValue = clamp(Math.round(x * capacity), min, max);
 		if (newValue != value) {
 			value = newValue;
-			onvaluechanged && onvaluechanged(value);
+			onvaluechanged?.(value);
 		}
 	}
 </script>

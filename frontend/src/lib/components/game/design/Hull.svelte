@@ -14,11 +14,15 @@
 	type Props = {
 		hull: TechHull;
 		shipDesignSlots?: ShipDesignSlot[];
-		highlightedSlots?: HullSlot[];
+		highlightedSlots?: number[];
 		highlightedClass?: string;
 		cargoCapacity?: any;
 		showTooltips?: boolean;
-		onslotclicked?: (index: number, hullSlot: HullSlot, shipDesignSlot: ShipDesignSlot) => void;
+		onslotclicked?: (
+			index: number,
+			hullSlot: HullSlot,
+			shipDesignSlot: ShipDesignSlot | undefined
+		) => void;
 	};
 
 	let {
@@ -36,7 +40,7 @@
 	class="relative m-2 bg-base-200 dark:bg-base-300"
 	style={`width: ${containerWidth}px; height: ${containerHeight}px`}
 >
-	{#each hull.slots as slot, index}
+	{#each hull.slots as slot, index (index)}
 		{@const shipDesignSlot = shipDesignSlots.find((s) => s.hullSlotIndex === index + 1)}
 		{#if index === 1 && cargoCapacity > 0}
 			<div
@@ -85,14 +89,14 @@
 				type={slot.type}
 				capacity={slot.capacity}
 				required={slot.required}
-				highlighted={highlightedSlots.findIndex((s) => s === slot) !== -1}
+				highlighted={highlightedSlots.findIndex((s) => s === index) !== -1}
 				{highlightedClass}
 				{showTooltips}
 				onclick={() => {
-					onslotclicked && shipDesignSlot && onslotclicked(index, slot, shipDesignSlot);
+					onslotclicked?.(index, slot, shipDesignSlot);
 				}}
 				ondelete={() => {
-					shipDesignSlots = shipDesignSlots.filter((s) => s !== shipDesignSlot);
+					shipDesignSlots = shipDesignSlots.filter((s) => s != shipDesignSlot);
 				}}
 				onupdate={() => {
 					shipDesignSlots = shipDesignSlots;

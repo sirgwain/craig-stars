@@ -38,7 +38,7 @@
 	let { hull, design = $bindable(), error = '', numHullSets = 4, onsave }: Props = $props();
 
 	let designSpec: Spec = $derived(cs.computeShipDesignSpec(design) ?? ({} as Spec));
-	let highlightedSlots: HullSlot[] = $state([]);
+	let highlightedSlots: number[] = $state([]);
 	let highlightedClass: string = $state('');
 
 	// only show hull components that actually fit on this hull
@@ -75,7 +75,7 @@
 	}
 
 	// when a tech is selected from the tech tree
-	function onTechHullComponentClicked(hc: TechHullComponent) {
+	function techHullComponentClicked(hc: TechHullComponent) {
 		if ($shipDesignerContext.selectedSlot && $shipDesignerContext.selectedSlotIndex !== undefined) {
 			// clear out the selected hull component
 			$shipDesignerContext.selectedHullComponent = undefined;
@@ -91,17 +91,24 @@
 				$shipDesignerContext.selectedHullComponent = hc;
 			}
 
+			// we need a filtered list of slot indices that this selected component
+			// can go into so we can highlight it
+			// first build a map of slot/index, then filter it, then return an array
+			// of just the indices
 			highlightedSlots =
-				hull?.slots.filter(
-					(slot) =>
-						$shipDesignerContext.selectedHullComponent &&
-						canFillSlot($shipDesignerContext.selectedHullComponent.hullSlotType, slot.type)
-				) ?? [];
+				hull?.slots
+					.map((slot, index) => ({ slot, index }))
+					.filter(
+						(s) =>
+							$shipDesignerContext.selectedHullComponent &&
+							canFillSlot($shipDesignerContext.selectedHullComponent.hullSlotType, s.slot.type)
+					)
+					.map((s) => s.index) ?? [];
 		}
 	}
 
 	// when a slot is clicked on the hull
-	function onSlotClicked(index: number, slot: HullSlot, shipDesignSlot: ShipDesignSlot) {
+	function slotClicked(index: number, slot: HullSlot, shipDesignSlot: ShipDesignSlot | undefined) {
 		if (
 			$shipDesignerContext.selectedHullComponent &&
 			canFillSlot($shipDesignerContext.selectedHullComponent.hullSlotType, slot.type)
@@ -109,13 +116,13 @@
 			addHullComponent($shipDesignerContext.selectedHullComponent, slot, index);
 		} else {
 			$shipDesignerContext.selectedHullComponent = undefined;
-			if (highlightedSlots.length == 1 && highlightedSlots[0] == slot) {
+			if (highlightedSlots.length == 1 && highlightedSlots[0] == index) {
 				highlightedSlots = [];
 				$shipDesignerContext.selectedSlotIndex = undefined;
 				$shipDesignerContext.selectedSlot = undefined;
 				$shipDesignerContext.selectedShipDesignSlot = undefined;
 			} else {
-				highlightedSlots = [slot];
+				highlightedSlots = [index];
 				highlightedClass = 'border-accent';
 				$shipDesignerContext.selectedSlotIndex = index;
 				$shipDesignerContext.selectedSlot = slot;
@@ -198,7 +205,7 @@
 					{highlightedSlots}
 					highlightedClass={'border-accent'}
 					showTooltips={false}
-					onslotclicked={onSlotClicked}
+					onslotclicked={slotClicked}
 				/>
 			</div>
 			<div class="flex flex-row justify-between pl-2">
@@ -231,7 +238,7 @@
 								<button
 									type="button"
 									class="w-full h-full"
-									onclick={(e) => onTechHullComponentClicked(hc)}
+									onclick={(e) => techHullComponentClicked(hc)}
 								>
 									<div class="flex flex-row place-items-center">
 										<div class="mr-2 pt-1 pl-1">

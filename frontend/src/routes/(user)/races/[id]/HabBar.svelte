@@ -87,8 +87,7 @@
 				<div class="h-full" class:hidden={immune} bind:this={barContainerRef}>
 					{#if position}
 						<div
-							use:draggable={{ bounds: 'parent', position }}
-							onneodrag={(e) => onDrag(e.detail)}
+							use:draggable={{ bounds: 'parent', position, onDrag }}
 							style={`width: ${habWidth.toFixed()}%`}
 							class="h-full"
 							class:grav-bar={habType === HabTypes.Gravity}

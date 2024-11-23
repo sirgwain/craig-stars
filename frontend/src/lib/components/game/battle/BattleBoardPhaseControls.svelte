@@ -18,11 +18,11 @@
 
 	const previous = () => {
 		phase--;
-		onphaseupdated && onphaseupdated(phase);
+		onphaseupdated?.(phase);
 	};
 	const next = () => {
 		phase++;
-		onphaseupdated && onphaseupdated(phase);
+		onphaseupdated?.(phase);
 	};
 	const nextAttack = () => {
 		const nextPhase = battle.actions.findIndex(
@@ -33,16 +33,16 @@
 		if (nextPhase != -1) {
 			phase = nextPhase + 1;
 		}
-		onphaseupdated && onphaseupdated(phase);
+		onphaseupdated?.(phase);
 	};
 
 	const begin = () => {
 		phase = 0;
-		onphaseupdated && onphaseupdated(phase);
+		onphaseupdated?.(phase);
 	};
 	const end = () => {
 		phase = battle.totalPhases;
-		onphaseupdated && onphaseupdated(phase);
+		onphaseupdated?.(phase);
 	};
 </script>
 

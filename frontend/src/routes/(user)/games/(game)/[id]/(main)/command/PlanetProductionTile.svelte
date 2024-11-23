@@ -49,7 +49,7 @@
 	</div>
 	<div class="flex justify-between">
 		<button
-			onclick={() => onShowProductionQueueDialog && onShowProductionQueueDialog({ planet })}
+			onclick={() => onShowProductionQueueDialog?.({ planet })}
 			class="btn btn-outline btn-sm normal-case btn-secondary">Change</button
 		>
 		<button onclick={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>

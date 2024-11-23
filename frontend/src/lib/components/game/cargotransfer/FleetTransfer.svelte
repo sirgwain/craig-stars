@@ -2,7 +2,10 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import MineralBar from '$lib/components/game/MineralBar.svelte';
 	import { add } from '$lib/types/Cargo';
-	import { type CargoTransferRequest, newCargoTransferRequest } from '$lib/types/CargoTransferRequest';
+	import {
+		type CargoTransferRequest,
+		newCargoTransferRequest
+	} from '$lib/types/CargoTransferRequest';
 
 	type Props = {
 		transferAmount: CargoTransferRequest;
@@ -40,8 +43,7 @@
 			color="fuel-bar"
 			unit="mg"
 			readonly={!allowFuelTransfers}
-			onvaluechanged={(value) =>
-				ontransferfuel && ontransferfuel(value - (cargo.fuel + transferAmount.fuel))}
+			onvaluechanged={(value) => ontransferfuel?.(value - (cargo.fuel + transferAmount.fuel))}
 		/>
 	</div>
 
@@ -59,7 +61,7 @@
 			capacity={cargoCapacity}
 			color="ironium-bar"
 			onvaluechanged={(value) =>
-				ontransferironium && ontransferironium(value - (cargo.ironium + transferAmount.ironium))}
+				ontransferironium?.(value - (cargo.ironium + transferAmount.ironium))}
 		/>
 	</div>
 	<div class="sm:text-right mr-1 h-8">Boranium</div>
@@ -69,8 +71,7 @@
 			capacity={cargoCapacity}
 			color="boranium-bar"
 			onvaluechanged={(value) =>
-				ontransferboranium &&
-				ontransferboranium(value - (cargo.boranium + transferAmount.boranium))}
+				ontransferboranium?.(value - (cargo.boranium + transferAmount.boranium))}
 		/>
 	</div>
 	<div class="sm:text-right mr-1 h-8">Germanium</div>
@@ -80,8 +81,7 @@
 			capacity={cargoCapacity}
 			color="germanium-bar"
 			onvaluechanged={(value) =>
-				ontransfergermanium &&
-				ontransfergermanium(value - (cargo.germanium + transferAmount.germanium))}
+				ontransfergermanium?.(value - (cargo.germanium + transferAmount.germanium))}
 		/>
 	</div>
 
@@ -92,8 +92,7 @@
 			capacity={cargoCapacity}
 			color="colonists-bar"
 			onvaluechanged={(value) =>
-				ontransfercolonists &&
-				ontransfercolonists(value - (cargo.colonists + transferAmount.colonists))}
+				ontransfercolonists?.(value - (cargo.colonists + transferAmount.colonists))}
 		/>
 	</div>
 </div>

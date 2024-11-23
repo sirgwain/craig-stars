@@ -86,7 +86,7 @@
 		document.body.classList.remove('select-none', 'touch-none');
 		document.body.classList.add('touch-manipulation');
 		pointerDown = false;
-		onvaluechanged && onvaluechanged(value);
+		onvaluechanged?.(value);
 	}
 
 	const onPointerMove = (e: PointerEvent) => {
@@ -136,7 +136,7 @@
 		const newValue = clamp(Math.round(x * max), min, max);
 		if (newValue != value) {
 			value = newValue;
-			onvaluedragged && onvaluedragged(value);
+			onvaluedragged?.(value);
 		}
 	};
 </script>
