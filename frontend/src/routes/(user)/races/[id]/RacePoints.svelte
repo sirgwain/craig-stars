@@ -11,25 +11,15 @@
 	};
 
 	let { race, onPointsUpdated }: Props = $props();
-	let points = $state(0);
 
 	let cs: CS | undefined = $state();
+	let points = $derived(cs ? (cs.calculateRacePoints(race) ?? 0) : 0);
 
 	onMount(async () => {
 		cs = await loadWasm();
 	});
 
-	// update points from the server anytime things change
-	const computeRacePoints = async (race: Race) => {
-		if (cs) {
-			points = cs.calculateRacePoints(race) ?? 0;
-		}
-	};
-
-	$effect(() => {
-		race && cs && computeRacePoints(race);
-		onPointsUpdated?.(points);
-	});
+	$effect(() => onPointsUpdated?.(points));
 </script>
 
 <div class="sticky top-[4rem] z-10">

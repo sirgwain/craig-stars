@@ -52,7 +52,7 @@
 		notify('Saved ' + race.pluralName);
 	};
 
-	let points = $state(0);
+	let saveDisabled = $state(false);
 </script>
 
 {#if race}
@@ -63,11 +63,11 @@
 		}}
 	>
 		<div class="w-full flex justify-end gap-2">
-			<button class="btn btn-success" type="submit" disabled={points < 0}>Save</button>
+			<button class="btn btn-success" type="submit" disabled={saveDisabled}>Save</button>
 		</div>
 
 		<ItemTitle>{race.name}</ItemTitle>
-		<RacePoints {race} onPointsUpdated={(updated) => (points = updated)} />
+		<RacePoints {race} onPointsUpdated={(points) => (saveDisabled = points < 0)} />
 		<RaceEditor bind:race />
 	</form>
 {/if}

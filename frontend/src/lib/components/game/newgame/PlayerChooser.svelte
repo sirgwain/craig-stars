@@ -29,11 +29,6 @@
 			race = newRace;
 		}
 	}
-
-	let points = $state(0);
-	$effect(() => {
-		valid = points >= 0;
-	});
 </script>
 
 {#if races.length > 0}
@@ -48,6 +43,6 @@
 	</select>
 {:else}
 	<ItemTitle>Your Race</ItemTitle>
-	<RacePoints {race} onPointsUpdated={(updated) => (points = updated)} />
+	<RacePoints {race} onPointsUpdated={(points) => (valid = points >= 0)} />
 	<RaceEditor bind:race />
 {/if}
