@@ -58,11 +58,30 @@
 	});
 
 	onDestroy(() => {
+		hotkeys.deleteScope('root');
+				
 		if (!context) return;
 
-		hotkeys.deleteScope('root');
-
 		unsubscribe && unsubscribe();
+	});
+
+	// if no context is defined, create it
+	$effect(() => {
+		if (context && !contextSetup) {
+			contextSetup = true;
+
+			// store the latest state/year so we can reload if the game changes
+			const game = get(context.game);
+			gameState = game.state;
+			year = game.year;
+			context.commandHomeWorld();
+
+			// subscribe to game change events so we do a full reload if the year/state changes
+			unsubscribe = context.game.subscribe(onGameChange);
+
+			// setup the context for our child components
+			setContext(gameKey, context);
+		}
 	});
 
 	// every time the game updates, check if we have a new year/state change
@@ -124,25 +143,6 @@
 			// console.timeEnd('onSubmitTurn');
 		}
 	}
-
-	// update the context of the game
-	run(() => {
-		if (context && !contextSetup) {
-			contextSetup = true;
-
-			// store the latest state/year so we can reload if the game changes
-			const game = get(context.game);
-			gameState = game.state;
-			year = game.year;
-			context.commandHomeWorld();
-
-			// subscribe to game change events so we do a full reload if the year/state changes
-			unsubscribe = context.game.subscribe(onGameChange);
-
-			// setup the context for our child components
-			setContext(gameKey, context);
-		}
-	});
 </script>
 
 {#if contextSetup}

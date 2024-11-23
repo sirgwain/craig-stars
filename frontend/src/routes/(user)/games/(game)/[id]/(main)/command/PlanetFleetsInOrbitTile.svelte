@@ -9,7 +9,7 @@
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 
@@ -21,19 +21,17 @@
 	} & ShowCargoTransferDialogProps;
 
 	let { planet, fleetsInOrbit, onShowCargoTransferDialog }: Props = $props();
-	let selectedFleet: Fleet | undefined = $state();
 	let selectedFleetIndex = $state(0);
 
-	run(() => {
+	let selectedFleet: Fleet | undefined = $derived.by(() => {
 		if (fleetsInOrbit.length > 0) {
-			selectedFleet = fleetsInOrbit[selectedFleetIndex];
+			return fleetsInOrbit[selectedFleetIndex];
 		} else {
-			selectedFleet = undefined;
+			return undefined;
 		}
 	});
 
 	const onSelectedFleetChange = (index: number) => {
-		selectedFleet = fleetsInOrbit[index];
 		selectedFleetIndex = index;
 	};
 
@@ -51,8 +49,9 @@
 		}
 	};
 
-	const unsubscribe = commandedMapObjectKey.subscribe(() => (selectedFleetIndex = 0));
-	onDestroy(unsubscribe);
+	onMount(() => {
+		return commandedMapObjectKey.subscribe(() => (selectedFleetIndex = 0));
+	});
 </script>
 
 <CommandTile title="Fleets In Orbit">
