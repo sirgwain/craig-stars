@@ -48,6 +48,6 @@
 	</select>
 {:else}
 	<ItemTitle>Your Race</ItemTitle>
-	<RacePoints bind:points {race} />
+	<RacePoints {race} onPointsUpdated={(updated) => (points = updated)} />
 	<RaceEditor bind:race />
 {/if}

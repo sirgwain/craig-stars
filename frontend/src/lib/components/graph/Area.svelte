@@ -3,8 +3,6 @@
   Generates an SVG area shape using the `area` function from [d3-shape](https://github.com/d3/d3-shape).
  -->
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 

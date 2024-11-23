@@ -3,8 +3,6 @@
   A mysterytrader that is flying outside of a planet
  -->
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { radiansToDegrees } from '$lib/services/Math';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
 	import type { LayerCake } from 'layercake';

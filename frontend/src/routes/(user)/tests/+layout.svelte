@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
+	
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
 	import TestBreadcrumb from './TestBreadcrumb.svelte';
@@ -12,7 +11,7 @@
 
 	let title = $state(getContext<string>('title'));
 
-	run(() => {
+	$effect(() => {
 		title = getContext('title') ?? $page.route.id?.replace('tests/', '') ?? '';
 	});
 </script>

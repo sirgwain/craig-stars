@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { startCase } from 'lodash-es';
 
 	type Props = {

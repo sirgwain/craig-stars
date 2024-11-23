@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import type { ShowProductionQueueDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
@@ -15,7 +13,9 @@
 	} & ShowProductionQueueDialogProps;
 
 	let { planet = $bindable(), onShowProductionQueueDialog }: Props = $props();
-	let queueItems: ProductionQueueItem[] | undefined = $state(undefined);
+	let queueItems: ProductionQueueItem[] | undefined = $derived(
+		planet.updateProductionQueueEstimates(cs)
+	);
 
 	const clear = async () => {
 		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
@@ -23,10 +23,6 @@
 			updatePlanetOrders(planet);
 		}
 	};
-
-	run(() => {
-		queueItems = planet.updateProductionQueueEstimates(cs);
-	});
 </script>
 
 <CommandTile title="Production">

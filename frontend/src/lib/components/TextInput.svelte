@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { startCase } from 'lodash-es';
 
 	type Props = {
@@ -20,7 +18,6 @@
 		required = false,
 		disabled = false
 	}: Props = $props();
-
 </script>
 
 <div class="w-full flex-grow">

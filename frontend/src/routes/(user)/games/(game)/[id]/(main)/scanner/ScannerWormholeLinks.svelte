@@ -1,11 +1,8 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { getGameContext } from '$lib/services/GameContext';
-	import { subtract, normalized } from '$lib/types/Vector';
+	import { normalized, subtract } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
 
 	type Line = {
 		path: string;

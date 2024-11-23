@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { getGameContext } from '$lib/services/GameContext';
 	import { filterFleet } from '$lib/types/Filter';
 	import { type Fleet } from '$lib/types/Fleet';
@@ -36,7 +34,7 @@
 			)
 	);
 	let { enemies, friends } = $derived(getEnemiesAndFriends(orbitingFleets, $player));
-	
+
 	let textColor = $derived.by(() => {
 		if (friends && !enemies) {
 			return 'fill-orbit-friends';

@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getScannerTarget } from '$lib/types/Battle';
 	import type { MapObject } from '$lib/types/MapObject';

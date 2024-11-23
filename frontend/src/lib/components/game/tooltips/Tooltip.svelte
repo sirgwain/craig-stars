@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { tooltipComponent, tooltipLocation } from '$lib/services/Stores';
 
 	const minWidth = 380;

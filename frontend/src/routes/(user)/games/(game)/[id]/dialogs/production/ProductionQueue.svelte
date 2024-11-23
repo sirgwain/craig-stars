@@ -8,8 +8,7 @@
 </script>
 
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
+	import { asyncToVoidWrapper } from '$lib/asyncToVoid';
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import { onAllocatedTooltip } from '$lib/components/game/tooltips/AllocatedTooltip.svelte';
@@ -39,7 +38,6 @@
 	import { clamp } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
-	import { asyncToVoidWrapper } from '$lib/asyncToVoid';
 
 	const { cs, game, player, universe } = getGameContext();
 

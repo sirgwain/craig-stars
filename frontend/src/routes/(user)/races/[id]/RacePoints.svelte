@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import { assets } from '$app/paths';
 	import type { Race } from '$lib/types/Race';
 	import { loadWasm, type CS } from '$lib/wasm';
 	import { User } from '@steeze-ui/heroicons';
@@ -10,10 +7,11 @@
 
 	type Props = {
 		race: Race;
-		points: number;
+		onPointsUpdated?: (points: number) => void;
 	};
 
-	let { race, points = $bindable() }: Props = $props();
+	let { race, onPointsUpdated }: Props = $props();
+	let points = $state(0);
 
 	let cs: CS | undefined = $state();
 
@@ -28,8 +26,9 @@
 		}
 	};
 
-	run(() => {
+	$effect(() => {
 		race && cs && computeRacePoints(race);
+		onPointsUpdated?.(points);
 	});
 </script>
 

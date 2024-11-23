@@ -1,22 +1,24 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { page } from '$app/stores';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { Fleet } from '$lib/types/Fleet';
+	import { onMount } from 'svelte';
 	import MergeFleets from '../../../dialogs/merge/MergeFleets.svelte';
 
 	const { game, player, universe, commandedFleet, commandMapObject, merge } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	let fleetsInOrbit: Fleet[] = $state([]);
-
-	run(() => {
+	let fleetsInOrbit: Fleet[] = $derived.by(() => {
 		if ($commandedFleet && $commandedFleet.num === num) {
-			fleetsInOrbit = $universe
+			return $universe
 				.getMyFleetsByPosition($commandedFleet)
 				.filter((mo) => mo.num !== $commandedFleet?.num) as Fleet[];
-		} else {
+		}
+		return [];
+	});
+
+	onMount(() => {
+		if (!$commandedFleet || $commandedFleet.num !== num) {
 			const fleet = $universe.getFleet($player.num, num);
 			if (fleet) {
 				commandMapObject(fleet);

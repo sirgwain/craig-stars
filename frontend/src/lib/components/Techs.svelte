@@ -1,18 +1,16 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import techjson from '$lib/ssr/techs.json';
 	import { Player, canLearnTech } from '$lib/types/Player';
 	import { TechCategory, type Tech, type TechStore } from '$lib/types/Tech';
+	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
+	import type { CS } from '$lib/wasm';
 	import { kebabCase, sortBy, startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
-	import SectionHeader from './SectionHeader.svelte';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
 	import ItemTitle from './ItemTitle.svelte';
-	import type { CS } from '$lib/wasm';
+	import SectionHeader from './SectionHeader.svelte';
 
 	type Props = {
 		// for ssr, we start with techs from a json file

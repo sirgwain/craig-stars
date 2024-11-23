@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { MapObjectType, type MovingMapObject } from '$lib/types/MapObject';
 
 	import { getGameContext } from '$lib/services/GameContext';

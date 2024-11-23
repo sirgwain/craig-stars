@@ -1,24 +1,22 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import ErrorPage from '$lib/components/ErrorPage.svelte';
 	import Menu from '$lib/components/Menu.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
-	import { createGameContext, gameKey, type GameContext } from '$lib/services/GameContext';
 	import type { CSError } from '$lib/services/Errors';
 	import type { FullGame } from '$lib/services/FullGame';
+	import { createGameContext, gameKey, type GameContext } from '$lib/services/GameContext';
 	import { GameService } from '$lib/services/GameService';
 	import { clearLoadingModalText, me, setLoadingModalText } from '$lib/services/Stores';
 	import { GameState } from '$lib/types/Game';
 	import { wait } from '$lib/wait';
+	import { loadWasm } from '$lib/wasm';
 	import hotkeys from 'hotkeys-js';
 	import { onDestroy, onMount, setContext, type Snippet } from 'svelte';
 	import type { Unsubscriber } from 'svelte/store';
 	import { get } from 'svelte/store';
 	import GameLayout from './GameLayout.svelte';
-	import { goto } from '$app/navigation';
-	import { loadWasm } from '$lib/wasm';
 	type Props = {
 		children?: Snippet;
 	};
@@ -59,7 +57,7 @@
 
 	onDestroy(() => {
 		hotkeys.deleteScope('root');
-				
+
 		if (!context) return;
 
 		unsubscribe && unsubscribe();

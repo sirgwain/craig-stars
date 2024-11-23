@@ -3,23 +3,24 @@
 
 	import { goto } from '$app/navigation';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import { addError, CSError } from '$lib/services/Errors';
+	import { notify } from '$lib/services/Notifications';
 	import { RaceService } from '$lib/services/RaceService';
 	import { Service } from '$lib/services/Service';
 	import { humanoid, type Race } from '$lib/types/Race';
 	import { onMount } from 'svelte';
 	import RaceEditor from './RaceEditor.svelte';
 	import RacePoints from './RacePoints.svelte';
-	import { notify } from '$lib/services/Notifications';
 
 	let id = $page.params.id;
-	let race: Race = $state();
+	let race: Race = $state(humanoid());
 
 	onMount(async () => {
 		if (id !== 'new') {
 			try {
 				race = await RaceService.get(id);
-			} catch (err) {
-				// TODO: show error
+			} catch (e) {
+				addError(e as CSError);
 			}
 		} else {
 			// create a new humanoid
@@ -66,7 +67,7 @@
 		</div>
 
 		<ItemTitle>{race.name}</ItemTitle>
-		<RacePoints bind:points {race} />
+		<RacePoints {race} onPointsUpdated={(updated) => (points = updated)} />
 		<RaceEditor bind:race />
 	</form>
 {/if}

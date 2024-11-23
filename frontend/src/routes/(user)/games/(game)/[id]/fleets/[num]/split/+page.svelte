@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { page } from '$app/stores';
 	import { getGameContext } from '$lib/services/GameContext';
-	import SplitFleet from '../../../dialogs/split/SplitFleet.svelte';
 	import { onMount } from 'svelte';
+	import SplitFleet from '../../../dialogs/split/SplitFleet.svelte';
 
 	const { player, universe, commandMapObject, commandedFleet } = getGameContext();
 	let num = parseInt($page.params.num);

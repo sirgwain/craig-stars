@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { goto } from '$app/navigation';
-	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import CargoMini from '$lib/components/game/CargoMini.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { fleetsSortBy, getLocation, getEta, type Fleet } from '$lib/types/Fleet';
+	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
+	import { fleetsSortBy, getEta, getLocation, type Fleet } from '$lib/types/Fleet';
 
 	const { game, player, universe, settings, commandMapObject, zoomToMapObject } = getGameContext();
 

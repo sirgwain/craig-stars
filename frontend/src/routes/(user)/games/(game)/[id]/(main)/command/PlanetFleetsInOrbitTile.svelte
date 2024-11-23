@@ -1,17 +1,15 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
+	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { canTransferCargo, CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 
 	const { universe, commandedMapObjectKey, commandMapObject } = getGameContext();
 
