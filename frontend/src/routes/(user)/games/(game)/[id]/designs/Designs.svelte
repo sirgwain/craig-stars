@@ -39,7 +39,15 @@
 		);
 	});
 
-	const columns: TableColumn<ShipDesign>[] = [
+	type TableShipDesign = ShipDesign & {
+		rating?: never;
+		armor?: never;
+		shields?: never;
+		initiative?: never;
+		movement?: never;
+		mass?: never;
+	};
+	const columns: TableColumn<TableShipDesign>[] = [
 		{
 			key: 'playerNum',
 			title: 'Player'

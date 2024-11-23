@@ -10,8 +10,10 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
+	import { addError, CSError } from '$lib/services/Errors';
 
-	const columns: TableColumn<Race>[] = [
+	type TableRace = Race & { action?: never };
+	const columns: TableColumn<TableRace>[] = [
 		{
 			key: 'pluralName',
 			title: 'Race'
@@ -26,35 +28,30 @@
 		},
 		{
 			key: 'action',
-			title: ''
+			title: '',
+			sortable: false
 		}
 	];
 
 	// filterable races
-	let races: Race[] = $state();
-	let filteredRaces: Race[] = $state([]);
+	let races: Race[] = $state([]);
 	let search = $state('');
+	let filteredRaces: Race[] = $derived(
+		races.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
+	);
 
-	run(() => {
-		filteredRaces = races;
-	});
-
-	run(() => {
-		filteredRaces = races?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1);
-	});
-
-	export const removeItem = async (item: Race) => {
+	async function removeItem(item: Race) {
 		if (item.id && confirm(`Are you sure you want to delete ${item.name}`)) {
 			await RaceService.delete(item);
 			races = races.filter((b) => b.id != item.id);
 		}
-	};
+	}
 
 	onMount(async () => {
 		try {
 			races = await RaceService.load();
-		} catch (err) {
-			// TODO: show error
+		} catch (e) {
+			addError(e as CSError);
 		}
 	});
 </script>

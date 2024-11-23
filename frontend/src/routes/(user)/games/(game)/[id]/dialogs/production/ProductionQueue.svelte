@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts">
-	import { preventDefault, run } from 'svelte/legacy';
+	import { run } from 'svelte/legacy';
 
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
@@ -39,15 +39,16 @@
 	import { clamp } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
+	import { asyncToVoidWrapper } from '$lib/asyncToVoid';
 
 	const { cs, game, player, universe } = getGameContext();
 
 	type Props = {
 		planet: CommandedPlanet;
-		onOk: OnOk<CommandedPlanet>;
-		onCancel: OnCancel;
-		onNext: () => void;
-		onPrev: () => void;
+		onOk?: OnOk<CommandedPlanet>;
+		onCancel?: OnCancel;
+		onNext?: () => Promise<void>;
+		onPrev?: () => Promise<void>;
 	};
 
 	let { planet = $bindable(), onOk, onCancel, onNext, onPrev }: Props = $props();
@@ -73,7 +74,7 @@
 		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
 	}
 
-	function queueItemClicked(index: number, item?: ProductionQueueItem) {
+	function onQueueItemClicked(index: number, item?: ProductionQueueItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
 		selectedQueueItemCost = $player.getItemCost(
@@ -310,27 +311,29 @@
 		}
 	}
 
-	function next() {
+	async function next() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		onNext();
+		await onNext?.();
+		resetQueue();
 	}
 
-	function prev() {
+	async function prev() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		onPrev();
+		await onPrev?.();
+		resetQueue();
 	}
 
 	function ok() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		onOk(planet);
+		onOk?.(planet);
 	}
 	function cancel() {
 		if (planet) {
 			resetQueue();
-			onCancel();
+			onCancel?.();
 		}
 	}
 
@@ -371,17 +374,21 @@
 	onMount(() => {
 		const originalScope = hotkeys.getScope();
 		const scope = 'production';
+		const syncNext = asyncToVoidWrapper(next);
+		const syncPrev = asyncToVoidWrapper(prev);
 		hotkeys('Esc', cancel);
 		hotkeys('Enter', ok);
-		hotkeys('n', scope, next);
-		hotkeys('p', scope, prev);
+		hotkeys('n', scope, syncNext);
+		hotkeys('p', scope, syncPrev);
 		hotkeys.setScope(scope);
+
+		resetQueue();
 
 		return () => {
 			hotkeys.unbind('Esc', cancel);
 			hotkeys.unbind('Enter', ok);
-			hotkeys.unbind('n', scope, next);
-			hotkeys.unbind('p', scope, prev);
+			hotkeys.unbind('n', scope, syncNext);
+			hotkeys.unbind('p', scope, syncPrev);
 			hotkeys.deleteScope(scope);
 			hotkeys.setScope(originalScope);
 		};
@@ -419,10 +426,6 @@
 		selectedQueueItem ? getPercentComplete(selectedQueueItem) : 0
 	);
 	let updatedPlanet = $derived(Object.assign(new CommandedPlanet(), planet));
-	// clone the production queue whenever the planet is updated
-	run(() => {
-		planet && resetQueue();
-	});
 </script>
 
 <div class="flex flex-col h-full bg-base-200 shadow rounded-sm border-2 border-base-300 text-base">
@@ -443,9 +446,8 @@
 											type="button"
 											onclick={() => availableItemSelected(item)}
 											ondblclick={(e) => addAvailableItem(e, item)}
-											oncontextmenu={preventDefault((e) =>
-												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))
-											)}
+											oncontextmenu={(e) =>
+												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
@@ -470,9 +472,8 @@
 											type="button"
 											onclick={() => availableItemSelected(item)}
 											ondblclick={(e) => addAvailableItem(e, item)}
-											oncontextmenu={preventDefault((e) =>
-												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))
-											)}
+											oncontextmenu={(e) =>
+												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
@@ -584,12 +585,13 @@
 						</button>
 						<select
 							class="select select-outline select-sm select-secondary w-12 sm:w-full text-secondary"
-							onchange={preventDefault((e) => {
+							onchange={(e) => {
+								e.preventDefault();
 								applyPlan(
 									$player.productionPlans.find((p) => p.num == parseInt(e.currentTarget.value))
 								);
 								e.currentTarget.value = '0';
-							})}
+							}}
 						>
 							<option value={0}>Apply Plan</option>
 							{#each $player.productionPlans as plan}
@@ -607,7 +609,7 @@
 							<li>
 								<button
 									type="button"
-									onclick={() => queueItemClicked(-1)}
+									onclick={() => onQueueItemClicked(-1)}
 									class:bg-primary={selectedQueueItemIndex === -1}
 									class="w-full pl-1 select-none cursor-default hover:text-secondary-focus"
 								>
@@ -620,7 +622,7 @@
 										<ProductionQueueItemLine
 											item={queueItem}
 											{index}
-											on:queue-item-clicked={() => queueItemClicked(index, queueItem)}
+											{onQueueItemClicked}
 											selected={queueItem === selectedQueueItem}
 										/>
 									</li>

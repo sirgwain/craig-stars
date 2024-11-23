@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
-
 	import { goto } from '$app/navigation';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
@@ -18,29 +16,31 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
 
-	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
-		getGameContext();
-
-	const selectPlanet = (planet: Planet) => {
-		if (ownedBy(planet, $player.num)) {
-			commandMapObject(planet);
-		}
-		selectMapObject(planet);
-		zoomToMapObject(planet);
-		goto(`/games/${$game.id}`);
-	};
+	const {
+		game,
+		player,
+		universe,
+		settings,
+		commandedPlanet,
+		commandMapObject,
+		selectMapObject,
+		zoomToMapObject,
+		nextMapObject,
+		previousMapObject,
+		updatePlanetOrders
+	} = getGameContext();
 
 	// filterable planets
-	let filteredPlanets: Planet[] = $state([]);
 	let search = $state('');
 
 	// production queue dialog
 	let showProductionQueueDialog = $state(false);
 
-	run(() => {
-		filteredPlanets = $settings.showAllPlanets
+	let filteredPlanets: Planet[] = $derived(
+		$settings.showAllPlanets
 			? ($universe
 					.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
+					.map<TablePlanet>((r) => r as TablePlanet)
 					.filter(
 						(i) =>
 							i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
@@ -51,10 +51,26 @@
 					) ?? [])
 			: ($universe
 					.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
-					.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? []);
-	});
+					.map<TablePlanet>((r) => r as TablePlanet)
+					.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [])
+	);
 
-	let columns = $derived([
+	// columns change based on whether we are showing all planets or just the player planets
+	type TablePlanet = Planet & {
+		owner?: never;
+		population?: never;
+		populationDensity?: never;
+		populationGrowth?: never;
+		habitability?: never;
+		production?: never;
+		defense?: never;
+		minerals?: never;
+		miningRate?: never;
+		resources?: never;
+		driverDest?: never;
+		routingDestination?: never;
+	};
+	let columns: TableColumn<TablePlanet>[] = $derived([
 		{
 			key: 'name',
 			title: 'Name',
@@ -165,9 +181,9 @@
 			hidden: $settings.showAllPlanets,
 			sortable: false
 		}
-	] as TableColumn<Planet>[]);
+	]);
 
-	function onSorted(column: TableColumn<Planet>, sortDescending: boolean) {
+	function onSorted(column: TableColumn<TablePlanet>, sortDescending: boolean) {
 		$settings.sortPlanetsDescending = sortDescending;
 		$settings.sortPlanetsKey = column.key;
 	}
@@ -183,6 +199,37 @@
 			player: $player,
 			planet
 		});
+	}
+
+	function selectPlanet(planet: Planet) {
+		if (ownedBy(planet, $player.num)) {
+			commandMapObject(planet);
+		}
+		selectMapObject(planet);
+		zoomToMapObject(planet);
+		goto(`/games/${$game.id}`);
+	}
+
+	async function onNextPlanet(updateOrders: boolean) {
+		if (!$commandedPlanet) {
+			return;
+		}
+		if (updateOrders) {
+			await updatePlanetOrders($commandedPlanet);
+		}
+
+		nextMapObject();
+	}
+
+	async function onPrevPlanet(updateOrders: boolean) {
+		if (!$commandedPlanet) {
+			return;
+		}
+		if (updateOrders) {
+			await updatePlanetOrders($commandedPlanet);
+		}
+
+		previousMapObject();
 	}
 </script>
 
@@ -215,9 +262,7 @@
 					{column}
 					isSorted={$settings.sortPlanetsKey === column.key}
 					sortDescending={$settings.sortPlanetsDescending}
-					on:sorted={(e) => {
-						onSorted(column, e.detail.sortDescending);
-					}}
+					{onSorted}
 				/>
 			</div>
 		{/snippet}
@@ -242,24 +287,15 @@
 				{:else if column.key == 'starbase'}
 					{row.spec.starbaseDesignName ?? ''}
 				{:else if column.key == 'population'}
-					<div
-						class="cursor-help"
-						onpointerdown={preventDefault((e) => onPopulationTooltip(e, row))}
-					>
+					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
 						{row.spec.population ? row.spec.population.toLocaleString() : ''}
 					</div>
 				{:else if column.key == 'populationDensity'}
-					<div
-						class="cursor-help"
-						onpointerdown={preventDefault((e) => onPopulationTooltip(e, row))}
-					>
+					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
 						{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
 					</div>
 				{:else if column.key == 'populationGrowth'}
-					<div
-						class="cursor-help"
-						onpointerdown={preventDefault((e) => onPopulationTooltip(e, row))}
-					>
+					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
 						{(row.spec.growthAmount ?? 0).toLocaleString()}
 					</div>
 				{:else if column.key == 'habitability'}
@@ -319,4 +355,13 @@
 	</Table>
 </div>
 
-<ProductionQueueDialog bind:show={showProductionQueueDialog} />
+<ProductionQueueDialog
+	show={showProductionQueueDialog}
+	onNext={() => onNextPlanet(true)}
+	onPrev={() => onPrevPlanet(true)}
+	onOk={(planet) => {
+		showProductionQueueDialog = false;
+		updatePlanetOrders(planet);
+	}}
+	onCancel={() => (showProductionQueueDialog = false)}
+/>

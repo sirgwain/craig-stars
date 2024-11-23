@@ -14,17 +14,13 @@
 	const { game, player, universe, settings, gotoBattle } = getGameContext();
 
 	// filterable battles
-	let filteredBattles: BattleRecordDetails[] = $state([]);
 	let search = $state('');
 
-	let battleRows = $derived(
-		$universe.getBattles($settings.sortBattlesKey, $settings.sortBattlesDescending, $player)
+	let filteredBattles = $derived(
+		$universe
+			.getBattles($settings.sortBattlesKey, $settings.sortBattlesDescending, $player)
+			.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? []
 	);
-
-	run(() => {
-		filteredBattles =
-			battleRows.filter((i) => i.location.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
-	});
 
 	const columns: TableColumn<BattleRecordDetails>[] = [
 		{
@@ -107,9 +103,7 @@
 					{column}
 					isSorted={$settings.sortBattlesKey === column.key}
 					sortDescending={$settings.sortBattlesDescending}
-					on:sorted={(e) => {
-						onSorted(column, e.detail.sortDescending);
-					}}
+					{onSorted}
 				/>
 			</span>
 		{/snippet}

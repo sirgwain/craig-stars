@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	export interface TableColumn<T> {
-		key: string;
+		key: keyof Partial<T>;
 		title: string;
 		sortable?: boolean;
 		filterable?: boolean;
@@ -8,10 +8,27 @@
 		sortBy?: (a: T, b: T) => number;
 		filterBy?: (value: string, row: T) => boolean;
 	}
+
+	// generic sortBy function
+	export function defaultSortBy<T extends Partial<Record<K, any>>, K extends keyof T>(
+		a: T,
+		b: T,
+		key: K,
+		sortDescending: boolean
+	): number {
+		let [aField, bField] = [a[key], b[key]];
+		if (sortDescending) [bField, aField] = [aField, bField];
+		if (typeof aField === 'number') return aField - bField;
+		if (typeof aField === 'boolean') return aField ? -1 : 1;
+		return aField?.localeCompare(bField);
+	}
 </script>
 
 <script lang="ts">
-	type T = $$Generic<Record>;
+	import type { Snippet } from 'svelte';
+
+	type T = $$Generic<Partial<Record>>;
+	type C = $$Generic<T>;
 	type TableClasses = Partial<
 		Record<'table' | 'thead' | 'headtr' | 'th' | 'tbody' | 'tr' | 'td', string>
 	>;
@@ -28,13 +45,15 @@
 
 	type Props = {
 		classes?: TableClasses;
-		columns?: TableColumn<T>[];
+		columns?: TableColumn<C>[];
 		rows?: T[];
 		filterBy?: string;
 		externalSortAndFilter?: boolean;
-		head?: import('svelte').Snippet<[any]>;
-		cell?: import('svelte').Snippet<[any]>;
-		empty?: import('svelte').Snippet;
+		head?: Snippet<
+			[{ isSorted: boolean; sortDescending: boolean; sortable: boolean; column: TableColumn<T> }]
+		>;
+		cell?: Snippet<[{ row: T; column: TableColumn<C>; cell: any }]>;
+		empty?: Snippet;
 	};
 
 	let {
@@ -48,7 +67,7 @@
 		empty
 	}: Props = $props();
 
-	let lastSortedKey = $state('');
+	let lastSortedKey: keyof C | '' = $state('');
 	let sortDescending = $state(false);
 
 	/**
@@ -56,7 +75,7 @@
 	 * @param key the column key to sort by
 	 * @param override true to force sort by descending
 	 */
-	function sortRowsBy(key: string, override = false): void {
+	function sortRowsBy(key: keyof C, override = false): void {
 		const columnData = columns.find((column) => column.key === key);
 		if (!columnData || columnData.sortable === false) {
 			return;
@@ -76,13 +95,7 @@
 		}
 
 		// sort by content by default
-		rows = [...rows].sort((a, b) => {
-			[a, b] = [a[key], b[key]];
-			if (sortDescending) [b, a] = [a, b];
-			if (typeof a === 'number') return a - b;
-			if (typeof a === 'boolean') return a ? -1 : 1;
-			return a?.localeCompare(b);
-		});
+		rows = [...rows].sort((a, b) => defaultSortBy(a, b, key, sortDescending));
 	}
 
 	function getSortingOrder(key: any, override = false): boolean {

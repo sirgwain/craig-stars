@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
+	import Table, { defaultSortBy, type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { AdminService } from '$lib/services/AdminService';
+	import { addError, CSError } from '$lib/services/Errors';
 	import type { Game } from '$lib/types/Game';
 	import type { User } from '$lib/types/User';
-	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import { format, parseJSON } from 'date-fns';
 	import { sortBy } from 'lodash-es';
 	import { onMount } from 'svelte';
@@ -46,28 +45,37 @@
 			sortBy: (a, b) => a.players.length - b.players.length
 		}
 	];
+	sortBy;
 
 	// filterable games
-	let games: Game[] = $state();
-	let usersById: Map<number, User> = $state();
-	let sortKey = $state('updatedAt');
-	let descending = $state(true);
-	let sortedGames: Game[] = $derived(
-		sortBy(
-			games?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1),
-			sortKey
-		)
+	let games: Game[] = $state([]);
+	let usersById: Map<number, User> = $state(new Map<number, User>());
+	let sortKey = $state(localStorage.getItem('allGamesSortKey') ?? 'updatedAt') as keyof Game;
+	let sortDescending: boolean = $state(
+		(localStorage.getItem('allGamesSortDescending') ?? 'true') === 'true'
 	);
-	let filteredGames: Game[] = $derived(descending ? sortedGames.toReversed() : sortedGames);
+	let filteredGames: Game[] = $derived(
+		games
+			?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
+			.sort((a, b) => defaultSortBy(a, b, sortKey, sortDescending))
+	);
 	let search = $state('');
+
+	function onSorted(column: TableColumn<Game>, descending: boolean) {
+		sortDescending = descending;
+		sortKey = column.key;
+
+		localStorage.setItem('allGamesSortKey', sortKey);
+		localStorage.setItem('allGamesSortDescending', `${sortDescending}`);
+	}
 
 	onMount(async () => {
 		try {
 			const users = await AdminService.loadUsers();
 			usersById = new Map(users.map((u) => [u.id, u]));
 			games = await AdminService.loadGames();
-		} catch (_err) {
-			// TODO: show error
+		} catch (e) {
+			addError(e as CSError);
 		}
 	});
 </script>
@@ -79,22 +87,20 @@
 	<Table
 		{columns}
 		rows={filteredGames}
+		externalSortAndFilter={true}
 		classes={{
 			table: 'table table-compact table-auto w-full',
 			td: 'first:table-cell [&:nth-child(2)]:table-cell [&:nth-child(3)]:table-cell hidden sm:table-cell',
 			th: 'first:table-cell [&:nth-child(2)]:table-cell [&:nth-child(3)]:table-cell hidden sm:table-cell'
 		}}
 	>
-		{#snippet head({ isSorted, sortDescending, column })}
+		{#snippet head({ column })}
 			<span>
 				<SortableTableHeader
 					{column}
-					isSorted={isSorted || sortKey === column.key}
-					sortDescending={sortDescending || (sortKey === column.key && descending)}
-					on:sorted={(e) => {
-						sortKey = column.key;
-						descending = e.detail.sortDescending;
-					}}
+					isSorted={sortKey === column.key}
+					sortDescending={sortDescending || (sortKey === column.key && sortDescending)}
+					{onSorted}
 				/>
 			</span>
 		{/snippet}

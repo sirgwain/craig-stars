@@ -38,15 +38,12 @@
 
 	const {
 		settings,
-		game,
 		universe,
 		player,
 		selectedMapObject,
 		commandedMapObject,
 		commandedPlanet,
 		commandedFleet,
-		selectedWaypoint,
-		currentSelectedWaypointIndex,
 		commandMapObject,
 		zoomToMapObject,
 		nextMapObject,

@@ -17,20 +17,16 @@
 
 	let { fill = 'fill-secondary-content opacity-50' }: Props = $props();
 
-	let path = $derived(
-		'M' +
+	let area = $derived.by(() => {
+		const yRange = $yScale.range();
+		const path =
+			'M' +
 			$data
 				.map((d: any) => {
 					return $xGet(d) + ',' + $yGet(d);
 				})
-				.join('L')
-	);
-
-	let area: string = $state();
-
-	run(() => {
-		const yRange = $yScale.range();
-		area =
+				.join('L');
+		return (
 			path +
 			('L' +
 				$xScale($extents.x ? $extents.x[1] : 0) +
@@ -40,7 +36,8 @@
 				$xScale($extents.x ? $extents.x[0] : 0) +
 				',' +
 				yRange[0] +
-				'Z');
+				'Z')
+		);
 	});
 </script>
 

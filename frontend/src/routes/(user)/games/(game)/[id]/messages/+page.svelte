@@ -39,21 +39,14 @@
 	}
 
 	// filterable messages
-	let filteredMessages: Message[] = $state([]);
 	let search = $state('');
 	let showAllMessages = $state(false);
+	let filteredMessages: Message[] = $derived(
+		$player.messages.filter((m) => showAllMessages || $settings.isMessageVisible(m.type))
+	);
 
-	run(() => {
-		filteredMessages =
-			$player.messages.filter((m) => showAllMessages || $settings.isMessageVisible(m.type)) ?? [];
-	});
-	// .filter(
-	// 	(m) =>
-	// 		m.text?.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-	// 		m.type.toString().toLowerCase().indexOf(search.toLowerCase()) != -1
-	// ) ?? [];
-
-	const columns: TableColumn<Message>[] = [
+	type TableMessage = Message & { target?: never };
+	const columns: TableColumn<TableMessage>[] = [
 		{
 			key: 'target',
 			title: 'Target',

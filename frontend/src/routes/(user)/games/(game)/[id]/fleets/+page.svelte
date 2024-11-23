@@ -18,17 +18,21 @@
 	};
 
 	// filterable fleets
-	let filteredFleets: Fleet[] = $state([]);
 	let search = $state('');
+	let filteredFleets = $derived(
+		$universe
+			.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
+			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? []
+	);
 
-	run(() => {
-		filteredFleets =
-			$universe
-				.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
-				.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [];
-	});
-
-	const columns: TableColumn<Fleet>[] = [
+	type TableFleet = Fleet & {
+		location?: never;
+		destination?: never;
+		eta?: never;
+		composition?: never;
+		cloak?: never;
+	};
+	const columns: TableColumn<TableFleet>[] = [
 		{
 			key: 'name',
 			title: 'Name',
@@ -87,7 +91,7 @@
 		}
 	];
 
-	function onSorted(column: TableColumn<Fleet>, sortDescending: boolean) {
+	function onSorted(column: TableColumn<TableFleet>, sortDescending: boolean) {
 		$settings.sortFleetsDescending = sortDescending;
 		$settings.sortFleetsKey = column.key;
 	}
@@ -111,9 +115,7 @@
 					{column}
 					isSorted={$settings.sortFleetsKey === column.key}
 					sortDescending={$settings.sortFleetsDescending}
-					on:sorted={(e) => {
-						onSorted(column, e.detail.sortDescending);
-					}}
+					{onSorted}
 				/>
 			</span>
 		{/snippet}

@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import Unarchive from '$lib/components/icons/Unarchive.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
-	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
+	import Table, { defaultSortBy, type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { addError } from '$lib/services/Errors';
 	import { GameService } from '$lib/services/GameService';
@@ -13,10 +11,10 @@
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { format, parseJSON } from 'date-fns';
-	import { reverse, sortBy } from 'lodash-es';
 	import { onMount } from 'svelte';
 
-	const columns: TableColumn<Game>[] = [
+	type TableGame = Game & { action?: never };
+	const columns: TableColumn<TableGame>[] = [
 		{
 			key: 'id',
 			title: 'Num'
@@ -58,26 +56,16 @@
 	];
 
 	// filterable games
-	let games: Game[] = $state();
-	let filteredGames: Game[] = $state([]);
+	let games: Game[] = $state([]);
 	let search = $state('');
-	let sortKey = $state('updatedAt');
+	let sortKey: keyof TableGame = $state('updatedAt');
+	let filteredGames = $derived(
+		games
+			.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
+			.map<TableGame>((r) => r as TableGame)
+			.sort((a, b) => defaultSortBy(a, b, sortKey, descending))
+	);
 	let descending = $state(true);
-
-	run(() => {
-		filteredGames = games;
-	});
-
-	run(() => {
-		filteredGames = sortBy(
-			games?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1),
-			sortKey
-		);
-	});
-
-	run(() => {
-		descending && (filteredGames = reverse(filteredGames));
-	});
 
 	async function archiveGame(game: Game) {
 		if (confirm(`Are you sure you want to unarchive ${game.name}?`)) {
@@ -123,9 +111,9 @@
 					{column}
 					isSorted={isSorted || sortKey === column.key}
 					sortDescending={sortDescending || (sortKey === column.key && descending)}
-					on:sorted={(e) => {
-						sortKey = column.key;
-						descending = e.detail.sortDescending;
+					onSorted={(col, sortDescending) => {
+						sortKey = col.key;
+						descending = sortDescending;
 					}}
 				/>
 			</span>
