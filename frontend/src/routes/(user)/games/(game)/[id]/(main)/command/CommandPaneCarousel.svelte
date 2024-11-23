@@ -27,6 +27,7 @@
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
+	import type { CommandedFleet } from '$lib/types/Fleet';
 
 	const {
 		universe,
@@ -48,6 +49,7 @@
 		isOpen: boolean;
 		onDeleteWaypoint: () => Promise<void>;
 		onSplitAll: () => Promise<void>;
+		onBattlePlanChanged?: (fleet: CommandedFleet, battlePlanNum: number) => Promise<void>;
 	} & ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
@@ -62,7 +64,8 @@
 		onShowSplitFleetDialog,
 		onShowMergeFleetDialog,
 		onShowProductionQueueDialog,
-		onShowTransportTasksDialog
+		onShowTransportTasksDialog,
+		onBattlePlanChanged
 	}: Props = $props();
 
 	let carousel: HTMLDivElement | undefined;
@@ -233,6 +236,7 @@
 				{onShowSplitFleetDialog}
 				{onShowMergeFleetDialog}
 				{onSplitAll}
+				{onBattlePlanChanged}
 			/>
 		</div>
 		<div id="fleet-orbiting-tile" class="carousel-item w-full">

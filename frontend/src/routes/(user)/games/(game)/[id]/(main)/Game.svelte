@@ -11,7 +11,7 @@
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { None } from '$lib/types/Constants';
-	import type { Waypoint, WaypointDest } from '$lib/types/Fleet';
+	import type { CommandedFleet, Waypoint, WaypointDest } from '$lib/types/Fleet';
 	import {
 		equal as mapObjectEqual,
 		MapObjectType,
@@ -124,6 +124,11 @@
 
 	async function onDeleteWaypoint() {
 		deleteWaypoint();
+	}
+
+	async function onBattlePlanChanged(fleet: CommandedFleet, battlePlanNum: number) {
+		fleet.battlePlanNum = battlePlanNum;
+		updateFleetOrders(fleet);
 	}
 
 	const onUpdateTransportTasks = async (e: TransportTasksUpdateEvent) => {
@@ -266,6 +271,7 @@
 			<CommandPane
 				{onDeleteWaypoint}
 				{onSplitAll}
+				{onBattlePlanChanged}
 				onShowProductionQueueDialog={(e) => (showProductionQueueDialog = true)}
 				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
@@ -325,6 +331,7 @@
 			bind:isOpen={carouselOpen}
 			{onDeleteWaypoint}
 			{onSplitAll}
+			{onBattlePlanChanged}
 			onShowProductionQueueDialog={(e) => (showProductionQueueDialog = true)}
 			onShowCargoTransferDialog={(e) => {
 				showCargoTransferDialog = true;

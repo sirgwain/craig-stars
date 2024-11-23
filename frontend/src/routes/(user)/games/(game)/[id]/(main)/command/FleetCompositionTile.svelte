@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import type {
 		ShowMergeFleetsDialogProps,
@@ -12,21 +10,23 @@
 	import { getDamagePercentForToken, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
 	import CommandTile from './CommandTile.svelte';
 
-	const { player, universe, updateFleetOrders } = getGameContext();
+	const { player, universe } = getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;
 		selectedWaypoint: Waypoint | undefined;
+		onBattlePlanChanged?: (fleet: CommandedFleet, battlePlanNum: number) => void;
 	} & ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
 		SplitAllProps;
 
 	let {
-		fleet = $bindable(),
+		fleet,
 		selectedWaypoint,
 		onShowMergeFleetDialog,
 		onShowSplitFleetDialog,
-		onSplitAll
+		onSplitAll,
+		onBattlePlanChanged
 	}: Props = $props();
 
 	function split() {
@@ -53,10 +53,9 @@
 		});
 	}
 
-	const updateBattlePlan = async (num: number) => {
-		fleet.battlePlanNum = num;
-		await updateFleetOrders(fleet);
-	};
+	function updateBattlePlan(num: number) {
+		onBattlePlanChanged?.(fleet, num);
+	}
 </script>
 
 {#if fleet.waypoints && selectedWaypoint}
@@ -68,9 +67,8 @@
 						<button
 							type="button"
 							class="w-full cursor-help"
-							onpointerdown={preventDefault((e) =>
-								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))
-							)}
+							onpointerdown={(e) =>
+								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))}
 						>
 							<div class="flex flex-row justify-between relative">
 								{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
@@ -100,7 +98,7 @@
 				<select
 					class="select select-outline select-secondary select-sm text-sm"
 					name="battlePlan"
-					bind:value={fleet.battlePlanNum}
+					value={fleet.battlePlanNum}
 					onchange={(e) => updateBattlePlan(parseInt(e.currentTarget.value))}
 				>
 					{#each $player.battlePlans as battlePlan}

@@ -73,7 +73,7 @@
 			<input name="name" bind:value={name} class="input input-bordered" />
 		{/if}
 		<fieldset name="players" class="form-control mt-3">
-			<PlayerChooser bind:race bind:valid />
+			<PlayerChooser {race} bind:valid />
 		</fieldset>
 		<button class="btn btn-primary mt-2" disabled={!valid}>Join</button>
 	</form>

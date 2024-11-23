@@ -7,6 +7,7 @@
 		ShowTransportTasksDialogEventProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import type { CommandedFleet } from '$lib/types/Fleet';
 	import FleetCompositionTile from './FleetCompositionTile.svelte';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOrbitingTile from './FleetOrbitingTile.svelte';
@@ -24,6 +25,7 @@
 	type Props = {
 		onDeleteWaypoint: () => Promise<void>;
 		onSplitAll: () => Promise<void>;
+		onBattlePlanChanged?: (fleet: CommandedFleet, battlePlanNum: number) => Promise<void>;
 	} & ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
@@ -37,7 +39,8 @@
 		onShowSplitFleetDialog,
 		onShowMergeFleetDialog,
 		onShowProductionQueueDialog,
-		onShowTransportTasksDialog
+		onShowTransportTasksDialog,
+		onBattlePlanChanged
 	}: Props = $props();
 
 	const { universe, commandedPlanet, commandedFleet, selectedWaypoint, splitAll } =
@@ -80,6 +83,7 @@
 			{onSplitAll}
 			{onShowSplitFleetDialog}
 			{onShowMergeFleetDialog}
+			{onBattlePlanChanged}
 		/>
 	</div>
 	<div class="lg:flex lg:flex-col">
