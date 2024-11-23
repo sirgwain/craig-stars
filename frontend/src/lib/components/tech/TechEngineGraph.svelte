@@ -16,14 +16,12 @@
 
 	type DataType = [number, number][];
 
-	let data: DataType = $state([]);
+	let data: DataType = $derived(
+		engine?.fuelUsage ? engine.fuelUsage.map((usage, index) => [index, usage]) : []
+	);
 
 	const xGetter = (d: DataType) => d[0];
 	const yGetter = (d: DataType) => d[1];
-
-	$effect(() => {
-		data = engine?.fuelUsage ? engine.fuelUsage.map((usage, index) => [index, usage]) : [];
-	});
 </script>
 
 <div class="border border-base-300 bg-base-100 w-full h-full mt-5 pb-7">

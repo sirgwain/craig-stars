@@ -12,7 +12,6 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
 	import ItemTitle from './ItemTitle.svelte';
-	import { isSafari } from '$lib/safariChecker';
 	import type { CS } from '$lib/wasm';
 
 	type Props = {
@@ -139,7 +138,6 @@
 						<TechSummary
 							{tech}
 							{player}
-							hideGraph={isSafari}
 							{cs}
 							showResearchCost={!!(
 								player &&
