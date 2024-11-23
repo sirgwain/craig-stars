@@ -17,11 +17,7 @@
 	import type { TechHull } from '$lib/types/Tech';
 	import Hull from '../design/Hull.svelte';
 
-	type Props = {
-		hull: TechHull;
-	};
-
-	let { hull }: Props = $props();
+	let { hull }: TechHullTooltipProps = $props();
 </script>
 
 <div class="flex flex-row justify-center">

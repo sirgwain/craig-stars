@@ -1,13 +1,10 @@
 <script lang="ts">
+	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import type { DesignFinder } from '$lib/services/Universe';
 	import { fromQueueItemType, getQueueItemShortName } from '$lib/types/Planet';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { QueueItemTypes, isAuto } from '$lib/types/QueueItemType';
-	import { createEventDispatcher } from 'svelte';
-	import ProductionPlanItemsButtons from './ProductionItemsButtons.svelte';
-	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
-
-	const dispatch = createEventDispatcher();
+	import ProductionItemsButtons from './ProductionItemsButtons.svelte';
 
 	type Props = {
 		designFinder: DesignFinder;
@@ -15,6 +12,8 @@
 		availableItems?: ProductionQueueItem[];
 		queueItems?: ProductionQueueItem[];
 		queueItemDescription?: any;
+		onAvailableItemSelected?: (item: ProductionQueueItem) => void;
+		onQueueItemSelected?: (item: ProductionQueueItem | undefined) => void;
 	};
 
 	let {
@@ -28,7 +27,9 @@
 			fromQueueItemType(QueueItemTypes.AutoMinTerraform)
 		],
 		queueItems = $bindable([]),
-		queueItemDescription = getQueueItemShortName
+		queueItemDescription = getQueueItemShortName,
+		onAvailableItemSelected,
+		onQueueItemSelected
 	}: Props = $props();
 
 	let quantityModifier = $state(1);
@@ -38,18 +39,18 @@
 	let selectedQueueItemIndex = $state(-1);
 	let selectedQueueItem: ProductionQueueItem | undefined;
 
-	const availableItemSelected = (item: ProductionQueueItem) => {
+	function availableItemSelected(item: ProductionQueueItem) {
 		selectedAvailableItem = item;
-		dispatch('available-item-selected', selectedAvailableItem);
-	};
+		onAvailableItemSelected?.(selectedAvailableItem);
+	}
 
-	const queueItemClicked = (index: number, item?: ProductionQueueItem) => {
+	function queueItemClicked(index: number, item?: ProductionQueueItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
-		dispatch('queue-item-selected', selectedQueueItem);
-	};
+		onQueueItemSelected?.(selectedQueueItem);
+	}
 
-	const addAvailableItem = (e: MouseEvent, item?: ProductionQueueItem) => {
+	function addAvailableItem(item?: ProductionQueueItem) {
 		item = item ?? selectedAvailableItem;
 		if (!queueItems || !item) {
 			return;
@@ -82,9 +83,9 @@
 
 		// trigger reaction
 		queueItems = queueItems;
-	};
+	}
 
-	const removeItem = (e: MouseEvent) => {
+	function removeItem() {
 		if (queueItems && selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifier;
 			queueItems = queueItems;
@@ -96,9 +97,9 @@
 				selectedQueueItemIndex--;
 			}
 		}
-	};
+	}
 
-	const itemUp = () => {
+	function itemUp() {
 		if (queueItems && selectedQueueItem && selectedQueueItemIndex > 0) {
 			const swap = queueItems[selectedQueueItemIndex - 1];
 			queueItems[selectedQueueItemIndex - 1] = selectedQueueItem;
@@ -106,9 +107,9 @@
 			selectedQueueItemIndex--;
 			queueItems = queueItems;
 		}
-	};
+	}
 
-	const itemDown = () => {
+	function itemDown() {
 		if (queueItems && selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
 			const swap = queueItems[selectedQueueItemIndex + 1];
 			queueItems[selectedQueueItemIndex + 1] = selectedQueueItem;
@@ -116,13 +117,13 @@
 			selectedQueueItemIndex++;
 			queueItems = queueItems;
 		}
-	};
+	}
 
-	const clear = () => {
+	function clear() {
 		queueItems = [];
 		selectedQueueItem = undefined;
 		selectedQueueItemIndex = -1;
-	};
+	}
 </script>
 
 <div class="flex flex-row">
@@ -133,7 +134,7 @@
 					<button
 						type="button"
 						onclick={() => availableItemSelected(item)}
-						ondblclick={(e) => addAvailableItem(e, item)}
+						ondblclick={(e) => addAvailableItem(item)}
 						class="w-full text-left cursor-default select-none hover:text-secondary-focus {item ==
 						selectedAvailableItem
 							? ' bg-primary'
@@ -148,12 +149,12 @@
 	</div>
 
 	<div>
-		<ProductionPlanItemsButtons
-			on:add-item={(e) => addAvailableItem(e.detail)}
-			on:remove-item={(e) => removeItem(e.detail)}
-			on:item-up={() => itemUp()}
-			on:item-down={() => itemDown()}
-			on:clear={() => clear()}
+		<ProductionItemsButtons
+			onAddItem={() => addAvailableItem()}
+			onRemoveItem={() => removeItem()}
+			onItemUp={() => itemUp()}
+			onItemDown={() => itemDown()}
+			onClear={() => clear()}
 		/>
 		<div class="flex flex-col sm:flex-row justify-between mt-2 gap-1 mx-1">
 			<QuantityModifierButtons bind:modifier={quantityModifier} />

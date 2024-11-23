@@ -1,22 +1,12 @@
-<script lang="ts" module>
-	import { Unexplored } from '$lib/types/Constants';
-	import { type Fleet } from '$lib/types/Fleet';
-	import { type Planet } from '$lib/types/Planet';
-
-	export type Results = {
-		planets: Planet[];
-		fleets: Fleet[];
-		mysteryTraders: MysteryTrader[];
-	};
-</script>
-
 <script lang="ts">
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/Constants';
+	import { None, Unexplored } from '$lib/types/Constants';
+	import { type Fleet } from '$lib/types/Fleet';
 	import { getMapObjectName, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
+	import { type Planet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';
 
 	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
@@ -26,8 +16,8 @@
 		maxPlanetResults?: number;
 		maxFleetResults?: number;
 		maxMiscResults?: number;
-		onOk: OnOk<MapObject | undefined>;
-		onCancel: OnCancel;
+		onOk?: OnOk<MapObject | undefined>;
+		onCancel?: OnCancel;
 	};
 
 	let {
@@ -37,6 +27,12 @@
 		onOk,
 		onCancel
 	}: Props = $props();
+
+	type Results = {
+		planets: Planet[];
+		fleets: Fleet[];
+		mysteryTraders: MysteryTrader[];
+	};
 
 	function getResults(search: string): Results {
 		if (search == '') {
@@ -77,7 +73,7 @@
 	}
 
 	function ok() {
-		onOk(selectedItem);
+		onOk?.(selectedItem);
 	}
 
 	function selectPrevious() {
@@ -104,14 +100,14 @@
 				event.preventDefault();
 				break;
 			case 'Enter':
-				onOk(selectedItem);
+				onOk?.(selectedItem);
 				event.preventDefault();
 				break;
 			case 'Escape':
 				if ($settings.searchQuery != '') {
 					$settings.searchQuery = '';
 				} else {
-					onCancel();
+					onCancel?.();
 					event.preventDefault();
 				}
 				break;

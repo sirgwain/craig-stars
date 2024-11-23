@@ -63,6 +63,6 @@
 		class={`absolute bg-base-200 w-[${minWidth}px] h-[${minHeight}px] rounded-md overflow-y-auto z-50`}
 		style={`left: ${x}px; top: ${y}px;`}
 	>
-		<SvelteComponent {...$popupComponent.props} on:close={hide} />
+		<SvelteComponent {...$popupComponent.props} onclose={hide} />
 	</div>
 {/if}

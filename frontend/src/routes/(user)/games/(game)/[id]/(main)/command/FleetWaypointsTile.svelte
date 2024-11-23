@@ -3,11 +3,11 @@
 
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import type { CommandedFleet, Waypoint } from '$lib/types/Fleet';
 	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
-	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import { distance } from '$lib/types/Vector';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 
 	const {

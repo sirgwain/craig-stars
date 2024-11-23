@@ -3,22 +3,20 @@
 	import type { TransportPlan } from '$lib/types/Player';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
 	import TransportActionDescription from './TransportActionDescription.svelte';
-
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		plan: TransportPlan;
 		href: string;
 		showDelete?: boolean;
+		onDelete?: (plan: TransportPlan) => void;
 	};
 
-	let { plan, href, showDelete = true }: Props = $props();
+	let { plan, href, showDelete = true, onDelete }: Props = $props();
 
 	const deletePlan = async (plan: TransportPlan) => {
 		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
-			dispatch('delete', { plan });
+			onDelete?.(plan);
 		}
 	};
 

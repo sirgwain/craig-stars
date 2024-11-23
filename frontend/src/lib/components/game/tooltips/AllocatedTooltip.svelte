@@ -17,11 +17,7 @@
 <script lang="ts">
 	import CostMini from '../CostMini.svelte';
 
-	type Props = {
-		cost: Cost;
-	};
-
-	let { cost }: Props = $props();
+	let { cost }: AllocatedTooltipProps = $props();
 </script>
 
 <div>

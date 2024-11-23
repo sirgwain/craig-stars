@@ -3,15 +3,13 @@
 	import type { Game } from '$lib/types/Game';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		game: Game;
+		onDelete?: () => void;
 	};
 
-	let { game }: Props = $props();
+	let { game, onDelete }: Props = $props();
 
 	function ready(game: Game): boolean {
 		return game.players.find((p) => p.userId == $me.id)?.ready ?? false;
@@ -30,11 +28,7 @@
 
 {#if game.hostId == $me.id}
 	<div class="col-span-2 flex justify-center">
-		<button
-			onclick={() => dispatch('delete')}
-			class="btn btn-error btn-sm rounded-md"
-			title="Delete Game"
-		>
+		<button onclick={onDelete} class="btn btn-error btn-sm rounded-md" title="Delete Game">
 			<Icon src={XMark} size="16" class="hover:stroke-accent" />
 		</button>
 	</div>

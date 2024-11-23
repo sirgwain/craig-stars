@@ -11,6 +11,7 @@
 		readonly?: boolean;
 		onvaluechanged?: (value: number) => void;
 	};
+	import { getXFromPointerEvent } from '$lib/services/Events';
 
 	let {
 		value = $bindable(0),
@@ -29,13 +30,6 @@
 	let touchStarted = false;
 	let ref: HTMLDivElement | undefined = $state();
 
-	function getXFromPointerEvent(e: PointerEvent): number {
-		if (!ref) {
-			return 0;
-		}
-		return (e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect()?.width;
-	}
-
 	function onPointerDown(e: PointerEvent) {
 		if (readonly) {
 			return;
@@ -44,7 +38,7 @@
 			return;
 		}
 		pointerDown = true;
-		updateValue(getXFromPointerEvent(e));
+		updateValue(getXFromPointerEvent(e, ref));
 		window.addEventListener('pointerup', onPointerUp);
 		window.addEventListener('pointermove', onPointerMove);
 		document.body.classList.add('select-none', 'touch-none');
@@ -59,7 +53,7 @@
 
 	function onPointerMove(e: PointerEvent) {
 		if (pointerDown) {
-			updateValue(getXFromPointerEvent(e));
+			updateValue(getXFromPointerEvent(e, ref));
 		}
 	}
 

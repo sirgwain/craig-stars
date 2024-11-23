@@ -2,18 +2,17 @@
 	import Archive from '$lib/components/icons/Archive.svelte';
 	import { me } from '$lib/services/Stores';
 	import type { Game } from '$lib/types/Game';
-	import { XMark, ArchiveBox } from '@steeze-ui/heroicons';
+	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		game: Game;
 		showNumSubmitted?: boolean;
+		onArchive?: () => void;
+		onDelete?: () => void;
 	};
 
-	let { game, showNumSubmitted = true }: Props = $props();
+	let { game, showNumSubmitted = true, onArchive, onDelete }: Props = $props();
 
 	let numSubmitted = $derived(game.players.filter((p) => p.submittedTurn).length);
 </script>
@@ -33,15 +32,11 @@
 </div>
 {#if game.hostId == $me.id}
 	<div class="col-span-2 flex justify-center join">
-		<button
-			onclick={() => dispatch('archive')}
-			class="btn btn-error btn-sm rounded-l-md"
-			title="Archive Game"
-		>
+		<button onclick={onArchive} class="btn btn-error btn-sm rounded-l-md" title="Archive Game">
 			<Archive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
 		</button>
 		<button
-			onclick={() => dispatch('delete')}
+			onclick={onDelete}
 			class="btn btn-error btn-sm border-l-secondary rounded-r-md"
 			title="Delete Game"
 		>
@@ -50,11 +45,7 @@
 	</div>
 {:else}
 	<div class="col-span-2 flex justify-center">
-		<button
-			onclick={() => dispatch('archive')}
-			class="btn btn-error btn-sm rounded-md"
-			title="Archive Game"
-		>
+		<button onclick={onArchive} class="btn btn-error btn-sm rounded-md" title="Archive Game">
 			<Archive class="hover:stroke-accent w-4 h-4 stroke-base-content fill-none" />
 		</button>
 	</div>

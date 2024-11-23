@@ -13,14 +13,14 @@
 	import { GameState } from '$lib/types/Game';
 	import { wait } from '$lib/wait';
 	import hotkeys from 'hotkeys-js';
-	import { onDestroy, onMount, setContext } from 'svelte';
+	import { onDestroy, onMount, setContext, type Snippet } from 'svelte';
 	import type { Unsubscriber } from 'svelte/store';
 	import { get } from 'svelte/store';
 	import GameLayout from './GameLayout.svelte';
 	import { goto } from '$app/navigation';
 	import { loadWasm } from '$lib/wasm';
 	type Props = {
-		children?: import('svelte').Snippet;
+		children?: Snippet;
 	};
 
 	let { children }: Props = $props();
@@ -32,8 +32,8 @@
 	let contextSetup = $state(false);
 
 	let unsubscribe: Unsubscriber | undefined = $state();
-	let state: GameState = $state();
-	let year: number = $state();
+	let gameState: GameState = $state(GameState.Setup);
+	let year: number = $state(2400);
 
 	onMount(async () => {
 		try {
@@ -70,10 +70,10 @@
 	async function onGameChange(game: FullGame) {
 		if (!context) return;
 
-		if (state != game.state || year != game.year) {
+		if (gameState != game.state || year != game.year) {
 			// console.log('game state changed');
 			const loaded = await GameService.loadFullGame(id);
-			state = loaded.state;
+			gameState = loaded.state;
 			year = loaded.year;
 			context.resetContext(loaded);
 			context.commandHomeWorld();
@@ -81,7 +81,7 @@
 
 		// if the game is active and we haven't submitted our turn
 		// bind the navigation hotkeys
-		if (state == GameState.WaitingForPlayers && !get(context.player).submittedTurn) {
+		if (gameState == GameState.WaitingForPlayers && !get(context.player).submittedTurn) {
 			// reset key bindings
 			unbindNavigationHotkeys();
 			hotkeys.unbind('F9', 'root');
@@ -132,7 +132,7 @@
 
 			// store the latest state/year so we can reload if the game changes
 			const game = get(context.game);
-			state = game.state;
+			gameState = game.state;
 			year = game.year;
 			context.commandHomeWorld();
 
@@ -146,7 +146,7 @@
 </script>
 
 {#if contextSetup}
-	<GameLayout on:submit-turn={onSubmitTurn}>
+	<GameLayout {onSubmitTurn}>
 		{#if children}{@render children()}{:else}Game{/if}
 	</GameLayout>
 {:else if error}

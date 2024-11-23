@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import TextTooltip, {
 		type TextTooltipProps
 	} from '$lib/components/game/tooltips/TextTooltip.svelte';
@@ -85,7 +83,7 @@
 			<div class="w-40">Dmg done to each ship:</div>
 			<div>
 				{stats.damagePerEngine} ({stats.damagePerEngineRS}) / engine
-				<span class="cursor-help" onpointerdown={preventDefault((e) => onTooltip(e))}>
+				<span class="cursor-help" onpointerdown={(e) => onTooltip(e)}>
 					<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 				</span>
 			</div>
@@ -94,7 +92,7 @@
 			<div class="w-40">Min damage done to fleet:</div>
 			<div>
 				{stats.minDamagePerFleet} ({stats.minDamagePerFleetRS})
-				<span class="cursor-help" onpointerdown={preventDefault((e) => onTooltip(e))}>
+				<span class="cursor-help" onpointerdown={(e) => onTooltip(e)}>
 					<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 				</span>
 			</div>

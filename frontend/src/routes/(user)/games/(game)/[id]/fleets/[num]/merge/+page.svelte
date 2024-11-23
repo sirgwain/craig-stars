@@ -3,7 +3,7 @@
 
 	import { page } from '$app/stores';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
+	import type { Fleet } from '$lib/types/Fleet';
 	import MergeFleets from '../../../dialogs/merge/MergeFleets.svelte';
 
 	const { game, player, universe, commandedFleet, commandMapObject, merge } = getGameContext();
@@ -29,6 +29,6 @@
 	<MergeFleets
 		fleet={$commandedFleet}
 		otherFleetsHere={fleetsInOrbit}
-		on:ok={(e) => merge(e.detail.fleet, e.detail.fleetNums)}
+		onOk={(e) => merge(e.fleet, e.fleetNums)}
 	/>
 {/if}

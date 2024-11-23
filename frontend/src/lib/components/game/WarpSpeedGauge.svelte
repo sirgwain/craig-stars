@@ -1,7 +1,8 @@
 <script lang="ts">
-	
+	import { getXFromPointerEvent } from '$lib/services/Events';
+
 	import { clamp } from '$lib/services/Math';
-	
+
 	type Props = {
 		value?: number | undefined;
 		min?: number;
@@ -61,19 +62,12 @@
 
 	let ref: HTMLDivElement | undefined = $state();
 
-	function getXFromPointerEvent(e: PointerEvent): number {
-		if (!ref) {
-			return 0;
-		}
-		return (e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect()?.width;
-	}
-
 	function onPointerDown(e: PointerEvent) {
 		if (touchStarted) {
 			return;
 		}
 		pointerDown = true;
-		updateValue(getXFromPointerEvent(e));
+		updateValue(getXFromPointerEvent(e, ref));
 		window.addEventListener('pointerup', onPointerUp);
 		window.addEventListener('pointermove', onPointerMove);
 		document.body.classList.add('select-none', 'touch-none');
@@ -91,7 +85,7 @@
 
 	const onPointerMove = (e: PointerEvent) => {
 		if (pointerDown) {
-			updateValue(getXFromPointerEvent(e));
+			updateValue(getXFromPointerEvent(e, ref));
 		}
 	};
 

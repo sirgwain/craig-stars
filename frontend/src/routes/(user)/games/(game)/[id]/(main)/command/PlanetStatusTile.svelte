@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import InnateScannerTooltip from '$lib/components/game/tooltips/InnateScannerTooltip.svelte';
 	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
@@ -22,6 +20,7 @@
 	let { planet }: Props = $props();
 
 	function onResourcesTooltip(e: PointerEvent) {
+		e.preventDefault();
 		showTooltip<ResourcesTooltipProps>(e.x, e.y, ResourcesTooltip, {
 			planetName: planet.name,
 			resourcesPerYear: planet.spec.resourcesPerYear ?? 0,
@@ -33,6 +32,7 @@
 	}
 
 	function onPopulationTooltip(e: PointerEvent) {
+		e.preventDefault();
 		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
 			playerFinder: $universe,
 			player: $player,
@@ -41,6 +41,7 @@
 	}
 
 	function onScannerPopup(e: PointerEvent) {
+		e.preventDefault();
 		if ($player.race.spec?.innateScanner) {
 			showTooltip(e.x, e.y, InnateScannerTooltip);
 		} else {
@@ -48,23 +49,18 @@
 		}
 	}
 	function onDefensePoopup(e: PointerEvent) {
+		e.preventDefault();
 		onTechTooltip(e, $techs.getTech(planet.spec.defense));
 	}
 </script>
 
 {#if planet.spec && planet.cargo}
 	<CommandTile title="Status">
-		<div
-			class="flex justify-between cursor-help"
-			onpointerdown={preventDefault(onPopulationTooltip)}
-		>
+		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>
 			<div class="text-tile-item-title">Population</div>
 			<div>{((planet.cargo.colonists ?? 0) * 100).toLocaleString()}</div>
 		</div>
-		<div
-			class="flex justify-between cursor-help"
-			onpointerdown={preventDefault(onResourcesTooltip)}
-		>
+		<div class="flex justify-between cursor-help" onpointerdown={onResourcesTooltip}>
 			<div class="text-tile-item-title">Resources/Year</div>
 			<div>
 				{planet.spec.resourcesPerYearAvailable ?? 0} of {planet.spec.resourcesPerYear ?? 0}
@@ -73,11 +69,11 @@
 
 		<div class="divider p-0 m-0"></div>
 
-		<div class="flex justify-between cursor-help" onpointerdown={preventDefault(onScannerPopup)}>
+		<div class="flex justify-between cursor-help" onpointerdown={onScannerPopup}>
 			<div class="text-tile-item-title">Scanner Type</div>
 			<div>{planet.spec.scanner ?? 'none'}</div>
 		</div>
-		<div class="flex justify-between cursor-help" onpointerdown={preventDefault(onScannerPopup)}>
+		<div class="flex justify-between cursor-help" onpointerdown={onScannerPopup}>
 			<div class="text-tile-item-title">Scanner Range</div>
 			<div>{planet.spec.scanRange ?? '--'} l.y.</div>
 		</div>
@@ -85,15 +81,15 @@
 		{#if $player.race.spec?.canBuildDefenses}
 			<div class="divider p-0 m-0"></div>
 
-			<div class="flex justify-between cursor-help" onpointerdown={preventDefault(onDefensePoopup)}>
+			<div class="flex justify-between cursor-help" onpointerdown={onDefensePoopup}>
 				<div class="text-tile-item-title">Defenses</div>
 				<div>{planet.defenses} of {planet.spec.maxDefenses}</div>
 			</div>
-			<div class="flex justify-between cursor-help" onpointerdown={preventDefault(onDefensePoopup)}>
+			<div class="flex justify-between cursor-help" onpointerdown={onDefensePoopup}>
 				<div class="text-tile-item-title">Defense Type</div>
 				<div>{planet.spec.defense}</div>
 			</div>
-			<div class="flex justify-between cursor-help" onpointerdown={preventDefault(onDefensePoopup)}>
+			<div class="flex justify-between cursor-help" onpointerdown={onDefensePoopup}>
 				<div class="text-tile-item-title">Defense Coverage</div>
 				<div>
 					{((planet.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%

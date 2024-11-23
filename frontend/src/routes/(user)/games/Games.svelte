@@ -10,77 +10,75 @@
 	import SetupGameRow from './SetupGameRow.svelte';
 	import { PlayerService } from '$lib/services/PlayerService';
 
-	let myGames: Game[];
-	let gamesWaitingToStart: Game[] = $state();
-	let openGames: Game[] = $state();
-	let newTurnGames: Game[] = $state();
-	let singlePlayerGames: Game[] = $state();
-	let submittedTurnGames: Game[] = $state();
-	let archivedGames: Game[];
+	const sorter = (a: Game, b: Game) =>
+		b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0;
 
-	onMount(() => {
-		loadGames();
+	let games: Game[] = $state([]);
+	let openGames: Game[] = $state([]);
+
+	// all games where I am a player
+	let myGames = $derived(
+		games
+			.filter((g) => !(g.archived || g.players.find((p) => p.userId == $me.id)?.archived))
+			.sort(sorter)
+	);
+	// find all multiplayer games we are part of in setup
+	let gamesWaitingToStart = $derived(
+		myGames
+			.filter((g) => g.state == GameState.Setup)
+			.filter((g) => g.players.find((p) => p.userId != $me.id))
+	);
+
+	// find all multiplayer games where we haven't submitted a turn yet
+	let newTurnGames = $derived(
+		myGames
+			.filter((g) => g.state != GameState.Setup)
+			.filter((g) => !g.players.find((p) => p.userId == $me.id)?.submittedTurn)
+			.filter((g) => g.players.find((p) => p.userId != $me.id && !p.aiControlled))
+	);
+
+	// find all single player games
+	let singlePlayerGames = $derived(
+		myGames.filter((g) => !g.players.find((p) => p.userId != $me.id && !p.aiControlled))
+	);
+
+	// find all games where we've submitted our turn
+	let submittedTurnGames = $derived(
+		myGames.filter((g) => g.players.find((p) => p.userId == $me.id)?.submittedTurn)
+	);
+
+	let archivedGames = $derived(
+		games.filter((g) => g.archived || g.players.find((p) => p.userId == $me.id)?.archived)
+	);
+
+	onMount(async () => {
+		games = await GameService.loadPlayerGames();
+		openGames = (await GameService.loadOpenGames()).filter((g) => g.hostId != $me.id).sort(sorter);
 	});
 
-	function loadGames() {
-		const sorter = (a: Game, b: Game) =>
-			b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0;
-
-		GameService.loadPlayerGames().then((games) => {
-			archivedGames = games.filter(
-				(g) => g.archived || g.players.find((p) => p.userId == $me.id)?.archived
-			);
-			myGames = games.filter(
-				(g) => !(g.archived || g.players.find((p) => p.userId == $me.id)?.archived)
-			);
-			myGames.sort(sorter);
-			// find all multiplayer games where we haven't submitted a turn yet
-			newTurnGames = myGames
-				.filter((g) => g.state != GameState.Setup)
-				.filter((g) => !g.players.find((p) => p.userId == $me.id)?.submittedTurn)
-				.filter((g) => g.players.find((p) => p.userId != $me.id && !p.aiControlled));
-
-			// find all games where we've submitted our turn
-			submittedTurnGames = myGames.filter(
-				(g) => g.players.find((p) => p.userId == $me.id)?.submittedTurn
-			);
-
-			// find all single player games
-			singlePlayerGames = myGames.filter(
-				(g) => !g.players.find((p) => p.userId != $me.id && !p.aiControlled)
-			);
-
-			// find all multiplayer games we are part of in setup
-			gamesWaitingToStart = myGames
-				.filter((g) => g.state == GameState.Setup)
-				.filter((g) => g.players.find((p) => p.userId != $me.id));
-		});
-
-		GameService.loadOpenGames().then((games) => {
-			openGames = games;
-			openGames.sort(sorter);
-			openGames = openGames.filter((g) => g.hostId != $me.id);
-		});
+	function removeGame(game: Game) {
+		games = games.filter((g) => g.id !== game.id);
+		openGames = openGames.filter((g) => g.id !== game.id);
 	}
 
-	const deleteGame = async (game: Game) => {
+	async function deleteGame(game: Game) {
 		if (confirm(`Are you sure you want to delete ${game.name}?`)) {
 			await GameService.deleteGame(game.id);
-			await loadGames();
+			removeGame(game);
 		}
-	};
-	const archiveGame = async (game: Game) => {
+	}
+	async function archiveGame(game: Game) {
 		if (confirm(`Are you sure you want to archive ${game.name}?`)) {
 			await PlayerService.archiveGame(game.id);
-			await loadGames();
+			removeGame(game);
 		}
-	};
-	const unArchiveGame = async (game: Game) => {
+	}
+	async function unArchiveGame(game: Game) {
 		if (confirm(`Are you sure you want to archive ${game.name}?`)) {
 			await PlayerService.archiveGame(game.id);
-			await loadGames();
+			removeGame(game);
 		}
-	};
+	}
 </script>
 
 <div class="flex justify-evenly">
@@ -109,8 +107,8 @@
 			{#each newTurnGames as game}
 				<ActiveGameRow
 					{game}
-					on:delete={() => deleteGame(game)}
-					on:archive={() => archiveGame(game)}
+					onDelete={() => deleteGame(game)}
+					onArchive={() => archiveGame(game)}
 				/>
 			{/each}
 		{/if}
@@ -129,8 +127,8 @@
 			<ActiveGameRow
 				{game}
 				showNumSubmitted={false}
-				on:delete={() => deleteGame(game)}
-				on:archive={() => archiveGame(game)}
+				onDelete={() => deleteGame(game)}
+				onArchive={() => archiveGame(game)}
 			/>
 		{/each}
 	</div>
@@ -146,11 +144,7 @@
 		<div class="col-span-2"></div>
 
 		{#each submittedTurnGames as game}
-			<ActiveGameRow
-				{game}
-				on:delete={() => deleteGame(game)}
-				on:archive={() => archiveGame(game)}
-			/>
+			<ActiveGameRow {game} onDelete={() => deleteGame(game)} onArchive={() => archiveGame(game)} />
 		{/each}
 	</div>
 {/if}
@@ -161,7 +155,7 @@
 		<div class="col-span-5 text-secondary">Players</div>
 		<div class="col-span-2"></div>
 		{#each gamesWaitingToStart as game}
-			<SetupGameRow {game} on:delete={() => deleteGame(game)} />
+			<SetupGameRow {game} onDelete={() => deleteGame(game)} />
 		{/each}
 	</div>
 {/if}
@@ -174,7 +168,7 @@
 		<div class="col-span-2"></div>
 
 		{#each openGames as game}
-			<SetupGameRow {game} on:delete={() => deleteGame(game)} />
+			<SetupGameRow {game} onDelete={() => deleteGame(game)} />
 		{/each}
 	</div>
 {/if}

@@ -1,32 +1,28 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { techs } from '$lib/services/Stores';
+	import { None } from '$lib/types/Constants';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { QuestionMarkCircle, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
 	import TechAvatar from '../tech/TechAvatar.svelte';
 	import Cost from './Cost.svelte';
 	import DesignStats from './DesignStats.svelte';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
-	import { None } from '$lib/types/Constants';
-
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		design: ShipDesign;
 		href: string;
 		copyhref: string;
+		onDelete?: (design: ShipDesign) => Promise<void>;
 	};
 
-	let { design, href, copyhref }: Props = $props();
+	let { design, href, copyhref, onDelete }: Props = $props();
 
-	const deleteDesign = async (design: ShipDesign) => {
+	async function deleteDesign(design: ShipDesign) {
 		if (design.num != undefined && confirm(`Are you sure you want to delete ${design.name}?`)) {
-			dispatch('delete', { design });
+			onDelete?.(design);
 		}
-	};
+	}
 </script>
 
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 pt-2 w-full sm:w-[430px]">
@@ -47,7 +43,7 @@
 					<button
 						type="button"
 						class="w-full h-full cursor-help"
-						onpointerdown={preventDefault((e) => onShipDesignTooltip(e, design))}
+						onpointerdown={(e) => onShipDesignTooltip(e, design)}
 					>
 						<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 					</button>
@@ -79,7 +75,7 @@
 				{#if !design.cannotDelete}
 					<button
 						class="btn btn-outline btn-secondary joint-item"
-						onclick={(e) => deleteDesign(design)}
+						onclick={() => deleteDesign(design)}
 					>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>

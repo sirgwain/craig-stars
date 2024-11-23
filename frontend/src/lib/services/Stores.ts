@@ -28,7 +28,7 @@ export const tooltipComponent = writable<
 export const tooltipLocation = writable<Vector>({ x: 0, y: 0 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const showTooltip = <T extends Record<string, any>>(
+export const showTooltip = <T extends Partial<Record<string, any>>>(
 	x: number,
 	y: number,
 	component: Component<T>,
@@ -51,7 +51,7 @@ export const popupComponent = writable<
 export const popupLocation = writable<Vector>({ x: 0, y: 0 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const showPopup = <T extends Record<string, any>>(
+export const showPopup = <T extends Partial<Record<string, any>>>(
 	x: number,
 	y: number,
 	component: Component<T>,

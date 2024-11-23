@@ -1,21 +1,19 @@
-<script lang="ts">
+<script lang="ts" generics="T extends object">
 	import { ChevronDown } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		title: string;
-		items: any[];
-		itemTitle?: (item: any) => string;
+		items: T[];
+		itemTitle?: (item: T) => string;
+		onSelected?: (item: T) => void;
 	};
 
-	let { title, items, itemTitle = (i) => `${i}` }: Props = $props();
+	let { title, items, itemTitle = (i) => `${i}`, onSelected }: Props = $props();
 
-	function onSelect(item: any) {
+	function onSelect(item: T) {
 		(document.activeElement as HTMLElement)?.blur();
-		dispatch('selected', item);
+		onSelected?.(item);
 	}
 
 	let divRef: HTMLDivElement;

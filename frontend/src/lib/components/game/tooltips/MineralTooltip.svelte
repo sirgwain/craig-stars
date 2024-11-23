@@ -9,15 +9,8 @@
 </script>
 
 <script lang="ts">
-	type Props = {
-		mineralType: string;
-		surfaceAmount: number;
-		concentration: number;
-		miningRate: number;
-		homeworld: boolean;
-	};
-
-	let { mineralType, surfaceAmount, concentration, miningRate, homeworld }: Props = $props();
+	let { mineralType, surfaceAmount, concentration, miningRate, homeworld }: MineralTooltipProps =
+		$props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

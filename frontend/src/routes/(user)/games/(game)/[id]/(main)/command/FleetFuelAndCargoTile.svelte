@@ -31,6 +31,7 @@
 		<div class="flex justify-between my-1">
 			<div class="w-12 text-tile-item-title">Fuel</div>
 			<div class="ml-1 h-full w-full">
+				<!-- TODO: add fuel transfer -->
 				<FuelBar value={fleet.fuel} capacity={fleet.spec.fuelCapacity} />
 			</div>
 		</div>

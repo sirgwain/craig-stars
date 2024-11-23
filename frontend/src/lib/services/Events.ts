@@ -12,7 +12,15 @@ import type { Salvage } from '$lib/types/Salvage';
 
 export type OnOk<T> = (e: T) => void;
 export type OnCancel = () => void;
+export type OnClose = () => void;
 export type OnShowDialog<T> = (e: T) => void;
+
+export function getXFromPointerEvent(e: PointerEvent, elem: HTMLElement | undefined): number {
+	if (!elem) {
+		return 0;
+	}
+	return (e.clientX - elem.getBoundingClientRect().left) / elem.getBoundingClientRect()?.width;
+}
 
 export type CargoTransferDialogEvent = {
 	src: CommandedFleet;

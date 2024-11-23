@@ -3,21 +3,19 @@
 	import { Check, Trash, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		game: Game;
 		href?: string | undefined;
 		showDelete?: boolean;
+		onDelete?: (game: Game) => void;
 	};
 
-	let { game, href = undefined, showDelete = false }: Props = $props();
+	let { game, href = undefined, showDelete = false, onDelete }: Props = $props();
 
 	const deleteGame = async (game: Game) => {
 		if (game.name != undefined && confirm(`Are you sure you want to delete ${game.name}?`)) {
-			dispatch('delete', { game });
+			onDelete?.(game);
 		}
 	};
 </script>

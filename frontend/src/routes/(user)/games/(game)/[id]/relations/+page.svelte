@@ -7,6 +7,6 @@
 
 <div class="w-full mx-auto md:max-w-2xl">
 	{#if player}
-		<Relations on:update-player={updatePlayerRelations} />
+		<Relations onUpdatePlayer={updatePlayerRelations} />
 	{/if}
 </div>

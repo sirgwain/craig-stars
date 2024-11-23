@@ -1,24 +1,16 @@
-<script lang="ts" module>
-	export type PlayerUpdateEvent = {
-		'update-player': void;
-	};
-</script>
-
 <script lang="ts">
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import { PlayerRelation } from '$lib/types/Player';
 
-	import { getGameContext } from '$lib/services/GameContext';
-	import { createEventDispatcher } from 'svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
 
-	const dispatch = createEventDispatcher<PlayerUpdateEvent>();
+	const { player, universe } = getGameContext();
 
-	const { game, player, universe } = getGameContext();
-
-	function updatePlayerOrders() {
-		dispatch('update-player');
-	}
+	type Props = {
+		onUpdatePlayer?: () => void;
+	};
+	let { onUpdatePlayer }: Props = $props();
 </script>
 
 <ItemTitle>Relations</ItemTitle>
@@ -37,7 +29,7 @@
 						class="radio checked:bg-success"
 						value={PlayerRelation.Friend}
 						bind:group={relation.relation}
-						onchange={updatePlayerOrders}
+						onchange={onUpdatePlayer}
 					/>
 				</label>
 			</div>
@@ -50,7 +42,7 @@
 						class="radio checked:bg-info"
 						value={PlayerRelation.Neutral}
 						bind:group={relation.relation}
-						onchange={updatePlayerOrders}
+						onchange={onUpdatePlayer}
 					/>
 				</label>
 			</div>
@@ -63,7 +55,7 @@
 						class="radio checked:bg-error"
 						value={PlayerRelation.Enemy}
 						bind:group={relation.relation}
-						onchange={updatePlayerOrders}
+						onchange={onUpdatePlayer}
 					/>
 				</label>
 			</div>
@@ -75,7 +67,7 @@
 						name={`player-relation-${index + 1}-share-map`}
 						class="checkbox"
 						bind:checked={relation.shareMap}
-						onchange={updatePlayerOrders}
+						onchange={onUpdatePlayer}
 					/>
 				</label>
 			</div>

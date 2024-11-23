@@ -39,7 +39,7 @@
 				{plan}
 				href={`/games/${$game.id}/battle-plans/${plan.num}`}
 				showDelete={plan.num !== 0}
-				on:delete={() => deletePlan(plan)}
+				onDelete={() => deletePlan(plan)}
 			/>
 		{/each}
 	</div>

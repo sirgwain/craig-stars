@@ -18,8 +18,8 @@
 	type Props = {
 		src: CommandedFleet;
 		dest?: Fleet | undefined;
-		onOk: OnOk<SplitFleetEvent>;
-		onCancel: OnCancel;
+		onOk?: OnOk<SplitFleetEvent>;
+		onCancel?: OnCancel;
 	};
 
 	let { src, dest = $bindable(undefined), onOk, onCancel }: Props = $props();
@@ -36,7 +36,11 @@
 	const totalFuel = src.fuel + (dest?.fuel ?? 0);
 
 	function split() {
-		onOk({ src, dest, srcTokens, destTokens, transferAmount });
+		onOk?.({ src, dest, srcTokens, destTokens, transferAmount });
+	}
+
+	function cancel() {
+		onCancel?.();
 	}
 
 	// move some number of tokens from the source to the destination
@@ -120,7 +124,7 @@
 	onMount(() => {
 		const originalScope = hotkeys.getScope();
 		const scope = 'cargoTransfer';
-		hotkeys('Esc', scope, onCancel);
+		hotkeys('Esc', scope, cancel);
 		hotkeys('Enter', scope, split);
 		hotkeys.setScope(scope);
 
@@ -165,7 +169,7 @@
 		}
 
 		return () => {
-			hotkeys.unbind('Esc', scope, onCancel);
+			hotkeys.unbind('Esc', scope, cancel);
 			hotkeys.unbind('Enter', scope, split);
 			hotkeys.deleteScope(scope);
 			hotkeys.setScope(originalScope);

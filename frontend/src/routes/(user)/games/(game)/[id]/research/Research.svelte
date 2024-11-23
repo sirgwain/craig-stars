@@ -12,29 +12,23 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { TechField, type TechLevel } from '$lib/types/TechLevel';
 	import { startCase } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import FutureTechs from './FutureTechs.svelte';
 
-	const dispatch = createEventDispatcher();
-
 	const { game, player, universe } = getGameContext();
+
+	type Props = {
+		onUpdatePlayer?: () => Promise<void>;
+	};
+	let { onUpdatePlayer }: Props = $props();
 
 	const getLevel = (player: Player, field: TechField | string): number => {
 		const f: keyof TechLevel = `${field}`.toLowerCase() as keyof TechLevel;
 		return player.techLevels[f] ?? 0;
 	};
 
-	const updatePlayerOrders = async () => {
-		dispatch('update-player');
-	};
-
-	// TODO JD - 2024-11-20 - Consider this might be best as a $derived, it is never written to except by the $effect
-	let spent = $state(0);
-	$effect(() => {
-		const field: keyof TechLevel = `${$player.researching}`.toLowerCase() as keyof TechLevel;
-		spent = $player.techLevelsSpent[field] ?? 0;
-	});
+	let field: keyof TechLevel = $derived(`${$player.researching}`.toLowerCase() as keyof TechLevel);
+	let spent = $derived($player.techLevelsSpent[field] ?? 0);
 
 	let leftToSpend = $derived(($player.spec.currentResearchCost ?? 0) - spent);
 	let yearsLeft = $derived(
@@ -94,7 +88,7 @@
 			max={100}
 			step={1}
 			unit="%"
-			onchange={updatePlayerOrders}
+			onchange={onUpdatePlayer}
 		>
 			{#snippet begin()}
 				Research Budget
@@ -119,7 +113,7 @@
 							value={field}
 							class="radio radio-sm checked:bg-primary"
 							bind:group={$player.researching}
-							onchange={updatePlayerOrders}
+							onchange={onUpdatePlayer}
 						/>
 					</label>
 				</div>
@@ -132,7 +126,7 @@
 			name="nextResearchField"
 			enumType={NextResearchField}
 			bind:value={$player.nextResearchField}
-			onchange={updatePlayerOrders}
+			onchange={onUpdatePlayer}
 		/>
 	</div>
 

@@ -23,7 +23,6 @@
 </script>
 
 <script lang="ts">
-
 	let { tech, showResearchCost = false }: TechTooltipProps = $props();
 
 	const { player, cs } = getGameContext();

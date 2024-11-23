@@ -5,22 +5,20 @@
 	import { isAuto } from '$lib/types/QueueItemType';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
-
-	const dispatch = createEventDispatcher();
 
 	type Props = {
 		designFinder: DesignFinder;
 		plan: ProductionPlan;
 		href: string;
 		showDelete?: boolean;
+		onDelete?: (plan: ProductionPlan) => void;
 	};
 
-	let { designFinder, plan, href, showDelete = true }: Props = $props();
+	let { designFinder, plan, href, showDelete = true, onDelete }: Props = $props();
 
 	const deletePlan = async (plan: ProductionPlan) => {
 		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
-			dispatch('delete', { plan });
+			onDelete?.(plan);
 		}
 	};
 </script>

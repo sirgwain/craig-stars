@@ -14,13 +14,7 @@
 	import type { PlayerFinder } from '$lib/services/Universe';
 	import { owned, ownedBy } from '$lib/types/MapObject';
 
-	type Props = {
-		playerFinder: PlayerFinder;
-		player: Player;
-		planet: Planet;
-	};
-
-	let { playerFinder, player, planet }: Props = $props();
+	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import PlanetBaseHabPoint from '$lib/components/game/PlanetBaseHabPoint.svelte';
 	import PlanetHabPoint from '$lib/components/game/PlanetHabPoint.svelte';
 	import PlanetHabTerraformLine from '$lib/components/game/PlanetHabTerraformLine.svelte';
@@ -12,9 +10,8 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
-	import { Unexplored } from '$lib/types/Constants';
+	import { None, Unexplored } from '$lib/types/Constants';
 	import { HabTypes, add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
-	import { None } from '$lib/types/Constants';
 	import { type Planet } from '$lib/types/Planet';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -66,6 +63,7 @@
 	});
 
 	function onPopulationTooltip(e: PointerEvent) {
+		e.preventDefault();
 		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
 			playerFinder: $universe,
 			player: $player,
@@ -74,6 +72,7 @@
 	}
 
 	function onGravityTooltip(e: PointerEvent) {
+		e.preventDefault();
 		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
 			player: $player,
 			planet,
@@ -82,6 +81,7 @@
 	}
 
 	function onTemperatureTooltip(e: PointerEvent) {
+		e.preventDefault();
 		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
 			player: $player,
 			planet,
@@ -90,6 +90,7 @@
 	}
 
 	function onRadiationTooltip(e: PointerEvent) {
+		e.preventDefault();
 		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
 			player: $player,
 			planet,
@@ -104,10 +105,7 @@
 			<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent" />
 		</div>
 	{:else}
-		<div
-			class="flex justify-between cursor-help"
-			onpointerdown={preventDefault(onPopulationTooltip)}
-		>
+		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>
 			<div class="ml-[5.5rem]">
 				Value: <span
 					class:text-habitable={(planet.spec.habitability ?? 0) > 0}
@@ -145,7 +143,7 @@
 			</div>
 		</div>
 
-		<div class="flex flex-row cursor-help" onpointerdown={preventDefault(onGravityTooltip)}>
+		<div class="flex flex-row cursor-help" onpointerdown={onGravityTooltip}>
 			<div class="text-right w-[5.5rem] text-tile-item-title">Gravity</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
@@ -181,7 +179,7 @@
 			</div>
 			<div class="w-[3rem]">{getGravString(planet.hab?.grav ?? 0)}</div>
 		</div>
-		<div class="flex flex-row cursor-help" onpointerdown={preventDefault(onTemperatureTooltip)}>
+		<div class="flex flex-row cursor-help" onpointerdown={onTemperatureTooltip}>
 			<div class="text-right w-[5.5rem] text-tile-item-title">Temperature</div>
 			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">
@@ -209,7 +207,7 @@
 			</div>
 			<div class="w-[3rem]">{getTempString(planet.hab?.temp ?? 0)}</div>
 		</div>
-		<div class="flex flex-row cursor-help" onpointerdown={preventDefault(onRadiationTooltip)}>
+		<div class="flex flex-row cursor-help" onpointerdown={onRadiationTooltip}>
 			<div class="text-right w-[5.5rem] text-tile-item-title">Radiation</div>
 			<div class="grow bg-black mx-1 overflow-hidden">
 				<div class="h-full relative">

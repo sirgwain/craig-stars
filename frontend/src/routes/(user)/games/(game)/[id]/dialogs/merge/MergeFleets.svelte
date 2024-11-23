@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import type { MergeFleetsEvent, OnCancel, OnOk } from '$lib/services/Events';
 	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
 	import { getMapObjectName } from '$lib/types/MapObject';
@@ -10,8 +8,8 @@
 	type Props = {
 		fleet: CommandedFleet;
 		otherFleetsHere: Fleet[];
-		onOk: OnOk<MergeFleetsEvent>;
-		onCancel: OnCancel;
+		onOk?: OnOk<MergeFleetsEvent>;
+		onCancel?: OnCancel;
 	};
 
 	let { fleet, otherFleetsHere, onOk, onCancel }: Props = $props();
@@ -38,19 +36,23 @@
 		// TODO: otherFleetsHere[i] is sometimes undefined
 		const fleetNums = selectedFleetIndexes.map((i) => otherFleetsHere[i].num);
 		if (fleetNums.length > 0) {
-			onOk({ fleet, fleetNums });
+			onOk?.({ fleet, fleetNums });
 		}
+	}
+
+	function cancel() {
+		onCancel?.();
 	}
 
 	onMount(() => {
 		const originalScope = hotkeys.getScope();
 		const scope = 'cargoTransfer';
-		hotkeys('Esc', scope, onCancel);
+		hotkeys('Esc', scope, cancel);
 		hotkeys('Enter', scope, ok);
 		hotkeys.setScope(scope);
 
 		return () => {
-			hotkeys.unbind('Esc', scope, onCancel);
+			hotkeys.unbind('Esc', scope, cancel);
 			hotkeys.unbind('Enter', scope, ok);
 			hotkeys.deleteScope(scope);
 			hotkeys.setScope(originalScope);
@@ -81,7 +83,10 @@
 	</div>
 	<div class="flex flex-col mt-7 ml-2 gap-2">
 		<button
-			onclick={preventDefault(ok)}
+			onclick={(e) => {
+				e.preventDefault();
+				ok();
+			}}
 			type="submit"
 			disabled={selectedFleetIndexes.length == 0}
 			class="btn btn-sm normal-case btn-primary">OK</button

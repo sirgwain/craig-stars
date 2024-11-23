@@ -10,15 +10,6 @@
 </script>
 
 <script lang="ts">
-	type Props = {
-		planetName: string;
-		resourcesPerYear: number;
-		resourcesPerYearResearch: number;
-		resourcesPerYearResearchEstimated: number;
-		resourcesPerYearAvailable: number;
-		innateResources: boolean;
-	};
-
 	let {
 		planetName,
 		resourcesPerYear,
@@ -26,7 +17,7 @@
 		resourcesPerYearResearchEstimated,
 		resourcesPerYearAvailable,
 		innateResources
-	}: Props = $props();
+	}: ResourcesTooltipProps = $props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

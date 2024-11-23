@@ -19,13 +19,7 @@
 	} from '$lib/types/Hab';
 	import { getPlanetHabitability, isImmune } from '$lib/types/Race';
 
-	type Props = {
-		player: Player;
-		planet: Planet;
-		habType: HabType;
-	};
-
-	let { player, planet, habType }: Props = $props();
+	let { player, planet, habType }: HabTooltipProps = $props();
 
 	const currentHab = getHabValue(planet.hab, habType);
 	const terraformedHab = getHabValue(planet.spec.terraformAmount ?? {}, habType);

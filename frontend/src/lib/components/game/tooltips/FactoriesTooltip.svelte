@@ -9,16 +9,13 @@
 </script>
 
 <script lang="ts">
-	type Props = {
-		planetName: string;
-		factories: number;
-		maxFactories: number;
-		maxPossibleFactories: number;
-		canBuildFactories: boolean;
-	};
-
-	let { planetName, factories, maxFactories, maxPossibleFactories, canBuildFactories }: Props =
-		$props();
+	let {
+		planetName,
+		factories,
+		maxFactories,
+		maxPossibleFactories,
+		canBuildFactories
+	}: FactoriesTooltipProps = $props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

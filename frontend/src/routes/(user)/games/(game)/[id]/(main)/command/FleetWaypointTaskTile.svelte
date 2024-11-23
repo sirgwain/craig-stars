@@ -23,6 +23,7 @@
 	import { $enum as eu } from 'ts-enum-util';
 	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
 	import CommandTile from './CommandTile.svelte';
+	import type { Vector } from '$lib/types/Vector';
 
 	const { game, player, universe, updateFleetOrders } = getGameContext();
 
@@ -90,7 +91,7 @@
 		}
 	}
 
-	function onTargetChanged(target: MapObject) {
+	function onTargetChanged(target: Partial<MapObject>) {
 		if (selectedWaypoint) {
 			selectedWaypoint.targetName = target.name;
 			selectedWaypoint.targetType = target.type;
@@ -112,7 +113,7 @@
 					target={selectedWaypoint}
 					position={selectedWaypoint.position}
 					class="w-36"
-					on:selected={(e) => onTargetChanged(e.detail)}
+					onSelected={onTargetChanged}
 				/>
 			</div>
 		</div>
@@ -161,7 +162,7 @@
 						title="Apply Plan"
 						items={$player.transportPlans}
 						itemTitle={(item) => item.name}
-						on:selected={(e) => applyTransportPlan(e.detail)}
+						onSelected={applyTransportPlan}
 					/>
 				</div>
 			</div>

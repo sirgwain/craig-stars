@@ -9,15 +9,8 @@
 </script>
 
 <script lang="ts">
-	type Props = {
-		planetName: string;
-		mines: number;
-		maxMines: number;
-		maxPossibleMines: number;
-		canBuildMines: boolean;
-	};
-
-	let { planetName, mines, maxMines, maxPossibleMines, canBuildMines }: Props = $props();
+	let { planetName, mines, maxMines, maxPossibleMines, canBuildMines }: MinesTooltipProps =
+		$props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">
