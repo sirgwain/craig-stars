@@ -1,15 +1,13 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
+	import type { NextPrevMapObjectProps } from '$lib/services/Events';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
-	const { nextMapObject, previousMapObject } = getGameContext();
-
 	type Props = {
 		planet: CommandedPlanet;
-	};
+	} & NextPrevMapObjectProps;
 
-	let { planet }: Props = $props();
+	let { planet, onNextMapObject, onPreviousMapObject }: Props = $props();
 	const icon = (planet: CommandedPlanet) => (planet ? `planet-${(planet.num - 1) % 26}` : '');
 </script>
 
@@ -22,13 +20,11 @@
 		</div>
 
 		<div class="flex flex-col gap-y-1">
-			<button
-				onclick={() => previousMapObject()}
-				class="btn btn-outline btn-sm normal-case btn-secondary">Prev</button
+			<button onclick={onPreviousMapObject} class="btn btn-outline btn-sm normal-case btn-secondary"
+				>Prev</button
 			>
-			<button
-				onclick={() => nextMapObject()}
-				class="btn btn-outline btn-sm normal-case btn-secondary">Next</button
+			<button onclick={onNextMapObject} class="btn btn-outline btn-sm normal-case btn-secondary"
+				>Next</button
 			>
 		</div>
 	</div>

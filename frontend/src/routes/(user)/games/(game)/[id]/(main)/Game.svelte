@@ -12,7 +12,8 @@
 		SplitFleetEvent,
 		TransferCargoEvent,
 		TransportTasksDialogEvent,
-		ChangeWaypointTransportTasksEvent
+		ChangeWaypointTransportTasksEvent,
+		RenameFleetEvent
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absoluteSize } from '$lib/types/CargoTransferRequest';
@@ -58,6 +59,7 @@
 		addWaypoint,
 		updateWaypoint,
 		deleteWaypoint,
+		renameFleet,
 		updateFleetOrders,
 		updatePlanetOrders,
 		transferCargo,
@@ -115,6 +117,14 @@
 		};
 	});
 
+	function onNextMapObject() {
+		nextMapObject();
+	}
+
+	function onPreviousMapObject() {
+		previousMapObject();
+	}
+
 	async function onAddWaypoint(dest: WaypointDest, fastestWaypoint: boolean): Promise<boolean> {
 		return addWaypoint(dest, fastestWaypoint);
 	}
@@ -151,6 +161,10 @@
 
 		// close the dialog
 		showTransportTasksDialog = false;
+	}
+
+	async function onRenameFleet(e: RenameFleetEvent) {
+		renameFleet(e.fleet, e.name);
 	}
 
 	async function onBattlePlanChanged(e: BattlePlanChangedEvent) {
@@ -291,6 +305,9 @@
 	>
 		<div class="flex flex-row flex-wrap gap-2 justify-center">
 			<CommandPane
+				{onNextMapObject}
+				{onPreviousMapObject}
+				{onRenameFleet}
 				{onSelectWaypoint}
 				{onChangeWaypoint}
 				{onDeleteWaypoint}

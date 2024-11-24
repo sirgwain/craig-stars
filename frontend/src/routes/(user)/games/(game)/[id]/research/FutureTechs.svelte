@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
+	
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
@@ -13,7 +12,7 @@
 		distance: number;
 	};
 
-	const { game, player, universe } = getGameContext();
+	const { player } = getGameContext();
 
 	type Props = {
 		field: TechField;
@@ -65,7 +64,7 @@
 			<button
 				type="button"
 				class="w-full h-full text-left"
-				onpointerdown={preventDefault((e) => onTechTooltip(e, futureTech.tech, true))}
+				onpointerdown={(e) => onTechTooltip(e, futureTech.tech, true)}
 				>{futureTech.tech.name}</button
 			>
 		</li>

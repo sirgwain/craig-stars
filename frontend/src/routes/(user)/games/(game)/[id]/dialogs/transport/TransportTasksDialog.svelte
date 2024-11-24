@@ -20,11 +20,11 @@
 	let transportTasks: WaypointTransportTasks = $state(emptyTransportTasks());
 
 	$effect(() => {
-		if (!show) return;
+		if (!show || !props) return;
 		// use the waypoint props transport tasks when opening the dialog
 		// this is a bit weird, but props.waypoint.transportTasks is also a "state" because it comes
 		// from the FleetWaypointsTile, so take a snapshot of it instead of just grabbing the existing state var
-		transportTasks = $state.snapshot(props?.waypoint.transportTasks) ?? emptyTransportTasks();
+		transportTasks = $state.snapshot(props.waypoint.transportTasks) ?? emptyTransportTasks();
 	});
 
 	function ok() {

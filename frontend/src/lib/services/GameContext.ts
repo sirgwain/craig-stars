@@ -20,7 +20,9 @@ import {
 import { CommandedPlanet, type Planet } from '$lib/types/Planet';
 import {
 	Player,
+	PlayerRelation,
 	type BattlePlan,
+	type PlayerRelationship,
 	type PlayerResponse,
 	type ProductionPlan,
 	type TransportPlan
@@ -86,7 +88,6 @@ export type GameContext = {
 	nextMapObject: () => void;
 	highlightMapObject: (mo: MapObject | undefined) => void;
 	zoomToMapObject: (mo: MapObject) => void;
-	nextCommandableMapObjectAtPosition: () => void;
 
 	// message
 	gotoTarget: (message: Message, gameId: number, playerNum: number, universe: Universe) => void;
@@ -103,7 +104,7 @@ export type GameContext = {
 	forceGenerateTurn: () => Promise<void>;
 
 	updatePlayerOrders: () => Promise<void>;
-	updatePlayerRelations: () => Promise<void>;
+	updatePlayerRelationships: (relations: PlayerRelationship[]) => Promise<void>;
 	createBattlePlan: (plan: BattlePlan) => Promise<BattlePlan>;
 	updateBattlePlan: (plan: BattlePlan) => Promise<BattlePlan>;
 	deleteBattlePlan: (num: number) => Promise<void>;
@@ -288,19 +289,6 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			return -1;
 		}
 	);
-
-	function nextCommandableMapObjectAtPosition() {
-		const index = get(currentCommandedMapObjectPositionIndex);
-		const commandable = get(commandableMapObjectsAtCommandedMapObjectPosition);
-
-		if (commandable && commandable?.length > 0) {
-			if (index + 1 > commandable.length) {
-				commandMapObject(commandable[0]);
-			} else {
-				commandMapObject(commandable[index + 1]);
-			}
-		}
-	}
 
 	// goto a message target
 	function gotoTarget(message: Message, gameId: number, playerNum: number, universe: Universe) {
@@ -768,7 +756,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 	}
 
-	async function updatePlayerRelations(): Promise<void> {
+	async function updatePlayerRelations(relations: PlayerRelationship[]): Promise<void> {
+		const p = get(player);
+		p.relations = relations;
 		const result = await PlayerService.updateRelations(get(player));
 		if (result) {
 			updatePlayer(result);
@@ -1150,7 +1140,6 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		nextMapObject,
 		highlightMapObject,
 		zoomToMapObject,
-		nextCommandableMapObjectAtPosition,
 		gotoTarget,
 		gotoBattle,
 
@@ -1163,7 +1152,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		forceGenerateTurn,
 
 		updatePlayerOrders,
-		updatePlayerRelations,
+		updatePlayerRelationships: updatePlayerRelations,
 		createBattlePlan,
 		updateBattlePlan,
 		deleteBattlePlan,

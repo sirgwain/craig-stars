@@ -5,6 +5,8 @@
 		ChangeWaypointProps,
 		ClearProductionQueueProps,
 		DeleteWaypointProps,
+		NextPrevMapObjectProps,
+		RenameFleetProps,
 		SelectWaypointProps,
 		ShowCargoTransferDialogProps,
 		ShowMergeFleetsDialogProps,
@@ -28,7 +30,9 @@
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 
-	type Props = SplitAllProps &
+	type Props = NextPrevMapObjectProps &
+		RenameFleetProps &
+		SplitAllProps &
 		ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
@@ -42,6 +46,9 @@
 		ChangeMassDriverSpeedProps;
 
 	const {
+		onNextMapObject,
+		onPreviousMapObject,
+		onRenameFleet,
 		onSplitAll,
 		onShowCargoTransferDialog,
 		onShowSplitFleetDialog,
@@ -67,9 +74,9 @@
 
 {#if $commandedPlanet}
 	<div class="lg:flex lg:flex-col">
-		<PlanetSummaryTile planet={$commandedPlanet} />
+		<PlanetSummaryTile planet={$commandedPlanet} {onNextMapObject} {onPreviousMapObject} />
 		<PlanetMineralsOnHandTile planet={$commandedPlanet} />
-		<PlanetStatusTile planet={$commandedPlanet} />
+		<PlanetStatusTile planet={$commandedPlanet}  />
 	</div>
 	<div class="lg:flex lg:flex-col">
 		<PlanetFleetsInOrbitTile
@@ -90,7 +97,7 @@
 	</div>
 {:else if $commandedFleet && $selectedWaypoint}
 	<div class="lg:flex lg:flex-col">
-		<FleetSummaryTile fleet={$commandedFleet} />
+		<FleetSummaryTile fleet={$commandedFleet} {onNextMapObject} {onPreviousMapObject} {onRenameFleet}/>
 		<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		<FleetOtherFleetsHereTile
 			fleet={$commandedFleet}

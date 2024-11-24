@@ -7,6 +7,8 @@
 		ChangeWaypointProps,
 		ClearProductionQueueProps,
 		DeleteWaypointProps,
+		NextPrevMapObjectProps,
+		RenameFleetProps,
 		SelectWaypointProps,
 		ShowCargoTransferDialogProps,
 		ShowMergeFleetsDialogProps,
@@ -34,7 +36,6 @@
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
-	import type { CommandedFleet } from '$lib/types/Fleet';
 
 	const {
 		universe,
@@ -54,7 +55,7 @@
 
 	type Props = {
 		isOpen: boolean;
-	} & SplitAllProps &
+	} & NextPrevMapObjectProps & RenameFleetProps & SplitAllProps &
 		ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
@@ -69,6 +70,9 @@
 
 	let {
 		isOpen = $bindable($open),
+		onNextMapObject,
+		onPreviousMapObject,
+		onRenameFleet,
 		onSplitAll,
 		onShowCargoTransferDialog,
 		onShowSplitFleetDialog,

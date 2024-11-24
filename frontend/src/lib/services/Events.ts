@@ -59,6 +59,11 @@ export type SplitAllEvent = {
 	fleet: CommandedFleet;
 };
 
+export type RenameFleetEvent = {
+	fleet: CommandedFleet;
+	name: string;
+};
+
 export type MergeFleetsEvent = {
 	fleet: CommandedFleet;
 	fleetNums: number[];
@@ -104,6 +109,11 @@ export type SelectWaypointEvent = {
 	waypoint: Waypoint;
 };
 
+export type NextPrevMapObjectProps = {
+	onNextMapObject?: () => void;
+	onPreviousMapObject?: () => void;
+};
+
 export type ClearProductionQueueProps = {
 	onClearProductionQueue?: (e: ClearProductionQueueEvent) => Promise<void>;
 };
@@ -118,6 +128,10 @@ export type SplitAllProps = {
 
 export type BattlePlanChangedProps = {
 	onBattlePlanChanged?: (e: BattlePlanChangedEvent) => Promise<void>;
+};
+
+export type RenameFleetProps = {
+	onRenameFleet?: (e: RenameFleetEvent) => Promise<void>;
 };
 
 export type ChangeWaypointProps = {

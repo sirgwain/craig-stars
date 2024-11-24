@@ -18,13 +18,14 @@
 	import MobileViewSettings from './toolbar/MobileViewSettings.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 	import ScannerToolbarFilter from './toolbar/ScannerToolbarFilter.svelte';
+	import type { NextPrevMapObjectProps } from '$lib/services/Events';
 
-	const { player, settings, nextMapObject, previousMapObject } = getGameContext();
+	const { player, settings } = getGameContext();
 
 	type Props = {
 		onShowSearch: () => void;
-	};
-	let { onShowSearch }: Props = $props();
+	} & NextPrevMapObjectProps;
+	let { onShowSearch, onNextMapObject, onPreviousMapObject }: Props = $props();
 
 	let planetsViewMenuDropdown: HTMLDetailsElement | undefined = $state();
 
@@ -110,7 +111,8 @@
 					class:fill-accent={$settings.addWaypoint}
 					class:fill-current={!$settings.addWaypoint}
 					class="btn btn-ghost btn-xs h-full border"
-					onclick={preventDefault(() => {
+					onclick={(e) => {
+						e.preventDefault();
 						// 3 state toggle
 						if ($settings.addWaypoint && $settings.fastestWaypoint) {
 							$settings.addWaypoint = $settings.fastestWaypoint = false;
@@ -124,7 +126,7 @@
 							// weird state, reset
 							$settings.addWaypoint = $settings.fastestWaypoint = false;
 						}
-					})}
+					}}
 				>
 					{#if $settings.fastestWaypoint}
 						<AddWaypointFast class="w-6 h-6" />
@@ -138,7 +140,10 @@
 				<a
 					href="#messages"
 					class="btn btn-ghost btn-xs h-full indicator"
-					onclick={preventDefault(() => ($settings.showMessagePane = !$settings.showMessagePane))}
+					onclick={(e) => {
+						e.preventDefault();
+						$settings.showMessagePane = !$settings.showMessagePane;
+					}}
 					><Icon
 						src={Envelope}
 						class={`w-6 h-6 ${$settings.showMessagePane ? 'stroke-accent' : 'stroke-current'}`}
@@ -159,7 +164,7 @@
 
 		<div class="tooltip" data-tip="previous">
 			<button
-				onclick={() => previousMapObject()}
+				onclick={onPreviousMapObject}
 				class="btn btn-outline btn-sm normal-case btn-secondary"
 				title="previous"
 				><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /></button
@@ -167,7 +172,7 @@
 		</div>
 		<div class="tooltip" data-tip="next">
 			<button
-				onclick={() => nextMapObject()}
+				onclick={onNextMapObject}
 				class="btn btn-outline btn-sm normal-case btn-secondary"
 				title="next"
 				><Icon src={ArrowLongRight} size="16" class="hover:stroke-accent inline" /></button

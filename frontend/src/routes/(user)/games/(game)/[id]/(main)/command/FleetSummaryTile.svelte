@@ -1,18 +1,20 @@
 <script lang="ts">
-	
+	import type { NextPrevMapObjectProps, RenameFleetProps } from '$lib/services/Events';
+
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getHullIcon } from '$lib/techicon';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import CommandTile from './CommandTile.svelte';
 
-	const { player, universe, nextMapObject, previousMapObject, renameFleet } = getGameContext();
+	const { universe } = getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;
-	};
+	} & NextPrevMapObjectProps &
+		RenameFleetProps;
 
-	let { fleet }: Props = $props();
+	let { fleet, onRenameFleet, onNextMapObject, onPreviousMapObject }: Props = $props();
 
 	const design: ShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
@@ -21,13 +23,13 @@
 		}
 	});
 
-	async function onRename() {
+	function rename() {
 		let name = prompt('Enter fleet name', fleet.baseName);
 		if (!name || name === '') {
 			name = $universe.getMyDesign(fleet.tokens[0].designNum)?.name ?? '';
 		}
 		if (name !== '') {
-			await renameFleet(fleet, name);
+			onRenameFleet?.({ fleet, name });
 		}
 	}
 </script>
@@ -42,17 +44,17 @@
 		</div>
 		<div class="flex flex-col gap-y-1">
 			<button
-				onclick={() => previousMapObject()}
+				onclick={onPreviousMapObject}
 				type="button"
 				class="btn btn-outline btn-sm normal-case btn-secondary">Prev</button
 			>
 			<button
-				onclick={() => nextMapObject()}
+				onclick={onNextMapObject}
 				type="button"
 				class="btn btn-outline btn-sm normal-case btn-secondary">Next</button
 			>
 			<button
-				onclick={() => onRename()}
+				onclick={rename}
 				type="button"
 				class="btn btn-outline btn-sm normal-case btn-secondary">Rename</button
 			>

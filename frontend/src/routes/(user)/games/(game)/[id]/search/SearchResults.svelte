@@ -9,8 +9,7 @@
 	import { type Planet } from '$lib/types/Planet';
 	import { onMount } from 'svelte';
 
-	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
-		getGameContext();
+	const { player, universe, settings } = getGameContext();
 
 	type Props = {
 		maxPlanetResults?: number;
