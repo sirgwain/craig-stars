@@ -4,7 +4,10 @@
 	import type {
 		BattlePlanChangedProps,
 		ChangeMassDriverSpeedProps,
+		ChangeWaypointProps,
 		ClearProductionQueueProps,
+		DeleteWaypointProps,
+		SelectWaypointProps,
 		ShowCargoTransferDialogProps,
 		ShowMergeFleetsDialogProps,
 		ShowProductionQueueDialogProps,
@@ -50,7 +53,6 @@
 
 	type Props = {
 		isOpen: boolean;
-		onDeleteWaypoint: () => Promise<void>;
 		onSplitAll: () => Promise<void>;
 	} & ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
@@ -59,11 +61,13 @@
 		ShowTransportTasksDialogEventProps &
 		ClearProductionQueueProps &
 		BattlePlanChangedProps &
+		SelectWaypointProps &
+		ChangeWaypointProps &
+		DeleteWaypointProps &
 		ChangeMassDriverSpeedProps;
 
 	let {
 		isOpen = $bindable($open),
-		onDeleteWaypoint,
 		onSplitAll,
 		onShowCargoTransferDialog,
 		onShowSplitFleetDialog,
@@ -72,7 +76,10 @@
 		onShowTransportTasksDialog,
 		onBattlePlanChanged,
 		onClearProductionQueue,
-		onChangeMassDriverSpeed
+		onChangeMassDriverSpeed,
+		onSelectWaypoint,
+		onChangeWaypoint,
+		onDeleteWaypoint
 	}: Props = $props();
 
 	let carousel: HTMLDivElement | undefined;
@@ -261,6 +268,8 @@
 			<FleetWaypointsTile
 				fleet={$commandedFleet}
 				selectedWaypoint={$selectedWaypoint}
+				{onSelectWaypoint}
+				{onChangeWaypoint}
 				{onDeleteWaypoint}
 			/>
 		</div>
@@ -269,6 +278,7 @@
 				fleet={$commandedFleet}
 				selectedWaypoint={$selectedWaypoint}
 				{onShowTransportTasksDialog}
+				{onChangeWaypoint}
 			/>
 		</div>
 		<div id="fleet-other-fleets-here-tile" class="carousel-item w-full">

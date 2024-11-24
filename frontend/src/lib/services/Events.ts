@@ -89,6 +89,21 @@ export type BattlePlanChangedEvent = {
 	battlePlanNum: number;
 };
 
+export type ChangeWaypointEvent = {
+	fleet: CommandedFleet;
+	waypoint?: Waypoint | undefined;
+};
+
+export type DeleteWaypointEvent = {
+	fleet: CommandedFleet;
+	waypoint: Waypoint;
+};
+
+export type SelectWaypointEvent = {
+	fleet: CommandedFleet;
+	waypoint: Waypoint;
+};
+
 export type ClearProductionQueueProps = {
 	onClearProductionQueue?: (e: ClearProductionQueueEvent) => Promise<void>;
 };
@@ -103,6 +118,20 @@ export type SplitAllProps = {
 
 export type BattlePlanChangedProps = {
 	onBattlePlanChanged?: (e: BattlePlanChangedEvent) => Promise<void>;
+};
+
+export type ChangeWaypointProps = {
+	onChangeWaypoint?: (e: ChangeWaypointEvent) => Promise<void>;
+};
+
+export type DeleteWaypointProps = {
+	// delete the currently selected waypoint
+	// event data is optional and not currently implemented
+	onDeleteWaypoint?: (e?: DeleteWaypointEvent) => Promise<void>;
+};
+
+export type SelectWaypointProps = {
+	onSelectWaypoint?: (e: SelectWaypointEvent) => void;
 };
 
 // properties for a components that trigger a Dialog events

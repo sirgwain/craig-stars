@@ -2,32 +2,27 @@
 	import type { Vector } from '$lib/types/Vector';
 	import ScannerContextPopup from './ScannerContextPopup.svelte';
 
+	export type ScannerContextPopupProps = {
+		position: Vector;
+	} & PopupProps;
+
 	export function onScannerContextPopup(e: PointerEvent | MouseEvent, position?: Vector) {
 		if (position) {
 			showPopup<ScannerContextPopupProps>(e.x, e.y, ScannerContextPopup, { position });
 		}
 	}
-
-	export type ScannerContextPopupProps = {
-		position: Vector;
-	};
 </script>
 
 <script lang="ts">
-	import type { OnClose } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { showPopup } from '$lib/services/Stores';
 	import { None } from '$lib/types/Constants';
 	import { getMapObjectName, MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { flatten, keys } from 'lodash-es';
+	import { showPopup, type PopupProps } from './Popup.svelte';
 
 	const { player, universe, commandMapObject, selectMapObject } = getGameContext();
 
-	type Props = {
-		onClose?: OnClose;
-	} & ScannerContextPopupProps;
-
-	let { position, onClose }: Props = $props();
+	let { position, onClose }: ScannerContextPopupProps = $props();
 
 	let otherMapObjectsHere = $derived($universe.getOtherMapObjectsHereByType(position));
 	let everythingElse = $derived(

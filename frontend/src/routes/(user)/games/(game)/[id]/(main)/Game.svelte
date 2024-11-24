@@ -3,8 +3,11 @@
 		BattlePlanChangedEvent,
 		CargoTransferDialogEvent,
 		ChangeMassDriverSpeedEvent,
+		ChangeWaypointEvent,
+		DeleteWaypointEvent,
 		MergeFleetsDialogEvent,
 		MergeFleetsEvent,
+		SelectWaypointEvent,
 		SplitFleetDialogEvent,
 		SplitFleetEvent,
 		TransferCargoEvent,
@@ -112,20 +115,32 @@
 		};
 	});
 
-	function onSelectWaypoint(wp: Waypoint) {
-		selectWaypoint(wp);
-	}
-
 	async function onAddWaypoint(dest: WaypointDest, fastestWaypoint: boolean): Promise<boolean> {
 		return addWaypoint(dest, fastestWaypoint);
 	}
 
-	async function onUpdateWaypoint(dest: WaypointDest, fastestWaypoint: boolean, done: boolean) {
+	async function onUpdateWaypointDest(dest: WaypointDest, fastestWaypoint: boolean, done: boolean) {
 		updateWaypoint(dest, fastestWaypoint, done);
 	}
 
-	async function onDeleteWaypoint() {
+	async function onDeleteWaypoint(e?: DeleteWaypointEvent) {
 		deleteWaypoint();
+	}
+
+	async function onChangeWaypoint(e: ChangeWaypointEvent) {
+		updateFleetOrders(e.fleet);
+	}
+
+	function onSelectWaypoint(e: SelectWaypointEvent) {
+		const wp = e.waypoint;
+		selectWaypoint(wp);
+
+		if (wp.targetType && wp.targetNum) {
+			const mo = $universe.getMapObject(wp);
+			if (mo) {
+				selectMapObject(mo);
+			}
+		}
 	}
 
 	async function onBattlePlanChanged(e: BattlePlanChangedEvent) {
@@ -274,6 +289,8 @@
 	>
 		<div class="flex flex-row flex-wrap gap-2 justify-center">
 			<CommandPane
+				{onSelectWaypoint}
+				{onChangeWaypoint}
 				{onDeleteWaypoint}
 				{onSplitAll}
 				{onBattlePlanChanged}
@@ -313,7 +330,7 @@
 			<Scanner
 				{onSelectWaypoint}
 				{onAddWaypoint}
-				{onUpdateWaypoint}
+				{onUpdateWaypointDest}
 				{onSelectMapObject}
 				{onSetPacketDest}
 			/>
@@ -335,6 +352,8 @@
 	<div class="flex flex-col flex-0">
 		<CommandPaneCarousel
 			bind:isOpen={carouselOpen}
+			{onSelectWaypoint}
+			{onChangeWaypoint}
 			{onDeleteWaypoint}
 			{onSplitAll}
 			{onBattlePlanChanged}

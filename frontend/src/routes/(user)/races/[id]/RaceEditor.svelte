@@ -41,7 +41,7 @@
 
 <SectionHeader>Lesser Racial Traits</SectionHeader>
 <LRTs bind:race />
-<LRTsDescriptions bind:race />
+<LRTsDescriptions {race} />
 
 <SectionHeader>Habitability</SectionHeader>
 <Habitability bind:race />

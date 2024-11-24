@@ -2,7 +2,10 @@
 	import type {
 		BattlePlanChangedProps,
 		ChangeMassDriverSpeedProps,
+		ChangeWaypointProps,
 		ClearProductionQueueProps,
+		DeleteWaypointProps,
+		SelectWaypointProps,
 		ShowCargoTransferDialogProps,
 		ShowMergeFleetsDialogProps,
 		ShowProductionQueueDialogProps,
@@ -25,7 +28,6 @@
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 
 	type Props = {
-		onDeleteWaypoint: () => Promise<void>;
 		onSplitAll: () => Promise<void>;
 	} & ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
@@ -34,10 +36,12 @@
 		ShowTransportTasksDialogEventProps &
 		ClearProductionQueueProps &
 		BattlePlanChangedProps &
+		SelectWaypointProps &
+		ChangeWaypointProps &
+		DeleteWaypointProps &
 		ChangeMassDriverSpeedProps;
 
 	const {
-		onDeleteWaypoint,
 		onSplitAll,
 		onShowCargoTransferDialog,
 		onShowSplitFleetDialog,
@@ -46,7 +50,10 @@
 		onShowTransportTasksDialog,
 		onBattlePlanChanged,
 		onClearProductionQueue,
-		onChangeMassDriverSpeed
+		onChangeMassDriverSpeed,
+		onSelectWaypoint,
+		onChangeWaypoint,
+		onDeleteWaypoint
 	}: Props = $props();
 
 	const { universe, commandedPlanet, commandedFleet, selectedWaypoint } = getGameContext();
@@ -101,12 +108,15 @@
 		<FleetWaypointsTile
 			fleet={$commandedFleet}
 			selectedWaypoint={$selectedWaypoint}
+			{onSelectWaypoint}
+			{onChangeWaypoint}
 			{onDeleteWaypoint}
 		/>
 		<FleetWaypointTaskTile
 			fleet={$commandedFleet}
 			selectedWaypoint={$selectedWaypoint}
 			{onShowTransportTasksDialog}
+			{onChangeWaypoint}
 		/>
 	</div>
 {/if}

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ColorInput from '$lib/components/ColorInput.svelte';
 	import Select from '$lib/components/Select.svelte';
 	import { RaceService } from '$lib/services/RaceService';
 	import type { NewGamePlayer } from '$lib/types/Game';

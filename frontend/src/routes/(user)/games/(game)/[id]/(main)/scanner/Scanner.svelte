@@ -13,9 +13,10 @@
 	import { ZoomTransform, zoom, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
 	import hotkeys from 'hotkeys-js';
 	import { Html, LayerCake, Svg } from 'layercake';
-	import { onDestroy, onMount, setContext } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { derived as derivedStore, writable } from 'svelte/store';
 	import MapObjectQuadTreeFinder, { type FinderEvent } from './MapObjectQuadTreeFinder.svelte';
+	import { setScannerContext } from './Scanner';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerMapObjectLocation from './ScannerMapObjectLocation.svelte';
 	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
@@ -32,7 +33,7 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import { setScannerContext } from './Scanner';
+	import type { SelectWaypointProps } from '$lib/services/Events';
 
 	const {
 		game,
@@ -48,17 +49,16 @@
 	} = getGameContext();
 
 	type Props = {
-		onSelectWaypoint: (wp: Waypoint) => void;
 		onAddWaypoint: (dest: WaypointDest, fastestWaypoint: boolean) => Promise<boolean>;
-		onUpdateWaypoint: (dest: WaypointDest, fastestWaypoint: boolean, done: boolean) => void;
+		onUpdateWaypointDest: (dest: WaypointDest, fastestWaypoint: boolean, done: boolean) => void;
 		onSelectMapObject: (mo: MapObject) => void;
 		onSetPacketDest: (mo: MapObject) => void;
-	};
+	} & SelectWaypointProps;
 
 	let {
 		onSelectWaypoint,
 		onAddWaypoint,
-		onUpdateWaypoint,
+		onUpdateWaypointDest,
 		onSelectMapObject,
 		onSetPacketDest
 	}: Props = $props();
@@ -281,7 +281,7 @@
 		// * if we have a commanded fleet
 		if (!waypointJustAdded && !draggingWaypoint && pointerDown && fleetWaypoint) {
 			draggingWaypoint = true;
-			onSelectWaypoint(fleetWaypoint);
+			onSelectWaypoint?.({ fleet: $commandedFleet, waypoint: fleetWaypoint });
 		}
 	}
 
@@ -348,7 +348,7 @@
 			}
 
 			const dest = mo && !positionWaypoint ? { mo: mo } : { position: position ?? emptyVector };
-			onUpdateWaypoint(dest, fastestWaypoint, false);
+			onUpdateWaypointDest(dest, fastestWaypoint, false);
 		}
 	}
 
@@ -356,7 +356,7 @@
 		// reset waypoint dragging
 		if ($selectedWaypoint && $commandedFleet && draggingWaypoint) {
 			const dest = mo && !positionWaypoint ? { mo: mo } : { position: position ?? emptyVector };
-			onUpdateWaypoint(dest, fastestWaypoint, true);
+			onUpdateWaypointDest(dest, fastestWaypoint, true);
 		}
 	}
 

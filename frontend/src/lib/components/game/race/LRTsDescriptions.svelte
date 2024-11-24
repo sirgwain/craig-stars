@@ -5,7 +5,7 @@
 		race: Race;
 	};
 
-	let { race = $bindable() }: Props = $props();
+	let { race }: Props = $props();
 
 	const getDescriptionForLRT = (lrt: LRT) => {
 		switch (lrt) {

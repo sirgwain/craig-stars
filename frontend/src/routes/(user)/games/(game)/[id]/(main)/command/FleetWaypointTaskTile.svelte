@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import DropdownButton from '$lib/components/DropdownButton.svelte';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import OtherMapObjectsHere from '$lib/components/game/OtherMapObjectsHere.svelte';
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
-	import type { ShowTransportTasksDialogEventProps } from '$lib/services/Events';
+	import type {
+		ChangeWaypointProps,
+		ShowTransportTasksDialogEventProps
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { Unexplored } from '$lib/types/Constants';
 	import {
@@ -24,14 +25,15 @@
 	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
 	import CommandTile from './CommandTile.svelte';
 
-	const { game, player, universe, updateFleetOrders } = getGameContext();
+	const { game, player, universe } = getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;
 		selectedWaypoint: Waypoint | undefined;
-	} & ShowTransportTasksDialogEventProps;
+	} & ChangeWaypointProps &
+		ShowTransportTasksDialogEventProps;
 
-	let { fleet, selectedWaypoint = $bindable(), onShowTransportTasksDialog }: Props = $props();
+	let { fleet, selectedWaypoint, onShowTransportTasksDialog, onChangeWaypoint }: Props = $props();
 
 	let selectedWaypointTask = $derived(selectedWaypoint?.task ?? WaypointTask.None);
 	let selectedWaypointPlanet = $derived(
@@ -53,18 +55,18 @@
 				selectedWaypoint.transportTasks = emptyTransportTasks();
 			}
 
-			updateFleetOrders(fleet);
+			onChangeWaypoint?.({ fleet, waypoint: selectedWaypoint });
 		}
 	};
 
 	function onPatrolRangeChanged() {
-		updateFleetOrders(fleet);
+		onChangeWaypoint?.({ fleet, waypoint: selectedWaypoint });
 	}
 
 	async function onPatrolWarpSpeedChanged(warpSpeed: number) {
 		if (selectedWaypoint) {
 			selectedWaypoint.patrolWarpSpeed = warpSpeed;
-			await updateFleetOrders(fleet);
+			onChangeWaypoint?.({ fleet, waypoint: selectedWaypoint });
 		}
 	}
 
@@ -75,18 +77,18 @@
 	}
 
 	function onLayMineFieldDurationChanged() {
-		updateFleetOrders(fleet);
+		onChangeWaypoint?.({ fleet, waypoint: selectedWaypoint });
 	}
 
 	function onTransferToPlayerChanged() {
-		updateFleetOrders(fleet);
+		onChangeWaypoint?.({ fleet, waypoint: selectedWaypoint });
 	}
 
 	function applyTransportPlan(plan: TransportPlan) {
 		if (selectedWaypoint) {
 			selectedWaypoint.transportTasks = plan.tasks;
 
-			updateFleetOrders(fleet);
+			onChangeWaypoint?.({ fleet, waypoint: selectedWaypoint });
 		}
 	}
 
@@ -96,7 +98,7 @@
 			selectedWaypoint.targetType = target.type;
 			selectedWaypoint.targetNum = target.num;
 			selectedWaypoint.targetPlayerNum = target.playerNum;
-			updateFleetOrders(fleet);
+			onChangeWaypoint?.({ fleet, waypoint: selectedWaypoint });
 		}
 	}
 </script>
@@ -196,7 +198,7 @@
 			<select
 				class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
 				bind:value={selectedWaypoint.layMineFieldDuration}
-				onchange={preventDefault(() => onLayMineFieldDurationChanged())}
+				onchange={() => onLayMineFieldDurationChanged()}
 			>
 				<option value={undefined}>Indefinitely</option>
 				<option value={1}>for 1 year</option>
@@ -215,7 +217,7 @@
 					<select
 						class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
 						bind:value={selectedWaypoint.patrolRange}
-						onchange={preventDefault(() => onPatrolRangeChanged())}
+						onchange={() => onPatrolRangeChanged()}
 					>
 						<option value={50}>within 50 l.y.</option>
 						<option value={100}>within 100 l.y.</option>
@@ -248,7 +250,7 @@
 			<select
 				class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
 				bind:value={selectedWaypoint.transferToPlayer}
-				onchange={preventDefault(() => onTransferToPlayerChanged())}
+				onchange={() => onTransferToPlayerChanged()}
 			>
 				<option value={undefined}>None</option>
 				{#each $game.players as otherPlayer}

@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { VictoryCondition } from '$lib/types/Game';
-
+	
 	type Props = {
 		value: number;
 		unit?: string | undefined;
