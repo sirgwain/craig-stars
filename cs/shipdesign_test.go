@@ -786,55 +786,73 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 			want: 1,
 		},
 		{
-			name: "12 jammer 50s hitting starbase hardcap",
+			name: "Beam Deflector",
 			args: args{
 				armorMulti: 1, shieldMulti: 1,
-				hc:         &Jammer50,
-				qty:        3,
+				hc:         &BeamDeflector,
+				qty:        1,
 				shield:     1,
 				armor:      1,
 				beamBonus:  1,
 				jamming:    0,
 				computing:  0,
 				deflecting: 0,
-				starbase:   true,
+				starbase:   false,
 			},
-			want: 1.75,
+			want: 1.1111, // 1 / 0.9
 		},
 		{
-			name: "2 battle super comps on heavily computed ship",
+			name: "10 Flux Caps on 21% capped ship",
 			args: args{
 				armorMulti: 1, shieldMulti: 1,
-				hc:         &BattleSuperComputer,
-				qty:        2,
+				hc:         &FluxCapacitor,
+				qty:        10,
 				shield:     1,
 				armor:      1,
-				beamBonus:  1,
+				beamBonus:  1.21,
 				jamming:    0,
-				computing:  0.9, // new computing: 1-(0.1*0.7^2) = 95.1% computing
+				computing:  0,
 				deflecting: 0,
 				starbase:   false,
 			},
-			want: 1.0268, // 1.951 / 1.9
+			want: 2.1074, // 2.55 / 1.21
 		},
 		{
-			name: "1 Mega poly shell on armored starbase w/ RS",
+			name: "1 Mega Poly on armored ship w/ RS",
 			args: args{
 				armorMulti: 0.5, shieldMulti: 1.4,
-				hc:  &MegaPolyShell,
-				qty: 1,
-				// +140 after adding part
-				shield: 460,
-				// +200 after adding part;
-				// effective armor boost multiplied by 0.5 due to overabundance
-				armor:      1000,
+				hc:     &MegaPolyShell,
+				qty:    1,
+				shield: 460,  // +140 --> 600 after adding part
+				armor:  1000, // +200 --> 1200 after adding part;
+				// effective armor boost halved due to overabundance
 				beamBonus:  1,
 				jamming:    0, // 20% after 1 item
 				computing:  0,
 				deflecting: 0,
 				starbase:   false,
 			},
-			want: 1.3973, // = (1700/1460)*(1.2/1)
+			want: 1.3973,
+			// (600+1000+(200/2))*(1.2/1) = (1700/1460)*1.2 = 1.3973
+		},
+		{
+			name: "3 Mega Polys on armored starbase w/ 10% jam",
+			args: args{
+				armorMulti: 1, shieldMulti: 1,
+				hc:     &MegaPolyShell,
+				qty:    3,
+				shield: 400,  // +300 --> 700 after adding parts
+				armor:  1000, // +1200 --> 2200 after adding parts;
+				// effective armor bonus thirded due to overabundance
+				beamBonus: 1,
+				jamming:   0.1,
+				// 1-(0.9*(1-(1-0.8^3)*0.75)) = 1-(0.9*0.634) =
+				// 42.94% jamming after adding parts
+				computing:  0,
+				deflecting: 0,
+				starbase:   false,
+			},
+			want: 1.9492, // ((700+1000+(1200/3)/1400) * 1.4294/1.1 = 1.5 * 1.2995 = 1.9492
 		},
 	}
 	for _, tt := range tests {
@@ -856,11 +874,12 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 		})
 	}
 }
-func TestShipDesign_getJamIncrease(t *testing.T) {
+
+func TestShipDesign_getJamOrComputerIncrease(t *testing.T) {
 	type fields struct {
-		prevJamming float64
-		starbase    bool
-		computing   bool
+		prevBonus float64
+		starbase  bool
+		computing bool
 	}
 	type args struct {
 		hc  *TechHullComponent
@@ -875,9 +894,9 @@ func TestShipDesign_getJamIncrease(t *testing.T) {
 		{
 			name: "wrong field being checked",
 			fields: fields{
-				prevJamming: 0,
-				starbase:    false,
-				computing:   true,
+				prevBonus: 0,
+				starbase:  false,
+				computing: true,
 			},
 			args: args{
 				hc:  &Jammer20,
@@ -888,9 +907,9 @@ func TestShipDesign_getJamIncrease(t *testing.T) {
 		{
 			name: "already at hardcap",
 			fields: fields{
-				prevJamming: 0.75,
-				starbase:    true,
-				computing:   false,
+				prevBonus: 0.75,
+				starbase:  true,
+				computing: false,
 			},
 			args: args{
 				hc:  &Jammer20,
@@ -899,24 +918,38 @@ func TestShipDesign_getJamIncrease(t *testing.T) {
 			want: 1,
 		},
 		{
-			name: "jammer 50s hitting starbase hardcap",
+			name: "10 Jammer 50s on starbase",
 			fields: fields{
-				prevJamming: 0,
-				starbase:    true,
-				computing:   false,
+				prevBonus: 0,
+				starbase:  true,
+				computing: false,
 			},
 			args: args{
 				hc:  &Jammer50,
-				qty: 3,
+				qty: 10,
 			},
-			want: 1.75, // 1.75 / 1
+			want: 1.7493, // ((1-((1-0.5^10)*0.75))+1)/1
+		},
+		{
+			name: "99 jammer 50s hitting ship hardcap",
+			fields: fields{
+				prevBonus: 0,
+				starbase:  false,
+				computing: false,
+			},
+			args: args{
+				hc:  &Jammer50,
+				qty: 99,
+			},
+
+			want: 1.95,
 		},
 		{
 			name: "2 battle super comps on 90% computed ship",
 			fields: fields{
-				prevJamming: 0.9, // new computing: 1-(0.1*0.7^2) = 95.1% computing
-				starbase:    false,
-				computing:   true,
+				prevBonus: 0.9, // new computing: 1-(0.1*0.7^2) = 95.1% computing
+				starbase:  false,
+				computing: true,
 			},
 
 			args: args{
@@ -926,31 +959,45 @@ func TestShipDesign_getJamIncrease(t *testing.T) {
 			want: 1.0268, // 1.951 / 1.9
 		},
 		{
-			name: "1 Mega poly shell on 20% jammed ship",
+			name: "1 Mega poly shell on 20% jammed starbase",
 			fields: fields{
-				prevJamming: 0.2,
-				starbase:    true,
-				computing:   false,
+				prevBonus: 0.2,
+				starbase:  true,
+				computing: false,
 			},
 
 			args: args{
 				hc:  &MegaPolyShell,
 				qty: 1,
 			},
-			want: 1.1333, // 1.36 / 1.2
+			want: 1.1, // 1+(1-(0.8*(0.8*0.75))) / 1.2 = 1.32 / 1.2
+		},
+		{
+			name: "3 jammer 20s on 10% jammed starbase",
+			fields: fields{
+				prevBonus: 0.1,
+				starbase:  true,
+				computing: false,
+			},
+
+			args: args{
+				hc:  &Jammer20,
+				qty: 3,
+			},
+			want: 1.3654, // 1.4298 / 1.1
 		},
 	}
 	for _, tt := range tests {
 		design := NewShipDesign(testPlayer(), 1).WithHull("Battleship").WithSpec(&rules, testPlayer())
 		if tt.fields.computing {
-			design.Spec.TorpedoBonus = tt.fields.prevJamming
+			design.Spec.TorpedoBonus = tt.fields.prevBonus
 		} else {
-			design.Spec.TorpedoJamming = tt.fields.prevJamming
+			design.Spec.TorpedoJamming = tt.fields.prevBonus
 		}
 		design.Spec.Starbase = tt.fields.starbase
 		t.Run(tt.name, func(t *testing.T) {
-			if got := design.Spec.getJamIncrease(&rules, tt.args.hc, tt.args.qty, tt.fields.computing); got != tt.want {
-				t.Errorf("ShipDesign.getWarshipPartBonus() = %v, want %v", got, tt.want)
+			if got := design.Spec.getJamOrComputerIncrease(&rules, tt.args.hc, tt.args.qty, !tt.fields.computing); got != tt.want {
+				t.Errorf("ShipDesign.getJamOrComputerIncrease() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -987,6 +1034,40 @@ func TestDesignShip(t *testing.T) {
 				Crobmnium.Name:      2,
 				FuelTank.Name:       1,
 				BattleComputer.Name: 1,
+			},
+			wanterr: false,
+		},
+		{
+			name: "Humanoid Starter Teamster w/ IFE",
+			args: args{
+				techLevels:   TechLevel{3, 3, 3, 3, 3, 3},
+				hull:         &MediumFreighter,
+				player:       NewPlayer(1, NewRace().WithPRT(JoaT).WithLRT(IFE).WithSpec(&rules)).WithNum(1),
+				purpose:      ShipDesignPurposeStartingFighter,
+				fleetPurpose: FleetPurposeScout,
+			},
+			want: map[string]int{
+				FuelMizer.Name:    1,
+				RhinoScanner.Name: 1,
+				Crobmnium.Name:    1,
+			},
+			wanterr: false,
+		},
+		{
+			name: "IT starting Swashbuckler",
+			args: args{
+				techLevels:   TechLevel{3, 3, 5, 5, 3, 3},
+				hull:         &Privateer,
+				player:       NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)).WithNum(1),
+				purpose:      ShipDesignPurposeStartingFighter,
+				fleetPurpose: FleetPurposeScout,
+			},
+			want: map[string]int{
+				DaddyLongLegs7.Name: 1,
+				RhinoScanner.Name:   1,
+				AlphaTorpedo.Name:   1,
+				XRayLaser.Name:      1,
+				Crobmnium.Name:      2,
 			},
 			wanterr: false,
 		},
@@ -1033,7 +1114,7 @@ func TestDesignShip(t *testing.T) {
 				fleetPurpose: FleetPurposeMineLayer,
 			},
 			want: map[string]int{
-				FuelMizer.Name:       2,
+				FuelMizer.Name:       1,
 				FuelTank.Name:        3,
 				MineDispenser80.Name: 19,
 				CowHideShield.Name:   4,
@@ -1104,7 +1185,7 @@ func TestDesignWarship(t *testing.T) {
 		{
 			name: "HE Jihad Metamorph",
 			fields: fields{
-				techLevel:     TechLevel{6, 12, 2, 10, 0, 0},
+				techLevel:     TechLevel{10, 12, 7, 10, 0, 0},
 				acquiredParts: []string{},
 				race:          NewRace().WithPRT(HE).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules),
 			},
@@ -1113,10 +1194,49 @@ func TestDesignWarship(t *testing.T) {
 				purpose: ShipDesignPurposeTorpedoFighter,
 			},
 			want: map[string]int{
-				FuelMizer.Name:              2,
-				JihadMissile.Name:           8,
-				WolverineDiffuseShield.Name: 4,
-				BattleComputer.Name:         6,
+				AlphaDrive8.Name:         3,
+				JihadMissile.Name:        8,
+				BearNeutrinoBarrier.Name: 4, // TODO: why 2 wolvys???
+				BattleComputer.Name:      3,
+				ManeuveringJet.Name:      2,
+			}, wantErr: false,
+		},
+		{
+			name: "IS Croby Frigate Armed Scout",
+			fields: fields{
+				techLevel:     TechLevel{7, 10, 2, 6, 1, 1},
+				acquiredParts: []string{},
+				race:          NewRace().WithPRT(IS).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules),
+			},
+			args: args{
+				hull:    &Frigate,
+				purpose: ShipDesignPurposeFighterScout,
+			},
+			want: map[string]int{
+				FuelMizer.Name:       1,
+				ColloidalPhaser.Name: 3,
+				CrobySharmor.Name:    2,
+				RhinoScanner.Name:    1,
+			}, wantErr: false,
+		},
+		{
+			name: "Max Techs HE AMP Nubian w/ Enigma Pulsar",
+			fields: fields{
+				techLevel:     TechLevel{26, 26, 26, 26, 26, 26},
+				acquiredParts: []string{"Enigma Pulsar"},
+				race:          NewRace().WithPRT(HE).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules),
+			},
+			args: args{
+				hull:    &Nubian,
+				purpose: ShipDesignPurposeBeamFighter,
+			},
+			want: map[string]int{
+				EnigmaPulsar.Name:         3,
+				AntiMatterPulverizer.Name: 6,
+				CompletePhaseShield.Name:  6,
+				Jammer30.Name:             6,
+				FluxCapacitor.Name:      6,
+				BeamDeflector.Name:        6,
 			}, wantErr: false,
 		},
 	}

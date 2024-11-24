@@ -358,7 +358,7 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
-		return Cost{}, fmt.Errorf("hull design %s not found in tech store", design.Hull)
+		return Cost{}, fmt.Errorf("hull design \"%s\" not found in tech store", design.Hull)
 	}
 	starbase := hull.Starbase
 
@@ -367,8 +367,12 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 	// iterate through slots and tally prices up
 	for _, slot := range design.Slots {
 		item := rules.techs.GetHullComponent(slot.HullComponent)
+		if slot.HullComponent == "" {
+			// slot is empty; move on
+			continue
+		}
 		if item == nil {
-			return Cost{}, fmt.Errorf("component %s in design slots not found in tech store", slot.HullComponent)
+			return Cost{}, fmt.Errorf("component \"%s\" in design slots not found in tech store", slot.HullComponent)
 		}
 		hcCost := getPlayerCostFloat64(item.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(slot.Quantity))
 		if starbase && item.Category != TechCategoryOrbital {

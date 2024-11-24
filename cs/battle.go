@@ -494,6 +494,7 @@ func (b *battle) getEstimatedDamageForWeapon(weapon *battleWeaponSlot, target *b
 	}
 
 	var bwd battleWeaponDamage
+	// TODO: Add support for beam-torpedo hybrids (~~or not~~)
 	if weapon.weaponType == battleWeaponTypeBeam {
 		bwd = weapon.getBeamDamageToTargetAtDistance(weapon.power*weapon.slotQuantity*weapon.token.Quantity, target, distance, b.rules.BeamRangeDropoff)
 	} else {

@@ -1,5 +1,7 @@
 package cs
 
+// TechTags are functional labels used by the game to 
+// categorize tech items based on their function.
 type TechTag string
 
 const (
@@ -38,6 +40,7 @@ const (
 	TechTagTorpedoJammer      TechTag = "TorpedoJammer"
 )
 
+// A collection of an object's TechTags (like on a tech part)
 type TechTags map[TechTag]bool
 
 // Create a new TechTags map from a list of TechTag items, or an empty map if none are specified

@@ -100,6 +100,7 @@ type BattleRules struct {
 	BeamRangeDropoff    float64          `json:"beamRangeDropoff"`
 	BeamBonusCap        float64          `json:"beamBonusCap"`
 	JammerCap           map[bool]float64 `json:"jammerCap"`
+	JammerMulti         map[bool]float64 `json:"jammerMulti"`
 	MovesToRunAway      int              `json:"movesToRunAway"`
 	NumBattleRounds     int              `json:"numBattleRounds"`
 	TorpedoSplashDamage float64          `json:"torpedoSplashDamage"`
@@ -265,8 +266,12 @@ func NewRulesWithSeed(seed int64) Rules {
 			BeamRangeDropoff: 0.1,
 			BeamBonusCap:     2.55, // 2.55x damage max from caps
 			JammerCap: map[bool]float64{
-				true:  0.75, // starbases have 75% jamming max
+				true:  1,    // starbases have 100 jamming max, but an innate 0.75x jam penalty
 				false: 0.95, // non-starbases (ie fleets) have 95% jamming max
+			},
+			JammerMulti: map[bool]float64{
+				true:  0.75, // starbases have innate 0.75x jam penalty by default
+				false: 1,    // non-starbases (ie fleets) have no penalty
 			},
 			MovesToRunAway:      7,
 			NumBattleRounds:     16,

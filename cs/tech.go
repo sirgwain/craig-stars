@@ -216,10 +216,8 @@ const (
 	HullSlotTypeNone                = 0
 	HullSlotTypeEngine HullSlotType = 1 << iota
 	HullSlotTypeScanner
-	HullSlotTypeMechanical
 	HullSlotTypeBomb
 	HullSlotTypeMining
-	HullSlotTypeElectrical
 	HullSlotTypeShield
 	HullSlotTypeArmor
 	HullSlotTypeCargo
@@ -227,6 +225,8 @@ const (
 	HullSlotTypeWeapon
 	HullSlotTypeOrbital
 	HullSlotTypeMineLayer
+	HullSlotTypeElectrical
+	HullSlotTypeMechanical
 
 	HullSlotTypeElectricalMechanical             = HullSlotTypeElectrical | HullSlotTypeMechanical
 	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical

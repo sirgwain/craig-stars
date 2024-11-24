@@ -155,7 +155,7 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 	}
 }
 
-func TestTechComparer_GetBestComponentWithTags(t *testing.T) {
+func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 	type fields struct {
 		techLevels    TechLevel
 		race          *Race
@@ -165,7 +165,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) {
 	type args struct {
 		hullSlotType HullSlotType
 		qty          int
-		tags         []TechTag
+		tag          TechTag
 	}
 	tests := []struct {
 		name    string
@@ -185,7 +185,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) {
 			args: args{
 				hullSlotType: HullSlotTypeWeaponShield,
 				qty:          99,
-				tags:         []TechTag{TechTagBeamWeapon},
+				tag:          TechTagBeamWeapon,
 			}, want: &AntiMatterPulverizer, wantErr: false,
 		},
 		{
@@ -199,7 +199,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) {
 			args: args{
 				hullSlotType: HullSlotTypeGeneral,
 				qty:          1,
-				tags:         []TechTag{TechTagArmor},
+				tag:          TechTagArmor,
 			}, want: &MegaPolyShell, wantErr: false,
 		},
 		{
@@ -213,11 +213,11 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) {
 			args: args{
 				hullSlotType: HullSlotTypeArmor,
 				qty:          1,
-				tags:         []TechTag{TechTagArmor},
+				tag:          TechTagArmor,
 			}, want: &Organic, wantErr: false,
 		},
 		{
-			name: "Best shield/armor with tech 14 and RS",
+			name: "Best armor item with tech 14 and RS",
 			fields: fields{
 				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
 				race:          NewRace().WithPRT(IS).WithLRT(RS),
@@ -227,7 +227,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) {
 			args: args{
 				hullSlotType: HullSlotTypeShieldArmor,
 				qty:          1,
-				tags:         []TechTag{TechTagArmor, TechTagShield},
+				tag:          TechTagArmor,
 			}, want: &MegaPolyShell, wantErr: false,
 		},
 		{
@@ -241,7 +241,7 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) {
 			args: args{
 				hullSlotType: HullSlotTypeGeneral,
 				qty:          99,
-				tags:         []TechTag{TechTagMineLayer},
+				tag:          TechTagMineLayer,
 			}, want: nil, wantErr: false,
 		},
 	}
@@ -258,12 +258,12 @@ func TestTechComparer_GetBestComponentWithTags(t *testing.T) {
 			if tt.fields.beamShip {
 				design.Purpose = ShipDesignPurposeBeamFighter
 			}
-			got, err := tc.GetBestComponentWithTags(&rules, player, design, tt.args.hullSlotType, tt.args.tags...)
+			got, err := tc.GetBestComponentWithTag(&rules, player, design, tt.args.hullSlotType, tt.args.tag)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TechComparer.GetBestComponentWithTags() errored unexpectedly; error = %v", err)
+				t.Errorf("TechComparer.GetBestComponentWithTag() errored unexpectedly; error = %v", err)
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TechComparer.GetBestComponentWithTags() = %v, want %v", got.Name, tt.want.Name)
+				t.Errorf("TechComparer.GetBestComponentWithTag() = %v, want %v", got.Name, tt.want.Name)
 			}
 		})
 	}
