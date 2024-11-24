@@ -23,7 +23,6 @@
 	import { $enum as eu } from 'ts-enum-util';
 	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
 	import CommandTile from './CommandTile.svelte';
-	import type { Vector } from '$lib/types/Vector';
 
 	const { game, player, universe, updateFleetOrders } = getGameContext();
 

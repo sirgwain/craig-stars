@@ -49,7 +49,7 @@
 		onPrev?: () => Promise<void>;
 	};
 
-	let { planet = $bindable(), onOk, onCancel, onNext, onPrev }: Props = $props();
+	let { planet, onOk, onCancel, onNext, onPrev }: Props = $props();
 
 	let availableItems: ProductionQueueItem[] = $state([]);
 	let availableShipDesigns: ProductionQueueItem[] = $state([]);

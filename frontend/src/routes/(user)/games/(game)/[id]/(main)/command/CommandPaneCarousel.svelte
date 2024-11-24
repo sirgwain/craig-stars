@@ -2,6 +2,9 @@
 <script lang="ts">
 	import { carouselKey, createCarouselContext } from '$lib/services/CarouselContext';
 	import type {
+		BattlePlanChangedProps,
+		ChangeMassDriverSpeedProps,
+		ClearProductionQueueProps,
 		ShowCargoTransferDialogProps,
 		ShowMergeFleetsDialogProps,
 		ShowProductionQueueDialogProps,
@@ -49,12 +52,14 @@
 		isOpen: boolean;
 		onDeleteWaypoint: () => Promise<void>;
 		onSplitAll: () => Promise<void>;
-		onBattlePlanChanged?: (fleet: CommandedFleet, battlePlanNum: number) => Promise<void>;
 	} & ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
 		ShowProductionQueueDialogProps &
-		ShowTransportTasksDialogEventProps;
+		ShowTransportTasksDialogEventProps &
+		ClearProductionQueueProps &
+		BattlePlanChangedProps &
+		ChangeMassDriverSpeedProps;
 
 	let {
 		isOpen = $bindable($open),
@@ -65,7 +70,9 @@
 		onShowMergeFleetDialog,
 		onShowProductionQueueDialog,
 		onShowTransportTasksDialog,
-		onBattlePlanChanged
+		onBattlePlanChanged,
+		onClearProductionQueue,
+		onChangeMassDriverSpeed
 	}: Props = $props();
 
 	let carousel: HTMLDivElement | undefined;
@@ -211,13 +218,18 @@
 			<PlanetMineralsOnHandTile planet={$commandedPlanet} />
 		</div>
 		<div id="planet-production-tile" class="carousel-item w-full">
-			<PlanetProductionTile planet={$commandedPlanet} {onShowProductionQueueDialog} />
+			<PlanetProductionTile
+				planet={$commandedPlanet}
+				{onShowProductionQueueDialog}
+				{onClearProductionQueue}
+			/>
 		</div>
 		{#if $commandedPlanet.spec.hasStarbase}
 			<div id="planet-starbase-tile" class="carousel-item w-full">
 				<PlanetStarbaseTile
 					planet={$commandedPlanet}
 					starbase={$universe.getPlanetStarbase($commandedPlanet.num)}
+					{onChangeMassDriverSpeed}
 				/>
 			</div>
 		{/if}

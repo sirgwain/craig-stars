@@ -4,8 +4,7 @@
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import ProductionQueue from './ProductionQueue.svelte';
 
-	const { commandedPlanet, nextMapObject, previousMapObject, updatePlanetOrders } =
-		getGameContext();
+	const { commandedPlanet } = getGameContext();
 
 	type Props = {
 		show?: boolean;

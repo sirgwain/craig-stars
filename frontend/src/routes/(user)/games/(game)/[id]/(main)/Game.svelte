@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type {
+		BattlePlanChangedEvent,
 		CargoTransferDialogEvent,
+		ChangeMassDriverSpeedEvent,
 		MergeFleetsDialogEvent,
 		MergeFleetsEvent,
 		SplitFleetDialogEvent,
@@ -10,8 +12,9 @@
 		TransportTasksUpdateEvent
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { absoluteSize } from '$lib/types/CargoTransferRequest';
 	import { None } from '$lib/types/Constants';
-	import type { CommandedFleet, Waypoint, WaypointDest } from '$lib/types/Fleet';
+	import type { Waypoint, WaypointDest } from '$lib/types/Fleet';
 	import {
 		equal as mapObjectEqual,
 		MapObjectType,
@@ -34,7 +37,6 @@
 	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
-	import { absoluteSize } from '$lib/types/CargoTransferRequest';
 
 	const {
 		settings,
@@ -126,18 +128,21 @@
 		deleteWaypoint();
 	}
 
-	async function onBattlePlanChanged(fleet: CommandedFleet, battlePlanNum: number) {
-		fleet.battlePlanNum = battlePlanNum;
-		updateFleetOrders(fleet);
+	async function onBattlePlanChanged(e: BattlePlanChangedEvent) {
+		updateFleetOrders(e.fleet);
 	}
 
-	const onUpdateTransportTasks = async (e: TransportTasksUpdateEvent) => {
+	async function onUpdateTransportTasks(e: TransportTasksUpdateEvent) {
 		e.waypoint.transportTasks = e.transportTasks;
 		await updateFleetOrders(e.fleet);
 
 		// close the dialog
 		showTransportTasksDialog = false;
-	};
+	}
+
+	async function onChangeMassDriverSpeed(e: ChangeMassDriverSpeedEvent) {
+		updatePlanetOrders(e.planet);
+	}
 
 	async function onSplitAll() {
 		if (!$commandedFleet) {
@@ -272,6 +277,7 @@
 				{onDeleteWaypoint}
 				{onSplitAll}
 				{onBattlePlanChanged}
+				{onChangeMassDriverSpeed}
 				onShowProductionQueueDialog={(e) => (showProductionQueueDialog = true)}
 				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
@@ -332,6 +338,7 @@
 			{onDeleteWaypoint}
 			{onSplitAll}
 			{onBattlePlanChanged}
+			{onChangeMassDriverSpeed}
 			onShowProductionQueueDialog={(e) => (showProductionQueueDialog = true)}
 			onShowCargoTransferDialog={(e) => {
 				showCargoTransferDialog = true;

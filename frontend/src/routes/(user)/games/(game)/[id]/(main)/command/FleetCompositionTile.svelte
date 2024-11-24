@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import type {
+		BattlePlanChangedProps,
 		ShowMergeFleetsDialogProps,
 		ShowSplitFleetDialogProps,
 		SplitAllProps
@@ -15,10 +16,10 @@
 	type Props = {
 		fleet: CommandedFleet;
 		selectedWaypoint: Waypoint | undefined;
-		onBattlePlanChanged?: (fleet: CommandedFleet, battlePlanNum: number) => void;
 	} & ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
-		SplitAllProps;
+		SplitAllProps &
+		BattlePlanChangedProps;
 
 	let {
 		fleet,
@@ -53,8 +54,9 @@
 		});
 	}
 
-	function updateBattlePlan(num: number) {
-		onBattlePlanChanged?.(fleet, num);
+	function updateBattlePlan(battlePlanNum: number) {
+		fleet.battlePlanNum = battlePlanNum;
+		onBattlePlanChanged?.({ fleet, battlePlanNum });
 	}
 </script>
 

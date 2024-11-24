@@ -1,18 +1,22 @@
 <script lang="ts">
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
-	import type { ShowProductionQueueDialogProps } from '$lib/services/Events';
+	import type {
+		ClearProductionQueueProps,
+		ShowProductionQueueDialogProps
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import CommandTile from './CommandTile.svelte';
 
-	const { cs, game, player, universe, updatePlanetOrders } = getGameContext();
+	const { cs, game, player, universe } = getGameContext();
 
 	type Props = {
 		planet: CommandedPlanet;
-	} & ShowProductionQueueDialogProps;
+	} & ClearProductionQueueProps &
+		ShowProductionQueueDialogProps;
 
-	let { planet = $bindable(), onShowProductionQueueDialog }: Props = $props();
+	let { planet, onShowProductionQueueDialog, onClearProductionQueue }: Props = $props();
 	let queueItems: ProductionQueueItem[] | undefined = $derived(
 		planet.updateProductionQueueEstimates(cs)
 	);
@@ -20,7 +24,7 @@
 	const clear = async () => {
 		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
 			planet.productionQueue = [];
-			updatePlanetOrders(planet);
+			onClearProductionQueue?.({ planet });
 		}
 	};
 </script>

@@ -11,15 +11,16 @@
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import CommandTile from './CommandTile.svelte';
+	import type { ChangeMassDriverSpeedProps } from '$lib/services/Events';
 
-	const { game, player, universe, settings, updatePlanetOrders } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 
 	type Props = {
 		starbase: Fleet | undefined;
 		planet: CommandedPlanet;
-	};
+	} & ChangeMassDriverSpeedProps;
 
-	let { starbase, planet = $bindable() }: Props = $props();
+	let { starbase, planet, onChangeMassDriverSpeed }: Props = $props();
 
 	let stargate = $derived(
 		starbase?.spec?.stargate ? $techs.getHullComponent(starbase.spec.stargate) : undefined
@@ -37,10 +38,6 @@
 				$universe.getDesign($player.num, starbase?.tokens[0].designNum) as ShipDesign | undefined
 			);
 		}
-	}
-
-	function updatePlanetOrdrers() {
-		updatePlanetOrders(planet);
 	}
 </script>
 
@@ -125,13 +122,19 @@
 					</div>
 					<div class="w-full my-auto">
 						<WarpSpeedGauge
-							bind:value={planet.packetSpeed}
+							value={planet.packetSpeed}
 							isPacket={true}
 							min={5}
 							max={(planet.spec.basePacketSpeed ?? 0) + $game.rules.packetMaxOverwarpSpeed}
 							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}
 							dangerSpeed={(planet.spec.safePacketSpeed ?? 0) + 3}
-							onvaluechanged={() => updatePlanetOrdrers()}
+							onvaluedragged={(warpSpeed) => {
+								planet.packetSpeed = warpSpeed;
+							}}
+							onvaluechanged={(warpSpeed) => {
+								planet.packetSpeed = warpSpeed;
+								onChangeMassDriverSpeed?.({ planet, warpSpeed });
+							}}
 						/>
 					</div>
 				</div>

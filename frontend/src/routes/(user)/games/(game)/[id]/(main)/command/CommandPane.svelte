@@ -1,5 +1,8 @@
 <script lang="ts">
 	import type {
+		BattlePlanChangedProps,
+		ChangeMassDriverSpeedProps,
+		ClearProductionQueueProps,
 		ShowCargoTransferDialogProps,
 		ShowMergeFleetsDialogProps,
 		ShowProductionQueueDialogProps,
@@ -7,7 +10,6 @@
 		ShowTransportTasksDialogEventProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { CommandedFleet } from '$lib/types/Fleet';
 	import FleetCompositionTile from './FleetCompositionTile.svelte';
 	import FleetFuelAndCargoTile from './FleetFuelAndCargoTile.svelte';
 	import FleetOrbitingTile from './FleetOrbitingTile.svelte';
@@ -25,12 +27,14 @@
 	type Props = {
 		onDeleteWaypoint: () => Promise<void>;
 		onSplitAll: () => Promise<void>;
-		onBattlePlanChanged?: (fleet: CommandedFleet, battlePlanNum: number) => Promise<void>;
 	} & ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
 		ShowProductionQueueDialogProps &
-		ShowTransportTasksDialogEventProps;
+		ShowTransportTasksDialogEventProps &
+		ClearProductionQueueProps &
+		BattlePlanChangedProps &
+		ChangeMassDriverSpeedProps;
 
 	const {
 		onDeleteWaypoint,
@@ -40,11 +44,12 @@
 		onShowMergeFleetDialog,
 		onShowProductionQueueDialog,
 		onShowTransportTasksDialog,
-		onBattlePlanChanged
+		onBattlePlanChanged,
+		onClearProductionQueue,
+		onChangeMassDriverSpeed
 	}: Props = $props();
 
-	const { universe, commandedPlanet, commandedFleet, selectedWaypoint, splitAll } =
-		getGameContext();
+	const { universe, commandedPlanet, commandedFleet, selectedWaypoint } = getGameContext();
 </script>
 
 {#if $commandedPlanet}
@@ -59,10 +64,15 @@
 			fleetsInOrbit={$universe.getMyFleetsByPosition($commandedPlanet)}
 			{onShowCargoTransferDialog}
 		/>
-		<PlanetProductionTile planet={$commandedPlanet} {onShowProductionQueueDialog} />
+		<PlanetProductionTile
+			planet={$commandedPlanet}
+			{onShowProductionQueueDialog}
+			{onClearProductionQueue}
+		/>
 		<PlanetStarbaseTile
 			planet={$commandedPlanet}
 			starbase={$universe.getPlanetStarbase($commandedPlanet.num)}
+			{onChangeMassDriverSpeed}
 		/>
 	</div>
 {:else if $commandedFleet}

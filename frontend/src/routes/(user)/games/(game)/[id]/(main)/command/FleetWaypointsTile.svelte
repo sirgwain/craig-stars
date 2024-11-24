@@ -15,7 +15,7 @@
 		onDeleteWaypoint: () => void;
 	};
 
-	let { fleet = $bindable(), selectedWaypoint = $bindable(), onDeleteWaypoint }: Props = $props();
+	let { fleet, selectedWaypoint = $bindable(), onDeleteWaypoint }: Props = $props();
 
 	let waypointRefs: (HTMLLIElement | null)[] = $state([]);
 

@@ -75,8 +75,34 @@ export type TransportTasksUpdateEvent = {
 	transportTasks: WaypointTransportTasks;
 };
 
+export type ClearProductionQueueEvent = {
+	planet: CommandedPlanet;
+};
+
+export type ChangeMassDriverSpeedEvent = {
+	planet: CommandedPlanet;
+	warpSpeed: number;
+};
+
+export type BattlePlanChangedEvent = {
+	fleet: CommandedFleet;
+	battlePlanNum: number;
+};
+
+export type ClearProductionQueueProps = {
+	onClearProductionQueue?: (e: ClearProductionQueueEvent) => Promise<void>;
+};
+
+export type ChangeMassDriverSpeedProps = {
+	onChangeMassDriverSpeed?: (e: ChangeMassDriverSpeedEvent) => Promise<void>;
+};
+
 export type SplitAllProps = {
 	onSplitAll: (e: SplitAllEvent) => Promise<void> | undefined;
+};
+
+export type BattlePlanChangedProps = {
+	onBattlePlanChanged?: (e: BattlePlanChangedEvent) => Promise<void>;
 };
 
 // properties for a components that trigger a Dialog events
