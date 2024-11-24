@@ -12,7 +12,8 @@
 		ShowMergeFleetsDialogProps,
 		ShowProductionQueueDialogProps,
 		ShowSplitFleetDialogProps,
-		ShowTransportTasksDialogEventProps
+		ShowTransportTasksDialogEventProps,
+		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { equal, getMapObjectName } from '$lib/types/MapObject';
@@ -53,8 +54,8 @@
 
 	type Props = {
 		isOpen: boolean;
-		onSplitAll: () => Promise<void>;
-	} & ShowCargoTransferDialogProps &
+	} & SplitAllProps &
+		ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
 		ShowProductionQueueDialogProps &
@@ -267,7 +268,7 @@
 		<div id="fleet-waypoints-tile" class="carousel-item w-full">
 			<FleetWaypointsTile
 				fleet={$commandedFleet}
-				selectedWaypoint={$selectedWaypoint}
+				selectedWaypointIndex={$currentSelectedWaypointIndex}
 				{onSelectWaypoint}
 				{onChangeWaypoint}
 				{onDeleteWaypoint}
@@ -276,7 +277,7 @@
 		<div id="fleet-waypoint-task-tile" class="carousel-item w-full">
 			<FleetWaypointTaskTile
 				fleet={$commandedFleet}
-				selectedWaypoint={$selectedWaypoint}
+				selectedWaypointIndex={$currentSelectedWaypointIndex}
 				{onShowTransportTasksDialog}
 				{onChangeWaypoint}
 			/>

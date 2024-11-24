@@ -10,7 +10,8 @@
 		ShowMergeFleetsDialogProps,
 		ShowProductionQueueDialogProps,
 		ShowSplitFleetDialogProps,
-		ShowTransportTasksDialogEventProps
+		ShowTransportTasksDialogEventProps,
+		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import FleetCompositionTile from './FleetCompositionTile.svelte';
@@ -27,9 +28,8 @@
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 
-	type Props = {
-		onSplitAll: () => Promise<void>;
-	} & ShowCargoTransferDialogProps &
+	type Props = SplitAllProps &
+		ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
 		ShowProductionQueueDialogProps &
@@ -56,7 +56,13 @@
 		onDeleteWaypoint
 	}: Props = $props();
 
-	const { universe, commandedPlanet, commandedFleet, selectedWaypoint } = getGameContext();
+	const {
+		universe,
+		commandedPlanet,
+		commandedFleet,
+		selectedWaypoint,
+		currentSelectedWaypointIndex
+	} = getGameContext();
 </script>
 
 {#if $commandedPlanet}
@@ -82,7 +88,7 @@
 			{onChangeMassDriverSpeed}
 		/>
 	</div>
-{:else if $commandedFleet}
+{:else if $commandedFleet && $selectedWaypoint}
 	<div class="lg:flex lg:flex-col">
 		<FleetSummaryTile fleet={$commandedFleet} />
 		<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
@@ -107,14 +113,14 @@
 		<FleetFuelAndCargoTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		<FleetWaypointsTile
 			fleet={$commandedFleet}
-			selectedWaypoint={$selectedWaypoint}
+			selectedWaypointIndex={$currentSelectedWaypointIndex}
 			{onSelectWaypoint}
 			{onChangeWaypoint}
 			{onDeleteWaypoint}
 		/>
 		<FleetWaypointTaskTile
 			fleet={$commandedFleet}
-			selectedWaypoint={$selectedWaypoint}
+			selectedWaypointIndex={$currentSelectedWaypointIndex}
 			{onShowTransportTasksDialog}
 			{onChangeWaypoint}
 		/>

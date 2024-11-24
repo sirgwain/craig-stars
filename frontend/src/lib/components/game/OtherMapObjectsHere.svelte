@@ -5,7 +5,7 @@
 	import type { Vector } from '$lib/types/Vector';
 	import { flatten, keys } from 'lodash-es';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { player, universe } = getGameContext();
 
 	interface Dictionary<T> {
 		[index: string]: T;
@@ -24,11 +24,20 @@
 
 	// true if this mapObject is also our current target
 	function isTarget(mo: MapObject) {
-		return (
-			mo.type === target.targetType &&
-			mo.num === target.targetNum &&
-			(mo.playerNum ?? 0) === (target.targetPlayerNum ?? 0)
-		);
+		if (
+			target.targetType === MapObjectType.Fleet ||
+			target.targetType === MapObjectType.MineField ||
+			target.targetType === MapObjectType.MineralPacket
+		) {
+			// fleets, minefields, and mineral packets are keyed off of player num as well as type/num
+			return (
+				mo.type === target.targetType &&
+				mo.num === target.targetNum &&
+				(mo.playerNum ?? 0) === (target.targetPlayerNum ?? 0)
+			);
+		} else {
+			return mo.type === target.targetType && mo.num === target.targetNum;
+		}
 	}
 
 	function onSelectChange(index: number) {

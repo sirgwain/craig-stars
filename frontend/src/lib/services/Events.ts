@@ -44,6 +44,7 @@ export type ProductionQueueDialogEvent = {
 export type TransportTasksDialogEvent = {
 	fleet: CommandedFleet;
 	waypoint: Waypoint;
+	waypointIndex: number;
 };
 
 export type SplitFleetEvent = {
@@ -69,11 +70,9 @@ export type TransferCargoEvent = {
 	transferAmount: CargoTransferRequest;
 };
 
-export type TransportTasksUpdateEvent = {
-	fleet: CommandedFleet;
-	waypoint: Waypoint;
+export type ChangeWaypointTransportTasksEvent = {
 	transportTasks: WaypointTransportTasks;
-};
+} & ChangeWaypointEvent;
 
 export type ClearProductionQueueEvent = {
 	planet: CommandedPlanet;
@@ -91,7 +90,8 @@ export type BattlePlanChangedEvent = {
 
 export type ChangeWaypointEvent = {
 	fleet: CommandedFleet;
-	waypoint?: Waypoint | undefined;
+	waypoint: Waypoint;
+	waypointIndex: number;
 };
 
 export type DeleteWaypointEvent = {

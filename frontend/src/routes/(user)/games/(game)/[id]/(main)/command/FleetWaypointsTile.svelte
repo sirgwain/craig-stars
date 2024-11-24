@@ -16,32 +16,27 @@
 
 	type Props = {
 		fleet: CommandedFleet;
-		selectedWaypoint: Waypoint | undefined;
+		selectedWaypointIndex: number;
 	} & ChangeWaypointProps &
 		SelectWaypointProps &
 		DeleteWaypointProps;
 
-	let { fleet, selectedWaypoint, onSelectWaypoint, onChangeWaypoint, onDeleteWaypoint }: Props =
-		$props();
+	let {
+		fleet: propFleet,
+		selectedWaypointIndex,
+		onSelectWaypoint,
+		onChangeWaypoint,
+		onDeleteWaypoint
+	}: Props = $props();
 
 	// local state for the ui components
-	let warpSpeed = $state(
-		selectedWaypoint ? (selectedWaypoint.warpSpeed ?? 0) : (fleet.waypoints[0].warpSpeed ?? 0)
-	);
-	let repeatOrders = $state(fleet.repeatOrders);
-	let waypointRefs: (HTMLLIElement | null)[] = $state([]);
+	let fleet = $state(propFleet);
+	let waypoint = $state(propFleet.waypoints[selectedWaypointIndex]);
 
-	// if our selectedWaypoint or fleet changes, update the state
 	$effect(() => {
-		warpSpeed = selectedWaypoint
-			? (selectedWaypoint.warpSpeed ?? warpSpeed)
-			: (fleet.waypoints[0].warpSpeed ?? warpSpeed);
-		repeatOrders = fleet.repeatOrders;
-	});
-
-	let selectedWaypointIndex = $derived.by(() => {
-		const index = fleet.waypoints.findIndex((wp) => wp == selectedWaypoint);
-		return index === -1 ? 0 : index;
+		// update state when the props change
+		fleet = propFleet;
+		waypoint = propFleet.waypoints[selectedWaypointIndex];
 	});
 
 	let previousWaypoint: Waypoint | undefined = $derived.by(() => {
@@ -55,18 +50,18 @@
 		}
 	});
 
-	let selectedWaypointPlanet = $derived(
-		selectedWaypoint?.targetType == MapObjectType.Planet && selectedWaypoint?.targetNum
-			? $universe.getPlanet(selectedWaypoint?.targetNum)
+	let waypointPlanet = $derived(
+		waypoint.targetType == MapObjectType.Planet && waypoint.targetNum
+			? $universe.getPlanet(waypoint.targetNum)
 			: undefined
 	);
-	let selectedWaypointPlanetFriendly = $derived(
-		selectedWaypointPlanet && $player.isFriend(selectedWaypointPlanet.playerNum)
+	let waypointPlanetFriendly = $derived(
+		waypointPlanet && $player.isFriend(waypointPlanet.playerNum)
 	);
 	let dist = $derived(
-		selectedWaypoint && (nextWaypoint || previousWaypoint)
+		nextWaypoint || previousWaypoint
 			? distance(
-					selectedWaypoint.position,
+					waypoint.position,
 					previousWaypoint ? previousWaypoint.position : nextWaypoint?.position
 				)
 			: 0
@@ -74,17 +69,17 @@
 
 	// calculate the fuel used per leg of each waypoint, starting at wp1
 	let fuelUsagePerLeg = $derived(
-		fleet.waypoints
-			.slice(1)
-			.map((wp1, index) =>
-				fleet.getFuelCost(
-					$universe,
-					$player.race.spec?.fuelEfficiencyOffset ?? 0,
-					selectedWaypoint === wp1 ? warpSpeed : (wp1.warpSpeed ?? 0),
-					distance(fleet.waypoints[index].position, wp1.position),
-					fleet.spec.cargoCapacity ?? 0
-				)
+		fleet.waypoints.slice(1).map((wp1, index) =>
+			fleet.getFuelCost(
+				$universe,
+				$player.race.spec?.fuelEfficiencyOffset ?? 0,
+				// use the warp speed of the currently selected waypoint if we're dragging it around
+				// otherwise use the waypoint from the fleet waypoints
+				selectedWaypointIndex === index + 1 ? waypoint.warpSpeed : (wp1.warpSpeed ?? 0),
+				distance(fleet.waypoints[index].position, wp1.position),
+				fleet.spec.cargoCapacity ?? 0
 			)
+		)
 	);
 
 	// get the total fuel usage, but accounting for fueling stations
@@ -102,45 +97,27 @@
 	// will we run out of fuel at any leg of our journey or the last leg that we are currently updating?
 	let runOutOfFuel = $derived(fleet.willRunOutOfFuel($player, $universe));
 
-	function getWaypointTarget(wp: Waypoint): MapObject | undefined {
-		if (wp && wp.targetType && wp.targetNum) {
-			return $universe.getMapObject(wp);
-		}
-	}
-
 	function onRepeatOrdersChanged(repeat: boolean) {
-		if (selectedWaypoint) {
-			repeatOrders = repeat;
-			fleet.repeatOrders = repeat;
-			onChangeWaypoint?.({ fleet, waypoint: selectedWaypoint });
-		}
+		fleet.repeatOrders = repeat;
+		onChangeWaypoint?.({ fleet, waypoint, waypointIndex: selectedWaypointIndex });
 	}
 
 	function onWarpSpeedChanged(speed: number) {
-		if (selectedWaypoint) {
-			warpSpeed = speed;
-			selectedWaypoint.warpSpeed = speed;
-			onChangeWaypoint?.({ fleet, waypoint: selectedWaypoint });
-		}
+		waypoint.warpSpeed = speed;
+		onChangeWaypoint?.({ fleet, waypoint, waypointIndex: selectedWaypointIndex });
 	}
 
 	function onWarpSpeedDragged(speed: number) {
-		if (selectedWaypoint) {
-			warpSpeed = speed;
-			selectedWaypoint.warpSpeed = speed;
-		}
+		waypoint.warpSpeed = speed;
 	}
 </script>
 
-{#if fleet.waypoints && selectedWaypoint}
+{#if fleet.waypoints}
 	<CommandTile title="Fleet Waypoints">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">
 				{#each fleet.waypoints as wp, index}
-					<li
-						bind:this={waypointRefs[index]}
-						class="pl-1 {selectedWaypointIndex == index ? 'bg-primary-focus' : ''}"
-					>
+					<li class="pl-1 {selectedWaypointIndex == index ? 'bg-primary-focus' : ''}">
 						<button
 							type="button"
 							class="text-left w-full h=full"
@@ -159,7 +136,7 @@
 					class="btn btn-outline btn-sm normal-case btn-secondary"
 					onclick={(e) => {
 						e.preventDefault();
-						onDeleteWaypoint?.({ fleet, waypoint: selectedWaypoint });
+						onDeleteWaypoint?.({ fleet, waypoint });
 					}}
 					>Delete
 				</button>
@@ -176,11 +153,11 @@
 			<div class="flex mt-1">
 				<span class="text-tile-item-title">Warp Factor</span>
 				<span class="flex-1 ml-1">
-					{#if selectedWaypointPlanet && selectedWaypointPlanetFriendly && selectedWaypointPlanet.spec.hasStargate}
+					{#if waypointPlanet && waypointPlanetFriendly && waypointPlanet.spec.hasStargate}
 						<WarpSpeedGauge
 							onvaluechanged={(value) => onWarpSpeedChanged(value)}
 							onvaluedragged={(value) => onWarpSpeedDragged(value)}
-							bind:value={warpSpeed}
+							value={waypoint.warpSpeed}
 							warnSpeed={fleet.spec.engine.maxSafeSpeed
 								? fleet.spec.engine.maxSafeSpeed + 1
 								: undefined}
@@ -194,7 +171,7 @@
 							warnSpeed={fleet.spec.engine.maxSafeSpeed
 								? fleet.spec.engine.maxSafeSpeed + 1
 								: undefined}
-							bind:value={warpSpeed}
+							value={waypoint.warpSpeed}
 						/>
 					{/if}
 				</span>
@@ -202,12 +179,12 @@
 			<div class="flex justify-between mt-1">
 				<span class="text-tile-item-title">Travel Time</span>
 				<span>
-					{#if warpSpeed === StargateWarpSpeed}
+					{#if waypoint.warpSpeed === StargateWarpSpeed}
 						1 year
-					{:else if warpSpeed === 0}
+					{:else if waypoint.warpSpeed === 0}
 						Never
 					{:else}
-						{Math.ceil(Math.floor(dist) / (warpSpeed * warpSpeed))} years
+						{Math.ceil(Math.floor(dist) / (waypoint.warpSpeed * waypoint.warpSpeed))} years
 					{/if}
 				</span>
 			</div>
@@ -223,7 +200,7 @@
 			<label>
 				<input
 					onchange={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
-					bind:checked={repeatOrders}
+					checked={fleet.repeatOrders}
 					class="checkbox-xs"
 					type="checkbox"
 				/> Repeat Orders
@@ -254,7 +231,7 @@
 			<label>
 				<input
 					onchange={(e) => onRepeatOrdersChanged(e.currentTarget.checked ? true : false)}
-					checked={repeatOrders}
+					checked={fleet.repeatOrders}
 					class="checkbox-xs"
 					type="checkbox"
 				/> Repeat Orders

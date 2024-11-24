@@ -12,12 +12,12 @@
 		SplitFleetEvent,
 		TransferCargoEvent,
 		TransportTasksDialogEvent,
-		TransportTasksUpdateEvent
+		ChangeWaypointTransportTasksEvent
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absoluteSize } from '$lib/types/CargoTransferRequest';
 	import { None } from '$lib/types/Constants';
-	import type { Waypoint, WaypointDest } from '$lib/types/Fleet';
+	import { WaypointTask, type Waypoint, type WaypointDest } from '$lib/types/Fleet';
 	import {
 		equal as mapObjectEqual,
 		MapObjectType,
@@ -127,10 +127,6 @@
 		deleteWaypoint();
 	}
 
-	async function onChangeWaypoint(e: ChangeWaypointEvent) {
-		updateFleetOrders(e.fleet);
-	}
-
 	function onSelectWaypoint(e: SelectWaypointEvent) {
 		const wp = e.waypoint;
 		selectWaypoint(wp);
@@ -143,16 +139,22 @@
 		}
 	}
 
-	async function onBattlePlanChanged(e: BattlePlanChangedEvent) {
+	async function onChangeWaypoint(e: ChangeWaypointEvent) {
+		e.fleet.waypoints[e.waypointIndex] = e.waypoint;
 		updateFleetOrders(e.fleet);
 	}
 
-	async function onUpdateTransportTasks(e: TransportTasksUpdateEvent) {
+	async function onUpdateTransportTasks(e: ChangeWaypointTransportTasksEvent) {
+		// update the transport tasks for this waypoint and update it
 		e.waypoint.transportTasks = e.transportTasks;
-		await updateFleetOrders(e.fleet);
+		await onChangeWaypoint(e);
 
 		// close the dialog
 		showTransportTasksDialog = false;
+	}
+
+	async function onBattlePlanChanged(e: BattlePlanChangedEvent) {
+		updateFleetOrders(e.fleet);
 	}
 
 	async function onChangeMassDriverSpeed(e: ChangeMassDriverSpeedEvent) {
@@ -409,6 +411,7 @@
 	onCancel={() => (showSplitFleetDialog = false)}
 />
 <TransportTasksDialog
+	show={showTransportTasksDialog}
 	props={transportTasksDialogEvent}
 	onOk={onUpdateTransportTasks}
 	onCancel={() => (showTransportTasksDialog = false)}
