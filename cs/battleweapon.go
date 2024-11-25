@@ -97,11 +97,6 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 
 // get beam damage with dropoff and defense included
 func getBeamDamageAtDistance(damage, weaponRange, dist int, beamDefense float64, beamRangeDropoff float64) int {
-	if beamDefense == 0 {
-		// for multiplying damage, treat 0 beam defense as no modifier (i.e. multiply by 1)
-		beamDefense = 1
-	}
-
 	if weaponRange > 0 {
 		return int(math.Round(float64(damage) * (1 - float64(dist)/float64(weaponRange)*beamRangeDropoff) * beamDefense))
 	}
@@ -331,7 +326,7 @@ func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, targ
 		// no range penalty for gattlings
 		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, 0, target.beamDefense, beamRangeDropoff)
 	} else {
-		// drain any range/defelctor penalty from beam damage
+		// apply any range/deflector penalties to beam damage
 		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, dist, target.beamDefense, beamRangeDropoff)
 	}
 

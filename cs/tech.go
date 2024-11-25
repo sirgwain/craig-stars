@@ -128,7 +128,7 @@ type TechHullComponent struct {
 }
 
 // get actual armor/shield value for a tech item given its shield/armor amounts and the multipliers for each
-func getActualArmorAmount(armor, shield float64, qty int, raceSpec RaceSpec, isArmor bool) (float64, float64) {
+func getArmorShieldAmounts(armor, shield float64, qty int, raceSpec RaceSpec, isArmor bool) (float64, float64) {
 	// TODO: Fix RS shield effect in a less janky way
 	if isArmor {
 		return armor * raceSpec.ArmorStrengthFactor * float64(qty), shield * raceSpec.ShieldStrengthFactor * float64(qty)
@@ -154,6 +154,7 @@ type TechHull struct {
 	Type                     TechHullType   `json:"type,omitempty"`
 	Mass                     int            `json:"mass,omitempty"`
 	Armor                    int            `json:"armor,omitempty"`
+	Shield                   int            `json:"shield,omitempty"`
 	FuelCapacity             int            `json:"fuelCapacity,omitempty"`
 	FuelGeneration           int            `json:"fuelGeneration,omitempty"`
 	CargoCapacity            int            `json:"cargoCapacity,omitempty"`

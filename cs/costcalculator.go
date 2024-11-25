@@ -29,6 +29,10 @@ type costFloat64 struct {
 	resources float64
 }
 
+func newCostFloat64(ironium, boranium, germanium, resources float64) costFloat64 {
+	return costFloat64{ironium, boranium, germanium, resources}
+}
+
 func (c costFloat64) getAmount(costType CostType) float64 {
 	switch costType {
 	case Ironium:
@@ -50,16 +54,6 @@ func (c costFloat64) toCost(roundFunc func(float64) float64) Cost {
 		Boranium:  int(roundFunc(c.boranium)),
 		Germanium: int(roundFunc(c.germanium)),
 		Resources: int(roundFunc(c.resources)),
-	}
-}
-
-// convert an int cost to a costfloat64 struct for internal calcs
-func costFloat64fromCost(c Cost) costFloat64 {
-	return costFloat64{
-		ironium:   float64(c.Ironium),
-		boranium:  float64(c.Boranium),
-		germanium: float64(c.Germanium),
-		resources: float64(c.Resources),
 	}
 }
 
@@ -90,7 +84,27 @@ func (c costFloat64) multiply(factor float64) costFloat64 {
 	}
 }
 
-// Return greater of 2 cost structs for all ResourceTypes separately
+// set the specified CostType's value to the specified number
+// and return the modified result
+//
+// panics if incorrect cost type is given
+func (c costFloat64) set(costType CostType, amt float64) costFloat64 {
+	switch costType {
+	case Ironium:
+		c.ironium = amt
+	case Boranium:
+		c.boranium = amt
+	case Germanium:
+		c.germanium = amt
+	case Resources:
+		c.resources = amt
+	default:
+		panic(fmt.Sprintf("setAmount called with invalid CostType %s", costType))
+	}
+	return c
+}
+
+// Return greater of 2 cost structs for each ResourceType separately
 func (c costFloat64) max(other costFloat64) costFloat64 {
 	return costFloat64{
 		ironium:   math.Max(c.ironium, other.ironium),
@@ -100,7 +114,7 @@ func (c costFloat64) max(other costFloat64) costFloat64 {
 	}
 }
 
-// round a cost struct's values with passed in function
+// round a cost struct's values using the passed in function
 func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
 	return costFloat64{
 		ironium:   roundFunc(c.ironium),
@@ -110,7 +124,41 @@ func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
 	}
 }
 
-// Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
+// return the CostType with the Nth highest numerical value in a costFloat64 struct (1 = highest, 2 = 2nd highest, etc etc)
+//
+// Ties are broken by REVERSE order of precendence (I/B/G/R)
+func (c costFloat64) highestType(ranking int) CostType {
+	copy := c // make copy of cost struct so we can zero out values without affecting the original
+	var highestType CostType
+	for i := 0; i < MinInt(ranking, 4); i++ {
+		// get the highest type in the cost struct
+		highestType = copy.getTypeFromAmount(MaxFloat64(copy.ironium, copy.boranium, copy.germanium, copy.resources))
+		// For the record, this will never cause GetTypeFromAmount to panic because we are literally
+		// comparing the cost struct's own values against themselves
+		// set it to 0
+		copy.set(highestType, 0)
+	}
+	return highestType
+}
+
+// return the first valid CostType in a Cost struct with the given numerical value
+// returns an error if no CostType with the corresponding value exists
+func (c costFloat64) getTypeFromAmount(amt float64) CostType {
+	switch amt {
+	case c.ironium:
+		return Ironium
+	case c.germanium:
+		return Germanium
+	case c.boranium:
+		return Boranium
+	case c.resources:
+		return Resources
+	}
+	panic(fmt.Sprintf("getTypeFromAmount called with value %v but no corresponding costType was found in cost struct; \nStruct values:\nIronium: %v\nBoranium: %v\nGermanium: %v\nResources: %v",
+		amt, c.ironium, c.boranium, c.germanium, c.resources))
+}
+
+// Get baseline cost for this technology given a player's tech levels, miniaturization stats & racial cost modifiers
 //
 // Returns floating point cost for extra precision
 func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) costFloat64 {
@@ -166,7 +214,7 @@ func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationS
 	}
 
 	// apply any tech cost offsets
-	cost := costFloat64fromCost(tech.Cost).multiply(miniaturizationFactor).round(roundHalfDown)
+	cost := tech.Cost.ToCostFloat64().multiply(miniaturizationFactor).round(roundHalfDown)
 	var highestCostMulti float64
 	for tag := range tech.Tags {
 		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti)
@@ -175,24 +223,22 @@ func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationS
 	return cost
 }
 
-// Returns the cost efficiency ratio for 2 TechHullComponents 
+// Returns the cost efficiency ratio for 2 TechHullComponents
 // by dividing the techs' total costs
 // (numeratorTotal / denominatorTotal)
 //
-// costTypes indicate the cost types to be considered (defaults to all); 
+// costTypes indicate the cost types to be considered (defaults to all);
 // function will panic if too many are provided
-func getCostEfficiencyRatio(player *Player, numerator, denominator *TechHullComponent, costTypes ...CostType) float64 {
+func getCostEfficiencyRatio(player *Player, numerator, denominator costFloat64, costTypes ...CostType) float64 {
 	if len(costTypes) > 4 {
 		panic(fmt.Sprintf("getCostEfficiencyRatio called with incorrect amount of cost types; %v", costTypes))
 	} else if len(costTypes) == 0 {
 		costTypes = CostTypes[:] // no cost types provided means we include everything
 	}
-	hcCost := getPlayerCostFloat64(numerator.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
-	otherCost := getPlayerCostFloat64(denominator.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
-	hcTally, otherTally := 0., 0.
+	var hcTally, otherTally float64
 	for _, ct := range costTypes {
-		hcTally += hcCost.getAmount(ct)
-		otherTally += otherCost.getAmount(ct)
+		hcTally += numerator.getAmount(ct)
+		otherTally += denominator.getAmount(ct)
 	}
 	return hcTally / otherTally
 }

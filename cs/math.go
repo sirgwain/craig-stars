@@ -27,6 +27,26 @@ func roundHalfDown(x float64) float64 {
 	return math.Ceil(x - 0.5)
 }
 
+// returns the new jamming/computing bonus 
+func getNewJamming(prevBonus, componentBonus, multi float64, qty int) float64 {
+	return 1-(1-prevBonus) * (1-(1-math.Pow(1-componentBonus, float64(qty)))*multi)
+}
+
+// returns the new beam defense factor after adding the given components
+func getNewBeamDefense(prevBonus, componentBonus float64, qty int) float64 {
+	// TODO: Remove this after beamDefense cleanup
+	if prevBonus == 0 {
+		prevBonus = 1
+	}
+	return prevBonus * math.Pow(1-componentBonus, float64(qty))
+}
+
+// returns the new beam defense factor after adding the given components
+func getNewBeamBonus(prevBonus, componentBonus float64, qty int) float64 {
+	return prevBonus * math.Pow(1+componentBonus, float64(qty))
+}
+
+
 func Clamp(value, min, max int) int {
 	if value < min {
 		return min
@@ -49,6 +69,7 @@ func ClampFloat64(value, min, max float64) float64 {
 	return value
 }
 
+
 func MaxInt(nums ...int) int {
 	result := math.MinInt
 	for _, value := range nums {
@@ -64,6 +85,17 @@ func MinInt(nums ...int) int {
 	result := math.MaxInt
 	for _, value := range nums {
 		if value < result {
+			result = value
+		}
+	}
+
+	return result
+}
+
+func MaxFloat64(nums ...float64) float64 {
+	result := -math.MaxFloat64
+	for _, value := range nums {
+		if value > result {
 			result = value
 		}
 	}

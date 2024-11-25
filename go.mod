@@ -2,8 +2,6 @@ module github.com/sirgwain/craig-stars
 
 go 1.23
 
-toolchain go1.22.5
-
 require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0

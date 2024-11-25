@@ -30,3 +30,29 @@ func Test_clamp(t *testing.T) {
 		})
 	}
 }
+
+func Test_getNewJamming(t *testing.T) {
+	type args struct {
+		prevBonus      float64
+		componentBonus float64
+		multi          float64
+		qty            int
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		{"2x 20%", args{0, 0.2, 1, 2}, 0.36},
+		{"2x 20%; prev 10%", args{0.1, 0.2, 1, 2}, 0.424},
+		{"10x 30%; prev 10%", args{0.1, 0.3, 1, 10}, 0.9746},
+		{"2x 20%; prev 10%, 0.75x multi", args{0.1, 0.2, 0.75, 2}, 0.343},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := roundFloat(getNewJamming(tt.args.prevBonus, tt.args.componentBonus, tt.args.multi, tt.args.qty), 4); got != tt.want {
+				t.Errorf("getNewJamming() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

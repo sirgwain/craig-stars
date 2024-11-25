@@ -22,12 +22,7 @@ var CostTypes = [4]CostType{
 	Resources,
 }
 
-func NewCost(
-	ironium int,
-	boranium int,
-	germanium int,
-	resources int,
-) Cost {
+func NewCost(ironium, boranium, germanium, resources int) Cost {
 	return Cost{ironium, boranium, germanium, resources}
 }
 
@@ -125,6 +120,16 @@ func (c Cost) ToMineral() Mineral {
 		Ironium:   c.Ironium,
 		Boranium:  c.Boranium,
 		Germanium: c.Germanium,
+	}
+}
+
+// convert an int cost to a costfloat64 struct for use in calculations
+func (c Cost) ToCostFloat64() costFloat64 {
+	return costFloat64{
+		ironium:   float64(c.Ironium),
+		boranium:  float64(c.Boranium),
+		germanium: float64(c.Germanium),
+		resources: float64(c.Resources),
 	}
 }
 

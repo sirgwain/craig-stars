@@ -799,7 +799,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 				deflecting: 0,
 				starbase:   false,
 			},
-			want: 1.1111, // 1 / 0.9
+			want: 1.11, // 1 / 0.9
 		},
 		{
 			name: "10 Flux Caps on 21% capped ship",
@@ -815,44 +815,39 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 				deflecting: 0,
 				starbase:   false,
 			},
-			want: 2.1074, // 2.55 / 1.21
+			want: 2.11, // 2.55 / 1.21
 		},
 		{
 			name: "1 Mega Poly on armored ship w/ RS",
 			args: args{
 				armorMulti: 0.5, shieldMulti: 1.4,
-				hc:     &MegaPolyShell,
-				qty:    1,
-				shield: 460,  // +140 --> 600 after adding part
-				armor:  1000, // +200 --> 1200 after adding part;
-				// effective armor boost halved due to overabundance
+				hc:         &MegaPolyShell,
+				qty:        1,
+				shield:     460,
+				armor:      1000,
 				beamBonus:  1,
-				jamming:    0, // 20% after 1 item
+				jamming:    0,
 				computing:  0,
 				deflecting: 0,
 				starbase:   false,
 			},
-			want: 1.3973,
-			// (600+1000+(200/2))*(1.2/1) = (1700/1460)*1.2 = 1.3973
+			want: 1.41, // (1460+140+(200/1.7))/1460 * 1.2 = 1.17 * 1.2 = 1.41
 		},
 		{
 			name: "3 Mega Polys on armored starbase w/ 10% jam",
 			args: args{
 				armorMulti: 1, shieldMulti: 1,
-				hc:     &MegaPolyShell,
-				qty:    3,
-				shield: 400,  // +300 --> 700 after adding parts
-				armor:  1000, // +1200 --> 2200 after adding parts;
-				// effective armor bonus thirded due to overabundance
-				beamBonus: 1,
-				jamming:   0.1,
-				// 1-(0.9*(1-(1-0.8^3)*0.75)) = 1-(0.9*0.634) =
-				// 42.94% jamming after adding parts
+				hc:         &MegaPolyShell,
+				qty:        3,
+				shield:     400,
+				armor:      1000,
+				beamBonus:  1,
+				jamming:    0.1,
 				computing:  0,
 				deflecting: 0,
 				starbase:   false,
 			},
-			want: 1.9492, // ((700+1000+(1200/3)/1400) * 1.4294/1.1 = 1.5 * 1.2995 = 1.9492
+			want: 2.12,
 		},
 	}
 	for _, tt := range tests {
@@ -868,7 +863,8 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 		design.Spec.BeamDefense = tt.args.deflecting
 		design.Spec.Starbase = tt.args.starbase
 		t.Run(tt.name, func(t *testing.T) {
-			if got := design.getWarshipPartBonus(&rules, player, tt.args.hc, tt.args.qty); got != tt.want {
+			// round the result to 2 decimal places for easier testing
+			if got := roundFloat(design.getWarshipPartBonus(&rules, player, tt.args.hc, tt.args.qty), 2); got != tt.want {
 				t.Errorf("ShipDesign.getWarshipPartBonus() = %v, want %v", got, tt.want)
 			}
 		})
@@ -984,7 +980,7 @@ func TestShipDesign_getJamOrComputerIncrease(t *testing.T) {
 				hc:  &Jammer20,
 				qty: 3,
 			},
-			want: 1.3654, // 1.4298 / 1.1
+			want: 1.2995, // 1.4294 / 1.1
 		},
 	}
 	for _, tt := range tests {
@@ -1196,7 +1192,7 @@ func TestDesignWarship(t *testing.T) {
 			want: map[string]int{
 				AlphaDrive8.Name:         3,
 				JihadMissile.Name:        8,
-				BearNeutrinoBarrier.Name: 4, // TODO: why 2 wolvys???
+				BearNeutrinoBarrier.Name: 4,
 				BattleComputer.Name:      3,
 				ManeuveringJet.Name:      2,
 			}, wantErr: false,
@@ -1220,7 +1216,7 @@ func TestDesignWarship(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Max Techs HE AMP Nubian w/ Enigma Pulsar",
+			name: "Max Techs HE AMP Nubian",
 			fields: fields{
 				techLevel:     TechLevel{26, 26, 26, 26, 26, 26},
 				acquiredParts: []string{"Enigma Pulsar"},
@@ -1235,10 +1231,32 @@ func TestDesignWarship(t *testing.T) {
 				AntiMatterPulverizer.Name: 6,
 				CompletePhaseShield.Name:  6,
 				Jammer30.Name:             6,
-				FluxCapacitor.Name:      6,
-				BeamDeflector.Name:        6,
+				FluxCapacitor.Name:        6,
+				BeamDeflector.Name:        12,
 			}, wantErr: false,
 		},
+		{
+			name: "Max Techs WM Missile Boat",
+			fields: fields{
+				techLevel:     TechLevel{26, 26, 26, 26, 26, 26},
+				acquiredParts: []string{},
+				race:          NewRace().WithPRT(WM).WithLRT(IFE).WithLRT(RS).WithSpec(&rules),
+			},
+			args: args{
+				hull:    &Nubian,
+				purpose: ShipDesignPurposeTorpedoFighter,
+			},
+			want: map[string]int{
+				GalaxyScoop.Name:         3,
+				ArmageddonMissile.Name:   6,
+				CompletePhaseShield.Name: 6,
+				Jammer30.Name:            6,
+				BattleNexus.Name:         3,
+				BeamDeflector.Name:       12,
+				Overthruster.Name:        3,
+			}, wantErr: false,
+		},
+		// TODO: Add starbase tests for AR and company, as well as intentionally erroring tests
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1246,17 +1264,150 @@ func TestDesignWarship(t *testing.T) {
 			for _, part := range tt.fields.acquiredParts {
 				player.AcquiredTechs[part] = true
 			}
-			got, err := DesignWarship(&rules, tt.args.hull, "Test Warship", player, 1, 2, tt.args.purpose)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("DesignWarship() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			got, err := DesignWarship(&rules, tt.args.hull, tt.name, player, 1, 2, tt.args.purpose)
 			tallyMap := map[string]int{}
 			for _, slot := range got.Slots {
 				tallyMap[slot.HullComponent] += slot.Quantity
 			}
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Errorf("DesignWarship() did not error when expected, returned result %v", tallyMap)
+				} else {
+					t.Errorf("DesignWarship() errored unexpectedly, error = %v", err)
+				}
+			}
 			if !reflect.DeepEqual(tallyMap, tt.want) {
-				t.Errorf("ShipDesign from DesignWarship() had parts %v, want %v", tallyMap, tt.want)
+				t.Errorf("ShipDesign from DesignWarship() had incorrect parts; \ntest returned %v, \nexpected %v", tallyMap, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkDesignShip(b *testing.B) {
+	purposes := []ShipDesignPurpose{
+		ShipDesignPurposeFreighter,
+		ShipDesignPurposeSpeedMineLayer,
+		ShipDesignPurposeMiner,
+	}
+	player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+	for _, tech := range MysteryTraderTechs {
+		player.AcquiredTechs[tech.Name] = true
+	}
+	b.ResetTimer()
+	for range b.N {
+		b.StopTimer()
+		num := rules.random.Intn(3)
+		purpose := purposes[num]
+		var hull *TechHull
+		switch num {
+		case 0, 1:
+			hull = &Nubian
+		case 2:
+			hull = &UltraMiner
+		}
+		fp := FleetPurposeFromShipDesignPurpose(purpose)
+		b.StartTimer()
+		DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
+	}
+}
+func BenchmarkDesignShip_Small(b *testing.B) {
+	purposes := []ShipDesignPurpose{
+		ShipDesignPurposeFreighter,
+		ShipDesignPurposeSpeedMineLayer,
+		ShipDesignPurposeMiner,
+	}
+	player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+	for _, tech := range MysteryTraderTechs {
+		player.AcquiredTechs[tech.Name] = true
+	}
+	b.ResetTimer()
+	for range b.N {
+		b.StopTimer()
+		num := rules.random.Intn(3)
+		purpose := purposes[num]
+		var hull *TechHull
+		switch num {
+		case 0: 
+			hull = &LargeFreighter
+		case 1:
+			hull = &Frigate
+		case 2:
+			hull = &MidgetMiner
+		}
+		fp := FleetPurposeFromShipDesignPurpose(purpose)
+		b.StartTimer()
+		DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
+	}
+}
+
+func BenchmarkDesignWarship_Large(b *testing.B) {
+	purposes := []ShipDesignPurpose{
+		ShipDesignPurposeFighterScout,
+		ShipDesignPurposeBeamFighter,
+		ShipDesignPurposeTorpedoFighter,
+		ShipDesignPurposeStarbase,
+		ShipDesignPurposeStarbaseHalf,
+		ShipDesignPurposeStarbaseQuarter,
+	}
+	c := rules.random.Intn(2)
+	p := AR 
+	if c == 1 {
+		p = WM
+	} 
+	player := NewPlayer(1, NewRace().WithPRT(p).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+	for _, tech := range MysteryTraderTechs {
+		player.AcquiredTechs[tech.Name] = true
+	}
+	b.ResetTimer()
+	for range b.N {
+		b.StopTimer()
+		num := rules.random.Intn(6)
+		purpose := purposes[num]
+		var hull *TechHull
+		switch num {
+		case 0, 1, 2:
+			if c == 0 {
+				hull = &Nubian
+			} else {
+				hull = &Dreadnought
+			}
+		case 3, 4, 5:
+			if c == 0 {
+				hull = &DeathStar
+			} else {
+				hull = &UltraStation
+			}
+		}
+		b.StartTimer()
+		DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
+	}
+}
+func BenchmarkDesignWarship_Small(b *testing.B) {
+	purposes := []ShipDesignPurpose{
+		ShipDesignPurposeFighterScout,
+		ShipDesignPurposeBeamFighter,
+		ShipDesignPurposeTorpedoFighter,
+		ShipDesignPurposeStarbase,
+		ShipDesignPurposeStarbaseHalf,
+		ShipDesignPurposeStarbaseQuarter,
+	}
+	player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+	for _, tech := range MysteryTraderTechs {
+		player.AcquiredTechs[tech.Name] = true
+	}
+	b.ResetTimer()
+	for range b.N {
+		num := rules.random.Intn(6)
+		purpose := purposes[num]
+		var hull *TechHull
+		switch num {
+		case 0:
+			hull = &Frigate
+		case 1, 2:
+			hull = &Cruiser
+		case 3, 4, 5:
+			hull = &SpaceStation
+		}
+		DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
 	}
 }

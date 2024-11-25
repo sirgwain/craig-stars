@@ -30,7 +30,7 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "Laser Vs X Ray Laser",
+			name: "Laser vs X Ray Laser",
 			args: args{
 				hc:    &Laser,
 				other: &XRayLaser,
@@ -146,9 +146,9 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 			race = race.WithLRT(RS)
 		}
 		player := NewPlayer(1, race.WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-		tc := NewTechComparer()
+		tc := NewTechComparer(&rules, player)
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tc.compareFieldsByTag(player, tt.args.hc, tt.args.other, tt.args.tag, tt.args.light); got != tt.want {
+			if got := tc.compareFieldsByTag(tt.args.hc, tt.args.other, tt.args.tag, tt.args.light); got != tt.want {
 				t.Errorf("TechComparer.compareFieldsByTag() = %v, want %v", got, tt.want)
 			}
 		})
@@ -161,6 +161,7 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 		race          *Race
 		acquiredParts []string
 		beamShip      bool
+		useBattleship bool
 	}
 	type args struct {
 		hullSlotType HullSlotType
@@ -172,7 +173,7 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 		fields  fields
 		args    args
 		want    *TechHullComponent
-		wantErr bool
+		
 	}{
 		{
 			name: "Best beam with max techs",
@@ -186,7 +187,7 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 				hullSlotType: HullSlotTypeWeaponShield,
 				qty:          99,
 				tag:          TechTagBeamWeapon,
-			}, want: &AntiMatterPulverizer, wantErr: false,
+			}, want: &AntiMatterPulverizer,
 		},
 		{
 			name: "Best armor with tech 14",
@@ -200,7 +201,21 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 				hullSlotType: HullSlotTypeGeneral,
 				qty:          1,
 				tag:          TechTagArmor,
-			}, want: &MegaPolyShell, wantErr: false,
+			}, want: &MegaPolyShell, // remind myself to do the math and figure out which costs moar
+		},
+		{
+			name: "Should not use armor on BB due to being inefficient",
+			fields: fields{
+				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
+				race:          NewRace().WithPRT(IS),
+				acquiredParts: []string{"Mega Poly Shell", "Langston Shell", "Multi Cargo Pod"},
+				beamShip:      false, useBattleship: true,
+			},
+			args: args{
+				hullSlotType: HullSlotTypeGeneral,
+				qty:          1,
+				tag:          TechTagArmor,
+			}, want: nil, 
 		},
 		{
 			name: "Best light armor",
@@ -214,7 +229,7 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 				hullSlotType: HullSlotTypeArmor,
 				qty:          1,
 				tag:          TechTagArmor,
-			}, want: &Organic, wantErr: false,
+			}, want: &Organic, 
 		},
 		{
 			name: "Best armor item with tech 14 and RS",
@@ -228,7 +243,7 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 				hullSlotType: HullSlotTypeShieldArmor,
 				qty:          1,
 				tag:          TechTagArmor,
-			}, want: &MegaPolyShell, wantErr: false,
+			}, want: &MegaPolyShell, 
 		},
 		{
 			name: "no matching part",
@@ -242,28 +257,28 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 				hullSlotType: HullSlotTypeGeneral,
 				qty:          99,
 				tag:          TechTagMineLayer,
-			}, want: nil, wantErr: false,
+			}, want: nil, 
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tc := NewTechComparer()
 			player := NewPlayer(1, tt.fields.race.WithSpec(&rules)).WithTechLevels(tt.fields.techLevels)
 			if len(tt.fields.acquiredParts) > 0 {
 				for _, tech := range tt.fields.acquiredParts {
 					player = player.WithAcquiredTech(tech)
 				}
 			}
-			design := NewShipDesign(player, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter)
+			tc := NewTechComparer(&rules, player)
+			design := NewShipDesign(player, 1).WithHull("Cruiser").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
 			if tt.fields.beamShip {
 				design.Purpose = ShipDesignPurposeBeamFighter
 			}
-			got, err := tc.GetBestComponentWithTag(&rules, player, design, tt.args.hullSlotType, tt.args.tag)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("TechComparer.GetBestComponentWithTag() errored unexpectedly; error = %v", err)
+			if tt.fields.useBattleship {
+				design = design.WithHull("Battleship").WithSpec(&rules, player)
 			}
+			got := tc.GetBestComponentWithTag(design, tt.args.hullSlotType, tt.args.tag)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TechComparer.GetBestComponentWithTag() = %v, want %v", got.Name, tt.want.Name)
+				t.Errorf("TechComparer.GetBestComponentWithTag() = %v, want %v", got, tt.want)
 			}
 		})
 	}
