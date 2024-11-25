@@ -114,7 +114,7 @@ func Test_computeRaceSpec(t *testing.T) {
 					StartingFleets: []StartingFleet{
 						{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 						{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-						{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeStartingFighter}, // check if changing to fighter does anything
+						{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeStartingFighter},
 						{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
 						{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
 						{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
