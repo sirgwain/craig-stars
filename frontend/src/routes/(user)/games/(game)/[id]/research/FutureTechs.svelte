@@ -1,5 +1,4 @@
 <script lang="ts">
-	
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';

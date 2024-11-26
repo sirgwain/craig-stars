@@ -1,5 +1,4 @@
 <script lang="ts">
-	
 	import { getXFromPointerEvent } from '$lib/services/Events';
 	import { clamp } from '$lib/services/Math';
 

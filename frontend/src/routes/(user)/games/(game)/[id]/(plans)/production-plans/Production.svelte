@@ -60,7 +60,10 @@
 
 		const quantity = quantityModifier;
 		if (selectedQueueItem) {
-			if (selectedQueueItem.type === item?.type && selectedQueueItem.designNum === item?.designNum) {
+			if (
+				selectedQueueItem.type === item?.type &&
+				selectedQueueItem.designNum === item?.designNum
+			) {
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item

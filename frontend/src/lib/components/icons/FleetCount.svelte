@@ -1,7 +1,7 @@
 <script lang="ts">
 	type Props = {
 		color?: string;
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 
 	let { color = '#0000FF', ...rest }: Props = $props();

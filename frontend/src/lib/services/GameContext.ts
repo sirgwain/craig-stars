@@ -189,7 +189,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		cs.setRules(fg.rules);
 		cs.setPlayer(fg.player);
 		cs.setDesigns(fg.universe.getMyDesigns());
-	
+
 		game.set(fg);
 		player.set(fg.player);
 		universe.set(fg.universe);
@@ -240,8 +240,6 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 		return num;
 	}
-
-	// TODO: remove this dep
 
 	const currentCommandedMapObjectIndex = derived(
 		[universe, commandedFleet, commandedPlanet, settings],

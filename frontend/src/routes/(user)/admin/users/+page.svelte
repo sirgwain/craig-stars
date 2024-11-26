@@ -36,7 +36,9 @@
 	// filterable users
 	let users: User[] = $state([]);
 	let search = $state('');
-	let sortKey: keyof UserWithNum = $state(localStorage.getItem('usersSortKey') ?? 'num') as keyof User;
+	let sortKey: keyof UserWithNum = $state(
+		localStorage.getItem('usersSortKey') ?? 'num'
+	) as keyof User;
 	let sortDescending: boolean = $state(localStorage.getItem('usersSortDescending') === 'true');
 
 	let filteredUsers: UserWithNum[] = $derived(

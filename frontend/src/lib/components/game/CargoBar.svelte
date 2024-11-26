@@ -1,5 +1,4 @@
 <script lang="ts">
-	
 	import { cargoPercent, totalCargo, type Cargo } from '$lib/types/Cargo';
 
 	type Props = {

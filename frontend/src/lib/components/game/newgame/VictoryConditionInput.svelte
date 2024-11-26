@@ -1,5 +1,4 @@
 <script lang="ts">
-	
 	type Props = {
 		value: number;
 		unit?: string | undefined;

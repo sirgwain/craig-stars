@@ -10,7 +10,7 @@ export type ScannerContext = {
 	objectScale: Readable<number>;
 };
 
-const scannerContextKey = Symbol("scanner")
+const scannerContextKey = Symbol('scanner');
 
 export const setScannerContext = (ctx: ScannerContext) =>
 	setContext<ScannerContext>(scannerContextKey, ctx);

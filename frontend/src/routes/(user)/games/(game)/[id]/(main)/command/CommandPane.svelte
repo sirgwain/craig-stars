@@ -76,7 +76,7 @@
 	<div class="lg:flex lg:flex-col">
 		<PlanetSummaryTile planet={$commandedPlanet} {onNextMapObject} {onPreviousMapObject} />
 		<PlanetMineralsOnHandTile planet={$commandedPlanet} />
-		<PlanetStatusTile planet={$commandedPlanet}  />
+		<PlanetStatusTile planet={$commandedPlanet} />
 	</div>
 	<div class="lg:flex lg:flex-col">
 		<PlanetFleetsInOrbitTile
@@ -97,7 +97,12 @@
 	</div>
 {:else if $commandedFleet && $selectedWaypoint}
 	<div class="lg:flex lg:flex-col">
-		<FleetSummaryTile fleet={$commandedFleet} {onNextMapObject} {onPreviousMapObject} {onRenameFleet}/>
+		<FleetSummaryTile
+			fleet={$commandedFleet}
+			{onNextMapObject}
+			{onPreviousMapObject}
+			{onRenameFleet}
+		/>
 		<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		<FleetOtherFleetsHereTile
 			fleet={$commandedFleet}

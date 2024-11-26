@@ -12,12 +12,11 @@
 	};
 
 	let { battle, phase = $bindable(0) }: Props = $props();
-	
+
 	let action = $derived(battle.getActionForPhase(phase ?? 0));
 	let selectedToken: PhaseToken | undefined = $state();
 	let actionToken: PhaseToken | undefined = $state();
 	let target: PhaseToken | undefined = $derived(battle.getTargetForPhase(phase));
-
 </script>
 
 <div class="flex w-full">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	type Props = {
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 
 	let { ...rest }: Props = $props();

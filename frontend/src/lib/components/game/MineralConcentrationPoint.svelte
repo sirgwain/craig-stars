@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { SVGAttributes } from 'svelte/elements';
+
 	type Props = {
 		style?: string | undefined;
-		[key: string]: any;
-	};
+	} & SVGAttributes<SVGElement>;
 
 	let { style = undefined, ...rest }: Props = $props();
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	type Props = {
 		primary?: string;
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 
 	let { primary = 'fill-fleet-owned', ...rest }: Props = $props();

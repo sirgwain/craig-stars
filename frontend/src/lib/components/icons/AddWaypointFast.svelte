@@ -2,7 +2,7 @@
 	type Props = {
 		style?: string | undefined;
 		chevronClass?: string;
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 
 	let { style = undefined, chevronClass = 'fill-warning', ...rest }: Props = $props();

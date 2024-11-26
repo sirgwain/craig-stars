@@ -17,10 +17,10 @@
 		target: Target;
 		position: Vector;
 		onSelected: (selected: Partial<MapObject>) => void;
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 
-	let { fleet, otherMapObjectsHere, target, position, onSelected, ...props }: Props = $props();
+	let { fleet, otherMapObjectsHere, target, position, onSelected, ...rest }: Props = $props();
 
 	// true if this mapObject is also our current target
 	function isTarget(mo: MapObject) {
@@ -68,7 +68,7 @@
 		? `color: ${$universe.getPlayerColor(target.targetPlayerNum)};`
 		: ''}
 	onchange={(e) => onSelectChange(parseInt(e.currentTarget.value))}
-	class={`select select-outline select-secondary select-sm text-sm ${props.class ?? ''}`}
+	class={`select select-outline select-secondary select-sm text-sm ${rest.class ?? ''}`}
 >
 	<!-- allow for the non target -->
 	<optgroup label="Space">

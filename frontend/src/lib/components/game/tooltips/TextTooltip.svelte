@@ -9,10 +9,10 @@
 
 	type Props = TextTooltipProps & HTMLAttributes<HTMLDivElement>;
 
-	let { text, ...props }: Props = $props();
+	let { text, ...rest }: Props = $props();
 </script>
 
-<div class="flex flex-col sm:w-[26rem] m-auto ${props.class ?? ''}">
+<div class="flex flex-col sm:w-[26rem] m-auto ${rest.class ?? ''}">
 	<div>
 		{text}
 	</div>

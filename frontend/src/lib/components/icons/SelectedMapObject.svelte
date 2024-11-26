@@ -1,7 +1,7 @@
 <script lang="ts">
 	type Props = {
 		style?: string | undefined;
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 
 	let { style = undefined, ...rest }: Props = $props();

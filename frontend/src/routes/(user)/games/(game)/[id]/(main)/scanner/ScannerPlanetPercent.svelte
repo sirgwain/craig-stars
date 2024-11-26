@@ -1,5 +1,4 @@
 <script lang="ts">
-	
 	import { getGameContext } from '$lib/services/GameContext';
 	import { None, Unexplored } from '$lib/types/Constants';
 	import { type Planet } from '$lib/types/Planet';
@@ -84,7 +83,13 @@
 		<circle cx={0} cy={0} {...planetProps.circleProps} />
 		{#if planet.playerNum != None}
 			<!-- draw the flag  -->
-			<rect width="12" height="10" x={0} y={-fullyHabitableRadius * 2} fill={planetProps.flagColor} />
+			<rect
+				width="12"
+				height="10"
+				x={0}
+				y={-fullyHabitableRadius * 2}
+				fill={planetProps.flagColor}
+			/>
 			<path
 				d={`M${0}, ${0}L${0}, ${-fullyHabitableRadius * 2}`}
 				stroke={planetProps.flagColor}

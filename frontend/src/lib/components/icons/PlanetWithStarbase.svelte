@@ -5,7 +5,7 @@
 		starbaseColor?: string;
 		stargateColor?: string;
 		massDriverColor?: string;
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 
 	let {

@@ -8,7 +8,7 @@
 	import FilterMyDesigns from './FilterMyDesigns.svelte';
 	import FilterScanners from './FilterScanners.svelte';
 	type Props = {
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 
 	let { ...rest }: Props = $props();

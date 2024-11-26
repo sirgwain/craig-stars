@@ -31,7 +31,6 @@
 		}
 		return false;
 	};
-
 </script>
 
 <!-- Planets -->

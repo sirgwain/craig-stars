@@ -7,10 +7,10 @@
 		ontransfertodest: () => void;
 	} & HTMLAttributes<HTMLDivElement>;
 
-	let { ontransfertosource, ontransfertodest, ...props }: Props = $props();
+	let { ontransfertosource, ontransfertodest, ...rest }: Props = $props();
 </script>
 
-<div class="flex justify-center {props.class}">
+<div class="flex justify-center {rest.class}">
 	<button
 		onclick={ontransfertosource}
 		class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"

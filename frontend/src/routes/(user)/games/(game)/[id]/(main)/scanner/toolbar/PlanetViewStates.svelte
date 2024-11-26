@@ -6,7 +6,7 @@
 	import PlanetViewStatePopulation from './PlanetViewStatePopulation.svelte';
 	import PlanetViewStateSurfaceMinerals from './PlanetViewStateSurfaceMinerals.svelte';
 	type Props = {
-		[key: string]: any;
+		[key: string]: unknown;
 	};
 
 	let { ...rest }: Props = $props();

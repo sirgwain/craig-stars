@@ -1,5 +1,4 @@
 <script lang="ts">
-	
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
 	import TestBreadcrumb from './TestBreadcrumb.svelte';
