@@ -134,8 +134,7 @@
 				<button
 					name="deleteWaypoint"
 					class="btn btn-outline btn-sm normal-case btn-secondary"
-					onclick={(e) => {
-						e.preventDefault();
+					onclick={() => {
 						onDeleteWaypoint?.({ fleet, waypoint });
 					}}
 					>Delete

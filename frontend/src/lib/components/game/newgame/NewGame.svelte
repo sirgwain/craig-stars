@@ -115,13 +115,7 @@
 	<GameSettingsEditor bind:settings />
 
 	<SectionHeader>
-		<button
-			class="btn-ghost w-full flex flex-row"
-			onclick={(e) => {
-				e.preventDefault();
-				addPlayer();
-			}}
-		>
+		<button class="btn-ghost w-full flex flex-row" onclick={addPlayer}>
 			Players
 			<div class="ml-auto">
 				<Icon src={PlusCircle} size="24" class="hover:stroke-accent" />
@@ -129,7 +123,7 @@
 		</button></SectionHeader
 	>
 
-	{#each settings.players as player, i}
+	{#each settings.players as player, i (i)}
 		<NewGamePlayer
 			bind:player={settings.players[i]}
 			index={i + 1}

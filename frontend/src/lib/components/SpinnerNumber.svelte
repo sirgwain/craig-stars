@@ -42,10 +42,10 @@
 			{unit}
 		</div>
 		<div class="flex flex-col">
-			<button type="button" class="btn btn-xs" onclick={(e) => increase(e)}>
+			<button type="button" class="btn btn-xs" onclick={increase}>
 				<Icon src={ChevronUp} size="12" class="hover:stroke-accent" />
 			</button>
-			<button type="button" class="btn btn-xs" onclick={(e) => decrease(e)}>
+			<button type="button" class="btn btn-xs" onclick={decrease}>
 				<Icon src={ChevronDown} size="12" class="hover:stroke-accent" />
 			</button>
 		</div>

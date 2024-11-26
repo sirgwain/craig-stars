@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
 	import type { Battle, PhaseToken } from '$lib/types/Battle';
@@ -48,7 +46,7 @@
 			<button
 				type="button"
 				class="w-full h-full cursor-help"
-				onpointerdown={preventDefault((e) => onShipDesignTooltip(e, design))}
+				onpointerdown={(e) => onShipDesignTooltip(e, design)}
 			>
 				<div class="flex flex-col">
 					<div>

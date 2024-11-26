@@ -23,10 +23,7 @@
 	<div class="flex-row flex-none gap-y-2">
 		<button
 			type="button"
-			onclick={(e) => {
-				e.preventDefault();
-				onAddItem?.();
-			}}
+			onclick={onAddItem}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><span class="hidden sm:inline">Add </span><Icon
 				src={ArrowLongRight}
@@ -36,10 +33,7 @@
 		>
 		<button
 			type="button"
-			onclick={(e) => {
-				e.preventDefault();
-				onRemoveItem?.();
-			}}
+			onclick={onRemoveItem}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /><span
 				class="hidden sm:inline"
@@ -49,10 +43,7 @@
 		</button>
 		<button
 			type="button"
-			onclick={(e) => {
-				e.preventDefault();
-				onItemUp?.();
-			}}
+			onclick={onItemUp}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><span class="hidden sm:inline">Item Up </span><Icon
 				src={ArrowLongUp}
@@ -62,10 +53,7 @@
 		</button>
 		<button
 			type="button"
-			onclick={(e) => {
-				e.preventDefault();
-				onItemDown?.();
-			}}
+			onclick={onItemDown}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><span class="hidden sm:inline">Item Down </span><Icon
 				src={ArrowLongDown}
@@ -75,10 +63,7 @@
 		</button>
 		<button
 			type="button"
-			onclick={(e) => {
-				e.preventDefault();
-				onClear?.();
-			}}
+			onclick={onClear}
 			class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 			><span class="hidden sm:inline">Clear </span><Icon
 				src={XCircle}

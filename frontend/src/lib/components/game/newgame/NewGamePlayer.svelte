@@ -41,7 +41,7 @@
 						<div class="text-xl mr-2 my-auto">AI Player {index}</div>
 					{/if}
 					{#if player.type === NewGamePlayerType.AI}
-						<AiPlayer {player} />
+						<AiPlayer bind:player />
 					{/if}
 				</div>
 				<div class="my-auto mx-1">
@@ -51,7 +51,7 @@
 				</div>
 			</div>
 		{:else}
-			<HostPlayer {player} />
+			<HostPlayer bind:player />
 		{/if}
 	</div>
 

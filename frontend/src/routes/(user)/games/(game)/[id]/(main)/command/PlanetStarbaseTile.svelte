@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
+	import type { ChangeMassDriverSpeedProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { UnlimitedSpaceDock } from '$lib/types/Constants';
@@ -11,7 +10,6 @@
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import CommandTile from './CommandTile.svelte';
-	import type { ChangeMassDriverSpeedProps } from '$lib/services/Events';
 
 	const { game, player, universe, settings } = getGameContext();
 

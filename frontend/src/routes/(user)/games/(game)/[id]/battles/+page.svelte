@@ -114,7 +114,8 @@
 							>{row.location}</a
 						>
 						<button
-							onclick={(e) => gotoTarget(row)}
+							type="button"
+							onclick={() => gotoTarget(row)}
 							class="btn btn-outline btn-sm normal-case btn-secondary p-2 mx-1"
 							title="goto">Goto</button
 						>

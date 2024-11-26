@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { clickOutside } from '$lib/clickOutside';
 	import AddWaypoint from '$lib/components/icons/AddWaypoint.svelte';
 	import AddWaypointFast from '$lib/components/icons/AddWaypointFast.svelte';
@@ -53,7 +51,10 @@
 						<a
 							href="#planet-view-states"
 							class="btn btn-xs w-12 h-12"
-							onclick={preventDefault(() => planetsViewMenuDropdown?.toggleAttribute('open'))}
+							onclick={(e) => {
+								e.preventDefault();
+								planetsViewMenuDropdown?.toggleAttribute('open');
+							}}
 						>
 							{#if $settings.planetViewState == PlanetViewState.Normal}
 								<PlanetWithStarbase class="w-6 h-6" />

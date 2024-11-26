@@ -1,12 +1,8 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import FleetCount from '$lib/components/icons/FleetCount.svelte';
-	import IdleFleets from '$lib/components/icons/IdleFleets.svelte';
-	import { getGameContext, playerFinderKey } from '$lib/services/GameContext';
-	import Scanner from '$lib/components/icons/Scanner.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
 
-	const { player, settings } = getGameContext();
+	const { settings } = getGameContext();
 </script>
 
 <a
@@ -15,6 +11,6 @@
 	class:fill-accent={$settings.showFleetTokenCounts}
 	class:fill-current={!$settings.showFleetTokenCounts}
 	class="btn btn-ghost btn-xs w-full h-full"
-	onclick={preventDefault(() => ($settings.showFleetTokenCounts = !$settings.showFleetTokenCounts))}
+	onclick={() => ($settings.showFleetTokenCounts = !$settings.showFleetTokenCounts)}
 	><FleetCount class="w-6 h-6" /></a
 >

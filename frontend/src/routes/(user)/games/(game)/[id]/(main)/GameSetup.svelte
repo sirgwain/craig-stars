@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { goto } from '$app/navigation';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
@@ -201,17 +199,19 @@
 		</div>
 		<div class="flex flex-row gap-1 mt-1">
 			{#if isHost}
-				<button type="submit" class="btn btn-primary" onclick={preventDefault(onUpdateGame)}
-					>Update Game</button
+				<button
+					type="submit"
+					class="btn btn-primary"
+					onclick={(e) => {
+						e.preventDefault();
+						onUpdateGame();
+					}}>Update Game</button
 				>
-				<button type="button" class="btn btn-secondary" onclick={() => onAddAIPlayer()}
-					>Add AI</button
-				>
-				<button type="button" class="btn btn-secondary" onclick={() => onAddOpenSlot()}
+				<button type="button" class="btn btn-secondary" onclick={onAddAIPlayer}>Add AI</button>
+				<button type="button" class="btn btn-secondary" onclick={onAddOpenSlot}
 					>Add Open Slot</button
 				>
-				<button type="button" class="btn btn-secondary" onclick={() => onAddGuestPlayer()}
-					>Add Guest</button
+				<button type="button" class="btn btn-secondary" onclick={onAddGuestPlayer}>Add Guest</button
 				>
 				<button
 					disabled={$game.players.findIndex((p) => !p.ready) != -1}

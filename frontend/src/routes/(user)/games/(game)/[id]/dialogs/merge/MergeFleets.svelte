@@ -83,11 +83,11 @@
 	</div>
 	<div class="flex flex-col mt-7 ml-2 gap-2">
 		<button
+			type="submit"
 			onclick={(e) => {
 				e.preventDefault();
 				ok();
 			}}
-			type="submit"
 			disabled={selectedFleetIndexes.length == 0}
 			class="btn btn-sm normal-case btn-primary">OK</button
 		>

@@ -214,7 +214,8 @@
 						{#each srcTokens as token, index}
 							<div class="flex flex-row h-full">
 								<button
-									onclick={(e) => {
+									type="button"
+									onclick={() => {
 										moveToken(
 											-clamp(quantityModifier, 0, destTokens[index].quantity),
 											token,
@@ -225,7 +226,8 @@
 									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" />
 								</button>
 								<button
-									onclick={(e) => {
+									type="button"
+									onclick={() => {
 										moveToken(clamp(quantityModifier, 0, srcTokens[index].quantity), token, index);
 									}}
 									class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"

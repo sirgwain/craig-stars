@@ -38,8 +38,7 @@
 						<button
 							type="button"
 							class="btn btn-outline"
-							onclick={(e) => {
-								e.preventDefault();
+							onclick={() => {
 								$errors = [];
 								if ($game && $game.id && resetContext) {
 									// reload the game

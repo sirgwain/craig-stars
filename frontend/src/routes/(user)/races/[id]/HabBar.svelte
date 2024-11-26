@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { preventDefault } from 'svelte/legacy';
-
 	import { clamp } from '$lib/services/Math';
-	import { HabTypes, getHabValueString, type HabType, habTypeString } from '$lib/types/Hab';
+	import { HabTypes, getHabValueString, habTypeString, type HabType } from '$lib/types/Hab';
 	import { draggable, type DragEventData } from '@neodrag/svelte';
 	import {
 		ChevronDoubleLeft,
@@ -26,7 +24,7 @@
 		immune = $bindable()
 	}: Props = $props();
 
-	let barContainerRef: HTMLDivElement | null = $state(null);
+	let barContainerRef: HTMLDivElement | undefined = $state();
 	let containerWidth = $derived(barContainerRef?.parentElement?.clientWidth ?? 0);
 
 	let habWidth = $derived((habHigh ?? 0) - (habLow ?? 0));
@@ -79,7 +77,7 @@
 	</div>
 	<div class="grow flex flex-col">
 		<div class="flex flex-row h-8">
-			<button type="button" onclick={preventDefault(() => onLeft())} class="btn btn-outline btn-sm"
+			<button type="button" onclick={onLeft} class="btn btn-outline btn-sm"
 				><Icon src={ChevronLeft} size="20" />
 			</button>
 
@@ -97,16 +95,13 @@
 					{/if}
 				</div>
 			</div>
-			<button type="button" onclick={preventDefault(() => onRight())} class="btn btn-outline btn-sm"
+			<button type="button" onclick={onRight} class="btn btn-outline btn-sm"
 				><Icon src={ChevronRight} size="20" />
 			</button>
 		</div>
 		<div class="flex flex-row grow mt-2">
 			<div>
-				<button
-					type="button"
-					onclick={preventDefault(() => onGrow())}
-					class="btn btn-outline btn-sm"
+				<button type="button" onclick={onGrow} class="btn btn-outline btn-sm"
 					><Icon src={ChevronDoubleLeft} size="20" />
 					<Icon src={ChevronDoubleRight} size="20" /></button
 				>
@@ -117,10 +112,7 @@
 				>
 			</div>
 			<div>
-				<button
-					type="button"
-					onclick={preventDefault(() => onShrink())}
-					class="btn btn-outline btn-sm"
+				<button type="button" onclick={onShrink} class="btn btn-outline btn-sm"
 					><Icon src={ChevronDoubleRight} size="20" />
 					<Icon src={ChevronDoubleLeft} size="20" /></button
 				>

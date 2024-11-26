@@ -238,7 +238,7 @@
 								<button
 									type="button"
 									class="w-full h-full"
-									onclick={(e) => techHullComponentClicked(hc)}
+									onclick={() => techHullComponentClicked(hc)}
 								>
 									<div class="flex flex-row place-items-center">
 										<div class="mr-2 pt-1 pl-1">

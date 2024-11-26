@@ -1,16 +1,14 @@
 <script lang="ts">
-	import { run, preventDefault } from 'svelte/legacy';
-
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
+	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
+	import { addError, CSError } from '$lib/services/Errors';
 	import { RaceService } from '$lib/services/RaceService';
 	import type { Race } from '$lib/types/Race';
-	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import { XCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
-	import { addError, CSError } from '$lib/services/Errors';
 
 	type TableRace = Race & { action?: never };
 	const columns: TableColumn<TableRace>[] = [
@@ -83,7 +81,7 @@
 				{:else if column.key == 'createdAt'}
 					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
 				{:else if column.key == 'action'}
-					<button onclick={preventDefault(() => removeItem(row))} type="button"
+					<button onclick={() => removeItem(row)} type="button"
 						><Icon
 							class="h-10 align-middle hover:stroke-primary-focus stroke-error"
 							src={XCircle}

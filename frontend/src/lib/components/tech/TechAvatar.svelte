@@ -29,7 +29,6 @@
 			aria-label="Brings up information on technology"
 			class="w-full h-full"
 			onpointerdown={(e) => {
-				e.preventDefault();
 				onTechHullTooltip(e, hull);
 			}}
 		></button>
