@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import type { HTMLAttributes } from 'svelte/elements';
 	import FilterAllyDesigns from './FilterAllyDesigns.svelte';
 	import FilterAllyScanners from './FilterAllyScanners.svelte';
 	import FilterEnemyDesigns from './FilterEnemyDesigns.svelte';
@@ -7,16 +8,13 @@
 	import FilterIdleFleets from './FilterIdleFleets.svelte';
 	import FilterMyDesigns from './FilterMyDesigns.svelte';
 	import FilterScanners from './FilterScanners.svelte';
-	type Props = {
-		[key: string]: unknown;
-	};
 
-	let { ...rest }: Props = $props();
+	let { ...props }: HTMLAttributes<HTMLUListElement> = $props();
 
-	const { player, settings } = getGameContext();
+	const { player } = getGameContext();
 </script>
 
-<ul {...rest}>
+<ul {...props}>
 	<li class="h-10 w-10">
 		<FilterFleetCounts />
 	</li>

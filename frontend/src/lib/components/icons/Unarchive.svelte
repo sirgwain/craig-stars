@@ -1,13 +1,10 @@
 <script lang="ts">
-	type Props = {
-		style?: string | undefined;
-		[key: string]: unknown;
-	};
+	import type { SVGAttributes } from 'svelte/elements';
 
-	let { style = undefined, ...rest }: Props = $props();
+	let props: SVGAttributes<SVGElement> = $props();
 </script>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" {style} {...rest}>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" {...props}>
 	<path
 		d="M12 21L12 12M12 12L15 15.3333M12 12L9 15.3333"
 		stroke-width="1.5"

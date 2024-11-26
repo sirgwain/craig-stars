@@ -1,4 +1,4 @@
-export function asyncToVoidWrapper<T extends any[]>(
+export function asyncToVoidWrapper<T extends unknown[]>(
 	asyncFn: (...args: T) => Promise<void>
 ): (...args: T) => void {
 	return (...args: T) => {

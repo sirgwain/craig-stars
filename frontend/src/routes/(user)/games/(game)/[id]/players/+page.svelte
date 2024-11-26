@@ -7,7 +7,7 @@
 	import PlayerVictoryConditions from './PlayerVictoryConditions.svelte';
 	import PlayersStatus from './PlayersStatus.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game } = getGameContext();
 
 	const graphTypes: ValueType[] = [
 		'planets',

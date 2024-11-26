@@ -35,6 +35,18 @@ export default ts.config(
 		}
 	},
 	{
-		ignores: ['build/', '.svelte-kit/', 'dist/']
+		ignores: [
+			'!.env.example',
+			'.DS_Store',
+			'.env.*',
+			'.svelte-kit/',
+			'/package',
+			'build/',
+			'dist/',
+			'node_modules',
+			'package-lock.json',
+			'pnpm-lock.yaml',
+			'yarn.lock'
+		]
 	}
 );

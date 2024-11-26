@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { SVGAttributes } from 'svelte/elements';
+
 	type Props = {
 		primary?: string;
-		[key: string]: unknown;
-	};
+	} & SVGAttributes<SVGElement>;
 
 	let { primary = 'fill-fleet-owned', ...rest }: Props = $props();
 	export const secondary = 'fill-fleet-neutral';

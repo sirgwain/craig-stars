@@ -7,7 +7,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onShipDesignTooltip } from './game/tooltips/ShipDesignTooltip.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
 	type Props = {
 		fleet: Fleet;

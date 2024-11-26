@@ -1,15 +1,14 @@
 <script lang="ts">
+	import type { SVGAttributes } from 'svelte/elements';
+
 	type Props = {
-		style?: string | undefined;
 		planetColor?: string;
 		starbaseColor?: string;
 		stargateColor?: string;
 		massDriverColor?: string;
-		[key: string]: unknown;
-	};
+	} & SVGAttributes<SVGElement>;
 
 	let {
-		style = undefined,
 		planetColor = '#00FF00',
 		starbaseColor = '#FDFD00',
 		stargateColor = '#008100',
@@ -22,7 +21,6 @@
 	viewBox="0 0 500 500"
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-	{style}
 	{...rest}
 >
 	<path

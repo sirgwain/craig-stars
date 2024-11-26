@@ -1,8 +1,9 @@
 <script lang="ts">
+	import type { SVGAttributes } from 'svelte/elements';
+
 	type Props = {
 		color?: string;
-		[key: string]: unknown;
-	};
+	} & SVGAttributes<SVGElement>;
 
 	let { color = '#0000FF', ...rest }: Props = $props();
 

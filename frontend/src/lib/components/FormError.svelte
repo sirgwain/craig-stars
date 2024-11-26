@@ -15,7 +15,7 @@
 		class="alert alert-error shadow-lg w-1/2 mx-auto"
 		in:fade
 		out:fade={{ delay: 5000 }}
-		onintroend={(e) => (error = '')}
+		onintroend={() => (error = '')}
 	>
 		<div>
 			<Icon src={ExclamationTriangle} size="24" class="hover:stroke-accent" />

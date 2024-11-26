@@ -4,6 +4,7 @@
 	import { MapObjectType, equal, getMapObjectName, type MapObject } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';
 	import { flatten, keys } from 'lodash-es';
+	import type { HTMLAttributes, HTMLSelectAttributes } from 'svelte/elements';
 
 	const { player, universe } = getGameContext();
 
@@ -17,8 +18,7 @@
 		target: Target;
 		position: Vector;
 		onSelected: (selected: Partial<MapObject>) => void;
-		[key: string]: unknown;
-	};
+	} & HTMLSelectAttributes;
 
 	let { fleet, otherMapObjectsHere, target, position, onSelected, ...rest }: Props = $props();
 

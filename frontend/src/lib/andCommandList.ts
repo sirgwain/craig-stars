@@ -1,6 +1,3 @@
-import type { FocusEventHandler } from 'svelte/elements';
-import { clamp } from './services/Math';
-
 // for a list of items, return a comma separated list with an and on the final word
 // ex:
 // [a, b, c] will return `a, b and c`.
