@@ -61,28 +61,48 @@
 				<TransportActionDescription
 					action={plan.tasks.ironium.action}
 					amount={plan.tasks.ironium.amount}
-					units="kT"
+					units={[
+						WaypointTaskTransportAction.WaitForPercent,
+						WaypointTaskTransportAction.FillPercent
+					].indexOf(plan.tasks.ironium.action ?? WaypointTaskTransportAction.None) != -1
+						? '%'
+						: 'kT'}
 					title="Ironium"
 					titleTextClass="text-ironium"
 				/>
 				<TransportActionDescription
 					action={plan.tasks.boranium.action}
 					amount={plan.tasks.boranium.amount}
-					units="kT"
+					units={[
+						WaypointTaskTransportAction.WaitForPercent,
+						WaypointTaskTransportAction.FillPercent
+					].indexOf(plan.tasks.boranium.action ?? WaypointTaskTransportAction.None) != -1
+						? '%'
+						: 'kT'}
 					title="Boranium"
 					titleTextClass="text-boranium"
 				/>
 				<TransportActionDescription
 					action={plan.tasks.germanium.action}
 					amount={plan.tasks.germanium.amount}
-					units="kT"
+					units={[
+						WaypointTaskTransportAction.WaitForPercent,
+						WaypointTaskTransportAction.FillPercent
+					].indexOf(plan.tasks.germanium.action ?? WaypointTaskTransportAction.None) != -1
+						? '%'
+						: 'kT'}
 					title="Germanium"
 					titleTextClass="text-germanium"
 				/>
 				<TransportActionDescription
 					action={plan.tasks.colonists.action}
 					amount={plan.tasks.colonists.amount}
-					units=""
+					units={[
+						WaypointTaskTransportAction.WaitForPercent,
+						WaypointTaskTransportAction.FillPercent
+					].indexOf(plan.tasks.colonists.action ?? WaypointTaskTransportAction.None) != -1
+						? '%'
+						: '00'}
 					title="Colonists"
 					titleTextClass="text-colonists"
 				/>

@@ -775,7 +775,16 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	}
 
 	async function updateBattlePlan(plan: BattlePlan): Promise<BattlePlan> {
-		return await BattlePlanService.update(gameId, plan);
+		const updated = await BattlePlanService.update(gameId, plan);
+
+		const p = get(player);
+		for (let i = 0; i < p.battlePlans.length; i++) {
+			if (p.battlePlans[i].num === updated.num) {
+				p.battlePlans[i] = updated;
+			}
+		}
+		player.set(p);
+		return updated;
 	}
 
 	async function deleteBattlePlan(num: number): Promise<void> {
@@ -797,12 +806,21 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	}
 
 	async function updateProductionPlan(plan: ProductionPlan): Promise<ProductionPlan> {
-		return await ProductionPlanService.update(gameId, plan);
+		const updated = await ProductionPlanService.update(gameId, plan);
+
+		const p = get(player);
+		for (let i = 0; i < p.productionPlans.length; i++) {
+			if (p.productionPlans[i].num === updated.num) {
+				p.productionPlans[i] = updated;
+			}
+		}
+		player.set(p);
+		return updated;
 	}
 
 	async function deleteProductionPlan(num: number): Promise<void> {
 		const player = await ProductionPlanService.delete(gameId, num);
-		Object.assign(player, player);
+		updatePlayer(player);
 	}
 
 	async function createTransportPlan(plan: TransportPlan): Promise<TransportPlan> {
@@ -815,12 +833,20 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	}
 
 	async function updateTransportPlan(plan: TransportPlan): Promise<TransportPlan> {
-		return await TransportPlanService.update(gameId, plan);
+		const updated = await TransportPlanService.update(gameId, plan);
+		const p = get(player);
+		for (let i = 0; i < p.transportPlans.length; i++) {
+			if (p.transportPlans[i].num === updated.num) {
+				p.transportPlans[i] = updated;
+			}
+		}
+		player.set(p);
+		return updated;
 	}
 
 	async function deleteTransportPlan(num: number): Promise<void> {
 		const player = await TransportPlanService.delete(gameId, num);
-		Object.assign(player, player);
+		updatePlayer(player);
 	}
 
 	async function createDesign(design: ShipDesign): Promise<ShipDesign> {

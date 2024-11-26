@@ -35,11 +35,13 @@
 	let quantityModifier = $state(1);
 
 	let selectedAvailableItem: ProductionQueueItem | undefined = $state();
+	let selectedAvailableItemIndex = $state(-1);
 
 	let selectedQueueItemIndex = $state(-1);
 	let selectedQueueItem: ProductionQueueItem | undefined;
 
-	function availableItemSelected(item: ProductionQueueItem) {
+	function availableItemSelected(index: number, item: ProductionQueueItem) {
+		selectedAvailableItemIndex = index;
 		selectedAvailableItem = item;
 		onAvailableItemSelected?.(selectedAvailableItem);
 	}
@@ -58,7 +60,7 @@
 
 		const quantity = quantityModifier;
 		if (selectedQueueItem) {
-			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
+			if (selectedQueueItem.type === item?.type && selectedQueueItem.designNum === item?.designNum) {
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item
@@ -72,13 +74,20 @@
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 			}
 		} else {
-			// prepend a new queue item
-			queueItems = [
-				{ type: item.type, designNum: item.designNum, quantity, allocated: {} },
-				...queueItems
-			];
-			selectedQueueItemIndex++;
-			selectedQueueItem = queueItems[selectedQueueItemIndex];
+			let nextItem = queueItems.length ? queueItems[0] : undefined;
+			if (nextItem && nextItem.type === item?.type && nextItem.designNum == item.designNum) {
+				nextItem.quantity++;
+				selectedQueueItemIndex = 0;
+				selectedQueueItem = nextItem;
+			} else {
+				// prepend a new queue item
+				queueItems = [
+					{ type: item.type, designNum: item.designNum, quantity, allocated: {} },
+					...queueItems
+				];
+				selectedQueueItemIndex++;
+				selectedQueueItem = queueItems[selectedQueueItemIndex];
+			}
 		}
 
 		// trigger reaction
@@ -129,14 +138,14 @@
 <div class="flex flex-row">
 	<div class="grow">
 		<ul class="h-full overflow-y-auto bg-base-300 px-1 pb-2">
-			{#each availableItems as item}
+			{#each availableItems as item, index (index)}
 				<li>
 					<button
 						type="button"
-						onclick={() => availableItemSelected(item)}
-						ondblclick={(e) => addAvailableItem(item)}
-						class="w-full text-left cursor-default select-none hover:text-secondary-focus {item ==
-						selectedAvailableItem
+						onclick={() => availableItemSelected(index, item)}
+						ondblclick={() => addAvailableItem(item)}
+						class="w-full text-left cursor-default select-none hover:text-secondary-focus {index ===
+						selectedAvailableItemIndex
 							? ' bg-primary'
 							: ''}
 				{isAuto(item.type) ? ' italic' : ''}"
@@ -167,7 +176,7 @@
 				<button
 					type="button"
 					onclick={() => queueItemClicked(-1)}
-					class="w-full italic pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
+					class="w-full italic pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ===
 					-1
 						? 'bg-primary'
 						: ''}"
@@ -176,12 +185,12 @@
 				</button>
 			</li>
 			{#if queueItems}
-				{#each queueItems as queueItem, index}
+				{#each queueItems as queueItem, index (index)}
 					<li>
 						<button
 							type="button"
 							onclick={() => queueItemClicked(index, queueItem)}
-							class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
+							class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ===
 							index
 								? 'bg-primary'
 								: ''} {isAuto(queueItem.type) ? 'italic' : ''}"
