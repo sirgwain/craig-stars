@@ -90,6 +90,7 @@
 		if (gameState != game.state || year != game.year) {
 			// console.log('game state changed');
 			const loaded = await GameService.loadFullGame(id);
+
 			gameState = loaded.state;
 			year = loaded.year;
 			context.resetContext(loaded);

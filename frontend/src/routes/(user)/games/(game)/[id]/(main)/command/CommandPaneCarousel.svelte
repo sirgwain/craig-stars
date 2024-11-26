@@ -18,7 +18,7 @@
 		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { equal, getMapObjectName } from '$lib/types/MapObject';
+	import { equal, getMapObjectName, MapObjectType } from '$lib/types/MapObject';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, setContext } from 'svelte';
@@ -36,6 +36,8 @@
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
+	import type { Planet } from '$lib/types/Planet';
+	import { Unknown } from '$lib/types/Constants';
 
 	const {
 		universe,
@@ -55,7 +57,9 @@
 
 	type Props = {
 		isOpen: boolean;
-	} & NextPrevMapObjectProps & RenameFleetProps & SplitAllProps &
+	} & NextPrevMapObjectProps &
+		RenameFleetProps &
+		SplitAllProps &
 		ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps &
 		ShowMergeFleetsDialogProps &
@@ -168,11 +172,15 @@
 
 	// anytime the commandedMapObject is updated, open the command pane
 	const unsuscribeCommandedMapObjectKey = commandedMapObjectKey.subscribe((mo) => {
-		activeNav = '#summary';
+		// activeNav = '#summary';
 	});
 
 	// anytime the selectedMapObject is updated, show the summary
 	const unsuscribeSelectedMapObject = selectedMapObject.subscribe((mo) => {
+		if (mo && mo?.type === MapObjectType.Planet && (mo as Planet).reportAge === Unknown) {
+			// don't update to the summary view automatically for unknown planets
+			return;
+		}
 		if (!$selectedWaypoint || !equal(mo, $universe.getMapObject($selectedWaypoint))) {
 			activeNav = '#summary';
 		}

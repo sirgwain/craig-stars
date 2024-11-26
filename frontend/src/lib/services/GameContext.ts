@@ -186,6 +186,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	// this is called after a new game is loaded from the server while waiting for a turn to generate
 	function resetContext(fg: FullGame) {
 		const s = get(settings);
+		cs.setRules(fg.rules);
+		cs.setPlayer(fg.player);
+		cs.setDesigns(fg.universe.getMyDesigns());
+	
 		game.set(fg);
 		player.set(fg.player);
 		universe.set(fg.universe);

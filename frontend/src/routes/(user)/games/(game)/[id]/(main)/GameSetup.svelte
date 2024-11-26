@@ -146,7 +146,7 @@
 						<div class="text-center border-b border-b-secondary mb-1">Invite Link</div>
 					{/if}
 
-					{#each $game.players as playerStatus, index}
+					{#each $game.players as playerStatus, index (index)}
 						<div class="flex flex-row h-8 my-auto">
 							<div class="w-4">
 								{playerStatus.num}
