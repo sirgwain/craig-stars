@@ -2,10 +2,14 @@
 	import type { Game } from '$lib/types/Game';
 	import { format, parseJSON } from 'date-fns';
 
-	export let games: Game[];
+	type Props = {
+		games: Game[];
+	};
+	let { games }: Props = $props();
 
-	$: games &&
-		games.sort((a, b) => (b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0));
+	let sortedGames = $derived(
+		games.sort((a, b) => (b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0))
+	);
 </script>
 
 <div class="overflow-x-auto">
@@ -19,7 +23,7 @@
 		</thead>
 		<tbody>
 			{#if games?.length}
-				{#each games as game}
+				{#each sortedGames as game}
 					<tr
 						><td>{game.id}</td>
 						<td><a href={`/games/${game.id}`}>{game.name}</a></td><td

@@ -11,8 +11,8 @@
 	type Props = {
 		src: CommandedFleet;
 		dest: Fleet | Planet | Salvage | undefined;
-		onOk: OnOk<TransferCargoEvent>;
-		onCancel: OnCancel;
+		onOk?: OnOk<TransferCargoEvent>;
+		onCancel?: OnCancel;
 	};
 
 	let { src, dest, onOk, onCancel }: Props = $props();
@@ -25,13 +25,13 @@
 	}
 
 	function ok() {
-		onOk({ src, dest, transferAmount });
+		onOk?.({ src, dest, transferAmount });
 		reset();
 	}
 
 	function cancel() {
 		reset();
-		onCancel();
+		onCancel?.();
 	}
 
 	onMount(() => {
