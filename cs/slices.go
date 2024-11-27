@@ -4,7 +4,7 @@ package cs
 Compare 2 or more slices without order and return true if they are either equal or
 if slice 1 contains slice 2 
 
-identical determines what to check for - true requires the 2 slices to be strictly identical,
+Identical determines what criteria to check for - true requires the 2 slices to be strictly identical,
 while false merely requires that the first slice contains the other
 */
 func CompareSlicesUnordered[T comparable, S ~[]T](slice, other S, identical bool) bool {
@@ -37,17 +37,17 @@ func CompareSlicesUnordered[T comparable, S ~[]T](slice, other S, identical bool
 	return true
 }
 
-// remove duplicates from one or more slices and return the appended result;
-// items appear in the order of the slices passed in (everything in slice 1, then everything in slice 2, etc.) 
+// Remove duplicates from one or more slices and return the appended result.
+// Items appear in the order of the slices passed in (everything in slice 1, then everything in slice 2, etc.) 
 //
 // To pass in map objects or iterables, call maps.Values and/or slices.Collect on them first
-func AppendWithoutDuplicates[T comparable, S ~[]T](slice ...S) S {
+func AppendWithoutDuplicates[T comparable, S ~[]T](slices ...S) S {
 	checkedParts := map[T]bool{}
 	var newSlice S
 	// smush all our slices together into 1 big slice
-	allSlices := slice[0]
-	for i := 1; i < len(slice); i++ {
-		allSlices = append(allSlices, slice[i]...)
+	allSlices := slices[0]
+	for i := 1; i < len(slices); i++ {
+		allSlices = append(allSlices, slices[i]...)
 	}
 
 	// iterate over big slice and slap items onto new list if not already covered
@@ -58,6 +58,21 @@ func AppendWithoutDuplicates[T comparable, S ~[]T](slice ...S) S {
 		}
 	}
 	return newSlice
+}
+
+// If key does not exist in lookupMap, evaluates funcToCall on key and 
+// stores the resulting value in the map for future use. 
+// Returns the new/old value for lookupMap[key]
+//
+// Used for quick storage/lookup of repeatedly needed/computed values
+func UpdateLookupMap[M ~map[K]V, K comparable, V any](lookupMap M, key K, funcToCall func(K) V) V {
+	if val, ok := lookupMap[key]; ok {
+		return val
+	} else {
+		val = funcToCall(key)
+		lookupMap[key] = val
+		return val
+	}
 }
 
 /* break down an individual bitmask into a slice of its component bits

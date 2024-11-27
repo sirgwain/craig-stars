@@ -126,7 +126,7 @@ type RaceSpec struct {
 	CanRemoteMineOwnPlanets          bool                   `json:"canRemoteMineOwnPlanets,omitempty"`
 	InvasionAttackBonus              float64                `json:"invasionAttackBonus,omitempty"`
 	InvasionDefendBonus              float64                `json:"invasionDefendBonus,omitempty"`
-	MovementBonus                    int                    `json:"movementBonus,omitempty"`
+	MovementBonus                    float64                `json:"movementBonus,omitempty"`
 	Instaforming                     bool                   `json:"instaforming,omitempty"`
 	PermaformChance                  float64                `json:"permaformChance,omitempty"`
 	PermaformPopulation              int                    `json:"permaformPopulation,omitempty"`
@@ -594,10 +594,10 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)].clone()
 	spec := RaceSpec{
-		HabCenter:          race.HabCenter(),
-		StartingTechLevels: prtSpec.StartingTechLevels,
-		StartingPlanets:    prtSpec.StartingPlanets,
-		TechCostOffset: prtSpec.TechCostOffset,
+		HabCenter:           race.HabCenter(),
+		StartingTechLevels:  prtSpec.StartingTechLevels,
+		StartingPlanets:     prtSpec.StartingPlanets,
+		TechCostOffset:      prtSpec.TechCostOffset,
 		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
 		ScannerSpec: ScannerSpec{
 			ScanRangeFactor: 1,
@@ -614,7 +614,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 			MiniaturizationMax:      .75,
 			MiniaturizationPerLevel: .04,
 		},
-		ScrapMineralOffsetStarbase:   .8 - (1.0 / 3),
+		ScrapMineralOffsetStarbase: .8 - (1.0 / 3),
 
 		// PP
 		MineralsPerSingleMineralPacket:   prtSpec.MineralsPerSingleMineralPacket,

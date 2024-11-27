@@ -173,7 +173,7 @@ func (r *research) getTotalCost(techLevels TechLevel, field TechField, researchC
 	}
 
 	// figure out our total levels
-	totalLevels := techLevels.Sum()
+	totalLevels := techLevels.Total()
 
 	// figure out the cost to advance to the next level
 	baseCost := r.rules.TechBaseCost[level+1]
@@ -217,13 +217,13 @@ func (r *research) getNextResearchField(player *Player) (nextField TechField) {
 	case NextResearchFieldBiotechnology:
 		nextField = Biotechnology
 	case NextResearchFieldLowestField:
-		nextField = player.TechLevels.Lowest()
+		nextField = player.TechLevels.HighestType(-1)
 	}
 
 	// if the player is at the max level for this nextField, pick the lowest.
 	// if they are at the maxLevel for the lowest, return none
 	if r.isAtMaxLevel(player, nextField) {
-		nextField = player.TechLevels.Lowest()
+		nextField = player.TechLevels.HighestType(-1)
 		// determine the next field to research
 		if r.isAtMaxLevel(player, nextField) {
 			return TechFieldNone

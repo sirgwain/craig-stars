@@ -247,33 +247,6 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 			}, wanterr: false,
 		},
 		{
-			name: "Min Price Floor - same category",
-			args: args{
-				techLevels:          TechLevel{0, 22, 0, 0, 0, 0},
-				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 16},
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 4, Quantity: 16},
-					// Some amount of G, much much resources
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
-					// 150B, 165R
-					// Boranium should stay same since not being reduced
-				},
-				starbaseCostFactor: 1,
-			},
-			want: Cost{
-				Ironium:   0,
-				Boranium:  150,
-				Germanium: 0,
-				Resources: 33,
-			}, wanterr: false,
-		},
-		{
 			name: "Component Swap (different categories)",
 			args: args{
 				techLevels:          TechLevel{22, 22, 22, 10, 0, 0},

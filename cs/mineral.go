@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -61,9 +62,9 @@ func (m *Mineral) Set(mineralType MineralType, value int) *Mineral {
 // return higher of 2 Mineral structs for all MineralTypes separately
 func (m Mineral) Max(other Mineral) Mineral {
 	return Mineral{
-		Ironium:   MaxInt(m.GetAmount(Ironium), other.GetAmount(Ironium)),
-		Boranium:  MaxInt(m.GetAmount(Boranium), other.GetAmount(Boranium)),
-		Germanium: MaxInt(m.GetAmount(Germanium), other.GetAmount(Germanium)),
+		Ironium:   MaxInt(m.Ironium, other.Ironium),
+		Boranium:  MaxInt(m.Boranium, other.Boranium),
+		Germanium: MaxInt(m.Germanium, other.Germanium),
 	}
 }
 
@@ -162,21 +163,27 @@ func (m Mineral) Clamp(min, max int) Mineral {
 	}
 }
 
-// return the Nth highest MineralType in a Mineral struct 
-// (1 = highest, 2 = middle, 3 = lowest)
-// 
-// Ties are broken in order of precendence (I/B/G) 
+// return the MineralType with the Nth highest numerical value in a Mineral struct (1 = highest, 2 = 2nd highest, etc etc)
+// Negative indices count backwards from lowest value
+//
+// Ties are broken in order of precendence (I>B>G); tie order not affected by negative indices
 func (m Mineral) HighestType(ranking int) MineralType {
-	var highestType MineralType 
-	copy := m // make copy of struct so we can zero out values without affecting the original
-	for i := 0; i < ranking; i++ {
-		// get the largest mineral type in the cost struct
-		// This will never cause GetTypeFromAmount to panic because we are  
-		// comparing the struct's own values against themselves
-		highestType = copy.GetTypeFromAmount(MaxInt(copy.Ironium, copy.Boranium, copy.Germanium))
-		copy.Set(highestType, 0)
+	return m.GetTypeFromAmount(m.HighestAmount(ranking))
+}
+
+// return the numerical value of the Nth highest MineralType in a Mineral struct (1 = highest, 2 = 2nd highest, etc etc).
+// Negative indices count backwards from lowest value
+//
+// Ties are broken in order of precendence (I>B>G); tie order not affected by negative indices
+func (m Mineral) HighestAmount(ranking int) int {
+	a := m.ToSlice()
+	slice := slices.Clone(a[:])
+	slices.Sort(slice)
+	if ranking < 0 {
+		slices.SortStableFunc(slice, func(a, b int) int { return b - a })
+		ranking = -ranking
 	}
-	return highestType
+	return slice[len(slice)-ranking]
 }
 
 // return the first valid MineralType in a Mineral struct with the given numerical value;

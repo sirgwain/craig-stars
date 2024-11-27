@@ -1337,7 +1337,7 @@ func Test_getBattleMovement(t *testing.T) {
 		idealEngineSpeed int
 		mass             int
 		numEngines       int
-		movementBonus    int
+		movementBonus    float64
 	}
 	tests := []struct {
 		name string
@@ -1345,10 +1345,12 @@ func Test_getBattleMovement(t *testing.T) {
 		want int
 	}{
 		{"Destroyer + Trans Galactic Drive + thruster", args{idealEngineSpeed: 9, mass: 244, numEngines: 1, movementBonus: 1}, 5},
+		{"Destroyer + 1 Enigma Pulsar", args{idealEngineSpeed: 10, mass: 244, numEngines: 1, movementBonus: 0.5}, 9},
+		{"Destroyer + 1 Enigma Pulsar + WM", args{idealEngineSpeed: 10, mass: 244, numEngines: 1, movementBonus: 2.5}, 10},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getBattleMovement(tt.args.idealEngineSpeed, tt.args.movementBonus, tt.args.mass, tt.args.numEngines); got != tt.want {
+			if got := getBattleMovement(rules.MovementMin, rules.MovementMax, tt.args.idealEngineSpeed, tt.args.movementBonus, tt.args.mass, tt.args.numEngines); got != tt.want {
 				t.Errorf("getBattleMovement() = %v, want %v", got, tt.want)
 			}
 		})

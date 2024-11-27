@@ -210,6 +210,32 @@ func FleetPurposeFromShipDesignPurpose(purpose ShipDesignPurpose) FleetPurpose {
 	return FleetPurposeNone
 }
 
+// get fleet purpose from hull type; design purpose used only as backup for niche cases
+func FleetPurposeFromTechHullType(hull TechHullType, purpose ShipDesignPurpose) FleetPurpose {
+	switch hull {
+	case TechHullTypeScout:
+		return FleetPurposeScout
+	case TechHullTypeColonizer:
+		return FleetPurposeColonizer
+	case TechHullTypeBomber:
+		return FleetPurposeBomber
+	case TechHullTypeFighter:
+		return FleetPurposeFighter
+	case TechHullTypeCapitalShip:
+		return FleetPurposeCapitalShip
+	case TechHullTypeFreighter, TechHullTypeFuelTransport, TechHullTypeMultiPurposeFreighter:
+		return FleetPurposeFreighter
+	case TechHullTypeMineLayer:
+		return FleetPurposeMineLayer
+	case TechHullTypeMiner:
+		if purpose == ShipDesignPurposeMiner {
+			return FleetPurposeMiner
+		}
+		return FleetPurposeTerraformer
+	}
+	return FleetPurposeNone
+}
+
 type fleetMoveInterruptedReason int
 
 const (
@@ -535,6 +561,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || token.design.Spec.OrbitalConstructionModule
 
 		// radiating parts
+		// TODO: Rework radiating into a custom datatype
 		spec.Radiating = spec.Radiating || token.design.Spec.Radiating
 
 		// spec all mine layers in the fleet
@@ -631,7 +658,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	}
 
 	// compute the cloaking based on the cloak units and cargo
-	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total() + spec.BaseCloakedCargo, player.Race.Spec.FreeCargoCloaking)
+	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total()+spec.BaseCloakedCargo, player.Race.Spec.FreeCargoCloaking)
 
 	if !spec.Starbase {
 		spec.EstimatedRange = fleet.getEstimatedRange(player, spec.Engine.IdealSpeed, spec.CargoCapacity)

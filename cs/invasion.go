@@ -60,6 +60,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet
 				messager.playerTechGainedInvasion(attacker, planet, field)
 
 				techsGained := techStore.GetTechsJustGained(attacker, field)
+				attacker.Spec.TechsGainedLastTurn = append(attacker.Spec.TechsGainedLastTurn, techsGained...)
 				for _, tech := range techsGained {
 					messager.playerTechGained(attacker, field, tech)
 				}

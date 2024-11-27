@@ -19,7 +19,7 @@ func newTechTrader() techTrader {
 // https://wiki.starsautohost.org/wiki/Guts_of_Tech_Trading
 func (t *techTrade) techLevelGained(rules *Rules, current, target TechLevel) TechField {
 	diff := target.Subtract(current).MinZero()
-	if diff.Sum() <= 0 {
+	if diff.Total() <= 0 {
 		return TechFieldNone
 	}
 

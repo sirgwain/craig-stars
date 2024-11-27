@@ -1,12 +1,12 @@
 package cs
 
-// TechTags are functional labels used by the game to 
+// TechTags are functional labels used to
 // categorize tech items based on their function.
 type TechTag string
 
 const (
+	TechTagNone               TechTag = "None"
 	TechTagArmor              TechTag = "Armor"
-	TechTagTorpedoBonus       TechTag = "TorpedoBonus"
 	TechTagBeamCapacitor      TechTag = "BeamCapacitor"
 	TechTagBeamDeflector      TechTag = "BeamDeflector"
 	TechTagBeamWeapon         TechTag = "BeamWeapon"
@@ -38,39 +38,67 @@ const (
 	TechTagTerraforming       TechTag = "Terraforming"
 	TechTagTorpedo            TechTag = "Torpedo"
 	TechTagTorpedoJammer      TechTag = "TorpedoJammer"
+	TechTagTorpedoBonus       TechTag = "TorpedoBonus"
 )
+
+// a list of all TechTags that benefit ships in combat 
+var CombatTechTags = []TechTag{
+	TechTagArmor,
+	TechTagBeamCapacitor,
+	TechTagBeamDeflector,
+	TechTagBeamWeapon,
+	TechTagCapitalShipMissile,
+	TechTagGatlingGun,
+	TechTagInitiativeBonus,
+	TechTagManeuveringJet,
+	TechTagShieldSapper,
+	TechTagShield,
+	TechTagTorpedo,
+	TechTagTorpedoJammer,
+	TechTagTorpedoBonus,
+}
 
 // A collection of an object's TechTags (like on a tech part)
 type TechTags map[TechTag]bool
 
 // Create a new TechTags map from a list of TechTag items, or an empty map if none are specified
 func newTechTags(tags ...TechTag) TechTags {
-	newMap := TechTags{}
+	newTechTags := TechTags{}
 	for _, t := range tags {
-		newMap[t] = true
+		newTechTags[t] = true
 	}
-	return newMap
+	return newTechTags
 }
 
-/* returns true if tt has ALL of the specified tags
-func (tt TechTags) hasAllTags(tags ...TechTag) bool {
-	for _, tag := range tags {
-		if !tt[tag] {
+/* // returns true if tt has the specified TechTag
+// and no other tags in tagsToExclude
+func (tt TechTags) hasTag(tag TechTag, tagsToExclude ...TechTag) bool {
+	for _, bannedTag := range tagsToExclude {
+		if tt[bannedTag] && bannedTag != tag { // only ban tags not in the whitelist 
 			return false
 		}
 	}
-	return true
-}
+	return tt[tag]
+} */
 
-// returns true if tt has AT LEAST 1 of the specified tags
-func (tt TechTags) hasTag(tags ...TechTag) bool {
-	for _, tag := range tags {
-		if tt[tag] {
-			return true
+// returns true if tt has at least 1 of the specified TechTags
+// and none of the tags in tagsToExclude
+//
+// Tag(s) contained in both lists will not be banned
+func (tt TechTags) hasTags(tagsToInclude []TechTag, tagsToExclude ...TechTag) bool {
+	blacklist := newTechTags(tagsToExclude...)
+	whitelist := newTechTags(tagsToInclude...)
+	var hasTag, inBanlist bool
+
+	for _, tag := range tt.GetTags() {  
+		if blacklist[tag] && !whitelist[tag] {
+			inBanlist = true
+		} else if whitelist[tag] {
+			hasTag = true
 		}
 	}
-	return false
-}*/
+	return hasTag && !inBanlist
+}
 
 // return unsorted list of all tags in tt
 func (tt TechTags) GetTags() []TechTag {

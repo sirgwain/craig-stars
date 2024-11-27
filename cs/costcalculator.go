@@ -21,7 +21,8 @@ type costCalculate struct {
 }
 
 // A costFloat64 is otherwise identical to a regular Cost struct, but uses float64s instead of ints
-// used for internal cost calculations before being cast back into a regular Cost
+//
+// Used for internal cost calculations before being cast back into a regular Cost
 type costFloat64 struct {
 	ironium   float64
 	boranium  float64
@@ -29,9 +30,9 @@ type costFloat64 struct {
 	resources float64
 }
 
-func newCostFloat64(ironium, boranium, germanium, resources float64) costFloat64 {
+/* func newCostFloat64(ironium, boranium, germanium, resources float64) costFloat64 {
 	return costFloat64{ironium, boranium, germanium, resources}
-}
+} */
 
 func (c costFloat64) getAmount(costType CostType) float64 {
 	switch costType {
@@ -47,7 +48,23 @@ func (c costFloat64) getAmount(costType CostType) float64 {
 	panic(fmt.Sprintf("getAmount called with invalid CostType %s", costType))
 }
 
-// convert a costFloat64 to an int using the specified rounding method
+func (c costFloat64) set(costType CostType, amt float64) costFloat64 {
+	switch costType {
+	case Ironium:
+		c.ironium = amt
+	case Boranium:
+		c.boranium = amt
+	case Germanium:
+		c.germanium = amt
+	case Resources:
+		c.resources = amt
+	default:
+		panic(fmt.Sprintf("setAmount called with invalid CostType %s", costType))
+	}
+	return c
+}
+
+// convert a costFloat64 to an int cost using the specified rounding method
 func (c costFloat64) toCost(roundFunc func(float64) float64) Cost {
 	return Cost{
 		Ironium:   int(roundFunc(c.ironium)),
@@ -84,27 +101,16 @@ func (c costFloat64) multiply(factor float64) costFloat64 {
 	}
 }
 
-// set the specified CostType's value to the specified number
-// and return the modified result
-//
-// panics if incorrect cost type is given
-func (c costFloat64) set(costType CostType, amt float64) costFloat64 {
-	switch costType {
-	case Ironium:
-		c.ironium = amt
-	case Boranium:
-		c.boranium = amt
-	case Germanium:
-		c.germanium = amt
-	case Resources:
-		c.resources = amt
-	default:
-		panic(fmt.Sprintf("setAmount called with invalid CostType %s", costType))
+/* func (c costFloat64) divide(factor float64) costFloat64 {
+	return costFloat64{
+		ironium:   c.ironium / factor,
+		boranium:  c.boranium / factor,
+		germanium: c.germanium / factor,
+		resources: c.resources / factor,
 	}
-	return c
-}
+} */
 
-// Return greater of 2 cost structs for each ResourceType separately
+// Return greater of 2 cost structs for each CostType separately
 func (c costFloat64) max(other costFloat64) costFloat64 {
 	return costFloat64{
 		ironium:   math.Max(c.ironium, other.ironium),
@@ -114,7 +120,22 @@ func (c costFloat64) max(other costFloat64) costFloat64 {
 	}
 }
 
-// round a cost struct's values using the passed in function
+// Return lesser of 2 cost structs for each CostType separately
+func (c costFloat64) min(other costFloat64) costFloat64 {
+	return costFloat64{
+		ironium:   math.Min(c.ironium, other.ironium),
+		boranium:  math.Min(c.boranium, other.boranium),
+		germanium: math.Min(c.germanium, other.germanium),
+		resources: math.Min(c.resources, other.resources),
+	}
+}
+
+// Return lowest numerical value in a costFloat64 struct
+func (c costFloat64) minAmount() float64 {
+	return MinFloat64(c.ironium, c.boranium, c.germanium, c.resources)
+}
+
+// round a costFloat64's values using the passed in function and return the result
 func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
 	return costFloat64{
 		ironium:   roundFunc(c.ironium),
@@ -124,25 +145,31 @@ func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
 	}
 }
 
-// return the CostType with the Nth highest numerical value in a costFloat64 struct (1 = highest, 2 = 2nd highest, etc etc)
+/* // return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
+// Negative indices count backwards from lowest value
 //
-// Ties are broken by REVERSE order of precendence (I/B/G/R)
+// Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
 func (c costFloat64) highestType(ranking int) CostType {
-	copy := c // make copy of cost struct so we can zero out values without affecting the original
-	var highestType CostType
-	for i := 0; i < MinInt(ranking, 4); i++ {
-		// get the highest type in the cost struct
-		highestType = copy.getTypeFromAmount(MaxFloat64(copy.ironium, copy.boranium, copy.germanium, copy.resources))
-		// For the record, this will never cause GetTypeFromAmount to panic because we are literally
-		// comparing the cost struct's own values against themselves
-		// set it to 0
-		copy.set(highestType, 0)
-	}
-	return highestType
+	return c.getTypeFromAmount(c.highestAmount(ranking))
 }
 
-// return the first valid CostType in a Cost struct with the given numerical value
-// returns an error if no CostType with the corresponding value exists
+// return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
+// Negative indices count backwards from lowest value
+//
+// Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
+func (c costFloat64) highestAmount(ranking int) float64 {
+	a := c.toSlice()
+	slice := slices.Clone(a[:])
+	slices.Sort(slice)
+	if ranking < 0 {
+		slices.SortStableFunc(slice, func(a, b float64) int { return b - a })
+		ranking = -ranking
+	}
+	return slice[len(slice)-ranking]
+}
+
+// return the first valid CostType in a costFloat64 struct with the given numerical value
+// panics if no CostType with the corresponding value exists
 func (c costFloat64) getTypeFromAmount(amt float64) CostType {
 	switch amt {
 	case c.ironium:
@@ -156,7 +183,7 @@ func (c costFloat64) getTypeFromAmount(amt float64) CostType {
 	}
 	panic(fmt.Sprintf("getTypeFromAmount called with value %v but no corresponding costType was found in cost struct; \nStruct values:\nIronium: %v\nBoranium: %v\nGermanium: %v\nResources: %v",
 		amt, c.ironium, c.boranium, c.germanium, c.resources))
-}
+} */
 
 // Get baseline cost for this technology given a player's tech levels, miniaturization stats & racial cost modifiers
 //
@@ -200,7 +227,7 @@ func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationS
 
 	// for starter techs, they are all 0 requirements, so just use our lowest field
 	if numTechLevelsAboveRequired == math.MaxInt {
-		numTechLevelsAboveRequired = techLevels.Min()
+		numTechLevelsAboveRequired = techLevels.HighestAmount(-1)
 	}
 
 	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
@@ -215,23 +242,23 @@ func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationS
 
 	// apply any tech cost offsets
 	cost := tech.Cost.ToCostFloat64().multiply(miniaturizationFactor).round(roundHalfDown)
-	var highestCostMulti float64
+	highestCostMulti := 1.0
 	for tag := range tech.Tags {
 		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti)
 	}
 
-	return cost
+	return cost.multiply(highestCostMulti)
 }
 
-// Returns the cost efficiency ratio for 2 TechHullComponents
-// by dividing the techs' total costs
+// Returns the cost efficiency ratio for 2 costFloat64s
+// by dividing their respective total costs
 // (numeratorTotal / denominatorTotal)
 //
-// costTypes indicate the cost types to be considered (defaults to all);
+// costTypes indicates the cost types to be considered in analysis (defaults to all);
 // function will panic if too many are provided
-func getCostEfficiencyRatio(player *Player, numerator, denominator costFloat64, costTypes ...CostType) float64 {
+func GetCostEfficiencyRatio(numerator, denominator costFloat64, costTypes ...CostType) float64 {
 	if len(costTypes) > 4 {
-		panic(fmt.Sprintf("getCostEfficiencyRatio called with incorrect amount of cost types; %v", costTypes))
+		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types; %v", costTypes))
 	} else if len(costTypes) == 0 {
 		costTypes = CostTypes[:] // no cost types provided means we include everything
 	}
@@ -391,7 +418,7 @@ func (p *costCalculate) CostOfOne(player *Player, item ProductionQueueItem) (Cos
 	cost := player.Race.Spec.Costs[item.Type]
 	if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
 		if item.design != nil {
-			cost = item.design.Spec.Cost
+			cost = item.design.Spec.Cost // should never happen since it isn't called for designs
 		} else {
 			return Cost{}, fmt.Errorf("design %d not populated in queue item", item.DesignNum)
 		}

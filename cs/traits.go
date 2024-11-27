@@ -45,7 +45,7 @@ type PRTSpec struct {
 	CanRemoteMineOwnPlanets          bool             `json:"canRemoteMineOwnPlanets,omitempty"`
 	InvasionAttackBonus              float64          `json:"invasionAttackBonus,omitempty"`
 	InvasionDefendBonus              float64          `json:"invasionDefendBonus,omitempty"`
-	MovementBonus                    int              `json:"movementBonus,omitempty"`
+	MovementBonus                    float64          `json:"movementBonus,omitempty"`
 	Instaforming                     bool             `json:"instaforming,omitempty"`
 	PermaformChance                  float64          `json:"permaformChance,omitempty"`
 	PermaformPopulation              int              `json:"permaformPopulation,omitempty"`

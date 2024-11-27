@@ -388,7 +388,8 @@ func GetBattleRules(o js.Value) cs.BattleRules {
 	}
 	obj.BeamRangeDropoff = getFloat[float64](o.Get("beamRangeDropoff"))
 	obj.BeamBonusCap = getFloat[float64](o.Get("beamBonusCap"))
-	obj.JammerCap = GetStringMap[map[bool]float64](o.Get("jammerCap"), getFloat)
+	// JammerCap jammerCap Object ignored
+	// JammerMulti jammerMulti Object ignored
 	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
 	obj.NumBattleRounds = getInt[int](o.Get("numBattleRounds"))
 	obj.TorpedoSplashDamage = getFloat[float64](o.Get("torpedoSplashDamage"))
@@ -397,11 +398,8 @@ func GetBattleRules(o js.Value) cs.BattleRules {
 func SetBattleRules(o js.Value, obj *cs.BattleRules) {
 	o.Set("beamRangeDropoff", obj.BeamRangeDropoff)
 	o.Set("beamBonusCap", obj.BeamBonusCap)
-	jammerCapMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.JammerCap {
-		jammerCapMap.Set(fmt.Sprintf("%v", key), value)
-	}
-	o.Set("jammerCap", jammerCapMap)
+	// JammerCap jammerCap Object ignored
+	// JammerMulti jammerMulti Object ignored
 	o.Set("movesToRunAway", obj.MovesToRunAway)
 	o.Set("numBattleRounds", obj.NumBattleRounds)
 	o.Set("torpedoSplashDamage", obj.TorpedoSplashDamage)

@@ -50,8 +50,94 @@ func Test_aiPlayer_ProcessTurn(t *testing.T) {
 			}
 			ai.SubmittedTurn = true
 
-			// generate a ne turn, make sure no errors
+			// generate a new turn, make sure no errors
 			gamer.GenerateTurn(game, universe, []*cs.Player{player})
+		})
+	}
+}
+
+func Test_aiPlayer_updateWarfleets(t *testing.T) {
+	tests := []struct {
+		name      string
+		race      *cs.Race
+		techLevel cs.TechLevel
+		year      int
+		want      []fleetShip
+		wantErr   bool
+	}{
+		{
+			name:      "Tech 0 - default plan due to no warships",
+			race:      cs.NewRace().WithPRT(cs.HE),
+			techLevel: cs.TechLevel{},
+			year:      25,
+			want: []fleetShip{
+				{purpose: cs.ShipDesignPurposeBomber, quantity: 5},
+				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 7},
+				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 7}, // this is the default plan
+			}, wantErr: false,
+		},
+		{
+			name:      "Tech 10 - beams very good",
+			race:      cs.NewRace().WithPRT(cs.JoaT),
+			techLevel: cs.TechLevel{Energy: 10, Weapons: 10, Propulsion: 10, Construction: 10, Electronics: 10, Biotechnology: 10},
+			year:      27,
+			want: []fleetShip{
+				{purpose: cs.ShipDesignPurposeBomber, quantity: 5},
+				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 14},
+				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 3}, // 19/5
+			}, wantErr: false,
+		},
+		{
+			name:      "Tech 12 WM - Jihad BCs",
+			race:      cs.NewRace().WithPRT(cs.WM).WithLRT(cs.RS),
+			techLevel: cs.TechLevel{Energy: 6, Weapons: 12, Propulsion: 9, Construction: 10, Electronics: 11, Biotechnology: 7},
+			year:      30,
+			want: []fleetShip{
+				{purpose: cs.ShipDesignPurposeBomber, quantity: 7},
+				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 9},
+				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 7},
+				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 4}, // 23/5
+			}, wantErr: false,
+		},
+		{
+			name:      "Tech 24",
+			race:      cs.NewRace().WithPRT(cs.JoaT),
+			techLevel: cs.TechLevel{Energy: 24, Weapons: 24, Propulsion: 24, Construction: 24, Electronics: 24, Biotechnology: 24},
+			year:      75, // 50 years after attack start yr
+			want: []fleetShip{
+				{purpose: cs.ShipDesignPurposeBomber, quantity: 40},
+				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 18},
+				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 42},
+				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 20}, // 100/5
+			}, wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gamer := cs.NewGamer()
+			game := gamer.CreateGame(0, *cs.NewGameSettings().WithAIPlayer(cs.AIDifficultyEasy, 0))
+			game.Year = game.Rules.StartingYear + tt.year
+			player := gamer.NewPlayer(0, *tt.race.WithSpec(&game.Rules), &game.Rules)
+			player.Num = 1
+			player.Name = cs.AINames[0][0]
+			universe, err := gamer.GenerateUniverse(game, []*cs.Player{player})
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			player.TechLevels = tt.techLevel
+			ai := NewAIPlayer(game, &cs.StaticTechStore, player, universe.GetPlayerMapObjects(player.Num))
+
+			// call produce() to update warship designs
+			if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter], err = ai.designShip("Fuel Pod", cs.ShipDesignPurposeFuelFreighter, cs.FleetPurposeBomber); err != nil {
+				t.Errorf("designing fuel ship for test returned error %v", err)
+			}
+
+			if err = ai.updateWarfleets(); (err != nil) != tt.wantErr {
+				t.Errorf("aiPlayer.updateWarfleets() errored; error = %v", err)
+			}
+			got := ai.fleetsByPurpose[cs.FleetPurposeBomber].ships
+			assert.ElementsMatch(t, tt.want, got)
 		})
 	}
 }

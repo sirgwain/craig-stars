@@ -114,7 +114,7 @@ type TechHullComponent struct {
 	ColonizationModule        bool          `json:"colonizationModule,omitempty"`
 	FuelBonus                 int           `json:"fuelBonus,omitempty"`
 	FuelGeneration            int           `json:"fuelGeneration,omitempty"`
-	MovementBonus             int           `json:"movementBonus,omitempty"`
+	MovementBonus             float64       `json:"movementBonus,omitempty"`
 	OrbitalConstructionModule bool          `json:"orbitalConstructionModule,omitempty"`
 	Power                     int           `json:"power,omitempty"`
 	Range                     int           `json:"range,omitempty"`
@@ -199,9 +199,26 @@ const (
 	TechHullTypeMineLayer             TechHullType = "MineLayer"
 	TechHullTypeMultiPurposeFreighter TechHullType = "MultiPurposeFreighter"
 	TechHullTypeOrbitalFort           TechHullType = "OrbitalFort"
+	TechHullTypeSpaceDock             TechHullType = "Space Dock" // cheap dock ships
 	TechHullTypeScout                 TechHullType = "Scout"
 	TechHullTypeStarbase              TechHullType = "Starbase"
 )
+
+var TechHullTypes = []TechHullType{
+	TechHullTypeBomber,
+	TechHullTypeColonizer,
+	TechHullTypeCapitalShip,
+	TechHullTypeFighter,
+	TechHullTypeFreighter,
+	TechHullTypeFuelTransport,
+	TechHullTypeMiner,
+	TechHullTypeMineLayer,
+	TechHullTypeMultiPurposeFreighter,
+	TechHullTypeOrbitalFort,
+	TechHullTypeSpaceDock,
+	TechHullTypeScout,
+	TechHullTypeStarbase,
+}
 
 func (t TechHullType) IsAttackHull() bool {
 	return t == TechHullTypeFighter || t == TechHullTypeCapitalShip || t == TechHullTypeMultiPurposeFreighter
@@ -213,21 +230,23 @@ func (t TechHullType) IsBomber() bool {
 
 type HullSlotType Bitmask
 
+// Sorted in order of increasing precedence for AI Warship calcs (higher # = slots checked later)
+
 const (
 	HullSlotTypeNone                = 0
 	HullSlotTypeEngine HullSlotType = 1 << iota
-	HullSlotTypeScanner
+	HullSlotTypeSpaceDock
+	HullSlotTypeCargo
 	HullSlotTypeBomb
 	HullSlotTypeMining
+	HullSlotTypeMineLayer
+	HullSlotTypeScanner
+	HullSlotTypeOrbital
+	HullSlotTypeWeapon
 	HullSlotTypeShield
 	HullSlotTypeArmor
-	HullSlotTypeCargo
-	HullSlotTypeSpaceDock
-	HullSlotTypeWeapon
-	HullSlotTypeOrbital
-	HullSlotTypeMineLayer
-	HullSlotTypeElectrical
 	HullSlotTypeMechanical
+	HullSlotTypeElectrical
 
 	HullSlotTypeElectricalMechanical             = HullSlotTypeElectrical | HullSlotTypeMechanical
 	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical

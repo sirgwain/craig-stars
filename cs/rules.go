@@ -97,13 +97,15 @@ type CostRules struct {
 }
 
 type BattleRules struct {
-	BeamRangeDropoff    float64          `json:"beamRangeDropoff"`
-	BeamBonusCap        float64          `json:"beamBonusCap"`
-	JammerCap           map[bool]float64 `json:"jammerCap"`
-	JammerMulti         map[bool]float64 `json:"jammerMulti"`
-	MovesToRunAway      int              `json:"movesToRunAway"`
-	NumBattleRounds     int              `json:"numBattleRounds"`
-	TorpedoSplashDamage float64          `json:"torpedoSplashDamage"`
+	BeamRangeDropoff    float64 `json:"beamRangeDropoff"`
+	BeamBonusCap        float64 `json:"beamBonusCap"`
+	JammerCap           BoolMap `json:"jammerCap,omitempty"`
+	JammerMulti         BoolMap `json:"jammerMulti,omitempty"`
+	MovementMin         int     `json:"movementMin,omitempty"`
+	MovementMax         int     `json:"movementMax,omitempty"`
+	MovesToRunAway      int     `json:"movesToRunAway"`
+	NumBattleRounds     int     `json:"numBattleRounds"`
+	TorpedoSplashDamage float64 `json:"torpedoSplashDamage"`
 }
 
 type RandomEvent string
@@ -265,14 +267,16 @@ func NewRulesWithSeed(seed int64) Rules {
 		BattleRules: BattleRules{
 			BeamRangeDropoff: 0.1,
 			BeamBonusCap:     2.55, // 2.55x damage max from caps
-			JammerCap: map[bool]float64{
-				true:  1,    // starbases have 100 jamming max, but an innate 0.75x jam penalty
-				false: 0.95, // non-starbases (ie fleets) have 95% jamming max
+			JammerCap: BoolMap{
+				valueIfTrue:  1,    // starbases have 100 jamming max, but an innate 0.75x jam penalty
+				valueIfFalse: 0.95, // non-starbases (ie fleets) have 95% jamming max
 			},
-			JammerMulti: map[bool]float64{
-				true:  0.75, // starbases have innate 0.75x jam penalty by default
-				false: 1,    // non-starbases (ie fleets) have no penalty
+			JammerMulti: BoolMap{
+				valueIfTrue:  0.75, // starbases have innate 0.75x jam penalty by default
+				valueIfFalse: 1,    // non-starbases (ie fleets) have no penalty
 			},
+			MovementMin:         2,
+			MovementMax:         10,
 			MovesToRunAway:      7,
 			NumBattleRounds:     16,
 			TorpedoSplashDamage: 0.125,

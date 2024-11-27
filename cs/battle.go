@@ -191,11 +191,11 @@ var movementByRound = [9][4]int{
 }
 
 // get the movement of this design with additional cargo
-func getBattleMovement(idealEngineSpeed, movementBonus, mass, numEngines int) int {
+func getBattleMovement(movementMin, movementMax, idealEngineSpeed int, movementBonus float64, mass, numEngines int) int {
 	if numEngines == 0 {
 		return 0
 	}
-	return Clamp(((idealEngineSpeed+movementBonus)-2)-((mass)/numEngines/70), 2, 10)
+	return Clamp((idealEngineSpeed+int(math.Ceil(movementBonus))-2)-((mass)/numEngines/70), movementMin, movementMax)
 }
 
 // BuildBattle builds a battle recording with all the battle tokens for a list of fleets that contains more than one player.
@@ -248,7 +248,7 @@ func newBattler(log zerolog.Logger, rules *Rules, techFinder TechFinder, battleN
 			}
 
 			position := playerStartingPositions[player.Num]
-			battleToken := newBattleToken(num, position, cargoMass, token, *fleet.battlePlan, player, techFinder)
+			battleToken := newBattleToken(rules, num, position, cargoMass, token, *fleet.battlePlan, player)
 			tokens = append(tokens, battleToken)
 			tokenRecords = append(tokenRecords, battleToken.BattleRecordToken)
 

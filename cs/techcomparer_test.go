@@ -5,6 +5,116 @@ import (
 	"testing"
 )
 
+func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
+	type fields struct {
+		techLevels    TechLevel
+		race          *Race
+		acquiredParts []string
+		beamShip      bool
+	}
+	type args struct {
+		hullSlotType HullSlotType
+		qty          int
+		tag          TechTag
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   *TechHullComponent
+	}{
+		{
+			name: "Best beam with max techs",
+			fields: fields{
+				techLevels:    TechLevel{26, 26, 26, 26, 26, 26},
+				race:          NewRace().WithPRT(JoaT),
+				acquiredParts: []string{},
+				beamShip:      false,
+			},
+			args: args{
+				hullSlotType: HullSlotTypeWeapon,
+				qty:          99,
+				tag:          TechTagBeamWeapon,
+			}, want: &AntiMatterPulverizer,
+		},
+		{
+			name: "Best torpedo gun with max techs",
+			fields: fields{
+				techLevels:    TechLevel{26, 26, 26, 26, 26, 26},
+				race:          NewRace().WithPRT(JoaT),
+				acquiredParts: []string{},
+				beamShip:      false,
+			},
+			args: args{
+				hullSlotType: HullSlotTypeWeapon,
+				qty:          99,
+				tag:          TechTagTorpedo,
+			}, want: &ArmageddonMissile,
+		},
+		{
+			name: "Best NAS SS Scanner",
+			fields: fields{
+				techLevels:    TechLevel{15, 15, 15, 15, 15, 15},
+				race:          NewRace().WithPRT(SS).WithLRT(NAS),
+				acquiredParts: []string{"Mega Poly Shell", "Multi Cargo Pod"},
+				beamShip:      false,
+			},
+			args: args{
+				hullSlotType: HullSlotTypeArmorScannerElectricalMechanical,
+				qty:          1,
+				tag:          TechTagScanner,
+			}, want: &RobberBaronScanner,
+		},
+		{
+			name: "Best mining bot",
+			fields: fields{
+				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
+				race:          NewRace().WithPRT(AR).WithLRT(ARM),
+				acquiredParts: []string{AlienMiner.Name},
+				beamShip:      false,
+			},
+			args: args{
+				hullSlotType: HullSlotTypeMining,
+				qty:          1,
+				tag:          TechTagMiningRobot,
+			}, want: &AlienMiner,
+		},
+		{
+			name: "no matching part",
+			fields: fields{
+				techLevels:    TechLevel{0, 0, 0, 0, 0, 0},
+				race:          NewRace().WithPRT(AR),
+				acquiredParts: []string{},
+				beamShip:      false,
+			},
+			args: args{
+				hullSlotType: HullSlotTypeMineLayer,
+				qty:          99,
+				tag:          TechTagMineLayer,
+			}, want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := NewPlayer(1, tt.fields.race.WithSpec(&rules)).WithTechLevels(tt.fields.techLevels)
+			if len(tt.fields.acquiredParts) > 0 {
+				for _, tech := range tt.fields.acquiredParts {
+					player = player.WithAcquiredTech(tech)
+				}
+			}
+			tc := NewTechComparer(&rules, player)
+			design := NewShipDesign(player, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
+			if tt.fields.beamShip {
+				design.Purpose = ShipDesignPurposeBeamFighter
+			}
+			got := tc.GetBestComponentWithTag(design, tt.args.hullSlotType, 1, tt.args.tag)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TechComparer.GetBestComponentWithTag() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTechComparer_compareFieldsByTag(t *testing.T) {
 	type args struct {
 		hc    *TechHullComponent
@@ -24,6 +134,26 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 				hc:    &CrobySharmor,
 				other: &BearNeutrinoBarrier,
 				tag:   TechTagShield,
+			},
+			want: false,
+		},
+		{
+			name: "Armageddon Missile vs Upsilon Torpedo",
+			args: args{
+				hc:    &ArmageddonMissile,
+				other: &UpsilonTorpedo,
+				tag:   TechTagTorpedo,
+				RS:    false,
+				light: false,
+			},
+			want: false,
+		},
+		{
+			name: "Stargate 300-500 vs Stargate 100-any",
+			args: args{
+				hc:    &Stargate300_500,
+				other: &Stargate100_Any,
+				tag:   TechTagStargate,
 				RS:    false,
 				light: false,
 			},
@@ -74,7 +204,7 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "Flux Capacitator vs Energy Capacitator",
+			name: "Flux Capacitor vs Energy Capacitor",
 			args: args{
 				hc:    &FluxCapacitor,
 				other: &EnergyCapacitor,
@@ -147,75 +277,48 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 		}
 		player := NewPlayer(1, race.WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
 		tc := NewTechComparer(&rules, player)
+		design := NewShipDesign(player, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
+		if tt.args.light {
+			design.Purpose = ShipDesignPurposeFreighter
+		}
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tc.compareFieldsByTag(tt.args.hc, tt.args.other, tt.args.tag, tt.args.light); got != tt.want {
+			if got := tc.compareFieldsByTag(design, tt.args.hc, tt.args.other, 1, tt.args.tag); got != tt.want {
 				t.Errorf("TechComparer.compareFieldsByTag() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
+func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 	type fields struct {
-		techLevels    TechLevel
-		race          *Race
+		techLevels TechLevel
+		race *Race
 		acquiredParts []string
-		beamShip      bool
-		useBattleship bool
+		beamShip bool; hull string
 	}
 	type args struct {
 		hullSlotType HullSlotType
 		qty          int
-		tag          TechTag
 	}
 	tests := []struct {
 		name    string
-		fields  fields
+		fields fields
 		args    args
 		want    *TechHullComponent
-		
+		wantErr bool
 	}{
-		{
-			name: "Best beam with max techs",
-			fields: fields{
-				techLevels:    TechLevel{4, 26, 1, 1, 1, 1},
-				race:          NewRace().WithPRT(JoaT),
-				acquiredParts: []string{},
-				beamShip:      false,
-			},
-			args: args{
-				hullSlotType: HullSlotTypeWeaponShield,
-				qty:          99,
-				tag:          TechTagBeamWeapon,
-			}, want: &AntiMatterPulverizer,
-		},
-		{
-			name: "Best armor with tech 14",
-			fields: fields{
-				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
-				race:          NewRace().WithPRT(IS),
-				acquiredParts: []string{"Mega Poly Shell", "Langston Shell", "Multi Cargo Pod"},
-				beamShip:      false,
-			},
-			args: args{
-				hullSlotType: HullSlotTypeGeneral,
-				qty:          1,
-				tag:          TechTagArmor,
-			}, want: &MegaPolyShell, // remind myself to do the math and figure out which costs moar
-		},
 		{
 			name: "Should not use armor on BB due to being inefficient",
 			fields: fields{
 				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
 				race:          NewRace().WithPRT(IS),
-				acquiredParts: []string{"Mega Poly Shell", "Langston Shell", "Multi Cargo Pod"},
-				beamShip:      false, useBattleship: true,
+				acquiredParts: []string{},
+				beamShip:      false, hull: Battleship.Name,
 			},
 			args: args{
-				hullSlotType: HullSlotTypeGeneral,
+				hullSlotType: HullSlotTypeArmor,
 				qty:          1,
-				tag:          TechTagArmor,
-			}, want: nil, 
+			}, want: nil, wantErr: false,
 		},
 		{
 			name: "Best light armor",
@@ -223,62 +326,181 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 				techLevels:    TechLevel{12, 12, 12, 12, 12, 14},
 				race:          NewRace().WithPRT(WM),
 				acquiredParts: []string{"Multi Cargo Pod"},
-				beamShip:      true,
+				beamShip:      true, hull: Scout.Name,
 			},
 			args: args{
 				hullSlotType: HullSlotTypeArmor,
 				qty:          1,
-				tag:          TechTagArmor,
-			}, want: &Organic, 
+			}, want: &Organic, wantErr: false,
 		},
 		{
-			name: "Best armor item with tech 14 and RS",
+			name: "Best shield/armor item with tech 14 and RS",
 			fields: fields{
 				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
 				race:          NewRace().WithPRT(IS).WithLRT(RS),
 				acquiredParts: []string{"Mega Poly Shell", "Langston Shell", "Multi Cargo Pod"},
-				beamShip:      false,
+				beamShip:      false, hull: Scout.Name,
 			},
 			args: args{
 				hullSlotType: HullSlotTypeShieldArmor,
 				qty:          1,
-				tag:          TechTagArmor,
-			}, want: &MegaPolyShell, 
+			}, want: &MegaPolyShell, wantErr: false,
 		},
 		{
-			name: "no matching part",
+			name: "incorrect hull",
 			fields: fields{
-				techLevels:    TechLevel{0, 0, 0, 0, 0, 0},
-				race:          NewRace().WithPRT(AR),
-				acquiredParts: []string{},
-				beamShip:      false,
+				techLevels:    TechLevel{14, 14, 14, 14, 14, 14},
+				race:          NewRace().WithPRT(IS).WithLRT(RS),
+				acquiredParts: []string{"Mega Poly Shell", "Langston Shell", "Multi Cargo Pod"},
+				beamShip:      false, hull: "BANANA BOAT",
 			},
 			args: args{
-				hullSlotType: HullSlotTypeGeneral,
-				qty:          99,
-				tag:          TechTagMineLayer,
-			}, want: nil, 
+				hullSlotType: HullSlotTypeShieldArmor,
+				qty:          1,
+			}, want: nil, wantErr: true,
 		},
+
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1, tt.fields.race.WithSpec(&rules)).WithTechLevels(tt.fields.techLevels)
-			if len(tt.fields.acquiredParts) > 0 {
-				for _, tech := range tt.fields.acquiredParts {
-					player = player.WithAcquiredTech(tech)
-				}
+			player := NewPlayer(1, tt.fields.race.WithSpec(&rules)).WithTechLevels(tt.fields.techLevels).withSpec(&rules)
+			for _, part := range tt.fields.acquiredParts {
+				player.AcquiredTechs[part] = true
 			}
 			tc := NewTechComparer(&rules, player)
-			design := NewShipDesign(player, 1).WithHull("Cruiser").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
+			design := NewShipDesign(player, 1).WithName(tt.name).WithHull(tt.fields.hull).WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
 			if tt.fields.beamShip {
-				design.Purpose = ShipDesignPurposeBeamFighter
+				design.Purpose = ShipDesignPurposeBeamFighter 
 			}
-			if tt.fields.useBattleship {
-				design = design.WithHull("Battleship").WithSpec(&rules, player)
+			got, err := tc.getMostNeededComponent(design, tt.args.hullSlotType, tt.args.qty)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("techCompare.getMostNeededComponent() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-			got := tc.GetBestComponentWithTag(design, tt.args.hullSlotType, tt.args.tag)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TechComparer.GetBestComponentWithTag() = %v, want %v", got, tt.want)
+				t.Errorf("techCompare.getMostNeededComponent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestShipDesign_getWarshipPartBonus(t *testing.T) {
+	type args struct {
+		armorMulti  float64
+		shieldMulti float64
+		hc          *TechHullComponent
+		qty         int
+		shield      int
+		armor       int
+		beamBonus   float64
+		jamming     float64
+		computing   float64
+		deflecting  float64
+		starbase    bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want float64
+	}{
+		{
+			name: "Useless part",
+			args: args{
+				armorMulti: 1, shieldMulti: 1,
+				hc:         &AnnihilatorBomb,
+				qty:        1,
+				shield:     1,
+				armor:      1,
+				beamBonus:  1,
+				jamming:    0,
+				computing:  0,
+				deflecting: 0,
+				starbase:   false,
+			},
+			want: 1,
+		},
+		{
+			name: "Beam Deflector",
+			args: args{
+				armorMulti: 1, shieldMulti: 1,
+				hc:         &BeamDeflector,
+				qty:        1,
+				shield:     1,
+				armor:      1,
+				beamBonus:  1,
+				jamming:    0,
+				computing:  0,
+				deflecting: 0,
+				starbase:   false,
+			},
+			want: 1.1, // 1.1 / 1
+		},
+		{
+			name: "10 Flux Caps on 21% capped ship",
+			args: args{
+				armorMulti: 1, shieldMulti: 1,
+				hc:         &FluxCapacitor,
+				qty:        10,
+				shield:     1,
+				armor:      1,
+				beamBonus:  1.21,
+				jamming:    0,
+				computing:  0,
+				deflecting: 0,
+				starbase:   false,
+			},
+			want: 2.11, // 2.55 / 1.21
+		},
+		{
+			name: "1 Mega Poly on armored ship w/ RS",
+			args: args{
+				armorMulti: 0.5, shieldMulti: 1.4,
+				hc:         &MegaPolyShell,
+				qty:        1,
+				shield:     460,
+				armor:      1000,
+				beamBonus:  1,
+				jamming:    0,
+				computing:  0,
+				deflecting: 0,
+				starbase:   false,
+			},
+			want: 1.41, // (1460+140+(200/1.7))/1460 * 1.2 = 1.17 * 1.2 = 1.41
+		},
+		{
+			name: "3 Mega Polys on armored starbase w/ 10% jam",
+			args: args{
+				armorMulti: 1, shieldMulti: 1,
+				hc:         &MegaPolyShell,
+				qty:        3,
+				shield:     400,
+				armor:      1000,
+				beamBonus:  1,
+				jamming:    0.1,
+				computing:  0,
+				deflecting: 0,
+				starbase:   false,
+			},
+			want: 2.12,
+		},
+	}
+	for _, tt := range tests {
+		player := NewPlayer(1, NewRace())
+		player.Race.Spec.ArmorStrengthFactor = tt.args.armorMulti
+		player.Race.Spec.ShieldStrengthFactor = tt.args.shieldMulti
+		tc := NewTechComparer(&rules, player)
+		design := NewShipDesign(player, 1).WithHull("Battleship").WithSpec(&rules, player)
+		design.Spec.Shields = tt.args.shield
+		design.Spec.Armor = tt.args.armor
+		design.Spec.TorpedoBonus = tt.args.computing
+		design.Spec.TorpedoJamming = tt.args.jamming
+		design.Spec.BeamBonus = tt.args.beamBonus
+		design.Spec.BeamDefense = tt.args.deflecting
+		design.Spec.Starbase = tt.args.starbase
+		t.Run(tt.name, func(t *testing.T) {
+			// round the result to 2 decimal places for easier testing
+			if got := roundFloat(tc.getWarshipPartBonus(design, tt.args.hc, tt.args.qty), 2); got != tt.want {
+				t.Errorf("ShipDesign.getWarshipPartBonus() = %v, want %v", got, tt.want)
 			}
 		})
 	}

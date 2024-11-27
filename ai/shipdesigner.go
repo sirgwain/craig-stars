@@ -42,12 +42,18 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFighter))
 	case cs.ShipDesignPurposeBomber:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeBomber))
-		case cs.ShipDesignPurposeStarterColony, cs.ShipDesignPurposeStarbase, cs.ShipDesignPurposeStarbaseQuarter,
-			cs.ShipDesignPurposeStarbaseHalf, cs.ShipDesignPurposeFuelDepot:
-			hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
-		case cs.ShipDesignPurposePacketThrower, cs.ShipDesignPurposeStargater, cs.ShipDesignPurposeFort:
+	case cs.ShipDesignPurposeFuelDepot:
+		// TODO: Add support for searching for cheap fuel docks
+		fallthrough
+	case cs.ShipDesignPurposeStarterColony, cs.ShipDesignPurposeStarbase, cs.ShipDesignPurposeStarbaseQuarter,
+		cs.ShipDesignPurposeStarbaseHalf, cs.ShipDesignPurposeStarbaseUnarmed:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
+	case cs.ShipDesignPurposePacketThrower, cs.ShipDesignPurposeStargater, cs.ShipDesignPurposeFort:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeSpaceDock)) //
+		if hull == nil {
 			hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
 		}
+	}
 
 	if hull == nil {
 		return existing, nil
@@ -76,7 +82,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	}
 	updated.Name = fmt.Sprintf("%s v%d", name, updated.Version+1)
 
-	// if our existing design is equivalent, or higher rated, return it
+	// if our existing design is equivalent or higher rated, return it
 	if found && existing.SlotsEqual(updated.Slots) || (existing != nil && existing.Spec.PowerRating != 0 && existing.Spec.PowerRating >= updated.Spec.PowerRating) {
 		return existing, nil
 	}
@@ -108,6 +114,12 @@ func (ai *aiPlayer) designStarbases() error {
 		return fmt.Errorf("unable to design ship %v %w", purpose, err)
 	}
 
+	purpose = cs.ShipDesignPurposeStarbaseUnarmed
+	ai.starbaseUnarmedDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
+	if err != nil {
+		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+	}
+
 	purpose = cs.ShipDesignPurposeStarbaseQuarter
 	ai.starbaseQuarterDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 	if err != nil {
@@ -129,7 +141,7 @@ func (ai *aiPlayer) designStarbases() error {
 	return nil
 }
 
-func (ai *aiPlayer) removedUnusedDesigns() {
+func (ai *aiPlayer) removeUnusedDesigns() {
 	var unusedDesigns map[int]bool = map[int]bool{}
 
 	// find any designs with no instances
@@ -183,6 +195,8 @@ func (ai *aiPlayer) assignPurpose() {
 }
 
 // get the best hull we can build by iterating through the list backwards
+// TODO: Add ability to use different search criteria (cheapness, rating, etc.) & not be dependent 
+// on the best techs being at the back of the list
 func (ai *aiPlayer) getBestHull(hulls []*cs.TechHull) *cs.TechHull {
 	for i := len(hulls) - 1; i >= 0; i-- {
 		hull := hulls[i]

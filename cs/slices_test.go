@@ -18,7 +18,7 @@ func TestAppendWithoutDuplicates(t *testing.T) {
 		{"same slice", args{[]string{"1", "0", "100", "a"}, []string{"1", "0", "100", "a"}}, []string{"1", "0", "100", "a"}},
 		{"no duplicates", args{[]string{"1", "0", "100", "a"}, []string{"aaa"}}, []string{"1", "0", "100", "a", "aaa"}},
 		{"duplicates removed from 2nd list", args{[]string{"1", "0", "100", "a"}, []string{"a", "1", "0", "a", "3"}}, []string{"1", "0", "100", "a", "3"}},
-		{"duplicates removed from 1st list", args{[]string{"llllll"}, []string{"llllll", "11", "11", "11", "11", "llllll"}}, []string{"lllll", "11"}},
+		{"duplicates removed from 1st list", args{[]string{"llllll"}, []string{"llllll", "11", "11", "11", "11", "llllll"}}, []string{"llllll", "11"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

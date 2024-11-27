@@ -50,6 +50,8 @@ func (t *turn) generateTurn() error {
 		player.Messages = []PlayerMessage{}
 		player.BattleRecords = []BattleRecord{}
 		player.leftoverResources = 0
+		player.Spec.TechsGainedLastTurn = []*Tech{}
+
 	}
 
 	t.computeSpecs()
@@ -213,6 +215,7 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 						messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
 
 						techsGained := t.game.TechStore.GetTechsJustGained(player, field)
+						player.Spec.TechsGainedLastTurn = append(player.Spec.TechsGainedLastTurn, techsGained...)
 						for _, tech := range techsGained {
 							messager.playerTechGained(player, field, tech)
 						}
@@ -1639,6 +1642,7 @@ func (t *turn) playerResearch() error {
 
 		messager.playerGainTechLevel(player, field, player.TechLevels.Get(field), player.Researching)
 		techsGained := t.game.TechStore.GetTechsJustGained(player, field)
+		player.Spec.TechsGainedLastTurn = append(player.Spec.TechsGainedLastTurn, techsGained...)
 		for _, tech := range techsGained {
 			messager.playerTechGained(player, field, tech)
 		}
@@ -1723,7 +1727,7 @@ func (t *turn) playerResearch() error {
 
 		// we have stolen research! yay!
 		// we steal the average of each research
-		if stolenResearch.Sum() > 0 {
+		if stolenResearch.Total() > 0 {
 			for _, field := range TechFields {
 				stolenResourcesForField := stolenResearch.Get(field) / len(t.game.Players)
 				r.researchField(player, field, stolenResourcesForField, onLevelGained)
@@ -2189,6 +2193,7 @@ func (t *turn) fleetBattle() {
 					player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
 					messager.playerTechGainedBattle(player, planet, record, field)
 					techsGained := t.game.TechStore.GetTechsJustGained(player, field)
+					player.Spec.TechsGainedLastTurn = append(player.Spec.TechsGainedLastTurn, techsGained...)
 					for _, tech := range techsGained {
 						messager.playerTechGained(player, field, tech)
 					}

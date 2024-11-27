@@ -445,7 +445,7 @@ func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Pl
 		// it's a major award!
 		rewardType := mt.RewardType
 
-		if rewardType == MysteryTraderRewardResearch && player.TechLevels.Min() == rules.MaxTechLevel {
+		if rewardType == MysteryTraderRewardResearch && player.TechLevels.HighestAmount(-1) == rules.MaxTechLevel {
 			if rules.random.Intn(rules.MysteryTraderRules.ChanceMaxTechGetsPart) > 0 {
 				// player gets nothing
 				return MysteryTraderReward{}
@@ -498,7 +498,7 @@ func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Pl
 
 // getTechLevelReward returns MysteryTraderReward awarding tech levels for a player
 func (mt *MysteryTrader) getTechLevelReward(rules *Rules, player *Player, gift int) MysteryTraderReward {
-	numLevels := player.TechLevels.Sum()
+	numLevels := player.TechLevels.Total()
 	levels := TechLevel{}
 
 	for _, techLevelReward := range rules.MysteryTraderRules.TechBoon {
@@ -635,7 +635,7 @@ var EnigmaPulsar = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTechWithOrigin("Enigma Pulsar", NewCost(12, 15, 11, 40), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 7, Propulsion: 13, Construction: 5, Electronics: 9}}, 205, TechCategoryEngine, OriginMysteryTrader, TechTagCloak, TechTagEngine, TechTagManeuveringJet),
 		Mass:          20,
 		HullSlotType:  HullSlotTypeEngine,
-		MovementBonus: 1,
+		MovementBonus: 0.5,
 		CloakUnits:    20,
 	},
 	Engine: Engine{
@@ -682,7 +682,7 @@ var LangstonShell = TechHullComponent{Tech: NewTechWithOrigin("Langston Shell", 
 	HullSlotType:   HullSlotTypeShield,
 }
 
-var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function Pod", NewCost(5, 0, 5, 15), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 11, Propulsion: 11, Electronics: 11}}, 35, TechCategoryElectrical, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagManeuveringJet, TechTagTorpedoJammer),
+var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function Pod", NewCost(5, 0, 5, 15), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 11, Propulsion: 11, Electronics: 11}}, 65, TechCategoryElectrical, OriginMysteryTrader, TechTagArmor, TechTagCloak, TechTagManeuveringJet, TechTagTorpedoJammer),
 	Mass:           2,
 	CloakUnits:     60,
 	TorpedoJamming: .1,
@@ -705,7 +705,7 @@ var JumpGate = TechHullComponent{Tech: NewTechWithOrigin("Jump Gate", NewCost(0,
 	HullSlotType: HullSlotTypeMechanical,
 }
 
-var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 195, TechCategoryBeamWeapon, OriginMysteryTrader),
+var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Contained Munition", NewCost(5, 32, 5, 32), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 21, Weapons: 21, Electronics: 16, Biotechnology: 12}}, 195, TechCategoryBeamWeapon, OriginMysteryTrader, TechTagBeamWeapon, TechTagBomb, TechTagCloak, TechTagMineLayer, TechTagScanner, TechTagTorpedoBonus),
 	Mass:                 8,
 	Initiative:           6,
 	Power:                140,
@@ -721,7 +721,7 @@ var MultiContainedMunition = TechHullComponent{Tech: NewTechWithOrigin("Multi Co
 	HullSlotType:         HullSlotTypeWeapon,
 }
 
-var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 155, TechCategoryMineRobot, OriginMysteryTrader),
+var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCost(4, 0, 1, 10), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 10, Electronics: 5, Biotechnology: 5}}, 155, TechCategoryMineRobot, OriginMysteryTrader, TechTagCloak, TechTagManeuveringJet, TechTagMiningRobot, TechTagTorpedoJammer),
 	Mass:           20,
 	MiningRate:     10,
 	CloakUnits:     60,

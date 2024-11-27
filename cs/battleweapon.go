@@ -97,6 +97,12 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 
 // get beam damage with dropoff and defense included
 func getBeamDamageAtDistance(damage, weaponRange, dist int, beamDefense float64, beamRangeDropoff float64) int {
+	// set beam defense to 1 for uninitialized ships
+	// TODO: fix this stuff after beam defense refactor
+	if beamDefense == 0 {
+		beamDefense = 1
+	}
+
 	if weaponRange > 0 {
 		return int(math.Round(float64(damage) * (1 - float64(dist)/float64(weaponRange)*beamRangeDropoff) * beamDefense))
 	}

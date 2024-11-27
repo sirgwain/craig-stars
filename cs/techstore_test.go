@@ -3,11 +3,12 @@ package cs
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-// TODO: Fix this someday
-/*
 func TestTechStore_GetBestEngine(t *testing.T) {
+	// TODO: Fix this someday
 	type args struct {
 		player  *Player
 		hull    *TechHull
@@ -20,6 +21,7 @@ func TestTechStore_GetBestEngine(t *testing.T) {
 	}{
 		{"Base scout", args{testPlayer(), &Scout, FleetPurposeScout}, &QuickJump5},
 		{"Mini Colonizer", args{NewPlayer(0, NewRace().WithPRT(HE).WithSpec(&rules)).withSpec(&rules), &MiniColonyShip, FleetPurposeColonizer}, &SettlersDelight},
+		{"Max Techs", args{NewPlayer(0, NewRace().WithPRT(HE).WithLRT(IFE).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26}).withSpec(&rules), &Frigate, FleetPurposeColonizer}, &GalaxyScoop},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -30,27 +32,35 @@ func TestTechStore_GetBestEngine(t *testing.T) {
 	}
 }
 
-func TestTechStore_GetBestScanner(t *testing.T) {
+func TestTechStore_GetBestBattleEngine(t *testing.T) {
+	// TODO: Fix this someday
 	type args struct {
 		player *Player
+		hull   *TechHull
 	}
 	tests := []struct {
-		name string
-		args args
-		want *TechHullComponent
+		name    string
+		args    args
+		want    *TechEngine
+		mtTechs bool
 	}{
-		{"Get Lowest Scanner", args{NewPlayer(1, NewRace())}, &BatScanner},
-		{"Get Nicer Scanner", args{NewPlayer(1, NewRace()).WithTechLevels(TechLevel{Electronics: 5})}, &PossumScanner},
+		{"Base scout", args{testPlayer(), &Scout}, &QuickJump5, false},
+		{"Prop 5 vs mizer", args{NewPlayer(0, NewRace().WithPRT(JoaT).WithLRT(IFE).WithSpec(&rules)).WithTechLevels(TechLevel{0,0,5,5,0,0}).withSpec(&rules), &Destroyer}, &DaddyLongLegs7, false},
+		{"Max Techs", args{NewPlayer(0, NewRace().WithPRT(SD).WithLRT(IFE).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26}).withSpec(&rules), &Nubian}, &EnigmaPulsar, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			if got := StaticTechStore.GetBestScanner(tt.args.player); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TechStore.GetBestScanner() = %v, want %v", got, tt.want)
+			if tt.mtTechs {
+				for _, tech := range MysteryTraderTechs {
+					tt.args.player.AcquiredTechs[tech.Name] = true
+				}
+			}
+			if got := StaticTechStore.GetBestBattleEngine(tt.args.player, tt.args.hull, 1); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TechStore.GetBestBattleEngine() = %v, want %v", got, tt.want)
 			}
 		})
 	}
-}*/
+}
 
 func TestTechStore_GetHullComponentsByCategory(t *testing.T) {
 	type args struct {
@@ -106,9 +116,8 @@ func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
 					player.AcquiredTechs[tech.Name] = true
 				}
 			}
-			if got := rules.techs.GetHullComponentsByHullSlotType(player, tt.args.slot, "Nubian"); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TechStore.GetHullComponentsByHullSlotType() = %v, want %v", got, tt.want)
-			}
+			got := rules.techs.GetHullComponentsByHullSlotType(player, tt.args.slot, "Nubian")
+			assert.ElementsMatch(t,got, tt.want)
 		})
 	}
 }

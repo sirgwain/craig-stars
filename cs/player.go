@@ -122,10 +122,11 @@ type PlayerSpec struct {
 }
 
 type PlayerResearchSpec struct {
-	ResourcesPerYear                  int `json:"resourcesPerYear"`
-	ResourcesPerYearResearch          int `json:"resourcesPerYearResearch"`
-	ResourcesPerYearResearchEstimated int `json:"resourcesPerYearResearchEstimated"`
-	CurrentResearchCost               int `json:"currentResearchCost"`
+	ResourcesPerYear                  int    `json:"resourcesPerYear"`
+	ResourcesPerYearResearch          int    `json:"resourcesPerYearResearch"`
+	ResourcesPerYearResearchEstimated int    `json:"resourcesPerYearResearchEstimated"`
+	CurrentResearchCost               int    `json:"currentResearchCost"`
+	TechsGainedLastTurn               []*Tech `json:"techsGainedLastTurn"`
 }
 
 type PlayerScore struct {
