@@ -593,7 +593,7 @@ export class CommandedFleet implements Fleet {
 
 		// set our warp speed to the most fuel efficient based on our engine idealSpeed (7 for Long Hump 7, 8 for Alpha Drive 8, etc)
 		// or the fastest warp we can get there without running out of fuel
-		let warpSpeed = canJump
+		const warpSpeed = canJump
 			? StargateWarpSpeed // stargate speed if we can gate
 			: canFuel || canColonize || fastestWaypoint // max speed if configured for that, or colonizing
 				? this.getMaxWarp(

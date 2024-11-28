@@ -7,7 +7,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import GuestLink from '../(main)/GuestLink.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game } = getGameContext();
 
 	type Props = {
 		playerStatus: PlayerStatus;

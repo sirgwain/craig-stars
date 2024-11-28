@@ -1,11 +1,10 @@
 <script lang="ts">
-	import VictoryConditions from '$lib/components/game/newgame/VictoryConditions.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { VictoryCondition } from '$lib/types/Game';
 	import { CheckBadge } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	const { game, player, universe } = getGameContext();
+	const { game, universe } = getGameContext();
 
 	let players = $derived($universe.players);
 </script>

@@ -47,10 +47,6 @@
 		myGames.filter((g) => g.players.find((p) => p.userId == $me.id)?.submittedTurn)
 	);
 
-	let archivedGames = $derived(
-		games.filter((g) => g.archived || g.players.find((p) => p.userId == $me.id)?.archived)
-	);
-
 	onMount(async () => {
 		games = await GameService.loadPlayerGames();
 		openGames = (await GameService.loadOpenGames()).filter((g) => g.hostId != $me.id).sort(sorter);
@@ -68,12 +64,6 @@
 		}
 	}
 	async function archiveGame(game: Game) {
-		if (confirm(`Are you sure you want to archive ${game.name}?`)) {
-			await PlayerService.archiveGame(game.id);
-			removeGame(game);
-		}
-	}
-	async function unArchiveGame(game: Game) {
 		if (confirm(`Are you sure you want to archive ${game.name}?`)) {
 			await PlayerService.archiveGame(game.id);
 			removeGame(game);

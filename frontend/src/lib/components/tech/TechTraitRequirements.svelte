@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PlayerResponse } from '$lib/types/Player';
-	import { getLabelForLRT, getLabelForPRT, LRT, PRT } from '$lib/types/Race';
+	import { getLabelForLRT, getLabelForPRT, LRT } from '$lib/types/Race';
 	import { $enum as eu } from 'ts-enum-util';
 
 	import type { Tech } from '$lib/types/Tech';

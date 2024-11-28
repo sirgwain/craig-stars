@@ -6,7 +6,7 @@
 	import { canTransferCargo, type CommandedFleet } from '$lib/types/Fleet';
 	import CommandTile from './CommandTile.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;

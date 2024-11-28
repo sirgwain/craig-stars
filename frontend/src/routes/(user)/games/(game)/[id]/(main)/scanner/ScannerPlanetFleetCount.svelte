@@ -8,8 +8,8 @@
 	import { getContext } from 'svelte';
 	import { getEnemiesAndFriends, getScannerContext } from './Scanner';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const { game, player, universe, settings } = getGameContext();
+	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
+	const { player, universe, settings } = getGameContext();
 	const { scale } = getScannerContext();
 
 	type Props = {

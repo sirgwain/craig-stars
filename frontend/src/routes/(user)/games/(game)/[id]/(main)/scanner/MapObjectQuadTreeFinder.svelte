@@ -106,7 +106,7 @@
 			const y = event.targetTouches[0].clientY - bcr.y;
 			const { position, found } = findItem(x, y);
 
-			touchstart && touchstart({ event, position, found });
+			touchstart?.({ event, position, found });
 		}
 	}
 
@@ -129,7 +129,7 @@
 			const y = event.changedTouches[0].clientY - bcr.y;
 			const { position, found } = findItem(x, y);
 
-			touchend && touchend({ event, position, found });
+			touchend?.({ event, position, found });
 		}
 	}
 

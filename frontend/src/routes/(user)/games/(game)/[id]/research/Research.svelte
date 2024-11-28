@@ -15,7 +15,7 @@
 	import { $enum as eu } from 'ts-enum-util';
 	import FutureTechs from './FutureTechs.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { player } = getGameContext();
 
 	type Props = {
 		onUpdatePlayer?: () => Promise<void>;

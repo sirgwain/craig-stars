@@ -9,7 +9,7 @@
 	import { distance } from '$lib/types/Vector';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { player, universe } = getGameContext();
 
 	type Props = {
 		message: Message;

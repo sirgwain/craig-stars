@@ -41,7 +41,6 @@
 
 {#if starbase?.spec}
 	<CommandTile title={starbase.baseName}>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<div class="cursor-help" onpointerdown={showDesign}>
 			<div class="flex justify-between">
 				<div class="text-tile-item-title">Dock Capacity</div>

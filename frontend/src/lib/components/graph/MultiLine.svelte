@@ -12,8 +12,7 @@
 
 	let { zIsColorCode = false }: Props = $props();
 
-	const { data, xGet, yGet, zGet, xScale, yScale, width, height } =
-		getContext<LayerCake>('LayerCake');
+	const { data, xGet, yGet, zGet } = getContext<LayerCake>('LayerCake');
 
 	let path = $derived((values: any) => {
 		return (

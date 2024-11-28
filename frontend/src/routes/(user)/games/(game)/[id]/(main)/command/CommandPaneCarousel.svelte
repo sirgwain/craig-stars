@@ -74,9 +74,6 @@
 
 	let {
 		isOpen = $bindable($open),
-		onNextMapObject,
-		onPreviousMapObject,
-		onRenameFleet,
 		onSplitAll,
 		onShowCargoTransferDialog,
 		onShowSplitFleetDialog,
@@ -170,11 +167,6 @@
 		}
 	}
 
-	// anytime the commandedMapObject is updated, open the command pane
-	const unsuscribeCommandedMapObjectKey = commandedMapObjectKey.subscribe((mo) => {
-		// activeNav = '#summary';
-	});
-
 	// anytime the selectedMapObject is updated, show the summary
 	const unsuscribeSelectedMapObject = selectedMapObject.subscribe((mo) => {
 		if (mo && mo?.type === MapObjectType.Planet && (mo as Planet).reportAge === Unknown) {
@@ -200,7 +192,6 @@
 	});
 	// unsubscribe on destroy to keep things tidy
 	onDestroy(() => {
-		unsuscribeCommandedMapObjectKey();
 		unsuscribeSelectedMapObject();
 		unsubscribecurrentSelectedWaypointIndex();
 	});

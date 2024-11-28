@@ -68,10 +68,10 @@
 	{/snippet}
 	{#snippet end()}
 		<div class="flex justify-end mb-1">
-			<button class="btn btn-success mx-1" type="submit" onclick={(e) => save()}>Save</button>
+			<button class="btn btn-success mx-1" type="submit" onclick={save}>Save</button>
 		</div>
 	{/snippet}
 </Breadcrumb>
 {#if hull && $game}
-	<ShipDesigner bind:design {hull} onsave={save} {error} />
+	<ShipDesigner bind:design {hull} onSave={save} {error} />
 {/if}

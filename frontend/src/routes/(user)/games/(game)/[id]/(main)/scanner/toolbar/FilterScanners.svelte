@@ -2,7 +2,7 @@
 	import Scanner from '$lib/components/icons/Scanner.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
-	const { player, settings } = getGameContext();
+	const { settings } = getGameContext();
 </script>
 
 <a

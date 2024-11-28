@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
 	let players = $derived($universe.players);
 </script>

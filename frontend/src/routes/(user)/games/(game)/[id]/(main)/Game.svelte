@@ -4,21 +4,21 @@
 		CargoTransferDialogEvent,
 		ChangeMassDriverSpeedEvent,
 		ChangeWaypointEvent,
+		ChangeWaypointTransportTasksEvent,
 		DeleteWaypointEvent,
 		MergeFleetsDialogEvent,
 		MergeFleetsEvent,
+		RenameFleetEvent,
 		SelectWaypointEvent,
 		SplitFleetDialogEvent,
 		SplitFleetEvent,
 		TransferCargoEvent,
-		TransportTasksDialogEvent,
-		ChangeWaypointTransportTasksEvent,
-		RenameFleetEvent
+		TransportTasksDialogEvent
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absoluteSize } from '$lib/types/CargoTransferRequest';
 	import { None } from '$lib/types/Constants';
-	import { WaypointTask, type Waypoint, type WaypointDest } from '$lib/types/Fleet';
+	import { type WaypointDest } from '$lib/types/Fleet';
 	import {
 		equal as mapObjectEqual,
 		MapObjectType,

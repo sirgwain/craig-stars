@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import PlanetViewStateHab from './PlanetViewStateHab.svelte';
 	import PlanetViewStateMineralConc from './PlanetViewStateMineralConc.svelte';

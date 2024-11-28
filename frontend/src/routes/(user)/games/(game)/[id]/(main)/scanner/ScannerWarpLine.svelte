@@ -6,7 +6,7 @@
 	import { getContext } from 'svelte';
 
 	const { player, universe, selectedMapObject } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 
 	type Line = {
 		color: string;

@@ -105,8 +105,8 @@
 	let waypointJustAdded = false;
 
 	// zoomBehavior is based on clientWidth/height
-	let zoomBehavior: ZoomBehavior<HTMLElement, any> = $derived(
-		zoom<HTMLElement, any>()
+	let zoomBehavior: ZoomBehavior<HTMLElement, unknown> = $derived(
+		zoom<HTMLElement, unknown>()
 			.extent([
 				[0, 0],
 				[clientRect.width, clientRect.height]
@@ -166,7 +166,7 @@
 	}
 
 	// update clientWidth/height on resize
-	function handleResize(event: UIEvent & { currentTarget: EventTarget & Window }) {
+	function handleResize() {
 		clientRect = rect?.getBoundingClientRect() ?? { width: 100, height: 100 };
 	}
 
@@ -200,16 +200,16 @@
 		setTimeout(() => (showLocator = false), 500);
 	}
 
-	function handleZoom(e: D3ZoomEvent<HTMLElement, any>) {
+	function handleZoom(e: D3ZoomEvent<HTMLElement, unknown>) {
 		transform = e.transform;
 		$scale = transform.k;
 	}
 
-	function handleZoomStart(e: D3ZoomEvent<HTMLElement, any>) {
+	function handleZoomStart(e: D3ZoomEvent<HTMLElement, unknown>) {
 		zooming = true;
 	}
 
-	function handleZoomEnd(e: D3ZoomEvent<HTMLElement, any>) {
+	function handleZoomEnd(e: D3ZoomEvent<HTMLElement, unknown>) {
 		zooming = false;
 	}
 
@@ -302,6 +302,7 @@
 
 		if (found) {
 			if ((shouldAddWaypoint || $settings.addWaypoint) && (await addWaypoint(found, position))) {
+				// ignore
 			} else {
 				mapObjectSelected(found);
 			}

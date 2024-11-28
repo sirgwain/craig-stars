@@ -14,8 +14,6 @@
 	let { user }: Props = $props();
 </script>
 
-<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-<!-- svelte-ignore a11y_label_has_associated_control -->
 <div class="navbar bg-base-100 flex flex-row">
 	<div class="flex-1">
 		<a class="btn btn-ghost text-xl text-accent" href="/"
@@ -42,11 +40,13 @@
 		{/if}
 
 		<div class="dropdown dropdown-end">
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<label for="menu" tabindex="0" class="btn btn-ghost">
 				<div id="menu">
 					<Icon src={Bars3} size="24" />
 				</div>
 			</label>
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 			<ul
 				tabindex="0"
 				class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-48"

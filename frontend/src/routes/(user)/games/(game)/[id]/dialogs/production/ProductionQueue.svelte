@@ -164,7 +164,7 @@
 		return percent;
 	}
 
-	function addAvailableItem(e: MouseEvent, item?: ProductionQueueItem) {
+	function addAvailableItem(item?: ProductionQueueItem) {
 		item = item ?? selectedAvailableItem;
 		if (!queueItems || !item) {
 			return;
@@ -187,7 +187,6 @@
 			// don't add something we can't build any more of
 			return;
 		}
-		const cost = $player.getItemCost(cs, item, $universe, planet) ?? {};
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
 				selectedQueueItem.quantity += quantity;
@@ -443,7 +442,7 @@
 										<button
 											type="button"
 											onclick={() => availableItemSelected(item)}
-											ondblclick={(e) => addAvailableItem(e, item)}
+											ondblclick={() => addAvailableItem(item)}
 											oncontextmenu={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
@@ -469,7 +468,7 @@
 										<button
 											type="button"
 											onclick={() => availableItemSelected(item)}
-											ondblclick={(e) => addAvailableItem(e, item)}
+											ondblclick={() => addAvailableItem(item)}
 											oncontextmenu={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
@@ -493,7 +492,7 @@
 									<button
 										type="button"
 										onclick={() => availableItemSelected(item)}
-										ondblclick={(e) => addAvailableItem(e, item)}
+										ondblclick={() => addAvailableItem(item)}
 										class:italic={isAuto(item.type)}
 										class:bg-primary={item === selectedAvailableItem}
 										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
@@ -537,7 +536,7 @@
 				<div class="flex-none h-full mx-0.5 md:w-34 px-1">
 					<div class="flex-row flex-none gap-y-2">
 						<button
-							onclick={(e) => addAvailableItem(e)}
+							onclick={() => addAvailableItem()}
 							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 							><span class="hidden sm:inline">Add </span><Icon
 								src={ArrowLongRight}

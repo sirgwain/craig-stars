@@ -25,21 +25,20 @@
 	import { onTechTooltip } from '../tooltips/TechTooltip.svelte';
 	import { shipDesignerContext } from './ShipDesignerContext';
 
-	const { cs, game, player, universe } = getGameContext();
+	const { cs, player } = getGameContext();
 
 	type Props = {
 		hull: TechHull;
 		design: ShipDesign;
 		error?: string;
 		numHullSets?: number;
-		onsave?: () => void;
+		onSave?: () => void;
 	};
 
-	let { hull, design = $bindable(), error = '', numHullSets = 4, onsave }: Props = $props();
+	let { hull, design = $bindable(), error = '', numHullSets = 4, onSave }: Props = $props();
 
 	let designSpec: Spec = $derived(cs.computeShipDesignSpec(design) ?? ({} as Spec));
 	let highlightedSlots: number[] = $state([]);
-	let highlightedClass: string = $state('');
 
 	// only show hull components that actually fit on this hull
 	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotType.None);
@@ -123,7 +122,6 @@
 				$shipDesignerContext.selectedShipDesignSlot = undefined;
 			} else {
 				highlightedSlots = [index];
-				highlightedClass = 'border-accent';
 				$shipDesignerContext.selectedSlotIndex = index;
 				$shipDesignerContext.selectedSlot = slot;
 				$shipDesignerContext.selectedShipDesignSlot = shipDesignSlot;
@@ -154,7 +152,7 @@
 <form
 	onsubmit={(e) => {
 		e.preventDefault();
-		onsave && onsave();
+		onSave?.();
 	}}
 >
 	<FormError {error} />

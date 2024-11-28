@@ -17,7 +17,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { player, universe } = getGameContext();
 
 	type Props = {
 		planet: Planet;

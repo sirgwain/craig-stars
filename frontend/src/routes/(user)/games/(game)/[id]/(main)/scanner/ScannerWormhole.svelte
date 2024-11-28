@@ -4,11 +4,7 @@
  -->
 <script lang="ts">
 	import type { Wormhole } from '$lib/types/Wormhole';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
 	import MapObjectScaler from './MapObjectScaler.svelte';
-
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	type Props = {
 		wormhole: Wormhole;

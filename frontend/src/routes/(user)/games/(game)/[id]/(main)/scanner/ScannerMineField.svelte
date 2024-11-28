@@ -1,13 +1,9 @@
-<!--
-  @component
-  Minefield in the scanner
- -->
 <script lang="ts">
 	import type { MineField } from '$lib/types/MineField';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { xGet, yGet, xScale, yScale } = getContext<LayerCake>('LayerCake');
 
 	type Props = {
 		mineField: MineField;
@@ -18,7 +14,6 @@
 	let { mineField, color = '#0900FF', selected = false }: Props = $props();
 </script>
 
-<!-- ScannerMineField -->
 <circle
 	cx={$xGet(mineField)}
 	cy={$yGet(mineField)}

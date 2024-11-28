@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { ownedBy } from '$lib/types/MapObject';
 	import type { MineralPacket } from '$lib/types/MineralPacket';
 	import { distance } from '$lib/types/Vector';
 
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
 	type Props = {
 		mineralPacket: MineralPacket;

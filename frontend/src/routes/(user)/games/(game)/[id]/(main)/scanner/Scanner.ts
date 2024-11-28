@@ -1,9 +1,8 @@
-import { type Fleet } from '$lib/types/Fleet';
 import type { MapObject } from '$lib/types/MapObject';
 import type { Player } from '$lib/types/Player';
 import { find } from 'lodash-es';
 import { getContext, setContext } from 'svelte';
-import type { Readable, Writable } from 'svelte/store';
+import type { Readable } from 'svelte/store';
 
 export type ScannerContext = {
 	scale: Readable<number>;

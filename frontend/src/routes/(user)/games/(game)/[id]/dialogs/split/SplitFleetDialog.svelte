@@ -5,16 +5,13 @@
 		SplitFleetDialogEvent,
 		SplitFleetEvent
 	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
 	import SplitFleet from './SplitFleet.svelte';
-
-	const { split } = getGameContext();
 
 	type Props = {
 		show?: boolean;
 		props: SplitFleetDialogEvent | undefined;
-		onOk: OnOk<SplitFleetEvent>;
-		onCancel: OnCancel;
+		onOk?: OnOk<SplitFleetEvent>;
+		onCancel?: OnCancel;
 	};
 
 	let { show = false, props, onOk, onCancel }: Props = $props();

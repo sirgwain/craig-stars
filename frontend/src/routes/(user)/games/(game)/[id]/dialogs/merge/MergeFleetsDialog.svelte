@@ -1,21 +1,17 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import MergeFleets from './MergeFleets.svelte';
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type {
 		MergeFleetsDialogEvent,
 		MergeFleetsEvent,
 		OnCancel,
 		OnOk
 	} from '$lib/services/Events';
-
-	const { merge } = getGameContext();
+	import MergeFleets from './MergeFleets.svelte';
 
 	type Props = {
 		show?: boolean;
 		props: MergeFleetsDialogEvent | undefined;
-		onOk: OnOk<MergeFleetsEvent>;
-		onCancel: OnCancel;
+		onOk?: OnOk<MergeFleetsEvent>;
+		onCancel?: OnCancel;
 	};
 
 	let { show = false, props, onOk, onCancel }: Props = $props();

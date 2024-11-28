@@ -35,12 +35,12 @@
 				// i.e. if we are at level 5 for energy and this tech requires 3, distanceToLearn.Energy will equal -2
 				// this makes it zero
 
-				(distanceToLearn.energy = Math.max(0, distanceToLearn.energy ?? 0)),
-					(distanceToLearn.weapons = Math.max(0, distanceToLearn.weapons ?? 0)),
-					(distanceToLearn.propulsion = Math.max(0, distanceToLearn.propulsion ?? 0)),
-					(distanceToLearn.construction = Math.max(0, distanceToLearn.construction ?? 0)),
-					(distanceToLearn.electronics = Math.max(0, distanceToLearn.electronics ?? 0)),
-					(distanceToLearn.biotechnology = Math.max(0, distanceToLearn.biotechnology ?? 0));
+				distanceToLearn.energy = Math.max(0, distanceToLearn.energy ?? 0);
+				distanceToLearn.weapons = Math.max(0, distanceToLearn.weapons ?? 0);
+				distanceToLearn.propulsion = Math.max(0, distanceToLearn.propulsion ?? 0);
+				distanceToLearn.construction = Math.max(0, distanceToLearn.construction ?? 0);
+				distanceToLearn.electronics = Math.max(0, distanceToLearn.electronics ?? 0);
+				distanceToLearn.biotechnology = Math.max(0, distanceToLearn.biotechnology ?? 0);
 
 				if (sum(distanceToLearn) == get(distanceToLearn, field)) {
 					// if the required tech difference is only in the field we care about

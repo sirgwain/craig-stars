@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { defaultRules, type Rules } from '$lib/types/Rules';
 
+	import { InfinteGate } from '$lib/types/Constants';
 	import {
 		getCloakPercentForCloakUnits,
 		TechCategory,
@@ -11,9 +12,6 @@
 		type TechPlanetaryScanner,
 		type TechTerraform
 	} from '$lib/types/Tech';
-	import { InfinteGate } from '$lib/types/Constants';
-	import { onMount } from 'svelte';
-	import HullComponent from './hull/HullComponent.svelte';
 
 	type Props = {
 		tech: Tech;
@@ -27,11 +25,16 @@
 		text: string;
 	};
 
-	let stats: Stat[] = $state([]);
-	let descriptions: string[] = $state([]);
-	let warnings: string[] = $state([]);
+	// build the state for this tech
+	let {
+		stats,
+		descriptions,
+		warnings
+	}: { stats: Stat[]; descriptions: string[]; warnings: string[] } = $derived.by(() => {
+		const stats: Stat[] = [];
+		const descriptions: string[] = [];
+		const warnings: string[] = [];
 
-	onMount(() => {
 		if (tech.category == TechCategory.ShipHull || tech.category == TechCategory.StarbaseHull) {
 			const hull = tech as TechHull;
 			if (hull) {
@@ -421,9 +424,7 @@
 			}
 		}
 
-		stats = stats;
-		descriptions = descriptions;
-		warnings = warnings;
+		return { stats, descriptions, warnings };
 	});
 </script>
 

@@ -1,14 +1,11 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { Planet } from '$lib/types/Planet';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { universe } = getGameContext();
 
 	type Props = {
 		planet: Planet;

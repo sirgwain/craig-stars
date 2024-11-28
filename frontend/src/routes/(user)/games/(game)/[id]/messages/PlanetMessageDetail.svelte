@@ -8,7 +8,7 @@
 	import type { PlayerIntel } from '$lib/types/Player';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { player, universe } = getGameContext();
 
 	type Props = {
 		message: Message;

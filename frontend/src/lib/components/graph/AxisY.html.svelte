@@ -3,18 +3,19 @@
   Generates an HTML y-axis.
  -->
 <script lang="ts">
+	import { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { padding, xRange, yScale } = getContext('LayerCake');
+	const { padding, xRange, yScale } = getContext<LayerCake>('LayerCake');
 
 	type Props = {
-		gridlines?: Boolean;
+		gridlines?: boolean;
 		/** @type {Function} [formatTick=d => d] - A function that passes the current tick value and expects a nicely formatted value in return. */
 		formatTick?: (d: any) => string;
 		/** @type {Number|Array|Function} [ticks=4] - If this is a number, it passes that along to the [d3Scale.ticks](https://github.com/d3/d3-scale) function. If this is an array, hardcodes the ticks to those values. If it's a function, passes along the default tick values and expects an array of tick values in return. */
-		ticks?: Number | Array<any> | Function;
-		xTick?: Number;
-		yTick?: Number;
+		ticks?: number | Array<any> | Function;
+		xTick?: number;
+		yTick?: number;
 	};
 
 	let {

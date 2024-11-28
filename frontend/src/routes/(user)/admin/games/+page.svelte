@@ -45,7 +45,6 @@
 			sortBy: (a, b) => a.players.length - b.players.length
 		}
 	];
-	sortBy;
 
 	// filterable games
 	let games: Game[] = $state([]);

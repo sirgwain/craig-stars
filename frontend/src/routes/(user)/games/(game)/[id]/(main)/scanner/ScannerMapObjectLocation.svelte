@@ -1,11 +1,10 @@
 <script lang="ts">
 	import type { MapObject } from '$lib/types/MapObject';
-	import { fade, fly } from 'svelte/transition';
-
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import { fade } from 'svelte/transition';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 
 	type Props = {
 		show: MapObject | undefined;

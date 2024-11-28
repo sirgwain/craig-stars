@@ -6,7 +6,7 @@
 		value?: number;
 		capacity?: number;
 		min?: number;
-		max?: any;
+		max?: number;
 		editable?: boolean;
 		valuechanged?: (value: number) => void;
 	};

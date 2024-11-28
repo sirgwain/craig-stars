@@ -162,7 +162,7 @@
 						<li
 							class="rounded-lg px-2"
 							class:bg-primary={selectedItemIndex == index}
-							onmouseover={(e) => (selectedItemIndex = index)}
+							onmouseover={() => (selectedItemIndex = index)}
 						>
 							<button class="text-xl text-left w-full" onclick={ok}>
 								<div class="flex flex-row gap-1">
@@ -231,7 +231,7 @@
 						<li
 							class="rounded-lg px-2"
 							class:bg-primary={selectedItemIndex == results.planets.length + index}
-							onmouseover={(e) => (selectedItemIndex = results.planets.length + index)}
+							onmouseover={() => (selectedItemIndex = results.planets.length + index)}
 						>
 							<button class="text-xl text-left w-full" onclick={ok}>
 								<span style={`color: ${$universe.getPlayerColor(fleet.playerNum)}`}
@@ -252,7 +252,7 @@
 							class="rounded-lg px-2"
 							class:bg-primary={selectedItemIndex ==
 								results.planets.length + results.fleets.length + index}
-							onmouseover={(e) =>
+							onmouseover={() =>
 								(selectedItemIndex = results.planets.length + results.fleets.length + index)}
 						>
 							<button class="text-xl text-left w-full" onclick={ok}>

@@ -5,7 +5,7 @@
 		value?: number;
 		capacity?: number;
 		min?: number;
-		max?: any;
+		max?: number;
 		color?: string;
 		unit?: string;
 		readonly?: boolean;

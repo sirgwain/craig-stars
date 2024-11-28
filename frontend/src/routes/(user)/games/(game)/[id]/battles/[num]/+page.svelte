@@ -5,7 +5,7 @@
 	import BattleView from '$lib/components/game/battle/BattleView.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
-	const { game, player, universe, gotoBattle } = getGameContext();
+	const { game, universe, gotoBattle } = getGameContext();
 	let num = parseInt($page.params.num);
 
 	let battle = $derived($universe.getBattle(num));

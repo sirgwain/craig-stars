@@ -3,7 +3,7 @@
 	import type { Wormhole } from '$lib/types/Wormhole';
 	import { startCase } from 'lodash-es';
 
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
 	type Props = {
 		wormhole: Wormhole;

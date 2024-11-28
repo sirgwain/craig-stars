@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { startCase } from 'lodash-es';
-	import { ResearchCostLevel, type Race } from '$lib/types/Race';
+	import { ResearchCostLevel } from '$lib/types/Race';
 	import type { TechField } from '$lib/types/TechLevel';
+	import { startCase } from 'lodash-es';
 
 	type Props = {
 		field: TechField;

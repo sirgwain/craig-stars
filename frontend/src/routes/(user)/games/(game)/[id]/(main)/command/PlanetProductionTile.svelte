@@ -9,7 +9,7 @@
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import CommandTile from './CommandTile.svelte';
 
-	const { cs, game, player, universe } = getGameContext();
+	const { cs } = getGameContext();
 
 	type Props = {
 		planet: CommandedPlanet;

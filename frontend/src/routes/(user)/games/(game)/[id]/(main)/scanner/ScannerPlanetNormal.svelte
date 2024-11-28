@@ -5,16 +5,12 @@
 	import { type Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, owned } from '$lib/types/MapObject';
 	import { type Planet } from '$lib/types/Planet';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
 	import MapObjectScaler from './MapObjectScaler.svelte';
-	import { getEnemiesAndFriends, getScannerContext } from './Scanner';
+	import { getEnemiesAndFriends } from './Scanner';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 
 	const { settings } = getGameContext();
-	const { game, player, universe } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const { objectScale } = getScannerContext();
+	const { player, universe } = getGameContext();
 
 	type Props = {
 		planet: Planet;

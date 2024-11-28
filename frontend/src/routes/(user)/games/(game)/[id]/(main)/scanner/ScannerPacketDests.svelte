@@ -5,7 +5,7 @@
 	import { getContext } from 'svelte';
 
 	const { universe, commandedPlanet } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { xGet, yGet, xScale } = getContext<LayerCake>('LayerCake');
 
 	let planets = $derived(
 		$universe.planets.filter((planet) => planet.packetTargetNum && planet.packetTargetNum != None)

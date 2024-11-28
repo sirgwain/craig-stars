@@ -3,14 +3,15 @@
 	import { normalized, subtract } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import type { SVGAttributes } from 'svelte/elements';
 
 	type Line = {
 		path: string;
-		props: any;
+		props: SVGAttributes<SVGPathElement>;
 	};
 
 	const { universe } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 
 	const strokeWidth = 1;
 

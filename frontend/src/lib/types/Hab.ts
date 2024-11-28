@@ -54,13 +54,13 @@ export function add(h1: Hab, h2: Hab) {
 }
 
 export function getGravString(grav: number): string {
-	let result,
-		tmp = Math.abs(grav - 50);
+	let result = 0;
+	const tmp = Math.abs(grav - 50);
 	if (tmp <= 25) result = (tmp + 25) * 4;
 	else result = tmp * 24 - 400;
 	if (grav < 50) result = Math.floor(10000 / result);
 
-	let value = result + (result % 100) / 100.0;
+	const value = result + (result % 100) / 100.0;
 
 	return `${(value / 100).toFixed(2)}g`;
 }

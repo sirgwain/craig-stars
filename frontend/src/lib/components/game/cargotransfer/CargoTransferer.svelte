@@ -1,24 +1,21 @@
 <script lang="ts">
+	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
+	import { clamp } from '$lib/services/Math';
+	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
 	import {
 		negative,
 		newCargoTransferRequest,
 		type CargoTransferRequest
 	} from '$lib/types/CargoTransferRequest';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
-	import type { Planet } from '$lib/types/Planet';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { clamp } from '$lib/services/Math';
-	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
 	import { MapObjectType } from '$lib/types/MapObject';
+	import type { Planet } from '$lib/types/Planet';
 	import type { Salvage } from '$lib/types/Salvage';
 	import FleetTransfer from './FleetTransfer.svelte';
+	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
 	import SalvageTransfer from './SalvageTransfer.svelte';
 	import TransferButtons from './TransferButtons.svelte';
-	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
-	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
-
-	const { game, player, universe } = getGameContext();
 
 	type Props = {
 		src: CommandedFleet;

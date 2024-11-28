@@ -13,7 +13,7 @@
 	import { cloneDeep } from 'lodash-es';
 	import { onMount } from 'svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
 	type Props = {
 		src: CommandedFleet;

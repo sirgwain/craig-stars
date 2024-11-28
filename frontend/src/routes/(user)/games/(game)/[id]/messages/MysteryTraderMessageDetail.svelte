@@ -1,16 +1,8 @@
 <script lang="ts">
-	import Design from '$lib/components/game/design/Design.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
 	import { MessageType, type Message } from '$lib/types/Message';
-	import {
-		isHullComponent,
-		MysteryTraderRewardTypes,
-		type MysteryTrader
-	} from '$lib/types/MysteryTrader';
+	import { isHullComponent, MysteryTraderRewardTypes } from '$lib/types/MysteryTrader';
 	import { sum } from '$lib/types/TechLevel';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
-
-	const { game, player, universe, settings } = getGameContext();
 
 	type Props = {
 		message: Message;

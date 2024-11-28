@@ -5,7 +5,7 @@
 	const minHeight = 380;
 
 	// close this tooltip when the pointer is let up
-	function onPointerUp(e: PointerEvent) {
+	function onPointerUp() {
 		window.removeEventListener('pointerup', onPointerUp);
 		$tooltipComponent = undefined;
 		document.body.className = document.body.className

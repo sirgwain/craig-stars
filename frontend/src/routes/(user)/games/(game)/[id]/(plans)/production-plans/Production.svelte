@@ -11,7 +11,7 @@
 		// default to auto tasks
 		availableItems?: ProductionQueueItem[];
 		queueItems?: ProductionQueueItem[];
-		queueItemDescription?: any;
+		queueItemDescription?: (item: ProductionQueueItem, designFinder: DesignFinder) => string;
 		onAvailableItemSelected?: (item: ProductionQueueItem) => void;
 		onQueueItemSelected?: (item: ProductionQueueItem | undefined) => void;
 	};

@@ -1,18 +1,11 @@
-<!--
-  @component
-  A fleet that is flying outside of a planet
- -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { radiansToDegrees } from '$lib/services/Math';
 	import type { Fleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { settings, player } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
 
 	type Props = {
 		fleet: Fleet;

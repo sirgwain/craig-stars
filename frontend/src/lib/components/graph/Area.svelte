@@ -6,8 +6,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { data, xGet, yGet, xScale, yScale, extents, width, height } =
-		getContext<LayerCake>('LayerCake');
+	const { data, xGet, yGet, xScale, yScale, extents } = getContext<LayerCake>('LayerCake');
 
 	type Props = {
 		fill?: string;

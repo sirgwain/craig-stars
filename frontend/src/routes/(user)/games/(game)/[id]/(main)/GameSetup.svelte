@@ -72,11 +72,6 @@
 		updateGame(result);
 	}
 
-	async function onUpdatePlayer(player: PlayerStatus) {
-		const result = await GameService.updatePlayer($game.id, player);
-		updateGame(result);
-	}
-
 	async function onDeletePlayer(playerNum: number) {
 		const result = await GameService.deletePlayer($game.id, playerNum);
 		updateGame(result);

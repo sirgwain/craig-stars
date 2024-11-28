@@ -11,7 +11,7 @@
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { game, player, universe } = getGameContext();
 
 	type Props = {
 		designs: ShipDesign[];

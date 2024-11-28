@@ -2,10 +2,8 @@
 	import { page } from '$app/stores';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import Design from '$lib/components/game/design/Design.svelte';
-	import DesignCard from '$lib/components/game/DesignCard.svelte';
 	import NotFound from '$lib/components/NotFound.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import Designs from '../../Designs.svelte';
 
 	const { game, universe } = getGameContext();
 	let playerNum = parseInt($page.params.playerNum);

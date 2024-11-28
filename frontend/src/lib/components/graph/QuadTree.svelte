@@ -8,16 +8,15 @@
 	import { getContext } from 'svelte';
 	import { quadtree } from 'd3-quadtree';
 	import type { LayerCake } from 'layercake';
-	const { data, xGet, yGet, zGet, xScale, yScale, width, height, config } =
-		getContext<LayerCake>('LayerCake');
+	const { data, xGet, yGet, width, height } = getContext<LayerCake>('LayerCake');
 
 	let visible = $state(false);
 	let found = $state({});
 	let e = $state({});
 
 	type Props = {
-		x?: String;
-		y?: String;
+		x?: string;
+		y?: string;
 		/** @type {String} [searchRadius] – The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
 		searchRadius?: number | undefined;
 		/** @type {Array} [dataset] – The dataset to work off of—defaults to $data if left unset. You can pass override the default here in here in case you don't want to use the main data or it's in a strange format. */
@@ -58,6 +57,7 @@
 	);
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="bg"
 	onmousemove={findItem}

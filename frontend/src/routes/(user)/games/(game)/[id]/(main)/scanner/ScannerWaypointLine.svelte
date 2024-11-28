@@ -7,7 +7,7 @@
 	import { getScannerContext } from './Scanner';
 
 	const { scale } = getScannerContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { xGet, yGet, xScale } = getContext<LayerCake>('LayerCake');
 
 	type Props = {
 		fleet: Fleet;

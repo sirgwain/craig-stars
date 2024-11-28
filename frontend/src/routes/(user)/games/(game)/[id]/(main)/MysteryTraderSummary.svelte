@@ -1,9 +1,5 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { ownedBy } from '$lib/types/MapObject';
 	import type { MysteryTrader } from '$lib/types/MysteryTrader';
-
-	const { game, player, universe } = getGameContext();
 
 	type Props = {
 		mysteryTrader: MysteryTrader;

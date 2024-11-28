@@ -4,7 +4,7 @@
 	import { MapObjectType, equal, getMapObjectName, type MapObject } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';
 	import { flatten, keys } from 'lodash-es';
-	import type { HTMLAttributes, HTMLSelectAttributes } from 'svelte/elements';
+	import type { HTMLSelectAttributes } from 'svelte/elements';
 
 	const { player, universe } = getGameContext();
 

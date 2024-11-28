@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { ownedBy } from '$lib/types/MapObject';
 	import type { Salvage } from '$lib/types/Salvage';
 
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
 	type Props = {
 		salvage: Salvage;
