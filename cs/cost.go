@@ -45,21 +45,6 @@ func (c Cost) GetAmount(costType CostType) int {
 	panic(fmt.Sprintf("GetAmount called with invalid CostType %s", costType))
 }
 
-func (c Cost) AddInt(costType CostType, amount int) Cost {
-	switch costType {
-	case Ironium:
-		c.Ironium += amount
-	case Boranium:
-		c.Boranium += amount
-	case Germanium:
-		c.Germanium += amount
-	case Resources:
-		c.Resources += amount
-	default:
-		panic(fmt.Sprintf("AddInt called with invalid CostType %s", costType))
-	}
-	return c
-}
 func FromMineralAndResources(m Mineral, resources int) Cost {
 	return Cost{
 		Ironium:   m.Ironium,
@@ -104,6 +89,22 @@ func (c Cost) Add(other Cost) Cost {
 		Germanium: c.Germanium + other.Germanium,
 		Resources: c.Resources + other.Resources,
 	}
+}
+
+func (c Cost) AddInt(costType CostType, amount int) Cost {
+	switch costType {
+	case Ironium:
+		c.Ironium += amount
+	case Boranium:
+		c.Boranium += amount
+	case Germanium:
+		c.Germanium += amount
+	case Resources:
+		c.Resources += amount
+	default:
+		panic(fmt.Sprintf("AddInt called with invalid CostType %s", costType))
+	}
+	return c
 }
 
 func (c Cost) AddCargoMinerals(other Cargo) Cost {

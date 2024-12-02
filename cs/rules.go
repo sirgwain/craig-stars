@@ -87,13 +87,14 @@ type UniverseGenerationRules struct {
 }
 
 type CostRules struct {
-	DefenseCost                    Cost  `json:"defenseCost,omitempty"`
-	FactoryCostGermanium           int   `json:"factoryCostGermanium,omitempty"`
-	MineralAlchemyCost             int   `json:"mineralAlchemyCost,omitempty"`
-	PlanetaryScannerCost           Cost  `json:"planetaryScannerCost,omitempty"`
-	StarbaseComponentCostReduction int   `json:"starbaseComponentCostReduction,omitempty"`
-	TerraformCost                  Cost  `json:"terraformCost,omitempty"`
-	TechBaseCost                   []int `json:"techBaseCost,omitempty"`
+	DefenseCost                    Cost    `json:"defenseCost,omitempty"`
+	FactoryCostGermanium           int     `json:"factoryCostGermanium,omitempty"`
+	MineralAlchemyCost             int     `json:"mineralAlchemyCost,omitempty"`
+	PlanetaryScannerCost           Cost    `json:"planetaryScannerCost,omitempty"`
+	StarbaseComponentCostReduction float64 `json:"starbaseComponentCostReduction,omitempty"`
+	StarbaseHullRefundFactor       float64 `json:"starbaseHullRefundFactor,omitempty"`
+	TerraformCost                  Cost    `json:"terraformCost,omitempty"`
+	TechBaseCost                   []int   `json:"techBaseCost,omitempty"`
 }
 
 type BattleRules struct {
@@ -219,7 +220,8 @@ func NewRulesWithSeed(seed int64) Rules {
 				Germanium: 70,
 				Resources: 100,
 			},
-			StarbaseComponentCostReduction: 2, // 2x cheaper by default
+			StarbaseComponentCostReduction: 0.5, // 50% discount on non-orbital components
+			StarbaseHullRefundFactor:       0.5, // 50% of the old base's cost goes towards the new base
 			TechBaseCost: []int{
 				0,
 				50,
