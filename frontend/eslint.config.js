@@ -37,6 +37,7 @@ export default ts.config(
 	},
 	{
 		ignores: [
+			'src/lib/wasm/wasm_exec.js',
 			'!.env.example',
 			'.DS_Store',
 			'.env.*',

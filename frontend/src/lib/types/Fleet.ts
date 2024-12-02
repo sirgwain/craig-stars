@@ -1,17 +1,14 @@
 import type { DesignFinder, Universe } from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo, type Cargo } from './Cargo';
-import type { Cost } from './Cost';
+import { None, StargateWarpSpeed } from './Constants';
 import { MapObjectType, owned, ownedBy, type MapObject, type MovingMapObject } from './MapObject';
-import { StargateWarpSpeed } from './Constants';
-import { None } from './Constants';
 import type { MessageTargetType } from './Message';
-import type { MineFieldType } from './MineField';
 import type { MineralPacket } from './MineralPacket';
 import type { Planet } from './Planet';
 import type { Player } from './Player';
 import type { Salvage } from './Salvage';
-import type { ShipDesign } from './ShipDesign';
+import type { ShipDesign, ShipDesignPurpose, ShipDesignSpec } from './ShipDesign';
 import type { Engine } from './Tech';
 import { distance, equal, type Vector } from './Vector';
 
@@ -29,7 +26,7 @@ export type Fleet = {
 	freighter?: boolean;
 	orbitingPlanetNum?: number;
 	starbase?: boolean;
-	spec?: Spec;
+	spec?: FleetSpec;
 } & MovingMapObject &
 	FleetOrders;
 
@@ -121,59 +118,21 @@ export enum WaypointTaskTransportAction {
 	SetWaypointTo = 'SetWaypointTo'
 }
 
-export type Spec = {
-	engine: Engine;
-	cost: Cost;
-	mass: number;
-	armor: number;
-	fuelCapacity: number;
-	immuneToOwnDetonation?: boolean;
-	mineLayingRateByMineType?: Record<MineFieldType, number>;
-	weaponSlots?: null;
-	purposes?: any;
-	totalShips: number;
-	massEmpty: number;
-	basePacketSpeed: number;
-	safePacketSpeed?: number;
-	baseCloakedCargo: number;
-	stargate?: string;
-	massDriver?: string;
-
-	numEngines?: number;
-	estimatedRange?: number;
-	cargoCapacity?: number;
-	cloakUnits?: number;
-	scanRange?: number;
-	scanRangePen?: number;
-	repairBonus?: number;
-	torpedoBonus?: number;
-	torpedoJamming?: number;
-	initiative?: number;
-	movement?: number;
-	powerRating?: number;
-	bomber?: number;
-	bombs?: number;
-	smartBombs?: number;
-	retroBombs?: number;
-	scanner?: boolean;
-	shields?: number;
-	colonizer?: boolean;
-	canLayMines?: boolean;
-	spaceDock?: number;
-	miningRate?: number;
-	terraformRate?: number;
-	mineSweep?: number;
-	cloakPercent?: number;
-	reduceCloaking?: number;
-	canStealFleetCargo?: number;
-	canStealPlanetCargo?: number;
-	orbitalConstructionModule?: number;
-	hasWeapons?: boolean;
-	hasStargate?: boolean;
+export type FleetSpec = {
+	baseCloakedCargo?: number;
+	basePacketSpeed?: number;
 	hasMassDriver?: boolean;
-	canJump?: boolean; // TODO: actually implement this
-	maxPopulation?: number;
-};
+	hasStargate?: boolean;
+	massDriver?: string;
+	massEmpty?: number;
+	maxHullMass?: number;
+	maxRange?: number;
+	purposes?: Record<ShipDesignPurpose, boolean>;
+	safeHullMass?: number;
+	safeRange?: number;
+	stargate?: string;
+	totalShips?: number;
+} & ShipDesignSpec;
 
 // a destination for a waypoint, either a MapObject or a position in space, but not both
 export type WaypointDest = { mo: MapObject; position?: never } | { mo?: never; position: Vector };
@@ -225,7 +184,7 @@ export class CommandedFleet implements Fleet {
 	orbitingPlanetNum = None;
 	starbase = false;
 	position = { x: 0, y: 0 };
-	spec = {} as Spec;
+	spec = {} as FleetSpec;
 
 	constructor(data?: Fleet) {
 		Object.assign(this, data);
@@ -577,7 +536,6 @@ export class CommandedFleet implements Fleet {
 		fastestWaypoint: boolean
 	): { warpSpeed: number; canColonize: boolean; canRemoteMine: boolean } {
 		const mo = dest.mo;
-		const position = dest.position ?? dest.mo.position;
 
 		let canColonize = false;
 		let canRemoteMine = false;

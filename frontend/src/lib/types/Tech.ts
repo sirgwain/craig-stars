@@ -209,6 +209,20 @@ export enum TechCategory {
 	Torpedo = 'Torpedo'
 }
 
+export type TechHullType =
+	| 'Scout'
+	| 'Colonizer'
+	| 'Bomber'
+	| 'Fighter'
+	| 'CapitalShip'
+	| 'Freighter'
+	| 'MultiPurposeFreighter'
+	| 'FuelTransport'
+	| 'Miner'
+	| 'MineLayer'
+	| 'Starbase'
+	| 'OrbitalFort';
+
 export type TechRequirements = {
 	lrtsRequired?: number;
 	lrtsDenied?: number;

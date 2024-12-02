@@ -55,7 +55,7 @@ type ShipDesignSpec struct {
 	Engine                    Engine                `json:"engine,omitempty"`
 	EstimatedRange            int                   `json:"estimatedRange,omitempty"`
 	EstimatedRangeFull        int                   `json:"estimatedRangeFull,omitempty"`
-	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
+	FuelCapacity              int                   `json:"fuelCapacity"`
 	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
 	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
 	HullType                  TechHullType          `json:"hullType,omitempty"`
@@ -99,9 +99,6 @@ type ShipDesignSpec struct {
 	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
 	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
 	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots,omitempty"`
-}
-
-type MineLayingRateByMineType struct {
 }
 
 type ShipDesignPurpose string
@@ -739,7 +736,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				}
 			}
 		case HullSlotTypeShieldArmor:
-			// freighters gotta stay fast and loose, so no armor for them 
+			// freighters gotta stay fast and loose, so no armor for them
 			switch purpose {
 			case ShipDesignPurposeFuelFreighter:
 				continue

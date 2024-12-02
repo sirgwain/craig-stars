@@ -1,6 +1,35 @@
 import type { Cost } from './Cost';
-import type { Engine } from './Tech';
+import type { MineFieldType } from './MineField';
+import type { Engine, TechHullType } from './Tech';
 import type { TechLevel } from './TechLevel';
+
+export type ShipDesignPurpose =
+	| ''
+	| 'Scout'
+	| 'Colonizer'
+	| 'Bomber'
+	| 'StructureBomber'
+	| 'SmartBomber'
+	| 'Fighter'
+	| 'FighterScout'
+	| 'CapitalShip'
+	| 'Freighter'
+	| 'ColonistFreighter'
+	| 'FuelFreighter'
+	| 'MultiPurposeFreighter'
+	| 'ArmedFreighter'
+	| 'Miner'
+	| 'Terraformer'
+	| 'DamageMineLayer'
+	| 'SpeedMineLayer'
+	| 'Starbase'
+	| 'FuelDepot'
+	| 'StarbaseQuarter'
+	| 'StarbaseHalf'
+	| 'PacketThrower'
+	| 'Stargater'
+	| 'Fort'
+	| 'StarterColony';
 
 export type ShipDesign = {
 	id?: number;
@@ -19,7 +48,7 @@ export type ShipDesign = {
 	slots: ShipDesignSlot[];
 	purpose?: string;
 	reportAge?: number;
-	spec: Spec;
+	spec: ShipDesignSpec;
 };
 
 export type ShipDesignSlot = {
@@ -36,8 +65,10 @@ export type Bomb = {
 	unterraformRate?: number;
 };
 
-export type Spec = {
+export type ShipDesignSpec = {
+	additionalMassDrivers?: number;
 	armor?: number;
+	basePacketSpeed?: number;
 	beamBonus?: number;
 	beamDefense?: number;
 	bomber?: boolean;
@@ -51,21 +82,23 @@ export type Spec = {
 	cloakPercentFullCargo?: number;
 	cloakUnits?: number;
 	colonizer?: boolean;
-	cost?: Cost;
+	cost: Cost;
 	engine: Engine;
 	estimatedRange?: number;
 	estimatedRangeFull?: number;
-	fuelCapacity?: number;
+	fuelCapacity: number;
 	fuelGeneration?: number;
 	hasWeapons?: boolean;
-	hullType?: string;
+	hullType?: TechHullType;
 	immuneToOwnDetonation?: boolean;
 	initiative?: number;
+	innateScanRangePenFactor?: number;
 	mass?: number;
+	massDriver?: string;
 	maxHullMass?: number;
 	maxPopulation?: number;
 	maxRange?: number;
-	mineLayingRateByMineType?: { [mineFieldType: string]: number };
+	mineLayingRateByMineType?: Record<MineFieldType, number>;
 	mineSweep?: number;
 	miningRate?: number;
 	movement?: number;
@@ -76,10 +109,13 @@ export type Spec = {
 	numInstances?: number;
 	orbitalConstructionModule?: boolean;
 	powerRating?: number;
+	radiating?: boolean;
 	reduceCloaking?: number;
+	reduceMovement?: number;
 	repairBonus?: number;
 	retroBombs?: Bomb[];
 	safeHullMass?: number;
+	safePacketSpeed?: number;
 	safeRange?: number;
 	scanner?: boolean;
 	scanRange?: number;
@@ -88,7 +124,8 @@ export type Spec = {
 	smartBombs?: Bomb[];
 	spaceDock?: number;
 	starbase?: boolean;
-	techLevel: TechLevel;
+	stargate?: string;
+	techLevel?: TechLevel;
 	terraformRate?: number;
 	torpedoBonus?: number;
 	torpedoJamming?: number;

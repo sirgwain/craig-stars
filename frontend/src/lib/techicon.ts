@@ -1,6 +1,6 @@
 import { kebabCase } from 'lodash-es';
 import type { ShipDesign } from './types/ShipDesign';
-import { TechCategory, type Tech, type TechHull } from './types/Tech';
+import { TechCategory, type Tech } from './types/Tech';
 
 export function getHullIcon(design: ShipDesign | undefined): string {
 	if (!design) {
