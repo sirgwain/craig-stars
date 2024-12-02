@@ -1,7 +1,7 @@
 import { type MapObject } from '$lib/types/MapObject';
 import { User, emptyUser } from '$lib/types/User';
 import type { Vector } from '$lib/types/Vector';
-import type { Component, ComponentType, SvelteComponent } from 'svelte';
+import type { Component } from 'svelte';
 import { writable } from 'svelte/store';
 import { TechService } from './TechService';
 

@@ -5,14 +5,13 @@
   The quadtree searches across both the x and y dimensions at the same time. But if you want to only search across one, set the `x` and `y` props to the same value. For example, the [shared tooltip component](https://layercake.graphics/components/SharedTooltip.html.svelte) sets `y='x'` since it's nicer behavior to only pick up on the nearest x-value.
  -->
 <script lang="ts">
-	import { getContext } from 'svelte';
 	import { quadtree } from 'd3-quadtree';
 	import type { LayerCake } from 'layercake';
+	import { getContext, type Snippet } from 'svelte';
 	const { data, xGet, yGet, width, height } = getContext<LayerCake>('LayerCake');
 
 	let visible = $state(false);
-	let found = $state({});
-	let e = $state({});
+	let found: [number, number] | undefined = $state();
 
 	type Props = {
 		x?: string;
@@ -20,8 +19,10 @@
 		/** @type {String} [searchRadius] – The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
 		searchRadius?: number | undefined;
 		/** @type {Array} [dataset] – The dataset to work off of—defaults to $data if left unset. You can pass override the default here in here in case you don't want to use the main data or it's in a strange format. */
-		dataset?: any;
-		children?: import('svelte').Snippet<[any]>;
+		dataset?: unknown[];
+		children?: Snippet<
+			[{ x: number; y: number; found: [number, number] | undefined; visible: boolean }]
+		>;
 	};
 
 	let {
@@ -35,14 +36,11 @@
 	let xGetter = $derived(x === 'x' ? $xGet : $yGet);
 	let yGetter = $derived(y === 'y' ? $yGet : $xGet);
 
-	function findItem(evt: any) {
-		e = evt;
+	function findItem(event: MouseEvent | PointerEvent) {
+		const evt = event as PointerEvent & { layerX: number; layerY: number };
 
-		const xLayerKey = `layer${x.toUpperCase()}`;
-		const yLayerKey = `layer${y.toUpperCase()}`;
-
-		found = finder.find(evt[xLayerKey], evt[yLayerKey], searchRadius) || {};
-		visible = Object.keys(found).length > 0;
+		found = finder.find(evt.layerX, evt.layerY, searchRadius);
+		visible = found !== undefined;
 	}
 
 	let finder = $derived(
@@ -64,7 +62,7 @@
 	onmouseout={() => (visible = false)}
 	onblur={() => (visible = false)}
 ></div>
-{@render children?.({ x: xGetter(found) || 0, y: yGetter(found) || 0, found, visible, e })}
+{@render children?.({ x: xGetter(found) || 0, y: yGetter(found) || 0, found, visible })}
 
 <style>
 	.bg {

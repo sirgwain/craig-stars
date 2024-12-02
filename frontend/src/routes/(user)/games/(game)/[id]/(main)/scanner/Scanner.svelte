@@ -205,11 +205,11 @@
 		$scale = transform.k;
 	}
 
-	function handleZoomStart(e: D3ZoomEvent<HTMLElement, unknown>) {
+	function handleZoomStart() {
 		zooming = true;
 	}
 
-	function handleZoomEnd(e: D3ZoomEvent<HTMLElement, unknown>) {
+	function handleZoomEnd() {
 		zooming = false;
 	}
 
@@ -427,7 +427,11 @@
 		// if settings change, enable/disable drag and zoom depending on if the addWaypoint
 		// mode is enabled or disabled
 		const unsubscribeSettings = settings.subscribe((settings) => {
-			settings.addWaypoint ? disableDragAndZoom() : enableDragAndZoom();
+			if (settings.addWaypoint) {
+				disableDragAndZoom();
+			} else {
+				enableDragAndZoom();
+			}
 		});
 
 		// bind the v key to show the target with X

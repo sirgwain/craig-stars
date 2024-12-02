@@ -43,7 +43,6 @@
 		universe,
 		commandedFleet,
 		commandedPlanet,
-		commandedMapObjectKey,
 		selectedMapObject,
 		selectedWaypoint,
 		currentSelectedWaypointIndex

@@ -10,7 +10,6 @@
 	let { settings = $bindable() }: Props = $props();
 </script>
 
-<!-- svelte-ignore a11y_label_has_associated_control -->
 <div>
 	<label class="label justify-start">
 		<VictoryConditionCheckbox

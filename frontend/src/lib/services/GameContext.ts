@@ -1,6 +1,7 @@
 import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest';
+import { None } from '$lib/types/Constants';
 import {
 	CommandedFleet,
 	type Fleet,
@@ -10,17 +11,16 @@ import {
 } from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
 import { MapObjectType, equal, key, ownedBy, type MapObject } from '$lib/types/MapObject';
-import { None } from '$lib/types/Constants';
 import {
 	MessageTargetType,
 	MessageType,
 	getMapObjectTypeForMessageType,
 	type Message
 } from '$lib/types/Message';
+import type { MineField } from '$lib/types/MineField';
 import { CommandedPlanet, type Planet } from '$lib/types/Planet';
 import {
 	Player,
-	PlayerRelation,
 	type BattlePlan,
 	type PlayerRelationship,
 	type PlayerResponse,
@@ -30,6 +30,7 @@ import {
 import { PlayerSettings } from '$lib/types/PlayerSettings';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
+import type { CS } from '$lib/wasm';
 import { findIndex, kebabCase } from 'lodash-es';
 import { getContext } from 'svelte';
 import {
@@ -46,14 +47,12 @@ import { FleetService } from './FleetService';
 import { FullGame } from './FullGame';
 import { GameService } from './GameService';
 import { rollover } from './Math';
+import { MineFieldService } from './MineFieldService';
 import { PlanetService } from './PlanetService';
 import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
-import type { CS } from '$lib/wasm';
-import type { MineField } from '$lib/types/MineField';
-import { MineFieldService } from './MineFieldService';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -269,35 +268,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 	);
 
-	// derived store of all commandableMapObjects at the position of the current commandedMapObjects
-	const commandableMapObjectsAtCommandedMapObjectPosition = derived(
-		[universe, commandedMapObject],
-		([$universe, $commandedMapObject]) => {
-			if ($commandedMapObject) {
-				return $universe.getMyMapObjectsByPosition($commandedMapObject);
-			}
-		}
-	);
-
-	// derived store of the current index
-	const currentCommandedMapObjectPositionIndex = derived(
-		[commandedMapObject, commandableMapObjectsAtCommandedMapObjectPosition],
-		([$commandedMapObject, $commandableMapObjectsAtCommandedMapObjectPosition]) => {
-			if ($commandedMapObject && $commandableMapObjectsAtCommandedMapObjectPosition) {
-				return findIndex($commandableMapObjectsAtCommandedMapObjectPosition, (mo) =>
-					equal($commandedMapObject, mo)
-				);
-			}
-			return -1;
-		}
-	);
-
 	// goto a message target
 	function gotoTarget(message: Message, gameId: number, playerNum: number, universe: Universe) {
 		const targetType = message.targetType ?? MessageTargetType.None;
-		const targetTargetType = message.spec.targetType ?? MessageTargetType.None;
 		let moType = MapObjectType.None;
-		let targetTargetMapObjectType = MapObjectType.None;
 
 		if (message.battleNum) {
 			goto(`/games/${gameId}/battles/${message.battleNum}`);
@@ -357,7 +331,6 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 		if (message.targetNum) {
 			moType = getMapObjectTypeForMessageType(targetType);
-			targetTargetMapObjectType = getMapObjectTypeForMessageType(targetTargetType);
 
 			if (moType != MapObjectType.None) {
 				const target = universe.getMapObject(message);
@@ -1104,7 +1077,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			}
 		} else {
 			// if we had a dest and it was deleted, remove it
-			dest && u.removeFleets([dest.num]);
+			if (dest) {
+				u.removeFleets([dest.num]);
+			}
 		}
 
 		const index = get(currentSelectedWaypointIndex);

@@ -63,6 +63,8 @@ export function filterMyDesigns(
 	player: Player,
 	fleet: Fleet,
 	enabled: boolean,
+	// TODO: add suport for showDesigns
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	showDesigns: string[]
 ): boolean {
 	if (!enabled || fleet.playerNum !== player.num) {
@@ -77,6 +79,8 @@ export function filterEnemyDesigns(
 	player: Player,
 	fleet: Fleet,
 	enabled: boolean,
+	// TODO: add suport for showShipClasses
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	showShipClasses: ShipClass[]
 ): boolean {
 	if (!enabled || !player.isEnemy(fleet.playerNum)) {
@@ -91,6 +95,8 @@ export function filterAllyDesigns(
 	player: Player,
 	fleet: Fleet,
 	enabled: boolean,
+	// TODO: add suport for showShipClasses
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	showShipClasses: ShipClass[]
 ): boolean {
 	if (!enabled || player.num == fleet.playerNum || !player.isFriend(fleet.playerNum)) {

@@ -23,7 +23,7 @@
 	let { type = 'score' }: Props = $props();
 
 	type DataLongTurnValueType = { player: string; turn: number; value: number };
-	type DataLongType = { player: string; playerName: string; values: DataLongTurnValueType[] }[];
+	type DataLongTypeItem = { player: string; playerName: string; values: DataLongTurnValueType[] };
 
 	const xKey = 'turn';
 	const yKey = 'value';
@@ -37,10 +37,11 @@
 	 * we can pluck the field set from `yKey` from each item
 	 * in the array to measure the full extents
 	 */
-	const flatten = (data: any) =>
-		data.reduce((memo: any, group: []) => {
+	function flatten(data: DataLongTypeItem[]) {
+		return data.reduce((memo: DataLongTurnValueType[], group: DataLongTypeItem) => {
 			return memo.concat(group.values);
 		}, []);
+	}
 
 	// get the number of turns passed, i.e. 2 for 2402
 	let turnsPassed = $derived($game.year - $game.rules.startingYear);
@@ -60,7 +61,7 @@
 	 * Layer Cake uses this data structure and the key names
 	 * set in xKey, yKey and zKey to map your data into each scale.
 	 */
-	let dataLong: DataLongType = $derived(
+	let dataLong: DataLongTypeItem[] = $derived(
 		$universe.players.map((playerIntel, i) => {
 			const name = playerIntel.racePluralName ?? playerIntel.name;
 			const playerScores = $universe.scores[i];
@@ -108,7 +109,9 @@
 
 			<Html>
 				<PlayerScoresGraphLabels />
-				<!-- TODO: get this working so we can see values on our graphs -->
+				<!-- TODO: get this working so we can see values on our graphs 
+			 https://layercake.graphics/components/SharedTooltip.html.svelte
+			 -->
 				<!-- <SharedTooltip dataset={dataQuadTree} /> -->
 			</Html>
 		</LayerCake>

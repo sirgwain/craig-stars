@@ -19,7 +19,7 @@
 		const path =
 			'M' +
 			$data
-				.map((d: any) => {
+				.map((d: unknown) => {
 					return $xGet(d) + ',' + $yGet(d);
 				})
 				.join('L');

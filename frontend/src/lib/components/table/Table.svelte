@@ -10,7 +10,7 @@
 	}
 
 	// generic sortBy function
-	export function defaultSortBy<T extends Partial<Record<K, any>>, K extends keyof T>(
+	export function defaultSortBy<T extends Partial<Record<K, unknown>>, K extends keyof T>(
 		a: T,
 		b: T,
 		key: K,
@@ -18,9 +18,9 @@
 	): number {
 		let [aField, bField] = [a[key], b[key]];
 		if (sortDescending) [bField, aField] = [aField, bField];
-		if (typeof aField === 'number') return aField - bField;
+		if (typeof aField === 'number' && typeof bField === 'number') return aField - bField;
 		if (typeof aField === 'boolean') return aField ? -1 : 1;
-		return aField?.localeCompare(bField);
+		return `${aField}`.localeCompare(`${bField}`);
 	}
 </script>
 
@@ -52,7 +52,7 @@
 		head?: Snippet<
 			[{ isSorted: boolean; sortDescending: boolean; sortable: boolean; column: TableColumn<T> }]
 		>;
-		cell?: Snippet<[{ row: T; column: TableColumn<C>; cell: any }]>;
+		cell?: Snippet<[{ row: T; column: TableColumn<C>; cell: unknown }]>;
 		empty?: Snippet;
 	};
 
@@ -98,7 +98,7 @@
 		rows = [...rows].sort((a, b) => defaultSortBy(a, b, key, sortDescending));
 	}
 
-	function getSortingOrder(key: any, override = false): boolean {
+	function getSortingOrder(key: keyof C, override = false): boolean {
 		if (override) return sortDescending;
 		if (lastSortedKey === key) return !sortDescending;
 		return false;
@@ -106,7 +106,7 @@
 
 	function filterRowsBy(value: string, rows: T[]) {
 		const numColumns = columns.length;
-		return rows.filter((row, rowIndex) => {
+		return rows.filter((row) => {
 			for (let colIndex = 0; colIndex < numColumns; colIndex++) {
 				const col = columns[colIndex];
 				if (col.filterable === false) {

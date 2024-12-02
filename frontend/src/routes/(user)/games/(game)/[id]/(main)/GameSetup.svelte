@@ -8,7 +8,7 @@
 	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
 	import type { GameSettings } from '$lib/types/Game';
-	import type { PlayerResponse, PlayerStatus } from '$lib/types/Player';
+	import type { PlayerResponse } from '$lib/types/Player';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, onMount } from 'svelte';

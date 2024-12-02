@@ -7,7 +7,6 @@
 	import type { Game } from '$lib/types/Game';
 	import type { User } from '$lib/types/User';
 	import { format, parseJSON } from 'date-fns';
-	import { sortBy } from 'lodash-es';
 	import { onMount } from 'svelte';
 
 	const columns: TableColumn<Game>[] = [

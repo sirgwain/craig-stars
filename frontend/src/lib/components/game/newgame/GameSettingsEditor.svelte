@@ -48,7 +48,8 @@
 		name="startMode"
 		enumType={GameStartMode}
 		bind:value={settings.startMode}
-		typeTitle={(value) => (!value || value === GameStartMode.Normal ? 'Normal' : startCase(value))}
+		typeTitle={(value) =>
+			!value || value === (GameStartMode.Normal as string) ? 'Normal' : startCase(value)}
 		showEmpty={true}
 		tooltip={`Setting mode to Max will create a game with all tech levels, max minerals, etc`}
 	/>

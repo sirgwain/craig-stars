@@ -57,7 +57,7 @@
 			{`doing ${action.damageDoneArmor} damage to armor and ${action.damageDoneShields} damage to shields with ${action.torpedoHits} hits`}
 		{:else if action.damageDoneArmor}
 			{`doing ${action.damageDoneArmor} damage to armor`}
-		{:else if action.damageDoneArmor}
+		{:else if action.damageDoneShields}
 			{`doing ${action.damageDoneShields} damage to shields`}
 		{/if}
 		{#if action.torpedoMisses}

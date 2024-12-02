@@ -10,17 +10,15 @@
 
 	type Props = {
 		gridlines?: boolean;
-		/** @type {Function} [formatTick=d => d] - A function that passes the current tick value and expects a nicely formatted value in return. */
-		formatTick?: (d: any) => string;
-		/** @type {Number|Array|Function} [ticks=4] - If this is a number, it passes that along to the [d3Scale.ticks](https://github.com/d3/d3-scale) function. If this is an array, hardcodes the ticks to those values. If it's a function, passes along the default tick values and expects an array of tick values in return. */
-		ticks?: number | Array<any> | Function;
+		formatTick?: (d: unknown) => string;
+		ticks?: number | Array<unknown> | undefined;
 		xTick?: number;
 		yTick?: number;
 	};
 
 	let {
 		gridlines = true,
-		formatTick = (d) => d,
+		formatTick = (d) => `${d}`,
 		ticks = 4,
 		xTick = -4,
 		yTick = -1
@@ -29,13 +27,7 @@
 	let isBandwidth = $derived(typeof $yScale.bandwidth === 'function');
 
 	let tickVals = $derived(
-		Array.isArray(ticks)
-			? ticks
-			: isBandwidth
-				? $yScale.domain()
-				: typeof ticks === 'function'
-					? ticks($yScale.ticks())
-					: $yScale.ticks(ticks)
+		Array.isArray(ticks) ? ticks : isBandwidth ? $yScale.domain() : $yScale.ticks(ticks)
 	);
 </script>
 

@@ -45,7 +45,9 @@
 					stats.push({ label: 'Cargo Capacity', text: `${hull.cargoCapacity}kT` });
 				}
 				stats.push({ label: 'Armor Strength', text: hull.armor.toString() });
-				hull.initiative && stats.push({ label: 'Initiative', text: hull.initiative.toString() });
+				if (hull.initiative) {
+					stats.push({ label: 'Initiative', text: hull.initiative.toString() });
+				}
 
 				if (hull.fuelGeneration && hull.fuelGeneration > 0) {
 					descriptions.push(

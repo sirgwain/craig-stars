@@ -29,7 +29,7 @@
 		updateValue(x);
 	};
 
-	const onPointerUp = (x: number) => {
+	const onPointerUp = () => {
 		pointerdown = false;
 		valuechanged?.(value);
 	};
@@ -53,8 +53,7 @@
 	class:cursor-pointer={editable}
 	onpointerdown={(e) =>
 		editable && e.preventDefault() && onPointerDown(getXFromPointerEvent(e, e.currentTarget))}
-	onpointerup={(e) =>
-		editable && e.preventDefault() && onPointerUp(getXFromPointerEvent(e, e.currentTarget))}
+	onpointerup={(e) => editable && e.preventDefault() && onPointerUp()}
 	onpointermove={(e) =>
 		editable && e.preventDefault() && onPointerMove(getXFromPointerEvent(e, e.currentTarget))}
 >

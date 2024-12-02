@@ -16,7 +16,7 @@
 		shipDesignSlots?: ShipDesignSlot[];
 		highlightedSlots?: number[];
 		highlightedClass?: string;
-		cargoCapacity?: any;
+		cargoCapacity?: number;
 		showTooltips?: boolean;
 		onslotclicked?: (
 			index: number,

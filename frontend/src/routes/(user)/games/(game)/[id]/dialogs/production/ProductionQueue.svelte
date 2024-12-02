@@ -248,7 +248,7 @@
 		updateQueueEstimates();
 	}
 
-	function removeItem(e: MouseEvent) {
+	function removeItem() {
 		if (queueItems && selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifer;
 			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
@@ -393,7 +393,7 @@
 
 	function resetQueue() {
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
-		queueItems = [...planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem)];
+		queueItems = [...planet.productionQueue.map((item) => ({ ...item }) as ProductionQueueItem)];
 		const genesisDevice = $techs.getTech(GenesisDevice);
 		availableItems = planet.getAvailableProductionQueueItems(
 			planet,

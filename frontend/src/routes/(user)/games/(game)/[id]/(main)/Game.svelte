@@ -5,7 +5,6 @@
 		ChangeMassDriverSpeedEvent,
 		ChangeWaypointEvent,
 		ChangeWaypointTransportTasksEvent,
-		DeleteWaypointEvent,
 		MergeFleetsDialogEvent,
 		MergeFleetsEvent,
 		RenameFleetEvent,
@@ -133,7 +132,7 @@
 		updateWaypoint(dest, fastestWaypoint, done);
 	}
 
-	async function onDeleteWaypoint(e?: DeleteWaypointEvent) {
+	async function onDeleteWaypoint() {
 		deleteWaypoint();
 	}
 
@@ -314,7 +313,7 @@
 				{onSplitAll}
 				{onBattlePlanChanged}
 				{onChangeMassDriverSpeed}
-				onShowProductionQueueDialog={(e) => (showProductionQueueDialog = true)}
+				onShowProductionQueueDialog={() => (showProductionQueueDialog = true)}
 				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
 					cargoTransferDialogEvent = e;
@@ -377,7 +376,7 @@
 			{onSplitAll}
 			{onBattlePlanChanged}
 			{onChangeMassDriverSpeed}
-			onShowProductionQueueDialog={(e) => (showProductionQueueDialog = true)}
+			onShowProductionQueueDialog={() => (showProductionQueueDialog = true)}
 			onShowCargoTransferDialog={(e) => {
 				showCargoTransferDialog = true;
 				cargoTransferDialogEvent = e;

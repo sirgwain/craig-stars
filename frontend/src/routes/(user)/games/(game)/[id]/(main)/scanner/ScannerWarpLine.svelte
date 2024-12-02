@@ -4,6 +4,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import type { SVGAttributes } from 'svelte/elements';
 
 	const { player, universe, selectedMapObject } = getGameContext();
 	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
@@ -11,7 +12,7 @@
 	type Line = {
 		color: string;
 		path: string;
-		props: any;
+		props: SVGAttributes<SVGPathElement>;
 	};
 
 	let line: Line | undefined = $derived.by(() => {

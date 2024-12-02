@@ -4,14 +4,19 @@
 	import { startCase } from 'lodash-es';
 	import type { HTMLSelectAttributes } from 'svelte/elements';
 	import { $enum as eu } from 'ts-enum-util';
+	import type { StringKeyOf } from 'ts-enum-util/dist/types/types';
 
-	type Props = {
+	// enums are strings or numbers
+	type T = $$Generic<Record<StringKeyOf<E>, number | string>>;
+	type TT = T[Extract<keyof T, string>];
+
+	type Props<T> = {
 		name: string;
 		title?: string | undefined;
 		tooltip?: string | undefined;
-		enumType: any;
+		enumType: T;
 		titleClass?: string;
-		typeTitle?: (type: any) => string;
+		typeTitle?: (type: TT) => string;
 		showEmpty?: boolean;
 	} & HTMLSelectAttributes;
 
@@ -22,10 +27,10 @@
 		tooltip,
 		enumType,
 		titleClass = 'label-text w-32 text-right',
-		typeTitle = (type: any) => startCase(type),
+		typeTitle = (type: TT) => startCase(`${type}`),
 		showEmpty = false,
 		...rest
-	}: Props = $props();
+	}: Props<T> = $props();
 </script>
 
 <div class="w-full flex-grow">

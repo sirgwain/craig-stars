@@ -3,4 +3,9 @@
 		"node_modules": true,
 	},
 	"eslint.lintTask.enable": true,
+	"eslint.validate": [
+		"javascript",
+		"typescript",
+		"svelte"
+	]
 }

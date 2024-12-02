@@ -14,11 +14,11 @@
 
 	const { data, xGet, yGet, zGet } = getContext<LayerCake>('LayerCake');
 
-	let path = $derived((values: any) => {
+	let path = $derived((values: unknown[]) => {
 		return (
 			'M' +
 			values
-				.map((d: any) => {
+				.map((d: unknown) => {
 					return $xGet(d) + ',' + $yGet(d);
 				})
 				.join('L')

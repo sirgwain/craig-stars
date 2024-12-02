@@ -122,9 +122,9 @@
 			if (shipDesignSlot?.quantity != undefined) {
 				shipDesignSlot.quantity--;
 				if (shipDesignSlot.quantity === 0) {
-					ondelete && ondelete();
+					ondelete?.();
 				} else {
-					onupdate && onupdate();
+					onupdate?.();
 				}
 			}
 		}}

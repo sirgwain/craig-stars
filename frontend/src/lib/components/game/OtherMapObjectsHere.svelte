@@ -8,9 +8,9 @@
 
 	const { player, universe } = getGameContext();
 
-	interface Dictionary<T> {
+	type Dictionary<T> = {
 		[index: string]: T;
-	}
+	};
 
 	type Props = {
 		fleet: CommandedFleet;
@@ -109,9 +109,8 @@
 					selected={isTarget(mo)}
 					value={1 +
 						index +
-						(otherMapObjectsHere[MapObjectType.Planet]?.length ??
-							0 + otherMapObjectsHere[MapObjectType.Fleet]?.length ??
-							0)}>{mo.name}</option
+						(otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0) +
+						(otherMapObjectsHere[MapObjectType.Fleet]?.length ?? 0)}>{mo.name}</option
 				>
 			{/each}
 		</optgroup>
@@ -124,10 +123,9 @@
 					selected={isTarget(mo)}
 					value={1 +
 						index +
-						(otherMapObjectsHere[MapObjectType.Planet]?.length ??
-							0 + otherMapObjectsHere[MapObjectType.Fleet]?.length ??
-							0 + otherMapObjectsHere[MapObjectType.MineField]?.length ??
-							0)}>{mo.name}</option
+						(otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0) +
+						(otherMapObjectsHere[MapObjectType.Fleet]?.length ?? 0) +
+						(otherMapObjectsHere[MapObjectType.MineField]?.length ?? 0)}>{mo.name}</option
 				>
 			{/each}
 		</optgroup>

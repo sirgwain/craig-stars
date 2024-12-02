@@ -60,7 +60,7 @@
 
 		if (!context) return;
 
-		unsubscribe && unsubscribe();
+		unsubscribe?.();
 	});
 
 	// if no context is defined, create it

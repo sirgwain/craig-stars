@@ -5,6 +5,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import { getScannerContext } from './Scanner';
+	import type { SVGAttributes } from 'svelte/elements';
 
 	const { scale } = getScannerContext();
 	const { xGet, yGet, xScale } = getContext<LayerCake>('LayerCake');
@@ -19,7 +20,7 @@
 
 	type WaypointLineSegment = {
 		path: string;
-		props: any;
+		props: SVGAttributes<SVGPathElement>;
 	};
 
 	let segments: WaypointLineSegment[] = $derived.by(() => {
@@ -33,7 +34,6 @@
 				const distancePerYear = wp1.warpSpeed * wp1.warpSpeed;
 				const dist = Math.floor(distance(wp0.position, wp1.position));
 				let [x1, y1, x2, y2] = [$xGet(wp0), $yGet(wp0), $xGet(wp1), $yGet(wp1)];
-				let dashOffset = 0;
 
 				if (i === 1) {
 					// move the first coord along the heading a bit so the line starts after our icon
