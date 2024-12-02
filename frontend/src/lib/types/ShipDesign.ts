@@ -86,7 +86,7 @@ export type ShipDesignSpec = {
 	engine: Engine;
 	estimatedRange?: number;
 	estimatedRangeFull?: number;
-	fuelCapacity: number;
+	fuelCapacity?: number;
 	fuelGeneration?: number;
 	hasWeapons?: boolean;
 	hullType?: TechHullType;

@@ -473,7 +473,7 @@ export class CommandedFleet implements Fleet {
 				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
 			if (target && this.canFuel(player, target)) {
 				// our previous waypoint was a fuel point, reset already allocated fuel to 0
-				fuel = this.spec.fuelCapacity;
+				fuel = this.spec.fuelCapacity ?? 0;
 			}
 		}
 		return fuel;
@@ -509,7 +509,7 @@ export class CommandedFleet implements Fleet {
 				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
 			if (target && this.canFuel(player, target)) {
 				// our previous waypoint was a fuel point, reset already allocated fuel to 0
-				fuel = this.spec.fuelCapacity;
+				fuel = this.spec.fuelCapacity ?? 0;
 			}
 		}
 		return false;

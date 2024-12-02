@@ -55,7 +55,7 @@ type ShipDesignSpec struct {
 	Engine                    Engine                `json:"engine,omitempty"`
 	EstimatedRange            int                   `json:"estimatedRange,omitempty"`
 	EstimatedRangeFull        int                   `json:"estimatedRangeFull,omitempty"`
-	FuelCapacity              int                   `json:"fuelCapacity"`
+	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
 	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
 	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
 	HullType                  TechHullType          `json:"hullType,omitempty"`
