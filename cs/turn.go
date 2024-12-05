@@ -2028,7 +2028,7 @@ func (t *turn) fleetBattle() {
 			continue
 		}
 
-		battler := newBattler(t.log, &t.game.Rules, t.game.Rules.techs, battleNum, playersAtPosition, fleets, planet)
+		battler := newBattler(t.log, &t.game.Rules, battleNum, playersAtPosition, fleets, planet)
 
 		if battler.findTargets() {
 			// someone wants to fight, run the battle!

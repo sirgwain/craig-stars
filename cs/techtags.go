@@ -48,6 +48,7 @@ var CombatTechTags = []TechTag{
 	TechTagBeamDeflector,
 	TechTagBeamWeapon,
 	TechTagCapitalShipMissile,
+	TechTagEngine,
 	TechTagGatlingGun,
 	TechTagInitiativeBonus,
 	TechTagManeuveringJet,

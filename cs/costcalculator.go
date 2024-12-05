@@ -145,7 +145,8 @@ func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
 	}
 }
 
-/* // return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
+/* 
+// return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
 // Negative indices count backwards from lowest value
 //
 // Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
@@ -185,10 +186,30 @@ func (c costFloat64) getTypeFromAmount(amt float64) CostType {
 		amt, c.ironium, c.boranium, c.germanium, c.resources))
 } */
 
+// Returns the cost efficiency ratio for 2 costFloat64 structs
+// by dividing their respective total costs
+// (numeratorTotal / denominatorTotal)
+//
+// costTypes indicates the cost types to be considered in analysis (defaults to all);
+// function will panic if too many are provided
+func GetCostEfficiencyRatio(numerator, denominator costFloat64, costTypes ...CostType) (costRatio float64) {
+	if len(costTypes) > 4 {
+		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types; %v", costTypes))
+	} else if len(costTypes) == 0 {
+		costTypes = CostTypes[:] // no cost types provided means we include everything
+	}
+	var hcTally, otherTally float64
+	for _, ct := range costTypes {
+		hcTally += numerator.getAmount(ct)
+		otherTally += denominator.getAmount(ct)
+	}
+	return hcTally / otherTally
+}
+
 // Get baseline cost for this technology given a player's tech levels, miniaturization stats & racial cost modifiers
 //
 // Returns floating point cost for extra precision
-func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) costFloat64 {
+func getPlayerCostFloat64(tech Tech, techLevels TechLevel, miniaturizationSpec MiniaturizationSpec, costOffset TechCostOffset) (techCost costFloat64) {
 	// figure out miniaturization
 	// this is 4% per level above the required tech we have.
 	// We count the smallest diff, i.e. if you have
@@ -232,10 +253,10 @@ func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationS
 
 	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
 	// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
-	miniaturization := math.Min(spec.MiniaturizationMax, spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
+	miniaturization := math.Min(miniaturizationSpec.MiniaturizationMax, miniaturizationSpec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
 	// New techs cost BET races 2x
 	// new techs will have 0 for miniaturization.
-	miniaturizationFactor := spec.NewTechCostFactor
+	miniaturizationFactor := miniaturizationSpec.NewTechCostFactor
 	if numTechLevelsAboveRequired > 0 {
 		miniaturizationFactor = 1 - miniaturization
 	}
@@ -250,25 +271,6 @@ func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationS
 	return cost.multiply(highestCostMulti)
 }
 
-// Returns the cost efficiency ratio for 2 costFloat64s
-// by dividing their respective total costs
-// (numeratorTotal / denominatorTotal)
-//
-// costTypes indicates the cost types to be considered in analysis (defaults to all);
-// function will panic if too many are provided
-func GetCostEfficiencyRatio(numerator, denominator costFloat64, costTypes ...CostType) float64 {
-	if len(costTypes) > 4 {
-		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types; %v", costTypes))
-	} else if len(costTypes) == 0 {
-		costTypes = CostTypes[:] // no cost types provided means we include everything
-	}
-	var hcTally, otherTally float64
-	for _, ct := range costTypes {
-		hcTally += numerator.getAmount(ct)
-		otherTally += denominator.getAmount(ct)
-	}
-	return hcTally / otherTally
-}
 
 // get the upgrade cost for replacing a starbase with another
 //

@@ -2,13 +2,12 @@ package cs
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTechStore_GetBestEngine(t *testing.T) {
-	// TODO: Fix this someday
 	type args struct {
 		player  *Player
 		hull    *TechHull
@@ -45,7 +44,7 @@ func TestTechStore_GetBestBattleEngine(t *testing.T) {
 		mtTechs bool
 	}{
 		{"Base scout", args{testPlayer(), &Scout}, &QuickJump5, false},
-		{"Prop 5 vs mizer", args{NewPlayer(0, NewRace().WithPRT(JoaT).WithLRT(IFE).WithSpec(&rules)).WithTechLevels(TechLevel{0,0,5,5,0,0}).withSpec(&rules), &Destroyer}, &DaddyLongLegs7, false},
+		{"Prop 5 vs mizer", args{NewPlayer(0, NewRace().WithPRT(JoaT).WithLRT(IFE).WithSpec(&rules)).WithTechLevels(TechLevel{0, 0, 5, 5, 0, 0}).withSpec(&rules), &Destroyer}, &DaddyLongLegs7, false},
 		{"Max Techs", args{NewPlayer(0, NewRace().WithPRT(SD).WithLRT(IFE).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26}).withSpec(&rules), &Nubian}, &EnigmaPulsar, true},
 	}
 	for _, tt := range tests {
@@ -105,8 +104,8 @@ func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
 			args: args{slot: HullSlotTypeShield},
 			want: []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &CrobySharmor, &BearNeutrinoBarrier, &LangstonShell, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield}},
 		{name: "Default Shields/Armors", fields: fields{TechLevel{26, 26, 26, 26, 26, 26}, NewRace().WithPRT(JoaT), false},
-			args: args{slot: HullSlotTypeShieldArmor}, want: []*TechHullComponent{&Tritanium, &Crobmnium, &Carbonic, &Strobnium, &Organic, &Kelarium, &Neutronium, &Valanium, &Superlatanium,
-				&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield}},
+			args: args{slot: HullSlotTypeShieldArmor}, want: []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield,
+				&Tritanium, &Crobmnium, &Carbonic, &Strobnium, &Organic, &Kelarium, &Neutronium, &Valanium, &Superlatanium}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -117,7 +116,14 @@ func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
 				}
 			}
 			got := rules.techs.GetHullComponentsByHullSlotType(player, tt.args.slot, "Nubian")
-			assert.ElementsMatch(t,got, tt.want)
+			slices.SortStableFunc(tt.want, func(a, b *TechHullComponent) int { 
+				if a.HullSlotType == b.HullSlotType {
+					return a.Ranking - b.Ranking
+				}
+				return int(a.HullSlotType) - int(b.HullSlotType)}) // sort want slots bc I'm lazy
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetHullComponentsByHullSlotType returned incorrect values; got:\n%v, want:\n%v", got, tt.want)
+			}
 		})
 	}
 }

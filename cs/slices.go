@@ -1,18 +1,15 @@
 package cs
 
-/* 
+/*
 Compare 2 or more slices without order and return true if they are either equal or
-if slice 1 contains slice 2 
+if slice 1 contains slice 2
 
 Identical determines what criteria to check for - true requires the 2 slices to be strictly identical,
-while false merely requires that the first slice contains the other
+while false merely requires that slice contains other (other is a *subset* of slice).
 */
 func CompareSlicesUnordered[T comparable, S ~[]T](slice, other S, identical bool) bool {
-	/* 
-	* set A is defined to be a subset of set B if there exists no element(s)
-	* present in set A that are not also present in set B (B contains everything inside A)
-	* If the two are the same length, it *necessarily* follows that the two are equal;
-	* B must have everything in A (subset) and nothing more (as otherwise it'd be larger)
+	/* If two sets have the same length and one is a subset of the other, it 
+	*necessarily* follows that the two are equal.
 	*/
 	if identical && len(slice) != len(other) {
 		return false
@@ -29,7 +26,8 @@ func CompareSlicesUnordered[T comparable, S ~[]T](slice, other S, identical bool
 	}
 
 	for item, countInSecond := range numItemsInSecond {
-		if numItemsInFirst[item] < countInSecond { // there exist items in slice 2 not accounted for in slice 1
+		if numItemsInFirst[item] < countInSecond { 
+			// there exist items in slice 2 not accounted for in slice 1
 			return false
 		}
 	}

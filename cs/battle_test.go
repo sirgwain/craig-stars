@@ -1065,7 +1065,7 @@ func Test_battle_runBattle1(t *testing.T) {
 		}
 	}
 
-	battle := newBattler(log.Logger, &rules, &StaticTechStore, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
+	battle := newBattler(log.Logger, &rules, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
 
 	record := battle.runBattle()
 
@@ -1344,9 +1344,10 @@ func Test_getBattleMovement(t *testing.T) {
 		args args
 		want int
 	}{
-		{"Destroyer + Trans Galactic Drive + thruster", args{idealEngineSpeed: 9, mass: 244, numEngines: 1, movementBonus: 1}, 5},
-		{"Destroyer + 1 Enigma Pulsar", args{idealEngineSpeed: 10, mass: 244, numEngines: 1, movementBonus: 0.5}, 9},
-		{"Destroyer + 1 Enigma Pulsar + WM", args{idealEngineSpeed: 10, mass: 244, numEngines: 1, movementBonus: 2.5}, 10},
+		{"244 kT Destroyer + Trans Galactic Drive + thruster", args{idealEngineSpeed: 9, mass: 244, numEngines: 1, movementBonus: 1}, 5},
+		{"69 kT Destroyer + 1 Enigma Pulsar", args{idealEngineSpeed: 10, mass: 69, numEngines: 1, movementBonus: 0.5}, 9},
+		{"71 kT Destroyer + 1 Enigma Pulsar + WM", args{idealEngineSpeed: 10, mass: 71, numEngines: 1, movementBonus: 2.5}, 10},
+		{"71 kT Cruiser w/ 2 Enigma Pulsars", args{idealEngineSpeed: 10, mass: 71, numEngines: 2, movementBonus: 1}, 9},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

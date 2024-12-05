@@ -188,11 +188,12 @@ func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
 // get a list of all hulls for a given TechHullType, sorted by ranking
 func (store *TechStore) GetHullsByType(techHullType TechHullType) []*TechHull {
 	h := slices.Clone(store.hullsByType[techHullType])
-	slices.SortFunc(h, func(a, b *TechHull) int { return a.Ranking - b.Ranking })
+	slices.SortStableFunc(h, func(a, b *TechHull) int { return a.Ranking - b.Ranking })
 	return h
 }
 
 // return all techs learned in the last tech level
+// TODO: remove this as recently gained techs are now tracked in players' research spec
 func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*Tech {
 	techs := []*Tech{}
 	for _, tech := range store.techs {
@@ -206,7 +207,7 @@ func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*T
 // get list of all hull components for the specified category, sorted by ranking
 func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []TechHullComponent {
 	t := slices.Clone(store.hullComponentsByCategory[category])
-	slices.SortFunc(t, func(a, b TechHullComponent) int { return a.Ranking - b.Ranking })
+	slices.SortStableFunc(t, func(a, b TechHullComponent) int { return a.Ranking - b.Ranking })
 	return t
 }
 
@@ -227,14 +228,14 @@ func (store *TechStore) GetHullComponentsByHullSlotType(player *Player, slot Hul
 		}
 	}
 	v := maps.Values(parts)
-	slices.SortFunc(v, func (a, b []*TechHullComponent) int {
-		return int(a[0].HullSlotType) - int(b[0].HullSlotType) 
+	slices.SortStableFunc(v, func(a, b []*TechHullComponent) int {
+		return int(a[0].HullSlotType) - int(b[0].HullSlotType)
 		// Since maps.Values returns a slice of slices corresponding to
-		// the TechHullComponents we can use sorted by HullSlotType, 
+		// the TechHullComponents we can use sorted by HullSlotType,
 		// we can sort them by only checking the first 2 component's slot types
 	})
 	for _, l := range v {
-		slices.SortFunc(l, func(a, b *TechHullComponent) int { return a.Ranking - b.Ranking })
+		slices.SortStableFunc(l, func(a, b *TechHullComponent) int { return a.Ranking - b.Ranking })
 		list = append(list, l...)
 	}
 	return list
@@ -1199,7 +1200,7 @@ var Crobmnium = TechHullComponent{Tech: NewTech("Crobmnium", NewCost(6, 0, 0, 13
 	Armor:        75,
 	HullSlotType: HullSlotTypeArmor,
 }
-var Carbonic = TechHullComponent{Tech: NewTech("Carbonic Armor", NewCost(5, 0, 0, 15), TechRequirements{TechLevel: TechLevel{Biotechnology: 4}}, 30, TechCategoryArmor, TechTagArmor),
+var Carbonic = TechHullComponent{Tech: NewTech("Carbonic Armor", NewCost(0, 0, 5, 15), TechRequirements{TechLevel: TechLevel{Biotechnology: 4}}, 30, TechCategoryArmor, TechTagArmor),
 
 	Mass:         25,
 	Armor:        100,
@@ -2024,8 +2025,8 @@ var Dreadnought = TechHull{Tech: NewTech("Dreadnought", NewCost(140, 30, 25, 275
 	},
 }
 var Privateer = TechHull{Tech: NewTech("Privateer", NewCost(50, 3, 3, 50), TechRequirements{TechLevel: TechLevel{Construction: 4}}, 120, TechCategoryShipHull),
-	// @sirgwain It may warrant changing the TechHullType to a regular freighter
-	// privs just don't have nearly enough GP slots to do anything good in combat
+	// @sirgwain Consider changing the TechHullType to a regular freighter
+	// privs just don't have nearly enough slots (and cost too much) to do anything good in combat
 	Type:              TechHullTypeMultiPurposeFreighter,
 	Mass:              65,
 	Armor:             150,
@@ -2338,7 +2339,7 @@ var OrbitalFort = TechHull{Tech: NewTech("Orbital Fort", NewCost(12, 0, 17, 40),
 	},
 }
 
-var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 100), TechRequirements{TechLevel: TechLevel{Construction: 4}, LRTsRequired: ISB}, 20, TechCategoryStarbaseHull),
+var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 100), TechRequirements{TechLevel: TechLevel{Construction: 4}, LRTsRequired: ISB}, 30, TechCategoryStarbaseHull),
 	Type:                  TechHullTypeStarbase,
 	SpaceDock:             200,
 	SpaceDockSlotPosition: Vector{-.125, -.125},
@@ -2361,7 +2362,8 @@ var SpaceDock = TechHull{Tech: NewTech("Space Dock", NewCost(20, 5, 25, 100), Te
 		{Position: Vector{-1, 1}, Type: HullSlotTypeWeapon, Capacity: 16},
 	},
 }
-var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250, 600), TechRequirements{TechLevel: TechLevel{}}, 20, TechCategoryStarbaseHull),
+
+var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250, 600), TechRequirements{TechLevel: TechLevel{}}, 30, TechCategoryStarbaseHull),
 	Type:                  TechHullTypeStarbase,
 	SpaceDock:             UnlimitedSpaceDock,
 	SpaceDockSlotPosition: Vector{0, 0},
@@ -2387,6 +2389,7 @@ var SpaceStation = TechHull{Tech: NewTech("Space Station", NewCost(120, 80, 250,
 		{Position: Vector{2, -0.5}, Type: HullSlotTypeShieldArmor, Capacity: 16},
 	},
 }
+
 var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300, 600), TechRequirements{TechLevel: TechLevel{Construction: 12}, LRTsRequired: ISB}, 40, TechCategoryStarbaseHull),
 	Type:                     TechHullTypeStarbase,
 	SpaceDock:                UnlimitedSpaceDock,
@@ -2418,6 +2421,7 @@ var UltraStation = TechHull{Tech: NewTech("Ultra Station", NewCost(120, 80, 300,
 		{Position: Vector{0.5, 2}, Type: HullSlotTypeWeapon, Capacity: 16},
 	},
 }
+
 var DeathStar = TechHull{Tech: NewTech("Death Star", NewCost(120, 80, 350, 750), TechRequirements{TechLevel: TechLevel{Construction: 17}, PRTsRequired: []PRT{AR}}, 50, TechCategoryStarbaseHull),
 	Type:                     TechHullTypeStarbase,
 	SpaceDock:                UnlimitedSpaceDock,

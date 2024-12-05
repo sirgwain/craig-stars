@@ -24,7 +24,8 @@ type aiPlayer struct {
 	fleetsByPurpose        map[cs.FleetPurpose]fleet
 	targetedPlanets        map[int][]*cs.FleetIntel
 
-	warshipCount          warshipCount
+	warshipCount warshipCount
+	// @sirgwain Do we _really_ need these extra variables? We already have a designsByPurpose map
 	fuelDepotDesign       *cs.ShipDesign
 	fortDesign            *cs.ShipDesign
 	starbaseQuarterDesign *cs.ShipDesign
@@ -49,11 +50,12 @@ type playerConfig struct {
 	invasionFactor                   float64
 	fleetProductionCutoff            float64
 	bomberProductionCutoff           float64
-	startAttackingYear               int
 	minYearsToQueueStarbasePeaceTime int
 	minYearsToQueueStarbaseWarTime   int
 	minYearsToBuildScanner           int
 	minYearsToBuildFort              int
+	mineralConservationYear          int
+	startAttackingYear               int
 	namesByPurpose                   map[cs.ShipDesignPurpose]string
 	researchOrder                    []cs.TechLevel
 }
@@ -64,7 +66,7 @@ type warshipCount struct {
 	fuelTransports int
 }
 
-// each AI has a personality that influences decisions; WIP
+// each AI has a personality that influences decisions; currently WIP
 type Personality string
 
 const (
@@ -74,7 +76,7 @@ const (
 	Sneaky     Personality = "Sneaky"
 )
 
-// The stage of the ai's game plan; WIP
+// The stage of the ai's game plan; currently WIP
 type Stage string
 
 const (
@@ -95,17 +97,19 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 		},
 		config: playerConfig{
 			// TODO: Make below configurable with Ai difficulty/aggression mode
-			startAttackingYear:               25,  // wait 25 yrs before making or updating warfleet designs for accBBS games; prevents spam building outdated throwaway ships
 			colonizerPopulationDensity:       .25, // default to requiring 25% pop density before sending off colonizers
-			colonistTransportDensity:         .25, // default to requiring 50% pop density before taking colonists from a feeder to a needer
-			minYearsToQueueStarbasePeaceTime: 2,   // don't build starbases if it takes over 2 years to build it
-			minYearsToQueueStarbaseWarTime:   4,   // don't build starbases if it takes over 2 years to build it
-			minYearsToBuildFort:              10,  // if we are being threatened and need to throw up a fort, do it even if it takes a bit
-			minYearsToBuildScanner:           1,
-			invasionFactor:                   2,  // we invade if we have 2x the colonists to drop
-			fleetProductionCutoff:            .5, // don't try and build ships until we have 50% factories/mines built first
-			bomberProductionCutoff:           .9, // don't try and build bombers until we have 90% factories/mines built first
+			colonistTransportDensity:         .25, // default to requiring 25% pop density before taking colonists from a feeder to a needer
+			minYearsToQueueStarbasePeaceTime: 2,   // only build starbases if it takes <=2 years to build it
+			minYearsToQueueStarbaseWarTime:   4,   // only build starbases if it takes <=4 years to build it and the planet is threatened
+			minYearsToBuildFort:              10,  // only build emergency panic forts if it takes <=10 years to build it
+			minYearsToBuildScanner:           1,   // only build planetary scanners if we can finish it in 1 year
+			mineralConservationYear:          55,  // start caring about minerals over resources for warships at year 2455
+			invasionFactor:                   2,   // only invade if we have 2x the colonists to drop
+			fleetProductionCutoff:            .5,  // don't try and build ships until we have 50% factories/mines built first
+			bomberProductionCutoff:           .9,  // don't try and build bombers until we have 90% factories/mines built first
+			startAttackingYear:               25,  // wait 25 yrs before making or updating warfleet designs for accBBS games; prevents spam building outdated throwaway ships
 			namesByPurpose: map[cs.ShipDesignPurpose]string{
+				// TODO: make this return a slice of strings/structs to allow for name variety
 				cs.ShipDesignPurposeScout:                 "Long Range Scout",
 				cs.ShipDesignPurposeColonizer:             "Santa Maria",
 				cs.ShipDesignPurposeBomber:                "Bomber",
@@ -165,8 +169,9 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 	}
 
 	if game.AcceleratedPlay {
-		// begin assault sooner for accBBS games
+		// shift year cutoffs slightly earlier for accBBS games
 		aiPlayer.config.startAttackingYear -= 5
+		aiPlayer.config.mineralConservationYear -= 5
 	}
 
 	aiPlayer.buildMaps()
@@ -300,7 +305,8 @@ func (ai *aiPlayer) updateWarfleets() error {
 		torpDesign = ai.designsByPurpose[cs.ShipDesignPurposeTorpedoFighter]
 	}
 
-	// if design is STILL nil, assume we can't make a design of that type and return
+	// if design is STILL nil, assume we can't make a design of that type
+	// if 1 design exists and the other doesn't
 	if beamDesign == nil {
 		if torpDesign != nil {
 			ai.updateWarshipAmounts(ai.warshipCount.bombers, 0, ai.warshipCount.warships, ai.warshipCount.fuelTransports)

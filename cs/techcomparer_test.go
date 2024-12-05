@@ -368,7 +368,7 @@ func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 				player.AcquiredTechs[part] = true
 			}
 			tc := NewTechComparer(&rules, player)
-			design := NewShipDesign(player, 1).WithName(tt.name).WithHull(tt.fields.hull).WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
+			design := NewShipDesign(player, 1).WithName(tt.name).WithHull(tt.fields.hull).WithPurpose(ShipDesignPurposeTorpedoFighter)
 			if tt.fields.beamShip {
 				design.Purpose = ShipDesignPurposeBeamFighter 
 			}

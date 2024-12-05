@@ -127,13 +127,13 @@ type TechHullComponent struct {
 	CanJump                   bool          `json:"canJump,omitempty"`
 }
 
-// get actual armor/shield value for a tech item given its shield/armor amounts and the multipliers for each
-func getArmorShieldAmounts(armor, shield float64, qty int, raceSpec RaceSpec, isArmor bool) (float64, float64) {
+// get actual armor/shield values for a tech item given its base shield/armor amounts and the multipliers for each
+func getArmorShieldAmounts(baseArmor, baseShield float64, qty int, raceSpec RaceSpec, isArmor bool) (armor, shield float64) {
 	// TODO: Fix RS shield effect in a less janky way
 	if isArmor {
-		return armor * raceSpec.ArmorStrengthFactor * float64(qty), shield * raceSpec.ShieldStrengthFactor * float64(qty)
+		return baseArmor * raceSpec.ArmorStrengthFactor * float64(qty), baseShield * raceSpec.ShieldStrengthFactor * float64(qty)
 	} else {
-		return armor * float64(qty), shield * raceSpec.ShieldStrengthFactor * float64(qty)
+		return baseArmor * float64(qty), baseShield * raceSpec.ShieldStrengthFactor * float64(qty)
 	}
 }
 
@@ -199,7 +199,6 @@ const (
 	TechHullTypeMineLayer             TechHullType = "MineLayer"
 	TechHullTypeMultiPurposeFreighter TechHullType = "MultiPurposeFreighter"
 	TechHullTypeOrbitalFort           TechHullType = "OrbitalFort"
-	TechHullTypeSpaceDock             TechHullType = "Space Dock" // cheap dock ships
 	TechHullTypeScout                 TechHullType = "Scout"
 	TechHullTypeStarbase              TechHullType = "Starbase"
 )
@@ -215,7 +214,6 @@ var TechHullTypes = []TechHullType{
 	TechHullTypeMineLayer,
 	TechHullTypeMultiPurposeFreighter,
 	TechHullTypeOrbitalFort,
-	TechHullTypeSpaceDock,
 	TechHullTypeScout,
 	TechHullTypeStarbase,
 }
@@ -332,7 +330,7 @@ func (hst HullSlotType) String() string {
 	case HullSlotTypeOrbital:
 		return "orbital"
 	case HullSlotTypeMineLayer:
-		return "mine layer"
+		return "minelayer"
 	case HullSlotTypeOrbitalElectrical:
 		return "orbital electrical"
 	case HullSlotTypeElectricalMechanical:

@@ -3,9 +3,8 @@ package cs
 import (
 	"fmt"
 	"math"
-	"strings"
-
 	"slices"
+	"strings"
 )
 
 // Fleets are made up of ships, and each ship has a design. Players start with designs created
@@ -163,72 +162,78 @@ func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 	return sd
 }
 
-// Compute the spec for this ShipDesign. This function is mostly for universe generation and tests
+// Compute the spec for this ShipDesign. This function is mostly for universe generation and tests.
+//
+// See [ComputeShipDesignSpec]
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	var err error
 	sd.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
 	if err != nil {
-		panic(fmt.Sprintf("failed to ComputeShipDesignSpec %v", err))
+		panic(fmt.Sprintf("ComputeShipDesignSpec returned error %v", err))
 	}
 	return sd
 }
 
-// validate that this ship design is available to the player
+// validate that this ship design is correct and is avaliable for the given player
 func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
+	// Basic design/hull checks
 	if strings.TrimSpace(sd.Name) == "" {
 		return fmt.Errorf("design has no name")
 	}
 	hull := rules.techs.GetHull(sd.Hull)
 	if hull == nil {
-		return fmt.Errorf("hull %s not found", sd.Hull)
+		return fmt.Errorf("hull %q was not found in techStore", sd.Hull)
 	}
 	if !player.HasTech(&hull.Tech) {
-		return fmt.Errorf("hull %s is not available to player", hull.Name)
+		return fmt.Errorf("hull %q is not available to player", hull)
 	}
 
-	for _, slot := range sd.Slots {
-		if slot.HullSlotIndex < 1 || slot.HullSlotIndex > len(hull.Slots) {
-			return fmt.Errorf("hull component index %d out of range", slot.HullSlotIndex)
-		}
-		hullSlot := hull.Slots[slot.HullSlotIndex-1]
-		if slot.Quantity < 0 || slot.Quantity > hullSlot.Capacity {
-			return fmt.Errorf("hull component quantity %d out of range", slot.Quantity)
-		}
-		if hullSlot.Required && hullSlot.Capacity != slot.Quantity {
-			return fmt.Errorf("hull component required but quantity %d != capacity %d", slot.Quantity, hullSlot.Capacity)
-		}
-
-		// if we have a hull component, check it
-		if slot.HullComponent != "" {
-			hc := rules.techs.GetHullComponent(slot.HullComponent)
+	// slot index checks
+	for index, designSlot := range sd.Slots {
+		hullSlot := hull.Slots[Clamp(designSlot.HullSlotIndex, 1, len(hull.Slots))-1] // prevents index out of range for nil errors & lets us use nice switch statement
+		switch {
+		case designSlot.HullSlotIndex <= 0:
+			return fmt.Errorf("design slot #%d's HullSlotIndex is 0 or less (%d)", index, designSlot.HullSlotIndex)
+		case designSlot.HullSlotIndex > len(hull.Slots):
+			return fmt.Errorf("design slot #%d's HullSlotIndex is out of range (%d vs %d)", index, designSlot.HullSlotIndex, len(hull.Slots))
+		case designSlot.Quantity < 0:
+			return fmt.Errorf("design slot #%d has a negative number of components (%d)", index, designSlot.Quantity)
+		case designSlot.Quantity > hullSlot.Capacity:
+			return fmt.Errorf("design slot #%d has more components than the hull slot could hold (%d vs %d)", index, designSlot.Quantity, hullSlot.Capacity)
+		case hullSlot.Required && designSlot.Quantity < hullSlot.Capacity:
+			return fmt.Errorf("design slot #%d has too few components for a mandatory hull slot (%d vs %d)", index, designSlot.Quantity, hullSlot.Capacity)
+		case designSlot.HullComponent != "":
+			// if we have a hull component, check it
+			hc := rules.techs.GetHullComponent(designSlot.HullComponent)
 			if hc == nil {
-				return fmt.Errorf("hull component %s not found", slot.HullComponent)
+				return fmt.Errorf("hull component %q was not found in tech store", designSlot.HullComponent)
 			}
 
 			if hullSlot.Type&hc.HullSlotType == 0 {
-				return fmt.Errorf("hull component %s won't work in slot %v", hc.Name, hullSlot.Type)
+				return fmt.Errorf("hull component %q cannot be placed in %s slot", hc, hullSlot.Type)
 			}
 
-			if len(hc.Requirements.HullsAllowed) > 0 && slices.IndexFunc(hc.Requirements.HullsAllowed, func(h string) bool { return hull.Name == h }) == -1 {
-				return fmt.Errorf("hull component %s is not mountable on the %s hull", hc.Name, sd.Hull)
+			if len(hc.Requirements.HullsAllowed) > 0 && slices.Contains(hc.Requirements.HullsAllowed, hull.Name) {
+				return fmt.Errorf("hull component %q is not usable on hull %s", hc, hull)
 			}
 
-			if len(hc.Requirements.HullsDenied) > 0 && slices.IndexFunc(hc.Requirements.HullsDenied, func(h string) bool { return hull.Name == h }) != -1 {
-				return fmt.Errorf("hull component %s is not mountable on the %s hull", hc.Name, sd.Hull)
+			if len(hc.Requirements.HullsDenied) > 0 && !slices.Contains(hc.Requirements.HullsDenied, hull.Name) {
+				return fmt.Errorf("hull component %q is forbidden on hull %s", hc, hull)
 			}
 
 			if !player.HasTech(&hc.Tech) {
-				return fmt.Errorf("hull component %s is not available to player", hc.Name)
+				return fmt.Errorf("hull component %s is not available to player", hc)
 			}
 		}
 
 	}
 
+	// check required slots to make sure they're filled properly
 	for i, hullSlot := range hull.Slots {
 		if hullSlot.Required {
 			found := false
 			for _, slot := range sd.Slots {
-				if slot.HullSlotIndex-1 == i && slot.Quantity == hullSlot.Capacity {
+				if slot.HullSlotIndex-1 == i && slot.HullComponent != "" {
 					found = true
 					break
 				}
@@ -256,20 +261,21 @@ func (d *ShipDesign) SlotsEqual(otherSlots []ShipDesignSlot) bool {
 	return true
 }
 
-// return true if this ship's job requires it to be light
+// return true if this ship's purpose requires it to be light
+// (ie beam warships & peacetime ships)
 func (p ShipDesignPurpose) IsLightShip() bool {
 	// all peacetime ships should not be using armor
 	// too heavy and they're gonna die anyways
 	return (!p.IsWarship() && p != ShipDesignPurposeStartingFighter) || p.IsBeamShip()
 }
 
-// return true if this ship's job is to be some kind of warship
+// return true if this ship's purpose is to be some kind of warship
 // (starting fighter not included)
 func (p ShipDesignPurpose) IsWarship() bool {
 	return p.IsBeamShip() || p.IsTorpedoShip()
 }
 
-// return true if this ship's job is to use beams
+// return true if this ship's purpose is to use beams
 func (p ShipDesignPurpose) IsBeamShip() bool {
 	return p == ShipDesignPurposeBeamFighter ||
 		p == ShipDesignPurposeFighterScout ||
@@ -281,7 +287,8 @@ func (p ShipDesignPurpose) IsTorpedoShip() bool {
 	return p == ShipDesignPurposeTorpedoFighter ||
 		p == ShipDesignPurposeStarbase ||
 		p == ShipDesignPurposeStarbaseHalf ||
-		p == ShipDesignPurposeStarbaseQuarter
+		p == ShipDesignPurposeStarbaseQuarter ||
+		p == ShipDesignPurposeFort
 }
 
 // get the movement for this ship design, based on cargoMass
@@ -289,6 +296,7 @@ func (d *ShipDesign) getMovement(rules *Rules, cargoMass int) int {
 	return getBattleMovement(rules.MovementMin, rules.MovementMax, d.Spec.Engine.IdealSpeed, float64(d.Spec.MovementBonus), d.Spec.Mass+cargoMass, d.Spec.NumEngines)
 }
 
+// Compute a ship design's Spec
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
@@ -309,7 +317,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		ImmuneToOwnDetonation:    hull.ImmuneToOwnDetonation,
 		MovementBonus:            raceSpec.MovementBonus,
 		RepairBonus:              hull.RepairBonus,
-		ScanRange:                0, // by default, all ships non-pen scan ships in their radius
+		ScanRange:                0, // by default, all ships non-pen scan ships in their radius (ie at their position)
 		ScanRangePen:             NoScanner,
 		SpaceDock:                hull.SpaceDock,
 		Starbase:                 hull.Starbase,
@@ -321,7 +329,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	var err error
 	spec.Cost, err = c.GetDesignCost(rules, techLevels, raceSpec, design)
 	if err != nil {
-		return ShipDesignSpec{}, fmt.Errorf("failed to get design cost %w", err)
+		return ShipDesignSpec{}, fmt.Errorf("failed to get design cost; error %w", err)
 	}
 
 	// count the number of each type of battle component we have
@@ -331,6 +339,8 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	beamDeflectorsByCount := map[float64]int{}
 
 	numTachyonDetectors := 0
+
+	var armor, shield float64
 
 	// rating calcs
 	beamPower := 0
@@ -370,8 +380,8 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 			spec.Mass += component.Mass * slot.Quantity
 			a, s := getArmorShieldAmounts(float64(component.Armor), float64(component.Shield), slot.Quantity, raceSpec, component.Category == TechCategoryArmor)
-			spec.Armor += int(a)
-			spec.Shields += int(s)
+			armor += a
+			shield += s
 			spec.CargoCapacity += component.CargoBonus * slot.Quantity
 			spec.FuelCapacity += component.FuelBonus * slot.Quantity
 			spec.FuelGeneration += component.FuelGeneration * slot.Quantity
@@ -495,6 +505,9 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		}
 	}
 
+	spec.Armor += int(armor)
+	spec.Shields += int(shield)
+
 	// ISB gives some special starbase bonuses
 	// Discount is already handled in cost function
 	if hull.Starbase {
@@ -592,11 +605,10 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	}
 
 	if spec.NumEngines > 0 {
-		// Movement = IdealEngineSpeed - 2 - Mass / 70 / NumEngines + NumManeuveringJets + 2*NumOverThrusters
-		// we added any MovementBonus components above
-		// we round up the slightest bit, and we can't go below 2, or above 10
-		spec.Movement = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, design.Spec.MovementBonus, spec.Mass, spec.NumEngines)
-		spec.MovementFull = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, design.Spec.MovementBonus, spec.Mass+spec.CargoCapacity, spec.NumEngines)
+		// Movement = (IdealEngineSpeed - 2) - (Mass / (70 * NumEngines)) + Move Bonus
+		// move bonus is rounded up before evaluation
+		spec.Movement = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass, spec.NumEngines)
+		spec.MovementFull = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass+spec.CargoCapacity, spec.NumEngines)
 	} else {
 		spec.Movement = 0
 		spec.MovementFull = 0
@@ -687,6 +699,7 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 }
 
 // design a ship/starbase for the AI or as a starting fleet using the best parts available to us
+// Warship design is handled by [cs.DesignWarship] instead
 func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
 	techStore := rules.techs
@@ -697,7 +710,13 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 	// fuel depots & starter colonies are empty
 	if purpose == ShipDesignPurposeFuelDepot || purpose == ShipDesignPurposeStarterColony {
 		return design, nil
-	} else if purpose == ShipDesignPurposeBeamFighter || purpose == ShipDesignPurposeTorpedoFighter || purpose == ShipDesignPurposeFighterScout || purpose == ShipDesignPurposeStarbase || purpose == ShipDesignPurposeFort || purpose == ShipDesignPurposeStarbaseHalf || purpose == ShipDesignPurposeStarbaseQuarter {
+	} else if purpose == ShipDesignPurposeBeamFighter ||
+		purpose == ShipDesignPurposeTorpedoFighter ||
+		purpose == ShipDesignPurposeFighterScout ||
+		purpose == ShipDesignPurposeStarbase ||
+		purpose == ShipDesignPurposeFort ||
+		purpose == ShipDesignPurposeStarbaseHalf ||
+		purpose == ShipDesignPurposeStarbaseQuarter {
 		// warships & bases get their own separate function for reasons
 		design, err := DesignWarship(rules, hull, name, player, num, hullSetNumber, purpose)
 		if err != nil {
@@ -942,6 +961,11 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 			}
 		}
 	}
+	var err error
+	design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+	if err != nil {
+		return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during DesignShip, error: %w", err)
+	}
 	return design, nil
 }
 
@@ -976,19 +1000,17 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 	// (#) SLOT INDICING/SORTING
 
-	// add the slots to our slice
+	// add the slots to our slice & initialize our lookup map if needed
 	for i, hullSlot := range hull.Slots {
 		hullSlotNumsSorted = append(hullSlotNumsSorted, i)
 		if bestPartsBySlot[hullSlot.Type] == nil {
 			bestPartsBySlot[hullSlot.Type] = map[TechTag]*TechHullComponent{}
 		}
 	}
-
-	// sprt through hull slots in order of increasing slot type
+	// sort through hull slots in order of increasing slot type
 	// then in decreasing slot quantity (so bigger slots get used up first)
-	// ensures weapons get put on larger slots
+	// ensures weapons get put on larger slots virst all else being equal
 	if len(hullSlotNumsSorted) > 1 {
-		// re-sort the list by ascending HullSlotType and DESCENDING quantity
 		slices.SortStableFunc(hullSlotNumsSorted, func(m, n int) int {
 			b := int(hull.Slots[m].Type) - int(hull.Slots[n].Type)
 			if b != 0 {
@@ -1063,7 +1085,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			// any "Scanner/XXX" slots will only be checked _after_ every single "Scanner only" slot
 		case (driver != nil || (stargate != nil && !hasStargate)) && hull.Starbase &&
 			purpose != ShipDesignPurposeFort:
-			// add orbital items to starbases
+			// add orbital items to starbases if avaliable
 			if driver != nil && !hasDriver {
 				itemToPlace = driver
 				hasDriver = true
@@ -1126,7 +1148,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		}
 	}
 
-	// (#) JAMMERS, CAPACITORS & WRAP-UP
+	// (#) JAMMERS, CAPACITORS & JETS
 	// add on our long lost capacitor & jammer friends
 	if len(capacitorSlots) > 0 && design.Spec.BeamBonus >= rules.BeamBonusCap {
 		// remove "pure" capacitor items from the design to get an accurate read of our stats
@@ -1161,88 +1183,95 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			design.Slots = append(design.Slots, slot)
 			// capacitorSlots = slices.Delete(capacitorSlots, 0, 1)
 		}
+	}
 
-		if len(jammerSlots) > 0 && design.Spec.TorpedoJamming >= rules.JammerCap.Get(design.Spec.Starbase)*rules.JammerCap.Get(design.Spec.Starbase) {
-			// remove pure jammers from slots and re-compute design spec to figure out how much stat we have
-			design.Slots = slices.DeleteFunc(design.Slots, func(sd ShipDesignSlot) bool {
-				item := rules.techs.GetHullComponent(sd.HullComponent)
-				return item != nil && item.Tags.hasTags([]TechTag{TechTagTorpedoJammer}, CombatTechTags...)
-			})
-			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
-			if err != nil {
-				return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
-			}
-			prevJamming := design.Spec.TorpedoJamming
-			j := slices.Clone(jammerSlots)
-		jamLoop:
-			for _, id := range j {
-				// place our best jammer into the slot
-				hullSlot := hull.Slots[id]
-				jammer := tc.GetBestComponentWithTag(design, hullSlot.Type, hullSlot.Capacity, TechTagTorpedoJammer)
-				slot := ShipDesignSlot{HullComponent: jammer.Name, HullSlotIndex: id + 1, Quantity: 0}
-
-				// add them one by one to make sure we don't go overboard
-				for range hullSlot.Capacity {
-					slot.Quantity++
-					prevJamming = getNewJamming(prevJamming, jammer.TorpedoJamming, rules.JammerMulti.Get(hull.Starbase), 1)
-					if prevJamming >= rules.JammerCap.Get(hull.Starbase)*rules.JammerMulti.Get(hull.Starbase) {
-						// we hit the jamming cap; no more jammers needed
-						design.Slots = append(design.Slots, slot)
-						// jammerSlots = slices.Delete(jammerSlots, 0, 1)
-						break jamLoop
-					}
-				}
-
-				// add the finished item to the design and zero it out
-				design.Slots = append(design.Slots, slot)
-				// jammerSlots = slices.Delete(jammerSlots, 0, 1)
-			}
+	if len(jammerSlots) > 0 && design.Spec.TorpedoJamming >= rules.JammerCap.Get(design.Spec.Starbase)*rules.JammerCap.Get(design.Spec.Starbase) {
+		// remove pure jammers from slots and re-compute design spec to figure out how much stat we have
+		design.Slots = slices.DeleteFunc(design.Slots, func(sd ShipDesignSlot) bool {
+			item := rules.techs.GetHullComponent(sd.HullComponent)
+			return item != nil && item.Tags.hasTags([]TechTag{TechTagTorpedoJammer}, CombatTechTags...)
+		})
+		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+		if err != nil {
+			return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 		}
+		prevJamming := design.Spec.TorpedoJamming
+		j := slices.Clone(jammerSlots)
+	jamLoop:
+		for _, id := range j {
+			// place our best jammer into the slot
+			hullSlot := hull.Slots[id]
+			jammer := tc.GetBestComponentWithTag(design, hullSlot.Type, hullSlot.Capacity, TechTagTorpedoJammer)
+			slot := ShipDesignSlot{HullComponent: jammer.Name, HullSlotIndex: id + 1, Quantity: 0}
 
-		if len(jetSlots) > 0 && design.Spec.Movement >= rules.MovementMax {
-			// remove pure jets from slots and re-compute design spec to figure out how much stat we have
-			design.Slots = slices.DeleteFunc(design.Slots, func(sd ShipDesignSlot) bool {
-				item := rules.techs.GetHullComponent(sd.HullComponent)
-				return item != nil && item.Tags.hasTags([]TechTag{TechTagManeuveringJet}, CombatTechTags...)
-			})
-			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
-			if err != nil {
-				return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
-			}
-			j := slices.Clone(jetSlots)
-		jetLoop:
-			for _, id := range j {
-				// place our best jammer into the slot
-				hullSlot := hull.Slots[id]
-				jet := tc.GetBestComponentWithTag(design, hullSlot.Type, hullSlot.Capacity, TechTagManeuveringJet)
-				slot := ShipDesignSlot{HullComponent: jet.Name, HullSlotIndex: id + 1, Quantity: 0}
-
-				// add them one by one to make sure we don't go overboard
-				for range hullSlot.Capacity {
-					slot.Quantity++
-					prevMovement := getBattleMovement(rules.MovementMin, rules.MovementMax, design.Spec.Engine.IdealSpeed, design.Spec.MovementBonus+jet.MovementBonus*float64(slot.Quantity), design.Spec.Mass+jet.Mass*slot.Quantity, design.Spec.NumEngines)
-					if prevMovement >= rules.MovementMax {
-						// we hit the jamming cap; no more jammers needed
-						design.Slots = append(design.Slots, slot)
-						// jammerSlots = slices.Delete(jammerSlots, 0, 1)
-						break jetLoop
-					}
+			// add them one by one to make sure we don't go overboard
+			for range hullSlot.Capacity {
+				slot.Quantity++
+				prevJamming = getNewJamming(prevJamming, jammer.TorpedoJamming, rules.JammerMulti.Get(hull.Starbase), 1)
+				if prevJamming >= rules.JammerCap.Get(hull.Starbase)*rules.JammerMulti.Get(hull.Starbase) {
+					// we hit the jamming cap; no more jammers needed
+					design.Slots = append(design.Slots, slot)
+					// jammerSlots = slices.Delete(jammerSlots, 0, 1)
+					break jamLoop
 				}
-
-				// add the finished item to the design and zero it out
-				design.Slots = append(design.Slots, slot)
-				// jammerSlots = slices.Delete(jammerSlots, 0, 1)
 			}
+
+			// add the finished item to the design and zero it out
+			design.Slots = append(design.Slots, slot)
+			// jammerSlots = slices.Delete(jammerSlots, 0, 1)
 		}
 	}
 
-	// finally, fix all the various temporary jank we did to the ship
+	if len(jetSlots) > 0 && design.Spec.Movement >= rules.MovementMax {
+		// remove pure jets from slots and re-compute design spec to figure out how much stat we have
+		design.Slots = slices.DeleteFunc(design.Slots, func(sd ShipDesignSlot) bool {
+			item := rules.techs.GetHullComponent(sd.HullComponent)
+			return item != nil && item.Tags.hasTags([]TechTag{TechTagManeuveringJet}, CombatTechTags...)
+		})
+		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
+		if err != nil {
+			return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+		}
+		j := slices.Clone(jetSlots)
+	jetLoop:
+		for _, id := range j {
+			// place our best jammer into the slot
+			hullSlot := hull.Slots[id]
+			jet := tc.GetBestComponentWithTag(design, hullSlot.Type, hullSlot.Capacity, TechTagManeuveringJet)
+			slot := ShipDesignSlot{HullComponent: jet.Name, HullSlotIndex: id + 1, Quantity: 0}
+
+			// add them one by one to make sure we don't go overboard
+			for range hullSlot.Capacity {
+				slot.Quantity++
+				prevMovement := getBattleMovement(rules.MovementMin, rules.MovementMax, design.Spec.Engine.IdealSpeed, design.Spec.MovementBonus+jet.MovementBonus*float64(slot.Quantity), design.Spec.Mass+jet.Mass*slot.Quantity, design.Spec.NumEngines)
+				if prevMovement >= rules.MovementMax {
+					// we hit the jamming cap; no more jammers needed
+					design.Slots = append(design.Slots, slot)
+					// jammerSlots = slices.Delete(jammerSlots, 0, 1)
+					break jetLoop
+				}
+			}
+
+			// add the finished item to the design and zero it out
+			design.Slots = append(design.Slots, slot)
+			// jammerSlots = slices.Delete(jammerSlots, 0, 1)
+		}
+	}
+
+	// (#) FINAL WRAP UP
+	// Fix all the various temporary jank we did to the ship
+	// and check to make sure it's actually functional
 	design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 	if err != nil {
 		return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 	}
 
-	// re-sort hull slots by ascending slot index
+	if len(design.Spec.WeaponSlots) == 0 {
+		// our "completed" warship has no actual weapons; we assume the build process failed somehow
+		return nil, fmt.Errorf("DesignWarship returned ship with no weapon slots")
+	}
+
+	// re-sort hull slots by ascending slot index and return the finished design!
 	design.Slots = slices.Clip(design.Slots)
 	slices.SortFunc(design.Slots, func(m, n ShipDesignSlot) int {
 		return m.HullSlotIndex - n.HullSlotIndex

@@ -137,7 +137,9 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 				t.Errorf("aiPlayer.updateWarfleets() errored; error = %v", err)
 			}
 			got := ai.fleetsByPurpose[cs.FleetPurposeBomber].ships
-			assert.ElementsMatch(t, tt.want, got)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("aiPlayer.updateWarfleets() returned incorrect fleet ratios; got: \n%v, want: \n%v", got, tt.want)
+			}
 		})
 	}
 }

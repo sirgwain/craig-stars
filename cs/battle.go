@@ -195,13 +195,14 @@ func getBattleMovement(movementMin, movementMax, idealEngineSpeed int, movementB
 	if numEngines == 0 {
 		return 0
 	}
-	return Clamp((idealEngineSpeed+int(math.Ceil(movementBonus))-2)-((mass)/numEngines/70), movementMin, movementMax)
+	mb := int(math.Ceil(movementBonus)) // round up fractional movement bonus
+	return Clamp(idealEngineSpeed-2-(mass/(numEngines*70))+mb, movementMin, movementMax)
 }
 
 // BuildBattle builds a battle recording with all the battle tokens for a list of fleets that contains more than one player.
 // We'll use this to determine if a battle should take place at this location.
 // Also, any players that have a potential battle will discover each other's designs.
-func newBattler(log zerolog.Logger, rules *Rules, techFinder TechFinder, battleNum int, players map[int]*Player, fleets []*Fleet, planet *Planet) battler {
+func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int]*Player, fleets []*Fleet, planet *Planet) battler {
 	battleLogger := log.With().Int("Battle", battleNum).Logger()
 	if len(fleets) == 0 {
 		battleLogger.Error().Msg("Can't build battle with no fleets.")
@@ -958,7 +959,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) (*BattleRecord, error) {
 		fleet.battlePlan = battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
 	}
 
-	battler := newBattler(log.Logger, &rules, &StaticTechStore, 1, playersByNum, fleets, nil)
+	battler := newBattler(log.Logger, &rules, 1, playersByNum, fleets, nil)
 	record := battler.runBattle()
 	for _, player := range players {
 

@@ -226,7 +226,7 @@ func (c Cost) MultiplyFloat64(factor float64) Cost {
 // divide a cost by another cost
 // and return how many times divisor can go into dividend
 //
-// This functionally replaces cost.NumBuildable; 
+// This functionally replaces cost.NumBuildable;
 // the latter can be e as the latter was essentially just "divide but int"
 func (dividend Cost) Divide(divisor Cost) float64 {
 	divisorFloat := divisor.ToCostFloat64()

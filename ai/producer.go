@@ -167,12 +167,15 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 	attackShipsInOrbit := ai.hasAttackShips(enemyOrbitingFleets)
 	_, targeted := ai.targetedPlanets[planet.Num]
 
-	// don't build starbases unless this planet has not moved forward enough economically
-	// if we are being targeted for bombing though, we want to try and build a starbase
+	// don't build starbases if this planet has not moved forward enough economically
+	// if we are being targeted for bombing though, we want to try and build a starbase regardless
 	// TODO: Add ability to build fuel depots and infrastructure based on a (lower) cutoff
 	// This will be useful for IT/PP and desperately necessary for AR
 	planetaryStructuresBuilt := math.Min(float64(planet.Mines)/float64(planet.Spec.MaxMines), float64(planet.Factories)/float64(planet.Spec.MaxFactories))
 	if !(targeted || attackShipsInOrbit) && planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
+		// this will need to be changed for -f/AR races to work as 
+		// they don't build mines & such regardless
+		// AR in particular will require entirely separate logic 
 		return nil
 	}
 
@@ -191,7 +194,7 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 				return err
 			}
 
-			if yearsToBuild < ai.config.minYearsToBuildFort {
+			if yearsToBuild <= ai.config.minYearsToBuildFort {
 				ai.addStarbaseToTopOfQueue(planet, ai.fortDesign)
 			}
 		}

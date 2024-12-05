@@ -64,7 +64,7 @@ func TestShipDesign_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid HullSlotIndex",
+			name: "invalid HullSlotIndex - negative",
 			fields: fields{
 				Name: "Scout",
 				Hull: "Scout",
@@ -78,7 +78,7 @@ func TestShipDesign_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid HullSlotIndex2",
+			name: "invalid HullSlotIndex - out of bounds",
 			fields: fields{
 				Name: "Scout",
 				Hull: "Scout",
@@ -801,25 +801,41 @@ func TestDesignShip(t *testing.T) {
 			wanterr: false,
 		},
 		{
-			name: "IT starting Swashbuckler",
+			name: "IT starting Swashbuckler w/ radram",
 			args: args{
-				techLevels:   TechLevel{3, 3, 5, 5, 3, 3},
+				techLevels:   TechLevel{3, 3, 6, 5, 3, 3},
 				hull:         &Privateer,
-				player:       NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)).WithNum(1),
+				player:       NewPlayer(1, NewRace().WithPRT(IT).WithLRT(CE).WithSpec(&rules)).WithNum(1),
 				purpose:      ShipDesignPurposeStartingFighter,
-				fleetPurpose: FleetPurposeScout,
+				fleetPurpose: FleetPurposeFreighter,
 			},
 			want: map[string]int{
-				DaddyLongLegs7.Name: 1,
-				RhinoScanner.Name:   1,
-				AlphaTorpedo.Name:   1,
-				XRayLaser.Name:      1,
-				Crobmnium.Name:      2,
+				RadiatingHydroRamScoop.Name: 1,
+				RhinoScanner.Name:           1,
+				AlphaTorpedo.Name:           1,
+				XRayLaser.Name:              1,
+				Crobmnium.Name:              2,
 			},
 			wanterr: false,
 		},
 		{
-			name: "Privateer",
+			name: "Large Freighter - avoids radram",
+			args: args{
+				techLevels:   TechLevel{3, 3, 6, 8, 3, 3},
+				hull:         &LargeFreighter,
+				player:       NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)).WithNum(1),
+				purpose:      ShipDesignPurposeFreighter,
+				fleetPurpose: FleetPurposeColonistFreighter,
+			},
+			want: map[string]int{
+				DaddyLongLegs7.Name: 2,
+				FuelTank.Name:       2,
+				CowHideShield.Name:  2,
+			},
+			wanterr: false,
+		},
+		{
+			name: "IFE Cargo Privateer",
 			args: args{
 				hull:         &Privateer,
 				techLevels:   TechLevel{0, 0, 2, 4, 0, 0},
@@ -868,14 +884,32 @@ func TestDesignShip(t *testing.T) {
 			},
 			wanterr: false,
 		},
+		{
+			name: "Hush-A-Boom B-52 Bomber",
+			args: args{
+				hull:       &B52Bomber,
+				techLevels: TechLevel{12, 16, 12, 15, 12, 12},
+				player: NewPlayer(1, NewRace().WithPRT(WM).WithSpec(&rules)).WithNum(1).
+					WithAcquiredTech(HushABoom.Name).WithAcquiredTech(LangstonShell.Name),
+				purpose:      ShipDesignPurposeBomber,
+				fleetPurpose: FleetPurposeBomber,
+			},
+			want: map[string]int{
+				TransGalacticSuperScoop.Name: 2,
+				FuelTank.Name:                2,
+				HushABoom.Name:               16,
+				LangstonShell.Name:           2,
+			},
+			wanterr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.args.player.TechLevels = tt.args.techLevels
-			got, err := DesignShip(&rules, tt.args.hull, "Test Ship", tt.args.player, 1, 1, tt.args.purpose, tt.args.fleetPurpose)
+			got, err := DesignShip(&rules, tt.args.hull, tt.name, tt.args.player, 1, 1, tt.args.purpose, tt.args.fleetPurpose)
 			if (err != nil) != tt.wanterr {
 				if tt.wanterr {
-					t.Errorf("DesignShip() failed to error when expected; returned slots %v instead", got.Slots)
+					t.Errorf("DesignShip() failed to error when expected; returned slots %+v instead", got.Slots)
 				} else {
 					t.Errorf("DesignShip() errored unexpectedly; returned error %v", err)
 				}
@@ -886,7 +920,7 @@ func TestDesignShip(t *testing.T) {
 				tallyMap[slot.HullComponent] += slot.Quantity
 			}
 			if !reflect.DeepEqual(tallyMap, tt.want) {
-				t.Errorf("ShipDesign from DesignShip() had parts %v, want %v", tallyMap, tt.want)
+				t.Errorf("ShipDesign from DesignShip() had parts %+v, want %+v", tallyMap, tt.want)
 			}
 		})
 	}
@@ -1002,9 +1036,7 @@ func TestDesignWarship(t *testing.T) {
 				ArmageddonMissile.Name:   6,
 				CompletePhaseShield.Name: 6,
 				Jammer30.Name:            6,
-				BattleNexus.Name:         3,
-				ManeuveringJet.Name:      3,
-				BattleNexus.Name:         3,
+				BattleNexus.Name:         6,
 				BeamDeflector.Name:       12, // no need for jets as we already have 2 1/4 move
 			}, wantErr: false,
 		},

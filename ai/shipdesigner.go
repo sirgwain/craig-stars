@@ -2,6 +2,7 @@ package ai
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
@@ -48,11 +49,12 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	case cs.ShipDesignPurposeStarterColony, cs.ShipDesignPurposeStarbase, cs.ShipDesignPurposeStarbaseQuarter,
 		cs.ShipDesignPurposeStarbaseHalf, cs.ShipDesignPurposeStarbaseUnarmed:
 		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
-	case cs.ShipDesignPurposePacketThrower, cs.ShipDesignPurposeStargater, cs.ShipDesignPurposeFort:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeSpaceDock)) //
-		if hull == nil {
-			hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
+		if hull != nil {
+			break
 		}
+		fallthrough
+	case cs.ShipDesignPurposePacketThrower, cs.ShipDesignPurposeStargater, cs.ShipDesignPurposeFort:
+		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
 	}
 
 	if hull == nil {
@@ -198,10 +200,11 @@ func (ai *aiPlayer) assignPurpose() {
 // TODO: Add ability to use different search criteria (cheapness, rating, etc.) & not be dependent 
 // on the best techs being at the back of the list
 func (ai *aiPlayer) getBestHull(hulls []*cs.TechHull) *cs.TechHull {
-	for i := len(hulls) - 1; i >= 0; i-- {
-		hull := hulls[i]
-		if ai.HasTech(&hull.Tech) {
-			return hull
+	h := slices.Clone(hulls); slices.Reverse(h)
+	var bestHull *cs.TechHull
+	for _, hull := range h {
+		if ai.HasTech(&hull.Tech) && (bestHull == nil || hull.Ranking > bestHull.Ranking) {
+			bestHull = hull
 		}
 	}
 	return nil
