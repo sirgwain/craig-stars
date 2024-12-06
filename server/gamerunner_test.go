@@ -20,7 +20,7 @@ func createTestGameRunner() GameRunner {
 	cfg.Database.Recreate = true
 	cfg.Database.DebugLogging = true
 	if err := dbConn.Connect(cfg); err != nil {
-		panic(fmt.Errorf("connect to test database, %w", err))
+		panic(fmt.Errorf("could not connect to test database, error %w", err))
 	}
 
 	return &gameRunner{
@@ -36,7 +36,7 @@ func Test_gameRunner_HostGame(t *testing.T) {
 	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(cs.Humanoids()).WithAIPlayer(cs.AIDifficultyNormal, 0))
 
 	if err != nil {
-		t.Errorf("host game %v", err)
+		t.Errorf("host game returned error %v", err)
 		return
 	}
 
@@ -52,7 +52,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 	cfg.Database.Filename = ":memory:"
 	cfg.Database.UsersFilename = ":memory:"
 	if err := dbConn.Connect(cfg); err != nil {
-		panic(fmt.Errorf("connect to test database, %w", err))
+		panic(fmt.Errorf("could not connect to test database, error %w", err))
 	}
 
 	// create a race per PRT
@@ -95,7 +95,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 		}
 
 		if _, err := gr.GenerateTurn(fullGame.ID); err != nil {
-			t.Errorf("GenerateTurn errored when generating turn on year %d, error: /n%w", fullGame.Game.Year, err)
+			t.Errorf("GenerateTurn failed to generate turn on year %d; error: /n%v", fullGame.Game.Year, err)
 		}
 	}
 }
