@@ -390,6 +390,8 @@ func GetBattleRules(o js.Value) cs.BattleRules {
 	obj.BeamBonusCap = getFloat[float64](o.Get("beamBonusCap"))
 	// JammerCap jammerCap Object ignored
 	// JammerMulti jammerMulti Object ignored
+	obj.MovementMin = getInt[int](o.Get("movementMin"))
+	obj.MovementMax = getInt[int](o.Get("movementMax"))
 	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
 	obj.NumBattleRounds = getInt[int](o.Get("numBattleRounds"))
 	obj.TorpedoSplashDamage = getFloat[float64](o.Get("torpedoSplashDamage"))
@@ -400,6 +402,8 @@ func SetBattleRules(o js.Value, obj *cs.BattleRules) {
 	o.Set("beamBonusCap", obj.BeamBonusCap)
 	// JammerCap jammerCap Object ignored
 	// JammerMulti jammerMulti Object ignored
+	o.Set("movementMin", obj.MovementMin)
+	o.Set("movementMax", obj.MovementMax)
 	o.Set("movesToRunAway", obj.MovesToRunAway)
 	o.Set("numBattleRounds", obj.NumBattleRounds)
 	o.Set("torpedoSplashDamage", obj.TorpedoSplashDamage)
@@ -1454,7 +1458,7 @@ func GetPRTSpec(o js.Value) cs.PRTSpec {
 	obj.CanRemoteMineOwnPlanets = getBool(o.Get("canRemoteMineOwnPlanets"))
 	obj.InvasionAttackBonus = getFloat[float64](o.Get("invasionAttackBonus"))
 	obj.InvasionDefendBonus = getFloat[float64](o.Get("invasionDefendBonus"))
-	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.MovementBonus = getFloat[float64](o.Get("movementBonus"))
 	obj.Instaforming = getBool(o.Get("instaforming"))
 	obj.PermaformChance = getFloat[float64](o.Get("permaformChance"))
 	obj.PermaformPopulation = getInt[int](o.Get("permaformPopulation"))
@@ -2364,7 +2368,7 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.CanRemoteMineOwnPlanets = getBool(o.Get("canRemoteMineOwnPlanets"))
 	obj.InvasionAttackBonus = getFloat[float64](o.Get("invasionAttackBonus"))
 	obj.InvasionDefendBonus = getFloat[float64](o.Get("invasionDefendBonus"))
-	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.MovementBonus = getFloat[float64](o.Get("movementBonus"))
 	obj.Instaforming = getBool(o.Get("instaforming"))
 	obj.PermaformChance = getFloat[float64](o.Get("permaformChance"))
 	obj.PermaformPopulation = getInt[int](o.Get("permaformPopulation"))
@@ -2907,7 +2911,7 @@ func GetShipDesignSpec(o js.Value) cs.ShipDesignSpec {
 	obj.MineSweep = getInt[int](o.Get("mineSweep"))
 	obj.MiningRate = getInt[int](o.Get("miningRate"))
 	obj.Movement = getInt[int](o.Get("movement"))
-	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.MovementBonus = getFloat[float64](o.Get("movementBonus"))
 	obj.MovementFull = getInt[int](o.Get("movementFull"))
 	obj.NumBuilt = getInt[int](o.Get("numBuilt"))
 	obj.NumEngines = getInt[int](o.Get("numEngines"))
