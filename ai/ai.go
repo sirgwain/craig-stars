@@ -103,7 +103,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 			minYearsToQueueStarbaseWarTime:   4,   // only build starbases if it takes <=4 years to build it and the planet is threatened
 			minYearsToBuildFort:              10,  // only build emergency panic forts if it takes <=10 years to build it
 			minYearsToBuildScanner:           1,   // only build planetary scanners if we can finish it in 1 year
-			mineralConservationYear:          55,  // start caring about minerals over resources for warships at year 2455
+			mineralConservationYear:          55,  // year to start caring about minerals over resources for warship building
 			invasionFactor:                   2,   // only invade if we have 2x the colonists to drop
 			fleetProductionCutoff:            .5,  // don't try and build ships until we have 50% factories/mines built first
 			bomberProductionCutoff:           .9,  // don't try and build bombers until we have 90% factories/mines built first
@@ -148,18 +148,19 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 				{Electronics: 1},
 				{Weapons: 6, Biotechnology: 2},             // yaks & +7 weps terraform
 				{Energy: 3, Weapons: 8, Construction: 6},   // shielded frigates & Phaser bazookas
-				{Energy: 5, Propulsion: 5}, // +7 temp/grav terraforming
-				{Construction: 8, Electronics: 3}, // better scanners + LFs 
-				{Energy: 6, Weapons: 10, Biotechnology: 3}, //CP and Deltas
-				{Construction: 10, Propulsion: 7},          //Cruisers/Warp 8 drives
-				{Weapons: 12},                              //Jihads
-				{Energy: 10, Propulsion: 10, Electronics: 7, Biotechnology: 7}, // organic + better engines
-				{Weapons: 16, Construction: 13},                                //Battleships/Juggernauts
-				{Energy: 12, Propulsion: 12, Electronics: 11},                  //Overthruster/SuperBC/LangstonShell
-				{Weapons: 20, Construction: 16},                                //Dreadnoughts
-				{Energy: 14, Electronics: 14, Biotechnology: 10},               // Gorilla delagators, mega poly
-				{Weapons: 24}, //Armageddon Missiles
-				{Energy: 18, Propulsion: 16, Electronics: 19}, //Battle Nexus, Warp 10 RS
+				{Energy: 5, Propulsion: 5},                 // +7 temp/grav terraforming
+				{Construction: 8, Electronics: 3},          // better scanners + LFs
+				{Energy: 6, Weapons: 10, Biotechnology: 3}, // CP and Deltas
+				{Construction: 10, Propulsion: 7},          // (Battle) Cruisers/Warp 8 drives
+				{Weapons: 12},                              // Jihads
+				{Energy: 10, Propulsion: 10, Electronics: 7, Biotechnology: 4}, // organic + better engines
+				{Construction: 13}, //Battleships
+				{Weapons: 16},      // Juggernauts
+				{Energy: 12, Propulsion: 12, Electronics: 11},    //Overthruster/SuperBC/LangstonShell
+				{Weapons: 20, Construction: 16},                  //Dreadnoughts
+				{Energy: 14, Electronics: 14, Biotechnology: 10}, // Gorilla delagators, mega poly
+				{Weapons: 24}, // Armageddon Missiles
+				{Energy: 18, Propulsion: 16, Electronics: 19}, // Battle Nexus, Warp 10 RS
 				{Weapons: 26},      // omega torps
 				{Construction: 26}, // nubians
 			},
@@ -258,11 +259,11 @@ func (ai *aiPlayer) buildMaps() error {
 					quantity: 5,
 				},
 				{
-					purpose:  cs.ShipDesignPurposeTorpedoFighter,
+					purpose:  cs.ShipDesignPurposeBeamFighter,
 					quantity: 7,
 				},
 				{
-					purpose:  cs.ShipDesignPurposeBeamFighter,
+					purpose:  cs.ShipDesignPurposeTorpedoFighter,
 					quantity: 7,
 				},
 			},
@@ -306,7 +307,7 @@ func (ai *aiPlayer) updateWarfleets() error {
 	}
 
 	// if design is STILL nil, assume we can't make a design of that type
-	// if 1 design exists and the other doesn't
+	// if 1 design exists and the other doesn't, automatically use it
 	if beamDesign == nil {
 		if torpDesign != nil {
 			ai.updateWarshipAmounts(ai.warshipCount.bombers, 0, ai.warshipCount.warships, ai.warshipCount.fuelTransports)
@@ -319,19 +320,18 @@ func (ai *aiPlayer) updateWarfleets() error {
 		return nil
 	}
 
-	beamDesign.Spec, err = cs.ComputeShipDesignSpec(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, beamDesign)
-	if err != nil {
-		return fmt.Errorf("error during warfleet quantity picking: computeShipDesignSpec returned error %w for design %s", err, beamDesign.Name)
-	}
-	torpDesign.Spec, err = cs.ComputeShipDesignSpec(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, torpDesign)
-	if err != nil {
-		return fmt.Errorf("error during warfleet quantity picking: computeShipDesignSpec returned error %w for design %s", err, torpDesign.Name)
-	}
-
-	// Compare ships' power rating and overall mineral expenditure
+	// Compare ships' power rating and overall mineral/res expenditure
 	// TODO: Add a less jank way of evaluating warship performance than ranking
+	// and make the AI consider how much spare minerals it has   
 	scoreRatio := float64(beamDesign.Spec.PowerRating) / float64(torpDesign.Spec.PowerRating)
-	costRatio := cs.GetCostEfficiencyRatio(beamDesign.Spec.Cost.ToCostFloat64(), torpDesign.Spec.Cost.ToCostFloat64(), cs.MineralTypes[:]...)
+
+	ct := []cs.CostType{cs.Resources}
+	if ai.game.YearsPassed() >= ai.config.mineralConservationYear {
+		// care about minerals at year 2455+ (2450+ for accBBS)
+		ct = cs.MineralTypes[:]
+	}
+	costRatio := cs.GetCostEfficiencyRatio(beamDesign.Spec.Cost.ToCostFloat64(), torpDesign.Spec.Cost.ToCostFloat64(), ct...)
+
 	if scoreRatio >= 1.5*costRatio { // beams are >50% more cost efficient than torps
 		ai.updateWarshipAmounts(ai.warshipCount.bombers, ai.warshipCount.warships, 0, ai.warshipCount.fuelTransports)
 	} else if scoreRatio*1.5 <= costRatio { // torp ships are >50% more cost efficient than beams

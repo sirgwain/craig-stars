@@ -732,9 +732,9 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 
 	numFuelTanks := 0
 	numCargoPods := 0
-	var hasGate, hasDriver, hasScanner, hasColonyModule bool
 	numBeamWeapons := 0
 	numTorpedos := 0
+	var hasGate, hasDriver, hasScanner, hasColonyModule bool
 
 	maxNum := math.MinInt
 	for i, hullSlot := range hull.Slots {
@@ -750,8 +750,8 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 	}
 
 	// loop through a second time to check our hull slots
-	for i := 1; i <= maxNum; i++ {
-		list := hullSlotsByFlexibility[i]
+	for i := range maxNum {
+		list := hullSlotsByFlexibility[i+1]
 		if list == nil {
 			// no slots with this many different part types; skip
 			continue
@@ -783,7 +783,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 				scanner := UpdateLookupMap(bestPartsBySlot[hst], TechTagScanner, func(t TechTag) *TechHullComponent {
 					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
 				})
-				if !hasScanner && scanner != nil {
+				if scanner != nil && !hasScanner {
 					slot.HullComponent = scanner.Name
 					hasScanner = true
 					break purposeSwitch
@@ -909,7 +909,6 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 				if massDriver != nil && !hasDriver {
 					slot.HullComponent = massDriver.Name
 					hasDriver = true
-					break purposeSwitch
 				}
 			case ShipDesignPurposeStargater:
 				stargate := UpdateLookupMap(bestPartsBySlot[hst], TechTagStargate, func(t TechTag) *TechHullComponent {
@@ -931,7 +930,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 				massDriver := UpdateLookupMap(bestPartsBySlot[hst], TechTagMassDriver, func(t TechTag) *TechHullComponent {
 					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
 				})
-				// if have space, add packet throwers for lulz
+				// if have space, add packet throwers as well
 				if massDriver != nil {
 					slot.HullComponent = massDriver.Name
 					hasDriver = true
@@ -941,17 +940,22 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 			if slot.HullComponent == "" && !hull.Starbase {
 				fuelTank := UpdateLookupMap(bestPartsBySlot[hst], TechTagFuelTank, func(t TechTag) *TechHullComponent {
 					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
+				});
+				shield := UpdateLookupMap(bestPartsBySlot[hst], TechTagShield, func(t TechTag) *TechHullComponent {
+					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
 				})
-				if fuelTank != nil { // when in doubt, add fuel tanks to empty slots
+				scanner := UpdateLookupMap(bestPartsBySlot[hst], TechTagScanner, func(t TechTag) *TechHullComponent {
+					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
+				})
+				switch {
+				case fuelTank != nil: // when in doubt, add fuel tanks to empty slots
 					slot.HullComponent = fuelTank.Name
 					numFuelTanks += slot.Quantity
-				} else {
-					shield := UpdateLookupMap(bestPartsBySlot[hst], TechTagShield, func(t TechTag) *TechHullComponent {
-						return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-					})
-					if shield != nil { // also add shields to freighters so they don't die as much against minefields
-						slot.HullComponent = shield.Name
-					}
+				case shield != nil: // add shields to freighters so they don't die as much against minefields
+					slot.HullComponent = shield.Name
+				case scanner != nil && !hasScanner: // also add scanners to super fuels in a pinc
+					slot.HullComponent = scanner.Name
+					hasScanner = true
 				}
 			}
 
@@ -961,6 +965,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 			}
 		}
 	}
+
 	var err error
 	design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 	if err != nil {
@@ -997,16 +1002,37 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		// so increasing the min weapon count helps add much needed firepower
 	}
 	bestPartsBySlot := map[HullSlotType]map[TechTag]*TechHullComponent{} // used for quick lookups for repeat parts
+	var engineSlots = []int{}                                            // contains all our engine slots
+	var numEngines int
 
 	// (#) SLOT INDICING/SORTING
 
 	// add the slots to our slice & initialize our lookup map if needed
 	for i, hullSlot := range hull.Slots {
+		if hullSlot.Type&HullSlotTypeEngine != 0 && !hull.Starbase { // dont add engines to list for starbases
+			numEngines += hullSlot.Capacity
+			engineSlots = append(engineSlots, i)
+			continue
+		}
 		hullSlotNumsSorted = append(hullSlotNumsSorted, i)
 		if bestPartsBySlot[hullSlot.Type] == nil {
 			bestPartsBySlot[hullSlot.Type] = map[TechTag]*TechHullComponent{}
 		}
 	}
+
+	// get our engine slots out of the way
+	if len(engineSlots) <= 0 && !hull.Starbase {
+		return nil, fmt.Errorf("DesignWarship() could not find any engine slots in hull %s", hull)
+	} else {
+		bestEngine := techStore.GetBestBattleEngine(player, hull, numEngines)
+		for _, i := range engineSlots {
+			h := hull.Slots[i]
+			design.Slots = append(design.Slots, ShipDesignSlot{
+				HullComponent: bestEngine.Name, HullSlotIndex: i + 1, Quantity: h.Capacity})
+		}
+
+	}
+
 	// sort through hull slots in order of increasing slot type
 	// then in decreasing slot quantity (so bigger slots get used up first)
 	// ensures weapons get put on larger slots virst all else being equal
@@ -1051,8 +1077,6 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		})
 
 		switch {
-		case hst&HullSlotTypeEngine != 0:
-			itemToPlace = &techStore.GetBestBattleEngine(player, hull, designSlot.Quantity).TechHullComponent
 		case weapon != nil && ((numWeapons+numSappers) < minWeapons) || hst == HullSlotTypeWeapon:
 			// if we don't have many weapons already or this is a
 			// weapons-only slot, slap on some guns
@@ -1106,7 +1130,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			// add whatever we need the most
 			itemToPlace, err = tc.getMostNeededComponent(design, hst, designSlot.Quantity)
 			if err != nil {
-				return &ShipDesign{}, fmt.Errorf("getMostNeededComponent failed to get parts, error %w", err)
+				return nil, fmt.Errorf("getMostNeededComponent failed to get parts, error %w", err)
 			}
 		}
 
@@ -1142,7 +1166,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+				return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 			}
 
 		}
@@ -1158,7 +1182,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		})
 		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 		if err != nil {
-			return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 		}
 		prevCapacitating := design.Spec.BeamBonus
 		c := slices.Clone(capacitorSlots)
@@ -1193,7 +1217,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		})
 		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 		if err != nil {
-			return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 		}
 		prevJamming := design.Spec.TorpedoJamming
 		j := slices.Clone(jammerSlots)
@@ -1230,7 +1254,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		})
 		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 		if err != nil {
-			return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 		}
 		j := slices.Clone(jetSlots)
 	jetLoop:
@@ -1263,7 +1287,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	// and check to make sure it's actually functional
 	design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 	if err != nil {
-		return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+		return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 	}
 
 	if len(design.Spec.WeaponSlots) == 0 {

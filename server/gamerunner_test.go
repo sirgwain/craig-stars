@@ -95,7 +95,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 		}
 
 		if _, err := gr.GenerateTurn(fullGame.ID); err != nil {
-			t.Errorf("generate turn %v", err)
+			t.Errorf("GenerateTurn errored when generating turn on year %d, error: /n%w", fullGame.Game.Year, err)
 		}
 	}
 }

@@ -73,12 +73,12 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 			want: []fleetShip{
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 5},
 				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 7},
-				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 7}, // this is the default plan
+				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 7},
 			}, wantErr: false,
 		},
 		{
-			name:      "Tech 10 - beams very good",
-			race:      cs.NewRace().WithPRT(cs.JoaT),
+			name:      "Tech 10 - beam BCs very good",
+			race:      cs.NewRace().WithPRT(cs.WM),
 			techLevel: cs.TechLevel{Energy: 10, Weapons: 10, Propulsion: 10, Construction: 10, Electronics: 10, Biotechnology: 10},
 			year:      27,
 			want: []fleetShip{
@@ -94,20 +94,30 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 			year:      30,
 			want: []fleetShip{
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 7},
-				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 9},
-				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 7},
+				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 16},
 				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 4}, // 23/5
 			}, wantErr: false,
 		},
 		{
-			name:      "Tech 24",
+			name:      "Tech 24 - Fairly even",
 			race:      cs.NewRace().WithPRT(cs.JoaT),
 			techLevel: cs.TechLevel{Energy: 24, Weapons: 24, Propulsion: 24, Construction: 24, Electronics: 24, Biotechnology: 24},
 			year:      75, // 50 years after attack start yr
 			want: []fleetShip{
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 40},
-				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 18},
-				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 42},
+				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 36},
+				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 24},
+				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 20}, // 100/5
+			}, wantErr: false,
+		},
+		{
+			name:      "Tech 26 HE - Beam leaning",
+			race:      cs.NewRace().WithPRT(cs.HE),
+			techLevel: cs.TechLevel{Energy: 26, Weapons: 26, Propulsion: 26, Construction: 26, Electronics: 26, Biotechnology: 26},
+			year:      75, // 50 years after attack start yr
+			want: []fleetShip{
+				{purpose: cs.ShipDesignPurposeBomber, quantity: 40},
+				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 60},
 				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 20}, // 100/5
 			}, wantErr: false,
 		},
@@ -125,11 +135,11 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			player.TechLevels = tt.techLevel
 			ai := NewAIPlayer(game, &cs.StaticTechStore, player, universe.GetPlayerMapObjects(player.Num))
+			ai.Player.TechLevels = tt.techLevel
 
-			// call produce() to update warship designs
-			if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter], err = ai.designShip("Fuel Pod", cs.ShipDesignPurposeFuelFreighter, cs.FleetPurposeBomber); err != nil {
+			// update warship designs
+			if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter], err = ai.designShip("Fuel Pod", cs.ShipDesignPurposeFuelFreighter, cs.FleetPurposeFreighter); err != nil {
 				t.Errorf("designing fuel ship for test returned error %v", err)
 			}
 

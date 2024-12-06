@@ -8,9 +8,9 @@ Identical determines what criteria to check for - true requires the 2 slices to 
 while false merely requires that slice contains other (other is a *subset* of slice).
 */
 func CompareSlicesUnordered[T comparable, S ~[]T](slice, other S, identical bool) bool {
-	/* If two sets have the same length and one is a subset of the other, it 
+	/* If two sets have the same length and one is a subset of the other, it
 	*necessarily* follows that the two are equal.
-	*/
+	 */
 	if identical && len(slice) != len(other) {
 		return false
 	}
@@ -26,7 +26,7 @@ func CompareSlicesUnordered[T comparable, S ~[]T](slice, other S, identical bool
 	}
 
 	for item, countInSecond := range numItemsInSecond {
-		if numItemsInFirst[item] < countInSecond { 
+		if numItemsInFirst[item] < countInSecond {
 			// there exist items in slice 2 not accounted for in slice 1
 			return false
 		}
@@ -36,7 +36,7 @@ func CompareSlicesUnordered[T comparable, S ~[]T](slice, other S, identical bool
 }
 
 // Remove duplicates from one or more slices and return the appended result.
-// Items appear in the order of the slices passed in (everything in slice 1, then everything in slice 2, etc.) 
+// Items appear in the order of the slices passed in (everything in slice 1, then everything in slice 2, etc.)
 //
 // To pass in map objects or iterables, call maps.Values and/or slices.Collect on them first
 func AppendWithoutDuplicates[T comparable, S ~[]T](slices ...S) S {
@@ -58,9 +58,9 @@ func AppendWithoutDuplicates[T comparable, S ~[]T](slices ...S) S {
 	return newSlice
 }
 
-// If key does not exist in lookupMap, evaluates funcToCall on key and 
-// stores the resulting value in the map for future use. 
-// Returns the new/old value for lookupMap[key]
+// If key does not exist in lookupMap, evaluates funcToCall on key and
+// stores the resulting value in the map before returning it.
+// Otherwise, simply returns the previous value in the map.
 //
 // Used for quick storage/lookup of repeatedly needed/computed values
 func UpdateLookupMap[M ~map[K]V, K comparable, V any](lookupMap M, key K, funcToCall func(K) V) V {

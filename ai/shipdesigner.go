@@ -63,14 +63,11 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 
 	updated, err = cs.DesignShip(&ai.game.Rules, hull, name, ai.Player, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, purpose, fleetPurpose)
 	if err != nil {
-		return existing, fmt.Errorf("cs.DesignShip returned error %w", err)
+		return existing, fmt.Errorf("cs.DesignShip returned error: %w", err)
 	}
 	updated.HullSetNumber = ai.DefaultHullSet
 	updated.Purpose = purpose
-	updated.Spec, err = cs.ComputeShipDesignSpec(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, updated)
-	if err != nil {
-		return existing, fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
-	}
+	// no need to compute ship design specs as functions already compute it afterwards
 
 	// if we tried to build a bomber with no bombs, ignore it
 	if purpose == cs.ShipDesignPurposeBomber && !updated.Spec.Bomber {
@@ -207,5 +204,5 @@ func (ai *aiPlayer) getBestHull(hulls []*cs.TechHull) *cs.TechHull {
 			bestHull = hull
 		}
 	}
-	return nil
+	return bestHull
 }

@@ -920,7 +920,7 @@ func TestDesignShip(t *testing.T) {
 				tallyMap[slot.HullComponent] += slot.Quantity
 			}
 			if !reflect.DeepEqual(tallyMap, tt.want) {
-				t.Errorf("ShipDesign from DesignShip() had parts %+v, want %+v", tallyMap, tt.want)
+				t.Errorf("ShipDesign from DesignShip() had parts \n%+v, want \n%+v", tallyMap, tt.want)
 			}
 		})
 	}
@@ -1075,7 +1075,6 @@ func TestDesignWarship(t *testing.T) {
 				Interspace10.Name:        4,
 				ArmageddonMissile.Name:   20,
 				BearNeutrinoBarrier.Name: 8,
-				Valanium.Name:            6,
 				BattleSuperComputer.Name: 3,
 				Jammer20.Name:            1,
 				MultiFunctionPod.Name:    3,

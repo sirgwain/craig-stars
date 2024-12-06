@@ -166,27 +166,27 @@ func (store *TechStore) Init() {
 }
 
 // get tech from name
-func (store *TechStore) GetTech(name string) interface{} {
+func (store *TechStore) GetTech(name string) (tech interface{}) {
 	return store.techsByName[store.transformName(name)]
 }
 
 // get engine from name
-func (store *TechStore) GetEngine(name string) *TechEngine {
+func (store *TechStore) GetEngine(name string) (engine *TechEngine) {
 	return store.enginesByName[store.transformName(name)]
 }
 
 // get hull from name
-func (store *TechStore) GetHull(name string) *TechHull {
+func (store *TechStore) GetHull(name string) (hull *TechHull) {
 	return store.hullsByName[store.transformName(name)]
 }
 
 // get hull component from name
-func (store *TechStore) GetHullComponent(name string) *TechHullComponent {
+func (store *TechStore) GetHullComponent(name string) (hullComponent *TechHullComponent) {
 	return store.hullComponentsByName[store.transformName(name)]
 }
 
 // get a list of all hulls for a given TechHullType, sorted by ranking
-func (store *TechStore) GetHullsByType(techHullType TechHullType) []*TechHull {
+func (store *TechStore) GetHullsByType(techHullType TechHullType) (hulls []*TechHull) {
 	h := slices.Clone(store.hullsByType[techHullType])
 	slices.SortStableFunc(h, func(a, b *TechHull) int { return a.Ranking - b.Ranking })
 	return h
@@ -194,8 +194,7 @@ func (store *TechStore) GetHullsByType(techHullType TechHullType) []*TechHull {
 
 // return all techs learned in the last tech level
 // TODO: remove this as recently gained techs are now tracked in players' research spec
-func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*Tech {
-	techs := []*Tech{}
+func (store *TechStore) GetTechsJustGained(player *Player, field TechField) (techs []*Tech) {
 	for _, tech := range store.techs {
 		if player.HasTech(tech) && tech.Requirements.TechLevel.LevelsAboveField(player.TechLevels, field) == 0 {
 			techs = append(techs, tech)
@@ -205,7 +204,7 @@ func (store *TechStore) GetTechsJustGained(player *Player, field TechField) []*T
 }
 
 // get list of all hull components for the specified category, sorted by ranking
-func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []TechHullComponent {
+func (store *TechStore) GetHullComponentsByCategory(category TechCategory) (hullComponents []TechHullComponent) {
 	t := slices.Clone(store.hullComponentsByCategory[category])
 	slices.SortStableFunc(t, func(a, b TechHullComponent) int { return a.Ranking - b.Ranking })
 	return t
@@ -213,7 +212,7 @@ func (store *TechStore) GetHullComponentsByCategory(category TechCategory) []Tec
 
 // get list of all techs for the specified HullSlotType(s) that can be used by a player,
 // sorted by slot type & ranking
-func (store *TechStore) GetHullComponentsByHullSlotType(player *Player, slot HullSlotType, hullName string) []*TechHullComponent {
+func (store *TechStore) GetHullComponentsByHullSlotType(player *Player, slot HullSlotType, hullName string) (hullComponents []*TechHullComponent) {
 	tracker := map[*TechHullComponent]bool{}
 	parts := map[HullSlotType][]*TechHullComponent{}
 	list := []*TechHullComponent{}
@@ -231,8 +230,8 @@ func (store *TechStore) GetHullComponentsByHullSlotType(player *Player, slot Hul
 	slices.SortStableFunc(v, func(a, b []*TechHullComponent) int {
 		return int(a[0].HullSlotType) - int(b[0].HullSlotType)
 		// Since maps.Values returns a slice of slices corresponding to
-		// the TechHullComponents we can use sorted by HullSlotType,
-		// we can sort them by only checking the first 2 component's slot types
+		// the TechHullComponents we can use for each HullSlotType,
+		// we can sort them by only checking the first 2 components' slot types
 	})
 	for _, l := range v {
 		slices.SortStableFunc(l, func(a, b *TechHullComponent) int { return a.Ranking - b.Ranking })
@@ -242,9 +241,9 @@ func (store *TechStore) GetHullComponentsByHullSlotType(player *Player, slot Hul
 }
 
 // get the player's best planetary scanner
-func (store *TechStore) GetBestPlanetaryScanner(player *Player) *TechPlanetaryScanner {
+func (store *TechStore) GetBestPlanetaryScanner(player *Player) (bestTech *TechPlanetaryScanner) {
 	// needed to prevent AR & co from crashing
-	bestTech := &store.PlanetaryScanners[0]
+	bestTech = &store.PlanetaryScanners[0]
 	for _, tech := range store.PlanetaryScanners {
 		if !player.HasTech(&tech.Tech) || tech.ScanRange <= 0 {
 			continue
@@ -258,9 +257,9 @@ func (store *TechStore) GetBestPlanetaryScanner(player *Player) *TechPlanetarySc
 }
 
 // get the player's best defense installation
-func (store *TechStore) GetBestDefense(player *Player) *TechDefense {
+func (store *TechStore) GetBestDefense(player *Player) (bestTech *TechDefense) {
 	// needed to prevent AR & co from crashing
-	bestTech := &store.Defenses[0]
+	bestTech = &store.Defenses[0]
 	for _, tech := range store.Defenses {
 		if !player.HasTech(&tech.Tech) || tech.DefenseCoverage <= 0 {
 			continue
@@ -274,8 +273,7 @@ func (store *TechStore) GetBestDefense(player *Player) *TechDefense {
 }
 
 // get the player's best terraforming technology for the specified HabType
-func (store *TechStore) GetBestTerraform(player *Player, terraformHabType TerraformHabType) *TechTerraform {
-	var bestTech *TechTerraform
+func (store *TechStore) GetBestTerraform(player *Player, terraformHabType TerraformHabType) (bestTech *TechTerraform) {
 	for _, tech := range store.Terraforms {
 		if !player.HasTech(&tech.Tech) || tech.HabType != terraformHabType {
 			continue
@@ -289,8 +287,7 @@ func (store *TechStore) GetBestTerraform(player *Player, terraformHabType Terraf
 }
 
 // get the player's best regular engine for normal ship use
-func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) *TechEngine {
-	var bestEngine *TechEngine
+func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose FleetPurpose) (bestTech *TechEngine) {
 	for _, engine := range store.Engines {
 		// if this tech is not allowed on our hull (like the Settler's Delight on normal ships) skip it
 		if !player.HasTech(&engine.Tech) ||
@@ -303,18 +300,17 @@ func (store *TechStore) GetBestEngine(player *Player, hull *TechHull, purpose Fl
 			continue
 		}
 
-		if bestEngine == nil || engine.Ranking > bestEngine.Ranking {
-			bestEngine = &engine
+		if bestTech == nil || engine.Ranking > bestTech.Ranking {
+			bestTech = &engine
 		}
 	}
-	return bestEngine
+	return bestTech
 }
 
 // get the player's best battle engine for warships
-func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull, qty int) *TechEngine {
-	var bestTech *TechEngine
+func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull, qty int) (bestTech *TechEngine) {
 	for _, engine := range store.Engines {
-		// if this tech is not allowed on our hull (like the Settler's Delight on normal ships) skip it
+		// if this engine is not allowed on our hull (like the Settler's Delight on normal ships) skip it
 		if !player.HasTech(&engine.Tech) ||
 			(len(engine.Requirements.HullsAllowed) > 0 && !slices.Contains(engine.Requirements.HullsAllowed, hull.Name)) ||
 			(len(engine.Requirements.HullsDenied) > 0 && slices.Contains(engine.Requirements.HullsDenied, hull.Name)) {
@@ -329,8 +325,8 @@ func (store *TechStore) GetBestBattleEngine(player *Player, hull *TechHull, qty 
 
 		// if engine has higher ideal speed than the current selected part, use it
 		// ties are broken by the part's ranking (which leans towards cost & fuel efficiency)
-		engineSpeed := float64(engine.IdealSpeed) + engine.MovementBonus*float64(qty)
-		bestSpeed := float64(bestTech.IdealSpeed) + bestTech.MovementBonus*float64(qty)
+		engineSpeed := float64(engine.IdealSpeed-2) + engine.MovementBonus*float64(qty)
+		bestSpeed := float64(bestTech.IdealSpeed-2) + bestTech.MovementBonus*float64(qty)
 		if engineSpeed > bestSpeed ||
 			(engineSpeed == bestSpeed && engine.TechHullComponent.Ranking > bestTech.TechHullComponent.Ranking) {
 			bestTech = &engine
