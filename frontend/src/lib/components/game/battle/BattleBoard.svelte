@@ -90,7 +90,7 @@
 						</div>
 					</div>
 				{/if}
-				{#if target && selectedToken === actionToken}
+				{#if target && selectedToken?.num === actionToken?.num}
 					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">Target</h2>

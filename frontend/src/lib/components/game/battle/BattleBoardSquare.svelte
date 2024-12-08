@@ -25,7 +25,9 @@
 	}: Props = $props();
 
 	let targetTokenIndex = $derived(tokens?.findIndex((t) => t.target));
-	let selectedTokenIndex = $derived(selectedToken && tokens?.indexOf(selectedToken));
+	let selectedTokenIndex = $derived(
+		selectedToken && tokens?.findIndex((t) => t.num === selectedToken.num)
+	);
 	let tokenIndex = $derived(
 		targetTokenIndex && targetTokenIndex != -1
 			? targetTokenIndex
