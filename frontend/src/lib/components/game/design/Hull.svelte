@@ -18,7 +18,7 @@
 		highlightedClass?: string;
 		cargoCapacity?: number;
 		showTooltips?: boolean;
-		onslotclicked?: (
+		onSlotClicked?: (
 			index: number,
 			hullSlot: HullSlot,
 			shipDesignSlot: ShipDesignSlot | undefined
@@ -32,7 +32,7 @@
 		highlightedClass = '',
 		cargoCapacity = hull.cargoCapacity ?? 0,
 		showTooltips = true,
-		onslotclicked
+		onSlotClicked: onSlotClicked
 	}: Props = $props();
 </script>
 
@@ -92,13 +92,13 @@
 				highlighted={highlightedSlots.findIndex((s) => s === index) !== -1}
 				{highlightedClass}
 				{showTooltips}
-				onclick={() => {
-					onslotclicked?.(index, slot, shipDesignSlot);
+				onClick={() => {
+					onSlotClicked?.(index, slot, shipDesignSlot);
 				}}
-				ondelete={() => {
+				onDelete={() => {
 					shipDesignSlots = shipDesignSlots.filter((s) => s != shipDesignSlot);
 				}}
-				onupdate={() => {
+				onUpdate={() => {
 					shipDesignSlots = shipDesignSlots;
 				}}
 			/>

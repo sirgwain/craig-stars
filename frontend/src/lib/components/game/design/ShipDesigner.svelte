@@ -203,7 +203,7 @@
 					{highlightedSlots}
 					highlightedClass={'border-accent'}
 					showTooltips={false}
-					onslotclicked={slotClicked}
+					onSlotClicked={slotClicked}
 				/>
 			</div>
 			<div class="flex flex-row justify-between pl-2">

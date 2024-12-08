@@ -101,7 +101,7 @@
 				<div class="w-32 text-tile-item-title">Cargo:</div>
 				<div class="grow">
 					<CargoBar
-						onpointerdown={() => transfer()}
+						onPointerDown={() => transfer()}
 						canTransferCargo={canTransferCargo(fleet, $universe)}
 						value={fleet.cargo}
 						capacity={fleet.spec?.cargoCapacity}

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { getContext } from 'svelte';
+	import { getContext, type Snippet } from 'svelte';
 	import TestBreadcrumb from './TestBreadcrumb.svelte';
 	type Props = {
-		children?: import('svelte').Snippet;
+		children?: Snippet;
 	};
 
 	let { children }: Props = $props();

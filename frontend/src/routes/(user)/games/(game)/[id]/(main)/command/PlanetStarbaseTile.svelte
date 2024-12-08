@@ -125,10 +125,10 @@
 							max={(planet.spec.basePacketSpeed ?? 0) + $game.rules.packetMaxOverwarpSpeed}
 							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}
 							dangerSpeed={(planet.spec.safePacketSpeed ?? 0) + 3}
-							onvaluedragged={(warpSpeed) => {
+							onValueDragged={(warpSpeed) => {
 								planet.packetSpeed = warpSpeed;
 							}}
-							onvaluechanged={(warpSpeed) => {
+							onValueChanged={(warpSpeed) => {
 								planet.packetSpeed = warpSpeed;
 								onChangeMassDriverSpeed?.({ planet, warpSpeed });
 							}}

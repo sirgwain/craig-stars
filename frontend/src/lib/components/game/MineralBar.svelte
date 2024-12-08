@@ -9,7 +9,7 @@
 		color?: string;
 		unit?: string;
 		readonly?: boolean;
-		onvaluechanged?: (value: number) => void;
+		onValueChanged?: (value: number) => void;
 	};
 	import { getXFromPointerEvent } from '$lib/services/Events';
 
@@ -21,7 +21,7 @@
 		color = 'ironium-bar',
 		unit = 'kT',
 		readonly = false,
-		onvaluechanged
+		onValueChanged: onValueChanged
 	}: Props = $props();
 
 	let percent = $derived(capacity > 0 ? (value / capacity) * 100 : 0);
@@ -101,7 +101,7 @@
 		let newValue = clamp(Math.round(x * capacity), min, max);
 		if (newValue != value) {
 			value = newValue;
-			onvaluechanged?.(value);
+			onValueChanged?.(value);
 		}
 	}
 </script>

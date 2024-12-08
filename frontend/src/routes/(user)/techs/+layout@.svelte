@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Menu from '$lib/components/Menu.svelte';
 	import { me } from '$lib/services/Stores';
+	import type { Snippet } from 'svelte';
 	type Props = {
-		children?: import('svelte').Snippet;
+		children?: Snippet;
 	};
 
 	let { children }: Props = $props();

@@ -2,11 +2,12 @@
 	import { getCarouselContext } from '$lib/services/CarouselContext';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import type { Snippet } from 'svelte';
 	import { readable } from 'svelte/store';
 
 	type Props = {
 		title?: string;
-		children?: import('svelte').Snippet;
+		children?: Snippet;
 	};
 
 	let { title = '', children }: Props = $props();

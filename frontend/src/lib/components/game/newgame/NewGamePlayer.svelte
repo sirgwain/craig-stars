@@ -17,10 +17,10 @@
 	type Props = {
 		player: NewGamePlayer;
 		index: number;
-		onremove: () => void;
+		onRemove: () => void;
 	};
 
-	let { player = $bindable(), index, onremove }: Props = $props();
+	let { player = $bindable(), index, onRemove: onRemove }: Props = $props();
 </script>
 
 {#if player}
@@ -45,7 +45,7 @@
 					{/if}
 				</div>
 				<div class="my-auto mx-1">
-					<button onclick={onremove} type="button" class="btn btn-outline btn-sm my-1 normal-case"
+					<button onclick={onRemove} type="button" class="btn btn-outline btn-sm my-1 normal-case"
 						><Icon size="16" src={XMark} /></button
 					>
 				</div>

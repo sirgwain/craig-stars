@@ -1,7 +1,9 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+
 	type Props = {
-		crumbs?: import('svelte').Snippet;
-		end?: import('svelte').Snippet;
+		crumbs?: Snippet;
+		end?: Snippet;
 	};
 
 	let { crumbs, end }: Props = $props();

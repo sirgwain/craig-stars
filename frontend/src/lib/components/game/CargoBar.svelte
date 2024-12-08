@@ -5,7 +5,7 @@
 		value?: Cargo;
 		capacity?: number | undefined;
 		canTransferCargo?: boolean;
-		onpointerdown?: (e: PointerEvent) => void | undefined;
+		onPointerDown?: (e: PointerEvent) => void | undefined;
 	};
 
 	let {
@@ -17,14 +17,14 @@
 		},
 		capacity = 0,
 		canTransferCargo = false,
-		onpointerdown
+		onPointerDown: onPointerDown
 	}: Props = $props();
 
 	let percent: Cargo = $derived(cargoPercent(value, capacity));
 </script>
 
 <div
-	onpointerdown={(e) => (canTransferCargo && onpointerdown ? onpointerdown(e) : undefined)}
+	onpointerdown={(e) => (canTransferCargo && onPointerDown ? onPointerDown(e) : undefined)}
 	class="border border-secondary h-[1rem] text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={canTransferCargo}
 >

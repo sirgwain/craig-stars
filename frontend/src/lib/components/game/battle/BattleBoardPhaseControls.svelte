@@ -11,18 +11,18 @@
 	type Props = {
 		phase: number;
 		battle: Battle;
-		onphaseupdated?: (phase: number) => void;
+		onPhaseUpdated?: (phase: number) => void;
 	};
 
-	let { phase = $bindable(), battle, onphaseupdated }: Props = $props();
+	let { phase = $bindable(), battle, onPhaseUpdated: onPhaseUpdated }: Props = $props();
 
 	const previous = () => {
 		phase--;
-		onphaseupdated?.(phase);
+		onPhaseUpdated?.(phase);
 	};
 	const next = () => {
 		phase++;
-		onphaseupdated?.(phase);
+		onPhaseUpdated?.(phase);
 	};
 	const nextAttack = () => {
 		const nextPhase = battle.actions.findIndex(
@@ -33,16 +33,16 @@
 		if (nextPhase != -1) {
 			phase = nextPhase + 1;
 		}
-		onphaseupdated?.(phase);
+		onPhaseUpdated?.(phase);
 	};
 
 	const begin = () => {
 		phase = 0;
-		onphaseupdated?.(phase);
+		onPhaseUpdated?.(phase);
 	};
 	const end = () => {
 		phase = battle.totalPhases;
-		onphaseupdated?.(phase);
+		onPhaseUpdated?.(phase);
 	};
 </script>
 

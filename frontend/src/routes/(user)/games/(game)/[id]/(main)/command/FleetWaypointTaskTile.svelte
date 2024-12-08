@@ -247,8 +247,8 @@
 			<span class="text-tile-item-title">Warp Factor</span>
 			<span class="flex-1 ml-1">
 				<WarpSpeedGauge
-					onvaluechanged={(value) => onPatrolWarpSpeedChanged(value)}
-					onvaluedragged={(value) => onPatrolWarpSpeedDragged(value)}
+					onValueChanged={(value) => onPatrolWarpSpeedChanged(value)}
+					onValueDragged={(value) => onPatrolWarpSpeedDragged(value)}
 					value={waypoint.patrolWarpSpeed}
 					warnSpeed={fleet.spec.engine.maxSafeSpeed
 						? fleet.spec.engine.maxSafeSpeed + 1

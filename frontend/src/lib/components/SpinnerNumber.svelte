@@ -9,10 +9,17 @@
 		min?: number;
 		max?: number;
 		unit?: string;
-		onchange?: (value: number) => void;
+		onChange?: (value: number) => void;
 	};
 
-	let { value = $bindable(), step = 1, min = 0, max = 100, unit = '', onchange }: Props = $props();
+	let {
+		value = $bindable(),
+		step = 1,
+		min = 0,
+		max = 100,
+		unit = '',
+		onChange: onChange
+	}: Props = $props();
 
 	function increase(e: MouseEvent | PointerEvent) {
 		value = clamp(
@@ -20,7 +27,7 @@
 			min,
 			max
 		);
-		onchange?.(value);
+		onChange?.(value);
 	}
 
 	function decrease(e: MouseEvent | PointerEvent) {
@@ -29,7 +36,7 @@
 			min,
 			max
 		);
-		onchange?.(value);
+		onChange?.(value);
 	}
 </script>
 

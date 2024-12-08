@@ -4,6 +4,7 @@
 	import HomePage from '$lib/components/HomePage.svelte';
 	import { me } from '$lib/services/Stores';
 	import { UserStatus } from '$lib/types/User';
+	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
 
 	import '../css/app.css';
@@ -12,7 +13,7 @@
 	import '../css/planets.css';
 	import '../css/techs.css';
 	type Props = {
-		children?: import('svelte').Snippet;
+		children?: Snippet;
 	};
 
 	let { children }: Props = $props();

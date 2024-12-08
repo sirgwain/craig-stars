@@ -18,8 +18,8 @@
 		useStargate?: boolean;
 		isPacket?: boolean;
 		warp0Text?: string;
-		onvaluedragged?: (value: number) => void;
-		onvaluechanged?: (value: number) => void;
+		onValueDragged?: (value: number) => void;
+		onValueChanged?: (value: number) => void;
 	};
 
 	let {
@@ -37,8 +37,8 @@
 		useStargate = false,
 		isPacket = false,
 		warp0Text = 'Warp 0',
-		onvaluedragged,
-		onvaluechanged
+		onValueDragged: onValueDragged,
+		onValueChanged: onValueChanged
 	}: Props = $props();
 
 	let percent = $derived(max > 0 ? ((value ?? 0) / max) * 100 : 0);
@@ -80,7 +80,7 @@
 		document.body.classList.remove('select-none', 'touch-none');
 		document.body.classList.add('touch-manipulation');
 		pointerDown = false;
-		onvaluechanged?.(value);
+		onValueChanged?.(value);
 	}
 
 	const onPointerMove = (e: PointerEvent) => {
@@ -130,7 +130,7 @@
 		const newValue = clamp(Math.round(x * max), min, max);
 		if (newValue != value) {
 			value = newValue;
-			onvaluedragged?.(value);
+			onValueDragged?.(value);
 		}
 	};
 </script>

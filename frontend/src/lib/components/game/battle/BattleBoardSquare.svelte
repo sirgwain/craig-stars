@@ -13,10 +13,16 @@
 		phase: number;
 		selectedToken: PhaseToken | undefined;
 		selected?: boolean;
-		onselected?: (token: PhaseToken) => void;
+		onSelected?: (token: PhaseToken) => void;
 	};
 
-	let { tokens = undefined, phase, selectedToken, selected = false, onselected }: Props = $props();
+	let {
+		tokens = undefined,
+		phase,
+		selectedToken,
+		selected = false,
+		onSelected: onSelected
+	}: Props = $props();
 
 	let targetTokenIndex = $derived(tokens?.findIndex((t) => t.target));
 	let selectedTokenIndex = $derived(selectedToken && tokens?.indexOf(selectedToken));
@@ -77,7 +83,7 @@
 			onclick={() => {
 				if (tokens) {
 					const newTokenIndex = selected ? (tokenIndex + 1) % (tokens?.length ?? 0) : tokenIndex;
-					onselected?.(tokens[newTokenIndex]);
+					onSelected?.(tokens[newTokenIndex]);
 				}
 			}}
 		></button>

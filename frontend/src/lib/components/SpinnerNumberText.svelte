@@ -11,7 +11,7 @@
 		unit?: string;
 		begin?: Snippet;
 		end?: Snippet;
-		onchange?: (value: number) => void;
+		onChange?: (value: number) => void;
 	} & Omit<HTMLAttributes<HTMLDivElement>, 'onchange'>;
 
 	let {
@@ -22,7 +22,7 @@
 		unit = '',
 		begin,
 		end,
-		onchange,
+		onChange: onChange,
 		...rest
 	}: Props = $props();
 </script>
@@ -31,7 +31,7 @@
 	<div class="my-auto align-middle">
 		{@render begin?.()}
 	</div>
-	<SpinnerNumber bind:value {onchange} {min} {max} {step} {unit} />
+	<SpinnerNumber bind:value onChange={onChange} {min} {max} {step} {unit} />
 	<div class="my-auto align-middle">
 		{@render end?.()}
 	</div>

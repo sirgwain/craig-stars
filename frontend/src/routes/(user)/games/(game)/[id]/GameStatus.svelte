@@ -2,12 +2,13 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import type { Game } from '$lib/types/Game';
+	import type { Snippet } from 'svelte';
 	import PlayersStatus from './players/PlayersStatus.svelte';
 
 	type Props = {
 		game: Game;
 		title: string;
-		children?: import('svelte').Snippet;
+		children?: Snippet;
 	};
 
 	let { game, title, children }: Props = $props();

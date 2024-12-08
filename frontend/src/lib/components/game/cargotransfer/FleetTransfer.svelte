@@ -13,11 +13,11 @@
 		cargoCapacity: number;
 		fuelCapacity: number;
 		allowFuelTransfers?: boolean;
-		ontransferfuel?: (amount: number) => void;
-		ontransferironium?: (amount: number) => void;
-		ontransferboranium?: (amount: number) => void;
-		ontransfergermanium?: (amount: number) => void;
-		ontransfercolonists?: (amount: number) => void;
+		onTransferFuel?: (amount: number) => void;
+		onTransferIronium?: (amount: number) => void;
+		onTransferBoranium?: (amount: number) => void;
+		onTransferGermanium?: (amount: number) => void;
+		onTransferColonists?: (amount: number) => void;
 	};
 
 	let {
@@ -26,11 +26,11 @@
 		cargoCapacity = 0,
 		fuelCapacity = 0,
 		allowFuelTransfers = false,
-		ontransferfuel,
-		ontransferironium,
-		ontransferboranium,
-		ontransfergermanium,
-		ontransfercolonists
+		onTransferFuel: onTransferVuel,
+		onTransferIronium: onFransferIronium,
+		onTransferBoranium: onTransferBoranium,
+		onTransferGermanium: onTransferGermanium,
+		onTransferColonists: onTransferColonists
 	}: Props = $props();
 </script>
 
@@ -43,7 +43,7 @@
 			color="fuel-bar"
 			unit="mg"
 			readonly={!allowFuelTransfers}
-			onvaluechanged={(value) => ontransferfuel?.(value - (cargo.fuel + transferAmount.fuel))}
+			onValueChanged={(value) => onTransferVuel?.(value - (cargo.fuel + transferAmount.fuel))}
 		/>
 	</div>
 
@@ -60,8 +60,8 @@
 			value={cargo.ironium + transferAmount.ironium}
 			capacity={cargoCapacity}
 			color="ironium-bar"
-			onvaluechanged={(value) =>
-				ontransferironium?.(value - (cargo.ironium + transferAmount.ironium))}
+			onValueChanged={(value) =>
+				onFransferIronium?.(value - (cargo.ironium + transferAmount.ironium))}
 		/>
 	</div>
 	<div class="sm:text-right mr-1 h-8">Boranium</div>
@@ -70,8 +70,8 @@
 			value={cargo.boranium + transferAmount.boranium}
 			capacity={cargoCapacity}
 			color="boranium-bar"
-			onvaluechanged={(value) =>
-				ontransferboranium?.(value - (cargo.boranium + transferAmount.boranium))}
+			onValueChanged={(value) =>
+				onTransferBoranium?.(value - (cargo.boranium + transferAmount.boranium))}
 		/>
 	</div>
 	<div class="sm:text-right mr-1 h-8">Germanium</div>
@@ -80,8 +80,8 @@
 			value={cargo.germanium + transferAmount.germanium}
 			capacity={cargoCapacity}
 			color="germanium-bar"
-			onvaluechanged={(value) =>
-				ontransfergermanium?.(value - (cargo.germanium + transferAmount.germanium))}
+			onValueChanged={(value) =>
+				onTransferGermanium?.(value - (cargo.germanium + transferAmount.germanium))}
 		/>
 	</div>
 
@@ -91,8 +91,8 @@
 			value={cargo.colonists + transferAmount.colonists}
 			capacity={cargoCapacity}
 			color="colonists-bar"
-			onvaluechanged={(value) =>
-				ontransfercolonists?.(value - (cargo.colonists + transferAmount.colonists))}
+			onValueChanged={(value) =>
+				onTransferColonists?.(value - (cargo.colonists + transferAmount.colonists))}
 		/>
 	</div>
 </div>

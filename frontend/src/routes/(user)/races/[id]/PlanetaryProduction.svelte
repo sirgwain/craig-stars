@@ -29,7 +29,7 @@
 		<SpinnerNumberText
 			step={100}
 			value={race.popEfficiency * 100}
-			onchange={updatePopEfficiency}
+			onChange={updatePopEfficiency}
 			min={700}
 			max={2500}
 		>

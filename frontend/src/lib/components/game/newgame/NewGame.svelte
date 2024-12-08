@@ -127,7 +127,7 @@
 		<NewGamePlayer
 			bind:player={settings.players[i]}
 			index={i + 1}
-			onremove={() => removePlayer(player)}
+			onRemove={() => removePlayer(player)}
 		/>
 	{/each}
 

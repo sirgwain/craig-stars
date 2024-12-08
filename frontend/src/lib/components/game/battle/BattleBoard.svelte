@@ -36,7 +36,7 @@
 								{selectedToken}
 								tokens={battle.getTokensAtLocation(phase, x, y)}
 								selected={selectedToken?.x === x && selectedToken?.y === y}
-								onselected={(token) => {
+								onSelected={(token) => {
 									selectedToken = token;
 								}}
 							/>
@@ -47,7 +47,7 @@
 					<BattleBoardPhaseControls
 						{battle}
 						bind:phase
-						onphaseupdated={(updatedPhase) => {
+						onPhaseUpdated={(updatedPhase) => {
 							phase = updatedPhase;
 							const newAction = battle.getActionForPhase(phase);
 							selectedToken = newAction?.tokenNum

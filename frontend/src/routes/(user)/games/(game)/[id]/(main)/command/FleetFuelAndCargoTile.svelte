@@ -40,7 +40,7 @@
 			<div class="w-12 text-tile-item-title">Cargo</div>
 			<div class="ml-1 h-full w-full">
 				<CargoBar
-					onpointerdown={transfer}
+					onPointerDown={transfer}
 					canTransferCargo={canTransferCargo(fleet, $universe)}
 					value={fleet.cargo}
 					capacity={fleet.spec.cargoCapacity}

@@ -16,9 +16,9 @@
 		highlighted?: boolean;
 		highlightedClass?: string;
 		showTooltips?: boolean;
-		onclick?: () => void;
-		ondelete?: () => void;
-		onupdate?: () => void;
+		onClick?: () => void;
+		onDelete?: () => void;
+		onUpdate?: () => void;
 	};
 
 	let {
@@ -29,9 +29,9 @@
 		highlighted = false,
 		highlightedClass = 'border-accent',
 		showTooltips = false,
-		onclick,
-		ondelete,
-		onupdate
+		onClick: onclick,
+		onDelete: onDelete,
+		onUpdate: onUpdate
 	}: Props = $props();
 
 	function typeDescription() {
@@ -122,16 +122,16 @@
 			if (shipDesignSlot?.quantity != undefined) {
 				shipDesignSlot.quantity--;
 				if (shipDesignSlot.quantity === 0) {
-					ondelete?.();
+					onDelete?.();
 				} else {
-					onupdate?.();
+					onUpdate?.();
 				}
 			}
 		}}
 	>
 		<Icon src={Minus} size="24" class="hover:stroke-accent" />
 	</button>
-	<button type="button" class="btn btn-sm px-1 z-30" onclick={ondelete}>
+	<button type="button" class="btn btn-sm px-1 z-30" onclick={onDelete}>
 		<Icon src={Trash} size="24" class="hover:stroke-accent" />
 	</button>
 </div>

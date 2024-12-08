@@ -88,7 +88,7 @@
 			max={100}
 			step={1}
 			unit="%"
-			onchange={onUpdatePlayer}
+			onChange={onUpdatePlayer}
 		>
 			{#snippet begin()}
 				Research Budget
