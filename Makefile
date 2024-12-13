@@ -46,8 +46,12 @@ build_thing := go build \
 run: clean build dev 
 
 images:
-	cd frontend/static; $(call download,https://craig-stars.net/images/images.zip,images.zip);$(call unzip,images.zip);$(call rm,images.zip)
-	# @sirgwain: pls remove the _MACOSX zip from the images zip file thx 
+	cd frontend/static;\
+	$(call rm,./images);\
+	$(call download,https://craig-stars.net/images/images.zip,images.zip);\
+	$(call unzip,images.zip);\
+	$(call rm,images.zip)
+	# @sirgwain: please remove the _MACOSX zip from the images zip file and delete these 2 lines afterwards 
 	$(call rm, frontend/static/_MACOSX.zip)
 
 build: build_frontend tidy vendor generate build_wasm build_server
