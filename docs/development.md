@@ -30,20 +30,19 @@ From there, you can install `make` and `node.js` (which includes npm) fairly eas
 
 If you're on Windows, *make sure to have Powershell installed and in your PATH* for the makefile to function correctly. In 99% of cases, this shouldn't be an issue (powershell is bundled with all currently supported Windows versions to date and has been the default shell since Windows 10), but if your machine somehow doesn't have it, use winget in command prompt (`winget install --id Microsoft.PowerShell --source winget`) to install the latest version. (On Mac/Linux, any terminal should be fine as long as it supports the `mkdir`, `rm`, `cp` and `date` instructions.)
 
-### GCC
+## GCC
 Additionally, the [go-sqlite3](https://github.com/mattn/go-sqlite3) package `craig-stars` relies on for databasing itself requires the [GNU compiler collection](https://gcc.gnu.org/) to run. You **will** need GCC installed and built to run `craig-stars` locally!
 
 On Linux/Mac, you can simply download the latest version of the GCC compilers using whatever package software you installed previously and build it from there. However, on Windows, you'll need to install a Linux-like development interface (use [MinGW64](https://www.mingw-w64.org/) - Cygwin64 has been known to cause issues) to install/build the latest GCC version due to file type restrictions.
 
 ## Assets
-You will need art assets for ships and planets - otherwise they'll just look like black boxes. 
-NEW: You can now download images via command line via makefile! (This requires wget on linux)
+You will need art assets for ships and planets - otherwise they'll just look like black boxes.Thankfully, you can now download the images with a single makefile command! (Since the image files are stored on the cloud, this requires an internet connection.) 
 ```bash
 make images
 ```
-If that doesn't work, you'll have to download the image files manually - download and extract the images from [https://craig-stars.net/images/images.zip](https://craig-stars.net/images/images.zip) into `frontend/static/images`.
+The command will clear out the previous images folder before downloading and extracting `images.zip` (https://craig-stars.net/images/images.zip) into `frontend/static/images`
 
-**You only ever need to download the images once.** 
+**You only ever need to download the image files once.** 
 Of course, if any new items or icons come along that need to be downloaded, you'll need to update it with the new files if you want to see them in local host. 
 
 ## Installing Air
@@ -67,10 +66,7 @@ make run
 
 If done correctly, it should give a localhost link (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will re-launch the backend automatically (via air), while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
 
-# Visual Studio Code 
-[VS Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use frontend and backend plugins without issue in the same repo. It also comes with a built in terminal, debugging support, and an array of assorted bells and whistles useful for general software development.
-
-## backend
+### Backend/Frontend only
 To launch the backend separately from the frontend, you can call `air` directly (or equivalently, run the `dev_backend` makefile recipe which does just that). 
 
 ```bash
@@ -98,40 +94,21 @@ running...
 7:47AM DBG Debug logging enabled
 ```
 
-## frontend
 If one wants to exclusively launch the frontend, it can be run in development mode with npm:
 
 ```bash
 make dev_frontend
 ```
 
+# Visual Studio Code 
+[VS Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use frontend and backend plugins without issue in the same repo. It also comes with a built in terminal, debugging support, and an array of assorted bells and whistles useful for general software development.
+
 ## Testing
-While manual local dev testing is good, software testing & debugging are also crucial to ensure things run (and continue to run) smoothly. For running the actual tests, you have many different options:
-* Run `make test` to run all the tests at once (great for overall checks to make sure everything works, bad for debugging due to the log messages drowning out everything else)
-* Run tests via command line (`go test` and `npm run test` for frontend/backend respectively, followed by the specific test name(s) for specific coverage)
-* Run/debug using the Testing panel in the activity bar - tests can be filtered by result, directory, etc.
-* Run/debug using the little buttons displayed in test files and next to test functions.
+While manual local dev testing is good, software testing & debugging are also crucial to ensure things run (and continue to run) smoothly. After writing new or updating existing tests, there are several options as for how to run them:
+* Run `make test` to run all the tests at once (great for overall checks to make sure everything works, bad for specific debugging)
+* Run tests via command line (`go test` and `npm run test` for frontend/backend respectively, followed by the specific test file name(s) for specific coverage)
+* Run/debug using the Testing panel in the activity bar - tests can be filtered by result, directory, etc. 
+* Run/debug using the small buttons displayed in test files and next to test functions.
 
-**Note: Universe generation creates a _lot_ of log messages. Any tests run immediately before tests that invoke universe generation will likely have their failure messages overwritten. You have been warned.**
-
-<!-- NOTE: Maybe move this to a separate tab? -->
 # Troubleshooting
-"I try to click on the login button on localhost using the admin credentials and it does nothing! Also, an error pops up in my terminal!"
-
-You probably aren't running the backend. Open a new terminal tab and type `air` to build the backend needed to handle all the nitty gritty logic stuff.
-
-"When I run air, my computer complains about undefined Sqlite Drivers!"
-
-See the [GCC](#gcc) section for info on how to install `go-sqlite3` and `GCC`.
-
-"When I run make build, I get an obscure error about 'executable not found in %PATH%' or 'build target excluding all files in XXX'!"
-What's probably happening is you're trying to generate go files or build the server with the incorrect GOARCH and GOOS settings. Try running `go env -u GOOS GOARCH` to reset them to their defaults and see if the problems persist.
-
-"When I boot up the server, all the ships have no icons!"
-See [Assets](#assets) for information on how to download art assets.
-
-"I tried to do all of the above, but I'm still getting errors in the command line!"
-Consult this ordered checklist of vague general suggestions:
-1. Read the error message to try and figure out why it's failing. Make (as it's being used here) effectively just copy-pastes its commands into the terminal one by one (expanding variables here and there), so errors in the terminal can be a symptom of bad or incorrect launch commands.
-2. Try and search online for the error message or similar problems to see if others may have found solutions to the problem for you. 
-3. If all else fails, reach out in the #stars-clones or #craig-stars channels in the discord (ideally with images/text of the commands used and/or the resulting error messages - vague comments like "AAA MY BUILD IS BORKING" tend to be hard to troubleshoot).
+See [Common Problems](faq#common-problems) in the FAQ for solutions to some common local dev issues.
