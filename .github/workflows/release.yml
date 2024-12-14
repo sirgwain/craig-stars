@@ -81,7 +81,7 @@ jobs:
       - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
 
       # upload the dist folder to github's artifacts
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v3
         with:
           name: dist-artifacts
           path: ./dist/*.tgz
