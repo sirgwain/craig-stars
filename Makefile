@@ -13,7 +13,8 @@ BINARY_NAME := craig-stars.exe
 mkdir = if ( -not ( Test-Path $(1) ) ) { mkdir "$(1)" }
 rm = if ( Test-Path $(1) ) { rm -Recurse -Force "$(1)" }
 cp = Copy-Item -Path "$(1)" -Destination "$(2)" -Force
-
+download = Invoke-WebRequest -Uri "$(1)" -OutFile "$(2)"
+unzip = Expand-Archive -LiteralPath "$(1)" -DestinationPath "./"
 else
 # Unix commands
 BUILDTIME := $$(date +'%y.%m.%d %H:%M:%S')
@@ -21,6 +22,8 @@ BINARY_NAME := craig-stars
 mkdir = mkdir -p $(1)
 rm = rm -rf $(1)
 cp = cp $(1) $(2)
+download = curl -q $(1) -o $(2)
+unzip = unzip $(1)
 endif
 
 # replaces backslashes with unix-style frontslashes 
@@ -37,10 +40,18 @@ build_thing := go build \
 	main.go
 
 # always redo these
-.PHONY: run build test clean dev dev_backend dev_frontend
+.PHONY: run images build test clean dev dev_backend dev_frontend
 
+# clean, deploy and launch all in 1 command
 run: clean build dev 
-	
+
+images:
+	cd frontend/static;\
+	$(call rm,./images);\
+	$(call download,https://craig-stars.net/images/images.zip,images.zip);\
+	$(call unzip,images.zip);\
+	$(call rm,images.zip)
+
 build: build_frontend tidy vendor generate build_wasm build_server
 
 build_frontend:
