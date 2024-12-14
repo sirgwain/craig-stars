@@ -1,10 +1,14 @@
 <script lang="ts">
 	import { getHabChance, type Race } from '$lib/types/Race';
 
-	export let race: Race;
+	type Props = {
+		race: Race;
+	};
 
-	$: habChance = getHabChance(race);
-	$: approximateHabitablePlanetRatio = Math.floor(1 / habChance);
+	let { race }: Props = $props();
+
+	let habChance = $derived(getHabChance(race));
+	let approximateHabitablePlanetRatio = $derived(Math.floor(1 / habChance));
 </script>
 
 {#if habChance == 1}

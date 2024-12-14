@@ -1,32 +1,25 @@
-<script lang="ts" context="module">
-	import { type MapObject } from '$lib/types/MapObject';
-	export type SearchDialogEvent = {
-		'select-result': MapObject | undefined;
-	};
-</script>
-
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-	import SearchResults from './SearchResults.svelte';
 	import { clickOutside } from '$lib/clickOutside';
+	import type { OnCancel, OnOk } from '$lib/services/Events';
+	import { type MapObject } from '$lib/types/MapObject';
+	import SearchResults from './SearchResults.svelte';
 
-	const dispatch = createEventDispatcher<SearchDialogEvent>();
+	type Props = {
+		show?: boolean;
+		onOk: OnOk<MapObject | undefined>;
+		onCancel: OnCancel;
+	};
 
-	export let show = false;
-
-	function onOk(mo: MapObject | undefined) {
-		show = false;
-		dispatch('select-result', mo);
-	}
+	let { show = false, onOk, onCancel }: Props = $props();
 </script>
 
 <div class="modal" class:modal-open={show}>
 	<div
 		class="modal-box max-w-full max-h-max h-full w-full md:max-w-[40rem] md:max-h-[48rem] p-2"
-		use:clickOutside={() => (show = false)}
+		use:clickOutside={onCancel}
 	>
 		{#if show}
-			<SearchResults on:ok={(e) => onOk(e.detail)} on:cancel={() => (show = false)} />
+			<SearchResults {onOk} {onCancel} />
 		{/if}
 	</div>
 </div>

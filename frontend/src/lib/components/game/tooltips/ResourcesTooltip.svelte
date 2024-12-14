@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type ResourcesTooltipProps = {
 		planetName: string;
 		resourcesPerYear: number;
@@ -10,12 +10,14 @@
 </script>
 
 <script lang="ts">
-	export let planetName: string;
-	export let resourcesPerYear: number;
-	export let resourcesPerYearResearch: number;
-	export let resourcesPerYearResearchEstimated: number;
-	export let resourcesPerYearAvailable: number;
-	export let innateResources: boolean;
+	let {
+		planetName,
+		resourcesPerYear,
+		resourcesPerYearResearch,
+		resourcesPerYearResearchEstimated,
+		resourcesPerYearAvailable,
+		innateResources
+	}: ResourcesTooltipProps = $props();
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

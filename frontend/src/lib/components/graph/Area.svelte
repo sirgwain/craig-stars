@@ -6,24 +6,24 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { data, xGet, yGet, xScale, yScale, extents, width, height } =
-		getContext<LayerCake>('LayerCake');
+	const { data, xGet, yGet, xScale, yScale, extents } = getContext<LayerCake>('LayerCake');
 
-	export let fill = 'fill-secondary-content opacity-50';
+	type Props = {
+		fill?: string;
+	};
 
-	$: path =
-		'M' +
-		$data
-			.map((d: any) => {
-				return $xGet(d) + ',' + $yGet(d);
-			})
-			.join('L');
+	let { fill = 'fill-secondary-content opacity-50' }: Props = $props();
 
-	let area: string;
-
-	$: {
+	let area = $derived.by(() => {
 		const yRange = $yScale.range();
-		area =
+		const path =
+			'M' +
+			$data
+				.map((d: unknown) => {
+					return $xGet(d) + ',' + $yGet(d);
+				})
+				.join('L');
+		return (
 			path +
 			('L' +
 				$xScale($extents.x ? $extents.x[1] : 0) +
@@ -33,8 +33,9 @@
 				$xScale($extents.x ? $extents.x[0] : 0) +
 				',' +
 				yRange[0] +
-				'Z');
-	}
+				'Z')
+		);
+	});
 </script>
 
 <path class="path-area {fill}" d={area} />

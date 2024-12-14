@@ -2,6 +2,7 @@
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
+	import type { ChangeMassDriverSpeedProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { UnlimitedSpaceDock } from '$lib/types/Constants';
@@ -10,20 +11,25 @@
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import CommandTile from './CommandTile.svelte';
 
-	const { game, player, universe, settings, updatePlanetOrders } = getGameContext();
+	const { game, player, universe, settings } = getGameContext();
 
-	export let starbase: Fleet | undefined;
-	export let planet: CommandedPlanet;
+	type Props = {
+		starbase: Fleet | undefined;
+		planet: CommandedPlanet;
+	} & ChangeMassDriverSpeedProps;
 
-	$: stargate = starbase?.spec?.stargate
-		? $techs.getHullComponent(starbase.spec.stargate)
-		: undefined;
+	let { starbase, planet, onChangeMassDriverSpeed }: Props = $props();
 
-	$: massDriver = starbase?.spec?.massDriver
-		? $techs.getHullComponent(starbase.spec.massDriver)
-		: undefined;
+	let stargate = $derived(
+		starbase?.spec?.stargate ? $techs.getHullComponent(starbase.spec.stargate) : undefined
+	);
+
+	let massDriver = $derived(
+		starbase?.spec?.massDriver ? $techs.getHullComponent(starbase.spec.massDriver) : undefined
+	);
 
 	function showDesign(e: PointerEvent) {
+		e.preventDefault();
 		if (starbase?.tokens && starbase.tokens.length > 0) {
 			onShipDesignTooltip(
 				e,
@@ -31,16 +37,11 @@
 			);
 		}
 	}
-
-	function updatePlanetOrdrers() {
-		updatePlanetOrders(planet);
-	}
 </script>
 
 {#if starbase?.spec}
 	<CommandTile title={starbase.baseName}>
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<div class="cursor-help" on:pointerdown|preventDefault={showDesign}>
+		<div class="cursor-help" onpointerdown={showDesign}>
 			<div class="flex justify-between">
 				<div class="text-tile-item-title">Dock Capacity</div>
 				{#if starbase.spec.spaceDock === UnlimitedSpaceDock}
@@ -67,12 +68,12 @@
 					<div>{starbase.damage}%</div>
 				{/if}
 			</div>
-			<div class="divider p-0 m-0" />
+			<div class="divider p-0 m-0"></div>
 		</div>
 		<div>
 			<div
 				class="flex justify-between cursor-help"
-				on:pointerdown|preventDefault={(e) => stargate && onTechTooltip(e, stargate)}
+				onpointerdown={(e) => stargate && onTechTooltip(e, stargate)}
 			>
 				<div class="text-tile-item-title">Stargate</div>
 				{#if stargate}
@@ -87,7 +88,7 @@
 			</div>
 			<div
 				class="flex justify-between cursor-help"
-				on:pointerdown|preventDefault={(e) => massDriver && onTechTooltip(e, massDriver)}
+				onpointerdown={(e) => massDriver && onTechTooltip(e, massDriver)}
 			>
 				<div class="text-tile-item-title">Mass Driver</div>
 				{#if starbase.spec.hasMassDriver}
@@ -110,7 +111,7 @@
 				<div class="flex justify-between mt-1 gap-1">
 					<div class="w-32">
 						<button
-							on:click={() => ($settings.setPacketDest = !$settings.setPacketDest)}
+							onclick={() => ($settings.setPacketDest = !$settings.setPacketDest)}
 							class:btn-accent={$settings.setPacketDest}
 							type="button"
 							class="btn btn-outline btn-sm normal-case btn-secondary p-2">Set Dest</button
@@ -118,13 +119,19 @@
 					</div>
 					<div class="w-full my-auto">
 						<WarpSpeedGauge
-							bind:value={planet.packetSpeed}
+							value={planet.packetSpeed}
 							isPacket={true}
 							min={5}
 							max={(planet.spec.basePacketSpeed ?? 0) + $game.rules.packetMaxOverwarpSpeed}
 							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}
 							dangerSpeed={(planet.spec.safePacketSpeed ?? 0) + 3}
-							on:valuechanged={() => updatePlanetOrdrers()}
+							onValueDragged={(warpSpeed) => {
+								planet.packetSpeed = warpSpeed;
+							}}
+							onValueChanged={(warpSpeed) => {
+								planet.packetSpeed = warpSpeed;
+								onChangeMassDriverSpeed?.({ planet, warpSpeed });
+							}}
 						/>
 					</div>
 				</div>

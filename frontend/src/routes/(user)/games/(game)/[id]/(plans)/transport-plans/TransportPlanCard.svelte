@@ -3,18 +3,20 @@
 	import type { TransportPlan } from '$lib/types/Player';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
 	import TransportActionDescription from './TransportActionDescription.svelte';
 
-	const dispatch = createEventDispatcher();
+	type Props = {
+		plan: TransportPlan;
+		href: string;
+		showDelete?: boolean;
+		onDelete?: (plan: TransportPlan) => void;
+	};
 
-	export let plan: TransportPlan;
-	export let href: string;
-	export let showDelete = true;
+	let { plan, href, showDelete = true, onDelete }: Props = $props();
 
 	const deletePlan = async (plan: TransportPlan) => {
 		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
-			dispatch('delete', { plan });
+			onDelete?.(plan);
 		}
 	};
 
@@ -59,28 +61,48 @@
 				<TransportActionDescription
 					action={plan.tasks.ironium.action}
 					amount={plan.tasks.ironium.amount}
-					units="kT"
+					units={[
+						WaypointTaskTransportAction.WaitForPercent,
+						WaypointTaskTransportAction.FillPercent
+					].indexOf(plan.tasks.ironium.action ?? WaypointTaskTransportAction.None) != -1
+						? '%'
+						: 'kT'}
 					title="Ironium"
 					titleTextClass="text-ironium"
 				/>
 				<TransportActionDescription
 					action={plan.tasks.boranium.action}
 					amount={plan.tasks.boranium.amount}
-					units="kT"
+					units={[
+						WaypointTaskTransportAction.WaitForPercent,
+						WaypointTaskTransportAction.FillPercent
+					].indexOf(plan.tasks.boranium.action ?? WaypointTaskTransportAction.None) != -1
+						? '%'
+						: 'kT'}
 					title="Boranium"
 					titleTextClass="text-boranium"
 				/>
 				<TransportActionDescription
 					action={plan.tasks.germanium.action}
 					amount={plan.tasks.germanium.amount}
-					units="kT"
+					units={[
+						WaypointTaskTransportAction.WaitForPercent,
+						WaypointTaskTransportAction.FillPercent
+					].indexOf(plan.tasks.germanium.action ?? WaypointTaskTransportAction.None) != -1
+						? '%'
+						: 'kT'}
 					title="Germanium"
 					titleTextClass="text-germanium"
 				/>
 				<TransportActionDescription
 					action={plan.tasks.colonists.action}
 					amount={plan.tasks.colonists.amount}
-					units=""
+					units={[
+						WaypointTaskTransportAction.WaitForPercent,
+						WaypointTaskTransportAction.FillPercent
+					].indexOf(plan.tasks.colonists.action ?? WaypointTaskTransportAction.None) != -1
+						? '%'
+						: '00'}
 					title="Colonists"
 					titleTextClass="text-colonists"
 				/>
@@ -89,7 +111,7 @@
 		{#if showDelete}
 			<div class="card-actions justify-start">
 				<div>
-					<button class="btn" on:click={(e) => deletePlan(plan)}>
+					<button type="button" class="btn" onclick={() => deletePlan(plan)}>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				</div>

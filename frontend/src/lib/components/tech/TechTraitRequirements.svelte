@@ -1,13 +1,17 @@
 <script lang="ts">
 	import type { PlayerResponse } from '$lib/types/Player';
-	import { getLabelForLRT, getLabelForPRT, LRT, PRT } from '$lib/types/Race';
+	import { getLabelForLRT, getLabelForPRT, LRT } from '$lib/types/Race';
 	import { $enum as eu } from 'ts-enum-util';
 
 	import type { Tech } from '$lib/types/Tech';
 	import { startCase } from 'lodash-es';
 
-	export let tech: Tech;
-	export let player: PlayerResponse | undefined = undefined;
+	type Props = {
+		tech: Tech;
+		player?: PlayerResponse | undefined;
+	};
+
+	let { tech, player = undefined }: Props = $props();
 
 	const lrts = eu(LRT).getValues();
 </script>

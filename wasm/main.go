@@ -60,7 +60,7 @@ func setPlayer(args []js.Value) interface{} {
 	player.Designs = ctx.player.Designs
 	ctx.player = player
 
-	log.Debug().Msgf("setting active player")
+	log.Debug().Msgf("setting active player with %d designs", len(player.Designs))
 	return js.Undefined()
 }
 
@@ -76,7 +76,7 @@ func setDesigns(args []js.Value) interface{} {
 		ctx.player.Designs[i] = &designs[i]
 	}
 
-	log.Debug().Msgf("setting player designs")
+	log.Debug().Msgf("setting %d player designs", len(designs))
 	return js.Undefined()
 }
 

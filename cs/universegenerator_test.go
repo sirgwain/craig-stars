@@ -19,7 +19,8 @@ func Test_GenerateUniverse(t *testing.T) {
 	players := []*Player{player}
 	player.AIControlled = true
 	player.Num = 1
-	universe, _ := client.GenerateUniverse(game, players)
+	universe, err := client.GenerateUniverse(game, players)
+	assert.NoError(t, err)
 
 	assert.Equal(t, len(universe.Planets), numPlanets)
 	assert.Greater(t, len(universe.Fleets), 0)

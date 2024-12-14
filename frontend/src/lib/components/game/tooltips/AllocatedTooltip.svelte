@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { showTooltip } from '$lib/services/Stores';
 	import type { Cost } from '$lib/types/Cost';
 	import AllocatedTooltip from './AllocatedTooltip.svelte';
@@ -17,7 +17,7 @@
 <script lang="ts">
 	import CostMini from '../CostMini.svelte';
 
-	export let cost: Cost;
+	let { cost }: AllocatedTooltipProps = $props();
 </script>
 
 <div>

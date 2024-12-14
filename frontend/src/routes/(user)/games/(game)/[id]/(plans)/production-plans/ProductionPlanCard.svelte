@@ -5,18 +5,20 @@
 	import { isAuto } from '$lib/types/QueueItemType';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
 
-	const dispatch = createEventDispatcher();
+	type Props = {
+		designFinder: DesignFinder;
+		plan: ProductionPlan;
+		href: string;
+		showDelete?: boolean;
+		onDelete?: (plan: ProductionPlan) => void;
+	};
 
-	export let designFinder: DesignFinder;
-	export let plan: ProductionPlan;
-	export let href: string;
-	export let showDelete = true;
+	let { designFinder, plan, href, showDelete = true, onDelete }: Props = $props();
 
 	const deletePlan = async (plan: ProductionPlan) => {
 		if (plan.name != undefined && confirm(`Are you sure you want to delete ${plan.name}?`)) {
-			dispatch('delete', { plan });
+			onDelete?.(plan);
 		}
 	};
 </script>
@@ -49,14 +51,14 @@
 			</ul>
 			<div>
 				{#if plan.contributesOnlyLeftoverToResearch}
-					 Planet contributes only leftover resources to research
+					Planet contributes only leftover resources to research
 				{/if}
 			</div>
 		</div>
 		{#if showDelete}
 			<div class="card-actions justify-start">
 				<div>
-					<button class="btn" on:click={(e) => deletePlan(plan)}>
+					<button type="button" class="btn" onclick={() => deletePlan(plan)}>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				</div>

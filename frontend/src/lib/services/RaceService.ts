@@ -2,7 +2,6 @@ import type { Race } from '$lib/types/Race';
 import { Service } from './Service';
 
 export class RaceService {
-
 	static async load(): Promise<Race[]> {
 		return Service.get<Race[]>('/api/races');
 	}

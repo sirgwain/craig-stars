@@ -1,31 +1,42 @@
-<script lang="ts" context="module">
-	export type SpinnerNumberEvent = {
-		change: number;
-	};
-</script>
-
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
 
-	const dispatch = createEventDispatcher<SpinnerNumberEvent>();
+	type Props = {
+		value: number;
+		step?: number;
+		min?: number;
+		max?: number;
+		unit?: string;
+		onChange?: (value: number) => void;
+	};
 
-	export let value: number;
-	export let step = 1;
-	export let min = 0;
-	export let max = 100;
-	export let unit = '';
+	let {
+		value = $bindable(),
+		step = 1,
+		min = 0,
+		max = 100,
+		unit = '',
+		onChange: onChange
+	}: Props = $props();
 
-	function increase(e) {
-		value = clamp(value + step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1), min, max);
-		dispatch('change', value);
+	function increase(e: MouseEvent | PointerEvent) {
+		value = clamp(
+			value + step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1),
+			min,
+			max
+		);
+		onChange?.(value);
 	}
 
-	function decrease(e) {
-		value = clamp(value - step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1), min, max);
-		dispatch('change', value);
+	function decrease(e: MouseEvent | PointerEvent) {
+		value = clamp(
+			value - step * (e.shiftKey ? 10 : 1) * (e.metaKey || e.ctrlKey ? 100 : 1),
+			min,
+			max
+		);
+		onChange?.(value);
 	}
 </script>
 
@@ -38,10 +49,10 @@
 			{unit}
 		</div>
 		<div class="flex flex-col">
-			<button type="button" class="btn btn-xs" on:click={(e) => increase(e)}>
+			<button type="button" class="btn btn-xs" onclick={increase}>
 				<Icon src={ChevronUp} size="12" class="hover:stroke-accent" />
 			</button>
-			<button type="button" class="btn btn-xs" on:click={(e) => decrease(e)}>
+			<button type="button" class="btn btn-xs" onclick={decrease}>
 				<Icon src={ChevronDown} size="12" class="hover:stroke-accent" />
 			</button>
 		</div>

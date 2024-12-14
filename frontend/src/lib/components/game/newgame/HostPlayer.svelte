@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ColorInput from '$lib/components/ColorInput.svelte';
 	import Select from '$lib/components/Select.svelte';
 	import { RaceService } from '$lib/services/RaceService';
 	import type { NewGamePlayer } from '$lib/types/Game';
@@ -7,9 +6,13 @@
 	import { onMount } from 'svelte';
 
 	// races for the host
-	let hostRaces: Race[] = [humanoid()];
+	let hostRaces: Race[] = $state([humanoid()]);
 
-	export let player: NewGamePlayer;
+	type Props = {
+		player: NewGamePlayer;
+	};
+
+	let { player = $bindable() }: Props = $props();
 
 	onMount(async () => {
 		player.race = hostRaces[0];
@@ -35,7 +38,7 @@
 		})}
 		name="Host"
 		value={player.race?.id ?? 0}
-		on:change={(e) => raceChanged(e.detail)}
+		onchange={(e) => raceChanged(parseInt(e.currentTarget.value))}
 	/>
 
 	<!-- <ColorInput bind:value={player.color} name="color" /> -->

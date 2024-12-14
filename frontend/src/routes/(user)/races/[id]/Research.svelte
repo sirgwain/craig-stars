@@ -3,7 +3,11 @@
 	import { TechField } from '$lib/types/TechLevel';
 	import ResearchCostField from './ResearchCostField.svelte';
 
-	export let race: Race;
+	type Props = {
+		race: Race;
+	};
+
+	let { race = $bindable() }: Props = $props();
 </script>
 
 <div class="flex flex-row flex-wrap justify-center gap-2">
@@ -22,5 +26,7 @@
 		name="techsStartHigh"
 		bind:checked={race.techsStartHigh}
 	/>
-	<span class="ml-2">All 'Costs 75% extra' research fields start at Tech {race.prt == PRT.JoaT ? '4' : '3'}</span>
+	<span class="ml-2"
+		>All 'Costs 75% extra' research fields start at Tech {race.prt == PRT.JoaT ? '4' : '3'}</span
+	>
 </label>

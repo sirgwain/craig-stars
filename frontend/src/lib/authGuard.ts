@@ -15,7 +15,7 @@ export async function authGuard(): Promise<User | undefined> {
 	} else {
 		// update the logged in user in the context
 		const sessionUser = (await response.json()) as SessionUser;
-		const user = Object.assign(new User(), sessionUser)
+		const user = Object.assign(new User(), sessionUser);
 
 		user.status = UserStatus.LoggedIn;
 		me.update(() => user);

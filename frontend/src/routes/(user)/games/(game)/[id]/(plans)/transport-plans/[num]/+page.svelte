@@ -6,13 +6,17 @@
 	import { CSError, addError } from '$lib/services/Errors';
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 	import { notify } from '$lib/services/Notifications';
+	import type { TransportPlan } from '$lib/types/Player';
 
 	const { game, player, updateTransportPlan } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: plan = $player.transportPlans.find((p) => p.num == num);
+	let plan: TransportPlan | undefined = $state();
+	$effect(() => {
+		plan = $player.transportPlans.find((p) => p.num == num);
+	});
 
-	let error = '';
+	let error = $state('');
 
 	const onSubmit = async () => {
 		error = '';
@@ -29,15 +33,22 @@
 	};
 </script>
 
-<form on:submit|preventDefault={onSubmit}>
+<form
+	onsubmit={(e) => {
+		e.preventDefault();
+		onSubmit();
+	}}
+>
 	<Breadcrumb>
-		<svelte:fragment slot="crumbs">
+		{#snippet crumbs()}
 			<li><a href={`/games/${$game.id}/transport-plans`}>Transport Plans</a></li>
 			<li>{plan?.name ?? '<unknown>'}</li>
-		</svelte:fragment>
-		<div slot="end" class="flex justify-end mb-1">
-			<button class="btn btn-success mx-1" type="submit">Save</button>
-		</div>
+		{/snippet}
+		{#snippet end()}
+			<div class="flex justify-end mb-1">
+				<button class="btn btn-success mx-1" type="submit">Save</button>
+			</div>
+		{/snippet}
 	</Breadcrumb>
 
 	<FormError {error} />

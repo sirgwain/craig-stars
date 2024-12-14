@@ -1,38 +1,36 @@
 <script lang="ts">
-	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
-	import { kebabCase } from 'lodash-es';
+	import { getTechIcon } from '$lib/techicon';
+	import { isHull, type Tech, type TechHull } from '$lib/types/Tech';
 	import { onTechHullTooltip } from '../game/tooltips/TechHullTooltip.svelte';
 	import { onTechTooltip } from '../game/tooltips/TechTooltip.svelte';
 
-	export let tech: Tech | undefined = undefined;
-	export let hullSetNumber = 0;
-	export let hullTooltip = false;
-
-	let hull: TechHull;
-
-	const icon = (tech: Tech | undefined, hullSetNumber: number) => {
-		const name = kebabCase(tech?.name.replace("'", '').replace(' ', '').replace('±', ''));
-		if (hull) {
-			return `hull-${name}-${hullSetNumber ?? 0}`;
-		} else {
-			return name;
-		}
+	type Props = {
+		tech: Tech | undefined;
+		hullSetNumber?: number;
+		hullTooltip?: boolean;
 	};
 
-	$: tech &&
-		(tech.category == TechCategory.ShipHull || tech.category == TechCategory.StarbaseHull) &&
-		(hull = tech as TechHull);
+	let { tech, hullSetNumber = 0, hullTooltip = false }: Props = $props();
+	let hull = $derived(isHull(tech) && (tech as TechHull));
 </script>
 
 <div
-	class="tech-avatar {icon(tech, hullSetNumber)}"
-	on:contextmenu|preventDefault={(e) => onTechTooltip(e, tech)}
+	class="tech-avatar {getTechIcon(tech, hullSetNumber)}"
+	role="link"
+	tabindex="-1"
+	oncontextmenu={(e) => {
+		e.preventDefault();
+		onTechTooltip(e, tech);
+	}}
 >
 	{#if hullTooltip && hull}
 		<button
 			type="button"
+			aria-label="Brings up information on technology"
 			class="w-full h-full"
-			on:pointerdown|preventDefault={(e) => onTechHullTooltip(e, hull)}
-		/>
+			onpointerdown={(e) => {
+				onTechHullTooltip(e, hull);
+			}}
+		></button>
 	{/if}
 </div>

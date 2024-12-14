@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { ownedBy } from '$lib/types/MapObject';
 	import type { Salvage } from '$lib/types/Salvage';
 
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
-	export let salvage: Salvage;
+	type Props = {
+		salvage: Salvage;
+	};
+
+	let { salvage }: Props = $props();
 </script>
 
 <div class="flex flex-row min-h-[11rem]">
 	<div class="flex flex-col">
-		<div class="avatar ">
+		<div class="avatar">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">
-				<div class="mapobject-avatar salvage bg-black" />
+				<div class="mapobject-avatar salvage bg-black"></div>
 			</div>
 		</div>
 		<div class="text-center">{$universe.getPlayerPluralName(salvage.playerNum)}</div>

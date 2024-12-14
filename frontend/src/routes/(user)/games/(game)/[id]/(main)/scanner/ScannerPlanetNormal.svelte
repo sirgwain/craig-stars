@@ -5,44 +5,42 @@
 	import { type Fleet } from '$lib/types/Fleet';
 	import { MapObjectType, owned } from '$lib/types/MapObject';
 	import { type Planet } from '$lib/types/Planet';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
-	import type { Readable } from 'svelte/store';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 
 	const { settings } = getGameContext();
-	const { game, player, universe } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const objectScale = getContext<Readable<number>>('objectScale');
+	const { player, universe } = getGameContext();
 
-	export let planet: Planet;
-	export let commanded = false;
+	type Props = {
+		planet: Planet;
+		commanded?: boolean;
+	};
 
-	let props = {};
-	let ringProps: any | undefined = undefined;
+	let { planet, commanded = false }: Props = $props();
 
-	$: hasStarbase = planet.spec?.hasStarbase;
-	$: hasMassDriver = planet.spec?.hasMassDriver;
-	$: hasStargate = planet.spec?.hasStargate;
+	let hasStarbase = planet.spec?.hasStarbase;
+	let hasMassDriver = planet.spec?.hasMassDriver;
+	let hasStargate = planet.spec?.hasStargate;
 
-	$: radius = owned(planet) ? (commanded ? 6 : 3) : commanded ? 4 : 2;
-	$: strokeWidth = commanded ? 1 : 0.5;
-	$: ringRadius = radius * 2.5;
-	$: ringWidth = commanded ? 2 : 1.5;
+	let radius = $derived(owned(planet) ? (commanded ? 6 : 3) : commanded ? 4 : 2);
+	let strokeWidth = $derived(commanded ? 1 : 0.5);
+	let ringRadius = $derived(radius * 2.5);
+	let ringWidth = $derived(commanded ? 2 : 1.5);
 
-	$: starbaseWidth = commanded ? 6 : 4;
-	$: starbaseXOffset = ringRadius * 0.75;
-	$: starbaseYOffset = ringRadius + starbaseWidth;
+	let starbaseWidth = $derived(commanded ? 6 : 4);
+	let starbaseXOffset = $derived(ringRadius * 0.75);
+	let starbaseYOffset = $derived(ringRadius + starbaseWidth);
 
-	$: orbitingFleets = $universe
-		.getMapObjectsByPosition(planet)
-		.filter((mo) => mo.type === MapObjectType.Fleet)
-		.filter((f) => filterFleet($player, f as Fleet, $settings));
+	let orbitingFleets = $derived(
+		$universe
+			.getMapObjectsByPosition(planet)
+			.filter((mo) => mo.type === MapObjectType.Fleet)
+			.filter((f) => filterFleet($player, f as Fleet, $settings))
+	);
 
 	// setup props for planet circle
-	$: {
+	let circleProps = $derived.by(() => {
 		// green for us, gray for unexplored, white for explored
 		let color = '#999999';
 		let strokeColor = '#999999';
@@ -56,16 +54,16 @@
 		}
 
 		// setup the properties of our planet circle
-		props = {
+		return {
 			r: radius,
 			fill: color,
 			stroke: strokeColor,
 			'stroke-width': strokeWidth
 		};
-	}
+	});
 
 	// setup props for the ring
-	$: {
+	let ringProps = $derived.by(() => {
 		// if anything is orbiting our planet, put a ring on it
 		if (orbitingFleets?.length > 0) {
 			const { enemies, friends } = getEnemiesAndFriends(orbitingFleets, $player);
@@ -82,24 +80,22 @@
 				strokeDashArray = '10 6';
 			}
 
-			ringProps = {
+			return {
 				class: ringColor,
 				'stroke-dasharray': strokeDashArray,
 				'stroke-width': ringWidth,
 				r: ringRadius,
 				'fill-opacity': 0
 			};
-		} else {
-			ringProps = undefined;
 		}
-	}
+	});
 </script>
 
 <MapObjectScaler mapObject={planet}>
 	{#if ringProps}
 		<circle {...ringProps} />
 	{/if}
-	<circle {...props} />
+	<circle {...circleProps} />
 	{#if hasStarbase}
 		<rect
 			class:starbase={planet.spec?.dockCapacity}

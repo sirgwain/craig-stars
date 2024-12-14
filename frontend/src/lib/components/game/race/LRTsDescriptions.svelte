@@ -1,14 +1,18 @@
 <script lang="ts">
 	import { getLabelForLRT, LRT, lrts, type Race } from '$lib/types/Race';
 
-	export let race: Race;
+	type Props = {
+		race: Race;
+	};
+
+	let { race }: Props = $props();
 
 	const getDescriptionForLRT = (lrt: LRT) => {
 		switch (lrt) {
 			case LRT.IFE:
 				return 'This gives you access to the Fuel Mizer and Galaxy Scoop engines and increases your starting Propulsion tech by 1 level. All engines use 15% less fuel.';
 			case LRT.TT:
-				return 'You will gain access to additional terraforming technologies by researching Biotechnology, starting with a 3% adjustment to all 3 environmental attributes and reaching a maximum of 30%. Terraforming requires 30% fewer resources.'
+				return 'You will gain access to additional terraforming technologies by researching Biotechnology, starting with a 3% adjustment to all 3 environmental attributes and reaching a maximum of 30%. Terraforming requires 30% fewer resources.';
 			case LRT.ARM:
 				return 'Gives you three additional mining hulls and two new robots, allowing for the eventual creation of cheap, efficient and lightweight remote mining ships. You will start the game with two Midget Miners.';
 			case LRT.ISB:

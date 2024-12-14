@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { PRT, type Race } from '$lib/types/Race';
 
-	export let race: Race;
+	type Props = {
+		race: Race;
+	};
+
+	let { race }: Props = $props();
 </script>
 
 {#if race.prt === PRT.AR}
@@ -12,7 +16,7 @@
 {:else}
 	<p class="mb-1">
 		One resource is generated each year for every
-		<span class="text-primary font-semibold">{race.popEfficiency*100}</span>
+		<span class="text-primary font-semibold">{race.popEfficiency * 100}</span>
 		colonists.
 	</p>
 	<p class="mb-1">
@@ -32,7 +36,9 @@
 	</p>
 
 	{#if race.factoriesCostLess}
-		<p class="mb-1">Factories cost <span class="text-primary font-semibold">1kT</span> less of Germanium to build</p>
+		<p class="mb-1">
+			Factories cost <span class="text-primary font-semibold">1kT</span> less of Germanium to build
+		</p>
 	{/if}
 	<p class="mb-1">
 		Every 10 mines produce up to

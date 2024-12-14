@@ -1,4 +1,3 @@
-import SelectedMapObject from '$lib/components/icons/SelectedMapObject.svelte';
 import {
 	battlesSortBy,
 	getBattleRecordDetails,
@@ -22,7 +21,6 @@ import type {
 import type { ProductionQueueItem } from '$lib/types/Production';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
-import type { TechStore } from '$lib/types/Tech';
 import type { Vector } from '$lib/types/Vector';
 import type { Wormhole } from '$lib/types/Wormhole';
 import type { CS } from '$lib/wasm';

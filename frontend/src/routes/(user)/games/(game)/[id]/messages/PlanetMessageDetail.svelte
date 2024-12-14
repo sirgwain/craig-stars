@@ -8,13 +8,17 @@
 	import type { PlayerIntel } from '$lib/types/Player';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { player, universe } = getGameContext();
 
-	export let message: Message;
-	export let planet: Planet;
-	export let owner: PlayerIntel | undefined;
+	type Props = {
+		message: Message;
+		planet: Planet;
+		owner: PlayerIntel | undefined;
+	};
 
-	$: growthRate = $player.race.growthRate * ($player.race.spec?.growthFactor ?? 0);
+	let { message, planet, owner }: Props = $props();
+
+	let growthRate = $derived($player.race.growthRate * ($player.race.spec?.growthFactor ?? 0));
 </script>
 
 {#if message.text}

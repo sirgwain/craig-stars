@@ -77,7 +77,7 @@
 				max={100}
 				step={10}
 				value={$settings.scannerPercent}
-				on:change={(e) => {
+				onchange={(e) => {
 					const val = parseInt(e.currentTarget.value);
 					if (val) {
 						$settings.scannerPercent = clamp(val, 0, 100);

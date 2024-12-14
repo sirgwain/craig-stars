@@ -16,41 +16,61 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
 
-	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
-		getGameContext();
-
-	const selectPlanet = (planet: Planet) => {
-		if (ownedBy(planet, $player.num)) {
-			commandMapObject(planet);
-		}
-		selectMapObject(planet);
-		zoomToMapObject(planet);
-		goto(`/games/${$game.id}`);
-	};
+	const {
+		game,
+		player,
+		universe,
+		settings,
+		commandedPlanet,
+		commandMapObject,
+		selectMapObject,
+		zoomToMapObject,
+		nextMapObject,
+		previousMapObject,
+		updatePlanetOrders
+	} = getGameContext();
 
 	// filterable planets
-	let filteredPlanets: Planet[] = [];
-	let search = '';
+	let search = $state('');
 
 	// production queue dialog
-	let showProductionQueueDialog = false;
+	let showProductionQueueDialog = $state(false);
 
-	$: filteredPlanets = $settings.showAllPlanets
-		? ($universe
-				.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
-				.filter(
-					(i) =>
-						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-						$universe
-							.getPlayerPluralName(i.playerNum)
-							?.toLowerCase()
-							.indexOf(search.toLowerCase()) != -1
-				) ?? [])
-		: ($universe
-				.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
-				.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? []);
+	let filteredPlanets: Planet[] = $derived(
+		$settings.showAllPlanets
+			? ($universe
+					.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
+					.map<TablePlanet>((r) => r as TablePlanet)
+					.filter(
+						(i) =>
+							i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+							$universe
+								.getPlayerPluralName(i.playerNum)
+								?.toLowerCase()
+								.indexOf(search.toLowerCase()) != -1
+					) ?? [])
+			: ($universe
+					.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
+					.map<TablePlanet>((r) => r as TablePlanet)
+					.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [])
+	);
 
-	$: columns = [
+	// columns change based on whether we are showing all planets or just the player planets
+	type TablePlanet = Planet & {
+		owner?: never;
+		population?: never;
+		populationDensity?: never;
+		populationGrowth?: never;
+		habitability?: never;
+		production?: never;
+		defense?: never;
+		minerals?: never;
+		miningRate?: never;
+		resources?: never;
+		driverDest?: never;
+		routingDestination?: never;
+	};
+	let columns: TableColumn<TablePlanet>[] = $derived([
 		{
 			key: 'name',
 			title: 'Name',
@@ -161,9 +181,9 @@
 			hidden: $settings.showAllPlanets,
 			sortable: false
 		}
-	] as TableColumn<Planet>[];
+	]);
 
-	function onSorted(column: TableColumn<Planet>, sortDescending: boolean) {
+	function onSorted(column: TableColumn<TablePlanet>, sortDescending: boolean) {
 		$settings.sortPlanetsDescending = sortDescending;
 		$settings.sortPlanetsKey = column.key;
 	}
@@ -179,6 +199,37 @@
 			player: $player,
 			planet
 		});
+	}
+
+	function selectPlanet(planet: Planet) {
+		if (ownedBy(planet, $player.num)) {
+			commandMapObject(planet);
+		}
+		selectMapObject(planet);
+		zoomToMapObject(planet);
+		goto(`/games/${$game.id}`);
+	}
+
+	async function onNextPlanet(updateOrders: boolean) {
+		if (!$commandedPlanet) {
+			return;
+		}
+		if (updateOrders) {
+			await updatePlanetOrders($commandedPlanet);
+		}
+
+		nextMapObject();
+	}
+
+	async function onPrevPlanet(updateOrders: boolean) {
+		if (!$commandedPlanet) {
+			return;
+		}
+		if (updateOrders) {
+			await updatePlanetOrders($commandedPlanet);
+		}
+
+		previousMapObject();
 	}
 </script>
 
@@ -205,100 +256,112 @@
 			table: 'table table-zebra table-compact table-auto w-full'
 		}}
 	>
-		<div slot="head" let:column>
-			<SortableTableHeader
-				{column}
-				isSorted={$settings.sortPlanetsKey === column.key}
-				sortDescending={$settings.sortPlanetsDescending}
-				on:sorted={(e) => {
-					onSorted(column, e.detail.sortDescending);
-				}}
-			/>
-		</div>
+		{#snippet head({ column })}
+			<div>
+				<SortableTableHeader
+					{column}
+					isSorted={$settings.sortPlanetsKey === column.key}
+					sortDescending={$settings.sortPlanetsDescending}
+					{onSorted}
+				/>
+			</div>
+		{/snippet}
 
-		<span slot="cell" let:row let:column let:cell>
-			{#if column.key == 'name'}
-				<button class="cs-link text-xl text-left" on:click={() => selectPlanet(row)}>{cell}</button>
-			{:else if column.key == 'owner'}
-				<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
-					{owned(row) ? ($universe.getPlayerPluralName(row.playerNum) ?? '') : ''}
-				</span>
-			{:else if column.key == 'reportAge'}
-				{#if row.reportAge == 0 || row.reportAge === undefined}
-					current
-				{:else if row.reportAge == Unexplored}
-					unexplored
-				{:else}
-					{row.reportAge} years old
-				{/if}
-			{:else if column.key == 'starbase'}
-				{row.spec.starbaseDesignName ?? ''}
-			{:else if column.key == 'population'}
-				<div class="cursor-help" on:pointerdown|preventDefault={(e) => onPopulationTooltip(e, row)}>
-					{row.spec.population ? row.spec.population.toLocaleString() : ''}
-				</div>
-			{:else if column.key == 'populationDensity'}
-				<div class="cursor-help" on:pointerdown|preventDefault={(e) => onPopulationTooltip(e, row)}>
-					{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
-				</div>
-			{:else if column.key == 'populationGrowth'}
-				<div class="cursor-help" on:pointerdown|preventDefault={(e) => onPopulationTooltip(e, row)}>
-					{(row.spec.growthAmount ?? 0).toLocaleString()}
-				</div>
-			{:else if column.key == 'habitability'}
-				{#if row.spec.canTerraform}
-					<span
-						class:text-habitable={(row.spec.habitability ?? 0) > 0}
-						class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
-						>{row.spec.habitability ?? 0}%</span
+		{#snippet cell({ row, column, cell })}
+			<span>
+				{#if column.key == 'name'}
+					<button class="cs-link text-xl text-left" onclick={() => selectPlanet(row)}>{cell}</button
 					>
-					/ <span class="text-terraformable">{row.spec.terraformedHabitability ?? 0}%</span>
-				{:else}
-					<span
-						class:text-habitable={(row.spec.habitability ?? 0) > 0}
-						class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
-					>
-						{row.spec.habitability ?? 0}%</span
-					>
-				{/if}
-			{:else if column.key == 'production'}
-				<button
-					on:click={() => onProductionQueueDialog(row)}
-					class="text-base w-32 flex justify-between text-left cursor-pointer"
-				>
-					{#if row.productionQueue?.length}
-						<ProductionQueueItemLine item={row.productionQueue[0]} index={0} shortName={true} />
-					{:else if ownedBy(row, $player.num)}
-						-- Queue is Empty --
+				{:else if column.key == 'owner'}
+					<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
+						{owned(row) ? ($universe.getPlayerPluralName(row.playerNum) ?? '') : ''}
+					</span>
+				{:else if column.key == 'reportAge'}
+					{#if row.reportAge == 0 || row.reportAge === undefined}
+						current
+					{:else if row.reportAge == Unexplored}
+						unexplored
+					{:else}
+						{row.reportAge} years old
 					{/if}
-				</button>
-			{:else if column.key == 'mines'}
-				{row.mines ?? 0}
-			{:else if column.key == 'factories'}
-				{row.factories ?? 0}
-			{:else if column.key == 'defense'}
-				{((row.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
-			{:else if column.key == 'minerals'}
-				<MineralMini mineral={row.cargo} />
-			{:else if column.key == 'miningRate'}
-				<MineralMini mineral={row.spec.miningOutput} />
-			{:else if column.key == 'mineralConcentration'}
-				<MineralMini mineral={row.mineralConcentration} />
-			{:else if column.key == 'resources'}
-				{row.spec.resourcesPerYearAvailable ?? 0} / {row.spec.resourcesPerYear ?? 0}
-			{:else if column.key == 'contributesOnlyLeftoverToResearch'}
-				{#if row.contributesOnlyLeftoverToResearch}
-					<Icon src={Check} size="24" class="stroke-success" />
+				{:else if column.key == 'starbase'}
+					{row.spec.starbaseDesignName ?? ''}
+				{:else if column.key == 'population'}
+					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+						{row.spec.population ? row.spec.population.toLocaleString() : ''}
+					</div>
+				{:else if column.key == 'populationDensity'}
+					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+						{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
+					</div>
+				{:else if column.key == 'populationGrowth'}
+					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+						{(row.spec.growthAmount ?? 0).toLocaleString()}
+					</div>
+				{:else if column.key == 'habitability'}
+					{#if row.spec.canTerraform}
+						<span
+							class:text-habitable={(row.spec.habitability ?? 0) > 0}
+							class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
+							>{row.spec.habitability ?? 0}%</span
+						>
+						/ <span class="text-terraformable">{row.spec.terraformedHabitability ?? 0}%</span>
+					{:else}
+						<span
+							class:text-habitable={(row.spec.habitability ?? 0) > 0}
+							class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
+						>
+							{row.spec.habitability ?? 0}%</span
+						>
+					{/if}
+				{:else if column.key == 'production'}
+					<button
+						onclick={() => onProductionQueueDialog(row)}
+						class="text-base w-32 flex justify-between text-left cursor-pointer"
+					>
+						{#if row.productionQueue?.length}
+							<ProductionQueueItemLine item={row.productionQueue[0]} index={0} shortName={true} />
+						{:else if ownedBy(row, $player.num)}
+							-- Queue is Empty --
+						{/if}
+					</button>
+				{:else if column.key == 'mines'}
+					{row.mines ?? 0}
+				{:else if column.key == 'factories'}
+					{row.factories ?? 0}
+				{:else if column.key == 'defense'}
+					{((row.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
+				{:else if column.key == 'minerals'}
+					<MineralMini mineral={row.cargo} />
+				{:else if column.key == 'miningRate'}
+					<MineralMini mineral={row.spec.miningOutput} />
+				{:else if column.key == 'mineralConcentration'}
+					<MineralMini mineral={row.mineralConcentration} />
+				{:else if column.key == 'resources'}
+					{row.spec.resourcesPerYearAvailable ?? 0} / {row.spec.resourcesPerYear ?? 0}
+				{:else if column.key == 'contributesOnlyLeftoverToResearch'}
+					{#if row.contributesOnlyLeftoverToResearch}
+						<Icon src={Check} size="24" class="stroke-success" />
+					{/if}
+				{:else if column.key == 'driverDest'}
+					--
+				{:else if column.key == 'routingDestination'}
+					--
+				{:else}
+					{cell}
 				{/if}
-			{:else if column.key == 'driverDest'}
-				--
-			{:else if column.key == 'routingDestination'}
-				--
-			{:else}
-				{cell}
-			{/if}
-		</span>
+			</span>
+		{/snippet}
 	</Table>
 </div>
 
-<ProductionQueueDialog bind:show={showProductionQueueDialog} />
+<ProductionQueueDialog
+	show={showProductionQueueDialog}
+	onNext={() => onNextPlanet(true)}
+	onPrev={() => onPrevPlanet(true)}
+	onOk={(planet) => {
+		showProductionQueueDialog = false;
+		updatePlanetOrders(planet);
+	}}
+	onCancel={() => (showProductionQueueDialog = false)}
+/>

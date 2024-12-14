@@ -6,18 +6,33 @@
 	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 
-	const dispatch = createEventDispatcher();
+	type Props = {
+		type?: HullSlotType;
+		capacity?: number;
+		required?: boolean;
+		shipDesignSlot?: ShipDesignSlot | undefined;
+		highlighted?: boolean;
+		highlightedClass?: string;
+		showTooltips?: boolean;
+		onClick?: () => void;
+		onDelete?: () => void;
+		onUpdate?: () => void;
+	};
 
-	export let type: HullSlotType = HullSlotType.General;
-	export let capacity: number = 1;
-	export let required = false;
-	export let shipDesignSlot: ShipDesignSlot | undefined = undefined;
-	export let highlighted = false;
-	export let highlightedClass = 'border-accent';
-	export let showTooltips = false;
+	let {
+		type = HullSlotType.General,
+		capacity = 1,
+		required = false,
+		shipDesignSlot = $bindable(),
+		highlighted = false,
+		highlightedClass = 'border-accent',
+		showTooltips = false,
+		onClick: onclick,
+		onDelete: onDelete,
+		onUpdate: onUpdate
+	}: Props = $props();
 
 	function typeDescription() {
 		switch (type) {
@@ -66,11 +81,9 @@
 >
 	<button
 		type="button"
-		on:click={() => {
-			dispatch('clicked');
-		}}
-		on:pointerdown|preventDefault={(e) => {
-			if (shipDesignSlot?.hullComponent && showTooltips) {
+		{onclick}
+		onpointerdown={(e) => {
+			if (highlighted && shipDesignSlot?.hullComponent && showTooltips) {
 				onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent));
 			}
 		}}
@@ -98,33 +111,27 @@
 		type="button"
 		class="btn btn-sm px-1 z-30"
 		disabled={capacity === shipDesignSlot?.quantity}
-		on:click={() => shipDesignSlot?.quantity && shipDesignSlot.quantity++}
+		onclick={() => shipDesignSlot?.quantity && shipDesignSlot.quantity++}
 	>
 		<Icon src={Plus} size="24" class="hover:stroke-accent" />
 	</button>
 	<button
 		type="button"
 		class="btn btn-sm px-1 z-30"
-		on:click={() => {
+		onclick={() => {
 			if (shipDesignSlot?.quantity != undefined) {
 				shipDesignSlot.quantity--;
 				if (shipDesignSlot.quantity === 0) {
-					dispatch('deleted');
+					onDelete?.();
 				} else {
-					dispatch('updated');
+					onUpdate?.();
 				}
 			}
 		}}
 	>
 		<Icon src={Minus} size="24" class="hover:stroke-accent" />
 	</button>
-	<button
-		type="button"
-		class="btn btn-sm px-1 z-30"
-		on:click={() => {
-			dispatch('deleted');
-		}}
-	>
+	<button type="button" class="btn btn-sm px-1 z-30" onclick={onDelete}>
 		<Icon src={Trash} size="24" class="hover:stroke-accent" />
 	</button>
 </div>

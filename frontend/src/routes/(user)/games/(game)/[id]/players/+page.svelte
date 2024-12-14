@@ -7,7 +7,7 @@
 	import PlayerVictoryConditions from './PlayerVictoryConditions.svelte';
 	import PlayersStatus from './PlayersStatus.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game } = getGameContext();
 
 	const graphTypes: ValueType[] = [
 		'planets',
@@ -20,7 +20,7 @@
 		'score'
 	];
 
-	let type: ValueType = 'score';
+	let type: ValueType = $state('score');
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
@@ -64,4 +64,4 @@
 	{/if}
 </div>
 
-<div class="mb-10" />
+<div class="mb-10"></div>

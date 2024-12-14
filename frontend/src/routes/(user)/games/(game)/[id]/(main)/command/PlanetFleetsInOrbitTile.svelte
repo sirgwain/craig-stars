@@ -1,43 +1,44 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
+	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { canTransferCargo, CommandedFleet, type Fleet } from '$lib/types/Fleet';
+	import { getMapObjectName } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher, onDestroy } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
+	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
-	import { getMapObjectName } from '$lib/types/MapObject';
-
-	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 
 	const { universe, commandedMapObjectKey, commandMapObject } = getGameContext();
 
-	export let planet: CommandedPlanet;
-	export let fleetsInOrbit: Fleet[];
-	let selectedFleet: Fleet | undefined;
-	let selectedFleetIndex = 0;
+	type Props = {
+		planet: CommandedPlanet;
+		fleetsInOrbit: Fleet[];
+	} & ShowCargoTransferDialogProps;
 
-	$: {
+	let { planet, fleetsInOrbit, onShowCargoTransferDialog }: Props = $props();
+	let selectedFleetIndex = $state(0);
+
+	let selectedFleet: Fleet | undefined = $derived.by(() => {
 		if (fleetsInOrbit.length > 0) {
-			selectedFleet = fleetsInOrbit[selectedFleetIndex];
+			return fleetsInOrbit[selectedFleetIndex];
 		} else {
-			selectedFleet = undefined;
+			return undefined;
 		}
-	}
+	});
 
 	const onSelectedFleetChange = (index: number) => {
-		selectedFleet = fleetsInOrbit[index];
 		selectedFleetIndex = index;
 	};
 
 	const transfer = () => {
-		if (selectedFleet) {
-			const commandedFleet = new CommandedFleet(selectedFleet);
-			dispatch('cargo-transfer-dialog', { src: commandedFleet, dest: planet });
+		if (!selectedFleet || !onShowCargoTransferDialog) {
+			return;
 		}
+		const commandedFleet = new CommandedFleet(selectedFleet);
+		onShowCargoTransferDialog({ src: commandedFleet, dest: planet });
 	};
 
 	const gotoTarget = () => {
@@ -46,13 +47,14 @@
 		}
 	};
 
-	const unsubscribe = commandedMapObjectKey.subscribe(() => (selectedFleetIndex = 0));
-	onDestroy(unsubscribe);
+	onMount(() => {
+		return commandedMapObjectKey.subscribe(() => (selectedFleetIndex = 0));
+	});
 </script>
 
 <CommandTile title="Fleets In Orbit">
 	<select
-		on:change={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
+		onchange={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
 		class="select select-outline select-secondary select-sm py-0 text-sm"
 	>
 		{#each fleetsInOrbit as fleet, index}
@@ -72,7 +74,7 @@
 			<div class="w-12">Cargo</div>
 			<div class="ml-1 h-full w-full">
 				<CargoBar
-					on:cargo-transfer-dialog={transfer}
+					onPointerDown={transfer}
 					canTransferCargo={canTransferCargo(selectedFleet, $universe)}
 					value={selectedFleet.cargo}
 					capacity={selectedFleet.spec.cargoCapacity}
@@ -83,7 +85,7 @@
 		<div class="flex justify-between my-1">
 			<div class="tooltip" data-tip="command fleet">
 				<button
-					on:click={gotoTarget}
+					onclick={gotoTarget}
 					disabled={!selectedFleet}
 					class="btn btn-outline btn-sm normal-case btn-secondary"
 					title="goto"
