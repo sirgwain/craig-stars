@@ -14,7 +14,7 @@ What's probably happening is you're trying to generate go files or build the ser
 See [Assets](#assets) for information on how to download art assets.
 
 - "I tried to run `make images`, but the command failed!`
-in the event `make images` fails
+in the event `make images` fails, you'll have to extract [the images](https://craig-stars.net/images/images.zip) manually and move the image files to `frontend/static/images` yourself.
 
 - "I'm getting some other errors in the command line!"
 Consult this ordered checklist of vague general suggestions:
