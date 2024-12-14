@@ -807,7 +807,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	dist = math.Min(totalDist, dist)
 
 	// check for CE engine failure
-	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && rules.random.Float64() <= player.Race.Spec.EngineFailureRate {
+	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && player.Race.Spec.EngineFailureRate >= rules.random.Float64() {
 		messager.fleetEngineFailure(player, fleet)
 		return &fleetMoveInterrupted{reason: fleetMoveInterruptedEngineFailure}
 	}
@@ -1022,7 +1022,7 @@ func (fleet *Fleet) applyOverwarpPenalty(rules *Rules) int {
 		if wp1.WarpSpeed > token.design.Spec.Engine.MaxSafeSpeed && wp1.WarpSpeed != StargateWarpSpeed {
 			// explode some fleets if you go too fast
 			for shipIndex := 0; shipIndex < token.Quantity; shipIndex++ {
-				if rules.FleetSafeSpeedExplosionChance > rules.random.Float64() {
+				if rules.FleetSafeSpeedExplosionChance >= rules.random.Float64() {
 					explodedShips++
 					token.Quantity--
 				}
@@ -1050,7 +1050,7 @@ func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance 
 				for i := 0; i < token.Quantity; i++ {
 					// check if it vanishes due to range, if not, check if it vanishes due
 					// to mass. Each ship can only vanish once
-					if vanishingChance > rules.random.Float64() {
+					if vanishingChance >= rules.random.Float64() {
 						// oh no, we lost a ship!
 						shipsLostToTheVoid++
 						token.Quantity--

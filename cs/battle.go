@@ -778,11 +778,12 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 	}
 }
 
-// Fire a torpedo slot from a ship. Torpedos are different than beam weapons
+// Fire a torpedo slot from a ship.
 // A ship will fire each torpedo at its target until the target is destroyed, then
-// fire remaining torpedos at the next target.
-// Each torpedo has an accuracy rating. That determines if it hits. A torpedo that
-// misses still explodes and does 1/8th damage to shields
+// fire any remaining torpedos at the next target.
+//
+// Each torpedo has an accuracy rating that determines how often it hits the target. 
+// A torpedo that misses still explodes and does 1/8th damage to shields (if any).
 func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 	attacker := weapon.token
 	damage := weapon.power

@@ -314,7 +314,7 @@ func NewRulesWithSeed(seed int64) Rules {
 			RandomEventPlanetaryChange: .05,
 			RandomEventAncientArtifact: .33, // 1 in 3 planets have random artifacts
 		},
-		AcquirablePartTradeChanceBase: 0.01, // 1% chance per item in fleet
+		AcquirablePartTradeChanceBase: 0.005, // 0.5% chance per item in fleet
 		AcquirablePartTradeItemMax:    25,   // 25 items max per trade instance
 		RandomCometMinYear:            10,
 		RandomCometMinYearPlayerWorld: 20,
