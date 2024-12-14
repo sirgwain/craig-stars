@@ -34,12 +34,11 @@ jobs:
     strategy:
       matrix:
         go-version: [1.22.x]
-        node-version: [18]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     needs: tag
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # get some build metadata we can put in the binary and package.json
       - name: Get build time
@@ -47,7 +46,7 @@ jobs:
         run: echo "buildTime=`date +'%y.%m.%d %H:%M:%S'`" >> $GITHUB_OUTPUT
 
       # build the backend and wasm
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
@@ -67,12 +66,12 @@ jobs:
       - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
 
       # build the frontend (this is slow)
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: lts/*
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
-      - run: npm install
+      - run: npm ci
         working-directory: ./frontend
       - run: jq ".version = \"${{ needs.tag.outputs.version }}\"" package.json > package.json.tmp && mv package.json.tmp package.json
         working-directory: ./frontend
@@ -82,7 +81,7 @@ jobs:
       - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
 
       # upload the dist folder to github's artifacts
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: dist-artifacts
           path: ./dist/*.tgz

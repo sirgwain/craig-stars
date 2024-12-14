@@ -12,31 +12,28 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { TechField, type TechLevel } from '$lib/types/TechLevel';
 	import { startCase } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
 	import FutureTechs from './FutureTechs.svelte';
 
-	const dispatch = createEventDispatcher();
+	const { player } = getGameContext();
 
-	const { game, player, universe } = getGameContext();
+	type Props = {
+		onUpdatePlayer?: () => Promise<void>;
+	};
+	let { onUpdatePlayer }: Props = $props();
 
 	const getLevel = (player: Player, field: TechField | string): number => {
 		const f: keyof TechLevel = `${field}`.toLowerCase() as keyof TechLevel;
 		return player.techLevels[f] ?? 0;
 	};
 
-	const updatePlayerOrders = async () => {
-		dispatch('update-player');
-	};
+	let field: keyof TechLevel = $derived(`${$player.researching}`.toLowerCase() as keyof TechLevel);
+	let spent = $derived($player.techLevelsSpent[field] ?? 0);
 
-	let spent = 0;
-	$: {
-		const field: keyof TechLevel = `${$player.researching}`.toLowerCase() as keyof TechLevel;
-		spent = $player.techLevelsSpent[field] ?? 0;
-	}
-
-	$: leftToSpend = ($player.spec.currentResearchCost ?? 0) - spent;
-	$: yearsLeft = Math.ceil(leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0));
+	let leftToSpend = $derived(($player.spec.currentResearchCost ?? 0) - spent);
+	let yearsLeft = $derived(
+		Math.ceil(leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0))
+	);
 </script>
 
 <ItemTitle>Research</ItemTitle>
@@ -91,18 +88,20 @@
 			max={100}
 			step={1}
 			unit="%"
-			on:change={updatePlayerOrders}
+			onChange={onUpdatePlayer}
 		>
-			<svelte:fragment slot="begin">Research Budget</svelte:fragment>
-			<svelte:fragment slot="end"></svelte:fragment>
+			{#snippet begin()}
+				Research Budget
+			{/snippet}
+			{#snippet end()}{/snippet}
 		</SpinnerNumberText>
 
 		<div class="grid grid-cols-2">
 			<div class="text-center">
-				Field of Study <div class="divider secondary w-[90%]" />
+				Field of Study <div class="divider secondary w-[90%]"></div>
 			</div>
 			<div class="text-center">
-				Current Level <div class="divider secondary w-[90%]" />
+				Current Level <div class="divider secondary w-[90%]"></div>
 			</div>
 			{#each eu(TechField).getKeys() as field}
 				<div class="form-control">
@@ -114,7 +113,7 @@
 							value={field}
 							class="radio radio-sm checked:bg-primary"
 							bind:group={$player.researching}
-							on:change={updatePlayerOrders}
+							onchange={onUpdatePlayer}
 						/>
 					</label>
 				</div>
@@ -127,7 +126,7 @@
 			name="nextResearchField"
 			enumType={NextResearchField}
 			bind:value={$player.nextResearchField}
-			on:change={updatePlayerOrders}
+			onchange={onUpdatePlayer}
 		/>
 	</div>
 

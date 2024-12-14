@@ -5,14 +5,20 @@
 	import { setContext } from 'svelte';
 	import BattleBoard from './BattleBoard.svelte';
 
-	export let designFinder: DesignFinder;
-	export let playerFinder: PlayerFinder;
-	export let battleRecord: BattleRecord;
+	type Props = {
+		designFinder: DesignFinder;
+		playerFinder: PlayerFinder;
+		battleRecord: BattleRecord;
+	};
+
+	let { designFinder, playerFinder, battleRecord }: Props = $props();
 
 	setContext<DesignFinder>(designFinderKey, designFinder);
 	setContext<PlayerFinder>(playerFinderKey, playerFinder);
 
-	$: battle = new Battle(battleRecord.num, battleRecord.position, designFinder, battleRecord);
+	let battle = $derived(
+		new Battle(battleRecord.num, battleRecord.position, designFinder, battleRecord)
+	);
 </script>
 
 <BattleBoard {battle} />

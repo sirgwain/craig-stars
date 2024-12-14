@@ -1,40 +1,32 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { Unexplored } from '$lib/types/Constants';
-	import { None } from '$lib/types/Constants';
+	import { None, Unexplored } from '$lib/types/Constants';
 	import { type Planet } from '$lib/types/Planet';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
+	const { universe } = getGameContext();
 
-	export let planet: Planet;
+	type Props = {
+		planet: Planet;
+	};
 
-	let props = {};
-	let flagColor = '#555';
-
-	$: planetX = $xGet(planet);
-	$: planetY = $yGet(planet);
+	let { planet }: Props = $props();
 
 	// area of cirlce is a = πr^2, so r = √(a/π)
 	const fullyHabitableRadius = 15;
 	const fullyHabitableArea = Math.PI * fullyHabitableRadius * fullyHabitableRadius;
 	const minRadius = 3;
 	const minArea = Math.PI * minRadius * minRadius;
-	let radius = minRadius;
 
-	$: {
+	let planetProps = $derived.by(() => {
 		// green for us, gray for unexplored, white for explored
 		let color = '#555';
 		let strokeWidth = 0;
 		let strokeColor = '#888';
-		radius = minRadius;
+		let radius = minRadius;
+		let flagColor = color;
 
 		if (planet.reportAge !== Unexplored) {
 			strokeWidth = 1;
@@ -67,31 +59,41 @@
 			}
 		}
 
-		// setup the properties of our planet circle
-		props = {
-			r: radius,
-			fill: color,
-			stroke: strokeColor,
-			'stroke-width': strokeWidth
+		return {
+			radius,
+			flagColor,
+			// setup the properties of our planet circle
+			circleProps: {
+				r: radius,
+				fill: color,
+				stroke: strokeColor,
+				'stroke-width': strokeWidth
+			}
 		};
-	}
+	});
 </script>
 
 {#if planet.reportAge !== Unexplored}
 	<MapObjectScaler mapObject={planet}>
-		<circle cx={0} cy={0} {...props} />
+		<circle cx={0} cy={0} {...planetProps.circleProps} />
 		{#if planet.playerNum != None}
 			<!-- draw the flag  -->
-			<rect width="12" height="10" x={0} y={-fullyHabitableRadius * 2} fill={flagColor} />
+			<rect
+				width="12"
+				height="10"
+				x={0}
+				y={-fullyHabitableRadius * 2}
+				fill={planetProps.flagColor}
+			/>
 			<path
 				d={`M${0}, ${0}L${0}, ${-fullyHabitableRadius * 2}`}
-				stroke={flagColor}
+				stroke={planetProps.flagColor}
 				stroke-width={2}
 			/>
 		{/if}
 	</MapObjectScaler>
 
-	<ScannerFleetCount {planet} yOffset={radius - 5} />
+	<ScannerFleetCount {planet} yOffset={planetProps.radius - 5} />
 {:else}
 	<ScannerPlanetNormal {planet} />
 {/if}

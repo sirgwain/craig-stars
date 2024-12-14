@@ -1,8 +1,14 @@
+<script lang="ts">
+	import type { SVGAttributes } from 'svelte/elements';
+
+	let props: SVGAttributes<SVGElement> = $props();
+</script>
+
 <svg
 	viewBox="0 0 500 500"
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-	{...$$restProps}
+	{...props}
 >
 	<text
 		x="50%"

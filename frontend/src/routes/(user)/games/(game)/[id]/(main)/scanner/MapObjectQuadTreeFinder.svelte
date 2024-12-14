@@ -1,17 +1,11 @@
-<script lang="ts" context="module">
-	export type FinderEventDetails = {
+<script lang="ts" module>
+	/**
+	 * FinderEvents are pointer/touch/mouse events that target a MapObject in the scanner
+	 */
+	export type FinderEvent = {
 		event: PointerEvent | MouseEvent | TouchEvent;
 		position: Vector;
 		found: MapObject | undefined;
-	};
-	export type FinderEvent = {
-		pointermove: FinderEventDetails;
-		pointerdown: FinderEventDetails;
-		pointerup: FinderEventDetails;
-		touchmove: FinderEventDetails;
-		touchstart: FinderEventDetails;
-		touchend: FinderEventDetails;
-		contextmenu: FinderEventDetails;
 	};
 </script>
 
@@ -26,18 +20,38 @@
 	import { quadtree } from 'd3-quadtree';
 	import type { ZoomTransform } from 'd3-zoom';
 	import type { LayerCake } from 'layercake';
-	import { createEventDispatcher, getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import { getContext } from 'svelte';
+	import { getScannerContext } from './Scanner';
 
 	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const scale = getContext<Writable<number>>('scale');
-	const dispatch = createEventDispatcher<FinderEvent>();
+	const { scale } = getScannerContext();
 
-	// transform to transform our mouse to world coords
-	export let transform: ZoomTransform;
+	type Props = {
+		// transform to transform our mouse to world coords
+		transform: ZoomTransform;
+		/** The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
+		searchRadius: number;
 
-	/** The number of pixels to search around the mouse's location. This is the third argument passed to [`quadtree.find`](https://github.com/d3/d3-quadtree#quadtree_find) and by default a value of `undefined` means an unlimited range. */
-	export let searchRadius: number;
+		pointermove: (e: FinderEvent) => void;
+		pointerdown: (e: FinderEvent) => void;
+		pointerup: (e: FinderEvent) => void;
+		touchmove: (e: FinderEvent) => void;
+		touchstart?: (e: FinderEvent) => void;
+		touchend?: (e: FinderEvent) => void;
+		contextmenu: (e: FinderEvent) => void;
+	};
+
+	let {
+		transform,
+		searchRadius,
+		pointermove,
+		pointerdown,
+		pointerup,
+		touchmove,
+		touchstart,
+		touchend,
+		contextmenu
+	}: Props = $props();
 
 	// find the item under
 	function findItem(x: number, y: number) {
@@ -57,7 +71,7 @@
 		const evt = event as PointerEvent & { layerX: number; layerY: number };
 		const { position, found } = findItem(evt.layerX, evt.layerY);
 
-		dispatch('pointerdown', { event, position, found });
+		pointerdown({ event, position, found });
 	}
 
 	// as the pointer moves, find the items it is under
@@ -66,7 +80,7 @@
 		const evt = event as PointerEvent & { layerX: number; layerY: number };
 		const { position, found } = findItem(evt.layerX, evt.layerY);
 
-		dispatch('pointermove', { event, position, found });
+		pointermove({ event, position, found });
 	}
 
 	// turn off dragging
@@ -74,14 +88,15 @@
 		const evt = event as PointerEvent & { layerX: number; layerY: number };
 		const { position, found } = findItem(evt.layerX, evt.layerY);
 
-		dispatch('pointerup', { event, position, found });
+		pointerup({ event, position, found });
 	}
 
 	function onContextMenu(event: MouseEvent) {
+		event.preventDefault();
 		const evt = event as PointerEvent & { layerX: number; layerY: number };
 		const { position, found } = findItem(evt.layerX, evt.layerY);
 
-		dispatch('contextmenu', { event, position, found });
+		contextmenu({ event, position, found });
 	}
 
 	function onTouchStart(event: TouchEvent) {
@@ -91,18 +106,19 @@
 			const y = event.targetTouches[0].clientY - bcr.y;
 			const { position, found } = findItem(x, y);
 
-			dispatch('touchstart', { event, position, found });
+			touchstart?.({ event, position, found });
 		}
 	}
 
 	function onTouchMove(event: TouchEvent) {
+		event.preventDefault();
 		if (event.target instanceof Element) {
 			const bcr = event.target.getBoundingClientRect();
 			const x = event.targetTouches[0].clientX - bcr.x;
 			const y = event.targetTouches[0].clientY - bcr.y;
 			const { position, found } = findItem(x, y);
 
-			dispatch('touchmove', { event, position, found });
+			touchmove({ event, position, found });
 		}
 	}
 
@@ -113,27 +129,31 @@
 			const y = event.changedTouches[0].clientY - bcr.y;
 			const { position, found } = findItem(x, y);
 
-			dispatch('touchend', { event, position, found });
+			touchend?.({ event, position, found });
 		}
 	}
 
-	$: finder = quadtree<MapObject>()
-		.extent([
-			[-1, -1],
-			[$width + 1, $height + 1]
-		])
-		.x($xGet)
-		.y($yGet)
-		.addAll($data);
+	let finder = $derived(
+		quadtree<MapObject>()
+			.extent([
+				[-1, -1],
+				[$width + 1, $height + 1]
+			])
+			.x($xGet)
+			.y($yGet)
+			.addAll($data)
+	);
 </script>
 
 <div
 	class="absolute h-full w-full z-10"
-	on:touchstart={onTouchStart}
-	on:touchmove|preventDefault={onTouchMove}
-	on:touchend={onTouchEnd}
-	on:contextmenu|preventDefault={onContextMenu}
-	on:pointerdown={onPointerDown}
-	on:pointermove={onPointerMove}
-	on:pointerup={onPointerUp}
-/>
+	role="link"
+	tabindex="-1"
+	ontouchstart={onTouchStart}
+	ontouchmove={onTouchMove}
+	ontouchend={onTouchEnd}
+	oncontextmenu={onContextMenu}
+	onpointerdown={onPointerDown}
+	onpointermove={onPointerMove}
+	onpointerup={onPointerUp}
+></div>

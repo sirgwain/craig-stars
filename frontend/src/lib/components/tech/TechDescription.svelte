@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { defaultRules, type Rules } from '$lib/types/Rules';
 
+	import { InfinteGate } from '$lib/types/Constants';
 	import {
 		getCloakPercentForCloakUnits,
 		TechCategory,
@@ -11,23 +12,29 @@
 		type TechPlanetaryScanner,
 		type TechTerraform
 	} from '$lib/types/Tech';
-	import { InfinteGate } from '$lib/types/Constants';
-	import { onMount } from 'svelte';
-	import HullComponent from './hull/HullComponent.svelte';
 
-	export let tech: Tech;
-	export let rules: Rules = defaultRules;
+	type Props = {
+		tech: Tech;
+		rules?: Rules;
+	};
+
+	let { tech, rules = defaultRules }: Props = $props();
 
 	type Stat = {
 		label: string;
 		text: string;
 	};
 
-	let stats: Stat[] = [];
-	let descriptions: string[] = [];
-	let warnings: string[] = [];
+	// build the state for this tech
+	let {
+		stats,
+		descriptions,
+		warnings
+	}: { stats: Stat[]; descriptions: string[]; warnings: string[] } = $derived.by(() => {
+		const stats: Stat[] = [];
+		const descriptions: string[] = [];
+		const warnings: string[] = [];
 
-	onMount(() => {
 		if (tech.category == TechCategory.ShipHull || tech.category == TechCategory.StarbaseHull) {
 			const hull = tech as TechHull;
 			if (hull) {
@@ -38,7 +45,9 @@
 					stats.push({ label: 'Cargo Capacity', text: `${hull.cargoCapacity}kT` });
 				}
 				stats.push({ label: 'Armor Strength', text: hull.armor.toString() });
-				hull.initiative && stats.push({ label: 'Initiative', text: hull.initiative.toString() });
+				if (hull.initiative) {
+					stats.push({ label: 'Initiative', text: hull.initiative.toString() });
+				}
 
 				if (hull.fuelGeneration && hull.fuelGeneration > 0) {
 					descriptions.push(
@@ -417,9 +426,7 @@
 			}
 		}
 
-		stats = stats;
-		descriptions = descriptions;
-		warnings = warnings;
+		return { stats, descriptions, warnings };
 	});
 </script>
 
@@ -431,7 +438,7 @@
 		</div>
 	{/each}
 
-	<div class="mt-1" />
+	<div class="mt-1"></div>
 	{#each descriptions as description}
 		<div>{description}</div>
 	{/each}

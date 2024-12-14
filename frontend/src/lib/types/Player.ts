@@ -429,7 +429,7 @@ export class Player implements PlayerResponse, CostFinder {
 		// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
 		// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
 
-		let miniaturization = Math.min(
+		const miniaturization = Math.min(
 			this.race.spec?.miniaturizationMax ?? 0,
 			(this.race.spec?.miniaturizationPerLevel ?? 0) * numTechLevelsAboveRequired
 		);

@@ -12,8 +12,12 @@
 	import { startCase } from 'lodash-es';
 	import PrivateGameLink from '../../../../routes/(user)/games/(game)/[id]/(main)/PrivateGameLink.svelte';
 
-	export let settings: GameSettings;
-	export let showInviteLink = false;
+	type Props = {
+		settings: GameSettings;
+		showInviteLink?: boolean;
+	};
+
+	let { settings = $bindable(), showInviteLink = false }: Props = $props();
 </script>
 
 <div class="flex flex-row flex-wrap">
@@ -44,7 +48,8 @@
 		name="startMode"
 		enumType={GameStartMode}
 		bind:value={settings.startMode}
-		typeTitle={(value) => (!value || value === GameStartMode.Normal ? 'Normal' : startCase(value))}
+		typeTitle={(value) =>
+			!value || value === (GameStartMode.Normal as string) ? 'Normal' : startCase(value)}
 		showEmpty={true}
 		tooltip={`Setting mode to Max will create a game with all tech levels, max minerals, etc`}
 	/>

@@ -4,6 +4,7 @@
 	import HomePage from '$lib/components/HomePage.svelte';
 	import { me } from '$lib/services/Stores';
 	import { UserStatus } from '$lib/types/User';
+	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
 
 	import '../css/app.css';
@@ -11,6 +12,11 @@
 	import '../css/mapobjects.css';
 	import '../css/planets.css';
 	import '../css/techs.css';
+	type Props = {
+		children?: Snippet;
+	};
+
+	let { children }: Props = $props();
 
 	const loggingIn = $page.url.pathname.startsWith('/auth');
 	const wasmExecUrl = new URL('$lib/wasm/wasm_exec.js', import.meta.url).href;
@@ -29,7 +35,7 @@
 
 <!-- Show the main content if we've logged in, otherwise show the login page -->
 {#if $me.status == UserStatus.LoggedIn || loggingIn}
-	<slot>This is the main content</slot>
+	{#if children}{@render children()}{:else}This is the main content{/if}
 {:else if $me.status == UserStatus.NotFound}
 	<HomePage />
 {/if}

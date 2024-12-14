@@ -15,7 +15,7 @@
 		}
 	});
 
-	$: error = '';
+	let error = $state('');
 </script>
 
 Logging out...

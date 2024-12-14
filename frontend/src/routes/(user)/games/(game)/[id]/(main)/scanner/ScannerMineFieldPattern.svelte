@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import { getScannerContext } from './Scanner';
 
-	const scale = getContext<Writable<number>>('scale');
+	const { scale } = getScannerContext();
 </script>
 
 <!-- ScannerMineFieldPattern -->

@@ -1,20 +1,28 @@
 import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
-import type { CargoTransferRequest } from '$lib/types/Cargo';
-import { CommandedFleet, type Fleet, type ShipToken, type Waypoint } from '$lib/types/Fleet';
+import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest';
+import { None } from '$lib/types/Constants';
+import {
+	CommandedFleet,
+	type Fleet,
+	type ShipToken,
+	type Waypoint,
+	type WaypointDest
+} from '$lib/types/Fleet';
 import type { Game, GameSettings } from '$lib/types/Game';
 import { MapObjectType, equal, key, ownedBy, type MapObject } from '$lib/types/MapObject';
-import { None } from '$lib/types/Constants';
 import {
 	MessageTargetType,
 	MessageType,
 	getMapObjectTypeForMessageType,
 	type Message
 } from '$lib/types/Message';
+import type { MineField } from '$lib/types/MineField';
 import { CommandedPlanet, type Planet } from '$lib/types/Planet';
 import {
 	Player,
 	type BattlePlan,
+	type PlayerRelationship,
 	type PlayerResponse,
 	type ProductionPlan,
 	type TransportPlan
@@ -22,6 +30,7 @@ import {
 import { PlayerSettings } from '$lib/types/PlayerSettings';
 import type { Salvage } from '$lib/types/Salvage';
 import type { ShipDesign } from '$lib/types/ShipDesign';
+import type { CS } from '$lib/wasm';
 import { findIndex, kebabCase } from 'lodash-es';
 import { getContext } from 'svelte';
 import {
@@ -38,14 +47,12 @@ import { FleetService } from './FleetService';
 import { FullGame } from './FullGame';
 import { GameService } from './GameService';
 import { rollover } from './Math';
+import { MineFieldService } from './MineFieldService';
 import { PlanetService } from './PlanetService';
 import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
 import { Universe } from './Universe';
-import type { CS } from '$lib/wasm';
-import type { MineField } from '$lib/types/MineField';
-import { MineFieldService } from './MineFieldService';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -80,7 +87,6 @@ export type GameContext = {
 	nextMapObject: () => void;
 	highlightMapObject: (mo: MapObject | undefined) => void;
 	zoomToMapObject: (mo: MapObject) => void;
-	nextCommandableMapObjectAtPosition: () => void;
 
 	// message
 	gotoTarget: (message: Message, gameId: number, playerNum: number, universe: Universe) => void;
@@ -97,7 +103,7 @@ export type GameContext = {
 	forceGenerateTurn: () => Promise<void>;
 
 	updatePlayerOrders: () => Promise<void>;
-	updatePlayerRelations: () => Promise<void>;
+	updatePlayerRelationships: (relations: PlayerRelationship[]) => Promise<void>;
 	createBattlePlan: (plan: BattlePlan) => Promise<BattlePlan>;
 	updateBattlePlan: (plan: BattlePlan) => Promise<BattlePlan>;
 	deleteBattlePlan: (num: number) => Promise<void>;
@@ -111,8 +117,15 @@ export type GameContext = {
 	createDesign: (design: ShipDesign) => Promise<ShipDesign>;
 	updateDesign: (design: ShipDesign) => Promise<void>;
 	deleteDesign: (num: number) => Promise<void>;
+
+	// fleet waypoint updates
+	addWaypoint: (dest: WaypointDest, fastestWaypoint: boolean) => Promise<boolean>;
+	updateWaypoint: (dest: WaypointDest, fastestWaypoint: boolean, done: boolean) => Promise<void>;
+	deleteWaypoint: () => Promise<void>;
+
 	updateFleetOrders: (fleet: CommandedFleet) => Promise<void>;
 	renameFleet: (fleet: CommandedFleet, name: string) => Promise<void>;
+
 	updatePlanetOrders: (planet: CommandedPlanet) => Promise<void>;
 	updateMineFieldOrders: (mineField: MineField) => Promise<void>;
 	transferCargo: (
@@ -172,6 +185,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	// this is called after a new game is loaded from the server while waiting for a turn to generate
 	function resetContext(fg: FullGame) {
 		const s = get(settings);
+		cs.setRules(fg.rules);
+		cs.setPlayer(fg.player);
+		cs.setDesigns(fg.universe.getMyDesigns());
+
 		game.set(fg);
 		player.set(fg.player);
 		universe.set(fg.universe);
@@ -223,8 +240,6 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		return num;
 	}
 
-	// TODO: remove this dep
-
 	const currentCommandedMapObjectIndex = derived(
 		[universe, commandedFleet, commandedPlanet, settings],
 		([$universe, $commandedFleet, $commandedPlanet, $settings]) => {
@@ -253,48 +268,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 	);
 
-	// derived store of all commandableMapObjects at the position of the current commandedMapObjects
-	const commandableMapObjectsAtCommandedMapObjectPosition = derived(
-		[universe, commandedMapObject],
-		([$universe, $commandedMapObject]) => {
-			if ($commandedMapObject) {
-				return $universe.getMyMapObjectsByPosition($commandedMapObject);
-			}
-		}
-	);
-
-	// derived store of the current index
-	const currentCommandedMapObjectPositionIndex = derived(
-		[commandedMapObject, commandableMapObjectsAtCommandedMapObjectPosition],
-		([$commandedMapObject, $commandableMapObjectsAtCommandedMapObjectPosition]) => {
-			if ($commandedMapObject && $commandableMapObjectsAtCommandedMapObjectPosition) {
-				return findIndex($commandableMapObjectsAtCommandedMapObjectPosition, (mo) =>
-					equal($commandedMapObject, mo)
-				);
-			}
-			return -1;
-		}
-	);
-
-	function nextCommandableMapObjectAtPosition() {
-		const index = get(currentCommandedMapObjectPositionIndex);
-		const commandable = get(commandableMapObjectsAtCommandedMapObjectPosition);
-
-		if (commandable && commandable?.length > 0) {
-			if (index + 1 > commandable.length) {
-				commandMapObject(commandable[0]);
-			} else {
-				commandMapObject(commandable[index + 1]);
-			}
-		}
-	}
-
 	// goto a message target
 	function gotoTarget(message: Message, gameId: number, playerNum: number, universe: Universe) {
 		const targetType = message.targetType ?? MessageTargetType.None;
-		const targetTargetType = message.spec.targetType ?? MessageTargetType.None;
 		let moType = MapObjectType.None;
-		let targetTargetMapObjectType = MapObjectType.None;
 
 		if (message.battleNum) {
 			goto(`/games/${gameId}/battles/${message.battleNum}`);
@@ -354,7 +331,6 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 		if (message.targetNum) {
 			moType = getMapObjectTypeForMessageType(targetType);
-			targetTargetMapObjectType = getMapObjectTypeForMessageType(targetTargetType);
 
 			if (moType != MapObjectType.None) {
 				const target = universe.getMapObject(message);
@@ -755,7 +731,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 	}
 
-	async function updatePlayerRelations(): Promise<void> {
+	async function updatePlayerRelations(relations: PlayerRelationship[]): Promise<void> {
+		const p = get(player);
+		p.relations = relations;
 		const result = await PlayerService.updateRelations(get(player));
 		if (result) {
 			updatePlayer(result);
@@ -772,7 +750,16 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	}
 
 	async function updateBattlePlan(plan: BattlePlan): Promise<BattlePlan> {
-		return await BattlePlanService.update(gameId, plan);
+		const updated = await BattlePlanService.update(gameId, plan);
+
+		const p = get(player);
+		for (let i = 0; i < p.battlePlans.length; i++) {
+			if (p.battlePlans[i].num === updated.num) {
+				p.battlePlans[i] = updated;
+			}
+		}
+		player.set(p);
+		return updated;
 	}
 
 	async function deleteBattlePlan(num: number): Promise<void> {
@@ -794,12 +781,21 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	}
 
 	async function updateProductionPlan(plan: ProductionPlan): Promise<ProductionPlan> {
-		return await ProductionPlanService.update(gameId, plan);
+		const updated = await ProductionPlanService.update(gameId, plan);
+
+		const p = get(player);
+		for (let i = 0; i < p.productionPlans.length; i++) {
+			if (p.productionPlans[i].num === updated.num) {
+				p.productionPlans[i] = updated;
+			}
+		}
+		player.set(p);
+		return updated;
 	}
 
 	async function deleteProductionPlan(num: number): Promise<void> {
 		const player = await ProductionPlanService.delete(gameId, num);
-		Object.assign(player, player);
+		updatePlayer(player);
 	}
 
 	async function createTransportPlan(plan: TransportPlan): Promise<TransportPlan> {
@@ -812,12 +808,20 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	}
 
 	async function updateTransportPlan(plan: TransportPlan): Promise<TransportPlan> {
-		return await TransportPlanService.update(gameId, plan);
+		const updated = await TransportPlanService.update(gameId, plan);
+		const p = get(player);
+		for (let i = 0; i < p.transportPlans.length; i++) {
+			if (p.transportPlans[i].num === updated.num) {
+				p.transportPlans[i] = updated;
+			}
+		}
+		player.set(p);
+		return updated;
 	}
 
 	async function deleteTransportPlan(num: number): Promise<void> {
 		const player = await TransportPlanService.delete(gameId, num);
-		Object.assign(player, player);
+		updatePlayer(player);
 	}
 
 	async function createDesign(design: ShipDesign): Promise<ShipDesign> {
@@ -855,6 +859,118 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 		// reset our view to the homeworld, in case the commanded fleet had our deleted design
 		commandHomeWorld();
+	}
+
+	async function addWaypoint(dest: WaypointDest, fastestWaypoint: boolean): Promise<boolean> {
+		const fleet = get(commandedFleet);
+		const sw = get(selectedWaypoint);
+		const currentIndex = get(currentSelectedWaypointIndex);
+		const p = get(player);
+		const u = get(universe);
+		const fastest = get(settings).fastestWaypoint || fastestWaypoint;
+		if (!fleet) {
+			return false;
+		}
+
+		// get highest mass of the fleet ships (for stargates)
+		const highestShipMass = Math.max(
+			...fleet.tokens.map((t) => u.getMyDesign(t.designNum)?.spec.mass ?? 0)
+		);
+
+		const newlyAddedWaypointIndex = fleet.addWaypoint(
+			p,
+			u,
+			dest,
+			currentIndex,
+			highestShipMass,
+			fastest
+		);
+
+		if (!newlyAddedWaypointIndex) {
+			return false;
+		}
+
+		await updateFleetOrders(fleet);
+
+		// select the new waypoint
+		selectWaypoint(fleet.waypoints[newlyAddedWaypointIndex]);
+		if (sw && sw.targetType && sw.targetNum) {
+			const mo = u.getMapObject(sw);
+
+			if (mo) {
+				selectMapObject(mo);
+			}
+		}
+
+		return true;
+	}
+
+	async function updateWaypoint(dest: WaypointDest, fastestWaypoint: boolean, done: boolean) {
+		const fleet = get(commandedFleet);
+		const sw = get(selectedWaypoint);
+		const currentIndex = get(currentSelectedWaypointIndex);
+		const p = get(player);
+		const u = get(universe);
+		const fastest = get(settings).fastestWaypoint || fastestWaypoint;
+
+		if (!fleet) {
+			return;
+		}
+
+		// get highest mass of the fleet ships (for stargates)
+		const highestShipMass = Math.max(
+			...fleet.tokens.map((t) => u.getMyDesign(t.designNum)?.spec.mass ?? 0)
+		);
+
+		if (fleet.updateWaypoint(p, u, dest, currentIndex, highestShipMass, fastest)) {
+			// check if we are done updating this waypoint and should save it to the server
+			if (done) {
+				await updateFleetOrders(fleet);
+
+				// select the new waypoint
+				selectWaypoint(fleet.waypoints[currentIndex]);
+				if (sw && sw.targetType && sw.targetNum) {
+					const mo = u.getMapObject(sw);
+
+					if (mo) {
+						selectMapObject(mo);
+					}
+				}
+			} else {
+				// trigger reaction
+				selectedWaypoint.update(() => sw);
+			}
+		} else {
+			// TODO: this logic is hard to follow with deletes and all that
+			if (done) {
+				// we dragged a waypoint to the previous position, delete it
+				deleteWaypoint();
+			}
+		}
+	}
+
+	async function deleteWaypoint() {
+		const fleet = get(commandedFleet);
+		const sw = get(selectedWaypoint);
+		const selectedWaypointIndex = get(currentSelectedWaypointIndex);
+		const u = get(universe);
+
+		if (!fleet || !selectedWaypoint || selectedWaypointIndex == 0) {
+			return;
+		}
+
+		fleet.waypoints = fleet.waypoints.filter((wp) => wp != sw);
+
+		// select the previous waypoint
+		const wp = fleet.waypoints[selectedWaypointIndex - 1];
+		selectWaypoint(wp);
+
+		const mo = u.getMapObject(wp);
+		if (mo) {
+			selectMapObject(mo);
+		}
+
+		updateFleetOrders(fleet);
 	}
 
 	async function updateFleetOrders(fleet: CommandedFleet): Promise<void> {
@@ -961,7 +1077,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			}
 		} else {
 			// if we had a dest and it was deleted, remove it
-			dest && u.removeFleets([dest.num]);
+			if (dest) {
+				u.removeFleets([dest.num]);
+			}
 		}
 
 		const index = get(currentSelectedWaypointIndex);
@@ -1025,7 +1143,6 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		nextMapObject,
 		highlightMapObject,
 		zoomToMapObject,
-		nextCommandableMapObjectAtPosition,
 		gotoTarget,
 		gotoBattle,
 
@@ -1038,7 +1155,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		forceGenerateTurn,
 
 		updatePlayerOrders,
-		updatePlayerRelations,
+		updatePlayerRelationships: updatePlayerRelations,
 		createBattlePlan,
 		updateBattlePlan,
 		deleteBattlePlan,
@@ -1052,8 +1169,13 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		createDesign,
 		updateDesign,
 		deleteDesign,
+
+		addWaypoint,
+		updateWaypoint,
+		deleteWaypoint,
 		updateFleetOrders,
 		renameFleet,
+
 		updatePlanetOrders,
 		updateMineFieldOrders,
 		transferCargo,

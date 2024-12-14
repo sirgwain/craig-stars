@@ -7,14 +7,14 @@
 	import { hasRequiredLevels } from '$lib/types/TechLevel';
 	import { kebabCase } from 'lodash-es';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player } = getGameContext();
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
+	{#snippet crumbs()}
 		<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
 		<li>Choose Hull</li>
-	</svelte:fragment>
+	{/snippet}
 </Breadcrumb>
 <ul class="px-1">
 	{#each $techs.hulls as hull}

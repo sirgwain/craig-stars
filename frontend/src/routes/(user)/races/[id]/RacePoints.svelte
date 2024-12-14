@@ -1,28 +1,25 @@
 <script lang="ts">
-	import { assets } from '$app/paths';
 	import type { Race } from '$lib/types/Race';
 	import { loadWasm, type CS } from '$lib/wasm';
 	import { User } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 
-	export let race: Race;
-	export let points: number;
+	type Props = {
+		race: Race;
+		onPointsUpdated?: (points: number) => void;
+	};
 
-	let cs: CS | undefined;
+	let { race, onPointsUpdated }: Props = $props();
+
+	let cs: CS | undefined = $state();
+	let points = $derived(cs ? (cs.calculateRacePoints(race) ?? 0) : 0);
 
 	onMount(async () => {
 		cs = await loadWasm();
 	});
 
-	// update points from the server anytime things change
-	const computeRacePoints = async (race: Race) => {
-		if (cs) {
-			points = cs.calculateRacePoints(race) ?? 0;
-		}
-	};
-
-	$: race && cs && computeRacePoints(race);
+	$effect(() => onPointsUpdated?.(points));
 </script>
 
 <div class="sticky top-[4rem] z-10">
@@ -36,7 +33,7 @@
 						{points}
 					{/if}
 				</div>
-				<div class="stat-desc pt-1" />
+				<div class="stat-desc pt-1"></div>
 			</div>
 		</div>
 	</div>

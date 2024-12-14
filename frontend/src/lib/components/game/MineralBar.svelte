@@ -1,27 +1,34 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import type { ValueChangedEvent } from '$lib/ValueChangedEvent';
-	import { createEventDispatcher } from 'svelte';
 
-	export let value = 0;
-	export let capacity = 0;
-	export let min = 0;
-	export let max = capacity;
-	export let color = 'ironium-bar';
-	export let unit = 'kT';
-	export let readonly = false;
+	type Props = {
+		value?: number;
+		capacity?: number;
+		min?: number;
+		max?: number;
+		color?: string;
+		unit?: string;
+		readonly?: boolean;
+		onValueChanged?: (value: number) => void;
+	};
+	import { getXFromPointerEvent } from '$lib/services/Events';
 
-	const dispatch = createEventDispatcher<ValueChangedEvent>();
+	let {
+		value = $bindable(0),
+		capacity = 0,
+		min = 0,
+		max = capacity,
+		color = 'ironium-bar',
+		unit = 'kT',
+		readonly = false,
+		onValueChanged: onValueChanged
+	}: Props = $props();
 
-	$: percent = capacity > 0 ? (value / capacity) * 100 : 0;
+	let percent = $derived(capacity > 0 ? (value / capacity) * 100 : 0);
 
 	let pointerDown = false;
 	let touchStarted = false;
-	let ref: HTMLDivElement;
-
-	function getXFromPointerEvent(e: PointerEvent): number {
-		return (e.clientX - ref.getBoundingClientRect().left) / ref.getBoundingClientRect()?.width;
-	}
+	let ref: HTMLDivElement | undefined = $state();
 
 	function onPointerDown(e: PointerEvent) {
 		if (readonly) {
@@ -31,7 +38,7 @@
 			return;
 		}
 		pointerDown = true;
-		updateValue(getXFromPointerEvent(e));
+		updateValue(getXFromPointerEvent(e, ref));
 		window.addEventListener('pointerup', onPointerUp);
 		window.addEventListener('pointermove', onPointerMove);
 		document.body.classList.add('select-none', 'touch-none');
@@ -46,11 +53,14 @@
 
 	function onPointerMove(e: PointerEvent) {
 		if (pointerDown) {
-			updateValue(getXFromPointerEvent(e));
+			updateValue(getXFromPointerEvent(e, ref));
 		}
 	}
 
 	function getXFromTouchEvent(e: TouchEvent): number {
+		if (!ref) {
+			return 0;
+		}
 		return (
 			(e.targetTouches[0].clientX - ref.getBoundingClientRect().left) /
 			ref.getBoundingClientRect()?.width
@@ -91,7 +101,7 @@
 		let newValue = clamp(Math.round(x * capacity), min, max);
 		if (newValue != value) {
 			value = newValue;
-			dispatch('valuechanged', value);
+			onValueChanged?.(value);
 		}
 	}
 </script>
@@ -100,10 +110,10 @@
 	bind:this={ref}
 	class="border border-secondary w-full h-[1rem] text-[0rem] relative bg-gauge select-none"
 	class:cursor-pointer={!readonly}
-	on:pointerdown={onPointerDown}
-	on:touchstart={onTouchStart}
-	on:touchmove={onTouchMove}
-	on:touchend={onTouchEnd}
+	onpointerdown={onPointerDown}
+	ontouchstart={onTouchStart}
+	ontouchmove={onTouchMove}
+	ontouchend={onTouchEnd}
 >
 	<div
 		class="font-semibold text-sm text-center align-middle text-white mix-blend-difference w-full bg-blend-difference absolute"
@@ -111,5 +121,5 @@
 		{value} of {capacity}{unit}
 	</div>
 
-	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full" />
+	<div style={`width: ${percent.toFixed()}%`} class="{color} h-full"></div>
 </div>

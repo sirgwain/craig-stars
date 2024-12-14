@@ -1,23 +1,24 @@
 <script lang="ts">
-	import VictoryConditions from '$lib/components/game/newgame/VictoryConditions.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { VictoryCondition } from '$lib/types/Game';
 	import { CheckBadge } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
-	const { game, player, universe } = getGameContext();
+	const { game, universe } = getGameContext();
 
-	$: players = $universe.players;
+	let players = $derived($universe.players);
 </script>
 
 <table class="table table-zebra table-fixed mx-auto w-full sm:w-auto">
 	<thead>
-		<th />
-		{#each players as player}
-			<th class="h-20 w-20"
-				><div class="py-4 -rotate-45">{$universe.getPlayerPluralName(player.num)}</div></th
-			>
-		{/each}
+		<tr>
+			<th></th>
+			{#each players as player}
+				<th class="h-20 w-20"
+					><div class="py-4 -rotate-45">{$universe.getPlayerPluralName(player.num)}</div></th
+				>
+			{/each}
+		</tr>
 	</thead>
 	<tbody>
 		{#if ($game.victoryConditions.conditions & VictoryCondition.OwnPlanets) > 0}
