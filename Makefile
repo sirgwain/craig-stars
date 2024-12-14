@@ -22,7 +22,7 @@ BINARY_NAME := craig-stars
 mkdir = mkdir -p $(1)
 rm = rm -rf $(1)
 cp = cp $(1) $(2)
-download = wget -Q -P $(2) -B $(1)
+download = curl -q $(1) -o $(2)
 unzip = unzip $(1)
 endif
 
@@ -51,8 +51,6 @@ images:
 	$(call download,https://craig-stars.net/images/images.zip,images.zip);\
 	$(call unzip,images.zip);\
 	$(call rm,images.zip)
-	# @sirgwain: please remove the _MACOSX zip from the images zip file and delete these 2 lines afterwards 
-	$(call rm, frontend/static/_MACOSX.zip)
 
 build: build_frontend tidy vendor generate build_wasm build_server
 
