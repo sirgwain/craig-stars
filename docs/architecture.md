@@ -128,8 +128,6 @@ There is also an [upgrade.go](/db/upgrade.go) that handles game logic updates, f
 
 Rather than create a unique column for every single value stored by `craig-stars`, many things are serialized as json blocks and put into the database as text. This makes it easier to update the schema. For objects that don't need to be independently queried from the DB, a json schema is generally used. Some examples of this are the various Specs, and a Player's Race.
 
-**Note: For those less 
-
 ## server
 
 The [server](/server) package contains the backend [server](/server/server.go) and the [GameRunner](/server/gamerunner.go). The backend http server handles all `/api` requests from the front end. Routes for various resources are defined in their own files ([fleets.go](/server/fleets.go), [planets.go](/server/planets.go), etc).
