@@ -39,7 +39,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
         working-directory: ./frontend
-      - run: npx playwrite test
+      - run: npx playwright test
         working-directory: ./frontend
       - run: npm run test
         working-directory: ./frontend
