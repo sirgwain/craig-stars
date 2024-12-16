@@ -190,6 +190,7 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 				player.AcquiredTechs[t] = true
 			}
 			rng := newFloat64Random(tt.partChanceRolls...)
+
 			tokens := []ShipToken{}
 			for n, token := range tt.tokens {
 				design := NewShipDesign(player, n+1).WithSlots(token.slots).WithHull(token.hull.Name)
@@ -202,6 +203,7 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 					rng.addInts(i) // keeps list in order as each element is swapped with itself in list sorting
 				}
 			}
+	
 			rules.random = rng
 
 			if got := tr.acquirablePartGained(&rules, player, tokens); !reflect.DeepEqual(got, tt.want) {

@@ -200,53 +200,45 @@ func (t *turn) scrapFleet(fleet *Fleet, colonize bool) {
 			planet.Cargo = planet.Cargo.AddMineral(fleet.Cargo.ToMineral())
 		}
 
-		// check for tech trade. We do this for every fleet. If it's the player's original ships, it won't lead
-		// to a tech trade because they obviously have the tech levels required to build
-		// the ship, but if a ship in the fleet was gifted to this player and we scrap it over their
-		// own planet they might gain tech from it
+		// Check for level/component tech trading.
+		// We do this for every token in the fleet - if it's the player's original ships, it won't lead
+		// to a tech trade (they obviously have the tech levels required to build it),
+		// but if a ship in the fleet was gifted to them before being scrapped,
+		// they should be able to gain tech from it
 		if planet.Owned() && planet.Spec.HasStarbase && !colonize {
 			planetPlayer := t.game.getPlayer(planet.PlayerNum)
-			techTrader := newTechTrader()
-			if !planetPlayer.techLevelGained {
-				for _, token := range fleet.Tokens {
-					for i := 0; i < token.Quantity; i++ {
-						field := techTrader.techLevelGained(&t.game.Rules, planetPlayer.TechLevels, token.design.Spec.TechLevel)
-						if field == TechFieldNone {
-							continue
-						}
-						// we gained a level!
-						planetPlayer.techLevelGained = true
-						planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
-						messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
+			tt := newTechTrader()
+			field, acquiredPart := tt.checkFleetTechTrade(&t.game.Rules, planetPlayer, fleet.Tokens)
+			if field != TechFieldNone {
+				// we gained a level!
+				player.techLevelGained = true
+				player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
+				messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
 
-						techsGained := t.game.TechStore.GetTechsJustGained(player, field)
-						for _, tech := range techsGained {
-							messager.playerTechGained(player, field, tech)
-						}
-
-						t.log.Debug().
-							Int("Player", planetPlayer.Num).
-							Str("Planet", planet.Name).
-							Str("Fleet", fleet.Name).
-							Str("field", string(field)).
-							Msgf("gained tech level from scrapped fleet")
-
-						break
-					}
+				techsGained := t.game.TechStore.GetTechsJustGained(player, field)
+				for _, tech := range techsGained {
+					messager.playerTechGained(player, field, tech)
 				}
-			}
-
-			// check component tech trading
-			if part := techTrader.acquirablePartGained(&t.game.Rules, planetPlayer, fleet.Tokens); part != nil {
-				planetPlayer.AcquiredTechs[part.Name] = true
-				planetPlayer.acquirablePartGained = true
-				messager.playerAcquirablePartGainedScrappedFleet(planetPlayer, planet, fleet.Name, part.Name)
 
 				t.log.Debug().
 					Int("Player", planetPlayer.Num).
 					Str("Planet", planet.Name).
 					Str("Fleet", fleet.Name).
-					Str("Tech", part.Name).
+					Str("field", string(field)).
+					Msgf("gained tech level from scrapping fleet")
+			}
+
+			if acquiredPart != nil {
+				// we gained a part!
+				player.acquirablePartGained = true
+				player.AcquiredTechs[acquiredPart.Name] = true
+				messager.playerAcquirablePartGainedScrappedFleet(planetPlayer, planet, fleet.Name, acquiredPart.Name)
+
+				t.log.Debug().
+					Int("Player", planetPlayer.Num).
+					Str("Planet", planet.Name).
+					Str("Fleet", fleet.Name).
+					Str("Tech", acquiredPart.Name).
 					Msgf("gained tech part from scrapping")
 			}
 		}
@@ -2167,7 +2159,7 @@ func (t *turn) fleetBattle() {
 				player.BattleRecords = append(player.BattleRecords, *record)
 				messager.battle(player, planet, record)
 
-				// share battle records with our allies
+				// share battle records with allies
 				for _, otherPlayer := range t.game.Players {
 					if _, ok := playersAtPosition[otherPlayer.Num]; ok {
 						// player is already here, no need to record the battle
@@ -2185,17 +2177,15 @@ func (t *turn) fleetBattle() {
 			}
 
 			// check for tech trades
-			techTrader := newTechTrader()
+			tt := newTechTrader()
 			for playerNum, survived := range survivingPlayers {
 				if !survived {
-					continue
+					continue // dead fleets tell no tales...
 				}
+
 				player := t.game.getPlayer(playerNum)
-				if !player.techLevelGained {
-					field := techTrader.techLevelGained(&t.game.Rules, player.TechLevels, highestTechLevel)
-					if field == TechFieldNone {
-						continue
-					}
+				field, acquiredPart := tt.checkFleetTechTrade(&t.game.Rules, player, tokens)
+				if field != TechFieldNone {
 					// we gained a level!
 					player.techLevelGained = true
 					player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
@@ -2212,15 +2202,16 @@ func (t *turn) fleetBattle() {
 						Msgf("gained tech level from battle")
 				}
 
-				if part := techTrader.acquirablePartGained(&t.game.Rules, player, tokens); part != nil {
-					player.AcquiredTechs[part.Name] = true
+				if acquiredPart != nil {
+					player.AcquiredTechs[acquiredPart.Name] = true
 					player.acquirablePartGained = true
+					messager.playerAcquirablePartGainedBattle(player, planet, record, acquiredPart.Name)
 					t.log.Debug().
 						Int("Battle", battleNum).
 						Int("Player", player.Num).
-						Str("tech", part.Name).
-						Msgf("gained tech component from battle")
-					messager.playerAcquirablePartGainedBattle(player, planet, record, part.Name)
+						Str("tech", acquiredPart.Name).
+						Msgf("gained tech part from battle")
+
 				}
 			}
 
