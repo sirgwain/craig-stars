@@ -109,8 +109,12 @@ func (p *Planet) WithNum(num int) *Planet {
 	return p
 }
 
+// TODO: Change this to mineral stuff instead for less jank
 func (p *Planet) WithCargo(cargo Cargo) *Planet {
 	p.Cargo = cargo
+	if cargo.Colonists > 0 {
+		p.Spec.Population = cargo.Colonists * 100
+	}
 	return p
 }
 
@@ -143,8 +147,14 @@ func (p *Planet) String() string {
 	return fmt.Sprintf("Planet %s", &p.MapObject)
 }
 
+// get planetary population rounded to multiple of 100
 func (p *Planet) population() int {
 	return p.Cargo.Colonists * 100
+}
+
+// get exact planetary population
+func (p *Planet) exactPopulation() int {
+	return p.Spec.PartialPopulation + p.Cargo.Colonists*100
 }
 
 // get the population that is productive. This takes into account overcrowding
@@ -153,21 +163,25 @@ func (p *Planet) productivePopulation(pop, maxPop int) int {
 	return MinInt(pop, 3*maxPop)
 }
 
-// get the population that will operate installations 
+// get the population that will operate installations
 // and produce resources at 100% efficiency
 // (it just maxes at max pop)
 func (p *Planet) productiveInstallationPopulation(pop, maxPop int) int {
 	return MinInt(pop, maxPop)
 }
 
-
-func (p *Planet) setPopulation(pop int) {
-	p.Cargo.Colonists = pop / 100
-	p.Spec.PartialPopulation = 0
+// set pop and PartialPop to specified value,
+// resetting partialPop counter if applicable
+//
+// TODO: Rework planet stuff into using Minerals and such
+func (p *Planet) setPopulation(pop, partialPop int) {
+	p.Spec.Population = roundTo100(pop+partialPop, math.Floor)
+	p.Cargo.Colonists = p.Spec.Population / 100
+	p.Spec.PartialPopulation = partialPop % 100
 }
 
 // return true if this planet is able to build a ship with a given mass
-// Cost of ship not considered
+// cost of ship not considered
 func (p *Planet) CanBuild(mass int) bool {
 	return p.Spec.HasStarbase && (p.Starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.Starbase.Spec.SpaceDock >= mass)
 }
@@ -213,6 +227,13 @@ func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) 
 	return err
 }
 
+// transfer ownership of a planet to another player
+func (p *Planet) transferOwnership(playerNum, colonistsRemaining int) {
+	p.emptyPlanet()
+	p.PlayerNum = playerNum
+	p.setPopulation(colonistsRemaining, 0)
+}
+
 func (p *Planet) reset() {
 	p.Hab = Hab{}
 	p.BaseHab = Hab{}
@@ -229,9 +250,10 @@ func (p *Planet) emptyPlanet() {
 	p.Defenses = 0                  // defenses are all gone, rest of the structures can stay
 	p.PlanetOrders = PlanetOrders{} // clear any orders from previous owner
 	p.ProductionQueue = []ProductionQueueItem{}
-	p.setPopulation(0)
+	p.setPopulation(0, 0)
 	p.Spec = PlanetSpec{}
 	// reset any instaforming
+	// TODO: Review this & make sure it isn't triggering on non-CAs
 	p.Hab = p.BaseHab.Add(p.TerraformedAmount)
 }
 
@@ -351,7 +373,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	raceSpec := player.Race.Spec
 
 	// set the homeworld pop to our starting planet pop
-	p.setPopulation(int(float64(startingPlanet.Population) * raceSpec.StartingPopulationFactor))
+	p.setPopulation(int(float64(startingPlanet.Population)*raceSpec.StartingPopulationFactor), 0)
 
 	if raceSpec.InnateMining {
 		p.Mines = p.innateMines(player, p.population())
@@ -378,7 +400,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 }
 
 // set this planet's starbase on this planet
-func (p *Planet) setStarbase(rules *Rules, player *Player, starbase *Fleet) {
+func (p *Planet) setStarbase(starbase *Fleet) {
 	p.Starbase = starbase
 	p.PacketSpeed = starbase.Spec.SafePacketSpeed
 }
@@ -424,7 +446,7 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOv
 	capacity := float64(p.population()) / float64(maxPopulation)
 	habValue := race.GetPlanetHabitability(p.Hab)
 	if habValue > 0 {
-		popGrowth := int(float64(p.population())*float64(race.GrowthRate)*growthFactor/100.0*float64(habValue)/100.0 + .5)
+		popGrowth := int(math.Round(float64(p.population()) * float64(race.GrowthRate) * growthFactor / 100.0 * float64(habValue) / 100.0))
 
 		if capacity > 1 {
 			// overpopulation calcs: https://wiki.starsautohost.org/wiki/Overpopulation
@@ -437,18 +459,18 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOv
 			// Population over 300% produce nothing.
 
 			dieoffPercent := ClampFloat64((1-capacity)*populationOvercrowdDieoffRate, -populationOvercrowdDieoffRateMax, 0)
-			popGrowth = int(float64(p.population()) * float64(dieoffPercent))
+			popGrowth = int(math.Round(float64(p.population()) * dieoffPercent))
 		} else if capacity > .25 {
 			crowdingFactor := 16.0 / 9.0 * (1.0 - capacity) * (1.0 - capacity)
 			popGrowth = int(float64(popGrowth) * crowdingFactor)
 		}
 
-		// round to the nearest 100 colonists
-		return roundToNearest100(popGrowth)
+		// return exact value
+		return popGrowth
 	} else {
-		// kill off (habValue / 10)% colonists every year. I.e. a habValue of -4% kills off .4%
-		deathAmount := int(float64(p.population()) * (float64(habValue) / 1000.0))
-		return roundToNearest100(Clamp(deathAmount, deathAmount, -100))
+		// kill off (habValue / 10)% colonists every year (habValue of -4% kills off .4%/yr)
+		deathAmount := int(math.Round(float64(p.population()) * (float64(habValue) / 1000.0)))
+		return deathAmount
 	}
 }
 
@@ -521,12 +543,12 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		spec.ScanRangePen = scanner.ScanRangePen
 	}
 
-	spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(rules, player, planet)
+	spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 
 	return spec
 }
 
-func computePlanetStarbaseSpec(rules *Rules, player *Player, planet *Planet) PlanetStarbaseSpec {
+func computePlanetStarbaseSpec(planet *Planet) PlanetStarbaseSpec {
 	spec := PlanetStarbaseSpec{}
 
 	starbase := planet.Starbase
@@ -577,9 +599,9 @@ func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int
 	minMaxPop := float64(maxPossiblePop) * maxPopulationFactor * rules.MinMaxPopulationPercent
 
 	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
-		return roundToNearest100f(float64(p.Starbase.Spec.MaxPopulation) * maxPopulationFactor)
+		return roundTo100(float64(p.Starbase.Spec.MaxPopulation)*maxPopulationFactor, math.Round)
 	}
-	return roundToNearest100f(math.Max(minMaxPop, float64(maxPossiblePop)*maxPopulationFactor*float64(habitability)/100.0))
+	return roundTo100(math.Max(minMaxPop, float64(maxPossiblePop)*maxPopulationFactor*float64(habitability)/100.0), math.Round)
 }
 
 // get max factories for a population
@@ -649,10 +671,12 @@ func (planet *Planet) mine(rules *Rules) {
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
 	if planet.population() == 0 {
-		// don't grow or reduce if at zero pop, planet is gone
+		// don't grow or reduce if at zero pop, planet is ded
 		return
 	}
-	planet.setPopulation(MaxInt(100, planet.population()+planet.Spec.GrowthAmount))
+	wholeGrowth := roundTo100(planet.Spec.GrowthAmount, math.Floor)
+	partialGrowth := planet.Spec.GrowthAmount % 100
+	planet.setPopulation(planet.population()+wholeGrowth, partialGrowth)
 
 	if player.Race.Spec.InnateMining {
 		productivePop := planet.productivePopulation(planet.population(), planet.Spec.MaxPopulation)

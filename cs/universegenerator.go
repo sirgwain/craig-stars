@@ -467,7 +467,7 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	design.Spec.NumInstances++
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, &starbase)
-	planet.setStarbase(&ug.Rules, player, &starbase)
+	planet.setStarbase(&starbase)
 
 	ug.universe.Starbases = append(ug.universe.Starbases, &starbase)
 
@@ -525,7 +525,7 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 		planet.Cargo.Ironium = 1_000_000
 		planet.Cargo.Boranium = 1_000_000
 		planet.Cargo.Germanium = 1_000_000
-		planet.setPopulation(planet.getMaxPopulation(&rules, player, player.Race.GetPlanetHabitability(planet.Hab)))
+		planet.setPopulation(planet.getMaxPopulation(&rules, player, player.Race.GetPlanetHabitability(planet.Hab)),0)
 		if player.Race.Spec.CanBuildDefenses {
 			planet.Defenses = 100
 		}

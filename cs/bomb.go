@@ -173,13 +173,14 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 
 	// figure out the killRate and minKill for this fleet's bombs
 	defenseCoverage := planet.Spec.DefenseCoverage
-	killRateColonistsKilled := roundToNearest100f(b.getColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
-	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs))
+	killRateColonistsKilled := roundTo100(b.getColonistsKilledForBombs(planet.population(), defenseCoverage, bombs), math.Round)
+	minColonistsKilled := roundTo100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs), math.Round)
 
-	killed := MaxInt(killRateColonistsKilled, minColonistsKilled)
-	leftoverPopulation := MaxInt(0, planet.population()-killed)
-	actualKilled := planet.population() - leftoverPopulation
-	planet.setPopulation(leftoverPopulation)
+	// TODO: clean up all this bombing code as several of these variables are unnecessary
+	// amd can be mirrored with simple (and easy-to-follow) rounding
+	killed := Clamp(MaxInt(killRateColonistsKilled, minColonistsKilled),0,planet.population())
+	leftoverPopulation := planet.population()-killed
+	planet.setPopulation(leftoverPopulation,planet.Spec.PartialPopulation)
 
 	// apply this against mines/factories and defenses proportionally
 	structuresDestroyed := b.getStructuresDestroyed(defenseCoverage, bombs)
@@ -203,6 +204,8 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	planet.Defenses = leftoverDefenses
 
 	// update planet spec
+	// TODO: Make sure this doesn't change def coverage 
+	// defenses should only be lowered *after* all bombs strike
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
 
 	b.log.Debug().
@@ -211,7 +214,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 		Str("Fleet", fleets[0].Name).
 		Int("NumFleets", len(fleets)).
 		Int("PlanetPlayer", planet.PlayerNum).
-		Int("ActualKilled", actualKilled).
+		Int("Killed", killed).
 		Int("MinesDestroyed", minesDestroyed).
 		Int("FactoriesDestroyed", factoriesDestroyed).
 		Int("DefensesDestroyed", defensesDestroyed).
@@ -220,7 +223,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	return BombingResult{
 		BomberName:         fleets[0].Name,
 		NumBombers:         len(fleets),
-		ColonistsKilled:    actualKilled,
+		ColonistsKilled:    killed,
 		MinesDestroyed:     minesDestroyed,
 		FactoriesDestroyed: factoriesDestroyed,
 		DefensesDestroyed:  defensesDestroyed,
@@ -248,11 +251,11 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 	}
 
 	// figure out the killRate and minKill for this fleet's bombs
-	smartKilled := roundToNearest100f(b.getColonistsKilledWithSmartBombs(planet.population(), smartDefenseCoverage, bombs))
+	smartKilled := roundTo100(b.getColonistsKilledWithSmartBombs(planet.population(), smartDefenseCoverage, bombs), math.Round)
 
 	leftoverPopulation := MaxInt(0, planet.population()-smartKilled)
 	actualKilled := planet.population() - leftoverPopulation
-	planet.setPopulation(leftoverPopulation)
+	planet.setPopulation(actualKilled,planet.Spec.PartialPopulation)
 
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)

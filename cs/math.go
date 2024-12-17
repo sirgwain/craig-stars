@@ -2,14 +2,13 @@ package cs
 
 import "math"
 
-// population is often updated with floating point math, but we have to convert
-// it back to Colonist Cargo values, which are stored in units of 100 colonists per 1kT of Colonist Cargo
-func roundToNearest100f(value float64) int {
-	return int(math.Round(value/100) * 100)
-}
-
-func roundToNearest100(value int) int {
-	return int(math.Round(float64(value)/100) * 100)
+// Round a value to the nearest 100 using the specified rounding function
+// and return the result
+//
+// Population is often updated with floating point math, but we typically have to convert
+// it back to Colonist cargo values, which are stored in units of 100 colonists per 1kT
+func roundTo100[N int | float64](value N, roundFunc func(float64) float64) int {
+	return int(roundFunc(float64(value)/100) * 100)
 }
 
 func roundFloat(val float64, precision uint) float64 {

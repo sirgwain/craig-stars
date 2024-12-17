@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"math"
 	"reflect"
 	"testing"
 
@@ -104,7 +105,7 @@ func TestPlanet_String(t *testing.T) {
 func TestPlanet_innateMines(t *testing.T) {
 	player := NewPlayer(1, &Race{Spec: RaceSpec{InnateMining: false}})
 	planet := Planet{}
-	planet.setPopulation(16000)
+	planet.setPopulation(16000, 0)
 
 	if got := planet.innateMines(player, planet.population()); got != 0 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
@@ -122,7 +123,7 @@ func TestPlanet_innateMines(t *testing.T) {
 func TestPlanet_innateScanner(t *testing.T) {
 	player := NewPlayer(1, &Race{Spec: RaceSpec{InnateMining: false}})
 	planet := Planet{}
-	planet.setPopulation(67300)
+	planet.setPopulation(67300, 0)
 
 	if got := planet.innateScanner(player, planet.population()); got != 0 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
@@ -259,7 +260,7 @@ func Test_computePlanetSpec(t *testing.T) {
 
 	player.Race.Spec.InnateScanner = true
 	player.Race.Spec.InnatePopulationFactor = .1
-	planet.setPopulation(67300)
+	planet.setPopulation(67300, 0)
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 
 	assert.Equal(t, planet.Spec.ScanRange, 82)
@@ -335,6 +336,7 @@ func TestPlanet_grow(t *testing.T) {
 	type fields struct {
 		hab        Hab
 		population int
+		turnsToGrow int
 	}
 	type args struct {
 		race *Race
@@ -345,11 +347,14 @@ func TestPlanet_grow(t *testing.T) {
 		args           args
 		wantPopulation int
 	}{
-		{"standard humanoid starter world", fields{hab: Hab{50, 50, 50}, population: 25000}, args{NewRace().WithSpec(&rules)}, 28800},
-		{"full world", fields{hab: Hab{50, 50, 50}, population: 500_000}, args{NewRace().WithSpec(&rules)}, 545_400},
-		{"hostile world", fields{hab: Hab{1, 1, 1}, population: 25000}, args{NewRace().WithSpec(&rules)}, 23900},
-		{"hostile world, low pop", fields{hab: Hab{1, 1, 1}, population: 200}, args{NewRace().WithSpec(&rules)}, 100},
-		{"hostile world, low pop 2", fields{hab: Hab{1, 1, 1}, population: 100}, args{NewRace().WithSpec(&rules)}, 100},
+		{"standard humanoid starter world", fields{hab: Hab{50, 50, 50}, population: 25000,turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 28800},
+		{"full world", fields{hab: Hab{50, 50, 50}, population: 500_000, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 545_400},
+		{"low value world, fractional pop growth", fields{hab: Hab{15, 15, 15}, population: 100, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 101},
+		{"low value world, nearly made new colonist", fields{hab: Hab{15, 15, 15}, population: 199, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 200},
+		{"low value world, 2 turns of growth", fields{hab: Hab{15, 15, 15}, population: 199, turnsToGrow: 2}, args{NewRace().WithSpec(&rules)}, 202},
+		{"hostile world", fields{hab: Hab{1, 1, 1}, population: 25000, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 23875},
+		{"hostile world, pop rounding", fields{hab: Hab{1, 1, 1}, population: 200, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 191},
+		{"hostile world, low pop", fields{hab: Hab{1, 1, 1}, population: 100, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 100},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -357,13 +362,20 @@ func TestPlanet_grow(t *testing.T) {
 			planet := NewPlanet().WithPlayerNum(player.Num)
 			planet.Hab = tt.fields.hab
 			planet.BaseHab = tt.fields.hab
-			planet.setPopulation(tt.fields.population)
+			planet.setPopulation(tt.fields.population, tt.fields.population % 100)
 			planet.Spec = computePlanetSpec(&rules, player, planet)
+			for x := 0; x < tt.fields.turnsToGrow; x++ {
+				planet.grow(player)
+			}
 
-			planet.grow(player)
+			roundedPop := roundTo100(tt.wantPopulation, math.Floor)
+			leftoverPop := tt.wantPopulation % 100
 
-			if planet.population() != tt.wantPopulation {
-				t.Errorf("grow() = %v, want %v", planet.population(), tt.wantPopulation)
+			if planet.population() != roundedPop {
+				t.Errorf("planet.grow() gave %v actual pop, want %v", planet.population(), roundedPop)
+			}
+			if planet.Spec.PartialPopulation != leftoverPop {
+				t.Errorf("planet.grow() gave %v leftover pop, want %v", planet.Spec.PartialPopulation, leftoverPop)
 			}
 
 		})

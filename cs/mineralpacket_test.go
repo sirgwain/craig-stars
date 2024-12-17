@@ -234,7 +234,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			player := NewPlayer(1, tt.args.race).withSpec(&rules).WithNum(1)
 			planet := NewPlanet().withPosition(tt.args.planetPosition).WithPlayerNum(2)
 			planetPlayer := NewPlayer(2, tt.args.targetRace).withSpec(&rules).WithNum(2)
-			planet.setPopulation(tt.args.planetPop)
+			planet.setPopulation(tt.args.planetPop,0)
 			planet.Defenses = 10
 			planet.Spec.DefenseCoverage = tt.args.planetDefCoverage
 			planet.Spec.PlanetStarbaseSpec.HasStarbase = true

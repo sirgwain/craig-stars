@@ -1489,7 +1489,7 @@ func (t *turn) planetProduction() error {
 					return err
 				}
 				planet.Starbase = starbase
-				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
+				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 				messager.planetBuiltStarbase(player, planet, starbase)
 			}
 			if result.scanner {
@@ -1578,12 +1578,12 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 	if planet.Starbase != nil {
 		t.game.deleteStarbase(planet.Starbase)
 		planet.Starbase = nil
-		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
+		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 	}
 
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, &starbase)
-	planet.setStarbase(&t.game.Rules, player, &starbase)
+	planet.setStarbase(&starbase)
 	t.log.Debug().
 		Int("Player", starbase.PlayerNum).
 		Str("Planet", planet.Name).
@@ -2087,7 +2087,7 @@ func (t *turn) fleetBattle() {
 						// remove this starbase from the planet
 						t.game.deleteStarbase(fleet)
 						planet.Starbase = nil
-						planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
+						planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 					} else {
 						t.game.deleteFleet(fleet)
 					}
