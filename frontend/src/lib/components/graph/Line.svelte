@@ -6,17 +6,22 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { data, xGet, yGet } = getContext<LayerCake>('LayerCake');
 
-	export let stroke = 'stroke-primary';
+	type Props = {
+		stroke?: string;
+	};
 
-	$: path =
+	let { stroke = 'stroke-primary' }: Props = $props();
+
+	let path = $derived(
 		'M' +
-		$data
-			.map((d: any) => {
-				return $xGet(d) + ',' + $yGet(d);
-			})
-			.join('L');
+			$data
+				.map((d: unknown) => {
+					return $xGet(d) + ',' + $yGet(d);
+				})
+				.join('L')
+	);
 </script>
 
 <!-- <path class='path-line' d='{path}' {stroke}></path> -->

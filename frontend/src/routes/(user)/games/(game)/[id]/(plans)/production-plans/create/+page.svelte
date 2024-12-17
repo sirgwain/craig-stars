@@ -10,13 +10,13 @@
 
 	const { game, player, universe, createProductionPlan } = getGameContext();
 
-	let plan: ProductionPlan = {
+	let plan: ProductionPlan = $state({
 		num: 0,
 		name: '',
 		items: []
-	};
+	});
 
-	let error = '';
+	let error = $state('');
 
 	const onSubmit = async () => {
 		error = '';
@@ -38,15 +38,22 @@
 	};
 </script>
 
-<form on:submit|preventDefault={onSubmit}>
+<form
+	onsubmit={(e) => {
+		e.preventDefault();
+		onSubmit();
+	}}
+>
 	<Breadcrumb>
-		<svelte:fragment slot="crumbs">
+		{#snippet crumbs()}
 			<li><a href={`/games/${$game.id}/production-plans`}>Production Plans</a></li>
 			<li>{plan?.name ?? '<unknown>'}</li>
-		</svelte:fragment>
-		<div slot="end" class="flex justify-end mb-1">
-			<button class="btn btn-success mx-1" type="submit">Save</button>
-		</div>
+		{/snippet}
+		{#snippet end()}
+			<div class="flex justify-end mb-1">
+				<button class="btn btn-success mx-1" type="submit">Save</button>
+			</div>
+		{/snippet}
 	</Breadcrumb>
 
 	<FormError {error} />

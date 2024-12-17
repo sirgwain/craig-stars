@@ -1,5 +1,5 @@
 import type { Fleet } from '$lib/types/Fleet';
-import type { ShipDesign, Spec } from '$lib/types/ShipDesign';
+import type { ShipDesign } from '$lib/types/ShipDesign';
 import { Service } from './Service';
 
 export class DesignService {

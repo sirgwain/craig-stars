@@ -8,20 +8,21 @@
 		ChevronDoubleRight
 	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
+	type Props = {
+		phase: number;
+		battle: Battle;
+		onPhaseUpdated?: (phase: number) => void;
+	};
 
-	const dispatch = createEventDispatcher();
-
-	export let phase: number;
-	export let battle: Battle;
+	let { phase = $bindable(), battle, onPhaseUpdated: onPhaseUpdated }: Props = $props();
 
 	const previous = () => {
 		phase--;
-		dispatch('phaseupdated', phase);
+		onPhaseUpdated?.(phase);
 	};
 	const next = () => {
 		phase++;
-		dispatch('phaseupdated', phase);
+		onPhaseUpdated?.(phase);
 	};
 	const nextAttack = () => {
 		const nextPhase = battle.actions.findIndex(
@@ -32,23 +33,23 @@
 		if (nextPhase != -1) {
 			phase = nextPhase + 1;
 		}
-		dispatch('phaseupdated', phase);
+		onPhaseUpdated?.(phase);
 	};
 
 	const begin = () => {
 		phase = 0;
-		dispatch('phaseupdated', phase);
+		onPhaseUpdated?.(phase);
 	};
 	const end = () => {
 		phase = battle.totalPhases;
-		dispatch('phaseupdated', phase);
+		onPhaseUpdated?.(phase);
 	};
 </script>
 
 <div class="flex">
 	<div>
 		<button
-			on:click={begin}
+			onclick={begin}
 			disabled={phase === 0}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="begin"
@@ -58,7 +59,7 @@
 
 	<div>
 		<button
-			on:click={previous}
+			onclick={previous}
 			disabled={phase === 0}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="previous"
@@ -69,9 +70,8 @@
 		<input
 			type="number"
 			class="input input-sm input-bordered hide-spinner"
-			on:change={(e) =>
-				(phase = clamp(parseInt(e.currentTarget.value) ?? 0, 0, battle.totalPhases))}
-			on:click={(e) => e.currentTarget.select()}
+			onchange={(e) => (phase = clamp(parseInt(e.currentTarget.value) ?? 0, 0, battle.totalPhases))}
+			onclick={(e) => e.currentTarget.select()}
 			min={0}
 			max={battle.totalPhases}
 			value={phase}
@@ -79,7 +79,7 @@
 	</div>
 	<div>
 		<button
-			on:click={nextAttack}
+			onclick={nextAttack}
 			disabled={phase === battle.totalPhases}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="next attack"
@@ -88,7 +88,7 @@
 	</div>
 	<div>
 		<button
-			on:click={next}
+			onclick={next}
 			disabled={phase === battle.totalPhases}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="next"
@@ -97,7 +97,7 @@
 	</div>
 	<div>
 		<button
-			on:click={end}
+			onclick={end}
 			disabled={phase === battle.totalPhases}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="end"

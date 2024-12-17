@@ -1,10 +1,9 @@
 <script lang="ts">
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
 	import { addError, type CSError } from '$lib/services/Errors';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { TransportPlan } from '$lib/types/Player';
 	import TransportPlanCard from './TransportPlanCard.svelte';
-	import { notify } from '$lib/services/Notifications';
 
 	const { game, player, deleteTransportPlan } = getGameContext();
 
@@ -22,13 +21,15 @@
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
+	{#snippet crumbs()}
 		<li>Transport Plans</li>
-	</svelte:fragment>
+	{/snippet}
 
-	<div slot="end" class="flex justify-end mb-1">
-		<a class="cs-link btn btn-sm" href={`/games/${$game.id}/transport-plans/create`}>Create</a>
-	</div>
+	{#snippet end()}
+		<div class="flex justify-end mb-1">
+			<a class="cs-link btn btn-sm" href={`/games/${$game.id}/transport-plans/create`}>Create</a>
+		</div>
+	{/snippet}
 </Breadcrumb>
 
 {#if $player.transportPlans.length}
@@ -38,7 +39,7 @@
 				{plan}
 				href={`/games/${$game.id}/transport-plans/${plan.num}`}
 				showDelete={plan.num !== 0}
-				on:delete={() => deletePlan(plan)}
+				onDelete={() => deletePlan(plan)}
 			/>
 		{/each}
 	</div>

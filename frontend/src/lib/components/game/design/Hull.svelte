@@ -1,34 +1,48 @@
 <script lang="ts">
+	import { techs } from '$lib/services/Stores';
 	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
 	import type { HullSlot, TechHull } from '$lib/types/Tech';
-	import { createEventDispatcher } from 'svelte';
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
 	import { onTechTooltip } from '../tooltips/TechTooltip.svelte';
-	import { techs } from '$lib/services/Stores';
-
-	const dispatch = createEventDispatcher();
 
 	const componentSize = 64; // each component block is 64px
 	const containerWidth = componentSize * 5;
 	const containerHeight = componentSize * 5;
 
-	export let hull: TechHull;
-	export let shipDesignSlots: ShipDesignSlot[] = [];
-	export let highlightedSlots: HullSlot[] = [];
-	export let highlightedClass: string = '';
-	export let cargoCapacity = hull.cargoCapacity ?? 0;
-	export let showTooltips = true;
+	type Props = {
+		hull: TechHull;
+		shipDesignSlots?: ShipDesignSlot[];
+		highlightedSlots?: number[];
+		highlightedClass?: string;
+		cargoCapacity?: number;
+		showTooltips?: boolean;
+		onSlotClicked?: (
+			index: number,
+			hullSlot: HullSlot,
+			shipDesignSlot: ShipDesignSlot | undefined
+		) => void;
+	};
+
+	let {
+		hull,
+		shipDesignSlots = $bindable([]),
+		highlightedSlots = [],
+		highlightedClass = '',
+		cargoCapacity = hull.cargoCapacity ?? 0,
+		showTooltips = true,
+		onSlotClicked: onSlotClicked
+	}: Props = $props();
 </script>
 
 <div
 	class="relative m-2 bg-base-200 dark:bg-base-300"
 	style={`width: ${containerWidth}px; height: ${containerHeight}px`}
 >
-	{#each hull.slots as slot, index}
+	{#each hull.slots as slot, index (index)}
 		{@const shipDesignSlot = shipDesignSlots.find((s) => s.hullSlotIndex === index + 1)}
-		{#if index == 1 && cargoCapacity > 0}
+		{#if index === 1 && cargoCapacity > 0}
 			<div
 				class="absolute"
 				style={`left: ${
@@ -44,7 +58,7 @@
 				<CargoComponent capacity={cargoCapacity} />
 			</div>
 		{/if}
-		{#if index == 1 && hull.spaceDock && hull.spaceDock != 0}
+		{#if index === 1 && hull.spaceDock && hull.spaceDock !== 0}
 			<div
 				class="absolute"
 				style={`left: ${
@@ -65,7 +79,9 @@
 			style={`left: ${
 				slot.position.x * componentSize + (containerWidth / 2 - componentSize / 2)
 			}px; top: ${slot.position.y * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
-			on:contextmenu|preventDefault={(e) =>
+			role="link"
+			tabindex="-1"
+			oncontextmenu={(e) =>
 				shipDesignSlot && onTechTooltip(e, $techs.getHullComponent(shipDesignSlot?.hullComponent))}
 		>
 			<HullComponent
@@ -73,16 +89,16 @@
 				type={slot.type}
 				capacity={slot.capacity}
 				required={slot.required}
-				highlighted={highlightedSlots.findIndex((s) => s === slot) != -1}
+				highlighted={highlightedSlots.findIndex((s) => s === index) !== -1}
 				{highlightedClass}
 				{showTooltips}
-				on:clicked={(e) => {
-					dispatch('slot-clicked', { index, slot, shipDesignSlot });
+				onClick={() => {
+					onSlotClicked?.(index, slot, shipDesignSlot);
 				}}
-				on:deleted={() => {
-					shipDesignSlots = shipDesignSlots.filter((s) => s !== shipDesignSlot);
+				onDelete={() => {
+					shipDesignSlots = shipDesignSlots.filter((s) => s != shipDesignSlot);
 				}}
-				on:updated={() => {
+				onUpdate={() => {
 					shipDesignSlots = shipDesignSlots;
 				}}
 			/>

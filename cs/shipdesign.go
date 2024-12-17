@@ -101,9 +101,6 @@ type ShipDesignSpec struct {
 	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots,omitempty"`
 }
 
-type MineLayingRateByMineType struct {
-}
-
 type ShipDesignPurpose string
 
 const (
@@ -739,7 +736,7 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 				}
 			}
 		case HullSlotTypeShieldArmor:
-			// freighters gotta stay fast and loose, so no armor for them 
+			// freighters gotta stay fast and loose, so no armor for them
 			switch purpose {
 			case ShipDesignPurposeFuelFreighter:
 				continue

@@ -7,12 +7,16 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import GuestLink from '../(main)/GuestLink.svelte';
 
-	const { game, player, universe } = getGameContext();
+	const { game } = getGameContext();
 
-	export let playerStatus: PlayerStatus;
+	type Props = {
+		playerStatus: PlayerStatus;
+	};
 
-	$: isHost = $me.id === $game.hostId;
-	$: hasGuests = isHost && $game.players.find((p) => p.guest);
+	let { playerStatus }: Props = $props();
+
+	let isHost = $derived($me.id === $game.hostId);
+	let hasGuests = $derived(isHost && $game.players.find((p) => p.guest));
 </script>
 
 <div class="flex flex-row h-10">

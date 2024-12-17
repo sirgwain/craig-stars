@@ -541,8 +541,11 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 						if err != nil {
 							return fmt.Errorf("no user for %d %w", player.UserID, err)
 						}
-						if err := gr.deleteGuestUser(c, user); err != nil {
-							return err
+						if user != nil {
+							// delete the guest user if a user has been created for it
+							if err := gr.deleteGuestUser(c, user); err != nil {
+								return err
+							}
 						}
 					} else {
 						game.OpenPlayerSlots--
@@ -576,10 +579,13 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 					if err != nil {
 						return fmt.Errorf("no user for %d %w", player.UserID, err)
 					}
-					// update the guest user
-					user.PlayerNum = player.Num
-					if err := c.UpdateUser(user); err != nil {
-						return fmt.Errorf("update guest user %d with new playerNum %w", user.ID, err)
+					// if a user has logged in as this guest, update the user player num
+					if user != nil {
+						// update the guest user
+						user.PlayerNum = player.Num
+						if err := c.UpdateUser(user); err != nil {
+							return fmt.Errorf("update guest user %d with new playerNum %w", user.ID, err)
+						}
 					}
 				}
 

@@ -1,42 +1,37 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { Vector } from '$lib/types/Vector';
 	import ScannerContextPopup from './ScannerContextPopup.svelte';
 
-	export function onScannerContextPopup(
-		e: PointerEvent | MouseEvent,
-		position: Vector | undefined
-	) {
+	export type ScannerContextPopupProps = {
+		position: Vector;
+	} & PopupProps;
+
+	export function onScannerContextPopup(e: PointerEvent | MouseEvent, position?: Vector) {
 		if (position) {
 			showPopup<ScannerContextPopupProps>(e.x, e.y, ScannerContextPopup, { position });
 		}
 	}
-
-	export type ScannerContextPopupProps = {
-		position: Vector | undefined;
-	};
 </script>
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { showPopup } from '$lib/services/Stores';
-	import { type Fleet } from '$lib/types/Fleet';
-	import { getMapObjectName, MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { None } from '$lib/types/Constants';
+	import { getMapObjectName, MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
 	import { flatten, keys } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
-	import type { PopupEvent } from './Popup.svelte';
+	import { showPopup, type PopupProps } from './Popup.svelte';
 
 	const { player, universe, commandMapObject, selectMapObject } = getGameContext();
-	const dispatch = createEventDispatcher<PopupEvent>();
 
-	export let position: Vector;
+	let { position, onClose }: ScannerContextPopupProps = $props();
 
-	$: otherMapObjectsHere = $universe.getOtherMapObjectsHereByType(position);
-	$: everythingElse = flatten(
-		keys(otherMapObjectsHere).map((k) =>
-			k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
-				? otherMapObjectsHere[k]
-				: []
+	let otherMapObjectsHere = $derived($universe.getOtherMapObjectsHereByType(position));
+	let everythingElse = $derived(
+		flatten(
+			keys(otherMapObjectsHere).map((k) =>
+				k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
+					? otherMapObjectsHere[k]
+					: []
+			)
 		)
 	);
 
@@ -47,7 +42,7 @@
 			}
 		}
 		selectMapObject(mo);
-		dispatch('close');
+		onClose?.();
 	}
 </script>
 
@@ -64,7 +59,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{mo.name}</button
+							onclick={() => gotoTarget(mo)}>{mo.name}</button
 						>
 					</li>
 				{/each}
@@ -83,7 +78,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{getMapObjectName(mo)}</button
+							onclick={() => gotoTarget(mo)}>{getMapObjectName(mo)}</button
 						>
 					</li>
 				{/each}
@@ -103,7 +98,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}
+							onclick={() => gotoTarget(mo)}
 						>
 							{mo.name}
 						</button>
@@ -124,7 +119,7 @@
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							on:click={() => gotoTarget(mo)}>{mo.name}</button
+							onclick={() => gotoTarget(mo)}>{mo.name}</button
 						>
 					</li>
 				{/each}

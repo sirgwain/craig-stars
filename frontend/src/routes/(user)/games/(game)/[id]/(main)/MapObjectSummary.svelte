@@ -3,6 +3,7 @@
 	import Cycle from '$lib/components/icons/Cycle.svelte';
 	import Starbase from '$lib/components/icons/Starbase.svelte';
 	import { getCarouselContext } from '$lib/services/CarouselContext';
+	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { type Fleet } from '$lib/types/Fleet';
 	import { getMapObjectName, MapObjectType } from '$lib/types/MapObject';
@@ -12,6 +13,8 @@
 	import type { Planet } from '$lib/types/Planet';
 	import type { Salvage } from '$lib/types/Salvage';
 	import type { Wormhole } from '$lib/types/Wormhole';
+	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import { readable } from 'svelte/store';
 	import FleetSummary from './FleetSummary.svelte';
 	import MineFieldSummary from './MineFieldSummary.svelte';
@@ -21,13 +24,10 @@
 	import SalvageSummary from './SalvageSummary.svelte';
 	import UnknownSummary from './UnknownSummary.svelte';
 	import WormholeSummary from './WormholeSummary.svelte';
-	import { ChevronUp, ChevronDown } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../dialogs/cargo/CargoTranfserDialog.svelte';
 
-	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { universe, selectNextMapObject, selectedMapObject } = getGameContext();
+
+	let { onShowCargoTransferDialog }: ShowCargoTransferDialogProps = $props();
 
 	// if we are in a CommandPaneCarousel, show the disclosure chevrons and hide/show the command pane on click
 	let carouselContext = getCarouselContext();
@@ -43,28 +43,35 @@
 		}
 	}
 
-	$: selectedPlanet =
-		$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined;
-	$: selectedFleet =
-		$selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined;
-	$: selectedMineField =
+	let selectedPlanet = $derived(
+		$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined
+	);
+	let selectedFleet = $derived(
+		$selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined
+	);
+	let selectedMineField = $derived(
 		$selectedMapObject?.type == MapObjectType.MineField
 			? ($selectedMapObject as MineField)
-			: undefined;
-	$: selectedMineralPacket =
+			: undefined
+	);
+	let selectedMineralPacket = $derived(
 		$selectedMapObject?.type == MapObjectType.MineralPacket
 			? ($selectedMapObject as MineralPacket)
-			: undefined;
-	$: selectedSalvage =
-		$selectedMapObject?.type == MapObjectType.Salvage ? ($selectedMapObject as Salvage) : undefined;
-	$: selectedWormhole =
+			: undefined
+	);
+	let selectedSalvage = $derived(
+		$selectedMapObject?.type == MapObjectType.Salvage ? ($selectedMapObject as Salvage) : undefined
+	);
+	let selectedWormhole = $derived(
 		$selectedMapObject?.type == MapObjectType.Wormhole
 			? ($selectedMapObject as Wormhole)
-			: undefined;
-	$: selectedMysteryTrader =
+			: undefined
+	);
+	let selectedMysteryTrader = $derived(
 		$selectedMapObject?.type == MapObjectType.MysteryTrader
 			? ($selectedMapObject as MysteryTrader)
-			: undefined;
+			: undefined
+	);
 </script>
 
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full">
@@ -75,7 +82,7 @@
 					<button
 						class:cursor-default={!showDisclosure}
 						class="w-full"
-						on:click={carouselContext?.onDisclosureClicked}
+						onclick={() => carouselContext?.onDisclosureClicked}
 					>
 						{getMapObjectName($selectedMapObject)}
 					</button>
@@ -85,15 +92,27 @@
 			</div>
 			<div>
 				{#if selectedPlanet && selectedPlanet.spec.hasStarbase}
-					<button type="button" on:pointerdown|preventDefault={showStarbaseDesign}>
+					<button
+						type="button"
+						onpointerdown={(e) => {
+							e.preventDefault();
+							showStarbaseDesign(e);
+						}}
+					>
 						<Starbase class="w-4 h-4 starbase" /></button
 					>
 				{/if}
-				<button type="button" on:pointerdown|preventDefault={selectNextMapObject}>
+				<button
+					type="button"
+					onpointerdown={(e) => {
+						e.preventDefault();
+						selectNextMapObject();
+					}}
+				>
 					<Cycle class="w-4 h-4 fill-base-content hover:stroke-accent" /></button
 				>
 				{#if carouselContext}
-					<button type="button" on:click={carouselContext.onDisclosureClicked}>
+					<button type="button" onclick={(_) => carouselContext.onDisclosureClicked()}>
 						{#if $open}
 							<Icon src={ChevronUp} size="16" class="hover:stroke-accent" />
 						{:else}
@@ -106,10 +125,7 @@
 		{#if selectedPlanet}
 			<PlanetSummary planet={selectedPlanet} />
 		{:else if selectedFleet}
-			<FleetSummary
-				fleet={selectedFleet}
-				on:cargo-transfer-dialog={(e) => dispatch('cargo-transfer-dialog', e?.detail)}
-			/>
+			<FleetSummary fleet={selectedFleet} {onShowCargoTransferDialog} />
 		{:else if selectedMineField}
 			<MineFieldSummary mineField={selectedMineField} />
 		{:else if selectedMineralPacket}

@@ -54,19 +54,19 @@ type FleetOrders struct {
 
 type FleetSpec struct {
 	ShipDesignSpec
-	BaseCloakedCargo int                        `json:"baseCloakedCargo"`
-	BasePacketSpeed  int                        `json:"basePacketSpeed"`
+	BaseCloakedCargo int                        `json:"baseCloakedCargo,omitempty"`
+	BasePacketSpeed  int                        `json:"basePacketSpeed,omitempty"`
 	HasMassDriver    bool                       `json:"hasMassDriver,omitempty"`
 	HasStargate      bool                       `json:"hasStargate,omitempty"`
 	MassDriver       string                     `json:"massDriver,omitempty"`
-	MassEmpty        int                        `json:"massEmpty"`
+	MassEmpty        int                        `json:"massEmpty,omitempty"`
 	MaxHullMass      int                        `json:"maxHullMass,omitempty"`
 	MaxRange         int                        `json:"maxRange,omitempty"`
-	Purposes         map[ShipDesignPurpose]bool `json:"purposes"`
+	Purposes         map[ShipDesignPurpose]bool `json:"purposes,omitempty"`
 	SafeHullMass     int                        `json:"safeHullMass,omitempty"`
 	SafeRange        int                        `json:"safeRange,omitempty"`
 	Stargate         string                     `json:"stargate,omitempty"`
-	TotalShips       int                        `json:"totalShips"`
+	TotalShips       int                        `json:"totalShips,omitempty"`
 }
 
 type Waypoint struct {
@@ -648,7 +648,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	}
 
 	// compute the cloaking based on the cloak units and cargo
-	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total() + spec.BaseCloakedCargo, player.Race.Spec.FreeCargoCloaking)
+	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total()+spec.BaseCloakedCargo, player.Race.Spec.FreeCargoCloaking)
 
 	if !spec.Starbase {
 		spec.EstimatedRange = fleet.getEstimatedRange(player, spec.Engine.IdealSpeed, spec.CargoCapacity)

@@ -3,11 +3,13 @@
 	import VictoryConditionCheckbox from './VictoryConditionCheckbox.svelte';
 	import VictoryConditionInput from './VictoryConditionInput.svelte';
 
-	export let settings: GameSettings;
+	type Props = {
+		settings: GameSettings;
+	};
 
+	let { settings = $bindable() }: Props = $props();
 </script>
 
-<!-- svelte-ignore a11y-label-has-associated-control -->
 <div>
 	<label class="label justify-start">
 		<VictoryConditionCheckbox

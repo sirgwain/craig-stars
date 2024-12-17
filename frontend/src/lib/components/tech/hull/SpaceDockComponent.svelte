@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { UnlimitedSpaceDock } from '$lib/types/Constants';
 
-	export let spaceDock: number;
-	export let rounded = false;
+	type Props = {
+		spaceDock: number;
+		rounded?: boolean;
+	};
+
+	let { spaceDock, rounded = false }: Props = $props();
 </script>
 
 <div

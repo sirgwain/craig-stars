@@ -4,7 +4,12 @@
 	import NotificationToast from '$lib/components/NotificationToast.svelte';
 	import { errors } from '$lib/services/Errors';
 	import { me } from '$lib/services/Stores';
-	import { onMount } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
+	type Props = {
+		children?: Snippet;
+	};
+
+	let { children }: Props = $props();
 
 	onMount(() => {
 		$errors = [];
@@ -16,7 +21,7 @@
 		<Menu user={$me} />
 	</div>
 	<div class="w-full mx-auto">
-		<slot>This is the main content</slot>
+		{#if children}{@render children()}{:else}This is the main content{/if}
 	</div>
 	<ErrorToast />
 	<NotificationToast />

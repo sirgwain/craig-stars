@@ -1,17 +1,27 @@
 <script lang="ts">
-	export let style: string | undefined = undefined;
-	export let planetColor = '#00FF00';
-	export let starbaseColor = '#FDFD00';
-	export let stargateColor = '#008100';
-	export let massDriverColor = '#8D0085';
+	import type { SVGAttributes } from 'svelte/elements';
+
+	type Props = {
+		planetColor?: string;
+		starbaseColor?: string;
+		stargateColor?: string;
+		massDriverColor?: string;
+	} & SVGAttributes<SVGElement>;
+
+	let {
+		planetColor = '#00FF00',
+		starbaseColor = '#FDFD00',
+		stargateColor = '#008100',
+		massDriverColor = '#8D0085',
+		...rest
+	}: Props = $props();
 </script>
 
 <svg
 	viewBox="0 0 500 500"
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-	{style}
-	{...$$restProps}
+	{...rest}
 >
 	<path
 		id="Planet"

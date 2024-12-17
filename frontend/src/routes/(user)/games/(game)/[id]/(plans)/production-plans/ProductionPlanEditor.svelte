@@ -7,8 +7,12 @@
 	import { QueueItemTypes } from '$lib/types/QueueItemType';
 	import Production from './Production.svelte';
 
-	export let designFinder: DesignFinder;
-	export let plan: ProductionPlan;
+	type Props = {
+		designFinder: DesignFinder;
+		plan: ProductionPlan;
+	};
+
+	let { designFinder, plan = $bindable() }: Props = $props();
 
 	let availableItems: ProductionQueueItem[] = [
 		fromQueueItemType(QueueItemTypes.AutoFactories),

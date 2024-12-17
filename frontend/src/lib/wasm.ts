@@ -4,7 +4,7 @@ import type { Cost } from './types/Cost';
 import { type Planet } from './types/Planet';
 import type { Player } from './types/Player';
 import type { Rules } from './types/Rules';
-import type { ShipDesign, Spec as ShipDesignSpec } from './types/ShipDesign';
+import type { ShipDesign, ShipDesignSpec } from './types/ShipDesign';
 import type { TechLevel } from './types/TechLevel';
 
 export type CS = {
@@ -21,9 +21,9 @@ export type CS = {
 
 // load a wasm module and returns a wrapper for executing functions
 export async function loadWasm(): Promise<CS> {
-	// @ts-expect-error
+	// @ts-expect-error __go_wasm__ is set by cs.wasm
 	if (typeof __go_wasm__ == 'undefined') {
-		// @ts-expect-error
+		// @ts-expect-error __go_wasm__ is set by cs.wasm
 		window.__go_wasm__ = {};
 	}
 
@@ -33,7 +33,7 @@ export async function loadWasm(): Promise<CS> {
 		__ready__?: boolean;
 	};
 
-	// @ts-expect-error
+	// @ts-expect-error __go_wasm__ is set by cs.wasm
 	const bridge = __go_wasm__ as CSWasm & Bridge;
 
 	// load the wasm and start it up
@@ -111,7 +111,7 @@ class CSWasmWrapper implements CS {
 	}
 
 	starbaseUpgradeCost(design: ShipDesign, newDesign: ShipDesign): Cost | undefined {
-		const result = this.wasm.starbaseUpgradeCost(design, newDesign)
+		const result = this.wasm.starbaseUpgradeCost(design, newDesign);
 		if (this.checkError()) {
 			return undefined;
 		}

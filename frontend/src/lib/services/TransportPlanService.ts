@@ -1,5 +1,4 @@
 import type { PlayerResponse, TransportPlan } from '$lib/types/Player';
-import { CSError, type ErrorResponse } from './Errors';
 import { Service } from './Service';
 
 export class TransportPlanService {

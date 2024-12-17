@@ -1,45 +1,37 @@
-<script lang="ts" context="module">
-	import { CargoTransferRequest } from '$lib/types/Cargo';
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
-	import type { Planet } from '$lib/types/Planet';
-
-	export type TransferCargoEventDetails = {
-		src: CommandedFleet;
-		dest?: Fleet | Planet | Salvage;
-		transferAmount: CargoTransferRequest;
-	};
-	export type CargoTransferEvent = {
-		'transfer-cargo': TransferCargoEventDetails;
-		cancel: void;
-	};
-</script>
-
 <script lang="ts">
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
+	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
+	import { newCargoTransferRequest } from '$lib/types/CargoTransferRequest';
+	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
+	import type { Planet } from '$lib/types/Planet';
 	import type { Salvage } from '$lib/types/Salvage';
 	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 
-	const dispatch = createEventDispatcher<CargoTransferEvent>();
+	type Props = {
+		src: CommandedFleet;
+		dest: Fleet | Planet | Salvage | undefined;
+		onOk?: OnOk<TransferCargoEvent>;
+		onCancel?: OnCancel;
+	};
 
-	export let src: CommandedFleet;
-	export let dest: Fleet | Planet | Salvage | undefined;
+	let { src, dest, onOk, onCancel }: Props = $props();
 
-	let transferAmount = new CargoTransferRequest();
+	let transferAmount = $state(newCargoTransferRequest());
 
 	function reset() {
-		transferAmount = new CargoTransferRequest();
+		transferAmount = newCargoTransferRequest();
 		src = src;
 	}
 
 	function ok() {
-		dispatch('transfer-cargo', { src, dest, transferAmount });
+		onOk?.({ src, dest, transferAmount });
 		reset();
 	}
 
 	function cancel() {
 		reset();
-		dispatch('cancel');
+		onCancel?.();
 	}
 
 	onMount(() => {
@@ -66,8 +58,8 @@
 			<div class="flex flex-col h-full w-full">
 				<CargoTransferer {src} {dest} bind:transferAmount />
 				<div class="flex justify-end pt-2">
-					<button on:click={ok} class="btn btn-primary">Ok</button>
-					<button on:click={cancel} class="btn btn-secondary">Cancel</button>
+					<button onclick={ok} class="btn btn-primary">Ok</button>
+					<button onclick={cancel} class="btn btn-secondary">Cancel</button>
 				</div>
 			</div>
 		</div>

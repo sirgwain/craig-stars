@@ -3,9 +3,13 @@
 	import { MessageType, type Message } from '$lib/types/Message';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { player, universe } = getGameContext();
 
-	export let message: Message;
+	type Props = {
+		message: Message;
+	};
+
+	let { message }: Props = $props();
 </script>
 
 {#if message.text}

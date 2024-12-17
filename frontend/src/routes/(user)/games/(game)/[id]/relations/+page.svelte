@@ -2,11 +2,11 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import Relations from './Relations.svelte';
 
-	const { player, updatePlayerRelations } = getGameContext();
+	const { player, updatePlayerRelationships } = getGameContext();
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
 	{#if player}
-		<Relations on:update-player={updatePlayerRelations} />
+		<Relations player={$player} onUpdatePlayerRelationships={updatePlayerRelationships} />
 	{/if}
 </div>

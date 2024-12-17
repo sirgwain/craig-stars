@@ -9,19 +9,25 @@
 	import { distance } from '$lib/types/Vector';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { player, universe } = getGameContext();
 
-	export let message: Message;
-	export let mineralPacket: MineralPacket;
-	export let owner: PlayerIntel;
+	type Props = {
+		message: Message;
+		mineralPacket: MineralPacket;
+		owner: PlayerIntel;
+	};
 
-	$: target = $universe.getPlanet(mineralPacket.targetPlanetNum);
-	$: eta = target
-		? Math.ceil(
-				distance(mineralPacket.position, target.position) /
-					(mineralPacket.warpSpeed * mineralPacket.warpSpeed)
-			)
-		: Unknown;
+	let { message, mineralPacket, owner }: Props = $props();
+
+	let target = $derived($universe.getPlanet(mineralPacket.targetPlanetNum));
+	let eta = $derived(
+		target
+			? Math.ceil(
+					distance(mineralPacket.position, target.position) /
+						(mineralPacket.warpSpeed * mineralPacket.warpSpeed)
+				)
+			: Unknown
+	);
 </script>
 
 {#if message.text}

@@ -1,17 +1,21 @@
 <script lang="ts">
+	import type { MergeFleetsEvent, OnCancel, OnOk } from '$lib/services/Events';
 	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
-	import hotkeys from 'hotkeys-js';
-	import { createEventDispatcher, onMount } from 'svelte';
-	import type { MergeFleetsEvent } from './MergeFleetsDialog.svelte';
 	import { getMapObjectName } from '$lib/types/MapObject';
+	import hotkeys from 'hotkeys-js';
+	import { onMount } from 'svelte';
 
-	const dispatch = createEventDispatcher<MergeFleetsEvent>();
+	type Props = {
+		fleet: CommandedFleet;
+		otherFleetsHere: Fleet[];
+		onOk?: OnOk<MergeFleetsEvent>;
+		onCancel?: OnCancel;
+	};
 
-	export let fleet: CommandedFleet;
-	export let otherFleetsHere: Fleet[];
-	let selectedFleetIndexes: number[] = [];
+	let { fleet, otherFleetsHere, onOk, onCancel }: Props = $props();
+	let selectedFleetIndexes: number[] = $state([]);
 
-	let fleetRefs: (HTMLLIElement | null)[] = [];
+	let fleetRefs: (HTMLLIElement | null)[] = $state([]);
 
 	function select(index: number) {
 		if (selectedFleetIndexes.indexOf(index) == -1) {
@@ -32,12 +36,12 @@
 		// TODO: otherFleetsHere[i] is sometimes undefined
 		const fleetNums = selectedFleetIndexes.map((i) => otherFleetsHere[i].num);
 		if (fleetNums.length > 0) {
-			dispatch('merge-fleets', { fleet, fleetNums });
+			onOk?.({ fleet, fleetNums });
 		}
 	}
 
 	function cancel() {
-		dispatch('cancel');
+		onCancel?.();
 	}
 
 	onMount(() => {
@@ -68,7 +72,7 @@
 							class="pl-1"
 							class:bg-primary-focus={selectedFleetIndexes.indexOf(index) != -1}
 						>
-							<button class="w-full text-left" type="button" on:click={() => select(index)}>
+							<button class="w-full text-left" type="button" onclick={() => select(index)}>
 								{getMapObjectName(otherFleet)}
 							</button>
 						</li>
@@ -79,22 +83,25 @@
 	</div>
 	<div class="flex flex-col mt-7 ml-2 gap-2">
 		<button
-			on:click|preventDefault={ok}
 			type="submit"
+			onclick={(e) => {
+				e.preventDefault();
+				ok();
+			}}
 			disabled={selectedFleetIndexes.length == 0}
 			class="btn btn-sm normal-case btn-primary">OK</button
 		>
-		<button on:click={cancel} class="btn btn-outline btn-sm normal-case btn-secondary"
+		<button onclick={onCancel} class="btn btn-outline btn-sm normal-case btn-secondary"
 			>Cancel</button
 		>
 		<button
 			type="button"
-			on:click={selectAll}
+			onclick={selectAll}
 			class="btn btn-outline btn-sm normal-case btn-secondary">Select All</button
 		>
 		<button
 			type="button"
-			on:click={unselectAll}
+			onclick={unselectAll}
 			class="btn btn-outline btn-sm normal-case btn-secondary">Unselect All</button
 		>
 	</div>

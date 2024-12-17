@@ -1,31 +1,34 @@
-<script lang="ts" context="module">
-	export type PlayerUpdateEvent = {
-		'update-player': void;
-	};
-</script>
-
 <script lang="ts">
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { PlayerRelation } from '$lib/types/Player';
+	import { Player, PlayerRelation, type PlayerRelationship } from '$lib/types/Player';
 
-	import { getGameContext } from '$lib/services/GameContext';
-	import { createEventDispatcher } from 'svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
 
-	const dispatch = createEventDispatcher<PlayerUpdateEvent>();
+	const { universe } = getGameContext();
 
-	const { game, player, universe } = getGameContext();
+	type Props = {
+		player: Player;
+		onUpdatePlayerRelationships?: (relations: PlayerRelationship[]) => void;
+	};
+	let { player, onUpdatePlayerRelationships: onUpdatePlayerRelationship }: Props = $props();
 
-	function updatePlayerOrders() {
-		dispatch('update-player');
+	let relations: PlayerRelationship[] = $state([]);
+
+	$effect(() => {
+		relations = $state.snapshot(player.relations);
+	});
+
+	function updateRelationship() {
+		onUpdatePlayerRelationship?.(relations);
 	}
 </script>
 
 <ItemTitle>Relations</ItemTitle>
 
 <div class="flex flex-col justify-between gap-1">
-	{#each $player.relations as relation, index}
-		{#if $player.num != index + 1}
+	{#each relations as relation, index}
+		{#if player.num != index + 1}
 			<!-- content here -->
 			<SectionHeader>{$universe.getPlayerPluralName(index + 1)}</SectionHeader>
 			<div class="form-control">
@@ -37,7 +40,7 @@
 						class="radio checked:bg-success"
 						value={PlayerRelation.Friend}
 						bind:group={relation.relation}
-						on:change={updatePlayerOrders}
+						onchange={updateRelationship}
 					/>
 				</label>
 			</div>
@@ -50,7 +53,7 @@
 						class="radio checked:bg-info"
 						value={PlayerRelation.Neutral}
 						bind:group={relation.relation}
-						on:change={updatePlayerOrders}
+						onchange={updateRelationship}
 					/>
 				</label>
 			</div>
@@ -63,7 +66,7 @@
 						class="radio checked:bg-error"
 						value={PlayerRelation.Enemy}
 						bind:group={relation.relation}
-						on:change={updatePlayerOrders}
+						onchange={updateRelationship}
 					/>
 				</label>
 			</div>
@@ -75,7 +78,7 @@
 						name={`player-relation-${index + 1}-share-map`}
 						class="checkbox"
 						bind:checked={relation.shareMap}
-						on:change={updatePlayerOrders}
+						onchange={updateRelationship}
 					/>
 				</label>
 			</div>

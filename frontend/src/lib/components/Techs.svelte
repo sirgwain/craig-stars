@@ -1,58 +1,53 @@
 <script lang="ts">
+	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import techjson from '$lib/ssr/techs.json';
 	import { Player, canLearnTech } from '$lib/types/Player';
 	import { TechCategory, type Tech, type TechStore } from '$lib/types/Tech';
+	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
+	import type { CS } from '$lib/wasm';
 	import { kebabCase, sortBy, startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import { $enum as eu } from 'ts-enum-util';
-	import SectionHeader from './SectionHeader.svelte';
-	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
 	import ItemTitle from './ItemTitle.svelte';
-	import { isSafari } from '$lib/safariChecker';
-	import type { CS } from '$lib/wasm';
+	import SectionHeader from './SectionHeader.svelte';
 
-	// for ssr, we start with techs from a json file
-	export let techStore: TechStore = techjson as TechStore;
-	export let techs: Tech[] = [
-		...techStore.engines,
-		...techStore.planetaryScanners,
-		...techStore.defenses,
-		...techStore.planetaries,
-		...techStore.hullComponents,
-		...techStore.hulls,
-		...techStore.terraforms
-	];
-	export let player: Player | undefined = undefined;
-	export let cs: CS | undefined = undefined;
-
-	let filter = '';
-	let showAll = player === undefined;
-
-	let techsByCategory: Record<TechCategory, Tech[]> = {
-		Armor: [],
-		BeamWeapon: [],
-		Bomb: [],
-		Electrical: [],
-		Engine: [],
-		Mechanical: [],
-		MineLayer: [],
-		MineRobot: [],
-		Orbital: [],
-		Planetary: [],
-		PlanetaryScanner: [],
-		PlanetaryDefense: [],
-		Scanner: [],
-		Shield: [],
-		ShipHull: [],
-		StarbaseHull: [],
-		Terraforming: [],
-		Torpedo: []
+	type Props = {
+		// for ssr, we start with techs from a json file
+		techStore?: TechStore;
+		techs?: Tech[];
+		player?: Player | undefined;
+		cs?: CS | undefined;
 	};
 
-	function clearTechsByCategory() {
-		techsByCategory = {
+	let {
+		techStore = techjson as TechStore,
+		techs = [
+			...techStore.engines,
+			...techStore.planetaryScanners,
+			...techStore.defenses,
+			...techStore.planetaries,
+			...techStore.hullComponents,
+			...techStore.hulls,
+			...techStore.terraforms
+		],
+		player,
+		cs
+	}: Props = $props();
+
+	let filter = $state('');
+	let showAll = $state(player === undefined);
+
+	let filteredTechs = $derived(
+		techs.filter(
+			(t) =>
+				t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
+				t.category.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1
+		)
+	);
+
+	let techsByCategory: Record<TechCategory, Tech[]> = $derived.by(() => {
+		const techsByCategory: Record<TechCategory, Tech[]> = {
 			Armor: [],
 			BeamWeapon: [],
 			Bomb: [],
@@ -72,20 +67,11 @@
 			Terraforming: [],
 			Torpedo: []
 		};
-	}
-
-	$: filteredTechs = techs.filter(
-		(t) =>
-			t.name.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1 ||
-			t.category.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) != -1
-	);
-
-	$: {
-		clearTechsByCategory();
 		filteredTechs.forEach((tech) => {
 			techsByCategory[tech.category].push(tech);
 		});
-	}
+		return techsByCategory;
+	});
 
 	onMount(async () => {
 		const response = await fetch(`/api/techs`, {
@@ -110,9 +96,10 @@
 		}
 	});
 
-	$: newTechs =
+	let newTechs = $derived(
 		player &&
-		techs.filter((t) => player?.hasTech(t) && levelsAbove(t.requirements, player.techLevels) == 0);
+			techs.filter((t) => player?.hasTech(t) && levelsAbove(t.requirements, player.techLevels) == 0)
+	);
 </script>
 
 <div class="flex justify-between">
@@ -149,7 +136,6 @@
 						<TechSummary
 							{tech}
 							{player}
-							hideGraph={isSafari}
 							{cs}
 							showResearchCost={!!(
 								player &&

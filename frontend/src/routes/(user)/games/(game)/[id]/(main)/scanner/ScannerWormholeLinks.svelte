@@ -1,27 +1,24 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { subtract, normalized } from '$lib/types/Vector';
+	import { normalized, subtract } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import type { SVGAttributes } from 'svelte/elements';
 
 	type Line = {
 		path: string;
-		props: any;
+		props: SVGAttributes<SVGPathElement>;
 	};
 
 	const { universe } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 
 	const strokeWidth = 1;
 
-	$: wormholes = $universe.wormholes.filter((w) => w.destinationNum);
-
-	let lines: Line[] = [];
-
-	$: {
+	let lines: Line[] = $derived.by(() => {
+		let wormholes = $universe.wormholes.filter((w) => w.destinationNum);
 		const numsUsed = new Set<number>();
-		lines = wormholes
+		return wormholes
 			.filter((wormhole) => {
 				const used = numsUsed.has(wormhole.num) || numsUsed.has(wormhole.destinationNum ?? 0);
 				numsUsed.add(wormhole.num);
@@ -56,7 +53,7 @@
 					}
 				};
 			});
-	}
+	});
 </script>
 
 {#each lines as line}

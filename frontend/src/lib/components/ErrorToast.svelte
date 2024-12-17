@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { gameKey, getGameContext } from '$lib/services/GameContext';
 	import { CSError, errors } from '$lib/services/Errors';
 	import { FullGame } from '$lib/services/FullGame';
+	import { gameKey, getGameContext } from '$lib/services/GameContext';
 	import { hasContext } from 'svelte';
-	import type { Readable } from 'svelte/store';
 	import { fade } from 'svelte/transition';
 
-	let game: Readable<FullGame> | undefined;
-	let resetContext: (fg: FullGame) => void;
-	$: hasContext(gameKey) && ({ game, resetContext } = getGameContext());
+	let game = $derived(hasContext(gameKey) ? getGameContext().game : undefined);
+	let resetContext = $derived(hasContext(gameKey) ? getGameContext().resetContext : undefined);
 
 	function onFadeOut(err: CSError) {
 		$errors = $errors.filter((e) => e !== err);
@@ -31,7 +29,7 @@
 				class="alert alert-error"
 				in:fade
 				out:fade={getFadeOptions(err)}
-				on:introend={() => err.statusCode != 409 && onFadeOut(err)}
+				onintroend={() => err.statusCode != 409 && onFadeOut(err)}
 			>
 				<div>
 					<span>{err.error}</span>
@@ -40,9 +38,9 @@
 						<button
 							type="button"
 							class="btn btn-outline"
-							on:click|preventDefault={() => {
+							onclick={() => {
 								$errors = [];
-								if ($game && $game.id) {
+								if ($game && $game.id && resetContext) {
 									// reload the game
 									resetContext(new FullGame());
 									goto(`/games/${$game.id}`);

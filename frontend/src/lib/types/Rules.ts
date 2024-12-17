@@ -1,264 +1,543 @@
 import type { Cost } from './Cost';
-import type { EnumDictionary } from './EnumDictionary';
 import type { Size } from './Game';
 import type { MineFieldStats, MineFieldType } from './MineField';
-import type { TechStore } from './Tech';
+import type { LRT, PRT, SpendLeftoverPointsOn } from './Race';
+import type { TechLevel } from './TechLevel';
+
+export type RandomEvent = 'Comet' | 'MineralDeposit' | 'PlanetaryChange' | 'AncientArtifact';
+
+export type CometSize = 'Small' | 'Medium' | 'Large' | 'Huge';
+
+export type RepairRate =
+	| 'None'
+	| 'Moving'
+	| 'Stopped'
+	| 'Orbiting'
+	| 'OrbitingOwnPlanet'
+	| 'Starbase';
+
+export type WormholeStability =
+	| 'RockSolid'
+	| 'Stable'
+	| 'MostlyStable'
+	| 'Average'
+	| 'SlightlyVolatile'
+	| 'Volatile'
+	| 'ExtremelyVolatile';
+
+export type StartingFleetHull =
+	| ''
+	| 'Colony Ship'
+	| 'Destroyer'
+	| 'Medium Freighter'
+	| 'Mini-Colony Ship'
+	| 'Mini Mine Layer'
+	| 'Mini-Miner'
+	| 'Midget-Miner'
+	| 'Privateer'
+	| 'Scout';
+
+export type ShipDesignPurpose =
+	| ''
+	| 'Scout'
+	| 'Colonizer'
+	| 'Bomber'
+	| 'StructureBomber'
+	| 'SmartBomber'
+	| 'Fighter'
+	| 'FighterScout'
+	| 'CapitalShip'
+	| 'Freighter'
+	| 'ColonistFreighter'
+	| 'FuelFreighter'
+	| 'MultiPurposeFreighter'
+	| 'ArmedFreighter'
+	| 'Miner'
+	| 'Terraformer'
+	| 'DamageMineLayer'
+	| 'SpeedMineLayer'
+	| 'Starbase'
+	| 'FuelDepot'
+	| 'StarbaseQuarter'
+	| 'StarbaseHalf'
+	| 'PacketThrower'
+	| 'Stargater'
+	| 'Fort'
+	| 'StarterColony';
 
 export type Rules = {
 	id?: number;
-	createdAt?: string;
+	createdAt?: string; // ISO 8601 string for time
 	updatedAt?: string;
-
 	gameId?: number;
-	tachyonCloakReduction: number;
-	maxPopulation: number;
-	minMaxPopulationPercent: number;
-	populationOvercrowdDieoffRate: number;
-	populationOvercrowdDieoffRateMax: number;
-	populationScannerError: number;
-	smartDefenseCoverageFactor: number;
-	invasionDefenseCoverageFactor: number;
-	numBattleRounds: number;
-	movesToRunAway: number;
-	beamRangeDropoff: number;
-	torpedoSplashDamage: number;
-	salvageDecayRate: number;
-	salvageDecayMin: number;
-	mineFieldCloak: number;
-	stargateMaxRangeFactor: number;
-	stargateMaxHullMassFactor: number;
-	fleetSafeSpeedExplosionChance: number;
-	randomEventChances: EnumDictionary<RandomEventType, number>;
-	randomMineralDepositBonusRange: number[];
-	randomArtifactResearchBonusRange: number[];
-	randomCometMinYear: number;
-	randomCometMinYearPlayerWorld: number;
-	wormholeCloak: number;
-	wormholeMinDistance: number;
-	wormholeStatsByStability: EnumDictionary<WormholeStability, WormholeStats>;
-	wormholePairsForSize: EnumDictionary<Size, number>;
-	mineFieldStatsByType: EnumDictionary<MineFieldType, MineFieldStats>;
-	repairRates: EnumDictionary<RepairRate, number>;
-	maxPlayers: number;
-	startingYear: number;
-	showPublicScoresAfterYears: number;
-	planetMinDistance: number;
-	maxExtraWorldDistance: number;
-	minExtraWorldDistance: number;
-	minHomeworldMineralConcentration: number;
-	minExtraPlanetMineralConcentration: number;
-	minMineralConcentration: number;
-	minStartingMineralConcentration: number;
-	maxStartingMineralConcentration: number;
-	highRadGermaniumBonus: number;
-	highRadGermaniumBonusThreshold: number;
-	maxStartingMineralSurface: number;
-	minStartingMineralSurface: number;
-	minHab: number;
-	maxHab: number;
-	maxMineralConcentration: number;
-	radiatingImmune: number;
-	mineralDecayFactor: number;
-	remoteMiningMineOutput: number;
-	startingMines: number;
-	startingFactories: number;
-	startingDefenses: number;
-	raceStartingPoints: number;
-	scrapMineralAmount: number;
-	scrapResourceAmount: number;
-	factoryCostGermanium: number;
-	defenseCost: Cost;
-	mineralAlchemyCost: number;
-	terraformCost: Cost;
-	starbaseComponentCostFactor: number;
-	salvageFromBattleFactor: number;
-	techTradeChance: number;
-	packetDecayRate: { [key: number]: number };
-	packetMaxOverwarpSpeed: number;
-	maxTechLevel: number;
-	techBaseCost: number[];
-	techs?: TechStore;
-	planetaryScannerCost: Cost;
-	cometStatsBySize: any;
-	prtSpecs: any;
-	lrtSpecs: any;
+	cometStatsBySize?: Record<CometSize, CometStats>;
+	fleetSafeSpeedExplosionChance?: number;
+	invasionDefenseCoverageFactor?: number;
+	lrtSpecs?: Partial<Record<LRT, LRTSpec>>;
+	maxPopulation?: number;
+	maxTechLevel?: number;
+	mineFieldCloak?: number;
+	mineFieldStatsByType?: Record<MineFieldType, MineFieldStats>;
+	mineralDecayFactor?: number;
+	minMaxPopulationPercent?: number;
+	movesToRunAway?: number;
+	mysteryTraderRules?: MysteryTraderRules;
+	packetDecayRate?: Record<number, number>;
+	packetMaxOverwarpSpeed?: number;
+	packetMinDecay?: number;
+	planetMinDistance?: number;
+	populationOvercrowdDieoffRate?: number;
+	populationOvercrowdDieoffRateMax?: number;
+	populationScannerError?: number;
+	prtSpecs?: Partial<Record<PRT, PRTSpec>>;
+	raceStartingPoints?: number;
+	radiatingImmune?: number;
+	randomArtifactResearchBonusRange?: [number, number];
+	randomCometMinYear?: number;
+	randomCometMinYearPlayerWorld?: number;
+	randomEventChances?: Record<RandomEvent, number>;
+	randomMineralDepositBonusRange?: [number, number];
+	remoteMiningMineOutput?: number;
+	repairRates?: Record<RepairRate, number>;
+	salvageDecayMin?: number;
+	salvageDecayRate?: number;
+	salvageFromBattleFactor?: number;
+	scrapMineralAmount?: number;
+	scrapResourceAmount?: number;
+	showPublicScoresAfterYears?: number;
+	smartDefenseCoverageFactor?: number;
+	stargateMaxHullMassFactor?: number;
+	stargateMaxRangeFactor?: number;
+	tachyonCloakReduction?: number;
+	tachyonMaxCloakReduction?: number;
+	techsId?: number;
+	techTradeChance?: number;
+	torpedoSplashDamage?: number;
+	wormholeCloak?: number;
+	wormholePairsForSize?: Record<Size, number>;
+	wormholeStatsByStability?: Record<WormholeStability, WormholeStats>;
+} & CostRules &
+	BattleRules &
+	UniverseGenerationRules;
+
+export type UniverseGenerationRules = {
+	highRadMineralConcentrationBonusThreshold?: number;
+	limitMineralConcentration?: number;
+	maxExtraWorldDistance?: number;
+	maxHab?: number;
+	maxMineralConcentration?: number;
+	maxStartingMineralConcentration?: number;
+	maxStartingMineralSurface?: number;
+	minExtraPlanetMineralConcentration?: number;
+	minExtraWorldDistance?: number;
+	minHab?: number;
+	minHomeworldMineralConcentration?: number;
+	minMineralConcentration?: number;
+	minStartingMineralConcentration?: number;
+	minStartingMineralSurface?: number;
+	raceLeftoverPointsPerItem?: Record<SpendLeftoverPointsOn, number>;
+	startingYear?: number;
+	wormholeMinPlanetDistance?: number;
 };
 
-export enum WormholeStability {
-	RockSolid = 'RockSolid',
-	Stable = 'Stable',
-	MostlyStable = 'MostlyStable',
-	Average = 'Average',
-	SlightlyVolatile = 'SlightlyVolatile',
-	Volatile = 'Volatile',
-	ExtremelyVolatile = 'ExtremelyVolatile'
-}
+export type CostRules = {
+	defenseCost?: Cost;
+	factoryCostGermanium?: number;
+	mineralAlchemyCost?: number;
+	planetaryScannerCost?: Cost;
+	starbaseComponentCostReduction?: number;
+	terraformCost?: Cost;
+	techBaseCost?: number[];
+};
 
-export interface WormholeStats {
+export type BattleRules = {
+	beamRangeDropoff?: number;
+	numBattleRounds?: number;
+};
+
+export type CometStats = {
+	allMinerals?: number;
+	allRandomMinerals?: number;
+	bonusMinerals?: number;
+	bonusRandomMinerals?: number;
+	bonusMinConcentration?: number;
+	bonusRandomConcentration?: number;
+	bonusAffectsMinerals?: number;
+	minTerraform?: number;
+	randomTerraform?: number;
+	affectsHabs?: number;
+	popKilledPercent?: number;
+};
+
+export type MysteryTraderRules = {
+	chanceSpawn?: number[];
+	chanceMaxTechGetsPart?: number;
+	chanceCourseChange?: number;
+	chanceSpeedUpOnly?: number;
+	chanceAgain?: number;
+	minYear?: number;
+	evenYearOnly?: boolean;
+	minWarp?: number;
+	maxWarp?: number;
+	maxMysteryTraders?: number;
+	requestedBoon?: number;
+	genesisDeviceCost?: Cost;
+	techBoon?: MysteryTraderTechBoonRules[];
+};
+
+export type MysteryTraderTechBoonRules = {
+	techLevels?: number;
+	rewards?: MysteryTraderTechBoonMineralsReward[];
+};
+
+export type MysteryTraderTechBoonMineralsReward = {
+	mineralsGiven?: number;
+	reward?: number;
+};
+
+export type WormholeStats = {
 	yearsToDegrade: number;
 	chanceToJump: number;
 	jiggleDistance: number;
-}
+};
 
-export enum RandomEventType {
-	Comet = 'Comet',
-	MineralDeposit = 'MineralDeposit',
-	PlanetaryChange = 'PlanetaryChange',
-	AncientArtifact = 'AncientArtifact',
-	MysteryTrader = 'MysteryTrader'
-}
+export type PRTSpec = {
+	prt?: PRT;
+	pointCost?: number;
+	startingTechLevels?: TechLevel;
+	startingPlanets?: StartingPlanet[];
+	techCostOffset?: TechCostOffset;
+	mineralsPerSingleMineralPacket?: number;
+	mineralsPerMixedMineralPacket?: number;
+	packetResourceCost?: number;
+	packetMineralCostFactor?: number;
+	packetReceiverFactor?: number;
+	packetDecayFactor?: number;
+	packetOverSafeWarpPenalty?: number;
+	packetBuiltInScanner?: boolean;
+	detectPacketDestinationStarbases?: boolean;
+	detectAllPackets?: boolean;
+	packetTerraformChance?: number;
+	packetPermaformChance?: number;
+	packetPermaTerraformSizeUnit?: number;
+	canGateCargo?: boolean;
+	canDetectStargatePlanets?: boolean;
+	shipsVanishInVoid?: boolean;
+	builtInScannerMultiplier?: number;
+	techsCostExtraLevel?: number;
+	freighterGrowthFactor?: number;
+	growthFactor?: number;
+	maxPopulationOffset?: number;
+	builtInCloakUnits?: number;
+	stealsResearch?: StealsResearch;
+	freeCargoCloaking?: boolean;
+	mineFieldsAreScanners?: boolean;
+	mineFieldRateMoveFactor?: number;
+	mineFieldSafeWarpBonus?: number;
+	mineFieldMinDecayFactor?: number;
+	mineFieldBaseDecayRate?: number;
+	mineFieldPlanetDecayRate?: number;
+	mineFieldMaxDecayRate?: number;
+	canDetonateMineFields?: boolean;
+	mineFieldDetonateDecayRate?: number;
+	discoverDesignOnScan?: boolean;
+	canRemoteMineOwnPlanets?: boolean;
+	invasionAttackBonus?: number;
+	invasionDefendBonus?: number;
+	movementBonus?: number;
+	instaforming?: boolean;
+	permaformChance?: number;
+	permaformPopulation?: number;
+	repairFactor?: number;
+	starbaseRepairFactor?: number;
+	starbaseCostFactor?: number;
+	innateMining?: boolean;
+	innateResources?: boolean;
+	innateScanner?: boolean;
+	innatePopulationFactor?: number;
+	canBuildDefenses?: boolean;
+	livesOnStarbases?: boolean;
+};
 
-export enum RandomCometSize {
-	Small = 'Small',
-	Medium = 'Medium',
-	Large = 'Large',
-	Huge = 'Huge'
-}
+export type LRTSpec = {
+	lrt?: LRT;
+	startingFleets?: StartingFleet[];
+	pointCost?: number;
+	startingTechLevels?: TechLevel;
+	techCostOffset?: TechCostOffset;
+	newTechCostFactorOffset?: number;
+	miniaturizationMax?: number;
+	miniaturizationPerLevel?: number;
+	noAdvancedScanners?: boolean;
+	scanRangeFactorOffset?: number;
+	fuelEfficiencyOffset?: number;
+	maxPopulationOffset?: number;
+	mineralAlchemyCostOffset?: number;
+	scrapMineralOffset?: number;
+	scrapMineralOffsetStarbase?: number;
+	scrapResourcesOffset?: number;
+	scrapResourcesOffsetStarbase?: number;
+	startingPopulationFactorDelta?: number;
+	starbaseBuiltInCloakUnits?: number;
+	starbaseCostFactor?: number;
+	researchFactorOffset?: number;
+	researchSplashDamage?: number;
+	shieldStrengthFactorOffset?: number;
+	shieldRegenerationRateOffset?: number;
+	armorStrengthFactorOffset?: number;
+	engineFailureRateOffset?: number;
+	engineReliableSpeed?: number;
+};
 
-export enum RepairRate {
-	None = 'None',
-	Moving = 'Moving',
-	Stopped = 'Stopped',
-	Orbiting = 'Orbiting',
-	OrbitingOwnPlanet = 'OrbitingOwnPlanet',
-	Starbase = 'Starbase' // the rate starbases repair, not the rate a fleet repairs at a starbase, that's handled by the TechHull
-}
+export type TechCostOffset = {
+	engine?: number;
+	beamWeapon?: number;
+	torpedo?: number;
+	bomb?: number;
+	planetaryDefense?: number;
+	stargate?: number;
+	terraforming?: number;
+};
+
+export type StartingPlanet = {
+	population?: number;
+	mines?: number;
+	factories?: number;
+	defenses?: number;
+	habPenaltyFactor?: number;
+	hasStargate?: boolean;
+	hasMassDriver?: boolean;
+	starbaseDesignName?: string;
+	starbaseHull?: string;
+	startingFleets?: StartingFleet[];
+	homeworld?: boolean;
+};
+
+export type StartingFleet = {
+	name?: string;
+	hullName?: StartingFleetHull;
+	hullSetNumber?: number;
+	purpose?: ShipDesignPurpose;
+};
+
+export type StealsResearch = {
+	energy?: number;
+	weapons?: number;
+	propulsion?: number;
+	construction?: number;
+	electronics?: number;
+	biotechnology?: number;
+};
 
 export const defaultRules: Rules = {
-	tachyonCloakReduction: 5,
-	maxPopulation: 1000000,
-	minMaxPopulationPercent: 0.05,
-	populationOvercrowdDieoffRate: 0.04,
-	populationOvercrowdDieoffRateMax: 0.12,
-	populationScannerError: 0.2,
-	smartDefenseCoverageFactor: 0.5,
-	invasionDefenseCoverageFactor: 0.75,
-	numBattleRounds: 16,
-	movesToRunAway: 7,
-	beamRangeDropoff: 0.1,
-	torpedoSplashDamage: 0.125,
-	salvageDecayRate: 0.1,
-	salvageDecayMin: 10,
-	mineFieldCloak: 75,
-	stargateMaxRangeFactor: 5,
-	stargateMaxHullMassFactor: 5,
-	fleetSafeSpeedExplosionChance: 0.1,
-	randomEventChances: {
-		AncientArtifact: 0.33,
-		Comet: 0.05,
-		MineralDeposit: 0.05,
-		MysteryTrader: 0.05,
-		PlanetaryChange: 0.05
+	defenseCost: {
+		ironium: 5,
+		boranium: 5,
+		germanium: 5,
+		resources: 15
 	},
-	randomMineralDepositBonusRange: [20, 50],
-	randomArtifactResearchBonusRange: [120, 400],
-	randomCometMinYear: 10,
-	randomCometMinYearPlayerWorld: 20,
+	factoryCostGermanium: 4,
+	mineralAlchemyCost: 100,
+	planetaryScannerCost: {
+		ironium: 10,
+		boranium: 10,
+		germanium: 70,
+		resources: 100
+	},
+	starbaseComponentCostReduction: 2,
+	terraformCost: {
+		resources: 100
+	},
+	techBaseCost: [
+		0, 50, 80, 130, 210, 340, 550, 890, 1440, 2330, 3770, 6100, 9870, 13850, 18040, 22440, 27050,
+		31870, 36900, 42140, 47590, 53250, 59120, 65200, 71490, 77990, 84700
+	],
+	beamRangeDropoff: 0.1,
+	numBattleRounds: 16,
+	highRadMineralConcentrationBonusThreshold: 90,
+	limitMineralConcentration: 30,
+	maxExtraWorldDistance: 180,
+	maxHab: 99,
+	maxMineralConcentration: 200,
+	maxStartingMineralConcentration: 121,
+	maxStartingMineralSurface: 1000,
+	minExtraPlanetMineralConcentration: 30,
+	minExtraWorldDistance: 130,
+	minHab: 1,
+	minHomeworldMineralConcentration: 30,
+	minMineralConcentration: 1,
+	minStartingMineralConcentration: 1,
+	minStartingMineralSurface: 300,
+	raceLeftoverPointsPerItem: {
+		Defenses: 10,
+		Factories: 5,
+		MineralConcentrations: 3,
+		Mines: 2,
+		SurfaceMinerals: 10
+	},
+	startingYear: 2400,
+	wormholeMinPlanetDistance: 30,
+	createdAt: '0001-01-01T00:00:00Z',
+	updatedAt: '0001-01-01T00:00:00Z',
 	cometStatsBySize: {
 		Huge: {
-			minMinerals: 50,
-			randomMinerals: 250,
+			allMinerals: 50,
+			allRandomMinerals: 250,
 			bonusMinerals: 3000,
 			bonusRandomMinerals: 17000,
-			minConcentrationBonus: 65,
-			randomConcentrationBonus: 65,
-			affectsMinerals: 3,
+			bonusMinConcentration: 65,
+			bonusRandomConcentration: 65,
+			bonusAffectsMinerals: 3,
 			minTerraform: 6,
 			randomTerraform: 6,
 			affectsHabs: 3,
 			popKilledPercent: 0.85
 		},
 		Large: {
-			minMinerals: 50,
-			randomMinerals: 250,
+			allMinerals: 50,
+			allRandomMinerals: 250,
 			bonusMinerals: 3000,
 			bonusRandomMinerals: 17000,
-			minConcentrationBonus: 50,
-			randomConcentrationBonus: 50,
-			affectsMinerals: 3,
+			bonusMinConcentration: 50,
+			bonusRandomConcentration: 50,
+			bonusAffectsMinerals: 3,
 			minTerraform: 3,
 			randomTerraform: 3,
 			affectsHabs: 3,
 			popKilledPercent: 0.65
 		},
 		Medium: {
-			minMinerals: 50,
-			randomMinerals: 250,
+			allMinerals: 50,
+			allRandomMinerals: 250,
 			bonusMinerals: 3000,
 			bonusRandomMinerals: 17000,
-			minConcentrationBonus: 50,
-			randomConcentrationBonus: 50,
-			affectsMinerals: 2,
+			bonusMinConcentration: 50,
+			bonusRandomConcentration: 50,
+			bonusAffectsMinerals: 2,
 			minTerraform: 3,
 			randomTerraform: 3,
 			affectsHabs: 2,
 			popKilledPercent: 0.45
 		},
 		Small: {
-			minMinerals: 50,
-			randomMinerals: 250,
+			allMinerals: 50,
+			allRandomMinerals: 250,
 			bonusMinerals: 3000,
 			bonusRandomMinerals: 17000,
-			minConcentrationBonus: 50,
-			randomConcentrationBonus: 50,
-			affectsMinerals: 1,
+			bonusMinConcentration: 50,
+			bonusRandomConcentration: 50,
+			bonusAffectsMinerals: 1,
 			minTerraform: 3,
 			randomTerraform: 3,
 			affectsHabs: 1,
 			popKilledPercent: 0.25
 		}
 	},
-	wormholeCloak: 75,
-	wormholeMinDistance: 30,
-	wormholeStatsByStability: {
-		Average: {
-			yearsToDegrade: 5,
-			chanceToJump: 0.04,
-			jiggleDistance: 10
+	fleetSafeSpeedExplosionChance: 0.1,
+	invasionDefenseCoverageFactor: 0.75,
+	lrtSpecs: {
+		'1': {
+			startingTechLevels: {
+				propulsion: 1
+			},
+			techCostOffset: {},
+			fuelEfficiencyOffset: -0.15
 		},
-		ExtremelyVolatile: {
-			yearsToDegrade: -1,
-			chanceToJump: 0.04,
-			jiggleDistance: 10
+		'2': {
+			startingTechLevels: {},
+			techCostOffset: {
+				terraforming: -0.3
+			}
 		},
-		MostlyStable: {
-			yearsToDegrade: 5,
-			chanceToJump: 0.02,
-			jiggleDistance: 10
+		'4': {
+			startingFleets: [
+				{
+					name: 'Potato Bug',
+					hullName: 'Midget-Miner',
+					purpose: 'Miner'
+				},
+				{
+					name: 'Potato Bug',
+					hullName: 'Midget-Miner',
+					purpose: 'Miner'
+				}
+			],
+			startingTechLevels: {},
+			techCostOffset: {}
 		},
-		RockSolid: {
-			yearsToDegrade: 10,
-			chanceToJump: 0,
-			jiggleDistance: 10
+		'8': {
+			startingTechLevels: {},
+			techCostOffset: {},
+			starbaseBuiltInCloakUnits: 40,
+			starbaseCostFactor: 0.8
 		},
-		SlightlyVolatile: {
-			yearsToDegrade: 5,
-			chanceToJump: 0.03,
-			jiggleDistance: 10
+		'16': {
+			startingTechLevels: {},
+			techCostOffset: {},
+			researchFactorOffset: -0.5,
+			researchSplashDamage: 0.15
 		},
-		Stable: {
-			yearsToDegrade: 5,
-			chanceToJump: 0.005,
-			jiggleDistance: 10
+		'32': {
+			startingTechLevels: {},
+			techCostOffset: {},
+			scrapMineralOffset: 0.11666666666666667,
+			scrapMineralOffsetStarbase: 0.1,
+			scrapResourcesOffset: 0.35,
+			scrapResourcesOffsetStarbase: 0.7
 		},
-		Volatile: {
-			yearsToDegrade: 5,
-			chanceToJump: 0.06,
-			jiggleDistance: 10
+		'64': {
+			startingTechLevels: {},
+			techCostOffset: {}
+		},
+		'128': {
+			startingTechLevels: {},
+			techCostOffset: {},
+			maxPopulationOffset: 0.1
+		},
+		'256': {
+			startingTechLevels: {},
+			techCostOffset: {},
+			noAdvancedScanners: true,
+			scanRangeFactorOffset: 1
+		},
+		'512': {
+			startingTechLevels: {},
+			techCostOffset: {},
+			startingPopulationFactorDelta: -0.3
+		},
+		'1024': {
+			startingTechLevels: {},
+			techCostOffset: {},
+			newTechCostFactorOffset: 1,
+			miniaturizationMax: 0.05,
+			miniaturizationPerLevel: 0.01
+		},
+		'2048': {
+			startingTechLevels: {},
+			techCostOffset: {},
+			shieldStrengthFactorOffset: 0.4,
+			shieldRegenerationRateOffset: 0.1,
+			armorStrengthFactorOffset: -0.5
+		},
+		'4096': {
+			startingTechLevels: {},
+			techCostOffset: {},
+			mineralAlchemyCostOffset: -75
+		},
+		'8192': {
+			startingTechLevels: {
+				propulsion: 1
+			},
+			techCostOffset: {
+				engine: -0.5
+			},
+			engineFailureRateOffset: 0.1,
+			engineReliableSpeed: 6
 		}
 	},
-	wormholePairsForSize: {
-		Huge: 6,
-		HugeWide: 6,
-		Large: 5,
-		LargeWide: 5,
-		Medium: 4,
-		MediumWide: 4,
-		Small: 3,
-		SmallWide: 3,
-		Tiny: 1,
-		TinyWide: 1
-	},
+	maxPopulation: 1000000,
+	maxTechLevel: 26,
+	mineFieldCloak: 75,
 	mineFieldStatsByType: {
 		Heavy: {
 			minDamagePerFleetRS: 2500,
@@ -294,72 +573,188 @@ export const defaultRules: Rules = {
 			canDetonate: true
 		}
 	},
-	repairRates: {
-		Moving: 0.01,
-		None: 0,
-		Orbiting: 0.03,
-		OrbitingOwnPlanet: 0.05,
-		Starbase: 0.1,
-		Stopped: 0.02
-	},
-	maxPlayers: 16,
-	startingYear: 2400,
-	showPublicScoresAfterYears: 20,
-	planetMinDistance: 15,
-	maxExtraWorldDistance: 180,
-	minExtraWorldDistance: 130,
-	minHomeworldMineralConcentration: 30,
-	minExtraPlanetMineralConcentration: 30,
-	minHab: 1,
-	maxHab: 99,
-	minMineralConcentration: 1,
-	maxMineralConcentration: 200,
-	minStartingMineralConcentration: 1,
-	maxStartingMineralConcentration: 100,
-	highRadGermaniumBonus: 5,
-	highRadGermaniumBonusThreshold: 85,
-	radiatingImmune: 85,
-	maxStartingMineralSurface: 1000,
-	minStartingMineralSurface: 300,
 	mineralDecayFactor: 1500000,
-	remoteMiningMineOutput: 10,
-	startingMines: 10,
-	startingFactories: 10,
-	startingDefenses: 10,
-	raceStartingPoints: 1650,
-	scrapMineralAmount: 0.333333343,
-	scrapResourceAmount: 0,
-	factoryCostGermanium: 4,
-	defenseCost: {
-		ironium: 5,
-		boranium: 5,
-		germanium: 5,
-		resources: 15
+	minMaxPopulationPercent: 0.05,
+	movesToRunAway: 7,
+	mysteryTraderRules: {
+		chanceSpawn: [7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2],
+		chanceMaxTechGetsPart: 5,
+		chanceCourseChange: 20,
+		chanceSpeedUpOnly: 3,
+		chanceAgain: 2,
+		minYear: 40,
+		evenYearOnly: true,
+		minWarp: 7,
+		maxWarp: 13,
+		maxMysteryTraders: 5,
+		requestedBoon: 5000,
+		genesisDeviceCost: {
+			resources: 5000
+		},
+		techBoon: [
+			{
+				techLevels: 59,
+				rewards: [
+					{
+						mineralsGiven: 5000,
+						reward: 6
+					},
+					{
+						mineralsGiven: 6200,
+						reward: 7
+					},
+					{
+						mineralsGiven: 7400,
+						reward: 8
+					},
+					{
+						mineralsGiven: 8600,
+						reward: 9
+					},
+					{
+						mineralsGiven: 9800,
+						reward: 10
+					}
+				]
+			},
+			{
+				techLevels: 71,
+				rewards: [
+					{
+						mineralsGiven: 5000,
+						reward: 5
+					},
+					{
+						mineralsGiven: 6200,
+						reward: 6
+					},
+					{
+						mineralsGiven: 7400,
+						reward: 7
+					},
+					{
+						mineralsGiven: 8600,
+						reward: 8
+					},
+					{
+						mineralsGiven: 9800,
+						reward: 9
+					}
+				]
+			},
+			{
+				techLevels: 83,
+				rewards: [
+					{
+						mineralsGiven: 5000,
+						reward: 4
+					},
+					{
+						mineralsGiven: 6200,
+						reward: 5
+					},
+					{
+						mineralsGiven: 7400,
+						reward: 6
+					},
+					{
+						mineralsGiven: 8600,
+						reward: 7
+					},
+					{
+						mineralsGiven: 9800,
+						reward: 8
+					}
+				]
+			},
+			{
+				techLevels: 95,
+				rewards: [
+					{
+						mineralsGiven: 5000,
+						reward: 3
+					},
+					{
+						mineralsGiven: 6200,
+						reward: 4
+					},
+					{
+						mineralsGiven: 7400,
+						reward: 5
+					},
+					{
+						mineralsGiven: 8600,
+						reward: 6
+					},
+					{
+						mineralsGiven: 9800,
+						reward: 7
+					}
+				]
+			},
+			{
+				techLevels: 107,
+				rewards: [
+					{
+						mineralsGiven: 5000,
+						reward: 2
+					},
+					{
+						mineralsGiven: 6200,
+						reward: 2
+					},
+					{
+						mineralsGiven: 7400,
+						reward: 2
+					},
+					{
+						mineralsGiven: 8600,
+						reward: 2
+					},
+					{
+						mineralsGiven: 9800,
+						reward: 2
+					}
+				]
+			},
+			{
+				techLevels: 108,
+				rewards: [
+					{
+						mineralsGiven: 5000,
+						reward: 1
+					},
+					{
+						mineralsGiven: 6200,
+						reward: 1
+					},
+					{
+						mineralsGiven: 7400,
+						reward: 1
+					},
+					{
+						mineralsGiven: 8600,
+						reward: 1
+					},
+					{
+						mineralsGiven: 9800,
+						reward: 1
+					}
+				]
+			}
+		]
 	},
-	mineralAlchemyCost: 100,
-	planetaryScannerCost: {
-		ironium: 10,
-		boranium: 10,
-		germanium: 70,
-		resources: 100
-	},
-	terraformCost: {
-		resources: 100
-	},
-	starbaseComponentCostFactor: 0.5,
-	salvageFromBattleFactor: 0.3,
-	techTradeChance: 0,
 	packetDecayRate: {
 		'1': 0.1,
 		'2': 0.25,
 		'3': 0.5
 	},
 	packetMaxOverwarpSpeed: 3,
-	maxTechLevel: 26,
-	techBaseCost: [
-		0, 50, 80, 130, 210, 340, 550, 890, 1440, 2330, 3770, 6100, 9870, 13850, 18040, 22440, 27050,
-		31870, 36900, 42140, 47590, 53250, 59120, 65200, 71490, 77990, 84700
-	],
+	packetMinDecay: 10,
+	planetMinDistance: 15,
+	populationOvercrowdDieoffRate: 0.04,
+	populationOvercrowdDieoffRateMax: 0.12,
+	populationScannerError: 0.2,
 	prtSpecs: {
 		AR: {
 			pointCost: 66,
@@ -369,6 +764,9 @@ export const defaultRules: Rules = {
 			startingPlanets: [
 				{
 					population: 25000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
 					startingFleets: [
@@ -382,19 +780,21 @@ export const defaultRules: Rules = {
 							hullName: 'Colony Ship',
 							purpose: 'Colonizer'
 						}
-					]
+					],
+					homeworld: true
 				}
 			],
 			techCostOffset: {},
 			mineralsPerSingleMineralPacket: 100,
 			mineralsPerMixedMineralPacket: 40,
 			packetResourceCost: 10,
-			packetMineralCostFactor: 1,
+			packetMineralCostFactor: 1.1,
 			packetReceiverFactor: 1,
 			packetDecayFactor: 1,
 			packetPermaTerraformSizeUnit: 100,
 			shipsVanishInVoid: true,
 			techsCostExtraLevel: 3,
+			freighterGrowthFactor: -0.03,
 			growthFactor: 1,
 			stealsResearch: {},
 			mineFieldMinDecayFactor: 1,
@@ -426,6 +826,9 @@ export const defaultRules: Rules = {
 			startingPlanets: [
 				{
 					population: 25000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
 					startingFleets: [
@@ -445,14 +848,15 @@ export const defaultRules: Rules = {
 							hullSetNumber: 1,
 							purpose: 'Terraformer'
 						}
-					]
+					],
+					homeworld: true
 				}
 			],
 			techCostOffset: {},
 			mineralsPerSingleMineralPacket: 100,
 			mineralsPerMixedMineralPacket: 40,
 			packetResourceCost: 10,
-			packetMineralCostFactor: 1,
+			packetMineralCostFactor: 1.1,
 			packetReceiverFactor: 1,
 			packetDecayFactor: 1,
 			packetPermaTerraformSizeUnit: 100,
@@ -482,11 +886,14 @@ export const defaultRules: Rules = {
 			startingPlanets: [
 				{
 					population: 25000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
 					startingFleets: [
 						{
-							name: 'Deep Space Probe',
+							name: 'Long Range Scout',
 							hullName: 'Scout',
 							purpose: 'Scout'
 						},
@@ -505,14 +912,15 @@ export const defaultRules: Rules = {
 							hullName: 'Mini-Colony Ship',
 							purpose: 'Colonizer'
 						}
-					]
+					],
+					homeworld: true
 				}
 			],
 			techCostOffset: {},
 			mineralsPerSingleMineralPacket: 100,
 			mineralsPerMixedMineralPacket: 40,
 			packetResourceCost: 10,
-			packetMineralCostFactor: 1,
+			packetMineralCostFactor: 1.1,
 			packetReceiverFactor: 1,
 			packetDecayFactor: 1,
 			packetPermaTerraformSizeUnit: 100,
@@ -540,6 +948,9 @@ export const defaultRules: Rules = {
 			startingPlanets: [
 				{
 					population: 25000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
 					startingFleets: [
@@ -553,7 +964,8 @@ export const defaultRules: Rules = {
 							hullName: 'Colony Ship',
 							purpose: 'Colonizer'
 						}
-					]
+					],
+					homeworld: true
 				}
 			],
 			techCostOffset: {
@@ -565,7 +977,7 @@ export const defaultRules: Rules = {
 			mineralsPerSingleMineralPacket: 100,
 			mineralsPerMixedMineralPacket: 40,
 			packetResourceCost: 10,
-			packetMineralCostFactor: 1,
+			packetMineralCostFactor: 1.1,
 			packetReceiverFactor: 1,
 			packetDecayFactor: 1,
 			packetPermaTerraformSizeUnit: 100,
@@ -595,7 +1007,10 @@ export const defaultRules: Rules = {
 			},
 			startingPlanets: [
 				{
-					population: 25000,
+					population: 20000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					hasStargate: true,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
@@ -620,10 +1035,13 @@ export const defaultRules: Rules = {
 							hullName: 'Destroyer',
 							purpose: 'Fighter'
 						}
-					]
+					],
+					homeworld: true
 				},
 				{
 					population: 10000,
+					mines: 10,
+					factories: 4,
 					habPenaltyFactor: 1,
 					hasStargate: true,
 					starbaseDesignName: 'Accelerator Platform',
@@ -637,7 +1055,9 @@ export const defaultRules: Rules = {
 					]
 				}
 			],
-			techCostOffset: {},
+			techCostOffset: {
+				stargate: -0.25
+			},
 			mineralsPerSingleMineralPacket: 100,
 			mineralsPerMixedMineralPacket: 40,
 			packetResourceCost: 10,
@@ -677,6 +1097,9 @@ export const defaultRules: Rules = {
 			startingPlanets: [
 				{
 					population: 25000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
 					startingFleets: [
@@ -711,14 +1134,15 @@ export const defaultRules: Rules = {
 							hullName: 'Destroyer',
 							purpose: 'Fighter'
 						}
-					]
+					],
+					homeworld: true
 				}
 			],
 			techCostOffset: {},
 			mineralsPerSingleMineralPacket: 100,
 			mineralsPerMixedMineralPacket: 40,
 			packetResourceCost: 10,
-			packetMineralCostFactor: 1,
+			packetMineralCostFactor: 1.1,
 			packetReceiverFactor: 1,
 			packetDecayFactor: 1,
 			packetPermaTerraformSizeUnit: 100,
@@ -748,7 +1172,10 @@ export const defaultRules: Rules = {
 			},
 			startingPlanets: [
 				{
-					population: 25000,
+					population: 20000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					hasMassDriver: true,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
@@ -768,10 +1195,13 @@ export const defaultRules: Rules = {
 							hullName: 'Colony Ship',
 							purpose: 'Colonizer'
 						}
-					]
+					],
+					homeworld: true
 				},
 				{
 					population: 10000,
+					mines: 10,
+					factories: 4,
 					habPenaltyFactor: 1,
 					hasMassDriver: true,
 					starbaseDesignName: 'Accelerator Platform',
@@ -824,6 +1254,9 @@ export const defaultRules: Rules = {
 			startingPlanets: [
 				{
 					population: 25000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
 					startingFleets: [
@@ -847,14 +1280,15 @@ export const defaultRules: Rules = {
 							hullName: 'Mini Mine Layer',
 							purpose: 'SpeedMineLayer'
 						}
-					]
+					],
+					homeworld: true
 				}
 			],
 			techCostOffset: {},
 			mineralsPerSingleMineralPacket: 100,
 			mineralsPerMixedMineralPacket: 40,
 			packetResourceCost: 10,
-			packetMineralCostFactor: 1,
+			packetMineralCostFactor: 1.1,
 			packetReceiverFactor: 1,
 			packetDecayFactor: 1,
 			packetPermaTerraformSizeUnit: 100,
@@ -887,6 +1321,9 @@ export const defaultRules: Rules = {
 			startingPlanets: [
 				{
 					population: 25000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
 					startingFleets: [
@@ -900,14 +1337,15 @@ export const defaultRules: Rules = {
 							hullName: 'Colony Ship',
 							purpose: 'Colonizer'
 						}
-					]
+					],
+					homeworld: true
 				}
 			],
 			techCostOffset: {},
 			mineralsPerSingleMineralPacket: 100,
 			mineralsPerMixedMineralPacket: 40,
 			packetResourceCost: 10,
-			packetMineralCostFactor: 1,
+			packetMineralCostFactor: 1.1,
 			packetReceiverFactor: 1,
 			packetDecayFactor: 1,
 			packetPermaTerraformSizeUnit: 100,
@@ -948,6 +1386,9 @@ export const defaultRules: Rules = {
 			startingPlanets: [
 				{
 					population: 25000,
+					mines: 10,
+					factories: 10,
+					defenses: 10,
 					starbaseDesignName: 'Starbase',
 					starbaseHull: 'Space Station',
 					startingFleets: [
@@ -967,7 +1408,8 @@ export const defaultRules: Rules = {
 							hullSetNumber: 1,
 							purpose: 'FighterScout'
 						}
-					]
+					],
+					homeworld: true
 				}
 			],
 			techCostOffset: {
@@ -978,7 +1420,7 @@ export const defaultRules: Rules = {
 			mineralsPerSingleMineralPacket: 100,
 			mineralsPerMixedMineralPacket: 40,
 			packetResourceCost: 10,
-			packetMineralCostFactor: 1,
+			packetMineralCostFactor: 1.1,
 			packetReceiverFactor: 1,
 			packetDecayFactor: 1,
 			packetPermaTerraformSizeUnit: 100,
@@ -1002,118 +1444,87 @@ export const defaultRules: Rules = {
 			canBuildDefenses: true
 		}
 	},
-	lrtSpecs: {
-		'1': {
-			startingTechLevels: {
-				propulsion: 1
-			},
-			techCostOffset: {},
-			fuelEfficiencyOffset: -0.15,
-			terraformCostOffset: {}
+	raceStartingPoints: 1650,
+	radiatingImmune: 85,
+	randomArtifactResearchBonusRange: [120, 400],
+	randomCometMinYear: 10,
+	randomCometMinYearPlayerWorld: 20,
+	randomEventChances: {
+		AncientArtifact: 0.33,
+		Comet: 0.05,
+		MineralDeposit: 0.05,
+		PlanetaryChange: 0.05
+	},
+	randomMineralDepositBonusRange: [20, 50],
+	remoteMiningMineOutput: 10,
+	repairRates: {
+		Moving: 0.01,
+		None: 0,
+		Orbiting: 0.03,
+		OrbitingOwnPlanet: 0.05,
+		Starbase: 0.1,
+		Stopped: 0.02
+	},
+	salvageDecayMin: 10,
+	salvageDecayRate: 0.1,
+	salvageFromBattleFactor: 0.3,
+	scrapMineralAmount: 0.333333343,
+	showPublicScoresAfterYears: 20,
+	smartDefenseCoverageFactor: 0.5,
+	stargateMaxHullMassFactor: 5,
+	stargateMaxRangeFactor: 5,
+	tachyonCloakReduction: 5,
+	tachyonMaxCloakReduction: 81,
+	techTradeChance: 0.5,
+	torpedoSplashDamage: 0.125,
+	wormholeCloak: 75,
+	wormholePairsForSize: {
+		Huge: 6,
+		HugeWide: 6,
+		Large: 5,
+		LargeWide: 5,
+		Medium: 4,
+		MediumWide: 4,
+		Small: 3,
+		SmallWide: 3,
+		Tiny: 1,
+		TinyWide: 1
+	},
+	wormholeStatsByStability: {
+		Average: {
+			yearsToDegrade: 5,
+			chanceToJump: 0.04,
+			jiggleDistance: 10
 		},
-		'2': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			terraformCostOffset: {
-				resources: -30
-			}
+		ExtremelyVolatile: {
+			yearsToDegrade: -1,
+			chanceToJump: 0.04,
+			jiggleDistance: 10
 		},
-		'4': {
-			startingFleets: [
-				{
-					name: 'Potato Bug',
-					hullName: 'Midget-Miner',
-					purpose: 'Miner'
-				},
-				{
-					name: 'Potato Bug',
-					hullName: 'Midget-Miner',
-					purpose: 'Miner'
-				}
-			],
-			startingTechLevels: {},
-			techCostOffset: {},
-			terraformCostOffset: {}
+		MostlyStable: {
+			yearsToDegrade: 5,
+			chanceToJump: 0.02,
+			jiggleDistance: 10
 		},
-		'8': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			terraformCostOffset: {},
-			starbaseBuiltInCloakUnits: 40,
-			starbaseCostFactorOffset: -0.2
+		RockSolid: {
+			yearsToDegrade: 10,
+			chanceToJump: 0,
+			jiggleDistance: 10
 		},
-		'16': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			terraformCostOffset: {},
-			researchFactorOffset: -0.5,
-			researchSplashDamage: 0.15
+		SlightlyVolatile: {
+			yearsToDegrade: 5,
+			chanceToJump: 0.03,
+			jiggleDistance: 10
 		},
-		'32': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			terraformCostOffset: {},
-			scrapMineralOffset: 0.11666666666666667,
-			scrapMineralOffsetStarbase: 0.5666666666666667,
-			scrapResourcesOffset: 0.35,
-			scrapResourcesOffsetStarbase: 0.7
+		Stable: {
+			yearsToDegrade: 5,
+			chanceToJump: 0.005,
+			jiggleDistance: 10
 		},
-		'64': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			terraformCostOffset: {}
-		},
-		'128': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			maxPopulationOffset: 0.1,
-			terraformCostOffset: {}
-		},
-		'256': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			noAdvancedScanners: true,
-			scanRangeFactorOffset: 1,
-			terraformCostOffset: {}
-		},
-		'512': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			terraformCostOffset: {},
-			startingPopulationFactorDelta: -0.3
-		},
-		'1024': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			newTechCostFactorOffset: 1,
-			miniaturizationMax: 0.05,
-			miniaturizationPerLevel: 0.01,
-			terraformCostOffset: {}
-		},
-		'2048': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			terraformCostOffset: {},
-			shieldStrengthFactorOffset: 0.4,
-			shieldRegenerationRateOffset: 0.1,
-			armorStrengthFactorOffset: -0.5
-		},
-		'4096': {
-			startingTechLevels: {},
-			techCostOffset: {},
-			terraformCostOffset: {},
-			mineralAlchemyCostOffset: -75
-		},
-		'8192': {
-			startingTechLevels: {
-				propulsion: 1
-			},
-			techCostOffset: {
-				engine: -0.5
-			},
-			terraformCostOffset: {},
-			engineFailureRateOffset: 0.1,
-			engineReliableSpeed: 6
+		Volatile: {
+			yearsToDegrade: 5,
+			chanceToJump: 0.06,
+			jiggleDistance: 10
 		}
 	}
 };
