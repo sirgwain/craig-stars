@@ -19,5 +19,5 @@
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl h-full">
-	<SearchResults on:ok={(e) => selectSearchResult(e.detail)} />
+	<SearchResults onOk={(e) => selectSearchResult(e)} />
 </div>

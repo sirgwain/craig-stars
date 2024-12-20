@@ -1,7 +1,11 @@
 <script lang="ts">
 	import Discord from '../icons/Discord.svelte';
 
-	export let from = '/';
+	type Props = {
+		from?: string;
+	};
+
+	let { from = '/' }: Props = $props();
 </script>
 
 <a class="btn bg-[#7289da]" href={`/api/auth/discord/login?from=${from}`}

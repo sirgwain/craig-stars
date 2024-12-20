@@ -3,20 +3,24 @@
 	import type { Wormhole } from '$lib/types/Wormhole';
 	import { startCase } from 'lodash-es';
 
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
-	export let wormhole: Wormhole;
+	type Props = {
+		wormhole: Wormhole;
+	};
 
-	$: destination = wormhole.destinationNum
-		? $universe.getWormhole(wormhole.destinationNum)
-		: undefined;
+	let { wormhole }: Props = $props();
+
+	let destination = $derived(
+		wormhole.destinationNum ? $universe.getWormhole(wormhole.destinationNum) : undefined
+	);
 </script>
 
 <div class="flex flex-row min-h-[11rem]">
 	<div class="flex flex-col">
-		<div class="avatar ">
+		<div class="avatar">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">
-				<div class="mapobject-avatar wormhole bg-black" />
+				<div class="mapobject-avatar wormhole bg-black"></div>
 			</div>
 		</div>
 	</div>

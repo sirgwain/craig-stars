@@ -11,4 +11,3 @@ export interface ProductionQueueItem {
 	yearsToBuildAll?: number;
 	yearsToSkipAuto?: number;
 }
-

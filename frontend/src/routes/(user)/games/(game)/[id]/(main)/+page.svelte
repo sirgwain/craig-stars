@@ -4,7 +4,7 @@
 	import Game from './Game.svelte';
 	import GameSetup from './GameSetup.svelte';
 	import WaitingForPlayers from './WaitingForPlayers.svelte';
-	const { game, player, universe } = getGameContext();
+	const { game, player } = getGameContext();
 </script>
 
 {#if $game.state == GameState.Setup}

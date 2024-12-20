@@ -1,30 +1,42 @@
 <script lang="ts">
 	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
+	import { getHullIcon } from '$lib/techicon';
 	import type { PhaseToken } from '$lib/types/Battle';
-	import { kebabCase } from 'lodash-es';
-	import { createEventDispatcher, getContext } from 'svelte';
+	import { getContext } from 'svelte';
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
-	const dispatch = createEventDispatcher();
+	type Props = {
+		tokens?: PhaseToken[] | undefined;
+		phase: number;
+		selectedToken: PhaseToken | undefined;
+		selected?: boolean;
+		onSelected?: (token: PhaseToken) => void;
+	};
 
-	export let tokens: PhaseToken[] | undefined = undefined;
-	export let phase: number;
-	export let selectedToken: PhaseToken | undefined;
-	export let selected = false;
+	let {
+		tokens = undefined,
+		phase,
+		selectedToken,
+		selected = false,
+		onSelected: onSelected
+	}: Props = $props();
 
-	$: targetTokenIndex = tokens?.findIndex((t) => t.target);
-	$: selectedTokenIndex = selectedToken && tokens?.indexOf(selectedToken);
-	$: tokenIndex =
+	let targetTokenIndex = $derived(tokens?.findIndex((t) => t.target));
+	let selectedTokenIndex = $derived(
+		selectedToken && tokens?.findIndex((t) => t.num === selectedToken.num)
+	);
+	let tokenIndex = $derived(
 		targetTokenIndex && targetTokenIndex != -1
 			? targetTokenIndex
 			: selectedTokenIndex && selectedTokenIndex != -1
-			? selectedTokenIndex
-			: 0;
+				? selectedTokenIndex
+				: 0
+	);
 
-	$: topToken = tokens && tokens[tokenIndex];
+	let topToken = $derived(tokens && tokens[tokenIndex]);
 
 	const icon = (tokens: PhaseToken[] | undefined, tokenIndex: number) => {
 		if (
@@ -37,8 +49,7 @@
 			if (token) {
 				const design = designFinder.getDesign(token.playerNum, token.designNum);
 				if (design) {
-					const name = kebabCase(design.hull.replace("'", '').replace(' ', '').replace('±', ''));
-					return `hull-${name}-${design.hullSetNumber ?? 0}`;
+					return getHullIcon(design);
 				}
 			}
 		}
@@ -70,14 +81,13 @@
 		<button
 			type="button"
 			class="w-full h-full cursor-pointer"
-			on:click={() => {
+			aria-label="Selects the token on the board"
+			onclick={() => {
 				if (tokens) {
-					if (selected) {
-						tokenIndex = (tokenIndex + 1) % (tokens?.length ?? 0);
-					}
-					dispatch('selected', tokens[tokenIndex]);
+					const newTokenIndex = selected ? (tokenIndex + 1) % (tokens?.length ?? 0) : tokenIndex;
+					onSelected?.(tokens[newTokenIndex]);
 				}
 			}}
-		/>
+		></button>
 	{/if}
 </div>

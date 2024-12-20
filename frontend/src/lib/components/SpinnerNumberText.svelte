@@ -1,29 +1,38 @@
 <script lang="ts">
-	import SpinnerNumber, { type SpinnerNumberEvent } from '$lib/components/SpinnerNumber.svelte';
-	import { createEventDispatcher } from 'svelte';
+	import SpinnerNumber from '$lib/components/SpinnerNumber.svelte';
+	import { type Snippet } from 'svelte';
+	import type { HTMLAttributes } from 'svelte/elements';
 
-	const dispatch = createEventDispatcher<SpinnerNumberEvent>();
+	type Props = {
+		value: number;
+		step?: number;
+		min?: number;
+		max?: number;
+		unit?: string;
+		begin?: Snippet;
+		end?: Snippet;
+		onChange?: (value: number) => void;
+	} & Omit<HTMLAttributes<HTMLDivElement>, 'onchange'>;
 
-	export let value: number;
-	export let step = 1;
-	export let min = 0;
-	export let max = 100;
-	export let unit = '';
+	let {
+		value = $bindable(),
+		step = 1,
+		min = 0,
+		max = 100,
+		unit = '',
+		begin,
+		end,
+		onChange: onChange,
+		...rest
+	}: Props = $props();
 </script>
 
-<div class="flex flex-row gap-1" {...$$restProps}>
+<div class="flex flex-row gap-1" {...rest}>
 	<div class="my-auto align-middle">
-		<slot name="begin" />
+		{@render begin?.()}
 	</div>
-	<SpinnerNumber
-		bind:value
-		on:change={(e) => dispatch('change', e.detail)}
-		{min}
-		{max}
-		{step}
-		{unit}
-	/>
+	<SpinnerNumber bind:value onChange={onChange} {min} {max} {step} {unit} />
 	<div class="my-auto align-middle">
-		<slot name="end" />
+		{@render end?.()}
 	</div>
 </div>

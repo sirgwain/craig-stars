@@ -10,11 +10,15 @@
 
 	const { game } = getGameContext();
 
-	export let player: PlayerStatus;
-	export let hideText = false;
+	type Props = {
+		player: PlayerStatus;
+		hideText?: boolean;
+	};
 
-	let guest: SessionUser | undefined;
-	let copiedText = '';
+	let { player, hideText = false }: Props = $props();
+
+	let guest: SessionUser | undefined = $state();
+	let copiedText = $state('');
 
 	onMount(async () => {
 		if (player.guest) {
@@ -22,7 +26,7 @@
 		}
 	});
 
-	$: link = `${window.location.origin}/auth/guest/${guest?.password}`;
+	let link = $derived(`${window.location.origin}/auth/guest/${guest?.password}`);
 </script>
 
 {#if guest}
@@ -34,7 +38,7 @@
 		<div>
 			<div class="tooltip" data-tip="Copy Invite Link">
 				<button
-					on:click={() => {
+					onclick={() => {
 						navigator.clipboard.writeText(link);
 						copiedText = 'Copied invite link to clipboard';
 					}}

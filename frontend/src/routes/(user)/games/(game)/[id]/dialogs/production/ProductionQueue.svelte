@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type ProductionQueueEvent = {
 		next: void;
 		prev: void;
@@ -8,22 +8,23 @@
 </script>
 
 <script lang="ts">
+	import { asyncToVoidWrapper } from '$lib/asyncToVoid';
 	import CostComponent from '$lib/components/game/Cost.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
 	import { onAllocatedTooltip } from '$lib/components/game/tooltips/AllocatedTooltip.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import { addError, CSError } from '$lib/services/Errors';
+	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import { NeverBuilt } from '$lib/types/Constants';
+	import { GenesisDevice, NeverBuilt } from '$lib/types/Constants';
 	import { divide, multiply, type Cost } from '$lib/types/Cost';
 	import { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionPlan } from '$lib/types/Player';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
 	import { getPlanetHabitability } from '$lib/types/Race';
-	import { GenesisDevice } from '$lib/types/Constants';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -35,41 +36,43 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
 	import { clamp } from 'lodash-es';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
 
 	const { cs, game, player, universe } = getGameContext();
-	const dispatch = createEventDispatcher<ProductionQueueEvent>();
 
-	export let planet: CommandedPlanet;
+	type Props = {
+		planet: CommandedPlanet;
+		onOk?: OnOk<CommandedPlanet>;
+		onCancel?: OnCancel;
+		onNext?: () => Promise<void>;
+		onPrev?: () => Promise<void>;
+	};
 
-	let availableItems: ProductionQueueItem[] = [];
-	let availableShipDesigns: ProductionQueueItem[] = [];
-	let availableStarbaseDesigns: ProductionQueueItem[] = [];
-	let queueItems: ProductionQueueItem[] = [];
-	let contributesOnlyLeftoverToResearch = false;
+	let { planet, onOk, onCancel, onNext, onPrev }: Props = $props();
 
-	let selectedAvailableItem: ProductionQueueItem | undefined;
-	let selectedAvailableItemCost: Cost | undefined;
+	let availableItems: ProductionQueueItem[] = $state([]);
+	let availableShipDesigns: ProductionQueueItem[] = $state([]);
+	let availableStarbaseDesigns: ProductionQueueItem[] = $state([]);
+	let queueItems: ProductionQueueItem[] = $state([]);
+	let contributesOnlyLeftoverToResearch = $state(false);
 
-	let selectedQueueItemIndex = -1;
-	let selectedQueueItem: ProductionQueueItem | undefined;
-	let selectedQueueItemCost: Cost | undefined;
-	$: selectedQueueItemPercentComplete = selectedQueueItem
-		? getPercentComplete(selectedQueueItem)
-		: 0;
+	let selectedAvailableItem: ProductionQueueItem | undefined = $state();
+	let selectedAvailableItemCost: Cost | undefined = $state();
 
-	$: updatedPlanet = Object.assign(new CommandedPlanet(), planet);
+	let selectedQueueItemIndex = $state(-1);
+	let selectedQueueItem: ProductionQueueItem | undefined = $state();
+	let selectedQueueItemCost: Cost | undefined = $state();
 
 	// keep track of the quantity modifier
-	let quantityModifer = 1;
+	let quantityModifer = $state(1);
 
 	function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
 		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
 	}
 
-	function queueItemClicked(index: number, item?: ProductionQueueItem) {
+	function onQueueItemClicked(index: number, item?: ProductionQueueItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
 		selectedQueueItemCost = $player.getItemCost(
@@ -161,7 +164,7 @@
 		return percent;
 	}
 
-	function addAvailableItem(e: MouseEvent, item?: ProductionQueueItem) {
+	function addAvailableItem(item?: ProductionQueueItem) {
 		item = item ?? selectedAvailableItem;
 		if (!queueItems || !item) {
 			return;
@@ -184,7 +187,6 @@
 			// don't add something we can't build any more of
 			return;
 		}
-		const cost = $player.getItemCost(cs, item, $universe, planet) ?? {};
 		if (selectedQueueItem) {
 			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
 				selectedQueueItem.quantity += quantity;
@@ -246,7 +248,7 @@
 		updateQueueEstimates();
 	}
 
-	function removeItem(e: MouseEvent) {
+	function removeItem() {
 		if (queueItems && selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifer;
 			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
@@ -306,27 +308,29 @@
 		}
 	}
 
-	function next() {
+	async function next() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		dispatch('next');
+		await onNext?.();
+		resetQueue();
 	}
 
-	function prev() {
+	async function prev() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		dispatch('prev');
+		await onPrev?.();
+		resetQueue();
 	}
 
 	function ok() {
 		planet.productionQueue = queueItems ?? [];
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
-		dispatch('ok');
+		onOk?.(planet);
 	}
 	function cancel() {
 		if (planet) {
 			resetQueue();
-			dispatch('cancel');
+			onCancel?.();
 		}
 	}
 
@@ -367,17 +371,21 @@
 	onMount(() => {
 		const originalScope = hotkeys.getScope();
 		const scope = 'production';
+		const syncNext = asyncToVoidWrapper(next);
+		const syncPrev = asyncToVoidWrapper(prev);
 		hotkeys('Esc', cancel);
 		hotkeys('Enter', ok);
-		hotkeys('n', scope, next);
-		hotkeys('p', scope, prev);
+		hotkeys('n', scope, syncNext);
+		hotkeys('p', scope, syncPrev);
 		hotkeys.setScope(scope);
+
+		resetQueue();
 
 		return () => {
 			hotkeys.unbind('Esc', cancel);
 			hotkeys.unbind('Enter', ok);
-			hotkeys.unbind('n', scope, next);
-			hotkeys.unbind('p', scope, prev);
+			hotkeys.unbind('n', scope, syncNext);
+			hotkeys.unbind('p', scope, syncPrev);
 			hotkeys.deleteScope(scope);
 			hotkeys.setScope(originalScope);
 		};
@@ -385,7 +393,7 @@
 
 	function resetQueue() {
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch;
-		queueItems = [...planet.productionQueue?.map((item) => ({ ...item }) as ProductionQueueItem)];
+		queueItems = [...planet.productionQueue.map((item) => ({ ...item }) as ProductionQueueItem)];
 		const genesisDevice = $techs.getTech(GenesisDevice);
 		availableItems = planet.getAvailableProductionQueueItems(
 			planet,
@@ -411,8 +419,10 @@
 		updateQueueEstimates();
 	}
 
-	// clone the production queue whenever the planet is updated
-	$: planet && resetQueue();
+	let selectedQueueItemPercentComplete = $derived(
+		selectedQueueItem ? getPercentComplete(selectedQueueItem) : 0
+	);
+	let updatedPlanet = $derived(Object.assign(new CommandedPlanet(), planet));
 </script>
 
 <div class="flex flex-col h-full bg-base-200 shadow rounded-sm border-2 border-base-300 text-base">
@@ -431,9 +441,9 @@
 									<li>
 										<button
 											type="button"
-											on:click={() => availableItemSelected(item)}
-											on:dblclick={(e) => addAvailableItem(e, item)}
-											on:contextmenu|preventDefault={(e) =>
+											onclick={() => availableItemSelected(item)}
+											ondblclick={() => addAvailableItem(item)}
+											oncontextmenu={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
@@ -457,9 +467,9 @@
 									<li>
 										<button
 											type="button"
-											on:click={() => availableItemSelected(item)}
-											on:dblclick={(e) => addAvailableItem(e, item)}
-											on:contextmenu|preventDefault={(e) =>
+											onclick={() => availableItemSelected(item)}
+											ondblclick={() => addAvailableItem(item)}
+											oncontextmenu={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
 											class:bg-primary={item === selectedAvailableItem}
@@ -481,8 +491,8 @@
 								<li>
 									<button
 										type="button"
-										on:click={() => availableItemSelected(item)}
-										on:dblclick={(e) => addAvailableItem(e, item)}
+										onclick={() => availableItemSelected(item)}
+										ondblclick={() => addAvailableItem(item)}
 										class:italic={isAuto(item.type)}
 										class:bg-primary={item === selectedAvailableItem}
 										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
@@ -493,14 +503,14 @@
 								</li>
 							{/each}
 						</ul>
-						<div class="divider" />
+						<div class="divider"></div>
 						<div class="h-32">
 							{#if selectedAvailableItem && selectedAvailableItemCost}
 								<h3>
 									{#if selectedAvailableItem.designNum}
 										<button
 											type="button"
-											on:pointerdown={(e) =>
+											onpointerdown={(e) =>
 												onShipDesignTooltip(
 													e,
 													$universe.getMyDesign(selectedAvailableItem?.designNum)
@@ -526,7 +536,7 @@
 				<div class="flex-none h-full mx-0.5 md:w-34 px-1">
 					<div class="flex-row flex-none gap-y-2">
 						<button
-							on:click={(e) => addAvailableItem(e)}
+							onclick={() => addAvailableItem()}
 							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 							><span class="hidden sm:inline">Add </span><Icon
 								src={ArrowLongRight}
@@ -535,7 +545,7 @@
 							/></button
 						>
 						<button
-							on:click={removeItem}
+							onclick={removeItem}
 							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 							><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" /><span
 								class="hidden sm:inline"
@@ -544,7 +554,7 @@
 							>
 						</button>
 						<button
-							on:click={itemUp}
+							onclick={itemUp}
 							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 							><span class="hidden sm:inline">Item Up </span><Icon
 								src={ArrowLongUp}
@@ -553,7 +563,7 @@
 							/>
 						</button>
 						<button
-							on:click={itemDown}
+							onclick={itemDown}
 							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 							><span class="hidden sm:inline">Item Down </span><Icon
 								src={ArrowLongDown}
@@ -562,7 +572,7 @@
 							/>
 						</button>
 						<button
-							on:click={clear}
+							onclick={clear}
 							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 							><span class="hidden sm:inline">Clear </span><Icon
 								src={XCircle}
@@ -572,7 +582,8 @@
 						</button>
 						<select
 							class="select select-outline select-sm select-secondary w-12 sm:w-full text-secondary"
-							on:change|preventDefault={(e) => {
+							onchange={(e) => {
+								e.preventDefault();
 								applyPlan(
 									$player.productionPlans.find((p) => p.num == parseInt(e.currentTarget.value))
 								);
@@ -595,7 +606,7 @@
 							<li>
 								<button
 									type="button"
-									on:click={() => queueItemClicked(-1)}
+									onclick={() => onQueueItemClicked(-1)}
 									class:bg-primary={selectedQueueItemIndex === -1}
 									class="w-full pl-1 select-none cursor-default hover:text-secondary-focus"
 								>
@@ -608,21 +619,21 @@
 										<ProductionQueueItemLine
 											item={queueItem}
 											{index}
-											on:queue-item-clicked={() => queueItemClicked(index, queueItem)}
+											{onQueueItemClicked}
 											selected={queueItem === selectedQueueItem}
 										/>
 									</li>
 								{/each}
 							{/if}
 						</ul>
-						<div class="divider" />
+						<div class="divider"></div>
 						<div class="h-32">
 							{#if selectedQueueItem}
 								<h3>
 									{#if selectedQueueItem.designNum}
 										<button
 											type="button"
-											on:pointerdown={(e) =>
+											onpointerdown={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(selectedQueueItem?.designNum))}
 											>Cost of {getFullName(selectedQueueItem, $universe)} x {selectedQueueItem.quantity}<Icon
 												src={QuestionMarkCircle}
@@ -639,7 +650,7 @@
 									{#if selectedQueueItemPercentComplete}
 										<button
 											type="button"
-											on:pointerdown={(e) => onAllocatedTooltip(e, selectedQueueItem?.allocated)}
+											onpointerdown={(e) => onAllocatedTooltip(e, selectedQueueItem?.allocated)}
 											>{(selectedQueueItemPercentComplete * 100)?.toFixed()}%<Icon
 												src={QuestionMarkCircle}
 												size="16"
@@ -659,7 +670,7 @@
 					<label>
 						<input
 							checked={contributesOnlyLeftoverToResearch}
-							on:change={contributesOnlyLeftoverToResearchChecked}
+							onchange={contributesOnlyLeftoverToResearchChecked}
 							class="checkbox checkbox-xs"
 							type="checkbox"
 						/> Contributes Only Leftover to Research
@@ -667,20 +678,18 @@
 				</div>
 				<div class="w-1/2 flex flex-row flex-wrap justify-between sm:justify-end">
 					<div class="grow">
-						<button class="btn btn-sm btn-outline btn-secondary w-full" on:click={prev}>Prev</button
-						>
+						<button class="btn btn-sm btn-outline btn-secondary w-full" onclick={prev}>Prev</button>
 					</div>
 					<div class="grow">
-						<button class="btn btn-sm btn-outline btn-secondary w-full" on:click={next}>Next</button
-						>
+						<button class="btn btn-sm btn-outline btn-secondary w-full" onclick={next}>Next</button>
 					</div>
 					<div class="grow">
-						<button on:click={cancel} class="btn btn-sm btn-outline btn-secondary w-full"
+						<button onclick={cancel} class="btn btn-sm btn-outline btn-secondary w-full"
 							>Cancel</button
 						>
 					</div>
 					<div class="grow">
-						<button on:click={ok} class="btn btn-sm btn-primary w-full">Ok</button>
+						<button onclick={ok} class="btn btn-sm btn-primary w-full">Ok</button>
 					</div>
 				</div>
 			</div>

@@ -100,9 +100,6 @@ type ShipDesignSpec struct {
 	WeaponSlots               []ShipDesignSlot      `json:"weaponSlots,omitempty"`
 }
 
-type MineLayingRateByMineType struct {
-}
-
 type ShipDesignPurpose string
 
 const (

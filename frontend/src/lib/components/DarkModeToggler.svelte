@@ -3,9 +3,9 @@
 	import { Moon, Sun } from '@steeze-ui/heroicons';
 	import { onMount } from 'svelte';
 
-	const lightTheme = 'emerald'
-	const darkTheme = 'business'
-	let isDark = false;
+	const lightTheme = 'emerald';
+	const darkTheme = 'business';
+	let isDark = $state(false);
 	onMount(() => {
 		isDark =
 			localStorage.theme === darkTheme ||
@@ -25,7 +25,7 @@
 	}
 </script>
 
-<button on:click={toggleTheme} class="pt-2 pb-3" type="button">
+<button onclick={toggleTheme} class="pt-2 pb-3" type="button">
 	{#if isDark}
 		<Icon src={Sun} size="24" class="hover:stroke-accent" />
 	{:else}

@@ -1,23 +1,29 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
+	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { canTransferCargo, type CommandedFleet } from '$lib/types/Fleet';
-	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../../dialogs/cargo/CargoTranfserDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 
-	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
-	export let fleet: CommandedFleet;
+	type Props = {
+		fleet: CommandedFleet;
+	} & ShowCargoTransferDialogProps;
 
-	const transfer = () => {
-		dispatch('cargo-transfer-dialog', {
+	let { fleet, onShowCargoTransferDialog }: Props = $props();
+
+	function transfer() {
+		if (!onShowCargoTransferDialog) {
+			return;
+		}
+
+		onShowCargoTransferDialog({
 			src: fleet,
 			dest: fleet.getCargoTransferTarget($universe)
 		});
-	};
+	}
 </script>
 
 {#if fleet?.spec}
@@ -25,6 +31,7 @@
 		<div class="flex justify-between my-1">
 			<div class="w-12 text-tile-item-title">Fuel</div>
 			<div class="ml-1 h-full w-full">
+				<!-- TODO: add fuel transfer -->
 				<FuelBar value={fleet.fuel} capacity={fleet.spec.fuelCapacity} />
 			</div>
 		</div>
@@ -33,7 +40,7 @@
 			<div class="w-12 text-tile-item-title">Cargo</div>
 			<div class="ml-1 h-full w-full">
 				<CargoBar
-					on:cargo-transfer-dialog={() => transfer()}
+					onPointerDown={transfer}
 					canTransferCargo={canTransferCargo(fleet, $universe)}
 					value={fleet.cargo}
 					capacity={fleet.spec.cargoCapacity}

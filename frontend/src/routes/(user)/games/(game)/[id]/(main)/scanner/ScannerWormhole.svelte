@@ -4,15 +4,14 @@
  -->
 <script lang="ts">
 	import type { Wormhole } from '$lib/types/Wormhole';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	type Props = {
+		wormhole: Wormhole;
+		fill?: string;
+	};
 
-	export let wormhole: Wormhole;
-
-	export let fill = '#000';
+	let { wormhole, fill = '#000' }: Props = $props();
 
 	const size = 12;
 </script>
@@ -25,8 +24,8 @@
 		height={size}
 		width={size}
 		class="scanner-wormhole"
-		x={-size/2}
-		y={-size/2}
+		x={-size / 2}
+		y={-size / 2}
 	>
 		<g>
 			<path

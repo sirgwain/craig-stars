@@ -1,32 +1,24 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { Unexplored } from '$lib/types/Constants';
 	import { type Planet } from '$lib/types/Planet';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-
 	let max = 100; // 100% concentration
 
-	export let planet: Planet;
+	type Props = {
+		planet: Planet;
+	};
+
+	let { planet }: Props = $props();
 
 	const size = 25; // the size of the mineral bars
 	const abovePlanetY = 5;
 
-	let barPercent = {
-		ironium: 0,
-		boranium: 0,
-		germanium: 0
-	};
-
-	$: {
+	let barPercent = $derived.by(() => {
 		if (planet.mineralConcentration) {
-			barPercent = {
+			return {
 				ironium: clamp(
 					planet.mineralConcentration.ironium ? planet.mineralConcentration.ironium / max : 0,
 					0,
@@ -43,8 +35,10 @@
 					1
 				)
 			};
+		} else {
+			return { ironium: 0, boranium: 0, germanium: 0 };
 		}
-	}
+	});
 </script>
 
 <ScannerPlanetNormal {planet} />

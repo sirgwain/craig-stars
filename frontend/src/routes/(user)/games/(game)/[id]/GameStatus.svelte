@@ -2,10 +2,16 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import type { Game } from '$lib/types/Game';
+	import type { Snippet } from 'svelte';
 	import PlayersStatus from './players/PlayersStatus.svelte';
 
-	export let game: Game;
-	export let title: string;
+	type Props = {
+		game: Game;
+		title: string;
+		children?: Snippet;
+	};
+
+	let { game, title, children }: Props = $props();
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
@@ -19,5 +25,5 @@
 			<PlayersStatus />
 		</div>
 	</div>
-	<slot />
+	{@render children?.()}
 </div>

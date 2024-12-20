@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
 	import LoadingSpinner from './LoadingSpinner.svelte';
 
-	const { game, player, universe } = getGameContext();
+	type Props = {
+		text: string | undefined;
+	};
 
-	export let text: string | undefined;
+	let { text }: Props = $props();
 </script>
 
 <div class="modal" class:modal-open={text !== undefined}>

@@ -3,23 +3,24 @@
 
 	import { goto } from '$app/navigation';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import { addError, CSError } from '$lib/services/Errors';
+	import { notify } from '$lib/services/Notifications';
 	import { RaceService } from '$lib/services/RaceService';
 	import { Service } from '$lib/services/Service';
 	import { humanoid, type Race } from '$lib/types/Race';
 	import { onMount } from 'svelte';
 	import RaceEditor from './RaceEditor.svelte';
 	import RacePoints from './RacePoints.svelte';
-	import { notify } from '$lib/services/Notifications';
 
 	let id = $page.params.id;
-	let race: Race;
+	let race: Race = $state(humanoid());
 
 	onMount(async () => {
 		if (id !== 'new') {
 			try {
 				race = await RaceService.get(id);
-			} catch (err) {
-				// TODO: show error
+			} catch (e) {
+				addError(e as CSError);
 			}
 		} else {
 			// create a new humanoid
@@ -51,17 +52,22 @@
 		notify('Saved ' + race.pluralName);
 	};
 
-	let points = 0;
+	let saveDisabled = $state(false);
 </script>
 
 {#if race}
-	<form on:submit|preventDefault={onSubmit}>
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			onSubmit();
+		}}
+	>
 		<div class="w-full flex justify-end gap-2">
-			<button class="btn btn-success" type="submit" disabled={points < 0}>Save</button>
+			<button class="btn btn-success" type="submit" disabled={saveDisabled}>Save</button>
 		</div>
 
 		<ItemTitle>{race.name}</ItemTitle>
-		<RacePoints bind:points {race} />
+		<RacePoints {race} onPointsUpdated={(points) => (saveDisabled = points < 0)} />
 		<RaceEditor bind:race />
 	</form>
 {/if}

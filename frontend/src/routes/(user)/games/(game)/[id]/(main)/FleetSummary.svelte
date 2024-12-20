@@ -2,38 +2,35 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { getHullIcon } from '$lib/techicon';
+	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import {
-		getDamagePercentForToken,
-		type Fleet,
-		WaypointTask,
 		canTransferCargo,
-		CommandedFleet
+		CommandedFleet,
+		getDamagePercentForToken,
+		WaypointTask,
+		type Fleet
 	} from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
-	import { StargateWarpSpeed } from '$lib/types/Constants';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
-	import { kebabCase, startCase } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
-	import type { CargoTransferDialogEvent } from '../dialogs/cargo/CargoTranfserDialog.svelte';
+	import { startCase } from 'lodash-es';
 
-	const dispatch = createEventDispatcher<CargoTransferDialogEvent>();
 	const { player, universe } = getGameContext();
 
-	export let fleet: Fleet;
+	type Props = {
+		fleet: Fleet;
+	} & ShowCargoTransferDialogProps;
 
-	let design: ShipDesign | undefined;
+	let { fleet, onShowCargoTransferDialog }: Props = $props();
 
-	function getIcon(fleet: Fleet): string {
+	const design: ShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
-			design = $universe.getDesign(fleet.playerNum, designNum);
-			if (design) {
-				return `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
-			}
+			return $universe.getDesign(fleet.playerNum, designNum);
 		}
-		return '';
-	}
+	});
 
 	// get either warpSpeed as a number, or "stargate"
 	function getWarpSpeed(fleet: Fleet): string {
@@ -49,8 +46,11 @@
 	}
 
 	function transfer() {
+		if (!onShowCargoTransferDialog) {
+			return;
+		}
 		const f = new CommandedFleet(fleet);
-		dispatch('cargo-transfer-dialog', { src: f, dest: f.getCargoTransferTarget($universe) });
+		onShowCargoTransferDialog({ src: f, dest: f.getCargoTransferTarget($universe) });
 	}
 </script>
 
@@ -65,12 +65,13 @@
 					<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
 				{/if}
 
-				<div class="fleet-avatar {getIcon(fleet)} bg-black">
+				<div class="fleet-avatar {getHullIcon(design)} bg-black">
 					<button
 						type="button"
+						aria-label="Opens ship design tooltip"
 						class="w-full h-full cursor-help"
-						on:pointerdown|preventDefault={(e) => onShipDesignTooltip(e, design)}
-					/>
+						onpointerdown={(e) => onShipDesignTooltip(e, design)}
+					></button>
 				</div>
 			</div>
 		</div>
@@ -100,7 +101,7 @@
 				<div class="w-32 text-tile-item-title">Cargo:</div>
 				<div class="grow">
 					<CargoBar
-						on:cargo-transfer-dialog={() => transfer()}
+						onPointerDown={() => transfer()}
 						canTransferCargo={canTransferCargo(fleet, $universe)}
 						value={fleet.cargo}
 						capacity={fleet.spec?.cargoCapacity}
@@ -113,7 +114,7 @@
 				<div class="w-32 text-tile-item-title">Next Waypoint:</div>
 				<div>{$universe.getTargetName(fleet.waypoints[1])}</div>
 			</div>
-			{#if fleet.waypoints[1].task != WaypointTask.None}
+			{#if fleet.waypoints[1].task !== WaypointTask.None}
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Task:</div>
 					<div>{startCase(fleet.waypoints[1].task)}</div>
@@ -135,15 +136,15 @@
 				Fleet Composition:
 				<div class="bg-base-100 h-16 overflow-y-auto mt-1 w-full md:w-60 font-normal">
 					<ul class="w-full h-full">
-						{#each fleet.tokens as token, index}
+						{#each fleet.tokens as token}
 							<li class="pl-1">
 								<button
 									type="button"
 									class="w-full cursor-help"
-									on:pointerdown|preventDefault={(e) =>
+									onpointerdown={(e) =>
 										onShipDesignTooltip(e, $universe.getDesign(fleet.playerNum, token.designNum))}
 								>
-									<div class="flex flex-row justify-between relative">
+									<span class="flex flex-row justify-between relative">
 										{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
 											<div
 												style={`width: ${getDamagePercentForToken(
@@ -151,16 +152,16 @@
 													$universe.getDesign(fleet.playerNum, token.designNum)
 												).toFixed()}%`}
 												class="damage-bar h-full absolute opacity-50"
-											/>
+											></div>
 										{/if}
 
-										<div>
+										<span>
 											{$universe.getDesign(fleet.playerNum, token.designNum)?.name}
-										</div>
-										<div>
+										</span>
+										<span>
 											{token.quantity}
-										</div>
-									</div>
+										</span>
+									</span>
 								</button>
 							</li>
 						{/each}

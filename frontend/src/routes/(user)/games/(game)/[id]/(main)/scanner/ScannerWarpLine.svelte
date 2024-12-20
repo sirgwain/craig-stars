@@ -4,23 +4,20 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
+	import type { SVGAttributes } from 'svelte/elements';
 
 	const { player, universe, selectedMapObject } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 
 	type Line = {
+		color: string;
 		path: string;
-		props: any;
+		props: SVGAttributes<SVGPathElement>;
 	};
 
-	let line: Line | undefined;
-	let color = '#ffffff';
-
-	$: strokeWidth = 1;
-
-	$: {
-		line = undefined;
+	let line: Line | undefined = $derived.by(() => {
+		let color = '#ffffff';
+		let strokeWidth = 1;
 
 		// show the warp line for other player fleets, or mystery traders or mineral packets
 		if (
@@ -37,7 +34,7 @@
 			if (mo.playerNum) {
 				color = $universe.getPlayerColor(mo.playerNum);
 			} else if (mo.type == MapObjectType.MysteryTrader) {
-				color = '#00FFFF'
+				color = '#00FFFF';
 			}
 
 			if (warpSpeed) {
@@ -48,7 +45,8 @@
 					}
 				}));
 
-				line = {
+				return {
+					color,
 					path: 'M' + coords.map((coord) => `${$xGet(coord)}, ${$yGet(coord)}`).join('L'),
 					props: {
 						'stroke-width': strokeWidth,
@@ -57,7 +55,7 @@
 				};
 			}
 		}
-	}
+	});
 </script>
 
 {#if line}
@@ -74,7 +72,7 @@
 				markerHeight="3"
 				orient="auto"
 			>
-				<path d="M 3 0 L 7 5 L 3 10" stroke={color} fill="context-fill" stroke-width={2} />
+				<path d="M 3 0 L 7 5 L 3 10" stroke={line.color} fill="context-fill" stroke-width={2} />
 			</marker>
 		</defs>
 	</svg>

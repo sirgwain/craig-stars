@@ -5,7 +5,11 @@
 	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
 	import HabBar from './HabBar.svelte';
 
-	export let race: Race;
+	type Props = {
+		race: Race;
+	};
+
+	let { race = $bindable() }: Props = $props();
 </script>
 
 <div class="flex flex-col gap-2">
@@ -28,8 +32,12 @@
 		bind:immune={race.immuneRad}
 	/>
 	<SpinnerNumberText min={1} max={20} bind:value={race.growthRate}>
-		<svelte:fragment slot="begin">Maximum Colonist Growth Rate Per Year</svelte:fragment>
-		<svelte:fragment slot="end">%.</svelte:fragment>
+		{#snippet begin()}
+			Maximum Colonist Growth Rate Per Year
+		{/snippet}
+		{#snippet end()}
+			%.
+		{/snippet}
 	</SpinnerNumberText>
 
 	<HabChance {race} />

@@ -3,34 +3,32 @@
   Generates an HTML y-axis.
  -->
 <script lang="ts">
+	import { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
-	const { padding, xRange, yScale } = getContext('LayerCake');
+	const { padding, xRange, yScale } = getContext<LayerCake>('LayerCake');
 
-	/** @type {Boolean} [gridlines=true] - Extend lines from the ticks into the chart space */
-	export let gridlines = true;
+	type Props = {
+		gridlines?: boolean;
+		formatTick?: (d: unknown) => string;
+		ticks?: number | Array<unknown> | undefined;
+		xTick?: number;
+		yTick?: number;
+	};
 
-	/** @type {Function} [formatTick=d => d] - A function that passes the current tick value and expects a nicely formatted value in return. */
-	export let formatTick: (d: any) => string = (d) => d;
+	let {
+		gridlines = true,
+		formatTick = (d) => `${d}`,
+		ticks = 4,
+		xTick = -4,
+		yTick = -1
+	}: Props = $props();
 
-	/** @type {Number|Array|Function} [ticks=4] - If this is a number, it passes that along to the [d3Scale.ticks](https://github.com/d3/d3-scale) function. If this is an array, hardcodes the ticks to those values. If it's a function, passes along the default tick values and expects an array of tick values in return. */
-	export let ticks: Number | Array<any> | Function = 4;
+	let isBandwidth = $derived(typeof $yScale.bandwidth === 'function');
 
-	/** @type {Number} [xTick=-4] - How far over to position the text marker. */
-	export let xTick = -4;
-
-	/** @type {Number} [yTick=-1] - How far up and down to position the text marker. */
-	export let yTick = -1;
-
-	$: isBandwidth = typeof $yScale.bandwidth === 'function';
-
-	$: tickVals = Array.isArray(ticks)
-		? ticks
-		: isBandwidth
-		? $yScale.domain()
-		: typeof ticks === 'function'
-		? ticks($yScale.ticks())
-		: $yScale.ticks(ticks);
+	let tickVals = $derived(
+		Array.isArray(ticks) ? ticks : isBandwidth ? $yScale.domain() : $yScale.ticks(ticks)
+	);
 </script>
 
 <div class="axis y-axis" style="transform:translate(-{$padding.left}px, 0)">
@@ -44,7 +42,7 @@
 					class="border-t border-dashed border-base-content"
 					style="top:0;left:{isBandwidth ? $padding.left : 0}px;right:-{$padding.left +
 						$padding.right}px;"
-				/>
+				></div>
 			{/if}
 			<div
 				class="text-base-content"
@@ -79,5 +77,4 @@
 		width: 100%;
 		font-weight: 100;
 	}
-
 </style>

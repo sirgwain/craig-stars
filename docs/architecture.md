@@ -24,13 +24,9 @@ Every entity in a `craig-stars` game has an integer `Num` associated with it. `N
 
 ### Specs
 
-`craig-stars` has a lot of computed values. Planets compute their habitability and growth, ship designs compute their power rating, fleet's compute their cargo capacity and fuel capacity. All computed values are stored in an object's `Spec` field, and are computed by the various `compute*Spec` functions. Specs are computed at the start and end of turns (and sometimes during turns). When players update orders, specs are also recomputed. The spec calculations use the Game's Rules for their various constants.
+`craig-stars` has a lot of computed values. Planets compute their habitability and growth rate, ship designs compute their power rating and component bonuses, fleets compute their cargo/fuel capacity, etc. All computed values are stored in an object's `Spec` field, and are computed by the various `compute*Spec` functions. Specs are computed at the start and end of turns (and sometimes during turns where needed). When players update orders, specs are also recomputed. Spec calculations relying on preset constants reference the Game's `Rules` struct to access said constants.
 
-An example of a `Spec` calculation is the maximum usable factories for a planet, that is dependent on planet population and the race number of factories value.
-
-```go
-spec.MaxFactories = planet.population() * race.NumFactories / 10000
-```
+One such dynamically computed `Spec` value is the maximum usable factories for a given planet, dependent on its population/max population and the race's preset "factories operated" value.
 
 ### Entity Diagram
 

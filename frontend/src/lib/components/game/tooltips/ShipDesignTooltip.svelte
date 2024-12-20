@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { showTooltip } from '$lib/services/Stores';
 	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import ShipDesignTooltip from './ShipDesignTooltip.svelte';
@@ -7,6 +7,7 @@
 		e: PointerEvent | MouseEvent,
 		design: ShipDesign | undefined
 	) {
+		e.preventDefault();
 		if (design) {
 			showTooltip<ShipDesignTooltipProps>(e.x, e.y, ShipDesignTooltip, { design });
 		}
@@ -20,7 +21,7 @@
 <script lang="ts">
 	import Design from '$lib/components/game/design/Design.svelte';
 
-	export let design: ShipDesign;
+	let { design }: ShipDesignTooltipProps = $props();
 </script>
 
 <div>

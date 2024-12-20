@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import type { Planet } from '$lib/types/Planet';
 	import type { Player } from '$lib/types/Player';
 	export type HabTooltipProps = {
@@ -19,9 +19,7 @@
 	} from '$lib/types/Hab';
 	import { getPlanetHabitability, isImmune } from '$lib/types/Race';
 
-	export let player: Player;
-	export let planet: Planet;
-	export let habType: HabType;
+	let { player, planet, habType }: HabTooltipProps = $props();
 
 	const currentHab = getHabValue(planet.hab, habType);
 	const terraformedHab = getHabValue(planet.spec.terraformAmount ?? {}, habType);
