@@ -940,7 +940,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 			if slot.HullComponent == "" && !hull.Starbase {
 				fuelTank := UpdateLookupMap(bestPartsBySlot[hst], TechTagFuelTank, func(t TechTag) *TechHullComponent {
 					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				});
+				})
 				shield := UpdateLookupMap(bestPartsBySlot[hst], TechTagShield, func(t TechTag) *TechHullComponent {
 					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
 				})
@@ -1247,7 +1247,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	}
 
 	if len(jetSlots) > 0 && design.Spec.Movement >= rules.MovementMax {
-		// remove pure jets from slots and re-compute design spec to figure out how much stat we have
+		// remove pure jets from slots and re-compute design spec to figure out how sped we are
 		design.Slots = slices.DeleteFunc(design.Slots, func(sd ShipDesignSlot) bool {
 			item := rules.techs.GetHullComponent(sd.HullComponent)
 			return item != nil && item.Tags.hasTags([]TechTag{TechTagManeuveringJet}, CombatTechTags...)

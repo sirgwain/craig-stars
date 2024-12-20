@@ -16,7 +16,8 @@ type TechLevel struct {
 	Biotechnology int `json:"biotechnology,omitempty"`
 }
 
-// return true if this techlevel has the required techlevels for a requirements
+// return true if tl has the required levels for required 
+// (i.e. tl >= required for all fields)
 func (tl TechLevel) HasRequiredLevels(required TechLevel) bool {
 	return tl.Energy >= required.Energy &&
 		tl.Weapons >= required.Weapons &&
@@ -61,10 +62,11 @@ func (tl TechLevel) HighestType(ranking int) TechField {
 func (tl TechLevel) HighestAmount(ranking int) int {
 	a := tl.ToSlice()
 	slice := slices.Clone(a[:])
-	slices.Sort(slice)
 	if ranking < 0 {
 		slices.SortStableFunc(slice, func(a, b int) int { return b - a })
 		ranking = -ranking
+	} else {
+		slices.Sort(slice)
 	}
 	return slice[len(slice)-ranking]
 }
