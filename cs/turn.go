@@ -50,8 +50,7 @@ func (t *turn) generateTurn() error {
 		player.Messages = []PlayerMessage{}
 		player.BattleRecords = []BattleRecord{}
 		player.leftoverResources = 0
-		player.Spec.TechsGainedLastTurn = []*Tech{}
-
+		player.Spec.TechsJustGained = []*Tech{}
 	}
 
 	t.computeSpecs()
@@ -214,11 +213,7 @@ func (t *turn) scrapFleet(fleet *Fleet) {
 						planetPlayer.TechLevels.Set(field, planetPlayer.TechLevels.Get(field)+1)
 						messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
 
-						techsGained := t.game.TechStore.GetTechsJustGained(player, field)
-						player.Spec.TechsGainedLastTurn = append(player.Spec.TechsGainedLastTurn, techsGained...)
-						for _, tech := range techsGained {
-							messager.playerTechGained(player, field, tech)
-						}
+						planetPlayer.updateTechsJustGained(t.game.TechStore, field)
 
 						t.log.Debug().
 							Int("Player", planetPlayer.Num).
@@ -529,7 +524,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			}
 			defender.discoverer.discoverFleet(fleet, false)
 
-			invadePlanet(t.log, &t.game.Rules, t.game.TechStore, planet, fleet, defender, player, transferAmount*100)
+			invadePlanet(t.log, &t.game.Rules, planet, fleet, defender, player, transferAmount*100)
 			fleet.Cargo.Colonists -= transferAmount
 
 			if planet.Num != defender.Num {
@@ -1641,11 +1636,7 @@ func (t *turn) playerResearch() error {
 	onLevelGained := func(player *Player, field TechField) {
 
 		messager.playerGainTechLevel(player, field, player.TechLevels.Get(field), player.Researching)
-		techsGained := t.game.TechStore.GetTechsJustGained(player, field)
-		player.Spec.TechsGainedLastTurn = append(player.Spec.TechsGainedLastTurn, techsGained...)
-		for _, tech := range techsGained {
-			messager.playerTechGained(player, field, tech)
-		}
+		player.updateTechsJustGained(t.game.TechStore, field)
 		playerGainedLevel[player.Num] = true
 
 		t.log.Debug().
@@ -2192,11 +2183,7 @@ func (t *turn) fleetBattle() {
 					player.techLevelGained = true
 					player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
 					messager.playerTechGainedBattle(player, planet, record, field)
-					techsGained := t.game.TechStore.GetTechsJustGained(player, field)
-					player.Spec.TechsGainedLastTurn = append(player.Spec.TechsGainedLastTurn, techsGained...)
-					for _, tech := range techsGained {
-						messager.playerTechGained(player, field, tech)
-					}
+					player.updateTechsJustGained(t.game.TechStore, field)
 
 					t.log.Debug().
 						Int("Battle", battleNum).

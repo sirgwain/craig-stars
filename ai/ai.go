@@ -474,14 +474,14 @@ func (ai *aiPlayer) ProcessTurn() error {
 		return err
 	}
 
-	if ai.game.Year%5 == 0 || len(ai.Player.Spec.TechsGainedLastTurn) > 0 {
-		// only update warship amounts/designs every 5 years or if we just gained a tech
+	if ai.game.Year%4 == 0 || len(ai.Player.Spec.TechsJustGained) > 0 {
+		// only update warship amounts/designs every 4 years or if we just gained a tech
 		if err := ai.updateWarfleets(); err != nil {
 			if err != fmt.Errorf("too early") {
 				return err
 			} else {
 				log.Debug().
-					Int("Year", ai.game.Year).
+					Int("Current Year", ai.game.Year).
 					Int("Min Ship Building Year", ai.config.startAttackingYear).
 					Msgf("Avoiding building warships at early year")
 			}

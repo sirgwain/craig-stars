@@ -203,7 +203,7 @@ func (store *TechStore) GetTechsJustGained(player *Player, field TechField) (tec
 	return techs
 }
 
-// get list of all hull components for the specified category, sorted by ranking
+// get list of all hull components for the specified category, sorted by ascending ranking
 func (store *TechStore) GetHullComponentsByCategory(category TechCategory) (hullComponents []TechHullComponent) {
 	t := slices.Clone(store.hullComponentsByCategory[category])
 	slices.SortStableFunc(t, func(a, b TechHullComponent) int { return a.Ranking - b.Ranking })

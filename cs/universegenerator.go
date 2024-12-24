@@ -87,16 +87,16 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 			player := ug.players[planet.PlayerNum-1]
 			planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
-				return nil, fmt.Errorf("%s failed to populate queue designs: %w", planet, err)
+				return nil, fmt.Errorf("planet %s failed to populate queue designs; error: \n%w", planet, err)
 			}
 			if err := planet.PopulateProductionQueueEstimates(&ug.Rules, player); err != nil {
-				return nil, fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+				return nil, fmt.Errorf("planet %s unable to populate queue estimates; error \n%w", planet.Name, err)
 			}
 		}
 	}
 
-	// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
 	for _, player := range ug.players {
+		// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
 		player.Spec = computePlayerSpec(player, &ug.Rules, ug.universe.Planets)
 	}
 
@@ -134,11 +134,11 @@ func (ug *universeGenerator) generatePlanets() error {
 			pos = Vector{X: float64(rules.random.Intn(width)), Y: float64(rules.random.Intn(height))}
 			posCheckCount++
 			if posCheckCount > 1000 {
-				return fmt.Errorf("find a valid position for a wormhole in 1000 tries, min: %d, numPlanets: %d, area: %v", rules.PlanetMinDistance, numPlanets, ug.area)
+				return fmt.Errorf("could not find a valid position for a planet in 1000 tries;\n min distance: %d, numPlanets: %d, area: %v", rules.PlanetMinDistance, numPlanets, ug.area)
 			}
 		}
 
-		// setup a new planet
+		// we found a good position; setup a new planet
 		planet := NewPlanet()
 		planet.Name = names[i]
 		planet.Num = i + 1
@@ -149,7 +149,7 @@ func (ug *universeGenerator) generatePlanets() error {
 			planet.MineralConcentration = Mineral{100, 100, 100}
 		}
 		if ug.RandomEvents && rules.RandomEventChances[RandomEventAncientArtifact] >= rules.random.Float64() {
-			// check if this planet has a random artifact
+			// roll for a random artifact
 			planet.RandomArtifact = true
 		}
 
@@ -247,12 +247,6 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 				if err != nil {
 					return fmt.Errorf("DesignShip returned error %w", err)
 				}
-				design.HullSetNumber = int(startingFleet.HullSetNumber)
-				design.Purpose = startingFleet.Purpose
-				design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
-				if err != nil {
-					return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
-				}
 				player.Designs = append(player.Designs, design)
 				designNames.Add(design.Name)
 				num++
@@ -265,7 +259,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 			design := &starbaseDesigns[i]
 			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 			}
 			player.Designs = append(player.Designs, design)
 		}

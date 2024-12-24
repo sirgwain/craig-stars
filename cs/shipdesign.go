@@ -700,8 +700,7 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
 	techStore := rules.techs
-	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name)
-	design.Purpose = purpose
+	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
 	tc := NewTechComparer(rules, player)
 
 	// fuel depots & starter colonies are empty
@@ -976,7 +975,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 	//* DISCLAIMER FOR CODE (RE)VIEWERS: THIS IS A *VERY LONG FUNCTION*. Use the hashtags (#) to jump between sections.
 	techStore := rules.techs
-	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name).WithPurpose(purpose)
+	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(num).WithPurpose(purpose)
 	tc := NewTechComparer(rules, player)
 
 	// (#) COUNTERS & CONSTANTS
@@ -1078,16 +1077,16 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			// if we don't have many weapons already or this is a
 			// weapons-only slot, slap on some guns
 
+			// decide on whether to use sappers or not
+			// TODO: Rework this once armorDamageMulti becomes a techHullComponent property
 			sapper := UpdateLookupMap(bestPartsBySlot[hst], TechTagShieldSapper, func(t TechTag) *TechHullComponent {
 				return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
 			})
-			// decide on whether to use sappers or not
-			// TODO: Rework this once armorDamageMulti becomes a techHullComponent property
-			var shouldUseSapper bool
-			shouldUseSapper = sapper != nil && // have a sapper to use
+			shouldUseSapper := sapper != nil && // have a sapper to use
 				sapper.Range == weapon.Range && // sapper has at least as much range as our main guns
 				numWeapons > numSappers*3 && // 3:1 gun:sapper ratio
 				tc.compareWeaponPowers(weapon, sapper) // sapper does more damage per hit
+
 			if shouldUseSapper {
 				itemToPlace = sapper
 				numSappers += designSlot.Quantity
@@ -1098,8 +1097,9 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		case scanner != nil && design.Purpose == ShipDesignPurposeFighterScout &&
 			!hasScanner:
 			// add scanners to armed scouts if they don't have them already
+			// TODO: Add a way to determine the "least needed" slot rather than tacking a scanner on the first one we find
 			itemToPlace = scanner
-			if itemToPlace.Tags.CountTags() == 1 && itemToPlace.Tags[TechTagScanner] {
+			if itemToPlace.Tags.CountTags() == 1 && itemToPlace.Tags[TechTagScanner] { // covers for non-useless scanner items
 				designSlot.Quantity = 1
 			}
 			// Note that due to the hull slot sorting done earlier,

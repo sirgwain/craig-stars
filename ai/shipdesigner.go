@@ -65,9 +65,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	if err != nil {
 		return existing, fmt.Errorf("cs.DesignShip returned error: %w", err)
 	}
-	updated.HullSetNumber = ai.DefaultHullSet
-	updated.Purpose = purpose
-	// no need to compute ship design specs as functions already compute it afterwards
+	// no need to compute ship design specs as functions already compute it before returning
 
 	// if we tried to build a bomber with no bombs, ignore it
 	if purpose == cs.ShipDesignPurposeBomber && !updated.Spec.Bomber {
