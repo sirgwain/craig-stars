@@ -12,12 +12,12 @@ import (
 type Rules struct {
 	CostRules
 	BattleRules
-  UniverseGenerationRules
-	ID                               int64                               `json:"id"`
-	CreatedAt                        time.Time                           `json:"createdAt"`
-	UpdatedAt                        time.Time                           `json:"updatedAt"`
-	GameID                           int64                               `json:"gameId"`
-	AcquirablePartTradeChanceBase    float64                             `json:"AcquirablePartTradeChanceBase,omitempty"`
+	UniverseGenerationRules
+	ID                               int64                               `json:"id,omitempty"`
+	CreatedAt                        time.Time                           `json:"createdAt,omitempty"`
+	UpdatedAt                        time.Time                           `json:"updatedAt,omitempty"`
+	GameID                           int64                               `json:"gameId,omitempty"`
+	AcquirablePartTradeChanceBase    float64                             `json:"acquirablePartTradeChanceBase,omitempty"`
 	AcquirablePartTradeItemMax       int                                 `json:"acquirablePartTradeItemMax,omitempty"`
 	CometStatsBySize                 map[CometSize]CometStats            `json:"cometStatsBySize,omitempty"`
 	FleetSafeSpeedExplosionChance    float64                             `json:"fleetSafeSpeedExplosionChance,omitempty"`
@@ -44,28 +44,28 @@ type Rules struct {
 	RandomArtifactResearchBonusRange [2]int                              `json:"randomArtifactResearchBonusRange,omitempty"`
 	RandomCometMinYear               int                                 `json:"randomCometMinYear,omitempty"`
 	RandomCometMinYearPlayerWorld    int                                 `json:"randomCometMinYearPlayerWorld,omitempty"`
-	RandomEventChances               map[RandomEvent]float64             `json:"randomEventChances"`
-	RandomMineralDepositBonusRange   [2]int                              `json:"randomMineralDepositBonusRange"`
-	RemoteMiningMineOutput           int                                 `json:"remoteMiningMineOutput"`
-	RepairRates                      map[RepairRate]float64              `json:"repairRates"`
-	SalvageDecayMin                  int                                 `json:"salvageDecayMin"`
-	SalvageDecayRate                 float64                             `json:"salvageDecayRate"`
-	SalvageFromBattleFactor          float64                             `json:"salvageFromBattleFactor"`
-	ScrapColonizeAmount              float64                             `json:"scrapColonizeAmount"`
-	ScrapMineralAmount               float64                             `json:"scrapMineralAmount"`
-	ScrapResourceAmount              float64                             `json:"scrapResourceAmount"`
-	ShowPublicScoresAfterYears       int                                 `json:"showPublicScoresAfterYears"`
-	SmartDefenseCoverageFactor       float64                             `json:"smartDefenseCoverageFactor"`
-	StargateMaxHullMassFactor        int                                 `json:"stargateMaxHullMassFactor"`
-	StargateMaxRangeFactor           int                                 `json:"stargateMaxRangeFactor"`
-	TachyonCloakReduction            int                                 `json:"tachyonCloakReduction"`
-	TachyonMaxCloakReduction         int                                 `json:"tachyonMaxCloakReduction"`
-	TechsID                          int64                               `json:"techsId"`
-	TechTradeChance                  float64                             `json:"techTradeChance"`
-	TorpedoSplashDamage              float64                             `json:"torpedoSplashDamage"`
-	WormholeCloak                    int                                 `json:"wormholeCloak"`
-	WormholePairsForSize             map[Size]int                        `json:"wormholePairsForSize"`
-	WormholeStatsByStability         map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
+	RandomEventChances               map[RandomEvent]float64             `json:"randomEventChances,omitempty"`
+	RandomMineralDepositBonusRange   [2]int                              `json:"randomMineralDepositBonusRange,omitempty"`
+	RemoteMiningMineOutput           int                                 `json:"remoteMiningMineOutput,omitempty"`
+	RepairRates                      map[RepairRate]float64              `json:"repairRates,omitempty"`
+	SalvageDecayMin                  int                                 `json:"salvageDecayMin,omitempty"`
+	SalvageDecayRate                 float64                             `json:"salvageDecayRate,omitempty"`
+	SalvageFromBattleFactor          float64                             `json:"salvageFromBattleFactor,omitempty"`
+	ScrapColonizeAmount              float64                             `json:"scrapColonizeAmount,omitempty"`
+	ScrapMineralAmount               float64                             `json:"scrapMineralAmount,omitempty"`
+	ScrapResourceAmount              float64                             `json:"scrapResourceAmount,omitempty"`
+	ShowPublicScoresAfterYears       int                                 `json:"showPublicScoresAfterYears,omitempty"`
+	SmartDefenseCoverageFactor       float64                             `json:"smartDefenseCoverageFactor,omitempty"`
+	StargateMaxHullMassFactor        int                                 `json:"stargateMaxHullMassFactor,omitempty"`
+	StargateMaxRangeFactor           int                                 `json:"stargateMaxRangeFactor,omitempty"`
+	TachyonCloakReduction            int                                 `json:"tachyonCloakReduction,omitempty"`
+	TachyonMaxCloakReduction         int                                 `json:"tachyonMaxCloakReduction,omitempty"`
+	TechsID                          int64                               `json:"techsId,omitempty"`
+	TechTradeChance                  float64                             `json:"techTradeChance,omitempty"`
+	TorpedoSplashDamage              float64                             `json:"torpedoSplashDamage,omitempty"`
+	WormholeCloak                    int                                 `json:"wormholeCloak,omitempty"`
+	WormholePairsForSize             map[Size]int                        `json:"wormholePairsForSize,omitempty"`
+	WormholeStatsByStability         map[WormholeStability]WormholeStats `json:"wormholeStatsByStability,omitempty"`
 	random                           rng
 	techs                            *TechStore
 }
@@ -164,7 +164,7 @@ type MysteryTraderRules struct {
 	ChanceSpeedUpOnly     int                          `json:"chanceSpeedUpOnly,omitempty"`
 	ChanceAgain           int                          `json:"chanceAgain,omitempty"`
 	EvenYearOnly          bool                         `json:"evenYearOnly,omitempty"`
-	GenesisDeviceCost     Cost                         `json:"genesisDeviceCost"`
+	GenesisDeviceCost     Cost                         `json:"genesisDeviceCost,omitempty"`
 	MaxMysteryTraders     int                          `json:"maxMysteryTraders,omitempty"`
 	MaxWarp               int                          `json:"maxWarp,omitempty"`
 	MinWarp               int                          `json:"minWarp,omitempty"`
@@ -316,7 +316,7 @@ func NewRulesWithSeed(seed int64) Rules {
 			RandomEventAncientArtifact: .33, // 1 in 3 planets have random artifacts
 		},
 		AcquirablePartTradeChanceBase: 0.005, // 0.5% chance per item in fleet
-		AcquirablePartTradeItemMax:    25,   // 25 items max per trade instance
+		AcquirablePartTradeItemMax:    25,    // 25 items max per trade instance
 		RandomCometMinYear:            10,
 		RandomCometMinYearPlayerWorld: 20,
 		CometStatsBySize: map[CometSize]CometStats{
