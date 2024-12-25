@@ -734,6 +734,10 @@ func (m *messageClient) planetDiscovered(player *Player, planet *Planet) {
 	terraformer := NewTerraformer()
 	terraformAmount := terraformer.getTerraformAmount(planet.Hab, planet.BaseHab, player, player)
 	habTerraformed := player.Race.GetPlanetHabitability(planet.Hab.Add(terraformAmount))
+ 
+	if player.Race.Spec.Instaforming {
+		hab = habTerraformed // CAs instantly terraform any planet they inhabit, so referring to "hab after terraforming" is a bit disingenuous 
+	}
 
 	if hab >= 0 {
 		messageType = PlayerMessagePlanetDiscoveryHabitable
@@ -751,7 +755,7 @@ func (m *messageClient) planetEmptied(player *Player, planet *Planet) {
 }
 
 func (m *messageClient) planetInstaform(player *Player, planet *Planet, terraformAmount Hab) {
-	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions. Its value is now %d", planet.Name, planet.Spec.Habitability) + "%."
+	text := fmt.Sprintf("Your race has instantly terraformed %s up to optimal conditions. Its value is now %d.", planet.Name, planet.Spec.Habitability) + "%."
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInstaform, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
@@ -782,7 +786,7 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fle
 }
 
 func (m *messageClient) planetInvadeEmpty(player *Player, planet *Planet, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to invade %s, but the planet is uninhabited. The order has been canceled.", fleet.Name, planet.Name)
+	text := fmt.Sprintf("%s has orders to beam colonists to %s, but the planet is uninhabited. The order has been canceled.", fleet.Name, planet.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 func (m *messageClient) planetInvadeStarbase(player *Player, planet *Planet, fleet *Fleet) {
@@ -910,7 +914,7 @@ func (m *messageClient) planetTerraform(player *Player, planet *Planet, habType 
 		newValueText = radString(newValue)
 	}
 
-	text := fmt.Sprintf("Your terraforming efforts on %s have %s the %s to %s.", planet.Name, changeText, habType, newValueText)
+	text := fmt.Sprintf("Your terraforming efforts on %s have %s its %s to %s.", planet.Name, changeText, habType, newValueText)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetBuiltTerraform, Text: text, Target: Target[PlayerMessageTargetType]{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
@@ -932,9 +936,9 @@ func (m *messageClient) playerTechGained(player *Player, field TechField, tech *
 	var text string
 	switch tech.Category {
 	case TechCategoryShipHull:
-		fallthrough
+		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s ship hull. To create ships with this hull design, go to Commands -> Ship Designer and select \"Create New Design\".", field, tech.Name)
 	case TechCategoryStarbaseHull:
-		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s hull type. To build ships with this design, go to Commands -> Ship Designer and select Create New Design.", field, tech.Name)
+		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s starbase hull. To create starbases with this hull design, go to Commands -> Ship Designer and select \"Create New Design\".", field, tech.Name)
 	case TechCategoryPlanetaryDefense:
 		text = fmt.Sprintf("Your recent breakthrough in %v has also taught you how to build %s defenses. All existing planetary defenses have been upgraded to the new technology.", field, tech.Name)
 	case TechCategoryPlanetaryScanner:
@@ -973,7 +977,7 @@ func (mc *messageClient) playerNoPlanets(player *Player, numColonists int) {
 func (mc *messageClient) playerVictory(player *Player, victor *Player) {
 	var text string
 	if player.Num == victor.Num {
-		text = "You have been declared the winner of this grand game. You may continue to play though, if you wish to really rub your nose in everyone else's face."
+		text = "You have been declared the winner of this grand game. You may continue to play though, if you wish to really rub your nose in everyone else's faces."
 	} else {
 		text = fmt.Sprintf("The %s have been declared the winner of this game. You are advised to accept their supremacy, though you may continue the fight regardless.", victor.Race.Name)
 	}

@@ -100,7 +100,7 @@ export type TechHullComponent = {
 	power?: number;
 	range?: number;
 	initiative?: number;
-	gattling?: boolean;
+	gatling?: boolean;
 	hitsAllTargets?: boolean;
 	damageShieldsOnly?: boolean;
 	accuracy?: number;

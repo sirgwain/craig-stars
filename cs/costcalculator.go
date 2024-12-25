@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-	"strings"
 )
 
 // The CostCalculator interface is used to calculate costs of single items or starbase upgrades
@@ -22,7 +21,8 @@ type costCalculate struct {
 }
 
 // A costFloat64 is otherwise identical to a regular Cost struct, but uses float64s instead of ints
-// used for internal cost calculations before being cast back into a regular Cost
+//
+// Used for internal cost calculations before being cast back into a regular Cost
 type costFloat64 struct {
 	ironium   float64
 	boranium  float64
@@ -30,23 +30,47 @@ type costFloat64 struct {
 	resources float64
 }
 
-// convert a costFloat64 to an int using the specified rounding method
+/* func newCostFloat64(ironium, boranium, germanium, resources float64) costFloat64 {
+	return costFloat64{ironium, boranium, germanium, resources}
+} */
+
+func (c costFloat64) getAmount(costType CostType) float64 {
+	switch costType {
+	case Ironium:
+		return c.ironium
+	case Boranium:
+		return c.boranium
+	case Germanium:
+		return c.germanium
+	case Resources:
+		return c.resources
+	}
+	panic(fmt.Sprintf("getAmount called with invalid CostType %s", costType))
+}
+
+func (c costFloat64) set(costType CostType, amt float64) costFloat64 {
+	switch costType {
+	case Ironium:
+		c.ironium = amt
+	case Boranium:
+		c.boranium = amt
+	case Germanium:
+		c.germanium = amt
+	case Resources:
+		c.resources = amt
+	default:
+		panic(fmt.Sprintf("setAmount called with invalid CostType %s", costType))
+	}
+	return c
+}
+
+// convert a costFloat64 to an int cost using the specified rounding method
 func (c costFloat64) toCost(roundFunc func(float64) float64) Cost {
 	return Cost{
 		Ironium:   int(roundFunc(c.ironium)),
 		Boranium:  int(roundFunc(c.boranium)),
 		Germanium: int(roundFunc(c.germanium)),
 		Resources: int(roundFunc(c.resources)),
-	}
-}
-
-// convert an int cost to a costfloat64 struct for internal calcs
-func costFloat64fromCost(c Cost) costFloat64 {
-	return costFloat64{
-		ironium:   float64(c.Ironium),
-		boranium:  float64(c.Boranium),
-		germanium: float64(c.Germanium),
-		resources: float64(c.Resources),
 	}
 }
 
@@ -77,7 +101,16 @@ func (c costFloat64) multiply(factor float64) costFloat64 {
 	}
 }
 
-// Return greater of 2 cost structs for all ResourceTypes separately
+/* func (c costFloat64) divide(factor float64) costFloat64 {
+	return costFloat64{
+		ironium:   c.ironium / factor,
+		boranium:  c.boranium / factor,
+		germanium: c.germanium / factor,
+		resources: c.resources / factor,
+	}
+} */
+
+// Return greater of 2 cost structs for each CostType separately
 func (c costFloat64) max(other costFloat64) costFloat64 {
 	return costFloat64{
 		ironium:   math.Max(c.ironium, other.ironium),
@@ -87,7 +120,22 @@ func (c costFloat64) max(other costFloat64) costFloat64 {
 	}
 }
 
-// round a cost struct's values with passed in function
+// Return lesser of 2 cost structs for each CostType separately
+func (c costFloat64) min(other costFloat64) costFloat64 {
+	return costFloat64{
+		ironium:   math.Min(c.ironium, other.ironium),
+		boranium:  math.Min(c.boranium, other.boranium),
+		germanium: math.Min(c.germanium, other.germanium),
+		resources: math.Min(c.resources, other.resources),
+	}
+}
+
+// Return lowest numerical value in a costFloat64 struct
+func (c costFloat64) minAmount() float64 {
+	return MinFloat64(c.ironium, c.boranium, c.germanium, c.resources)
+}
+
+// round a costFloat64's values using the passed in function and return the result
 func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
 	return costFloat64{
 		ironium:   roundFunc(c.ironium),
@@ -97,10 +145,71 @@ func (c costFloat64) round(roundFunc func(float64) float64) costFloat64 {
 	}
 }
 
-// Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
+/* 
+// return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
+// Negative indices count backwards from lowest value
+//
+// Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
+func (c costFloat64) highestType(ranking int) CostType {
+	return c.getTypeFromAmount(c.highestAmount(ranking))
+}
+
+// return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
+// Negative indices count backwards from lowest value
+//
+// Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
+func (c costFloat64) highestAmount(ranking int) float64 {
+	a := c.toSlice()
+	slice := slices.Clone(a[:])
+	slices.Sort(slice)
+	if ranking < 0 {
+		slices.SortStableFunc(slice, func(a, b float64) int { return b - a })
+		ranking = -ranking
+	}
+	return slice[len(slice)-ranking]
+}
+
+// return the first valid CostType in a costFloat64 struct with the given numerical value
+// panics if no CostType with the corresponding value exists
+func (c costFloat64) getTypeFromAmount(amt float64) CostType {
+	switch amt {
+	case c.ironium:
+		return Ironium
+	case c.germanium:
+		return Germanium
+	case c.boranium:
+		return Boranium
+	case c.resources:
+		return Resources
+	}
+	panic(fmt.Sprintf("getTypeFromAmount called with value %v but no corresponding costType was found in cost struct; \nStruct values:\nIronium: %v\nBoranium: %v\nGermanium: %v\nResources: %v",
+		amt, c.ironium, c.boranium, c.germanium, c.resources))
+} */
+
+// Returns the cost efficiency ratio for 2 costFloat64 structs
+// by dividing their respective total costs
+// (numeratorTotal / denominatorTotal)
+//
+// costTypes indicates the cost types to be considered in analysis (defaults to all);
+// function will panic if too many are provided
+func GetCostEfficiencyRatio(numerator, denominator costFloat64, costTypes ...CostType) (costRatio float64) {
+	if len(costTypes) > 4 {
+		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types; %v", costTypes))
+	} else if len(costTypes) == 0 {
+		costTypes = CostTypes[:] // no cost types provided means we include everything
+	}
+	var hcTally, otherTally float64
+	for _, ct := range costTypes {
+		hcTally += numerator.getAmount(ct)
+		otherTally += denominator.getAmount(ct)
+	}
+	return hcTally / otherTally
+}
+
+// Get baseline cost for this technology given a player's tech levels, miniaturization stats & racial cost modifiers
 //
 // Returns floating point cost for extra precision
-func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) costFloat64 {
+func getPlayerCostFloat64(tech Tech, techLevels TechLevel, miniaturizationSpec MiniaturizationSpec, costOffset TechCostOffset) (techCost costFloat64) {
 	// figure out miniaturization
 	// this is 4% per level above the required tech we have.
 	// We count the smallest diff, i.e. if you have
@@ -139,46 +248,34 @@ func getPlayerCostFloat64(tech Tech, techLevels TechLevel, spec MiniaturizationS
 
 	// for starter techs, they are all 0 requirements, so just use our lowest field
 	if numTechLevelsAboveRequired == math.MaxInt {
-		numTechLevelsAboveRequired = techLevels.Min()
+		numTechLevelsAboveRequired = techLevels.HighestAmount(-1)
 	}
 
 	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
 	// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
-	miniaturization := math.Min(spec.MiniaturizationMax, spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
+	miniaturization := math.Min(miniaturizationSpec.MiniaturizationMax, miniaturizationSpec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
 	// New techs cost BET races 2x
 	// new techs will have 0 for miniaturization.
-	miniaturizationFactor := spec.NewTechCostFactor
+	miniaturizationFactor := miniaturizationSpec.NewTechCostFactor
 	if numTechLevelsAboveRequired > 0 {
 		miniaturizationFactor = 1 - miniaturization
 	}
 
 	// apply any tech cost offsets
-	// TODO: Implement IT 25% gate discount in actually less janky way
-	cost := costFloat64fromCost(tech.Cost).multiply(miniaturizationFactor).round(roundHalfDown)
-	switch tech.Category {
-	case TechCategoryEngine:
-		cost = cost.multiply(1 + costOffset.Engine)
-	case TechCategoryBeamWeapon:
-		cost = cost.multiply(1 + costOffset.BeamWeapon)
-	case TechCategoryBomb:
-		cost = cost.multiply(1 + costOffset.Bomb)
-	case TechCategoryTorpedo:
-		cost = cost.multiply(1 + costOffset.Torpedo)
-	case TechCategoryOrbital:
-		if strings.Contains(tech.Name, "Stargate") {
-			cost = cost.multiply(1 + costOffset.Stargate)
-		}
-	case TechCategoryTerraforming:
-		cost = cost.multiply(1 + costOffset.Terraforming)
+	cost := tech.Cost.ToCostFloat64().multiply(miniaturizationFactor).round(roundHalfDown)
+	highestCostMulti := 1.0
+	for tag := range tech.Tags {
+		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti)
 	}
 
-	return cost
+	return cost.multiply(highestCostMulti)
 }
+
 
 // get the upgrade cost for replacing a starbase with another
 //
 // Takes into account part replacement costs and minimum costs
-func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error) {
+func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error) {
 	if design.SlotsEqual(newDesign.Slots) && design.Hull == newDesign.Hull {
 		// Exact same base; no calcs needed
 		return Cost{}, nil
@@ -323,7 +420,7 @@ func (p *costCalculate) CostOfOne(player *Player, item ProductionQueueItem) (Cos
 	cost := player.Race.Spec.Costs[item.Type]
 	if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
 		if item.design != nil {
-			cost = item.design.Spec.Cost
+			cost = item.design.Spec.Cost // should never happen since it isn't called for designs
 		} else {
 			return Cost{}, fmt.Errorf("design %d not populated in queue item", item.DesignNum)
 		}
@@ -336,7 +433,7 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
-		return Cost{}, fmt.Errorf("hull design %s not found in tech store", design.Hull)
+		return Cost{}, fmt.Errorf("hull design \"%s\" not found in tech store", design.Hull)
 	}
 	starbase := hull.Starbase
 
@@ -345,8 +442,12 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 	// iterate through slots and tally prices up
 	for _, slot := range design.Slots {
 		item := rules.techs.GetHullComponent(slot.HullComponent)
+		if slot.HullComponent == "" {
+			// slot is empty; move on
+			continue
+		}
 		if item == nil {
-			return Cost{}, fmt.Errorf("component %s in design slots not found in tech store", slot.HullComponent)
+			return Cost{}, fmt.Errorf("component \"%s\" in design slots not found in tech store", slot.HullComponent)
 		}
 		hcCost := getPlayerCostFloat64(item.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).multiply(float64(slot.Quantity))
 		if starbase && item.Category != TechCategoryOrbital {

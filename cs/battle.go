@@ -191,17 +191,18 @@ var movementByRound = [9][4]int{
 }
 
 // get the movement of this design with additional cargo
-func getBattleMovement(idealEngineSpeed, movementBonus, mass, numEngines int) int {
+func getBattleMovement(movementMin, movementMax, idealEngineSpeed int, movementBonus float64, mass, numEngines int) int {
 	if numEngines == 0 {
 		return 0
 	}
-	return Clamp(((idealEngineSpeed+movementBonus)-2)-((mass)/numEngines/70), 2, 10)
+	mb := int(math.Ceil(movementBonus)) // round up fractional movement bonus
+	return Clamp(idealEngineSpeed-2-(mass/(numEngines*70))+mb, movementMin, movementMax)
 }
 
 // BuildBattle builds a battle recording with all the battle tokens for a list of fleets that contains more than one player.
 // We'll use this to determine if a battle should take place at this location.
 // Also, any players that have a potential battle will discover each other's designs.
-func newBattler(log zerolog.Logger, rules *Rules, techFinder TechFinder, battleNum int, players map[int]*Player, fleets []*Fleet, planet *Planet) battler {
+func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int]*Player, fleets []*Fleet, planet *Planet) battler {
 	battleLogger := log.With().Int("Battle", battleNum).Logger()
 	if len(fleets) == 0 {
 		battleLogger.Error().Msg("Can't build battle with no fleets.")
@@ -248,7 +249,7 @@ func newBattler(log zerolog.Logger, rules *Rules, techFinder TechFinder, battleN
 			}
 
 			position := playerStartingPositions[player.Num]
-			battleToken := newBattleToken(num, position, cargoMass, token, *fleet.battlePlan, player, techFinder)
+			battleToken := newBattleToken(rules, num, position, cargoMass, token, *fleet.battlePlan, player)
 			tokens = append(tokens, battleToken)
 			tokenRecords = append(tokenRecords, battleToken.BattleRecordToken)
 
@@ -494,6 +495,7 @@ func (b *battle) getEstimatedDamageForWeapon(weapon *battleWeaponSlot, target *b
 	}
 
 	var bwd battleWeaponDamage
+	// TODO: Add support for beam-torpedo hybrids (~~or not~~)
 	if weapon.weaponType == battleWeaponTypeBeam {
 		bwd = weapon.getBeamDamageToTargetAtDistance(weapon.power*weapon.slotQuantity*weapon.token.Quantity, target, distance, b.rules.BeamRangeDropoff)
 	} else {
@@ -957,7 +959,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) (*BattleRecord, error) {
 		fleet.battlePlan = battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
 	}
 
-	battler := newBattler(log.Logger, &rules, &StaticTechStore, 1, playersByNum, fleets, nil)
+	battler := newBattler(log.Logger, &rules, 1, playersByNum, fleets, nil)
 	record := battler.runBattle()
 	for _, player := range players {
 

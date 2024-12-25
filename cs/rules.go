@@ -18,51 +18,49 @@ type Rules struct {
 	UpdatedAt                        time.Time                           `json:"updatedAt,omitempty"`
 	GameID                           int64                               `json:"gameId,omitempty"`
 	CometStatsBySize                 map[CometSize]CometStats            `json:"cometStatsBySize,omitempty"`
-	FleetSafeSpeedExplosionChance    float64                             `json:"fleetSafeSpeedExplosionChance,omitempty"`
-	InvasionDefenseCoverageFactor    float64                             `json:"invasionDefenseCoverageFactor,omitempty"`
-	LRTSpecs                         map[LRT]LRTSpec                     `json:"lrtSpecs,omitempty"`
-	MaxPopulation                    int                                 `json:"maxPopulation,omitempty"`
-	MaxTechLevel                     int                                 `json:"maxTechLevel,omitempty"`
-	MineFieldCloak                   int                                 `json:"mineFieldCloak,omitempty"`
-	MineFieldStatsByType             map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType,omitempty"`
-	MineralDecayFactor               int                                 `json:"mineralDecayFactor,omitempty"`
-	MinMaxPopulationPercent          float64                             `json:"minMaxPopulationPercent,omitempty"`
-	MovesToRunAway                   int                                 `json:"movesToRunAway,omitempty"`
-	MysteryTraderRules               MysteryTraderRules                  `json:"mysteryTraderRules,omitempty"`
-	PacketDecayRate                  map[int]float64                     `json:"packetDecayRate,omitempty"`
-	PacketMaxOverwarpSpeed           int                                 `json:"packetMaxOverwarpSpeed,omitempty"`
-	PacketMinDecay                   int                                 `json:"packetMinDecay,omitempty"`
-	PlanetMinDistance                int                                 `json:"planetMinDistance,omitempty"`
-	PopulationOvercrowdDieoffRate    float64                             `json:"populationOvercrowdDieoffRate,omitempty"`
-	PopulationOvercrowdDieoffRateMax float64                             `json:"populationOvercrowdDieoffRateMax,omitempty"`
-	PopulationScannerError           float64                             `json:"populationScannerError,omitempty"`
-	PRTSpecs                         map[PRT]PRTSpec                     `json:"prtSpecs,omitempty"`
-	RaceStartingPoints               int                                 `json:"raceStartingPoints,omitempty"`
-	RadiatingImmune                  int                                 `json:"radiatingImmune,omitempty"`
-	RandomArtifactResearchBonusRange [2]int                              `json:"randomArtifactResearchBonusRange,omitempty"`
+	FleetSafeSpeedExplosionChance    float64                             `json:"fleetSafeSpeedExplosionChance"`
+	InvasionDefenseCoverageFactor    float64                             `json:"invasionDefenseCoverageFactor"`
+	LRTSpecs                         map[LRT]LRTSpec                     `json:"lrtSpecs"`
+	MaxPopulation                    int                                 `json:"maxPopulation"`
+	MaxTechLevel                     int                                 `json:"maxTechLevel"`
+	MineFieldCloak                   int                                 `json:"mineFieldCloak"`
+	MineFieldStatsByType             map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
+	MineralDecayFactor               int                                 `json:"mineralDecayFactor"`
+	MinMaxPopulationPercent          float64                             `json:"minMaxPopulationPercent"`
+	MysteryTraderRules               MysteryTraderRules                  `json:"mysteryTraderRules"`
+	PacketDecayRate                  map[int]float64                     `json:"packetDecayRate"`
+	PacketMaxOverwarpSpeed           int                                 `json:"packetMaxOverwarpSpeed"`
+	PacketMinDecay                   int                                 `json:"packetMinDecay"`
+	PlanetMinDistance                int                                 `json:"planetMinDistance"`
+	PopulationOvercrowdDieoffRate    float64                             `json:"populationOvercrowdDieoffRate"`
+	PopulationOvercrowdDieoffRateMax float64                             `json:"populationOvercrowdDieoffRateMax"`
+	PopulationScannerError           float64                             `json:"populationScannerError"`
+	PRTSpecs                         map[PRT]PRTSpec                     `json:"prtSpecs"`
+	RaceStartingPoints               int                                 `json:"raceStartingPoints"`
+	RadiatingImmune                  int                                 `json:"radiatingImmune"`
+	RandomArtifactResearchBonusRange [2]int                              `json:"randomArtifactResearchBonusRange"`
 	RandomCometMinYear               int                                 `json:"randomCometMinYear,omitempty"`
 	RandomCometMinYearPlayerWorld    int                                 `json:"randomCometMinYearPlayerWorld,omitempty"`
-	RandomEventChances               map[RandomEvent]float64             `json:"randomEventChances,omitempty"`
-	RandomMineralDepositBonusRange   [2]int                              `json:"randomMineralDepositBonusRange,omitempty"`
-	RemoteMiningMineOutput           int                                 `json:"remoteMiningMineOutput,omitempty"`
-	RepairRates                      map[RepairRate]float64              `json:"repairRates,omitempty"`
-	SalvageDecayMin                  int                                 `json:"salvageDecayMin,omitempty"`
-	SalvageDecayRate                 float64                             `json:"salvageDecayRate,omitempty"`
-	SalvageFromBattleFactor          float64                             `json:"salvageFromBattleFactor,omitempty"`
-	ScrapMineralAmount               float64                             `json:"scrapMineralAmount,omitempty"`
-	ScrapResourceAmount              float64                             `json:"scrapResourceAmount,omitempty"`
-	ShowPublicScoresAfterYears       int                                 `json:"showPublicScoresAfterYears,omitempty"`
-	SmartDefenseCoverageFactor       float64                             `json:"smartDefenseCoverageFactor,omitempty"`
-	StargateMaxHullMassFactor        int                                 `json:"stargateMaxHullMassFactor,omitempty"`
-	StargateMaxRangeFactor           int                                 `json:"stargateMaxRangeFactor,omitempty"`
-	TachyonCloakReduction            int                                 `json:"tachyonCloakReduction,omitempty"`
-	TachyonMaxCloakReduction         int                                 `json:"tachyonMaxCloakReduction,omitempty"`
-	TechsID                          int64                               `json:"techsId,omitempty"`
-	TechTradeChance                  float64                             `json:"techTradeChance,omitempty"`
-	TorpedoSplashDamage              float64                             `json:"torpedoSplashDamage,omitempty"`
-	WormholeCloak                    int                                 `json:"wormholeCloak,omitempty"`
-	WormholePairsForSize             map[Size]int                        `json:"wormholePairsForSize,omitempty"`
-	WormholeStatsByStability         map[WormholeStability]WormholeStats `json:"wormholeStatsByStability,omitempty"`
+	RandomEventChances               map[RandomEvent]float64             `json:"randomEventChances"`
+	RandomMineralDepositBonusRange   [2]int                              `json:"randomMineralDepositBonusRange"`
+	RemoteMiningMineOutput           int                                 `json:"remoteMiningMineOutput"`
+	RepairRates                      map[RepairRate]float64              `json:"repairRates"`
+	SalvageDecayMin                  int                                 `json:"salvageDecayMin"`
+	SalvageDecayRate                 float64                             `json:"salvageDecayRate"`
+	SalvageFromBattleFactor          float64                             `json:"salvageFromBattleFactor"`
+	ScrapMineralAmount               float64                             `json:"scrapMineralAmount"`
+	ScrapResourceAmount              float64                             `json:"scrapResourceAmount"`
+	ShowPublicScoresAfterYears       int                                 `json:"showPublicScoresAfterYears"`
+	SmartDefenseCoverageFactor       float64                             `json:"smartDefenseCoverageFactor"`
+	StargateMaxHullMassFactor        int                                 `json:"stargateMaxHullMassFactor"`
+	StargateMaxRangeFactor           int                                 `json:"stargateMaxRangeFactor"`
+	TachyonCloakReduction            float64                             `json:"tachyonCloakReduction"`
+	TachyonMaxCloakReduction         float64                             `json:"tachyonMaxCloakReduction"`
+	TechsID                          int64                               `json:"techsId"`
+	TechTradeChance                  float64                             `json:"techTradeChance"`
+	WormholeCloak                    int                                 `json:"wormholeCloak"`
+	WormholePairsForSize             map[Size]int                        `json:"wormholePairsForSize"`
+	WormholeStatsByStability         map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
 	random                           rng
 	techs                            *TechStore
 }
@@ -98,8 +96,15 @@ type CostRules struct {
 }
 
 type BattleRules struct {
-	BeamRangeDropoff float64 `json:"beamRangeDropoff,omitempty"`
-	NumBattleRounds  int     `json:"numBattleRounds,omitempty"`
+	BeamRangeDropoff    float64 `json:"beamRangeDropoff,omitempty"`
+	BeamBonusCap        float64 `json:"beamBonusCap,omitempty"`
+	JammerCap           BoolMap `json:"jammerCap,omitempty"`
+	JammerMulti         BoolMap `json:"jammerMulti,omitempty"`
+	MovementMin         int     `json:"movementMin,omitempty"`
+	MovementMax         int     `json:"movementMax,omitempty"`
+	MovesToRunAway      int     `json:"movesToRunAway,omitempty"`
+	NumBattleRounds     int     `json:"numBattleRounds,omitempty"`
+	TorpedoSplashDamage float64 `json:"torpedoSplashDamage,omitempty"`
 }
 
 type RandomEvent string
@@ -260,7 +265,20 @@ func NewRulesWithSeed(seed int64) Rules {
 		},
 		BattleRules: BattleRules{
 			BeamRangeDropoff: 0.1,
-			NumBattleRounds:  16,
+			BeamBonusCap:     2.55, // 2.55x damage max from caps
+			JammerCap: BoolMap{
+				valueIfTrue:  1,    // starbases have 100 jamming max, but an innate 0.75x jam penalty
+				valueIfFalse: 0.95, // non-starbases (ie fleets) have 95% jamming max
+			},
+			JammerMulti: BoolMap{
+				valueIfTrue:  0.75, // starbases have innate 0.75x jam penalty by default
+				valueIfFalse: 1,    // non-starbases (ie fleets) have no penalty
+			},
+			MovementMin:         2,
+			MovementMax:         10,
+			MovesToRunAway:      7,
+			NumBattleRounds:     16,
+			TorpedoSplashDamage: 0.125,
 		},
 		UniverseGenerationRules: UniverseGenerationRules{
 			MaxExtraWorldDistance:                     180,
@@ -287,17 +305,16 @@ func NewRulesWithSeed(seed int64) Rules {
 			StartingYear:              2400,
 			WormholeMinPlanetDistance: 30,
 		},
-		TachyonCloakReduction:            5,
-		TachyonMaxCloakReduction:         81, // tachyon detectors cap at 81% cloaking reduction
+		// TODO: Change tachyon cloak reduction to a property of the technology itself
+		TachyonCloakReduction:            .05, // 5% diminishing cloak reduction per detector
+		TachyonMaxCloakReduction:         .81, // tachyon detectors cap at 81% cloaking reduction
 		MaxPopulation:                    1000000,
-		MinMaxPopulationPercent:          .05,
+		MinMaxPopulationPercent:          .05, // red worlds have 5% max pop
 		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per doubling
 		PopulationOvercrowdDieoffRateMax: .12, // overcrowded pops will not die off more than 12% (3x pop) in a year
 		PopulationScannerError:           0.2,
 		SmartDefenseCoverageFactor:       0.5,
 		InvasionDefenseCoverageFactor:    0.75,
-		MovesToRunAway:                   7,
-		TorpedoSplashDamage:              0.125,
 		SalvageDecayRate:                 0.1,
 		SalvageDecayMin:                  10,
 		MineFieldCloak:                   75,

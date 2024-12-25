@@ -563,18 +563,19 @@ func (spec *PlanetSpec) computeResourcesPerYearAvailable(player *Player, planet 
 	}
 }
 
-// get the max population for this planet for a player with a hab rating
+// get the max population for this planet for a player with a given hab rating
 func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int) int {
 	maxPopulationFactor := 1 + player.Race.Spec.MaxPopulationOffset
+	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
+		// AR races' max pop are independent of habitability
+		return roundToNearest100f(float64(p.Starbase.Spec.MaxPopulation) * maxPopulationFactor)
+	}
+	
 	maxPossiblePop := rules.MaxPopulation
-
 	// a planet's max pop can't go lower than 5% of a race's max, i.e.
 	// for a regular race with 1 million max pop, the minimum max population is 50,000
 	minMaxPop := float64(maxPossiblePop) * maxPopulationFactor * rules.MinMaxPopulationPercent
-
-	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
-		return roundToNearest100f(float64(p.Starbase.Spec.MaxPopulation) * maxPopulationFactor)
-	}
+	
 	return roundToNearest100f(math.Max(minMaxPop, float64(maxPossiblePop)*maxPopulationFactor*float64(habitability)/100.0))
 }
 

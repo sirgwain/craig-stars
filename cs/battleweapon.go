@@ -47,7 +47,7 @@ type battleWeaponSlot struct {
 	// the initiative of the weapon
 	initiative int
 
-	// gattling guns hit all targets in range
+	// gatling guns hit all targets in range
 	hitsAllTargets bool
 
 	// capital ships missiles do double damage after shields are gone
@@ -97,8 +97,9 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 
 // get beam damage with dropoff and defense included
 func getBeamDamageAtDistance(damage, weaponRange, dist int, beamDefense float64, beamRangeDropoff float64) int {
+	// set beam defense to 1 for uninitialized ships
+	// TODO: fix this stuff after beam defense refactor
 	if beamDefense == 0 {
-		// for multiplying damage, treat 0 beam defense as no modifier (i.e. multiply by 1)
 		beamDefense = 1
 	}
 
@@ -331,7 +332,7 @@ func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, targ
 		// no range penalty for gattlings
 		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, 0, target.beamDefense, beamRangeDropoff)
 	} else {
-		// drain any range/defelctor penalty from beam damage
+		// apply any range/deflector penalties to beam damage
 		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, dist, target.beamDefense, beamRangeDropoff)
 	}
 

@@ -10,7 +10,8 @@ on:
 jobs:
   # cut a new tag
   tag:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # tasks only run on head repo by default (not forks); change this to enable it
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.repository == 'sirgwain/craig-stars' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

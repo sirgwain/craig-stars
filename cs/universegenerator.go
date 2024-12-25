@@ -87,16 +87,16 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 			player := ug.players[planet.PlayerNum-1]
 			planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
-				return nil, fmt.Errorf("%s failed to populate queue designs: %w", planet, err)
+				return nil, fmt.Errorf("planet %s failed to populate queue designs; error: \n%w", planet, err)
 			}
 			if err := planet.PopulateProductionQueueEstimates(&ug.Rules, player); err != nil {
-				return nil, fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+				return nil, fmt.Errorf("planet %s unable to populate queue estimates; error \n%w", planet.Name, err)
 			}
 		}
 	}
 
-	// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
 	for _, player := range ug.players {
+		// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
 		player.Spec = computePlayerSpec(player, &ug.Rules, ug.universe.Planets)
 	}
 
@@ -134,11 +134,11 @@ func (ug *universeGenerator) generatePlanets() error {
 			pos = Vector{X: float64(rules.random.Intn(width)), Y: float64(rules.random.Intn(height))}
 			posCheckCount++
 			if posCheckCount > 1000 {
-				return fmt.Errorf("find a valid position for a wormhole in 1000 tries, min: %d, numPlanets: %d, area: %v", rules.PlanetMinDistance, numPlanets, ug.area)
+				return fmt.Errorf("could not find a valid position for a planet in 1000 tries;\n min distance: %d, numPlanets: %d, area: %v", rules.PlanetMinDistance, numPlanets, ug.area)
 			}
 		}
 
-		// setup a new planet
+		// we found a good position; setup a new planet
 		planet := NewPlanet()
 		planet.Name = names[i]
 		planet.Num = i + 1
@@ -149,7 +149,7 @@ func (ug *universeGenerator) generatePlanets() error {
 			planet.MineralConcentration = Mineral{100, 100, 100}
 		}
 		if ug.RandomEvents && rules.RandomEventChances[RandomEventAncientArtifact] >= rules.random.Float64() {
-			// check if this planet has a random artifact
+			// roll for a random artifact
 			planet.RandomArtifact = true
 		}
 
@@ -243,12 +243,9 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 				}
 				techStore := ug.Rules.techs
 				hull := techStore.GetHull(string(startingFleet.HullName))
-				design := DesignShip(techStore, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
-				design.HullSetNumber = int(startingFleet.HullSetNumber)
-				design.Purpose = startingFleet.Purpose
-				design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+				design, err := DesignShip(&ug.Game.Rules, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
 				if err != nil {
-					return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+					return fmt.Errorf("DesignShip returned error %w", err)
 				}
 				player.Designs = append(player.Designs, design)
 				designNames.Add(design.Name)
@@ -262,7 +259,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 			design := &starbaseDesigns[i]
 			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 			}
 			player.Designs = append(player.Designs, design)
 		}
@@ -407,8 +404,8 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 					// the remaining 1 point goes into surface minerals (since 1 < 3)
 					for extraPoints > pointsThreshold[pointsType] {
 						conc := playerPlanet.MineralConcentration
-						lowestType := conc.LowestType()
-						diff := conc.GetAmount(conc.MiddleType()) - conc.GetAmount(lowestType)
+						lowestType := conc.HighestType(3)
+						diff := conc.GetAmount(conc.HighestType(2)) - conc.GetAmount(lowestType)
 						amtToAdd := MinInt(extraPoints/pointsThreshold[pointsType], diff+1)
 						playerPlanet.MineralConcentration.Set(lowestType, conc.GetAmount(lowestType)+amtToAdd)
 						extraPoints -= pointsThreshold[pointsType] * amtToAdd
@@ -420,8 +417,8 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 					// then we alternate between G and I for the remaining 4 pts
 					for extraPoints > 0 {
 						min := playerPlanet.getCargo().ToMineral()
-						lowestType := min.LowestType()
-						diff := min.GetAmount(min.MiddleType()) - min.GetAmount(lowestType)
+						lowestType := min.HighestType(3)
+						diff := min.GetAmount(min.HighestType(2)) - min.GetAmount(lowestType)
 						amtToAdd := MinInt(extraPoints, diff+1)
 						playerPlanet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*10)
 						extraPoints -= amtToAdd
@@ -500,6 +497,7 @@ func (ug *universeGenerator) applyGameStartModeModifier() {
 	switch ug.StartMode {
 	case GameStartModeMax:
 		ug.maxPlayersAndPlanets()
+		ug.Game.Year += 100 // increase year by 100; ensures that AI immediately starts churning out ships
 	}
 }
 
@@ -615,16 +613,11 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, s
 	placedStargate := false
 	for index, slot := range hull.Slots {
 		switch slot.Type {
-		case HullSlotTypeGeneral: // No starting starbases (or any starbase) currently have GP slots, but this is a precaution if they did
-			fallthrough
-		case HullSlotTypeWeapon:
+		case HullSlotTypeWeapon, HullSlotTypeGeneral: // No starting starbases (or any starbase) currently have GP slots, but if they did, we have it
 			starbase.Slots = append(starbase.Slots, ShipDesignSlot{beamWeapon.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
-		case HullSlotTypeShieldArmor:
-			fallthrough
-		case HullSlotTypeShield:
+		case HullSlotTypeShield, HullSlotTypeShieldArmor:
 			starbase.Slots = append(starbase.Slots, ShipDesignSlot{shield.Name, index + 1, int(math.Round(float64(slot.Capacity) / 2))})
-		case HullSlotTypeOrbital:
-		case HullSlotTypeOrbitalElectrical:
+		case HullSlotTypeOrbital, HullSlotTypeOrbitalElectrical:
 			if startingPlanet.HasStargate && !placedStargate {
 				starbase.Slots = append(starbase.Slots, ShipDesignSlot{stargate.Name, index + 1, 1})
 				placedStargate = true

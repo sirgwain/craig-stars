@@ -162,15 +162,20 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 		return nil
 	}
 
-	// check if we are targetted or being bombed by bombers
+	// check if we are targeted or being bombed by bombers
 	enemyOrbitingFleets := ai.enemyShipsAbovePlanet(planet)
 	attackShipsInOrbit := ai.hasAttackShips(enemyOrbitingFleets)
-	_, targetted := ai.targetedPlanets[planet.Num]
+	_, targeted := ai.targetedPlanets[planet.Num]
 
-	// don't build starbases unless this planet has not moved forward enough economically
-	// if we are being targetted for bombing though, we want to try and build a starbase
+	// don't build starbases if this planet has not moved forward enough economically
+	// if we are being targeted for bombing though, we want to try and build a starbase regardless
+	// TODO: Add ability to build fuel depots and infrastructure based on a (lower) cutoff
+	// This will be useful for IT/PP and desperately necessary for AR
 	planetaryStructuresBuilt := math.Min(float64(planet.Mines)/float64(planet.Spec.MaxMines), float64(planet.Factories)/float64(planet.Spec.MaxFactories))
-	if !(targetted || attackShipsInOrbit) && planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
+	if !(targeted || attackShipsInOrbit) && planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
+		// this will need to be changed for -f/AR races to work as 
+		// they don't build mines & such regardless
+		// AR in particular will require entirely separate logic 
 		return nil
 	}
 
@@ -179,7 +184,7 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 		timeToWait = ai.config.minYearsToQueueStarbaseWarTime
 	}
 
-	if targetted || attackShipsInOrbit {
+	if targeted || attackShipsInOrbit {
 		// this planet is being threatened
 		if planet.Spec.HasStarbase {
 			ai.upgradeStarbase(planet, timeToWait)
@@ -189,7 +194,7 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 				return err
 			}
 
-			if yearsToBuild < ai.config.minYearsToBuildFort {
+			if yearsToBuild <= ai.config.minYearsToBuildFort {
 				ai.addStarbaseToTopOfQueue(planet, ai.fortDesign)
 			}
 		}
@@ -226,8 +231,8 @@ func (ai *aiPlayer) upgradeStarbase(planet *cs.Planet, timeToWait int) error {
 
 		return err
 	}
-	if existingDesign.Purpose == cs.ShipDesignPurposeFort || existingDesign.Purpose == cs.ShipDesignPurposeFuelDepot {
-		// try and upgrade our fort/fueldepot to a quarter filled out starbase
+	if existingDesign.Purpose == cs.ShipDesignPurposeFort || existingDesign.Purpose == cs.ShipDesignPurposeFuelDepot || existingDesign.Purpose == cs.ShipDesignPurposeStarbaseUnarmed {
+		// try and upgrade our fort/fuel depot to a quarter filled out starbase
 		yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.starbaseQuarterDesign)
 		if err != nil {
 			return err
@@ -338,9 +343,9 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	}
 	if err != nil {
 		return math.MaxInt, fmt.Errorf("calculate starbase cost %w", err)
-	} 
+	}
 
-	// calculate how long it take to build 
+	// calculate how long it take to build
 	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
 	// log.Debug().
 	// 	Int64("GameID", ai.GameID).

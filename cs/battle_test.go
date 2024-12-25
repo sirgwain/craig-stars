@@ -886,6 +886,29 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 0}},
 		},
+		{name: "1 ship with 2 jihads hitting unarmored target",
+			args: args{
+				weapon: weapon{
+					weaponSlot: &battleWeaponSlot{
+						slotQuantity:       2, 
+						power:              85,
+						accuracy:           1,
+						capitalShipMissile: true,
+					},
+					shipQuantity: 1, // one ship in the attacker stack
+				},
+				targets: []*battleToken{
+					{
+						ShipToken: &ShipToken{
+							Quantity: 1,
+							design:   &ShipDesign{Name: "defender"},
+						},
+						armor: 350,
+					},
+				},
+			},
+			want: []want{{damage: 340, quantityDamaged: 1, quantityRemaining: 1}},
+		},
 		{name: "two capital missiles, do 10 damage each, take down shields with first hit, double damage with second",
 			args: args{
 				weapon: weapon{
@@ -1042,7 +1065,7 @@ func Test_battle_runBattle1(t *testing.T) {
 		}
 	}
 
-	battle := newBattler(log.Logger, &rules, &StaticTechStore, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
+	battle := newBattler(log.Logger, &rules, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
 
 	record := battle.runBattle()
 
@@ -1314,18 +1337,21 @@ func Test_getBattleMovement(t *testing.T) {
 		idealEngineSpeed int
 		mass             int
 		numEngines       int
-		movementBonus    int
+		movementBonus    float64
 	}
 	tests := []struct {
 		name string
 		args args
 		want int
 	}{
-		{"Destroyer + Trans Galactic Drive + thruster", args{idealEngineSpeed: 9, mass: 244, numEngines: 1, movementBonus: 1}, 5},
+		{"244 kT Destroyer + Trans Galactic Drive + thruster", args{idealEngineSpeed: 9, mass: 244, numEngines: 1, movementBonus: 1}, 5},
+		{"69 kT Destroyer + 1 Enigma Pulsar", args{idealEngineSpeed: 10, mass: 69, numEngines: 1, movementBonus: 0.5}, 9},
+		{"71 kT Destroyer + 1 Enigma Pulsar + WM", args{idealEngineSpeed: 10, mass: 71, numEngines: 1, movementBonus: 2.5}, 10},
+		{"71 kT Cruiser w/ 2 Enigma Pulsars", args{idealEngineSpeed: 10, mass: 71, numEngines: 2, movementBonus: 1}, 9},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getBattleMovement(tt.args.idealEngineSpeed, tt.args.movementBonus, tt.args.mass, tt.args.numEngines); got != tt.want {
+			if got := getBattleMovement(rules.MovementMin, rules.MovementMax, tt.args.idealEngineSpeed, tt.args.movementBonus, tt.args.mass, tt.args.numEngines); got != tt.want {
 				t.Errorf("getBattleMovement() = %v, want %v", got, tt.want)
 			}
 		})

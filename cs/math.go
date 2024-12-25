@@ -1,6 +1,8 @@
 package cs
 
-import "math"
+import (
+	"math"
+)
 
 // population is often updated with floating point math, but we have to convert
 // it back to Colonist Cargo values, which are stored in units of 100 colonists per 1kT of Colonist Cargo
@@ -23,6 +25,18 @@ func roundHalfDown(x float64) float64 {
 		return math.Floor(x + 0.5)
 	}
 	return math.Ceil(x - 0.5)
+}
+
+// returns the new jamming/computing bonus
+func getNewJamming(prevBonus, componentBonus, multi float64, qty int) float64 {
+	baseMulti := 1-prevBonus/multi // undo multi before multiplication
+	compMulti := math.Pow(1-componentBonus, float64(qty))
+	return (1-baseMulti*compMulti)*multi
+}
+
+// returns the new beam defense factor after adding the given components
+func getNewBeamBonus(prevBonus, componentBonus float64, qty int) float64 {
+	return prevBonus * math.Pow(1+componentBonus, float64(qty))
 }
 
 func Clamp(value, min, max int) int {
@@ -69,12 +83,43 @@ func MinInt(nums ...int) int {
 	return result
 }
 
+func MaxFloat64(nums ...float64) float64 {
+	result := math.Inf(-1)
+	for _, value := range nums {
+		if value > result {
+			result = value
+		}
+	}
+
+	return result
+}
+
 func MinFloat64(nums ...float64) float64 {
-	result := math.MaxFloat64
+	result := math.Inf(1)
 	for _, value := range nums {
 		if value < result {
 			result = value
 		}
+	}
+
+	return result
+}
+
+// raise an integer to the power of another integer (apparently this is the fastYY)
+//
+// Does not support negative values (we *are* dealing with integers here after all)
+func PowInt(base, exponent int) int {
+	result := 1
+	// According to internet, this is the fastest way to do int exponentiation
+	for {
+		if exponent&1 == 1 {
+			result *= base
+		}
+		exponent >>= 1
+		if exponent == 0 {
+			break
+		}
+		base *= base
 	}
 
 	return result

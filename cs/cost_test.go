@@ -1,47 +1,13 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 	"testing"
-)
 
-func TestCost_NumBuildable(t *testing.T) {
-	type fields struct {
-		Ironium   int
-		Boranium  int
-		Germanium int
-		Resources int
-	}
-	type args struct {
-		cost Cost
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   int
-	}{
-		{"Build 1", fields{1, 2, 3, 4}, args{Cost{1, 2, 3, 4}}, 1},
-		{"Build 2", fields{2, 4, 6, 8}, args{Cost{1, 2, 3, 4}}, 2},
-		{"Build 2 w/one limiting mineral", fields{2, 400, 600, 800}, args{Cost{1, 2, 3, 4}}, 2},
-		{"Build none w/one missing mineral", fields{0, 400, 600, 800}, args{Cost{1, 2, 3, 4}}, 0},
-		{"Build 1 w/only resource cost", fields{1, 2, 3, 4}, args{Cost{0, 0, 0, 4}}, 1},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			available := Cost{
-				Ironium:   tt.fields.Ironium,
-				Boranium:  tt.fields.Boranium,
-				Germanium: tt.fields.Germanium,
-				Resources: tt.fields.Resources,
-			}
-			if got := available.NumBuildable(tt.args.cost); got != tt.want {
-				t.Errorf("Cost.NumBuildable() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+	"github.com/stretchr/testify/assert"
+)
 
 func TestCost_Divide(t *testing.T) {
 	type fields struct {
@@ -74,6 +40,7 @@ func TestCost_Divide(t *testing.T) {
 		{"1/2 G", fields{0, 0, 1, 0}, args{Cost{0, 0, 2, 0}}, .5},
 		{"1/2 R", fields{0, 0, 0, 1}, args{Cost{0, 0, 0, 2}}, .5},
 		{"1/2 All", fields{1, 1, 1, 1}, args{Cost{2, 2, 2, 2}}, .5},
+		{"5887 / 841", fields{199, 1555, 841, 92}, args{Cost{71, 5, 5887, 17}}, .142857},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -83,9 +50,8 @@ func TestCost_Divide(t *testing.T) {
 				Germanium: tt.fields.Germanium,
 				Resources: tt.fields.Resources,
 			}
-			if got := a.Divide(tt.args.b); got != tt.want {
-				t.Errorf("Cost.Divide() = %v, want %v", got, tt.want)
-			}
+			got := a.Divide(tt.args.b)
+			assert.InDeltaf(t, got, tt.want, 0.01, fmt.Sprintf("Cost.Divide() = %v, want %v", got, tt.want))
 		})
 	}
 }
@@ -111,26 +77,27 @@ func TestCost_Max(t *testing.T) {
 	}
 }
 
-func TestCost_DivideByInt(t *testing.T) {
+func TestCost_HighestType(t *testing.T) {
 	type args struct {
-		divisor int
-		roundUp bool
+		cost    Cost
+		ranking int
 	}
 	tests := []struct {
 		name string
-		cost Cost
 		args args
-		want Cost
+		want CostType
 	}{
-		{"divide by 1", Cost{1, 2, 3, 4}, args{1, false}, Cost{1, 2, 3, 4}},
-		{"divide by 2", Cost{2, 4, 6, 8}, args{2, false}, Cost{1, 2, 3, 4}},
-		{"divide by 2 round up", Cost{1, 2, 3, 4}, args{2, true}, Cost{1, 1, 2, 2}},
-		{"divide by 0, inf", Cost{}, args{0, false}, Cost{int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1))}},
+		{"Highest Amount", args{Cost{1, 2, 3, 4}, 1}, Resources},
+		{"4 way tie", args{Cost{1, 1, 1, 1}, 1}, Ironium},
+		{"2nd highest amount", args{Cost{100, 1, 99, 88}, 2}, Germanium},
+		{"lowest amount", args{Cost{100, 9, 100, 888}, 4}, Boranium},
+		{"negative index", args{Cost{100, 9, 100, 888}, -1}, Boranium},
+		{"negative index tie", args{Cost{100, 9, 100, 888}, -2}, Ironium},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.cost.DivideByInt(tt.args.divisor, tt.args.roundUp); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Cost.DivideByInt() = %v, want %v", got, tt.want)
+			if got := tt.args.cost.HighestType(tt.args.ranking); got != tt.want {
+				t.Errorf("Cost.HighestType() = %v, want %v", got, tt.want)
 			}
 		})
 	}

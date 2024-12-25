@@ -122,10 +122,11 @@ type PlayerSpec struct {
 }
 
 type PlayerResearchSpec struct {
-	ResourcesPerYear                  int `json:"resourcesPerYear"`
-	ResourcesPerYearResearch          int `json:"resourcesPerYearResearch"`
-	ResourcesPerYearResearchEstimated int `json:"resourcesPerYearResearchEstimated"`
-	CurrentResearchCost               int `json:"currentResearchCost"`
+	ResourcesPerYear                  int     `json:"resourcesPerYear"`
+	ResourcesPerYearResearch          int     `json:"resourcesPerYearResearch"`
+	ResourcesPerYearResearchEstimated int     `json:"resourcesPerYearResearchEstimated"`
+	CurrentResearchCost               int     `json:"currentResearchCost"`
+	TechsJustGained                   []*Tech `json:"techsJustGained"`
 }
 
 type PlayerScore struct {
@@ -300,6 +301,16 @@ func (p *Player) WithAcquiredTech(techName string) *Player {
 func (p *Player) withSpec(rules *Rules) *Player {
 	p.Spec = computePlayerSpec(p, rules, []*Planet{})
 	return p
+}
+
+// Update a player's recently gained techs and message them about it
+func (p *Player) updateTechsJustGained(store *TechStore, field TechField) {
+	techsGained := store.GetTechsJustGained(p, field)
+	p.Spec.TechsJustGained = append(p.Spec.TechsJustGained, techsGained...)
+	for _, tech := range techsGained {
+		messager.playerTechGained(p, field, tech)
+	}
+
 }
 
 func (p *Player) String() string {

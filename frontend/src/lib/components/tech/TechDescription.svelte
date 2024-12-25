@@ -161,7 +161,7 @@
 				if (hullComponent.hitsAllTargets) {
 					descriptions.push(`This weapon hits all targets in range each time it is fired.`);
 				}
-				if (hullComponent.gattling) {
+				if (hullComponent.gatling) {
 					descriptions.push(
 						`This weapon also makes an excellent mine sweeper, capable of sweeping ${
 							(hullComponent.power ?? 0) * Math.pow(hullComponent.range ?? 0, 4)
@@ -298,7 +298,7 @@
 								(hullComponent.torpedoBonus ?? 0) * 100
 							}% and increases your initiative by ${
 								hullComponent.initiativeBonus
-							}. If an enemy ship has jammers it act to offset their effects.`
+							}. If an enemy ship has jammers this will act to offset their effects.`
 						);
 					} else if ((hullComponent.initiativeBonus ?? 0) > 0) {
 						descriptions.push(
