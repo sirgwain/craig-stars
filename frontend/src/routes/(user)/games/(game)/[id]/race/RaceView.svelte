@@ -11,7 +11,11 @@
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';
 
-	export let race: Race;
+	type Props = {
+		race: Race;
+	};
+
+	let { race }: Props = $props();
 </script>
 
 <div
@@ -49,21 +53,21 @@
 <div class="flex flex-col gap-2">
 	<HabBar
 		habType={HabTypes.Gravity}
-		bind:habLow={race.habLow.grav}
-		bind:habHigh={race.habHigh.grav}
-		bind:immune={race.immuneGrav}
+		habLow={race.habLow.grav}
+		habHigh={race.habHigh.grav}
+		immune={race.immuneGrav}
 	/>
 	<HabBar
 		habType={HabTypes.Temperature}
-		bind:habLow={race.habLow.temp}
-		bind:habHigh={race.habHigh.temp}
-		bind:immune={race.immuneTemp}
+		habLow={race.habLow.temp}
+		habHigh={race.habHigh.temp}
+		immune={race.immuneTemp}
 	/>
 	<HabBar
 		habType={HabTypes.Radiation}
-		bind:habLow={race.habLow.rad}
-		bind:habHigh={race.habHigh.rad}
-		bind:immune={race.immuneRad}
+		habLow={race.habLow.rad}
+		habHigh={race.habHigh.rad}
+		immune={race.immuneRad}
 	/>
 	<HabChance {race} />
 </div>

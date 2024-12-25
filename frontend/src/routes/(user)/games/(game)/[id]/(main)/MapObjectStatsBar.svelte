@@ -5,22 +5,17 @@
 
 	const { highlightedMapObject, selectedMapObject, commandedMapObject } = getGameContext();
 
-	let dist = 0;
-	let from: MapObject | undefined;
-	let to: MapObject | undefined;
-
-	$: {
-		if ($highlightedMapObject) {
-			to = $highlightedMapObject;
-			from = equal($selectedMapObject, $highlightedMapObject)
+	let to: MapObject | undefined = $derived(
+		$highlightedMapObject ? $highlightedMapObject : $selectedMapObject
+	);
+	let from: MapObject | undefined = $derived(
+		$highlightedMapObject
+			? equal($selectedMapObject, $highlightedMapObject)
 				? $commandedMapObject
-				: $selectedMapObject;
-		} else {
-			to = $selectedMapObject;
-			from = $commandedMapObject;
-		}
-	}
-	$: dist = from && to ? distance(from.position, to?.position) : 0;
+				: $selectedMapObject
+			: $commandedMapObject
+	);
+	let dist = $derived(from && to ? distance(from.position, to?.position) : 0);
 </script>
 
 <div class="flex flex-row justify-start gap-3 h-4 text-sm">

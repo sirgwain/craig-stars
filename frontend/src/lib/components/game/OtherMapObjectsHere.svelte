@@ -4,56 +4,71 @@
 	import { MapObjectType, equal, getMapObjectName, type MapObject } from '$lib/types/MapObject';
 	import type { Vector } from '$lib/types/Vector';
 	import { flatten, keys } from 'lodash-es';
-	import { createEventDispatcher } from 'svelte';
+	import type { HTMLSelectAttributes } from 'svelte/elements';
 
-	const { game, player, universe, settings } = getGameContext();
-	const dispatch = createEventDispatcher();
+	const { player, universe } = getGameContext();
 
-	interface Dictionary<T> {
+	type Dictionary<T> = {
 		[index: string]: T;
-	}
+	};
 
-	export let fleet: CommandedFleet;
-	export let otherMapObjectsHere: Dictionary<MapObject[]>;
-	export let target: Target;
-	export let position: Vector;
+	type Props = {
+		fleet: CommandedFleet;
+		otherMapObjectsHere: Dictionary<MapObject[]>;
+		target: Target;
+		position: Vector;
+		onSelected: (selected: Partial<MapObject>) => void;
+	} & HTMLSelectAttributes;
+
+	let { fleet, otherMapObjectsHere, target, position, onSelected, ...rest }: Props = $props();
 
 	// true if this mapObject is also our current target
 	function isTarget(mo: MapObject) {
-		return (
-			mo.type == target.targetType &&
-			mo.num == target.targetNum &&
-			mo.playerNum == target.targetPlayerNum
-		);
+		if (
+			target.targetType === MapObjectType.Fleet ||
+			target.targetType === MapObjectType.MineField ||
+			target.targetType === MapObjectType.MineralPacket
+		) {
+			// fleets, minefields, and mineral packets are keyed off of player num as well as type/num
+			return (
+				mo.type === target.targetType &&
+				mo.num === target.targetNum &&
+				(mo.playerNum ?? 0) === (target.targetPlayerNum ?? 0)
+			);
+		} else {
+			return mo.type === target.targetType && mo.num === target.targetNum;
+		}
 	}
 
 	function onSelectChange(index: number) {
 		const selected = allObjects[index];
-		dispatch('selected', selected);
+		onSelected(selected);
 	}
 
-	$: everythingElse = flatten(
-		keys(otherMapObjectsHere).map((k) =>
-			k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
-				? otherMapObjectsHere[k]
-				: []
+	let everythingElse = $derived(
+		flatten(
+			keys(otherMapObjectsHere).map((k) =>
+				k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
+					? otherMapObjectsHere[k]
+					: []
+			)
 		)
 	);
-	$: allObjects = [
+	let allObjects = $derived([
 		{ type: MapObjectType.None, position: position },
 		...(otherMapObjectsHere[MapObjectType.Planet] ?? []),
 		...(otherMapObjectsHere[MapObjectType.Fleet] ?? []),
 		...(otherMapObjectsHere[MapObjectType.MineField] ?? []),
 		...everythingElse
-	];
+	]);
 </script>
 
 <select
 	style={target.targetPlayerNum && target.targetPlayerNum != $player.num
 		? `color: ${$universe.getPlayerColor(target.targetPlayerNum)};`
 		: ''}
-	on:change={(e) => onSelectChange(parseInt(e.currentTarget.value))}
-	class={`select select-outline select-secondary select-sm text-sm ${$$props.class}`}
+	onchange={(e) => onSelectChange(parseInt(e.currentTarget.value))}
+	class={`select select-outline select-secondary select-sm text-sm ${rest.class ?? ''}`}
 >
 	<!-- allow for the non target -->
 	<optgroup label="Space">
@@ -94,9 +109,8 @@
 					selected={isTarget(mo)}
 					value={1 +
 						index +
-						(otherMapObjectsHere[MapObjectType.Planet]?.length ??
-							0 + otherMapObjectsHere[MapObjectType.Fleet]?.length ??
-							0)}>{mo.name}</option
+						(otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0) +
+						(otherMapObjectsHere[MapObjectType.Fleet]?.length ?? 0)}>{mo.name}</option
 				>
 			{/each}
 		</optgroup>
@@ -109,10 +123,9 @@
 					selected={isTarget(mo)}
 					value={1 +
 						index +
-						(otherMapObjectsHere[MapObjectType.Planet]?.length ??
-							0 + otherMapObjectsHere[MapObjectType.Fleet]?.length ??
-							0 + otherMapObjectsHere[MapObjectType.MineField]?.length ??
-							0)}>{mo.name}</option
+						(otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0) +
+						(otherMapObjectsHere[MapObjectType.Fleet]?.length ?? 0) +
+						(otherMapObjectsHere[MapObjectType.MineField]?.length ?? 0)}>{mo.name}</option
 				>
 			{/each}
 		</optgroup>

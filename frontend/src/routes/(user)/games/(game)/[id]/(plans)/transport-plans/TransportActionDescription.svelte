@@ -3,11 +3,15 @@
 	import { startCase } from 'lodash-es';
 	import TransportActionIcon from './TransportActionIcon.svelte';
 
-	export let action: WaypointTaskTransportAction | undefined;
-	export let amount: number | undefined;
-	export let units = '';
-	export let title: string;
-	export let titleTextClass = '';
+	type Props = {
+		action: WaypointTaskTransportAction | undefined;
+		amount: number | undefined;
+		units?: string;
+		title: string;
+		titleTextClass?: string;
+	};
+
+	let { action, amount, units = '', title, titleTextClass = '' }: Props = $props();
 </script>
 
 <span class="inline-block">

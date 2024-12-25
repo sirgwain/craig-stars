@@ -1,22 +1,24 @@
 <script lang="ts">
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { ArrowsUpDown, ArrowUp, ArrowDown } from '@steeze-ui/heroicons';
-	import { createEventDispatcher } from 'svelte';
 	import type { TableColumn } from './Table.svelte';
-	const dispatch = createEventDispatcher();
 
 	type T = $$Generic;
-	export let column: TableColumn<T>;
-	export let isSorted: boolean = false;
-	export let sortDescending: boolean = false;
+	type Props = {
+		column: TableColumn<T>;
+		isSorted?: boolean;
+		sortDescending?: boolean;
+		onSorted?: (column: TableColumn<T>, descending: boolean) => void;
+	};
+
+	let { column, isSorted = false, sortDescending = false, onSorted }: Props = $props();
 </script>
 
 <div class="h-full">
 	{#if column.sortable ?? true}
 		<button
 			class="hover:text-accent cursor-pointer select-none"
-			on:click={() =>
-				dispatch('sorted', { sortDescending: isSorted ? !sortDescending : false, column })}
+			onclick={() => onSorted?.(column, isSorted ? !sortDescending : false)}
 		>
 			{column.title}
 			{#if isSorted}

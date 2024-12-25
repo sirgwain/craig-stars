@@ -125,7 +125,7 @@
 		<TechSummary tech={settlersDelight} />
 	</div>
 
-	<!-- <div>
+	<div>
 		<TechSummary tech={moleSkin} />
 	</div>
 
@@ -133,5 +133,5 @@
 		<div>
 			<TechSummary {tech} player={testPlayer} />
 		</div>
-	{/each} -->
+	{/each}
 </div>

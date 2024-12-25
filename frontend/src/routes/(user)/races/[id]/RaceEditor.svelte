@@ -10,7 +10,11 @@
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';
 
-	export let race: Race;
+	type Props = {
+		race: Race;
+	};
+
+	let { race = $bindable() }: Props = $props();
 </script>
 
 <TextInput name="name" bind:value={race.name} />
@@ -37,7 +41,7 @@
 
 <SectionHeader>Lesser Racial Traits</SectionHeader>
 <LRTs bind:race />
-<LRTsDescriptions bind:race />
+<LRTsDescriptions {race} />
 
 <SectionHeader>Habitability</SectionHeader>
 <Habitability bind:race />

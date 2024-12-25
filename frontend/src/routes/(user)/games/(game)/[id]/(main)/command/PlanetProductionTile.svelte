@@ -1,26 +1,32 @@
 <script lang="ts">
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
+	import type {
+		ClearProductionQueueProps,
+		ShowProductionQueueDialogProps
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionQueueItem } from '$lib/types/Production';
-	import { createEventDispatcher } from 'svelte';
-	import type { ProductionQueueDialogEvent } from '../../dialogs/production/ProductionQueueDialog.svelte';
 	import CommandTile from './CommandTile.svelte';
 
-	const dispatch = createEventDispatcher<ProductionQueueDialogEvent>();
-	const { cs, game, player, universe, updatePlanetOrders } = getGameContext();
+	const { cs } = getGameContext();
 
-	export let planet: CommandedPlanet;
-	let queueItems: ProductionQueueItem[] | undefined = undefined;
+	type Props = {
+		planet: CommandedPlanet;
+	} & ClearProductionQueueProps &
+		ShowProductionQueueDialogProps;
+
+	let { planet, onShowProductionQueueDialog, onClearProductionQueue }: Props = $props();
+	let queueItems: ProductionQueueItem[] | undefined = $derived(
+		planet.updateProductionQueueEstimates(cs)
+	);
 
 	const clear = async () => {
 		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
 			planet.productionQueue = [];
-			updatePlanetOrders(planet);
+			onClearProductionQueue?.({ planet });
 		}
 	};
-
-	$: queueItems = planet.updateProductionQueueEstimates(cs);
 </script>
 
 <CommandTile title="Production">
@@ -43,10 +49,10 @@
 	</div>
 	<div class="flex justify-between">
 		<button
-			on:click={() => dispatch('change-production', planet)}
+			onclick={() => onShowProductionQueueDialog?.({ planet })}
 			class="btn btn-outline btn-sm normal-case btn-secondary">Change</button
 		>
-		<button on:click={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>
+		<button onclick={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>
 		<button class="btn btn-outline btn-sm normal-case btn-secondary">Route</button>
 	</div>
 </CommandTile>

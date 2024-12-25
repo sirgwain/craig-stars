@@ -193,7 +193,6 @@ export class GameService {
 
 		// configure the universe for the player after the player is loaded
 		fg.universe.setPlayer(fg.player.num);
-
 		return fg;
-	}	
+	}
 }

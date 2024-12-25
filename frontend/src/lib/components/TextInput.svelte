@@ -1,14 +1,23 @@
 <script lang="ts">
 	import { startCase } from 'lodash-es';
-	export let name: string;
-	export let value: string | undefined;
 
-	export let title: string | undefined = undefined;
-	export let titleClass = 'label-text w-32 text-right';
-	export let required = false;
-	export let disabled = false;
+	type Props = {
+		name: string;
+		value: string | undefined;
+		title?: string | undefined;
+		titleClass?: string;
+		required?: boolean;
+		disabled?: boolean;
+	};
 
-	$: !title && (title = startCase(name));
+	let {
+		name,
+		value = $bindable(),
+		title = startCase(name),
+		titleClass = 'label-text w-32 text-right',
+		required = false,
+		disabled = false
+	}: Props = $props();
 </script>
 
 <div class="w-full flex-grow">

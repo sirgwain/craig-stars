@@ -4,36 +4,35 @@
 	import { totalCargo } from '$lib/types/Cargo';
 	import { Unexplored } from '$lib/types/Constants';
 	import { type Planet } from '$lib/types/Planet';
-	import type { LayerCake } from 'layercake';
-	import { getContext } from 'svelte';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
+	const { settings } = getGameContext();
 
-	let max = $settings.mineralScale; // 100% concentration
+	type Props = {
+		planet: Planet;
+	};
 
-	export let planet: Planet;
+	let { planet }: Props = $props();
 
 	const size = 25; // the size of the mineral bars
 	const abovePlanetY = 5;
 
-	let barPercent = {
-		ironium: 0,
-		boranium: 0,
-		germanium: 0
-	};
-
-	$: {
-		if (planet.cargo) {
-			barPercent = {
-				ironium: clamp(planet.cargo.ironium ? planet.cargo.ironium / max : 0, 0, 1),
-				boranium: clamp(planet.cargo.boranium ? planet.cargo.boranium / max : 0, 0, 1),
-				germanium: clamp(planet.cargo.germanium ? planet.cargo.germanium / max : 0, 0, 1)
+	let barPercent = $derived.by(() => {
+		let max = $settings.mineralScale; // 100% concentration
+		if (!planet.cargo) {
+			return {
+				ironium: 0,
+				boranium: 0,
+				germanium: 0
 			};
 		}
-	}
+		return {
+			ironium: clamp(planet.cargo.ironium ? planet.cargo.ironium / max : 0, 0, 1),
+			boranium: clamp(planet.cargo.boranium ? planet.cargo.boranium / max : 0, 0, 1),
+			germanium: clamp(planet.cargo.germanium ? planet.cargo.germanium / max : 0, 0, 1)
+		};
+	});
 </script>
 
 <ScannerPlanetNormal {planet} />

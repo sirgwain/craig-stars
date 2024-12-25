@@ -3,8 +3,12 @@
 
 	import type { Tech, TechRequirements } from '$lib/types/Tech';
 
-	export let tech: Tech;
-	export let player: PlayerResponse | undefined = undefined;
+	type Props = {
+		tech: Tech;
+		player?: PlayerResponse | undefined;
+	};
+
+	let { tech, player = undefined }: Props = $props();
 
 	const noRequirements: TechRequirements = {};
 </script>

@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { Cargo } from '$lib/types/Cargo';
 
-	export let cargo: Cargo | undefined;
+	type Props = {
+		cargo: Cargo | undefined;
+	};
+
+	let { cargo }: Props = $props();
 </script>
 
 {#if cargo}

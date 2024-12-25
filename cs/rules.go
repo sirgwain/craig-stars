@@ -12,36 +12,36 @@ import (
 type Rules struct {
 	CostRules
 	BattleRules
-	UniverseGenerationRules
+  UniverseGenerationRules
 	ID                               int64                               `json:"id"`
 	CreatedAt                        time.Time                           `json:"createdAt"`
 	UpdatedAt                        time.Time                           `json:"updatedAt"`
 	GameID                           int64                               `json:"gameId"`
-	AcquirablePartTradeChanceBase    float64                             `json:"AcquirablePartTradeChanceBase"`
-	AcquirablePartTradeItemMax       int                                 `json:"acquirablePartTradeItemMax"`
+	AcquirablePartTradeChanceBase    float64                             `json:"AcquirablePartTradeChanceBase,omitempty"`
+	AcquirablePartTradeItemMax       int                                 `json:"acquirablePartTradeItemMax,omitempty"`
 	CometStatsBySize                 map[CometSize]CometStats            `json:"cometStatsBySize,omitempty"`
-	FleetSafeSpeedExplosionChance    float64                             `json:"fleetSafeSpeedExplosionChance"`
-	InvasionDefenseCoverageFactor    float64                             `json:"invasionDefenseCoverageFactor"`
-	LRTSpecs                         map[LRT]LRTSpec                     `json:"lrtSpecs"`
-	MaxPopulation                    int                                 `json:"maxPopulation"`
-	MaxTechLevel                     int                                 `json:"maxTechLevel"`
-	MineFieldCloak                   int                                 `json:"mineFieldCloak"`
-	MineFieldStatsByType             map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
-	MineralDecayFactor               int                                 `json:"mineralDecayFactor"`
-	MinMaxPopulationPercent          float64                             `json:"minMaxPopulationPercent"`
-	MovesToRunAway                   int                                 `json:"movesToRunAway"`
-	MysteryTraderRules               MysteryTraderRules                  `json:"mysteryTraderRules"`
-	PacketDecayRate                  map[int]float64                     `json:"packetDecayRate"`
-	PacketMaxOverwarpSpeed           int                                 `json:"packetMaxOverwarpSpeed"`
-	PacketMinDecay                   int                                 `json:"packetMinDecay"`
-	PlanetMinDistance                int                                 `json:"planetMinDistance"`
-	PopulationOvercrowdDieoffRate    float64                             `json:"populationOvercrowdDieoffRate"`
-	PopulationOvercrowdDieoffRateMax float64                             `json:"populationOvercrowdDieoffRateMax"`
-	PopulationScannerError           float64                             `json:"populationScannerError"`
-	PRTSpecs                         map[PRT]PRTSpec                     `json:"prtSpecs"`
-	RaceStartingPoints               int                                 `json:"raceStartingPoints"`
-	RadiatingImmune                  int                                 `json:"radiatingImmune"`
-	RandomArtifactResearchBonusRange [2]int                              `json:"randomArtifactResearchBonusRange"`
+	FleetSafeSpeedExplosionChance    float64                             `json:"fleetSafeSpeedExplosionChance,omitempty"`
+	InvasionDefenseCoverageFactor    float64                             `json:"invasionDefenseCoverageFactor,omitempty"`
+	LRTSpecs                         map[LRT]LRTSpec                     `json:"lrtSpecs,omitempty"`
+	MaxPopulation                    int                                 `json:"maxPopulation,omitempty"`
+	MaxTechLevel                     int                                 `json:"maxTechLevel,omitempty"`
+	MineFieldCloak                   int                                 `json:"mineFieldCloak,omitempty"`
+	MineFieldStatsByType             map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType,omitempty"`
+	MineralDecayFactor               int                                 `json:"mineralDecayFactor,omitempty"`
+	MinMaxPopulationPercent          float64                             `json:"minMaxPopulationPercent,omitempty"`
+	MovesToRunAway                   int                                 `json:"movesToRunAway,omitempty"`
+	MysteryTraderRules               MysteryTraderRules                  `json:"mysteryTraderRules,omitempty"`
+	PacketDecayRate                  map[int]float64                     `json:"packetDecayRate,omitempty"`
+	PacketMaxOverwarpSpeed           int                                 `json:"packetMaxOverwarpSpeed,omitempty"`
+	PacketMinDecay                   int                                 `json:"packetMinDecay,omitempty"`
+	PlanetMinDistance                int                                 `json:"planetMinDistance,omitempty"`
+	PopulationOvercrowdDieoffRate    float64                             `json:"populationOvercrowdDieoffRate,omitempty"`
+	PopulationOvercrowdDieoffRateMax float64                             `json:"populationOvercrowdDieoffRateMax,omitempty"`
+	PopulationScannerError           float64                             `json:"populationScannerError,omitempty"`
+	PRTSpecs                         map[PRT]PRTSpec                     `json:"prtSpecs,omitempty"`
+	RaceStartingPoints               int                                 `json:"raceStartingPoints,omitempty"`
+	RadiatingImmune                  int                                 `json:"radiatingImmune,omitempty"`
+	RandomArtifactResearchBonusRange [2]int                              `json:"randomArtifactResearchBonusRange,omitempty"`
 	RandomCometMinYear               int                                 `json:"randomCometMinYear,omitempty"`
 	RandomCometMinYearPlayerWorld    int                                 `json:"randomCometMinYearPlayerWorld,omitempty"`
 	RandomEventChances               map[RandomEvent]float64             `json:"randomEventChances"`
@@ -69,40 +69,40 @@ type Rules struct {
 	random                           rng
 	techs                            *TechStore
 }
-
 type UniverseGenerationRules struct {
-	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadGermaniumBonusThreshold"`
-	LimitMineralConcentration                 int                           `json:"limitMineralConcentration"`
-	MaxExtraWorldDistance                     int                           `json:"maxExtraWorldDistance"`
-	MaxHab                                    int                           `json:"maxHab"`
-	MaxMineralConcentration                   int                           `json:"maxMineralConcentration"`
-	MaxStartingMineralConcentration           int                           `json:"maxStartingMineralConcentration"`
-	MaxStartingMineralSurface                 int                           `json:"maxStartingMineralSurface"`
-	MinExtraPlanetMineralConcentration        int                           `json:"minExtraPlanetMineralConcentration"`
-	MinExtraWorldDistance                     int                           `json:"minExtraWorldDistance"`
-	MinHab                                    int                           `json:"minHab"`
-	MinHomeworldMineralConcentration          int                           `json:"minHomeworldMineralConcentration"`
-	MinMineralConcentration                   int                           `json:"minMineralConcentration"`
-	MinStartingMineralConcentration           int                           `json:"minStartingMineralConcentration"`
-	MinStartingMineralSurface                 int                           `json:"minStartingMineralSurface"`
-	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem"`
-	StartingYear                              int                           `json:"startingYear"`
-	WormholeMinPlanetDistance                 int                           `json:"wormholeMinDistance"`
+	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold,omitempty"`
+	LimitMineralConcentration                 int                           `json:"limitMineralConcentration,omitempty"`
+	MaxExtraWorldDistance                     int                           `json:"maxExtraWorldDistance,omitempty"`
+	MaxHab                                    int                           `json:"maxHab,omitempty"`
+	MaxMineralConcentration                   int                           `json:"maxMineralConcentration,omitempty"`
+	MaxStartingMineralConcentration           int                           `json:"maxStartingMineralConcentration,omitempty"`
+	MaxStartingMineralSurface                 int                           `json:"maxStartingMineralSurface,omitempty"`
+	MinExtraPlanetMineralConcentration        int                           `json:"minExtraPlanetMineralConcentration,omitempty"`
+	MinExtraWorldDistance                     int                           `json:"minExtraWorldDistance,omitempty"`
+	MinHab                                    int                           `json:"minHab,omitempty"`
+	MinHomeworldMineralConcentration          int                           `json:"minHomeworldMineralConcentration,omitempty"`
+	MinMineralConcentration                   int                           `json:"minMineralConcentration,omitempty"`
+	MinStartingMineralConcentration           int                           `json:"minStartingMineralConcentration,omitempty"`
+	MinStartingMineralSurface                 int                           `json:"minStartingMineralSurface,omitempty"`
+	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem,omitempty"`
+	StartingYear                              int                           `json:"startingYear,omitempty"`
+	WormholeMinPlanetDistance                 int                           `json:"wormholeMinPlanetDistance,omitempty"`
 }
 
 type CostRules struct {
-	DefenseCost                    Cost  `json:"defenseCost"`
-	FactoryCostGermanium           int   `json:"factoryCostGermanium"`
-	MineralAlchemyCost             int   `json:"mineralAlchemyCost"`
-	PlanetaryScannerCost           Cost  `json:"planetaryScannerCost"`
-	StarbaseComponentCostReduction int   `json:"starbaseComponentCostReduction"`
-	TerraformCost                  Cost  `json:"terraformCost"`
-	TechBaseCost                   []int `json:"techBaseCost"`
+	DefenseCost                    Cost    `json:"defenseCost,omitempty"`
+	FactoryCostGermanium           int     `json:"factoryCostGermanium,omitempty"`
+	MineralAlchemyCost             int     `json:"mineralAlchemyCost,omitempty"`
+	PlanetaryScannerCost           Cost    `json:"planetaryScannerCost,omitempty"`
+	StarbaseComponentCostReduction float64 `json:"starbaseComponentCostReduction,omitempty"`
+	StarbaseHullRefundFactor       float64 `json:"starbaseHullRefundFactor,omitempty"`
+	TerraformCost                  Cost    `json:"terraformCost,omitempty"`
+	TechBaseCost                   []int   `json:"techBaseCost,omitempty"`
 }
 
 type BattleRules struct {
-	BeamRangeDropoff float64 `json:"beamRangeDropoff"`
-	NumBattleRounds  int     `json:"numBattleRounds"`
+	BeamRangeDropoff float64 `json:"beamRangeDropoff,omitempty"`
+	NumBattleRounds  int     `json:"numBattleRounds,omitempty"`
 }
 
 type RandomEvent string
@@ -133,13 +133,13 @@ var CometSizes = []CometSize{
 // each type of comet has stats for minerals added to each mineral type
 // as well as some additional mineral types that get bonuses
 type CometStats struct {
-	AllMinerals              int     `json:"minMinerals,omitempty"`
-	AllRandomMinerals        int     `json:"randomMinerals,omitempty"`
+	AllMinerals              int     `json:"allMinerals,omitempty"`
+	AllRandomMinerals        int     `json:"allRandomMinerals,omitempty"`
 	BonusMinerals            int     `json:"bonusMinerals,omitempty"`
 	BonusRandomMinerals      int     `json:"bonusRandomMinerals,omitempty"`
-	BonusMinConcentration    int     `json:"minConcentrationBonus,omitempty"`
-	BonusRandomConcentration int     `json:"randomConcentrationBonus,omitempty"`
-	BonusAffectsMinerals     int     `json:"affectsMinerals,omitempty"`
+	BonusMinConcentration    int     `json:"bonusMinConcentration,omitempty"`
+	BonusRandomConcentration int     `json:"bonusRandomConcentration,omitempty"`
+	BonusAffectsMinerals     int     `json:"bonusAffectsMinerals,omitempty"`
 	MinTerraform             int     `json:"minTerraform,omitempty"`
 	RandomTerraform          int     `json:"randomTerraform,omitempty"`
 	AffectsHabs              int     `json:"affectsHabs,omitempty"`
@@ -159,10 +159,10 @@ const (
 
 type MysteryTraderRules struct {
 	ChanceSpawn           []int                        `json:"chanceSpawn,omitempty"`
-	ChanceMaxTechGetsPart int                          `json:"chanceMaxTechGetsPart"`
-	ChanceCourseChange    int                          `json:"chanceCourseChange"`
-	ChanceSpeedUpOnly     int                          `json:"chanceSpeedUpOnly"`
-	ChanceAgain           int                          `json:"chanceAgain"`
+	ChanceMaxTechGetsPart int                          `json:"chanceMaxTechGetsPart,omitempty"`
+	ChanceCourseChange    int                          `json:"chanceCourseChange,omitempty"`
+	ChanceSpeedUpOnly     int                          `json:"chanceSpeedUpOnly,omitempty"`
+	ChanceAgain           int                          `json:"chanceAgain,omitempty"`
 	EvenYearOnly          bool                         `json:"evenYearOnly,omitempty"`
 	GenesisDeviceCost     Cost                         `json:"genesisDeviceCost"`
 	MaxMysteryTraders     int                          `json:"maxMysteryTraders,omitempty"`
@@ -223,7 +223,8 @@ func NewRulesWithSeed(seed int64) Rules {
 				Germanium: 70,
 				Resources: 100,
 			},
-			StarbaseComponentCostReduction: 2, // 2x cheaper by default
+			StarbaseComponentCostReduction: 0.5, // 50% discount on non-orbital components
+			StarbaseHullRefundFactor:       0.5, // 50% of the old base's cost goes towards the new base
 			TechBaseCost: []int{
 				0,
 				50,

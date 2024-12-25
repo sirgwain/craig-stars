@@ -6,5 +6,5 @@
 </script>
 
 <div class="w-full mx-auto md:max-w-2xl">
-	<Research on:update-player={updatePlayerOrders} />
+	<Research onUpdatePlayer={updatePlayerOrders} />
 </div>

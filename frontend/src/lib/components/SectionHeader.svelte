@@ -1,7 +1,15 @@
 <script lang="ts">
-	export let title = '';
+	import type { Snippet } from 'svelte';
+
+	type Props = {
+		title?: string;
+		children?: Snippet;
+	};
+
+	let { title = '', children }: Props = $props();
 </script>
 
 <h3 class="text-xl font-semibold mb-2 mt-4 border border-secondary rounded-md p-1 pl-2">
-	{title} <slot />
+	{title}
+	{@render children?.()}
 </h3>

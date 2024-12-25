@@ -1,26 +1,25 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
-	import { TechCategory, type Tech, type TechHull } from '$lib/types/Tech';
+	import { TechCategory, type TechHull } from '$lib/types/Tech';
 
-	const { game, player, universe } = getGameContext();
+	const { game, player } = getGameContext();
 
 	let nameSlug = $page.params.name;
-	$: tech = $game.techs.getTech(nameSlug);
+	let tech = $derived($game.techs.getTech(nameSlug));
 
-	$: hull = tech as TechHull;
+	let hull = $derived(tech as TechHull);
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
+	{#snippet crumbs()}
 		<li><a href={`/games/${$game.id}/techs`}>Techs</a></li>
 		<li>{tech?.name ?? '<unknown>'}</li>
-		</svelte:fragment>
+	{/snippet}
 </Breadcrumb>
 
 {#if tech}

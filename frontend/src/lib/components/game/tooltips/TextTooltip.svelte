@@ -1,16 +1,18 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export type TextTooltipProps = {
 		text: string;
-		clazz?: string;
 	};
 </script>
 
 <script lang="ts">
-	export let text: string;
-	export let clazz: string;
+	import type { HTMLAttributes } from 'svelte/elements';
+
+	type Props = TextTooltipProps & HTMLAttributes<HTMLDivElement>;
+
+	let { text, ...rest }: Props = $props();
 </script>
 
-<div class="flex flex-col sm:w-[26rem] m-auto ${clazz}">
+<div class="flex flex-col sm:w-[26rem] m-auto ${rest.class ?? ''}">
 	<div>
 		{text}
 	</div>

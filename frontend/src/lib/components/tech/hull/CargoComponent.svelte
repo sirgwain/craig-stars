@@ -1,5 +1,9 @@
 <script lang="ts">
-	export let capacity: number;
+	type Props = {
+		capacity: number;
+	};
+
+	let { capacity }: Props = $props();
 </script>
 
 <div

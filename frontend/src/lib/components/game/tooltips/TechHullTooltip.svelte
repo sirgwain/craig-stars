@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { showTooltip } from '$lib/services/Stores';
 	import TechHullTooltip from './TechHullTooltip.svelte';
 
@@ -17,7 +17,7 @@
 	import type { TechHull } from '$lib/types/Tech';
 	import Hull from '../design/Hull.svelte';
 
-	export let hull: TechHull;
+	let { hull }: TechHullTooltipProps = $props();
 </script>
 
 <div class="flex flex-row justify-center">

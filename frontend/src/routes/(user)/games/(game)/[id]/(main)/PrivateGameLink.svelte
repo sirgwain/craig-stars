@@ -1,19 +1,13 @@
 <script lang="ts">
 	import InfoToast from '$lib/components/InfoToast.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { PlayerStatus } from '$lib/types/Player';
-	import type { SessionUser } from '$lib/types/User';
 	import { Square2Stack } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { onMount } from 'svelte';
 
 	const { game } = getGameContext();
 
-	let copiedText = '';
-
-	onMount(async () => {});
-
-	$: link = `${window.location.origin}/join-private-game/${$game.hash}`;
+	let copiedText = $state('');
+	let link = $derived(`${window.location.origin}/join-private-game/${$game.hash}`);
 </script>
 
 <InfoToast bind:text={copiedText} />
@@ -31,7 +25,7 @@
 	<div>
 		<div class="tooltip" data-tip="Copy Invite Link">
 			<button
-				on:click={() => {
+				onclick={() => {
 					navigator.clipboard.writeText(link);
 					copiedText = 'Copied invite link to clipboard';
 				}}

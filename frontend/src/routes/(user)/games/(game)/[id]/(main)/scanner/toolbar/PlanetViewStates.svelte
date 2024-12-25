@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { getGameContext } from '$lib/services/GameContext';
+	import type { HTMLAttributes } from 'svelte/elements';
 	import PlanetViewStateHab from './PlanetViewStateHab.svelte';
 	import PlanetViewStateMineralConc from './PlanetViewStateMineralConc.svelte';
 	import PlanetViewStatesNormal from './PlanetViewStateNormal.svelte';
 	import PlanetViewStatePopulation from './PlanetViewStatePopulation.svelte';
 	import PlanetViewStateSurfaceMinerals from './PlanetViewStateSurfaceMinerals.svelte';
 
-	const { settings } = getGameContext();
+	let props: HTMLAttributes<HTMLUListElement> = $props();
 </script>
 
-<ul {...$$restProps}>
+<ul {...props}>
 	<li class="h-10 w-10">
 		<PlanetViewStatesNormal />
 	</li>

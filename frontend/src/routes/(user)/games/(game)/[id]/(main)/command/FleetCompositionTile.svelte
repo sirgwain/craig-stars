@@ -1,42 +1,66 @@
 <script lang="ts">
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import type {
+		BattlePlanChangedProps,
+		ShowMergeFleetsDialogProps,
+		ShowSplitFleetDialogProps,
+		SplitAllProps
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
 	import { Infinite } from '$lib/types/Constants';
-	import { createEventDispatcher } from 'svelte';
-	import type { MergeFleetsDialogEvent } from '../../dialogs/merge/MergeFleetsDialog.svelte';
-	import type { SplitFleetEvent } from '../../dialogs/split/SplitFleet.svelte';
-	import type { SplitFleetDialogEvent } from '../../dialogs/split/SplitFleetDialog.svelte';
+	import { getDamagePercentForToken, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
 	import CommandTile from './CommandTile.svelte';
 
-	const dispatch = createEventDispatcher<
-		SplitFleetEvent & SplitFleetDialogEvent & MergeFleetsDialogEvent
-	>();
-	const { player, universe, selectedWaypoint, updateFleetOrders } = getGameContext();
+	const { player, universe } = getGameContext();
 
-	export let fleet: CommandedFleet;
+	type Props = {
+		fleet: CommandedFleet;
+		selectedWaypoint: Waypoint | undefined;
+	} & ShowSplitFleetDialogProps &
+		ShowMergeFleetsDialogProps &
+		SplitAllProps &
+		BattlePlanChangedProps;
 
-	const split = () => {
-		dispatch('split-fleet-dialog', { src: fleet });
-	};
+	let {
+		fleet,
+		selectedWaypoint,
+		onShowMergeFleetDialog,
+		onShowSplitFleetDialog,
+		onSplitAll,
+		onBattlePlanChanged
+	}: Props = $props();
 
-	const splitAll = async () => {
-		dispatch('split-all', fleet);
-	};
-	const merge = () => {
-		dispatch('merge-fleets-dialog', {
+	function split() {
+		if (!onShowSplitFleetDialog) {
+			return;
+		}
+		onShowSplitFleetDialog({ src: fleet });
+	}
+
+	function splitAll() {
+		if (!onSplitAll) {
+			return;
+		}
+		onSplitAll({ fleet });
+	}
+
+	function merge() {
+		if (!onShowMergeFleetDialog) {
+			return;
+		}
+		onShowMergeFleetDialog({
 			fleet,
 			otherFleetsHere: $universe.getMyFleetsByPosition(fleet).filter((f) => f.num !== fleet.num)
 		});
-	};
+	}
 
-	const updateBattlePlan = async (num: number) => {
-		fleet.battlePlanNum = num;
-		await updateFleetOrders(fleet);
-	};
+	function updateBattlePlan(battlePlanNum: number) {
+		fleet.battlePlanNum = battlePlanNum;
+		onBattlePlanChanged?.({ fleet, battlePlanNum });
+	}
 </script>
 
-{#if fleet.waypoints && $selectedWaypoint}
+{#if fleet.waypoints && selectedWaypoint}
 	<CommandTile title="Fleet Composition">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">
@@ -45,7 +69,7 @@
 						<button
 							type="button"
 							class="w-full cursor-help"
-							on:pointerdown|preventDefault={(e) =>
+							onpointerdown={(e) =>
 								onShipDesignTooltip(e, $universe.getDesign($player.num, token.designNum))}
 						>
 							<div class="flex flex-row justify-between relative">
@@ -56,7 +80,7 @@
 											$universe.getMyDesign(token.designNum)
 										).toFixed()}%`}
 										class="damage-bar h-full absolute opacity-50"
-									/>
+									></div>
 								{/if}
 								<div>
 									{$universe.getDesign($player.num, token.designNum)?.name}
@@ -76,8 +100,8 @@
 				<select
 					class="select select-outline select-secondary select-sm text-sm"
 					name="battlePlan"
-					bind:value={fleet.battlePlanNum}
-					on:change={(e) => updateBattlePlan(parseInt(e.currentTarget.value))}
+					value={fleet.battlePlanNum}
+					onchange={(e) => updateBattlePlan(parseInt(e.currentTarget.value))}
 				>
 					{#each $player.battlePlans as battlePlan}
 						<option value={battlePlan.num}>{battlePlan.name}</option>
@@ -100,14 +124,12 @@
 			<div>{fleet.spec.cloakPercent ? fleet.spec.cloakPercent + '%' : 'none'}</div>
 		</div>
 		<div class="flex justify-between">
-			<button on:click={split} class="btn btn-outline btn-sm normal-case btn-secondary"
-				>Split</button
+			<button onclick={split} class="btn btn-outline btn-sm normal-case btn-secondary">Split</button
 			>
-			<button on:click={splitAll} class="btn btn-outline btn-sm normal-case btn-secondary"
+			<button onclick={splitAll} class="btn btn-outline btn-sm normal-case btn-secondary"
 				>Split All</button
 			>
-			<button on:click={merge} class="btn btn-outline btn-sm normal-case btn-secondary"
-				>Merge</button
+			<button onclick={merge} class="btn btn-outline btn-sm normal-case btn-secondary">Merge</button
 			>
 		</div>
 	</CommandTile>
