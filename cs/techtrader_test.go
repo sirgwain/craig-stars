@@ -112,6 +112,25 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 			want:            nil,
 		},
 		{
+			name:          "Already aquired a part this turn",
+			acquiredTechs: []string{AlienMiner.Name},
+			tokens: []token{
+				{
+					hull: Scout,
+					slots: []ShipDesignSlot{
+						{
+							HullComponent: EnigmaPulsar.Name,
+							HullSlotIndex: 1,
+							Quantity:      1,
+						},
+					}, qty: 1,
+				},
+			},
+			partChanceRolls: []float64{0},
+			acquiredTech:    true,
+			want:            nil,
+		},
+		{
 			name:          "25 parts split in 2 fleets, 12.5% roll",
 			acquiredTechs: []string{},
 			tokens: []token{
@@ -203,7 +222,7 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 					rng.addInts(i) // keeps list in order as each element is swapped with itself in list sorting
 				}
 			}
-	
+
 			rules.random = rng
 
 			if got := tr.acquirablePartGained(&rules, player, tokens); !reflect.DeepEqual(got, tt.want) {
