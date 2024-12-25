@@ -502,15 +502,6 @@ func SetCargo(o js.Value, obj *cs.Cargo) {
 	o.Set("colonists", obj.Colonists)
 }
 
-func GetCargoType(o js.Value) cs.CargoType {
-	var obj cs.CargoType
-	if o.IsUndefined() || o.IsNull() {
-		return obj
-	}
-	obj = getInt[cs.ResourceType](o)
-	return obj
-}
-
 func GetCometSize(o js.Value) cs.CometSize {
 	var obj cs.CometSize
 	if o.IsUndefined() || o.IsNull() {
@@ -525,13 +516,13 @@ func GetCometStats(o js.Value) cs.CometStats {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.AllMinerals = getInt[int](o.Get("minMinerals"))
-	obj.AllRandomMinerals = getInt[int](o.Get("randomMinerals"))
+	obj.AllMinerals = getInt[int](o.Get("allMinerals"))
+	obj.AllRandomMinerals = getInt[int](o.Get("allRandomMinerals"))
 	obj.BonusMinerals = getInt[int](o.Get("bonusMinerals"))
 	obj.BonusRandomMinerals = getInt[int](o.Get("bonusRandomMinerals"))
-	obj.BonusMinConcentration = getInt[int](o.Get("minConcentrationBonus"))
-	obj.BonusRandomConcentration = getInt[int](o.Get("randomConcentrationBonus"))
-	obj.BonusAffectsMinerals = getInt[int](o.Get("affectsMinerals"))
+	obj.BonusMinConcentration = getInt[int](o.Get("bonusMinConcentration"))
+	obj.BonusRandomConcentration = getInt[int](o.Get("bonusRandomConcentration"))
+	obj.BonusAffectsMinerals = getInt[int](o.Get("bonusAffectsMinerals"))
 	obj.MinTerraform = getInt[int](o.Get("minTerraform"))
 	obj.RandomTerraform = getInt[int](o.Get("randomTerraform"))
 	obj.AffectsHabs = getInt[int](o.Get("affectsHabs"))
@@ -539,13 +530,13 @@ func GetCometStats(o js.Value) cs.CometStats {
 	return obj
 }
 func SetCometStats(o js.Value, obj *cs.CometStats) {
-	o.Set("minMinerals", obj.AllMinerals)
-	o.Set("randomMinerals", obj.AllRandomMinerals)
+	o.Set("allMinerals", obj.AllMinerals)
+	o.Set("allRandomMinerals", obj.AllRandomMinerals)
 	o.Set("bonusMinerals", obj.BonusMinerals)
 	o.Set("bonusRandomMinerals", obj.BonusRandomMinerals)
-	o.Set("minConcentrationBonus", obj.BonusMinConcentration)
-	o.Set("randomConcentrationBonus", obj.BonusRandomConcentration)
-	o.Set("affectsMinerals", obj.BonusAffectsMinerals)
+	o.Set("bonusMinConcentration", obj.BonusMinConcentration)
+	o.Set("bonusRandomConcentration", obj.BonusRandomConcentration)
+	o.Set("bonusAffectsMinerals", obj.BonusAffectsMinerals)
 	o.Set("minTerraform", obj.MinTerraform)
 	o.Set("randomTerraform", obj.RandomTerraform)
 	o.Set("affectsHabs", obj.AffectsHabs)
@@ -580,6 +571,7 @@ func GetCostRules(o js.Value) cs.CostRules {
 	obj.MineralAlchemyCost = getInt[int](o.Get("mineralAlchemyCost"))
 	obj.PlanetaryScannerCost = GetCost(o.Get("planetaryScannerCost"))
 	obj.StarbaseComponentCostReduction = getFloat[float64](o.Get("starbaseComponentCostReduction"))
+	obj.StarbaseHullRefundFactor = getFloat[float64](o.Get("starbaseHullRefundFactor"))
 	obj.TerraformCost = GetCost(o.Get("terraformCost"))
 	obj.TechBaseCost = GetSlice[int](o.Get("techBaseCost"), getInt)
 	return obj
@@ -592,21 +584,13 @@ func SetCostRules(o js.Value, obj *cs.CostRules) {
 	o.Set("planetaryScannerCost", map[string]any{})
 	SetCost(o.Get("planetaryScannerCost"), &obj.PlanetaryScannerCost)
 	o.Set("starbaseComponentCostReduction", obj.StarbaseComponentCostReduction)
+	o.Set("starbaseHullRefundFactor", obj.StarbaseHullRefundFactor)
 	o.Set("terraformCost", map[string]any{})
 	SetCost(o.Get("terraformCost"), &obj.TerraformCost)
 	if len(obj.TechBaseCost) > 0 {
 		o.Set("techBaseCost", map[string]any{})
 		SetBasicSlice[int](o.Get("techBaseCost"), obj.TechBaseCost)
 	}
-}
-
-func GetCostType(o js.Value) cs.CostType {
-	var obj cs.CostType
-	if o.IsUndefined() || o.IsNull() {
-		return obj
-	}
-	obj = getInt[cs.ResourceType](o)
-	return obj
 }
 
 func GetDBObject(o js.Value) cs.DBObject {
@@ -1205,15 +1189,6 @@ func SetMineralPacketIntel(o js.Value, obj *cs.MineralPacketIntel) {
 	o.Set("scanRangePen", obj.ScanRangePen)
 }
 
-func GetMineralType(o js.Value) cs.MineralType {
-	var obj cs.MineralType
-	if o.IsUndefined() || o.IsNull() {
-		return obj
-	}
-	obj = getInt[cs.ResourceType](o)
-	return obj
-}
-
 func GetMiniaturizationSpec(o js.Value) cs.MiniaturizationSpec {
 	var obj cs.MiniaturizationSpec
 	if o.IsUndefined() || o.IsNull() {
@@ -1323,13 +1298,13 @@ func GetMysteryTraderRules(o js.Value) cs.MysteryTraderRules {
 	obj.ChanceCourseChange = getInt[int](o.Get("chanceCourseChange"))
 	obj.ChanceSpeedUpOnly = getInt[int](o.Get("chanceSpeedUpOnly"))
 	obj.ChanceAgain = getInt[int](o.Get("chanceAgain"))
-	obj.MinYear = getInt[int](o.Get("minYear"))
 	obj.EvenYearOnly = getBool(o.Get("evenYearOnly"))
-	obj.MinWarp = getInt[int](o.Get("minWarp"))
-	obj.MaxWarp = getInt[int](o.Get("maxWarp"))
-	obj.MaxMysteryTraders = getInt[int](o.Get("maxMysteryTraders"))
-	obj.RequestedBoon = getInt[int](o.Get("requestedBoon"))
 	obj.GenesisDeviceCost = GetCost(o.Get("genesisDeviceCost"))
+	obj.MaxMysteryTraders = getInt[int](o.Get("maxMysteryTraders"))
+	obj.MaxWarp = getInt[int](o.Get("maxWarp"))
+	obj.MinWarp = getInt[int](o.Get("minWarp"))
+	obj.MinYear = getInt[int](o.Get("minYear"))
+	obj.RequestedBoon = getInt[int](o.Get("requestedBoon"))
 	obj.TechBoon = GetSlice(o.Get("techBoon"), GetMysteryTraderTechBoonRules)
 	return obj
 }
@@ -1342,14 +1317,14 @@ func SetMysteryTraderRules(o js.Value, obj *cs.MysteryTraderRules) {
 	o.Set("chanceCourseChange", obj.ChanceCourseChange)
 	o.Set("chanceSpeedUpOnly", obj.ChanceSpeedUpOnly)
 	o.Set("chanceAgain", obj.ChanceAgain)
-	o.Set("minYear", obj.MinYear)
 	o.Set("evenYearOnly", obj.EvenYearOnly)
-	o.Set("minWarp", obj.MinWarp)
-	o.Set("maxWarp", obj.MaxWarp)
-	o.Set("maxMysteryTraders", obj.MaxMysteryTraders)
-	o.Set("requestedBoon", obj.RequestedBoon)
 	o.Set("genesisDeviceCost", map[string]any{})
 	SetCost(o.Get("genesisDeviceCost"), &obj.GenesisDeviceCost)
+	o.Set("maxMysteryTraders", obj.MaxMysteryTraders)
+	o.Set("maxWarp", obj.MaxWarp)
+	o.Set("minWarp", obj.MinWarp)
+	o.Set("minYear", obj.MinYear)
+	o.Set("requestedBoon", obj.RequestedBoon)
 	o.Set("techBoon", []any{})
 	SetSlice(o.Get("techBoon"), obj.TechBoon, SetMysteryTraderTechBoonRules)
 }
@@ -2577,6 +2552,8 @@ func GetRules(o js.Value) cs.Rules {
 	obj.CreatedAt = getTime(o.Get("createdAt"))
 	obj.UpdatedAt = getTime(o.Get("updatedAt"))
 	obj.GameID = getInt[int64](o.Get("gameId"))
+	obj.AcquirablePartTradeChanceBase = getFloat[float64](o.Get("acquirablePartTradeChanceBase"))
+	obj.AcquirablePartTradeItemMax = getInt[int](o.Get("acquirablePartTradeItemMax"))
 	obj.CometStatsBySize = GetStringMap[map[cs.CometSize]cs.CometStats](o.Get("cometStatsBySize"), GetCometStats)
 	obj.FleetSafeSpeedExplosionChance = getFloat[float64](o.Get("fleetSafeSpeedExplosionChance"))
 	obj.InvasionDefenseCoverageFactor = getFloat[float64](o.Get("invasionDefenseCoverageFactor"))
@@ -2615,6 +2592,7 @@ func GetRules(o js.Value) cs.Rules {
 	obj.SalvageDecayMin = getInt[int](o.Get("salvageDecayMin"))
 	obj.SalvageDecayRate = getFloat[float64](o.Get("salvageDecayRate"))
 	obj.SalvageFromBattleFactor = getFloat[float64](o.Get("salvageFromBattleFactor"))
+	obj.ScrapColonizeAmount = getFloat[float64](o.Get("scrapColonizeAmount"))
 	obj.ScrapMineralAmount = getFloat[float64](o.Get("scrapMineralAmount"))
 	obj.ScrapResourceAmount = getFloat[float64](o.Get("scrapResourceAmount"))
 	obj.ShowPublicScoresAfterYears = getInt[int](o.Get("showPublicScoresAfterYears"))
@@ -2639,6 +2617,8 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	SetTime(o, "createdAt", obj.CreatedAt)
 	SetTime(o, "updatedAt", obj.UpdatedAt)
 	o.Set("gameId", obj.GameID)
+	o.Set("acquirablePartTradeChanceBase", obj.AcquirablePartTradeChanceBase)
+	o.Set("acquirablePartTradeItemMax", obj.AcquirablePartTradeItemMax)
 	cometStatsBySizeMap := js.ValueOf(map[string]any{})
 	for key, value := range obj.CometStatsBySize {
 		valueObj := js.ValueOf(map[string]any{})
@@ -2720,6 +2700,7 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	o.Set("salvageDecayMin", obj.SalvageDecayMin)
 	o.Set("salvageDecayRate", obj.SalvageDecayRate)
 	o.Set("salvageFromBattleFactor", obj.SalvageFromBattleFactor)
+	o.Set("scrapColonizeAmount", obj.ScrapColonizeAmount)
 	o.Set("scrapMineralAmount", obj.ScrapMineralAmount)
 	o.Set("scrapResourceAmount", obj.ScrapResourceAmount)
 	o.Set("showPublicScoresAfterYears", obj.ShowPublicScoresAfterYears)
@@ -3385,7 +3366,7 @@ func GetUniverseGenerationRules(o js.Value) cs.UniverseGenerationRules {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o.Get("highRadGermaniumBonusThreshold"))
+	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o.Get("highRadMineralConcentrationBonusThreshold"))
 	obj.LimitMineralConcentration = getInt[int](o.Get("limitMineralConcentration"))
 	obj.MaxExtraWorldDistance = getInt[int](o.Get("maxExtraWorldDistance"))
 	obj.MaxHab = getInt[int](o.Get("maxHab"))
@@ -3401,11 +3382,11 @@ func GetUniverseGenerationRules(o js.Value) cs.UniverseGenerationRules {
 	obj.MinStartingMineralSurface = getInt[int](o.Get("minStartingMineralSurface"))
 	obj.RaceLeftoverPointsPerItem = GetStringMap[map[cs.SpendLeftoverPointsOn]int](o.Get("raceLeftoverPointsPerItem"), getInt)
 	obj.StartingYear = getInt[int](o.Get("startingYear"))
-	obj.WormholeMinPlanetDistance = getInt[int](o.Get("wormholeMinDistance"))
+	obj.WormholeMinPlanetDistance = getInt[int](o.Get("wormholeMinPlanetDistance"))
 	return obj
 }
 func SetUniverseGenerationRules(o js.Value, obj *cs.UniverseGenerationRules) {
-	o.Set("highRadGermaniumBonusThreshold", obj.HighRadMineralConcentrationBonusThreshold)
+	o.Set("highRadMineralConcentrationBonusThreshold", obj.HighRadMineralConcentrationBonusThreshold)
 	o.Set("limitMineralConcentration", obj.LimitMineralConcentration)
 	o.Set("maxExtraWorldDistance", obj.MaxExtraWorldDistance)
 	o.Set("maxHab", obj.MaxHab)
@@ -3425,7 +3406,7 @@ func SetUniverseGenerationRules(o js.Value, obj *cs.UniverseGenerationRules) {
 	}
 	o.Set("raceLeftoverPointsPerItem", raceLeftoverPointsPerItemMap)
 	o.Set("startingYear", obj.StartingYear)
-	o.Set("wormholeMinDistance", obj.WormholeMinPlanetDistance)
+	o.Set("wormholeMinPlanetDistance", obj.WormholeMinPlanetDistance)
 }
 
 func GetUserRole(o js.Value) cs.UserRole {
