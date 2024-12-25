@@ -27,7 +27,7 @@ type PlayerMessage struct {
 }
 
 // The PlayerMessageSpec contains data specific to each message, like the amount of mines built
-// of the field of research leveled up in.
+// or the field of research leveled up in.
 type PlayerMessageSpec struct {
 	// the thing being targeted by the message target, i.e. the planet for a fleet bombed a planet message
 	Target[MapObjectType]
@@ -181,6 +181,8 @@ const (
 	PlayerMessageMysteryTraderMetWithoutReward
 	PlayerMessageMysteryTraderAlreadyRewarded
 	PlayerMessagePlanetBuiltGenesisDevice
+	PlayerMessagePlayerAcquirablePartGainedScrapFleet
+	PlayerMessagePlayerAcquirablePartGainedBattle
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -931,9 +933,7 @@ func (m *messageClient) playerGainTechLevel(player *Player, field TechField, lev
 func (m *messageClient) playerTechGained(player *Player, field TechField, tech *Tech) {
 	var text string
 	switch tech.Category {
-	case TechCategoryShipHull:
-		fallthrough
-	case TechCategoryStarbaseHull:
+	case TechCategoryShipHull, TechCategoryStarbaseHull:
 		text = fmt.Sprintf("Your recent breakthrough in %v has also given you the %s hull type. To build ships with this design, go to Commands -> Ship Designer and select Create New Design.", field, tech.Name)
 	case TechCategoryPlanetaryDefense:
 		text = fmt.Sprintf("Your recent breakthrough in %v has also taught you how to build %s defenses. All existing planetary defenses have been upgraded to the new technology.", field, tech.Name)
@@ -958,6 +958,16 @@ func (m *messageClient) playerTechGainedInvasion(player *Player, planet *Planet,
 func (m *messageClient) playerTechGainedScrappedFleet(player *Player, planet *Planet, fleetName string, field TechField) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlayerTechLevelGainedScrapFleet, planet).
 		withSpec(PlayerMessageSpec{Field: field, Name: fleetName}))
+}
+
+func (m *messageClient) playerAcquirablePartGainedBattle(player *Player, planet *Planet, record *BattleRecord, tech string) {
+	player.Messages = append(player.Messages, newBattleMessage(PlayerMessagePlayerAcquirablePartGainedScrapFleet, planet, record).
+		withSpec(PlayerMessageSpec{TechGained: tech}))
+}
+
+func (m *messageClient) playerAcquirablePartGainedScrappedFleet(player *Player, planet *Planet, fleetName string, tech string) {
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlayerAcquirablePartGainedScrapFleet, planet).
+		withSpec(PlayerMessageSpec{TechGained: tech, Name: fleetName}))
 }
 
 // tell a player they are dead. This always appears as the first message

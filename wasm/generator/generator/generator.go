@@ -73,23 +73,9 @@ func (t FieldType) IsBasic() bool {
 
 func GeneratorTypeFromBasicType(basic string) GeneratorType {
 	switch basic {
-	case "int":
-		fallthrough
-	case "int32":
-		fallthrough
-	case "int64":
-		fallthrough
-	case "uint":
-		fallthrough
-	case "uint32":
-		fallthrough
-	case "uint64":
+	case "int", "int32", "int64", "uint", "uint32", "uint64":
 		return GeneratorTypeBasicInt
-	case "float":
-		fallthrough
-	case "float32":
-		fallthrough
-	case "float64":
+	case "float", "float32", "float64":
 		return GeneratorTypeBasicFloat
 	case "bool":
 		return GeneratorTypeBasicBool

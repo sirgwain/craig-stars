@@ -409,17 +409,11 @@ func (p *production) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost
 // for things that are built on the planet (mines, factories, etc) add them
 func (p *production) addPlanetaryInstallations(item ProductionQueueItem, numBuilt int) {
 	switch item.Type {
-	case QueueItemTypeAutoMines:
-		fallthrough
-	case QueueItemTypeMine:
+	case QueueItemTypeAutoMines, QueueItemTypeMine:
 		p.planet.Mines += numBuilt
-	case QueueItemTypeAutoFactories:
-		fallthrough
-	case QueueItemTypeFactory:
+	case QueueItemTypeAutoFactories, QueueItemTypeFactory:
 		p.planet.Factories += numBuilt
-	case QueueItemTypeAutoDefenses:
-		fallthrough
-	case QueueItemTypeDefenses:
+	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
 		p.planet.Defenses += numBuilt
 	case QueueItemTypePlanetaryScanner:
 		p.planet.Scanner = true
@@ -485,35 +479,19 @@ func (p *production) getNumBuilt(item ProductionQueueItem, cost, availableToSpen
 // add built items to planet, build fleets, update player messages, etc
 func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt int, cost Cost, result *productionResult) {
 	switch item.Type {
-	case QueueItemTypeAutoMineralAlchemy:
-		fallthrough
-	case QueueItemTypeMineralAlchemy:
+	case QueueItemTypeAutoMineralAlchemy, QueueItemTypeMineralAlchemy:
 		result.alchemy = Mineral{
 			numBuilt,
 			numBuilt,
 			numBuilt,
 		}
-	case QueueItemTypeAutoMines:
-		fallthrough
-	case QueueItemTypeMine:
+	case QueueItemTypeAutoMines, QueueItemTypeMine:
 		result.mines += numBuilt
-	case QueueItemTypeAutoFactories:
-		fallthrough
-	case QueueItemTypeFactory:
+	case QueueItemTypeAutoFactories, QueueItemTypeFactory:
 		result.factories += numBuilt
-	case QueueItemTypeAutoDefenses:
-		fallthrough
-	case QueueItemTypeDefenses:
+	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
 		result.defenses += numBuilt
-	case QueueItemTypeAutoMineralPacket:
-		fallthrough
-	case QueueItemTypeMixedMineralPacket:
-		fallthrough
-	case QueueItemTypeIroniumMineralPacket:
-		fallthrough
-	case QueueItemTypeBoraniumMineralPacket:
-		fallthrough
-	case QueueItemTypeGermaniumMineralPacket:
+	case QueueItemTypeAutoMineralPacket, QueueItemTypeMixedMineralPacket, QueueItemTypeIroniumMineralPacket, QueueItemTypeBoraniumMineralPacket, QueueItemTypeGermaniumMineralPacket:
 		// add this packet cargo to the production result
 		// so it can be added as packets to the universe later
 		cargo := cost.MultiplyFloat64(1 / p.player.Race.Spec.PacketMineralCostFactor).MultiplyInt(numBuilt).ToCargo()

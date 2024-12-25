@@ -215,7 +215,7 @@
 
 				if ((hullComponent.unterraformRate ?? 0) > 0) {
 					descriptions.push(
-						`This bomb does not kill colonists or destroy installations. This bomb 'unterraforms' planets toward their original state up to ${hullComponent.unterraformRate}% per variable per bombing run. Planetary defenses have no effect on this bomb.`
+						`This bomb does not kill colonists or destroy installations. This bomb 'unterraforms' planets toward their original state by up to ${hullComponent.unterraformRate}% per variable per bombing run. Planetary defenses have no effect on this bomb.`
 					);
 				}
 
@@ -234,7 +234,7 @@
 						descriptions.push(
 							`Cloaks any ship, reducing the range at which scanners detect it by up to ${getCloakPercentForCloakUnits(
 								hullComponent.cloakUnits
-							).toFixed()}%.`
+							).toFixed()}%. Cloak amount is reduced `
 						);
 					}
 				}
@@ -253,14 +253,14 @@
 
 				if (hullComponent.colonizationModule) {
 					descriptions.push(
-						`This pod allows a ship to colonize an uninhabited planet. Upon arrival, the pod will dismantle it and any other ships in the fleet into supplies for the colonists. 
+						`This module allows a ship to colonize an uninhabited planet. Upon arrival, the pod will dismantle it and any other ships in the fleet into supplies for the colonists. 
 						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
 					);
 				}
 
 				if (hullComponent.orbitalConstructionModule) {
 					descriptions.push(
-						`This pod contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it, scrapping all ships in the fleet in the progress. 
+						`This module contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it, scrapping all ships in the fleet in the progress. 
 						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
 					);
 					if ((hullComponent.minKillRate ?? 0) > 0) {
@@ -285,9 +285,9 @@
 
 				if (hullComponent.beamDefense && hullComponent.beamDefense > 0) {
 					descriptions.push(
-						`The deflector decreases damage done by beam weapons to this ship by up to ${(
+						`This module decreases damage dealt by opposing beam weapons by ${(
 							hullComponent.beamDefense * 100
-						).toFixed()}%`
+						).toFixed()}% of the current amount.`
 					);
 				}
 
@@ -296,9 +296,9 @@
 						descriptions.push(
 							`This module increases the accuracy of your torpedos by ${
 								(hullComponent.torpedoBonus ?? 0) * 100
-							}% and increases your initiative by ${
+							}% of the current amount and increases your initiative by ${
 								hullComponent.initiativeBonus
-							}. If an enemy ship has jammers it act to offset their effects.`
+							}. If an enemy ship has jammers this will act to offset their effects.`
 						);
 					} else if ((hullComponent.initiativeBonus ?? 0) > 0) {
 						descriptions.push(
@@ -308,7 +308,7 @@
 						descriptions.push(
 							`This module increases the accuracy of your torpedos by ${
 								(hullComponent.torpedoBonus ?? 0) * 100
-							}%. If an enemy ship has jammers this will act to offset their effects.`
+							}% of the current amount. If an enemy ship has jammers this will act to offset their effects.`
 						);
 					}
 				}
@@ -326,25 +326,25 @@
 					descriptions.push(
 						`Increases the damage dealt by all beam weapons on this ship by ${
 							hullComponent.beamBonus * 100
-						}%.`
+						}% of the current amount. The final damage multipler cannot exceed 2.55x the weapon's base damage.`
 					);
 				}
 
 				if ((hullComponent.reduceMovement ?? 0) > 0) {
 					descriptions.push(
-						`Slows all ships in combat by ${hullComponent.reduceMovement} square of movement.`
+						`Slows ALL ships in combat (friendly and enemy) by ${hullComponent.reduceMovement} square of movement. This effect does not stack and cannot slow ships below the minimum battle speed.`
 					);
 				}
 
 				if (hullComponent.reduceCloaking) {
 					descriptions.push(
-						`Reduces the effectiveness of other players' cloaks by up to ${rules.tachyonCloakReduction}%.`
+						`Reduces the effectiveness of other players' cloaks by up to ${rules.tachyonCloakReduction}%. Multiple components will reduce cloaking further, but with diminishing returns.`
 					);
 				}
 
 				if ((hullComponent.safeRange ?? 0) > 0) {
 					descriptions.push(
-						'Allows fleets without cargo to jump to any other planet with a stargate in a single year.'
+						'Allows fleets without cargo to jump to any other allied planet with a stargate in a single year.'
 					);
 					stats.push({
 						label: 'Safe hull mass',
@@ -378,7 +378,7 @@
 
 				if ((hullComponent.packetSpeed ?? 0) > 0) {
 					stats.push({ label: 'Warp', text: `${hullComponent.packetSpeed}` });
-					descriptions.push('Allows planets to fling mineral packets at other planets.');
+					descriptions.push('Allows planets to fling mineral packets at other planets to transport minerals or bombard enemies.');
 					warnings.push(
 						'Warning: The receiving planet must have a mass driver at least as capable or it will take damage.'
 					);
@@ -399,7 +399,7 @@
 					if (!hullComponent.scanRangePen) {
 						// we have no pen scan, but we are a normal scanner, we can still scan planets we orbit
 						descriptions.push(
-							"This scanner is capable of determining a planet's environment and composition while orbiting it. It will also spot enemy fleets attempting to hide behind planets at the same location."
+							"This scanner is capable of determining a planet's environment and composition while orbiting it. It will also spot enemy fleets attempting to hide behind planets at the same position as this ship."
 						);
 					}
 
