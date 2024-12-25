@@ -1,10 +1,6 @@
 package cs
 
-import (
-	"math"
-
-	"slices"
-)
+import "math"
 
 // The techTrader interface handles checks for tech level increases from trading
 type techTrader interface {
@@ -105,21 +101,19 @@ func (t *techTrade) acquirablePartGained(rules *Rules, player *Player, tokens []
 	}
 
 	qtyPerPart := map[*Tech]int{} // maps tech part to total quantity on fleet
-	parts := []*Tech{}            // list of parts being checked for; allows for deterministic shuffling of parts
+	parts := []*Tech{}            // list of parts being checked for; allows for deterministic shuffling of part checks
 
 	// tally up parts in our fleet
 	for _, token := range tokens {
-		// iterate through the token's slots and remove anything not explicitly tradeable
-		// TODO: Check if this is actually faster than simply skipping over ineligible slots
-		slotsFiltered := slices.DeleteFunc(slices.Clone(token.design.Slots), func(slot ShipDesignSlot) bool {
-			tc := rules.techs.GetHullComponent(slot.HullComponent)
-			return tc == nil || // hull component doesn't exist
-				!tc.Requirements.Acquirable || // component is not acquirable
-				player.AcquiredTechs[tc.Name] // we already have this part
-		})
+		for _, slot := range token.design.Slots {
+			hc := rules.techs.GetHullComponent(slot.HullComponent)
+			if hc == nil || // hull component doesn't exist
+				!hc.Requirements.Acquirable || // component is not acquirable
+				player.AcquiredTechs[hc.Name] { // we already have this part
+				continue
+			}
 
-		for _, slot := range slotsFiltered {
-			tech := rules.techs.GetHullComponent(slot.HullComponent).Tech
+			tech := hc.Tech
 			if _, ok := qtyPerPart[&tech]; !ok {
 				parts = append(parts, &tech)
 			}
