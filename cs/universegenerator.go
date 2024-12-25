@@ -497,6 +497,7 @@ func (ug *universeGenerator) applyGameStartModeModifier() {
 	switch ug.StartMode {
 	case GameStartModeMax:
 		ug.maxPlayersAndPlanets()
+		ug.Game.Year += 100 // increase year by 100; ensures that AI immediately starts churning out ships
 	}
 }
 

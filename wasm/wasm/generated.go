@@ -529,13 +529,13 @@ func GetCometStats(o js.Value) cs.CometStats {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.AllMinerals = getInt[int](o.Get("minMinerals"))
-	obj.AllRandomMinerals = getInt[int](o.Get("randomMinerals"))
+	obj.AllMinerals = getInt[int](o.Get("allMinerals"))
+	obj.AllRandomMinerals = getInt[int](o.Get("allRandomMinerals"))
 	obj.BonusMinerals = getInt[int](o.Get("bonusMinerals"))
 	obj.BonusRandomMinerals = getInt[int](o.Get("bonusRandomMinerals"))
-	obj.BonusMinConcentration = getInt[int](o.Get("minConcentrationBonus"))
-	obj.BonusRandomConcentration = getInt[int](o.Get("randomConcentrationBonus"))
-	obj.BonusAffectsMinerals = getInt[int](o.Get("affectsMinerals"))
+	obj.BonusMinConcentration = getInt[int](o.Get("bonusMinConcentration"))
+	obj.BonusRandomConcentration = getInt[int](o.Get("bonusRandomConcentration"))
+	obj.BonusAffectsMinerals = getInt[int](o.Get("bonusAffectsMinerals"))
 	obj.MinTerraform = getInt[int](o.Get("minTerraform"))
 	obj.RandomTerraform = getInt[int](o.Get("randomTerraform"))
 	obj.AffectsHabs = getInt[int](o.Get("affectsHabs"))
@@ -543,13 +543,13 @@ func GetCometStats(o js.Value) cs.CometStats {
 	return obj
 }
 func SetCometStats(o js.Value, obj *cs.CometStats) {
-	o.Set("minMinerals", obj.AllMinerals)
-	o.Set("randomMinerals", obj.AllRandomMinerals)
+	o.Set("allMinerals", obj.AllMinerals)
+	o.Set("allRandomMinerals", obj.AllRandomMinerals)
 	o.Set("bonusMinerals", obj.BonusMinerals)
 	o.Set("bonusRandomMinerals", obj.BonusRandomMinerals)
-	o.Set("minConcentrationBonus", obj.BonusMinConcentration)
-	o.Set("randomConcentrationBonus", obj.BonusRandomConcentration)
-	o.Set("affectsMinerals", obj.BonusAffectsMinerals)
+	o.Set("bonusMinConcentration", obj.BonusMinConcentration)
+	o.Set("bonusRandomConcentration", obj.BonusRandomConcentration)
+	o.Set("bonusAffectsMinerals", obj.BonusAffectsMinerals)
 	o.Set("minTerraform", obj.MinTerraform)
 	o.Set("randomTerraform", obj.RandomTerraform)
 	o.Set("affectsHabs", obj.AffectsHabs)
@@ -3381,7 +3381,7 @@ func GetUniverseGenerationRules(o js.Value) cs.UniverseGenerationRules {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o.Get("highRadGermaniumBonusThreshold"))
+	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o.Get("highRadMineralConcentrationBonusThreshold"))
 	obj.LimitMineralConcentration = getInt[int](o.Get("limitMineralConcentration"))
 	obj.MaxExtraWorldDistance = getInt[int](o.Get("maxExtraWorldDistance"))
 	obj.MaxHab = getInt[int](o.Get("maxHab"))
@@ -3397,11 +3397,11 @@ func GetUniverseGenerationRules(o js.Value) cs.UniverseGenerationRules {
 	obj.MinStartingMineralSurface = getInt[int](o.Get("minStartingMineralSurface"))
 	obj.RaceLeftoverPointsPerItem = GetStringMap[map[cs.SpendLeftoverPointsOn]int](o.Get("raceLeftoverPointsPerItem"), getInt)
 	obj.StartingYear = getInt[int](o.Get("startingYear"))
-	obj.WormholeMinPlanetDistance = getInt[int](o.Get("wormholeMinDistance"))
+	obj.WormholeMinPlanetDistance = getInt[int](o.Get("wormholeMinPlanetDistance"))
 	return obj
 }
 func SetUniverseGenerationRules(o js.Value, obj *cs.UniverseGenerationRules) {
-	o.Set("highRadGermaniumBonusThreshold", obj.HighRadMineralConcentrationBonusThreshold)
+	o.Set("highRadMineralConcentrationBonusThreshold", obj.HighRadMineralConcentrationBonusThreshold)
 	o.Set("limitMineralConcentration", obj.LimitMineralConcentration)
 	o.Set("maxExtraWorldDistance", obj.MaxExtraWorldDistance)
 	o.Set("maxHab", obj.MaxHab)
@@ -3421,7 +3421,7 @@ func SetUniverseGenerationRules(o js.Value, obj *cs.UniverseGenerationRules) {
 	}
 	o.Set("raceLeftoverPointsPerItem", raceLeftoverPointsPerItemMap)
 	o.Set("startingYear", obj.StartingYear)
-	o.Set("wormholeMinDistance", obj.WormholeMinPlanetDistance)
+	o.Set("wormholeMinPlanetDistance", obj.WormholeMinPlanetDistance)
 }
 
 func GetUserRole(o js.Value) cs.UserRole {
