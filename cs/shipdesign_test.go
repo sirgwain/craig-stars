@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -64,7 +63,7 @@ func TestShipDesign_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid HullSlotIndex - negative",
+			name: "invalid HullSlotIndex",
 			fields: fields{
 				Name: "Scout",
 				Hull: "Scout",
@@ -78,7 +77,7 @@ func TestShipDesign_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid HullSlotIndex - out of bounds",
+			name: "invalid HullSlotIndex2",
 			fields: fields{
 				Name: "Scout",
 				Hull: "Scout",
@@ -199,9 +198,9 @@ func TestComputeShipDesignSpec(t *testing.T) {
 		design     *ShipDesign
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    ShipDesignSpec
+		name string
+		args args
+		want ShipDesignSpec
 		wanterr bool
 	}{
 		{name: "Humanoid Starter Long Range Scout",
@@ -373,7 +372,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeCapitalShip,
+				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 76, 168},
@@ -413,7 +412,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeCapitalShip,
+				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 43, 171},
@@ -453,7 +452,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeCapitalShip,
+				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 52, 156},
@@ -493,7 +492,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeCapitalShip,
+				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 44, 150},
@@ -532,7 +531,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 					}),
 			},
 			want: ShipDesignSpec{
-				HullType:       TechHullTypeCapitalShip,
+				HullType:       TechHullTypeFighter,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
 				Cost:           Cost{98, 28, 58, 162},
@@ -652,10 +651,10 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				design: NewShipDesign(player, 1).
 					WithHull(SpaceStation.Name).
 					WithSlots([]ShipDesignSlot{
-						{HullComponent: "ERROR 412: I'M A TEAPOT", HullSlotIndex: 420, Quantity: 69},
+						{HullComponent: "BANANA!!!!!!!!", HullSlotIndex: 10, Quantity: 8},
 					}),
-			},
-			want:    ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
+			}, 
+			want: ShipDesignSpec{}, // doesn't matter since want value ignored if error desired
 			wanterr: true,
 		},
 	}
@@ -747,682 +746,5 @@ func TestShipDesign_SlotsEqual(t *testing.T) {
 				t.Errorf("ShipDesign.SlotsEqual() = %v, want %v", got, tt.want)
 			}
 		})
-	}
-}
-
-func TestDesignShip(t *testing.T) {
-	type args struct {
-		hull         *TechHull
-		techLevels   TechLevel
-		player       *Player
-		purpose      ShipDesignPurpose
-		fleetPurpose FleetPurpose
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    map[string]int
-		wanterr bool
-	}{
-		{
-			name: "Humanoid Starter Stalwart Defender",
-			args: args{
-				techLevels:   TechLevel{3, 3, 3, 3, 3, 3},
-				hull:         &Destroyer,
-				player:       NewPlayer(1, NewRace().WithPRT(JoaT).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeStartingFighter,
-				fleetPurpose: FleetPurposeScout,
-			},
-			want: map[string]int{
-				LongHump6.Name:      1,
-				AlphaTorpedo.Name:   1,
-				XRayLaser.Name:      1,
-				RhinoScanner.Name:   1,
-				Crobmnium.Name:      2,
-				FuelTank.Name:       1,
-				BattleComputer.Name: 1,
-			},
-			wanterr: false,
-		},
-		{
-			name: "Humanoid Starter Teamster w/ IFE",
-			args: args{
-				techLevels:   TechLevel{3, 3, 3, 3, 3, 3},
-				hull:         &MediumFreighter,
-				player:       NewPlayer(1, NewRace().WithPRT(JoaT).WithLRT(IFE).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeStartingFighter,
-				fleetPurpose: FleetPurposeScout,
-			},
-			want: map[string]int{
-				FuelMizer.Name:    1,
-				RhinoScanner.Name: 1,
-				Crobmnium.Name:    1,
-			},
-			wanterr: false,
-		},
-		{
-			name: "IT starting Swashbuckler w/ radram",
-			args: args{
-				techLevels:   TechLevel{3, 3, 6, 5, 3, 3},
-				hull:         &Privateer,
-				player:       NewPlayer(1, NewRace().WithPRT(IT).WithLRT(CE).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeStartingFighter,
-				fleetPurpose: FleetPurposeFreighter,
-			},
-			want: map[string]int{
-				RadiatingHydroRamScoop.Name: 1,
-				RhinoScanner.Name:           1,
-				AlphaTorpedo.Name:           1,
-				XRayLaser.Name:              1,
-				Crobmnium.Name:              2,
-			},
-			wanterr: false,
-		},
-		{
-			name: "Large Freighter - avoids radram",
-			args: args{
-				techLevels:   TechLevel{3, 3, 6, 8, 3, 3},
-				hull:         &LargeFreighter,
-				player:       NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeFreighter,
-				fleetPurpose: FleetPurposeColonistFreighter,
-			},
-			want: map[string]int{
-				DaddyLongLegs7.Name: 2,
-				FuelTank.Name:       2,
-				CowHideShield.Name:  2,
-			},
-			wanterr: false,
-		},
-		{
-			name: "IFE Cargo Privateer",
-			args: args{
-				hull:         &Privateer,
-				techLevels:   TechLevel{0, 0, 2, 4, 0, 0},
-				player:       NewPlayer(1, NewRace().WithPRT(JoaT).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeFreighter,
-				fleetPurpose: FleetPurposeFreighter,
-			},
-			want: map[string]int{
-				FuelMizer.Name:      1,
-				CargoPod.Name:       1,
-				FuelTank.Name:       2,
-				MoleSkinShield.Name: 2,
-			},
-			wanterr: false,
-		},
-		{
-			name: "Remote Miner",
-			args: args{
-				hull:         &UltraMiner,
-				techLevels:   TechLevel{0, 0, 2, 15, 8, 0},
-				player:       NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ARM).WithLRT(NRSE).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeMiner,
-				fleetPurpose: FleetPurposeMiner,
-			},
-			want: map[string]int{
-				FuelMizer.Name:      2,
-				FuelTank.Name:       3,
-				RoboUltraMiner.Name: 12,
-			},
-			wanterr: false,
-		},
-		{
-			name: "SD Minelayer",
-			args: args{
-				hull:         &SuperMineLayer,
-				techLevels:   TechLevel{4, 0, 2, 15, 8, 7},
-				player:       NewPlayer(1, NewRace().WithPRT(SD).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeDamageMineLayer,
-				fleetPurpose: FleetPurposeMineLayer,
-			},
-			want: map[string]int{
-				FuelMizer.Name:       1,
-				FuelTank.Name:        3,
-				MineDispenser80.Name: 19,
-				CowHideShield.Name:   4,
-			},
-			wanterr: false,
-		},
-		{
-			name: "Hush-A-Boom B-52 Bomber",
-			args: args{
-				hull:       &B52Bomber,
-				techLevels: TechLevel{12, 16, 12, 15, 12, 12},
-				player: NewPlayer(1, NewRace().WithPRT(WM).WithSpec(&rules)).WithNum(1).
-					WithAcquiredTech(HushABoom.Name).WithAcquiredTech(LangstonShell.Name),
-				purpose:      ShipDesignPurposeBomber,
-				fleetPurpose: FleetPurposeBomber,
-			},
-			want: map[string]int{
-				TransGalacticSuperScoop.Name: 2,
-				FuelTank.Name:                2,
-				HushABoom.Name:               16,
-				LangstonShell.Name:           2,
-			},
-			wanterr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.args.player.TechLevels = tt.args.techLevels
-			got, err := DesignShip(&rules, tt.args.hull, tt.name, tt.args.player, 1, 1, tt.args.purpose, tt.args.fleetPurpose)
-			if (err != nil) != tt.wanterr {
-				if tt.wanterr {
-					t.Errorf("DesignShip() failed to error when expected; returned slots %+v instead", got.Slots)
-				} else {
-					t.Errorf("DesignShip() errored unexpectedly; returned error %v", err)
-				}
-			}
-
-			tallyMap := map[string]int{}
-			for _, slot := range got.Slots {
-				tallyMap[slot.HullComponent] += slot.Quantity
-			}
-			if !reflect.DeepEqual(tallyMap, tt.want) {
-				t.Errorf("ShipDesign from DesignShip() had parts \n%+v, want \n%+v", tallyMap, tt.want)
-			}
-		})
-	}
-}
-
-func TestDesignWarship(t *testing.T) {
-	type fields struct {
-		techLevel     TechLevel
-		acquiredParts []Tech
-		race          *Race
-	}
-	type args struct {
-		hull    *TechHull
-		purpose ShipDesignPurpose
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    map[string]int
-		wantErr bool
-	}{
-		{
-			name: "WM Weps 10 Battlecruiser",
-			fields: fields{
-				techLevel:     TechLevel{7, 10, 3, 10, 4, 0},
-				acquiredParts: []Tech{},
-				race:          NewRace().WithPRT(WM).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules),
-			},
-			args: args{
-				hull:    &BattleCruiser,
-				purpose: ShipDesignPurposeBeamFighter,
-			},
-			want: map[string]int{
-				FuelMizer.Name:              2,
-				ManeuveringJet.Name:         2,
-				EnergyCapacitor.Name:        2,
-				ColloidalPhaser.Name:        6,
-				PulsedSapper.Name:           3,
-				WolverineDiffuseShield.Name: 4,
-			}, wantErr: false,
-		},
-		{
-			name: "HE Jihad Metamorph",
-			fields: fields{
-				techLevel:     TechLevel{10, 12, 7, 10, 0, 0},
-				acquiredParts: []Tech{},
-				race:          NewRace().WithPRT(HE).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules),
-			},
-			args: args{
-				hull:    &MetaMorph,
-				purpose: ShipDesignPurposeTorpedoFighter,
-			},
-			want: map[string]int{
-				AlphaDrive8.Name:         3,
-				JihadMissile.Name:        8,
-				BearNeutrinoBarrier.Name: 4,
-				BattleComputer.Name:      3,
-				ManeuveringJet.Name:      2,
-			}, wantErr: false,
-		},
-		{
-			name: "IS Croby Frigate Armed Scout",
-			fields: fields{
-				techLevel:     TechLevel{7, 10, 2, 6, 1, 1},
-				acquiredParts: []Tech{},
-				race:          NewRace().WithPRT(IS).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules),
-			},
-			args: args{
-				hull:    &Frigate,
-				purpose: ShipDesignPurposeFighterScout,
-			},
-			want: map[string]int{
-				FuelMizer.Name:       1,
-				ColloidalPhaser.Name: 3,
-				CrobySharmor.Name:    2,
-				RhinoScanner.Name:    1,
-			}, wantErr: false,
-		},
-		{
-			name: "Max Techs HE AMP Nubian",
-			fields: fields{
-				techLevel:     TechLevel{26, 26, 26, 26, 26, 26},
-				acquiredParts: []Tech{EnigmaPulsar.Tech},
-				race:          NewRace().WithPRT(HE).WithLRT(IFE).WithLRT(RS).WithLRT(NRSE).WithSpec(&rules),
-			},
-			args: args{
-				hull:    &Nubian,
-				purpose: ShipDesignPurposeBeamFighter,
-			},
-			want: map[string]int{
-				EnigmaPulsar.Name:         3,
-				AntiMatterPulverizer.Name: 6,
-				CompletePhaseShield.Name:  6,
-				Jammer30.Name:             6,
-				FluxCapacitor.Name:        6,
-				BeamDeflector.Name:        12,
-			}, wantErr: false,
-		},
-		{
-			name: "Max Techs WM Missile Nubian",
-			fields: fields{
-				techLevel:     TechLevel{26, 26, 26, 26, 26, 26},
-				acquiredParts: []Tech{},
-				race:          NewRace().WithPRT(WM).WithLRT(IFE).WithLRT(RS).WithSpec(&rules),
-			},
-			args: args{
-				hull:    &Nubian,
-				purpose: ShipDesignPurposeTorpedoFighter,
-			},
-			want: map[string]int{
-				GalaxyScoop.Name:         3,
-				ArmageddonMissile.Name:   6,
-				CompletePhaseShield.Name: 6,
-				Jammer30.Name:            6,
-				BattleNexus.Name:         6,
-				BeamDeflector.Name:       12, // no need for jets as we already have 2 1/4 move
-			}, wantErr: false,
-		},
-		{
-			name: "W20 WM Dreadnought with Mega Poly",
-			fields: fields{
-				techLevel:     TechLevel{14, 20, 12, 16, 14, 14},
-				acquiredParts: []Tech{MegaPolyShell.Tech},
-				race:          NewRace().WithPRT(WM).WithLRT(IFE).WithLRT(NRSE).WithSpec(&rules),
-			},
-			args: args{
-				hull:    &Dreadnought,
-				purpose: ShipDesignPurposeTorpedoFighter,
-			},
-			want: map[string]int{
-				Interspace10.Name:        5,
-				DoomsdayMissile.Name:     28,
-				GorillaDelagator.Name:    10,
-				BattleSuperComputer.Name: 8,
-				MegaPolyShell.Name:       16, // 400 armor + 100 shield blows gorilla delags out of the water
-				Overthruster.Name:        2,
-			}, wantErr: false,
-		},
-		{
-			name: "ARM BB with Multi Function Pod",
-			fields: fields{
-				techLevel:     TechLevel{11, 24, 11, 16, 11, 7},
-				acquiredParts: []Tech{MultiFunctionPod.Tech},
-				race:          NewRace().WithPRT(JoaT).WithLRT(IFE).WithLRT(NRSE).WithLRT(RS).WithSpec(&rules),
-			},
-			args: args{
-				hull:    &Battleship,
-				purpose: ShipDesignPurposeTorpedoFighter,
-			},
-			want: map[string]int{
-				Interspace10.Name:        4,
-				ArmageddonMissile.Name:   20,
-				BearNeutrinoBarrier.Name: 8,
-				BattleSuperComputer.Name: 3,
-				Jammer20.Name:            1,
-				MultiFunctionPod.Name:    3,
-			}, wantErr: false,
-		},
-		{
-			name: "Weps 24 AR Death Star",
-			fields: fields{
-				techLevel:     TechLevel{22, 24, 22, 22, 22, 22},
-				acquiredParts: []Tech{},
-				race:          NewRace().WithPRT(AR).WithSpec(&rules),
-			},
-			args: args{
-				hull:    &DeathStar,
-				purpose: ShipDesignPurposeStarbase,
-			},
-			want: map[string]int{
-				ArmageddonMissile.Name:   128,
-				CompletePhaseShield.Name: 40,
-				Valanium.Name:            40,
-				Jammer30.Name:            8,
-				BattleNexus.Name:         4,
-				SuperStealthCloak.Name:   12,
-				Stargate300_500.Name:     1,
-				UltraDriver10.Name:       1,
-			}, wantErr: false,
-		},
-		{
-			name: "Tech 26 half Ultra Station; all MT Techs",
-			fields: fields{
-				techLevel:     TechLevel{26, 26, 26, 26, 26, 26},
-				acquiredParts: MysteryTraderTechs,
-				race:          NewRace().WithPRT(WM).WithLRT(ISB).WithSpec(&rules),
-			},
-			args: args{
-				hull:    &UltraStation,
-				purpose: ShipDesignPurposeStarbaseHalf,
-			},
-			want: map[string]int{
-				ArmageddonMissile.Name:   48,
-				CompletePhaseShield.Name: 20,
-				MegaPolyShell.Name:       20,
-				BattleNexus.Name:         6,
-				SuperStealthCloak.Name:   6,
-				Stargate300_500.Name:     1,
-				UltraDriver10.Name:       1,
-			}, wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1, tt.fields.race).WithTechLevels(tt.fields.techLevel)
-			for _, part := range tt.fields.acquiredParts {
-				player.AcquiredTechs[part.Name] = true
-			}
-			got, err := DesignWarship(&rules, tt.args.hull, tt.name, player, 1, 2, tt.args.purpose)
-			tallyMap := map[string]int{}
-			for _, slot := range got.Slots {
-				tallyMap[slot.HullComponent] += slot.Quantity
-			}
-			if err != nil {
-				t.Errorf("DesignWarship() errored unexpectedly, error = %v", err)
-			}
-			if !reflect.DeepEqual(tallyMap, tt.want) {
-				t.Errorf("ShipDesign from DesignWarship() had incorrect parts; test returned slots \n%v, expected \n%v", tallyMap, tt.want)
-			}
-		})
-	}
-}
-
-func TestShipDesignSpec_getJamOrComputerBonus(t *testing.T) {
-	type fields struct {
-		prevBonus float64
-		starbase  bool
-	}
-	type args struct {
-		hc           *TechHullComponent
-		qty          int
-		fieldToCheck TechTag
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   float64
-	}{
-		{
-			name: "wrong field being checked",
-			fields: fields{
-				prevBonus: 0,
-				starbase:  false,
-			},
-			args: args{
-				hc:           &Jammer20,
-				qty:          1,
-				fieldToCheck: TechTagTorpedoBonus,
-			},
-			want: 1,
-		},
-		{
-			name: "already at hardcap",
-			fields: fields{
-				prevBonus: 0.75,
-				starbase:  true,
-			},
-			args: args{
-				hc:           &Jammer20,
-				qty:          1,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-			want: 1,
-		},
-		{
-			name: "10 Jammer 50s on starbase",
-			fields: fields{
-				prevBonus: 0,
-				starbase:  true,
-			},
-			args: args{
-				hc:           &Jammer50,
-				qty:          10,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-			want: 1.7493, // ((1-((1-0.5^10)*0.75))+1)/1
-		},
-		{
-			name: "99 jammer 50s hitting ship hardcap",
-			fields: fields{
-				prevBonus: 0,
-				starbase:  false,
-			},
-			args: args{
-				hc:           &Jammer50,
-				qty:          99,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-
-			want: 1.95,
-		},
-		{
-			name: "2 battle super comps on 90% computed ship",
-			fields: fields{
-				prevBonus: 0.9, // new computing: 1-(0.1*0.7^2) = 95.1% computing
-				starbase:  false,
-			},
-
-			args: args{
-				hc:           &BattleSuperComputer,
-				qty:          2,
-				fieldToCheck: TechTagTorpedoBonus,
-			},
-			want: 1.0268, // 1.951 / 1.9
-		},
-		{
-			name: "1 Mega poly shell on 20% jammed starbase",
-			fields: fields{
-				prevBonus: 0.2,
-				starbase:  true,
-			},
-
-			args: args{
-				hc:           &MegaPolyShell,
-				qty:          1,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-			want: 1.0917, // 1.31 / 1.2
-		},
-		{
-			name: "3 jammer 20s on 10% jammed starbase",
-			fields: fields{
-				prevBonus: 0.1,
-				starbase:  true,
-			},
-
-			args: args{
-				hc:           &Jammer20,
-				qty:          3,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-			want: 1.2884, // 1.4172 / 1.1
-		},
-		{
-			name: "3 beam deflectors on 19% deflected starbase",
-			fields: fields{
-				prevBonus: 0.81,
-				starbase:  true,
-			},
-
-			args: args{
-				hc:           &BeamDeflector,
-				qty:          3,
-				fieldToCheck: TechTagBeamDeflector,
-			},
-			want: 1.1845, // 1.40951 / 1.19
-		},
-		{
-			name: "3 deflectors on heavily deflected ship",
-			fields: fields{
-				prevBonus: 0.28243,
-				starbase:  false,
-			},
-
-			args: args{
-				hc:           &BeamDeflector,
-				qty:          3,
-				fieldToCheck: TechTagBeamDeflector,
-			},
-			want: 1.0446, // 1.7941 / 1.7176
-		},
-	}
-	for _, tt := range tests {
-		design := NewShipDesign(testPlayer(), 1).WithHull("Nubian").WithSpec(&rules, testPlayer())
-		design.Spec.TorpedoBonus = tt.fields.prevBonus
-		design.Spec.TorpedoJamming = tt.fields.prevBonus
-		design.Spec.BeamDefense = tt.fields.prevBonus
-		design.Spec.Starbase = tt.fields.starbase
-		t.Run(tt.name, func(t *testing.T) {
-			if got := roundFloat(design.Spec.getJamOrComputerBonus(&rules, tt.args.hc, tt.args.qty, tt.args.fieldToCheck), 4); got != tt.want {
-				t.Errorf("ShipDesign.getJamOrComputerBonus() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func BenchmarkDesignShip_Large(b *testing.B) {
-	purposes := []ShipDesignPurpose{
-		ShipDesignPurposeFreighter,
-		ShipDesignPurposeSpeedMineLayer,
-		ShipDesignPurposeMiner,
-	}
-	player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-	for _, tech := range MysteryTraderTechs {
-		player.AcquiredTechs[tech.Name] = true
-	}
-	b.ResetTimer()
-	for range b.N {
-		b.StopTimer()
-		num := rules.random.Intn(3)
-		purpose := purposes[num]
-		var hull *TechHull
-		switch num {
-		case 0, 1:
-			hull = &Nubian
-		case 2:
-			hull = &UltraMiner
-		}
-		fp := FleetPurposeFromShipDesignPurpose(purpose)
-		b.StartTimer()
-		DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
-	}
-}
-func BenchmarkDesignShip_Small(b *testing.B) {
-	purposes := []ShipDesignPurpose{
-		ShipDesignPurposeFreighter,
-		ShipDesignPurposeSpeedMineLayer,
-		ShipDesignPurposeMiner,
-	}
-	player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-	for _, tech := range MysteryTraderTechs {
-		player.AcquiredTechs[tech.Name] = true
-	}
-	b.ResetTimer()
-	for range b.N {
-		b.StopTimer()
-		num := rules.random.Intn(3)
-		purpose := purposes[num]
-		var hull *TechHull
-		switch num {
-		case 0:
-			hull = &LargeFreighter
-		case 1:
-			hull = &Frigate
-		case 2:
-			hull = &MidgetMiner
-		}
-		fp := FleetPurposeFromShipDesignPurpose(purpose)
-		b.StartTimer()
-		DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
-	}
-}
-func BenchmarkDesignWarship_Large(b *testing.B) {
-	purposes := []ShipDesignPurpose{
-		ShipDesignPurposeFighterScout,
-		ShipDesignPurposeBeamFighter,
-		ShipDesignPurposeTorpedoFighter,
-		ShipDesignPurposeStarbase,
-		ShipDesignPurposeStarbaseHalf,
-		ShipDesignPurposeStarbaseQuarter,
-	}
-	c := rules.random.Intn(2)
-	p := AR
-	if c == 1 {
-		p = WM
-	}
-	player := NewPlayer(1, NewRace().WithPRT(p).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-	for _, tech := range MysteryTraderTechs {
-		player.AcquiredTechs[tech.Name] = true
-	}
-	b.ResetTimer()
-	for range b.N {
-		b.StopTimer()
-		num := rules.random.Intn(6)
-		purpose := purposes[num]
-		var hull *TechHull
-		switch num {
-		case 0, 1, 2:
-			if c == 0 {
-				hull = &Nubian
-			} else {
-				hull = &Dreadnought
-			}
-		case 3, 4, 5:
-			if c == 0 {
-				hull = &DeathStar
-			} else {
-				hull = &UltraStation
-			}
-		}
-		b.StartTimer()
-		DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
-	}
-}
-func BenchmarkDesignWarship_Small(b *testing.B) {
-	purposes := []ShipDesignPurpose{
-		ShipDesignPurposeFighterScout,
-		ShipDesignPurposeBeamFighter,
-		ShipDesignPurposeTorpedoFighter,
-		ShipDesignPurposeStarbase,
-		ShipDesignPurposeStarbaseHalf,
-		ShipDesignPurposeStarbaseQuarter,
-	}
-	player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-	for _, tech := range MysteryTraderTechs {
-		player.AcquiredTechs[tech.Name] = true
-	}
-	b.ResetTimer()
-	for range b.N {
-		num := rules.random.Intn(6)
-		purpose := purposes[num]
-		var hull *TechHull
-		switch num {
-		case 0:
-			hull = &Frigate
-		case 1, 2:
-			hull = &Cruiser
-		case 3, 4, 5:
-			hull = &SpaceStation
-		}
-		DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
 	}
 }

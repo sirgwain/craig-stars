@@ -28,7 +28,12 @@ func (ai *aiPlayer) research() {
 	// if we maxed our goal tech, move to the next one
 	if ai.TechLevels.Get(ai.Researching) == ai.game.Rules.MaxTechLevel {
 		ai.NextResearchField = cs.NextResearchFieldLowestField
-		// do the next lowest unmaxed field
-		ai.Researching = ai.TechLevels.LowestPositive()
+		// find a field that isn't maxed
+		for _, field := range cs.TechFields {
+			if ai.TechLevels.Get(field) < ai.game.Rules.MaxTechLevel {
+				ai.Researching = field
+				break
+			}
+		}
 	}
 }

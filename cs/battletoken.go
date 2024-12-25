@@ -45,7 +45,7 @@ type battleToken struct {
 }
 
 // newBattleToken creates a new battle token from a shipToken.
-func newBattleToken(rules *Rules, num int, position BattleVector, cargoMass int, token *ShipToken, battlePlan BattlePlan, player *Player) *battleToken {
+func newBattleToken(num int, position BattleVector, cargoMass int, token *ShipToken, battlePlan BattlePlan, player *Player, techFinder TechFinder) *battleToken {
 	battleToken := battleToken{
 		BattleRecordToken: BattleRecordToken{
 			Num:                     num,
@@ -56,7 +56,7 @@ func newBattleToken(rules *Rules, num int, position BattleVector, cargoMass int,
 			Mass:                    token.design.Spec.Mass + cargoMass,
 			Armor:                   token.design.Spec.Armor,
 			StackShields:            token.design.Spec.Shields * token.Quantity,
-			Movement:                token.design.getMovement(rules, cargoMass),
+			Movement:                token.design.getMovement(cargoMass),
 			StartingQuantity:        token.Quantity,
 			StartingQuantityDamaged: token.QuantityDamaged,
 			StartingDamage:          int(token.Damage),
@@ -80,7 +80,6 @@ func newBattleToken(rules *Rules, num int, position BattleVector, cargoMass int,
 
 	// get the weapon slots for a token
 	weaponSlots := make([]*battleWeaponSlot, 0)
-	techFinder := rules.techs
 	hull := techFinder.GetHull(token.design.Hull)
 	if len(token.design.Spec.WeaponSlots) > 0 {
 		minRange := math.MaxInt

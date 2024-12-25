@@ -18,7 +18,6 @@
         "cases": ["camel"],
         "options": ["omitempty", "-"]
       },
-    },
-    "go.testTimeout": "90s",
+    }
   }
 }

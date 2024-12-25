@@ -1,8 +1,6 @@
 {
     "recommendations": [
         "golang.go",
-        "maxnatchanon.go-struct-tag-autogen",
-        // Not needed, but nice for highlighting syntax & such
-        "aaron-bond.better-comments",
+        "maxnatchanon.go-struct-tag-autogen"
     ]
 }

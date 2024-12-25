@@ -22,7 +22,7 @@ func Test_aiPlayer_research(t *testing.T) {
 		{"After 2 prop, 1 bio, 1 energy, 1 weapons 1 con", cs.TechLevel{Energy: 1, Weapons: 1, Propulsion: 2, Construction: 1, Biotechnology: 1}, cs.Construction},
 		{"After 2 prop, 1 bio, 1 energy, 1 weapons 2 con", cs.TechLevel{Energy: 1, Weapons: 1, Propulsion: 2, Construction: 2, Biotechnology: 1}, cs.Construction},
 		{"After 2 prop, 1 bio, 1 energy, 1 weapons 4 con", cs.TechLevel{Energy: 1, Weapons: 1, Propulsion: 2, Construction: 4, Biotechnology: 1}, cs.Electronics},
-		{"Plan done; next unmaxed tech", cs.TechLevel{Energy: 26, Weapons: 26, Propulsion: 16, Construction: 26, Electronics: 19, Biotechnology: 10}, cs.Biotechnology},
+		{"After plan done", cs.TechLevel{Energy: 18, Weapons: 24, Propulsion: 16, Construction: 16, Electronics: 19, Biotechnology: 7}, cs.Energy},
 		{"Almost max", cs.TechLevel{Energy: 26, Weapons: 26, Propulsion: 26, Construction: 26, Electronics: 25, Biotechnology: 25}, cs.Electronics},
 	}
 	for _, tt := range tests {

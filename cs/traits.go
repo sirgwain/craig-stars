@@ -1,7 +1,5 @@
 package cs
 
-import "maps"
-
 type PRTSpec struct {
 	PRT                              PRT              `json:"prt,omitempty"`
 	PointCost                        int              `json:"pointCost,omitempty"`
@@ -45,7 +43,7 @@ type PRTSpec struct {
 	CanRemoteMineOwnPlanets          bool             `json:"canRemoteMineOwnPlanets,omitempty"`
 	InvasionAttackBonus              float64          `json:"invasionAttackBonus,omitempty"`
 	InvasionDefendBonus              float64          `json:"invasionDefendBonus,omitempty"`
-	MovementBonus                    float64          `json:"movementBonus,omitempty"`
+	MovementBonus                    int              `json:"movementBonus,omitempty"`
 	Instaforming                     bool             `json:"instaforming,omitempty"`
 	PermaformChance                  float64          `json:"permaformChance,omitempty"`
 	PermaformPopulation              int              `json:"permaformPopulation,omitempty"`
@@ -80,7 +78,7 @@ type LRTSpec struct {
 	ScrapResourcesOffsetStarbase  float64         `json:"scrapResourcesOffsetStarbase,omitempty"`
 	StartingPopulationFactorDelta float64         `json:"startingPopulationFactorDelta,omitempty"`
 	StarbaseBuiltInCloakUnits     int             `json:"starbaseBuiltInCloakUnits,omitempty"`
-	StarbaseCostFactor            float64         `json:"starbaseCostFactor,omitempty"`
+	StarbaseCostFactor      float64         `json:"starbaseCostFactor,omitempty"`
 	ResearchFactorOffset          float64         `json:"researchFactorOffset,omitempty"`
 	ResearchSplashDamage          float64         `json:"researchSplashDamage,omitempty"`
 	ShieldStrengthFactorOffset    float64         `json:"shieldStrengthFactorOffset,omitempty"`
@@ -90,19 +88,14 @@ type LRTSpec struct {
 	EngineReliableSpeed           int             `json:"engineReliableSpeed,omitempty"`
 }
 
-type TechCostOffset map[TechTag]float64
-
-// add 2 TechCostOffsets' bonuses together and return the sum
-func (t TechCostOffset) Add(other TechCostOffset) TechCostOffset {
-	newOffset := TechCostOffset{}
-	maps.Copy(newOffset, t)
-	for tag, bonus := range other {
-		if _, ok := newOffset[tag]; !ok {
-			newOffset[tag] = 0.
-		}
-		newOffset[tag] += bonus
-	}
-	return newOffset
+type TechCostOffset struct {
+	Engine           float64 `json:"engine,omitempty"`
+	BeamWeapon       float64 `json:"beamWeapon,omitempty"`
+	Torpedo          float64 `json:"torpedo,omitempty"`
+	Bomb             float64 `json:"bomb,omitempty"`
+	PlanetaryDefense float64 `json:"planetaryDefense,omitempty"`
+	Stargate         float64 `json:"stargate,omitempty"`
+	Terraforming     float64 `json:"terraforming,omitempty"`
 }
 
 type StartingPlanet struct {
@@ -283,9 +276,9 @@ func wmSpec() PRTSpec {
 	}
 
 	spec.TechCostOffset = TechCostOffset{
-		TechTagBeamWeapon: -.25,
-		TechTagTorpedo:    -.25,
-		TechTagBomb:       -.25,
+		BeamWeapon: -.25,
+		Torpedo:    -.25,
+		Bomb:       -.25,
 	}
 	spec.DiscoverDesignOnScan = true
 	spec.InvasionAttackBonus = 1.65
@@ -327,10 +320,10 @@ func isSpec() PRTSpec {
 	}
 
 	spec.TechCostOffset = TechCostOffset{
-		TechTagDefense:    -.4, // defenses cost 40% less
-		TechTagBeamWeapon: .25, // weapons cost 25% more
-		TechTagTorpedo:    .25, // weapons cost 25% more
-		TechTagBomb:       .25, // weapons cost 25% more
+		PlanetaryDefense: -.4, // defenses cost 40% less
+		BeamWeapon:       .25, // weapons cost 25% more
+		Torpedo:          .25, // weapons cost 25% more
+		Bomb:             .25, // weapons cost 25% more
 	}
 
 	spec.FreighterGrowthFactor = .5
@@ -438,8 +431,8 @@ func itSpec() PRTSpec {
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-				{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeStartingFighter},
-				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
+				{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeArmedFreighter},
+				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
 			}, Homeworld: true,
 		},
 		// extra world where hab varies by 1/2 of the range
@@ -451,7 +444,7 @@ func itSpec() PRTSpec {
 			HabPenaltyFactor:   1,
 			HasStargate:        true,
 			StarbaseHull:       OrbitalFort.Name,
-			StarbaseDesignName: "Porthole to Beyond",
+			StarbaseDesignName: "Accelerator Platform",
 			StartingFleets: []StartingFleet{
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 			}, Homeworld: false,
@@ -459,7 +452,7 @@ func itSpec() PRTSpec {
 	}
 
 	spec.TechCostOffset = TechCostOffset{
-		TechTagStargate: -0.25, // stargates cost 25% less
+		Stargate: -0.25, // stargates cost 25% less
 	}
 	spec.CanGateCargo = true
 	spec.CanDetectStargatePlanets = true
@@ -510,10 +503,10 @@ func joatSpec() PRTSpec {
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
 		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-		{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeStartingFighter},
+		{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeFreighter},
 		{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
 		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
-		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
+		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
 	}
 
 	spec.MaxPopulationOffset = .2
@@ -532,7 +525,7 @@ func ifeSpec() LRTSpec {
 func ttSpec() LRTSpec {
 	return LRTSpec{
 		TechCostOffset: TechCostOffset{
-			TechTagTerraforming: -.3, // terraforming costs 30% less
+			Terraforming: -.3, // terraforming costs 30% less
 		},
 	}
 }
@@ -550,7 +543,7 @@ func armSpec() LRTSpec {
 func isbSpec() LRTSpec {
 	return LRTSpec{
 		StarbaseBuiltInCloakUnits: 40,  // 20% built in cloaking
-		StarbaseCostFactor:        0.8, // starbases cost 20% less (*0.8)
+		StarbaseCostFactor:  0.8, // starbases cost 20% less (*0.8)
 	}
 }
 
@@ -622,7 +615,7 @@ func ceSpec() LRTSpec {
 		StartingTechLevels: TechLevel{Propulsion: 1},
 
 		TechCostOffset: TechCostOffset{
-			TechTagEngine: -.5, // engines cost 50% less
+			Engine: -.5, // engines cost 50% less
 		},
 
 		EngineFailureRateOffset: .1,
