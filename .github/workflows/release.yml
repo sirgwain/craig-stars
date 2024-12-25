@@ -33,7 +33,7 @@ jobs:
     if: github.repository == 'sirgwain/craig-stars'
     strategy:
       matrix:
-        go-version: [1.22.x]
+        go-version: [1.23.x]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     needs: tag
@@ -81,7 +81,7 @@ jobs:
       - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
 
       # upload the dist folder to github's artifacts
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v3
         with:
           name: dist-artifacts
           path: ./dist/*.tgz
