@@ -1,7 +1,9 @@
 package cs
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -57,6 +59,35 @@ func TestCompareSlicesUnordered(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := CompareSlicesUnordered(tt.args.slice, tt.args.other, tt.args.identical); got != tt.want {
 				t.Errorf("CompareSlicesUnordered() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMapToStringDelimited(t *testing.T) {
+	sortFunc := func(a, b any) int {
+		aString := fmt.Sprint(a)
+		bString := fmt.Sprint(b)
+		return strings.Compare(aString, bString)
+	}
+	type args struct {
+		mapBeingStringed map[any]any
+		delimiterBetween string
+		delimiterAfter   string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantResult string
+	}{
+		{"Normal Map", args{map[any]any{"kkkkk": 123, 23454: 4323.4, &TachyonDetector: 23}, ": ", "\n"}, "23454: 4323.4\nTachyon Detector: 23\nkkkkk: 123"},
+		{"Default Values Check", args{map[any]any{"kkkkk": 123, 23454: 4323.4, &TachyonDetector: 2355}, "", ""}, "23454: 4323.4\nTachyon Detector: 2355\nkkkkk: 123"},
+		{"HullComponent Test", args{map[any]any{&TachyonDetector: 123, &M70Bomb: 2355}, "", ""}, "M-70 Bomb: 2355\nTachyon Detector: 123"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotResult := MapToStringDelimited(tt.args.mapBeingStringed, sortFunc, tt.args.delimiterBetween, tt.args.delimiterAfter); gotResult != tt.wantResult {
+				t.Errorf("MapToStringDelimited() = \n%v, \nwant: \n%v", gotResult, tt.wantResult)
 			}
 		})
 	}

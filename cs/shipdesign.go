@@ -1171,7 +1171,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 	// (#) JAMMERS, CAPACITORS & JETS
 	// add on our long lost capacitor & jammer friends
-	if len(capacitorSlots) > 0 && design.Spec.BeamBonus >= rules.BeamBonusCap {
+	if len(capacitorSlots) > 0 && design.Spec.BeamBonus > rules.BeamBonusCap {
 		// remove "pure" capacitor items from the design to get an accurate read of our stats
 		design.Slots = slices.DeleteFunc(design.Slots, func(sd ShipDesignSlot) bool {
 			item := rules.techs.GetHullComponent(sd.HullComponent)
@@ -1182,9 +1182,8 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 		}
 		prevCapacitating := design.Spec.BeamBonus
-		c := slices.Clone(capacitorSlots)
 	capLoop:
-		for _, id := range c {
+		for _, id := range capacitorSlots {
 			// place our best capacitor into the slot
 			hullSlot := hull.Slots[id]
 			capacitor := tc.GetBestComponentWithTag(design, hullSlot.Type, hullSlot.Capacity, TechTagBeamCapacitor)
@@ -1193,20 +1192,18 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			for range hullSlot.Capacity {
 				slot.Quantity++
 				prevCapacitating *= 1 + capacitor.BeamBonus
-				if prevCapacitating > rules.BeamBonusCap {
+				if prevCapacitating >= rules.BeamBonusCap {
 					// we hit the beam bonus cap; no more capacitors needed
 					design.Slots = append(design.Slots, slot)
-					// capacitorSlots = slices.Delete(capacitorSlots, 0, 1)
 					break capLoop
 				}
 			}
 			// add the finished item to the hullSlot and remove it from the list
 			design.Slots = append(design.Slots, slot)
-			// capacitorSlots = slices.Delete(capacitorSlots, 0, 1)
 		}
 	}
 
-	if len(jammerSlots) > 0 && design.Spec.TorpedoJamming >= rules.JammerCap.Get(design.Spec.Starbase)*rules.JammerCap.Get(design.Spec.Starbase) {
+	if len(jammerSlots) > 0 && design.Spec.TorpedoJamming > rules.JammerCap.Get(design.Spec.Starbase) {
 		// remove pure jammers from slots and re-compute design spec to figure out how much stat we have
 		design.Slots = slices.DeleteFunc(design.Slots, func(sd ShipDesignSlot) bool {
 			item := rules.techs.GetHullComponent(sd.HullComponent)
@@ -1217,9 +1214,8 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 		}
 		prevJamming := design.Spec.TorpedoJamming
-		j := slices.Clone(jammerSlots)
 	jamLoop:
-		for _, id := range j {
+		for _, id := range jammerSlots {
 			// place our best jammer into the slot
 			hullSlot := hull.Slots[id]
 			jammer := tc.GetBestComponentWithTag(design, hullSlot.Type, hullSlot.Capacity, TechTagTorpedoJammer)
@@ -1232,14 +1228,12 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 				if prevJamming >= rules.JammerCap.Get(hull.Starbase)*rules.JammerMulti.Get(hull.Starbase) {
 					// we hit the jamming cap; no more jammers needed
 					design.Slots = append(design.Slots, slot)
-					// jammerSlots = slices.Delete(jammerSlots, 0, 1)
 					break jamLoop
 				}
 			}
 
 			// add the finished item to the design and zero it out
 			design.Slots = append(design.Slots, slot)
-			// jammerSlots = slices.Delete(jammerSlots, 0, 1)
 		}
 	}
 
@@ -1253,9 +1247,8 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		if err != nil {
 			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 		}
-		j := slices.Clone(jetSlots)
 	jetLoop:
-		for _, id := range j {
+		for _, id := range jetSlots {
 			// place our best jammer into the slot
 			hullSlot := hull.Slots[id]
 			jet := tc.GetBestComponentWithTag(design, hullSlot.Type, hullSlot.Capacity, TechTagManeuveringJet)
@@ -1268,14 +1261,12 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 				if prevMovement >= rules.MovementMax {
 					// we hit the jamming cap; no more jammers needed
 					design.Slots = append(design.Slots, slot)
-					// jammerSlots = slices.Delete(jammerSlots, 0, 1)
 					break jetLoop
 				}
 			}
 
 			// add the finished item to the design and zero it out
 			design.Slots = append(design.Slots, slot)
-			// jammerSlots = slices.Delete(jammerSlots, 0, 1)
 		}
 	}
 
@@ -1287,16 +1278,21 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
 	}
 
-	if len(design.Spec.WeaponSlots) == 0 {
-		// our "completed" warship has no actual weapons; we assume the build process failed somehow
-		return nil, fmt.Errorf("DesignWarship returned ship with no weapon slots")
-	}
-
-	// re-sort hull slots by ascending slot index and return the finished design!
+	// re-sort hull slots by ascending slot index and remove unused capacity
 	design.Slots = slices.Clip(design.Slots)
 	slices.SortFunc(design.Slots, func(m, n ShipDesignSlot) int {
 		return m.HullSlotIndex - n.HullSlotIndex
 	})
+
+	if len(design.Spec.WeaponSlots) == 0 {
+		// our "completed" warship has no actual weapons; we assume the build process failed somehow
+		slotList := map[string]int{}
+		for _, slot := range design.Slots {
+			slotList[slot.HullComponent] += slot.Quantity
+		}
+		slotsString := MapToStringDelimited(slotList, strings.Compare, ": ", "\n")
+		return nil, fmt.Errorf("DesignWarship returned ship with no weapon slots; part tallies: \n%v", slotsString)
+	}
 
 	return design, nil
 }

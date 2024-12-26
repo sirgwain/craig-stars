@@ -1,5 +1,12 @@
 package cs
 
+import (
+	"fmt"
+	"maps"
+	"slices"
+	"strings"
+)
+
 /*
 Compare 2 or more slices without order and return true if they are either equal or
 if slice 1 contains slice 2
@@ -71,6 +78,30 @@ func UpdateLookupMap[M ~map[K]V, K comparable, V any](lookupMap M, key K, funcTo
 		lookupMap[key] = val
 		return val
 	}
+}
+
+// convert a map of stringable keys and values to a string using fmt.Sprint,
+// with delimiterBetween placed between corresponding key & value pairs and
+// delimiterAfter placed after consecutive entries.
+//
+// cmpFunc determines the iteration order for the map's keys in the same manner as
+// slices.SortFunc; equal values will result in non-deterministic arrangement
+func MapToStringDelimited[M map[K]V, K comparable, V any](mapBeingStringed M, cmpFunc func(K, K) int, delimiterBetween, delimiterAfter string) (result string) {
+	if delimiterBetween == "" {
+		delimiterBetween = ": "
+	}
+	if delimiterAfter == "" {
+		delimiterAfter = "\n"
+	}
+	order := slices.SortedFunc(maps.Keys(mapBeingStringed), cmpFunc)
+	for _, k := range order {
+		if _, ok := mapBeingStringed[k]; !ok {
+			panic(fmt.Sprintf("mapToStringDelimited tried to index thing that could not be found"))
+		}
+		v := mapBeingStringed[k]
+		result += fmt.Sprint(k) + delimiterBetween + fmt.Sprint(v) + delimiterAfter
+	}
+	return strings.TrimSuffix(result, delimiterAfter) // remove the last delimiter from list
 }
 
 /* break down an individual bitmask into a slice of its component bits
