@@ -7,7 +7,7 @@ import (
 	"slices"
 )
 
-// Costs are by default ints, but sometimes we need to treat them as floats for applying 
+// Costs are by default ints, but sometimes we need to treat them as floats for applying
 // discounts and miniaturization
 type Cost = cost[int]
 type CostFloat64 = cost[float64]
@@ -57,10 +57,10 @@ func FromMineral[T costTypeConstraints](c Mineral) cost[T] {
 
 func MultiplyCost[T costTypeConstraints, F int | float64](c cost[T], factor F) cost[T] {
 	return cost[T]{
-		Ironium:   T(F(c.Ironium) * factor),
-		Boranium:  T(F(c.Boranium) * factor),
-		Germanium: T(F(c.Germanium) * factor),
-		Resources: T(F(c.Resources) * factor),
+		Ironium:   T(float64(c.Ironium) * float64(factor)),
+		Boranium:  T(float64(c.Boranium) * float64(factor)),
+		Germanium: T(float64(c.Germanium) * float64(factor)),
+		Resources: T(float64(c.Resources) * float64(factor)),
 	}
 }
 
