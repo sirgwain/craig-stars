@@ -833,7 +833,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	dist = math.Min(totalDist, dist)
 
 	// check for CE engine failure
-	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && rules.random.Float64() <= player.Race.Spec.EngineFailureRate {
+	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && player.Race.Spec.EngineFailureRate >= rules.random.Float64() {
 		messager.fleetEngineFailure(player, fleet)
 		return &fleetMoveInterrupted{reason: fleetMoveInterruptedEngineFailure}
 	}
@@ -1048,7 +1048,7 @@ func (fleet *Fleet) applyOverwarpPenalty(rules *Rules) int {
 		if wp1.WarpSpeed > token.design.Spec.Engine.MaxSafeSpeed && wp1.WarpSpeed != StargateWarpSpeed {
 			// explode some fleets if you go too fast
 			for shipIndex := 0; shipIndex < token.Quantity; shipIndex++ {
-				if rules.FleetSafeSpeedExplosionChance > rules.random.Float64() {
+				if rules.FleetSafeSpeedExplosionChance >= rules.random.Float64() {
 					explodedShips++
 					token.Quantity--
 				}
@@ -1076,7 +1076,7 @@ func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance 
 				for i := 0; i < token.Quantity; i++ {
 					// check if it vanishes due to range, if not, check if it vanishes due
 					// to mass. Each ship can only vanish once
-					if vanishingChance > rules.random.Float64() {
+					if vanishingChance >= rules.random.Float64() {
 						// oh no, we lost a ship!
 						shipsLostToTheVoid++
 						token.Quantity--
@@ -1292,27 +1292,30 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 //
 // A ship scrapped in space leaves no minerals behind.
 // When a ship design is deleted, all such ships vanish leaving nothing behind. (moral: scrap before you delete!)
-func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet) Cost {
+func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet, colonize bool) Cost {
 
 	// create a new cargo instance out of our fleet cost
 	scrappedCost := fleet.Spec.Cost
-
 	scrapMineralFactor := rules.ScrapMineralAmount
 	scrapResourceFactor := rules.ScrapResourceAmount
 	extraResources := 0
 	planetResources := 0
 
-	if planet != nil && planet.OwnedBy(player.Num) {
-		planetResources = planet.Spec.ResourcesPerYear + planet.bonusResources
-		// UR races get resources when scrapping
-		if planet.Spec.HasStarbase {
-			// scrapping over a planet we own with a starbase, calculate bonus minerals and resources
-			scrapMineralFactor += player.Race.Spec.ScrapMineralOffsetStarbase
-			scrapResourceFactor += player.Race.Spec.ScrapResourcesOffsetStarbase
+	if planet != nil {
+		if colonize {
+			scrapMineralFactor = rules.ScrapColonizeAmount
 		} else {
-			// scrapping over a planet we own without a starbase, calculate bonus minerals and resources
-			scrapMineralFactor += player.Race.Spec.ScrapMineralOffset
-			scrapResourceFactor += player.Race.Spec.ScrapResourcesOffset
+			planetResources = planet.Spec.ResourcesPerYear + planet.bonusResources
+			// UR races get resources when scrapping (not colonizing)
+			if planet.Spec.HasStarbase {
+				// scrapping over a planet with a starbase, calculate bonus minerals and resources
+				scrapMineralFactor += player.Race.Spec.ScrapMineralOffsetStarbase
+				scrapResourceFactor += player.Race.Spec.ScrapResourcesOffsetStarbase
+			} else {
+				// scrapping over a planet without a starbase, calculate bonus minerals and resources
+				scrapMineralFactor += player.Race.Spec.ScrapMineralOffset
+				scrapResourceFactor += player.Race.Spec.ScrapResourcesOffset
+			}
 		}
 	}
 
@@ -1321,9 +1324,9 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet)
 
 	if scrapResourceFactor > 0 {
 		// Formula for calculating resources: (Current planet production * Extra resources)/(Current planet production + Extra Resources)
-		extraResources = int(float64(fleet.Spec.Cost.Resources)*scrapResourceFactor + .5)
+		extraResources = int(float64(fleet.Spec.Cost.Resources)*scrapResourceFactor + .5) // add 0.5 to round up
 		extraResources = int(float64(planetResources*extraResources) / float64(planetResources+extraResources))
-		scrappedCost.Resources += extraResources
+		scrappedCost.Resources = extraResources
 	} else {
 		scrappedCost.Resources = 0
 	}
@@ -1370,9 +1373,7 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 		transferAmount = MinInt(availableToLoad, availableCapacity)
 	case TransportActionLoadAmount:
 		transferAmount = MinInt(MinInt(availableToLoad, task.Amount), availableCapacity)
-	case TransportActionWaitForPercent:
-		fallthrough
-	case TransportActionFillPercent:
+	case TransportActionWaitForPercent, TransportActionFillPercent:
 		// we want a percent of our hold to be filled with some amount, figure out how
 		// much that is in kT, i.e. 50% of 100kT would be 50kT of this mineral
 		var taskAmountkT = int(float64(task.Amount) / 100 * float64(totalCapacity))

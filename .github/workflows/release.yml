@@ -54,6 +54,7 @@ jobs:
           cache: true
       # build the cs.wasm/wasm_exec.js into frontend/src/lib/wasm
       # this will be picked up by the frontend build below
+      - run: make generate
       - run: make build_wasm
       - run: mkdir -p dist/
       - run: |

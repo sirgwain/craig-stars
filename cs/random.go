@@ -41,7 +41,7 @@ func NormalizedGaussianPdf(mean float64, variance float64, x int) float64 {
 }
 
 // NormalSample uses a rejection sampling algorithm to generate a random distribution equal to the normal distribution
-// It works by generating and x and y, then looking up a value of y' from the distribution, and if y' < y then it
+// It works by generating an x and y, then looking up a value of y' from the distribution, and if y' < y then it
 // accepts the value of x, otherwise it regenerates it until it finds one
 func NormalSample(random rng, mean float64, variance float64, max int) int {
 	x := random.Intn(max)

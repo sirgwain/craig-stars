@@ -196,7 +196,9 @@ export enum MessageType {
 	MysteryTraderMetWithReward,
 	MysteryTraderMetWithoutReward,
 	MysteryTraderAlreadyRewarded,
-	PlanetBuiltGensisDevice
+	PlanetBuiltGensisDevice,
+	PlayerAcquirablePartGainedScrapFleet,
+	PlayerAcquirablePartGainedBattle
 }
 
 // get the next visible message taking into account filters

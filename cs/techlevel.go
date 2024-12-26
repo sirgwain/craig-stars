@@ -200,10 +200,9 @@ func (tl TechLevel) MinZero() TechLevel {
 
 }
 
-// Get the mininum levels above this tech
-// i.e. if we just are a starter humanoid and just gained prop 5
-// level ({ 3, 3, 6, 3, 3}) we are 0 levels above the Radiating Hyrdo-Ram Scoop
-// returns maxInt if the tech is all 0
+// Get the lowest amount of levels tl is above other.
+// 
+// returns maxInt if other is all 0s
 func (tl TechLevel) LevelsAbove(other TechLevel) int {
 	levelsAbove := math.MaxInt
 	if tl.Energy != 0 {

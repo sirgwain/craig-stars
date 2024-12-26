@@ -17,6 +17,8 @@ type Rules struct {
 	CreatedAt                        time.Time                           `json:"createdAt,omitempty"`
 	UpdatedAt                        time.Time                           `json:"updatedAt,omitempty"`
 	GameID                           int64                               `json:"gameId,omitempty"`
+	AcquirablePartTradeChanceBase    float64                             `json:"acquirablePartTradeChanceBase,omitempty"`
+	AcquirablePartTradeItemMax       int                                 `json:"acquirablePartTradeItemMax,omitempty"`
 	CometStatsBySize                 map[CometSize]CometStats            `json:"cometStatsBySize,omitempty"`
 	FleetSafeSpeedExplosionChance    float64                             `json:"fleetSafeSpeedExplosionChance"`
 	InvasionDefenseCoverageFactor    float64                             `json:"invasionDefenseCoverageFactor"`
@@ -41,29 +43,32 @@ type Rules struct {
 	RandomArtifactResearchBonusRange [2]int                              `json:"randomArtifactResearchBonusRange"`
 	RandomCometMinYear               int                                 `json:"randomCometMinYear,omitempty"`
 	RandomCometMinYearPlayerWorld    int                                 `json:"randomCometMinYearPlayerWorld,omitempty"`
-	RandomEventChances               map[RandomEvent]float64             `json:"randomEventChances"`
-	RandomMineralDepositBonusRange   [2]int                              `json:"randomMineralDepositBonusRange"`
-	RemoteMiningMineOutput           int                                 `json:"remoteMiningMineOutput"`
-	RepairRates                      map[RepairRate]float64              `json:"repairRates"`
-	SalvageDecayMin                  int                                 `json:"salvageDecayMin"`
-	SalvageDecayRate                 float64                             `json:"salvageDecayRate"`
-	SalvageFromBattleFactor          float64                             `json:"salvageFromBattleFactor"`
-	ScrapMineralAmount               float64                             `json:"scrapMineralAmount"`
-	ScrapResourceAmount              float64                             `json:"scrapResourceAmount"`
-	ShowPublicScoresAfterYears       int                                 `json:"showPublicScoresAfterYears"`
-	SmartDefenseCoverageFactor       float64                             `json:"smartDefenseCoverageFactor"`
-	StargateMaxHullMassFactor        int                                 `json:"stargateMaxHullMassFactor"`
-	StargateMaxRangeFactor           int                                 `json:"stargateMaxRangeFactor"`
-	TachyonCloakReduction            float64                             `json:"tachyonCloakReduction"`
-	TachyonMaxCloakReduction         float64                             `json:"tachyonMaxCloakReduction"`
-	TechsID                          int64                               `json:"techsId"`
-	TechTradeChance                  float64                             `json:"techTradeChance"`
-	WormholeCloak                    int                                 `json:"wormholeCloak"`
-	WormholePairsForSize             map[Size]int                        `json:"wormholePairsForSize"`
-	WormholeStatsByStability         map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
+	RandomEventChances               map[RandomEvent]float64             `json:"randomEventChances,omitempty"`
+	RandomMineralDepositBonusRange   [2]int                              `json:"randomMineralDepositBonusRange,omitempty"`
+	RemoteMiningMineOutput           int                                 `json:"remoteMiningMineOutput,omitempty"`
+	RepairRates                      map[RepairRate]float64              `json:"repairRates,omitempty"`
+	SalvageDecayMin                  int                                 `json:"salvageDecayMin,omitempty"`
+	SalvageDecayRate                 float64                             `json:"salvageDecayRate,omitempty"`
+	SalvageFromBattleFactor          float64                             `json:"salvageFromBattleFactor,omitempty"`
+	ScrapColonizeAmount              float64                             `json:"scrapColonizeAmount,omitempty"`
+	ScrapMineralAmount               float64                             `json:"scrapMineralAmount,omitempty"`
+	ScrapResourceAmount              float64                             `json:"scrapResourceAmount,omitempty"`
+	ShowPublicScoresAfterYears       int                                 `json:"showPublicScoresAfterYears,omitempty"`
+	SmartDefenseCoverageFactor       float64                             `json:"smartDefenseCoverageFactor,omitempty"`
+	StargateMaxHullMassFactor        int                                 `json:"stargateMaxHullMassFactor,omitempty"`
+	StargateMaxRangeFactor           int                                 `json:"stargateMaxRangeFactor,omitempty"`
+	TachyonCloakReduction            float64                             `json:"tachyonCloakReduction,omitempty"`
+	TachyonMaxCloakReduction         float64                             `json:"tachyonMaxCloakReduction,omitempty"`
+	TechsID                          int64                               `json:"techsId,omitempty"`
+	TechTradeChance                  float64                             `json:"techTradeChance,omitempty"`
+	TorpedoSplashDamage              float64                             `json:"torpedoSplashDamage,omitempty"`
+	WormholeCloak                    int                                 `json:"wormholeCloak,omitempty"`
+	WormholePairsForSize             map[Size]int                        `json:"wormholePairsForSize,omitempty"`
+	WormholeStatsByStability         map[WormholeStability]WormholeStats `json:"wormholeStatsByStability,omitempty"`
 	random                           rng
 	techs                            *TechStore
 }
+
 type UniverseGenerationRules struct {
 	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold,omitempty"`
 	LimitMineralConcentration                 int                           `json:"limitMineralConcentration,omitempty"`
@@ -165,13 +170,13 @@ type MysteryTraderRules struct {
 	ChanceCourseChange    int                          `json:"chanceCourseChange,omitempty"`
 	ChanceSpeedUpOnly     int                          `json:"chanceSpeedUpOnly,omitempty"`
 	ChanceAgain           int                          `json:"chanceAgain,omitempty"`
-	MinYear               int                          `json:"minYear,omitempty"`
 	EvenYearOnly          bool                         `json:"evenYearOnly,omitempty"`
-	MinWarp               int                          `json:"minWarp,omitempty"`
-	MaxWarp               int                          `json:"maxWarp,omitempty"`
-	MaxMysteryTraders     int                          `json:"maxMysteryTraders,omitempty"`
-	RequestedBoon         int                          `json:"requestedBoon,omitempty"`
 	GenesisDeviceCost     Cost                         `json:"genesisDeviceCost,omitempty"`
+	MaxMysteryTraders     int                          `json:"maxMysteryTraders,omitempty"`
+	MaxWarp               int                          `json:"maxWarp,omitempty"`
+	MinWarp               int                          `json:"minWarp,omitempty"`
+	MinYear               int                          `json:"minYear,omitempty"`
+	RequestedBoon         int                          `json:"requestedBoon,omitempty"`
 	TechBoon              []MysteryTraderTechBoonRules `json:"techBoon,omitempty"`
 }
 
@@ -329,6 +334,8 @@ func NewRulesWithSeed(seed int64) Rules {
 			RandomEventPlanetaryChange: .05,
 			RandomEventAncientArtifact: .33, // 1 in 3 planets have random artifacts
 		},
+		AcquirablePartTradeChanceBase: 0.005, // 0.5% chance per item in fleet
+		AcquirablePartTradeItemMax:    25,    // 25 items max per trade instance
 		RandomCometMinYear:            10,
 		RandomCometMinYearPlayerWorld: 20,
 		CometStatsBySize: map[CometSize]CometStats{
@@ -394,13 +401,13 @@ func NewRulesWithSeed(seed int64) Rules {
 			ChanceCourseChange:    20,                                     // 1 in 20 chance the MT speeds up/changes course
 			ChanceSpeedUpOnly:     3,                                      // if change course, 1 in 3 chance it's speed up only
 			ChanceAgain:           2,                                      // 1 in 2 chance an MT makes another trip through the universe
-			MinYear:               40,                                     // the earliest year a mystery trader will spawn
 			EvenYearOnly:          true,                                   // true for only spawning mystery traders during even years
-			MinWarp:               7,                                      // the slowest warp a mystery trader will go
-			MaxWarp:               13,                                     // the fastes warp a mystery trader will go
-			MaxMysteryTraders:     5,                                      // the maximum number of mystery traders spawned in a universe at one time
-			RequestedBoon:         5000,                                   // how many minerals a player must give the MT to get a reward
 			GenesisDeviceCost:     Cost{0, 0, 0, 5000},                    // no miniaturization, always costs this much
+			MaxMysteryTraders:     5,                                      // the maximum number of mystery traders spawned in a universe at one time
+			MaxWarp:               13,                                     // the fastest warp a mystery trader will go
+			MinWarp:               7,                                      // the slowest warp a mystery trader will go
+			MinYear:               40,                                     // the earliest year a mystery trader will spawn
+			RequestedBoon:         5000,                                   // how many minerals a player must give the MT to get a reward
 			TechBoon: []MysteryTraderTechBoonRules{
 				{
 					TechLevels: 59,
@@ -564,8 +571,8 @@ func NewRulesWithSeed(seed int64) Rules {
 		RaceStartingPoints:         1650,
 		ScrapMineralAmount:         0.333333343,
 		ScrapResourceAmount:        0.0,
-
-		SalvageFromBattleFactor: .3,
+		ScrapColonizeAmount:        0.75,
+		SalvageFromBattleFactor:    .3,
 		PacketDecayRate: map[int]float64{
 			1: 0.1,
 			2: 0.25,
@@ -574,7 +581,6 @@ func NewRulesWithSeed(seed int64) Rules {
 		PacketMaxOverwarpSpeed: 3,
 		PacketMinDecay:         10,
 		MaxTechLevel:           26,
-
 		PRTSpecs: map[PRT]PRTSpec{
 			HE:   heSpec(),
 			SS:   ssSpec(),
