@@ -338,7 +338,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
 			spec.Initiative += component.InitiativeBonus * slot.Quantity
 			spec.MovementBonus += component.MovementBonus * slot.Quantity
-			spec.ReduceMovement = MaxInt(spec.ReduceMovement, component.ReduceMovement) // these don't stack
+			spec.ReduceMovement = Max(spec.ReduceMovement, component.ReduceMovement) // these don't stack
 			spec.MiningRate += component.MiningRate * slot.Quantity
 			spec.TerraformRate += component.TerraformRate * slot.Quantity
 			spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || component.OrbitalConstructionModule
@@ -434,7 +434,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				if spec.BasePacketSpeed == component.PacketSpeed {
 					spec.AdditionalMassDrivers++
 				}
-				spec.BasePacketSpeed = MaxInt(spec.BasePacketSpeed, component.PacketSpeed)
+				spec.BasePacketSpeed = Max(spec.BasePacketSpeed, component.PacketSpeed)
 				spec.MassDriver = component.Name
 			}
 
@@ -688,9 +688,9 @@ func DesignShip(techStore *TechStore, hull *TechHull, name string, player *Playe
 			hullSlot.Type == HullSlotTypeWeaponShield ||
 			hullSlot.Type == HullSlotTypeWeapon {
 			if purpose == ShipDesignPurposeStarbaseQuarter {
-				slot.Quantity = MaxInt(1, hullSlot.Capacity/4)
+				slot.Quantity = Max(1, hullSlot.Capacity/4)
 			} else if purpose == ShipDesignPurposeStarbaseHalf {
-				slot.Quantity = MaxInt(1, hullSlot.Capacity/2)
+				slot.Quantity = Max(1, hullSlot.Capacity/2)
 			}
 		}
 

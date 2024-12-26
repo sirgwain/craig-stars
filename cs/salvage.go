@@ -26,15 +26,15 @@ func newSalvage(position Vector, num int, playerNum int, cargo Cargo) *Salvage {
 // In deep space, each type of mineral decays 10%, or 10kT per year, whichever is higher. Salvage deposited on planets does not decay.
 func (salvage *Salvage) decay(rules *Rules) {
 	salvage.Cargo = Cargo{
-		Ironium: MaxInt(0, MinInt(
+		Ironium: Max(0, Min(
 			salvage.Cargo.Ironium-int(float64(salvage.Cargo.Ironium)*rules.SalvageDecayRate),
 			salvage.Cargo.Ironium-rules.SalvageDecayMin,
 		)),
-		Boranium: MaxInt(0, MinInt(
+		Boranium: Max(0, Min(
 			salvage.Cargo.Boranium-int(float64(salvage.Cargo.Boranium)*rules.SalvageDecayRate),
 			salvage.Cargo.Boranium-rules.SalvageDecayMin,
 		)),
-		Germanium: MaxInt(0, MinInt(
+		Germanium: Max(0, Min(
 			salvage.Cargo.Germanium-int(float64(salvage.Cargo.Germanium)*rules.SalvageDecayRate),
 			salvage.Cargo.Germanium-rules.SalvageDecayMin,
 		)),

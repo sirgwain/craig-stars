@@ -19,7 +19,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet
 
 	if float64(attackers)*attackBonus > float64(defenders)*defenseBonus {
 		remainingDefenders = 0
-		remainingAttackers = roundToNearest100f(float64(attackers) - float64(defenders)*defenseBonus/attackBonus)
+		remainingAttackers = roundToNearest100(float64(attackers) - float64(defenders)*defenseBonus/attackBonus)
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingAttackers == 0 {
@@ -57,7 +57,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet
 				// sweet, we gained a tech level
 				attacker.techLevelGained = true
 				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1) // add 1 to corresponding lvl
-				
+
 				messager.playerTechGainedInvasion(attacker, planet, field)
 				techsGained := techStore.GetTechsJustGained(attacker, field)
 				for _, tech := range techsGained {
@@ -74,7 +74,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet
 		}
 	} else {
 		remainingAttackers = 0
-		remainingDefenders = roundToNearest100f(float64(defenders) - (float64(attackers)*attackBonus)/defenseBonus)
+		remainingDefenders = roundToNearest100(float64(defenders) - (float64(attackers)*attackBonus)/defenseBonus)
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingDefenders == 0 {

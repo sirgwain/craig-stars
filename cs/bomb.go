@@ -71,7 +71,7 @@ func (result BombingResult) Add(r BombingResult) BombingResult {
 	}
 
 	return BombingResult{
-		NumBombers:         MaxInt(result.NumBombers, r.NumBombers), // we only care about the highest number of bombers for the result
+		NumBombers:         Max(result.NumBombers, r.NumBombers), // we only care about the highest number of bombers for the result
 		ColonistsKilled:    result.ColonistsKilled + r.ColonistsKilled,
 		MinesDestroyed:     result.MinesDestroyed + r.MinesDestroyed,
 		FactoriesDestroyed: result.FactoriesDestroyed + r.FactoriesDestroyed,
@@ -173,11 +173,11 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 
 	// figure out the killRate and minKill for this fleet's bombs
 	defenseCoverage := planet.Spec.DefenseCoverage
-	killRateColonistsKilled := roundToNearest100f(b.getColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
+	killRateColonistsKilled := roundToNearest100(b.getColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
 	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs))
 
-	killed := MaxInt(killRateColonistsKilled, minColonistsKilled)
-	leftoverPopulation := MaxInt(0, planet.population()-killed)
+	killed := Max(killRateColonistsKilled, minColonistsKilled)
+	leftoverPopulation := Max(0, planet.population()-killed)
 	actualKilled := planet.population() - leftoverPopulation
 	planet.setPopulation(leftoverPopulation)
 
@@ -188,9 +188,9 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	leftoverFactories := 0
 	leftoverDefenses := 0
 	if totalStructures > 0 {
-		leftoverMines = MaxInt(0, int(float64(planet.Mines)-float64(structuresDestroyed)*float64(planet.Mines)/float64(totalStructures)))
-		leftoverFactories = MaxInt(0, int(float64(planet.Factories)-float64(structuresDestroyed)*float64(planet.Factories)/float64(totalStructures)))
-		leftoverDefenses = MaxInt(0, int(float64(planet.Defenses)-float64(structuresDestroyed)*float64(planet.Defenses)/float64(totalStructures)))
+		leftoverMines = Max(0, int(float64(planet.Mines)-float64(structuresDestroyed)*float64(planet.Mines)/float64(totalStructures)))
+		leftoverFactories = Max(0, int(float64(planet.Factories)-float64(structuresDestroyed)*float64(planet.Factories)/float64(totalStructures)))
+		leftoverDefenses = Max(0, int(float64(planet.Defenses)-float64(structuresDestroyed)*float64(planet.Defenses)/float64(totalStructures)))
 	}
 
 	// make sure we only count stuctures that were actually destroyed
@@ -248,9 +248,9 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 	}
 
 	// figure out the killRate and minKill for this fleet's bombs
-	smartKilled := roundToNearest100f(b.getColonistsKilledWithSmartBombs(planet.population(), smartDefenseCoverage, bombs))
+	smartKilled := roundToNearest100(b.getColonistsKilledWithSmartBombs(planet.population(), smartDefenseCoverage, bombs))
 
-	leftoverPopulation := MaxInt(0, planet.population()-smartKilled)
+	leftoverPopulation := Max(0, planet.population()-smartKilled)
 	actualKilled := planet.population() - leftoverPopulation
 	planet.setPopulation(leftoverPopulation)
 
@@ -336,7 +336,7 @@ func (b *bomb) getUnterraformAmount(retroBombAmount int, baseHab, hab Hab) Hab {
 			largestTerraformHab := Grav
 			largestTerraformAmount := 0
 			for _, habType := range HabTypes {
-				if AbsInt(habDiff.Get(habType)) > AbsInt(largestTerraformAmount) {
+				if Abs(habDiff.Get(habType)) > Abs(largestTerraformAmount) {
 					largestTerraformAmount = habDiff.Get(habType)
 					largestTerraformHab = habType
 				}

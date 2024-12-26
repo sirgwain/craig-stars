@@ -125,7 +125,7 @@ func (mineField *MineField) getDecayRate(rules *Rules, player *Player, numPlanet
 	decayRate = math.Min(decayRate, player.Race.Spec.MineFieldMaxDecayRate)
 
 	// we decay at least 10 mines a year for normal and standard mines
-	decayedMines := MaxInt(rules.MineFieldStatsByType[mineField.MineFieldType].MinDecay, int(float64(mineField.NumMines)*decayRate+0.5))
+	decayedMines := Max(rules.MineFieldStatsByType[mineField.MineFieldType].MinDecay, int(float64(mineField.NumMines)*decayRate+0.5))
 	return decayedMines
 }
 
@@ -233,8 +233,8 @@ func (mineField *MineField) sweep(rules *Rules, fleetPosition Vector, mineSweep 
 	sweepableMines := mineField.NumMines - int(math.Ceil((radius-distFromEdge)*(radius-distFromEdge)))
 
 	old := mineField.NumMines
-	mineField.NumMines -= MinInt(sweepableMines, int(float64(mineSweep)*rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor))
-	mineField.NumMines = MaxInt(mineField.NumMines, 0)
+	mineField.NumMines -= Min(sweepableMines, int(float64(mineSweep)*rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor))
+	mineField.NumMines = Max(mineField.NumMines, 0)
 
 	numSwept := old - mineField.NumMines
 	return numSwept

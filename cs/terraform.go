@@ -46,7 +46,7 @@ func (t *terraform) getTerraformAbility(player *Player) Hab {
 		// find out which terraform tech has the greater terraform ability
 		ability := totalTerraformAbility
 		if bestHabTerraform != nil {
-			ability = MaxInt(ability, bestHabTerraform.Ability)
+			ability = Max(ability, bestHabTerraform.Ability)
 			terraformAbility.Set(habType, ability)
 		}
 
@@ -95,26 +95,26 @@ func (t *terraform) getTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 		if fromIdeal > 0 {
 			// i.e. our ideal is 50 and the planet hab is 47
 			if enemy {
-				alreadyTerraformed := AbsInt(fromIdealBase - fromIdeal)
+				alreadyTerraformed := Abs(fromIdealBase - fromIdeal)
 				terraformAmount.Set(habType, -(ability - alreadyTerraformed))
 			} else {
 				// we can either terrform up to our full ability, or however much
 				// we have left to terraform on this
 				alreadyTerraformed := fromIdealBase - fromIdeal
-				terraformAmount.Set(habType, MinInt(ability-alreadyTerraformed, fromIdeal))
+				terraformAmount.Set(habType, Min(ability-alreadyTerraformed, fromIdeal))
 			}
 		} else if fromIdeal < 0 {
 			if enemy {
-				alreadyTerraformed := AbsInt(fromIdealBase - fromIdeal)
+				alreadyTerraformed := Abs(fromIdealBase - fromIdeal)
 				terraformAmount.Set(habType, ability-alreadyTerraformed)
 			} else {
 				// i.e. our ideal is 50 and the planet hab is 53
 				alreadyTerraformed := fromIdeal - fromIdealBase
-				terraformAmount.Set(habType, MaxInt(-(ability-alreadyTerraformed), fromIdeal))
+				terraformAmount.Set(habType, Max(-(ability-alreadyTerraformed), fromIdeal))
 			}
 		} else if enemy {
 			// the terrformer is enemies with the player, terraform away from ideal
-			alreadyTerraformed := AbsInt(fromIdealBase - fromIdeal)
+			alreadyTerraformed := Abs(fromIdealBase - fromIdeal)
 			terraformAbility.Set(habType, ability-alreadyTerraformed)
 		}
 	}
@@ -177,19 +177,19 @@ func (t *terraform) getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, 
 		if fromHabitableDistance > 0 {
 			// the distance from the current hab of this planet
 			fromIdeal := playerHabIdeal - planetHabValue
-			fromIdealDistance := AbsInt(fromIdeal)
+			fromIdealDistance := Abs(fromIdeal)
 
 			// The distance from the starting hab of this planet
-			fromIdealBaseDistance := AbsInt(playerHabIdeal - baseHab.Get(habType))
+			fromIdealBaseDistance := Abs(playerHabIdeal - baseHab.Get(habType))
 
 			// we can either terrform up to our full ability, or however much
 			// we have left to terraform on this
 			alreadyTerraformed := fromIdealBaseDistance - fromIdealDistance
-			terraformAmountPossible := MinInt(ability-alreadyTerraformed, fromIdealDistance)
+			terraformAmountPossible := Min(ability-alreadyTerraformed, fromIdealDistance)
 
 			// if we are in range for this hab type, we won't terraform at all, otherwise return the max possible terraforming
 			// left.
-			terraformAmount.Set(habType, MinInt(fromHabitableDistance, terraformAmountPossible))
+			terraformAmount.Set(habType, Min(fromHabitableDistance, terraformAmountPossible))
 		}
 
 	}
@@ -237,7 +237,7 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 
 		// the distance from the current hab of this planet
 		fromIdeal := playerHabIdeal - habWithoutInstaforming.Get(habType)
-		fromIdealDist := AbsInt(fromIdeal)
+		fromIdealDist := Abs(fromIdeal)
 		if fromIdeal > 0 {
 			// for example, the planet has Grav 49, but our player wants Grav 50
 			if ability <= planet.TerraformedAmount.Get(habType) {
@@ -321,13 +321,13 @@ func (t *terraform) getBestUnterraform(planet *Planet, player, terraformer *Play
 		}
 
 		fromIdeal := habCenter.Get(habType) - planet.Hab.Get(habType)
-		terraformedAlready := AbsInt(planet.TerraformedAmount.Get(habType))
+		terraformedAlready := Abs(planet.TerraformedAmount.Get(habType))
 
 		// if we can terraform this at all
 		if terraformedAlready < terraformAbility.Get(habType) {
 			// pick the farthest from ideal
-			if AbsInt(fromIdeal) > farthestAmount {
-				farthestAmount = AbsInt(fromIdeal)
+			if Abs(fromIdeal) > farthestAmount {
+				farthestAmount = Abs(fromIdeal)
 				newFarthest := habType
 				farthest = &newFarthest
 			}
