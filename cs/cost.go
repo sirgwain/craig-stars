@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math"
 	"slices"
+
+	"golang.org/x/exp/constraints"
 )
 
 // Costs are by default ints, but sometimes we need to treat them as floats for applying
@@ -13,12 +15,12 @@ type Cost = cost[int]
 type CostFloat64 = cost[float64]
 
 // Costs can be ints or float64... for now
-type costTypeConstraints interface {
-	int | float64
+type number interface {
+	constraints.Integer | constraints.Float
 }
 
 // A Cost represents minerals and resources required to build something, i.e. a mine, factory, or ship
-type cost[T costTypeConstraints] struct {
+type cost[T number] struct {
 	Ironium   T `json:"ironium,omitempty"`
 	Boranium  T `json:"boranium,omitempty"`
 	Germanium T `json:"germanium,omitempty"`
@@ -34,7 +36,7 @@ var CostTypes = [4]CostType{
 	Resources,
 }
 
-func NewCost[T costTypeConstraints](ironium, boranium, germanium, resources T) cost[T] {
+func NewCost[T number](ironium, boranium, germanium, resources T) cost[T] {
 	return cost[T]{ironium, boranium, germanium, resources}
 }
 
@@ -47,7 +49,7 @@ func FromMineralAndResources(m Mineral, resources int) Cost {
 	}
 }
 
-func FromMineral[T costTypeConstraints](c Mineral) cost[T] {
+func FromMineral[T number](c Mineral) cost[T] {
 	return cost[T]{
 		Ironium:   T(c.Ironium),
 		Boranium:  T(c.Boranium),
@@ -55,7 +57,7 @@ func FromMineral[T costTypeConstraints](c Mineral) cost[T] {
 	}
 }
 
-func MultiplyCost[T costTypeConstraints, F int | float64](c cost[T], factor F) cost[T] {
+func MultiplyCost[T number, F int | float64](c cost[T], factor F) cost[T] {
 	return cost[T]{
 		Ironium:   T(float64(c.Ironium) * float64(factor)),
 		Boranium:  T(float64(c.Boranium) * float64(factor)),

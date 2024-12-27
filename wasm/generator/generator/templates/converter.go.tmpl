@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
+	"golang.org/x/exp/constraints"
 )
 
 func getPointer[T any](val T) *T {
 	return &val
 }
 
-func getInt[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int16 | ~int32 | ~int64](o js.Value) T {
+func getInt[T constraints.Integer](o js.Value) T {
 	if o.IsUndefined() || o.IsNull() {
 		return 0
 	}
@@ -23,7 +24,7 @@ func getInt[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int
 	return T(o.Int())
 }
 
-func getFloat[T ~float32 | ~float64](o js.Value) T {
+func getFloat[T constraints.Float](o js.Value) T {
 	if o.IsUndefined() || o.IsNull() {
 		return 0
 	}
@@ -74,7 +75,7 @@ func GetSlice[T any](o js.Value, getter func(o js.Value) T) []T {
 }
 
 // SetBasicSlice sets a jsarray with basic items
-func SetBasicSlice[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~string | ~bool | ~float32 | ~float64](o js.Value, items []T) {
+func SetBasicSlice[T constraints.Integer | constraints.Float | ~string | ~bool](o js.Value, items []T) {
 	for i := 0; i < len(items); i++ {
 		o.SetIndex(i, js.ValueOf(items[i]))
 	}
@@ -136,7 +137,7 @@ func SetSliceSlice[T any](o js.Value, items [][]T, setter func(o js.Value, item 
 	}
 }
 
-func GetIntMap[M ~map[K]V, K ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int16 | ~int32 | ~int64, V any](o js.Value, valueGetter func(o js.Value) V) M {
+func GetIntMap[M ~map[K]V, K constraints.Integer, V any](o js.Value, valueGetter func(o js.Value) V) M {
 	result := make(M)
 	if !o.IsUndefined() {
 		resultKeys := js.Global().Get("Object").Call("keys", o)

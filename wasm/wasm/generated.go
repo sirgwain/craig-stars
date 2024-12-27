@@ -11,13 +11,14 @@ import (
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
+	"golang.org/x/exp/constraints"
 )
 
 func getPointer[T any](val T) *T {
 	return &val
 }
 
-func getInt[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int16 | ~int32 | ~int64](o js.Value) T {
+func getInt[T constraints.Integer](o js.Value) T {
 	if o.IsUndefined() || o.IsNull() {
 		return 0
 	}
@@ -25,7 +26,7 @@ func getInt[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int
 	return T(o.Int())
 }
 
-func getFloat[T ~float32 | ~float64](o js.Value) T {
+func getFloat[T constraints.Float](o js.Value) T {
 	if o.IsUndefined() || o.IsNull() {
 		return 0
 	}
@@ -76,7 +77,7 @@ func GetSlice[T any](o js.Value, getter func(o js.Value) T) []T {
 }
 
 // SetBasicSlice sets a jsarray with basic items
-func SetBasicSlice[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~string | ~bool | ~float32 | ~float64](o js.Value, items []T) {
+func SetBasicSlice[T constraints.Integer | constraints.Float | ~string | ~bool](o js.Value, items []T) {
 	for i := 0; i < len(items); i++ {
 		o.SetIndex(i, js.ValueOf(items[i]))
 	}
@@ -138,7 +139,7 @@ func SetSliceSlice[T any](o js.Value, items [][]T, setter func(o js.Value, item 
 	}
 }
 
-func GetIntMap[M ~map[K]V, K ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~int | ~int8 | ~int16 | ~int32 | ~int64, V any](o js.Value, valueGetter func(o js.Value) V) M {
+func GetIntMap[M ~map[K]V, K constraints.Integer, V any](o js.Value, valueGetter func(o js.Value) V) M {
 	result := make(M)
 	if !o.IsUndefined() {
 		resultKeys := js.Global().Get("Object").Call("keys", o)
@@ -502,6 +503,15 @@ func SetCargo(o js.Value, obj *cs.Cargo) {
 	o.Set("colonists", obj.Colonists)
 }
 
+func GetCargoType(o js.Value) cs.CargoType {
+	var obj cs.CargoType
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = getInt[cs.CargoType](o)
+	return obj
+}
+
 func GetCometSize(o js.Value) cs.CometSize {
 	var obj cs.CometSize
 	if o.IsUndefined() || o.IsNull() {
@@ -591,6 +601,15 @@ func SetCostRules(o js.Value, obj *cs.CostRules) {
 		o.Set("techBaseCost", map[string]any{})
 		SetBasicSlice[int](o.Get("techBaseCost"), obj.TechBaseCost)
 	}
+}
+
+func GetCostType(o js.Value) cs.CostType {
+	var obj cs.CostType
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = getInt[cs.CostType](o)
+	return obj
 }
 
 func GetDBObject(o js.Value) cs.DBObject {
@@ -1187,6 +1206,15 @@ func SetMineralPacketIntel(o js.Value, obj *cs.MineralPacketIntel) {
 	o.Set("targetPlanetNum", obj.TargetPlanetNum)
 	o.Set("scanRange", obj.ScanRange)
 	o.Set("scanRangePen", obj.ScanRangePen)
+}
+
+func GetMineralType(o js.Value) cs.MineralType {
+	var obj cs.MineralType
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = getInt[cs.MineralType](o)
+	return obj
 }
 
 func GetMiniaturizationSpec(o js.Value) cs.MiniaturizationSpec {

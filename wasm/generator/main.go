@@ -164,59 +164,77 @@ func main() {
 				continue
 			}
 
+			var serializerType *generator.FieldType
+			var underlying types.Type
 			if named, ok := tn.Type().(*types.Named); ok {
-				if _, ok := named.Underlying().(*types.Interface); ok {
+				underlying = named.Underlying()
+				if _, ok := underlying.(*types.Interface); ok {
 					continue
 				}
-				var fields []generator.Field
-				serializerType := getTypeInfo(named.Obj().Type(), pkg)
-
+				serializerType = getTypeInfo(named.Obj().Type(), pkg)
 				if ok := typesToCheck[tn.Name()]; !ok && serializerType.Type == generator.GeneratorTypeObject {
 					continue
 				}
+			}
+			if named, ok := tn.Type().(*types.Alias); ok {
+				underlying = named.Underlying()
+				if _, ok := underlying.(*types.Interface); ok {
+					continue
+				}
+				serializerType = getTypeInfo(named.Obj().Type(), pkg)
+				if ok := typesToCheck[tn.Name()]; !ok && serializerType.Type == generator.GeneratorTypeObject {
+					continue
+				}
+			}
 
-				switch t := named.Underlying().(type) {
-				case *types.Struct:
-					fields = make([]generator.Field, t.NumFields())
-					for i := 0; i < t.NumFields(); i++ {
-						field := t.Field(i)
-						fieldName := field.Name()
-						// get the json tag name, whether it is omitted
-						// or whether it is ignored
-						jsonName, omitEmpty, ignore := getJsonTag(t.Tag(i))
+			// didn't find a named or alias
+			if serializerType == nil {
+				continue
+			}
 
-						// don't ignore embedded fields
-						if ignore && field.Embedded() {
-							ignore = false
-						}
-						if !field.Exported() {
-							fields[i] = generator.Field{
-								Name:   fieldName,
-								Ignore: true,
-							}
-							continue
-						}
-						fieldType := getTypeInfo(field.Type(), pkg)
-						ignore = !field.Exported() || ignore || (fieldType.Type == generator.GeneratorTypeObject && !typesToCheck[fieldType.TypeName])
+			var fields []generator.Field
 
+			switch t := underlying.(type) {
+			case *types.Struct:
+				fields = make([]generator.Field, t.NumFields())
+				for i := 0; i < t.NumFields(); i++ {
+					field := t.Field(i)
+					fieldName := field.Name()
+					// get the json tag name, whether it is omitted
+					// or whether it is ignored
+					jsonName, omitEmpty, ignore := getJsonTag(t.Tag(i))
+
+					// don't ignore embedded fields
+					if ignore && field.Embedded() {
+						ignore = false
+					}
+					if !field.Exported() {
 						fields[i] = generator.Field{
-							FieldType: *fieldType,
-							Name:      fieldName,
-							JsonName:  jsonName,
-							OmitEmpty: omitEmpty,
-							Ignore:    ignore,
-							Exported:  field.Exported(),
+							Name:   fieldName,
+							Ignore: true,
 						}
+						continue
+					}
+					fieldType := getTypeInfo(field.Type(), pkg)
+					ignore = !field.Exported() || ignore || (fieldType.Type == generator.GeneratorTypeObject && !typesToCheck[fieldType.TypeName])
+
+					fields[i] = generator.Field{
+						FieldType: *fieldType,
+						Name:      fieldName,
+						JsonName:  jsonName,
+						OmitEmpty: omitEmpty,
+						Ignore:    ignore,
+						Exported:  field.Exported(),
 					}
 				}
-
-				serializers = append(serializers, generator.Serializer{
-					Name:   tn.Name(),
-					Type:   *serializerType,
-					Fields: fields,
-				})
-
 			}
+
+			serializers = append(serializers, generator.Serializer{
+				Name:   tn.Name(),
+				Type:   *serializerType,
+				Fields: fields,
+			})
+
 		}
 	}
 
@@ -361,6 +379,16 @@ func getTypeInfo(fieldType types.Type, pkg *packages.Package) *generator.FieldTy
 				typeName = t.Obj().Name()
 			}
 		}
+	case *types.Alias:
+		if isPackageType {
+			if isStruct {
+				generatorType = generator.GeneratorTypeObject
+				typeName = t.Obj().Name()
+			} else {
+				generatorType = generator.GeneratorTypeNamed
+				typeName = t.Obj().Name()
+			}
+		}
 	case *types.Map:
 		generatorType = generator.GeneratorTypeMap
 		keyType = getTypeInfo(t.Key(), pkg)
@@ -412,6 +440,8 @@ func getGoType(t types.Type, pkg *packages.Package) string {
 	case *types.Struct:
 		return "struct"
 	case *types.Named:
+		return pkgPrefix + v.Obj().Name()
+	case *types.Alias:
 		return pkgPrefix + v.Obj().Name()
 	default:
 		log.Fatalf("unknown type %#v", v)
