@@ -390,6 +390,8 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 		{{ include "GetMap" . }}
 	{{- else if eq $type.Type "Named" }}
 		Get{{$type.TypeName}}({{$jsObj}})
+	{{- else if eq $type.FullType "*time.Time" }}		
+		getPointer(getTime({{$jsObj}}))
 	{{- else if eq $type.FullType "time.Time" }}
 		getTime({{$jsObj}})
 	{{- else  }}
