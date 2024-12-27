@@ -646,7 +646,7 @@ func (u *Universe) removeMapObjectAtPosition(mo interface{}, position Vector) {
 func (u *Universe) getNextMineFieldNum() int {
 	num := 0
 	for _, mineField := range u.MineFields {
-		num = MaxInt(num, mineField.Num)
+		num = Max(num, mineField.Num)
 	}
 	return num + 1
 }
@@ -696,7 +696,7 @@ func (u *Universe) fleetsWithin(position Vector, radius float64) []*Fleet {
 func (u *Universe) getNextMysteryTraderNum() int {
 	num := 0
 	for _, mysteryTrader := range u.MysteryTraders {
-		num = MaxInt(num, mysteryTrader.Num)
+		num = Max(num, mysteryTrader.Num)
 	}
 	return num + 1
 }

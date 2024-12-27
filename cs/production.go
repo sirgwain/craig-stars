@@ -185,7 +185,7 @@ func (p *production) produce() (productionResult, error) {
 	planet := p.planet
 	costCalculator := NewCostCalculator()
 	result := productionResult{}
-	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddCargoMinerals(planet.Cargo)
+	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddMineral(planet.Cargo.ToMineral())
 	newQueue := []ProductionQueueItem{}
 	for itemIndex := range planet.ProductionQueue {
 		item := planet.ProductionQueue[itemIndex]
@@ -231,7 +231,7 @@ func (p *production) produce() (productionResult, error) {
 
 		// check for auto items we should skip
 		// we skip auto items if we can't build any more because we don't have the minerals
-		if item.Type.IsAuto() && (maxBuildable <= 0 || available.DivideByMineral(cost.ToMineral()) < 1) {
+		if item.Type.IsAuto() && (maxBuildable <= 0 || available.DivideMineral(cost.ToMineral()) < 1) {
 			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, skipped: true})
 			newQueue = append(newQueue, item)
 
@@ -307,7 +307,7 @@ func (p *production) produce() (productionResult, error) {
 				// if we still have auto items to build, and
 				// if we have enough minerals to complete an auto item, add a concrete one to the queue
 
-				if !(numBuilt >= item.Quantity || numBuilt >= maxBuildable) && available.DivideByMineral(cost.ToMineral()) >= 1 {
+				if !(numBuilt >= item.Quantity || numBuilt >= maxBuildable) && available.DivideMineral(cost.ToMineral()) >= 1 {
 					// add the partially completed concrete item to the top of the queue
 					newQueue = append([]ProductionQueueItem{
 						{
@@ -392,7 +392,7 @@ func (p *production) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost
 	}
 
 	// figure out the lowest percentage
-	minPerc := MinFloat64(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
+	minPerc := Min(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
 
 	// allocate the lowest percentage of each cost
 	newAllocated := Cost{
@@ -465,13 +465,13 @@ func (p *production) getNumBuilt(item ProductionQueueItem, cost, availableToSpen
 	item.Allocated = Cost{}
 
 	if cost == (Cost{}) {
-		return MinInt(item.Quantity, maxBuildable), Cost{}
+		return Min(item.Quantity, maxBuildable), Cost{}
 	}
 
 	// figure out how many we can build
 	// and make sure we only build up to the quantity, and we don't build more than the planet supports
-	numBuilt = MaxInt(0, MinInt(item.Quantity, maxBuildable, availableToSpend.NumBuildable(cost)))
-	spent = cost.MultiplyInt(numBuilt)
+	numBuilt = Max(0, Min(item.Quantity, maxBuildable, int(availableToSpend.Divide(cost.ToCostFloat64()))))
+	spent = MultiplyCost(cost, numBuilt)
 
 	return numBuilt, spent
 }
@@ -494,7 +494,7 @@ func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt i
 	case QueueItemTypeAutoMineralPacket, QueueItemTypeMixedMineralPacket, QueueItemTypeIroniumMineralPacket, QueueItemTypeBoraniumMineralPacket, QueueItemTypeGermaniumMineralPacket:
 		// add this packet cargo to the production result
 		// so it can be added as packets to the universe later
-		cargo := cost.MultiplyFloat64(1 / p.player.Race.Spec.PacketMineralCostFactor).MultiplyInt(numBuilt).ToCargo()
+		cargo := MultiplyCost(MultiplyCost(cost, 1/p.player.Race.Spec.PacketMineralCostFactor), numBuilt).ToCargo()
 		result.packets = result.packets.Add(cargo)
 	case QueueItemTypeShipToken:
 		result.tokens = append(result.tokens, builtShip{ShipToken: ShipToken{Quantity: numBuilt, design: item.design, DesignNum: item.DesignNum}, tags: item.Tags})

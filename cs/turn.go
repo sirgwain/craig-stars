@@ -1059,8 +1059,8 @@ func (t *turn) fleetRadiatingEngineDieoff() {
 		deathRate := math.Max(0, float64(t.game.Rules.RadiatingImmune+1)-float64(habCenter.Rad)) / 2 / 100
 
 		if deathRate > 0 {
-			killed := MaxInt(1, int(deathRate*float64(fleet.Cargo.Colonists)))
-			fleet.Cargo.Colonists = MaxInt(0, fleet.Cargo.Colonists-killed)
+			killed := Max(1, int(deathRate*float64(fleet.Cargo.Colonists)))
+			fleet.Cargo.Colonists = Max(0, fleet.Cargo.Colonists-killed)
 
 			// Message the player
 			messager.fleetRadiatingEngineDieoff(player, fleet, killed*100)
@@ -1094,9 +1094,9 @@ func (t *turn) fleetReproduce() {
 		planet := t.game.getOrbitingPlanet(fleet)
 
 		growthFactor := player.Race.Spec.FreighterGrowthFactor
-		growth := MaxInt(1, int(growthFactor*float64(player.Race.GrowthRate)/100.0*float64(fleet.Cargo.Colonists)))
+		growth := Max(1, int(growthFactor*float64(player.Race.GrowthRate)/100.0*float64(fleet.Cargo.Colonists)))
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
-		over := MaxInt(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
+		over := Max(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
 		if over > 0 {
 			// remove excess colonists
 			fleet.Cargo.Colonists = fleet.Cargo.Colonists - over
@@ -1136,7 +1136,7 @@ func (t *turn) fleetDieoff() {
 		}
 
 		deathFactor := player.Race.Spec.FreighterGrowthFactor
-		death := MinInt(-1, int(deathFactor*float64(fleet.Cargo.Colonists)))
+		death := Min(-1, int(deathFactor*float64(fleet.Cargo.Colonists)))
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + death
 
 		// Message the player
@@ -1195,7 +1195,7 @@ func (t *turn) decayPackets(builtThisTurn bool) {
 		// loop through all 3 mineral types and reduce each one in turn
 		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := float64(packet.Cargo.GetAmount(minType))
-			decayAmount := MaxInt(int(decayRate*mineral), int(float64(t.game.Rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
+			decayAmount := Max(int(decayRate*mineral), int(float64(t.game.Rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
 			packet.Cargo.SubtractAmount(minType, decayAmount)
 			packet.Cargo = packet.Cargo.MinZero()
 		}
@@ -2064,7 +2064,7 @@ func (t *turn) fleetBattle() {
 			salvageOwner := 1
 			for i, token := range record.DestroyedTokens {
 				// figure out how much salvage this generates
-				destroyedCost = destroyedCost.Add(token.design.Spec.Cost.MultiplyInt(token.Quantity))
+				destroyedCost = destroyedCost.Add(MultiplyCost(token.design.Spec.Cost, token.Quantity))
 				// TODO: who owns this salvage if there are destroyed ships from different players?
 				salvageOwner = token.PlayerNum
 
@@ -2075,7 +2075,7 @@ func (t *turn) fleetBattle() {
 				tokens[i].design = token.design
 			}
 
-			salvageMinerals := destroyedCost.MultiplyFloat64(t.game.Rules.SalvageFromBattleFactor).ToMineral()
+			salvageMinerals := MultiplyCost(destroyedCost, t.game.Rules.SalvageFromBattleFactor).ToMineral()
 
 			// every player should discover all designs in a battle as if they were penscanned.
 			designsToDiscover := map[playerObject]*ShipDesign{}

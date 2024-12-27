@@ -622,7 +622,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 			MiniaturizationMax:      .75,
 			MiniaturizationPerLevel: .04,
 		},
-		ScrapMineralOffsetStarbase:   .8 - (1.0 / 3),
+		ScrapMineralOffsetStarbase: .8 - (1.0 / 3),
 
 		// PP
 		MineralsPerSingleMineralPacket:   prtSpec.MineralsPerSingleMineralPacket,
@@ -769,7 +769,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		// CE
 		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
 		if lrtSpec.EngineReliableSpeed != 0 {
-			spec.EngineReliableSpeed = MinInt(spec.EngineReliableSpeed, lrtSpec.EngineReliableSpeed)
+			spec.EngineReliableSpeed = Min(spec.EngineReliableSpeed, lrtSpec.EngineReliableSpeed)
 		}
 
 		spec.StartingPlanets[0].StartingFleets = append(spec.StartingPlanets[0].StartingFleets, lrtSpec.StartingFleets...)
@@ -794,11 +794,11 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		QueueItemTypeAutoFactories:          {Germanium: rules.FactoryCostGermanium + factoryGermaniumOffset, Resources: race.FactoryCost},
 		QueueItemTypeMineralAlchemy:         {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
 		QueueItemTypeAutoMineralAlchemy:     {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
-		QueueItemTypeDefenses:               rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset.PlanetaryDefense),
-		QueueItemTypeAutoDefenses:           rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset.PlanetaryDefense),
-		QueueItemTypeTerraformEnvironment:   rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
-		QueueItemTypeAutoMaxTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
-		QueueItemTypeAutoMinTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset.Terraforming),
+		QueueItemTypeDefenses:               MultiplyCost(rules.DefenseCost, 1+spec.TechCostOffset.PlanetaryDefense),
+		QueueItemTypeAutoDefenses:           MultiplyCost(rules.DefenseCost, 1+spec.TechCostOffset.PlanetaryDefense),
+		QueueItemTypeTerraformEnvironment:   MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset.Terraforming),
+		QueueItemTypeAutoMaxTerraform:       MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset.Terraforming),
+		QueueItemTypeAutoMinTerraform:       MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset.Terraforming),
 		QueueItemTypeIroniumMineralPacket:   {Resources: spec.PacketResourceCost, Ironium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeBoraniumMineralPacket:  {Resources: spec.PacketResourceCost, Boranium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeGermaniumMineralPacket: {Resources: spec.PacketResourceCost, Germanium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},

@@ -6,43 +6,6 @@ import (
 	"testing"
 )
 
-func TestCost_NumBuildable(t *testing.T) {
-	type fields struct {
-		Ironium   int
-		Boranium  int
-		Germanium int
-		Resources int
-	}
-	type args struct {
-		cost Cost
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   int
-	}{
-		{"Build 1", fields{1, 2, 3, 4}, args{Cost{1, 2, 3, 4}}, 1},
-		{"Build 2", fields{2, 4, 6, 8}, args{Cost{1, 2, 3, 4}}, 2},
-		{"Build 2 w/one limiting mineral", fields{2, 400, 600, 800}, args{Cost{1, 2, 3, 4}}, 2},
-		{"Build none w/one missing mineral", fields{0, 400, 600, 800}, args{Cost{1, 2, 3, 4}}, 0},
-		{"Build 1 w/only resource cost", fields{1, 2, 3, 4}, args{Cost{0, 0, 0, 4}}, 1},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			available := Cost{
-				Ironium:   tt.fields.Ironium,
-				Boranium:  tt.fields.Boranium,
-				Germanium: tt.fields.Germanium,
-				Resources: tt.fields.Resources,
-			}
-			if got := available.NumBuildable(tt.args.cost); got != tt.want {
-				t.Errorf("Cost.NumBuildable() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestCost_Divide(t *testing.T) {
 	type fields struct {
 		Ironium   int
@@ -83,7 +46,7 @@ func TestCost_Divide(t *testing.T) {
 				Germanium: tt.fields.Germanium,
 				Resources: tt.fields.Resources,
 			}
-			if got := a.Divide(tt.args.b); got != tt.want {
+			if got := a.Divide(tt.args.b.ToCostFloat64()); got != tt.want {
 				t.Errorf("Cost.Divide() = %v, want %v", got, tt.want)
 			}
 		})
@@ -106,31 +69,6 @@ func TestCost_Max(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.cost.Max(tt.other); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Cost.Max() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestCost_DivideByInt(t *testing.T) {
-	type args struct {
-		divisor int
-		roundUp bool
-	}
-	tests := []struct {
-		name string
-		cost Cost
-		args args
-		want Cost
-	}{
-		{"divide by 1", Cost{1, 2, 3, 4}, args{1, false}, Cost{1, 2, 3, 4}},
-		{"divide by 2", Cost{2, 4, 6, 8}, args{2, false}, Cost{1, 2, 3, 4}},
-		{"divide by 2 round up", Cost{1, 2, 3, 4}, args{2, true}, Cost{1, 1, 2, 2}},
-		{"divide by 0, inf", Cost{}, args{0, false}, Cost{int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1))}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.cost.DivideByInt(tt.args.divisor, tt.args.roundUp); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Cost.DivideByInt() = %v, want %v", got, tt.want)
 			}
 		})
 	}

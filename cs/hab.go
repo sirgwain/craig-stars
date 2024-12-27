@@ -100,7 +100,7 @@ func HabFromInts(hab [3]int) Hab {
 }
 
 func (h Hab) absSum() int {
-	return AbsInt(h.Grav) + AbsInt(h.Temp) + AbsInt(h.Rad)
+	return Abs(h.Grav) + Abs(h.Temp) + Abs(h.Rad)
 }
 
 func gravString(grav int) string {
