@@ -166,62 +166,62 @@ func (tl TechLevel) Subtract(other TechLevel) TechLevel {
 // Return greater of 2 TechLevel structs for all TechFields separately
 func (tl TechLevel) Max(other TechLevel) TechLevel {
 	return TechLevel{
-		Energy:        MaxInt(tl.Energy, other.Energy),
-		Weapons:       MaxInt(tl.Weapons, other.Weapons),
-		Propulsion:    MaxInt(tl.Propulsion, other.Propulsion),
-		Construction:  MaxInt(tl.Construction, other.Construction),
-		Electronics:   MaxInt(tl.Electronics, other.Electronics),
-		Biotechnology: MaxInt(tl.Biotechnology, other.Biotechnology),
+		Energy:        Max(tl.Energy, other.Energy),
+		Weapons:       Max(tl.Weapons, other.Weapons),
+		Propulsion:    Max(tl.Propulsion, other.Propulsion),
+		Construction:  Max(tl.Construction, other.Construction),
+		Electronics:   Max(tl.Electronics, other.Electronics),
+		Biotechnology: Max(tl.Biotechnology, other.Biotechnology),
 	}
 }
 
 // Return lesser of 2 TechLevel structs for all TechFields separately
 func (tl TechLevel) Min(other TechLevel) TechLevel {
 	return TechLevel{
-		Energy:        MinInt(tl.Energy, other.Energy),
-		Weapons:       MinInt(tl.Weapons, other.Weapons),
-		Propulsion:    MinInt(tl.Propulsion, other.Propulsion),
-		Construction:  MinInt(tl.Construction, other.Construction),
-		Electronics:   MinInt(tl.Electronics, other.Electronics),
-		Biotechnology: MinInt(tl.Biotechnology, other.Biotechnology),
+		Energy:        Min(tl.Energy, other.Energy),
+		Weapons:       Min(tl.Weapons, other.Weapons),
+		Propulsion:    Min(tl.Propulsion, other.Propulsion),
+		Construction:  Min(tl.Construction, other.Construction),
+		Electronics:   Min(tl.Electronics, other.Electronics),
+		Biotechnology: Min(tl.Biotechnology, other.Biotechnology),
 	}
 }
 
 // return this TechLevel with a minimum of zero for each value
 func (tl TechLevel) MinZero() TechLevel {
 	return TechLevel{
-		Energy:        MaxInt(tl.Energy, 0),
-		Weapons:       MaxInt(tl.Weapons, 0),
-		Propulsion:    MaxInt(tl.Propulsion, 0),
-		Construction:  MaxInt(tl.Construction, 0),
-		Electronics:   MaxInt(tl.Electronics, 0),
-		Biotechnology: MaxInt(tl.Biotechnology, 0),
+		Energy:        Max(tl.Energy, 0),
+		Weapons:       Max(tl.Weapons, 0),
+		Propulsion:    Max(tl.Propulsion, 0),
+		Construction:  Max(tl.Construction, 0),
+		Electronics:   Max(tl.Electronics, 0),
+		Biotechnology: Max(tl.Biotechnology, 0),
 	}
 
 }
 
 // Get the lowest amount of levels tl is above other.
-// 
+//
 // returns maxInt if other is all 0s
 func (tl TechLevel) LevelsAbove(other TechLevel) int {
 	levelsAbove := math.MaxInt
 	if tl.Energy != 0 {
-		levelsAbove = MinInt(levelsAbove, other.Energy-tl.Energy)
+		levelsAbove = Min(levelsAbove, other.Energy-tl.Energy)
 	}
 	if tl.Weapons != 0 {
-		levelsAbove = MinInt(levelsAbove, other.Weapons-tl.Weapons)
+		levelsAbove = Min(levelsAbove, other.Weapons-tl.Weapons)
 	}
 	if tl.Propulsion != 0 {
-		levelsAbove = MinInt(levelsAbove, other.Propulsion-tl.Propulsion)
+		levelsAbove = Min(levelsAbove, other.Propulsion-tl.Propulsion)
 	}
 	if tl.Construction != 0 {
-		levelsAbove = MinInt(levelsAbove, other.Construction-tl.Construction)
+		levelsAbove = Min(levelsAbove, other.Construction-tl.Construction)
 	}
 	if tl.Electronics != 0 {
-		levelsAbove = MinInt(levelsAbove, other.Electronics-tl.Electronics)
+		levelsAbove = Min(levelsAbove, other.Electronics-tl.Electronics)
 	}
 	if tl.Biotechnology != 0 {
-		levelsAbove = MinInt(levelsAbove, other.Biotechnology-tl.Biotechnology)
+		levelsAbove = Min(levelsAbove, other.Biotechnology-tl.Biotechnology)
 	}
 	return levelsAbove
 }

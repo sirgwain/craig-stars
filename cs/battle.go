@@ -257,7 +257,7 @@ func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int
 			board[position.X][position.Y] += battleToken.StartingQuantity
 
 			// find the highest dampener we have
-			dampening = MaxInt(dampening, token.design.Spec.ReduceMovement)
+			dampening = Max(dampening, token.design.Spec.ReduceMovement)
 		}
 	}
 
@@ -784,7 +784,7 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 // A ship will fire each torpedo at its target until the target is destroyed, then
 // fire any remaining torpedos at the next target.
 //
-// Each torpedo has an accuracy rating that determines how often it hits the target. 
+// Each torpedo has an accuracy rating that determines how often it hits the target.
 // A torpedo that misses still explodes and does 1/8th damage to shields (if any).
 func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 	attacker := weapon.token
@@ -861,7 +861,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 					target.Quantity--
 					target.quantityDestroyed++
 					b.board[target.Position.Y][target.Position.X] -= 1
-					target.QuantityDamaged = MaxInt(target.QuantityDamaged-1, 0)
+					target.QuantityDamaged = Max(target.QuantityDamaged-1, 0)
 
 					if target.QuantityDamaged > 0 {
 						// we destroyed a token, but we still have damaged tokens in the stack

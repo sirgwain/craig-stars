@@ -50,7 +50,7 @@ func TestCost_Divide(t *testing.T) {
 				Germanium: tt.fields.Germanium,
 				Resources: tt.fields.Resources,
 			}
-			got := a.Divide(tt.args.b)
+			got := a.Divide(tt.args.b.ToCostFloat64())
 			assert.InDeltaf(t, got, tt.want, 0.01, fmt.Sprintf("Cost.Divide() = %v, want %v", got, tt.want))
 		})
 	}

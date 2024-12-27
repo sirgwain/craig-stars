@@ -756,7 +756,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		// CE
 		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
 		if lrtSpec.EngineReliableSpeed != 0 {
-			spec.EngineReliableSpeed = MinInt(spec.EngineReliableSpeed, lrtSpec.EngineReliableSpeed)
+			spec.EngineReliableSpeed = Min(spec.EngineReliableSpeed, lrtSpec.EngineReliableSpeed)
 		}
 
 		spec.StartingPlanets[0].StartingFleets = append(spec.StartingPlanets[0].StartingFleets, lrtSpec.StartingFleets...)
@@ -781,11 +781,11 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		QueueItemTypeAutoFactories:          {Germanium: rules.FactoryCostGermanium + factoryGermaniumOffset, Resources: race.FactoryCost},
 		QueueItemTypeMineralAlchemy:         {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
 		QueueItemTypeAutoMineralAlchemy:     {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
-		QueueItemTypeDefenses:               rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagDefense]),
-		QueueItemTypeAutoDefenses:           rules.DefenseCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagDefense]),
-		QueueItemTypeTerraformEnvironment:   rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagTerraforming]),
-		QueueItemTypeAutoMaxTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagTerraforming]),
-		QueueItemTypeAutoMinTerraform:       rules.TerraformCost.MultiplyFloat64(1 + spec.TechCostOffset[TechTagTerraforming]),
+		QueueItemTypeDefenses:               MultiplyCost(rules.DefenseCost, 1+spec.TechCostOffset[TechTagDefense]),
+		QueueItemTypeAutoDefenses:           MultiplyCost(rules.DefenseCost, 1+spec.TechCostOffset[TechTagDefense]),
+		QueueItemTypeTerraformEnvironment:   MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset[TechTagTerraforming]),
+		QueueItemTypeAutoMaxTerraform:       MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset[TechTagTerraforming]),
+		QueueItemTypeAutoMinTerraform:       MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset[TechTagTerraforming]),
 		QueueItemTypeIroniumMineralPacket:   {Resources: spec.PacketResourceCost, Ironium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeBoraniumMineralPacket:  {Resources: spec.PacketResourceCost, Boranium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeGermaniumMineralPacket: {Resources: spec.PacketResourceCost, Germanium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},

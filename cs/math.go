@@ -2,15 +2,13 @@ package cs
 
 import (
 	"math"
+
+	"golang.org/x/exp/constraints"
 )
 
 // population is often updated with floating point math, but we have to convert
 // it back to Colonist Cargo values, which are stored in units of 100 colonists per 1kT of Colonist Cargo
-func roundToNearest100f(value float64) int {
-	return int(math.Round(value/100) * 100)
-}
-
-func roundToNearest100(value int) int {
+func roundToNearest100[T int | float64](value T) int {
 	return int(math.Round(float64(value)/100) * 100)
 }
 
@@ -29,9 +27,9 @@ func roundHalfDown(x float64) float64 {
 
 // returns the new jamming/computing bonus
 func getNewJamming(prevBonus, componentBonus, multi float64, qty int) float64 {
-	baseMulti := 1-prevBonus/multi // undo multi before multiplication
+	baseMulti := 1 - prevBonus/multi // undo multi before multiplication
 	compMulti := math.Pow(1-componentBonus, float64(qty))
-	return (1-baseMulti*compMulti)*multi
+	return (1 - baseMulti*compMulti) * multi
 }
 
 // returns the new beam defense factor after adding the given components
@@ -39,7 +37,7 @@ func getNewBeamBonus(prevBonus, componentBonus float64, qty int) float64 {
 	return prevBonus * math.Pow(1+componentBonus, float64(qty))
 }
 
-func Clamp(value, min, max int) int {
+func Clamp[T constraints.Ordered](value, min, max T) T {
 	if value < min {
 		return min
 	} else {
@@ -50,20 +48,13 @@ func Clamp(value, min, max int) int {
 	return value
 }
 
-func ClampFloat64(value, min, max float64) float64 {
-	if value < min {
-		return min
-	} else {
-		if value > max {
-			return max
-		}
+func Max[T constraints.Ordered](nums ...T) T {
+	if len(nums) == 0 {
+		panic("Max called with no arguments")
 	}
-	return value
-}
 
-func MaxInt(nums ...int) int {
-	result := math.MinInt
-	for _, value := range nums {
+	result := nums[0]
+	for _, value := range nums[1:] {
 		if value > result {
 			result = value
 		}
@@ -72,31 +63,13 @@ func MaxInt(nums ...int) int {
 	return result
 }
 
-func MinInt(nums ...int) int {
-	result := math.MaxInt
-	for _, value := range nums {
-		if value < result {
-			result = value
-		}
+func Min[T constraints.Ordered](nums ...T) T {
+	if len(nums) == 0 {
+		panic("Min called with no arguments")
 	}
 
-	return result
-}
-
-func MaxFloat64(nums ...float64) float64 {
-	result := math.Inf(-1)
-	for _, value := range nums {
-		if value > result {
-			result = value
-		}
-	}
-
-	return result
-}
-
-func MinFloat64(nums ...float64) float64 {
-	result := math.Inf(1)
-	for _, value := range nums {
+	result := nums[0]
+	for _, value := range nums[1:] {
 		if value < result {
 			result = value
 		}
@@ -108,8 +81,8 @@ func MinFloat64(nums ...float64) float64 {
 // raise an integer to the power of another integer (apparently this is the fastYY)
 //
 // Does not support negative values (we *are* dealing with integers here after all)
-func PowInt(base, exponent int) int {
-	result := 1
+func PowInt[T constraints.Integer](base, exponent T) T {
+	var result T = 1
 	// According to internet, this is the fastest way to do int exponentiation
 	for {
 		if exponent&1 == 1 {
@@ -125,22 +98,9 @@ func PowInt(base, exponent int) int {
 	return result
 }
 
-func AbsInt(num int) int {
+func Abs[T int](num T) T {
 	if num < 0 {
 		return -num
 	}
 	return num
-}
-
-// return the absolutely greater of 2 integers
-// (ie: the one furthest away from 0)
-func MaxAbsInt(nums ...int) int {
-	result := math.MinInt
-	for _, value := range nums {
-		if AbsInt(value) > AbsInt(result) {
-			result = value
-		}
-	}
-
-	return result
 }

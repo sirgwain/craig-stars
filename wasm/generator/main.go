@@ -45,108 +45,11 @@ func main() {
 		panic(err)
 	}
 
-	// TODO: do them all, eventually
-	typesToCheck := map[string]bool{
-		"BattlePlan":                          true,
-		"BattleRecord":                        true,
-		"BattleRecordToken":                   true,
-		"BattleRecordTokenAction":             true,
-		"BattleRecordDestroyedToken":          true,
-		"BattleRecordStats":                   true,
-		"BattleRules":                         true,
-		"BattleVector":                        true,
-		"Bomb":                                true,
-		"BombingResult":                       true,
-		"Cargo":                               true,
-		"CometStats":                          true,
-		"Cost":                                true,
-		"CostRules":                           true,
-		"Defense":                             true,
-		"DBObject":                            true,
-		"Engine":                              true,
-		"Fleet":                               true,
-		"FleetIntel":                          true,
-		"FleetOrders":                         true,
-		"FleetSpec":                           true,
-		"GameDBObject":                        true,
-		"Hab":                                 true,
-		"Intel":                               true,
-		"MapObject":                           true,
-		"MapObjectIntel":                      true,
-		"MineField":                           true,
-		"MineFieldIntel":                      true,
-		"MineFieldOrders":                     true,
-		"MineFieldSpec":                       true,
-		"MineFieldStats":                      true,
-		"Mineral":                             true,
-		"MineralPacketDamage":                 true,
-		"MineralPacketIntel":                  true,
-		"MiniaturizationSpec":                 true,
-		"MysteryTrader":                       true,
-		"MysteryTraderSpec":                   true,
-		"MysteryTraderIntel":                  true,
-		"MysteryTraderReward":                 true,
-		"MysteryTraderRules":                  true,
-		"MysteryTraderTechBoonRules":          true,
-		"MysteryTraderTechBoonMineralsReward": true,
-		"Planet":                              true,
-		"PlanetIntel":                         true,
-		"PlanetOrders":                        true,
-		"PlanetSpec":                          true,
-		"PlanetStarbaseSpec":                  true,
-		"Player":                              true,
-		"PlayerIntel":                         true,
-		"PlayerIntels":                        true,
-		"PlayerMessage":                       true,
-		"PlayerMessageSpec":                   true,
-		"PlayerMessageSpecComet":              true,
-		"PlayerMessageSpecMysteryTrader":      true,
-		"PlayerOrders":                        true,
-		"PlayerPlans":                         true,
-		"PlayerRelationship":                  true,
-		"PlayerScore":                         true,
-		"PlayerSpec":                          true,
-		"PlayerStats":                         true,
-		"ProductionPlan":                      true,
-		"ProductionPlanItem":                  true,
-		"ProductionQueueItem":                 true,
-		"PRTSpec":                             true,
-		"LRTSpec":                             true,
-		"QueueItemCompletionEstimate":         true,
-		"Race":                                true,
-		"RaceSpec":                            true,
-		"ResearchCost":                        true,
-		"Rules":                               true,
-		"SalvageIntel":                        true,
-		"ScannerSpec":                         true,
-		"ScoreIntel":                          true,
-		"ShipDesign":                          true,
-		"ShipDesignIntel":                     true,
-		"ShipDesignSlot":                      true,
-		"ShipDesignSpec":                      true,
-		"ShipToken":                           true,
-		"StartingPlanet":                      true,
-		"StartingFleet":                       true,
-		"StealsResearch":                      true,
-		"TechLevel":                           true,
-		"Tech":                                true,
-		"TechCostOffset":                      true,
-		"TechDefense":                         true,
-		"TechPlanetary":                       true,
-		"TechPlanetaryScanner":                true,
-		"TechRequirements":                    true,
-		"TechTerraform":                       true,
-		"TransportPlan":                       true,
-		"UniverseGenerationRules":             true,
-		"Vector":                              true,
-		"Waypoint":                            true,
-		"WaypointTransportTask":               true,
-		"WaypointTransportTasks":              true,
-		"WormholeIntel":                       true,
-		"WormholeStats":                       true,
-	}
-
 	serializers := []generator.Serializer{}
+	typesToIgnore := map[string]bool{
+		"FullGame": true,
+		"User":     true,
+	}
 
 	// sort all the types we loaded by their names
 	keys := maps.Keys(info.Defs)
@@ -164,59 +67,79 @@ func main() {
 				continue
 			}
 
+			if _, ok := typesToIgnore[tn.Name()]; ok {
+				continue
+			}
+
+			var serializerType *generator.FieldType
+			var underlying types.Type
 			if named, ok := tn.Type().(*types.Named); ok {
-				if _, ok := named.Underlying().(*types.Interface); ok {
-					continue
-				}
-				var fields []generator.Field
-				serializerType := getTypeInfo(named.Obj().Type(), pkg)
-
-				if ok := typesToCheck[tn.Name()]; !ok && serializerType.Type == generator.GeneratorTypeObject {
+				underlying = named.Underlying()
+				// skip interfaces
+				if _, ok := underlying.(*types.Interface); ok {
 					continue
 				}
 
-				switch t := named.Underlying().(type) {
-				case *types.Struct:
-					fields = make([]generator.Field, t.NumFields())
-					for i := 0; i < t.NumFields(); i++ {
-						field := t.Field(i)
-						fieldName := field.Name()
-						// get the json tag name, whether it is omitted
-						// or whether it is ignored
-						jsonName, omitEmpty, ignore := getJsonTag(t.Tag(i))
+				serializerType = getTypeInfo(named.Obj().Type(), pkg)
+			}
+			if named, ok := tn.Type().(*types.Alias); ok {
+				underlying = named.Underlying()
+				// skip interfaces
+				if _, ok := underlying.(*types.Interface); ok {
+					continue
+				}
 
-						// don't ignore embedded fields
-						if ignore && field.Embedded() {
-							ignore = false
-						}
-						if !field.Exported() {
-							fields[i] = generator.Field{
-								Name:   fieldName,
-								Ignore: true,
-							}
-							continue
-						}
-						fieldType := getTypeInfo(field.Type(), pkg)
-						ignore = !field.Exported() || ignore || (fieldType.Type == generator.GeneratorTypeObject && !typesToCheck[fieldType.TypeName])
+				serializerType = getTypeInfo(named.Obj().Type(), pkg)
+			}
 
+			// didn't find a named or alias type
+			if serializerType == nil {
+				continue
+			}
+
+			var fields []generator.Field
+			switch t := underlying.(type) {
+			case *types.Struct:
+				fields = make([]generator.Field, t.NumFields())
+				for i := 0; i < t.NumFields(); i++ {
+					field := t.Field(i)
+					fieldName := field.Name()
+					// get the json tag name, whether it is omitted
+					// or whether it is ignored
+					jsonName, omitEmpty, ignore := getJsonTag(t.Tag(i))
+
+					// don't ignore embedded fields
+					if ignore && field.Embedded() {
+						ignore = false
+					}
+
+					// ignore fields that aren't exported
+					if !field.Exported() {
 						fields[i] = generator.Field{
-							FieldType: *fieldType,
-							Name:      fieldName,
-							JsonName:  jsonName,
-							OmitEmpty: omitEmpty,
-							Ignore:    ignore,
-							Exported:  field.Exported(),
+							Name:   fieldName,
+							Ignore: true,
 						}
+						continue
+					}
+
+					fieldType := getTypeInfo(field.Type(), pkg)
+					fields[i] = generator.Field{
+						FieldType: *fieldType,
+						Name:      fieldName,
+						JsonName:  jsonName,
+						OmitEmpty: omitEmpty,
+						Ignore:    ignore,
+						Exported:  field.Exported(),
 					}
 				}
-
-				serializers = append(serializers, generator.Serializer{
-					Name:   tn.Name(),
-					Type:   *serializerType,
-					Fields: fields,
-				})
-
 			}
+
+			serializers = append(serializers, generator.Serializer{
+				Name:   tn.Name(),
+				Type:   *serializerType,
+				Fields: fields,
+			})
+
 		}
 	}
 
@@ -361,6 +284,16 @@ func getTypeInfo(fieldType types.Type, pkg *packages.Package) *generator.FieldTy
 				typeName = t.Obj().Name()
 			}
 		}
+	case *types.Alias:
+		if isPackageType {
+			if isStruct {
+				generatorType = generator.GeneratorTypeObject
+				typeName = t.Obj().Name()
+			} else {
+				generatorType = generator.GeneratorTypeNamed
+				typeName = t.Obj().Name()
+			}
+		}
 	case *types.Map:
 		generatorType = generator.GeneratorTypeMap
 		keyType = getTypeInfo(t.Key(), pkg)
@@ -411,8 +344,14 @@ func getGoType(t types.Type, pkg *packages.Package) string {
 		return fmt.Sprintf("*%s", getGoType(v.Elem(), pkg))
 	case *types.Struct:
 		return "struct"
+	case *types.Interface:
+		return "interface"
 	case *types.Named:
 		return pkgPrefix + v.Obj().Name()
+	case *types.Alias:
+		return pkgPrefix + v.Obj().Name()
+	case *types.TypeParam:
+		return v.Obj().Name()
 	default:
 		log.Fatalf("unknown type %#v", v)
 	}

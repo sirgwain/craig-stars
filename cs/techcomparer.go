@@ -197,8 +197,8 @@ func (tc *techCompare) compareFieldsByTag(design *ShipDesign, hc, other *TechHul
 	scoreRatio := otherScore / score
 	costRatio := 1.0
 	if checkCost {
-		hcCost := getPlayerCostFloat64(hc.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
-		otherCost := getPlayerCostFloat64(other.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
+		hcCost := getPlayerCost(hc.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
+		otherCost := getPlayerCost(other.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset)
 		costRatio = GetCostEfficiencyRatio(otherCost, hcCost, Resources)
 	}
 	return scoreRatio > costRatio ||
@@ -304,8 +304,8 @@ func (tc *techCompare) getMostNeededComponent(design *ShipDesign, hst HullSlotTy
 		hcBonus := tc.getWarshipPartBonus(design, hc, qty)
 
 		if hcBonus > bestBonus || (hcBonus == bestBonus &&
-			GetCostEfficiencyRatio(getPlayerCostFloat64(bestTech.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
-				getPlayerCostFloat64(hc.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
+			GetCostEfficiencyRatio(getPlayerCost(bestTech.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
+				getPlayerCost(hc.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
 				CostTypes[:]...) > 1) {
 			// all else being equal, use items that cost less
 			bestTech = hc
@@ -326,8 +326,8 @@ func (tc *techCompare) getMostNeededComponent(design *ShipDesign, hst HullSlotTy
 		// extract armor/shield values and compute cost ratio
 		hcArmor, hcShield := getArmorShieldAmounts(float64(bestTech.Armor), float64(bestTech.Shield), 1, player.Race.Spec, bestTech.Category == TechCategoryArmor)
 		hullArmor, hullShield := getArmorShieldAmounts(float64(hull.Armor), float64(hull.Shield), 1, player.Race.Spec, false)
-		costRatio := GetCostEfficiencyRatio(getPlayerCostFloat64(hull.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
-			getPlayerCostFloat64(bestTech.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset), CostTypes[:]...)
+		costRatio := GetCostEfficiencyRatio(getPlayerCost(hull.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
+			getPlayerCost(bestTech.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset), CostTypes[:]...)
 		var armorShieldRatio float64
 		switch {
 		case bestTech.Armor <= 0 || hull.Armor <= 0: // no armor; only consider sheld
@@ -385,7 +385,7 @@ tagLoop:
 			// grab shield and armor stats
 			hcArmor, hcShield := getArmorShieldAmounts(float64(hc.Armor), float64(hc.Shield), qty, player.Race.Spec, hc.Category == TechCategoryArmor)
 			oldArmor := float64(design.Spec.Armor)
-			oldShield := float64(MaxInt(design.Spec.Shields, 1)) // prevents divide by 0 errors
+			oldShield := float64(Max(design.Spec.Shields, 1)) // prevents divide by 0 errors
 			if oldArmor/oldShield < 1.2 && oldArmor/oldShield > 1/1.2 && !design.Spec.Starbase {
 				// our armor ratio is good enough that we don't really need
 				// more armor/shields; can just build more ships for more overall chung

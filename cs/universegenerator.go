@@ -406,7 +406,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 						conc := playerPlanet.MineralConcentration
 						lowestType := conc.HighestType(3)
 						diff := conc.GetAmount(conc.HighestType(2)) - conc.GetAmount(lowestType)
-						amtToAdd := MinInt(extraPoints/pointsThreshold[pointsType], diff+1)
+						amtToAdd := Min(extraPoints/pointsThreshold[pointsType], diff+1)
 						playerPlanet.MineralConcentration.Set(lowestType, conc.GetAmount(lowestType)+amtToAdd)
 						extraPoints -= pointsThreshold[pointsType] * amtToAdd
 					}
@@ -419,7 +419,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 						min := playerPlanet.getCargo().ToMineral()
 						lowestType := min.HighestType(3)
 						diff := min.GetAmount(min.HighestType(2)) - min.GetAmount(lowestType)
-						amtToAdd := MinInt(extraPoints, diff+1)
+						amtToAdd := Min(extraPoints, diff+1)
 						playerPlanet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*10)
 						extraPoints -= amtToAdd
 					}

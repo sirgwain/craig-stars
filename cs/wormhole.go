@@ -99,8 +99,8 @@ func (w *Wormhole) jiggle(area Vector, mapObjectGetter mapObjectGetter, random r
 	var newPosition Vector
 	for {
 		newPosition = Vector{
-			ClampFloat64(w.Position.X+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.X),
-			ClampFloat64(w.Position.Y+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.Y),
+			Clamp(w.Position.X+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.X),
+			Clamp(w.Position.Y+float64(random.Intn(stats.JiggleDistance/2)-stats.JiggleDistance/2), 0, area.Y),
 		}
 		log.Debug().Msgf("%v jiggled to %v", w, newPosition)
 		jiggleCount++

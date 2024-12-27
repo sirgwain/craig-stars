@@ -385,7 +385,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
 			spec.Initiative += component.InitiativeBonus * slot.Quantity
 			spec.MovementBonus += component.MovementBonus * float64(slot.Quantity)
-			spec.ReduceMovement = MaxInt(spec.ReduceMovement, component.ReduceMovement) // these don't stack
+			spec.ReduceMovement = Max(spec.ReduceMovement, component.ReduceMovement) // these don't stack
 			spec.MiningRate += component.MiningRate * slot.Quantity
 			spec.TerraformRate += component.TerraformRate * slot.Quantity
 			spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || component.OrbitalConstructionModule
@@ -481,7 +481,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				if spec.BasePacketSpeed == component.PacketSpeed {
 					spec.AdditionalMassDrivers++
 				}
-				spec.BasePacketSpeed = MaxInt(spec.BasePacketSpeed, component.PacketSpeed)
+				spec.BasePacketSpeed = Max(spec.BasePacketSpeed, component.PacketSpeed)
 				spec.MassDriver = component.Name
 			}
 

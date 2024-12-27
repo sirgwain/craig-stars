@@ -27,7 +27,7 @@
             "mode": "auto",
             "program": "${workspaceFolder}/wasm/generator/main.go",
             "cwd": "${workspaceFolder}",
-            "args": ["./cs", "wasm/wasm/converter.go"]
+            "args": ["./cs", "wasm/wasm/generated.go"]
         },
         {
             "name": "migrate",

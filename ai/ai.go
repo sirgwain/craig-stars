@@ -322,7 +322,7 @@ func (ai *aiPlayer) updateWarfleets() error {
 
 	// Compare ships' power rating and overall mineral/res expenditure
 	// TODO: Add a less jank way of evaluating warship performance than ranking
-	// and make the AI consider how much spare minerals it has   
+	// and make the AI consider how much spare minerals it has
 	scoreRatio := float64(beamDesign.Spec.PowerRating) / float64(torpDesign.Spec.PowerRating)
 
 	ct := []cs.CostType{cs.Resources}
@@ -376,11 +376,11 @@ func (ai *aiPlayer) updateWarshipCount() error {
 		warships = 60
 	default: // 2475+ non-BBS; 2470+ acc-BBS
 		bombers = 40
-		warships = cs.MinInt((yearsAfterStart/5)*6, 150)
+		warships = cs.Min((yearsAfterStart/5)*6, 150)
 	}
 	if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter] != nil &&
 		ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter].Spec.RepairBonus > 0 {
-		fuelTransports = cs.MinInt((bombers+warships)/5, 25)
+		fuelTransports = cs.Min((bombers+warships)/5, 25)
 	}
 
 	ai.warshipCount = warshipCount{bombers: bombers, warships: warships, fuelTransports: fuelTransports}

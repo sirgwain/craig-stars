@@ -62,9 +62,9 @@ func (m *Mineral) Set(mineralType MineralType, value int) *Mineral {
 // return higher of 2 Mineral structs for all MineralTypes separately
 func (m Mineral) Max(other Mineral) Mineral {
 	return Mineral{
-		Ironium:   MaxInt(m.Ironium, other.Ironium),
-		Boranium:  MaxInt(m.Boranium, other.Boranium),
-		Germanium: MaxInt(m.Germanium, other.Germanium),
+		Ironium:   Max(m.Ironium, other.Ironium),
+		Boranium:  Max(m.Boranium, other.Boranium),
+		Germanium: Max(m.Germanium, other.Germanium),
 	}
 }
 

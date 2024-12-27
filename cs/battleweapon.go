@@ -248,13 +248,13 @@ func (weapon *battleWeaponSlot) getEstimatedTorpedoDamageToTarget(target *battle
 	totalArmor := target.armor*target.Quantity - int(float64(target.QuantityDamaged)*target.Damage)
 
 	var bwd battleWeaponDamage
-	bwd.shieldDamage = MinInt(target.stackShields, int(float64(damage)/2))
-	bwd.armorDamage = MinInt(totalArmor, damage-bwd.shieldDamage)
+	bwd.shieldDamage = Min(target.stackShields, int(float64(damage)/2))
+	bwd.armorDamage = Min(totalArmor, damage-bwd.shieldDamage)
 
 	// for any missed torpedos, they damage shields at 1/8th, so add that
 	// to shield damage if still there
 	missShieldDamage := int(math.Round(float64(weapon.power*misses) / 8))
-	bwd.shieldDamage = MinInt(target.stackShields, bwd.shieldDamage+missShieldDamage)
+	bwd.shieldDamage = Min(target.stackShields, bwd.shieldDamage+missShieldDamage)
 
 	return bwd
 }
@@ -338,7 +338,7 @@ func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, targ
 
 	// sappers only damage shields, can't damage more shields than we have
 	if weapon.damagesShieldsOnly {
-		return battleWeaponDamage{shieldDamage: MinInt(target.stackShields, damage)}
+		return battleWeaponDamage{shieldDamage: Min(target.stackShields, damage)}
 	}
 
 	armor := target.armor
