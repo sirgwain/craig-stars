@@ -71,17 +71,6 @@ func newTechTags(tags ...TechTag) TechTags {
 	return newTechTags
 }
 
-/* // returns true if tt has the specified TechTag
-// and no other tags in tagsToExclude
-func (tt TechTags) hasTag(tag TechTag, tagsToExclude ...TechTag) bool {
-	for _, bannedTag := range tagsToExclude {
-		if tt[bannedTag] && bannedTag != tag { // only ban tags not in the whitelist 
-			return false
-		}
-	}
-	return tt[tag]
-} */
-
 // returns true if tt has at least 1 of the specified TechTags
 // and none of the tags in tagsToExclude
 //
@@ -89,16 +78,19 @@ func (tt TechTags) hasTag(tag TechTag, tagsToExclude ...TechTag) bool {
 func (tt TechTags) hasTags(tagsToInclude []TechTag, tagsToExclude ...TechTag) bool {
 	blacklist := newTechTags(tagsToExclude...)
 	whitelist := newTechTags(tagsToInclude...)
-	var hasTag, inBanlist bool
+	hasTag := false
 
-	for _, tag := range tt.GetTags() {  
-		if blacklist[tag] && !whitelist[tag] {
-			inBanlist = true
-		} else if whitelist[tag] {
+	for _, tag := range tt.GetTags() {
+		switch {
+		case whitelist[tag]:
 			hasTag = true
+		case blacklist[tag]:
+			// our TechTags has a blacklisted tag not 
+			// also in our whitelist; automatic fail
+			return false
 		}
 	}
-	return hasTag && !inBanlist
+	return hasTag
 }
 
 // return unsorted list of all tags in tt

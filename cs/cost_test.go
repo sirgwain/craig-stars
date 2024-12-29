@@ -10,47 +10,32 @@ import (
 )
 
 func TestCost_Divide(t *testing.T) {
-	type fields struct {
-		Ironium   int
-		Boranium  int
-		Germanium int
-		Resources int
-	}
-	type args struct {
-		b Cost
-	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   float64
+		name     string
+		dividend Cost
+		divisor  Cost
+		want     float64
 	}{
-		{"0", fields{0, 0, 0, 0}, args{Cost{0, 0, 0, 0}}, math.Inf(1)},
-		{"1 I", fields{1, 0, 0, 0}, args{Cost{1, 0, 0, 0}}, 1},
-		{"1 B", fields{0, 1, 0, 0}, args{Cost{0, 1, 0, 0}}, 1},
-		{"1 G", fields{0, 0, 1, 0}, args{Cost{0, 0, 1, 0}}, 1},
-		{"1 R", fields{0, 0, 0, 1}, args{Cost{0, 0, 0, 1}}, 1},
-		{"2 I", fields{2, 0, 0, 0}, args{Cost{1, 0, 0, 0}}, 2},
-		{"2 B", fields{0, 2, 0, 0}, args{Cost{0, 1, 0, 0}}, 2},
-		{"2 G", fields{0, 0, 2, 0}, args{Cost{0, 0, 1, 0}}, 2},
-		{"2 R", fields{0, 0, 0, 2}, args{Cost{0, 0, 0, 1}}, 2},
-		{"2 All", fields{2, 2, 2, 2}, args{Cost{1, 1, 1, 1}}, 2},
-		{"1/2 I", fields{1, 0, 0, 0}, args{Cost{2, 0, 0, 0}}, .5},
-		{"1/2 B", fields{0, 1, 0, 0}, args{Cost{0, 2, 0, 0}}, .5},
-		{"1/2 G", fields{0, 0, 1, 0}, args{Cost{0, 0, 2, 0}}, .5},
-		{"1/2 R", fields{0, 0, 0, 1}, args{Cost{0, 0, 0, 2}}, .5},
-		{"1/2 All", fields{1, 1, 1, 1}, args{Cost{2, 2, 2, 2}}, .5},
-		{"5887 / 841", fields{199, 1555, 841, 92}, args{Cost{71, 5, 5887, 17}}, .142857},
+		{"0", Cost{0, 0, 0, 0}, Cost{0, 0, 0, 0}, math.Inf(1)},
+		{"1/1 I", Cost{1, 0, 0, 0}, Cost{1, 0, 0, 0}, 1},
+		{"1 B", Cost{0, 1, 0, 0}, Cost{0, 1, 0, 0}, 1},
+		{"1 G", Cost{0, 0, 1, 0}, Cost{0, 0, 1, 0}, 1},
+		{"1 R", Cost{0, 0, 0, 1}, Cost{0, 0, 0, 1}, 1},
+		{"2 I", Cost{1, 0, 0, 0}, Cost{2, 0, 0, 0}, 2},
+		{"2 B", Cost{0, 1, 0, 0}, Cost{0, 2, 0, 0}, 2},
+		{"2 G", Cost{0, 0, 1, 0}, Cost{0, 0, 2, 0}, 2},
+		{"2 R", Cost{0, 0, 0, 1}, Cost{0, 0, 0, 2}, 2},
+		{"2 All", Cost{1, 1, 1, 1}, Cost{2, 2, 2, 2}, 2},
+		{"1/2 I", Cost{2, 0, 0, 0}, Cost{1, 0, 0, 0}, .5},
+		{"1/2 B", Cost{0, 2, 0, 0}, Cost{0, 1, 0, 0}, .5},
+		{"1/2 G", Cost{0, 0, 2, 0}, Cost{0, 0, 1, 0}, .5},
+		{"1/2 R", Cost{0, 0, 0, 2}, Cost{0, 0, 0, 1}, .5},
+		{"1/2 All", Cost{2, 2, 2, 2}, Cost{1, 1, 1, 1}, .5},
+		{"5887 / 841", Cost{71, 5, 5887, 17}, Cost{199, 1555, 841, 92}, .142857},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := Cost{
-				Ironium:   tt.fields.Ironium,
-				Boranium:  tt.fields.Boranium,
-				Germanium: tt.fields.Germanium,
-				Resources: tt.fields.Resources,
-			}
-			got := a.Divide(tt.args.b.ToCostFloat64())
+			got := tt.dividend.DivideCost(tt.divisor)
 			assert.InDeltaf(t, got, tt.want, 0.01, fmt.Sprintf("Cost.Divide() = %v, want %v", got, tt.want))
 		})
 	}

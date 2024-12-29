@@ -37,14 +37,10 @@ var CostTypes = [4]CostType{
 }
 
 func NewCost[T number](ironium, boranium, germanium, resources T) cost[T] {
-	return cost[T]{ironium, boranium, germanium, resources}
-}
-
-func FromMineralAndResources(m Mineral, resources int) Cost {
-	return Cost{
-		Ironium:   m.Ironium,
-		Boranium:  m.Boranium,
-		Germanium: m.Germanium,
+	return cost[T]{
+		Ironium:   ironium,
+		Boranium:  boranium,
+		Germanium: germanium,
 		Resources: resources,
 	}
 }
@@ -57,17 +53,17 @@ func FromMineral[T number](c Mineral) cost[T] {
 	}
 }
 
-func MultiplyCost[T number, F int | float64](c cost[T], factor F) cost[T] {
-	return cost[T]{
-		Ironium:   T(float64(c.Ironium) * float64(factor)),
-		Boranium:  T(float64(c.Boranium) * float64(factor)),
-		Germanium: T(float64(c.Germanium) * float64(factor)),
-		Resources: T(float64(c.Resources) * float64(factor)),
+func FromMineralAndResources(m Mineral, resources int) Cost {
+	return Cost{
+		Ironium:   m.Ironium,
+		Boranium:  m.Boranium,
+		Germanium: m.Germanium,
+		Resources: resources,
 	}
 }
 
 // return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
-// Negative indices count backwards from lowest value
+// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc etc).
 //
 // Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
 func (c cost[T]) HighestType(ranking int) CostType {
@@ -75,13 +71,13 @@ func (c cost[T]) HighestType(ranking int) CostType {
 }
 
 // return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
-// Negative indices count backwards from lowest value
+// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc etc).
 //
 // Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
 func (c cost[T]) HighestAmount(ranking int) T {
 	a := c.ToSlice()
-	slice := slices.Clone(a[:])
-	slices.SortStableFunc(slice, func(a, b T) int { return cmp.Compare(a, b) })
+	slice := a[:]
+	slices.SortStableFunc(slice, cmp.Compare)
 	if ranking < 0 {
 		slices.Sort(slice)
 		ranking = -ranking
@@ -193,7 +189,7 @@ func (c cost[T]) Add(other cost[T]) cost[T] {
 	}
 }
 
-func (c cost[T]) AddInt(costType CostType, amount T) cost[T] {
+func (c cost[T]) AddNum(costType CostType, amount T) cost[T] {
 	switch costType {
 	case Ironium:
 		c.Ironium += amount
@@ -204,7 +200,7 @@ func (c cost[T]) AddInt(costType CostType, amount T) cost[T] {
 	case Resources:
 		c.Resources += amount
 	default:
-		panic(fmt.Sprintf("AddInt called with invalid CostType %s", costType))
+		panic(fmt.Sprintf("AddNum called with invalid CostType %s", costType))
 	}
 	return c
 }
@@ -236,12 +232,19 @@ func (c cost[T]) SubtractMineral(other Mineral) cost[T] {
 	}
 }
 
+func MultiplyCost[T number, F int | float64](c cost[T], factor F) cost[T] {
+	return cost[T]{
+		Ironium:   T(float64(c.Ironium) * float64(factor)),
+		Boranium:  T(float64(c.Boranium) * float64(factor)),
+		Germanium: T(float64(c.Germanium) * float64(factor)),
+		Resources: T(float64(c.Resources) * float64(factor)),
+	}
+}
+
 // divide a cost by another cost
 // and return how many times divisor can go into dividend
-//
-// This functionally replaces cost.NumBuildable;
-// the latter can be e as the latter was essentially just "divide but int"
-func (dividend cost[T]) Divide(divisor CostFloat64) float64 {
+// as a float64
+func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
 	quotient := CostFloat64{}
 	for _, ct := range CostTypes {
 		if divisor.GetAmount(ct) == 0 {
@@ -250,6 +253,7 @@ func (dividend cost[T]) Divide(divisor CostFloat64) float64 {
 			quotient = quotient.Set(ct, float64(dividend.GetAmount(ct))/float64(divisor.GetAmount(ct)))
 		}
 	}
+
 	return quotient.MinAmount()
 }
 
@@ -259,7 +263,7 @@ func (dividend cost[T]) Divide(divisor CostFloat64) float64 {
 // (and how many we can make)
 func (dividend cost[T]) DivideMineral(divisor Mineral) float64 {
 	dc := divisor.ToCost().ToCostFloat64()
-	return dividend.Divide(dc)
+	return dividend.ToCostFloat64().DivideCost(dc)
 }
 
 // Return greater of 2 cost structs for all CostTypes separately
@@ -272,14 +276,14 @@ func (c cost[T]) Max(other cost[T]) cost[T] {
 	}
 }
 
-func (c cost[T]) Negate() cost[T] {
+/* func (c cost[T]) Negate() cost[T] {
 	return cost[T]{
 		Ironium:   -c.Ironium,
 		Boranium:  -c.Boranium,
 		Germanium: -c.Germanium,
 		Resources: -c.Resources,
 	}
-}
+} */
 
 // return this cost with a minimum of zero for each value
 func (c cost[T]) MinZero() cost[T] {
