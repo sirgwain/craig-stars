@@ -197,6 +197,5 @@ func (m Mineral) GetTypeFromAmount(amt int) MineralType {
 	case m.Germanium:
 		return Germanium
 	}
-	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding MineralType was found in mineral struct; \nStruct values:\nIronium: %v\nBoranium: %v\nGermanium: %v",
-		amt, m.Ironium, m.Boranium, m.Germanium))
+	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding MineralType was found in mineral struct; %#v", amt, m))
 }
