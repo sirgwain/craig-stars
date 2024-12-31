@@ -25,18 +25,6 @@ func roundHalfDown(x float64) float64 {
 	return math.Ceil(x - 0.5)
 }
 
-// returns the new jamming/computing bonus
-func getNewJamming(prevBonus, componentBonus, multi float64, qty int) float64 {
-	baseMulti := 1 - prevBonus/multi // undo multi before multiplication
-	compMulti := math.Pow(1-componentBonus, float64(qty))
-	return (1 - baseMulti*compMulti) * multi
-}
-
-// returns the new beam defense factor after adding the given components
-func getNewBeamBonus(prevBonus, componentBonus float64, qty int) float64 {
-	return prevBonus * math.Pow(1+componentBonus, float64(qty))
-}
-
 func Clamp[T constraints.Ordered](value, min, max T) T {
 	if value < min {
 		return min

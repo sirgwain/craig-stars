@@ -293,6 +293,18 @@ func (d *ShipDesign) getMovement(rules *Rules, cargoMass int) int {
 	return getBattleMovement(rules.MovementMin, rules.MovementMax, d.Spec.Engine.IdealSpeed, float64(d.Spec.MovementBonus), d.Spec.Mass+cargoMass, d.Spec.NumEngines)
 }
 
+// returns the new jamming/computing bonus
+func getNewJamming(prevBonus, componentBonus, multi float64, qty int) float64 {
+	baseMulti := 1 - prevBonus/multi // undo multi before multiplication
+	compMulti := math.Pow(1-componentBonus, float64(qty))
+	return (1 - baseMulti*compMulti) * multi
+}
+
+// returns the new beam defense factor after adding the given components
+func getNewBeamBonus(prevBonus, componentBonus float64, qty int) float64 {
+	return prevBonus * math.Pow(1+componentBonus, float64(qty))
+}
+
 // Compute a ship design's Spec
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
 	hull := rules.techs.GetHull(design.Hull)
