@@ -77,9 +77,12 @@ func (c cost[T]) HighestType(ranking int) CostType {
 func (c cost[T]) HighestAmount(ranking int) T {
 	a := c.ToSlice()
 	slice := a[:]
-	slices.SortStableFunc(slice, cmp.Compare)
+	slices.Sort(slice)
 	if ranking < 0 {
-		slices.Sort(slice)
+		slices.SortStableFunc(slice, func(a, b T) int {
+			// reverse sort
+			return cmp.Compare(b, a)
+		})
 		ranking = -ranking
 	}
 	return slice[len(slice)-ranking]
@@ -275,15 +278,6 @@ func (c cost[T]) Max(other cost[T]) cost[T] {
 		Resources: Max(c.Resources, other.Resources),
 	}
 }
-
-/* func (c cost[T]) Negate() cost[T] {
-	return cost[T]{
-		Ironium:   -c.Ironium,
-		Boranium:  -c.Boranium,
-		Germanium: -c.Germanium,
-		Resources: -c.Resources,
-	}
-} */
 
 // return this cost with a minimum of zero for each value
 func (c cost[T]) MinZero() cost[T] {
