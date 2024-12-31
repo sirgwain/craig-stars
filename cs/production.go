@@ -187,7 +187,7 @@ func (p *production) produce() (productionResult, error) {
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddMineral(planet.Cargo.ToMineral())
 	newQueue := []ProductionQueueItem{}
 	for itemIndex, item := range planet.ProductionQueue {
-		cost, err := GetItemCost(p.rules, p.player, p.planet, item)
+		cost, err := p.getItemCost(p.rules, p.player, p.planet, item)
 		if err != nil {
 			p.log.Error().
 				Err(err).
@@ -337,7 +337,7 @@ func (p *production) produce() (productionResult, error) {
 	return result, nil
 }
 
-func GetItemCost(rules *Rules, player *Player, planet *Planet, item ProductionQueueItem) (Cost, error) {
+func (p *production) getItemCost(rules *Rules, player *Player, planet *Planet, item ProductionQueueItem) (Cost, error) {
 	costCalculator := NewCostCalculator()
 	var err error
 	var cost Cost
