@@ -100,16 +100,28 @@ type CostRules struct {
 	TechBaseCost                   []int   `json:"techBaseCost,omitempty"`
 }
 
+type JammerCap struct {
+	Ship     float64
+	Starbase float64
+}
+
+func (jc JammerCap) Get(starbase bool) float64 {
+	if starbase {
+		return jc.Starbase
+	}
+	return jc.Ship
+}
+
 type BattleRules struct {
-	BeamRangeDropoff    float64 `json:"beamRangeDropoff,omitempty"`
-	BeamBonusCap        float64 `json:"beamBonusCap,omitempty"`
-	JammerCap           BoolMap `json:"jammerCap,omitempty"`
-	JammerMulti         BoolMap `json:"jammerMulti,omitempty"`
-	MovementMin         int     `json:"movementMin,omitempty"`
-	MovementMax         int     `json:"movementMax,omitempty"`
-	MovesToRunAway      int     `json:"movesToRunAway,omitempty"`
-	NumBattleRounds     int     `json:"numBattleRounds,omitempty"`
-	TorpedoSplashDamage float64 `json:"torpedoSplashDamage,omitempty"`
+	BeamRangeDropoff    float64   `json:"beamRangeDropoff,omitempty"`
+	BeamBonusCap        float64   `json:"beamBonusCap,omitempty"`
+	JammerCap           JammerCap `json:"jammerCap,omitempty"`
+	JammerMulti         JammerCap `json:"jammerMulti,omitempty"`
+	MovementMin         int       `json:"movementMin,omitempty"`
+	MovementMax         int       `json:"movementMax,omitempty"`
+	MovesToRunAway      int       `json:"movesToRunAway,omitempty"`
+	NumBattleRounds     int       `json:"numBattleRounds,omitempty"`
+	TorpedoSplashDamage float64   `json:"torpedoSplashDamage,omitempty"`
 }
 
 type RandomEvent string
@@ -271,13 +283,13 @@ func NewRulesWithSeed(seed int64) Rules {
 		BattleRules: BattleRules{
 			BeamRangeDropoff: 0.1,
 			BeamBonusCap:     2.55, // 2.55x damage max from caps
-			JammerCap: BoolMap{
-				valueIfTrue:  1,    // starbases have 100 jamming max, but an innate 0.75x jam penalty
-				valueIfFalse: 0.95, // non-starbases (ie fleets) have 95% jamming max
+			JammerCap: JammerCap{
+				Starbase: 1,    // starbases have 100 jamming max, but an innate 0.75x jam penalty
+				Ship:     0.95, // ships have 95% jamming max
 			},
-			JammerMulti: BoolMap{
-				valueIfTrue:  0.75, // starbases have innate 0.75x jam penalty by default
-				valueIfFalse: 1,    // non-starbases (ie fleets) have no penalty
+			JammerMulti: JammerCap{
+				Starbase: 0.75, // starbases have innate 0.75x jam penalty by default
+				Ship:     1,    // ships have no penalty
 			},
 			MovementMin:         2,
 			MovementMax:         10,
