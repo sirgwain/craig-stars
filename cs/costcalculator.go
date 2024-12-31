@@ -56,7 +56,7 @@ func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec Miniatur
 
 	// for starter techs, they are all 0 requirements, so just use our lowest field
 	if numTechLevelsAboveRequired == math.MaxInt {
-		numTechLevelsAboveRequired = techLevels.HighestAmount(-1)
+		numTechLevelsAboveRequired = techLevels.LowestLevel()
 	}
 
 	// As players gain tech levels, lower leveled items get cheaper.

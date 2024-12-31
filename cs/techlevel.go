@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-	"slices"
 )
 
 // Represents a TechLevel the player has or a tech requires, or the amount of research spent on each tech level
@@ -16,7 +15,7 @@ type TechLevel struct {
 	Biotechnology int `json:"biotechnology,omitempty"`
 }
 
-// return true if tl has the required levels for required 
+// return true if tl has the required levels for required
 // (i.e. tl >= required for all fields)
 func (tl TechLevel) HasRequiredLevels(required TechLevel) bool {
 	return tl.Energy >= required.Energy &&
@@ -47,39 +46,50 @@ func (tl TechLevel) ToSlice() [6]int {
 	}
 }
 
-// return the TechField with the Nth highest numerical value in a TechLevel struct (1 = highest, 2 = 2nd highest, etc etc).
-// Negative indices count backwards from lowest value
-//
-// Ties are broken in order of precendence (En>We>Pr>Co>El>Bi); tie order not affected by negative indices
-func (tl TechLevel) HighestType(ranking int) TechField {
-	return tl.GetTypeFromAmount(tl.HighestAmount(ranking))
+// return the lowest TechField in a TechLevel struct, including 0
+func (tl TechLevel) LowestLevel() int {
+	levels := tl.ToSlice()
+	lowestLevel := levels[0]
+	for _, level := range levels {
+		if lowestLevel > level {
+			lowestLevel = level
+		}
+	}
+
+	return lowestLevel
 }
 
-// return the numerical value of the Nth highest TechField in a TechLevel struct (1 = highest, 2 = 2nd highest, etc etc)
-// Negative indices count backwards from lowest value
-//
-// Ties are broken in order of precendence (En>We>Pr>Co>El>Bi); tie order not affected by negative indices
-func (tl TechLevel) HighestAmount(ranking int) int {
-	a := tl.ToSlice()
-	slice := slices.Clone(a[:])
-	if ranking < 0 {
-		slices.SortStableFunc(slice, func(a, b int) int { return b - a })
-		ranking = -ranking
-	} else {
-		slices.Sort(slice)
+// return the lowest TechField in a TechLevel struct, including 0
+func (tl TechLevel) Lowest() TechField {
+	lowest := Energy
+	lowestLevel := math.MaxInt
+	for _, field := range TechFields {
+		level := tl.Get(field)
+		if lowestLevel > level {
+			lowestLevel = level
+			lowest = field
+		}
 	}
-	return slice[len(slice)-ranking]
+
+	return lowest
 }
 
 // return the lowest positive TechField in a TechLevel struct
 func (tl TechLevel) LowestPositive() TechField {
-	a := tl.ToSlice()
-	l := slices.Clone(a[:])
-	l = slices.DeleteFunc(l, func(i int) bool { return i <= 0 })
-	if len(l) == 0 {
-		l = append(l, tl.Energy) // in the event we have nothing, return energy as a failsafe
+	lowest := Energy
+	lowestLevel := math.MaxInt
+	for _, field := range TechFields {
+		level := tl.Get(field)
+		if level <= 0 {
+			continue
+		}
+		if lowestLevel > level {
+			lowestLevel = level
+			lowest = field
+		}
 	}
-	return tl.GetTypeFromAmount(slices.Min(l))
+
+	return lowest
 }
 
 // get the level for the specified TechField

@@ -390,8 +390,8 @@ func GetBattleRules(o js.Value) cs.BattleRules {
 	}
 	obj.BeamRangeDropoff = getFloat[float64](o.Get("beamRangeDropoff"))
 	obj.BeamBonusCap = getFloat[float64](o.Get("beamBonusCap"))
-	obj.JammerCap = GetBoolMap(o.Get("jammerCap"))
-	obj.JammerMulti = GetBoolMap(o.Get("jammerMulti"))
+	obj.JammerCap = GetJammerCap(o.Get("jammerCap"))
+	obj.JammerMulti = GetJammerCap(o.Get("jammerMulti"))
 	obj.MovementMin = getInt[int](o.Get("movementMin"))
 	obj.MovementMax = getInt[int](o.Get("movementMax"))
 	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
@@ -403,9 +403,9 @@ func SetBattleRules(o js.Value, obj *cs.BattleRules) {
 	o.Set("beamRangeDropoff", obj.BeamRangeDropoff)
 	o.Set("beamBonusCap", obj.BeamBonusCap)
 	o.Set("jammerCap", map[string]any{})
-	SetBoolMap(o.Get("jammerCap"), &obj.JammerCap)
+	SetJammerCap(o.Get("jammerCap"), &obj.JammerCap)
 	o.Set("jammerMulti", map[string]any{})
-	SetBoolMap(o.Get("jammerMulti"), &obj.JammerMulti)
+	SetJammerCap(o.Get("jammerMulti"), &obj.JammerMulti)
 	o.Set("movementMin", obj.MovementMin)
 	o.Set("movementMax", obj.MovementMax)
 	o.Set("movesToRunAway", obj.MovesToRunAway)
@@ -499,16 +499,6 @@ func SetBombingResult(o js.Value, obj *cs.BombingResult) {
 	o.Set("unterraformAmount", map[string]any{})
 	SetHab(o.Get("unterraformAmount"), &obj.UnterraformAmount)
 	o.Set("planetEmptied", obj.PlanetEmptied)
-}
-
-func GetBoolMap(o js.Value) cs.BoolMap {
-	var obj cs.BoolMap
-	if o.IsUndefined() || o.IsNull() {
-		return obj
-	}
-	return obj
-}
-func SetBoolMap(o js.Value, obj *cs.BoolMap) {
 }
 
 func GetCargo(o js.Value) cs.Cargo {
@@ -1108,6 +1098,16 @@ func SetIntel(o js.Value, obj *cs.Intel) {
 	o.Set("num", obj.Num)
 	o.Set("playerNum", obj.PlayerNum)
 	o.Set("reportAge", obj.ReportAge)
+}
+
+func GetJammerCap(o js.Value) cs.JammerCap {
+	var obj cs.JammerCap
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	return obj
+}
+func SetJammerCap(o js.Value, obj *cs.JammerCap) {
 }
 
 func GetLRT(o js.Value) cs.LRT {

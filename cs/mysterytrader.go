@@ -437,7 +437,7 @@ func (mt *MysteryTrader) meet(rules *Rules, game *Game, fleet *Fleet, player *Pl
 		// it's a major award!
 		rewardType := mt.RewardType
 
-		if rewardType == MysteryTraderRewardResearch && player.TechLevels.HighestAmount(-1) == rules.MaxTechLevel {
+		if rewardType == MysteryTraderRewardResearch && player.TechLevels.LowestLevel() == rules.MaxTechLevel {
 			if rules.random.Intn(rules.MysteryTraderRules.ChanceMaxTechGetsPart) > 0 {
 				// player gets nothing :O
 				return MysteryTraderReward{}

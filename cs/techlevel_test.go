@@ -6,14 +6,14 @@ import (
 	"testing"
 )
 
-func TestTechLevel_HighestType(t *testing.T) {
+func TestTechLevel_Lowest(t *testing.T) {
 	tests := []struct {
-		name    string
-		tl      TechLevel
-		ranking int
-		want    TechField
+		name string
+		tl   TechLevel
+		want TechField
 	}{
-		{"energy lowest by default", TechLevel{}, -1, Energy},
+		{"energy lowest by default", TechLevel{}, Energy},
+		{"weapons lowest", TechLevel{1, 0, 1, 1, 1, 1}, Weapons},
 		{"biotech lowest", TechLevel{
 			Energy:        6,
 			Weapons:       5,
@@ -21,17 +21,42 @@ func TestTechLevel_HighestType(t *testing.T) {
 			Construction:  3,
 			Electronics:   2,
 			Biotechnology: 1,
-		}, -1, Biotechnology},
+		}, Biotechnology},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.tl.HighestType(-1); got != tt.want {
-				t.Errorf("TechLevel.HighestAmount(-1) = %v, want %v", got, tt.want)
+			if got := tt.tl.Lowest(); got != tt.want {
+				t.Errorf("TechLevel.Lowest() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
+func TestTechLevel_LowestLevel(t *testing.T) {
+	tests := []struct {
+		name string
+		tl   TechLevel
+		want int
+	}{
+		{"energy lowest by default", TechLevel{}, 0},
+		{"weapons lowest", TechLevel{2, 1, 2, 2, 2, 2}, 1},
+		{"biotech lowest", TechLevel{
+			Energy:        6,
+			Weapons:       5,
+			Propulsion:    4,
+			Construction:  3,
+			Electronics:   2,
+			Biotechnology: 1,
+		}, 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.tl.LowestLevel(); got != tt.want {
+				t.Errorf("TechLevel.LowestLevel() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 func TestTechLevel_LowestPositive(t *testing.T) {
 	tests := []struct {
 		name string
