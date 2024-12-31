@@ -20,27 +20,27 @@ type Rules struct {
 	AcquirablePartTradeChanceBase    float64                             `json:"acquirablePartTradeChanceBase,omitempty"`
 	AcquirablePartTradeItemMax       int                                 `json:"acquirablePartTradeItemMax,omitempty"`
 	CometStatsBySize                 map[CometSize]CometStats            `json:"cometStatsBySize,omitempty"`
-	FleetSafeSpeedExplosionChance    float64                             `json:"fleetSafeSpeedExplosionChance"`
-	InvasionDefenseCoverageFactor    float64                             `json:"invasionDefenseCoverageFactor"`
-	LRTSpecs                         map[LRT]LRTSpec                     `json:"lrtSpecs"`
-	MaxPopulation                    int                                 `json:"maxPopulation"`
-	MaxTechLevel                     int                                 `json:"maxTechLevel"`
-	MineFieldCloak                   int                                 `json:"mineFieldCloak"`
-	MineFieldStatsByType             map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
-	MineralDecayFactor               int                                 `json:"mineralDecayFactor"`
-	MinMaxPopulationPercent          float64                             `json:"minMaxPopulationPercent"`
-	MysteryTraderRules               MysteryTraderRules                  `json:"mysteryTraderRules"`
-	PacketDecayRate                  map[int]float64                     `json:"packetDecayRate"`
-	PacketMaxOverwarpSpeed           int                                 `json:"packetMaxOverwarpSpeed"`
-	PacketMinDecay                   int                                 `json:"packetMinDecay"`
-	PlanetMinDistance                int                                 `json:"planetMinDistance"`
-	PopulationOvercrowdDieoffRate    float64                             `json:"populationOvercrowdDieoffRate"`
-	PopulationOvercrowdDieoffRateMax float64                             `json:"populationOvercrowdDieoffRateMax"`
-	PopulationScannerError           float64                             `json:"populationScannerError"`
-	PRTSpecs                         map[PRT]PRTSpec                     `json:"prtSpecs"`
-	RaceStartingPoints               int                                 `json:"raceStartingPoints"`
-	RadiatingImmune                  int                                 `json:"radiatingImmune"`
-	RandomArtifactResearchBonusRange [2]int                              `json:"randomArtifactResearchBonusRange"`
+	FleetSafeSpeedExplosionChance    float64                             `json:"fleetSafeSpeedExplosionChance,omitempty"`
+	InvasionDefenseCoverageFactor    float64                             `json:"invasionDefenseCoverageFactor,omitempty"`
+	LRTSpecs                         map[LRT]LRTSpec                     `json:"lrtSpecs,omitempty"`
+	MaxPopulation                    int                                 `json:"maxPopulation,omitempty"`
+	MaxTechLevel                     int                                 `json:"maxTechLevel,omitempty"`
+	MineFieldCloak                   int                                 `json:"mineFieldCloak,omitempty"`
+	MineFieldStatsByType             map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType,omitempty"`
+	MineralDecayFactor               int                                 `json:"mineralDecayFactor,omitempty"`
+	MinMaxPopulationPercent          float64                             `json:"minMaxPopulationPercent,omitempty"`
+	MysteryTraderRules               MysteryTraderRules                  `json:"mysteryTraderRules,omitempty"`
+	PacketDecayRate                  map[int]float64                     `json:"packetDecayRate,omitempty"`
+	PacketMaxOverwarpSpeed           int                                 `json:"packetMaxOverwarpSpeed,omitempty"`
+	PacketMinDecay                   int                                 `json:"packetMinDecay,omitempty"`
+	PlanetMinDistance                int                                 `json:"planetMinDistance,omitempty"`
+	PopulationOvercrowdDieoffRate    float64                             `json:"populationOvercrowdDieoffRate,omitempty"`
+	PopulationOvercrowdDieoffRateMax float64                             `json:"populationOvercrowdDieoffRateMax,omitempty"`
+	PopulationScannerError           float64                             `json:"populationScannerError,omitempty"`
+	PRTSpecs                         map[PRT]PRTSpec                     `json:"prtSpecs,omitempty"`
+	RaceStartingPoints               int                                 `json:"raceStartingPoints,omitempty"`
+	RadiatingImmune                  int                                 `json:"radiatingImmune,omitempty"`
+	RandomArtifactResearchBonusRange [2]int                              `json:"randomArtifactResearchBonusRange,omitempty"`
 	RandomCometMinYear               int                                 `json:"randomCometMinYear,omitempty"`
 	RandomCometMinYearPlayerWorld    int                                 `json:"randomCometMinYearPlayerWorld,omitempty"`
 	RandomEventChances               map[RandomEvent]float64             `json:"randomEventChances,omitempty"`
@@ -65,8 +65,8 @@ type Rules struct {
 	WormholeCloak                    int                                 `json:"wormholeCloak,omitempty"`
 	WormholePairsForSize             map[Size]int                        `json:"wormholePairsForSize,omitempty"`
 	WormholeStatsByStability         map[WormholeStability]WormholeStats `json:"wormholeStatsByStability,omitempty"`
-	random                           rng
-	techs                            *TechStore
+	random                           rng                                 `json:"random,omitempty"`
+	techs                            *TechStore                          `json:"techs,omitempty"`
 }
 
 type UniverseGenerationRules struct {

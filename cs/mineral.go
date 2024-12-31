@@ -177,11 +177,12 @@ func (m Mineral) HighestType(ranking int) MineralType {
 // Ties are broken in order of precendence (I>B>G); tie order not affected by negative indices
 func (m Mineral) HighestAmount(ranking int) int {
 	a := m.ToSlice()
-	slice := slices.Clone(a[:])
-	slices.Sort(slice)
+	slice := a[:]
 	if ranking < 0 {
 		slices.SortStableFunc(slice, func(a, b int) int { return b - a })
 		ranking = -ranking
+	} else {
+		slices.Sort(slice)
 	}
 	return slice[len(slice)-ranking]
 }
