@@ -60,13 +60,13 @@ var CombatTechTags = []TechTag{
 }
 
 // A collection of an object's TechTags (like on a tech part)
-type TechTags map[TechTag]struct{}
+type TechTags map[TechTag]bool
 
 // Create a new TechTags map from a list of TechTag items, or an empty map if none are specified
 func newTechTags(tags ...TechTag) TechTags {
 	newTechTags := TechTags{}
 	for _, t := range tags {
-		newTechTags[t] = struct{}{}
+		newTechTags[t] = true
 	}
 	return newTechTags
 }
@@ -81,10 +81,9 @@ func (tt TechTags) hasTags(tagsToInclude []TechTag, tagsToExclude ...TechTag) bo
 	hasTag := false
 
 	for _, tag := range tt.GetTags() {
-		switch {
-		case whitelist[tag] == struct{}{}:
+		if _, ok := whitelist[tag]; ok {
 			hasTag = true
-		case blacklist[tag] == struct{}{}:
+		} else if _, ok := blacklist[tag]; ok {
 			// our TechTags has a blacklisted tag not
 			// also in our whitelist; automatic fail
 			return false

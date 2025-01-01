@@ -2,7 +2,6 @@ package ai
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
@@ -192,12 +191,13 @@ func (ai *aiPlayer) assignPurpose() {
 }
 
 // get the best hull we can build by iterating through the list backwards
-// TODO: Add ability to use different search criteria (cheapness, rating, etc.) & not be dependent 
+// TODO: Add ability to use different search criteria (cheapness, rating, etc.) & not be dependent
 // on the best techs being at the back of the list
 func (ai *aiPlayer) getBestHull(hulls []*cs.TechHull) *cs.TechHull {
-	h := slices.Clone(hulls); slices.Reverse(h)
 	var bestHull *cs.TechHull
-	for _, hull := range h {
+	// iterate over hulls backwards. better hulls are later so start there
+	for i := len(hulls) - 1; i >= 0; i-- {
+		hull := hulls[i]
 		if ai.HasTech(&hull.Tech) && (bestHull == nil || hull.Ranking > bestHull.Ranking) {
 			bestHull = hull
 		}

@@ -29,7 +29,8 @@ type costCalculate struct {
 func GetCostEfficiencyRatio(numerator, denominator CostFloat64, costTypes ...CostType) (costRatio float64) {
 	if len(costTypes) > 4 {
 		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types; %v", costTypes))
-	} else if len(costTypes) == 0 {
+	}
+	if len(costTypes) == 0 {
 		costTypes = CostTypes[:] // no cost types provided means we include everything
 	}
 	var hcTally, otherTally float64
