@@ -93,8 +93,8 @@ func TestTechLevel_LowestPositive(t *testing.T) {
 func TestTechLevel_LevelsAbove(t *testing.T) {
 	tests := []struct {
 		name  string
-		tl    TechLevel
 		other TechLevel
+		tl    TechLevel
 		want  int
 	}{
 		{"starter tech", TechLevel{}, TechLevel{}, math.MaxInt},

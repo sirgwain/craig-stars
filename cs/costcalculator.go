@@ -126,17 +126,15 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 			hc := rules.techs.GetHullComponent(design.Slots[i].HullComponent)
 			if hc == nil {
 				return Cost{}, fmt.Errorf("component %s of old design not found in tech store", design.Slots[i].HullComponent)
-			} else {
-				oldComponents[hc] += design.Slots[i].Quantity
 			}
+			oldComponents[hc] += design.Slots[i].Quantity
 		}
 		if i < len(newDesign.Slots) {
 			hc := rules.techs.GetHullComponent(newDesign.Slots[i].HullComponent)
 			if hc == nil {
 				return Cost{}, fmt.Errorf("component %s of new design not found in tech store", newDesign.Slots[i].HullComponent)
-			} else {
-				newComponents[hc] += newDesign.Slots[i].Quantity
 			}
+			newComponents[hc] += newDesign.Slots[i].Quantity
 		}
 	}
 
@@ -213,7 +211,7 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 
 		// apply first part of costs to tally (70% of new item cost - 70% of old item cost);
 		// this is the portion that can be reduced by normal rebates
-		cost = cost.Add(newCost.Subtract(MultiplyCost(oldCost, 0.7)))
+		cost = cost.Add(MultiplyCost(newCost.Subtract(oldCost), 0.7))
 
 		// add on rest of the cost after category specific rebates
 		// higher of (20% new item cost, 30% new item cost - 10% old item cost)

@@ -211,27 +211,27 @@ func (tl TechLevel) MinZero() TechLevel {
 }
 
 // Get the lowest amount of levels tl is above other.
-//
+// This assumes tl is above other in all levels, it's just finding the lowest non-zero level above
 // returns maxInt if other is all 0s
 func (tl TechLevel) LevelsAbove(other TechLevel) int {
 	levelsAbove := math.MaxInt
-	if tl.Energy != 0 {
-		levelsAbove = Min(levelsAbove, other.Energy-tl.Energy)
+	if other.Energy > 0 {
+		levelsAbove = Min(levelsAbove, tl.Energy-other.Energy)
 	}
-	if tl.Weapons != 0 {
-		levelsAbove = Min(levelsAbove, other.Weapons-tl.Weapons)
+	if other.Weapons > 0 {
+		levelsAbove = Min(levelsAbove, tl.Weapons-other.Weapons)
 	}
-	if tl.Propulsion != 0 {
-		levelsAbove = Min(levelsAbove, other.Propulsion-tl.Propulsion)
+	if other.Propulsion > 0 {
+		levelsAbove = Min(levelsAbove, tl.Propulsion-other.Propulsion)
 	}
-	if tl.Construction != 0 {
-		levelsAbove = Min(levelsAbove, other.Construction-tl.Construction)
+	if other.Construction > 0 {
+		levelsAbove = Min(levelsAbove, tl.Construction-other.Construction)
 	}
-	if tl.Electronics != 0 {
-		levelsAbove = Min(levelsAbove, other.Electronics-tl.Electronics)
+	if other.Electronics > 0 {
+		levelsAbove = Min(levelsAbove, tl.Electronics-other.Electronics)
 	}
-	if tl.Biotechnology != 0 {
-		levelsAbove = Min(levelsAbove, other.Biotechnology-tl.Biotechnology)
+	if other.Biotechnology > 0 {
+		levelsAbove = Min(levelsAbove, tl.Biotechnology-other.Biotechnology)
 	}
 	return levelsAbove
 }
