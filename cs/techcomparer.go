@@ -47,11 +47,11 @@ func (tc *techCompare) GetBestComponentWithTag(design *ShipDesign, hullSlotType 
 		// so we don't end up with sapper only ships
 		switch tag {
 		case TechTagBomb:
-			hasTag = hc.Tags[TechTagBomb] && !hc.Tags[TechTagStructureBomb] && !hc.Tags[TechTagSmartBomb]
+			hasTag = hc.Tags.HasTag(TechTagBomb) && !hc.Tags.HasTag(TechTagStructureBomb) && !hc.Tags.HasTag(TechTagSmartBomb)
 		case TechTagBeamWeapon, TechTagTorpedo, TechTagCapitalShipMissile: // backup for IF we get shield sapping torpedoes
-			hasTag = hc.Tags[tag] && !hc.Tags[TechTagShieldSapper] // && !hc.Tags[TechTagCapitalShipMissile]
+			hasTag = hc.Tags.HasTag(tag) && !hc.Tags.HasTag(TechTagShieldSapper) // && !hc.Tags.HasTag(TechTagCapitalShipMissile)
 		default:
-			hasTag = hc.Tags[tag]
+			hasTag = hc.Tags.HasTag(tag)
 		}
 		if hasTag && (bestTech == nil || tc.compareFieldsByTag(design, bestTech, hc, qty, tag)) {
 			// we have the tag and it's better than what we already have; tack it on
@@ -376,7 +376,7 @@ func (tc *techCompare) getWarshipPartBonus(design *ShipDesign, hc *TechHullCompo
 	// check tags individually and tally up the numbers
 tagLoop:
 	for tag := range hc.Tags {
-		if !techTagsToCheck[tag] {
+		if !techTagsToCheck.HasTag(tag) {
 			continue
 		}
 

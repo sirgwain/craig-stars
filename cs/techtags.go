@@ -41,7 +41,7 @@ const (
 	TechTagTorpedoBonus       TechTag = "TorpedoBonus"
 )
 
-// a list of all TechTags that benefit ships in combat 
+// a list of all TechTags that benefit ships in combat
 var CombatTechTags = []TechTag{
 	TechTagArmor,
 	TechTagBeamCapacitor,
@@ -60,13 +60,13 @@ var CombatTechTags = []TechTag{
 }
 
 // A collection of an object's TechTags (like on a tech part)
-type TechTags map[TechTag]bool
+type TechTags map[TechTag]struct{}
 
 // Create a new TechTags map from a list of TechTag items, or an empty map if none are specified
 func newTechTags(tags ...TechTag) TechTags {
 	newTechTags := TechTags{}
 	for _, t := range tags {
-		newTechTags[t] = true
+		newTechTags[t] = struct{}{}
 	}
 	return newTechTags
 }
@@ -82,10 +82,10 @@ func (tt TechTags) hasTags(tagsToInclude []TechTag, tagsToExclude ...TechTag) bo
 
 	for _, tag := range tt.GetTags() {
 		switch {
-		case whitelist[tag]:
+		case whitelist[tag] == struct{}{}:
 			hasTag = true
-		case blacklist[tag]:
-			// our TechTags has a blacklisted tag not 
+		case blacklist[tag] == struct{}{}:
+			// our TechTags has a blacklisted tag not
 			// also in our whitelist; automatic fail
 			return false
 		}
@@ -93,26 +93,22 @@ func (tt TechTags) hasTags(tagsToInclude []TechTag, tagsToExclude ...TechTag) bo
 	return hasTag
 }
 
+// return true if tt has this tag
+func (tt TechTags) HasTag(tag TechTag) bool {
+	_, ok := tt[tag]
+	return ok
+}
+
 // return unsorted list of all tags in tt
 func (tt TechTags) GetTags() []TechTag {
-	var list []TechTag
-	for k, v := range tt {
-		if v {
-			list = append(list, k)
-		}
+	list := make([]TechTag, 0, len(tt))
+	for k := range tt {
+		list = append(list, k)
 	}
 	return list
 }
 
 // return number of unique tags in tt
-func (tt TechTags) CountTags() int {
-	count := 0
-	checkedTags := TechTags{}
-	for k, v := range tt {
-		if v && !checkedTags[k] {
-			count += 1
-			checkedTags[k] = true
-		}
-	}
-	return count
+func (tt TechTags) Count() int {
+	return len(tt)
 }

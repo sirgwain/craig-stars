@@ -65,8 +65,8 @@ type Rules struct {
 	WormholeCloak                    int                                 `json:"wormholeCloak,omitempty"`
 	WormholePairsForSize             map[Size]int                        `json:"wormholePairsForSize,omitempty"`
 	WormholeStatsByStability         map[WormholeStability]WormholeStats `json:"wormholeStatsByStability,omitempty"`
-	random                           rng                                 `json:"random,omitempty"`
-	techs                            *TechStore                          `json:"techs,omitempty"`
+	random                           rng
+	techs                            *TechStore
 }
 
 type UniverseGenerationRules struct {

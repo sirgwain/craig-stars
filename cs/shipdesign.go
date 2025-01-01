@@ -1111,7 +1111,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			// add scanners to armed scouts if they don't have them already
 			// TODO: Add a way to determine the "least needed" slot rather than tacking a scanner on the first one we find
 			itemToPlace = scanner
-			if itemToPlace.Tags.CountTags() == 1 && itemToPlace.Tags[TechTagScanner] { // covers for non-useless scanner items
+			if itemToPlace.Tags.Count() == 1 && itemToPlace.Tags.HasTag(TechTagScanner) { // covers for non-useless scanner items
 				designSlot.Quantity = 1
 			}
 			// Note that due to the hull slot sorting done earlier,
