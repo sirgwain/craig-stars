@@ -80,6 +80,20 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 			}, want: &AlienMiner,
 		},
 		{
+			name: "Best IT stargate at prop 6/con 10",
+			fields: fields{
+				techLevels:    TechLevel{0, 0, 6, 10, 0, 0},
+				race:          NewRace().WithPRT(IT).WithLRT(ISB),
+				acquiredParts: []string{},
+				beamShip:      false,
+			},
+			args: args{
+				hullSlotType: HullSlotTypeOrbitalElectrical,
+				qty:          1,
+				tag:          TechTagStargate,
+			}, want: &StargateAny_300,
+		},
+		{
 			name: "no matching part",
 			fields: fields{
 				techLevels:    TechLevel{0, 0, 0, 0, 0, 0},
@@ -149,7 +163,7 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "Stargate 300-500 vs Stargate 100-any",
+			name: "Stargate 300-500 vs Stargate 100-Any",
 			args: args{
 				hc:    &Stargate300_500,
 				other: &Stargate100_Any,
@@ -228,7 +242,7 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 		{
 			name: "Croby versus Neutronium with RS",
 			args: args{
-				hc:    &Neutronium,   // 275/2 = 137.5 total dp
+				hc:    &Neutronium,   // 275/2 (from RS) = 137.5 total dp
 				other: &CrobySharmor, // (60*1.4) + 65 = 149 total dp
 				tag:   TechTagArmor,
 				RS:    true,
@@ -250,8 +264,8 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 		{
 			name: "AMG vs Super Fuel Tank",
 			args: args{
-				hc:    &AntiMatterGenerator, // 450 mg / 24
-				other: &SuperFuelTank,       // 500 mg / 16
+				hc:    &AntiMatterGenerator, // (200 mg + 50*5 gen) / 24
+				other: &SuperFuelTank,       // 500 cap / 16
 				tag:   TechTagFuelTank,
 				RS:    false,
 				light: false,
@@ -291,10 +305,11 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 
 func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 	type fields struct {
-		techLevels TechLevel
-		race *Race
+		techLevels    TechLevel
+		race          *Race
 		acquiredParts []string
-		beamShip bool; hull string
+		beamShip      bool
+		hull          string
 	}
 	type args struct {
 		hullSlotType HullSlotType
@@ -302,7 +317,7 @@ func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields fields
+		fields  fields
 		args    args
 		want    *TechHullComponent
 		wantErr bool
@@ -359,7 +374,6 @@ func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 				qty:          1,
 			}, want: nil, wantErr: true,
 		},
-
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -370,7 +384,7 @@ func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 			tc := NewTechComparer(&rules, player)
 			design := NewShipDesign(player, 1).WithName(tt.name).WithHull(tt.fields.hull).WithPurpose(ShipDesignPurposeTorpedoFighter)
 			if tt.fields.beamShip {
-				design.Purpose = ShipDesignPurposeBeamFighter 
+				design.Purpose = ShipDesignPurposeBeamFighter
 			}
 			got, err := tc.getMostNeededComponent(design, tt.args.hullSlotType, tt.args.qty)
 			if (err != nil) != tt.wantErr {

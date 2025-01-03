@@ -1275,9 +1275,9 @@ var RobberBaronScanner = TechHullComponent{Tech: NewTech("Robber Baron Scanner",
 var PeerlessScanner = TechHullComponent{Tech: NewTech("Peerless Scanner", NewCost(3, 2, 30, 90), TechRequirements{TechLevel: TechLevel{Energy: 7, Electronics: 24}}, 160, TechCategoryScanner, TechTagScanner),
 
 	HullSlotType: HullSlotTypeScanner,
-	Mass:      4,
-	Scanner:   true,
-	ScanRange: 500,
+	Mass:         4,
+	Scanner:      true,
+	ScanRange:    500,
 }
 
 var Tritanium = TechHullComponent{Tech: NewTech("Tritanium", NewCost(5, 0, 0, 10), TechRequirements{TechLevel: TechLevel{}}, 10, TechCategoryArmor, TechTagArmor),

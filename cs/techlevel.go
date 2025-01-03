@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-// Represents a TechLevel the player has or a tech requires, or the amount of research spent on each tech level
+// Represents a TechLevel a player has or a tech requires, or the amount of research spent on a tech level
 type TechLevel struct {
 	Energy        int `json:"energy,omitempty"`
 	Weapons       int `json:"weapons,omitempty"`
@@ -46,20 +46,15 @@ func (tl TechLevel) ToSlice() [6]int {
 	}
 }
 
-// return the lowest TechField in a TechLevel struct, including 0
+// return the lowest numerical value in a TechLevel struct, including 0
+// Ties are broken by order of precedence (En>We>Pr>Co>El>Bi)
 func (tl TechLevel) LowestLevel() int {
-	levels := tl.ToSlice()
-	lowestLevel := levels[0]
-	for _, level := range levels {
-		if lowestLevel > level {
-			lowestLevel = level
-		}
-	}
-
-	return lowestLevel
+	a := tl.ToSlice()
+	return Min(a[:]...)
 }
 
-// return the lowest TechField in a TechLevel struct, including 0
+// return the TechField with the lowest numerical value in a TechLevel struct, including 0
+// Ties are broken by order of precedence (En>We>Pr>Co>El>Bi)
 func (tl TechLevel) Lowest() TechField {
 	lowest := Energy
 	lowestLevel := math.MaxInt
@@ -74,16 +69,18 @@ func (tl TechLevel) Lowest() TechField {
 	return lowest
 }
 
-// return the lowest positive TechField in a TechLevel struct
+func (tl TechLevel) Lowest_alt() TechField {
+	return tl.GetFieldFromAmount(tl.LowestLevel())
+} 
+
+// return the lowest positive TechField in a TechLevel struct;
+// Ties are broken by order of precedence (En>We>Pr>Co>El>Bi)
 func (tl TechLevel) LowestPositive() TechField {
 	lowest := Energy
 	lowestLevel := math.MaxInt
 	for _, field := range TechFields {
 		level := tl.Get(field)
-		if level <= 0 {
-			continue
-		}
-		if lowestLevel > level {
+		if lowestLevel > level && level > 0{
 			lowestLevel = level
 			lowest = field
 		}
@@ -111,9 +108,9 @@ func (tl TechLevel) Get(field TechField) int {
 	return None
 }
 
-// return the first valid TechField in a TechLevel struct with the given numerical value
+// return the first valid TechField in a TechLevel struct with the given numerical value;
 // panics if no TechField with the corresponding value exists
-func (tl TechLevel) GetTypeFromAmount(amt int) TechField {
+func (tl TechLevel) GetFieldFromAmount(amt int) TechField {
 	switch amt {
 	case tl.Energy:
 		return Energy
@@ -128,7 +125,7 @@ func (tl TechLevel) GetTypeFromAmount(amt int) TechField {
 	case tl.Biotechnology:
 		return Biotechnology
 	}
-	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding TechField was found in struct; \nStruct values: %v",
+	panic(fmt.Sprintf("GetFieldFromAmount called with value %v but no corresponding TechField was found in struct; \nStruct values: %v",
 		amt, tl))
 }
 

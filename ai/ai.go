@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -279,7 +280,7 @@ func (ai *aiPlayer) updateWarfleets() error {
 	var err error
 	err = ai.updateWarshipCount()
 	if err != nil {
-		if err.Error() == "too early" {
+		if errors.As(err, "too early") {
 			// we building ships too early; stop
 			return nil
 		}
@@ -292,7 +293,7 @@ func (ai *aiPlayer) updateWarfleets() error {
 		// if design is nil, try to make one from scratch
 		ai.designsByPurpose[cs.ShipDesignPurposeBeamFighter], err = ai.designShip(ai.config.namesByPurpose[cs.ShipDesignPurposeBeamFighter], cs.ShipDesignPurposeBeamFighter, cs.FleetPurposeFighter) // fleet purpose unimportant as it's just used for radrams
 		if err != nil {
-			return err
+			return fmt.Errorf("error designing beam fighter during warship quantity updating: %w", err)
 		}
 		beamDesign = ai.designsByPurpose[cs.ShipDesignPurposeBeamFighter]
 	}
@@ -301,7 +302,7 @@ func (ai *aiPlayer) updateWarfleets() error {
 		// if design is nil, try to make one from scratch
 		ai.designsByPurpose[cs.ShipDesignPurposeTorpedoFighter], err = ai.designShip(ai.config.namesByPurpose[cs.ShipDesignPurposeTorpedoFighter], cs.ShipDesignPurposeTorpedoFighter, cs.FleetPurposeFighter) // fleet purpose unimportant as it's just used for radrams
 		if err != nil {
-			return err
+			return fmt.Errorf("error designing torpedo fighter during warship quantity updating: %w", err)
 		}
 		torpDesign = ai.designsByPurpose[cs.ShipDesignPurposeTorpedoFighter]
 	}
@@ -347,7 +348,7 @@ func (ai *aiPlayer) updateWarfleets() error {
 func (ai *aiPlayer) updateWarshipCount() error {
 	yearsAfterStart := ai.game.YearsPassed() - ai.config.startAttackingYear
 	// TODO: Make these values configurable per AI type
-	var bombers, warships, fuelTransports int = 0, 0, 0
+	var bombers, warships, fuelTransports int
 
 	// determine ship counts by year
 	switch {

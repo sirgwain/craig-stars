@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"cmp"
 	"fmt"
 	"math"
 	"slices"
@@ -9,22 +8,25 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// Costs are by default ints, but sometimes we need to treat them as floats for applying
+// A Cost represents minerals and resources required to build something, like a mine, factory, or ship
+// These are by default integers, but sometimes need to be treated as floats for applying
 // discounts and miniaturization
-type Cost = cost[int]
-type CostFloat64 = cost[float64]
-
-// Costs can be ints or float64... for now
-type number interface {
-	constraints.Integer | constraints.Float
-}
-
-// A Cost represents minerals and resources required to build something, i.e. a mine, factory, or ship
 type cost[T number] struct {
 	Ironium   T `json:"ironium,omitempty"`
 	Boranium  T `json:"boranium,omitempty"`
 	Germanium T `json:"germanium,omitempty"`
 	Resources T `json:"resources,omitempty"`
+}
+
+// An integer cost, used for most outwards-facing cost-related operations.
+type Cost = cost[int]
+
+// A floating point cost, used within internal calculations for determining unit rates.
+type CostFloat64 = cost[float64]
+
+// An integer or floating point value.
+type number interface {
+	constraints.Integer | constraints.Float
 }
 
 type CostType = ResourceType
@@ -62,30 +64,34 @@ func FromMineralAndResources(m Mineral, resources int) Cost {
 	}
 }
 
-// return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
-// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc etc).
+// return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc).
+// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc).
 //
 // Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
+//
+// panics if ranking is 0 or if abs(ranking) is greater than 4
 func (c cost[T]) HighestType(ranking int) CostType {
+	if ranking == 0 || Abs(ranking) > 4 {
+		panic(fmt.Sprintf("HighestType called with incorrect ranking %d; must be non-zero integer between -4 and 4", ranking))
+	}
 	return c.GetTypeFromAmount(c.HighestAmount(ranking))
 }
 
-// return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc etc).
-// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc etc).
-//
-// Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
+// return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc).
+// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc).
+// 
+// panics if ranking is 0 or if abs(ranking) is greater than 4
 func (c cost[T]) HighestAmount(ranking int) T {
-	a := c.ToSlice()
-	slice := a[:]
-	slices.Sort(slice)
-	if ranking < 0 {
-		slices.SortStableFunc(slice, func(a, b T) int {
-			// reverse sort
-			return cmp.Compare(b, a)
-		})
-		ranking = -ranking
+	if ranking == 0 || Abs(ranking) > 4 {
+		panic(fmt.Sprintf("HighestAmount called with incorrect ranking %d; must be non-zero integer between -4 and 4", ranking))
 	}
-	return slice[len(slice)-ranking]
+	a := c.ToSlice()
+	slices.Sort(a[:])
+	if ranking > 0 {
+		return a[4-ranking] // Slice is ordered in ascending order, so biggest values will be at the end 
+	} else {
+		return a[-ranking-1] // negative indices count from the start (lowest first)
+	}
 }
 
 // return the first valid CostType in a Cost struct with the given numerical value;
@@ -101,8 +107,7 @@ func (c cost[T]) GetTypeFromAmount(amt T) CostType {
 	case c.Resources:
 		return Resources
 	}
-	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding costType was found in cost struct; \nStruct values:\nIronium: %v\nBoranium: %v\nGermanium: %v\nResources: %v",
-		amt, c.Ironium, c.Boranium, c.Germanium, c.Resources))
+	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding costType was found in cost struct; Struct values:\n%#v", amt, c))
 }
 
 func (c cost[T]) GetAmount(costType CostType) T {
@@ -289,11 +294,12 @@ func (c cost[T]) MinZero() cost[T] {
 	}
 }
 
+// Returns the lowest numerical value in a Cost struct
 func (c cost[T]) MinAmount() T {
 	return Min(c.Ironium, c.Boranium, c.Germanium, c.Resources)
 }
 
-// Round a cost struct's values with passed in function
+// Round a cost struct's values by calling roundFunc on each of its values in turn.
 func (c cost[T]) Round(roundFunc func(float64) float64) cost[T] {
 	return cost[T]{
 		Ironium:   T(roundFunc(float64(c.Ironium))),

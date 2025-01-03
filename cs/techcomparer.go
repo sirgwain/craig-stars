@@ -12,7 +12,6 @@ type TechComparer interface {
 	GetBestComponentWithTag(design *ShipDesign, hullSlotType HullSlotType, qty int, tag TechTag) *TechHullComponent
 	compareFieldsByTag(design *ShipDesign, hc, other *TechHullComponent, qty int, tag TechTag) bool
 	compareStargates(hc, other *TechHullComponent) bool
-	compareTorpedos(hc, other *TechHullComponent) (float64, float64)
 	compareWeaponPowers(hc, other *TechHullComponent) bool
 	getMostNeededComponent(design *ShipDesign, hullSlotType HullSlotType, qty int) (*TechHullComponent, error)
 	getWarshipPartBonus(design *ShipDesign, hc *TechHullComponent, qty int) float64
@@ -120,23 +119,8 @@ func (tc *techCompare) compareFieldsByTag(design *ShipDesign, hc, other *TechHul
 	case TechTagTorpedoJammer:
 		score = hc.TorpedoJamming
 		otherScore = other.TorpedoJamming
-	case TechTagShieldSapper:
-		if design.Purpose.IsTorpedoShip() {
-			score, otherScore = tc.compareTorpedos(hc, other)
-			break
-		}
-		fallthrough
-	case TechTagBeamWeapon, TechTagGatlingGun:
-		score = float64(hc.Power) * math.Pow(float64(hc.Range), 2)
-		otherScore = float64(other.Power) * math.Pow(float64(other.Range), 2)
-		if !hc.Gatling {
-			score *= 1 - tc.rules.BeamRangeDropoff
-		}
-		if !other.Gatling {
-			otherScore *= 1 - tc.rules.BeamRangeDropoff
-		}
-	case TechTagTorpedo, TechTagCapitalShipMissile:
-		score, otherScore = tc.compareTorpedos(hc, other)
+	case TechTagTorpedo, TechTagCapitalShipMissile, TechTagBeamWeapon, TechTagGatlingGun, TechTagShieldSapper:
+		return tc.compareWeaponPowers(hc, other)
 	case TechTagColonyModule:
 		score = 1
 		otherScore = 1
@@ -183,16 +167,16 @@ func (tc *techCompare) compareFieldsByTag(design *ShipDesign, hc, other *TechHul
 	}
 
 	if design.Purpose.IsLightShip() {
-		if hc.Mass > 30 && design.getMovement(rules, hc.Mass*qty) <= 10 { // only penalize movement
+		if hc.Mass > 30 && design.getMovement(rules, hc.Mass*qty+design.Spec.CargoCapacity) < rules.MovementMax { // don't penalize movement if we still have max movement with full cargo
 			score /= (1 + float64(hc.Mass-30)/10)
 		}
-		if other.Mass > 30 && design.getMovement(rules, hc.Mass*qty) <= 10 {
+		if other.Mass > 30 && design.getMovement(rules, hc.Mass*qty+design.Spec.CargoCapacity) < rules.MovementMax {
 			otherScore /= 1 + float64(other.Mass-30)/10
 		}
 	}
 
 	if score == 0 {
-		return true
+		return true // prevents division by 0
 	}
 	scoreRatio := otherScore / score
 	costRatio := 1.0
@@ -204,12 +188,13 @@ func (tc *techCompare) compareFieldsByTag(design *ShipDesign, hc, other *TechHul
 	return scoreRatio > costRatio ||
 		(scoreRatio == costRatio && other.Ranking > hc.Ranking)
 	// This works out to be equivalent to comparing unit prices
-	// If checkCost is false, it is also equivalent to simply comparing the scores
+	// If checkCost is false, it is also equivalent to simply comparing the scores numerically
+	// a/b > 1 = a(b)/b > 1(b) = a > b
 }
 
 // Compare 2 stargates and return true if the 2nd one is superior.
 //
-// 1st priority mass, 2nd priority distance; ranking used as tiebreaker
+// 1st priority mass, 2nd priority distance; cost used as final tiebreaker
 func (tc *techCompare) compareStargates(hc, other *TechHullComponent) bool {
 	if hc != other {
 		switch {
@@ -221,64 +206,47 @@ func (tc *techCompare) compareStargates(hc, other *TechHullComponent) bool {
 			return false
 		case other.SafeRange > hc.SafeRange:
 			return true
-		case other.Ranking > hc.Ranking: // same distance & range; compare ranking
-			return true
+		default: // same safe mass & distance; compare price point
+			hcCost := getPlayerCost(hc.Tech, tc.player.TechLevels, tc.player.Race.Spec.MiniaturizationSpec, tc.player.Race.Spec.TechCostOffset)
+			otherCost := getPlayerCost(other.Tech, tc.player.TechLevels, tc.player.Race.Spec.MiniaturizationSpec, tc.player.Race.Spec.TechCostOffset)
+			return GetCostEfficiencyRatio(otherCost, hcCost, Resources) > 1
 		}
 	}
 	return false
 }
 
-// Compare 2 torpedoes or missiles and return true if the 2nd one is superior.
-// Breaks ties by item ranking if all else fails
-func (tc *techCompare) compareTorpedos(hc, other *TechHullComponent) (float64, float64) {
-	var hcPower float64
-	var otherPower float64
-	capMissileMulti := 1.5
-	// TODO: Figure out a value multi for capital ship missiles that makes sense and works for potential sapper missiles
-	// missiles do 2x damage on shieldless foes, but enemies don't always have shields down
-
-	hcPower = float64(hc.Power) * float64(hc.Accuracy+10) / 100 // add a bit of accuracy bonus to account for computing vs jamming inequalities
-	if hc.CapitalShipMissile {
-		hcPower *= capMissileMulti
-	}
-	otherPower = float64(other.Power) * float64(other.Accuracy+10) / 100
-	if other.CapitalShipMissile {
-		otherPower *= capMissileMulti
-	}
-	return hcPower, otherPower
-}
-
 // compare 2 weapons' estimated damage values
-// and return true if the 2nd component is better
+// and return true if other is better than hc
 func (tc *techCompare) compareWeaponPowers(hc, other *TechHullComponent) bool {
 	rules := tc.rules
-	if hc == nil || hc.Category != other.Category {
-		return false
-	} else if other == nil {
+	if hc == nil {
 		return true
+	} else if other == nil || hc.Category != other.Category {
+		return false // can't compare apples to oranges!
 	}
 
 	var hcPower, otherPower float64
 	if hc.Category == TechCategoryTorpedo {
-		hcPower = float64(hc.Power) * float64(hc.Accuracy+10) / 100 // add a bit of accuracy bonus to account for computing vs jamming
+		hcPower = float64(hc.Power * hc.Accuracy * hc.Range) / 100 / 4
+		otherPower = float64(other.Power) * float64(other.Accuracy) / 100 * float64(other.Range) / 4
+		// TODO: Rework this once damageShieldsOnly & CapitalShipMissile get refactored into an armor dmg multiplier
 		if hc.CapitalShipMissile {
 			hcPower *= 1.5
 		}
-		otherPower := float64(other.Power) * float64(other.Accuracy+10) / 100
 		if other.CapitalShipMissile {
 			otherPower *= 1.5
 		}
 	} else {
-		// TODO: Rework this once damageShieldsOnly gets refactored into a variable dmg multiplier
-		hcPower = float64(hc.Power)
+		hcPower = float64(hc.Power * PowInt(hc.Range, 2))
+		otherPower = float64(other.Power * PowInt(other.Range, 2))
 		if !hc.Gatling {
 			hcPower *= 1 - rules.BeamRangeDropoff
 		}
-		otherPower = float64(other.Power)
 		if !other.Gatling {
 			otherPower *= 1 - rules.BeamRangeDropoff
 		}
 	}
+
 	return otherPower >= hcPower
 }
 
@@ -296,7 +264,7 @@ func (tc *techCompare) getMostNeededComponent(design *ShipDesign, hst HullSlotTy
 
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
-		return nil, fmt.Errorf("getMostNeededComponent cannot compare cost efficiency; design hull %s not found in tech store", design.Hull)
+		return nil, fmt.Errorf("getMostNeededComponent cannot compare cost efficiency; design hull %s was not found in tech store", design.Hull)
 	}
 
 	for _, hc := range comps {
@@ -338,13 +306,13 @@ func (tc *techCompare) getMostNeededComponent(design *ShipDesign, hst HullSlotTy
 			armorShieldRatio = (hullArmor + hullShield) / (hcArmor + hcShield)
 		}
 		if armorShieldRatio >= costRatio {
-			// Our baseline hull is more efficient than the hull armor; leave it off as we can always make more
+			// Our baseline hull is more efficient than the hull armor; leave it off as we can always make more ships
 			return nil, nil
 		}
 	}
 
 	if (bestBonus-1)/float64(qty) <= 0.01 && design.Spec.CloakPercent < 98 {
-		// our "best part" barely helps us; add a cloak
+		// our "best part" barely helps us; add a cloak for funsies
 		cloak := tc.GetBestComponentWithTag(design, hst, qty, TechTagCloak)
 		if cloak != nil {
 			bestTech = cloak

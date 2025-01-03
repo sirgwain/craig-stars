@@ -82,10 +82,14 @@ func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec Miniatur
 		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti) // only take the lowest single bonus
 	}
 
-	return MultiplyCost(techCost, highestCostMulti)
+	techCost = MultiplyCost(techCost, highestCostMulti).Round(func(f float64) float64 {
+		return Max(roundHalfDown(f),1) // Ensures minimum cost of 1
+	})
+
+	return techCost
 }
 
-// get the upgrade cost for replacing a starbase with another
+// Calculate the upgrade cost for replacing one starbase design with another
 //
 // Takes into account part replacement costs and minimum costs
 func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error) {
@@ -107,9 +111,9 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	oldHull := rules.techs.GetHull(design.Hull)
 	newHull := rules.techs.GetHull(newDesign.Hull)
 	if oldHull == nil {
-		return Cost{}, fmt.Errorf("starbase hull %s of old design not found in tech store", design.Hull)
+		return Cost{}, fmt.Errorf("starbase hull %q of old design was not found in tech store", design.Hull)
 	} else if newHull == nil {
-		return Cost{}, fmt.Errorf("starbase hull %s of new design not found in tech store", newDesign.Hull)
+		return Cost{}, fmt.Errorf("starbase hull %q of new design was not found in tech store", newDesign.Hull)
 	}
 
 	// If the hulls are different, add (newHullCost - 0.5*OldHullCost) to our conversion cost
@@ -126,14 +130,14 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		if i < len(design.Slots) {
 			hc := rules.techs.GetHullComponent(design.Slots[i].HullComponent)
 			if hc == nil {
-				return Cost{}, fmt.Errorf("component %s of old design not found in tech store", design.Slots[i].HullComponent)
+				return Cost{}, fmt.Errorf("component %q of old design was not found in tech store", design.Slots[i].HullComponent)
 			}
 			oldComponents[hc] += design.Slots[i].Quantity
 		}
 		if i < len(newDesign.Slots) {
 			hc := rules.techs.GetHullComponent(newDesign.Slots[i].HullComponent)
 			if hc == nil {
-				return Cost{}, fmt.Errorf("component %s of new design not found in tech store", newDesign.Slots[i].HullComponent)
+				return Cost{}, fmt.Errorf("component %q of new design was not found in tech store", newDesign.Slots[i].HullComponent)
 			}
 			newComponents[hc] += newDesign.Slots[i].Quantity
 		}
@@ -244,7 +248,7 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
-		return Cost{}, fmt.Errorf("hull design \"%s\" not found in tech store", design.Hull)
+		return Cost{}, fmt.Errorf("hull design %q was not found in tech store", design.Hull)
 	}
 	starbase := hull.Starbase
 
@@ -258,7 +262,7 @@ func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 			continue
 		}
 		if item == nil {
-			return Cost{}, fmt.Errorf("component \"%s\" in design slots not found in tech store", slot.HullComponent)
+			return Cost{}, fmt.Errorf("component %q in design slots was not found in tech store", slot.HullComponent)
 		}
 		hcCost := MultiplyCost(getPlayerCost(item.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset), slot.Quantity)
 		if starbase && item.Category != TechCategoryOrbital {
