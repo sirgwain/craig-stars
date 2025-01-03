@@ -665,8 +665,9 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 	builtInScannerMultiplier := scannerSpec.BuiltInScannerMultiplier
 	if builtInScannerMultiplier > 0 && hull.BuiltInScanner {
 		spec.ScanRange = techLevels.Electronics * builtInScannerMultiplier
-		spec.ScanRangePen = int(math.Pow(float64(spec.ScanRange)/2, 4))
-		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), 4))
+		// TODO: Make this modular (allow for different tech level scaling & custom penscan multi)
+		spec.ScanRangePen = PowInt(spec.ScanRange/2, 4)
+		spec.ScanRange = PowInt(spec.ScanRange, 4)
 	}
 
 	for _, slot := range design.Slots {
@@ -681,19 +682,19 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 
 		// bat scanners have 0 range
 		if component.ScanRange != NoScanner {
-			spec.ScanRange += int(math.Pow(float64(component.ScanRange), 4) * float64(slot.Quantity))
+			spec.ScanRange += PowInt(component.ScanRange, 4) * slot.Quantity
 		}
 
 		if component.ScanRangePen != NoScanner {
 			if spec.ScanRangePen == NoScanner {
-				spec.ScanRangePen = int((math.Pow(float64(component.ScanRangePen), 4)) * float64(slot.Quantity))
+				spec.ScanRangePen = PowInt(component.ScanRangePen, 4*slot.Quantity)
 			} else {
-				spec.ScanRangePen += int((math.Pow(float64(component.ScanRangePen), 4)) * float64(slot.Quantity))
+				spec.ScanRange += PowInt(component.ScanRange, 4) * slot.Quantity
 			}
 		}
 	}
 
-	// now quad root it
+	// time to quad root it
 	if spec.ScanRange > 0 {
 		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), .25) + .5)
 		spec.ScanRange = int(float64(spec.ScanRange) * scannerSpec.ScanRangeFactor)
@@ -703,12 +704,14 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 		spec.ScanRangePen = int(math.Pow(float64(spec.ScanRangePen), .25) + .5)
 	}
 
-	// true if we have any scanning capability (all fleets should be able to scan at 0, but not pen scan)
+	// Update scanner field if we have any scanning capabilities whatsoever 
+	// all fleets should be able to regular scan at range 0 (ie see planet occupation status in orbit), but not pen scan
 	spec.Scanner = spec.ScanRange != NoScanner || spec.ScanRangePen != NoScanner
 }
 
-// design a ship/starbase for the AI or as a starting fleet using the best parts available to us
-// Warship design is handled by [cs.DesignWarship] instead
+// Design a ship/starbase for the AI or as a starting fleet using the best parts available to us
+//
+// Warship design is handled by (and delegated to) [cs.DesignWarship] instead
 func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
 	techStore := rules.techs
@@ -758,6 +761,13 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 	}
 
 	// loop through a second time to check our hull slots
+	var hullSlot TechHullSlot
+	getPartAndCache := func(t TechTag) *TechHullComponent {
+		return UpdateLookupMap(bestPartsBySlot[hullSlot.Type], t, func(tt TechTag) *TechHullComponent {
+			return tc.GetBestComponentWithTag(design, hullSlot.Type, hullSlot.Capacity, tt)
+		})
+	}
+
 	for i := range maxNum {
 		list := hullSlotsByFlexibility[i+1]
 		if list == nil {
@@ -765,7 +775,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 			continue
 		}
 		for _, sn := range list {
-			hullSlot := hull.Slots[sn]
+			hullSlot = hull.Slots[sn]
 			hst := hullSlot.Type
 			slot := ShipDesignSlot{HullSlotIndex: sn + 1} // list index 0 gets slot no. 1
 			slot.Quantity = hullSlot.Capacity
@@ -780,28 +790,20 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 		purposeSwitch:
 			switch purpose {
 			case ShipDesignPurposeScout:
-				scanner := UpdateLookupMap(bestPartsBySlot[hst], TechTagScanner, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				scanner := getPartAndCache(TechTagScanner)
 				if !hasScanner && scanner != nil {
 					slot.HullComponent = scanner.Name
 					hasScanner = true
 				}
 			case ShipDesignPurposeStartingFighter: // everyone's favorite rinky dinky starter ships
-				scanner := UpdateLookupMap(bestPartsBySlot[hst], TechTagScanner, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				scanner := getPartAndCache(TechTagScanner)
 				if scanner != nil && !hasScanner {
 					slot.HullComponent = scanner.Name
 					hasScanner = true
 					break purposeSwitch
 				}
-				beamWeapon := UpdateLookupMap(bestPartsBySlot[hst], TechTagBeamWeapon, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
-				torpedo := UpdateLookupMap(bestPartsBySlot[hst], TechTagTorpedo, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				beamWeapon := getPartAndCache(TechTagBeamWeapon)
+				torpedo := getPartAndCache(TechTagTorpedo)
 				if torpedo != nil && beamWeapon != nil {
 					if numTorpedos > numBeamWeapons {
 						slot.HullComponent = beamWeapon.Name
@@ -812,16 +814,12 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 					}
 					break purposeSwitch
 				}
-				battleComputer := UpdateLookupMap(bestPartsBySlot[hst], TechTagTorpedoBonus, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				battleComputer := getPartAndCache(TechTagTorpedoBonus)
 				if battleComputer != nil {
 					slot.HullComponent = battleComputer.Name
 					break purposeSwitch
 				}
-				armor := UpdateLookupMap(bestPartsBySlot[hst], TechTagArmor, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				armor := getPartAndCache(TechTagArmor)
 				if armor != nil {
 					slot.HullComponent = armor.Name
 				}
@@ -829,32 +827,24 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 			// fill the bomb slot based on the type of bomber we want
 			// or leave it blank
 			case ShipDesignPurposeSmartBomber:
-				smartBomb := UpdateLookupMap(bestPartsBySlot[hst], TechTagSmartBomb, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				smartBomb := getPartAndCache(TechTagSmartBomb)
 				if smartBomb != nil {
 					slot.HullComponent = smartBomb.Name
 				}
 			case ShipDesignPurposeStructureBomber:
-				structureBomb := UpdateLookupMap(bestPartsBySlot[hst], TechTagStructureBomb, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				structureBomb := getPartAndCache(TechTagStructureBomb)
 				if structureBomb != nil {
 					slot.HullComponent = structureBomb.Name
 				}
 			case ShipDesignPurposeBomber:
-				bomb := UpdateLookupMap(bestPartsBySlot[hst], TechTagBomb, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				bomb := getPartAndCache(TechTagBomb)
 				if bomb != nil {
 					slot.HullComponent = bomb.Name
 				}
 			case ShipDesignPurposeFuelFreighter:
 			// nothing happens; our default case is to tack on fuel pods in spare slots
 			case ShipDesignPurposeColonizer:
-				colonyModule := UpdateLookupMap(bestPartsBySlot[hst], TechTagColonyModule, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				colonyModule := getPartAndCache(TechTagColonyModule)
 				if colonyModule != nil && !hasColonyModule {
 					slot.HullComponent = colonyModule.Name
 					slot.Quantity = 1 // we only need 1 colonization module
@@ -866,32 +856,24 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 				// TODO: Add purpose for cloaked pokey ships and add cloaks accordingly
 				fallthrough
 			case ShipDesignPurposeFreighter, ShipDesignPurposeColonistFreighter:
-				cargoPod := UpdateLookupMap(bestPartsBySlot[hst], TechTagCargoPod, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				cargoPod := getPartAndCache(TechTagCargoPod)
 				// add cargo pods or fuel pods
 				if cargoPod != nil && numCargoPods < numFuelTanks {
 					slot.HullComponent = cargoPod.Name
 					numCargoPods += slot.Quantity
 				}
 			case ShipDesignPurposeTerraformer:
-				terraformRobot := UpdateLookupMap(bestPartsBySlot[hst], TechTagTerraformingRobot, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				terraformRobot := getPartAndCache(TechTagTerraformingRobot)
 				if terraformRobot != nil {
 					slot.HullComponent = terraformRobot.Name
 				}
 			case ShipDesignPurposeMiner:
-				miningRobot := UpdateLookupMap(bestPartsBySlot[hst], TechTagMiningRobot, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				miningRobot := getPartAndCache(TechTagMiningRobot)
 				if miningRobot != nil {
 					slot.HullComponent = miningRobot.Name
 				}
 			case ShipDesignPurposeSpeedMineLayer:
-				speedMineLayer := UpdateLookupMap(bestPartsBySlot[hst], TechTagSpeedMineLayer, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				speedMineLayer := getPartAndCache(TechTagSpeedMineLayer)
 				if speedMineLayer != nil {
 					slot.HullComponent = speedMineLayer.Name
 					break
@@ -899,45 +881,33 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 				fallthrough
 			case ShipDesignPurposeDamageMineLayer:
 				// TODO: Ensure AI uses SD detonating minefield layers if applicable
-				heavyMineLayer := UpdateLookupMap(bestPartsBySlot[hst], TechTagHeavyMineLayer, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
-				standardMineLayer := UpdateLookupMap(bestPartsBySlot[hst], TechTagMineLayer, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				heavyMineLayer := getPartAndCache(TechTagHeavyMineLayer)
+				standardMineLayer := getPartAndCache(TechTagMineLayer)
 				if heavyMineLayer != nil {
 					slot.HullComponent = heavyMineLayer.Name
 				} else if standardMineLayer != nil {
 					slot.HullComponent = standardMineLayer.Name
 				}
 			case ShipDesignPurposePacketThrower:
-				massDriver := UpdateLookupMap(bestPartsBySlot[hst], TechTagMassDriver, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				massDriver := getPartAndCache(TechTagMassDriver)
 				if massDriver != nil && !hasDriver {
 					slot.HullComponent = massDriver.Name
 					hasDriver = true
 				}
 			case ShipDesignPurposeStargater:
-				stargate := UpdateLookupMap(bestPartsBySlot[hst], TechTagStargate, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				stargate := getPartAndCache(TechTagStargate)
 				if stargate != nil && !hasGate {
 					slot.HullComponent = stargate.Name
 					hasGate = true
 				}
 			case ShipDesignPurposeStarbaseUnarmed:
-				stargate := UpdateLookupMap(bestPartsBySlot[hst], TechTagStargate, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				stargate := getPartAndCache(TechTagStargate)
 				if stargate != nil && !hasGate {
 					slot.HullComponent = stargate.Name
 					hasGate = true
 					break purposeSwitch
 				}
-				massDriver := UpdateLookupMap(bestPartsBySlot[hst], TechTagMassDriver, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				massDriver := getPartAndCache(TechTagMassDriver)
 				// if have space, add packet throwers as well
 				if massDriver != nil {
 					slot.HullComponent = massDriver.Name
@@ -946,15 +916,9 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 			}
 
 			if slot.HullComponent == "" && !hull.Starbase {
-				fuelTank := UpdateLookupMap(bestPartsBySlot[hst], TechTagFuelTank, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
-				shield := UpdateLookupMap(bestPartsBySlot[hst], TechTagShield, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
-				scanner := UpdateLookupMap(bestPartsBySlot[hst], TechTagScanner, func(t TechTag) *TechHullComponent {
-					return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-				})
+				fuelTank := getPartAndCache(TechTagFuelTank)
+				shield := getPartAndCache(TechTagShield)
+				scanner := getPartAndCache(TechTagScanner)
 				switch {
 				case fuelTank != nil: // when in doubt, add fuel tanks to empty slots
 					slot.HullComponent = fuelTank.Name
@@ -1017,7 +981,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 	// add the slots to our slice & initialize our lookup map if needed
 	for i, hullSlot := range hull.Slots {
-		if hullSlot.Type&HullSlotTypeEngine != 0 && !hull.Starbase { // dont add engines to list for starbases
+		if hullSlot.Type&HullSlotTypeEngine != 0 && !hull.Starbase { // don't add engines to list for starbases
 			numEngines += hullSlot.Capacity
 			engineSlots = append(engineSlots, i)
 			continue
@@ -1029,7 +993,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	}
 
 	// get our engine slots out of the way
-	if len(engineSlots) <= 0 && !hull.Starbase {
+	if len(engineSlots) == 0 && !hull.Starbase {
 		return nil, fmt.Errorf("DesignWarship() could not find any engine slots in hull %s", hull)
 	} else {
 		bestEngine := techStore.GetBestBattleEngine(player, hull, numEngines)
@@ -1043,7 +1007,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 	// sort through hull slots in order of increasing slot type
 	// then in decreasing slot quantity (so bigger slots get used up first)
-	// ensures weapons get put on larger slots virst all else being equal
+	// ensures weapons get put on larger slots first all else being equal
 	if len(hullSlotNumsSorted) > 1 {
 		slices.SortStableFunc(hullSlotNumsSorted, func(m, n int) int {
 			b := int(hull.Slots[m].Type) - int(hull.Slots[n].Type)
@@ -1055,10 +1019,18 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		})
 	}
 
+	var hullSlot TechHullSlot
+
+	// wrapper function to make code prettier
+	getPartAndCache := func(t TechTag) *TechHullComponent {
+		return UpdateLookupMap(bestPartsBySlot[hullSlot.Type], t, func(tt TechTag) *TechHullComponent {
+			return tc.GetBestComponentWithTag(design, hullSlot.Type, hullSlot.Capacity, tt)
+		})
+	}
+
 	// extract slot numbers from list so we can loop through them
 	for _, slotNum := range hullSlotNumsSorted {
-		hullSlot := hull.Slots[slotNum]
-		hst := hullSlot.Type
+		hullSlot = hull.Slots[slotNum]
 		designSlot := ShipDesignSlot{HullSlotIndex: slotNum + 1} // list index 0 gets slot no. 1
 		designSlot.Quantity = hullSlot.Capacity
 		var itemToPlace *TechHullComponent
@@ -1066,34 +1038,23 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		// assign hull components, using map lookups to avoid repetition
 		var weapon, driver, stargate, scanner *TechHullComponent
 		if design.Purpose.IsBeamShip() {
-			weapon = UpdateLookupMap(bestPartsBySlot[hst], TechTagBeamWeapon, func(t TechTag) *TechHullComponent {
-				return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-			})
+			weapon = getPartAndCache(TechTagBeamWeapon)
 		} else {
-			weapon = UpdateLookupMap(bestPartsBySlot[hst], TechTagTorpedo, func(t TechTag) *TechHullComponent {
-				return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-			})
+			weapon = getPartAndCache(TechTagTorpedo)
 		}
-		driver = UpdateLookupMap(bestPartsBySlot[hst], TechTagMassDriver, func(t TechTag) *TechHullComponent {
-			return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-		})
-		stargate = UpdateLookupMap(bestPartsBySlot[hst], TechTagStargate, func(t TechTag) *TechHullComponent {
-			return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-		})
-		scanner = UpdateLookupMap(bestPartsBySlot[hst], TechTagScanner, func(t TechTag) *TechHullComponent {
-			return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-		})
+		driver = getPartAndCache(TechTagMassDriver)
+		stargate = getPartAndCache(TechTagStargate)
+		scanner = getPartAndCache(TechTagScanner)
 
 		switch {
-		case weapon != nil && ((numWeapons+numSappers) < minWeapons) || hst == HullSlotTypeWeapon:
+		case weapon != nil && ((numWeapons+numSappers) < minWeapons) || hullSlot.Type == HullSlotTypeWeapon:
 			// if we don't have many weapons already or this is a
 			// weapons-only slot, slap on some guns
 
 			// decide on whether to use sappers or not
 			// TODO: Rework this once armorDamageMulti becomes a techHullComponent property
-			sapper := UpdateLookupMap(bestPartsBySlot[hst], TechTagShieldSapper, func(t TechTag) *TechHullComponent {
-				return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-			})
+			sapper := getPartAndCache(TechTagShieldSapper)
+
 			shouldUseSapper := sapper != nil && // have a sapper to use
 				sapper.Range == weapon.Range && // sapper has at least as much range as our main guns
 				numWeapons > numSappers*3 && // 3:1 gun:sapper ratio
@@ -1129,15 +1090,13 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 				itemToPlace = driver
 				hasDriver = true
 			}
-		case hst == HullSlotTypeShield: // covers for langston shell
-			shield := UpdateLookupMap(bestPartsBySlot[hst], TechTagShield, func(t TechTag) *TechHullComponent {
-				return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, t)
-			})
+		case hullSlot.Type == HullSlotTypeShield: // covers for langston shell
+			shield := getPartAndCache(TechTagShield)
 
 			itemToPlace = shield
 		default:
 			// add whatever we need the most
-			itemToPlace, err = tc.getMostNeededComponent(design, hst, designSlot.Quantity)
+			itemToPlace, err = tc.getMostNeededComponent(design, hullSlot.Type, designSlot.Quantity)
 			if err != nil {
 				return nil, fmt.Errorf("getMostNeededComponent failed to get parts, error %w", err)
 			}
@@ -1271,7 +1230,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 				slot.Quantity++
 				prevMovement := getBattleMovement(rules.MovementMin, rules.MovementMax, design.Spec.Engine.IdealSpeed, design.Spec.MovementBonus+jet.MovementBonus*float64(slot.Quantity), design.Spec.Mass+jet.Mass*slot.Quantity, design.Spec.NumEngines)
 				if prevMovement >= rules.MovementMax {
-					// we hit the jamming cap; no more jammers needed
+					// we are going brrr enough; stop
 					design.Slots = append(design.Slots, slot)
 					break jetLoop
 				}

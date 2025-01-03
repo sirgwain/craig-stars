@@ -171,37 +171,37 @@ type ScannerSpec struct {
 type PRT string
 
 const (
-	/// This is only for tech requirements
+	// The lack of a PRT; only used in tech requirements
 	PRTNone PRT = ""
 
-	/// Hyper Expansion
+	// Hyper Expansion
 	HE PRT = "HE"
 
-	/// Super Stealth
+	// Super Stealth
 	SS PRT = "SS"
 
-	/// Warmonger
+	// Warmonger
 	WM PRT = "WM"
 
-	/// Claim Adjuster
+	// Claim Adjuster
 	CA PRT = "CA"
 
-	/// Inner Strength
+	// Inner Strength
 	IS PRT = "IS"
 
-	/// Space Demolition
+	// Space Demolition
 	SD PRT = "SD"
 
-	/// Packet Physics
+	// Packet Physics
 	PP PRT = "PP"
 
-	/// Interstellar Traveler
+	// Interstellar Traveler
 	IT PRT = "IT"
 
-	/// Alternate Reality
+	// Alternate Reality
 	AR PRT = "AR"
 
-	/// Jack of All Trades
+	// Jack of All Trades
 	JoaT PRT = "JoaT"
 )
 
@@ -220,6 +220,7 @@ var PRTs = [10]PRT{
 
 type Bitmask uint32
 
+// Return number of non-zero bits in a bitmask
 func (mask Bitmask) countBits() int {
 	count := 0
 
@@ -234,7 +235,7 @@ func (mask Bitmask) countBits() int {
 type LRT Bitmask
 
 const (
-	// Only used for TechRequirements
+	// No LRT; only used for tech requirements
 	LRTNone = 0
 
 	// Improved Fuel Efficiency

@@ -81,9 +81,10 @@ func (tt TechTags) hasTags(tagsToInclude []TechTag, tagsToExclude ...TechTag) bo
 	hasTag := false
 
 	for _, tag := range tt.GetTags() {
-		if _, ok := whitelist[tag]; ok {
+		switch {
+		case whitelist.HasTag(tag):
 			hasTag = true
-		} else if _, ok := blacklist[tag]; ok {
+		case blacklist.HasTag(tag):
 			// our TechTags has a blacklisted tag not
 			// also in our whitelist; automatic fail
 			return false

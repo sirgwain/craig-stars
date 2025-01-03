@@ -167,24 +167,30 @@ func (m Mineral) Clamp(min, max int) Mineral {
 // Negative indices count backwards from lowest value
 //
 // Ties are broken in order of precendence (I>B>G); tie order not affected by negative indices
+//
+// panics if ranking is 0 or if abs(ranking) is greater than 3
 func (m Mineral) HighestType(ranking int) MineralType {
+	if ranking == 0 || Abs(ranking) > 3 {
+		panic(fmt.Sprintf("HighestType called with incorrect ranking %d; must be non-zero integer between -3 and 3", ranking))
+	}
 	return m.GetTypeFromAmount(m.HighestAmount(ranking))
 }
 
-// return the numerical value of the Nth highest MineralType in a Mineral struct (1 = highest, 2 = 2nd highest, etc etc).
-// Negative indices count backwards from lowest value
-//
-// Ties are broken in order of precendence (I>B>G); tie order not affected by negative indices
+// return the numerical value of the Nth highest MineralType in a Mineral struct (1 = highest, 2 = 2nd highest, etc).
+// Negative indices count backwards from lowest value  (-1 = lowest, -2 = 2nd lowest, etc).
+
+// panics if ranking is 0 or abs(ranking) is greater than 3
 func (m Mineral) HighestAmount(ranking int) int {
-	a := m.ToSlice()
-	slice := a[:]
-	if ranking < 0 {
-		slices.SortStableFunc(slice, func(a, b int) int { return b - a })
-		ranking = -ranking
-	} else {
-		slices.Sort(slice)
+	if ranking == 0 || Abs(ranking) > 3 {
+		panic(fmt.Sprintf("HighestAmount called with incorrect ranking %d; must be non-zero integer between -3 and 3", ranking))
 	}
-	return slice[len(slice)-ranking]
+	a := m.ToSlice()
+	slices.Sort(a[:])
+	if ranking > 0 {
+		return a[3-ranking] // Slice is ordered in ascending order, so biggest values will be at the end 
+	} else {
+		return a[-ranking-1] // negative indices count from the start (lowest first)
+	}
 }
 
 // return the first valid MineralType in a Mineral struct with the given numerical value;
@@ -198,5 +204,5 @@ func (m Mineral) GetTypeFromAmount(amt int) MineralType {
 	case m.Germanium:
 		return Germanium
 	}
-	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding MineralType was found in mineral struct; %#v", amt, m))
+	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding MineralType was found in mineral struct; Struct values: \n%#v", amt, m))
 }

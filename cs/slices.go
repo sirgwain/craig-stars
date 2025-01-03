@@ -95,9 +95,6 @@ func MapToStringDelimited[M map[K]V, K comparable, V any](mapBeingStringed M, cm
 	}
 	order := slices.SortedFunc(maps.Keys(mapBeingStringed), cmpFunc)
 	for _, k := range order {
-		if _, ok := mapBeingStringed[k]; !ok {
-			panic(fmt.Sprintf("mapToStringDelimited tried to index thing \"%v\" not found in map", k))
-		}
 		v := mapBeingStringed[k]
 		result += fmt.Sprint(k) + delimiterBetween + fmt.Sprint(v) + delimiterAfter
 	}

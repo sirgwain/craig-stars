@@ -6,18 +6,21 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// population is often updated with floating point math, but we have to convert
-// it back to Colonist Cargo values, which are stored in units of 100 colonists per 1kT of Colonist Cargo
+// Round a number (int or float) to the nearest multiple of 100 and return the resulting integer.
+//
+// Typically used to convert floating-point population values back into colonist Cargo values, 
+// which are stored in discrete units of 100 colonists/1kT.
 func roundToNearest100[T int | float64](value T) int {
 	return int(math.Round(float64(value)/100) * 100)
 }
 
+// round a float to the given precision
 func roundFloat(val float64, precision uint) float64 {
 	ratio := math.Pow(10, float64(precision))
 	return math.Round(val*ratio) / ratio
 }
 
-// round a float to nearest whole number, rounding halves down
+// round a float to the nearest whole number, rounding halves down
 func roundHalfDown(x float64) float64 {
 	if x > 0 {
 		return math.Floor(x + 0.5)
@@ -25,17 +28,18 @@ func roundHalfDown(x float64) float64 {
 	return math.Ceil(x - 0.5)
 }
 
+// Clamps the passed in value between min and max by ensuring. 
 func Clamp[T constraints.Ordered](value, min, max T) T {
 	if value < min {
 		return min
-	} else {
-		if value > max {
-			return max
-		}
+	} else if value > max {
+		return max
 	}
 	return value
 }
 
+// Returns the highest among a collection of similarly typed ordered values.
+// Panics if given no arguments.
 func Max[T constraints.Ordered](nums ...T) T {
 	if len(nums) == 0 {
 		panic("Max called with no arguments")
@@ -51,6 +55,8 @@ func Max[T constraints.Ordered](nums ...T) T {
 	return result
 }
 
+// Returns the lowest among a collection of similarly typed ordered values.
+// Panics if given no arguments.
 func Min[T constraints.Ordered](nums ...T) T {
 	if len(nums) == 0 {
 		panic("Min called with no arguments")
@@ -66,27 +72,25 @@ func Min[T constraints.Ordered](nums ...T) T {
 	return result
 }
 
-// raise an integer to the power of another integer (apparently this is the fastYY)
+// Raise an integer to the power of another integer and return the result.
 //
-// Does not support negative values (we *are* dealing with integers here after all)
+// Does not support negative exponents (we *are* dealing with integers here after all)
 func PowInt[T constraints.Integer](base, exponent T) T {
 	var result T = 1
 	// According to internet, this is the fastest way to do int exponentiation
-	for {
+	for exponent != 0 {
 		if exponent&1 == 1 {
 			result *= base
 		}
 		exponent >>= 1
-		if exponent == 0 {
-			break
-		}
 		base *= base
 	}
 
 	return result
 }
 
-func Abs[T int](num T) T {
+// Returns the absolute value (unsigned portion) of a given number.
+func Abs[T number](num T) T {
 	if num < 0 {
 		return -num
 	}

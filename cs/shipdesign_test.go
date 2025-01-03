@@ -701,7 +701,6 @@ func TestComputeShipDesignSpec(t *testing.T) {
 }
 
 func TestShipDesign_SlotsEqual(t *testing.T) {
-
 	type args struct {
 		sourceSlots []ShipDesignSlot
 		otherSlots  []ShipDesignSlot
@@ -774,6 +773,154 @@ func TestShipDesign_SlotsEqual(t *testing.T) {
 			}
 			if got := source.SlotsEqual(tt.args.otherSlots); got != tt.want {
 				t.Errorf("ShipDesign.SlotsEqual() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestShipDesignSpec_getJamOrComputerBonus(t *testing.T) {
+	type fields struct {
+		prevBonus float64
+		starbase  bool
+	}
+	type args struct {
+		hc           *TechHullComponent
+		qty          int
+		fieldToCheck TechTag
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   float64
+	}{
+		{
+			name: "wrong field being checked",
+			fields: fields{
+				prevBonus: 0,
+				starbase:  false,
+			},
+			args: args{
+				hc:           &Jammer20,
+				qty:          1,
+				fieldToCheck: TechTagTorpedoBonus,
+			},
+			want: 1,
+		},
+		{
+			name: "already at hardcap",
+			fields: fields{
+				prevBonus: 0.75,
+				starbase:  true,
+			},
+			args: args{
+				hc:           &Jammer20,
+				qty:          1,
+				fieldToCheck: TechTagTorpedoJammer,
+			},
+			want: 1,
+		},
+		{
+			name: "10 Jammer 50s on starbase",
+			fields: fields{
+				prevBonus: 0,
+				starbase:  true,
+			},
+			args: args{
+				hc:           &Jammer50,
+				qty:          10,
+				fieldToCheck: TechTagTorpedoJammer,
+			},
+			want: 1.7493, // ((1-((1-0.5^10)*0.75))+1)/1
+		},
+		{
+			name: "99 jammer 50s hitting ship hardcap",
+			fields: fields{
+				prevBonus: 0,
+				starbase:  false,
+			},
+			args: args{
+				hc:           &Jammer50,
+				qty:          99,
+				fieldToCheck: TechTagTorpedoJammer,
+			},
+			want: 1.95,
+		},
+		{
+			name: "2 battle super comps on 90% computed ship",
+			fields: fields{
+				prevBonus: 0.9, // new computing: 1-(0.1*0.7^2) = 95.1% computing
+				starbase:  false,
+			},
+			args: args{
+				hc:           &BattleSuperComputer,
+				qty:          2,
+				fieldToCheck: TechTagTorpedoBonus,
+			},
+			want: 1.0268, // 1.951 / 1.9
+		},
+		{
+			name: "1 Mega poly shell on 20% jammed starbase",
+			fields: fields{
+				prevBonus: 0.2,
+				starbase:  true,
+			},
+			args: args{
+				hc:           &MegaPolyShell,
+				qty:          1,
+				fieldToCheck: TechTagTorpedoJammer,
+			},
+			want: 1.0917, // 1.31 / 1.2
+		},
+		{
+			name: "3 jammer 20s on 10% jammed starbase",
+			fields: fields{
+				prevBonus: 0.1,
+				starbase:  true,
+			},
+			args: args{
+				hc:           &Jammer20,
+				qty:          3,
+				fieldToCheck: TechTagTorpedoJammer,
+			},
+			want: 1.2884, // 1.4172 / 1.1
+		},
+		{
+			name: "3 beam deflectors on 19% deflected starbase",
+			fields: fields{
+				prevBonus: 0.81,
+				starbase:  true,
+			},
+			args: args{
+				hc:           &BeamDeflector,
+				qty:          3,
+				fieldToCheck: TechTagBeamDeflector,
+			},
+			want: 1.1845, // 1.40951 / 1.19
+		},
+		{
+			name: "3 deflectors on heavily deflected ship",
+			fields: fields{
+				prevBonus: 0.28243,
+				starbase:  false,
+			},
+			args: args{
+				hc:           &BeamDeflector,
+				qty:          3,
+				fieldToCheck: TechTagBeamDeflector,
+			},
+			want: 1.0446, // 1.7941 / 1.7176
+		},
+	}
+	for _, tt := range tests {
+		design := NewShipDesign(testPlayer(), 1).WithHull("Nubian").WithSpec(&rules, testPlayer())
+		design.Spec.TorpedoBonus = tt.fields.prevBonus
+		design.Spec.TorpedoJamming = tt.fields.prevBonus
+		design.Spec.BeamDefense = tt.fields.prevBonus
+		design.Spec.Starbase = tt.fields.starbase
+		t.Run(tt.name, func(t *testing.T) {
+			if got := roundFloat(design.Spec.getJamOrComputerBonus(&rules, tt.args.hc, tt.args.qty, tt.args.fieldToCheck), 4); got != tt.want {
+				t.Errorf("ShipDesign.getJamOrComputerBonus() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -1174,160 +1321,6 @@ func TestDesignWarship(t *testing.T) {
 	}
 }
 
-func TestShipDesignSpec_getJamOrComputerBonus(t *testing.T) {
-	type fields struct {
-		prevBonus float64
-		starbase  bool
-	}
-	type args struct {
-		hc           *TechHullComponent
-		qty          int
-		fieldToCheck TechTag
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   float64
-	}{
-		{
-			name: "wrong field being checked",
-			fields: fields{
-				prevBonus: 0,
-				starbase:  false,
-			},
-			args: args{
-				hc:           &Jammer20,
-				qty:          1,
-				fieldToCheck: TechTagTorpedoBonus,
-			},
-			want: 1,
-		},
-		{
-			name: "already at hardcap",
-			fields: fields{
-				prevBonus: 0.75,
-				starbase:  true,
-			},
-			args: args{
-				hc:           &Jammer20,
-				qty:          1,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-			want: 1,
-		},
-		{
-			name: "10 Jammer 50s on starbase",
-			fields: fields{
-				prevBonus: 0,
-				starbase:  true,
-			},
-			args: args{
-				hc:           &Jammer50,
-				qty:          10,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-			want: 1.7493, // ((1-((1-0.5^10)*0.75))+1)/1
-		},
-		{
-			name: "99 jammer 50s hitting ship hardcap",
-			fields: fields{
-				prevBonus: 0,
-				starbase:  false,
-			},
-			args: args{
-				hc:           &Jammer50,
-				qty:          99,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-
-			want: 1.95,
-		},
-		{
-			name: "2 battle super comps on 90% computed ship",
-			fields: fields{
-				prevBonus: 0.9, // new computing: 1-(0.1*0.7^2) = 95.1% computing
-				starbase:  false,
-			},
-
-			args: args{
-				hc:           &BattleSuperComputer,
-				qty:          2,
-				fieldToCheck: TechTagTorpedoBonus,
-			},
-			want: 1.0268, // 1.951 / 1.9
-		},
-		{
-			name: "1 Mega poly shell on 20% jammed starbase",
-			fields: fields{
-				prevBonus: 0.2,
-				starbase:  true,
-			},
-
-			args: args{
-				hc:           &MegaPolyShell,
-				qty:          1,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-			want: 1.0917, // 1.31 / 1.2
-		},
-		{
-			name: "3 jammer 20s on 10% jammed starbase",
-			fields: fields{
-				prevBonus: 0.1,
-				starbase:  true,
-			},
-
-			args: args{
-				hc:           &Jammer20,
-				qty:          3,
-				fieldToCheck: TechTagTorpedoJammer,
-			},
-			want: 1.2884, // 1.4172 / 1.1
-		},
-		{
-			name: "3 beam deflectors on 19% deflected starbase",
-			fields: fields{
-				prevBonus: 0.81,
-				starbase:  true,
-			},
-
-			args: args{
-				hc:           &BeamDeflector,
-				qty:          3,
-				fieldToCheck: TechTagBeamDeflector,
-			},
-			want: 1.1845, // 1.40951 / 1.19
-		},
-		{
-			name: "3 deflectors on heavily deflected ship",
-			fields: fields{
-				prevBonus: 0.28243,
-				starbase:  false,
-			},
-
-			args: args{
-				hc:           &BeamDeflector,
-				qty:          3,
-				fieldToCheck: TechTagBeamDeflector,
-			},
-			want: 1.0446, // 1.7941 / 1.7176
-		},
-	}
-	for _, tt := range tests {
-		design := NewShipDesign(testPlayer(), 1).WithHull("Nubian").WithSpec(&rules, testPlayer())
-		design.Spec.TorpedoBonus = tt.fields.prevBonus
-		design.Spec.TorpedoJamming = tt.fields.prevBonus
-		design.Spec.BeamDefense = tt.fields.prevBonus
-		design.Spec.Starbase = tt.fields.starbase
-		t.Run(tt.name, func(t *testing.T) {
-			if got := roundFloat(design.Spec.getJamOrComputerBonus(&rules, tt.args.hc, tt.args.qty, tt.args.fieldToCheck), 4); got != tt.want {
-				t.Errorf("ShipDesign.getJamOrComputerBonus() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func BenchmarkDesignShip_Large(b *testing.B) {
 	purposes := []ShipDesignPurpose{
 		ShipDesignPurposeFreighter,
@@ -1355,6 +1348,7 @@ func BenchmarkDesignShip_Large(b *testing.B) {
 		DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
 	}
 }
+
 func BenchmarkDesignShip_Small(b *testing.B) {
 	purposes := []ShipDesignPurpose{
 		ShipDesignPurposeFreighter,
@@ -1384,6 +1378,7 @@ func BenchmarkDesignShip_Small(b *testing.B) {
 		DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
 	}
 }
+
 func BenchmarkDesignWarship_Large(b *testing.B) {
 	purposes := []ShipDesignPurpose{
 		ShipDesignPurposeFighterScout,
