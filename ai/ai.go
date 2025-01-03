@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -280,7 +279,7 @@ func (ai *aiPlayer) updateWarfleets() error {
 	var err error
 	err = ai.updateWarshipCount()
 	if err != nil {
-		if errors.As(err, "too early") {
+		if err.Error() == "too early" {
 			// we building ships too early; stop
 			return nil
 		}
@@ -308,12 +307,12 @@ func (ai *aiPlayer) updateWarfleets() error {
 	}
 
 	// if design is STILL nil, assume we can't make a design of that type
-	// if 1 design exists and the other doesn't, automatically use it
+	// if 1 design exists and the other doesn't, automatically use it and exit
 	if beamDesign == nil {
-		if torpDesign != nil {
-			ai.updateWarshipAmounts(ai.warshipCount.bombers, 0, ai.warshipCount.warships, ai.warshipCount.fuelTransports)
-		} else {
+		if torpDesign == nil {
 			log.Debug().Msgf("Skipping over choosing warship quantities due to nil designs")
+		} else {
+			ai.updateWarshipAmounts(ai.warshipCount.bombers, 0, ai.warshipCount.warships, ai.warshipCount.fuelTransports)
 		}
 		return nil
 	} else if torpDesign == nil {
