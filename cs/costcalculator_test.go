@@ -514,6 +514,31 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
+			name: "Max Techs B-52 Cost Floor Check",
+			args: args{
+				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset: TechCostOffset{TechTagBomb: -0.25},
+				slots: []ShipDesignSlot{
+					{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 3},
+					{HullComponent: HushABoom.Name, HullSlotIndex: 2, Quantity: 4},
+					{HullComponent: HushABoom.Name, HullSlotIndex: 3, Quantity: 4},
+					{HullComponent: HushABoom.Name, HullSlotIndex: 4, Quantity: 4},
+					{HullComponent: HushABoom.Name, HullSlotIndex: 5, Quantity: 4},
+					{HullComponent: BatScanner.Name, HullSlotIndex: 6, Quantity: 2},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 7, Quantity: 2},
+				},
+				hull: B52Bomber.Name,
+				starbaseCostFactor: 1,
+			},
+			want: Cost{
+				Ironium: 76,
+				Boranium: 40,
+				Germanium: 10,
+				Resources: 202,
+			}, wantErr: false,
+		},
+		{
 			name: "BANANA BOAT (invalid components)",
 			args: args{
 				techLevels:          TechLevel{0, 20, 0, 13, 0, 0},

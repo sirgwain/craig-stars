@@ -1,9 +1,7 @@
 package cs
 
-import (
-	"fmt"
-	"math"
-)
+import "math"
+
 
 // Represents a TechLevel a player has or a tech requires, or the amount of research spent on a tech level
 type TechLevel struct {
@@ -37,7 +35,8 @@ func (tl TechLevel) Total() int {
 }
 
 func (tl TechLevel) ToSlice() [6]int {
-	return [6]int{tl.Energy,
+	return [6]int{
+		tl.Energy,
 		tl.Weapons,
 		tl.Propulsion,
 		tl.Construction,
@@ -54,6 +53,7 @@ func (tl TechLevel) LowestLevel() int {
 }
 
 // return the TechField with the lowest numerical value in a TechLevel struct, including 0
+//
 // Ties are broken by order of precedence (En>We>Pr>Co>El>Bi)
 func (tl TechLevel) Lowest() TechField {
 	lowest := Energy
@@ -68,10 +68,6 @@ func (tl TechLevel) Lowest() TechField {
 
 	return lowest
 }
-
-func (tl TechLevel) Lowest_alt() TechField {
-	return tl.GetFieldFromAmount(tl.LowestLevel())
-} 
 
 // return the lowest positive TechField in a TechLevel struct.
 //
@@ -90,7 +86,7 @@ func (tl TechLevel) LowestPositive() TechField {
 	return lowest
 }
 
-// get the level for the specified TechField
+// Returns the numerical value of the specified TechField.
 func (tl TechLevel) Get(field TechField) int {
 	switch field {
 	case Energy:
@@ -109,26 +105,6 @@ func (tl TechLevel) Get(field TechField) int {
 	return None
 }
 
-// return the first valid TechField in a TechLevel struct with the given numerical value;
-// panics if no TechField with the corresponding value exists
-func (tl TechLevel) GetFieldFromAmount(amt int) TechField {
-	switch amt {
-	case tl.Energy:
-		return Energy
-	case tl.Weapons:
-		return Weapons
-	case tl.Propulsion:
-		return Propulsion
-	case tl.Construction:
-		return Construction
-	case tl.Electronics:
-		return Electronics
-	case tl.Biotechnology:
-		return Biotechnology
-	}
-	panic(fmt.Sprintf("GetFieldFromAmount called with value %v but no corresponding TechField was found in struct; \nStruct values: %v",
-		amt, tl))
-}
 
 func (tl *TechLevel) Set(field TechField, level int) {
 	switch field {

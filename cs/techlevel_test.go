@@ -58,24 +58,6 @@ func TestTechLevel_LowestLevel(t *testing.T) {
 	}
 }
 
-func BenchmarkTechLevel_Lowest(b *testing.B) {
-	for range b.N {
-		b.StopTimer()
-		tl := TechLevel{rules.random.Intn(26), rules.random.Intn(26), rules.random.Intn(26), rules.random.Intn(26), rules.random.Intn(26), rules.random.Intn(26)}
-		b.StartTimer()
-		tl.Lowest()
-	}
-}
-
-func BenchmarkTechLevel_Lowest_Alt(b *testing.B) {
-	for range b.N {
-		b.StopTimer()
-		tl := TechLevel{rules.random.Intn(26), rules.random.Intn(26), rules.random.Intn(26), rules.random.Intn(26), rules.random.Intn(26), rules.random.Intn(26)}
-		b.StartTimer()
-		tl.Lowest_alt()
-	}
-}
-
 func TestTechLevel_LowestPositive(t *testing.T) {
 	tests := []struct {
 		name string
