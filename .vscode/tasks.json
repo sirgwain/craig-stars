@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "go",
+      "label": "Go: test current file",
+      "command": "test",
+      "args": [
+		"${fileDirname}",
+	  ],
+      "problemMatcher": "$go",
+      "group": "test",
+      "detail": "cd ${workspaceFolder}; go test ${fileDirname}"
+    },
+    {
+	"label": "Go: generate wasm serializers",
+      "type": "shell",
+      "problemMatcher": "$go",
+	  "group": "build",
+	  "command": "make generate",
+	  "detail": "make generate"
+    },
+    {
+      "label": "Make: Build & Launch server",
+      "type": "shell",
+      "command": "make run",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "make clean build dev"
+    }
+  ]
+}

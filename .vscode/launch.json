@@ -21,15 +21,6 @@
             "args": ["serve", "--generate-test-game"]
         },
         {
-            "name": "generate wasm serializers",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/wasm/generator/main.go",
-            "cwd": "${workspaceFolder}",
-            "args": ["./cs", "wasm/wasm/generated.go"]
-        },
-        {
             "name": "migrate",
             "type": "go",
             "request": "launch",
@@ -60,6 +51,13 @@
             "program": "${workspaceFolder}/server/gamerunner_test.go",
             "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
         },
-
+        {
+            "name": "Benchmark Package (Long)",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${workspaceFolder}",
+            "args": ["test", "-run=^$", "-bench=.", "-benchtime=3", "-benchmem", "-v", "outfile=./tmp"],
+        }
     ]
 }

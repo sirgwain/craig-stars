@@ -10,4 +10,9 @@
     "files.exclude": {
         "frontend": true,
     },
+
+    "go.testExplorer.alwaysRunBenchmarks": true,
+    // Normally, 90s should be enough time for tests to run, but on slower computers
+    // generating turns can take upwards of several minutes to execute even in optimal conditions
+    "go.testTimeout": "300s", 
 }

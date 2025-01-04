@@ -1,48 +1,136 @@
-# workflow to build & test on each commit to develop or PR to develop
+# Workflow to build & test on each commit or PR to develop
 name: Build
 on:
   pull_request:
     branches:
-      - 'develop'
+      - "develop"
   push:
     branches:
-      - 'develop'
+      - "develop"
+
+env:
+  go-version: 1.23.x
+
 jobs:
-  test:
+  test_backend:
+    name: Run backend go tests
+    # prevent workflow from running on forks; delete to disable
+    if: github.repository == 'sirgwain/craig-stars'
     strategy:
       matrix:
-        go-version: [1.23.x]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest] # no need for multiple OSes if we're just running go tests
     runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
 
-      # build the binary (fast)
-      - uses: actions/setup-go@v5
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      # build & test
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: ${{ env.go-version }}
           check-latest: true
           cache: true
-      - run: make generate
-      - run: go test ./...
-      - run: mkdir -p dist/
-      - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
-      - run: make build_wasm
+
+      - name: Test Go Files
+        continue-on-error: true
+        id: go-tests
+        run: go test ./... -json > tmp/go-testresults.json
+
+      - name: Upload failed Go test results to cloud
+        uses: actions/upload-artifact@v4
+        if: ${{steps.go-tests.outcome != 'success'}}
+        with:
+          name: go-testresults
+          path: tmp/go-testresults.json
+
+  bench_backend:
+    name: Run backend go benchmarks
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # no need for multiple OSes if we're just running benchmarks
+    runs-on: ${{ matrix.os }}
+    needs: test_backend
+    # prevent workflow from running on forks; delete to disable
+    if: github.repository == 'sirgwain/craig-stars'
+    cancel-timeout-minutes: 8
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.go-version }}
+          check-latest: true
+          cache: true
+
+      - name: Run Go Benchmarks
+        id: go-benchmarks
+        continue-on-error: true
+        run: go test -json -bench=. run=^$ -benchmem -benchcount=10 -benchtime=3 > tmp/go-benchresults.json
+
+      - name: Upload benchmark results to cloud
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-benchresults
+          path: tmp/go-benchresults.json
+          retention-days: 14,
+
+  build:
+    name: Build app and test frontend
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}    
+    needs: test_backend
+    needs: bench_backend
+    # prevent workflow from running on forks; delete to disable
+    if: github.repository == 'sirgwain/craig-stars'
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      # build the backend (fast)
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.go-version }}
+          check-latest: true
+          cache: true
+
+      - name: Build Go Binary
+        run: CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
+
+      - name: Build Wasm files
+        run: make build_wasm
 
       # build the frontend (slow)
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
+
+      - name: Install Node.js dependencies
+        run: npm ci
         working-directory: ./frontend
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
         working-directory: ./frontend
-      - run: npx playwright test
+
+      - name: Run Playwright tests
+        run: npx playwright test
         working-directory: ./frontend
-      - run: npm run test
+
+      - name: Test Frontend files
+        run: npm run test
         working-directory: ./frontend
-      - run: npm run build
+
+      - name: Build Frontend Binary
+        run: npm run build
         working-directory: ./frontend

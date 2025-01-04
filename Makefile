@@ -40,7 +40,7 @@ build_thing := go build \
 	main.go
 
 # always redo these
-.PHONY: run images build test clean dev dev_backend dev_frontend
+.PHONY: run images build build_short test clean dev dev_backend dev_frontend
 
 # clean, deploy and launch all in 1 command
 run: clean build dev 
@@ -52,7 +52,9 @@ images:
 	$(call unzip,images.zip);\
 	$(call rm,images.zip)
 
-build: build_frontend tidy vendor generate build_wasm build_server
+build: build_frontend tidy generate build_wasm build_server
+
+build_short: build_frontend build_wasm build_server
 
 build_frontend:
 	cd frontend; npm install; npm run build
