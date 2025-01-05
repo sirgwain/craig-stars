@@ -40,7 +40,7 @@ build_thing := go build \
 	main.go
 
 # always redo these
-.PHONY: run images build build_short test clean dev dev_backend dev_frontend
+.PHONY: run images build bench test clean dev dev_backend dev_frontend
 
 # clean, deploy and launch all in 1 command
 run: clean build dev 
@@ -53,8 +53,6 @@ images:
 	$(call rm,images.zip)
 
 build: build_frontend tidy generate build_wasm build_server
-
-build_short: build_frontend build_wasm build_server
 
 build_frontend:
 	cd frontend; npm install; npm run build
@@ -81,6 +79,9 @@ generate:
 test:
 	go test ./...
 	cd frontend; npm run test
+
+bench:
+	go test run=^$ -bench=. -benchmem -benchtime=2s -benchcount=5 -outfile=tmp/go-benchresults.json
 
 clean:
 	go clean

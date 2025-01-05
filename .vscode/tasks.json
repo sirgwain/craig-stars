@@ -5,20 +5,21 @@
       "type": "go",
       "label": "Go: test current file",
       "command": "test",
-      "args": [
-		"${fileDirname}",
-	  ],
+      "args": ["${fileDirname}"],
       "problemMatcher": "$go",
-      "group": "test",
+      "group": {
+        "kind": "test",
+        "isDefault": "true"
+      },
       "detail": "cd ${workspaceFolder}; go test ${fileDirname}"
     },
     {
-	"label": "Go: generate wasm serializers",
+      "label": "Go: generate wasm serializers/techs.json",
       "type": "shell",
       "problemMatcher": "$go",
-	  "group": "build",
-	  "command": "make generate",
-	  "detail": "make generate"
+      "group": "build",
+      "command": "make generate",
+      "detail": "make generate"
     },
     {
       "label": "Make: Build & Launch server",
@@ -29,6 +30,15 @@
         "isDefault": true
       },
       "detail": "make clean build dev"
+    },
+    {
+      "label": "Make: Run benchmarks",
+      "type": "shell",
+      "command": "make bench",
+      "group": {
+        "kind": "test"
+      },
+      "detail": "go test run=^$ -bench=. -benchmem -benchtime=2s -benchcount=5 -outfile=tmp/go-benchresults.json"
     }
   ]
 }

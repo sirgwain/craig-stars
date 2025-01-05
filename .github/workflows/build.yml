@@ -54,7 +54,7 @@ jobs:
     needs: test_backend
     # prevent workflow from running on forks; delete to disable
     if: github.repository == 'sirgwain/craig-stars'
-    cancel-timeout-minutes: 8
+    cancel-timeout-minutes: 8 # if it takes more than 8 minutes 
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -84,7 +84,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}    
-    needs: test_backend
     needs: bench_backend
     # prevent workflow from running on forks; delete to disable
     if: github.repository == 'sirgwain/craig-stars'
