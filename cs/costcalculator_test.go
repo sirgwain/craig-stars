@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
+func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 	p := NewCostCalculator()
 	type args struct {
 		techLevels          TechLevel
@@ -514,28 +514,25 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Max Techs B-52 Cost Floor Check",
+			name: "Max Techs Cost Floor Check",
 			args: args{
 				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
-				techCostOffset: TechCostOffset{TechTagBomb: -0.25},
+				techCostOffset:      TechCostOffset{TechTagBeamWeapon: -0.25},
 				slots: []ShipDesignSlot{
-					{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 3},
-					{HullComponent: HushABoom.Name, HullSlotIndex: 2, Quantity: 4},
-					{HullComponent: HushABoom.Name, HullSlotIndex: 3, Quantity: 4},
-					{HullComponent: HushABoom.Name, HullSlotIndex: 4, Quantity: 4},
-					{HullComponent: HushABoom.Name, HullSlotIndex: 5, Quantity: 4},
-					{HullComponent: BatScanner.Name, HullSlotIndex: 6, Quantity: 2},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 7, Quantity: 2},
+					{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 2, Quantity: 2},
+					{HullComponent: XRayLaser.Name, HullSlotIndex: 3, Quantity: 3},
+					{HullComponent: BatScanner.Name, HullSlotIndex: 4, Quantity: 2},
 				},
-				hull: B52Bomber.Name,
+				hull:               Frigate.Name,
 				starbaseCostFactor: 1,
 			},
 			want: Cost{
-				Ironium: 76,
-				Boranium: 40,
-				Germanium: 10,
-				Resources: 202,
+				Ironium:   7,
+				Boranium:  4,
+				Germanium: 5,
+				Resources: 13,
 			}, wantErr: false,
 		},
 		{
@@ -563,7 +560,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			player.Race.Spec.MiniaturizationSpec = tt.args.miniaturizationSpec
 			player.Race.Spec.StarbaseCostFactor = tt.args.starbaseCostFactor
 			player.Race.Spec.TechCostOffset = tt.args.techCostOffset
-			design := NewShipDesign(player, 1).
+			design := NewShipDesign(player, 1).WithName(tt.name).
 				WithHull(tt.args.hull).
 				WithSlots(tt.args.slots)
 			got, err := c.GetDesignCost(&rules, player.TechLevels, player.Race.Spec, design)

@@ -1150,7 +1150,7 @@ func (race *Race) getHabRangePoints() int64 {
 	// varies between the low and high of the hab range for each hab type.  So for a humanoid
 	// it goes (15, 15, 15), (15, 15, 22), (15, 15, 29), etc.   Until it's (85, 85, 85)
 	// During the various loops the TTCorrectionFactor changes to account for the race's ability
-	// to terrform.
+	// to terraform.
 	for loopIndex := 0; loopIndex < 3; loopIndex++ {
 
 		// each main loop gets a different TTCorrectionFactor
