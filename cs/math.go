@@ -8,27 +8,29 @@ import (
 
 // Round a number (int or float) to the nearest multiple of 100 and return the resulting integer.
 //
-// Typically used to convert floating-point population values back into colonist Cargo values, 
+// Typically used to convert floating-point population values back into colonist Cargo values,
 // which are stored in discrete units of 100 colonists/1kT.
 func roundToNearest100[T int | float64](value T) int {
 	return int(math.Round(float64(value)/100) * 100)
 }
 
-// round a float to the given precision
+// Round a float to the given precision value using math.Round()
 func roundFloat(val float64, precision uint) float64 {
 	ratio := math.Pow(10, float64(precision))
 	return math.Round(val*ratio) / ratio
 }
 
-// round a float to the nearest whole number, rounding halves down
-func roundHalfDown(x float64) float64 {
-	if x > 0 {
-		return math.Floor(x + 0.5)
+// Round a float to the nearest whole number, rounding halves towards 0.
+// (This is distinct from math.Round() which rounds numbers away from 0.)
+func roundHalfTowards0(x float64) float64 {
+	t := math.Trunc(x)
+	if Abs(x-t) > 0.5 {
+		return t + math.Copysign(1, x)
 	}
-	return math.Ceil(x - 0.5)
+	return t
 }
 
-// Clamps the passed in value between min and max by ensuring. 
+// Clamps the passed in value between min and max by ensuring.
 func Clamp[T constraints.Ordered](value, min, max T) T {
 	if value < min {
 		return min
@@ -89,7 +91,11 @@ func PowInt[T constraints.Integer](base, exponent T) T {
 	return result
 }
 
-// Returns the absolute value (unsigned portion) of a given number.
+// Abs returns the absolute value (unsigned portion) of a given number.
+// 
+// Special cases:
+//	Abs(±Inf) = +Inf
+//	Abs(NaN) = NaN
 func Abs[T number](num T) T {
 	if num < 0 {
 		return -num

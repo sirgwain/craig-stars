@@ -69,22 +69,22 @@ func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec Miniatur
 	}
 
 	techCost := MultiplyCost(tech.Cost.ToCostFloat64(), miniaturizationFactor).Round(func(f float64) float64 {
-		if f > 0 {
-			Max(f,1) // Ensures minimum cost of 1 for items that cost more than 1
+		if f > 0 && f < 1 {
+			return 1 // Ensures minimum cost of 1 for items that cost more than 1
 		}
-		return roundHalfDown(f)
+		return roundHalfTowards0(f)
 	})
 
 	// apply any tech cost offsets
 	highestCostMulti := 1.0
 	for tag := range tech.Tags {
-		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti) 
+		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti)
 		// TODO: Do we want to only take the single best bonus or multiply/add them all together?
 	}
 
-	techCost = MultiplyCost(techCost, highestCostMulti).Round(func (f float64) float64 {
-		if f > 0 { 
-			return Max(f,1)
+	techCost = MultiplyCost(techCost, highestCostMulti).Round(func(f float64) float64 {
+		if f > 0 && f < 1 {
+			return 1
 		}
 		return f
 	})
@@ -109,7 +109,9 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	newComponentsByCategory := map[TechCategory][]*TechHullComponent{}
 	categories := map[TechCategory]bool{}
 	// wrapper function so I don't have to write everything out all the time
-	getItemCost := func(t Tech) CostFloat64 {return getPlayerCost(t, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)}
+	getItemCost := func(t Tech) CostFloat64 {
+		return getPlayerCost(t, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
+	}
 
 	// First of all, check to see if the hulls even EXIST in the first place
 	// and return an error if they don't
@@ -148,7 +150,7 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		}
 	}
 
-	// Iterate through all new parts in our new base list 
+	// Iterate through all new parts in our new base list
 	// to see if they are present on the old base
 	// and remove any duplicates
 	if len(oldComponents) > 0 && len(newComponents) > 0 {
@@ -201,7 +203,7 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	// mapped to a slice of all components of that category on said base
 	// Now, all that's left to do are the cost calcs!
 
-	// Tally up costs per category present on either base 
+	// Tally up costs per category present on either base
 	for category := range categories {
 		oldCost := CostFloat64{}
 		newCost := CostFloat64{}
@@ -263,11 +265,12 @@ func (c *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSp
 
 	// iterate through slots and tally prices up one by one
 	for _, slot := range design.Slots {
-		item := rules.techs.GetHullComponent(slot.HullComponent)
 		if slot.HullComponent == "" {
 			// slot is empty; move on
 			continue
 		}
+
+		item := rules.techs.GetHullComponent(slot.HullComponent)
 		if item == nil {
 			return Cost{}, fmt.Errorf("component %q in design slots was not found in tech store", slot.HullComponent)
 		}
