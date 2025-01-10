@@ -447,12 +447,10 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				// compute the spec for our wantSourceFleet. No need to pass this one in
 				tt.wantSourceFleet.Spec = ComputeFleetSpec(&rules, player, tt.wantSourceFleet)
 				tt.wantNewFleet.Spec = ComputeFleetSpec(&rules, player, tt.wantNewFleet)
-				if !test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet) {
-					t.Errorf("orders.SplitFleetTokens() gotSourceFleet = \n%v, wantSourceFleet = \n%v", tt.args.source, tt.wantSourceFleet)
-				}
-				if !test.CompareAsJSON(t, gotNewFleet, tt.wantNewFleet) {
-					t.Errorf("orders.SplitFleetTokens() gotNewFleet = \n%v, wantNewFleet = \n%v", gotNewFleet, tt.wantNewFleet)
-				}
+
+				test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet)
+
+				test.CompareAsJSON(t, gotNewFleet, tt.wantNewFleet)
 			}
 		})
 	}
@@ -668,16 +666,12 @@ func Test_orders_SplitAll(t *testing.T) {
 				// compute the spec for our wantSourceFleet. No need to pass this one in
 				tt.wantSourceFleet.Spec = ComputeFleetSpec(&rules, player, tt.wantSourceFleet)
 
-				if !test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet) {
-					t.Errorf("orders.SplitFleetTokens() gotSourceFleet = \n%v, wantSourceFleet = \n%v", tt.args.source, tt.wantSourceFleet)
-				}
+				test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet)
 
 				for i, fleet := range tt.wantNewFleets {
 					fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 
-					if !test.CompareAsJSON(t, gotNewFleets[i], fleet) {
-						t.Errorf("orders.SplitFleetTokens() gotNewFleet = \n%v, wantNewFleet = \n%v", gotNewFleets[i], fleet)
-					}
+					test.CompareAsJSON(t, gotNewFleets[i], fleet)
 				}
 			}
 		})
@@ -1010,9 +1004,7 @@ func Test_orders_Merge(t *testing.T) {
 				return
 			}
 
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("orders.Merge() = %v, want %v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

@@ -102,9 +102,8 @@ func TestGetPlanet(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetPlanet() = %v, want %v", got, tt.want)
-			}
+			
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -203,18 +202,16 @@ func TestGetPlanetByNum(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetPlanetByNum() = %v, want %v", got, tt.want)
-			}
+			
+			test.CompareAsJSON(t, got, tt.want)
 
 			if tt.want != nil && tt.want.Starbase != nil {
 				if got.Starbase != nil {
 					tt.want.Starbase.UpdatedAt = got.Starbase.UpdatedAt
 					tt.want.Starbase.CreatedAt = got.Starbase.CreatedAt
 				}
-				if !test.CompareAsJSON(t, got.Starbase, tt.want.Starbase) {
-					t.Errorf("GetPlanetByNum() Starbase = %v, want %v", got, tt.want)
-				}
+				
+				test.CompareAsJSON(t, got.Starbase, tt.want.Starbase)
 			}
 		})
 	}

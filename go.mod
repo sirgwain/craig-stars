@@ -19,6 +19,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/golodash/godash v1.3.0
 	github.com/jmoiron/sqlx v1.4.0
+	github.com/nsf/jsondiff v0.0.0-20230430225905-43f6cf3098c1
 	github.com/simukti/sqldb-logger v0.0.0-20230108155151-646c1a075551
 	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948
 	golang.org/x/tools v0.24.0

@@ -39,9 +39,8 @@ func TestCreateMineField(t *testing.T) {
 				t.Errorf("CreateMineField() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !test.CompareAsJSON(t, tt.args.mineField, &want) {
-				t.Errorf("CreateMineField() = \n%v, want \n%v", tt.args.mineField, want)
-			}
+			
+			test.CompareAsJSON(t, tt.args.mineField, &want)
 		})
 	}
 }
@@ -84,9 +83,8 @@ func TestGetMineField(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetMineField() = %v, want %v", got, tt.want)
-			}
+			
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

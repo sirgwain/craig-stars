@@ -83,9 +83,8 @@ func TestGetSalvage(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetSalvage() = %v, want %v", got, tt.want)
-			}
+			
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

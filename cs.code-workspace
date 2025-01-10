@@ -17,7 +17,11 @@
       "json": {
         "cases": ["camel"],
         "options": ["omitempty", "-"]
-      },
+      }
+    },
+    "go.testTimeout": "90s",
+    "files.associations": {
+      "**/tmp/*.json": "jsonc" // enable json with comments for testing log files 
     }
   }
 }

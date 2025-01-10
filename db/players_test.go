@@ -110,9 +110,8 @@ func TestGetPlayer(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetPlayer() = %v, want %v", got, tt.want)
-			}
+			
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -171,9 +170,8 @@ func Test_getPlayerWithDesigns(t *testing.T) {
 		}
 
 	}
-	if !test.CompareAsJSON(t, got, []*cs.Player{&player}) {
-		t.Errorf("getPlayerWithDesigns() = %v, want %v", got, player)
-	}
+	
+	test.CompareAsJSON(t, got, []*cs.Player{&player})
 }
 
 func TestGetPlayers(t *testing.T) {

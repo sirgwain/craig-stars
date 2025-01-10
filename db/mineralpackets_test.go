@@ -38,9 +38,8 @@ func TestCreateMineralPacket(t *testing.T) {
 				t.Errorf("CreateMineralPacket() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !test.CompareAsJSON(t, tt.args.mineralPacket, &want) {
-				t.Errorf("CreateMineralPacket() = \n%v, want \n%v", tt.args.mineralPacket, want)
-			}
+			
+			test.CompareAsJSON(t, tt.args.mineralPacket, &want)
 		})
 	}
 }
@@ -82,9 +81,8 @@ func TestGetMineralPacket(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetMineralPacket() = %v, want %v", got, tt.want)
-			}
+			
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

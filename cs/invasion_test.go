@@ -112,10 +112,8 @@ func Test_invadePlanet(t *testing.T) {
 			// recompute planet spec after invasion
 			tt.args.planet.Spec = computePlanetSpec(&rules, tt.args.attacker, tt.args.planet)
 
-			if got := *tt.args.planet; !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("Planet = %v, want %v", got, tt.want)
-			}
-
+			got := *tt.args.planet
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

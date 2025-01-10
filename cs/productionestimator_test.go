@@ -445,9 +445,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			if err != nil {
 				t.Errorf("PopulateCompletionEstimates() returned error")
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("PopulateCompletionEstimates() = \n%v, want \n%v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 
 			if gotLeftover != tt.wantLeftoverResources {
 				t.Errorf("PopulateCompletionEstimates() leftover = \n%v, wantLeftover \n%v", gotLeftover, tt.wantLeftoverResources)

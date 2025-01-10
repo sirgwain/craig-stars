@@ -71,9 +71,7 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 			gu := universeGenerator{}
 			got := gu.getStartingStarbaseDesigns(tt.args.techStore, tt.args.player, 1)
 
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("getStartingStarbaseDesigns() = %v, want %v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

@@ -241,7 +241,7 @@ func Test_computeRaceSpec(t *testing.T) {
 				PacketResourceCost:             10,
 				RepairFactor:                   1,
 				ResearchFactor:                 1,
-				ScrapMineralOffsetStarbase:		.8 - (1.0 / 3),
+				ScrapMineralOffsetStarbase:     .8 - (1.0 / 3),
 				ShieldStrengthFactor:           1,
 				ShipsVanishInVoid:              true,
 				StarbaseCostFactor:             1,
@@ -254,9 +254,8 @@ func Test_computeRaceSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := computeRaceSpec(tt.race, &rules); !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("computeRaceSpec() = %v, want %v", got, tt.want)
-			}
+			got := computeRaceSpec(tt.race, &rules)
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

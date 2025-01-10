@@ -663,9 +663,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			got, err := ComputeShipDesignSpec(&rules, tt.args.techLevels, tt.args.raceSpec, tt.args.design)
 			if tt.wanterr && err == nil {
 				t.Errorf("ComputeShipDesignSpec() did not error when expected")
-			} else if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("ComputeShipDesignSpec() = %v, want %v", got, tt.want)
-			}
+			} 
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

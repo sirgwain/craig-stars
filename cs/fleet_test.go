@@ -642,9 +642,8 @@ func Test_computeFleetSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("ComputeFleetSpec() = \n%v, want \n%v", got, tt.want)
-			}
+			got := ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet)
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
