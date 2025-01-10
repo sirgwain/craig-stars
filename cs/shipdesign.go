@@ -687,7 +687,7 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 
 		if component.ScanRangePen != NoScanner {
 			if spec.ScanRangePen == NoScanner {
-				spec.ScanRangePen = PowInt(component.ScanRangePen, 4*slot.Quantity)
+				spec.ScanRangePen = PowInt(component.ScanRangePen, 4 ) * slot.Quantity
 			} else {
 				spec.ScanRange += PowInt(component.ScanRange, 4) * slot.Quantity
 			}
@@ -696,12 +696,11 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 
 	// time to quad root it
 	if spec.ScanRange > 0 {
-		spec.ScanRange = int(math.Pow(float64(spec.ScanRange), .25) + .5)
-		spec.ScanRange = int(float64(spec.ScanRange) * scannerSpec.ScanRangeFactor)
+		spec.ScanRange = int(math.Round(math.Pow(float64(spec.ScanRange), .25))*scannerSpec.ScanRangeFactor)
 	}
 
 	if spec.ScanRangePen > 0 {
-		spec.ScanRangePen = int(math.Pow(float64(spec.ScanRangePen), .25) + .5)
+		spec.ScanRangePen = int(math.Round(math.Pow(float64(spec.ScanRangePen), .25)))
 	}
 
 	// Update scanner field if we have any scanning capabilities whatsoever 
