@@ -41,6 +41,9 @@
 			const loaded = await GameService.loadFullGame(id);
 			const cs = await loadWasm();
 			context = createGameContext(cs, loaded);
+			if (loaded.state == GameState.WaitingForPlayers) {
+				context.setFullyLoaded(true);
+			}
 
 			hotkeys.setScope('root');
 		} catch (e) {
@@ -94,6 +97,10 @@
 			gameState = loaded.state;
 			year = loaded.year;
 			context.resetContext(loaded);
+			if (loaded.state == GameState.WaitingForPlayers) {
+				context.setFullyLoaded(true);
+			}
+
 			context.commandHomeWorld();
 		}
 
