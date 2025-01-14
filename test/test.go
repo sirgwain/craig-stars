@@ -53,8 +53,8 @@ func CompareAsJSON(t *testing.T, got, want any) {
 	_, diff := jsondiff.Compare(gotJson, wantJson, &options)
 
 	header := []byte("// " + t.Name() + "\n") // header containing test name & extra newlines
-	_ = AppendFile("../tmp/got.json", append(append(header, gotJson...), "\n\n"...))
-	_ = AppendFile("../tmp/want.json", append(append(header, wantJson...), "\n\n"...))
+	_ = AppendFile("../tmp/got.jsonl", append(append(header, gotJson...), "\n\n"...))
+	_ = AppendFile("../tmp/want.jsonl", append(append(header, wantJson...), "\n\n"...))
 	_ = AppendFile("../tmp/diff.jsonl", append(append(header, diff...), "\n\n"...))
 
 	t.Errorf("JSONs not equal; diff between got & want: \n%s", diff)

@@ -1,11 +1,11 @@
-package cs
+package db
 
 import (
 	"os"
 	"testing"
 )
 
-// Package-wide initialization function to clean out  
+// Package-wide initialization function to clean out
 // temp directory once before test start
 func TestMain(m *testing.M) {
 	_ = os.RemoveAll("../tmp")

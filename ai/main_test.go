@@ -1,4 +1,4 @@
-package cs
+package ai
 
 import (
 	"os"
