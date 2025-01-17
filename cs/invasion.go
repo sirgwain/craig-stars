@@ -49,16 +49,16 @@ func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet
 			plan.Apply(planet)
 		}
 
-		// check for tech trade
+		// check for tech trades
 		if !attacker.techLevelGained {
-			techTrader := newTechTrader()
-			field := techTrader.techLevelGained(rules, attacker.TechLevels, defender.TechLevels)
+			tt := newTechTrader()
+			field := tt.checkInvasionTechTrade(rules, attacker, defender.TechLevels)
 			if field != TechFieldNone {
 				// sweet, we gained a tech level
 				attacker.techLevelGained = true
-				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1)
-				messager.playerTechGainedInvasion(attacker, planet, field)
+				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1) // add 1 to corresponding lvl
 
+				messager.playerTechGainedInvasion(attacker, planet, field)
 				techsGained := techStore.GetTechsJustGained(attacker, field)
 				for _, tech := range techsGained {
 					messager.playerTechGained(attacker, field, tech)
@@ -70,7 +70,6 @@ func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet
 					Str("Planet", planet.Name).
 					Str("field", string(field)).
 					Msgf("invader gained tech level")
-
 			}
 		}
 	} else {

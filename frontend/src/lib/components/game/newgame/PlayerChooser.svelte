@@ -1,32 +1,32 @@
 <script lang="ts">
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import { RaceService } from '$lib/services/RaceService';
 	import { humanoid, type Race } from '$lib/types/Race';
 	import { onMount } from 'svelte';
 	import RaceEditor from '../../../../routes/(user)/races/[id]/RaceEditor.svelte';
 	import RacePoints from '../../../../routes/(user)/races/[id]/RacePoints.svelte';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
 
 	// races for the host
 	let races: Race[] = $state([]);
+	let race = $state(humanoid());
 	type Props = {
-		race?: Race;
-		valid?: boolean;
+		raceUpdated?: (race: Race, valid: boolean) => void;
 	};
 
-	let { race = $bindable(humanoid()), valid = $bindable(true) }: Props = $props();
+	let { raceUpdated }: Props = $props();
 
 	onMount(async () => {
 		const userRaces = await RaceService.load();
 		if (userRaces.length > 0) {
 			races = userRaces;
-			race = races[0];
+			raceUpdated?.(races[0], true);
 		}
 	});
 
 	function raceChanged(id: number) {
 		const newRace = races.find((r) => r.id == id);
 		if (newRace) {
-			race = newRace;
+			raceUpdated?.(newRace, true);
 		}
 	}
 </script>
@@ -43,6 +43,6 @@
 	</select>
 {:else}
 	<ItemTitle>Your Race</ItemTitle>
-	<RacePoints {race} onPointsUpdated={(points) => (valid = points >= 0)} />
+	<RacePoints {race} onPointsUpdated={(points) => raceUpdated?.(race, points >= 0)} />
 	<RaceEditor bind:race />
 {/if}

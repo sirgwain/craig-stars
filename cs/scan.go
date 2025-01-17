@@ -500,10 +500,10 @@ func (scan *playerScan) getScanners() []scanner {
 				scanner.CloakReductionFactor = 1
 			}
 			if fleet.Spec.ScanRange != NoScanner {
-				scanner.Range = MaxInt(scanner.Range, fleet.Spec.ScanRange)
+				scanner.Range = Max(scanner.Range, fleet.Spec.ScanRange)
 			}
 			if fleet.Spec.ScanRangePen != NoScanner {
-				scanner.RangePen = MaxInt(scanner.RangePen, fleet.Spec.ScanRangePen)
+				scanner.RangePen = Max(scanner.RangePen, fleet.Spec.ScanRangePen)
 			}
 			scanner.CloakReductionFactor = math.Min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
 			scanningFleetsByPosition[fleet.Position] = scanner
@@ -533,8 +533,8 @@ func (scan *playerScan) getScanners() []scanner {
 			}
 			// use the fleet scanner if it's better
 			if fleetScanner, ok := scanningFleetsByPosition[planet.Position]; ok {
-				planetaryScanner.Range = MaxInt(planetaryScanner.Range, fleetScanner.Range)
-				planetaryScanner.RangePen = MaxInt(planetaryScanner.RangePen, fleetScanner.RangePen)
+				planetaryScanner.Range = Max(planetaryScanner.Range, fleetScanner.Range)
+				planetaryScanner.RangePen = Max(planetaryScanner.RangePen, fleetScanner.RangePen)
 				planetaryScanner.CloakReductionFactor = math.Min(planetaryScanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
 			}
 			scanners = append(scanners, planetaryScanner)
@@ -627,8 +627,8 @@ func (scan *playerScan) getCargoScanners() []scanner {
 				scanner.RangePen = NoScanner
 				scanner.CloakReductionFactor = 1
 			}
-			scanner.Range = MaxInt(scanner.Range, fleet.Spec.ScanRange)
-			scanner.RangePen = MaxInt(scanner.RangePen, fleet.Spec.ScanRangePen)
+			scanner.Range = Max(scanner.Range, fleet.Spec.ScanRange)
+			scanner.RangePen = Max(scanner.RangePen, fleet.Spec.ScanRangePen)
 			scanner.CloakReductionFactor = math.Min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
 			scanner.DiscoverFleetCargo = fleet.Spec.CanStealFleetCargo
 			scanner.DiscoverPlanetCargo = fleet.Spec.CanStealPlanetCargo
@@ -651,7 +651,7 @@ func (scan *playerScan) getStarGateScanners() []scanner {
 	}
 	for _, planet := range scan.universe.Planets {
 		if planet.PlayerNum == scan.player.Num && planet.Spec.PlanetStarbaseSpec.HasStargate {
-			penRange := MinInt(planet.Spec.PlanetStarbaseSpec.SafeRange, math.MaxInt16)
+			penRange := Min(planet.Spec.PlanetStarbaseSpec.SafeRange, math.MaxInt16)
 			scanner := scanner{
 				Position:             planet.Position,
 				RangePen:             penRange,

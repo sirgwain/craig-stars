@@ -74,6 +74,7 @@ build_docker:
 
 generate:
 	go generate ./...
+	go run main.go generate techsjson > frontend/src/lib/ssr/techs.json
 
 test:
 	go test ./...
@@ -88,10 +89,6 @@ clean:
 # uninstall unused modules
 tidy:
 	go mod tidy -v
-
-# get those deps local!
-vendor:
-	go mod vendor
 
 dev_frontend:
 	cd frontend; npm run dev

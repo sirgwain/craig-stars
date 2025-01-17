@@ -366,7 +366,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 			intel.Spec.Population = planet.population()
 		} else {
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError*2) - rules.PopulationScannerError
-			intel.Spec.Population = MaxInt(0, int(roundTo100(float64(planet.population())*(1-randomPopulationError),math.Round)))
+			intel.Spec.Population = Max(0, int(roundTo100(float64(planet.population())*(1-randomPopulationError),math.Round)))
 		}
 	}
 	return nil

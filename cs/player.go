@@ -43,6 +43,7 @@ type Player struct {
 	Spec                      PlayerSpec           `json:"spec,omitempty"`
 	leftoverResources         int
 	techLevelGained           bool
+	acquirablePartGained      bool
 	discoverer                discoverer
 }
 
@@ -370,7 +371,7 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 	num := 0
 	for _, design := range designs {
-		num = MaxInt(num, design.Num)
+		num = Max(num, design.Num)
 	}
 	return num + 1
 }
@@ -379,7 +380,7 @@ func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 func (p *Player) GetNextBattlePlanNum() int {
 	num := 0
 	for _, plan := range p.BattlePlans {
-		num = MaxInt(num, plan.Num)
+		num = Max(num, plan.Num)
 	}
 	return num + 1
 }
@@ -388,7 +389,7 @@ func (p *Player) GetNextBattlePlanNum() int {
 func (p *Player) GetNextProductionPlanNum() int {
 	num := 0
 	for _, plan := range p.ProductionPlans {
-		num = MaxInt(num, plan.Num)
+		num = Max(num, plan.Num)
 	}
 	return num + 1
 }
@@ -397,7 +398,7 @@ func (p *Player) GetNextProductionPlanNum() int {
 func (p *Player) GetNextTransportPlanNum() int {
 	num := 0
 	for _, plan := range p.TransportPlans {
-		num = MaxInt(num, plan.Num)
+		num = Max(num, plan.Num)
 	}
 	return num + 1
 }
@@ -837,7 +838,7 @@ func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
 func (p *Player) getNextMineralPacketNum(packets []*MineralPacket) int {
 	num := 0
 	for _, packet := range packets {
-		num = MaxInt(num, packet.Num)
+		num = Max(num, packet.Num)
 	}
 	return num + 1
 }

@@ -160,14 +160,14 @@ func (p *Planet) exactPopulation() int {
 // get the population that is productive. This takes into account overcrowding
 // anything over 3x is unproductive
 func (p *Planet) productivePopulation(pop, maxPop int) int {
-	return MinInt(pop, 3*maxPop)
+	return Min(pop, 3*maxPop)
 }
 
 // get the population that will operate installations
 // and produce resources at 100% efficiency
 // (it just maxes at max pop)
 func (p *Planet) productiveInstallationPopulation(pop, maxPop int) int {
-	return MinInt(pop, maxPop)
+	return Min(pop, maxPop)
 }
 
 // set pop and PartialPop to specified value,
@@ -328,9 +328,9 @@ func randomizeMinerals(rules *Rules, rad int) Mineral {
 	// we have high rad, add some bonus minerals
 	if rad >= rules.HighRadMineralConcentrationBonusThreshold {
 		minConc = Mineral{
-			Ironium:   minConc.Ironium + rules.random.Intn(99-MinInt(minConc.Ironium, 98))/2,
-			Boranium:  minConc.Boranium + rules.random.Intn(99-MinInt(minConc.Boranium, 98))/2,
-			Germanium: minConc.Germanium + rules.random.Intn(99-MinInt(minConc.Germanium, 98))/2,
+			Ironium:   minConc.Ironium + rules.random.Intn(99-Min(minConc.Ironium, 98))/2,
+			Boranium:  minConc.Boranium + rules.random.Intn(99-Min(minConc.Boranium, 98))/2,
+			Germanium: minConc.Germanium + rules.random.Intn(99-Min(minConc.Germanium, 98))/2,
 		}
 	}
 
@@ -458,7 +458,7 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOv
 			// the first 200% overpopulation (300% capacity) only produce half their normal production(for a net population production of 200%).
 			// Population over 300% produce nothing.
 
-			dieoffPercent := ClampFloat64((1-capacity)*populationOvercrowdDieoffRate, -populationOvercrowdDieoffRateMax, 0)
+			dieoffPercent := Clamp((1-capacity)*populationOvercrowdDieoffRate, -populationOvercrowdDieoffRateMax, 0)
 			popGrowth = int(math.Round(float64(p.population()) * dieoffPercent))
 		} else if capacity > .25 {
 			crowdingFactor := 16.0 / 9.0 * (1.0 - capacity) * (1.0 - capacity)
@@ -516,11 +516,11 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		spec.MaxPossibleFactories = spec.MaxPopulation * race.NumFactories / 10000
 
 		// compute resources from factories
-		resourcesFromFactories := MinInt(planet.Factories, spec.MaxFactories) * race.FactoryOutput / 10
+		resourcesFromFactories := Min(planet.Factories, spec.MaxFactories) * race.FactoryOutput / 10
 		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
 	}
 
-	spec.MiningOutput = planet.getMineralOutput(MinInt(spec.MaxMines, planet.Mines), race.MineOutput)
+	spec.MiningOutput = planet.getMineralOutput(Min(spec.MaxMines, planet.Mines), race.MineOutput)
 	spec.computeResourcesPerYearAvailable(player, planet)
 
 	if race.Spec.CanBuildDefenses {
@@ -628,22 +628,19 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 		// for autobuild purposes, the maxFactories is next year's pop
 		futurePop := planet.productiveInstallationPopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
 		maxMines := planet.getMaxMines(player, futurePop)
-		return MaxInt(0, maxMines-planet.Mines)
+		return Max(0, maxMines-planet.Mines)
 	case QueueItemTypeMine:
-		return MaxInt(0, planet.Spec.MaxPossibleMines-planet.Mines)
+		return Max(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
 		// for autobuild purposes, the maxFactories is next year's pop
 		futurePop := planet.productiveInstallationPopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
 		maxFactories := planet.getMaxFactories(player, futurePop)
-		return MaxInt(0, maxFactories-planet.Factories)
+		return Max(0, maxFactories-planet.Factories)
 	case QueueItemTypeFactory:
-		return MaxInt(0, planet.Spec.MaxPossibleFactories-planet.Factories)
-	case QueueItemTypeAutoDefenses:
-		fallthrough
-	case QueueItemTypeDefenses:
-		return MaxInt(0, planet.Spec.MaxDefenses-planet.Defenses)
-	case QueueItemTypeTerraformEnvironment:
-	case QueueItemTypeAutoMaxTerraform:
+		return Max(0, planet.Spec.MaxPossibleFactories-planet.Factories)
+	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
+		return Max(0, planet.Spec.MaxDefenses-planet.Defenses)
+	case QueueItemTypeTerraformEnvironment, QueueItemTypeAutoMaxTerraform:
 		return planet.Spec.TerraformAmount.absSum()
 	case QueueItemTypeAutoMinTerraform:
 		return planet.Spec.MinTerraformAmount.absSum()

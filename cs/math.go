@@ -1,13 +1,17 @@
 package cs
 
-import "math"
+import (
+	"math"
+
+	"golang.org/x/exp/constraints"
+)
 
 // Round a value to the nearest 100 using the specified rounding function
 // and return the result
 //
 // Population is often updated with floating point math, but we typically have to convert
 // it back to Colonist cargo values, which are stored in units of 100 colonists per 1kT
-func roundTo100[N int | float64](value N, roundFunc func(float64) float64) int {
+func roundTo100[T int | float64](value T, roundFunc func(float64) float64) int {
 	return int(roundFunc(float64(value)/100) * 100)
 }
 
@@ -24,7 +28,7 @@ func roundHalfDown(x float64) float64 {
 	return math.Ceil(x - 0.5)
 }
 
-func Clamp(value, min, max int) int {
+func Clamp[T constraints.Ordered](value, min, max T) T {
 	if value < min {
 		return min
 	} else {
@@ -35,20 +39,13 @@ func Clamp(value, min, max int) int {
 	return value
 }
 
-func ClampFloat64(value, min, max float64) float64 {
-	if value < min {
-		return min
-	} else {
-		if value > max {
-			return max
-		}
+func Max[T constraints.Ordered](nums ...T) T {
+	if len(nums) == 0 {
+		panic("Max called with no arguments")
 	}
-	return value
-}
 
-func MaxInt(nums ...int) int {
-	result := math.MinInt
-	for _, value := range nums {
+	result := nums[0]
+	for _, value := range nums[1:] {
 		if value > result {
 			result = value
 		}
@@ -57,9 +54,13 @@ func MaxInt(nums ...int) int {
 	return result
 }
 
-func MinInt(nums ...int) int {
-	result := math.MaxInt
-	for _, value := range nums {
+func Min[T constraints.Ordered](nums ...T) T {
+	if len(nums) == 0 {
+		panic("Min called with no arguments")
+	}
+
+	result := nums[0]
+	for _, value := range nums[1:] {
 		if value < result {
 			result = value
 		}
@@ -68,33 +69,9 @@ func MinInt(nums ...int) int {
 	return result
 }
 
-func MinFloat64(nums ...float64) float64 {
-	result := math.MaxFloat64
-	for _, value := range nums {
-		if value < result {
-			result = value
-		}
-	}
-
-	return result
-}
-
-func AbsInt(num int) int {
+func Abs[T int](num T) T {
 	if num < 0 {
 		return -num
 	}
 	return num
-}
-
-// return the absolutely greater of 2 integers
-// (ie: the one furthest away from 0)
-func MaxAbsInt(nums ...int) int {
-	result := math.MinInt
-	for _, value := range nums {
-		if AbsInt(value) > AbsInt(result) {
-			result = value
-		}
-	}
-
-	return result
 }

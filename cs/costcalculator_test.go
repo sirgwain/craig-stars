@@ -22,7 +22,7 @@ func TestCostCalculator_StarbaseUpgradeCost(t *testing.T) {
 		want    Cost
 		wanterr bool
 	}{
-				{
+		{
 			name: "Min Price Floor - same category",
 			args: args{
 				techLevels:          TechLevel{0, 22, 0, 0, 0, 0},
@@ -313,12 +313,12 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
 				slots: []ShipDesignSlot{
-					{HullComponent: BattleComputer.Name, HullSlotIndex: 1, Quantity: 1}, 
+					{HullComponent: BattleComputer.Name, HullSlotIndex: 1, Quantity: 1},
 					// 7.5G, 3R
 					{HullComponent: BetaTorpedo.Name, HullSlotIndex: 2, Quantity: 10},
 					// 75I, 25B, 15G, 25R
 				},
-				hull:               OrbitalFort.Name, 
+				hull: OrbitalFort.Name,
 				// 12I, 17G, 40R
 				starbaseCostFactor: 1,
 			},
@@ -330,7 +330,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "IT/ISB Gate Dock Rounding Check", 
+			name: "IT/ISB Gate Dock Rounding Check",
 			args: args{
 				techLevels:          TechLevel{0, 0, 5, 5, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
@@ -406,9 +406,9 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 				techLevels:          TechLevel{0, 0, 0, 9, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
-				slots: []ShipDesignSlot{},
-				hull:               SpaceDock.Name,
-				starbaseCostFactor: 0.8,
+				slots:               []ShipDesignSlot{},
+				hull:                SpaceDock.Name,
+				starbaseCostFactor:  0.8,
 			},
 			want: Cost{
 				Ironium:   13,
@@ -423,9 +423,9 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 				techLevels:          TechLevel{0, 0, 0, 4, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{2.0, 0.8, 0.05},
 				techCostOffset:      TechCostOffset{0, 0, 0, 0, 0, 0, 0},
-				slots: []ShipDesignSlot{},
-				hull:               SpaceDock.Name,
-				starbaseCostFactor: 0.8,
+				slots:               []ShipDesignSlot{},
+				hull:                SpaceDock.Name,
+				starbaseCostFactor:  0.8,
 			},
 			want: Cost{
 				Ironium:   32,

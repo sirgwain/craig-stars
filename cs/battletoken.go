@@ -88,8 +88,8 @@ func newBattleToken(num int, position BattleVector, cargoMass int, token *ShipTo
 			weapon := techFinder.GetHullComponent(slot.HullComponent)
 			bws := newBattleWeaponSlot(&battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.TorpedoBonus, token.design.Spec.BeamBonus)
 			weaponSlots = append(weaponSlots, bws)
-			minRange = MinInt(minRange, bws.weaponRange)
-			maxRange = MaxInt(maxRange, bws.weaponRange)
+			minRange = Min(minRange, bws.weaponRange)
+			maxRange = Max(maxRange, bws.weaponRange)
 			if bws.weaponType == battleWeaponTypeBeam {
 				battleToken.attributes |= battleTokenAttributeHasBeams
 			} else if bws.weaponType == battleWeaponTypeTorpedo {
@@ -166,7 +166,7 @@ func (token *battleToken) isStillInBattle() bool {
 }
 
 func (token *battleToken) getDistanceAway(position BattleVector) int {
-	return MaxInt(AbsInt(token.Position.X-position.X), AbsInt(token.Position.Y-position.Y))
+	return Max(Abs(token.Position.X-position.X), Abs(token.Position.Y-position.Y))
 }
 
 func (token *battleToken) String() string {
