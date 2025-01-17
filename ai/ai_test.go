@@ -9,28 +9,25 @@ import (
 )
 
 func Test_aiPlayer_ProcessTurn(t *testing.T) {
-	type fields struct {
-		prt cs.PRT
-	}
 	tests := []struct {
 		name   string
-		fields fields
+		prt cs.PRT
 	}{
-		{"HE", fields{cs.HE}},
-		{"SS", fields{cs.SS}},
-		{"WM", fields{cs.WM}},
-		{"CA", fields{cs.CA}},
-		{"IS", fields{cs.IS}},
-		{"SD", fields{cs.SD}},
-		{"PP", fields{cs.PP}},
-		{"IT", fields{cs.IT}},
-		{"AR", fields{cs.AR}},
-		{"JoaT", fields{cs.JoaT}},
+		{"HE", cs.HE},
+		{"SS", cs.SS},
+		{"WM", cs.WM},
+		{"CA", cs.CA},
+		{"IS", cs.IS},
+		{"SD", cs.SD},
+		{"PP", cs.PP},
+		{"IT", cs.IT},
+		{"AR", cs.AR},
+		{"JoaT", cs.JoaT},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			race := cs.NewRace().WithPRT(tt.fields.prt)
+			race := cs.NewRace().WithPRT(tt.prt)
 			gamer := cs.NewGamer()
 			game := gamer.CreateGame(0, *cs.NewGameSettings().WithAIPlayer(cs.AIDifficultyEasy, 0))
 			player := gamer.NewPlayer(0, *race, &game.Rules)

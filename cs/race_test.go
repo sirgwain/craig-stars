@@ -100,8 +100,17 @@ func Test_computeRaceSpec(t *testing.T) {
 					NewTechCostFactor:       1,
 				},
 				ScannerSpec: ScannerSpec{
-					BuiltInScannerMultiplier: 20,
-					ScanRangeFactor:          1,
+					BuiltInScanner: BuiltInScanner{
+						Field:       Electronics,
+						NormalMulti: 20,
+						PenMulti:    10,
+						HullsAllowed: map[string]bool{
+							Scout.Name: true,
+							Frigate.Name: true,
+							Destroyer.Name: true,
+						},
+					},
+					ScanRangeFactor: 1,
 				},
 				StartingPlanets: []StartingPlanet{{
 					Defenses:           10,
@@ -198,8 +207,17 @@ func Test_computeRaceSpec(t *testing.T) {
 					NewTechCostFactor:       1,
 				},
 				ScannerSpec: ScannerSpec{
-					BuiltInScannerMultiplier: 20,
-					ScanRangeFactor:          1,
+					BuiltInScanner: BuiltInScanner{
+						Field:       Electronics,
+						NormalMulti: 20,
+						PenMulti:    10,
+						HullsAllowed: map[string]bool{
+							Scout.Name:     true,
+							Frigate.Name:   true,
+							Destroyer.Name: true,
+						},
+					},
+					ScanRangeFactor: 1,
 				},
 				StartingPlanets: []StartingPlanet{{
 					Defenses:           10,
@@ -241,7 +259,7 @@ func Test_computeRaceSpec(t *testing.T) {
 				PacketResourceCost:             10,
 				RepairFactor:                   1,
 				ResearchFactor:                 1,
-				ScrapMineralOffsetStarbase:		.8 - (1.0 / 3),
+				ScrapMineralOffsetStarbase:     .8 - (1.0 / 3),
 				ShieldStrengthFactor:           1,
 				ShipsVanishInVoid:              true,
 				StarbaseCostFactor:             1,

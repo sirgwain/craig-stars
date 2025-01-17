@@ -536,6 +536,28 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
+			name: "Jammed IS Battleship",
+			args: args{
+				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
+				miniaturizationSpec: MiniaturizationSpec{1.0, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{TechTagBeamWeapon: 0.25, TechTagTorpedo: 0.25},
+				slots: []ShipDesignSlot{
+					{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
+					{HullComponent: JihadMissile.Name, HullSlotIndex: 2, Quantity: 2},
+					{HullComponent: Jammer10.Name, HullSlotIndex: 10, Quantity: 3},
+					{HullComponent: Jammer20.Name, HullSlotIndex: 11, Quantity: 3},
+				},
+				hull:               Battleship.Name,
+				starbaseCostFactor: 1,
+			},
+			want: Cost{
+				Ironium:   109,
+				Boranium:  30,
+				Germanium: 45,
+				Resources: 170,
+			}, wantErr: false,
+		},
+		{
 			name: "BANANA BOAT (invalid components)",
 			args: args{
 				techLevels:          TechLevel{0, 20, 0, 13, 0, 0},

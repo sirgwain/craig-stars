@@ -49,20 +49,25 @@ var TechCategories = []TechCategory{
 	TechCategoryTorpedo,
 }
 
-const (
-	OriginNone          string = ""
-	OriginMysteryTrader string = "MysteryTrader"
-)
 
+// The basic skeleton of a Tech item, containing name, cost and
 type Tech struct {
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost"`
 	Requirements TechRequirements `json:"requirements" `
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
-	Origin       string           `json:"origin,omitempty"`
+	Origin       TechOrigin           `json:"origin,omitempty"`
 	Tags         TechTags         `json:"tags,omitempty"`
 }
+
+type TechOrigin string 
+
+const (
+	OriginNone          TechOrigin = ""
+	OriginMysteryTrader TechOrigin = "MysteryTrader"
+)
+
 
 type TechRequirements struct {
 	TechLevel
@@ -166,7 +171,6 @@ type TechHull struct {
 	SpaceDockSlotSize        Vector         `json:"spaceDockSlotSize,omitempty"`
 	SpaceDockSlotCircle      bool           `json:"spaceDockSlotCircle,omitempty"`
 	MineLayingBonus          float64        `json:"mineLayingBonus,omitempty"`
-	BuiltInScanner           bool           `json:"builtInScanner,omitempty"`
 	Initiative               int            `json:"initiative,omitempty"`
 	RepairBonus              float64        `json:"repairBonus,omitempty"`
 	ImmuneToOwnDetonation    bool           `json:"immuneToOwnDetonation,omitempty"`
@@ -414,7 +418,7 @@ func NewTech(name string, cost Cost, requirements TechRequirements, ranking int,
 	}
 }
 
-func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin string, tags ...TechTag) Tech {
+func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin TechOrigin, tags ...TechTag) Tech {
 	t := NewTech(name, cost, requirements, ranking, category, tags...)
 	t.Origin = origin
 	return t

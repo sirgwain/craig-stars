@@ -24,7 +24,7 @@ type PRTSpec struct {
 	CanGateCargo                     bool             `json:"canGateCargo,omitempty"`
 	CanDetectStargatePlanets         bool             `json:"canDetectStargatePlanets,omitempty"`
 	ShipsVanishInVoid                bool             `json:"shipsVanishInVoid,omitempty"`
-	BuiltInScannerMultiplier         int              `json:"builtInScannerMultiplier,omitempty"`
+	BuiltInScanner                   BuiltInScanner   `json:"builtInScanner,omitempty"`
 	TechsCostExtraLevel              int              `json:"techsCostExtraLevel,omitempty"`
 	FreighterGrowthFactor            float64          `json:"freighterGrowthFactor,omitempty"`
 	GrowthFactor                     float64          `json:"growthFactor,omitempty"`
@@ -98,7 +98,7 @@ func (t TechCostOffset) Add(other TechCostOffset) TechCostOffset {
 	maps.Copy(newOffset, t)
 	for tag, bonus := range other {
 		if _, ok := newOffset[tag]; !ok {
-			newOffset[tag] = 0.
+			newOffset[tag] = 0
 		}
 		newOffset[tag] += bonus
 	}
@@ -189,7 +189,7 @@ func defaultPRTSpec() PRTSpec {
 		CanGateCargo:                     false,
 		CanDetectStargatePlanets:         false,
 		ShipsVanishInVoid:                true,
-		BuiltInScannerMultiplier:         0,
+		BuiltInScanner:                   BuiltInScanner{},
 		TechsCostExtraLevel:              3,
 		FreighterGrowthFactor:            0,
 		GrowthFactor:                     1,
@@ -283,12 +283,12 @@ func wmSpec() PRTSpec {
 	}
 
 	spec.TechCostOffset = TechCostOffset{
-		TechTagBeamWeapon: -.25,
-		TechTagTorpedo:    -.25,
-		TechTagBomb:       -.25,
+		TechTagBeamWeapon: -.25, // weapons/bombs cost 25% less
+		TechTagTorpedo:    -.25, // weapons/bombs cost 25% less
+		TechTagBomb:       -.25, // weapons/bombs cost 25% less
 	}
 	spec.DiscoverDesignOnScan = true
-	spec.InvasionAttackBonus = 1.65
+	spec.InvasionAttackBonus = 1.65 // 1.1*1.5
 	spec.MovementBonus = 2
 
 	return spec
@@ -328,9 +328,9 @@ func isSpec() PRTSpec {
 
 	spec.TechCostOffset = TechCostOffset{
 		TechTagDefense:    -.4, // defenses cost 40% less
-		TechTagBeamWeapon: .25, // weapons cost 25% more
-		TechTagTorpedo:    .25, // weapons cost 25% more
-		TechTagBomb:       .25, // weapons cost 25% more
+		TechTagBeamWeapon: .25, // weapons/bombs cost 25% more
+		TechTagTorpedo:    .25, // weapons/bombs cost 25% more
+		TechTagBomb:       .25, // weapons/bombs cost 25% more
 	}
 
 	spec.FreighterGrowthFactor = .5
@@ -517,7 +517,16 @@ func joatSpec() PRTSpec {
 	}
 
 	spec.MaxPopulationOffset = .2
-	spec.BuiltInScannerMultiplier = 20
+	spec.BuiltInScanner = BuiltInScanner{
+		Field:       Electronics,
+		NormalMulti: 20,
+		PenMulti:    10,
+		HullsAllowed: map[string]bool{
+			Scout.Name:     true,
+			Frigate.Name:   true,
+			Destroyer.Name: true,
+		},
+	}
 	spec.TechsCostExtraLevel = 4
 	return spec
 }

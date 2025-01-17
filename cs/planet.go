@@ -467,8 +467,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 
-	// population will generate resources up to 3x max pop, but they can only
-	// operate structures up to max pop
+	// calculate productive pop for resources and intslations 
 	productivePop := planet.productivePopulation(spec.Population, spec.MaxPopulation)
 	installationPop := planet.productiveInstallationPopulation(spec.Population, spec.MaxPopulation)
 
@@ -504,6 +503,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	}
 
 	if race.Spec.InnateScanner {
+		// calculate AR organic scan ranes
 		spec.Scanner = "Organic"
 		spec.ScanRange = int(float64(planet.innateScanner(player, productivePop)) * player.Race.Spec.ScanRangeFactor)
 		if !player.Race.Spec.NoAdvancedScanners && planet.Starbase != nil {

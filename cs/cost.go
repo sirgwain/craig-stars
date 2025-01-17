@@ -240,6 +240,7 @@ func (c cost[T]) SubtractMineral(other Mineral) cost[T] {
 	}
 }
 
+// Multiply a cost by an int or float and return the result
 func MultiplyCost[T number, F int | float64](c cost[T], factor F) cost[T] {
 	return cost[T]{
 		Ironium:   T(float64(c.Ironium) * float64(factor)),

@@ -29,8 +29,7 @@ type costCalculate struct {
 func GetCostEfficiencyRatio(numerator, denominator CostFloat64, costTypes ...CostType) (costRatio float64) {
 	if len(costTypes) > 4 {
 		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types; %v", costTypes))
-	}
-	if len(costTypes) == 0 {
+	} else if len(costTypes) == 0 {
 		costTypes = CostTypes[:] // no cost types provided means we include everything
 	}
 	var hcTally, otherTally float64
@@ -64,32 +63,31 @@ func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec Miniatur
 			miniaturizationSpec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
 	} else {
 		// New techs cost BET races 2x and will
-		// have 0 for miniaturization.
+		// have 0 for miniaturization
 		miniaturizationFactor = miniaturizationSpec.NewTechCostFactor
 	}
 
-	techCost := MultiplyCost(tech.Cost.ToCostFloat64(), miniaturizationFactor).Round(func(f float64) float64 {
-		if f > 0 && f < 1 {
-			return 1 // Ensures minimum cost of 1 for items that cost more than 1
-		}
-		return roundHalfTowards0(f)
-	})
+	techCost := MultiplyCost(tech.Cost.ToCostFloat64(), miniaturizationFactor).
+		Round(func(f float64) float64 {
+			if f > 0 && f < 1 {
+				return 1 // clamps total item cost at 1 for items whose base cost >=1
+			}
+			return roundHalfTowards0(f)
+		})
 
-	// apply any tech cost offsets
-	highestCostMulti := 1.0
+	// apply any tech cost offsets multiplicatively, 
+	// using jank rounding to simulate OG Stars!' int calculations
 	for tag := range tech.Tags {
-		highestCostMulti = math.Min(1+costOffset[tag], highestCostMulti)
-		// TODO: Do we want to only take the single best bonus or multiply/add them all together?
+		costMulti := costOffset[tag]
+		techCost = techCost.Add(MultiplyCost(techCost, costMulti).Round(roundHalfTowards0))
 	}
 
-	techCost = MultiplyCost(techCost, highestCostMulti).Round(func(f float64) float64 {
+	return techCost.Round(func(f float64) float64 {
 		if f > 0 && f < 1 {
 			return 1
 		}
 		return f
 	})
-
-	return techCost
 }
 
 // Calculate the upgrade cost for replacing one starbase design with another

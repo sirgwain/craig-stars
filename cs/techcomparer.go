@@ -237,8 +237,8 @@ func (tc *techCompare) compareWeaponPowers(hc, other *TechHullComponent) bool {
 			otherPower *= 1.5
 		}
 	} else {
-		hcPower = float64(hc.Power * PowInt(hc.Range, 2))
-		otherPower = float64(other.Power * PowInt(other.Range, 2))
+		hcPower = float64(hc.Power * hc.Range << 1) // squares it
+		otherPower = float64(other.Power * other.Range << 1)
 		if !hc.Gatling {
 			hcPower *= 1 - rules.BeamRangeDropoff
 		}

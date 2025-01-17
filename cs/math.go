@@ -23,6 +23,7 @@ func roundFloat(val float64, precision uint) float64 {
 // Round a float to the nearest whole number, rounding halves towards 0.
 // (This is distinct from math.Round() which rounds numbers away from 0.)
 func roundHalfTowards0(x float64) float64 {
+	// implementation taken from a comment found in Golang's math.Round() source code. Thanks, golang devs!
 	t := math.Trunc(x)
 	if Abs(x-t) > 0.5 {
 		return t + math.Copysign(1, x)
@@ -30,7 +31,9 @@ func roundHalfTowards0(x float64) float64 {
 	return t
 }
 
-// Clamps the passed in value between min and max by ensuring.
+// Clamps value between min and max and returns the result.
+// Equivalent to 
+//  Min(min, Max(value, max))
 func Clamp[T constraints.Ordered](value, min, max T) T {
 	if value < min {
 		return min
@@ -77,9 +80,9 @@ func Min[T constraints.Ordered](nums ...T) T {
 // Raise an integer to the power of another integer and return the result.
 //
 // Does not support negative exponents (we *are* dealing with integers here after all)
-func PowInt[T constraints.Integer](base, exponent T) T {
-	var result T = 1
-	// According to internet, this is the fastest way to do int exponentiation
+func PowInt[I constraints.Integer](base, exponent I) I {
+	var result I = 1
+	// According to internet, this is the fastest way to do int exponentiation - by squaring
 	for exponent != 0 {
 		if exponent&1 == 1 {
 			result *= base

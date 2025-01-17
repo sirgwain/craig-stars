@@ -163,10 +163,20 @@ type MiniaturizationSpec struct {
 }
 
 type ScannerSpec struct {
-	BuiltInScannerMultiplier int     `json:"builtInScannerMultiplier,omitempty"`
-	NoAdvancedScanners       bool    `json:"noAdvancedScanners,omitempty"`
-	ScanRangeFactor          float64 `json:"scanRangeFactor,omitempty"`
+	BuiltInScanner     BuiltInScanner `json:"builtInScannerMultiplier,omitempty"`
+	NoAdvancedScanners bool           `json:"noAdvancedScanners,omitempty"`
+	ScanRangeFactor    float64        `json:"scanRangeFactor,omitempty"`
 }
+
+type BuiltInScanner struct {
+	Field        TechField       `json:"field,omitempty"`
+	NormalMulti  int             `json:"normalMulti,omitempty"`
+	PenMulti     int             `json:"penmulti,omitempty"`
+	HullsAllowed map[string]bool `json:"HullsAllowed,omitempty"`
+}
+
+// return true if a race has a built in scanner that works on this hull
+func (b BuiltInScanner) worksOnHull(hullName string) bool { return b.HullsAllowed[hullName] }
 
 type PRT string
 
@@ -603,7 +613,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		ScannerSpec: ScannerSpec{
 			ScanRangeFactor: 1,
 			// JoaT
-			BuiltInScannerMultiplier: prtSpec.BuiltInScannerMultiplier,
+			BuiltInScanner: prtSpec.BuiltInScanner,
 		},
 		StartingPopulationFactor: 1,
 		ResearchFactor:           1,
