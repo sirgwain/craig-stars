@@ -173,9 +173,9 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 	// This will be useful for IT/PP and desperately necessary for AR
 	planetaryStructuresBuilt := math.Min(float64(planet.Mines)/float64(planet.Spec.MaxMines), float64(planet.Factories)/float64(planet.Spec.MaxFactories))
 	if !(targeted || attackShipsInOrbit) && planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
-		// this will need to be changed for -f/AR races to work as 
+		// this will need to be changed for -f/AR races to work as
 		// they don't build mines & such regardless
-		// AR in particular will require entirely separate logic 
+		// AR in particular will require entirely separate logic
 		return nil
 	}
 

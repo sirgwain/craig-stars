@@ -1436,6 +1436,7 @@ func BenchmarkDesignWarship_Small(b *testing.B) {
 	}
 	b.ResetTimer()
 	for range b.N {
+		b.StopTimer()
 		num := rules.random.Intn(6)
 		purpose := purposes[num]
 		var hull *TechHull
@@ -1447,6 +1448,7 @@ func BenchmarkDesignWarship_Small(b *testing.B) {
 		case 3, 4, 5:
 			hull = &SpaceStation
 		}
+		b.StartTimer()
 		DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
 	}
 }

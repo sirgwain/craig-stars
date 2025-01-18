@@ -890,7 +890,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slotQuantity:       2, 
+						slotQuantity:       2,
 						power:              85,
 						accuracy:           1,
 						capitalShipMissile: true,

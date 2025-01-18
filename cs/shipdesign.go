@@ -661,7 +661,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerSpec, techLevels TechLevel, design *ShipDesign, hull *TechHull) {
 	spec.ScanRange = 0
 	spec.ScanRangePen = 0
-	hasPenScan := false // counter to track if we have a pen scanner or not 
+	hasPenScan := false // counter to track if we have a pen scanner or not
 
 	// compute built in scanner if hull allows for it
 	builtInScanner := scannerSpec.BuiltInScanner

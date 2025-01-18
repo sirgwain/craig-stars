@@ -187,7 +187,7 @@ func (m Mineral) HighestAmount(ranking int) int {
 	a := m.ToSlice()
 	slices.Sort(a[:])
 	if ranking > 0 {
-		return a[3-ranking] // Slice is ordered in ascending order, so biggest values will be at the end 
+		return a[3-ranking] // Slice is ordered in ascending order, so biggest values will be at the end
 	} else {
 		return a[-ranking-1] // negative indices count from the start (lowest first)
 	}

@@ -76,7 +76,7 @@ func (h Hab) Clamp(min, max int) Hab {
 }
 
 func (h Hab) Get(habType HabType) int {
-	// @sirgwain should this stuff panic for an invalid habType? 
+	// @sirgwain should this stuff panic for an invalid habType?
 	switch habType {
 	case Grav:
 		return h.Grav

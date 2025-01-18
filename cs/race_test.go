@@ -105,8 +105,8 @@ func Test_computeRaceSpec(t *testing.T) {
 						NormalMulti: 20,
 						PenMulti:    10,
 						HullsAllowed: map[string]bool{
-							Scout.Name: true,
-							Frigate.Name: true,
+							Scout.Name:     true,
+							Frigate.Name:   true,
 							Destroyer.Name: true,
 						},
 					},

@@ -2,7 +2,6 @@ package cs
 
 import "math"
 
-
 // Represents a TechLevel a player has or a tech requires, or the amount of research spent on a tech level
 type TechLevel struct {
 	Energy        int `json:"energy,omitempty"`
@@ -46,6 +45,7 @@ func (tl TechLevel) ToSlice() [6]int {
 }
 
 // return the lowest numerical value in a TechLevel struct, including 0
+//
 // Ties are broken by order of precedence (En>We>Pr>Co>El>Bi)
 func (tl TechLevel) LowestLevel() int {
 	a := tl.ToSlice()
@@ -104,7 +104,6 @@ func (tl TechLevel) Get(field TechField) int {
 	}
 	return None
 }
-
 
 func (tl *TechLevel) Set(field TechField, level int) {
 	switch field {

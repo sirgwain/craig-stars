@@ -79,7 +79,7 @@ func (c cost[T]) HighestType(ranking int) CostType {
 
 // return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc).
 // Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc).
-// 
+//
 // panics if ranking is 0 or if abs(ranking) is greater than 4
 func (c cost[T]) HighestAmount(ranking int) T {
 	if ranking == 0 || Abs(ranking) > 4 {
@@ -88,7 +88,7 @@ func (c cost[T]) HighestAmount(ranking int) T {
 	a := c.ToSlice()
 	slices.Sort(a[:])
 	if ranking > 0 {
-		return a[4-ranking] // Slice is ordered in ascending order, so biggest values will be at the end 
+		return a[4-ranking] // Slice is ordered in ascending order, so biggest values will be at the end
 	} else {
 		return a[-ranking-1] // negative indices count from the start (lowest first)
 	}
@@ -165,7 +165,7 @@ func (c cost[T]) ToSlice() [4]T {
 	}
 }
 
-// convert an int cost into a costFloat64 struct for use in calculations
+// convert an int cost into a costFloat64 struct for use in calculations.
 func (c cost[T]) ToCostFloat64() CostFloat64 {
 	return CostFloat64{
 		Ironium:   float64(c.Ironium),
@@ -175,6 +175,7 @@ func (c cost[T]) ToCostFloat64() CostFloat64 {
 	}
 }
 
+// Convert a floating point cost into an integer cost.
 func (c cost[T]) ToCost() Cost {
 	return Cost{
 		Ironium:   int(c.Ironium),
@@ -250,6 +251,18 @@ func MultiplyCost[T number, F int | float64](c cost[T], factor F) cost[T] {
 	}
 }
 
+// Multiply a cost by another cost and return the resulting Cost struct.
+//
+// For multiplying a cost by an integer, use [MultiplyCost] instead
+func MultiplyByCost[T, F number](c cost[T], other cost[F]) (result cost[T]) {
+	return cost[T]{
+		Ironium:   T(float64(c.Ironium) * float64(other.Ironium)),
+		Boranium:  T(float64(c.Boranium) * float64(other.Boranium)),
+		Germanium: T(float64(c.Germanium) * float64(other.Germanium)),
+		Resources: T(float64(c.Resources) * float64(other.Resources)),
+	}
+}
+
 // divide a cost by another cost
 // and return how many times divisor can go into dividend
 // as a float64
@@ -301,11 +314,11 @@ func (c cost[T]) MinAmount() T {
 }
 
 // Round a cost struct's values by calling roundFunc on each of its values in turn.
-func (c cost[T]) Round(roundFunc func(float64) float64) cost[T] {
+func (c cost[T]) Round(roundFunc func(T) T) cost[T] {
 	return cost[T]{
-		Ironium:   T(roundFunc(float64(c.Ironium))),
-		Boranium:  T(roundFunc(float64(c.Boranium))),
-		Germanium: T(roundFunc(float64(c.Germanium))),
-		Resources: T(roundFunc(float64(c.Resources))),
+		Ironium:   roundFunc(c.Ironium),
+		Boranium:  roundFunc(c.Boranium),
+		Germanium: roundFunc(c.Germanium),
+		Resources: roundFunc(c.Resources),
 	}
 }

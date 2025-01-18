@@ -21,7 +21,7 @@ func roundFloat(val float64, precision uint) float64 {
 }
 
 // Round a float to the nearest whole number, rounding halves towards 0.
-// (This is distinct from math.Round() which rounds numbers away from 0.)
+// (This is distinct from math.Round() which rounds numbers *away* from 0.)
 func roundHalfTowards0(x float64) float64 {
 	// implementation taken from a comment found in Golang's math.Round() source code. Thanks, golang devs!
 	t := math.Trunc(x)
@@ -32,8 +32,9 @@ func roundHalfTowards0(x float64) float64 {
 }
 
 // Clamps value between min and max and returns the result.
-// Equivalent to 
-//  Min(min, Max(value, max))
+// Equivalent to
+//
+//	Min(min, Max(value, max))
 func Clamp[T constraints.Ordered](value, min, max T) T {
 	if value < min {
 		return min
@@ -95,8 +96,9 @@ func PowInt[I constraints.Integer](base, exponent I) I {
 }
 
 // Abs returns the absolute value (unsigned portion) of a given number.
-// 
+//
 // Special cases:
+//
 //	Abs(±Inf) = +Inf
 //	Abs(NaN) = NaN
 func Abs[T number](num T) T {

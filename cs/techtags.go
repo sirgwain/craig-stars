@@ -1,7 +1,9 @@
 package cs
 
-// TechTags are functional labels used to
-// categorize tech items based on their function.
+// TechTags are functional labels to categorize tech items
+// based on their function.
+// They are used by the game when determining cost discounts,
+// as well as for categorizing parts during ship designing.
 type TechTag string
 
 const (

@@ -404,11 +404,12 @@ func (p *Planet) shortestDistanceToPlanets(otherPlanets *[]*Planet) float64 {
 }
 
 // get the mineral output of a planet based on mineOutput (10 for remote mining)
+// TODO: Add fractional mineral outputs (% chance for extra) for sub-integer amounts
 func (p *Planet) getMineralOutput(numMines int, mineOutput int) Mineral {
 	return Mineral{
-		int(float64(p.MineralConcentration.Ironium) / 100 * float64(numMines) / 10 * float64(mineOutput)),
-		int(float64(p.MineralConcentration.Boranium) / 100 * float64(numMines) / 10 * float64(mineOutput)),
-		int(float64(p.MineralConcentration.Germanium) / 100 * float64(numMines) / 10 * float64(mineOutput)),
+		int(float64(p.MineralConcentration.Ironium*numMines*mineOutput) / 1000),
+		int(float64(p.MineralConcentration.Boranium*numMines*mineOutput) / 1000),
+		int(float64(p.MineralConcentration.Germanium*numMines*mineOutput) / 1000),
 	}
 }
 
@@ -467,7 +468,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 
-	// calculate productive pop for resources and intslations 
+	// calculate productive pop for resources and intslations
 	productivePop := planet.productivePopulation(spec.Population, spec.MaxPopulation)
 	installationPop := planet.productiveInstallationPopulation(spec.Population, spec.MaxPopulation)
 

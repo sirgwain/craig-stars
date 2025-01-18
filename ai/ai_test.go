@@ -10,8 +10,8 @@ import (
 
 func Test_aiPlayer_ProcessTurn(t *testing.T) {
 	tests := []struct {
-		name   string
-		prt cs.PRT
+		name string
+		prt  cs.PRT
 	}{
 		{"HE", cs.HE},
 		{"SS", cs.SS},

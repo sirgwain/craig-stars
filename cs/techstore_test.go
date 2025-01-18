@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"slices"
 	"testing"
-
 )
 
 func TestTechStore_GetBestEngine(t *testing.T) {
@@ -116,11 +115,12 @@ func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
 				}
 			}
 			got := rules.techs.GetHullComponentsByHullSlotType(player, tt.args.slot, "Nubian")
-			slices.SortStableFunc(tt.want, func(a, b *TechHullComponent) int { 
+			slices.SortStableFunc(tt.want, func(a, b *TechHullComponent) int {
 				if a.HullSlotType == b.HullSlotType {
 					return a.Ranking - b.Ranking
 				}
-				return int(a.HullSlotType) - int(b.HullSlotType)}) // sort want slots bc I'm lazy
+				return int(a.HullSlotType) - int(b.HullSlotType)
+			}) // sort want slots bc I'm lazy
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetHullComponentsByHullSlotType returned incorrect values; got:\n%v, want:\n%v", got, tt.want)
 			}

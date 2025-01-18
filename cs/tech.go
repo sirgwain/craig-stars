@@ -49,7 +49,6 @@ var TechCategories = []TechCategory{
 	TechCategoryTorpedo,
 }
 
-
 // The basic skeleton of a Tech item, containing name, cost and
 type Tech struct {
 	Name         string           `json:"name"`
@@ -57,17 +56,16 @@ type Tech struct {
 	Requirements TechRequirements `json:"requirements" `
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
-	Origin       TechOrigin           `json:"origin,omitempty"`
+	Origin       TechOrigin       `json:"origin,omitempty"`
 	Tags         TechTags         `json:"tags,omitempty"`
 }
 
-type TechOrigin string 
+type TechOrigin string
 
 const (
 	OriginNone          TechOrigin = ""
 	OriginMysteryTrader TechOrigin = "MysteryTrader"
 )
-
 
 type TechRequirements struct {
 	TechLevel

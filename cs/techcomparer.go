@@ -227,7 +227,7 @@ func (tc *techCompare) compareWeaponPowers(hc, other *TechHullComponent) bool {
 
 	var hcPower, otherPower float64
 	if hc.Category == TechCategoryTorpedo {
-		hcPower = float64(hc.Power * hc.Accuracy * hc.Range) / 100 / 4
+		hcPower = float64(hc.Power*hc.Accuracy*hc.Range) / 100 / 4
 		otherPower = float64(other.Power) * float64(other.Accuracy) / 100 * float64(other.Range) / 4
 		// TODO: Rework this once damageShieldsOnly & CapitalShipMissile get refactored into an armor dmg multiplier
 		if hc.CapitalShipMissile {

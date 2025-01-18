@@ -53,7 +53,7 @@ var MysteryTraderRewards = []MysteryTraderRewardType{
 	MysteryTraderRewardTorpedo,
 	MysteryTraderRewardBeamWeapon,
 	MysteryTraderRewardMineRobot,
-	// MysteryTraderRewardMineLayer, // we don't have mine layers yet 
+	// MysteryTraderRewardMineLayer, // we don't have mine layers yet
 	MysteryTraderRewardShipHull,
 	MysteryTraderRewardGenesis,
 	MysteryTraderRewardJumpGate,
@@ -70,7 +70,7 @@ var MysteryTraderRewardParts = []MysteryTraderRewardType{
 	MysteryTraderRewardTorpedo,
 	MysteryTraderRewardBeamWeapon,
 	MysteryTraderRewardMineRobot,
-	// MysteryTraderRewardMineLayer, // we don't have mine layers yet 
+	// MysteryTraderRewardMineLayer, // we don't have mine layers yet
 	MysteryTraderRewardShipHull,
 }
 

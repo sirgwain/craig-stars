@@ -2085,11 +2085,11 @@ var SuperFreighter = TechHull{Tech: NewTech("Super Freighter", NewCost(35, 0, 21
 }
 
 var Scout = TechHull{Tech: NewTech("Scout", NewCost(4, 2, 4, 10), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryShipHull),
-	Type:           TechHullTypeScout,
-	Mass:           8,
-	Armor:          20,
-	Initiative:     1,
-	FuelCapacity:   50,
+	Type:         TechHullTypeScout,
+	Mass:         8,
+	Armor:        20,
+	Initiative:   1,
+	FuelCapacity: 50,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
 		{Position: Vector{1, 0}, Type: HullSlotTypeScanner, Capacity: 1},
@@ -2098,11 +2098,11 @@ var Scout = TechHull{Tech: NewTech("Scout", NewCost(4, 2, 4, 10), TechRequiremen
 }
 
 var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequirements{TechLevel: TechLevel{Construction: 6}}, 60, TechCategoryShipHull),
-	Type:           TechHullTypeFighter,
-	Mass:           8,
-	Armor:          45,
-	Initiative:     4,
-	FuelCapacity:   125,
+	Type:         TechHullTypeFighter,
+	Mass:         8,
+	Armor:        45,
+	Initiative:   4,
+	FuelCapacity: 125,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1.5, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
 		{Position: Vector{1.5, 0}, Type: HullSlotTypeScanner, Capacity: 2},
@@ -2112,11 +2112,11 @@ var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequir
 }
 
 var Destroyer = TechHull{Tech: NewTech("Destroyer", NewCost(15, 3, 5, 35), TechRequirements{TechLevel: TechLevel{Construction: 3}}, 50, TechCategoryShipHull),
-	Type:           TechHullTypeFighter,
-	Mass:           30,
-	Armor:          200,
-	Initiative:     3,
-	FuelCapacity:   280,
+	Type:         TechHullTypeFighter,
+	Mass:         30,
+	Armor:        200,
+	Initiative:   3,
+	FuelCapacity: 280,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
 		{Position: Vector{0.5, -1.5}, Type: HullSlotTypeWeapon, Capacity: 1},

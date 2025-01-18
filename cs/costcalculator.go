@@ -20,35 +20,38 @@ func NewCostCalculator() CostCalculator {
 type costCalculate struct {
 }
 
-// Returns the cost efficiency ratio for 2 costFloat64 structs
+// Returns the cost efficiency ratio for 2 Cost structs as a float64
 // by dividing their respective total costs
 // (numeratorTotal / denominatorTotal)
 //
 // costTypes indicates the cost types to be considered in analysis (defaults to all);
 // function will panic if too many are provided
-func GetCostEfficiencyRatio(numerator, denominator CostFloat64, costTypes ...CostType) (costRatio float64) {
+func GetCostEfficiencyRatio[T number](numerator, denominator cost[T], costTypes ...CostType) (costRatio float64) {
+	// TODO: Add weighting support by replacing CostTypes by a single CostFloat64 containing weight values
 	if len(costTypes) > 4 {
 		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types; %v", costTypes))
 	} else if len(costTypes) == 0 {
 		costTypes = CostTypes[:] // no cost types provided means we include everything
 	}
-	var hcTally, otherTally float64
+	var hcTally, otherTally T
 	for _, ct := range costTypes {
 		hcTally += numerator.GetAmount(ct)
 		otherTally += denominator.GetAmount(ct)
 	}
-	return hcTally / otherTally
+	return float64(hcTally) / float64(otherTally)
 }
 
 // Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
 //
-// Returns floating point cost for extra precision
-func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec MiniaturizationSpec, costOffset TechCostOffset) CostFloat64 {
+// Rounds value in accordance with base game's cost calcs,
+// but returns it as a floating point cost
+// to allow combination with other float multipliers down the line
+func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec MiniaturizationSpec, costOffset TechCostOffset) (techCost CostFloat64) {
 	// figure out miniaturization discounts - base cost is reduced by
 	// 4% per tech level we have above the tech's requirements.
 	// We count the smallest difference among all fields, so if you have
-	// level 10 energy & 12 bio and the tech costs 9 energy & 4 bio
-	// the smallest level difference you have is 1 energy level (not 8 bio levels)
+	// level 10 energy & 12 bio and a tech costs 9 energy & 4 bio,
+	// the smallest level difference you have is the 1 energy level (not 8 bio levels)
 	numTechLevelsAboveRequired := techLevels.LevelsAbove(tech.Requirements.TechLevel)
 
 	// for starter techs, they are all 0 requirements, so just use our lowest field
@@ -67,24 +70,24 @@ func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec Miniatur
 		miniaturizationFactor = miniaturizationSpec.NewTechCostFactor
 	}
 
-	techCost := MultiplyCost(tech.Cost.ToCostFloat64(), miniaturizationFactor).
-		Round(func(f float64) float64 {
-			if f > 0 && f < 1 {
-				return 1 // clamps total item cost at 1 for items whose base cost >=1
-			}
-			return roundHalfTowards0(f)
-		})
+	techCost = MultiplyCost(tech.Cost.ToCostFloat64(), miniaturizationFactor).Round(func(f float64) float64 {
+		if f > 0 && f < 1 {
+			return 1 // prevents items costing <0.5 from rounding to 0
+		}
+		return roundHalfTowards0(f)
+	})
 
-	// apply any tech cost offsets multiplicatively, 
+	// apply any tech cost offsets multiplicatively,
 	// using jank rounding to simulate OG Stars!' int calculations
+	var costMulti float64 = 1
 	for tag := range tech.Tags {
-		costMulti := costOffset[tag]
-		techCost = techCost.Add(MultiplyCost(techCost, costMulti).Round(roundHalfTowards0))
+		costMulti *= 1 + costOffset[tag]
 	}
+	techCost = techCost.Add(MultiplyCost(techCost, costMulti-1).Round(roundHalfTowards0))
 
 	return techCost.Round(func(f float64) float64 {
 		if f > 0 && f < 1 {
-			return 1
+			return 1 // prevents total item cost from going below 1
 		}
 		return f
 	})
