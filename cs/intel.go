@@ -100,7 +100,8 @@ type PlanetIntel struct {
 	BaseHab                       Hab         `json:"baseHab,omitempty"`
 	MineralConcentration          Mineral     `json:"mineralConcentration,omitempty"`
 	Starbase                      *FleetIntel `json:"starbase,omitempty"`
-	Cargo                         Cargo       `json:"cargo,omitempty"`
+	Minerals                      Mineral     `json:"minerals,omitempty"`
+	Population                    int         `json:"population,omitempty"`
 	CargoDiscovered               bool        `json:"cargoDiscovered,omitempty"`
 	PlanetHabitability            int         `json:"planetHabitability,omitempty"`
 	PlanetHabitabilityTerraformed int         `json:"planetHabitabilityTerraformed,omitempty"`

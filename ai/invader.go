@@ -21,7 +21,7 @@ func (ai *aiPlayer) invade() error {
 
 		// if this planet is no longer owned by a player, or it suddenly has a starbase, or its pop has grown out
 		// of the threshold where we would invade, return to the nearest starbase
-		if !target.Owned() || target.Spec.HasStarbase || target.Spec.Population > int(ai.config.invasionFactor*float64(fleet.Cargo.Colonists*100)) {
+		if !target.Owned() || target.Spec.HasStarbase || target.Population > int(ai.config.invasionFactor*float64(fleet.Cargo.Colonists*100)) {
 			fleet.Purpose = cs.FleetPurposeNone
 			closestStarbase := ai.getClosestStarbasePlanet(fleet)
 			if closestStarbase != nil {
@@ -34,7 +34,7 @@ func (ai *aiPlayer) invade() error {
 					Int64("GameID", ai.GameID).
 					Int("PlayerNum", ai.Num).
 					Int("Invaders", fleet.Cargo.Colonists*100).
-					Int("Defenders", target.Spec.Population).
+					Int("Defenders", target.Population).
 					Bool("HasStarbase", target.Spec.HasStarbase).
 					Msgf("%s called off invasion of %s, returning to %s", fleet.Name, target.Name, closestStarbase.Name)
 			}

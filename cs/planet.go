@@ -16,7 +16,8 @@ type Planet struct {
 	TerraformedAmount    Hab        `json:"terraformedAmount,omitempty"`
 	MineralConcentration Mineral    `json:"mineralConcentration,omitempty"`
 	MineYears            Mineral    `json:"mineYears,omitempty"`
-	Cargo                Cargo      `json:"cargo,omitempty"`
+	Minerals             Mineral    `json:"minerals,omitempty"`
+	Population           int        `json:"population,omitempty"`
 	Mines                int        `json:"mines,omitempty"`
 	Factories            int        `json:"factories,omitempty"`
 	Defenses             int        `json:"defenses,omitempty"`
@@ -54,7 +55,6 @@ type PlanetSpec struct {
 	MaxPossibleFactories                      int     `json:"maxPossibleFactories,omitempty"`
 	MaxPossibleMines                          int     `json:"maxPossibleMines,omitempty"`
 	MiningOutput                              Mineral `json:"miningOutput,omitempty"`
-	Population                                int     `json:"population,omitempty"`
 	PopulationDensity                         float64 `json:"populationDensity,omitempty"`
 	ResourcesPerYear                          int     `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearAvailable                 int     `json:"resourcesPerYearAvailable,omitempty"`
@@ -146,7 +146,12 @@ func (p *Planet) population() int {
 	return p.Cargo.Colonists * 100
 }
 
-// get the population that is productive. This takes into account overcrowding
+// get exact planetary population
+func (p *Planet) exactPopulation() int {
+	return p.Spec.PartialPopulation + p.Cargo.Colonists*100
+}
+
+// get the population that is productive. This takes into account overcrowding -
 // anything over 3x is unproductive
 func (p *Planet) productivePopulation(pop, maxPop int) int {
 	return Min(pop, 3*maxPop)
@@ -235,18 +240,28 @@ func (p *Planet) randomize(rules *Rules) {
 	p.reset()
 
 	// From @SuicideJunkie's tests and @edmundmk's previous research, grav and temp are weighted slightly towards
-	// the center, rad is completely random
-	// @edmundmk:
-	// "I'm certain gravity and temperature probability is constant between 10 and 90 inclusive, and falls off towards 0 and 100.
-	// It never generates 0 or 100 so I have to change my random formula to (1 to 90)+(0 to 9)
-	// damn you all for sucking me into stars! again lol"
-	//
-	// update: hab is 1 to 99
+	// the center while rad is completely random (though all 3 are clamped between 1 and 99).
+
+	// First, we handle the first block of the randomness
 	p.Hab = Hab{
-		Grav: 1 + rules.random.Intn(90) + rules.random.Intn(10),
-		Temp: 1 + rules.random.Intn(90) + rules.random.Intn(10),
-		Rad:  1 + rules.random.Intn(99),
+		Grav: rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Grav+1),
+		Temp: rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Temp+1),
+		Rad:  rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Rad+1),
 	}
+
+	// add random amounts to simulate dropoff at high ranges
+	var randomG, randomT, randomR int
+	if rules.HabDropoffRange.Grav > 0 {
+		randomG = rules.random.Intn(rules.HabDropoffRange.Grav)
+	}
+	if rules.HabDropoffRange.Temp > 0 {
+		randomT = rules.random.Intn(rules.HabDropoffRange.Temp)
+	}
+	if rules.HabDropoffRange.Rad > 0 {
+		randomR = rules.random.Intn(rules.HabDropoffRange.Rad)
+	}
+	p.Hab.Add(Hab{randomG, randomT, randomR})
+
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
 	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad)
@@ -419,27 +434,23 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOv
 	capacity := float64(p.population()) / float64(maxPopulation)
 	habValue := race.GetPlanetHabitability(p.Hab)
 	if habValue > 0 {
-		popGrowth := int(float64(p.population())*float64(race.GrowthRate)*growthFactor/100.0*float64(habValue)/100.0 + .5)
+		popGrowth := math.Round(float64(p.population()*race.GrowthRate*habValue) * growthFactor / 10000)
 
 		if capacity > 1 {
-			// overpopulation calcs: https://wiki.starsautohost.org/wiki/Overpopulation
-			// Population Death from overcrowding is 0.04% per % over 100% cap.
-			// Thus a 200% capacity planet is 100% over and thus has (0.04 * 100 = 4%) a 4% death rate. This maxes out at 400% capacity at 12%
-			// Credit: Thomas Harley
-			// In addition to deaths:
-			// excess population on overcrowded planets cannot work factories or mines
-			// the first 200% overpopulation (300% capacity) only produce half their normal production(for a net population production of 200%).
-			// Population over 300% produce nothing.
+			// calculate deaths from overpopulation (https://wiki.starsautohost.org/wiki/Overpopulation)
+			// Pop loss from overcrowding is 0.04% per percentage over cap.
+			// Thus a 200% capacity planet is 100% over cap and thus loses 0.04 * 100 = 4% population each year.
+			// This maxes out at 400% capacity (300% extra) at 12% deaths/yr.
 
 			dieoffPercent := Clamp((1-capacity)*populationOvercrowdDieoffRate, -populationOvercrowdDieoffRateMax, 0)
-			popGrowth = int(float64(p.population()) * float64(dieoffPercent))
+			popGrowth = math.Round(float64(p.population()) * dieoffPercent)
 		} else if capacity > .25 {
-			crowdingFactor := 16.0 / 9.0 * (1.0 - capacity) * (1.0 - capacity)
-			popGrowth = int(float64(popGrowth) * crowdingFactor)
+			crowdingFactor := math.Pow(1-capacity, 2) * 16 / 9
+			popGrowth *= crowdingFactor
 		}
 
-		// round to the nearest 100 colonists
-		return roundToNearest100(popGrowth)
+		// return exact value to nearest colonist
+		return int(popGrowth)
 	} else {
 		// kill off (habValue / 10)% colonists every year. I.e. a habValue of -4% kills off .4%
 		deathAmount := int(float64(p.population()) * (float64(habValue) / 1000.0))
@@ -549,15 +560,16 @@ func computePlanetStarbaseSpec(rules *Rules, player *Player, planet *Planet) Pla
 	return spec
 }
 
-// update a planet spec's resources per year
-// this is called by the main ComputePlanetSpec as well as anytime a player
+// Update a planet spec's resources per year.
+//
+// This is called by the main ComputePlanetSpec function, as well as anytime a player
 // updates a planet's ContributesOnlyLeftoverToResearch field
 func (spec *PlanetSpec) computeResourcesPerYearAvailable(player *Player, planet *Planet) {
 	if planet.ContributesOnlyLeftoverToResearch {
 		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear
 		spec.ResourcesPerYearResearch = 0
 	} else {
-		spec.ResourcesPerYearResearch = int(float64(spec.ResourcesPerYear) * float64(player.ResearchAmount) / 100.0)
+		spec.ResourcesPerYearResearch = int(float64(spec.ResourcesPerYear*player.ResearchAmount) / 100.0)
 		spec.ResourcesPerYearAvailable = spec.ResourcesPerYear - spec.ResourcesPerYearResearch
 	}
 }

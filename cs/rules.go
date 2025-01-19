@@ -70,8 +70,7 @@ type Rules struct {
 	techs                            *TechStore
 }
 type UniverseGenerationRules struct {
-	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold,omitempty"`
-	LimitMineralConcentration                 int                           `json:"limitMineralConcentration,omitempty"`
+	HabDropoffRange                           Hab                           `json:"habDropoffRange,omitempty"`
 	MaxExtraWorldDistance                     int                           `json:"maxExtraWorldDistance,omitempty"`
 	MaxHab                                    int                           `json:"maxHab,omitempty"`
 	MaxMineralConcentration                   int                           `json:"maxMineralConcentration,omitempty"`
@@ -84,6 +83,8 @@ type UniverseGenerationRules struct {
 	MinMineralConcentration                   int                           `json:"minMineralConcentration,omitempty"`
 	MinStartingMineralConcentration           int                           `json:"minStartingMineralConcentration,omitempty"`
 	MinStartingMineralSurface                 int                           `json:"minStartingMineralSurface,omitempty"`
+	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold,omitempty"`
+	LimitMineralConcentration                 int                           `json:"limitMineralConcentration,omitempty"`
 	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem,omitempty"`
 	StartingYear                              int                           `json:"startingYear,omitempty"`
 	WormholeMinPlanetDistance                 int                           `json:"wormholeMinPlanetDistance,omitempty"`
@@ -266,6 +267,11 @@ func NewRulesWithSeed(seed int64) Rules {
 			NumBattleRounds:  16,
 		},
 		UniverseGenerationRules: UniverseGenerationRules{
+			HabDropoffRange: Hab{
+				Grav: 10, // outer 10 hab clicks for G/T are linearly less likely
+				Temp: 10,
+				Rad:  0,
+			},
 			MaxExtraWorldDistance:                     180,
 			MinExtraWorldDistance:                     130,
 			MinHomeworldMineralConcentration:          30,

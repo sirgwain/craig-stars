@@ -168,7 +168,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 				planetPop:         1000000,
 				mass:              Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
 			},
-			MineralPacketDamage{Killed: 4700},
+			MineralPacketDamage{Killed: 4600},
 		},
 		{
 			"1 yr away; vanishing packet",
@@ -234,7 +234,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			player := NewPlayer(1, tt.args.race).withSpec(&rules).WithNum(1)
 			planet := NewPlanet().withPosition(tt.args.planetPosition).WithPlayerNum(2)
 			planetPlayer := NewPlayer(2, tt.args.targetRace).withSpec(&rules).WithNum(2)
-			planet.setPopulation(tt.args.planetPop)
+			planet.setPopulation(tt.args.planetPop, 0)
 			planet.Defenses = 10
 			planet.Spec.DefenseCoverage = tt.args.planetDefCoverage
 			planet.Spec.PlanetStarbaseSpec.HasStarbase = true
@@ -292,7 +292,7 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 			args{
 				planetHab: Hab{1, 1, 1},
 				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
-				mass:      Cargo{300, 0, 0, 0},       // terraform grav up to three times
+				mass:      Cargo{300, 0, 0, 0},        // terraform grav up to three times
 				random:    newFloat64Random(0, .3, 0), // 1st check terraforms, second doesn't, third does
 			},
 			Hab{3, 1, 1},
@@ -303,7 +303,7 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 			args{
 				planetHab: Hab{1, 1, 1},
 				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
-				mass:      Cargo{50, 50, 50, 0},          // half a check
+				mass:      Cargo{50, 50, 50, 0},                // half a check
 				random:    newFloat64Random(0.125, .126, .125), // lower than 0.25/2; first terraforms, second doesn't, third does
 			},
 			Hab{2, 1, 2},
