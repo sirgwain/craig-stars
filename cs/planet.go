@@ -98,6 +98,11 @@ func (p *Planet) MarkDirty() {
 	p.Dirty = true
 }
 
+func (p *Planet) WithOrders(orders PlanetOrders) *Planet {
+	p.PlanetOrders = orders
+	return p
+}
+
 func (p *Planet) withPosition(position Vector) *Planet {
 	p.Position = position
 	return p
@@ -208,22 +213,16 @@ func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) 
 	return err
 }
 
-func (p *Planet) reset() {
-	p.Hab = Hab{}
-	p.BaseHab = Hab{}
-	p.TerraformedAmount = Hab{}
-	p.MineralConcentration = Mineral{}
-	p.ProductionQueue = []ProductionQueueItem{}
-	p.MineYears = Mineral{}
-}
-
-// empty this planet of pop, owner
+// empty this planet of pop & owner, typically used when transferring or losing ownership
 func (p *Planet) emptyPlanet() {
 	p.PlayerNum = Unowned
 	p.Starbase = nil
+	// defenses & scanner disappear, other structures stay though
 	p.Scanner = false
-	p.Defenses = 0                  // defenses are all gone, rest of the structures can stay
-	p.PlanetOrders = PlanetOrders{} // clear any orders from previous owner
+	// clear any production or other orders from the previous owner
+	p.Defenses = 0                              
+	p.ProductionQueue = []ProductionQueueItem{} 
+	p.PlanetOrders = PlanetOrders{}
 	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
 	// reset any instaforming
@@ -231,25 +230,38 @@ func (p *Planet) emptyPlanet() {
 }
 
 // randomize a planet with new hab range, minerals, etc
+// Used in universe generation as well as for genesis device resets
 func (p *Planet) randomize(rules *Rules) {
-	p.reset()
+	// From @SuicideJunkie's tests and @edmundmk's previous research,
+	// grav and temp are weighted slightly towards the center while
+	// rad is completely random (though all 3 are clamped between 1 and 99).
 
-	// From @SuicideJunkie's tests and @edmundmk's previous research, grav and temp are weighted slightly towards
-	// the center, rad is completely random
-	// @edmundmk:
-	// "I'm certain gravity and temperature probability is constant between 10 and 90 inclusive, and falls off towards 0 and 100.
-	// It never generates 0 or 100 so I have to change my random formula to (1 to 90)+(0 to 9)
-	// damn you all for sucking me into stars! again lol"
-	//
-	// update: hab is 1 to 99
+	// First, we handle the first block of the hab randomness disregarding dropoff
 	p.Hab = Hab{
-		Grav: 1 + rules.random.Intn(90) + rules.random.Intn(10),
-		Temp: 1 + rules.random.Intn(90) + rules.random.Intn(10),
-		Rad:  1 + rules.random.Intn(99),
+		Grav: rules.MinHab + rules.random.Intn(rules.MaxHab - rules.MinHab - rules.HabDropoffRange.Grav + 1), // 1+randint(99-1-9+1)
+		Temp: rules.MinHab + rules.random.Intn(rules.MaxHab - rules.MinHab - rules.HabDropoffRange.Temp + 1),
+		Rad:  rules.MinHab + rules.random.Intn(rules.MaxHab - rules.MinHab - rules.HabDropoffRange.Rad + 1),
 	}
+
+	// add random amounts to simulate dropoff at the extremes ranges
+	var randomG, randomT, randomR int
+	if rules.HabDropoffRange.Grav > 0 {
+		randomG = rules.random.Intn(rules.HabDropoffRange.Grav+1)
+	}
+	if rules.HabDropoffRange.Temp > 0 {
+		randomT = rules.random.Intn(rules.HabDropoffRange.Temp+1)
+	}
+	if rules.HabDropoffRange.Rad > 0 {
+		randomR = rules.random.Intn(rules.HabDropoffRange.Rad+1)
+	}
+
+	p.Hab = p.Hab.Add(Hab{randomG, randomT, randomR})
+
+	// reset the other stuff
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
 	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad)
+	p.MineYears = Mineral{}
 
 }
 

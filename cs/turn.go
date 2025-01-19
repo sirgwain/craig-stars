@@ -1511,16 +1511,10 @@ func (t *turn) planetProduction() error {
 				messager.planetBuiltScanner(player, planet, planet.Spec.Scanner)
 			}
 			if result.reset {
-				// exciting! planet was reset with a genesis device!
+				// planet was reset with a genesis device
 				planet.randomize(&t.game.Rules)
-				planet.RandomArtifact = false // no random artifact on genesis device
 				planet.Mines = 0
 				planet.Factories = 0
-				// apply default production queue
-				if len(player.ProductionPlans) > 0 {
-					plan := player.ProductionPlans[0]
-					plan.Apply(planet)
-				}
 				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
 				messager.planetBuiltGenesisDevice(player, planet)
 			}
