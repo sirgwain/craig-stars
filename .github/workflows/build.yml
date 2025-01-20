@@ -10,12 +10,12 @@ on:
 
 env:
   go-version: 1.23.x
+  test_results: ./tmp/test-results
 
 jobs:
   test_backend:
-    name: Run backend go tests
-    # prevent workflow from running on forks; delete to disable
-    if: github.repository == 'sirgwain/craig-stars'
+    name: Run backend Go tests
+    # prevent workflow from running on forks
     strategy:
       matrix:
         os: [ubuntu-latest] # no need for multiple OSes if we're just running go tests
@@ -34,27 +34,36 @@ jobs:
           cache: true
 
       - name: Test Go Files
-        continue-on-error: true
         id: go-tests
-        run: go test ./... -json > tmp/go-testresults.json
-
-      - name: Upload failed Go test results to cloud
-        uses: actions/upload-artifact@v4
-        if: ${{steps.go-tests.outcome != 'success'}}
+        run: go run gotest.tools/gotestsum@latest --format=github-actions --junitfile ${{env.test_results}}/go-test-report.xml --hide-summary=output 
+      - name: Produce Test Summary
+        uses: test-summary/action@v2
         with:
-          name: go-testresults
-          path: tmp/go-testresults.json
+          paths: ${{env.test_results}}/go-test-report.xml
+          output: ${{env.test_results}}/go-test-summary.md
+        if: always()
+
+      - name: Upload Test Summary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Go Test Summary
+          path: ${{env.test_results}}/go-test-summary.md
+          overwrite: true
+          retention-days: 14
+        if: always()
 
   bench_backend:
-    name: Run backend go benchmarks
+    name: Run backend Go benchmarks
+    env:
+      bench_time: 10 # 10s per bench run
+
     strategy:
       matrix:
         os: [ubuntu-latest] # no need for multiple OSes if we're just running benchmarks
     runs-on: ${{ matrix.os }}
     needs: test_backend
-    # prevent workflow from running on forks; delete to disable
-    if: github.repository == 'sirgwain/craig-stars'
-    cancel-timeout-minutes: 8 # if it takes more than 8 minutes 
+    # prevent workflow from running on forks
+    cancel-timeout-minutes: 5 # if it takes more than 5 minutes we're in trouble
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -67,26 +76,33 @@ jobs:
           cache: true
 
       - name: Run Go Benchmarks
-        id: go-benchmarks
-        continue-on-error: true
-        run: go test -json -bench=. run=^$ -benchmem -benchcount=10 -benchtime=3 > tmp/go-benchresults.json
+        id: go-bench
+        run: go run gotest.tools/gotestsum@latest --format=github-actions --junitfile ${{env.test_results}}/go-bench-report.xml --hide-summary=output -- -bench=. --benchmem --benchcount=10 --benchtime=${{env.bench_time}}
 
-      - name: Upload benchmark results to cloud
+      - name: Produce Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: ${{env.test_results}}/go-bench-report.xml
+          output: ${{env.test_results}}/go-bench-summary.md
+        if: always()
+
+      - name: Upload benchmark summary as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: go-benchresults
-          path: tmp/go-benchresults.json
-          retention-days: 14,
+          name: Go Benchmark Summary
+          path: ${{env.test_results}}/go-bench-summary.md
+          overwrite: true
+          retention-days: 14
+        if: always()
 
   build:
     name: Build app and test frontend
     strategy:
       matrix:
         os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}    
+    runs-on: ${{ matrix.os }}
     needs: bench_backend
-    # prevent workflow from running on forks; delete to disable
-    if: github.repository == 'sirgwain/craig-stars'
+    # prevent workflow from running on forks
 
     steps:
       - name: Check out Git repository
@@ -122,14 +138,39 @@ jobs:
         run: npx playwright install --with-deps
         working-directory: ./frontend
 
+      - name: Set Playwright env vars for logging
+        run: echo "{PLAYWRIGHT_JUNIT_OUTPUT_NAME}={${{env.test_results}}/playwright_report.xml}" >> $GITHUB_ENV
+
       - name: Run Playwright tests
+        continue-on-error: true
         run: npx playwright test
         working-directory: ./frontend
 
-      - name: Test Frontend files
-        run: npm run test
+      - name: Run Vitest tests
+        continue-on-error: true
+        run: npm run test --outputFile.junit=${{env.test_results}}/vitest_report.xml  
         working-directory: ./frontend
 
       - name: Build Frontend Binary
+        if: success() 
         run: npm run build
         working-directory: ./frontend
+
+      - name: Produce Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: |
+            ${{env.test_results}}/vitest-report.xml
+            ${{env.test_results}}/playwright-report.xml
+
+          output: ${{env.test_results}}/frontend-summary.md
+        if: always()
+
+      - name: Upload test summary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Frontend Test Summary
+          path: ${{env.test_results}}/frontend-summary.md
+          overwrite: true
+          retention-days: 14
+        if: always()
