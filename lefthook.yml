@@ -8,12 +8,13 @@ pre-commit:
       glob: "*.go"
       exclude: 
         - "**/generated.go"
-      run: gofmt -l -w
+      run: gofmt -l -w {staged_files}
       stage_fixed: true
     prettier:
       root: frontend/
       glob: "*.{ts, svelte, html, css}"
       interactive: true
-      run: npx prettier --ignore-unknown --write
+      run: npx prettier --ignore-unknown --write {staged_files}
+      stage_fixed: true
 
 

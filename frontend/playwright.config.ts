@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
 	reporter: [
-		process.env.CI ? ['github-actions', ['junit', { outputFile: 'test-results.json' }]] : ["list"],
+		process.env.CI ? ['github', ['junit', { outputFile: 'test-results.json' }]] : ['list']
 	],
 	webServer: {
 		command: 'npm run build && npm run preview',
