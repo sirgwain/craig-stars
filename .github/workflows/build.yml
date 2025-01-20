@@ -36,20 +36,11 @@ jobs:
       - name: Test Go Files
         id: go-tests
         run: go run gotest.tools/gotestsum@latest --format=github-actions --format-hide-empty-pkg --junitfile ${{env.test_results}}/go-test-report.xml --hide-summary=output --junitfile-hide-empty-pkg
+
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
           paths: ${{env.test_results}}/go-test-report.xml
-          output: ${{env.test_results}}/go-test-summary.md
-        if: always()
-
-      - name: Upload Test Summary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Go Test Summary
-          path: ${{env.test_results}}/go-test-summary.md
-          overwrite: true
-          retention-days: 14
         if: always()
 
   build:
@@ -109,7 +100,6 @@ jobs:
         working-directory: ./frontend
 
       - name: Build Frontend Binary
-        if: success() 
         run: npm run build
         working-directory: ./frontend
 
@@ -119,15 +109,4 @@ jobs:
           paths: |
             ${{env.test_results}}/vitest-report.xml
             ${{env.test_results}}/playwright-report.xml
-
-          output: ${{env.test_results}}/frontend-summary.md
-        if: always()
-
-      - name: Upload test summary as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Frontend Test Summary
-          path: ${{env.test_results}}/frontend-summary.md
-          overwrite: true
-          retention-days: 14
         if: always()
