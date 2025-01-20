@@ -754,7 +754,7 @@ export const defaultRules: Rules = {
 	planetMinDistance: 15,
 	populationOvercrowdDieoffRate: 0.04,
 	populationOvercrowdDieoffRateMax: 0.12,
-	populationScannerError: 0.2,
+	populationScannerError: 0.2, // THIS IS UNUSED BTW - WHY IS IT EVEN HERE LOL
 	prtSpecs: {
 		AR: {
 			pointCost: 66,
