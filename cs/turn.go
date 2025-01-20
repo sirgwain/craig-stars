@@ -187,17 +187,17 @@ func (t *turn) scrapFleet(fleet *Fleet, colonize bool) {
 	cost := fleet.getScrapAmount(&t.game.Rules, player, planet, colonize)
 
 	if planet != nil {
-		// scrap over a planet
-		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
+		// scrap over a planet; add refunded minerals to planet surface
+		planet.SurfaceMinerals.Add(cost.ToMineral())
 		// UR bonus resources only come into play for normal scrapping
 		// but fleet.getScrapAmount already sets it to 0 regardless
 		planet.bonusResources += cost.Resources
 		if planet.OwnedBy(player.Num) {
 			// add colonists to planet cargo if it's our own planet
-			planet.Cargo = planet.Cargo.Add(fleet.Cargo)
+			planet.AddCargo(fleet.Cargo)
 		} else {
 			// if not our planet, only the minerals in cargo get transferred (bye bye colonists)
-			planet.Cargo = planet.Cargo.AddMineral(fleet.Cargo.ToMineral())
+			planet.SurfaceMinerals.Add(fleet.Cargo.ToMineral())
 		}
 
 		// Check for level/component tech trading.
@@ -522,7 +522,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			// invasion!
 			attacker := player
 
-			if !planet.Owned() || planet.population() == 0 {
+			if !planet.Owned() || planet.GetPopulation() == 0 {
 				// can't invade uninhabited planets
 				messager.planetInvadeEmpty(attacker, planet, fleet)
 				return fmt.Errorf("can't invade empty planet")
@@ -770,7 +770,7 @@ func (t *turn) packetMove(builtThisTurn bool) {
 			Str("Position", packet.Position.String()).
 			Msgf("moved packet")
 
-		if planetPlayer != nil && planet.population() == 0 {
+		if planetPlayer != nil && planet.GetPopulation() == 0 {
 			// this planet just got killed by a packet
 			if starbase != nil {
 				t.game.deleteStarbase(starbase)
@@ -1102,7 +1102,7 @@ func (t *turn) fleetReproduce() {
 			fleet.Cargo.Colonists = fleet.Cargo.Colonists - over
 			if planet != nil && planet.OwnedBy(fleet.PlayerNum) {
 				// add colonists to the planet this fleet is orbiting
-				planet.Cargo.Colonists = planet.Cargo.Colonists + over
+				planet.Population += over
 			}
 		}
 
@@ -1135,6 +1135,9 @@ func (t *turn) fleetDieoff() {
 			continue
 		}
 
+		// TODO: Figure out how OG stars rounds AR pop deaths and apply it accordingly; 
+		// min 1kT pop death is DEFINITELY not how they did it
+		// Also, pop death should _only_ happen for moving fleets (idle ones or ones stopped by CE don't die)
 		deathFactor := player.Race.Spec.FreighterGrowthFactor
 		death := Min(-1, int(deathFactor*float64(fleet.Cargo.Colonists)))
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + death
@@ -1145,8 +1148,8 @@ func (t *turn) fleetDieoff() {
 		t.log.Debug().
 			Int("Player", fleet.PlayerNum).
 			Str("Fleet", fleet.Name).
-			Int("Death", death).
-			Msgf("fleet dieoff")
+			Int("Pop Died", death).
+			Msgf("fleet pop died off")
 	}
 }
 
@@ -1414,7 +1417,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
 	if fleet.PreviousPosition == nil {
 		numMines := fleet.Spec.MiningRate
 		mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
-		planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
+		planet.SurfaceMinerals.Add(mineralOutput)
 		planet.MineYears = planet.MineYears.AddInt(numMines)
 		planet.reduceMineralConcentration(&t.game.Rules)
 		planet.MarkDirty()
@@ -1502,7 +1505,7 @@ func (t *turn) planetProduction() error {
 					return err
 				}
 				planet.Starbase = starbase
-				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
+				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 				messager.planetBuiltStarbase(player, planet, starbase)
 			}
 			if result.scanner {
@@ -1591,12 +1594,12 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 	if planet.Starbase != nil {
 		t.game.deleteStarbase(planet.Starbase)
 		planet.Starbase = nil
-		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
+		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 	}
 
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, &starbase)
-	planet.setStarbase(&t.game.Rules, player, &starbase)
+	planet.setStarbase(&starbase)
 	t.log.Debug().
 		Int("Player", starbase.PlayerNum).
 		Str("Planet", planet.Name).
@@ -1804,8 +1807,8 @@ func (t *turn) permaform() {
 				continue
 			}
 			adjustedPermaformChance := player.Race.Spec.PermaformChance
-			if planet.population() <= player.Race.Spec.PermaformPopulation {
-				adjustedPermaformChance *= float64(planet.population() / player.Race.Spec.PermaformPopulation)
+			if planet.GetPopulation() <= player.Race.Spec.PermaformPopulation {
+				adjustedPermaformChance *= float64(planet.GetPopulation() / player.Race.Spec.PermaformPopulation)
 			}
 
 			if adjustedPermaformChance >= t.game.Rules.random.Float64() {
@@ -1835,15 +1838,15 @@ func (t *turn) planetGrow() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.getPlayer(planet.PlayerNum)
-			prevPop := planet.population()
+			prevPop := planet.GetPopulation()
 			planet.grow(player)
 
-			// tell players about dieing colonists
-			if planet.Spec.GrowthAmount < 0 {
+			// tell players about dying colonists
+			if diff := planet.GetPopulation() - prevPop; diff > 100 {
 				if planet.Spec.PopulationDensity > 1 {
-					messager.planetPopulationDecreasedOvercrowding(player, planet, planet.Spec.GrowthAmount)
+					messager.planetPopulationDecreasedOvercrowding(player, planet, diff)
 				} else {
-					messager.planetPopulationDecreased(player, planet, prevPop, planet.population())
+					messager.planetPopulationDecreased(player, planet, prevPop, planet.GetPopulation())
 				}
 			}
 
@@ -1853,10 +1856,10 @@ func (t *turn) planetGrow() {
 				Int("Capacity", int(planet.Spec.PopulationDensity*100)).
 				Int("PrevPopulation", prevPop).
 				Int("GrowthAmount", planet.Spec.GrowthAmount).
-				Int("Population", planet.population()).
+				Int("Population", planet.GetPopulation()).
 				Msgf("planet grow")
 
-			if planet.population() <= 0 {
+			if planet.GetPopulation() <= 0 {
 				planet.emptyPlanet()
 				messager.planetDiedOff(player, planet)
 
@@ -1980,14 +1983,14 @@ func (t *turn) randomCometStrike() {
 	habChanged := Hab{terraformAmount[0], terraformAmount[1], terraformAmount[2]}
 	colonistsKilled := 0
 
-	planet.Cargo = planet.Cargo.AddMineral(mineralsAdded)
+	planet.SurfaceMinerals.Add(mineralsAdded)
 	planet.MineralConcentration = planet.MineralConcentration.Add(mineralConcentrationIncreased).Clamp(t.game.Rules.MinMineralConcentration, t.game.Rules.MaxMineralConcentration)
 	planet.Hab = planet.Hab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
 	planet.BaseHab = planet.BaseHab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
-	if planet.Cargo.Colonists > 0 {
-		pop := planet.population()
-		planet.Cargo.Colonists = int(float64(planet.Cargo.Colonists) * (1 - stats.PopKilledPercent))
-		colonistsKilled = pop - planet.population()
+	if planet.Population > 0 {
+		pop := planet.GetPopulation()
+		planet.Population = int(roundToNearest100(float64(pop) * (1 - stats.PopKilledPercent), math.Floor))
+		colonistsKilled = pop - planet.GetPopulation()
 	}
 	planet.MarkDirty()
 
@@ -1998,10 +2001,10 @@ func (t *turn) randomCometStrike() {
 	t.log.Debug().
 		Str("Planet", planet.Name).
 		Int("Player", planet.PlayerNum).
-		Str("MineralsAdded", fmt.Sprintf("%+v", mineralsAdded)).
-		Str("MineralConcentrationIncreased", fmt.Sprintf("%+v", mineralConcentrationIncreased)).
-		Str("HabChanged", fmt.Sprintf("%+v", habChanged)).
-		Int("ColonistsKilled", colonistsKilled).
+		Str("Minerals Added", fmt.Sprintf("%+v", mineralsAdded)).
+		Str("Mineral Concentration Increased", fmt.Sprintf("%+v", mineralConcentrationIncreased)).
+		Str("Hab Changed", fmt.Sprintf("%+v", habChanged)).
+		Int("Colonists Killed", colonistsKilled).
 		Msgf("planet struck by %v comet", size)
 
 }
@@ -2105,7 +2108,7 @@ func (t *turn) fleetBattle() {
 						// remove this starbase from the planet
 						t.game.deleteStarbase(fleet)
 						planet.Starbase = nil
-						planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
+						planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 					} else {
 						t.game.deleteFleet(fleet)
 					}
@@ -2163,7 +2166,7 @@ func (t *turn) fleetBattle() {
 				if planet == nil {
 					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
 				} else {
-					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
+					planet.SurfaceMinerals.Add(salvageMinerals)
 				}
 			}
 
@@ -2242,7 +2245,7 @@ func (t *turn) fleetBattle() {
 func (t *turn) fleetBomb() {
 	bomber := NewBomber(t.log, &t.game.Rules)
 	for _, planet := range t.game.Planets {
-		if !planet.Owned() || planet.population() == 0 || planet.Spec.HasStarbase {
+		if !planet.Owned() || planet.GetPopulation() == 0 || planet.Spec.HasStarbase {
 			// can't bomb uninhabited planets, planets with starbases
 			continue
 		}
@@ -2903,7 +2906,7 @@ func (t *turn) calculateScores() {
 				score.Starbases++
 			}
 			// Planets: From 1 to 6 points, scoring 1 point for each 100,000 colonists
-			score.Score += int(math.Min(float64(planet.population()/100000), 6))
+			score.Score += int(math.Min(float64(planet.GetPopulation()/100000), 6))
 			score.Resources += planet.Spec.ResourcesPerYear
 		}
 	}
@@ -3055,7 +3058,7 @@ func (t *turn) checkDeath() {
 		for _, planet := range t.game.Planets {
 			if planet.PlayerNum == player.Num {
 				numPlanets++
-				numColonists += planet.population()
+				numColonists += planet.GetPopulation()
 			}
 		}
 

@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"math"
 	"slices"
 
 	"github.com/rs/zerolog"
@@ -100,7 +101,7 @@ type PlanetIntel struct {
 	BaseHab                       Hab         `json:"baseHab,omitempty"`
 	MineralConcentration          Mineral     `json:"mineralConcentration,omitempty"`
 	Starbase                      *FleetIntel `json:"starbase,omitempty"`
-	Minerals                      Mineral     `json:"minerals,omitempty"`
+	SurfaceMinerals               Mineral     `json:"surfaceMinerals,omitempty"`
 	Population                    int         `json:"population,omitempty"`
 	CargoDiscovered               bool        `json:"cargoDiscovered,omitempty"`
 	PlanetHabitability            int         `json:"planetHabitability,omitempty"`
@@ -299,7 +300,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 	planetIndex := planet.Num - 1
 
 	if planetIndex < 0 || planetIndex >= len(player.PlanetIntels) {
-		return fmt.Errorf("player %s cannot discover planet %s, planetIndex %d out of range", player, planet, planetIndex)
+		return fmt.Errorf("player %s cannot discover planet %s; planetIndex %d out of range", player, planet, planetIndex)
 	}
 
 	intel = &player.PlanetIntels[planetIndex]
@@ -364,10 +365,10 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 
 		// players know their planet pops, but other planets are slightly off
 		if ownedByPlayer {
-			intel.Spec.Population = planet.population()
+			intel.Population = planet.GetPopulation()
 		} else {
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError*2) - rules.PopulationScannerError
-			intel.Spec.Population = Max(0, int(float64(planet.population())*(1-randomPopulationError)))
+			intel.Population = Max(0, int(roundToNearest100(float64(planet.GetPopulation())*(1-randomPopulationError), math.Round)))
 		}
 	}
 	return nil
@@ -389,7 +390,7 @@ func (d *discover) clearPlanetOwnerIntel(planet *Planet) error {
 	// if we've been invaded, reset our planet knowledge as if it was
 	// unowned, but we maintain knowledge of hab
 	intel.PlayerNum = Unowned
-	intel.Spec.Population = 0
+	intel.Population = 0
 	intel.Spec.HasStarbase = false
 	intel.Spec.HasStargate = false
 	intel.Spec.DockCapacity = None
@@ -440,10 +441,10 @@ func (d *discover) discoverPlanetCargo(planet *Planet) error {
 	intel = &player.PlanetIntels[planetIndex]
 
 	intel.CargoDiscovered = true
-	intel.Cargo = Cargo{
-		Ironium:   planet.Cargo.Ironium,
-		Boranium:  planet.Cargo.Boranium,
-		Germanium: planet.Cargo.Germanium,
+	intel.SurfaceMinerals = Mineral{
+		Ironium:   planet.SurfaceMinerals.Ironium,
+		Boranium:  planet.SurfaceMinerals.Boranium,
+		Germanium: planet.SurfaceMinerals.Germanium,
 	}
 
 	return nil

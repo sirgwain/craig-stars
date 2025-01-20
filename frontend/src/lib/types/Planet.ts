@@ -121,7 +121,7 @@ export class CommandedPlanet implements Planet {
 	};
 
 	// get the population from a planet's cargo
-	public get population() {
+	public get GetPopulation() {
 		return (this.cargo.colonists ?? 0) * 100;
 	}
 
@@ -668,18 +668,18 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 				const aItem =
 					a.productionQueue && (a.productionQueue?.length ?? 0) > 0
 						? `${JSON.stringify({
-								type: a.productionQueue[0].type,
-								design: a.productionQueue[0].designNum,
-								quantity: a.productionQueue[0].quantity
-							})}`
+							type: a.productionQueue[0].type,
+							design: a.productionQueue[0].designNum,
+							quantity: a.productionQueue[0].quantity
+						})}`
 						: '';
 				const bItem =
 					b.productionQueue && (b.productionQueue?.length ?? 0) > 0
 						? `${JSON.stringify({
-								type: b.productionQueue[0].type,
-								design: b.productionQueue[0].designNum,
-								quantity: b.productionQueue[0].quantity
-							})}`
+							type: b.productionQueue[0].type,
+							design: b.productionQueue[0].designNum,
+							quantity: b.productionQueue[0].quantity
+						})}`
 						: '';
 				return aItem.localeCompare(bItem);
 			};

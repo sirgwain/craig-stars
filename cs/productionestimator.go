@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/rs/zerolog/log"
@@ -15,8 +16,7 @@ type CompletionEstimator interface {
 	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) ([]ProductionQueueItem, int, error)
 }
 
-type completionEstimate struct {
-}
+type completionEstimate struct{}
 
 func NewCompletionEstimator() CompletionEstimator {
 	return &completionEstimate{}
@@ -31,19 +31,12 @@ func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, cost C
 	return int(math.Ceil(1 / numBuiltInAYear))
 }
 
-// simulate up to 100 years of production to determine the time each item will take to build
-// this function will take a copy of the planet and do the following:
-// * clone the production queue
-// * add an index to each production queue item so we can track it in the produce() result
-// * default each item to never being completed
-// * simulate 100 years of growth
-//   - mine for resources
-//   - run production (including terraforming the planet, building mines and factories, etc)
-//   - grow pop on the planet
+// Simulate up to 100 years of growth (including mining & production)
+// on a planet to determine how long each production queue item will take to build.
 //
-// For each year of growth, it checks what was built. If an item was built for the first time
-// it records the year. If the item completed building, it records the last year
-// when all items are complete or 100 years have passed, iit returns
+// After each year of growth, it checks what was built and records the year of the first and
+// last completion.
+// Items not finished within 100 turns are labeled as "never completable".
 func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) (items []ProductionQueueItem, leftoverResourcesForResearch int, err error) {
 
 	// copy the queue so we can update it
@@ -69,15 +62,14 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 	numBuilt := make([]int, len(planet.ProductionQueue))
 	producer := newProducer(log.Logger, rules, &planet, player)
 	for year := 1; year <= 100; year++ {
-		// mine for minerals
+		// mine for minerals &
 		planet.mine(rules)
-		// remote mine for AR
-		//remoteMine()
+		// TODO: Simulate remote mining for AR (likely by including the mineral outputs of remote miners directly in the planet's spec)
 
-		// build!
+		// build stuff
 		result, err := producer.produce()
 		if err != nil {
-			return nil, 0, err
+			return nil, 0, fmt.Errorf("could not simulate production queue status for %s years into the future; produce() returned error %w", year, err)
 		}
 
 		if year == 1 {
@@ -145,8 +137,16 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		planet.grow(player)
 		planet.Spec = computePlanetSpec(rules, player, &planet)
 
-		// colonists died off, no more production
-		if planet.population() < 0 {
+		// if all colonists died off, we can stop producing 
+		// should never happen as pop can never go below 100 from "natural" causes
+		if planet.GetPopulation() <= 0 {
+			log.Logger.Debug().
+				Int("Num", planet.Num).
+				Str("Name", planet.Name).
+				Int("PlayerNum", player.Num).
+				Str("PlayerName", player.Race.PluralName).
+				Int("years ahead", year).
+				Msgf("Planet ran out of population; breaking loop")
 			break
 		}
 	}

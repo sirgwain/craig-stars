@@ -298,11 +298,11 @@ func NewRulesWithSeed(seed int64) Rules {
 		},
 		TachyonCloakReduction:            5,
 		TachyonMaxCloakReduction:         81, // tachyon detectors cap at 81% cloaking reduction
-		MaxPopulation:                    1000000,
-		MinMaxPopulationPercent:          .05,
-		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per doubling
+		MaxPopulation:                    1_000_000,
+		MinMaxPopulationPercent:          .05, // minimum 5% hab floor on low-value/hostile worlds
+		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per 100% over cap
 		PopulationOvercrowdDieoffRateMax: .12, // overcrowded pops will not die off more than 12% (3x pop) in a year
-		PopulationScannerError:           0.2,
+		PopulationScannerError:           0.2, // opponents' scanners have +-20% error on pop readings
 		SmartDefenseCoverageFactor:       0.5,
 		InvasionDefenseCoverageFactor:    0.75,
 		MovesToRunAway:                   7,

@@ -98,26 +98,26 @@ func (b *bomb) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*F
 
 		resultsByPlayer[playerNum] = resultsByPlayer[playerNum].Add(result)
 		// stop bombing if everyone is dead
-		if planet.population() == 0 {
+		if planet.GetPopulation() == 0 {
 			break
 		}
 	}
 
 	// bomb the planet with smart bombs
-	if planet.population() > 0 {
+	if planet.Population > 0 {
 		for playerNum := range orbitingPlayerNums {
 			result := b.smartBombPlanet(planet, planetOwner, pg.getPlayer(playerNum), b.getBombersForPlayer(enemyBombers, playerNum))
 			resultsByPlayer[playerNum] = resultsByPlayer[playerNum].Add(result)
 
 			// stop bombing if everyone is dead
-			if planet.population() == 0 {
+			if planet.GetPopulation() == 0 {
 				break
 			}
 		}
 	}
 
 	// deterraform planets
-	if planet.population() > 0 && planet.BaseHab != planet.Hab {
+	if planet.GetPopulation() > 0 && planet.BaseHab != planet.Hab {
 		for playerNum := range orbitingPlayerNums {
 			result := b.retroBombPlanet(planet, planetOwner, pg.getPlayer(playerNum), b.getBombersForPlayer(enemyBombers, playerNum))
 			resultsByPlayer[playerNum] = resultsByPlayer[playerNum].Add(result)
@@ -137,7 +137,7 @@ func (b *bomb) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*F
 	}
 
 	// if, after bombing, the planet is all out of pop, empty it
-	if planet.population() == 0 {
+	if planet.GetPopulation() <= 0 {
 		planet.emptyPlanet()
 		messager.planetDiedOff(planetOwner, planet)
 	}
@@ -171,14 +171,13 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 		return BombingResult{}
 	}
 
-	// figure out the killRate and minKill for this fleet's bombs
+	// figure out the killRate and minKillRate for this fleet's bombs
 	defenseCoverage := planet.Spec.DefenseCoverage
-	killRateColonistsKilled := roundToNearest100(b.getColonistsKilledForBombs(planet.population(), defenseCoverage, bombs))
-	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs))
+	killRateColonistsKilled := roundToNearest100(b.getColonistsKilledForBombs(planet.GetPopulation(), defenseCoverage, bombs), math.Round)
+	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs), math.Round)
 
-	killed := Max(killRateColonistsKilled, minColonistsKilled)
-	leftoverPopulation := Max(0, planet.population()-killed)
-	actualKilled := planet.population() - leftoverPopulation
+	killed := int(Max(killRateColonistsKilled, minColonistsKilled))
+	leftoverPopulation := Max(0, planet.Population-killed)
 	planet.setPopulation(leftoverPopulation)
 
 	// apply this against mines/factories and defenses proportionally
@@ -203,6 +202,9 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	planet.Defenses = leftoverDefenses
 
 	// update planet spec
+	// TODO: Make sure this doesn't change def coverage
+	// defenses should only be lowered *after* all bombs from a given player
+	// have struck
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
 
 	b.log.Debug().
@@ -211,7 +213,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 		Str("Fleet", fleets[0].Name).
 		Int("NumFleets", len(fleets)).
 		Int("PlanetPlayer", planet.PlayerNum).
-		Int("ActualKilled", actualKilled).
+		Int("Killed", killed).
 		Int("MinesDestroyed", minesDestroyed).
 		Int("FactoriesDestroyed", factoriesDestroyed).
 		Int("DefensesDestroyed", defensesDestroyed).
@@ -220,11 +222,11 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 	return BombingResult{
 		BomberName:         fleets[0].Name,
 		NumBombers:         len(fleets),
-		ColonistsKilled:    actualKilled,
+		ColonistsKilled:    killed,
 		MinesDestroyed:     minesDestroyed,
 		FactoriesDestroyed: factoriesDestroyed,
 		DefensesDestroyed:  defensesDestroyed,
-		PlanetEmptied:      leftoverPopulation == 0,
+		PlanetEmptied:      leftoverPopulation < 100,
 		fleet:              fleets[0],
 	}
 }
@@ -247,11 +249,12 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 		return BombingResult{}
 	}
 
-	// figure out the killRate and minKill for this fleet's bombs
-	smartKilled := roundToNearest100(b.getColonistsKilledWithSmartBombs(planet.population(), smartDefenseCoverage, bombs))
+	// figure out the killRate and minKillRate for this fleet's bombs
+	killRateColonistsKilled := roundToNearest100(b.getColonistsKilledWithSmartBombs(planet.GetPopulation(), smartDefenseCoverage, bombs), math.Round)
+	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(smartDefenseCoverage, bombs), math.Round)
 
-	leftoverPopulation := Max(0, planet.population()-smartKilled)
-	actualKilled := planet.population() - leftoverPopulation
+	killed := int(Max(killRateColonistsKilled, minColonistsKilled))
+	leftoverPopulation := Max(0, planet.Population-killed)
 	planet.setPopulation(leftoverPopulation)
 
 	// update planet spec
@@ -263,14 +266,14 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 		Str("Fleet", fleets[0].Name).
 		Int("NumFleets", len(fleets)).
 		Int("PlanetPlayer", planet.PlayerNum).
-		Int("ActualKilled", actualKilled).
+		Int("killed", killed).
 		Msgf("fleet smart bombed planet")
 
 	return BombingResult{
 		BomberName:      fleets[0].Name,
 		NumBombers:      len(fleets),
-		ColonistsKilled: actualKilled,
-		PlanetEmptied:   leftoverPopulation == 0,
+		ColonistsKilled: killed,
+		PlanetEmptied:   leftoverPopulation < 100,
 		fleet:           fleets[0],
 	}
 }
@@ -366,14 +369,14 @@ func (b *bomb) getColonistsKilledForBombs(population int, defenseCoverage float6
 }
 
 // Get minimum colonists killed using the MinKillRate of a bomb
-func (b *bomb) getMinColonistsKilledForBombs(defenseCoverage float64, bombs []Bomb) int {
+func (b *bomb) getMinColonistsKilledForBombs(defenseCoverage float64, bombs []Bomb) float64 {
 	// calculate the minKill for all these bombs
 	minKill := 0
 	for _, bomb := range bombs {
 		minKill += bomb.MinKillRate * bomb.Quantity
 	}
 
-	return int(float64(minKill) * (1 - defenseCoverage))
+	return float64(minKill) * (1 - defenseCoverage)
 }
 
 // Normal bombs versus buildings.
@@ -389,28 +392,9 @@ func (b *bomb) getMinColonistsKilledForBombs(defenseCoverage float64, bombs []Bo
 //	= ~66 Buildings will be destroyed.
 //
 // Building kills are allotted proportionately to each building type on
-// the planet.  For example, a planet with 1000 installations (of all
+// the planet. For example, a planet with 1000 installations (of all
 // three types combined) taking 400 building kills will lose 40% of each
-// of its factories, mines, and defenses.  If there had been 350 mines,
-// 550 factories, and 100 defenses, the losses would be 140 mines, 220
-// factories, and 40 defenses.
-//
-// Normal bombs versus buildings.
-//
-//	Destroy_Build = sum[destroy_build_type(n)*#(n)] * (1-Def(build))
-//
-// e.g. 10 Cherry + 5 M70 vs 100 Neutron Defs
-//
-//	= sum[10*10; 5*6] * (1-(97.92%/2))
-//	= sum[100; 30] * (1-(48.96%))
-//	= 130 * (1- 0.4896)
-//	= 130 * 0.5104
-//	= ~66 Buildings will be destroyed.
-//
-// Building kills are allotted proportionately to each building type on
-// the planet.  For example, a planet with 1000 installations (of all
-// three types combined) taking 400 building kills will lose 40% of each
-// of its factories, mines, and defenses.  If there had been 350 mines,
+// of its factories, mines, and defenses. If there had been 350 mines,
 // 550 factories, and 100 defenses, the losses would be 140 mines, 220
 // factories, and 40 defenses.
 
@@ -439,14 +423,12 @@ func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int
 // Peerless           5.0%
 // Annihilator        7.0%
 //
-// Smart bombs do *not* add linearly; instead, they use this formula:
+// Smart bombs do *not* add linearly. Instead, they stack _multiplicatively_ (each bomb only covers cases where the last failed to kill)
 //
-//	Pop_kill(smart) = (1-Def(smart))(1 - multiply[ (1 - kill_perc(n)^#n) ])
-//
+// The general formula is this
+//	Pop_kill(smart) = (1-Def(smart))(1 - multiply[(1 - kill_perc(n)^#n) ])
 // Where "multiply[x(n)]" is the math "big-pi" operator, which means
-// multiply all the terms together, i.e.:
-//
-//	multiply[x(n)] = x(n1)*x(n2)*x(n3)... *x(ni)
+// multiply all the terms together one after another
 //
 // e.g. 10 Annihilators + 5 neutron vs. 100 Neutron-Defs(Def(smart)=85.24%)
 //

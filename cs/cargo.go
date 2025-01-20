@@ -13,6 +13,15 @@ type Cargo struct {
 	Colonists int `json:"colonists,omitempty"`
 }
 
+func NewCargoFromMineral(mineral Mineral, pop int) Cargo {
+	return Cargo{
+		Ironium: mineral.Ironium,
+		Boranium: mineral.Ironium,
+		Germanium: mineral.Ironium,
+		Colonists: pop / 100,
+	}
+}
+
 type CargoType = ResourceType
 
 var CargoTypes = [4]CargoType{
@@ -108,15 +117,6 @@ func (c Cargo) Multiply(product float64) Cargo {
 }
 
 func (c Cargo) AddMineral(other Mineral) Cargo {
-	return Cargo{
-		Ironium:   c.Ironium + other.Ironium,
-		Boranium:  c.Boranium + other.Boranium,
-		Germanium: c.Germanium + other.Germanium,
-		Colonists: c.Colonists,
-	}
-}
-
-func (c Cargo) AddCostMinerals(other Cost) Cargo {
 	return Cargo{
 		Ironium:   c.Ironium + other.Ironium,
 		Boranium:  c.Boranium + other.Boranium,

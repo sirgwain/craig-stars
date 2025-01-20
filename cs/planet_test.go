@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"math"
 	"reflect"
 	"testing"
 
@@ -106,14 +107,14 @@ func TestPlanet_innateMines(t *testing.T) {
 	planet := Planet{}
 	planet.setPopulation(16000)
 
-	if got := planet.innateMines(player, planet.population()); got != 0 {
+	if got := planet.innateMines(player, planet.GetPopulation()); got != 0 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
 	}
 
 	// should get 40 mines for 16k pop when the player has innate mining
 	player.Race.Spec.InnateMining = true
 	player.Race.Spec.InnatePopulationFactor = .1
-	if got := planet.innateMines(player, planet.population()); got != 12 {
+	if got := planet.innateMines(player, planet.GetPopulation()); got != 12 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 12)
 	}
 
@@ -124,14 +125,14 @@ func TestPlanet_innateScanner(t *testing.T) {
 	planet := Planet{}
 	planet.setPopulation(67300)
 
-	if got := planet.innateScanner(player, planet.population()); got != 0 {
+	if got := planet.innateScanner(player, planet.GetPopulation()); got != 0 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
 	}
 
 	// should get 40 mines for 16k pop when the player has innate mining
 	player.Race.Spec.InnateScanner = true
 	player.Race.Spec.InnatePopulationFactor = .1
-	if got := planet.innateScanner(player, planet.population()); got != 82 {
+	if got := planet.innateScanner(player, planet.GetPopulation()); got != 82 {
 		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 82)
 	}
 
@@ -204,7 +205,7 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Planet{
-				Cargo: Cargo{Colonists: tt.fields.Population / 100},
+				Population: tt.fields.Population,
 				Hab:   tt.fields.Hab,
 			}
 			// 10% growth for easier math
@@ -363,10 +364,10 @@ func TestPlanet_grow(t *testing.T) {
 		race *Race
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   int
+		name           string
+		fields         fields
+		args           args
+		wantPopulation int
 	}{
 		{"standard humanoid starter world", fields{hab: Hab{50, 50, 50}, population: 25000, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 28_750},
 		{"full world", fields{hab: Hab{50, 50, 50}, population: 500_000, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 545_370},
@@ -383,15 +384,20 @@ func TestPlanet_grow(t *testing.T) {
 			planet := NewPlanet().WithPlayerNum(player.Num)
 			planet.Hab = tt.fields.hab
 			planet.BaseHab = tt.fields.hab
-			planet.setPopulation(tt.fields.population, tt.fields.population%100)
-			planet.Spec = computePlanetSpec(&rules, player, planet)
+			planet.setPopulation(tt.fields.population)
+			for x := 0; x < tt.fields.turnsToGrow; x++ {
+				planet.grow(player)
+				planet.Spec = computePlanetSpec(&rules, player, planet)
+			}
 
-			planet.grow(player)
-			roundedPop := roundTo100(tt.want, math.Floor)
-			leftoverPop := tt.want % 100
+			roundedPop := roundToNearest100(tt.wantPopulation, math.Floor)
+			leftoverPop := tt.wantPopulation % 100
 
-			if planet.population() != tt.wantPopulation {
-				t.Errorf("grow() = %v, want %v", planet.population(), tt.wantPopulation)
+			if gotWhole := planet.GetPopulation(); gotWhole != roundedPop {
+				t.Errorf("planet.grow() gave %v actual pop, want %v", gotWhole, roundedPop)
+			}
+			if gotPart := planet.partialPopulation(); gotPart != leftoverPop {
+				t.Errorf("planet.grow() gave %v leftover pop, want %v", gotPart, leftoverPop)
 			}
 
 		})

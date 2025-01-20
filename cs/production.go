@@ -185,7 +185,7 @@ func (p *production) produce() (productionResult, error) {
 	planet := p.planet
 	costCalculator := NewCostCalculator()
 	result := productionResult{}
-	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddMineral(planet.Cargo.ToMineral())
+	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddMineral(planet.SurfaceMinerals)
 	newQueue := []ProductionQueueItem{}
 	for itemIndex := range planet.ProductionQueue {
 		item := planet.ProductionQueue[itemIndex]
@@ -200,16 +200,16 @@ func (p *production) produce() (productionResult, error) {
 					Int("DesignNum", item.design.Num).
 					Int("OldDesignNum", planet.Starbase.Tokens[0].design.Num).
 					Msgf("StarbaseUpgradeCost returned error: %v", err)
-				return productionResult{}, fmt.Errorf("failed to compute starbase upgrade cost")
+				return productionResult{}, fmt.Errorf("failed to compute starbase upgrade cost during produce(); error: %w", err)
 			}
 		} else if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
 			cost, err = costCalculator.GetDesignCost(p.rules, p.player.TechLevels, p.player.Race.Spec, item.design)
 			if err != nil {
 				p.log.Error().
 					Err(err).
-					Int("DesigNum", item.design.Num).
+					Int("DesignNum", item.design.Num).
 					Msgf("GetDesignCost returned error: %v", err)
-				return productionResult{}, fmt.Errorf("failed to get design cost")
+				return productionResult{}, fmt.Errorf("failed to get design cost during produce(); error: %w", err)
 			}
 		} else {
 			cost, err = costCalculator.CostOfOne(p.player, item)
@@ -220,7 +220,7 @@ func (p *production) produce() (productionResult, error) {
 					Str("ItemType", string(item.Type)).
 					Int("ItemQuantity", item.Quantity).
 					Msgf("CostOfOne returned error: %v", err)
-				return productionResult{}, fmt.Errorf("failed to compute cost of %s", item.Type)
+				return productionResult{}, fmt.Errorf("failed to compute cost of %s during produce(); error: %w", item.Type, err)
 			}
 		}
 
@@ -279,7 +279,7 @@ func (p *production) produce() (productionResult, error) {
 			// planets are ending up with negative minerals. Trying to figure out why...
 			if available.MinZero() != available {
 				p.log.Warn().
-					Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
+					Str("Minerals", fmt.Sprintf("%+v", planet.SurfaceMinerals)).
 					Str("ProductionQueue", fmt.Sprintf("%+v", planet.ProductionQueue)).
 					Str("itemResult", fmt.Sprintf("%+v", result)).
 					Msgf("available minerals and resources went negative - available: %+v", available)
@@ -347,14 +347,15 @@ func (p *production) produce() (productionResult, error) {
 		}
 
 	}
-	// replace the queue with what's leftover
+
+	// replace the queue with what's leftover and dock any used surface minerals
 	planet.ProductionQueue = newQueue
-	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
-	if planet.Cargo.MinZero() != planet.Cargo {
+	planet.SurfaceMinerals = Mineral{available.Ironium, available.Boranium, available.Germanium}
+	if planet.SurfaceMinerals.MinZero() != planet.GetCargo() {
 		p.log.Warn().
-			Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
+			Str("Cargo", fmt.Sprintf("%+v", planet.GetCargo())).
 			Str("productionResult", fmt.Sprintf("%+v", result)).
-			Msgf("planet cargo was negative after production: %s", planet.Cargo.PrettyString())
+			Msgf("planet cargo was negative after production: %s", planet.GetCargo().PrettyString())
 		return result, fmt.Errorf("planet cargo was negative after production")
 		// planet.Cargo = planet.Cargo.MinZero()
 	}

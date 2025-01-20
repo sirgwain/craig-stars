@@ -31,7 +31,7 @@ func Test_GenerateUniverse(t *testing.T) {
 
 	assert.Equal(t, 1, len(pmo.Planets))
 	homeworld := pmo.Planets[0]
-	assert.Equal(t, 25_000, homeworld.population())
+	assert.Equal(t, 25_000, homeworld.GetPopulation())
 	assert.True(t, homeworld.Spec.HasStarbase)
 }
 

@@ -19,7 +19,7 @@ func (ch *Planet) getMapObject() MapObject {
 }
 
 func (ch *Planet) getCargo() *Cargo {
-	return &ch.Cargo
+	return ch.GetCargo()
 }
 
 func (ch *Planet) getCargoCapacity() int {
@@ -40,11 +40,12 @@ func (ch *Planet) getFuelCapacity() int {
 
 // players can load from unowned planets or planets they own
 func (ch *Planet) canLoad(playerNum int) bool {
+	// TODO: Add SS cargo stealing
 	return !ch.Owned() || ch.OwnedBy(playerNum)
 }
 
-// planets can't transfer fuel
 func (ch *Planet) canTransfer(transferAmount CargoTransferRequest) bool {
+	// planets can't transfer fuel
 	if transferAmount.Fuel > 0 {
 		return false
 	}

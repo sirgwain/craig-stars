@@ -423,7 +423,8 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 						lowestType := min.LowestType()
 						diff := min.GetAmount(min.MiddleType()) - min.GetAmount(lowestType)
 						amtToAdd := Min(extraPoints, diff+1)
-						playerPlanet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*10)
+						// TODO: Use AddMinerals once techtags gets merged
+						playerPlanet.AAAAAA(lowestType, amtToAdd*10)
 						extraPoints -= amtToAdd
 					}
 				}
@@ -467,7 +468,7 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	design.Spec.NumInstances++
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, &starbase)
-	planet.setStarbase(&ug.Rules, player, &starbase)
+	planet.setStarbase(&starbase)
 
 	ug.universe.Starbases = append(ug.universe.Starbases, &starbase)
 
@@ -522,18 +523,16 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 		player := ug.players[planet.PlayerNum-1]
 
 		planet.MineralConcentration = Mineral{rules.MaxMineralConcentration, rules.MaxMineralConcentration, rules.MaxMineralConcentration}
-		planet.Cargo.Ironium = 1_000_000
-		planet.Cargo.Boranium = 1_000_000
-		planet.Cargo.Germanium = 1_000_000
+		planet.SurfaceMinerals = Mineral{1_000_000, 1_000_000, 1_000_000}
 		planet.setPopulation(planet.getMaxPopulation(&rules, player, player.Race.GetPlanetHabitability(planet.Hab)))
 		if player.Race.Spec.CanBuildDefenses {
 			planet.Defenses = 100
 		}
 		if !player.Race.Spec.InnateMining {
-			planet.Mines = planet.getMaxMines(player, planet.population())
+			planet.Mines = planet.getMaxMines(player, planet.GetPopulation())
 		}
 		if !player.Race.Spec.InnateResources {
-			planet.Factories = planet.getMaxFactories(player, planet.population())
+			planet.Factories = planet.getMaxFactories(player, planet.GetPopulation())
 		}
 	}
 }

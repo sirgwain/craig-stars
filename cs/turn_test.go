@@ -36,12 +36,10 @@ func createSingleUnitGame() *FullGame {
 	player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player})
 
 	planet := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player.Num},
-		Hab:       Hab{50, 50, 50},
-		BaseHab:   Hab{50, 50, 50},
-		Cargo: Cargo{
-			Colonists: 2500,
-		},
+		MapObject:  MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player.Num},
+		Hab:        Hab{50, 50, 50},
+		BaseHab:    Hab{50, 50, 50},
+		Population: 250_000,
 	}
 	planet.Spec = computePlanetSpec(&game.Rules, player, planet)
 
@@ -93,22 +91,18 @@ func createTwoPlayerGame() *FullGame {
 
 	// create homeworlds
 	planet1 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player1.Num},
-		Hab:       Hab{50, 50, 50},
-		BaseHab:   Hab{50, 50, 50},
-		Cargo: Cargo{
-			Colonists: 2500,
-		},
+		MapObject:  MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: player1.Num},
+		Hab:        Hab{50, 50, 50},
+		BaseHab:    Hab{50, 50, 50},
+		Population: 250_000,
 	}
 	planet1.Spec = computePlanetSpec(&game.Rules, player1, planet1)
 
 	planet2 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: player2.Num, Position: Vector{100, 0}},
-		Hab:       Hab{50, 50, 50},
-		BaseHab:   Hab{50, 50, 50},
-		Cargo: Cargo{
-			Colonists: 2500,
-		},
+		MapObject:  MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: player2.Num, Position: Vector{100, 0}},
+		Hab:        Hab{50, 50, 50},
+		BaseHab:    Hab{50, 50, 50},
+		Population: 250_000,
 	}
 	planet2.Spec = computePlanetSpec(&game.Rules, player2, planet2)
 
@@ -181,7 +175,7 @@ func Test_generateTurn(t *testing.T) {
 	assert.Greater(t, len(universe.Fleets), startingFleets)
 
 	// should have grown pop
-	assert.Greater(t, universe.Planets[0].population(), player.Race.Spec.StartingPlanets[0].Population)
+	assert.Greater(t, universe.Planets[0].GetPopulation(), player.Race.Spec.StartingPlanets[0].Population)
 }
 
 func Test_generateTurns(t *testing.T) {
@@ -256,7 +250,7 @@ func Test_generateTurns(t *testing.T) {
 	assert.True(t, len(universe.Fleets) > 0)
 
 	// should have grown pop
-	assert.Greater(t, universe.Planets[0].population(), player.Race.Spec.StartingPlanets[0].Population)
+	assert.Greater(t, universe.Planets[0].GetPopulation(), player.Race.Spec.StartingPlanets[0].Population)
 
 	// should have built factories
 	assert.Greater(t, universe.Planets[0].Factories, player.Race.Spec.StartingPlanets[0].Factories)
@@ -299,21 +293,20 @@ func Test_turn_grow(t *testing.T) {
 	planet4 := game.Planets[3]
 	planet1.setPopulation(100_000)
 	planet2.setPopulation(100_000)
-	planet3.setPopulation(100)       // planets never die, hold strong little guys!
+	planet3.setPopulation(100)       // planets never fully die, hold strong little guys!
 	planet4.setPopulation(2_400_000) // should lose 4%
 
-	turn := turn{
-		game: game,
-	}
+	turn := turn{game: game}
 	turn.game.Universe.buildMaps(game.Players)
 
 	turn.generateTurn()
 
-	// one planet should grow, another should not, the other should die off completely
-	assert.Equal(t, 115_000, planet1.population())
-	assert.Equal(t, 95_500, planet2.population())
-	assert.Equal(t, 100, planet3.population())
-	assert.Equal(t, 2_304_000, planet4.population())
+	// planet 1 should grow, 2 should not, 3 should stay constant and 4
+	// should die off
+	assert.Equal(t, 115_000, planet1.Population)
+	assert.Equal(t, 95_500, planet2.Population)
+	assert.Equal(t, 100, planet3.Population)
+	assert.Equal(t, 2_304_000, planet4.Population)
 }
 
 func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
@@ -333,7 +326,7 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
 	fleet.Waypoints[0].Task = WaypointTaskTransport
 	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionUnloadAll
-	fleet.Cargo.Colonists = planet.Cargo.Colonists * 2 // double attackers
+	fleet.Cargo.Colonists = planet.Population * 200 // double attackers
 
 	turn := turn{
 		game: game,
@@ -383,9 +376,8 @@ func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
 	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
 	fleet.Waypoints[0].Task = WaypointTaskTransport
 	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionUnloadAll
-	numInvaders := planet.Cargo.Colonists * 2 // double attackers
-	fleet.Cargo.Colonists = numInvaders
-
+	numInvaders := planet.Population * 200
+	fleet.Cargo.Colonists = numInvaders // double attackers
 	turn := turn{
 		game: game,
 	}
@@ -468,7 +460,7 @@ func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
 
 	planet := game.Planets[0]
 
-	planet.Cargo = Cargo{1000, 1000, 1000, 1000}
+	planet.setCargo(Cargo{1000, 1000, 1000, 1000})
 
 	// make a new freighter for transport
 	fleet := testSmallFreighter(player)
@@ -497,7 +489,7 @@ func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
 
 	// should have loaded, moved, but still have waypoints
 	assert.Equal(t, 120, fleet.Cargo.Ironium)
-	assert.Equal(t, 880, planet.Cargo.Ironium)
+	assert.Equal(t, 880, planet.SurfaceMinerals.Ironium)
 	assert.Equal(t, Vector{25, 0}, fleet.Position)
 	assert.Equal(t, 3, len(fleet.Waypoints))
 
@@ -519,7 +511,7 @@ func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
 	turn.generateTurn()
 	assert.Equal(t, Vector{0, 0}, fleet.Position)
 	assert.Equal(t, 120, fleet.Cargo.Ironium)
-	assert.Equal(t, 760, planet.Cargo.Ironium)
+	assert.Equal(t, 760, planet.SurfaceMinerals.Ironium)
 	assert.Equal(t, 2, len(fleet.Waypoints))
 
 	// generate a fifth turn, should move again towards dest
@@ -544,9 +536,9 @@ func Test_turn_fleetMoveTransportRepeat(t *testing.T) {
 	game.Planets = []*Planet{planet1, planet2}
 	player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
-	// planet1 has pop, planet2 is a starer colony
-	planet1.Cargo = Cargo{1000, 1000, 1000, 10000}
-	planet2.Cargo = Cargo{Colonists: 25}
+	// planet1 has pop, planet2 is a starter colony
+	planet1.setCargo(Cargo{1000, 1000, 1000, 10_000})
+	planet2.setCargo(Cargo{0, 0, 0, 25})
 
 	// make a new freighter for transport
 	fleet := testGalleon(player)
@@ -567,28 +559,26 @@ func Test_turn_fleetMoveTransportRepeat(t *testing.T) {
 	fleet.Waypoints[1].TransportTasks.Colonists.Action = TransportActionSetWaypointTo
 	fleet.Waypoints[1].TransportTasks.Colonists.Amount = 2500
 
-	turn := turn{
-		game: game,
-	}
+	turn := turn{game: game}
 	turn.game.Universe.buildMaps(game.Players)
 
 	// move one year
 	turn.generateTurn()
 
-	// should have loaded, moved, dropped
-	assert.Equal(t, 10000-1000+150, planet1.Cargo.Colonists) // planet1 loaded colonists on freighter, then grew
+	// should have loaded, moved & dropped
+	assert.Equal(t, 10000-1000+150, planet1.GetPopulation()/100) // planet1 loaded colonists on freighter, then grew
 	assert.Equal(t, Vector{10, 0}, fleet.Position)
 	assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
 	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
 	assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
-	assert.Equal(t, 25+4+1000, planet2.Cargo.Colonists)
+	assert.Equal(t, 25+3+1000, planet2.GetPopulation()/100) // 375 pop growth; leftover 0.75 stored for next turn
 	assert.Equal(t, 2, len(fleet.Waypoints))
 
 	// generate the second turn, should move back to planet1
 	turn.generateTurn()
 
 	// should have arrived back at homeworld, loaded
-	assert.Equal(t, 8288, planet1.Cargo.Colonists)
+	assert.Equal(t, 8_287, planet1.GetPopulation()/100)
 	assert.Equal(t, Vector{0, 0}, fleet.Position)
 	assert.Equal(t, Vector{0, 0}, fleet.Waypoints[0].Position)
 	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
@@ -601,13 +591,13 @@ func Test_turn_fleetMoveTransportRepeat(t *testing.T) {
 	// generate the third turn, should move back to planet2 and unload
 	turn.generateTurn()
 
-	assert.Equal(t, 8499, planet1.Cargo.Colonists)
+	assert.Equal(t, 8498, planet1.GetPopulation()/100)
 	assert.Equal(t, Vector{10, 0}, fleet.Position)
 	assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
 	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
 	assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
 	assert.Equal(t, Cargo{}, fleet.Cargo)
-	assert.Equal(t, 2360, planet2.Cargo.Colonists)
+	assert.Equal(t, 2359, planet2.GetPopulation()/100)
 	assert.Equal(t, 2, len(fleet.Waypoints))
 
 	// generate a couple more turns, we should eventually stop unloading cargo due to the SetAmountTo and growth
@@ -616,13 +606,13 @@ func Test_turn_fleetMoveTransportRepeat(t *testing.T) {
 	// p1 -> p2
 	turn.generateTurn()
 
-	assert.Equal(t, 7956, planet1.Cargo.Colonists)
+	assert.Equal(t, 7954, planet1.GetPopulation()/100)
 	assert.Equal(t, Vector{10, 0}, fleet.Position)
 	assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
 	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
 	assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
 	assert.Equal(t, Cargo{Colonists: 1000}, fleet.Cargo) // we have leftover
-	assert.Equal(t, 3121, planet2.Cargo.Colonists)       // planet is ready to go!
+	assert.Equal(t, 3118, planet2.GetPopulation()/100)   // planet is ready to go!
 	assert.Equal(t, 2, len(fleet.Waypoints))
 
 }
@@ -645,8 +635,8 @@ func Test_turn_fleetMoveTransportWaitForPercent(t *testing.T) {
 	// pull from planet1 to planet2
 	planet1.MineralConcentration = Mineral{100, 100, 100}
 	planet1.Mines = 300
-	planet1.Cargo = Cargo{100, 100, 100, 10000} // start with cargo, mine the rest
-	planet2.Cargo = Cargo{0, 0, 0, 1000}
+	planet1.setCargo(Cargo{100, 100, 100, 10000}) // start with cargo, mine the rest
+	planet2.setCargo(Cargo{0, 0, 0, 1000})
 
 	// make a new freighter for transport
 	fleet := testGalleon(player)
@@ -697,7 +687,7 @@ func Test_turn_fleetMoveTransportWaitForPercent(t *testing.T) {
 	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
 	assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
 	assert.Equal(t, Cargo{0, 0, 0, 0}, fleet.Cargo)
-	assert.Equal(t, Mineral{330, 330, 340}, planet2.Cargo.ToMineral())
+	assert.Equal(t, Mineral{330, 330, 340}, planet2.SurfaceMinerals)
 	assert.Equal(t, 2, len(fleet.Waypoints))
 	// go back and load again from p1
 	assert.Equal(t, Vector{0, 0}, fleet.Waypoints[1].Position)
@@ -926,7 +916,7 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 			}
 
 			// make sure the cargo matches what we want
-			assert.Equal(t, tt.wantCargo, planet.Cargo)
+			assert.Equal(t, tt.wantCargo, planet.GetCargo())
 		})
 	}
 
@@ -991,7 +981,7 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 			}
 
 			// make sure the cargo matches what we want
-			assert.Equal(t, tt.wantCargo, planet.Cargo)
+			assert.Equal(t, tt.wantCargo, planet.getCargo())
 		})
 	}
 
@@ -1198,31 +1188,29 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	// orbit a planet of ours
 	planet := game.Planets[0]
 	planet.PlayerNum = player.Num
-	planet.Cargo.Colonists = 2500
+	planet.Population = 250_000
 	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
 	fleet.OrbitingPlanetNum = planet.Num
 
-	turn := turn{
-		game: game,
-	}
+	turn := turn{game: game}
 	turn.game.Universe.buildMaps(game.Players)
 
-	// don't generate a full turn, the planet will grow
+	// don't generate a full turn, only have the fleet reproduce
 	turn.fleetReproduce()
 
 	// should have grown on freighter
 	assert.Equal(t, 53, fleet.Cargo.Colonists)
-	assert.Equal(t, 2500, planet.Cargo.Colonists)
+	assert.Equal(t, 250_000, planet.Population)
 
-	// fill it up, should overflow onto planet
+	// fill it up to full, should overflow onto planet
 	fleet.Cargo.Colonists = fleet.Spec.CargoCapacity
 
 	// reproduce again
 	turn.fleetReproduce()
 
-	// should have grown on freighter and beamed down to planet
+	// pop should have grown on freighter and beamed down to planet
 	assert.Equal(t, fleet.Spec.CargoCapacity, fleet.Cargo.Colonists)
-	assert.Equal(t, 2509, planet.Cargo.Colonists) // 120kT * 7.5% = 900 colonists beamed to planet
+	assert.Equal(t, 250_900, planet.GetPopulation()) // 120kT * 7.5% = 900 colonists beamed to planet
 
 }
 
@@ -1433,9 +1421,9 @@ func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 	turn.generateTurn()
 
 	// packet hits, but planet is fine and we recover 1/3rd of the cargo
-	assert.NotEqual(t, 0, planet.population())
+	assert.NotEqual(t, 0, planet.GetPopulation())
 	assert.Equal(t, player.Num, planet.PlayerNum)
-	assert.Equal(t, 10/3, planet.Cargo.Ironium)
+	assert.Equal(t, 10/3, planet.SurfaceMinerals.Ironium)
 }
 
 func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
@@ -1476,7 +1464,7 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 	turn.generateTurn()
 
 	// no pop, no starbase
-	assert.Equal(t, 0, planet.population())
+	assert.Equal(t, 0, planet.GetPopulation())
 	assert.Equal(t, None, planet.PlayerNum)
 	assert.Equal(t, true, starbase.Delete)
 	assert.Nil(t, nil, planet.Starbase)
@@ -1600,22 +1588,18 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 
 	// give planet1 to the enemy and orbit it with fleet1
 	planet1 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: enemyPlayer.Num},
-		Cargo: Cargo{
-			Colonists: 2500,
-		},
-		Hab:     Hab{50, 50, 50},
-		BaseHab: Hab{50, 50, 50},
+		MapObject:  MapObject{Type: MapObjectTypePlanet, Name: "Planet 1", Num: 1, PlayerNum: enemyPlayer.Num},
+		Population: 250_000,
+		Hab:        Hab{50, 50, 50},
+		BaseHab:    Hab{50, 50, 50},
 	}
 	planet1.Spec = computePlanetSpec(&game.Rules, player, planet1)
 	fleet1.OrbitingPlanetNum = planet1.Num
 
 	// give planet2 to the friend and orbit it with fleet2
 	planet2 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: friendlyPlayer.Num},
-		Cargo: Cargo{
-			Colonists: 2500,
-		},
+		MapObject:  MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: friendlyPlayer.Num},
+		Population: 250_000,
 		Hab:     Hab{48, 50, 50},
 		BaseHab: Hab{48, 50, 50},
 	}
@@ -1692,7 +1676,7 @@ func Test_turn_playerResearch(t *testing.T) {
 	player.Researching = Energy
 	player.ResearchAmount = 100
 
-	// give us 1000 resources, 500 from pop, 500 from factories
+	// gives us 1000 resources - 500 from pop, 500 from factories
 	planet.setPopulation(500_000)
 	planet.Factories = 500
 
@@ -1731,8 +1715,8 @@ func Test_turn_buildStarbase(t *testing.T) {
 
 	// build a starbase
 	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: starbaseDesign.Num})
-	planet.Cargo = Mineral{1000, 1000, 1000}.ToCargo()
-	planet.setPopulation(1_000_000)
+	planet.SurfaceMinerals = Mineral{1000, 1000, 1000}
+	planet.Population = 1_000_000
 	planet.Factories = 1000
 
 	turn := turn{
@@ -2437,7 +2421,7 @@ func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
 
 	// build a genesis device
 	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeGenesisDevice, Quantity: 1})
-	planet.Cargo = Mineral{1000, 1000, 1000}.ToCargo()
+	planet.SurfaceMinerals = Mineral{1000, 1000, 1000}
 	planet.setPopulation(1_000_000)
 	planet.Defenses = 100
 	planet.Mines = 1000

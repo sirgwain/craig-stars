@@ -30,7 +30,7 @@ type SplitFleetRequest struct {
 }
 
 // The Orderer interface is used to handle any game logic with updating orders. This is used for
-// updating planet and fleet psecs after cargo transfer, splitting and merging fleets, updating research, etc.
+// updating planet and fleet specs after cargo transfer, splitting and merging fleets, updating research, etc.
 type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
 	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error
@@ -259,15 +259,15 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	}
 
 	if !source.canTransfer(transferAmount.Negative()) {
-		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
+		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough cargo to transfer", source.Name, transferAmount.Negative(), dest.Name)
 	}
 
 	sourceCargoInitial := source.Cargo
-	destCargoInitial := dest.Cargo
+	destCargoInitial := dest.GetCargo()
 
 	// transfer the cargo
 	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
-	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
+	dest.AddCargo(transferAmount.Cargo.Negative())
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// update this planet and the player's research spec
@@ -298,7 +298,7 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 		Str("SourceCargoInitial", fmt.Sprintf("%v", sourceCargoInitial)).
 		Str("DestCargoInitial", fmt.Sprintf("%v", destCargoInitial)).
 		Str("SourceCargo", fmt.Sprintf("%v", source.Cargo)).
-		Str("DestCargo", fmt.Sprintf("%v", dest.Cargo)).
+		Str("DestCargo", fmt.Sprintf("%v", dest.GetCargo())).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
 		Msg("transfer planet cargo")
 

@@ -60,7 +60,7 @@ func TestMineralPacket_completeMoveEmptyPlanet(t *testing.T) {
 	packet := newMineralPacket(player, 1, 5, 5, Cargo{300, 0, 0, 0}, Vector{}, planet.Num)
 
 	packet.movePacket(&rules, player, planet, nil)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100})
+	assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 100})
 	assert.True(t, packet.Delete)
 }
 
@@ -70,11 +70,11 @@ func TestMineralPacket_completeMoveUncaught(t *testing.T) {
 
 	packet := newMineralPacket(player, 1, 5, 5, Cargo{480, 0, 0, 0}, Vector{}, planet.Num)
 
-	// 7500 colonists killed by 480kT undefended
+	// 750,000 colonists killed by 480kT undefended
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 160, Colonists: 9250})
+	assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 160})
+	assert.Equal(t, planet.Population, 925_000)
 	assert.True(t, packet.Delete)
-
 }
 
 func TestMineralPacket_completeMoveUncaughtAR(t *testing.T) {
@@ -84,7 +84,8 @@ func TestMineralPacket_completeMoveUncaughtAR(t *testing.T) {
 	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
 
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 33, Colonists: 100})
+	assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 33})
+	assert.Equal(t, planet.Population, 10000)
 	assert.True(t, packet.Delete)
 
 }
@@ -98,7 +99,8 @@ func TestMineralPacket_completeMoveCaught(t *testing.T) {
 	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
 
 	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100, Colonists: 100})
+	assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 100})
+	assert.Equal(t, planet.Population, 10000)
 	assert.True(t, packet.Delete)
 
 }
@@ -234,7 +236,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 			player := NewPlayer(1, tt.args.race).withSpec(&rules).WithNum(1)
 			planet := NewPlanet().withPosition(tt.args.planetPosition).WithPlayerNum(2)
 			planetPlayer := NewPlayer(2, tt.args.targetRace).withSpec(&rules).WithNum(2)
-			planet.setPopulation(tt.args.planetPop, 0)
+			planet.setPopulation(tt.args.planetPop)
 			planet.Defenses = 10
 			planet.Spec.DefenseCoverage = tt.args.planetDefCoverage
 			planet.Spec.PlanetStarbaseSpec.HasStarbase = true

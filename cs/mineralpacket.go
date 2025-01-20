@@ -108,30 +108,6 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 	}
 }
 
-// Damage calcs as per the Stars! Manual
-//
-// Example:
-// You fling a 1000kT packet at Warp 10 at a planet with a Warp 5 driver, a population of 250,000 and 50 defenses preventing 60% of incoming damage.
-// spdPacket = 100
-// spdReceiver = 25
-// %CaughtSafely = 25%
-// minerals recovered = 1000kT x 25% + 1000kT x 75% x 1/3 = 250 + 250 = 500kT
-// dmgRaw = 75 x 1000 / 160 = 469
-// dmgRaw2 = 469 x 40% = 188
-// #colonists killed = Max. of ( 188 x 250,000 / 1000, 188 x 100)
-// = Max. of ( 47,000, 18800) = 47,000 colonists
-// #defenses destroyed = 50 * 188 / 1000 = 9 (rounded down)
-//
-// If, however, the receiving planet had no mass driver or defenses, the damage is far greater:
-// minerals recovered = 1000kT x 0% + 1000kT x 100% x 1/3 = only 333kT dmgRaw = 100 x 1000 / 160 = 625
-// dmgRaw2 = 625 x 100% = 625
-// #colonists killed = Max. of (625 x 250,000 / 1000, 625 x 100)
-// = Max.of(156,250, 62500) = 156,250.
-// If the packet increased speed up to Warp 13, then:
-// dmgRaw2 = dmgRaw = 169 x 1000 / 160 = 1056
-// #colonists killed = Max. of (1056 x 250,000 / 1000, 1056 x 100)
-// = Max. of(264,000, 105600) destroying the colony
-
 // Complete movement of an incoming packet about to impact the planet
 func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *Planet, planetPlayer *Player) {
 	damage := packet.getDamage(planet, planetPlayer)
@@ -142,11 +118,11 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	} else if planetPlayer != nil {
 		// kill off colonists and defenses
 		// note, for AR races, this will be 0 colonists killed or structures destroyed
-		planet.setPopulation(roundToNearest100(Clamp(planet.population()-damage.Killed, 0, planet.population())))
+		planet.setPopulation(Clamp(planet.GetPopulation()-damage.Killed, 0, planet.GetPopulation()))
 		planet.Defenses = Clamp(planet.Defenses-damage.DefensesDestroyed, 0, planet.Defenses)
 
 		messager.planetPacketDamage(planetPlayer, planet, packet, damage.Killed, damage.DefensesDestroyed)
-		if planet.population() == 0 {
+		if planet.GetPopulation() == 0 {
 			planet.emptyPlanet()
 			messager.planetDiedOff(planetPlayer, planet)
 		}
@@ -161,17 +137,17 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 		packet.checkTerraform(rules, player, planet, 1-percentCaughtSafely)
 		packet.checkPermaform(rules, player, planet, 1-percentCaughtSafely)
 
-		// only 1/3 of uncaught minerals will be recovered
+		// 100% of safely caught + 33% of uncaught minerals will be recovered
 		mineralsRecovered = percentCaughtSafely + (1-percentCaughtSafely)/3
 	}
 
 	// one way or another, these minerals are ending up on the planet
-	planet.Cargo = planet.Cargo.Add(packet.Cargo.Multiply(mineralsRecovered))
+	planet.AddCargo(packet.Cargo.Multiply(mineralsRecovered))
 
 	// if we didn't receive this planet, notify the sender
 	if planet.PlayerNum != packet.PlayerNum {
 		if player.Race.Spec.DetectPacketDestinationStarbases && planet.Spec.HasStarbase {
-			// discover the receiving planet's starbase design
+			// discover the receiving planet's starbase design if applicable
 			player.discoverer.discoverDesign(planet.Starbase.Tokens[0].design, true)
 		}
 
@@ -195,7 +171,7 @@ func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) Min
 	}
 
 	if planetPlayer != nil && planetPlayer.Race.Spec.LivesOnStarbases {
-		// No damage, but all cargo is uncaught and might impact the planet
+		// AR colonists take no damage, but all cargo is uncaught and might impact the planet
 		return MineralPacketDamage{Uncaught: packet.Cargo.Total()}
 	}
 
@@ -205,6 +181,34 @@ func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) Min
 		receiverDriverSpeed = planet.Spec.SafePacketSpeed
 	}
 
+	// Damage calcs as per the Stars! Manual:
+	// rawDamage = (packet.WarpSpeed^2-recieverDriverSpeed^2)*weight/160
+	// dmgWithDefenses = rawDamage * 1-defenseCoverage
+	// each point of unmitigated raw damage kills 0.1% pop or 100 colonists,
+	// as well as either 0.1% defenses or 0.05 defenses
+	// minerals recovered equals 100% of amount caught + 1/3 of any uncaught minerals
+
+	// Ex: You fling a 1000kT packet at Warp 10 at a planet with a Warp 5 driver, a population of 250,000 and 50 defenses preventing 60% of incoming damage.
+	// spdPacket = 100
+	// spdReceiver = 25
+	// %CaughtSafely = 25%
+	// minerals recovered = 1000kT x 25% + 1000kT x 75% x 1/3 = 250 + 250 = 500kT
+	// dmgRaw = 75 x 1000 / 160 = 469
+	// dmgRaw2 = 469 x 40% = 188
+	// #colonists killed = Max. of ( 188 x 250,000 / 1000, 188 x 100)
+	// = Max. of (47,000, 18800) = 47,000 colonists
+	// #defenses destroyed = 50 * 188 / 1000 = 9 (rounded down)
+	//
+	// If, however, the receiving planet had no mass driver or defenses, the damage is far greater:
+	// minerals recovered = 1000kT x 0% + 1000kT x 100% x 1/3 = only 333kT dmgRaw = 100 x 1000 / 160 = 625
+	// dmgRaw2 = 625 x 100% = 625
+	// #colonists killed = Max. of (625 x 250,000 / 1000, 625 x 100)
+	// = Max. of (156,250, 62500) = 156,250 colonists
+
+	// If the packet increased speed up to Warp 13, then:
+	// dmgRaw2 = dmgRaw = 169 x 1000 / 160 = 1056
+	// #colonists killed = Max. of (1056 x 250,000 / 1000, 1056 x 100)
+	// = Max. of(264,000, 105600), destroying the colony.
 	weight := packet.Cargo.Total()
 	speedOfPacket := packet.WarpSpeed * packet.WarpSpeed
 	speedOfReceiver := receiverDriverSpeed * receiverDriverSpeed
@@ -212,12 +216,15 @@ func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) Min
 	uncaught := int((1.0 - percentCaughtSafely) * float64(weight))
 	rawDamage := float64((speedOfPacket-speedOfReceiver)*weight) / 160
 	damageWithDefenses := rawDamage * (1 - planet.Spec.DefenseCoverage)
-	colonistsKilled := roundToNearest100(math.Max(damageWithDefenses*float64(planet.population())/1000, damageWithDefenses*100))
-	defensesDestroyed := int(math.Max(float64(planet.Defenses)*damageWithDefenses/1000, damageWithDefenses/20))
+	// Confirmed in game - colonists lost is floored to nearest 100 pop
+	colonistsKilled := int(roundToNearest100(math.Max(damageWithDefenses*float64(planet.GetPopulation())/1000,
+		damageWithDefenses*100), math.Floor))
+	defensesDestroyed := int(math.Max(float64(planet.Defenses)*damageWithDefenses/1000,
+		damageWithDefenses/20))
 
 	// kill off colonists and defenses
 	return MineralPacketDamage{
-		Killed:            roundToNearest100(Min(colonistsKilled, planet.population())),
+		Killed:            Min(colonistsKilled, planet.GetPopulation()),
 		DefensesDestroyed: Min(planet.Defenses, defensesDestroyed),
 		Uncaught:          uncaught,
 	}
