@@ -35,7 +35,7 @@ jobs:
 
       - name: Test Go Files
         id: go-tests
-        run: go run gotest.tools/gotestsum@latest --format=github-actions --junitfile ${{env.test_results}}/go-test-report.xml --hide-summary=output 
+        run: go run gotest.tools/gotestsum@latest --format=github-actions --junitfile ${{env.test_results}}/go-test-report.xml --hide-summary=output --hide-empty-pkg
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
@@ -77,7 +77,7 @@ jobs:
 
       - name: Run Go Benchmarks
         id: go-bench
-        run: go run gotest.tools/gotestsum@latest --format=github-actions --junitfile ${{env.test_results}}/go-bench-report.xml --hide-summary=output -- -bench=. --benchmem --benchcount=10 --benchtime=${{env.bench_time}}
+        run: go run gotest.tools/gotestsum@latest --format=github-actions --junitfile ${{env.test_results}}/go-bench-report.xml --hide-summary=output --hide-empty-pkg -- -bench=. --benchmem --benchcount=10 --benchtime=${{env.bench_time}}
 
       - name: Produce Test Summary
         uses: test-summary/action@v2

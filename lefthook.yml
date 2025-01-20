@@ -1,0 +1,19 @@
+# lefthook.yml
+
+assert.lefthook.installed: true
+pre-commit:
+  parallel: true
+  commands:
+    gofmt:
+      glob: "*.go"
+      exclude: 
+        - "**/generated.go"
+      run: gofmt -l -w
+      stage_fixed: true
+    prettier:
+      root: frontend/
+      glob: "*.{ts, svelte, html, css}"
+      interactive: true
+      run: npx prettier --ignore-unknown --write
+
+
