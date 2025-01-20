@@ -4,7 +4,7 @@
 	import Game from './Game.svelte';
 	import GameSetup from './GameSetup.svelte';
 	import WaitingForPlayers from './WaitingForPlayers.svelte';
-	const { game, player } = getGameContext();
+	const { game, player, fullyLoaded } = getGameContext();
 </script>
 
 {#if $game.state == GameState.Setup}
@@ -13,6 +13,6 @@
 	<WaitingForPlayers />
 {:else if $player.submittedTurn && $game.state == GameState.WaitingForPlayers}
 	<WaitingForPlayers />
-{:else}
+{:else if $game.state == GameState.WaitingForPlayers && $fullyLoaded}
 	<Game />
 {/if}
