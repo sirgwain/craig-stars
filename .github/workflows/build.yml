@@ -90,12 +90,10 @@ jobs:
         run: echo "{PLAYWRIGHT_JUNIT_OUTPUT_NAME}={${{env.test_results}}/playwright_report.xml}" >> $GITHUB_ENV
 
       - name: Run Playwright tests
-        continue-on-error: true
         run: npx playwright test
         working-directory: ./frontend
 
       - name: Run Vitest tests
-        continue-on-error: true
         run: npm run test --outputFile.junit=${{env.test_results}}/vitest_report.xml  
         working-directory: ./frontend
 
