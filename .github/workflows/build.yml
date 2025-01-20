@@ -35,7 +35,7 @@ jobs:
 
       - name: Test Go Files
         id: go-tests
-        run: go run gotest.tools/gotestsum@latest --format=github-actions --junitfile ${{env.test_results}}/go-test-report.xml --hide-summary=output --hide-empty-pkg
+        run: go run gotest.tools/gotestsum@latest --format=github-actions --format-hide-empty-pkg --junitfile ${{env.test_results}}/go-test-report.xml --hide-summary=output --junitfile-hide-empty-pkg
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
@@ -52,56 +52,13 @@ jobs:
           retention-days: 14
         if: always()
 
-  bench_backend:
-    name: Run backend Go benchmarks
-    env:
-      bench_time: 10 # 10s per bench run
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest] # no need for multiple OSes if we're just running benchmarks
-    runs-on: ${{ matrix.os }}
-    needs: test_backend
-    # prevent workflow from running on forks
-    cancel-timeout-minutes: 5 # if it takes more than 5 minutes we're in trouble
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v4
-
-      - name: Setup Go environment
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.go-version }}
-          check-latest: true
-          cache: true
-
-      - name: Run Go Benchmarks
-        id: go-bench
-        run: go run gotest.tools/gotestsum@latest --format=github-actions --junitfile ${{env.test_results}}/go-bench-report.xml --hide-summary=output --hide-empty-pkg -- -bench=. --benchmem --benchcount=10 --benchtime=${{env.bench_time}}
-
-      - name: Produce Test Summary
-        uses: test-summary/action@v2
-        with:
-          paths: ${{env.test_results}}/go-bench-report.xml
-          output: ${{env.test_results}}/go-bench-summary.md
-        if: always()
-
-      - name: Upload benchmark summary as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Go Benchmark Summary
-          path: ${{env.test_results}}/go-bench-summary.md
-          overwrite: true
-          retention-days: 14
-        if: always()
-
   build:
     name: Build app and test frontend
     strategy:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    needs: bench_backend
+    needs: test_backend
     # prevent workflow from running on forks
 
     steps:
