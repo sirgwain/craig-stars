@@ -485,7 +485,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				HullType:       TechHullTypeCapitalShip,
 				Engine:         TransGalacticFuelScoop.Engine,
 				NumEngines:     4,
-				Cost:           Cost{98, 28, 52, 156},
+				Cost:           Cost{98, 28, 46, 156},
 				TechLevel:      TechLevel{Energy: 6, Weapons: 12, Propulsion: 9, Construction: 13, Electronics: 6},
 				Mass:           374,
 				Armor:          2000,
