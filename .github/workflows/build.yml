@@ -87,14 +87,14 @@ jobs:
         working-directory: ./frontend
 
       - name: Set Playwright env vars for logging
-        run: echo "{PLAYWRIGHT_JUNIT_OUTPUT_NAME}={${{env.test_results}}/playwright_report.xml}" >> $GITHUB_ENV
+        run: echo "{PLAYWRIGHT_JUNIT_OUTPUT_NAME}={.${{env.test_results}}/playwright_report.xml}" >> $GITHUB_ENV
 
       - name: Run Playwright tests
         run: npx playwright test
         working-directory: ./frontend
 
       - name: Run Vitest tests
-        run: npm run test --outputFile.junit=${{env.test_results}}/vitest_report.xml  
+        run: npx vitest --run --outputFile.junit=.${{env.test_results}}/vitest_report.xml  
         working-directory: ./frontend
 
       - name: Build Frontend Binary
@@ -105,6 +105,6 @@ jobs:
         uses: test-summary/action@v2
         with:
           paths: |
-            ${{env.test_results}}/vitest-report.xml
-            ${{env.test_results}}/playwright-report.xml
+            .${{env.test_results}}/vitest-report.xml
+            .${{env.test_results}}/playwright-report.xml
         if: always()
