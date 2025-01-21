@@ -954,7 +954,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 	//* DISCLAIMER FOR CODE (RE)VIEWERS: THIS IS A *VERY LONG FUNCTION*. Use the hashtags (#) to jump between sections.
 	techStore := rules.techs
-	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(num).WithPurpose(purpose)
+	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
 	tc := NewTechComparer(rules, player)
 
 	// (#) COUNTERS & CONSTANTS
