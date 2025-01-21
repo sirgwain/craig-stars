@@ -292,9 +292,9 @@ func TestPlanet_randomize(t *testing.T) {
 			fields: fields{rules.HabDropoffRange, rules.MinHab, rules.MaxHab},
 			planet: NewPlanet().WithOrders(PlanetOrders{
 				ProductionQueue: []ProductionQueueItem{
-					ProductionQueueItem{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{0, 0, 2, 6}},
-					ProductionQueueItem{Type: QueueItemTypeAutoDefenses, Quantity: 100},
-					ProductionQueueItem{Type: QueueItemTypeAutoFactories, Quantity: 10},
+					{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{0, 0, 2, 6}},
+					{Type: QueueItemTypeAutoDefenses, Quantity: 100},
+					{Type: QueueItemTypeAutoFactories, Quantity: 10},
 				},
 			}),
 			rng: newIntRandom(),
@@ -306,9 +306,9 @@ func TestPlanet_randomize(t *testing.T) {
 				MineralConcentration: Mineral{1, 1, 1},
 				MineYears:            Mineral{},
 				PlanetOrders: PlanetOrders{ProductionQueue: []ProductionQueueItem{
-					ProductionQueueItem{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{0, 0, 2, 6}},
-					ProductionQueueItem{Type: QueueItemTypeAutoDefenses, Quantity: 100},
-					ProductionQueueItem{Type: QueueItemTypeAutoFactories, Quantity: 10},
+					{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{0, 0, 2, 6}},
+					{Type: QueueItemTypeAutoDefenses, Quantity: 100},
+					{Type: QueueItemTypeAutoFactories, Quantity: 10},
 				}},
 			},
 		},
@@ -320,8 +320,8 @@ func TestPlanet_randomize(t *testing.T) {
 			want: &Planet{
 				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
 				Dirty:                true,
-				Hab:                  Hab{62, 46, 16},
-				BaseHab:              Hab{62, 46, 16},
+				Hab:                  Hab{62, 56, 26},
+				BaseHab:              Hab{62, 56, 26},
 				MineralConcentration: Mineral{1, 1, 1},
 			},
 		},
