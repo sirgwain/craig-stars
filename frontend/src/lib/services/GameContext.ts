@@ -59,6 +59,7 @@ export const designFinderKey = Symbol();
 export const gameKey = Symbol();
 
 export type GameContext = {
+	fullyLoaded: Readable<boolean>;
 	cs: CS;
 	game: Readable<FullGame>;
 	player: Readable<Player>;
@@ -142,6 +143,7 @@ export type GameContext = {
 	) => Promise<void>;
 	splitAll: (fleet: CommandedFleet) => Promise<void>;
 	merge: (fleet: CommandedFleet, fleetNums: number[]) => Promise<void>;
+	setFullyLoaded: (fullyLoaded: boolean) => void;
 	resetContext: (fg: FullGame) => void;
 };
 
@@ -157,6 +159,8 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 	const gameId = fg.id;
 	const unsubscribers: Unsubscriber[] = [];
+
+	const fullyLoaded = writable(false);
 
 	const game = writable(fg);
 	const player = writable(fg.player);
@@ -201,6 +205,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		highlightedMapObjectPeers.set([]);
 		mostRecentMapObject.set(undefined);
 		messageNum.set(getNextVisibleMessageNum(-1, false, fg.player.messages, s));
+	}
+
+	function setFullyLoaded(value: boolean) {
+		fullyLoaded.update(() => value);
 	}
 
 	// make sure updates to settings save to localStorage
@@ -1182,7 +1190,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		split,
 		splitAll,
 		merge,
-		resetContext
+		resetContext,
+		fullyLoaded,
+		setFullyLoaded
 	};
 }
 

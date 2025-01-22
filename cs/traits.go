@@ -270,7 +270,6 @@ func wmSpec() PRTSpec {
 	}
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
 		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
 	}
@@ -375,7 +374,6 @@ func ppSpec() PRTSpec {
 			StarbaseHull:       SpaceStation.Name,
 			StarbaseDesignName: "Starbase",
 			StartingFleets: []StartingFleet{
-				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
 			}, Homeworld: true,

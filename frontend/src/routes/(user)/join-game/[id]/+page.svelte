@@ -14,8 +14,10 @@
 	import PlayerChooser from '$lib/components/game/newgame/PlayerChooser.svelte';
 
 	let game: Game | undefined = $state();
-	let race = $state(Object.assign({}, humanoid()));
+	let race = $state(humanoid());
 	let name = $state($me.username);
+	let valid: boolean = $state(false);
+	let error = $state('');
 
 	onMount(async () => {
 		try {
@@ -46,9 +48,6 @@
 		}
 	};
 
-	let error = $state('');
-	let valid: boolean = $state(false);
-
 	$effect(() => {
 		valid = !!(game && game.openPlayerSlots > 0);
 	});
@@ -73,7 +72,12 @@
 			<input name="name" bind:value={name} class="input input-bordered" />
 		{/if}
 		<fieldset name="players" class="form-control mt-3">
-			<PlayerChooser {race} bind:valid />
+			<PlayerChooser
+				raceUpdated={(updated, raceValid) => {
+					race = updated;
+					valid = raceValid && !!(game && game.openPlayerSlots > 0);
+				}}
+			/>
 		</fieldset>
 		<button class="btn btn-primary mt-2" disabled={!valid}>Join</button>
 	</form>
