@@ -664,12 +664,17 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 	hasPenScan := false // counter to track if we have a pen scanner or not
 
 	// compute built in scanner if hull allows for it
-	builtInScanner := scannerSpec.BuiltInScanner
-	if builtInScanner.worksOnHull(hull.Name) {
-		levelsInField := techLevels.Get(builtInScanner.Field)
-		spec.ScanRange = PowInt(builtInScanner.NormalMulti*levelsInField, 4)
-		spec.ScanRangePen = PowInt(builtInScanner.PenMulti*levelsInField, 4)
-		hasPenScan = spec.ScanRangePen > 0
+	if hull.BuiltInScanner {
+		builtInScanner := scannerSpec.BuiltInScanner
+		builtInNormal := builtInScanner.NormalMulti.Multiply(techLevels).Total()
+		builtInPen := builtInScanner.PenMulti.Multiply(techLevels).Total()
+		if builtInNormal > 0 {
+			spec.ScanRange = PowInt(builtInNormal, 4)
+		} 
+		if builtInPen > 0 {
+			spec.ScanRangePen = PowInt(builtInPen, 4)
+			hasPenScan = spec.ScanRangePen > 0
+		}
 	}
 
 	// loop through slots to add scan ranges up

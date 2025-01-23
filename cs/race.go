@@ -163,20 +163,15 @@ type MiniaturizationSpec struct {
 }
 
 type ScannerSpec struct {
-	BuiltInScanner     BuiltInScanner  `json:"builtInScanner,omitempty"`
-	NoAdvancedScanners bool            `json:"noAdvancedScanners,omitempty"`
-	ScanRangeFactor    float64         `json:"scanRangeFactor,omitempty"`
+	BuiltInScanner     BuiltInScanner `json:"builtInScanner,omitempty"`
+	NoAdvancedScanners bool           `json:"noAdvancedScanners,omitempty"`
+	ScanRangeFactor    float64        `json:"scanRangeFactor,omitempty"`
 }
 
 type BuiltInScanner struct {
-	Field        TechField        `json:"field,omitempty"`
-	NormalMulti  int              `json:"normalMulti,omitempty"`
-	PenMulti     int              `json:"penMulti,omitempty"`
-	HullsAllowed map[string]bool  `json:"hullsAllowed,omitempty"`
+	NormalMulti TechLevel `json:"normalMulti,omitempty"`
+	PenMulti    TechLevel `json:"penMulti,omitempty"`
 }
-
-// return true if a race has a built in scanner that works on this hull
-func (b BuiltInScanner) worksOnHull(hullName string) bool { return b.HullsAllowed[hullName] }
 
 type PRT string
 

@@ -146,6 +146,18 @@ func (tl TechLevel) Subtract(other TechLevel) TechLevel {
 	}
 }
 
+// Multiply one TechLevel by another field-by-field and return the result
+func (tl TechLevel) Multiply(other TechLevel) TechLevel {
+	return TechLevel{
+		tl.Energy * other.Energy,
+		tl.Weapons * other.Weapons,
+		tl.Propulsion * other.Propulsion,
+		tl.Construction * other.Construction,
+		tl.Electronics * other.Electronics,
+		tl.Biotechnology * other.Biotechnology,
+	}
+}
+
 // Return greater of 2 TechLevel structs for all TechFields separately
 func (tl TechLevel) Max(other TechLevel) TechLevel {
 	return TechLevel{

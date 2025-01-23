@@ -101,14 +101,8 @@ func Test_computeRaceSpec(t *testing.T) {
 				},
 				ScannerSpec: ScannerSpec{
 					BuiltInScanner: BuiltInScanner{
-						Field:       Electronics,
-						NormalMulti: 20,
-						PenMulti:    10,
-						HullsAllowed: map[string]bool{
-							Scout.Name:     true,
-							Frigate.Name:   true,
-							Destroyer.Name: true,
-						},
+						NormalMulti: TechLevel{Electronics: 20},
+						PenMulti: TechLevel{Electronics: 10},
 					},
 					ScanRangeFactor: 1,
 				},
@@ -208,14 +202,8 @@ func Test_computeRaceSpec(t *testing.T) {
 				},
 				ScannerSpec: ScannerSpec{
 					BuiltInScanner: BuiltInScanner{
-						Field:       Electronics,
-						NormalMulti: 20,
-						PenMulti:    10,
-						HullsAllowed: map[string]bool{
-							Scout.Name:     true,
-							Frigate.Name:   true,
-							Destroyer.Name: true,
-						},
+						NormalMulti: TechLevel{Electronics: 20},
+						PenMulti: TechLevel{Electronics: 10},
 					},
 					ScanRangeFactor: 1,
 				},

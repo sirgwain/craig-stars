@@ -175,6 +175,7 @@ type TechHull struct {
 	RangeBonus               int            `json:"rangeBonus,omitempty"`
 	Starbase                 bool           `json:"starbase,omitempty"`
 	OrbitalConstructionHull  bool           `json:"orbitalConstructionHull,omitempty"`
+	BuiltInScanner           bool           `json:"builtInScanner,omitempty"`
 	DoubleMineEfficiency     bool           `json:"doubleMineEfficiency,omitempty"`
 	MaxPopulation            int            `json:"maxPopulation,omitempty"`
 	InnateScanRangePenFactor float64        `json:"innateScanRangePenFactor,omitempty"`
