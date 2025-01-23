@@ -334,6 +334,7 @@ func NewRace() *Race {
 			Electronics:   ResearchCostStandard,
 			Biotechnology: ResearchCostStandard,
 		},
+		SpendLeftoverPointsOn: SpendLeftoverPointsOnSurfaceMinerals,
 	}
 }
 
@@ -421,6 +422,7 @@ func Rabbitoids() Race {
 			Electronics:   ResearchCostStandard,
 			Biotechnology: ResearchCostLess,
 		},
+		SpendLeftoverPointsOn: SpendLeftoverPointsOnDefenses,
 	}
 }
 
@@ -450,6 +452,7 @@ func Insectoids() Race {
 			Electronics:   ResearchCostStandard,
 			Biotechnology: ResearchCostExtra,
 		},
+		SpendLeftoverPointsOn: SpendLeftoverPointsOnMineralConcentrations,
 	}
 }
 

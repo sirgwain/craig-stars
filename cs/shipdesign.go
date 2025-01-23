@@ -141,10 +141,12 @@ func (sd *ShipDesign) WithName(name string) *ShipDesign {
 	sd.Name = name
 	return sd
 }
+
 func (sd *ShipDesign) WithHull(hull string) *ShipDesign {
 	sd.Hull = hull
 	return sd
 }
+
 func (sd *ShipDesign) WithSlots(slots []ShipDesignSlot) *ShipDesign {
 	sd.Slots = slots
 	return sd
@@ -154,8 +156,14 @@ func (sd *ShipDesign) WithPurpose(purpose ShipDesignPurpose) *ShipDesign {
 	sd.Purpose = purpose
 	return sd
 }
+
 func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 	sd.HullSetNumber = num
+	return sd
+}
+
+func (sd *ShipDesign) WithCannotDelete(cannotDelete bool) *ShipDesign {
+	sd.CannotDelete = cannotDelete
 	return sd
 }
 

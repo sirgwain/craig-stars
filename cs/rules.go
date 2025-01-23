@@ -70,23 +70,28 @@ type Rules struct {
 }
 
 type UniverseGenerationRules struct {
-	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold,omitempty"`
-	LimitMineralConcentration                 int                           `json:"limitMineralConcentration,omitempty"`
-	MaxExtraWorldDistance                     int                           `json:"maxExtraWorldDistance,omitempty"`
-	MaxHab                                    int                           `json:"maxHab,omitempty"`
-	MaxMineralConcentration                   int                           `json:"maxMineralConcentration,omitempty"`
-	MaxStartingMineralConcentration           int                           `json:"maxStartingMineralConcentration,omitempty"`
-	MaxStartingMineralSurface                 int                           `json:"maxStartingMineralSurface,omitempty"`
-	MinExtraPlanetMineralConcentration        int                           `json:"minExtraPlanetMineralConcentration,omitempty"`
-	MinExtraWorldDistance                     int                           `json:"minExtraWorldDistance,omitempty"`
-	MinHab                                    int                           `json:"minHab,omitempty"`
-	MinHomeworldMineralConcentration          int                           `json:"minHomeworldMineralConcentration,omitempty"`
-	MinMineralConcentration                   int                           `json:"minMineralConcentration,omitempty"`
-	MinStartingMineralConcentration           int                           `json:"minStartingMineralConcentration,omitempty"`
-	MinStartingMineralSurface                 int                           `json:"minStartingMineralSurface,omitempty"`
-	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem,omitempty"`
-	StartingYear                              int                           `json:"startingYear,omitempty"`
-	WormholeMinPlanetDistance                 int                           `json:"wormholeMinPlanetDistance,omitempty"`
+	HighRadMineralConcentrationBonusThreshold int                                          `json:"highRadMineralConcentrationBonusThreshold,omitempty"`
+	LimitMineralConcentration                 int                                          `json:"limitMineralConcentration,omitempty"`
+	MaxExtraWorldDistance                     int                                          `json:"maxExtraWorldDistance,omitempty"`
+	MaxHab                                    int                                          `json:"maxHab,omitempty"`
+	MaxMineralConcentration                   int                                          `json:"maxMineralConcentration,omitempty"`
+	MaxStartingMineralConcentration           int                                          `json:"maxStartingMineralConcentration,omitempty"`
+	MaxStartingMineralSurface                 int                                          `json:"maxStartingMineralSurface,omitempty"`
+	MinExtraPlanetMineralConcentration        int                                          `json:"minExtraPlanetMineralConcentration,omitempty"`
+	MinExtraWorldDistance                     int                                          `json:"minExtraWorldDistance,omitempty"`
+	MinHab                                    int                                          `json:"minHab,omitempty"`
+	MinHomeworldMineralConcentration          int                                          `json:"minHomeworldMineralConcentration,omitempty"`
+	MinMineralConcentration                   int                                          `json:"minMineralConcentration,omitempty"`
+	MinStartingMineralConcentration           int                                          `json:"minStartingMineralConcentration,omitempty"`
+	MinStartingMineralSurface                 int                                          `json:"minStartingMineralSurface,omitempty"`
+	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]LeftoverPointsItem `json:"raceLeftoverPointsPerItem,omitempty"`
+	StartingYear                              int                                          `json:"startingYear,omitempty"`
+	WormholeMinPlanetDistance                 int                                          `json:"wormholeMinPlanetDistance,omitempty"`
+}
+
+type LeftoverPointsItem struct {
+	pointsThreshold int
+	quantity        int
 }
 
 type CostRules struct {
@@ -312,15 +317,15 @@ func NewRulesWithSeed(seed int64) Rules {
 			HighRadMineralConcentrationBonusThreshold: 90,
 			MaxStartingMineralSurface:                 1000,
 			MinStartingMineralSurface:                 300,
-			RaceLeftoverPointsPerItem: map[SpendLeftoverPointsOn]int{
-				SpendLeftoverPointsOnMines:                 2,
-				SpendLeftoverPointsOnFactories:             5,
-				SpendLeftoverPointsOnDefenses:              10,
-				SpendLeftoverPointsOnMineralConcentrations: 3,
-				SpendLeftoverPointsOnSurfaceMinerals:       10, // special case - indicates kT per point leftover
+			RaceLeftoverPointsPerItem: map[SpendLeftoverPointsOn]LeftoverPointsItem{
+				SpendLeftoverPointsOnMines:                 {pointsThreshold: 2, quantity: 1},
+				SpendLeftoverPointsOnFactories:             {pointsThreshold: 5, quantity: 1},
+				SpendLeftoverPointsOnDefenses:              {pointsThreshold: 10, quantity: 1},
+				SpendLeftoverPointsOnMineralConcentrations: {pointsThreshold: 3, quantity: 1},
+				SpendLeftoverPointsOnSurfaceMinerals:       {pointsThreshold: 1, quantity: 10},
 			},
-			StartingYear:              2400,
-			WormholeMinPlanetDistance: 30,
+			StartingYear:                    2400,
+			WormholeMinPlanetDistance:       30,
 		},
 		// TODO: Change tachyon cloak reduction to a property of the technology itself
 		TachyonCloakReduction:            .05, // 5% diminishing cloak reduction per detector

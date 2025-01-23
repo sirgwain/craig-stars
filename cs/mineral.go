@@ -163,7 +163,7 @@ func (m Mineral) Clamp(min, max int) Mineral {
 	}
 }
 
-// return the MineralType with the Nth highest numerical value in a Mineral struct (1 = highest, 2 = 2nd highest, etc etc)
+// return the MineralType with the Nth highest numerical value in a Mineral struct (1 = highest, 2 = 2nd highest, etc etc).
 // Negative indices count backwards from lowest value
 //
 // Ties are broken in order of precendence (I>B>G); tie order not affected by negative indices
@@ -178,7 +178,7 @@ func (m Mineral) HighestType(ranking int) MineralType {
 
 // return the numerical value of the Nth highest MineralType in a Mineral struct (1 = highest, 2 = 2nd highest, etc).
 // Negative indices count backwards from lowest value  (-1 = lowest, -2 = 2nd lowest, etc).
-
+//
 // panics if ranking is 0 or abs(ranking) is greater than 3
 func (m Mineral) HighestAmount(ranking int) int {
 	if ranking == 0 || Abs(ranking) > 3 {

@@ -276,6 +276,11 @@ func (settings *GameSettings) WithAIPlayerRace(race Race, aiDifficulty AIDifficu
 	return settings
 }
 
+func (settings *GameSettings) WithGameStartMode(startMode GameStartMode) *GameSettings {
+	settings.StartMode = startMode
+	return settings
+}
+
 func (settings *GameSettings) IsSinglePlayer() bool {
 	numHumanPlayers := 0
 	for _, player := range settings.Players {
@@ -391,7 +396,6 @@ func (fg *FullGame) GetNumHumanPlayers() int {
 
 // compute all the various "specs" in the game. Called before and after turn generation
 func (g *FullGame) computeSpecs() error {
-
 	g.buildMaps(g.Players)
 
 	rules := &g.Rules
