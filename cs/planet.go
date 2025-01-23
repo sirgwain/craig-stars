@@ -221,7 +221,6 @@ func (p *Planet) emptyPlanet() {
 	p.Scanner = false
 	// clear any production or other orders from the previous owner
 	p.Defenses = 0                              
-	p.ProductionQueue = []ProductionQueueItem{} 
 	p.PlanetOrders = PlanetOrders{}
 	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
