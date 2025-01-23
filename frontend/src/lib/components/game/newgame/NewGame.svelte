@@ -115,7 +115,7 @@
 	<GameSettingsEditor bind:settings />
 
 	<SectionHeader>
-		<button class="btn-ghost w-full flex flex-row" onclick={addPlayer}>
+		<button type="button" class="btn-ghost w-full flex flex-row" onclick={addPlayer}>
 			Players
 			<div class="ml-auto">
 				<Icon src={PlusCircle} size="24" class="hover:stroke-accent" />

@@ -100,7 +100,11 @@
 		if ('hullSlotType' in tech) {
 			const hullComponent = tech as TechHullComponent;
 			if (hullComponent) {
-				if (hullComponent.category == TechCategory.MineLayer && hullComponent.mineFieldType) {
+				if (
+					hullComponent.category == TechCategory.MineLayer &&
+					hullComponent.mineFieldType &&
+					rules.mineFieldStatsByType
+				) {
 					const mineFieldStats = rules.mineFieldStatsByType[hullComponent.mineFieldType];
 					stats.push({ label: 'Mines laid per year', text: `${hullComponent.mineLayingRate}` });
 					stats.push({ label: 'Maximum safe speed', text: `${mineFieldStats.maxSpeed}` });
@@ -245,9 +249,9 @@
 					);
 				}
 
-				if ((hullComponent.fuelRegenerationRate ?? 0) > 0) {
+				if ((hullComponent.fuelGeneration ?? 0) > 0) {
 					descriptions.push(
-						`This part generates ${hullComponent.fuelRegenerationRate}mg of fuel each year.`
+						`This part generates ${hullComponent.fuelGeneration}mg of fuel each year.`
 					);
 				}
 
@@ -378,7 +382,9 @@
 
 				if ((hullComponent.packetSpeed ?? 0) > 0) {
 					stats.push({ label: 'Warp', text: `${hullComponent.packetSpeed}` });
-					descriptions.push('Allows planets to fling mineral packets at other planets to transport minerals or bombard enemies.');
+					descriptions.push(
+						'Allows planets to fling mineral packets at other planets to transport minerals or bombard enemies.'
+					);
 					warnings.push(
 						'Warning: The receiving planet must have a mass driver at least as capable or it will take damage.'
 					);

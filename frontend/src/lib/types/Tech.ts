@@ -89,7 +89,7 @@ export type TechHullComponent = {
 	reduceMovement?: number;
 	reduceCloaking?: boolean;
 	fuelBonus?: number;
-	fuelRegenerationRate?: number;
+	fuelGeneration?: number;
 	mineFieldType?: MineFieldType;
 	mineLayingRate?: number;
 	colonizationModule?: boolean;
