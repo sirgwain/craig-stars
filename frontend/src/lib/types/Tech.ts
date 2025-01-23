@@ -53,6 +53,26 @@ export const TerraformHabTypes = {
 	All: 'All'
 } as const;
 
+/**
+ * Return the "long-form" name of a TerraformHabType, given its abbreviated form
+ * @param type The TerraformHabType being expanded
+ * @returns The full name of the TerraformHabType
+ */
+export function GetLongHabName(type: TerraformHabType): string {
+	switch (type) {
+		case TerraformHabTypes.Gravity:
+			return 'Gravity';
+		case TerraformHabTypes.Temperature:
+			return 'Temperature';
+		case TerraformHabTypes.Radiation:
+			return 'Radiation';
+		case TerraformHabTypes.All:
+			return 'All';
+		default:
+			return 'None';
+	}
+}
+
 export type TechDefense = {
 	defenseCoverage: number;
 } & Tech;
@@ -265,7 +285,10 @@ export function isHullComponent(category: TechCategory | undefined): boolean {
 	}
 }
 
-// return true if this tech is a hull
+/** check if this tech is a hull
+ * @param tech The tech to check
+ * @returns true if this tech is degined and is a ship hull; talse otherwise
+*/
 export function isHull(tech: Tech | undefined): boolean {
 	if (!tech) {
 		return false;

@@ -15,7 +15,7 @@ const (
 	battleTokenAttributeStarbase      battleTokenAttribute = 1 << 3
 	battleTokenAttributeFuelTransport battleTokenAttribute = 1 << 4
 	battleTokenAttributeHasBeams      battleTokenAttribute = 1 << 5
-	battleTokenAttributeHasTorpedos   battleTokenAttribute = 1 << 6
+	battleTokenAttributeHasTorpedoes  battleTokenAttribute = 1 << 6
 )
 
 // a token for a battle
@@ -94,7 +94,7 @@ func newBattleToken(rules *Rules, num int, position BattleVector, cargoMass int,
 			if bws.weaponType == battleWeaponTypeBeam {
 				battleToken.attributes |= battleTokenAttributeHasBeams
 			} else if bws.weaponType == battleWeaponTypeTorpedo {
-				battleToken.attributes |= battleTokenAttributeHasTorpedos
+				battleToken.attributes |= battleTokenAttributeHasTorpedoes
 			}
 		}
 		battleToken.weaponSlots = weaponSlots

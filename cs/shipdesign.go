@@ -670,7 +670,7 @@ func (spec *ShipDesignSpec) computeScanRanges(rules *Rules, scannerSpec ScannerS
 		builtInPen := builtInScanner.PenMulti.Multiply(techLevels).Total()
 		if builtInNormal > 0 {
 			spec.ScanRange = PowInt(builtInNormal, 4)
-		} 
+		}
 		if builtInPen > 0 {
 			spec.ScanRangePen = PowInt(builtInPen, 4)
 			hasPenScan = spec.ScanRangePen > 0
@@ -752,7 +752,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 	numFuelTanks := 0
 	numCargoPods := 0
 	numBeamWeapons := 0
-	numTorpedos := 0
+	numTorpedoes := 0
 	var hasGate, hasDriver, hasScanner, hasColonyModule bool
 
 	maxNum := math.MinInt
@@ -813,12 +813,12 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 				beamWeapon := getPartAndCache(TechTagBeamWeapon)
 				torpedo := getPartAndCache(TechTagTorpedo)
 				if torpedo != nil && beamWeapon != nil {
-					if numTorpedos > numBeamWeapons {
+					if numTorpedoes > numBeamWeapons {
 						slot.HullComponent = beamWeapon.Name
 						numBeamWeapons += slot.Quantity
 					} else {
 						slot.HullComponent = torpedo.Name
-						numTorpedos += slot.Quantity
+						numTorpedoes += slot.Quantity
 					}
 					break purposeSwitch
 				}

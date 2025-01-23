@@ -782,20 +782,20 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 
 // Fire a torpedo slot from a ship.
 // A ship will fire each torpedo at its target until the target is destroyed, then
-// fire any remaining torpedos at the next target.
+// fire any remaining torpedoes at the next target.
 //
 // Each torpedo has an accuracy rating that determines how often it hits the target.
 // A torpedo that misses still explodes and does 1/8th damage to shields (if any).
 func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 	attacker := weapon.token
 	damage := weapon.power
-	numTorpedos := weapon.slotQuantity * attacker.Quantity
+	numTorpedoes := weapon.slotQuantity * attacker.Quantity
 
-	b.log.Debug().Msgf("%s is attempting to fire at %d targets with %d torpedos at %.2f%% accuracy for %d damage each",
-		weapon.token, len(targets), numTorpedos, (weapon.getAccuracy(0))*100.0, damage)
+	b.log.Debug().Msgf("%s is attempting to fire at %d targets with %d torpedoes at %.2f%% accuracy for %d damage each",
+		weapon.token, len(targets), numTorpedoes, (weapon.getAccuracy(0))*100.0, damage)
 
-	// fire each torpedo at each target until it's destroyed or we're out of torpedos
-	remainingTorpedos := numTorpedos
+	// fire each torpedo at each target until it's destroyed or we're out of torpedoes
+	remainingTorpedoes := numTorpedoes
 	torpedoNum := 0
 	for _, target := range targets {
 		if !target.isStillInBattle() {
@@ -804,7 +804,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 		}
 
 		// no more damage to spread, break out
-		if remainingTorpedos == 0 {
+		if remainingTorpedoes == 0 {
 			break
 		}
 
@@ -818,16 +818,16 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 		misses := 0
 		shipsDestroyed := 0
 
-		for remainingTorpedos > 0 && !target.destroyed {
+		for remainingTorpedoes > 0 && !target.destroyed {
 			// fire a torpedo
 			torpedoNum++
-			remainingTorpedos--
+			remainingTorpedoes--
 			hit := b.rules.random.Float64() <= weapon.getAccuracy(target.torpedoJamming)
 
 			if hit {
 				hits++
 
-				// torpedos do half damage to shields, half to armor (until shields are gone, when they do full armor damage)
+				// torpedoes do half damage to shields, half to armor (until shields are gone, when they do full armor damage)
 				shieldDamage := float64(0.5) * float64(damage)
 				armorDamage := float64(0.5) * float64(damage)
 
@@ -867,7 +867,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 						// we destroyed a token, but we still have damaged tokens in the stack
 						// so reset our shipDamage counter to the damage + any leftover. We apply that
 						// to the rest of the tokens
-						// i.e. if we fire 2 omega torpedos for 300 damage each at 3 damaged 1700dp@1300 ships
+						// i.e. if we fire 2 omega torpedoes for 300 damage each at 3 damaged 1700dp@1300 ships
 						// the first shot damages the top ship, the second one kills it but we have 200 leftover
 						// this will carry over to damage the remaining ships
 						leftoverDamage := shipDamage - float64(armor)

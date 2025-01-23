@@ -65,7 +65,7 @@ type battleWeaponDamage struct {
 	quantityDamaged int
 	// the number of tokens destroyed
 	numDestroyed int
-	// any leftover beam power or torpedos we have after destroying all ships in the stack
+	// any leftover beam power or torpedoes we have after destroying all ships in the stack
 	leftover int
 }
 
@@ -236,10 +236,10 @@ func (weapon *battleWeaponSlot) getDamage(dist int, beamDefense, beamDropoff flo
 // get the estimated damage of a torpedo to a target
 // based on average accuracy
 func (weapon *battleWeaponSlot) getEstimatedTorpedoDamageToTarget(target *battleToken) battleWeaponDamage {
-	numTorpedos := weapon.slotQuantity * weapon.token.Quantity
+	numTorpedoes := weapon.slotQuantity * weapon.token.Quantity
 	accuracy := weapon.getAccuracy(target.torpedoJamming)
-	hits := int(float64(numTorpedos) * accuracy)
-	misses := numTorpedos - hits
+	hits := int(float64(numTorpedoes) * accuracy)
+	misses := numTorpedoes - hits
 
 	// estimate how much damage we'll actually do
 	damage := weapon.power * hits
@@ -251,7 +251,7 @@ func (weapon *battleWeaponSlot) getEstimatedTorpedoDamageToTarget(target *battle
 	bwd.shieldDamage = Min(target.stackShields, int(float64(damage)/2))
 	bwd.armorDamage = Min(totalArmor, damage-bwd.shieldDamage)
 
-	// for any missed torpedos, they damage shields at 1/8th, so add that
+	// for any missed torpedoes, they damage shields at 1/8th, so add that
 	// to shield damage if still there
 	missShieldDamage := int(math.Round(float64(weapon.power*misses) / 8))
 	bwd.shieldDamage = Min(target.stackShields, bwd.shieldDamage+missShieldDamage)
@@ -260,7 +260,7 @@ func (weapon *battleWeaponSlot) getEstimatedTorpedoDamageToTarget(target *battle
 }
 
 // get the damage of a single torpedo to a target. Not currently being used... I'm not sure it
-// makes sense to have a separate single torpedo damage calc since the torpedos really need to be fired
+// makes sense to have a separate single torpedo damage calc since the torpedoes really need to be fired
 // in order accumulating damage as they go, destroying ships, etc
 func (weapon *battleWeaponSlot) getTorpedoDamageToTarget(target *battleToken) battleWeaponDamage {
 
@@ -270,7 +270,7 @@ func (weapon *battleWeaponSlot) getTorpedoDamageToTarget(target *battleToken) ba
 	shields := float64(target.stackShields)
 	shipDamage := target.Damage
 
-	// torpedos do half damage to shields, half to armor (until shields are gone, when they do full armor damage)
+	// torpedoes do half damage to shields, half to armor (until shields are gone, when they do full armor damage)
 	var shieldDamage float64
 	armorDamage := float64(damage)
 	if target.stackShields > 0 {

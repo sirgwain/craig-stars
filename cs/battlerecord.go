@@ -211,7 +211,7 @@ func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Battle
 
 }
 
-// Record a token firing a salvo of torpedos
+// Record a token firing a salvo of torpedoes
 func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from BattleVector, to BattleVector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken

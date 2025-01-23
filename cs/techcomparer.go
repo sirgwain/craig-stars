@@ -391,7 +391,7 @@ tagLoop:
 		case tag == TechTagTorpedoJammer, tag == TechTagBeamDeflector:
 			relativeBoost *= design.Spec.getJamOrComputerBonus(rules, hc, qty, tag)
 		case tag == TechTagManeuveringJet && design.Spec.Movement < rules.MovementMax && !design.Spec.Starbase:
-			// add a small, staple boost to jets
+			// add a smalsl, staple boost to jets
 			oldMove := float64(design.Spec.Movement)
 			moveBoost := float64(getBattleMovement(rules.MovementMin, rules.MovementMax, design.Spec.Engine.IdealSpeed, design.Spec.MovementBonus+hc.MovementBonus*float64(qty), design.Spec.Mass+hc.Mass*qty, design.Spec.NumEngines)) - oldMove
 			multi := 0.6

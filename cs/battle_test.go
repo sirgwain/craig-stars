@@ -343,7 +343,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			want: []BattleVector{{1, 2}}, // best damage ratio, and towards center
 		},
 		{
-			// attacker has torpedos and wants to stay out of range of those lasers
+			// attacker has torpedoes and wants to stay out of range of those lasers
 			// it should move back
 			// * * 1 *
 			// * A * *
@@ -362,7 +362,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			want: []BattleVector{{0, 0}, {0, 1}, {0, 2}},
 		},
 		{
-			// attacker has torpedos and wants to stay out of range of those lasers
+			// attacker has torpedoes and wants to stay out of range of those lasers
 			// it should move back but stay near the center if possible
 			// * * 1 *
 			// * A * *
@@ -402,7 +402,7 @@ func Test_battle_getBestAttackMoves(t *testing.T) {
 			want: []BattleVector{{1, 2}}, // best net damage, move to two token square
 		},
 		{
-			// attacker has torpedos and wants to stay out of range of those lasers
+			// attacker has torpedoes and wants to stay out of range of those lasers
 			// it should move back
 			// * * L *
 			// * A * *
@@ -864,11 +864,11 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 1}},
 		},
-		{name: "two torpedos, do 15 damage each, kill ship with first hit",
+		{name: "two torpedoes, do 15 damage each, kill ship with first hit",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slotQuantity: 2,  // 2 torpedos
+						slotQuantity: 2,  // 2 torpedoes
 						power:        15, // 15 damage per torpedo
 						accuracy:     1,
 					},
@@ -913,7 +913,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slotQuantity:       2,  // 2 torpedos
+						slotQuantity:       2,  // 2 torpedoes
 						power:              10, // 15 damage per torpedo
 						accuracy:           1,
 						capitalShipMissile: true,
@@ -933,11 +933,11 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 30, quantityDamaged: 1, quantityRemaining: 1}},
 		},
-		{name: "two torpedos, two attacker ships, 4x torpedos do 40 damage total, one kill, one damaged",
+		{name: "two torpedoes, two attacker ships, 4x torpedoes do 40 damage total, one kill, one damaged",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slotQuantity: 2, // 2 torpedos
+						slotQuantity: 2, // 2 torpedoes
 						power:        10,
 						accuracy:     1,
 					},
@@ -959,7 +959,7 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
-						slotQuantity: 2,   // 2 torpedos
+						slotQuantity: 2,   // 2 torpedoes
 						power:        300, // 600 damage total
 						accuracy:     1,
 					},
