@@ -364,10 +364,10 @@ func TestPlanet_grow(t *testing.T) {
 		race *Race
 	}
 	tests := []struct {
-		name           string
-		fields         fields
-		args           args
-		wantPopulation int
+		name   string
+		fields fields
+		args   args
+		want   int
 	}{
 		{"standard humanoid starter world", fields{hab: Hab{50, 50, 50}, population: 25000, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 28_750},
 		{"full world", fields{hab: Hab{50, 50, 50}, population: 500_000, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 545_370},
@@ -385,13 +385,14 @@ func TestPlanet_grow(t *testing.T) {
 			planet.Hab = tt.fields.hab
 			planet.BaseHab = tt.fields.hab
 			planet.setPopulation(tt.fields.population)
+			planet.Spec = computePlanetSpec(&rules, player, planet)
 			for x := 0; x < tt.fields.turnsToGrow; x++ {
 				planet.grow(player)
 				planet.Spec = computePlanetSpec(&rules, player, planet)
 			}
 
-			roundedPop := roundToNearest100(tt.wantPopulation, math.Floor)
-			leftoverPop := tt.wantPopulation % 100
+			roundedPop := roundToNearest100(tt.want, math.Floor)
+			leftoverPop := tt.want % 100
 
 			if gotWhole := planet.GetPopulation(); gotWhole != roundedPop {
 				t.Errorf("planet.grow() gave %v actual pop, want %v", gotWhole, roundedPop)

@@ -124,7 +124,8 @@ func (p *Planet) WithPopulation(pop int) *Planet {
 
 // Set planet Minerals/pop to the values inside the Cargo struct;
 // essentially just a fancy wrapper function
-//  REMEMBER TO DELETE THIS BOZO
+//
+//	REMEMBER TO DELETE THIS BOZO
 func (p *Planet) WithCargo(cargo Cargo) *Planet {
 	p.SurfaceMinerals = cargo.ToMineral()
 	p.Population = cargo.Colonists * 100
@@ -192,7 +193,7 @@ func (p *Planet) setPopulation(pop int) {
 
 // set cargo to specified value
 //
-//  REMEMBER TO REMOVE THIS BOZO
+//	REMEMBER TO REMOVE THIS BOZO
 func (p *Planet) setCargo(cargo Cargo) {
 	p.SurfaceMinerals = cargo.ToMineral()
 	p.Population = cargo.Colonists * 100
