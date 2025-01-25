@@ -627,7 +627,7 @@ var EnigmaPulsar = TechEngine{
 	TechHullComponent: TechHullComponent{Tech: NewTechWithOrigin("Enigma Pulsar", NewCost(12, 15, 11, 40), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 7, Propulsion: 13, Construction: 5, Electronics: 9}}, 205, TechCategoryEngine, OriginMysteryTrader, TechTagCloak, TechTagEngine, TechTagManeuveringJet),
 		Mass:          20,
 		HullSlotType:  HullSlotTypeEngine,
-		MovementBonus: 0.5,
+		MovementBonus: .5,
 		CloakUnits:    20,
 	},
 	Engine: Engine{
@@ -678,7 +678,7 @@ var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function
 	Mass:           2,
 	CloakUnits:     60,
 	TorpedoJamming: .1,
-	MovementBonus:  1,
+	MovementBonus:  .5,
 	HullSlotType:   HullSlotTypeElectrical,
 }
 
