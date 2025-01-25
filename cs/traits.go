@@ -94,6 +94,10 @@ type TechCostOffset map[TechTag]float64
 
 // add 2 TechCostOffsets' bonuses together and return the sum
 func (t TechCostOffset) Add(other TechCostOffset) TechCostOffset {
+	if len(other) == 0 {
+		// nothing to add, return without allocating a new map
+		return t
+	}
 	newOffset := TechCostOffset{}
 	maps.Copy(newOffset, t)
 	for tag, bonus := range other {
