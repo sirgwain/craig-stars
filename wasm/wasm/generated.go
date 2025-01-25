@@ -506,21 +506,15 @@ func GetBuiltInScanner(o js.Value) cs.BuiltInScanner {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.Field = GetTechField(o.Get("field"))
-	obj.NormalMulti = getInt[int](o.Get("normalMulti"))
-	obj.PenMulti = getInt[int](o.Get("penmulti"))
-	obj.HullsAllowed = GetStringMap[map[string]bool](o.Get("HullsAllowed"), getBool)
+	obj.NormalMulti = GetTechLevel(o.Get("normalMulti"))
+	obj.PenMulti = GetTechLevel(o.Get("penMulti"))
 	return obj
 }
 func SetBuiltInScanner(o js.Value, obj *cs.BuiltInScanner) {
-	o.Set("field", string(obj.Field))
-	o.Set("normalMulti", obj.NormalMulti)
-	o.Set("penmulti", obj.PenMulti)
-	HullsAllowedMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.HullsAllowed {
-		HullsAllowedMap.Set(fmt.Sprintf("%v", key), value)
-	}
-	o.Set("HullsAllowed", HullsAllowedMap)
+	o.Set("normalMulti", map[string]any{})
+	SetTechLevel(o.Get("normalMulti"), &obj.NormalMulti)
+	o.Set("penMulti", map[string]any{})
+	SetTechLevel(o.Get("penMulti"), &obj.PenMulti)
 }
 
 func GetCargo(o js.Value) cs.Cargo {
@@ -3248,14 +3242,14 @@ func GetScannerSpec(o js.Value) cs.ScannerSpec {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.BuiltInScanner = GetBuiltInScanner(o.Get("builtInScannerMultiplier"))
+	obj.BuiltInScanner = GetBuiltInScanner(o.Get("builtInScanner"))
 	obj.NoAdvancedScanners = getBool(o.Get("noAdvancedScanners"))
 	obj.ScanRangeFactor = getFloat[float64](o.Get("scanRangeFactor"))
 	return obj
 }
 func SetScannerSpec(o js.Value, obj *cs.ScannerSpec) {
-	o.Set("builtInScannerMultiplier", map[string]any{})
-	SetBuiltInScanner(o.Get("builtInScannerMultiplier"), &obj.BuiltInScanner)
+	o.Set("builtInScanner", map[string]any{})
+	SetBuiltInScanner(o.Get("builtInScanner"), &obj.BuiltInScanner)
 	o.Set("noAdvancedScanners", obj.NoAdvancedScanners)
 	o.Set("scanRangeFactor", obj.ScanRangeFactor)
 }
@@ -3791,6 +3785,7 @@ func GetTechHull(o js.Value) cs.TechHull {
 	obj.RangeBonus = getInt[int](o.Get("rangeBonus"))
 	obj.Starbase = getBool(o.Get("starbase"))
 	obj.OrbitalConstructionHull = getBool(o.Get("orbitalConstructionHull"))
+	obj.BuiltInScanner = getBool(o.Get("builtInScanner"))
 	obj.DoubleMineEfficiency = getBool(o.Get("doubleMineEfficiency"))
 	obj.MaxPopulation = getInt[int](o.Get("maxPopulation"))
 	obj.InnateScanRangePenFactor = getFloat[float64](o.Get("innateScanRangePenFactor"))
@@ -3824,6 +3819,7 @@ func SetTechHull(o js.Value, obj *cs.TechHull) {
 	o.Set("rangeBonus", obj.RangeBonus)
 	o.Set("starbase", obj.Starbase)
 	o.Set("orbitalConstructionHull", obj.OrbitalConstructionHull)
+	o.Set("builtInScanner", obj.BuiltInScanner)
 	o.Set("doubleMineEfficiency", obj.DoubleMineEfficiency)
 	o.Set("maxPopulation", obj.MaxPopulation)
 	o.Set("innateScanRangePenFactor", obj.InnateScanRangePenFactor)
