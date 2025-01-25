@@ -678,7 +678,7 @@ var MultiFunctionPod = TechHullComponent{Tech: NewTechWithOrigin("Multi-Function
 	Mass:           2,
 	CloakUnits:     60,
 	TorpedoJamming: .1,
-	MovementBonus:  .5,
+	MovementBonus:  1,
 	HullSlotType:   HullSlotTypeElectrical,
 }
 
@@ -718,7 +718,7 @@ var AlienMiner = TechHullComponent{Tech: NewTechWithOrigin("Alien Miner", NewCos
 	MiningRate:     10,
 	CloakUnits:     60,
 	TorpedoJamming: .3,
-	MovementBonus:  1,
+	MovementBonus:  .5,
 	HullSlotType:   HullSlotTypeMining,
 }
 var MultiCargoPod = TechHullComponent{Tech: NewTechWithOrigin("Multi Cargo Pod", NewCost(12, 0, 3, 25), TechRequirements{Acquirable: true, TechLevel: TechLevel{Energy: 5, Construction: 11, Electronics: 5}}, 35, TechCategoryMechanical, OriginMysteryTrader, TechTagArmor, TechTagCargoPod, TechTagCloak),
