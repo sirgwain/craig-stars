@@ -58,7 +58,7 @@ export const TerraformHabTypes = {
  * @param type The TerraformHabType being expanded
  * @returns The full name of the TerraformHabType
  */
-export function GetLongHabName(type: TerraformHabType): string {
+export function getLongHabName(type: TerraformHabType): string {
 	switch (type) {
 		case TerraformHabTypes.Gravity:
 			return 'Gravity';
@@ -288,7 +288,7 @@ export function isHullComponent(category: TechCategory | undefined): boolean {
 /** check if this tech is a hull
  * @param tech The tech to check
  * @returns true if this tech is degined and is a ship hull; talse otherwise
-*/
+ */
 export function isHull(tech: Tech | undefined): boolean {
 	if (!tech) {
 		return false;

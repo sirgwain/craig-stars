@@ -4,7 +4,7 @@
 	import { InfinteGate } from '$lib/types/Constants';
 	import {
 		getCloakPercentForCloakUnits,
-		GetLongHabName,
+		getLongHabName,
 		TechCategory,
 		TerraformHabTypes,
 		type Tech,
@@ -91,7 +91,7 @@
 			descriptions.push(
 				`Allows you to modify ${
 					terraform.habType !== TerraformHabTypes.All
-						? `a planet's ${GetLongHabName(terraform.habType)}`
+						? `a planet's ${getLongHabName(terraform.habType)}`
 						: `all of a planet's three environmental variables`
 				} by up to ${terraform.ability}% from its original value.`
 			);
