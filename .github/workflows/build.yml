@@ -15,7 +15,6 @@ env:
 jobs:
   test_backend:
     name: Run backend Go tests
-    # prevent workflow from running on forks
     strategy:
       matrix:
         os: [ubuntu-latest] # no need for multiple OSes if we're just running go tests
@@ -49,8 +48,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    needs: test_backend
-    # prevent workflow from running on forks
 
     steps:
       - name: Check out Git repository
