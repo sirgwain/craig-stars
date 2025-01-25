@@ -116,10 +116,6 @@ func (store *TechStore) Init() {
 		store.techsByName[name] = tech
 		store.enginesByName[name] = tech
 		store.hullComponentsByName[name] = &tech.TechHullComponent
-
-		if _, ok := store.hullComponentsByCategory[tech.Category]; !ok {
-			store.hullComponentsByCategory[tech.Category] = []TechHullComponent{}
-		}
 		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], tech.TechHullComponent)
 	}
 
@@ -129,10 +125,6 @@ func (store *TechStore) Init() {
 		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 		store.hullComponentsByName[name] = tech
-
-		if _, ok := store.hullComponentsByCategory[tech.Category]; !ok {
-			store.hullComponentsByCategory[tech.Category] = []TechHullComponent{}
-		}
 		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], *tech)
 	}
 
