@@ -1016,9 +1016,34 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	// sort through hull slots in order of increasing slot type
 	// then in decreasing slot quantity (so bigger slots get used up first)
 	// ensures weapons get put on larger slots first all else being equal
+	hullSlotTypePriority := map[HullSlotType]int{
+		HullSlotTypeNone:                             0,
+		HullSlotTypeEngine:                           1,
+		HullSlotTypeSpaceDock:                        1 << 1,
+		HullSlotTypeCargo:                            1 << 2,
+		HullSlotTypeBomb:                             1 << 3,
+		HullSlotTypeMining:                           1 << 4,
+		HullSlotTypeMineLayer:                        1 << 5,
+		HullSlotTypeScanner:                          1 << 6,
+		HullSlotTypeOrbital:                          1 << 7,
+		HullSlotTypeWeapon:                           1 << 8,
+		HullSlotTypeShield:                           1 << 9,
+		HullSlotTypeArmor:                            1 << 10,
+		HullSlotTypeMechanical:                       1 << 11,
+		HullSlotTypeElectrical:                       1 << 12,
+		HullSlotTypeElectricalMechanical:             1<<11 | 1<<12,
+		HullSlotTypeOrbitalElectrical:                1<<7 | 1<<12,
+		HullSlotTypeShieldElectricalMechanical:       1<<9 | 1<<11 | 1<<12,
+		HullSlotTypeScannerElectricalMechanical:      1<<6 | 1<<11 | 1<<12,
+		HullSlotTypeArmorScannerElectricalMechanical: 1<<10 | 1<<6 | 1<<11 | 1<<12,
+		HullSlotTypeMineElectricalMechanical:         1<<5 | 1<<11 | 1<<12,
+		HullSlotTypeShieldArmor:                      1<<9 | 1<<10,
+		HullSlotTypeWeaponShield:                     1<<8 | 1<<9,
+		HullSlotTypeGeneral:                          1<<5 | 1<<6 | 1<<8 | 1<<9 | 1<<10 | 1<<11 | 1<<12,
+	}
 	if len(hullSlotNumsSorted) > 1 {
 		slices.SortStableFunc(hullSlotNumsSorted, func(m, n int) int {
-			b := int(hull.Slots[m].Type) - int(hull.Slots[n].Type)
+			b := hullSlotTypePriority[hull.Slots[m].Type] - hullSlotTypePriority[hull.Slots[n].Type]
 			if b != 0 {
 				return b
 			}
