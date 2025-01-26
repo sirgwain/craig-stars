@@ -236,18 +236,18 @@ type HullSlotType Bitmask
 const (
 	HullSlotTypeNone                = 0
 	HullSlotTypeEngine HullSlotType = 1 << iota
-	HullSlotTypeSpaceDock
-	HullSlotTypeCargo
+	HullSlotTypeScanner
+	HullSlotTypeMechanical
 	HullSlotTypeBomb
 	HullSlotTypeMining
-	HullSlotTypeMineLayer
-	HullSlotTypeScanner
-	HullSlotTypeOrbital
-	HullSlotTypeWeapon
+	HullSlotTypeElectrical
 	HullSlotTypeShield
 	HullSlotTypeArmor
-	HullSlotTypeMechanical
-	HullSlotTypeElectrical
+	HullSlotTypeCargo
+	HullSlotTypeSpaceDock
+	HullSlotTypeWeapon
+	HullSlotTypeOrbital
+	HullSlotTypeMineLayer
 
 	HullSlotTypeElectricalMechanical             = HullSlotTypeElectrical | HullSlotTypeMechanical
 	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical

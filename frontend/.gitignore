@@ -9,3 +9,4 @@ node_modules.nosync
 !.env.example
 yarn-error.log
 .idea
+test-results/

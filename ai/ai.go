@@ -279,7 +279,7 @@ func (ai *aiPlayer) updateWarfleets() error {
 	var err error
 	err = ai.updateWarshipCount()
 	if err != nil {
-		if err.Error() == "too early" {
+		if err == errTooEarly {
 			// we building ships too early; stop
 			return nil
 		}
@@ -344,6 +344,8 @@ func (ai *aiPlayer) updateWarfleets() error {
 	return nil
 }
 
+var errTooEarly error = fmt.Errorf("too early")
+
 func (ai *aiPlayer) updateWarshipCount() error {
 	yearsAfterStart := ai.game.YearsPassed() - ai.config.startAttackingYear
 	// TODO: Make these values configurable per AI type
@@ -352,7 +354,7 @@ func (ai *aiPlayer) updateWarshipCount() error {
 	// determine ship counts by year
 	switch {
 	case yearsAfterStart < 0: // <2425 non-BBS; <2420 accBBs
-		return fmt.Errorf("too early")
+		return errTooEarly
 	case yearsAfterStart < 5: // 2425-2429 non-BBS; 2420-2424 accBBS
 		bombers = 5
 		warships = 14
