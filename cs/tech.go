@@ -231,7 +231,7 @@ func (t TechHullType) IsBomber() bool {
 
 type HullSlotType Bitmask
 
-// Sorted in order of increasing precedence for AI Warship calcs (higher # = slots checked later)
+// DO NOT REARRANGE EXISTING VALUES. IT *WILL* BREAK EXISTING GAMES.
 
 const (
 	HullSlotTypeNone                = 0

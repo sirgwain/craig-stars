@@ -985,6 +985,25 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	var engineSlots = []int{}                                            // contains all our engine slots
 	var numEngines int
 
+	// Priorities for slot filling;
+	// lower numbers are filled first
+	hullSlotTypePriority := map[HullSlotType]int{
+		HullSlotTypeNone:       0,
+		HullSlotTypeEngine:     0,
+		HullSlotTypeSpaceDock:  0,
+		HullSlotTypeCargo:      0,
+		HullSlotTypeBomb:       0,
+		HullSlotTypeMining:     0,
+		HullSlotTypeMineLayer:  0,
+		HullSlotTypeScanner:    1,
+		HullSlotTypeOrbital:    1 << 1,
+		HullSlotTypeWeapon:     1 << 2,
+		HullSlotTypeShield:     1 << 3,
+		HullSlotTypeArmor:      1 << 4,
+		HullSlotTypeMechanical: 1 << 5,
+		HullSlotTypeElectrical: 1 << 6,
+	}
+
 	// (#) SLOT INDICING/SORTING
 
 	// add the slots to our slice & initialize our lookup map if needed
@@ -994,7 +1013,19 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			engineSlots = append(engineSlots, i)
 			continue
 		}
-		hullSlotNumsSorted = append(hullSlotNumsSorted, i)
+
+		// add priorities for compound slot types to map if not already present
+		if _, ok := hullSlotTypePriority[hullSlot.Type]; !ok {
+			for num := HullSlotType(1); num <= hullSlot.Type; num <<= 1 {
+				if num&hullSlot.Type != 0 {
+					hullSlotTypePriority[hullSlot.Type] += hullSlotTypePriority[num]
+				}
+			}
+		}
+
+		if hullSlotTypePriority[hullSlot.Type] > 0 {
+			hullSlotNumsSorted = append(hullSlotNumsSorted, i)
+		}
 		if bestPartsBySlot[hullSlot.Type] == nil {
 			bestPartsBySlot[hullSlot.Type] = map[TechTag]*TechHullComponent{}
 		}
@@ -1002,7 +1033,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 	// get our engine slots out of the way
 	if len(engineSlots) == 0 && !hull.Starbase {
-		return nil, fmt.Errorf("DesignWarship() could not find any engine slots in hull %s", hull)
+		return nil, fmt.Errorf("designWarship() could not find any engine slots in hull %q", hull)
 	} else {
 		bestEngine := techStore.GetBestBattleEngine(player, hull, numEngines)
 		for _, i := range engineSlots {
@@ -1010,37 +1041,11 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			design.Slots = append(design.Slots, ShipDesignSlot{
 				HullComponent: bestEngine.Name, HullSlotIndex: i + 1, Quantity: h.Capacity})
 		}
-
 	}
 
-	// sort through hull slots in order of increasing slot type
+	// sort through hull slots in order of increasing slot type priority
 	// then in decreasing slot quantity (so bigger slots get used up first)
-	// ensures weapons get put on larger slots first all else being equal
-	hullSlotTypePriority := map[HullSlotType]int{
-		HullSlotTypeNone:                             0,
-		HullSlotTypeEngine:                           1,
-		HullSlotTypeSpaceDock:                        1 << 1,
-		HullSlotTypeCargo:                            1 << 2,
-		HullSlotTypeBomb:                             1 << 3,
-		HullSlotTypeMining:                           1 << 4,
-		HullSlotTypeMineLayer:                        1 << 5,
-		HullSlotTypeScanner:                          1 << 6,
-		HullSlotTypeOrbital:                          1 << 7,
-		HullSlotTypeWeapon:                           1 << 8,
-		HullSlotTypeShield:                           1 << 9,
-		HullSlotTypeArmor:                            1 << 10,
-		HullSlotTypeMechanical:                       1 << 11,
-		HullSlotTypeElectrical:                       1 << 12,
-		HullSlotTypeElectricalMechanical:             1<<11 | 1<<12,
-		HullSlotTypeOrbitalElectrical:                1<<7 | 1<<12,
-		HullSlotTypeShieldElectricalMechanical:       1<<9 | 1<<11 | 1<<12,
-		HullSlotTypeScannerElectricalMechanical:      1<<6 | 1<<11 | 1<<12,
-		HullSlotTypeArmorScannerElectricalMechanical: 1<<10 | 1<<6 | 1<<11 | 1<<12,
-		HullSlotTypeMineElectricalMechanical:         1<<5 | 1<<11 | 1<<12,
-		HullSlotTypeShieldArmor:                      1<<9 | 1<<10,
-		HullSlotTypeWeaponShield:                     1<<8 | 1<<9,
-		HullSlotTypeGeneral:                          1<<5 | 1<<6 | 1<<8 | 1<<9 | 1<<10 | 1<<11 | 1<<12,
-	}
+	// ensures weapons get put on larger slots first (all else being equal)
 	if len(hullSlotNumsSorted) > 1 {
 		slices.SortStableFunc(hullSlotNumsSorted, func(m, n int) int {
 			b := hullSlotTypePriority[hull.Slots[m].Type] - hullSlotTypePriority[hull.Slots[n].Type]

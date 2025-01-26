@@ -100,15 +100,3 @@ func MapToStringDelimited[M map[K]V, K comparable, V any](mapBeingStringed M, cm
 	}
 	return strings.TrimSuffix(result, delimiterAfter) // remove the last delimiter from list
 }
-
-/* break down an individual bitmask into a slice of its component bits
-func (mask Bitmask) GetBits() []Bitmask {
-	bits := []Bitmask{}
-
-	for num := Bitmask(1); num <= mask; num <<= 1 {
-		if num&mask != 0 {
-			bits = append(bits, num)
-		}
-	}
-	return bits
-}*/

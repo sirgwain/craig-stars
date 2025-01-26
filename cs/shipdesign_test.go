@@ -1321,134 +1321,139 @@ func TestDesignWarship(t *testing.T) {
 	}
 }
 
-func BenchmarkDesignShip_Large(b *testing.B) {
-	purposes := []ShipDesignPurpose{
-		ShipDesignPurposeFreighter,
-		ShipDesignPurposeSpeedMineLayer,
-		ShipDesignPurposeMiner,
-	}
-	player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-	for _, tech := range MysteryTraderTechs {
-		player.AcquiredTechs[tech.Name] = true
-	}
-	b.ResetTimer()
-	for range b.N {
-		b.StopTimer()
-		num := rules.random.Intn(3)
-		purpose := purposes[num]
-		var hull *TechHull
-		switch num {
-		case 0, 1:
-			hull = &Nubian
-		case 2:
-			hull = &UltraMiner
+func BenchmarkDesignShip(b *testing.B) {
+	b.Run("Large", func(b *testing.B) {
+		purposes := []ShipDesignPurpose{
+			ShipDesignPurposeFreighter,
+			ShipDesignPurposeSpeedMineLayer,
+			ShipDesignPurposeMiner,
 		}
-		fp := FleetPurposeFromShipDesignPurpose(purpose)
-		b.StartTimer()
-		DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
-	}
-}
-
-func BenchmarkDesignShip_Small(b *testing.B) {
-	purposes := []ShipDesignPurpose{
-		ShipDesignPurposeFreighter,
-		ShipDesignPurposeSpeedMineLayer,
-		ShipDesignPurposeMiner,
-	}
-	player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-	for _, tech := range MysteryTraderTechs {
-		player.AcquiredTechs[tech.Name] = true
-	}
-	b.ResetTimer()
-	for range b.N {
-		b.StopTimer()
-		num := rules.random.Intn(3)
-		purpose := purposes[num]
-		var hull *TechHull
-		switch num {
-		case 0:
-			hull = &LargeFreighter
-		case 1:
-			hull = &Frigate
-		case 2:
-			hull = &MidgetMiner
+		player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+		for _, tech := range MysteryTraderTechs {
+			player.AcquiredTechs[tech.Name] = true
 		}
-		fp := FleetPurposeFromShipDesignPurpose(purpose)
-		b.StartTimer()
-		DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
-	}
-}
-
-func BenchmarkDesignWarship_Large(b *testing.B) {
-	purposes := []ShipDesignPurpose{
-		ShipDesignPurposeFighterScout,
-		ShipDesignPurposeBeamFighter,
-		ShipDesignPurposeTorpedoFighter,
-		ShipDesignPurposeStarbase,
-		ShipDesignPurposeStarbaseHalf,
-		ShipDesignPurposeStarbaseQuarter,
-	}
-	c := rules.random.Intn(2)
-	p := AR
-	if c == 1 {
-		p = WM
-	}
-	player := NewPlayer(1, NewRace().WithPRT(p).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-	for _, tech := range MysteryTraderTechs {
-		player.AcquiredTechs[tech.Name] = true
-	}
-	b.ResetTimer()
-	for range b.N {
-		b.StopTimer()
-		num := rules.random.Intn(6)
-		purpose := purposes[num]
-		var hull *TechHull
-		switch num {
-		case 0, 1, 2:
-			if c == 0 {
+		b.ResetTimer()
+		for range b.N {
+			b.StopTimer()
+			num := rules.random.Intn(3)
+			purpose := purposes[num]
+			var hull *TechHull
+			switch num {
+			case 0, 1:
 				hull = &Nubian
-			} else {
-				hull = &Dreadnought
+			case 2:
+				hull = &UltraMiner
 			}
-		case 3, 4, 5:
-			if c == 0 {
-				hull = &DeathStar
-			} else {
-				hull = &UltraStation
+			fp := FleetPurposeFromShipDesignPurpose(purpose)
+			b.StartTimer()
+			DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
+		}
+	})
+
+	b.Run("Small", func(b *testing.B) {
+		purposes := []ShipDesignPurpose{
+			ShipDesignPurposeFreighter,
+			ShipDesignPurposeSpeedMineLayer,
+			ShipDesignPurposeMiner,
+		}
+		player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+		for _, tech := range MysteryTraderTechs {
+			player.AcquiredTechs[tech.Name] = true
+		}
+		b.ResetTimer()
+		for range b.N {
+			b.StopTimer()
+			num := rules.random.Intn(3)
+			purpose := purposes[num]
+			var hull *TechHull
+			switch num {
+			case 0:
+				hull = &LargeFreighter
+			case 1:
+				hull = &Frigate
+			case 2:
+				hull = &MidgetMiner
 			}
+			fp := FleetPurposeFromShipDesignPurpose(purpose)
+			b.StartTimer()
+			DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
 		}
-		b.StartTimer()
-		DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
-	}
-}
-func BenchmarkDesignWarship_Small(b *testing.B) {
-	purposes := []ShipDesignPurpose{
-		ShipDesignPurposeFighterScout,
-		ShipDesignPurposeBeamFighter,
-		ShipDesignPurposeTorpedoFighter,
-		ShipDesignPurposeStarbase,
-		ShipDesignPurposeStarbaseHalf,
-		ShipDesignPurposeStarbaseQuarter,
-	}
-	player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-	for _, tech := range MysteryTraderTechs {
-		player.AcquiredTechs[tech.Name] = true
-	}
-	b.ResetTimer()
-	for range b.N {
-		b.StopTimer()
-		num := rules.random.Intn(6)
-		purpose := purposes[num]
-		var hull *TechHull
-		switch num {
-		case 0:
-			hull = &Frigate
-		case 1, 2:
-			hull = &Cruiser
-		case 3, 4, 5:
-			hull = &SpaceStation
+	})
+
+	b.Run("Large Warship", func(b *testing.B) {
+		purposes := []ShipDesignPurpose{
+			ShipDesignPurposeFighterScout,
+			ShipDesignPurposeBeamFighter,
+			ShipDesignPurposeTorpedoFighter,
+			ShipDesignPurposeStarbase,
+			ShipDesignPurposeStarbaseHalf,
+			ShipDesignPurposeStarbaseQuarter,
 		}
-		b.StartTimer()
-		DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
-	}
+		c := rules.random.Intn(3)
+		p := AR
+		if c == 1 {
+			p = WM
+		}
+		player := NewPlayer(1, NewRace().WithPRT(p).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+		for _, tech := range MysteryTraderTechs {
+			player.AcquiredTechs[tech.Name] = true
+		}
+		b.ResetTimer()
+		for range b.N {
+			b.StopTimer()
+			purpose := purposes[rules.random.Intn(6)]
+			num := rules.random.Intn(8)
+			var hull *TechHull
+			switch num {
+			case 0, 1, 2:
+				if c == 1 {
+					hull = &Dreadnought
+				} else {
+					hull = &Nubian
+				}
+			case 3, 4, 5:
+				if c != 1 {
+					hull = &DeathStar
+				} else {
+					hull = &UltraStation
+				}
+			default: 
+				hull = &Battleship
+			}
+			b.StartTimer()
+			DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
+		}
+	})
+
+	b.Run("Small Warship", func(b *testing.B) {
+		purposes := []ShipDesignPurpose{
+			ShipDesignPurposeFighterScout,
+			ShipDesignPurposeBeamFighter,
+			ShipDesignPurposeTorpedoFighter,
+			ShipDesignPurposeStarbase,
+			ShipDesignPurposeStarbaseHalf,
+			ShipDesignPurposeStarbaseQuarter,
+		}
+		player := NewPlayer(1, NewRace().WithPRT(AR).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+		for _, tech := range MysteryTraderTechs {
+			player.AcquiredTechs[tech.Name] = true
+		}
+		b.ResetTimer()
+		for range b.N {
+			b.StopTimer()
+			purpose := purposes[rules.random.Intn(6)]
+			num := rules.random.Intn(6)
+			var hull *TechHull
+			switch num {
+			case 0:
+				hull = &Frigate
+			case 1, 2:
+				hull = &Cruiser
+			case 3, 4, 5:
+				hull = &SpaceStation
+			}
+			b.StartTimer()
+			DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
+		}
+	})
 }
