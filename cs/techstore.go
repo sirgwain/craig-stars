@@ -4,8 +4,6 @@ import (
 	"math"
 	"slices"
 	"strings"
-
-	"golang.org/x/exp/maps"
 )
 
 const UnlimitedSpaceDock = -1
@@ -17,20 +15,21 @@ const Infinite = -1
 // The TechStore contains all techs in the game. Eventually these will be user modifiable and
 // referenced per game, but for now all games use the StaticTechStore, which contains the default Stars! techs.
 type TechStore struct {
-	Engines                  []TechEngine                         `json:"engines"`
-	PlanetaryScanners        []TechPlanetaryScanner               `json:"planetaryScanners"`
-	Terraforms               []TechTerraform                      `json:"terraforms"`
-	Defenses                 []TechDefense                        `json:"defenses"`
-	Planetaries              []TechPlanetary                      `json:"planetaries"`
-	HullComponents           []TechHullComponent                  `json:"hullComponents"`
-	Hulls                    []TechHull                           `json:"hulls,omitempty"`
-	techs                    []*Tech                              `json:"-"`
-	techsByName              map[string]interface{}               `json:"-"`
-	hullComponentsByName     map[string]*TechHullComponent        `json:"-"`
-	hullComponentsByCategory map[TechCategory][]TechHullComponent `json:"-"`
-	hullsByName              map[string]*TechHull                 `json:"-"`
-	hullsByType              map[TechHullType][]*TechHull         `json:"-"`
-	enginesByName            map[string]*TechEngine               `json:"-"`
+	Engines                  []TechEngine           `json:"engines"`
+	PlanetaryScanners        []TechPlanetaryScanner `json:"planetaryScanners"`
+	Terraforms               []TechTerraform        `json:"terraforms"`
+	Defenses                 []TechDefense          `json:"defenses"`
+	Planetaries              []TechPlanetary        `json:"planetaries"`
+	HullComponents           []TechHullComponent    `json:"hullComponents"`
+	Hulls                    []TechHull             `json:"hulls,omitempty"`
+	techs                    []*Tech
+	techsByName              map[string]interface{}
+	hullComponentsByName     map[string]*TechHullComponent
+	hullComponentsByCategory map[TechCategory][]TechHullComponent
+	hullComponentsBySlot     map[HullSlotType][]*TechHullComponent
+	hullsByName              map[string]*TechHull
+	hullsByType              map[TechHullType][]*TechHull
+	enginesByName            map[string]*TechEngine
 }
 
 // simple static tech store
@@ -89,6 +88,7 @@ func (store *TechStore) Init() {
 	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
 	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
 	store.hullComponentsByCategory = make(map[TechCategory][]TechHullComponent, len(TechCategories))
+	store.hullComponentsBySlot = make(map[HullSlotType][]*TechHullComponent, len(BasicHullSlotTypes))
 
 	// we have **12** hull types currently, but it's just for performance
 	store.hullsByType = make(map[TechHullType][]*TechHull, len(TechHullTypes))
@@ -117,6 +117,7 @@ func (store *TechStore) Init() {
 		store.enginesByName[name] = tech
 		store.hullComponentsByName[name] = &tech.TechHullComponent
 		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], tech.TechHullComponent)
+		store.hullComponentsBySlot[tech.HullSlotType] = append(store.hullComponentsBySlot[tech.HullSlotType], &tech.TechHullComponent)
 	}
 
 	for i := range store.HullComponents {
@@ -126,6 +127,7 @@ func (store *TechStore) Init() {
 		store.techsByName[name] = tech
 		store.hullComponentsByName[name] = tech
 		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], *tech)
+		store.hullComponentsBySlot[tech.HullSlotType] = append(store.hullComponentsBySlot[tech.HullSlotType], tech)
 	}
 
 	for i := range store.PlanetaryScanners {
@@ -155,6 +157,17 @@ func (store *TechStore) Init() {
 		store.techs = append(store.techs, &tech.Tech)
 		store.techsByName[name] = tech
 	}
+
+	// sort our lists by ranking
+	for _, category := range TechCategories {
+		slices.SortStableFunc(store.hullComponentsByCategory[category], func(a, b TechHullComponent) int { return a.Ranking - b.Ranking })
+	}
+	for _, hst := range BasicHullSlotTypes {
+		slices.SortStableFunc(store.hullComponentsBySlot[hst], func(a, b *TechHullComponent) int { return a.Ranking - b.Ranking })
+	}
+	for _, ht := range TechHullTypes {
+		slices.SortStableFunc(store.hullsByType[ht], func(a, b *TechHull) int { return a.Ranking - b.Ranking })
+	}
 }
 
 // get tech from name
@@ -179,9 +192,7 @@ func (store *TechStore) GetHullComponent(name string) (hullComponent *TechHullCo
 
 // get a list of all hulls for a given TechHullType, sorted by ranking
 func (store *TechStore) GetHullsByType(techHullType TechHullType) (hulls []*TechHull) {
-	h := slices.Clone(store.hullsByType[techHullType])
-	slices.SortStableFunc(h, func(a, b *TechHull) int { return a.Ranking - b.Ranking })
-	return h
+	return slices.Clone(store.hullsByType[techHullType])
 }
 
 // return all techs learned in the last tech level
@@ -197,39 +208,38 @@ func (store *TechStore) GetTechsJustGained(player *Player, field TechField) (tec
 
 // get list of all hull components for the specified category, sorted by ascending ranking
 func (store *TechStore) GetHullComponentsByCategory(category TechCategory) (hullComponents []TechHullComponent) {
-	t := slices.Clone(store.hullComponentsByCategory[category])
-	slices.SortStableFunc(t, func(a, b TechHullComponent) int { return a.Ranking - b.Ranking })
-	return t
+	return slices.Clone(store.hullComponentsByCategory[category])
 }
 
 // get list of all techs for the specified HullSlotType(s) that can be used by a player,
 // sorted by slot type & ranking
 func (store *TechStore) GetHullComponentsByHullSlotType(player *Player, slot HullSlotType, hullName string) (hullComponents []*TechHullComponent) {
-	tracker := map[*TechHullComponent]bool{}
-	parts := map[HullSlotType][]*TechHullComponent{}
-	list := []*TechHullComponent{}
-	for _, hc := range store.HullComponents {
-		// if we have and can use this part, add it to the list
-		if player.HasTech(&hc.Tech) &&
-			!(len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hullName)) &&
-			!(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hullName)) &&
-			hc.HullSlotType&slot != 0 && !tracker[&hc] {
-			tracker[&hc] = true
-			parts[hc.HullSlotType] = append(parts[hc.HullSlotType], &hc)
+
+	for _, hst := range BasicHullSlotTypes {
+		if hst&slot == 0 {
+			continue
+		}
+		for _, hc := range store.hullComponentsBySlot[hst] {
+			// if we have and can use this part, add it to the list
+			if player.HasTech(&hc.Tech) &&
+				!(len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hullName)) &&
+				!(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hullName)) &&
+				hc.HullSlotType&slot != 0 {
+				hullComponents = append(hullComponents, hc)
+			}
 		}
 	}
-	v := maps.Values(parts)
-	slices.SortStableFunc(v, func(a, b []*TechHullComponent) int {
-		return int(a[0].HullSlotType) - int(b[0].HullSlotType)
-		// Since maps.Values returns a slice of slices corresponding to
-		// the TechHullComponents we can use for each HullSlotType,
-		// we can sort them by only checking the first 2 components' slot types
+	slices.SortStableFunc(hullComponents, func(a, b *TechHullComponent) int {
+		// Compare by HullSlotType
+		cmp := a.HullSlotType - b.HullSlotType
+		if cmp != 0 {
+			return int(cmp)
+		}
+		return a.Ranking - b.Ranking
+
 	})
-	for _, l := range v {
-		slices.SortStableFunc(l, func(a, b *TechHullComponent) int { return a.Ranking - b.Ranking })
-		list = append(list, l...)
-	}
-	return list
+
+	return hullComponents
 }
 
 // get the player's best planetary scanner
@@ -2077,12 +2087,12 @@ var SuperFreighter = TechHull{Tech: NewTech("Super Freighter", NewCost(35, 0, 21
 }
 
 var Scout = TechHull{Tech: NewTech("Scout", NewCost(4, 2, 4, 10), TechRequirements{TechLevel: TechLevel{}}, 40, TechCategoryShipHull),
-	Type:         TechHullTypeScout,
+	Type:           TechHullTypeScout,
 	BuiltInScanner: true,
-	Mass:         8,
-	Armor:        20,
-	Initiative:   1,
-	FuelCapacity: 50,
+	Mass:           8,
+	Armor:          20,
+	Initiative:     1,
+	FuelCapacity:   50,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
 		{Position: Vector{1, 0}, Type: HullSlotTypeScanner, Capacity: 1},
@@ -2091,12 +2101,12 @@ var Scout = TechHull{Tech: NewTech("Scout", NewCost(4, 2, 4, 10), TechRequiremen
 }
 
 var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequirements{TechLevel: TechLevel{Construction: 6}}, 60, TechCategoryShipHull),
-	Type:         TechHullTypeFighter,
+	Type:           TechHullTypeFighter,
 	BuiltInScanner: true,
-	Mass:         8,
-	Armor:        45,
-	Initiative:   4,
-	FuelCapacity: 125,
+	Mass:           8,
+	Armor:          45,
+	Initiative:     4,
+	FuelCapacity:   125,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1.5, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
 		{Position: Vector{1.5, 0}, Type: HullSlotTypeScanner, Capacity: 2},
@@ -2106,12 +2116,12 @@ var Frigate = TechHull{Tech: NewTech("Frigate", NewCost(4, 2, 4, 12), TechRequir
 }
 
 var Destroyer = TechHull{Tech: NewTech("Destroyer", NewCost(15, 3, 5, 35), TechRequirements{TechLevel: TechLevel{Construction: 3}}, 50, TechCategoryShipHull),
-	Type:         TechHullTypeFighter,
+	Type:           TechHullTypeFighter,
 	BuiltInScanner: true,
-	Mass:         30,
-	Armor:        200,
-	Initiative:   3,
-	FuelCapacity: 280,
+	Mass:           30,
+	Armor:          200,
+	Initiative:     3,
+	FuelCapacity:   280,
 	Slots: []TechHullSlot{
 		{Position: Vector{-1, 0}, Type: HullSlotTypeEngine, Capacity: 1, Required: true},
 		{Position: Vector{0.5, -1.5}, Type: HullSlotTypeWeapon, Capacity: 1},
