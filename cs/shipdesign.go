@@ -210,7 +210,7 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 				return fmt.Errorf("hull component %q cannot be placed in %s slot", hc, hullSlot.Type)
 			}
 
-			if len(hc.Requirements.HullsAllowed) > 0 && slices.Contains(hc.Requirements.HullsAllowed, hull.Name) {
+			if len(hc.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Requirements.HullsAllowed, hull.Name) {
 				return fmt.Errorf("hull component %q is not usable on hull %s", hc, hull)
 			}
 

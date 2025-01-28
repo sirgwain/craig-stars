@@ -174,6 +174,36 @@ func TestShipDesign_Validate(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid component - player not AR",
+			fields: fields{
+				Name: "Santa Maria",
+				Hull: ColonyShip.Name,
+				Slots: []ShipDesignSlot{
+					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: OrbitalConstructionModule.Name, HullSlotIndex: 2, Quantity: 1},
+				},
+			},
+			args: args{
+				player: NewPlayer(1, NewRace().WithSpec(&rules)),
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid component - player is AR",
+			fields: fields{
+				Name: "Santa Maria",
+				Hull: ColonyShip.Name,
+				Slots: []ShipDesignSlot{
+					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: OrbitalConstructionModule.Name, HullSlotIndex: 2, Quantity: 1},
+				},
+			},
+			args: args{
+				player: NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)),
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1417,7 +1447,7 @@ func BenchmarkDesignShip(b *testing.B) {
 				} else {
 					hull = &UltraStation
 				}
-			default: 
+			default:
 				hull = &Battleship
 			}
 			b.StartTimer()
