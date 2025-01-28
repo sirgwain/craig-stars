@@ -290,7 +290,7 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 			race = race.WithLRT(RS)
 		}
 		player := NewPlayer(1, race.WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-		tc := NewTechComparer(&rules, player)
+		tc := techCompare{&rules, player}
 		design := NewShipDesign(player, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
 		if tt.args.light {
 			design.Purpose = ShipDesignPurposeFreighter
@@ -386,7 +386,7 @@ func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 			if tt.fields.beamShip {
 				design.Purpose = ShipDesignPurposeBeamFighter
 			}
-			got, err := tc.getMostNeededComponent(design, tt.args.hullSlotType, tt.args.qty)
+			got, err := tc.GetMostNeededComponent(design, tt.args.hullSlotType, tt.args.qty)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("techCompare.getMostNeededComponent() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -502,7 +502,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 		player := NewPlayer(1, NewRace())
 		player.Race.Spec.ArmorStrengthFactor = tt.args.armorMulti
 		player.Race.Spec.ShieldStrengthFactor = tt.args.shieldMulti
-		tc := NewTechComparer(&rules, player)
+		tc := techCompare{&rules, player}
 		design := NewShipDesign(player, 1).WithHull("Battleship").WithSpec(&rules, player)
 		design.Spec.Shields = tt.args.shield
 		design.Spec.Armor = tt.args.armor

@@ -1096,7 +1096,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			shouldUseSapper := sapper != nil && // have a sapper to use
 				sapper.Range == weapon.Range && // sapper has at least as much range as our main guns
 				numWeapons > numSappers*3 && // 3:1 gun:sapper ratio
-				tc.compareWeaponPowers(weapon, sapper) // sapper does more damage per hit
+				tc.CompareWeaponPowers(weapon, sapper) // sapper does more damage per hit
 
 			if shouldUseSapper {
 				itemToPlace = sapper
@@ -1134,7 +1134,7 @@ func DesignWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			itemToPlace = shield
 		default:
 			// add whatever we need the most
-			itemToPlace, err = tc.getMostNeededComponent(design, hullSlot.Type, designSlot.Quantity)
+			itemToPlace, err = tc.GetMostNeededComponent(design, hullSlot.Type, designSlot.Quantity)
 			if err != nil {
 				return nil, fmt.Errorf("getMostNeededComponent failed to get parts, error %w", err)
 			}

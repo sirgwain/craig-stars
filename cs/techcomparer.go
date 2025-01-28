@@ -10,11 +10,8 @@ import (
 // TODO: Migrate all old tech getters in TechStore and convert them into comparers
 type TechComparer interface {
 	GetBestComponentWithTag(design *ShipDesign, hullSlotType HullSlotType, qty int, tag TechTag) *TechHullComponent
-	compareFieldsByTag(design *ShipDesign, hc, other *TechHullComponent, qty int, tag TechTag) bool
-	compareStargates(hc, other *TechHullComponent) bool
-	compareWeaponPowers(hc, other *TechHullComponent) bool
-	getMostNeededComponent(design *ShipDesign, hullSlotType HullSlotType, qty int) (*TechHullComponent, error)
-	getWarshipPartBonus(design *ShipDesign, hc *TechHullComponent, qty int) float64
+	CompareWeaponPowers(hc, other *TechHullComponent) bool
+	GetMostNeededComponent(design *ShipDesign, hullSlotType HullSlotType, qty int) (*TechHullComponent, error)
 }
 
 func NewTechComparer(rules *Rules, player *Player) TechComparer {
@@ -120,7 +117,7 @@ func (tc *techCompare) compareFieldsByTag(design *ShipDesign, hc, other *TechHul
 		score = hc.TorpedoJamming
 		otherScore = other.TorpedoJamming
 	case TechTagTorpedo, TechTagCapitalShipMissile, TechTagBeamWeapon, TechTagGatlingGun, TechTagShieldSapper:
-		return tc.compareWeaponPowers(hc, other)
+		return tc.CompareWeaponPowers(hc, other)
 	case TechTagColonyModule:
 		score = 1
 		otherScore = 1
@@ -217,7 +214,7 @@ func (tc *techCompare) compareStargates(hc, other *TechHullComponent) bool {
 
 // compare 2 weapons' estimated damage values
 // and return true if other is better than hc
-func (tc *techCompare) compareWeaponPowers(hc, other *TechHullComponent) bool {
+func (tc *techCompare) CompareWeaponPowers(hc, other *TechHullComponent) bool {
 	rules := tc.rules
 	if hc == nil {
 		return true
@@ -251,7 +248,7 @@ func (tc *techCompare) compareWeaponPowers(hc, other *TechHullComponent) bool {
 }
 
 // get the most needed component for a *warship* design based on relative bonuses of various parts
-func (tc *techCompare) getMostNeededComponent(design *ShipDesign, hst HullSlotType, qty int) (bestTech *TechHullComponent, err error) {
+func (tc *techCompare) GetMostNeededComponent(design *ShipDesign, hst HullSlotType, qty int) (bestTech *TechHullComponent, err error) {
 	// TODO: Add special "design modes" to change part grabbing behavior and allow for multiple "correct designs"
 	rules := tc.rules
 	player := tc.player
