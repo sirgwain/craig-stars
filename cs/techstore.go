@@ -247,7 +247,7 @@ func (store *TechStore) GetBestPlanetaryScanner(player *Player) (bestTech *TechP
 	// needed to prevent AR & co from crashing
 	bestTech = &store.PlanetaryScanners[0]
 	for _, tech := range store.PlanetaryScanners {
-		if !player.HasTech(&tech.Tech) || tech.ScanRange <= 0 {
+		if !player.HasTech(&tech.Tech) {
 			continue
 		}
 
@@ -263,7 +263,7 @@ func (store *TechStore) GetBestDefense(player *Player) (bestTech *TechDefense) {
 	// needed to prevent AR & co from crashing
 	bestTech = &store.Defenses[0]
 	for _, tech := range store.Defenses {
-		if !player.HasTech(&tech.Tech) || tech.DefenseCoverage <= 0 {
+		if !player.HasTech(&tech.Tech) {
 			continue
 		}
 
