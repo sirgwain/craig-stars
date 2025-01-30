@@ -1513,7 +1513,7 @@ func (t *turn) planetProduction() error {
 			}
 			if result.reset {
 				// exciting! planet was reset with a genesis device!
-				planet.randomize(&t.game.Rules)
+				planet.randomize(&t.game.Rules, t.game.StartMode == GameStartModeAccBBS)
 				planet.RandomArtifact = false // no random artifact on genesis device
 				planet.Mines = 0
 				planet.Factories = 0

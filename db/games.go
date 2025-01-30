@@ -26,7 +26,6 @@ type Game struct {
 	ComputerPlayersFormAlliances              bool               `json:"computerPlayersFormAlliances,omitempty"`
 	PublicPlayerScores                        bool               `json:"publicPlayerScores,omitempty"`
 	MaxMinerals                               bool               `json:"maxMinerals,omitempty"`
-	AcceleratedPlay                           bool               `json:"acceleratedPlay,omitempty"`
 	StartMode                                 cs.GameStartMode   `json:"startMode,omitempty"`
 	QuickStartTurns                           int                `json:"quickStartTurns,omitempty"`
 	OpenPlayerSlots                           int                `json:"openPlayerSlots,omitempty"`

@@ -29,11 +29,45 @@ func Test_GenerateUniverse(t *testing.T) {
 		assert.Greater(t, len(universe.Wormholes), 0)
 
 		pmo := universe.GetPlayerMapObjects(player.Num)
-
 		assert.Equal(t, 1, len(pmo.Planets))
 		homeworld := pmo.Planets[0]
 		assert.Equal(t, 25_000, homeworld.population())
 		assert.True(t, homeworld.Spec.HasStarbase)
+	})
+
+	t.Run("Acc BBS Pop Test", func(t *testing.T) {
+		client := NewGamer()
+		game := client.CreateGame(1, *NewGameSettings().WithGameStartMode(GameStartModeAccBBS))
+
+		numPlanets, err := game.Rules.GetNumPlanets(game.Size, game.Density)
+		assert.NoError(t, err)
+
+		hePlayer := client.NewPlayer(1, *NewRace().WithPRT(HE).WithGrowthRate(20).WithSpec(&game.Rules), &game.Rules).WithNum(1)
+		ssPlayer := client.NewPlayer(2, *NewRace().WithPRT(SS).WithLRT(LSP).WithSpec(&game.Rules), &game.Rules).WithNum(2)
+		itPlayer := client.NewPlayer(3, *NewRace().WithPRT(IT).WithGrowthRate(10).WithSpec(&game.Rules), &game.Rules).WithNum(3)
+		sdPlayer := client.NewPlayer(4, *NewRace().WithPRT(SD).WithGrowthRate(1).WithSpec(&game.Rules), &game.Rules).WithNum(4)
+		players := []*Player{hePlayer, ssPlayer, itPlayer, sdPlayer}
+
+		universe, err := client.GenerateUniverse(game, players)
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(universe.Planets), numPlanets)
+
+		popPerPlayerPerPlanet := [][]int{
+			{225_000},        // 40% HE; 9x pop
+			{70_000},         // 15% LSP SS; 2.8x pop
+			{60_000, 30_000}, // 10% IT; 3x pop
+			{30_000},         // 1% SD; 1.2x pop
+		}
+
+		for playerNum := 1; playerNum <= len(players); playerNum++ {
+			planets := universe.getPlanets(playerNum)
+			popPerPlanet := popPerPlayerPerPlanet[playerNum-1]
+			assert.Equal(t, len(popPerPlanet), len(planets))
+			for i, p := range planets {
+				assert.Equal(t, popPerPlanet[i], p.population())
+			}
+		}
 	})
 
 	t.Run("Max Mode", func(t *testing.T) {

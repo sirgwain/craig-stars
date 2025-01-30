@@ -44,7 +44,6 @@ type Game struct {
 	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances,omitempty"`
 	PublicPlayerScores           bool              `json:"publicPlayerScores,omitempty"`
 	MaxMinerals                  bool              `json:"maxMinerals,omitempty"`
-	AcceleratedPlay              bool              `json:"acceleratedPlay,omitempty"`
 	StartMode                    GameStartMode     `json:"startMode,omitempty"`
 	QuickStartTurns              int               `json:"quickStartTurns,omitempty"`
 	OpenPlayerSlots              int               `json:"openPlayerSlots,omitempty"`
@@ -67,7 +66,7 @@ type NewGamePlayer struct {
 	Race           Race              `json:"race,omitempty"`
 }
 
-// The settings for a new game, only used during game setup
+// The settings for a new game, used during game setup
 type GameSettings struct {
 	Name                         string            `json:"name"`
 	Public                       bool              `json:"public"`
@@ -79,7 +78,6 @@ type GameSettings struct {
 	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances"`
 	PublicPlayerScores           bool              `json:"publicPlayerScores"`
 	MaxMinerals                  bool              `json:"maxMinerals"`
-	AcceleratedPlay              bool              `json:"acceleratedPlay,omitempty"`
 	StartMode                    GameStartMode     `json:"startMode"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Players                      []NewGamePlayer   `json:"players,omitempty"`
@@ -160,6 +158,7 @@ type GameStartMode string
 
 const (
 	GameStartModeNormal GameStartMode = ""
+	GameStartModeAccBBS GameStartMode = "AccBBS"
 	GameStartModeMax    GameStartMode = "Max"
 )
 
@@ -327,7 +326,6 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.ComputerPlayersFormAlliances = settings.ComputerPlayersFormAlliances
 	g.PublicPlayerScores = settings.PublicPlayerScores
 	g.MaxMinerals = settings.MaxMinerals
-	g.AcceleratedPlay = settings.AcceleratedPlay
 	g.StartMode = settings.StartMode
 	g.VictoryConditions = settings.VictoryConditions
 

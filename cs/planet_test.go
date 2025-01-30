@@ -319,7 +319,7 @@ func TestPlanet_randomize(t *testing.T) {
 
 			rules := NewRules()
 			rules.random = tt.args.rng
-			got.randomize(&rules)
+			got.randomize(&rules, false)
 
 			if !reflect.DeepEqual(got, &tt.want) {
 				// dump json, but this won't include some fields

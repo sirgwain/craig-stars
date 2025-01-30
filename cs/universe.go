@@ -538,6 +538,7 @@ func (u *Universe) deletePacket(packet *MineralPacket) {
 	u.removeMapObjectAtPosition(packet, packet.Position)
 }
 
+// get all planets for a given player
 func (u *Universe) getPlanets(playerNum int) []*Planet {
 	planets := []*Planet{}
 	for _, planet := range u.Planets {

@@ -231,7 +231,7 @@ func (p *Planet) emptyPlanet() {
 }
 
 // randomize a planet with new hab range, minerals, etc
-func (p *Planet) randomize(rules *Rules) {
+func (p *Planet) randomize(rules *Rules, accBBS bool) {
 	p.reset()
 
 	// From @SuicideJunkie's tests and @edmundmk's previous research, grav and temp are weighted slightly towards
@@ -249,28 +249,38 @@ func (p *Planet) randomize(rules *Rules) {
 	}
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
-	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad)
+	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad, accBBS)
 
 }
 
 // Randomize a planet's mineral concentration within bounds set in Rules
-func randomizeMinerals(rules *Rules, rad int) Mineral {
+func randomizeMinerals(rules *Rules, rad int, accBBS bool) Mineral {
 
 	// These two variables are the shape of the normal distribution
 	// based on comparing it with Stars! output
 	mean := 80.0
 	variance := 20.0
 
-	// These two are the min and max of the minerals to be returned,
-	// They clamp the results
+	// min and max of the minerals to be returned,
+	// clamping the results
 	mMin := rules.MinStartingMineralConcentration
 	mMax := rules.MaxStartingMineralConcentration
 
-	// creates a mineral concentration
+	// create a normalized mineral concentration
 	minConc := Mineral{
 		Ironium:   1 + NormalSample(rules.random, mean, variance, mMax),
 		Boranium:  1 + NormalSample(rules.random, mean, variance, mMax),
 		Germanium: 1 + NormalSample(rules.random, mean, variance, mMax),
+	}
+
+	// add a small amount of minerals for accBBS 
+	if accBBS {
+		for _, minType := range MineralTypes {
+			concAmount := minConc.GetAmount(minType)
+			if concAmount < 40 {
+				minConc.Set(minType, concAmount+5)
+			}
+		}
 	}
 
 	// limit at least one mineral

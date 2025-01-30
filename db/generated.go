@@ -47,7 +47,6 @@ func (c *GameConverter) ConvertGame(source Game) cs.Game {
 	csGame.ComputerPlayersFormAlliances = source.ComputerPlayersFormAlliances
 	csGame.PublicPlayerScores = source.PublicPlayerScores
 	csGame.MaxMinerals = source.MaxMinerals
-	csGame.AcceleratedPlay = source.AcceleratedPlay
 	csGame.StartMode = cs.GameStartMode(source.StartMode)
 	csGame.QuickStartTurns = source.QuickStartTurns
 	csGame.OpenPlayerSlots = source.OpenPlayerSlots
@@ -137,7 +136,6 @@ func (c *GameConverter) ConvertGameGame(source *cs.Game) *Game {
 		dbGame.ComputerPlayersFormAlliances = (*source).ComputerPlayersFormAlliances
 		dbGame.PublicPlayerScores = (*source).PublicPlayerScores
 		dbGame.MaxMinerals = (*source).MaxMinerals
-		dbGame.AcceleratedPlay = (*source).AcceleratedPlay
 		dbGame.StartMode = cs.GameStartMode((*source).StartMode)
 		dbGame.QuickStartTurns = (*source).QuickStartTurns
 		dbGame.OpenPlayerSlots = (*source).OpenPlayerSlots

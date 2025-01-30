@@ -18,8 +18,8 @@ type UniverseGenerator interface {
 // A universe generator, used to generate starting universes for new games.
 type universeGenerator struct {
 	*FullGame
-	area     Vector
-	log      zerolog.Logger
+	area Vector
+	log  zerolog.Logger
 }
 
 func NewUniverseGenerator(game *Game, players []*Player) UniverseGenerator {
@@ -29,7 +29,7 @@ func NewUniverseGenerator(game *Game, players []*Player) UniverseGenerator {
 			Game:    game,
 			Players: players,
 		},
-		log:     genLogger,
+		log: genLogger,
 	}
 }
 
@@ -47,7 +47,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	}
 
 	u := NewUniverse(ug.log, &ug.Rules)
-ug.Universe = &u
+	ug.Universe = &u
 	area, err := ug.Rules.GetArea(ug.Size)
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ ug.Universe = &u
 	ug.applyGameStartModeModifier()
 
 	// setup all the specs for planets, fleets, etc
-	// Normal games only need to compute player specs and whatnot, but max mode games require 
+	// Normal games only need to compute player specs and whatnot, but max mode games require
 	// complete re-computation due to changing techLevels, etc.
 	if ug.StartMode != GameStartModeNormal {
 		ug.computeSpecs()
@@ -154,7 +154,7 @@ func (ug *universeGenerator) generatePlanets() error {
 		planet.Name = names[i]
 		planet.Num = i + 1
 		planet.Position = pos
-		planet.randomize(rules)
+		planet.randomize(rules, ug.StartMode == GameStartModeAccBBS)
 
 		if ug.MaxMinerals {
 			planet.MineralConcentration = Mineral{100, 100, 100}
@@ -326,7 +326,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 
 			if !startingPlanet.Homeworld && homeworld == nil {
-			// TODI: Do we want to support homeworlds in subsequent slots?
+				// TODI: Do we want to support homeworlds in subsequent slots?
 				return fmt.Errorf("first planet in player #%d's startingPlanets was not homeworld, exiting", player.Num)
 			}
 
@@ -398,10 +398,8 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			playerPlanet.initStartingWorld(player, &ug.Rules, startingPlanet, homeworldMinConc, surface)
 			if startingPlanet.Homeworld {
 				ug.assignRaceStartingPointBonuses(player, playerPlanet, extraPoints, pointsType)
-			} else {
-				if !ug.MaxMinerals {
-					playerPlanet.MineralConcentration = randomizeMinerals(rules, playerPlanet.Hab.Rad)
-				}
+			} else if !ug.MaxMinerals {
+				playerPlanet.MineralConcentration = randomizeMinerals(rules, playerPlanet.Hab.Rad, ug.StartMode == GameStartModeAccBBS)
 			}
 
 			// add a starbase to this planet
@@ -463,7 +461,7 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(player *Player, plan
 		}
 	}
 
-	// In the event the player has extra points left over (or selected surface mineral starting point options), 
+	// In the event the player has extra points left over (or selected surface mineral starting point options),
 	// dump them into surface minerals
 	for extraPoints >= pointsThreshold {
 		// example situation: 10 points; HW with 300I, 400B, 350G starting mins
@@ -522,9 +520,30 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 
 func (ug *universeGenerator) applyGameStartModeModifier() {
 	switch ug.StartMode {
+	case GameStartModeAccBBS:
+		ug.applyAccBBS()
 	case GameStartModeMax:
 		ug.maxPlayersAndPlanets()
 		ug.Game.Year += 100 // increase year by 100; ensures that AI immediately starts churning out ships
+	}
+}
+
+func (ug *universeGenerator) applyAccBBS() {
+	for _, planet := range ug.Planets {
+		// only owned planets will have surface mineral deposits or population,
+		// so we can skip unowned ones
+		if !planet.Owned() {
+			continue
+		}
+
+		// 25% extra surface minerals
+		planet.Cargo = planet.Cargo.AddMineral(planet.Cargo.ToMineral().MultiplyFloat64(0.25))
+		
+		// AccBBS adds 20% extra starting pop (+5K for most races)
+		// per 1% of a race's growth rate
+		race := ug.getPlayer(planet.PlayerNum).Race
+		planet.Cargo.Colonists += int(float64(planet.Cargo.Colonists*race.GrowthRate) *
+			race.Spec.GrowthFactor / 5)
 	}
 }
 
