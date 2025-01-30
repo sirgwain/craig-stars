@@ -60,6 +60,39 @@
             "program": "${workspaceFolder}/server/gamerunner_test.go",
             "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
         },
-
+        {
+            "name": "Debug Magefile Target",
+            "type": "go",
+            "request": "launch",
+            "mode": "exec",
+            "cwd": "${workspaceFolder}",
+            "program": "magefiles/magefile-debug",
+            "args": ["${input:mageTarget}"],
+            "preLaunchTask": "Compile Mage debug file",
+            "postDebugTask": "Delete Mage debug file"
+        },
+    ],
+    "inputs": [
+        {
+            "id": "mageTarget",
+            "type": "pickString",
+            "description": "Select Magefile target to debug.",
+            "options": [
+                "run",
+                "test",
+                "images",
+                "build",
+                "build_frontend",
+                "copy_wasm",
+                "build_server",
+                "generate",
+                "launch",
+                "launch_backend",
+                "launch_frontend",
+                "clean",
+                "tidy"
+            ],
+            "default": "run"
+        },
     ]
 }

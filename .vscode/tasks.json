@@ -1,0 +1,27 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "hide": true,
+            "label": "Compile Mage debug file",
+            "type": "shell",
+            "icon": {
+                "id": "debug-console",
+                "color": "terminal.ansiGreen"
+            },
+            "command": "mage -compile ./magefile-debug"
+        },
+        {
+            "hide": true,
+            "label": "Delete Mage debug file",
+            "type": "shell",
+            "icon": {
+                "id": "trash",
+                "color": "terminal.ansiRed"
+            },
+            "command": "rm magefiles/magefile-debug"
+        }
+    ],
+}
