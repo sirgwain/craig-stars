@@ -111,7 +111,7 @@ func (ai *aiPlayer) colonize() error {
 				// don't load more than 100% of the planet cap
 				// TODO: Make this better:
 				// * _Don't_ send colonizers if we don't need them
-				// * Only load up to a preset % of cap (rather than trying to take everything and aborting if we load too much) 
+				// * Only load up to a preset % of cap (rather than trying to take everything and aborting if we load too much)
 				colonistsToLoad := cs.Min(planet.Spec.MaxPopulation/100, fleet.Spec.CargoCapacity)
 
 				// we are over our world, load colonists

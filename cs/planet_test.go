@@ -206,7 +206,7 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Planet{
 				Population: tt.fields.Population,
-				Hab:   tt.fields.Hab,
+				Hab:        tt.fields.Hab,
 			}
 			// 10% growth for easier math
 			tt.args.player.Race.GrowthRate = 10

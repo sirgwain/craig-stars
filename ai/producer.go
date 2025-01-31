@@ -338,9 +338,9 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	}
 	if err != nil {
 		return math.MaxInt, fmt.Errorf("calculate starbase cost %w", err)
-	} 
+	}
 
-	// calculate how long it take to build 
+	// calculate how long it take to build
 	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
 	// log.Debug().
 	// 	Int64("GameID", ai.GameID).

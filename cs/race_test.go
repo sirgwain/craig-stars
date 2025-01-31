@@ -241,7 +241,7 @@ func Test_computeRaceSpec(t *testing.T) {
 				PacketResourceCost:             10,
 				RepairFactor:                   1,
 				ResearchFactor:                 1,
-				ScrapMineralOffsetStarbase:		.8 - (1.0 / 3),
+				ScrapMineralOffsetStarbase:     .8 - (1.0 / 3),
 				ShieldStrengthFactor:           1,
 				ShipsVanishInVoid:              true,
 				StarbaseCostFactor:             1,

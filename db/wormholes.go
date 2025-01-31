@@ -18,7 +18,7 @@ type Wormhole struct {
 	Y                float64              `json:"y,omitempty"`
 	Name             string               `json:"name,omitempty"`
 	Num              int                  `json:"num,omitempty"`
-	Tags             *Tags                 `json:"tags,omitempty"`
+	Tags             *Tags                `json:"tags,omitempty"`
 	DestinationNum   int                  `json:"destinationNum,omitempty"`
 	Stability        cs.WormholeStability `json:"stability,omitempty"`
 	YearsAtStability int                  `json:"yearsAtStability,omitempty"`

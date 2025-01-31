@@ -172,8 +172,8 @@ func (p *Planet) partialPopulation() (partialPop int) {
 	return p.Population % 100
 }
 
-// return Cargo struct containing planet pop & minerals
-func (p *Planet) GetCargo() Cargo {
+// return a Cargo struct containing planet pop & minerals
+func (p *Planet) getCargo() Cargo {
 	return NewCargoFromMineral(p.SurfaceMinerals, p.Population)
 }
 
@@ -725,7 +725,7 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 // mine minerals on this planet
 func (planet *Planet) mine(rules *Rules) {
 	planet.AddMineral(planet.Spec.MiningOutput)
-	planet.MineYears = planet.MineYears.AddInt(planet.Mines)
+	planet.MineYears = planet.MineYears.AddToAll(planet.Mines)
 	planet.reduceMineralConcentration(rules)
 }
 

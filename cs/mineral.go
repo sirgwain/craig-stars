@@ -46,16 +46,16 @@ func (c Mineral) PrettyString() string {
 	return strings.Join(texts, ", ")
 }
 
-func (h *Mineral) Set(mineralType MineralType, value int) *Mineral {
+func (m *Mineral) Set(mineralType MineralType, value int) *Mineral {
 	switch mineralType {
 	case Ironium:
-		h.Ironium = value
+		m.Ironium = value
 	case Boranium:
-		h.Boranium = value
+		m.Boranium = value
 	case Germanium:
-		h.Germanium = value
+		m.Germanium = value
 	}
-	return h
+	return m
 }
 
 func (m Mineral) GetAmount(mineralType MineralType) int {
@@ -111,11 +111,11 @@ func (m Mineral) Add(m2 Mineral) Mineral {
 }
 
 // add an int to all components of the mineral
-func (m Mineral) AddInt(num int) Mineral {
+func (m Mineral) AddToAll(amt int) Mineral {
 	return Mineral{
-		Ironium:   m.Ironium + num,
-		Boranium:  m.Boranium + num,
-		Germanium: m.Germanium + num,
+		Ironium:   m.Ironium + amt,
+		Boranium:  m.Boranium + amt,
+		Germanium: m.Germanium + amt,
 	}
 }
 

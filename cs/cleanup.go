@@ -112,7 +112,7 @@ func (c *cleanup) FixMineralConc(game *FullGame) {
 	rules := NewRules()
 	minMinConc := rules.MinStartingMineralConcentration
 	for _, planet := range game.Planets {
-		
+
 		// homeworlds are fine...
 		if planet.Homeworld {
 			continue

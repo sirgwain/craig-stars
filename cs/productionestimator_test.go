@@ -297,7 +297,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				items: []ProductionQueueItem{
 					{Type: QueueItemTypeAutoFactories, Quantity: 5},
 					{Type: QueueItemTypeAutoMines, Quantity: 5}},
-				population:      2000,
+				population: 2000,
 			},
 			want: []ProductionQueueItem{
 				{

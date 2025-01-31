@@ -137,7 +137,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		planet.grow(player)
 		planet.Spec = computePlanetSpec(rules, player, &planet)
 
-		// if all colonists died off, we can stop producing 
+		// if all colonists died off, we can stop producing
 		// should never happen as pop can never go below 100 from "natural" causes
 		if planet.GetPopulation() <= 0 {
 			log.Logger.Debug().

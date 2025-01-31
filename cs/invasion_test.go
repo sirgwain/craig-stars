@@ -29,9 +29,9 @@ func Test_invadePlanet(t *testing.T) {
 						Name:      "Brin",
 					},
 					Population: 10_000,
-					Mines:     100,
-					Factories: 100,
-					Defenses:  0,
+					Mines:      100,
+					Factories:  100,
+					Defenses:   0,
 				},
 				fleet: &Fleet{
 					MapObject: MapObject{
@@ -44,7 +44,7 @@ func Test_invadePlanet(t *testing.T) {
 				colonistsDropped: 10_000,
 			},
 			want: Planet{
-				MapObject: MapObject{Name: "Brin", PlayerNum: 2},
+				MapObject:  MapObject{Name: "Brin", PlayerNum: 2},
 				Population: 90_000, Mines: 100, Factories: 100,
 				PlanetOrders: PlanetOrders{
 					ProductionQueue:                   defaultPlan.ToQueueItems(),
@@ -61,9 +61,9 @@ func Test_invadePlanet(t *testing.T) {
 						Name:      "Brin",
 					},
 					Population: 1_000_000,
-					Mines:     100,
-					Factories: 100,
-					Defenses:  0,
+					Mines:      100,
+					Factories:  100,
+					Defenses:   0,
 				},
 				fleet: &Fleet{
 					MapObject: MapObject{
@@ -86,9 +86,9 @@ func Test_invadePlanet(t *testing.T) {
 						Name:      "Brin",
 					},
 					Population: 10_000_000,
-					Mines:     100,
-					Factories: 100,
-					Defenses:  1000,
+					Mines:      100,
+					Factories:  100,
+					Defenses:   1000,
 				},
 				fleet: &Fleet{
 					MapObject: MapObject{

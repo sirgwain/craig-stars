@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// A request to transfer cargo and/or fuel between 2 MapObjects
 type CargoTransferRequest struct {
 	Cargo
 	Fuel int `json:"fuel,omitempty"`
@@ -263,11 +264,11 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	}
 
 	sourceCargoInitial := source.Cargo
-	destCargoInitial := dest.GetCargo()
+	destCargoInitial := dest.getCargo()
 
 	// transfer the cargo
 	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
-	dest.AddCargo(transferAmount.Cargo.Negative())
+	dest.addCargo(transferAmount.Cargo.Negative())
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// update this planet and the player's research spec
@@ -283,7 +284,6 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 		}
 
 		// update the player spec with the change in resources for this planet
-		// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
 		player.Spec.PlayerResearchSpec = computePlayerResearchSpec(player, rules, playerPlanets)
 	}
 
@@ -298,14 +298,14 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 		Str("SourceCargoInitial", fmt.Sprintf("%v", sourceCargoInitial)).
 		Str("DestCargoInitial", fmt.Sprintf("%v", destCargoInitial)).
 		Str("SourceCargo", fmt.Sprintf("%v", source.Cargo)).
-		Str("DestCargo", fmt.Sprintf("%v", dest.GetCargo())).
+		Str("DestCargo", fmt.Sprintf("%v", dest.getCargo())).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
 		Msg("transfer planet cargo")
 
 	return nil
 }
 
-// transfer cargo from a planet to/from a mineralPacket
+// transfer cargo from a planet to/from a mineral packet
 func (o *orders) TransferMineralPacketCargo(rules *Rules, player *Player, source *Fleet, dest *MineralPacket, transferAmount CargoTransferRequest) error {
 
 	if transferAmount.Total() == 0 {
@@ -324,9 +324,8 @@ func (o *orders) TransferMineralPacketCargo(rules *Rules, player *Player, source
 		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", source.Name, transferAmount.Negative(), dest.Name)
 	}
 
-	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
-
 	// transfer the cargo
+	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
 	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
 	source.Spec = ComputeFleetSpec(rules, player, source)
 

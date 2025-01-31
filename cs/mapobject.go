@@ -63,7 +63,6 @@ func (mo *MapObject) OwnedBy(num int) bool {
 	return mo.PlayerNum != Unowned && mo.PlayerNum == num
 }
 
-
 func (mo *MapObject) GetTag(key string) string {
 	return mo.Tags[key]
 }

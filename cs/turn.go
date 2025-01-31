@@ -1135,7 +1135,7 @@ func (t *turn) fleetDieoff() {
 			continue
 		}
 
-		// TODO: Figure out how OG stars rounds AR pop deaths and apply it accordingly; 
+		// TODO: Figure out how OG stars rounds AR pop deaths and apply it accordingly;
 		// min 1kT pop death is DEFINITELY not how they did it
 		// Also, pop death should _only_ happen for moving fleets (idle ones or ones stopped by CE don't die)
 		deathFactor := player.Race.Spec.FreighterGrowthFactor
@@ -1989,7 +1989,7 @@ func (t *turn) randomCometStrike() {
 	planet.BaseHab = planet.BaseHab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
 	if planet.Population > 0 {
 		pop := planet.GetPopulation()
-		planet.Population = int(roundToNearest100(float64(pop) * (1 - stats.PopKilledPercent), math.Floor))
+		planet.Population = int(roundToNearest100(float64(pop)*(1-stats.PopKilledPercent), math.Floor))
 		colonistsKilled = pop - planet.GetPopulation()
 	}
 	planet.MarkDirty()

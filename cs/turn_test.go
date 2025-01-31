@@ -1600,8 +1600,8 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	planet2 := &Planet{
 		MapObject:  MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, PlayerNum: friendlyPlayer.Num},
 		Population: 250_000,
-		Hab:     Hab{48, 50, 50},
-		BaseHab: Hab{48, 50, 50},
+		Hab:        Hab{48, 50, 50},
+		BaseHab:    Hab{48, 50, 50},
 	}
 	planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
 	fleet2.OrbitingPlanetNum = planet2.Num

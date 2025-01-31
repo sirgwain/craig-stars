@@ -265,7 +265,7 @@ func Test_production_producePartialFactory(t *testing.T) {
 	producer.produce()
 
 	// We should consume 1kT germanium and allocate appropriate resources to match
-	assert.Equal(t, Cargo{7, 2, 0, 37}, planet.GetCargo())
+	assert.Equal(t, Cargo{7, 2, 0, 37}, planet.getCargo())
 	assert.Equal(t, Cost{Germanium: 3, Resources: 7}, planet.ProductionQueue[0].Allocated)
 
 }

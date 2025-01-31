@@ -1188,8 +1188,8 @@ func TestFleet_transferToDest(t *testing.T) {
 				t.Errorf("Fleet.transferToDest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if *tt.args.dest.getCargo() != tt.wantDestCargo {
-				t.Errorf("Fleet.transferToDest() destCargo = %v, wantDestCargo %v", *tt.args.dest.getCargo(), tt.wantDestCargo)
+			if tt.args.dest.getCargo() != tt.wantDestCargo {
+				t.Errorf("Fleet.transferToDest() destCargo = %v, wantDestCargo %v", tt.args.dest.getCargo(), tt.wantDestCargo)
 			}
 
 			if tt.fleet.Cargo != tt.wantFleetCargo {
