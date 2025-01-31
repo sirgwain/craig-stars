@@ -64,7 +64,9 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	ug.generateAIPlayers()
 	ug.generatePlayerTechLevels()
 	ug.generatePlayerPlans()
-	ug.generatePlayerShipDesigns()
+	if err := ug.generatePlayerShipDesigns(); err != nil {
+		return nil, err
+	}
 	ug.generatePlayerRelations()
 
 	if err := ug.generatePlayerHomeworlds(ug.area); err != nil {
@@ -101,7 +103,9 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	}
 
 	// do one scan run
-	ug.generatePlayerIntel()
+	if err := ug.generatePlayerIntel(); err != nil {
+		return nil, err
+	}
 
 	return &ug.universe, nil
 }
@@ -246,6 +250,9 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 				design, err := DesignShip(&ug.Game.Rules, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
 				if err != nil {
 					return fmt.Errorf("DesignShip returned error %w", err)
+				}
+				if design == nil {
+					return fmt.Errorf("failed to design ship for %s", hull)
 				}
 				player.Designs = append(player.Designs, design)
 				designNames.Add(design.Name)

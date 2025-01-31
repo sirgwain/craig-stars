@@ -214,7 +214,7 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 				return fmt.Errorf("hull component %q is not usable on hull %s", hc, hull)
 			}
 
-			if len(hc.Requirements.HullsDenied) > 0 && !slices.Contains(hc.Requirements.HullsDenied, hull.Name) {
+			if len(hc.Requirements.HullsDenied) > 0 && slices.Contains(hc.Requirements.HullsDenied, hull.Name) {
 				return fmt.Errorf("hull component %q is forbidden on hull %s", hc, hull)
 			}
 
@@ -226,6 +226,8 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 	}
 
 	// check required slots to make sure they're filled properly
+	// above we verify quantity of components in slots, this ensures we don't have
+	// an empty hull or a hull with no engine ShipDesignSlot.
 	for i, hullSlot := range hull.Slots {
 		if hullSlot.Required {
 			found := false
@@ -739,7 +741,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 		// warships & bases get their own separate function for reasons
 		design, err := DesignWarship(rules, hull, name, player, num, hullSetNumber, purpose)
 		if err != nil {
-			return &ShipDesign{}, fmt.Errorf("DesignWarship returned error %w", err)
+			return &ShipDesign{}, err
 		} else {
 			return design, nil
 		}
