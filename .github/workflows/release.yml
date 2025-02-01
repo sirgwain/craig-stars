@@ -83,7 +83,7 @@ jobs:
       - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
 
       # upload the dist folder to github's artifacts
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: dist-artifacts
           path: ./dist/*.tgz
@@ -99,8 +99,9 @@ jobs:
 
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
+          name: dist-artifacts
           path: artifacts
 
       - name: Create release
