@@ -59,7 +59,7 @@
 	let {
 		classes = defaultClasses,
 		columns = [],
-		rows = $bindable([]),
+		rows = [],
 		filterBy = '',
 		externalSortAndFilter = false,
 		head,
@@ -73,33 +73,27 @@
 	/**
 	 * sort rows by a column key
 	 * @param key the column key to sort by
-	 * @param override true to force sort by descending
 	 */
-	function sortRowsBy(key: keyof C, override = false): void {
+	function sortRowsBy(key: keyof C): T[] {
 		const columnData = columns.find((column) => column.key === key);
 		if (!columnData || columnData.sortable === false) {
-			return;
+			return rows;
 		}
-
-		sortDescending = getSortingOrder(key, override);
-		lastSortedKey = key;
 
 		// call column sortBy
 		if (columnData.sortBy) {
 			const sortBy = columnData.sortBy;
-			rows = [...rows].sort((a, b) => {
+			return [...rows].sort((a, b) => {
 				[a, b] = sortDescending ? [a, b] : [b, a];
 				return sortBy(a, b);
 			});
-			return;
 		}
 
 		// sort by content by default
-		rows = [...rows].sort((a, b) => defaultSortBy(a, b, key, sortDescending));
+		return [...rows].sort((a, b) => defaultSortBy(a, b, key, sortDescending));
 	}
 
-	function getSortingOrder(key: keyof C, override = false): boolean {
-		if (override) return sortDescending;
+	function getSortingOrder(key: keyof C): boolean {
 		if (lastSortedKey === key) return !sortDescending;
 		return false;
 	}
@@ -133,7 +127,7 @@
 				return rows;
 			}
 			if (lastSortedKey) {
-				sortRowsBy(lastSortedKey, true);
+				return sortRowsBy(lastSortedKey);
 			}
 			return filterRowsBy(filterBy, rows);
 		})()
@@ -150,7 +144,12 @@
 					<th
 						scope="col"
 						class={assignedClasses.th}
-						onclick={() => !externalSortAndFilter && sortRowsBy(column.key)}
+						onclick={() => {
+							sortDescending = getSortingOrder(lastSortedKey);
+							if (!externalSortAndFilter) {
+								lastSortedKey = column.key;
+							}
+						}}
 					>
 						{#if head}
 							{@render head?.({
