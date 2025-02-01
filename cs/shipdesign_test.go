@@ -1132,7 +1132,7 @@ func TestDesignShip(t *testing.T) {
 	}
 }
 
-func TestDesignWarship(t *testing.T) {
+func Test_designWarship(t *testing.T) {
 	type fields struct {
 		techLevel     TechLevel
 		acquiredParts []Tech
@@ -1336,7 +1336,7 @@ func TestDesignWarship(t *testing.T) {
 			for _, part := range tt.fields.acquiredParts {
 				player.AcquiredTechs[part.Name] = true
 			}
-			got, err := DesignWarship(&rules, tt.args.hull, tt.name, player, 1, 2, tt.args.purpose)
+			got, err := designWarship(&rules, tt.args.hull, tt.name, player, 1, 2, tt.args.purpose)
 			tallyMap := map[string]int{}
 			for _, slot := range got.Slots {
 				tallyMap[slot.HullComponent] += slot.Quantity
@@ -1451,7 +1451,7 @@ func BenchmarkDesignShip(b *testing.B) {
 				hull = &Battleship
 			}
 			b.StartTimer()
-			DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
+			designWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
 		}
 	})
 
@@ -1483,7 +1483,7 @@ func BenchmarkDesignShip(b *testing.B) {
 				hull = &SpaceStation
 			}
 			b.StartTimer()
-			DesignWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
+			designWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
 		}
 	})
 }
