@@ -126,7 +126,7 @@ type RaceSpec struct {
 	CanRemoteMineOwnPlanets          bool                   `json:"canRemoteMineOwnPlanets,omitempty"`
 	InvasionAttackBonus              float64                `json:"invasionAttackBonus,omitempty"`
 	InvasionDefendBonus              float64                `json:"invasionDefendBonus,omitempty"`
-	MovementBonus                    int                    `json:"movementBonus,omitempty"`
+	MovementBonus                    float64                `json:"movementBonus,omitempty"`
 	Instaforming                     bool                   `json:"instaforming,omitempty"`
 	PermaformChance                  float64                `json:"permaformChance,omitempty"`
 	PermaformPopulation              int                    `json:"permaformPopulation,omitempty"`
@@ -163,45 +163,50 @@ type MiniaturizationSpec struct {
 }
 
 type ScannerSpec struct {
-	BuiltInScannerMultiplier int     `json:"builtInScannerMultiplier,omitempty"`
-	NoAdvancedScanners       bool    `json:"noAdvancedScanners,omitempty"`
-	ScanRangeFactor          float64 `json:"scanRangeFactor,omitempty"`
+	BuiltInScanner     BuiltInScanner `json:"builtInScanner,omitempty"`
+	NoAdvancedScanners bool           `json:"noAdvancedScanners,omitempty"`
+	ScanRangeFactor    float64        `json:"scanRangeFactor,omitempty"`
+}
+
+type BuiltInScanner struct {
+	NormalMulti TechLevel `json:"normalMulti,omitempty"`
+	PenMulti    TechLevel `json:"penMulti,omitempty"`
 }
 
 type PRT string
 
 const (
-	/// This is only for tech requirements
+	// The lack of a PRT; only used in tech requirements
 	PRTNone PRT = ""
 
-	/// Hyper Expansion
+	// Hyper Expansion
 	HE PRT = "HE"
 
-	/// Super Stealth
+	// Super Stealth
 	SS PRT = "SS"
 
-	/// Warmonger
+	// Warmonger
 	WM PRT = "WM"
 
-	/// Claim Adjuster
+	// Claim Adjuster
 	CA PRT = "CA"
 
-	/// Inner Strength
+	// Inner Strength
 	IS PRT = "IS"
 
-	/// Space Demolition
+	// Space Demolition
 	SD PRT = "SD"
 
-	/// Packet Physics
+	// Packet Physics
 	PP PRT = "PP"
 
-	/// Interstellar Traveler
+	// Interstellar Traveler
 	IT PRT = "IT"
 
-	/// Alternate Reality
+	// Alternate Reality
 	AR PRT = "AR"
 
-	/// Jack of All Trades
+	// Jack of All Trades
 	JoaT PRT = "JoaT"
 )
 
@@ -218,23 +223,10 @@ var PRTs = [10]PRT{
 	JoaT,
 }
 
-type Bitmask uint32
-
-func (mask Bitmask) countBits() int {
-	count := 0
-
-	for mask > 0 {
-		count += int(mask & 1)
-		mask >>= 1
-	}
-
-	return count
-}
-
 type LRT Bitmask
 
 const (
-	// Only used for TechRequirements
+	// No LRT; only used for tech requirements
 	LRTNone = 0
 
 	// Improved Fuel Efficiency
@@ -594,23 +586,15 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)].clone()
 	spec := RaceSpec{
-		HabCenter:          race.HabCenter(),
-		StartingTechLevels: prtSpec.StartingTechLevels,
-		StartingPlanets:    prtSpec.StartingPlanets,
-		TechCostOffset: TechCostOffset{
-			Engine:           prtSpec.TechCostOffset.Engine,
-			BeamWeapon:       prtSpec.TechCostOffset.BeamWeapon,
-			Torpedo:          prtSpec.TechCostOffset.Torpedo,
-			Bomb:             prtSpec.TechCostOffset.Bomb,
-			PlanetaryDefense: prtSpec.TechCostOffset.PlanetaryDefense,
-			Stargate:         prtSpec.TechCostOffset.Stargate,
-			Terraforming:     prtSpec.TechCostOffset.Terraforming,
-		},
+		HabCenter:           race.HabCenter(),
+		StartingTechLevels:  prtSpec.StartingTechLevels,
+		StartingPlanets:     prtSpec.StartingPlanets,
+		TechCostOffset:      prtSpec.TechCostOffset,
 		MaxPopulationOffset: prtSpec.MaxPopulationOffset,
 		ScannerSpec: ScannerSpec{
 			ScanRangeFactor: 1,
 			// JoaT
-			BuiltInScannerMultiplier: prtSpec.BuiltInScannerMultiplier,
+			BuiltInScanner: prtSpec.BuiltInScanner,
 		},
 		StartingPopulationFactor: 1,
 		ResearchFactor:           1,
@@ -759,12 +743,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.ArmorStrengthFactor += lrtSpec.ArmorStrengthFactorOffset
 
 		// add any racial tech cost offsets together
-		spec.TechCostOffset.Engine += lrtSpec.TechCostOffset.Engine
-		spec.TechCostOffset.BeamWeapon += lrtSpec.TechCostOffset.BeamWeapon
-		spec.TechCostOffset.Torpedo += lrtSpec.TechCostOffset.Torpedo
-		spec.TechCostOffset.Bomb += lrtSpec.TechCostOffset.Bomb
-		spec.TechCostOffset.PlanetaryDefense += lrtSpec.TechCostOffset.PlanetaryDefense
-		spec.TechCostOffset.Terraforming += lrtSpec.TechCostOffset.Terraforming
+		spec.TechCostOffset = spec.TechCostOffset.Add(lrtSpec.TechCostOffset)
 
 		// CE
 		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
@@ -794,11 +773,11 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		QueueItemTypeAutoFactories:          {Germanium: rules.FactoryCostGermanium + factoryGermaniumOffset, Resources: race.FactoryCost},
 		QueueItemTypeMineralAlchemy:         {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
 		QueueItemTypeAutoMineralAlchemy:     {Resources: rules.MineralAlchemyCost + spec.MineralAlchemyCostOffset},
-		QueueItemTypeDefenses:               MultiplyCost(rules.DefenseCost, 1+spec.TechCostOffset.PlanetaryDefense),
-		QueueItemTypeAutoDefenses:           MultiplyCost(rules.DefenseCost, 1+spec.TechCostOffset.PlanetaryDefense),
-		QueueItemTypeTerraformEnvironment:   MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset.Terraforming),
-		QueueItemTypeAutoMaxTerraform:       MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset.Terraforming),
-		QueueItemTypeAutoMinTerraform:       MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset.Terraforming),
+		QueueItemTypeDefenses:               MultiplyCost(rules.DefenseCost, 1+spec.TechCostOffset[TechTagDefense]),
+		QueueItemTypeAutoDefenses:           MultiplyCost(rules.DefenseCost, 1+spec.TechCostOffset[TechTagDefense]),
+		QueueItemTypeTerraformEnvironment:   MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset[TechTagTerraforming]),
+		QueueItemTypeAutoMaxTerraform:       MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset[TechTagTerraforming]),
+		QueueItemTypeAutoMinTerraform:       MultiplyCost(rules.TerraformCost, 1+spec.TechCostOffset[TechTagTerraforming]),
 		QueueItemTypeIroniumMineralPacket:   {Resources: spec.PacketResourceCost, Ironium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeBoraniumMineralPacket:  {Resources: spec.PacketResourceCost, Boranium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
 		QueueItemTypeGermaniumMineralPacket: {Resources: spec.PacketResourceCost, Germanium: int(float64(spec.MineralsPerSingleMineralPacket) * spec.PacketMineralCostFactor)},
@@ -1162,7 +1141,7 @@ func (race *Race) getHabRangePoints() int64 {
 	// varies between the low and high of the hab range for each hab type.  So for a humanoid
 	// it goes (15, 15, 15), (15, 15, 22), (15, 15, 29), etc.   Until it's (85, 85, 85)
 	// During the various loops the TTCorrectionFactor changes to account for the race's ability
-	// to terrform.
+	// to terraform.
 	for loopIndex := 0; loopIndex < 3; loopIndex++ {
 
 		// each main loop gets a different TTCorrectionFactor

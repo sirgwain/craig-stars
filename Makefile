@@ -52,7 +52,7 @@ images:
 	$(call unzip,images.zip);\
 	$(call rm,images.zip)
 
-build: build_frontend tidy vendor generate build_wasm build_server
+build: build_frontend tidy generate build_wasm build_server
 
 build_frontend:
 	cd frontend; npm install; npm run build

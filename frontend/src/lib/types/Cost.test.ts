@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { divide } from './Cost';
 
 describe('cost test', () => {
-	it('divicdes two costs', () => {
+	it('divides two costs', () => {
 		expect(divide({}, {})).toBe(Infinity);
 
 		expect(

@@ -93,8 +93,8 @@
 				<div class="flex flex-col flex-1">
 					<div class="flex flex-row gap-2">
 						<!-- cost -->
-						{#if player}
-							<Cost cost={player.getTechCost(tech)} />
+						{#if player && cs}
+							<Cost cost={cs.techCost(tech)} />
 						{:else}
 							<Cost cost={tech.cost} />
 						{/if}

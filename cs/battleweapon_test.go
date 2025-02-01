@@ -487,7 +487,7 @@ func Test_battleWeaponSlot_getEstimatedTorpedoDamageToTarget(t *testing.T) {
 			want: battleWeaponDamage{shieldDamage: 15, armorDamage: 12},
 		},
 		{
-			name: "4 powerful torpedos but only 2 ships to destroy",
+			name: "4 powerful torpedoes but only 2 ships to destroy",
 			fields: fields{
 				weaponPower:  100,
 				shipQuantity: 2,

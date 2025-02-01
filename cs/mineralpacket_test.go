@@ -292,7 +292,7 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 			args{
 				planetHab: Hab{1, 1, 1},
 				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
-				mass:      Cargo{300, 0, 0, 0},       // terraform grav up to three times
+				mass:      Cargo{300, 0, 0, 0},        // terraform grav up to three times
 				random:    newFloat64Random(0, .3, 0), // 1st check terraforms, second doesn't, third does
 			},
 			Hab{3, 1, 1},
@@ -303,7 +303,7 @@ func TestMineralPacket_checkTerraform(t *testing.T) {
 			args{
 				planetHab: Hab{1, 1, 1},
 				Terraform: &TechTerraform{Ability: 10, HabType: TerraformHabTypeAll},
-				mass:      Cargo{50, 50, 50, 0},          // half a check
+				mass:      Cargo{50, 50, 50, 0},                // half a check
 				random:    newFloat64Random(0.125, .126, .125), // lower than 0.25/2; first terraforms, second doesn't, third does
 			},
 			Hab{2, 1, 2},

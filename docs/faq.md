@@ -8,15 +8,19 @@ You probably aren't running the backend server. Open a new terminal tab and type
 See the [GCC](#gcc) section for info on how to install `go-sqlite3` and `GCC`.
 
 - "When I run `make build`, I get an obscure error about 'executable not found in %PATH%' or 'build target excluding all files in XXX'!"
-What's probably happening is you're trying to generate go files or build the server with the incorrect GOARCH and GOOS settings. Try running `go env -u GOOS GOARCH` to reset them to their defaults and see if the problems persist.
+
+What's probably happening is you're trying to generate go files or build the server with the incorrect GOARCH and GOOS settings. Try running `go env -u GOOS GOARCH` to reset them to their defaults and see if the problem persists.
 
 - "When I boot up the server, all the ships have no icons!"
+
 See [Assets](#assets) for information on how to download art assets.
 
 - "I tried to run `make images`, but the command failed!`
-in the event `make images` fails, you'll have to extract [the images](https://craig-stars.net/images/images.zip) manually and move the image files to `frontend/static/images` yourself.
+
+In the event `make images` fails, you'll have to download & extract [the images](https://craig-stars.net/images/images.zip) manually and move them to `frontend/static/images` yourself.
 
 - "I'm getting some other errors in the command line!"
+
 Consult this ordered checklist of vague general suggestions:
 
 1. Read the error message to try and figure out why it's failing. Make (as it's being used here) effectively just copy-pastes its commands into the terminal one by one (expanding variables here and there), so errors in the terminal can be a symptom of bad or incorrect launch commands.

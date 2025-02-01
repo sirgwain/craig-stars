@@ -389,12 +389,28 @@ func GetBattleRules(o js.Value) cs.BattleRules {
 		return obj
 	}
 	obj.BeamRangeDropoff = getFloat[float64](o.Get("beamRangeDropoff"))
+	obj.BeamBonusCap = getFloat[float64](o.Get("beamBonusCap"))
+	obj.JammerCap = GetJammerCap(o.Get("jammerCap"))
+	obj.JammerMulti = GetJammerCap(o.Get("jammerMulti"))
+	obj.MovementMin = getInt[int](o.Get("movementMin"))
+	obj.MovementMax = getInt[int](o.Get("movementMax"))
+	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
 	obj.NumBattleRounds = getInt[int](o.Get("numBattleRounds"))
+	obj.TorpedoSplashDamage = getFloat[float64](o.Get("torpedoSplashDamage"))
 	return obj
 }
 func SetBattleRules(o js.Value, obj *cs.BattleRules) {
 	o.Set("beamRangeDropoff", obj.BeamRangeDropoff)
+	o.Set("beamBonusCap", obj.BeamBonusCap)
+	o.Set("jammerCap", map[string]any{})
+	SetJammerCap(o.Get("jammerCap"), &obj.JammerCap)
+	o.Set("jammerMulti", map[string]any{})
+	SetJammerCap(o.Get("jammerMulti"), &obj.JammerMulti)
+	o.Set("movementMin", obj.MovementMin)
+	o.Set("movementMax", obj.MovementMax)
+	o.Set("movesToRunAway", obj.MovesToRunAway)
 	o.Set("numBattleRounds", obj.NumBattleRounds)
+	o.Set("torpedoSplashDamage", obj.TorpedoSplashDamage)
 }
 
 func GetBattleTactic(o js.Value) cs.BattleTactic {
@@ -483,6 +499,22 @@ func SetBombingResult(o js.Value, obj *cs.BombingResult) {
 	o.Set("unterraformAmount", map[string]any{})
 	SetHab(o.Get("unterraformAmount"), &obj.UnterraformAmount)
 	o.Set("planetEmptied", obj.PlanetEmptied)
+}
+
+func GetBuiltInScanner(o js.Value) cs.BuiltInScanner {
+	var obj cs.BuiltInScanner
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.NormalMulti = GetTechLevel(o.Get("normalMulti"))
+	obj.PenMulti = GetTechLevel(o.Get("penMulti"))
+	return obj
+}
+func SetBuiltInScanner(o js.Value, obj *cs.BuiltInScanner) {
+	o.Set("normalMulti", map[string]any{})
+	SetTechLevel(o.Get("normalMulti"), &obj.NormalMulti)
+	o.Set("penMulti", map[string]any{})
+	SetTechLevel(o.Get("penMulti"), &obj.PenMulti)
 }
 
 func GetCargo(o js.Value) cs.Cargo {
@@ -1084,6 +1116,16 @@ func SetIntel(o js.Value, obj *cs.Intel) {
 	o.Set("reportAge", obj.ReportAge)
 }
 
+func GetJammerCap(o js.Value) cs.JammerCap {
+	var obj cs.JammerCap
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	return obj
+}
+func SetJammerCap(o js.Value, obj *cs.JammerCap) {
+}
+
 func GetLRT(o js.Value) cs.LRT {
 	var obj cs.LRT
 	if o.IsUndefined() || o.IsNull() {
@@ -1134,8 +1176,11 @@ func SetLRTSpec(o js.Value, obj *cs.LRTSpec) {
 	o.Set("pointCost", obj.PointCost)
 	o.Set("startingTechLevels", map[string]any{})
 	SetTechLevel(o.Get("startingTechLevels"), &obj.StartingTechLevels)
-	o.Set("techCostOffset", map[string]any{})
-	SetTechCostOffset(o.Get("techCostOffset"), &obj.TechCostOffset)
+	techCostOffsetMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.TechCostOffset {
+		techCostOffsetMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("techCostOffset", techCostOffsetMap)
 	o.Set("newTechCostFactorOffset", obj.NewTechCostFactorOffset)
 	o.Set("miniaturizationMax", obj.MiniaturizationMax)
 	o.Set("miniaturizationPerLevel", obj.MiniaturizationPerLevel)
@@ -1727,7 +1772,7 @@ func GetPRTSpec(o js.Value) cs.PRTSpec {
 	obj.CanGateCargo = getBool(o.Get("canGateCargo"))
 	obj.CanDetectStargatePlanets = getBool(o.Get("canDetectStargatePlanets"))
 	obj.ShipsVanishInVoid = getBool(o.Get("shipsVanishInVoid"))
-	obj.BuiltInScannerMultiplier = getInt[int](o.Get("builtInScannerMultiplier"))
+	obj.BuiltInScanner = GetBuiltInScanner(o.Get("builtInScanner"))
 	obj.TechsCostExtraLevel = getInt[int](o.Get("techsCostExtraLevel"))
 	obj.FreighterGrowthFactor = getFloat[float64](o.Get("freighterGrowthFactor"))
 	obj.GrowthFactor = getFloat[float64](o.Get("growthFactor"))
@@ -1748,7 +1793,7 @@ func GetPRTSpec(o js.Value) cs.PRTSpec {
 	obj.CanRemoteMineOwnPlanets = getBool(o.Get("canRemoteMineOwnPlanets"))
 	obj.InvasionAttackBonus = getFloat[float64](o.Get("invasionAttackBonus"))
 	obj.InvasionDefendBonus = getFloat[float64](o.Get("invasionDefendBonus"))
-	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.MovementBonus = getFloat[float64](o.Get("movementBonus"))
 	obj.Instaforming = getBool(o.Get("instaforming"))
 	obj.PermaformChance = getFloat[float64](o.Get("permaformChance"))
 	obj.PermaformPopulation = getInt[int](o.Get("permaformPopulation"))
@@ -1770,8 +1815,11 @@ func SetPRTSpec(o js.Value, obj *cs.PRTSpec) {
 	SetTechLevel(o.Get("startingTechLevels"), &obj.StartingTechLevels)
 	o.Set("startingPlanets", []any{})
 	SetSlice(o.Get("startingPlanets"), obj.StartingPlanets, SetStartingPlanet)
-	o.Set("techCostOffset", map[string]any{})
-	SetTechCostOffset(o.Get("techCostOffset"), &obj.TechCostOffset)
+	techCostOffsetMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.TechCostOffset {
+		techCostOffsetMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("techCostOffset", techCostOffsetMap)
 	o.Set("mineralsPerSingleMineralPacket", obj.MineralsPerSingleMineralPacket)
 	o.Set("mineralsPerMixedMineralPacket", obj.MineralsPerMixedMineralPacket)
 	o.Set("packetResourceCost", obj.PacketResourceCost)
@@ -1788,7 +1836,8 @@ func SetPRTSpec(o js.Value, obj *cs.PRTSpec) {
 	o.Set("canGateCargo", obj.CanGateCargo)
 	o.Set("canDetectStargatePlanets", obj.CanDetectStargatePlanets)
 	o.Set("shipsVanishInVoid", obj.ShipsVanishInVoid)
-	o.Set("builtInScannerMultiplier", obj.BuiltInScannerMultiplier)
+	o.Set("builtInScanner", map[string]any{})
+	SetBuiltInScanner(o.Get("builtInScanner"), &obj.BuiltInScanner)
 	o.Set("techsCostExtraLevel", obj.TechsCostExtraLevel)
 	o.Set("freighterGrowthFactor", obj.FreighterGrowthFactor)
 	o.Set("growthFactor", obj.GrowthFactor)
@@ -2444,6 +2493,7 @@ func GetPlayerResearchSpec(o js.Value) cs.PlayerResearchSpec {
 	obj.ResourcesPerYearResearch = getInt[int](o.Get("resourcesPerYearResearch"))
 	obj.ResourcesPerYearResearchEstimated = getInt[int](o.Get("resourcesPerYearResearchEstimated"))
 	obj.CurrentResearchCost = getInt[int](o.Get("currentResearchCost"))
+	obj.TechsJustGained = GetPointerSlice(o.Get("techsJustGained"), GetTech)
 	return obj
 }
 func SetPlayerResearchSpec(o js.Value, obj *cs.PlayerResearchSpec) {
@@ -2451,6 +2501,8 @@ func SetPlayerResearchSpec(o js.Value, obj *cs.PlayerResearchSpec) {
 	o.Set("resourcesPerYearResearch", obj.ResourcesPerYearResearch)
 	o.Set("resourcesPerYearResearchEstimated", obj.ResourcesPerYearResearchEstimated)
 	o.Set("currentResearchCost", obj.CurrentResearchCost)
+	o.Set("techsJustGained", []any{})
+	SetPointerSlice(o.Get("techsJustGained"), obj.TechsJustGained, SetTech)
 }
 
 func GetPlayerScore(o js.Value) cs.PlayerScore {
@@ -2758,7 +2810,7 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.CanRemoteMineOwnPlanets = getBool(o.Get("canRemoteMineOwnPlanets"))
 	obj.InvasionAttackBonus = getFloat[float64](o.Get("invasionAttackBonus"))
 	obj.InvasionDefendBonus = getFloat[float64](o.Get("invasionDefendBonus"))
-	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.MovementBonus = getFloat[float64](o.Get("movementBonus"))
 	obj.Instaforming = getBool(o.Get("instaforming"))
 	obj.PermaformChance = getFloat[float64](o.Get("permaformChance"))
 	obj.PermaformPopulation = getInt[int](o.Get("permaformPopulation"))
@@ -2804,8 +2856,11 @@ func SetRaceSpec(o js.Value, obj *cs.RaceSpec) {
 	SetTechLevel(o.Get("startingTechLevels"), &obj.StartingTechLevels)
 	o.Set("startingPlanets", []any{})
 	SetSlice(o.Get("startingPlanets"), obj.StartingPlanets, SetStartingPlanet)
-	o.Set("techCostOffset", map[string]any{})
-	SetTechCostOffset(o.Get("techCostOffset"), &obj.TechCostOffset)
+	techCostOffsetMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.TechCostOffset {
+		techCostOffsetMap.Set(fmt.Sprintf("%v", key), value)
+	}
+	o.Set("techCostOffset", techCostOffsetMap)
 	o.Set("mineralsPerSingleMineralPacket", obj.MineralsPerSingleMineralPacket)
 	o.Set("mineralsPerMixedMineralPacket", obj.MineralsPerMixedMineralPacket)
 	o.Set("packetResourceCost", obj.PacketResourceCost)
@@ -2991,7 +3046,6 @@ func GetRules(o js.Value) cs.Rules {
 	obj.MineFieldStatsByType = GetStringMap[map[cs.MineFieldType]cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldStats)
 	obj.MineralDecayFactor = getInt[int](o.Get("mineralDecayFactor"))
 	obj.MinMaxPopulationPercent = getFloat[float64](o.Get("minMaxPopulationPercent"))
-	obj.MovesToRunAway = getInt[int](o.Get("movesToRunAway"))
 	obj.MysteryTraderRules = GetMysteryTraderRules(o.Get("mysteryTraderRules"))
 	obj.PacketDecayRate = GetIntMap[map[int]float64](o.Get("packetDecayRate"), getFloat)
 	obj.PacketMaxOverwarpSpeed = getInt[int](o.Get("packetMaxOverwarpSpeed"))
@@ -3026,8 +3080,8 @@ func GetRules(o js.Value) cs.Rules {
 	obj.SmartDefenseCoverageFactor = getFloat[float64](o.Get("smartDefenseCoverageFactor"))
 	obj.StargateMaxHullMassFactor = getInt[int](o.Get("stargateMaxHullMassFactor"))
 	obj.StargateMaxRangeFactor = getInt[int](o.Get("stargateMaxRangeFactor"))
-	obj.TachyonCloakReduction = getInt[int](o.Get("tachyonCloakReduction"))
-	obj.TachyonMaxCloakReduction = getInt[int](o.Get("tachyonMaxCloakReduction"))
+	obj.TachyonCloakReduction = getFloat[float64](o.Get("tachyonCloakReduction"))
+	obj.TachyonMaxCloakReduction = getFloat[float64](o.Get("tachyonMaxCloakReduction"))
 	obj.TechsID = getInt[int64](o.Get("techsId"))
 	obj.TechTradeChance = getFloat[float64](o.Get("techTradeChance"))
 	obj.TorpedoSplashDamage = getFloat[float64](o.Get("torpedoSplashDamage"))
@@ -3074,7 +3128,6 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	o.Set("mineFieldStatsByType", mineFieldStatsByTypeMap)
 	o.Set("mineralDecayFactor", obj.MineralDecayFactor)
 	o.Set("minMaxPopulationPercent", obj.MinMaxPopulationPercent)
-	o.Set("movesToRunAway", obj.MovesToRunAway)
 	o.Set("mysteryTraderRules", map[string]any{})
 	SetMysteryTraderRules(o.Get("mysteryTraderRules"), &obj.MysteryTraderRules)
 	packetDecayRateMap := js.ValueOf(map[string]any{})
@@ -3189,13 +3242,14 @@ func GetScannerSpec(o js.Value) cs.ScannerSpec {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.BuiltInScannerMultiplier = getInt[int](o.Get("builtInScannerMultiplier"))
+	obj.BuiltInScanner = GetBuiltInScanner(o.Get("builtInScanner"))
 	obj.NoAdvancedScanners = getBool(o.Get("noAdvancedScanners"))
 	obj.ScanRangeFactor = getFloat[float64](o.Get("scanRangeFactor"))
 	return obj
 }
 func SetScannerSpec(o js.Value, obj *cs.ScannerSpec) {
-	o.Set("builtInScannerMultiplier", obj.BuiltInScannerMultiplier)
+	o.Set("builtInScanner", map[string]any{})
+	SetBuiltInScanner(o.Get("builtInScanner"), &obj.BuiltInScanner)
 	o.Set("noAdvancedScanners", obj.NoAdvancedScanners)
 	o.Set("scanRangeFactor", obj.ScanRangeFactor)
 }
@@ -3341,7 +3395,7 @@ func GetShipDesignSpec(o js.Value) cs.ShipDesignSpec {
 	obj.MineSweep = getInt[int](o.Get("mineSweep"))
 	obj.MiningRate = getInt[int](o.Get("miningRate"))
 	obj.Movement = getInt[int](o.Get("movement"))
-	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.MovementBonus = getFloat[float64](o.Get("movementBonus"))
 	obj.MovementFull = getInt[int](o.Get("movementFull"))
 	obj.NumBuilt = getInt[int](o.Get("numBuilt"))
 	obj.NumEngines = getInt[int](o.Get("numEngines"))
@@ -3629,8 +3683,8 @@ func GetTech(o js.Value) cs.Tech {
 	obj.Requirements = GetTechRequirements(o.Get("requirements"))
 	obj.Ranking = getInt[int](o.Get("ranking"))
 	obj.Category = GetTechCategory(o.Get("category"))
-	obj.Origin = string(getString(o.Get("origin")))
-	obj.Tags = GetTags(o.Get("tags"))
+	obj.Origin = GetTechOrigin(o.Get("origin"))
+	obj.Tags = GetTechTags(o.Get("tags"))
 	return obj
 }
 func SetTech(o js.Value, obj *cs.Tech) {
@@ -3641,7 +3695,7 @@ func SetTech(o js.Value, obj *cs.Tech) {
 	SetTechRequirements(o.Get("requirements"), &obj.Requirements)
 	o.Set("ranking", obj.Ranking)
 	o.Set("category", string(obj.Category))
-	o.Set("origin", obj.Origin)
+	o.Set("origin", string(obj.Origin))
 	tagsMap := js.ValueOf(map[string]any{})
 	for key, value := range obj.Tags {
 		tagsMap.Set(fmt.Sprintf("%v", key), value)
@@ -3663,23 +3717,8 @@ func GetTechCostOffset(o js.Value) cs.TechCostOffset {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.Engine = getFloat[float64](o.Get("engine"))
-	obj.BeamWeapon = getFloat[float64](o.Get("beamWeapon"))
-	obj.Torpedo = getFloat[float64](o.Get("torpedo"))
-	obj.Bomb = getFloat[float64](o.Get("bomb"))
-	obj.PlanetaryDefense = getFloat[float64](o.Get("planetaryDefense"))
-	obj.Stargate = getFloat[float64](o.Get("stargate"))
-	obj.Terraforming = getFloat[float64](o.Get("terraforming"))
+	obj = GetStringMap[map[cs.TechTag]float64](o, getFloat)
 	return obj
-}
-func SetTechCostOffset(o js.Value, obj *cs.TechCostOffset) {
-	o.Set("engine", obj.Engine)
-	o.Set("beamWeapon", obj.BeamWeapon)
-	o.Set("torpedo", obj.Torpedo)
-	o.Set("bomb", obj.Bomb)
-	o.Set("planetaryDefense", obj.PlanetaryDefense)
-	o.Set("stargate", obj.Stargate)
-	o.Set("terraforming", obj.Terraforming)
 }
 
 func GetTechDefense(o js.Value) cs.TechDefense {
@@ -3728,6 +3767,7 @@ func GetTechHull(o js.Value) cs.TechHull {
 	obj.Type = GetTechHullType(o.Get("type"))
 	obj.Mass = getInt[int](o.Get("mass"))
 	obj.Armor = getInt[int](o.Get("armor"))
+	obj.Shield = getInt[int](o.Get("shield"))
 	obj.FuelCapacity = getInt[int](o.Get("fuelCapacity"))
 	obj.FuelGeneration = getInt[int](o.Get("fuelGeneration"))
 	obj.CargoCapacity = getInt[int](o.Get("cargoCapacity"))
@@ -3739,13 +3779,13 @@ func GetTechHull(o js.Value) cs.TechHull {
 	obj.SpaceDockSlotSize = GetVector(o.Get("spaceDockSlotSize"))
 	obj.SpaceDockSlotCircle = getBool(o.Get("spaceDockSlotCircle"))
 	obj.MineLayingBonus = getFloat[float64](o.Get("mineLayingBonus"))
-	obj.BuiltInScanner = getBool(o.Get("builtInScanner"))
 	obj.Initiative = getInt[int](o.Get("initiative"))
 	obj.RepairBonus = getFloat[float64](o.Get("repairBonus"))
 	obj.ImmuneToOwnDetonation = getBool(o.Get("immuneToOwnDetonation"))
 	obj.RangeBonus = getInt[int](o.Get("rangeBonus"))
 	obj.Starbase = getBool(o.Get("starbase"))
 	obj.OrbitalConstructionHull = getBool(o.Get("orbitalConstructionHull"))
+	obj.BuiltInScanner = getBool(o.Get("builtInScanner"))
 	obj.DoubleMineEfficiency = getBool(o.Get("doubleMineEfficiency"))
 	obj.MaxPopulation = getInt[int](o.Get("maxPopulation"))
 	obj.InnateScanRangePenFactor = getFloat[float64](o.Get("innateScanRangePenFactor"))
@@ -3757,6 +3797,7 @@ func SetTechHull(o js.Value, obj *cs.TechHull) {
 	o.Set("type", string(obj.Type))
 	o.Set("mass", obj.Mass)
 	o.Set("armor", obj.Armor)
+	o.Set("shield", obj.Shield)
 	o.Set("fuelCapacity", obj.FuelCapacity)
 	o.Set("fuelGeneration", obj.FuelGeneration)
 	o.Set("cargoCapacity", obj.CargoCapacity)
@@ -3772,13 +3813,13 @@ func SetTechHull(o js.Value, obj *cs.TechHull) {
 	SetVector(o.Get("spaceDockSlotSize"), &obj.SpaceDockSlotSize)
 	o.Set("spaceDockSlotCircle", obj.SpaceDockSlotCircle)
 	o.Set("mineLayingBonus", obj.MineLayingBonus)
-	o.Set("builtInScanner", obj.BuiltInScanner)
 	o.Set("initiative", obj.Initiative)
 	o.Set("repairBonus", obj.RepairBonus)
 	o.Set("immuneToOwnDetonation", obj.ImmuneToOwnDetonation)
 	o.Set("rangeBonus", obj.RangeBonus)
 	o.Set("starbase", obj.Starbase)
 	o.Set("orbitalConstructionHull", obj.OrbitalConstructionHull)
+	o.Set("builtInScanner", obj.BuiltInScanner)
 	o.Set("doubleMineEfficiency", obj.DoubleMineEfficiency)
 	o.Set("maxPopulation", obj.MaxPopulation)
 	o.Set("innateScanRangePenFactor", obj.InnateScanRangePenFactor)
@@ -3829,12 +3870,12 @@ func GetTechHullComponent(o js.Value) cs.TechHullComponent {
 	obj.ColonizationModule = getBool(o.Get("colonizationModule"))
 	obj.FuelBonus = getInt[int](o.Get("fuelBonus"))
 	obj.FuelGeneration = getInt[int](o.Get("fuelGeneration"))
-	obj.MovementBonus = getInt[int](o.Get("movementBonus"))
+	obj.MovementBonus = getFloat[float64](o.Get("movementBonus"))
 	obj.OrbitalConstructionModule = getBool(o.Get("orbitalConstructionModule"))
 	obj.Power = getInt[int](o.Get("power"))
 	obj.Range = getInt[int](o.Get("range"))
 	obj.Initiative = getInt[int](o.Get("initiative"))
-	obj.Gattling = getBool(o.Get("gattling"))
+	obj.Gatling = getBool(o.Get("gatling"))
 	obj.HitsAllTargets = getBool(o.Get("hitsAllTargets"))
 	obj.DamageShieldsOnly = getBool(o.Get("damageShieldsOnly"))
 	obj.Accuracy = getInt[int](o.Get("accuracy"))
@@ -3886,7 +3927,7 @@ func SetTechHullComponent(o js.Value, obj *cs.TechHullComponent) {
 	o.Set("power", obj.Power)
 	o.Set("range", obj.Range)
 	o.Set("initiative", obj.Initiative)
-	o.Set("gattling", obj.Gattling)
+	o.Set("gatling", obj.Gatling)
 	o.Set("hitsAllTargets", obj.HitsAllTargets)
 	o.Set("damageShieldsOnly", obj.DamageShieldsOnly)
 	o.Set("accuracy", obj.Accuracy)
@@ -3942,6 +3983,15 @@ func SetTechLevel(o js.Value, obj *cs.TechLevel) {
 	o.Set("construction", obj.Construction)
 	o.Set("electronics", obj.Electronics)
 	o.Set("biotechnology", obj.Biotechnology)
+}
+
+func GetTechOrigin(o js.Value) cs.TechOrigin {
+	var obj cs.TechOrigin
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = cs.TechOrigin(getString(o))
+	return obj
 }
 
 func GetTechPlanetary(o js.Value) cs.TechPlanetary {
@@ -4041,6 +4091,24 @@ func SetTechStore(o js.Value, obj *cs.TechStore) {
 	SetSlice(o.Get("hullComponents"), obj.HullComponents, SetTechHullComponent)
 	o.Set("hulls", []any{})
 	SetSlice(o.Get("hulls"), obj.Hulls, SetTechHull)
+}
+
+func GetTechTag(o js.Value) cs.TechTag {
+	var obj cs.TechTag
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = cs.TechTag(getString(o))
+	return obj
+}
+
+func GetTechTags(o js.Value) cs.TechTags {
+	var obj cs.TechTags
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = GetStringMap[map[cs.TechTag]bool](o, getBool)
+	return obj
 }
 
 func GetTechTerraform(o js.Value) cs.TechTerraform {

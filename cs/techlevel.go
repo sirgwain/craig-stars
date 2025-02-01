@@ -2,7 +2,7 @@ package cs
 
 import "math"
 
-// Represents a TechLevel the player has or a tech requires, or the amount of research spent on each tech level
+// Represents a TechLevel a player has or a tech requires, or the amount of research spent on a tech level
 type TechLevel struct {
 	Energy        int `json:"energy,omitempty"`
 	Weapons       int `json:"weapons,omitempty"`
@@ -12,7 +12,8 @@ type TechLevel struct {
 	Biotechnology int `json:"biotechnology,omitempty"`
 }
 
-// return true if this techlevel has the required techlevels for a requirements
+// return true if tl has the required levels for required
+// (i.e. tl >= required for all fields)
 func (tl TechLevel) HasRequiredLevels(required TechLevel) bool {
 	return tl.Energy >= required.Energy &&
 		tl.Weapons >= required.Weapons &&
@@ -22,19 +23,8 @@ func (tl TechLevel) HasRequiredLevels(required TechLevel) bool {
 		tl.Biotechnology >= required.Biotechnology
 }
 
-// return the minimum tech level
-func (tl TechLevel) Min() int {
-	return Min(
-		tl.Energy,
-		tl.Weapons,
-		tl.Propulsion,
-		tl.Construction,
-		tl.Electronics,
-		tl.Biotechnology)
-}
-
-// return the sum of all tech levels
-func (tl TechLevel) Sum() int {
+// return the total of all tech levels
+func (tl TechLevel) Total() int {
 	return tl.Energy +
 		tl.Weapons +
 		tl.Propulsion +
@@ -43,32 +33,60 @@ func (tl TechLevel) Sum() int {
 		tl.Biotechnology
 }
 
+func (tl TechLevel) ToSlice() [6]int {
+	return [6]int{
+		tl.Energy,
+		tl.Weapons,
+		tl.Propulsion,
+		tl.Construction,
+		tl.Electronics,
+		tl.Biotechnology,
+	}
+}
+
+// return the lowest numerical value in a TechLevel struct, including 0
+//
+// Ties are broken by order of precedence (En>We>Pr>Co>El>Bi)
+func (tl TechLevel) LowestLevel() int {
+	a := tl.ToSlice()
+	return Min(a[:]...)
+}
+
+// return the TechField with the lowest numerical value in a TechLevel struct, including 0
+//
+// Ties are broken by order of precedence (En>We>Pr>Co>El>Bi)
 func (tl TechLevel) Lowest() TechField {
-	lowestField := Energy
-	lowest := math.MaxInt
+	lowest := Energy
+	lowestLevel := math.MaxInt
 	for _, field := range TechFields {
 		level := tl.Get(field)
-		if level < lowest {
-			lowestField = field
-			lowest = level
+		if lowestLevel > level {
+			lowestLevel = level
+			lowest = field
 		}
 	}
-	return lowestField
+
+	return lowest
 }
 
-func (tl TechLevel) LowestNonZero() TechField {
-	lowestField := Energy
-	lowest := math.MaxInt
+// return the lowest positive TechField in a TechLevel struct.
+//
+// Ties are broken by order of precedence (En>We>Pr>Co>El>Bi)
+func (tl TechLevel) LowestPositive() TechField {
+	lowest := Energy
+	lowestLevel := math.MaxInt
 	for _, field := range TechFields {
 		level := tl.Get(field)
-		if level != 0 && level < lowest {
-			lowestField = field
-			lowest = level
+		if lowestLevel > level && level > 0 {
+			lowestLevel = level
+			lowest = field
 		}
 	}
-	return lowestField
+
+	return lowest
 }
 
+// Returns the numerical value of the specified TechField.
 func (tl TechLevel) Get(field TechField) int {
 	switch field {
 	case Energy:
@@ -104,7 +122,7 @@ func (tl *TechLevel) Set(field TechField, level int) {
 	}
 }
 
-// add a tech level to this one
+// add together 2 TechLevels and return the result
 func (tl TechLevel) Add(other TechLevel) TechLevel {
 	return TechLevel{
 		tl.Energy + other.Energy,
@@ -116,26 +134,51 @@ func (tl TechLevel) Add(other TechLevel) TechLevel {
 	}
 }
 
-func (tl TechLevel) Subtract(tl2 TechLevel) TechLevel {
+// deduct the given TechLevel from another TechLevel and return the result
+func (tl TechLevel) Subtract(other TechLevel) TechLevel {
 	return TechLevel{
-		tl.Energy - tl2.Energy,
-		tl.Weapons - tl2.Weapons,
-		tl.Propulsion - tl2.Propulsion,
-		tl.Construction - tl2.Construction,
-		tl.Electronics - tl2.Electronics,
-		tl.Biotechnology - tl2.Biotechnology,
+		tl.Energy - other.Energy,
+		tl.Weapons - other.Weapons,
+		tl.Propulsion - other.Propulsion,
+		tl.Construction - other.Construction,
+		tl.Electronics - other.Electronics,
+		tl.Biotechnology - other.Biotechnology,
 	}
 }
 
-// Return greater of 2 TechLevel structs for all fields separately
-func (tl TechLevel) Max(tl2 TechLevel) TechLevel {
+// Multiply one TechLevel by another field-by-field and return the result
+func (tl TechLevel) Multiply(other TechLevel) TechLevel {
 	return TechLevel{
-		Energy:        Max(tl.Energy, tl2.Energy),
-		Weapons:       Max(tl.Weapons, tl2.Weapons),
-		Propulsion:    Max(tl.Propulsion, tl2.Propulsion),
-		Construction:  Max(tl.Construction, tl2.Construction),
-		Electronics:   Max(tl.Electronics, tl2.Electronics),
-		Biotechnology: Max(tl.Biotechnology, tl2.Biotechnology),
+		tl.Energy * other.Energy,
+		tl.Weapons * other.Weapons,
+		tl.Propulsion * other.Propulsion,
+		tl.Construction * other.Construction,
+		tl.Electronics * other.Electronics,
+		tl.Biotechnology * other.Biotechnology,
+	}
+}
+
+// Return greater of 2 TechLevel structs for all TechFields separately
+func (tl TechLevel) Max(other TechLevel) TechLevel {
+	return TechLevel{
+		Energy:        Max(tl.Energy, other.Energy),
+		Weapons:       Max(tl.Weapons, other.Weapons),
+		Propulsion:    Max(tl.Propulsion, other.Propulsion),
+		Construction:  Max(tl.Construction, other.Construction),
+		Electronics:   Max(tl.Electronics, other.Electronics),
+		Biotechnology: Max(tl.Biotechnology, other.Biotechnology),
+	}
+}
+
+// Return lesser of 2 TechLevel structs for all TechFields separately
+func (tl TechLevel) Min(other TechLevel) TechLevel {
+	return TechLevel{
+		Energy:        Min(tl.Energy, other.Energy),
+		Weapons:       Min(tl.Weapons, other.Weapons),
+		Propulsion:    Min(tl.Propulsion, other.Propulsion),
+		Construction:  Min(tl.Construction, other.Construction),
+		Electronics:   Min(tl.Electronics, other.Electronics),
+		Biotechnology: Min(tl.Biotechnology, other.Biotechnology),
 	}
 }
 
@@ -153,34 +196,35 @@ func (tl TechLevel) MinZero() TechLevel {
 }
 
 // Get the lowest amount of levels tl is above other.
+// This assumes tl is above other in all levels; it's just finding the lowest non-zero field above
 //
-// returns maxInt if other is all 0s
+// Returns maxInt if other is all 0s
 func (tl TechLevel) LevelsAbove(other TechLevel) int {
 	levelsAbove := math.MaxInt
-	if tl.Energy != 0 {
-		levelsAbove = Min(levelsAbove, other.Energy-tl.Energy)
+	if other.Energy > 0 {
+		levelsAbove = Min(levelsAbove, tl.Energy-other.Energy)
 	}
-	if tl.Weapons != 0 {
-		levelsAbove = Min(levelsAbove, other.Weapons-tl.Weapons)
+	if other.Weapons > 0 {
+		levelsAbove = Min(levelsAbove, tl.Weapons-other.Weapons)
 	}
-	if tl.Propulsion != 0 {
-		levelsAbove = Min(levelsAbove, other.Propulsion-tl.Propulsion)
+	if other.Propulsion > 0 {
+		levelsAbove = Min(levelsAbove, tl.Propulsion-other.Propulsion)
 	}
-	if tl.Construction != 0 {
-		levelsAbove = Min(levelsAbove, other.Construction-tl.Construction)
+	if other.Construction > 0 {
+		levelsAbove = Min(levelsAbove, tl.Construction-other.Construction)
 	}
-	if tl.Electronics != 0 {
-		levelsAbove = Min(levelsAbove, other.Electronics-tl.Electronics)
+	if other.Electronics > 0 {
+		levelsAbove = Min(levelsAbove, tl.Electronics-other.Electronics)
 	}
-	if tl.Biotechnology != 0 {
-		levelsAbove = Min(levelsAbove, other.Biotechnology-tl.Biotechnology)
+	if other.Biotechnology > 0 {
+		levelsAbove = Min(levelsAbove, tl.Biotechnology-other.Biotechnology)
 	}
+
 	return levelsAbove
 }
 
-// LevelsAboveField returns the levels we are above a tech in a given field, or MaxInt if the field requirement is 0
+// Return the number of levels other is above tl in the given field.
 func (tl TechLevel) LevelsAboveField(other TechLevel, field TechField) int {
-
 	switch field {
 	case Energy:
 		return other.Energy - tl.Energy
@@ -194,10 +238,8 @@ func (tl TechLevel) LevelsAboveField(other TechLevel, field TechField) int {
 		return other.Electronics - tl.Electronics
 	case Biotechnology:
 		return other.Biotechnology - tl.Biotechnology
-	default:
-		return 0
 	}
-
+	return math.MaxInt
 }
 
 // get all the learnable tech fields for a player
@@ -213,5 +255,5 @@ func (tl TechLevel) LearnableTechFields(rules *Rules) []TechField {
 
 // get the lowest field missing from tl for a requirement
 func (tl TechLevel) LowestMissingLevel(requirement TechLevel) TechField {
-	return requirement.Subtract(tl).MinZero().LowestNonZero()
+	return requirement.Subtract(tl).LowestPositive()
 }

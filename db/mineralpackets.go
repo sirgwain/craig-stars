@@ -18,7 +18,7 @@ type MineralPacket struct {
 	Name            string    `json:"name,omitempty"`
 	Num             int       `json:"num,omitempty"`
 	PlayerNum       int       `json:"playerNum,omitempty"`
-	Tags            *Tags      `json:"tags,omitempty"`
+	Tags            *Tags     `json:"tags,omitempty"`
 	TargetPlanetNum int       `json:"targetPlanetNum,omitempty"`
 	Ironium         int       `json:"ironium,omitempty"`
 	Boranium        int       `json:"boranium,omitempty"`

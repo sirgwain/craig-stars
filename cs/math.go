@@ -6,36 +6,46 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// population is often updated with floating point math, but we have to convert
-// it back to Colonist Cargo values, which are stored in units of 100 colonists per 1kT of Colonist Cargo
+// Round a number (int or float) to the nearest multiple of 100 and return the resulting integer.
+//
+// Typically used to convert floating-point population values back into colonist Cargo values,
+// which are stored in discrete units of 100 colonists/1kT.
 func roundToNearest100[T int | float64](value T) int {
 	return int(math.Round(float64(value)/100) * 100)
 }
 
+// Round a float to the given precision value using math.Round()
 func roundFloat(val float64, precision uint) float64 {
 	ratio := math.Pow(10, float64(precision))
 	return math.Round(val*ratio) / ratio
 }
 
-// round a float to nearest whole number, rounding halves down
-func roundHalfDown(x float64) float64 {
-	if x > 0 {
-		return math.Floor(x + 0.5)
+// Round a float to the nearest whole number, rounding halves towards 0.
+// (This is distinct from math.Round() which rounds numbers *away* from 0.)
+func roundHalfTowards0(x float64) float64 {
+	// implementation taken from a comment found in Golang's math.Round() source code. Thanks, golang devs!
+	t := math.Trunc(x)
+	if Abs(x-t) > 0.5 {
+		return t + math.Copysign(1, x)
 	}
-	return math.Ceil(x - 0.5)
+	return t
 }
 
+// Clamps value between min and max and returns the result.
+// Equivalent to
+//
+//	Min(min, Max(value, max))
 func Clamp[T constraints.Ordered](value, min, max T) T {
 	if value < min {
 		return min
-	} else {
-		if value > max {
-			return max
-		}
+	} else if value > max {
+		return max
 	}
 	return value
 }
 
+// Returns the highest among a collection of similarly typed ordered values.
+// Panics if given no arguments.
 func Max[T constraints.Ordered](nums ...T) T {
 	if len(nums) == 0 {
 		panic("Max called with no arguments")
@@ -51,6 +61,8 @@ func Max[T constraints.Ordered](nums ...T) T {
 	return result
 }
 
+// Returns the lowest among a collection of similarly typed ordered values.
+// Panics if given no arguments.
 func Min[T constraints.Ordered](nums ...T) T {
 	if len(nums) == 0 {
 		panic("Min called with no arguments")
@@ -66,7 +78,30 @@ func Min[T constraints.Ordered](nums ...T) T {
 	return result
 }
 
-func Abs[T int](num T) T {
+// Raise an integer to the power of another integer and return the result.
+//
+// Does not support negative exponents (we *are* dealing with integers here after all)
+func PowInt[I constraints.Integer](base, exponent I) I {
+	var result I = 1
+	// According to internet, this is the fastest way to do int exponentiation - by squaring
+	for exponent != 0 {
+		if exponent&1 == 1 {
+			result *= base
+		}
+		exponent >>= 1
+		base *= base
+	}
+
+	return result
+}
+
+// Abs returns the absolute value (unsigned portion) of a given number.
+//
+// Special cases:
+//
+//	Abs(±Inf) = +Inf
+//	Abs(NaN) = NaN
+func Abs[T number](num T) T {
 	if num < 0 {
 		return -num
 	}
