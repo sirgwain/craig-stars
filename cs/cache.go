@@ -23,4 +23,3 @@ func (c *cache[K, V]) get(key K) V {
 		return val
 	}
 }
-

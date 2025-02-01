@@ -779,7 +779,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 		}
 	}
 
-	hullSlotsByFlexibility := map[int][]int{}        // lists all the hull slots in our ship sorted by flexibility
+	hullSlotsByFlexibility := map[int][]int{}         // lists all the hull slots in our ship sorted by flexibility
 	partCachesBySlot := map[HullSlotType]*partCache{} // represents if we've already checked this hull slot type
 	engine := techStore.GetBestEngine(player, hull, fleetPurpose)
 
@@ -1012,7 +1012,7 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		// so increasing the min weapon count helps add much needed firepower
 	}
 	partCachesBySlot := map[HullSlotType]*partCache{} // represents if we've already checked this hull slot type
-	var engineSlots = []int{}                        // contains all our engine slots
+	var engineSlots = []int{}                         // contains all our engine slots
 	var numEngines int
 
 	// Priorities for slot filling;

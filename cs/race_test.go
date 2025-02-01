@@ -102,7 +102,7 @@ func Test_computeRaceSpec(t *testing.T) {
 				ScannerSpec: ScannerSpec{
 					BuiltInScanner: BuiltInScanner{
 						NormalMulti: TechLevel{Electronics: 20},
-						PenMulti: TechLevel{Electronics: 10},
+						PenMulti:    TechLevel{Electronics: 10},
 					},
 					ScanRangeFactor: 1,
 				},
@@ -203,7 +203,7 @@ func Test_computeRaceSpec(t *testing.T) {
 				ScannerSpec: ScannerSpec{
 					BuiltInScanner: BuiltInScanner{
 						NormalMulti: TechLevel{Electronics: 20},
-						PenMulti: TechLevel{Electronics: 10},
+						PenMulti:    TechLevel{Electronics: 10},
 					},
 					ScanRangeFactor: 1,
 				},
