@@ -145,6 +145,7 @@ export type PlayerSpec = {
 	resourcesPerYearResearch?: number;
 	resourcesPerYearResearchEstimated?: number;
 	currentResearchCost?: number;
+	techsJustGained?: Tech[];
 };
 
 export type PlayerIntel = {
