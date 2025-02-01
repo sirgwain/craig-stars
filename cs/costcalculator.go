@@ -11,6 +11,7 @@ type CostCalculator interface {
 	StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error)
 	CostOfOne(player *Player, item ProductionQueueItem) (Cost, error)
 	GetDesignCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (Cost, error)
+	GetTechCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, tech Tech) Cost
 }
 
 func NewCostCalculator() CostCalculator {
@@ -39,6 +40,11 @@ func GetCostEfficiencyRatio[T number](numerator, denominator cost[T], costTypes 
 		otherTally += denominator.GetAmount(ct)
 	}
 	return float64(hcTally) / float64(otherTally)
+}
+
+// GetTechCost is an exported method to get a player's cost for a tech, used by wasm
+func (c *costCalculate) GetTechCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, tech Tech) Cost {
+	return getPlayerCost(tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).ToCost()
 }
 
 // Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers

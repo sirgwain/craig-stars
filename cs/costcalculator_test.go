@@ -17,6 +17,16 @@ func Test_getPlayerCost(t *testing.T) {
 		want Cost
 	}{
 		{
+			name: "Humanoid Tritanium",
+			args: args{
+				tech:                Tritanium.Tech,
+				techLevels:          TechLevel{3, 3, 3, 3, 3, 3},
+				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
+				costOffset:          TechCostOffset{},
+			},
+			want: Cost{4, 0, 0, 9},
+		},
+		{
 			name: "Normal Fuel Mizer",
 			args: args{
 				tech:                FuelMizer.Tech,
