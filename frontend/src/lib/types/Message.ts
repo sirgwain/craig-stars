@@ -10,7 +10,7 @@ import type { MineralPacketDamage } from './MineralPacket';
 import type { MysteryTraderReward } from './MysteryTrader';
 import type { PlayerSettings } from './PlayerSettings';
 import type { QueueItemType } from './QueueItemType';
-import type { TechField, TechLevel } from './TechLevel';
+import type { TechField } from './TechLevel';
 
 export type Message = {
 	type: MessageType;
@@ -199,6 +199,8 @@ export enum MessageType {
 	MysteryTraderMetWithoutReward,
 	MysteryTraderAlreadyRewarded,
 	PlanetBuiltGensisDevice,
+	PlayerAcquirablePartGainedScrapFleet,
+	PlayerAcquirablePartGainedBattle,
 	FleetStealCargoNotAllowed,
 	FleetStealCargoNotComplete
 }

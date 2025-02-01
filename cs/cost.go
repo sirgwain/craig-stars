@@ -3,14 +3,30 @@ package cs
 import (
 	"fmt"
 	"math"
+	"slices"
+
+	"golang.org/x/exp/constraints"
 )
 
-// A Cost represents minerals and resources required to build something, i.e. a mine, factory, or ship
-type Cost struct {
-	Ironium   int `json:"ironium,omitempty"`
-	Boranium  int `json:"boranium,omitempty"`
-	Germanium int `json:"germanium,omitempty"`
-	Resources int `json:"resources,omitempty"`
+// A Cost represents minerals and resources required to build something, like a mine, factory, or ship
+// These are by default integers, but sometimes need to be treated as floats for applying
+// discounts and miniaturization
+type cost[T number] struct {
+	Ironium   T `json:"ironium,omitempty"`
+	Boranium  T `json:"boranium,omitempty"`
+	Germanium T `json:"germanium,omitempty"`
+	Resources T `json:"resources,omitempty"`
+}
+
+// An integer cost, used for most outwards-facing cost-related operations.
+type Cost = cost[int]
+
+// A floating point cost, used within internal calculations for determining unit rates.
+type CostFloat64 = cost[float64]
+
+// An integer or floating point value.
+type number interface {
+	constraints.Integer | constraints.Float
 }
 
 type CostType = ResourceType
@@ -22,16 +38,79 @@ var CostTypes = [4]CostType{
 	Resources,
 }
 
-func NewCost(
-	ironium int,
-	boranium int,
-	germanium int,
-	resources int,
-) Cost {
-	return Cost{ironium, boranium, germanium, resources}
+func NewCost[T number](ironium, boranium, germanium, resources T) cost[T] {
+	return cost[T]{
+		Ironium:   ironium,
+		Boranium:  boranium,
+		Germanium: germanium,
+		Resources: resources,
+	}
 }
 
-func (c Cost) GetAmount(costType CostType) int {
+func FromMineral[T number](c Mineral) cost[T] {
+	return cost[T]{
+		Ironium:   T(c.Ironium),
+		Boranium:  T(c.Boranium),
+		Germanium: T(c.Germanium),
+	}
+}
+
+func FromMineralAndResources(m Mineral, resources int) Cost {
+	return Cost{
+		Ironium:   m.Ironium,
+		Boranium:  m.Boranium,
+		Germanium: m.Germanium,
+		Resources: resources,
+	}
+}
+
+// return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc).
+// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc).
+//
+// Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
+//
+// panics if ranking is 0 or if abs(ranking) is greater than 4
+func (c cost[T]) HighestType(ranking int) CostType {
+	if ranking == 0 || Abs(ranking) > 4 {
+		panic(fmt.Sprintf("HighestType called with incorrect ranking %d; must be non-zero integer between -4 and 4", ranking))
+	}
+	return c.GetTypeFromAmount(c.HighestAmount(ranking))
+}
+
+// return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc).
+// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc).
+//
+// panics if ranking is 0 or if abs(ranking) is greater than 4
+func (c cost[T]) HighestAmount(ranking int) T {
+	if ranking == 0 || Abs(ranking) > 4 {
+		panic(fmt.Sprintf("HighestAmount called with incorrect ranking %d; must be non-zero integer between -4 and 4", ranking))
+	}
+	a := c.ToSlice()
+	slices.Sort(a[:])
+	if ranking > 0 {
+		return a[4-ranking] // Slice is ordered in ascending order, so biggest values will be at the end
+	} else {
+		return a[-ranking-1] // negative indices count from the start (lowest first)
+	}
+}
+
+// return the first valid CostType in a Cost struct with the given numerical value;
+// panics if no CostType with the corresponding value exists
+func (c cost[T]) GetTypeFromAmount(amt T) CostType {
+	switch amt {
+	case c.Ironium:
+		return Ironium
+	case c.Germanium:
+		return Germanium
+	case c.Boranium:
+		return Boranium
+	case c.Resources:
+		return Resources
+	}
+	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding costType was found in cost struct; Struct values:\n%#v", amt, c))
+}
+
+func (c cost[T]) GetAmount(costType CostType) T {
 	switch costType {
 	case Ironium:
 		return c.Ironium
@@ -45,7 +124,81 @@ func (c Cost) GetAmount(costType CostType) int {
 	panic(fmt.Sprintf("GetAmount called with invalid CostType %s", costType))
 }
 
-func (c Cost) AddInt(costType CostType, amount int) Cost {
+func (c cost[T]) Set(costType CostType, amt T) cost[T] {
+	switch costType {
+	case Ironium:
+		c.Ironium = amt
+	case Boranium:
+		c.Boranium = amt
+	case Germanium:
+		c.Germanium = amt
+	case Resources:
+		c.Resources = amt
+	default:
+		panic(fmt.Sprintf("SetAmount called with invalid CostType %s", costType))
+	}
+	return c
+}
+
+func (c cost[T]) ToCargo() Cargo {
+	return Cargo{
+		Ironium:   int(c.Ironium),
+		Boranium:  int(c.Boranium),
+		Germanium: int(c.Germanium),
+	}
+}
+
+func (c cost[T]) ToMineral() Mineral {
+	return Mineral{
+		Ironium:   int(c.Ironium),
+		Boranium:  int(c.Boranium),
+		Germanium: int(c.Germanium),
+	}
+}
+
+func (c cost[T]) ToSlice() [4]T {
+	return [4]T{
+		c.Ironium,
+		c.Boranium,
+		c.Germanium,
+		c.Resources,
+	}
+}
+
+// convert an int cost into a costFloat64 struct for use in calculations.
+func (c cost[T]) ToCostFloat64() CostFloat64 {
+	return CostFloat64{
+		Ironium:   float64(c.Ironium),
+		Boranium:  float64(c.Boranium),
+		Germanium: float64(c.Germanium),
+		Resources: float64(c.Resources),
+	}
+}
+
+// Convert a floating point cost into an integer cost.
+func (c cost[T]) ToCost() Cost {
+	return Cost{
+		Ironium:   int(c.Ironium),
+		Boranium:  int(c.Boranium),
+		Germanium: int(c.Germanium),
+		Resources: int(c.Resources),
+	}
+}
+
+func (c cost[T]) Total() T {
+	return c.Ironium + c.Boranium + c.Germanium + c.Resources
+}
+
+func (c cost[T]) Add(other cost[T]) cost[T] {
+	return cost[T]{
+		Ironium:   c.Ironium + other.Ironium,
+		Boranium:  c.Boranium + other.Boranium,
+		Germanium: c.Germanium + other.Germanium,
+		Resources: c.Resources + other.Resources,
+	}
+}
+
+func (c cost[T]) AddNum(costType CostType, amount T) cost[T] {
 	switch costType {
 	case Ironium:
 		c.Ironium += amount
@@ -56,67 +209,22 @@ func (c Cost) AddInt(costType CostType, amount int) Cost {
 	case Resources:
 		c.Resources += amount
 	default:
-		panic(fmt.Sprintf("AddInt called with invalid CostType %s", costType))
+		panic(fmt.Sprintf("AddNum called with invalid CostType %s", costType))
 	}
 	return c
 }
-func FromMineralAndResources(m Mineral, resources int) Cost {
-	return Cost{
-		Ironium:   m.Ironium,
-		Boranium:  m.Boranium,
-		Germanium: m.Germanium,
-		Resources: resources,
-	}
-}
 
-func FromMineral(m Mineral) Cost {
-	return Cost{
-		Ironium:   m.Ironium,
-		Boranium:  m.Boranium,
-		Germanium: m.Germanium,
-	}
-}
-
-func (c Cost) ToCargo() Cargo {
-	return Cargo{
-		Ironium:   c.Ironium,
-		Boranium:  c.Boranium,
-		Germanium: c.Germanium,
-	}
-}
-
-func (c Cost) ToMineral() Mineral {
-	return Mineral{
-		Ironium:   c.Ironium,
-		Boranium:  c.Boranium,
-		Germanium: c.Germanium,
-	}
-}
-
-func (c Cost) Total() int {
-	return c.Ironium + c.Boranium + c.Germanium + c.Resources
-}
-
-func (c Cost) Add(other Cost) Cost {
-	return Cost{
-		Ironium:   c.Ironium + other.Ironium,
-		Boranium:  c.Boranium + other.Boranium,
-		Germanium: c.Germanium + other.Germanium,
-		Resources: c.Resources + other.Resources,
-	}
-}
-
-func (c Cost) AddCargoMinerals(other Cargo) Cost {
-	return Cost{
-		Ironium:   c.Ironium + other.Ironium,
-		Boranium:  c.Boranium + other.Boranium,
-		Germanium: c.Germanium + other.Germanium,
+func (c cost[T]) AddMineral(other Mineral) cost[T] {
+	return cost[T]{
+		Ironium:   c.Ironium + T(other.Ironium),
+		Boranium:  c.Boranium + T(other.Boranium),
+		Germanium: c.Germanium + T(other.Germanium),
 		Resources: c.Resources,
 	}
 }
 
-func (c Cost) Subtract(other Cost) Cost {
-	return Cost{
+func (c cost[T]) Subtract(other cost[T]) cost[T] {
+	return cost[T]{
 		Ironium:   c.Ironium - other.Ironium,
 		Boranium:  c.Boranium - other.Boranium,
 		Germanium: c.Germanium - other.Germanium,
@@ -124,177 +232,93 @@ func (c Cost) Subtract(other Cost) Cost {
 	}
 }
 
-func (c Cost) SubtractMineral(other Mineral) Cost {
-	return Cost{
-		Ironium:   c.Ironium - other.Ironium,
-		Boranium:  c.Boranium - other.Boranium,
-		Germanium: c.Germanium - other.Germanium,
+func (c cost[T]) SubtractMineral(other Mineral) cost[T] {
+	return cost[T]{
+		Ironium:   c.Ironium - T(other.Ironium),
+		Boranium:  c.Boranium - T(other.Boranium),
+		Germanium: c.Germanium - T(other.Germanium),
 		Resources: c.Resources,
 	}
 }
 
-func (c Cost) MultiplyInt(factor int) Cost {
-	return Cost{
-		Ironium:   c.Ironium * factor,
-		Boranium:  c.Boranium * factor,
-		Germanium: c.Germanium * factor,
-		Resources: c.Resources * factor,
+// Multiply a cost by an int or float and return the result
+func MultiplyCost[T number, F int | float64](c cost[T], factor F) cost[T] {
+	return cost[T]{
+		Ironium:   T(float64(c.Ironium) * float64(factor)),
+		Boranium:  T(float64(c.Boranium) * float64(factor)),
+		Germanium: T(float64(c.Germanium) * float64(factor)),
+		Resources: T(float64(c.Resources) * float64(factor)),
 	}
 }
 
-func (c Cost) MultiplyFloat64(factor float64) Cost {
-	return Cost{
-		Ironium:   int(float64(c.Ironium) * factor),
-		Boranium:  int(float64(c.Boranium) * factor),
-		Germanium: int(float64(c.Germanium) * factor),
-		Resources: int(float64(c.Resources) * factor),
+// Multiply a cost by another cost and return the resulting Cost struct.
+//
+// For multiplying a cost by an integer, use [MultiplyCost] instead
+func MultiplyByCost[T, F number](c cost[T], other cost[F]) (result cost[T]) {
+	return cost[T]{
+		Ironium:   T(float64(c.Ironium) * float64(other.Ironium)),
+		Boranium:  T(float64(c.Boranium) * float64(other.Boranium)),
+		Germanium: T(float64(c.Germanium) * float64(other.Germanium)),
+		Resources: T(float64(c.Resources) * float64(other.Resources)),
 	}
 }
 
-func (a Cost) Divide(b Cost) float64 {
-	var newIronium float64
-	if b.Ironium == 0 {
-		newIronium = math.Inf(1)
-	} else {
-		newIronium = float64(a.Ironium) / float64(b.Ironium)
+// divide a cost by another cost
+// and return how many times divisor can go into dividend
+// as a float64
+func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
+	quotient := CostFloat64{}
+	for _, ct := range CostTypes {
+		if divisor.GetAmount(ct) == 0 {
+			quotient = quotient.Set(ct, float64(math.Inf(1)))
+		} else {
+			quotient = quotient.Set(ct, float64(dividend.GetAmount(ct))/float64(divisor.GetAmount(ct)))
+		}
 	}
 
-	var newBoranium float64
-	if b.Boranium == 0 {
-		newBoranium = math.Inf(1)
-	} else {
-		newBoranium = float64(a.Boranium) / float64(b.Boranium)
-	}
-
-	var newGermanium float64
-	if b.Germanium == 0 {
-		newGermanium = math.Inf(1)
-	} else {
-		newGermanium = float64(a.Germanium) / float64(b.Germanium)
-	}
-
-	var newResources float64
-	if b.Resources == 0 {
-		newResources = math.Inf(1)
-	} else {
-		newResources = float64(a.Resources) / float64(b.Resources)
-	}
-
-	return math.Min(newResources, math.Min(newIronium, math.Min(newBoranium, newGermanium)))
+	return quotient.MinAmount()
 }
 
-// divide a cost by a mineral. This will tell us if we have enough minerals to build some item
-func (a Cost) DivideByMineral(b Mineral) float64 {
-	var newIronium float64
-	if b.Ironium == 0 {
-		newIronium = math.Inf(1)
-	} else {
-		newIronium = float64(a.Ironium) / float64(b.Ironium)
-	}
-
-	var newBoranium float64
-	if b.Boranium == 0 {
-		newBoranium = math.Inf(1)
-	} else {
-		newBoranium = float64(a.Boranium) / float64(b.Boranium)
-	}
-
-	var newGermanium float64
-	if b.Germanium == 0 {
-		newGermanium = math.Inf(1)
-	} else {
-		newGermanium = float64(a.Germanium) / float64(b.Germanium)
-	}
-
-	return math.Min(newIronium, math.Min(newBoranium, newGermanium))
+// divide a cost by a mineral and return how many times divisor can go into dividend.
+//
+// This will tell us if we have enough minerals to build some item
+// (and how many we can make)
+func (dividend cost[T]) DivideMineral(divisor Mineral) float64 {
+	dc := divisor.ToCost().ToCostFloat64()
+	return dividend.ToCostFloat64().DivideCost(dc)
 }
 
-// Divide cost by an integer, either truncating or rounding up the result
-func (c Cost) DivideByInt(divisor int, roundUp bool) Cost {
-	if divisor == 0 {
-		return Cost{int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1)), int(math.Inf(1))}
-	}
-
-	if roundUp {
-		var ironium, boranium, germanium, resources int
-		if c.Ironium%divisor > 0 {
-			ironium = 1
-		}
-		if c.Boranium%divisor > 0 {
-			boranium = 1
-		}
-		if c.Germanium%divisor > 0 {
-			germanium = 1
-		}
-		if c.Resources%divisor > 0 {
-			resources = 1
-		}
-		return Cost{
-			Ironium:   c.Ironium/divisor + ironium,
-			Boranium:  c.Boranium/divisor + boranium,
-			Germanium: c.Germanium/divisor + germanium,
-			Resources: c.Resources/divisor + resources,
-		}
-	} else {
-		return Cost{
-			Ironium:   c.Ironium / divisor,
-			Boranium:  c.Boranium / divisor,
-			Germanium: c.Germanium / divisor,
-			Resources: c.Resources / divisor,
-		}
-	}
-}
-
-// Return greater of 2 cost structs for all ResourceTypes separately
-func (c Cost) Max(other Cost) Cost {
-	return Cost{
-		Ironium:   MaxInt(c.Ironium, other.Ironium),
-		Boranium:  MaxInt(c.Boranium, other.Boranium),
-		Germanium: MaxInt(c.Germanium, other.Germanium),
-		Resources: MaxInt(c.Resources, other.Resources),
-	}
-}
-
-func (c Cost) Negate() Cost {
-	return Cost{
-		Ironium:   -c.Ironium,
-		Boranium:  -c.Boranium,
-		Germanium: -c.Germanium,
-		Resources: -c.Resources,
+// Return greater of 2 cost structs for all CostTypes separately
+func (c cost[T]) Max(other cost[T]) cost[T] {
+	return cost[T]{
+		Ironium:   Max(c.Ironium, other.Ironium),
+		Boranium:  Max(c.Boranium, other.Boranium),
+		Germanium: Max(c.Germanium, other.Germanium),
+		Resources: Max(c.Resources, other.Resources),
 	}
 }
 
 // return this cost with a minimum of zero for each value
-func (c Cost) MinZero() Cost {
-	return Cost{
-		Ironium:   MaxInt(c.Ironium, 0),
-		Boranium:  MaxInt(c.Boranium, 0),
-		Germanium: MaxInt(c.Germanium, 0),
-		Resources: MaxInt(c.Resources, 0),
+func (c cost[T]) MinZero() cost[T] {
+	return cost[T]{
+		Ironium:   Max(c.Ironium, 0),
+		Boranium:  Max(c.Boranium, 0),
+		Germanium: Max(c.Germanium, 0),
+		Resources: Max(c.Resources, 0),
 	}
 }
 
-// determine how many times and item costing cost can be built by available resources
-func (available Cost) NumBuildable(cost Cost) int {
-	buildable := Cost{math.MaxInt, math.MaxInt, math.MaxInt, math.MaxInt}
+// Returns the lowest numerical value in a Cost struct
+func (c cost[T]) MinAmount() T {
+	return Min(c.Ironium, c.Boranium, c.Germanium, c.Resources)
+}
 
-	if cost.Ironium > 0 {
-		buildable.Ironium = available.Ironium / cost.Ironium
+// Round a cost struct's values by calling roundFunc on each of its values in turn.
+func (c cost[T]) Round(roundFunc func(T) T) cost[T] {
+	return cost[T]{
+		Ironium:   roundFunc(c.Ironium),
+		Boranium:  roundFunc(c.Boranium),
+		Germanium: roundFunc(c.Germanium),
+		Resources: roundFunc(c.Resources),
 	}
-	if cost.Boranium > 0 {
-		buildable.Boranium = available.Boranium / cost.Boranium
-	}
-	if cost.Germanium > 0 {
-		buildable.Germanium = available.Germanium / cost.Germanium
-	}
-	if cost.Resources > 0 {
-		buildable.Resources = available.Resources / cost.Resources
-	}
-
-	return MinInt(
-		buildable.Ironium,
-		buildable.Boranium,
-		buildable.Germanium,
-		buildable.Resources,
-	)
 }

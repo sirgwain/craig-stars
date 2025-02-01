@@ -60,7 +60,7 @@ func setPlayer(args []js.Value) interface{} {
 	player.Designs = ctx.player.Designs
 	ctx.player = player
 
-	log.Debug().Msgf("setting active player")
+	log.Debug().Msgf("setting active player with %d designs", len(player.Designs))
 	return js.Undefined()
 }
 
@@ -76,7 +76,7 @@ func setDesigns(args []js.Value) interface{} {
 		ctx.player.Designs[i] = &designs[i]
 	}
 
-	log.Debug().Msgf("setting player designs")
+	log.Debug().Msgf("setting %d player designs", len(designs))
 	return js.Undefined()
 }
 
@@ -153,6 +153,25 @@ func starbaseUpgradeCost(args []js.Value) interface{} {
 	return o
 }
 
+// wasm wrapper for calculating race points
+// takes one argument, the race
+func techCost(args []js.Value) interface{} {
+	if len(args) != 1 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	tech := wasm.GetTech(args[0])
+	costCalculatoor := cs.NewCostCalculator()
+	cost := costCalculatoor.GetTechCost(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, tech)
+
+	log.Debug().Msgf("computed tech cost %s %v", tech.Name, cost)
+
+	o := js.ValueOf(map[string]any{})
+	wasm.SetCost(o, &cost)
+
+	return o
+}
+
 // wasm wrapper for estimating planet production
 // takes 1 arguments: planet, player (with designs)
 func estimateProduction(args []js.Value) interface{} {
@@ -201,6 +220,7 @@ func main() {
 	wasm.ExposeFunction("getResearchCost", getResearchCost)
 	wasm.ExposeFunction("computeShipDesignSpec", computeShipDesignSpec)
 	wasm.ExposeFunction("starbaseUpgradeCost", starbaseUpgradeCost)
+	wasm.ExposeFunction("techCost", techCost)
 	wasm.ExposeFunction("estimateProduction", estimateProduction)
 	wasm.Ready()
 

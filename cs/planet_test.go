@@ -369,3 +369,48 @@ func TestPlanet_grow(t *testing.T) {
 		})
 	}
 }
+
+func TestPlanet_getMineralOutput(t *testing.T) {
+	type fields struct {
+		MineralConcentration Mineral
+	}
+	type args struct {
+		numMines   int
+		mineOutput int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Mineral
+	}{
+		{
+			name:   "100 conc, 10 mines, 10 output",
+			fields: fields{MineralConcentration: Mineral{100, 100, 100}},
+			args:   args{numMines: 10, mineOutput: 10},
+			want:   Mineral{10, 10, 10},
+		},
+		{
+			name:   "100 conc, 10 mines, 8 output",
+			fields: fields{MineralConcentration: Mineral{100, 100, 100}},
+			args:   args{numMines: 10, mineOutput: 8},
+			want:   Mineral{8, 8, 8},
+		},
+		{
+			name:   "mixed conc, 100 mines, 10 output",
+			fields: fields{MineralConcentration: Mineral{25, 45, 65}},
+			args:   args{numMines: 100, mineOutput: 10},
+			want:   Mineral{25, 45, 65},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Planet{
+				MineralConcentration: tt.fields.MineralConcentration,
+			}
+			if got := p.getMineralOutput(tt.args.numMines, tt.args.mineOutput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Planet.getMineralOutput() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

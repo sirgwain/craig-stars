@@ -2,7 +2,11 @@
 	import { me } from '$lib/services/Stores';
 	import Menu from './Menu.svelte';
 
-	export let title = 'Resource not found';
+	type Props = {
+		title?: string;
+	};
+
+	let { title = 'Resource not found' }: Props = $props();
 </script>
 
 <main class="p-3 flex flex-col">

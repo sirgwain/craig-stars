@@ -1,38 +1,55 @@
 <script lang="ts">
-	import { CargoTransferRequest } from '$lib/types/Cargo';
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
-	import type { Planet } from '$lib/types/Planet';
-	import { getGameContext } from '$lib/services/GameContext';
+	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import { clamp } from '$lib/services/Math';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
+	import {
+		negative,
+		newCargoTransferRequest,
+		type CargoTransferRequest
+	} from '$lib/types/CargoTransferRequest';
+	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
+	import type { Planet } from '$lib/types/Planet';
 	import type { Salvage } from '$lib/types/Salvage';
 	import FleetTransfer from './FleetTransfer.svelte';
+	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
 	import SalvageTransfer from './SalvageTransfer.svelte';
 	import TransferButtons from './TransferButtons.svelte';
-	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
-	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
 
-	const { game, player, universe } = getGameContext();
+	type Props = {
+		src: CommandedFleet;
+		dest: Fleet | Planet | Salvage | undefined;
+		transferAmount?: CargoTransferRequest;
+		showHeader?: boolean;
+		srcCargoCapacity?: number;
+		srcFuelCapacity?: number;
+		destCargoCapacity?: number;
+		destFuelCapacity?: number;
+		quantityModifier?: number;
+	};
 
-	export let src: CommandedFleet;
-	export let dest: Fleet | Planet | Salvage | undefined;
-	export let transferAmount = new CargoTransferRequest();
-	export let showHeader = true;
-	export let srcCargoCapacity = src.spec.cargoCapacity ?? 0;
-	export let srcFuelCapacity = src.spec.fuelCapacity ?? 0;
-	export let destCargoCapacity = getCargoCapacity(dest);
-	export let destFuelCapacity = getFuelCapacity(dest);
-	export let quantityModifier = 1;
+	let {
+		src,
+		dest,
+		transferAmount = $bindable(newCargoTransferRequest()),
+		showHeader = true,
+		srcCargoCapacity = src.spec.cargoCapacity ?? 0,
+		srcFuelCapacity = src.spec.fuelCapacity ?? 0,
+		destCargoCapacity = getCargoCapacity(dest),
+		destFuelCapacity = getFuelCapacity(dest),
+		quantityModifier = $bindable(1)
+	}: Props = $props();
 
-	let srcCargo = new CargoTransferRequest(src.cargo, src.fuel);
-	let destCargo = new CargoTransferRequest(
-		dest ? dest.cargo : src.getJettison()?.cargo, // we are either tranfering to a location, or jettisoning
-		dest && 'fuel' in dest ? dest.fuel : 0
+	let srcCargo = $derived(newCargoTransferRequest(src.cargo, src.fuel));
+	let destCargo = $derived(
+		newCargoTransferRequest(
+			dest ? dest.cargo : src.getJettison()?.cargo, // we are either tranfering to a location, or jettisoning
+			dest && 'fuel' in dest ? dest.fuel : 0
+		)
 	);
 
-	$: destFleet = dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined;
+	let destFleet = $derived(dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined);
 
 	function getCargoCapacity(dest: Fleet | Planet | Salvage | undefined): number {
 		if (dest && 'spec' in dest && dest.spec && 'cargoCapacity' in dest.spec) {
@@ -182,39 +199,39 @@
 				cargoCapacity={srcCargoCapacity}
 				fuelCapacity={srcFuelCapacity}
 				allowFuelTransfers={dest && 'fuel' in dest}
-				on:transfer-fuel={(e) => transferFuel(e.detail)}
-				on:transfer-ironium={(e) => transferIronium(e.detail)}
-				on:transfer-boranium={(e) => transferBoranium(e.detail)}
-				on:transfer-germanium={(e) => transferGermanium(e.detail)}
-				on:transfer-colonists={(e) => transferColonists(e.detail)}
+				onTransferFuel={(amount) => transferFuel(amount)}
+				onTransferIronium={(amount) => transferIronium(amount)}
+				onTransferBoranium={(amount) => transferBoranium(amount)}
+				onTransferGermanium={(amount) => transferGermanium(amount)}
+				onTransferColonists={(amount) => transferColonists(amount)}
 			/>
 		</div>
 		<div class="flex-none flex flex-col mx-0.5 w-20 px-1 mt-8">
 			{#if dest?.type == MapObjectType.Fleet}
 				<TransferButtons
-					on:transfer-to-source={(e) => transferFuel(quantityModifier)}
-					on:transfer-to-dest={(e) => transferFuel(-quantityModifier)}
+					onTransferToSource={() => transferFuel(quantityModifier)}
+					onTransferToDest={() => transferFuel(-quantityModifier)}
 					class="mt-8 sm:mt-2"
 				/>
 			{:else}
-				<div class="h-8" />
+				<div class="h-8"></div>
 			{/if}
 			<div class="mt-28 h-40 sm:mt-16 sm:h-28 flex flex-col justify-between">
 				<TransferButtons
-					on:transfer-to-source={(e) => transferIronium(quantityModifier)}
-					on:transfer-to-dest={(e) => transferIronium(-quantityModifier)}
+					onTransferToSource={() => transferIronium(quantityModifier)}
+					onTransferToDest={() => transferIronium(-quantityModifier)}
 				/>
 				<TransferButtons
-					on:transfer-to-source={(e) => transferBoranium(quantityModifier)}
-					on:transfer-to-dest={(e) => transferBoranium(-quantityModifier)}
+					onTransferToSource={() => transferBoranium(quantityModifier)}
+					onTransferToDest={() => transferBoranium(-quantityModifier)}
 				/>
 				<TransferButtons
-					on:transfer-to-source={(e) => transferGermanium(quantityModifier)}
-					on:transfer-to-dest={(e) => transferGermanium(-quantityModifier)}
+					onTransferToSource={() => transferGermanium(quantityModifier)}
+					onTransferToDest={() => transferGermanium(-quantityModifier)}
 				/>
 				<TransferButtons
-					on:transfer-to-source={(e) => transferColonists(quantityModifier)}
-					on:transfer-to-dest={(e) => transferColonists(-quantityModifier)}
+					onTransferToSource={() => transferColonists(quantityModifier)}
+					onTransferToDest={() => transferColonists(-quantityModifier)}
 				/>
 			</div>
 			<div class="flex flex-col justify-between mt-2 gap-1 mx-1">
@@ -236,20 +253,20 @@
 				{#if dest?.type == MapObjectType.Planet}
 					<PlanetTransfer cargo={destCargo} transferAmount={negativeCargo(transferAmount)} />
 				{:else if !dest || dest?.type == MapObjectType.Salvage}
-					<SalvageTransfer cargo={destCargo} transferAmount={transferAmount.negative()} />
+					<SalvageTransfer cargo={destCargo} transferAmount={negative(transferAmount)} />
 				{:else if !dest || dest?.type == MapObjectType.MineralPacket}
-					<MineralPacketTransfer cargo={destCargo} transferAmount={transferAmount.negative()} />
+					<MineralPacketTransfer cargo={destCargo} transferAmount={negative(transferAmount)} />
 				{:else if destFleet}
 					<FleetTransfer
 						cargo={destCargo}
-						transferAmount={transferAmount.negative()}
+						transferAmount={negative(transferAmount)}
 						cargoCapacity={destCargoCapacity}
 						fuelCapacity={destFuelCapacity}
-						on:transfer-fuel={(e) => transferFuel(-e.detail)}
-						on:transfer-ironium={(e) => transferIronium(-e.detail)}
-						on:transfer-boranium={(e) => transferBoranium(-e.detail)}
-						on:transfer-germanium={(e) => transferGermanium(-e.detail)}
-						on:transfer-colonists={(e) => transferColonists(-e.detail)}
+						onTransferFuel={(amount) => transferFuel(-amount)}
+						onTransferIronium={(amount) => transferIronium(-amount)}
+						onTransferBoranium={(amount) => transferBoranium(-amount)}
+						onTransferGermanium={(amount) => transferGermanium(-amount)}
+						onTransferColonists={(amount) => transferColonists(-amount)}
 					/>
 				{:else}
 					Deep Space

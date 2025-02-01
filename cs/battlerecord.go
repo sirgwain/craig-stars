@@ -115,7 +115,7 @@ func (v1 BattleVector) Add(v2 BattleVector) BattleVector {
 }
 
 func (v1 BattleVector) distance(v2 BattleVector) int {
-	return MaxInt(AbsInt(v1.X-v2.X), AbsInt(v1.Y-v2.Y))
+	return Max(Abs(v1.X-v2.X), Abs(v1.Y-v2.Y))
 }
 
 func (v BattleVector) scale(scale int) BattleVector {
@@ -211,7 +211,7 @@ func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Battle
 
 }
 
-// Record a token firing a salvo of torpedos
+// Record a token firing a salvo of torpedoes
 func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from BattleVector, to BattleVector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken

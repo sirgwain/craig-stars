@@ -1,49 +1,37 @@
-<script lang="ts" context="module">
-	import { Unexplored } from '$lib/types/Constants';
+<script lang="ts">
+	import MineralMini from '$lib/components/game/MineralMini.svelte';
+	import type { OnCancel, OnOk } from '$lib/services/Events';
+	import { getGameContext } from '$lib/services/GameContext';
+	import { None, Unexplored } from '$lib/types/Constants';
 	import { type Fleet } from '$lib/types/Fleet';
+	import { getMapObjectName, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import type { MysteryTrader } from '$lib/types/MysteryTrader';
 	import { type Planet } from '$lib/types/Planet';
+	import { onMount } from 'svelte';
 
-	export type Results = {
+	const { player, universe, settings } = getGameContext();
+
+	type Props = {
+		maxPlanetResults?: number;
+		maxFleetResults?: number;
+		maxMiscResults?: number;
+		onOk?: OnOk<MapObject | undefined>;
+		onCancel?: OnCancel;
+	};
+
+	let {
+		maxPlanetResults = 10,
+		maxFleetResults = 10,
+		maxMiscResults = 10,
+		onOk,
+		onCancel
+	}: Props = $props();
+
+	type Results = {
 		planets: Planet[];
 		fleets: Fleet[];
 		mysteryTraders: MysteryTrader[];
 	};
-
-	export type SearchResultsEvent = {
-		ok: MapObject | undefined;
-		cancel: void;
-	};
-</script>
-
-<script lang="ts">
-	import MineralMini from '$lib/components/game/MineralMini.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
-	import { getMapObjectName, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import { None } from '$lib/types/Constants';
-	import type { MysteryTrader } from '$lib/types/MysteryTrader';
-	import { createEventDispatcher, onMount } from 'svelte';
-
-	const { game, player, universe, settings, commandMapObject, selectMapObject, zoomToMapObject } =
-		getGameContext();
-	const dispatch = createEventDispatcher<SearchResultsEvent>();
-
-	export let maxPlanetResults = 10;
-	export let maxFleetResults = 10;
-	export let maxMiscResults = 10;
-
-	// the currently selected item
-	$: selectedItemIndex = 0;
-	$: selectedItem =
-		selectedItemIndex < results.planets.length
-			? results.planets[selectedItemIndex]
-			: selectedItemIndex < results.planets.length + results.fleets.length
-				? results.fleets[selectedItemIndex - results.planets.length]
-				: selectedItemIndex <
-					  results.planets.length + results.fleets.length + results.mysteryTraders.length
-					? results.mysteryTraders[
-							selectedItemIndex - results.planets.length + results.fleets.length
-						]
-					: undefined;
 
 	function getResults(search: string): Results {
 		if (search == '') {
@@ -66,8 +54,6 @@
 				$universe.getPlayerPluralName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) !=
 					-1);
 
-		// reset the selected item when the search is updated
-		selectedItemIndex = 0;
 		return {
 			planets:
 				planets
@@ -86,10 +72,7 @@
 	}
 
 	function ok() {
-		dispatch('ok', selectedItem);
-	}
-	function cancel() {
-		dispatch('cancel');
+		onOk?.(selectedItem);
 	}
 
 	function selectPrevious() {
@@ -116,26 +99,42 @@
 				event.preventDefault();
 				break;
 			case 'Enter':
-				ok();
+				onOk?.(selectedItem);
 				event.preventDefault();
 				break;
 			case 'Escape':
 				if ($settings.searchQuery != '') {
 					$settings.searchQuery = '';
 				} else {
-					cancel();
+					onCancel?.();
 					event.preventDefault();
 				}
 				break;
 		}
 	}
 
-	let searchInput: HTMLInputElement | undefined;
+	let searchInput: HTMLInputElement | undefined = $state();
 	onMount(() => {
 		searchInput?.focus();
+		selectedItemIndex = 0;
 	});
+	// the currently selected item
+	let selectedItemIndex = $state(0);
+
 	// when search chnages, update our search results
-	$: results = getResults($settings.searchQuery);
+	let results = $derived(getResults($settings.searchQuery));
+	let selectedItem = $derived(
+		selectedItemIndex < results.planets.length
+			? results.planets[selectedItemIndex]
+			: selectedItemIndex < results.planets.length + results.fleets.length
+				? results.fleets[selectedItemIndex - results.planets.length]
+				: selectedItemIndex <
+					  results.planets.length + results.fleets.length + results.mysteryTraders.length
+					? results.mysteryTraders[
+							selectedItemIndex - results.planets.length + results.fleets.length
+						]
+					: undefined
+	);
 </script>
 
 <div class="flex flex-col gap-1 h-full pb-2">
@@ -150,8 +149,8 @@
 		spellcheck="false"
 		bind:this={searchInput}
 		bind:value={$settings.searchQuery}
-		on:keydown={onSearchKeyDown}
-		on:focus={() => searchInput?.select()}
+		onkeydown={onSearchKeyDown}
+		onfocus={() => searchInput?.select()}
 	/>
 	<div class="h-full">
 		<div class="mt-2 w-full h-full bg-base-200 border-2 border-base-300 overflow-y-auto pl-2">
@@ -159,13 +158,13 @@
 				<h3 class="text-2xl font-bold mb-1">Planets</h3>
 				<ul class="mx-1">
 					{#each results.planets as planet, index}
-						<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 						<li
 							class="rounded-lg px-2"
 							class:bg-primary={selectedItemIndex == index}
-							on:mouseover={(e) => (selectedItemIndex = index)}
+							onmouseover={() => (selectedItemIndex = index)}
 						>
-							<button class="text-xl text-left w-full" on:click={ok}>
+							<button class="text-xl text-left w-full" onclick={ok}>
 								<div class="flex flex-row gap-1">
 									{#if planet.playerNum != None}
 										<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
@@ -228,13 +227,13 @@
 				<h3 class="text-2xl font-bold mb-1">Fleets</h3>
 				<ul class="mx-1">
 					{#each results.fleets as fleet, index}
-						<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 						<li
 							class="rounded-lg px-2"
 							class:bg-primary={selectedItemIndex == results.planets.length + index}
-							on:mouseover={(e) => (selectedItemIndex = results.planets.length + index)}
+							onmouseover={() => (selectedItemIndex = results.planets.length + index)}
 						>
-							<button class="text-xl text-left w-full" on:click={ok}>
+							<button class="text-xl text-left w-full" onclick={ok}>
 								<span style={`color: ${$universe.getPlayerColor(fleet.playerNum)}`}
 									>{$universe.getPlayerPluralName(fleet.playerNum)}</span
 								>
@@ -248,15 +247,15 @@
 				<h3 class="text-2xl font-bold mb-1">Mystery Traders</h3>
 				<ul class="mx-1">
 					{#each results.mysteryTraders as mysterytrader, index}
-						<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 						<li
 							class="rounded-lg px-2"
 							class:bg-primary={selectedItemIndex ==
 								results.planets.length + results.fleets.length + index}
-							on:mouseover={(e) =>
+							onmouseover={() =>
 								(selectedItemIndex = results.planets.length + results.fleets.length + index)}
 						>
-							<button class="text-xl text-left w-full" on:click={ok}>
+							<button class="text-xl text-left w-full" onclick={ok}>
 								<span class="text-mystery-trader"> {mysterytrader.name}</span></button
 							>
 						</li>

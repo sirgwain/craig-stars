@@ -6,40 +6,45 @@
 	import type { Planet } from '$lib/types/Planet';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Writable } from 'svelte/store';
-	import { getEnemiesAndFriends } from './Scanner';
+	import { getEnemiesAndFriends, getScannerContext } from './Scanner';
 
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const { game, player, universe, settings } = getGameContext();
-	const scale = getContext<Writable<number>>('scale');
+	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
+	const { player, universe, settings } = getGameContext();
+	const { scale } = getScannerContext();
 
-	export let planet: Planet;
-	export let yOffset: number;
+	type Props = {
+		planet: Planet;
+		yOffset: number;
+	};
 
-	$: orbitingFleets = $universe
-		.getMapObjectsByPosition(planet)
-		.filter((mo) => mo.type === MapObjectType.Fleet);
+	let { planet, yOffset }: Props = $props();
 
-	$: orbitingTokens = orbitingFleets
-		.map((of) => of as Fleet)
-		.filter((f: Fleet) => filterFleet($player, f, $settings))
-		.reduce(
-			(count, f) =>
-				count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
-			0
-		);
-	let textColor = 'fill-orbit';
-	$: {
-		const { enemies, friends } = getEnemiesAndFriends(orbitingFleets, $player);
+	let orbitingFleets = $derived(
+		$universe.getMapObjectsByPosition(planet).filter((mo) => mo.type === MapObjectType.Fleet)
+	);
 
+	let orbitingTokens = $derived(
+		orbitingFleets
+			.map((of) => of as Fleet)
+			.filter((f: Fleet) => filterFleet($player, f, $settings))
+			.reduce(
+				(count, f) =>
+					count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),
+				0
+			)
+	);
+	let { enemies, friends } = $derived(getEnemiesAndFriends(orbitingFleets, $player));
+
+	let textColor = $derived.by(() => {
 		if (friends && !enemies) {
-			textColor = 'fill-orbit-friends';
+			return 'fill-orbit-friends';
 		} else if (!friends && enemies) {
-			textColor = 'fill-orbit-enemies';
+			return 'fill-orbit-enemies';
 		} else if (friends && enemies) {
-			textColor = 'fill-orbit-friends-and-enemies';
+			return 'fill-orbit-friends-and-enemies';
 		}
-	}
+		return 'fill-orbit';
+	});
 </script>
 
 {#if $settings.showFleetTokenCounts && orbitingTokens}

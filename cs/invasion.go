@@ -3,7 +3,7 @@ package cs
 import "github.com/rs/zerolog"
 
 // invade a planet with a colonist drop
-func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int) {
+func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int) {
 	invasionDefenseCoverageFactor := rules.InvasionDefenseCoverageFactor
 
 	// figure out how many attackers are stopped by defenses
@@ -19,7 +19,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet
 
 	if float64(attackers)*attackBonus > float64(defenders)*defenseBonus {
 		remainingDefenders = 0
-		remainingAttackers = roundToNearest100f(float64(attackers) - float64(defenders)*defenseBonus/attackBonus)
+		remainingAttackers = roundToNearest100(float64(attackers) - float64(defenders)*defenseBonus/attackBonus)
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingAttackers == 0 {
@@ -49,20 +49,17 @@ func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet
 			plan.Apply(planet)
 		}
 
-		// check for tech trade
+		// check for tech trades
 		if !attacker.techLevelGained {
-			techTrader := newTechTrader()
-			field := techTrader.techLevelGained(rules, attacker.TechLevels, defender.TechLevels)
+			tt := newTechTrader()
+			field := tt.checkInvasionTechTrade(rules, attacker, defender.TechLevels)
 			if field != TechFieldNone {
 				// sweet, we gained a tech level
 				attacker.techLevelGained = true
-				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1)
-				messager.playerTechGainedInvasion(attacker, planet, field)
+				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1) // add 1 to corresponding lvl
 
-				techsGained := techStore.GetTechsJustGained(attacker, field)
-				for _, tech := range techsGained {
-					messager.playerTechGained(attacker, field, tech)
-				}
+				messager.playerTechGainedInvasion(attacker, planet, field)
+				attacker.updateTechsJustGained(rules.techs, field)
 
 				log.Debug().
 					Int("Attacker", attacker.Num).
@@ -70,12 +67,11 @@ func invadePlanet(log zerolog.Logger, rules *Rules, techStore *TechStore, planet
 					Str("Planet", planet.Name).
 					Str("field", string(field)).
 					Msgf("invader gained tech level")
-
 			}
 		}
 	} else {
 		remainingAttackers = 0
-		remainingDefenders = roundToNearest100f(float64(defenders) - (float64(attackers)*attackBonus)/defenseBonus)
+		remainingDefenders = roundToNearest100(float64(defenders) - (float64(attackers)*attackBonus)/defenseBonus)
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingDefenders == 0 {

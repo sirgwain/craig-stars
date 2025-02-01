@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
@@ -10,6 +10,7 @@
 		tech: Tech | undefined,
 		showResearchCost = false
 	) {
+		e.preventDefault();
 		if (tech) {
 			showTooltip<TechTooltipProps>(e.x, e.y, TechTooltip, { tech, showResearchCost });
 		}
@@ -22,8 +23,7 @@
 </script>
 
 <script lang="ts">
-	export let tech: Tech;
-	export let showResearchCost = false;
+	let { tech, showResearchCost = false }: TechTooltipProps = $props();
 
 	const { player, cs } = getGameContext();
 </script>

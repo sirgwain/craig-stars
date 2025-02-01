@@ -2,22 +2,23 @@
   "folders": [
     {
       "name": "root",
-      "path": "./",
+      "path": "./"
     },
     {
       "name": "frontend",
       "path": "frontend"
-    },
+    }
   ],
   "settings": {
     "testing.automaticallyOpenPeekView": "never",
     "typescript.tsdk": "frontend/node_modules/typescript/lib",
     "goStructTagAutogen.generation": {
-      "template": "json:\"{{camel}}\"",
+      "template": "json:\"{{camel}},omitempty\"",
       "json": {
         "cases": ["camel"],
         "options": ["omitempty", "-"]
-      },
-    }
+      }
+    },
+    "go.testTimeout": "90s"
   }
 }

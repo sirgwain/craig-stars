@@ -1,9 +1,10 @@
 {
-    "recommendations": [
-        "esbenp.prettier-vscode",
-        "svelte.svelte-vscode",
-        "bradlc.vscode-tailwindcss",
-        "fivethree.vscode-svelte-snippets",
-        "vitest.explorer",
-    ]
+	"recommendations": [
+		"esbenp.prettier-vscode",
+		"svelte.svelte-vscode",
+		"bradlc.vscode-tailwindcss",
+		"fivethree.vscode-svelte-snippets",
+		"dbaeumer.vscode-eslint",
+		"vitest.explorer"
+	]
 }

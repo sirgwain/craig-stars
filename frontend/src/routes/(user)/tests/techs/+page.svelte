@@ -75,7 +75,7 @@
 			power: 16,
 			range: 2,
 			initiative: 12,
-			gattling: true,
+			gatling: true,
 			hitsAllTargets: true
 		},
 		{
@@ -125,7 +125,7 @@
 		<TechSummary tech={settlersDelight} />
 	</div>
 
-	<!-- <div>
+	<div>
 		<TechSummary tech={moleSkin} />
 	</div>
 
@@ -133,5 +133,5 @@
 		<div>
 			<TechSummary {tech} player={testPlayer} />
 		</div>
-	{/each} -->
+	{/each}
 </div>

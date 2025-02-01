@@ -1,24 +1,22 @@
 <script lang="ts">
-	import { playerFinderKey } from '$lib/services/GameContext';
-	import type { PlayerFinder } from '$lib/services/Universe';
 	import { TokenActionType, type Battle, type PhaseToken } from '$lib/types/Battle';
-	import { getContext } from 'svelte';
 	import BattleBoardAction from './BattleBoardAction.svelte';
 	import BattleBoardAttack from './BattleBoardAttack.svelte';
 	import BattleBoardPhaseControls from './BattleBoardPhaseControls.svelte';
-	import BattleBoardTokenDetails from './BattleBoardTokenDetails.svelte';
 	import BattleBoardSquare from './BattleBoardSquare.svelte';
+	import BattleBoardTokenDetails from './BattleBoardTokenDetails.svelte';
 
-	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
+	type Props = {
+		battle: Battle;
+		phase?: number;
+	};
 
-	export let battle: Battle;
-	export let phase: number = 0;
+	let { battle, phase = $bindable(0) }: Props = $props();
 
-	let selectedToken: PhaseToken | undefined;
-	let actionToken: PhaseToken | undefined;
-	let target: PhaseToken | undefined;
-
-	$: action = battle.getActionForPhase(phase ?? 0);
+	let action = $derived(battle.getActionForPhase(phase ?? 0));
+	let selectedToken: PhaseToken | undefined = $state();
+	let actionToken: PhaseToken | undefined = $state();
+	let target: PhaseToken | undefined = $derived(battle.getTargetForPhase(phase));
 </script>
 
 <div class="flex w-full">
@@ -38,8 +36,8 @@
 								{selectedToken}
 								tokens={battle.getTokensAtLocation(phase, x, y)}
 								selected={selectedToken?.x === x && selectedToken?.y === y}
-								on:selected={(e) => {
-									selectedToken = e.detail;
+								onSelected={(token) => {
+									selectedToken = token;
 								}}
 							/>
 						{/each}
@@ -49,13 +47,13 @@
 					<BattleBoardPhaseControls
 						{battle}
 						bind:phase
-						on:phaseupdated={(e) => {
-							action = battle.getActionForPhase(e.detail);
-							selectedToken = action?.tokenNum
-								? battle.getTokenForPhase(action.tokenNum, phase)
+						onPhaseUpdated={(updatedPhase) => {
+							phase = updatedPhase;
+							const newAction = battle.getActionForPhase(phase);
+							selectedToken = newAction?.tokenNum
+								? battle.getTokenForPhase(newAction.tokenNum, phase)
 								: selectedToken;
 							actionToken = selectedToken;
-							target = battle.getTargetForPhase(phase);
 						}}
 					/>
 				</div>
@@ -92,7 +90,7 @@
 						</div>
 					</div>
 				{/if}
-				{#if target && selectedToken === actionToken}
+				{#if target && selectedToken?.num === actionToken?.num}
 					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">Target</h2>

@@ -39,6 +39,14 @@ func (h HabType) String() string {
 	}
 }
 
+func NewHab(grav, temp, rad int) Hab {
+	return Hab{
+		Grav: grav,
+		Temp: temp,
+		Rad:  rad,
+	}
+}
+
 func (h Hab) String() string {
 	return fmt.Sprintf("Grav: %d, Temp: %d, Rad: %d", h.Grav, h.Temp, h.Rad)
 }
@@ -68,6 +76,7 @@ func (h Hab) Clamp(min, max int) Hab {
 }
 
 func (h Hab) Get(habType HabType) int {
+	// @sirgwain should this stuff panic for an invalid habType?
 	switch habType {
 	case Grav:
 		return h.Grav
@@ -91,16 +100,8 @@ func (h *Hab) Set(habType HabType, value int) *Hab {
 	return h
 }
 
-func HabFromInts(hab [3]int) Hab {
-	return Hab{
-		Grav: hab[0],
-		Temp: hab[1],
-		Rad:  hab[2],
-	}
-}
-
 func (h Hab) absSum() int {
-	return AbsInt(h.Grav) + AbsInt(h.Temp) + AbsInt(h.Rad)
+	return Abs(h.Grav) + Abs(h.Temp) + Abs(h.Rad)
 }
 
 func gravString(grav int) string {

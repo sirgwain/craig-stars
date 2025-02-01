@@ -6,7 +6,7 @@
 	import { onMount } from 'svelte';
 
 	let hash = $page.params.hash;
-	let loginError = '';
+	let loginError = $state('');
 
 	onMount(async () => {
 		const data = JSON.stringify({ hash });

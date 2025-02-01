@@ -5,7 +5,7 @@
 	const minHeight = 380;
 
 	// close this tooltip when the pointer is let up
-	function onPointerUp(e: PointerEvent) {
+	function onPointerUp() {
 		window.removeEventListener('pointerup', onPointerUp);
 		$tooltipComponent = undefined;
 		document.body.className = document.body.className
@@ -13,33 +13,39 @@
 			.replaceAll('touch-none', '');
 	}
 
+	let component: HTMLElement | undefined = $state();
+	const resizeObserver = new ResizeObserver(() => {
+		componentHeight = Math.max(component?.scrollHeight ?? 0, minHeight);
+		componentWidth = Math.max(component?.scrollWidth ?? 0, minWidth);
+	});
+
+	// observe tooltip component height changes so we can react
+	let componentHeight = $state(minHeight);
+	let componentWidth = $state(minWidth);
 	// when the tooltipComponent is set, register a pointerup listener to hide it
-	$: {
+	$effect(() => {
 		if ($tooltipComponent) {
 			document.body.className = document.body.className + ' select-none touch-none';
 			window.addEventListener('pointerup', onPointerUp);
 		}
-	}
+	});
 
-	$: x =
+	$effect(() => {
+		if (component) {
+			resizeObserver.disconnect();
+			resizeObserver.observe(component);
+		}
+	});
+
+	let x = $derived(
 		$tooltipLocation.x + componentWidth > window.innerWidth // we overshoot the window, move the tooltip left so it fits, or 0 if required
 			? Math.max(
 					0,
 					$tooltipLocation.x - (componentWidth + $tooltipLocation.x - window.innerWidth) - 20
-			  )
-			: $tooltipLocation.x;
-	$: y = window.scrollY + Math.max($tooltipLocation.y - componentHeight, 0);
-
-	let component: HTMLElement | undefined;
-
-	// observe tooltip component height changes so we can react
-	let componentHeight = minHeight;
-	let componentWidth = minWidth;
-	$: component &&
-		new ResizeObserver(() => {
-			componentHeight = Math.max(component?.scrollHeight ?? 0, minHeight);
-			componentWidth = Math.max(component?.scrollWidth ?? 0, minWidth);
-		}).observe(component);
+				)
+			: $tooltipLocation.x
+	);
+	let y = $derived(window.scrollY + Math.max($tooltipLocation.y - componentHeight, 0));
 </script>
 
 <div
@@ -50,6 +56,7 @@
 	style={`left: ${x}px; top: ${y}px;`}
 >
 	{#if $tooltipComponent}
-		<svelte:component this={$tooltipComponent.component} {...$tooltipComponent.props} />
+		{@const SvelteComponent = $tooltipComponent.component}
+		<SvelteComponent {...$tooltipComponent.props} />
 	{/if}
 </div>

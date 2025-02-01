@@ -1,56 +1,46 @@
-<script lang="ts" context="module">
-	import { getGameContext } from '$lib/services/GameContext';
-	import { CommandedFleet, moveDamagedTokens, type Fleet, type ShipToken } from '$lib/types/Fleet';
-	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
-
-	export type SplitFleetEventDetails = {
-		src: CommandedFleet;
-		dest: Fleet | undefined;
-		srcTokens: ShipToken[];
-		destTokens: ShipToken[];
-		transferAmount: CargoTransferRequest;
-	};
-
-	export type SplitFleetEvent = {
-		'split-fleet': SplitFleetEventDetails;
-		'split-all': CommandedFleet;
-		cancel: void;
-	};
-</script>
-
 <script lang="ts">
 	import FleetIcon from '$lib/components/FleetIcon.svelte';
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
-	import { CargoTransferRequest, emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
+	import type { OnCancel, OnOk, SplitFleetEvent } from '$lib/services/Events';
+	import { getGameContext } from '$lib/services/GameContext';
+	import { clamp } from '$lib/services/Math';
+	import { emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
+	import { absoluteCargoSize, newCargoTransferRequest } from '$lib/types/CargoTransferRequest';
+	import { CommandedFleet, moveDamagedTokens, type Fleet, type ShipToken } from '$lib/types/Fleet';
+	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
 	import { cloneDeep } from 'lodash-es';
-	import { createEventDispatcher, onMount } from 'svelte';
-	import { clamp } from '$lib/services/Math';
+	import { onMount } from 'svelte';
 
-	const dispatch = createEventDispatcher<SplitFleetEvent>();
-	const { game, player, universe } = getGameContext();
+	const { universe } = getGameContext();
 
-	export let src: CommandedFleet;
-	export let dest: Fleet | undefined = undefined;
+	type Props = {
+		src: CommandedFleet;
+		dest?: Fleet | undefined;
+		onOk?: OnOk<SplitFleetEvent>;
+		onCancel?: OnCancel;
+	};
 
-	let transferAmount = new CargoTransferRequest();
-	let srcTokens: ShipToken[] = [];
-	let destTokens: ShipToken[] = [];
-	let srcFuelCapacity: number = src.spec.fuelCapacity ?? 0;
-	let destFuelCapacity: number = dest?.spec?.fuelCapacity ?? 0;
-	let srcCargoCapacity: number = src.spec.cargoCapacity ?? 0;
-	let destCargoCapacity: number = dest?.spec?.cargoCapacity ?? 0;
-	let quantityModifier = 1;
+	let { src, dest = $bindable(undefined), onOk, onCancel }: Props = $props();
+
+	let transferAmount = $state(newCargoTransferRequest());
+	let srcTokens: ShipToken[] = $state([]);
+	let destTokens: ShipToken[] = $state([]);
+	let srcFuelCapacity: number = $state(src.spec.fuelCapacity ?? 0);
+	let destFuelCapacity: number = $state(dest?.spec?.fuelCapacity ?? 0);
+	let srcCargoCapacity: number = $state(src.spec.cargoCapacity ?? 0);
+	let destCargoCapacity: number = $state(dest?.spec?.cargoCapacity ?? 0);
+	let quantityModifier = $state(1);
 
 	const totalFuel = src.fuel + (dest?.fuel ?? 0);
 
-	function ok() {
-		dispatch('split-fleet', { src, dest, srcTokens, destTokens, transferAmount });
+	function split() {
+		onOk?.({ src, dest, srcTokens, destTokens, transferAmount });
 	}
 
 	function cancel() {
-		dispatch('cancel');
+		onCancel?.();
 	}
 
 	// move some number of tokens from the source to the destination
@@ -100,8 +90,8 @@
 		destCargoCapacity += designCargoCapacity * quantity;
 
 		// if we have more cargo on the source than space available, move some out
-		if (totalCargo(src.cargo) - transferAmount.absoluteCargoSize() > srcCargoCapacity) {
-			let overload = totalCargo(src.cargo) - transferAmount.absoluteCargoSize() - srcCargoCapacity;
+		if (totalCargo(src.cargo) - absoluteCargoSize(transferAmount) > srcCargoCapacity) {
+			let overload = totalCargo(src.cargo) - absoluteCargoSize(transferAmount) - srcCargoCapacity;
 
 			let key: keyof Cargo;
 			for (key in emptyCargo()) {
@@ -115,10 +105,9 @@
 		} else if (
 			dest &&
 			dest.cargo &&
-			totalCargo(dest.cargo) + transferAmount.absoluteCargoSize() > destCargoCapacity
+			totalCargo(dest.cargo) + absoluteCargoSize(transferAmount) > destCargoCapacity
 		) {
-			let overload =
-				totalCargo(dest.cargo) + transferAmount.absoluteCargoSize() - destCargoCapacity;
+			let overload = totalCargo(dest.cargo) + absoluteCargoSize(transferAmount) - destCargoCapacity;
 
 			let key: keyof Cargo;
 			for (key in emptyCargo()) {
@@ -136,7 +125,7 @@
 		const originalScope = hotkeys.getScope();
 		const scope = 'cargoTransfer';
 		hotkeys('Esc', scope, cancel);
-		hotkeys('Enter', scope, ok);
+		hotkeys('Enter', scope, split);
 		hotkeys.setScope(scope);
 
 		if (!dest) {
@@ -181,7 +170,7 @@
 
 		return () => {
 			hotkeys.unbind('Esc', scope, cancel);
-			hotkeys.unbind('Enter', scope, ok);
+			hotkeys.unbind('Enter', scope, split);
 			hotkeys.deleteScope(scope);
 			hotkeys.setScope(originalScope);
 		};
@@ -220,12 +209,13 @@
 				<!-- buttons -->
 				<div class="flex-none flex flex-col">
 					<!-- Keep a 2rem empty header so the buttons line up -->
-					<div class="h-[120px]" />
+					<div class="h-[120px]"></div>
 					<div class="grow p-2 flex flex-col justify-between">
 						{#each srcTokens as token, index}
 							<div class="flex flex-row h-full">
 								<button
-									on:click={(e) => {
+									type="button"
+									onclick={() => {
 										moveToken(
 											-clamp(quantityModifier, 0, destTokens[index].quantity),
 											token,
@@ -236,7 +226,8 @@
 									><Icon src={ArrowLongLeft} size="16" class="hover:stroke-accent inline" />
 								</button>
 								<button
-									on:click={(e) => {
+									type="button"
+									onclick={() => {
 										moveToken(clamp(quantityModifier, 0, srcTokens[index].quantity), token, index);
 									}}
 									class="btn btn-outline btn-xs normal-case btn-secondary inline-block p-1"
@@ -287,8 +278,8 @@
 			/>
 		</div>
 		<div class="flex flex-none justify-end pt-2 my-auto">
-			<button on:click={ok} class="btn btn-primary">Ok</button>
-			<button on:click={cancel} class="btn btn-secondary">Cancel</button>
+			<button onclick={split} class="btn btn-primary">Ok</button>
+			<button onclick={onCancel} class="btn btn-secondary">Cancel</button>
 		</div>
 	</div>
 {/if}

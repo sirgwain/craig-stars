@@ -13,9 +13,9 @@ An open-source, web based Stars! clone.
 The [Stars! wiki](https://wiki.starsautohost.org/) and [Home World Forum](https://starsautohost.org/sahforum2/) are both great places for learning about Stars! gameplay. The wiki's [strategy guide](https://wiki.starsautohost.org/wikinew/ssg/ssg.htm) is a good starting point for new players to learn the basics, and the active [Stars! discord server](https://discord.gg/t8JpDS3d) is a great place to ask questions and start/join new multiplayer games. (For developers & contributors, there is also a channel for stars clone discussion.)
 
 ## Development/Contributing
-Contributions of any form are welcome, even non-code ones such as bug reports & feature requests. If you have any issues to report or cool ideas to suggest, open an Issue report on the GitHub repository. 
 
-For code contributions, all you need to get started is a good code editor (like Visual Studio Code - avaliable at [https://code.visualstudio.com/Download](https://code.visualstudio.com/Download) or online at [https://vscode.dev](https://vscode.dev)) and a GitHub account.
+Contributions of any form are welcome, even non-code ones such as bug reports & feature requests. If you have any issues to report or cool ideas to suggest, open an Issue report on the GitHub repository.
+
+For code contributions, all you need to get started is a good code editor (like Visual Studio Code - available at [https://code.visualstudio.com/Download](https://code.visualstudio.com/Download) or online at [https://vscode.dev](https://vscode.dev)) and a GitHub account.
 
 Meanwhile, for those who are more technically inclined and want to test out changes themself before committing, consider running a local instance of `craig-stars` for development. See the [development](docs/development.md) page for more info.
-

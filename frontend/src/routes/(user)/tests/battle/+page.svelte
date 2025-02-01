@@ -18,8 +18,8 @@
 			playerIntels: PlayerIntel[];
 			shipDesignIntels: ShipDesign[];
 		};
-	let player: TestBattlePlayerResponse | undefined;
-	let battle: BattleRecord | undefined;
+	let player: TestBattlePlayerResponse | undefined = $state();
+	let battle: BattleRecord | undefined = $state();
 
 	class TestPlayerFinder implements PlayerFinder {
 		constructor(private player: TestBattlePlayerResponse) {}
@@ -50,8 +50,8 @@
 		}
 	}
 
-	let playerFinder: PlayerFinder | undefined;
-	let designFinder: DesignFinder | undefined;
+	let playerFinder: PlayerFinder | undefined = $state();
+	let designFinder: DesignFinder | undefined = $state();
 
 	onMount(async () => {
 		const response = await fetch(`/api/battles/test`, {

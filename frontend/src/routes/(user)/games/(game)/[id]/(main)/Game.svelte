@@ -1,19 +1,37 @@
 <script lang="ts">
+	import type {
+		BattlePlanChangedEvent,
+		CargoTransferDialogEvent,
+		ChangeMassDriverSpeedEvent,
+		ChangeWaypointEvent,
+		ChangeWaypointTransportTasksEvent,
+		MergeFleetsDialogEvent,
+		MergeFleetsEvent,
+		RenameFleetEvent,
+		SelectWaypointEvent,
+		SplitFleetDialogEvent,
+		SplitFleetEvent,
+		TransferCargoEvent,
+		TransportTasksDialogEvent
+	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { absoluteSize } from '$lib/types/CargoTransferRequest';
+	import { None } from '$lib/types/Constants';
+	import { type WaypointDest } from '$lib/types/Fleet';
+	import {
+		equal as mapObjectEqual,
+		MapObjectType,
+		ownedBy,
+		type MapObject
+	} from '$lib/types/MapObject';
+	import { newSalvage } from '$lib/types/Salvage';
+	import { equal } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
-	import CargoTranfserDialog, {
-		type CargoTransferDialogEventDetails
-	} from '../dialogs/cargo/CargoTranfserDialog.svelte';
-	import MergeFleetsDialog, {
-		type MergeFleetsDialogEventDetails
-	} from '../dialogs/merge/MergeFleetsDialog.svelte';
+	import CargoTranfserDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
+	import MergeFleetsDialog from '../dialogs/merge/MergeFleetsDialog.svelte';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
-	import SplitFleetDialog, {
-		type SplitFleetDialogEventDetails
-	} from '../dialogs/split/SplitFleetDialog.svelte';
-	import type { TransportTasksDialogEventDetails } from '../dialogs/transport/TransportTasksDialog.svelte';
+	import SplitFleetDialog from '../dialogs/split/SplitFleetDialog.svelte';
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
 	import SearchDialog from '../search/SearchDialog.svelte';
 	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
@@ -24,33 +42,42 @@
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
 
 	const {
-		game,
+		settings,
 		universe,
 		player,
+		selectedMapObject,
+		commandedMapObject,
 		commandedPlanet,
 		commandedFleet,
-		selectedWaypoint,
-		currentSelectedWaypointIndex,
 		commandMapObject,
 		zoomToMapObject,
 		nextMapObject,
 		previousMapObject,
 		selectWaypoint,
 		selectMapObject,
-		updateFleetOrders
+		addWaypoint,
+		updateWaypoint,
+		deleteWaypoint,
+		renameFleet,
+		updateFleetOrders,
+		updatePlanetOrders,
+		transferCargo,
+		split,
+		splitAll,
+		merge
 	} = getGameContext();
 
-	let carouselOpen = true;
-	let showProductionQueueDialog = false;
-	let showCargoTransferDialog = false;
-	let showMergeFleetsDialog = false;
-	let showSplitFleetDialog = false;
-	let showTransportTasksDialog = false;
-	let showSearchDialog = false;
-	let cargoTransferDetails: CargoTransferDialogEventDetails | undefined = undefined;
-	let mergeFleetsDialogEventDetails: MergeFleetsDialogEventDetails | undefined = undefined;
-	let splitFleetDialogEventDetails: SplitFleetDialogEventDetails | undefined = undefined;
-	let transportTasksDialogEventDetails: TransportTasksDialogEventDetails | undefined = undefined;
+	let carouselOpen = $state(true);
+	let showProductionQueueDialog = $state(false);
+	let showCargoTransferDialog = $state(false);
+	let showMergeFleetsDialog = $state(false);
+	let showSplitFleetDialog = $state(false);
+	let showTransportTasksDialog = $state(false);
+	let showSearchDialog = $state(false);
+	let cargoTransferDialogEvent: CargoTransferDialogEvent | undefined = $state(undefined);
+	let mergeFleetsDialogEvent: MergeFleetsDialogEvent | undefined = $state(undefined);
+	let splitFleetDialogEvent: SplitFleetDialogEvent | undefined = $state(undefined);
+	let transportTasksDialogEvent: TransportTasksDialogEvent | undefined = $state(undefined);
 
 	onMount(() => {
 		hotkeys('n', 'root', () => {
@@ -89,22 +116,113 @@
 		};
 	});
 
+	function onNextMapObject() {
+		nextMapObject();
+	}
+
+	function onPreviousMapObject() {
+		previousMapObject();
+	}
+
+	async function onAddWaypoint(dest: WaypointDest, fastestWaypoint: boolean): Promise<boolean> {
+		return addWaypoint(dest, fastestWaypoint);
+	}
+
+	async function onUpdateWaypointDest(dest: WaypointDest, fastestWaypoint: boolean, done: boolean) {
+		updateWaypoint(dest, fastestWaypoint, done);
+	}
+
 	async function onDeleteWaypoint() {
-		const selectedWaypointIndex = $currentSelectedWaypointIndex;
-		if (selectedWaypoint && $commandedFleet && selectedWaypointIndex > 0) {
-			$commandedFleet.waypoints = $commandedFleet.waypoints.filter((wp) => wp != $selectedWaypoint);
+		deleteWaypoint();
+	}
 
-			// select the previous waypoint
-			const wp = $commandedFleet.waypoints[selectedWaypointIndex - 1];
-			selectWaypoint(wp);
+	function onSelectWaypoint(e: SelectWaypointEvent) {
+		const wp = e.waypoint;
+		selectWaypoint(wp);
 
+		if (wp.targetType && wp.targetNum) {
 			const mo = $universe.getMapObject(wp);
 			if (mo) {
 				selectMapObject(mo);
 			}
-
-			await updateFleetOrders($commandedFleet);
 		}
+	}
+
+	async function onChangeWaypoint(e: ChangeWaypointEvent) {
+		e.fleet.waypoints[e.waypointIndex] = e.waypoint;
+		updateFleetOrders(e.fleet);
+	}
+
+	async function onUpdateTransportTasks(e: ChangeWaypointTransportTasksEvent) {
+		// update the transport tasks for this waypoint and update it
+		e.waypoint.transportTasks = e.transportTasks;
+		await onChangeWaypoint(e);
+
+		// close the dialog
+		showTransportTasksDialog = false;
+	}
+
+	async function onRenameFleet(e: RenameFleetEvent) {
+		renameFleet(e.fleet, e.name);
+	}
+
+	async function onBattlePlanChanged(e: BattlePlanChangedEvent) {
+		updateFleetOrders(e.fleet);
+	}
+
+	async function onChangeMassDriverSpeed(e: ChangeMassDriverSpeedEvent) {
+		updatePlanetOrders(e.planet);
+	}
+
+	async function onSplitAll() {
+		if (!$commandedFleet) {
+			return;
+		}
+		splitAll($commandedFleet);
+	}
+
+	async function onTransferCargo(e: TransferCargoEvent) {
+		// close the dialog
+		showCargoTransferDialog = false;
+
+		if (e && absoluteSize(e.transferAmount) > 0) {
+			await transferCargo(e.src, e.dest, e.transferAmount);
+		}
+	}
+
+	async function onNextPlanet(updateOrders: boolean) {
+		if (!$commandedPlanet) {
+			return;
+		}
+		if (updateOrders) {
+			await updatePlanetOrders($commandedPlanet);
+		}
+
+		nextMapObject();
+	}
+
+	async function onPrevPlanet(updateOrders: boolean) {
+		if (!$commandedPlanet) {
+			return;
+		}
+		if (updateOrders) {
+			await updatePlanetOrders($commandedPlanet);
+		}
+
+		previousMapObject();
+	}
+
+	async function onMergeFleets(e: MergeFleetsEvent) {
+		await merge(e.fleet, e.fleetNums);
+		// close the dialog
+		showMergeFleetsDialog = false;
+	}
+
+	async function onSplitFleet(e: SplitFleetEvent) {
+		await split(e.src, e.dest, e.srcTokens, e.destTokens, e.transferAmount);
+
+		// close the dialog
+		showSplitFleetDialog = false;
 	}
 
 	function selectSearchResult(mo: MapObject | undefined) {
@@ -114,6 +232,63 @@
 			}
 			selectMapObject(mo);
 			zoomToMapObject(mo);
+		}
+		showSearchDialog = false;
+	}
+
+	function onSelectMapObject(mo: MapObject) {
+		if ($selectedMapObject !== mo) {
+			// we selected a different object, so just select it
+			selectMapObject(mo);
+
+			// if we selected a mapobject that is a waypoint, select the waypoint as well
+			if ($commandedFleet?.waypoints) {
+				const fleetWaypoint = $commandedFleet.waypoints.find((wp) =>
+					equal(wp.position, mo.position)
+				);
+				if (fleetWaypoint) {
+					selectWaypoint(fleetWaypoint);
+				}
+			}
+		} else {
+			// we selected the same mapobject twice
+			const myMapObjectsAtPosition = $universe.getMyMapObjectsByPosition(mo);
+			if (myMapObjectsAtPosition?.length > 0) {
+				let index = myMapObjectsAtPosition.findIndex((mo) =>
+					mapObjectEqual(mo, $commandedMapObject)
+				);
+				// if our currently commanded map object is not at this location, reset the index
+				if (index == -1) {
+					index = 0;
+				} else {
+					// command the next one
+					index = index >= myMapObjectsAtPosition.length - 1 ? 0 : index + 1;
+				}
+				const nextMapObject = myMapObjectsAtPosition[index];
+
+				commandMapObject(nextMapObject);
+			}
+		}
+	}
+
+	function onSetPacketDest(mo: MapObject) {
+		if (mo.type != MapObjectType.Planet) {
+			return;
+		} else {
+			$settings.setPacketDest = false;
+			// something went wrong, can't set dest on a planet without a massdriver
+			if (!$commandedPlanet?.spec.hasMassDriver) {
+				return;
+			}
+
+			if (mapObjectEqual(mo, $commandedPlanet)) {
+				// clear dest
+				$commandedPlanet.packetTargetNum = None;
+			} else {
+				$commandedPlanet.packetTargetNum = mo.num;
+			}
+
+			updatePlanetOrders($commandedPlanet);
 		}
 	}
 </script>
@@ -126,31 +301,39 @@
 	>
 		<div class="flex flex-row flex-wrap gap-2 justify-center">
 			<CommandPane
-				on:change-production={(e) => (showProductionQueueDialog = true)}
-				on:cargo-transfer-dialog={(e) => {
+				{onNextMapObject}
+				{onPreviousMapObject}
+				{onRenameFleet}
+				{onSelectWaypoint}
+				{onChangeWaypoint}
+				{onDeleteWaypoint}
+				{onSplitAll}
+				{onBattlePlanChanged}
+				{onChangeMassDriverSpeed}
+				onShowProductionQueueDialog={() => (showProductionQueueDialog = true)}
+				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
-					cargoTransferDetails = e?.detail;
+					cargoTransferDialogEvent = e;
 				}}
-				on:merge-fleets-dialog={(e) => {
+				onShowMergeFleetDialog={(e) => {
 					showMergeFleetsDialog = true;
-					mergeFleetsDialogEventDetails = e.detail;
+					mergeFleetsDialogEvent = e;
 				}}
-				on:split-fleet-dialog={(e) => {
+				onShowSplitFleetDialog={(e) => {
 					showSplitFleetDialog = true;
-					splitFleetDialogEventDetails = e.detail;
+					splitFleetDialogEvent = e;
 				}}
-				on:transport-tasks-dialog={(e) => {
+				onShowTransportTasksDialog={(e) => {
 					showTransportTasksDialog = true;
-					transportTasksDialogEventDetails = e.detail;
+					transportTasksDialogEvent = e;
 				}}
-				on:delete-waypoint={onDeleteWaypoint}
 			/>
 		</div>
 		<div class="hidden lg:block lg:p-1 mx-2">
 			<MapObjectSummary
-				on:cargo-transfer-dialog={(e) => {
+				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
-					cargoTransferDetails = e?.detail;
+					cargoTransferDialogEvent = e;
 				}}
 			/>
 		</div>
@@ -158,17 +341,23 @@
 
 	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
-			<ScannerToolbar on:show-search={() => (showSearchDialog = true)} />
-			<Scanner on:delete-waypoint={onDeleteWaypoint} />
+			<ScannerToolbar onShowSearch={() => (showSearchDialog = true)} />
+			<Scanner
+				{onSelectWaypoint}
+				{onAddWaypoint}
+				{onUpdateWaypointDest}
+				{onSelectMapObject}
+				{onSetPacketDest}
+			/>
 		</div>
 		<div class:hidden={!carouselOpen}>
 			<MapObjectStatsBar />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
 			<MapObjectSummary
-				on:cargo-transfer-dialog={(e) => {
+				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
-					cargoTransferDetails = e?.detail;
+					cargoTransferDialogEvent = e;
 				}}
 			/>
 		</div>
@@ -178,35 +367,70 @@
 	<div class="flex flex-col flex-0">
 		<CommandPaneCarousel
 			bind:isOpen={carouselOpen}
-			on:change-production={(e) => (showProductionQueueDialog = true)}
-			on:cargo-transfer-dialog={(e) => {
+			{onSelectWaypoint}
+			{onChangeWaypoint}
+			{onDeleteWaypoint}
+			{onSplitAll}
+			{onBattlePlanChanged}
+			{onChangeMassDriverSpeed}
+			onShowProductionQueueDialog={() => (showProductionQueueDialog = true)}
+			onShowCargoTransferDialog={(e) => {
 				showCargoTransferDialog = true;
-				cargoTransferDetails = e?.detail;
+				cargoTransferDialogEvent = e;
 			}}
-			on:merge-fleets-dialog={(e) => {
+			onShowMergeFleetDialog={(e) => {
 				showMergeFleetsDialog = true;
-				mergeFleetsDialogEventDetails = e.detail;
+				mergeFleetsDialogEvent = e;
 			}}
-			on:split-fleet-dialog={(e) => {
+			onShowSplitFleetDialog={(e) => {
 				showSplitFleetDialog = true;
-				splitFleetDialogEventDetails = e.detail;
+				splitFleetDialogEvent = e;
 			}}
-			on:transport-tasks-dialog={(e) => {
+			onShowTransportTasksDialog={(e) => {
 				showTransportTasksDialog = true;
-				transportTasksDialogEventDetails = e.detail;
+				transportTasksDialogEvent = e;
 			}}
-			on:delete-waypoint={onDeleteWaypoint}
 		/>
 	</div>
 </div>
 
 <!-- dialog modals -->
-<ProductionQueueDialog bind:show={showProductionQueueDialog} />
-<CargoTranfserDialog bind:show={showCargoTransferDialog} bind:props={cargoTransferDetails} />
-<MergeFleetsDialog bind:show={showMergeFleetsDialog} bind:props={mergeFleetsDialogEventDetails} />
-<SplitFleetDialog bind:show={showSplitFleetDialog} bind:props={splitFleetDialogEventDetails} />
-<TransportTasksDialog
-	bind:show={showTransportTasksDialog}
-	bind:props={transportTasksDialogEventDetails}
+<ProductionQueueDialog
+	show={showProductionQueueDialog}
+	onNext={() => onNextPlanet(true)}
+	onPrev={() => onPrevPlanet(true)}
+	onOk={(planet) => {
+		showProductionQueueDialog = false;
+		updatePlanetOrders(planet);
+	}}
+	onCancel={() => (showProductionQueueDialog = false)}
 />
-<SearchDialog bind:show={showSearchDialog} on:select-result={(e) => selectSearchResult(e.detail)} />
+<CargoTranfserDialog
+	show={showCargoTransferDialog}
+	props={cargoTransferDialogEvent}
+	onOk={onTransferCargo}
+	onCancel={() => (showCargoTransferDialog = false)}
+/>
+<MergeFleetsDialog
+	show={showMergeFleetsDialog}
+	props={mergeFleetsDialogEvent}
+	onOk={onMergeFleets}
+	onCancel={() => (showMergeFleetsDialog = false)}
+/>
+<SplitFleetDialog
+	show={showSplitFleetDialog}
+	props={splitFleetDialogEvent}
+	onOk={onSplitFleet}
+	onCancel={() => (showSplitFleetDialog = false)}
+/>
+<TransportTasksDialog
+	show={showTransportTasksDialog}
+	props={transportTasksDialogEvent}
+	onOk={onUpdateTransportTasks}
+	onCancel={() => (showTransportTasksDialog = false)}
+/>
+<SearchDialog
+	show={showSearchDialog}
+	onOk={(e) => selectSearchResult(e)}
+	onCancel={() => (showSearchDialog = false)}
+/>

@@ -11,11 +11,13 @@
 	import { humanoid } from '$lib/types/Race';
 	import { UserRole } from '$lib/types/User';
 	import { onMount } from 'svelte';
-	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
+	import PlayerChooser from '$lib/components/game/newgame/PlayerChooser.svelte';
 
-	let game: Game | undefined;
-	let race = Object.assign({}, humanoid());
-	let name = $me.username;
+	let game: Game | undefined = $state();
+	let race = $state(humanoid());
+	let name = $state($me.username);
+	let valid: boolean = $state(false);
+	let error = $state('');
 
 	onMount(async () => {
 		try {
@@ -41,12 +43,14 @@
 			if (!response.ok) {
 				await Service.throwError(response);
 			}
-			goto(`/games/${game.id}`);
+
+			await goto(`/games/${game.id}`);
 		}
 	};
 
-	let error = '';
-	$: valid = game && game.openPlayerSlots > 0;
+	$effect(() => {
+		valid = !!(game && game.openPlayerSlots > 0);
+	});
 </script>
 
 <ItemTitle>Join Public Game</ItemTitle>
@@ -57,13 +61,23 @@
 		<GameCard {game} />
 	</div>
 
-	<form on:submit|preventDefault={onSubmit}>
-		{#if $me.role == UserRole.guest}
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			onSubmit();
+		}}
+	>
+		{#if $me.role === UserRole.guest}
 			<label class="label" for="name">Name</label>
 			<input name="name" bind:value={name} class="input input-bordered" />
 		{/if}
 		<fieldset name="players" class="form-control mt-3">
-			<PlayerChooser bind:race bind:valid />
+			<PlayerChooser
+				raceUpdated={(updated, raceValid) => {
+					race = updated;
+					valid = raceValid && !!(game && game.openPlayerSlots > 0);
+				}}
+			/>
 		</fieldset>
 		<button class="btn btn-primary mt-2" disabled={!valid}>Join</button>
 	</form>

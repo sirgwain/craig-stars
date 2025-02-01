@@ -7,9 +7,13 @@
 	const designFinder = getContext<DesignFinder>(designFinderKey);
 	const playerFinder = getContext<PlayerFinder>(playerFinderKey);
 
-	export let battle: Battle;
-	export let action: TokenAction | undefined;
-	export let phase: number;
+	type Props = {
+		battle: Battle;
+		action: TokenAction | undefined;
+		phase: number;
+	};
+
+	let { battle, action, phase }: Props = $props();
 
 	function getTokenDescription(tokenNum?: number): string {
 		if (!tokenNum) {
@@ -53,7 +57,7 @@
 			{`doing ${action.damageDoneArmor} damage to armor and ${action.damageDoneShields} damage to shields with ${action.torpedoHits} hits`}
 		{:else if action.damageDoneArmor}
 			{`doing ${action.damageDoneArmor} damage to armor`}
-		{:else if action.damageDoneArmor}
+		{:else if action.damageDoneShields}
 			{`doing ${action.damageDoneShields} damage to shields`}
 		{/if}
 		{#if action.torpedoMisses}
@@ -67,4 +71,4 @@
 		destroying {action.tokensDestroyed} ship{action.tokensDestroyed > 1 ? 's' : ''}
 	{/if}
 {/if}
-<div />
+<div></div>

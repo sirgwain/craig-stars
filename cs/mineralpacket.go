@@ -60,10 +60,10 @@ func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int,
 func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float64 {
 
 	// we only care about packets thrown up to 3 warps over the limit
-	overSafeWarp := MinInt(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
+	overSafeWarp := Min(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
 
 	// IT is always counted as being 1 more over the safe warp
-	overSafeWarp = MinInt(race.Spec.PacketOverSafeWarpPenalty+overSafeWarp, 3)
+	overSafeWarp = Min(race.Spec.PacketOverSafeWarpPenalty+overSafeWarp, 3)
 
 	packetDecayRate := 0.0
 	if overSafeWarp > 0 {
@@ -212,13 +212,13 @@ func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) Min
 	uncaught := int((1.0 - percentCaughtSafely) * float64(weight))
 	rawDamage := float64((speedOfPacket-speedOfReceiver)*weight) / 160
 	damageWithDefenses := rawDamage * (1 - planet.Spec.DefenseCoverage)
-	colonistsKilled := roundToNearest100f(math.Max(damageWithDefenses*float64(planet.population())/1000, damageWithDefenses*100))
+	colonistsKilled := roundToNearest100(math.Max(damageWithDefenses*float64(planet.population())/1000, damageWithDefenses*100))
 	defensesDestroyed := int(math.Max(float64(planet.Defenses)*damageWithDefenses/1000, damageWithDefenses/20))
 
 	// kill off colonists and defenses
 	return MineralPacketDamage{
-		Killed:            roundToNearest100(MinInt(colonistsKilled, planet.population())),
-		DefensesDestroyed: MinInt(planet.Defenses, defensesDestroyed),
+		Killed:            roundToNearest100(Min(colonistsKilled, planet.population())),
+		DefensesDestroyed: Min(planet.Defenses, defensesDestroyed),
 		Uncaught:          uncaught,
 	}
 
@@ -260,7 +260,7 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 
 			// subtract either the normal or minimum decay amounts, whichever is higher (rounded DOWN)
 			if mineral > 0 {
-				decayAmount := MaxInt(int(decayRate*float64(mineral)), int(float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
+				decayAmount := Max(int(decayRate*float64(mineral)), int(float64(rules.PacketMinDecay)*float64(player.Race.Spec.PacketDecayFactor)))
 				packetCopy.Cargo.SubtractAmount(minType, decayAmount)
 				packetCopy.Cargo = packetCopy.Cargo.MinZero()
 			}
@@ -312,8 +312,8 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 				// Loop 3 has chance 0.5 * min((250-200)/100, 1) = 0.5 * min(0.5, 1) = 0.25
 				// Loop 4 fails to execute as uncaughtCheck (300) is now larger than mineral (250)
 
-				if rules.random.Float64() <= terraformChance {
-					if AbsInt(direction) >= t.getTerraformAbility(player).Get(habType) {
+				if terraformChance >= rules.random.Float64() {
+					if Abs(direction) >= t.getTerraformAbility(player).Get(habType) {
 						// if we can't terraform hab any further, skip any remaining checks for brevity
 						// TerraformHab already caps the result at the player's terraforming ability anyways; this just saves computing power
 						continue
@@ -345,6 +345,7 @@ func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet
 		terraformer := NewTerraformer()
 
 		// Evaluate each mineral type separately
+	mineralLoop:
 		for i, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := int(math.Ceil(float64(packet.Cargo.GetAmount(minType)) * uncaught))
 			habType := HabType(i)
@@ -364,17 +365,16 @@ func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet
 				permaformChance := player.Race.Spec.PacketPermaformChance * math.Min(
 					float64((mineral-uncaughtCheck)/player.Race.Spec.PacketPermaTerraformSizeUnit), 1)
 
-				if permaformChance >= float64(rules.random.Float64()) {
+				if permaformChance >= rules.random.Float64() {
 					// Permaform & keep track of result
 					result = terraformer.PermaformOneStep(planet, player, habType)
 					direction += result.Direction
 					if !result.Terraformed() {
 						// BaseHab already perfect; skip remaining checks
-						continue
+						continue mineralLoop
 					}
 				}
 			}
-
 			if result.Terraformed() {
 				messager.planetPacketPermaform(player, planet, habType, direction)
 			}

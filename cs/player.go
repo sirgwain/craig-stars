@@ -43,6 +43,7 @@ type Player struct {
 	Spec                      PlayerSpec           `json:"spec,omitempty"`
 	leftoverResources         int
 	techLevelGained           bool
+	acquirablePartGained      bool
 	discoverer                discoverer
 }
 
@@ -122,10 +123,11 @@ type PlayerSpec struct {
 }
 
 type PlayerResearchSpec struct {
-	ResourcesPerYear                  int `json:"resourcesPerYear"`
-	ResourcesPerYearResearch          int `json:"resourcesPerYearResearch"`
-	ResourcesPerYearResearchEstimated int `json:"resourcesPerYearResearchEstimated"`
-	CurrentResearchCost               int `json:"currentResearchCost"`
+	ResourcesPerYear                  int     `json:"resourcesPerYear"`
+	ResourcesPerYearResearch          int     `json:"resourcesPerYearResearch"`
+	ResourcesPerYearResearchEstimated int     `json:"resourcesPerYearResearchEstimated"`
+	CurrentResearchCost               int     `json:"currentResearchCost"`
+	TechsJustGained                   []*Tech `json:"techsJustGained"`
 }
 
 type PlayerScore struct {
@@ -302,6 +304,16 @@ func (p *Player) withSpec(rules *Rules) *Player {
 	return p
 }
 
+// Update a player's recently gained techs and message them about it
+func (p *Player) updateTechsJustGained(store *TechStore, field TechField) {
+	techsGained := store.GetTechsJustGained(p, field)
+	p.Spec.TechsJustGained = append(p.Spec.TechsJustGained, techsGained...)
+	for _, tech := range techsGained {
+		messager.playerTechGained(p, field, tech)
+	}
+
+}
+
 func (p *Player) String() string {
 	return fmt.Sprintf("Player %d (%d) %s", p.Num, p.ID, p.Race.PluralName)
 }
@@ -370,7 +382,7 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 	num := 0
 	for _, design := range designs {
-		num = MaxInt(num, design.Num)
+		num = Max(num, design.Num)
 	}
 	return num + 1
 }
@@ -379,7 +391,7 @@ func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 func (p *Player) GetNextBattlePlanNum() int {
 	num := 0
 	for _, plan := range p.BattlePlans {
-		num = MaxInt(num, plan.Num)
+		num = Max(num, plan.Num)
 	}
 	return num + 1
 }
@@ -388,7 +400,7 @@ func (p *Player) GetNextBattlePlanNum() int {
 func (p *Player) GetNextProductionPlanNum() int {
 	num := 0
 	for _, plan := range p.ProductionPlans {
-		num = MaxInt(num, plan.Num)
+		num = Max(num, plan.Num)
 	}
 	return num + 1
 }
@@ -397,7 +409,7 @@ func (p *Player) GetNextProductionPlanNum() int {
 func (p *Player) GetNextTransportPlanNum() int {
 	num := 0
 	for _, plan := range p.TransportPlans {
-		num = MaxInt(num, plan.Num)
+		num = Max(num, plan.Num)
 	}
 	return num + 1
 }
@@ -837,7 +849,7 @@ func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
 func (p *Player) getNextMineralPacketNum(packets []*MineralPacket) int {
 	num := 0
 	for _, packet := range packets {
-		num = MaxInt(num, packet.Num)
+		num = Max(num, packet.Num)
 	}
 	return num + 1
 }

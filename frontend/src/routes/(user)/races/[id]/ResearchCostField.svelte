@@ -1,10 +1,14 @@
 <script lang="ts">
-	import { startCase } from 'lodash-es';
-	import { ResearchCostLevel, type Race } from '$lib/types/Race';
+	import { ResearchCostLevel } from '$lib/types/Race';
 	import type { TechField } from '$lib/types/TechLevel';
+	import { startCase } from 'lodash-es';
 
-	export let field: TechField;
-	export let value: ResearchCostLevel;
+	type Props = {
+		field: TechField;
+		value: ResearchCostLevel;
+	};
+
+	let { field, value = $bindable() }: Props = $props();
 </script>
 
 <div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full md:w-auto">

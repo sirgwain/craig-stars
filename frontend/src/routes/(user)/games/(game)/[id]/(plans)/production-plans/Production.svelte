@@ -1,46 +1,58 @@
 <script lang="ts">
+	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import type { DesignFinder } from '$lib/services/Universe';
 	import { fromQueueItemType, getQueueItemShortName } from '$lib/types/Planet';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { QueueItemTypes, isAuto } from '$lib/types/QueueItemType';
-	import { createEventDispatcher } from 'svelte';
-	import ProductionPlanItemsButtons from './ProductionItemsButtons.svelte';
-	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
+	import ProductionItemsButtons from './ProductionItemsButtons.svelte';
 
-	const dispatch = createEventDispatcher();
+	type Props = {
+		designFinder: DesignFinder;
+		// default to auto tasks
+		availableItems?: ProductionQueueItem[];
+		queueItems?: ProductionQueueItem[];
+		queueItemDescription?: (item: ProductionQueueItem, designFinder: DesignFinder) => string;
+		onAvailableItemSelected?: (item: ProductionQueueItem) => void;
+		onQueueItemSelected?: (item: ProductionQueueItem | undefined) => void;
+	};
 
-	export let designFinder: DesignFinder;
-	// default to auto tasks
-	export let availableItems: ProductionQueueItem[] = [
-		fromQueueItemType(QueueItemTypes.AutoFactories),
-		fromQueueItemType(QueueItemTypes.AutoMines),
-		fromQueueItemType(QueueItemTypes.AutoDefenses),
-		fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
-		fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
-		fromQueueItemType(QueueItemTypes.AutoMinTerraform)
-	];
-	export let queueItems: ProductionQueueItem[] = [];
-	export let queueItemDescription = getQueueItemShortName;
+	let {
+		designFinder,
+		availableItems = [
+			fromQueueItemType(QueueItemTypes.AutoFactories),
+			fromQueueItemType(QueueItemTypes.AutoMines),
+			fromQueueItemType(QueueItemTypes.AutoDefenses),
+			fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
+			fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
+			fromQueueItemType(QueueItemTypes.AutoMinTerraform)
+		],
+		queueItems = $bindable([]),
+		queueItemDescription = getQueueItemShortName,
+		onAvailableItemSelected,
+		onQueueItemSelected
+	}: Props = $props();
 
-	let quantityModifier = 1;
+	let quantityModifier = $state(1);
 
-	let selectedAvailableItem: ProductionQueueItem | undefined;
+	let selectedAvailableItem: ProductionQueueItem | undefined = $state();
+	let selectedAvailableItemIndex = $state(-1);
 
-	let selectedQueueItemIndex = -1;
+	let selectedQueueItemIndex = $state(-1);
 	let selectedQueueItem: ProductionQueueItem | undefined;
 
-	const availableItemSelected = (item: ProductionQueueItem) => {
+	function availableItemSelected(index: number, item: ProductionQueueItem) {
+		selectedAvailableItemIndex = index;
 		selectedAvailableItem = item;
-		dispatch('available-item-selected', selectedAvailableItem);
-	};
+		onAvailableItemSelected?.(selectedAvailableItem);
+	}
 
-	const queueItemClicked = (index: number, item?: ProductionQueueItem) => {
+	function queueItemClicked(index: number, item?: ProductionQueueItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
-		dispatch('queue-item-selected', selectedQueueItem);
-	};
+		onQueueItemSelected?.(selectedQueueItem);
+	}
 
-	const addAvailableItem = (e: MouseEvent, item?: ProductionQueueItem) => {
+	function addAvailableItem(item?: ProductionQueueItem) {
 		item = item ?? selectedAvailableItem;
 		if (!queueItems || !item) {
 			return;
@@ -48,7 +60,10 @@
 
 		const quantity = quantityModifier;
 		if (selectedQueueItem) {
-			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
+			if (
+				selectedQueueItem.type === item?.type &&
+				selectedQueueItem.designNum === item?.designNum
+			) {
 				selectedQueueItem.quantity += quantity;
 			} else {
 				// insert a new item
@@ -62,20 +77,27 @@
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 			}
 		} else {
-			// prepend a new queue item
-			queueItems = [
-				{ type: item.type, designNum: item.designNum, quantity, allocated: {} },
-				...queueItems
-			];
-			selectedQueueItemIndex++;
-			selectedQueueItem = queueItems[selectedQueueItemIndex];
+			let nextItem = queueItems.length ? queueItems[0] : undefined;
+			if (nextItem && nextItem.type === item?.type && nextItem.designNum == item.designNum) {
+				nextItem.quantity++;
+				selectedQueueItemIndex = 0;
+				selectedQueueItem = nextItem;
+			} else {
+				// prepend a new queue item
+				queueItems = [
+					{ type: item.type, designNum: item.designNum, quantity, allocated: {} },
+					...queueItems
+				];
+				selectedQueueItemIndex++;
+				selectedQueueItem = queueItems[selectedQueueItemIndex];
+			}
 		}
 
 		// trigger reaction
 		queueItems = queueItems;
-	};
+	}
 
-	const removeItem = (e: MouseEvent) => {
+	function removeItem() {
 		if (queueItems && selectedQueueItem) {
 			selectedQueueItem.quantity -= quantityModifier;
 			queueItems = queueItems;
@@ -87,9 +109,9 @@
 				selectedQueueItemIndex--;
 			}
 		}
-	};
+	}
 
-	const itemUp = () => {
+	function itemUp() {
 		if (queueItems && selectedQueueItem && selectedQueueItemIndex > 0) {
 			const swap = queueItems[selectedQueueItemIndex - 1];
 			queueItems[selectedQueueItemIndex - 1] = selectedQueueItem;
@@ -97,9 +119,9 @@
 			selectedQueueItemIndex--;
 			queueItems = queueItems;
 		}
-	};
+	}
 
-	const itemDown = () => {
+	function itemDown() {
 		if (queueItems && selectedQueueItem && selectedQueueItemIndex < queueItems.length - 1) {
 			const swap = queueItems[selectedQueueItemIndex + 1];
 			queueItems[selectedQueueItemIndex + 1] = selectedQueueItem;
@@ -107,26 +129,26 @@
 			selectedQueueItemIndex++;
 			queueItems = queueItems;
 		}
-	};
+	}
 
-	const clear = () => {
+	function clear() {
 		queueItems = [];
 		selectedQueueItem = undefined;
 		selectedQueueItemIndex = -1;
-	};
+	}
 </script>
 
 <div class="flex flex-row">
 	<div class="grow">
 		<ul class="h-full overflow-y-auto bg-base-300 px-1 pb-2">
-			{#each availableItems as item}
+			{#each availableItems as item, index (index)}
 				<li>
 					<button
 						type="button"
-						on:click={() => availableItemSelected(item)}
-						on:dblclick={(e) => addAvailableItem(e, item)}
-						class="w-full text-left cursor-default select-none hover:text-secondary-focus {item ==
-						selectedAvailableItem
+						onclick={() => availableItemSelected(index, item)}
+						ondblclick={() => addAvailableItem(item)}
+						class="w-full text-left cursor-default select-none hover:text-secondary-focus {index ===
+						selectedAvailableItemIndex
 							? ' bg-primary'
 							: ''}
 				{isAuto(item.type) ? ' italic' : ''}"
@@ -139,12 +161,12 @@
 	</div>
 
 	<div>
-		<ProductionPlanItemsButtons
-			on:add-item={(e) => addAvailableItem(e.detail)}
-			on:remove-item={(e) => removeItem(e.detail)}
-			on:item-up={() => itemUp()}
-			on:item-down={() => itemDown()}
-			on:clear={() => clear()}
+		<ProductionItemsButtons
+			onAddItem={() => addAvailableItem()}
+			onRemoveItem={() => removeItem()}
+			onItemUp={() => itemUp()}
+			onItemDown={() => itemDown()}
+			onClear={() => clear()}
 		/>
 		<div class="flex flex-col sm:flex-row justify-between mt-2 gap-1 mx-1">
 			<QuantityModifierButtons bind:modifier={quantityModifier} />
@@ -156,8 +178,8 @@
 			<li>
 				<button
 					type="button"
-					on:click={() => queueItemClicked(-1)}
-					class="w-full italic pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
+					onclick={() => queueItemClicked(-1)}
+					class="w-full italic pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ===
 					-1
 						? 'bg-primary'
 						: ''}"
@@ -166,12 +188,12 @@
 				</button>
 			</li>
 			{#if queueItems}
-				{#each queueItems as queueItem, index}
+				{#each queueItems as queueItem, index (index)}
 					<li>
 						<button
 							type="button"
-							on:click={() => queueItemClicked(index, queueItem)}
-							class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ==
+							onclick={() => queueItemClicked(index, queueItem)}
+							class="w-full text-left pl-1 select-none cursor-default hover:text-secondary-focus {selectedQueueItemIndex ===
 							index
 								? 'bg-primary'
 								: ''} {isAuto(queueItem.type) ? 'italic' : ''}"

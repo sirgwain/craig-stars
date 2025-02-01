@@ -1,8 +1,6 @@
 module github.com/sirgwain/craig-stars
 
-go 1.22
-
-toolchain go1.22.5
+go 1.23.4
 
 require (
 	github.com/spf13/cobra v1.8.1
@@ -75,7 +73,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/deckarep/golang-set/v2 v2.6.0
+	github.com/deckarep/golang-set/v2 v2.7.0
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 )
 

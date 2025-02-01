@@ -10,7 +10,8 @@ on:
 jobs:
   # cut a new tag
   tag:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # tasks only run on head repo by default (not forks); change this to enable it
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.repository == 'sirgwain/craig-stars' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -33,13 +34,12 @@ jobs:
     if: github.repository == 'sirgwain/craig-stars'
     strategy:
       matrix:
-        go-version: [1.22.x]
-        node-version: [18]
+        go-version: [1.23.x]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     needs: tag
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # get some build metadata we can put in the binary and package.json
       - name: Get build time
@@ -47,13 +47,14 @@ jobs:
         run: echo "buildTime=`date +'%y.%m.%d %H:%M:%S'`" >> $GITHUB_OUTPUT
 
       # build the backend and wasm
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
       # build the cs.wasm/wasm_exec.js into frontend/src/lib/wasm
       # this will be picked up by the frontend build below
+      - run: make generate
       - run: make build_wasm
       - run: mkdir -p dist/
       - run: |
@@ -67,12 +68,12 @@ jobs:
       - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
 
       # build the frontend (this is slow)
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: lts/*
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
-      - run: npm install
+      - run: npm ci
         working-directory: ./frontend
       - run: jq ".version = \"${{ needs.tag.outputs.version }}\"" package.json > package.json.tmp && mv package.json.tmp package.json
         working-directory: ./frontend
@@ -82,7 +83,7 @@ jobs:
       - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
 
       # upload the dist folder to github's artifacts
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: dist-artifacts
           path: ./dist/*.tgz
@@ -98,19 +99,20 @@ jobs:
 
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: dist-artifacts
+          path: dist-artifacts
 
       - name: Create release
         id: create_release
-        uses: ncipollo/release-action@v1.8.10
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: Published ${{ needs.tag.outputs.version }}
           tag: ${{ needs.tag.outputs.version }}
-          artifacts: ./artifacts/dist-artifacts/*.tgz
+          artifacts: ./dist-artifacts/*.tgz
           artifactContentType: application/zip
           generateReleaseNotes: true
 

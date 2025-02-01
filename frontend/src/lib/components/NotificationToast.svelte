@@ -10,7 +10,7 @@
 <div class="toast toast-top toast-center z-50 w-full md:max-w-2xl">
 	{#if $notification}
 		<div>
-			<div class="alert alert-info" in:fade out:fade={{ delay: 1000 }} on:introend={onFadeOut}>
+			<div class="alert alert-info" in:fade out:fade={{ delay: 1000 }} onintroend={onFadeOut}>
 				<div>
 					<span>{$notification}</span>
 				</div>

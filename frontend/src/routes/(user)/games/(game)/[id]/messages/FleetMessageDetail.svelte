@@ -11,7 +11,11 @@
 
 	const { game, universe, player } = getGameContext();
 
-	export let message: Message;
+	type Props = {
+		message: Message;
+	};
+
+	let { message }: Props = $props();
 
 	let fleet =
 		message.targetPlayerNum && message.targetNum

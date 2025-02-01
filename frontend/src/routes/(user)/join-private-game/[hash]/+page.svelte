@@ -13,9 +13,9 @@
 	import { onMount } from 'svelte';
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
 
-	let game: Game | undefined;
-	let race = Object.assign({}, humanoid());
-	let name = $me.username;
+	let game: Game | undefined = $state();
+	let race = $state(humanoid());
+	let name = $state($me.username);
 
 	onMount(async () => {
 		const games = await GameService.loadGameByHash($page.params.hash);
@@ -43,7 +43,11 @@
 		}
 	};
 
-	$: valid = game && game.openPlayerSlots > 0;
+	let valid = $state(false);
+
+	$effect(() => {
+		valid = !!(game && game.openPlayerSlots > 0);
+	});
 </script>
 
 <ItemTitle>Join Private Game</ItemTitle>
@@ -53,13 +57,23 @@
 		<GameCard {game} />
 	</div>
 
-	<form on:submit|preventDefault={onSubmit}>
-		{#if $me.role == UserRole.guest}
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			onSubmit();
+		}}
+	>
+		{#if $me.role === UserRole.guest}
 			<label class="label" for="name">Name</label>
 			<input name="name" bind:value={name} class="input input-bordered" />
 		{/if}
 		<fieldset name="players" class="form-control mt-3">
-			<PlayerChooser bind:race bind:valid />
+			<PlayerChooser
+				raceUpdated={(updated, raceValid) => {
+					race = updated;
+					valid = raceValid && !!(game && game.openPlayerSlots > 0);
+				}}
+			/>
 		</fieldset>
 		<button class="btn btn-primary mt-2" disabled={!valid}>Join</button>
 	</form>

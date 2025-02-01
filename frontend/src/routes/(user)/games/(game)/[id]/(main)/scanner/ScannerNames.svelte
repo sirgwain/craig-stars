@@ -1,24 +1,23 @@
-<!--
-  @component
-  Generates an SVG scatter plot. This component can also work if the x- or y-scale is ordinal, i.e. it has a `.bandwidth` method. See the [timeplot chart](https://layercake.graphics/example/Timeplot) for an example.
- -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { ZoomTransform } from 'd3-zoom';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import type { Readable } from 'svelte/store';
+	import { getScannerContext } from './Scanner';
 
 	const { universe, selectedMapObject, highlightedMapObject } = getGameContext();
-	const { data, xGet, yGet, xScale, yScale, width, height } = getContext<LayerCake>('LayerCake');
-	const objectScale = getContext<Readable<number>>('objectScale');
+	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
+	const { objectScale } = getScannerContext();
 
-	export let transform: ZoomTransform;
+	type Props = {
+		transform: ZoomTransform;
+	};
+
+	let { transform }: Props = $props();
 
 	function fillStyle(left: number, top: number) {
 		return `top:${top}px; left: ${left}px;`;
 	}
-
 </script>
 
 <!-- Names -->

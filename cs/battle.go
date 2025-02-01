@@ -191,17 +191,18 @@ var movementByRound = [9][4]int{
 }
 
 // get the movement of this design with additional cargo
-func getBattleMovement(idealEngineSpeed, movementBonus, mass, numEngines int) int {
+func getBattleMovement(movementMin, movementMax, idealEngineSpeed int, movementBonus float64, mass, numEngines int) int {
 	if numEngines == 0 {
 		return 0
 	}
-	return Clamp(((idealEngineSpeed+movementBonus)-2)-((mass)/numEngines/70), 2, 10)
+	mb := int(math.Ceil(movementBonus)) // round up fractional movement bonus
+	return Clamp(idealEngineSpeed-2-(mass/(numEngines*70))+mb, movementMin, movementMax)
 }
 
 // BuildBattle builds a battle recording with all the battle tokens for a list of fleets that contains more than one player.
 // We'll use this to determine if a battle should take place at this location.
 // Also, any players that have a potential battle will discover each other's designs.
-func newBattler(log zerolog.Logger, rules *Rules, techFinder TechFinder, battleNum int, players map[int]*Player, fleets []*Fleet, planet *Planet) battler {
+func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int]*Player, fleets []*Fleet, planet *Planet) battler {
 	battleLogger := log.With().Int("Battle", battleNum).Logger()
 	if len(fleets) == 0 {
 		battleLogger.Error().Msg("Can't build battle with no fleets.")
@@ -248,7 +249,7 @@ func newBattler(log zerolog.Logger, rules *Rules, techFinder TechFinder, battleN
 			}
 
 			position := playerStartingPositions[player.Num]
-			battleToken := newBattleToken(num, position, cargoMass, token, *fleet.battlePlan, player, techFinder)
+			battleToken := newBattleToken(rules, num, position, cargoMass, token, *fleet.battlePlan, player)
 			tokens = append(tokens, battleToken)
 			tokenRecords = append(tokenRecords, battleToken.BattleRecordToken)
 
@@ -256,7 +257,7 @@ func newBattler(log zerolog.Logger, rules *Rules, techFinder TechFinder, battleN
 			board[position.X][position.Y] += battleToken.StartingQuantity
 
 			// find the highest dampener we have
-			dampening = MaxInt(dampening, token.design.Spec.ReduceMovement)
+			dampening = Max(dampening, token.design.Spec.ReduceMovement)
 		}
 	}
 
@@ -494,6 +495,7 @@ func (b *battle) getEstimatedDamageForWeapon(weapon *battleWeaponSlot, target *b
 	}
 
 	var bwd battleWeaponDamage
+	// TODO: Add support for beam-torpedo hybrids (~~or not~~)
 	if weapon.weaponType == battleWeaponTypeBeam {
 		bwd = weapon.getBeamDamageToTargetAtDistance(weapon.power*weapon.slotQuantity*weapon.token.Quantity, target, distance, b.rules.BeamRangeDropoff)
 	} else {
@@ -778,21 +780,22 @@ func (b *battle) fireBeamWeapon(weapon *battleWeaponSlot, targets []*battleToken
 	}
 }
 
-// Fire a torpedo slot from a ship. Torpedos are different than beam weapons
+// Fire a torpedo slot from a ship.
 // A ship will fire each torpedo at its target until the target is destroyed, then
-// fire remaining torpedos at the next target.
-// Each torpedo has an accuracy rating. That determines if it hits. A torpedo that
-// misses still explodes and does 1/8th damage to shields
+// fire any remaining torpedoes at the next target.
+//
+// Each torpedo has an accuracy rating that determines how often it hits the target.
+// A torpedo that misses still explodes and does 1/8th damage to shields (if any).
 func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 	attacker := weapon.token
 	damage := weapon.power
-	numTorpedos := weapon.slotQuantity * attacker.Quantity
+	numTorpedoes := weapon.slotQuantity * attacker.Quantity
 
-	b.log.Debug().Msgf("%s is attempting to fire at %d targets with %d torpedos at %.2f%% accuracy for %d damage each",
-		weapon.token, len(targets), numTorpedos, (weapon.getAccuracy(0))*100.0, damage)
+	b.log.Debug().Msgf("%s is attempting to fire at %d targets with %d torpedoes at %.2f%% accuracy for %d damage each",
+		weapon.token, len(targets), numTorpedoes, (weapon.getAccuracy(0))*100.0, damage)
 
-	// fire each torpedo at each target until it's destroyed or we're out of torpedos
-	remainingTorpedos := numTorpedos
+	// fire each torpedo at each target until it's destroyed or we're out of torpedoes
+	remainingTorpedoes := numTorpedoes
 	torpedoNum := 0
 	for _, target := range targets {
 		if !target.isStillInBattle() {
@@ -801,7 +804,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 		}
 
 		// no more damage to spread, break out
-		if remainingTorpedos == 0 {
+		if remainingTorpedoes == 0 {
 			break
 		}
 
@@ -815,16 +818,16 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 		misses := 0
 		shipsDestroyed := 0
 
-		for remainingTorpedos > 0 && !target.destroyed {
+		for remainingTorpedoes > 0 && !target.destroyed {
 			// fire a torpedo
 			torpedoNum++
-			remainingTorpedos--
+			remainingTorpedoes--
 			hit := b.rules.random.Float64() <= weapon.getAccuracy(target.torpedoJamming)
 
 			if hit {
 				hits++
 
-				// torpedos do half damage to shields, half to armor (until shields are gone, when they do full armor damage)
+				// torpedoes do half damage to shields, half to armor (until shields are gone, when they do full armor damage)
 				shieldDamage := float64(0.5) * float64(damage)
 				armorDamage := float64(0.5) * float64(damage)
 
@@ -858,13 +861,13 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 					target.Quantity--
 					target.quantityDestroyed++
 					b.board[target.Position.Y][target.Position.X] -= 1
-					target.QuantityDamaged = MaxInt(target.QuantityDamaged-1, 0)
+					target.QuantityDamaged = Max(target.QuantityDamaged-1, 0)
 
 					if target.QuantityDamaged > 0 {
 						// we destroyed a token, but we still have damaged tokens in the stack
 						// so reset our shipDamage counter to the damage + any leftover. We apply that
 						// to the rest of the tokens
-						// i.e. if we fire 2 omega torpedos for 300 damage each at 3 damaged 1700dp@1300 ships
+						// i.e. if we fire 2 omega torpedoes for 300 damage each at 3 damaged 1700dp@1300 ships
 						// the first shot damages the top ship, the second one kills it but we have 200 leftover
 						// this will carry over to damage the remaining ships
 						leftoverDamage := shipDamage - float64(armor)
@@ -957,7 +960,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) (*BattleRecord, error) {
 		fleet.battlePlan = battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, fleet.BattlePlanNum}]
 	}
 
-	battler := newBattler(log.Logger, &rules, &StaticTechStore, 1, playersByNum, fleets, nil)
+	battler := newBattler(log.Logger, &rules, 1, playersByNum, fleets, nil)
 	record := battler.runBattle()
 	for _, player := range players {
 

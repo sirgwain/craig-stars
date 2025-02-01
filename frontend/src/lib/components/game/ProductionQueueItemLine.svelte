@@ -1,40 +1,32 @@
-<script lang="ts" context="module">
-	export type QueueItemClickedEventDetails = {
-		index: number;
-		queueItem: ProductionQueueItem;
-	};
-
-	export type QueueItemClickedEvent = {
-		'queue-item-clicked': QueueItemClickedEventDetails;
-	};
-</script>
-
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { NeverBuilt } from '$lib/types/Constants';
 	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, getShortName, isAuto } from '$lib/types/QueueItemType';
-	import { createEventDispatcher } from 'svelte';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
 
-	const dispatch = createEventDispatcher<QueueItemClickedEvent>();
 	const { universe } = getGameContext();
 
-	export let index: number;
-	export let item: ProductionQueueItem;
-	export let selected = false;
-	export let shortName = false;
+	type Props = {
+		index: number;
+		item: ProductionQueueItem;
+		selected?: boolean;
+		shortName?: boolean;
+		onQueueItemClicked?: (index: number, queueItem: ProductionQueueItem) => void;
+	};
 
-	$: yearsToBuildAll = isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll;
-	$: skipped =
-		isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt;
+	let { index, item, selected = false, shortName = false, onQueueItemClicked }: Props = $props();
+
+	let yearsToBuildAll = $derived(isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll);
+	let skipped = $derived(
+		isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt
+	);
 </script>
 
 <button
 	type="button"
-	on:click={() => dispatch('queue-item-clicked', { index, queueItem: item })}
-	on:contextmenu|preventDefault={(e) =>
-		onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
+	onclick={() => onQueueItemClicked?.(index, item)}
+	oncontextmenu={(e) => onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 	class:italic={isAuto(item.type)}
 	class:text-queue-item-this-year={!item.skipped &&
 		(item.yearsToBuildOne ?? 0) <= 1 &&

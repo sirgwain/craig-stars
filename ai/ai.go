@@ -1,8 +1,10 @@
 package ai
 
 import (
+	"fmt"
 	"math"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -22,11 +24,14 @@ type aiPlayer struct {
 	fleetsByPurpose        map[cs.FleetPurpose]fleet
 	targetedPlanets        map[int][]*cs.FleetIntel
 
+	warshipCount warshipCount
+	// @sirgwain Do we _really_ need these extra variables? We already have a designsByPurpose map
 	fuelDepotDesign       *cs.ShipDesign
 	fortDesign            *cs.ShipDesign
 	starbaseQuarterDesign *cs.ShipDesign
 	starbaseHalfDesign    *cs.ShipDesign
 	starbaseDesign        *cs.ShipDesign
+	starbaseUnarmedDesign *cs.ShipDesign
 }
 
 type requests struct {
@@ -49,11 +54,19 @@ type playerConfig struct {
 	minYearsToQueueStarbaseWarTime   int
 	minYearsToBuildScanner           int
 	minYearsToBuildFort              int
+	mineralConservationYear          int
+	startAttackingYear               int
 	namesByPurpose                   map[cs.ShipDesignPurpose]string
 	researchOrder                    []cs.TechLevel
 }
 
-// each AI has a personality that influences decisions
+type warshipCount struct {
+	bombers        int
+	warships       int
+	fuelTransports int
+}
+
+// each AI has a personality that influences decisions; currently WIP
 type Personality string
 
 const (
@@ -63,7 +76,7 @@ const (
 	Sneaky     Personality = "Sneaky"
 )
 
-// each AI has a personality that influences decisions
+// The stage of the ai's game plan; currently WIP
 type Stage string
 
 const (
@@ -83,68 +96,83 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 			fleetBuilds: make(map[cs.FleetPurpose]int),
 		},
 		config: playerConfig{
+			// TODO: Make below configurable with Ai difficulty/aggression mode
 			colonizerPopulationDensity:       .25, // default to requiring 25% pop density before sending off colonizers
-			colonistTransportDensity:         .25, // default to requiring 50% pop density before taking colonists from a feeder to a needer
-			minYearsToQueueStarbasePeaceTime: 2,   // don't build starbases if it takes over 2 years to build it
-			minYearsToQueueStarbaseWarTime:   4,   // don't build starbases if it takes over 2 years to build it
-			minYearsToBuildFort:              10,  // if we are being threatened and need to throw up a fort, do it even if it takes a bit
-			minYearsToBuildScanner:           1,
-			invasionFactor:                   2,  // we invade if we have 2x the colonists to drop
-			fleetProductionCutoff:            .5, // don't try and build starbases until we have 50% factories/mines built first
-			bomberProductionCutoff:           .9, // don't try and build bombers until we have 90% factories/mines built first
+			colonistTransportDensity:         .25, // default to requiring 25% pop density before taking colonists from a feeder to a needer
+			minYearsToQueueStarbasePeaceTime: 2,   // only build starbases if it takes <=2 years to build it
+			minYearsToQueueStarbaseWarTime:   4,   // only build starbases if it takes <=4 years to build it and the planet is threatened
+			minYearsToBuildFort:              10,  // only build emergency panic forts if it takes <=10 years to build it
+			minYearsToBuildScanner:           1,   // only build planetary scanners if we can finish it in 1 year
+			mineralConservationYear:          55,  // year to start caring about minerals over resources for warship building
+			invasionFactor:                   2,   // only invade if we have 2x the colonists to drop
+			fleetProductionCutoff:            .5,  // don't try and build ships until we have 50% factories/mines built first
+			bomberProductionCutoff:           .9,  // don't try and build bombers until we have 90% factories/mines built first
+			startAttackingYear:               25,  // wait 25 yrs before making or updating warfleet designs for accBBS games; prevents spam building outdated throwaway ships
 			namesByPurpose: map[cs.ShipDesignPurpose]string{
+				// TODO: make this return a slice of strings/structs to allow for name variety
 				cs.ShipDesignPurposeScout:                 "Long Range Scout",
 				cs.ShipDesignPurposeColonizer:             "Santa Maria",
 				cs.ShipDesignPurposeBomber:                "Bomber",
 				cs.ShipDesignPurposeStructureBomber:       "Structure Bomber",
 				cs.ShipDesignPurposeSmartBomber:           "Smart Bomber",
-				cs.ShipDesignPurposeFighter:               "Stalwart Defender",
+				cs.ShipDesignPurposeStartingFighter:       "Stalwart Defender",
 				cs.ShipDesignPurposeFighterScout:          "Armed Probe",
-				cs.ShipDesignPurposeCapitalShip:           "Warship",
+				cs.ShipDesignPurposeTorpedoFighter:        "Missile Boat",
+				cs.ShipDesignPurposeBeamFighter:           "Beam Ship",
 				cs.ShipDesignPurposeFreighter:             "Teamster",
 				cs.ShipDesignPurposeColonistFreighter:     "Colonist Freighter",
 				cs.ShipDesignPurposeFuelFreighter:         "Fuel Freighter",
 				cs.ShipDesignPurposeMultiPurposeFreighter: "Swashbuckler",
-				cs.ShipDesignPurposeArmedFreighter:        "Armed Freighter",
+				cs.ShipDesignPurposeArmedFreighter:        "Blackbeard",
 				cs.ShipDesignPurposeMiner:                 "Cotton Picker",
 				cs.ShipDesignPurposeTerraformer:           "Change of Heart",
 				cs.ShipDesignPurposeDamageMineLayer:       "Little Hen",
 				cs.ShipDesignPurposeSpeedMineLayer:        "Speed Turtle",
 				cs.ShipDesignPurposeStarbase:              "Starbase",
+				cs.ShipDesignPurposeStarbaseUnarmed:       "Holder of Place",
 				cs.ShipDesignPurposeStarbaseQuarter:       "Tiny Base",
 				cs.ShipDesignPurposeStarbaseHalf:          "Small Base",
 				cs.ShipDesignPurposePacketThrower:         "Flinger",
-				cs.ShipDesignPurposeStargater:             "Teleporter",
-				cs.ShipDesignPurposeFort:                  "Orbital Fort",
+				cs.ShipDesignPurposeStargater:             "Gateway",
+				cs.ShipDesignPurposeFort:                  "Bunker",
 				cs.ShipDesignPurposeStarterColony:         "Starter Colony",
 				cs.ShipDesignPurposeFuelDepot:             "Fuel Depot",
 			},
 			researchOrder: []cs.TechLevel{
-				{Propulsion: 2},
+				// TODO: Make this a race-specific trait to allow for funky AI races with different research paths
+				{Propulsion: 2}, // FM
 				{Biotechnology: 1},
 				{Energy: 1},
 				{Weapons: 1},
 				{Construction: 4}, // destroyers/privateers
 				{Electronics: 1},
-				{Weapons: 6},
-				{Energy: 4, Propulsion: 4, Electronics: 4, Biotechnology: 4},
-				{Weapons: 8, Construction: 6},              // frigates/Phaser bazookas
-				{Energy: 6, Propulsion: 6, Electronics: 6}, //+7 Terraform
-				{Biotechnology: 7},                         //Organic Armor
-				{Weapons: 10},                              //CP and Deltas
-				{Construction: 9, Propulsion: 7},           //Cruisers/Warp 8 drives
-				{Weapons: 12},                              //Jihads
-				{Energy: 8, Propulsion: 8, Electronics: 8},
-				{Weapons: 16, Construction: 13},               //Battleships/Juggernauts
-				{Energy: 12, Propulsion: 12, Electronics: 11}, //Overthruster/SuperBC/LangstonShell
-				{Weapons: 20, Construction: 16},               //Dreadnoughts
-				{Energy: 14, Propulsion: 14, Electronics: 14}, //Backfill
-				{Weapons: 24},                                 //Armageddon
-				{Energy: 18, Propulsion: 16, Electronics: 19}, //Battle Nexus, Warp 10 RS
+				{Weapons: 6, Biotechnology: 2},             // yaks & +7 weps terraform
+				{Energy: 3, Weapons: 8, Construction: 6},   // shielded frigates & Phaser bazookas
+				{Energy: 5, Propulsion: 5},                 // +7 temp/grav terraforming
+				{Construction: 8, Electronics: 3},          // better scanners + LFs
+				{Energy: 6, Weapons: 10, Biotechnology: 3}, // CP and Deltas
+				{Construction: 10, Propulsion: 7},          // (Battle) Cruisers/Warp 8 drives
+				{Weapons: 12},                              // Jihads
+				{Energy: 10, Propulsion: 10, Electronics: 7, Biotechnology: 4}, // organic + better engines
+				{Construction: 13}, //Battleships
+				{Weapons: 16},      // Juggernauts
+				{Energy: 12, Propulsion: 12, Electronics: 11},    //Overthruster/SuperBC/LangstonShell
+				{Weapons: 20, Construction: 16},                  //Dreadnoughts
+				{Energy: 14, Electronics: 14, Biotechnology: 10}, // Gorilla delagators, mega poly
+				{Weapons: 24}, // Armageddon Missiles
+				{Energy: 18, Propulsion: 16, Electronics: 19}, // Battle Nexus, Warp 10 RS
+				{Weapons: 26},      // omega torps
+				{Construction: 26}, // nubians
 			},
 		},
 		PlayerMapObjects: playerMapObjects,
 		client:           cs.NewOrderer(),
+	}
+
+	if game.AcceleratedPlay {
+		// shift year cutoffs slightly earlier for accBBS games
+		aiPlayer.config.startAttackingYear -= 5
+		aiPlayer.config.mineralConservationYear -= 5
 	}
 
 	aiPlayer.buildMaps()
@@ -153,7 +181,7 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 }
 
 // build maps used for quick lookups for various player objects
-func (ai *aiPlayer) buildMaps() {
+func (ai *aiPlayer) buildMaps() error {
 	ai.planetsByNum = make(map[int]*cs.Planet, len(ai.Planets))
 	for _, planet := range ai.Planets {
 		ai.planetsByNum[planet.Num] = planet
@@ -198,11 +226,11 @@ func (ai *aiPlayer) buildMaps() {
 			ships: []fleetShip{
 				{
 					purpose:  cs.ShipDesignPurposeColonistFreighter,
-					quantity: 1,
+					quantity: 3,
 				},
 				{
 					purpose:  cs.ShipDesignPurposeFuelFreighter,
-					quantity: 1,
+					quantity: 2,
 				},
 				{
 					purpose:  cs.ShipDesignPurposeColonizer,
@@ -215,7 +243,7 @@ func (ai *aiPlayer) buildMaps() {
 			ships: []fleetShip{
 				{
 					purpose:  cs.ShipDesignPurposeColonistFreighter,
-					quantity: 1,
+					quantity: 2,
 				},
 				{
 					purpose:  cs.ShipDesignPurposeFuelFreighter,
@@ -231,14 +259,182 @@ func (ai *aiPlayer) buildMaps() {
 					quantity: 5,
 				},
 				{
-					purpose:  cs.ShipDesignPurposeFighter,
-					quantity: 5,
+					purpose:  cs.ShipDesignPurposeBeamFighter,
+					quantity: 7,
+				},
+				{
+					purpose:  cs.ShipDesignPurposeTorpedoFighter,
+					quantity: 7,
 				},
 			},
 		},
 	}
 
 	ai.targetedPlanets = make(map[int][]*cs.FleetIntel)
+	return nil
+}
+
+// update warship amounts for attack/defense fleets
+func (ai *aiPlayer) updateWarfleets() error {
+	var err error
+	err = ai.updateWarshipCount()
+	if err != nil {
+		if err == errTooEarly {
+			// we building ships too early; stop
+			return nil
+		}
+		return err
+	}
+
+	// get our warship designs, updating the spec if needed
+	beamDesign := ai.designsByPurpose[cs.ShipDesignPurposeBeamFighter]
+	if beamDesign == nil {
+		// if design is nil, try to make one from scratch
+		ai.designsByPurpose[cs.ShipDesignPurposeBeamFighter], err = ai.designShip(ai.config.namesByPurpose[cs.ShipDesignPurposeBeamFighter], cs.ShipDesignPurposeBeamFighter, cs.FleetPurposeFighter) // fleet purpose unimportant as it's just used for radrams
+		if err != nil {
+			return fmt.Errorf("error designing beam fighter during warship quantity updating: %w", err)
+		}
+		beamDesign = ai.designsByPurpose[cs.ShipDesignPurposeBeamFighter]
+	}
+	torpDesign := ai.designsByPurpose[cs.ShipDesignPurposeTorpedoFighter]
+	if torpDesign == nil {
+		// if design is nil, try to make one from scratch
+		ai.designsByPurpose[cs.ShipDesignPurposeTorpedoFighter], err = ai.designShip(ai.config.namesByPurpose[cs.ShipDesignPurposeTorpedoFighter], cs.ShipDesignPurposeTorpedoFighter, cs.FleetPurposeFighter) // fleet purpose unimportant as it's just used for radrams
+		if err != nil {
+			return fmt.Errorf("error designing torpedo fighter during warship quantity updating: %w", err)
+		}
+		torpDesign = ai.designsByPurpose[cs.ShipDesignPurposeTorpedoFighter]
+	}
+
+	// if design is STILL nil, assume we can't make a design of that type
+	// if 1 design exists and the other doesn't, automatically use it and exit
+	if beamDesign == nil {
+		if torpDesign == nil {
+			log.Debug().Msgf("Skipping over choosing warship quantities due to nil designs")
+		} else {
+			ai.updateWarshipAmounts(ai.warshipCount.bombers, 0, ai.warshipCount.warships, ai.warshipCount.fuelTransports)
+		}
+		return nil
+	} else if torpDesign == nil {
+		ai.updateWarshipAmounts(ai.warshipCount.bombers, ai.warshipCount.warships, 0, ai.warshipCount.fuelTransports)
+		return nil
+	}
+
+	// Compare ships' power rating and overall mineral/res expenditure
+	// TODO: Add a less jank way of evaluating warship performance than ranking
+	// and make the AI consider how much spare minerals it has
+	scoreRatio := float64(beamDesign.Spec.PowerRating) / float64(torpDesign.Spec.PowerRating)
+
+	ct := []cs.CostType{cs.Resources}
+	if ai.game.YearsPassed() >= ai.config.mineralConservationYear {
+		// care about minerals at year 2455+ (2450+ for accBBS)
+		ct = cs.MineralTypes[:]
+	}
+	costRatio := cs.GetCostEfficiencyRatio(beamDesign.Spec.Cost.ToCostFloat64(), torpDesign.Spec.Cost.ToCostFloat64(), ct...)
+
+	if scoreRatio >= 1.5*costRatio { // beams are >50% more cost efficient than torps
+		ai.updateWarshipAmounts(ai.warshipCount.bombers, ai.warshipCount.warships, 0, ai.warshipCount.fuelTransports)
+	} else if scoreRatio*1.5 <= costRatio { // torp ships are >50% more cost efficient than beams
+		ai.updateWarshipAmounts(ai.warshipCount.bombers, 0, ai.warshipCount.warships, ai.warshipCount.fuelTransports)
+	} else {
+		// mix fleets based on relative strength factor
+		beamShips := int(scoreRatio / costRatio * float64(ai.warshipCount.warships) / 2)
+		ai.updateWarshipAmounts(ai.warshipCount.bombers, beamShips, ai.warshipCount.warships-beamShips, ai.warshipCount.fuelTransports)
+	}
+	return nil
+}
+
+var errTooEarly error = fmt.Errorf("too early")
+
+func (ai *aiPlayer) updateWarshipCount() error {
+	yearsAfterStart := ai.game.YearsPassed() - ai.config.startAttackingYear
+	// TODO: Make these values configurable per AI type
+	var bombers, warships, fuelTransports int
+
+	// determine ship counts by year
+	switch {
+	case yearsAfterStart < 0: // <2425 non-BBS; <2420 accBBs
+		return errTooEarly
+	case yearsAfterStart < 5: // 2425-2429 non-BBS; 2420-2424 accBBS
+		bombers = 5
+		warships = 14
+	case yearsAfterStart < 10: // 2430-2434 non-BBS; 2425-2429 accBBS
+		bombers = 7
+		warships = 16
+	case yearsAfterStart < 15: // 2435-2439 non-BBS; 2430-2434 accBBS
+		bombers = 9
+		warships = 18
+	case yearsAfterStart < 20: // 2440-2444 non-BBS; 2435-2439 accBBS
+		bombers = 10
+		warships = 20
+	case yearsAfterStart < 30: // 2445-2454 non-BBS; 2440-2449 accBBS
+		bombers = 15
+		warships = 30
+	case yearsAfterStart < 40: // 2455-2464 non-BBS; 2450-2459 accBBS
+		bombers = 20
+		warships = 50
+	case yearsAfterStart < 50: // 2465-2474 non-BBS; 2460-2469 accBBS
+		bombers = 30
+		warships = 60
+	default: // 2475+ non-BBS; 2470+ acc-BBS
+		bombers = 40
+		warships = cs.Min((yearsAfterStart/5)*6, 150)
+	}
+	if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter] != nil &&
+		ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter].Spec.RepairBonus > 0 {
+		fuelTransports = cs.Min((bombers+warships)/5, 25)
+	}
+
+	ai.warshipCount = warshipCount{bombers: bombers, warships: warships, fuelTransports: fuelTransports}
+	return nil
+}
+
+func (ai *aiPlayer) updateWarshipAmounts(bombers, beamShips, torpedoShips, fuelTransports int) {
+	// reset the fleets
+	ai.fleetsByPurpose[cs.FleetPurposeBomber] = fleet{
+		purpose: cs.FleetPurposeBomber,
+		ships:   []fleetShip{{purpose: cs.ShipDesignPurposeBomber, quantity: bombers}}}
+	ai.fleetsByPurpose[cs.FleetPurposeCapitalShip] = fleet{
+		purpose: cs.FleetPurposeCapitalShip,
+		ships:   []fleetShip{}}
+
+	// only add on ships if we want to add any
+	if beamShips > 0 {
+		ai.fleetsByPurpose[cs.FleetPurposeBomber] = fleet{
+			purpose: cs.FleetPurposeBomber,
+			ships: append(ai.fleetsByPurpose[cs.FleetPurposeBomber].ships, fleetShip{
+				purpose:  cs.ShipDesignPurposeBeamFighter,
+				quantity: beamShips,
+			})}
+		ai.fleetsByPurpose[cs.FleetPurposeCapitalShip] = fleet{
+			purpose: cs.FleetPurposeCapitalShip,
+			ships: append(ai.fleetsByPurpose[cs.FleetPurposeCapitalShip].ships, fleetShip{
+				purpose:  cs.ShipDesignPurposeBeamFighter,
+				quantity: beamShips,
+			})}
+	}
+	if torpedoShips > 0 {
+		ai.fleetsByPurpose[cs.FleetPurposeBomber] = fleet{
+			purpose: cs.FleetPurposeBomber,
+			ships: append(ai.fleetsByPurpose[cs.FleetPurposeBomber].ships, fleetShip{
+				purpose:  cs.ShipDesignPurposeTorpedoFighter,
+				quantity: torpedoShips,
+			})}
+		ai.fleetsByPurpose[cs.FleetPurposeCapitalShip] = fleet{
+			purpose: cs.FleetPurposeCapitalShip,
+			ships: append(ai.fleetsByPurpose[cs.FleetPurposeCapitalShip].ships, fleetShip{
+				purpose:  cs.ShipDesignPurposeTorpedoFighter,
+				quantity: torpedoShips,
+			})}
+	}
+	if fuelTransports > 0 {
+		ai.fleetsByPurpose[cs.FleetPurposeBomber] = fleet{
+			purpose: cs.FleetPurposeBomber,
+			ships: append(ai.fleetsByPurpose[cs.FleetPurposeBomber].ships, fleetShip{
+				purpose:  cs.ShipDesignPurposeFuelFreighter,
+				quantity: fuelTransports,
+			})}
+	}
 }
 
 // process an AI player's turn
@@ -247,6 +443,10 @@ func (ai *aiPlayer) ProcessTurn() error {
 	ai.gatherIntel()
 	ai.plan()
 	ai.designStarbases()
+
+	// TODO: Add packet defense checks (if we see a packet coming to us, queue up
+	// defenses/drivers if possible to save planet
+	// OR evacuate pop & queue up colonizer if not)
 
 	if err := ai.scout(); err != nil {
 		return err
@@ -276,10 +476,24 @@ func (ai *aiPlayer) ProcessTurn() error {
 		return err
 	}
 
+	if ai.game.Year%4 == 0 || len(ai.Player.Spec.TechsJustGained) > 0 {
+		// only update warship amounts/designs every 4 years or if we just gained a tech
+		if err := ai.updateWarfleets(); err != nil {
+			if err != fmt.Errorf("too early") {
+				return err
+			} else {
+				log.Debug().
+					Int("Current Year", ai.game.Year).
+					Int("Min Ship Building Year", ai.config.startAttackingYear).
+					Msgf("Avoiding building warships at early year")
+			}
+		}
+	}
+
 	// make sure our research is optimal
 	ai.research()
 	// cleanup any old designs we haven't built
-	ai.removedUnusedDesigns()
+	ai.removeUnusedDesigns()
 
 	return nil
 }

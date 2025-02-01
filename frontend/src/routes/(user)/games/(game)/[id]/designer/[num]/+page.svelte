@@ -7,18 +7,18 @@
 	const { game, universe, player } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	$: design = $universe.designs.find((d) => d.playerNum == $player.num && d.num === num);
+	let design = $derived($universe.designs.find((d) => d.playerNum == $player.num && d.num === num));
 </script>
 
 {#if design}
 	<Breadcrumb>
-		<svelte:fragment slot="crumbs">
+		{#snippet crumbs()}
 			<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
 			<li>{design?.name}</li>
 			{#if !design.spec?.numInstances}
 				<li><a class="cs-link" href={`/games/${$game.id}/designer/${design.num}/edit`}>Edit</a></li>
 			{/if}
-		</svelte:fragment>
+		{/snippet}
 	</Breadcrumb>
 
 	<div class="grow h-full px-1 md:p-0">

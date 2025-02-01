@@ -4,10 +4,9 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Salvage } from '$lib/types/Salvage';
 	import ScannerSalvage from './ScannerSalvage.svelte';
 
-	const { player, universe } = getGameContext();
+	const { universe } = getGameContext();
 </script>
 
 <!-- Salvages -->

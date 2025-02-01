@@ -1,42 +1,49 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import ErrorPage from '$lib/components/ErrorPage.svelte';
 	import Menu from '$lib/components/Menu.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
-	import { createGameContext, gameKey, type GameContext } from '$lib/services/GameContext';
 	import type { CSError } from '$lib/services/Errors';
 	import type { FullGame } from '$lib/services/FullGame';
+	import { createGameContext, gameKey, type GameContext } from '$lib/services/GameContext';
 	import { GameService } from '$lib/services/GameService';
 	import { clearLoadingModalText, me, setLoadingModalText } from '$lib/services/Stores';
 	import { GameState } from '$lib/types/Game';
 	import { wait } from '$lib/wait';
+	import { loadWasm } from '$lib/wasm';
 	import hotkeys from 'hotkeys-js';
-	import { onDestroy, onMount, setContext } from 'svelte';
+	import { onDestroy, onMount, setContext, type Snippet } from 'svelte';
 	import type { Unsubscriber } from 'svelte/store';
 	import { get } from 'svelte/store';
 	import GameLayout from './GameLayout.svelte';
-	import { goto } from '$app/navigation';
-	import { loadWasm } from '$lib/wasm';
+	type Props = {
+		children?: Snippet;
+	};
+
+	let { children }: Props = $props();
 
 	let id = parseInt($page.params.id);
 
-	let context: GameContext | undefined = undefined;
-	let error: string | undefined = undefined;
-	let contextSetup = false;
+	let context: GameContext | undefined = $state(undefined);
+	let error: string | undefined = $state(undefined);
+	let contextSetup = $state(false);
 
-	let unsubscribe: Unsubscriber | undefined;
-	let state: GameState;
-	let year: number;
+	let unsubscribe: Unsubscriber | undefined = $state();
+	let gameState: GameState = $state(GameState.Setup);
+	let year: number = $state(2400);
 
 	onMount(async () => {
 		try {
 			setLoadingModalText('Loading game...');
 
-			
 			// on mount, load the game and setup the context used by the rest of the children
 			const loaded = await GameService.loadFullGame(id);
-			const cs = await loadWasm()
+			const cs = await loadWasm();
 			context = createGameContext(cs, loaded);
+			if (loaded.state == GameState.WaitingForPlayers) {
+				context.setFullyLoaded(true);
+			}
 
 			hotkeys.setScope('root');
 		} catch (e) {
@@ -52,21 +59,21 @@
 	});
 
 	onDestroy(() => {
-		if (!context) return;
-
 		hotkeys.deleteScope('root');
 
-		unsubscribe && unsubscribe();
+		if (!context) return;
+
+		unsubscribe?.();
 	});
 
-	// update the context of the game
-	$: {
+	// if no context is defined, create it
+	$effect(() => {
 		if (context && !contextSetup) {
 			contextSetup = true;
 
 			// store the latest state/year so we can reload if the game changes
 			const game = get(context.game);
-			state = game.state;
+			gameState = game.state;
 			year = game.year;
 			context.commandHomeWorld();
 
@@ -76,25 +83,30 @@
 			// setup the context for our child components
 			setContext(gameKey, context);
 		}
-	}
+	});
 
 	// every time the game updates, check if we have a new year/state change
 	// and if so, reset the context
 	async function onGameChange(game: FullGame) {
 		if (!context) return;
 
-		if (state != game.state || year != game.year) {
+		if (gameState != game.state || year != game.year) {
 			// console.log('game state changed');
 			const loaded = await GameService.loadFullGame(id);
-			state = loaded.state;
+
+			gameState = loaded.state;
 			year = loaded.year;
 			context.resetContext(loaded);
+			if (loaded.state == GameState.WaitingForPlayers) {
+				context.setFullyLoaded(true);
+			}
+
 			context.commandHomeWorld();
 		}
 
 		// if the game is active and we haven't submitted our turn
 		// bind the navigation hotkeys
-		if (state == GameState.WaitingForPlayers && !get(context.player).submittedTurn) {
+		if (gameState == GameState.WaitingForPlayers && !get(context.player).submittedTurn) {
 			// reset key bindings
 			unbindNavigationHotkeys();
 			hotkeys.unbind('F9', 'root');
@@ -137,12 +149,11 @@
 			// console.timeEnd('onSubmitTurn');
 		}
 	}
-
 </script>
 
 {#if contextSetup}
-	<GameLayout on:submit-turn={onSubmitTurn}>
-		<slot>Game</slot>
+	<GameLayout {onSubmitTurn}>
+		{#if children}{@render children()}{:else}Game{/if}
 	</GameLayout>
 {:else if error}
 	<main class="flex flex-col">

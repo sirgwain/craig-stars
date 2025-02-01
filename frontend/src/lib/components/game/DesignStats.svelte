@@ -4,7 +4,11 @@
 	import type { Spec } from '$lib/types/ShipDesign';
 	import { NoScanner } from '$lib/types/Constants';
 
-	export let spec: Spec;
+	type Props = {
+		spec: Spec;
+	};
+
+	let { spec }: Props = $props();
 
 	function scanRange(range: number | undefined) {
 		return !range || range === NoScanner ? '-' : range;

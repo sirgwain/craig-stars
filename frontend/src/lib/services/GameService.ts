@@ -188,12 +188,11 @@ export class GameService {
 				}),
 				// load techs the first time as well
 				fg.techs.fetch()
-			]);
+			]);			
 		}
 
 		// configure the universe for the player after the player is loaded
 		fg.universe.setPlayer(fg.player.num);
-
 		return fg;
-	}	
+	}
 }

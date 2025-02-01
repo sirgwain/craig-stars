@@ -11,25 +11,24 @@
 	const { game, player, createDesign } = getGameContext();
 	let hullName = $page.params.hull;
 
-	let design: ShipDesign = {
+	let hull = $derived($techs.getHull(hullName));
+
+	let design: ShipDesign = $state({
 		name: '',
 		gameId: $game.id,
 		playerNum: $player.num ?? 0,
 		originalPlayerNum: 0,
 		version: 0,
-		hull: '',
+		hull: hullName ?? '',
 		hullSetNumber: 0,
 		slots: [],
 		spec: {
 			engine: {},
 			techLevel: {}
 		}
-	};
+	});
 
-	$: hull = $techs.getHull(hullName);
-	$: design.hull = hull?.name ?? '';
-
-	let error = '';
+	let error = $state('');
 
 	onMount(() => {
 		const copyParam = $page.url.searchParams.get('copy');
@@ -40,12 +39,12 @@
 				design.spec = Object.assign({}, copyDesign.spec);
 				design.hullSetNumber = copyDesign.hullSetNumber;
 				design.version = copyDesign.version + 1;
-				design.name = copyDesign.name
+				design.name = copyDesign.name;
 			}
 		}
 	});
 
-	const onSave = async () => {
+	async function save() {
 		error = '';
 		try {
 			const { valid, reason } = $game.validateDesign(design);
@@ -58,19 +57,21 @@
 		} catch (e) {
 			error = `${e}`;
 		}
-	};
+	}
 </script>
 
 <Breadcrumb>
-	<svelte:fragment slot="crumbs">
+	{#snippet crumbs()}
 		<li><a class="cs-link" href={`/games/${$game.id}/designer`}>Ship Designs</a></li>
 		<li><a class="cs-link" href={`/games/${$game.id}/designer/create`}>Choose Hull</a></li>
 		<li>{design.name == '' ? 'new' : design.name}</li>
-	</svelte:fragment>
-	<div slot="end" class="flex justify-end mb-1">
-		<button class="btn btn-success mx-1" type="submit" on:click={(e) => onSave()}>Save</button>
-	</div>
+	{/snippet}
+	{#snippet end()}
+		<div class="flex justify-end mb-1">
+			<button class="btn btn-success mx-1" type="submit" onclick={save}>Save</button>
+		</div>
+	{/snippet}
 </Breadcrumb>
 {#if hull && $game}
-	<ShipDesigner bind:design {hull} on:save={(e) => onSave()} bind:error />
+	<ShipDesigner bind:design {hull} onSave={save} {error} />
 {/if}

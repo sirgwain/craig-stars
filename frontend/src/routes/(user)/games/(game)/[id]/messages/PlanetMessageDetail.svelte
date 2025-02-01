@@ -8,13 +8,17 @@
 	import type { PlayerIntel } from '$lib/types/Player';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
-	const { game, player, universe, settings } = getGameContext();
+	const { player, universe } = getGameContext();
 
-	export let message: Message;
-	export let planet: Planet;
-	export let owner: PlayerIntel | undefined;
+	type Props = {
+		message: Message;
+		planet: Planet;
+		owner: PlayerIntel | undefined;
+	};
 
-	$: growthRate = $player.race.growthRate * ($player.race.spec?.growthFactor ?? 0);
+	let { message, planet, owner }: Props = $props();
+
+	let growthRate = $derived($player.race.growthRate * ($player.race.spec?.growthFactor ?? 0));
 </script>
 
 {#if message.text}
@@ -186,6 +190,9 @@
 {:else if message.type === MessageType.PlayerTechLevelGainedInvasion}
 	Your colonists invading {planet.name} have picked through the defenders' remains looking for technology.
 	In the process you have gained a level in {message.spec.field}.
+{:else if message.type === MessageType.PlayerAcquirablePartGainedBattle}
+	Your people have picked through the wreckage from the battle at {planet.name} and have learned how
+	to build {message.spec.techGained}.
 {:else if message.type === MessageType.FleetScrapped}
 	{#if planet.spec.hasStarbase}
 		{message.spec.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of
@@ -201,6 +208,9 @@
 {:else if message.type === MessageType.PlayerTechLevelGainedScrapFleet}
 	In the process of {message.spec.name} being scrapped above {planet.name}, you have gained a level
 	in {message.spec.field}.
+{:else if message.type === MessageType.PlayerAcquirablePartGainedScrapFleet}
+	In the process of {message.spec.name} being scrapped above {planet.name}, you have learned to
+	build {message.spec.techGained}.
 {:else if message.type === MessageType.PlayerTechLevelGainedBattle}
 	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message
 		.spec.field} by 1 level.

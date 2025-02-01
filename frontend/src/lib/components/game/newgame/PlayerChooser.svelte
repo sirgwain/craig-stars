@@ -1,40 +1,41 @@
 <script lang="ts">
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import { RaceService } from '$lib/services/RaceService';
 	import { humanoid, type Race } from '$lib/types/Race';
 	import { onMount } from 'svelte';
 	import RaceEditor from '../../../../routes/(user)/races/[id]/RaceEditor.svelte';
 	import RacePoints from '../../../../routes/(user)/races/[id]/RacePoints.svelte';
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
 
 	// races for the host
-	let races: Race[] = [];
-	export let race: Race = humanoid();
-	export let valid = true;
+	let races: Race[] = $state([]);
+	let race = $state(humanoid());
+	type Props = {
+		raceUpdated?: (race: Race, valid: boolean) => void;
+	};
+
+	let { raceUpdated }: Props = $props();
 
 	onMount(async () => {
 		const userRaces = await RaceService.load();
 		if (userRaces.length > 0) {
 			races = userRaces;
-			race = races[0];
+			raceUpdated?.(races[0], true);
 		}
 	});
 
 	function raceChanged(id: number) {
 		const newRace = races.find((r) => r.id == id);
 		if (newRace) {
-			race = newRace;
+			raceUpdated?.(newRace, true);
 		}
 	}
-
-	let points = 0;
-	$: valid = points >= 0;
 </script>
 
 {#if races.length > 0}
 	<label class="label" for="hostRace">Race</label>
 	<select
 		class="select select-bordered"
-		on:change={(e) => raceChanged(parseInt(e.currentTarget.value))}
+		onchange={(e) => raceChanged(parseInt(e.currentTarget.value))}
 	>
 		{#each races as race}
 			<option value={race.id}>{race.name}</option>
@@ -42,6 +43,6 @@
 	</select>
 {:else}
 	<ItemTitle>Your Race</ItemTitle>
-	<RacePoints bind:points {race} />
+	<RacePoints {race} onPointsUpdated={(points) => raceUpdated?.(race, points >= 0)} />
 	<RaceEditor bind:race />
 {/if}

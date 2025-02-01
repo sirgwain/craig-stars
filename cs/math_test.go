@@ -28,3 +28,48 @@ func Test_clamp(t *testing.T) {
 		})
 	}
 }
+
+func Test_roundHalfTowards0(t *testing.T) {
+	tests := []struct {
+		name string
+		num  float64
+		want float64
+	}{
+		{"positive, <0.5", 0.2, 0},
+		{"positive, =0.5", 1.5, 1},
+		{"positive, >0.5", 3.6, 4},
+		{"negative, <0.5", -1.4, -1},
+		{"negative, =0.5", -71.5, -71},
+		{"negative, >0.5", -1.6, -2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := roundHalfTowards0(tt.num); got != tt.want {
+				t.Errorf("roundHalfTowards0() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPowInt(t *testing.T) {
+	tests := []struct {
+		name     string
+		base     int
+		exponent int
+		want     int
+	}{
+		{"1^4", 1, 4, 1},
+		{"2^3", 2, 3, 8},
+		{"30^4", 30, 4, 810_000},
+		{"30^2", 30, 2, 900},
+		{"5^3", 5, 3, 125},
+		{"2^20", 2, 20, 1_048_576},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := PowInt(tt.base, tt.exponent); got != tt.want {
+				t.Errorf("PowInt() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

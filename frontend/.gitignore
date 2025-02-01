@@ -8,3 +8,5 @@ node_modules.nosync
 .env.*
 !.env.example
 yarn-error.log
+.idea
+test-results/

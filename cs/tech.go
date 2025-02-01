@@ -2,8 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"math"
-	"strings" // only needed for jank temporary solution
 )
 
 type TechCategory string
@@ -51,20 +49,23 @@ var TechCategories = []TechCategory{
 	TechCategoryTorpedo,
 }
 
-const (
-	OriginNone          string = ""
-	OriginMysteryTrader string = "MysteryTrader"
-)
-
+// The basic skeleton of a Tech item, containing name, cost and
 type Tech struct {
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost"`
 	Requirements TechRequirements `json:"requirements" `
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
-	Origin       string           `json:"origin,omitempty"`
-	Tags         Tags             `json:"tags"`
+	Origin       TechOrigin       `json:"origin,omitempty"`
+	Tags         TechTags         `json:"tags,omitempty"`
 }
+
+type TechOrigin string
+
+const (
+	OriginNone          TechOrigin = ""
+	OriginMysteryTrader TechOrigin = "MysteryTrader"
+)
 
 type TechRequirements struct {
 	TechLevel
@@ -116,17 +117,27 @@ type TechHullComponent struct {
 	ColonizationModule        bool          `json:"colonizationModule,omitempty"`
 	FuelBonus                 int           `json:"fuelBonus,omitempty"`
 	FuelGeneration            int           `json:"fuelGeneration,omitempty"`
-	MovementBonus             int           `json:"movementBonus,omitempty"`
+	MovementBonus             float64       `json:"movementBonus,omitempty"`
 	OrbitalConstructionModule bool          `json:"orbitalConstructionModule,omitempty"`
 	Power                     int           `json:"power,omitempty"`
 	Range                     int           `json:"range,omitempty"`
 	Initiative                int           `json:"initiative,omitempty"`
-	Gattling                  bool          `json:"gattling,omitempty"`
+	Gatling                   bool          `json:"gatling,omitempty"`
 	HitsAllTargets            bool          `json:"hitsAllTargets,omitempty"`
 	DamageShieldsOnly         bool          `json:"damageShieldsOnly,omitempty"`
 	Accuracy                  int           `json:"accuracy,omitempty"`
 	CapitalShipMissile        bool          `json:"capitalShipMissile,omitempty"`
 	CanJump                   bool          `json:"canJump,omitempty"`
+}
+
+// get actual armor/shield values for a tech item given its base shield/armor amounts and the multipliers for each
+func getArmorShieldAmounts(baseArmor, baseShield float64, qty int, raceSpec RaceSpec, isArmor bool) (armor, shield float64) {
+	// TODO: Fix RS shield effect in a less janky way
+	if isArmor {
+		return baseArmor * raceSpec.ArmorStrengthFactor * float64(qty), baseShield * raceSpec.ShieldStrengthFactor * float64(qty)
+	} else {
+		return baseArmor * float64(qty), baseShield * raceSpec.ShieldStrengthFactor * float64(qty)
+	}
 }
 
 type Engine struct {
@@ -146,6 +157,7 @@ type TechHull struct {
 	Type                     TechHullType   `json:"type,omitempty"`
 	Mass                     int            `json:"mass,omitempty"`
 	Armor                    int            `json:"armor,omitempty"`
+	Shield                   int            `json:"shield,omitempty"`
 	FuelCapacity             int            `json:"fuelCapacity,omitempty"`
 	FuelGeneration           int            `json:"fuelGeneration,omitempty"`
 	CargoCapacity            int            `json:"cargoCapacity,omitempty"`
@@ -157,13 +169,13 @@ type TechHull struct {
 	SpaceDockSlotSize        Vector         `json:"spaceDockSlotSize,omitempty"`
 	SpaceDockSlotCircle      bool           `json:"spaceDockSlotCircle,omitempty"`
 	MineLayingBonus          float64        `json:"mineLayingBonus,omitempty"`
-	BuiltInScanner           bool           `json:"builtInScanner,omitempty"`
 	Initiative               int            `json:"initiative,omitempty"`
 	RepairBonus              float64        `json:"repairBonus,omitempty"`
 	ImmuneToOwnDetonation    bool           `json:"immuneToOwnDetonation,omitempty"`
 	RangeBonus               int            `json:"rangeBonus,omitempty"`
 	Starbase                 bool           `json:"starbase,omitempty"`
 	OrbitalConstructionHull  bool           `json:"orbitalConstructionHull,omitempty"`
+	BuiltInScanner           bool           `json:"builtInScanner,omitempty"`
 	DoubleMineEfficiency     bool           `json:"doubleMineEfficiency,omitempty"`
 	MaxPopulation            int            `json:"maxPopulation,omitempty"`
 	InnateScanRangePenFactor float64        `json:"innateScanRangePenFactor,omitempty"`
@@ -180,19 +192,34 @@ type TechHullSlot struct {
 type TechHullType string
 
 const (
-	TechHullTypeScout                 TechHullType = "Scout"
-	TechHullTypeColonizer             TechHullType = "Colonizer"
 	TechHullTypeBomber                TechHullType = "Bomber"
+	TechHullTypeColonizer             TechHullType = "Colonizer"
+	TechHullTypeCapitalShip           TechHullType = "CapitalShip" // big, bulky capital ships
 	TechHullTypeFighter               TechHullType = "Fighter"
-	TechHullTypeCapitalShip           TechHullType = "CapitalShip"
 	TechHullTypeFreighter             TechHullType = "Freighter"
-	TechHullTypeMultiPurposeFreighter TechHullType = "MultiPurposeFreighter"
 	TechHullTypeFuelTransport         TechHullType = "FuelTransport"
 	TechHullTypeMiner                 TechHullType = "Miner"
 	TechHullTypeMineLayer             TechHullType = "MineLayer"
-	TechHullTypeStarbase              TechHullType = "Starbase"
+	TechHullTypeMultiPurposeFreighter TechHullType = "MultiPurposeFreighter"
 	TechHullTypeOrbitalFort           TechHullType = "OrbitalFort"
+	TechHullTypeScout                 TechHullType = "Scout"
+	TechHullTypeStarbase              TechHullType = "Starbase"
 )
+
+var TechHullTypes = []TechHullType{
+	TechHullTypeBomber,
+	TechHullTypeColonizer,
+	TechHullTypeCapitalShip,
+	TechHullTypeFighter,
+	TechHullTypeFreighter,
+	TechHullTypeFuelTransport,
+	TechHullTypeMiner,
+	TechHullTypeMineLayer,
+	TechHullTypeMultiPurposeFreighter,
+	TechHullTypeOrbitalFort,
+	TechHullTypeScout,
+	TechHullTypeStarbase,
+}
 
 func (t TechHullType) IsAttackHull() bool {
 	return t == TechHullTypeFighter || t == TechHullTypeCapitalShip || t == TechHullTypeMultiPurposeFreighter
@@ -203,6 +230,8 @@ func (t TechHullType) IsBomber() bool {
 }
 
 type HullSlotType Bitmask
+
+// DO NOT REARRANGE EXISTING VALUES. IT *WILL* BREAK EXISTING GAMES.
 
 const (
 	HullSlotTypeNone                = 0
@@ -220,8 +249,8 @@ const (
 	HullSlotTypeOrbital
 	HullSlotTypeMineLayer
 
-	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical
 	HullSlotTypeElectricalMechanical             = HullSlotTypeElectrical | HullSlotTypeMechanical
+	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical
 	HullSlotTypeShieldElectricalMechanical       = HullSlotTypeShield | HullSlotTypeElectrical | HullSlotTypeMechanical
 	HullSlotTypeScannerElectricalMechanical      = HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical
 	HullSlotTypeArmorScannerElectricalMechanical = HullSlotTypeArmor | HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical
@@ -230,6 +259,50 @@ const (
 	HullSlotTypeWeaponShield                     = HullSlotTypeShield | HullSlotTypeWeapon
 	HullSlotTypeGeneral                          = HullSlotTypeScanner | HullSlotTypeMechanical | HullSlotTypeElectrical | HullSlotTypeShield | HullSlotTypeArmor | HullSlotTypeWeapon | HullSlotTypeMineLayer
 )
+
+var HullSlotTypes = []HullSlotType{
+	HullSlotTypeNone,
+	HullSlotTypeEngine,
+	HullSlotTypeScanner,
+	HullSlotTypeMechanical,
+	HullSlotTypeBomb,
+	HullSlotTypeMining,
+	HullSlotTypeElectrical,
+	HullSlotTypeShield,
+	HullSlotTypeArmor,
+	HullSlotTypeCargo,
+	HullSlotTypeSpaceDock,
+	HullSlotTypeWeapon,
+	HullSlotTypeOrbital,
+	HullSlotTypeMineLayer,
+	HullSlotTypeElectricalMechanical,
+	HullSlotTypeOrbitalElectrical,
+	HullSlotTypeShieldElectricalMechanical,
+	HullSlotTypeScannerElectricalMechanical,
+	HullSlotTypeArmorScannerElectricalMechanical,
+	HullSlotTypeMineElectricalMechanical,
+	HullSlotTypeShieldArmor,
+	HullSlotTypeWeaponShield,
+	HullSlotTypeGeneral,
+}
+
+// all single type hull slot types
+var BasicHullSlotTypes = []HullSlotType{
+	HullSlotTypeNone,
+	HullSlotTypeEngine,
+	HullSlotTypeScanner,
+	HullSlotTypeMechanical,
+	HullSlotTypeBomb,
+	HullSlotTypeMining,
+	HullSlotTypeElectrical,
+	HullSlotTypeShield,
+	HullSlotTypeArmor,
+	HullSlotTypeCargo,
+	HullSlotTypeSpaceDock,
+	HullSlotTypeWeapon,
+	HullSlotTypeOrbital,
+	HullSlotTypeMineLayer,
+}
 
 func (hst HullSlotType) String() string {
 	switch hst {
@@ -260,9 +333,11 @@ func (hst HullSlotType) String() string {
 	case HullSlotTypeOrbital:
 		return "orbital"
 	case HullSlotTypeMineLayer:
-		return "mine layer"
+		return "minelayer"
 	case HullSlotTypeOrbitalElectrical:
 		return "orbital electrical"
+	case HullSlotTypeElectricalMechanical:
+		return "electrical mechanical"
 	case HullSlotTypeShieldElectricalMechanical:
 		return "shield electrical mechanical"
 	case HullSlotTypeScannerElectricalMechanical:
@@ -331,18 +406,19 @@ func FromHabType(habType HabType) TerraformHabType {
 	}
 }
 
-func NewTech(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory) Tech {
+func NewTech(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, tags ...TechTag) Tech {
 	return Tech{
 		Name:         name,
 		Cost:         cost,
 		Requirements: requirements,
 		Ranking:      ranking,
 		Category:     category,
+		Tags:         newTechTags(tags...),
 	}
 }
 
-func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin string) Tech {
-	t := NewTech(name, cost, requirements, ranking, category)
+func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin TechOrigin, tags ...TechTag) Tech {
+	t := NewTech(name, cost, requirements, ranking, category, tags...)
 	t.Origin = origin
 	return t
 }
@@ -354,87 +430,3 @@ func (t *TechEngine) String() string           { return t.Name }
 func (t *TechPlanetaryScanner) String() string { return t.Name }
 func (t *TechDefense) String() string          { return t.Name }
 func (t *TechTerraform) String() string        { return t.Name }
-
-// Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
-func (t *Tech) GetPlayerCost(techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) Cost {
-	// figure out miniaturization
-	// this is 4% per level above the required tech we have.
-	// We count the smallest diff, i.e. if you have
-	// tech level 10 energy, 12 bio and the tech costs 9 energy, 4 bio
-	// the smallest level difference you have is 1 energy level (not 8 bio levels)
-
-	levelDiff := TechLevel{-1, -1, -1, -1, -1, -1}
-
-	// From the diff between the player level and the requirements, find the lowest difference
-	// i.e. 1 energy level in the example above
-	numTechLevelsAboveRequired := math.MaxInt
-	if t.Requirements.Energy > 0 {
-		levelDiff.Energy = techLevels.Energy - t.Requirements.Energy
-		numTechLevelsAboveRequired = MinInt(levelDiff.Energy, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Weapons > 0 {
-		levelDiff.Weapons = techLevels.Weapons - t.Requirements.Weapons
-		numTechLevelsAboveRequired = MinInt(levelDiff.Weapons, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Propulsion > 0 {
-		levelDiff.Propulsion = techLevels.Propulsion - t.Requirements.Propulsion
-		numTechLevelsAboveRequired = MinInt(levelDiff.Propulsion, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Construction > 0 {
-		levelDiff.Construction = techLevels.Construction - t.Requirements.Construction
-		numTechLevelsAboveRequired = MinInt(levelDiff.Construction, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Electronics > 0 {
-		levelDiff.Electronics = techLevels.Electronics - t.Requirements.Electronics
-		numTechLevelsAboveRequired = MinInt(levelDiff.Electronics, numTechLevelsAboveRequired)
-	}
-	if t.Requirements.Biotechnology > 0 {
-		levelDiff.Biotechnology = techLevels.Biotechnology - t.Requirements.Biotechnology
-		numTechLevelsAboveRequired = MinInt(levelDiff.Biotechnology, numTechLevelsAboveRequired)
-	}
-
-	// for starter techs, they are all 0 requirements, so just use our lowest field
-	if numTechLevelsAboveRequired == math.MaxInt {
-		numTechLevelsAboveRequired = techLevels.Min()
-	}
-
-	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
-	// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
-	miniaturization := math.Min(spec.MiniaturizationMax, spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
-	// New techs cost BET races 2x
-	// new techs will have 0 for miniaturization.
-	miniaturizationFactor := spec.NewTechCostFactor
-	if numTechLevelsAboveRequired > 0 {
-		miniaturizationFactor = 1 - miniaturization
-	}
-
-	// apply any tech cost offsets
-	// TODO: Implement IT 25% gate discount in actually less janky way
-	cost := t.Cost
-	switch t.Category {
-	case TechCategoryEngine:
-		cost = cost.MultiplyFloat64(1 + costOffset.Engine)
-	case TechCategoryBeamWeapon:
-		cost = cost.MultiplyFloat64(1 + costOffset.BeamWeapon)
-	case TechCategoryBomb:
-		cost = cost.MultiplyFloat64(1 + costOffset.Bomb)
-	case TechCategoryTorpedo:
-		cost = cost.MultiplyFloat64(1 + costOffset.Torpedo)
-	case TechCategoryOrbital:
-		if strings.Contains(t.Name, "Stargate") {
-			cost = cost.MultiplyFloat64(1 + costOffset.Stargate)
-		}
-	case TechCategoryTerraforming:
-		cost = cost.MultiplyFloat64(1 + costOffset.Terraforming)
-	}
-
-	return Cost{
-		int(roundHalfDown(float64(cost.Ironium) * miniaturizationFactor)),
-		int(roundHalfDown(float64(cost.Boranium) * miniaturizationFactor)),
-		int(roundHalfDown(float64(cost.Germanium) * miniaturizationFactor)),
-		int(roundHalfDown(float64(cost.Resources) * miniaturizationFactor)),
-	}
-
-	// if we are at level 26, a beginner tech would cost (26 * .04)
-	// return cost * (1 - Math.Min(.75, .04 * lowestRequiredDiff));
-}

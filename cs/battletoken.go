@@ -15,7 +15,7 @@ const (
 	battleTokenAttributeStarbase      battleTokenAttribute = 1 << 3
 	battleTokenAttributeFuelTransport battleTokenAttribute = 1 << 4
 	battleTokenAttributeHasBeams      battleTokenAttribute = 1 << 5
-	battleTokenAttributeHasTorpedos   battleTokenAttribute = 1 << 6
+	battleTokenAttributeHasTorpedoes  battleTokenAttribute = 1 << 6
 )
 
 // a token for a battle
@@ -45,7 +45,7 @@ type battleToken struct {
 }
 
 // newBattleToken creates a new battle token from a shipToken.
-func newBattleToken(num int, position BattleVector, cargoMass int, token *ShipToken, battlePlan BattlePlan, player *Player, techFinder TechFinder) *battleToken {
+func newBattleToken(rules *Rules, num int, position BattleVector, cargoMass int, token *ShipToken, battlePlan BattlePlan, player *Player) *battleToken {
 	battleToken := battleToken{
 		BattleRecordToken: BattleRecordToken{
 			Num:                     num,
@@ -56,7 +56,7 @@ func newBattleToken(num int, position BattleVector, cargoMass int, token *ShipTo
 			Mass:                    token.design.Spec.Mass + cargoMass,
 			Armor:                   token.design.Spec.Armor,
 			StackShields:            token.design.Spec.Shields * token.Quantity,
-			Movement:                token.design.getMovement(cargoMass),
+			Movement:                token.design.getMovement(rules, cargoMass),
 			StartingQuantity:        token.Quantity,
 			StartingQuantityDamaged: token.QuantityDamaged,
 			StartingDamage:          int(token.Damage),
@@ -80,6 +80,7 @@ func newBattleToken(num int, position BattleVector, cargoMass int, token *ShipTo
 
 	// get the weapon slots for a token
 	weaponSlots := make([]*battleWeaponSlot, 0)
+	techFinder := rules.techs
 	hull := techFinder.GetHull(token.design.Hull)
 	if len(token.design.Spec.WeaponSlots) > 0 {
 		minRange := math.MaxInt
@@ -88,12 +89,12 @@ func newBattleToken(num int, position BattleVector, cargoMass int, token *ShipTo
 			weapon := techFinder.GetHullComponent(slot.HullComponent)
 			bws := newBattleWeaponSlot(&battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.TorpedoBonus, token.design.Spec.BeamBonus)
 			weaponSlots = append(weaponSlots, bws)
-			minRange = MinInt(minRange, bws.weaponRange)
-			maxRange = MaxInt(maxRange, bws.weaponRange)
+			minRange = Min(minRange, bws.weaponRange)
+			maxRange = Max(maxRange, bws.weaponRange)
 			if bws.weaponType == battleWeaponTypeBeam {
 				battleToken.attributes |= battleTokenAttributeHasBeams
 			} else if bws.weaponType == battleWeaponTypeTorpedo {
-				battleToken.attributes |= battleTokenAttributeHasTorpedos
+				battleToken.attributes |= battleTokenAttributeHasTorpedoes
 			}
 		}
 		battleToken.weaponSlots = weaponSlots
@@ -166,7 +167,7 @@ func (token *battleToken) isStillInBattle() bool {
 }
 
 func (token *battleToken) getDistanceAway(position BattleVector) int {
-	return MaxInt(AbsInt(token.Position.X-position.X), AbsInt(token.Position.Y-position.Y))
+	return Max(Abs(token.Position.X-position.X), Abs(token.Position.Y-position.Y))
 }
 
 func (token *battleToken) String() string {

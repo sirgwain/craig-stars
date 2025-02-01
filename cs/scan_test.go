@@ -429,7 +429,7 @@ func Test_scanMineFields(t *testing.T) {
 			},
 		},
 		{
-			name:   "mineField 75% cloaked, out of range",
+			name: "mineField 75% cloaked, out of range",
 			// minefield is 13 away, but has a 10ly radius so the edge is only 3 away
 			// it is not spotted with 75% cloaking (scanner range is 2.5 instead of 10)
 			fields: fields{mineFields: []*MineField{newMineField(testPlayer().WithNum(2), MineFieldTypeStandard, 100, 1, Vector{13, 0})}},

@@ -361,12 +361,13 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 			d.discoverDesign(design, false)
 		}
 
-		// players know their planet pops, but other planets are slightly off
-		if ownedByPlayer {
+		// players & their allies know their exact planet pops, but foreign pop readings are slightly off
+		sharingMapWithOwner := player.IsSharingMap(planet.PlayerNum)
+		if ownedByPlayer || sharingMapWithOwner {
 			intel.Spec.Population = planet.population()
 		} else {
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError*2) - rules.PopulationScannerError
-			intel.Spec.Population = MaxInt(0, int(float64(planet.population())*(1-randomPopulationError)))
+			intel.Spec.Population = Max(0, roundToNearest100(float64(planet.population())*(1-randomPopulationError)))
 		}
 	}
 	return nil

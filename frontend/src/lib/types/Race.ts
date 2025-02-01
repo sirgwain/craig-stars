@@ -159,14 +159,14 @@ export type RaceSpec = {
 	newTechCostFactor: number;
 	miniaturizationMax: number;
 	miniaturizationPerLevel: number;
-	builtInScannerMultiplier: number;
+	builtInScanner: BuiltInScanner;
 	armorStrengthFactor: number;
 	scanRangeFactor: number;
 	habCenter?: Hab;
 	costs: PartialEnumDictionary<QueueItemType, Cost>;
 	startingTechLevels?: TechLevel;
 	startingPlanets?: StartingPlanet[];
-	techCostOffset: TechCostOffset;
+	techCostOffset: Record<string, number>;
 	mineralsPerSingleMineralPacket?: number;
 	mineralsPerMixedMineralPacket?: number;
 	packetResourceCost?: number;
@@ -233,6 +233,11 @@ export type RaceSpec = {
 	engineReliableSpeed?: number;
 };
 
+type BuiltInScanner = {
+	normalMulti?: TechLevel;
+	penMulti?: TechLevel;
+};
+
 declare interface StealsResearch {
 	energy?: number;
 	weapons?: number;
@@ -240,14 +245,6 @@ declare interface StealsResearch {
 	construction?: number;
 	electronics?: number;
 	biotechnology?: number;
-}
-
-declare interface TechCostOffset {
-	engine?: number;
-	beamWeapon?: number;
-	torpedo?: number;
-	bomb?: number;
-	planetaryDefense?: number;
 }
 
 declare interface StartingPlanet {
@@ -295,8 +292,8 @@ export const humanoid = (): Race => ({
 		newTechCostFactor: 1,
 		miniaturizationMax: 0.75,
 		miniaturizationPerLevel: 0.04,
-		builtInScannerMultiplier: 20,
 		scanRangeFactor: 1,
+		builtInScanner: { normalMulti: {}, penMulti: {} },
 		habCenter: {
 			grav: 50,
 			temp: 50,
@@ -429,13 +426,7 @@ export const humanoid = (): Race => ({
 				]
 			}
 		],
-		techCostOffset: {
-			engine: 0,
-			beamWeapon: 0,
-			torpedo: 0,
-			bomb: 0,
-			planetaryDefense: 0
-		},
+		techCostOffset: {},
 		mineralsPerSingleMineralPacket: 100,
 		mineralsPerMixedMineralPacket: 40,
 		packetResourceCost: 10,

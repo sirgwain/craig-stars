@@ -47,7 +47,7 @@ type battleWeaponSlot struct {
 	// the initiative of the weapon
 	initiative int
 
-	// gattling guns hit all targets in range
+	// gatling guns hit all targets in range
 	hitsAllTargets bool
 
 	// capital ships missiles do double damage after shields are gone
@@ -65,7 +65,7 @@ type battleWeaponDamage struct {
 	quantityDamaged int
 	// the number of tokens destroyed
 	numDestroyed int
-	// any leftover beam power or torpedos we have after destroying all ships in the stack
+	// any leftover beam power or torpedoes we have after destroying all ships in the stack
 	leftover int
 }
 
@@ -97,8 +97,9 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 
 // get beam damage with dropoff and defense included
 func getBeamDamageAtDistance(damage, weaponRange, dist int, beamDefense float64, beamRangeDropoff float64) int {
+	// set beam defense to 1 for uninitialized ships
+	// TODO: fix this stuff after beam defense refactor
 	if beamDefense == 0 {
-		// for multiplying damage, treat 0 beam defense as no modifier (i.e. multiply by 1)
 		beamDefense = 1
 	}
 
@@ -235,10 +236,10 @@ func (weapon *battleWeaponSlot) getDamage(dist int, beamDefense, beamDropoff flo
 // get the estimated damage of a torpedo to a target
 // based on average accuracy
 func (weapon *battleWeaponSlot) getEstimatedTorpedoDamageToTarget(target *battleToken) battleWeaponDamage {
-	numTorpedos := weapon.slotQuantity * weapon.token.Quantity
+	numTorpedoes := weapon.slotQuantity * weapon.token.Quantity
 	accuracy := weapon.getAccuracy(target.torpedoJamming)
-	hits := int(float64(numTorpedos) * accuracy)
-	misses := numTorpedos - hits
+	hits := int(float64(numTorpedoes) * accuracy)
+	misses := numTorpedoes - hits
 
 	// estimate how much damage we'll actually do
 	damage := weapon.power * hits
@@ -247,19 +248,19 @@ func (weapon *battleWeaponSlot) getEstimatedTorpedoDamageToTarget(target *battle
 	totalArmor := target.armor*target.Quantity - int(float64(target.QuantityDamaged)*target.Damage)
 
 	var bwd battleWeaponDamage
-	bwd.shieldDamage = MinInt(target.stackShields, int(float64(damage)/2))
-	bwd.armorDamage = MinInt(totalArmor, damage-bwd.shieldDamage)
+	bwd.shieldDamage = Min(target.stackShields, int(float64(damage)/2))
+	bwd.armorDamage = Min(totalArmor, damage-bwd.shieldDamage)
 
-	// for any missed torpedos, they damage shields at 1/8th, so add that
+	// for any missed torpedoes, they damage shields at 1/8th, so add that
 	// to shield damage if still there
 	missShieldDamage := int(math.Round(float64(weapon.power*misses) / 8))
-	bwd.shieldDamage = MinInt(target.stackShields, bwd.shieldDamage+missShieldDamage)
+	bwd.shieldDamage = Min(target.stackShields, bwd.shieldDamage+missShieldDamage)
 
 	return bwd
 }
 
 // get the damage of a single torpedo to a target. Not currently being used... I'm not sure it
-// makes sense to have a separate single torpedo damage calc since the torpedos really need to be fired
+// makes sense to have a separate single torpedo damage calc since the torpedoes really need to be fired
 // in order accumulating damage as they go, destroying ships, etc
 func (weapon *battleWeaponSlot) getTorpedoDamageToTarget(target *battleToken) battleWeaponDamage {
 
@@ -269,7 +270,7 @@ func (weapon *battleWeaponSlot) getTorpedoDamageToTarget(target *battleToken) ba
 	shields := float64(target.stackShields)
 	shipDamage := target.Damage
 
-	// torpedos do half damage to shields, half to armor (until shields are gone, when they do full armor damage)
+	// torpedoes do half damage to shields, half to armor (until shields are gone, when they do full armor damage)
 	var shieldDamage float64
 	armorDamage := float64(damage)
 	if target.stackShields > 0 {
@@ -331,13 +332,13 @@ func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, targ
 		// no range penalty for gattlings
 		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, 0, target.beamDefense, beamRangeDropoff)
 	} else {
-		// drain any range/defelctor penalty from beam damage
+		// apply any range/deflector penalties to beam damage
 		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, dist, target.beamDefense, beamRangeDropoff)
 	}
 
 	// sappers only damage shields, can't damage more shields than we have
 	if weapon.damagesShieldsOnly {
-		return battleWeaponDamage{shieldDamage: MinInt(target.stackShields, damage)}
+		return battleWeaponDamage{shieldDamage: Min(target.stackShields, damage)}
 	}
 
 	armor := target.armor
