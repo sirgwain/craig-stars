@@ -395,10 +395,10 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 			player.Race.Spec.MiniaturizationSpec = tt.args.miniaturizationSpec
 			player.Race.Spec.StarbaseCostFactor = tt.args.starbaseCostFactor
 			player.Race.Spec.TechCostOffset = tt.args.techCostOffset
-			design := NewShipDesign(player, 1).
+			design := NewShipDesign(player.Num, 1).
 				WithHull(tt.args.oldDesignHull).
 				WithSlots(tt.args.oldDesignSlots)
-			newDesign := NewShipDesign(player, 1).
+			newDesign := NewShipDesign(player.Num, 1).
 				WithHull(tt.args.newDesignHull).
 				WithSlots(tt.args.newDesignSlots)
 			got, err := p.StarbaseUpgradeCost(&rules, tt.args.techLevels, player.Race.Spec, design, newDesign)
@@ -644,7 +644,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			player.Race.Spec.MiniaturizationSpec = tt.args.miniaturizationSpec
 			player.Race.Spec.StarbaseCostFactor = tt.args.starbaseCostFactor
 			player.Race.Spec.TechCostOffset = tt.args.techCostOffset
-			design := NewShipDesign(player, 1).WithName(tt.name).
+			design := NewShipDesign(player.Num, 1).WithName(tt.name).
 				WithHull(tt.args.hull).
 				WithSlots(tt.args.slots)
 			got, err := c.GetDesignCost(&rules, player.TechLevels, player.Race.Spec, design)

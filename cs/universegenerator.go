@@ -267,7 +267,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 			}
 		}
 
-		starbaseDesigns := ug.getStartingStarbaseDesigns(ug.Rules.techs, player, num)
+		starbaseDesigns := ug.createStartingStarbaseDesigns(ug.Rules.techs, player, num)
 
 		for i := range starbaseDesigns {
 			design := &starbaseDesigns[i]
@@ -469,8 +469,8 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(player *Player, plan
 		// then, since G is now the lowest mineral,
 		// we alternate between adding G and I for the remaining 4 pts
 		mins := planet.getCargo().ToMineral()
-		lowestType := mins.LowestType()
-		diff := mins.GetAmount(mins.MiddleType()) - mins.GetAmount(lowestType)
+		lowestType := mins.HighestType(3)
+		diff := mins.GetAmount(mins.HighestType(2)) - mins.GetAmount(lowestType)
 		amtToAdd := Min(extraPoints/pointsThreshold, (diff/qty)+1) // 70 difference / 10 mins => 8 rounds
 		planet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*qty)
 		extraPoints -= pointsThreshold * amtToAdd
@@ -524,7 +524,6 @@ func (ug *universeGenerator) applyGameStartModeModifier() {
 		ug.applyAccBBS()
 	case GameStartModeMax:
 		ug.maxPlayersAndPlanets()
-		ug.Game.Year += 100 // increase year by 100; ensures that AI immediately starts churning out ships
 	}
 }
 
@@ -536,9 +535,9 @@ func (ug *universeGenerator) applyAccBBS() {
 			continue
 		}
 
-		// 25% extra surface minerals
+		// Add 25% extra surface minerals
 		planet.Cargo = planet.Cargo.AddMineral(planet.Cargo.ToMineral().MultiplyFloat64(0.25))
-		
+
 		// AccBBS adds 20% extra starting pop (+5K for most races)
 		// per 1% of a race's growth rate
 		race := ug.getPlayer(planet.PlayerNum).Race
@@ -558,17 +557,16 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 	}
 
 	for _, planet := range ug.Planets {
-		if !planet.Owned() {
-			planet.MineralConcentration = Mineral{rules.MaxMineralConcentration, rules.MaxMineralConcentration, rules.MaxMineralConcentration}
-			continue
-		}
-
-		player := ug.Players[planet.PlayerNum-1]
-
+		// max out min concs and add a lot of surface minerals
 		planet.MineralConcentration = Mineral{rules.MaxMineralConcentration, rules.MaxMineralConcentration, rules.MaxMineralConcentration}
 		planet.Cargo.Ironium = 1_000_000
 		planet.Cargo.Boranium = 1_000_000
 		planet.Cargo.Germanium = 1_000_000
+		if !planet.Owned() {
+			continue
+		}
+
+		player := ug.Players[planet.PlayerNum-1]
 		planet.setPopulation(planet.getMaxPopulation(rules, player, player.Race.GetPlanetHabitability(planet.Hab)))
 		if player.Race.Spec.CanBuildDefenses {
 			planet.Defenses = 100
@@ -582,8 +580,8 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 	}
 }
 
-// get the initial starbase designs for a player
-func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, player *Player, designNum int) []ShipDesign {
+// create initial starbase designs for a player
+func (ug *universeGenerator) createStartingStarbaseDesigns(techStore *TechStore, player *Player, designNum int) []ShipDesign {
 	designs := make([]ShipDesign, len(player.Race.Spec.StartingPlanets))
 
 	for i, startingPlanet := range player.Race.Spec.StartingPlanets {
@@ -601,7 +599,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 			purpose = ShipDesignPurposeFort
 		}
 
-		starbase = NewShipDesign(player, designNum).
+		starbase = NewShipDesign(player.Num, designNum).
 			WithName(startingPlanet.StarbaseDesignName).
 			WithHull(startingPlanet.StarbaseHull).
 			WithPurpose(purpose).
@@ -613,7 +611,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 
 	if player.Race.Spec.LivesOnStarbases {
 		// create a starter colony for AR races
-		starterColony := NewShipDesign(player, designNum).
+		starterColony := NewShipDesign(player.Num, designNum).
 			WithName("Starter Colony").
 			WithHull(OrbitalFort.Name).
 			WithPurpose(ShipDesignPurposeStarterColony).

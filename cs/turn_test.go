@@ -361,7 +361,7 @@ func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
 	planet := game.Planets[1]
 
 	// create a new starbase
-	starbaseDesign := NewShipDesign(player2, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player2)
+	starbaseDesign := NewShipDesign(player2.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player2)
 	starbase := newStarbase(player2, planet,
 		starbaseDesign,
 		"Starbase",
@@ -1148,7 +1148,7 @@ func Test_turn_fleetRepair(t *testing.T) {
 	planet := game.Planets[0]
 
 	// create a new starbase
-	starbaseDesign := NewShipDesign(player, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	starbaseDesign := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
 	starbase := newStarbase(player, planet,
 		starbaseDesign,
 		"Starbase",
@@ -1458,7 +1458,7 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 	packetPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 
 	// create a new starbase
-	starbaseDesign := NewShipDesign(player, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	starbaseDesign := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
 	starbase := newStarbase(player, planet,
 		starbaseDesign,
 		"Starbase",
@@ -1652,7 +1652,7 @@ func Test_turn_fleetRefuel(t *testing.T) {
 	planet := game.Planets[0]
 
 	// create a new starbase
-	starbaseDesign := NewShipDesign(player, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	starbaseDesign := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
 	starbase := newStarbase(player, planet,
 		starbaseDesign,
 		"Starbase",
@@ -1726,7 +1726,7 @@ func Test_turn_buildStarbase(t *testing.T) {
 	planet := game.Planets[0]
 
 	// create a new starbase design
-	starbaseDesign := NewShipDesign(player, 2).WithName("Sad empty base").WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	starbaseDesign := NewShipDesign(player.Num, 2).WithName("Sad empty base").WithHull(SpaceStation.Name).WithSpec(&rules, player)
 	player.Designs = append(player.Designs, starbaseDesign)
 
 	// build a starbase
@@ -1752,7 +1752,7 @@ func Test_turn_buildStarbase(t *testing.T) {
 	assert.Equal(t, 1, len(game.Starbases))
 
 	// upgrade the starbase with A LASER!
-	starbaseDesignUpgrade := NewShipDesign(player, 3).WithName("LASER BASE!").WithHull(SpaceStation.Name).WithSlots(
+	starbaseDesignUpgrade := NewShipDesign(player.Num, 3).WithName("LASER BASE!").WithHull(SpaceStation.Name).WithSlots(
 		[]ShipDesignSlot{
 			{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 1},
 		},
@@ -1987,7 +1987,7 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
 
 	// add a starbase at the planet for refueling
-	starbaseDesign := NewShipDesign(player1, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player1)
+	starbaseDesign := NewShipDesign(player1.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player1)
 	starbase := newStarbase(player1, planet,
 		starbaseDesign,
 		"Starbase",

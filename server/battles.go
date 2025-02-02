@@ -25,7 +25,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	player2.PlayerIntels.PlayerIntels = []cs.PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
 
 	player1.Designs = append(player1.Designs,
-		cs.NewShipDesign(player1, 1).
+		cs.NewShipDesign(player1.Num, 1).
 			WithName("Battle Cruiser").
 			WithHull(cs.BattleCruiser.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -37,7 +37,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 3},
 				{HullComponent: cs.GorillaDelagator.Name, HullSlotIndex: 7, Quantity: 4},
 			}),
-		cs.NewShipDesign(player1, 2).
+		cs.NewShipDesign(player1.Num, 2).
 			WithName("Long Range Scout").
 			WithHull(cs.Scout.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -45,7 +45,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
 				{HullComponent: cs.CompletePhaseShield.Name, HullSlotIndex: 3, Quantity: 1},
 			}),
-		cs.NewShipDesign(player1, 3).
+		cs.NewShipDesign(player1.Num, 3).
 			WithName("Stalwart Defender").
 			WithHull(cs.Destroyer.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -57,7 +57,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
 			}),
-		cs.NewShipDesign(player1, 4).
+		cs.NewShipDesign(player1.Num, 4).
 			WithName("Accelerator Platform").
 			WithHull(cs.OrbitalFort.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -65,7 +65,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Laser.Name, HullSlotIndex: 2, Quantity: 6},
 				{HullComponent: cs.Laser.Name, HullSlotIndex: 5, Quantity: 6},
 			}),
-		cs.NewShipDesign(player1, 5).
+		cs.NewShipDesign(player1.Num, 5).
 			WithName("Frigate").
 			WithHull(cs.Frigate.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -73,7 +73,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.PhaserBazooka.Name, HullSlotIndex: 3, Quantity: 3},
 				{HullComponent: cs.CowHideShield.Name, HullSlotIndex: 4, Quantity: 2},
 			}),
-		cs.NewShipDesign(player1, 6).
+		cs.NewShipDesign(player1.Num, 6).
 			WithName("Destroyer v1").
 			WithHull(cs.Destroyer.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -85,7 +85,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.BetaTorpedo.Name, HullSlotIndex: 4, Quantity: 1},
 				{HullComponent: cs.BetaTorpedo.Name, HullSlotIndex: 3, Quantity: 1},
 			}),
-		cs.NewShipDesign(player1, 7).
+		cs.NewShipDesign(player1.Num, 7).
 			WithName("INT-1MF-SCP - Dragonfly").
 			WithHull(cs.Destroyer.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -99,7 +99,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 	)
 
 	player2.Designs = append(player2.Designs,
-		cs.NewShipDesign(player2, 1).
+		cs.NewShipDesign(player2.Num, 1).
 			WithName("Teamster").
 			WithHull(cs.SmallFreighter.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -107,7 +107,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
 				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 3, Quantity: 1},
 			}),
-		cs.NewShipDesign(player2, 2).
+		cs.NewShipDesign(player2.Num, 2).
 			WithName("Long Range Scout").
 			WithHull(cs.Scout.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -115,7 +115,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
 				{HullComponent: cs.CompletePhaseShield.Name, HullSlotIndex: 3, Quantity: 1},
 			}),
-		cs.NewShipDesign(player2, 3).
+		cs.NewShipDesign(player2.Num, 3).
 			WithName("Stalwart Defender").
 			WithHull(cs.Destroyer.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -127,7 +127,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: cs.BattleComputer.Name, HullSlotIndex: 7, Quantity: 1},
 			}),
-		cs.NewShipDesign(player2, 4).
+		cs.NewShipDesign(player2.Num, 4).
 			WithName("Stalwart Sapper").
 			WithHull(cs.Destroyer.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -139,7 +139,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: cs.Overthruster.Name, HullSlotIndex: 7, Quantity: 1},
 			}),
-		cs.NewShipDesign(player2, 5).
+		cs.NewShipDesign(player2.Num, 5).
 			WithName("FF 8").
 			WithHull(cs.Frigate.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -147,7 +147,7 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.PhaserBazooka.Name, HullSlotIndex: 3, Quantity: 3},
 				{HullComponent: cs.CowHideShield.Name, HullSlotIndex: 4, Quantity: 2},
 			}),
-		cs.NewShipDesign(player2, 6).
+		cs.NewShipDesign(player2.Num, 6).
 			WithName("DD S 10").
 			WithHull(cs.Destroyer.Name).
 			WithSlots([]cs.ShipDesignSlot{
@@ -156,11 +156,11 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 				{HullComponent: cs.ColloidalPhaser.Name, HullSlotIndex: 3, Quantity: 1},
 				{HullComponent: cs.BearNeutrinoBarrier.Name, HullSlotIndex: 4, Quantity: 1},
 			}),
-		cs.NewShipDesign(player2, 7).
+		cs.NewShipDesign(player2.Num, 7).
 			WithName("Empty Spacedock").
 			WithHull(cs.SpaceDock.Name).
 			WithSlots([]cs.ShipDesignSlot{}),
-		cs.NewShipDesign(player2, 8).
+		cs.NewShipDesign(player2.Num, 8).
 			WithName("Laser/Torpdo Space Station").
 			WithHull(cs.SpaceStation.Name).
 			WithSlots([]cs.ShipDesignSlot{

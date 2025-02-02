@@ -212,7 +212,7 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 
 			tokens := []ShipToken{}
 			for n, token := range tt.tokens {
-				design := NewShipDesign(player, n+1).WithSlots(token.slots).WithHull(token.hull.Name)
+				design := NewShipDesign(player.Num, n+1).WithSlots(token.slots).WithHull(token.hull.Name)
 				tokens = append(tokens, ShipToken{
 					DesignNum: n + 1,
 					Quantity:  token.qty,

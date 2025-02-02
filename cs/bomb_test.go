@@ -16,7 +16,7 @@ func testMiniBomber(player *Player, bomb TechHullComponent) *Fleet {
 			{
 				Quantity:  1,
 				DesignNum: 1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(MiniBomber.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},

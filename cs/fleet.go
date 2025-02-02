@@ -164,6 +164,8 @@ const (
 	TransportActionSetWaypointTo WaypointTaskTransportAction = "SetWaypointTo"
 )
 
+// the purpose for a fleet's existence (ie what it's supposed to be doing),
+// exported to allow the AI to plan ship movements 
 type FleetPurpose string
 
 const (

@@ -31,7 +31,7 @@ func testSpaceStation(player *Player, planet *Planet) *Fleet {
 			{
 				DesignNum: 1,
 				Quantity:  1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(SpaceStation.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
@@ -64,7 +64,7 @@ func testDeathStar(player *Player, planet *Planet) *Fleet {
 			{
 				DesignNum: 1,
 				Quantity:  1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(DeathStar.Name).
 					WithSlots([]ShipDesignSlot{}).
 					WithSpec(&rules, player)},

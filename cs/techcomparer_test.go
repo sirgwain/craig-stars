@@ -117,7 +117,7 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 				}
 			}
 			tc := NewTechComparer(&rules, player)
-			design := NewShipDesign(player, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
+			design := NewShipDesign(player.Num, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
 			if tt.fields.beamShip {
 				design.Purpose = ShipDesignPurposeBeamFighter
 			}
@@ -291,7 +291,7 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 		}
 		player := NewPlayer(1, race.WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
 		tc := techCompare{&rules, player}
-		design := NewShipDesign(player, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
+		design := NewShipDesign(player.Num, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
 		if tt.args.light {
 			design.Purpose = ShipDesignPurposeFreighter
 		}
@@ -382,7 +382,7 @@ func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 				player.AcquiredTechs[part] = true
 			}
 			tc := NewTechComparer(&rules, player)
-			design := NewShipDesign(player, 1).WithName(tt.name).WithHull(tt.fields.hull).WithPurpose(ShipDesignPurposeTorpedoFighter)
+			design := NewShipDesign(player.Num, 1).WithName(tt.name).WithHull(tt.fields.hull).WithPurpose(ShipDesignPurposeTorpedoFighter)
 			if tt.fields.beamShip {
 				design.Purpose = ShipDesignPurposeBeamFighter
 			}
@@ -503,7 +503,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 		player.Race.Spec.ArmorStrengthFactor = tt.args.armorMulti
 		player.Race.Spec.ShieldStrengthFactor = tt.args.shieldMulti
 		tc := techCompare{&rules, player}
-		design := NewShipDesign(player, 1).WithHull("Battleship").WithSpec(&rules, player)
+		design := NewShipDesign(player.Num, 1).WithHull("Battleship").WithSpec(&rules, player)
 		design.Spec.Shields = tt.args.shield
 		design.Spec.Armor = tt.args.armor
 		design.Spec.TorpedoBonus = tt.args.computing

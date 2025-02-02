@@ -54,8 +54,8 @@ type playerConfig struct {
 	minYearsToQueueStarbaseWarTime   int
 	minYearsToBuildScanner           int
 	minYearsToBuildFort              int
-	mineralConservationYear          int
-	startAttackingYear               int
+	mineralConservationYear          int // year to start prioritizing about minerals over resources for warship building
+	startAttackingYear               int // year to start launching attacks on players
 	namesByPurpose                   map[cs.ShipDesignPurpose]string
 	researchOrder                    []cs.TechLevel
 }
@@ -87,6 +87,26 @@ const (
 	Exterminate Stage = "Exterminate"
 )
 
+// TODO: Make these cutoffs dynamic and configurable on a per-race basis
+var defaultCutoffs = aiCutoffsByStartMode{
+	startAttackingYear: map[cs.GameStartMode]int{
+		cs.GameStartModeNormal: 25,
+		cs.GameStartModeAccBBS: 20,
+		cs.GameStartModeMax:    0,
+	},
+	mineralConservationYear: map[cs.GameStartMode]int{
+		cs.GameStartModeNormal: 55,
+		cs.GameStartModeAccBBS: 50,
+		cs.GameStartModeMax:    0,
+	},
+}
+
+type aiCutoffsByStartMode struct {
+	startAttackingYear      map[cs.GameStartMode]int // min year to start attacking
+	mineralConservationYear map[cs.GameStartMode]int // min year to care about minerals
+}
+
+// Create a new AI player
 func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
 	aiPlayer := aiPlayer{
 		Player:    player,
@@ -96,18 +116,18 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 			fleetBuilds: make(map[cs.FleetPurpose]int),
 		},
 		config: playerConfig{
-			// TODO: Make below configurable with Ai difficulty/aggression mode
-			colonizerPopulationDensity:       .25, // default to requiring 25% pop density before sending off colonizers
-			colonistTransportDensity:         .25, // default to requiring 25% pop density before taking colonists from a feeder to a needer
-			minYearsToQueueStarbasePeaceTime: 2,   // only build starbases if it takes <=2 years to build it
-			minYearsToQueueStarbaseWarTime:   4,   // only build starbases if it takes <=4 years to build it and the planet is threatened
-			minYearsToBuildFort:              10,  // only build emergency panic forts if it takes <=10 years to build it
-			minYearsToBuildScanner:           1,   // only build planetary scanners if we can finish it in 1 year
-			mineralConservationYear:          55,  // year to start caring about minerals over resources for warship building
-			invasionFactor:                   2,   // only invade if we have 2x the colonists to drop
-			fleetProductionCutoff:            .5,  // don't try and build ships until we have 50% factories/mines built first
-			bomberProductionCutoff:           .9,  // don't try and build bombers until we have 90% factories/mines built first
-			startAttackingYear:               25,  // wait 25 yrs before making or updating warfleet designs for accBBS games; prevents spam building outdated throwaway ships
+			// TODO: Make below configurable with AI difficulty/aggression mode
+			colonizerPopulationDensity:       .25,                                                    // default to requiring 25% pop density before sending off colonizers
+			colonistTransportDensity:         .25,                                                    // default to requiring 25% pop density before taking colonists from a feeder to a needer
+			mineralConservationYear:          defaultCutoffs.mineralConservationYear[game.StartMode], // TODO: Make this account for the AI's current progress in game (perhaps with a tech lvl cutoff or similar)
+			minYearsToQueueStarbasePeaceTime: 2,                                                      // only build starbases if it takes <=2 years to build it
+			minYearsToQueueStarbaseWarTime:   4,                                                      // only build starbases if it takes <=4 years to build it and the planet is threatened
+			minYearsToBuildFort:              10,                                                     // only build emergency panic forts if it takes <=10 years to build it
+			minYearsToBuildScanner:           1,                                                      // only build planetary scanners if we can finish it in 1 year
+			invasionFactor:                   2,                                                      // only invade if we have 2x the colonists to drop
+			fleetProductionCutoff:            .5,                                                     // don't try and build ships until we have 50% factories/mines built first
+			bomberProductionCutoff:           .9,                                                     // don't try and build bombers until we have 90% factories/mines built first
+			startAttackingYear:               defaultCutoffs.startAttackingYear[game.StartMode],
 			namesByPurpose: map[cs.ShipDesignPurpose]string{
 				// TODO: make this return a slice of strings/structs to allow for name variety
 				cs.ShipDesignPurposeScout:                 "Long Range Scout",
@@ -167,12 +187,6 @@ func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, play
 		},
 		PlayerMapObjects: playerMapObjects,
 		client:           cs.NewOrderer(),
-	}
-
-	if game.AcceleratedPlay {
-		// shift year cutoffs slightly earlier for accBBS games
-		aiPlayer.config.startAttackingYear -= 5
-		aiPlayer.config.mineralConservationYear -= 5
 	}
 
 	aiPlayer.buildMaps()
@@ -268,23 +282,29 @@ func (ai *aiPlayer) buildMaps() error {
 				},
 			},
 		},
+		cs.FleetPurposeCapitalShip: {
+			purpose: cs.FleetPurposeCapitalShip,
+			ships: []fleetShip{
+				{
+					purpose:  cs.ShipDesignPurposeBeamFighter,
+					quantity: 7,
+				},
+				{
+					purpose:  cs.ShipDesignPurposeTorpedoFighter,
+					quantity: 7,
+				},
+			},
+		},
 	}
 
 	ai.targetedPlanets = make(map[int][]*cs.FleetIntel)
 	return nil
 }
 
-// update warship amounts for attack/defense fleets
-func (ai *aiPlayer) updateWarfleets() error {
-	var err error
-	err = ai.updateWarshipCount()
-	if err != nil {
-		if err == errTooEarly {
-			// we building ships too early; stop
-			return nil
-		}
-		return err
-	}
+// update an AI player's warfleet quantities for attack/defense fleets
+func (ai *aiPlayer) updateWarfleets() (err error) {
+	// grab baseline warship counts for current year
+	warshipCount := ai.getWarshipCount()
 
 	// get our warship designs, updating the spec if needed
 	beamDesign := ai.designsByPurpose[cs.ShipDesignPurposeBeamFighter]
@@ -312,11 +332,11 @@ func (ai *aiPlayer) updateWarfleets() error {
 		if torpDesign == nil {
 			log.Debug().Msgf("Skipping over choosing warship quantities due to nil designs")
 		} else {
-			ai.updateWarshipAmounts(ai.warshipCount.bombers, 0, ai.warshipCount.warships, ai.warshipCount.fuelTransports)
+			ai.updateWarshipAmounts(warshipCount.bombers, 0, warshipCount.warships, warshipCount.fuelTransports)
 		}
 		return nil
 	} else if torpDesign == nil {
-		ai.updateWarshipAmounts(ai.warshipCount.bombers, ai.warshipCount.warships, 0, ai.warshipCount.fuelTransports)
+		ai.updateWarshipAmounts(warshipCount.bombers, warshipCount.warships, 0, warshipCount.fuelTransports)
 		return nil
 	}
 
@@ -327,91 +347,95 @@ func (ai *aiPlayer) updateWarfleets() error {
 
 	ct := []cs.CostType{cs.Resources}
 	if ai.game.YearsPassed() >= ai.config.mineralConservationYear {
-		// care about minerals at year 2455+ (2450+ for accBBS)
+		// care about minerals over resources after year 55 (50 for accBBS)
 		ct = cs.MineralTypes[:]
 	}
 	costRatio := cs.GetCostEfficiencyRatio(beamDesign.Spec.Cost.ToCostFloat64(), torpDesign.Spec.Cost.ToCostFloat64(), ct...)
 
 	if scoreRatio >= 1.5*costRatio { // beams are >50% more cost efficient than torps
-		ai.updateWarshipAmounts(ai.warshipCount.bombers, ai.warshipCount.warships, 0, ai.warshipCount.fuelTransports)
+		ai.updateWarshipAmounts(warshipCount.bombers, warshipCount.warships, 0, warshipCount.fuelTransports)
 	} else if scoreRatio*1.5 <= costRatio { // torp ships are >50% more cost efficient than beams
-		ai.updateWarshipAmounts(ai.warshipCount.bombers, 0, ai.warshipCount.warships, ai.warshipCount.fuelTransports)
+		ai.updateWarshipAmounts(warshipCount.bombers, 0, warshipCount.warships, warshipCount.fuelTransports)
 	} else {
 		// mix fleets based on relative strength factor
-		beamShips := int(scoreRatio / costRatio * float64(ai.warshipCount.warships) / 2)
-		ai.updateWarshipAmounts(ai.warshipCount.bombers, beamShips, ai.warshipCount.warships-beamShips, ai.warshipCount.fuelTransports)
+		beamShips := int(scoreRatio / costRatio * float64(warshipCount.warships) / 2)
+		ai.updateWarshipAmounts(warshipCount.bombers, beamShips, warshipCount.warships-beamShips, warshipCount.fuelTransports)
 	}
 	return nil
 }
 
-var errTooEarly error = fmt.Errorf("too early")
-
-func (ai *aiPlayer) updateWarshipCount() error {
+// Determine the amount of warships used by an AI player based on years passed
+func (ai *aiPlayer) getWarshipCount() (warshipQty warshipCount) {
 	yearsAfterStart := ai.game.YearsPassed() - ai.config.startAttackingYear
-	// TODO: Make these values configurable per AI type
-	var bombers, warships, fuelTransports int
 
 	// determine ship counts by year
+	// TODO: Make these values configurable per AI type
 	switch {
-	case yearsAfterStart < 0: // <2425 non-BBS; <2420 accBBs
-		return errTooEarly
-	case yearsAfterStart < 5: // 2425-2429 non-BBS; 2420-2424 accBBS
-		bombers = 5
-		warships = 14
+	case yearsAfterStart < 5: // <2429 non-BBS; <2424 accBBS
+		warshipQty.bombers = 5
+		warshipQty.warships = 14
 	case yearsAfterStart < 10: // 2430-2434 non-BBS; 2425-2429 accBBS
-		bombers = 7
-		warships = 16
+		warshipQty.bombers = 7
+		warshipQty.warships = 16
 	case yearsAfterStart < 15: // 2435-2439 non-BBS; 2430-2434 accBBS
-		bombers = 9
-		warships = 18
+		warshipQty.bombers = 9
+		warshipQty.warships = 18
 	case yearsAfterStart < 20: // 2440-2444 non-BBS; 2435-2439 accBBS
-		bombers = 10
-		warships = 20
+		warshipQty.bombers = 10
+		warshipQty.warships = 20
 	case yearsAfterStart < 30: // 2445-2454 non-BBS; 2440-2449 accBBS
-		bombers = 15
-		warships = 30
+		warshipQty.bombers = 15
+		warshipQty.warships = 30
 	case yearsAfterStart < 40: // 2455-2464 non-BBS; 2450-2459 accBBS
-		bombers = 20
-		warships = 50
+		warshipQty.bombers = 20
+		warshipQty.warships = 50
 	case yearsAfterStart < 50: // 2465-2474 non-BBS; 2460-2469 accBBS
-		bombers = 30
-		warships = 60
+		warshipQty.bombers = 30
+		warshipQty.warships = 60
 	default: // 2475+ non-BBS; 2470+ acc-BBS
-		bombers = 40
-		warships = cs.Min((yearsAfterStart/5)*6, 150)
+		warshipQty.bombers = 40
+		warshipQty.warships = cs.Min((yearsAfterStart/5)*6, 150)
 	}
+
+	// only add on fuel transports if we have them and they can repair our fleets
 	if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter] != nil &&
 		ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter].Spec.RepairBonus > 0 {
-		fuelTransports = cs.Min((bombers+warships)/5, 25)
+		warshipQty.fuelTransports = cs.Min((warshipQty.bombers+warshipQty.warships)/5, 25)
 	}
 
-	ai.warshipCount = warshipCount{bombers: bombers, warships: warships, fuelTransports: fuelTransports}
-	return nil
+	return warshipQty
 }
 
+// update an AI player's fleetsByPurpose map with the provided warship quantities;
+// effectively a large wrapper function
 func (ai *aiPlayer) updateWarshipAmounts(bombers, beamShips, torpedoShips, fuelTransports int) {
 	// reset the fleets
 	ai.fleetsByPurpose[cs.FleetPurposeBomber] = fleet{
 		purpose: cs.FleetPurposeBomber,
-		ships:   []fleetShip{{purpose: cs.ShipDesignPurposeBomber, quantity: bombers}}}
+		ships:   []fleetShip{{purpose: cs.ShipDesignPurposeBomber, quantity: bombers}},
+	}
 	ai.fleetsByPurpose[cs.FleetPurposeCapitalShip] = fleet{
 		purpose: cs.FleetPurposeCapitalShip,
-		ships:   []fleetShip{}}
+		ships:   []fleetShip{},
+	}
 
 	// only add on ships if we want to add any
 	if beamShips > 0 {
+		// re-assign entire structs due to golang jank
 		ai.fleetsByPurpose[cs.FleetPurposeBomber] = fleet{
 			purpose: cs.FleetPurposeBomber,
 			ships: append(ai.fleetsByPurpose[cs.FleetPurposeBomber].ships, fleetShip{
 				purpose:  cs.ShipDesignPurposeBeamFighter,
 				quantity: beamShips,
-			})}
+			}),
+		}
 		ai.fleetsByPurpose[cs.FleetPurposeCapitalShip] = fleet{
 			purpose: cs.FleetPurposeCapitalShip,
 			ships: append(ai.fleetsByPurpose[cs.FleetPurposeCapitalShip].ships, fleetShip{
 				purpose:  cs.ShipDesignPurposeBeamFighter,
 				quantity: beamShips,
-			})}
+			}),
+		}
 	}
 	if torpedoShips > 0 {
 		ai.fleetsByPurpose[cs.FleetPurposeBomber] = fleet{
@@ -419,13 +443,15 @@ func (ai *aiPlayer) updateWarshipAmounts(bombers, beamShips, torpedoShips, fuelT
 			ships: append(ai.fleetsByPurpose[cs.FleetPurposeBomber].ships, fleetShip{
 				purpose:  cs.ShipDesignPurposeTorpedoFighter,
 				quantity: torpedoShips,
-			})}
+			}),
+		}
 		ai.fleetsByPurpose[cs.FleetPurposeCapitalShip] = fleet{
 			purpose: cs.FleetPurposeCapitalShip,
 			ships: append(ai.fleetsByPurpose[cs.FleetPurposeCapitalShip].ships, fleetShip{
 				purpose:  cs.ShipDesignPurposeTorpedoFighter,
 				quantity: torpedoShips,
-			})}
+			}),
+		}
 	}
 	if fuelTransports > 0 {
 		ai.fleetsByPurpose[cs.FleetPurposeBomber] = fleet{
@@ -433,7 +459,8 @@ func (ai *aiPlayer) updateWarshipAmounts(bombers, beamShips, torpedoShips, fuelT
 			ships: append(ai.fleetsByPurpose[cs.FleetPurposeBomber].ships, fleetShip{
 				purpose:  cs.ShipDesignPurposeFuelFreighter,
 				quantity: fuelTransports,
-			})}
+			}),
+		}
 	}
 }
 
@@ -444,9 +471,9 @@ func (ai *aiPlayer) ProcessTurn() error {
 	ai.plan()
 	ai.designStarbases()
 
-	// TODO: Add packet defense checks (if we see a packet coming to us, queue up
-	// defenses/drivers if possible to save planet
-	// OR evacuate pop & queue up colonizer if not)
+	// TODO: Add packet defense checks
+	// if we see a packet coming to us, try to load its cargo,
+	// queue up defenses/drivers or evacuate pop in that order
 
 	if err := ai.scout(); err != nil {
 		return err
@@ -460,11 +487,14 @@ func (ai *aiPlayer) ProcessTurn() error {
 	if err := ai.layMines(); err != nil {
 		return err
 	}
-	if err := ai.invade(); err != nil {
-		return err
-	}
-	if err := ai.bomb(); err != nil {
-		return err
+	// only attack or invade after a while
+	if ai.game.YearsPassed() >= ai.config.startAttackingYear {
+		if err := ai.invade(); err != nil {
+			return err
+		}
+		if err := ai.bomb(); err != nil {
+				return err
+		}
 	}
 	if err := ai.updateFleetWarpSpeed(); err != nil {
 		return err
@@ -477,16 +507,9 @@ func (ai *aiPlayer) ProcessTurn() error {
 	}
 
 	if ai.game.Year%4 == 0 || len(ai.Player.Spec.TechsJustGained) > 0 {
-		// only update warship amounts/designs every 4 years or if we just gained a tech
+		// only update warship amounts/designs every 4 years or if we just gained a tech level
 		if err := ai.updateWarfleets(); err != nil {
-			if err != fmt.Errorf("too early") {
-				return err
-			} else {
-				log.Debug().
-					Int("Current Year", ai.game.Year).
-					Int("Min Ship Building Year", ai.config.startAttackingYear).
-					Msgf("Avoiding building warships at early year")
-			}
+			return err
 		}
 	}
 
@@ -496,62 +519,6 @@ func (ai *aiPlayer) ProcessTurn() error {
 	ai.removeUnusedDesigns()
 
 	return nil
-}
-
-func (ai *aiPlayer) getWarpSpeed(fleet *cs.Fleet, position cs.Vector) int {
-	dist := fleet.Position.DistanceTo(position)
-	return cs.Clamp(ai.getMaxWarp(dist, fleet), 1, 10)
-}
-
-// get the maximum warp we can travel to reach the destination
-// in the minimal number of years, within our fuel constraints
-func (ai *aiPlayer) getMaxWarp(dist float64, fleet *cs.Fleet) int {
-	freeSpeed := fleet.Spec.Engine.FreeSpeed
-
-	// start at freespeed+1 and move up until we run out of fuel
-	var speed int
-	for speed = freeSpeed + 1; speed < fleet.Spec.Engine.MaxSafeSpeed; speed++ {
-		fuelUsed := fleet.GetFuelCost(ai.Player, speed, dist)
-
-		// we are using too much fuel, go to the previous speed
-		if fuelUsed > fleet.Fuel {
-			speed--
-			break
-		}
-	}
-
-	idealSpeed := fleet.Spec.Engine.IdealSpeed
-
-	// if we are using a ramscoop, make sure we at least go the ideal
-	// speed of the engine. If we run out, oh well, it'll drop to
-	// the free speed
-	if freeSpeed > 1 && speed < idealSpeed {
-		speed = idealSpeed
-	}
-
-	// don't go faster than we need
-	return ai.getMinimalWarp(dist, speed, fleet)
-}
-
-// get the minimal warp starting at an idealSpeed and working downward
-// if we can travel the same amount of time at a lower speed, do it
-func (ai *aiPlayer) getMinimalWarp(dist float64, idealSpeed int, fleet *cs.Fleet) int {
-	speed := idealSpeed
-
-	freeSpeed := fleet.Spec.Engine.FreeSpeed
-
-	// travelling 49 ly at warp 7 takes one year
-	yearsAtIdealSpeed := int(math.Ceil(dist / float64(idealSpeed*idealSpeed)))
-	for i := idealSpeed; i > freeSpeed; i-- {
-		yearsAtSpeed := int(math.Ceil(dist / float64(i*i)))
-
-		// It takes the same time to go slower, so go slower
-		if yearsAtIdealSpeed == yearsAtSpeed {
-			speed = i
-		}
-	}
-
-	return cs.Clamp(speed, 1, 10)
 }
 
 // get a player owned planet by num, or nil if it doesn't exist
