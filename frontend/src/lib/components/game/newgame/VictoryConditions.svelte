@@ -69,11 +69,11 @@
 			condition={VictoryCondition.ExceedsSecondPlaceScore}
 		/>
 		<span class="label-text mr-1">
-			Exceeds a second place score by
+			Exceeds second place score by
 			<VictoryConditionInput
 				bind:value={settings.victoryConditions.exceedsSecondPlaceScore}
 				min={20}
-				max={100}
+				max={300}
 				unit="%"
 			/>
 			.
@@ -91,8 +91,7 @@
 				min={10}
 				max={500}
 				step={10}
-			/>
-			thousand.
+			/>,000 resources/yr.
 		</span>
 	</label>
 	<label class="label justify-start">
@@ -105,7 +104,7 @@
 			<VictoryConditionInput
 				bind:value={settings.victoryConditions.ownCapitalShips}
 				min={10}
-				max={100}
+				max={300}
 				step={10}
 			/>
 			capital ships.

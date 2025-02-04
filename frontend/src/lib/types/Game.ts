@@ -1,3 +1,4 @@
+import { entries } from 'lodash-es';
 import type { PlayerStatus } from './Player';
 import type { Race } from './Race';
 import type { Rules } from './Rules';
@@ -32,8 +33,15 @@ export enum PlayerPositions {
 
 export enum GameStartMode {
 	Normal = '', // regular start
+	AccBBS = 'AccBBS', /* AccBBS; faster start with more pop */
 	Max = 'Max' // max out all players
 }
+
+export const GameStartModeFullNames: { [key in GameStartMode]: string } = {
+	[GameStartMode.Normal]: "Normal",
+	[GameStartMode.AccBBS]: "Accelerated BBS Play",
+	[GameStartMode.Max]: "Max Start",
+};
 
 export enum NewGamePlayerType {
 	Host = 'Host',
@@ -73,7 +81,6 @@ export type GameSettings = {
 	computerPlayersFormAlliances?: boolean;
 	publicPlayerScores?: boolean;
 	maxMinerals?: boolean;
-	acceleratedPlay?: boolean;
 	startMode?: GameStartMode;
 	year?: number;
 	victoryConditions: VictoryConditions;
@@ -107,7 +114,6 @@ export type Game = {
 	computerPlayersFormAlliances: boolean;
 	publicPlayerScores: boolean;
 	maxMinerals: boolean;
-	acceleratedPlay: boolean;
 	public?: boolean;
 	startMode: GameStartMode;
 	year: number;

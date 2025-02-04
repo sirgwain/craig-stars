@@ -5,6 +5,7 @@
 	import {
 		Density,
 		GameStartMode,
+		GameStartModeFullNames,
 		PlayerPositions,
 		Size,
 		type GameSettings
@@ -48,9 +49,8 @@
 		name="startMode"
 		enumType={GameStartMode}
 		bind:value={settings.startMode}
-		typeTitle={(value) =>
-			!value || value === (GameStartMode.Normal as string) ? 'Normal' : startCase(value)}
+		typeTitle={(t) => GameStartModeFullNames[t]}
 		showEmpty={true}
-		tooltip={`Setting mode to Max will create a game with all tech levels, max minerals, etc`}
+		tooltip={`Setting mode to Max will create a game with maxed tech levels, minerals, etc.`}
 	/>
 </div>

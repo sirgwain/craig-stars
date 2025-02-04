@@ -24,9 +24,9 @@
 		{#if ($game.victoryConditions.conditions & VictoryCondition.OwnPlanets) > 0}
 			<tr>
 				<td
-					>Own {Math.ceil(
+					>Owns {Math.ceil(
 						($game.victoryConditions.ownPlanets / 100.0) * $universe.planets.length
-					).toFixed()} of {$universe.planets.length} planets</td
+					).toFixed()}/{$universe.planets.length} planets.</td
 				>
 				{#each players as player}
 					<td>
@@ -39,7 +39,7 @@
 		{#if ($game.victoryConditions.conditions & VictoryCondition.AttainTechLevels) > 0}
 			<tr>
 				<td>
-					Attain Tech {$game.victoryConditions.attainTechLevel} in {$game.victoryConditions
+					Attains Tech {$game.victoryConditions.attainTechLevel} in {$game.victoryConditions
 						.attainTechLevelNumFields} fields.
 				</td>
 				{#each players as player}
@@ -66,7 +66,7 @@
 		{#if ($game.victoryConditions.conditions & VictoryCondition.ExceedsSecondPlaceScore) > 0}
 			<tr>
 				<td>
-					Exceeds a second place score by {$game.victoryConditions.exceedsSecondPlaceScore}%
+					Exceeds second place score by {$game.victoryConditions.exceedsSecondPlaceScore}%.
 				</td>
 				{#each players as player}
 					<td>
@@ -79,7 +79,7 @@
 		{#if ($game.victoryConditions.conditions & VictoryCondition.ProductionCapacity) > 0}
 			<tr>
 				<td>
-					Has a production capacity of {$game.victoryConditions.productionCapacity} thousand.
+					Has a production capacity of {$game.victoryConditions.productionCapacity},000 resources/yr.
 				</td>
 				{#each players as player}
 					<td>
