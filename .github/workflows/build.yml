@@ -23,11 +23,12 @@ jobs:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
+      - run: go install github.com/magefile/mage@latest
       - run: mage generate
       - run: go test ./...
       - run: mkdir -p dist/
       - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
-      - run: mage build_wasm
+      - run: mage build_server
 
       # build the frontend (slow)
       - uses: actions/setup-node@v4
