@@ -64,7 +64,7 @@
 			.spec.name} ships.
 	{/if}
 {:else if message.type === MessageType.FleetDieoff}
-	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
+	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0)} of your colonists on {message.targetName}
 	have died.
 {:else if message.type === MessageType.FleetExceededSafeSpeed}
 	<!-- Overwarp -->

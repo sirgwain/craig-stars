@@ -107,7 +107,7 @@ type RaceSpec struct {
 	CanDetectStargatePlanets         bool                   `json:"canDetectStargatePlanets,omitempty"`
 	ShipsVanishInVoid                bool                   `json:"shipsVanishInVoid,omitempty"`
 	TechsCostExtraLevel              int                    `json:"techsCostExtraLevel,omitempty"`
-	FreighterGrowthFactor            float64                `json:"freighterGrowthFactor,omitempty"`
+	FreighterGrowth                  FreighterGrowth        `json:"freighterGrowth,omitempty"`
 	GrowthFactor                     float64                `json:"growthFactor,omitempty"`
 	MaxPopulationOffset              float64                `json:"maxPopulationOffset,omitempty"`
 	BuiltInCloakUnits                int                    `json:"builtInCloakUnits,omitempty"`
@@ -133,11 +133,13 @@ type RaceSpec struct {
 	RepairFactor                     float64                `json:"repairFactor,omitempty"`
 	StarbaseRepairFactor             float64                `json:"starbaseRepairFactor,omitempty"`
 	InnateMining                     bool                   `json:"innateMining,omitempty"`
+	InnateMinesFactor                float64                `json:"innateMinesFactor,omitempty"`
 	InnateResources                  bool                   `json:"innateResources,omitempty"`
 	InnateScanner                    bool                   `json:"innateScanner,omitempty"`
-	InnatePopulationFactor           float64                `json:"innatePopulationFactor,omitempty"`
+	InnateScannerFactor              float64                `json:"innateScannerFactor,omitempty"`
 	CanBuildDefenses                 bool                   `json:"canBuildDefenses,omitempty"`
 	LivesOnStarbases                 bool                   `json:"livesOnStarbases,omitempty"`
+	MinHabFloor                      int                    `json:"minHabFloor,omitempty"`
 	FuelEfficiencyOffset             float64                `json:"fuelEfficiencyOffset,omitempty"`
 	MineralAlchemyCostOffset         int                    `json:"mineralAlchemyCostOffset,omitempty"`
 	ScrapMineralOffset               float64                `json:"scrapMineralOffset,omitempty"`
@@ -518,7 +520,8 @@ func (r *Race) HabWidth() Hab {
 	}
 }
 
-// get this planet's habitabiliity from -45 to 100
+// get the habitability % a planet with this hab value would have for this race;
+// ranges from -45 to 100
 func (r *Race) GetPlanetHabitability(hab Hab) int {
 	planetValuePoints, redValue, ideality := 0, 0, 10000
 
@@ -582,7 +585,8 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 	return planetValuePoints
 }
 
-// compute the spec for this race
+// Compute the spec for this Race, adding up values from each of its constituent
+// PRT & LRTs in turn.
 func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)].clone()
 	spec := RaceSpec{
@@ -632,10 +636,10 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		TechsCostExtraLevel: prtSpec.TechsCostExtraLevel,
 
 		// IS
-		FreighterGrowthFactor: prtSpec.FreighterGrowthFactor, // AR sets this negative
-		InvasionDefendBonus:   prtSpec.InvasionDefendBonus,
-		RepairFactor:          prtSpec.RepairFactor,
-		StarbaseRepairFactor:  prtSpec.StarbaseRepairFactor,
+		FreighterGrowth:      prtSpec.FreighterGrowth, // AR sets this negative
+		InvasionDefendBonus:  prtSpec.InvasionDefendBonus,
+		RepairFactor:         prtSpec.RepairFactor,
+		StarbaseRepairFactor: prtSpec.StarbaseRepairFactor,
 
 		// HE
 		GrowthFactor: prtSpec.GrowthFactor,
@@ -667,9 +671,11 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		InnateMining:            prtSpec.InnateMining,
 		InnateResources:         prtSpec.InnateResources,
 		InnateScanner:           prtSpec.InnateScanner,
-		InnatePopulationFactor:  prtSpec.InnatePopulationFactor,
+		InnateMinesFactor:       prtSpec.InnateMinesFactor,
+		InnateScannerFactor:     prtSpec.InnateScannerFactor,
 		CanBuildDefenses:        prtSpec.CanBuildDefenses,
 		LivesOnStarbases:        prtSpec.LivesOnStarbases,
+		MinHabFloor:             Max(prtSpec.MinHabFloor, rules.MinHabFloor),
 
 		// CA
 		Instaforming:        prtSpec.Instaforming,
@@ -703,9 +709,9 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		}
 	}
 
-	// the PRT max pop serves as a multiplier to any LRTs
-	// i.e. HE has a .5 growth offset, so with OBRM it's .550
-	// i.e. JoaT has a 1.2 growth offset, so with OBRM it's 1.32
+	// PRT max pop multiplier stacks multiplicatively with LRTs
+	// HE has 0.5x max pop normally, so with OBRM it's 0.5 * 1.1 = 0.55x
+	// JoaT has 1.2x max pop normally, so with OBRM it's 1.2 * 1.1 = 1.32x
 	baseMaxPop := 1 + spec.MaxPopulationOffset
 	for _, lrt := range LRTs {
 		if !race.HasLRT(lrt) {

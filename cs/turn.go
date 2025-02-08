@@ -73,14 +73,13 @@ func (t *turn) generateTurn() error {
 	t.mysteryTraderMove()
 	t.fleetMove()
 	t.fleetRadiatingEngineDieoff()
-	t.fleetDieoff()
 	t.fleetReproduce()
 	t.decaySalvage()
 	t.decayPackets(false)
 	t.wormholeJiggle()
 	t.detonateMines()
+	t.fleetRemoteMineAR() // sort of a wp1 task, for AR races it happens before production and works on the turn of arrival
 	t.planetMine()
-	t.fleetRemoteMineAR() // sort of a wp1 task, for AR races it happens before production
 	if err := t.planetProduction(); err != nil {
 		return err
 	}
@@ -101,7 +100,7 @@ func (t *turn) generateTurn() error {
 	t.mysteryTraderSpawn()
 
 	// wp1 tasks
-	t.fleetRemoteMine()
+	t.fleetRemoteMine() // remote mine for normal miners
 	t.fleetUnload()
 	t.fleetColonize() // colonize wp1 after arriving at a planet
 	t.fleetScrap()
@@ -1077,29 +1076,32 @@ func (t *turn) fleetRadiatingEngineDieoff() {
 
 func (t *turn) fleetReproduce() {
 	for _, fleet := range t.game.Fleets {
-		if fleet.Delete {
-			continue
-		}
-
-		if fleet.Cargo.Colonists == 0 {
+		if fleet.Delete || fleet.Cargo.Colonists == 0 {
 			continue
 		}
 
 		// check if this player's freighters reproduce
 		player := t.game.getPlayer(fleet.PlayerNum)
-		if player.Race.Spec.FreighterGrowthFactor <= 0 {
+		fg := player.Race.Spec.FreighterGrowth
+		if fg.GrowthFactor == 0 {
 			continue
 		}
 
-		// load the orbiting planet
-		planet := t.game.getOrbitingPlanet(fleet)
-
-		growthFactor := player.Race.Spec.FreighterGrowthFactor
-		growth := Max(1, int(growthFactor*float64(player.Race.GrowthRate)/100.0*float64(fleet.Cargo.Colonists)))
+		var growth int
+		if fg.Absolute {
+			// calculate absolute pop growth on fleets
+			// TODO: Check rounding on this...?
+			growth = int(fg.GrowthFactor*float64(fleet.Cargo.Colonists))
+		} else {
+			// Calculate relative pop growth based on growth rate
+			growth = int(fg.GrowthFactor*float64(fleet.Cargo.Colonists*player.Race.GrowthRate)/100)
+		}
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
 		over := Max(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
+
+		planet := t.game.getOrbitingPlanet(fleet)
 		if over > 0 {
-			// remove excess colonists
+			// remove excess colonists, dumping them onto our own planets if possible
 			fleet.Cargo.Colonists = fleet.Cargo.Colonists - over
 			if planet != nil && planet.OwnedBy(fleet.PlayerNum) {
 				// add colonists to the planet this fleet is orbiting
@@ -1107,47 +1109,24 @@ func (t *turn) fleetReproduce() {
 			}
 		}
 
-		// Message the player
-		messager.fleetReproduce(player, fleet, growth*100, planet, over)
+		// Send the appropriate message to the player
+		if growth > 0 {
+			messager.fleetReproduce(player, fleet, growth*100, planet, over)
 
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Int("Growth", growth).
-			Int("Over", over).
-			Msgf("fleet reproduced")
-
-	}
-}
-
-func (t *turn) fleetDieoff() {
-	for _, fleet := range t.game.Fleets {
-		if fleet.Delete {
-			continue
+			t.log.Debug().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Int("Growth", growth).
+				Int("Pop overflow", over).
+				Msgf("fleet reproduced")
+		} else {
+			messager.fleetDieOff(player, fleet, growth*100)
+			t.log.Debug().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Int("Deaths", growth).
+				Msgf("fleet died off")
 		}
-
-		if fleet.Cargo.Colonists == 0 {
-			continue
-		}
-
-		// check if this player's freighters reproduce
-		player := t.game.getPlayer(fleet.PlayerNum)
-		if player.Race.Spec.FreighterGrowthFactor >= 0 {
-			continue
-		}
-
-		deathFactor := player.Race.Spec.FreighterGrowthFactor
-		death := Min(-1, int(deathFactor*float64(fleet.Cargo.Colonists)))
-		fleet.Cargo.Colonists = fleet.Cargo.Colonists + death
-
-		// Message the player
-		messager.fleetDieOff(player, fleet, death)
-
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Int("Death", death).
-			Msgf("fleet dieoff")
 	}
 }
 
@@ -1338,7 +1317,7 @@ func (t *turn) planetMine() {
 	}
 }
 
-// for AR races, remote mine their own planets during this phase
+// remote mine AR-owned planets with remote mining fleets in orbit
 func (t *turn) fleetRemoteMineAR() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
@@ -1346,96 +1325,104 @@ func (t *turn) fleetRemoteMineAR() {
 		}
 
 		wp0 := &fleet.Waypoints[0]
-		if wp0.Task == WaypointTaskRemoteMining {
-			player := t.game.getPlayer(fleet.PlayerNum)
-			planet := t.game.getOrbitingPlanet(fleet)
+		if wp0.Task != WaypointTaskRemoteMining {
+			continue
+		}
+		player := t.game.getPlayer(fleet.PlayerNum)
+		planet := t.game.getOrbitingPlanet(fleet)
 
-			// can't remote mine deep space
-			if planet == nil {
-				messager.fleetRemoteMineDeepSpace(player, fleet)
-				wp0.Task = WaypointTaskNone
-				continue
-			}
+		// can't remote mine deep space
+		if planet == nil {
+			messager.fleetRemoteMineDeepSpace(player, fleet)
+			wp0.Task = WaypointTaskNone
+			continue
+		}
 
-			// we can remote mine our own planets, so remote mine this planet now (it happens earlier than normal remote mining)
-			if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
-				t.remoteMine(fleet, player, planet)
-			}
+		// no miners no minerals
+		if fleet.Spec.MiningRate == 0 {
+			messager.fleetRemoteMineNoMiners(player, fleet, planet)
+			fleet.Waypoints[0].Task = WaypointTaskNone
+			continue
+		}
+
+		// If this is our own planet, remote mine it (happens earlier than normal)
+		if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
+			t.remoteMine(fleet, player, planet, true)
 		}
 	}
-
 }
 
 // remote mine planets
 func (t *turn) fleetRemoteMine() {
-
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
 		}
 
 		wp0 := &fleet.Waypoints[0]
-		if wp0.Task == WaypointTaskRemoteMining {
-			player := t.game.getPlayer(fleet.PlayerNum)
-			planet := t.game.getOrbitingPlanet(fleet)
-
-			// can't remote mine deep space
-			if planet == nil {
-				messager.fleetRemoteMineDeepSpace(player, fleet)
-				wp0.Task = WaypointTaskNone
-				continue
-			}
-
-			// we can remote mine our own planets, but that happens at an earlier step, so skip  during normal remote mining
-			if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
-				continue
-			}
-
-			if planet.Owned() {
-				messager.fleetRemoteMineInhabited(player, fleet, planet)
-				wp0.Task = WaypointTaskNone
-				continue
-			}
-
-			t.remoteMine(fleet, player, planet)
+		if wp0.Task != WaypointTaskRemoteMining {
+			continue
 		}
+
+		player := t.game.getPlayer(fleet.PlayerNum)
+		planet := t.game.getOrbitingPlanet(fleet)
+
+		// Skip AR self remote mining (since it's already been covered prior)
+		if planet != nil && planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
+			continue
+		}
+
+		// can't remote mine deep space
+		if planet == nil {
+			messager.fleetRemoteMineDeepSpace(player, fleet)
+			wp0.Task = WaypointTaskNone
+			continue
+		}
+
+		if planet.Owned() {
+			messager.fleetRemoteMineInhabited(player, fleet, planet)
+			wp0.Task = WaypointTaskNone
+			continue
+		}
+
+		if fleet.Spec.MiningRate == 0 {
+			messager.fleetRemoteMineNoMiners(player, fleet, planet)
+			fleet.Waypoints[0].Task = WaypointTaskNone
+			continue
+		}
+
+		t.remoteMine(fleet, player, planet, false)
 	}
 }
 
 // remote mine a planet
-func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
-
-	if fleet.Spec.MiningRate == 0 {
-		messager.fleetRemoteMineNoMiners(player, fleet, planet)
-		fleet.Waypoints[0].Task = WaypointTaskNone
+func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet, ARMining bool) {
+	// don't mine if we moved here this round and aren't AR self mining
+	if fleet.PreviousPosition != nil && !ARMining {
 		return
 	}
+	numMines := fleet.Spec.MiningRate
+	mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
+	planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
+	planet.MineYears = planet.MineYears.AddInt(numMines)
+	planet.reduceMineralConcentration(&t.game.Rules)
+	planet.MarkDirty()
 
-	// don't mine if we moved here this round, otherwise mine
-	if fleet.PreviousPosition == nil {
-		numMines := fleet.Spec.MiningRate
-		mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
-		planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
-		planet.MineYears = planet.MineYears.AddInt(numMines)
-		planet.reduceMineralConcentration(&t.game.Rules)
-		planet.MarkDirty()
+	// make sure we know about this planet's cargo after remote mining;
+	// mark this fleet as having remote mined
+	// so it gets added as a planetary cargo scanner
+	fleet.remoteMined = true
+	messager.fleetRemoteMined(player, fleet, planet, mineralOutput)
 
-		// make sure we know about this planet's cargo after remote mining, mark this fleet as having
-		// remote mined so it gets added as a planetary cargo scanner
-		fleet.remoteMined = true
-		messager.fleetRemoteMined(player, fleet, planet, mineralOutput)
-
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Str("Planet", planet.Name).
-			Str("Minerals", mineralOutput.PrettyString()).
-			Msgf("planet remote mined")
-
-	}
+	t.log.Debug().
+		Int("Player", fleet.PlayerNum).
+		Str("Fleet", fleet.Name).
+		Str("Planet", planet.Name).
+		Str("Minerals outputted", mineralOutput.PrettyString()).
+		Msgf("fleet remote mined planet")
 }
 
-// go through each player planet and process it's production queue
+// go through each player planet and process its production queue
 func (t *turn) planetProduction() error {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
@@ -1503,7 +1490,7 @@ func (t *turn) planetProduction() error {
 					return err
 				}
 				planet.Starbase = starbase
-				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
+				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 				messager.planetBuiltStarbase(player, planet, starbase)
 			}
 			if result.scanner {
@@ -1592,7 +1579,7 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 	if planet.Starbase != nil {
 		t.game.deleteStarbase(planet.Starbase)
 		planet.Starbase = nil
-		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
+		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 	}
 
 	starbase := newStarbase(player, planet, design, design.Name)
@@ -2103,7 +2090,7 @@ func (t *turn) fleetBattle() {
 						// remove this starbase from the planet
 						t.game.deleteStarbase(fleet)
 						planet.Starbase = nil
-						planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(&t.game.Rules, player, planet)
+						planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 					} else {
 						t.game.deleteFleet(fleet)
 					}
