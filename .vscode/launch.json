@@ -79,18 +79,19 @@
             "description": "Select Magefile target to debug.",
             "options": [
                 "run",
-                "test",
-                "images",
                 "build",
-                "build_frontend",
+                "clean",
                 "copy_wasm",
-                "build_backend",
+                "tidy",
                 "generate",
+                "build_frontend",
+                "build_wasm",
+                "build_backend",
                 "launch",
                 "launch_backend",
                 "launch_frontend",
-                "clean",
-                "tidy"
+                "test",
+                "images"
             ],
             "default": "run"
         },

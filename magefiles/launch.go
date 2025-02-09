@@ -16,10 +16,11 @@ var Aliases = map[string]interface{}{
 	"dev":          Launch,
 	"dev_frontend": Launch_Frontend,
 	"dev_backend":  Launch_Backend,
+	"copy_wasm":    Copy_Wasm_Exec,
 }
 
 // Build and launch the server for local development.
-// This calls both Build and Launch consecutively
+// This calls both Build and Launch consecutively.
 func Run() error {
 	if err := Build(); err != nil {
 		return err
@@ -31,7 +32,7 @@ func Run() error {
 // Build the frontend and backend consecutively, alongside some setup work.
 func Build() error {
 	mg.Deps(Clean)
-	mg.Deps(Copy_Wasm_ExecJS)
+	mg.Deps(Copy_Wasm_Exec)
 	mg.Deps(Tidy)
 	mg.Deps(Generate)
 	mg.Deps(Build_Frontend)
@@ -56,7 +57,7 @@ func Clean() error {
 }
 
 // Copy wasm executable from GOROOT to frontend folder.
-func Copy_Wasm_ExecJS() error {
+func Copy_Wasm_Exec() error {
 	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js",
 		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+ // remove backslashes
 			"/misc/wasm/wasm_exec.js"); err != nil {
@@ -85,7 +86,6 @@ func Generate() error {
 	return nil
 }
 
-
 // Build the frontend using SvelteKit.
 func Build_Frontend() error {
 	mg.Deps(Generate)
@@ -109,8 +109,8 @@ func Build_Frontend() error {
 	return nil
 }
 
-// Build various Golang backend/server files.
-func Build_WASM() error {
+// Build wasm binary into frontend.
+func Build_Wasm() error {
 	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
@@ -127,7 +127,7 @@ func Build_Backend() error {
 		return err
 	}
 
-	return Build_WASM()
+	return Build_Wasm()
 }
 
 // Launch both backend and frontend servers simultaneously.
@@ -151,7 +151,7 @@ func Launch() error {
 		close(c)
 	}()
 
-	// Block until either goroutine errors and then return the error
+	// Block until either goroutine finishes and then return the error
 	wg.Wait()
 	return <-c
 }
@@ -164,7 +164,7 @@ func Launch_Backend() error {
 
 // Launch the frontend svelte server.
 func Launch_Frontend() error {
-	mg.Deps(Copy_Wasm_ExecJS)
+	mg.Deps(Copy_Wasm_Exec)
 
 	cmd := exec.Command("npm", "run-script", "dev")
 	cmd.Dir = "./frontend"
