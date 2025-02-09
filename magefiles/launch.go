@@ -141,7 +141,6 @@ func build_backend(buildArgs string) error {
 	if err := os.MkdirAll("dist", 0755); err != nil { // MkdirAll used due to no-oping if folder already exists
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
-	flags := append(append([]string{"build"}, buildArgs...), 
 	if err := sh.RunV("go", "build", buildArgs, "-o",
 		fmt.Sprintf("dist/%s", binary_name), "main.go"); err != nil {
 		return err
