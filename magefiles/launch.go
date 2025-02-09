@@ -60,8 +60,9 @@ func Clean() error {
 // This copes the "wasm_exec.js" file from your GOROOT into
 // frontend/src/lib/wasm.
 func Copy_Wasm_Exec() error {
-	if err := sh.Copy(strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+ // remove backslashes from GOROOT
-		"/misc/wasm/wasm_exec.js", "frontend/src/lib/wasm/wasm_exec.js"); err != nil {
+	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js", 
+		strings.ReplaceAll(runtime.GOROOT(), "\\", "/") + 
+		"/misc/wasm/wasm_exec.js"); err != nil {
 		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)
 	}
 	return nil
@@ -136,12 +137,13 @@ func Build_Backend_CLI(version, hash, releaseTime string) error {
 }
 
 // Internal implementation for building backend with custom go build args
-func build_backend(buildArgs ...string) error {
+func build_backend(buildArgs string) error {
 	if err := os.MkdirAll("dist", 0755); err != nil { // MkdirAll used due to no-oping if folder already exists
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
-	flags := append(append([]string{"build"}, buildArgs...), "-o", fmt.Sprintf("dist/%s", binary_name), "main.go")
-	if err := sh.RunV("go", flags...); err != nil {
+	flags := append(append([]string{"build"}, buildArgs...), 
+	if err := sh.RunV("go", "build", buildArgs, "-o",
+		fmt.Sprintf("dist/%s", binary_name), "main.go"); err != nil {
 		return err
 	}
 
