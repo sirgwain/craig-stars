@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"runtime"
@@ -57,11 +58,33 @@ func Clean() error {
 }
 
 // Copy wasm executable from GOROOT to frontend folder.
+// This copes the "wasm_exec.js" file from your GOROOT into
+// frontend/src/lib/wasm.
 func Copy_Wasm_Exec() error {
-	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js",
-		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+ // remove backslashes
-			"/misc/wasm/wasm_exec.js"); err != nil {
-		return mg.Fatalf(1, "could not copy wasm executable: %w", err)
+	srcFile, err := os.OpenFile(strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+ // remove backslashes from GOROOT
+		"/misc/wasm/wasm_exec.js", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return mg.Fatalf(1, "error during os.OpenFile: \n%w", err)
+	}
+	defer func () {
+		if err := srcFile.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	dstFile, err := os.OpenFile("frontend/src/lib/wasm/wasm_exec.js", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return mg.Fatalf(1, "error during os.OpenFile: \n%w", err)
+	}
+	defer func () {
+		if err := dstFile.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if written, err := io.Copy(dstFile, srcFile); err != nil {
+		stat, _ := srcFile.Stat()
+		return mg.Fatalf(1, "error during io.Copy: \n%w (%d/%d bytes written)", err, written, stat.Size())
 	}
 	return nil
 }
@@ -109,15 +132,6 @@ func Build_Frontend() error {
 	return nil
 }
 
-// Build wasm binary into frontend.
-func Build_Wasm() error {
-	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
-		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
-	}
-	return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
-		"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
-}
-
 // Build various Golang backend/server files.
 func Build_Backend() error {
 	if err := os.MkdirAll("dist", 0755); err != nil { // MkdirAll used due to no-oping if folder already exists
@@ -127,7 +141,16 @@ func Build_Backend() error {
 		return err
 	}
 
-	return Build_Wasm()
+	return Build_WASM()
+}
+
+// Build Web-Assembly binary into frontend.
+func Build_WASM() error {
+	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
+		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
+	}
+	return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
+		"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
 }
 
 // Launch both backend and frontend servers simultaneously.
