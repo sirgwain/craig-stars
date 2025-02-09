@@ -61,30 +61,9 @@ func Clean() error {
 // This copes the "wasm_exec.js" file from your GOROOT into
 // frontend/src/lib/wasm.
 func Copy_Wasm_Exec() error {
-	srcFile, err := os.OpenFile(strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+ // remove backslashes from GOROOT
-		"/misc/wasm/wasm_exec.js", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		return mg.Fatalf(1, "error during os.OpenFile: \n%w", err)
-	}
-	defer func () {
-		if err := srcFile.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	dstFile, err := os.OpenFile("frontend/src/lib/wasm/wasm_exec.js", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		return mg.Fatalf(1, "error during os.OpenFile: \n%w", err)
-	}
-	defer func () {
-		if err := dstFile.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	if written, err := io.Copy(dstFile, srcFile); err != nil {
-		stat, _ := srcFile.Stat()
-		return mg.Fatalf(1, "error during io.Copy: \n%w (%d/%d bytes written)", err, written, stat.Size())
+	if err := sh.Copy(strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+ // remove backslashes from GOROOT
+		"/misc/wasm/wasm_exec.js", "frontend/src/lib/wasm/wasm_exec.js"); err != nil {
+		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)
 	}
 	return nil
 }
