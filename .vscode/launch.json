@@ -5,46 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "serve",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": ["serve"]
-        },
-        {
-            "name": "serve --generate-test-game",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": ["serve", "--generate-test-game"]
-        },
-        {
-            "name": "migrate",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": ["migrate"]
-        },
-        {
-            "name": "generate",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": ["generate", "game", "--name", "A Barefoot Jaywalk", "--user-id", "1"]
-        },
-        {
-            "name": "test",
+            "name": "Debug Go program",
             "type": "go",
             "request": "launch",
             "mode": "test",
-            "program": "${relativeFileDirname}",
+            "program": "${input:goTest}"
         },
         {
-            "name": "test -test.run <case>",
+            "name": "Run main.go",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/main.go",
+            "args": "${input:launchArgs}",
+        },
+        {
+            "name": "Run gamerunner.go",
             "type": "go",
             "request": "launch",
             "mode": "test",
@@ -52,18 +28,45 @@
             "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
         },
         {
+            "name": "Debug WASM serializer generator",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/wasm/generator/main.go",
+            "cwd": "${workspaceFolder}",
+            "args": ["./cs", "wasm/wasm/generated.go"]
+        },
+        {
             "name": "Debug Magefile Target",
             "type": "go",
             "request": "launch",
             "mode": "exec",
-            "cwd": "${workspaceFolder}",
             "program": "magefiles/magefile-debug",
-            "args": ["${input:mageTarget}"],
+            "cwd": "${workspaceFolder}",
+            "args": "${input:mageTarget}",
             "preLaunchTask": "Compile Mage debug file",
             "postDebugTask": "Delete Mage debug file"
-        },
+        }
     ],
     "inputs": [
+        {
+            "id": "launchArgs",
+            "type": "pickString",
+            "description": "Select arguments to run main.go with.",
+            "options": [
+                "serve",
+                "serve --generate-test-game",
+                "migrate",
+                "generate game --name \"A Barefoot Jaywalk\" --user-id 1"
+            ],
+            "default": "serve"
+        },
+        {
+            "id": "goTestFiles",
+            "type": "promptString",
+            "default": "${relativeFileDirname}",
+            "description": "Enter file or package to debug."
+        },
         {
             "id": "mageTarget",
             "type": "pickString",

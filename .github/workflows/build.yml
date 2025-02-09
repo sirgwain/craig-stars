@@ -60,18 +60,18 @@ jobs:
           go-version: ${{ env.go-version }}
           check-latest: true
           cache: true
-      
+
       - name: Setup Mage
         uses: magefile/mage-action@v3
         with:
           install-only: true
+      - name: Generate Go files
+        run: mage generate
 
       - name: Build Go Binary
-        run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
-
-      - name: Generate Go files
-        run: mage generate 
-        
+        run: | 
+          go mod tidy
+          CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend_cli "" "" ""
       # build the frontend (slow)
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -96,7 +96,7 @@ jobs:
         working-directory: ./frontend
 
       - name: Run Vitest tests
-        run: npx vitest --run --outputFile.junit=.${{env.test_results}}/vitest_report.xml  
+        run: npx vitest --run --outputFile.junit=.${{env.test_results}}/vitest_report.xml
         working-directory: ./frontend
 
       - name: Build Frontend Binary

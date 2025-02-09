@@ -92,13 +92,13 @@
             "id": "goBenchFiles",
             "type": "promptString",
             "default": ".",
-            "description": "Enter regex of test function names to benchmark."
+            "description": "Enter name of file or package to benchmark."
         },
         {
             "id": "goTestFiles",
             "type": "promptString",
             "default": ".",
-            "description": "Enter regex of files to run command against."
+            "description": "Enter name of file or package to test."
         },
         {
             "id": "benchTime",

@@ -61,19 +61,12 @@ jobs:
         with:
           install-only: true
       
-      # build the cs.wasm/wasm_exec.js into frontend/src/lib/wasm
-      # this will be picked up by the frontend build below
-      - run: mage generate
-      - run: mage build_wasm
-      - run: mkdir -p dist/
+      # generate the backend go files needed for release
+      - name: Generate Go Files
+        run: mage generate tidy
       - run: |
-          go mod tidy && \
-          CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build \
-          -ldflags="-s -w -extldflags '-static' \
-          -X 'github.com/sirgwain/craig-stars/cmd.semver=${{ needs.tag.outputs.version }}' \
-          -X 'github.com/sirgwain/craig-stars/cmd.commit=${GITHUB_SHA}' \
-          -X 'github.com/sirgwain/craig-stars/cmd.buildTime=${{ steps.buildTime.outputs.buildTime }}'" \
-          -o dist/craig-stars main.go
+          CGO_ENABLED=1 GOARCH=amd64 GOOS=linux \
+          mage build_backend_cli ${{ needs.tag.outputs.version }} "${GITHUB_SHA}"" ${{ steps.buildTime.outputs.buildTime }}
       - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
       # build the frontend (this is slow)
       - uses: actions/setup-node@v4
