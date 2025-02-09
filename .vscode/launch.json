@@ -84,7 +84,7 @@
                 "build",
                 "build_frontend",
                 "copy_wasm",
-                "build_server",
+                "build_backend",
                 "generate",
                 "launch",
                 "launch_backend",
