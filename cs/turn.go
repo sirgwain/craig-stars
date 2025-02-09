@@ -52,6 +52,7 @@ func (t *turn) generateTurn() error {
 		player.leftoverResources = 0
 		player.techLevelGained = false
 		player.acquirablePartGained = false
+		player.Spec.TechsJustGained = []*Tech{}
 	}
 
 	t.computeSpecs()
@@ -215,10 +216,7 @@ func (t *turn) scrapFleet(fleet *Fleet, colonize bool) {
 				player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
 				messager.playerTechGainedScrappedFleet(planetPlayer, planet, fleet.Name, field)
 
-				techsGained := t.game.TechStore.GetTechsJustGained(player, field)
-				for _, tech := range techsGained {
-					messager.playerTechGained(player, field, tech)
-				}
+				planetPlayer.updateTechsJustGained(t.game.TechStore, field)
 
 				t.log.Debug().
 					Int("Player", planetPlayer.Num).
@@ -233,6 +231,9 @@ func (t *turn) scrapFleet(fleet *Fleet, colonize bool) {
 				player.acquirablePartGained = true
 				player.AcquiredTechs[acquiredPart.Name] = true
 				messager.playerAcquirablePartGainedScrappedFleet(planetPlayer, planet, fleet.Name, acquiredPart.Name)
+				if player.HasTech(acquiredPart) {
+					player.Spec.TechsJustGained = append(player.Spec.TechsJustGained, acquiredPart)
+				}
 
 				t.log.Debug().
 					Int("Player", planetPlayer.Num).
@@ -539,7 +540,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 			}
 			defender.discoverer.discoverFleet(fleet, false)
 
-			invadePlanet(t.log, &t.game.Rules, t.game.TechStore, planet, fleet, defender, player, transferAmount*100)
+			invadePlanet(t.log, &t.game.Rules, planet, fleet, defender, player, transferAmount*100)
 			fleet.Cargo.Colonists -= transferAmount
 
 			if planet.Num != defender.Num {
@@ -1651,10 +1652,7 @@ func (t *turn) playerResearch() error {
 	onLevelGained := func(player *Player, field TechField) {
 
 		messager.playerGainTechLevel(player, field, player.TechLevels.Get(field), player.Researching)
-		techsGained := t.game.TechStore.GetTechsJustGained(player, field)
-		for _, tech := range techsGained {
-			messager.playerTechGained(player, field, tech)
-		}
+		player.updateTechsJustGained(t.game.TechStore, field)
 		playerGainedLevel[player.Num] = true
 
 		t.log.Debug().
@@ -1736,7 +1734,7 @@ func (t *turn) playerResearch() error {
 
 		// we have stolen research! yay!
 		// we steal the average of each research
-		if stolenResearch.Sum() > 0 {
+		if stolenResearch.Total() > 0 {
 			for _, field := range TechFields {
 				stolenResourcesForField := stolenResearch.Get(field) / len(t.game.Players)
 				r.researchField(player, field, stolenResourcesForField, onLevelGained)
@@ -2037,7 +2035,7 @@ func (t *turn) fleetBattle() {
 			continue
 		}
 
-		battler := newBattler(t.log, &t.game.Rules, t.game.Rules.techs, battleNum, playersAtPosition, fleets, planet)
+		battler := newBattler(t.log, &t.game.Rules, battleNum, playersAtPosition, fleets, planet)
 
 		if battler.findTargets() {
 			// someone wants to fight, run the battle!
@@ -2204,10 +2202,7 @@ func (t *turn) fleetBattle() {
 					player.techLevelGained = true
 					player.TechLevels.Set(field, player.TechLevels.Get(field)+1)
 					messager.playerTechGainedBattle(player, planet, record, field)
-					techsGained := t.game.TechStore.GetTechsJustGained(player, field)
-					for _, tech := range techsGained {
-						messager.playerTechGained(player, field, tech)
-					}
+					player.updateTechsJustGained(t.game.TechStore, field)
 
 					t.log.Debug().
 						Int("Battle", battleNum).

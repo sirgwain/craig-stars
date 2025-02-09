@@ -5,6 +5,7 @@ import "github.com/sirgwain/craig-stars/cs"
 // lay mines
 func (ai *aiPlayer) layMines() error {
 	design := ai.Player.GetLatestDesign(cs.ShipDesignPurposeDamageMineLayer)
+	// TODO: Add support for remote detonating minefield perimeters X years out in space if playing SD
 
 	// no mine layers
 	if design == nil {

@@ -10,14 +10,15 @@ on:
 jobs:
   # cut a new tag
   tag:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # tasks only run on head repo by default (not forks); change this to enable it
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.repository == 'sirgwain/craig-stars' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: '0'
+          fetch-depth: "0"
 
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@v1
@@ -25,7 +26,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
-          DEFAULT_BUMP: 'patch'
+          DEFAULT_BUMP: "patch"
     outputs:
       version: ${{ steps.bump.outputs.new_tag }}
 
@@ -53,8 +54,8 @@ jobs:
           cache: true
       # build the cs.wasm/wasm_exec.js into frontend/src/lib/wasm
       # this will be picked up by the frontend build below
-      - run: make generate
-      - run: make build_wasm
+      - run: mage generate
+      - run: mage build_wasm
       - run: mkdir -p dist/
       - run: |
           go mod tidy && \
@@ -65,12 +66,11 @@ jobs:
           -X 'github.com/sirgwain/craig-stars/cmd.buildTime=${{ steps.buildTime.outputs.buildTime }}'" \
           -o dist/craig-stars main.go
       - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
-
       # build the frontend (this is slow)
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: ./frontend
@@ -82,7 +82,7 @@ jobs:
       - run: tar -cvf ./dist/frontend.tgz -C frontend/build .
 
       # upload the dist folder to github's artifacts
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: dist-artifacts
           path: ./dist/*.tgz
@@ -98,19 +98,20 @@ jobs:
 
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: dist-artifacts
+          path: dist-artifacts
 
       - name: Create release
         id: create_release
-        uses: ncipollo/release-action@v1.8.10
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: Published ${{ needs.tag.outputs.version }}
           tag: ${{ needs.tag.outputs.version }}
-          artifacts: ./artifacts/dist-artifacts/*.tgz
+          artifacts: ./dist-artifacts/*.tgz
           artifactContentType: application/zip
           generateReleaseNotes: true
 

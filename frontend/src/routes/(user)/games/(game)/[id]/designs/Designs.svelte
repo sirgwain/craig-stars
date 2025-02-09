@@ -21,23 +21,19 @@
 
 	// filterable designs
 	let search = $state('');
-	let filteredDesigns: ShipDesign[] = $derived.by(() => {
-		return (
-			designs
-				.sort((a, b) =>
-					a.playerNum != b.playerNum ? a.playerNum - b.playerNum : (a.num ?? 0) - (b.num ?? 0)
-				)
-				.filter(
-					(i) =>
-						i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-						i.hull.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
-						$universe
-							.getPlayerPluralName(i.playerNum)
-							.toLowerCase()
-							.indexOf(search.toLowerCase()) != -1
-				) ?? []
-		);
-	});
+	let filteredDesigns: ShipDesign[] = $derived(
+		designs
+			.sort((a, b) =>
+				a.playerNum != b.playerNum ? a.playerNum - b.playerNum : (a.num ?? 0) - (b.num ?? 0)
+			)
+			.filter(
+				(i) =>
+					i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+					i.hull.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+					$universe.getPlayerPluralName(i.playerNum).toLowerCase().indexOf(search.toLowerCase()) !=
+						-1
+			) ?? []
+	);
 
 	type TableShipDesign = ShipDesign & {
 		rating?: never;

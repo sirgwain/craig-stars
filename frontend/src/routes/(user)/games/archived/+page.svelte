@@ -124,9 +124,9 @@
 				{#if column.key == 'name'}
 					<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
 				{:else if column.key == 'createdAt'}
-					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+					{format(parseJSON(row.createdAt), 'E, MMM do yyyy hh:mm aaa')}
 				{:else if column.key == 'updatedAt'}
-					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+					{format(parseJSON(row.updatedAt), 'E, MMM do yyyy hh:mm aaa')}
 				{:else if column.key == 'hostId'}
 					{row.players.find((p) => p.userId === row.hostId)?.name}
 				{:else if column.key == 'players'}
