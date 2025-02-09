@@ -85,6 +85,7 @@ func Generate() error {
 	return nil
 }
 
+
 // Build the frontend using SvelteKit.
 func Build_Frontend() error {
 	mg.Deps(Generate)
@@ -109,6 +110,15 @@ func Build_Frontend() error {
 }
 
 // Build various Golang backend/server files.
+func Build_WASM() error {
+	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
+		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
+	}
+	return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
+		"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
+}
+
+// Build various Golang backend/server files.
 func Build_Backend() error {
 	if err := os.MkdirAll("dist", 0755); err != nil { // MkdirAll used due to no-oping if folder already exists
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
@@ -117,11 +127,7 @@ func Build_Backend() error {
 		return err
 	}
 
-	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
-		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
-	}
-	return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
-		"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
+	return Build_WASM()
 }
 
 // Launch both backend and frontend servers simultaneously.
