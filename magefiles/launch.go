@@ -60,9 +60,9 @@ func Clean() error {
 // This copes the "wasm_exec.js" file from your GOROOT into
 // frontend/src/lib/wasm.
 func Copy_Wasm_Exec() error {
-	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js", 
-		strings.ReplaceAll(runtime.GOROOT(), "\\", "/") + 
-		"/misc/wasm/wasm_exec.js"); err != nil {
+	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js",
+		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+
+			"/misc/wasm/wasm_exec.js"); err != nil {
 		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)
 	}
 	return nil
@@ -113,15 +113,16 @@ func Build_Frontend() error {
 
 // Build the backend Golang executable for local dev, as well as the WASM binary.
 // This builds the binary for main.go without any version control info.
-func Build_Backend(buildFlags string) error {
-	return build_backend("buildvcs=false")
+func Build_Backend() error {
+	return build_backend("-ldflags=-s -w -extldflags '-static'", "-buildvcs=false")
 }
 
 // Variant of Build_Backend used during release containing embedded version control info.
 // This takes arguments for the version number, commit hash and build time and passes them
 // to go build's ldflags if not empty.
 func Build_Backend_CLI(version, hash, releaseTime string) error {
-	args := `-ldflags="-s -w -extldflags '-static'`
+	// Go passes these arguments directly to build without any quoting or escaping (hence why no surrounding quotes)
+	args := "-ldflags=-s -w -extldflags '-static'"
 	// If/when mage supports default arguments, these should probably be changed to account for it
 	if version != "" {
 		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'", version)
@@ -132,17 +133,18 @@ func Build_Backend_CLI(version, hash, releaseTime string) error {
 	if releaseTime != "" {
 		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.buildTime=%s'", releaseTime)
 	}
-	args += `"`
 	return build_backend(args)
 }
 
 // Internal implementation for building backend with custom go build args
-func build_backend(buildArgs string) error {
+func build_backend(buildArgs ...string) error {
 	if err := os.MkdirAll("dist", 0755); err != nil { // MkdirAll used due to no-oping if folder already exists
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
-	if err := sh.RunV("go", "build", buildArgs, "-o",
-		fmt.Sprintf("dist/%s", binary_name), "main.go"); err != nil {
+
+	flags := append(append([]string{"build"}, buildArgs...), "-o",
+		fmt.Sprintf("dist/%s", binary_name), "main.go")
+	if err := sh.RunV("go", flags...); err != nil {
 		return err
 	}
 

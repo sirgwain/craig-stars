@@ -68,10 +68,10 @@ jobs:
       - name: Generate Go files
         run: mage generate
 
-      - name: Build Go Binary
+      - name: Build Backend Go Binary
         run: | 
           go mod tidy
-          CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend_cli "" "" ""
+          CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend
       # build the frontend (slow)
       - name: Set up Node.js
         uses: actions/setup-node@v4
