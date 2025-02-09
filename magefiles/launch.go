@@ -120,8 +120,8 @@ func Build_Backend(buildFlags string) error {
 // This takes arguments for the version number, commit hash and build time and passes them
 // to go build's ldflags if not empty.
 func Build_Backend_CLI(version, hash, releaseTime string) error {
-	args := "-ldflags=\"-s -w -extldflags '-static'"
-	// If/when mage supports default arguments, 
+	args := `-ldflags="-s -w -extldflags '-static'`
+	// If/when mage supports default arguments, these should probably be changed to account for it
 	if version != "" {
 		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'", version)
 	}
@@ -131,7 +131,7 @@ func Build_Backend_CLI(version, hash, releaseTime string) error {
 	if releaseTime != "" {
 		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.buildTime=%s'", releaseTime)
 	}
-	args += "\""
+	args += `"`
 	return build_backend(args)
 }
 
