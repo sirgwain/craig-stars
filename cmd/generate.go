@@ -29,7 +29,7 @@ func newGenerateTechsJson() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			techs := cs.StaticTechStore
 
-			techsJson, err := json.Marshal(techs)
+			techsJson, err := json.MarshalIndent(techs, "", "  ")
 			if err != nil {
 				return fmt.Errorf("failed to marshal StaticTechStore to json")
 			}
