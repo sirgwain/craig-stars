@@ -173,7 +173,7 @@ func (r *research) getTotalCost(techLevels TechLevel, field TechField, researchC
 	}
 
 	// figure out our total levels
-	totalLevels := techLevels.Sum()
+	totalLevels := techLevels.Total()
 
 	// figure out the cost to advance to the next level
 	baseCost := r.rules.TechBaseCost[level+1]

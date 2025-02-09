@@ -227,7 +227,7 @@ func Test_generateMysteryTraderReward(t *testing.T) {
 		{"engine", args{rng: *newIntRandom(6, 1), year: 2400, warpSpeed: 7}, MysteryTraderRewardEngine},
 		{"engine more likely later", args{rng: *newIntRandom(5, 1), year: 2500, warpSpeed: 7}, MysteryTraderRewardEngine},
 		{"engine more likely faster", args{rng: *newIntRandom(4, 1), year: 2500, warpSpeed: 11}, MysteryTraderRewardEngine},
-		{"torpedos are hard", args{rng: *newIntRandom(6, 7, 7, 0), year: 2400, warpSpeed: 7}, MysteryTraderRewardTorpedo},
+		{"torpedoes are hard", args{rng: *newIntRandom(6, 7, 7, 0), year: 2400, warpSpeed: 7}, MysteryTraderRewardTorpedo},
 		{"beams are harder", args{rng: *newIntRandom(6, 8, 8, 0), year: 2400, warpSpeed: 7}, MysteryTraderRewardBeamWeapon},
 		{"almost a beam, research instead", args{rng: *newIntRandom(6, 8, 8, 1), year: 2400, warpSpeed: 7}, MysteryTraderRewardResearch},
 		{"late game jump gate", args{rng: *newIntRandom(6, 12, 12), year: 2580, warpSpeed: 7}, MysteryTraderRewardJumpGate},

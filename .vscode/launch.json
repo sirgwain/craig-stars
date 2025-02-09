@@ -52,12 +52,39 @@
             "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
         },
         {
-            "name": "Benchmark Package (Long)",
+            "name": "Debug Magefile Target",
             "type": "go",
             "request": "launch",
-            "mode": "test",
-            "program": "${workspaceFolder}",
-            "args": ["test", "-run=^$", "-bench=.", "-benchtime=3", "-benchmem", "-v", "outfile=./tmp"],
-        }
+            "mode": "exec",
+            "cwd": "${workspaceFolder}",
+            "program": "magefiles/magefile-debug",
+            "args": ["${input:mageTarget}"],
+            "preLaunchTask": "Compile Mage debug file",
+            "postDebugTask": "Delete Mage debug file"
+        },
+    ],
+    "inputs": [
+        {
+            "id": "mageTarget",
+            "type": "pickString",
+            "description": "Select Magefile target to debug.",
+            "options": [
+                "run",
+                "build",
+                "clean",
+                "copy_wasm",
+                "tidy",
+                "generate",
+                "build_frontend",
+                "build_wasm",
+                "build_backend",
+                "launch",
+                "launch_backend",
+                "launch_frontend",
+                "test",
+                "images"
+            ],
+            "default": "run"
+        },
     ]
 }

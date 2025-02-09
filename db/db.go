@@ -150,7 +150,7 @@ type Client interface {
 	GetMineralPacketByNum(gameID int64, playerNum int, num int) (*cs.MineralPacket, error)
 	GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.MineralPacket, error)
 	UpdateMineralPacket(mineralPacket *cs.MineralPacket) error
-	
+
 	GetSalvagesForGame(gameID int64) ([]*cs.Salvage, error)
 	GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvage, error)
 	GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error)

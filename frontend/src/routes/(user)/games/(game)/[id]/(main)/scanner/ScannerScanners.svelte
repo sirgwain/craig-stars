@@ -21,7 +21,7 @@
 
 		if ($settings.showScanners) {
 			$universe.planets
-				.filter((p) => p.playerNum == p.num && p.spec?.scanner)
+				.filter((p) => p.playerNum == $player.num && p.spec?.scanner)
 				.forEach((planet) =>
 					scannersByPosition.set(positionKey(planet), {
 						position: planet.position,

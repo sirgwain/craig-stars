@@ -100,8 +100,11 @@ func Test_computeRaceSpec(t *testing.T) {
 					NewTechCostFactor:       1,
 				},
 				ScannerSpec: ScannerSpec{
-					BuiltInScannerMultiplier: 20,
-					ScanRangeFactor:          1,
+					BuiltInScanner: BuiltInScanner{
+						NormalMulti: TechLevel{Electronics: 20},
+						PenMulti:    TechLevel{Electronics: 10},
+					},
+					ScanRangeFactor: 1,
 				},
 				StartingPlanets: []StartingPlanet{{
 					Defenses:           10,
@@ -114,10 +117,10 @@ func Test_computeRaceSpec(t *testing.T) {
 					StartingFleets: []StartingFleet{
 						{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 						{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-						{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeFreighter},
+						{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeStartingFighter},
 						{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
 						{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
-						{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
+						{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
 						{"Potato Bug", StartingFleetHullMidgetMiner, 0, ShipDesignPurposeMiner},
 						{"Potato Bug", StartingFleetHullMidgetMiner, 0, ShipDesignPurposeMiner},
 					},
@@ -198,8 +201,11 @@ func Test_computeRaceSpec(t *testing.T) {
 					NewTechCostFactor:       1,
 				},
 				ScannerSpec: ScannerSpec{
-					BuiltInScannerMultiplier: 20,
-					ScanRangeFactor:          1,
+					BuiltInScanner: BuiltInScanner{
+						NormalMulti: TechLevel{Electronics: 20},
+						PenMulti:    TechLevel{Electronics: 10},
+					},
+					ScanRangeFactor: 1,
 				},
 				StartingPlanets: []StartingPlanet{{
 					Defenses:           10,
@@ -212,10 +218,10 @@ func Test_computeRaceSpec(t *testing.T) {
 					StartingFleets: []StartingFleet{
 						{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
 						{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-						{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeFreighter},
+						{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeStartingFighter},
 						{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
 						{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
-						{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeFighter},
+						{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
 					},
 				}},
 				ArmorStrengthFactor:            1,
@@ -241,7 +247,7 @@ func Test_computeRaceSpec(t *testing.T) {
 				PacketResourceCost:             10,
 				RepairFactor:                   1,
 				ResearchFactor:                 1,
-				ScrapMineralOffsetStarbase:		.8 - (1.0 / 3),
+				ScrapMineralOffsetStarbase:     .8 - (1.0 / 3),
 				ShieldStrengthFactor:           1,
 				ShipsVanishInVoid:              true,
 				StarbaseCostFactor:             1,

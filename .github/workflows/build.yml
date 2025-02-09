@@ -60,13 +60,18 @@ jobs:
           go-version: ${{ env.go-version }}
           check-latest: true
           cache: true
+      
+      - name: Setup Mage
+        uses: magefile/mage-action@v3
+        with:
+          install-only: true
 
       - name: Build Go Binary
-        run: CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
+        run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
 
-      - name: Build Wasm files
-        run: make build_wasm
-
+      - name: Generate Go files
+        run: mage copy_wasm generate 
+        
       # build the frontend (slow)
       - name: Set up Node.js
         uses: actions/setup-node@v4

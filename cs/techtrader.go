@@ -73,7 +73,7 @@ func (t *techTrade) checkFleetTechTrade(rules *Rules, player *Player, tokens []S
 // Returns the field gained from this trade instance, if any
 func (t *techTrade) techLevelGained(rules *Rules, current, target TechLevel) TechField {
 	diff := target.Subtract(current).MinZero()
-	if diff.Sum() <= 0 { // targetLevel has no fields greater than playerLevels
+	if diff.Total() <= 0 {
 		return TechFieldNone
 	}
 

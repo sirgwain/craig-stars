@@ -124,7 +124,6 @@ func (c *client) GetGuestUserForGame(gameID int64, playerNum int) (*cs.User, err
 	return &user, nil
 }
 
-
 func (c *client) GetUsersForGame(gameID int64) ([]cs.User, error) {
 
 	// don't include password in bulk select

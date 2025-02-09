@@ -404,11 +404,12 @@ func (p *Planet) shortestDistanceToPlanets(otherPlanets *[]*Planet) float64 {
 }
 
 // get the mineral output of a planet based on mineOutput (10 for remote mining)
+// TODO: Add fractional mineral outputs (% chance for extra) for sub-integer amounts
 func (p *Planet) getMineralOutput(numMines int, mineOutput int) Mineral {
 	return Mineral{
-		int(float64(p.MineralConcentration.Ironium) / 100 * float64(numMines) / 10 * float64(mineOutput)),
-		int(float64(p.MineralConcentration.Boranium) / 100 * float64(numMines) / 10 * float64(mineOutput)),
-		int(float64(p.MineralConcentration.Germanium) / 100 * float64(numMines) / 10 * float64(mineOutput)),
+		int(float64(p.MineralConcentration.Ironium*numMines*mineOutput) / 1000),
+		int(float64(p.MineralConcentration.Boranium*numMines*mineOutput) / 1000),
+		int(float64(p.MineralConcentration.Germanium*numMines*mineOutput) / 1000),
 	}
 }
 
@@ -467,8 +468,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 
-	// population will generate resources up to 3x max pop, but they can only
-	// operate structures up to max pop
+	// calculate productive pop for resources and intslations
 	productivePop := planet.productivePopulation(spec.Population, spec.MaxPopulation)
 	installationPop := planet.productiveInstallationPopulation(spec.Population, spec.MaxPopulation)
 
@@ -504,6 +504,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	}
 
 	if race.Spec.InnateScanner {
+		// calculate AR organic scan ranes
 		spec.Scanner = "Organic"
 		spec.ScanRange = int(float64(planet.innateScanner(player, productivePop)) * player.Race.Spec.ScanRangeFactor)
 		if !player.Race.Spec.NoAdvancedScanners && planet.Starbase != nil {
@@ -562,18 +563,19 @@ func (spec *PlanetSpec) computeResourcesPerYearAvailable(player *Player, planet 
 	}
 }
 
-// get the max population for this planet for a player with a hab rating
+// get the max population for this planet for a player with a given hab rating
 func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int) int {
 	maxPopulationFactor := 1 + player.Race.Spec.MaxPopulationOffset
-	maxPossiblePop := rules.MaxPopulation
+	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
+		// AR races' max pop are independent of habitability
+		return roundToNearest100(float64(p.Starbase.Spec.MaxPopulation) * maxPopulationFactor)
+	}
 
+	maxPossiblePop := rules.MaxPopulation
 	// a planet's max pop can't go lower than 5% of a race's max, i.e.
 	// for a regular race with 1 million max pop, the minimum max population is 50,000
 	minMaxPop := float64(maxPossiblePop) * maxPopulationFactor * rules.MinMaxPopulationPercent
 
-	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
-		return roundToNearest100(float64(p.Starbase.Spec.MaxPopulation) * maxPopulationFactor)
-	}
 	return roundToNearest100(math.Max(minMaxPop, float64(maxPossiblePop)*maxPopulationFactor*float64(habitability)/100.0))
 }
 

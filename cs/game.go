@@ -408,7 +408,7 @@ func (g *FullGame) computeSpecs() error {
 			var err error
 			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 			}
 			design.Spec.NumBuilt = numBuilt
 		}

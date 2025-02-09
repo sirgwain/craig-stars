@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-	"strings"
 )
 
 // The CostCalculator interface is used to calculate costs of single items or starbase upgrades
@@ -12,6 +11,7 @@ type CostCalculator interface {
 	StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error)
 	CostOfOne(player *Player, item ProductionQueueItem) (Cost, error)
 	GetDesignCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (Cost, error)
+	GetTechCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, tech Tech) Cost
 }
 
 func NewCostCalculator() CostCalculator {
@@ -21,88 +21,88 @@ func NewCostCalculator() CostCalculator {
 type costCalculate struct {
 }
 
+// Returns the cost efficiency ratio for 2 Cost structs as a float64
+// by dividing their respective total costs
+// (numeratorTotal / denominatorTotal)
+//
+// costTypes indicates the cost types to be considered in analysis (defaults to all);
+// function will panic if too many are provided
+func GetCostEfficiencyRatio[T number](numerator, denominator cost[T], costTypes ...CostType) (costRatio float64) {
+	// TODO: Add weighting support by replacing CostTypes by a single CostFloat64 containing weight values
+	if len(costTypes) > 4 {
+		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types; %v", costTypes))
+	} else if len(costTypes) == 0 {
+		costTypes = CostTypes[:] // no cost types provided means we include everything
+	}
+	var hcTally, otherTally T
+	for _, ct := range costTypes {
+		hcTally += numerator.GetAmount(ct)
+		otherTally += denominator.GetAmount(ct)
+	}
+	return float64(hcTally) / float64(otherTally)
+}
+
+// GetTechCost is an exported method to get a player's cost for a tech, used by wasm
+func (c *costCalculate) GetTechCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, tech Tech) Cost {
+	return getPlayerCost(tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).ToCost()
+}
+
 // Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
 //
-// Returns floating point cost for extra precision
-func getPlayerCost(tech Tech, techLevels TechLevel, spec MiniaturizationSpec, costOffset TechCostOffset) CostFloat64 {
-	// figure out miniaturization
-	// this is 4% per level above the required tech we have.
-	// We count the smallest diff, i.e. if you have
-	// tech level 10 energy, 12 bio and the tech costs 9 energy, 4 bio
-	// the smallest level difference you have is 1 energy level (not 8 bio levels)
-
-	levelDiff := TechLevel{-1, -1, -1, -1, -1, -1}
-
-	// From the diff between the player level and the requirements, find the lowest difference
-	// i.e. 1 energy level in the example above
-	numTechLevelsAboveRequired := math.MaxInt
-	if tech.Requirements.Energy > 0 {
-		levelDiff.Energy = techLevels.Energy - tech.Requirements.Energy
-		numTechLevelsAboveRequired = Min(levelDiff.Energy, numTechLevelsAboveRequired)
-	}
-	if tech.Requirements.Weapons > 0 {
-		levelDiff.Weapons = techLevels.Weapons - tech.Requirements.Weapons
-		numTechLevelsAboveRequired = Min(levelDiff.Weapons, numTechLevelsAboveRequired)
-	}
-	if tech.Requirements.Propulsion > 0 {
-		levelDiff.Propulsion = techLevels.Propulsion - tech.Requirements.Propulsion
-		numTechLevelsAboveRequired = Min(levelDiff.Propulsion, numTechLevelsAboveRequired)
-	}
-	if tech.Requirements.Construction > 0 {
-		levelDiff.Construction = techLevels.Construction - tech.Requirements.Construction
-		numTechLevelsAboveRequired = Min(levelDiff.Construction, numTechLevelsAboveRequired)
-	}
-	if tech.Requirements.Electronics > 0 {
-		levelDiff.Electronics = techLevels.Electronics - tech.Requirements.Electronics
-		numTechLevelsAboveRequired = Min(levelDiff.Electronics, numTechLevelsAboveRequired)
-	}
-	if tech.Requirements.Biotechnology > 0 {
-		levelDiff.Biotechnology = techLevels.Biotechnology - tech.Requirements.Biotechnology
-		numTechLevelsAboveRequired = Min(levelDiff.Biotechnology, numTechLevelsAboveRequired)
-	}
+// Rounds value in accordance with base game's cost calcs,
+// but returns it as a floating point cost
+// to allow combination with other float multipliers down the line
+func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec MiniaturizationSpec, costOffset TechCostOffset) (techCost CostFloat64) {
+	// figure out miniaturization discounts - base cost is reduced by
+	// 4% per tech level we have above the tech's requirements.
+	// We count the smallest difference among all fields, so if you have
+	// level 10 energy & 12 bio and a tech costs 9 energy & 4 bio,
+	// the smallest level difference you have is the 1 energy level (not 8 bio levels)
+	numTechLevelsAboveRequired := techLevels.LevelsAbove(tech.Requirements.TechLevel)
 
 	// for starter techs, they are all 0 requirements, so just use our lowest field
 	if numTechLevelsAboveRequired == math.MaxInt {
-		numTechLevelsAboveRequired = techLevels.Min()
+		numTechLevelsAboveRequired = techLevels.LowestLevel()
 	}
 
-	// As we learn techs, they get cheaper. We start off with full priced techs, but every additional level of research we learn makes
-	// techs cost a little less, maxing out at some discount (i.e. 75% or 80% for races with BET)
-	miniaturization := math.Min(spec.MiniaturizationMax, spec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
-	// New techs cost BET races 2x
-	// new techs will have 0 for miniaturization.
-	miniaturizationFactor := spec.NewTechCostFactor
+	var miniaturizationFactor float64
 	if numTechLevelsAboveRequired > 0 {
-		miniaturizationFactor = 1 - miniaturization
+		// Ex: 5 tech levels * 4% discount per level = 20% cheaper (0.8x price modifier)
+		miniaturizationFactor = 1 - math.Min(miniaturizationSpec.MiniaturizationMax,
+			miniaturizationSpec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
+	} else {
+		// New techs cost BET races 2x and will
+		// have 0 for miniaturization
+		miniaturizationFactor = miniaturizationSpec.NewTechCostFactor
 	}
 
-	// apply any tech cost offsets
-	// TODO: Implement IT 25% gate discount in actually less janky way
-	cost := MultiplyCost(tech.Cost.ToCostFloat64(), miniaturizationFactor).Round(roundHalfDown)
-	switch tech.Category {
-	case TechCategoryEngine:
-		cost = MultiplyCost(cost, 1+costOffset.Engine)
-	case TechCategoryBeamWeapon:
-		cost = MultiplyCost(cost, 1+costOffset.BeamWeapon)
-	case TechCategoryBomb:
-		cost = MultiplyCost(cost, 1+costOffset.Bomb)
-	case TechCategoryTorpedo:
-		cost = MultiplyCost(cost, 1+costOffset.Torpedo)
-	case TechCategoryOrbital:
-		if strings.Contains(tech.Name, "Stargate") {
-			cost = MultiplyCost(cost, 1+costOffset.Stargate)
+	techCost = MultiplyCost(tech.Cost.ToCostFloat64(), miniaturizationFactor).Round(func(f float64) float64 {
+		if f > 0 && f < 1 {
+			return 1 // prevents items costing <0.5 from rounding to 0
 		}
-	case TechCategoryTerraforming:
-		cost = MultiplyCost(cost, 1+costOffset.Terraforming)
-	}
+		return roundHalfTowards0(f)
+	})
 
-	return cost
+	// apply any tech cost offsets multiplicatively,
+	// using jank rounding to simulate OG Stars!' int calculations
+	var costMulti float64 = 1
+	for tag := range tech.Tags {
+		costMulti *= 1 + costOffset[tag]
+	}
+	techCost = techCost.Add(MultiplyCost(techCost, costMulti-1).Round(roundHalfTowards0))
+
+	return techCost.Round(func(f float64) float64 {
+		if f > 0 && f < 1 {
+			return 1 // prevents total item cost from going below 1
+		}
+		return f
+	})
 }
 
-// get the upgrade cost for replacing a starbase with another
+// Calculate the upgrade cost for replacing one starbase design with another
 //
-// Takes into account part replacement costs and minimum costs
-func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error) {
+// Takes into account part replacement refunds and minimum costs
+func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error) {
 	if design.SlotsEqual(newDesign.Slots) && design.Hull == newDesign.Hull {
 		// Exact same base; no calcs needed
 		return Cost{}, nil
@@ -115,48 +115,51 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	oldComponentsByCategory := map[TechCategory][]*TechHullComponent{} // Maps component category to hull components
 	newComponentsByCategory := map[TechCategory][]*TechHullComponent{}
 	categories := map[TechCategory]bool{}
+	// wrapper function so I don't have to write everything out all the time
+	getItemCost := func(t Tech) CostFloat64 {
+		return getPlayerCost(t, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
+	}
 
 	// First of all, check to see if the hulls even EXIST in the first place
 	// and return an error if they don't
 	oldHull := rules.techs.GetHull(design.Hull)
 	newHull := rules.techs.GetHull(newDesign.Hull)
 	if oldHull == nil {
-		return Cost{}, fmt.Errorf("starbase hull %s of old design not found in tech store", design.Hull)
+		return Cost{}, fmt.Errorf("starbase hull %q of old design was not found in tech store", design.Hull)
 	} else if newHull == nil {
-		return Cost{}, fmt.Errorf("starbase hull %s of new design not found in tech store", newDesign.Hull)
+		return Cost{}, fmt.Errorf("starbase hull %q of new design was not found in tech store", newDesign.Hull)
 	}
 
-	// If the hulls are different, add (newHullCost - 0.5*OldHullCost)
+	// If the hulls are different, add (newHullCost - 0.5*OldHullCost) to our conversion cost
 	if design.Hull != newDesign.Hull {
-		oldHullCost := getPlayerCost(oldHull.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
-		newHullCost := getPlayerCost(newHull.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
-		cost = cost.Add(newHullCost).Subtract((MultiplyCost(oldHullCost, rules.StarbaseHullRefundFactor)))
+		oldHullCost := getItemCost(oldHull.Tech)
+		newHullCost := getItemCost(newHull.Tech)
+		cost = cost.Add(newHullCost).Subtract(MultiplyCost(oldHullCost, rules.StarbaseHullRefundFactor))
 	}
 
 	// Next, iterate through both designs' slots and tally up items in each
 	// Also check if they even exist (and return error if so)
-	for i := 0; i < Max(len(design.Slots), len(newDesign.Slots)); i++ {
+	for i := range Max(len(design.Slots), len(newDesign.Slots)) {
 		// don't wanna index arrays out of bounds!
 		if i < len(design.Slots) {
 			hc := rules.techs.GetHullComponent(design.Slots[i].HullComponent)
-			if hc != nil { // todo: reverse conditional to have break go first
-				oldComponents[hc] += design.Slots[i].Quantity
-			} else {
-				return Cost{}, fmt.Errorf("component %s of old design not found in tech store", design.Slots[i].HullComponent)
+			if hc == nil && design.Slots[i].HullComponent != "" { // if for whatever reason the slot has no component, just assume it's empty
+				return Cost{}, fmt.Errorf("component %q of old design was not found in tech store", design.Slots[i].HullComponent)
 			}
+			oldComponents[hc] += design.Slots[i].Quantity
 		}
 		if i < len(newDesign.Slots) {
 			hc := rules.techs.GetHullComponent(newDesign.Slots[i].HullComponent)
-			if hc != nil {
-				newComponents[hc] += newDesign.Slots[i].Quantity
-			} else {
-				return Cost{}, fmt.Errorf("component %s of new design not found in tech store", newDesign.Slots[i].HullComponent)
+			if hc == nil && design.Slots[i].HullComponent != "" {
+				return Cost{}, fmt.Errorf("component %q of new design was not found in tech store", newDesign.Slots[i].HullComponent)
 			}
+			newComponents[hc] += newDesign.Slots[i].Quantity
 		}
 	}
 
-	// Iterate through all new parts in list to see if they are present on the old base
-	// and remove any duplicates we find
+	// Iterate through all new parts in our new base list
+	// to see if they are present on the old base
+	// and remove any duplicates
 	if len(oldComponents) > 0 && len(newComponents) > 0 {
 		for item, newQuantity := range newComponents {
 			oldQuantity := oldComponents[item]
@@ -169,31 +172,32 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 				// More copies of item in new design; remove duplicates from new base list
 				newComponentsByCategory[item.Tech.Category] = append(newComponentsByCategory[item.Tech.Category], item)
 				categories[item.Tech.Category] = true
-				newComponents[item] = (newQuantity - oldQuantity)
+				newComponents[item] -= oldQuantity
 				delete(oldComponents, item)
 			default:
 				// More copies of item in original design (or item doesn't exist on new base)
 				// remove duplicates from old base list
-				oldComponents[item] = (oldQuantity - newQuantity)
+				oldComponents[item] -= newQuantity
 				delete(newComponents, item)
 			}
 		}
 	}
 
 	if len(oldComponents) == 0 {
-		// no items in old base not also present in the new one
-		// We can just tally up all our costs for the new stuff and be done for the day
-		for item, qty := range newComponents {
+		// every item in our old base is also present in the new one;
+		// we can just tally up all our costs for the new stuff and be done for the day
+		for item, leftoverQty := range newComponents {
 			if item.Tech.Category == TechCategoryOrbital {
-				cost = cost.Add(MultiplyCost(getPlayerCost(item.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset), qty))
+				cost = cost.Add(MultiplyCost(getItemCost(item.Tech), leftoverQty))
 			} else {
-				cost = cost.Add(MultiplyCost(getPlayerCost(item.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset), float64(qty)*rules.StarbaseComponentCostReduction))
+				cost = cost.Add(MultiplyCost(getItemCost(item.Tech), float64(leftoverQty)*rules.StarbaseComponentCostReduction))
 			}
 		}
 		return MultiplyCost(cost, raceSpec.StarbaseCostFactor).Round(math.Ceil).ToCost().MinZero(), nil
 	} else {
-		// Loop through any remaining items from old base and add to category list
-		// everything from the new base is already on, so this ensures everything gets checked
+		// We have some leftovers to take care of...
+		// Loop through any remaining items from the old base and add them to our category list
+		// everything from the new base is already present, so this just ensures everything gets from both
 		for item := range oldComponents {
 			oldComponentsByCategory[item.Tech.Category] = append(oldComponentsByCategory[item.Tech.Category], item)
 			categories[item.Tech.Category] = true
@@ -201,38 +205,38 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	}
 
 	// At this point, we should have 4 maps in total: 2 for each base design
-	// Components contains all components unique to each base mapped to their respective quantities
-	// ComponentsByCategory contains all categories present in each base
-	// mapped to a list of all components of that category on said base
-	// Now, all that's left is the cost calcs
+	// XXXComponents contains all components unique to each base mapped to their respective quantities
+	// XXXComponentsByCategory contains all categories present in each base
+	// mapped to a slice of all components of that category on said base
+	// Now, all that's left to do are the cost calcs!
 
-	// Tally up costs per category
+	// Tally up costs per category present on either base
 	for category := range categories {
 		oldCost := CostFloat64{}
 		newCost := CostFloat64{}
 
 		for _, oldItem := range oldComponentsByCategory[category] {
 			if category == TechCategoryOrbital {
-				oldCost = oldCost.Add(MultiplyCost(getPlayerCost(oldItem.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset), oldComponents[oldItem]))
+				oldCost = oldCost.Add(MultiplyCost(getItemCost(oldItem.Tech), oldComponents[oldItem]))
 			} else {
-				oldCost = oldCost.Add(MultiplyCost(getPlayerCost(oldItem.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset), float64(oldComponents[oldItem])*rules.StarbaseComponentCostReduction))
+				oldCost = oldCost.Add(MultiplyCost(getItemCost(oldItem.Tech), float64(oldComponents[oldItem])*rules.StarbaseComponentCostReduction))
 			}
 		}
 		for _, newItem := range newComponentsByCategory[category] {
 			if category == TechCategoryOrbital {
-				newCost = newCost.Add(MultiplyCost(getPlayerCost(newItem.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset), newComponents[newItem]))
+				newCost = newCost.Add(MultiplyCost(getItemCost(newItem.Tech), newComponents[newItem]))
 			} else {
-				newCost = newCost.Add(MultiplyCost(getPlayerCost(newItem.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset), float64(newComponents[newItem])*rules.StarbaseComponentCostReduction))
+				newCost = newCost.Add(MultiplyCost(getItemCost(newItem.Tech), float64(newComponents[newItem])*rules.StarbaseComponentCostReduction))
 			}
 		}
 
-		// apply first part of costs to tally (70% of new item cost - 70% of old item cost)
-		// this is the part that can be reduced by normal rebates
+		// apply first part of costs to tally (70% of new item cost - 70% of old item cost);
+		// this is the portion that can be reduced by normal rebates
 		cost = cost.Add(MultiplyCost(newCost.Subtract(oldCost), 0.7))
 
 		// add on rest of the cost after category specific rebates
 		// higher of (20% new item cost, 30% new item cost - 10% old item cost)
-		// if no old item exists, you pay 100%
+		// if no old item exists, you pay 100% of this chunk
 		adjCost := MultiplyCost(newCost, 0.2).Max(
 			MultiplyCost(newCost, 0.3).Subtract(MultiplyCost(oldCost, 0.1)))
 		cost = cost.Add(adjCost)
@@ -243,45 +247,49 @@ func (p *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 }
 
 // Get the cost of one item in a production queue, for a player
-func (p *costCalculate) CostOfOne(player *Player, item ProductionQueueItem) (Cost, error) {
+func (c *costCalculate) CostOfOne(player *Player, item ProductionQueueItem) (Cost, error) {
 	cost := player.Race.Spec.Costs[item.Type]
 	if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
 		if item.design != nil {
-			cost = item.design.Spec.Cost
+			cost = item.design.Spec.Cost // should never happen since it isn't called for designs
 		} else {
-			return Cost{}, fmt.Errorf("design %d not populated in queue item", item.DesignNum)
+			return Cost{}, fmt.Errorf("ship design #%d not populated in production queue during CostOfOne", item.DesignNum)
 		}
 	}
 	return cost, nil
 }
 
 // Get cost of a given ship or new starbase design
-func (p *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (Cost, error) {
+func (c *costCalculate) GetDesignCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (Cost, error) {
 
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
-		return Cost{}, fmt.Errorf("hull design %s not found in tech store", design.Hull)
+		return Cost{}, fmt.Errorf("hull design %q was not found in tech store", design.Hull)
 	}
 	starbase := hull.Starbase
 
-	cost := getPlayerCost(hull.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
+	costTally := getPlayerCost(hull.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
 
-	// iterate through slots and tally prices up
+	// iterate through slots and tally prices up one by one
 	for _, slot := range design.Slots {
+		if slot.HullComponent == "" {
+			// slot is empty; move on
+			continue
+		}
+
 		item := rules.techs.GetHullComponent(slot.HullComponent)
 		if item == nil {
-			return Cost{}, fmt.Errorf("component %s in design slots not found in tech store", slot.HullComponent)
+			return Cost{}, fmt.Errorf("component %q in design slots was not found in tech store", slot.HullComponent)
 		}
 		hcCost := MultiplyCost(getPlayerCost(item.Tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset), slot.Quantity)
 		if starbase && item.Category != TechCategoryOrbital {
-			cost = cost.Add(MultiplyCost(hcCost, rules.StarbaseComponentCostReduction))
-		} else {
-			cost = cost.Add(hcCost)
+			hcCost = MultiplyCost(hcCost, rules.StarbaseComponentCostReduction)
 		}
+		costTally = costTally.Add(hcCost)
 	}
 
 	if starbase {
-		cost = MultiplyCost(cost, raceSpec.StarbaseCostFactor)
+		costTally = MultiplyCost(costTally, raceSpec.StarbaseCostFactor)
 	}
-	return cost.Round(math.Ceil).ToCost(), nil
+	return costTally.Round(math.Ceil).ToCost(), nil
 }

@@ -279,6 +279,7 @@
 			queueItems[selectedQueueItemIndex] = swap;
 			selectedQueueItemIndex--;
 			queueItems = queueItems;
+			updateQueueEstimates();
 		}
 	}
 
@@ -289,6 +290,7 @@
 			queueItems[selectedQueueItemIndex] = swap;
 			selectedQueueItemIndex++;
 			queueItems = queueItems;
+			updateQueueEstimates();
 		}
 	}
 

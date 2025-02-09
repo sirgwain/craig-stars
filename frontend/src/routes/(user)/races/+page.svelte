@@ -79,7 +79,9 @@
 				{#if column.key == 'pluralName'}
 					<a class="cs-link text-2xl" href="/races/{row.id}">{cell}</a>
 				{:else if column.key == 'createdAt'}
-					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+					{#if row.createdAt}
+						{format(parseJSON(row.createdAt), 'E, MMM do yyyy hh:mm aaa')}
+					{/if}
 				{:else if column.key == 'action'}
 					<button onclick={() => removeItem(row)} type="button"
 						><Icon
