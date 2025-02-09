@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 	"sync"
@@ -29,25 +30,14 @@ func Run() error {
 
 // Build the frontend and backend consecutively, alongside some setup work.
 func Build() error {
-	// setup
-	if err := Clean(); err != nil {
-		return err
-	}
-	if err := Copy_Wasm(); err != nil {
-		return err
-	}
-	if err := Tidy(); err != nil {
-		return err
-	}
-	if err := Generate(); err != nil {
-		return err
-	}
+	mg.Deps(Clean)
+	mg.Deps(Copy_Wasm_ExecJS)
+	mg.Deps(Tidy)
+	mg.Deps(Generate)
+	mg.Deps(Build_Frontend)
+	mg.Deps(Build_Backend)
 
-	// build frontend/backend
-	if err := Build_Frontend(); err != nil {
-		return err
-	}
-	return Build_Backend()
+	return nil
 }
 
 // Clean up various temporary directories.
@@ -66,7 +56,7 @@ func Clean() error {
 }
 
 // Copy wasm executable from GOROOT to frontend folder.
-func Copy_Wasm() error {
+func Copy_Wasm_ExecJS() error {
 	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js",
 		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+ // remove backslashes
 			"/misc/wasm/wasm_exec.js"); err != nil {
@@ -97,28 +87,37 @@ func Generate() error {
 
 // Build the frontend using SvelteKit.
 func Build_Frontend() error {
-	if err := os.Chdir("frontend"); err != nil {
-		return mg.Fatalf(1, "error during os.Chdir: \n%w", err)
-	}
-	if err := sh.RunV("npm", "install"); err != nil {
+	mg.Deps(Generate)
+
+	cmd := exec.Command("npm", "install")
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
 		return err
 	}
-	if err := sh.RunV("npm", "run-script", "build"); err != nil {
+
+	cmd = exec.Command("npm", "run-script", "build")
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 // Build various Golang backend/server files.
 func Build_Backend() error {
-	if err := os.MkdirAll("dist", 0644); err != nil { // MkdirAll used due to no-oping if folder already exists
+	if err := os.MkdirAll("dist", 0755); err != nil { // MkdirAll used due to no-oping if folder already exists
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
 	if err := sh.RunV("go", "build", "-o", fmt.Sprintf("dist/%s", binary_name), "-buildvcs=false", "main.go"); err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll("frontend/src/lib/wasm", 0644); err != nil {
+	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
 	return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
@@ -153,13 +152,20 @@ func Launch() error {
 
 // Launch the backend go server using air.
 func Launch_Backend() error {
+	mg.Deps(Generate)
 	return sh.RunV("air")
 }
 
 // Launch the frontend svelte server.
 func Launch_Frontend() error {
-	if err := os.Chdir("frontend"); err != nil {
-		return mg.Fatalf(1, "error during os.Chdir: \n%w", err)
+	mg.Deps(Copy_Wasm_ExecJS)
+
+	cmd := exec.Command("npm", "run-script", "dev")
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
 	}
 
 	return sh.RunV("npm", "run-script", "dev")

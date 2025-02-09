@@ -4,10 +4,10 @@ tmp_dir = "tmp"
 [build]
   args_bin = ["--log", "tmp/logfile.log", "serve"]
   bin = "./dist/craig-stars"
-  cmd = "mage build_server"
+  cmd = "mage build_backend"
   delay = 1000
   exclude_dir = ["dist", "frontend", "vendor", "tmp", "data"]
-  exclude_file = []
+  exclude_file = ["magefiles/mage_output_file.go"]
   exclude_regex = ["_test.go"]
   exclude_unchanged = false
   follow_symlink = false

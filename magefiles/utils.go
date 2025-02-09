@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/magefile/mage/mg"
@@ -17,19 +18,22 @@ func Test() error {
 	if err := sh.RunV("go", "test", "./..."); err != nil {
 		return err
 	}
-	if err := os.Chdir("frontend"); err != nil {
-		return mg.Fatalf(1, "error during os.Chdir: \n%w", err)
-	}
-	if err := sh.RunV("npm", "run-script", "test"); err != nil {
+
+	cmd := exec.Command("npm", "run-script", "test")
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 // Download frontend image files, replacing existent ones if present.
 func Images() error {
 	// create temp file to store zip file from http request
-	tmpFile, err := os.CreateTemp("temp", "images.zip")
+	tmpFile, err := os.CreateTemp("", "images.zip")
 	if err != nil {
 		return mg.Fatalf(1, "error during os.CreateTemp: \n%w", err)
 	}
@@ -41,9 +45,22 @@ func Images() error {
 		}
 	}()
 
+	originalDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
 	if err := os.Chdir("frontend/static"); err != nil {
 		return mg.Fatalf(1, "error during os.Chdir: \n%w", err)
 	}
+
+	// revert the current dir after this call
+	defer func() {
+		err := os.Chdir(originalDir)
+		if err != nil {
+			mg.Fatalf(1, "Error reverting directory: %v\n", err)
+		}
+	}()
 
 	// download the images zip from the web using an http request
 	request, err := http.Get("https://craig-stars.net/images/images.zip")
