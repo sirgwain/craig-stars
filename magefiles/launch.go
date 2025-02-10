@@ -114,7 +114,7 @@ func Build_Frontend() error {
 // Build the backend Golang executable for local dev, as well as the WASM binary.
 // This builds the binary for main.go without any version control info.
 func Build_Backend() error {
-	return build_backend("-ldflags=-s -w -extldflags '-static'", "-buildvcs=false")
+	return build_backend(ldflags, "-buildvcs=false")
 }
 
 // Variant of Build_Backend used during release containing embedded version control info.
@@ -122,7 +122,7 @@ func Build_Backend() error {
 // to go build's ldflags if not empty.
 func Build_Backend_CLI(version, hash, releaseTime string) error {
 	// Go passes these arguments directly to build without any quoting or escaping (hence why no surrounding quotes)
-	args := "-ldflags=-s -w -extldflags '-static'"
+	args := ldflags
 	// If/when mage supports default arguments, these should probably be changed to account for it
 	if version != "" {
 		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'", version)
