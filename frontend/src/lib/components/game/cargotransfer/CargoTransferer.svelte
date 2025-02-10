@@ -2,11 +2,7 @@
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import { clamp } from '$lib/services/Math';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
-	import {
-		negative,
-		newCargoTransferRequest,
-		type CargoTransferRequest
-	} from '$lib/types/CargoTransferRequest';
+	import { CargoTransferRequest, negative } from '$lib/types/CargoTransferRequest.svelte';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import type { Planet } from '$lib/types/Planet';
@@ -32,7 +28,7 @@
 	let {
 		src,
 		dest,
-		transferAmount = $bindable(newCargoTransferRequest()),
+		transferAmount = $bindable(new CargoTransferRequest()),
 		showHeader = true,
 		srcCargoCapacity = src.spec.cargoCapacity ?? 0,
 		srcFuelCapacity = src.spec.fuelCapacity ?? 0,
@@ -41,9 +37,9 @@
 		quantityModifier = $bindable(1)
 	}: Props = $props();
 
-	let srcCargo = $derived(newCargoTransferRequest(src.cargo, src.fuel));
+	let srcCargo = $derived(new CargoTransferRequest(src.cargo, src.fuel));
 	let destCargo = $derived(
-		newCargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0)
+		new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0)
 	);
 
 	let destFleet = $derived(dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined);
@@ -124,7 +120,7 @@
 		}
 	}
 
-	function transferFuel(amount: number) {
+	function transferFuel(amount: number): number {
 		// console.log('amount', amount, 'fuel', fuel, 'fuelTransferAmount', fuelTransferAmount);
 		if (dest && 'fuel' in dest) {
 			transferAmount.fuel =
@@ -135,9 +131,10 @@
 					(dest.fuel ?? 0) - transferAmount.fuel
 				);
 		}
+		return (srcCargo.fuel ?? 0) + transferAmount.fuel;
 	}
 
-	function transferIronium(amount: number) {
+	function transferIronium(amount: number): number {
 		// update the amount we are transfering
 		transferAmount.ironium =
 			transferAmount.ironium +
@@ -146,9 +143,10 @@
 				(srcCargo.ironium ?? 0) + transferAmount.ironium,
 				(destCargo?.ironium ?? 0) - transferAmount.ironium
 			);
+		return (srcCargo.ironium ?? 0) + transferAmount.ironium;
 	}
 
-	function transferBoranium(amount: number) {
+	function transferBoranium(amount: number): number {
 		// update the amount we are transfering
 		transferAmount.boranium =
 			transferAmount.boranium +
@@ -157,9 +155,10 @@
 				(srcCargo.boranium ?? 0) + transferAmount.boranium,
 				(destCargo?.boranium ?? 0) - transferAmount.boranium
 			);
+		return (srcCargo.boranium ?? 0) + transferAmount.boranium;
 	}
 
-	function transferGermanium(amount: number) {
+	function transferGermanium(amount: number): number {
 		// update the amount we are transfering
 		transferAmount.germanium =
 			transferAmount.germanium +
@@ -168,9 +167,10 @@
 				(srcCargo.germanium ?? 0) + transferAmount.germanium,
 				(destCargo?.germanium ?? 0) - transferAmount.germanium
 			);
+		return (srcCargo.germanium ?? 0) + transferAmount.germanium;
 	}
 
-	function transferColonists(amount: number) {
+	function transferColonists(amount: number): number {
 		// update the amount we are transfering
 		transferAmount.colonists =
 			transferAmount.colonists +
@@ -179,6 +179,7 @@
 				(srcCargo.colonists ?? 0) + transferAmount.colonists,
 				(destCargo?.colonists ?? 0) - transferAmount.colonists
 			);
+		return (srcCargo.colonists ?? 0) + transferAmount.colonists;
 	}
 </script>
 
