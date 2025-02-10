@@ -121,6 +121,9 @@ func Build_Backend() error {
 // This takes arguments for the version number, commit hash and build time and passes them
 // to go build's ldflags if not empty.
 func Build_Backend_CI(version, hash, releaseTime string) error {
+	mg.Deps(Tidy)
+	mg.Deps(Generate)
+	mg.Deps(Build_WASM)
 	// Go passes these arguments directly to build without any quoting or escaping (hence why no surrounding quotes)
 	args := ldflags
 	// If/when mage supports default arguments, these should probably be changed to account for it

@@ -62,12 +62,15 @@ jobs:
           install-only: true
       
       # generate the backend go files needed for release
-      - name: Generate Go Files
-        run: mage generate tidy
-      - run: |
+      - name: Build a CI version of the backend with version/build time
+        run: |
           CGO_ENABLED=1 GOARCH=amd64 GOOS=linux \
           mage build_backend_ci "${{ needs.tag.outputs.version }}" "${GITHUB_SHA}" "${{ steps.buildTime.outputs.buildTime }}"
-      - run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
+      - name: Tar up the binary for publish
+        run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
+      - name: Copy wasm_exec into frontend folder for the node build step
+        run: mage copy_wasm_exec
+
       # build the frontend (this is slow)
       - uses: actions/setup-node@v4
         with:
