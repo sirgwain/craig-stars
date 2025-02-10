@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
 	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
-	import { newCargoTransferRequest } from '$lib/types/CargoTransferRequest';
+	import { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
 	import type { Planet } from '$lib/types/Planet';
 	import type { Salvage } from '$lib/types/Salvage';
@@ -17,10 +17,10 @@
 
 	let { src, dest, onOk, onCancel }: Props = $props();
 
-	let transferAmount = $state(newCargoTransferRequest());
+	let transferAmount = $state(new CargoTransferRequest());
 
 	function reset() {
-		transferAmount = newCargoTransferRequest();
+		transferAmount = new CargoTransferRequest();
 		src = src;
 	}
 
