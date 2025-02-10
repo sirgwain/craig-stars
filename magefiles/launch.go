@@ -120,7 +120,7 @@ func Build_Backend() error {
 // Variant of Build_Backend used during release containing embedded version control info.
 // This takes arguments for the version number, commit hash and build time and passes them
 // to go build's ldflags if not empty.
-func Build_Backend_CLI(version, hash, releaseTime string) error {
+func Build_Backend_CI(version, hash, releaseTime string) error {
 	// Go passes these arguments directly to build without any quoting or escaping (hence why no surrounding quotes)
 	args := ldflags
 	// If/when mage supports default arguments, these should probably be changed to account for it
