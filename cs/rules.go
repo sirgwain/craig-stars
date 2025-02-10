@@ -72,6 +72,7 @@ type Rules struct {
 }
 
 type UniverseGenerationRules struct {
+	HabDropoffRange                           Hab                           `json:"habDropoffRange,omitempty"` // Controls up to how many clicks (inclusive) away from MinHab & MaxHab do planet habs become linearly less likely
 	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold,omitempty"`
 	LimitMineralConcentration                 int                           `json:"limitMineralConcentration,omitempty"`
 	MaxExtraWorldDistance                     int                           `json:"maxExtraWorldDistance,omitempty"`
@@ -300,6 +301,17 @@ func NewRulesWithSeed(seed int64) Rules {
 			TorpedoSplashDamage: 0.125,
 		},
 		UniverseGenerationRules: UniverseGenerationRules{
+			// The first 9 Grav/Temp hab values from either edge (1-9 & 91-99) are linearly less likely to generate.
+			// More specifically, a hab value N clicks away from the edge with dropoff range of H 
+			// becomes (N+1/H+1)x as likely as a normal mid-value hab
+			// Ex: 6 temp is 5 clicks away from min (1) and is thus 6/10x as likely to gen;
+			// 99 temp is 0 away and is thus 1/10x as likely.
+			HabDropoffRange: Hab{
+				Grav: 9,
+				Temp: 9,
+				Rad: 0,
+			},
+			HighRadMineralConcentrationBonusThreshold: 90,
 			MaxExtraWorldDistance:                     180,
 			MinExtraWorldDistance:                     130,
 			MinHomeworldMineralConcentration:          30,
@@ -311,7 +323,6 @@ func NewRulesWithSeed(seed int64) Rules {
 			MinStartingMineralConcentration:           1,
 			MaxStartingMineralConcentration:           121,
 			LimitMineralConcentration:                 30,
-			HighRadMineralConcentrationBonusThreshold: 90,
 			MaxStartingMineralSurface:                 1000,
 			MinStartingMineralSurface:                 300,
 			RaceLeftoverPointsPerItem: map[SpendLeftoverPointsOn]int{

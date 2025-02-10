@@ -4,10 +4,17 @@
     "go.toolsEnvVars": {
         "CGO_ENABLED": "1",
         "GOOS": "",
-        "GOARCH": "",
+        "GOARCH": ""
     },
 
     "files.exclude": {
-        "frontend": true,
+        "frontend": true
     },
+
+    // Normally, 90s should be enough time for tests to run, but on slower computers
+    // generating turns can take upwards of several minutes to execute even in optimal conditions
+    "go.testTimeout": "300s",
+    
+    // Allows prettier to format json files in backend
+    "prettier.configPath": "frontend/.prettierrc"
 }

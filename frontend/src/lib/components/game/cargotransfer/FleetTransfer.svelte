@@ -2,10 +2,7 @@
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
 	import MineralBar from '$lib/components/game/MineralBar.svelte';
 	import { add } from '$lib/types/Cargo';
-	import {
-		type CargoTransferRequest,
-		newCargoTransferRequest
-	} from '$lib/types/CargoTransferRequest';
+	import { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 
 	type Props = {
 		transferAmount: CargoTransferRequest;
@@ -13,20 +10,20 @@
 		cargoCapacity: number;
 		fuelCapacity: number;
 		allowFuelTransfers?: boolean;
-		onTransferFuel?: (amount: number) => void;
-		onTransferIronium?: (amount: number) => void;
-		onTransferBoranium?: (amount: number) => void;
-		onTransferGermanium?: (amount: number) => void;
-		onTransferColonists?: (amount: number) => void;
+		onTransferFuel?: (amount: number) => number;
+		onTransferIronium?: (amount: number) => number;
+		onTransferBoranium?: (amount: number) => number;
+		onTransferGermanium?: (amount: number) => number;
+		onTransferColonists?: (amount: number) => number;
 	};
 
 	let {
-		transferAmount = newCargoTransferRequest(),
-		cargo = newCargoTransferRequest(),
+		transferAmount = new CargoTransferRequest(),
+		cargo = new CargoTransferRequest(),
 		cargoCapacity = 0,
 		fuelCapacity = 0,
 		allowFuelTransfers = false,
-		onTransferFuel: onTransferVuel,
+		onTransferFuel: onTransferFuel,
 		onTransferIronium: onFransferIronium,
 		onTransferBoranium: onTransferBoranium,
 		onTransferGermanium: onTransferGermanium,
@@ -43,7 +40,7 @@
 			color="fuel-bar"
 			unit="mg"
 			readonly={!allowFuelTransfers}
-			onValueChanged={(value) => onTransferVuel?.(value - (cargo.fuel + transferAmount.fuel))}
+			onValueChanged={(value) => onTransferFuel?.(value - (cargo.fuel + transferAmount.fuel))}
 		/>
 	</div>
 
