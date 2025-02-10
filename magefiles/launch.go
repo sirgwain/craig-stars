@@ -57,11 +57,13 @@ func Clean() error {
 }
 
 // Copy wasm executable from GOROOT to frontend folder.
+// This copes the "wasm_exec.js" file from your GOROOT into
+// frontend/src/lib/wasm.
 func Copy_Wasm_Exec() error {
 	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js",
-		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+ // remove backslashes
+		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+
 			"/misc/wasm/wasm_exec.js"); err != nil {
-		return mg.Fatalf(1, "could not copy wasm executable: %w", err)
+		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)
 	}
 	return nil
 }
@@ -109,25 +111,54 @@ func Build_Frontend() error {
 	return nil
 }
 
-// Build wasm binary into frontend.
-func Build_Wasm() error {
+// Build the backend Golang executable for local dev, as well as the WASM binary.
+// This builds the binary for main.go without any version control info.
+func Build_Backend() error {
+	return build_backend(ldflags, "-buildvcs=false")
+}
+
+// Variant of Build_Backend used during release containing embedded version control info.
+// This takes arguments for the version number, commit hash and build time and passes them
+// to go build's ldflags if not empty.
+func Build_Backend_CI(version, hash, releaseTime string) error {
+	// Go passes these arguments directly to build without any quoting or escaping (hence why no surrounding quotes)
+	args := ldflags
+	// If/when mage supports default arguments, these should probably be changed to account for it
+	if version != "" {
+		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'", version)
+	}
+	if hash != "" {
+		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.commit=%s'", hash)
+	}
+	if releaseTime != "" {
+		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.buildTime=%s'", releaseTime)
+	}
+	return build_backend(args)
+}
+
+// Internal implementation for building backend with custom go build args
+func build_backend(buildArgs ...string) error {
+	if err := os.MkdirAll("dist", 0755); err != nil { // MkdirAll used due to no-oping if folder already exists
+		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
+	}
+
+	flags := append(append([]string{"build"}, buildArgs...), "-o",
+		fmt.Sprintf("dist/%s", binary_name), "main.go")
+	if err := sh.RunV("go", flags...); err != nil {
+		return err
+	}
+
+	mg.Deps(Build_WASM)
+	return nil
+}
+
+// Build Web-Assembly binary into frontend.
+func Build_WASM() error {
 	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
 	return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
 		"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
-}
-
-// Build various Golang backend/server files.
-func Build_Backend() error {
-	if err := os.MkdirAll("dist", 0755); err != nil { // MkdirAll used due to no-oping if folder already exists
-		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
-	}
-	if err := sh.RunV("go", "build", "-o", fmt.Sprintf("dist/%s", binary_name), "-buildvcs=false", "main.go"); err != nil {
-		return err
-	}
-
-	return Build_Wasm()
 }
 
 // Launch both backend and frontend servers simultaneously.

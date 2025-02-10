@@ -1,4 +1,4 @@
-# workflow to build & test on each commit to develop or PR to develop
+# Workflow to build & test on each commit or PR to develop
 name: Build
 on:
   pull_request:
@@ -7,43 +7,104 @@ on:
   push:
     branches:
       - "develop"
+
+env:
+  go-version: 1.23.x
+  test_results: ./tmp/test-results
+
 jobs:
-  test:
+  test_backend:
+    name: Run backend Go tests
     strategy:
       matrix:
-        go-version: [1.23.x]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest] # no need for multiple OSes if we're just running go tests
     runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
 
-      # build the binary (fast)
-      - uses: actions/setup-go@v5
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      # build & test
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: ${{ env.go-version }}
           check-latest: true
           cache: true
-      - run: go install github.com/magefile/mage@latest
-      - run: mage generate
-      - run: go test ./...
-      - run: mkdir -p dist/
-      - run: go mod tidy && CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -ldflags='-s -w -extldflags "-static"' -o dist/craig-stars main.go
-      - run: mage build_backend
 
+      - name: Test Go Files
+        id: go-tests
+        run: go run gotest.tools/gotestsum@latest --format=github-actions --format-hide-empty-pkg --junitfile ${{env.test_results}}/go-test-report.xml --hide-summary=output --junitfile-hide-empty-pkg
+
+      - name: Produce Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: ${{env.test_results}}/go-test-report.xml
+        if: always()
+
+  build:
+    name: Build app and test frontend
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      # build the backend (fast)
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.go-version }}
+          check-latest: true
+          cache: true
+
+      - name: Setup Mage
+        uses: magefile/mage-action@v3
+        with:
+          install-only: true
+      - name: Generate Go files
+        run: mage generate
+
+      - name: Build Backend Go Binary
+        run: | 
+          go mod tidy
+          CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend
       # build the frontend (slow)
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
+
+      - name: Install Node.js dependencies
+        run: npm ci
         working-directory: ./frontend
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
         working-directory: ./frontend
-      - run: npx playwright test
+
+      - name: Set Playwright env vars for logging
+        run: echo "{PLAYWRIGHT_JUNIT_OUTPUT_NAME}={.${{env.test_results}}/playwright_report.xml}" >> $GITHUB_ENV
+
+      - name: Run Playwright tests
+        run: npx playwright test
         working-directory: ./frontend
-      - run: npm run test
+
+      - name: Run Vitest tests
+        run: npx vitest --run --outputFile.junit=.${{env.test_results}}/vitest_report.xml
         working-directory: ./frontend
-      - run: npm run build
+
+      - name: Build Frontend Binary
+        run: npm run build
         working-directory: ./frontend
+
+      - name: Produce Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "**/*_report.xml"
+        if: always()
