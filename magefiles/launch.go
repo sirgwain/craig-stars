@@ -57,9 +57,12 @@ func Clean() error {
 }
 
 // Copy wasm executable from GOROOT to frontend folder.
-// This copes the "wasm_exec.js" file from your GOROOT into
-// frontend/src/lib/wasm.
+// This copies the "wasm_exec.js" file from your GOROOT into
+// frontend/src/lib/wasm, creating the folder if not already present.
 func Copy_Wasm_Exec() error {
+	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
+		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
+	}
 	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js",
 		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+
 			"/misc/wasm/wasm_exec.js"); err != nil {

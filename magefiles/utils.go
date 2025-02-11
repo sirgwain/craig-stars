@@ -87,7 +87,7 @@ func Images() error {
 	if err != nil {
 		return mg.Fatalf(1, "error during io.Copy: \n%w", err)
 	}
-	tmpFile.Close()
+	tmpFile.Close() // close temp file since we don't need it anymore
 
 	// create zip reader to unzip temp file contents
 	reader, err := zip.OpenReader(tmpName)

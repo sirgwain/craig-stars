@@ -6,15 +6,27 @@ pre-commit:
   commands:
     gofmt:
       glob: "*.go"
-      exclude: 
+      exclude:
         - "**/generated.go"
       run: gofmt -l -w {staged_files}
       stage_fixed: true
-    prettier:
-      root: frontend/
-      glob: "*.{ts, svelte, html, css}"
-      interactive: true
+    prettier_backend:
+      exclude:
+        - frontend/**
+      run: npx prettier --ignore-unknown --write {staged_files}
+      stage_fixed: true
+    prettier_frontend:
+      root: "frontend/"
       run: npx prettier --ignore-unknown --write {staged_files}
       stage_fixed: true
 
-
+pre-push:
+  parallel: true
+  skip:
+    - merge-commit
+    - rebase
+  commands:
+    generate:
+      run: mage generate
+    tidy:
+      run: mage tidy

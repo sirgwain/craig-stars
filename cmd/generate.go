@@ -13,7 +13,7 @@ import (
 func newGenerateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate",
-		Short: "Generate ",
+		Short: "Generate",
 		Long:  `Update a record in the database.`,
 	}
 
