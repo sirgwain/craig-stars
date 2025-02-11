@@ -184,7 +184,7 @@ export type RaceSpec = {
 	canDetectStargatePlanets?: boolean;
 	shipsVanishInVoid?: boolean;
 	techsCostExtraLevel?: number;
-	freighterGrowthFactor?: number;
+	freighterGrowth?: FreighterGrowth;
 	growthFactor?: number;
 	maxPopulationOffset?: number;
 	builtInCloakUnits?: number;
@@ -210,9 +210,11 @@ export type RaceSpec = {
 	repairFactor?: number;
 	starbaseRepairFactor?: number;
 	innateMining?: boolean;
+	innateMinesFactor?: number;
 	innateResources?: boolean;
 	innateScanner?: boolean;
-	innatePopulationFactor?: number;
+	innateScannerFactor?: number;
+	minHabFloor?: number;
 	canBuildDefenses?: boolean;
 	livesOnStarbases?: boolean;
 	fuelEfficiencyOffset?: number;
@@ -231,6 +233,11 @@ export type RaceSpec = {
 	shieldRegenerationRate?: number;
 	engineFailureRate?: number;
 	engineReliableSpeed?: number;
+};
+
+export type FreighterGrowth = {
+	absolute?: boolean; // Whether the freighter growth is absolute (flat % of pop in fleet) or relative based on growth rate
+	rate?: number;
 };
 
 type BuiltInScanner = {
@@ -448,7 +455,7 @@ export const humanoid = (): Race => ({
 		invasionDefendBonus: 1,
 		repairFactor: 1,
 		starbaseRepairFactor: 1,
-		innatePopulationFactor: 1,
+		innateScannerFactor: 1,
 		canBuildDefenses: true,
 		terraformCostOffset: {},
 		startingPopulationFactor: 1,

@@ -18,6 +18,7 @@ func newGenerateCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(newGenerateTechsJson())
+	cmd.AddCommand(newGenerateRulesJson())
 	return cmd
 }
 
@@ -35,6 +36,27 @@ func newGenerateTechsJson() *cobra.Command {
 			}
 
 			fmt.Println(string(techsJson))
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+func newGenerateRulesJson() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "rulesjson",
+		Short: "Generate the rules.json content",
+		Long:  `Generate the rules.json content. During build time we need to update this to the latest default rules.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			rules := cs.NewRules()
+
+			rulesJson, err := json.MarshalIndent(rules, "", "  ")
+			if err != nil {
+				return fmt.Errorf("failed to marshal rules to json")
+			}
+
+			fmt.Println(string(rulesJson))
 			return nil
 		},
 	}

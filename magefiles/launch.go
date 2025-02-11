@@ -85,6 +85,14 @@ func Generate() error {
 	if err := os.WriteFile("frontend/src/lib/ssr/techs.json", []byte(techs2json), 0644); err != nil {
 		return mg.Fatalf(1, "error during os.WriteFile: \n%w", err)
 	}
+
+	rules2json, err := sh.Output("go", "run", "main.go", "generate", "rulesjson")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile("frontend/src/lib/ssr/rules.json", []byte(rules2json), 0644); err != nil {
+		return mg.Fatalf(1, "error during os.WriteFile: \n%w", err)
+	}
 	return nil
 }
 
