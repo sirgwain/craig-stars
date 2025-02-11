@@ -29,6 +29,8 @@ var c Converter
 // goverter:extend GameRaceSpecToRaceSpec
 // goverter:extend ProductionPlansToGameProductionPlans
 // goverter:extend GameProductionPlansToProductionPlans
+// goverter:extend CargoTransfersToGameCargoTransfers
+// goverter:extend GameCargoTransfersToCargoTransfers
 // goverter:extend BattlePlansToGameBattlePlans
 // goverter:extend GameBattlePlansToBattlePlans
 // goverter:extend TransportPlansToGameTransportPlans
@@ -80,8 +82,6 @@ var c Converter
 // goverter:extend GameShipTokensToShipTokens
 // goverter:extend WaypointsToGameWaypoints
 // goverter:extend GameWaypointsToWaypoints
-// goverter:extend ImmediateCargoTransfersToGameImmediateCargoTransfers
-// goverter:extend GameImmediateCargoTransfersToImmediateCargoTransfers
 // goverter:extend MineFieldSpecToGameMineFieldSpec
 // goverter:extend GameMineFieldSpecToMineFieldSpec
 // goverter:extend ShipDesignSpecToGameShipDesignSpec
@@ -383,6 +383,19 @@ func GameTagsToTags(source cs.Tags) *Tags {
 	return (*Tags)(&source)
 }
 
+func CargoTransfersToGameCargoTransfers(source *CargoTransfers) cs.CargoTransfers {
+	// return an empty slice for nil
+	if source == nil {
+		return cs.CargoTransfers{}
+	}
+
+	return (cs.CargoTransfers)(*source)
+}
+
+func GameCargoTransfersToCargoTransfers(source cs.CargoTransfers) *CargoTransfers {
+	return (*CargoTransfers)(&source)
+}
+
 func BattlePlansToGameBattlePlans(source *BattlePlans) []cs.BattlePlan {
 	// return an empty slice for nil
 	if source == nil {
@@ -673,14 +686,6 @@ func GameWaypointsToWaypoints(source []cs.Waypoint) *Waypoints {
 	return (*Waypoints)(&source)
 }
 
-func ImmediateCargoTransfersToGameImmediateCargoTransfers(source *ImmediateCargoTransfers) []cs.ImmediateCargoTransfer {
-	return ([]cs.ImmediateCargoTransfer)(*source)
-}
-
-func GameImmediateCargoTransfersToImmediateCargoTransfers(source []cs.ImmediateCargoTransfer) *ImmediateCargoTransfers {
-	return (*ImmediateCargoTransfers)(&source)
-}
-
 func MineFieldSpecToGameMineFieldSpec(source *MineFieldSpec) cs.MineFieldSpec {
 	return (cs.MineFieldSpec)(*source)
 }
@@ -882,17 +887,11 @@ func ExtendFleetMapObject(source Fleet) cs.MapObject {
 }
 
 func ExtendFleetFleetOrders(source Fleet) cs.FleetOrders {
-	// this is a new field, sometimes empty which would be nil
-	var immediateCargoTransfers []cs.ImmediateCargoTransfer
-	if source.ImmediateCargoTransfers != nil {
-		immediateCargoTransfers = *source.ImmediateCargoTransfers
-	}
 	return cs.FleetOrders{
-		BattlePlanNum:           source.BattlePlanNum,
-		Waypoints:               *source.Waypoints,
-		ImmediateCargoTransfers: immediateCargoTransfers,
-		RepeatOrders:            source.RepeatOrders,
-		Purpose:                 source.Purpose,
+		BattlePlanNum: source.BattlePlanNum,
+		Waypoints:     *source.Waypoints,
+		RepeatOrders:  source.RepeatOrders,
+		Purpose:       source.Purpose,
 	}
 }
 

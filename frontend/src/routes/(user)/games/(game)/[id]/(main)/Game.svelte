@@ -24,7 +24,6 @@
 		ownedBy,
 		type MapObject
 	} from '$lib/types/MapObject';
-	import { newSalvage } from '$lib/types/Salvage';
 	import { equal } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';

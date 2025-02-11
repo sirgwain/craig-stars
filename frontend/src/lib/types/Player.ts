@@ -3,9 +3,11 @@ import type { CostFinder, DesignFinder } from '$lib/services/Universe';
 import type { ProductionQueueItem } from '$lib/types/Production';
 import type { CS } from '$lib/wasm';
 import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
+import { add, emptyCargo, type Cargo } from './Cargo';
 import { multiply, type Cost } from './Cost';
-import type { Fleet, WaypointTransportTasks } from './Fleet';
+import type { Fleet, Target, WaypointTransportTasks } from './Fleet';
 import { HabTypes, type Hab } from './Hab';
+import { MapObjectType } from './MapObject';
 import type { Message } from './Message';
 import type { MineField } from './MineField';
 import type { MineralPacket } from './MineralPacket';
@@ -16,7 +18,6 @@ import { humanoid, type Race } from './Race';
 import type { Salvage } from './Salvage';
 import type { ShipDesign } from './ShipDesign';
 import {
-	TechCategory,
 	TerraformHabTypes,
 	getBestTerraform,
 	type Tech,
@@ -24,13 +25,8 @@ import {
 	type TechPlanetaryScanner,
 	type TechStore
 } from './Tech';
-import {
-	TechField,
-	emptyTechLevel,
-	hasRequiredLevels,
-	minTechLevel,
-	type TechLevel
-} from './TechLevel';
+import { TechField, emptyTechLevel, hasRequiredLevels, type TechLevel } from './TechLevel';
+import { string, type Vector } from './Vector';
 import type { Wormhole } from './Wormhole';
 
 export type PlayerStatus = {
@@ -109,10 +105,16 @@ export type PlayerUniverse = {
 	salvages: Salvage[];
 };
 
+export type ImmedidateCargoTransfer = {
+	sourceFleetNum: number;
+	cargo: Cargo;
+} & Target;
+
 export type PlayerOrders = {
 	researching: TechField;
 	nextResearchField: NextResearchField;
 	researchAmount: number;
+	cargoTransfers: Record<string, ImmedidateCargoTransfer[]>;
 };
 
 export type BattlePlan = {
@@ -213,6 +215,7 @@ export class Player implements PlayerResponse, CostFinder {
 	researching: TechField = TechField.Energy;
 	nextResearchField: NextResearchField = NextResearchField.Energy;
 	researchAmount = 0;
+	cargoTransfers: Record<string, ImmedidateCargoTransfer[]> = {};
 	battlePlans: BattlePlan[] = [];
 	productionPlans: ProductionPlan[] = [];
 	transportPlans: TransportPlan[] = [];
@@ -360,6 +363,22 @@ export class Player implements PlayerResponse, CostFinder {
 			}
 		});
 		return terraformAbility;
+	}
+
+	public getJettison(position: Vector): Cargo {
+		const key = string(position);
+		const transfers = this.cargoTransfers[key];
+		let cargo = emptyCargo();
+		if (!transfers) {
+			return cargo;
+		}
+
+		// sum up all jettison for this location
+		transfers
+			.filter((t) => t.targetType == undefined || t.targetType === MapObjectType.None)
+			.forEach((t) => (cargo = add(cargo, t.cargo)));
+
+		return cargo;
 	}
 }
 

@@ -165,6 +165,19 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 	return result
 }
 
+func GetSliceMap[M map[K][]V, K ~string, V any](o js.Value, valueGetter func(o js.Value) V) M {
+	result := make(M)
+	if !o.IsUndefined() {
+		resultKeys := js.Global().Get("Object").Call("keys", o)
+		for i := 0; i < resultKeys.Length(); i++ {
+			key := K(getString(resultKeys.Index(i)))
+			value := o.Get(fmt.Sprintf("%v", key))
+			result[key] = GetSlice(value, valueGetter)
+		}
+	}
+	return result
+}
+
 func GetAIDifficulty(o js.Value) cs.AIDifficulty {
 	var obj cs.AIDifficulty
 	if o.IsUndefined() || o.IsNull() {
@@ -549,6 +562,15 @@ func SetCargoTransferRequest(o js.Value, obj *cs.CargoTransferRequest) {
 	o.Set("fuel", obj.Fuel)
 }
 
+func GetCargoTransfers(o js.Value) cs.CargoTransfers {
+	var obj cs.CargoTransfers
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = GetSliceMap[map[string][]cs.ImmediateCargoTransfer](o, GetImmediateCargoTransfer)
+	return obj
+}
+
 func GetCargoType(o js.Value) cs.CargoType {
 	var obj cs.CargoType
 	if o.IsUndefined() || o.IsNull() {
@@ -829,7 +851,6 @@ func GetFleetOrders(o js.Value) cs.FleetOrders {
 	obj.RepeatOrders = getBool(o.Get("repeatOrders"))
 	obj.BattlePlanNum = getInt[int](o.Get("battlePlanNum"))
 	obj.Purpose = GetFleetPurpose(o.Get("purpose"))
-	obj.ImmediateCargoTransfers = GetSlice(o.Get("immediateCargoTransfers"), GetImmediateCargoTransfer)
 	return obj
 }
 func SetFleetOrders(o js.Value, obj *cs.FleetOrders) {
@@ -838,8 +859,6 @@ func SetFleetOrders(o js.Value, obj *cs.FleetOrders) {
 	o.Set("repeatOrders", obj.RepeatOrders)
 	o.Set("battlePlanNum", obj.BattlePlanNum)
 	o.Set("purpose", string(obj.Purpose))
-	o.Set("immediateCargoTransfers", []any{})
-	SetSlice(o.Get("immediateCargoTransfers"), obj.ImmediateCargoTransfers, SetImmediateCargoTransfer)
 }
 
 func GetFleetPurpose(o js.Value) cs.FleetPurpose {
@@ -1107,11 +1126,13 @@ func GetImmediateCargoTransfer(o js.Value) cs.ImmediateCargoTransfer {
 		return obj
 	}
 	obj.MapObjectTarget = GetMapObjectTarget(o)
+	obj.SourceFleetNum = getInt[int](o.Get("sourceFleetNum"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	return obj
 }
 func SetImmediateCargoTransfer(o js.Value, obj *cs.ImmediateCargoTransfer) {
 	SetMapObjectTarget(o, &obj.MapObjectTarget)
+	o.Set("sourceFleetNum", obj.SourceFleetNum)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
 }
@@ -2443,12 +2464,20 @@ func GetPlayerOrders(o js.Value) cs.PlayerOrders {
 	obj.Researching = GetTechField(o.Get("researching"))
 	obj.NextResearchField = GetNextResearchField(o.Get("nextResearchField"))
 	obj.ResearchAmount = getInt[int](o.Get("researchAmount"))
+	obj.CargoTransfers = GetCargoTransfers(o.Get("cargoTransfers"))
 	return obj
 }
 func SetPlayerOrders(o js.Value, obj *cs.PlayerOrders) {
 	o.Set("researching", string(obj.Researching))
 	o.Set("nextResearchField", string(obj.NextResearchField))
 	o.Set("researchAmount", obj.ResearchAmount)
+	cargoTransfersMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.CargoTransfers {
+		valueObj := js.ValueOf(map[string]any{})
+		SetSlice(valueObj, value, SetImmediateCargoTransfer)
+		cargoTransfersMap.Set(fmt.Sprintf("%v", key), valueObj)
+	}
+	o.Set("cargoTransfers", cargoTransfersMap)
 }
 
 func GetPlayerPlans(o js.Value) cs.PlayerPlans {

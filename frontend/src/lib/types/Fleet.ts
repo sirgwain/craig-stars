@@ -34,12 +34,7 @@ export type FleetOrders = {
 	waypoints?: Waypoint[];
 	repeatOrders?: boolean;
 	battlePlanNum?: number;
-	immediateCargoTransfers?: ImmedidateCargoTransfer[];
 };
-
-export type ImmedidateCargoTransfer = {
-	cargo: Cargo;
-} & Target;
 
 export type ShipToken = {
 	id?: number;
@@ -182,7 +177,6 @@ export class CommandedFleet implements Fleet {
 	battlePlanNum = 0;
 	tokens: ShipToken[] = [];
 	waypoints: Waypoint[] = [];
-	immediateCargoTransfers: ImmedidateCargoTransfer[] = [];
 	repeatOrders = false;
 	heading = { x: 0, y: 0 };
 	warpSpeed = 0;
@@ -194,12 +188,6 @@ export class CommandedFleet implements Fleet {
 
 	constructor(data?: Fleet) {
 		Object.assign(this, data);
-	}
-
-	getJettison(): ImmedidateCargoTransfer | undefined {
-		return this.immediateCargoTransfers.find(
-			(o) => o.targetType == undefined || o.targetType === MapObjectType.None
-		);
 	}
 
 	getFuelCost(

@@ -163,6 +163,19 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 	return result
 }
 
+func GetSliceMap[M map[K][]V, K ~string, V any](o js.Value, valueGetter func(o js.Value) V) M {
+	result := make(M)
+	if !o.IsUndefined() {
+		resultKeys := js.Global().Get("Object").Call("keys", o)
+		for i := 0; i < resultKeys.Length(); i++ {
+			key := K(getString(resultKeys.Index(i)))
+			value := o.Get(fmt.Sprintf("%v", key))
+			result[key] = GetSlice(value, valueGetter)
+		}
+	}
+	return result
+}
+
 {{- /* 
 	Render a function like 
 
@@ -245,10 +258,16 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 	{{- $valueType := default $type.ValueType .valueType }}
 	{{- $jsObj := default "o" .jsObj}}
 	{{- $valueGetter := printf "Get%s" $valueType.TypeName }}
+	{{- $keyGetter := printf "Get%s" $keyType.TypeName }}
 	{{- $mapFunc := printf "GetStringMap" }}
 
 	{{- if eq $keyType.Type "BasicInt"}}
 		{{- $mapFunc = "GetIntMap"}}
+	{{- end }}
+	
+	{{- /* The get a slice map for slices */}}
+	{{- if eq $valueType.Type "Slice"}}
+		{{- $mapFunc = "GetSliceMap"}}
 	{{- end }}
 	{{- if $keyType.UnderlyingType }}
 		{{- if eq $keyType.UnderlyingType.Type "BasicInt" }}
@@ -348,6 +367,10 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 		{{- else }}
 			Set{{.ValueType.TypeName}}(valueObj, &value)
 		{{- end }}
+		{{.JsonName}}Map.Set(fmt.Sprintf("%v", key), valueObj)
+	{{- else if eq .ValueType.Type "Slice" }}
+		valueObj := js.ValueOf(map[string]any{})
+		SetSlice(valueObj, value, Set{{.ValueType.TypeName}})
 		{{.JsonName}}Map.Set(fmt.Sprintf("%v", key), valueObj)
 	{{- else }}
 		// unknown map type {{.Name}} {{.Type}} {{.GoType}}

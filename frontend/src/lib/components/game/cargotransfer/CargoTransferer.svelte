@@ -1,5 +1,6 @@
 <script lang="ts">
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
 	import { CargoTransferRequest, negative } from '$lib/types/CargoTransferRequest.svelte';
@@ -12,6 +13,8 @@
 	import PlanetTransfer from './PlanetTransfer.svelte';
 	import SalvageTransfer from './SalvageTransfer.svelte';
 	import TransferButtons from './TransferButtons.svelte';
+
+	const { player } = getGameContext();
 
 	type Props = {
 		src: CommandedFleet;
@@ -39,7 +42,10 @@
 
 	let srcCargo = $derived(new CargoTransferRequest(src.cargo, src.fuel));
 	let destCargo = $derived(
-		new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0)
+		new CargoTransferRequest(
+			dest ? dest.cargo : $player.getJettison(src.position), // we are either tranfering to a location, or jettisoning
+			dest && 'fuel' in dest ? dest.fuel : 0
+		)
 	);
 
 	let destFleet = $derived(dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined);

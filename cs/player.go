@@ -93,6 +93,7 @@ type PlayerOrders struct {
 	Researching       TechField         `json:"researching,omitempty"`
 	NextResearchField NextResearchField `json:"nextResearchField,omitempty"`
 	ResearchAmount    int               `json:"researchAmount,omitempty"`
+	CargoTransfers    CargoTransfers    `json:"cargoTransfers,omitempty"`
 }
 
 type PlayerStats struct {
@@ -254,6 +255,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 			Researching:       Energy,
 			ResearchAmount:    15,
 			NextResearchField: NextResearchFieldSameField,
+			CargoTransfers:    CargoTransfers{},
 		},
 		AcquiredTechs: map[string]bool{},
 	}
@@ -875,6 +877,20 @@ func (p *Player) InjectDesigns(fleets []*Fleet) error {
 	}
 
 	return nil
+}
+
+// getJettison sums all jettison cargo calls for this position to determine the total amount of jettisoned cargo here
+func (p *Player) getJettison(position Vector) Cargo {
+	return p.CargoTransfers.getJettison(position)
+}
+
+// jettisonCargo jettison's cargo
+func (p *Player) jettisonCargo(fleet *Fleet, jettison Cargo) {
+	if p.CargoTransfers == nil {
+		p.CargoTransfers = CargoTransfers{}
+	}
+
+	p.CargoTransfers.jettisonCargo(fleet, jettison)
 }
 
 // validate this battle plan

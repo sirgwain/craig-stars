@@ -503,7 +503,7 @@ func (u *Universe) createWormhole(rules *Rules, position Vector, stability Wormh
 }
 
 // find the salvage at a position, or create a new one
-func (u *Universe) createSalvage(position Vector, playerNum int, cargo Cargo) *Salvage {
+func (u *Universe) getOrCreateSalvage(position Vector, playerNum int, cargo Cargo) *Salvage {
 	salvage, exists := u.salvagesByPosition[position]
 	// Check for empty salvage, because they are deleted from database, but not mapObjects
 	if exists && (salvage.Cargo != Cargo{}) {

@@ -560,6 +560,11 @@ func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Reque
 			return err
 		}
 
+		if err := c.UpdatePlayerOrders(fullPlayer); err != nil {
+			log.Error().Err(err).Msg("update player in database")
+			return err
+		}
+
 		log.Info().
 			Int64("GameID", fleet.GameID).
 			Int("Player", fleet.PlayerNum).
@@ -575,7 +580,7 @@ func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Reque
 	}
 
 	// success
-	rest.RenderJSON(w, rest.JSON{"fleet": fleet})
+	rest.RenderJSON(w, rest.JSON{"fleet": fleet, "player": fullPlayer})
 }
 
 // transfer cargo from a fleet to/from a planet

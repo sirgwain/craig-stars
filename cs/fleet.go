@@ -46,16 +46,10 @@ type Fleet struct {
 }
 
 type FleetOrders struct {
-	Waypoints               []Waypoint               `json:"waypoints"`
-	RepeatOrders            bool                     `json:"repeatOrders,omitempty"`
-	BattlePlanNum           int                      `json:"battlePlanNum,omitempty"`
-	Purpose                 FleetPurpose             `json:"purpose,omitempty"`
-	ImmediateCargoTransfers []ImmediateCargoTransfer `json:"immediateCargoTransfers,omitempty"`
-}
-
-type ImmediateCargoTransfer struct {
-	MapObjectTarget
-	Cargo Cargo `json:"cargo"`
+	Waypoints     []Waypoint   `json:"waypoints"`
+	RepeatOrders  bool         `json:"repeatOrders,omitempty"`
+	BattlePlanNum int          `json:"battlePlanNum,omitempty"`
+	Purpose       FleetPurpose `json:"purpose,omitempty"`
 }
 
 type FleetSpec struct {
@@ -378,37 +372,6 @@ func (f *Fleet) Idle() bool {
 	return len(f.Waypoints) == 1 && f.Waypoints[0].Task == WaypointTaskNone
 }
 
-// Jettison will return the jettison ImmediateCargoTransfer order
-// A new ImmediateCargoTransfer order will be created if no Jettison order exists
-func (f *Fleet) Jettison() *ImmediateCargoTransfer {
-	for i := range f.ImmediateCargoTransfers {
-		order := &f.ImmediateCargoTransfers[i]
-		if order.TargetType == MapObjectTypeNone {
-			return order
-		}
-	}
-
-	// create a new jettison order and return it
-	f.ImmediateCargoTransfers = append(f.ImmediateCargoTransfers, ImmediateCargoTransfer{})
-	return &f.ImmediateCargoTransfers[len(f.ImmediateCargoTransfers)-1]
-}
-
-// Invasion will return the invasion/theft ImmediateCargoTransfer order
-// This is the order that targets a planet
-// A new ImmediateCargoTransfer order will be created if no Invasion order exists
-func (f *Fleet) Invasion() *ImmediateCargoTransfer {
-	for i := range f.ImmediateCargoTransfers {
-		order := &f.ImmediateCargoTransfers[i]
-		if order.TargetType == MapObjectTypePlanet {
-			return order
-		}
-	}
-
-	// create a new jettison order and return it
-	f.ImmediateCargoTransfers = append(f.ImmediateCargoTransfers, ImmediateCargoTransfer{})
-	return &f.ImmediateCargoTransfers[len(f.ImmediateCargoTransfers)-1]
-}
-
 func (f *Fleet) Rename(name string) {
 	f.BaseName = name
 	f.Name = fmt.Sprintf("%s #%d", f.BaseName, f.Num)
@@ -506,52 +469,6 @@ func (tt WaypointTransportTasks) getTransportTasks() transportTaskByType {
 	}
 
 	return tasks
-}
-
-// getUnloadTasks creates a WaypointTransportTask for each positive cargo value in the ImmediateCargoTransfer
-func (o ImmediateCargoTransfer) getUnloadTasks() WaypointTransportTasks {
-	tt := WaypointTransportTasks{}
-	if o.Cargo.Ironium > 0 {
-		tt.Ironium.Action = TransportActionUnloadAmount
-		tt.Ironium.Amount = o.Cargo.Ironium
-	}
-	if o.Cargo.Boranium > 0 {
-		tt.Boranium.Action = TransportActionUnloadAmount
-		tt.Boranium.Amount = o.Cargo.Boranium
-	}
-	if o.Cargo.Germanium > 0 {
-		tt.Germanium.Action = TransportActionUnloadAmount
-		tt.Germanium.Amount = o.Cargo.Germanium
-	}
-	if o.Cargo.Colonists > 0 {
-		tt.Colonists.Action = TransportActionUnloadAmount
-		tt.Colonists.Amount = o.Cargo.Colonists
-	}
-
-	return tt
-}
-
-// getLoadTasks creates a WaypointTransportTask for each negative cargo value in the ImmediateCargoTransfer
-func (o ImmediateCargoTransfer) getLoadTasks() WaypointTransportTasks {
-	tt := WaypointTransportTasks{}
-	if o.Cargo.Ironium < 0 {
-		tt.Ironium.Action = TransportActionUnloadAmount
-		tt.Ironium.Amount = o.Cargo.Ironium
-	}
-	if o.Cargo.Boranium < 0 {
-		tt.Boranium.Action = TransportActionUnloadAmount
-		tt.Boranium.Amount = o.Cargo.Boranium
-	}
-	if o.Cargo.Germanium < 0 {
-		tt.Germanium.Action = TransportActionUnloadAmount
-		tt.Germanium.Amount = o.Cargo.Germanium
-	}
-	if o.Cargo.Colonists < 0 {
-		tt.Colonists.Action = TransportActionUnloadAmount
-		tt.Colonists.Amount = o.Cargo.Colonists
-	}
-
-	return tt
 }
 
 // inject designs into tokens so all the various Compute* functions work

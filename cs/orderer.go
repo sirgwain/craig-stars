@@ -161,12 +161,15 @@ func (o *orders) JettisonFleetCargo(player *Player, fleet *Fleet, jettison Cargo
 			return fmt.Errorf("fleet does not have the cargo to jettison")
 		}
 
-		// subtract the jettison from the fleet's jettison cargo (jettison is negative if we are transfering to the fleet's jettison, positive if transfering from the fleet's jettison)
-		fleetJettison := fleet.Jettison()
-		fleetJettison.Cargo = fleetJettison.Cargo.Subtract(jettison)
-		if fleetJettison.Cargo.HasNegative() {
+		// subtract the jettison from the existing jettison cargo (jettison is negative if we are transfering to the existing jettison, positive if transfering from the existing jettison)
+		existingJettison := player.getJettison(fleet.Position)
+		existingJettison = existingJettison.Subtract(jettison)
+		if existingJettison.HasNegative() {
 			return fmt.Errorf("jettison cargo cannot be negative")
 		}
+
+		// record this call with the player
+		player.jettisonCargo(fleet, jettison.Negative())
 
 		log.Info().
 			Int64("GameID", player.GameID).
