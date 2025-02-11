@@ -9,17 +9,18 @@ craig-stars is a web based game. The backend logic and server is written in [Go]
 - Respository forked and cloned on your device (instructions [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository))
 - The [GNU compiler collection](https://gcc.gnu.org/) built locally on your device. Windows users can use [Mingw-w64](https://www.mingw-w64.org/), while linux/mac users can follow the [normal install instructions](https://gcc.gnu.org/install/index.html).
 
-After all that, you'll also need to install 3 important Go dependencies:
+After all that, you'll also need to install 2 important Go dependencies:
 
 - [Mage](https://github.com/magefile/mage), a make-like build tool/command executer helping to execute complex build commands.
 - [Air](https://github.com/air-verse/air), a server utility aiding with automatic backend server restarting.
-- [Lefthook](https://github.com/evilmartians/lefthook), a fantastic git hooks manager used to format files before commit/push.
 
-All 3 can be installed using a single `go install` command:
+Both can be installed using a single `go install` command:
 
 ```bash
-go install github.com/magefile/mage@latest github.com/air-verse/air@latest github.com/evilmartians/lefthook@latest
+go install github.com/magefile/mage@latest github.com/air-verse/air@latest
 ```
+
+(Mage should be included in go.mod regardless, but it never hurts to make sure it's there.)
 
 ## Assets
 
