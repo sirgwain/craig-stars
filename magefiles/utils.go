@@ -39,7 +39,8 @@ func Images() error {
 	}
 	var tmpName = tmpFile.Name()
 	defer func() {
-		// remove file afterwards
+		// close and remove temp file after we're done
+		tmpFile.Close()
 		if err := sh.Rm(tmpName); err != nil {
 			panic(err)
 		}
@@ -47,7 +48,7 @@ func Images() error {
 
 	originalDir, err := os.Getwd()
 	if err != nil {
-		return err
+		return mg.Fatalf(1, "could not get working directory to revert to: \n%w", err)
 	}
 
 	if err := os.Chdir("frontend/static"); err != nil {
@@ -56,9 +57,8 @@ func Images() error {
 
 	// revert the current dir after this call
 	defer func() {
-		err := os.Chdir(originalDir)
-		if err != nil {
-			mg.Fatalf(1, "Error reverting directory: %v\n", err)
+		if err := os.Chdir(originalDir); err != nil {
+			panic(fmt.Errorf("error reverting to original directory: \n%v", err))
 		}
 	}()
 
@@ -87,8 +87,12 @@ func Images() error {
 	if err != nil {
 		return mg.Fatalf(1, "error during io.Copy: \n%w", err)
 	}
-	tmpFile.Close() // close temp file since we don't need it anymore
 
+	return unzipTempFile(tmpName)
+}
+
+// unzip the temp file with the given path; used during image download
+func unzipTempFile(tmpName string) error {
 	// create zip reader to unzip temp file contents
 	reader, err := zip.OpenReader(tmpName)
 	if err != nil {
@@ -100,7 +104,7 @@ func Images() error {
 		}
 	}()
 
-	// Delete previous folder
+	// Delete previous images folder
 	if err := sh.Rm("images"); err != nil {
 		return err
 	}

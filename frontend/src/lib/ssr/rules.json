@@ -19,8 +19,33 @@
 		"resources": 100
 	},
 	"techBaseCost": [
-		0, 50, 80, 130, 210, 340, 550, 890, 1440, 2330, 3770, 6100, 9870, 13850, 18040, 22440, 27050,
-		31870, 36900, 42140, 47590, 53250, 59120, 65200, 71490, 77990, 84700
+		0,
+		50,
+		80,
+		130,
+		210,
+		340,
+		550,
+		890,
+		1440,
+		2330,
+		3770,
+		6100,
+		9870,
+		13850,
+		18040,
+		22440,
+		27050,
+		31870,
+		36900,
+		42140,
+		47590,
+		53250,
+		59120,
+		65200,
+		71490,
+		77990,
+		84700
 	],
 	"beamRangeDropoff": 0.1,
 	"beamBonusCap": 2.55,
@@ -252,7 +277,19 @@
 	"mineralDecayFactor": 1500000,
 	"minHabFloor": 5,
 	"mysteryTraderRules": {
-		"chanceSpawn": [7, 7, 7, 7, 7, 7, 7, 4, 4, 3, 2],
+		"chanceSpawn": [
+			7,
+			7,
+			7,
+			7,
+			7,
+			7,
+			7,
+			4,
+			4,
+			3,
+			2
+		],
 		"chanceMaxTechGetsPart": 5,
 		"chanceCourseChange": 20,
 		"chanceSpeedUpOnly": 3,
@@ -1173,7 +1210,10 @@
 	},
 	"raceStartingPoints": 1650,
 	"radiatingImmune": 85,
-	"randomArtifactResearchBonusRange": [120, 400],
+	"randomArtifactResearchBonusRange": [
+		120,
+		400
+	],
 	"randomCometMinYear": 10,
 	"randomCometMinYearPlayerWorld": 20,
 	"randomEventChances": {
@@ -1182,7 +1222,10 @@
 		"MineralDeposit": 0.05,
 		"PlanetaryChange": 0.05
 	},
-	"randomMineralDepositBonusRange": [20, 50],
+	"randomMineralDepositBonusRange": [
+		20,
+		50
+	],
 	"remoteMiningMineOutput": 10,
 	"repairRates": {
 		"Moving": 0.01,
