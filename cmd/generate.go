@@ -30,9 +30,9 @@ func newGenerateTechsJson() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			techs := cs.StaticTechStore
 
-			techsJson, err := json.MarshalIndent(techs, "", "  ")
+			techsJson, err := json.MarshalIndent(techs, "", "	")
 			if err != nil {
-				return fmt.Errorf("failed to marshal StaticTechStore to json")
+				return fmt.Errorf("failed to marshal StaticTechStore to json: \n%w", err)
 			}
 
 			fmt.Println(string(techsJson))
@@ -51,9 +51,9 @@ func newGenerateRulesJson() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rules := cs.NewRules()
 
-			rulesJson, err := json.MarshalIndent(rules, "", "  ")
+			rulesJson, err := json.MarshalIndent(rules, "", "	")
 			if err != nil {
-				return fmt.Errorf("failed to marshal rules to json")
+				return fmt.Errorf("failed to marshal rules to json: \n%w", err)
 			}
 
 			fmt.Println(string(rulesJson))
