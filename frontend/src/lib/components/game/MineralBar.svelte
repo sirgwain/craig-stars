@@ -9,7 +9,7 @@
 		color?: string;
 		unit?: string;
 		readonly?: boolean;
-		onValueChanged?: (value: number) => void;
+		onValueChanged?: (value: number) => number | undefined;
 	};
 	import { getXFromPointerEvent } from '$lib/services/Events';
 
@@ -100,8 +100,7 @@
 	function updateValue(x: number) {
 		let newValue = clamp(Math.round(x * capacity), min, max);
 		if (newValue != value) {
-			value = newValue;
-			onValueChanged?.(value);
+			value = onValueChanged?.(newValue) ?? newValue;
 		}
 	}
 </script>

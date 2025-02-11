@@ -31,7 +31,7 @@
 	<div class="my-auto align-middle">
 		{@render begin?.()}
 	</div>
-	<SpinnerNumber bind:value onChange={onChange} {min} {max} {step} {unit} />
+	<SpinnerNumber bind:value {onChange} {min} {max} {step} {unit} />
 	<div class="my-auto align-middle">
 		{@render end?.()}
 	</div>

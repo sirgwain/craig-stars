@@ -1,5 +1,5 @@
 import type { Cargo } from '$lib/types/Cargo';
-import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest';
+import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 import {
 	CommandedFleet,
 	type Fleet,
@@ -64,18 +64,19 @@ export class FleetService {
 	static async transferCargo(
 		fleet: CommandedFleet,
 		dest: Fleet | Planet | Salvage | undefined,
-		transferAmount: Cargo
+		transferAmount: Cargo & { fuel: number }
 	): Promise<TransferCargoResponse> {
 		const url = `/api/games/${fleet.gameId}/fleets/${fleet.num}/transfer-cargo`;
+		const body = JSON.stringify({
+			mo: dest as MapObject,
+			transferAmount: transferAmount
+		});
 		const response = await fetch(url, {
 			method: 'POST',
 			headers: {
 				accept: 'application/json'
 			},
-			body: JSON.stringify({
-				mo: dest as MapObject,
-				transferAmount: transferAmount
-			})
+			body: body
 		});
 
 		if (!response.ok) {
@@ -103,7 +104,7 @@ export class FleetService {
 				destBaseName: dest?.baseName,
 				sourceTokens,
 				destTokens,
-				transferAmount
+				transferAmount: transferAmount.jsonData()
 			})
 		});
 

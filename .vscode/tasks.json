@@ -1,8 +1,71 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
+        {
+            "label": "Go: run tests",
+            "type": "go",
+            "problemMatcher": "$go",
+            "command": "test",
+            "args": [
+                "${inputs:goTestFiles}",
+                "-json tmp/go-testresults.json"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": "true"
+            },
+            "icon": {
+                "color": "terminal.ansiBlue",
+                "id": "beaker"
+            },
+            "detail": "Run Go tests and save the results to JSON."
+        },
+        {
+            "label": "Go: run benchmarks",
+            "type": "go",
+            "problemMatcher": "$go",
+            "command": "test",
+            "args": [
+                "run=$^",
+                "-bench=${inputs:goBenchFiles}",
+                "-benchmem",
+                "-benchtime=${inputs:benchTime}s",
+                "-benchcount=5",
+                "-json tmp/go-benchresults.json"
+            ],
+            "group": "test",
+            "icon": {
+                "color": "terminal.ansiYellow",
+                "id": "clock"
+            },
+            "detail": "Run Go benchmarks and save the results to JSON."
+        },
+        {
+            "label": "Go: Generate files & techs.JSON",
+            "type": "shell",
+            "problemMatcher": "$go",
+            "group": "build",
+            "icon": {
+                "color": "terminal.ansiMagenta",
+                "id": "table"
+            },
+            "command": "mage generate",
+            "detail": "mage generate"
+        },
+        {
+            "label": "Build & launch server",
+            "type": "shell",
+            "command": "mage run",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "icon": {
+                "color": "terminal.ansiCyan",
+                "id": "run-all"
+            },
+            "detail": "Start up the server for local development using mage."
+        },
         {
             "hide": true,
             "label": "Compile Mage debug file",
@@ -24,4 +87,24 @@
             "command": "rm magefiles/magefile-debug"
         }
     ],
+    "inputs": [
+        {
+            "id": "goBenchFiles",
+            "type": "promptString",
+            "default": ".",
+            "description": "Enter name of file or package to benchmark."
+        },
+        {
+            "id": "goTestFiles",
+            "type": "promptString",
+            "default": ".",
+            "description": "Enter name of file or package to test."
+        },
+        {
+            "id": "benchTime",
+            "type": "promptString",
+            "default": "3",
+            "description": "Enter amount of time to run each benchmark for."
+        }
+    ]
 }

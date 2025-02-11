@@ -1,6 +1,6 @@
 import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
-import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest';
+import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 import { None } from '$lib/types/Constants';
 import {
 	CommandedFleet,
@@ -1009,7 +1009,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		dest: Fleet | Planet | Salvage | undefined,
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
-		const result = await FleetService.transferCargo(fleet, dest, transferAmount);
+		const result = await FleetService.transferCargo(fleet, dest, transferAmount.jsonData());
 		const u = get(universe);
 
 		if (result.player) {
