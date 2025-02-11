@@ -213,12 +213,14 @@ describe('Fleet test', () => {
 		expect(scout.canFuel(player, target)).toBe(false);
 	});
 
-	describe("Warp Speed Utilities", () => {
+	describe('Warp Speed Utilities', () => {
 		const fleet = new CommandedFleet(longRangeScout);
 		const designFinder = new TestDesignFinder();
-		
-		beforeEach(() => { fleet.fuel = 300 });
-		
+
+		beforeEach(() => {
+			fleet.fuel = 300;
+		});
+
 		it('getMinimalWarp returns minimal speeds for distances', () => {
 			// one year to go 49 ly
 			expect(fleet.getMinimalWarp(designFinder, 0, 0, 49, 7, 1, 9)).toBe(7);
@@ -239,7 +241,7 @@ describe('Fleet test', () => {
 			// Make sure we don't exceed safe warp - don't go at warp 10 if
 			// we can only safely handle warp 9 safely
 			expect(fleet.getMinimalWarp(designFinder, 0, 0, 100, 10, 1, 9)).toBe(9);
-			
+
 			// stay at w10 if using a capable engine
 			expect(fleet.getMinimalWarp(designFinder, 0, 0, 100, 10, 1, 10)).toBe(10);
 		});

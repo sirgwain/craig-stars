@@ -261,10 +261,10 @@ export class CommandedFleet implements Fleet {
 	 * @param player The player controlling the fleet.
 	 * @param universe Universe object
 	 * @param dest Waypoint destination ()
-	 * @param currentSelectedWaypointIndex 
-	 * @param highestShipMass 
-	 * @param fastestWaypoint 
-	 * @returns 
+	 * @param currentSelectedWaypointIndex
+	 * @param highestShipMass
+	 * @param fastestWaypoint
+	 * @returns
 	 */
 	addWaypoint(
 		player: Player,
