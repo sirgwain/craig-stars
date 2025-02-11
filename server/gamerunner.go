@@ -912,7 +912,7 @@ func (gr *gameRunner) generateUniverse(fullGame *cs.FullGame) error {
 	return nil
 }
 
-// process an the ai player's turns
+// process an ai player's turns
 func (gr *gameRunner) processAITurns(fullGame *cs.FullGame) {
 	for _, player := range fullGame.Players {
 		if !player.AIControlled {

@@ -4,6 +4,7 @@
 	import { InfinteGate } from '$lib/types/Constants';
 	import {
 		getCloakPercentForCloakUnits,
+		getLongHabName,
 		TechCategory,
 		TerraformHabTypes,
 		type Tech,
@@ -57,11 +58,12 @@
 				if (hull.repairBonus && hull.repairBonus > 0) {
 					if (hull.starbase) {
 						descriptions.push(
-							`This starbase will repair fleets in orbit ${hull.repairBonus * 100}% faster.`
+							`This starbase will repair friendly fleets in orbit by an additional ${hull.repairBonus * 100}% per year.`
 						);
 					} else {
 						descriptions.push(
-							`This hull will help ships in the fleet repair ${hull.repairBonus * 100}% faster.`
+							`This hull will repair ships in the fleet by an additional ${hull.repairBonus * 100}% per year. 
+							Repair is disabled while bombing planets.`
 						);
 					}
 				}
@@ -79,28 +81,30 @@
 
 			if (planetaryScanner.scanRangePen && planetaryScanner.scanRangePen > 0) {
 				descriptions.push(
-					`This scanner can determine a planet's basic stats from a distance up to ${planetaryScanner.scanRangePen} light years. The scanner will also spot enemy fleets attempting to hide behind planets within range.`
+					`This scanner can determine a planet's basic stats from a distance up to ${planetaryScanner.scanRangePen} light years away. The scanner will also spot enemy fleets attempting to hide behind planets within range.`
 				);
 			}
 		}
 
 		if (tech.category == TechCategory.Terraforming) {
 			const terraform = tech as TechTerraform;
-			if (terraform.habType == TerraformHabTypes.All) {
-				descriptions.push(
-					`Allows you to modify any of a planet's three environmental variables by up to ${terraform.ability}% from its original value.`
-				);
-			} else {
-				descriptions.push(
-					`Allows you to modify a planet's ${terraform.habType} by up to ${terraform.ability}% from its original value.`
-				);
-			}
+			descriptions.push(
+				`Allows you to modify ${
+					terraform.habType !== TerraformHabTypes.All
+						? `a planet's ${getLongHabName(terraform.habType)}`
+						: `all of a planet's three environmental variables`
+				} by up to ${terraform.ability}% from its original value.`
+			);
 		}
 
 		if ('hullSlotType' in tech) {
 			const hullComponent = tech as TechHullComponent;
 			if (hullComponent) {
-				if (hullComponent.category == TechCategory.MineLayer && hullComponent.mineFieldType) {
+				if (
+					hullComponent.category == TechCategory.MineLayer &&
+					hullComponent.mineFieldType &&
+					rules.mineFieldStatsByType
+				) {
 					const mineFieldStats = rules.mineFieldStatsByType[hullComponent.mineFieldType];
 					stats.push({ label: 'Mines laid per year', text: `${hullComponent.mineLayingRate}` });
 					stats.push({ label: 'Maximum safe speed', text: `${mineFieldStats.maxSpeed}` });
@@ -161,7 +165,7 @@
 				if (hullComponent.hitsAllTargets) {
 					descriptions.push(`This weapon hits all targets in range each time it is fired.`);
 				}
-				if (hullComponent.gattling) {
+				if (hullComponent.gatling) {
 					descriptions.push(
 						`This weapon also makes an excellent mine sweeper, capable of sweeping ${
 							(hullComponent.power ?? 0) * Math.pow(hullComponent.range ?? 0, 4)
@@ -197,7 +201,8 @@
 
 				if ((hullComponent.terraformRate ?? 0) > 0) {
 					descriptions.push(
-						`This modified mining robot terraforms inhabited planets by ${hullComponent.terraformRate} per year. It has a positive effect on friendly planets, a negative effect on neutral and enemy planets.`
+						`This modified mining robot terraforms inhabited planets by ${hullComponent.terraformRate} per year. It has a positive effect on friendly planets and a negative effect on neutral and enemy planets.
+						Terraforming in this manner uses the higher of the fleet owner's and the inhabitant's terraforming capabilities.`
 					);
 
 					if ((hullComponent.cloakUnits ?? 0) > 0) {
@@ -215,7 +220,8 @@
 
 				if ((hullComponent.unterraformRate ?? 0) > 0) {
 					descriptions.push(
-						`This bomb does not kill colonists or destroy installations. This bomb 'unterraforms' planets toward their original state by up to ${hullComponent.unterraformRate}% per variable per bombing run. Planetary defenses have no effect on this bomb.`
+						`This bomb does not kill colonists or destroy installations. Instead, it "de-terraforms" planets toward their original state by up to ${hullComponent.unterraformRate}% per variable per bombing run. 
+						Planetary defenses have no effect on this bomb.`
 					);
 				}
 
@@ -228,13 +234,13 @@
 						descriptions.push(
 							`Cloaks unarmed hulls, reducing the range at which scanners detect it by up to ${getCloakPercentForCloakUnits(
 								hullComponent.cloakUnits
-							).toFixed()}%.`
+							).toFixed()}%. Cloak amount is reduced when the fleet contains cargo or other uncloaked ships.`
 						);
 					} else {
 						descriptions.push(
 							`Cloaks any ship, reducing the range at which scanners detect it by up to ${getCloakPercentForCloakUnits(
 								hullComponent.cloakUnits
-							).toFixed()}%. Cloak amount is reduced `
+							).toFixed()}%. Cloak amount is reduced when the fleet contains cargo or other uncloaked ships.`
 						);
 					}
 				}
@@ -245,27 +251,27 @@
 					);
 				}
 
-				if ((hullComponent.fuelRegenerationRate ?? 0) > 0) {
+				if ((hullComponent.fuelGeneration ?? 0) > 0) {
 					descriptions.push(
-						`This part generates ${hullComponent.fuelRegenerationRate}mg of fuel each year.`
+						`This part generates ${hullComponent.fuelGeneration}mg of fuel each year.`
 					);
 				}
 
 				if (hullComponent.colonizationModule) {
 					descriptions.push(
-						`This module allows a ship to colonize an uninhabited planet. Upon arrival, the pod will dismantle it and any other ships in the fleet into supplies for the colonists. 
+						`This module allows a ship to colonize an uninhabited planet. Upon arrival, it (and any other ships in the fleet) will be dismantled into supplies for the colonists. 
 						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
 					);
 				}
 
 				if (hullComponent.orbitalConstructionModule) {
 					descriptions.push(
-						`This module contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it, scrapping all ships in the fleet in the progress. 
+						`This module contains an empty orbital hull which can be deployed in orbit of an uninhabited planet to colonize it. Upon arrival, it (and any other ships in the fleet) will be dismantled into supplies for the colonists
 						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
 					);
 					if ((hullComponent.minKillRate ?? 0) > 0) {
 						descriptions.push(
-							`This pod also contains viral weapons capable of killing ${hullComponent.minKillRate} enemy colonists per year.`
+							`This pod also contains viral weapons capable of killing ${hullComponent.minKillRate} enemy colonists per year while in orbit.`
 						);
 					}
 				}
@@ -294,7 +300,7 @@
 				if ((hullComponent.torpedoBonus ?? 0) > 0 || (hullComponent.initiativeBonus ?? 0) > 0) {
 					if ((hullComponent.torpedoBonus ?? 0) > 0 && (hullComponent.initiativeBonus ?? 0) > 0) {
 						descriptions.push(
-							`This module increases the accuracy of your torpedos by ${
+							`This module increases the accuracy of your torpedoes by ${
 								(hullComponent.torpedoBonus ?? 0) * 100
 							}% of the current amount and increases your initiative by ${
 								hullComponent.initiativeBonus
@@ -306,7 +312,7 @@
 						);
 					} else if ((hullComponent.torpedoBonus ?? 0) > 0) {
 						descriptions.push(
-							`This module increases the accuracy of your torpedos by ${
+							`This module increases the accuracy of your torpedoes by ${
 								(hullComponent.torpedoBonus ?? 0) * 100
 							}% of the current amount. If an enemy ship has jammers this will act to offset their effects.`
 						);
@@ -317,7 +323,7 @@
 					descriptions.push(
 						`This module has a ${
 							hullComponent.torpedoJamming * 100
-						}% chance of deflecting incoming torpedos. If an enemy ship has computers this will act to offset their effects. 
+						}% chance of deflecting incoming torpedoes. If an enemy ship has computers this will act to offset their effects. 
 						Deflected torpedoes will still reduce shields (if any) by 1/8 the damage value.`
 					);
 				}
@@ -378,7 +384,9 @@
 
 				if ((hullComponent.packetSpeed ?? 0) > 0) {
 					stats.push({ label: 'Warp', text: `${hullComponent.packetSpeed}` });
-					descriptions.push('Allows planets to fling mineral packets at other planets to transport minerals or bombard enemies.');
+					descriptions.push(
+						'Allows planets to fling mineral packets at other planets to transport minerals or bombard enemies.'
+					);
 					warnings.push(
 						'Warning: The receiving planet must have a mass driver at least as capable or it will take damage.'
 					);

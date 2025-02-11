@@ -49,20 +49,23 @@ var TechCategories = []TechCategory{
 	TechCategoryTorpedo,
 }
 
-const (
-	OriginNone          string = ""
-	OriginMysteryTrader string = "MysteryTrader"
-)
-
+// The basic skeleton of a Tech item, containing name, cost and
 type Tech struct {
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost"`
 	Requirements TechRequirements `json:"requirements" `
 	Ranking      int              `json:"ranking,omitempty"`
 	Category     TechCategory     `json:"category,omitempty"`
-	Origin       string           `json:"origin,omitempty"`
-	Tags         Tags             `json:"tags"`
+	Origin       TechOrigin       `json:"origin,omitempty"`
+	Tags         TechTags         `json:"tags,omitempty"`
 }
+
+type TechOrigin string
+
+const (
+	OriginNone          TechOrigin = ""
+	OriginMysteryTrader TechOrigin = "MysteryTrader"
+)
 
 type TechRequirements struct {
 	TechLevel
@@ -114,17 +117,27 @@ type TechHullComponent struct {
 	ColonizationModule        bool          `json:"colonizationModule,omitempty"`
 	FuelBonus                 int           `json:"fuelBonus,omitempty"`
 	FuelGeneration            int           `json:"fuelGeneration,omitempty"`
-	MovementBonus             int           `json:"movementBonus,omitempty"`
+	MovementBonus             float64       `json:"movementBonus,omitempty"`
 	OrbitalConstructionModule bool          `json:"orbitalConstructionModule,omitempty"`
 	Power                     int           `json:"power,omitempty"`
 	Range                     int           `json:"range,omitempty"`
 	Initiative                int           `json:"initiative,omitempty"`
-	Gattling                  bool          `json:"gattling,omitempty"`
+	Gatling                   bool          `json:"gatling,omitempty"`
 	HitsAllTargets            bool          `json:"hitsAllTargets,omitempty"`
 	DamageShieldsOnly         bool          `json:"damageShieldsOnly,omitempty"`
 	Accuracy                  int           `json:"accuracy,omitempty"`
 	CapitalShipMissile        bool          `json:"capitalShipMissile,omitempty"`
 	CanJump                   bool          `json:"canJump,omitempty"`
+}
+
+// get actual armor/shield values for a tech item given its base shield/armor amounts and the multipliers for each
+func getArmorShieldAmounts(baseArmor, baseShield float64, qty int, raceSpec RaceSpec, isArmor bool) (armor, shield float64) {
+	// TODO: Fix RS shield effect in a less janky way
+	if isArmor {
+		return baseArmor * raceSpec.ArmorStrengthFactor * float64(qty), baseShield * raceSpec.ShieldStrengthFactor * float64(qty)
+	} else {
+		return baseArmor * float64(qty), baseShield * raceSpec.ShieldStrengthFactor * float64(qty)
+	}
 }
 
 type Engine struct {
@@ -144,6 +157,7 @@ type TechHull struct {
 	Type                     TechHullType   `json:"type,omitempty"`
 	Mass                     int            `json:"mass,omitempty"`
 	Armor                    int            `json:"armor,omitempty"`
+	Shield                   int            `json:"shield,omitempty"`
 	FuelCapacity             int            `json:"fuelCapacity,omitempty"`
 	FuelGeneration           int            `json:"fuelGeneration,omitempty"`
 	CargoCapacity            int            `json:"cargoCapacity,omitempty"`
@@ -155,13 +169,13 @@ type TechHull struct {
 	SpaceDockSlotSize        Vector         `json:"spaceDockSlotSize,omitempty"`
 	SpaceDockSlotCircle      bool           `json:"spaceDockSlotCircle,omitempty"`
 	MineLayingBonus          float64        `json:"mineLayingBonus,omitempty"`
-	BuiltInScanner           bool           `json:"builtInScanner,omitempty"`
 	Initiative               int            `json:"initiative,omitempty"`
 	RepairBonus              float64        `json:"repairBonus,omitempty"`
 	ImmuneToOwnDetonation    bool           `json:"immuneToOwnDetonation,omitempty"`
 	RangeBonus               int            `json:"rangeBonus,omitempty"`
 	Starbase                 bool           `json:"starbase,omitempty"`
 	OrbitalConstructionHull  bool           `json:"orbitalConstructionHull,omitempty"`
+	BuiltInScanner           bool           `json:"builtInScanner,omitempty"`
 	DoubleMineEfficiency     bool           `json:"doubleMineEfficiency,omitempty"`
 	MaxPopulation            int            `json:"maxPopulation,omitempty"`
 	InnateScanRangePenFactor float64        `json:"innateScanRangePenFactor,omitempty"`
@@ -178,19 +192,34 @@ type TechHullSlot struct {
 type TechHullType string
 
 const (
-	TechHullTypeScout                 TechHullType = "Scout"
-	TechHullTypeColonizer             TechHullType = "Colonizer"
 	TechHullTypeBomber                TechHullType = "Bomber"
+	TechHullTypeColonizer             TechHullType = "Colonizer"
+	TechHullTypeCapitalShip           TechHullType = "CapitalShip" // big, bulky capital ships
 	TechHullTypeFighter               TechHullType = "Fighter"
-	TechHullTypeCapitalShip           TechHullType = "CapitalShip"
 	TechHullTypeFreighter             TechHullType = "Freighter"
-	TechHullTypeMultiPurposeFreighter TechHullType = "MultiPurposeFreighter"
 	TechHullTypeFuelTransport         TechHullType = "FuelTransport"
 	TechHullTypeMiner                 TechHullType = "Miner"
 	TechHullTypeMineLayer             TechHullType = "MineLayer"
-	TechHullTypeStarbase              TechHullType = "Starbase"
+	TechHullTypeMultiPurposeFreighter TechHullType = "MultiPurposeFreighter"
 	TechHullTypeOrbitalFort           TechHullType = "OrbitalFort"
+	TechHullTypeScout                 TechHullType = "Scout"
+	TechHullTypeStarbase              TechHullType = "Starbase"
 )
+
+var TechHullTypes = []TechHullType{
+	TechHullTypeBomber,
+	TechHullTypeColonizer,
+	TechHullTypeCapitalShip,
+	TechHullTypeFighter,
+	TechHullTypeFreighter,
+	TechHullTypeFuelTransport,
+	TechHullTypeMiner,
+	TechHullTypeMineLayer,
+	TechHullTypeMultiPurposeFreighter,
+	TechHullTypeOrbitalFort,
+	TechHullTypeScout,
+	TechHullTypeStarbase,
+}
 
 func (t TechHullType) IsAttackHull() bool {
 	return t == TechHullTypeFighter || t == TechHullTypeCapitalShip || t == TechHullTypeMultiPurposeFreighter
@@ -201,6 +230,8 @@ func (t TechHullType) IsBomber() bool {
 }
 
 type HullSlotType Bitmask
+
+// DO NOT REARRANGE EXISTING VALUES. IT *WILL* BREAK EXISTING GAMES.
 
 const (
 	HullSlotTypeNone                = 0
@@ -218,8 +249,8 @@ const (
 	HullSlotTypeOrbital
 	HullSlotTypeMineLayer
 
-	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical
 	HullSlotTypeElectricalMechanical             = HullSlotTypeElectrical | HullSlotTypeMechanical
+	HullSlotTypeOrbitalElectrical                = HullSlotTypeOrbital | HullSlotTypeElectrical
 	HullSlotTypeShieldElectricalMechanical       = HullSlotTypeShield | HullSlotTypeElectrical | HullSlotTypeMechanical
 	HullSlotTypeScannerElectricalMechanical      = HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical
 	HullSlotTypeArmorScannerElectricalMechanical = HullSlotTypeArmor | HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical
@@ -228,6 +259,50 @@ const (
 	HullSlotTypeWeaponShield                     = HullSlotTypeShield | HullSlotTypeWeapon
 	HullSlotTypeGeneral                          = HullSlotTypeScanner | HullSlotTypeMechanical | HullSlotTypeElectrical | HullSlotTypeShield | HullSlotTypeArmor | HullSlotTypeWeapon | HullSlotTypeMineLayer
 )
+
+var HullSlotTypes = []HullSlotType{
+	HullSlotTypeNone,
+	HullSlotTypeEngine,
+	HullSlotTypeScanner,
+	HullSlotTypeMechanical,
+	HullSlotTypeBomb,
+	HullSlotTypeMining,
+	HullSlotTypeElectrical,
+	HullSlotTypeShield,
+	HullSlotTypeArmor,
+	HullSlotTypeCargo,
+	HullSlotTypeSpaceDock,
+	HullSlotTypeWeapon,
+	HullSlotTypeOrbital,
+	HullSlotTypeMineLayer,
+	HullSlotTypeElectricalMechanical,
+	HullSlotTypeOrbitalElectrical,
+	HullSlotTypeShieldElectricalMechanical,
+	HullSlotTypeScannerElectricalMechanical,
+	HullSlotTypeArmorScannerElectricalMechanical,
+	HullSlotTypeMineElectricalMechanical,
+	HullSlotTypeShieldArmor,
+	HullSlotTypeWeaponShield,
+	HullSlotTypeGeneral,
+}
+
+// all single type hull slot types
+var BasicHullSlotTypes = []HullSlotType{
+	HullSlotTypeNone,
+	HullSlotTypeEngine,
+	HullSlotTypeScanner,
+	HullSlotTypeMechanical,
+	HullSlotTypeBomb,
+	HullSlotTypeMining,
+	HullSlotTypeElectrical,
+	HullSlotTypeShield,
+	HullSlotTypeArmor,
+	HullSlotTypeCargo,
+	HullSlotTypeSpaceDock,
+	HullSlotTypeWeapon,
+	HullSlotTypeOrbital,
+	HullSlotTypeMineLayer,
+}
 
 func (hst HullSlotType) String() string {
 	switch hst {
@@ -258,9 +333,11 @@ func (hst HullSlotType) String() string {
 	case HullSlotTypeOrbital:
 		return "orbital"
 	case HullSlotTypeMineLayer:
-		return "mine layer"
+		return "minelayer"
 	case HullSlotTypeOrbitalElectrical:
 		return "orbital electrical"
+	case HullSlotTypeElectricalMechanical:
+		return "electrical mechanical"
 	case HullSlotTypeShieldElectricalMechanical:
 		return "shield electrical mechanical"
 	case HullSlotTypeScannerElectricalMechanical:
@@ -329,18 +406,19 @@ func FromHabType(habType HabType) TerraformHabType {
 	}
 }
 
-func NewTech(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory) Tech {
+func NewTech(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, tags ...TechTag) Tech {
 	return Tech{
 		Name:         name,
 		Cost:         cost,
 		Requirements: requirements,
 		Ranking:      ranking,
 		Category:     category,
+		Tags:         newTechTags(tags...),
 	}
 }
 
-func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin string) Tech {
-	t := NewTech(name, cost, requirements, ranking, category)
+func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, origin TechOrigin, tags ...TechTag) Tech {
+	t := NewTech(name, cost, requirements, ranking, category, tags...)
 	t.Origin = origin
 	return t
 }

@@ -2,7 +2,6 @@ package test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"math"
 	"os"
 	"testing"
@@ -13,7 +12,7 @@ import (
 
 // compare two objects as json outputs
 // if the comparison fails, this writes a want.json and got.json to the tmp folder
-func CompareAsJSON(t *testing.T, got interface{}, want interface{}) bool {
+func CompareAsJSON(t *testing.T, got, want any) bool {
 	if got == nil && want == nil {
 		return true
 	} else if got == nil && want != nil || got != nil && want == nil {
@@ -34,8 +33,8 @@ func CompareAsJSON(t *testing.T, got interface{}, want interface{}) bool {
 			log.Debug().Msgf("\n\ngot: %s\n", string(gotJson))
 			log.Debug().Msgf("\n\nwant: %s\n", string(wantJson))
 
-			_ = ioutil.WriteFile("../tmp/got.json", gotJson, 0644)
-			_ = ioutil.WriteFile("../tmp/want.json", wantJson, 0644)
+			_ = os.WriteFile("../tmp/got.json", gotJson, 0644)
+			_ = os.WriteFile("../tmp/want.json", wantJson, 0644)
 			return false
 		} else {
 			return true

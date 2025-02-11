@@ -102,6 +102,11 @@ func (p *Planet) MarkDirty() {
 	p.Dirty = true
 }
 
+func (p *Planet) WithOrders(orders PlanetOrders) *Planet {
+	p.PlanetOrders = orders
+	return p
+}
+
 func (p *Planet) withPosition(position Vector) *Planet {
 	p.Position = position
 	return p
@@ -264,28 +269,15 @@ func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) 
 	return err
 }
 
-// transfer ownership of a planet to another player
-func (p *Planet) transferOwnership(playerNum, colonistsRemaining int) {
-	p.emptyPlanet()
-	p.PlayerNum = playerNum
-	p.setPopulation(colonistsRemaining)
-}
-
-func (p *Planet) reset() {
-	p.Hab = Hab{}
-	p.BaseHab = Hab{}
-	p.TerraformedAmount = Hab{}
-	p.MineralConcentration = Mineral{}
-	p.MineYears = Mineral{}
-}
-
-// empty this planet of pop, owner
+// empty this planet of pop & owner, typically used when transferring or losing ownership
 func (p *Planet) emptyPlanet() {
 	p.PlayerNum = Unowned
 	p.Starbase = nil
+	// defenses & scanner disappear, other structures stay though
 	p.Scanner = false
-	p.Defenses = 0                  // defenses are all gone, rest of the structures can stay
-	p.PlanetOrders = PlanetOrders{} // clear any orders from previous owner
+	// clear any production or other orders from the previous owner
+	p.Defenses = 0
+	p.PlanetOrders = PlanetOrders{}
 	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
 	// reset any instaforming
@@ -294,35 +286,38 @@ func (p *Planet) emptyPlanet() {
 }
 
 // randomize a planet with new hab range, minerals, etc
+// Used in universe generation as well as for genesis device resets
 func (p *Planet) randomize(rules *Rules) {
-	p.reset()
+	// From @SuicideJunkie's tests and @edmundmk's previous research,
+	// grav and temp are weighted slightly towards the center while
+	// rad is completely random (though all 3 are clamped between 1 and 99).
 
-	// From @SuicideJunkie's tests and @edmundmk's previous research, grav and temp are weighted slightly towards
-	// the center while rad is completely random (though all 3 are clamped between 1 and 99).
-
-	// First, we handle the first block of the randomness
+	// First, we handle the first block of the hab randomness disregarding dropoff
 	p.Hab = Hab{
-		Grav: rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Grav+1),
+		Grav: rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Grav+1), // 1+randint(99-1-9+1)
 		Temp: rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Temp+1),
 		Rad:  rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Rad+1),
 	}
 
-	// add random amounts to simulate dropoff at high ranges
+	// add random amounts to simulate dropoff at the extremes ranges
 	var randomG, randomT, randomR int
 	if rules.HabDropoffRange.Grav > 0 {
-		randomG = rules.random.Intn(rules.HabDropoffRange.Grav)
+		randomG = rules.random.Intn(rules.HabDropoffRange.Grav + 1)
 	}
 	if rules.HabDropoffRange.Temp > 0 {
-		randomT = rules.random.Intn(rules.HabDropoffRange.Temp)
+		randomT = rules.random.Intn(rules.HabDropoffRange.Temp + 1)
 	}
 	if rules.HabDropoffRange.Rad > 0 {
-		randomR = rules.random.Intn(rules.HabDropoffRange.Rad)
+		randomR = rules.random.Intn(rules.HabDropoffRange.Rad + 1)
 	}
-	p.Hab.Add(Hab{randomG, randomT, randomR})
 
+	p.Hab = p.Hab.Add(Hab{randomG, randomT, randomR})
+
+	// reset the other stuff
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
 	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad)
+	p.MineYears = Mineral{}
 
 }
 
@@ -495,12 +490,12 @@ func (p *Planet) shortestDistanceToPlanets(otherPlanets *[]*Planet) float64 {
 }
 
 // get the mineral output of a planet based on mineOutput (10 for remote mining)
-// TODO: add fractional mineral support
+// TODO: Add fractional mineral outputs (% chance for extra) for sub-integer amounts
 func (p *Planet) getMineralOutput(numMines int, mineOutput int) Mineral {
 	return Mineral{
-		int(float64(p.MineralConcentration.Ironium) / 100 * float64(numMines) / 10 * float64(mineOutput)),
-		int(float64(p.MineralConcentration.Boranium) / 100 * float64(numMines) / 10 * float64(mineOutput)),
-		int(float64(p.MineralConcentration.Germanium) / 100 * float64(numMines) / 10 * float64(mineOutput)),
+		int(float64(p.MineralConcentration.Ironium*numMines*mineOutput) / 1000),
+		int(float64(p.MineralConcentration.Boranium*numMines*mineOutput) / 1000),
+		int(float64(p.MineralConcentration.Germanium*numMines*mineOutput) / 1000),
 	}
 }
 
@@ -557,10 +552,9 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 
-	// population will generate resources up to 3x max pop, but they can only
-	// operate structures up to max pop
-	productivePop := planet.productivePopulation(planet.GetPopulation(), spec.MaxPopulation)
-	installationPop := planet.productiveInstallationPopulation(planet.GetPopulation(), spec.MaxPopulation)
+	// calculate productive pop for resources and intslations
+	productivePop := planet.productivePopulation(spec.Population, spec.MaxPopulation)
+	installationPop := planet.productiveInstallationPopulation(spec.Population, spec.MaxPopulation)
 
 	if !race.Spec.InnateMining {
 		spec.MaxMines = planet.getMaxMines(player, installationPop)
@@ -594,6 +588,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	}
 
 	if race.Spec.InnateScanner {
+		// calculate AR organic scan ranes
 		spec.Scanner = "Organic"
 		spec.ScanRange = int(float64(planet.innateScanner(player, productivePop)) * player.Race.Spec.ScanRangeFactor)
 		if !player.Race.Spec.NoAdvancedScanners && planet.Starbase != nil {
@@ -653,19 +648,21 @@ func (spec *PlanetSpec) computeResourcesPerYearAvailable(player *Player, planet 
 	}
 }
 
-// get the max population for this planet for a player with a hab rating
+// get the max population for this planet for a player with a given hab rating
 func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int) int {
 	maxPopulationFactor := 1 + player.Race.Spec.MaxPopulationOffset
-	maxPossiblePop := rules.MaxPopulation
+	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
+		// AR races' max pop are independent of habitability
+		// TODO: How does this round again?
+		return int(roundToNearest100(float64(p.Starbase.Spec.MaxPopulation)*maxPopulationFactor, math.Floor))
+	}
 
+	maxPossiblePop := rules.MaxPopulation
 	// a planet's max pop can't go lower than 5% of a race's max, i.e.
 	// for a regular race with 1 million max pop, the minimum max population is 50,000
 	minMaxPop := float64(maxPossiblePop) * maxPopulationFactor * rules.MinMaxPopulationPercent
 
-	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
-		return int(roundToNearest100(float64(p.Starbase.Spec.MaxPopulation)*maxPopulationFactor, math.Round))
-	}
-	return int(roundToNearest100(math.Max(minMaxPop, float64(maxPossiblePop)*maxPopulationFactor*float64(habitability)/100.0), math.Round))
+	return int(roundToNearest100(math.Max(minMaxPop, float64(maxPossiblePop*habitability)*maxPopulationFactor/100.0), math.Floor))
 }
 
 // get max factories for a population

@@ -183,47 +183,20 @@ type builtShip struct {
 // produce all items in the production queue
 func (p *production) produce() (productionResult, error) {
 	planet := p.planet
-	costCalculator := NewCostCalculator()
 	result := productionResult{}
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddMineral(planet.SurfaceMinerals)
 	newQueue := []ProductionQueueItem{}
-	for itemIndex := range planet.ProductionQueue {
-		item := planet.ProductionQueue[itemIndex]
-		maxBuildable := planet.maxBuildable(p.player, item.Type)
-		var err error
-		var cost Cost
-		if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
-			cost, err = costCalculator.StarbaseUpgradeCost(p.rules, p.player.TechLevels, p.player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
-			if err != nil {
-				p.log.Error().
-					Err(err).
-					Int("DesignNum", item.design.Num).
-					Int("OldDesignNum", planet.Starbase.Tokens[0].design.Num).
-					Msgf("StarbaseUpgradeCost returned error: %v", err)
-				return productionResult{}, fmt.Errorf("failed to compute starbase upgrade cost during produce(); error: %w", err)
-			}
-		} else if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
-			cost, err = costCalculator.GetDesignCost(p.rules, p.player.TechLevels, p.player.Race.Spec, item.design)
-			if err != nil {
-				p.log.Error().
-					Err(err).
-					Int("DesignNum", item.design.Num).
-					Msgf("GetDesignCost returned error: %v", err)
-				return productionResult{}, fmt.Errorf("failed to get design cost during produce(); error: %w", err)
-			}
-		} else {
-			cost, err = costCalculator.CostOfOne(p.player, item)
-			if err != nil {
-				p.log.Error().
-					Err(err).
-					Int("DesignNum", item.design.Num).
-					Str("ItemType", string(item.Type)).
-					Int("ItemQuantity", item.Quantity).
-					Msgf("CostOfOne returned error: %v", err)
-				return productionResult{}, fmt.Errorf("failed to compute cost of %s during produce(); error: %w", item.Type, err)
-			}
+	for itemIndex, item := range planet.ProductionQueue {
+		cost, err := p.getItemCost(p.rules, p.player, p.planet, item)
+		if err != nil {
+			p.log.Error().
+				Err(err).
+				Any("item", item).
+				Msgf("produce() returned error when calculating costs: %v", err)
+			return productionResult{}, err
 		}
 
+		maxBuildable := planet.maxBuildable(p.player, item.Type)
 		// Infinite is the constant int of -1, but for our purposes we want a very large number
 		if maxBuildable == Infinite {
 			maxBuildable = math.MaxInt
@@ -365,6 +338,29 @@ func (p *production) produce() (productionResult, error) {
 	return result, nil
 }
 
+func (p *production) getItemCost(rules *Rules, player *Player, planet *Planet, item ProductionQueueItem) (Cost, error) {
+	costCalculator := NewCostCalculator()
+	var err error
+	var cost Cost
+	if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
+		cost, err = costCalculator.StarbaseUpgradeCost(rules, player.TechLevels, player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
+		if err != nil {
+			return Cost{}, fmt.Errorf("failed to compute starbase upgrade cost, err %w", err)
+		}
+	} else if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
+		cost, err = costCalculator.GetDesignCost(rules, player.TechLevels, player.Race.Spec, item.design)
+		if err != nil {
+			return Cost{}, fmt.Errorf("failed to get design cost, error %w", err)
+		}
+	} else {
+		cost, err = costCalculator.CostOfOne(player, item)
+		if err != nil {
+			return Cost{}, fmt.Errorf("failed to compute cost of %s, err %w", item.Type, err)
+		}
+	}
+	return cost, nil
+}
+
 // Allocate minerals and resources to the top item on this production queue
 // and return the leftover resources
 //
@@ -469,9 +465,11 @@ func (p *production) getNumBuilt(item ProductionQueueItem, cost, availableToSpen
 		return Min(item.Quantity, maxBuildable), Cost{}
 	}
 
-	// figure out how many we can build
-	// and make sure we only build up to the quantity, and we don't build more than the planet supports
-	numBuilt = Max(0, Min(item.Quantity, maxBuildable, int(availableToSpend.Divide(cost.ToCostFloat64()))))
+	// figure out how many we can build;
+	// make sure we only build up to the quantity required
+	// and we don't build more than the planet supports
+	numBuilt = Max(0, Min(item.Quantity, maxBuildable,
+		int(availableToSpend.DivideCost(cost))))
 	spent = MultiplyCost(cost, numBuilt)
 
 	return numBuilt, spent

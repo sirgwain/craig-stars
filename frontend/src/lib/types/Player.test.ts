@@ -254,39 +254,4 @@ describe('player test', () => {
 		};
 		expect(player.getTerraformAbility(techStore)).toEqual({ grav: 3, temp: 3, rad: 3 });
 	});
-
-	it('getTechCost', () => {
-		const player = new Player();
-		player.techLevels = {};
-
-		// default
-		expect(player.getTechCost(fuelMizer)).toEqual({
-			ironium: 8,
-			boranium: 0,
-			germanium: 0,
-			resources: 11
-		});
-		// miniaturized
-		player.techLevels = { propulsion: 10 };
-		expect(player.getTechCost(fuelMizer)).toEqual({
-			ironium: 6,
-			boranium: 0,
-			germanium: 0,
-			resources: 8
-		});
-
-		// cheap engine race, 50% cheaper
-		player.techLevels = {};
-		player.race.spec = Object.assign(player.race.spec ?? {}, {
-			techCostOffset: {
-				engine: -0.5
-			}
-		}) as RaceSpec;
-		expect(player.getTechCost(fuelMizer)).toEqual({
-			ironium: 4,
-			boranium: 0,
-			germanium: 0,
-			resources: 5
-		});
-	});
 });

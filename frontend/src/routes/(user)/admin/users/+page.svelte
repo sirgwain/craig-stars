@@ -99,9 +99,9 @@
 							class="btn btn-ghost btn-outline btn-sm">Convert Guest</a
 						>{/if}
 				{:else if column.key == 'createdAt'}
-					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+					{format(parseJSON(row.createdAt), 'E, MMM do yyyy hh:mm aaa')}
 				{:else if column.key == 'lastLogin' && cell}
-					{format(parseJSON(cell), 'E, MMM do yyyy hh:mm aaa')}
+					{format(parseJSON(row.updatedAt), 'E, MMM do yyyy hh:mm aaa')}
 				{:else}
 					{cell}
 				{/if}

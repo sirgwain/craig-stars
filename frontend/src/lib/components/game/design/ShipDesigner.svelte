@@ -6,7 +6,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';
-	import type { ShipDesign, ShipDesignSlot, Spec } from '$lib/types/ShipDesign';
+	import type { ShipDesign, ShipDesignSlot, ShipDesignSpec } from '$lib/types/ShipDesign';
 	import {
 		HullSlotType,
 		canFillSlot,
@@ -37,7 +37,9 @@
 
 	let { hull, design = $bindable(), error = '', numHullSets = 4, onSave }: Props = $props();
 
-	let designSpec: Spec = $derived(cs.computeShipDesignSpec(design) ?? ({} as Spec));
+	let designSpec: ShipDesignSpec = $derived(
+		cs.computeShipDesignSpec(design) ?? ({} as ShipDesignSpec)
+	);
 	let highlightedSlots: number[] = $state([]);
 
 	// only show hull components that actually fit on this hull
@@ -265,7 +267,7 @@
 						>
 					</div>
 					<div class="pl-2">
-						<Cost cost={$player.getTechCost(selectedComponent)} />
+						<Cost cost={cs.techCost(selectedComponent)} />
 					</div>
 				{/if}
 			</div>

@@ -29,7 +29,6 @@ type Rules struct {
 	MineFieldStatsByType             map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType,omitempty"`
 	MineralDecayFactor               int                                 `json:"mineralDecayFactor,omitempty"`
 	MinMaxPopulationPercent          float64                             `json:"minMaxPopulationPercent,omitempty"`
-	MovesToRunAway                   int                                 `json:"movesToRunAway,omitempty"`
 	MysteryTraderRules               MysteryTraderRules                  `json:"mysteryTraderRules,omitempty"`
 	PacketDecayRate                  map[int]float64                     `json:"packetDecayRate,omitempty"`
 	PacketMaxOverwarpSpeed           int                                 `json:"packetMaxOverwarpSpeed,omitempty"`
@@ -58,8 +57,8 @@ type Rules struct {
 	SmartDefenseCoverageFactor       float64                             `json:"smartDefenseCoverageFactor,omitempty"`
 	StargateMaxHullMassFactor        int                                 `json:"stargateMaxHullMassFactor,omitempty"`
 	StargateMaxRangeFactor           int                                 `json:"stargateMaxRangeFactor,omitempty"`
-	TachyonCloakReduction            int                                 `json:"tachyonCloakReduction,omitempty"`
-	TachyonMaxCloakReduction         int                                 `json:"tachyonMaxCloakReduction,omitempty"`
+	TachyonCloakReduction            float64                             `json:"tachyonCloakReduction,omitempty"`
+	TachyonMaxCloakReduction         float64                             `json:"tachyonMaxCloakReduction,omitempty"`
 	TechsID                          int64                               `json:"techsId,omitempty"`
 	TechTradeChance                  float64                             `json:"techTradeChance,omitempty"`
 	TorpedoSplashDamage              float64                             `json:"torpedoSplashDamage,omitempty"`
@@ -69,8 +68,11 @@ type Rules struct {
 	random                           rng
 	techs                            *TechStore
 }
+
 type UniverseGenerationRules struct {
-	HabDropoffRange                           Hab                           `json:"habDropoffRange,omitempty"`
+	HabDropoffRange                           Hab                           `json:"habDropoffRange,omitempty"` // Controls up to how many clicks (inclusive) away from MinHab & MaxHab do planet habs become linearly less likely
+	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold,omitempty"`
+	LimitMineralConcentration                 int                           `json:"limitMineralConcentration,omitempty"`
 	MaxExtraWorldDistance                     int                           `json:"maxExtraWorldDistance,omitempty"`
 	MaxHab                                    int                           `json:"maxHab,omitempty"`
 	MaxMineralConcentration                   int                           `json:"maxMineralConcentration,omitempty"`
@@ -83,8 +85,6 @@ type UniverseGenerationRules struct {
 	MinMineralConcentration                   int                           `json:"minMineralConcentration,omitempty"`
 	MinStartingMineralConcentration           int                           `json:"minStartingMineralConcentration,omitempty"`
 	MinStartingMineralSurface                 int                           `json:"minStartingMineralSurface,omitempty"`
-	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold,omitempty"`
-	LimitMineralConcentration                 int                           `json:"limitMineralConcentration,omitempty"`
 	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem,omitempty"`
 	StartingYear                              int                           `json:"startingYear,omitempty"`
 	WormholeMinPlanetDistance                 int                           `json:"wormholeMinPlanetDistance,omitempty"`
@@ -101,9 +101,28 @@ type CostRules struct {
 	TechBaseCost                   []int   `json:"techBaseCost,omitempty"`
 }
 
+type JammerCap struct {
+	Ship     float64
+	Starbase float64
+}
+
+func (jc JammerCap) Get(starbase bool) float64 {
+	if starbase {
+		return jc.Starbase
+	}
+	return jc.Ship
+}
+
 type BattleRules struct {
-	BeamRangeDropoff float64 `json:"beamRangeDropoff,omitempty"`
-	NumBattleRounds  int     `json:"numBattleRounds,omitempty"`
+	BeamRangeDropoff    float64   `json:"beamRangeDropoff,omitempty"`
+	BeamBonusCap        float64   `json:"beamBonusCap,omitempty"`
+	JammerCap           JammerCap `json:"jammerCap,omitempty"`
+	JammerMulti         JammerCap `json:"jammerMulti,omitempty"`
+	MovementMin         int       `json:"movementMin,omitempty"`
+	MovementMax         int       `json:"movementMax,omitempty"`
+	MovesToRunAway      int       `json:"movesToRunAway,omitempty"`
+	NumBattleRounds     int       `json:"numBattleRounds,omitempty"`
+	TorpedoSplashDamage float64   `json:"torpedoSplashDamage,omitempty"`
 }
 
 type RandomEvent string
@@ -264,14 +283,33 @@ func NewRulesWithSeed(seed int64) Rules {
 		},
 		BattleRules: BattleRules{
 			BeamRangeDropoff: 0.1,
-			NumBattleRounds:  16,
+			BeamBonusCap:     2.55, // 2.55x damage max from caps
+			JammerCap: JammerCap{
+				Starbase: 1,    // starbases have 100 jamming max, but an innate 0.75x jam penalty
+				Ship:     0.95, // ships have 95% jamming max
+			},
+			JammerMulti: JammerCap{
+				Starbase: 0.75, // starbases have innate 0.75x jam penalty by default
+				Ship:     1,    // ships have no penalty
+			},
+			MovementMin:         2,
+			MovementMax:         10,
+			MovesToRunAway:      7,
+			NumBattleRounds:     16,
+			TorpedoSplashDamage: 0.125,
 		},
 		UniverseGenerationRules: UniverseGenerationRules{
+			// The first 9 Grav/Temp hab values from either edge (1-9 & 91-99) are linearly less likely to generate.
+			// More specifically, a hab value N clicks away from the edge with dropoff range of H
+			// becomes (N+1/H+1)x as likely as a normal mid-value hab
+			// Ex: 6 temp is 5 clicks away from min (1) and is thus 6/10x as likely to gen;
+			// 99 temp is 0 away and is thus 1/10x as likely.
 			HabDropoffRange: Hab{
-				Grav: 10, // outer 10 hab clicks for G/T are linearly less likely
-				Temp: 10,
+				Grav: 9,
+				Temp: 9,
 				Rad:  0,
 			},
+			HighRadMineralConcentrationBonusThreshold: 90,
 			MaxExtraWorldDistance:                     180,
 			MinExtraWorldDistance:                     130,
 			MinHomeworldMineralConcentration:          30,
@@ -283,7 +321,6 @@ func NewRulesWithSeed(seed int64) Rules {
 			MinStartingMineralConcentration:           1,
 			MaxStartingMineralConcentration:           121,
 			LimitMineralConcentration:                 30,
-			HighRadMineralConcentrationBonusThreshold: 90,
 			MaxStartingMineralSurface:                 1000,
 			MinStartingMineralSurface:                 300,
 			RaceLeftoverPointsPerItem: map[SpendLeftoverPointsOn]int{
@@ -296,17 +333,16 @@ func NewRulesWithSeed(seed int64) Rules {
 			StartingYear:              2400,
 			WormholeMinPlanetDistance: 30,
 		},
-		TachyonCloakReduction:            5,
-		TachyonMaxCloakReduction:         81, // tachyon detectors cap at 81% cloaking reduction
+		// TODO: Change tachyon cloak reduction to a property of the technology itself
+		TachyonCloakReduction:            .05, // 5% diminishing cloak reduction per detector
+		TachyonMaxCloakReduction:         .81, // tachyon detectors cap at 81% cloaking reduction
 		MaxPopulation:                    1_000_000,
-		MinMaxPopulationPercent:          .05, // minimum 5% hab floor on low-value/hostile worlds
-		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per 100% over cap
+		MinMaxPopulationPercent:          .05, // red worlds have 5% max pop
+		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per doubling
 		PopulationOvercrowdDieoffRateMax: .12, // overcrowded pops will not die off more than 12% (3x pop) in a year
 		PopulationScannerError:           0.2, // opponents' scanners have +-20% error on pop readings
 		SmartDefenseCoverageFactor:       0.5,
 		InvasionDefenseCoverageFactor:    0.75,
-		MovesToRunAway:                   7,
-		TorpedoSplashDamage:              0.125,
 		SalvageDecayRate:                 0.1,
 		SalvageDecayMin:                  10,
 		MineFieldCloak:                   75,

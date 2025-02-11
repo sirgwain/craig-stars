@@ -190,15 +190,14 @@ func FleetPurposeFromShipDesignPurpose(purpose ShipDesignPurpose) FleetPurpose {
 		return FleetPurposeColonizer
 	case ShipDesignPurposeBomber, ShipDesignPurposeSmartBomber, ShipDesignPurposeStructureBomber:
 		return FleetPurposeBomber
-	case ShipDesignPurposeFighter, ShipDesignPurposeFighterScout:
+	case ShipDesignPurposeStartingFighter, ShipDesignPurposeFighterScout:
 		return FleetPurposeFighter
-	case ShipDesignPurposeCapitalShip:
+	case ShipDesignPurposeTorpedoFighter, ShipDesignPurposeBeamFighter:
 		return FleetPurposeCapitalShip
-	case ShipDesignPurposeFreighter, ShipDesignPurposeFuelFreighter:
+	case ShipDesignPurposeFreighter, ShipDesignPurposeFuelFreighter, ShipDesignPurposeMultiPurposeFreighter:
 		return FleetPurposeFreighter
-	case ShipDesignPurposeMultiPurposeFreighter, ShipDesignPurposeColonistFreighter:
+	case ShipDesignPurposeColonistFreighter:
 		return FleetPurposeColonistFreighter
-
 	case ShipDesignPurposeArmedFreighter:
 		return FleetPurposeArmedFreighter
 	case ShipDesignPurposeMiner:
@@ -207,6 +206,32 @@ func FleetPurposeFromShipDesignPurpose(purpose ShipDesignPurpose) FleetPurpose {
 		return FleetPurposeTerraformer
 	case ShipDesignPurposeDamageMineLayer, ShipDesignPurposeSpeedMineLayer:
 		return FleetPurposeMineLayer
+	}
+	return FleetPurposeNone
+}
+
+// get fleet purpose from hull type; design purpose used only as backup for niche cases
+func FleetPurposeFromTechHullType(hull TechHullType, purpose ShipDesignPurpose) FleetPurpose {
+	switch hull {
+	case TechHullTypeScout:
+		return FleetPurposeScout
+	case TechHullTypeColonizer:
+		return FleetPurposeColonizer
+	case TechHullTypeBomber:
+		return FleetPurposeBomber
+	case TechHullTypeFighter:
+		return FleetPurposeFighter
+	case TechHullTypeCapitalShip:
+		return FleetPurposeCapitalShip
+	case TechHullTypeFreighter, TechHullTypeFuelTransport, TechHullTypeMultiPurposeFreighter:
+		return FleetPurposeFreighter
+	case TechHullTypeMineLayer:
+		return FleetPurposeMineLayer
+	case TechHullTypeMiner:
+		if purpose == ShipDesignPurposeMiner {
+			return FleetPurposeMiner
+		}
+		return FleetPurposeTerraformer
 	}
 	return FleetPurposeNone
 }
@@ -536,6 +561,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || token.design.Spec.OrbitalConstructionModule
 
 		// radiating parts
+		// TODO: Rework radiating into a custom datatype
 		spec.Radiating = spec.Radiating || token.design.Spec.Radiating
 
 		// spec all mine layers in the fleet

@@ -315,36 +315,69 @@ func Test_computePlanetSpec(t *testing.T) {
 }
 
 func TestPlanet_randomize(t *testing.T) {
-
+	type fields struct {
+		habDropoff Hab
+		minHab     int
+		maxHab     int
+	}
 	tests := []struct {
-		name string
-		rng  rng
-		want Planet
+		name   string
+		fields fields
+		planet *Planet
+		rng    rng
+		want   *Planet
 	}{
 		{
-			name: "planet gen with all 0 rng",
-			rng:  newIntRandom(),
-			want: Planet{
+			name:   "normal w/ all 0 rng; shouldn't reset production queue",
+			fields: fields{rules.HabDropoffRange, rules.MinHab, rules.MaxHab},
+			planet: NewPlanet().WithOrders(PlanetOrders{
+				ProductionQueue: []ProductionQueueItem{
+					{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{0, 0, 2, 6}},
+					{Type: QueueItemTypeAutoDefenses, Quantity: 100},
+					{Type: QueueItemTypeAutoFactories, Quantity: 10},
+				},
+			}),
+			rng: newIntRandom(),
+			want: &Planet{
 				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
 				Dirty:                true,
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
 				MineralConcentration: Mineral{1, 1, 1},
-				PlanetOrders: PlanetOrders{
-					ProductionQueue: []ProductionQueueItem{},
-				},
+				MineYears:            Mineral{},
+				PlanetOrders: PlanetOrders{ProductionQueue: []ProductionQueueItem{
+					{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{0, 0, 2, 6}},
+					{Type: QueueItemTypeAutoDefenses, Quantity: 100},
+					{Type: QueueItemTypeAutoFactories, Quantity: 10},
+				}},
+			},
+		},
+		{
+			name:   "custom rules/rng seed",
+			fields: fields{Hab{20, 20, 20}, 10, 90}, // 10 + rand[0,61) + rand[0,21)
+			planet: NewPlanet(),
+			rng:    newIntRandom(50, 43, 11, 2, 3, 5),
+			want: &Planet{
+				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
+				Dirty:                true,
+				Hab:                  Hab{62, 56, 26},
+				BaseHab:              Hab{62, 56, 26},
+				MineralConcentration: Mineral{1, 1, 1},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewPlanet()
+			got := tt.planet
+			r := &rules
+			r.HabDropoffRange = tt.fields.habDropoff
+			r.MinHab = tt.fields.minHab
+			r.MaxHab = tt.fields.maxHab
+			r.random = tt.rng
 
-			rules := NewRules()
-			rules.random = tt.rng
-			got.randomize(&rules)
+			got.randomize(r)
 
-			if !reflect.DeepEqual(got, &tt.want) {
+			if !reflect.DeepEqual(got, tt.want) {
 				// dump json, but this won't include some fields
 				test.CompareAsJSON(t, got, tt.want)
 				t.Errorf("randomize() = %#v, want %#v", got, tt.want)
@@ -401,6 +434,51 @@ func TestPlanet_grow(t *testing.T) {
 				t.Errorf("planet.grow() gave %v leftover pop, want %v", gotPart, leftoverPop)
 			}
 
+		})
+	}
+}
+
+func TestPlanet_getMineralOutput(t *testing.T) {
+	type fields struct {
+		MineralConcentration Mineral
+	}
+	type args struct {
+		numMines   int
+		mineOutput int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Mineral
+	}{
+		{
+			name:   "100 conc, 10 mines, 10 output",
+			fields: fields{MineralConcentration: Mineral{100, 100, 100}},
+			args:   args{numMines: 10, mineOutput: 10},
+			want:   Mineral{10, 10, 10},
+		},
+		{
+			name:   "100 conc, 10 mines, 8 output",
+			fields: fields{MineralConcentration: Mineral{100, 100, 100}},
+			args:   args{numMines: 10, mineOutput: 8},
+			want:   Mineral{8, 8, 8},
+		},
+		{
+			name:   "mixed conc, 100 mines, 10 output",
+			fields: fields{MineralConcentration: Mineral{25, 45, 65}},
+			args:   args{numMines: 100, mineOutput: 10},
+			want:   Mineral{25, 45, 65},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Planet{
+				MineralConcentration: tt.fields.MineralConcentration,
+			}
+			if got := p.getMineralOutput(tt.args.numMines, tt.args.mineOutput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Planet.getMineralOutput() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

@@ -5,23 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "serve",
+            "name": "Debug Go program",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${input:goTestFiles}"
+        },
+        {
+            "name": "Run main.go",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
-            "args": ["serve"]
+            "args": "${input:launchArgs}",
         },
         {
-            "name": "serve --generate-test-game",
+            "name": "Run gamerunner.go",
             "type": "go",
             "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": ["serve", "--generate-test-game"]
+            "mode": "test",
+            "program": "${workspaceFolder}/server/gamerunner_test.go",
+            "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
         },
         {
-            "name": "generate wasm serializers",
+            "name": "Debug WASM serializer generator",
             "type": "go",
             "request": "launch",
             "mode": "auto",
@@ -30,36 +37,57 @@
             "args": ["./cs", "wasm/wasm/generated.go"]
         },
         {
-            "name": "migrate",
+            "name": "Debug Magefile Target",
             "type": "go",
             "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": ["migrate"]
+            "mode": "exec",
+            "program": "magefiles/magefile-debug",
+            "cwd": "${workspaceFolder}",
+            "args": "${input:mageTarget}",
+            "preLaunchTask": "Compile Mage debug file",
+            "postDebugTask": "Delete Mage debug file"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "launchArgs",
+            "type": "pickString",
+            "description": "Select arguments to run main.go with.",
+            "options": [
+                "serve",
+                "serve --generate-test-game",
+                "migrate",
+                "generate game --name \"A Barefoot Jaywalk\" --user-id 1"
+            ],
+            "default": "serve"
         },
         {
-            "name": "generate",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": ["generate", "game", "--name", "A Barefoot Jaywalk", "--user-id", "1"]
+            "id": "goTestFiles",
+            "type": "promptString",
+            "default": "${relativeFileDirname}",
+            "description": "Enter file or package to debug."
         },
         {
-            "name": "test",
-            "type": "go",
-            "request": "launch",
-            "mode": "test",
-            "program": "${relativeFileDirname}",
+            "id": "mageTarget",
+            "type": "pickString",
+            "description": "Select Magefile target to debug.",
+            "options": [
+                "run",
+                "build",
+                "clean",
+                "copy_wasm",
+                "tidy",
+                "generate",
+                "build_frontend",
+                "build_wasm",
+                "build_backend",
+                "launch",
+                "launch_backend",
+                "launch_frontend",
+                "test",
+                "images"
+            ],
+            "default": "run"
         },
-        {
-            "name": "test -test.run <case>",
-            "type": "go",
-            "request": "launch",
-            "mode": "test",
-            "program": "${workspaceFolder}/server/gamerunner_test.go",
-            "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
-        },
-
     ]
 }
