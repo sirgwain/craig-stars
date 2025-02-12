@@ -78,9 +78,12 @@ func Tidy() error {
 
 // Generate go code and techs.JSON files.
 func Generate() error {
+	fmt.Println("running go generate ./...")
 	if err := sh.RunV("go", "generate", "./..."); err != nil {
 		return err
 	}
+
+	fmt.Println("generating techs.json")
 	techs2json, err := sh.Output("go", "run", "main.go", "generate", "techsjson")
 	if err != nil {
 		return err
@@ -89,6 +92,7 @@ func Generate() error {
 		return mg.Fatalf(1, "error during os.WriteFile for techs.json: \n%w", err)
 	}
 
+	fmt.Println("generating rules.json")
 	rules2json, err := sh.Output("go", "run", "main.go", "generate", "rulesjson")
 	if err != nil {
 		return err
