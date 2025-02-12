@@ -134,7 +134,7 @@ export type FleetSpec = {
 	totalShips?: number;
 } & ShipDesignSpec;
 
-// a destination for a waypoint, either a MapObject or a position in space, but not both
+/** A destination for a waypoint - either a MapObject or a position in space (but not both) */
 export type WaypointDest = { mo: MapObject; position?: never } | { mo?: never; position: Vector };
 export type CargoTransferTarget = Fleet | Planet | Salvage | MineralPacket | undefined;
 
@@ -257,9 +257,14 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
-	 * Add a waypoint to a destination, returning the index of the newly added waypoint
-	 * @param dest
-	 * @param origin
+	 * Add a {@linkcode Waypoint} to this {@linkcode Fleet}.
+	 * @param player The player controlling the fleet.
+	 * @param universe Universe object
+	 * @param dest Waypoint destination ()
+	 * @param currentSelectedWaypointIndex
+	 * @param highestShipMass
+	 * @param fastestWaypoint
+	 * @returns
 	 */
 	addWaypoint(
 		player: Player,
@@ -574,8 +579,17 @@ export class CommandedFleet implements Fleet {
 		return { warpSpeed, canColonize, canRemoteMine };
 	}
 
-	// get the highest useful speed less than or equal to a given warp speed
-	// needed to reach the destination
+	/** Return the highest useful speed less than or equal to a given warp speed 
+	to reach a given destinaton.
+	 * @param designFinder 
+	 * @param fuelEfficiencyOffset 
+	 * @param fuelAlreadyAllocated 
+	 * @param dist 
+	 * @param startSpeed 
+	 * @param freeSpeed 
+	 * @param maxSafeSpeed 
+	 * @returns 
+	 */
 	getMinimalWarp(
 		designFinder: DesignFinder,
 		fuelEfficiencyOffset: number,

@@ -61,7 +61,7 @@ func Test_computeRaceSpec(t *testing.T) {
 		want RaceSpec
 	}{
 		{
-			name: "humanoids w/arm",
+			name: "humanoids with arm",
 			race: NewRace().WithLRT(ARM).WithLRT(UR),
 			want: RaceSpec{
 				Costs: map[QueueItemType]Cost{
@@ -126,11 +126,13 @@ func Test_computeRaceSpec(t *testing.T) {
 					},
 				}},
 				ArmorStrengthFactor:            1,
+				MinHabFloor:                    5,
 				CanBuildDefenses:               true,
 				EngineReliableSpeed:            10,
 				GrowthFactor:                   1,
 				HabCenter:                      Hab{50, 50, 50},
-				InnatePopulationFactor:         1,
+				InnateMinesFactor:              1,
+				InnateScannerFactor:            1,
 				InvasionAttackBonus:            1.1,
 				InvasionDefendBonus:            1,
 				MaxPopulationOffset:            .2,
@@ -225,11 +227,13 @@ func Test_computeRaceSpec(t *testing.T) {
 					},
 				}},
 				ArmorStrengthFactor:            1,
+				MinHabFloor:                    5,
 				CanBuildDefenses:               true,
 				EngineReliableSpeed:            10,
 				GrowthFactor:                   1,
 				HabCenter:                      Hab{50, 50, 50},
-				InnatePopulationFactor:         1,
+				InnateMinesFactor:              1,
+				InnateScannerFactor:            1,
 				InvasionAttackBonus:            1.1,
 				InvasionDefendBonus:            1,
 				MaxPopulationOffset:            .2,

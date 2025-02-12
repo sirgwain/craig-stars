@@ -26,7 +26,7 @@ type PRTSpec struct {
 	ShipsVanishInVoid                bool             `json:"shipsVanishInVoid,omitempty"`
 	BuiltInScanner                   BuiltInScanner   `json:"builtInScanner,omitempty"`
 	TechsCostExtraLevel              int              `json:"techsCostExtraLevel,omitempty"`
-	FreighterGrowthFactor            float64          `json:"freighterGrowthFactor,omitempty"`
+	FreighterGrowth                  FreighterGrowth  `json:"freighterGrowth,omitempty"`
 	GrowthFactor                     float64          `json:"growthFactor,omitempty"`
 	MaxPopulationOffset              float64          `json:"maxPopulationOffset,omitempty"`
 	BuiltInCloakUnits                int              `json:"builtInCloakUnits,omitempty"`
@@ -53,11 +53,13 @@ type PRTSpec struct {
 	StarbaseRepairFactor             float64          `json:"starbaseRepairFactor,omitempty"`
 	StarbaseCostFactor               float64          `json:"starbaseCostFactor,omitempty"`
 	InnateMining                     bool             `json:"innateMining,omitempty"`
+	InnateMinesFactor                float64          `json:"innateMinesFactor,omitempty"`
 	InnateResources                  bool             `json:"innateResources,omitempty"`
 	InnateScanner                    bool             `json:"innateScanner,omitempty"`
-	InnatePopulationFactor           float64          `json:"innatePopulationFactor,omitempty"`
+	InnateScannerFactor              float64          `json:"innateScannerFactor,omitempty"`
 	CanBuildDefenses                 bool             `json:"canBuildDefenses,omitempty"`
 	LivesOnStarbases                 bool             `json:"livesOnStarbases,omitempty"`
+	MinHabFloor                      int              `json:"minHabFloor,omitempty"`
 }
 
 type LRTSpec struct {
@@ -139,6 +141,11 @@ type StealsResearch struct {
 	Biotechnology float64 `json:"biotechnology,omitempty"`
 }
 
+type FreighterGrowth struct {
+	Absolute     bool    `json:"absolute,omitempty"` // Whether the freighter growth is absolute (flat % of pop in fleet) or relative based on growth rate
+	GrowthFactor float64 `json:"rate,omitempty"`
+}
+
 type StartingFleetHull string
 
 const (
@@ -195,7 +202,7 @@ func defaultPRTSpec() PRTSpec {
 		ShipsVanishInVoid:                true,
 		BuiltInScanner:                   BuiltInScanner{},
 		TechsCostExtraLevel:              3,
-		FreighterGrowthFactor:            0,
+		FreighterGrowth:                  FreighterGrowth{},
 		GrowthFactor:                     1,
 		MaxPopulationOffset:              0,
 		BuiltInCloakUnits:                0,
@@ -223,7 +230,8 @@ func defaultPRTSpec() PRTSpec {
 		InnateMining:                     false,
 		InnateResources:                  false,
 		InnateScanner:                    false,
-		InnatePopulationFactor:           1,
+		InnateMinesFactor:                1,
+		InnateScannerFactor:              1,
 		CanBuildDefenses:                 true,
 		LivesOnStarbases:                 false,
 	}
@@ -336,7 +344,7 @@ func isSpec() PRTSpec {
 		TechTagBomb:       .25, // weapons/bombs cost 25% more
 	}
 
-	spec.FreighterGrowthFactor = .5
+	spec.FreighterGrowth = FreighterGrowth{Absolute: false, GrowthFactor: 0.5}
 	spec.InvasionDefendBonus = 2
 	spec.RepairFactor = 2 // double repairs!
 	spec.StarbaseRepairFactor = 1.5
@@ -486,12 +494,14 @@ func arSpec() PRTSpec {
 	}
 
 	spec.CanRemoteMineOwnPlanets = true
-	spec.FreighterGrowthFactor = -.03 // 3% of colonists on freighters die off every turn
-	spec.StarbaseCostFactor = .8
+	spec.FreighterGrowth = FreighterGrowth{Absolute: true, GrowthFactor: -0.03} // 3% of colonists on freighters die off every turn
+	spec.StarbaseCostFactor = 0.8
 	spec.InnateMining = true
 	spec.InnateResources = true
 	spec.InnateScanner = true
-	spec.InnatePopulationFactor = .1
+	spec.InnateMinesFactor = 0.1
+	spec.InnateScannerFactor = 0.1
+	spec.MinHabFloor = 25
 	spec.CanBuildDefenses = false
 	spec.LivesOnStarbases = true
 

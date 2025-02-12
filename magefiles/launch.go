@@ -57,9 +57,12 @@ func Clean() error {
 }
 
 // Copy wasm executable from GOROOT to frontend folder.
-// This copes the "wasm_exec.js" file from your GOROOT into
-// frontend/src/lib/wasm.
+// This copies the "wasm_exec.js" file from your GOROOT into
+// frontend/src/lib/wasm, creating the folder if not already present.
 func Copy_Wasm_Exec() error {
+	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
+		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
+	}
 	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js",
 		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+
 			"/misc/wasm/wasm_exec.js"); err != nil {
@@ -75,15 +78,27 @@ func Tidy() error {
 
 // Generate go code and techs.JSON files.
 func Generate() error {
+	fmt.Println("running go generate ./...")
 	if err := sh.RunV("go", "generate", "./..."); err != nil {
 		return err
 	}
+
+	fmt.Println("generating techs.json")
 	techs2json, err := sh.Output("go", "run", "main.go", "generate", "techsjson")
 	if err != nil {
 		return err
 	}
 	if err := os.WriteFile("frontend/src/lib/ssr/techs.json", []byte(techs2json), 0644); err != nil {
-		return mg.Fatalf(1, "error during os.WriteFile: \n%w", err)
+		return mg.Fatalf(1, "error during os.WriteFile for techs.json: \n%w", err)
+	}
+
+	fmt.Println("generating rules.json")
+	rules2json, err := sh.Output("go", "run", "main.go", "generate", "rulesjson")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile("frontend/src/lib/ssr/rules.json", []byte(rules2json), 0644); err != nil {
+		return mg.Fatalf(1, "error during os.WriteFile for rules.json: \n%w", err)
 	}
 	return nil
 }

@@ -2,19 +2,25 @@
 
 assert.lefthook.installed: true
 pre-commit:
-  parallel: true
+  skip:
+    - merge-commit
+    - rebase
   commands:
     gofmt:
       glob: "*.go"
-      exclude: 
+      exclude:
         - "**/generated.go"
       run: gofmt -l -w {staged_files}
       stage_fixed: true
-    prettier:
-      root: frontend/
-      glob: "*.{ts, svelte, html, css}"
-      interactive: true
+    prettier_backend:
+      exclude:
+        - "frontend/**"
+        - "*.go"
       run: npx prettier --ignore-unknown --write {staged_files}
       stage_fixed: true
-
-
+    prettier_frontend:
+      root: "frontend/"
+      exclude:
+        - "frontend/src/lib/ssr/**"
+      run: npx prettier --ignore-unknown --write {staged_files}
+      stage_fixed: true
