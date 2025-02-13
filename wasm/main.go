@@ -173,7 +173,7 @@ func techCost(args []js.Value) interface{} {
 }
 
 // wasm wrapper for estimating planet production
-// takes 1 arguments: planet, player (with designs)
+// takes 2 arguments: planet, player (with designs)
 func estimateProduction(args []js.Value) interface{} {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
