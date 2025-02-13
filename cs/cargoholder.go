@@ -18,8 +18,10 @@ func (ch *Planet) getMapObject() MapObject {
 	return ch.MapObject
 }
 
-func (ch *Planet) getCargo() *Cargo {
-	return ch.GetCargo()
+// return a Cargo struct containing planet pop & minerals
+// Does NOT actually point to any intrinsic value
+func (ch *Planet) getCargo() Cargo {
+	return NewCargoFromMineral(ch.SurfaceMinerals, ch.Population)
 }
 
 func (ch *Planet) getCargoCapacity() int {

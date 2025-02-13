@@ -177,11 +177,6 @@ func (p *Planet) partialPopulation() (partialPop int) {
 	return p.Population % 100
 }
 
-// return a Cargo struct containing planet pop & minerals
-func (p *Planet) getCargo() Cargo {
-	return NewCargoFromMineral(p.SurfaceMinerals, p.Population)
-}
-
 // Add cargo to this planet
 func (p *Planet) AddCargo(cargo Cargo) {
 	p.SurfaceMinerals.Add(cargo.ToMineral())

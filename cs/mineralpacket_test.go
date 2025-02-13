@@ -74,7 +74,7 @@ func TestMineralPacket_completeMove(t *testing.T) {
 
 		packet.movePacket(&rules, player, planet, player)
 		assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 160}, "uncaught packet should transfer 1/3 of minerals to surface")
-		assert.Equal(t, planet.Population, 925_000, "packet impact should kill 7.5% population, killed %3f% planet population instead", 1-float64(planet.Population)/10_000)
+		assert.Equal(t, planet.Population, 925_000, "packet impact should kill 7.5% population, killed %3f% "+"planet population instead", 1-float64(planet.Population)/10_000)
 		assert.True(t, packet.Delete, "packet should be deleted after landing")
 	})
 
