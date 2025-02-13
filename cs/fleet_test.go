@@ -86,7 +86,7 @@ func testSmallFreighterWithQuantity(player *Player, quantity int) *Fleet {
 	return fleet
 }
 
-// create a new small freighter (with cargo pod) fleet for testing
+// create a new Galleon (with fuel scoop) fleet for testing
 func testGalleon(player *Player) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{

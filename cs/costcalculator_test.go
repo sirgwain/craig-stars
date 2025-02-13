@@ -516,7 +516,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Default Starbase w/ ISB",
+			name: "Default Starbase with ISB",
 			args: args{
 				techLevels:          TechLevel{2, 2, 2, 2, 2, 2},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
@@ -542,7 +542,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Empty Dock w/ ISB, 20% miniaturization",
+			name: "Empty Dock with ISB, 20% miniaturization",
 			args: args{
 				techLevels:          TechLevel{0, 0, 0, 9, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
@@ -559,7 +559,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Empty Dock w/ BET, ISB",
+			name: "Empty Dock with BET, ISB",
 			args: args{
 				techLevels:          TechLevel{0, 0, 0, 4, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{2.0, 0.8, 0.05},
