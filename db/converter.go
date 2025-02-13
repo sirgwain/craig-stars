@@ -206,7 +206,8 @@ type Converter interface {
 	// goverter:map MineYears.Ironium MineYearsIronium
 	// goverter:map MineYears.Boranium MineYearsBoranium
 	// goverter:map MineYears.Germanium MineYearsGermanium
-	// goverter:autoMap Cargo
+	// goverter:autoMap SurfaceMinerals
+	// goverter:map Population Colonists
 	ConvertGamePlanet(source *cs.Planet) *Planet
 
 	// goverter:map . Hab
@@ -214,11 +215,12 @@ type Converter interface {
 	// goverter:map . TerraformedAmount | ExtendTerraformedAmount
 	// goverter:map . MineralConcentration | ExtendMineralConcentration
 	// goverter:map . MineYears | ExtendMineYears
-	// goverter:map . Cargo
+	// goverter:map . SurfaceMinerals
 	// goverter:map . MapObject | ExtendPlanetMapObject
 	// goverter:map . PlanetOrders
 	// goverter:ignore Starbase
 	// goverter:ignore Dirty
+	// goverter:map Colonists Population
 	ConvertPlanet(source *Planet) *cs.Planet
 
 	// goverter:autoMap MapObject.GameDBObject
@@ -315,7 +317,7 @@ type Converter interface {
 	salvageCargo(source Salvage) cs.Cargo
 
 	// goverter:ignore Colonists
-	mineralPaketCargo(source MineralPacket) cs.Cargo
+	mineralPacketCargo(source MineralPacket) cs.Cargo
 }
 
 func MapObjectTypeWormhole() cs.MapObjectType {
