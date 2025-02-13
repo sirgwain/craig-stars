@@ -324,12 +324,12 @@ func (p *production) produce() (productionResult, error) {
 	// replace the queue with what's leftover and dock any used surface minerals
 	planet.ProductionQueue = newQueue
 	planet.SurfaceMinerals = Mineral{available.Ironium, available.Boranium, available.Germanium}
-	if planet.SurfaceMinerals.MinZero() != planet.GetCargo() {
+	if planet.SurfaceMinerals.MinZero() != planet.SurfaceMinerals {
 		p.log.Warn().
-			Str("Cargo", fmt.Sprintf("%+v", planet.GetCargo())).
+			Str("Surface Minerals", fmt.Sprintf("%+v", planet.SurfaceMinerals)).
 			Str("productionResult", fmt.Sprintf("%+v", result)).
-			Msgf("planet cargo was negative after production: %s", planet.GetCargo().PrettyString())
-		return result, fmt.Errorf("planet cargo was negative after production")
+			Msgf("planet minerals went negative after production: %s", planet.SurfaceMinerals.PrettyString())
+		return result, fmt.Errorf("planet minerals went after production")
 		// planet.Cargo = planet.Cargo.MinZero()
 	}
 

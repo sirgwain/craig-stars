@@ -38,6 +38,7 @@ var CostTypes = [4]CostType{
 	Resources,
 }
 
+// Create a new Cost struct with the given values.
 func NewCost[T number](ironium, boranium, germanium, resources T) cost[T] {
 	return cost[T]{
 		Ironium:   ironium,
@@ -47,6 +48,7 @@ func NewCost[T number](ironium, boranium, germanium, resources T) cost[T] {
 	}
 }
 
+// Convert a Mineral struct to a Cost struct.
 func FromMineral[T number](c Mineral) cost[T] {
 	return cost[T]{
 		Ironium:   T(c.Ironium),
@@ -55,6 +57,7 @@ func FromMineral[T number](c Mineral) cost[T] {
 	}
 }
 
+// Create a Cost struct from a Mineral struct and a resources value.
 func FromMineralAndResources(m Mineral, resources int) Cost {
 	return Cost{
 		Ironium:   m.Ironium,
@@ -64,7 +67,7 @@ func FromMineralAndResources(m Mineral, resources int) Cost {
 	}
 }
 
-// return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc).
+// Return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc).
 // Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc).
 //
 // Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
@@ -77,7 +80,7 @@ func (c cost[T]) HighestType(ranking int) CostType {
 	return c.GetTypeFromAmount(c.HighestAmount(ranking))
 }
 
-// return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc).
+// Return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc).
 // Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc).
 //
 // panics if ranking is 0 or if abs(ranking) is greater than 4
@@ -94,7 +97,7 @@ func (c cost[T]) HighestAmount(ranking int) T {
 	}
 }
 
-// return the first valid CostType in a Cost struct with the given numerical value;
+// Return the first valid CostType in a Cost struct with the given numerical value;
 // panics if no CostType with the corresponding value exists
 func (c cost[T]) GetTypeFromAmount(amt T) CostType {
 	switch amt {
@@ -140,6 +143,7 @@ func (c cost[T]) Set(costType CostType, amt T) cost[T] {
 	return c
 }
 
+// Return the Cargo equivalent of a Cost struct, truncating values as necessary.
 func (c cost[T]) ToCargo() Cargo {
 	return Cargo{
 		Ironium:   int(c.Ironium),
@@ -148,6 +152,7 @@ func (c cost[T]) ToCargo() Cargo {
 	}
 }
 
+// Return the Mineral equivalent of a Cost struct, truncating values as necessary.
 func (c cost[T]) ToMineral() Mineral {
 	return Mineral{
 		Ironium:   int(c.Ironium),
@@ -165,7 +170,7 @@ func (c cost[T]) ToSlice() [4]T {
 	}
 }
 
-// convert an int cost into a costFloat64 struct for use in calculations.
+// Convert an integer cost into a floating point cost.
 func (c cost[T]) ToCostFloat64() CostFloat64 {
 	return CostFloat64{
 		Ironium:   float64(c.Ironium),
@@ -175,7 +180,7 @@ func (c cost[T]) ToCostFloat64() CostFloat64 {
 	}
 }
 
-// Convert a floating point cost into an integer cost.
+// Convert a floating point cost into an integer cost by truncating its values.
 func (c cost[T]) ToCost() Cost {
 	return Cost{
 		Ironium:   int(c.Ironium),
@@ -185,10 +190,12 @@ func (c cost[T]) ToCost() Cost {
 	}
 }
 
+// Returns the total sum of all resources in this Cost.
 func (c cost[T]) Total() T {
 	return c.Ironium + c.Boranium + c.Germanium + c.Resources
 }
 
+// Add 2 cost structs together and return the result.
 func (c cost[T]) Add(other cost[T]) cost[T] {
 	return cost[T]{
 		Ironium:   c.Ironium + other.Ironium,
@@ -198,6 +205,7 @@ func (c cost[T]) Add(other cost[T]) cost[T] {
 	}
 }
 
+// Add a number to any singular component of a Cost struct.
 func (c cost[T]) AddNum(costType CostType, amount T) cost[T] {
 	switch costType {
 	case Ironium:
@@ -209,11 +217,12 @@ func (c cost[T]) AddNum(costType CostType, amount T) cost[T] {
 	case Resources:
 		c.Resources += amount
 	default:
-		panic(fmt.Sprintf("AddNum called with invalid CostType %s", costType))
+		panic(fmt.Sprintf("AddNum called with invalid CostType %q", costType))
 	}
 	return c
 }
 
+// Add a Mineral to a cost struct and return the result.
 func (c cost[T]) AddMineral(other Mineral) cost[T] {
 	return cost[T]{
 		Ironium:   c.Ironium + T(other.Ironium),
@@ -241,7 +250,7 @@ func (c cost[T]) SubtractMineral(other Mineral) cost[T] {
 	}
 }
 
-// Multiply a cost by an int or float and return the result
+// Multiply a cost by an int or float and return the result.
 func MultiplyCost[T number, F int | float64](c cost[T], factor F) cost[T] {
 	return cost[T]{
 		Ironium:   T(float64(c.Ironium) * float64(factor)),
@@ -263,7 +272,7 @@ func MultiplyByCost[T, F number](c cost[T], other cost[F]) (result cost[T]) {
 	}
 }
 
-// divide a cost by another cost
+// dDivide a cost by another cost
 // and return how many times divisor can go into dividend
 // as a float64
 func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
@@ -279,7 +288,7 @@ func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
 	return quotient.MinAmount()
 }
 
-// divide a cost by a mineral and return how many times divisor can go into dividend.
+// Divide a cost by a mineral and return how many times divisor can go into dividend.
 //
 // This will tell us if we have enough minerals to build some item
 // (and how many we can make)
@@ -288,7 +297,7 @@ func (dividend cost[T]) DivideMineral(divisor Mineral) float64 {
 	return dividend.ToCostFloat64().DivideCost(dc)
 }
 
-// Return greater of 2 cost structs for all CostTypes separately
+// Return greater of 2 Cost structs for all CostTypes separately
 func (c cost[T]) Max(other cost[T]) cost[T] {
 	return cost[T]{
 		Ironium:   Max(c.Ironium, other.Ironium),
@@ -298,7 +307,7 @@ func (c cost[T]) Max(other cost[T]) cost[T] {
 	}
 }
 
-// return this cost with a minimum of zero for each value
+// Return this Cost with a minimum of zero for each value
 func (c cost[T]) MinZero() cost[T] {
 	return cost[T]{
 		Ironium:   Max(c.Ironium, 0),
@@ -308,7 +317,7 @@ func (c cost[T]) MinZero() cost[T] {
 	}
 }
 
-// Returns the lowest numerical value in a Cost struct
+// Return the lowest numerical value in a Cost struct
 func (c cost[T]) MinAmount() T {
 	return Min(c.Ironium, c.Boranium, c.Germanium, c.Resources)
 }

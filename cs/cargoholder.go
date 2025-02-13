@@ -6,7 +6,8 @@ const Unlimited = -1
 // cargo transfers between different types of map objects.
 type cargoHolder interface {
 	getMapObject() MapObject
-	getCargo() *Cargo
+	getCargo() Cargo
+	addCargo(cargo Cargo)
 	getCargoCapacity() int
 	getFuel() int
 	getFuelCapacity() int
@@ -51,15 +52,19 @@ func (ch *Planet) canTransfer(transferAmount CargoTransferRequest) bool {
 	if transferAmount.Fuel > 0 {
 		return false
 	}
-	return ch.Cargo.CanTransfer(transferAmount.Cargo)
+	return ch.getCargo().CanTransfer(transferAmount.Cargo)
 }
 
 func (ch *Fleet) getMapObject() MapObject {
 	return ch.MapObject
 }
 
-func (ch *Fleet) getCargo() *Cargo {
-	return &ch.Cargo
+func (ch *Fleet) getCargo() Cargo {
+	return ch.Cargo
+}
+
+func (ch *Fleet) addCargo(cargo Cargo) {
+	ch.Cargo = ch.Cargo.Add(cargo)
 }
 
 func (ch *Fleet) getFuel() int {
@@ -88,8 +93,12 @@ func (ch *Salvage) getMapObject() MapObject {
 	return ch.MapObject
 }
 
-func (ch *Salvage) getCargo() *Cargo {
-	return &ch.Cargo
+func (ch *Salvage) getCargo() Cargo {
+	return ch.Cargo
+}
+
+func (ch *Salvage) addCargo(cargo Cargo) {
+	ch.Cargo = ch.Cargo.Add(cargo)
 }
 
 func (ch *Salvage) getCargoCapacity() int {
@@ -121,8 +130,12 @@ func (ch *MineralPacket) getMapObject() MapObject {
 	return ch.MapObject
 }
 
-func (ch *MineralPacket) getCargo() *Cargo {
-	return &ch.Cargo
+func (ch *MineralPacket) getCargo() Cargo {
+	return ch.Cargo
+}
+
+func (ch *MineralPacket) addCargo(cargo Cargo) {
+	ch.Cargo = ch.Cargo.Add(cargo)
 }
 
 func (ch *MineralPacket) getCargoCapacity() int {

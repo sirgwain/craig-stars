@@ -94,7 +94,7 @@ func (m Mineral) ToSlice() [3]int {
 	}
 }
 
-// convert a mineral to a cargo
+// Return the Cargo equivalent of a Mineral struct.
 func (m Mineral) ToCargo() Cargo {
 	return Cargo{
 		Ironium:   m.Ironium,
@@ -103,7 +103,7 @@ func (m Mineral) ToCargo() Cargo {
 	}
 }
 
-// convert a mineral to a cost
+// Return the Cost equivalent of a Mineral struct.
 func (m Mineral) ToCost() Cost {
 	return Cost{
 		Ironium:   m.Ironium,
@@ -112,7 +112,7 @@ func (m Mineral) ToCost() Cost {
 	}
 }
 
-// add two minerals
+// Add two Minerals together and return the result.
 func (m Mineral) Add(m2 Mineral) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium + m2.Ironium,
@@ -121,13 +121,28 @@ func (m Mineral) Add(m2 Mineral) Mineral {
 	}
 }
 
-// add an int to all components of the mineral
+// Add a number to all components of a Mineral.
 func (m Mineral) AddToAll(amt int) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium + amt,
 		Boranium:  m.Boranium + amt,
 		Germanium: m.Germanium + amt,
 	}
+}
+
+// Add a number to any singular component of a Mineral.
+func (m Mineral) AddInt(mineralType MineralType, amount int) Mineral {
+	switch mineralType {
+	case Ironium:
+		m.Ironium += amount
+	case Boranium:
+		m.Boranium += amount
+	case Germanium:
+		m.Germanium += amount
+	default:
+		panic(fmt.Sprintf("AddNum called with invalid MineralType %q", mineralType))
+	}
+	return m
 }
 
 // subtract two minerals
@@ -153,6 +168,15 @@ func (c Mineral) MultiplyFloat64(factor float64) Mineral {
 		Ironium:   int(float64(c.Ironium) * factor),
 		Boranium:  int(float64(c.Boranium) * factor),
 		Germanium: int(float64(c.Germanium) * factor),
+	}
+}
+
+// Return this Mineral with a minimum of zero for each value
+func (m Mineral) MinZero() Mineral {
+	return Mineral{
+		Ironium:   Max(m.Ironium, 0),
+		Boranium:  Max(m.Boranium, 0),
+		Germanium: Max(m.Germanium, 0),
 	}
 }
 

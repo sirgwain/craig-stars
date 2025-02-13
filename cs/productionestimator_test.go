@@ -425,8 +425,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 			planet := NewPlanet().WithPlayerNum(1)
 			planet.Hab = Hab{50, 50, 50}                         // perfect hab
-			planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for a 1kT per mine output
-			planet.SurfaceMinerals.Add(tt.args.surfaceMinerals)
+			planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for 1kT per mine output
+			planet.SurfaceMinerals = tt.args.surfaceMinerals
 			planet.setPopulation(tt.args.population)
 			planet.Mines = tt.args.mines
 			planet.Factories = tt.args.factories

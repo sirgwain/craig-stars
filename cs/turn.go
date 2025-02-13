@@ -188,16 +188,16 @@ func (t *turn) scrapFleet(fleet *Fleet, colonize bool) {
 
 	if planet != nil {
 		// scrap over a planet; add refunded minerals to planet surface
-		planet.SurfaceMinerals.Add(cost.ToMineral())
+		planet.SurfaceMinerals = planet.SurfaceMinerals.Add(cost.ToMineral())
 		// UR bonus resources only come into play for normal scrapping
 		// but fleet.getScrapAmount already sets it to 0 regardless
 		planet.bonusResources += cost.Resources
 		if planet.OwnedBy(player.Num) {
 			// add colonists to planet cargo if it's our own planet
-			planet.AddCargo(fleet.Cargo)
+			planet.addCargo(fleet.Cargo)
 		} else {
 			// if not our planet, only the minerals in cargo get transferred (bye bye colonists)
-			planet.SurfaceMinerals.Add(fleet.Cargo.ToMineral())
+			planet.SurfaceMinerals = planet.SurfaceMinerals.Add(fleet.Cargo.ToMineral())
 		}
 
 		// Check for level/component tech trading.
@@ -1091,10 +1091,10 @@ func (t *turn) fleetReproduce() {
 		if fg.Absolute {
 			// calculate absolute pop growth on fleets
 			// TODO: Check rounding on this...?
-			growth = int(fg.GrowthFactor*float64(fleet.Cargo.Colonists))
+			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists))
 		} else {
 			// Calculate relative pop growth based on growth rate
-			growth = int(fg.GrowthFactor*float64(fleet.Cargo.Colonists*player.Race.GrowthRate)/100)
+			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists*player.Race.GrowthRate) / 100)
 		}
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
 		over := Max(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
@@ -1105,7 +1105,7 @@ func (t *turn) fleetReproduce() {
 			fleet.Cargo.Colonists = fleet.Cargo.Colonists - over
 			if planet != nil && planet.OwnedBy(fleet.PlayerNum) {
 				// add colonists to the planet this fleet is orbiting
-				planet.Population += over
+				planet.Population += over * 100
 			}
 		}
 
@@ -1127,35 +1127,6 @@ func (t *turn) fleetReproduce() {
 				Int("Deaths", growth).
 				Msgf("fleet died off")
 		}
-<<<<<<< HEAD
-
-		if fleet.Cargo.Colonists == 0 {
-			continue
-		}
-
-		// check if this player's freighters reproduce
-		player := t.game.getPlayer(fleet.PlayerNum)
-		if player.Race.Spec.FreighterGrowthFactor >= 0 {
-			continue
-		}
-
-		// TODO: Figure out how OG stars rounds AR pop deaths and apply it accordingly;
-		// min 1kT pop death is DEFINITELY not how they did it
-		// Also, pop death should _only_ happen for moving fleets (idle ones or ones stopped by CE don't die)
-		deathFactor := player.Race.Spec.FreighterGrowthFactor
-		death := Min(-1, int(deathFactor*float64(fleet.Cargo.Colonists)))
-		fleet.Cargo.Colonists = fleet.Cargo.Colonists + death
-
-		// Message the player
-		messager.fleetDieOff(player, fleet, death)
-
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Int("Pop Died", death).
-			Msgf("fleet pop died off")
-=======
->>>>>>> upstream/develop
 	}
 }
 
@@ -1432,8 +1403,8 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet, ARMining
 	}
 	numMines := fleet.Spec.MiningRate
 	mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
-	planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
-	planet.MineYears = planet.MineYears.AddInt(numMines)
+	planet.SurfaceMinerals = planet.SurfaceMinerals.Add(mineralOutput)
+	planet.MineYears = planet.MineYears.AddToAll(numMines)
 	planet.reduceMineralConcentration(&t.game.Rules)
 	planet.MarkDirty()
 
@@ -1988,7 +1959,7 @@ func (t *turn) randomCometStrike() {
 	habChanged := Hab{terraformAmount[0], terraformAmount[1], terraformAmount[2]}
 	colonistsKilled := 0
 
-	planet.SurfaceMinerals.Add(mineralsAdded)
+	planet.SurfaceMinerals = planet.SurfaceMinerals.Add(mineralsAdded)
 	planet.MineralConcentration = planet.MineralConcentration.Add(mineralConcentrationIncreased).Clamp(t.game.Rules.MinMineralConcentration, t.game.Rules.MaxMineralConcentration)
 	planet.Hab = planet.Hab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
 	planet.BaseHab = planet.BaseHab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
@@ -2171,7 +2142,7 @@ func (t *turn) fleetBattle() {
 				if planet == nil {
 					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
 				} else {
-					planet.SurfaceMinerals.Add(salvageMinerals)
+					planet.SurfaceMinerals = planet.SurfaceMinerals.Add(salvageMinerals)
 				}
 			}
 

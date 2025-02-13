@@ -70,7 +70,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		// build stuff
 		result, err := producer.produce()
 		if err != nil {
-			return nil, 0, fmt.Errorf("could not simulate production queue status for %s years into the future; produce() returned error %w", year, err)
+			return nil, 0, fmt.Errorf("could not simulate production queue status for %d years into the future; produce() returned error %w", year, err)
 		}
 
 		if year == 1 {

@@ -537,8 +537,10 @@ func Test_turn_fleetMoveTransportRepeat(t *testing.T) {
 	player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
 	// planet1 has pop, planet2 is a starter colony
-	planet1.setCargo(Cargo{1000, 1000, 1000, 10_000})
-	planet2.setCargo(Cargo{0, 0, 0, 25})
+	planet1.SurfaceMinerals = Mineral{1000, 1000, 1000}
+	planet1.Population = 1_000_000
+	planet2.SurfaceMinerals = Mineral{0, 0, 0}
+	planet2.Population = 2500
 
 	// make a new freighter for transport
 	fleet := testGalleon(player)
@@ -635,8 +637,10 @@ func Test_turn_fleetMoveTransportWaitForPercent(t *testing.T) {
 	// pull from planet1 to planet2
 	planet1.MineralConcentration = Mineral{100, 100, 100}
 	planet1.Mines = 300
-	planet1.setCargo(Cargo{100, 100, 100, 10000}) // start with cargo, mine the rest
-	planet2.setCargo(Cargo{0, 0, 0, 1000})
+	planet1.SurfaceMinerals = Mineral{100, 100, 100}
+	planet1.Population = 1_000_000
+	planet2.SurfaceMinerals = Mineral{0, 0, 0}
+	planet2.Population = 100_000
 
 	// make a new freighter for transport
 	fleet := testGalleon(player)
@@ -855,7 +859,6 @@ func Test_turn_permaformNone(t *testing.T) {
 }
 
 func Test_turn_fleetRemoteMine(t *testing.T) {
-
 	type fields struct {
 		task                    WaypointTask
 		planetPlayerNum         int
@@ -863,24 +866,58 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 		miningRate              int
 		canRemoteMineOwnPlanets bool
 	}
-
 	tests := []struct {
 		name            string
 		fields          fields
-		wantCargo       Cargo
+		wantMineral     Mineral
 		wantMessageType PlayerMessageType
 	}{
-		{name: "no task, do nothing", fields: fields{}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
-		{name: "no planet, invalid message", fields: fields{task: WaypointTaskRemoteMining}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
-		{name: "owned planet, invalid message", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 2, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
-		{name: "owned by us, invalid", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
-		{name: "owned by us, but we can remote mine our own, should skip", fields: fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2, canRemoteMineOwnPlanets: true}, wantCargo: Cargo{}, wantMessageType: PlayerMessageNone},
-		{name: "no miners, invalid message", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2}, wantCargo: Cargo{}, wantMessageType: PlayerMessageInvalid},
-		{name: "should mine", fields: fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, miningRate: 10}, wantCargo: Cargo{10, 10, 10, 0}, wantMessageType: PlayerMessageFleetRemoteMined},
+		{
+			name:            "no task, do nothing",
+			fields:          fields{},
+			wantMineral:     Mineral{},
+			wantMessageType: PlayerMessageNone,
+		},
+		{
+			name:            "no planet, invalid message",
+			fields:          fields{task: WaypointTaskRemoteMining},
+			wantMineral:     Mineral{},
+			wantMessageType: PlayerMessageInvalid,
+		},
+		{
+			name:            "owned planet, invalid message",
+			fields:          fields{task: WaypointTaskRemoteMining, planetPlayerNum: 2, orbitingPlanetNum: 2},
+			wantMineral:     Mineral{},
+			wantMessageType: PlayerMessageInvalid,
+		},
+		{
+			name:            "owned by us, invalid",
+			fields:          fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2},
+			wantMineral:     Mineral{},
+			wantMessageType: PlayerMessageInvalid,
+		},
+		{
+			name:            "owned by us, but we can remote mine our own, should skip",
+			fields:          fields{task: WaypointTaskRemoteMining, planetPlayerNum: 1, orbitingPlanetNum: 2, canRemoteMineOwnPlanets: true},
+			wantMineral:     Mineral{},
+			wantMessageType: PlayerMessageNone,
+		},
+		{
+			name:            "no miners, invalid message",
+			fields:          fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2},
+			wantMineral:     Mineral{},
+			wantMessageType: PlayerMessageInvalid,
+		},
+		{
+			name:            "should mine",
+			fields:          fields{task: WaypointTaskRemoteMining, orbitingPlanetNum: 2, miningRate: 10},
+			wantMineral:     Mineral{10, 10, 10},
+			wantMessageType: PlayerMessageFleetRemoteMined,
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			// create a new test game
 			game := createSingleUnitGame()
 			player := game.Players[0]
@@ -913,8 +950,8 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 				assert.Equal(t, 0, len(player.Messages))
 			}
 
-			// make sure the cargo matches what we want
-			assert.Equal(t, tt.wantCargo, planet.GetCargo())
+			// make sure the minerals match what we want
+			assert.Equal(t, tt.wantMineral, planet.SurfaceMinerals)
 		})
 	}
 
@@ -1193,7 +1230,7 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	// orbit a planet of ours
 	isPlanet := game.Planets[0]
 	isPlanet.PlayerNum = isPlayer.Num
-	isPlanet.Cargo.Colonists = 2500
+	isPlanet.Population = 2_500_000
 	isFleet.Waypoints[0] = NewPlanetWaypoint(isPlanet.Position, isPlanet.Num, isPlanet.Name, 5)
 	isFleet.OrbitingPlanetNum = isPlanet.Num
 	turn := turn{game: game}
@@ -1202,9 +1239,10 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	// don't generate a full turn, only have the fleet reproduce
 	turn.fleetReproduce()
 
-	// IS freighter should have grown; AT freighter should have lost pop slightly
+	// IS freighter should have grown while keeping planet pop constant;
+	// AR freighter should have lost pop slightly
 	assert.Equal(t, 53, isFleet.Cargo.Colonists)
-	assert.Equal(t, 2500, isPlanet.Cargo.Colonists)
+	assert.Equal(t, 250_000, isPlanet.Population)
 	assert.Equal(t, 49, arFleet.Cargo.Colonists)
 
 	// fill IS freighter up fully to overflow onto planet;
@@ -1217,8 +1255,8 @@ func Test_turn_fleetReproduce(t *testing.T) {
 
 	// IS should have grown on freighter and beamed down to planet
 	assert.Equal(t, isFleet.Spec.CargoCapacity, isFleet.Cargo.Colonists)
-	assert.Equal(t, 2509, isPlanet.Cargo.Colonists) // 12000 * 0.15 * 0.5 = 900 colonists beamed to planet
-	assert.Equal(t, 97, arFleet.Cargo.Colonists) 
+	assert.Equal(t, 250_900, isPlanet.Population) // 12000 * 0.15 * 0.5 = 900 colonists beamed to planet
+	assert.Equal(t, 97, arFleet.Cargo.Colonists)
 
 	// Disable pop growth on both players & check for reproduction again;
 	// IS should halt reproduction while AR should continue losing pop
@@ -1226,7 +1264,7 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	arPlayer.Race.GrowthRate = 0
 	turn.fleetReproduce()
 	assert.Equal(t, isFleet.Spec.CargoCapacity, isFleet.Cargo.Colonists)
-	assert.Equal(t, 2509, isPlanet.Cargo.Colonists)
+	assert.Equal(t, 250_900, isPlanet.Population)
 	assert.Equal(t, 95, arFleet.Cargo.Colonists) // should be 94 in base game, but leaving it for now since it rounds weird AF
 
 }

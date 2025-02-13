@@ -142,7 +142,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	}
 
 	// one way or another, these minerals are ending up on the planet
-	planet.AddCargo(packet.Cargo.Multiply(mineralsRecovered))
+	planet.addCargo(packet.Cargo.Multiply(mineralsRecovered))
 
 	// if we didn't receive this planet, notify the sender
 	if planet.PlayerNum != packet.PlayerNum {

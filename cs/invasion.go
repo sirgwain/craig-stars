@@ -1,9 +1,8 @@
 package cs
 
 import (
-	"math"
-
 	"github.com/rs/zerolog"
+	"math"
 )
 
 // invade a planet with a colonist drop
@@ -36,14 +35,16 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.GetPopulation(), true)
 		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.GetPopulation(), true)
 
-		// take over the planet
-		planet.transferOwnership(attacker.Num, remainingAttackers)
+		// empty the planet and take it over
+		planet.emptyPlanet()
+		planet.PlayerNum = attacker.Num
+		planet.setPopulation(remainingAttackers)
 
 		// make sure the defender knows about this new planet
 		// the last dying colonist sends a report to their compatriots
 		defender.discoverer.discoverPlanet(rules, planet, true)
 
-		// apply a production plan
+		// apply default production plan
 		if len(attacker.ProductionPlans) > 0 {
 			plan := attacker.ProductionPlans[0]
 			plan.Apply(planet)
@@ -70,6 +71,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 			}
 		}
 	} else {
+		// defenders won
 		remainingAttackers = 0
 		remainingDefenders = int(roundToNearest100(float64(defenders)-(float64(attackers)*attackBonus)/defenseBonus, math.Round))
 

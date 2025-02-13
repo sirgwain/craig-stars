@@ -339,9 +339,9 @@ func NewRulesWithSeed(seed int64) Rules {
 		TachyonCloakReduction:            .05, // 5% diminishing cloak reduction per detector
 		TachyonMaxCloakReduction:         .81, // tachyon detectors cap at 81% cloaking reduction
 		MaxPopulation:                    1_000_000,
-		MinHabFloor:                      5, // minimum of 5% effective habitability for inhabited planet productivity
-		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per doubling
-		PopulationOvercrowdDieoffRateMax: .12, // overcrowded pops will not die off more than 12% (3x pop) in a year
+		MinHabFloor:                      5,   // minimum of 5% effective habitability for inhabited planet productivity
+		PopulationOvercrowdDieoffRate:    .04, // overcrowded pops die off at 4% per 100% over cap
+		PopulationOvercrowdDieoffRateMax: .12, // overcrowded pops will not die off more than 12% (400% capacity) in a year
 		PopulationScannerError:           0.2, // opponents' scanners have ±20% error on pop readings
 		SmartDefenseCoverageFactor:       0.5, // smart bombs penetrate 50% enemy defenses
 		InvasionDefenseCoverageFactor:    0.75,

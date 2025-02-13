@@ -3,7 +3,7 @@
 assert.lefthook.installed: true
 pre-commit:
   skip:
-    - merge-commit
+    - merge
     - rebase
   commands:
     gofmt:
@@ -20,7 +20,5 @@ pre-commit:
       stage_fixed: true
     prettier_frontend:
       root: "frontend/"
-      exclude:
-        - "frontend/src/lib/ssr/**"
       run: npx prettier --ignore-unknown --write {staged_files}
       stage_fixed: true

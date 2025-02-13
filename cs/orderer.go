@@ -227,8 +227,8 @@ func (o *orders) TransferFleetCargo(rules *Rules, player, destPlayer *Player, so
 	}
 
 	// transfer the cargo
-	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
-	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
+	source.addCargo(transferAmount.Cargo)
+	dest.addCargo(transferAmount.Cargo.Negative())
 	source.Fuel += transferAmount.Fuel
 	dest.Fuel -= transferAmount.Fuel
 
@@ -267,7 +267,7 @@ func (o *orders) TransferPlanetCargo(rules *Rules, player *Player, source *Fleet
 	destCargoInitial := dest.getCargo()
 
 	// transfer the cargo
-	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
+	source.addCargo(transferAmount.Cargo)
 	dest.addCargo(transferAmount.Cargo.Negative())
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
@@ -325,8 +325,8 @@ func (o *orders) TransferMineralPacketCargo(rules *Rules, player *Player, source
 	}
 
 	// transfer the cargo
-	dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
-	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
+	dest.addCargo(transferAmount.Cargo.Negative())
+	source.addCargo(transferAmount.Cargo)
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// make our player aware of this mineral packet's new cargo
@@ -366,11 +366,11 @@ func (o *orders) TransferSalvageCargo(rules *Rules, player *Player, source *Flee
 	if dest == nil {
 		dest = newSalvage(source.Position, nextSalvageNum, source.PlayerNum, transferAmount.Cargo.Negative())
 	} else {
-		dest.Cargo = dest.Cargo.Subtract(transferAmount.Cargo)
+		dest.addCargo(transferAmount.Cargo.Negative())
 	}
 
 	// transfer the cargo
-	source.Cargo = source.Cargo.Add(transferAmount.Cargo)
+	source.addCargo(transferAmount.Cargo)
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// make our player aware of this salvage

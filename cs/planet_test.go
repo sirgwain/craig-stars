@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"math"
 	"reflect"
 	"testing"
 
@@ -167,43 +166,49 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 			want:   0,
 		},
 		{
-			name:   "less than 25% cap, grows at full 10% growth rate",
+			name:   "low cap, full growth rate",
 			fields: fields{Hab{50, 50, 50}, 100_000},
 			args:   args{NewPlayer(1, NewRace()), 1_200_000},
 			want:   10_000,
 		},
 		{
-			name:   "at 50% cap, it slows down in growth",
+			name:   "fractional pop doesn't add growth",
+			fields: fields{Hab{50, 50, 50}, 111_199},
+			args:   args{NewPlayer(1, NewRace().WithGrowthRate(9)), 1_200_000},
+			want:   9999, // would be 10K had the last 100 fractional pop counted for growth
+		},
+		{
+			name:   "50% cap; growth slows down",
 			fields: fields{Hab{50, 50, 50}, 600_000},
 			args:   args{NewPlayer(1, NewRace()), 1_200_000},
 			want:   26_666, // 0.444x growth multi
 		},
 		{
-			name:   "near full capacity, we only grow a tiny amount",
+			name:   "98% capacity, next to no growth",
 			fields: fields{Hab{50, 50, 50}, 1_180_000},
 			args:   args{NewPlayer(1, NewRace()), 1_200_000}, // 98.3% cap
 			want:   58,                                       // 0.0004938x growth multi
 		},
 		{
-			name:   "slightly hostile planet; slowly kill off colonists",
+			name:   "slightly hostile planet; low deaths override overpop calcs",
 			fields: fields{Hab{10, 15, 15}, 2500},
-			args:   args{NewPlayer(1, NewRace()), 0},
+			args:   args{NewPlayer(1, NewRace()), 100},
 			want:   -13,
 		},
 		{
-			name:   "hostile planet; -45% hab = -4.5% pop/yr",
+			name:   "hostile planet; high deaths",
 			fields: fields{Hab{0, 0, 0}, 100_000},
 			args:   args{NewPlayer(1, NewRace()), 0},
 			want:   -4500,
 		},
 		{
-			name:   "double cap planet should kill off 4% pop",
+			name:   "overcap planet; lose pop",
 			fields: fields{Hab{50, 50, 50}, 2_400_000},
 			args:   args{NewPlayer(1, NewRace()), 1_200_000},
 			want:   -96_000,
 		},
 		{
-			name:   "5x cap planet should kill off 12% pop",
+			name:   "5x cap; pop loss capped",
 			fields: fields{Hab{50, 50, 50}, 6_000_000},
 			args:   args{NewPlayer(1, NewRace()), 1_200_000},
 			want:   -720_000,
@@ -215,8 +220,10 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 				Population: tt.fields.Population,
 				Hab:        tt.fields.Hab,
 			}
-			// 10% growth for easier math
-			tt.args.player.Race.GrowthRate = 10
+			// If at default, set growth rate to 10% for easier math
+			if tt.args.player.Race.GrowthRate == 15 {
+				tt.args.player.Race.GrowthRate = 10
+			}
 			tt.args.player.Race.Spec = computeRaceSpec(&tt.args.player.Race, &rules)
 			if got := p.getGrowthAmount(tt.args.player, tt.args.maxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax); got != tt.want {
 				t.Errorf("Planet.getGrowthAmount() = %v, want %v", got, tt.want)
@@ -253,15 +260,20 @@ func TestPlanet_reduceMineralConcentration(t *testing.T) {
 		args   args
 		want   Mineral
 	}{
-		{"Redcue empty planet min conc", NewPlanet(), args{rules}, Mineral{1, 1, 1}},
 		{
-			"150 mines should reduce 100% conc by 1 if we have 151 mineyears",
-			NewPlanet().
+			name:   "Reduce empty planet min conc",
+			planet: NewPlanet(),
+			args:   args{rules: rules},
+			want:   Mineral{1, 1, 1},
+		},
+		{
+			name: "150 mines should reduce 100% conc by 1 if we have 151 mineyears",
+			planet: NewPlanet().
 				WithMineralConcentration(Mineral{100, 100, 100}).
 				WithMines(150).
 				WithMineYears(Mineral{151, 151, 151}),
-			args{rules},
-			Mineral{99, 99, 99},
+			args: args{rules: rules},
+			want: Mineral{99, 99, 99},
 		},
 	}
 	for _, tt := range tests {
@@ -407,14 +419,49 @@ func TestPlanet_grow(t *testing.T) {
 		args   args
 		want   int
 	}{
-		{"standard humanoid starter world", fields{hab: Hab{50, 50, 50}, population: 25000, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 28_750},
-		{"full world", fields{hab: Hab{50, 50, 50}, population: 500_000, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 545_370},
-		{"low value world, fractional pop growth", fields{hab: Hab{15, 15, 15}, population: 100, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 101},
-		{"low value world, nearly made new colonist", fields{hab: Hab{15, 15, 15}, population: 199, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 200},
-		{"low value world, 2 turns of growth", fields{hab: Hab{15, 15, 15}, population: 199, turnsToGrow: 2}, args{NewRace().WithSpec(&rules)}, 202},
-		{"hostile world", fields{hab: Hab{1, 1, 1}, population: 25000, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 23875},
-		{"hostile world, pop rounding", fields{hab: Hab{1, 1, 1}, population: 200, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 191},
-		{"hostile world, low pop", fields{hab: Hab{1, 1, 1}, population: 100, turnsToGrow: 1}, args{NewRace().WithSpec(&rules)}, 100},
+		{
+			name:   "standard humanoid starter world",
+			fields: fields{hab: Hab{50, 50, 50}, population: 25000, turnsToGrow: 1},
+			args:   args{race: NewRace().WithSpec(&rules)},
+			want:   28_750,
+		},
+		{
+			name:   "full world",
+			fields: fields{hab: Hab{50, 50, 50}, population: 500_000, turnsToGrow: 1},
+			args:   args{race: NewRace().WithSpec(&rules)},
+			want:   545_370,
+		},
+		// TODO: Check in OG game if 0% worlds actually grow pop or not
+		/* {
+			name:   "0% value world, don't make colonists",
+			fields: fields{hab: Hab{15, 15, 15}, population: 100, turnsToGrow: 1},
+			args:   args{race: NewRace().WithSpec(&rules)},
+			want:   100,
+		}, */
+		{
+			name:   "2% value world, 2 years of growth",
+			fields: fields{hab: Hab{15, 20, 20}, population: 599, turnsToGrow: 2},
+			args:   args{race: NewRace().WithGrowthRate(15).WithSpec(&rules)},
+			want:   601,
+		},
+		{
+			name:   "hostile world",
+			fields: fields{hab: Hab{1, 1, 1}, population: 25000, turnsToGrow: 1},
+			args:   args{race: NewRace().WithSpec(&rules)},
+			want:   23_950, // -42% value
+		},
+		{
+			name:   "hostile world, pop rounding",
+			fields: fields{hab: Hab{1, 1, 1}, population: 200, turnsToGrow: 1},
+			args:   args{race: NewRace().WithSpec(&rules)},
+			want:   192,
+		},
+		{
+			name:   "hostile world, low pop",
+			fields: fields{hab: Hab{1, 1, 1}, population: 100, turnsToGrow: 1},
+			args:   args{race: NewRace().WithSpec(&rules)},
+			want:   100,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -423,20 +470,13 @@ func TestPlanet_grow(t *testing.T) {
 			planet.Hab = tt.fields.hab
 			planet.BaseHab = tt.fields.hab
 			planet.setPopulation(tt.fields.population)
-			planet.Spec = computePlanetSpec(&rules, player, planet)
-			for x := 0; x < tt.fields.turnsToGrow; x++ {
-				planet.grow(player)
+			for range tt.fields.turnsToGrow {
 				planet.Spec = computePlanetSpec(&rules, player, planet)
+				planet.grow(player)
 			}
 
-			roundedPop := roundToNearest100(tt.want, math.Floor)
-			leftoverPop := tt.want % 100
-
-			if gotWhole := planet.GetPopulation(); gotWhole != roundedPop {
-				t.Errorf("planet.grow() gave %v actual pop, want %v", gotWhole, roundedPop)
-			}
-			if gotPart := planet.partialPopulation(); gotPart != leftoverPop {
-				t.Errorf("planet.grow() gave %v leftover pop, want %v", gotPart, leftoverPop)
+			if planet.Population != tt.want {
+				t.Errorf("planet.grow() gave %v pop, want %v", planet.Population, tt.want)
 			}
 
 		})

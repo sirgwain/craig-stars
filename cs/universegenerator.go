@@ -316,24 +316,25 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 	for _, player := range ug.players {
 		minPlayerDistance := float64(area.X+area.Y) / 2.0 / float64(len(ug.players)+1)
 		fleetNum := 1
-		hasHomeworld := false
+		var homeworld *Planet
 		extraPoints, pointsType := player.Race.ComputeLeftoverRacePoints(rules.RaceStartingPoints)
 
 		// assign player starting planets
 		// TODO: Add custom planet placement support
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
-			if !startingPlanet.Homeworld && !hasHomeworld {
-				// Since extra planets _have_ to be placed around the homeworld, 
-				// the homeworld has to be the first thing we place 
+			if !startingPlanet.Homeworld && homeworld == nil {
+				// Since extra planets _have_ to be placed around the homeworld,
+				// the homeworld must be the first thing we place
 				return fmt.Errorf("first planet in startingPlanets not homeworld")
 			}
 
 			var playerPlanet *Planet
-			if startingPlanet.Homeworld && !hasHomeworld { // planet is homeworld & we have no other
+			if startingPlanet.Homeworld && homeworld == nil {
+				// place homworld and track it so we know where to base extra world placement on
 				playerPlanet = ug.placeHomeworld(startingPlanet, ownedPlanets, minPlayerDistance)
-				hasHomeworld = true
+				homeworld = playerPlanet
 			} else {
-				playerPlanet = ug.placeExtraWorld(startingPlanet, ownedPlanets, int(minPlayerDistance))
+				playerPlanet = ug.placeExtraWorld(startingPlanet, homeworld.Position)
 			}
 			if playerPlanet == nil {
 				return fmt.Errorf("could not find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.universe.Planets), minPlayerDistance)
@@ -382,7 +383,7 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 						lowestType := conc.HighestType(3)
 						diff := conc.GetAmount(conc.HighestType(2)) - conc.GetAmount(lowestType)
 						amtToAdd := Min(extraPoints/pointsThreshold[pointsType], diff+1)
-						playerPlanet.MineralConcentration.Set(lowestType, conc.GetAmount(lowestType)+amtToAdd)
+						playerPlanet.MineralConcentration.AddInt(lowestType, amtToAdd)
 						extraPoints -= pointsThreshold[pointsType] * amtToAdd
 					}
 					fallthrough
@@ -395,8 +396,7 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 						lowestType := min.HighestType(3)
 						diff := min.GetAmount(min.HighestType(2)) - min.GetAmount(lowestType)
 						amtToAdd := Min(extraPoints, diff+1)
-						// TODO: Use AddMinerals once techtags gets merged
-						playerPlanet.SurfaceMinerals.Add(lowestType, amtToAdd*10)
+						playerPlanet.SurfaceMinerals.AddInt(lowestType, amtToAdd*10)
 						extraPoints -= amtToAdd
 					}
 				}
@@ -428,6 +428,69 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 	return nil
 }
 
+// place a homeworld during universe generation
+func (ug *universeGenerator) placeHomeworld(startingPlanet StartingPlanet, ownedPlanets []*Planet, minPlanetDistance float64) (homeworld *Planet) {
+	farthestDistance := float64(math.MinInt)
+
+	// homeworld should be distant from other players' planets
+	for _, planet := range ug.universe.Planets {
+		if planet.Owned() {
+			// can't re-assign owned planets
+			continue
+		}
+
+		if len(ownedPlanets) == 0 {
+			// no owned planets means we grab the first one we see
+			return planet
+		}
+
+		// figure out how far we are from other players' planets
+		shortestDistanceToPlanets := planet.shortestDistanceToPlanets(ownedPlanets)
+
+		// if the planet we find is within tolerance, use it;
+		// otherwise, keep track of the furthest one away as a failsafe
+		if shortestDistanceToPlanets >= minPlanetDistance {
+			return planet
+		}
+
+		if shortestDistanceToPlanets >= farthestDistance {
+			farthestDistance = shortestDistanceToPlanets
+			homeworld = planet
+		}
+
+	}
+	return homeworld
+}
+
+// place an extra world during universe generation
+func (ug *universeGenerator) placeExtraWorld(startingPlanet StartingPlanet, homeworldPos Vector) (extraPlanet *Planet) {
+	rules := ug.Rules
+	var closestDistance float64
+	for _, planet := range ug.universe.Planets {
+		if planet.Owned() {
+			continue
+		}
+
+		// check how close this planet is to our homeworld
+		distToHomeworld := planet.Position.DistanceSquaredTo(homeworldPos)
+
+		// if it's within tolerances, use it
+		if distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) &&
+			distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance) {
+			return planet
+		}
+
+		// if we can't find a planet within tolerances, track the closest one
+		// and return it at the end
+		if distToHomeworld < closestDistance {
+			closestDistance = distToHomeworld
+			extraPlanet = planet
+		}
+	}
+
+	return extraPlanet
+}
+
 // build a starbase on a planet
 func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, designName string) error {
 	// // the homeworld gets a starbase
@@ -447,54 +510,6 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	return nil
 }
 
-// place a homeworld during universe generation 
-func (ug *universeGenerator) placeHomeworld(startingPlanet StartingPlanet, ownedPlanets []*Planet, minPlanetDistance int) (homeworld *Planet) {
-	farthestDistance := float64(math.MinInt)
-	closestDistance := math.MaxFloat64
-
-		// homeworld should be distant from other players' planets
-		for _, planet := range ug.universe.Planets {
-			if planet.Owned() {
-				continue
-			}
-
-			// if we can't find a planet within tolerances, pick the farthest one
-			shortestDistanceToPlanets := planet.shortestDistanceToPlanets(ownedPlanets)
-			if shortestDistanceToPlanets >= farthestDistance {
-				farthestDistance = shortestDistanceToPlanets
-				homeworld = planet
-			}
-			if len(ownedPlanets) == 0 || shortestDistanceToPlanets > minPlayerDistance {
-				homeworld = planet
-				break
-			}
-		}
-		return homeworld
-	}
-
-// place an extra world during universe generation 
-func (ug *universeGenerator) placeExtraWorld(startingPlanet StartingPlanet, ownedPlanets []*Planet, minPlanetDistance int) (playerPlanet *Planet) {
-		for _, planet := range ug.universe.Planets {
-			if planet.Owned() {
-				continue
-			}
-			
-			// extra planets are close to their player's homeworld, so check 
-			// if we can't find a planet within tolerances, pick the closest one
-			distToHomeworld := planet.Position.DistanceSquaredTo(homeworld.Position)
-			if distToHomeworld <= closestDistance {
-				closestDistance = distToHomeworld
-				playerPlanet = planet
-			}
-			if distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && 
-			distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance) {
-				playerPlanet = planet
-				break
-			}
-		}
-	
-	return playerPlanet
-}
 func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet, fleetNum *int, startingFleets []StartingFleet) error {
 	for _, startingFleet := range startingFleets {
 		design := player.GetDesignByName(startingFleet.Name)
@@ -550,10 +565,10 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 			planet.Defenses = 100
 		}
 		if !player.Race.Spec.InnateMining {
-			planet.Mines = getMaxInstallations(player.Race.NumMines, planet.population())
+			planet.Mines = getMaxInstallations(player.Race.NumMines, planet.GetPopulation())
 		}
 		if !player.Race.Spec.InnateResources {
-			planet.Factories = getMaxInstallations(player.Race.NumFactories, planet.population())
+			planet.Factories = getMaxInstallations(player.Race.NumFactories, planet.GetPopulation())
 		}
 	}
 }
