@@ -393,7 +393,7 @@ export const cottonPicker: Fleet = {
 	}
 };
 
-// make vitest complain about at test file with no tests
+// stop vitest from complaining about test file with no tests
 describe('Mock test', () => {
 	it('mock', () => {});
 });

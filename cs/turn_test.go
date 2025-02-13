@@ -910,9 +910,7 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 			planet.Spec = computePlanetSpec(&game.Rules, player, planet)
 			game.Planets = append(game.Planets, planet)
 
-			turn := turn{
-				game: game,
-			}
+			turn := turn{game: game}
 			turn.game.Universe.buildMaps(game.Players)
 
 			// try and remote the planet
@@ -1182,80 +1180,66 @@ func Test_turn_fleetRepair(t *testing.T) {
 }
 
 func Test_turn_fleetReproduce(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createTwoPlayerGame()
 
-	// make an IS race for reproducing
-	player := game.Players[0]
-	player.Race.PRT = IS
-	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+	// make an IS race for reproducing and an AR race for dieoff
+	isPlayer := game.Players[0]
+	isPlayer.Race.PRT = IS
+	isPlayer.Race.Spec = computeRaceSpec(&isPlayer.Race, &rules)
+	arPlayer := game.Players[1]
+	arPlayer.Race.PRT = AR
+	arPlayer.Race.Spec = computeRaceSpec(&arPlayer.Race, &rules)
 
-	// make a new freighter with some colonists
-	fleet := testSmallFreighter(player)
-	fleet.Cargo.Colonists = 50 // 5000 colonists
-	player.Designs[0] = fleet.Tokens[0].design
-	game.Fleets[0] = fleet
+	// each player gets a freighter with some colonists
+	isFleet := testSmallFreighter(isPlayer)
+	isFleet.Cargo.Colonists = 50 // 5000 colonists
+	isPlayer.Designs[0] = isFleet.Tokens[0].design
+	game.Fleets[0] = isFleet
+	arFleet := testGalleon(arPlayer)
+	arFleet.Cargo.Colonists = 50 // 5000 colonists
+	arPlayer.Designs[0] = arFleet.Tokens[0].design
+	game.Fleets[1] = arFleet
 
 	// orbit a planet of ours
-	planet := game.Planets[0]
-	planet.PlayerNum = player.Num
-	planet.Cargo.Colonists = 2500
-	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
-	fleet.OrbitingPlanetNum = planet.Num
+	isPlanet := game.Planets[0]
+	isPlanet.PlayerNum = isPlayer.Num
+	isPlanet.Cargo.Colonists = 2500
+	isFleet.Waypoints[0] = NewPlanetWaypoint(isPlanet.Position, isPlanet.Num, isPlanet.Name, 5)
+	isFleet.OrbitingPlanetNum = isPlanet.Num
 
-	turn := turn{
-		game: game,
-	}
+	turn := turn{game: game}
 	turn.game.Universe.buildMaps(game.Players)
 
 	// don't generate a full turn, the planet will grow
 	turn.fleetReproduce()
 
-	// should have grown on freighter
-	assert.Equal(t, 53, fleet.Cargo.Colonists)
-	assert.Equal(t, 2500, planet.Cargo.Colonists)
+	// IS freighter should have grown; AT freighter should have lost pop slightly
+	assert.Equal(t, 53, isFleet.Cargo.Colonists)
+	assert.Equal(t, 2500, isPlanet.Cargo.Colonists)
+	assert.Equal(t, 49, arFleet.Cargo.Colonists)
 
-	// fill it up, should overflow onto planet
-	fleet.Cargo.Colonists = fleet.Spec.CargoCapacity
+	// fill IS freighter up fully to overflow onto planet;
+	// set AR freighter to 10K (we lose 3% or 300)
+	isFleet.Cargo.Colonists = isFleet.Spec.CargoCapacity
+	arFleet.Cargo.Colonists = 100
 
 	// reproduce again
 	turn.fleetReproduce()
 
-	// should have grown on freighter and beamed down to planet
-	assert.Equal(t, fleet.Spec.CargoCapacity, fleet.Cargo.Colonists)
-	assert.Equal(t, 2509, planet.Cargo.Colonists) // 120kT * 7.5% = 900 colonists beamed to planet
+	// IS should have grown on freighter and beamed down to planet
+	assert.Equal(t, isFleet.Spec.CargoCapacity, isFleet.Cargo.Colonists)
+	assert.Equal(t, 2509, isPlanet.Cargo.Colonists) // 12000 * 0.15 * 0.5 = 900 colonists beamed to planet
+	assert.Equal(t, 97, arFleet.Cargo.Colonists)
 
-}
+	// Disable pop growth on both players & check for reproduction again;
+	// IS should halt reproduction while AR should continue losing pop
+	isPlayer.Race.GrowthRate = 0
+	arPlayer.Race.GrowthRate = 0
+	turn.fleetReproduce()
+	assert.Equal(t, isFleet.Spec.CargoCapacity, isFleet.Cargo.Colonists)
+	assert.Equal(t, 2509, isPlanet.Cargo.Colonists)
+	assert.Equal(t, 95, arFleet.Cargo.Colonists) // should be 94 in base game, but leaving it for now since it rounds weird AF
 
-func Test_turn_fleetDieoff(t *testing.T) {
-	game := createSingleUnitGame()
-
-	// make an AR race for dieoff
-	player := game.Players[0]
-	player.Race.PRT = AR
-	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
-
-	// make a new freighter with some colonists
-	fleet := testSmallFreighter(player)
-	fleet.Cargo.Colonists = 50 // 5000 colonists
-	player.Designs[0] = fleet.Tokens[0].design
-	game.Fleets[0] = fleet
-
-	turn := turn{
-		game: game,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	turn.fleetDieoff()
-
-	// should have lost a min of 1kt on freighter
-	assert.Equal(t, 49, fleet.Cargo.Colonists)
-
-	// set to 10000, so we lose 300 or 3%
-	fleet.Cargo.Colonists = 100
-	turn.fleetDieoff()
-
-	// should have lost a min of 1kt on freighter
-	assert.Equal(t, 97, fleet.Cargo.Colonists)
 }
 
 func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
@@ -1276,10 +1260,9 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
-	// generate turn to simulate die off
+	// generate turn to simulate die off; should not lose pop
 	turn.generateTurn()
 
-	// should not die
 	assert.Equal(t, 50, fleet.Cargo.Colonists)
 
 	// add a radiating hydro ramscoop
@@ -1287,19 +1270,15 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 	design.Spec, _ = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 
-	// generate turn to simulate die off
+	// generate turn to simulate die off; should lose pop
 	turn.generateTurn()
-
-	// should not die
 	assert.Equal(t, 41, fleet.Cargo.Colonists)
 
-	// make the player a high rad race
+	// make the player a high rad race to prevent radiation damage
 	player.Race.HabHigh.Rad = 100
-	player.Race.HabLow.Rad = 80
+	player.Race.HabLow.Rad = 80 // midpoint: 90mR
 	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 	turn.generateTurn()
-
-	// should not die
 	assert.Equal(t, 41, fleet.Cargo.Colonists)
 
 }

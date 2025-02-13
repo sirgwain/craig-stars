@@ -13,11 +13,12 @@ import (
 func newGenerateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate",
-		Short: "Generate ",
+		Short: "Generate",
 		Long:  `Update a record in the database.`,
 	}
 
 	cmd.AddCommand(newGenerateTechsJson())
+	cmd.AddCommand(newGenerateRulesJson())
 	return cmd
 }
 
@@ -29,12 +30,33 @@ func newGenerateTechsJson() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			techs := cs.StaticTechStore
 
-			techsJson, err := json.Marshal(techs)
+			techsJson, err := json.MarshalIndent(techs, "", "	")
 			if err != nil {
-				return fmt.Errorf("failed to marshal StaticTechStore to json")
+				return fmt.Errorf("failed to marshal StaticTechStore to json: \n%w", err)
 			}
 
 			fmt.Println(string(techsJson))
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+func newGenerateRulesJson() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "rulesjson",
+		Short: "Generate the rules.json content",
+		Long:  `Generate the rules.json content. During build time we need to update this to the latest default rules.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			rules := cs.NewRules()
+
+			rulesJson, err := json.MarshalIndent(rules, "", "	")
+			if err != nil {
+				return fmt.Errorf("failed to marshal rules to json: \n%w", err)
+			}
+
+			fmt.Println(string(rulesJson))
 			return nil
 		},
 	}

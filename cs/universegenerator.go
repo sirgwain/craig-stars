@@ -572,10 +572,10 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 			planet.Defenses = 100
 		}
 		if !player.Race.Spec.InnateMining {
-			planet.Mines = planet.getMaxMines(player, planet.population())
+			planet.Mines = getMaxInstallations(player.Race.NumMines, planet.population())
 		}
 		if !player.Race.Spec.InnateResources {
-			planet.Factories = planet.getMaxFactories(player, planet.population())
+			planet.Factories = getMaxInstallations(player.Race.NumFactories, planet.population())
 		}
 	}
 }

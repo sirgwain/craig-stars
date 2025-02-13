@@ -1,36 +1,34 @@
 import { type Cargo, negativeCargo } from './Cargo';
 
-export type CargoTransferRequest = {
-	ironium: number;
-	boranium: number;
-	germanium: number;
-	colonists: number;
-	fuel: number;
-};
+export class CargoTransferRequest {
+	ironium = $state(0);
+	boranium = $state(0);
+	germanium = $state(0);
+	colonists = $state(0);
+	fuel = $state(0);
 
-// create a new CargoTransferRequest from a Cargo and Fuel
-export function newCargoTransferRequest(
-	cargo?: Cargo | CargoTransferRequest,
-	fuel?: number
-): CargoTransferRequest {
-	const req = Object.assign(
-		{
-			ironium: 0,
-			boranium: 0,
-			germanium: 0,
-			colonists: 0,
-			fuel: 0
-		},
-		cargo
-	);
-	req.fuel = fuel ?? 0;
+	constructor(cargo?: Cargo, fuel?: number) {
+		this.ironium = cargo?.ironium ?? 0;
+		this.boranium = cargo?.boranium ?? 0;
+		this.germanium = cargo?.germanium ?? 0;
+		this.colonists = cargo?.colonists ?? 0;
+		this.fuel = fuel ?? 0;
+	}
 
-	return req;
+	public jsonData(): Cargo & { fuel: number } {
+		return {
+			ironium: this.ironium,
+			boranium: this.boranium,
+			germanium: this.germanium,
+			colonists: this.colonists,
+			fuel: this.fuel
+		};
+	}
 }
 
 // return a new CargoTransferRequest from this one, but negated
 export function negative(req: CargoTransferRequest): CargoTransferRequest {
-	return newCargoTransferRequest(negativeCargo(req), -req.fuel);
+	return new CargoTransferRequest(negativeCargo(req), -req.fuel);
 }
 
 // return the absolute size of this transfer request
@@ -56,7 +54,7 @@ export function absoluteCargoSize(req: CargoTransferRequest): number {
 
 // add a CargoTransferRequest to another CargoTransferRequest, returning a new one
 export function add(req: CargoTransferRequest, c: CargoTransferRequest) {
-	return newCargoTransferRequest(
+	return new CargoTransferRequest(
 		{
 			ironium: req.ironium + c.ironium,
 			boranium: req.boranium + c.boranium,

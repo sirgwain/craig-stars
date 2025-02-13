@@ -36,8 +36,8 @@ describe('Planet test', () => {
 			planet.getGrowthAmount(
 				race,
 				maxPopulation,
-				defaultRules.populationOvercrowdDieoffRate,
-				defaultRules.populationOvercrowdDieoffRateMax
+				defaultRules.populationOvercrowdDieoffRate ?? 0.04,
+				defaultRules.populationOvercrowdDieoffRateMax ?? 0.12
 			)
 		).toBe(10000);
 	});
@@ -59,7 +59,7 @@ describe('Planet test', () => {
 
 		if (race.spec) {
 			race.spec.innateMining = true;
-			race.spec.innatePopulationFactor = 0.1;
+			race.spec.innateScannerFactor = 0.1;
 		}
 		expect(planet.getInnateMines(race, 16000)).toBe(12);
 	});

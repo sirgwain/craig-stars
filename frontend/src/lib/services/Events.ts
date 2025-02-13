@@ -1,4 +1,4 @@
-import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest';
+import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 import type {
 	CargoTransferTarget,
 	CommandedFleet,

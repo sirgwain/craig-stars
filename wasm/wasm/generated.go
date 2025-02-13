@@ -889,6 +889,20 @@ func SetFleetSpec(o js.Value, obj *cs.FleetSpec) {
 	o.Set("totalShips", obj.TotalShips)
 }
 
+func GetFreighterGrowth(o js.Value) cs.FreighterGrowth {
+	var obj cs.FreighterGrowth
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.Absolute = getBool(o.Get("absolute"))
+	obj.GrowthFactor = getFloat[float64](o.Get("rate"))
+	return obj
+}
+func SetFreighterGrowth(o js.Value, obj *cs.FreighterGrowth) {
+	o.Set("absolute", obj.Absolute)
+	o.Set("rate", obj.GrowthFactor)
+}
+
 func GetFullPlayer(o js.Value) cs.FullPlayer {
 	var obj cs.FullPlayer
 	if o.IsUndefined() || o.IsNull() {
@@ -1779,7 +1793,7 @@ func GetPRTSpec(o js.Value) cs.PRTSpec {
 	obj.ShipsVanishInVoid = getBool(o.Get("shipsVanishInVoid"))
 	obj.BuiltInScanner = GetBuiltInScanner(o.Get("builtInScanner"))
 	obj.TechsCostExtraLevel = getInt[int](o.Get("techsCostExtraLevel"))
-	obj.FreighterGrowthFactor = getFloat[float64](o.Get("freighterGrowthFactor"))
+	obj.FreighterGrowth = GetFreighterGrowth(o.Get("freighterGrowth"))
 	obj.GrowthFactor = getFloat[float64](o.Get("growthFactor"))
 	obj.MaxPopulationOffset = getFloat[float64](o.Get("maxPopulationOffset"))
 	obj.BuiltInCloakUnits = getInt[int](o.Get("builtInCloakUnits"))
@@ -1806,11 +1820,13 @@ func GetPRTSpec(o js.Value) cs.PRTSpec {
 	obj.StarbaseRepairFactor = getFloat[float64](o.Get("starbaseRepairFactor"))
 	obj.StarbaseCostFactor = getFloat[float64](o.Get("starbaseCostFactor"))
 	obj.InnateMining = getBool(o.Get("innateMining"))
+	obj.InnateMinesFactor = getFloat[float64](o.Get("innateMinesFactor"))
 	obj.InnateResources = getBool(o.Get("innateResources"))
 	obj.InnateScanner = getBool(o.Get("innateScanner"))
-	obj.InnatePopulationFactor = getFloat[float64](o.Get("innatePopulationFactor"))
+	obj.InnateScannerFactor = getFloat[float64](o.Get("innateScannerFactor"))
 	obj.CanBuildDefenses = getBool(o.Get("canBuildDefenses"))
 	obj.LivesOnStarbases = getBool(o.Get("livesOnStarbases"))
+	obj.MinHabFloor = getInt[int](o.Get("minHabFloor"))
 	return obj
 }
 func SetPRTSpec(o js.Value, obj *cs.PRTSpec) {
@@ -1844,7 +1860,8 @@ func SetPRTSpec(o js.Value, obj *cs.PRTSpec) {
 	o.Set("builtInScanner", map[string]any{})
 	SetBuiltInScanner(o.Get("builtInScanner"), &obj.BuiltInScanner)
 	o.Set("techsCostExtraLevel", obj.TechsCostExtraLevel)
-	o.Set("freighterGrowthFactor", obj.FreighterGrowthFactor)
+	o.Set("freighterGrowth", map[string]any{})
+	SetFreighterGrowth(o.Get("freighterGrowth"), &obj.FreighterGrowth)
 	o.Set("growthFactor", obj.GrowthFactor)
 	o.Set("maxPopulationOffset", obj.MaxPopulationOffset)
 	o.Set("builtInCloakUnits", obj.BuiltInCloakUnits)
@@ -1872,11 +1889,13 @@ func SetPRTSpec(o js.Value, obj *cs.PRTSpec) {
 	o.Set("starbaseRepairFactor", obj.StarbaseRepairFactor)
 	o.Set("starbaseCostFactor", obj.StarbaseCostFactor)
 	o.Set("innateMining", obj.InnateMining)
+	o.Set("innateMinesFactor", obj.InnateMinesFactor)
 	o.Set("innateResources", obj.InnateResources)
 	o.Set("innateScanner", obj.InnateScanner)
-	o.Set("innatePopulationFactor", obj.InnatePopulationFactor)
+	o.Set("innateScannerFactor", obj.InnateScannerFactor)
 	o.Set("canBuildDefenses", obj.CanBuildDefenses)
 	o.Set("livesOnStarbases", obj.LivesOnStarbases)
+	o.Set("minHabFloor", obj.MinHabFloor)
 }
 
 func GetPlanet(o js.Value) cs.Planet {
@@ -2796,7 +2815,7 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.CanDetectStargatePlanets = getBool(o.Get("canDetectStargatePlanets"))
 	obj.ShipsVanishInVoid = getBool(o.Get("shipsVanishInVoid"))
 	obj.TechsCostExtraLevel = getInt[int](o.Get("techsCostExtraLevel"))
-	obj.FreighterGrowthFactor = getFloat[float64](o.Get("freighterGrowthFactor"))
+	obj.FreighterGrowth = GetFreighterGrowth(o.Get("freighterGrowth"))
 	obj.GrowthFactor = getFloat[float64](o.Get("growthFactor"))
 	obj.MaxPopulationOffset = getFloat[float64](o.Get("maxPopulationOffset"))
 	obj.BuiltInCloakUnits = getInt[int](o.Get("builtInCloakUnits"))
@@ -2822,11 +2841,13 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.RepairFactor = getFloat[float64](o.Get("repairFactor"))
 	obj.StarbaseRepairFactor = getFloat[float64](o.Get("starbaseRepairFactor"))
 	obj.InnateMining = getBool(o.Get("innateMining"))
+	obj.InnateMinesFactor = getFloat[float64](o.Get("innateMinesFactor"))
 	obj.InnateResources = getBool(o.Get("innateResources"))
 	obj.InnateScanner = getBool(o.Get("innateScanner"))
-	obj.InnatePopulationFactor = getFloat[float64](o.Get("innatePopulationFactor"))
+	obj.InnateScannerFactor = getFloat[float64](o.Get("innateScannerFactor"))
 	obj.CanBuildDefenses = getBool(o.Get("canBuildDefenses"))
 	obj.LivesOnStarbases = getBool(o.Get("livesOnStarbases"))
+	obj.MinHabFloor = getInt[int](o.Get("minHabFloor"))
 	obj.FuelEfficiencyOffset = getFloat[float64](o.Get("fuelEfficiencyOffset"))
 	obj.MineralAlchemyCostOffset = getInt[int](o.Get("mineralAlchemyCostOffset"))
 	obj.ScrapMineralOffset = getFloat[float64](o.Get("scrapMineralOffset"))
@@ -2883,7 +2904,8 @@ func SetRaceSpec(o js.Value, obj *cs.RaceSpec) {
 	o.Set("canDetectStargatePlanets", obj.CanDetectStargatePlanets)
 	o.Set("shipsVanishInVoid", obj.ShipsVanishInVoid)
 	o.Set("techsCostExtraLevel", obj.TechsCostExtraLevel)
-	o.Set("freighterGrowthFactor", obj.FreighterGrowthFactor)
+	o.Set("freighterGrowth", map[string]any{})
+	SetFreighterGrowth(o.Get("freighterGrowth"), &obj.FreighterGrowth)
 	o.Set("growthFactor", obj.GrowthFactor)
 	o.Set("maxPopulationOffset", obj.MaxPopulationOffset)
 	o.Set("builtInCloakUnits", obj.BuiltInCloakUnits)
@@ -2910,11 +2932,13 @@ func SetRaceSpec(o js.Value, obj *cs.RaceSpec) {
 	o.Set("repairFactor", obj.RepairFactor)
 	o.Set("starbaseRepairFactor", obj.StarbaseRepairFactor)
 	o.Set("innateMining", obj.InnateMining)
+	o.Set("innateMinesFactor", obj.InnateMinesFactor)
 	o.Set("innateResources", obj.InnateResources)
 	o.Set("innateScanner", obj.InnateScanner)
-	o.Set("innatePopulationFactor", obj.InnatePopulationFactor)
+	o.Set("innateScannerFactor", obj.InnateScannerFactor)
 	o.Set("canBuildDefenses", obj.CanBuildDefenses)
 	o.Set("livesOnStarbases", obj.LivesOnStarbases)
+	o.Set("minHabFloor", obj.MinHabFloor)
 	o.Set("fuelEfficiencyOffset", obj.FuelEfficiencyOffset)
 	o.Set("mineralAlchemyCostOffset", obj.MineralAlchemyCostOffset)
 	o.Set("scrapMineralOffset", obj.ScrapMineralOffset)
@@ -3050,7 +3074,7 @@ func GetRules(o js.Value) cs.Rules {
 	obj.MineFieldCloak = getInt[int](o.Get("mineFieldCloak"))
 	obj.MineFieldStatsByType = GetStringMap[map[cs.MineFieldType]cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldStats)
 	obj.MineralDecayFactor = getInt[int](o.Get("mineralDecayFactor"))
-	obj.MinMaxPopulationPercent = getFloat[float64](o.Get("minMaxPopulationPercent"))
+	obj.MinHabFloor = getInt[int](o.Get("minHabFloor"))
 	obj.MysteryTraderRules = GetMysteryTraderRules(o.Get("mysteryTraderRules"))
 	obj.PacketDecayRate = GetIntMap[map[int]float64](o.Get("packetDecayRate"), getFloat)
 	obj.PacketMaxOverwarpSpeed = getInt[int](o.Get("packetMaxOverwarpSpeed"))
@@ -3058,6 +3082,8 @@ func GetRules(o js.Value) cs.Rules {
 	obj.PlanetMinDistance = getInt[int](o.Get("planetMinDistance"))
 	obj.PopulationOvercrowdDieoffRate = getFloat[float64](o.Get("populationOvercrowdDieoffRate"))
 	obj.PopulationOvercrowdDieoffRateMax = getFloat[float64](o.Get("populationOvercrowdDieoffRateMax"))
+	obj.PopulationOvercrowdResourcePenalty = getFloat[float64](o.Get("populationOvercrowdResourcePenalty"))
+	obj.PopulationOvercrowdResourceMax = getFloat[float64](o.Get("populationOvercrowdResourceMax"))
 	obj.PopulationScannerError = getFloat[float64](o.Get("populationScannerError"))
 	obj.PRTSpecs = GetStringMap[map[cs.PRT]cs.PRTSpec](o.Get("prtSpecs"), GetPRTSpec)
 	obj.RaceStartingPoints = getInt[int](o.Get("raceStartingPoints"))
@@ -3132,7 +3158,7 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	}
 	o.Set("mineFieldStatsByType", mineFieldStatsByTypeMap)
 	o.Set("mineralDecayFactor", obj.MineralDecayFactor)
-	o.Set("minMaxPopulationPercent", obj.MinMaxPopulationPercent)
+	o.Set("minHabFloor", obj.MinHabFloor)
 	o.Set("mysteryTraderRules", map[string]any{})
 	SetMysteryTraderRules(o.Get("mysteryTraderRules"), &obj.MysteryTraderRules)
 	packetDecayRateMap := js.ValueOf(map[string]any{})
@@ -3145,6 +3171,8 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	o.Set("planetMinDistance", obj.PlanetMinDistance)
 	o.Set("populationOvercrowdDieoffRate", obj.PopulationOvercrowdDieoffRate)
 	o.Set("populationOvercrowdDieoffRateMax", obj.PopulationOvercrowdDieoffRateMax)
+	o.Set("populationOvercrowdResourcePenalty", obj.PopulationOvercrowdResourcePenalty)
+	o.Set("populationOvercrowdResourceMax", obj.PopulationOvercrowdResourceMax)
 	o.Set("populationScannerError", obj.PopulationScannerError)
 	prtSpecsMap := js.ValueOf(map[string]any{})
 	for key, value := range obj.PRTSpecs {
@@ -4207,6 +4235,7 @@ func GetUniverseGenerationRules(o js.Value) cs.UniverseGenerationRules {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.HabDropoffRange = GetHab(o.Get("habDropoffRange"))
 	obj.HighRadMineralConcentrationBonusThreshold = getInt[int](o.Get("highRadMineralConcentrationBonusThreshold"))
 	obj.LimitMineralConcentration = getInt[int](o.Get("limitMineralConcentration"))
 	obj.MaxExtraWorldDistance = getInt[int](o.Get("maxExtraWorldDistance"))
@@ -4227,6 +4256,8 @@ func GetUniverseGenerationRules(o js.Value) cs.UniverseGenerationRules {
 	return obj
 }
 func SetUniverseGenerationRules(o js.Value, obj *cs.UniverseGenerationRules) {
+	o.Set("habDropoffRange", map[string]any{})
+	SetHab(o.Get("habDropoffRange"), &obj.HabDropoffRange)
 	o.Set("highRadMineralConcentrationBonusThreshold", obj.HighRadMineralConcentrationBonusThreshold)
 	o.Set("limitMineralConcentration", obj.LimitMineralConcentration)
 	o.Set("maxExtraWorldDistance", obj.MaxExtraWorldDistance)

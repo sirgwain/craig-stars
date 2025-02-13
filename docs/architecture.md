@@ -1,6 +1,30 @@
 # Architecture
 
-`craig-stars` is a monorepo containing code both for the frontend client and the backend server. The file structure is broken down as follows:
+`craig-stars` is a monorepo containing code for both the frontend client and the backend server.
+
+## Tech Stack
+
+`craig-stars` is built on top of the following excellent technologies:
+
+- [golang](https://go.dev)
+- [sveltekit](https://kit.svelte.dev) (with static adaptor)
+- [sqlx](https://github.com/jmoiron/sqlx) + [sqlite](https://www.sqlite.org)
+- [golang-migrate](https://github.com/golang-migrate/migrate)
+- [goverter](https://github.com/jmattheis/goverter)
+- [go-chi](https://github.com/chi/go-chi)
+- [zerolog](https://github.com/rs/zerolog)
+- [disgo](https://github.com/disgoorg/disgo)
+- [go-pkgz/auth](https://github.com/go-pkgz/auth)
+- [cobra](https://github.com/spf13/cobra) (for cli)
+- [viper](https://github.com/spf13/viper) (for config)
+- [tailwindcss](https://tailwindcss.com)
+- [daisyui](https://daisyui.com)
+
+Icons are either hand crafted, taken from the original Stars! files or from the wonderful [game-icons.net](https://game-icons.net) and [heroicons.com](https://heroicons.com).
+
+## File Structure
+
+The repository file structure is broken down as follows:
 
 | path        | description                                                                                                                                                                                                             |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -199,7 +223,7 @@ This context contains reactive stores with the state of the game, for example a 
 
 ```html
 <script lang="ts">
-  import { getGameContext } from '$lib/services/Contexts';
+  import { getGameContext } from "$lib/services/Contexts";
 
   const { game, player, universe } = getGameContext();
 </script>
@@ -209,7 +233,7 @@ This context contains reactive stores with the state of the game, for example a 
 
 `craig-stars` frontend code makes great use of contexts and stores to update the UI and keep components small.
 
-The `GameContext` is used to react to state changes (`$game.year` updates each time a turn is generated). It also contains methods to update the state, such as `commandPlanet()` or `updatePlayerOrders()`. 
+The `GameContext` is used to react to state changes (`$game.year` updates each time a turn is generated). It also contains methods to update the state, such as `commandPlanet()` or `updatePlayerOrders()`.
 
 Planets and Fleets owned by the player can be Commanded, at which point they show up in the Command Pane. All map objects can be Selected, at which point they show up in the Selection Summary.
 

@@ -1,0 +1,26 @@
+# lefthook.yml
+
+assert.lefthook.installed: true
+pre-commit:
+  skip:
+    - merge-commit
+    - rebase
+  commands:
+    gofmt:
+      glob: "*.go"
+      exclude:
+        - "**/generated.go"
+      run: gofmt -l -w {staged_files}
+      stage_fixed: true
+    prettier_backend:
+      exclude:
+        - "frontend/**"
+        - "*.go"
+      run: npx prettier --ignore-unknown --write {staged_files}
+      stage_fixed: true
+    prettier_frontend:
+      root: "frontend/"
+      exclude:
+        - "frontend/src/lib/ssr/**"
+      run: npx prettier --ignore-unknown --write {staged_files}
+      stage_fixed: true

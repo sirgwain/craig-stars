@@ -37,7 +37,9 @@
 
 	let { hull, design = $bindable(), error = '', numHullSets = 4, onSave }: Props = $props();
 
-	let designSpec: ShipDesignSpec = $derived(cs.computeShipDesignSpec(design) ?? ({} as ShipDesignSpec));
+	let designSpec: ShipDesignSpec = $derived(
+		cs.computeShipDesignSpec(design) ?? ({} as ShipDesignSpec)
+	);
 	let highlightedSlots: number[] = $state([]);
 
 	// only show hull components that actually fit on this hull

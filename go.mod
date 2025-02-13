@@ -19,6 +19,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/golodash/godash v1.3.0
 	github.com/jmoiron/sqlx v1.4.0
+	github.com/magefile/mage v1.15.0
 	github.com/simukti/sqldb-logger v0.0.0-20230108155151-646c1a075551
 	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948
 	golang.org/x/tools v0.24.0
@@ -37,6 +38,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/rrivera/identicon v0.0.0-20240116195454-d5ba35832c0d // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect

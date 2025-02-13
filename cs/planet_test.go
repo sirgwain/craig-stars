@@ -101,40 +101,47 @@ func TestPlanet_String(t *testing.T) {
 	}
 }
 
-func TestPlanet_innateMines(t *testing.T) {
-	player := NewPlayer(1, &Race{Spec: RaceSpec{InnateMining: false}})
-	planet := Planet{}
-	planet.setPopulation(16000)
-
-	if got := planet.innateMines(player, planet.population()); got != 0 {
-		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
+func Test_innateMines(t *testing.T) {
+	tests := []struct {
+		name      string
+		pop       int
+		popFactor float64
+		want      int
+	}{
+		{name: "100 pop", pop: 100, popFactor: 0.1, want: 1},
+		{name: "10K pop", pop: 10_000, popFactor: 0.1, want: 10},
+		{name: "40K pop", pop: 40_000, popFactor: 0.1, want: 20},
+		{name: "1M pop", pop: 1_000_000, popFactor: 0.1, want: 100},
 	}
-
-	// should get 40 mines for 16k pop when the player has innate mining
-	player.Race.Spec.InnateMining = true
-	player.Race.Spec.InnatePopulationFactor = .1
-	if got := planet.innateMines(player, planet.population()); got != 12 {
-		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 12)
+	for _, tt := range tests {
+		planet := NewPlanet()
+		planet.Name = tt.name
+		if got := innateMines(tt.popFactor, tt.pop); got != tt.want {
+			t.Errorf("planet.GetInnateMines() = %v, want %v", got, tt.want)
+		}
 	}
-
 }
 
-func TestPlanet_innateScanner(t *testing.T) {
-	player := NewPlayer(1, &Race{Spec: RaceSpec{InnateMining: false}})
-	planet := Planet{}
-	planet.setPopulation(67300)
-
-	if got := planet.innateScanner(player, planet.population()); got != 0 {
-		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 0)
+func Test_innateScanner(t *testing.T) {
+	tests := []struct {
+		name      string
+		pop       int
+		popFactor float64
+		want      int
+	}{
+		{name: "100 pop", pop: 100, popFactor: 0.1, want: 3},       // sqrt(10)
+		{name: "10K pop", pop: 10_000, popFactor: 0.1, want: 31},   // sqrt(1000)
+		{name: "50.5K pop", pop: 50_500, popFactor: 0.1, want: 71}, // sqrt(5050) ≈ 71
+		{name: "144K pop", pop: 144_000, popFactor: 0.1, want: 120},
+		{name: "6.4M pop", pop: 6_400_000, popFactor: 0.1, want: 800},
 	}
-
-	// should get 40 mines for 16k pop when the player has innate mining
-	player.Race.Spec.InnateScanner = true
-	player.Race.Spec.InnatePopulationFactor = .1
-	if got := planet.innateScanner(player, planet.population()); got != 82 {
-		t.Errorf("Planet.GetInnateMines() = %v, want %v", got, 82)
+	for _, tt := range tests {
+		planet := NewPlanet()
+		planet.Name = tt.name
+		if got := innateScanner(tt.popFactor, tt.pop); got != tt.want {
+			t.Errorf("innateScanner() = %v, want %v", got, tt.want)
+		}
 	}
-
 }
 
 func TestPlanet_getGrowthAmount(t *testing.T) {
@@ -230,23 +237,20 @@ func TestPlanet_reduceMineralConcentration(t *testing.T) {
 }
 
 func Test_getMaxPopulation(t *testing.T) {
-	type args struct {
-		hab int
-	}
 	tests := []struct {
 		name string
-		args args
+		hab  int
 		want int
 	}{
-		{"joat homeworld", args{100}, 1_200_000},
-		{"low hab world", args{1}, 60_000},
-		{"bad hab world", args{-45}, 60_000},
+		{"joat homeworld", 100, 1_200_000},
+		{"low hab world", 1, 60_000},
+		{"bad hab world", -45, 60_000},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			planet := NewPlanet()
 			player := NewPlayer(0, NewRace().WithSpec(&rules)).withSpec(&rules)
-			if got := planet.getMaxPopulation(&rules, player, tt.args.hab); got != tt.want {
+			if got := planet.getMaxPopulation(&rules, player, tt.hab); got != tt.want {
 				t.Errorf("getMaxPopulation() = %v, want %v", got, tt.want)
 			}
 		})
@@ -258,7 +262,8 @@ func Test_computePlanetSpec(t *testing.T) {
 	planet.Starbase = testSpaceStation(player, planet)
 
 	player.Race.Spec.InnateScanner = true
-	player.Race.Spec.InnatePopulationFactor = .1
+	player.Race.Spec.InnateMinesFactor = 0.1
+	player.Race.Spec.InnateScannerFactor = 0.1
 	planet.setPopulation(67300)
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 
@@ -275,53 +280,69 @@ func Test_computePlanetSpec(t *testing.T) {
 }
 
 func TestPlanet_randomize(t *testing.T) {
-
-	type args struct {
-		rng rng
+	type fields struct {
+		habDropoff Hab
+		minHab     int
+		maxHab     int
 	}
 	tests := []struct {
-		name string
-		args args
-		want Planet
+		name   string
+		fields fields
+		planet *Planet
+		rng    rng
+		want   *Planet
 	}{
 		{
-			name: "planet gen with all 0 rng",
-			args: args{newIntRandom()},
-			want: Planet{
+			name:   "normal w/ all 0 rng; shouldn't reset production queue",
+			fields: fields{rules.HabDropoffRange, rules.MinHab, rules.MaxHab},
+			planet: NewPlanet().WithOrders(PlanetOrders{
+				ProductionQueue: []ProductionQueueItem{
+					{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{0, 0, 2, 6}},
+					{Type: QueueItemTypeAutoDefenses, Quantity: 100},
+					{Type: QueueItemTypeAutoFactories, Quantity: 10},
+				},
+			}),
+			rng: newIntRandom(),
+			want: &Planet{
 				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
 				Dirty:                true,
 				Hab:                  Hab{1, 1, 1},
 				BaseHab:              Hab{1, 1, 1},
 				MineralConcentration: Mineral{1, 1, 1},
-				PlanetOrders: PlanetOrders{
-					ProductionQueue: []ProductionQueueItem{},
-				},
+				MineYears:            Mineral{},
+				PlanetOrders: PlanetOrders{ProductionQueue: []ProductionQueueItem{
+					{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{0, 0, 2, 6}},
+					{Type: QueueItemTypeAutoDefenses, Quantity: 100},
+					{Type: QueueItemTypeAutoFactories, Quantity: 10},
+				}},
 			},
 		},
 		{
-			name: "planet gen random minerals",
-			args: args{newIntRandom()},
-			want: Planet{
+			name:   "custom rules/rng seed",
+			fields: fields{Hab{20, 20, 20}, 10, 90}, // 10 + rand[0,61) + rand[0,21)
+			planet: NewPlanet(),
+			rng:    newIntRandom(50, 43, 11, 2, 3, 5),
+			want: &Planet{
 				MapObject:            MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned},
 				Dirty:                true,
-				Hab:                  Hab{1, 1, 1},
-				BaseHab:              Hab{1, 1, 1},
+				Hab:                  Hab{62, 56, 26},
+				BaseHab:              Hab{62, 56, 26},
 				MineralConcentration: Mineral{1, 1, 1},
-				PlanetOrders: PlanetOrders{
-					ProductionQueue: []ProductionQueueItem{},
-				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewPlanet()
+			got := tt.planet
+			r := &rules
+			r.HabDropoffRange = tt.fields.habDropoff
+			r.MinHab = tt.fields.minHab
+			r.MaxHab = tt.fields.maxHab
+			r.random = tt.rng
 
-			rules := NewRules()
-			rules.random = tt.args.rng
-			got.randomize(&rules, false)
+			got.randomize(r)
 
-			if !reflect.DeepEqual(got, &tt.want) {
+			if !reflect.DeepEqual(got, tt.want) {
 				// dump json, but this won't include some fields
 				test.CompareAsJSON(t, got, tt.want)
 				t.Errorf("randomize() = %#v, want %#v", got, tt.want)
@@ -410,6 +431,108 @@ func TestPlanet_getMineralOutput(t *testing.T) {
 			}
 			if got := p.getMineralOutput(tt.args.numMines, tt.args.mineOutput); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Planet.getMineralOutput() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
+	type args struct {
+		player          *Player
+		numFacts        int
+		productivePop   int
+		installationPop int
+	}
+	tests := []struct {
+		name string
+		args args
+		spec PlanetSpec
+		want PlanetSpec
+	}{
+		{
+			name: "Normal JoaT HW",
+			args: args{
+				player:          testPlayer(),
+				numFacts:        10,
+				productivePop:   25_000,
+				installationPop: 25_000,
+			},
+			spec: PlanetSpec{
+				MaxFactories:  100,
+				MaxPopulation: 1_000_000,
+			},
+			want: PlanetSpec{
+				MaxFactories:         25,
+				MaxPossibleFactories: 1000,
+				MaxPopulation:        1_000_000,
+				ResourcesPerYear:     35,
+			},
+		},
+		{
+			name: "HE tiny planet overcapped on facts",
+			args: args{
+				player:          NewPlayer(1, NewRace().WithPRT(HE).WithSpec(&rules)).withSpec(&rules),
+				numFacts:        99999,
+				productivePop:   27_500,
+				installationPop: 27_500,
+			},
+			spec: PlanetSpec{
+				MaxFactories:  100,
+				MaxPopulation: 27_500,
+			},
+			want: PlanetSpec{
+				MaxFactories:         27,
+				MaxPossibleFactories: 27,
+				MaxPopulation:        27_500,
+				ResourcesPerYear:     54,
+			},
+		},
+		{
+			name: "AR HW",
+			args: args{
+				player: NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).
+					WithTechLevels(TechLevel{1, 0, 0, 0, 0, 0}).
+					withSpec(&rules),
+				numFacts:        0,
+				productivePop:   25_000,
+				installationPop: 25_000,
+			},
+			spec: PlanetSpec{
+				Habitability:  100,
+				MaxPopulation: 1_000_000,
+			},
+			want: PlanetSpec{
+				Habitability:     100,
+				MaxPopulation:    1_000_000,
+				ResourcesPerYear: 50,
+			},
+		},
+		{
+			name: "Crappy AR starter colony with lots of pop, En 10",
+			args: args{
+				player: NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).
+					WithTechLevels(TechLevel{10, 0, 0, 0, 0, 0}).withSpec(&rules), // makes calcs easier
+				numFacts:        0,
+				productivePop:   1_000_000,
+				installationPop: 1_000_000,
+			},
+			spec: PlanetSpec{
+				Habitability:  25, // min hab floor for AR
+				MaxPopulation: 500_000,
+			},
+			want: PlanetSpec{
+				Habitability:     25,
+				MaxPopulation:    500_000,
+				ResourcesPerYear: 250,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.spec.computeResourcesPerYear(tt.args.player, tt.args.numFacts, tt.args.productivePop, tt.args.installationPop)
+			if !test.CompareAsJSON(t, tt.spec, tt.want) {
+				// TODO: refactor after CompareAsJSON PR gets mergeed
+				t.Errorf("computeResourcesPerYear resulted in bad specs")
 			}
 		})
 	}

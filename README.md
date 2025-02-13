@@ -16,6 +16,10 @@ The [Stars! wiki](https://wiki.starsautohost.org/) and [Home World Forum](https:
 
 Contributions of any form are welcome, even non-code ones such as bug reports & feature requests. If you have any issues to report or cool ideas to suggest, open an Issue report on the GitHub repository.
 
-For code contributions, all you need to get started is a good code editor (like Visual Studio Code - available at [https://code.visualstudio.com/Download](https://code.visualstudio.com/Download) or online at [https://vscode.dev](https://vscode.dev)) and a GitHub account.
+For code contributions, all you need to get started is a good code editor (like Visual Studio Code - available to [download](https://code.visualstudio.com/Download) or [use online](https://vscode.dev)), as well as a GitHub account.
 
 Meanwhile, for those who are more technically inclined and want to test out changes themself before committing, consider running a local instance of `craig-stars` for development. See the [development](docs/development.md) page for more info.
+
+## Architecture
+
+For detailed information about `craig-stars` architecture, check out the [architecture](docs/architecture.md) page.

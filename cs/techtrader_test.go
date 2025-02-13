@@ -218,9 +218,6 @@ func Test_techTrade_acquirablePartGained(t *testing.T) {
 					Quantity:  token.qty,
 					design:    design,
 				})
-				for i := len(token.slots); i > 0; i-- {
-					rng.addInts(i) // keeps list in order as each element is swapped with itself in list sorting
-				}
 			}
 
 			rules.random = rng
