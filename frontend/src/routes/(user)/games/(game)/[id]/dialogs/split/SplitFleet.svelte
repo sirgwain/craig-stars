@@ -5,10 +5,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
-	import {
-		absoluteCargoSize,
-		CargoTransferRequest
-	} from '$lib/types/CargoTransferRequest.svelte';
+	import { absoluteCargoSize, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 	import { CommandedFleet, moveDamagedTokens, type Fleet, type ShipToken } from '$lib/types/Fleet';
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

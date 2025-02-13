@@ -132,8 +132,8 @@ export class CommandedPlanet implements Planet {
 	// get the max popluation this planet will support for a player
 	public getMaxPopulation(rules: Rules, player: Player, habitability: number): number {
 		const maxPopulationFactor = 1 + (player.race.spec?.maxPopulationOffset ?? 0);
-		let maxPossiblePop = rules.maxPopulation;
-		const minMaxPop = maxPossiblePop * maxPopulationFactor * rules.minMaxPopulationPercent;
+		let maxPossiblePop = rules.maxPopulation ?? 1_000_000;
+		const minMaxPop = (maxPossiblePop * maxPopulationFactor * (rules.minHabFloor ?? 5)) / 100.0;
 
 		if (player.race.spec?.livesOnStarbases && this.playerNum === player.num) {
 			maxPossiblePop = this.starbase?.spec?.maxPopulation ?? 0;
@@ -185,7 +185,7 @@ export class CommandedPlanet implements Planet {
 
 	public getInnateMines(race: Race, population: number): number {
 		if (race.spec?.innateMining) {
-			return Math.floor(Math.sqrt(population) * (race.spec.innatePopulationFactor ?? 0));
+			return Math.floor(Math.sqrt(population) * (race.spec.innateScannerFactor ?? 0));
 		}
 		return 0;
 	}
@@ -295,8 +295,8 @@ export class CommandedPlanet implements Planet {
 		const growthAmount = this.getGrowthAmount(
 			player.race,
 			maxPopulation,
-			rules.populationOvercrowdDieoffRate,
-			rules.populationOvercrowdDieoffRateMax
+			rules.populationOvercrowdDieoffRate ?? 0.04,
+			rules.populationOvercrowdDieoffRateMax ?? 0.12
 		);
 		this.population = this.population + growthAmount;
 
@@ -313,10 +313,10 @@ export class CommandedPlanet implements Planet {
 	}
 
 	reduceMineralConcentration(rules: Rules) {
-		const mineralDecayFactor = rules.mineralDecayFactor;
-		let minMineralConcentration = rules.minMineralConcentration;
+		const mineralDecayFactor = rules.mineralDecayFactor ?? 1_500_000;
+		let minMineralConcentration = rules.minMineralConcentration ?? 1;
 		if (this.homeworld) {
-			minMineralConcentration = rules.minHomeworldMineralConcentration;
+			minMineralConcentration = rules.minHomeworldMineralConcentration ?? 30;
 		}
 
 		const planetMineYears = [
