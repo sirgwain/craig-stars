@@ -57,7 +57,7 @@
         "kind": "build",
         "isDefault": true
       },
-      "dependsOn": ["build", "launch server"],
+      "dependsOn": ["Build server", "Launch server"],
       "icon": {
         "color": "terminal.ansiCyan",
         "id": "run-all"
@@ -70,8 +70,7 @@
       "detail": "Start up the server for local development using mage."
     },
     {
-      "hide": true,
-      "label": "build",
+      "label": "Build server",
       "type": "shell",
       "command": "mage build",
       "icon": {
@@ -82,11 +81,11 @@
         "panel": "dedicated",
         "showReuseMessage": false,
         "clear": true
-      }
+      },
+      "detail": "Build server without launching it."
     },
     {
-      "hide": true,
-      "label": "launch server",
+      "label": "Launch server",
       "type": "shell",
       "dependsOn": ["launch backend", "launch frontend"],
       "command": "echo \"Done building server; exiting\"",
@@ -95,9 +94,11 @@
         "id": "bell"
       },
       "presentation": {
-        "panel": "shared",
-        "showReuseMessage": false
-      }
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "detail": "Launch frontend and backend in separate terminals without building anything."
     },
     {
       "hide": true,
