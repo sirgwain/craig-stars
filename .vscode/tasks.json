@@ -49,19 +49,85 @@
       "command": "mage generate",
       "detail": "mage generate"
     },
+    // Build commands for starting the server
     {
       "label": "Build & launch server",
       "type": "shell",
-      "command": "mage run",
       "group": {
         "kind": "build",
         "isDefault": true
       },
+      "dependsOn": ["build", "launch server"],
       "icon": {
         "color": "terminal.ansiCyan",
         "id": "run-all"
       },
+      "dependsOrder": "sequence",
+      "presentation": {
+        "panel": "shared",
+        "clear": true
+      },
       "detail": "Start up the server for local development using mage."
+    },
+    {
+      "hide": true,
+      "label": "build",
+      "type": "shell",
+      "command": "mage build",
+      "icon": {
+        "color": "terminal.ansiWhite",
+        "id": "symbol-constructor"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "hide": true,
+      "label": "launch server",
+      "type": "shell",
+      "dependsOn": ["launch backend", "launch frontend"],
+      "command": "echo \"Done building server; exiting\"",
+      "icon": {
+        "color": "terminal.ansiBlack",
+        "id": "bell"
+      },
+      "presentation": {
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "hide": true,
+      "label": "launch backend",
+      "type": "shell",
+      "command": "mage launch_backend",
+      "icon": {
+        "color": "terminal.ansiRed",
+        "id": "rocket"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+      }
+    },
+    {
+      "hide": true,
+      "label": "launch frontend",
+      "type": "shell",
+      "command": "mage launch_frontend",
+      "icon": {
+        "color": "terminal.ansiBlue",
+        "id": "radio-tower"
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": true
+      }
     },
     {
       "hide": true,

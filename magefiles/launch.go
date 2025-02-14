@@ -207,7 +207,6 @@ func Launch() error {
 
 // Launch the backend go server using air.
 func Launch_Backend() error {
-	mg.Deps(Generate)
 	return sh.RunV("air")
 }
 

@@ -1500,7 +1500,7 @@ func (t *turn) planetProduction() error {
 			}
 			if result.reset {
 				// planet was reset with a genesis device
-				planet.randomize(&t.game.Rules)
+				planet.randomize(&t.game.Rules, t.game.StartMode == GameStartModeAccBBS)
 				planet.Mines = 0
 				planet.Factories = 0
 				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)

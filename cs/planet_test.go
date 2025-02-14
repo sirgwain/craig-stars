@@ -340,7 +340,7 @@ func TestPlanet_randomize(t *testing.T) {
 			r.MaxHab = tt.fields.maxHab
 			r.random = tt.rng
 
-			got.randomize(r)
+			got.randomize(r, false)
 
 			if !reflect.DeepEqual(got, tt.want) {
 				// dump json, but this won't include some fields

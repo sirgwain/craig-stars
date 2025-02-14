@@ -234,7 +234,7 @@ func (p *Planet) emptyPlanet() {
 
 // randomize a planet with new hab range, minerals, etc
 // Used in universe generation as well as for genesis device resets
-func (p *Planet) randomize(rules *Rules) {
+func (p *Planet) randomize(rules *Rules, accBBS bool) {
 	// From @SuicideJunkie's tests and @edmundmk's previous research,
 	// grav and temp are weighted slightly towards the center while
 	// rad is completely random (though all 3 are clamped between 1 and 99).
@@ -263,7 +263,7 @@ func (p *Planet) randomize(rules *Rules) {
 	// reset the other stuff
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
-	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad)
+	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad, accBBS)
 	p.MineYears = Mineral{}
 
 }
