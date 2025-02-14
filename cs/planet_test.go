@@ -530,10 +530,7 @@ func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.spec.computeResourcesPerYear(tt.args.player, tt.args.numFacts, tt.args.productivePop, tt.args.installationPop)
-			if !test.CompareAsJSON(t, tt.spec, tt.want) {
-				// TODO: refactor after CompareAsJSON PR gets mergeed
-				t.Errorf("computeResourcesPerYear resulted in bad specs")
-			}
+			test.CompareAsJSON(t, tt.spec, tt.want)
 		})
 	}
 }
