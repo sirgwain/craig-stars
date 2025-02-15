@@ -51,7 +51,7 @@ func CompareAsJSON(t *testing.T, got, want any) {
 		Removed:          jsondiff.Tag{Begin: "\"prop-removed\": {", End: "}"},
 		Changed:          jsondiff.Tag{Begin: "{\"changed\": [", End: "]}"},
 		ChangedSeparator: ", ",
-		Indent:           "	",
+		Indent:           "	", // tab indentation
 		SkipMatches:      true,
 	}
 
