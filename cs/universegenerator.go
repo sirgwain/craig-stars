@@ -381,7 +381,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			}
 
 			if playerPlanet == nil {
-				return fmt.Errorf("find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.Universe.Planets), minPlayerDistance)
+				return fmt.Errorf("could not find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.Universe.Planets), minPlayerDistance)
 			}
 
 			ownedPlanets = append(ownedPlanets, playerPlanet)
@@ -535,11 +535,12 @@ func (ug *universeGenerator) applyAccBBS() {
 			continue
 		}
 
-		// Add 25% extra surface minerals
+		// Add 25% extra homeworld surface minerals
+		// (the help manual lied when it said 20%)
 		planet.Cargo = planet.Cargo.AddMineral(planet.Cargo.ToMineral().MultiplyFloat64(0.25))
 
-		// AccBBS adds 20% extra starting pop (+5K for most races)
-		// per 1% of a race's growth rate
+		// AccBBS adds 20% addiional starting pop (+5K over the default 25K)
+		// per 1% of a race's growth rate.
 		race := ug.getPlayer(planet.PlayerNum).Race
 		planet.Cargo.Colonists += int(float64(planet.Cargo.Colonists*race.GrowthRate) *
 			race.Spec.GrowthFactor / 5)
@@ -566,6 +567,7 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 			continue
 		}
 
+		// max out pop & installations on owned planets
 		player := ug.Players[planet.PlayerNum-1]
 		planet.setPopulation(planet.getMaxPopulation(rules, player, player.Race.GetPlanetHabitability(planet.Hab)))
 		if player.Race.Spec.CanBuildDefenses {

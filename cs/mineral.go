@@ -112,11 +112,11 @@ func (m Mineral) ToCost() Cost {
 }
 
 // add two minerals
-func (m Mineral) Add(m2 Mineral) Mineral {
+func (m Mineral) Add(other Mineral) Mineral {
 	return Mineral{
-		Ironium:   m.Ironium + m2.Ironium,
-		Boranium:  m.Boranium + m2.Boranium,
-		Germanium: m.Germanium + m2.Germanium,
+		Ironium:   m.Ironium + other.Ironium,
+		Boranium:  m.Boranium + other.Boranium,
+		Germanium: m.Germanium + other.Germanium,
 	}
 }
 
@@ -130,28 +130,31 @@ func (m Mineral) AddInt(num int) Mineral {
 }
 
 // subtract two minerals
-func (m Mineral) Subtract(m2 Mineral) Mineral {
+func (m Mineral) Subtract(other Mineral) Mineral {
 	return Mineral{
-		Ironium:   m.Ironium - m2.Ironium,
-		Boranium:  m.Boranium - m2.Boranium,
-		Germanium: m.Germanium - m2.Germanium,
+		Ironium:   m.Ironium - other.Ironium,
+		Boranium:  m.Boranium - other.Boranium,
+		Germanium: m.Germanium - other.Germanium,
 	}
 }
 
-// subtract the mineral components of a Cost
-func (m Mineral) SubtractCost(m2 Cost) Mineral {
+// Subtract the mineral components of a Cost from this Mineral;
+// equivalent to m.Subtract(c
+func (m Mineral) SubtractCost(c Cost) Mineral {
 	return Mineral{
-		Ironium:   m.Ironium - m2.Ironium,
-		Boranium:  m.Boranium - m2.Boranium,
-		Germanium: m.Germanium - m2.Germanium,
+		Ironium:   m.Ironium - c.Ironium,
+		Boranium:  m.Boranium - c.Boranium,
+		Germanium: m.Germanium - c.Germanium,
 	}
 }
 
-func (c Mineral) MultiplyFloat64(factor float64) Mineral {
+// Multiply all components of a mineral by a float64 and return the result
+// truncated to an integer.
+func (m Mineral) MultiplyFloat64(factor float64) Mineral {
 	return Mineral{
-		Ironium:   int(float64(c.Ironium) * factor),
-		Boranium:  int(float64(c.Boranium) * factor),
-		Germanium: int(float64(c.Germanium) * factor),
+		Ironium:   int(float64(m.Ironium) * factor),
+		Boranium:  int(float64(m.Boranium) * factor),
+		Germanium: int(float64(m.Germanium) * factor),
 	}
 }
 

@@ -6,14 +6,15 @@ import (
 )
 
 // Every object stored in the database has an ID and a create/update timestamp.
-// Though the cs package doesn't deal with the database, they are still part of the models
+// Though the cs package doesn't deal with the database, this still has to be included to
+// allow serialization.
 type DBObject struct {
 	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// A GameObject is a database object that is associated with a game
+// A GameObject is a database object that is associated with a game.
 type GameDBObject struct {
 	ID        int64     `json:"id"`
 	GameID    int64     `json:"gameId"`
@@ -21,8 +22,8 @@ type GameDBObject struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum for player owned
-// map objects), as well as a Position in space.
+// Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum
+// for player-owned map objects), as well as a Position in space.
 type MapObject struct {
 	GameDBObject
 	Type      MapObjectType `json:"type"`
@@ -55,6 +56,7 @@ func (mo *MapObject) String() string {
 	return fmt.Sprintf("GameID: %5d, ID: %5d, Num: %3d %s", mo.GameID, mo.ID, mo.Num, mo.Name)
 }
 
+// Owned reports whether this MapObject is owned by a player (playerNum != 0)
 func (mo *MapObject) Owned() bool {
 	return mo.PlayerNum != Unowned
 }
