@@ -128,7 +128,7 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 	}{
 		{
 			name:   "Test JoaT Starter Base",
-			player: testPlayer(),
+			player: testPlayer().WithNum(1),
 			want: []ShipDesign{
 				*NewShipDesign(1, 1).
 					WithName(joatSpec().StartingPlanets[0].StarbaseDesignName).
@@ -148,9 +148,8 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 		},
 		{
 			name:   "PP Starter Base designs",
-			player: NewPlayer(2, NewRace().WithPRT(PP).WithSpec(&rules)),
+			player: NewPlayer(2, NewRace().WithPRT(PP).WithSpec(&rules)).WithNum(2),
 			want: []ShipDesign{
-				// player field only matters for player num
 				*NewShipDesign(2, 1).
 					WithName(ppSpec().StartingPlanets[0].StarbaseDesignName).
 					WithHull(ppSpec().StartingPlanets[0].StarbaseHull).
@@ -181,10 +180,9 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 		},
 		{
 			name:   "IT Base Designs",
-			player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)),
+			player: NewPlayer(1, NewRace().WithPRT(IT).WithSpec(&rules)).WithNum(15),
 			want: []ShipDesign{
-				// player field only matters for player num
-				*NewShipDesign(1, 1).
+				*NewShipDesign(15, 1).
 					WithName(itSpec().StartingPlanets[0].StarbaseDesignName).
 					WithHull(itSpec().StartingPlanets[0].StarbaseHull).
 					WithPurpose(ShipDesignPurposeStarbase).
@@ -199,7 +197,7 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 						{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
 						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 12, Quantity: 8},
 					}),
-				*NewShipDesign(1, 2).
+				*NewShipDesign(15, 2).
 					WithName(itSpec().StartingPlanets[1].StarbaseDesignName).
 					WithHull(itSpec().StartingPlanets[1].StarbaseHull).
 					WithPurpose(ShipDesignPurposeStargater).
@@ -214,9 +212,8 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 		},
 		{
 			name:   "AR Base Designs",
-			player: NewPlayer(4, NewRace().WithPRT(AR).WithSpec(&rules)),
+			player: NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).WithNum(4),
 			want: []ShipDesign{
-				// player field only matters for player num
 				*NewShipDesign(4, 1).
 					WithName(arSpec().StartingPlanets[0].StarbaseDesignName).
 					WithHull(arSpec().StartingPlanets[0].StarbaseHull).
@@ -231,7 +228,7 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 						{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
 						{HullComponent: MoleSkinShield.Name, HullSlotIndex: 12, Quantity: 8},
 					}),
-				*NewShipDesign(testPlayer().Num, 2).
+				*NewShipDesign(4, 2).
 					WithName("Starter Colony").
 					WithHull("Orbital Fort").
 					WithPurpose(ShipDesignPurposeStarterColony).
@@ -241,8 +238,9 @@ func Test_getStartingStarbaseDesigns(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gu := universeGenerator{}
-			got := gu.createStartingStarbaseDesigns(&StaticTechStore, tt.player, 1)
+			ug := universeGenerator{}
+			tt.player.Name = tt.name
+			got := ug.createStartingStarbaseDesigns(&StaticTechStore, tt.player, 1)
 
 			if !test.CompareAsJSON(t, got, tt.want) {
 				t.Errorf("getStartingStarbaseDesigns() = %v, want %v", got, tt.want)

@@ -270,7 +270,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 		starbaseDesigns := ug.createStartingStarbaseDesigns(ug.Rules.techs, player, num)
 
 		for i := range starbaseDesigns {
-			design := &starbaseDesigns[i]
+			design := starbaseDesigns[i]
 			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
 				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
@@ -581,8 +581,8 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 }
 
 // create initial starbase designs for a player
-func (ug *universeGenerator) createStartingStarbaseDesigns(techStore *TechStore, player *Player, designNum int) []ShipDesign {
-	designs := make([]ShipDesign, len(player.Race.Spec.StartingPlanets))
+func (ug *universeGenerator) createStartingStarbaseDesigns(techStore *TechStore, player *Player, designNum int) []*ShipDesign {
+	designs := make([]*ShipDesign, len(player.Race.Spec.StartingPlanets))
 
 	for i, startingPlanet := range player.Race.Spec.StartingPlanets {
 		var starbase *ShipDesign
@@ -606,7 +606,7 @@ func (ug *universeGenerator) createStartingStarbaseDesigns(techStore *TechStore,
 			WithHullSetNumber(player.DefaultHullSet)
 		fillStarbaseSlots(techStore, starbase, startingPlanet)
 		designNum++
-		designs[i] = *starbase
+		designs[i] = starbase
 	}
 
 	if player.Race.Spec.LivesOnStarbases {
@@ -617,7 +617,7 @@ func (ug *universeGenerator) createStartingStarbaseDesigns(techStore *TechStore,
 			WithPurpose(ShipDesignPurposeStarterColony).
 			WithHullSetNumber(player.DefaultHullSet)
 		starterColony.CannotDelete = true
-		designs = append(designs, *starterColony) // add it to the back
+		designs = append(designs, starterColony) // add it to the back
 	}
 
 	return designs
