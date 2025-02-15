@@ -7,7 +7,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-func Test_CompareAsJSONFail(t *testing.T) {
+func Test_CompareAsJSON(t *testing.T) {
 	tests := []struct {
 		name     string
 		got      any
@@ -20,8 +20,7 @@ func Test_CompareAsJSONFail(t *testing.T) {
 			got:      cs.NewPlanet().WithMines(40),
 			want:     cs.NewPlanet().WithNum(20),
 			wantFail: true,
-			wantDiff: `
-// Test_CompareAsJSONFail/2_different_planets
+			wantDiff: `// Test_CompareAsJSON/2_different_planets
 {
     "prop-removed": {"mines": 40},
     "num": {"changed": [0, 20]}
