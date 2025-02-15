@@ -42,15 +42,14 @@ jobs:
           --junitfile-hide-empty-pkg
 
       - name: Find and merge failing JSON diff files
-        run: mage ci_merge_json
-        working-directory: "./tmp"
+        run: mage merge_temp_json
         if: always()
 
       - name: Upload JSON diffs to cloud
         uses: actions/upload-artifact@v4
         with:
-          name: "JSON Diffs"
-          path: "${{env.test_results}}/diff.json"
+          name: "JSON Diff"
+          path: "./tmp/diff.json"
           if-no-files-found: ignore
           overwrite: true
           retention-days: 14
