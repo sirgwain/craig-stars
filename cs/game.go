@@ -265,7 +265,7 @@ func (settings *GameSettings) WithOpenPlayerSlot() *GameSettings {
 	return settings
 }
 
-// Add an AI player
+// Add an AI player to this GameSettings
 func (settings *GameSettings) WithAIPlayer(aiDifficulty AIDifficulty, defaultHullSet int) *GameSettings {
 	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeAI, AIDifficulty: aiDifficulty, DefaultHullSet: defaultHullSet})
 	return settings

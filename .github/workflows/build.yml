@@ -32,6 +32,11 @@ jobs:
           check-latest: true
           cache: true
 
+      - name: Setup Mage
+        uses: magefile/mage-action@v3
+        with:
+          install-only: true
+
       - name: Test Go Files
         id: go-tests
         run: |
@@ -43,7 +48,7 @@ jobs:
 
       - name: Find and merge failing JSON diff files
         run: mage merge_temp_json
-        if: always()
+        if: steps.go-tests.outcome == 'failure'
 
       - name: Upload JSON diffs to cloud
         uses: actions/upload-artifact@v4
@@ -53,7 +58,7 @@ jobs:
           if-no-files-found: ignore
           overwrite: true
           retention-days: 14
-        if: always()
+        if: steps.go-tests.outcome == 'failure'
 
       - name: Produce Test Summary
         uses: test-summary/action@v2

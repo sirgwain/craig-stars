@@ -35,14 +35,13 @@ func Test_aiPlayer_ProcessTurn(t *testing.T) {
 			player.Name = cs.AINames[0][0]
 			universe, err := gamer.GenerateUniverse(game, []*cs.Player{player})
 			if err != nil {
-				t.Log(err)
-				t.FailNow()
+				t.Fatalf("gamer.generateUniverse() failed: \n%v", err)
 			}
 
 			// process a turn
 			ai := NewAIPlayer(game, &cs.StaticTechStore, player, universe.GetPlayerMapObjects(player.Num))
 			if err := ai.ProcessTurn(); err != nil {
-				t.Logf("ai turn processing failed; error: %v", err)
+				t.Logf("ai turn processing failed: \n%v", err)
 				t.FailNow()
 			}
 			ai.SubmittedTurn = true
@@ -164,36 +163,49 @@ func Test_getClosestPlanet(t *testing.T) {
 		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 100, Y: 100}},
 	}
 
-	type args struct {
+	tests := []struct {
+		name                string
 		position            cs.Vector
 		unknownPlanetsByNum map[int]cs.PlanetIntel
-	}
-	tests := []struct {
-		name string
-		args args
-		want *cs.PlanetIntel
+		want                *cs.PlanetIntel
 	}{
-		{"no planets, should be nil", args{cs.Vector{}, map[int]cs.PlanetIntel{}}, nil},
-		{"1 planet, should be it", args{cs.Vector{}, map[int]cs.PlanetIntel{
-			1: planetAt0_0,
-		}}, &planetAt0_0},
-		{"2 planets, should be closer one", args{cs.Vector{}, map[int]cs.PlanetIntel{
-			1: planetAt100_100,
-			2: planetAt50_50,
-		}}, &planetAt50_50},
-		{"2 planets, should be closer one, regardless of order", args{cs.Vector{}, map[int]cs.PlanetIntel{
-			1: planetAt50_50,
-			2: planetAt100_100,
-		}}, &planetAt50_50},
-		{"3 planets, should be closer one", args{cs.Vector{}, map[int]cs.PlanetIntel{
-			1: planetAt50_50,
-			2: planetAt100_100,
-			3: planetAt0_0,
-		}}, &planetAt0_0},
+		{
+			name:                "no planets",
+			position:            cs.Vector{},
+			unknownPlanetsByNum: map[int]cs.PlanetIntel{},
+			want:                nil,
+		},
+		{
+			name:     "1 planet",
+			position: cs.Vector{},
+			unknownPlanetsByNum: map[int]cs.PlanetIntel{
+				1: planetAt0_0,
+			},
+			want: &planetAt0_0,
+		},
+		{
+			name:     "2 planets - picks closest",
+			position: cs.Vector{},
+			unknownPlanetsByNum: map[int]cs.PlanetIntel{
+				1: planetAt100_100,
+				2: planetAt50_50,
+			},
+			want: &planetAt50_50,
+		},
+		{
+			name:     "3 planets - picks closest",
+			position: cs.Vector{},
+			unknownPlanetsByNum: map[int]cs.PlanetIntel{
+				12: planetAt0_0,
+				1:  planetAt50_50,
+				2:  planetAt100_100,
+			},
+			want: &planetAt0_0,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := aiPlayer.getClosestPlanetIntel(tt.args.position, tt.args.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
+			if got := aiPlayer.getClosestPlanetIntel(tt.position, tt.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getClosestPlanet() = %v, want %v", got, tt.want)
 			}
 		})
