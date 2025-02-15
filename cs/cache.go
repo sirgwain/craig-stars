@@ -13,8 +13,8 @@ func newCache[K comparable, V any](loader func(k K) V) cache[K, V] {
 	}
 }
 
-// get gets a value from the cache, or loads it if it's not there
-func (c *cache[K, V]) get(key K) V {
+// get retrieves a value from the cache, or loads it if it's not there
+func (c cache[K, V]) get(key K) V {
 	if val, ok := c.data[key]; ok {
 		return val
 	} else {

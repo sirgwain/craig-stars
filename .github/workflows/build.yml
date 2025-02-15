@@ -9,7 +9,7 @@ on:
       - "develop"
 
 env:
-  go-version: 1.23.x
+  go-version: 1.24.x
   test_results: ./tmp/test-results
 
 jobs:
@@ -34,7 +34,27 @@ jobs:
 
       - name: Test Go Files
         id: go-tests
-        run: go run gotest.tools/gotestsum@latest --format=github-actions --format-hide-empty-pkg --junitfile ${{env.test_results}}/go-test-report.xml --hide-summary=output --junitfile-hide-empty-pkg
+        run: |
+          go run gotest.tools/gotestsum@latest \
+          --format=github-actions \
+          --format-hide-empty-pkg \
+          --junitfile ${{env.test_results}}/go-test-report.xml \
+          --junitfile-hide-empty-pkg
+
+      - name: Find and merge failing JSON diff files
+        run: mage ci_merge_json
+        working-directory: "./tmp"
+        if: always()
+
+      - name: Upload JSON diffs to cloud
+        uses: actions/upload-artifact@v4
+        with:
+          name: "JSON Diffs"
+          path: "${{env.test_results}}/diff.json"
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
+        if: always()
 
       - name: Produce Test Summary
         uses: test-summary/action@v2
@@ -65,13 +85,9 @@ jobs:
         uses: magefile/mage-action@v3
         with:
           install-only: true
-      - name: Generate Go files
-        run: mage generate
 
       - name: Build Backend Go Binary
-        run: | 
-          go mod tidy
-          CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend
+        run: CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend
       # build the frontend (slow)
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -106,5 +122,5 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: "**/*_report.xml"
+          paths: "${{env.test_results}}/*_report.xml"
         if: always()

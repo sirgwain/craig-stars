@@ -1,7 +1,9 @@
+// Package test contains some useful utility functions for testing things.
 package test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -16,12 +18,15 @@ import (
 // and writes 3 json files to the tmp folder,
 // containing both values being compared and a pretty-printed
 // difference between them.
-// These files are continuously appended to during a test run (sectioned off by test name), 
-// and are cleaned out before a new test starts.
 //
-// The json difference is printed to stderr as well, so no extra calls to t.Log or t.Error
+// These files are continuously appended to during a test run (sectioned off by test name),
+// and should ideally be moved or removed after the package finishes testing.
+// Invocation from parallel tests is untested and not recommended.
+//
+// The json difference is passed to t.Errorf, so no extra calls to t.Log or t.Error
 // are needed after calling this.
 func CompareAsJSON(t *testing.T, got, want any) {
+	t.Helper()
 	if got == nil && want == nil {
 		return
 	} else if (got == nil) != (want == nil) { // one is nil and the other isn't
@@ -30,11 +35,11 @@ func CompareAsJSON(t *testing.T, got, want any) {
 
 	gotJson, err := json.MarshalIndent(got, "", "  ")
 	if err != nil {
-		t.Errorf("compareAsJSON could not marshal got (%q) to json, error = %v", got, err)
+		t.Errorf("compareAsJSON could not marshal got (%q) to json: \n%v", got, err)
 	}
 	wantJson, err := json.MarshalIndent(want, "", "  ")
 	if err != nil {
-		t.Errorf("compareAsJSON could not marshal want (%q) to json, error = %v", want, err)
+		t.Errorf("compareAsJSON could not marshal want (%q) to json: \n%v", want, err)
 	}
 
 	if string(gotJson) == string(wantJson) {
@@ -52,26 +57,67 @@ func CompareAsJSON(t *testing.T, got, want any) {
 
 	_, diff := jsondiff.Compare(gotJson, wantJson, &options)
 
-	header := []byte("// " + t.Name() + "\n") // header containing test name & extra newlines
-	_ = AppendFile("../tmp/got.jsonl", append(append(header, gotJson...), "\n\n"...))
-	_ = AppendFile("../tmp/want.jsonl", append(append(header, wantJson...), "\n\n"...))
-	_ = AppendFile("../tmp/diff.jsonl", append(append(header, diff...), "\n\n"...))
+	header := "// " + t.Name() + "\n" // header containing test name & extra newlines
+	// append files 1 by 1
+	for i := range 3 {
+		var path, body string
+		switch i {
+		case 0:
+			path = "../tmp/got.jsonl"
+			body = string(gotJson)
+		case 1:
+			path = "../tmp/want.jsonl"
+			body = string(wantJson)
+		case 2:
+			path = "../tmp/diff.jsonl"
+			body = diff
+		}
+		if FileExists(path) {
+			// add extra newline in header to properly delimit sections
+			header = "\n" + header
+		}
+		_ = AppendFile(path, header+body+"\n")
+	}
 
 	t.Errorf("JSONs not equal; diff between got & want: \n%s", diff)
 }
 
-// Appends data to the named file, creating it if necessary.
-func AppendFile[S ~string | ~[]byte](name string, data S) error {
-	f, err := os.OpenFile(name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+// Appends a string or byte slice to the named file, creating it if necessary.
+func AppendFile[S ~string | ~[]byte](path string, data S) error {
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return fmt.Errorf("could not open file %s; error: %w", name, err)
+		return fmt.Errorf("could not open file %q; error: \n%w", path, err)
 	}
 	defer f.Close()
 
 	if _, err := f.Write([]byte(data)); err != nil {
-		return fmt.Errorf("could not append bytes %q to file %s; error: %w", string(data), name, err)
+		return fmt.Errorf("could not append bytes to file %q; error: \n%w", path, err)
 	}
 	return nil
+}
+
+// FileExists reports whether a file at path exists or not.
+// It does not actually open the file or modify it in any way.
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return !errors.Is(err, os.ErrNotExist)
+}
+
+// Check for the existence of an expected or unexpected error within a test,
+// failing the test appropriately.
+func CheckUnexpectedError(t *testing.T, err error, wantErr bool) {
+	t.Helper()
+	if (err != nil) == wantErr {
+		return
+	}
+
+	errMsg := fmt.Sprintf("%s() errored unexpectedly;\n", t.Name())
+	if err != nil {
+		errMsg += fmt.Sprintf("test produced error \"%v\" despite expecting none", err)
+	} else {
+		errMsg += "test failed to error when expected to"
+	}
+	t.Error(errMsg)
 }
 
 // compare two floats within a tolerance range

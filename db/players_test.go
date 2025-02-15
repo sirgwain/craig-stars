@@ -33,10 +33,7 @@ func TestCreatePlayer(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.player.ID
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CreatePlayer() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if !reflect.DeepEqual(tt.args.player, &want) {
 				t.Errorf("CreatePlayer() = \n%v, want \n%v", tt.args.player, want)
 			}
@@ -102,15 +99,12 @@ func TestGetPlayer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetPlayer(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetPlayer() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			
+
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
@@ -170,7 +164,7 @@ func Test_getPlayerWithDesigns(t *testing.T) {
 		}
 
 	}
-	
+
 	test.CompareAsJSON(t, got, []*cs.Player{&player})
 }
 

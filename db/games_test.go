@@ -29,10 +29,7 @@ func TestCreateGame(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.game.ID
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateGame() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if !reflect.DeepEqual(tt.args.game, &want) {
 				t.Errorf("CreateGame() = \n%v, want \n%v", tt.args.game, want)
 			}
@@ -95,15 +92,12 @@ func TestGetGame(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetGame(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetGame() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			
+
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}

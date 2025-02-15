@@ -8,9 +8,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"github.com/sirgwain/craig-stars/test"
 )
 
 // Test both the backend and frontend in succession.
@@ -54,13 +56,14 @@ func Images() error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err := sh.Rm(tmpName); err != nil {
+			panic(err)
+		}
+	}()
 
 	if err := unzipTempFile(tmpName); err != nil {
 		return err
-	}
-
-	if err := sh.Rm(tmpName); err != nil {
-		panic(err)
 	}
 
 	return nil
@@ -73,7 +76,7 @@ func downloadImagesZip() (string, error) {
 		return "", mg.Fatalf(1, "error during os.CreateTemp: \n%w", err)
 	}
 	defer func() {
-		// close and remove temp file after we're done
+		// close temp file after we're done
 		tmpFile.Close()
 	}()
 
@@ -165,5 +168,57 @@ func unzipTempFile(tmpName string) error {
 	}
 	fmt.Println("Unzipped images to frontend/static/images")
 
+	return nil
+}
+
+// Merge multiple temp json files from tmp folder together into 1, delimiting them by package
+func CI_Merge_JSON() error {
+	tmp, err := os.Open("./tmp")
+	if err != nil {
+		return mg.Fatalf(1, "error while opening temp folder: \n%w", err)
+	}
+	files, err := tmp.ReadDir(-1)
+	if err != nil {
+		return mg.Fatalf(1, "error while reading temp folder files: \n%w", err)
+	}
+
+	if len(files) == 0 {
+		fmt.Println("No files in temp folder; exiting")
+		return nil
+	}
+
+	count := 0
+	for _, fileEntry := range files {
+		fileName := fileEntry.Name()
+		if !strings.HasPrefix(fileName, "diff_") ||
+			!strings.HasSuffix(fileName, ".jsonl") {
+			// file doesn't start with correct prefix; probably not a json file
+			continue
+		}
+
+		// extract name of package from file name
+		pkgName, _ := strings.CutPrefix(fileName, "diff_")
+		pkgName, _ = strings.CutSuffix(fileName, ".jsonl")
+
+		// grab file data
+		file, _ := os.Open("./tmp/" + fileName)
+		defer file.Close()
+		fileBytes, err := io.ReadAll(file)
+		if err != nil {
+			return mg.Fatalf(1, "error during io.ReadAll: \n%w", err)
+		}
+
+		// Add a short comment mentioning which package we're in to the start of the file
+		header := "// " + strings.ToUpper(pkgName) + "\n"
+		fileContents := header + string(fileBytes)
+		if err = test.AppendFile("./tmp/diff.jsonl", fileContents); err != nil {
+			return mg.Fatalf(1, "error during test.AppendFile: \n%w", err)
+		}
+
+		os.Remove(file.Name())
+		count++
+	}
+
+	fmt.Printf("Successfully merged %d json files into ./tmp/diff.jsonl\n", count)
 	return nil
 }

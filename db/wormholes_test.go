@@ -34,10 +34,7 @@ func TestCreateWormhole(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.wormhole.ID
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateWormhole() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if !reflect.DeepEqual(tt.args.wormhole, &want) {
 				t.Errorf("CreateWormhole() = \n%v, want \n%v", tt.args.wormhole, want)
 			}
@@ -94,15 +91,12 @@ func TestGetWormhole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetWormhole(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetWormhole() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			
+
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}

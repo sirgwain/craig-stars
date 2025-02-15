@@ -35,7 +35,7 @@ jobs:
     if: github.repository == 'sirgwain/craig-stars'
     strategy:
       matrix:
-        go-version: [1.23.x]
+        go-version: [1.24.x]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     needs: tag
@@ -55,12 +55,12 @@ jobs:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
-      
+
       - name: Setup Mage
         uses: magefile/mage-action@v3
         with:
           install-only: true
-      
+
       # generate the backend go files needed for release
       - name: Build a CI version of the backend with version/build time
         run: |

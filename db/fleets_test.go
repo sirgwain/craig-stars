@@ -36,10 +36,7 @@ func TestCreateFleet(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.fleet.ID
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateFleet() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if !reflect.DeepEqual(tt.args.fleet, &want) {
 				t.Errorf("CreateFleet() = \n%v, want \n%v", tt.args.fleet, want)
 			}
@@ -86,15 +83,12 @@ func TestGetFleet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetFleet(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetFleet() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			
+
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}

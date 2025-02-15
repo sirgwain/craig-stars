@@ -5,10 +5,11 @@ import (
 	"testing"
 )
 
-// Package-wide initialization function to clean out  
+// Package-wide initialization function to clean out
 // temp directory once before test start
 func TestMain(m *testing.M) {
-	_ = os.RemoveAll("../tmp")
-	_ = os.Mkdir("../tmp", 0644)
 	m.Run()
+	os.Rename("../tmp/got.jsonl", "../tmp/got_cs.jsonl")
+	os.Rename("../tmp/want.jsonl", "../tmp/want_cs.jsonl")
+	os.Rename("../tmp/diff.jsonl", "../tmp/diff_cs.jsonl")
 }

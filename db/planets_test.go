@@ -34,10 +34,7 @@ func TestCreatePlanet(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.planet.ID
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CreatePlanet() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if !reflect.DeepEqual(tt.args.planet, &want) {
 				t.Errorf("CreatePlanet() = \n%v, want \n%v", tt.args.planet, want)
 			}
@@ -94,15 +91,12 @@ func TestGetPlanet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetPlanet(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetPlanet() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			
+
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
@@ -194,15 +188,12 @@ func TestGetPlanetByNum(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetPlanetByNum(tt.args.gameID, tt.args.num)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetPlanet() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			
+
 			test.CompareAsJSON(t, got, tt.want)
 
 			if tt.want != nil && tt.want.Starbase != nil {
@@ -210,7 +201,7 @@ func TestGetPlanetByNum(t *testing.T) {
 					tt.want.Starbase.UpdatedAt = got.Starbase.UpdatedAt
 					tt.want.Starbase.CreatedAt = got.Starbase.CreatedAt
 				}
-				
+
 				test.CompareAsJSON(t, got.Starbase, tt.want.Starbase)
 			}
 		})

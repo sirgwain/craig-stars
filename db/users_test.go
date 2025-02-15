@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,10 +29,7 @@ func TestCreateUser(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.user.ID
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateUser() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if !reflect.DeepEqual(tt.args.user, &want) {
 				t.Errorf("CreateUser() = \n%v, want \n%v", tt.args.user, want)
 			}
@@ -96,10 +94,7 @@ func TestGetUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetUser(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetUser() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt

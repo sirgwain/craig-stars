@@ -34,11 +34,8 @@ func TestCreateMineralPacket(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.mineralPacket.ID
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateMineralPacket() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			
+			test.CheckUnexpectedError(t, err, tt.wantErr)
+
 			test.CompareAsJSON(t, tt.args.mineralPacket, &want)
 		})
 	}
@@ -73,15 +70,12 @@ func TestGetMineralPacket(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetMineralPacket(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetMineralPacket() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			
+
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
