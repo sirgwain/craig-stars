@@ -51,15 +51,15 @@ func CompareAsJSON(t *testing.T, got, want any) {
 		Removed:          jsondiff.Tag{Begin: "\"prop-removed\": {", End: "}"},
 		Changed:          jsondiff.Tag{Begin: "{\"changed\": [", End: "]}"},
 		ChangedSeparator: ", ",
-		Indent:           "    ",
+		Indent:           "	",
 		SkipMatches:      true,
 	}
 
 	_, diff := jsondiff.Compare(gotJson, wantJson, &options)
 
-	header := "// " + t.Name() + "\n" // header containing test name & extra newlines
 	// append files 1 by 1
 	for i := range 3 {
+		header := "// " + t.Name() + "\n" // header containing test name & extra newlines
 		var path, body string
 		switch i {
 		case 0:
@@ -91,7 +91,7 @@ func AppendFile[S ~string | ~[]byte](path string, data S) error {
 	defer f.Close()
 
 	if _, err := f.Write([]byte(data)); err != nil {
-		return fmt.Errorf("could not append bytes to file %q; error: \n%w", path, err)
+		return fmt.Errorf("could not append data to file %q; error: \n%w", path, err)
 	}
 	return nil
 }
@@ -104,7 +104,7 @@ func FileExists(path string) bool {
 }
 
 // Check for the existence of an expected or unexpected error within a test,
-// failing the test appropriately.
+// failing the test as appropriate.
 func CheckUnexpectedError(t *testing.T, err error, wantErr bool) {
 	t.Helper()
 	if (err != nil) == wantErr {

@@ -1783,9 +1783,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 				DestTokens:     tt.args.destTokens,
 				TransferAmount: tt.args.transferAmount,
 			})
-			if (err != nil) != tt.want.err {
-				t.Errorf("orders.SplitFleet() error = %v, wantErr %v", err, tt.want.err)
-			}
+			test.CheckUnexpectedError(t, err, tt.want.err)
 			if err != nil && !strings.Contains(fmt.Sprint(err), tt.want.errContains) {
 				t.Errorf("orders.SplitFleet() error = %v, wantErrContains %s", err, tt.want.errContains)
 			}

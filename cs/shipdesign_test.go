@@ -175,7 +175,7 @@ func TestShipDesign_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid component - player not AR",
+			name: "invalid component - player banned",
 			fields: fields{
 				Name: "Santa Maria",
 				Hull: ColonyShip.Name,
@@ -212,9 +212,8 @@ func TestShipDesign_Validate(t *testing.T) {
 				Hull:  tt.fields.Hull,
 				Slots: tt.fields.Slots,
 			}
-			if err := sd.Validate(&rules, tt.args.player); (err != nil) != tt.wantErr {
-				t.Errorf("ShipDesign.Validate() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			err := sd.Validate(&rules, tt.args.player)
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 		})
 	}
 }
@@ -241,6 +240,7 @@ func Test_getNewJamming(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// round it to 4 decimal places to preserve my sanity
 			if got := roundFloat(getNewJamming(tt.args.prevBonus, tt.args.componentBonus, tt.args.multi, tt.args.qty), 4); got != tt.want {
 				t.Errorf("getNewJamming() = %v, want %v", got, tt.want)
 			}
@@ -287,7 +287,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				ReduceCloaking:     1,
 				BeamBonus:          1,
 				Scanner:            true,
-				ScanRange:          66,
+				ScanRange:          666,
 				ScanRangePen:       30,
 				Initiative:         1,
 				Movement:           4,
@@ -311,14 +311,14 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			want: ShipDesignSpec{
 				HullType:           TechHullTypeScout,
 				Engine:             LongHump6.Engine,
-				NumEngines:         1,
+				NumEngines:         42069,
 				Cost:               Cost{12, 8, 7, 24},
 				TechLevel:          TechLevel{Weapons: 3, Propulsion: 3, Electronics: 1},
 				Mass:               23,
 				Armor:              20,
 				FuelCapacity:       50,
 				Initiative:         1,
-				Movement:           4,
+				Movement:           9,
 				MovementFull:       4,
 				MineSweep:          16,
 				HasWeapons:         true,
@@ -360,7 +360,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				Mass:               128,
 				Armor:              125,
 				FuelCapacity:       700,
-				CargoCapacity:      210,
+				CargoCapacity:      222,
 				ReduceCloaking:     1,
 				BeamBonus:          1,
 				Scanner:            true,
@@ -721,9 +721,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ComputeShipDesignSpec(&rules, tt.args.techLevels, tt.args.raceSpec, tt.args.design)
-			if tt.wantErr && err == nil {
-				t.Errorf("ComputeShipDesignSpec() did not error when expected")
-			}
+			test.CheckUnexpectedError(t, err, tt.wantErr)
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}

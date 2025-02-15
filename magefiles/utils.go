@@ -60,6 +60,7 @@ func Images() error {
 		if err := sh.Rm(tmpName); err != nil {
 			panic(err)
 		}
+		fmt.Printf("removed temp file at %s", tmpName)
 	}()
 
 	if err := unzipTempFile(tmpName); err != nil {
@@ -69,9 +70,10 @@ func Images() error {
 	return nil
 }
 
-func downloadImagesZip() (string, error) {
+// Download and store images zip to a temp file
+func downloadImagesZip() (tmpFileName string, err error) {
 	// create temp file to store zip file from http request
-	tmpFile, err := os.CreateTemp("", "images.zip")
+	tmpFile, err := os.CreateTemp("", "images_*.zip")
 	if err != nil {
 		return "", mg.Fatalf(1, "error during os.CreateTemp: \n%w", err)
 	}
@@ -97,7 +99,7 @@ func downloadImagesZip() (string, error) {
 	if request.StatusCode != 200 {
 		statusText := http.StatusText(request.StatusCode)
 		if statusText == "" {
-			statusText = "unknown status code"
+			statusText = "unknown"
 		}
 		return "", mg.Fatalf(1, "http web request returned status code %d (%s)", request.StatusCode, statusText)
 	}
@@ -108,11 +110,11 @@ func downloadImagesZip() (string, error) {
 		return "", mg.Fatalf(1, "error during io.Copy: \n%w", err)
 	}
 
-	fmt.Printf("downloaded images.zip to %s\n", tmpName)
+	fmt.Println("downloaded images.zip to", tmpName)
 	return tmpName, nil
 }
 
-// unzip the temp file with the given path; used during image download
+// unzip the temp file at the given path
 func unzipTempFile(tmpName string) error {
 	// create zip reader to unzip temp file contents
 	reader, err := zip.OpenReader(tmpName)
@@ -166,30 +168,32 @@ func unzipTempFile(tmpName string) error {
 			return mg.Fatalf(1, "error during io.Copy: \n%w", err)
 		}
 	}
-	fmt.Println("Unzipped images to frontend/static/images")
+	fmt.Println("unzipped images to frontend/static/images")
 
 	return nil
 }
 
-// Merge multiple temp json files from tmp folder together into 1, delimiting them by package
-func CI_Merge_JSON() error {
-	tmp, err := os.Open("./tmp")
+// Merge all temp json files from tmp folder together into 1 file.
+// This takes all files matching the format "diff_**.json"
+// and copies them to
+// delimiting them by package
+func Merge_Temp_JSON() error {
+	tmp, err := os.Open("tmp")
 	if err != nil {
 		return mg.Fatalf(1, "error while opening temp folder: \n%w", err)
 	}
-	files, err := tmp.ReadDir(-1)
+	fileNames, err := tmp.Readdirnames(-1)
 	if err != nil {
 		return mg.Fatalf(1, "error while reading temp folder files: \n%w", err)
 	}
 
-	if len(files) == 0 {
+	if len(fileNames) == 0 {
 		fmt.Println("No files in temp folder; exiting")
 		return nil
 	}
 
 	count := 0
-	for _, fileEntry := range files {
-		fileName := fileEntry.Name()
+	for _, fileName := range fileNames {
 		if !strings.HasPrefix(fileName, "diff_") ||
 			!strings.HasSuffix(fileName, ".jsonl") {
 			// file doesn't start with correct prefix; probably not a json file
@@ -198,10 +202,10 @@ func CI_Merge_JSON() error {
 
 		// extract name of package from file name
 		pkgName, _ := strings.CutPrefix(fileName, "diff_")
-		pkgName, _ = strings.CutSuffix(fileName, ".jsonl")
+		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
 
 		// grab file data
-		file, _ := os.Open("./tmp/" + fileName)
+		file, _ := os.Open("tmp/" + fileName)
 		defer file.Close()
 		fileBytes, err := io.ReadAll(file)
 		if err != nil {
@@ -209,16 +213,27 @@ func CI_Merge_JSON() error {
 		}
 
 		// Add a short comment mentioning which package we're in to the start of the file
-		header := "// " + strings.ToUpper(pkgName) + "\n"
-		fileContents := header + string(fileBytes)
-		if err = test.AppendFile("./tmp/diff.jsonl", fileContents); err != nil {
+		contents := "//*" +
+			strings.ToUpper(pkgName) + "\n" +
+			string(fileBytes)
+		if count == 0 {
+			err = os.WriteFile("tmp/diff.jsonl", []byte(contents), 0644)
+		} else {
+			err = test.AppendFile("tmp/diff.jsonl", "\n"+contents)
+		}
+		if err != nil {
 			return mg.Fatalf(1, "error during test.AppendFile: \n%w", err)
 		}
 
-		os.Remove(file.Name())
 		count++
 	}
 
-	fmt.Printf("Successfully merged %d json files into ./tmp/diff.jsonl\n", count)
+	var message string
+	if count > 0 {
+		message = fmt.Sprintf("Successfully merged %d json files into tmp/diff.jsonl.", count)
+	} else {
+		message = "No JSON files to merge were found."
+	}
+	fmt.Println(message, "\nHave a nice day.")
 	return nil
 }
