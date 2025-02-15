@@ -22,8 +22,8 @@ func Test_CompareAsJSON(t *testing.T) {
 			wantFail: true,
 			wantDiff: `// Test_CompareAsJSON/2_different_planets
 {
-    "prop-removed": {"mines": 40},
-    "num": {"changed": [0, 20]}
+	"prop-removed": {"mines": 40},
+	"num": {"changed": [0, 20]}
 }
 `,
 		},
