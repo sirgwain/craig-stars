@@ -4,8 +4,15 @@
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
 	import { CargoTransferRequest, negative } from '$lib/types/CargoTransferRequest.svelte';
 	import type { CommandedFleet } from '$lib/types/Fleet';
-	import { MapObjectType } from '$lib/types/MapObject';
-	import type { Fleet, Planet, Salvage } from '$lib/types/cs';
+	import {
+		MapObjectTypeFleet,
+		MapObjectTypeMineralPacket,
+		MapObjectTypePlanet,
+		MapObjectTypeSalvage,
+		type Fleet,
+		type Planet,
+		type Salvage
+	} from '$lib/types/cs';
 	import FleetTransfer from './FleetTransfer.svelte';
 	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
@@ -41,7 +48,7 @@
 		new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0)
 	);
 
-	let destFleet = $derived(dest?.type === MapObjectType.Fleet ? (dest as Fleet) : undefined);
+	let destFleet = $derived(dest?.type === MapObjectTypeFleet ? (dest as Fleet) : undefined);
 
 	function getCargoCapacity(dest: Fleet | Planet | Salvage | undefined): number {
 		if (dest && 'spec' in dest && dest.spec && 'cargoCapacity' in dest.spec) {
@@ -204,7 +211,7 @@
 			/>
 		</div>
 		<div class="flex-none flex flex-col mx-0.5 w-20 px-1 mt-8">
-			{#if dest?.type == MapObjectType.Fleet}
+			{#if dest?.type == MapObjectTypeFleet}
 				<TransferButtons
 					onTransferToSource={() => transferFuel(quantityModifier)}
 					onTransferToDest={() => transferFuel(-quantityModifier)}
@@ -247,11 +254,11 @@
 					</span>
 				</h1>
 
-				{#if dest?.type == MapObjectType.Planet}
+				{#if dest?.type == MapObjectTypePlanet}
 					<PlanetTransfer cargo={destCargo} transferAmount={negativeCargo(transferAmount)} />
-				{:else if !dest || dest?.type == MapObjectType.Salvage}
+				{:else if !dest || dest?.type == MapObjectTypeSalvage}
 					<SalvageTransfer cargo={destCargo} transferAmount={negative(transferAmount)} />
-				{:else if !dest || dest?.type == MapObjectType.MineralPacket}
+				{:else if !dest || dest?.type == MapObjectTypeMineralPacket}
 					<MineralPacketTransfer cargo={destCargo} transferAmount={negative(transferAmount)} />
 				{:else if destFleet}
 					<FleetTransfer

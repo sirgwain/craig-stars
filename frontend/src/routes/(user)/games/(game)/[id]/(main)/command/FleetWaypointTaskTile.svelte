@@ -9,6 +9,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { MapObject, TransportPlan, WaypointTask } from '$lib/types/cs';
 	import {
+		MapObjectTypePlanet,
 		ReportAgeUnexplored,
 		WaypointTaskLayMineField,
 		WaypointTaskNone,
@@ -18,7 +19,7 @@
 		WaypointTaskTransport
 	} from '$lib/types/cs';
 	import { CommandedFleet, emptyTransportTasks, WaypointTasks } from '$lib/types/Fleet';
-	import { MapObjectType, owned, ownedBy } from '$lib/types/MapObject';
+	import { owned, ownedBy } from '$lib/types/MapObject';
 	import { getMineralOutput } from '$lib/types/Planet';
 	import { PencilSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -53,7 +54,7 @@
 
 	let selectedWaypointTask = $derived(waypoint.task ?? WaypointTaskNone);
 	let selectedWaypointPlanet = $derived(
-		waypoint.targetType == MapObjectType.Planet && waypoint.targetNum
+		waypoint.targetType == MapObjectTypePlanet && waypoint.targetNum
 			? $universe.getPlanet(waypoint.targetNum)
 			: undefined
 	);

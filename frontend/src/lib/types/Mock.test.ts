@@ -1,8 +1,7 @@
 import type { DesignFinder } from '$lib/services/Universe';
 import { describe, it } from 'vitest';
 import type { ShipDesign } from './cs';
-import { WaypointTaskNone, type Fleet } from './cs';
-import { MapObjectType } from './MapObject';
+import { MapObjectTypeFleet, MapObjectTypeNone, WaypointTaskNone, type Fleet } from './cs';
 
 // test designfinder that just returns a Long Range Scout
 export class TestDesignFinder implements DesignFinder {
@@ -212,7 +211,7 @@ export const cottonPickerDesign: ShipDesign = {
 export const longRangeScout: Fleet = {
 	id: 0,
 	gameId: 0,
-	type: MapObjectType.Fleet,
+	type: MapObjectTypeFleet,
 	position: { x: 0, y: 0 },
 	num: 1,
 	playerNum: 1,
@@ -233,7 +232,7 @@ export const longRangeScout: Fleet = {
 				germanium: {},
 				colonists: {}
 			},
-			targetType: MapObjectType.None
+			targetType: MapObjectTypeNone
 		}
 	],
 	planetNum: 0,
@@ -274,7 +273,7 @@ export const longRangeScout: Fleet = {
 export const santaMaria: Fleet = {
 	id: 0,
 	gameId: 0,
-	type: MapObjectType.Fleet,
+	type: MapObjectTypeFleet,
 	position: { x: 0, y: 0 },
 	num: 2,
 	playerNum: 1,
@@ -291,7 +290,7 @@ export const santaMaria: Fleet = {
 				germanium: {},
 				colonists: {}
 			},
-			targetType: MapObjectType.None
+			targetType: MapObjectTypeNone
 		}
 	],
 	planetNum: 0,
@@ -335,7 +334,7 @@ export const santaMaria: Fleet = {
 export const cottonPicker: Fleet = {
 	id: 0,
 	gameId: 0,
-	type: MapObjectType.Fleet,
+	type: MapObjectTypeFleet,
 	position: { x: 0, y: 0 },
 	num: 4,
 	playerNum: 1,
@@ -352,7 +351,7 @@ export const cottonPicker: Fleet = {
 				germanium: {},
 				colonists: {}
 			},
-			targetType: MapObjectType.None
+			targetType: MapObjectTypeNone
 		}
 	],
 	planetNum: 0,

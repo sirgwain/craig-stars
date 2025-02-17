@@ -1,5 +1,4 @@
-import type { Salvage } from './cs';
-import { MapObjectType } from './MapObject';
+import { MapObjectTypeSalvage, type Salvage } from './cs';
 
 export function newSalvage(): Salvage {
 	return {
@@ -7,7 +6,7 @@ export function newSalvage(): Salvage {
 		createdAt: '',
 		updatedAt: '',
 		gameId: 0,
-		type: MapObjectType.Salvage,
+		type: MapObjectTypeSalvage,
 		name: '',
 		position: { x: 0, y: 0 },
 		cargo: {},

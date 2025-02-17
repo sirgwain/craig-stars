@@ -6,10 +6,9 @@
 		SelectWaypointProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { StargateWarpSpeed } from '$lib/types/cs';
-	import type { CommandedFleet } from '$lib/types/Fleet';
 	import type { Waypoint } from '$lib/types/cs';
-	import { MapObjectType } from '$lib/types/MapObject';
+	import { MapObjectTypePlanet, StargateWarpSpeed } from '$lib/types/cs';
+	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { distance } from '$lib/types/Vector';
 	import CommandTile from './CommandTile.svelte';
 
@@ -52,7 +51,7 @@
 	});
 
 	let waypointPlanet = $derived(
-		waypoint.targetType == MapObjectType.Planet && waypoint.targetNum
+		waypoint.targetType == MapObjectTypePlanet && waypoint.targetNum
 			? $universe.getPlanet(waypoint.targetNum)
 			: undefined
 	);
@@ -87,7 +86,7 @@
 	let fuelUsageTotal = $derived(
 		fuelUsagePerLeg.reduce(
 			(total, wpUsage, i) =>
-				fleet.waypoints[i + 1].targetType === MapObjectType.Planet &&
+				fleet.waypoints[i + 1].targetType === MapObjectTypePlanet &&
 				fleet.canFuel($player, $universe.getPlanet(fleet.waypoints[i + 1].targetNum ?? 0))
 					? 0
 					: total + wpUsage,

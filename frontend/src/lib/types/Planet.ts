@@ -16,6 +16,8 @@ import type {
 } from './cs';
 import {
 	Infinite,
+	MapObjectTypeNone,
+	MapObjectTypePlanet,
 	None,
 	QueueItemTypeAutoDefenses,
 	QueueItemTypeAutoFactories,
@@ -46,7 +48,6 @@ import {
 	type TechStore
 } from './cs';
 import { absSum, add, getHabValue, getLargest, withHabValue } from './Hab';
-import { MapObjectType } from './MapObject';
 import { addInt, totalMinerals } from './Mineral';
 import type { CommandedPlayer } from './Player';
 import { getPlanetHabitability } from './Race';
@@ -59,7 +60,7 @@ export class CommandedPlanet implements Planet {
 	gameId = 0;
 	createdAt: string = '';
 	updatedAt: string = '';
-	readonly type = MapObjectType.Planet;
+	readonly type = MapObjectTypePlanet;
 	tags: Tags = {};
 
 	hab: Hab = { grav: 0, temp: 0, rad: 0 };
@@ -83,7 +84,7 @@ export class CommandedPlanet implements Planet {
 	// orders
 	contributesOnlyLeftoverToResearch = false;
 	productionQueue: ProductionQueueItem[] = [];
-	routeTargetType = MapObjectType.None;
+	routeTargetType = MapObjectTypeNone;
 	routeTargetNum = None;
 	routeTargetPlayerNum = None;
 	packetSpeed = 0;

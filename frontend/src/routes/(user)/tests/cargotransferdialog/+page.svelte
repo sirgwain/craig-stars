@@ -2,13 +2,12 @@
 	import CargoTransferDialog from '../../games/(game)/[id]/dialogs/cargo/CargoTransfer.svelte';
 
 	import { CommandedFleet } from '$lib/types/Fleet';
-	import { MapObjectType } from '$lib/types/MapObject';
 	import { CommandedPlanet } from '$lib/types/Planet';
-	import { type Planet } from '$lib/types/cs';
+	import { MapObjectTypePlanet, type Planet } from '$lib/types/cs';
 
 	const planet: Planet = new CommandedPlanet();
 	Object.assign(planet, {
-		type: MapObjectType.Planet,
+		type: MapObjectTypePlanet,
 		reportAge: 0,
 		name: 'Obrin',
 		mineralConcentration: { ironium: 10, boranium: 20, germanium: 30 },

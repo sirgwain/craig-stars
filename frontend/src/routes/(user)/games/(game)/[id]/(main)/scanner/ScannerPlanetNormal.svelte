@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { ReportAgeUnexplored } from '$lib/types/cs';
+	import { MapObjectTypeFleet, ReportAgeUnexplored, type Fleet, type Planet } from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type Fleet } from '$lib/types/cs';
-	import { MapObjectType, owned } from '$lib/types/MapObject';
-	import { type Planet } from '$lib/types/cs';
+	import { owned } from '$lib/types/MapObject';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
@@ -35,7 +33,7 @@
 	let orbitingFleets = $derived(
 		$universe
 			.getMapObjectsByPosition(planet)
-			.filter((mo) => mo.type === MapObjectType.Fleet)
+			.filter((mo) => mo.type === MapObjectTypeFleet)
 			.filter((f) => filterFleet($player, f as Fleet, $settings))
 	);
 

@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MapObjectType } from '$lib/types/MapObject';
-	import { MineFieldTypeStandard, type MapObject, type MineField } from '$lib/types/cs';
+	import {
+		MapObjectTypeMineField,
+		MineFieldTypeStandard,
+		type MapObject,
+		type MineField
+	} from '$lib/types/cs';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerMineField from '../../../games/(game)/[id]/(main)/scanner/ScannerMineField.svelte';
 	import ScannerMineFieldPattern from '../../../games/(game)/[id]/(main)/scanner/ScannerMineFieldPattern.svelte';
@@ -10,7 +14,7 @@
 
 	const mineFields: MineField[] = [
 		{
-			type: MapObjectType.MineField,
+			type: MapObjectTypeMineField,
 			position: {
 				x: 50,
 				y: 50
@@ -26,7 +30,7 @@
 			}
 		},
 		{
-			type: MapObjectType.MineField,
+			type: MapObjectTypeMineField,
 			position: {
 				x: 0,
 				y: 50

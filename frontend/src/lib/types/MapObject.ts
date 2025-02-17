@@ -8,18 +8,6 @@ export type MovingMapObject = {
 	warpSpeed: number;
 } & MapObject;
 
-export enum MapObjectType {
-	None = '',
-	Planet = 'Planet',
-	Fleet = 'Fleet',
-	Wormhole = 'Wormhole',
-	MineField = 'MineField',
-	MysteryTrader = 'MysteryTrader',
-	Salvage = 'Salvage',
-	MineralPacket = 'MineralPacket',
-	PositionWaypoint = 'PositionWaypoint'
-}
-
 /**
  * Get default name for a mapObject or fleet
  * @param mo The MapObject or fleet to check

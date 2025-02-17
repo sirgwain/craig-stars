@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/cs';
-	import { MapObjectType } from '$lib/types/MapObject';
-	import { type MapObject } from '$lib/types/cs';
-	import type { Planet } from '$lib/types/cs';
+	import type { Fleet, Planet } from '$lib/types/cs';
+	import { MapObjectTypeFleet, type MapObject } from '$lib/types/cs';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import ScannerPlanetMineralConcentration from './ScannerPlanetMineralConcentration.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
@@ -19,7 +17,7 @@
 		commandedPlanet: Planet | undefined
 	): boolean => {
 		if (
-			commandedMapObject?.type == MapObjectType.Fleet &&
+			commandedMapObject?.type == MapObjectTypeFleet &&
 			(commandedMapObject as Fleet).orbitingPlanetNum == planet.num
 		) {
 			return true;

@@ -1,17 +1,20 @@
 <script lang="ts">
 	import { clickOutside } from '$lib/clickOutside';
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
+	import type { SelectWaypointProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { None } from '$lib/types/cs';
+	import {
+		MapObjectTypeFleet,
+		None,
+		type Fleet,
+		type MapObject,
+		type Vector,
+		type Waypoint
+	} from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
 	import { type WaypointDest } from '$lib/types/Fleet';
-	import { type Fleet } from '$lib/types/cs';
-	import { type Waypoint } from '$lib/types/cs';
-	import { MapObjectType } from '$lib/types/MapObject';
-	import { type MapObject } from '$lib/types/cs';
 	import { emptyVector, equal } from '$lib/types/Vector';
-	import { type Vector } from '$lib/types/cs';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
 	import { ZoomTransform, zoom, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
@@ -37,7 +40,6 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import type { SelectWaypointProps } from '$lib/services/Events';
 
 	const {
 		game,
@@ -297,7 +299,7 @@
 			return;
 		}
 
-		if (found?.type == MapObjectType.Fleet && !filterFleet($player, found as Fleet, $settings)) {
+		if (found?.type == MapObjectTypeFleet && !filterFleet($player, found as Fleet, $settings)) {
 			// this object we clicked is filtered out, don't do anything
 			return;
 		}

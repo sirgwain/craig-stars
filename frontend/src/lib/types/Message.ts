@@ -1,14 +1,21 @@
 import {
+	MapObjectTypeFleet,
+	MapObjectTypeMineField,
+	MapObjectTypeMineralPacket,
+	MapObjectTypeMysteryTrader,
+	MapObjectTypeNone,
+	MapObjectTypePlanet,
+	MapObjectTypeWormhole,
 	TargetFleet,
 	TargetMineField,
 	TargetMineralPacket,
 	TargetMysteryTrader,
 	TargetPlanet,
 	TargetWormhole,
+	type MapObjectType,
 	type PlayerMessage,
 	type PlayerMessageTarget
 } from './cs';
-import { MapObjectType } from './MapObject';
 import type { PlayerSettings } from './PlayerSettings';
 
 export function getMapObjectTypeForMessageType(
@@ -16,20 +23,20 @@ export function getMapObjectTypeForMessageType(
 ): MapObjectType {
 	switch (targetType) {
 		case TargetPlanet:
-			return MapObjectType.Planet;
+			return MapObjectTypePlanet;
 		case TargetFleet:
-			return MapObjectType.Fleet;
+			return MapObjectTypeFleet;
 		case TargetWormhole:
-			return MapObjectType.Wormhole;
+			return MapObjectTypeWormhole;
 		case TargetMineField:
-			return MapObjectType.MineField;
+			return MapObjectTypeMineField;
 		case TargetMysteryTrader:
-			return MapObjectType.MysteryTrader;
+			return MapObjectTypeMysteryTrader;
 		case TargetMineralPacket:
-			return MapObjectType.MineralPacket;
+			return MapObjectTypeMineralPacket;
 	}
 
-	return MapObjectType.None;
+	return MapObjectTypeNone;
 }
 
 // get the next visible message taking into account filters

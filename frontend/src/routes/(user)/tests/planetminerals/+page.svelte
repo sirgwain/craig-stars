@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { MapObjectType } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/cs';
+	import { MapObjectTypePlanet, type Planet } from '$lib/types/cs';
 	import PlanetMineralsGraph from '../../games/(game)/[id]/(main)/PlanetMineralsGraph.svelte';
 
 	const planet1: Planet = {
-		type: MapObjectType.Planet,
+		type: MapObjectTypePlanet,
 		reportAge: 0,
 		name: 'New Planet',
 		position: { x: 0, y: 0 },
@@ -15,7 +14,7 @@
 	};
 
 	const planet2: Planet = {
-		type: MapObjectType.Planet,
+		type: MapObjectTypePlanet,
 		reportAge: 0,
 		name: 'New Planet2',
 		position: { x: 0, y: 0 },

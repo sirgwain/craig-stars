@@ -1,6 +1,7 @@
 import { battlesSortBy, getBattleRecordDetails, type BattleRecordDetails } from '$lib/types/Battle';
 import type {
 	Cost,
+	MapObjectTarget,
 	MineField,
 	MineralPacket,
 	MysteryTraderIntel,
@@ -15,6 +16,13 @@ import type {
 	WormholeIntel
 } from '$lib/types/cs';
 import {
+	MapObjectTypeFleet,
+	MapObjectTypeMineField,
+	MapObjectTypeMineralPacket,
+	MapObjectTypeMysteryTrader,
+	MapObjectTypePlanet,
+	MapObjectTypeSalvage,
+	MapObjectTypeWormhole,
 	type BattleRecord,
 	type Fleet,
 	type MapObject,
@@ -23,7 +31,6 @@ import {
 	type Waypoint
 } from '$lib/types/cs';
 import { fleetsSortBy } from '$lib/types/Fleet';
-import { MapObjectType } from '$lib/types/MapObject';
 import { planetsSortBy } from '$lib/types/Planet';
 import type { CommandedPlayer } from '$lib/types/Player';
 import type { CS } from '$lib/wasm';
@@ -311,7 +318,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 
 	getSalvageAtPosition(position: MapObject | Vector): Salvage | undefined {
 		const mo = this.getMapObjectsByPosition(position)?.find(
-			(mo) => mo.type === MapObjectType.Salvage
+			(mo) => mo.type === MapObjectTypeSalvage
 		);
 		if (mo) {
 			return mo as Salvage;
@@ -329,7 +336,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	getMyPlanetsByPosition(position: MapObject | Vector): Planet[] {
 		return (
 			(this.getMyMapObjectsByPosition(position)?.filter(
-				(mo) => mo.type === MapObjectType.Planet
+				(mo) => mo.type === MapObjectTypePlanet
 			) as Planet[]) ?? []
 		);
 	}
@@ -337,7 +344,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	getMyFleetsByPosition(position: MapObject | Vector): Fleet[] {
 		return (
 			(this.getMyMapObjectsByPosition(position)?.filter(
-				(mo) => mo.type === MapObjectType.Fleet
+				(mo) => mo.type === MapObjectTypeFleet
 			) as Fleet[]) ?? []
 		);
 	}
@@ -435,32 +442,30 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	}
 
 	// get a mapobject by type, number, and optionally player num
-	getMapObject(target: Target): MapObject | undefined {
+	getMapObject(target: MapObjectTarget): MapObject | undefined {
 		switch (target.targetType) {
-			case MapObjectType.Planet:
+			case MapObjectTypePlanet:
 				return target.targetNum ? this.getPlanet(target.targetNum) : undefined;
-			case MapObjectType.Fleet:
+			case MapObjectTypeFleet:
 				return this.fleets.find(
 					(f) => f.num === target.targetNum && f.playerNum === target.targetPlayerNum
 				);
-			case MapObjectType.MineField:
+			case MapObjectTypeMineField:
 				return this.mineFields.find(
 					(mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum
 				);
-			case MapObjectType.MineralPacket:
+			case MapObjectTypeMineralPacket:
 				return this.mineralPackets.find(
 					(p) => p.num === target.targetNum && p.playerNum === target.targetPlayerNum
 				);
-			case MapObjectType.Salvage:
+			case MapObjectTypeSalvage:
 				return this.salvages.find(
 					(s) => s.num === target.targetNum && s.playerNum === target.targetPlayerNum
 				);
-			case MapObjectType.Wormhole:
+			case MapObjectTypeWormhole:
 				return target.targetNum ? this.getWormhole(target.targetNum) : undefined;
-			case MapObjectType.MysteryTrader:
+			case MapObjectTypeMysteryTrader:
 				return target.targetNum ? this.getMysteryTrader(target.targetNum) : undefined;
-			case MapObjectType.PositionWaypoint:
-				break;
 		}
 	}
 

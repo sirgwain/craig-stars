@@ -5,14 +5,25 @@
 	import { getCarouselContext } from '$lib/services/CarouselContext';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { type Fleet } from '$lib/types/cs';
-	import { getMapObjectName, MapObjectType } from '$lib/types/MapObject';
-	import type { MineField } from '$lib/types/cs';
-	import type { MineralPacket } from '$lib/types/cs';
-	import type { MysteryTrader } from '$lib/types/cs';
-	import type { Planet } from '$lib/types/cs';
-	import type { Salvage } from '$lib/types/cs';
-	import type { Wormhole } from '$lib/types/cs';
+	import type {
+		MineField,
+		MineralPacket,
+		MysteryTrader,
+		Planet,
+		Salvage,
+		Wormhole
+	} from '$lib/types/cs';
+	import {
+		MapObjectTypeFleet,
+		MapObjectTypeMineField,
+		MapObjectTypeMineralPacket,
+		MapObjectTypeMysteryTrader,
+		MapObjectTypePlanet,
+		MapObjectTypeSalvage,
+		MapObjectTypeWormhole,
+		type Fleet
+	} from '$lib/types/cs';
+	import { getMapObjectName } from '$lib/types/MapObject';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { readable } from 'svelte/store';
@@ -44,31 +55,29 @@
 	}
 
 	let selectedPlanet = $derived(
-		$selectedMapObject?.type == MapObjectType.Planet ? ($selectedMapObject as Planet) : undefined
+		$selectedMapObject?.type == MapObjectTypePlanet ? ($selectedMapObject as Planet) : undefined
 	);
 	let selectedFleet = $derived(
-		$selectedMapObject?.type == MapObjectType.Fleet ? ($selectedMapObject as Fleet) : undefined
+		$selectedMapObject?.type == MapObjectTypeFleet ? ($selectedMapObject as Fleet) : undefined
 	);
 	let selectedMineField = $derived(
-		$selectedMapObject?.type == MapObjectType.MineField
+		$selectedMapObject?.type == MapObjectTypeMineField
 			? ($selectedMapObject as MineField)
 			: undefined
 	);
 	let selectedMineralPacket = $derived(
-		$selectedMapObject?.type == MapObjectType.MineralPacket
+		$selectedMapObject?.type == MapObjectTypeMineralPacket
 			? ($selectedMapObject as MineralPacket)
 			: undefined
 	);
 	let selectedSalvage = $derived(
-		$selectedMapObject?.type == MapObjectType.Salvage ? ($selectedMapObject as Salvage) : undefined
+		$selectedMapObject?.type == MapObjectTypeSalvage ? ($selectedMapObject as Salvage) : undefined
 	);
 	let selectedWormhole = $derived(
-		$selectedMapObject?.type == MapObjectType.Wormhole
-			? ($selectedMapObject as Wormhole)
-			: undefined
+		$selectedMapObject?.type == MapObjectTypeWormhole ? ($selectedMapObject as Wormhole) : undefined
 	);
 	let selectedMysteryTrader = $derived(
-		$selectedMapObject?.type == MapObjectType.MysteryTrader
+		$selectedMapObject?.type == MapObjectTypeMysteryTrader
 			? ($selectedMapObject as MysteryTrader)
 			: undefined
 	);

@@ -4,8 +4,8 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MapObjectType, equal } from '$lib/types/MapObject';
-	import type { MineField } from '$lib/types/cs';
+	import { equal } from '$lib/types/MapObject';
+	import { MapObjectTypeMineField, type MineField } from '$lib/types/cs';
 	import ScannerMineField from './ScannerMineField.svelte';
 
 	const { universe, selectedMapObject } = getGameContext();
@@ -16,7 +16,7 @@
 
 	let minefields = $derived($universe.mineFields);
 	let selectedMineField = $derived(
-		$selectedMapObject && $selectedMapObject.type === MapObjectType.MineField
+		$selectedMapObject && $selectedMapObject.type === MapObjectTypeMineField
 			? ($selectedMapObject as MineField)
 			: undefined
 	);

@@ -1,26 +1,29 @@
 import type { DesignFinder, Universe } from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo } from './Cargo';
-import type {
-	Engine,
-	FleetIntel,
-	MineralPacket,
-	Planet,
-	Salvage,
-	ShipDesign,
-	WaypointTask
-} from './cs';
+import { owned, ownedBy } from './MapObject';
+import type { CommandedPlayer } from './Player';
+import { distance, equal } from './Vector';
 import {
 	type Cargo,
-	type Fleet,
 	type FleetSpec,
-	type MapObject,
-	type ShipToken,
+	type MineralPacket,
+	type Salvage,
+	type ShipDesign,
 	type Vector,
-	type Waypoint,
-	type WaypointTaskTransportAction,
-	type WaypointTransportTasks,
+	type WaypointTask,
+	type Engine,
+	type Fleet,
+	type FleetIntel,
+	type MapObject,
+	MapObjectTypeFleet,
+	MapObjectTypeMineralPacket,
+	MapObjectTypeNone,
+	MapObjectTypePlanet,
+	MapObjectTypeSalvage,
 	None,
+	type Planet,
+	type ShipToken,
 	StargateWarpSpeed,
 	TransportActionFillPercent,
 	TransportActionLoadAll,
@@ -33,6 +36,7 @@ import {
 	TransportActionUnloadAll,
 	TransportActionUnloadAmount,
 	TransportActionWaitForPercent,
+	type Waypoint,
 	WaypointTaskColonize,
 	WaypointTaskLayMineField,
 	WaypointTaskMergeWithFleet,
@@ -42,11 +46,10 @@ import {
 	WaypointTaskRoute,
 	WaypointTaskScrapFleet,
 	WaypointTaskTransferFleet,
-	WaypointTaskTransport
+	WaypointTaskTransport,
+	type WaypointTaskTransportAction,
+	type WaypointTransportTasks
 } from './cs';
-import { MapObjectType, owned, ownedBy } from './MapObject';
-import type { CommandedPlayer } from './Player';
-import { distance, equal } from './Vector';
 
 export const WaypointTasks: WaypointTask[] = [
 	WaypointTaskNone,
@@ -113,7 +116,7 @@ export class CommandedFleet implements Fleet {
 	createdAt = '';
 	updatedAt = '';
 	age = 0;
-	readonly type = MapObjectType.Fleet;
+	readonly type = MapObjectTypeFleet;
 
 	name = '';
 	playerNum = 0;
@@ -178,7 +181,7 @@ export class CommandedFleet implements Fleet {
 			} else {
 				return {
 					position: wp.position,
-					type: wp.targetType ?? MapObjectType.PositionWaypoint,
+					type: wp.targetType ?? MapObjectTypeNone,
 					name: wp.targetName ?? '',
 					num: wp.targetNum ?? 0,
 					playerNum: wp.targetPlayerNum ?? 0
@@ -241,7 +244,7 @@ export class CommandedFleet implements Fleet {
 		// get the fuel allocated up to the last waypoint
 		const fuelAlreadyAllocated = this.getFuelAllocated(player, universe, waypointIndex);
 		const orbiting =
-			selectedWaypoint.targetType === MapObjectType.Planet
+			selectedWaypoint.targetType === MapObjectTypePlanet
 				? universe.getPlanet(selectedWaypoint.targetNum ?? 0)
 				: undefined;
 
@@ -329,7 +332,7 @@ export class CommandedFleet implements Fleet {
 		const fuelAlreadyAllocated = this.getFuelAllocated(player, universe, waypointIndex - 1);
 
 		const orbiting =
-			previousWaypoint.targetType === MapObjectType.Planet
+			previousWaypoint.targetType === MapObjectTypePlanet
 				? universe.getPlanet(previousWaypoint.targetNum ?? 0)
 				: undefined;
 
@@ -382,7 +385,7 @@ export class CommandedFleet implements Fleet {
 			selectedWaypoint.targetName = '';
 			selectedWaypoint.targetPlayerNum = None;
 			selectedWaypoint.targetNum = None;
-			selectedWaypoint.targetType = MapObjectType.None;
+			selectedWaypoint.targetType = MapObjectTypeNone;
 			selectedWaypoint.warpSpeed = warpSpeed;
 			selectedWaypoint.task = task;
 			selectedWaypoint.transportTasks = transportTasks;
@@ -404,7 +407,7 @@ export class CommandedFleet implements Fleet {
 			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
 			const wp = this.waypoints[i];
 			const target =
-				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
+				wp.targetType === MapObjectTypePlanet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
 			if (target && this.canFuel(player, target)) {
 				// our previous waypoint was a fuel point, reset already allocated fuel to 0
 				fuelAlreadyAllocated = 0;
@@ -426,7 +429,7 @@ export class CommandedFleet implements Fleet {
 			fuel -= this.waypoints[i].estFuelUsage ?? 0;
 			const wp = this.waypoints[i];
 			const target =
-				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
+				wp.targetType === MapObjectTypePlanet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
 			if (target && this.canFuel(player, target)) {
 				// our previous waypoint was a fuel point, reset already allocated fuel to 0
 				fuel = this.spec.fuelCapacity ?? 0;
@@ -462,7 +465,7 @@ export class CommandedFleet implements Fleet {
 			}
 			const wp = this.waypoints[i];
 			const target =
-				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
+				wp.targetType === MapObjectTypePlanet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
 			if (target && this.canFuel(player, target)) {
 				// our previous waypoint was a fuel point, reset already allocated fuel to 0
 				fuel = this.spec.fuelCapacity ?? 0;
@@ -497,7 +500,7 @@ export class CommandedFleet implements Fleet {
 		let canRemoteMine = false;
 		let canJump = false;
 		let canFuel = false;
-		if (mo && mo.type == MapObjectType.Planet) {
+		if (mo && mo.type == MapObjectTypePlanet) {
 			const target = mo as Planet;
 			canColonize = this.canColonize(target);
 			canRemoteMine = this.canRemoteMine(player, target);
@@ -746,19 +749,19 @@ export class CommandedFleet implements Fleet {
 			wp0.targetNum == undefined ||
 			wp0.targetNum == 0 ||
 			wp0.targetType == undefined ||
-			wp0.targetType == MapObjectType.None
+			wp0.targetType == MapObjectTypeNone
 		) {
 			// return some salvage at this position
 			return universe.getSalvageAtPosition(this);
 		}
 		switch (wp0.targetType) {
-			case MapObjectType.Planet:
+			case MapObjectTypePlanet:
 				return universe.getPlanet(wp0.targetNum);
-			case MapObjectType.Fleet:
+			case MapObjectTypeFleet:
 				return universe.getFleet(wp0.targetPlayerNum, wp0.targetNum);
-			case MapObjectType.Salvage:
+			case MapObjectTypeSalvage:
 				return universe.getSalvageAtPosition(this);
-			case MapObjectType.MineralPacket:
+			case MapObjectTypeMineralPacket:
 				return universe.getMineralPacket(wp0.targetPlayerNum ?? 0, wp0.targetNum);
 		}
 	}
@@ -789,7 +792,7 @@ export function canTransferCargo(fleet: Fleet, universe: Universe): boolean {
 			// if any of these fleets can transport, it's a contested planet
 			const orbitingForeignFreighters = universe
 				.getMapObjectsByPosition(planet)
-				.filter((mo) => mo.type === MapObjectType.Fleet)
+				.filter((mo) => mo.type === MapObjectTypeFleet)
 				.map((mo) => mo as unknown as FleetIntel)
 				.filter((f: FleetIntel) => f.freighter)
 				.filter((f) => f.playerNum !== fleet.playerNum);
@@ -889,7 +892,7 @@ export const getEta = (fleet: Fleet) => {
 };
 
 export function getTokenCount(mo: MapObject) {
-	if (mo.type == MapObjectType.Fleet) {
+	if (mo.type == MapObjectTypeFleet) {
 		const fleet = mo as Fleet;
 		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
 	}
@@ -897,7 +900,7 @@ export function getTokenCount(mo: MapObject) {
 }
 
 export function hasDestination(mo: MapObject): boolean {
-	const fleet = mo.type == MapObjectType.Fleet ? (mo as Fleet) : undefined;
+	const fleet = mo.type == MapObjectTypeFleet ? (mo as Fleet) : undefined;
 	return (fleet?.waypoints?.length ?? 0) > 1;
 }
 
