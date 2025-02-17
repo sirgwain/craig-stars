@@ -27,7 +27,6 @@ import {
 	type Fleet,
 	type MapObject,
 	type Planet,
-	type Target,
 	type Waypoint
 } from '$lib/types/cs';
 import { fleetsSortBy } from '$lib/types/Fleet';

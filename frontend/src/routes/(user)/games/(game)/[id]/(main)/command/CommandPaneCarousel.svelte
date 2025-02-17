@@ -18,7 +18,9 @@
 		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { equal, getMapObjectName, MapObjectType } from '$lib/types/MapObject';
+	import { equal, getMapObjectName } from '$lib/types/MapObject';
+	import type { Planet } from '$lib/types/cs';
+	import { MapObjectTypePlanet, ReportAgeUnexplored } from '$lib/types/cs';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, setContext } from 'svelte';
@@ -36,8 +38,6 @@
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
-	import type { Planet } from '$lib/types/cs';
-	import { MapObjectTypePlanet, ReportAgeUnexplored } from '$lib/types/cs';
 
 	const {
 		universe,
