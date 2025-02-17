@@ -1,6 +1,5 @@
 <script lang="ts" module>
-	import { type PlayerScore } from '$lib/types/Player';
-
+	import { type PlayerScore } from '$lib/types/cs';
 	export type ValueType = keyof PlayerScore;
 </script>
 

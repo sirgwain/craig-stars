@@ -4,7 +4,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getHullIcon } from '$lib/techicon';
 	import type { CommandedFleet } from '$lib/types/Fleet';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
 
 	const { universe } = getGameContext();

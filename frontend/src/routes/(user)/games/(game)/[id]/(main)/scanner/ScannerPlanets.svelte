@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
+	import type { Fleet } from '$lib/types/cs';
+	import { MapObjectType } from '$lib/types/MapObject';
+	import { type MapObject } from '$lib/types/cs';
+	import type { Planet } from '$lib/types/cs';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import ScannerPlanetMineralConcentration from './ScannerPlanetMineralConcentration.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';

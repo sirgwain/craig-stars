@@ -81,7 +81,7 @@ type Intel struct {
 }
 
 type MapObjectIntel struct {
-	Intel
+	Intel    `tstype:",extends"`
 	Type     MapObjectType `json:"type"`
 	Position Vector        `json:"position"`
 }
@@ -95,7 +95,7 @@ func (intel *Intel) Owned() bool {
 }
 
 type PlanetIntel struct {
-	MapObjectIntel
+	MapObjectIntel                `tstype:",extends"`
 	Hab                           Hab         `json:"hab,omitempty"`
 	BaseHab                       Hab         `json:"baseHab,omitempty"`
 	MineralConcentration          Mineral     `json:"mineralConcentration,omitempty"`
@@ -105,35 +105,35 @@ type PlanetIntel struct {
 	PlanetHabitability            int         `json:"planetHabitability,omitempty"`
 	PlanetHabitabilityTerraformed int         `json:"planetHabitabilityTerraformed,omitempty"`
 	Homeworld                     bool        `json:"homeworld,omitempty"`
-	Spec                          PlanetSpec  `json:"spec,omitempty"`
+	Spec                          PlanetSpec  `json:"spec"`
 }
 
 type ShipDesignIntel struct {
-	Intel
+	Intel         `tstype:",extends"`
 	Hull          string           `json:"hull,omitempty"`
 	HullSetNumber int              `json:"hullSetNumber,omitempty"`
 	Version       int              `json:"version,omitempty"`
 	Slots         []ShipDesignSlot `json:"slots,omitempty"`
-	Spec          ShipDesignSpec   `json:"spec,omitempty"`
+	Spec          ShipDesignSpec   `json:"spec"`
 }
 
 type FleetIntel struct {
-	MapObjectIntel
-	BaseName          string      `json:"baseName,omitempty"`
-	Heading           Vector      `json:"heading,omitempty"`
+	MapObjectIntel    `tstype:",extends"`
+	BaseName          string      `json:"baseName"`
+	Heading           Vector      `json:"heading"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
-	WarpSpeed         int         `json:"warpSpeed,omitempty"`
-	Mass              int         `json:"mass,omitempty"`
+	WarpSpeed         int         `json:"warpSpeed"`
+	Mass              int         `json:"mass"`
 	Cargo             Cargo       `json:"cargo,omitempty"`
 	CargoDiscovered   bool        `json:"cargoDiscovered,omitempty"`
 	Freighter         bool        `json:"freighter,omitempty"`
 	ScanRange         int         `json:"scanRange,omitempty"`
 	ScanRangePen      int         `json:"scanRangePen,omitempty"`
-	Tokens            []ShipToken `json:"tokens,omitempty"`
+	Tokens            []ShipToken `json:"tokens"`
 }
 
 type MineralPacketIntel struct {
-	MapObjectIntel
+	MapObjectIntel  `tstype:",extends"`
 	WarpSpeed       int    `json:"warpSpeed"`
 	Heading         Vector `json:"heading"`
 	Cargo           Cargo  `json:"cargo,omitempty"`
@@ -143,34 +143,34 @@ type MineralPacketIntel struct {
 }
 
 type SalvageIntel struct {
-	MapObjectIntel
-	Cargo Cargo `json:"cargo,omitempty"`
+	MapObjectIntel `tstype:",extends"`
+	Cargo          Cargo `json:"cargo"`
 }
 
 type MineFieldIntel struct {
-	MapObjectIntel
-	NumMines      int           `json:"numMines"`
-	MineFieldType MineFieldType `json:"mineFieldType"`
-	Spec          MineFieldSpec `json:"spec"`
+	MapObjectIntel `tstype:",extends"`
+	NumMines       int           `json:"numMines"`
+	MineFieldType  MineFieldType `json:"mineFieldType"`
+	Spec           MineFieldSpec `json:"spec"`
 }
 
 type WormholeIntel struct {
-	MapObjectIntel
+	MapObjectIntel `tstype:",extends"`
 	DestinationNum int               `json:"destinationNum,omitempty"`
 	Stability      WormholeStability `json:"stability,omitempty"`
 }
 
 type MysteryTraderIntel struct {
-	MapObjectIntel
-	WarpSpeed     int    `json:"warpSpeed,omitempty"`
-	Heading       Vector `json:"heading"`
-	RequestedBoon int    `json:"requestedBoon"`
+	MapObjectIntel `tstype:",extends"`
+	WarpSpeed      int    `json:"warpSpeed"`
+	Heading        Vector `json:"heading"`
+	RequestedBoon  int    `json:"requestedBoon"`
 }
 
 type PlayerIntel struct {
-	Name           string `json:"name,omitempty"`
-	Num            int    `json:"num,omitempty"`
-	Color          string `json:"color,omitempty"`
+	Name           string `json:"name"`
+	Num            int    `json:"num"`
+	Color          string `json:"color"`
 	Seen           bool   `json:"seen,omitempty"`
 	RaceName       string `json:"raceName,omitempty"`
 	RacePluralName string `json:"racePluralName,omitempty"`
@@ -337,8 +337,8 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 
 		// terraforming
 		terraformer := NewTerraformer()
-		intel.Spec.TerraformAmount = terraformer.getTerraformAmount(intel.Hab, intel.BaseHab, player, player)
-		intel.Spec.MinTerraformAmount = terraformer.getMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
+		intel.Spec.TerraformAmount = terraformer.GetTerraformAmount(intel.Hab, intel.BaseHab, player, player)
+		intel.Spec.MinTerraformAmount = terraformer.GetMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
 		intel.Spec.CanTerraform = intel.Spec.TerraformAmount.absSum() > 0
 		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(planet.Hab.Add(intel.Spec.TerraformAmount))
 		intel.Spec.MaxPopulation = planet.getMaxPopulation(rules, player, intel.Spec.Habitability)
@@ -483,8 +483,8 @@ func (d *discover) discoverPlanetTerraformability(planetNum int) error {
 	if intel.ReportAge != ReportAgeUnexplored {
 		// terraforming
 		terraformer := NewTerraformer()
-		intel.Spec.TerraformAmount = terraformer.getTerraformAmount(intel.Hab, intel.BaseHab, player, player)
-		intel.Spec.MinTerraformAmount = terraformer.getMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
+		intel.Spec.TerraformAmount = terraformer.GetTerraformAmount(intel.Hab, intel.BaseHab, player, player)
+		intel.Spec.MinTerraformAmount = terraformer.GetMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
 		intel.Spec.CanTerraform = intel.Spec.TerraformAmount.absSum() > 0
 		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(intel.Hab.Add(intel.Spec.TerraformAmount))
 	}

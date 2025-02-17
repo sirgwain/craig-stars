@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	import { showTooltip } from '$lib/services/Stores';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/cs';
 	import ShipDesignTooltip from './ShipDesignTooltip.svelte';
 
 	export function onShipDesignTooltip(

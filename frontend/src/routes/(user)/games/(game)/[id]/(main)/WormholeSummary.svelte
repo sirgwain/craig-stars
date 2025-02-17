@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Wormhole } from '$lib/types/Wormhole';
+	import type { Wormhole } from '$lib/types/cs';
 	import { startCase } from 'lodash-es';
 
 	const { universe } = getGameContext();

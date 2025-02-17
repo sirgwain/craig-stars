@@ -1,11 +1,11 @@
 <script lang="ts" module>
 	import { roundToNearest100 } from '$lib/services/Math';
-	import { Unexplored } from '$lib/types/Constants';
-	import { type Planet } from '$lib/types/Planet';
-	import type { Player } from '$lib/types/Player';
+	import { ReportAgeUnexplored } from '$lib/types/cs';
+	import { type Planet } from '$lib/types/cs';
+	import type { CommandedPlayer } from '$lib/types/Player';
 	export type PopulationTooltipProps = {
 		playerFinder: PlayerFinder;
-		player: Player;
+		player: CommandedPlayer;
 		planet: Planet;
 	};
 </script>
@@ -62,7 +62,7 @@
 					of your colonists will die next year.
 				</p>
 			{/if}
-		{:else if !owned(planet) && planet.reportAge != Unexplored}
+		{:else if !owned(planet) && planet.reportAge != ReportAgeUnexplored}
 			<p><span class="font-semibold">{planet.name} is uninhabited.</span></p>
 
 			{#if planet.spec.habitability && planet.spec.habitability > 0}
@@ -79,7 +79,7 @@
 					> of all colonists you settle on it every turn.
 				</p>
 			{/if}
-		{:else if owned(planet) && planet.reportAge != Unexplored}
+		{:else if owned(planet) && planet.reportAge != ReportAgeUnexplored}
 			<p>
 				The <span class="font-semibold">{playerFinder.getPlayerName(planet.playerNum)}</span>
 				population on

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { type CommandedFleet, type Target } from '$lib/types/Fleet';
-	import { MapObjectType, equal, getMapObjectName, type MapObject } from '$lib/types/MapObject';
-	import type { Vector } from '$lib/types/Vector';
+	import { type CommandedFleet } from '$lib/types/Fleet';
+	import { MapObjectType, equal, getMapObjectName } from '$lib/types/MapObject';
+	import type { MapObjectTarget, Vector } from '$lib/types/cs';
+	import { type MapObject } from '$lib/types/cs';
 	import { flatten, keys } from 'lodash-es';
 	import type { HTMLSelectAttributes } from 'svelte/elements';
 
@@ -15,7 +16,7 @@
 	type Props = {
 		fleet: CommandedFleet;
 		otherMapObjectsHere: Dictionary<MapObject[]>;
-		target: Target;
+		target: MapObjectTarget;
 		position: Vector;
 		onSelected: (selected: Partial<MapObject>) => void;
 	} & HTMLSelectAttributes;

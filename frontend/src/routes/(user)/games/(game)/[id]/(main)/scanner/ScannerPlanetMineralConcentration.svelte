@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import { Unexplored } from '$lib/types/Constants';
-	import { type Planet } from '$lib/types/Planet';
+	import { ReportAgeUnexplored } from '$lib/types/cs';
+	import { type Planet } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
@@ -42,7 +42,7 @@
 </script>
 
 <ScannerPlanetNormal {planet} />
-{#if planet.reportAge !== Unexplored}
+{#if planet.reportAge !== ReportAgeUnexplored}
 	<MapObjectScaler mapObject={planet}>
 		<rect
 			class="ironium-bar"

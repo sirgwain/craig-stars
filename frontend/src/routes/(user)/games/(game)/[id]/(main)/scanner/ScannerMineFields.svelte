@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { MapObjectType, equal } from '$lib/types/MapObject';
-	import type { MineField } from '$lib/types/MineField';
+	import type { MineField } from '$lib/types/cs';
 	import ScannerMineField from './ScannerMineField.svelte';
 
 	const { universe, selectedMapObject } = getGameContext();

@@ -1,20 +1,18 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
+	import type { Fleet, MineralPacket, Planet } from '$lib/types/cs';
+	import { PlayerMessageBattle, PlayerMessageBattleAlly, type PlayerMessage } from '$lib/types/cs';
 	import { MapObjectType } from '$lib/types/MapObject';
-	import { MessageType, type Message } from '$lib/types/Message';
-	import type { MineralPacket } from '$lib/types/MineralPacket';
-	import type { Planet } from '$lib/types/Planet';
 	import BattleMessageDetail from './BattleMessageDetail.svelte';
 	import FleetMessageDetail from './FleetMessageDetail.svelte';
 	import MineralPacketMessageDetail from './MineralPacketMessageDetail.svelte';
+	import MysteryTraderMessageDetail from './MysteryTraderMessageDetail.svelte';
 	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
 	import PlayerMessageDetail from './PlayerMessageDetail.svelte';
-	import MysteryTraderMessageDetail from './MysteryTraderMessageDetail.svelte';
 
 	const { universe } = getGameContext();
 
-	let { message }: { message: Message } = $props();
+	let { message }: { message: PlayerMessage } = $props();
 
 	let target = $derived($universe.getMapObject(message));
 	let owner = $derived(
@@ -27,7 +25,7 @@
 	);
 </script>
 
-{#if message.type === MessageType.Battle || message.type === MessageType.BattleAlly}
+{#if message.type === PlayerMessageBattle || message.type === PlayerMessageBattleAlly}
 	<BattleMessageDetail {message} />
 {:else if planet}
 	<PlanetMessageDetail {message} {planet} {owner} />

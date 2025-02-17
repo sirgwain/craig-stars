@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CommandedFleet, moveDamagedTokens, type ShipToken } from './Fleet';
-import { Infinite } from './Constants';
-import { None } from './Constants';
+import { CommandedFleet, moveDamagedTokens } from './Fleet';
+import { type ShipToken } from './cs';
+import { Infinite } from './cs';
+import { None } from './cs';
 import { cottonPicker, longRangeScout, santaMaria, TestDesignFinder } from './Mock.test';
 import { CommandedPlanet } from './Planet';
-import { Player, PlayerRelation } from './Player';
-import type { RaceSpec } from './Race';
+import { CommandedPlayer, PlayerRelation } from './Player';
+import type { RaceSpec } from './cs';
 
 describe('Fleet test', () => {
 	it('getFuelUsage', () => {
@@ -68,19 +69,19 @@ describe('Fleet test', () => {
 		ownedPlanet.playerNum = 1;
 
 		// create an AR player that can remote mine their own planets
-		const arPlayer = new Player();
+		const arPlayer = new CommandedPlayer();
 		arPlayer.race.spec = Object.assign(arPlayer.race.spec ?? {}, {
 			canRemoteMineOwnPlanets: true
 		} as RaceSpec);
 		arPlayer.num = 1;
 
 		// mine away!
-		expect(remoteMiner.canRemoteMine(new Player(), goodPlanet)).toBe(true);
+		expect(remoteMiner.canRemoteMine(new CommandedPlayer(), goodPlanet)).toBe(true);
 		// scouts can't remote mine
-		expect(scout.canRemoteMine(new Player(), goodPlanet)).toBe(false);
+		expect(scout.canRemoteMine(new CommandedPlayer(), goodPlanet)).toBe(false);
 
 		// can't remote mine an owned planet
-		expect(remoteMiner.canRemoteMine(new Player(), ownedPlanet)).toBe(false);
+		expect(remoteMiner.canRemoteMine(new CommandedPlayer(), ownedPlanet)).toBe(false);
 
 		// can remote mine an owned planet if we are AR
 		expect(remoteMiner.canRemoteMine(arPlayer, ownedPlanet)).toBe(true);
@@ -95,7 +96,7 @@ describe('Fleet test', () => {
 		const scout = new CommandedFleet(longRangeScout);
 
 		// make a new player that is friendly to player 2, not to player 3
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.num = 1;
 		player.relations = [
 			{
@@ -155,7 +156,7 @@ describe('Fleet test', () => {
 		scout.cargo.colonists = 0;
 
 		// can gate, have cargo, can gate cargo
-		const itPlayer = new Player();
+		const itPlayer = new CommandedPlayer();
 		itPlayer.num = 1;
 		itPlayer.relations = [
 			{
@@ -178,7 +179,7 @@ describe('Fleet test', () => {
 		const scout = new CommandedFleet(longRangeScout);
 
 		// make a new player that is friendly to player 2, not to player 3
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.num = 1;
 		player.relations = [
 			{

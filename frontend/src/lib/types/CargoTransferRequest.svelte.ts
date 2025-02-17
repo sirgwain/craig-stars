@@ -1,4 +1,5 @@
-import { type Cargo, negativeCargo } from './Cargo';
+import { negativeCargo } from './Cargo';
+import { type Cargo } from './cs';
 
 export class CargoTransferRequest {
 	ironium = $state(0);

@@ -1,5 +1,5 @@
-import { WaypointTask, type Fleet } from './Fleet';
-import type { Player } from './Player';
+import { WaypointTaskNone, type Fleet } from './cs';
+import type { CommandedPlayer } from './Player';
 
 export type FilterOptions = {
 	showIdleFleetsOnly: boolean;
@@ -25,7 +25,11 @@ export const ShipClasses = {
 	FuelTransport: 'Fuel Transport'
 } as const;
 
-export function filterFleet(player: Player, fleet: Fleet, options: FilterOptions): boolean {
+export function filterFleet(
+	player: CommandedPlayer,
+	fleet: Fleet,
+	options: FilterOptions
+): boolean {
 	return (
 		filterIdleFleet(fleet, options.showIdleFleetsOnly) &&
 		filterMyDesigns(player, fleet, options.filterMyDesigns, options.filterDesigns) &&
@@ -45,7 +49,7 @@ export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 	if (
 		fleet.waypoints &&
 		fleet.waypoints.length == 1 &&
-		fleet.waypoints[0].task == WaypointTask.None
+		fleet.waypoints[0].task == WaypointTaskNone
 	) {
 		return true;
 	}
@@ -60,7 +64,7 @@ export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 }
 
 export function filterMyDesigns(
-	player: Player,
+	player: CommandedPlayer,
 	fleet: Fleet,
 	enabled: boolean,
 	// TODO: add suport for showDesigns
@@ -76,7 +80,7 @@ export function filterMyDesigns(
 }
 
 export function filterEnemyDesigns(
-	player: Player,
+	player: CommandedPlayer,
 	fleet: Fleet,
 	enabled: boolean,
 	// TODO: add suport for showShipClasses
@@ -92,7 +96,7 @@ export function filterEnemyDesigns(
 }
 
 export function filterAllyDesigns(
-	player: Player,
+	player: CommandedPlayer,
 	fleet: Fleet,
 	enabled: boolean,
 	// TODO: add suport for showShipClasses

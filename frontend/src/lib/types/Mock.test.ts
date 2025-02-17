@@ -1,8 +1,8 @@
 import type { DesignFinder } from '$lib/services/Universe';
 import { describe, it } from 'vitest';
-import { WaypointTask, type Fleet } from './Fleet';
+import type { ShipDesign } from './cs';
+import { WaypointTaskNone, type Fleet } from './cs';
 import { MapObjectType } from './MapObject';
-import type { ShipDesign } from './ShipDesign';
 
 // test designfinder that just returns a Long Range Scout
 export class TestDesignFinder implements DesignFinder {
@@ -225,7 +225,7 @@ export const longRangeScout: Fleet = {
 				y: 0
 			},
 			warpSpeed: 6,
-			task: WaypointTask.None,
+			task: WaypointTaskNone,
 			transportTasks: {
 				fuel: {},
 				ironium: {},
@@ -283,7 +283,7 @@ export const santaMaria: Fleet = {
 		{
 			position: { x: 0, y: 0 },
 			warpSpeed: 6,
-			task: WaypointTask.None,
+			task: WaypointTaskNone,
 			transportTasks: {
 				fuel: {},
 				ironium: {},
@@ -344,7 +344,7 @@ export const cottonPicker: Fleet = {
 		{
 			position: { x: 0, y: 0 },
 			warpSpeed: 6,
-			task: WaypointTask.None,
+			task: WaypointTaskNone,
 			transportTasks: {
 				fuel: {},
 				ironium: {},

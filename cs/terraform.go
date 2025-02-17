@@ -9,8 +9,8 @@ type Terraformer interface {
 	PermaformHab(planet *Planet, planetPlayer *Player, habType HabType, amount int) TerraformResult
 	PermaformOneStep(planet *Planet, player *Player, habType HabType) TerraformResult
 	TerraformOneStep(planet *Planet, player *Player, terraformer *Player, reverse bool) TerraformResult
-	getTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab
-	getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab
+	GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab
+	GetMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab
 }
 
 type TerraformResult struct {
@@ -58,8 +58,8 @@ func (t *terraform) getTerraformAbility(player *Player) Hab {
 	return terraformAbility
 }
 
-// getTerraformAmount returns the total amount we can terraform this planet
-func (t *terraform) getTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab {
+// GetTerraformAmount returns the total amount we can terraform this planet
+func (t *terraform) GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab {
 	terraformAmount := Hab{}
 	if player == nil {
 		// can't terraform, return an empty Hab
@@ -122,8 +122,8 @@ func (t *terraform) getTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 	return terraformAmount
 }
 
-// getMinTerraformAmount gets the minimum amount we need to terraform this planet to make it habitable (if we can terraform it at all)
-func (t *terraform) getMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab {
+// GetMinTerraformAmount gets the minimum amount we need to terraform this planet to make it habitable (if we can terraform it at all)
+func (t *terraform) GetMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab {
 	terraformAmount := Hab{}
 	if player == nil {
 		// can't terraform, return an empty Hab

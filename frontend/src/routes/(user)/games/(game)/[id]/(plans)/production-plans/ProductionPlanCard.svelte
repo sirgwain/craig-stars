@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { DesignFinder } from '$lib/services/Universe';
 	import { getQueueItemShortName } from '$lib/types/Planet';
-	import type { ProductionPlan } from '$lib/types/Player';
+	import type { ProductionPlan } from '$lib/types/cs';
 	import { isAuto } from '$lib/types/QueueItemType';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

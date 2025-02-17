@@ -603,11 +603,13 @@
 					"AR"
 				]
 			},
+			"ranking": 0,
 			"category": "PlanetaryScanner",
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 50
+			"scanRange": 50,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Viewer 90",
@@ -628,7 +630,8 @@
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 90
+			"scanRange": 90,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Scoper 150",
@@ -649,7 +652,8 @@
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 150
+			"scanRange": 150,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Scoper 220",
@@ -670,7 +674,8 @@
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 220
+			"scanRange": 220,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Scoper 280",
@@ -691,7 +696,8 @@
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 280
+			"scanRange": 280,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Snooper 320X",
@@ -803,6 +809,7 @@
 			"requirements": {
 				"lrtsRequired": 2
 			},
+			"ranking": 0,
 			"category": "Terraforming",
 			"tags": {
 				"Terraforming": true
@@ -1148,6 +1155,7 @@
 					"AR"
 				]
 			},
+			"ranking": 0,
 			"category": "PlanetaryDefense",
 			"tags": {
 				"Defense": true
@@ -1257,6 +1265,7 @@
 			"ranking": 45,
 			"category": "Planetary",
 			"origin": "MysteryTrader",
+			"tags": {},
 			"resetPlanet": true
 		}
 	],
@@ -1276,11 +1285,13 @@
 					"HE"
 				]
 			},
+			"ranking": 0,
 			"category": "Orbital",
 			"tags": {
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 100,
 			"safeRange": 250,
 			"maxHullMass": 500,
@@ -1310,6 +1321,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 2147483647,
 			"safeRange": 300,
 			"maxHullMass": 2147483647,
@@ -1336,6 +1348,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 150,
 			"safeRange": 600,
 			"maxHullMass": 750,
@@ -1362,6 +1375,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 300,
 			"safeRange": 500,
 			"maxHullMass": 1500,
@@ -1391,6 +1405,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 100,
 			"safeRange": 2147483647,
 			"maxHullMass": 500,
@@ -1420,6 +1435,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 2147483647,
 			"safeRange": 800,
 			"maxHullMass": 2147483647,
@@ -1449,6 +1465,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 2147483647,
 			"safeRange": 2147483647,
 			"maxHullMass": 2147483647,
@@ -1474,6 +1491,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 5
 		},
 		{
@@ -1496,6 +1514,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 6
 		},
 		{
@@ -1515,6 +1534,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 7
 		},
 		{
@@ -1537,6 +1557,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 8
 		},
 		{
@@ -1559,6 +1580,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 9
 		},
 		{
@@ -1578,6 +1600,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 10
 		},
 		{
@@ -1600,6 +1623,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 11
 		},
 		{
@@ -1622,6 +1646,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 12
 		},
 		{
@@ -1644,6 +1669,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 13
 		},
 		{
@@ -1814,6 +1840,7 @@
 					"CA"
 				]
 			},
+			"ranking": 0,
 			"category": "MineRobot",
 			"tags": {
 				"TerraformingRobot": true
@@ -1833,6 +1860,7 @@
 			"requirements": {
 				"weapons": 2
 			},
+			"ranking": 0,
 			"category": "Bomb",
 			"tags": {
 				"Bomb": true
@@ -2795,6 +2823,7 @@
 					"SS"
 				]
 			},
+			"ranking": 0,
 			"category": "Electrical",
 			"tags": {
 				"Cloak": true
@@ -3097,6 +3126,7 @@
 			},
 			"ranking": 130,
 			"category": "Electrical",
+			"tags": {},
 			"hullSlotType": 64,
 			"mass": 2,
 			"reduceMovement": 4
@@ -3117,6 +3147,7 @@
 			},
 			"ranking": 140,
 			"category": "Electrical",
+			"tags": {},
 			"hullSlotType": 64,
 			"mass": 1,
 			"reduceCloaking": true
@@ -3159,6 +3190,7 @@
 					"SD"
 				]
 			},
+			"ranking": 0,
 			"category": "MineLayer",
 			"tags": {
 				"MineLayer": true
@@ -3401,6 +3433,7 @@
 					"AR"
 				]
 			},
+			"ranking": 0,
 			"category": "Mechanical",
 			"tags": {
 				"ColonyModule": true
@@ -3593,6 +3626,7 @@
 			"ranking": 75,
 			"category": "Mechanical",
 			"origin": "MysteryTrader",
+			"tags": {},
 			"hullSlotType": 8,
 			"mass": 10,
 			"canJump": true
@@ -3625,6 +3659,7 @@
 				"resources": 5
 			},
 			"requirements": {},
+			"ranking": 0,
 			"category": "BeamWeapon",
 			"tags": {
 				"BeamWeapon": true
@@ -4151,6 +4186,7 @@
 				"resources": 5
 			},
 			"requirements": {},
+			"ranking": 0,
 			"category": "Torpedo",
 			"tags": {
 				"Torpedo": true
@@ -4343,6 +4379,7 @@
 				"weapons": 12,
 				"propulsion": 6
 			},
+			"ranking": 0,
 			"category": "Torpedo",
 			"tags": {
 				"CapitalShipMissile": true,
@@ -4660,6 +4697,7 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Freighter",
 			"mass": 25,
 			"armor": 25,
@@ -4681,6 +4719,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -4721,6 +4760,7 @@
 			},
 			"ranking": 20,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Freighter",
 			"mass": 60,
 			"armor": 50,
@@ -4742,6 +4782,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -4782,6 +4823,7 @@
 			},
 			"ranking": 30,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Freighter",
 			"mass": 125,
 			"armor": 150,
@@ -4803,6 +4845,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -4846,6 +4889,7 @@
 			},
 			"ranking": 40,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Freighter",
 			"mass": 175,
 			"armor": 400,
@@ -4867,6 +4911,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -4914,6 +4959,7 @@
 			"requirements": {},
 			"ranking": 40,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Scout",
 			"mass": 8,
 			"armor": 20,
@@ -4977,6 +5023,7 @@
 			},
 			"ranking": 60,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Fighter",
 			"mass": 8,
 			"armor": 45,
@@ -5048,6 +5095,7 @@
 			},
 			"ranking": 50,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Fighter",
 			"mass": 30,
 			"armor": 200,
@@ -5143,6 +5191,7 @@
 			},
 			"ranking": 80,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Fighter",
 			"mass": 90,
 			"armor": 700,
@@ -5240,6 +5289,7 @@
 			},
 			"ranking": 90,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Fighter",
 			"mass": 120,
 			"armor": 1000,
@@ -5334,6 +5384,7 @@
 			},
 			"ranking": 100,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "CapitalShip",
 			"mass": 222,
 			"armor": 2000,
@@ -5463,6 +5514,7 @@
 			},
 			"ranking": 110,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "CapitalShip",
 			"mass": 250,
 			"armor": 4500,
@@ -5605,6 +5657,7 @@
 			},
 			"ranking": 120,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 65,
 			"armor": 150,
@@ -5687,6 +5740,7 @@
 			},
 			"ranking": 130,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 75,
 			"armor": 450,
@@ -5798,6 +5852,7 @@
 			},
 			"ranking": 140,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 125,
 			"armor": 900,
@@ -5902,6 +5957,7 @@
 			},
 			"ranking": 150,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Colonizer",
 			"mass": 8,
 			"armor": 10,
@@ -5923,6 +5979,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -5953,6 +6010,7 @@
 			"requirements": {},
 			"ranking": 160,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Colonizer",
 			"mass": 20,
 			"armor": 20,
@@ -5974,6 +6032,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6007,6 +6066,7 @@
 			},
 			"ranking": 170,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Bomber",
 			"mass": 28,
 			"armor": 50,
@@ -6027,6 +6087,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6060,6 +6121,7 @@
 			},
 			"ranking": 180,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Bomber",
 			"mass": 69,
 			"armor": 175,
@@ -6080,6 +6142,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6132,6 +6195,7 @@
 			},
 			"ranking": 190,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Bomber",
 			"mass": 70,
 			"armor": 225,
@@ -6152,6 +6216,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6209,6 +6274,7 @@
 			},
 			"ranking": 200,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Bomber",
 			"mass": 110,
 			"armor": 450,
@@ -6229,6 +6295,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6301,6 +6368,7 @@
 			},
 			"ranking": 210,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 10,
 			"armor": 100,
@@ -6321,6 +6389,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6353,6 +6422,7 @@
 			},
 			"ranking": 220,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 80,
 			"armor": 130,
@@ -6373,6 +6443,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6422,6 +6493,7 @@
 			},
 			"ranking": 230,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 110,
 			"armor": 475,
@@ -6442,6 +6514,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6507,6 +6580,7 @@
 			},
 			"ranking": 240,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 110,
 			"armor": 1400,
@@ -6527,6 +6601,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6592,6 +6667,7 @@
 			},
 			"ranking": 250,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 100,
 			"armor": 1500,
@@ -6612,6 +6688,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6679,6 +6756,7 @@
 			},
 			"ranking": 260,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "FuelTransport",
 			"mass": 12,
 			"armor": 5,
@@ -6700,6 +6778,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"repairBonus": 0.05,
 			"slots": [
 				{
@@ -6733,6 +6812,7 @@
 			},
 			"ranking": 270,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "FuelTransport",
 			"mass": 111,
 			"armor": 12,
@@ -6754,6 +6834,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"repairBonus": 0.1,
 			"slots": [
 				{
@@ -6798,6 +6879,7 @@
 			},
 			"ranking": 280,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MineLayer",
 			"mass": 10,
 			"armor": 60,
@@ -6819,6 +6901,7 @@
 				"y": 0
 			},
 			"mineLayingBonus": 1,
+			"initiative": 0,
 			"immuneToOwnDetonation": true,
 			"slots": [
 				{
@@ -6872,6 +6955,7 @@
 			},
 			"ranking": 290,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MineLayer",
 			"mass": 30,
 			"armor": 1200,
@@ -6893,6 +6977,7 @@
 				"y": 0
 			},
 			"mineLayingBonus": 1,
+			"initiative": 0,
 			"immuneToOwnDetonation": true,
 			"slots": [
 				{
@@ -6959,6 +7044,7 @@
 			},
 			"ranking": 300,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "CapitalShip",
 			"mass": 100,
 			"armor": 5000,
@@ -7104,6 +7190,7 @@
 			},
 			"ranking": 310,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 85,
 			"armor": 500,
@@ -7201,6 +7288,7 @@
 			"ranking": 305,
 			"category": "ShipHull",
 			"origin": "MysteryTrader",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 70,
 			"armor": 250,
@@ -7293,8 +7381,11 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "OrbitalFort",
+			"mass": 0,
 			"armor": 100,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0
@@ -7374,8 +7465,11 @@
 			},
 			"ranking": 30,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "Starbase",
+			"mass": 0,
 			"armor": 250,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0
@@ -7477,8 +7571,11 @@
 			"requirements": {},
 			"ranking": 30,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "Starbase",
+			"mass": 0,
 			"armor": 500,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0
@@ -7614,8 +7711,11 @@
 			},
 			"ranking": 40,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "Starbase",
+			"mass": 0,
 			"armor": 1000,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0
@@ -7786,8 +7886,11 @@
 			},
 			"ranking": 50,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "Starbase",
+			"mass": 0,
 			"armor": 1500,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0

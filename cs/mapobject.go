@@ -24,14 +24,14 @@ type GameDBObject struct {
 // Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum for player owned
 // map objects), as well as a Position in space.
 type MapObject struct {
-	GameDBObject
-	Type      MapObjectType `json:"type"`
-	Delete    bool          `json:"-"`
-	Position  Vector        `json:"position"`
-	Num       int           `json:"num"`
-	PlayerNum int           `json:"playerNum"`
-	Name      string        `json:"name"`
-	Tags      Tags          `json:"tags"`
+	GameDBObject `tstype:",extends"`
+	Type         MapObjectType `json:"type"`
+	Delete       bool          `json:"-"`
+	Position     Vector        `json:"position"`
+	Num          int           `json:"num"`
+	PlayerNum    int           `json:"playerNum"`
+	Name         string        `json:"name"`
+	Tags         Tags          `json:"tags"`
 }
 
 type MapObjectType string

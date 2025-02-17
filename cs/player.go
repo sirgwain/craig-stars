@@ -13,23 +13,23 @@ import (
 // A Player contains all intel, messages, tech levels, and research orders for a single empire in the game.
 // It is tied to a single User (or no user, for AI)
 type Player struct {
-	GameDBObject
-	PlayerOrders
-	PlayerIntels
-	PlayerPlans
+	GameDBObject              `tstype:",extends"`
+	PlayerOrders              `tstype:",extends"`
+	PlayerIntels              `tstype:",extends"`
+	PlayerPlans               `tstype:",extends"`
 	UserID                    int64                `json:"userId,omitempty"`
-	Name                      string               `json:"name,omitempty"`
-	Num                       int                  `json:"num,omitempty"`
+	Name                      string               `json:"name"`
+	Num                       int                  `json:"num"`
 	Ready                     bool                 `json:"ready"`
 	AIControlled              bool                 `json:"aiControlled,omitempty"`
 	AIDifficulty              AIDifficulty         `json:"aiDifficulty,omitempty"`
 	Guest                     bool                 `json:"guest,omitempty"`
 	SubmittedTurn             bool                 `json:"submittedTurn"`
-	Color                     string               `json:"color,omitempty"`
+	Color                     string               `json:"color"`
 	DefaultHullSet            int                  `json:"defaultHullSet,omitempty"`
-	Race                      Race                 `json:"race,omitempty"`
-	TechLevels                TechLevel            `json:"techLevels,omitempty"`
-	TechLevelsSpent           TechLevel            `json:"techLevelsSpent,omitempty"`
+	Race                      Race                 `json:"race"`
+	TechLevels                TechLevel            `json:"techLevels"`
+	TechLevelsSpent           TechLevel            `json:"techLevelsSpent"`
 	ResearchSpentLastYear     int                  `json:"researchSpentLastYear,omitempty"`
 	Relations                 []PlayerRelationship `json:"relations,omitempty"`
 	Messages                  []PlayerMessage      `json:"messages,omitempty"`
@@ -40,7 +40,7 @@ type Player struct {
 	Victor                    bool                 `json:"victor"`
 	Archived                  bool                 `json:"archived"`
 	Stats                     *PlayerStats         `json:"stats,omitempty"`
-	Spec                      PlayerSpec           `json:"spec,omitempty"`
+	Spec                      PlayerSpec           `json:"spec"`
 	leftoverResources         int
 	techLevelGained           bool
 	acquirablePartGained      bool
@@ -50,15 +50,15 @@ type Player struct {
 // a player and all mapobjects the player owns
 // this is used by the UI when loading a player's game
 type FullPlayer struct {
-	Player
-	PlayerMapObjects
+	Player           `tstype:",extends"`
+	PlayerMapObjects `tstype:",extends"`
 }
 
 type PlayerStatus struct {
 	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
 	UserID        int64      `json:"userId,omitempty"`
-	Name          string     `json:"name,omitempty"`
-	Num           int        `json:"num,omitempty"`
+	Name          string     `json:"name"`
+	Num           int        `json:"num"`
 	Ready         bool       `json:"ready,omitempty"`
 	AIControlled  bool       `json:"aiControlled,omitempty"`
 	Guest         bool       `json:"guest,omitempty"`
@@ -116,10 +116,10 @@ const (
 )
 
 type PlayerSpec struct {
-	PlayerResearchSpec
-	PlanetaryScanner TechPlanetaryScanner                `json:"planetaryScanner"`
-	Defense          TechDefense                         `json:"defense"`
-	Terraform        map[TerraformHabType]*TechTerraform `json:"terraform"`
+	PlayerResearchSpec `tstype:",extends"`
+	PlanetaryScanner   TechPlanetaryScanner                `json:"planetaryScanner"`
+	Defense            TechDefense                         `json:"defense"`
+	Terraform          map[TerraformHabType]*TechTerraform `json:"terraform"`
 }
 
 type PlayerResearchSpec struct {
@@ -191,7 +191,7 @@ const (
 type TransportPlan struct {
 	Num   int                    `json:"num"`
 	Name  string                 `json:"name"`
-	Tasks WaypointTransportTasks `json:"tasks,omitempty"`
+	Tasks WaypointTransportTasks `json:"tasks"`
 }
 
 type ProductionPlan struct {
@@ -536,7 +536,7 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 }
 
 func computePlayerResearchSpec(player *Player, rules *Rules, planets []*Planet) PlayerResearchSpec {
-	researcher := NewResearcher(rules)
+	researcher := newResearcher(rules)
 	spec := PlayerResearchSpec{}
 
 	for _, planet := range planets {
@@ -547,7 +547,7 @@ func computePlayerResearchSpec(player *Player, rules *Rules, planets []*Planet) 
 		}
 	}
 
-	spec.CurrentResearchCost = researcher.getTotalCost(player.TechLevels, player.Researching, player.Race.ResearchCost.Get(player.Researching), player.TechLevels.Get(player.Researching))
+	spec.CurrentResearchCost = researcher.getTotalCost(player.TechLevels, player.Race.ResearchCost.Get(player.Researching), player.TechLevels.Get(player.Researching))
 	return spec
 }
 
@@ -586,7 +586,7 @@ func (p *Player) CanLearnTech(tech *Tech) bool {
 
 // return the cost, in resources, it will take to reach this tech level
 func (p *Player) GetResearchCost(rules *Rules, techLevel TechLevel) int {
-	researcher := NewResearcher(rules)
+	researcher := newResearcher(rules)
 
 	techLevels := p.TechLevels
 	resources := 0
@@ -601,7 +601,7 @@ func (p *Player) GetResearchCost(rules *Rules, techLevel TechLevel) int {
 			resources -= spent
 			for i := 0; i < requiredLevel-playerLevel; i++ {
 				// find the cost for the next level in this field
-				resources += researcher.getTotalCost(techLevels, field, researchCostLevel, playerLevel+i)
+				resources += researcher.getTotalCost(techLevels, researchCostLevel, playerLevel+i)
 				// assume we gained this for future calcs
 				techLevels.Set(field, playerLevel+i+1)
 			}

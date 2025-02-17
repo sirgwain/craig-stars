@@ -2,18 +2,14 @@
 	import BattleView from '$lib/components/game/battle/BattleView.svelte';
 	import Popup from '$lib/components/game/tooltips/Popup.svelte';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
-	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
-	import type { BattleRecord } from '$lib/types/Battle';
-	import {
-		Player,
-		type PlayerIntel,
-		type PlayerResponse,
-		type PlayerUniverse
-	} from '$lib/types/Player';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { DesignFinder, PlayerFinder, PlayerUniverse } from '$lib/services/Universe';
+	import type { BattleRecord } from '$lib/types/cs';
+	import { type Player, type PlayerIntel } from '$lib/types/cs';
+	import { CommandedPlayer } from '$lib/types/Player';
+	import type { ShipDesign } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 
-	type TestBattlePlayerResponse = PlayerResponse &
+	type TestBattlePlayerResponse = Player &
 		PlayerUniverse & {
 			playerIntels: PlayerIntel[];
 			shipDesignIntels: ShipDesign[];
@@ -33,6 +29,9 @@
 		}
 		getPlayerColor(playerNum: number | undefined): string {
 			return this.player.playerIntels?.find((p) => p.num == playerNum)?.color ?? '#FFFFFF';
+		}
+		getPlayerName(playerNum: number | undefined): string {
+			return this.player.playerIntels?.find((p) => p.num == playerNum)?.name ?? '';
 		}
 	}
 
@@ -65,7 +64,7 @@
 			player: TestBattlePlayerResponse;
 			battle: BattleRecord;
 		};
-		player = new Player(
+		player = new CommandedPlayer(
 			json.player as TestBattlePlayerResponse
 		) as unknown as TestBattlePlayerResponse;
 		battle = json.battle;

@@ -2,8 +2,8 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { Unexplored } from '$lib/types/Constants';
-	import { type Planet } from '$lib/types/Planet';
+	import { ReportAgeUnexplored } from '$lib/types/cs';
+	import { type Planet } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
@@ -36,7 +36,7 @@
 </script>
 
 <ScannerPlanetNormal {planet} />
-{#if planet.reportAge !== Unexplored && totalCargo(planet.cargo) != 0}
+{#if planet.reportAge !== ReportAgeUnexplored && totalCargo(planet.cargo) != 0}
 	<MapObjectScaler mapObject={planet}>
 		<rect
 			class="ironium-bar"

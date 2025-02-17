@@ -1,6 +1,6 @@
 <script lang="ts">
-	import IdleFleets from '$lib/components/icons/IdleFleets.svelte';
 	import FilterFleets from '$lib/components/icons/FilterFleets.svelte';
+	import IdleFleets from '$lib/components/icons/IdleFleets.svelte';
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import SelectedMapObject from '$lib/components/icons/SelectedMapObject.svelte';
 </script>

@@ -1,50 +1,27 @@
-import type { MovingMapObject } from './MapObject';
-import type { TechLevel } from './TechLevel';
-
-export type MysteryTrader = {
-	requestedBoon: number;
-} & MovingMapObject;
-
-export type MysteryTraderRewardType =
-	(typeof MysteryTraderRewardTypes)[keyof typeof MysteryTraderRewardTypes];
-
-export const MysteryTraderRewardTypes = {
-	None: '',
-	Research: 'Research',
-	Engine: 'Engine',
-	Bomb: 'Bomb',
-	Armor: 'Armor',
-	Shield: 'Shield',
-	Electrical: 'Electrical',
-	Mechanical: 'Mechanical',
-	Torpedo: 'Torpedo',
-	MineRobot: 'MineRobot',
-	ShipHull: 'ShipHull',
-	BeamWeapon: 'BeamWeapon',
-	Genesis: 'Genesis',
-	JumpGate: 'JumpGate',
-	Lifeboat: 'Lifeboat'
-} as const;
-
-export type MysteryTraderReward = {
-	type: MysteryTraderRewardType;
-	techLevels: TechLevel;
-	tech?: string;
-	ship?: string;
-	shipCount?: number;
-};
+import {
+	MysteryTraderRewardArmor,
+	MysteryTraderRewardBeamWeapon,
+	MysteryTraderRewardBomb,
+	MysteryTraderRewardElectrical,
+	MysteryTraderRewardEngine,
+	MysteryTraderRewardMechanical,
+	MysteryTraderRewardMineRobot,
+	MysteryTraderRewardShield,
+	MysteryTraderRewardTorpedo,
+	type MysteryTraderRewardType
+} from './cs';
 
 export function isHullComponent(type: MysteryTraderRewardType): boolean {
 	switch (type) {
-		case MysteryTraderRewardTypes.Engine:
-		case MysteryTraderRewardTypes.Bomb:
-		case MysteryTraderRewardTypes.Armor:
-		case MysteryTraderRewardTypes.Shield:
-		case MysteryTraderRewardTypes.Electrical:
-		case MysteryTraderRewardTypes.Mechanical:
-		case MysteryTraderRewardTypes.Torpedo:
-		case MysteryTraderRewardTypes.MineRobot:
-		case MysteryTraderRewardTypes.BeamWeapon:
+		case MysteryTraderRewardEngine:
+		case MysteryTraderRewardBomb:
+		case MysteryTraderRewardArmor:
+		case MysteryTraderRewardShield:
+		case MysteryTraderRewardElectrical:
+		case MysteryTraderRewardMechanical:
+		case MysteryTraderRewardTorpedo:
+		case MysteryTraderRewardMineRobot:
+		case MysteryTraderRewardBeamWeapon:
 			return true;
 	}
 	return false;

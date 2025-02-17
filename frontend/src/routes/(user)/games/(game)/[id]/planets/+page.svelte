@@ -9,9 +9,10 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
-	import { Unexplored } from '$lib/types/Constants';
+	import { ReportAgeUnexplored } from '$lib/types/cs';
 	import { owned, ownedBy } from '$lib/types/MapObject';
-	import { planetsSortBy, type Planet } from '$lib/types/Planet';
+	import { planetsSortBy } from '$lib/types/Planet';
+	import { type Planet } from '$lib/types/cs';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
@@ -69,6 +70,8 @@
 		resources?: never;
 		driverDest?: never;
 		routingDestination?: never;
+		reportAge?: never;
+		starbase?: never;
 	};
 	let columns: TableColumn<TablePlanet>[] = $derived([
 		{
@@ -276,10 +279,10 @@
 					<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
 						{owned(row) ? ($universe.getPlayerPluralName(row.playerNum) ?? '') : ''}
 					</span>
-				{:else if column.key == 'reportAge'}
+				{:else if column.key == 'reportAge' && 'reportAge' in row}
 					{#if row.reportAge == 0 || row.reportAge === undefined}
 						current
-					{:else if row.reportAge == Unexplored}
+					{:else if row.reportAge == ReportAgeUnexplored}
 						unexplored
 					{:else}
 						{row.reportAge} years old

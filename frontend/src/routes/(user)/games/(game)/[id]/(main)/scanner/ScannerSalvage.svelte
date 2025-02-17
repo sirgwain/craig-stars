@@ -3,7 +3,7 @@
   Salvage in the scanner
  -->
 <script lang="ts">
-	import type { Salvage } from '$lib/types/Salvage';
+	import type { Salvage } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	type Props = {

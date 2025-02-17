@@ -14,7 +14,7 @@
 </script>
 
 <script lang="ts">
-	import type { TechHull } from '$lib/types/Tech';
+	import type { TechHull } from '$lib/types/cs';
 	import Hull from '../design/Hull.svelte';
 
 	let { hull }: TechHullTooltipProps = $props();

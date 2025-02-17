@@ -4,7 +4,7 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { MineralPacket } from '$lib/types/MineralPacket';
+	import type { MineralPacket } from '$lib/types/cs';
 	import ScannerMineralPacket from './ScannerMineralPacket.svelte';
 
 	const { player, universe } = getGameContext();

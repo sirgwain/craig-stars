@@ -7,7 +7,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { getHullIcon } from '$lib/techicon';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/cs';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

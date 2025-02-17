@@ -36,8 +36,8 @@
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
-	import type { Planet } from '$lib/types/Planet';
-	import { Unknown } from '$lib/types/Constants';
+	import type { Planet } from '$lib/types/cs';
+	import { ReportAgeUnexplored } from '$lib/types/cs';
 
 	const {
 		universe,
@@ -168,7 +168,11 @@
 
 	// anytime the selectedMapObject is updated, show the summary
 	const unsuscribeSelectedMapObject = selectedMapObject.subscribe((mo) => {
-		if (mo && mo?.type === MapObjectType.Planet && (mo as Planet).reportAge === Unknown) {
+		if (
+			mo &&
+			mo?.type === MapObjectType.Planet &&
+			(mo as Planet).reportAge === ReportAgeUnexplored
+		) {
 			// don't update to the summary view automatically for unknown planets
 			return;
 		}

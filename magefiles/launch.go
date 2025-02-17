@@ -83,6 +83,11 @@ func Generate() error {
 		return err
 	}
 
+	fmt.Println("running tygo generate")
+	if err := sh.RunV("tygo", "generate"); err != nil {
+		return err
+	}
+
 	fmt.Println("generating techs.json")
 	techs2json, err := sh.Output("go", "run", "main.go", "generate", "techsjson")
 	if err != nil {

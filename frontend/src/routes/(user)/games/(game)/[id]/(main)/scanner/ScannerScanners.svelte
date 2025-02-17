@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 
-	import { NoScanner } from '$lib/types/Constants';
+	import { NoScanner } from '$lib/types/cs';
 	import { positionKey } from '$lib/types/MapObject';
-	import type { Vector } from '$lib/types/Vector';
+	import type { Vector } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 

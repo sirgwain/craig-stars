@@ -1,6 +1,14 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { VictoryCondition } from '$lib/types/Game';
+	import {
+		VictoryConditionOwnPlanets,
+		VictoryConditionAttainTechLevels,
+		VictoryConditionExceedsScore,
+		VictoryConditionExceedsSecondPlaceScore,
+		VictoryConditionProductionCapacity,
+		VictoryConditionOwnCapitalShips,
+		VictoryConditionHighestScoreAfterYears
+	} from '$lib/types/cs';
 	import { CheckBadge } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -21,7 +29,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		{#if ($game.victoryConditions.conditions & VictoryCondition.OwnPlanets) > 0}
+		{#if ($game.victoryConditions.conditions & VictoryConditionOwnPlanets) > 0}
 			<tr>
 				<td
 					>Own {Math.ceil(
@@ -30,13 +38,13 @@
 				>
 				{#each players as player}
 					<td>
-						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryCondition.OwnPlanets) > 0}
+						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionOwnPlanets) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
 						{/if}
 					</td>{/each}
 			</tr>
 		{/if}
-		{#if ($game.victoryConditions.conditions & VictoryCondition.AttainTechLevels) > 0}
+		{#if ($game.victoryConditions.conditions & VictoryConditionAttainTechLevels) > 0}
 			<tr>
 				<td>
 					Attain Tech {$game.victoryConditions.attainTechLevel} in {$game.victoryConditions
@@ -44,72 +52,72 @@
 				</td>
 				{#each players as player}
 					<td>
-						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryCondition.AttainTechLevels) > 0}
+						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionAttainTechLevels) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
 						{/if}
 					</td>{/each}
 			</tr>
 		{/if}
-		{#if ($game.victoryConditions.conditions & VictoryCondition.ExceedsScore) > 0}
+		{#if ($game.victoryConditions.conditions & VictoryConditionExceedsScore) > 0}
 			<tr>
 				<td>
 					Exceeds a score of {$game.victoryConditions.exceedsScore}.
 				</td>
 				{#each players as player}
 					<td>
-						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryCondition.ExceedsScore) > 0}
+						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionExceedsScore) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
 						{/if}
 					</td>{/each}
 			</tr>
 		{/if}
-		{#if ($game.victoryConditions.conditions & VictoryCondition.ExceedsSecondPlaceScore) > 0}
+		{#if ($game.victoryConditions.conditions & VictoryConditionExceedsSecondPlaceScore) > 0}
 			<tr>
 				<td>
 					Exceeds a second place score by {$game.victoryConditions.exceedsSecondPlaceScore}%
 				</td>
 				{#each players as player}
 					<td>
-						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryCondition.ExceedsSecondPlaceScore) > 0}
+						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionExceedsSecondPlaceScore) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
 						{/if}
 					</td>{/each}
 			</tr>
 		{/if}
-		{#if ($game.victoryConditions.conditions & VictoryCondition.ProductionCapacity) > 0}
+		{#if ($game.victoryConditions.conditions & VictoryConditionProductionCapacity) > 0}
 			<tr>
 				<td>
 					Has a production capacity of {$game.victoryConditions.productionCapacity} thousand.
 				</td>
 				{#each players as player}
 					<td>
-						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryCondition.ProductionCapacity) > 0}
+						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionProductionCapacity) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
 						{/if}
 					</td>{/each}
 			</tr>
 		{/if}
-		{#if ($game.victoryConditions.conditions & VictoryCondition.OwnCapitalShips) > 0}
+		{#if ($game.victoryConditions.conditions & VictoryConditionOwnCapitalShips) > 0}
 			<tr>
 				<td>
 					Owns {$game.victoryConditions.ownCapitalShips} capital ships.
 				</td>
 				{#each players as player}
 					<td>
-						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryCondition.OwnCapitalShips) > 0}
+						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionOwnCapitalShips) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
 						{/if}
 					</td>{/each}
 			</tr>
 		{/if}
-		{#if ($game.victoryConditions.conditions & VictoryCondition.HighestScoreAfterYears) > 0}
+		{#if ($game.victoryConditions.conditions & VictoryConditionHighestScoreAfterYears) > 0}
 			<tr>
 				<td>
 					Has the highest score after {$game.victoryConditions.highestScoreAfterYears} years.
 				</td>
 				{#each players as player}
 					<td>
-						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryCondition.HighestScoreAfterYears) > 0}
+						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionHighestScoreAfterYears) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
 						{/if}
 					</td>{/each}

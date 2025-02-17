@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { getHabChance, type Race } from '$lib/types/Race';
+	import { getHabChance } from '$lib/types/Race';
+	import { type Race } from '$lib/types/cs';
 
 	type Props = {
 		race: Race;

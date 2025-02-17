@@ -1,14 +1,12 @@
 import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
-import type {
-	CargoTransferTarget,
-	CommandedFleet,
-	Fleet,
-	ShipToken,
-	Waypoint,
-	WaypointTransportTasks
-} from '$lib/types/Fleet';
-import type { CommandedPlanet, Planet } from '$lib/types/Planet';
-import type { Salvage } from '$lib/types/Salvage';
+import type { CargoTransferTarget, CommandedFleet } from '$lib/types/Fleet';
+import type { WaypointTransportTasks } from '$lib/types/cs';
+import type { ShipToken } from '$lib/types/cs';
+import type { Fleet } from '$lib/types/cs';
+import type { Waypoint } from '$lib/types/cs';
+import type { CommandedPlanet } from '$lib/types/Planet';
+import type { Planet } from '$lib/types/cs';
+import type { Salvage } from '$lib/types/cs';
 
 export type OnOk<T> = (e: T) => void;
 export type OnCancel = () => void;

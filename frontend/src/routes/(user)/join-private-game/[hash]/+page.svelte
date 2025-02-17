@@ -1,19 +1,17 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { GameService } from '$lib/services/GameService';
-	import type { Game } from '$lib/types/Game';
-
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
+	import { GameService } from '$lib/services/GameService';
 	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
 	import { humanoid } from '$lib/types/Race';
-	import { UserRole } from '$lib/types/User';
+	import { RoleGuest, type GameWithPlayers } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 	import PlayerChooser from '../../../../lib/components/game/newgame/PlayerChooser.svelte';
 
-	let game: Game | undefined = $state();
+	let game: GameWithPlayers | undefined = $state();
 	let race = $state(humanoid());
 	let name = $state($me.username);
 
@@ -46,7 +44,7 @@
 	let valid = $state(false);
 
 	$effect(() => {
-		valid = !!(game && game.openPlayerSlots > 0);
+		valid = !!(game && (game.openPlayerSlots ?? 0) > 0);
 	});
 </script>
 
@@ -63,7 +61,7 @@
 			onSubmit();
 		}}
 	>
-		{#if $me.role === UserRole.guest}
+		{#if $me.role === RoleGuest}
 			<label class="label" for="name">Name</label>
 			<input name="name" bind:value={name} class="input input-bordered" />
 		{/if}
@@ -71,7 +69,7 @@
 			<PlayerChooser
 				raceUpdated={(updated, raceValid) => {
 					race = updated;
-					valid = raceValid && !!(game && game.openPlayerSlots > 0);
+					valid = raceValid && !!(game && (game.openPlayerSlots ?? 0) > 0);
 				}}
 			/>
 		</fieldset>

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { Unexplored } from '$lib/types/Constants';
+	import { ReportAgeUnexplored } from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type Fleet } from '$lib/types/Fleet';
+	import { type Fleet } from '$lib/types/cs';
 	import { MapObjectType, owned } from '$lib/types/MapObject';
-	import { type Planet } from '$lib/types/Planet';
+	import { type Planet } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
@@ -49,7 +49,7 @@
 			color = '#00FF00';
 		} else if (planet.playerNum) {
 			color = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
-		} else if (planet.reportAge !== Unexplored && !planet.playerNum) {
+		} else if (planet.reportAge !== ReportAgeUnexplored && !planet.playerNum) {
 			color = '#FFF';
 		}
 

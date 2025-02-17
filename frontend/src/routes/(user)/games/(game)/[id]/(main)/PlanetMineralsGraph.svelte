@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import type { Mineral } from '$lib/types/Mineral';
-	import type { Planet } from '$lib/types/Planet';
+	import type { Mineral } from '$lib/types/cs';
+	import type { Planet } from '$lib/types/cs';
 	import MineralConcentrationPoint from '$lib/components/game/MineralConcentrationPoint.svelte';
 	import MineralTooltip, {
 		type MineralTooltipProps

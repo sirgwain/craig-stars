@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None, Unexplored } from '$lib/types/Constants';
-	import { type Planet } from '$lib/types/Planet';
+	import { ReportAgeUnexplored } from '$lib/types/cs';
+	import { None } from '$lib/types/cs';
+	import { type Planet } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
@@ -28,7 +29,7 @@
 		let radius = minRadius;
 		let flagColor = color;
 
-		if (planet.reportAge !== Unexplored) {
+		if (planet.reportAge !== ReportAgeUnexplored) {
 			strokeWidth = 1;
 			let habitability = planet.spec?.habitability ?? 0;
 			let habitabilityTerraformed = planet.spec?.terraformedHabitability ?? 0;
@@ -73,7 +74,7 @@
 	});
 </script>
 
-{#if planet.reportAge !== Unexplored}
+{#if planet.reportAge !== ReportAgeUnexplored}
 	<MapObjectScaler mapObject={planet}>
 		<circle cx={0} cy={0} {...planetProps.circleProps} />
 		{#if planet.playerNum != None}

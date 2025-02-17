@@ -1,18 +1,23 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { totalCargo } from '$lib/types/Cargo';
-	import { MineralPacketDecayToNothing } from '$lib/types/Constants';
-	import { Unknown } from '$lib/types/Constants';
-	import { MessageType, type Message } from '$lib/types/Message';
-	import { type MineralPacket } from '$lib/types/MineralPacket';
-	import type { PlayerIntel } from '$lib/types/Player';
+	import type { PlayerIntel } from '$lib/types/cs';
+	import {
+		MineralPacketDecayToNothing,
+		PlayerMessageMineralPacketDiscovered,
+		PlayerMessageMineralPacketTargettingPlayerDiscovered,
+		PlayerMessagePlanetBuiltMineralPacket,
+		ReportAgeUnexplored,
+		type MineralPacket,
+		type PlayerMessage
+	} from '$lib/types/cs';
 	import { distance } from '$lib/types/Vector';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		message: Message;
+		message: PlayerMessage;
 		mineralPacket: MineralPacket;
 		owner: PlayerIntel;
 	};
@@ -26,21 +31,21 @@
 					distance(mineralPacket.position, target.position) /
 						(mineralPacket.warpSpeed * mineralPacket.warpSpeed)
 				)
-			: Unknown
+			: ReportAgeUnexplored
 	);
 </script>
 
 {#if message.text}
 	{message.text}
-{:else if message.type === MessageType.PlanetBuiltMineralPacket}
+{:else if message.type === PlayerMessagePlanetBuiltMineralPacket}
 	Your starbase at {message.spec.targetName} has built a new {message.spec.amount}kT mineral packet
 	targeting {target?.name ?? 'unknown'}.
-{:else if message.type === MessageType.MineralPacketDiscovered}
+{:else if message.type === PlayerMessageMineralPacketDiscovered}
 	A {owner.racePluralName} mineral packet containing {totalCargo(mineralPacket.cargo)}kT of minerals
 	has been detected. It is travelling at warp {mineralPacket.warpSpeed} towards {$universe.getPlanet(
 		mineralPacket.targetPlanetNum
 	)?.name ?? 'unknown'}.
-{:else if message.type === MessageType.MineralPacketTargettingPlayerDiscovered}
+{:else if message.type === PlayerMessageMineralPacketTargettingPlayerDiscovered}
 	{@const damage = message.spec.mineralPacketDamage}
 	A {owner.racePluralName} mineral packet containing {totalCargo(mineralPacket.cargo)}kT of minerals
 	has been detected. It is travelling at warp {mineralPacket.warpSpeed} towards {$universe.getPlanet(

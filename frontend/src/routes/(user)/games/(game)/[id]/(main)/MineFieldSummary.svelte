@@ -5,7 +5,12 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
 	import { ownedBy } from '$lib/types/MapObject';
-	import { MineFieldTypes, type MineField } from '$lib/types/MineField';
+	import {
+		MineFieldTypeHeavy,
+		MineFieldTypeSpeedBump,
+		MineFieldTypeStandard,
+		type MineField
+	} from '$lib/types/cs';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import type { ChangeEventHandler } from 'svelte/elements';
@@ -38,9 +43,9 @@
 		<div class="avatar">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">
 				<div
-					class:standard-mine-field={mineField.mineFieldType === MineFieldTypes.Standard}
-					class:heavy-mine-field={mineField.mineFieldType === MineFieldTypes.Heavy}
-					class:speed-bump-mine-field={mineField.mineFieldType === MineFieldTypes.SpeedBump}
+					class:standard-mine-field={mineField.mineFieldType === MineFieldTypeStandard}
+					class:heavy-mine-field={mineField.mineFieldType === MineFieldTypeHeavy}
+					class:speed-bump-mine-field={mineField.mineFieldType === MineFieldTypeSpeedBump}
 					class="mapobject-avatar bg-black"
 				></div>
 			</div>

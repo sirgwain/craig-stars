@@ -3,16 +3,20 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MessageType, type Message } from '$lib/types/Message';
+	import {
+		PlayerMessagePlayerGainTechLevel,
+		PlayerMessagePlayerTechGained,
+		type PlayerMessage
+	} from '$lib/types/cs';
 	import MessageDetail from './MessageDetail.svelte';
 
 	const { game, player, universe, settings, gotoTarget } = getGameContext();
 
-	function selectMessage(message: Message) {
+	function selectMessage(message: PlayerMessage) {
 		gotoTarget(message, $game.id, $player.num, $universe);
 	}
 
-	function getTarget(message: Message) {
+	function getTarget(message: PlayerMessage) {
 		if (message.battleNum) {
 			const battle = $universe.getBattle(message.battleNum);
 
@@ -22,10 +26,10 @@
 				return 'Battle';
 			}
 		}
-		if (message.type === MessageType.PlayerGainTechLevel) {
+		if (message.type === PlayerMessagePlayerGainTechLevel) {
 			return 'Research';
 		}
-		if (message.type === MessageType.PlayerTechGained) {
+		if (message.type === PlayerMessagePlayerTechGained && message.spec) {
 			return message.spec.techGained;
 		}
 
@@ -39,11 +43,11 @@
 	// filterable messages
 	let search = $state('');
 	let showAllMessages = $state(false);
-	let filteredMessages: Message[] = $derived(
+	let filteredMessages: PlayerMessage[] = $derived(
 		$player.messages.filter((m) => showAllMessages || $settings.isMessageVisible(m.type))
 	);
 
-	type TableMessage = Message & { target?: never };
+	type TableMessage = PlayerMessage & { target?: never };
 	const columns: TableColumn<TableMessage>[] = [
 		{
 			key: 'target',

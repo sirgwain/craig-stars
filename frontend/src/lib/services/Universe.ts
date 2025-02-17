@@ -1,30 +1,48 @@
-import {
-	battlesSortBy,
-	getBattleRecordDetails,
-	type BattleRecord,
-	type BattleRecordDetails
-} from '$lib/types/Battle';
-import type { Cost } from '$lib/types/Cost';
-import { fleetsSortBy, type Fleet, type Target, type Waypoint } from '$lib/types/Fleet';
-import { MapObjectType, type MapObject } from '$lib/types/MapObject';
-import type { MineField } from '$lib/types/MineField';
-import type { MineralPacket } from '$lib/types/MineralPacket';
-import type { MysteryTrader } from '$lib/types/MysteryTrader';
-import { planetsSortBy, type Planet } from '$lib/types/Planet';
+import { battlesSortBy, getBattleRecordDetails, type BattleRecordDetails } from '$lib/types/Battle';
 import type {
-	Player,
+	Cost,
+	MineField,
+	MineralPacket,
+	MysteryTraderIntel,
 	PlayerIntel,
 	PlayerIntels,
 	PlayerScore,
-	PlayerUniverse
-} from '$lib/types/Player';
-import type { ProductionQueueItem } from '$lib/types/Production';
-import type { Salvage } from '$lib/types/Salvage';
-import type { ShipDesign } from '$lib/types/ShipDesign';
-import type { Vector } from '$lib/types/Vector';
-import type { Wormhole } from '$lib/types/Wormhole';
+	ProductionQueueItem,
+	Salvage,
+	SalvageIntel,
+	ShipDesign,
+	Vector,
+	WormholeIntel
+} from '$lib/types/cs';
+import {
+	type BattleRecord,
+	type Fleet,
+	type MapObject,
+	type Planet,
+	type Target,
+	type Waypoint
+} from '$lib/types/cs';
+import { fleetsSortBy } from '$lib/types/Fleet';
+import { MapObjectType } from '$lib/types/MapObject';
+import { planetsSortBy } from '$lib/types/Planet';
+import type { CommandedPlayer } from '$lib/types/Player';
 import type { CS } from '$lib/wasm';
 import { groupBy, startCase } from 'lodash-es';
+
+export type PlayerUniverse = {
+	designs: ShipDesign[];
+	planets: Planet[];
+	fleets: Fleet[];
+	starbases: Fleet[];
+	mineFields: MineField[];
+	mineralPackets: MineralPacket[];
+	salvages: SalvageIntel[];
+	wormholes: WormholeIntel[];
+	mysteryTraders: MysteryTraderIntel[];
+	players: PlayerIntel[];
+	scores: PlayerScore[][];
+	battles: BattleRecord[];
+};
 
 export interface DesignFinder {
 	getDesign(playerNum: number, num: number): ShipDesign | undefined;
@@ -72,12 +90,12 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	playerNum = 0;
 	planets: Planet[] = [];
 	fleets: Fleet[] = [];
-	salvages: Salvage[] = [];
+	salvages: SalvageIntel[] = [];
 	mineFields: MineField[] = [];
 	mineralPackets: MineralPacket[] = [];
 	starbases: Fleet[] = [];
-	wormholes: Wormhole[] = [];
-	mysteryTraders: MysteryTrader[] = [];
+	wormholes: WormholeIntel[] = [];
+	mysteryTraders: MysteryTraderIntel[] = [];
 	designs: ShipDesign[] = [];
 	players: PlayerIntel[] = [];
 	scores: PlayerScore[][] = [];
@@ -236,7 +254,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return fleets;
 	}
 
-	getBattles(sortKey: string, descending: boolean, player: Player): BattleRecordDetails[] {
+	getBattles(sortKey: string, descending: boolean, player: CommandedPlayer): BattleRecordDetails[] {
 		const battles = this.battles.map((b) => getBattleRecordDetails(b, player, this));
 		battles.sort(battlesSortBy(sortKey));
 		if (descending) {

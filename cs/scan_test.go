@@ -48,7 +48,7 @@ func Test_getScanners(t *testing.T) {
 			for _, planet := range tt.args.planets {
 				planet.Spec = computePlanetSpec(&rules, player, planet)
 			}
-			scan := playerScan{&Universe{
+			scan := playerScanner{&Universe{
 				Planets:        tt.args.planets,
 				Fleets:         tt.args.fleets,
 				MineralPackets: tt.args.mineralPackets,
@@ -98,7 +98,7 @@ func Test_getStargateScanners(t *testing.T) {
 
 			planet.Spec = computePlanetSpec(&rules, player, planet)
 
-			scan := playerScan{&Universe{
+			scan := playerScanner{&Universe{
 				Planets: []*Planet{planet},
 			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(testLogger, player)}
 			if got := scan.getStarGateScanners(); !reflect.DeepEqual(got, tt.want) {
@@ -129,7 +129,7 @@ func Test_fleetInScannerRange(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scan := playerScan{player: tt.args.player}
+			scan := playerScanner{player: tt.args.player}
 			if got := scan.fleetInScannerRange(tt.args.fleet, tt.args.scanner); got != tt.want {
 				t.Errorf("fleetInScannerRange() = %v, want %v", got, tt.want)
 			}
@@ -244,7 +244,7 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 	planet2.Starbase = starbase1
 	planet2.Spec = computePlanetSpec(&rules, player2, planet2)
 
-	scan := playerScan{game.Universe, &rules, player1, game.Players, make(map[int]bool), newDiscoverer(testLogger, player1)}
+	scan := playerScanner{game.Universe, &rules, player1, game.Players, make(map[int]bool), newDiscoverer(testLogger, player1)}
 
 	// first test a faraway planet
 	planet2.Position = Vector{500, 500}
@@ -322,7 +322,7 @@ func Test_scanWormholes(t *testing.T) {
 
 			// make a new scanner
 			discoverer := newDiscoverer(testLogger, player)
-			scan := playerScan{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
+			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
 			scan.scanWormholes(tt.args.scanners)
 
 			// check the waypoints returned vs what we want
@@ -390,7 +390,7 @@ func Test_playerScan_fleetInScannerRange(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scan := playerScan{}
+			scan := playerScanner{}
 			player := testPlayer()
 			fleet := newFleet(player, 1, "fleet", []Waypoint{NewPositionWaypoint(Vector{}, 0)})
 			fleet.Spec.CloakPercent = tt.args.fleetCloak
@@ -467,7 +467,7 @@ func Test_scanMineFields(t *testing.T) {
 
 			// make a new scanner
 			discoverer := newDiscoverer(testLogger, player)
-			scan := playerScan{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
+			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
 			scan.scanMineFields(tt.args.scanners)
 
 			// check the waypoints returned vs what we want

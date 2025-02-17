@@ -1,6 +1,14 @@
 <script lang="ts">
-	import { PRT, type Race } from '$lib/types/Race';
-	import { TechField } from '$lib/types/TechLevel';
+	import {
+		Biotechnology,
+		Construction,
+		Electronics,
+		Energy,
+		JoaT,
+		Propulsion,
+		Weapons,
+		type Race
+	} from '$lib/types/cs';
 	import ResearchCostCard from './ResearchCostCard.svelte';
 
 	type Props = {
@@ -11,18 +19,18 @@
 </script>
 
 <div class="flex flex-row flex-wrap justify-center gap-2">
-	<ResearchCostCard value={race.researchCost.energy} field={TechField.Energy} />
-	<ResearchCostCard value={race.researchCost.weapons} field={TechField.Weapons} />
-	<ResearchCostCard value={race.researchCost.propulsion} field={TechField.Propulsion} />
-	<ResearchCostCard value={race.researchCost.construction} field={TechField.Construction} />
-	<ResearchCostCard value={race.researchCost.electronics} field={TechField.Electronics} />
-	<ResearchCostCard value={race.researchCost.biotechnology} field={TechField.Biotechnology} />
+	<ResearchCostCard value={race.researchCost.energy} field={Energy} />
+	<ResearchCostCard value={race.researchCost.weapons} field={Weapons} />
+	<ResearchCostCard value={race.researchCost.propulsion} field={Propulsion} />
+	<ResearchCostCard value={race.researchCost.construction} field={Construction} />
+	<ResearchCostCard value={race.researchCost.electronics} field={Electronics} />
+	<ResearchCostCard value={race.researchCost.biotechnology} field={Biotechnology} />
 </div>
 
 {#if race.techsStartHigh}
 	<div class="mt-2">
 		All 'Costs 75% extra' research fields start at <span class="text-primary font-semibold"
-			>Tech {race.prt == PRT.JoaT ? '4' : '3'}</span
+			>Tech {race.prt == JoaT ? '4' : '3'}</span
 		>
 	</div>
 {/if}

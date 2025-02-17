@@ -2,11 +2,34 @@
 	import NewGame from '$lib/components/game/newgame/NewGame.svelte';
 	import { getColor } from '$lib/components/game/newgame/playerColors';
 	import { me } from '$lib/services/Stores';
-	import { NewGamePlayerType } from '$lib/types/Game';
-	const players = [
-		{ type: NewGamePlayerType.Host, color: getColor(0) },
-		{ type: NewGamePlayerType.Open, color: getColor(1) },
-		{ type: NewGamePlayerType.AI, color: getColor(2) }
+	import {
+		AIDifficultyNone,
+		AIDifficultyNormal,
+		NewGamePlayerTypeAI,
+		NewGamePlayerTypeHost,
+		NewGamePlayerTypeOpen,
+		type NewGamePlayer
+	} from '$lib/types/cs';
+
+	const players: NewGamePlayer[] = [
+		{
+			type: NewGamePlayerTypeHost,
+			color: getColor(0),
+			aiDifficulty: AIDifficultyNone,
+			hullSetNum: 0
+		},
+		{
+			type: NewGamePlayerTypeOpen,
+			color: getColor(1),
+			aiDifficulty: AIDifficultyNone,
+			hullSetNum: 0
+		},
+		{
+			type: NewGamePlayerTypeAI,
+			color: getColor(2),
+			aiDifficulty: AIDifficultyNormal,
+			hullSetNum: 0
+		}
 	];
 
 	const name = $me.username ? `${$me.username}'s game` : undefined;

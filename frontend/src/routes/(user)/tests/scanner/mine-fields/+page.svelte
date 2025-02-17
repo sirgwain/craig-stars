@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
-	import { MineFieldTypes, type MineField } from '$lib/types/MineField';
+	import { getGameContext } from '$lib/services/GameContext';
+	import { MapObjectType } from '$lib/types/MapObject';
+	import { MineFieldTypeStandard, type MapObject, type MineField } from '$lib/types/cs';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerMineField from '../../../games/(game)/[id]/(main)/scanner/ScannerMineField.svelte';
 	import ScannerMineFieldPattern from '../../../games/(game)/[id]/(main)/scanner/ScannerMineFieldPattern.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
 
 	const { selectMapObject } = getGameContext();
 
@@ -18,7 +18,7 @@
 			name: `Humanoid MineField #1`,
 			num: 1,
 			playerNum: 1,
-			mineFieldType: MineFieldTypes.Standard,
+			mineFieldType: MineFieldTypeStandard,
 			numMines: 100,
 			spec: {
 				decayRate: 100,
@@ -34,7 +34,7 @@
 			name: `Humanoid MineField #2`,
 			num: 2,
 			playerNum: 1,
-			mineFieldType: MineFieldTypes.Standard,
+			mineFieldType: MineFieldTypeStandard,
 			numMines: 200,
 			spec: {
 				decayRate: 100,

@@ -254,6 +254,7 @@ func getTypeInfo(fieldType types.Type, pkg *packages.Package) *generator.FieldTy
 	var keyType *generator.FieldType
 	var valueType *generator.FieldType
 	var isPointer bool
+	var genericTypes []generator.GenericType
 	var arrayLength int64
 
 	underlyingName := fieldType.Underlying().String()
@@ -275,6 +276,40 @@ func getTypeInfo(fieldType types.Type, pkg *packages.Package) *generator.FieldTy
 		typeName = valueType.TypeName
 		generatorType = valueType.Type
 	case *types.Named:
+		typeArgs := t.TypeArgs()
+		if typeArgs != nil && typeArgs.Len() > 0 {
+			genericTypes = append(genericTypes,
+				generator.GenericType{
+					Types: []*generator.FieldType{getTypeInfo(typeArgs.At(0), pkg)},
+				},
+			)
+		}
+		typeParams := t.TypeParams()
+		if typeArgs == nil && typeParams != nil {
+			// each type param looks like this: [T PlayerMessageTargetType | MapObjectType]
+			for typeParamIndex := range typeParams.Len() {
+				var genericType generator.GenericType
+				typeParam := typeParams.At(typeParamIndex)
+				genericType.Name = typeParam.String() // T
+
+				// Extract constraint types
+				constraint := typeParam.Constraint()
+				if iface, ok := constraint.(*types.Interface); ok {
+					// Iterate over all embedded types
+					for i := 0; i < iface.NumEmbeddeds(); i++ {
+
+						switch union := iface.EmbeddedType(i).Underlying().(type) {
+						case *types.Union:
+							for j := 0; j < union.Len(); j++ {
+								embeddedType := getTypeInfo(union.Term(j).Type(), pkg)
+								genericType.Types = append(genericType.Types, embeddedType)
+							}
+						}
+					}
+				}
+				genericTypes = append(genericTypes, genericType)
+			}
+		}
 		if isPackageType {
 			if isStruct {
 				generatorType = generator.GeneratorTypeObject
@@ -316,6 +351,7 @@ func getTypeInfo(fieldType types.Type, pkg *packages.Package) *generator.FieldTy
 		Type:           generatorType,
 		Package:        isPackageType,
 		Pointer:        isPointer,
+		GenericTypes:   genericTypes,
 		UnderlyingType: underlyingType,
 		KeyType:        keyType,
 		ValueType:      valueType,

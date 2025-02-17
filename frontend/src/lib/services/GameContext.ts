@@ -1,35 +1,34 @@
 import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
-import { None } from '$lib/types/Constants';
+import type { Game, GameSettings, MineField, PlayerMessageTargetType } from '$lib/types/cs';
 import {
-	CommandedFleet,
-	type Fleet,
-	type ShipToken,
-	type Waypoint,
-	type WaypointDest
-} from '$lib/types/Fleet';
-import type { Game, GameSettings } from '$lib/types/Game';
-import { MapObjectType, equal, key, ownedBy, type MapObject } from '$lib/types/MapObject';
-import {
-	MessageTargetType,
-	MessageType,
-	getMapObjectTypeForMessageType,
-	type Message
-} from '$lib/types/Message';
-import type { MineField } from '$lib/types/MineField';
-import { CommandedPlanet, type Planet } from '$lib/types/Planet';
-import {
-	Player,
+	None,
+	PlayerMessageBattleReports,
+	PlayerMessageMysteryTraderMetWithReward,
+	PlayerMessagePlayerGainTechLevel,
+	PlayerMessagePlayerTechGained,
+	TargetNone,
 	type BattlePlan,
+	type Fleet,
+	type MapObject,
+	type Planet,
+	type Player,
+	type PlayerMessage,
 	type PlayerRelationship,
-	type PlayerResponse,
 	type ProductionPlan,
-	type TransportPlan
-} from '$lib/types/Player';
+	type ShipToken,
+	type TransportPlan,
+	type Waypoint
+} from '$lib/types/cs';
+import { CommandedFleet, type WaypointDest } from '$lib/types/Fleet';
+import { MapObjectType, equal, key, ownedBy } from '$lib/types/MapObject';
+import { getMapObjectTypeForMessageType } from '$lib/types/Message';
+import { CommandedPlanet } from '$lib/types/Planet';
+import { CommandedPlayer } from '$lib/types/Player';
 import { PlayerSettings } from '$lib/types/PlayerSettings';
-import type { Salvage } from '$lib/types/Salvage';
-import type { ShipDesign } from '$lib/types/ShipDesign';
+import type { Salvage } from '$lib/types/cs';
+import type { ShipDesign } from '$lib/types/cs';
 import type { CS } from '$lib/wasm';
 import { findIndex, kebabCase } from 'lodash-es';
 import { getContext } from 'svelte';
@@ -62,7 +61,7 @@ export type GameContext = {
 	fullyLoaded: Readable<boolean>;
 	cs: CS;
 	game: Readable<FullGame>;
-	player: Readable<Player>;
+	player: Readable<CommandedPlayer>;
 	universe: Readable<Universe>;
 	settings: Writable<PlayerSettings>;
 	messageNum: Writable<number>;
@@ -90,7 +89,12 @@ export type GameContext = {
 	zoomToMapObject: (mo: MapObject) => void;
 
 	// message
-	gotoTarget: (message: Message, gameId: number, playerNum: number, universe: Universe) => void;
+	gotoTarget: (
+		message: PlayerMessage,
+		gameId: number,
+		playerNum: number,
+		universe: Universe
+	) => void;
 	gotoBattle: (battleNum: number) => void;
 
 	// game updates
@@ -237,7 +241,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	function getNextVisibleMessageNum(
 		num: number,
 		showFilteredMessages: boolean,
-		messages: Message[],
+		messages: PlayerMessage[],
 		settings: PlayerSettings
 	): number {
 		for (let i = num + 1; i < messages.length; i++) {
@@ -277,8 +281,13 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	);
 
 	// goto a message target
-	function gotoTarget(message: Message, gameId: number, playerNum: number, universe: Universe) {
-		const targetType = message.targetType ?? MessageTargetType.None;
+	function gotoTarget(
+		message: PlayerMessage,
+		gameId: number,
+		playerNum: number,
+		universe: Universe
+	) {
+		const targetType: PlayerMessageTargetType = message.targetType ?? TargetNone;
 		let moType = MapObjectType.None;
 
 		if (message.battleNum) {
@@ -286,23 +295,23 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			return;
 		}
 
-		if (message.type === MessageType.PlayerGainTechLevel) {
+		if (message.type === PlayerMessagePlayerGainTechLevel) {
 			goto(`/games/${gameId}/research`);
 			return;
 		}
 
-		if (message.type === MessageType.BattleReports) {
+		if (message.type === PlayerMessageBattleReports) {
 			goto(`/games/${gameId}/battles`);
 			return;
 		}
 
-		if (message.type === MessageType.PlayerTechGained && message.spec.techGained) {
+		if (message.type === PlayerMessagePlayerTechGained && message.spec.techGained) {
 			goto(`/games/${gameId}/techs/${kebabCase(message.spec.techGained)}`);
 			return;
 		}
 
 		if (
-			message.type === MessageType.MysteryTraderMetWithReward &&
+			message.type === PlayerMessageMysteryTraderMetWithReward &&
 			message.spec.mysteryTrader?.tech
 		) {
 			goto(`/games/${gameId}/techs/${kebabCase(message.spec.mysteryTrader?.tech)}`);
@@ -311,7 +320,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 		// the MT gave us a fleet, command it
 		if (
-			message.type === MessageType.MysteryTraderMetWithReward &&
+			message.type === PlayerMessageMysteryTraderMetWithReward &&
 			message.spec.mysteryTrader?.fleetNum
 		) {
 			const fleet = universe.getFleet(playerNum, message.spec.mysteryTrader?.fleetNum);
@@ -602,7 +611,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		game.set(Object.assign(get(game), g));
 	}
 
-	function updatePlayer(p: Player | PlayerResponse | undefined) {
+	function updatePlayer(p: CommandedPlayer | Player | undefined) {
 		player.set(Object.assign(get(player), p));
 	}
 

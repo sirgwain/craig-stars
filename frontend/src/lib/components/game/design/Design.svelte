@@ -4,7 +4,7 @@
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
 	import { techs } from '$lib/services/Stores';
 	import { total } from '$lib/types/Cost';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/cs';
 	import DesignStats from '../DesignStats.svelte';
 
 	type Props = {

@@ -1,17 +1,15 @@
-import type { Cargo } from '$lib/types/Cargo';
+import type { Cargo } from '$lib/types/cs';
 import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
-import {
-	CommandedFleet,
-	type Fleet,
-	type FleetOrders,
-	type ShipToken,
-	type Waypoint
-} from '$lib/types/Fleet';
-import type { MapObject } from '$lib/types/MapObject';
-import type { MineralPacket } from '$lib/types/MineralPacket';
-import type { Planet } from '$lib/types/Planet';
-import type { PlayerResponse } from '$lib/types/Player';
-import type { Salvage } from '$lib/types/Salvage';
+import { CommandedFleet } from '$lib/types/Fleet';
+import { type ShipToken } from '$lib/types/cs';
+import { type FleetOrders } from '$lib/types/cs';
+import { type Fleet } from '$lib/types/cs';
+import { type Waypoint } from '$lib/types/cs';
+import type { MapObject } from '$lib/types/cs';
+import type { MineralPacket } from '$lib/types/cs';
+import type { Planet } from '$lib/types/cs';
+import type { Player } from '$lib/types/cs';
+import type { Salvage } from '$lib/types/cs';
 import { Service } from './Service';
 
 // orders sent to the server
@@ -26,7 +24,7 @@ export class FleetOrdersRequest implements FleetOrders {
 type TransferCargoResponse = {
 	fleet: Fleet;
 	dest: MapObject | undefined;
-	player: PlayerResponse | undefined;
+	player: Player | undefined;
 	salvages?: Salvage[];
 	mineralPackets?: MineralPacket[];
 };

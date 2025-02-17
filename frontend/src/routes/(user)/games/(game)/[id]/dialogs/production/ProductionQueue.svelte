@@ -18,11 +18,10 @@
 	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import { GenesisDevice, NeverBuilt } from '$lib/types/Constants';
-	import { divide, multiply, type Cost } from '$lib/types/Cost';
+	import { divide, multiply } from '$lib/types/Cost';
+	import type { ProductionPlan, ProductionQueueItem } from '$lib/types/cs';
+	import { Infinite, type Cost } from '$lib/types/cs';
 	import { CommandedPlanet } from '$lib/types/Planet';
-	import type { ProductionPlan } from '$lib/types/Player';
-	import type { ProductionQueueItem } from '$lib/types/Production';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
 	import { getPlanetHabitability } from '$lib/types/Race';
 	import {
@@ -38,6 +37,9 @@
 	import { clamp } from 'lodash-es';
 	import { onMount } from 'svelte';
 	import type { ChangeEventHandler } from 'svelte/elements';
+
+	// used to load the Genesis Device tech
+	const GenesisDevice = 'Genesis Device';
 
 	const { cs, game, player, universe } = getGameContext();
 
@@ -197,7 +199,8 @@
 					type: item.type,
 					quantity,
 					designNum: item.designNum,
-					allocated: {}
+					allocated: {},
+					tags: {}
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
@@ -229,6 +232,7 @@
 						type: item.type,
 						designNum: item.designNum,
 						allocated: {},
+						tags: {},
 						quantity
 					},
 					...queueItems
@@ -304,7 +308,14 @@
 	function applyPlan(plan: ProductionPlan | undefined) {
 		if (plan) {
 			const concreteItems = queueItems.filter((i) => !isAuto(i.type));
-			queueItems = [...concreteItems, ...plan.items];
+			queueItems = [
+				...concreteItems,
+				...plan.items.map((item) => ({
+					...item,
+					allocated: {}, // add some empties for type safety
+					tags: {}
+				}))
+			];
 			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
 			updateQueueEstimates();
 		}
@@ -338,7 +349,7 @@
 
 	function getCompletionDescription(item: ProductionQueueItem) {
 		const skipped =
-			isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt;
+			isAuto(item.type) && item.yearsToBuildOne == Infinite && item.yearsToBuildAll == Infinite;
 		if (skipped) {
 			return 'Skipped';
 		}
@@ -349,13 +360,13 @@
 			if (yearsToBuildAll == 1) {
 				return '1 year';
 			}
-			if (yearsToBuildAll === NeverBuilt) {
+			if (yearsToBuildAll === Infinite) {
 				return 'never';
 			}
 			return `${yearsToBuildAll} years`;
 		}
 		if (yearsToBuildAll && yearsToBuildOne != yearsToBuildAll) {
-			if (yearsToBuildAll === NeverBuilt) {
+			if (yearsToBuildAll === Infinite) {
 				return `${yearsToBuildOne} to ???`;
 			}
 			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
@@ -364,7 +375,7 @@
 		if (yearsToBuildOne == 1) {
 			return '1 year';
 		}
-		if (yearsToBuildOne === NeverBuilt) {
+		if (yearsToBuildOne === Infinite) {
 			return 'never';
 		}
 		return `${yearsToBuildOne} years`;
@@ -451,7 +462,7 @@
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
 											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == NeverBuilt}
+											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
 											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>
@@ -477,7 +488,7 @@
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
 											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == NeverBuilt}
+											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
 											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
 									{isAuto(item.type) ? ' italic' : ''}"
 										>

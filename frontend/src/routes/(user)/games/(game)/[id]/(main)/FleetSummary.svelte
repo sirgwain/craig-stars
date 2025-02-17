@@ -5,16 +5,10 @@
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getHullIcon } from '$lib/techicon';
-	import { StargateWarpSpeed } from '$lib/types/Constants';
-	import {
-		canTransferCargo,
-		CommandedFleet,
-		getDamagePercentForToken,
-		WaypointTask,
-		type Fleet
-	} from '$lib/types/Fleet';
+	import { StargateWarpSpeed, WaypointTaskNone, type Fleet, type FleetIntel } from '$lib/types/cs';
+	import { canTransferCargo, CommandedFleet, getDamagePercentForToken } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/cs';
 	import { startCase } from 'lodash-es';
 
 	const { player, universe } = getGameContext();
@@ -43,6 +37,13 @@
 			return 'Use Stargate';
 		}
 		return `${warpSpeed}`;
+	}
+
+	function getMass(fleet: Fleet | FleetIntel): number {
+		if ('spec' in fleet) {
+			return fleet.spec?.mass ?? 0;
+		}
+		return fleet.mass ?? 0;
 	}
 
 	function transfer() {
@@ -87,7 +88,7 @@
 		<div class="flex flex-row">
 			<div class="w-32 text-tile-item-title">Fleet Mass:</div>
 			<div>
-				{fleet.spec?.mass ?? fleet.mass ?? 0}kT
+				{getMass(fleet)}kT
 			</div>
 		</div>
 		{#if ownedBy(fleet, $player.num)}
@@ -114,7 +115,7 @@
 				<div class="w-32 text-tile-item-title">Next Waypoint:</div>
 				<div>{$universe.getTargetName(fleet.waypoints[1])}</div>
 			</div>
-			{#if fleet.waypoints[1].task !== WaypointTask.None}
+			{#if fleet.waypoints[1].task !== WaypointTaskNone}
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Task:</div>
 					<div>{startCase(fleet.waypoints[1].task)}</div>

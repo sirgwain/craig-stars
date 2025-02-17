@@ -1,21 +1,7 @@
-import { None } from './Constants';
-import { getTokenCount, hasDestination, type Fleet } from './Fleet';
-import type { Vector } from './Vector';
-
-export type MapObject = {
-	id?: number;
-	createdAt?: string;
-	updatedAt?: string;
-	type: MapObjectType;
-	gameId?: number;
-	name: string;
-	num: number;
-	playerNum: number;
-} & Position;
-
-export type Position = {
-	position: Vector;
-};
+import { None } from './cs';
+import type { MapObject, Fleet } from './cs';
+import { getTokenCount, hasDestination } from './Fleet';
+import type { Vector } from './cs';
 
 export type MovingMapObject = {
 	heading: Vector;

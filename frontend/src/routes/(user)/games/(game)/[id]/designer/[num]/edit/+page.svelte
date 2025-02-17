@@ -5,7 +5,7 @@
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/cs';
 
 	const { game, universe, player, updateDesign } = getGameContext();
 	let num = parseInt($page.params.num);

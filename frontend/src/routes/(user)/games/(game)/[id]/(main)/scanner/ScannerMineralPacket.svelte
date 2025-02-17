@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MineralPacket } from '$lib/types/MineralPacket';
+	import type { MineralPacket } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	type Props = {

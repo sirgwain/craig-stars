@@ -8,30 +8,30 @@ import (
 // A user can have multiple races stored in the database. Each time a game is created, a Race is copied
 // into the Player object and stored separately (so changes to the User's race don't impact running games)
 type Race struct {
-	DBObject
+	DBObject              `tstype:",extends"`
 	UserID                int64                 `json:"userId,omitempty"`
-	Name                  string                `json:"name,omitempty"`
-	PluralName            string                `json:"pluralName,omitempty"`
-	SpendLeftoverPointsOn SpendLeftoverPointsOn `json:"spendLeftoverPointsOn,omitempty"`
-	PRT                   PRT                   `json:"prt,omitempty"`
-	LRTs                  Bitmask               `json:"lrts,omitempty"`
-	HabLow                Hab                   `json:"habLow,omitempty"`
-	HabHigh               Hab                   `json:"habHigh,omitempty"`
-	GrowthRate            int                   `json:"growthRate,omitempty"`
-	PopEfficiency         int                   `json:"popEfficiency,omitempty"`
-	FactoryOutput         int                   `json:"factoryOutput,omitempty"`
-	FactoryCost           int                   `json:"factoryCost,omitempty"`
-	NumFactories          int                   `json:"numFactories,omitempty"`
+	Name                  string                `json:"name"`
+	PluralName            string                `json:"pluralName"`
+	SpendLeftoverPointsOn SpendLeftoverPointsOn `json:"spendLeftoverPointsOn"`
+	PRT                   PRT                   `json:"prt"`
+	LRTs                  Bitmask               `json:"lrts"`
+	HabLow                Hab                   `json:"habLow"`
+	HabHigh               Hab                   `json:"habHigh"`
+	GrowthRate            int                   `json:"growthRate"`
+	PopEfficiency         int                   `json:"popEfficiency"`
+	FactoryOutput         int                   `json:"factoryOutput"`
+	FactoryCost           int                   `json:"factoryCost"`
+	NumFactories          int                   `json:"numFactories"`
 	FactoriesCostLess     bool                  `json:"factoriesCostLess,omitempty"`
 	ImmuneGrav            bool                  `json:"immuneGrav,omitempty"`
 	ImmuneTemp            bool                  `json:"immuneTemp,omitempty"`
 	ImmuneRad             bool                  `json:"immuneRad,omitempty"`
-	MineOutput            int                   `json:"mineOutput,omitempty"`
-	MineCost              int                   `json:"mineCost,omitempty"`
-	NumMines              int                   `json:"numMines,omitempty"`
-	ResearchCost          ResearchCost          `json:"researchCost,omitempty"`
+	MineOutput            int                   `json:"mineOutput"`
+	MineCost              int                   `json:"mineCost"`
+	NumMines              int                   `json:"numMines"`
+	ResearchCost          ResearchCost          `json:"researchCost"`
 	TechsStartHigh        bool                  `json:"techsStartHigh,omitempty"`
-	Spec                  RaceSpec              `json:"spec,omitempty"`
+	Spec                  RaceSpec              `json:"spec"`
 }
 
 type ResearchCostLevel string
@@ -53,12 +53,12 @@ const (
 )
 
 type ResearchCost struct {
-	Energy        ResearchCostLevel `json:"energy,omitempty"`
-	Weapons       ResearchCostLevel `json:"weapons,omitempty"`
-	Propulsion    ResearchCostLevel `json:"propulsion,omitempty"`
-	Construction  ResearchCostLevel `json:"construction,omitempty"`
-	Electronics   ResearchCostLevel `json:"electronics,omitempty"`
-	Biotechnology ResearchCostLevel `json:"biotechnology,omitempty"`
+	Energy        ResearchCostLevel `json:"energy"`
+	Weapons       ResearchCostLevel `json:"weapons"`
+	Propulsion    ResearchCostLevel `json:"propulsion"`
+	Construction  ResearchCostLevel `json:"construction"`
+	Electronics   ResearchCostLevel `json:"electronics"`
+	Biotechnology ResearchCostLevel `json:"biotechnology"`
 }
 
 func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
@@ -83,8 +83,8 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 }
 
 type RaceSpec struct {
-	MiniaturizationSpec
-	ScannerSpec
+	MiniaturizationSpec              `tstype:",extends"`
+	ScannerSpec                      `tstype:",extends"`
 	HabCenter                        Hab                    `json:"habCenter,omitempty"`
 	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
 	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`

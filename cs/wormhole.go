@@ -9,11 +9,11 @@ import (
 )
 
 type Wormhole struct {
-	MapObject
+	MapObject        `tstype:",extends"`
 	DestinationNum   int               `json:"destinationNum,omitempty"`
 	Stability        WormholeStability `json:"stability,omitempty"`
 	YearsAtStability int               `json:"yearsAtStability,omitempty"`
-	Spec             WormholeSpec      `json:"spec,omitempty"`
+	Spec             WormholeSpec      `json:"spec"`
 }
 
 type WormholeSpec struct {

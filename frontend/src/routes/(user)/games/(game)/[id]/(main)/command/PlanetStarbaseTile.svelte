@@ -5,10 +5,10 @@
 	import type { ChangeMassDriverSpeedProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import { UnlimitedSpaceDock } from '$lib/types/Constants';
-	import type { Fleet } from '$lib/types/Fleet';
+	import { UnlimitedSpaceDock } from '$lib/types/cs';
+	import type { Fleet } from '$lib/types/cs';
 	import type { CommandedPlanet } from '$lib/types/Planet';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
 
 	const { game, player, universe, settings } = getGameContext();

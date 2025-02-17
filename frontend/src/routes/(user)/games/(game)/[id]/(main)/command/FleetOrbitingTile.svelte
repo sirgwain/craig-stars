@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/Constants';
+	import { None } from '$lib/types/cs';
 	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
 	import CommandTile from './CommandTile.svelte';

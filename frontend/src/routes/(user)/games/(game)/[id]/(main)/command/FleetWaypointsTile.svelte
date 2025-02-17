@@ -6,8 +6,9 @@
 		SelectWaypointProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { StargateWarpSpeed } from '$lib/types/Constants';
-	import type { CommandedFleet, Waypoint } from '$lib/types/Fleet';
+	import { StargateWarpSpeed } from '$lib/types/cs';
+	import type { CommandedFleet } from '$lib/types/Fleet';
+	import type { Waypoint } from '$lib/types/cs';
 	import { MapObjectType } from '$lib/types/MapObject';
 	import { distance } from '$lib/types/Vector';
 	import CommandTile from './CommandTile.svelte';

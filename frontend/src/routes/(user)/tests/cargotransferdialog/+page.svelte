@@ -3,7 +3,8 @@
 
 	import { CommandedFleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
-	import { CommandedPlanet, type Planet } from '$lib/types/Planet';
+	import { CommandedPlanet } from '$lib/types/Planet';
+	import { type Planet } from '$lib/types/cs';
 
 	const planet: Planet = new CommandedPlanet();
 	Object.assign(planet, {

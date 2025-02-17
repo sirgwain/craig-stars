@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Message } from '$lib/types/Message';
+	import type { PlayerMessage } from '$lib/types/cs';
 
 	type Props = {
-		message: Message;
+		message: PlayerMessage;
 	};
 
 	let { message }: Props = $props();

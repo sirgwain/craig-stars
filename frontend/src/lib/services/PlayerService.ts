@@ -1,17 +1,18 @@
-import type { Game } from '$lib/types/Game';
-import type { Planet } from '$lib/types/Planet';
-import type { PlayerOrders, PlayerResponse } from '$lib/types/Player';
-import type { TechLevel } from '$lib/types/TechLevel';
+import type { Game } from '$lib/types/cs';
+import type { Planet } from '$lib/types/cs';
+import type { Player } from '$lib/types/cs';
+import type { PlayerOrders } from '$lib/types/cs';
+import type { TechLevel } from '$lib/types/cs';
 import type { TurnGenerationResponse } from './GameService';
 import { Service } from './Service';
 
 type UpdateOrdersResult = {
-	player: PlayerResponse;
+	player: Player;
 	planets: Planet[];
 };
 
 export class PlayerService extends Service {
-	static async updateOrders(player: PlayerResponse): Promise<UpdateOrdersResult | undefined> {
+	static async updateOrders(player: Player): Promise<UpdateOrdersResult | undefined> {
 		const orders: PlayerOrders = {
 			researching: player.researching,
 			nextResearchField: player.nextResearchField,
@@ -31,7 +32,7 @@ export class PlayerService extends Service {
 		return (await response.json()) as UpdateOrdersResult;
 	}
 
-	static async updatePlans(player: PlayerResponse): Promise<PlayerResponse | undefined> {
+	static async updatePlans(player: Player): Promise<Player | undefined> {
 		const response = await fetch(`/api/games/${player.gameId}/player/plans`, {
 			method: 'PUT',
 			body: JSON.stringify(player),
@@ -43,10 +44,10 @@ export class PlayerService extends Service {
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		return (await response.json()) as PlayerResponse;
+		return (await response.json()) as Player;
 	}
 
-	static async updateRelations(player: PlayerResponse): Promise<PlayerResponse | undefined> {
+	static async updateRelations(player: Player): Promise<Player | undefined> {
 		const response = await fetch(`/api/games/${player.gameId}/player/relations`, {
 			method: 'PUT',
 			body: JSON.stringify(player),
@@ -58,7 +59,7 @@ export class PlayerService extends Service {
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		return (await response.json()) as PlayerResponse;
+		return (await response.json()) as Player;
 	}
 
 	static async archiveGame(gameId: number): Promise<Game> {

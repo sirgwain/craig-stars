@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type Fleet } from '$lib/types/Fleet';
+	import { type Fleet } from '$lib/types/cs';
 	import { MapObjectType } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
+	import type { Planet } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import { getEnemiesAndFriends, getScannerContext } from './Scanner';

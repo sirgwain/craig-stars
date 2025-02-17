@@ -2,9 +2,10 @@
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
 	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
 	import { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
-	import type { Planet } from '$lib/types/Planet';
-	import type { Salvage } from '$lib/types/Salvage';
+	import type { CommandedFleet } from '$lib/types/Fleet';
+	import type { Fleet } from '$lib/types/cs';
+	import type { Planet } from '$lib/types/cs';
+	import type { Salvage } from '$lib/types/cs';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 

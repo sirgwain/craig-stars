@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MineField } from '$lib/types/MineField';
+	import type { MineField } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 

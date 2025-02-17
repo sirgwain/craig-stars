@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Vector } from '$lib/types/Vector';
+	import type { Vector } from '$lib/types/cs';
 	import ScannerContextPopup from './ScannerContextPopup.svelte';
 
 	export type ScannerContextPopupProps = {
@@ -15,8 +15,9 @@
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/Constants';
-	import { getMapObjectName, MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import { None } from '$lib/types/cs';
+	import { getMapObjectName, MapObjectType, ownedBy } from '$lib/types/MapObject';
+	import { type MapObject } from '$lib/types/cs';
 	import { flatten, keys } from 'lodash-es';
 	import { showPopup, type PopupProps } from './Popup.svelte';
 

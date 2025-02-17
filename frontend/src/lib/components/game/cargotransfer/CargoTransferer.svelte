@@ -3,10 +3,9 @@
 	import { clamp } from '$lib/services/Math';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
 	import { CargoTransferRequest, negative } from '$lib/types/CargoTransferRequest.svelte';
-	import type { CommandedFleet, Fleet } from '$lib/types/Fleet';
+	import type { CommandedFleet } from '$lib/types/Fleet';
 	import { MapObjectType } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
-	import type { Salvage } from '$lib/types/Salvage';
+	import type { Fleet, Planet, Salvage } from '$lib/types/cs';
 	import FleetTransfer from './FleetTransfer.svelte';
 	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';

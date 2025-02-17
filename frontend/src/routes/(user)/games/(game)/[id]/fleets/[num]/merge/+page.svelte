@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
+	import type { Fleet } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 	import MergeFleets from '../../../dialogs/merge/MergeFleets.svelte';
 

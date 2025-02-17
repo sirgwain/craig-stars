@@ -1,5 +1,14 @@
 <script lang="ts">
-	import { VictoryCondition, type GameSettings } from '$lib/types/Game';
+	import {
+		VictoryConditionAttainTechLevels,
+		VictoryConditionExceedsScore,
+		VictoryConditionExceedsSecondPlaceScore,
+		VictoryConditionHighestScoreAfterYears,
+		VictoryConditionOwnCapitalShips,
+		VictoryConditionOwnPlanets,
+		VictoryConditionProductionCapacity,
+		type GameSettings
+	} from '$lib/types/cs';
 	import VictoryConditionCheckbox from './VictoryConditionCheckbox.svelte';
 	import VictoryConditionInput from './VictoryConditionInput.svelte';
 
@@ -14,7 +23,7 @@
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={settings.victoryConditions.conditions}
-			condition={VictoryCondition.OwnPlanets}
+			condition={VictoryConditionOwnPlanets}
 		/>
 		<span class="label-text mr-1">
 			Owns
@@ -30,7 +39,7 @@
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={settings.victoryConditions.conditions}
-			condition={VictoryCondition.AttainTechLevels}
+			condition={VictoryConditionAttainTechLevels}
 		/>
 		<span class="label-text mr-1">
 			Attains Tech
@@ -51,7 +60,7 @@
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={settings.victoryConditions.conditions}
-			condition={VictoryCondition.ExceedsScore}
+			condition={VictoryConditionExceedsScore}
 		/>
 		<span class="label-text mr-1">
 			Exceeds a score of
@@ -66,7 +75,7 @@
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={settings.victoryConditions.conditions}
-			condition={VictoryCondition.ExceedsSecondPlaceScore}
+			condition={VictoryConditionExceedsSecondPlaceScore}
 		/>
 		<span class="label-text mr-1">
 			Exceeds a second place score by
@@ -82,7 +91,7 @@
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={settings.victoryConditions.conditions}
-			condition={VictoryCondition.ProductionCapacity}
+			condition={VictoryConditionProductionCapacity}
 		/>
 		<span class="label-text mr-1">
 			Has a production capacity of
@@ -98,7 +107,7 @@
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={settings.victoryConditions.conditions}
-			condition={VictoryCondition.OwnCapitalShips}
+			condition={VictoryConditionOwnCapitalShips}
 		/>
 		<span class="label-text mr-1">
 			Owns
@@ -114,7 +123,7 @@
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
 			bind:conditions={settings.victoryConditions.conditions}
-			condition={VictoryCondition.HighestScoreAfterYears}
+			condition={VictoryConditionHighestScoreAfterYears}
 		/>
 		<span class="label-text mr-1">
 			Has the highest score after

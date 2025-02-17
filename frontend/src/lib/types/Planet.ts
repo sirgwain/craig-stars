@@ -1,52 +1,55 @@
 import { roundToNearest100 } from '$lib/services/Math';
 import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
 import type { DesignFinder } from '$lib/services/Universe';
-import { NeverBuilt, UnlimitedSpaceDock } from '$lib/types/Constants';
 import type { CS } from '$lib/wasm';
 import { cloneDeep, sortBy, startCase } from 'lodash-es';
-import { addMineral, type Cargo } from './Cargo';
-import type { Fleet } from './Fleet';
-import { absSum, add, getHabValue, getLargest, withHabValue, type Hab } from './Hab';
-import { MapObjectType, type MapObject } from './MapObject';
-import { None } from './Constants';
-import { addInt, totalMinerals, type Mineral } from './Mineral';
-import type { Player } from './Player';
-import type { ProductionQueueItem } from './Production';
-import { QueueItemTypes, type QueueItemType } from './QueueItemType';
-import { getPlanetHabitability, type Race } from './Race';
-import type { Rules } from './Rules';
-import type { ShipDesign } from './ShipDesign';
-import { type TechStore } from './Tech';
-import type { Vector } from './Vector';
-
-export type Planet = {
-	hab?: Hab;
-	baseHab?: Hab;
-	terraformedAmount?: Hab;
-	mineralConcentration?: Mineral;
-	mineYears?: Mineral;
-	cargo?: Cargo;
-	mines?: number;
-	factories?: number;
-	defenses?: number;
-	homeworld?: boolean;
-	scanner?: boolean;
-	reportAge: number;
-	starbase?: Fleet;
-
-	spec: PlanetSpec;
-} & MapObject &
-	PlanetOrders;
-
-export type PlanetOrders = {
-	contributesOnlyLeftoverToResearch?: boolean;
-	routeTargetType?: MapObjectType;
-	routeTargetNum?: number;
-	routeTargetPlayerNum?: number;
-	packetSpeed?: number;
-	packetTargetNum?: number;
-	productionQueue?: ProductionQueueItem[];
-};
+import { addMineral } from './Cargo';
+import type {
+	Fleet,
+	Planet,
+	PlanetSpec,
+	ProductionQueueItem,
+	Rules,
+	ShipDesign,
+	Tags,
+	Vector
+} from './cs';
+import {
+	Infinite,
+	None,
+	QueueItemTypeAutoDefenses,
+	QueueItemTypeAutoFactories,
+	QueueItemTypeAutoMaxTerraform,
+	QueueItemTypeAutoMineralAlchemy,
+	QueueItemTypeAutoMineralPacket,
+	QueueItemTypeAutoMines,
+	QueueItemTypeAutoMinTerraform,
+	QueueItemTypeBoraniumMineralPacket,
+	QueueItemTypeDefenses,
+	QueueItemTypeFactory,
+	QueueItemTypeGenesisDevice,
+	QueueItemTypeGermaniumMineralPacket,
+	QueueItemTypeIroniumMineralPacket,
+	QueueItemTypeMine,
+	QueueItemTypeMineralAlchemy,
+	QueueItemTypeMixedMineralPacket,
+	QueueItemTypePlanetaryScanner,
+	QueueItemTypeShipToken,
+	QueueItemTypeStarbase,
+	QueueItemTypeTerraformEnvironment,
+	UnlimitedSpaceDock,
+	type Cargo,
+	type Hab,
+	type Mineral,
+	type QueueItemType,
+	type Race,
+	type TechStore
+} from './cs';
+import { absSum, add, getHabValue, getLargest, withHabValue } from './Hab';
+import { MapObjectType } from './MapObject';
+import { addInt, totalMinerals } from './Mineral';
+import type { CommandedPlayer } from './Player';
+import { getPlanetHabitability } from './Race';
 
 /**
  * A planet that can be commanded and updated by the player
@@ -54,9 +57,10 @@ export type PlanetOrders = {
 export class CommandedPlanet implements Planet {
 	id = 0;
 	gameId = 0;
-	createdAt?: string | undefined;
-	updatedAt?: string | undefined;
+	createdAt: string = '';
+	updatedAt: string = '';
 	readonly type = MapObjectType.Planet;
+	tags: Tags = {};
 
 	hab: Hab = { grav: 0, temp: 0, rad: 0 };
 	baseHab: Hab = { grav: 0, temp: 0, rad: 0 };
@@ -130,7 +134,7 @@ export class CommandedPlanet implements Planet {
 	}
 
 	// get the max popluation this planet will support for a player
-	public getMaxPopulation(rules: Rules, player: Player, habitability: number): number {
+	public getMaxPopulation(rules: Rules, player: CommandedPlayer, habitability: number): number {
 		const maxPopulationFactor = 1 + (player.race.spec?.maxPopulationOffset ?? 0);
 		let maxPossiblePop = rules.maxPopulation ?? 1_000_000;
 		const minMaxPop = (maxPossiblePop * maxPopulationFactor * (rules.minHabFloor ?? 5)) / 100.0;
@@ -215,7 +219,7 @@ export class CommandedPlanet implements Planet {
 
 	public getMaxBuildable(
 		techStore: TechStore,
-		player: Player,
+		player: CommandedPlayer,
 		maxPopulation: number,
 		type: QueueItemType,
 		amountInQueue = 0
@@ -224,49 +228,52 @@ export class CommandedPlanet implements Planet {
 		const race = player.race;
 
 		switch (type) {
-			case QueueItemTypes.AutoDefenses:
-			case QueueItemTypes.Defenses:
+			case QueueItemTypeAutoDefenses:
+			case QueueItemTypeDefenses:
 				return Math.max(0, 100 - (this.defenses + amountInQueue));
-			case QueueItemTypes.AutoMines:
+			case QueueItemTypeAutoMines:
 				return Math.max(0, this.getMaxMines(race, productivePop) - (this.mines + amountInQueue));
-			case QueueItemTypes.Mine:
+			case QueueItemTypeMine:
 				return Math.max(0, this.getMaxMines(race, maxPopulation) - (this.mines + amountInQueue));
-			case QueueItemTypes.AutoFactories:
+			case QueueItemTypeAutoFactories:
 				return Math.max(
 					0,
 					this.getMaxFactories(race, productivePop) - (this.factories + amountInQueue)
 				);
-			case QueueItemTypes.Factory:
+			case QueueItemTypeFactory:
 				return Math.max(
 					0,
 					this.getMaxFactories(race, maxPopulation) - (this.factories + amountInQueue)
 				);
-			case QueueItemTypes.AutoMinTerraform:
+			case QueueItemTypeAutoMinTerraform:
 				return (
 					absSum(getMinTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
 				);
-			case QueueItemTypes.AutoMaxTerraform:
-			case QueueItemTypes.TerraformEnvironment:
+			case QueueItemTypeAutoMaxTerraform:
+			case QueueItemTypeTerraformEnvironment:
 				return (
 					absSum(getTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
 				);
-			case QueueItemTypes.AutoMineralPacket:
-			case QueueItemTypes.IroniumMineralPacket:
-			case QueueItemTypes.BoraniumMineralPacket:
-			case QueueItemTypes.GermaniumMineralPacket:
-			case QueueItemTypes.MixedMineralPacket:
-			case QueueItemTypes.AutoMineralAlchemy:
-			case QueueItemTypes.MineralAlchemy:
+			case QueueItemTypeAutoMineralPacket:
+			case QueueItemTypeIroniumMineralPacket:
+			case QueueItemTypeBoraniumMineralPacket:
+			case QueueItemTypeGermaniumMineralPacket:
+			case QueueItemTypeMixedMineralPacket:
+			case QueueItemTypeAutoMineralAlchemy:
+			case QueueItemTypeMineralAlchemy:
 				return Number.MAX_SAFE_INTEGER - amountInQueue;
-			case QueueItemTypes.PlanetaryScanner:
+			case QueueItemTypePlanetaryScanner:
 				// only one scanner per planet, assuming the race can build scanners...
 				return Math.max(0, (this.scanner || race.spec?.innateScanner ? 0 : 1) - amountInQueue);
-			case QueueItemTypes.GenesisDevice:
+			case QueueItemTypeGenesisDevice:
 				return 1;
-			case QueueItemTypes.ShipToken:
+			case QueueItemTypeShipToken:
 				return Number.MAX_SAFE_INTEGER - amountInQueue;
-			case QueueItemTypes.Starbase:
+			case QueueItemTypeStarbase:
 				return Math.max(0, 1 - amountInQueue);
+			default:
+				console.error(`unknown QueueItemType ${type}`);
+				return 0;
 		}
 	}
 
@@ -289,7 +296,7 @@ export class CommandedPlanet implements Planet {
 	}
 
 	// grow pop on this planet. This is used when estimating production queues
-	public grow(rules: Rules, player: Player) {
+	public grow(rules: Rules, player: CommandedPlayer) {
 		const habitability = getPlanetHabitability(player.race, this.hab);
 		const maxPopulation = this.getMaxPopulation(rules, player, habitability);
 		const growthAmount = this.getGrowthAmount(
@@ -369,7 +376,7 @@ export class CommandedPlanet implements Planet {
 	}
 
 	// terraform this planet one step
-	public terraformOneStep(techStore: TechStore, player: Player) {
+	public terraformOneStep(techStore: TechStore, player: CommandedPlayer) {
 		const terraformAmount = getTerraformAmount(techStore, this.hab, this.baseHab, player);
 
 		if (absSum(terraformAmount) === 0) {
@@ -402,7 +409,7 @@ export class CommandedPlanet implements Planet {
 	}
 
 	// get the resources produced by this planet each year
-	public getResourcesAvailable(player: Player): number {
+	public getResourcesAvailable(player: CommandedPlayer): number {
 		const productivePop = this.getProductivePopulation(this.population);
 		const race = player.race;
 		if (race.spec?.innateMining) {
@@ -432,13 +439,13 @@ export class CommandedPlanet implements Planet {
 	): ProductionQueueItem[] {
 		const items: ProductionQueueItem[] = [];
 
-		if (planet.spec.dockCapacity == UnlimitedSpaceDock || planet.spec.dockCapacity > 0) {
+		if (planet.spec.dockCapacity == UnlimitedSpaceDock || (planet.spec.dockCapacity ?? 0) > 0) {
 			sortBy(
 				designs
 					.filter(
 						(d) =>
 							planet.spec.dockCapacity == UnlimitedSpaceDock ||
-							(d.spec.mass ?? 0) <= planet.spec.dockCapacity
+							(d.spec.mass ?? 0) <= (planet.spec.dockCapacity ?? 0)
 					)
 					.filter((d) => !d.spec.starbase)
 					.filter((d) => d.originalPlayerNum == None),
@@ -446,8 +453,9 @@ export class CommandedPlanet implements Planet {
 			).forEach((d) => {
 				items.push({
 					quantity: 1,
-					type: QueueItemTypes.ShipToken,
+					type: QueueItemTypeShipToken,
 					designNum: d.num,
+					tags: {},
 					allocated: {}
 				});
 			});
@@ -473,9 +481,10 @@ export class CommandedPlanet implements Planet {
 		).map<ProductionQueueItem>(
 			(d: ShipDesign): ProductionQueueItem => ({
 				quantity: 1,
-				type: QueueItemTypes.Starbase,
+				type: QueueItemTypeStarbase,
 				designNum: d.num,
 				allocated: {},
+				tags: {},
 				yearsToBuildAll: 0
 			})
 		);
@@ -496,56 +505,56 @@ export class CommandedPlanet implements Planet {
 		const items: ProductionQueueItem[] = [];
 
 		if (!innateResources) {
-			items.push(fromQueueItemType(QueueItemTypes.Factory));
+			items.push(fromQueueItemType(QueueItemTypeFactory));
 		}
 		if (!innateMining) {
-			items.push(fromQueueItemType(QueueItemTypes.Mine));
+			items.push(fromQueueItemType(QueueItemTypeMine));
 		}
 		if (!livesOnStarbases) {
-			items.push(fromQueueItemType(QueueItemTypes.Defenses));
+			items.push(fromQueueItemType(QueueItemTypeDefenses));
 		}
 
-		items.push(fromQueueItemType(QueueItemTypes.MineralAlchemy));
+		items.push(fromQueueItemType(QueueItemTypeMineralAlchemy));
 
 		if (!planet.scanner) {
-			items.push(fromQueueItemType(QueueItemTypes.PlanetaryScanner));
+			items.push(fromQueueItemType(QueueItemTypePlanetaryScanner));
 		}
 		if (genesisDevice) {
-			items.push(fromQueueItemType(QueueItemTypes.GenesisDevice));
+			items.push(fromQueueItemType(QueueItemTypeGenesisDevice));
 		}
 
 		if (planet.spec.canTerraform) {
-			items.push(fromQueueItemType(QueueItemTypes.TerraformEnvironment));
+			items.push(fromQueueItemType(QueueItemTypeTerraformEnvironment));
 		}
 
 		if (planet.spec.hasMassDriver) {
 			items.push(
-				fromQueueItemType(QueueItemTypes.IroniumMineralPacket),
-				fromQueueItemType(QueueItemTypes.BoraniumMineralPacket),
-				fromQueueItemType(QueueItemTypes.GermaniumMineralPacket),
-				fromQueueItemType(QueueItemTypes.MixedMineralPacket)
+				fromQueueItemType(QueueItemTypeIroniumMineralPacket),
+				fromQueueItemType(QueueItemTypeBoraniumMineralPacket),
+				fromQueueItemType(QueueItemTypeGermaniumMineralPacket),
+				fromQueueItemType(QueueItemTypeMixedMineralPacket)
 			);
 		}
 
 		// add auto items
 		if (!innateResources) {
-			items.push(fromQueueItemType(QueueItemTypes.AutoFactories));
+			items.push(fromQueueItemType(QueueItemTypeAutoFactories));
 		}
 		if (!innateMining) {
-			items.push(fromQueueItemType(QueueItemTypes.AutoMines));
+			items.push(fromQueueItemType(QueueItemTypeAutoMines));
 		}
 		if (!livesOnStarbases) {
-			items.push(fromQueueItemType(QueueItemTypes.AutoDefenses));
+			items.push(fromQueueItemType(QueueItemTypeAutoDefenses));
 		}
 
 		items.push(
-			fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
-			fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
-			fromQueueItemType(QueueItemTypes.AutoMinTerraform)
+			fromQueueItemType(QueueItemTypeAutoMineralAlchemy),
+			fromQueueItemType(QueueItemTypeAutoMaxTerraform),
+			fromQueueItemType(QueueItemTypeAutoMinTerraform)
 		);
 
 		if (planet.spec.hasMassDriver) {
-			items.push(fromQueueItemType(QueueItemTypes.AutoMineralPacket));
+			items.push(fromQueueItemType(QueueItemTypeAutoMineralPacket));
 		}
 
 		return items;
@@ -557,15 +566,16 @@ export class CommandedPlanet implements Planet {
 		planetCopy.productionQueue = [item];
 		const planetWithEstimates = cs.estimateProduction(planetCopy);
 		return planetWithEstimates?.productionQueue?.length == 1
-			? (planetWithEstimates.productionQueue[0].yearsToBuildOne ?? NeverBuilt)
-			: NeverBuilt;
+			? (planetWithEstimates.productionQueue[0].yearsToBuildOne ?? Infinite)
+			: Infinite;
 	}
 }
 
 export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
 	type,
 	quantity: 1,
-	allocated: {}
+	allocated: {},
+	tags: {}
 });
 
 export const getQueueItemShortName = (
@@ -573,77 +583,26 @@ export const getQueueItemShortName = (
 	designFinder: DesignFinder
 ): string => {
 	switch (item.type) {
-		case QueueItemTypes.Starbase:
-		case QueueItemTypes.ShipToken:
+		case QueueItemTypeStarbase:
+		case QueueItemTypeShipToken:
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
-		case QueueItemTypes.TerraformEnvironment:
+		case QueueItemTypeTerraformEnvironment:
 			return 'Terraform Environment';
-		case QueueItemTypes.AutoMines:
+		case QueueItemTypeAutoMines:
 			return 'Mine (Auto)';
-		case QueueItemTypes.AutoFactories:
+		case QueueItemTypeAutoFactories:
 			return 'Factory (Auto)';
-		case QueueItemTypes.AutoDefenses:
+		case QueueItemTypeAutoDefenses:
 			return 'Defenses (Auto)';
-		case QueueItemTypes.AutoMineralAlchemy:
+		case QueueItemTypeAutoMineralAlchemy:
 			return 'Alchemy (Auto)';
-		case QueueItemTypes.AutoMaxTerraform:
+		case QueueItemTypeAutoMaxTerraform:
 			return 'Max Terraform (Auto)';
-		case QueueItemTypes.AutoMinTerraform:
+		case QueueItemTypeAutoMinTerraform:
 			return 'Min Terraform (Auto)';
 		default:
 			return `${startCase(item.type)}`;
 	}
-};
-
-export type PlanetSpec = {
-	habitability?: number;
-	terraformedHabitability?: number;
-	maxMines?: number;
-	maxPossibleMines?: number;
-	maxFactories?: number;
-	maxPossibleFactories?: number;
-	maxDefenses?: number;
-	population?: number;
-	populationDensity: number;
-	maxPopulation?: number;
-	growthAmount: number;
-	miningOutput: Mineral;
-	resourcesPerYear?: number;
-	resourcesPerYearAvailable?: number;
-	resourcesPerYearResearch?: number;
-	resourcesPerYearResearchEstimatedLeftover?: number;
-	defense: string;
-	defenseCoverage?: number;
-	defenseCoverageSmart?: number;
-	scanner: string;
-	scanRange: number;
-	scanRangePen: number;
-	canTerraform: boolean;
-	terraformAmount?: Hab;
-	minTerraformAmount?: Hab;
-	hasStarbase: boolean;
-	starbaseDesignNum?: number;
-	starbaseDesignName?: string;
-	dockCapacity: number;
-
-	hasMassDriver: boolean;
-
-	hasStargate: boolean;
-} & Stargate &
-	MassDriver;
-
-export type Stargate = {
-	stargate?: string;
-	safeHullMass?: number;
-	safeRange?: number;
-	maxHullMass?: number;
-	maxRange?: number;
-};
-
-export type MassDriver = {
-	massDriver: string;
-	basePacketSpeed?: number;
-	safePacketSpeed?: number;
 };
 
 export function getMineralOutput(planet: Planet, numMines: number, mineOutput: number): Mineral {
