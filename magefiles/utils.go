@@ -187,7 +187,7 @@ func Merge_Temp_JSON() error {
 	}
 
 	if len(fileNames) == 0 {
-		fmt.Println("No files in temp folder; exiting")
+		fmt.Println("No JSON diffs were found inside ./tmp to merge; exiting")
 		return nil
 	}
 
