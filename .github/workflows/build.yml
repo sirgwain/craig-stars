@@ -65,6 +65,8 @@ jobs:
         uses: magefile/mage-action@v3
         with:
           install-only: true
+      - name: Install tygo
+        run: go install github.com/gzuidhof/tygo@v0.2.17
       - name: Generate Go files
         run: mage generate
 

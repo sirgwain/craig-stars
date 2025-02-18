@@ -60,6 +60,8 @@ jobs:
         uses: magefile/mage-action@v3
         with:
           install-only: true
+      - name: Install tygo
+        run: go install github.com/gzuidhof/tygo@v0.2.17
 
       # generate the backend go files needed for release
       - name: Build a CI version of the backend with version/build time
