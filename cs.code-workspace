@@ -20,5 +20,6 @@
       },
     },
     "files.eol": "\n",
+    "markdown.validate.enabled": true,
   },
 }

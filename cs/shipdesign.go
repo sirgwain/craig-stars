@@ -766,6 +766,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 		}
 		hullSlotsByFlexibility[b] = append(hullSlotsByFlexibility[b], i) // add list index of the hull slot to our slice
 		partCachesBySlot[hst] = newCache(func(tt TechTag) *TechHullComponent {
+			// TODO: Make sure this doesn't update when HullSlot changes
 			return tc.GetBestComponentWithTag(design, hst, hullSlot.Capacity, tt)
 		})
 	}

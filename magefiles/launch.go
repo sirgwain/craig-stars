@@ -85,7 +85,7 @@ func findWASMLocation() (path string, err error) {
 	// Go 1.24 changed the location of wasm_exec.js from misc to lib;
 	// if we find it inside misc, warn about updating go version
 	if _, err := os.Stat(goroot + "/misc/wasm/wasm_exec.js"); err == nil {
-		return "", fmt.Errorf("wasm executable found in misc instead of lib; \nUpgrade to go 1.24")
+		return "", fmt.Errorf("wasm executable found in misc instead of lib;\nUpgrade Go version to 1.24")
 	}
 
 	if _, err := os.Stat(goroot + "/lib/wasm/wasm_exec.js"); err == nil {

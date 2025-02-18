@@ -711,7 +711,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				design: NewShipDesign(player, 1).
 					WithHull(SpaceStation.Name).
 					WithSlots([]ShipDesignSlot{
-						{HullComponent: "ERROR 412: I'M A TEAPOT", HullSlotIndex: 420, Quantity: 69},
+						{HullComponent: "ERROR 418: I'M A TEAPOT", HullSlotIndex: 420, Quantity: 69},
 					}),
 			},
 			want:    ShipDesignSpec{}, // doesn't matter since want value ignored if error desired

@@ -1,5 +1,4 @@
 //go:generate go tool goverter gen ./
-
 package db
 
 import (
