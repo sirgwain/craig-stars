@@ -326,7 +326,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				ReduceCloaking:     1,
 				BeamBonus:          1,
 				Scanner:            true,
-				ScanRange:          60,
+				ScanRange:          66,
 				ScanRangePen:       30,
 				EstimatedRange:     413,
 				EstimatedRangeFull: 413,

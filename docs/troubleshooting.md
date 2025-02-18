@@ -1,16 +1,18 @@
 # Troubleshooting
+
 > When the code hits the fan
 
 Things don't always go as planned (in practice, they hardly ever do).
+
 <!-- TODO: Add a better intro and segue-->
 
 - "I try to click on the login button on localhost using the admin credentials and it does nothing! Worse, an error pops up in my terminal!"
 
 You might be running the frontend server without the backend. Open a new terminal tab and type `mage launch_backend` to launch the backend to handle all the nitty gritty logic stuff.
 
-- "When I run air, my computer complains about undefined Sqlite Drivers!"
+- "My computer complains about undefined Sqlite Drivers!"
 
-You likely haven't installed `go-sqlite3` and `GCC` correctly. Go do that.
+Make sure you have `GCC` built and in your PATH. If you haven't installed it, go do that.
 
 - "When I run `mage build`, I get an obscure error about 'executable not found in %PATH%' or 'build target excluding all files in XXX'!"
 
@@ -19,6 +21,12 @@ What's probably happening is you're trying to generate go files or build the ser
 - "Running air produces an error message something like `cmd will not recognize XXX file for execution`!"
 
 This is a 100% normal thing and a direct consequence of using `mage` to execute commands.
+
+- "I get an error message mentioning the database on launch!"
+
+In the event the database is being unhappy, you have 2 options:
+
+1. Delete the entire `dist` folder (containing the temp admin database) and launch the server from. This should fix most cases of corrupted databases
 
 - "When I boot up the server, all the ships have no icons!"
 
@@ -35,6 +43,7 @@ In the event mage starts executing warped commands, you can use the `Debug Magef
 - "I'm getting some other errors in the command line!"
 
 Consult this ordered checklist of vague general suggestions:
+
 1. Read the error message to try and figure out why it's failing. Errors before running can be a sign of malformed mage commands, while errors during command execution oft lie with the software being run.
 2. Try and search online for the error message or similar problems to see if others may have found solutions already.
 3. Try updating your packages (either node and/or golang, depending on where the errors occur) to the latest versions. A surprising amount of bugs can be fixed by simply running `npm update` or `go install`.

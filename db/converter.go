@@ -1,4 +1,4 @@
-//go:generate go run github.com/jmattheis/goverter/cmd/goverter@v1.4.0 gen ./
+//go:generate go tool goverter gen ./
 
 package db
 

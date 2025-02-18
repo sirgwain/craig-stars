@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 	"sync"
 
@@ -63,12 +62,37 @@ func Copy_Wasm_Exec() error {
 	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
-	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js",
-		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+
-			"/misc/wasm/wasm_exec.js"); err != nil {
+	path, err := findWASMLocation()
+	if err != nil {
+		return err
+	}
+
+	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js", path); err != nil {
 		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)
 	}
 	return nil
+}
+
+// find location of WASM executable
+func findWASMLocation() (path string, err error) {
+	// Find GOROOT
+	goroot, err := sh.Output("go", "env", "GOROOT")
+	if err != nil {
+		return "", err
+	}
+	goroot = strings.ReplaceAll(goroot, "\\", "/") // replace backslashes on windows
+
+	// Go 1.24 changed the location of wasm_exec.js from misc to lib;
+	// if we find it inside misc, warn about updating go version
+	if _, err := os.Stat(goroot + "/misc/wasm/wasm_exec.js"); err == nil {
+		return "", fmt.Errorf("wasm executable found in misc instead of lib; \nUpgrade to go 1.24")
+	}
+
+	if _, err := os.Stat(goroot + "/lib/wasm/wasm_exec.js"); err == nil {
+		return goroot + "/lib/wasm/wasm_exec.js", nil
+	}
+
+	return "", fmt.Errorf("executable was not found inside GOROOT %v", goroot)
 }
 
 // Tidy up go.mod (equivalent to "go mod tidy -v")

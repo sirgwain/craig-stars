@@ -10,6 +10,7 @@ on:
 
 env:
   go-version: 1.24.x
+  # If this is ever modified, we MUST change mage edit-junit to match
   test_results: ./tmp/test-results
 
 jobs:
@@ -45,6 +46,9 @@ jobs:
           --format-hide-empty-pkg \
           --junitfile ${{env.test_results}}/go-test-report.xml \
           --junitfile-hide-empty-pkg
+          --junitfile-project-name ${{github.repository}}
+          --junitfile-testname-classname short
+          --junitfile-testsuite-name short
 
       - name: Find and merge failing JSON diff files
         run: mage merge_temp_json

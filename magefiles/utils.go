@@ -174,9 +174,8 @@ func unzipTempFile(tmpName string) error {
 }
 
 // Merge all temp json files from tmp folder together into 1 file.
-// This takes all files matching the format "diff_**.json"
-// and copies them to
-// delimiting them by package
+// This takes all files matching the format "diff_**.jsonl"
+// and merges them together into 1 large file.
 func Merge_Temp_JSON() error {
 	tmp, err := os.Open("tmp")
 	if err != nil {

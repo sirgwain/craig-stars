@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -59,4 +60,23 @@ func Test_CompareAsJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_F(t *testing.T) {
+	t.Run("a", func(t *testing.T) {
+		for n := 0; n < 3; n++ {
+			t.Run(fmt.Sprintf("test_%d", n), func(t *testing.T) {
+
+				t.Logf("Executing test %d", n)
+			})
+		}
+	})
+	t.Run("b", func(t *testing.T) {
+		for n := 0; n < 3; n++ {
+			t.Run(fmt.Sprintf("test_%d", n), func(t *testing.T) {
+
+				t.Logf("Executing test %d", n)
+			})
+		}
+	})
 }
