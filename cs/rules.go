@@ -28,7 +28,7 @@ type Rules struct {
 	MineFieldCloak                     int                                 `json:"mineFieldCloak,omitempty"`
 	MineFieldStatsByType               map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType,omitempty"`
 	MineralDecayFactor                 int                                 `json:"mineralDecayFactor,omitempty"`
-	MinHabFloor                        int                                 `json:"minHabFloor,omitempty"` //@sirgwain: Do we need this? It's only used as a default value for race generation 
+	MinHabFloor                        int                                 `json:"minHabFloor,omitempty"` //@sirgwain: Do we need this? It's only used as a default value for race generation
 	MysteryTraderRules                 MysteryTraderRules                  `json:"mysteryTraderRules,omitempty"`
 	PacketDecayRate                    map[int]float64                     `json:"packetDecayRate,omitempty"`
 	PacketMaxOverwarpSpeed             int                                 `json:"packetMaxOverwarpSpeed,omitempty"`
@@ -302,14 +302,14 @@ func NewRulesWithSeed(seed int64) Rules {
 		},
 		UniverseGenerationRules: UniverseGenerationRules{
 			// The first 9 Grav/Temp hab values from either edge (1-9 & 91-99) are linearly less likely to generate.
-			// More specifically, a hab value N clicks away from the edge with dropoff range of H 
+			// More specifically, a hab value N clicks away from the edge with dropoff range of H
 			// becomes (N+1/H+1)x as likely as a normal mid-value hab
 			// Ex: 6 temp is 5 clicks away from min (1) and is thus 6/10x as likely to gen;
 			// 99 temp is 0 away and is thus 1/10x as likely.
 			HabDropoffRange: Hab{
 				Grav: 9,
 				Temp: 9,
-				Rad: 0,
+				Rad:  0,
 			},
 			HighRadMineralConcentrationBonusThreshold: 90,
 			MaxExtraWorldDistance:                     180,

@@ -224,7 +224,7 @@ func (p *Planet) emptyPlanet() {
 	// defenses & scanner disappear, other structures stay though
 	p.Scanner = false
 	// clear any production or other orders from the previous owner
-	p.Defenses = 0                              
+	p.Defenses = 0
 	p.PlanetOrders = PlanetOrders{}
 	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
@@ -241,21 +241,21 @@ func (p *Planet) randomize(rules *Rules) {
 
 	// First, we handle the first block of the hab randomness disregarding dropoff
 	p.Hab = Hab{
-		Grav: rules.MinHab + rules.random.Intn(rules.MaxHab - rules.MinHab - rules.HabDropoffRange.Grav + 1), // 1+randint(99-1-9+1)
-		Temp: rules.MinHab + rules.random.Intn(rules.MaxHab - rules.MinHab - rules.HabDropoffRange.Temp + 1),
-		Rad:  rules.MinHab + rules.random.Intn(rules.MaxHab - rules.MinHab - rules.HabDropoffRange.Rad + 1),
+		Grav: rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Grav+1), // 1+randint(99-1-9+1)
+		Temp: rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Temp+1),
+		Rad:  rules.MinHab + rules.random.Intn(rules.MaxHab-rules.MinHab-rules.HabDropoffRange.Rad+1),
 	}
 
 	// add random amounts to simulate dropoff at the extremes ranges
 	var randomG, randomT, randomR int
 	if rules.HabDropoffRange.Grav > 0 {
-		randomG = rules.random.Intn(rules.HabDropoffRange.Grav+1)
+		randomG = rules.random.Intn(rules.HabDropoffRange.Grav + 1)
 	}
 	if rules.HabDropoffRange.Temp > 0 {
-		randomT = rules.random.Intn(rules.HabDropoffRange.Temp+1)
+		randomT = rules.random.Intn(rules.HabDropoffRange.Temp + 1)
 	}
 	if rules.HabDropoffRange.Rad > 0 {
-		randomR = rules.random.Intn(rules.HabDropoffRange.Rad+1)
+		randomR = rules.random.Intn(rules.HabDropoffRange.Rad + 1)
 	}
 
 	p.Hab = p.Hab.Add(Hab{randomG, randomT, randomR})

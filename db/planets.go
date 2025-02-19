@@ -149,7 +149,7 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 
 	item := planetStarbaseJoin{}
 	if err := c.reader.Get(&item, `
-	SELECT 
+	SELECT
 		p.id AS 'planet.id',
 		p.createdAt AS 'planet.createdAt',
 		p.updatedAt AS 'planet.updatedAt',
@@ -219,9 +219,9 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 		COALESCE(f.warpSpeed, 0) AS 'fleet.warpSpeed',
 		COALESCE(f.orbitingPlanetNum, 0) AS 'fleet.orbitingPlanetNum',
 		COALESCE(f.starbase, 0) AS 'fleet.starbase',
-		COALESCE(f.spec, '{}') AS 'fleet.spec'	
+		COALESCE(f.spec, '{}') AS 'fleet.spec'
 
-	FROM planets p 
+	FROM planets p
 	LEFT JOIN fleets f
 		ON p.gameId = f.gameId AND p.num = f.planetNum
 	WHERE p.gameId = ? AND p.num = ?`, gameID, num); err != nil {

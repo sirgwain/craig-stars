@@ -343,7 +343,7 @@ func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 
 	items := []Player{}
 	if err := c.reader.Select(&items, `
-	SELECT 
+	SELECT
 	id,
 	createdAt,
 	updatedAt,
@@ -356,7 +356,7 @@ func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 	aiDifficulty,
 	guest,
 	submittedTurn,
-	color 
+	color
 	FROM players WHERE gameId = ? ORDER BY num`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Player{}, nil
@@ -382,7 +382,7 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 	rows := []playerDesignsJoin{}
 
 	err := c.reader.Select(&rows, fmt.Sprintf(`
-	SELECT 
+	SELECT
 		p.id AS 'player.id',
 		p.createdAt AS 'player.createdAt',
 		p.updatedAt AS 'player.updatedAt',
@@ -439,7 +439,7 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 		p.archived AS 'player.archived',
 		p.spec AS 'player.spec',
 
-		
+
 		COALESCE(d.id, 0) AS 'shipDesign.id',
 		d.createdAt AS 'shipDesign.createdAt',
 		d.updatedAt AS 'shipDesign.updatedAt',
@@ -520,7 +520,7 @@ func (c *client) GetPlayer(id int64) (*cs.Player, error) {
 func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.reader.Get(&item, `
-	SELECT 
+	SELECT
 	id,
 	createdAt,
 	updatedAt,
@@ -564,7 +564,7 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	victor,
 	archived,
 	spec
-	FROM players 
+	FROM players
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -594,7 +594,7 @@ func (c *client) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels,
 	wormholeIntels,
 	mysteryTraderIntels,
 	salvageIntels
-	FROM players 
+	FROM players
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -631,7 +631,7 @@ func (c *client) GetPlayerByNum(gameID int64, num int) (*cs.Player, error) {
 func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.reader.Get(&item, `
-	SELECT 
+	SELECT
 	id,
 	createdAt,
 	updatedAt,
@@ -674,7 +674,7 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	victor,
 	archived,
 	spec
-	FROM players 
+	FROM players
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

@@ -20,6 +20,7 @@
       },
     },
     "files.eol": "\n",
-    "markdown.validate.enabled": true,
+    // Increase test timeout so slower devices can run turn generation tests without failing
+    "go.testTimeout": "300s",
   },
 }

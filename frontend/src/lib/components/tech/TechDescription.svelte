@@ -62,7 +62,7 @@
 						);
 					} else {
 						descriptions.push(
-							`This hull will repair ships in the fleet by an additional ${hull.repairBonus * 100}% per year. 
+							`This hull will repair ships in the fleet by an additional ${hull.repairBonus * 100}% per year.
 							Repair is disabled while bombing planets.`
 						);
 					}
@@ -220,7 +220,7 @@
 
 				if ((hullComponent.unterraformRate ?? 0) > 0) {
 					descriptions.push(
-						`This bomb does not kill colonists or destroy installations. Instead, it "de-terraforms" planets toward their original state by up to ${hullComponent.unterraformRate}% per variable per bombing run. 
+						`This bomb does not kill colonists or destroy installations. Instead, it "de-terraforms" planets toward their original state by up to ${hullComponent.unterraformRate}% per variable per bombing run.
 						Planetary defenses have no effect on this bomb.`
 					);
 				}
@@ -259,7 +259,7 @@
 
 				if (hullComponent.colonizationModule) {
 					descriptions.push(
-						`This module allows a ship to colonize an uninhabited planet. Upon arrival, it (and any other ships in the fleet) will be dismantled into supplies for the colonists. 
+						`This module allows a ship to colonize an uninhabited planet. Upon arrival, it (and any other ships in the fleet) will be dismantled into supplies for the colonists.
 						The fleet must have orders set to "Colonize", and at least one ship in it must be carrying colonists.`
 					);
 				}
@@ -284,7 +284,7 @@
 
 				if (hullComponent.movementBonus && hullComponent.movementBonus > 0) {
 					descriptions.push(
-						`Increases speed in battle by ${hullComponent.movementBonus} 
+						`Increases speed in battle by ${hullComponent.movementBonus}
 						${hullComponent.movementBonus === 1 ? 'square' : 'squares'} of movement.`
 					);
 				}
@@ -323,7 +323,7 @@
 					descriptions.push(
 						`This module has a ${
 							hullComponent.torpedoJamming * 100
-						}% chance of deflecting incoming torpedoes. If an enemy ship has computers this will act to offset their effects. 
+						}% chance of deflecting incoming torpedoes. If an enemy ship has computers this will act to offset their effects.
 						Deflected torpedoes will still reduce shields (if any) by 1/8 the damage value.`
 					);
 				}

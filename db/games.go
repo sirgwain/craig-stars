@@ -136,7 +136,7 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 	rows := []gamePlayersJoin{}
 
 	err := c.reader.Select(&rows, fmt.Sprintf(`
-	SELECT 
+	SELECT
 		g.id AS 'game.id',
 		g.createdAt AS 'game.createdAt',
 		g.updatedAt AS 'game.updatedAt',
@@ -175,7 +175,7 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 		g.year AS 'game.year',
 		g.victorDeclared AS 'game.victorDeclared',
 		g.archived AS 'game.archived',
-		
+
 		p.updatedAt AS 'player.updatedAt',
 		COALESCE(p.userId, 0) AS 'player.userId',
 		COALESCE(p.name, '') AS 'player.name',

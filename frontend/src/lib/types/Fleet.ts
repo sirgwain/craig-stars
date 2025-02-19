@@ -579,16 +579,16 @@ export class CommandedFleet implements Fleet {
 		return { warpSpeed, canColonize, canRemoteMine };
 	}
 
-	/** Return the highest useful speed less than or equal to a given warp speed 
+	/** Return the highest useful speed less than or equal to a given warp speed
 	to reach a given destinaton.
-	 * @param designFinder 
-	 * @param fuelEfficiencyOffset 
-	 * @param fuelAlreadyAllocated 
-	 * @param dist 
-	 * @param startSpeed 
-	 * @param freeSpeed 
-	 * @param maxSafeSpeed 
-	 * @returns 
+	 * @param designFinder
+	 * @param fuelEfficiencyOffset
+	 * @param fuelAlreadyAllocated
+	 * @param dist
+	 * @param startSpeed
+	 * @param freeSpeed
+	 * @param maxSafeSpeed
+	 * @returns
 	 */
 	getMinimalWarp(
 		designFinder: DesignFinder,

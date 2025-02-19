@@ -101,7 +101,7 @@ func (c *client) getVersion() (Version, error) {
 
 func (c *client) updateVersion(version Version) error {
 	if _, err := c.writer.NamedExec(`
-	UPDATE versions SET 
+	UPDATE versions SET
 		updatedAt = CURRENT_TIMESTAMP,
 		current = :current
 	WHERE id = :id`, version); err != nil {

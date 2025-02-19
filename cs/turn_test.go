@@ -1229,7 +1229,7 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	// IS should have grown on freighter and beamed down to planet
 	assert.Equal(t, isFleet.Spec.CargoCapacity, isFleet.Cargo.Colonists)
 	assert.Equal(t, 2509, isPlanet.Cargo.Colonists) // 12000 * 0.15 * 0.5 = 900 colonists beamed to planet
-	assert.Equal(t, 97, arFleet.Cargo.Colonists) 
+	assert.Equal(t, 97, arFleet.Cargo.Colonists)
 
 	// Disable pop growth on both players & check for reproduction again;
 	// IS should halt reproduction while AR should continue losing pop
