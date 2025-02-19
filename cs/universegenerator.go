@@ -397,7 +397,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			ug.log.Debug().Msgf("Assigning %s to %s as homeworld", playerPlanet, player)
 			playerPlanet.initStartingWorld(player, &ug.Rules, startingPlanet, homeworldMinConc, surface)
 			if startingPlanet.Homeworld {
-				ug.assignRaceStartingPointBonuses(player, playerPlanet, extraPoints, pointsType)
+				ug.assignRaceStartingPointBonuses(&player.Race, playerPlanet, extraPoints, pointsType)
 			} else if !ug.MaxMinerals {
 				playerPlanet.MineralConcentration = randomizeMinerals(rules, playerPlanet.Hab.Rad, ug.StartMode == GameStartModeAccBBS)
 			}
@@ -425,29 +425,27 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 }
 
 // Assign race starting point bonuses to a player's homeworld
-func (ug *universeGenerator) assignRaceStartingPointBonuses(player *Player, planet *Planet, extraPoints int, pointsType SpendLeftoverPointsOn) {
+func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *Planet, extraPoints int, pointsType SpendLeftoverPointsOn) {
 	rules := ug.Rules
-	race := player.Race
-	pointsThreshold := rules.RaceLeftoverPointsPerItem[pointsType].pointsThreshold
-	qty := rules.RaceLeftoverPointsPerItem[pointsType].quantity
+	pointsThreshold := rules.RaceLeftoverPointsPerItem[pointsType]
 	switch pointsType {
 	case SpendLeftoverPointsOnDefenses:
 		if !race.Spec.LivesOnStarbases && extraPoints >= pointsThreshold {
-			planet.Defenses += (extraPoints / pointsThreshold) * qty
+			planet.Defenses += (extraPoints / pointsThreshold)
 			extraPoints -= extraPoints / pointsThreshold
 		}
 	case SpendLeftoverPointsOnFactories:
 		if !race.Spec.InnateResources && extraPoints >= pointsThreshold {
-			planet.Factories += (extraPoints / pointsThreshold) * qty
+			planet.Factories += (extraPoints / pointsThreshold)
 			extraPoints -= extraPoints / pointsThreshold
 		}
 	case SpendLeftoverPointsOnMines:
 		if !race.Spec.InnateMining && extraPoints >= pointsThreshold {
-			planet.Mines += (extraPoints / pointsThreshold) * qty
+			planet.Mines += (extraPoints / pointsThreshold)
 			extraPoints -= extraPoints / pointsThreshold
 		}
 	case SpendLeftoverPointsOnMineralConcentrations:
-		//example situation: 25 unspent points; HW has 40I, 30B and 35G concs
+		// example situation: 25 unspent points; HW has 40I, 30B and 35G concs
 		// first we start by increasing B up to 36, using 18 pts
 		// G is now lowest, so we bump it up to 37, using 6 points
 		// the remaining 1 point goes into surface minerals (since 1 < 3)
@@ -455,24 +453,25 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(player *Player, plan
 			conc := planet.MineralConcentration
 			lowestType := conc.HighestType(-1)
 			diff := conc.GetAmount(conc.HighestType(2)) - conc.GetAmount(lowestType)
-			amtToAdd := Min(extraPoints/pointsThreshold, diff/qty+1)
-			planet.MineralConcentration.Set(lowestType, conc.GetAmount(lowestType)+amtToAdd*qty)
+			amtToAdd := Min(extraPoints/pointsThreshold, diff+1)
+			planet.MineralConcentration.Set(lowestType, conc.GetAmount(lowestType)+amtToAdd)
 			extraPoints -= pointsThreshold * amtToAdd
 		}
 	}
 
-	// In the event the player has extra points left over (or selected surface mineral starting point options),
-	// dump them into surface minerals
-	for extraPoints >= pointsThreshold {
-		// example situation: 10 points; HW with 300I, 400B, 350G starting mins
-		// first we add 60kT of I using 6 pts
+	// In the event the player has extra points leftover
+	// (or selected surface mineral starting points), dump em in
+	// _Technically_, we don't really know if Stars! actually did this, but I'm too lazy to check
+	for extraPoints > 0 {
+		// example situation: 10 points leftover HW with 300I, 400B, 350G starting mins
+		// first we add 60kT of I using 6 pts;
 		// then, since G is now the lowest mineral,
 		// we alternate between adding G and I for the remaining 4 pts
 		mins := planet.getCargo().ToMineral()
 		lowestType := mins.HighestType(3)
 		diff := mins.GetAmount(mins.HighestType(2)) - mins.GetAmount(lowestType)
-		amtToAdd := Min(extraPoints/pointsThreshold, (diff/qty)+1) // 70 difference / 10 mins => 8 rounds
-		planet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*qty)
+		amtToAdd := Min(extraPoints/pointsThreshold, diff+1) // 70 difference / 10 mins => 8 rounds
+		planet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*pointsThreshold)
 		extraPoints -= pointsThreshold * amtToAdd
 	}
 }
@@ -482,7 +481,7 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	// the homeworld gets a starbase
 	design := player.GetDesignByName(designName)
 	if design == nil {
-		return fmt.Errorf("no design named %q found", designName)
+		return fmt.Errorf("no design named %q found for player %s", designName, player)
 	}
 
 	design.Spec.NumBuilt++

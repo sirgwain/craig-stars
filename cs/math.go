@@ -44,7 +44,7 @@ func Clamp[T constraints.Ordered](value, min, max T) T {
 	return value
 }
 
-// Returns the highest among a collection of similarly typed ordered values.
+// Returns the largest among a collection of similarly typed ordered values.
 // Panics if given no arguments.
 func Max[T constraints.Ordered](nums ...T) T {
 	if len(nums) == 0 {
@@ -61,7 +61,7 @@ func Max[T constraints.Ordered](nums ...T) T {
 	return result
 }
 
-// Returns the lowest among a collection of similarly typed ordered values.
+// Returns the smallest among a collection of similarly typed ordered values.
 // Panics if given no arguments.
 func Min[T constraints.Ordered](nums ...T) T {
 	if len(nums) == 0 {

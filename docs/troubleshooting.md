@@ -2,25 +2,28 @@
 
 > When the code hits the fan
 
-Things don't always go as planned (in practice, they hardly ever do).
+Things don't always go as planned (in practice, they hardly ever do). In the event things turn south when setting things up, consult this semi-curated list of past problems and resolutions:
 
-<!-- TODO: Add a better intro and segue-->
+<!-- TODO: Improve intro and sort these in vague order of appearance-->
 
 - "I try to click on the login button on localhost using the admin credentials and it does nothing! Worse, an error pops up in my terminal!"
 
 You might be running the frontend server without the backend. Open a new terminal tab and type `mage launch_backend` to launch the backend to handle all the nitty gritty logic stuff.
 
-- "When I run air, my computer complains about undefined Sqlite Drivers!"
+- "My computer complains about undefined Sqlite Drivers!"
 
-You likely haven't installed `go-sqlite3` and `GCC` correctly. Go do that.
+Make sure you have `GCC` built and in your PATH. If you haven't installed it yet, go do that.
 
-- "When I run `mage build`, I get an obscure error about 'executable not found in %PATH%' or 'build target excluding all files in XXX'!"
+- "While building the server, I get an obscure error about 'executable not found in %PATH%' or 'build target excluding all files in XXX'!"
 
-What's probably happening is you're trying to generate go files or build the server with the incorrect GOARCH and GOOS settings. Try running `go env -u GOOS GOARCH` to reset them to their defaults and see if the problems persist.
+What's probably happening is you're trying to generate go files or build the server with incorrect GOARCH and GOOS settings. Try running `go env -u GOOS GOARCH` to reset them to their defaults and see if the problems persist.
 
-- "Running air produces an error message something like `cmd will not recognize XXX file for execution`!"
+- "I get an error message mentioning the database on launch!"
 
-This is a 100% normal thing and a direct consequence of using `mage` to execute commands.
+In the event MySQL is being unhappy, you have 2 options:
+
+1. Delete the entire `dist` folder (containing the starter admin database) and re-launch the server. This will re-generate the db and _should_ fix 90% of issues related to new installs.
+2. In the event you modified exported values of structs saved to the database, you will need to add new .sql files inside `./db/schema` to instruct it to drop the new games. See the relevant section in [architecture.md](architecture.md/#db) for more info.
 
 - "When I boot up the server, all the ships have no icons!"
 

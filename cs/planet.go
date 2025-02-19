@@ -123,8 +123,18 @@ func (p *Planet) WithPlayerNum(playerNum int) *Planet {
 	return p
 }
 
+func (p *Planet) WithFactories(factories int) *Planet {
+	p.Factories = factories
+	return p
+}
+
 func (p *Planet) WithMines(mines int) *Planet {
 	p.Mines = mines
+	return p
+}
+
+func (p *Planet) WithDefenses(defenses int) *Planet {
+	p.Defenses = defenses
 	return p
 }
 
@@ -507,8 +517,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	if race.Spec.CanBuildDefenses {
 		spec.MaxDefenses = 100
 		spec.Defense = player.Spec.Defense.Name
-		spec.DefenseCoverage = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100)), float64(Clamp(planet.Defenses, 0, spec.MaxDefenses)))))
-		spec.DefenseCoverageSmart = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100 * rules.SmartDefenseCoverageFactor)), float64(Clamp(planet.Defenses, 0, spec.MaxDefenses)))))
+		spec.computeDefenseCoverage(rules, player.Spec.Defense.DefenseCoverage, planet.Defenses)
 	}
 
 	if race.Spec.InnateScanner {
@@ -556,6 +565,16 @@ func computePlanetStarbaseSpec(planet *Planet) PlanetStarbaseSpec {
 	}
 
 	return spec
+}
+
+// Compute and update this planet's regular and smart defense coverage values
+// TODO: Test this
+func (spec *PlanetSpec) computeDefenseCoverage(rules *Rules, coverage float64, numDefenses int) {
+	// coverage is a percentage, so divide by 100
+	blocked := math.Pow(1-coverage/100, float64(Clamp(numDefenses, 0, spec.MaxDefenses)))
+	spec.DefenseCoverage = 1 - blocked
+	blockedSmart := math.Pow(1-(coverage/100)*rules.SmartDefenseCoverageFactor, float64(Clamp(numDefenses, 0, spec.MaxDefenses)))
+	spec.DefenseCoverageSmart = 1 - blockedSmart
 }
 
 // Compute the amount of resources this planet will produce per year, as well as its

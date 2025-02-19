@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GenerateUniverse(t *testing.T) {
+func TestGenerateUniverse(t *testing.T) {
 	t.Run("Normal", func(t *testing.T) {
 		client := NewGamer()
 		game := client.CreateGame(1, *NewGameSettings())
@@ -118,6 +118,76 @@ func Test_GenerateUniverse(t *testing.T) {
 			assert.Equal(t, calcCost, design.Spec.Cost)
 		}
 	})
+}
+
+func Test_assignRaceStartingPointBonuses(t *testing.T) {
+	type args struct {
+		race        *Race
+		extraPoints int
+		pointsType  SpendLeftoverPointsOn
+	}
+	tests := []struct {
+		name string
+		args args
+		want *Planet
+	}{
+		{
+			name: "10 points into factories",
+			args: args{
+				race:        NewRace().WithSpec(&rules),
+				extraPoints: 10,
+				pointsType:  SpendLeftoverPointsOnFactories,
+			},
+			want: NewPlanet().WithFactories(2),
+		},
+		{
+			name: "8 points into mines; can't use",
+			args: args{
+				race:        NewRace().WithPRT(AR).WithSpec(&rules),
+				extraPoints: 8,
+				pointsType:  SpendLeftoverPointsOnFactories,
+			},
+			want: NewPlanet().WithCargo(Cargo{3, 3, 2, 0}),
+		},
+		{
+			name: "99 points into mines; overcap",
+			args: args{
+				race:        NewRace().WithSpec(&rules),
+				extraPoints: 99,
+				pointsType:  SpendLeftoverPointsOnFactories,
+			},
+			want: NewPlanet().WithMines(25),
+		},
+		{
+			name: "10 points into defenses; 3 spillover",
+			args: args{
+				race:        NewRace().WithSpec(&rules),
+				extraPoints: 13,
+				pointsType:  SpendLeftoverPointsOnDefenses,
+			},
+			want: NewPlanet().WithDefenses(2).WithCargo(Cargo{1, 1, 1, 0}),
+		},
+		{
+			name: "31 points into minconcs",
+			args: args{
+				race:        NewRace().WithSpec(&rules),
+				extraPoints: 31,
+				pointsType:  SpendLeftoverPointsOnDefenses,
+			},
+			want: NewPlanet().WithMineralConcentration(Mineral{4, 3, 3}).WithCargo(Cargo{1, 0, 0, 0}),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ug := universeGenerator{FullGame: &FullGame{Game: &Game{Rules: rules}}}
+			planet := NewPlanet()
+			ug.assignRaceStartingPointBonuses(tt.args.race, planet, tt.args.extraPoints, tt.args.pointsType)
+
+			if !test.CompareAsJSON(t, planet, tt.want) {
+				t.Errorf("assignRaceStartingPointBonuses() = %v, want %v", planet, tt.want)
+			}
+		})
+	}
 }
 
 func Test_getStartingStarbaseDesigns(t *testing.T) {

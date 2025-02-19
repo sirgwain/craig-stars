@@ -112,7 +112,7 @@ func TestGetMineralPackets(t *testing.T) {
 
 }
 
-func Test_UpdateMineralPacket(t *testing.T) {
+func TestUpdateMineralPacket(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
