@@ -94,22 +94,18 @@ func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) *Fleet {
 		if (*source).PreviousPosition != nil {
 			pFloat64 = &(*source).PreviousPosition.X
 		}
-		var pFloat642 *float64
 		if pFloat64 != nil {
 			xfloat64 := *pFloat64
-			pFloat642 = &xfloat64
+			dbFleet.PreviousPositionX = &xfloat64
 		}
-		dbFleet.PreviousPositionX = pFloat642
-		var pFloat643 *float64
+		var pFloat642 *float64
 		if (*source).PreviousPosition != nil {
-			pFloat643 = &(*source).PreviousPosition.Y
+			pFloat642 = &(*source).PreviousPosition.Y
 		}
-		var pFloat644 *float64
-		if pFloat643 != nil {
-			xfloat642 := *pFloat643
-			pFloat644 = &xfloat642
+		if pFloat642 != nil {
+			xfloat642 := *pFloat642
+			dbFleet.PreviousPositionY = &xfloat642
 		}
-		dbFleet.PreviousPositionY = pFloat644
 		dbFleet.OrbitingPlanetNum = (*source).OrbitingPlanetNum
 		dbFleet.Starbase = (*source).Starbase
 		dbFleet.Purpose = cs.FleetPurpose((*source).FleetOrders.Purpose)
@@ -458,18 +454,14 @@ func (c *GameConverter) ConvertGameUser(source *cs.User) *User {
 		dbUser.Banned = (*source).Banned
 		dbUser.Verified = (*source).Verified
 		dbUser.LastLogin = c.pTimeTimeToPTimeTime((*source).LastLogin)
-		var pString *string
 		if (*source).DiscordID != nil {
 			xstring := *(*source).DiscordID
-			pString = &xstring
+			dbUser.DiscordID = &xstring
 		}
-		dbUser.DiscordID = pString
-		var pString2 *string
 		if (*source).DiscordAvatar != nil {
 			xstring2 := *(*source).DiscordAvatar
-			pString2 = &xstring2
+			dbUser.DiscordAvatar = &xstring2
 		}
-		dbUser.DiscordAvatar = pString2
 		pDbUser = &dbUser
 	}
 	return pDbUser
@@ -696,18 +688,14 @@ func (c *GameConverter) ConvertUser(source User) cs.User {
 	csUser.GameID = source.GameID
 	csUser.PlayerNum = source.PlayerNum
 	csUser.LastLogin = c.pTimeTimeToPTimeTime(source.LastLogin)
-	var pString *string
 	if source.DiscordID != nil {
 		xstring := *source.DiscordID
-		pString = &xstring
+		csUser.DiscordID = &xstring
 	}
-	csUser.DiscordID = pString
-	var pString2 *string
 	if source.DiscordAvatar != nil {
 		xstring2 := *source.DiscordAvatar
-		pString2 = &xstring2
+		csUser.DiscordAvatar = &xstring2
 	}
-	csUser.DiscordAvatar = pString2
 	return csUser
 }
 func (c *GameConverter) ConvertUsers(source []User) []cs.User {

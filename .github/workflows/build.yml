@@ -9,7 +9,7 @@ on:
       - "develop"
 
 env:
-  go-version: 1.23.x
+  go-version: 1.24.x
   test_results: ./tmp/test-results
 
 jobs:
@@ -69,7 +69,7 @@ jobs:
         run: mage generate
 
       - name: Build Backend Go Binary
-        run: | 
+        run: |
           go mod tidy
           CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend
       # build the frontend (slow)

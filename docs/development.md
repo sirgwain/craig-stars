@@ -4,7 +4,7 @@ craig-stars is a web based game. The backend logic and server is written in [Go]
 
 ## Prerequisites:
 
-- Golang: 1.23.0 or higher, obtainable from [their website](https://go.dev/dl/)
+- Golang: 1.24 or higher, obtainable from [their website](https://go.dev/dl/)
 - npm: [how to install](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 - Respository forked and cloned on your device (instructions [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository))
 - The [GNU compiler collection](https://gcc.gnu.org/) built locally on your device. Windows users can use [Mingw-w64](https://www.mingw-w64.org/), while linux/mac users can follow the [normal install instructions](https://gcc.gnu.org/install/index.html).
