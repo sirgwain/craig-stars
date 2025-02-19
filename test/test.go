@@ -25,27 +25,38 @@ import (
 //
 // The json difference is passed to t.Errorf, so no extra calls to t.Log or t.Error
 // are needed after calling this.
-func CompareAsJSON(t *testing.T, got, want any) {
+func CompareAsJSON(t *testing.T, got, want any) bool {
 	t.Helper()
 	if got == nil && want == nil {
-		return
+		return true
 	} else if (got == nil) != (want == nil) { // one is nil and the other isn't
 		t.Errorf("Unequal values (nilness): got = %v, want = %v", got, want)
+		return false
 	}
 
-	gotJson, err := json.MarshalIndent(got, "", "  ")
+	gotJson, err := json.MarshalIndent(got, "", "\t")
 	if err != nil {
 		t.Errorf("compareAsJSON could not marshal got (%q) to json: \n%v", got, err)
+		return false
 	}
-	wantJson, err := json.MarshalIndent(want, "", "  ")
+	wantJson, err := json.MarshalIndent(want, "", "\t")
 	if err != nil {
 		t.Errorf("compareAsJSON could not marshal want (%q) to json: \n%v", want, err)
+		return false
 	}
 
 	if string(gotJson) == string(wantJson) {
-		return
+		return true
 	}
 
+	errMsg := parseJSONDiff(gotJson, wantJson, t.Name())
+
+	t.Error(errMsg)
+	return false
+}
+
+// Parse JSON diffs, creating files to log values as appropriate.
+func parseJSONDiff(gotJSON, wantJSON []byte, testName string) string {
 	options := jsondiff.Options{
 		Added:            jsondiff.Tag{Begin: "\"prop-added\": {", End: "}"},
 		Removed:          jsondiff.Tag{Begin: "\"prop-removed\": {", End: "}"},
@@ -55,19 +66,19 @@ func CompareAsJSON(t *testing.T, got, want any) {
 		SkipMatches:      true,
 	}
 
-	_, diff := jsondiff.Compare(gotJson, wantJson, &options)
+	_, diff := jsondiff.Compare(gotJSON, wantJSON, &options)
 
 	// append files 1 by 1
 	for i := range 3 {
-		header := "// " + t.Name() + "\n" // header containing test name & extra newlines
+		header := "// " + testName + "\n" // header containing test name & extra newlines
 		var path, body string
 		switch i {
 		case 0:
 			path = "../tmp/got.jsonl"
-			body = string(gotJson)
+			body = string(gotJSON)
 		case 1:
 			path = "../tmp/want.jsonl"
-			body = string(wantJson)
+			body = string(wantJSON)
 		case 2:
 			path = "../tmp/diff.jsonl"
 			body = diff
@@ -79,7 +90,7 @@ func CompareAsJSON(t *testing.T, got, want any) {
 		_ = AppendFile(path, header+body+"\n")
 	}
 
-	t.Errorf("JSONs not equal; diff between got & want: \n%s", diff)
+	return fmt.Sprintf("JSONs not equal; diff between got & want: \n%s", diff)
 }
 
 // Appends a string or byte slice to the named file, creating it if necessary.

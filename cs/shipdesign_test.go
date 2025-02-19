@@ -1343,7 +1343,7 @@ func Test_designWarship(t *testing.T) {
 }
 
 func BenchmarkDesignShip(b *testing.B) {
-	b.Run("Large", func(b *testing.B) {
+	b.Run("Large Ship", func(b *testing.B) {
 		purposes := []ShipDesignPurpose{
 			ShipDesignPurposeFreighter,
 			ShipDesignPurposeSpeedMineLayer,
@@ -1370,7 +1370,7 @@ func BenchmarkDesignShip(b *testing.B) {
 		}
 	})
 
-	b.Run("Small", func(b *testing.B) {
+	b.Run("Small Ship", func(b *testing.B) {
 		purposes := []ShipDesignPurpose{
 			ShipDesignPurposeFreighter,
 			ShipDesignPurposeSpeedMineLayer,

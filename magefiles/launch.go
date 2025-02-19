@@ -9,6 +9,7 @@ import (
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"github.com/sirgwain/craig-stars/test"
 )
 
 var Aliases = map[string]interface{}{
@@ -84,11 +85,11 @@ func findWASMLocation() (path string, err error) {
 
 	// Go 1.24 changed the location of wasm_exec.js from misc to lib;
 	// if we find it inside misc, warn about updating go version
-	if _, err := os.Stat(goroot + "/misc/wasm/wasm_exec.js"); err == nil {
+	if !test.FileExists(goroot + "/misc/wasm/wasm_exec.js") {
 		return "", fmt.Errorf("wasm executable found in misc instead of lib;\nUpgrade Go version to 1.24")
 	}
 
-	if _, err := os.Stat(goroot + "/lib/wasm/wasm_exec.js"); err == nil {
+	if test.FileExists(goroot + "/misc/wasm/wasm_exec.js") {
 		return goroot + "/lib/wasm/wasm_exec.js", nil
 	}
 

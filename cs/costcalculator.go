@@ -30,7 +30,7 @@ type costCalculate struct {
 func GetCostEfficiencyRatio[T number](numerator, denominator cost[T], costTypes ...CostType) (costRatio float64) {
 	// TODO: Add weighting support by replacing CostTypes by a single CostFloat64 containing weight values
 	if len(costTypes) > 4 {
-		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types; %v", costTypes))
+		panic(fmt.Sprintf("GetCostEfficiencyRatio called with too many cost types: \n%v", costTypes))
 	} else if len(costTypes) == 0 {
 		costTypes = CostTypes[:] // no cost types provided means we include everything
 	}
