@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet, MineralPacket, Planet } from '$lib/types/cs';
+	import type { MineralPacket, PlanetIntel } from '$lib/types/cs';
 	import {
 		MapObjectTypeFleet,
 		MapObjectTypeMineralPacket,
@@ -10,6 +10,7 @@
 		PlayerMessageBattleAlly,
 		type PlayerMessage
 	} from '$lib/types/cs';
+	import type { AnyFleet } from '$lib/types/Fleet';
 	import BattleMessageDetail from './BattleMessageDetail.svelte';
 	import FleetMessageDetail from './FleetMessageDetail.svelte';
 	import MineralPacketMessageDetail from './MineralPacketMessageDetail.svelte';
@@ -25,8 +26,8 @@
 	let owner = $derived(
 		target && target.playerNum ? $universe.getPlayerIntel(target.playerNum) : undefined
 	);
-	let planet = $derived(target?.type == MapObjectTypePlanet ? (target as Planet) : undefined);
-	let fleet = $derived(target?.type == MapObjectTypeFleet ? (target as Fleet) : undefined);
+	let planet = $derived(target?.type == MapObjectTypePlanet ? (target as PlanetIntel) : undefined);
+	let fleet = $derived(target?.type == MapObjectTypeFleet ? (target as AnyFleet) : undefined);
 	let mineralPacket = $derived(
 		target?.type == MapObjectTypeMineralPacket ? (target as MineralPacket) : undefined
 	);

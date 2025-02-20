@@ -7,13 +7,12 @@
 	import {
 		MapObjectTypeFleet,
 		None,
-		type Fleet,
 		type MapObject,
 		type Vector,
 		type Waypoint
 	} from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type WaypointDest } from '$lib/types/Fleet';
+	import { type AnyFleet, type WaypointDest } from '$lib/types/Fleet';
 	import { emptyVector, equal } from '$lib/types/Vector';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
@@ -299,7 +298,7 @@
 			return;
 		}
 
-		if (found?.type == MapObjectTypeFleet && !filterFleet($player, found as Fleet, $settings)) {
+		if (found?.type == MapObjectTypeFleet && !filterFleet($player, found as AnyFleet, $settings)) {
 			// this object we clicked is filtered out, don't do anything
 			return;
 		}
@@ -458,7 +457,9 @@
 	const data = derivedStore([universe, commandedFleet], ([u, f]) => [
 		// add mapobject waypoints
 		...(f?.getWaypointMapObjects(u) || []),
-		...u.fleets.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
+		...u
+			.getAllFleets()
+			.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
 		...u.mysteryTraders,
 		...u.mineralPackets,
 		...u.salvages,

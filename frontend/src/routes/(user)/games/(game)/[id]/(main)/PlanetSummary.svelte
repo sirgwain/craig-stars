@@ -10,7 +10,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
-	import { Grav, None, Rad, ReportAgeUnexplored, Temp, type Planet } from '$lib/types/cs';
+	import { Grav, None, Rad, ReportAgeUnexplored, Temp, type PlanetIntel } from '$lib/types/cs';
 	import { add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -19,7 +19,7 @@
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		planet: Planet;
+		planet: PlanetIntel;
 	};
 
 	let { planet }: Props = $props();

@@ -1,7 +1,6 @@
+import type { MapObject, Vector } from './cs';
 import { None } from './cs';
-import type { MapObject, Fleet } from './cs';
-import { getTokenCount, hasDestination } from './Fleet';
-import type { Vector } from './cs';
+import { getTokenCount, hasDestination, type AnyFleet } from './Fleet';
 
 export type MovingMapObject = {
 	heading: Vector;
@@ -13,7 +12,7 @@ export type MovingMapObject = {
  * @param mo The MapObject or fleet to check
  * @returns String containing name of object/fleet
  */
-export function getMapObjectName(mo: MapObject | Fleet | undefined): string {
+export function getMapObjectName(mo: MapObject | AnyFleet | undefined): string {
 	if (!mo) {
 		return '';
 	}

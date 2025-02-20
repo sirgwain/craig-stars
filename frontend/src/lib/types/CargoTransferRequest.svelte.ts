@@ -1,5 +1,23 @@
 import { negativeCargo } from './Cargo';
-import { type Cargo } from './cs';
+import {
+	type Cargo,
+	type MineralPacket,
+	type MineralPacketIntel,
+	type Planet,
+	type PlanetIntel,
+	type SalvageIntel
+} from './cs';
+import type { AnyFleet } from './Fleet';
+
+// a destination that cargo can be transferred to/from
+export type CargoDest =
+	| AnyFleet
+	| Planet
+	| PlanetIntel
+	| SalvageIntel
+	| MineralPacket
+	| MineralPacketIntel
+	| undefined;
 
 export class CargoTransferRequest {
 	ironium = $state(0);

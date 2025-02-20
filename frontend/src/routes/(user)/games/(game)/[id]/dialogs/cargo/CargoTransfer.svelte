@@ -3,15 +3,13 @@
 	import type { OnCancel, OnOk, TransferCargoEvent } from '$lib/services/Events';
 	import { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 	import type { CommandedFleet } from '$lib/types/Fleet';
-	import type { Fleet } from '$lib/types/cs';
-	import type { Planet } from '$lib/types/cs';
-	import type { Salvage } from '$lib/types/cs';
+	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 
 	type Props = {
 		src: CommandedFleet;
-		dest: Fleet | Planet | Salvage | undefined;
+		dest: CargoDest;
 		onOk?: OnOk<TransferCargoEvent>;
 		onCancel?: OnCancel;
 	};

@@ -7,6 +7,7 @@ import { addMineral } from './Cargo';
 import type {
 	Fleet,
 	Planet,
+	PlanetIntel,
 	PlanetSpec,
 	ProductionQueueItem,
 	Rules,
@@ -434,19 +435,16 @@ export class CommandedPlanet implements Planet {
 	 * @param designs the designs to load by num to get items for
 	 * @returns a list of items for a planet
 	 */
-	public getAvailableProductionQueueShipDesigns(
-		planet: Planet,
-		designs: ShipDesign[]
-	): ProductionQueueItem[] {
+	public getAvailableProductionQueueShipDesigns(designs: ShipDesign[]): ProductionQueueItem[] {
 		const items: ProductionQueueItem[] = [];
 
-		if (planet.spec.dockCapacity == UnlimitedSpaceDock || (planet.spec.dockCapacity ?? 0) > 0) {
+		if (this.spec.dockCapacity == UnlimitedSpaceDock || (this.spec.dockCapacity ?? 0) > 0) {
 			sortBy(
 				designs
 					.filter(
 						(d) =>
-							planet.spec.dockCapacity == UnlimitedSpaceDock ||
-							(d.spec.mass ?? 0) <= (planet.spec.dockCapacity ?? 0)
+							this.spec.dockCapacity == UnlimitedSpaceDock ||
+							(d.spec.mass ?? 0) <= (this.spec.dockCapacity ?? 0)
 					)
 					.filter((d) => !d.spec.starbase)
 					.filter((d) => d.originalPlayerNum == None),
@@ -471,13 +469,10 @@ export class CommandedPlanet implements Planet {
 	 * @param designs the designs to load by num to get items for
 	 * @returns a list of items for a planet
 	 */
-	public getAvailableProductionQueueStarbaseDesigns(
-		planet: Planet,
-		designs: ShipDesign[]
-	): ProductionQueueItem[] {
+	public getAvailableProductionQueueStarbaseDesigns(designs: ShipDesign[]): ProductionQueueItem[] {
 		// filter starbase designs
 		const items = sortBy(
-			designs.filter((d) => d.spec.starbase && planet.spec.starbaseDesignNum !== d.num),
+			designs.filter((d) => d.spec.starbase && this.spec.starbaseDesignNum !== d.num),
 			(d) => d.name
 		).map<ProductionQueueItem>(
 			(d: ShipDesign): ProductionQueueItem => ({
@@ -497,7 +492,6 @@ export class CommandedPlanet implements Planet {
 	 * get a list of available ProductionQueueItems a planet can build
 	 */
 	public getAvailableProductionQueueItems(
-		planet: Planet,
 		innateMining: boolean | undefined,
 		innateResources: boolean | undefined,
 		livesOnStarbases: boolean | undefined,
@@ -517,18 +511,18 @@ export class CommandedPlanet implements Planet {
 
 		items.push(fromQueueItemType(QueueItemTypeMineralAlchemy));
 
-		if (!planet.scanner) {
+		if (!this.scanner) {
 			items.push(fromQueueItemType(QueueItemTypePlanetaryScanner));
 		}
 		if (genesisDevice) {
 			items.push(fromQueueItemType(QueueItemTypeGenesisDevice));
 		}
 
-		if (planet.spec.canTerraform) {
+		if (this.spec.canTerraform) {
 			items.push(fromQueueItemType(QueueItemTypeTerraformEnvironment));
 		}
 
-		if (planet.spec.hasMassDriver) {
+		if (this.spec.hasMassDriver) {
 			items.push(
 				fromQueueItemType(QueueItemTypeIroniumMineralPacket),
 				fromQueueItemType(QueueItemTypeBoraniumMineralPacket),
@@ -554,7 +548,7 @@ export class CommandedPlanet implements Planet {
 			fromQueueItemType(QueueItemTypeAutoMinTerraform)
 		);
 
-		if (planet.spec.hasMassDriver) {
+		if (this.spec.hasMassDriver) {
 			items.push(fromQueueItemType(QueueItemTypeAutoMineralPacket));
 		}
 
@@ -606,7 +600,11 @@ export const getQueueItemShortName = (
 	}
 };
 
-export function getMineralOutput(planet: Planet, numMines: number, mineOutput: number): Mineral {
+export function getMineralOutput(
+	planet: PlanetIntel,
+	numMines: number,
+	mineOutput: number
+): Mineral {
 	return {
 		ironium:
 			((((planet.mineralConcentration?.ironium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput,
@@ -619,12 +617,17 @@ export function getMineralOutput(planet: Planet, numMines: number, mineOutput: n
 
 // planetsSortBy returns a sortBy function for planets by key. This is used by the planets report page
 // and sorting when cycling through Planets
-export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) | undefined {
+export function planetsSortBy(
+	key: string
+): ((a: Planet | PlanetIntel, b: Planet | PlanetIntel) => number) | undefined {
 	switch (key) {
 		case 'name':
 			return (a, b) => a.name.localeCompare(b.name);
 		case 'production':
 			return (a, b) => {
+				if (!('productionQueue' in a && 'productionQueue' in b)) {
+					return 0;
+				}
 				const aItem =
 					a.productionQueue && (a.productionQueue?.length ?? 0) > 0
 						? `${JSON.stringify({
@@ -655,9 +658,10 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 		case 'habitability':
 			return (a, b) => (a.spec.habitability ?? 0) - (b.spec.habitability ?? 0);
 		case 'mines':
-			return (a, b) => (a.mines ?? 0) - (b.mines ?? 0);
+			return (a, b) => ('mines' in a && 'mines' in b ? (a.mines ?? 0) - (b.mines ?? 0) : 0);
 		case 'factories':
-			return (a, b) => (a.factories ?? 0) - (b.factories ?? 0);
+			return (a, b) =>
+				'factories' in a && 'factories' in b ? (a.factories ?? 0) - (b.factories ?? 0) : 0;
 		case 'defense':
 			return (a, b) => (a.spec.defenseCoverage ?? 0) - (b.spec.defenseCoverage ?? 0);
 		case 'minerals':
@@ -672,8 +676,10 @@ export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) |
 				(a.spec.resourcesPerYearAvailable ?? 0) - (b.spec.resourcesPerYearAvailable ?? 0);
 		case 'contributesOnlyLeftoverToResearch':
 			return (a, b) =>
-				((a.contributesOnlyLeftoverToResearch ?? false) ? 1 : 0) -
-				((b.contributesOnlyLeftoverToResearch ?? false) ? 1 : 0);
+				'contributesOnlyLeftoverToResearch' in a && 'contributesOnlyLeftoverToResearch' in b
+					? ((a.contributesOnlyLeftoverToResearch ?? false) ? 1 : 0) -
+						((b.contributesOnlyLeftoverToResearch ?? false) ? 1 : 0)
+					: 0;
 		default:
 			return (a, b) => a.num - b.num;
 	}

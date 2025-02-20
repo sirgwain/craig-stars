@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Planet } from '$lib/types/cs';
+	import type { PlanetIntel } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
@@ -8,7 +8,7 @@
 	const { universe } = getGameContext();
 
 	type Props = {
-		planet: Planet;
+		planet: PlanetIntel;
 	};
 
 	let { planet }: Props = $props();

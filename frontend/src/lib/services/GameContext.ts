@@ -1,12 +1,12 @@
 import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
+import { type CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 import type {
 	Game,
 	GameSettings,
 	MineField,
 	PlayerMessageTargetType,
-	Salvage,
 	ShipDesign
 } from '$lib/types/cs';
 import {
@@ -34,7 +34,7 @@ import {
 	type TransportPlan,
 	type Waypoint
 } from '$lib/types/cs';
-import { CommandedFleet, type WaypointDest } from '$lib/types/Fleet';
+import { CommandedFleet, type AnyFleet, type WaypointDest } from '$lib/types/Fleet';
 import { equal, key, ownedBy } from '$lib/types/MapObject';
 import { getMapObjectTypeForMessageType } from '$lib/types/Message';
 import { CommandedPlanet } from '$lib/types/Planet';
@@ -146,7 +146,7 @@ export type GameContext = {
 	updateMineFieldOrders: (mineField: MineField) => Promise<void>;
 	transferCargo: (
 		fleet: CommandedFleet,
-		dest: Fleet | Planet | Salvage,
+		dest: CargoDest,
 		transferAmount: CargoTransferRequest
 	) => Promise<void>;
 	split: (
@@ -386,7 +386,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	function gotoTargetFleet(target: MapObject, playerNum: number, universe: Universe) {
 		if (target.playerNum == playerNum) {
 			commandMapObject(target);
-			const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
+			const orbitingPlanetNum = (target as AnyFleet).orbitingPlanetNum;
 			if (orbitingPlanetNum && orbitingPlanetNum != None) {
 				const orbiting = universe.getPlanet(orbitingPlanetNum);
 				if (orbiting) {
@@ -657,7 +657,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 	// after a planet is updated from the server, update the planet in the universe, reset any commanded/selected
 	// state and trigger reactivity
-	function updatePlanet(planet: CommandedPlanet | Planet, updatedPlanet: CommandedPlanet | Planet) {
+	function updatePlanet(planet: CommandedPlanet | Planet, updatedPlanet: Planet) {
 		planet = Object.assign(planet, updatedPlanet);
 		const u = get(universe);
 		const cp = get(commandedPlanet);
@@ -746,7 +746,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 			const u = get(universe);
 			result.planets.forEach((planet) => {
-				u.planets[planet.num - 1] = planet;
+				u.planets[planet.num - 1] = { ...planet, reportAge: 0 };
 				if (equal(get(selectedMapObject), planet)) {
 					selectMapObject(planet);
 				}
@@ -874,10 +874,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	async function deleteDesign(num: number): Promise<void> {
 		const { fleets, starbases } = await DesignService.delete(gameId, num);
 		const u = get(universe);
-		const p = get(player);
 		// replace our fleets and starbases (but keep intel issue #146)
-		u.fleets = fleets.concat(u.fleets.filter((f) => f.playerNum != p.num));
-		u.starbases = starbases.concat(u.starbases.filter((f) => f.playerNum != p.num));
+		u.fleets = fleets;
+		u.starbases = starbases;
 		u.resetMapObjectsByPosition();
 		u.resetMyMapObjectsByPosition();
 
@@ -1026,7 +1025,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 	async function transferCargo(
 		fleet: CommandedFleet,
-		dest: Fleet | Planet | Salvage,
+		dest: CargoDest,
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
 		const result = await FleetService.transferCargo(fleet, dest, transferAmount.jsonData());

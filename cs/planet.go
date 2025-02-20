@@ -9,6 +9,7 @@ import (
 // Players also start the game knowing all planet names and locations.
 // I suppose these should have been named Stars, since they represent a star system, ah well..
 type Planet struct {
+	GameDBObject         `tstype:",extends"`
 	MapObject            `tstype:",extends"`
 	PlanetOrders         `tstype:",extends"`
 	Hab                  Hab        `json:"hab"`
@@ -144,7 +145,7 @@ func (p *Planet) WithScanner(scanner bool) *Planet {
 }
 
 func (p *Planet) String() string {
-	return fmt.Sprintf("Planet %s", &p.MapObject)
+	return fmt.Sprintf("Planet %v", p.MapObject)
 }
 
 func (p *Planet) population() int {

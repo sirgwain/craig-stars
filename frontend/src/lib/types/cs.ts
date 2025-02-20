@@ -183,14 +183,14 @@ export const None = 0;
  * in the fleet. Fleets also have orders that can be updated by the player, in the form of waypoints and the battle plan.
  * Fleets are one of the commandable MapObjects in the game.
  */
-export interface Fleet extends MapObject, FleetOrders {
+export interface Fleet extends GameDBObject, MapObject, FleetOrders {
 	planetNum: number /* int */; // for starbase fleets that are owned by a planet
 	baseName: string;
 	cargo?: Cargo;
 	fuel: number /* int */;
 	age: number /* int */;
 	tokens: ShipToken[];
-	heading?: Vector;
+	heading: Vector;
 	warpSpeed?: number /* int */;
 	previousPosition?: Vector;
 	orbitingPlanetNum?: number /* int */;
@@ -475,20 +475,12 @@ export const Unowned = 0;
  * is used to support discovering for a player and all of their allies when scanning, invading, etc
  */
 export interface Intel {
-	name: string;
-	num: number /* int */;
-	playerNum: number /* int */;
 	reportAge: number /* int */;
 }
-export interface MapObjectIntel extends Intel {
-	type: MapObjectType;
-	position: Vector;
-}
-export interface PlanetIntel extends MapObjectIntel {
+export interface PlanetIntel extends Intel, MapObject {
 	hab?: Hab;
 	baseHab?: Hab;
 	mineralConcentration?: Mineral;
-	starbase?: FleetIntel;
 	cargo?: Cargo;
 	cargoDiscovered?: boolean;
 	planetHabitability?: number /* int */;
@@ -497,13 +489,16 @@ export interface PlanetIntel extends MapObjectIntel {
 	spec: PlanetSpec;
 }
 export interface ShipDesignIntel extends Intel {
+	name: string;
+	num: number /* int */;
+	playerNum: number /* int */;
 	hull?: string;
 	hullSetNumber?: number /* int */;
 	version?: number /* int */;
 	slots?: ShipDesignSlot[];
 	spec: ShipDesignSpec;
 }
-export interface FleetIntel extends MapObjectIntel {
+export interface FleetIntel extends Intel, MapObject {
 	baseName: string;
 	heading: Vector;
 	orbitingPlanetNum?: number /* int */;
@@ -516,7 +511,7 @@ export interface FleetIntel extends MapObjectIntel {
 	scanRangePen?: number /* int */;
 	tokens: ShipToken[];
 }
-export interface MineralPacketIntel extends MapObjectIntel {
+export interface MineralPacketIntel extends Intel, MapObject {
 	warpSpeed: number /* int */;
 	heading: Vector;
 	cargo?: Cargo;
@@ -524,19 +519,19 @@ export interface MineralPacketIntel extends MapObjectIntel {
 	scanRange?: number /* int */;
 	scanRangePen?: number /* int */;
 }
-export interface SalvageIntel extends MapObjectIntel {
+export interface SalvageIntel extends Intel, MapObject {
 	cargo: Cargo;
 }
-export interface MineFieldIntel extends MapObjectIntel {
+export interface MineFieldIntel extends Intel, MapObject {
 	numMines: number /* int */;
 	mineFieldType: MineFieldType;
 	spec: MineFieldSpec;
 }
-export interface WormholeIntel extends MapObjectIntel {
+export interface WormholeIntel extends Intel, MapObject {
 	destinationNum?: number /* int */;
 	stability?: WormholeStability;
 }
-export interface MysteryTraderIntel extends MapObjectIntel {
+export interface MysteryTraderIntel extends Intel, MapObject {
 	warpSpeed: number /* int */;
 	heading: Vector;
 	requestedBoon: number /* int */;
@@ -578,7 +573,7 @@ export interface GameDBObject {
  * Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum for player owned
  * map objects), as well as a Position in space.
  */
-export interface MapObject extends GameDBObject {
+export interface MapObject {
 	type: MapObjectType;
 	position: Vector;
 	num: number /* int */;
@@ -776,7 +771,7 @@ export type MineFieldType = string;
 export const MineFieldTypeStandard: MineFieldType = 'Standard';
 export const MineFieldTypeHeavy: MineFieldType = 'Heavy';
 export const MineFieldTypeSpeedBump: MineFieldType = 'SpeedBump';
-export interface MineField extends MapObject, MineFieldOrders {
+export interface MineField extends GameDBObject, MapObject, MineFieldOrders {
 	mineFieldType: MineFieldType;
 	numMines: number /* int */;
 	spec: MineFieldSpec;
@@ -825,7 +820,7 @@ export type MineralType = ResourceType;
 /**
  * Starbases with Packet Throwers can build mineral packets and fling them at other planets.
  */
-export interface MineralPacket extends MapObject {
+export interface MineralPacket extends GameDBObject, MapObject {
 	targetPlanetNum: number /* int */;
 	cargo?: Cargo;
 	warpSpeed: number /* int */;
@@ -850,7 +845,7 @@ export const MineralPacketDecayToNothing = -1;
 /**
  * The mystery trader travels through space and gives a boon to any player that gives it a fleet full of minerals
  */
-export interface MysteryTrader extends MapObject {
+export interface MysteryTrader extends GameDBObject, MapObject {
 	warpSpeed?: number /* int */;
 	destination: Vector;
 	requestedBoon?: number /* int */;
@@ -929,7 +924,7 @@ export type Orderer = unknown;
  * Players also start the game knowing all planet names and locations.
  * I suppose these should have been named Stars, since they represent a star system, ah well..
  */
-export interface Planet extends MapObject, PlanetOrders {
+export interface Planet extends GameDBObject, MapObject, PlanetOrders {
 	hab: Hab;
 	baseHab: Hab;
 	terraformedAmount: Hab;
@@ -1054,7 +1049,6 @@ export interface PlayerIntels {
 	scoreIntels?: ScoreIntel[];
 	planetIntels?: PlanetIntel[];
 	fleetIntels?: FleetIntel[];
-	starbaseIntels?: FleetIntel[];
 	shipDesignIntels?: ShipDesignIntel[];
 	mineralPacketIntels?: MineralPacketIntel[];
 	mineFieldIntels?: MineFieldIntel[];
@@ -1699,7 +1693,7 @@ export interface MysteryTraderTechBoonMineralsReward {
 //////////
 // source: salvage.go
 
-export interface Salvage extends MapObject {
+export interface Salvage extends GameDBObject, MapObject {
 	cargo?: Cargo;
 }
 
@@ -2405,7 +2399,7 @@ export const VictoryConditionHighestScoreAfterYears: VictoryCondition = 1 << (7 
 //////////
 // source: wormhole.go
 
-export interface Wormhole extends MapObject {
+export interface Wormhole extends GameDBObject, MapObject {
 	destinationNum?: number /* int */;
 	stability?: WormholeStability;
 	yearsAtStability?: number /* int */;

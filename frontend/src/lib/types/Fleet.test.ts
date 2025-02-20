@@ -1,12 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommandedFleet, moveDamagedTokens } from './Fleet';
-import { type ShipToken } from './cs';
-import { Infinite } from './cs';
-import { None } from './cs';
 import { cottonPicker, longRangeScout, santaMaria, TestDesignFinder } from './Mock.test';
 import { CommandedPlanet } from './Planet';
-import { CommandedPlayer, PlayerRelation } from './Player';
+import { CommandedPlayer } from './Player';
 import type { RaceSpec } from './cs';
+import { Infinite, None, PlayerRelationEnemy, PlayerRelationFriend, type ShipToken } from './cs';
 
 describe('Fleet test', () => {
 	it('getFuelUsage', () => {
@@ -100,13 +98,13 @@ describe('Fleet test', () => {
 		player.num = 1;
 		player.relations = [
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Enemy
+				relation: PlayerRelationEnemy
 			}
 		];
 
@@ -160,13 +158,13 @@ describe('Fleet test', () => {
 		itPlayer.num = 1;
 		itPlayer.relations = [
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Enemy
+				relation: PlayerRelationEnemy
 			}
 		];
 		itPlayer.race.spec = Object.assign({}, { canGateCargo: true }) as RaceSpec;
@@ -183,13 +181,13 @@ describe('Fleet test', () => {
 		player.num = 1;
 		player.relations = [
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Enemy
+				relation: PlayerRelationEnemy
 			}
 		];
 

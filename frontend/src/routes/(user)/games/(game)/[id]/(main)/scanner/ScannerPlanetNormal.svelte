@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MapObjectTypeFleet, ReportAgeUnexplored, type Fleet, type Planet } from '$lib/types/cs';
+	import { MapObjectTypeFleet, ReportAgeUnexplored, type PlanetIntel } from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
+	import type { AnyFleet } from '$lib/types/Fleet';
 	import { owned } from '$lib/types/MapObject';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';
@@ -11,7 +12,7 @@
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		planet: Planet;
+		planet: PlanetIntel;
 		commanded?: boolean;
 	};
 
@@ -34,7 +35,7 @@
 		$universe
 			.getMapObjectsByPosition(planet)
 			.filter((mo) => mo.type === MapObjectTypeFleet)
-			.filter((f) => filterFleet($player, f as Fleet, $settings))
+			.filter((f) => filterFleet($player, f as AnyFleet, $settings))
 	);
 
 	// setup props for planet circle

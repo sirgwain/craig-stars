@@ -145,6 +145,7 @@ func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
 type playerUniverseResponse struct {
 	Planets        []interface{} `json:"planets,omitempty"`
 	Fleets         []interface{} `json:"fleets,omitempty"`
+	FleetIntels    []interface{} `json:"fleetIntels,omitempty"`
 	Starbases      []interface{} `json:"starbases,omitempty"`
 	Wormholes      []interface{} `json:"wormholes,omitempty"`
 	MineralPackets []interface{} `json:"mineralPackets,omitempty"`
@@ -213,8 +214,9 @@ func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMa
 
 	universe := playerUniverseResponse{
 		Planets:        make([]interface{}, len(intels.PlanetIntels)),
-		Fleets:         make([]interface{}, len(intels.FleetIntels)+numPlayerFleets),
-		Starbases:      make([]interface{}, len(intels.StarbaseIntels)+numPlayerStarbases),
+		Fleets:         make([]interface{}, numPlayerFleets),
+		FleetIntels:    make([]interface{}, len(intels.FleetIntels)),
+		Starbases:      make([]interface{}, numPlayerStarbases),
 		MineralPackets: make([]interface{}, len(intels.MineralPacketIntels)+numPlayerMineralPackets),
 		MineFields:     make([]interface{}, len(intels.MineFieldIntels)+numPlayerMineFields),
 		Salvages:       make([]interface{}, len(intels.SalvageIntels)),
@@ -263,14 +265,11 @@ func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMa
 		universe.Fleets[i] = item
 	}
 	for i, item := range intels.FleetIntels {
-		universe.Fleets[i+numPlayerFleets] = item
+		universe.FleetIntels[i] = item
 	}
 
 	for i, item := range pmos.Starbases {
 		universe.Starbases[i] = item
-	}
-	for i, item := range intels.StarbaseIntels {
-		universe.Starbases[i+numPlayerStarbases] = item
 	}
 
 	for i, item := range pmos.MineralPackets {

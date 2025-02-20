@@ -409,17 +409,13 @@
 		queueItems = [...planet.productionQueue.map((item) => ({ ...item }) as ProductionQueueItem)];
 		const genesisDevice = $techs.getTech(GenesisDevice);
 		availableItems = planet.getAvailableProductionQueueItems(
-			planet,
 			$player.race.spec?.innateMining,
 			$player.race.spec?.innateResources,
 			$player.race.spec?.livesOnStarbases,
 			genesisDevice && $player.hasTech(genesisDevice)
 		);
-		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns(planet, $universe.designs);
-		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns(
-			planet,
-			$universe.designs
-		);
+		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns($universe.designs);
+		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns($universe.designs);
 		if (availableShipDesigns.length > 0) {
 			selectedAvailableItem = availableShipDesigns[0];
 		} else if (availableStarbaseDesigns.length > 0) {

@@ -1,15 +1,17 @@
 import { battlesSortBy, getBattleRecordDetails, type BattleRecordDetails } from '$lib/types/Battle';
 import type {
 	Cost,
+	FleetIntel,
 	MapObjectTarget,
 	MineField,
-	MineralPacket,
+	MineFieldIntel,
+	MineralPacketIntel,
 	MysteryTraderIntel,
+	PlanetIntel,
 	PlayerIntel,
 	PlayerIntels,
 	PlayerScore,
 	ProductionQueueItem,
-	Salvage,
 	SalvageIntel,
 	ShipDesign,
 	Vector,
@@ -29,19 +31,20 @@ import {
 	type Planet,
 	type Waypoint
 } from '$lib/types/cs';
-import { fleetsSortBy } from '$lib/types/Fleet';
-import { planetsSortBy } from '$lib/types/Planet';
+import { fleetsSortBy, type AnyFleet } from '$lib/types/Fleet';
+import { CommandedPlanet, planetsSortBy } from '$lib/types/Planet';
 import type { CommandedPlayer } from '$lib/types/Player';
 import type { CS } from '$lib/wasm';
 import { groupBy, startCase } from 'lodash-es';
 
 export type PlayerUniverse = {
 	designs: ShipDesign[];
-	planets: Planet[];
+	planets: PlanetIntel[];
 	fleets: Fleet[];
+	fleetIntels: FleetIntel[];
 	starbases: Fleet[];
-	mineFields: MineField[];
-	mineralPackets: MineralPacket[];
+	mineFields: MineFieldIntel[];
+	mineralPackets: MineralPacketIntel[];
 	salvages: SalvageIntel[];
 	wormholes: WormholeIntel[];
 	mysteryTraders: MysteryTraderIntel[];
@@ -60,7 +63,7 @@ export interface CostFinder {
 		cs: CS,
 		item: ProductionQueueItem | undefined,
 		designFinder: DesignFinder,
-		planet?: Planet,
+		planet?: CommandedPlanet,
 		quantity?: number
 	): Cost;
 }
@@ -94,11 +97,12 @@ function positionKey(pos: MapObject | Vector): string {
 
 export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	playerNum = 0;
-	planets: Planet[] = [];
+	planets: PlanetIntel[] = [];
 	fleets: Fleet[] = [];
+	fleetIntels: FleetIntel[] = [];
+	mineFields: MineFieldIntel[] = [];
+	mineralPackets: MineralPacketIntel[] = [];
 	salvages: SalvageIntel[] = [];
-	mineFields: MineField[] = [];
-	mineralPackets: MineralPacket[] = [];
 	starbases: Fleet[] = [];
 	wormholes: WormholeIntel[] = [];
 	mysteryTraders: MysteryTraderIntel[] = [];
@@ -106,6 +110,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	players: PlayerIntel[] = [];
 	scores: PlayerScore[][] = [];
 	battles: BattleRecord[] = [];
+	playerIntels: PlayerIntel[] = [];
 
 	mapObjectsByPosition: Record<string, MapObject[]> = {};
 	myMapObjectsByPosition: Record<string, MapObject[]> = {};
@@ -118,6 +123,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 
 		this.planets = data.planets ?? [];
 		this.fleets = data.fleets ?? [];
+		this.fleetIntels = data.fleetIntels ?? [];
 		this.starbases = data.starbases ?? [];
 		this.mineFields = data.mineFields ?? [];
 		this.mineralPackets = data.mineralPackets ?? [];
@@ -146,6 +152,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		this.mapObjectsByPosition = {};
 		this.planets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.fleets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.fleetIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.mineFields.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.mineralPackets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.salvages.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
@@ -161,10 +168,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 			.filter(ownedByMe)
 			.sort(sortByNum)
 			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
-		this.fleets
-			.filter(ownedByMe)
-			.sort(sortByNum)
-			.forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
+		this.fleets.sort(sortByNum).forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
 		this.mineFields
 			.filter(ownedByMe)
 			.sort(sortByNum)
@@ -225,7 +229,9 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	}
 
 	getMyPlanets(sortKey: string, descending: boolean): Planet[] {
-		const planets = this.planets.filter((d) => d.playerNum === this.playerNum);
+		const planets = this.planets
+			.filter((d) => d.playerNum === this.playerNum)
+			.map((p) => p as unknown as Planet);
 		planets.sort(planetsSortBy(sortKey));
 		if (descending) {
 			planets.reverse();
@@ -233,7 +239,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return planets;
 	}
 
-	getPlanets(sortKey: string, descending: boolean): Planet[] {
+	getPlanets(sortKey: string, descending: boolean): PlanetIntel[] {
 		const planets = [...this.planets];
 		planets.sort(planetsSortBy(sortKey));
 		if (descending) {
@@ -243,7 +249,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	}
 
 	getMyFleets(sortKey: string, descending: boolean): Fleet[] {
-		const fleets = this.fleets.filter((d) => d.playerNum === this.playerNum);
+		const fleets = [...this.fleets];
 		fleets.sort(fleetsSortBy(sortKey, this));
 		if (descending) {
 			fleets.reverse();
@@ -251,11 +257,14 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return fleets;
 	}
 
-	getFleets(sortKey: string, descending: boolean): Fleet[] {
-		const fleets = [...this.fleets];
-		fleets.sort(fleetsSortBy(sortKey, this));
-		if (descending) {
-			fleets.reverse();
+	// getAllFleets gets all of my fleets and other player fleets, optionally sorted
+	getAllFleets(sortKey?: string, descending?: boolean): AnyFleet[] {
+		const fleets = [...this.fleets, ...this.fleetIntels];
+		if (sortKey) {
+			fleets.sort(fleetsSortBy(sortKey, this));
+			if (descending) {
+				fleets.reverse();
+			}
 		}
 		return fleets;
 	}
@@ -315,16 +324,16 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.mapObjectsByPosition[positionKey(position)];
 	}
 
-	getSalvageAtPosition(position: MapObject | Vector): Salvage | undefined {
+	getSalvageAtPosition(position: MapObject | Vector): SalvageIntel | undefined {
 		const mo = this.getMapObjectsByPosition(position)?.find(
 			(mo) => mo.type === MapObjectTypeSalvage
 		);
 		if (mo) {
-			return mo as Salvage;
+			return mo as SalvageIntel;
 		}
 	}
 
-	getSalvage(num: number | undefined): Salvage | undefined {
+	getSalvage(num: number | undefined): SalvageIntel | undefined {
 		return this.salvages.find((s) => s.num === num);
 	}
 
@@ -356,7 +365,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 		return this.fleets.find((f) => f.playerNum === playerNum && f.num === num);
 	}
 
-	getPlanetStarbase(planetNum: number) {
+	getMyPlanetStarbase(planetNum: number) {
 		return this.starbases.find((sb) => sb.planetNum === planetNum);
 	}
 
@@ -392,24 +401,24 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 	}
 
 	updatePlanet(planet: Planet) {
-		this.planets[planet.num - 1] = planet;
+		this.planets[planet.num - 1] = { ...planet, reportAge: 0 };
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}
 
 	updateMineField(mineField: MineField) {
-		this.mineFields[mineField.num - 1] = mineField;
+		this.mineFields[mineField.num - 1] = { ...mineField, reportAge: 0 };
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}
 
-	updateSalvages(salvages: Salvage[]) {
+	updateSalvages(salvages: SalvageIntel[]) {
 		this.salvages = salvages;
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}
 
-	updateMineralPackets(mineralPackets: MineralPacket[]) {
+	updateMineralPackets(mineralPackets: MineralPacketIntel[]) {
 		this.mineralPackets = mineralPackets;
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
@@ -446,7 +455,7 @@ export class Universe implements PlayerUniverse, PlayerIntels, DesignFinder {
 			case MapObjectTypePlanet:
 				return target.targetNum ? this.getPlanet(target.targetNum) : undefined;
 			case MapObjectTypeFleet:
-				return this.fleets.find(
+				return [...this.fleets, ...this.fleetIntels].find(
 					(f) => f.num === target.targetNum && f.playerNum === target.targetPlayerNum
 				);
 			case MapObjectTypeMineField:

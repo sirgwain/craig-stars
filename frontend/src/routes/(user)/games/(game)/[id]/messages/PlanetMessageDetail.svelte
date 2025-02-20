@@ -2,7 +2,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { totalMinerals } from '$lib/types/Cost';
 	import { absSum } from '$lib/types/Hab';
-	import type { Planet, PlayerIntel } from '$lib/types/cs';
+	import type { PlanetIntel, PlayerIntel } from '$lib/types/cs';
 	import {
 		CometHuge,
 		CometLarge,
@@ -46,7 +46,7 @@
 
 	type Props = {
 		message: PlayerMessage;
-		planet: Planet;
+		planet: PlanetIntel;
 		owner: PlayerIntel | undefined;
 	};
 

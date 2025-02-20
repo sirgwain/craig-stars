@@ -1,9 +1,9 @@
 <script lang="ts" module>
-	import type { HabType, Planet } from '$lib/types/cs';
+	import type { HabType, Planet, PlanetIntel } from '$lib/types/cs';
 	import type { CommandedPlayer } from '$lib/types/Player';
 	export type HabTooltipProps = {
 		player: CommandedPlayer;
-		planet: Planet;
+		planet: Planet | PlanetIntel;
 		habType: HabType;
 	};
 </script>

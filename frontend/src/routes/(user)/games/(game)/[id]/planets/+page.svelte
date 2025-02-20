@@ -41,7 +41,22 @@
 		$settings.showAllPlanets
 			? ($universe
 					.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
-					.map<TablePlanet>((r) => r as TablePlanet)
+					.map<TablePlanet>( // convert PlanetIntel to a TablePlanet, so populate all the planet fields as empty
+						(r) =>
+							({
+								...r,
+								mines: 0,
+								factories: 0,
+								mineYears: 0,
+								defenses: 0,
+								gameId: 0,
+								id: 0,
+								createdAt: '',
+								updatedAt: '',
+								terraformedAmount: {},
+								tags: {}
+							}) as TablePlanet
+					)
 					.filter(
 						(i) =>
 							i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
@@ -70,7 +85,7 @@
 		resources?: never;
 		driverDest?: never;
 		routingDestination?: never;
-		reportAge?: never;
+		reportAge?: number;
 		starbase?: never;
 	};
 	let columns: TableColumn<TablePlanet>[] = $derived([

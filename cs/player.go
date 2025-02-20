@@ -74,7 +74,6 @@ type PlayerIntels struct {
 	ScoreIntels         []ScoreIntel         `json:"scoreIntels,omitempty"`
 	PlanetIntels        []PlanetIntel        `json:"planetIntels,omitempty"`
 	FleetIntels         []FleetIntel         `json:"fleetIntels,omitempty"`
-	StarbaseIntels      []FleetIntel         `json:"starbaseIntels,omitempty"`
 	ShipDesignIntels    []ShipDesignIntel    `json:"shipDesignIntels,omitempty"`
 	MineralPacketIntels []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
 	MineFieldIntels     []MineFieldIntel     `json:"mineFieldIntels,omitempty"`

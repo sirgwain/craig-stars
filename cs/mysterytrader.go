@@ -7,6 +7,7 @@ import (
 
 // The mystery trader travels through space and gives a boon to any player that gives it a fleet full of minerals
 type MysteryTrader struct {
+	GameDBObject    `tstype:",extends"`
 	MapObject       `tstype:",extends"`
 	WarpSpeed       int                     `json:"warpSpeed,omitempty"`
 	Destination     Vector                  `json:"destination"`

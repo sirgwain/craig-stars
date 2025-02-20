@@ -32,6 +32,7 @@ func (t MineFieldType) CanDetonate() bool {
 }
 
 type MineField struct {
+	GameDBObject    `tstype:",extends"`
 	MapObject       `tstype:",extends"`
 	MineFieldOrders `tstype:",extends"`
 	MineFieldType   MineFieldType `json:"mineFieldType"`

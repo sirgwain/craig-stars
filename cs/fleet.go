@@ -26,6 +26,7 @@ const None = 0
 // in the fleet. Fleets also have orders that can be updated by the player, in the form of waypoints and the battle plan.
 // Fleets are one of the commandable MapObjects in the game.
 type Fleet struct {
+	GameDBObject      `tstype:",extends"`
 	MapObject         `tstype:",extends"`
 	FleetOrders       `tstype:",extends"`
 	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
@@ -34,7 +35,7 @@ type Fleet struct {
 	Fuel              int         `json:"fuel"`
 	Age               int         `json:"age"`
 	Tokens            []ShipToken `json:"tokens"`
-	Heading           Vector      `json:"heading,omitempty"`
+	Heading           Vector      `json:"heading"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
 	PreviousPosition  *Vector     `json:"previousPosition,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`

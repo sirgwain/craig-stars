@@ -1,20 +1,16 @@
 import type { DesignFinder, Universe } from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo } from './Cargo';
+import type { CargoDest } from './CargoTransferRequest.svelte';
 import { owned, ownedBy } from './MapObject';
 import type { CommandedPlayer } from './Player';
 import { distance, equal } from './Vector';
 import {
 	type Cargo,
-	type FleetSpec,
-	type MineralPacket,
-	type Salvage,
-	type ShipDesign,
-	type Vector,
-	type WaypointTask,
 	type Engine,
 	type Fleet,
 	type FleetIntel,
+	type FleetSpec,
 	type MapObject,
 	MapObjectTypeFleet,
 	MapObjectTypeMineralPacket,
@@ -22,7 +18,8 @@ import {
 	MapObjectTypePlanet,
 	MapObjectTypeSalvage,
 	None,
-	type Planet,
+	type PlanetIntel,
+	type ShipDesign,
 	type ShipToken,
 	StargateWarpSpeed,
 	TransportActionFillPercent,
@@ -36,7 +33,9 @@ import {
 	TransportActionUnloadAll,
 	TransportActionUnloadAmount,
 	TransportActionWaitForPercent,
+	type Vector,
 	type Waypoint,
+	type WaypointTask,
 	WaypointTaskColonize,
 	WaypointTaskLayMineField,
 	WaypointTaskMergeWithFleet,
@@ -50,6 +49,8 @@ import {
 	type WaypointTaskTransportAction,
 	type WaypointTransportTasks
 } from './cs';
+
+export type AnyFleet = Fleet | FleetIntel;
 
 export const WaypointTasks: WaypointTask[] = [
 	WaypointTaskNone,
@@ -88,7 +89,6 @@ export const emptyWaypointTransportTasks = (): WaypointTransportTasks => ({
 
 /** A destination for a waypoint - either a MapObject or a position in space (but not both) */
 export type WaypointDest = { mo: MapObject; position?: never } | { mo?: never; position: Vector };
-export type CargoTransferTarget = Fleet | Planet | Salvage | MineralPacket | undefined;
 
 export function emptyTransportTasks(): WaypointTransportTasks {
 	return {
@@ -211,7 +211,7 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
-	 * Add a {@linkcode Waypoint} to this {@linkcode Fleet}.
+	 * Add a {@linkcode Waypoint} to this {@linkcode CommandedFleet}.
 	 * @param player The player controlling the fleet.
 	 * @param universe Universe object
 	 * @param dest Waypoint destination ()
@@ -488,7 +488,7 @@ export class CommandedFleet implements Fleet {
 		player: CommandedPlayer,
 		designFinder: DesignFinder,
 		dist: number,
-		orbiting: Planet | undefined,
+		orbiting: PlanetIntel | undefined,
 		dest: WaypointDest,
 		fuelAlreadyAllocated: number,
 		highestShipMass: number,
@@ -501,7 +501,7 @@ export class CommandedFleet implements Fleet {
 		let canJump = false;
 		let canFuel = false;
 		if (mo && mo.type == MapObjectTypePlanet) {
-			const target = mo as Planet;
+			const target = mo as PlanetIntel;
 			canColonize = this.canColonize(target);
 			canRemoteMine = this.canRemoteMine(player, target);
 			canJump = this.canJump(player, orbiting, target, dist, highestShipMass);
@@ -645,7 +645,7 @@ export class CommandedFleet implements Fleet {
 	 * @param target the target planet to check
 	 * @returns true if this fleet can colonize this planet
 	 */
-	canColonize(target: Planet): boolean {
+	canColonize(target: PlanetIntel): boolean {
 		return !!(
 			this.spec.colonizer &&
 			this.cargo.colonists &&
@@ -659,7 +659,7 @@ export class CommandedFleet implements Fleet {
 	 * @param target the target planet to check
 	 * @returns true if this fleet can colonize this planet
 	 */
-	canRemoteMine(player: CommandedPlayer, target: Planet): boolean {
+	canRemoteMine(player: CommandedPlayer, target: PlanetIntel): boolean {
 		return !!(
 			this.spec.miningRate &&
 			this.spec.miningRate > 0 &&
@@ -678,8 +678,8 @@ export class CommandedFleet implements Fleet {
 	 */
 	canJump(
 		player: CommandedPlayer,
-		orbiting: Planet | undefined,
-		targetPlanet: Planet,
+		orbiting: PlanetIntel | undefined,
+		targetPlanet: PlanetIntel,
 		dist: number,
 		highestShipMass: number
 	): boolean {
@@ -718,7 +718,7 @@ export class CommandedFleet implements Fleet {
 	 * @param targetPlanet the planet the fleet is targeting
 	 * @returns true if the fleet will refuel at this planet
 	 */
-	canFuel(player: CommandedPlayer, targetPlanet: Planet | undefined): boolean {
+	canFuel(player: CommandedPlayer, targetPlanet: PlanetIntel | undefined): boolean {
 		return !!(
 			targetPlanet &&
 			owned(targetPlanet) &&
@@ -743,7 +743,7 @@ export class CommandedFleet implements Fleet {
 	 * @param universe
 	 * @returns The target for what we should transfer cargo to, based on wp0
 	 */
-	getCargoTransferTarget(universe: Universe): CargoTransferTarget {
+	getCargoTransferTarget(universe: Universe): CargoDest {
 		const wp0 = this.waypoints[0];
 		if (
 			wp0.targetNum == undefined ||
@@ -807,7 +807,7 @@ export function canTransferCargo(fleet: Fleet, universe: Universe): boolean {
 }
 
 // This shows only your fleets that have no movement orders, and any active enemy ships (so you can match one with the other, if you wish).
-export function idleFleetsFilter(fleet: Fleet, showIdleFleetsOnly: boolean): boolean {
+export function idleFleetsFilter(fleet: AnyFleet, showIdleFleetsOnly: boolean): boolean {
 	if (!showIdleFleetsOnly) {
 		// no filter, show all fleets
 		return true;
@@ -815,6 +815,7 @@ export function idleFleetsFilter(fleet: Fleet, showIdleFleetsOnly: boolean): boo
 
 	// show our fleets that are idle
 	if (
+		'waypoints' in fleet &&
 		fleet.waypoints &&
 		fleet.waypoints.length == 1 &&
 		fleet.waypoints[0].task == WaypointTaskNone
@@ -823,7 +824,7 @@ export function idleFleetsFilter(fleet: Fleet, showIdleFleetsOnly: boolean): boo
 	}
 
 	// enemy fleet that is moving, show it so players can match idle fleets to moving fleets
-	if (!fleet.waypoints && fleet.warpSpeed) {
+	if (!('waypoints' in fleet) && fleet.warpSpeed) {
 		return true;
 	}
 
@@ -863,7 +864,7 @@ export const isLoadAction = (action: WaypointTaskTransportAction) =>
 export const isUnloadAction = (action: WaypointTaskTransportAction) =>
 	[TransportActionUnloadAll, TransportActionUnloadAmount].indexOf(action) != -1;
 
-export const getLocation = (fleet: Fleet, universe: Universe) =>
+export const getLocation = (fleet: AnyFleet, universe: Universe) =>
 	fleet.orbitingPlanetNum
 		? (universe.getPlanet(fleet.orbitingPlanetNum)?.name ?? 'unknown')
 		: `Space: (${fleet.position.x}, ${fleet.position.y})`;
@@ -893,7 +894,7 @@ export const getEta = (fleet: Fleet) => {
 
 export function getTokenCount(mo: MapObject) {
 	if (mo.type == MapObjectTypeFleet) {
-		const fleet = mo as Fleet;
+		const fleet = mo as AnyFleet;
 		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
 	}
 	return 0;
@@ -904,27 +905,38 @@ export function hasDestination(mo: MapObject): boolean {
 	return (fleet?.waypoints?.length ?? 0) > 1;
 }
 
+// get the mass of a fleet or fleetintel
+export function getMass(fleet: AnyFleet) {
+	if ('mass' in fleet) {
+		return fleet.mass ?? 0;
+	}
+	return fleet.spec?.mass ?? 0;
+}
+
 // fleetsSortBy returns a sortBy function for fleets by key. This is used by the fleets report page
 // and sorting when cycling through Fleets
 export function fleetsSortBy(
 	key: string,
 	universe: Universe
-): ((a: Fleet, b: Fleet) => number) | undefined {
+): ((a: AnyFleet, b: AnyFleet) => number) | undefined {
 	switch (key) {
 		case 'name':
 			return (a, b) => a.name.localeCompare(b.name);
 		case 'location':
 			return (a, b) => getLocation(a, universe).localeCompare(getLocation(b, universe));
 		case 'destination':
-			return (a, b) => getDestination(a, universe).localeCompare(getDestination(b, universe));
+			return (a, b) =>
+				'waypoints' in a && 'waypoints' in b
+					? getDestination(a, universe).localeCompare(getDestination(b, universe))
+					: 0;
 		case 'eta':
-			return (a, b) => getEta(a) - getEta(b);
+			return (a, b) => ('waypoints' in a && 'waypoints' in b ? getEta(a) - getEta(b) : 0);
 		case 'cargo':
 			return (a, b) => totalCargo(a.cargo) - totalCargo(b.cargo);
 		case 'mass':
-			return (a, b) => (a.spec?.mass ?? 0) - (b.spec?.mass ?? 0);
+			return (a, b) => getMass(a) - getMass(b);
 		case 'fuel':
-			return (a, b) => (a.fuel ?? 0) - (b.fuel ?? 0);
+			return (a, b) => ('fuel' in a && 'fuel' in b ? a.fuel - b.fuel : 0);
 		default:
 			return (a, b) => {
 				const aVal = pluck(a, key);

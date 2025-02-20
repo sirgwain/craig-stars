@@ -8,10 +8,10 @@
 	import type {
 		MineField,
 		MineralPacket,
-		MysteryTrader,
-		Planet,
-		Salvage,
-		Wormhole
+		MysteryTraderIntel,
+		PlanetIntel,
+		SalvageIntel,
+		WormholeIntel
 	} from '$lib/types/cs';
 	import {
 		MapObjectTypeFleet,
@@ -20,9 +20,9 @@
 		MapObjectTypeMysteryTrader,
 		MapObjectTypePlanet,
 		MapObjectTypeSalvage,
-		MapObjectTypeWormhole,
-		type Fleet
+		MapObjectTypeWormhole
 	} from '$lib/types/cs';
+	import type { AnyFleet } from '$lib/types/Fleet';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -55,10 +55,12 @@
 	}
 
 	let selectedPlanet = $derived(
-		$selectedMapObject?.type == MapObjectTypePlanet ? ($selectedMapObject as Planet) : undefined
+		$selectedMapObject?.type == MapObjectTypePlanet
+			? ($selectedMapObject as PlanetIntel)
+			: undefined
 	);
 	let selectedFleet = $derived(
-		$selectedMapObject?.type == MapObjectTypeFleet ? ($selectedMapObject as Fleet) : undefined
+		$selectedMapObject?.type == MapObjectTypeFleet ? ($selectedMapObject as AnyFleet) : undefined
 	);
 	let selectedMineField = $derived(
 		$selectedMapObject?.type == MapObjectTypeMineField
@@ -71,14 +73,18 @@
 			: undefined
 	);
 	let selectedSalvage = $derived(
-		$selectedMapObject?.type == MapObjectTypeSalvage ? ($selectedMapObject as Salvage) : undefined
+		$selectedMapObject?.type == MapObjectTypeSalvage
+			? ($selectedMapObject as SalvageIntel)
+			: undefined
 	);
 	let selectedWormhole = $derived(
-		$selectedMapObject?.type == MapObjectTypeWormhole ? ($selectedMapObject as Wormhole) : undefined
+		$selectedMapObject?.type == MapObjectTypeWormhole
+			? ($selectedMapObject as WormholeIntel)
+			: undefined
 	);
 	let selectedMysteryTrader = $derived(
 		$selectedMapObject?.type == MapObjectTypeMysteryTrader
-			? ($selectedMapObject as MysteryTrader)
+			? ($selectedMapObject as MysteryTraderIntel)
 			: undefined
 	);
 </script>

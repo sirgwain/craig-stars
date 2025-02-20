@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -24,14 +23,13 @@ type GameDBObject struct {
 // Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum for player owned
 // map objects), as well as a Position in space.
 type MapObject struct {
-	GameDBObject `tstype:",extends"`
-	Type         MapObjectType `json:"type"`
-	Delete       bool          `json:"-"`
-	Position     Vector        `json:"position"`
-	Num          int           `json:"num"`
-	PlayerNum    int           `json:"playerNum"`
-	Name         string        `json:"name"`
-	Tags         Tags          `json:"tags"`
+	Type      MapObjectType `json:"type"`
+	Position  Vector        `json:"position"`
+	Num       int           `json:"num"`
+	PlayerNum int           `json:"playerNum"`
+	Name      string        `json:"name"`
+	Tags      Tags          `json:"tags"`
+	Delete    bool          `json:"-"`
 }
 
 type MapObjectType string
@@ -50,10 +48,6 @@ const (
 const (
 	TagPurpose = "purpose"
 )
-
-func (mo *MapObject) String() string {
-	return fmt.Sprintf("GameID: %5d, ID: %5d, Num: %3d %s", mo.GameID, mo.ID, mo.Num, mo.Name)
-}
 
 func (mo *MapObject) Owned() bool {
 	return mo.PlayerNum != Unowned

@@ -403,7 +403,7 @@ func (t *turnGenerator) fleetLoad() {
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
 			dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
-			if !ok || dest.getMapObject().Delete {
+			if !ok || dest.deleted() {
 				// can't load from space
 				return
 			}

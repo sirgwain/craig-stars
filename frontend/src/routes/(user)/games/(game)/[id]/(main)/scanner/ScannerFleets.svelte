@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type Fleet } from '$lib/types/cs';
+	import type { AnyFleet } from '$lib/types/Fleet';
 	import { equal } from '$lib/types/MapObject';
 	import ScannerFleet from './ScannerFleet.svelte';
 
 	const { player, universe, commandedFleet, settings } = getGameContext();
 
-	let fleets: Fleet[] = $derived(
-		$universe.fleets
-			.filter((f: Fleet) => !f.orbitingPlanetNum)
-			.filter((f: Fleet) => equal($commandedFleet, f) || filterFleet($player, f, $settings))
+	let fleets: AnyFleet[] = $derived(
+		$universe
+			.getAllFleets()
+			.filter((f) => !f.orbitingPlanetNum)
+			.filter((f) => equal($commandedFleet, f) || filterFleet($player, f, $settings))
 	);
 </script>
 

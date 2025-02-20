@@ -1,4 +1,5 @@
-import { WaypointTaskNone, type Fleet } from './cs';
+import { WaypointTaskNone } from './cs';
+import type { AnyFleet } from './Fleet';
 import type { CommandedPlayer } from './Player';
 
 export type FilterOptions = {
@@ -27,7 +28,7 @@ export const ShipClasses = {
 
 export function filterFleet(
 	player: CommandedPlayer,
-	fleet: Fleet,
+	fleet: AnyFleet,
 	options: FilterOptions
 ): boolean {
 	return (
@@ -39,7 +40,7 @@ export function filterFleet(
 }
 
 // This shows only your fleets that have no movement orders, and any active enemy ships (so you can match one with the other, if you wish).
-export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
+export function filterIdleFleet(fleet: AnyFleet, enabled: boolean): boolean {
 	if (!enabled) {
 		// no filter, show all fleets
 		return true;
@@ -47,6 +48,7 @@ export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 
 	// show our fleets that are idle
 	if (
+		'waypoints' in fleet &&
 		fleet.waypoints &&
 		fleet.waypoints.length == 1 &&
 		fleet.waypoints[0].task == WaypointTaskNone
@@ -55,7 +57,7 @@ export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 	}
 
 	// enemy fleet that is moving, show it so players can match idle fleets to moving fleets
-	if (!fleet.waypoints && fleet.warpSpeed) {
+	if (fleet.warpSpeed) {
 		return true;
 	}
 
@@ -65,7 +67,7 @@ export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 
 export function filterMyDesigns(
 	player: CommandedPlayer,
-	fleet: Fleet,
+	fleet: AnyFleet,
 	enabled: boolean,
 	// TODO: add suport for showDesigns
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -81,7 +83,7 @@ export function filterMyDesigns(
 
 export function filterEnemyDesigns(
 	player: CommandedPlayer,
-	fleet: Fleet,
+	fleet: AnyFleet,
 	enabled: boolean,
 	// TODO: add suport for showShipClasses
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -97,7 +99,7 @@ export function filterEnemyDesigns(
 
 export function filterAllyDesigns(
 	player: CommandedPlayer,
-	fleet: Fleet,
+	fleet: AnyFleet,
 	enabled: boolean,
 	// TODO: add suport for showShipClasses
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars

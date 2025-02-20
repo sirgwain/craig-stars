@@ -3,8 +3,9 @@ package cs
 import "fmt"
 
 type Salvage struct {
-	MapObject `tstype:",extends"`
-	Cargo     Cargo `json:"cargo,omitempty"`
+	GameDBObject `tstype:",extends"`
+	MapObject    `tstype:",extends"`
+	Cargo        Cargo `json:"cargo,omitempty"`
 }
 
 // create a new salvage object

@@ -5,7 +5,6 @@ import { multiply } from './Cost';
 import type {
 	BattlePlan,
 	NextResearchField,
-	Planet,
 	Player,
 	PlayerMessage,
 	PlayerRelationship,
@@ -44,6 +43,7 @@ import {
 	type TechStore
 } from './cs';
 import { HabTypes } from './Hab';
+import type { CommandedPlanet } from './Planet';
 import { humanoid } from './Race';
 import { getBestTerraform } from './Tech';
 import { emptyTechLevel, hasRequiredLevels } from './TechLevel';
@@ -189,7 +189,7 @@ export class CommandedPlayer implements Player, CostFinder {
 		cs: CS,
 		item: ProductionQueueItem | undefined,
 		designFinder: DesignFinder,
-		planet?: Planet,
+		planet?: CommandedPlanet,
 		quantity = 1
 	): Cost {
 		if (item) {

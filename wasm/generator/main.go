@@ -143,12 +143,12 @@ func main() {
 		}
 	}
 
-	for _, s := range serializers {
-		fmt.Printf("  %s:\n", s.Name)
-		for _, f := range s.Fields {
-			fmt.Printf("    %s: json: %s, type: %v\n", f.Name, f.JsonName, f.Type)
-		}
-	}
+	// for _, s := range serializers {
+	// 	fmt.Printf("  %s:\n", s.Name)
+	// 	for _, f := range s.Fields {
+	// 		fmt.Printf("    %s: json: %s, type: %v\n", f.Name, f.JsonName, f.Type)
+	// 	}
+	// }
 
 	out, err := generator.RenderSerializer(pkg.Name, serializers)
 	if err != nil {

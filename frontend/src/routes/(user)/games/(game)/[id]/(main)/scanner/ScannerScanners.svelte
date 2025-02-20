@@ -31,11 +31,7 @@
 				);
 
 			$universe.fleets
-				.filter(
-					(fleet) =>
-						fleet.playerNum == $player.num &&
-						((fleet.spec?.scanRange ?? 0) > 0 || (fleet.spec?.scanRangePen ?? 0) > 0)
-				)
+				.filter((fleet) => (fleet.spec?.scanRange ?? 0) > 0 || (fleet.spec?.scanRangePen ?? 0) > 0)
 				.forEach((fleet) => {
 					const key = positionKey(fleet);
 					const scanner = {
@@ -62,8 +58,8 @@
 					const key = positionKey(packet);
 					const scanner = {
 						position: packet.position,
-						scanRange: packet.scanRange,
-						scanRangePen: packet.scanRangePen
+						scanRange: packet.scanRange ?? 0,
+						scanRangePen: packet.scanRangePen ?? 0
 					};
 					const existing = scannersByPosition.get(key);
 					if (existing) {
@@ -86,7 +82,7 @@
 				);
 
 			// find ally's scanners
-			$universe.fleets
+			$universe.fleetIntels
 				.filter(
 					(fleet) =>
 						$player.isSharingMap(fleet.playerNum) &&
@@ -118,8 +114,8 @@
 					const key = positionKey(packet);
 					const scanner = {
 						position: packet.position,
-						scanRange: packet.scanRange,
-						scanRangePen: packet.scanRangePen
+						scanRange: packet.scanRange ?? 0,
+						scanRangePen: packet.scanRangePen ?? 0
 					};
 					const existing = scannersByPosition.get(key);
 					if (existing) {

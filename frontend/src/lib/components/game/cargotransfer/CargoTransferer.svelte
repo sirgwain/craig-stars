@@ -2,17 +2,15 @@
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import { clamp } from '$lib/services/Math';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
+	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 	import { CargoTransferRequest, negative } from '$lib/types/CargoTransferRequest.svelte';
-	import type { CommandedFleet } from '$lib/types/Fleet';
 	import {
 		MapObjectTypeFleet,
 		MapObjectTypeMineralPacket,
 		MapObjectTypePlanet,
-		MapObjectTypeSalvage,
-		type Fleet,
-		type Planet,
-		type Salvage
+		MapObjectTypeSalvage
 	} from '$lib/types/cs';
+	import type { AnyFleet, CommandedFleet } from '$lib/types/Fleet';
 	import FleetTransfer from './FleetTransfer.svelte';
 	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
@@ -21,7 +19,7 @@
 
 	type Props = {
 		src: CommandedFleet;
-		dest: Fleet | Planet | Salvage | undefined;
+		dest: CargoDest;
 		transferAmount?: CargoTransferRequest;
 		showHeader?: boolean;
 		srcCargoCapacity?: number;
@@ -48,16 +46,16 @@
 		new CargoTransferRequest(dest?.cargo, dest && 'fuel' in dest ? dest.fuel : 0)
 	);
 
-	let destFleet = $derived(dest?.type === MapObjectTypeFleet ? (dest as Fleet) : undefined);
+	let destFleet = $derived(dest?.type === MapObjectTypeFleet ? (dest as AnyFleet) : undefined);
 
-	function getCargoCapacity(dest: Fleet | Planet | Salvage | undefined): number {
+	function getCargoCapacity(dest: CargoDest): number {
 		if (dest && 'spec' in dest && dest.spec && 'cargoCapacity' in dest.spec) {
 			return dest.spec.cargoCapacity ?? 0;
 		}
 		return Number.MAX_SAFE_INTEGER;
 	}
 
-	function getFuelCapacity(dest: Fleet | Planet | Salvage | undefined): number {
+	function getFuelCapacity(dest: CargoDest): number {
 		if (dest && 'spec' in dest && dest.spec && 'fuelCapacity' in dest.spec) {
 			return dest.spec.fuelCapacity ?? 0;
 		}
@@ -133,11 +131,11 @@
 				transferAmount.fuel +
 				getFuelTransferAmount(
 					amount,
-					(srcCargo.fuel ?? 0) + transferAmount.fuel,
-					(dest.fuel ?? 0) - transferAmount.fuel
+					srcCargo.fuel + transferAmount.fuel,
+					dest.fuel - transferAmount.fuel
 				);
 		}
-		return (srcCargo.fuel ?? 0) + transferAmount.fuel;
+		return srcCargo.fuel + transferAmount.fuel;
 	}
 
 	function transferIronium(amount: number): number {

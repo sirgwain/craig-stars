@@ -2,14 +2,9 @@
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { MysteryTraderIntel } from '$lib/types/cs';
-	import {
-		None,
-		ReportAgeUnexplored,
-		type Fleet,
-		type MapObject,
-		type Planet
-	} from '$lib/types/cs';
+	import type { MysteryTraderIntel, PlanetIntel } from '$lib/types/cs';
+	import { None, ReportAgeUnexplored, type MapObject } from '$lib/types/cs';
+	import type { AnyFleet } from '$lib/types/Fleet';
 	import { getMapObjectName, owned, ownedBy } from '$lib/types/MapObject';
 	import { onMount } from 'svelte';
 
@@ -32,8 +27,8 @@
 	}: Props = $props();
 
 	type Results = {
-		planets: Planet[];
-		fleets: Fleet[];
+		planets: PlanetIntel[];
+		fleets: AnyFleet[];
 		mysteryTraders: MysteryTraderIntel[];
 	};
 
@@ -48,7 +43,7 @@
 		const terms = search.split(' ');
 
 		const planets = $universe.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending);
-		const fleets = $universe.getFleets($settings.sortFleetsKey, $settings.sortFleetsDescending);
+		const fleets = $universe.getAllFleets($settings.sortFleetsKey, $settings.sortFleetsDescending);
 		const mysteryTraders = $universe.mysteryTraders;
 
 		// return true if a mapboject name or player matches a search term

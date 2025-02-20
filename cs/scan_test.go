@@ -283,13 +283,13 @@ func Test_scanWormholes(t *testing.T) {
 			name:   "scan wormhole",
 			fields: fields{wormholes: []*Wormhole{newWormhole(Vector{}, 1, WormholeStabilityStable)}},
 			args:   args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
-			want:   []WormholeIntel{{MapObjectIntel: MapObjectIntel{Type: MapObjectTypeWormhole, Intel: Intel{Num: 1}}, Stability: WormholeStabilityStable}},
+			want:   []WormholeIntel{{MapObject: MapObject{Type: MapObjectTypeWormhole, Num: 1}, Stability: WormholeStabilityStable}},
 		},
 		{
 			name: "forget deleted wormhole",
 			fields: fields{
 				wormholes: []*Wormhole{{MapObject: MapObject{Num: 1, Type: MapObjectTypeWormhole, Delete: true}}},
-				intel:     []WormholeIntel{{MapObjectIntel: MapObjectIntel{Type: MapObjectTypeWormhole, Intel: Intel{Num: 1}}, Stability: WormholeStabilityStable}},
+				intel:     []WormholeIntel{{MapObject: MapObject{Type: MapObjectTypeWormhole, Num: 1}, Stability: WormholeStabilityStable}},
 			},
 			args: args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
 			want: []WormholeIntel{},
@@ -297,7 +297,7 @@ func Test_scanWormholes(t *testing.T) {
 		{
 			name: "forget wormhole we scanned again that no longer exists in universe",
 			fields: fields{
-				intel: []WormholeIntel{{MapObjectIntel: MapObjectIntel{Type: MapObjectTypeWormhole, Intel: Intel{Num: 1}}, Stability: WormholeStabilityStable}},
+				intel: []WormholeIntel{{MapObject: MapObject{Type: MapObjectTypeWormhole, Num: 1}, Stability: WormholeStabilityStable}},
 			},
 			args: args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
 			want: []WormholeIntel{},
@@ -422,9 +422,9 @@ func Test_scanMineFields(t *testing.T) {
 			fields: fields{mineFields: []*MineField{newMineField(testPlayer().WithNum(2), MineFieldTypeStandard, 1, 1, Vector{})}},
 			args:   args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
 			want: []MineFieldIntel{{
-				MapObjectIntel: MapObjectIntel{
-					Type:  MapObjectTypeMineField,
-					Intel: Intel{PlayerNum: 2, Num: 1, Name: "Humanoids Standard Mine Field #1"}},
+				MapObject: MapObject{
+					Type:      MapObjectTypeMineField,
+					PlayerNum: 2, Num: 1, Name: "Humanoids Standard Mine Field #1"},
 				MineFieldType: MineFieldTypeStandard, NumMines: 1, Spec: MineFieldSpec{Radius: 1}},
 			},
 		},
@@ -443,10 +443,10 @@ func Test_scanMineFields(t *testing.T) {
 			fields: fields{mineFields: []*MineField{newMineField(testPlayer().WithNum(2), MineFieldTypeStandard, 100, 1, Vector{12, 0})}},
 			args:   args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
 			want: []MineFieldIntel{{
-				MapObjectIntel: MapObjectIntel{
-					Type:     MapObjectTypeMineField,
-					Position: Vector{12, 0},
-					Intel:    Intel{PlayerNum: 2, Num: 1, Name: "Humanoids Standard Mine Field #1"}},
+				MapObject: MapObject{
+					Type:      MapObjectTypeMineField,
+					Position:  Vector{12, 0},
+					PlayerNum: 2, Num: 1, Name: "Humanoids Standard Mine Field #1"},
 				MineFieldType: MineFieldTypeStandard, NumMines: 100, Spec: MineFieldSpec{Radius: 10}},
 			},
 		},

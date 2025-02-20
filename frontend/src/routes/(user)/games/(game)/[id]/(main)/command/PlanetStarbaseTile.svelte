@@ -60,14 +60,16 @@
 				<div class="text-tile-item-title">Shields</div>
 				<div>{starbase.spec.shields ? starbase.spec.shields + 'dp' : 'none'}</div>
 			</div>
-			<div class="flex justify-between">
-				<div class="text-tile-item-title">Damage</div>
-				{#if !starbase.damage}
-					<div>none</div>
-				{:else}
-					<div>{starbase.damage}%</div>
-				{/if}
-			</div>
+			{#if starbase.tokens && starbase.tokens.length > 0}
+				<div class="flex justify-between">
+					<div class="text-tile-item-title">Damage</div>
+					{#if !starbase.tokens[0].damage}
+						<div>none</div>
+					{:else}
+						<div>{starbase.tokens[0].damage}%</div>
+					{/if}
+				</div>
+			{/if}
 			<div class="divider p-0 m-0"></div>
 		</div>
 		<div>
