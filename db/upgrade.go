@@ -62,7 +62,11 @@ func (tx *client) ensureUpgrade() error {
 		// check each version and call the upgrade functionality
 		switch current {
 		case 0:
-			u.initStarterDB()
+			//? Maybe make the starter database version -1?
+			// That would make the switch marginally cleaner
+			if u.initStarterDB(); err != nil {
+				return fmt.Errorf("failure while initializing starter database: \n%w", err)
+			}
 			err = u.upgrade1()
 		case 1:
 			err = u.upgrade2()
