@@ -2,7 +2,7 @@
 	import InfoToast from '$lib/components/InfoToast.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { GameService } from '$lib/services/GameService';
-	import type { PlayerStatus } from '$lib/types/Player';
+	import type { PlayerStatus } from '$lib/types/cs';
 	import type { SessionUser } from '$lib/types/User';
 	import { Square2Stack } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

@@ -54,10 +54,10 @@ type Tech struct {
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost"`
 	Requirements TechRequirements `json:"requirements" `
-	Ranking      int              `json:"ranking,omitempty"`
-	Category     TechCategory     `json:"category,omitempty"`
+	Ranking      int              `json:"ranking"`
+	Category     TechCategory     `json:"category"`
 	Origin       TechOrigin       `json:"origin,omitempty"`
-	Tags         TechTags         `json:"tags,omitempty"`
+	Tags         TechTags         `json:"tags"`
 }
 
 type TechOrigin string
@@ -68,7 +68,7 @@ const (
 )
 
 type TechRequirements struct {
-	TechLevel
+	TechLevel    `tstype:",extends"`
 	PRTsDenied   []PRT    `json:"prtsDenied,omitempty"`
 	LRTsRequired LRT      `json:"lrtsRequired,omitempty"`
 	LRTsDenied   LRT      `json:"lrtsDenied,omitempty"`
@@ -79,9 +79,9 @@ type TechRequirements struct {
 }
 
 type TechHullComponent struct {
-	Tech
+	Tech                      `tstype:",extends"`
 	HullSlotType              HullSlotType  `json:"hullSlotType"`
-	Mass                      int           `json:"mass,omitempty"`
+	Mass                      int           `json:"mass"`
 	Scanner                   bool          `json:"scanner,omitempty"`
 	ScanRange                 int           `json:"scanRange,omitempty"`
 	ScanRangePen              int           `json:"scanRangePen,omitempty"`
@@ -141,24 +141,24 @@ func getArmorShieldAmounts(baseArmor, baseShield float64, qty int, raceSpec Race
 }
 
 type Engine struct {
-	IdealSpeed   int     `json:"idealSpeed,omitempty"`
-	FreeSpeed    int     `json:"freeSpeed,omitempty"`
-	MaxSafeSpeed int     `json:"maxSafeSpeed,omitempty"`
-	FuelUsage    [11]int `json:"fuelUsage,omitempty"`
+	IdealSpeed   int     `json:"idealSpeed"`
+	FreeSpeed    int     `json:"freeSpeed"`
+	MaxSafeSpeed int     `json:"maxSafeSpeed"`
+	FuelUsage    [11]int `json:"fuelUsage"`
 }
 
 type TechEngine struct {
-	TechHullComponent
-	Engine
+	TechHullComponent `tstype:",extends"`
+	Engine            `tstype:",extends"`
 }
 
 type TechHull struct {
-	Tech
-	Type                     TechHullType   `json:"type,omitempty"`
-	Mass                     int            `json:"mass,omitempty"`
-	Armor                    int            `json:"armor,omitempty"`
+	Tech                     `tstype:",extends"`
+	Type                     TechHullType   `json:"type"`
+	Mass                     int            `json:"mass"`
+	Armor                    int            `json:"armor"`
 	Shield                   int            `json:"shield,omitempty"`
-	FuelCapacity             int            `json:"fuelCapacity,omitempty"`
+	FuelCapacity             int            `json:"fuelCapacity"`
 	FuelGeneration           int            `json:"fuelGeneration,omitempty"`
 	CargoCapacity            int            `json:"cargoCapacity,omitempty"`
 	CargoSlotPosition        Vector         `json:"cargoSlotPosition,omitempty"`
@@ -169,7 +169,7 @@ type TechHull struct {
 	SpaceDockSlotSize        Vector         `json:"spaceDockSlotSize,omitempty"`
 	SpaceDockSlotCircle      bool           `json:"spaceDockSlotCircle,omitempty"`
 	MineLayingBonus          float64        `json:"mineLayingBonus,omitempty"`
-	Initiative               int            `json:"initiative,omitempty"`
+	Initiative               int            `json:"initiative"`
 	RepairBonus              float64        `json:"repairBonus,omitempty"`
 	ImmuneToOwnDetonation    bool           `json:"immuneToOwnDetonation,omitempty"`
 	RangeBonus               int            `json:"rangeBonus,omitempty"`
@@ -179,7 +179,7 @@ type TechHull struct {
 	DoubleMineEfficiency     bool           `json:"doubleMineEfficiency,omitempty"`
 	MaxPopulation            int            `json:"maxPopulation,omitempty"`
 	InnateScanRangePenFactor float64        `json:"innateScanRangePenFactor,omitempty"`
-	Slots                    []TechHullSlot `json:"slots,omitempty"`
+	Slots                    []TechHullSlot `json:"slots"`
 }
 
 type TechHullSlot struct {
@@ -358,29 +358,29 @@ func (hst HullSlotType) String() string {
 }
 
 type TechPlanetary struct {
-	Tech
+	Tech        `tstype:",extends"`
 	ResetPlanet bool `json:"resetPlanet,omitempty"`
 }
 
 type TechPlanetaryScanner struct {
-	TechPlanetary
-	ScanRange    int `json:"scanRange,omitempty"`
-	ScanRangePen int `json:"scanRangePen,omitempty"`
+	TechPlanetary `tstype:",extends"`
+	ScanRange     int `json:"scanRange"`
+	ScanRangePen  int `json:"scanRangePen"`
 }
 
 type Defense struct {
-	DefenseCoverage float64 `json:"defenseCoverage,omitempty"`
+	DefenseCoverage float64 `json:"defenseCoverage"`
 }
 
 type TechDefense struct {
-	TechPlanetary
-	Defense
+	TechPlanetary `tstype:",extends"`
+	Defense       `tstype:",extends"`
 }
 
 type TechTerraform struct {
-	Tech
-	Ability int              `json:"ability,omitempty"`
-	HabType TerraformHabType `json:"habType,omitempty"`
+	Tech    `tstype:",extends"`
+	Ability int              `json:"ability"`
+	HabType TerraformHabType `json:"habType"`
 }
 
 type TerraformHabType string

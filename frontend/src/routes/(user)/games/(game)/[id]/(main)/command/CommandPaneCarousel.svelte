@@ -18,7 +18,8 @@
 		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { equal, getMapObjectName, MapObjectType } from '$lib/types/MapObject';
+	import { equal, getMapObjectName } from '$lib/types/MapObject';
+	import { MapObjectTypePlanet, ReportAgeUnexplored } from '$lib/types/cs';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, setContext } from 'svelte';
@@ -36,8 +37,6 @@
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
-	import type { Planet } from '$lib/types/Planet';
-	import { Unknown } from '$lib/types/Constants';
 
 	const {
 		universe,
@@ -168,7 +167,12 @@
 
 	// anytime the selectedMapObject is updated, show the summary
 	const unsuscribeSelectedMapObject = selectedMapObject.subscribe((mo) => {
-		if (mo && mo?.type === MapObjectType.Planet && (mo as Planet).reportAge === Unknown) {
+		if (
+			mo &&
+			mo?.type === MapObjectTypePlanet &&
+			'reportAge' in mo &&
+			mo.reportAge === ReportAgeUnexplored
+		) {
 			// don't update to the summary view automatically for unknown planets
 			return;
 		}
@@ -238,7 +242,7 @@
 			<div id="planet-starbase-tile" class="carousel-item w-full">
 				<PlanetStarbaseTile
 					planet={$commandedPlanet}
-					starbase={$universe.getPlanetStarbase($commandedPlanet.num)}
+					starbase={$universe.getMyPlanetStarbase($commandedPlanet.num)}
 					{onChangeMassDriverSpeed}
 				/>
 			</div>

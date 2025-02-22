@@ -91,7 +91,7 @@
 		/>
 		<PlanetStarbaseTile
 			planet={$commandedPlanet}
-			starbase={$universe.getPlanetStarbase($commandedPlanet.num)}
+			starbase={$universe.getMyPlanetStarbase($commandedPlanet.num)}
 			{onChangeMassDriverSpeed}
 		/>
 	</div>

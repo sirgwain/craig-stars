@@ -1,10 +1,9 @@
-import type { ShipDesignSlot } from '$lib/types/ShipDesign';
-import type { HullSlot, TechHullComponent } from '$lib/types/Tech';
+import type { ShipDesignSlot, TechHullComponent, TechHullSlot } from '$lib/types/cs';
 import { writable } from 'svelte/store';
 
 export type ShipDesignerContext = {
 	selectedSlotIndex: number | undefined;
-	selectedSlot: HullSlot | undefined;
+	selectedSlot: TechHullSlot | undefined;
 	selectedShipDesignSlot: ShipDesignSlot | undefined;
 	selectedHullComponent: TechHullComponent | undefined;
 };

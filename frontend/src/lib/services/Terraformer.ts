@@ -1,16 +1,29 @@
-import { HabTypes, type Hab, type HabType, getHabValue } from '$lib/types/Hab';
-import type { Player } from '$lib/types/Player';
+import { getHabValue, HabTypes } from '$lib/types/Hab';
+import type { CommandedPlayer } from '$lib/types/Player';
 import { getPlanetHabitability } from '$lib/types/Race';
-import { TerraformHabTypes, type TerraformHabType, type TechStore } from '$lib/types/Tech';
+import {
+	Grav,
+	Rad,
+	Temp,
+	TerraformHabTypeGrav,
+	TerraformHabTypeRad,
+	TerraformHabTypeTemp,
+	type Hab,
+	type HabType,
+	type TechStore,
+	type TerraformHabType
+} from '$lib/types/cs';
 
 export function fromHabType(habType: HabType): TerraformHabType {
 	switch (habType) {
-		case HabTypes.Gravity:
-			return TerraformHabTypes.Gravity;
-		case HabTypes.Temperature:
-			return TerraformHabTypes.Temperature;
-		case HabTypes.Radiation:
-			return TerraformHabTypes.Radiation;
+		case Grav:
+			return TerraformHabTypeGrav;
+		case Temp:
+			return TerraformHabTypeTemp;
+		case Rad:
+			return TerraformHabTypeRad;
+		default:
+			throw new Error(`Invalid habType: ${habType}`);
 	}
 }
 
@@ -19,8 +32,8 @@ export function getTerraformAmount(
 	techStore: TechStore,
 	hab: Hab,
 	baseHab: Hab,
-	player: Player,
-	terraformer?: Player
+	player: CommandedPlayer,
+	terraformer?: CommandedPlayer
 ): Hab {
 	const terraformAmount: [number, number, number] = [0, 0, 0];
 
@@ -45,7 +58,7 @@ export function getTerraformAmount(
 		player.race.immuneRad ?? false
 	];
 
-	Object.values(HabTypes).forEach((habType) => {
+	HabTypes.forEach((habType: HabType) => {
 		if (immune[habType]) {
 			return;
 		}
@@ -101,7 +114,7 @@ export function getMinTerraformAmount(
 	techStore: TechStore,
 	hab: Hab,
 	baseHab: Hab,
-	player: Player
+	player: CommandedPlayer
 ): Hab {
 	const terraformAmount: [number, number, number] = [0, 0, 0];
 

@@ -1,6 +1,10 @@
 <script lang="ts">
-	import { ResearchCostLevel } from '$lib/types/Race';
-	import type { TechField } from '$lib/types/TechLevel';
+	import {
+		ResearchCostExtra,
+		ResearchCostStandard,
+		type ResearchCostLevel,
+		type TechField
+	} from '$lib/types/cs';
 	import { startCase } from 'lodash-es';
 
 	type Props = {
@@ -17,9 +21,9 @@
 			{startCase(field)} Research
 		</h2>
 		<div>
-			{#if value === ResearchCostLevel.Extra}
+			{#if value === ResearchCostExtra}
 				<span class="">Costs 75% extra</span>
-			{:else if value === ResearchCostLevel.Standard}
+			{:else if value === ResearchCostStandard}
 				<span class="">Costs standard amount</span>
 			{:else}
 				<span class="">Costs 50% less</span>

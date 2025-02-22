@@ -1,144 +1,70 @@
-import type { PlayerStatus } from './Player';
-import type { Race } from './Race';
-import type { Rules } from './Rules';
-import type { Vector } from './Vector';
+import {
+	AIDifficultyCheater,
+	AIDifficultyNormal,
+	DensityDense,
+	DensityNormal,
+	DensityPacked,
+	DensitySparse,
+	GameStartModeMax,
+	GameStartModeNormal,
+	NewGamePlayerTypeAI,
+	NewGamePlayerTypeGuest,
+	NewGamePlayerTypeHost,
+	NewGamePlayerTypeOpen,
+	PlayerPositionsClose,
+	PlayerPositionsDistant,
+	PlayerPositionsFarther,
+	PlayerPositionsModerate,
+	SizeHuge,
+	SizeHugeWide,
+	SizeLarge,
+	SizeLargeWide,
+	SizeMedium,
+	SizeMediumWide,
+	SizeSmall,
+	SizeSmallWide,
+	SizeTiny,
+	SizeTinyWide,
+	type AIDifficulty,
+	type Density,
+	type GameStartMode,
+	type PlayerPositions,
+	type Size
+} from './cs';
 
-export enum Size {
-	Tiny = 'Tiny',
-	TinyWide = 'TinyWide',
-	Small = 'Small',
-	SmallWide = 'SmallWide',
-	Medium = 'Medium',
-	MediumWide = 'MediumWide',
-	Large = 'Large',
-	LargeWide = 'LargeWide',
-	Huge = 'Huge',
-	HugeWide = 'HugeWide'
-}
+export const Sizes: Size[] = [
+	SizeTiny,
+	SizeTinyWide,
+	SizeSmall,
+	SizeSmallWide,
+	SizeMedium,
+	SizeMediumWide,
+	SizeLarge,
+	SizeLargeWide,
+	SizeHuge,
+	SizeHugeWide
+];
 
-export enum Density {
-	Sparse = 'Sparse',
-	Normal = 'Normal',
-	Dense = 'Dense',
-	Packed = 'Packed'
-}
+export const Densities: Density[] = [DensitySparse, DensityNormal, DensityDense, DensityPacked];
+export const GameStartModes: GameStartMode[] = [GameStartModeNormal, GameStartModeMax];
+export const PlayerPositionses: PlayerPositions[] = [
+	PlayerPositionsClose,
+	PlayerPositionsModerate,
+	PlayerPositionsFarther,
+	PlayerPositionsDistant
+];
 
-export enum PlayerPositions {
-	Close = 'Close',
-	Moderate = 'Moderate',
-	Farther = 'Farther',
-	Distant = 'Distant'
-}
+export const NewGamePlayerTypes = [
+	NewGamePlayerTypeHost,
+	NewGamePlayerTypeGuest,
+	NewGamePlayerTypeOpen,
+	NewGamePlayerTypeAI
+];
 
-export enum GameStartMode {
-	Normal = '', // regular start
-	Max = 'Max' // max out all players
-}
-
-export enum NewGamePlayerType {
-	Host = 'Host',
-	Guest = 'Guest',
-	Open = 'Open',
-	AI = 'AI'
-}
-
-export enum AIDifficulty {
-	// Easy = 'Easy',
-	Normal = 'Normal',
-	// Hard = 'Hard',
-	Cheater = 'Cheater'
-}
-
-export type NewGamePlayer = {
-	type: NewGamePlayerType;
-	aiDifficulty?: AIDifficulty;
-	userId?: number;
-	race?: Race;
-	color?: string;
-};
-
-export type NewGamePlayers = {
-	players: NewGamePlayer[];
-};
-
-export type GameSettings = {
-	name: string;
-	public: boolean;
-	quickStartTurns?: number;
-	size: Size;
-	area?: Vector;
-	density: Density;
-	playerPositions: PlayerPositions;
-	randomEvents?: boolean;
-	computerPlayersFormAlliances?: boolean;
-	publicPlayerScores?: boolean;
-	maxMinerals?: boolean;
-	acceleratedPlay?: boolean;
-	startMode?: GameStartMode;
-	year?: number;
-	victoryConditions: VictoryConditions;
-};
-
-export enum GameState {
-	Setup = 'Setup',
-	WaitingForPlayers = 'WaitingForPlayers',
-	GeneratingUniverse = 'GeneratingUniverse',
-	GeneratingTurn = 'GeneratingTurn',
-	GeneratingTurnError = 'GeneratingTurnError'
-}
-
-export type Game = {
-	id: number;
-	createdAt: string;
-	updatedAt: string;
-	hostId: number;
-
-	name: string;
-	hash?: string;
-	state: GameState;
-	numPlayers: number;
-	openPlayerSlots: number;
-	quickStartTurns: number;
-	size: Size;
-	area: Vector;
-	density: Density;
-	playerPositions: PlayerPositions;
-	randomEvents: boolean;
-	computerPlayersFormAlliances: boolean;
-	publicPlayerScores: boolean;
-	maxMinerals: boolean;
-	acceleratedPlay: boolean;
-	public?: boolean;
-	startMode: GameStartMode;
-	year: number;
-	victoryConditions: VictoryConditions;
-	victorDeclared: boolean;
-	archived: boolean;
-	rules?: Rules;
-	players: PlayerStatus[];
-};
-
-export type VictoryConditions = {
-	conditions: number;
-	numCriteriaRequired: number;
-	yearsPassed: number;
-	ownPlanets: number;
-	attainTechLevel: number;
-	attainTechLevelNumFields: number;
-	exceedsScore: number;
-	exceedsSecondPlaceScore: number;
-	productionCapacity: number;
-	ownCapitalShips: number;
-	highestScoreAfterYears: number;
-};
-
-export enum VictoryCondition {
-	None = 0,
-	OwnPlanets = 1 << 0,
-	AttainTechLevels = 1 << 1,
-	ExceedsScore = 1 << 2,
-	ExceedsSecondPlaceScore = 1 << 3,
-	ProductionCapacity = 1 << 4,
-	OwnCapitalShips = 1 << 5,
-	HighestScoreAfterYears = 1 << 6
-}
+export const AIDifficulties: AIDifficulty[] = [
+	// AIDifficultyNone,
+	// AIDifficultyEasy,
+	AIDifficultyNormal,
+	// AIDifficultyHard,
+	AIDifficultyCheater
+];

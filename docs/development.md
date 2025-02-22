@@ -13,11 +13,12 @@ After all that, you'll also need to install 2 important Go dependencies:
 
 - [Mage](https://github.com/magefile/mage), a make-like build tool/command executer helping to execute complex build commands.
 - [Air](https://github.com/air-verse/air), a server utility aiding with automatic backend server restarting.
+- [tygo](https://github.com/gzuidhof/tygo), a generator for creating typescript types for golang types.
 
 Both can be installed using a single `go install` command:
 
 ```bash
-go install github.com/magefile/mage@latest github.com/air-verse/air@latest
+go install github.com/magefile/mage@latest github.com/air-verse/air@latest github.com/gzuidhof/tygo@latest
 ```
 
 (Mage should be included in go.mod regardless, but it never hurts to make sure it's there.)

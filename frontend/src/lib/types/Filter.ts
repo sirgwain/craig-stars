@@ -1,5 +1,6 @@
-import { WaypointTask, type Fleet } from './Fleet';
-import type { Player } from './Player';
+import { WaypointTaskNone } from './cs';
+import type { AnyFleet } from '$lib/services/Universe';
+import type { CommandedPlayer } from './Player';
 
 export type FilterOptions = {
 	showIdleFleetsOnly: boolean;
@@ -25,7 +26,11 @@ export const ShipClasses = {
 	FuelTransport: 'Fuel Transport'
 } as const;
 
-export function filterFleet(player: Player, fleet: Fleet, options: FilterOptions): boolean {
+export function filterFleet(
+	player: CommandedPlayer,
+	fleet: AnyFleet,
+	options: FilterOptions
+): boolean {
 	return (
 		filterIdleFleet(fleet, options.showIdleFleetsOnly) &&
 		filterMyDesigns(player, fleet, options.filterMyDesigns, options.filterDesigns) &&
@@ -35,7 +40,7 @@ export function filterFleet(player: Player, fleet: Fleet, options: FilterOptions
 }
 
 // This shows only your fleets that have no movement orders, and any active enemy ships (so you can match one with the other, if you wish).
-export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
+export function filterIdleFleet(fleet: AnyFleet, enabled: boolean): boolean {
 	if (!enabled) {
 		// no filter, show all fleets
 		return true;
@@ -43,15 +48,16 @@ export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 
 	// show our fleets that are idle
 	if (
+		'waypoints' in fleet &&
 		fleet.waypoints &&
 		fleet.waypoints.length == 1 &&
-		fleet.waypoints[0].task == WaypointTask.None
+		fleet.waypoints[0].task == WaypointTaskNone
 	) {
 		return true;
 	}
 
 	// enemy fleet that is moving, show it so players can match idle fleets to moving fleets
-	if (!fleet.waypoints && fleet.warpSpeed) {
+	if (fleet.warpSpeed) {
 		return true;
 	}
 
@@ -60,8 +66,8 @@ export function filterIdleFleet(fleet: Fleet, enabled: boolean): boolean {
 }
 
 export function filterMyDesigns(
-	player: Player,
-	fleet: Fleet,
+	player: CommandedPlayer,
+	fleet: AnyFleet,
 	enabled: boolean,
 	// TODO: add suport for showDesigns
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -76,8 +82,8 @@ export function filterMyDesigns(
 }
 
 export function filterEnemyDesigns(
-	player: Player,
-	fleet: Fleet,
+	player: CommandedPlayer,
+	fleet: AnyFleet,
 	enabled: boolean,
 	// TODO: add suport for showShipClasses
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -92,8 +98,8 @@ export function filterEnemyDesigns(
 }
 
 export function filterAllyDesigns(
-	player: Player,
-	fleet: Fleet,
+	player: CommandedPlayer,
+	fleet: AnyFleet,
 	enabled: boolean,
 	// TODO: add suport for showShipClasses
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars

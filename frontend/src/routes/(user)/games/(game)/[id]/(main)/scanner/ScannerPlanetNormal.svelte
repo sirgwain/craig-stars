@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { Unexplored } from '$lib/types/Constants';
+	import { MapObjectTypeFleet, ReportAgeUnexplored, type PlanetIntel } from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, owned } from '$lib/types/MapObject';
-	import { type Planet } from '$lib/types/Planet';
+	import type { AnyFleet } from '$lib/services/Universe';
+	import { owned } from '$lib/types/MapObject';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
@@ -13,7 +12,7 @@
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		planet: Planet;
+		planet: PlanetIntel;
 		commanded?: boolean;
 	};
 
@@ -35,8 +34,8 @@
 	let orbitingFleets = $derived(
 		$universe
 			.getMapObjectsByPosition(planet)
-			.filter((mo) => mo.type === MapObjectType.Fleet)
-			.filter((f) => filterFleet($player, f as Fleet, $settings))
+			.filter((mo) => mo.type === MapObjectTypeFleet)
+			.filter((f) => filterFleet($player, f as AnyFleet, $settings))
 	);
 
 	// setup props for planet circle
@@ -49,7 +48,7 @@
 			color = '#00FF00';
 		} else if (planet.playerNum) {
 			color = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
-		} else if (planet.reportAge !== Unexplored && !planet.playerNum) {
+		} else if (planet.reportAge !== ReportAgeUnexplored && !planet.playerNum) {
 			color = '#FFF';
 		}
 

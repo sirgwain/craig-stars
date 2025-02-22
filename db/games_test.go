@@ -99,11 +99,14 @@ func TestGetGame(t *testing.T) {
 				t.Errorf("GetGame() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != nil {
-				tt.want.UpdatedAt = got.UpdatedAt
-				tt.want.CreatedAt = got.CreatedAt
+			// GetGame returns a GameWithPlayers so we need the empty slice for comparison
+			var want *cs.GameWithPlayers
+			if tt.want != nil && got != nil {
+				want = &cs.GameWithPlayers{Game: got.Game, Players: []cs.PlayerStatus{}}
+				want.UpdatedAt = got.UpdatedAt
+				want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
+			if !test.CompareAsJSON(t, got, want) {
 				t.Errorf("GetGame() = %v, want %v", got, tt.want)
 			}
 		})

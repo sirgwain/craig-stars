@@ -1,47 +1,43 @@
-export type HabType = (typeof HabTypes)[keyof typeof HabTypes];
+import { Grav, Rad, Temp, type Hab, type HabType } from './cs';
 
-export const HabTypes = {
-	Gravity: 0,
-	Temperature: 1,
-	Radiation: 2
-} as const;
-
-export type Hab = {
-	grav?: number;
-	temp?: number;
-	rad?: number;
-};
+export const HabTypes: HabType[] = [Grav, Temp, Rad] as const;
 
 export function habTypeString(type: HabType): string {
 	switch (type) {
-		case HabTypes.Gravity:
+		case Grav:
 			return 'Gravity';
-		case HabTypes.Temperature:
+		case Temp:
 			return 'Temperature';
-		case HabTypes.Radiation:
+		case Rad:
 			return 'Radiation';
+		default:
+			throw new Error(`Invalid habType: ${type}`);
 	}
 }
 
 export function getHabValue(hab: Hab | undefined, type: HabType): number {
 	switch (type) {
-		case HabTypes.Gravity:
+		case Grav:
 			return hab?.grav ?? 0;
-		case HabTypes.Temperature:
+		case Temp:
 			return hab?.temp ?? 0;
-		case HabTypes.Radiation:
+		case Rad:
 			return hab?.rad ?? 0;
+		default:
+			throw new Error(`Invalid habType: ${type}`);
 	}
 }
 
 export function withHabValue(type: HabType, value: number): Hab {
 	switch (type) {
-		case HabTypes.Gravity:
+		case Grav:
 			return { grav: value };
-		case HabTypes.Temperature:
+		case Temp:
 			return { temp: value };
-		case HabTypes.Radiation:
+		case Rad:
 			return { rad: value };
+		default:
+			throw new Error(`Invalid habType: ${type}`);
 	}
 }
 
@@ -75,11 +71,11 @@ export function getRadString(rad: number): string {
 
 export function getHabValueString(habType: HabType, value: number): string {
 	switch (habType) {
-		case HabTypes.Gravity:
+		case Grav:
 			return getGravString(value);
-		case HabTypes.Temperature:
+		case Temp:
 			return getTempString(value);
-		case HabTypes.Radiation:
+		case Rad:
 			return getRadString(value);
 	}
 	return `${value}`;
@@ -91,15 +87,15 @@ export function getLargest(hab: Hab): HabType {
 	hab.rad = hab.rad ?? 0;
 	if (hab.grav >= hab.temp) {
 		if (hab.grav >= hab.rad) {
-			return HabTypes.Gravity;
+			return Grav;
 		} else {
-			return HabTypes.Radiation;
+			return Rad;
 		}
 	} else {
 		if (hab.temp >= hab.rad) {
-			return HabTypes.Temperature;
+			return Temp;
 		} else {
-			return HabTypes.Radiation;
+			return Rad;
 		}
 	}
 }

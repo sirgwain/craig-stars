@@ -1,4 +1,4 @@
-import type { Race } from '$lib/types/Race';
+import type { Race } from '$lib/types/cs';
 import { Service } from './Service';
 
 export class RaceService {

@@ -1,6 +1,11 @@
 <script lang="ts">
-	import { ResearchCostLevel } from '$lib/types/Race';
-	import type { TechField } from '$lib/types/TechLevel';
+	import {
+		ResearchCostExtra,
+		ResearchCostLess,
+		ResearchCostStandard,
+		type ResearchCostLevel,
+		type TechField
+	} from '$lib/types/cs';
 	import { startCase } from 'lodash-es';
 
 	type Props = {
@@ -21,7 +26,7 @@
 				<input
 					type="radio"
 					name={`${field}ResearchCost`}
-					value={ResearchCostLevel.Extra}
+					value={ResearchCostExtra}
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>
@@ -31,7 +36,7 @@
 				<input
 					type="radio"
 					name={`${field}ResearchCost`}
-					value={ResearchCostLevel.Standard}
+					value={ResearchCostStandard}
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>
@@ -41,7 +46,7 @@
 				<input
 					type="radio"
 					name={`${field}ResearchCost`}
-					value={ResearchCostLevel.Less}
+					value={ResearchCostLess}
 					class="radio radio-sm checked:bg-primary"
 					bind:group={value}
 				/>

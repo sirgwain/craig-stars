@@ -1,12 +1,12 @@
 <script lang="ts">
 	import Archive from '$lib/components/icons/Archive.svelte';
 	import { me } from '$lib/services/Stores';
-	import type { Game } from '$lib/types/Game';
+	import type { GameWithPlayers } from '$lib/types/cs';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	type Props = {
-		game: Game;
+		game: GameWithPlayers;
 		showNumSubmitted?: boolean;
 		onArchive?: () => void;
 		onDelete?: () => void;

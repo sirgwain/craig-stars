@@ -1,9 +1,19 @@
 import techjson from '$lib/ssr/techs.json';
 import { describe, expect, it } from 'vitest';
-import { Player, canLearnTech } from './Player';
-import { LRT, PRT, type RaceSpec } from './Race';
-import type { ShipDesign } from './ShipDesign';
-import { TechCategory, type TechEngine, type TechHullComponent, type TechStore } from './Tech';
+import { CommandedPlayer, canLearnTech } from './Player';
+import type { ShipDesign } from './cs';
+import {
+	IFE,
+	IS,
+	SD,
+	TechCategoryBomb,
+	TechCategoryElectrical,
+	TechCategoryEngine,
+	TechCategoryMineLayer,
+	type TechEngine,
+	type TechHullComponent,
+	type TechStore
+} from './cs';
 
 const fuelMizer: TechEngine = {
 	name: 'Fuel Mizer',
@@ -16,7 +26,7 @@ const fuelMizer: TechEngine = {
 		lrtsRequired: 1
 	},
 	ranking: 30,
-	category: TechCategory.Engine,
+	category: TechCategoryEngine,
 	hullSlotType: 2,
 	mass: 6,
 	idealSpeed: 6,
@@ -34,10 +44,10 @@ const speedTrap20: TechHullComponent = {
 	requirements: {
 		propulsion: 2,
 		biotechnology: 2,
-		prtsRequired: [PRT.SD, PRT.IS]
+		prtsRequired: [SD, IS]
 	},
 	ranking: 70,
-	category: TechCategory.MineLayer,
+	category: TechCategoryMineLayer,
 	hullSlotType: 8192,
 	mass: 100,
 	mineFieldType: 'SpeedBump',
@@ -54,10 +64,10 @@ const smartBomb: TechHullComponent = {
 	requirements: {
 		weapons: 5,
 		biotechnology: 7,
-		prtsDenied: [PRT.IS]
+		prtsDenied: [IS]
 	},
 	ranking: 90,
-	category: TechCategory.Bomb,
+	category: TechCategoryBomb,
 	hullSlotType: 16,
 	mass: 50,
 	killRate: 1.3,
@@ -78,7 +88,7 @@ const multiFunctionPod: TechHullComponent = {
 		acquirable: true
 	},
 	ranking: 35,
-	category: TechCategory.Electrical,
+	category: TechCategoryElectrical,
 	origin: 'MysteryTrader',
 	hullSlotType: 64,
 	mass: 2,
@@ -196,7 +206,7 @@ const techStore = techjson as TechStore;
 
 describe('player test', () => {
 	it('checks tech requirements', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 
 		expect(canLearnTech(player, fuelMizer)).toBe(false);
 
@@ -205,29 +215,29 @@ describe('player test', () => {
 		expect(canLearnTech(player, fuelMizer)).toBe(false);
 
 		// make this available
-		player.race.lrts = LRT.IFE;
+		player.race.lrts = IFE;
 		expect(canLearnTech(player, fuelMizer)).toBe(true);
 
 		// IS can learn speed trap
-		player.race.prt = PRT.IS;
+		player.race.prt = IS;
 		expect(canLearnTech(player, speedTrap20)).toBe(true);
 
 		// IS cannot learn smart bomb
-		player.race.prt = PRT.IS;
+		player.race.prt = IS;
 		expect(canLearnTech(player, smartBomb)).toBe(false);
 
 		// SD can learn speed trap
-		player.race.prt = PRT.SD;
+		player.race.prt = SD;
 		expect(canLearnTech(player, speedTrap20)).toBe(true);
 	});
 
 	it('checks has tech', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.techLevels.propulsion = 2;
 		expect(player.hasTech(fuelMizer)).toBe(false);
 
 		// make it available
-		player.race.lrts = LRT.IFE;
+		player.race.lrts = IFE;
 		expect(player.hasTech(fuelMizer)).toBe(true);
 
 		// player doesn't have MT tech until acquired
@@ -239,7 +249,7 @@ describe('player test', () => {
 	});
 
 	it('getTerraformAbility', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 
 		expect(player.getTerraformAbility(techStore)).toEqual({ grav: 0, temp: 0, rad: 0 });
 

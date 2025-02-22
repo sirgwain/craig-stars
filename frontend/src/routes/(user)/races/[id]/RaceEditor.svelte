@@ -4,7 +4,25 @@
 	import TextInput from '$lib/components/TextInput.svelte';
 	import LRTsDescriptions from '$lib/components/game/race/LRTsDescriptions.svelte';
 	import PRTDescription from '$lib/components/game/race/PRTDescription.svelte';
-	import { PRT, SpendLeftoverPointsOn, getLabelForPRT, type Race } from '$lib/types/Race';
+	import { getLabelForPRT } from '$lib/types/Race';
+	import {
+		AR,
+		CA,
+		HE,
+		IS,
+		IT,
+		JoaT,
+		PP,
+		SD,
+		SpendLeftoverPointsOnDefenses,
+		SpendLeftoverPointsOnFactories,
+		SpendLeftoverPointsOnMineralConcentrations,
+		SpendLeftoverPointsOnMines,
+		SpendLeftoverPointsOnSurfaceMinerals,
+		SS,
+		WM,
+		type Race
+	} from '$lib/types/cs';
 	import Habitability from './Habitability.svelte';
 	import LRTs from './LRTs.svelte';
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
@@ -21,15 +39,21 @@
 <TextInput name="pluralName" bind:value={race.pluralName} />
 <EnumSelect
 	name="spendLeftoverPointsOn"
-	enumType={SpendLeftoverPointsOn}
+	options={[
+		SpendLeftoverPointsOnSurfaceMinerals,
+		SpendLeftoverPointsOnMineralConcentrations,
+		SpendLeftoverPointsOnMines,
+		SpendLeftoverPointsOnFactories,
+		SpendLeftoverPointsOnDefenses
+	]}
 	bind:value={race.spendLeftoverPointsOn}
 />
 
 <SectionHeader>Primary Racial Trait</SectionHeader>
 <EnumSelect
 	name="prt"
+	options={[HE, SS, WM, CA, IS, SD, PP, IT, AR, JoaT]}
 	title="Primary Racial Trait"
-	enumType={PRT}
 	typeTitle={(prt) => getLabelForPRT(prt)}
 	bind:value={race.prt}
 />

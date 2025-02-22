@@ -4,7 +4,7 @@
 	import UserAvatar from '$lib/components/UserAvatar.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { me } from '$lib/services/Stores';
-	import { GameState } from '$lib/types/Game';
+	import { GameStateWaitingForPlayers } from '$lib/types/cs';
 	import { ArrowUpTray, Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
@@ -35,7 +35,7 @@
 		</div>
 	</div>
 	<div class="flex-initial">
-		{#if $page.url.pathname === `/games/${$game.id}` && !$player.submittedTurn && $game.state === GameState.WaitingForPlayers}
+		{#if $page.url.pathname === `/games/${$game.id}` && !$player.submittedTurn && $game.state === GameStateWaitingForPlayers}
 			<button type="button" onclick={onSubmitTurn} class="btn btn-primary" title="submit turn"
 				><span class="hidden md:inline-block mr-1">Submit Turn</span><Icon
 					src={ArrowUpTray}

@@ -112,7 +112,7 @@ func Test_bomb_getColonistsKilledForBombs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &bomb{
+			b := &bomber{
 				rules: &rules,
 			}
 			if got := b.getColonistsKilledForBombs(tt.args.population, tt.args.defenseCoverage, tt.args.bombs); !test.WithinTolerance(got, tt.want, .1) {
@@ -197,7 +197,7 @@ func Test_bomb_getColonistsKilledWithSmartBombs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &bomb{
+			b := &bomber{
 				rules: &rules,
 			}
 			if got := b.getColonistsKilledWithSmartBombs(tt.args.population, tt.args.defenseCoverageSmart, tt.args.bombs); !test.WithinTolerance(got, tt.want, .1) {
@@ -249,7 +249,7 @@ func Test_bomb_getStructuresDestroyed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &bomb{
+			b := &bomber{
 				rules: &rules,
 			}
 			if got := b.getStructuresDestroyed(tt.args.defenseCoverage, tt.args.bombs); got != tt.want {
@@ -298,7 +298,7 @@ func Test_bomb_getUnterraformAmount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &bomb{
+			b := &bomber{
 				rules: &rules,
 			}
 			if got := b.getUnterraformAmount(tt.args.retroBombAmount, tt.args.baseHab, tt.args.hab); !reflect.DeepEqual(got, tt.want) {
@@ -363,7 +363,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &bomb{
+			b := &bomber{
 				rules: &rules,
 			}
 			tt.args.planet.Spec = computePlanetSpec(&rules, tt.args.planetOwner, tt.args.planet)

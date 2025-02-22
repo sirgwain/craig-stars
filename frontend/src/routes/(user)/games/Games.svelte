@@ -3,18 +3,18 @@
 	import Galaxy from '$lib/components/icons/Galaxy.svelte';
 	import Processor from '$lib/components/icons/Processor.svelte';
 	import { GameService } from '$lib/services/GameService';
+	import { PlayerService } from '$lib/services/PlayerService';
 	import { me } from '$lib/services/Stores';
-	import { GameState, type Game } from '$lib/types/Game';
+	import { GameStateSetup, type GameWithPlayers } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 	import ActiveGameRow from './ActiveGameRow.svelte';
 	import SetupGameRow from './SetupGameRow.svelte';
-	import { PlayerService } from '$lib/services/PlayerService';
 
-	const sorter = (a: Game, b: Game) =>
+	const sorter = (a: GameWithPlayers, b: GameWithPlayers) =>
 		b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0;
 
-	let games: Game[] = $state([]);
-	let openGames: Game[] = $state([]);
+	let games: GameWithPlayers[] = $state([]);
+	let openGames: GameWithPlayers[] = $state([]);
 
 	// all games where I am a player
 	let myGames = $derived(
@@ -25,14 +25,14 @@
 	// find all multiplayer games we are part of in setup
 	let gamesWaitingToStart = $derived(
 		myGames
-			.filter((g) => g.state == GameState.Setup)
+			.filter((g) => g.state == GameStateSetup)
 			.filter((g) => g.players.find((p) => p.userId != $me.id))
 	);
 
 	// find all multiplayer games where we haven't submitted a turn yet
 	let newTurnGames = $derived(
 		myGames
-			.filter((g) => g.state != GameState.Setup)
+			.filter((g) => g.state != GameStateSetup)
 			.filter((g) => !g.players.find((p) => p.userId == $me.id)?.submittedTurn)
 			.filter((g) => g.players.find((p) => p.userId != $me.id && !p.aiControlled))
 	);
@@ -52,18 +52,18 @@
 		openGames = (await GameService.loadOpenGames()).filter((g) => g.hostId != $me.id).sort(sorter);
 	});
 
-	function removeGame(game: Game) {
+	function removeGame(game: GameWithPlayers) {
 		games = games.filter((g) => g.id !== game.id);
 		openGames = openGames.filter((g) => g.id !== game.id);
 	}
 
-	async function deleteGame(game: Game) {
+	async function deleteGame(game: GameWithPlayers) {
 		if (confirm(`Are you sure you want to delete ${game.name}?`)) {
 			await GameService.deleteGame(game.id);
 			removeGame(game);
 		}
 	}
-	async function archiveGame(game: Game) {
+	async function archiveGame(game: GameWithPlayers) {
 		if (confirm(`Are you sure you want to archive ${game.name}?`)) {
 			await PlayerService.archiveGame(game.id);
 			removeGame(game);

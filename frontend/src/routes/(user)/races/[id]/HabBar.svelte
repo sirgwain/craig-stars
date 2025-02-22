@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import { HabTypes, getHabValueString, habTypeString, type HabType } from '$lib/types/Hab';
+	import { type HabType, Grav, Temp, Rad } from '$lib/types/cs';
+	import { getHabValueString, habTypeString } from '$lib/types/Hab';
 	import { draggable, type DragEventData } from '@neodrag/svelte';
 	import {
 		ChevronDoubleLeft,
@@ -88,9 +89,9 @@
 							use:draggable={{ bounds: 'parent', position, onDrag }}
 							style={`width: ${habWidth.toFixed()}%`}
 							class="h-full"
-							class:grav-bar={habType === HabTypes.Gravity}
-							class:temp-bar={habType === HabTypes.Temperature}
-							class:rad-bar={habType === HabTypes.Radiation}
+							class:grav-bar={habType === Grav}
+							class:temp-bar={habType === Temp}
+							class:rad-bar={habType === Rad}
 						></div>
 					{/if}
 				</div>

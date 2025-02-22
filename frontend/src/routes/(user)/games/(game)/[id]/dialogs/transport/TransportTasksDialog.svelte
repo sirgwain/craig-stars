@@ -5,7 +5,8 @@
 		TransportTasksDialogEvent,
 		ChangeWaypointTransportTasksEvent
 	} from '$lib/services/Events';
-	import { emptyTransportTasks, type WaypointTransportTasks } from '$lib/types/Fleet';
+	import { emptyTransportTasks } from '$lib/types/Fleet';
+	import { type WaypointTransportTasks } from '$lib/types/cs';
 	import TransportTasks from '../../(plans)/transport-plans/TransportTasks.svelte';
 
 	type Props = {

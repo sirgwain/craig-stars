@@ -1,18 +1,17 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
-	import type { Mineral } from '$lib/types/Mineral';
-	import type { Planet } from '$lib/types/Planet';
 	import MineralConcentrationPoint from '$lib/components/game/MineralConcentrationPoint.svelte';
 	import MineralTooltip, {
 		type MineralTooltipProps
 	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
-	import { showTooltip } from '$lib/services/Stores';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { clamp } from '$lib/services/Math';
+	import { showTooltip } from '$lib/services/Stores';
+	import type { Mineral, PlanetIntel } from '$lib/types/cs';
 
 	const { settings } = getGameContext();
 
 	type Props = {
-		planet: Planet;
+		planet: PlanetIntel;
 	};
 
 	let { planet }: Props = $props();
@@ -74,7 +73,7 @@
 			mineralType: 'Ironium',
 			surfaceAmount: planet.cargo?.ironium ?? 0,
 			concentration: planet.mineralConcentration?.ironium ?? 0,
-			miningRate: planet.spec.miningOutput.ironium ?? 0,
+			miningRate: planet.spec.miningOutput?.ironium ?? 0,
 			homeworld: !!planet.homeworld
 		});
 	}
@@ -85,7 +84,7 @@
 			mineralType: 'Boranium',
 			surfaceAmount: planet.cargo?.boranium ?? 0,
 			concentration: planet.mineralConcentration?.boranium ?? 0,
-			miningRate: planet.spec.miningOutput.boranium ?? 0,
+			miningRate: planet.spec.miningOutput?.boranium ?? 0,
 			homeworld: !!planet.homeworld
 		});
 	}
@@ -96,7 +95,7 @@
 			mineralType: 'Germanium',
 			surfaceAmount: planet.cargo?.germanium ?? 0,
 			concentration: planet.mineralConcentration?.germanium ?? 0,
-			miningRate: planet.spec.miningOutput.germanium ?? 0,
+			miningRate: planet.spec.miningOutput?.germanium ?? 0,
 			homeworld: !!planet.homeworld
 		});
 	}

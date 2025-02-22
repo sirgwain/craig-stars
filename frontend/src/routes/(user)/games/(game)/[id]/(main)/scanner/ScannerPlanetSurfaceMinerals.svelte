@@ -1,16 +1,15 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { totalCargo } from '$lib/types/Cargo';
-	import { Unexplored } from '$lib/types/Constants';
-	import { type Planet } from '$lib/types/Planet';
+	import { type PlanetIntel } from '$lib/types/cs';
+	import { totalMinerals } from '$lib/types/Mineral';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 
-	const { settings } = getGameContext();
+	const { settings, universe } = getGameContext();
 
 	type Props = {
-		planet: Planet;
+		planet: PlanetIntel;
 	};
 
 	let { planet }: Props = $props();
@@ -20,7 +19,8 @@
 
 	let barPercent = $derived.by(() => {
 		let max = $settings.mineralScale; // 100% concentration
-		if (!planet.cargo) {
+		const cargo = $universe.getPlanet(planet.num)?.cargo;
+		if (!cargo) {
 			return {
 				ironium: 0,
 				boranium: 0,
@@ -28,15 +28,15 @@
 			};
 		}
 		return {
-			ironium: clamp(planet.cargo.ironium ? planet.cargo.ironium / max : 0, 0, 1),
-			boranium: clamp(planet.cargo.boranium ? planet.cargo.boranium / max : 0, 0, 1),
-			germanium: clamp(planet.cargo.germanium ? planet.cargo.germanium / max : 0, 0, 1)
+			ironium: clamp(cargo.ironium ? cargo.ironium / max : 0, 0, 1),
+			boranium: clamp(cargo.boranium ? cargo.boranium / max : 0, 0, 1),
+			germanium: clamp(cargo.germanium ? cargo.germanium / max : 0, 0, 1)
 		};
 	});
 </script>
 
 <ScannerPlanetNormal {planet} />
-{#if planet.reportAge !== Unexplored && totalCargo(planet.cargo) != 0}
+{#if totalMinerals(barPercent) != 0}
 	<MapObjectScaler mapObject={planet}>
 		<rect
 			class="ironium-bar"

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { HabTypes, getHabValueString, type HabType, habTypeString } from '$lib/types/Hab';
+	import { Grav, Rad, Temp, type HabType } from '$lib/types/cs';
+	import { getHabValueString, habTypeString } from '$lib/types/Hab';
 
 	type Props = {
 		habType: HabType;
@@ -24,9 +25,9 @@
 					<div
 						style={`width: ${habWidth.toFixed()}%; left: ${habLow}%;`}
 						class="relative h-full"
-						class:grav-bar={habType === HabTypes.Gravity}
-						class:temp-bar={habType === HabTypes.Temperature}
-						class:rad-bar={habType === HabTypes.Radiation}
+						class:grav-bar={habType === Grav}
+						class:temp-bar={habType === Temp}
+						class:rad-bar={habType === Rad}
 					></div>
 				{/if}
 			</div>

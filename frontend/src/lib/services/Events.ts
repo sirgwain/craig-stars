@@ -1,14 +1,7 @@
-import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
-import type {
-	CargoTransferTarget,
-	CommandedFleet,
-	Fleet,
-	ShipToken,
-	Waypoint,
-	WaypointTransportTasks
-} from '$lib/types/Fleet';
-import type { CommandedPlanet, Planet } from '$lib/types/Planet';
-import type { Salvage } from '$lib/types/Salvage';
+import type { CargoDest, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
+import type { Fleet, ShipToken, Waypoint, WaypointTransportTasks } from '$lib/types/cs';
+import type { CommandedFleet } from '$lib/types/Fleet';
+import type { CommandedPlanet } from '$lib/types/Planet';
 
 export type OnOk<T> = (e: T) => void;
 export type OnCancel = () => void;
@@ -24,7 +17,7 @@ export function getXFromPointerEvent(e: PointerEvent, elem: HTMLElement | undefi
 
 export type CargoTransferDialogEvent = {
 	src: CommandedFleet;
-	dest?: CargoTransferTarget;
+	dest?: CargoDest;
 };
 
 export type SplitFleetDialogEvent = {
@@ -71,7 +64,7 @@ export type MergeFleetsEvent = {
 
 export type TransferCargoEvent = {
 	src: CommandedFleet;
-	dest?: Fleet | Planet | Salvage;
+	dest?: CargoDest;
 	transferAmount: CargoTransferRequest;
 };
 

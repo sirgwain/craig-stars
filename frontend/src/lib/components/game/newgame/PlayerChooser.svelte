@@ -1,7 +1,8 @@
 <script lang="ts">
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import { RaceService } from '$lib/services/RaceService';
-	import { humanoid, type Race } from '$lib/types/Race';
+	import { humanoid } from '$lib/types/Race';
+	import { type Race } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 	import RaceEditor from '../../../../routes/(user)/races/[id]/RaceEditor.svelte';
 	import RacePoints from '../../../../routes/(user)/races/[id]/RacePoints.svelte';

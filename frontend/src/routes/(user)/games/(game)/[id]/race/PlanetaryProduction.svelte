@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PRT, type Race } from '$lib/types/Race';
+	import { AR, type Race } from '$lib/types/cs';
 
 	type Props = {
 		race: Race;
@@ -8,7 +8,7 @@
 	let { race }: Props = $props();
 </script>
 
-{#if race.prt === PRT.AR}
+{#if race.prt === AR}
 	<p class="mb-1">
 		Annual Resources = Planet Value * sqrt(Population * Energy Tech /
 		<span class="text-primary font-semibold">{race.popEfficiency}</span>)

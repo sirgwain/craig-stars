@@ -10,6 +10,6 @@
 </script>
 
 <!-- Wormholes -->
-{#each $universe.wormholes as wormhole}
+{#each $universe.wormholeIntels as wormhole}
 	<ScannerWormhole {wormhole} />
 {/each}

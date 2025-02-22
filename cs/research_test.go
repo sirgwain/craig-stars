@@ -20,7 +20,7 @@ func Test_research_getNextResearchField(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &research{
+			r := &researcher{
 				rules: &rules,
 			}
 			if gotNextField := r.getNextResearchField(tt.args.player); gotNextField != tt.wantNextField {
@@ -46,7 +46,7 @@ func Test_research_isAtMaxLevel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &research{
+			r := &researcher{
 				rules: &rules,
 			}
 			if got := r.isAtMaxLevel(tt.args.player, tt.args.field); got != tt.want {
@@ -83,12 +83,12 @@ func Test_research_getTotalCost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &research{
+			r := &researcher{
 				rules: &rules,
 			}
 			techLevels := tt.args.player.TechLevels
 			researchCostLevel := tt.args.player.Race.ResearchCost.Get(tt.args.field)
-			if got := r.getTotalCost(techLevels, tt.args.field, researchCostLevel, tt.args.level); got != tt.want {
+			if got := r.getTotalCost(techLevels, researchCostLevel, tt.args.level); got != tt.want {
 				t.Errorf("research.getTotalCost() = %v, want %v", got, tt.want)
 			}
 		})
@@ -147,7 +147,7 @@ func Test_research_researchFieldOnce(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &research{
+			r := &researcher{
 				rules: &rules,
 			}
 			gotLevelGained, gotResourcesLeftover := r.researchFieldOnce(tt.args.player, tt.args.field, tt.args.resourcesToSpend)
@@ -185,7 +185,7 @@ func Test_research_researchField(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &research{
+			r := &researcher{
 				rules: &rules,
 			}
 			r.researchField(tt.args.player, tt.args.field, tt.args.resourcesToSpend, func(player *Player, field TechField) {})
@@ -244,7 +244,7 @@ func Test_research_research(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &research{
+			r := &researcher{
 				rules: &rules,
 			}
 			gotSpent := r.research(tt.args.player, tt.args.resourcesToSpend, func(player *Player, field TechField) {})

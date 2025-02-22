@@ -2,7 +2,7 @@
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { addError, type CSError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { TransportPlan } from '$lib/types/Player';
+	import type { TransportPlan } from '$lib/types/cs';
 	import TransportPlanCard from './TransportPlanCard.svelte';
 
 	const { game, player, deleteTransportPlan } = getGameContext();

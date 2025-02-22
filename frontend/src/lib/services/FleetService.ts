@@ -1,17 +1,7 @@
-import type { Cargo } from '$lib/types/Cargo';
-import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
-import {
-	CommandedFleet,
-	type Fleet,
-	type FleetOrders,
-	type ShipToken,
-	type Waypoint
-} from '$lib/types/Fleet';
-import type { MapObject } from '$lib/types/MapObject';
-import type { MineralPacket } from '$lib/types/MineralPacket';
-import type { Planet } from '$lib/types/Planet';
-import type { PlayerResponse } from '$lib/types/Player';
-import type { Salvage } from '$lib/types/Salvage';
+import type { CargoDest, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
+import { CommandedFleet } from '$lib/types/Fleet';
+import type { Cargo, MapObject, MineralPacketIntel, Player, SalvageIntel } from '$lib/types/cs';
+import { type Fleet, type FleetOrders, type ShipToken, type Waypoint } from '$lib/types/cs';
 import { Service } from './Service';
 
 // orders sent to the server
@@ -26,9 +16,9 @@ export class FleetOrdersRequest implements FleetOrders {
 type TransferCargoResponse = {
 	fleet: Fleet;
 	dest: MapObject | undefined;
-	player: PlayerResponse | undefined;
-	salvages?: Salvage[];
-	mineralPackets?: MineralPacket[];
+	player: Player | undefined;
+	salvages?: SalvageIntel[];
+	mineralPackets?: MineralPacketIntel[];
 };
 
 type SplitFleetResponse = {
@@ -63,7 +53,7 @@ export class FleetService {
 
 	static async transferCargo(
 		fleet: CommandedFleet,
-		dest: Fleet | Planet | Salvage,
+		dest: CargoDest,
 		transferAmount: Cargo & { fuel: number }
 	): Promise<TransferCargoResponse> {
 		const url = `/api/games/${fleet.gameId}/fleets/${fleet.num}/transfer-cargo`;

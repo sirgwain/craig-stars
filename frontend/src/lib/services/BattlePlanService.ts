@@ -1,5 +1,6 @@
-import type { Fleet } from '$lib/types/Fleet';
-import type { BattlePlan, PlayerResponse } from '$lib/types/Player';
+import type { Fleet } from '$lib/types/cs';
+import type { Player } from '$lib/types/cs';
+import type { BattlePlan } from '$lib/types/cs';
 import { Service } from './Service';
 
 export class BattlePlanService {
@@ -14,7 +15,7 @@ export class BattlePlanService {
 	static async delete(
 		gameId: number | string,
 		num: number | string
-	): Promise<{ player: PlayerResponse; fleets: Fleet[]; starbases: Fleet[] }> {
+	): Promise<{ player: Player; fleets: Fleet[]; starbases: Fleet[] }> {
 		const url = `/api/games/${gameId}/battle-plans/${num}`;
 		const response = await fetch(url, {
 			method: 'DELETE',
@@ -27,7 +28,7 @@ export class BattlePlanService {
 			await Service.throwError(response);
 		}
 		return (await response.json()) as {
-			player: PlayerResponse;
+			player: Player;
 			fleets: Fleet[];
 			starbases: Fleet[];
 		};

@@ -1,105 +1,59 @@
 import type { DesignFinder, Universe } from '$lib/services/Universe';
-import { flatten, groupBy, sumBy, get as pluck } from 'lodash-es';
-import type { Cargo } from './Cargo';
-import type { MapObject } from './MapObject';
-import type { Vector } from './Vector';
-import type { Player } from './Player';
+import { flatten, groupBy, get as pluck, sumBy } from 'lodash-es';
+import type { BattleAttackWho, BattleTactic, BattleTarget, MapObject, Vector } from './cs';
+import {
+	BattleAttackWhoEnemies,
+	BattleAttackWhoEnemiesAndNeutrals,
+	BattleAttackWhoEveryone,
+	BattleTacticDisengage,
+	BattleTacticDisengageIfChallenged,
+	BattleTacticMaximizeDamage,
+	BattleTacticMaximizeDamageRatio,
+	BattleTacticMaximizeNetDamage,
+	BattleTacticMinimizeDamageToSelf,
+	BattleTargetAny,
+	BattleTargetArmedShips,
+	BattleTargetBombersFreighters,
+	BattleTargetFreighters,
+	BattleTargetFuelTransports,
+	BattleTargetNone,
+	BattleTargetStarbase,
+	BattleTargetUnarmedShips,
+	TokenActionMove,
+	TokenActionRanAway,
+	type BattleRecord,
+	type BattleRecordDestroyedToken,
+	type BattleRecordStats,
+	type BattleRecordToken,
+	type BattleRecordTokenAction
+} from './cs';
+import type { CommandedPlayer } from './Player';
 
-export type BattleRecord = {
-	num: number;
-	planetNum?: number;
-	position: Vector;
-	tokens: Token[];
-	actionsPerRound: Array<TokenAction[]>;
-	destroyedTokens: BattleRecordDestroyedToken[];
-	stats: BattleRecordStats;
-};
+export const BattleTargets: BattleTarget[] = [
+	BattleTargetNone,
+	BattleTargetAny,
+	BattleTargetStarbase,
+	BattleTargetArmedShips,
+	BattleTargetBombersFreighters,
+	BattleTargetUnarmedShips,
+	BattleTargetFuelTransports,
+	BattleTargetFreighters
+] as const;
 
-export type Token = {
-	num: number;
-	playerNum: number;
-	designNum: number;
-	position: Vector;
-	mass?: number;
-	armor?: number;
-	stackShields?: number;
-	startingQuantity: number;
-	startingQuantityDamaged: number;
-	startingDamage: number;
-	damage?: number;
-	quantityDamaged?: number;
-	quantity?: number;
-	initiative?: number;
-	movement?: number;
-	tactic: BattleTactic | string;
-	primaryTarget: BattleTarget | string;
-	secondaryTarget: BattleTarget | string;
-	attackWho: BattleAttackWho | string;
-};
+export const BattleTactics: BattleTactic[] = [
+	BattleTacticDisengage,
+	BattleTacticDisengageIfChallenged,
+	BattleTacticMinimizeDamageToSelf,
+	BattleTacticMaximizeNetDamage,
+	BattleTacticMaximizeDamageRatio,
+	BattleTacticMaximizeDamage
+] as const;
 
-export type BattleRecordDestroyedToken = {
-	num: number;
-	playerNum: number;
-	designNum: number;
-	quantity: number;
-};
-
-export type TokenAction = {
-	type: number;
-	tokenNum: number;
-	round: number;
-	from: Vector;
-	to: Vector;
-	slot?: number;
-	targetNum?: number;
-	target?: Token;
-	tokensDestroyed?: number;
-	damageDoneShields?: number;
-	damageDoneArmor?: number;
-	torpedoHits?: number;
-	torpedoMisses?: number;
-};
-
-export type BattleRecordStats = {
-	numPlayers?: number;
-	numShipsByPlayer?: { [key: number]: number };
-	shipsDestroyedByPlayer?: { [key: number]: number };
-	damageTakenByPlayer?: { [key: number]: number };
-	cargoLostByPlayer?: { [key: number]: Cargo };
-};
-
-export enum BattleTactic {
-	Disengage = 'Disengage',
-	DisengageIfChallenged = 'DisengageIfChallenged',
-	MinimizeDamageToSelf = 'MinimizeDamageToSelf',
-	MaximizeNetDamage = 'MaximizeNetDamage',
-	MaximizeDamageRatio = 'MaximizeDamageRatio',
-	MaximizeDamage = 'MaximizeDamage'
-}
-
-export enum BattleTarget {
-	None = '',
-	Any = 'Any',
-	Starbase = 'Starbase',
-	ArmedShips = 'ArmedShips',
-	BombersFreighters = 'BombersFreighters',
-	UnarmedShips = 'UnarmedShips',
-	FuelTransports = 'FuelTransports',
-	Freighters = 'Freighters'
-}
-
-export enum BattleAttackWho {
-	Enemies = 'Enemies',
-	EnemiesAndNeutrals = 'EnemiesAndNeutrals',
-	Everyone = 'Everyone'
-}
-export enum TokenActionType {
-	Fire,
-	BeamFire,
-	TorpedoFire,
-	Move,
-	RanAway
-}
+export const BattleAttackWhos: BattleAttackWho[] = [
+	BattleAttackWhoEnemies,
+	BattleAttackWhoEnemiesAndNeutrals,
+	BattleAttackWhoEveryone
+] as const;
 
 export type BattleRecordDetails = {
 	// whether the player was present at this battle
@@ -118,12 +72,15 @@ export type BattleRecordDetails = {
 
 // a phase token is a token combined with a position
 export type PhaseToken = {
-	action?: TokenAction;
+	action?: BattleRecordTokenAction;
 	ranAway?: boolean;
 	destroyedPhase?: number;
 	target?: boolean;
 	shields?: number;
-} & Token &
+	quantity: number;
+	quantityDamaged: number;
+	damage: number;
+} & BattleRecordToken &
 	Vector;
 
 type TokensByLocation = Record<string, PhaseToken[]>;
@@ -138,11 +95,6 @@ export class Battle implements BattleRecord {
 		Object.assign(this, record);
 		this.totalPhases = sumBy(this.actionsPerRound, (a) => a.length);
 		this.totalRounds = this.actionsPerRound.length;
-		this.tokens.forEach((t) => {
-			t.quantity = t.startingQuantity;
-			t.quantityDamaged = t.startingQuantityDamaged ?? 0;
-			t.damage = t.damage ?? 0;
-		});
 		this.buildPhaseTokensForBattle(designFinder);
 		this.tokens.sort((a, b) => a.num - b.num);
 		this.actions = flatten(this.actionsPerRound);
@@ -158,16 +110,16 @@ export class Battle implements BattleRecord {
 	};
 
 	planetNum?: number | undefined;
-	tokens: Token[] = [];
-	actionsPerRound: TokenAction[][] = [];
-	actions: TokenAction[] = [];
+	tokens: BattleRecordToken[] = [];
+	actionsPerRound: BattleRecordTokenAction[][] = [];
+	actions: BattleRecordTokenAction[] = [];
 	totalPhases: number;
 	totalRounds: number;
 
 	private tokensByPhase: PhaseToken[][] = [];
 	private tokensByPhaseByLocation: TokensByLocation[] = [];
 
-	getToken(num: number): Token | undefined {
+	getToken(num: number): BattleRecordToken | undefined {
 		if (num > 0 && num <= this.tokens.length) {
 			return this.tokens[num - 1];
 		}
@@ -211,10 +163,13 @@ export class Battle implements BattleRecord {
 		// starting token configuration
 		let tokens: PhaseToken[] = this.tokens.map((t) => ({
 			...t,
+			quantity: t.startingQuantity,
+			quantityDamaged: t.startingQuantityDamaged ?? 0,
+			damage: t.startingDamage ?? 0,
 			x: t.position.x,
 			y: t.position.y,
 			stackShields:
-				(designFinder.getDesign(t.playerNum, t.designNum)?.spec?.shields ?? 0) * (t.quantity ?? 0)
+				(designFinder.getDesign(t.playerNum, t.designNum)?.spec?.shields ?? 0) * t.startingQuantity
 		}));
 
 		// set the first phase to our base tokens
@@ -236,10 +191,10 @@ export class Battle implements BattleRecord {
 					// if this token is being acted upon, update it
 					if (phaseToken.num == action.tokenNum) {
 						phaseToken.action = action;
-						if (action.type == TokenActionType.Move) {
+						if (action.type == TokenActionMove) {
 							phaseToken.x = action.to?.x ?? phaseToken.x;
 							phaseToken.y = action.to?.y ?? phaseToken.y;
-						} else if (action.type == TokenActionType.RanAway) {
+						} else if (action.type == TokenActionRanAway) {
 							phaseToken.ranAway = true;
 						}
 					} else {
@@ -279,7 +234,7 @@ export const getTokenLocationKey = (x: number, y: number): string => `${x}-${y}`
 // get details about this battle for messages or the battle report
 export function getBattleRecordDetails(
 	battle: BattleRecord,
-	player: Player,
+	player: CommandedPlayer,
 	universe: Universe
 ): BattleRecordDetails {
 	const location = universe.getBattleLocation(battle) ?? 'unknown';

@@ -8,13 +8,13 @@ import (
 
 // BattleRecord is a recording of a single battle.
 type BattleRecord struct {
-	Num             int                          `json:"num,omitempty"`
+	Num             int                          `json:"num"`
 	PlanetNum       int                          `json:"planetNum,omitempty"`
-	Position        Vector                       `json:"position,omitempty"`
-	Tokens          []BattleRecordToken          `json:"tokens,omitempty"`
-	ActionsPerRound [][]BattleRecordTokenAction  `json:"actionsPerRound,omitempty"`
+	Position        Vector                       `json:"position"`
+	Tokens          []BattleRecordToken          `json:"tokens"`
+	ActionsPerRound [][]BattleRecordTokenAction  `json:"actionsPerRound"`
 	DestroyedTokens []BattleRecordDestroyedToken `json:"destroyedTokens,omitempty"`
-	Stats           BattleRecordStats            `json:"stats,omitempty"`
+	Stats           BattleRecordStats            `json:"stats"`
 }
 type BattleRecordStats struct {
 	NumPlayers             int           `json:"numPlayers,omitempty"`
@@ -26,39 +26,39 @@ type BattleRecordStats struct {
 
 // A token on a battle board
 type BattleRecordToken struct {
-	Num                     int             `json:"num,omitempty"`
-	PlayerNum               int             `json:"playerNum,omitempty"`
-	DesignNum               int             `json:"designNum,omitempty"`
-	Position                BattleVector    `json:"position,omitempty"`
-	Initiative              int             `json:"initiative,omitempty"`
-	Mass                    int             `json:"mass,omitempty"`
-	Armor                   int             `json:"armor,omitempty"`
+	Num                     int             `json:"num"`
+	PlayerNum               int             `json:"playerNum"`
+	DesignNum               int             `json:"designNum"`
+	Position                BattleVector    `json:"position"`
+	Initiative              int             `json:"initiative"`
+	Mass                    int             `json:"mass"`
+	Armor                   int             `json:"armor"`
 	StackShields            int             `json:"stackShields,omitempty"`
-	Movement                int             `json:"movement,omitempty"`
-	StartingQuantity        int             `json:"startingQuantity,omitempty"`
+	Movement                int             `json:"movement"`
+	StartingQuantity        int             `json:"startingQuantity"`
 	StartingQuantityDamaged int             `json:"startingQuantityDamaged,omitempty"`
 	StartingDamage          int             `json:"startingDamage,omitempty"`
-	Tactic                  BattleTactic    `json:"tactic,omitempty"`
-	PrimaryTarget           BattleTarget    `json:"primaryTarget,omitempty"`
-	SecondaryTarget         BattleTarget    `json:"secondaryTarget,omitempty"`
-	AttackWho               BattleAttackWho `json:"attackWho,omitempty"`
+	Tactic                  BattleTactic    `json:"tactic"`
+	PrimaryTarget           BattleTarget    `json:"primaryTarget"`
+	SecondaryTarget         BattleTarget    `json:"secondaryTarget"`
+	AttackWho               BattleAttackWho `json:"attackWho"`
 }
 
 type BattleRecordDestroyedToken struct {
-	Num       int `json:"num,omitempty"`
-	PlayerNum int `json:"playerNum,omitempty"`
-	DesignNum int `json:"designNum,omitempty"`
-	Quantity  int `json:"quantity,omitempty"`
+	Num       int `json:"num"`
+	PlayerNum int `json:"playerNum"`
+	DesignNum int `json:"designNum"`
+	Quantity  int `json:"quantity"`
 	design    *ShipDesign
 }
 
 // BattleRecordTokenAction represents an action for a token in a battle.
 type BattleRecordTokenAction struct {
-	Type              BattleRecordTokenActionType `json:"type,omitempty"`
-	TokenNum          int                         `json:"tokenNum,omitempty"`
-	Round             int                         `json:"round,omitempty"`
-	From              BattleVector                `json:"from,omitempty"`
-	To                BattleVector                `json:"to,omitempty"`
+	Type              BattleRecordTokenActionType `json:"type"`
+	TokenNum          int                         `json:"tokenNum"`
+	Round             int                         `json:"round"`
+	From              BattleVector                `json:"from"`
+	To                BattleVector                `json:"to"`
 	Slot              int                         `json:"slot,omitempty"`
 	TargetNum         int                         `json:"targetNum,omitempty"`
 	Target            *ShipToken                  `json:"target,omitempty"`
