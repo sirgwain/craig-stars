@@ -9,7 +9,7 @@ on:
       - "develop"
 
 env:
-  go-version: 1.23.x
+  go-version: 1.24.x
   test_results: ./tmp/test-results
 
 jobs:

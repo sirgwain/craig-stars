@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 	"sync"
 
@@ -63,9 +62,15 @@ func Copy_Wasm_Exec() error {
 	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
+
+	goRoot, err := sh.Output("go", "env", "GOROOT")
+	if err != nil {
+		return mg.Fatalf(1, "error finding GOROOT: \n%w", err)
+	}
+
 	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js",
-		strings.ReplaceAll(runtime.GOROOT(), "\\", "/")+
-			"/misc/wasm/wasm_exec.js"); err != nil {
+		strings.ReplaceAll(goRoot, "\\", "/")+
+			"/lib/wasm/wasm_exec.js"); err != nil {
 		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)
 	}
 	return nil
