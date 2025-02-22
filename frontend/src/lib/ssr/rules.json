@@ -80,11 +80,11 @@
 	"minStartingMineralConcentration": 1,
 	"minStartingMineralSurface": 300,
 	"raceLeftoverPointsPerItem": {
-		"Defenses": {},
-		"Factories": {},
-		"MineralConcentrations": {},
-		"Mines": {},
-		"SurfaceMinerals": {}
+		"Defenses": 10,
+		"Factories": 5,
+		"MineralConcentrations": 3,
+		"Mines": 2,
+		"SurfaceMinerals": 10
 	},
 	"startingYear": 2400,
 	"wormholeMinPlanetDistance": 30,

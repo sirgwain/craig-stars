@@ -62,7 +62,7 @@ var CombatTechTags = []TechTag{
 }
 
 // A collection of an object's TechTags (like on a tech part)
-type TechTags Set[TechTag]
+type TechTags map[TechTag]bool
 
 // Create a new TechTags map from a list of TechTag items, or an empty map if none are specified
 func newTechTags(tags ...TechTag) TechTags {

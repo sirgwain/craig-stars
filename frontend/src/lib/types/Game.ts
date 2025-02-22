@@ -33,14 +33,14 @@ export enum PlayerPositions {
 
 export enum GameStartMode {
 	Normal = '', // regular start
-	AccBBS = 'AccBBS', /* AccBBS; faster start with more pop */
+	AccBBS = 'AccBBS' /* AccBBS; faster start with more pop */,
 	Max = 'Max' // max out all players
 }
 
 export const GameStartModeFullNames: { [key in GameStartMode]: string } = {
-	[GameStartMode.Normal]: "Normal",
-	[GameStartMode.AccBBS]: "Accelerated BBS Play",
-	[GameStartMode.Max]: "Max Start",
+	[GameStartMode.Normal]: 'Normal',
+	[GameStartMode.AccBBS]: 'Accelerated BBS Play',
+	[GameStartMode.Max]: 'Max Start'
 };
 
 export enum NewGamePlayerType {
