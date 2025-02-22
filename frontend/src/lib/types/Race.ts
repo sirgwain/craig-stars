@@ -54,9 +54,6 @@ import {
 export const lrts = [IFE, TT, ARM, ISB, GR, UR, NRSE, OBRM, NAS, LSP, BET, RS, MA, CE] as const;
 
 export const humanoid = (): Race => ({
-	id: 0,
-	createdAt: '',
-	updatedAt: '',
 	name: 'Humanoid',
 	pluralName: 'Humanoids',
 	spendLeftoverPointsOn: SpendLeftoverPointsOnSurfaceMinerals,

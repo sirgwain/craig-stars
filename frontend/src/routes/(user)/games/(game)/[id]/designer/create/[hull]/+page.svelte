@@ -14,9 +14,6 @@
 	let hull = $derived($techs.getHull(hullName));
 
 	let design: ShipDesign = $state({
-		id: 0,
-		createdAt: '',
-		updatedAt: '',
 		name: '',
 		gameId: $game.id,
 		playerNum: $player.num ?? 0,

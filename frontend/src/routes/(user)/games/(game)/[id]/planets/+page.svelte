@@ -9,13 +9,13 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
-	import { ReportAgeUnexplored, type Planet, type PlanetIntel } from '$lib/types/cs';
+	import { type AnyPlanet } from '$lib/services/Universe';
+	import { ReportAgeUnexplored, type Planet } from '$lib/types/cs';
 	import { owned, ownedBy } from '$lib/types/MapObject';
 	import { planetsSortBy } from '$lib/types/Planet';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
-	import { AnyPlanet } from '$lib/services/Universe';
 
 	const {
 		game,
@@ -49,10 +49,6 @@
 								factories: 0,
 								mineYears: 0,
 								defenses: 0,
-								gameId: 0,
-								id: 0,
-								createdAt: '',
-								updatedAt: '',
 								terraformedAmount: {},
 								tags: {}
 							}) as TablePlanet
@@ -72,7 +68,7 @@
 	);
 
 	// columns change based on whether we are showing all planets or just the player planets
-	type TablePlanet = Planet & {
+	type TablePlanet = AnyPlanet & {
 		owner?: never;
 		population?: never;
 		populationDensity?: never;
@@ -87,6 +83,9 @@
 		routingDestination?: never;
 		reportAge?: number;
 		starbase?: never;
+		mines?: number;
+		factories?: number;
+		contributesOnlyLeftoverToResearch?: boolean;
 	};
 	let columns: TableColumn<TablePlanet>[] = $derived([
 		{
@@ -219,8 +218,8 @@
 		});
 	}
 
-	function selectPlanet(planet: Planet) {
-		if (ownedBy(planet, $player.num)) {
+	function selectPlanet(planet: AnyPlanet) {
+		if (ownedBy(planet, $player.num) && (planet as Planet)) {
 			commandMapObject(planet);
 		}
 		selectMapObject(planet);
@@ -286,6 +285,7 @@
 		{/snippet}
 
 		{#snippet cell({ row, column, cell })}
+			{@const planet = row as Planet}
 			<span>
 				{#if column.key == 'name'}
 					<button class="cs-link text-xl text-left" onclick={() => selectPlanet(row)}>{cell}</button
@@ -334,19 +334,23 @@
 					{/if}
 				{:else if column.key == 'production'}
 					<button
-						onclick={() => onProductionQueueDialog(row)}
+						onclick={() => onProductionQueueDialog(planet)}
 						class="text-base w-32 flex justify-between text-left cursor-pointer"
 					>
-						{#if row.productionQueue?.length}
-							<ProductionQueueItemLine item={row.productionQueue[0]} index={0} shortName={true} />
+						{#if planet.productionQueue?.length}
+							<ProductionQueueItemLine
+								item={planet.productionQueue[0]}
+								index={0}
+								shortName={true}
+							/>
 						{:else if ownedBy(row, $player.num)}
 							-- Queue is Empty --
 						{/if}
 					</button>
 				{:else if column.key == 'mines'}
-					{row.mines ?? 0}
+					{planet.mines ?? 0}
 				{:else if column.key == 'factories'}
-					{row.factories ?? 0}
+					{planet.factories ?? 0}
 				{:else if column.key == 'defense'}
 					{((row.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
 				{:else if column.key == 'minerals'}
@@ -358,7 +362,7 @@
 				{:else if column.key == 'resources'}
 					{row.spec.resourcesPerYearAvailable ?? 0} / {row.spec.resourcesPerYear ?? 0}
 				{:else if column.key == 'contributesOnlyLeftoverToResearch'}
-					{#if row.contributesOnlyLeftoverToResearch}
+					{#if planet.contributesOnlyLeftoverToResearch}
 						<Icon src={Check} size="24" class="stroke-success" />
 					{/if}
 				{:else if column.key == 'driverDest'}

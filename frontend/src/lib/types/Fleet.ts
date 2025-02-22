@@ -1,4 +1,10 @@
-import type { AnyFleet, AnyShipDesign, DesignFinder, Universe } from '$lib/services/Universe';
+import type {
+	AnyFleet,
+	AnyPlanet,
+	AnyShipDesign,
+	DesignFinder,
+	Universe
+} from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo } from './Cargo';
 import type { CargoDest } from './CargoTransferRequest.svelte';
@@ -485,7 +491,7 @@ export class CommandedFleet implements Fleet {
 		player: CommandedPlayer,
 		designFinder: DesignFinder,
 		dist: number,
-		orbiting: PlanetIntel | undefined,
+		orbiting: AnyPlanet | undefined,
 		dest: WaypointDest,
 		fuelAlreadyAllocated: number,
 		highestShipMass: number,
@@ -675,7 +681,7 @@ export class CommandedFleet implements Fleet {
 	 */
 	canJump(
 		player: CommandedPlayer,
-		orbiting: PlanetIntel | undefined,
+		orbiting: AnyPlanet | undefined,
 		targetPlanet: PlanetIntel,
 		dist: number,
 		highestShipMass: number
@@ -715,7 +721,7 @@ export class CommandedFleet implements Fleet {
 	 * @param targetPlanet the planet the fleet is targeting
 	 * @returns true if the fleet will refuel at this planet
 	 */
-	canFuel(player: CommandedPlayer, targetPlanet: PlanetIntel | undefined): boolean {
+	canFuel(player: CommandedPlayer, targetPlanet: AnyPlanet | undefined): boolean {
 		return !!(
 			targetPlanet &&
 			owned(targetPlanet) &&

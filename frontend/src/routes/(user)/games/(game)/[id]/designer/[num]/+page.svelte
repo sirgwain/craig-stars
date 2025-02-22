@@ -4,10 +4,10 @@
 	import Design from '$lib/components/game/design/Design.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
-	const { game, universe, player } = getGameContext();
+	const { game, universe } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	let design = $derived($universe.designs.find((d) => d.playerNum == $player.num && d.num === num));
+	let design = $derived($universe.getMyDesign(num));
 </script>
 
 {#if design}

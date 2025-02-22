@@ -120,13 +120,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	mapObjectsByPosition: Record<string, MapObject[]> = {};
 	myMapObjectsByPosition: Record<string, MapObject[]> = {};
-
-	// get all planets, both our own and intels
-	public get allPlanets(): AnyPlanet[] {
-		const allPlanets: AnyPlanet[] = [...this.planetIntels];
-		this.planets.forEach((planet) => (allPlanets[planet.num - 1] = planet));
-		return allPlanets;
-	}
+	allPlanets: AnyPlanet[] = [];
 
 	public get allMineFields(): AnyMineField[] {
 		return [...this.mineFields, ...this.mineFieldIntels];
@@ -134,6 +128,10 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	public get allMineralPackets(): AnyMineralPacket[] {
 		return [...this.mineralPackets, ...this.mineralPacketIntels];
+	}
+
+	public get allDesigns(): AnyShipDesign[] {
+		return [...this.designs, ...this.shipDesignIntels];
 	}
 
 	public setData(data: PlayerUniverse): Universe {
@@ -155,6 +153,9 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.wormholeIntels = data.wormholeIntels ?? [];
 		this.mysteryTraderIntels = data.mysteryTraderIntels ?? [];
 		this.salvageIntels = data.salvageIntels ?? [];
+
+		this.allPlanets = [...this.planetIntels];
+		this.planets.forEach((planet) => (this.allPlanets[planet.num - 1] = planet));
 
 		this.resetMapObjectsByPosition();
 		return this;
@@ -308,7 +309,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	getDesigns(playerNum: number): AnyShipDesign[] {
-		return this.designs.filter((d) => d.playerNum === playerNum);
+		return this.allDesigns.filter((d) => d.playerNum === playerNum);
 	}
 
 	getMyDesign(num: number | undefined): ShipDesign | undefined {
@@ -374,11 +375,12 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		);
 	}
 
-	getPlanet(num: number): PlanetIntel | undefined {
-		return this.planetIntels.find((p) => p.num === num);
+	// getPlanet returns either the player owned planet by a number
+	getPlanet(num: number): AnyPlanet | undefined {
+		return this.allPlanets[num - 1];
 	}
 
-	getFleet(playerNum: number | undefined, num: number | undefined) {
+	getFleet(playerNum: number | undefined, num: number | undefined): Fleet | undefined {
 		return this.fleets.find((f) => f.playerNum === playerNum && f.num === num);
 	}
 
@@ -429,6 +431,9 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		}
 		// update intel as well
 		this.planetIntels[planet.num - 1] = { ...planet, reportAge: 0 };
+
+		this.allPlanets = [...this.planetIntels];
+		this.planets.forEach((planet) => (this.allPlanets[planet.num - 1] = planet));
 
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();

@@ -556,18 +556,18 @@ export interface ScoreIntel {
  * Though the cs package doesn't deal with the database, they are still part of the models
  */
 export interface DBObject {
-	id: number /* int64 */;
-	createdAt: string /* RFC3339 */;
-	updatedAt: string /* RFC3339 */;
+	id?: number /* int64 */;
+	createdAt?: string /* RFC3339 */;
+	updatedAt?: string /* RFC3339 */;
 }
 /**
  * A GameObject is a database object that is associated with a game
  */
 export interface GameDBObject {
-	id: number /* int64 */;
-	gameId: number /* int64 */;
-	createdAt: string /* RFC3339 */;
-	updatedAt: string /* RFC3339 */;
+	id?: number /* int64 */;
+	gameId?: number /* int64 */;
+	createdAt?: string /* RFC3339 */;
+	updatedAt?: string /* RFC3339 */;
 }
 /**
  * Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum for player owned

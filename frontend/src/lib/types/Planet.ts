@@ -1,6 +1,6 @@
 import { roundToNearest100 } from '$lib/services/Math';
 import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
-import type { DesignFinder } from '$lib/services/Universe';
+import type { AnyPlanet, DesignFinder } from '$lib/services/Universe';
 import type { CS } from '$lib/wasm';
 import { cloneDeep, sortBy, startCase } from 'lodash-es';
 import { addMineral } from './Cargo';
@@ -57,10 +57,6 @@ import { getPlanetHabitability } from './Race';
  * A planet that can be commanded and updated by the player
  */
 export class CommandedPlanet implements Planet {
-	id = 0;
-	gameId = 0;
-	createdAt: string = '';
-	updatedAt: string = '';
 	readonly type = MapObjectTypePlanet;
 	tags: Tags = {};
 
@@ -600,11 +596,7 @@ export const getQueueItemShortName = (
 	}
 };
 
-export function getMineralOutput(
-	planet: PlanetIntel,
-	numMines: number,
-	mineOutput: number
-): Mineral {
+export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {
 	return {
 		ironium:
 			((((planet.mineralConcentration?.ironium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput,
