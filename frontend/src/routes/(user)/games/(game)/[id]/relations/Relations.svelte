@@ -1,14 +1,19 @@
 <script lang="ts">
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { Player, PlayerRelation, type PlayerRelationship } from '$lib/types/Player';
-
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
+	import {
+		PlayerRelationEnemy,
+		PlayerRelationFriend,
+		PlayerRelationNeutral,
+		type PlayerRelationship
+	} from '$lib/types/cs';
+	import { CommandedPlayer } from '$lib/types/Player';
 
 	const { universe } = getGameContext();
 
 	type Props = {
-		player: Player;
+		player: CommandedPlayer;
 		onUpdatePlayerRelationships?: (relations: PlayerRelationship[]) => void;
 	};
 	let { player, onUpdatePlayerRelationships: onUpdatePlayerRelationship }: Props = $props();
@@ -38,7 +43,7 @@
 						type="radio"
 						name={`player-relation-${index + 1}`}
 						class="radio checked:bg-success"
-						value={PlayerRelation.Friend}
+						value={PlayerRelationFriend}
 						bind:group={relation.relation}
 						onchange={updateRelationship}
 					/>
@@ -51,7 +56,7 @@
 						type="radio"
 						name={`player-relation-${index + 1}`}
 						class="radio checked:bg-info"
-						value={PlayerRelation.Neutral}
+						value={PlayerRelationNeutral}
 						bind:group={relation.relation}
 						onchange={updateRelationship}
 					/>
@@ -64,7 +69,7 @@
 						type="radio"
 						name={`player-relation-${index + 1}`}
 						class="radio checked:bg-error"
-						value={PlayerRelation.Enemy}
+						value={PlayerRelationEnemy}
 						bind:group={relation.relation}
 						onchange={updateRelationship}
 					/>

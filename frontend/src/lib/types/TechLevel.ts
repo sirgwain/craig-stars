@@ -1,20 +1,13 @@
-export enum TechField {
-	Energy = 'Energy',
-	Weapons = 'Weapons',
-	Propulsion = 'Propulsion',
-	Construction = 'Construction',
-	Electronics = 'Electronics',
-	Biotechnology = 'Biotechnology'
-}
-
-export interface TechLevel {
-	energy?: number;
-	weapons?: number;
-	propulsion?: number;
-	construction?: number;
-	electronics?: number;
-	biotechnology?: number;
-}
+import {
+	Biotechnology,
+	Construction,
+	Electronics,
+	Energy,
+	Propulsion,
+	Weapons,
+	type TechField,
+	type TechLevel
+} from './cs';
 
 export const emptyTechLevel = (): TechLevel => ({
 	energy: 0,
@@ -83,17 +76,17 @@ export function levelsAbove(req: TechLevel, level: TechLevel): number | undefine
 
 export function get(tl: TechLevel, field: TechField): number {
 	switch (field) {
-		case TechField.Energy:
+		case Energy:
 			return tl.energy ?? 0;
-		case TechField.Weapons:
+		case Weapons:
 			return tl.weapons ?? 0;
-		case TechField.Propulsion:
+		case Propulsion:
 			return tl.propulsion ?? 0;
-		case TechField.Construction:
+		case Construction:
 			return tl.construction ?? 0;
-		case TechField.Electronics:
+		case Electronics:
 			return tl.electronics ?? 0;
-		case TechField.Biotechnology:
+		case Biotechnology:
 			return tl.biotechnology ?? 0;
 		default:
 			throw new Error('invalid field: ' + field);

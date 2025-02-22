@@ -26,20 +26,21 @@ const None = 0
 // in the fleet. Fleets also have orders that can be updated by the player, in the form of waypoints and the battle plan.
 // Fleets are one of the commandable MapObjects in the game.
 type Fleet struct {
-	MapObject
-	FleetOrders
+	GameDBObject      `tstype:",extends"`
+	MapObject         `tstype:",extends"`
+	FleetOrders       `tstype:",extends"`
 	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
 	Cargo             Cargo       `json:"cargo,omitempty"`
 	Fuel              int         `json:"fuel"`
 	Age               int         `json:"age"`
 	Tokens            []ShipToken `json:"tokens"`
-	Heading           Vector      `json:"heading,omitempty"`
+	Heading           Vector      `json:"heading"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
 	PreviousPosition  *Vector     `json:"previousPosition,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	Starbase          bool        `json:"starbase,omitempty"`
-	Spec              FleetSpec   `json:"spec,omitempty"`
+	Spec              FleetSpec   `json:"spec"`
 	battlePlan        *BattlePlan
 	struckMineField   bool
 	remoteMined       bool
@@ -53,7 +54,7 @@ type FleetOrders struct {
 }
 
 type FleetSpec struct {
-	ShipDesignSpec
+	ShipDesignSpec   `tstype:",extends"`
 	BaseCloakedCargo int                        `json:"baseCloakedCargo,omitempty"`
 	BasePacketSpeed  int                        `json:"basePacketSpeed,omitempty"`
 	HasMassDriver    bool                       `json:"hasMassDriver,omitempty"`
@@ -73,8 +74,8 @@ type Waypoint struct {
 	Position             Vector                 `json:"position"`
 	WarpSpeed            int                    `json:"warpSpeed"`
 	EstFuelUsage         int                    `json:"estFuelUsage,omitempty"`
-	Task                 WaypointTask           `json:"task"`
-	TransportTasks       WaypointTransportTasks `json:"transportTasks,omitempty"`
+	Task                 WaypointTask           `json:"task,omitempty"`
+	TransportTasks       WaypointTransportTasks `json:"transportTasks"`
 	WaitAtWaypoint       bool                   `json:"waitAtWaypoint,omitempty"`
 	LayMineFieldDuration int                    `json:"layMineFieldDuration,omitempty"`
 	PatrolRange          int                    `json:"patrolRange,omitempty"`
@@ -984,7 +985,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 		sourcePlanetPlayer := playerGetter.getPlayer(sourcePlanet.PlayerNum)
 		if sourcePlanetPlayer != nil && !sourcePlanetPlayer.IsFriend(player.Num) {
-			messager.fleetStargateInvalidSourceOwner(player, fleet, wp0, wp1)
+			messager.fleetStargateInvalidSourceOwner(player, fleet, wp0)
 			return
 		}
 
@@ -1115,7 +1116,7 @@ func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance 
 		messager.fleetStargateDestroyed(player, fleet, wp0, wp1)
 	} else {
 		if totalDamage > 0 || shipsLostToTheVoid > 0 {
-			messager.fleetStargateDamaged(player, fleet, wp0, wp1, totalDamage, startingShips, shipsLostToDamage, shipsLostToTheVoid)
+			messager.fleetStargateDamaged(player, fleet, wp0, wp1, totalDamage, shipsLostToDamage, shipsLostToTheVoid)
 		}
 	}
 }

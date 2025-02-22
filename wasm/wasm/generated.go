@@ -745,6 +745,7 @@ func GetFleet(o js.Value) cs.Fleet {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.FleetOrders = GetFleetOrders(o)
 	obj.PlanetNum = getInt[int](o.Get("planetNum"))
@@ -762,6 +763,7 @@ func GetFleet(o js.Value) cs.Fleet {
 	return obj
 }
 func SetFleet(o js.Value, obj *cs.Fleet) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	SetFleetOrders(o, &obj.FleetOrders)
 	o.Set("planetNum", obj.PlanetNum)
@@ -788,7 +790,8 @@ func GetFleetIntel(o js.Value) cs.FleetIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.BaseName = string(getString(o.Get("baseName")))
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.OrbitingPlanetNum = getInt[int](o.Get("orbitingPlanetNum"))
@@ -803,7 +806,8 @@ func GetFleetIntel(o js.Value) cs.FleetIntel {
 	return obj
 }
 func SetFleetIntel(o js.Value, obj *cs.FleetIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("baseName", obj.BaseName)
 	o.Set("heading", map[string]any{})
 	SetVector(o.Get("heading"), &obj.Heading)
@@ -1113,16 +1117,10 @@ func GetIntel(o js.Value) cs.Intel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.Name = string(getString(o.Get("name")))
-	obj.Num = getInt[int](o.Get("num"))
-	obj.PlayerNum = getInt[int](o.Get("playerNum"))
 	obj.ReportAge = getInt[int](o.Get("reportAge"))
 	return obj
 }
 func SetIntel(o js.Value, obj *cs.Intel) {
-	o.Set("name", obj.Name)
-	o.Set("num", obj.Num)
-	o.Set("playerNum", obj.PlayerNum)
 	o.Set("reportAge", obj.ReportAge)
 }
 
@@ -1220,7 +1218,6 @@ func GetMapObject(o js.Value) cs.MapObject {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.GameDBObject = GetGameDBObject(o)
 	obj.Type = GetMapObjectType(o.Get("type"))
 	obj.Position = GetVector(o.Get("position"))
 	obj.Num = getInt[int](o.Get("num"))
@@ -1230,7 +1227,6 @@ func GetMapObject(o js.Value) cs.MapObject {
 	return obj
 }
 func SetMapObject(o js.Value, obj *cs.MapObject) {
-	SetGameDBObject(o, &obj.GameDBObject)
 	o.Set("type", string(obj.Type))
 	o.Set("position", map[string]any{})
 	SetVector(o.Get("position"), &obj.Position)
@@ -1242,23 +1238,6 @@ func SetMapObject(o js.Value, obj *cs.MapObject) {
 		tagsMap.Set(fmt.Sprintf("%v", key), value)
 	}
 	o.Set("tags", tagsMap)
-}
-
-func GetMapObjectIntel(o js.Value) cs.MapObjectIntel {
-	var obj cs.MapObjectIntel
-	if o.IsUndefined() || o.IsNull() {
-		return obj
-	}
-	obj.Intel = GetIntel(o)
-	obj.Type = GetMapObjectType(o.Get("type"))
-	obj.Position = GetVector(o.Get("position"))
-	return obj
-}
-func SetMapObjectIntel(o js.Value, obj *cs.MapObjectIntel) {
-	SetIntel(o, &obj.Intel)
-	o.Set("type", string(obj.Type))
-	o.Set("position", map[string]any{})
-	SetVector(o.Get("position"), &obj.Position)
 }
 
 func GetMapObjectTarget(o js.Value) cs.MapObjectTarget {
@@ -1318,6 +1297,7 @@ func GetMineField(o js.Value) cs.MineField {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.MineFieldOrders = GetMineFieldOrders(o)
 	obj.MineFieldType = GetMineFieldType(o.Get("mineFieldType"))
@@ -1326,6 +1306,7 @@ func GetMineField(o js.Value) cs.MineField {
 	return obj
 }
 func SetMineField(o js.Value, obj *cs.MineField) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	SetMineFieldOrders(o, &obj.MineFieldOrders)
 	o.Set("mineFieldType", string(obj.MineFieldType))
@@ -1355,14 +1336,16 @@ func GetMineFieldIntel(o js.Value) cs.MineFieldIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.NumMines = getInt[int](o.Get("numMines"))
 	obj.MineFieldType = GetMineFieldType(o.Get("mineFieldType"))
 	obj.Spec = GetMineFieldSpec(o.Get("spec"))
 	return obj
 }
 func SetMineFieldIntel(o js.Value, obj *cs.MineFieldIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("numMines", obj.NumMines)
 	o.Set("mineFieldType", string(obj.MineFieldType))
 	o.Set("spec", map[string]any{})
@@ -1455,6 +1438,7 @@ func GetMineralPacket(o js.Value) cs.MineralPacket {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.TargetPlanetNum = getInt[int](o.Get("targetPlanetNum"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
@@ -1466,6 +1450,7 @@ func GetMineralPacket(o js.Value) cs.MineralPacket {
 	return obj
 }
 func SetMineralPacket(o js.Value, obj *cs.MineralPacket) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	o.Set("targetPlanetNum", obj.TargetPlanetNum)
 	o.Set("cargo", map[string]any{})
@@ -1499,7 +1484,8 @@ func GetMineralPacketIntel(o js.Value) cs.MineralPacketIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
@@ -1509,7 +1495,8 @@ func GetMineralPacketIntel(o js.Value) cs.MineralPacketIntel {
 	return obj
 }
 func SetMineralPacketIntel(o js.Value, obj *cs.MineralPacketIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("warpSpeed", obj.WarpSpeed)
 	o.Set("heading", map[string]any{})
 	SetVector(o.Get("heading"), &obj.Heading)
@@ -1550,6 +1537,7 @@ func GetMysteryTrader(o js.Value) cs.MysteryTrader {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.Destination = GetVector(o.Get("destination"))
@@ -1561,6 +1549,7 @@ func GetMysteryTrader(o js.Value) cs.MysteryTrader {
 	return obj
 }
 func SetMysteryTrader(o js.Value, obj *cs.MysteryTrader) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	o.Set("warpSpeed", obj.WarpSpeed)
 	o.Set("destination", map[string]any{})
@@ -1583,14 +1572,16 @@ func GetMysteryTraderIntel(o js.Value) cs.MysteryTraderIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.RequestedBoon = getInt[int](o.Get("requestedBoon"))
 	return obj
 }
 func SetMysteryTraderIntel(o js.Value, obj *cs.MysteryTraderIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("warpSpeed", obj.WarpSpeed)
 	o.Set("heading", map[string]any{})
 	SetVector(o.Get("heading"), &obj.Heading)
@@ -1894,6 +1885,7 @@ func GetPlanet(o js.Value) cs.Planet {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.PlanetOrders = GetPlanetOrders(o)
 	obj.Hab = GetHab(o.Get("hab"))
@@ -1911,6 +1903,7 @@ func GetPlanet(o js.Value) cs.Planet {
 	return obj
 }
 func SetPlanet(o js.Value, obj *cs.Planet) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	SetPlanetOrders(o, &obj.PlanetOrders)
 	o.Set("hab", map[string]any{})
@@ -1939,11 +1932,11 @@ func GetPlanetIntel(o js.Value) cs.PlanetIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.Hab = GetHab(o.Get("hab"))
 	obj.BaseHab = GetHab(o.Get("baseHab"))
 	obj.MineralConcentration = GetMineral(o.Get("mineralConcentration"))
-	obj.Starbase = getPointer(GetFleetIntel(o.Get("starbase")))
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	obj.CargoDiscovered = getBool(o.Get("cargoDiscovered"))
 	obj.PlanetHabitability = getInt[int](o.Get("planetHabitability"))
@@ -1953,15 +1946,14 @@ func GetPlanetIntel(o js.Value) cs.PlanetIntel {
 	return obj
 }
 func SetPlanetIntel(o js.Value, obj *cs.PlanetIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("hab", map[string]any{})
 	SetHab(o.Get("hab"), &obj.Hab)
 	o.Set("baseHab", map[string]any{})
 	SetHab(o.Get("baseHab"), &obj.BaseHab)
 	o.Set("mineralConcentration", map[string]any{})
 	SetMineral(o.Get("mineralConcentration"), &obj.MineralConcentration)
-	o.Set("starbase", map[string]any{})
-	SetFleetIntel(o.Get("starbase"), obj.Starbase)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
 	o.Set("cargoDiscovered", obj.CargoDiscovered)
@@ -2213,7 +2205,6 @@ func GetPlayerIntels(o js.Value) cs.PlayerIntels {
 	obj.ScoreIntels = GetSlice(o.Get("scoreIntels"), GetScoreIntel)
 	obj.PlanetIntels = GetSlice(o.Get("planetIntels"), GetPlanetIntel)
 	obj.FleetIntels = GetSlice(o.Get("fleetIntels"), GetFleetIntel)
-	obj.StarbaseIntels = GetSlice(o.Get("starbaseIntels"), GetFleetIntel)
 	obj.ShipDesignIntels = GetSlice(o.Get("shipDesignIntels"), GetShipDesignIntel)
 	obj.MineralPacketIntels = GetSlice(o.Get("mineralPacketIntels"), GetMineralPacketIntel)
 	obj.MineFieldIntels = GetSlice(o.Get("mineFieldIntels"), GetMineFieldIntel)
@@ -2233,8 +2224,6 @@ func SetPlayerIntels(o js.Value, obj *cs.PlayerIntels) {
 	SetSlice(o.Get("planetIntels"), obj.PlanetIntels, SetPlanetIntel)
 	o.Set("fleetIntels", []any{})
 	SetSlice(o.Get("fleetIntels"), obj.FleetIntels, SetFleetIntel)
-	o.Set("starbaseIntels", []any{})
-	SetSlice(o.Get("starbaseIntels"), obj.StarbaseIntels, SetFleetIntel)
 	o.Set("shipDesignIntels", []any{})
 	SetSlice(o.Get("shipDesignIntels"), obj.ShipDesignIntels, SetShipDesignIntel)
 	o.Set("mineralPacketIntels", []any{})
@@ -2279,7 +2268,7 @@ func GetPlayerMessage(o js.Value) cs.PlayerMessage {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.PlayerMessageTarget = GetPlayerMessageTarget(o)
+	obj.Target = GetTarget[cs.PlayerMessageTargetType](o)
 	obj.Type = GetPlayerMessageType(o.Get("type"))
 	obj.Text = string(getString(o.Get("text")))
 	obj.BattleNum = getInt[int](o.Get("battleNum"))
@@ -2287,7 +2276,7 @@ func GetPlayerMessage(o js.Value) cs.PlayerMessage {
 	return obj
 }
 func SetPlayerMessage(o js.Value, obj *cs.PlayerMessage) {
-	SetPlayerMessageTarget(o, &obj.PlayerMessageTarget)
+	SetTarget(o, &obj.Target)
 	o.Set("type", int(obj.Type))
 	o.Set("text", obj.Text)
 	o.Set("battleNum", obj.BattleNum)
@@ -2300,7 +2289,7 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectTarget = GetMapObjectTarget(o)
+	obj.Target = GetTarget[cs.MapObjectType](o)
 	obj.Amount = getInt[int](o.Get("amount"))
 	obj.Amount2 = getInt[int](o.Get("amount2"))
 	obj.PrevAmount = getInt[int](o.Get("prevAmount"))
@@ -2321,10 +2310,11 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.MineralPacketDamage = getPointer(GetMineralPacketDamage(o.Get("mineralPacketDamage")))
 	obj.MineFieldDamage = getPointer(GetMineFieldDamage(o.Get("mineFieldDamage")))
 	obj.MysteryTrader = getPointer(GetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader")))
+	obj.TerraformAmount = GetHab(o.Get("terraformAmount"))
 	return obj
 }
 func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
-	SetMapObjectTarget(o, &obj.MapObjectTarget)
+	SetTarget(o, &obj.Target)
 	o.Set("amount", obj.Amount)
 	o.Set("amount2", obj.Amount2)
 	o.Set("prevAmount", obj.PrevAmount)
@@ -2354,6 +2344,8 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	SetMineFieldDamage(o.Get("mineFieldDamage"), obj.MineFieldDamage)
 	o.Set("mysteryTrader", map[string]any{})
 	SetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader"), obj.MysteryTrader)
+	o.Set("terraformAmount", map[string]any{})
+	SetHab(o.Get("terraformAmount"), &obj.TerraformAmount)
 }
 
 func GetPlayerMessageSpecComet(o js.Value) cs.PlayerMessageSpecComet {
@@ -3236,11 +3228,13 @@ func GetSalvage(o js.Value) cs.Salvage {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	return obj
 }
 func SetSalvage(o js.Value, obj *cs.Salvage) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
@@ -3251,12 +3245,14 @@ func GetSalvageIntel(o js.Value) cs.SalvageIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	return obj
 }
 func SetSalvageIntel(o js.Value, obj *cs.SalvageIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
 }
@@ -3335,6 +3331,9 @@ func GetShipDesignIntel(o js.Value) cs.ShipDesignIntel {
 		return obj
 	}
 	obj.Intel = GetIntel(o)
+	obj.Name = string(getString(o.Get("name")))
+	obj.Num = getInt[int](o.Get("num"))
+	obj.PlayerNum = getInt[int](o.Get("playerNum"))
 	obj.Hull = string(getString(o.Get("hull")))
 	obj.HullSetNumber = getInt[int](o.Get("hullSetNumber"))
 	obj.Version = getInt[int](o.Get("version"))
@@ -3344,6 +3343,9 @@ func GetShipDesignIntel(o js.Value) cs.ShipDesignIntel {
 }
 func SetShipDesignIntel(o js.Value, obj *cs.ShipDesignIntel) {
 	SetIntel(o, &obj.Intel)
+	o.Set("name", obj.Name)
+	o.Set("num", obj.Num)
+	o.Set("playerNum", obj.PlayerNum)
 	o.Set("hull", obj.Hull)
 	o.Set("hullSetNumber", obj.HullSetNumber)
 	o.Set("version", obj.Version)
@@ -3695,6 +3697,27 @@ func GetTags(o js.Value) cs.Tags {
 	}
 	obj = GetStringMap[map[string]string](o, getString)
 	return obj
+}
+
+func GetTarget[T cs.PlayerMessageTargetType | cs.MapObjectType](o js.Value) cs.Target[T] {
+	var obj cs.Target[T]
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.TargetPosition = GetVector(o.Get("targetPosition"))
+	obj.TargetType = T(getString(o.Get("targetType")))
+	obj.TargetName = string(getString(o.Get("targetName")))
+	obj.TargetNum = getInt[int](o.Get("targetNum"))
+	obj.TargetPlayerNum = getInt[int](o.Get("targetPlayerNum"))
+	return obj
+}
+func SetTarget[T cs.PlayerMessageTargetType | cs.MapObjectType](o js.Value, obj *cs.Target[T]) {
+	o.Set("targetPosition", map[string]any{})
+	SetVector(o.Get("targetPosition"), &obj.TargetPosition)
+	o.Set("targetType", obj.TargetType)
+	o.Set("targetName", obj.TargetName)
+	o.Set("targetNum", obj.TargetNum)
+	o.Set("targetPlayerNum", obj.TargetPlayerNum)
 }
 
 func GetTech(o js.Value) cs.Tech {
@@ -4440,6 +4463,7 @@ func GetWormhole(o js.Value) cs.Wormhole {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.DestinationNum = getInt[int](o.Get("destinationNum"))
 	obj.Stability = GetWormholeStability(o.Get("stability"))
@@ -4448,6 +4472,7 @@ func GetWormhole(o js.Value) cs.Wormhole {
 	return obj
 }
 func SetWormhole(o js.Value, obj *cs.Wormhole) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	o.Set("destinationNum", obj.DestinationNum)
 	o.Set("stability", string(obj.Stability))
@@ -4461,13 +4486,15 @@ func GetWormholeIntel(o js.Value) cs.WormholeIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.DestinationNum = getInt[int](o.Get("destinationNum"))
 	obj.Stability = GetWormholeStability(o.Get("stability"))
 	return obj
 }
 func SetWormholeIntel(o js.Value, obj *cs.WormholeIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("destinationNum", obj.DestinationNum)
 	o.Set("stability", string(obj.Stability))
 }

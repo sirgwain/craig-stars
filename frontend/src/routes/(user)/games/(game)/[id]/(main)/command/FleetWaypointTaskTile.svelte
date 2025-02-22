@@ -7,15 +7,23 @@
 		ShowTransportTasksDialogEventProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { Unexplored } from '$lib/types/Constants';
-	import { CommandedFleet, emptyTransportTasks, WaypointTask } from '$lib/types/Fleet';
-	import { MapObjectType, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import type { MapObject, TransportPlan, WaypointTask } from '$lib/types/cs';
+	import {
+		MapObjectTypePlanet,
+		ReportAgeUnexplored,
+		WaypointTaskLayMineField,
+		WaypointTaskNone,
+		WaypointTaskPatrol,
+		WaypointTaskRemoteMining,
+		WaypointTaskTransferFleet,
+		WaypointTaskTransport
+	} from '$lib/types/cs';
+	import { CommandedFleet, emptyTransportTasks, WaypointTasks } from '$lib/types/Fleet';
+	import { owned, ownedBy } from '$lib/types/MapObject';
 	import { getMineralOutput } from '$lib/types/Planet';
-	import type { TransportPlan } from '$lib/types/Player';
 	import { PencilSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
-	import { $enum as eu } from 'ts-enum-util';
 	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
 	import CommandTile from './CommandTile.svelte';
 
@@ -44,9 +52,9 @@
 		waypoint = propFleet.waypoints[selectedWaypointIndex];
 	});
 
-	let selectedWaypointTask = $derived(waypoint.task ?? WaypointTask.None);
+	let selectedWaypointTask = $derived(waypoint.task ?? WaypointTaskNone);
 	let selectedWaypointPlanet = $derived(
-		waypoint.targetType == MapObjectType.Planet && waypoint.targetNum
+		waypoint.targetType == MapObjectTypePlanet && waypoint.targetNum
 			? $universe.getPlanet(waypoint.targetNum)
 			: undefined
 	);
@@ -54,7 +62,7 @@
 	const onSelectedWaypointTaskChange = (task: WaypointTask) => {
 		waypoint.task = task;
 
-		if (task != WaypointTask.Transport) {
+		if (task != WaypointTaskTransport) {
 			// if we aren't doing a transport, reset the transport tasks to blank.
 			// If we don't do this, the user could pick a transport task in the future and assume it defaults to empty
 			// but it will have whatever it last had
@@ -125,25 +133,21 @@
 				class="select select-outline select-secondary select-sm text-sm w-36"
 				value={selectedWaypointTask}
 				onchange={(e) => {
-					onSelectedWaypointTaskChange(
-						eu(WaypointTask).getValueOrDefault(e.currentTarget.value, WaypointTask.None)
-					);
+					onSelectedWaypointTaskChange(e.currentTarget.value ?? WaypointTaskNone);
 				}}
 			>
-				{#each eu(WaypointTask).getValues() as task}
-					{#if task === WaypointTask.None}
+				{#each WaypointTasks as task}
+					{#if task === WaypointTaskNone}
 						<option value={task}>None</option>
 					{:else}
-						<option value={task}
-							>{startCase(eu(WaypointTask).getValueOrDefault(task, 'None'))}</option
-						>
+						<option value={task}>{startCase(task ?? 'None')}</option>
 					{/if}
 				{/each}
 			</select>
 		</div>
 	</div>
 
-	{#if waypoint.task === WaypointTask.Transport}
+	{#if waypoint.task === WaypointTaskTransport}
 		<div class="flex flex-col">
 			<div>
 				<TransportTasksMini transportTasks={waypoint.transportTasks} />
@@ -178,10 +182,10 @@
 				</select>
 			</div>
 		</div>
-	{:else if waypoint.task === WaypointTask.RemoteMining}
+	{:else if waypoint.task === WaypointTaskRemoteMining}
 		{#if selectedWaypointPlanet}
 			<!-- if this waypoint is owned -->
-			{#if selectedWaypointPlanet.reportAge === Unexplored}
+			{#if 'reportAge' in selectedWaypointPlanet && selectedWaypointPlanet.reportAge === ReportAgeUnexplored}
 				<span class="text-warning"
 					>Warning: This planet is unexplored. We have no way of knowing if we can mine it.</span
 				>
@@ -205,7 +209,7 @@
 		{:else}
 			<span class="text-error">Warning: Can only remote mine planets.</span>
 		{/if}
-	{:else if waypoint.task === WaypointTask.LayMineField}
+	{:else if waypoint.task === WaypointTaskLayMineField}
 		<select
 			class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
 			value={waypoint.layMineFieldDuration}
@@ -221,7 +225,7 @@
 		<p class="text-warning">
 			This fleet can lay {fleet.getTotalMinesLaidPerYear()} mines per year.
 		</p>
-	{:else if waypoint.task === WaypointTask.Patrol}
+	{:else if waypoint.task === WaypointTaskPatrol}
 		<div class="flex justify-between my-1">
 			<div class="my-auto text-tile-item-title">Intercept</div>
 			<div>
@@ -257,7 +261,7 @@
 				/>
 			</span>
 		</div>
-	{:else if waypoint.task === WaypointTask.TransferFleet}
+	{:else if waypoint.task === WaypointTaskTransferFleet}
 		<select
 			class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
 			value={waypoint.transferToPlayer}

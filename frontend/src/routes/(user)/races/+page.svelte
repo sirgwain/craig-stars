@@ -4,7 +4,7 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { addError, CSError } from '$lib/services/Errors';
 	import { RaceService } from '$lib/services/RaceService';
-	import type { Race } from '$lib/types/Race';
+	import type { Race } from '$lib/types/cs';
 	import { XCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { format, parseJSON } from 'date-fns';

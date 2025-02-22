@@ -4,28 +4,23 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { type AnyFleet, type AnyShipDesign } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
-	import { StargateWarpSpeed } from '$lib/types/Constants';
-	import {
-		canTransferCargo,
-		CommandedFleet,
-		getDamagePercentForToken,
-		WaypointTask,
-		type Fleet
-	} from '$lib/types/Fleet';
+	import { StargateWarpSpeed, WaypointTaskNone, type Fleet } from '$lib/types/cs';
+	import { canTransferCargo, CommandedFleet, getDamagePercentForToken } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { startCase } from 'lodash-es';
 
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		fleet: Fleet;
+		fleet: AnyFleet;
 	} & ShowCargoTransferDialogProps;
 
 	let { fleet, onShowCargoTransferDialog }: Props = $props();
+	let playerFleet = $derived('waypoints' in fleet ? (fleet as Fleet) : undefined);
 
-	const design: ShipDesign | undefined = $derived.by(() => {
+	const design: AnyShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
 			return $universe.getDesign(fleet.playerNum, designNum);
@@ -33,9 +28,9 @@
 	});
 
 	// get either warpSpeed as a number, or "stargate"
-	function getWarpSpeed(fleet: Fleet): string {
+	function getWarpSpeed(fleet: AnyFleet): string {
 		const warpSpeed: number =
-			(fleet?.waypoints && fleet.waypoints.length > 1
+			('waypoints' in fleet && fleet.waypoints && fleet.waypoints.length > 1
 				? fleet.waypoints[1].warpSpeed
 				: fleet.warpSpeed) ?? 0;
 
@@ -45,8 +40,15 @@
 		return `${warpSpeed}`;
 	}
 
+	function getMass(fleet: AnyFleet): number {
+		if ('spec' in fleet) {
+			return fleet.spec?.mass ?? 0;
+		}
+		return fleet.mass ?? 0;
+	}
+
 	function transfer() {
-		if (!onShowCargoTransferDialog) {
+		if (!onShowCargoTransferDialog || !('waypoints' in fleet)) {
 			return;
 		}
 		const f = new CommandedFleet(fleet);
@@ -87,14 +89,14 @@
 		<div class="flex flex-row">
 			<div class="w-32 text-tile-item-title">Fleet Mass:</div>
 			<div>
-				{fleet.spec?.mass ?? fleet.mass ?? 0}kT
+				{getMass(fleet)}kT
 			</div>
 		</div>
-		{#if ownedBy(fleet, $player.num)}
+		{#if ownedBy(fleet, $player.num) && playerFleet}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Fuel:</div>
 				<div class="grow">
-					<FuelBar value={fleet.fuel ?? 0} capacity={fleet.spec?.fuelCapacity ?? 0} />
+					<FuelBar value={playerFleet.fuel} capacity={playerFleet.spec?.fuelCapacity ?? 0} />
 				</div>
 			</div>
 			<div class="flex flex-row">
@@ -102,27 +104,27 @@
 				<div class="grow">
 					<CargoBar
 						onPointerDown={() => transfer()}
-						canTransferCargo={canTransferCargo(fleet, $universe)}
-						value={fleet.cargo}
-						capacity={fleet.spec?.cargoCapacity}
+						canTransferCargo={canTransferCargo(playerFleet, $universe)}
+						value={playerFleet.cargo}
+						capacity={playerFleet.spec?.cargoCapacity}
 					/>
 				</div>
 			</div>
 		{/if}
-		{#if fleet.waypoints && fleet.waypoints.length > 1}
+		{#if playerFleet && playerFleet.waypoints && playerFleet.waypoints.length > 1}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Next Waypoint:</div>
-				<div>{$universe.getTargetName(fleet.waypoints[1])}</div>
+				<div>{$universe.getTargetName(playerFleet.waypoints[1])}</div>
 			</div>
-			{#if fleet.waypoints[1].task !== WaypointTask.None}
+			{#if playerFleet.waypoints[1].task !== WaypointTaskNone}
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Task:</div>
-					<div>{startCase(fleet.waypoints[1].task)}</div>
+					<div>{startCase(playerFleet.waypoints[1].task)}</div>
 				</div>
 			{/if}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Warp Speed:</div>
-				<div>{getWarpSpeed(fleet)}</div>
+				<div>{getWarpSpeed(playerFleet)}</div>
 			</div>
 		{:else if fleet.warpSpeed}
 			<div class="flex flex-row">

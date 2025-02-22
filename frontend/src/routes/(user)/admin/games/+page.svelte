@@ -4,12 +4,12 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { AdminService } from '$lib/services/AdminService';
 	import { addError, CSError } from '$lib/services/Errors';
-	import type { Game } from '$lib/types/Game';
+	import type { GameWithPlayers } from '$lib/types/cs';
 	import type { User } from '$lib/types/User';
 	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
 
-	const columns: TableColumn<Game>[] = [
+	const columns: TableColumn<GameWithPlayers>[] = [
 		{
 			key: 'id',
 			title: 'Num'
@@ -46,20 +46,22 @@
 	];
 
 	// filterable games
-	let games: Game[] = $state([]);
+	let games: GameWithPlayers[] = $state([]);
 	let usersById: Map<number, User> = $state(new Map<number, User>());
-	let sortKey = $state(localStorage.getItem('allGamesSortKey') ?? 'updatedAt') as keyof Game;
+	let sortKey = $state(
+		localStorage.getItem('allGamesSortKey') ?? 'updatedAt'
+	) as keyof GameWithPlayers;
 	let sortDescending: boolean = $state(
 		(localStorage.getItem('allGamesSortDescending') ?? 'true') === 'true'
 	);
-	let filteredGames: Game[] = $derived(
+	let filteredGames: GameWithPlayers[] = $derived(
 		games
 			?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
 			.sort((a, b) => defaultSortBy(a, b, sortKey, sortDescending))
 	);
 	let search = $state('');
 
-	function onSorted(column: TableColumn<Game>, descending: boolean) {
+	function onSorted(column: TableColumn<GameWithPlayers>, descending: boolean) {
 		sortDescending = descending;
 		sortKey = column.key;
 

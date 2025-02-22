@@ -4,8 +4,8 @@ import "math"
 
 // A Fleet contains multiple ShipTokens, each of which have a design and a quantity.
 type ShipToken struct {
-	DesignNum       int     `json:"designNum,omitempty"`
-	Quantity        int     `json:"quantity,omitempty"`        // the number of ships in the token
+	DesignNum       int     `json:"designNum"`
+	Quantity        int     `json:"quantity"`                  // the number of ships in the token
 	Damage          float64 `json:"damage,omitempty"`          // damage is stored per ship in the token
 	QuantityDamaged int     `json:"quantityDamaged,omitempty"` // the number of ships in the token that the damage applies to
 	design          *ShipDesign

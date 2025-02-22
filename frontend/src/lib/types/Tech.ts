@@ -1,57 +1,46 @@
 import { clamp } from '$lib/services/Math';
-import type { Cost } from './Cost';
-import type { MineFieldType } from './MineField';
-import type { Player } from './Player';
-import type { PRT } from './Race';
-import type { TechLevel } from './TechLevel';
-import type { Vector } from './Vector';
+import {
+	TechCategoryArmor,
+	TechCategoryBeamWeapon,
+	TechCategoryBomb,
+	TechCategoryElectrical,
+	TechCategoryEngine,
+	TechCategoryMechanical,
+	TechCategoryMineLayer,
+	TechCategoryMineRobot,
+	TechCategoryNone,
+	TechCategoryOrbital,
+	TechCategoryPlanetary,
+	TechCategoryPlanetaryDefense,
+	TechCategoryPlanetaryScanner,
+	TechCategoryScanner,
+	TechCategoryShield,
+	TechCategoryShipHull,
+	TechCategoryStarbaseHull,
+	TechCategoryTerraforming,
+	TechCategoryTorpedo,
+	TerraformHabTypeAll,
+	TerraformHabTypeGrav,
+	TerraformHabTypeNone,
+	TerraformHabTypeRad,
+	TerraformHabTypeTemp,
+	type HullSlotType,
+	type Tech,
+	type TechCategory,
+	type TechDefense,
+	type TechStore,
+	type TechTerraform,
+	type TerraformHabType
+} from './cs';
+import type { CommandedPlayer } from './Player';
 
-export type TechStore = {
-	engines: TechEngine[];
-	planetaryScanners: TechPlanetaryScanner[];
-	terraforms: TechTerraform[];
-	defenses: TechDefense[];
-	planetaries: TechPlanetary[];
-	hullComponents: TechHullComponent[];
-	hulls: TechHull[];
-};
-
-export type Tech = {
-	id?: number;
-	createdAt?: string;
-	updatedAt?: string;
-	techStoreId?: number;
-
-	name: string;
-	cost: Cost;
-	requirements: TechRequirements;
-	ranking?: number;
-	category: TechCategory;
-	origin?: string;
-};
-
-export type TechPlanetary = {
-	resetPlanet?: boolean;
-} & Tech;
-
-export type TechPlanetaryScanner = {
-	scanRange: number;
-	scanRangePen?: number;
-} & Tech;
-
-export type TechTerraform = {
-	ability: number;
-	habType: TerraformHabType;
-} & Tech;
-
-export type TerraformHabType = (typeof TerraformHabTypes)[keyof typeof TerraformHabTypes];
-export const TerraformHabTypes = {
-	None: '',
-	Gravity: 'Grav',
-	Temperature: 'Temp',
-	Radiation: 'Rad',
-	All: 'All'
-} as const;
+export const TerraformHabTypes = [
+	TerraformHabTypeNone,
+	TerraformHabTypeGrav,
+	TerraformHabTypeTemp,
+	TerraformHabTypeRad,
+	TerraformHabTypeAll
+];
 
 /**
  * Return the "long-form" name of a TerraformHabType, given its abbreviated form
@@ -60,198 +49,40 @@ export const TerraformHabTypes = {
  */
 export function getLongHabName(type: TerraformHabType): string {
 	switch (type) {
-		case TerraformHabTypes.Gravity:
+		case TerraformHabTypeGrav:
 			return 'Gravity';
-		case TerraformHabTypes.Temperature:
+		case TerraformHabTypeTemp:
 			return 'Temperature';
-		case TerraformHabTypes.Radiation:
+		case TerraformHabTypeRad:
 			return 'Radiation';
-		case TerraformHabTypes.All:
+		case TerraformHabTypeAll:
 			return 'All';
 		default:
 			return 'None';
 	}
 }
 
-export type TechDefense = {
-	defenseCoverage: number;
-} & Tech;
-
-export type TechHullComponent = {
-	hullSlotType: HullSlotType;
-	mass: number;
-	scanner?: boolean;
-	scanRange?: number;
-	scanRangePen?: number;
-	safeHullMass?: number;
-	safeRange?: number;
-	maxHullMass?: number;
-	maxRange?: number;
-	packetSpeed?: number;
-	miningRate?: number;
-	cloakUnits?: number;
-	terraformRate?: number;
-	killRate?: number;
-	minKillRate?: number;
-	structureDestroyRate?: number;
-	unterraformRate?: number;
-	radiating?: boolean;
-	smart?: boolean;
-	canStealFleetCargo?: boolean;
-	canStealPlanetCargo?: boolean;
-	armor?: number;
-	shield?: number;
-	cloakUnarmedOnly?: boolean;
-	torpedoBonus?: number;
-	initiativeBonus?: number;
-	torpedoJamming?: number;
-	beamBonus?: number;
-	reduceMovement?: number;
-	reduceCloaking?: boolean;
-	fuelBonus?: number;
-	fuelGeneration?: number;
-	mineFieldType?: MineFieldType;
-	mineLayingRate?: number;
-	colonizationModule?: boolean;
-	orbitalConstructionModule?: boolean;
-	cargoBonus?: number;
-	movementBonus?: number;
-	beamDefense?: number;
-	power?: number;
-	range?: number;
-	initiative?: number;
-	gatling?: boolean;
-	hitsAllTargets?: boolean;
-	damageShieldsOnly?: boolean;
-	accuracy?: number;
-	capitalShipMissile?: boolean;
-} & Tech;
-
-export type TechHull = {
-	armor: number;
-	builtInScanner?: boolean;
-	cargoCapacity?: number;
-	cargoSlotCircle?: boolean;
-	cargoSlotPosition?: Vector;
-	cargoSlotSize?: Vector;
-	fuelCapacity?: number;
-	fuelGeneration?: number;
-	immuneToOwnDetonation?: boolean;
-	initiative?: number;
-	innateScanRangePenFactor?: number;
-	mass?: number;
-	mineLayingBonus?: number;
-	orbitalConstructionHull?: boolean;
-	rangeBonus?: number;
-	repairBonus?: number;
-	slots: HullSlot[];
-	spaceDock?: number;
-	spaceDockSlotCircle?: boolean;
-	spaceDockSlotPosition?: Vector;
-	spaceDockSlotSize?: Vector;
-	starbase?: boolean;
-} & Tech;
-
-export type HullSlot = {
-	type: HullSlotType;
-	capacity: number;
-	required?: boolean;
-	position: Vector;
-};
-
-export enum HullSlotType {
-	None = 0,
-	Engine = 1 << 1,
-	Scanner = 1 << 2,
-	Mechanical = 1 << 3,
-	Bomb = 1 << 4,
-	Mining = 1 << 5,
-	Electrical = 1 << 6,
-	Shield = 1 << 7,
-	Armor = 1 << 8,
-	Cargo = 1 << 9,
-	SpaceDock = 1 << 10,
-	Weapon = 1 << 11,
-	Orbital = 1 << 12,
-	MineLayer = 1 << 13,
-	ElectricalMechanical = HullSlotType.Electrical | HullSlotType.Mechanical,
-	OrbitalElectrical = HullSlotType.Orbital | HullSlotType.Electrical,
-	ShieldElectricalMechanical = HullSlotType.Shield |
-		HullSlotType.Electrical |
-		HullSlotType.Mechanical,
-	ScannerElectricalMechanical = HullSlotType.Scanner |
-		HullSlotType.Electrical |
-		HullSlotType.Mechanical,
-	ArmorScannerElectricalMechanical = HullSlotType.Armor |
-		HullSlotType.Scanner |
-		HullSlotType.Electrical |
-		HullSlotType.Mechanical,
-	MineElectricalMechanical = HullSlotType.MineLayer |
-		HullSlotType.Electrical |
-		HullSlotType.Mechanical,
-	ShieldArmor = HullSlotType.Shield | HullSlotType.Armor,
-	WeaponShield = HullSlotType.Shield | HullSlotType.Weapon,
-	General = HullSlotType.Scanner |
-		HullSlotType.Mechanical |
-		HullSlotType.Electrical |
-		HullSlotType.Shield |
-		HullSlotType.Armor |
-		HullSlotType.Weapon |
-		HullSlotType.MineLayer
-}
-
-export type Engine = {
-	idealSpeed?: number;
-	freeSpeed?: number;
-	maxSafeSpeed?: number;
-	fuelUsage?: number[];
-};
-export type TechEngine = Engine & TechHullComponent;
-
-export enum TechCategory {
-	Armor = 'Armor',
-	BeamWeapon = 'BeamWeapon',
-	Bomb = 'Bomb',
-	Electrical = 'Electrical',
-	Engine = 'Engine',
-	Mechanical = 'Mechanical',
-	MineLayer = 'MineLayer',
-	MineRobot = 'MineRobot',
-	Orbital = 'Orbital',
-	Planetary = 'Planetary',
-	PlanetaryScanner = 'PlanetaryScanner',
-	PlanetaryDefense = 'PlanetaryDefense',
-	Scanner = 'Scanner',
-	Shield = 'Shield',
-	ShipHull = 'ShipHull',
-	StarbaseHull = 'StarbaseHull',
-	Terraforming = 'Terraforming',
-	Torpedo = 'Torpedo'
-}
-
-export type TechHullType =
-	| 'Scout'
-	| 'Colonizer'
-	| 'Bomber'
-	| 'Fighter'
-	| 'CapitalShip'
-	| 'Freighter'
-	| 'MultiPurposeFreighter'
-	| 'FuelTransport'
-	| 'Miner'
-	| 'MineLayer'
-	| 'Starbase'
-	| 'OrbitalFort';
-
-export type TechRequirements = {
-	lrtsRequired?: number;
-	lrtsDenied?: number;
-	prtsRequired?: PRT[];
-	prtsDenied?: PRT[];
-	hullsAllowed?: string[];
-	hullsDenied?: string[];
-	acquirable?: boolean;
-} & TechLevel;
+export const TechCategories: TechCategory[] = [
+	TechCategoryNone,
+	TechCategoryArmor,
+	TechCategoryBeamWeapon,
+	TechCategoryBomb,
+	TechCategoryElectrical,
+	TechCategoryEngine,
+	TechCategoryMechanical,
+	TechCategoryMineLayer,
+	TechCategoryMineRobot,
+	TechCategoryOrbital,
+	TechCategoryPlanetary,
+	TechCategoryPlanetaryScanner,
+	TechCategoryPlanetaryDefense,
+	TechCategoryScanner,
+	TechCategoryShield,
+	TechCategoryShipHull,
+	TechCategoryStarbaseHull,
+	TechCategoryTerraforming,
+	TechCategoryTorpedo
+];
 
 /**
  * Determine if a tech is a hull component
@@ -260,25 +91,25 @@ export type TechRequirements = {
  */
 export function isHullComponent(category: TechCategory | undefined): boolean {
 	switch (category) {
-		case TechCategory.Armor:
-		case TechCategory.BeamWeapon:
-		case TechCategory.Bomb:
-		case TechCategory.Electrical:
-		case TechCategory.Engine:
-		case TechCategory.Mechanical:
-		case TechCategory.MineLayer:
-		case TechCategory.MineRobot:
-		case TechCategory.Orbital:
-		case TechCategory.Scanner:
-		case TechCategory.Torpedo:
-		case TechCategory.Shield:
+		case TechCategoryArmor:
+		case TechCategoryBeamWeapon:
+		case TechCategoryBomb:
+		case TechCategoryElectrical:
+		case TechCategoryEngine:
+		case TechCategoryMechanical:
+		case TechCategoryMineLayer:
+		case TechCategoryMineRobot:
+		case TechCategoryOrbital:
+		case TechCategoryScanner:
+		case TechCategoryTorpedo:
+		case TechCategoryShield:
 			return true;
-		case TechCategory.Planetary:
-		case TechCategory.PlanetaryScanner:
-		case TechCategory.PlanetaryDefense:
-		case TechCategory.ShipHull:
-		case TechCategory.StarbaseHull:
-		case TechCategory.Terraforming:
+		case TechCategoryPlanetary:
+		case TechCategoryPlanetaryScanner:
+		case TechCategoryPlanetaryDefense:
+		case TechCategoryShipHull:
+		case TechCategoryStarbaseHull:
+		case TechCategoryTerraforming:
 			return false;
 		default:
 			return false;
@@ -293,7 +124,7 @@ export function isHull(tech: Tech | undefined): boolean {
 	if (!tech) {
 		return false;
 	}
-	return [TechCategory.ShipHull, TechCategory.StarbaseHull].includes(tech.category);
+	return [TechCategoryShipHull, TechCategoryStarbaseHull].includes(tech.category);
 }
 
 export function canFillSlot(hcType: HullSlotType, type: HullSlotType): boolean {
@@ -359,7 +190,7 @@ export function getCloakPercentForCloakUnits(cloakUnits: number): number {
 
 export function getBestTerraform(
 	techStore: TechStore,
-	player: Player,
+	player: CommandedPlayer,
 	habType: TerraformHabType
 ): TechTerraform | undefined {
 	// get the best terraform for a given type, sorted largest to smallest ranking

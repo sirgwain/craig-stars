@@ -1,17 +1,17 @@
-import type { Race } from '$lib/types/Race';
+import type { Race } from './types/cs';
 import { addError } from './services/Errors';
-import type { Cost } from './types/Cost';
-import { type Planet } from './types/Planet';
-import type { Player } from './types/Player';
-import type { Rules } from './types/Rules';
-import type { ShipDesign, ShipDesignSpec } from './types/ShipDesign';
-import type { Tech } from './types/Tech';
-import type { TechLevel } from './types/TechLevel';
+import type { Cost } from './types/cs';
+import { type Planet } from './types/cs';
+import type { CommandedPlayer } from './types/Player';
+import type { Rules } from './types/cs';
+import type { ShipDesign, ShipDesignSpec } from './types/cs';
+import type { Tech } from './types/cs';
+import type { TechLevel } from './types/cs';
 
 export type CS = {
 	enableDebug: () => void;
 	setRules: (rules: Rules) => void;
-	setPlayer: (player: Player) => void;
+	setPlayer: (player: CommandedPlayer) => void;
 	setDesigns: (designs: ShipDesign[]) => void;
 	calculateRacePoints: (race: Race) => number | undefined;
 	getResearchCost: (techLevel: TechLevel) => number | undefined;
@@ -94,7 +94,7 @@ class CSWasmWrapper implements CS {
 		this.checkError();
 	}
 
-	setPlayer(player: Player) {
+	setPlayer(player: CommandedPlayer) {
 		this.wasm.setPlayer(player);
 		this.checkError();
 	}

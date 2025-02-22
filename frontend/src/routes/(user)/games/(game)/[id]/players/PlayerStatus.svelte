@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { me } from '$lib/services/Stores';
-	import { GameState } from '$lib/types/Game';
-	import type { PlayerStatus } from '$lib/types/Player';
+	import { GameStateSetup, type PlayerStatus } from '$lib/types/cs';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import GuestLink from '../(main)/GuestLink.svelte';
@@ -20,7 +19,7 @@
 </script>
 
 <div class="flex flex-row h-10">
-	{#if $game.state === GameState.Setup}
+	{#if $game.state === GameStateSetup}
 		{#if playerStatus.ready}
 			<div class="w-20 my-auto">Ready</div>
 			<div class="my-auto"><Icon src={CheckBadge} size="24" class="stroke-success" /></div>

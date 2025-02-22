@@ -9,8 +9,8 @@ import (
 const UnlimitedSpaceDock = -1
 const NoScanner = -1
 const NoGate = -1
-const InfiniteGate = math.MaxInt32
 const Infinite = -1
+const InfiniteGate = math.MaxInt32
 
 // The TechStore contains all techs in the game. Eventually these will be user modifiable and
 // referenced per game, but for now all games use the StaticTechStore, which contains the default Stars! techs.
@@ -21,7 +21,7 @@ type TechStore struct {
 	Defenses                 []TechDefense          `json:"defenses"`
 	Planetaries              []TechPlanetary        `json:"planetaries"`
 	HullComponents           []TechHullComponent    `json:"hullComponents"`
-	Hulls                    []TechHull             `json:"hulls,omitempty"`
+	Hulls                    []TechHull             `json:"hulls"`
 	techs                    []*Tech
 	techsByName              map[string]interface{}
 	hullComponentsByName     map[string]*TechHullComponent

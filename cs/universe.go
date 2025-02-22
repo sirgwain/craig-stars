@@ -49,10 +49,6 @@ func NewUniverse(log zerolog.Logger, rules *Rules) Universe {
 	}
 }
 
-type fleetGetter interface {
-	getFleet(playerNum int, num int) *Fleet
-}
-
 type mapObjectGetter interface {
 	getShipDesign(playerNum int, num int) *ShipDesign
 	getMapObject(mapObjectType MapObjectType, num int, playerNum int) *MapObject

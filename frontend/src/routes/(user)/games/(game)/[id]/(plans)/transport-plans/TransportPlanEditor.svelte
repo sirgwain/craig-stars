@@ -1,6 +1,6 @@
 <script lang="ts">
 	import TextInput from '$lib/components/TextInput.svelte';
-	import type { TransportPlan } from '$lib/types/Player';
+	import type { TransportPlan } from '$lib/types/cs';
 	import TransportTasks from './TransportTasks.svelte';
 
 	type Props = {

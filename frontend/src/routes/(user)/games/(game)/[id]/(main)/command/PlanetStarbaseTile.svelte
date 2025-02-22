@@ -5,10 +5,10 @@
 	import type { ChangeMassDriverSpeedProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import { UnlimitedSpaceDock } from '$lib/types/Constants';
-	import type { Fleet } from '$lib/types/Fleet';
+	import type { AnyShipDesign } from '$lib/services/Universe';
 	import type { CommandedPlanet } from '$lib/types/Planet';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { Fleet } from '$lib/types/cs';
+	import { UnlimitedSpaceDock } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
@@ -33,7 +33,7 @@
 		if (starbase?.tokens && starbase.tokens.length > 0) {
 			onShipDesignTooltip(
 				e,
-				$universe.getDesign($player.num, starbase?.tokens[0].designNum) as ShipDesign | undefined
+				$universe.getDesign($player.num, starbase?.tokens[0].designNum) as AnyShipDesign | undefined
 			);
 		}
 	}
@@ -60,14 +60,16 @@
 				<div class="text-tile-item-title">Shields</div>
 				<div>{starbase.spec.shields ? starbase.spec.shields + 'dp' : 'none'}</div>
 			</div>
-			<div class="flex justify-between">
-				<div class="text-tile-item-title">Damage</div>
-				{#if !starbase.damage}
-					<div>none</div>
-				{:else}
-					<div>{starbase.damage}%</div>
-				{/if}
-			</div>
+			{#if starbase.tokens && starbase.tokens.length > 0}
+				<div class="flex justify-between">
+					<div class="text-tile-item-title">Damage</div>
+					{#if !starbase.tokens[0].damage}
+						<div>none</div>
+					{:else}
+						<div>{starbase.tokens[0].damage}%</div>
+					{/if}
+				</div>
+			{/if}
 			<div class="divider p-0 m-0"></div>
 		</div>
 		<div>

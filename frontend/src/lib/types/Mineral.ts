@@ -1,8 +1,4 @@
-export interface Mineral {
-	ironium?: number;
-	boranium?: number;
-	germanium?: number;
-}
+import type { Mineral } from './cs';
 
 export const MineralTypes = {
 	Ironium: 0,

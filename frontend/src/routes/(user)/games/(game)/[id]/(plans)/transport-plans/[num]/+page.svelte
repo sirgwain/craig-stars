@@ -6,7 +6,7 @@
 	import { CSError, addError } from '$lib/services/Errors';
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 	import { notify } from '$lib/services/Notifications';
-	import type { TransportPlan } from '$lib/types/Player';
+	import type { TransportPlan } from '$lib/types/cs';
 
 	const { game, player, updateTransportPlan } = getGameContext();
 	let num = parseInt($page.params.num);

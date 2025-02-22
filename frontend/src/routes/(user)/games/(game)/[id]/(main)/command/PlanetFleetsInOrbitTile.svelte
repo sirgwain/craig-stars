@@ -3,7 +3,8 @@
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { canTransferCargo, CommandedFleet, type Fleet } from '$lib/types/Fleet';
+	import { canTransferCargo, CommandedFleet } from '$lib/types/Fleet';
+	import { type Fleet } from '$lib/types/cs';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';

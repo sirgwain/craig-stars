@@ -1,7 +1,4 @@
-export interface Vector {
-	x: number;
-	y: number;
-}
+import type { Vector } from './cs';
 
 export const emptyVector = { x: 0, y: 0 };
 

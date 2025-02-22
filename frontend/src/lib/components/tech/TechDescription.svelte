@@ -1,18 +1,25 @@
 <script lang="ts">
-	import { defaultRules, type Rules } from '$lib/types/Rules';
+	import { defaultRules } from '$lib/types/Rules';
 
-	import { InfinteGate } from '$lib/types/Constants';
 	import {
-		getCloakPercentForCloakUnits,
-		getLongHabName,
-		TechCategory,
-		TerraformHabTypes,
+		InfiniteGate,
+		TechCategoryArmor,
+		TechCategoryBeamWeapon,
+		TechCategoryMineLayer,
+		TechCategoryPlanetaryScanner,
+		TechCategoryShield,
+		TechCategoryShipHull,
+		TechCategoryStarbaseHull,
+		TechCategoryTerraforming,
+		TerraformHabTypeAll,
+		type Rules,
 		type Tech,
 		type TechHull,
 		type TechHullComponent,
 		type TechPlanetaryScanner,
 		type TechTerraform
-	} from '$lib/types/Tech';
+	} from '$lib/types/cs';
+	import { getCloakPercentForCloakUnits, getLongHabName } from '$lib/types/Tech';
 
 	type Props = {
 		tech: Tech;
@@ -36,7 +43,7 @@
 		const descriptions: string[] = [];
 		const warnings: string[] = [];
 
-		if (tech.category == TechCategory.ShipHull || tech.category == TechCategory.StarbaseHull) {
+		if (tech.category == TechCategoryShipHull || tech.category == TechCategoryStarbaseHull) {
 			const hull = tech as TechHull;
 			if (hull) {
 				if (hull.fuelCapacity && hull.fuelCapacity > 0) {
@@ -70,7 +77,7 @@
 			}
 		}
 
-		if (tech.category == TechCategory.PlanetaryScanner) {
+		if (tech.category == TechCategoryPlanetaryScanner) {
 			const planetaryScanner = tech as TechPlanetaryScanner;
 
 			if (planetaryScanner.scanRange > 0) {
@@ -86,11 +93,11 @@
 			}
 		}
 
-		if (tech.category == TechCategory.Terraforming) {
+		if (tech.category == TechCategoryTerraforming) {
 			const terraform = tech as TechTerraform;
 			descriptions.push(
 				`Allows you to modify ${
-					terraform.habType !== TerraformHabTypes.All
+					terraform.habType !== TerraformHabTypeAll
 						? `a planet's ${getLongHabName(terraform.habType)}`
 						: `all of a planet's three environmental variables`
 				} by up to ${terraform.ability}% from its original value.`
@@ -101,7 +108,7 @@
 			const hullComponent = tech as TechHullComponent;
 			if (hullComponent) {
 				if (
-					hullComponent.category == TechCategory.MineLayer &&
+					hullComponent.category == TechCategoryMineLayer &&
 					hullComponent.mineFieldType &&
 					rules.mineFieldStatsByType
 				) {
@@ -125,7 +132,7 @@
 					);
 				}
 
-				if (hullComponent.category == TechCategory.Shield && (hullComponent.armor ?? 0) > 0) {
+				if (hullComponent.category == TechCategoryShield && (hullComponent.armor ?? 0) > 0) {
 					// if this is a shield with armor, it sounds cooler to make the armor a description
 					// this also makes it clearer that they aren't affected by shield/armor % bonuses like RS
 					descriptions.push(
@@ -138,7 +145,7 @@
 					});
 				}
 
-				if ((hullComponent.category == TechCategory.Armor && hullComponent.shield) ?? 0 > 0) {
+				if ((hullComponent.category == TechCategoryArmor && hullComponent.shield) ?? 0 > 0) {
 					// if this is an armor with a shield, it sounds cooler to make the shield a description
 					descriptions.push(
 						`This armor also acts as part shield which will absorb ${hullComponent.shield} damage points.`
@@ -153,7 +160,7 @@
 				if (hullComponent.power) {
 					stats.push({ label: 'Power', text: `${hullComponent.power}` });
 				}
-				if (hullComponent.range || hullComponent.category == TechCategory.BeamWeapon) {
+				if (hullComponent.range || hullComponent.category == TechCategoryBeamWeapon) {
 					stats.push({ label: 'Range', text: `${hullComponent.range ?? 0}` });
 				}
 				if (hullComponent.initiative) {
@@ -355,27 +362,27 @@
 					stats.push({
 						label: 'Safe hull mass',
 						text:
-							hullComponent.safeHullMass == InfinteGate
+							hullComponent.safeHullMass == InfiniteGate
 								? 'Unlimited'
 								: `${hullComponent.safeHullMass}kT`
 					});
 					stats.push({
 						label: 'Safe range',
 						text:
-							hullComponent.safeRange == InfinteGate
+							hullComponent.safeRange == InfiniteGate
 								? 'Unlimited'
 								: `${hullComponent.safeRange} light years`
 					});
 
-					if (hullComponent.maxHullMass != InfinteGate && hullComponent.maxRange != InfinteGate) {
+					if (hullComponent.maxHullMass != InfiniteGate && hullComponent.maxRange != InfiniteGate) {
 						warnings.push(
 							`Warning: Ships up to ${hullComponent.maxHullMass}kT might be successfully gated up to ${hullComponent.maxRange} l.y. but exceeding the stated limits will cause damage to the fleet.`
 						);
-					} else if (hullComponent.maxHullMass != InfinteGate) {
+					} else if (hullComponent.maxHullMass != InfiniteGate) {
 						warnings.push(
 							`Warning: Ships up to ${hullComponent.maxHullMass}kT might be successfully gated but exceeding the stated limits will cause damage to the fleet.`
 						);
-					} else if (hullComponent.maxRange != InfinteGate) {
+					} else if (hullComponent.maxRange != InfiniteGate) {
 						warnings.push(
 							`Warning: Ships might be successfully gated up to ${hullComponent.maxRange} l.y. but exceeding the stated limits will cause damage to the fleet.`
 						);

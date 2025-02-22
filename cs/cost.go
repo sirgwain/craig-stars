@@ -8,6 +8,15 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+//tygo:emit
+var _ = `export type cost<T extends number = number> = {
+    ironium?: T;
+    boranium?: T;
+    germanium?: T;
+    resources?: T;
+};
+`
+
 // A Cost represents minerals and resources required to build something, like a mine, factory, or ship
 // These are by default integers, but sometimes need to be treated as floats for applying
 // discounts and miniaturization

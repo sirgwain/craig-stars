@@ -2,12 +2,12 @@
 	import { goto } from '$app/navigation';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
 	import { CSError, addError } from '$lib/services/Errors';
-	import { WaypointTaskTransportAction } from '$lib/types/Fleet';
-	import type { TransportPlan } from '$lib/types/Player';
-	import TransportPlanEditor from '../TransportPlanEditor.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { notify } from '$lib/services/Notifications';
+	import type { TransportPlan } from '$lib/types/cs';
+	import { TransportActionNone } from '$lib/types/cs';
+	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 
 	const { game, player, createTransportPlan } = getGameContext();
 
@@ -16,19 +16,19 @@
 		name: '',
 		tasks: {
 			fuel: {
-				action: WaypointTaskTransportAction.None
+				action: TransportActionNone
 			},
 			ironium: {
-				action: WaypointTaskTransportAction.None
+				action: TransportActionNone
 			},
 			boranium: {
-				action: WaypointTaskTransportAction.None
+				action: TransportActionNone
 			},
 			germanium: {
-				action: WaypointTaskTransportAction.None
+				action: TransportActionNone
 			},
 			colonists: {
-				action: WaypointTaskTransportAction.None
+				action: TransportActionNone
 			}
 		}
 	});

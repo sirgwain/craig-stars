@@ -7,15 +7,21 @@ import (
 
 // The mystery trader travels through space and gives a boon to any player that gives it a fleet full of minerals
 type MysteryTrader struct {
-	MapObject
+	GameDBObject    `tstype:",extends"`
+	MapObject       `tstype:",extends"`
 	WarpSpeed       int                     `json:"warpSpeed,omitempty"`
 	Destination     Vector                  `json:"destination"`
 	RequestedBoon   int                     `json:"requestedBoon,omitempty"`
 	RewardType      MysteryTraderRewardType `json:"rewardType"`
 	Heading         Vector                  `json:"heading,omitempty"`
 	PlayersRewarded map[int]bool            `json:"playersRewarded"`
-	Spec            MysteryTraderSpec       `json:"spec,omitempty"`
+	Spec            MysteryTraderSpec       `json:"spec"`
 }
+
+// MysteryTraderSpec is currently empty. If we update it, remove this eslint line for the type
+//
+//tygo:emit
+var _ = "// eslint-disable-next-line @typescript-eslint/no-empty-object-type"
 
 type MysteryTraderSpec struct {
 }

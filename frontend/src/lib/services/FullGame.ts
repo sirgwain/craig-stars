@@ -1,39 +1,39 @@
-import {
-	Density,
-	GameStartMode,
-	GameState,
-	PlayerPositions,
-	Size,
-	type Game,
-	type VictoryConditions
-} from '$lib/types/Game';
-import { Player, type PlayerStatus } from '$lib/types/Player';
+import { CommandedPlayer } from '$lib/types/Player';
 import { defaultRules } from '$lib/types/Rules';
-import type { ShipDesign } from '$lib/types/ShipDesign';
-import type { Vector } from '$lib/types/Vector';
+import type { GameWithPlayers, ShipDesign, Vector } from '$lib/types/cs';
+import {
+	DensityNormal,
+	GameStartModeNormal,
+	GameStateWaitingForPlayers,
+	PlayerPositionsModerate,
+	SizeSmall,
+	type PlayerStatus,
+	type VictoryConditions
+} from '$lib/types/cs';
 import { TechService } from './TechService';
 import { Universe } from './Universe';
 
-export class FullGame implements Game {
+export class FullGame implements GameWithPlayers {
 	id = 0;
 	createdAt = '';
 	updatedAt = '';
 	hostId = 0;
+	seed = 0;
 	name = '';
 	hash = '';
-	state = GameState.WaitingForPlayers;
+	state = GameStateWaitingForPlayers;
 	numPlayers = 0;
 	openPlayerSlots = 0;
 	quickStartTurns = 0;
-	size = Size.Small;
+	size = SizeSmall;
 	area: Vector = { x: 0, y: 0 };
-	density = Density.Normal;
-	playerPositions = PlayerPositions.Moderate;
+	density = DensityNormal;
+	playerPositions = PlayerPositionsModerate;
 	randomEvents = false;
 	computerPlayersFormAlliances = false;
 	publicPlayerScores = false;
 	maxMinerals = false;
-	startMode = GameStartMode.Normal;
+	startMode = GameStartModeNormal;
 	year = 2400;
 	victoryConditions: VictoryConditions = {
 		conditions: 0,
@@ -55,7 +55,7 @@ export class FullGame implements Game {
 	players: PlayerStatus[] = [];
 
 	// some data that is loaded
-	player: Player = new Player();
+	player: CommandedPlayer = new CommandedPlayer();
 	universe: Universe = new Universe();
 	techs = new TechService();
 

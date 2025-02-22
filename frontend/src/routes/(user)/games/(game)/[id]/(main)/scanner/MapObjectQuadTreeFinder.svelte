@@ -15,8 +15,8 @@
   This component fires events for mouse movement/down/etc
  -->
 <script lang="ts">
-	import type { MapObject } from '$lib/types/MapObject';
-	import type { Vector } from '$lib/types/Vector';
+	import type { MapObject } from '$lib/types/cs';
+	import type { Vector } from '$lib/types/cs';
 	import { quadtree } from 'd3-quadtree';
 	import type { ZoomTransform } from 'd3-zoom';
 	import type { LayerCake } from 'layercake';

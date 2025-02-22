@@ -3,7 +3,6 @@
 	import { authGuard } from '$lib/authGuard';
 	import HomePage from '$lib/components/HomePage.svelte';
 	import { me } from '$lib/services/Stores';
-	import { UserStatus } from '$lib/types/User';
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
 
@@ -12,6 +11,7 @@
 	import '../css/mapobjects.css';
 	import '../css/planets.css';
 	import '../css/techs.css';
+	import { UserStatuses } from '$lib/types/User';
 	type Props = {
 		children?: Snippet;
 	};
@@ -34,8 +34,8 @@
 </svelte:head>
 
 <!-- Show the main content if we've logged in, otherwise show the login page -->
-{#if $me.status == UserStatus.LoggedIn || loggingIn}
+{#if $me.status == UserStatuses.LoggedIn || loggingIn}
 	{#if children}{@render children()}{:else}This is the main content{/if}
-{:else if $me.status == UserStatus.NotFound}
+{:else if $me.status == UserStatuses.NotFound}
 	<HomePage />
 {/if}

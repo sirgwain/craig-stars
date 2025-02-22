@@ -427,6 +427,11 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 // Assign race starting point bonuses to a player's homeworld
 func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *Planet, extraPoints int, pointsType SpendLeftoverPointsOn) {
 	rules := ug.Rules
+
+	// old games have this empty
+	if pointsType == SpendLeftoverPointsOnNone {
+		pointsType = SpendLeftoverPointsOnSurfaceMinerals
+	}
 	pointsThreshold := rules.RaceLeftoverPointsPerItem[pointsType]
 	switch pointsType {
 	case SpendLeftoverPointsOnDefenses:
@@ -488,7 +493,7 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	design.Spec.NumInstances++
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, &starbase)
-	planet.setStarbase(&ug.Rules, player, &starbase)
+	planet.setStarbase(&starbase)
 
 	ug.Universe.Starbases = append(ug.Universe.Starbases, &starbase)
 

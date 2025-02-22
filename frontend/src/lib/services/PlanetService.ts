@@ -1,5 +1,6 @@
-import { CommandedPlanet, type Planet, type PlanetOrders } from '$lib/types/Planet';
-import type { PlayerResponse } from '$lib/types/Player';
+import { CommandedPlanet } from '$lib/types/Planet';
+import { type Planet, type PlanetOrders } from '$lib/types/cs';
+import type { Player } from '$lib/types/cs';
 import { Service } from './Service';
 
 export class PlanetService {
@@ -15,7 +16,7 @@ export class PlanetService {
 
 	static async updatePlanetOrders(
 		planet: CommandedPlanet
-	): Promise<{ planet: Planet; player: PlayerResponse }> {
+	): Promise<{ planet: Planet; player: Player }> {
 		const planetOrders: PlanetOrders = {
 			contributesOnlyLeftoverToResearch: planet.contributesOnlyLeftoverToResearch,
 			routeTargetType: planet.routeTargetType,

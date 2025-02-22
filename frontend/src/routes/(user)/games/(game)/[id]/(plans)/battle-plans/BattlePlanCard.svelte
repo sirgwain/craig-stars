@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BattlePlan } from '$lib/types/Player';
+	import type { BattlePlan } from '$lib/types/cs';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';

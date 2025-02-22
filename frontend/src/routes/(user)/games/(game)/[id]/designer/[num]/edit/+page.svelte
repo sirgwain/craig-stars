@@ -5,14 +5,12 @@
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/cs';
 
-	const { game, universe, player, updateDesign } = getGameContext();
+	const { game, universe, updateDesign } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	let design: ShipDesign | undefined = $state(
-		$universe.designs.find((d) => d.playerNum == $player.num && d.num === num)
-	);
+	let design: ShipDesign | undefined = $state($universe.getMyDesign(num));
 	let hull = $derived(design && $techs.getHull(design.hull));
 	let error = $state('');
 

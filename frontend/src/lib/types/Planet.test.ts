@@ -1,18 +1,26 @@
 import techjson from '$lib/ssr/techs.json';
 import { describe, expect, it } from 'vitest';
 import { CommandedPlanet } from './Planet';
-import { Player } from './Player';
-import { QueueItemTypes } from './QueueItemType';
+import { CommandedPlayer } from './Player';
 import { humanoid } from './Race';
 import { defaultRules } from './Rules';
-import type { TechStore } from './Tech';
+import {
+	QueueItemTypeAutoDefenses,
+	QueueItemTypeAutoFactories,
+	QueueItemTypeAutoMines,
+	QueueItemTypeDefenses,
+	QueueItemTypeFactory,
+	QueueItemTypeMine,
+	QueueItemTypePlanetaryScanner,
+	type TechStore
+} from './cs';
 
 describe('Planet test', () => {
 	const techStore = techjson as TechStore;
 
 	it('getMaxPopulation', () => {
 		const planet = new CommandedPlanet();
-		const player = new Player();
+		const player = new CommandedPlayer();
 
 		planet.hab = { grav: 50, temp: 50, rad: 50 };
 
@@ -21,7 +29,7 @@ describe('Planet test', () => {
 
 	it('getGrowthAmount', () => {
 		const planet = new CommandedPlanet();
-		const player = new Player();
+		const player = new CommandedPlayer();
 		const race = player.race; // defaults to humanoid
 		race.growthRate = 10; // 10% growth
 
@@ -82,7 +90,7 @@ describe('Planet test', () => {
 
 	it('getResourcesPerYear', () => {
 		const planet = new CommandedPlanet();
-		const player = new Player();
+		const player = new CommandedPlayer();
 		planet.hab = { grav: 50, temp: 50, rad: 50 };
 		planet.population = 10_000;
 		expect(planet.getResourcesAvailable(player)).toBe(10);
@@ -94,7 +102,7 @@ describe('Planet test', () => {
 
 	it('getMaxBuildable', () => {
 		const planet = new CommandedPlanet();
-		const player = new Player();
+		const player = new CommandedPlayer();
 
 		planet.hab = { grav: 50, temp: 50, rad: 50 };
 		planet.mines = 10;
@@ -102,26 +110,26 @@ describe('Planet test', () => {
 		planet.defenses = 10;
 		planet.population = 100_000;
 
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.Mine)).toBe(990);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.AutoMines)).toBe(90);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.Factory)).toBe(990);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.AutoFactories)).toBe(
+		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeMine)).toBe(990);
+		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeAutoMines)).toBe(90);
+		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeFactory)).toBe(990);
+		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeAutoFactories)).toBe(
 			90
 		);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.Defenses)).toBe(90);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypes.AutoDefenses)).toBe(
+		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeDefenses)).toBe(90);
+		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeAutoDefenses)).toBe(
 			90
 		);
 
 		// should build a scanner
-		expect(planet.getMaxBuildable(techStore, player, 1, QueueItemTypes.PlanetaryScanner)).toBe(1);
+		expect(planet.getMaxBuildable(techStore, player, 1, QueueItemTypePlanetaryScanner)).toBe(1);
 		planet.scanner = true;
-		expect(planet.getMaxBuildable(techStore, player, 1, QueueItemTypes.PlanetaryScanner)).toBe(0);
+		expect(planet.getMaxBuildable(techStore, player, 1, QueueItemTypePlanetaryScanner)).toBe(0);
 	});
 
 	it('grows', () => {
 		const planet = new CommandedPlanet();
-		const player = new Player();
+		const player = new CommandedPlayer();
 
 		planet.hab = { grav: 50, temp: 50, rad: 50 };
 		planet.population = 100_000;
@@ -132,7 +140,7 @@ describe('Planet test', () => {
 
 	it('mines', () => {
 		const planet = new CommandedPlanet();
-		const player = new Player();
+		const player = new CommandedPlayer();
 
 		planet.population = 100_000;
 		planet.mines = 10;

@@ -11,7 +11,7 @@ import (
 // during universe generation, and they can add new designs in the UI.
 // Deleting a design deletes all fleets associated with it.
 type ShipDesign struct {
-	GameDBObject
+	GameDBObject      `tstype:",extends"`
 	Num               int               `json:"num,omitempty"`
 	PlayerNum         int               `json:"playerNum"`
 	OriginalPlayerNum int               `json:"originalPlayerNum"`
@@ -35,7 +35,7 @@ type ShipDesignSlot struct {
 
 type ShipDesignSpec struct {
 	AdditionalMassDrivers     int                   `json:"additionalMassDrivers,omitempty"`
-	Armor                     int                   `json:"armor,omitempty"`
+	Armor                     int                   `json:"armor"`
 	BasePacketSpeed           int                   `json:"basePacketSpeed,omitempty"`
 	BeamBonus                 float64               `json:"beamBonus,omitempty"`
 	BeamDefense               float64               `json:"beamDefense,omitempty"`
@@ -50,18 +50,18 @@ type ShipDesignSpec struct {
 	CloakPercentFullCargo     int                   `json:"cloakPercentFullCargo,omitempty"`
 	CloakUnits                int                   `json:"cloakUnits,omitempty"`
 	Colonizer                 bool                  `json:"colonizer,omitempty"`
-	Cost                      Cost                  `json:"cost,omitempty"`
-	Engine                    Engine                `json:"engine,omitempty"`
+	Cost                      Cost                  `json:"cost"`
+	Engine                    Engine                `json:"engine"`
 	EstimatedRange            int                   `json:"estimatedRange,omitempty"`
 	EstimatedRangeFull        int                   `json:"estimatedRangeFull,omitempty"`
 	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
 	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
 	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
-	HullType                  TechHullType          `json:"hullType,omitempty"`
+	HullType                  TechHullType          `json:"hullType"`
 	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
-	Initiative                int                   `json:"initiative,omitempty"`
+	Initiative                int                   `json:"initiative"`
 	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
-	Mass                      int                   `json:"mass,omitempty"`
+	Mass                      int                   `json:"mass"`
 	MassDriver                string                `json:"massDriver,omitempty"`
 	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
 	MaxPopulation             int                   `json:"maxPopulation,omitempty"`
@@ -69,11 +69,11 @@ type ShipDesignSpec struct {
 	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType,omitempty"`
 	MineSweep                 int                   `json:"mineSweep,omitempty"`
 	MiningRate                int                   `json:"miningRate,omitempty"`
-	Movement                  int                   `json:"movement,omitempty"`
+	Movement                  int                   `json:"movement"`
 	MovementBonus             float64               `json:"movementBonus,omitempty"`
 	MovementFull              int                   `json:"movementFull,omitempty"`
 	NumBuilt                  int                   `json:"numBuilt,omitempty"`
-	NumEngines                int                   `json:"numEngines,omitempty"`
+	NumEngines                int                   `json:"numEngines"`
 	NumInstances              int                   `json:"numInstances,omitempty"`
 	OrbitalConstructionModule bool                  `json:"orbitalConstructionModule,omitempty"`
 	PowerRating               int                   `json:"powerRating,omitempty"`
@@ -93,7 +93,7 @@ type ShipDesignSpec struct {
 	SpaceDock                 int                   `json:"spaceDock,omitempty"`
 	Starbase                  bool                  `json:"starbase,omitempty"`
 	Stargate                  string                `json:"stargate,omitempty"`
-	TechLevel                 TechLevel             `json:"techLevel,omitempty"`
+	TechLevel                 TechLevel             `json:"techLevel"`
 	TerraformRate             int                   `json:"terraformRate,omitempty"`
 	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
 	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`

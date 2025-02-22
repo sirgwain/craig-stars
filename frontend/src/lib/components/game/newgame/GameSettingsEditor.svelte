@@ -2,16 +2,15 @@
 	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
+	import type { GameSettings } from '$lib/types/cs';
 	import {
-		Density,
-		GameStartMode,
+		Densities,
 		GameStartModeFullNames,
-		PlayerPositions,
-		Size,
-		type GameSettings
+		GameStartModes,
+		PlayerPositionses,
+		Sizes
 	} from '$lib/types/Game';
-	import { startCase } from 'lodash-es';
-	import PrivateGameLink from '../../../../routes/(user)/games/(game)/[id]/(main)/PrivateGameLink.svelte';
+	import PrivateGameLink from './PrivateGameLink.svelte';
 
 	type Props = {
 		settings: GameSettings;
@@ -26,11 +25,11 @@
 		<PrivateGameLink />
 	{/if}
 	<TextInput name="name" bind:value={settings.name} />
-	<EnumSelect name="size" enumType={Size} bind:value={settings.size} />
-	<EnumSelect name="density" enumType={Density} bind:value={settings.density} />
+	<EnumSelect name="size" options={Sizes} bind:value={settings.size} />
+	<EnumSelect name="density" options={Densities} bind:value={settings.density} />
 	<EnumSelect
 		name="playerPositions"
-		enumType={PlayerPositions}
+		options={PlayerPositionses}
 		bind:value={settings.playerPositions}
 	/>
 	<CheckboxInput name="public" bind:checked={settings.public} />
@@ -47,7 +46,7 @@
 	/>
 	<EnumSelect
 		name="startMode"
-		enumType={GameStartMode}
+		options={GameStartModes}
 		bind:value={settings.startMode}
 		typeTitle={(t) => GameStartModeFullNames[t]}
 		showEmpty={true}

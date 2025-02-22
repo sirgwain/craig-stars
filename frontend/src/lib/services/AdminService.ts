@@ -1,10 +1,10 @@
-import type { Game } from '$lib/types/Game';
+import type { GameWithPlayers } from '$lib/types/cs';
 import { User, type SessionUser } from '$lib/types/User';
 import { Service } from './Service';
 
 export class AdminService {
-	static async loadGames(): Promise<Game[]> {
-		return Service.get<Game[]>('/api/admin/games');
+	static async loadGames(): Promise<GameWithPlayers[]> {
+		return Service.get<GameWithPlayers[]>('/api/admin/games');
 	}
 
 	static async loadUsers(): Promise<User[]> {
@@ -12,7 +12,7 @@ export class AdminService {
 		return response.map((su) => Object.assign(new User(), su));
 	}
 
-	static async loadUserGames(userId: number | string): Promise<Game[]> {
-		return Service.get<Game[]>(`/api/admin/users/${userId}/games`);
+	static async loadUserGames(userId: number | string): Promise<GameWithPlayers[]> {
+		return Service.get<GameWithPlayers[]>(`/api/admin/users/${userId}/games`);
 	}
 }

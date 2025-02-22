@@ -4,7 +4,7 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type { ShipDesign } from '$lib/types/cs';
 
 	const { game, player, universe, deleteDesign } = getGameContext();
 

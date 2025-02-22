@@ -2,13 +2,13 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import techjson from '$lib/ssr/techs.json';
-	import { Player, canLearnTech } from '$lib/types/Player';
-	import { TechCategory, type Tech, type TechStore } from '$lib/types/Tech';
+	import { type Tech, type TechCategory, type TechStore } from '$lib/types/cs';
+	import { CommandedPlayer, canLearnTech } from '$lib/types/Player';
+	import { TechCategories } from '$lib/types/Tech';
 	import { hasRequiredLevels, levelsAbove } from '$lib/types/TechLevel';
 	import type { CS } from '$lib/wasm';
 	import { kebabCase, sortBy, startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
-	import { $enum as eu } from 'ts-enum-util';
 	import ItemTitle from './ItemTitle.svelte';
 	import SectionHeader from './SectionHeader.svelte';
 
@@ -16,12 +16,12 @@
 		// for ssr, we start with techs from a json file
 		techStore?: TechStore;
 		techs?: Tech[];
-		player?: Player | undefined;
+		player?: CommandedPlayer | undefined;
 		cs?: CS | undefined;
 	};
 
 	let {
-		techStore = techjson as TechStore,
+		techStore = techjson as unknown as TechStore,
 		techs = [
 			...techStore.engines,
 			...techStore.planetaryScanners,
@@ -123,7 +123,7 @@
 	</div>
 {/if}
 
-{#each eu(TechCategory).getKeys() as category}
+{#each TechCategories as category}
 	{#if techsByCategory[category]?.length > 0}
 		<a id={kebabCase(category)} href={`#${kebabCase(category)}`}
 			><SectionHeader title={startCase(category)} /></a

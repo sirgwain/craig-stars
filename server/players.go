@@ -143,18 +143,13 @@ func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
 // data about a universe (planets, fleets, designs, other players, etc) for a single player in the game
 // this aggregates player objects (full planets/fleets/mineralPackets) and intel objects
 type playerUniverseResponse struct {
-	Planets        []interface{} `json:"planets,omitempty"`
-	Fleets         []interface{} `json:"fleets,omitempty"`
-	Starbases      []interface{} `json:"starbases,omitempty"`
-	Wormholes      []interface{} `json:"wormholes,omitempty"`
-	MineralPackets []interface{} `json:"mineralPackets,omitempty"`
-	MineFields     []interface{} `json:"mineFields,omitempty"`
-	MysteryTraders []interface{} `json:"mysteryTraders,omitempty"`
-	Salvages       []interface{} `json:"salvages,omitempty"`
-	Designs        []interface{} `json:"designs,omitempty"`
-	Players        []interface{} `json:"players,omitempty"`
-	Scores         []interface{} `json:"scores,omitempty"`
-	Battles        []interface{} `json:"battles,omitempty"`
+	cs.PlayerIntels
+	Planets        []*cs.Planet        `json:"planets,omitempty"`
+	Fleets         []*cs.Fleet         `json:"fleets,omitempty"`
+	Starbases      []*cs.Fleet         `json:"starbases,omitempty"`
+	MineFields     []*cs.MineField     `json:"mineFields,omitempty"`
+	MineralPackets []*cs.MineralPacket `json:"mineralPackets,omitempty"`
+	Designs        []*cs.ShipDesign    `json:"designs,omitempty"`
 }
 
 // get mapObjects for a player
@@ -198,106 +193,42 @@ func (s *server) universe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	universe := buildUniverse(player, designs, *pmos, *intels)
+	player.PlayerIntels = *intels
+	player.Designs = designs
+
+	universe := buildUniverse(&cs.FullPlayer{
+		Player:           *player,
+		PlayerMapObjects: *pmos,
+	})
 
 	rest.RenderJSON(w, universe)
 }
 
 // build a universe response
-func buildUniverse(player *cs.Player, designs []*cs.ShipDesign, pmos cs.PlayerMapObjects, intels cs.PlayerIntels) playerUniverseResponse {
-	numPlayerFleets := len(pmos.Fleets)
-	numPlayerStarbases := len(pmos.Starbases)
-	numPlayerMineralPackets := len(pmos.MineralPackets)
-	numPlayerMineFields := len(pmos.MineFields)
-	numPlayerDesigns := len(designs)
+func buildUniverse(player *cs.FullPlayer) playerUniverseResponse {
 
 	universe := playerUniverseResponse{
-		Planets:        make([]interface{}, len(intels.PlanetIntels)),
-		Fleets:         make([]interface{}, len(intels.FleetIntels)+numPlayerFleets),
-		Starbases:      make([]interface{}, len(intels.StarbaseIntels)+numPlayerStarbases),
-		MineralPackets: make([]interface{}, len(intels.MineralPacketIntels)+numPlayerMineralPackets),
-		MineFields:     make([]interface{}, len(intels.MineFieldIntels)+numPlayerMineFields),
-		Salvages:       make([]interface{}, len(intels.SalvageIntels)),
-		Wormholes:      make([]interface{}, len(intels.WormholeIntels)),
-		MysteryTraders: make([]interface{}, len(intels.MysteryTraderIntels)),
-		Designs:        make([]interface{}, len(intels.ShipDesignIntels)+numPlayerDesigns),
-		Players:        make([]interface{}, len(intels.PlayerIntels)),
-		Scores:         make([]interface{}, len(intels.ScoreIntels)),
-		Battles:        make([]interface{}, len(intels.BattleRecords)),
+		PlayerIntels:   player.PlayerIntels,
+		Planets:        make([]*cs.Planet, len(player.Planets)),
+		Fleets:         make([]*cs.Fleet, len(player.Fleets)),
+		Starbases:      make([]*cs.Fleet, len(player.Starbases)),
+		MineFields:     make([]*cs.MineField, len(player.MineFields)),
+		MineralPackets: make([]*cs.MineralPacket, len(player.MineralPackets)),
+		Designs:        make([]*cs.ShipDesign, len(player.Designs)),
 	}
 
 	// merge player and design intels into the Designs data
-	for i, item := range designs {
-		universe.Designs[i] = item
-	}
-	for i, item := range intels.ShipDesignIntels {
-		universe.Designs[i+numPlayerDesigns] = item
+	copy(universe.Planets, player.Planets)
+	copy(universe.Fleets, player.Fleets)
+	copy(universe.Starbases, player.Starbases)
+	copy(universe.MineFields, player.MineFields)
+	copy(universe.MineralPackets, player.MineralPackets)
+	copy(universe.Designs, player.Designs)
+
+	if player.Num <= len(universe.ScoreIntels) {
+		universe.ScoreIntels[player.Num-1].ScoreHistory = player.ScoreHistory
 	}
 
-	for i, item := range intels.PlayerIntels {
-		universe.Players[i] = item
-	}
-
-	for i, item := range intels.ScoreIntels {
-		universe.Scores[i] = item.ScoreHistory
-	}
-	if player.Num <= len(universe.Scores) {
-		universe.Scores[player.Num-1] = player.ScoreHistory
-	}
-
-	for i, item := range intels.BattleRecords {
-		universe.Battles[i] = item
-	}
-
-	// merge player planets and planet intels
-	for i, item := range intels.PlanetIntels {
-		universe.Planets[i] = item
-	}
-	// we overwrite planets by num
-	for _, item := range pmos.Planets {
-		universe.Planets[item.Num-1] = item
-	}
-
-	// start with player objects, then append intel objects
-	for i, item := range pmos.Fleets {
-		universe.Fleets[i] = item
-	}
-	for i, item := range intels.FleetIntels {
-		universe.Fleets[i+numPlayerFleets] = item
-	}
-
-	for i, item := range pmos.Starbases {
-		universe.Starbases[i] = item
-	}
-	for i, item := range intels.StarbaseIntels {
-		universe.Starbases[i+numPlayerStarbases] = item
-	}
-
-	for i, item := range pmos.MineralPackets {
-		universe.MineralPackets[i] = item
-	}
-	for i, item := range intels.MineralPacketIntels {
-		universe.MineralPackets[i+numPlayerMineralPackets] = item
-	}
-
-	for i, item := range pmos.MineFields {
-		universe.MineFields[i] = item
-	}
-	for i, item := range intels.MineFieldIntels {
-		universe.MineFields[i+numPlayerMineFields] = item
-	}
-
-	for i, item := range intels.SalvageIntels {
-		universe.Salvages[i] = item
-	}
-
-	for i, item := range intels.WormholeIntels {
-		universe.Wormholes[i] = item
-	}
-
-	for i, item := range intels.MysteryTraderIntels {
-		universe.MysteryTraders[i] = item
-	}
 	return universe
 }
 
@@ -375,12 +306,7 @@ func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, ga
 		return
 	}
 
-	universe := buildUniverse(&fullPlayer.Player, fullPlayer.Designs, fullPlayer.PlayerMapObjects, fullPlayer.PlayerIntels)
-
-	// don't clutter our response
-	// TODO: do this fetching more elegantly
-	fullPlayer.Player.Designs = nil
-	fullPlayer.Player.PlayerIntels = cs.PlayerIntels{}
+	universe := buildUniverse(fullPlayer)
 
 	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer.Player, "universe": universe})
 }

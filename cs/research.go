@@ -34,19 +34,13 @@ const (
 	NextResearchFieldLowestField   NextResearchField = "LowestField"
 )
 
-// The researcher interface is used during turn generation to research for a player
-// and research with splash damage/stolen resources
-type researcher interface {
-	research(player *Player, resourcesToSpend int, onLevelGained func(player *Player, field TechField)) (spent TechLevel)
-	researchField(player *Player, field TechField, resourcesToSpend int, onLevelGained func(player *Player, field TechField))
-	getTotalCost(techLevels TechLevel, field TechField, researchCostLevel ResearchCostLevel, level int) int
-}
-
-type research struct {
+// The researcher interface is used during turn generation to researcher for a player
+// and researcher with splash damage/stolen resources
+type researcher struct {
 	rules *Rules
 }
 
-func NewResearcher(rules *Rules) researcher { return &research{rules} }
+func newResearcher(rules *Rules) researcher { return researcher{rules} }
 
 // From starsfaq:
 // The cost of a tech level depends on four things:
@@ -75,7 +69,7 @@ func NewResearcher(rules *Rules) researcher { return &research{rules} }
 //	13    13850           26    84700
 
 // Perform research for a player, learning tech levels until resources run out or all techs are maxed.
-func (r *research) research(player *Player, resourcesToSpend int, onLevelGained func(player *Player, field TechField)) (spent TechLevel) {
+func (r *researcher) research(player *Player, resourcesToSpend int, onLevelGained func(player *Player, field TechField)) (spent TechLevel) {
 	// keep spending resources until we are done
 	for {
 		field := player.Researching
@@ -106,7 +100,7 @@ func (r *research) research(player *Player, resourcesToSpend int, onLevelGained 
 }
 
 // keep researching this field until we run out of resources or it maxes out
-func (r *research) researchField(player *Player, field TechField, resourcesToSpend int, onLevelGained func(player *Player, field TechField)) {
+func (r *researcher) researchField(player *Player, field TechField, resourcesToSpend int, onLevelGained func(player *Player, field TechField)) {
 	for {
 		// keep researching this field until we max it out or run out of resources to spend
 		if resourcesToSpend == 0 || r.isAtMaxLevel(player, field) {
@@ -123,7 +117,7 @@ func (r *research) researchField(player *Player, field TechField, resourcesToSpe
 
 }
 
-func (r *research) researchFieldOnce(player *Player, field TechField, resourcesToSpend int) (levelGained bool, resourcesLeftover int) {
+func (r *researcher) researchFieldOnce(player *Player, field TechField, resourcesToSpend int) (levelGained bool, resourcesLeftover int) {
 	if r.isAtMaxLevel(player, field) {
 		return false, resourcesToSpend
 	}
@@ -134,7 +128,7 @@ func (r *research) researchFieldOnce(player *Player, field TechField, resourcesT
 	// add the resourcesToSpend to how much we've currently spent
 	spent := player.TechLevelsSpent.Get(field)
 
-	totalCost := r.getTotalCost(player.TechLevels, field, player.Race.ResearchCost.Get(field), level)
+	totalCost := r.getTotalCost(player.TechLevels, player.Race.ResearchCost.Get(field), level)
 
 	if spent+resourcesToSpend >= totalCost {
 		// increase a level
@@ -157,7 +151,7 @@ func (r *research) researchFieldOnce(player *Player, field TechField, resourcesT
 	return levelGained, resourcesLeftover
 }
 
-func (r *research) getTotalCost(techLevels TechLevel, field TechField, researchCostLevel ResearchCostLevel, level int) int {
+func (r *researcher) getTotalCost(techLevels TechLevel, researchCostLevel ResearchCostLevel, level int) int {
 	maxTechLevel := len(r.rules.TechBaseCost) - 1
 	// we can't research more than tech level 26
 	if level >= maxTechLevel {
@@ -183,13 +177,13 @@ func (r *research) getTotalCost(techLevels TechLevel, field TechField, researchC
 }
 
 // check if a player is at max research level for their current field
-func (r *research) isAtMaxLevel(player *Player, field TechField) bool {
+func (r *researcher) isAtMaxLevel(player *Player, field TechField) bool {
 	maxTechLevel := len(r.rules.TechBaseCost) - 1
 	return player.TechLevels.Get(field) >= maxTechLevel
 }
 
 // get the next TechField to research based on the NextResearchField setting
-func (r *research) getNextResearchField(player *Player) (nextField TechField) {
+func (r *researcher) getNextResearchField(player *Player) (nextField TechField) {
 
 	// find the next field
 	nextField = Energy

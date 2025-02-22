@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Race } from '$lib/types/Race';
+	import type { Race } from '$lib/types/cs';
 	import { loadWasm, type CS } from '$lib/wasm';
 	import { User } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';

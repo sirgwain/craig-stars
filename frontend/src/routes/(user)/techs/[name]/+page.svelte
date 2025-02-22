@@ -6,12 +6,18 @@
 	import { Service } from '$lib/services/Service';
 	import techjson from '$lib/ssr/techs.json';
 
-	import { TechCategory, type Tech, type TechHull, type TechStore } from '$lib/types/Tech';
+	import {
+		TechCategoryShipHull,
+		TechCategoryStarbaseHull,
+		type Tech,
+		type TechHull,
+		type TechStore
+	} from '$lib/types/cs';
 	import { startCase } from 'lodash-es';
 	import { onMount } from 'svelte';
 
 	// for ssr, we start with techs from a json file
-	let techStore: TechStore = techjson as TechStore;
+	let techStore: TechStore = techjson as unknown as TechStore;
 	let techs: Tech[] = [
 		...techStore.engines,
 		...techStore.planetaryScanners,
@@ -52,7 +58,7 @@
 
 {#if tech}
 	<TechSummary {tech} />
-	{#if (hull && tech.category == TechCategory.ShipHull) || tech.category == TechCategory.StarbaseHull}
+	{#if (hull && tech.category == TechCategoryShipHull) || tech.category == TechCategoryStarbaseHull}
 		<h1 class="my-3 text-lg text-center font-semibold">Hull</h1>
 		<div
 			class="card bg-base-200 shadow w-full max-h-fit min-h-fit rounded-sm border-2 border-base-300"

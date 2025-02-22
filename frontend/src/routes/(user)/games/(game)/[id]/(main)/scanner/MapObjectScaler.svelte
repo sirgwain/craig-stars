@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type MapObject } from '$lib/types/MapObject';
+	import { type MapObject } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext, type Snippet } from 'svelte';
 	import { getScannerContext } from './Scanner';

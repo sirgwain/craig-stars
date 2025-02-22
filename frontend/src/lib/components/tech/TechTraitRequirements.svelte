@@ -1,19 +1,16 @@
 <script lang="ts">
-	import type { PlayerResponse } from '$lib/types/Player';
-	import { getLabelForLRT, getLabelForPRT, LRT } from '$lib/types/Race';
-	import { $enum as eu } from 'ts-enum-util';
+	import type { Player } from '$lib/types/cs';
+	import { getLabelForLRT, getLabelForPRT, lrts } from '$lib/types/Race';
 
-	import type { Tech } from '$lib/types/Tech';
+	import type { Tech } from '$lib/types/cs';
 	import { startCase } from 'lodash-es';
 
 	type Props = {
 		tech: Tech;
-		player?: PlayerResponse | undefined;
+		player?: Player | undefined;
 	};
 
 	let { tech, player = undefined }: Props = $props();
-
-	const lrts = eu(LRT).getValues();
 </script>
 
 <div class="flex flex-col text-base p-1">

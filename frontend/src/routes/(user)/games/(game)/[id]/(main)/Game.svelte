@@ -16,14 +16,9 @@
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absoluteSize } from '$lib/types/CargoTransferRequest.svelte';
-	import { None } from '$lib/types/Constants';
+	import { MapObjectTypePlanet, None, type MapObject } from '$lib/types/cs';
 	import { type WaypointDest } from '$lib/types/Fleet';
-	import {
-		equal as mapObjectEqual,
-		MapObjectType,
-		ownedBy,
-		type MapObject
-	} from '$lib/types/MapObject';
+	import { equal as mapObjectEqual, ownedBy } from '$lib/types/MapObject';
 	import { newSalvage } from '$lib/types/Salvage';
 	import { equal } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
@@ -34,10 +29,10 @@
 	import SplitFleetDialog from '../dialogs/split/SplitFleetDialog.svelte';
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
 	import SearchDialog from '../search/SearchDialog.svelte';
-	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
-	import MapObjectSummary from './MapObjectSummary.svelte';
 	import CommandPane from './command/CommandPane.svelte';
 	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
+	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
+	import MapObjectSummary from './MapObjectSummary.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
 
@@ -275,7 +270,7 @@
 	}
 
 	function onSetPacketDest(mo: MapObject) {
-		if (mo.type != MapObjectType.Planet) {
+		if (mo.type != MapObjectTypePlanet) {
 			return;
 		} else {
 			$settings.setPacketDest = false;

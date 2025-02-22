@@ -32,7 +32,7 @@
 
 <script lang="ts">
 	import { clickOutside } from '$lib/clickOutside';
-	import type { Vector } from '$lib/types/Vector';
+	import type { Vector } from '$lib/types/cs';
 
 	const minWidth = 250;
 	const minHeight = 250;

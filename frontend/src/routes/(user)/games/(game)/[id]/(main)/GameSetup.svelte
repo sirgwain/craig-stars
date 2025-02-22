@@ -7,8 +7,8 @@
 	import { GameService } from '$lib/services/GameService';
 	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
-	import type { GameSettings } from '$lib/types/Game';
-	import type { PlayerResponse } from '$lib/types/Player';
+	import type { GameSettings } from '$lib/types/cs';
+	import type { Player } from '$lib/types/cs';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, onMount } from 'svelte';
@@ -98,7 +98,7 @@
 	}
 	let error = '';
 
-	let player: PlayerResponse | undefined = $state();
+	let player: Player | undefined = $state();
 
 	onMount(async () => {
 		player = await GameService.loadFullPlayer($game.id);

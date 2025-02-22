@@ -4,8 +4,9 @@
 	} from '$lib/components/game/tooltips/TextTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
+	import type { AnyMineField } from '$lib/services/Universe';
 	import { ownedBy } from '$lib/types/MapObject';
-	import { MineFieldTypes, type MineField } from '$lib/types/MineField';
+	import { MineFieldTypeHeavy, MineFieldTypeSpeedBump, MineFieldTypeStandard } from '$lib/types/cs';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import type { ChangeEventHandler } from 'svelte/elements';
@@ -13,7 +14,7 @@
 	const { game, player, universe, updateMineFieldOrders } = getGameContext();
 
 	type Props = {
-		mineField: MineField;
+		mineField: AnyMineField;
 	};
 
 	let { mineField = $bindable() }: Props = $props();
@@ -28,8 +29,12 @@
 
 	// update the minefield to detonate on the server
 	const mineFieldDetonateChecked: ChangeEventHandler<HTMLInputElement> = async (e) => {
-		mineField.detonate = e.currentTarget.checked;
-		await updateMineFieldOrders(mineField);
+		if ('detonate' in mineField) {
+			mineField.detonate = e.currentTarget.checked;
+			await updateMineFieldOrders(mineField);
+		} else {
+			console.error("can't detonate minefield not owned by player");
+		}
 	};
 </script>
 
@@ -38,9 +43,9 @@
 		<div class="avatar">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">
 				<div
-					class:standard-mine-field={mineField.mineFieldType === MineFieldTypes.Standard}
-					class:heavy-mine-field={mineField.mineFieldType === MineFieldTypes.Heavy}
-					class:speed-bump-mine-field={mineField.mineFieldType === MineFieldTypes.SpeedBump}
+					class:standard-mine-field={mineField.mineFieldType === MineFieldTypeStandard}
+					class:heavy-mine-field={mineField.mineFieldType === MineFieldTypeHeavy}
+					class:speed-bump-mine-field={mineField.mineFieldType === MineFieldTypeSpeedBump}
 					class="mapobject-avatar bg-black"
 				></div>
 			</div>
@@ -104,7 +109,7 @@
 					{mineField.spec.decayRate} / year
 				</div>
 			</div>
-			{#if mineField.spec.canDetonate}
+			{#if 'detonate' in mineField && mineField.spec.canDetonate}
 				<div class="flex flex-row mt-2">
 					<label>
 						<input
