@@ -1,4 +1,4 @@
-import type { DesignFinder, Universe } from '$lib/services/Universe';
+import type { AnyFleet, AnyShipDesign, DesignFinder, Universe } from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
 import { totalCargo } from './Cargo';
 import type { CargoDest } from './CargoTransferRequest.svelte';
@@ -19,7 +19,6 @@ import {
 	MapObjectTypeSalvage,
 	None,
 	type PlanetIntel,
-	type ShipDesign,
 	type ShipToken,
 	StargateWarpSpeed,
 	TransportActionFillPercent,
@@ -49,8 +48,6 @@ import {
 	type WaypointTaskTransportAction,
 	type WaypointTransportTasks
 } from './cs';
-
-export type AnyFleet = Fleet | FleetIntel;
 
 export const WaypointTasks: WaypointTask[] = [
 	WaypointTaskNone,
@@ -767,7 +764,10 @@ export class CommandedFleet implements Fleet {
 	}
 }
 
-export function getDamagePercentForToken(token: ShipToken, design: ShipDesign | undefined): number {
+export function getDamagePercentForToken(
+	token: ShipToken,
+	design: AnyShipDesign | undefined
+): number {
 	const armor = design?.spec.armor ?? 0;
 	const totalArmor = armor * token.quantity;
 	const quantityDamaged =

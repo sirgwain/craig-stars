@@ -5,14 +5,8 @@
 	import { getCarouselContext } from '$lib/services/CarouselContext';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type {
-		MineField,
-		MineralPacket,
-		MysteryTraderIntel,
-		PlanetIntel,
-		SalvageIntel,
-		WormholeIntel
-	} from '$lib/types/cs';
+	import type { AnyFleet, AnyMineField, AnyMineralPacket } from '$lib/services/Universe';
+	import type { MysteryTraderIntel, PlanetIntel, SalvageIntel, WormholeIntel } from '$lib/types/cs';
 	import {
 		MapObjectTypeFleet,
 		MapObjectTypeMineField,
@@ -22,7 +16,6 @@
 		MapObjectTypeSalvage,
 		MapObjectTypeWormhole
 	} from '$lib/types/cs';
-	import type { AnyFleet } from '$lib/types/Fleet';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -64,12 +57,12 @@
 	);
 	let selectedMineField = $derived(
 		$selectedMapObject?.type == MapObjectTypeMineField
-			? ($selectedMapObject as MineField)
+			? ($selectedMapObject as AnyMineField)
 			: undefined
 	);
 	let selectedMineralPacket = $derived(
 		$selectedMapObject?.type == MapObjectTypeMineralPacket
-			? ($selectedMapObject as MineralPacket)
+			? ($selectedMapObject as AnyMineralPacket)
 			: undefined
 	);
 	let selectedSalvage = $derived(

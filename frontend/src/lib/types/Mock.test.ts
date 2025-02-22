@@ -1,4 +1,4 @@
-import type { DesignFinder } from '$lib/services/Universe';
+import type { AnyShipDesign, DesignFinder } from '$lib/services/Universe';
 import { describe, it } from 'vitest';
 import type { ShipDesign } from './cs';
 import { MapObjectTypeFleet, MapObjectTypeNone, WaypointTaskNone, type Fleet } from './cs';
@@ -7,7 +7,7 @@ import { MapObjectTypeFleet, MapObjectTypeNone, WaypointTaskNone, type Fleet } f
 export class TestDesignFinder implements DesignFinder {
 	designs = [longRangeScoutDesign, santaMariaDesign, cottonPickerDesign];
 
-	getDesign(playerNum: number, num: number): ShipDesign | undefined {
+	getDesign(playerNum: number, num: number): AnyShipDesign | undefined {
 		return this.designs.find((d) => d.playerNum === playerNum && d.num === num);
 	}
 	getMyDesign(num: number | undefined): ShipDesign | undefined {
@@ -78,7 +78,7 @@ export const longRangeScoutDesign: ShipDesign = {
 			electronics: 1
 		}
 	}
-};
+} as ShipDesign;
 
 export const santaMariaDesign: ShipDesign = {
 	id: 0,
@@ -137,7 +137,7 @@ export const santaMariaDesign: ShipDesign = {
 			propulsion: 3
 		}
 	}
-};
+} as ShipDesign;
 
 export const cottonPickerDesign: ShipDesign = {
 	id: 0,
@@ -206,7 +206,7 @@ export const cottonPickerDesign: ShipDesign = {
 			electronics: 1
 		}
 	}
-};
+} as ShipDesign;
 
 export const longRangeScout: Fleet = {
 	id: 0,

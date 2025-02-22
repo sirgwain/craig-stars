@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { filterFleet } from '$lib/types/Filter';
-	import type { AnyFleet } from '$lib/types/Fleet';
+	import type { AnyFleet } from '$lib/services/Universe';
 	import { equal } from '$lib/types/MapObject';
 	import ScannerFleet from './ScannerFleet.svelte';
 

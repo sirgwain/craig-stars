@@ -4,15 +4,10 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { type AnyFleet, type AnyShipDesign } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
-	import type { ShipDesign } from '$lib/types/cs';
 	import { StargateWarpSpeed, WaypointTaskNone, type Fleet } from '$lib/types/cs';
-	import {
-		canTransferCargo,
-		CommandedFleet,
-		getDamagePercentForToken,
-		type AnyFleet
-	} from '$lib/types/Fleet';
+	import { canTransferCargo, CommandedFleet, getDamagePercentForToken } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
 	import { startCase } from 'lodash-es';
 
@@ -25,7 +20,7 @@
 	let { fleet, onShowCargoTransferDialog }: Props = $props();
 	let playerFleet = $derived('waypoints' in fleet ? (fleet as Fleet) : undefined);
 
-	const design: ShipDesign | undefined = $derived.by(() => {
+	const design: AnyShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
 			return $universe.getDesign(fleet.playerNum, designNum);

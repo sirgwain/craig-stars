@@ -9,13 +9,13 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
-	import { ReportAgeUnexplored } from '$lib/types/cs';
+	import { ReportAgeUnexplored, type Planet, type PlanetIntel } from '$lib/types/cs';
 	import { owned, ownedBy } from '$lib/types/MapObject';
 	import { planetsSortBy } from '$lib/types/Planet';
-	import { type Planet } from '$lib/types/cs';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
+	import { AnyPlanet } from '$lib/services/Universe';
 
 	const {
 		game,
@@ -37,7 +37,7 @@
 	// production queue dialog
 	let showProductionQueueDialog = $state(false);
 
-	let filteredPlanets: Planet[] = $derived(
+	let filteredPlanets: AnyPlanet[] = $derived(
 		$settings.showAllPlanets
 			? ($universe
 					.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
@@ -211,7 +211,7 @@
 		showProductionQueueDialog = true;
 	}
 
-	function onPopulationTooltip(e: PointerEvent, planet: Planet) {
+	function onPopulationTooltip(e: PointerEvent, planet: AnyPlanet) {
 		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
 			playerFinder: $universe,
 			player: $player,

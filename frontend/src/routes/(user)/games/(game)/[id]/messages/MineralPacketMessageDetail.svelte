@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import type { AnyMineralPacket } from '$lib/services/Universe';
 	import { totalCargo } from '$lib/types/Cargo';
 	import type { PlayerIntel } from '$lib/types/cs';
 	import {
@@ -8,7 +9,6 @@
 		PlayerMessageMineralPacketTargettingPlayerDiscovered,
 		PlayerMessagePlanetBuiltMineralPacket,
 		ReportAgeUnexplored,
-		type MineralPacket,
 		type PlayerMessage
 	} from '$lib/types/cs';
 	import { distance } from '$lib/types/Vector';
@@ -18,7 +18,7 @@
 
 	type Props = {
 		message: PlayerMessage;
-		mineralPacket: MineralPacket;
+		mineralPacket: AnyMineralPacket;
 		owner: PlayerIntel;
 	};
 

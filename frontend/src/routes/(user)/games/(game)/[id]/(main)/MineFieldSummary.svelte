@@ -4,13 +4,9 @@
 	} from '$lib/components/game/tooltips/TextTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
+	import type { AnyMineField } from '$lib/services/Universe';
 	import { ownedBy } from '$lib/types/MapObject';
-	import {
-		MineFieldTypeHeavy,
-		MineFieldTypeSpeedBump,
-		MineFieldTypeStandard,
-		type MineField
-	} from '$lib/types/cs';
+	import { MineFieldTypeHeavy, MineFieldTypeSpeedBump, MineFieldTypeStandard } from '$lib/types/cs';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import type { ChangeEventHandler } from 'svelte/elements';
@@ -18,7 +14,7 @@
 	const { game, player, universe, updateMineFieldOrders } = getGameContext();
 
 	type Props = {
-		mineField: MineField;
+		mineField: AnyMineField;
 	};
 
 	let { mineField = $bindable() }: Props = $props();
@@ -33,8 +29,12 @@
 
 	// update the minefield to detonate on the server
 	const mineFieldDetonateChecked: ChangeEventHandler<HTMLInputElement> = async (e) => {
-		mineField.detonate = e.currentTarget.checked;
-		await updateMineFieldOrders(mineField);
+		if ('detonate' in mineField) {
+			mineField.detonate = e.currentTarget.checked;
+			await updateMineFieldOrders(mineField);
+		} else {
+			console.error("can't detonate minefield not owned by player");
+		}
 	};
 </script>
 
@@ -109,7 +109,7 @@
 					{mineField.spec.decayRate} / year
 				</div>
 			</div>
-			{#if mineField.spec.canDetonate}
+			{#if 'detonate' in mineField && mineField.spec.canDetonate}
 				<div class="flex flex-row mt-2">
 					<label>
 						<input

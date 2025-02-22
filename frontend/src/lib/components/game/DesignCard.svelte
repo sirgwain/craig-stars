@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { techs } from '$lib/services/Stores';
-	import { None } from '$lib/types/cs';
 	import type { ShipDesign } from '$lib/types/cs';
+	import { None } from '$lib/types/cs';
 	import { QuestionMarkCircle, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import TechAvatar from '../tech/TechAvatar.svelte';

@@ -21,7 +21,7 @@
 </script>
 
 <!-- Names -->
-{#each $universe.planets as planet}
+{#each $universe.planetIntels as planet}
 	{#if $highlightedMapObject == planet || $selectedMapObject == planet || $objectScale >= 5}
 		<div
 			class="absolute w-32 text-center ml-[-4rem] mt-2 pointer-events-none z-10 text-white"

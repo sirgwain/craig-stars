@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { radiansToDegrees } from '$lib/services/Math';
-	import type { AnyFleet } from '$lib/types/Fleet';
+	import type { AnyFleet } from '$lib/services/Universe';
 	import { ownedBy } from '$lib/types/MapObject';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 

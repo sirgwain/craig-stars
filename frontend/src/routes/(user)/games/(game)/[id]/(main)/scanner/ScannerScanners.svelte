@@ -21,7 +21,7 @@
 
 		if ($settings.showScanners) {
 			$universe.planets
-				.filter((p) => p.playerNum == $player.num && p.spec?.scanner)
+				.filter((p) => p.spec?.scanner)
 				.forEach((planet) =>
 					scannersByPosition.set(positionKey(planet), {
 						position: planet.position,
@@ -48,7 +48,7 @@
 					}
 				});
 
-			$universe.mineralPackets
+			$universe.mineralPacketIntels
 				.filter(
 					(packet) =>
 						packet.playerNum == $player.num &&
@@ -71,7 +71,7 @@
 				});
 		}
 		if ($settings.showAllyScanners) {
-			$universe.planets
+			$universe.planetIntels
 				.filter((p) => $player.isSharingMap(p.playerNum) && p.spec?.scanner)
 				.forEach((planet) =>
 					scannersByPosition.set(positionKey(planet), {
@@ -104,7 +104,7 @@
 					}
 				});
 
-			$universe.mineralPackets
+			$universe.mineralPacketIntels
 				.filter(
 					(packet) =>
 						$player.isSharingMap(packet.playerNum) &&

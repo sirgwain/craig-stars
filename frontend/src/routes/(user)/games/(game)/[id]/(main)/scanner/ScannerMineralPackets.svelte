@@ -4,12 +4,12 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { MineralPacket } from '$lib/types/cs';
+	import type { AnyMineralPacket } from '$lib/services/Universe';
 	import ScannerMineralPacket from './ScannerMineralPacket.svelte';
 
 	const { player, universe } = getGameContext();
 
-	function getColor(mineralPacket: MineralPacket) {
+	function getColor(mineralPacket: AnyMineralPacket) {
 		if (mineralPacket.playerNum === $player.num) {
 			return '#0900FF';
 		}
@@ -18,6 +18,6 @@
 </script>
 
 <!-- MineralPackets -->
-{#each $universe.mineralPackets as mineralPacket}
+{#each $universe.allMineralPackets as mineralPacket}
 	<ScannerMineralPacket {mineralPacket} color={getColor(mineralPacket)} />
 {/each}

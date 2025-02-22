@@ -10,6 +10,6 @@
 </script>
 
 <!-- Salvages -->
-{#each $universe.salvages as salvage}
+{#each $universe.salvageIntels as salvage}
 	<ScannerSalvage {salvage} />
 {/each}

@@ -1,14 +1,15 @@
 <script lang="ts" module>
-	import type { HabType, Planet, PlanetIntel } from '$lib/types/cs';
+	import type { HabType } from '$lib/types/cs';
 	import type { CommandedPlayer } from '$lib/types/Player';
 	export type HabTooltipProps = {
 		player: CommandedPlayer;
-		planet: Planet | PlanetIntel;
+		planet: AnyPlanet;
 		habType: HabType;
 	};
 </script>
 
 <script lang="ts">
+	import type { AnyPlanet } from '$lib/services/Universe';
 	import { add, getHabValue, getHabValueString, habTypeString, withHabValue } from '$lib/types/Hab';
 	import { getPlanetHabitability, isImmune } from '$lib/types/Race';
 

@@ -5,7 +5,7 @@
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import type { ShipDesign } from '$lib/types/cs';
+	import type { ShipDesign, ShipDesignSpec } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 
 	const { game, player, createDesign } = getGameContext();
@@ -14,6 +14,9 @@
 	let hull = $derived($techs.getHull(hullName));
 
 	let design: ShipDesign = $state({
+		id: 0,
+		createdAt: '',
+		updatedAt: '',
 		name: '',
 		gameId: $game.id,
 		playerNum: $player.num ?? 0,
@@ -25,7 +28,7 @@
 		spec: {
 			engine: {},
 			techLevel: {}
-		}
+		} as ShipDesignSpec
 	});
 
 	let error = $state('');

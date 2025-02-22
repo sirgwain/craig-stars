@@ -10,7 +10,8 @@
 		MapObjectTypePlanet,
 		MapObjectTypeSalvage
 	} from '$lib/types/cs';
-	import type { AnyFleet, CommandedFleet } from '$lib/types/Fleet';
+	import type { CommandedFleet } from '$lib/types/Fleet';
+	import type { AnyFleet } from '$lib/services/Universe';
 	import FleetTransfer from './FleetTransfer.svelte';
 	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';

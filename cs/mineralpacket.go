@@ -10,9 +10,9 @@ type MineralPacket struct {
 	GameDBObject      `tstype:",extends"`
 	MapObject         `tstype:",extends"`
 	TargetPlanetNum   int    `json:"targetPlanetNum"`
-	Cargo             Cargo  `json:"cargo,omitempty"`
+	Cargo             Cargo  `json:"cargo"`
 	WarpSpeed         int    `json:"warpSpeed"`
-	SafeWarpSpeed     int    `json:"safeWarpSpeed,omitempty"`
+	SafeWarpSpeed     int    `json:"safeWarpSpeed"`
 	Heading           Vector `json:"heading"`
 	ScanRange         int    `json:"scanRange"`
 	ScanRangePen      int    `json:"scanRangePen"`

@@ -12,7 +12,8 @@
 		type Waypoint
 	} from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type AnyFleet, type WaypointDest } from '$lib/types/Fleet';
+	import { type WaypointDest } from '$lib/types/Fleet';
+	import { type AnyFleet } from '$lib/services/Universe';
 	import { emptyVector, equal } from '$lib/types/Vector';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
@@ -460,12 +461,12 @@
 		...u
 			.getAllFleets()
 			.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
-		...u.mysteryTraders,
-		...u.mineralPackets,
-		...u.salvages,
-		...u.wormholes,
+		...u.mysteryTraderIntels,
+		...u.mineralPacketIntels,
+		...u.salvageIntels,
+		...u.wormholeIntels,
 		...u.mineFields,
-		...u.planets
+		...u.allPlanets
 	]);
 
 	// all our data in LayerCake are mapObjects/waypoints. Add this custom getter to get the

@@ -16,7 +16,7 @@
 	const strokeWidth = 1;
 
 	let lines: Line[] = $derived.by(() => {
-		let wormholes = $universe.wormholes.filter((w) => w.destinationNum);
+		let wormholes = $universe.wormholeIntels.filter((w) => w.destinationNum);
 		const numsUsed = new Set<number>();
 		return wormholes
 			.filter((wormhole) => {

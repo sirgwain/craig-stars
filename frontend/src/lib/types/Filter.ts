@@ -1,5 +1,5 @@
 import { WaypointTaskNone } from './cs';
-import type { AnyFleet } from './Fleet';
+import type { AnyFleet } from '$lib/services/Universe';
 import type { CommandedPlayer } from './Player';
 
 export type FilterOptions = {

@@ -96,10 +96,10 @@ type ShipDesignIntel struct {
 	Name          string           `json:"name"`
 	Num           int              `json:"num"`
 	PlayerNum     int              `json:"playerNum"`
-	Hull          string           `json:"hull,omitempty"`
-	HullSetNumber int              `json:"hullSetNumber,omitempty"`
-	Version       int              `json:"version,omitempty"`
-	Slots         []ShipDesignSlot `json:"slots,omitempty"`
+	Hull          string           `json:"hull"`
+	HullSetNumber int              `json:"hullSetNumber"`
+	Version       int              `json:"version"`
+	Slots         []ShipDesignSlot `json:"slots"`
 	Spec          ShipDesignSpec   `json:"spec"`
 }
 
@@ -124,8 +124,8 @@ type MineralPacketIntel struct {
 	MapObject       `tstype:",extends"`
 	WarpSpeed       int    `json:"warpSpeed"`
 	Heading         Vector `json:"heading"`
-	Cargo           Cargo  `json:"cargo,omitempty"`
-	TargetPlanetNum int    `json:"targetPlanetNum,omitempty"`
+	Cargo           Cargo  `json:"cargo"`
+	TargetPlanetNum int    `json:"targetPlanetNum"`
 	ScanRange       int    `json:"scanRange,omitempty"`
 	ScanRangePen    int    `json:"scanRangePen,omitempty"`
 }

@@ -14,7 +14,7 @@
 
 	const { game, universe } = getGameContext();
 
-	let players = $derived($universe.players);
+	let players = $derived($universe.playerIntels);
 </script>
 
 <table class="table table-zebra table-fixed mx-auto w-full sm:w-auto">
@@ -33,8 +33,8 @@
 			<tr>
 				<td
 					>Own {Math.ceil(
-						($game.victoryConditions.ownPlanets / 100.0) * $universe.planets.length
-					).toFixed()} of {$universe.planets.length} planets</td
+						($game.victoryConditions.ownPlanets / 100.0) * $universe.planetIntels.length
+					).toFixed()} of {$universe.planetIntels.length} planets</td
 				>
 				{#each players as player}
 					<td>

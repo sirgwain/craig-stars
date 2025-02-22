@@ -34,7 +34,7 @@ import {
 	type TransportPlan,
 	type Waypoint
 } from '$lib/types/cs';
-import { CommandedFleet, type AnyFleet, type WaypointDest } from '$lib/types/Fleet';
+import { CommandedFleet, type WaypointDest } from '$lib/types/Fleet';
 import { equal, key, ownedBy } from '$lib/types/MapObject';
 import { getMapObjectTypeForMessageType } from '$lib/types/Message';
 import { CommandedPlanet } from '$lib/types/Planet';
@@ -62,7 +62,7 @@ import { PlanetService } from './PlanetService';
 import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
 import { TransportPlanService } from './TransportPlanService';
-import { Universe } from './Universe';
+import { Universe, type AnyFleet, type AnyMineralPacket } from './Universe';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -746,7 +746,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 			const u = get(universe);
 			result.planets.forEach((planet) => {
-				u.planets[planet.num - 1] = { ...planet, reportAge: 0 };
+				u.updatePlanet(planet);
 				if (equal(get(selectedMapObject), planet)) {
 					selectMapObject(planet);
 				}
@@ -1042,13 +1042,13 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			// update the destination fleet in the universe
 			const destFleet = result.dest as Fleet;
 			updateFleet(dest as Fleet, destFleet);
+		} else if (result.dest?.type == MapObjectTypeMineralPacket) {
+			const destMineralPacket = result.dest as AnyMineralPacket;
+			u.updateMineralPacket(destMineralPacket);
 		}
 
 		if (result.salvages) {
 			u.updateSalvages(result.salvages);
-		}
-		if (result.mineralPackets) {
-			u.updateMineralPackets(result.mineralPackets);
 		}
 
 		const smo = get(selectedMapObject);

@@ -1,8 +1,8 @@
 import { kebabCase } from 'lodash-es';
-import type { ShipDesign } from './types/cs';
+import type { AnyShipDesign } from './services/Universe';
 import { TechCategoryShipHull, TechCategoryStarbaseHull, type Tech } from './types/cs';
 
-export function getHullIcon(design: ShipDesign | undefined): string {
+export function getHullIcon(design: AnyShipDesign | undefined): string {
 	if (!design) {
 		return '';
 	}

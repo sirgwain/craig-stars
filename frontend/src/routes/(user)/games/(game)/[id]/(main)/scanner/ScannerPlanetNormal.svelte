@@ -2,7 +2,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { MapObjectTypeFleet, ReportAgeUnexplored, type PlanetIntel } from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
-	import type { AnyFleet } from '$lib/types/Fleet';
+	import type { AnyFleet } from '$lib/services/Universe';
 	import { owned } from '$lib/types/MapObject';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';

@@ -2,9 +2,9 @@
 	import type { NextPrevMapObjectProps, RenameFleetProps } from '$lib/services/Events';
 
 	import { getGameContext } from '$lib/services/GameContext';
+	import type { AnyShipDesign } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
 	import type { CommandedFleet } from '$lib/types/Fleet';
-	import type { ShipDesign } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
 
 	const { universe } = getGameContext();
@@ -16,7 +16,7 @@
 
 	let { fleet, onRenameFleet, onNextMapObject, onPreviousMapObject }: Props = $props();
 
-	const design: ShipDesign | undefined = $derived.by(() => {
+	const design: AnyShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
 			return $universe.getDesign(fleet.playerNum, designNum);

@@ -492,10 +492,10 @@ export interface ShipDesignIntel extends Intel {
 	name: string;
 	num: number /* int */;
 	playerNum: number /* int */;
-	hull?: string;
-	hullSetNumber?: number /* int */;
-	version?: number /* int */;
-	slots?: ShipDesignSlot[];
+	hull: string;
+	hullSetNumber: number /* int */;
+	version: number /* int */;
+	slots: ShipDesignSlot[];
 	spec: ShipDesignSpec;
 }
 export interface FleetIntel extends Intel, MapObject {
@@ -514,8 +514,8 @@ export interface FleetIntel extends Intel, MapObject {
 export interface MineralPacketIntel extends Intel, MapObject {
 	warpSpeed: number /* int */;
 	heading: Vector;
-	cargo?: Cargo;
-	targetPlanetNum?: number /* int */;
+	cargo: Cargo;
+	targetPlanetNum: number /* int */;
 	scanRange?: number /* int */;
 	scanRangePen?: number /* int */;
 }
@@ -822,9 +822,9 @@ export type MineralType = ResourceType;
  */
 export interface MineralPacket extends GameDBObject, MapObject {
 	targetPlanetNum: number /* int */;
-	cargo?: Cargo;
+	cargo: Cargo;
 	warpSpeed: number /* int */;
-	safeWarpSpeed?: number /* int */;
+	safeWarpSpeed: number /* int */;
 	heading: Vector;
 	scanRange: number /* int */;
 	scanRangePen: number /* int */;

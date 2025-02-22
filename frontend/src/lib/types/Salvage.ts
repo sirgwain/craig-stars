@@ -1,17 +1,14 @@
-import { MapObjectTypeSalvage, type Salvage } from './cs';
+import { MapObjectTypeSalvage, type SalvageIntel } from './cs';
 
-export function newSalvage(): Salvage {
+export function newSalvage(): SalvageIntel {
 	return {
-		id: 0,
-		createdAt: '',
-		updatedAt: '',
-		gameId: 0,
 		type: MapObjectTypeSalvage,
 		name: '',
 		position: { x: 0, y: 0 },
 		cargo: {},
 		num: 0,
 		playerNum: 0,
-		tags: {}
+		tags: {},
+		reportAge: 0
 	};
 }

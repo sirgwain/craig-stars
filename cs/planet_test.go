@@ -80,27 +80,6 @@ func testDeathStar(player *Player, planet *Planet) *Fleet {
 	return fleet
 }
 
-func TestPlanet_String(t *testing.T) {
-
-	tests := []struct {
-		name string
-		p    *Planet
-		want string
-	}{
-		{"MapObject String()", &Planet{GameDBObject: GameDBObject{GameID: 1, ID: 2}, MapObject: MapObject{Num: 3, Name: "Bob's Revenge"}},
-			"Planet GameID:     1, ID:     2, Num:   3 Bob's Revenge"},
-		{"MapObject String()", &Planet{GameDBObject: GameDBObject{GameID: 12345, ID: 23456}, MapObject: MapObject{Num: 120, Name: "Craig's Planet"}},
-			"Planet GameID: 12345, ID: 23456, Num: 120 Craig's Planet"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.p.String(); got != tt.want {
-				t.Errorf("MapObject.String() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_innateMines(t *testing.T) {
 	tests := []struct {
 		name      string

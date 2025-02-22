@@ -1,6 +1,7 @@
 import type { MapObject, Vector } from './cs';
 import { None } from './cs';
-import { getTokenCount, hasDestination, type AnyFleet } from './Fleet';
+import { getTokenCount, hasDestination } from './Fleet';
+import { type AnyFleet } from '$lib/services/Universe';
 
 export type MovingMapObject = {
 	heading: Vector;

@@ -1,11 +1,11 @@
 <script lang="ts" module>
 	import { showTooltip } from '$lib/services/Stores';
-	import type { ShipDesign } from '$lib/types/cs';
+	import type { AnyShipDesign } from '$lib/services/Universe';
 	import ShipDesignTooltip from './ShipDesignTooltip.svelte';
 
 	export function onShipDesignTooltip(
 		e: PointerEvent | MouseEvent,
-		design: ShipDesign | undefined
+		design: AnyShipDesign | undefined
 	) {
 		e.preventDefault();
 		if (design) {
@@ -14,7 +14,7 @@
 	}
 
 	export type ShipDesignTooltipProps = {
-		design: ShipDesign;
+		design: AnyShipDesign;
 	};
 </script>
 

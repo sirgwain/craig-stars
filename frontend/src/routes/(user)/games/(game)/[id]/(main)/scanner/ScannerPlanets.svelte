@@ -30,7 +30,7 @@
 </script>
 
 <!-- Planets -->
-{#each $universe.planets as planet (planet.num)}
+{#each $universe.planetIntels as planet (planet.num)}
 	{#if $settings.planetViewState == PlanetViewState.Percent}
 		<ScannerPlanetPercent {planet} />
 	{:else if $settings.planetViewState == PlanetViewState.Population}

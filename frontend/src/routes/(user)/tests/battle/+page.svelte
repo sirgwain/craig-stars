@@ -2,18 +2,18 @@
 	import BattleView from '$lib/components/game/battle/BattleView.svelte';
 	import Popup from '$lib/components/game/tooltips/Popup.svelte';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
-	import type { DesignFinder, PlayerFinder, PlayerUniverse } from '$lib/services/Universe';
-	import type { BattleRecord } from '$lib/types/cs';
+	import type {
+		AnyShipDesign,
+		DesignFinder,
+		PlayerFinder,
+		PlayerUniverse
+	} from '$lib/services/Universe';
+	import type { BattleRecord, ShipDesign } from '$lib/types/cs';
 	import { type Player, type PlayerIntel } from '$lib/types/cs';
 	import { CommandedPlayer } from '$lib/types/Player';
-	import type { ShipDesign } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 
-	type TestBattlePlayerResponse = Player &
-		PlayerUniverse & {
-			playerIntels: PlayerIntel[];
-			shipDesignIntels: ShipDesign[];
-		};
+	type TestBattlePlayerResponse = Player & PlayerUniverse;
 	let player: TestBattlePlayerResponse | undefined = $state();
 	let battle: BattleRecord | undefined = $state();
 
@@ -38,14 +38,14 @@
 	class TestDesignFinder implements DesignFinder {
 		constructor(private player: TestBattlePlayerResponse) {}
 
-		getDesign(playerNum: number, num: number): ShipDesign | undefined {
+		getDesign(playerNum: number, num: number): AnyShipDesign | undefined {
 			return (
-				this.player.designs.find((d) => d.playerNum === playerNum && d.num === num) ??
-				this.player.shipDesignIntels.find((d) => d.playerNum === playerNum && d.num === num)
+				this.player.designs.find((d) => d && d.playerNum === playerNum && d.num === num) ??
+				this.player.shipDesignIntels?.find((d) => d.playerNum === playerNum && d.num === num)
 			);
 		}
 		getMyDesign(num: number | undefined): ShipDesign | undefined {
-			return this.player.designs.find((d) => d.playerNum === this.player.num && d.num === num);
+			return this.player.designs.find((d) => d && d.playerNum === this.player.num && d.num === num);
 		}
 	}
 

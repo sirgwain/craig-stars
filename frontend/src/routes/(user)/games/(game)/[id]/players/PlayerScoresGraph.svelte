@@ -28,8 +28,8 @@
 	const yKey = 'value';
 	const zKey = 'player';
 
-	const seriesNames: string[] = $universe.players.map<string>((p) => String(p.num));
-	const seriesColors: string[] = $universe.players.map<string>((p) => p.color);
+	const seriesNames: string[] = $universe.playerIntels.map<string>((p) => String(p.num));
+	const seriesColors: string[] = $universe.playerIntels.map<string>((p) => p.color);
 
 	/* --------------------------------------------
 	 * Make a flat array of the `values` of our nested series
@@ -48,7 +48,7 @@
 	// get the highest value from the scores
 	let highestValue = $derived(
 		Math.max(
-			...$universe.scores
+			...$universe.scoreIntels
 				.filter((score) => score && score.length > 0)
 				.flat()
 				.map((score) => score[type] ?? 0)
@@ -61,9 +61,9 @@
 	 * set in xKey, yKey and zKey to map your data into each scale.
 	 */
 	let dataLong: DataLongTypeItem[] = $derived(
-		$universe.players.map((playerIntel, i) => {
+		$universe.playerIntels.map((playerIntel, i) => {
 			const name = playerIntel.racePluralName ?? playerIntel.name;
-			const playerScores = $universe.scores[i];
+			const playerScores = $universe.scoreIntels[i];
 
 			return {
 				[zKey]: String(playerIntel.num),

@@ -4,7 +4,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { MysteryTraderIntel, PlanetIntel } from '$lib/types/cs';
 	import { None, ReportAgeUnexplored, type MapObject } from '$lib/types/cs';
-	import type { AnyFleet } from '$lib/types/Fleet';
+	import type { AnyFleet } from '$lib/services/Universe';
 	import { getMapObjectName, owned, ownedBy } from '$lib/types/MapObject';
 	import { onMount } from 'svelte';
 
@@ -44,7 +44,7 @@
 
 		const planets = $universe.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending);
 		const fleets = $universe.getAllFleets($settings.sortFleetsKey, $settings.sortFleetsDescending);
-		const mysteryTraders = $universe.mysteryTraders;
+		const mysteryTraders = $universe.mysteryTraderIntels;
 
 		// return true if a mapboject name or player matches a search term
 		const termSearch = (term: string, mo: MapObject): boolean =>

@@ -1,16 +1,16 @@
 <script lang="ts" module>
 	import { roundToNearest100 } from '$lib/services/Math';
-	import { ReportAgeUnexplored, type Planet, type PlanetIntel } from '$lib/types/cs';
+	import { ReportAgeUnexplored } from '$lib/types/cs';
 	import type { CommandedPlayer } from '$lib/types/Player';
 	export type PopulationTooltipProps = {
 		playerFinder: PlayerFinder;
 		player: CommandedPlayer;
-		planet: Planet | PlanetIntel;
+		planet: AnyPlanet;
 	};
 </script>
 
 <script lang="ts">
-	import type { PlayerFinder } from '$lib/services/Universe';
+	import type { AnyPlanet, PlayerFinder } from '$lib/services/Universe';
 	import { owned, ownedBy } from '$lib/types/MapObject';
 
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
