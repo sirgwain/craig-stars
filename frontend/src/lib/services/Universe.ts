@@ -122,6 +122,10 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	myMapObjectsByPosition: Record<string, MapObject[]> = {};
 	allPlanets: AnyPlanet[] = [];
 
+	public get allFleets(): AnyFleet[] {
+		return [...this.fleets, ...this.fleetIntels];
+	}
+
 	public get allMineFields(): AnyMineField[] {
 		return [...this.mineFields, ...this.mineFieldIntels];
 	}
@@ -380,8 +384,12 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		return this.allPlanets[num - 1];
 	}
 
-	getFleet(playerNum: number | undefined, num: number | undefined): Fleet | undefined {
-		return this.fleets.find((f) => f.playerNum === playerNum && f.num === num);
+	getFleet(playerNum: number | undefined, num: number | undefined): AnyFleet | undefined {
+		return this.allFleets.find((f) => f.playerNum === playerNum && f.num === num);
+	}
+
+	getMyFleet(num: number | undefined): Fleet | undefined {
+		return this.fleets.find((f) => f.num === num);
 	}
 
 	getMyPlanetStarbase(planetNum: number) {

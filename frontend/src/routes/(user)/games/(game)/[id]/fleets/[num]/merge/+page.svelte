@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import MergeFleets from '../../../dialogs/merge/MergeFleets.svelte';
 
-	const { player, universe, commandedFleet, commandMapObject, merge } = getGameContext();
+	const { universe, commandedFleet, commandMapObject, merge } = getGameContext();
 	let num = parseInt($page.params.num);
 
 	let fleetsInOrbit: Fleet[] = $derived.by(() => {
@@ -19,7 +19,7 @@
 
 	onMount(() => {
 		if (!$commandedFleet || $commandedFleet.num !== num) {
-			const fleet = $universe.getFleet($player.num, num);
+			const fleet = $universe.getMyFleet(num);
 			if (fleet) {
 				commandMapObject(fleet);
 			}
