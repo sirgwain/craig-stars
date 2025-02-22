@@ -461,9 +461,6 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 			amtToAdd := Min(extraPoints/pointsThreshold, diff+1)
 			planet.MineralConcentration.Set(lowestType, conc.GetAmount(lowestType)+amtToAdd)
 			extraPoints -= pointsThreshold * amtToAdd
-			if amtToAdd == 0 {
-				break
-			}
 		}
 	}
 
@@ -478,12 +475,9 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		mins := planet.getCargo().ToMineral()
 		lowestType := mins.HighestType(3)
 		diff := mins.GetAmount(mins.HighestType(2)) - mins.GetAmount(lowestType)
-		amtToAdd := Min(extraPoints/pointsThreshold, diff+1) // 70 difference / 10 mins => 8 rounds
+		amtToAdd := Min(extraPoints, (diff/pointsThreshold)+1) // 70 difference / 10 mins/round => 8 rounds
 		planet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*pointsThreshold)
-		extraPoints -= pointsThreshold * amtToAdd
-		if amtToAdd == 0 {
-			break
-		}
+		extraPoints -= amtToAdd
 	}
 }
 
