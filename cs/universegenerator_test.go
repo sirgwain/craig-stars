@@ -132,7 +132,7 @@ func Test_assignRaceStartingPointBonuses(t *testing.T) {
 		want *Planet
 	}{
 		{
-			name: "10 points into factories",
+			name: "10 points into factories, 2 factories",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
 				extraPoints: 10,
@@ -141,22 +141,13 @@ func Test_assignRaceStartingPointBonuses(t *testing.T) {
 			want: NewPlanet().WithFactories(2),
 		},
 		{
-			name: "8 points into mines; can't use",
-			args: args{
-				race:        NewRace().WithPRT(AR).WithSpec(&rules),
-				extraPoints: 8,
-				pointsType:  SpendLeftoverPointsOnFactories,
-			},
-			want: NewPlanet().WithCargo(Cargo{3, 3, 2, 0}),
-		},
-		{
-			name: "99 points into mines; overcap",
+			name: "10 points into mines, 5 mines",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
-				extraPoints: 99,
-				pointsType:  SpendLeftoverPointsOnFactories,
+				extraPoints: 10,
+				pointsType:  SpendLeftoverPointsOnMines,
 			},
-			want: NewPlanet().WithMines(25),
+			want: NewPlanet().WithMines(5),
 		},
 		{
 			name: "10 points into defenses; 3 spillover",
@@ -165,16 +156,25 @@ func Test_assignRaceStartingPointBonuses(t *testing.T) {
 				extraPoints: 13,
 				pointsType:  SpendLeftoverPointsOnDefenses,
 			},
-			want: NewPlanet().WithDefenses(2).WithCargo(Cargo{1, 1, 1, 0}),
+			want: NewPlanet().WithDefenses(1).WithCargo(Cargo{10, 10, 10, 0}),
+		},
+		{
+			name: "8 points into mines; can't use because AR",
+			args: args{
+				race:        NewRace().WithPRT(AR).WithSpec(&rules),
+				extraPoints: 8,
+				pointsType:  SpendLeftoverPointsOnMines,
+			},
+			want: NewPlanet().WithCargo(Cargo{30, 30, 20, 0}),
 		},
 		{
 			name: "31 points into minconcs",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
 				extraPoints: 31,
-				pointsType:  SpendLeftoverPointsOnDefenses,
+				pointsType:  SpendLeftoverPointsOnMineralConcentrations,
 			},
-			want: NewPlanet().WithMineralConcentration(Mineral{4, 3, 3}).WithCargo(Cargo{1, 0, 0, 0}),
+			want: NewPlanet().WithMineralConcentration(Mineral{3, 3, 4}).WithCargo(Cargo{10, 0, 0, 0}),
 		},
 	}
 	for _, tt := range tests {

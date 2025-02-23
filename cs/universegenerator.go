@@ -437,17 +437,17 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 	case SpendLeftoverPointsOnDefenses:
 		if !race.Spec.LivesOnStarbases && extraPoints >= pointsThreshold {
 			planet.Defenses += (extraPoints / pointsThreshold)
-			extraPoints -= extraPoints / pointsThreshold
+			extraPoints = extraPoints % pointsThreshold
 		}
 	case SpendLeftoverPointsOnFactories:
 		if !race.Spec.InnateResources && extraPoints >= pointsThreshold {
 			planet.Factories += (extraPoints / pointsThreshold)
-			extraPoints -= extraPoints / pointsThreshold
+			extraPoints = extraPoints % pointsThreshold
 		}
 	case SpendLeftoverPointsOnMines:
 		if !race.Spec.InnateMining && extraPoints >= pointsThreshold {
 			planet.Mines += (extraPoints / pointsThreshold)
-			extraPoints -= extraPoints / pointsThreshold
+			extraPoints = extraPoints % pointsThreshold
 		}
 	case SpendLeftoverPointsOnMineralConcentrations:
 		// example situation: 25 unspent points; HW has 40I, 30B and 35G concs
@@ -472,6 +472,7 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		// first we add 60kT of I using 6 pts;
 		// then, since G is now the lowest mineral,
 		// we alternate between adding G and I for the remaining 4 pts
+		pointsThreshold = rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
 		mins := planet.getCargo().ToMineral()
 		lowestType := mins.HighestType(3)
 		diff := mins.GetAmount(mins.HighestType(2)) - mins.GetAmount(lowestType)
