@@ -33,6 +33,10 @@ export default defineConfig(({ mode }) => ({
 			}
 		}
 	},
+	preview: {
+		// keep this the same as npm run dev to make switching modes when testing easier
+		port: 5173
+	},
 	optimizeDeps: {
 		include: ['fuzzy']
 	},

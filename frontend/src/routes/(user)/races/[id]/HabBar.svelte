@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
 	import { type HabType, Grav, Temp, Rad } from '$lib/types/cs';
-	import { getHabValueString, habTypeString } from '$lib/types/Hab';
+	import { getHabValueString, HabTypeShortString, habTypeString } from '$lib/types/Hab';
 	import { draggable, type DragEventData } from '@neodrag/svelte';
 	import {
 		ChevronDoubleLeft,
@@ -24,6 +24,8 @@
 		habHigh = $bindable(),
 		immune = $bindable()
 	}: Props = $props();
+
+	let habTypeShortString = $derived(HabTypeShortString[habType]);
 
 	let barContainerRef: HTMLDivElement | undefined = $state();
 	let containerWidth = $derived(barContainerRef?.parentElement?.clientWidth ?? 0);
@@ -96,13 +98,21 @@
 					{/if}
 				</div>
 			</div>
-			<button type="button" onclick={onRight} class="btn btn-outline btn-sm"
+			<button
+				type="button"
+				onclick={onRight}
+				class="btn btn-outline btn-sm"
+				data-type={`${habTypeShortString}-right-button`}
 				><Icon src={ChevronRight} size="20" />
 			</button>
 		</div>
 		<div class="flex flex-row grow mt-2">
 			<div>
-				<button type="button" onclick={onGrow} class="btn btn-outline btn-sm"
+				<button
+					type="button"
+					onclick={onGrow}
+					class="btn btn-outline btn-sm"
+					data-type={`${habTypeShortString}-grow-button`}
 					><Icon src={ChevronDoubleLeft} size="20" />
 					<Icon src={ChevronDoubleRight} size="20" /></button
 				>
@@ -113,7 +123,11 @@
 				>
 			</div>
 			<div>
-				<button type="button" onclick={onShrink} class="btn btn-outline btn-sm"
+				<button
+					type="button"
+					onclick={onShrink}
+					class="btn btn-outline btn-sm"
+					data-type={`${habTypeShortString}-left-button`}
 					><Icon src={ChevronDoubleRight} size="20" />
 					<Icon src={ChevronDoubleLeft} size="20" /></button
 				>
