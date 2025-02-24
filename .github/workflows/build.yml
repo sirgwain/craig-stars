@@ -77,6 +77,8 @@ jobs:
         working-directory: ./frontend
       - name: Generate Go files and frontend static resources
         run: mage generate
+      - name: Grab images so tests don't complain
+        run: mage images
 
       - name: Build Backend Go Binary
         run: |
