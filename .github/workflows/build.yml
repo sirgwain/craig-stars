@@ -106,6 +106,12 @@ jobs:
       - name: Run Playwright tests
         run: npx playwright test
         working-directory: ./frontend
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 1
 
       - name: Run Vitest tests
         run: npx vitest --run --outputFile.junit=.${{env.test_results}}/vitest_report.xml
