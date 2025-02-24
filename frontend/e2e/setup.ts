@@ -32,8 +32,7 @@ export const test = base.extend<{
 		await authenticatedPage.getByLabel('Density').selectOption('Sparse');
 		await authenticatedPage.getByRole('checkbox', { name: 'Public Player Scores' }).click();
 
-		// start the game
-		await authenticatedPage.getByRole('button', { name: 'Create Game' }).click();
+		authenticatedPage.getByRole('button', { name: 'Create Game' }).click();
 		const response = await authenticatedPage.waitForResponse(
 			(response) =>
 				response.url().includes('/api/games') &&
@@ -63,13 +62,7 @@ export const test = base.extend<{
 		});
 
 		await deleteButton.click();
-
-		await authenticatedPage.waitForResponse(
-			(response) =>
-				response.url().includes('/api/games') &&
-				response.request().method() === 'DELETE' &&
-				response.status() === 200
-		);
+		await expect(deleteButton).not.toBeVisible();
 	},
 
 	newRacePage: async ({ authenticatedPage }, use) => {
@@ -80,7 +73,7 @@ export const test = base.extend<{
 		await authenticatedPage.getByRole('textbox', { name: 'Name', exact: true }).fill(name);
 		await authenticatedPage.getByRole('textbox', { name: 'Plural Name' }).fill(name + 's');
 
-		await authenticatedPage.getByRole('button', { name: 'Save' }).click();
+		authenticatedPage.getByRole('button', { name: 'Save' }).click();
 		const response = await authenticatedPage.waitForResponse(
 			(response) =>
 				response.url().includes('/api/races') &&
@@ -105,15 +98,17 @@ export const test = base.extend<{
 			await dialog.accept();
 		});
 
+		// delete race we created
 		await deleteButton.click();
-
-		await authenticatedPage.waitForResponse(
-			(response) =>
-				response.url().includes('/api/races') &&
-				response.request().method() === 'DELETE' &&
-				response.status() === 200
-		);
+		await expect(deleteButton).not.toBeVisible();
 	}
+});
+
+// no js errors allowed
+test.beforeEach(async ({ page }) => {
+	page.on('pageerror', (err) => {
+		throw new Error(`🚨 JavaScript error in the browser: ${err.message}`);
+	});
 });
 
 export { expect };

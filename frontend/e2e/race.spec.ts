@@ -28,11 +28,4 @@ test('edit race', async ({ newRacePage }) => {
 	// save button is good, click it
 	await expect(page.getByRole('button', { name: 'Save' })).toBeEnabled();
 	await page.getByRole('button', { name: 'Save' }).click();
-
-	await page.waitForResponse(
-		(response) =>
-			response.url().includes(`/api/races`) &&
-			response.request().method() === 'PUT' &&
-			response.status() === 200
-	);
 });

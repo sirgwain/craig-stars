@@ -49,10 +49,20 @@
 			{unit}
 		</div>
 		<div class="flex flex-col">
-			<button type="button" class="btn btn-xs" onclick={increase}>
+			<button
+				type="button"
+				class="btn btn-xs"
+				onclick={increase}
+				data-type="spin-number-increase-button"
+			>
 				<Icon src={ChevronUp} size="12" class="hover:stroke-accent" />
 			</button>
-			<button type="button" class="btn btn-xs" onclick={decrease}>
+			<button
+				type="button"
+				class="btn btn-xs"
+				onclick={decrease}
+				data-type="spin-number-decrease-button"
+			>
 				<Icon src={ChevronDown} size="12" class="hover:stroke-accent" />
 			</button>
 		</div>

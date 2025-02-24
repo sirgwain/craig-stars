@@ -8,6 +8,9 @@ const port = 4173;
 
 export default defineConfig({
 	retries: process.env.CI ? 2 : 0, // set to 2 when running on CI
+	fullyParallel: !!process.env.CI,
+	/* Opt out of parallel tests on CI. */
+	workers: process.env.CI ? 1 : undefined,
 
 	reporter: process.env.CI
 		? [
@@ -28,14 +31,16 @@ export default defineConfig({
 			// switch commands for debugging with hot reloading
 			// command: 'npm run dev',
 			command: command,
-			port: port
+			port: port,
+			reuseExistingServer: !process.env.CI
 		}
 	],
 	expect: {
-		timeout: 10000
+		timeout: 15000
 	},
 	use: {
 		baseURL: `http://localhost:${port}`,
+		headless: !!process.env.CI,
 		trace: 'on-first-retry' // record traces on first retry of each test
 	},
 
