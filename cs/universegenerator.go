@@ -457,11 +457,11 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		slices.Sort(s[:])
 		// equalize lowest 2
 		diffLowest := s[1] - s[0]
-		lowestType := surf.GetTypeFromAmount(s[0]
+		lowestType := surf.GetTypeFromAmount(s[0])
 		if diffLowest != 0 {
 			// this truncation in amtToAdd ensures that s[0] is still the lowest even after addition
 			amtToAdd := Min(extraPoints, diffLowest/kTPerPoint)
-			surf = surf.AddNum(lowestType), amtToAdd*kTPerPoint)
+			surf = surf.AddNum(lowestType, amtToAdd*kTPerPoint)
 			extraPoints -= amtToAdd
 		}
 
