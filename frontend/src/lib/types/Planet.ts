@@ -49,7 +49,7 @@ import {
 	type TechStore
 } from './cs';
 import { absSum, add, getHabValue, getLargest, withHabValue } from './Hab';
-import { AddToAll, totalMinerals } from './Mineral';
+import { addToAll, totalMinerals } from './Mineral';
 import type { CommandedPlayer } from './Player';
 import { getPlanetHabitability } from './Race';
 
@@ -313,7 +313,7 @@ export class CommandedPlanet implements Planet {
 
 	public mine(rules: Rules, race: Race) {
 		this.cargo = addMineral(this.cargo, this.getMineralOutput(this.mines, race.mineOutput));
-		this.mineYears = AddToAll(this.mineYears, this.mines);
+		this.mineYears = addToAll(this.mineYears, this.mines);
 		this.reduceMineralConcentration(rules);
 	}
 
