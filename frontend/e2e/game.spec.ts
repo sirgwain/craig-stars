@@ -168,3 +168,212 @@ test('production plans page', async ({ newGamePage }) => {
 	await deleteButton.click();
 	await expect(page.getByRole('link', { name: name })).not.toBeVisible();
 });
+
+test('transport plans page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+	const name = 'Test Transport Plan';
+
+	page.on('response', async (response) => {
+		if (response.url().includes(`/api/games/${id}`) && !response.ok()) {
+			// fail any api requests
+			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
+		}
+	});
+
+	await page.locator('label').filter({ hasText: 'Commands' }).click();
+	await page.getByRole('link', { name: 'Transport Plans' }).click();
+
+	await page.getByRole('link', { name: 'Create' }).click();
+	await page.getByRole('textbox', { name: 'Name' }).fill(name);
+
+	await page.getByLabel('Action Fuel NoneLoad').selectOption('LoadOptimal');
+	await page.getByLabel('Action Ironium NoneLoad').selectOption('LoadAmount');
+	await page.getByLabel('Amount Ironium').fill('1');
+	await page.getByLabel('Action Boranium NoneLoad').selectOption('UnloadAmount');
+	await page.getByLabel('Amount Boranium').fill('1');
+	await page.getByLabel('Action Germanium NoneLoad').selectOption('FillPercent');
+	await page.getByLabel('Amount Germanium').fill('3');
+	await page.getByLabel('Action Colonists NoneLoad').selectOption('SetAmountTo');
+	await page.getByLabel('Amount Colonists').fill('10');
+
+	await page.getByRole('button', { name: 'Save' }).click();
+	await page.getByRole('link', { name: 'Transport Plans' }).click();
+
+	// delete the plan we just created
+	const deleteButton = await page.locator(`[data-type="delete-button"][data-id="${name}"]`);
+	await expect(deleteButton).toBeVisible();
+
+	// confirm delete
+	page.once('dialog', async (dialog) => {
+		await dialog.accept();
+	});
+	await deleteButton.click();
+	await expect(page.getByRole('link', { name: name })).not.toBeVisible();
+});
+
+test('planets report page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+
+	await page.locator('label').filter({ hasText: 'Reports' }).click();
+	await page.getByRole('link', { name: 'Planets' }).click();
+	await page.waitForURL(`/games/${id}/planets`);
+
+	// sort
+	await page.getByRole('button', { name: 'Name' }).click();
+	await page.getByRole('button', { name: 'Starbase' }).click();
+	await page.getByRole('button', { name: 'Population' }).click();
+	await page.getByRole('button', { name: 'Cap' }).click();
+	await page.getByRole('button', { name: 'Growth' }).click();
+	await page.getByRole('button', { name: 'Value' }).click();
+	await page.getByRole('button', { name: 'Production' }).click();
+	await page.getByRole('button', { name: 'Mine', exact: true }).click();
+	await page.getByRole('button', { name: 'Factories' }).click();
+	await page.getByRole('columnheader', { name: 'Defense' }).click();
+	await page.getByRole('columnheader', { name: 'Minerals' }).click();
+	await page.getByRole('button', { name: 'Mining Rate' }).click();
+
+	// show all
+	await page.getByRole('checkbox', { name: 'Show All' }).check();
+
+	// sort
+	await page.getByRole('button', { name: 'Name' }).click();
+	await page.getByRole('button', { name: 'Owner' }).click();
+	await page.getByRole('button', { name: 'Report Age' }).click();
+	await page.getByRole('button', { name: 'Starbase' }).click();
+	await page.getByRole('button', { name: 'Population' }).click();
+	await page.getByRole('button', { name: 'Value' }).click();
+	await page.getByRole('button', { name: 'Defense' }).click();
+	await page.getByRole('button', { name: 'Minerals' }).click();
+	await page.getByRole('button', { name: 'Mineral Concentration' }).click();
+
+	// show just ours
+	await page.getByRole('checkbox', { name: 'Show All' }).check();
+});
+
+test('fleets report page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+
+	await page.locator('label').filter({ hasText: 'Reports' }).click();
+	await page.getByRole('link', { name: 'Fleets', exact: true }).click();
+	await page.waitForURL(`/games/${id}/fleets`);
+
+	// sort
+	await page.getByRole('button', { name: 'Name' }).click();
+	await page.getByRole('button', { name: 'ID' }).click();
+	await page.getByRole('button', { name: 'Location' }).click();
+	await page.getByRole('button', { name: 'Destination' }).click();
+	await page.getByRole('button', { name: 'ETA' }).click();
+	await page.getByRole('button', { name: 'Fuel' }).click();
+	await page.getByRole('button', { name: 'Cargo' }).click();
+	await page.getByText('Composition').click();
+	await page.getByRole('button', { name: 'Cloak' }).click();
+	await page.getByRole('button', { name: 'Battle Plan' }).click();
+	await page.getByRole('button', { name: 'Mass' }).click();
+});
+
+test('designs report page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+
+	await page.locator('label').filter({ hasText: 'Reports' }).click();
+	await page.getByRole('link', { name: 'Designs' }).click();
+	await page.waitForURL(`/games/${id}/designs`);
+
+	// sort
+	await page.getByRole('button', { name: 'Player' }).click();
+	await page.getByRole('button', { name: 'ID' }).click();
+	await page.getByRole('button', { name: 'Name' }).click();
+	await page.getByRole('button', { name: 'Hull' }).click();
+	await page.getByRole('button', { name: 'Rating' }).click();
+	await page.getByRole('button', { name: 'Armor' }).click();
+	await page.getByRole('button', { name: 'Shields' }).click();
+	await page.getByRole('button', { name: 'Initiative' }).click();
+	await page.getByRole('button', { name: 'Movement' }).click();
+	await page.getByRole('button', { name: 'Mass' }).click();
+
+	// popup
+	await page.getByRole('button', { name: 'Scout' }).first().click();
+
+	// filter by player
+
+	await page
+		.getByRole('row', { name: 'Humanoids 1 Opens ship design' })
+		.getByRole('link')
+		.first()
+		.click();
+	await page.waitForURL(`/games/${id}/designs/1`);
+});
+
+test('messages report page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+
+	await page.locator('label').filter({ hasText: 'Reports' }).click();
+	await page.getByRole('link', { name: 'Messages' }).click();
+	await page.waitForURL(`/games/${id}/messages`);
+
+	// sort
+
+	await page.getByRole('button', { name: 'Target' }).click();
+	await page.getByRole('columnheader', { name: 'Target' }).click();
+	await page.getByRole('button', { name: 'Text' }).click();
+	await page.getByRole('button', { name: 'Text' }).click();
+	await page.getByRole('checkbox', { name: 'Show All Messages' }).check();
+	await page.getByRole('checkbox', { name: 'Show All Messages' }).uncheck();
+	await page.getByRole('textbox', { name: 'search' }).fill('home planet');
+
+	// go to home world
+	await page.locator('[data-type="goto-target-button"]').first().click();
+	await page.waitForURL(`/games/${id}`);
+});
+
+test('battles report page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+
+	await page.locator('label').filter({ hasText: 'Reports' }).click();
+	await page.getByRole('link', { name: 'Battles' }).click();
+	await page.waitForURL(`/games/${id}/battles`);
+
+	// sort
+	await page.getByRole('button', { name: 'Location' }).click();
+	await page.getByRole('button', { name: 'Location' }).click();
+	await page.getByRole('button', { name: 'Players' }).click();
+	await page.getByRole('button', { name: 'Players' }).click();
+	await page.getByRole('button', { name: 'Ships' }).click();
+	await page.getByRole('button', { name: 'Ships' }).click();
+	await page.getByRole('button', { name: 'Ours', exact: true }).click();
+	await page.getByRole('button', { name: 'Ours', exact: true }).click();
+	await page.getByRole('button', { name: 'Theirs', exact: true }).click();
+	await page.getByRole('button', { name: 'Theirs', exact: true }).click();
+	await page.getByRole('button', { name: 'Our Dead' }).click();
+	await page.getByRole('button', { name: 'Our Dead' }).click();
+	await page.getByRole('button', { name: 'Their Dead' }).click();
+	await page.getByRole('button', { name: 'Their Dead' }).click();
+	await page.getByRole('button', { name: 'Ours Left' }).click();
+	await page.getByRole('button', { name: 'Ours Left' }).click();
+	await page.getByRole('button', { name: 'Theirs Left' }).click();
+	await page.getByRole('button', { name: 'Theirs Left' }).click();
+});
+
+test('game techs page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+
+	// browse to player techs page, show all, search for scout, click scout
+	await page.locator('#menu svg').click();
+	await page.getByRole('link', { name: 'Techs' }).click();
+	await page.waitForURL(`/games/${id}/techs`);
+
+	await page.getByRole('checkbox', { name: 'Show All' }).check();
+	await page.getByRole('checkbox', { name: 'Show All' }).uncheck();
+	await page.getByRole('textbox', { name: 'search' }).fill('scout');
+	await page.getByRole('link', { name: 'Scout' }).click();
+
+	await page.waitForURL(`/games/${id}/techs/scout`);
+});
+
+test('game race page', async ({ newGamePage }) => {
+	const { page, id } = newGamePage;
+
+	// browse to player techs page, show all, search for scout, click scout
+	await page.locator('#menu svg').click();
+	await page.getByRole('link', { name: 'Race' }).click();
+	await page.waitForURL(`/games/${id}/race`);
+});
