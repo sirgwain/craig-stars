@@ -7,6 +7,8 @@ const port = 4173;
 // const port = 5173;
 
 export default defineConfig({
+	retries: process.env.CI ? 2 : 0, // set to 2 when running on CI
+
 	reporter: process.env.CI
 		? [
 				['github'],
@@ -33,7 +35,8 @@ export default defineConfig({
 		timeout: 10000
 	},
 	use: {
-		baseURL: `http://localhost:${port}`
+		baseURL: `http://localhost:${port}`,
+		trace: 'on-first-retry' // record traces on first retry of each test
 	},
 
 	testDir: 'e2e'
