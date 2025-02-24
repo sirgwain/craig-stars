@@ -40,7 +40,7 @@ type Rules struct {
 	PopulationOvercrowdResourceMax     float64                             `json:"populationOvercrowdResourceMax"`
 	PopulationScannerError             float64                             `json:"populationScannerError"`
 	PRTSpecs                           map[PRT]PRTSpec                     `json:"prtSpecs"`
-	RaceStartingPoints                 int                                 `json:"raceStartingPoints"`
+	RaceStartingPoints                 int                                 `json:"raceStartingPoints"` // TODO: Change this into a "handicap" system with bonuses/penalties per PRT/LRT
 	RadiatingImmune                    int                                 `json:"radiatingImmune"`
 	RandomArtifactResearchBonusRange   [2]int                              `json:"randomArtifactResearchBonusRange"`
 	RandomCometMinYear                 int                                 `json:"randomCometMinYear"`

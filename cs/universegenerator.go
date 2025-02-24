@@ -442,48 +442,64 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 	case pointsType == SpendLeftoverPointsOnMineralConcentrations &&
 		extraPoints >= pointsThreshold:
 		planet.MineralConcentration = planet.MineralConcentration.Equalize(extraPoints / pointsThreshold)
-	default:
-		// TODO: Figure out how OG stars does this stuff cuz IDK
-		// currently just using the old algorithm out of spite
-
+	case extraPoints > 0:
 		kTPerPoint := rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
 		// example situation: 25 unspent points; HW has 400I, 300B and 350G
 		// first we start by increasing B up to 350, using 5 points.
 		// B & G are now equal, so we increase both by 50 (using 10 points).
 		// The remaining 10 gets spread equally among all 3.
 
-		surf := planet.Cargo.ToMineral()
-		s := surf.ToSlice()
-		slices.Sort(s[:])
+		// TODO: Figure out how OG stars does this stuff cuz IDK
+		// currently just using the old algorithm out of spite
+		mArray := planet.Cargo.ToMineral().ToSlice()
+		mSlice := mArray[:]
+		var origOrder = []int{0, 1, 2} // original value order; used to "un-shuffle" slice at the end
+
+		// sort mineral values/types
+		slices.SortFunc(mSlice, func(a, b int) int {
+			diff := a - b
+			if diff < 0 {
+				// shuffle around original order slice to keep it in sync
+				i := slices.Index(mSlice, a)
+				origOrder[i], origOrder[i-1] = origOrder[i-1], origOrder[i]
+			}
+			return diff
+		})
+
 		// equalize lowest 2
-		diffLowest := s[1] - s[0]
-		lowestType := surf.GetTypeFromAmount(s[0])
+		diffLowest := mSlice[1] - mSlice[0]
 		if diffLowest != 0 {
-			// this truncation in amtToAdd ensures that s[0] is still the lowest even after addition
+			// this truncation in amtToAdd ensures that mSlice[0] is still the lowest
+			// even after topping it up
 			amtToAdd := Min(extraPoints, diffLowest/kTPerPoint)
-			surf = surf.AddNum(lowestType, amtToAdd*kTPerPoint)
+			mSlice[0] += amtToAdd * kTPerPoint
 			extraPoints -= amtToAdd
 		}
 
 		// lowest 2 equal; equalize both with highest
-		diffHighest := s[2] - s[0]
+		diffHighest := mSlice[2] - mSlice[0]
 		if diffHighest != 0 && extraPoints > 1 {
+			// again, truncation makes this work
 			amtToAdd := Min(extraPoints, (diffHighest/kTPerPoint)*2)
-			surf = surf.AddNum(lowestType, amtToAdd*kTPerPoint/2)
-			surf = surf.AddNum(surf.GetTypeFromAmount(s[1]), amtToAdd*kTPerPoint/2)
+			mSlice[0] += (amtToAdd / 2) * kTPerPoint
+			mSlice[1] += (amtToAdd / 2) * kTPerPoint
 			extraPoints -= amtToAdd
 		}
 
-		// all 3 equal; divide remainders
-		if third := extraPoints / 3; third != 0 {
-			surf = surf.AddToAll(third * kTPerPoint)
+		// all 3 equal; divide remainders evenly
+		if third := extraPoints / 3; third > 0 {
+			for i := range mSlice {
+				mSlice[i] += third * kTPerPoint
+			}
 			extraPoints %= 3
 		}
 		for i := range extraPoints {
-			surf = surf.AddNum(MineralTypes[i], kTPerPoint)
+			mSlice[i] += kTPerPoint
 		}
 
-		planet.Cargo = NewCargoFromMineralsAndPop(surf, planet.Cargo.Colonists*100)
+		planet.Cargo = NewCargoFromMineralsAndPop(
+			NewMineral(mSlice[origOrder[0]], mSlice[origOrder[1]], mSlice[origOrder[2]]),
+			planet.Cargo.Colonists*100)
 	}
 }
 

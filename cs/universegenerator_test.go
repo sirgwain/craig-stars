@@ -172,20 +172,31 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 				pointsType:  SpendLeftoverPointsOnMineralConcentrations,
 				planet:      NewPlanet().WithMineralConcentration(Mineral{40, 35, 37}),
 			},
-			// increases B/G to 40 using 24 pts; spend remaining 3 on first 2
 			want: NewPlanet().WithMineralConcentration(Mineral{41, 41, 40}),
+			// [40, 35, 37] -> [40, 37, 37] -> [40, 40, 40] -> [41, 41, 40]
 		},
 		{
-			name: "3 points into surface minerals with some cargo",
+			name: "32 points into surface minerals with some cargo",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
-				extraPoints: 3,
+				extraPoints: 32,
 				pointsType:  SpendLeftoverPointsOnSurfaceMinerals,
-				planet:      NewPlanet().WithCargo(Cargo{62, 62, 62, 220}),
+				planet:      NewPlanet().WithCargo(Cargo{2, 101, 200, 220}),
 			},
-			// TODO: Make more tests for this once I actually understand how the damn thing works
-			want: NewPlanet().WithCargo(Cargo{72, 72, 72, 220}),
+			want: NewPlanet().WithCargo(Cargo{202, 211, 210, 220}),
+			// [2, 101, 200] -> [92, 101, 200] -> [192, 201, 200] -> [202, 211, 210]
 		},
+		{
+			name: "invalid starting point type; uses surface mins",
+			args: args{
+				race:        NewRace().WithSpec(&rules),
+				extraPoints: 1,
+				pointsType:  "BANANANANA",
+			},
+			want: NewPlanet().WithCargo(Cargo{10, 0, 0, 0}),
+		},
+		// TODO: Make more tests for surface minerals/concentration
+		// once I actually understand how the damn things work
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
