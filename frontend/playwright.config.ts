@@ -7,9 +7,13 @@ const port = 4173;
 // const port = 5173;
 
 export default defineConfig({
-	reporter: [
-		process.env.CI ? ['github', ['junit', { outputFile: 'test-results.json' }]] : ['list']
-	],
+	reporter: process.env.CI
+		? [
+				['github'],
+				['junit', { outputFile: 'test-results.json' }],
+				['html', { outputFolder: 'playwright-report', open: 'never' }]
+			]
+		: [['list'], ['html', { outputFolder: 'playwright-report', open: 'on-failure' }]],
 	webServer: [
 		{
 			cwd: '../',
