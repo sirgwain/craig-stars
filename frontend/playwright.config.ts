@@ -40,8 +40,9 @@ export default defineConfig({
 	},
 	use: {
 		baseURL: `http://localhost:${port}`,
-		headless: !!process.env.CI,
+		headless: true, // set to false to see cool popup windows
 		trace: 'on-first-retry' // record traces on first retry of each test
+		// video: 'on' // turn on for cool video recordings
 	},
 
 	testDir: 'e2e'
