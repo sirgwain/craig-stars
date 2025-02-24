@@ -162,7 +162,6 @@ type dbConn struct {
 	dbRead           *sqlx.DB
 	dbWrite          *sqlx.DB
 	databaseInMemory bool
-	usersInMemory    bool
 }
 
 type client struct {
@@ -245,9 +244,6 @@ func (conn *dbConn) WrapInTransaction(wrap func(c Client) error) error {
 func (c *dbConn) Connect(cfg *config.Config) error {
 
 	c.databaseInMemory = strings.Contains(cfg.Database.Filename, ":memory:")
-	if c.databaseInMemory {
-		c.usersInMemory = true
-	}
 	// if we are using a file based db, we have to exec the schema sql when we first
 	// set it up
 	if !c.databaseInMemory && cfg.Database.Recreate {
@@ -280,6 +276,10 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 	dsn := fmt.Sprintf("file:%s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)
 	log.Debug().Msgf("Connecting to database %s", dsn)
 	connectHook := func(conn *sqlite3.SQLiteConn) error {
+		if c.databaseInMemory {
+			// no need to attach
+			return nil
+		}
 		log.Debug().Msgf("Attaching Users database %s", cfg.Database.UsersFilename)
 		if _, err := conn.Exec(fmt.Sprintf("ATTACH DATABASE '%s' as users;", cfg.Database.UsersFilename), nil); err != nil {
 			return err

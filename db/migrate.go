@@ -27,10 +27,8 @@ var gamesSchemaFiles embed.FS
 var memorySchemaFiles embed.FS
 
 func (c *dbConn) mustMigrate(cfg *config.Config) {
-	if !c.usersInMemory {
-		c.mustMigrateDatabase(cfg.Database.UsersFilename, usersSchemaFiles, "schema/users", !cfg.Database.Recreate)
-	}
 	if !c.databaseInMemory {
+		c.mustMigrateDatabase(cfg.Database.UsersFilename, usersSchemaFiles, "schema/users", !cfg.Database.Recreate)
 		c.mustMigrateDatabase(cfg.Database.Filename, gamesSchemaFiles, "schema/games", !cfg.Database.Recreate)
 	}
 }

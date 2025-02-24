@@ -1,6 +1,11 @@
 /// <reference types="node"/>
 import { defineConfig } from '@playwright/test';
 
+const command = 'npm run build && npm run preview';
+const port = 4173;
+// const command = 'npm run dev';
+// const port = 5173;
+
 export default defineConfig({
 	reporter: [
 		process.env.CI ? ['github', ['junit', { outputFile: 'test-results.json' }]] : ['list']
@@ -16,12 +21,12 @@ export default defineConfig({
 		{
 			// switch commands for debugging with hot reloading
 			// command: 'npm run dev',
-			command: 'npm run build && npm run preview',
-			port: 5173
+			command: command,
+			port: port
 		}
 	],
 	use: {
-		baseURL: 'http://localhost:5173'
+		baseURL: `http://localhost:${port}`
 	},
 
 	testDir: 'e2e'
