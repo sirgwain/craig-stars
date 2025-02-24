@@ -98,7 +98,7 @@ func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
 			name:   "max tech MT shields with IS",
 			fields: fields{TechLevel{26, 26, 26, 26, 26, 26}, NewRace().WithPRT(IS), true},
 			slot:   HullSlotTypeShield,
-			want:   []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &CrobySharmor, &LangstonShell, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield},
+			want:   []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &CrobySharmor, &GorillaDelagator, &LangstonShell, &ElephantHideFortress, &CompletePhaseShield},
 		},
 		{
 			name:   "Default Shields/Armors",
