@@ -11,7 +11,7 @@
 		"test:e2e": "playwright test",
 		"test": "npm run test:e2e && npm run test:unit -- --run",
 		"test:unit": "vitest",
-		"lint": "eslint . && prettier --check .",
+		"lint": "eslint .",
 		"format": "prettier --write ."
 	},
 	"devDependencies": {

@@ -30,7 +30,9 @@ func Test_CompareAsJSON(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := CompareAsJSON(t, tt.got, tt.want)
+			m := new(mockTestingT)
+			m.name = tt.name
+			res := CompareAsJSON(m, tt.got, tt.want)
 			if res != tt.wantFail {
 				t.Errorf("Test_CompareAsJSON() failed; function returned %v but expected %v", res, tt.wantFail)
 			}
@@ -79,9 +81,7 @@ func Test_parseJSONDiff(t *testing.T) {
 			}
 			gotDiff := string(gotBytes)
 			if gotDiff != tt.wantDiff {
-				t.Errorf(`CompareAsJSON() outputted incorrect diff:
-Got: %v
-Want: %v`, gotDiff, tt.wantDiff)
+				t.Errorf("CompareAsJSON() outputted incorrect diff:\nGot: %v\nWant: %v", gotDiff, tt.wantDiff)
 			}
 		})
 	}

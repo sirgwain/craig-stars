@@ -25,8 +25,11 @@ import (
 //
 // The json difference is passed to t.Errorf, so no extra calls to t.Log or t.Error
 // are needed after calling this.
-func CompareAsJSON(t *testing.T, got, want any) bool {
-	t.Helper()
+func CompareAsJSON(t TestingT, got, want any) bool {
+	if h, ok := t.(tHelper); ok {
+		h.Helper()
+	}
+
 	if got == nil && want == nil {
 		return true
 	} else if (got == nil) != (want == nil) { // one is nil and the other isn't
@@ -49,25 +52,27 @@ func CompareAsJSON(t *testing.T, got, want any) bool {
 		return true
 	}
 
-	errMsg := parseJSONDiff(gotJson, wantJson, t.Name())
+	diff := parseJSONDiff(gotJson, wantJson, t.Name())
 
-	t.Error(errMsg)
+	t.Errorf("JSONs not equal; diff between got & want: \n%s", diff)
 	return false
+}
+
+// parsing options for jsondiff
+var options = jsondiff.Options{
+	Added:            jsondiff.Tag{Begin: "\"prop-added\": {", End: "}"},
+	Removed:          jsondiff.Tag{Begin: "\"prop-removed\": {", End: "}"},
+	Changed:          jsondiff.Tag{Begin: "{\"changed\": [", End: "]}"},
+	ChangedSeparator: ", ",
+	Indent:           "\t", // tab indentation
+	SkipMatches:      true,
 }
 
 // Parse JSON diffs, creating files to log values as appropriate.
 func parseJSONDiff(gotJSON, wantJSON []byte, testName string) string {
-	options := jsondiff.Options{
-		Added:            jsondiff.Tag{Begin: "\"prop-added\": {", End: "}"},
-		Removed:          jsondiff.Tag{Begin: "\"prop-removed\": {", End: "}"},
-		Changed:          jsondiff.Tag{Begin: "{\"changed\": [", End: "]}"},
-		ChangedSeparator: ", ",
-		Indent:           "	", // tab indentation
-		SkipMatches:      true,
-	}
-
 	_, diff := jsondiff.Compare(gotJSON, wantJSON, &options)
 
+	os.MkdirAll("../tmp", 0755) // create temp folder
 	// append files 1 by 1
 	for i := range 3 {
 		header := "// " + testName + "\n" // header containing test name & extra newlines
@@ -90,7 +95,7 @@ func parseJSONDiff(gotJSON, wantJSON []byte, testName string) string {
 		_ = AppendFile(path, header+body+"\n")
 	}
 
-	return fmt.Sprintf("JSONs not equal; diff between got & want: \n%s", diff)
+	return diff
 }
 
 // Appends a string or byte slice to the named file, creating it if necessary.

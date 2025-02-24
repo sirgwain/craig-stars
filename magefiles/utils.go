@@ -15,15 +15,10 @@ import (
 	"github.com/sirgwain/craig-stars/test"
 )
 
-// Test both the backend and frontend in succession.
+// Test both the backend and frontend in succession, along with ESLint lint checks.
 func Test() error {
-	fmt.Println("go test ./...")
-	if err := sh.RunV("go", "test", "./..."); err != nil {
-		return err
-	}
-
-	fmt.Println("npm run test")
-	cmd := exec.Command("npm", "run-script", "test")
+	fmt.Println("Running ESLint linting checks...")
+	cmd := exec.Command("npm", "run-script", "lint")
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -31,8 +26,13 @@ func Test() error {
 		return err
 	}
 
-	fmt.Println("npm run lint")
-	cmd = exec.Command("npm", "run-script", "lint")
+	fmt.Println("Running backend tests...")
+	if err := sh.RunV("go", "test", "./..."); err != nil {
+		return err
+	}
+
+	fmt.Println("Running frontend tests...")
+	cmd = exec.Command("npm", "run-script", "test")
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

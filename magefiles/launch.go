@@ -112,6 +112,16 @@ func Generate() error {
 	if err := sh.RunV("tygo", "generate"); err != nil {
 		return err
 	}
+	// format generated tygo file on non-CI runs
+	if _, ok := os.LookupEnv("CI"); !ok {
+		cmd := exec.Command("npx", "prettier", "--write src/lib/types/cs.ts")
+		cmd.Dir = "./frontend"
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return mg.Fatalf(1, "error during prettier formatting after generation: \n%w", err)
+		}
+	}
 
 	fmt.Println("generating techs.json")
 	techs2json, err := sh.Output("go", "run", "main.go", "generate", "techsjson")
@@ -129,23 +139,6 @@ func Generate() error {
 	}
 	if err := os.WriteFile("frontend/src/lib/ssr/rules.json", []byte(rules2json), 0644); err != nil {
 		return mg.Fatalf(1, "error during os.WriteFile for rules.json: \n%w", err)
-	}
-
-	if err := Format(); err != nil {
-		return mg.Fatalf(1, "error during format after generation: \n%w", err)
-	}
-
-	return nil
-}
-
-// Build the frontend using SvelteKit.
-func Format() error {
-	cmd := exec.Command("npm", "run", "format")
-	cmd.Dir = "./frontend"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
 	}
 
 	return nil
