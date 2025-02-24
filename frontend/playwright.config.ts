@@ -33,7 +33,7 @@ export default defineConfig({
 		timeout: 10000
 	},
 	use: {
-		baseURL: `http://127.0.0.1:${port}`
+		baseURL: `http://localhost:${port}`
 	},
 
 	testDir: 'e2e'
