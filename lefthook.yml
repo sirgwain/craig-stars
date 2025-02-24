@@ -3,24 +3,27 @@
 assert.lefthook.installed: true
 pre-commit:
   skip:
-    - merge-commit
+    - merge
     - rebase
   commands:
     gofmt:
       glob: "*.go"
       exclude:
         - "**/generated.go"
-      run: gofmt -l -w {staged_files}
+      files: git diff --cached --name-only --diff-filter=ACMR # don't lint deleted/untracked files
+      run: gofmt -l -w {files}
       stage_fixed: true
     prettier_backend:
       exclude:
         - "frontend/**"
         - "*.go"
-      run: npx prettier --ignore-unknown --write {staged_files}
+      files: git diff --cached --name-only --diff-filter=ACMR
+      run: npx prettier --ignore-unknown --write {files}
       stage_fixed: true
     prettier_frontend:
       root: "frontend/"
       exclude:
         - "frontend/src/lib/ssr/**"
-      run: npx prettier --ignore-unknown --write {staged_files}
+      files: git diff --relative --cached --name-only --diff-filter=ACMR
+      run: npx prettier --ignore-unknown --write {files}
       stage_fixed: true

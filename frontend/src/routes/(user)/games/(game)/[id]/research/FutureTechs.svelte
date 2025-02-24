@@ -3,8 +3,8 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';
-	import type { Tech } from '$lib/types/Tech';
-	import { TechField, get, hasRequiredLevels, subtract, sum } from '$lib/types/TechLevel';
+	import type { Tech, TechField } from '$lib/types/cs';
+	import { get, hasRequiredLevels, subtract, sum } from '$lib/types/TechLevel';
 
 	type FutureTech = {
 		tech: Tech;

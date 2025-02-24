@@ -1,17 +1,14 @@
-import type { Cargo } from './Cargo';
-import { MapObjectType, type MapObject } from './MapObject';
+import { MapObjectTypeSalvage, type SalvageIntel } from './cs';
 
-export type Salvage = {
-	cargo: Cargo;
-} & MapObject;
-
-export function newSalvage(): Salvage {
+export function newSalvage(): SalvageIntel {
 	return {
-		type: MapObjectType.Salvage,
-		playerNum: 0,
-		num: 0,
+		type: MapObjectTypeSalvage,
 		name: '',
 		position: { x: 0, y: 0 },
-		cargo: {}
+		cargo: {},
+		num: 0,
+		playerNum: 0,
+		tags: {},
+		reportAge: 0
 	};
 }

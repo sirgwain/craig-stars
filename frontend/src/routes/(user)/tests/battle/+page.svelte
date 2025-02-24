@@ -2,22 +2,18 @@
 	import BattleView from '$lib/components/game/battle/BattleView.svelte';
 	import Popup from '$lib/components/game/tooltips/Popup.svelte';
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
-	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
-	import type { BattleRecord } from '$lib/types/Battle';
-	import {
-		Player,
-		type PlayerIntel,
-		type PlayerResponse,
-		type PlayerUniverse
-	} from '$lib/types/Player';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
+	import type {
+		AnyShipDesign,
+		DesignFinder,
+		PlayerFinder,
+		PlayerUniverse
+	} from '$lib/services/Universe';
+	import type { BattleRecord, ShipDesign } from '$lib/types/cs';
+	import { type Player, type PlayerIntel } from '$lib/types/cs';
+	import { CommandedPlayer } from '$lib/types/Player';
 	import { onMount } from 'svelte';
 
-	type TestBattlePlayerResponse = PlayerResponse &
-		PlayerUniverse & {
-			playerIntels: PlayerIntel[];
-			shipDesignIntels: ShipDesign[];
-		};
+	type TestBattlePlayerResponse = Player & PlayerUniverse;
 	let player: TestBattlePlayerResponse | undefined = $state();
 	let battle: BattleRecord | undefined = $state();
 
@@ -34,19 +30,22 @@
 		getPlayerColor(playerNum: number | undefined): string {
 			return this.player.playerIntels?.find((p) => p.num == playerNum)?.color ?? '#FFFFFF';
 		}
+		getPlayerName(playerNum: number | undefined): string {
+			return this.player.playerIntels?.find((p) => p.num == playerNum)?.name ?? '';
+		}
 	}
 
 	class TestDesignFinder implements DesignFinder {
 		constructor(private player: TestBattlePlayerResponse) {}
 
-		getDesign(playerNum: number, num: number): ShipDesign | undefined {
+		getDesign(playerNum: number, num: number): AnyShipDesign | undefined {
 			return (
-				this.player.designs.find((d) => d.playerNum === playerNum && d.num === num) ??
-				this.player.shipDesignIntels.find((d) => d.playerNum === playerNum && d.num === num)
+				this.player.designs.find((d) => d && d.playerNum === playerNum && d.num === num) ??
+				this.player.shipDesignIntels?.find((d) => d.playerNum === playerNum && d.num === num)
 			);
 		}
 		getMyDesign(num: number | undefined): ShipDesign | undefined {
-			return this.player.designs.find((d) => d.playerNum === this.player.num && d.num === num);
+			return this.player.designs.find((d) => d && d.playerNum === this.player.num && d.num === num);
 		}
 	}
 
@@ -65,7 +64,7 @@
 			player: TestBattlePlayerResponse;
 			battle: BattleRecord;
 		};
-		player = new Player(
+		player = new CommandedPlayer(
 			json.player as TestBattlePlayerResponse
 		) as unknown as TestBattlePlayerResponse;
 		battle = json.battle;

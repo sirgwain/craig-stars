@@ -3,11 +3,11 @@
   MineralPacket in the scanner
  -->
 <script lang="ts">
-	import type { Wormhole } from '$lib/types/Wormhole';
+	import type { WormholeIntel } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	type Props = {
-		wormhole: Wormhole;
+		wormhole: WormholeIntel;
 		fill?: string;
 	};
 

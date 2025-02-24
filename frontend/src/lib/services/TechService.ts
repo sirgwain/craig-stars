@@ -1,14 +1,12 @@
+import type { TechEngine } from '$lib/types/cs';
+import type { TechDefense, TechHullComponent, TechHull } from '$lib/types/cs';
 import type {
 	TechStore,
-	TechEngine,
 	TechPlanetaryScanner,
 	TechTerraform,
-	TechDefense,
-	TechHullComponent,
-	TechHull,
 	Tech,
 	TechPlanetary
-} from '$lib/types/Tech';
+} from '$lib/types/cs';
 import techjson from '$lib/ssr/techs.json';
 import { kebabCase } from 'lodash-es';
 
@@ -27,7 +25,7 @@ export class TechService implements TechStore {
 	hullComponentsByName: Map<string, TechHullComponent> = new Map();
 
 	constructor(store?: TechStore) {
-		store = store ?? (techjson as TechStore);
+		store = store ?? (techjson as unknown as TechStore);
 		this.buildMaps(store);
 	}
 

@@ -1,203 +1,78 @@
 import { fromHabType } from '$lib/services/Terraformer';
 import type { CostFinder, DesignFinder } from '$lib/services/Universe';
-import type { ProductionQueueItem } from '$lib/types/Production';
 import type { CS } from '$lib/wasm';
-import type { BattleAttackWho, BattleRecord, BattleTactic, BattleTarget } from './Battle';
-import { multiply, type Cost } from './Cost';
-import type { Fleet, WaypointTransportTasks } from './Fleet';
-import { HabTypes, type Hab } from './Hab';
-import type { Message } from './Message';
-import type { MineField } from './MineField';
-import type { MineralPacket } from './MineralPacket';
-import type { MysteryTrader } from './MysteryTrader';
-import type { Planet } from './Planet';
-import { QueueItemTypes } from './QueueItemType';
-import { humanoid, type Race } from './Race';
-import type { Salvage } from './Salvage';
-import type { ShipDesign } from './ShipDesign';
-import {
-	TechCategory,
-	TerraformHabTypes,
-	getBestTerraform,
-	type Tech,
-	type TechDefense,
-	type TechPlanetaryScanner,
-	type TechStore
-} from './Tech';
-import {
+import { multiply } from './Cost';
+import type {
+	BattlePlan,
+	NextResearchField,
+	Player,
+	PlayerMessage,
+	PlayerRelationship,
+	PlayerScore,
+	PlayerSpec,
+	ProductionPlan,
+	ProductionQueueItem,
 	TechField,
-	emptyTechLevel,
-	hasRequiredLevels,
-	minTechLevel,
-	type TechLevel
-} from './TechLevel';
-import type { Wormhole } from './Wormhole';
+	TransportPlan
+} from './cs';
+import {
+	Biotechnology,
+	Construction,
+	Electronics,
+	Energy,
+	NextResearchFieldBiotechnology,
+	NextResearchFieldConstruction,
+	NextResearchFieldElectronics,
+	NextResearchFieldEnergy,
+	NextResearchFieldLowestField,
+	NextResearchFieldPropulsion,
+	NextResearchFieldSameField,
+	NextResearchFieldWeapons,
+	PlayerRelationEnemy,
+	PlayerRelationFriend,
+	PlayerRelationNeutral,
+	Propulsion,
+	QueueItemTypeShipToken,
+	QueueItemTypeStarbase,
+	TerraformHabTypeAll,
+	Weapons,
+	type Cost,
+	type Hab,
+	type Tech,
+	type TechLevel,
+	type TechStore
+} from './cs';
+import { HabTypes } from './Hab';
+import type { CommandedPlanet } from './Planet';
+import { humanoid } from './Race';
+import { getBestTerraform } from './Tech';
+import { emptyTechLevel, hasRequiredLevels } from './TechLevel';
 
-export type PlayerStatus = {
-	updatedAt: string;
+export const TechFields: TechField[] = [
+	Energy,
+	Weapons,
+	Propulsion,
+	Construction,
+	Electronics,
+	Biotechnology
+];
 
-	userId?: number;
-	num: number;
-	color: string;
-	name: string;
-	race: Race;
-	ready?: boolean;
-	aiControlled?: boolean;
-	guest?: boolean;
-	submittedTurn?: boolean;
-	victor?: boolean;
-	archived?: boolean;
-};
+export const NextResearchFields: NextResearchField[] = [
+	NextResearchFieldSameField,
+	NextResearchFieldEnergy,
+	NextResearchFieldWeapons,
+	NextResearchFieldPropulsion,
+	NextResearchFieldConstruction,
+	NextResearchFieldElectronics,
+	NextResearchFieldBiotechnology,
+	NextResearchFieldLowestField
+];
 
-export type PlayerResponse = {
-	id?: number;
-	createdAt?: string;
-	updatedAt?: string;
-
-	gameId: number;
-	userId?: number;
-	num: number;
-	color: string;
-	name?: string;
-	race: Race;
-	ready?: boolean;
-	aiControlled?: boolean;
-	guest?: boolean;
-	submittedTurn?: boolean;
-	techLevels: TechLevel;
-	techLevelsSpent: TechLevel;
-	designs?: ShipDesign[];
-	researchSpentLastYear?: number;
-	achievedVictoryConditions?: number;
-	relations: PlayerRelationship[];
-	acquiredTechs?: Record<string, boolean>;
-	spec: PlayerSpec;
-} & PlayerOrders &
-	PlayerMessages &
-	PlayerPlans;
-
-export type PlayerMessages = {
-	messages: Message[];
-};
-
-export type PlayerPlans = {
-	battlePlans?: BattlePlan[];
-	productionPlans?: ProductionPlan[];
-	transportPlans?: TransportPlan[];
-};
-
-export type PlayerIntels = {
-	players: PlayerIntel[];
-	scores: PlayerScore[][];
-	planets: Planet[];
-	fleets?: Fleet[];
-	mineFields?: MineField[];
-	mineralPackets?: MineralPacket[];
-	salvages?: Salvage[];
-	wormholes?: Wormhole[];
-	mysteryTraders?: MysteryTrader[];
-	battles?: BattleRecord[];
-};
-
-export type PlayerUniverse = {
-	designs: ShipDesign[];
-	planets: Planet[];
-	fleets: Fleet[];
-	starbases: Fleet[];
-	mineFields: MineField[];
-	mineralPackets: MineralPacket[];
-	salvages: Salvage[];
-};
-
-export type PlayerOrders = {
-	researching: TechField;
-	nextResearchField: NextResearchField;
-	researchAmount: number;
-};
-
-export type BattlePlan = {
-	num: number;
-	name: string;
-	primaryTarget: BattleTarget;
-	secondaryTarget: BattleTarget;
-	tactic: BattleTactic;
-	attackWho: BattleAttackWho;
-	dumpCargo: boolean;
-};
-
-export type TransportPlan = {
-	num: number;
-	name: string;
-	tasks: WaypointTransportTasks;
-};
-
-export type ProductionPlan = {
-	num: number;
-	name: string;
-	items: ProductionQueueItem[];
-	contributesOnlyLeftoverToResearch?: boolean;
-};
-
-export type PlayerSpec = {
-	planetaryScanner?: TechPlanetaryScanner;
-	defense?: TechDefense;
-	resourcesPerYear?: number;
-	resourcesPerYearResearch?: number;
-	resourcesPerYearResearchEstimated?: number;
-	currentResearchCost?: number;
-	techsJustGained?: Tech[];
-};
-
-export type PlayerIntel = {
-	name: string;
-	num: number;
-	color: string;
-	seen?: boolean;
-	raceName?: string;
-	racePluralName?: string;
-};
-
-export type PlayerScore = {
-	planets: number;
-	starbases: number;
-	unarmedShips: number;
-	escortShips: number;
-	capitalShips: number;
-	techLevels: number;
-	resources: number;
-	score: number;
-	rank: number;
-	achievedVictoryConditions?: number;
-};
-
-export enum NextResearchField {
-	SameField = 'SameField',
-	Energy = 'Energy',
-	Weapons = 'Weapons',
-	Propulsion = 'Propulsion',
-	Construction = 'Construction',
-	Electronics = 'Electronics',
-	Biotechnology = 'Biotechnology',
-	LowestField = 'LowestField'
-}
-
-export type PlayerRelationship = {
-	relation?: PlayerRelation;
-	shareMap?: boolean;
-};
-
-export enum PlayerRelation {
-	Neutral = 'Neutral',
-	Friend = 'Friend',
-	Enemy = 'Enemy'
-}
-
-export class Player implements PlayerResponse, CostFinder {
+export class CommandedPlayer implements Player, CostFinder {
 	id = 0;
-	createdAt?: string | undefined;
-	updatedAt?: string | undefined;
-
 	gameId = 0;
+	createdAt = '';
+	updatedAt = '';
 	num = 0;
 
 	userId?: number | undefined;
@@ -207,21 +82,24 @@ export class Player implements PlayerResponse, CostFinder {
 	ready = false;
 	aiControlled = false;
 	submittedTurn = false;
+	victor = false;
+	archived = false;
 	techLevels: TechLevel = { ...emptyTechLevel() };
 	techLevelsSpent: TechLevel = { ...emptyTechLevel() };
 	researchSpentLastYear = 0;
-	researching: TechField = TechField.Energy;
-	nextResearchField: NextResearchField = NextResearchField.Energy;
+	researching: TechField = Energy;
+	nextResearchField: NextResearchField = NextResearchFieldEnergy;
 	researchAmount = 0;
 	battlePlans: BattlePlan[] = [];
 	productionPlans: ProductionPlan[] = [];
 	transportPlans: TransportPlan[] = [];
-	messages: Message[] = [];
+	messages: PlayerMessage[] = [];
 	relations: PlayerRelationship[] = [];
+	scoreHistory: PlayerScore[] = [];
 	acquiredTechs: Record<string, boolean> = {};
-	spec: PlayerSpec = {};
+	spec: PlayerSpec = {} as PlayerSpec;
 
-	constructor(data?: PlayerResponse) {
+	constructor(data?: Player) {
 		if (data) {
 			Object.assign(this, data);
 		}
@@ -232,7 +110,7 @@ export class Player implements PlayerResponse, CostFinder {
 			playerNum != undefined &&
 			playerNum > 0 &&
 			playerNum <= this.relations.length &&
-			this.relations[playerNum - 1].relation === PlayerRelation.Friend
+			this.relations[playerNum - 1].relation === PlayerRelationFriend
 		);
 	}
 
@@ -240,7 +118,7 @@ export class Player implements PlayerResponse, CostFinder {
 		return (
 			playerNum > 0 &&
 			playerNum <= this.relations.length &&
-			this.relations[playerNum - 1].relation === PlayerRelation.Friend &&
+			this.relations[playerNum - 1].relation === PlayerRelationFriend &&
 			!!this.relations[playerNum - 1].shareMap
 		);
 	}
@@ -249,7 +127,7 @@ export class Player implements PlayerResponse, CostFinder {
 		return (
 			playerNum > 0 &&
 			playerNum <= this.relations.length &&
-			this.relations[playerNum - 1].relation === PlayerRelation.Neutral
+			this.relations[playerNum - 1].relation === PlayerRelationNeutral
 		);
 	}
 
@@ -257,7 +135,7 @@ export class Player implements PlayerResponse, CostFinder {
 		return (
 			playerNum > 0 &&
 			playerNum <= this.relations.length &&
-			this.relations[playerNum - 1].relation === PlayerRelation.Enemy
+			this.relations[playerNum - 1].relation === PlayerRelationEnemy
 		);
 	}
 
@@ -265,8 +143,8 @@ export class Player implements PlayerResponse, CostFinder {
 		return (
 			playerNum > 0 &&
 			playerNum <= this.relations.length &&
-			(this.relations[playerNum - 1].relation === PlayerRelation.Friend ||
-				this.relations[playerNum - 1].relation === PlayerRelation.Neutral)
+			(this.relations[playerNum - 1].relation === PlayerRelationFriend ||
+				this.relations[playerNum - 1].relation === PlayerRelationNeutral)
 		);
 	}
 
@@ -300,7 +178,7 @@ export class Player implements PlayerResponse, CostFinder {
 	getAllies(): number[] {
 		const allies: number[] = [];
 		this.relations.forEach((r, index) => {
-			if (r.relation === PlayerRelation.Friend) {
+			if (r.relation === PlayerRelationFriend) {
 				allies.push(index + 1);
 			}
 		});
@@ -311,12 +189,12 @@ export class Player implements PlayerResponse, CostFinder {
 		cs: CS,
 		item: ProductionQueueItem | undefined,
 		designFinder: DesignFinder,
-		planet?: Planet,
+		planet?: CommandedPlanet,
 		quantity = 1
 	): Cost {
 		if (item) {
 			switch (item.type) {
-				case QueueItemTypes.Starbase: // TODO: starbase upgrades...
+				case QueueItemTypeStarbase: // TODO: starbase upgrades...
 					if (item.designNum) {
 						const design = designFinder.getMyDesign(item.designNum);
 						if (planet?.spec.hasStarbase) {
@@ -328,14 +206,16 @@ export class Player implements PlayerResponse, CostFinder {
 						return multiply(design?.spec.cost ?? {}, quantity);
 					}
 					break;
-				case QueueItemTypes.ShipToken:
+				case QueueItemTypeShipToken:
 					if (item.designNum) {
 						const design = designFinder.getMyDesign(item.designNum);
 						return multiply(design?.spec.cost ?? {}, quantity);
 					}
 					break;
 				default:
-					return multiply(this.race?.spec?.costs[item.type] ?? {}, quantity);
+					if (this.race?.spec?.costs) {
+						return multiply(this.race.spec.costs[item.type] ?? {}, quantity);
+					}
 			}
 		}
 		return {};
@@ -344,7 +224,7 @@ export class Player implements PlayerResponse, CostFinder {
 	// get a player's ability to terraform
 	public getTerraformAbility(techStore: TechStore): Hab {
 		const terraformAbility: Hab = { grav: 0, temp: 0, rad: 0 };
-		const bestTT = getBestTerraform(techStore, this, TerraformHabTypes.All);
+		const bestTT = getBestTerraform(techStore, this, TerraformHabTypeAll);
 		if (bestTT) {
 			terraformAbility.grav = bestTT.ability;
 			terraformAbility.temp = bestTT.ability;
@@ -363,7 +243,7 @@ export class Player implements PlayerResponse, CostFinder {
 	}
 }
 
-export function canLearnTech(player: Player, tech: Tech): boolean {
+export function canLearnTech(player: CommandedPlayer, tech: Tech): boolean {
 	const requirements = tech.requirements;
 	if (
 		requirements.prtsRequired?.length &&

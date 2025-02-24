@@ -4,7 +4,8 @@
 		ShowSplitFleetDialogProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
+	import { type CommandedFleet } from '$lib/types/Fleet';
+	import { type Fleet } from '$lib/types/cs';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import { onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';

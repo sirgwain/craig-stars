@@ -9,20 +9,21 @@ import (
 // Players also start the game knowing all planet names and locations.
 // I suppose these should have been named Stars, since they represent a star system, ah well..
 type Planet struct {
-	MapObject
-	PlanetOrders
-	Hab                  Hab        `json:"hab,omitempty"`
-	BaseHab              Hab        `json:"baseHab,omitempty"`
-	TerraformedAmount    Hab        `json:"terraformedAmount,omitempty"`
-	MineralConcentration Mineral    `json:"mineralConcentration,omitempty"`
-	MineYears            Mineral    `json:"mineYears,omitempty"`
-	Cargo                Cargo      `json:"cargo,omitempty"`
-	Mines                int        `json:"mines,omitempty"`
-	Factories            int        `json:"factories,omitempty"`
-	Defenses             int        `json:"defenses,omitempty"`
+	GameDBObject         `tstype:",extends"`
+	MapObject            `tstype:",extends"`
+	PlanetOrders         `tstype:",extends"`
+	Hab                  Hab        `json:"hab"`
+	BaseHab              Hab        `json:"baseHab"`
+	TerraformedAmount    Hab        `json:"terraformedAmount"`
+	MineralConcentration Mineral    `json:"mineralConcentration"`
+	MineYears            Mineral    `json:"mineYears"`
+	Cargo                Cargo      `json:"cargo"`
+	Mines                int        `json:"mines"`
+	Factories            int        `json:"factories"`
+	Defenses             int        `json:"defenses"`
 	Homeworld            bool       `json:"homeworld,omitempty"`
 	Scanner              bool       `json:"scanner,omitempty"`
-	Spec                 PlanetSpec `json:"spec,omitempty"`
+	Spec                 PlanetSpec `json:"spec"`
 	RandomArtifact       bool       `json:"-"`
 	Starbase             *Fleet     `json:"-"`
 	Dirty                bool       `json:"-"`
@@ -40,7 +41,7 @@ type PlanetOrders struct {
 }
 
 type PlanetSpec struct {
-	PlanetStarbaseSpec
+	PlanetStarbaseSpec                        `tstype:",extends"`
 	CanTerraform                              bool    `json:"canTerraform,omitempty"`
 	Defense                                   string  `json:"defense,omitempty"`
 	DefenseCoverage                           float64 `json:"defenseCoverage,omitempty"`
@@ -144,7 +145,7 @@ func (p *Planet) WithScanner(scanner bool) *Planet {
 }
 
 func (p *Planet) String() string {
-	return fmt.Sprintf("Planet %s", &p.MapObject)
+	return fmt.Sprintf("Planet %v", p.MapObject)
 }
 
 func (p *Planet) population() int {
@@ -388,7 +389,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 }
 
 // set this planet's starbase on this planet
-func (p *Planet) setStarbase(rules *Rules, player *Player, starbase *Fleet) {
+func (p *Planet) setStarbase(starbase *Fleet) {
 	p.Starbase = starbase
 	p.PacketSpeed = starbase.Spec.SafePacketSpeed
 }
@@ -472,8 +473,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	// terraforming
 	terraformer := NewTerraformer()
-	spec.TerraformAmount = terraformer.getTerraformAmount(planet.Hab, planet.BaseHab, player, player)
-	spec.MinTerraformAmount = terraformer.getMinTerraformAmount(planet.Hab, planet.BaseHab, player, player)
+	spec.TerraformAmount = terraformer.GetTerraformAmount(planet.Hab, planet.BaseHab, player, player)
+	spec.MinTerraformAmount = terraformer.GetMinTerraformAmount(planet.Hab, planet.BaseHab, player, player)
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { MergeFleetsEvent, OnCancel, OnOk } from '$lib/services/Events';
-	import { type CommandedFleet, type Fleet } from '$lib/types/Fleet';
+	import { type CommandedFleet } from '$lib/types/Fleet';
+	import { type Fleet } from '$lib/types/cs';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';

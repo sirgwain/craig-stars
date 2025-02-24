@@ -471,7 +471,7 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	design.Spec.NumInstances++
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, &starbase)
-	planet.setStarbase(&ug.Rules, player, &starbase)
+	planet.setStarbase(&starbase)
 
 	ug.universe.Starbases = append(ug.universe.Starbases, &starbase)
 
@@ -567,7 +567,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 		WithPurpose(ShipDesignPurposeStarbase).
 		WithHullSetNumber(player.DefaultHullSet)
 
-	fillStarbaseSlots(techStore, starbase, &player.Race, startingPlanets[0])
+	fillStarbaseSlots(techStore, starbase, startingPlanets[0])
 	designNumStart++
 	designs = append(designs, *starbase)
 
@@ -585,7 +585,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 				WithHullSetNumber(player.DefaultHullSet)
 			// TODO: Do we want to support a PRT that includes more than 2 planets but only some of them with
 			// stargates?
-			fillStarbaseSlots(techStore, fort, &player.Race, startingPlanets[i])
+			fillStarbaseSlots(techStore, fort, startingPlanets[i])
 			designNumStart++
 			designs = append(designs, *fort)
 		}
@@ -596,7 +596,7 @@ func (ug *universeGenerator) getStartingStarbaseDesigns(techStore *TechStore, pl
 
 // Player starting starbases are all the same, regardless of starting tech level
 // They get half filled with the starter beam & shield
-func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, race *Race, startingPlanet StartingPlanet) {
+func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, startingPlanet StartingPlanet) {
 	hull := techStore.GetHull(starbase.Hull)
 	beamWeapon := techStore.GetHullComponentsByCategory(TechCategoryBeamWeapon)[0]
 	shield := techStore.GetHullComponentsByCategory(TechCategoryShield)[0]

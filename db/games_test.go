@@ -93,12 +93,16 @@ func TestGetGame(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetGame(tt.args.id)
 			test.CheckUnexpectedError(t, err, tt.wantErr)
-			if got != nil {
-				tt.want.UpdatedAt = got.UpdatedAt
-				tt.want.CreatedAt = got.CreatedAt
+
+			// GetGame returns a GameWithPlayers so we need the empty slice for comparison
+			var want *cs.GameWithPlayers
+			if tt.want != nil && got != nil {
+				want = &cs.GameWithPlayers{Game: got.Game, Players: []cs.PlayerStatus{}}
+				want.UpdatedAt = got.UpdatedAt
+				want.CreatedAt = got.CreatedAt
 			}
 
-			test.CompareAsJSON(t, got, tt.want)
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }

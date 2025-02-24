@@ -8,9 +8,6 @@ import (
 )
 
 // The producer interface performs planetary production
-type producer interface {
-	produce() (productionResult, error)
-}
 
 // create a new planet production object
 func newProducer(log zerolog.Logger, rules *Rules, planet *Planet, player *Player) producer {
@@ -20,7 +17,7 @@ func newProducer(log zerolog.Logger, rules *Rules, planet *Planet, player *Playe
 		Int("PlayerNum", player.Num).
 		Str("PlayerName", player.Race.PluralName).
 		Logger()
-	return &production{
+	return producer{
 		log:       producerLogger,
 		rules:     rules,
 		planet:    planet,
@@ -29,7 +26,7 @@ func newProducer(log zerolog.Logger, rules *Rules, planet *Planet, player *Playe
 	}
 }
 
-type production struct {
+type producer struct {
 	log       zerolog.Logger
 	rules     *Rules
 	planet    *Planet
@@ -45,14 +42,14 @@ type QueueItemCompletionEstimate struct {
 }
 
 type ProductionQueueItem struct {
-	QueueItemCompletionEstimate
-	Type      QueueItemType `json:"type"`
-	DesignNum int           `json:"designNum,omitempty"`
-	Quantity  int           `json:"quantity"`
-	Allocated Cost          `json:"allocated"`
-	Tags      Tags          `json:"tags"`
-	index     int           // used for holding a place in the queue while estimating
-	design    *ShipDesign
+	QueueItemCompletionEstimate `tstype:",extends"`
+	Type                        QueueItemType `json:"type"`
+	DesignNum                   int           `json:"designNum,omitempty"`
+	Quantity                    int           `json:"quantity"`
+	Allocated                   Cost          `json:"allocated"`
+	Tags                        Tags          `json:"tags"`
+	index                       int           // used for holding a place in the queue while estimating
+	design                      *ShipDesign
 }
 
 func (item *ProductionQueueItem) SetDesign(design *ShipDesign) {
@@ -181,7 +178,7 @@ type builtShip struct {
 }
 
 // produce all items in the production queue
-func (p *production) produce() (productionResult, error) {
+func (p *producer) produce() (productionResult, error) {
 	planet := p.planet
 	result := productionResult{}
 	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddMineral(planet.Cargo.ToMineral())
@@ -337,7 +334,7 @@ func (p *production) produce() (productionResult, error) {
 	return result, nil
 }
 
-func (p *production) getItemCost(rules *Rules, player *Player, planet *Planet, item ProductionQueueItem) (Cost, error) {
+func (p *producer) getItemCost(rules *Rules, player *Player, planet *Planet, item ProductionQueueItem) (Cost, error) {
 	costCalculator := NewCostCalculator()
 	var err error
 	var cost Cost
@@ -369,7 +366,7 @@ func (p *production) getItemCost(rules *Rules, player *Player, planet *Planet, i
 //
 // The min amount we have is 10 percent of the ironium, so we
 // apply 10 percent to each cost amount
-func (p *production) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost {
+func (p *producer) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost {
 	ironiumPerc := 1.0
 	if costPerItem.Ironium > 0 {
 		ironiumPerc = math.Min(1, float64(allocated.Ironium)/float64(costPerItem.Ironium))
@@ -403,7 +400,7 @@ func (p *production) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost
 }
 
 // for things that are built on the planet (mines, factories, etc) add them
-func (p *production) addPlanetaryInstallations(item ProductionQueueItem, numBuilt int) {
+func (p *producer) addPlanetaryInstallations(item ProductionQueueItem, numBuilt int) {
 	switch item.Type {
 	case QueueItemTypeAutoMines, QueueItemTypeMine:
 		p.planet.Mines += numBuilt
@@ -417,7 +414,7 @@ func (p *production) addPlanetaryInstallations(item ProductionQueueItem, numBuil
 }
 
 // terraform the planet and save the results for messages
-func (p *production) terraformPlanet(numSteps int) []TerraformResult {
+func (p *producer) terraformPlanet(numSteps int) []TerraformResult {
 	planet, player := p.planet, p.player
 	terraformer := NewTerraformer()
 	terraformResults := make([]TerraformResult, numSteps)
@@ -431,7 +428,7 @@ func (p *production) terraformPlanet(numSteps int) []TerraformResult {
 }
 
 // validate an item in the production queue
-func (p *production) validateItem(item ProductionQueueItem, maxBuildable int, planet *Planet) (PlayerMessage, bool) {
+func (p *producer) validateItem(item ProductionQueueItem, maxBuildable int, planet *Planet) (PlayerMessage, bool) {
 	if item.Type.IsPacket() && !planet.Spec.HasMassDriver {
 		return newPlanetMessage(PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver, planet), false
 	}
@@ -447,14 +444,8 @@ func (p *production) validateItem(item ProductionQueueItem, maxBuildable int, pl
 	return PlayerMessage{}, true
 }
 
-// the result of processing an item in the queue
-type processQueueItemResult struct {
-	numBuilt int
-	spent    Cost
-}
-
 // determine how many of this production item we can build
-func (p *production) getNumBuilt(item ProductionQueueItem, cost, availableToSpend Cost, maxBuildable int) (numBuilt int, spent Cost) {
+func (p *producer) getNumBuilt(item ProductionQueueItem, cost, availableToSpend Cost, maxBuildable int) (numBuilt int, spent Cost) {
 
 	// add in anything allocated in previous turns
 	availableToSpend = availableToSpend.Add(item.Allocated)
@@ -475,7 +466,7 @@ func (p *production) getNumBuilt(item ProductionQueueItem, cost, availableToSpen
 }
 
 // add built items to planet, build fleets, update player messages, etc
-func (p *production) updateProductionResult(item ProductionQueueItem, numBuilt int, cost Cost, result *productionResult) {
+func (p *producer) updateProductionResult(item ProductionQueueItem, numBuilt int, cost Cost, result *productionResult) {
 	switch item.Type {
 	case QueueItemTypeAutoMineralAlchemy, QueueItemTypeMineralAlchemy:
 		result.alchemy = Mineral{

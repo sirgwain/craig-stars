@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { NeverBuilt } from '$lib/types/Constants';
-	import type { ProductionQueueItem } from '$lib/types/Production';
+	import { Infinite } from '$lib/types/cs';
+	import type { ProductionQueueItem } from '$lib/types/cs';
 	import { getFullName, getShortName, isAuto } from '$lib/types/QueueItemType';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
 
@@ -19,7 +19,7 @@
 
 	let yearsToBuildAll = $derived(isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll);
 	let skipped = $derived(
-		isAuto(item.type) && item.yearsToBuildOne == NeverBuilt && item.yearsToBuildAll == NeverBuilt
+		isAuto(item.type) && item.yearsToBuildOne == Infinite && item.yearsToBuildAll == Infinite
 	);
 </script>
 
@@ -30,13 +30,13 @@
 	class:italic={isAuto(item.type)}
 	class:text-queue-item-this-year={!item.skipped &&
 		(item.yearsToBuildOne ?? 0) <= 1 &&
-		item.yearsToBuildOne != NeverBuilt}
+		item.yearsToBuildOne != Infinite}
 	class:text-queue-item-next-year={!item.skipped &&
-		((yearsToBuildAll ?? 0) > 1 || yearsToBuildAll === NeverBuilt) &&
+		((yearsToBuildAll ?? 0) > 1 || yearsToBuildAll === Infinite) &&
 		(item.yearsToBuildOne ?? 0) <= 1 &&
-		item.yearsToBuildOne != NeverBuilt}
+		item.yearsToBuildOne != Infinite}
 	class:text-queue-item-skipped={skipped}
-	class:text-queue-item-never={item.yearsToBuildOne == NeverBuilt && !skipped}
+	class:text-queue-item-never={item.yearsToBuildOne == Infinite && !skipped}
 	class:bg-primary={selected}
 	class="w-full text-left px-1 select-none hover:text-secondary-focus"
 >

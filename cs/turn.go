@@ -11,13 +11,9 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-// When all players submit their turns, the turn generator is used to generate a new turn
+// When all players submit their turns, the turnGenerator generator is used to generate a new turnGenerator
 // This follows the Stars! order of events: https://wiki.starsautohost.org/wiki/Order_of_Events
-type turnGenerator interface {
-	generateTurn() error
-}
-
-type turn struct {
+type turnGenerator struct {
 	game *FullGame
 	log  zerolog.Logger
 }
@@ -28,18 +24,18 @@ func newTurnGenerator(game *FullGame) turnGenerator {
 		Str("GameName", game.Name).
 		Int("Year", game.Year+1). // log for next turn
 		Logger()
-	t := turn{game, turnLogger}
+	t := turnGenerator{game, turnLogger}
 
 	t.game.Universe.setLogger(turnLogger)
 	t.game.Universe.buildMaps(game.Players)
 
-	return &t
+	return t
 }
 
 // generate a new turn
 // TODO: add more error handling. A failed turn generation is easier to fix than
 // a corrupt game
-func (t *turn) generateTurn() error {
+func (t *turnGenerator) generateTurn() error {
 	t.log.Debug().Msgf("begin generating turn")
 	t.game.Year++
 
@@ -142,12 +138,12 @@ func (t *turn) generateTurn() error {
 
 // update all planet specs with the latest info
 // useful before turn generation and after building
-func (t *turn) computeSpecs() {
+func (t *turnGenerator) computeSpecs() {
 	t.game.computeSpecs()
 }
 
 // fleetInit will reset any fleet data before processing
-func (t *turn) fleetInit() {
+func (t *turnGenerator) fleetInit() {
 	for _, fleet := range t.game.Fleets {
 		// age this fleet by 1 year
 		fleet.Age++
@@ -166,7 +162,7 @@ func (t *turn) fleetInit() {
 }
 
 // scrap a fleet at wp0/wp1
-func (t *turn) fleetScrap() {
+func (t *turnGenerator) fleetScrap() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -180,7 +176,7 @@ func (t *turn) fleetScrap() {
 }
 
 // scrap a fleet giving a planet resources or creating salvage
-func (t *turn) scrapFleet(fleet *Fleet, colonize bool) {
+func (t *turnGenerator) scrapFleet(fleet *Fleet, colonize bool) {
 	player := t.game.getPlayer(fleet.PlayerNum)
 	planet := t.game.getOrbitingPlanet(fleet)
 
@@ -265,7 +261,7 @@ func (t *turn) scrapFleet(fleet *Fleet, colonize bool) {
 }
 
 // fleetColonize will attempt to colonize planets for any fleets with the Colonize WaypointTask
-func (t *turn) fleetColonize() {
+func (t *turnGenerator) fleetColonize() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -338,7 +334,7 @@ func (t *turn) fleetColonize() {
 }
 
 // fleetUnload executes wp0/wp1 unload transport tasks for fleets
-func (t *turn) fleetUnload() {
+func (t *turnGenerator) fleetUnload() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -397,7 +393,7 @@ func (t *turn) fleetUnload() {
 	}
 }
 
-func (t *turn) fleetLoad() {
+func (t *turnGenerator) fleetLoad() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -407,7 +403,7 @@ func (t *turn) fleetLoad() {
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
 			dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
-			if !ok || dest.getMapObject().Delete {
+			if !ok || dest.deleted() {
 				// can't load from space
 				return
 			}
@@ -514,7 +510,7 @@ func (t *turn) fleetLoad() {
 // fleetTransferCargo transfers cargo from a fleet to a cargo holder
 // this will send a player a message if they are not allowed to load from this cargoholder
 // this will trigger an invasion if a player unloads colonists onto a planet
-func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest cargoHolder) error {
+func (t *turnGenerator) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest cargoHolder) error {
 	if transferAmount != 0 {
 		player := t.game.Players[fleet.PlayerNum-1]
 		planet, ok := dest.(*Planet)
@@ -565,7 +561,7 @@ func (t *turn) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType Ca
 	return nil
 }
 
-func (t *turn) fleetMerge() {
+func (t *turnGenerator) fleetMerge() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -617,7 +613,7 @@ func (t *turn) fleetMerge() {
 	}
 }
 
-func (t *turn) fleetRoute() {
+func (t *turnGenerator) fleetRoute() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -679,7 +675,7 @@ func (t *turn) fleetRoute() {
 	}
 }
 
-func (t *turn) fleetNotifyIdle() {
+func (t *turnGenerator) fleetNotifyIdle() {
 	// don't notify the first year
 	if t.game.Year == t.game.Rules.StartingYear {
 		return
@@ -719,7 +715,7 @@ func (t *turn) fleetNotifyIdle() {
 }
 
 // mark all wp0 as processed so they won't be processed again during wp1 steps
-func (t *turn) fleetMarkWaypointsProcessed() {
+func (t *turnGenerator) fleetMarkWaypointsProcessed() {
 	for _, fleet := range t.game.Fleets {
 		wp := &fleet.Waypoints[0]
 		wp.processed = true
@@ -727,7 +723,7 @@ func (t *turn) fleetMarkWaypointsProcessed() {
 }
 
 // packetInit will reset any packet data before processing
-func (t *turn) packetInit() {
+func (t *turnGenerator) packetInit() {
 	for _, packet := range t.game.MineralPackets {
 		packet.builtThisTurn = false
 
@@ -744,7 +740,7 @@ func (t *turn) packetInit() {
 
 // move packets through space
 // if builtThisTurn is true, this will only move packets that were built this turn (i.e. just launched)
-func (t *turn) packetMove(builtThisTurn bool) {
+func (t *turnGenerator) packetMove(builtThisTurn bool) {
 
 	for _, packet := range t.game.MineralPackets {
 		if packet.Delete {
@@ -787,7 +783,7 @@ func (t *turn) packetMove(builtThisTurn bool) {
 	}
 }
 
-func (t *turn) mysteryTraderSpawn() {
+func (t *turnGenerator) mysteryTraderSpawn() {
 	if !t.game.RandomEvents {
 		// no mystery traders if no random events
 		return
@@ -816,7 +812,7 @@ func (t *turn) mysteryTraderSpawn() {
 	}
 }
 
-func (t *turn) mysteryTraderMove() {
+func (t *turnGenerator) mysteryTraderMove() {
 	for _, mt := range t.game.MysteryTraders {
 		if mt.Delete {
 			continue
@@ -857,13 +853,13 @@ func (t *turn) mysteryTraderMove() {
 					Msgf("mysteryTrader finished")
 
 				// all done, bye bye trader
-				mt.Delete = true
+				t.game.deleteMysteryTrader(mt)
 			}
 		}
 	}
 }
 
-func (t *turn) fleetMove() {
+func (t *turnGenerator) fleetMove() {
 
 	fleetsTargetingFleets := []*Fleet{}
 
@@ -905,7 +901,7 @@ func (t *turn) fleetMove() {
 }
 
 // move the actual fleet in the universe from a to b handling minefield destruction, engine strain, stargates, etc
-func (t *turn) moveFleet(fleet *Fleet) {
+func (t *turnGenerator) moveFleet(fleet *Fleet) {
 	player := t.game.getPlayer(fleet.PlayerNum)
 	originalPosition := fleet.Position
 	wp0 := fleet.Waypoints[0]
@@ -1037,7 +1033,7 @@ func (t *turn) moveFleet(fleet *Fleet) {
 // DeathRate/Year % = int ((86 - C)/2)
 // where C is the center of your Rad-Hab-Range (mR)
 
-func (t *turn) fleetRadiatingEngineDieoff() {
+func (t *turnGenerator) fleetRadiatingEngineDieoff() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -1074,7 +1070,7 @@ func (t *turn) fleetRadiatingEngineDieoff() {
 	}
 }
 
-func (t *turn) fleetReproduce() {
+func (t *turnGenerator) fleetReproduce() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete || fleet.Cargo.Colonists == 0 {
 			continue
@@ -1091,10 +1087,10 @@ func (t *turn) fleetReproduce() {
 		if fg.Absolute {
 			// calculate absolute pop growth on fleets
 			// TODO: Check rounding on this...?
-			growth = int(fg.GrowthFactor*float64(fleet.Cargo.Colonists))
+			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists))
 		} else {
 			// Calculate relative pop growth based on growth rate
-			growth = int(fg.GrowthFactor*float64(fleet.Cargo.Colonists*player.Race.GrowthRate)/100)
+			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists*player.Race.GrowthRate) / 100)
 		}
 		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
 		over := Max(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
@@ -1131,7 +1127,7 @@ func (t *turn) fleetReproduce() {
 }
 
 // decay each salvage and remove it from the universe if it's empty
-func (t *turn) decaySalvage() {
+func (t *turnGenerator) decaySalvage() {
 	for _, salvage := range t.game.Salvages {
 		salvage.decay(&t.game.Rules)
 
@@ -1154,7 +1150,7 @@ func (t *turn) decaySalvage() {
 }
 
 // Decay mineral packets in flight
-func (t *turn) decayPackets(builtThisTurn bool) {
+func (t *turnGenerator) decayPackets(builtThisTurn bool) {
 	for _, packet := range t.game.MineralPackets {
 		if packet.Delete {
 			continue
@@ -1197,7 +1193,7 @@ func (t *turn) decayPackets(builtThisTurn bool) {
 }
 
 // jiggle, degrade, and jump wormholes
-func (t *turn) wormholeJiggle() {
+func (t *turnGenerator) wormholeJiggle() {
 	if len(t.game.Wormholes) == 0 {
 		return
 	}
@@ -1237,7 +1233,7 @@ func (t *turn) wormholeJiggle() {
 }
 
 // SD races can detonate a minefield
-func (t *turn) detonateMines() {
+func (t *turnGenerator) detonateMines() {
 	for _, mineField := range t.game.MineFields {
 		if !mineField.Detonate {
 			continue
@@ -1303,7 +1299,7 @@ func (t *turn) detonateMines() {
 }
 
 // mine all owned planets for minerals
-func (t *turn) planetMine() {
+func (t *turnGenerator) planetMine() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			planet.mine(&t.game.Rules)
@@ -1318,7 +1314,7 @@ func (t *turn) planetMine() {
 }
 
 // remote mine AR-owned planets with remote mining fleets in orbit
-func (t *turn) fleetRemoteMineAR() {
+func (t *turnGenerator) fleetRemoteMineAR() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -1353,7 +1349,7 @@ func (t *turn) fleetRemoteMineAR() {
 }
 
 // remote mine planets
-func (t *turn) fleetRemoteMine() {
+func (t *turnGenerator) fleetRemoteMine() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -1396,7 +1392,7 @@ func (t *turn) fleetRemoteMine() {
 }
 
 // remote mine a planet
-func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet, ARMining bool) {
+func (t *turnGenerator) remoteMine(fleet *Fleet, player *Player, planet *Planet, ARMining bool) {
 	// don't mine if we moved here this round and aren't AR self mining
 	if fleet.PreviousPosition != nil && !ARMining {
 		return
@@ -1423,7 +1419,7 @@ func (t *turn) remoteMine(fleet *Fleet, player *Player, planet *Planet, ARMining
 }
 
 // go through each player planet and process its production queue
-func (t *turn) planetProduction() error {
+func (t *turnGenerator) planetProduction() error {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.Players[planet.PlayerNum-1]
@@ -1482,7 +1478,7 @@ func (t *turn) planetProduction() error {
 			if result.packets != (Cargo{}) {
 				target := t.game.getPlanet(planet.PacketTargetNum)
 				packet := t.buildMineralPacket(player, planet, result.packets, target)
-				messager.planetBuiltMineralPacket(player, planet, packet, target.Name)
+				messager.planetBuiltMineralPacket(player, planet, packet)
 			}
 			if result.starbase != nil {
 				starbase, err := t.buildStarbase(player, planet, result.starbase)
@@ -1528,7 +1524,7 @@ func (t *turn) planetProduction() error {
 }
 
 // build a fleet with some number of tokens
-func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken, tags Tags) (*Fleet, error) {
+func (t *turnGenerator) buildFleet(player *Player, planet *Planet, token ShipToken, tags Tags) (*Fleet, error) {
 	fleet, err := t.addFleet(player, planet.Position, token, tags)
 	if err != nil {
 		return nil, err
@@ -1546,7 +1542,7 @@ func (t *turn) buildFleet(player *Player, planet *Planet, token ShipToken, tags 
 }
 
 // add a new fleet to the universe
-func (t *turn) addFleet(player *Player, position Vector, token ShipToken, tags Tags) (*Fleet, error) {
+func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToken, tags Tags) (*Fleet, error) {
 	playerFleets := t.game.getFleets(player.Num)
 	fleetNum := player.getNextFleetNum(playerFleets)
 	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPositionWaypoint(position, token.design.Spec.Engine.IdealSpeed)})
@@ -1564,7 +1560,7 @@ func (t *turn) addFleet(player *Player, position Vector, token ShipToken, tags T
 }
 
 // build a starbase on a planet
-func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign) (*Fleet, error) {
+func (t *turnGenerator) buildStarbase(player *Player, planet *Planet, design *ShipDesign) (*Fleet, error) {
 	player.Stats.StarbasesBuilt++
 	player.Stats.TokensBuilt++
 	design.Spec.NumBuilt++
@@ -1578,7 +1574,7 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, &starbase)
-	planet.setStarbase(&t.game.Rules, player, &starbase)
+	planet.setStarbase(&starbase)
 	t.log.Debug().
 		Int("Player", starbase.PlayerNum).
 		Str("Planet", planet.Name).
@@ -1593,7 +1589,7 @@ func (t *turn) buildStarbase(player *Player, planet *Planet, design *ShipDesign)
 }
 
 // build a mineral packet with cargo
-func (t *turn) buildMineralPacket(player *Player, planet *Planet, cargo Cargo, target *Planet) *MineralPacket {
+func (t *turnGenerator) buildMineralPacket(player *Player, planet *Planet, cargo Cargo, target *Planet) *MineralPacket {
 
 	playerMineralPackets := t.game.getMineralPackets(player.Num)
 	num := player.getNextMineralPacketNum(playerMineralPackets)
@@ -1610,8 +1606,8 @@ func (t *turn) buildMineralPacket(player *Player, planet *Planet, cargo Cargo, t
 	return packet
 }
 
-func (t *turn) playerResearch() error {
-	r := NewResearcher(&t.game.Rules)
+func (t *turnGenerator) playerResearch() error {
+	r := newResearcher(&t.game.Rules)
 
 	// figure out how much each player can spend on research this turn
 	resourcesToSpendByPlayer := make(map[int]int, len(t.game.Players))
@@ -1772,7 +1768,7 @@ func (t *turn) playerResearch() error {
 }
 
 // for each planet, randomly check if the owner permaforms it
-func (t *turn) permaform() {
+func (t *turnGenerator) permaform() {
 
 	terraformer := NewTerraformer()
 
@@ -1810,7 +1806,7 @@ func (t *turn) permaform() {
 }
 
 // grow all owned planets by some population
-func (t *turn) planetGrow() {
+func (t *turnGenerator) planetGrow() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.getPlayer(planet.PlayerNum)
@@ -1849,7 +1845,7 @@ func (t *turn) planetGrow() {
 }
 
 // refuel fleets if they are orbiting a planet with a friendly starbase
-func (t *turn) fleetRefuel() {
+func (t *turnGenerator) fleetRefuel() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -1898,7 +1894,7 @@ func (t *turn) fleetRefuel() {
 }
 
 // strike a random planet with a comet
-func (t *turn) randomCometStrike() {
+func (t *turnGenerator) randomCometStrike() {
 	if t.game.Year < t.game.Rules.StartingYear+t.game.Rules.RandomCometMinYear {
 		return
 	}
@@ -1985,15 +1981,15 @@ func (t *turn) randomCometStrike() {
 
 }
 
-func (t *turn) randomMineralDeposit() {
+func (t *turnGenerator) randomMineralDeposit() {
 
 }
 
-func (t *turn) randomPlanetaryChange() {
+func (t *turnGenerator) randomPlanetaryChange() {
 
 }
 
-func (t *turn) fleetBattle() {
+func (t *turnGenerator) fleetBattle() {
 	battleNum := 1
 
 	for _, mos := range t.game.mapObjectsByPosition {
@@ -2215,8 +2211,8 @@ func (t *turn) fleetBattle() {
 	}
 }
 
-func (t *turn) fleetBomb() {
-	bomber := NewBomber(t.log, &t.game.Rules)
+func (t *turnGenerator) fleetBomb() {
+	bomber := newBomber(t.log, &t.game.Rules)
 	for _, planet := range t.game.Planets {
 		if !planet.Owned() || planet.population() == 0 || planet.Spec.HasStarbase {
 			// can't bomb uninhabited planets, planets with starbases
@@ -2263,7 +2259,7 @@ func (t *turn) fleetBomb() {
 	}
 }
 
-func (t *turn) mysteryTraderMeet() error {
+func (t *turnGenerator) mysteryTraderMeet() error {
 
 	for _, mt := range t.game.MysteryTraders {
 
@@ -2381,7 +2377,7 @@ func (t *turn) mysteryTraderMeet() error {
 }
 
 // decay MineFields and remove any minefields that are too small
-func (t *turn) decayMines() {
+func (t *turnGenerator) decayMines() {
 	for _, mineField := range t.game.MineFields {
 		player := t.game.getPlayer(mineField.PlayerNum)
 		mineField.NumMines -= mineField.Spec.DecayRate
@@ -2400,7 +2396,7 @@ func (t *turn) decayMines() {
 	}
 }
 
-func (t *turn) fleetLayMines() {
+func (t *turnGenerator) fleetLayMines() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -2461,7 +2457,7 @@ func (t *turn) fleetLayMines() {
 }
 
 // process transfer fleet orders to gift fleets to other players
-func (t *turn) fleetTransferOwner() {
+func (t *turnGenerator) fleetTransferOwner() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -2593,14 +2589,14 @@ func (t *turn) fleetTransferOwner() {
 	}
 }
 
-func (t *turn) instaform() {
+func (t *turnGenerator) instaform() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.getPlayer(planet.PlayerNum)
 			if player.Race.Spec.Instaforming {
 				// find out how much our instaform would terraform this planet from base
 				terraformer := NewTerraformer()
-				instaformAmount := terraformer.getTerraformAmount(planet.BaseHab, planet.BaseHab, player, player)
+				instaformAmount := terraformer.GetTerraformAmount(planet.BaseHab, planet.BaseHab, player, player)
 				newHab := planet.BaseHab.Add(instaformAmount)
 
 				// see if we would change this planet's hab
@@ -2624,7 +2620,7 @@ func (t *turn) instaform() {
 	}
 }
 
-func (t *turn) fleetSweepMines() {
+func (t *turnGenerator) fleetSweepMines() {
 
 	// fleets and starbases sweep
 	for _, fleet := range append(t.game.Fleets, t.game.Starbases...) {
@@ -2685,7 +2681,7 @@ func (t *turn) fleetSweepMines() {
 }
 
 // repair fleets and starbases
-func (t *turn) fleetRepair() {
+func (t *turnGenerator) fleetRepair() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -2710,7 +2706,7 @@ func (t *turn) fleetRepair() {
 	}
 }
 
-func (t *turn) fleetRemoteTerraform() {
+func (t *turnGenerator) fleetRemoteTerraform() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -2757,7 +2753,7 @@ func (t *turn) fleetRemoteTerraform() {
 	}
 }
 
-func (t *turn) fleetPatrol(player *Player) {
+func (t *turnGenerator) fleetPatrol(player *Player) {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete || fleet.PlayerNum != player.Num {
 			continue
@@ -2832,7 +2828,7 @@ func (t *turn) fleetPatrol(player *Player) {
 	}
 }
 
-func (t *turn) scan() error {
+func (t *turnGenerator) scan() error {
 	for _, player := range t.game.Players {
 		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
 
@@ -2867,7 +2863,7 @@ func (t *turn) scan() error {
 //	                    4 points for level 10 and above
 //
 // Resources: 1 point for every 30 resources
-func (t *turn) calculateScores() {
+func (t *turnGenerator) calculateScores() {
 	scores := make([]PlayerScore, len(t.game.Players))
 
 	// Sum up planets
@@ -2983,7 +2979,7 @@ func (t *turn) calculateScores() {
 	}
 }
 
-func (t *turn) checkBattleReports() {
+func (t *turnGenerator) checkBattleReports() {
 	for _, player := range t.game.Players {
 		if len(player.BattleRecords) == 0 {
 			continue
@@ -2995,7 +2991,7 @@ func (t *turn) checkBattleReports() {
 }
 
 // check if this player is victorious, and if so, notify everyone
-func (t *turn) checkVictory(player *Player) {
+func (t *turnGenerator) checkVictory(player *Player) {
 	victoryChecker := newVictoryChecker(t.game)
 	for _, player := range t.game.Players {
 		if err := victoryChecker.checkForVictor(player); err != nil {
@@ -3022,7 +3018,7 @@ func (t *turn) checkVictory(player *Player) {
 	}
 }
 
-func (t *turn) checkDeath() {
+func (t *turnGenerator) checkDeath() {
 	for _, player := range t.game.Players {
 
 		numPlanets := 0

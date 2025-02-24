@@ -7,13 +7,13 @@
 	import { GameService } from '$lib/services/GameService';
 	import { PlayerService } from '$lib/services/PlayerService';
 	import { me } from '$lib/services/Stores';
-	import type { Game } from '$lib/types/Game';
+	import type { Game, GameWithPlayers } from '$lib/types/cs';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
 
-	type TableGame = Game & { action?: never };
+	type TableGame = GameWithPlayers & { action?: never };
 	const columns: TableColumn<TableGame>[] = [
 		{
 			key: 'id',

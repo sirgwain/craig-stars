@@ -1,15 +1,17 @@
 <script lang="ts">
-	import type { Player } from '$lib/types/Player';
+	import type { CommandedPlayer } from '$lib/types/Player';
 
+	import { isHullComponent } from '$lib/types/Tech';
 	import {
-		isHullComponent,
-		TechCategory,
+		TechCategoryEngine,
+		TechCategoryPlanetaryDefense,
+		TechCategoryShipHull,
 		type Tech,
 		type TechDefense,
 		type TechEngine,
 		type TechHull,
 		type TechHullComponent
-	} from '$lib/types/Tech';
+	} from '$lib/types/cs';
 	import Cost from '../game/Cost.svelte';
 	import TechDescription from './TechDescription.svelte';
 	import TechEngineGraph from './TechEngineGraph.svelte';
@@ -25,7 +27,7 @@
 
 	type Props = {
 		tech: Tech;
-		player?: Player | undefined;
+		player?: CommandedPlayer | undefined;
 		cs?: CS | undefined;
 		showResearchCost?: boolean;
 		hideGraph?: boolean;
@@ -34,13 +36,13 @@
 	let { tech, player, cs, showResearchCost = false, hideGraph = false }: Props = $props();
 
 	let defense = $derived(
-		tech?.category == TechCategory.PlanetaryDefense ? (tech as TechDefense) : undefined
+		tech?.category == TechCategoryPlanetaryDefense ? (tech as TechDefense) : undefined
 	);
 	let hullComponent = $derived(
 		isHullComponent(tech?.category) ? (tech as TechHullComponent) : undefined
 	);
-	let hull = $derived(tech?.category == TechCategory.ShipHull ? (tech as TechHull) : undefined);
-	let engine = $derived(tech?.category == TechCategory.Engine ? (tech as TechEngine) : undefined);
+	let hull = $derived(tech?.category == TechCategoryShipHull ? (tech as TechHull) : undefined);
+	let engine = $derived(tech?.category == TechCategoryEngine ? (tech as TechEngine) : undefined);
 	let researchCost = $derived(
 		tech && showResearchCost && player && cs ? cs.getResearchCost(tech.requirements) : 0
 	);

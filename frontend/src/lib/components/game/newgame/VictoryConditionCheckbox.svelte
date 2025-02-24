@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { VictoryCondition } from '$lib/types/Game';
+	import type { VictoryCondition } from '$lib/types/cs';
 
 	type Props = {
 		conditions: number;

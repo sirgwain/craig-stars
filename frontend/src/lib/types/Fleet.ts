@@ -1,95 +1,86 @@
-import type { DesignFinder, Universe } from '$lib/services/Universe';
+import type {
+	AnyFleet,
+	AnyPlanet,
+	AnyShipDesign,
+	DesignFinder,
+	Universe
+} from '$lib/services/Universe';
 import { get as pluck } from 'lodash-es';
-import { totalCargo, type Cargo } from './Cargo';
-import { None, StargateWarpSpeed } from './Constants';
-import { MapObjectType, owned, ownedBy, type MapObject, type MovingMapObject } from './MapObject';
-import type { MessageTargetType } from './Message';
-import type { MineralPacket } from './MineralPacket';
-import type { Planet } from './Planet';
-import type { Player } from './Player';
-import type { Salvage } from './Salvage';
-import type { ShipDesign, ShipDesignPurpose, ShipDesignSpec } from './ShipDesign';
-import type { Engine } from './Tech';
-import { distance, equal, type Vector } from './Vector';
+import { totalCargo } from './Cargo';
+import type { CargoDest } from './CargoTransferRequest.svelte';
+import { owned, ownedBy } from './MapObject';
+import type { CommandedPlayer } from './Player';
+import { distance, equal } from './Vector';
+import {
+	type Cargo,
+	type Engine,
+	type Fleet,
+	type FleetIntel,
+	type FleetSpec,
+	type MapObject,
+	MapObjectTypeFleet,
+	MapObjectTypeMineralPacket,
+	MapObjectTypeNone,
+	MapObjectTypePlanet,
+	MapObjectTypeSalvage,
+	None,
+	type PlanetIntel,
+	type ShipToken,
+	StargateWarpSpeed,
+	TransportActionFillPercent,
+	TransportActionLoadAll,
+	TransportActionLoadAmount,
+	TransportActionLoadDunnage,
+	TransportActionLoadOptimal,
+	TransportActionNone,
+	TransportActionSetAmountTo,
+	TransportActionSetWaypointTo,
+	TransportActionUnloadAll,
+	TransportActionUnloadAmount,
+	TransportActionWaitForPercent,
+	type Vector,
+	type Waypoint,
+	type WaypointTask,
+	WaypointTaskColonize,
+	WaypointTaskLayMineField,
+	WaypointTaskMergeWithFleet,
+	WaypointTaskNone,
+	WaypointTaskPatrol,
+	WaypointTaskRemoteMining,
+	WaypointTaskRoute,
+	WaypointTaskScrapFleet,
+	WaypointTaskTransferFleet,
+	WaypointTaskTransport,
+	type WaypointTaskTransportAction,
+	type WaypointTransportTasks
+} from './cs';
 
-export type Fleet = {
-	playerNum: number; // override mapObject fleets always have a player.
-	planetNum?: number;
-	baseName: string;
-	fuel?: number;
-	cargo?: Cargo;
-	damage?: number;
-	tokens?: ShipToken[];
-	mass?: number;
-	scanRange?: number; // discoverable for allies when scanning
-	scanRangePen?: number;
-	freighter?: boolean;
-	orbitingPlanetNum?: number;
-	starbase?: boolean;
-	spec?: FleetSpec;
-} & MovingMapObject &
-	FleetOrders;
+export const WaypointTasks: WaypointTask[] = [
+	WaypointTaskNone,
+	WaypointTaskTransport,
+	WaypointTaskColonize,
+	WaypointTaskRemoteMining,
+	WaypointTaskMergeWithFleet,
+	WaypointTaskScrapFleet,
+	WaypointTaskLayMineField,
+	WaypointTaskPatrol,
+	WaypointTaskRoute,
+	WaypointTaskTransferFleet
+] as const;
 
-export type FleetOrders = {
-	waypoints?: Waypoint[];
-	repeatOrders?: boolean;
-	battlePlanNum?: number;
-};
-
-export type ShipToken = {
-	id?: number;
-	createdAt?: string;
-	updatedAt?: string;
-
-	gameId?: number;
-	designNum: number;
-	quantity: number;
-	damage?: number;
-	quantityDamaged?: number;
-};
-
-export type Target = {
-	targetType?: MapObjectType | MessageTargetType;
-	targetPosition?: Vector;
-	targetPlayerNum?: number;
-	targetNum?: number;
-	targetName?: string;
-};
-
-export type Waypoint = {
-	position: Vector;
-	warpSpeed: number;
-	estFuelUsage?: number;
-	task: WaypointTask;
-	waitAtWaypoint?: boolean;
-	layMineFieldDuration?: number;
-	patrolRange?: number;
-	patrolWarpSpeed?: number;
-	transferToPlayer?: number;
-	partiallyComplete?: boolean;
-	transportTasks: WaypointTransportTasks;
-} & Target;
-
-export enum WaypointTask {
-	None = '',
-	Transport = 'Transport',
-	Colonize = 'Colonize',
-	RemoteMining = 'RemoteMining',
-	MergeWithFleet = 'MergeWithFleet',
-	ScrapFleet = 'ScrapFleet',
-	LayMineField = 'LayMineField',
-	Patrol = 'Patrol',
-	Route = 'Route',
-	TransferFleet = 'TransferFleet'
-}
-
-export type WaypointTransportTasks = {
-	fuel: WaypointTransportTask;
-	ironium: WaypointTransportTask;
-	boranium: WaypointTransportTask;
-	germanium: WaypointTransportTask;
-	colonists: WaypointTransportTask;
-};
+export const WaypointTransportTaskActions: WaypointTaskTransportAction[] = [
+	TransportActionNone,
+	TransportActionLoadOptimal,
+	TransportActionLoadAll,
+	TransportActionUnloadAll,
+	TransportActionLoadAmount,
+	TransportActionUnloadAmount,
+	TransportActionFillPercent,
+	TransportActionWaitForPercent,
+	TransportActionLoadDunnage,
+	TransportActionSetAmountTo,
+	TransportActionSetWaypointTo
+] as const;
 
 export const emptyWaypointTransportTasks = (): WaypointTransportTasks => ({
 	fuel: {},
@@ -99,61 +90,25 @@ export const emptyWaypointTransportTasks = (): WaypointTransportTasks => ({
 	colonists: {}
 });
 
-export type WaypointTransportTask = {
-	action?: WaypointTaskTransportAction;
-	amount?: number;
-};
-
-export enum WaypointTaskTransportAction {
-	None = '',
-	LoadOptimal = 'LoadOptimal',
-	LoadAll = 'LoadAll',
-	UnloadAll = 'UnloadAll',
-	LoadAmount = 'LoadAmount',
-	UnloadAmount = 'UnloadAmount',
-	FillPercent = 'FillPercent',
-	WaitForPercent = 'WaitForPercent',
-	LoadDunnage = 'LoadDunnage',
-	SetAmountTo = 'SetAmountTo',
-	SetWaypointTo = 'SetWaypointTo'
-}
-
-export type FleetSpec = {
-	baseCloakedCargo?: number;
-	basePacketSpeed?: number;
-	hasMassDriver?: boolean;
-	hasStargate?: boolean;
-	massDriver?: string;
-	massEmpty?: number;
-	maxHullMass?: number;
-	maxRange?: number;
-	purposes?: Record<ShipDesignPurpose, boolean>;
-	safeHullMass?: number;
-	safeRange?: number;
-	stargate?: string;
-	totalShips?: number;
-} & ShipDesignSpec;
-
 /** A destination for a waypoint - either a MapObject or a position in space (but not both) */
 export type WaypointDest = { mo: MapObject; position?: never } | { mo?: never; position: Vector };
-export type CargoTransferTarget = Fleet | Planet | Salvage | MineralPacket | undefined;
 
 export function emptyTransportTasks(): WaypointTransportTasks {
 	return {
 		fuel: {
-			action: WaypointTaskTransportAction.None
+			action: TransportActionNone
 		},
 		ironium: {
-			action: WaypointTaskTransportAction.None
+			action: TransportActionNone
 		},
 		boranium: {
-			action: WaypointTaskTransportAction.None
+			action: TransportActionNone
 		},
 		germanium: {
-			action: WaypointTaskTransportAction.None
+			action: TransportActionNone
 		},
 		colonists: {
-			action: WaypointTaskTransportAction.None
+			action: TransportActionNone
 		}
 	};
 }
@@ -161,15 +116,16 @@ export function emptyTransportTasks(): WaypointTransportTasks {
 export class CommandedFleet implements Fleet {
 	id = 0;
 	gameId = 0;
-	createdAt?: string | undefined;
-	updatedAt?: string | undefined;
-	readonly type = MapObjectType.Fleet;
+	createdAt = '';
+	updatedAt = '';
+	age = 0;
+	readonly type = MapObjectTypeFleet;
 
 	name = '';
 	playerNum = 0;
 	num = 0;
 
-	planetNum = undefined;
+	planetNum = 0;
 	baseName = '';
 	fuel = 0;
 	cargo: Cargo = {};
@@ -185,6 +141,7 @@ export class CommandedFleet implements Fleet {
 	starbase = false;
 	position = { x: 0, y: 0 };
 	spec = {} as FleetSpec;
+	tags = {};
 
 	constructor(data?: Fleet) {
 		Object.assign(this, data);
@@ -227,7 +184,7 @@ export class CommandedFleet implements Fleet {
 			} else {
 				return {
 					position: wp.position,
-					type: wp.targetType ?? MapObjectType.PositionWaypoint,
+					type: wp.targetType ?? MapObjectTypeNone,
 					name: wp.targetName ?? '',
 					num: wp.targetNum ?? 0,
 					playerNum: wp.targetPlayerNum ?? 0
@@ -257,7 +214,7 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
-	 * Add a {@linkcode Waypoint} to this {@linkcode Fleet}.
+	 * Add a {@linkcode Waypoint} to this {@linkcode CommandedFleet}.
 	 * @param player The player controlling the fleet.
 	 * @param universe Universe object
 	 * @param dest Waypoint destination ()
@@ -267,7 +224,7 @@ export class CommandedFleet implements Fleet {
 	 * @returns
 	 */
 	addWaypoint(
-		player: Player,
+		player: CommandedPlayer,
 		universe: Universe,
 		dest: WaypointDest,
 		currentSelectedWaypointIndex: number,
@@ -290,7 +247,7 @@ export class CommandedFleet implements Fleet {
 		// get the fuel allocated up to the last waypoint
 		const fuelAlreadyAllocated = this.getFuelAllocated(player, universe, waypointIndex);
 		const orbiting =
-			selectedWaypoint.targetType === MapObjectType.Planet
+			selectedWaypoint.targetType === MapObjectTypePlanet
 				? universe.getPlanet(selectedWaypoint.targetNum ?? 0)
 				: undefined;
 
@@ -308,7 +265,7 @@ export class CommandedFleet implements Fleet {
 			fastestWaypoint
 		);
 
-		const task = selectedWaypoint.task ?? WaypointTask.None;
+		const task = selectedWaypoint.task ?? WaypointTaskNone;
 		const emptyTransportTasks = emptyWaypointTransportTasks();
 		const transportTasks = selectedWaypoint.transportTasks ?? emptyTransportTasks;
 
@@ -328,10 +285,10 @@ export class CommandedFleet implements Fleet {
 
 			// if this is a colonizer and the target is a habitable planet
 			if (canColonize) {
-				wp.task = WaypointTask.Colonize;
+				wp.task = WaypointTaskColonize;
 				wp.transportTasks = emptyTransportTasks;
 			} else if (canRemoteMine) {
-				wp.task = WaypointTask.RemoteMining;
+				wp.task = WaypointTaskRemoteMining;
 				wp.transportTasks = emptyTransportTasks;
 			}
 		} else {
@@ -352,7 +309,7 @@ export class CommandedFleet implements Fleet {
 	 * @param orbiting
 	 */
 	updateWaypoint(
-		player: Player,
+		player: CommandedPlayer,
 		universe: Universe,
 		dest: WaypointDest,
 		currentSelectedWaypointIndex: number,
@@ -378,7 +335,7 @@ export class CommandedFleet implements Fleet {
 		const fuelAlreadyAllocated = this.getFuelAllocated(player, universe, waypointIndex - 1);
 
 		const orbiting =
-			previousWaypoint.targetType === MapObjectType.Planet
+			previousWaypoint.targetType === MapObjectTypePlanet
 				? universe.getPlanet(previousWaypoint.targetNum ?? 0)
 				: undefined;
 
@@ -396,16 +353,16 @@ export class CommandedFleet implements Fleet {
 			fastestWaypoint
 		);
 
-		let task = selectedWaypoint.task ?? WaypointTask.None;
+		let task = selectedWaypoint.task ?? WaypointTaskNone;
 		const emptyTransportTasks = emptyWaypointTransportTasks();
 		const transportTasks = selectedWaypoint.transportTasks ?? emptyTransportTasks;
 
 		// don't update the waypoint to a colonize/remote mine task if we can't do it on this new target
 		if (
-			(task == WaypointTask.Colonize && !canColonize) ||
-			(task == WaypointTask.RemoteMining && !canRemoteMine)
+			(task == WaypointTaskColonize && !canColonize) ||
+			(task == WaypointTaskRemoteMining && !canRemoteMine)
 		) {
-			task = WaypointTask.None;
+			task = WaypointTaskNone;
 		}
 
 		if (mo) {
@@ -420,10 +377,10 @@ export class CommandedFleet implements Fleet {
 
 			// if this is a colonizer and the target is a habitable planet
 			if (canColonize) {
-				selectedWaypoint.task = WaypointTask.Colonize;
+				selectedWaypoint.task = WaypointTaskColonize;
 				selectedWaypoint.transportTasks = emptyTransportTasks;
 			} else if (canRemoteMine) {
-				selectedWaypoint.task = WaypointTask.RemoteMining;
+				selectedWaypoint.task = WaypointTaskRemoteMining;
 				selectedWaypoint.transportTasks = emptyTransportTasks;
 			}
 		} else {
@@ -431,7 +388,7 @@ export class CommandedFleet implements Fleet {
 			selectedWaypoint.targetName = '';
 			selectedWaypoint.targetPlayerNum = None;
 			selectedWaypoint.targetNum = None;
-			selectedWaypoint.targetType = MapObjectType.None;
+			selectedWaypoint.targetType = MapObjectTypeNone;
 			selectedWaypoint.warpSpeed = warpSpeed;
 			selectedWaypoint.task = task;
 			selectedWaypoint.transportTasks = transportTasks;
@@ -447,13 +404,13 @@ export class CommandedFleet implements Fleet {
 	 * @param waypointIndex
 	 * @returns
 	 */
-	getFuelAllocated(player: Player, universe: Universe, waypointIndex: number): number {
+	getFuelAllocated(player: CommandedPlayer, universe: Universe, waypointIndex: number): number {
 		let fuelAlreadyAllocated = 0;
 		for (let i = 0; i <= waypointIndex; i++) {
 			fuelAlreadyAllocated += this.waypoints[i].estFuelUsage ?? 0;
 			const wp = this.waypoints[i];
 			const target =
-				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
+				wp.targetType === MapObjectTypePlanet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
 			if (target && this.canFuel(player, target)) {
 				// our previous waypoint was a fuel point, reset already allocated fuel to 0
 				fuelAlreadyAllocated = 0;
@@ -469,13 +426,13 @@ export class CommandedFleet implements Fleet {
 	 * @param waypointIndex
 	 * @returns
 	 */
-	getFuelLeftover(player: Player, universe: Universe, waypointIndex: number): number {
+	getFuelLeftover(player: CommandedPlayer, universe: Universe, waypointIndex: number): number {
 		let fuel = this.fuel;
 		for (let i = 0; i <= waypointIndex; i++) {
 			fuel -= this.waypoints[i].estFuelUsage ?? 0;
 			const wp = this.waypoints[i];
 			const target =
-				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
+				wp.targetType === MapObjectTypePlanet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
 			if (target && this.canFuel(player, target)) {
 				// our previous waypoint was a fuel point, reset already allocated fuel to 0
 				fuel = this.spec.fuelCapacity ?? 0;
@@ -491,7 +448,7 @@ export class CommandedFleet implements Fleet {
 	 * @param waypointIndex
 	 * @returns
 	 */
-	willRunOutOfFuel(player: Player, universe: Universe): boolean {
+	willRunOutOfFuel(player: CommandedPlayer, universe: Universe): boolean {
 		let fuel = this.fuel;
 		for (let i = 0; i < this.waypoints.length; i++) {
 			if (i > 0) {
@@ -511,7 +468,7 @@ export class CommandedFleet implements Fleet {
 			}
 			const wp = this.waypoints[i];
 			const target =
-				wp.targetType === MapObjectType.Planet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
+				wp.targetType === MapObjectTypePlanet ? universe.getPlanet(wp.targetNum ?? 0) : undefined;
 			if (target && this.canFuel(player, target)) {
 				// our previous waypoint was a fuel point, reset already allocated fuel to 0
 				fuel = this.spec.fuelCapacity ?? 0;
@@ -531,10 +488,10 @@ export class CommandedFleet implements Fleet {
 	 * @returns
 	 */
 	getWarpSpeed(
-		player: Player,
+		player: CommandedPlayer,
 		designFinder: DesignFinder,
 		dist: number,
-		orbiting: Planet | undefined,
+		orbiting: AnyPlanet | undefined,
 		dest: WaypointDest,
 		fuelAlreadyAllocated: number,
 		highestShipMass: number,
@@ -546,8 +503,8 @@ export class CommandedFleet implements Fleet {
 		let canRemoteMine = false;
 		let canJump = false;
 		let canFuel = false;
-		if (mo && mo.type == MapObjectType.Planet) {
-			const target = mo as Planet;
+		if (mo && mo.type == MapObjectTypePlanet) {
+			const target = mo as PlanetIntel;
 			canColonize = this.canColonize(target);
 			canRemoteMine = this.canRemoteMine(player, target);
 			canJump = this.canJump(player, orbiting, target, dist, highestShipMass);
@@ -691,7 +648,7 @@ export class CommandedFleet implements Fleet {
 	 * @param target the target planet to check
 	 * @returns true if this fleet can colonize this planet
 	 */
-	canColonize(target: Planet): boolean {
+	canColonize(target: PlanetIntel): boolean {
 		return !!(
 			this.spec.colonizer &&
 			this.cargo.colonists &&
@@ -705,7 +662,7 @@ export class CommandedFleet implements Fleet {
 	 * @param target the target planet to check
 	 * @returns true if this fleet can colonize this planet
 	 */
-	canRemoteMine(player: Player, target: Planet): boolean {
+	canRemoteMine(player: CommandedPlayer, target: PlanetIntel): boolean {
 		return !!(
 			this.spec.miningRate &&
 			this.spec.miningRate > 0 &&
@@ -723,9 +680,9 @@ export class CommandedFleet implements Fleet {
 	 * @returns true if the fleet can gate to this planet
 	 */
 	canJump(
-		player: Player,
-		orbiting: Planet | undefined,
-		targetPlanet: Planet,
+		player: CommandedPlayer,
+		orbiting: AnyPlanet | undefined,
+		targetPlanet: PlanetIntel,
 		dist: number,
 		highestShipMass: number
 	): boolean {
@@ -740,7 +697,7 @@ export class CommandedFleet implements Fleet {
 
 		if (this.spec?.canJump) {
 			// we have a jump gate installed in our ship, we only care about the destination gate
-			return destStargateSafe;
+			return !!destStargateSafe;
 		} else {
 			if (!orbiting || !orbiting.spec.hasStargate) {
 				return false;
@@ -764,7 +721,7 @@ export class CommandedFleet implements Fleet {
 	 * @param targetPlanet the planet the fleet is targeting
 	 * @returns true if the fleet will refuel at this planet
 	 */
-	canFuel(player: Player, targetPlanet: Planet | undefined): boolean {
+	canFuel(player: CommandedPlayer, targetPlanet: AnyPlanet | undefined): boolean {
 		return !!(
 			targetPlanet &&
 			owned(targetPlanet) &&
@@ -789,31 +746,34 @@ export class CommandedFleet implements Fleet {
 	 * @param universe
 	 * @returns The target for what we should transfer cargo to, based on wp0
 	 */
-	getCargoTransferTarget(universe: Universe): CargoTransferTarget {
+	getCargoTransferTarget(universe: Universe): CargoDest {
 		const wp0 = this.waypoints[0];
 		if (
 			wp0.targetNum == undefined ||
 			wp0.targetNum == 0 ||
 			wp0.targetType == undefined ||
-			wp0.targetType == MapObjectType.None
+			wp0.targetType == MapObjectTypeNone
 		) {
 			// return some salvage at this position
 			return universe.getSalvageAtPosition(this);
 		}
 		switch (wp0.targetType) {
-			case MapObjectType.Planet:
+			case MapObjectTypePlanet:
 				return universe.getPlanet(wp0.targetNum);
-			case MapObjectType.Fleet:
+			case MapObjectTypeFleet:
 				return universe.getFleet(wp0.targetPlayerNum, wp0.targetNum);
-			case MapObjectType.Salvage:
+			case MapObjectTypeSalvage:
 				return universe.getSalvageAtPosition(this);
-			case MapObjectType.MineralPacket:
+			case MapObjectTypeMineralPacket:
 				return universe.getMineralPacket(wp0.targetPlayerNum ?? 0, wp0.targetNum);
 		}
 	}
 }
 
-export function getDamagePercentForToken(token: ShipToken, design: ShipDesign | undefined): number {
+export function getDamagePercentForToken(
+	token: ShipToken,
+	design: AnyShipDesign | undefined
+): number {
 	const armor = design?.spec.armor ?? 0;
 	const totalArmor = armor * token.quantity;
 	const quantityDamaged =
@@ -838,9 +798,9 @@ export function canTransferCargo(fleet: Fleet, universe: Universe): boolean {
 			// if any of these fleets can transport, it's a contested planet
 			const orbitingForeignFreighters = universe
 				.getMapObjectsByPosition(planet)
-				.filter((mo) => mo.type === MapObjectType.Fleet)
-				.map((mo) => mo as Fleet)
-				.filter((f: Fleet) => f.freighter)
+				.filter((mo) => mo.type === MapObjectTypeFleet)
+				.map((mo) => mo as unknown as FleetIntel)
+				.filter((f: FleetIntel) => f.freighter)
 				.filter((f) => f.playerNum !== fleet.playerNum);
 
 			// don't allow manual transfers over contested planets
@@ -853,7 +813,7 @@ export function canTransferCargo(fleet: Fleet, universe: Universe): boolean {
 }
 
 // This shows only your fleets that have no movement orders, and any active enemy ships (so you can match one with the other, if you wish).
-export function idleFleetsFilter(fleet: Fleet, showIdleFleetsOnly: boolean): boolean {
+export function idleFleetsFilter(fleet: AnyFleet, showIdleFleetsOnly: boolean): boolean {
 	if (!showIdleFleetsOnly) {
 		// no filter, show all fleets
 		return true;
@@ -861,15 +821,16 @@ export function idleFleetsFilter(fleet: Fleet, showIdleFleetsOnly: boolean): boo
 
 	// show our fleets that are idle
 	if (
+		'waypoints' in fleet &&
 		fleet.waypoints &&
 		fleet.waypoints.length == 1 &&
-		fleet.waypoints[0].task == WaypointTask.None
+		fleet.waypoints[0].task == WaypointTaskNone
 	) {
 		return true;
 	}
 
 	// enemy fleet that is moving, show it so players can match idle fleets to moving fleets
-	if (!fleet.waypoints && fleet.warpSpeed) {
+	if (!('waypoints' in fleet) && fleet.warpSpeed) {
 		return true;
 	}
 
@@ -898,20 +859,18 @@ function getFuelCostForEngine(
 
 export const isLoadAction = (action: WaypointTaskTransportAction) =>
 	[
-		WaypointTaskTransportAction.LoadOptimal,
-		WaypointTaskTransportAction.LoadAll,
-		WaypointTaskTransportAction.LoadAmount,
-		WaypointTaskTransportAction.LoadDunnage,
-		WaypointTaskTransportAction.FillPercent,
-		WaypointTaskTransportAction.WaitForPercent
+		TransportActionLoadOptimal,
+		TransportActionLoadAll,
+		TransportActionLoadAmount,
+		TransportActionLoadDunnage,
+		TransportActionFillPercent,
+		TransportActionWaitForPercent
 	].indexOf(action) != -1;
 
 export const isUnloadAction = (action: WaypointTaskTransportAction) =>
-	[WaypointTaskTransportAction.UnloadAll, WaypointTaskTransportAction.UnloadAmount].indexOf(
-		action
-	) != -1;
+	[TransportActionUnloadAll, TransportActionUnloadAmount].indexOf(action) != -1;
 
-export const getLocation = (fleet: Fleet, universe: Universe) =>
+export const getLocation = (fleet: AnyFleet, universe: Universe) =>
 	fleet.orbitingPlanetNum
 		? (universe.getPlanet(fleet.orbitingPlanetNum)?.name ?? 'unknown')
 		: `Space: (${fleet.position.x}, ${fleet.position.y})`;
@@ -940,16 +899,24 @@ export const getEta = (fleet: Fleet) => {
 };
 
 export function getTokenCount(mo: MapObject) {
-	if (mo.type == MapObjectType.Fleet) {
-		const fleet = mo as Fleet;
+	if (mo.type == MapObjectTypeFleet) {
+		const fleet = mo as AnyFleet;
 		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
 	}
 	return 0;
 }
 
 export function hasDestination(mo: MapObject): boolean {
-	const fleet = mo.type == MapObjectType.Fleet ? (mo as Fleet) : undefined;
+	const fleet = mo.type == MapObjectTypeFleet ? (mo as Fleet) : undefined;
 	return (fleet?.waypoints?.length ?? 0) > 1;
+}
+
+// get the mass of a fleet or fleetintel
+export function getMass(fleet: AnyFleet) {
+	if ('mass' in fleet) {
+		return fleet.mass ?? 0;
+	}
+	return fleet.spec?.mass ?? 0;
 }
 
 // fleetsSortBy returns a sortBy function for fleets by key. This is used by the fleets report page
@@ -957,22 +924,25 @@ export function hasDestination(mo: MapObject): boolean {
 export function fleetsSortBy(
 	key: string,
 	universe: Universe
-): ((a: Fleet, b: Fleet) => number) | undefined {
+): ((a: AnyFleet, b: AnyFleet) => number) | undefined {
 	switch (key) {
 		case 'name':
 			return (a, b) => a.name.localeCompare(b.name);
 		case 'location':
 			return (a, b) => getLocation(a, universe).localeCompare(getLocation(b, universe));
 		case 'destination':
-			return (a, b) => getDestination(a, universe).localeCompare(getDestination(b, universe));
+			return (a, b) =>
+				'waypoints' in a && 'waypoints' in b
+					? getDestination(a, universe).localeCompare(getDestination(b, universe))
+					: 0;
 		case 'eta':
-			return (a, b) => getEta(a) - getEta(b);
+			return (a, b) => ('waypoints' in a && 'waypoints' in b ? getEta(a) - getEta(b) : 0);
 		case 'cargo':
 			return (a, b) => totalCargo(a.cargo) - totalCargo(b.cargo);
 		case 'mass':
-			return (a, b) => (a.spec?.mass ?? 0) - (b.spec?.mass ?? 0);
+			return (a, b) => getMass(a) - getMass(b);
 		case 'fuel':
-			return (a, b) => (a.fuel ?? 0) - (b.fuel ?? 0);
+			return (a, b) => ('fuel' in a && 'fuel' in b ? a.fuel - b.fuel : 0);
 		default:
 			return (a, b) => {
 				const aVal = pluck(a, key);

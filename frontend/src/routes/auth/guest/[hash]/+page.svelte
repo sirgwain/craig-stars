@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { GameService } from '$lib/services/GameService';
-	import { GameState } from '$lib/types/Game';
+	import { GameStateSetup } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 
 	let hash = $page.params.hash;
@@ -25,7 +25,7 @@
 			const gameId = resolvedResponse?.attrs?.game_id;
 			if (gameId) {
 				const game = await GameService.loadGame(gameId);
-				if (game.state == GameState.Setup) {
+				if (game.state == GameStateSetup) {
 					document.location = `/join-game/${gameId}`;
 				} else {
 					document.location = `/games/${gameId}`;

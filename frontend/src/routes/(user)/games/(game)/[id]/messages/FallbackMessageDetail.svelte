@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { MessageType, type Message } from '$lib/types/Message';
-	import { $enum as eu } from 'ts-enum-util';
+	import { type PlayerMessage } from '$lib/types/cs';
 
 	type Props = {
-		message: Message;
+		message: PlayerMessage;
 	};
 
 	let { message }: Props = $props();
@@ -12,5 +11,5 @@
 {#if message.text}
 	{message.text}
 {:else}
-	No message {message.type} - {eu(MessageType).getKeyOrDefault(message.type)}
+	No message {message.type} - {message.type}
 {/if}

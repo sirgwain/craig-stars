@@ -19,7 +19,8 @@ func TestCreateMineralPacket(t *testing.T) {
 		wantErr bool
 	}{
 		{"Create", args{connectTestDB(), &cs.MineralPacket{
-			MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: 1}, Name: "test"}},
+			GameDBObject: cs.GameDBObject{GameID: 1},
+			MapObject:    cs.MapObject{Name: "test"}},
 		}, false},
 	}
 	for _, tt := range tests {
@@ -48,7 +49,8 @@ func TestGetMineralPacket(t *testing.T) {
 	g, player := c.createTestGameWithPlayer()
 
 	mineralPacket := cs.MineralPacket{
-		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineralPacket},
+		GameDBObject: cs.GameDBObject{GameID: g.ID},
+		MapObject:    cs.MapObject{PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineralPacket},
 	}
 	if err := c.createMineralPacket(&mineralPacket); err != nil {
 		t.Errorf("create mineralPacket %s", err)
@@ -92,7 +94,7 @@ func TestGetMineralPackets(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.MineralPacket{}, result)
 
-	mineralPacket := cs.MineralPacket{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
+	mineralPacket := cs.MineralPacket{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
 	if err := c.createMineralPacket(&mineralPacket); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -109,7 +111,7 @@ func Test_UpdateMineralPacket(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer()
-	planet := cs.MineralPacket{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num}}
+	planet := cs.MineralPacket{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
 	if err := c.createMineralPacket(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return

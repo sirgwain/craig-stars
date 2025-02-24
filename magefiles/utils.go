@@ -17,11 +17,22 @@ import (
 
 // Test both the backend and frontend in succession.
 func Test() error {
+	fmt.Println("go test ./...")
 	if err := sh.RunV("go", "test", "./..."); err != nil {
 		return err
 	}
 
+	fmt.Println("npm run test")
 	cmd := exec.Command("npm", "run-script", "test")
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	fmt.Println("npm run lint")
+	cmd = exec.Command("npm", "run-script", "lint")
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

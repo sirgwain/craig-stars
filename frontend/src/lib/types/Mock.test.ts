@@ -1,14 +1,13 @@
-import type { DesignFinder } from '$lib/services/Universe';
+import type { AnyShipDesign, DesignFinder } from '$lib/services/Universe';
 import { describe, it } from 'vitest';
-import { WaypointTask, type Fleet } from './Fleet';
-import { MapObjectType } from './MapObject';
-import type { ShipDesign } from './ShipDesign';
+import type { ShipDesign } from './cs';
+import { MapObjectTypeFleet, MapObjectTypeNone, WaypointTaskNone, type Fleet } from './cs';
 
 // test designfinder that just returns a Long Range Scout
 export class TestDesignFinder implements DesignFinder {
 	designs = [longRangeScoutDesign, santaMariaDesign, cottonPickerDesign];
 
-	getDesign(playerNum: number, num: number): ShipDesign | undefined {
+	getDesign(playerNum: number, num: number): AnyShipDesign | undefined {
 		return this.designs.find((d) => d.playerNum === playerNum && d.num === num);
 	}
 	getMyDesign(num: number | undefined): ShipDesign | undefined {
@@ -79,7 +78,7 @@ export const longRangeScoutDesign: ShipDesign = {
 			electronics: 1
 		}
 	}
-};
+} as ShipDesign;
 
 export const santaMariaDesign: ShipDesign = {
 	id: 0,
@@ -138,7 +137,7 @@ export const santaMariaDesign: ShipDesign = {
 			propulsion: 3
 		}
 	}
-};
+} as ShipDesign;
 
 export const cottonPickerDesign: ShipDesign = {
 	id: 0,
@@ -207,12 +206,12 @@ export const cottonPickerDesign: ShipDesign = {
 			electronics: 1
 		}
 	}
-};
+} as ShipDesign;
 
 export const longRangeScout: Fleet = {
 	id: 0,
 	gameId: 0,
-	type: MapObjectType.Fleet,
+	type: MapObjectTypeFleet,
 	position: { x: 0, y: 0 },
 	num: 1,
 	playerNum: 1,
@@ -225,7 +224,7 @@ export const longRangeScout: Fleet = {
 				y: 0
 			},
 			warpSpeed: 6,
-			task: WaypointTask.None,
+			task: WaypointTaskNone,
 			transportTasks: {
 				fuel: {},
 				ironium: {},
@@ -233,7 +232,7 @@ export const longRangeScout: Fleet = {
 				germanium: {},
 				colonists: {}
 			},
-			targetType: MapObjectType.None
+			targetType: MapObjectTypeNone
 		}
 	],
 	planetNum: 0,
@@ -274,7 +273,7 @@ export const longRangeScout: Fleet = {
 export const santaMaria: Fleet = {
 	id: 0,
 	gameId: 0,
-	type: MapObjectType.Fleet,
+	type: MapObjectTypeFleet,
 	position: { x: 0, y: 0 },
 	num: 2,
 	playerNum: 1,
@@ -283,7 +282,7 @@ export const santaMaria: Fleet = {
 		{
 			position: { x: 0, y: 0 },
 			warpSpeed: 6,
-			task: WaypointTask.None,
+			task: WaypointTaskNone,
 			transportTasks: {
 				fuel: {},
 				ironium: {},
@@ -291,7 +290,7 @@ export const santaMaria: Fleet = {
 				germanium: {},
 				colonists: {}
 			},
-			targetType: MapObjectType.None
+			targetType: MapObjectTypeNone
 		}
 	],
 	planetNum: 0,
@@ -335,7 +334,7 @@ export const santaMaria: Fleet = {
 export const cottonPicker: Fleet = {
 	id: 0,
 	gameId: 0,
-	type: MapObjectType.Fleet,
+	type: MapObjectTypeFleet,
 	position: { x: 0, y: 0 },
 	num: 4,
 	playerNum: 1,
@@ -344,7 +343,7 @@ export const cottonPicker: Fleet = {
 		{
 			position: { x: 0, y: 0 },
 			warpSpeed: 6,
-			task: WaypointTask.None,
+			task: WaypointTaskNone,
 			transportTasks: {
 				fuel: {},
 				ironium: {},
@@ -352,7 +351,7 @@ export const cottonPicker: Fleet = {
 				germanium: {},
 				colonists: {}
 			},
-			targetType: MapObjectType.None
+			targetType: MapObjectTypeNone
 		}
 	],
 	planetNum: 0,

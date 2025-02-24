@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { PlayerResponse } from '$lib/types/Player';
+	import type { Player } from '$lib/types/Player';
 
-	import type { Tech, TechRequirements } from '$lib/types/Tech';
+	import type { TechRequirements } from '$lib/types/cs';
+	import type { Tech } from '$lib/types/cs';
 
 	type Props = {
 		tech: Tech;
-		player?: PlayerResponse | undefined;
+		player?: Player | undefined;
 	};
 
 	let { tech, player = undefined }: Props = $props();

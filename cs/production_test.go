@@ -470,7 +470,7 @@ func Test_production_allocatePartialBuild(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			production := production{planet: planet}
+			production := producer{planet: planet}
 
 			if got := production.allocatePartialBuild(tt.args.costPerItem, tt.args.allocated); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Planet.allocatePartialBuild() = %v, want %v", got, tt.want)

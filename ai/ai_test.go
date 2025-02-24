@@ -153,13 +153,13 @@ func Test_getClosestPlanet(t *testing.T) {
 	aiPlayer := NewAIPlayer(game, &cs.StaticTechStore, player, cs.PlayerMapObjects{})
 
 	planetAt0_0 := cs.PlanetIntel{
-		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 0, Y: 0}},
+		MapObject: cs.MapObject{Position: cs.Vector{X: 0, Y: 0}},
 	}
 	planetAt50_50 := cs.PlanetIntel{
-		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 50, Y: 50}},
+		MapObject: cs.MapObject{Position: cs.Vector{X: 50, Y: 50}},
 	}
 	planetAt100_100 := cs.PlanetIntel{
-		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 100, Y: 100}},
+		MapObject: cs.MapObject{Position: cs.Vector{X: 100, Y: 100}},
 	}
 
 	tests := []struct {

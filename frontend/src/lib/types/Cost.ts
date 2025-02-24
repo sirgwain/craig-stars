@@ -1,8 +1,5 @@
-import type { Mineral } from './Mineral';
-
-export type Cost = {
-	resources?: number;
-} & Mineral;
+import type { Cost } from './cs';
+import type { Mineral } from './cs';
 
 export const emptyCost: Readonly<Cost> = {
 	ironium: 0,

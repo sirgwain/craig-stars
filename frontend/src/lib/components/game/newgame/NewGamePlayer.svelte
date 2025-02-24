@@ -1,18 +1,16 @@
 <script lang="ts">
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import { NewGamePlayerType, type NewGamePlayer } from '$lib/types/Game';
+	import {
+		NewGamePlayerTypeAI,
+		NewGamePlayerTypeGuest,
+		NewGamePlayerTypeOpen,
+		type NewGamePlayer
+	} from '$lib/types/cs';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import AiPlayer from './AIPlayer.svelte';
 	import HostPlayer from './HostPlayer.svelte';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { me } from '$lib/services/Stores';
-
-	// eslint-disable-next-line svelte/valid-compile -- catches the enum for some odd reason
-	enum NewGamePlayerChooseType {
-		Open = 'Open',
-		Guest = 'Guest',
-		AI = 'AI'
-	}
 
 	type Props = {
 		player: NewGamePlayer;
@@ -31,8 +29,8 @@
 					{#if !$me.isGuest()}
 						<div class="grow">
 							<EnumSelect
-								enumType={NewGamePlayerChooseType}
 								name="type"
+								options={[NewGamePlayerTypeGuest, NewGamePlayerTypeOpen, NewGamePlayerTypeAI]}
 								bind:value={player.type}
 								title={`Player ${index}`}
 							/>
@@ -40,7 +38,7 @@
 					{:else}
 						<div class="text-xl mr-2 my-auto">AI Player {index}</div>
 					{/if}
-					{#if player.type === NewGamePlayerType.AI}
+					{#if player.type === NewGamePlayerTypeAI}
 						<AiPlayer bind:player />
 					{/if}
 				</div>
