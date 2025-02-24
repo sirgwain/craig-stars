@@ -2,7 +2,7 @@ package cs
 
 import "testing"
 
-func Test_clamp(t *testing.T) {
+func TestClamp(t *testing.T) {
 	type args struct {
 		value int
 		min   int

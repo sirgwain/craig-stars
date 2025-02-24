@@ -3,6 +3,7 @@ package cs
 import (
 	"fmt"
 	"math"
+	"slices"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog"
@@ -318,15 +319,14 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 	}
 
 	for _, player := range ug.Players {
-		minPlayerDistance := float64(area.X+area.Y) / 2.0 / float64(len(ug.Players)+1)
+		minPlayerDistance := float64(area.X+area.Y) / (2.0 * float64(len(ug.Players)+1))
 		fleetNum := 1
 		var homeworld *Planet
 		extraPoints, pointsType := player.Race.ComputeLeftoverRacePoints(rules.RaceStartingPoints)
 
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
-
 			if !startingPlanet.Homeworld && homeworld == nil {
-				// TODI: Do we want to support homeworlds in subsequent slots?
+				// TODO: Do we want to support multiple homeworlds in subsequent slots?
 				return fmt.Errorf("first planet in player #%d's startingPlanets was not homeworld, exiting", player.Num)
 			}
 
@@ -428,57 +428,61 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *Planet, extraPoints int, pointsType SpendLeftoverPointsOn) {
 	rules := ug.Rules
 
-	// old games have this empty
-	if pointsType == SpendLeftoverPointsOnNone {
-		pointsType = SpendLeftoverPointsOnSurfaceMinerals
-	}
-	pointsThreshold := rules.RaceLeftoverPointsPerItem[pointsType]
-	switch pointsType {
-	case SpendLeftoverPointsOnDefenses:
-		if !race.Spec.LivesOnStarbases && extraPoints >= pointsThreshold {
-			planet.Defenses += (extraPoints / pointsThreshold)
-			extraPoints = extraPoints % pointsThreshold
-		}
-	case SpendLeftoverPointsOnFactories:
-		if !race.Spec.InnateResources && extraPoints >= pointsThreshold {
-			planet.Factories += (extraPoints / pointsThreshold)
-			extraPoints = extraPoints % pointsThreshold
-		}
-	case SpendLeftoverPointsOnMines:
-		if !race.Spec.InnateMining && extraPoints >= pointsThreshold {
-			planet.Mines += (extraPoints / pointsThreshold)
-			extraPoints = extraPoints % pointsThreshold
-		}
-	case SpendLeftoverPointsOnMineralConcentrations:
-		// example situation: 25 unspent points; HW has 40I, 30B and 35G concs
-		// first we start by increasing B up to 36, using 18 pts
-		// G is now lowest, so we bump it up to 37, using 6 points
-		// the remaining 1 point goes into surface minerals (since 1 < 3)
-		for extraPoints >= pointsThreshold {
-			conc := planet.MineralConcentration
-			lowestType := conc.HighestType(-1)
-			diff := conc.GetAmount(conc.HighestType(2)) - conc.GetAmount(lowestType)
-			amtToAdd := Min(extraPoints/pointsThreshold, diff+1)
-			planet.MineralConcentration.Set(lowestType, conc.GetAmount(lowestType)+amtToAdd)
-			extraPoints -= pointsThreshold * amtToAdd
-		}
-	}
+	// add bonuses based on the points type if the race can use it
+	switch pointsThreshold := rules.RaceLeftoverPointsPerItem[pointsType]; {
+	case pointsType == SpendLeftoverPointsOnDefenses &&
+		extraPoints >= pointsThreshold && !race.Spec.LivesOnStarbases:
+		planet.Defenses += extraPoints / pointsThreshold
+	case pointsType == SpendLeftoverPointsOnFactories &&
+		extraPoints >= pointsThreshold && !race.Spec.InnateResources:
+		planet.Factories += extraPoints / pointsThreshold
+	case pointsType == SpendLeftoverPointsOnMines &&
+		extraPoints >= pointsThreshold && !race.Spec.InnateMining:
+		planet.Mines += extraPoints / pointsThreshold
+	case pointsType == SpendLeftoverPointsOnMineralConcentrations &&
+		extraPoints >= pointsThreshold:
+		planet.MineralConcentration = planet.MineralConcentration.Equalize(extraPoints / pointsThreshold)
+	default:
+		// TODO: Figure out how OG stars does this stuff cuz IDK
+		// currently just using the old algorithm out of spite
 
-	// In the event the player has extra points leftover
-	// (or selected surface mineral starting points), dump em in
-	// _Technically_, we don't really know if Stars! actually did this, but I'm too lazy to check
-	for extraPoints > 0 {
-		// example situation: 10 points leftover HW with 300I, 400B, 350G starting mins
-		// first we add 60kT of I using 6 pts;
-		// then, since G is now the lowest mineral,
-		// we alternate between adding G and I for the remaining 4 pts
-		pointsThreshold = rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
-		mins := planet.getCargo().ToMineral()
-		lowestType := mins.HighestType(3)
-		diff := mins.GetAmount(mins.HighestType(2)) - mins.GetAmount(lowestType)
-		amtToAdd := Min(extraPoints, (diff/pointsThreshold)+1) // 70 difference / 10 mins/round => 8 rounds
-		planet.Cargo.AddAmount(CargoType(int(lowestType)), amtToAdd*pointsThreshold)
-		extraPoints -= amtToAdd
+		kTPerPoint := rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
+		// example situation: 25 unspent points; HW has 400I, 300B and 350G
+		// first we start by increasing B up to 350, using 5 points.
+		// B & G are now equal, so we increase both by 50 (using 10 points).
+		// The remaining 10 gets spread equally among all 3.
+
+		surf := planet.Cargo.ToMineral()
+		s := surf.ToSlice()
+		slices.Sort(s[:])
+		// equalize lowest 2
+		diffLowest := s[1] - s[0]
+		if diffLowest != 0 {
+			// this truncation in amtToAdd ensures that s[0] is still the lowest even after addition
+			amtToAdd := Min(extraPoints, diffLowest/kTPerPoint)
+			surf = surf.AddNum(surf.GetTypeFromAmount(s[0]), amtToAdd*kTPerPoint)
+			extraPoints -= amtToAdd
+		}
+
+		// lowest 2 equal; equalize both with highest
+		diffHighest := s[2] - s[0]
+		if diffHighest != 0 && extraPoints > 1 {
+			amtToAdd := Min(extraPoints, (diffHighest/kTPerPoint)*2)
+			surf = surf.AddNum(surf.GetTypeFromAmount(s[0]), amtToAdd*kTPerPoint/2)
+			surf = surf.AddNum(surf.GetTypeFromAmount(s[1]), amtToAdd*kTPerPoint/2)
+			extraPoints -= amtToAdd
+		}
+
+		// all 3 equal; divide remainders
+		if third := extraPoints / 3; third != 0 {
+			surf = surf.AddToAll(third * kTPerPoint)
+			extraPoints %= 3
+		}
+		for i := range extraPoints {
+			surf = surf.AddNum(MineralTypes[i], kTPerPoint)
+		}
+
+		planet.Cargo = NewCargoFromMineralsAndPop(surf, planet.Cargo.Colonists*100)
 	}
 }
 
@@ -542,7 +546,7 @@ func (ug *universeGenerator) applyAccBBS() {
 
 		// Add 25% extra homeworld surface minerals
 		// (the help manual lied when it said 20%)
-		planet.Cargo = planet.Cargo.AddMineral(planet.Cargo.ToMineral().MultiplyFloat64(0.25))
+		planet.Cargo = planet.Cargo.AddMineral(planet.Cargo.ToMineral().MultiplyFloat64(0.25, math.Floor))
 
 		// AccBBS adds 20% addiional starting pop (+5K over the default 25K)
 		// per 1% of a race's growth rate.

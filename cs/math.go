@@ -44,7 +44,7 @@ func Clamp[T constraints.Ordered](value, min, max T) T {
 	return value
 }
 
-// Returns the largest among a collection of similarly typed ordered values.
+// Max returns the largest among a collection of similarly typed ordered values.
 // Panics if given no arguments.
 func Max[T constraints.Ordered](nums ...T) T {
 	if len(nums) == 0 {
@@ -61,7 +61,7 @@ func Max[T constraints.Ordered](nums ...T) T {
 	return result
 }
 
-// Returns the smallest among a collection of similarly typed ordered values.
+// Min returns the smallest among a collection of similarly typed ordered values.
 // Panics if given no arguments.
 func Min[T constraints.Ordered](nums ...T) T {
 	if len(nums) == 0 {
@@ -71,6 +71,23 @@ func Min[T constraints.Ordered](nums ...T) T {
 	result := nums[0]
 	for _, value := range nums[1:] {
 		if value < result {
+			result = value
+		}
+	}
+
+	return result
+}
+
+// AbsMin returns the absolutely lowest among a collection of similarly typed signed values.
+// Panics if given no arguments.
+func AbsMin[S constraints.Signed | constraints.Float](nums ...S) S {
+	if len(nums) == 0 {
+		panic("AbsMin called with no arguments")
+	}
+
+	result := nums[0]
+	for _, value := range nums[1:] {
+		if Abs(value) < Abs(result) {
 			result = value
 		}
 	}
@@ -101,9 +118,22 @@ func PowInt[I constraints.Integer](base, exponent I) I {
 //
 //	Abs(±Inf) = +Inf
 //	Abs(NaN) = NaN
-func Abs[T number](num T) T {
+func Abs[S constraints.Signed | constraints.Float](num S) S {
 	if num < 0 {
 		return -num
 	}
 	return num
+}
+
+// Divide two integers, rounding the result away from 0
+// if divisor does not cleanly divide dividend.
+func DivideIntCeil[I constraints.Integer](dividend, divisor I) (quotient I) {
+	switch rem := dividend % divisor; {
+	case rem > 0:
+		return dividend/divisor + 1
+	case rem < 0:
+		return dividend/divisor - 1
+	default:
+		return dividend / divisor
+	}
 }

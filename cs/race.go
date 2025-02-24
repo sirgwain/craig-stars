@@ -45,8 +45,7 @@ const (
 type SpendLeftoverPointsOn string
 
 const (
-	SpendLeftoverPointsOnNone                  SpendLeftoverPointsOn = ""
-	SpendLeftoverPointsOnSurfaceMinerals       SpendLeftoverPointsOn = "SurfaceMinerals"
+	SpendLeftoverPointsOnSurfaceMinerals       SpendLeftoverPointsOn = ""
 	SpendLeftoverPointsOnMineralConcentrations SpendLeftoverPointsOn = "MineralConcentrations"
 	SpendLeftoverPointsOnMines                 SpendLeftoverPointsOn = "Mines"
 	SpendLeftoverPointsOnFactories             SpendLeftoverPointsOn = "Factories"
@@ -1302,8 +1301,9 @@ func (race *Race) getPlanetHabForHabIndex(iterIndex int, habType HabType, loopIn
 	return planetHab, terraformOffset
 }
 
-// get leftover points for a race and the type of points to spend it on
-func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (int, SpendLeftoverPointsOn) {
+// get leftover points for a race and the type of points to spend it on, capping them as applicable.
+// TODO: Add rules checks for race point handicaps if/when that becomes a thing
+func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (leftoverPoints int, pointsType SpendLeftoverPointsOn) {
 	points := race.ComputeRacePoints(startingPoints)
 	if points < 0 {
 		points = 0

@@ -65,7 +65,7 @@ func (tx *client) ensureUpgrade() error {
 			//? Maybe make the starter database version -1?
 			// That would make the switch marginally cleaner
 			if u.initStarterDB(); err != nil {
-				return fmt.Errorf("failure while initializing starter database: \n%w", err)
+				return fmt.Errorf("initializing starter database failed: \n%w", err)
 			}
 			err = u.upgrade1()
 		case 1:
@@ -80,7 +80,7 @@ func (tx *client) ensureUpgrade() error {
 
 		// check for any issues upgrading
 		if err != nil {
-			return fmt.Errorf("upgrading database v%d to v%d failed: \n%w", current, current+1, err)
+			return fmt.Errorf("upgrading database from v%d to v%d failed: \n%w", current, current+1, err)
 		}
 	}
 
@@ -108,7 +108,7 @@ func (c *client) getVersion() (Version, error) {
 
 func (c *client) updateVersion(version Version) error {
 	if _, err := c.writer.NamedExec(`
-	UPDATE versions SET 
+	UPDATE versions SET
 		updatedAt = CURRENT_TIMESTAMP,
 		current = :current
 	WHERE id = :id`, version); err != nil {

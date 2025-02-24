@@ -674,7 +674,7 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 // mine minerals on this planet
 func (planet *Planet) mine(rules *Rules) {
 	planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MiningOutput)
-	planet.MineYears = planet.MineYears.AddInt(planet.Mines)
+	planet.MineYears = planet.MineYears.AddToAll(planet.Mines)
 	planet.reduceMineralConcentration(rules)
 }
 
@@ -701,8 +701,7 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 
 	planetMineYears := planet.MineYears.ToSlice()
 	planetMineralConcentration := planet.MineralConcentration.ToSlice()
-	for i := 0; i < 3; i++ {
-		conc := planetMineralConcentration[i]
+	for i, conc := range planetMineralConcentration {
 		if conc < minMineralConcentration {
 			// can't have less than min, make sure we have that at least
 			conc = minMineralConcentration
@@ -722,6 +721,6 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 			planetMineralConcentration[i] = conc
 		}
 	}
-	planet.MineYears = NewMineral(planetMineYears)
-	planet.MineralConcentration = NewMineral(planetMineralConcentration)
+	planet.MineYears = NewMineral(planetMineYears[0], planetMineYears[1], planetMineYears[2])
+	planet.MineralConcentration = NewMineral(planetMineralConcentration[0], planetMineralConcentration[1], planetMineralConcentration[2])
 }

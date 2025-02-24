@@ -100,14 +100,10 @@ func TestGenerateUniverse(t *testing.T) {
 		assert.Equal(t, homeworld.Factories, homeworld.Spec.MaxPossibleFactories)
 		assert.Equal(t, homeworld.Mines, homeworld.Spec.MaxPossibleMines)
 
-		// make sure all the specs are ok
-		JoaTScoutShips := FilterSlice(pmo.Fleets, func(f *Fleet) bool {
-			hull := rules.techs.GetHull(f.Tokens[0].design.Hull)
-			return hull != nil && hull.BuiltInScanner
-		})
-		for _, fleet := range JoaTScoutShips {
-			c := NewCostCalculator()
+		// make sure all the fleet specs are ok - costs/scanner ranges are all as they should be
+		for _, fleet := range pmo.Fleets {
 			assert.NotNil(t, fleet)
+			c := NewCostCalculator()
 			design := fleet.Tokens[0].design
 			hull := rules.techs.GetHull(design.Hull)
 			design.Spec.computeScanRanges(&rules, player.Race.Spec.ScannerSpec, player.TechLevels, design, hull) // updates design scanrange but not fleet scan range
@@ -120,11 +116,12 @@ func TestGenerateUniverse(t *testing.T) {
 	})
 }
 
-func Test_assignRaceStartingPointBonuses(t *testing.T) {
+func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 	type args struct {
 		race        *Race
 		extraPoints int
 		pointsType  SpendLeftoverPointsOn
+		planet      *Planet
 	}
 	tests := []struct {
 		name string
@@ -132,7 +129,7 @@ func Test_assignRaceStartingPointBonuses(t *testing.T) {
 		want *Planet
 	}{
 		{
-			name: "10 points into factories, 2 factories",
+			name: "10 points into factories, 2 facts",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
 				extraPoints: 10,
@@ -141,25 +138,16 @@ func Test_assignRaceStartingPointBonuses(t *testing.T) {
 			want: NewPlanet().WithFactories(2),
 		},
 		{
-			name: "10 points into mines, 5 mines",
+			name: "too few for factories; spills over",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
-				extraPoints: 10,
-				pointsType:  SpendLeftoverPointsOnMines,
+				extraPoints: 2,
+				pointsType:  SpendLeftoverPointsOnFactories,
 			},
-			want: NewPlanet().WithMines(5),
+			want: NewPlanet().WithCargo(Cargo{10, 10, 0, 0}),
 		},
 		{
-			name: "10 points into defenses; 3 spillover",
-			args: args{
-				race:        NewRace().WithSpec(&rules),
-				extraPoints: 13,
-				pointsType:  SpendLeftoverPointsOnDefenses,
-			},
-			want: NewPlanet().WithDefenses(1).WithCargo(Cargo{10, 10, 10, 0}),
-		},
-		{
-			name: "8 points into mines; can't use because AR",
+			name: "8 points into mines; can't use",
 			args: args{
 				race:        NewRace().WithPRT(AR).WithSpec(&rules),
 				extraPoints: 8,
@@ -168,29 +156,53 @@ func Test_assignRaceStartingPointBonuses(t *testing.T) {
 			want: NewPlanet().WithCargo(Cargo{30, 30, 20, 0}),
 		},
 		{
-			name: "31 points into minconcs",
+			name: "43 points into defenses; extra wasted",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
-				extraPoints: 31,
-				pointsType:  SpendLeftoverPointsOnMineralConcentrations,
+				extraPoints: 43,
+				pointsType:  SpendLeftoverPointsOnDefenses,
 			},
-			want: NewPlanet().WithMineralConcentration(Mineral{3, 3, 4}).WithCargo(Cargo{10, 0, 0, 0}),
+			want: NewPlanet().WithDefenses(4),
+		},
+		{
+			name: "30 points into concentration; some already",
+			args: args{
+				race:        NewRace().WithSpec(&rules),
+				extraPoints: 30,
+				pointsType:  SpendLeftoverPointsOnMineralConcentrations,
+				planet:      NewPlanet().WithMineralConcentration(Mineral{40, 35, 37}),
+			},
+			// increases B/G to 40 using 24 pts; spend remaining 3 on first 2
+			want: NewPlanet().WithMineralConcentration(Mineral{41, 41, 40}),
+		},
+		{
+			name: "3 points into surface minerals with some cargo",
+			args: args{
+				race:        NewRace().WithSpec(&rules),
+				extraPoints: 3,
+				pointsType:  SpendLeftoverPointsOnSurfaceMinerals,
+				planet:      NewPlanet().WithCargo(Cargo{62, 62, 62, 220}),
+			},
+			// TODO: Make more tests for this once I actually understand how the damn thing works
+			want: NewPlanet().WithCargo(Cargo{72, 72, 72, 220}),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ug := universeGenerator{FullGame: &FullGame{Game: &Game{Rules: rules}}}
-			planet := NewPlanet()
-			ug.assignRaceStartingPointBonuses(tt.args.race, planet, tt.args.extraPoints, tt.args.pointsType)
+			if tt.args.planet == nil {
+				tt.args.planet = NewPlanet()
+			}
+			ug.assignRaceStartingPointBonuses(tt.args.race, tt.args.planet, tt.args.extraPoints, tt.args.pointsType)
 
-			if !test.CompareAsJSON(t, planet, tt.want) {
-				t.Errorf("assignRaceStartingPointBonuses() = %v, want %v", planet, tt.want)
+			if !test.CompareAsJSON(t, tt.args.planet, tt.want) {
+				t.Errorf("assignRaceStartingPointBonuses() = %v, want %v", tt.args.planet, tt.want)
 			}
 		})
 	}
 }
 
-func Test_getStartingStarbaseDesigns(t *testing.T) {
+func Test_universeGenerator_getStartingStarbaseDesigns(t *testing.T) {
 	tests := []struct {
 		name   string
 		player *Player

@@ -741,7 +741,7 @@ func (fleet *Fleet) reduceCargoToMax() Cargo {
 
 		// reduce each mineral by a percent
 		percentToKeep := 1 / (float64(totalMinerals) / float64(remainingCapacity))
-		minerals = minerals.MultiplyFloat64(percentToKeep)
+		minerals = minerals.MultiplyFloat64(percentToKeep, math.Floor)
 		fleet.Cargo = Cargo{
 			minerals.Ironium,
 			minerals.Boranium,
