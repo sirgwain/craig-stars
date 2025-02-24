@@ -41,8 +41,7 @@ func Test_aiPlayer_ProcessTurn(t *testing.T) {
 			// process a turn
 			ai := NewAIPlayer(game, &cs.StaticTechStore, player, universe.GetPlayerMapObjects(player.Num))
 			if err := ai.ProcessTurn(); err != nil {
-				t.Logf("ai turn processing failed: \n%v", err)
-				t.FailNow()
+				t.Fatalf("ai turn processing failed: \n%v", err)
 			}
 			ai.SubmittedTurn = true
 
