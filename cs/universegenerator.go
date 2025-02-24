@@ -469,7 +469,7 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		diffHighest := s[2] - s[0]
 		if diffHighest != 0 && extraPoints > 1 {
 			amtToAdd := Min(extraPoints, (diffHighest/kTPerPoint)*2)
-			surf = surf.AddNum(lowestType), amtToAdd*kTPerPoint/2)
+			surf = surf.AddNum(lowestType, amtToAdd*kTPerPoint/2)
 			surf = surf.AddNum(surf.GetTypeFromAmount(s[1]), amtToAdd*kTPerPoint/2)
 			extraPoints -= amtToAdd
 		}
