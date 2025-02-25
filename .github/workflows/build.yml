@@ -19,7 +19,7 @@ env:
 jobs:
   test_backend:
     # don't run job on draft PRs unless manually triggered
-    if: ${{github.event_name != 'pull-request' || github.event.pull_request.draft == 'false' }}
+    if: ${{ github.event_name != 'pull-request' || github.event.pull_request.draft == 'false' }}
     name: Run backend Go tests
     strategy:
       matrix:
@@ -77,7 +77,7 @@ jobs:
 
   build:
     name: Build app and test frontend
-    if: ${{github.event_name != 'pull-request' || github.event.pull_request.draft == 'false' }}
+    if: ${{ github.event_name != 'pull-request' || github.event.pull_request.draft == 'false' }}
     strategy:
       matrix:
         os: [ubuntu-latest]
