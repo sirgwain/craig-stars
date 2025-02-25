@@ -58,8 +58,7 @@ func Test_parseJSONDiff(t *testing.T) {
 			name: "2 different planets",
 			got:  cs.NewPlanet().WithMines(40),
 			want: cs.NewPlanet().WithNum(20),
-			wantDiff: `// Test_parseJSONDiff/2_different_planets
-{
+			wantDiff: `{
 	"mines": {"changed": [40, 0]},
 	"num": {"changed": [0, 20]}
 }
@@ -70,6 +69,7 @@ func Test_parseJSONDiff(t *testing.T) {
 
 	for _, tt := range tt {
 		t.Run(tt.name, func(t *testing.T) {
+			tt.wantDiff = "// " + t.Name() + "\n" + tt.wantDiff
 			gotJSON, err := json.MarshalIndent(tt.got, "", "\t")
 			if err != nil {
 				t.Fatalf("could not marshal got to JSON: \n%v", err)

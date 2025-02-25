@@ -57,7 +57,7 @@ jobs:
 
       - name: Find and merge failing JSON diff files
         run: mage merge_temp_json
-        if: steps.go-tests.outcome == 'failure'
+        if: always()
 
       - name: Upload JSON diffs to cloud
         uses: actions/upload-artifact@v4
@@ -67,7 +67,7 @@ jobs:
           if-no-files-found: ignore
           overwrite: true
           retention-days: 14
-        if: steps.go-tests.outcome == 'failure'
+        if: always()
 
       - name: Produce Test Summary
         uses: test-summary/action@v2

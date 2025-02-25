@@ -114,6 +114,7 @@ func AppendFile[S ~string | ~[]byte](path string, data S) error {
 // FileExists reports whether a file at path exists or not.
 // It does not actually open the file or modify it in any way.
 func FileExists(path string) bool {
+	// This is the idiosyncratic check for file existence
 	_, err := os.Stat(path)
 	return !errors.Is(err, os.ErrNotExist)
 }
