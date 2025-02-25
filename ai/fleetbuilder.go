@@ -41,32 +41,44 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 	// 	Str("Purpose", string(f.purpose)).
 	// 	Msgf("%d fleets at location", len(fleets))
 
-	// see if we have enough of what we need
+	// check existing idle ships to see if we have enough already lying around
 	fleetsToMerge := []*cs.Fleet{}
 	for i, fleet := range fleets {
 		if fleet.GetTag("purpose") != string(f.purpose) {
+			// fleet's current purpose doesn't match our desired purpose;
+			// assume it's doing something else
 			continue
 		}
-		foundShip := false
-		if len(fleet.Tokens) == 1 {
-			design := ai.GetDesign(fleet.Tokens[0].DesignNum)
-			if design != nil {
-				// if we need dthis design, add it to our fleets to merge
-				if requiredQuantity, found := required[design.Purpose]; found {
-					required[design.Purpose] = requiredQuantity - fleet.Tokens[0].Quantity
-					fleetsToMerge = append(fleetsToMerge, fleet)
-					foundShip = true
-					// log.Debug().
-					// 	Int64("GameID", ai.GameID).
-					// 	Int("PlayerNum", ai.Num).
-					// 	Str("Purpose", string(f.purpose)).
-					// 	Msgf("tapping %s at planet %d for %s", fleet.Name, fleet.OrbitingPlanetNum, design.Purpose)
 
-					// we've found all the ships we need for this requirement, remove it
-					if required[design.Purpose] <= 0 {
-						delete(required, design.Purpose)
-					}
-				}
+		if len(fleet.Tokens) != 1 {
+			// fleet has multiple token types, likely indicating
+			// an already partially built fleet
+			continue
+		}
+
+		foundShip := false
+		design := ai.GetDesign(fleet.Tokens[0].DesignNum)
+		if design == nil {
+			// no design; skip
+			continue
+		}
+
+		// if we need this design, add it to our fleets to merge slice
+		// TODO: Consider imposing a distance/ETA requirement to this?
+		if requiredQuantity, found := required[design.Purpose]; found {
+			required[design.Purpose] = requiredQuantity - fleet.Tokens[0].Quantity
+			fleetsToMerge = append(fleetsToMerge, fleet)
+			foundShip = true
+
+			// log.Debug().
+			// 	Int64("GameID", ai.GameID).
+			// 	Int("PlayerNum", ai.Num).
+			// 	Str("Purpose", string(f.purpose)).
+			// 	Msgf("tapping %s at planet %d for %s", fleet.Name, fleet.OrbitingPlanetNum, design.Purpose)
+
+			// we've found all the ships we need for this requirement, remove it
+			if required[design.Purpose] <= 0 {
+				delete(required, design.Purpose)
 			}
 		}
 		if !foundShip {

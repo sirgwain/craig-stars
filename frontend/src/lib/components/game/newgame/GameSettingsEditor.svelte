@@ -2,9 +2,14 @@
 	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import { Densities, GameStartModes, PlayerPositionses, Sizes } from '$lib/types/Game';
-	import { GameStartModeNormal, type GameSettings } from '$lib/types/cs';
-	import { startCase } from 'lodash-es';
+	import type { GameSettings } from '$lib/types/cs';
+	import {
+		Densities,
+		GameStartModeFullNames,
+		GameStartModes,
+		PlayerPositionses,
+		Sizes
+	} from '$lib/types/Game';
 	import PrivateGameLink from './PrivateGameLink.svelte';
 
 	type Props = {
@@ -43,8 +48,8 @@
 		name="startMode"
 		options={GameStartModes}
 		bind:value={settings.startMode}
-		typeTitle={(value) => (!value || value === GameStartModeNormal ? 'Normal' : startCase(value))}
+		typeTitle={(t) => GameStartModeFullNames[t]}
 		showEmpty={true}
-		tooltip={`Setting mode to Max will create a game with all tech levels, max minerals, etc`}
+		tooltip={`Setting mode to Max will create a game with maxed tech levels, minerals, etc.`}
 	/>
 </div>

@@ -40,7 +40,7 @@ type Rules struct {
 	PopulationOvercrowdResourceMax     float64                             `json:"populationOvercrowdResourceMax"`
 	PopulationScannerError             float64                             `json:"populationScannerError"`
 	PRTSpecs                           map[PRT]PRTSpec                     `json:"prtSpecs"`
-	RaceStartingPoints                 int                                 `json:"raceStartingPoints"`
+	RaceStartingPoints                 int                                 `json:"raceStartingPoints"` // TODO: Change this into a "handicap" system with bonuses/penalties per PRT/LRT
 	RadiatingImmune                    int                                 `json:"radiatingImmune"`
 	RandomArtifactResearchBonusRange   [2]int                              `json:"randomArtifactResearchBonusRange"`
 	RandomCometMinYear                 int                                 `json:"randomCometMinYear"`
@@ -72,7 +72,7 @@ type Rules struct {
 }
 
 type UniverseGenerationRules struct {
-	HabDropoffRange                           Hab                           `json:"habDropoffRange"` // Controls up to how many clicks (inclusive) away from MinHab & MaxHab do planet habs become linearly less likely
+	HabDropoffRange                           Hab                           `json:"habDropoffRange"` // Controls up to how many clicks (inclusive) away from MinHab & MaxHab planet habs become linearly less likely
 	HighRadMineralConcentrationBonusThreshold int                           `json:"highRadMineralConcentrationBonusThreshold"`
 	LimitMineralConcentration                 int                           `json:"limitMineralConcentration"`
 	MaxExtraWorldDistance                     int                           `json:"maxExtraWorldDistance"`
@@ -87,7 +87,7 @@ type UniverseGenerationRules struct {
 	MinMineralConcentration                   int                           `json:"minMineralConcentration"`
 	MinStartingMineralConcentration           int                           `json:"minStartingMineralConcentration"`
 	MinStartingMineralSurface                 int                           `json:"minStartingMineralSurface"`
-	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem"`
+	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem"` // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT
 	StartingYear                              int                           `json:"startingYear"`
 	WormholeMinPlanetDistance                 int                           `json:"wormholeMinPlanetDistance"`
 }
@@ -330,7 +330,7 @@ func NewRulesWithSeed(seed int64) Rules {
 				SpendLeftoverPointsOnFactories:             5,
 				SpendLeftoverPointsOnDefenses:              10,
 				SpendLeftoverPointsOnMineralConcentrations: 3,
-				SpendLeftoverPointsOnSurfaceMinerals:       10, // special case - indicates kT per point leftover
+				SpendLeftoverPointsOnSurfaceMinerals:       10, // special case; denotes minerals per point
 			},
 			StartingYear:              2400,
 			WormholeMinPlanetDistance: 30,
@@ -354,15 +354,16 @@ func NewRulesWithSeed(seed int64) Rules {
 		StargateMaxHullMassFactor:          5,
 		TechTradeChance:                    .5, // 50% chance of tech trading per level
 		FleetSafeSpeedExplosionChance:      .1, // 10% chance of losing a ship
-		RadiatingImmune:                    85, // hab center of > 85 are immune to radating damage
+		// TODO: Make this part of the TechHullComponent
+		RadiatingImmune: 85, // hab center of > 85 are immune to radating damage
 		RandomEventChances: map[RandomEvent]float64{
 			RandomEventComet:           .05, // 1 in 20 chance of a planet being struck by a comet in a given turn
 			RandomEventMineralDeposit:  .05,
 			RandomEventPlanetaryChange: .05,
-			RandomEventAncientArtifact: .33, // 1 in 3 planets have random artifacts
+			RandomEventAncientArtifact: 1.0 / 3, // 1 in 3 planets have random artifacts
 		},
 		AcquirablePartTradeChanceBase: 0.005, // 0.5% chance per item in fleet
-		AcquirablePartTradeItemMax:    25,    // 25 items max per trade instance
+		AcquirablePartTradeItemMax:    25,    // 25 items max per trade instance (12.5% chance)
 		RandomCometMinYear:            10,
 		RandomCometMinYearPlayerWorld: 20,
 		CometStatsBySize: map[CometSize]CometStats{

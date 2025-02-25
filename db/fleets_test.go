@@ -53,7 +53,7 @@ func TestGetFleet(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer()
-	design := cs.NewShipDesign(player, 1).WithHull(cs.Scout.Name)
+	design := cs.NewShipDesign(player.Num, 1).WithHull(cs.Scout.Name)
 	c.createTestShipDesign(player, design)
 
 	fleet := cs.Fleet{

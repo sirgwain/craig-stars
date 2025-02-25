@@ -1028,12 +1028,12 @@ func (t *turnGenerator) moveFleet(fleet *Fleet) {
 	}
 }
 
-// kill off colonists on fleets from radiation poisoning
-// https://wiki.starsautohost.org/wiki/Radiating_Ramscoop
-// DeathRate/Year % = int ((86 - C)/2)
-// where C is the center of your Rad-Hab-Range (mR)
-
+// kill off colonists on fleets from radiation poisoning.
+// TODO: Make this part of the TechHullComponent
 func (t *turnGenerator) fleetRadiatingEngineDieoff() {
+	// https://wiki.starsautohost.org/wiki/Radiating_Ramscoop
+	// DeathRate/Year % = int ((86 - C)/2)
+	// where C is the center of your Rad Hab range (mR)
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
@@ -1044,7 +1044,6 @@ func (t *turnGenerator) fleetRadiatingEngineDieoff() {
 			continue
 		}
 
-		// check if this player's freighters kill off pop
 		player := t.game.getPlayer(fleet.PlayerNum)
 		if player.Race.IsImmune(Rad) {
 			// rad immune races could care less about engine radiation
@@ -1052,20 +1051,23 @@ func (t *turnGenerator) fleetRadiatingEngineDieoff() {
 		}
 
 		habCenter := player.Race.Spec.HabCenter
-		deathRate := math.Max(0, float64(t.game.Rules.RadiatingImmune+1)-float64(habCenter.Rad)) / 2 / 100
-
-		if deathRate > 0 {
-			killed := Max(1, int(deathRate*float64(fleet.Cargo.Colonists)))
-			fleet.Cargo.Colonists = Max(0, fleet.Cargo.Colonists-killed)
-
-			// Message the player
-			messager.fleetRadiatingEngineDieoff(player, fleet, killed*100)
-
-			t.log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Msgf("fleet radiation dieoff")
+		clicksAway := Max(0, t.game.Rules.RadiatingImmune-habCenter.Rad)
+		if clicksAway <= 0 {
+			// race has high enough of a hab center to be unaffected by radiation
+			continue
 		}
+		deathRate := math.Round(float64(clicksAway)/2) / 100
+
+		killed := Max(1, int(deathRate*float64(fleet.Cargo.Colonists)))
+		fleet.Cargo.Colonists -= killed
+
+		// Message the player
+		messager.fleetRadiatingEngineDieoff(player, fleet, killed*100)
+
+		t.log.Debug().
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Msgf("fleet radiation dieoff")
 
 	}
 }
@@ -1400,7 +1402,7 @@ func (t *turnGenerator) remoteMine(fleet *Fleet, player *Player, planet *Planet,
 	numMines := fleet.Spec.MiningRate
 	mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
 	planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
-	planet.MineYears = planet.MineYears.AddInt(numMines)
+	planet.MineYears = planet.MineYears.AddToAll(numMines)
 	planet.reduceMineralConcentration(&t.game.Rules)
 	planet.MarkDirty()
 
@@ -1496,7 +1498,7 @@ func (t *turnGenerator) planetProduction() error {
 			}
 			if result.reset {
 				// planet was reset with a genesis device
-				planet.randomize(&t.game.Rules)
+				planet.randomize(&t.game.Rules, t.game.StartMode == GameStartModeAccBBS)
 				planet.Mines = 0
 				planet.Factories = 0
 				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)

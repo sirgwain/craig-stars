@@ -267,7 +267,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   humanoids.Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Scout.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -300,7 +300,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   humanoids.Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Scout.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -343,7 +343,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   humanoids.Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(MediumFreighter.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -377,7 +377,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   NewRace().WithLRT(RS).WithSpec(&rules).Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Destroyer.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -422,7 +422,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithSpec(&rules).Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Battleship.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
@@ -462,7 +462,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithPRT(IS).WithSpec(&rules).Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Battleship.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
@@ -502,7 +502,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithSpec(&rules).Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Battleship.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
@@ -542,7 +542,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithSpec(&rules).Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Battleship.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
@@ -581,7 +581,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithSpec(&rules).Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Battleship.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
@@ -620,7 +620,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   humanoids.Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(MiniBomber.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: AlphaDrive8.Name, HullSlotIndex: 1, Quantity: 1},
@@ -660,7 +660,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{4, 0, 0, 0, 0, 0},
 				raceSpec:   pps.Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(SpaceStation.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -708,7 +708,7 @@ func TestComputeShipDesignSpec(t *testing.T) {
 			args: args{
 				techLevels: TechLevel{4, 0, 0, 0, 0, 0},
 				raceSpec:   pps.Spec,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(SpaceStation.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: "ERROR 412: I'M A TEAPOT", HullSlotIndex: 420, Quantity: 69},
@@ -943,7 +943,7 @@ func TestShipDesignSpec_getJamOrComputerBonus(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		design := NewShipDesign(testPlayer(), 1).WithHull("Nubian").WithSpec(&rules, testPlayer())
+		design := NewShipDesign(testPlayer().Num, 1).WithHull("Nubian").WithSpec(&rules, testPlayer())
 		design.Spec.TorpedoBonus = tt.fields.prevBonus
 		design.Spec.TorpedoJamming = tt.fields.prevBonus
 		design.Spec.BeamDefense = tt.fields.prevBonus
