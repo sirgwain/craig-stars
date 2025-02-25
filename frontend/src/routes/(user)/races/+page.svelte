@@ -83,7 +83,11 @@
 						{format(parseJSON(row.createdAt), 'E, MMM do yyyy hh:mm aaa')}
 					{/if}
 				{:else if column.key == 'action'}
-					<button onclick={() => removeItem(row)} type="button"
+					<button
+						onclick={() => removeItem(row)}
+						type="button"
+						data-type="delete-button"
+						data-id={row.id}
 						><Icon
 							class="h-10 align-middle hover:stroke-primary-focus stroke-error"
 							src={XCircle}

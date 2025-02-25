@@ -69,9 +69,9 @@ func TestCost_HighestType(t *testing.T) {
 		ranking int
 	}
 	tests := []struct {
-		name string
-		args args
-		want CostType
+		name     string
+		args     args
+		wantType CostType
 	}{
 		{"Highest Amount", args{Cost{1, 2, 3, 4}, 1}, Resources},
 		{"4 way tie", args{Cost{1, 1, 1, 1}, 1}, Ironium},
@@ -82,8 +82,12 @@ func TestCost_HighestType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.args.cost.HighestType(tt.args.ranking); got != tt.want {
-				t.Errorf("Cost.HighestType() = %v, want %v", got, tt.want)
+			gotType, gotAmount := tt.args.cost.HighestType(tt.args.ranking)
+			if gotType != tt.wantType {
+				t.Errorf("Cost.HighestType() returned CostType %v, want %v", gotType, tt.wantType)
+			}
+			if wantAmount := tt.args.cost.GetAmount(tt.wantType); gotAmount != wantAmount {
+				t.Errorf("Cost.HighestType() returned amount %v, want %v", gotAmount, wantAmount)
 			}
 		})
 	}

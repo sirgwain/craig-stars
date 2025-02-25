@@ -311,6 +311,10 @@ export const TransportActionSetAmountTo: WaypointTaskTransportAction = 'SetAmoun
  * This order is always carried out to the best of the fleet’s ability that turn but does not prevent the fleet from moving on.
  */
 export const TransportActionSetWaypointTo: WaypointTaskTransportAction = 'SetWaypointTo';
+/**
+ * the purpose for a fleet's existence (ie what it's supposed to be doing),
+ * exported to allow the AI to plan ship movements
+ */
 export type FleetPurpose = string;
 export const FleetPurposeNone: FleetPurpose = '';
 export const FleetPurposeScout: FleetPurpose = 'Scout';
@@ -358,7 +362,6 @@ export interface Game extends DBObject {
 	computerPlayersFormAlliances?: boolean;
 	publicPlayerScores?: boolean;
 	maxMinerals?: boolean;
-	acceleratedPlay?: boolean;
 	startMode?: GameStartMode;
 	quickStartTurns?: number /* int */;
 	openPlayerSlots?: number /* int */;
@@ -382,7 +385,7 @@ export interface NewGamePlayer {
 	race?: Race;
 }
 /**
- * The settings for a new game, only used during game setup
+ * The settings for a new game, used during game setup
  */
 export interface GameSettings {
 	name: string;
@@ -395,7 +398,6 @@ export interface GameSettings {
 	computerPlayersFormAlliances: boolean;
 	publicPlayerScores: boolean;
 	maxMinerals: boolean;
-	acceleratedPlay?: boolean;
 	startMode: GameStartMode;
 	victoryConditions: VictoryConditions;
 	players: NewGamePlayer[];
@@ -437,6 +439,7 @@ export const PlayerPositionsFarther: PlayerPositions = 'Farther';
 export const PlayerPositionsDistant: PlayerPositions = 'Distant';
 export type GameStartMode = string;
 export const GameStartModeNormal: GameStartMode = '';
+export const GameStartModeAccBBS: GameStartMode = 'AccBBS';
 export const GameStartModeMax: GameStartMode = 'Max';
 export type GameState = string;
 export const GameStateSetup: GameState = 'Setup';
@@ -553,7 +556,8 @@ export interface ScoreIntel {
 
 /**
  * Every object stored in the database has an ID and a create/update timestamp.
- * Though the cs package doesn't deal with the database, they are still part of the models
+ * Though the cs package doesn't deal with the database, this still has to be included to
+ * allow serialization.
  */
 export interface DBObject {
 	id?: number /* int64 */;
@@ -561,7 +565,7 @@ export interface DBObject {
 	updatedAt?: string /* RFC3339 */;
 }
 /**
- * A GameObject is a database object that is associated with a game
+ * A GameObject is a database object that is associated with a game.
  */
 export interface GameDBObject {
 	id?: number /* int64 */;
@@ -570,8 +574,8 @@ export interface GameDBObject {
 	updatedAt?: string /* RFC3339 */;
 }
 /**
- * Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum for player owned
- * map objects), as well as a Position in space.
+ * Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum
+ * for player-owned map objects), as well as a Position in space.
  */
 export interface MapObject {
 	type: MapObjectType;
@@ -1247,6 +1251,7 @@ export const ResearchCostExtra: ResearchCostLevel = 'Extra';
 export const ResearchCostStandard: ResearchCostLevel = 'Standard';
 export const ResearchCostLess: ResearchCostLevel = 'Less';
 export type SpendLeftoverPointsOn = string;
+export const SpendLeftoverPointsOnNone: SpendLeftoverPointsOn = '';
 export const SpendLeftoverPointsOnSurfaceMinerals: SpendLeftoverPointsOn = 'SurfaceMinerals';
 export const SpendLeftoverPointsOnMineralConcentrations: SpendLeftoverPointsOn =
 	'MineralConcentrations';
@@ -2323,6 +2328,9 @@ export interface Universe {
  * The UniverseGenerator generates a new universe based on some game settings and players.
  */
 export type UniverseGenerator = unknown;
+/**
+ * A universe generator, used to generate starting universes for new games.
+ */
 
 //////////
 // source: user.go

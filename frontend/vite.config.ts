@@ -13,8 +13,7 @@ export default defineConfig(({ mode }) => ({
 	test: {
 		reporters: process.env.CI ? ['junit', 'github-actions'] : 'default',
 		include: ['src/**/*.{test,spec}.{js,ts}'],
-		environment: 'jsdom',
-		setupFiles: ['e2e/setup.ts']
+		environment: 'jsdom'
 	},
 	resolve: {
 		conditions: mode === 'test' ? ['browser'] : []

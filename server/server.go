@@ -76,11 +76,14 @@ func Start(config config.Config) error {
 	var authLogger = logger.Func(func(format string, args ...interface{}) { log.Info().Msgf(format, args...) })
 
 	cookieDuration := time.Hour * 24
-	duration, err := time.ParseDuration(config.Discord.CookieDuration)
-	if err != nil {
-		log.Error().Err(err).Msgf("failed to load cookie duration from config %s", config.Discord.CookieDuration)
-	} else {
-		cookieDuration = duration
+	if config.Discord.CookieDuration != "" {
+		duration, err := time.ParseDuration(config.Discord.CookieDuration)
+		if err != nil {
+			log.Error().Err(err).Msgf("failed to load cookie duration from config %s", config.Discord.CookieDuration)
+		} else {
+			cookieDuration = duration
+
+		}
 	}
 	issuer := "craig-stars"
 	options := auth.Opts{
@@ -467,8 +470,7 @@ func Start(config config.Config) error {
 
 	// Run the httpServer
 	log.Info().Msg("starting http server")
-	err = httpServer.ListenAndServe()
-	if err != nil && err != http.ErrServerClosed {
+	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal().Err(err).Msg("server closed")
 	}
 

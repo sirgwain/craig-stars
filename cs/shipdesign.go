@@ -134,18 +134,20 @@ const (
 	ShipDesignPurposeStarterColony         ShipDesignPurpose = "StarterColony"
 )
 
-func NewShipDesign(player *Player, num int) *ShipDesign {
-	return &ShipDesign{PlayerNum: player.Num, Num: num, Slots: []ShipDesignSlot{}}
+func NewShipDesign(playerNum, num int) *ShipDesign {
+	return &ShipDesign{PlayerNum: playerNum, Num: num, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {
 	sd.Name = name
 	return sd
 }
+
 func (sd *ShipDesign) WithHull(hull string) *ShipDesign {
 	sd.Hull = hull
 	return sd
 }
+
 func (sd *ShipDesign) WithSlots(slots []ShipDesignSlot) *ShipDesign {
 	sd.Slots = slots
 	return sd
@@ -155,8 +157,14 @@ func (sd *ShipDesign) WithPurpose(purpose ShipDesignPurpose) *ShipDesign {
 	sd.Purpose = purpose
 	return sd
 }
+
 func (sd *ShipDesign) WithHullSetNumber(num int) *ShipDesign {
 	sd.HullSetNumber = num
+	return sd
+}
+
+func (sd *ShipDesign) WithCannotDelete(cannotDelete bool) *ShipDesign {
+	sd.CannotDelete = cannotDelete
 	return sd
 }
 
@@ -729,7 +737,7 @@ type partCache = cache[TechTag, *TechHullComponent]
 func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
 	techStore := rules.techs
-	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
+	design := NewShipDesign(player.Num, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
 	tc := NewTechComparer(rules, player)
 
 	// fuel depots & starter colonies are empty
@@ -958,7 +966,7 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 	//* DISCLAIMER FOR CODE (RE)VIEWERS: THIS IS A *VERY LONG FUNCTION*. Use the hashtags (#) to jump between sections.
 	techStore := rules.techs
-	design := NewShipDesign(player, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
+	design := NewShipDesign(player.Num, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
 	tc := NewTechComparer(rules, player)
 
 	//@ (#) COUNTERS & CONSTANTS

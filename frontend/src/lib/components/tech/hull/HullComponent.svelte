@@ -134,6 +134,8 @@
 			}
 		}}
 		class="w-full h-full"
+		data-type="hull-component-button"
+		data-id={shipDesignSlot?.hullComponent}
 	>
 		<div class="flex flex-col justify-between w-full h-full">
 			{#if shipDesignSlot}
@@ -158,6 +160,8 @@
 		class="btn btn-sm px-1 z-30"
 		disabled={capacity === shipDesignSlot?.quantity}
 		onclick={() => shipDesignSlot?.quantity && shipDesignSlot.quantity++}
+		data-type="increase-hull-component-button"
+		data-id={shipDesignSlot?.hullComponent}
 	>
 		<Icon src={Plus} size="24" class="hover:stroke-accent" />
 	</button>
@@ -174,10 +178,18 @@
 				}
 			}
 		}}
+		data-type="decrease-hull-component-button"
+		data-id={shipDesignSlot?.hullComponent}
 	>
 		<Icon src={Minus} size="24" class="hover:stroke-accent" />
 	</button>
-	<button type="button" class="btn btn-sm px-1 z-30" onclick={onDelete}>
+	<button
+		type="button"
+		class="btn btn-sm px-1 z-30"
+		onclick={onDelete}
+		data-type="delete-hull-component-button"
+		data-id={shipDesignSlot?.hullComponent}
+	>
 		<Icon src={Trash} size="24" class="hover:stroke-accent" />
 	</button>
 </div>

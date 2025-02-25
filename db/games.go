@@ -26,7 +26,6 @@ type Game struct {
 	ComputerPlayersFormAlliances              bool               `json:"computerPlayersFormAlliances,omitempty"`
 	PublicPlayerScores                        bool               `json:"publicPlayerScores,omitempty"`
 	MaxMinerals                               bool               `json:"maxMinerals,omitempty"`
-	AcceleratedPlay                           bool               `json:"acceleratedPlay,omitempty"`
 	StartMode                                 cs.GameStartMode   `json:"startMode,omitempty"`
 	QuickStartTurns                           int                `json:"quickStartTurns,omitempty"`
 	OpenPlayerSlots                           int                `json:"openPlayerSlots,omitempty"`
@@ -152,7 +151,6 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 		g.computerPlayersFormAlliances AS 'game.computerPlayersFormAlliances',
 		g.publicPlayerScores AS 'game.publicPlayerScores',
 		g.maxMinerals AS 'game.maxMinerals',
-		g.acceleratedPlay AS 'game.acceleratedPlay',
 		g.startMode AS 'game.startMode',
 		g.quickStartTurns AS 'game.quickStartTurns',
 		g.openPlayerSlots AS 'game.openPlayerSlots',
@@ -350,7 +348,6 @@ func (c *client) CreateGame(game *cs.Game) error {
 		computerPlayersFormAlliances,
 		publicPlayerScores,
 		maxMinerals,
-		acceleratedPlay,
 		startMode,
 		quickStartTurns,
 		openPlayerSlots,
@@ -389,7 +386,6 @@ func (c *client) CreateGame(game *cs.Game) error {
 		:computerPlayersFormAlliances,
 		:publicPlayerScores,
 		:maxMinerals,
-		:acceleratedPlay,
 		:startMode,
 		:quickStartTurns,
 		:openPlayerSlots,
@@ -464,7 +460,6 @@ func (c *client) UpdateGame(game *cs.Game) error {
 		computerPlayersFormAlliances = :computerPlayersFormAlliances,
 		publicPlayerScores = :publicPlayerScores,
 		maxMinerals = :maxMinerals,
-		acceleratedPlay = :acceleratedPlay,
 		startMode = :startMode,
 		quickStartTurns = :quickStartTurns,
 		openPlayerSlots = :openPlayerSlots,

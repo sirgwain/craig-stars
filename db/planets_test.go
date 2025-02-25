@@ -152,7 +152,7 @@ func TestGetPlanetByNum(t *testing.T) {
 		return
 	}
 
-	design := cs.NewShipDesign(player, 1).WithHull(cs.SpaceStation.Name)
+	design := cs.NewShipDesign(player.Num, 1).WithHull(cs.SpaceStation.Name)
 	c.createTestShipDesign(player, design)
 
 	fleet := cs.Fleet{

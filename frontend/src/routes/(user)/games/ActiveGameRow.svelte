@@ -39,6 +39,8 @@
 			onclick={onDelete}
 			class="btn btn-error btn-sm border-l-secondary rounded-r-md"
 			title="Delete Game"
+			data-type="delete-button"
+			data-id={game.id}
 		>
 			<Icon src={XMark} size="16" class="hover:stroke-accent" />
 		</button>

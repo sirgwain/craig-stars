@@ -33,7 +33,6 @@ export class FullGame implements GameWithPlayers {
 	computerPlayersFormAlliances = false;
 	publicPlayerScores = false;
 	maxMinerals = false;
-	acceleratedPlay = false;
 	startMode = GameStartModeNormal;
 	year = 2400;
 	victoryConditions: VictoryConditions = {

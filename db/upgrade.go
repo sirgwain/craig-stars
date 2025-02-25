@@ -51,36 +51,43 @@ func (tx *client) ensureUpgrade() error {
 		return err
 	}
 
-	if version.Current < LATEST_VERSION {
-		u := upgrade{tx: tx}
-		for current := version.Current; current < LATEST_VERSION; current++ {
-			log.Info().Msgf("upgrading database data from v%d to v%d", current, current+1)
-			// check each version and call the upgrade functionality
-			switch current {
-			case 0:
-				err = u.initStarterDB()
-				err = u.upgrade1()
-			case 1:
-				err = u.upgrade2()
-			case 2:
-				err = u.upgrade3()
-			case 3:
-				err = u.upgrade4()
-			case 4:
-				err = u.upgrade5()
-			}
+	if version.Current >= LATEST_VERSION {
+		// already at latest version; no need to upgrade further
+		return nil
+	}
 
-			// check for any issues upgrading
-			if err != nil {
-				return fmt.Errorf("upgrade database %w", err)
+	u := upgrade{tx: tx}
+	for current := version.Current; current < LATEST_VERSION; current++ {
+		log.Info().Msgf("upgrading database data from v%d to v%d", current, current+1)
+		// check each version and call the upgrade functionality
+		switch current {
+		case 0:
+			//? Maybe make the starter database version -1?
+			// That would make the switch marginally cleaner
+			if u.initStarterDB(); err != nil {
+				return fmt.Errorf("initializing starter database failed: \n%w", err)
 			}
+			err = u.upgrade1()
+		case 1:
+			err = u.upgrade2()
+		case 2:
+			err = u.upgrade3()
+		case 3:
+			err = u.upgrade4()
+		case 4:
+			err = u.upgrade5()
 		}
 
-		// update the version to the latest so our one time upgrade only runs once
-		version.Current = LATEST_VERSION
-		if err = tx.updateVersion(version); err != nil {
-			return fmt.Errorf("update version %w", err)
+		// check for any issues upgrading
+		if err != nil {
+			return fmt.Errorf("upgrading database from v%d to v%d failed: \n%w", current, current+1, err)
 		}
+	}
+
+	// update the version to the latest so our one time upgrade only runs once
+	version.Current = LATEST_VERSION
+	if err = tx.updateVersion(version); err != nil {
+		return fmt.Errorf("updating to latest version failed: \n%w", err)
 	}
 
 	return nil
@@ -117,36 +124,37 @@ func (u *upgrade) upgradeGames(upgradeGame func(fg *cs.FullGame) error) error {
 
 	games, err := u.tx.GetGames()
 	if err != nil {
-		return err
+		return fmt.Errorf("error while getting all games: \n%w", err)
 	}
 
 	for _, game := range games {
 		fg, err := u.tx.GetFullGame(game.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("retrieving fullGame with ID %d failed: \n%w", game.ID, err)
 		}
 
 		// call the passed in function
 		if err := upgradeGame(fg); err != nil {
-			return err
+			return fmt.Errorf("upgrading fullGame with ID %d failed: \n%w", game.ID, err)
 		}
 
 		// save changes to the DB
 		if err := u.tx.UpdateFullGame(fg); err != nil {
-			return err
+			return fmt.Errorf("updating fullGame with ID %d failed: \n%w", game.ID, err)
+
 		}
 	}
 	return nil
 }
 
 func (u *upgrade) initStarterDB() error {
-	log.Info().Msg("initializing starter database with admin user, no password")
+	log.Info().Msg("initializing starter database with admin user, 'admin' password")
 	user, err := cs.NewUser("admin", "admin", "", cs.RoleAdmin)
 	if err != nil {
 		return err
 	}
 
-	// create the admin user, no password
+	// create the admin user, 'admin' password
 	if err := u.tx.CreateUser(user); err != nil {
 		return err
 	}

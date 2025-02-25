@@ -32,6 +32,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostLess,
 			Biotechnology: cs.ResearchCostLess,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnMineralConcentrations,
 	},
 	{
 		Name:       "SS",
@@ -50,7 +51,7 @@ var Races []cs.Race = []cs.Race{
 		GrowthRate:    15,
 		PopEfficiency: 8,
 		FactoryOutput: 15,
-		FactoryCost:   10,
+		FactoryCost:   9,
 		NumFactories:  25,
 		MineOutput:    10,
 		MineCost:      5,
@@ -64,6 +65,7 @@ var Races []cs.Race = []cs.Race{
 			Biotechnology: cs.ResearchCostExtra,
 		},
 		TechsStartHigh: true,
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnMineralConcentrations,
 	},
 	{
 		Name:       "WM",
@@ -97,6 +99,7 @@ var Races []cs.Race = []cs.Race{
 			Biotechnology: cs.ResearchCostExtra,
 		},
 		TechsStartHigh: true,
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnSurfaceMinerals,
 	},
 	{
 		Name:       "CA",
@@ -130,6 +133,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostExtra,
 			Biotechnology: cs.ResearchCostLess,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnFactories,
 	},
 	{
 		Name:       "IS",
@@ -161,6 +165,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostStandard,
 			Biotechnology: cs.ResearchCostStandard,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnFactories,
 	},
 	{
 		Name:       "SD",
@@ -193,6 +198,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostStandard,
 			Biotechnology: cs.ResearchCostStandard,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnDefenses,
 	},
 	{
 		Name:       "PP",
@@ -224,6 +230,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostExtra,
 			Biotechnology: cs.ResearchCostExtra,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnMines,
 	},
 	{
 		Name:       "IT",
@@ -256,6 +263,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostStandard,
 			Biotechnology: cs.ResearchCostStandard,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnSurfaceMinerals,
 	},
 	{
 		Name:       "AR",
@@ -281,6 +289,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostExtra,
 			Biotechnology: cs.ResearchCostExtra,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnMineralConcentrations,
 	},
 	// humanoids
 	{
@@ -314,6 +323,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostStandard,
 			Biotechnology: cs.ResearchCostStandard,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnSurfaceMinerals,
 	},
 }
 
@@ -348,6 +358,7 @@ var CheaterRaces []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostStandard,
 			Biotechnology: cs.ResearchCostExtra,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnMineralConcentrations,
 	},
 	{
 		Name:              "Space Ork",
@@ -374,6 +385,7 @@ var CheaterRaces []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostExtra,
 			Biotechnology: cs.ResearchCostExtra,
 		},
+		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnMineralConcentrations,
 	},
 }
 

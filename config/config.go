@@ -9,42 +9,72 @@ import (
 )
 
 type Config struct {
-	Database struct {
-		Recreate              bool   `yaml:"Recreate,omitempty"`
-		Filename              string `yaml:"Filename,omitempty"`
-		ReadConnectionParams  string `yaml:"ReadConnectionParams"`
-		WriteConnectionParams string `yaml:"WriteConnectionParams"`
-		UsersFilename         string `yaml:"UsersFilename,omitempty"`
-		DebugLogging          bool   `yaml:"DebugLogging,omitempty"`
-		SkipUpgrade           bool   `yaml:"SkipUpgrade,omitempty"`
-	}
-	Auth struct {
-		Secret       string `yaml:"Secret,omitempty"`
-		URL          string `yaml:"URL,omitempty"`
-		DisableXSRF  bool   `yaml:"DisableXSRF,omitempty"`
-		SecureCookie bool   `yaml:"SecureCookie,omitempty"`
-	}
-	Discord struct {
-		Enabled               bool   `yaml:"Enabled,omitempty"`
-		ClientID              string `yaml:"ClientID,omitempty"`
-		ClientSecret          string `yaml:"ClientSecret,omitempty"`
-		CookieDuration        string `yaml:"CookieDuration,omitempty"`
-		WebhookNotify         bool   `yaml:"WebhookNotify,omitempty"`
-		WebhookID             string `yaml:"WebhookID,omitempty"`
-		WebhookToken          string `yaml:"WebhookToken,omitempty"`
-		WebhookNotifyForAdmin bool   `yaml:"WebhookNotifyForAdmin,omitempty"`
-	}
-	Game struct {
-		InviteLinkSalt string `yaml:"InviteLinkSalt,omitempty"`
-	}
+	Database              databaseConfig
+	Auth                  authConfig
+	Discord               discordConfig
+	Game                  gameConfig
 	GeneratedUserPassword string
 	Address               string
+}
+
+type databaseConfig struct {
+	Filename              string `yaml:"Filename,omitempty"`
+	UsersFilename         string `yaml:"UsersFilename,omitempty"`
+	ReadConnectionParams  string `yaml:"ReadConnectionParams"`
+	WriteConnectionParams string `yaml:"WriteConnectionParams"`
+	DebugLogging          bool   `yaml:"DebugLogging,omitempty"`
+	SkipUpgrade           bool   `yaml:"SkipUpgrade,omitempty"`
+}
+
+type authConfig struct {
+	Secret       string `yaml:"Secret,omitempty"`
+	URL          string `yaml:"URL,omitempty"`
+	DisableXSRF  bool   `yaml:"DisableXSRF,omitempty"`
+	SecureCookie bool   `yaml:"SecureCookie,omitempty"`
+}
+
+type discordConfig struct {
+	Enabled               bool   `yaml:"Enabled,omitempty"`
+	ClientID              string `yaml:"ClientID,omitempty"`
+	ClientSecret          string `yaml:"ClientSecret,omitempty"`
+	CookieDuration        string `yaml:"CookieDuration,omitempty"`
+	WebhookNotify         bool   `yaml:"WebhookNotify,omitempty"`
+	WebhookID             string `yaml:"WebhookID,omitempty"`
+	WebhookToken          string `yaml:"WebhookToken,omitempty"`
+	WebhookNotifyForAdmin bool   `yaml:"WebhookNotifyForAdmin,omitempty"`
+}
+
+type gameConfig struct {
+	InviteLinkSalt string `yaml:"InviteLinkSalt,omitempty"`
+}
+
+var testModeConfig = Config{
+	Database: databaseConfig{
+		Filename: ":memory:?cache=shared",
+	},
+	Auth: authConfig{
+		Secret:      "testSecret",
+		DisableXSRF: true,
+		URL:         "http://localhost:5173",
+	},
+	Game: gameConfig{
+		InviteLinkSalt: "salt",
+	},
+	Address: "localhost:8080",
 }
 
 var config *Config
 
 func GetConfig() *Config {
 	if config == nil {
+		if viper.GetBool("test-mode") {
+			// test mode uses an in memory db, no discord auth
+			config = &testModeConfig
+			log.Debug().Msgf("Config (test mode) : %+v", config)
+			return config
+		}
+
+		// setup default config for running in local dev
 		path := "./data/config"
 		viper.SetConfigName("config")        // config file name without extension
 		viper.SetConfigType("yaml")          // yaml type
@@ -53,12 +83,12 @@ func GetConfig() *Config {
 
 		// Set default values for local dev
 		viper.SetDefault("Database.Filename", "data/data.db")
+		viper.SetDefault("Database.UsersFilename", "data/users.db")
 		viper.SetDefault("Database.ReadConnectionParams", "?_txlock=deferred")
 		viper.SetDefault("Database.WriteConnectionParams", "?_txlock=immediate&_busy_timeout=1200")
-		viper.SetDefault("Database.UsersFilename", "data/users.db")
+		viper.SetDefault("Auth.DisableXSRF", true)            // default for local dev
 		viper.SetDefault("Auth.Secret", "secret")             // default for local dev
 		viper.SetDefault("Auth.URL", "http://localhost:5173") // default for local dev
-		viper.SetDefault("Auth.DisableXSRF", true)            // default for local dev
 		viper.SetDefault("Discord.CookieDuration", "24h")     // default for local dev
 
 		viper.SetDefault("Game.InviteLinkSalt", "salt") // default for local dev

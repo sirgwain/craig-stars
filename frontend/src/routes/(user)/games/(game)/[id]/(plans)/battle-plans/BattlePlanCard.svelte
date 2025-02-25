@@ -52,7 +52,12 @@
 		{#if showDelete}
 			<div class="card-actions justify-start">
 				<div>
-					<button class="btn" onclick={() => deletePlan(plan)}>
+					<button
+						class="btn"
+						onclick={() => deletePlan(plan)}
+						data-type="delete-button"
+						data-id={`${plan.name}`}
+					>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				</div>

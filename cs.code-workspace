@@ -1,27 +1,27 @@
 {
-  "folders": [
-    {
-      "name": "root",
-      "path": "./",
-    },
-    {
-      "name": "frontend",
-      "path": "frontend",
-    },
-  ],
-  "settings": {
-    "testing.automaticallyOpenPeekView": "never",
-    "typescript.tsdk": "frontend/node_modules/typescript/lib",
-    "goStructTagAutogen.generation": {
-      "template": "json:\"{{camel}},omitempty\"",
-      "json": {
-        "cases": ["camel"],
-        "options": ["omitempty", "-"],
-      },
-    },
-    "files.eol": "\n",
-    // Increase test timeout so slower devices can run turn generation tests without failing
-    "go.testTimeout": "300s",
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-  },
+	"folders": [
+		{
+			"name": "root",
+			"path": "./",
+		},
+		{
+			"name": "frontend",
+			"path": "frontend",
+		},
+	],
+	"settings": {
+		"testing.automaticallyOpenPeekView": "never",
+		"typescript.tsdk": "frontend/node_modules/typescript/lib",
+		"goStructTagAutogen.generation": {
+			"template": "json:\"{{camel}},omitempty\"",
+			"json": {
+				"cases": ["camel"],
+				"options": ["omitempty", "-"],
+			},
+		},
+		"files.eol": "\n",
+		// Increase test timeout so slower devices can run turn generation tests without failing
+		"go.testTimeout": "300s",
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+	},
 }

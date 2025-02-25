@@ -8,10 +8,8 @@ import (
 )
 
 func (ai *aiPlayer) bomb() error {
-
+	// catalogue all explored planets owned by our enemies
 	bombablePlanets := map[int]cs.PlanetIntel{}
-
-	// find all the unexplored planets
 	for _, planet := range ai.Player.PlanetIntels {
 		if ai.IsEnemy(planet.PlayerNum) {
 			bombablePlanets[planet.Num] = planet
@@ -87,7 +85,7 @@ func (ai *aiPlayer) bomb() error {
 		}
 	}
 
-	// build colonizer fleets where necessary
+	// build bomber fleets where necessary
 	if len(bombablePlanets)-idleFleets > 0 {
 		ai.addFleetBuildRequest(cs.FleetPurposeBomber, len(bombablePlanets)-idleFleets)
 	}

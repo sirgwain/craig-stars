@@ -10,3 +10,4 @@ node_modules.nosync
 yarn-error.log
 .idea
 test-results/
+playwright-report/

@@ -131,7 +131,7 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
 			{#each sortBy(techsByCategory[category], 'rank') as tech (tech.name)}
 				{#if showAll || (player && canLearnTech(player, tech) && hasRequiredLevels(player.techLevels, tech.requirements))}
-					<div class="mx-3">
+					<div class="mx-3" data-type="tech-card" data-name={tech.name}>
 						<!-- Hide the graph on safari until svelte5 -->
 						<TechSummary
 							{tech}

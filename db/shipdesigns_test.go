@@ -48,7 +48,7 @@ func TestGetShipDesign(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	game, player := c.createTestGameWithPlayer()
-	shipDesign := cs.NewShipDesign(player, 1).WithHull(cs.Scout.Name).WithSpec(&rules, player)
+	shipDesign := cs.NewShipDesign(player.Num, 1).WithHull(cs.Scout.Name).WithSpec(&rules, player)
 	shipDesign.GameID = game.ID
 	if err := c.CreateShipDesign(shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)

@@ -175,6 +175,7 @@
 								type="button"
 								onclick={() => updateHullSetNumber(design.hullSetNumber - 1)}
 								class="btn btn-outline btn-xs normal-case btn-secondary"
+								data-type="prev-hull-set-button"
 							>
 								<Icon src={ChevronLeft} size="16" class="hover:stroke-accent" />
 							</button>
@@ -184,6 +185,7 @@
 								type="button"
 								onclick={() => updateHullSetNumber(design.hullSetNumber + 1)}
 								class="btn btn-outline btn-xs normal-case btn-secondary"
+								data-type="next-hull-set-button"
 							>
 								<Icon src={ChevronRight} size="16" class="hover:stroke-accent" />
 							</button>

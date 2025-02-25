@@ -61,8 +61,7 @@ mage launch_backend
 
 # Visual Studio Code
 
-[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use frontend and backend plugins without issue in the same repo.
-It also contains [tasks.json](/..vscode/tasks.json) and [launch.json](/..vscode/tasks.json) files containing prebuilt commands and debug configurations.
+[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use frontend and backend plugins without issue in the same repo, as well as [tasks.json](/.vscode/tasks.json) and [launch.json](/.vscode/tasks.json) files containing various prebuilt commands and debug configurations. (There's even one to launch the entire server in 1 press.)
 It also comes with a built in terminal, debugging support, and an array of assorted bells and whistles useful for general software development.
 
 ## Testing

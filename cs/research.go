@@ -42,28 +42,18 @@ type researcher struct {
 
 func newResearcher(rules *Rules) researcher { return researcher{rules} }
 
-// This function will be called repeatedly until no more levels are passed
-// From starsfaq
+// From starsfaq:
+// The cost of a tech level depends on four things:
+// 1) Your research setting for that field (cheap, normal, or expensive)
+// 2) The level you are researching (higher level, higher cost)
+// 3) The total number of tech levels you have already have in all fields (you can add it up yourself, or look at 'tech levels' on the 'score' screen).
+// 4) Whether 'slow tech advance' was selected as a game parameter.
 //
-//	 The cost of a tech level depends on four things:
-//	1) Your research setting for that field (cheap, normal, or expensive)
-//	2) The level you are researching (higher level, higher cost)
-//	3) The total number of tech levels you have already have in all fields (you can add it up yourself, or look at 'tech levels' on the 'score' screen).
-//	4) whether 'slow tech advance' was selected as a game parameter.
-//
-//	in general,
-//
-//	totalCost=(baseCost + (totalLevels * 10)) * costFactor
-//
-//	where  totalLevels=the sum of your current levels in all fields
-//	  costFactor =.5 if your setting for the field is '50% less'
-//	                     =1 if your setting for the field is 'normal'
-//	                     =1.75 if your setting for the field is '75% more expensive'
-//
-//	If 'slow tech advance' is a game parameter, totalCost should be doubled.
-//
-//	Below is a table showing the base cost of each level.
-//
+// In general,
+// totalCost=(baseCost + (totalLevels * 10)) * costFactor
+// If 'Slow Tech Advances' is enabled, totalCost is then doubled.
+// 
+// Below is a table showing the base cost of each level:
 //	1     50              14    18040
 //	2     80              15    22440
 //	3     130             16    27050
@@ -77,6 +67,8 @@ func newResearcher(rules *Rules) researcher { return researcher{rules} }
 //	11    6100            24    71490
 //	12    9870            25    77990
 //	13    13850           26    84700
+
+// Perform research for a player, learning tech levels until resources run out or all techs are maxed.
 func (r *researcher) research(player *Player, resourcesToSpend int, onLevelGained func(player *Player, field TechField)) (spent TechLevel) {
 	// keep spending resources until we are done
 	for {
