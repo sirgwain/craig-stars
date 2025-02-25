@@ -19,7 +19,7 @@ type mockTestingT struct {
 
 func (m *mockTestingT) Errorf(msg string, args ...any) {
 	m.failed = true
-	fmt.Printf(msg, args...)
+	fmt.Println(fmt.Sprintf(msg, args...))
 }
 
 func (m *mockTestingT) Name() string {

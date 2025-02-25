@@ -25,37 +25,36 @@ import (
 //
 // The json difference is passed to t.Errorf, so no extra calls to t.Log or t.Error
 // are needed after calling this.
-func CompareAsJSON(t TestingT, got, want any) bool {
+func CompareAsJSON(t TestingT, got, want any) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
 
 	if got == nil && want == nil {
-		return true
+		return
 	} else if (got == nil) != (want == nil) { // one is nil and the other isn't
 		t.Errorf("Unequal values (nilness): got = %v, want = %v", got, want)
-		return false
+		return
 	}
 
 	gotJson, err := json.MarshalIndent(got, "", "\t")
 	if err != nil {
 		t.Errorf("compareAsJSON could not marshal got (%q) to json: \n%v", got, err)
-		return false
+		return
 	}
 	wantJson, err := json.MarshalIndent(want, "", "\t")
 	if err != nil {
 		t.Errorf("compareAsJSON could not marshal want (%q) to json: \n%v", want, err)
-		return false
+		return
 	}
 
 	if string(gotJson) == string(wantJson) {
-		return true
+		return
 	}
 
 	diff := parseJSONDiff(gotJson, wantJson, t.Name())
 
 	t.Errorf("JSONs not equal; diff between got & want: \n%s", diff)
-	return false
 }
 
 // parsing options for jsondiff
