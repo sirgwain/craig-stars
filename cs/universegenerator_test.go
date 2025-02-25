@@ -206,9 +206,7 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 			}
 			ug.assignRaceStartingPointBonuses(tt.args.race, tt.args.planet, tt.args.extraPoints, tt.args.pointsType)
 
-			if !test.CompareAsJSON(t, tt.args.planet, tt.want) {
-				t.Errorf("assignRaceStartingPointBonuses() = %v, want %v", tt.args.planet, tt.want)
-			}
+			test.CompareAsJSON(t, tt.args.planet, tt.want)
 		})
 	}
 }
