@@ -404,11 +404,11 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	stackDamageByDesign := map[int]int{}
 	for _, token := range source.Tokens {
 		tokensByDesign[token.DesignNum] = &token
-		stackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
+		stackDamageByDesign[token.DesignNum] += int(token.Damage) * token.QuantityDamaged
 	}
 	if dest != nil {
 		for _, token := range dest.Tokens {
-			stackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
+			stackDamageByDesign[token.DesignNum] += int(token.Damage) * token.QuantityDamaged
 			if t, found := tokensByDesign[token.DesignNum]; found {
 				t.Quantity += token.Quantity
 				t.QuantityDamaged += token.QuantityDamaged
@@ -423,10 +423,10 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	splitStackDamageByDesign := map[int]int{}
 	for _, token := range request.SourceTokens {
 		splitTokensByDesign[token.DesignNum] = &token
-		splitStackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
+		splitStackDamageByDesign[token.DesignNum] += int(token.Damage) * token.QuantityDamaged
 	}
 	for _, token := range request.DestTokens {
-		splitStackDamageByDesign[token.DesignNum] += int(token.Damage * float64(token.QuantityDamaged))
+		splitStackDamageByDesign[token.DesignNum] += int(token.Damage) * token.QuantityDamaged
 		if t, found := splitTokensByDesign[token.DesignNum]; found {
 			t.Quantity += token.Quantity
 			t.QuantityDamaged += token.QuantityDamaged
@@ -445,9 +445,10 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 			return nil, nil, fmt.Errorf("found token in original fleets but not in split request")
 		}
 
+		// we might lose a point of damage in a split/merge, that's ok
 		stackDamage := stackDamageByDesign[token.DesignNum]
 		splitStackDamage := splitStackDamageByDesign[token.DesignNum]
-		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged || stackDamage != splitStackDamage {
+		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged || Abs(stackDamage-splitStackDamage) > 1 {
 			return nil, nil, fmt.Errorf("token in original fleet has different quantity/damage that token in split request")
 		}
 	}
@@ -763,15 +764,15 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 			}
 
 			if token.QuantityDamaged > 0 {
-				mergingTokenTotalDamage := float64(token.QuantityDamaged) * token.Damage
+				mergingTokenTotalDamage := token.QuantityDamaged * int(token.Damage)
 				// the token we're merging in has damage
 				// figure out the total and add it to the fleet we're merging into
-				destTokenTotalDamage := float64(existingToken.QuantityDamaged) * existingToken.Damage
+				destTokenTotalDamage := existingToken.QuantityDamaged * int(existingToken.Damage)
 
 				// if we merge 2 damaged tokens in 1 damaged token, split the damage
 				// between the 3 damaged tokens
 				existingToken.QuantityDamaged += token.QuantityDamaged
-				existingToken.Damage = (mergingTokenTotalDamage + destTokenTotalDamage) / float64(existingToken.QuantityDamaged)
+				existingToken.Damage = math.Floor(float64(mergingTokenTotalDamage+destTokenTotalDamage) / float64(existingToken.QuantityDamaged))
 			}
 		}
 

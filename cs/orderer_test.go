@@ -1655,7 +1655,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						Quantity:        3,
 						DesignNum:       1,
 						QuantityDamaged: 2,
-						Damage:          (10. + 5.) / 2.,
+						Damage:          7,
 					},
 				},
 			},
