@@ -21,4 +21,5 @@ For code contributions, all you need to get started is a good code editor (like 
 Meanwhile, for those who are more technically inclined and want to test out changes themself before committing, consider running a local instance of `craig-stars` for development. See the [development](docs/development.md) page for more info.
 
 ## Architecture
+
 For detailed information about `craig-stars` architecture, check out the [architecture](docs/architecture.md) page.

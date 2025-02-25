@@ -52,14 +52,6 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 		panic(fmt.Errorf("could not connect to test database, error %w", err))
 	}
 
-	// create a race per PRT
-	for _, prt := range cs.PRTs {
-		race := cs.NewRace()
-		race.PRT = prt
-		race.Name = fmt.Sprintf("%v", prt)
-		race.PluralName = fmt.Sprintf("%vs", prt)
-	}
-
 	gr := gameRunner{
 		dbConn: dbConn,
 		client: cs.NewGamer(),

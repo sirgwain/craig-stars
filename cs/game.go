@@ -44,7 +44,6 @@ type Game struct {
 	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances,omitempty"`
 	PublicPlayerScores           bool              `json:"publicPlayerScores,omitempty"`
 	MaxMinerals                  bool              `json:"maxMinerals,omitempty"`
-	AcceleratedPlay              bool              `json:"acceleratedPlay,omitempty"`
 	StartMode                    GameStartMode     `json:"startMode,omitempty"`
 	QuickStartTurns              int               `json:"quickStartTurns,omitempty"`
 	OpenPlayerSlots              int               `json:"openPlayerSlots,omitempty"`
@@ -67,7 +66,7 @@ type NewGamePlayer struct {
 	Race           Race              `json:"race,omitempty"`
 }
 
-// The settings for a new game, only used during game setup
+// The settings for a new game, used during game setup
 type GameSettings struct {
 	Name                         string            `json:"name"`
 	Public                       bool              `json:"public"`
@@ -79,7 +78,6 @@ type GameSettings struct {
 	ComputerPlayersFormAlliances bool              `json:"computerPlayersFormAlliances"`
 	PublicPlayerScores           bool              `json:"publicPlayerScores"`
 	MaxMinerals                  bool              `json:"maxMinerals"`
-	AcceleratedPlay              bool              `json:"acceleratedPlay,omitempty"`
 	StartMode                    GameStartMode     `json:"startMode"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Players                      []NewGamePlayer   `json:"players"`
@@ -160,6 +158,7 @@ type GameStartMode string
 
 const (
 	GameStartModeNormal GameStartMode = ""
+	GameStartModeAccBBS GameStartMode = "AccBBS"
 	GameStartModeMax    GameStartMode = "Max"
 )
 
@@ -276,6 +275,11 @@ func (settings *GameSettings) WithAIPlayerRace(race Race, aiDifficulty AIDifficu
 	return settings
 }
 
+func (settings *GameSettings) WithGameStartMode(startMode GameStartMode) *GameSettings {
+	settings.StartMode = startMode
+	return settings
+}
+
 func (settings *GameSettings) IsSinglePlayer() bool {
 	numHumanPlayers := 0
 	for _, player := range settings.Players {
@@ -322,7 +326,6 @@ func (g *Game) WithSettings(settings GameSettings) *Game {
 	g.ComputerPlayersFormAlliances = settings.ComputerPlayersFormAlliances
 	g.PublicPlayerScores = settings.PublicPlayerScores
 	g.MaxMinerals = settings.MaxMinerals
-	g.AcceleratedPlay = settings.AcceleratedPlay
 	g.StartMode = settings.StartMode
 	g.VictoryConditions = settings.VictoryConditions
 
@@ -391,7 +394,6 @@ func (fg *FullGame) GetNumHumanPlayers() int {
 
 // compute all the various "specs" in the game. Called before and after turn generation
 func (g *FullGame) computeSpecs() error {
-
 	g.buildMaps(g.Players)
 
 	rules := &g.Rules

@@ -278,20 +278,20 @@ func (ai *aiPlayer) upgradeStarbase(planet *cs.Planet, timeToWait int) error {
 	return nil
 }
 
-// add a production queue item to the top of the planet queue
+// add a normal production queue item to the top of the planet queue
 func (ai *aiPlayer) addItemToTopOfQueue(planet *cs.Planet, t cs.QueueItemType, quantity int) {
 	item := cs.ProductionQueueItem{Type: cs.QueueItemTypePlanetaryScanner, Quantity: quantity}
 	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
 }
 
-// add a production queue item to the top of the planet queue
+// add one or more ships to the top of a planet's production queue
 func (ai *aiPlayer) addShipToTopOfQueue(planet *cs.Planet, purpose cs.FleetPurpose, design *cs.ShipDesign, quantity int) {
 	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeShipToken, Quantity: quantity, DesignNum: design.Num}
 	item.WithTag(cs.TagPurpose, string(purpose))
 	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
 }
 
-// add a production queue item to the top of the planet queue
+// add a starbase to the top of a planet's production queue
 func (ai *aiPlayer) addStarbaseToTopOfQueue(planet *cs.Planet, design *cs.ShipDesign) {
 	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeStarbase, Quantity: 1, DesignNum: design.Num}
 	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
@@ -305,7 +305,7 @@ func (ai *aiPlayer) addStarbaseToTopOfQueue(planet *cs.Planet, design *cs.ShipDe
 
 // get the years to build a certain number of items
 func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet, t cs.QueueItemType, quantity int) (int, error) {
-	yearlyAvailableToSpend := cs.FromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
+	yearlyAvailableToSpend := cs.NewCostFromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
 	costCalculator := cs.NewCostCalculator()
 	completionEstimator := cs.NewCompletionEstimator()
 
@@ -327,7 +327,7 @@ func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet, t cs.QueueItemType, quant
 
 // get the years it will take to build or upgrade to this starbase
 func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDesign) (int, error) {
-	yearlyAvailableToSpend := cs.FromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
+	yearlyAvailableToSpend := cs.NewCostFromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
 	costCalculator := cs.NewCostCalculator()
 	completionEstimator := cs.NewCompletionEstimator()
 	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeStarbase, Quantity: 1, DesignNum: design.Num}

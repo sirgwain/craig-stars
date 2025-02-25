@@ -25,7 +25,10 @@
       "request": "launch",
       "mode": "test",
       "program": "${workspaceFolder}/server/gamerunner_test.go",
-      "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
+      "args": [
+        "-test.run",
+        "Test_gameRunner_GenerateTurns"
+      ]
     },
     {
       "name": "Debug WASM serializer generator",
@@ -34,7 +37,10 @@
       "mode": "auto",
       "program": "${workspaceFolder}/wasm/generator/main.go",
       "cwd": "${workspaceFolder}",
-      "args": ["./cs", "wasm/wasm/generated.go"]
+      "args": [
+        "./cs",
+        "wasm/wasm/generated.go"
+      ]
     },
     {
       "name": "Debug Magefile Target",
@@ -53,7 +59,10 @@
       "id": "launchArgs",
       "type": "pickString",
       "description": "Select arguments to run main.go with.",
-      "options": ["serve", "serve --test-mode"],
+      "options": [
+        "serve",
+        "serve --test-mode"
+      ],
       "default": "serve"
     },
     {

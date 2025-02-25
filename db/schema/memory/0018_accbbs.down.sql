@@ -1,0 +1,2 @@
+ALTER TABLE games
+ADD acceleratedPlay NUMERIC DEFAULT 0;

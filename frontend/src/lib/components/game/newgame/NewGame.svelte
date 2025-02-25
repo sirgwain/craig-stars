@@ -23,9 +23,9 @@
 	import { PlusCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import GameSettingsEditor from './GameSettingsEditor.svelte';
+	import NewGamePlayer from './NewGamePlayer.svelte';
 	import { getColor, getFirstAvailableColor } from './playerColors';
 	import VictoryConditions from './VictoryConditions.svelte';
-	import NewGamePlayer from './NewGamePlayer.svelte';
 
 	type Props = {
 		players?: Player[];
@@ -66,9 +66,8 @@
 		computerPlayersFormAlliances: false,
 		publicPlayerScores: false,
 		maxMinerals: false,
-		acceleratedPlay: false,
-		quickStartTurns: 0,
 		startMode: GameStartModeNormal,
+		quickStartTurns: 0,
 		players,
 		victoryConditions: {
 			conditions:

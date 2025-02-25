@@ -22,7 +22,7 @@ func testStalwartDefenderWithQuantity(player *Player, quantity int) *Fleet {
 			{
 				DesignNum: 1,
 				Quantity:  quantity,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Destroyer.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -58,7 +58,7 @@ func testJihadCruiser(player *Player) *Fleet {
 			{
 				DesignNum: 1,
 				Quantity:  1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Cruiser.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: TransStar10.Name, HullSlotIndex: 1, Quantity: 2},
@@ -95,7 +95,7 @@ func testTeamster(player *Player) *Fleet {
 			{
 				Quantity:  1,
 				DesignNum: 1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(MediumFreighter.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -125,7 +125,7 @@ func testPrivateer(player *Player, quantity int) *Fleet {
 			{
 				Quantity:  quantity,
 				DesignNum: 1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(Privateer.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
@@ -1088,7 +1088,7 @@ func Test_battle_runBattle2(t *testing.T) {
 	player2.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
 
 	player1.Designs = append(player1.Designs,
-		NewShipDesign(player1, 1).
+		NewShipDesign(player1.Num, 1).
 			WithName("Battle Cruiser").
 			WithHull(BattleCruiser.Name).
 			WithSlots([]ShipDesignSlot{
@@ -1103,7 +1103,7 @@ func Test_battle_runBattle2(t *testing.T) {
 	)
 
 	player2.Designs = append(player2.Designs,
-		NewShipDesign(player2, 1).
+		NewShipDesign(player2.Num, 1).
 			WithName("Teamster").
 			WithHull(SmallFreighter.Name).
 			WithSlots([]ShipDesignSlot{
@@ -1111,7 +1111,7 @@ func Test_battle_runBattle2(t *testing.T) {
 				{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
 				{HullComponent: RhinoScanner.Name, HullSlotIndex: 3, Quantity: 1},
 			}),
-		NewShipDesign(player2, 2).
+		NewShipDesign(player2.Num, 2).
 			WithName("Long Range Scout").
 			WithHull(Scout.Name).
 			WithSlots([]ShipDesignSlot{
@@ -1119,7 +1119,7 @@ func Test_battle_runBattle2(t *testing.T) {
 				{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
 				{HullComponent: CompletePhaseShield.Name, HullSlotIndex: 3, Quantity: 1},
 			}),
-		NewShipDesign(player2, 3).
+		NewShipDesign(player2.Num, 3).
 			WithName("Jammed&Fluxed Defender").
 			WithHull(Destroyer.Name).
 			WithSlots([]ShipDesignSlot{
@@ -1131,7 +1131,7 @@ func Test_battle_runBattle2(t *testing.T) {
 				{HullComponent: Jammer30.Name, HullSlotIndex: 6, Quantity: 1},
 				{HullComponent: FluxCapacitor.Name, HullSlotIndex: 7, Quantity: 1},
 			}),
-		NewShipDesign(player2, 4).
+		NewShipDesign(player2.Num, 4).
 			WithName("Stalwart Sapper").
 			WithHull(Destroyer.Name).
 			WithSlots([]ShipDesignSlot{
@@ -1202,7 +1202,7 @@ func Test_battle_runBattleError(t *testing.T) {
 	player2.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
 
 	player1.Designs = append(player1.Designs,
-		NewShipDesign(player1, 1).
+		NewShipDesign(player1.Num, 1).
 			WithName("Battle Cruiser").
 			WithHull(BattleCruiser.Name).
 			WithSlots([]ShipDesignSlot{
@@ -1217,7 +1217,7 @@ func Test_battle_runBattleError(t *testing.T) {
 	)
 
 	player2.Designs = append(player2.Designs,
-		NewShipDesign(player2, 1).
+		NewShipDesign(player2.Num, 1).
 			WithName("BANANA BOAT").
 			WithHull("Banana Ship").
 			WithSlots([]ShipDesignSlot{
@@ -1225,7 +1225,7 @@ func Test_battle_runBattleError(t *testing.T) {
 				{HullComponent: "Chocolate", HullSlotIndex: 2, Quantity: 1},
 				{HullComponent: "Hot Fudge", HullSlotIndex: 3, Quantity: 1},
 			}),
-		NewShipDesign(player2, 2).
+		NewShipDesign(player2.Num, 2).
 			WithName("Jammed&Fluxed Defender").
 			WithHull(Destroyer.Name).
 			WithSlots([]ShipDesignSlot{

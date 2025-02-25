@@ -124,8 +124,18 @@ func (p *Planet) WithPlayerNum(playerNum int) *Planet {
 	return p
 }
 
+func (p *Planet) WithFactories(factories int) *Planet {
+	p.Factories = factories
+	return p
+}
+
 func (p *Planet) WithMines(mines int) *Planet {
 	p.Mines = mines
+	return p
+}
+
+func (p *Planet) WithDefenses(defenses int) *Planet {
+	p.Defenses = defenses
 	return p
 }
 
@@ -235,7 +245,7 @@ func (p *Planet) emptyPlanet() {
 
 // randomize a planet with new hab range, minerals, etc
 // Used in universe generation as well as for genesis device resets
-func (p *Planet) randomize(rules *Rules) {
+func (p *Planet) randomize(rules *Rules, accBBS bool) {
 	// From @SuicideJunkie's tests and @edmundmk's previous research,
 	// grav and temp are weighted slightly towards the center while
 	// rad is completely random (though all 3 are clamped between 1 and 99).
@@ -264,29 +274,39 @@ func (p *Planet) randomize(rules *Rules) {
 	// reset the other stuff
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
-	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad)
+	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad, accBBS)
 	p.MineYears = Mineral{}
 
 }
 
 // Randomize a planet's mineral concentration within bounds set in Rules
-func randomizeMinerals(rules *Rules, rad int) Mineral {
+func randomizeMinerals(rules *Rules, rad int, accBBS bool) Mineral {
 
 	// These two variables are the shape of the normal distribution
 	// based on comparing it with Stars! output
 	mean := 80.0
 	variance := 20.0
 
-	// These two are the min and max of the minerals to be returned,
-	// They clamp the results
+	// min and max of the minerals to be returned,
+	// clamping the results
 	mMin := rules.MinStartingMineralConcentration
 	mMax := rules.MaxStartingMineralConcentration
 
-	// creates a mineral concentration
+	// create a normalized mineral concentration
 	minConc := Mineral{
 		Ironium:   1 + NormalSample(rules.random, mean, variance, mMax),
 		Boranium:  1 + NormalSample(rules.random, mean, variance, mMax),
 		Germanium: 1 + NormalSample(rules.random, mean, variance, mMax),
+	}
+
+	// add a small amount of minerals for accBBS
+	if accBBS {
+		for _, minType := range MineralTypes {
+			concAmount := minConc.GetAmount(minType)
+			if concAmount < 40 {
+				minConc.Set(minType, concAmount+5)
+			}
+		}
 	}
 
 	// limit at least one mineral
@@ -498,8 +518,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	if race.Spec.CanBuildDefenses {
 		spec.MaxDefenses = 100
 		spec.Defense = player.Spec.Defense.Name
-		spec.DefenseCoverage = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100)), float64(Clamp(planet.Defenses, 0, spec.MaxDefenses)))))
-		spec.DefenseCoverageSmart = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100 * rules.SmartDefenseCoverageFactor)), float64(Clamp(planet.Defenses, 0, spec.MaxDefenses)))))
+		spec.computeDefenseCoverage(rules, player.Spec.Defense.DefenseCoverage, planet.Defenses)
 	}
 
 	if race.Spec.InnateScanner {
@@ -547,6 +566,16 @@ func computePlanetStarbaseSpec(planet *Planet) PlanetStarbaseSpec {
 	}
 
 	return spec
+}
+
+// Compute and update this planet's regular and smart defense coverage values
+// TODO: Test this
+func (spec *PlanetSpec) computeDefenseCoverage(rules *Rules, coverage float64, numDefenses int) {
+	// coverage is a percentage, so divide by 100
+	blocked := math.Pow(1-coverage/100, float64(Clamp(numDefenses, 0, spec.MaxDefenses)))
+	spec.DefenseCoverage = 1 - blocked
+	blockedSmart := math.Pow(1-(coverage/100)*rules.SmartDefenseCoverageFactor, float64(Clamp(numDefenses, 0, spec.MaxDefenses)))
+	spec.DefenseCoverageSmart = 1 - blockedSmart
 }
 
 // Compute the amount of resources this planet will produce per year, as well as its
@@ -645,7 +674,7 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 // mine minerals on this planet
 func (planet *Planet) mine(rules *Rules) {
 	planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MiningOutput)
-	planet.MineYears = planet.MineYears.AddInt(planet.Mines)
+	planet.MineYears = planet.MineYears.AddToAll(planet.Mines)
 	planet.reduceMineralConcentration(rules)
 }
 
@@ -672,8 +701,7 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 
 	planetMineYears := planet.MineYears.ToSlice()
 	planetMineralConcentration := planet.MineralConcentration.ToSlice()
-	for i := 0; i < 3; i++ {
-		conc := planetMineralConcentration[i]
+	for i, conc := range planetMineralConcentration {
 		if conc < minMineralConcentration {
 			// can't have less than min, make sure we have that at least
 			conc = minMineralConcentration
@@ -693,6 +721,6 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 			planetMineralConcentration[i] = conc
 		}
 	}
-	planet.MineYears = NewMineral(planetMineYears)
-	planet.MineralConcentration = NewMineral(planetMineralConcentration)
+	planet.MineYears = NewMineral(planetMineYears[0], planetMineYears[1], planetMineYears[2])
+	planet.MineralConcentration = NewMineral(planetMineralConcentration[0], planetMineralConcentration[1], planetMineralConcentration[2])
 }

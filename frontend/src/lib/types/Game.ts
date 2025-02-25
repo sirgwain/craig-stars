@@ -5,6 +5,7 @@ import {
 	DensityNormal,
 	DensityPacked,
 	DensitySparse,
+	GameStartModeAccBBS,
 	GameStartModeMax,
 	GameStartModeNormal,
 	NewGamePlayerTypeAI,
@@ -46,7 +47,11 @@ export const Sizes: Size[] = [
 ];
 
 export const Densities: Density[] = [DensitySparse, DensityNormal, DensityDense, DensityPacked];
-export const GameStartModes: GameStartMode[] = [GameStartModeNormal, GameStartModeMax];
+export const GameStartModes: GameStartMode[] = [
+	GameStartModeNormal,
+	GameStartModeAccBBS,
+	GameStartModeMax
+];
 export const PlayerPositionses: PlayerPositions[] = [
 	PlayerPositionsClose,
 	PlayerPositionsModerate,
@@ -60,6 +65,12 @@ export const NewGamePlayerTypes = [
 	NewGamePlayerTypeOpen,
 	NewGamePlayerTypeAI
 ];
+
+export const GameStartModeFullNames: { [key in GameStartMode]: string } = {
+	[GameStartModeNormal]: 'Normal',
+	[GameStartModeAccBBS]: 'Accelerated BBS Play',
+	[GameStartModeMax]: 'Max Start'
+};
 
 export const AIDifficulties: AIDifficulty[] = [
 	// AIDifficultyNone,
