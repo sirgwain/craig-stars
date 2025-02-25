@@ -78,7 +78,8 @@ func Min[T constraints.Ordered](nums ...T) T {
 	return result
 }
 
-// AbsMin returns the absolutely lowest among a collection of similarly typed signed values.
+// AbsMin returns the absolutely lowest (closest to 0)
+// among a collection of similarly typed signed values.
 // Panics if given no arguments.
 //
 // In the event one or more arguments have the same absolute value,

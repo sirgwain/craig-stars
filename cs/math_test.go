@@ -35,10 +35,10 @@ func TestAbsMin(t *testing.T) {
 		nums []float64
 		want float64
 	}{
-		{"all positive", []float64{1, 2, 3, 4}, 1},
+		{"grabs closest to 0", []float64{1, 2, 3, 0}, 0},
 		{"all negative", []float64{-1, -1.2, -0.31, -4}, -0.31},
-		{"mix; greatest positive", []float64{1, -222, 3, -10.3333}, 1},
-		{"mix; greatest negative", []float64{2025, -1997, 2001, -3}, -3},
+		{"mix; lowest positive", []float64{1, -222, 3, -10.3333}, 1},
+		{"mix; lowest negative", []float64{2025, -1997, 2001, -3}, -3},
 		{"takes last of absolute equals", []float64{1, 1, 1, 1, -1}, -1},
 	}
 	for _, tt := range tests {
