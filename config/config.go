@@ -18,7 +18,6 @@ type Config struct {
 }
 
 type databaseConfig struct {
-	Recreate              bool   `yaml:"Recreate,omitempty"`
 	Filename              string `yaml:"Filename,omitempty"`
 	UsersFilename         string `yaml:"UsersFilename,omitempty"`
 	ReadConnectionParams  string `yaml:"ReadConnectionParams"`
