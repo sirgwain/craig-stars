@@ -211,6 +211,7 @@ func (m Mineral) Equalize(amtToAdd int) Mineral {
 		}
 		if diff < 0 {
 			// shuffle around original order slice to keep it in sync
+			// (3 values is small enough for go to use insertion sort)
 			i := slices.Index(mSlice, a)
 			origOrder[i], origOrder[i-1] = origOrder[i-1], origOrder[i]
 		}

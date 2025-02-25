@@ -80,6 +80,9 @@ func Min[T constraints.Ordered](nums ...T) T {
 
 // AbsMin returns the absolutely lowest among a collection of similarly typed signed values.
 // Panics if given no arguments.
+//
+// In the event one or more arguments have the same absolute value,
+// the last one passed will take precedence.
 func AbsMin[S constraints.Signed | constraints.Float](nums ...S) S {
 	if len(nums) == 0 {
 		panic("AbsMin called with no arguments")
@@ -87,7 +90,7 @@ func AbsMin[S constraints.Signed | constraints.Float](nums ...S) S {
 
 	result := nums[0]
 	for _, value := range nums[1:] {
-		if Abs(value) < Abs(result) {
+		if Abs(value) <= Abs(result) {
 			result = value
 		}
 	}
@@ -123,17 +126,4 @@ func Abs[S constraints.Signed | constraints.Float](num S) S {
 		return -num
 	}
 	return num
-}
-
-// Divide two integers, rounding the result away from 0
-// if divisor does not cleanly divide dividend.
-func DivideIntCeil[I constraints.Integer](dividend, divisor I) (quotient I) {
-	switch rem := dividend % divisor; {
-	case rem > 0:
-		return dividend/divisor + 1
-	case rem < 0:
-		return dividend/divisor - 1
-	default:
-		return dividend / divisor
-	}
 }

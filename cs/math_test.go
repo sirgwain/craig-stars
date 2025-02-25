@@ -29,6 +29,27 @@ func TestClamp(t *testing.T) {
 	}
 }
 
+func TestAbsMin(t *testing.T) {
+	tests := []struct {
+		name string
+		nums []float64
+		want float64
+	}{
+		{"all positive", []float64{1, 2, 3, 4}, 1},
+		{"all negative", []float64{-1, -1.2, -31, -4}, -31},
+		{"mix; greatest negative", []float64{1, -222, 3, -10 / 3}, -222},
+		{"mix; greatest positive", []float64{2025, -1997, 2001, -3}, 2025},
+		{"takes last of absolute equals", []float64{1, 1, 1, 1, -1}, -1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := AbsMin(tt.nums...); got != tt.want {
+				t.Errorf("AbsMin() returned value %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_roundHalfTowards0(t *testing.T) {
 	tests := []struct {
 		name string
