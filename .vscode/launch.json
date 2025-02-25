@@ -25,7 +25,10 @@
       "request": "launch",
       "mode": "test",
       "program": "${workspaceFolder}/server/gamerunner_test.go",
-      "args": ["-test.run", "Test_gameRunner_GenerateTurns"]
+      "args": [
+        "-test.run",
+        "Test_gameRunner_GenerateTurns"
+      ]
     },
     {
       "name": "Debug WASM serializer generator",
@@ -34,7 +37,10 @@
       "mode": "auto",
       "program": "${workspaceFolder}/wasm/generator/main.go",
       "cwd": "${workspaceFolder}",
-      "args": ["./cs", "wasm/wasm/generated.go"]
+      "args": [
+        "./cs",
+        "wasm/wasm/generated.go"
+      ]
     },
     {
       "name": "Debug Magefile Target",
@@ -55,9 +61,7 @@
       "description": "Select arguments to run main.go with.",
       "options": [
         "serve",
-        "serve --generate-test-game",
-        "migrate",
-        "generate game --name \"A Barefoot Jaywalk\" --user-id 1"
+        "serve --test-mode"
       ],
       "default": "serve"
     },

@@ -1,6 +1,7 @@
 import { Grav, Rad, Temp, type Hab, type HabType } from './cs';
 
 export const HabTypes: HabType[] = [Grav, Temp, Rad] as const;
+export const HabTypeShortString: string[] = ['grav', 'temp', 'rad'] as const;
 
 export function habTypeString(type: HabType): string {
 	switch (type) {

@@ -148,13 +148,13 @@ func (u *upgrade) upgradeGames(upgradeGame func(fg *cs.FullGame) error) error {
 }
 
 func (u *upgrade) initStarterDB() error {
-	log.Info().Msg("initializing starter database with admin user, no password")
+	log.Info().Msg("initializing starter database with admin user, 'admin' password")
 	user, err := cs.NewUser("admin", "admin", "", cs.RoleAdmin)
 	if err != nil {
 		return err
 	}
 
-	// create the admin user, no password
+	// create the admin user, 'admin' password
 	if err := u.tx.CreateUser(user); err != nil {
 		return err
 	}

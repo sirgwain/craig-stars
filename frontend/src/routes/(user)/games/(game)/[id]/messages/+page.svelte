@@ -94,8 +94,11 @@
 		{#snippet cell({ column, row })}
 			<span>
 				{#if column.key == 'target'}
-					<button class="cs-link text-xl text-left" onclick={() => selectMessage(row)}
-						>{getTarget(row)}</button
+					<button
+						class="cs-link text-xl text-left"
+						onclick={() => selectMessage(row)}
+						data-type="goto-target-button"
+						data-id={row.targetName}>{getTarget(row)}</button
 					>
 				{:else}
 					<MessageDetail message={row} />
