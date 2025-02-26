@@ -56,7 +56,7 @@ jobs:
           --junitfile-testsuite-name short
 
       - name: Merge failed JSON diffs
-        run: mage merge-temp-json
+        run: mage merge_temp_json
         if: always()
 
       - name: Upload merged JSON diff to cloud
