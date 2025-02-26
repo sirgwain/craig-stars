@@ -107,7 +107,7 @@ func Generate() error {
 	}
 
 	fmt.Println("running tygo generate")
-	if err := sh.RunV("tygo", "generate"); err != nil {
+	if err := sh.RunV("go", "tool", "github.com/gzuidhof/tygo", "generate"); err != nil {
 		return err
 	}
 	// format generated tygo file on non-CI runs

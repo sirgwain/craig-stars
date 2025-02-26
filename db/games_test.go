@@ -98,6 +98,14 @@ func TestGetGame(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetGame(tt.args.id)
+			// GetGame returns a GameWithPlayers so we need the empty slice for comparison
+			var want *cs.GameWithPlayers
+			if tt.want != nil && got != nil {
+				want = &cs.GameWithPlayers{Game: got.Game, Players: []cs.PlayerStatus{}}
+				want.UpdatedAt = got.UpdatedAt
+				want.CreatedAt = got.CreatedAt
+			}
+
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("GetGame() returned did not return error when expected")
@@ -105,12 +113,7 @@ func TestGetGame(t *testing.T) {
 					t.Fatalf("GetGame() returned errored unexpectedly; err = \n%v", err)
 				}
 			}
-			if got != nil {
-				tt.want.UpdatedAt = got.UpdatedAt
-				tt.want.CreatedAt = got.CreatedAt
-			}
-
-			test.CompareAsJSON(t, got, tt.want)
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }
