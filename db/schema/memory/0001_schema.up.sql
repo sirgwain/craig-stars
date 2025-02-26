@@ -83,7 +83,7 @@ CREATE TABLE games (
   areaY REAL,
   year INTEGER,
   victorDeclared NUMERIC
-, maxMinerals NUMERIC DEFAULT 0, acceleratedPlay NUMERIC DEFAULT 0, archived NUMERIC NOT NULL default 0);
+, maxMinerals NUMERIC DEFAULT 0, archived NUMERIC NOT NULL default 0);
 CREATE TABLE rules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,

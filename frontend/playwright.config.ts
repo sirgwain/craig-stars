@@ -8,9 +8,8 @@ const port = 4173;
 
 export default defineConfig({
 	retries: process.env.CI ? 2 : 0, // set to 2 when running on CI
-	fullyParallel: !!process.env.CI,
-	/* Opt out of parallel tests on CI. */
-	workers: process.env.CI ? 1 : undefined,
+	// single threaded or we need to use a non memory db
+	workers: 1,
 
 	reporter: process.env.CI
 		? [

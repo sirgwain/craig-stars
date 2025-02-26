@@ -1495,7 +1495,7 @@ func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player
 			repairAmount := Max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
 
 			// Remove damage from this fleet by its armor * repairRate
-			token.Damage = math.Max(0, token.Damage-float64(repairAmount))
+			token.Damage = math.Floor(math.Max(0, token.Damage-float64(repairAmount)))
 			if token.Damage == 0 {
 				token.QuantityDamaged = 0
 			}
@@ -1522,7 +1522,7 @@ func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Pla
 	repairAmount := Max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.StarbaseRepairFactor))
 
 	// Remove damage from this fleet by its armor * repairRate
-	token.Damage = math.Max(0, fleet.Tokens[0].Damage-float64(repairAmount))
+	token.Damage = math.Floor(math.Max(0, fleet.Tokens[0].Damage-float64(repairAmount)))
 
 	log.Debug().
 		Int("Player", fleet.PlayerNum).
