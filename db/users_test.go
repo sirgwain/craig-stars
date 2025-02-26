@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/sirgwain/craig-stars/cs"
-	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +28,13 @@ func TestCreateUser(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.user.ID
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("CreateUser() did not return error when expected")
+				} else {
+					t.Fatalf("CreateUser() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if !reflect.DeepEqual(tt.args.user, &want) {
 				t.Errorf("CreateUser() = \n%v, want \n%v", tt.args.user, want)
 			}
@@ -94,7 +99,13 @@ func TestGetUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetUser(tt.args.id)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetUser() did not return error when expected")
+				} else {
+					t.Fatalf("GetUser() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt

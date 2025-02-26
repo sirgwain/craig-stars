@@ -3,8 +3,6 @@ package cs
 import (
 	"reflect"
 	"testing"
-
-	"github.com/sirgwain/craig-stars/test"
 )
 
 func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
@@ -389,7 +387,13 @@ func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 				design.Purpose = ShipDesignPurposeBeamFighter
 			}
 			got, err := tc.GetMostNeededComponent(design, tt.args.hullSlotType, tt.args.qty)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("techCompare.getMostNeededComponent() did not return error when expected")
+				} else {
+					t.Fatalf("techCompare.getMostNeededComponent() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("techCompare.getMostNeededComponent() = %v, want %v", got, tt.want)
 			}

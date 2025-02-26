@@ -29,7 +29,13 @@ func TestCreateRace(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.race.ID
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("CreateRace() did not return error when expected")
+				} else {
+					t.Fatalf("CreateRace() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if !reflect.DeepEqual(tt.args.race, &want) {
 				t.Errorf("CreateRace() = \n%v, want \n%v", tt.args.race, want)
 			}
@@ -95,7 +101,13 @@ func TestGetRace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetRace(tt.args.id)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetRace() did not return error when expected")
+				} else {
+					t.Fatalf("GetRace() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt

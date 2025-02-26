@@ -34,7 +34,13 @@ func TestCreateShipDesign(t *testing.T) {
 			want.GameID = player.GameID
 			want.PlayerNum = player.Num
 			want.ID = tt.args.shipDesign.ID
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("CreateShipDesign() did not return error when expected")
+				} else {
+					t.Fatalf("CreateShipDesign() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if !reflect.DeepEqual(tt.args.shipDesign, &want) {
 				t.Errorf("CreateShipDesign() = \n%v, want \n%v", tt.args.shipDesign, want)
 			}
@@ -70,7 +76,13 @@ func TestGetShipDesign(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetShipDesign(tt.args.id)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetShipDesign() did not return error when expected")
+				} else {
+					t.Fatalf("GetShipDesign() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt

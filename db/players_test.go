@@ -33,7 +33,13 @@ func TestCreatePlayer(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.player.ID
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("CreatePlayer() did not return error when expected")
+				} else {
+					t.Fatalf("CreatePlayer() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if !reflect.DeepEqual(tt.args.player, &want) {
 				t.Errorf("CreatePlayer() = \n%v, want \n%v", tt.args.player, want)
 			}
@@ -99,7 +105,13 @@ func TestGetPlayer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetPlayer(tt.args.id)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetPlayer() did not return error when expected")
+				} else {
+					t.Fatalf("GetPlayer() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt

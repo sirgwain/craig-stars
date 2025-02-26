@@ -36,7 +36,13 @@ func TestCreateMineField(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.mineField.ID
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("CreateMineField() did not return error when expected")
+				} else {
+					t.Fatalf("CreateMineField() errored unexpectedly; err = \n%v", err)
+				}
+			}
 
 			test.CompareAsJSON(t, tt.args.mineField, &want)
 		})
@@ -74,7 +80,13 @@ func TestGetMineField(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetMineField(tt.args.id)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetMineField() did not return error when expected")
+				} else {
+					t.Fatalf("GetMineField() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt

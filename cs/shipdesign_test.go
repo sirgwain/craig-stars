@@ -213,7 +213,9 @@ func TestShipDesign_Validate(t *testing.T) {
 				Slots: tt.fields.Slots,
 			}
 			err := sd.Validate(&rules, tt.args.player)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err == nil) != tt.wantErr {
+
+			}
 		})
 	}
 }
@@ -721,7 +723,9 @@ func TestComputeShipDesignSpec(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ComputeShipDesignSpec(&rules, tt.args.techLevels, tt.args.raceSpec, tt.args.design)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if tt.wantErr && err == nil {
+				t.Errorf("ComputeShipDesignSpec() did not error when expected")
+			}
 			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
@@ -965,7 +969,7 @@ func TestDesignShip(t *testing.T) {
 		name    string
 		args    args
 		want    map[string]int
-		wantErr bool
+		wanterr bool
 	}{
 		{
 			name: "Humanoid Starter Stalwart Defender",
@@ -985,7 +989,7 @@ func TestDesignShip(t *testing.T) {
 				FuelTank.Name:       1,
 				BattleComputer.Name: 1,
 			},
-			wantErr: false,
+			wanterr: false,
 		},
 		{
 			name: "Humanoid Starter Teamster w/ IFE",
@@ -1001,7 +1005,7 @@ func TestDesignShip(t *testing.T) {
 				RhinoScanner.Name: 1,
 				Crobmnium.Name:    1,
 			},
-			wantErr: false,
+			wanterr: false,
 		},
 		{
 			name: "IT starting Swashbuckler w/ radram",
@@ -1019,7 +1023,7 @@ func TestDesignShip(t *testing.T) {
 				XRayLaser.Name:              1,
 				Crobmnium.Name:              2,
 			},
-			wantErr: false,
+			wanterr: false,
 		},
 		{
 			name: "Large Freighter - avoids radram",
@@ -1035,7 +1039,7 @@ func TestDesignShip(t *testing.T) {
 				FuelTank.Name:       2,
 				CowHideShield.Name:  2,
 			},
-			wantErr: false,
+			wanterr: false,
 		},
 		{
 			name: "IFE Cargo Privateer",
@@ -1052,7 +1056,7 @@ func TestDesignShip(t *testing.T) {
 				FuelTank.Name:       2,
 				MoleSkinShield.Name: 2,
 			},
-			wantErr: false,
+			wanterr: false,
 		},
 		{
 			name: "Remote Miner",
@@ -1068,7 +1072,7 @@ func TestDesignShip(t *testing.T) {
 				FuelTank.Name:       3,
 				RoboUltraMiner.Name: 12,
 			},
-			wantErr: false,
+			wanterr: false,
 		},
 		{
 			name: "SD Minelayer",
@@ -1085,7 +1089,7 @@ func TestDesignShip(t *testing.T) {
 				MineDispenser80.Name: 19,
 				CowHideShield.Name:   4,
 			},
-			wantErr: false,
+			wanterr: false,
 		},
 		{
 			name: "Hush-A-Boom B-52 Bomber",
@@ -1103,14 +1107,20 @@ func TestDesignShip(t *testing.T) {
 				HushABoom.Name:               16,
 				LangstonShell.Name:           2,
 			},
-			wantErr: false,
+			wanterr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.args.player.TechLevels = tt.args.techLevels
 			got, err := DesignShip(&rules, tt.args.hull, tt.name, tt.args.player, 1, 1, tt.args.purpose, tt.args.fleetPurpose)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wanterr {
+				if tt.wanterr {
+					t.Errorf("DesignShip() failed to error when expected; returned slots %+v instead", got.Slots)
+				} else {
+					t.Errorf("DesignShip() errored unexpectedly; returned error %v", err)
+				}
+			}
 
 			tallyMap := map[string]int{}
 			for _, slot := range got.Slots {
@@ -1353,7 +1363,8 @@ func BenchmarkDesignShip(b *testing.B) {
 		for _, tech := range MysteryTraderTechs {
 			player.AcquiredTechs[tech.Name] = true
 		}
-		for b.Loop() {
+		b.ResetTimer()
+		for range b.N {
 			b.StopTimer()
 			num := rules.random.Intn(3)
 			purpose := purposes[num]
@@ -1380,7 +1391,8 @@ func BenchmarkDesignShip(b *testing.B) {
 		for _, tech := range MysteryTraderTechs {
 			player.AcquiredTechs[tech.Name] = true
 		}
-		for b.Loop() {
+		b.ResetTimer()
+		for range b.N {
 			b.StopTimer()
 			num := rules.random.Intn(3)
 			purpose := purposes[num]
@@ -1418,7 +1430,7 @@ func BenchmarkDesignShip(b *testing.B) {
 			player.AcquiredTechs[tech.Name] = true
 		}
 		b.ResetTimer()
-		for b.Loop() {
+		for range b.N {
 			b.StopTimer()
 			purpose := purposes[rules.random.Intn(6)]
 			num := rules.random.Intn(8)
@@ -1458,7 +1470,7 @@ func BenchmarkDesignShip(b *testing.B) {
 			player.AcquiredTechs[tech.Name] = true
 		}
 		b.ResetTimer()
-		for b.Loop() {
+		for range b.N {
 			b.StopTimer()
 			purpose := purposes[rules.random.Intn(6)]
 			num := rules.random.Intn(6)

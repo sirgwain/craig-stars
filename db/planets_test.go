@@ -35,7 +35,13 @@ func TestCreatePlanet(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.planet.ID
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("CreatePlanet() did not return error when expected")
+				} else {
+					t.Fatalf("CreatePlanet() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if !reflect.DeepEqual(tt.args.planet, &want) {
 				t.Errorf("CreatePlanet() = \n%v, want \n%v", tt.args.planet, want)
 			}
@@ -92,7 +98,13 @@ func TestGetPlanet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetPlanet(tt.args.id)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetPlanet() did not return error when expected")
+				} else {
+					t.Fatalf("GetPlanet() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
@@ -191,7 +203,13 @@ func TestGetPlanetByNum(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetPlanetByNum(tt.args.gameID, tt.args.num)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetPlanet() did not return error when expected")
+				} else {
+					t.Fatalf("GetPlanet() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt

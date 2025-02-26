@@ -35,7 +35,13 @@ func TestCreateWormhole(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.wormhole.ID
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("CreateWormhole() did not return error when expected")
+				} else {
+					t.Fatalf("CreateWormhole() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if !reflect.DeepEqual(tt.args.wormhole, &want) {
 				t.Errorf("CreateWormhole() = \n%v, want \n%v", tt.args.wormhole, want)
 			}
@@ -92,7 +98,13 @@ func TestGetWormhole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetWormhole(tt.args.id)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetWormhole() did not return error when expected")
+				} else {
+					t.Fatalf("GetWormhole() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt

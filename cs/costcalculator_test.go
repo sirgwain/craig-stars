@@ -2,8 +2,6 @@ package cs
 
 import (
 	"testing"
-
-	"github.com/sirgwain/craig-stars/test"
 )
 
 func Test_getPlayerCost(t *testing.T) {
@@ -84,7 +82,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 		name    string
 		args    args
 		want    Cost
-		wantErr bool
+		wanterr bool
 	}{
 		{
 			name: "Min Price Floor - same category",
@@ -112,7 +110,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  150,
 				Germanium: 0,
 				Resources: 33,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 		{
 			name: "Min Price Floor - different categories",
@@ -137,7 +135,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  12,
 				Germanium: 1,
 				Resources: 24,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 		{
 			name: "Both min price floors at once",
@@ -164,7 +162,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  150,
 				Germanium: 9, // technically 8.4 but gets rounded up to 9
 				Resources: 83,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 		{
 			name: "Invalid station",
@@ -178,7 +176,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				newDesignSlots:      []ShipDesignSlot{},
 				starbaseCostFactor:  1,
 			},
-			want: Cost{}, wantErr: true,
+			want: Cost{}, wanterr: true,
 		},
 		{
 			name: "Invalid parts",
@@ -194,7 +192,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				newDesignSlots:     []ShipDesignSlot{},
 				starbaseCostFactor: 1,
 			},
-			want: Cost{}, wantErr: true,
+			want: Cost{}, wanterr: true,
 		},
 		{
 			name: "Identical Bases",
@@ -208,7 +206,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				newDesignSlots:      []ShipDesignSlot{},
 				starbaseCostFactor:  1,
 			},
-			want: Cost{}, wantErr: false,
+			want: Cost{}, wanterr: false,
 		},
 		{
 			name: "Items on former base not on latter",
@@ -224,7 +222,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				newDesignSlots:     []ShipDesignSlot{},
 				starbaseCostFactor: 1,
 			},
-			want: Cost{}, wantErr: false,
+			want: Cost{}, wanterr: false,
 		},
 		{
 			name: "Adding weapons",
@@ -246,7 +244,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  16,
 				Germanium: 0,
 				Resources: 20,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 		{
 			name: "Adding single orbital",
@@ -267,7 +265,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  20,
 				Germanium: 20,
 				Resources: 200,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 		{
 			name: "Hull swap",
@@ -286,7 +284,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  80,
 				Germanium: 242,
 				Resources: 580,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 		{
 			name: "Hull Swap + added components",
@@ -308,7 +306,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  160,
 				Germanium: 242,
 				Resources: 680,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 		{
 			name: "Component Swap (different categories)",
@@ -333,7 +331,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  0,
 				Germanium: 15,
 				Resources: 36,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 		{
 			name: "Component Swap (same categories)",
@@ -360,7 +358,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  150,
 				Germanium: 9, // technically 8.4 but gets rounded up to 9
 				Resources: 83,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 		{
 			name: "ISB Component Swap",
@@ -387,7 +385,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				Boranium:  120,
 				Germanium: 7,
 				Resources: 67,
-			}, wantErr: false,
+			}, wanterr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -404,8 +402,12 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 				WithHull(tt.args.newDesignHull).
 				WithSlots(tt.args.newDesignSlots)
 			got, err := p.StarbaseUpgradeCost(&rules, tt.args.techLevels, player.Race.Spec, design, newDesign)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
-			if got != tt.want {
+			if (err != nil) != tt.wanterr {
+				if tt.wanterr {
+					t.Errorf("costCalculate.StarbaseUpgradeCost() did not fail")
+				}
+				t.Errorf("costCalculate.StarbaseUpgradeCost() errored unexpectedly; err = %v", err)
+			} else if got != tt.want {
 				t.Errorf("costCalculate.StarbaseUpgradeCost() returned incorrect cost %v, want %v", got, tt.want)
 			}
 		})
@@ -649,7 +651,13 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 				WithHull(tt.args.hull).
 				WithSlots(tt.args.slots)
 			got, err := c.GetDesignCost(&rules, player.TechLevels, player.Race.Spec, design)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Errorf("costCalculate.GetDesignCost() did not return error when expected")
+				} else {
+					t.Errorf("costCalculate.GetDesignCost() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != tt.want {
 				t.Errorf("costCalculate.GetDesignCost() = %v, want %v", got, tt.want)
 			}

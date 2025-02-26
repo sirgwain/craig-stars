@@ -456,7 +456,7 @@ func Get{{.Name}}{{.Type.GenericTypeString}}(o js.Value) {{.Type.GoType}}{{.Type
 
 {{- /* we don't create setter functions for named types, they don't really work */}}
 {{- if eq .Type.Type "Object" }}
-func Set{{.Name}}(o js.Value, obj *{{$.Pkg}}.{{.Name}}) {
+func Set{{.Name}}{{.Type.GenericTypeString}}(o js.Value, obj *{{.Type.GoType}}{{.Type.GenericTypeParamsString}}) {
 	{{- range .Fields}}
 		{{- if .Ignore }}
 			{{- if and .Exported (ne .JsonName "") }}

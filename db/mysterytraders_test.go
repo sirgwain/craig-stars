@@ -35,7 +35,13 @@ func TestCreateMysteryTrader(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.mysteryTrader.ID
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("CreateMysteryTrader() did not return error when expected")
+				} else {
+					t.Fatalf("CreateMysteryTrader() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if !reflect.DeepEqual(tt.args.mysteryTrader, &want) {
 				t.Errorf("CreateMysteryTrader() = \n%v, want \n%v", tt.args.mysteryTrader, want)
 			}
@@ -92,7 +98,13 @@ func TestGetMysteryTrader(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetMysteryTrader(tt.args.id)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetMysteryTrader() did not return error when expected")
+				} else {
+					t.Fatalf("GetMysteryTrader() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt

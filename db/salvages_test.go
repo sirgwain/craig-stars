@@ -36,7 +36,13 @@ func TestCreateSalvage(t *testing.T) {
 
 			// id is automatically added
 			want.ID = tt.args.salvage.ID
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("CreateSalvage() did not return error when expected")
+				} else {
+					t.Fatalf("CreateSalvage() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if !reflect.DeepEqual(tt.args.salvage, &want) {
 				t.Errorf("CreateSalvage() = \n%v, want \n%v", tt.args.salvage, want)
 			}
@@ -74,7 +80,13 @@ func TestGetSalvage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetSalvage(tt.args.id)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetSalvage() did not return error when expected")
+				} else {
+					t.Fatalf("GetSalvage() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
