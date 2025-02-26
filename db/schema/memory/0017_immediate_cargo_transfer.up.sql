@@ -1,2 +1,0 @@
-ALTER TABLE fleets ADD immediateCargoTransfers TEXT;
-

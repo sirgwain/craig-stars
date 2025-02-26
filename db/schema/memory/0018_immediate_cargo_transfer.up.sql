@@ -1,1 +1,0 @@
-ALTER TABLE players ADD cargoTransfers TEXT;

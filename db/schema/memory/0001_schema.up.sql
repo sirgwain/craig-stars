@@ -180,6 +180,7 @@ CREATE TABLE players (
   productionPlans TEXT,
   transportPlans TEXT,
   relations TEXT,
+  cargoTransfers TEXT,
   messages TEXT,
   battleRecords TEXT,
   playerIntels TEXT,
