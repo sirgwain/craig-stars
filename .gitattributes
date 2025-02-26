@@ -1,6 +1,6 @@
 * text=auto eol=lf
 
 # Treat all Go files in this repo as binary, with no git magic updating
-# line endings. Gofmt changes all line endings to lf automatically,
-# so we don't need to change them to CRLF on pull.
+# line endings. Gofmt changes all line endings to LF when formatting,
+# so we don't need (or particularly want) git changing them to CRLF on pull.
 *.go -text diff=golang

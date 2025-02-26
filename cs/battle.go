@@ -822,7 +822,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 			// fire a torpedo
 			torpedoNum++
 			remainingTorpedoes--
-			hit := b.rules.random.Float64() <= weapon.getAccuracy(target.torpedoJamming)
+			hit := weapon.getAccuracy(target.torpedoJamming) >= b.rules.random.Float64()
 
 			if hit {
 				hits++

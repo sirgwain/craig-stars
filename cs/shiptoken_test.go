@@ -400,7 +400,7 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 	}
 }
 
-func TestShipToken_getStargateMassVanishingChance(t *testing.T) {
+func TestShipToken_getOvergateMassVanishingChance(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
 
 	type fields struct {
@@ -444,14 +444,14 @@ func TestShipToken_getStargateMassVanishingChance(t *testing.T) {
 				Quantity: 1,
 				design:   design,
 			}
-			if got := tr.getStargateMassVanishingChance(tt.args.safeSourceMass, tt.args.maxMassFactor); got != tt.want {
-				t.Errorf("ShipToken.getStargateMassVanishingChance() = %v, want %v", got, tt.want)
+			if got := tr.getOvergateMassVanishingChance(tt.args.safeSourceMass, tt.args.maxMassFactor); got != tt.want {
+				t.Errorf("ShipToken.getOvergateMassVanishingChance() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestShipToken_getStargateRangeVanishingChance(t *testing.T) {
+func TestShipToken_getOvergateRangeVanishingChance(t *testing.T) {
 	type args struct {
 		dist      float64
 		safeRange int
@@ -487,8 +487,8 @@ func TestShipToken_getStargateRangeVanishingChance(t *testing.T) {
 				design:   design,
 			}
 
-			if got := tr.getStargateRangeVanishingChance(tt.args.dist, tt.args.safeRange); got != tt.want {
-				t.Errorf("ShipToken.getStargateRangeVanishingChance() = %v, want %v", got, tt.want)
+			if got := tr.getOvergateRangeVanishingChance(tt.args.dist, tt.args.safeRange); got != tt.want {
+				t.Errorf("ShipToken.getOvergateRangeVanishingChance() = %v, want %v", got, tt.want)
 			}
 		})
 	}
