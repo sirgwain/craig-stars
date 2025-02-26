@@ -10,6 +10,7 @@
 		PlayerMessageFleetDieoff,
 		PlayerMessageFleetExceededSafeSpeed,
 		PlayerMessageFleetGeneratedFuel,
+		PlayerMessageFleetImmediateTransferNotComplete,
 		PlayerMessageFleetLaidMines,
 		PlayerMessageFleetMineFieldHit,
 		PlayerMessageFleetMineFieldSweptMines,
@@ -19,7 +20,6 @@
 		PlayerMessageFleetReproduce,
 		PlayerMessageFleetScrapped,
 		PlayerMessageFleetStealCargoNotAllowed,
-		PlayerMessageFleetStealCargoNotComplete,
 		PlayerMessageFleetTransferGiven,
 		PlayerMessageFleetTransferInvalidColonists,
 		PlayerMessageFleetTransferInvalidGiveRefused,
@@ -189,8 +189,8 @@
 	{message.targetName} has been dismantled. The scrap was left in deep space.
 {:else if message.type === PlayerMessageFleetStealCargoNotAllowed}
 	{message.targetName} has been attempted to steal cargo from {message.spec.targetName} but does not
-	have the required technology on BattleBoard.
-{:else if message.type === PlayerMessageFleetStealCargoNotComplete}
+	have the required technology on steal cargo.
+{:else if message.type === PlayerMessageFleetImmediateTransferNotComplete}
 	{@const cargo = {
 		ironium: message.spec.cargo?.ironium ?? 0,
 		boranium: message.spec.cargo?.boranium ?? 0,

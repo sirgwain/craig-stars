@@ -2,8 +2,52 @@ package cs
 
 import "github.com/rs/zerolog"
 
+type invasion struct {
+	planet           *Planet
+	defender         *Player
+	attacker         *Player
+	colonistsDropped int
+	fleetName        string // empty for multiple fleets
+}
+
+type invader struct {
+	invasionsByPlanet map[int][]invasion
+}
+
+func (i *invader) addInvasion(inv invasion) {
+	invasions := i.invasionsByPlanet[inv.planet.Num]
+	if len(invasions) == 0 {
+		i.invasionsByPlanet[inv.planet.Num] = []invasion{inv}
+		return
+	}
+
+	for j := range invasions {
+		existingInvasion := &invasions[j]
+		if existingInvasion.attacker.Num == inv.attacker.Num {
+			// add to this existing invasion and remove the fleet name since
+			// we are invading with multiple fleets
+			existingInvasion.colonistsDropped += inv.colonistsDropped
+			existingInvasion.fleetName = ""
+			return
+		}
+	}
+
+	// we didn't find an existing invasion for this player, add to the other invasions
+	i.invasionsByPlanet[inv.planet.Num] = append(i.invasionsByPlanet[inv.planet.Num], inv)
+}
+
+// resolveInvasions resolves all invasions for a planet
+// TODO: add any logic for N-way invasions
+func (i *invader) resolveInvasions(log zerolog.Logger, rules *Rules) {
+	for _, invasions := range i.invasionsByPlanet {
+		for _, invasion := range invasions {
+			invadePlanet(log, rules, invasion.planet, invasion.fleetName, invasion.defender, invasion.attacker, invasion.colonistsDropped)
+		}
+	}
+}
+
 // invade a planet with a colonist drop
-func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int) {
+func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleetName string, defender *Player, attacker *Player, colonistsDropped int) {
 	invasionDefenseCoverageFactor := rules.InvasionDefenseCoverageFactor
 
 	// figure out how many attackers are stopped by defenses
@@ -29,8 +73,8 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 		var attackersKilled = colonistsDropped - remainingAttackers
 
 		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population(), true)
-		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population(), true)
+		messager.planetInvaded(defender, planet, fleetName, attacker, defender, attackersKilled, planet.population(), true)
+		messager.planetInvaded(attacker, planet, fleetName, attacker, defender, attackersKilled, planet.population(), true)
 
 		// empty this planet
 		planet.emptyPlanet()
@@ -80,8 +124,8 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 		defendersKilled := planet.population() - remainingDefenders
 
 		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, colonistsDropped, defendersKilled, false)
-		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, colonistsDropped, defendersKilled, false)
+		messager.planetInvaded(defender, planet, fleetName, attacker, defender, colonistsDropped, defendersKilled, false)
+		messager.planetInvaded(attacker, planet, fleetName, attacker, defender, colonistsDropped, defendersKilled, false)
 
 		// reduce the population to however many colonists remain
 		planet.setPopulation(remainingDefenders)
@@ -90,7 +134,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 	log.Debug().
 		Int("Defender", defender.Num).
 		Int("Attacker", attacker.Num).
-		Str("Fleet", fleet.Name).
+		Str("Fleet", fleetName).
 		Str("Planet", planet.Name).
 		Int("Attackers", attackers).
 		Int("Defenders", defenders).

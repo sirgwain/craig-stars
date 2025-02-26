@@ -2,9 +2,6 @@ package cs
 
 import (
 	"fmt"
-
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
 type Target[T PlayerMessageTargetType | MapObjectType] struct {
@@ -43,6 +40,7 @@ type PlayerMessageSpec struct {
 	Cost                  *Cost                           `json:"cost,omitempty"`
 	Mineral               *Mineral                        `json:"mineral,omitempty"`
 	Cargo                 *Cargo                          `json:"cargo,omitempty"`
+	Cargo2                *Cargo                          `json:"cargo2,omitempty"`
 	QueueItemType         QueueItemType                   `json:"queueItemType,omitempty"`
 	Field                 TechField                       `json:"field,omitempty"`
 	NextField             TechField                       `json:"nextField,omitempty"`
@@ -54,6 +52,7 @@ type PlayerMessageSpec struct {
 	MineralPacketDamage   *MineralPacketDamage            `json:"mineralPacketDamage,omitempty"`
 	MineFieldDamage       *MineFieldDamage                `json:"mineFieldDamage,omitempty"`
 	MysteryTrader         *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
+	Invasion              *PlayerMessageSpecInvasion      `json:"invasion,omitempty"`
 	TerraformAmount       Hab                             `json:"terraformAmount,omitempty"`
 }
 
@@ -68,6 +67,15 @@ type PlayerMessageSpecComet struct {
 type PlayerMessageSpecMysteryTrader struct {
 	MysteryTraderReward `tstype:",extends"`
 	FleetNum            int `json:"fleetNum" bson:"fleet_num"`
+}
+
+type PlayerMessageSpecInvasion struct {
+	FleetName         string `json:"fleetName,omitempty"`
+	AttackerPlayerNum int    `json:"attackerPlayerNum"`
+	DefenderPlayerNum int    `json:"defenderPlayerNum"`
+	AttackersKilled   int    `json:"attackersKilled"`
+	DefendersKilled   int    `json:"defendersKilled"`
+	Successful        bool   `json:"successful"`
 }
 
 type PlayerMessageTargetType string
@@ -187,8 +195,9 @@ const (
 	PlayerMessagePlanetBuiltGenesisDevice
 	PlayerMessagePlayerAcquirablePartGainedScrapFleet
 	PlayerMessagePlayerAcquirablePartGainedBattle
+	PlayerMessageFleetImmediateTransferInvalid
+	PlayerMessageFleetImmediateTransferNotComplete
 	PlayerMessageFleetStealCargoNotAllowed
-	PlayerMessageFleetStealCargoNotComplete
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -324,6 +333,11 @@ func (m *messageClient) fleetBombedPlanet(player *Player, fleet *Fleet, planet *
 func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet, numBuilt int) {
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetBuilt, fleet).
 		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt}.withTargetPlanet(planet)))
+}
+
+func (m *messageClient) fleetImmediateCargoTransferInvalid(player *Player, fleet *Fleet, reason string) {
+	text := reason
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetImmediateTransferInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
 func (m *messageClient) fleetColonizeNonPlanet(player *Player, fleet *Fleet) {
@@ -764,29 +778,23 @@ func (m *messageClient) planetInstaform(player *Player, planet *Planet, terrafor
 	})
 }
 
-func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fleet, planetOwner string, fleetOwner string, attackersKilled int, defendersKilled int, successful bool) {
-	var text string
-
-	// use this formatter to get commas on the text
-	p := message.NewPrinter(language.English)
-	if player.Num == fleet.PlayerNum {
-		if successful {
-			// we invaded and won
-			text = p.Sprintf("Your troops beaming down from %s have successfully wrested %s from %s control, killing off all their colonists with only %d causalties.", fleet.Name, planet.Name, planetOwner, attackersKilled)
-		} else {
-			// we invaded and lost
-			text = p.Sprintf("Your troops beaming down from %s tried to invade %s, but all of them were massacred by the %s. Your valiant fighters managed to kill %d of their colonists in return.", fleet.Name, planet.Name, planetOwner, defendersKilled)
-		}
-		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvadedPlanet, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackersKilled int, defendersKilled int, successful bool) {
+	invasion := PlayerMessageSpecInvasion{
+		FleetName:         fleetName,
+		AttackerPlayerNum: attacker.Num,
+		DefenderPlayerNum: defender.Num,
+		AttackersKilled:   attackersKilled,
+		DefendersKilled:   defendersKilled,
+		Successful:        successful,
+	}
+	if player.Num == attacker.Num {
+		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvadedPlanet, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
+			Spec: PlayerMessageSpec{Invasion: &invasion},
+		})
 	} else {
-		if successful {
-			// we were invaded, and lost
-			text = p.Sprintf("%s %s has successfully invaded %s and wrested it from your control. Your colonists managed to defeat %d of their invaders before being overrun.", fleetOwner, fleet.Name, planet.Name, attackersKilled)
-		} else {
-			// we were invaded, and lost
-			text = p.Sprintf("%s %s tried to invade %s, but your troops were able to fend them off. You lost %d colonists in the process.", fleetOwner, fleet.Name, planet.Name, defendersKilled)
-		}
-		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInvaded, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInvaded, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
+			Spec: PlayerMessageSpec{Invasion: &invasion},
+		})
 	}
 }
 

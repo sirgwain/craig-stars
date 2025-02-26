@@ -638,6 +638,7 @@ export interface PlayerMessageSpec extends Target<MapObjectType> {
 	cost?: Cost;
 	mineral?: Mineral;
 	cargo?: Cargo;
+	cargo2?: Cargo;
 	queueItemType?: QueueItemType;
 	field?: TechField;
 	nextField?: TechField;
@@ -649,6 +650,7 @@ export interface PlayerMessageSpec extends Target<MapObjectType> {
 	mineralPacketDamage?: MineralPacketDamage;
 	mineFieldDamage?: MineFieldDamage;
 	mysteryTrader?: PlayerMessageSpecMysteryTrader;
+	invasion?: PlayerMessageSpecInvasion;
 	terraformAmount?: Hab;
 }
 export interface PlayerMessageSpecComet {
@@ -660,6 +662,14 @@ export interface PlayerMessageSpecComet {
 }
 export interface PlayerMessageSpecMysteryTrader extends MysteryTraderReward {
 	fleetNum: number /* int */;
+}
+export interface PlayerMessageSpecInvasion {
+	fleetName?: string;
+	attackerPlayerNum: number /* int */;
+	defenderPlayerNum: number /* int */;
+	attackersKilled: number /* int */;
+	defendersKilled: number /* int */;
+	successful: boolean;
 }
 export type PlayerMessageTargetType = string;
 export const TargetNone: PlayerMessageTargetType = '';
@@ -772,8 +782,9 @@ export const PlayerMessageMysteryTraderAlreadyRewarded: PlayerMessageType = 97;
 export const PlayerMessagePlanetBuiltGenesisDevice: PlayerMessageType = 98;
 export const PlayerMessagePlayerAcquirablePartGainedScrapFleet: PlayerMessageType = 99;
 export const PlayerMessagePlayerAcquirablePartGainedBattle: PlayerMessageType = 100;
-export const PlayerMessageFleetStealCargoNotAllowed: PlayerMessageType = 101;
-export const PlayerMessageFleetStealCargoNotComplete: PlayerMessageType = 102;
+export const PlayerMessageFleetImmediateTransferInvalid: PlayerMessageType = 101;
+export const PlayerMessageFleetImmediateTransferNotComplete: PlayerMessageType = 102;
+export const PlayerMessageFleetStealCargoNotAllowed: PlayerMessageType = 103;
 
 //////////
 // source: minefield.go
