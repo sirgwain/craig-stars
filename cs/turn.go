@@ -707,7 +707,7 @@ func (t *turnGenerator) fleetTransferCargo(fleet *Fleet, transferAmount int, car
 			}
 			defender.discoverer.discoverFleet(fleet, false)
 
-			invadePlanet(t.log, &t.game.Rules, planet, fleet, defender, player, transferAmount*100)
+			invadePlanet(t.log, &t.game.Rules, planet, fleet.Name, defender, player, transferAmount*100)
 			fleet.Cargo.Colonists -= transferAmount
 
 			if planet.Num != defender.Num {
