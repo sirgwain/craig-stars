@@ -1,11 +1,16 @@
 <script lang="ts">
-	import { GameState, type Game } from '$lib/types/Game';
+	import {
+		GameStateGeneratingTurnError,
+		GameStateSetup,
+		type Game,
+		type GameWithPlayers
+	} from '$lib/types/cs';
 	import { Check, Trash, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
 
 	type Props = {
-		game: Game;
+		game: GameWithPlayers;
 		href?: string | undefined;
 		showDelete?: boolean;
 		onDelete?: (game: Game) => void;
@@ -34,7 +39,7 @@
 		<div class="flex flex-col">
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-32">State</div>
-				<div class:text-error={game.state === GameState.GeneratingTurnError}>
+				<div class:text-error={game.state === GameStateGeneratingTurnError}>
 					{startCase(game.state)}
 				</div>
 			</div>
@@ -53,8 +58,8 @@
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-32">Players</div>
 				<div>
-					{#if game.openPlayerSlots > 0}
-						{game.numPlayers - game.openPlayerSlots}/ {game.numPlayers}
+					{#if (game.openPlayerSlots ?? 0) > 0}
+						{(game.numPlayers ?? 0) - (game.openPlayerSlots ?? 0)}/ {game.numPlayers ?? 1}
 					{:else}
 						{game.players.length}
 					{/if}
@@ -81,7 +86,7 @@
 				</div>
 			</div>
 		</div>
-		{#if game.state == GameState.Setup}
+		{#if game.state == GameStateSetup}
 			<div class="flex flex-row">
 				<div class="text-right font-semibold mr-2 w-32">Public</div>
 				<div>

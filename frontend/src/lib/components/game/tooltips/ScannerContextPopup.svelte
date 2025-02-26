@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Vector } from '$lib/types/Vector';
+	import type { Vector } from '$lib/types/cs';
 	import ScannerContextPopup from './ScannerContextPopup.svelte';
 
 	export type ScannerContextPopupProps = {
@@ -15,8 +15,14 @@
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/Constants';
-	import { getMapObjectName, MapObjectType, ownedBy, type MapObject } from '$lib/types/MapObject';
+	import {
+		MapObjectTypeFleet,
+		MapObjectTypeMineField,
+		MapObjectTypePlanet,
+		None,
+		type MapObject
+	} from '$lib/types/cs';
+	import { getMapObjectName, ownedBy } from '$lib/types/MapObject';
 	import { flatten, keys } from 'lodash-es';
 	import { showPopup, type PopupProps } from './Popup.svelte';
 
@@ -28,7 +34,7 @@
 	let everythingElse = $derived(
 		flatten(
 			keys(otherMapObjectsHere).map((k) =>
-				k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
+				k !== MapObjectTypePlanet && k !== MapObjectTypeFleet && k !== MapObjectTypeMineField
 					? otherMapObjectsHere[k]
 					: []
 			)
@@ -37,7 +43,7 @@
 
 	function gotoTarget(mo: MapObject) {
 		if (ownedBy(mo, $player.num)) {
-			if (mo.type === MapObjectType.Planet || mo.type === MapObjectType.Fleet) {
+			if (mo.type === MapObjectTypePlanet || mo.type === MapObjectTypeFleet) {
 				commandMapObject(mo);
 			}
 		}
@@ -47,11 +53,11 @@
 </script>
 
 <ul class="menu overflow-y-auto px-0.5">
-	{#if otherMapObjectsHere[MapObjectType.Planet]}
+	{#if otherMapObjectsHere[MapObjectTypePlanet]}
 		<li class="menu-title w-full">
 			Planet
 			<ul>
-				{#each otherMapObjectsHere[MapObjectType.Planet] as mo}
+				{#each otherMapObjectsHere[MapObjectTypePlanet] as mo}
 					<li
 						style={mo.playerNum != $player.num && mo.playerNum != None
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
@@ -66,11 +72,11 @@
 			</ul>
 		</li>
 	{/if}
-	{#if otherMapObjectsHere[MapObjectType.Fleet]}
+	{#if otherMapObjectsHere[MapObjectTypeFleet]}
 		<li class="menu-title w-full">
 			Fleets
 			<ul>
-				{#each otherMapObjectsHere[MapObjectType.Fleet] as mo}
+				{#each otherMapObjectsHere[MapObjectTypeFleet] as mo}
 					<li
 						style={mo.playerNum != $player.num
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
@@ -86,11 +92,11 @@
 		</li>
 	{/if}
 
-	{#if otherMapObjectsHere[MapObjectType.MineField]}
+	{#if otherMapObjectsHere[MapObjectTypeMineField]}
 		<li class="menu-title w-full">
 			Mine Fields
 			<ul>
-				{#each otherMapObjectsHere[MapObjectType.MineField] as mo}
+				{#each otherMapObjectsHere[MapObjectTypeMineField] as mo}
 					<li
 						style={mo.playerNum != $player.num
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`

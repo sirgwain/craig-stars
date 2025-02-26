@@ -5,7 +5,7 @@
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
-	import { TechCategory, type TechHull } from '$lib/types/Tech';
+	import { TechCategoryShipHull, TechCategoryStarbaseHull, type TechHull } from '$lib/types/cs';
 
 	const { game, player } = getGameContext();
 
@@ -24,7 +24,7 @@
 
 {#if tech}
 	<TechSummary {tech} player={$player} />
-	{#if (hull && tech.category == TechCategory.ShipHull) || tech.category == TechCategory.StarbaseHull}
+	{#if (hull && tech.category == TechCategoryShipHull) || tech.category == TechCategoryStarbaseHull}
 		<h1 class="my-3 text-lg text-center font-semibold">Hull</h1>
 		<div
 			class="card bg-base-200 shadow w-full max-h-fit min-h-fit rounded-sm border-2 border-base-300"

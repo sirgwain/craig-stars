@@ -1,7 +1,15 @@
 <script lang="ts">
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import NumberInput from '$lib/components/NumberInput.svelte';
-	import { WaypointTaskTransportAction } from '$lib/types/Fleet';
+	import {
+		TransportActionLoadAll,
+		TransportActionLoadDunnage,
+		TransportActionLoadOptimal,
+		TransportActionNone,
+		TransportActionUnloadAll,
+		type WaypointTaskTransportAction
+	} from '$lib/types/cs';
+	import { WaypointTransportTaskActions } from '$lib/types/Fleet';
 	import { startCase } from 'lodash-es';
 
 	type Props = {
@@ -20,11 +28,10 @@
 <div class="col-span-2">
 	<EnumSelect
 		name={`action${title}`}
-		enumType={WaypointTaskTransportAction}
+		options={WaypointTransportTaskActions}
 		bind:value={action}
 		titleClass="hidden"
-		typeTitle={(value) =>
-			!value || value === WaypointTaskTransportAction.None ? 'None' : startCase(value)}
+		typeTitle={(value) => (!value || value === TransportActionNone ? 'None' : startCase(value))}
 		showEmpty={true}
 	/>
 </div>
@@ -34,10 +41,10 @@
 		name={`amount${title}`}
 		bind:value={amount}
 		disabled={action == undefined ||
-			action === WaypointTaskTransportAction.None ||
-			action === WaypointTaskTransportAction.LoadAll ||
-			action === WaypointTaskTransportAction.UnloadAll ||
-			action === WaypointTaskTransportAction.LoadDunnage ||
-			action === WaypointTaskTransportAction.LoadOptimal}
+			action === TransportActionNone ||
+			action === TransportActionLoadAll ||
+			action === TransportActionUnloadAll ||
+			action === TransportActionLoadDunnage ||
+			action === TransportActionLoadOptimal}
 	/>
 </div>

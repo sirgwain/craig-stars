@@ -1,41 +1,47 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType } from '$lib/types/MapObject';
-	import { MessageType, type Message } from '$lib/types/Message';
-	import type { MineralPacket } from '$lib/types/MineralPacket';
-	import type { Planet } from '$lib/types/Planet';
+	import type { AnyFleet, AnyMineralPacket } from '$lib/services/Universe';
+	import type { PlanetIntel } from '$lib/types/cs';
+	import {
+		MapObjectTypeFleet,
+		MapObjectTypeMineralPacket,
+		MapObjectTypeMysteryTrader,
+		MapObjectTypePlanet,
+		PlayerMessageBattle,
+		PlayerMessageBattleAlly,
+		type PlayerMessage
+	} from '$lib/types/cs';
 	import BattleMessageDetail from './BattleMessageDetail.svelte';
 	import FleetMessageDetail from './FleetMessageDetail.svelte';
 	import MineralPacketMessageDetail from './MineralPacketMessageDetail.svelte';
+	import MysteryTraderMessageDetail from './MysteryTraderMessageDetail.svelte';
 	import PlanetMessageDetail from './PlanetMessageDetail.svelte';
 	import PlayerMessageDetail from './PlayerMessageDetail.svelte';
-	import MysteryTraderMessageDetail from './MysteryTraderMessageDetail.svelte';
 
 	const { universe } = getGameContext();
 
-	let { message }: { message: Message } = $props();
+	let { message }: { message: PlayerMessage } = $props();
 
 	let target = $derived($universe.getMapObject(message));
 	let owner = $derived(
 		target && target.playerNum ? $universe.getPlayerIntel(target.playerNum) : undefined
 	);
-	let planet = $derived(target?.type == MapObjectType.Planet ? (target as Planet) : undefined);
-	let fleet = $derived(target?.type == MapObjectType.Fleet ? (target as Fleet) : undefined);
+	let planet = $derived(target?.type == MapObjectTypePlanet ? (target as PlanetIntel) : undefined);
+	let fleet = $derived(target?.type == MapObjectTypeFleet ? (target as AnyFleet) : undefined);
 	let mineralPacket = $derived(
-		target?.type == MapObjectType.MineralPacket ? (target as MineralPacket) : undefined
+		target?.type == MapObjectTypeMineralPacket ? (target as AnyMineralPacket) : undefined
 	);
 </script>
 
-{#if message.type === MessageType.Battle || message.type === MessageType.BattleAlly}
+{#if message.type === PlayerMessageBattle || message.type === PlayerMessageBattleAlly}
 	<BattleMessageDetail {message} />
 {:else if planet}
 	<PlanetMessageDetail {message} {planet} {owner} />
-{:else if message.targetType === MapObjectType.MysteryTrader}
+{:else if message.targetType === MapObjectTypeMysteryTrader}
 	<MysteryTraderMessageDetail {message} />
 {:else if mineralPacket && owner}
 	<MineralPacketMessageDetail {message} {mineralPacket} {owner} />
-{:else if message.targetType === MapObjectType.Fleet || fleet}
+{:else if message.targetType === MapObjectTypeFleet || fleet}
 	<FleetMessageDetail {message} />
 {:else}
 	<PlayerMessageDetail {message} />

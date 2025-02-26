@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import { HabTypes, getHabValueString, habTypeString, type HabType } from '$lib/types/Hab';
+	import { type HabType, Grav, Temp, Rad } from '$lib/types/cs';
+	import { getHabValueString, HabTypeShortString, habTypeString } from '$lib/types/Hab';
 	import { draggable, type DragEventData } from '@neodrag/svelte';
 	import {
 		ChevronDoubleLeft,
@@ -23,6 +24,8 @@
 		habHigh = $bindable(),
 		immune = $bindable()
 	}: Props = $props();
+
+	let habTypeShortString = $derived(HabTypeShortString[habType]);
 
 	let barContainerRef: HTMLDivElement | undefined = $state();
 	let containerWidth = $derived(barContainerRef?.parentElement?.clientWidth ?? 0);
@@ -88,20 +91,28 @@
 							use:draggable={{ bounds: 'parent', position, onDrag }}
 							style={`width: ${habWidth.toFixed()}%`}
 							class="h-full"
-							class:grav-bar={habType === HabTypes.Gravity}
-							class:temp-bar={habType === HabTypes.Temperature}
-							class:rad-bar={habType === HabTypes.Radiation}
+							class:grav-bar={habType === Grav}
+							class:temp-bar={habType === Temp}
+							class:rad-bar={habType === Rad}
 						></div>
 					{/if}
 				</div>
 			</div>
-			<button type="button" onclick={onRight} class="btn btn-outline btn-sm"
+			<button
+				type="button"
+				onclick={onRight}
+				class="btn btn-outline btn-sm"
+				data-type={`${habTypeShortString}-right-button`}
 				><Icon src={ChevronRight} size="20" />
 			</button>
 		</div>
 		<div class="flex flex-row grow mt-2">
 			<div>
-				<button type="button" onclick={onGrow} class="btn btn-outline btn-sm"
+				<button
+					type="button"
+					onclick={onGrow}
+					class="btn btn-outline btn-sm"
+					data-type={`${habTypeShortString}-grow-button`}
 					><Icon src={ChevronDoubleLeft} size="20" />
 					<Icon src={ChevronDoubleRight} size="20" /></button
 				>
@@ -112,7 +123,11 @@
 				>
 			</div>
 			<div>
-				<button type="button" onclick={onShrink} class="btn btn-outline btn-sm"
+				<button
+					type="button"
+					onclick={onShrink}
+					class="btn btn-outline btn-sm"
+					data-type={`${habTypeShortString}-left-button`}
 					><Icon src={ChevronDoubleRight} size="20" />
 					<Icon src={ChevronDoubleLeft} size="20" /></button
 				>

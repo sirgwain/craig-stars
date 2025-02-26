@@ -1,5 +1,21 @@
 <script lang="ts">
-	import { LRT, type Race } from '$lib/types/Race';
+	import {
+		ARM,
+		BET,
+		CE,
+		GR,
+		IFE,
+		ISB,
+		LSP,
+		MA,
+		NAS,
+		NRSE,
+		OBRM,
+		RS,
+		TT,
+		UR,
+		type Race
+	} from '$lib/types/cs';
 
 	type Props = {
 		race: Race;
@@ -11,99 +27,99 @@
 <div class="flex flex-row flex-wrap justify-between gap-1">
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.IFE)}
-		class:btn-primary={race.lrts & LRT.IFE}
+		onclick={() => (race.lrts ^= IFE)}
+		class:btn-primary={race.lrts & IFE}
 		class="btn w-[11rem]">Improved Fuel Efficiency</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.TT)}
-		class:btn-primary={race.lrts & LRT.TT}
+		onclick={() => (race.lrts ^= TT)}
+		class:btn-primary={race.lrts & TT}
 		class="btn w-[11rem]">Total Terraforming</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.ARM)}
-		class:btn-primary={race.lrts & LRT.ARM}
+		onclick={() => (race.lrts ^= ARM)}
+		class:btn-primary={race.lrts & ARM}
 		class="btn w-[11rem]">Advanced Remote Mining</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.ISB)}
-		class:btn-primary={race.lrts & LRT.ISB}
+		onclick={() => (race.lrts ^= ISB)}
+		class:btn-primary={race.lrts & ISB}
 		class="btn w-[11rem]">Improved Starbases</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.GR)}
-		class:btn-primary={race.lrts & LRT.GR}
+		onclick={() => (race.lrts ^= GR)}
+		class:btn-primary={race.lrts & GR}
 		class="btn w-[11rem]">Generalized Research</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.UR)}
-		class:btn-primary={race.lrts & LRT.UR}
+		onclick={() => (race.lrts ^= UR)}
+		class:btn-primary={race.lrts & UR}
 		class="btn w-[11rem]">Ultimate Recycling</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.NRSE)}
-		class:btn-primary={race.lrts & LRT.NRSE}
+		onclick={() => (race.lrts ^= NRSE)}
+		class:btn-primary={race.lrts & NRSE}
 		class="btn w-[11rem]">No Ramscoop Engines</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.OBRM)}
-		class:btn-primary={race.lrts & LRT.OBRM}
+		onclick={() => (race.lrts ^= OBRM)}
+		class:btn-primary={race.lrts & OBRM}
 		class="btn w-[11rem]">Only Basic Remote Mining</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.NAS)}
-		class:btn-primary={race.lrts & LRT.NAS}
+		onclick={() => (race.lrts ^= NAS)}
+		class:btn-primary={race.lrts & NAS}
 		class="btn w-[11rem]">No Advanced Scanners</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.LSP)}
-		class:btn-primary={race.lrts & LRT.LSP}
+		onclick={() => (race.lrts ^= LSP)}
+		class:btn-primary={race.lrts & LSP}
 		class="btn w-[11rem]">Low Starting Population</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.BET)}
-		class:btn-primary={race.lrts & LRT.BET}
+		onclick={() => (race.lrts ^= BET)}
+		class:btn-primary={race.lrts & BET}
 		class="btn w-[11rem]">Bleeding Edge Technology</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.RS)}
-		class:btn-primary={race.lrts & LRT.RS}
+		onclick={() => (race.lrts ^= RS)}
+		class:btn-primary={race.lrts & RS}
 		class="btn w-[11rem]">Regenerating Shields</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.MA)}
-		class:btn-primary={race.lrts & LRT.MA}
+		onclick={() => (race.lrts ^= MA)}
+		class:btn-primary={race.lrts & MA}
 		class="btn w-[11rem]">Mineral Alchemy</button
 	>
 
 	<button
 		type="button"
-		onclick={() => (race.lrts ^= LRT.CE)}
-		class:btn-primary={race.lrts & LRT.CE}
+		onclick={() => (race.lrts ^= CE)}
+		class:btn-primary={race.lrts & CE}
 		class="btn w-[11rem]">Cheap Engines</button
 	>
 </div>

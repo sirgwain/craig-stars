@@ -8,30 +8,30 @@ import (
 // A user can have multiple races stored in the database. Each time a game is created, a Race is copied
 // into the Player object and stored separately (so changes to the User's race don't impact running games)
 type Race struct {
-	DBObject
+	DBObject              `tstype:",extends"`
 	UserID                int64                 `json:"userId,omitempty"`
-	Name                  string                `json:"name,omitempty"`
-	PluralName            string                `json:"pluralName,omitempty"`
-	SpendLeftoverPointsOn SpendLeftoverPointsOn `json:"spendLeftoverPointsOn,omitempty"`
-	PRT                   PRT                   `json:"prt,omitempty"`
-	LRTs                  Bitmask               `json:"lrts,omitempty"`
-	HabLow                Hab                   `json:"habLow,omitempty"`
-	HabHigh               Hab                   `json:"habHigh,omitempty"`
-	GrowthRate            int                   `json:"growthRate,omitempty"`
-	PopEfficiency         int                   `json:"popEfficiency,omitempty"`
-	FactoryOutput         int                   `json:"factoryOutput,omitempty"`
-	FactoryCost           int                   `json:"factoryCost,omitempty"`
-	NumFactories          int                   `json:"numFactories,omitempty"`
+	Name                  string                `json:"name"`
+	PluralName            string                `json:"pluralName"`
+	SpendLeftoverPointsOn SpendLeftoverPointsOn `json:"spendLeftoverPointsOn"`
+	PRT                   PRT                   `json:"prt"`
+	LRTs                  Bitmask               `json:"lrts"`
+	HabLow                Hab                   `json:"habLow"`
+	HabHigh               Hab                   `json:"habHigh"`
+	GrowthRate            int                   `json:"growthRate"`
+	PopEfficiency         int                   `json:"popEfficiency"`
+	FactoryOutput         int                   `json:"factoryOutput"`
+	FactoryCost           int                   `json:"factoryCost"`
+	NumFactories          int                   `json:"numFactories"`
 	FactoriesCostLess     bool                  `json:"factoriesCostLess,omitempty"`
 	ImmuneGrav            bool                  `json:"immuneGrav,omitempty"`
 	ImmuneTemp            bool                  `json:"immuneTemp,omitempty"`
 	ImmuneRad             bool                  `json:"immuneRad,omitempty"`
-	MineOutput            int                   `json:"mineOutput,omitempty"`
-	MineCost              int                   `json:"mineCost,omitempty"`
-	NumMines              int                   `json:"numMines,omitempty"`
-	ResearchCost          ResearchCost          `json:"researchCost,omitempty"`
+	MineOutput            int                   `json:"mineOutput"`
+	MineCost              int                   `json:"mineCost"`
+	NumMines              int                   `json:"numMines"`
+	ResearchCost          ResearchCost          `json:"researchCost"`
 	TechsStartHigh        bool                  `json:"techsStartHigh,omitempty"`
-	Spec                  RaceSpec              `json:"spec,omitempty"`
+	Spec                  RaceSpec              `json:"spec"`
 }
 
 type ResearchCostLevel string
@@ -45,6 +45,7 @@ const (
 type SpendLeftoverPointsOn string
 
 const (
+	SpendLeftoverPointsOnNone                  SpendLeftoverPointsOn = "" // TODO: remove this and make surface mins the zero value
 	SpendLeftoverPointsOnSurfaceMinerals       SpendLeftoverPointsOn = "SurfaceMinerals"
 	SpendLeftoverPointsOnMineralConcentrations SpendLeftoverPointsOn = "MineralConcentrations"
 	SpendLeftoverPointsOnMines                 SpendLeftoverPointsOn = "Mines"
@@ -53,12 +54,12 @@ const (
 )
 
 type ResearchCost struct {
-	Energy        ResearchCostLevel `json:"energy,omitempty"`
-	Weapons       ResearchCostLevel `json:"weapons,omitempty"`
-	Propulsion    ResearchCostLevel `json:"propulsion,omitempty"`
-	Construction  ResearchCostLevel `json:"construction,omitempty"`
-	Electronics   ResearchCostLevel `json:"electronics,omitempty"`
-	Biotechnology ResearchCostLevel `json:"biotechnology,omitempty"`
+	Energy        ResearchCostLevel `json:"energy"`
+	Weapons       ResearchCostLevel `json:"weapons"`
+	Propulsion    ResearchCostLevel `json:"propulsion"`
+	Construction  ResearchCostLevel `json:"construction"`
+	Electronics   ResearchCostLevel `json:"electronics"`
+	Biotechnology ResearchCostLevel `json:"biotechnology"`
 }
 
 func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
@@ -83,8 +84,8 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 }
 
 type RaceSpec struct {
-	MiniaturizationSpec
-	ScannerSpec
+	MiniaturizationSpec              `tstype:",extends"`
+	ScannerSpec                      `tstype:",extends"`
 	HabCenter                        Hab                    `json:"habCenter,omitempty"`
 	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
 	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`
@@ -107,7 +108,7 @@ type RaceSpec struct {
 	CanDetectStargatePlanets         bool                   `json:"canDetectStargatePlanets,omitempty"`
 	ShipsVanishInVoid                bool                   `json:"shipsVanishInVoid,omitempty"`
 	TechsCostExtraLevel              int                    `json:"techsCostExtraLevel,omitempty"`
-	FreighterGrowthFactor            float64                `json:"freighterGrowthFactor,omitempty"`
+	FreighterGrowth                  FreighterGrowth        `json:"freighterGrowth,omitempty"`
 	GrowthFactor                     float64                `json:"growthFactor,omitempty"`
 	MaxPopulationOffset              float64                `json:"maxPopulationOffset,omitempty"`
 	BuiltInCloakUnits                int                    `json:"builtInCloakUnits,omitempty"`
@@ -133,11 +134,13 @@ type RaceSpec struct {
 	RepairFactor                     float64                `json:"repairFactor,omitempty"`
 	StarbaseRepairFactor             float64                `json:"starbaseRepairFactor,omitempty"`
 	InnateMining                     bool                   `json:"innateMining,omitempty"`
+	InnateMinesFactor                float64                `json:"innateMinesFactor,omitempty"`
 	InnateResources                  bool                   `json:"innateResources,omitempty"`
 	InnateScanner                    bool                   `json:"innateScanner,omitempty"`
-	InnatePopulationFactor           float64                `json:"innatePopulationFactor,omitempty"`
+	InnateScannerFactor              float64                `json:"innateScannerFactor,omitempty"`
 	CanBuildDefenses                 bool                   `json:"canBuildDefenses,omitempty"`
 	LivesOnStarbases                 bool                   `json:"livesOnStarbases,omitempty"`
+	MinHabFloor                      int                    `json:"minHabFloor,omitempty"`
 	FuelEfficiencyOffset             float64                `json:"fuelEfficiencyOffset,omitempty"`
 	MineralAlchemyCostOffset         int                    `json:"mineralAlchemyCostOffset,omitempty"`
 	ScrapMineralOffset               float64                `json:"scrapMineralOffset,omitempty"`
@@ -334,6 +337,7 @@ func NewRace() *Race {
 			Electronics:   ResearchCostStandard,
 			Biotechnology: ResearchCostStandard,
 		},
+		SpendLeftoverPointsOn: SpendLeftoverPointsOnSurfaceMinerals,
 	}
 }
 
@@ -421,6 +425,7 @@ func Rabbitoids() Race {
 			Electronics:   ResearchCostStandard,
 			Biotechnology: ResearchCostLess,
 		},
+		SpendLeftoverPointsOn: SpendLeftoverPointsOnDefenses,
 	}
 }
 
@@ -450,6 +455,7 @@ func Insectoids() Race {
 			Electronics:   ResearchCostStandard,
 			Biotechnology: ResearchCostExtra,
 		},
+		SpendLeftoverPointsOn: SpendLeftoverPointsOnMineralConcentrations,
 	}
 }
 
@@ -518,7 +524,8 @@ func (r *Race) HabWidth() Hab {
 	}
 }
 
-// get this planet's habitabiliity from -45 to 100
+// get the habitability % a planet with this hab value would have for this race;
+// ranges from -45 to 100
 func (r *Race) GetPlanetHabitability(hab Hab) int {
 	planetValuePoints, redValue, ideality := 0, 0, 10000
 
@@ -582,7 +589,8 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 	return planetValuePoints
 }
 
-// compute the spec for this race
+// Compute the spec for this Race, adding up values from each of its constituent
+// PRT & LRTs in turn.
 func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)].clone()
 	spec := RaceSpec{
@@ -632,10 +640,10 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		TechsCostExtraLevel: prtSpec.TechsCostExtraLevel,
 
 		// IS
-		FreighterGrowthFactor: prtSpec.FreighterGrowthFactor, // AR sets this negative
-		InvasionDefendBonus:   prtSpec.InvasionDefendBonus,
-		RepairFactor:          prtSpec.RepairFactor,
-		StarbaseRepairFactor:  prtSpec.StarbaseRepairFactor,
+		FreighterGrowth:      prtSpec.FreighterGrowth, // AR sets this negative
+		InvasionDefendBonus:  prtSpec.InvasionDefendBonus,
+		RepairFactor:         prtSpec.RepairFactor,
+		StarbaseRepairFactor: prtSpec.StarbaseRepairFactor,
 
 		// HE
 		GrowthFactor: prtSpec.GrowthFactor,
@@ -667,9 +675,11 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		InnateMining:            prtSpec.InnateMining,
 		InnateResources:         prtSpec.InnateResources,
 		InnateScanner:           prtSpec.InnateScanner,
-		InnatePopulationFactor:  prtSpec.InnatePopulationFactor,
+		InnateMinesFactor:       prtSpec.InnateMinesFactor,
+		InnateScannerFactor:     prtSpec.InnateScannerFactor,
 		CanBuildDefenses:        prtSpec.CanBuildDefenses,
 		LivesOnStarbases:        prtSpec.LivesOnStarbases,
+		MinHabFloor:             Max(prtSpec.MinHabFloor, rules.MinHabFloor),
 
 		// CA
 		Instaforming:        prtSpec.Instaforming,
@@ -703,9 +713,9 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		}
 	}
 
-	// the PRT max pop serves as a multiplier to any LRTs
-	// i.e. HE has a .5 growth offset, so with OBRM it's .550
-	// i.e. JoaT has a 1.2 growth offset, so with OBRM it's 1.32
+	// PRT max pop multiplier stacks multiplicatively with LRTs
+	// HE has 0.5x max pop normally, so with OBRM it's 0.5 * 1.1 = 0.55x
+	// JoaT has 1.2x max pop normally, so with OBRM it's 1.2 * 1.1 = 1.32x
 	baseMaxPop := 1 + spec.MaxPopulationOffset
 	for _, lrt := range LRTs {
 		if !race.HasLRT(lrt) {
@@ -1292,13 +1302,10 @@ func (race *Race) getPlanetHabForHabIndex(iterIndex int, habType HabType, loopIn
 	return planetHab, terraformOffset
 }
 
-// get leftover points for a race and the type of points to spend it on
-func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (int, SpendLeftoverPointsOn) {
-	points := race.ComputeRacePoints(startingPoints)
-	if points < 0 {
-		points = 0
-	} else if points > 50 {
-		points = 50
-	}
+// get leftover points for a race and the type of points to spend it on, capping them as applicable.
+func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (leftoverPoints int, pointsType SpendLeftoverPointsOn) {
+	// TODO: Add rules checks for race point handicaps if/when it becomes a thing
+	// Also need to add rules vars for starting points caps
+	points := Clamp(0, race.ComputeRacePoints(startingPoints), 50)
 	return points, race.SpendLeftoverPointsOn
 }

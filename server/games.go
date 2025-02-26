@@ -269,7 +269,6 @@ func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
 	game.ComputerPlayersFormAlliances = update.ComputerPlayersFormAlliances
 	game.PublicPlayerScores = update.PublicPlayerScores
 	game.MaxMinerals = update.MaxMinerals
-	game.AcceleratedPlay = update.AcceleratedPlay
 	game.StartMode = update.StartMode
 	game.QuickStartTurns = update.QuickStartTurns
 	game.VictoryConditions = update.VictoryConditions

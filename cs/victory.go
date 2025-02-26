@@ -31,22 +31,18 @@ const (
 	VictoryConditionHighestScoreAfterYears
 )
 
-// checks if the player has achieved victory in this game.
-// TODO: make this return the victory conditions achieved, and check it against the game settings
+// checks if the player has achieved victoryChecker in this game.
+// TODO: make this return the victoryChecker conditions achieved, and check it against the game settings
 // in the caller.
-type victoryChecker interface {
-	checkForVictor(player *Player) error
-}
-
-type victory struct {
+type victoryChecker struct {
 	game *FullGame
 }
 
 func newVictoryChecker(game *FullGame) victoryChecker {
-	return &victory{game}
+	return victoryChecker{game}
 }
 
-func (v *victory) checkForVictor(player *Player) error {
+func (v *victoryChecker) checkForVictor(player *Player) error {
 	if len(player.ScoreHistory) == 0 {
 		return nil
 	}
@@ -94,14 +90,14 @@ func (v *victory) checkForVictor(player *Player) error {
 	return nil
 }
 
-func (v *victory) checkOwnPlanets(player *Player, score PlayerScore) {
+func (v *victoryChecker) checkOwnPlanets(player *Player, score PlayerScore) {
 	// i.e. if we own more than 60% of the planets, we have this victory condition
 	if float64(score.Planets) >= float64(len(v.game.Planets))*(float64(v.game.VictoryConditions.OwnPlanets)/100) {
 		player.AchievedVictoryConditions |= Bitmask(VictoryConditionOwnPlanets)
 	}
 }
 
-func (v *victory) checkAttainTechLevels(player *Player) {
+func (v *victoryChecker) checkAttainTechLevels(player *Player) {
 	numAttained := 0
 	for _, field := range TechFields {
 		if player.TechLevels.Get(field) >= v.game.VictoryConditions.AttainTechLevel {
@@ -113,13 +109,13 @@ func (v *victory) checkAttainTechLevels(player *Player) {
 	}
 }
 
-func (v *victory) checkExceedScore(player *Player, score PlayerScore) {
+func (v *victoryChecker) checkExceedScore(player *Player, score PlayerScore) {
 	if score.Score > v.game.VictoryConditions.ExceedsScore {
 		player.AchievedVictoryConditions |= Bitmask(VictoryConditionExceedsScore)
 	}
 }
 
-func (v *victory) checkExceedSecondPlaceScore(player *Player, score PlayerScore) {
+func (v *victoryChecker) checkExceedSecondPlaceScore(player *Player, score PlayerScore) {
 	if len(v.game.Players) > 1 {
 		scores := make([]int, len(v.game.Players))
 		for i, player := range v.game.Players {
@@ -137,7 +133,7 @@ func (v *victory) checkExceedSecondPlaceScore(player *Player, score PlayerScore)
 	}
 }
 
-func (v *victory) checkProductionCapacity(player *Player) {
+func (v *victoryChecker) checkProductionCapacity(player *Player) {
 	productionCapacity := 0
 	for _, planet := range v.game.Planets {
 		if planet.PlayerNum == player.Num {
@@ -149,13 +145,13 @@ func (v *victory) checkProductionCapacity(player *Player) {
 	}
 }
 
-func (v *victory) checkOwnCapitalShips(player *Player, score PlayerScore) {
+func (v *victoryChecker) checkOwnCapitalShips(player *Player, score PlayerScore) {
 	if score.CapitalShips >= v.game.VictoryConditions.OwnCapitalShips {
 		player.AchievedVictoryConditions |= Bitmask(VictoryConditionOwnCapitalShips)
 	}
 }
 
-func (v *victory) checkHighestScore(player *Player, score PlayerScore) {
+func (v *victoryChecker) checkHighestScore(player *Player, score PlayerScore) {
 	if v.game.YearsPassed() >= v.game.VictoryConditions.HighestScoreAfterYears {
 		sortedScores := make([]int, len(v.game.Players))
 		for i := range v.game.Players {

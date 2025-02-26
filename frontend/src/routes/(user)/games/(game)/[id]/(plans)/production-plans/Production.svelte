@@ -1,9 +1,17 @@
 <script lang="ts">
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import type { DesignFinder } from '$lib/services/Universe';
+	import {
+		QueueItemTypeAutoDefenses,
+		QueueItemTypeAutoFactories,
+		QueueItemTypeAutoMaxTerraform,
+		QueueItemTypeAutoMineralAlchemy,
+		QueueItemTypeAutoMines,
+		QueueItemTypeAutoMinTerraform,
+		type ProductionQueueItem
+	} from '$lib/types/cs';
 	import { fromQueueItemType, getQueueItemShortName } from '$lib/types/Planet';
-	import type { ProductionQueueItem } from '$lib/types/Production';
-	import { QueueItemTypes, isAuto } from '$lib/types/QueueItemType';
+	import { isAuto } from '$lib/types/QueueItemType';
 	import ProductionItemsButtons from './ProductionItemsButtons.svelte';
 
 	type Props = {
@@ -19,12 +27,12 @@
 	let {
 		designFinder,
 		availableItems = [
-			fromQueueItemType(QueueItemTypes.AutoFactories),
-			fromQueueItemType(QueueItemTypes.AutoMines),
-			fromQueueItemType(QueueItemTypes.AutoDefenses),
-			fromQueueItemType(QueueItemTypes.AutoMineralAlchemy),
-			fromQueueItemType(QueueItemTypes.AutoMaxTerraform),
-			fromQueueItemType(QueueItemTypes.AutoMinTerraform)
+			fromQueueItemType(QueueItemTypeAutoFactories),
+			fromQueueItemType(QueueItemTypeAutoMines),
+			fromQueueItemType(QueueItemTypeAutoDefenses),
+			fromQueueItemType(QueueItemTypeAutoMineralAlchemy),
+			fromQueueItemType(QueueItemTypeAutoMaxTerraform),
+			fromQueueItemType(QueueItemTypeAutoMinTerraform)
 		],
 		queueItems = $bindable([]),
 		queueItemDescription = getQueueItemShortName,
@@ -71,7 +79,8 @@
 					type: item.type,
 					quantity,
 					designNum: item.designNum,
-					allocated: {}
+					allocated: {},
+					tags: {}
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
@@ -85,7 +94,7 @@
 			} else {
 				// prepend a new queue item
 				queueItems = [
-					{ type: item.type, designNum: item.designNum, quantity, allocated: {} },
+					{ type: item.type, designNum: item.designNum, quantity, allocated: {}, tags: {} },
 					...queueItems
 				];
 				selectedQueueItemIndex++;

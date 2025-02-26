@@ -1,45 +1,19 @@
-import { None } from './Constants';
-import { getTokenCount, hasDestination, type Fleet } from './Fleet';
-import type { Vector } from './Vector';
-
-export type MapObject = {
-	id?: number;
-	createdAt?: string;
-	updatedAt?: string;
-	type: MapObjectType;
-	gameId?: number;
-	name: string;
-	num: number;
-	playerNum: number;
-} & Position;
-
-export type Position = {
-	position: Vector;
-};
+import type { MapObject, Vector } from './cs';
+import { None } from './cs';
+import { getTokenCount, hasDestination } from './Fleet';
+import { type AnyFleet } from '$lib/services/Universe';
 
 export type MovingMapObject = {
 	heading: Vector;
 	warpSpeed: number;
 } & MapObject;
 
-export enum MapObjectType {
-	None = '',
-	Planet = 'Planet',
-	Fleet = 'Fleet',
-	Wormhole = 'Wormhole',
-	MineField = 'MineField',
-	MysteryTrader = 'MysteryTrader',
-	Salvage = 'Salvage',
-	MineralPacket = 'MineralPacket',
-	PositionWaypoint = 'PositionWaypoint'
-}
-
 /**
  * Get default name for a mapObject or fleet
  * @param mo The MapObject or fleet to check
  * @returns String containing name of object/fleet
  */
-export function getMapObjectName(mo: MapObject | Fleet | undefined): string {
+export function getMapObjectName(mo: MapObject | AnyFleet | undefined): string {
 	if (!mo) {
 		return '';
 	}

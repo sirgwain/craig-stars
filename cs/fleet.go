@@ -26,20 +26,21 @@ const None = 0
 // in the fleet. Fleets also have orders that can be updated by the player, in the form of waypoints and the battle plan.
 // Fleets are one of the commandable MapObjects in the game.
 type Fleet struct {
-	MapObject
-	FleetOrders
+	GameDBObject      `tstype:",extends"`
+	MapObject         `tstype:",extends"`
+	FleetOrders       `tstype:",extends"`
 	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
 	Cargo             Cargo       `json:"cargo,omitempty"`
 	Fuel              int         `json:"fuel"`
 	Age               int         `json:"age"`
 	Tokens            []ShipToken `json:"tokens"`
-	Heading           Vector      `json:"heading,omitempty"`
+	Heading           Vector      `json:"heading"`
 	WarpSpeed         int         `json:"warpSpeed,omitempty"`
 	PreviousPosition  *Vector     `json:"previousPosition,omitempty"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	Starbase          bool        `json:"starbase,omitempty"`
-	Spec              FleetSpec   `json:"spec,omitempty"`
+	Spec              FleetSpec   `json:"spec"`
 	battlePlan        *BattlePlan
 	struckMineField   bool
 	remoteMined       bool
@@ -53,7 +54,7 @@ type FleetOrders struct {
 }
 
 type FleetSpec struct {
-	ShipDesignSpec
+	ShipDesignSpec   `tstype:",extends"`
 	BaseCloakedCargo int                        `json:"baseCloakedCargo,omitempty"`
 	BasePacketSpeed  int                        `json:"basePacketSpeed,omitempty"`
 	HasMassDriver    bool                       `json:"hasMassDriver,omitempty"`
@@ -70,12 +71,12 @@ type FleetSpec struct {
 }
 
 type Waypoint struct {
-	MapObjectTarget
+	MapObjectTarget      `tstype:",extends"`
 	Position             Vector                 `json:"position"`
 	WarpSpeed            int                    `json:"warpSpeed"`
 	EstFuelUsage         int                    `json:"estFuelUsage,omitempty"`
-	Task                 WaypointTask           `json:"task"`
-	TransportTasks       WaypointTransportTasks `json:"transportTasks,omitempty"`
+	Task                 WaypointTask           `json:"task,omitempty"`
+	TransportTasks       WaypointTransportTasks `json:"transportTasks"`
 	WaitAtWaypoint       bool                   `json:"waitAtWaypoint,omitempty"`
 	LayMineFieldDuration int                    `json:"layMineFieldDuration,omitempty"`
 	PatrolRange          int                    `json:"patrolRange,omitempty"`
@@ -161,6 +162,8 @@ const (
 	TransportActionSetWaypointTo WaypointTaskTransportAction = "SetWaypointTo"
 )
 
+// the purpose for a fleet's existence (ie what it's supposed to be doing),
+// exported to allow the AI to plan ship movements
 type FleetPurpose string
 
 const (
@@ -743,7 +746,7 @@ func (fleet *Fleet) reduceCargoToMax() Cargo {
 
 		// reduce each mineral by a percent
 		percentToKeep := 1 / (float64(totalMinerals) / float64(remainingCapacity))
-		minerals = minerals.MultiplyFloat64(percentToKeep)
+		minerals = minerals.MultiplyFloat64(percentToKeep, math.Floor)
 		fleet.Cargo = Cargo{
 			minerals.Ironium,
 			minerals.Boranium,
@@ -987,7 +990,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 		sourcePlanetPlayer := playerGetter.getPlayer(sourcePlanet.PlayerNum)
 		if sourcePlanetPlayer != nil && !sourcePlanetPlayer.IsFriend(player.Num) {
-			messager.fleetStargateInvalidSourceOwner(player, fleet, wp0, wp1)
+			messager.fleetStargateInvalidSourceOwner(player, fleet, wp0)
 			return
 		}
 
@@ -1118,7 +1121,7 @@ func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance 
 		messager.fleetStargateDestroyed(player, fleet, wp0, wp1)
 	} else {
 		if totalDamage > 0 || shipsLostToTheVoid > 0 {
-			messager.fleetStargateDamaged(player, fleet, wp0, wp1, totalDamage, startingShips, shipsLostToDamage, shipsLostToTheVoid)
+			messager.fleetStargateDamaged(player, fleet, wp0, wp1, totalDamage, shipsLostToDamage, shipsLostToTheVoid)
 		}
 	}
 }
@@ -1271,9 +1274,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	}
 
 	if player.Race.Spec.InnateMining {
-		hab := player.Race.GetPlanetHabitability(planet.Hab)
-		maxPop := planet.getMaxPopulation(rules, player, hab)
-		planet.Mines = planet.innateMines(player, planet.productivePopulation(planet.population(), maxPop))
+		planet.Mines = innateMines(player.Race.Spec.InnateMinesFactor, planet.population())
 	}
 
 	if player.Race.Spec.InnateScanner {
@@ -1310,7 +1311,7 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet,
 		if colonize {
 			scrapMineralFactor = rules.ScrapColonizeAmount
 		} else {
-			planetResources = planet.Spec.ResourcesPerYear + planet.bonusScrapResources
+			planetResources = planet.Spec.ResourcesPerYear + planet.bonusResources
 			// UR races get resources when scrapping (not colonizing)
 			if planet.Spec.HasStarbase {
 				// scrapping over a planet with a starbase, calculate bonus minerals and resources
@@ -1529,7 +1530,7 @@ func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player
 			repairAmount := Max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
 
 			// Remove damage from this fleet by its armor * repairRate
-			token.Damage = math.Max(0, token.Damage-float64(repairAmount))
+			token.Damage = math.Floor(math.Max(0, token.Damage-float64(repairAmount)))
 			if token.Damage == 0 {
 				token.QuantityDamaged = 0
 			}
@@ -1556,7 +1557,7 @@ func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Pla
 	repairAmount := Max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.StarbaseRepairFactor))
 
 	// Remove damage from this fleet by its armor * repairRate
-	token.Damage = math.Max(0, fleet.Tokens[0].Damage-float64(repairAmount))
+	token.Damage = math.Floor(math.Max(0, fleet.Tokens[0].Damage-float64(repairAmount)))
 
 	log.Debug().
 		Int("Player", fleet.PlayerNum).

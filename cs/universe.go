@@ -49,10 +49,6 @@ func NewUniverse(log zerolog.Logger, rules *Rules) Universe {
 	}
 }
 
-type fleetGetter interface {
-	getFleet(playerNum int, num int) *Fleet
-}
-
 type mapObjectGetter interface {
 	getShipDesign(playerNum int, num int) *ShipDesign
 	getMapObject(mapObjectType MapObjectType, num int, playerNum int) *MapObject
@@ -538,6 +534,7 @@ func (u *Universe) deletePacket(packet *MineralPacket) {
 	u.removeMapObjectAtPosition(packet, packet.Position)
 }
 
+// get all planets for a given player
 func (u *Universe) getPlanets(playerNum int) []*Planet {
 	planets := []*Planet{}
 	for _, planet := range u.Planets {

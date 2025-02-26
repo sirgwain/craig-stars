@@ -1,4 +1,9 @@
-import { type Cargo, negativeCargo } from './Cargo';
+import type { AnyFleet, AnyMineralPacket, AnyPlanet } from '$lib/services/Universe';
+import { negativeCargo } from './Cargo';
+import { type Cargo, type SalvageIntel } from './cs';
+
+// a destination that cargo can be transferred to/from
+export type CargoDest = AnyFleet | AnyPlanet | AnyMineralPacket | SalvageIntel | undefined;
 
 export class CargoTransferRequest {
 	ironium = $state(0);

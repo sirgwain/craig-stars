@@ -5,4 +5,4 @@
 	const { universe } = getGameContext();
 </script>
 
-<Designs designs={$universe.designs} />
+<Designs designs={$universe.allDesigns} />

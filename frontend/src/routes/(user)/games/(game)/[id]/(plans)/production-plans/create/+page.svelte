@@ -4,7 +4,7 @@
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { CSError, addError } from '$lib/services/Errors';
-	import type { ProductionPlan } from '$lib/types/Player';
+	import type { ProductionPlan } from '$lib/types/cs';
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
 	import { notify } from '$lib/services/Notifications';
 

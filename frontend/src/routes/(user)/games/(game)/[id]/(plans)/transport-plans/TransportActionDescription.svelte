@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { WaypointTaskTransportAction } from '$lib/types/Fleet';
+	import { TransportActionNone, type WaypointTaskTransportAction } from '$lib/types/cs';
 	import { startCase } from 'lodash-es';
 	import TransportActionIcon from './TransportActionIcon.svelte';
 
@@ -15,7 +15,7 @@
 </script>
 
 <span class="inline-block">
-	{#if (action ?? WaypointTaskTransportAction.None) != WaypointTaskTransportAction.None}
+	{#if (action ?? TransportActionNone) != TransportActionNone}
 		<div class="flex flex-row">
 			<div class={`text-right font-semibold mr-2 w-28 ${titleTextClass}`}>{title}</div>
 			<div>

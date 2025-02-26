@@ -2,7 +2,7 @@
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { addError, type CSError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { ProductionPlan } from '$lib/types/Player';
+	import type { ProductionPlan } from '$lib/types/cs';
 	import ProductionPlanCard from './ProductionPlanCard.svelte';
 
 	const { game, player, universe, deleteProductionPlan } = getGameContext();

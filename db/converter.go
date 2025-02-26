@@ -1,4 +1,4 @@
-//go:generate go run github.com/jmattheis/goverter/cmd/goverter@v1.4.0 gen ./
+//go:generate go run github.com/jmattheis/goverter/cmd/goverter@v1.8.0 gen ./
 
 package db
 
@@ -170,7 +170,6 @@ type Converter interface {
 	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
 	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
 	// goverter:map PlayerIntels.FleetIntels FleetIntels
-	// goverter:map PlayerIntels.StarbaseIntels StarbaseIntels
 	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
 	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
 	// goverter:map PlayerIntels.MineFieldIntels MineFieldIntels
@@ -191,7 +190,7 @@ type Converter interface {
 
 	ConvertPlayers(source []Player) []cs.Player
 
-	// goverter:autoMap MapObject.GameDBObject
+	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap PlanetOrders
@@ -217,13 +216,14 @@ type Converter interface {
 	// goverter:map . MineralConcentration | ExtendMineralConcentration
 	// goverter:map . MineYears | ExtendMineYears
 	// goverter:map . Cargo
+	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendPlanetMapObject
 	// goverter:map . PlanetOrders
 	// goverter:ignore Starbase
 	// goverter:ignore Dirty
 	ConvertPlanet(source *Planet) *cs.Planet
 
-	// goverter:autoMap MapObject.GameDBObject
+	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap FleetOrders
@@ -237,6 +237,7 @@ type Converter interface {
 	// goverter:map . Heading | ExtendFleetHeading
 	// goverter:map . PreviousPosition | ExtendFleetPreviousPosition
 	// goverter:map . Cargo
+	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendFleetMapObject
 	// goverter:map . FleetOrders | ExtendFleetFleetOrders
 	ConvertFleet(source *Fleet) *cs.Fleet
@@ -248,22 +249,22 @@ type Converter interface {
 	// goverter:map . GameDBObject
 	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
 
-	// goverter:autoMap MapObject.GameDBObject
+	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	ConvertGameWormhole(source *cs.Wormhole) *Wormhole
 
+	// goverter:map . GameDBObject
 	// goverter:map . MapObject
 	ConvertWormhole(source *Wormhole) *cs.Wormhole
 
-	// goverter:map . GameDBObject
 	// goverter:map . Position
 	// goverter:map Type | MapObjectTypeWormhole
 	// goverter:ignore Delete
 	// goverter:ignore PlayerNum
 	wormHoleMapObject(source Wormhole) cs.MapObject
 
-	// goverter:autoMap MapObject.GameDBObject
+	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:map Heading.X HeadingX
@@ -272,32 +273,35 @@ type Converter interface {
 	// goverter:map Destination.Y DestinationY
 	ConvertGameMysteryTrader(source *cs.MysteryTrader) *MysteryTrader
 
+	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendMysteryTraderMapObject
 	// goverter:map . Heading | ExtendMysteryTraderHeading
 	// goverter:map . Destination | ExtendMysteryTraderDestination
 	ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryTrader
 
-	// goverter:autoMap MapObject.GameDBObject
+	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap Cargo
 	ConvertGameSalvage(source *cs.Salvage) *Salvage
 
+	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendSalvageMapObject
 	// goverter:map . Cargo
 	ConvertSalvage(source *Salvage) *cs.Salvage
 
-	// goverter:autoMap MapObject.GameDBObject
+	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:map MineFieldOrders.Detonate Detonate
 	ConvertGameMineField(source *cs.MineField) *MineField
 
+	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendMineFieldMapObject
 	// goverter:map . MineFieldOrders
 	ConvertMineField(source *MineField) *cs.MineField
 
-	// goverter:autoMap MapObject.GameDBObject
+	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap Cargo
@@ -308,6 +312,7 @@ type Converter interface {
 	// goverter:map Heading.Y HeadingY
 	ConvertGameMineralPacket(source *cs.MineralPacket) *MineralPacket
 
+	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendMineralPacketMapObject
 	// goverter:map . Cargo
 	// goverter:map . Heading | ExtendMineralPacketHeading
@@ -814,14 +819,17 @@ func ExtendTechLevelsSpent(source Player) cs.TechLevel {
 	}
 }
 
+func ExtendPlanetGameDBObject(source Planet) cs.GameDBObject {
+	return cs.GameDBObject{
+		ID:        source.ID,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+	}
+}
+
 func ExtendPlanetMapObject(source Planet) cs.MapObject {
 	return cs.MapObject{
-		GameDBObject: cs.GameDBObject{
-			ID:        source.ID,
-			GameID:    source.GameID,
-			CreatedAt: source.CreatedAt,
-			UpdatedAt: source.UpdatedAt,
-		},
 		Type: cs.MapObjectTypePlanet,
 		Position: cs.Vector{
 			X: source.X,
@@ -868,12 +876,6 @@ func ExtendMineYears(source Planet) cs.Mineral {
 
 func ExtendFleetMapObject(source Fleet) cs.MapObject {
 	return cs.MapObject{
-		GameDBObject: cs.GameDBObject{
-			ID:        source.ID,
-			GameID:    source.GameID,
-			CreatedAt: source.CreatedAt,
-			UpdatedAt: source.UpdatedAt,
-		},
 		Type: cs.MapObjectTypeFleet,
 		Position: cs.Vector{
 			X: source.X,
@@ -914,12 +916,6 @@ func ExtendFleetPreviousPosition(source Fleet) *cs.Vector {
 
 func ExtendMysteryTraderMapObject(source MysteryTrader) cs.MapObject {
 	return cs.MapObject{
-		GameDBObject: cs.GameDBObject{
-			ID:        source.ID,
-			GameID:    source.GameID,
-			CreatedAt: source.CreatedAt,
-			UpdatedAt: source.UpdatedAt,
-		},
 		Type: cs.MapObjectTypeMysteryTrader,
 		Position: cs.Vector{
 			X: source.X,
@@ -947,12 +943,6 @@ func ExtendMysteryTraderDestination(source MysteryTrader) cs.Vector {
 
 func ExtendSalvageMapObject(source Salvage) cs.MapObject {
 	return cs.MapObject{
-		GameDBObject: cs.GameDBObject{
-			ID:        source.ID,
-			GameID:    source.GameID,
-			CreatedAt: source.CreatedAt,
-			UpdatedAt: source.UpdatedAt,
-		},
 		Type: cs.MapObjectTypeSalvage,
 		Position: cs.Vector{
 			X: source.X,
@@ -967,12 +957,6 @@ func ExtendSalvageMapObject(source Salvage) cs.MapObject {
 
 func ExtendMineFieldMapObject(source MineField) cs.MapObject {
 	return cs.MapObject{
-		GameDBObject: cs.GameDBObject{
-			ID:        source.ID,
-			GameID:    source.GameID,
-			CreatedAt: source.CreatedAt,
-			UpdatedAt: source.UpdatedAt,
-		},
 		Type: cs.MapObjectTypeMineField,
 		Position: cs.Vector{
 			X: source.X,
@@ -994,12 +978,6 @@ func ExtendMineralPacketHeading(source MineralPacket) cs.Vector {
 
 func ExtendMineralPacketMapObject(source MineralPacket) cs.MapObject {
 	return cs.MapObject{
-		GameDBObject: cs.GameDBObject{
-			ID:        source.ID,
-			GameID:    source.GameID,
-			CreatedAt: source.CreatedAt,
-			UpdatedAt: source.UpdatedAt,
-		},
 		Type: cs.MapObjectTypeMineralPacket,
 		Position: cs.Vector{
 			X: source.X,

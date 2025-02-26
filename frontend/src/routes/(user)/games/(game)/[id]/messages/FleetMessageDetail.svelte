@@ -1,18 +1,40 @@
 <script lang="ts">
 	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { totalCargo } from '$lib/types/Cargo';
 	import { absSum } from '$lib/types/Hab';
-	import { None } from '$lib/types/Constants';
-	import { MessageType, type Message } from '$lib/types/Message';
+	import {
+		None,
+		PlayerMessageFleetBombedPlanet,
+		PlayerMessageFleetBuilt,
+		PlayerMessageFleetDieoff,
+		PlayerMessageFleetExceededSafeSpeed,
+		PlayerMessageFleetGeneratedFuel,
+		PlayerMessageFleetLaidMines,
+		PlayerMessageFleetMineFieldHit,
+		PlayerMessageFleetMineFieldSweptMines,
+		PlayerMessageFleetPatrolTargeted,
+		PlayerMessageFleetRadiatingEngineDieoff,
+		PlayerMessageFleetRemoteMined,
+		PlayerMessageFleetReproduce,
+		PlayerMessageFleetScrapped,
+		PlayerMessageFleetStealCargoNotAllowed,
+		PlayerMessageFleetStealCargoNotComplete,
+		PlayerMessageFleetTransferGiven,
+		PlayerMessageFleetTransferInvalidColonists,
+		PlayerMessageFleetTransferInvalidGiveRefused,
+		PlayerMessageFleetTransferInvalidPlayer,
+		PlayerMessageFleetTransferInvalidReceiveRefused,
+		PlayerMessageFleetTransferReceived,
+		type PlayerMessage
+	} from '$lib/types/cs';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 	import FleetEngineStrainMessageDetail from './FleetEngineStrainMessageDetail.svelte';
-	import BattleBoard from '$lib/components/game/battle/BattleBoard.svelte';
-	import { totalCargo } from '$lib/types/Cargo';
 
 	const { game, universe, player } = getGameContext();
 
 	type Props = {
-		message: Message;
+		message: PlayerMessage;
 	};
 
 	let { message }: Props = $props();
@@ -25,7 +47,7 @@
 
 {#if message.text}
 	{message.text}
-{:else if message.type === MessageType.FleetBombedPlanet}
+{:else if message.type === PlayerMessageFleetBombedPlanet}
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
 		{#if bombing.numBombers == 1}
@@ -58,20 +80,20 @@
 		)} planet
 		{message.spec.targetName}.
 	{/if}
-{:else if message.type === MessageType.FleetBuilt}
+{:else if message.type === PlayerMessageFleetBuilt}
 	{#if message.spec.amount === 1}
 		Your starbase at {message.spec.targetName} has built a new {message.spec.name}.
 	{:else}
 		Your starbase at {message.spec.targetName} has built {message.spec.amount ?? 'a'} new {message
 			.spec.name} ships.
 	{/if}
-{:else if message.type === MessageType.FleetDieoff}
-	Due to the rigors of warp acceleration, {(message.spec.amount ?? 0) * -100} of your colonists on {message.targetName}
+{:else if message.type === PlayerMessageFleetDieoff}
+	Due to the rigors of warp acceleration, {message.spec.amount ?? 0} of your colonists on {message.targetName}
 	have died.
-{:else if message.type === MessageType.FleetExceededSafeSpeed}
+{:else if message.type === PlayerMessageFleetExceededSafeSpeed}
 	<!-- Overwarp -->
 	<FleetEngineStrainMessageDetail {message} />
-{:else if message.type === MessageType.FleetGeneratedFuel}
+{:else if message.type === PlayerMessageFleetGeneratedFuel}
 	{@const hasRamscoops = !!fleet?.tokens?.find(
 		(t) => ($universe.getDesign(fleet.playerNum, t.designNum)?.spec?.engine.freeSpeed ?? 0) > 1
 	)}
@@ -81,7 +103,7 @@
 	{:else}
 		{message.targetName} has generated {message.spec.amount}mg of fuel.
 	{/if}
-{:else if message.type === MessageType.FleetMineFieldHit}
+{:else if message.type === PlayerMessageFleetMineFieldHit}
 	{@const damage = message.spec.mineFieldDamage}
 	{@const mineFieldOwner = $universe.getPlayerPluralName(message.spec.targetPlayerNum)}
 	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y ?? 0})`}
@@ -117,7 +139,7 @@
 	{:else}
 		Unknown damage was done.
 	{/if}
-{:else if message.type === MessageType.FleetMineFieldSweptMines}
+{:else if message.type === PlayerMessageFleetMineFieldSweptMines}
 	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y || 0})`}
 	{#if message.targetPlayerNum === $player.num}
 		<!-- our fleet swept -->
@@ -126,19 +148,19 @@
 		<!-- our minefield was swept by fleet -->
 		{message.targetName} has has swept {message.spec.amount ?? 0} mines from your mine field at {mineFieldPosition}
 	{/if}
-{:else if message.type === MessageType.FleetLaidMines}
+{:else if message.type === PlayerMessageFleetLaidMines}
 	{@const mineField = $universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum)}
 	{#if mineField?.numMines === message.spec.amount}
 		{message.targetName} has has dispensed {message.spec.amount} mines.
 	{:else}
 		{message.targetName} has increased {message.spec.targetName} by {message.spec.amount} mines.
 	{/if}
-{:else if message.type === MessageType.FleetPatrolTargeted}
+{:else if message.type === PlayerMessageFleetPatrolTargeted}
 	Your patrolling {message.targetName} has targeted {message.spec.targetName} to intercept.
-{:else if message.type === MessageType.FleetRadiatingEngineDieoff}
+{:else if message.type === PlayerMessageFleetRadiatingEngineDieoff}
 	<!-- Colonist dieoff from engine radiation -->
 	Engine radiation has killed {(message.spec.amount ?? 0).toLocaleString()} colonists traveling in {message.targetName}.
-{:else if message.type === MessageType.FleetReproduce}
+{:else if message.type === PlayerMessageFleetReproduce}
 	{#if !message.spec.amount2 || !message.spec.targetNum}
 		Your colonists in {message.targetName} have made good use of their time increasing their on-board
 		number by {message.spec.amount} colonists.
@@ -149,7 +171,7 @@
 		colonists have been beamed down to {message.spec.targetName}.
 	{/if}
 	<!-- Remote Mining messages -->
-{:else if message.type === MessageType.FleetRemoteMined}
+{:else if message.type === PlayerMessageFleetRemoteMined}
 	{@const minerals = {
 		ironium: message.spec.mineral?.ironium ?? 0,
 		boranium: message.spec.mineral?.boranium ?? 0,
@@ -163,12 +185,12 @@
 		],
 		'no minerals'
 	)}.
-{:else if message.type === MessageType.FleetScrapped}
+{:else if message.type === PlayerMessageFleetScrapped}
 	{message.targetName} has been dismantled. The scrap was left in deep space.
-{:else if message.type === MessageType.FleetStealCargoNotAllowed}
+{:else if message.type === PlayerMessageFleetStealCargoNotAllowed}
 	{message.targetName} has been attempted to steal cargo from {message.spec.targetName} but does not
 	have the required technology on BattleBoard.
-{:else if message.type === MessageType.FleetStealCargoNotComplete}
+{:else if message.type === PlayerMessageFleetStealCargoNotComplete}
 	{@const cargo = {
 		ironium: message.spec.cargo?.ironium ?? 0,
 		boranium: message.spec.cargo?.boranium ?? 0,
@@ -186,11 +208,11 @@
 			cargo.colonists > 0 ? `${cargo.colonists * 100} Colonists` : ''
 		])}.
 	{/if}
-{:else if message.type === MessageType.FleetTransferGiven}
+{:else if message.type === PlayerMessageFleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(
 		message.spec.destPlayerNum
 	)}.
-{:else if message.type === MessageType.FleetTransferInvalidPlayer}
+{:else if message.type === PlayerMessageFleetTransferInvalidPlayer}
 	<!-- Fleet Transfers -->
 	{#if message.spec.destPlayerNum == undefined || message.spec.destPlayerNum == None || message.spec.destPlayerNum < 0 || message.spec.destPlayerNum >= $game.players.length}
 		You cannot give {message.targetName} away. No player to transfer to was specified.
@@ -199,17 +221,17 @@
 			message.spec.destPlayerNum
 		)}.
 	{/if}
-{:else if message.type === MessageType.FleetTransferInvalidColonists}
+{:else if message.type === PlayerMessageFleetTransferInvalidColonists}
 	You couldn't give {message.targetName} away because there were some of your colonists on board.
-{:else if message.type === MessageType.FleetTransferInvalidGiveRefused}
+{:else if message.type === PlayerMessageFleetTransferInvalidGiveRefused}
 	{$universe.getPlayerPluralName(message.spec.destPlayerNum)} snubbed your attempted gift and refused
 	your offer of
 	{message.targetName}. Are you sure they're still your allies?
-{:else if message.type === MessageType.FleetTransferInvalidReceiveRefused}
+{:else if message.type === PlayerMessageFleetTransferInvalidReceiveRefused}
 	{$universe.getPlayerPluralName(message.spec.sourcePlayerNum)} has attempted to gift you {message.targetName},
 	but you have refused their offer. If you wish to receive gifts from this player in the future,
 	make sure to set them as allies.
-{:else if message.type === MessageType.FleetTransferReceived}
+{:else if message.type === PlayerMessageFleetTransferReceived}
 	{$universe.getPlayerPluralName(message.spec.sourcePlayerNum)} has given you {message.targetName}.
 {:else}
 	<!-- Fallback for unknown message types -->

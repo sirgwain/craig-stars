@@ -48,7 +48,7 @@ func logPreRun(cmd *cobra.Command, args []string) error {
 	log.Logger = log.Output(writer)
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	log.Debug().Msg("Debug logging enabled")
-	log.Info().Msgf(fmt.Sprintf("version: %s, build: %s (%s)", semver, commit, buildTime))
+	log.Info().Msgf("version: %s, build: %s (%s)", semver, commit, buildTime)
 	return nil
 }
 

@@ -1,7 +1,12 @@
 <script lang="ts">
-	import { MapObjectType, type MovingMapObject } from '$lib/types/MapObject';
+	import { type MovingMapObject } from '$lib/types/MapObject';
 
 	import { getGameContext } from '$lib/services/GameContext';
+	import {
+		MapObjectTypeFleet,
+		MapObjectTypeMineralPacket,
+		MapObjectTypeMysteryTrader
+	} from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { SVGAttributes } from 'svelte/elements';
@@ -22,9 +27,9 @@
 		// show the warp line for other player fleets, or mystery traders or mineral packets
 		if (
 			$selectedMapObject &&
-			($selectedMapObject.type == MapObjectType.MineralPacket ||
-				$selectedMapObject.type == MapObjectType.MysteryTrader ||
-				($selectedMapObject.type == MapObjectType.Fleet &&
+			($selectedMapObject.type == MapObjectTypeMineralPacket ||
+				$selectedMapObject.type == MapObjectTypeMysteryTrader ||
+				($selectedMapObject.type == MapObjectTypeFleet &&
 					$selectedMapObject.playerNum != $player.num))
 		) {
 			const mo = $selectedMapObject as MovingMapObject;
@@ -33,7 +38,7 @@
 			const distPerLy = warpSpeed * warpSpeed;
 			if (mo.playerNum) {
 				color = $universe.getPlayerColor(mo.playerNum);
-			} else if (mo.type == MapObjectType.MysteryTrader) {
+			} else if (mo.type == MapObjectTypeMysteryTrader) {
 				color = '#00FFFF';
 			}
 

@@ -3,9 +3,9 @@ package cs
 type CargoTransfers map[string][]ImmediateCargoTransfer
 
 type ImmediateCargoTransfer struct {
-	MapObjectTarget
-	SourceFleetNum int   `json:"sourceFleetNum,omitempty"`
-	Cargo          Cargo `json:"cargo"`
+	MapObjectTarget `tstype:",extends"`
+	SourceFleetNum  int   `json:"sourceFleetNum,omitempty"`
+	Cargo           Cargo `json:"cargo"`
 }
 
 // getJettison sums all jettison cargo calls for this position to determine the total amount of jettisoned cargo here

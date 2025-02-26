@@ -767,6 +767,7 @@ func GetFleet(o js.Value) cs.Fleet {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.FleetOrders = GetFleetOrders(o)
 	obj.PlanetNum = getInt[int](o.Get("planetNum"))
@@ -784,6 +785,7 @@ func GetFleet(o js.Value) cs.Fleet {
 	return obj
 }
 func SetFleet(o js.Value, obj *cs.Fleet) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	SetFleetOrders(o, &obj.FleetOrders)
 	o.Set("planetNum", obj.PlanetNum)
@@ -810,7 +812,8 @@ func GetFleetIntel(o js.Value) cs.FleetIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.BaseName = string(getString(o.Get("baseName")))
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.OrbitingPlanetNum = getInt[int](o.Get("orbitingPlanetNum"))
@@ -825,7 +828,8 @@ func GetFleetIntel(o js.Value) cs.FleetIntel {
 	return obj
 }
 func SetFleetIntel(o js.Value, obj *cs.FleetIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("baseName", obj.BaseName)
 	o.Set("heading", map[string]any{})
 	SetVector(o.Get("heading"), &obj.Heading)
@@ -912,6 +916,20 @@ func SetFleetSpec(o js.Value, obj *cs.FleetSpec) {
 	o.Set("totalShips", obj.TotalShips)
 }
 
+func GetFreighterGrowth(o js.Value) cs.FreighterGrowth {
+	var obj cs.FreighterGrowth
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.Absolute = getBool(o.Get("absolute"))
+	obj.GrowthFactor = getFloat[float64](o.Get("rate"))
+	return obj
+}
+func SetFreighterGrowth(o js.Value, obj *cs.FreighterGrowth) {
+	o.Set("absolute", obj.Absolute)
+	o.Set("rate", obj.GrowthFactor)
+}
+
 func GetFullPlayer(o js.Value) cs.FullPlayer {
 	var obj cs.FullPlayer
 	if o.IsUndefined() || o.IsNull() {
@@ -944,7 +962,6 @@ func GetGame(o js.Value) cs.Game {
 	obj.ComputerPlayersFormAlliances = getBool(o.Get("computerPlayersFormAlliances"))
 	obj.PublicPlayerScores = getBool(o.Get("publicPlayerScores"))
 	obj.MaxMinerals = getBool(o.Get("maxMinerals"))
-	obj.AcceleratedPlay = getBool(o.Get("acceleratedPlay"))
 	obj.StartMode = GetGameStartMode(o.Get("startMode"))
 	obj.QuickStartTurns = getInt[int](o.Get("quickStartTurns"))
 	obj.OpenPlayerSlots = getInt[int](o.Get("openPlayerSlots"))
@@ -972,7 +989,6 @@ func SetGame(o js.Value, obj *cs.Game) {
 	o.Set("computerPlayersFormAlliances", obj.ComputerPlayersFormAlliances)
 	o.Set("publicPlayerScores", obj.PublicPlayerScores)
 	o.Set("maxMinerals", obj.MaxMinerals)
-	o.Set("acceleratedPlay", obj.AcceleratedPlay)
 	o.Set("startMode", string(obj.StartMode))
 	o.Set("quickStartTurns", obj.QuickStartTurns)
 	o.Set("openPlayerSlots", obj.OpenPlayerSlots)
@@ -1022,7 +1038,6 @@ func GetGameSettings(o js.Value) cs.GameSettings {
 	obj.ComputerPlayersFormAlliances = getBool(o.Get("computerPlayersFormAlliances"))
 	obj.PublicPlayerScores = getBool(o.Get("publicPlayerScores"))
 	obj.MaxMinerals = getBool(o.Get("maxMinerals"))
-	obj.AcceleratedPlay = getBool(o.Get("acceleratedPlay"))
 	obj.StartMode = GetGameStartMode(o.Get("startMode"))
 	obj.VictoryConditions = GetVictoryConditions(o.Get("victoryConditions"))
 	obj.Players = GetSlice(o.Get("players"), GetNewGamePlayer)
@@ -1041,7 +1056,6 @@ func SetGameSettings(o js.Value, obj *cs.GameSettings) {
 	o.Set("computerPlayersFormAlliances", obj.ComputerPlayersFormAlliances)
 	o.Set("publicPlayerScores", obj.PublicPlayerScores)
 	o.Set("maxMinerals", obj.MaxMinerals)
-	o.Set("acceleratedPlay", obj.AcceleratedPlay)
 	o.Set("startMode", string(obj.StartMode))
 	o.Set("victoryConditions", map[string]any{})
 	SetVictoryConditions(o.Get("victoryConditions"), &obj.VictoryConditions)
@@ -1142,16 +1156,10 @@ func GetIntel(o js.Value) cs.Intel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.Name = string(getString(o.Get("name")))
-	obj.Num = getInt[int](o.Get("num"))
-	obj.PlayerNum = getInt[int](o.Get("playerNum"))
 	obj.ReportAge = getInt[int](o.Get("reportAge"))
 	return obj
 }
 func SetIntel(o js.Value, obj *cs.Intel) {
-	o.Set("name", obj.Name)
-	o.Set("num", obj.Num)
-	o.Set("playerNum", obj.PlayerNum)
 	o.Set("reportAge", obj.ReportAge)
 }
 
@@ -1249,7 +1257,6 @@ func GetMapObject(o js.Value) cs.MapObject {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.GameDBObject = GetGameDBObject(o)
 	obj.Type = GetMapObjectType(o.Get("type"))
 	obj.Position = GetVector(o.Get("position"))
 	obj.Num = getInt[int](o.Get("num"))
@@ -1259,7 +1266,6 @@ func GetMapObject(o js.Value) cs.MapObject {
 	return obj
 }
 func SetMapObject(o js.Value, obj *cs.MapObject) {
-	SetGameDBObject(o, &obj.GameDBObject)
 	o.Set("type", string(obj.Type))
 	o.Set("position", map[string]any{})
 	SetVector(o.Get("position"), &obj.Position)
@@ -1271,23 +1277,6 @@ func SetMapObject(o js.Value, obj *cs.MapObject) {
 		tagsMap.Set(fmt.Sprintf("%v", key), value)
 	}
 	o.Set("tags", tagsMap)
-}
-
-func GetMapObjectIntel(o js.Value) cs.MapObjectIntel {
-	var obj cs.MapObjectIntel
-	if o.IsUndefined() || o.IsNull() {
-		return obj
-	}
-	obj.Intel = GetIntel(o)
-	obj.Type = GetMapObjectType(o.Get("type"))
-	obj.Position = GetVector(o.Get("position"))
-	return obj
-}
-func SetMapObjectIntel(o js.Value, obj *cs.MapObjectIntel) {
-	SetIntel(o, &obj.Intel)
-	o.Set("type", string(obj.Type))
-	o.Set("position", map[string]any{})
-	SetVector(o.Get("position"), &obj.Position)
 }
 
 func GetMapObjectTarget(o js.Value) cs.MapObjectTarget {
@@ -1347,6 +1336,7 @@ func GetMineField(o js.Value) cs.MineField {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.MineFieldOrders = GetMineFieldOrders(o)
 	obj.MineFieldType = GetMineFieldType(o.Get("mineFieldType"))
@@ -1355,6 +1345,7 @@ func GetMineField(o js.Value) cs.MineField {
 	return obj
 }
 func SetMineField(o js.Value, obj *cs.MineField) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	SetMineFieldOrders(o, &obj.MineFieldOrders)
 	o.Set("mineFieldType", string(obj.MineFieldType))
@@ -1384,14 +1375,16 @@ func GetMineFieldIntel(o js.Value) cs.MineFieldIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.NumMines = getInt[int](o.Get("numMines"))
 	obj.MineFieldType = GetMineFieldType(o.Get("mineFieldType"))
 	obj.Spec = GetMineFieldSpec(o.Get("spec"))
 	return obj
 }
 func SetMineFieldIntel(o js.Value, obj *cs.MineFieldIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("numMines", obj.NumMines)
 	o.Set("mineFieldType", string(obj.MineFieldType))
 	o.Set("spec", map[string]any{})
@@ -1484,6 +1477,7 @@ func GetMineralPacket(o js.Value) cs.MineralPacket {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.TargetPlanetNum = getInt[int](o.Get("targetPlanetNum"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
@@ -1495,6 +1489,7 @@ func GetMineralPacket(o js.Value) cs.MineralPacket {
 	return obj
 }
 func SetMineralPacket(o js.Value, obj *cs.MineralPacket) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	o.Set("targetPlanetNum", obj.TargetPlanetNum)
 	o.Set("cargo", map[string]any{})
@@ -1528,7 +1523,8 @@ func GetMineralPacketIntel(o js.Value) cs.MineralPacketIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
@@ -1538,7 +1534,8 @@ func GetMineralPacketIntel(o js.Value) cs.MineralPacketIntel {
 	return obj
 }
 func SetMineralPacketIntel(o js.Value, obj *cs.MineralPacketIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("warpSpeed", obj.WarpSpeed)
 	o.Set("heading", map[string]any{})
 	SetVector(o.Get("heading"), &obj.Heading)
@@ -1579,6 +1576,7 @@ func GetMysteryTrader(o js.Value) cs.MysteryTrader {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.Destination = GetVector(o.Get("destination"))
@@ -1590,6 +1588,7 @@ func GetMysteryTrader(o js.Value) cs.MysteryTrader {
 	return obj
 }
 func SetMysteryTrader(o js.Value, obj *cs.MysteryTrader) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	o.Set("warpSpeed", obj.WarpSpeed)
 	o.Set("destination", map[string]any{})
@@ -1612,14 +1611,16 @@ func GetMysteryTraderIntel(o js.Value) cs.MysteryTraderIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.RequestedBoon = getInt[int](o.Get("requestedBoon"))
 	return obj
 }
 func SetMysteryTraderIntel(o js.Value, obj *cs.MysteryTraderIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("warpSpeed", obj.WarpSpeed)
 	o.Set("heading", map[string]any{})
 	SetVector(o.Get("heading"), &obj.Heading)
@@ -1813,7 +1814,7 @@ func GetPRTSpec(o js.Value) cs.PRTSpec {
 	obj.ShipsVanishInVoid = getBool(o.Get("shipsVanishInVoid"))
 	obj.BuiltInScanner = GetBuiltInScanner(o.Get("builtInScanner"))
 	obj.TechsCostExtraLevel = getInt[int](o.Get("techsCostExtraLevel"))
-	obj.FreighterGrowthFactor = getFloat[float64](o.Get("freighterGrowthFactor"))
+	obj.FreighterGrowth = GetFreighterGrowth(o.Get("freighterGrowth"))
 	obj.GrowthFactor = getFloat[float64](o.Get("growthFactor"))
 	obj.MaxPopulationOffset = getFloat[float64](o.Get("maxPopulationOffset"))
 	obj.BuiltInCloakUnits = getInt[int](o.Get("builtInCloakUnits"))
@@ -1840,11 +1841,13 @@ func GetPRTSpec(o js.Value) cs.PRTSpec {
 	obj.StarbaseRepairFactor = getFloat[float64](o.Get("starbaseRepairFactor"))
 	obj.StarbaseCostFactor = getFloat[float64](o.Get("starbaseCostFactor"))
 	obj.InnateMining = getBool(o.Get("innateMining"))
+	obj.InnateMinesFactor = getFloat[float64](o.Get("innateMinesFactor"))
 	obj.InnateResources = getBool(o.Get("innateResources"))
 	obj.InnateScanner = getBool(o.Get("innateScanner"))
-	obj.InnatePopulationFactor = getFloat[float64](o.Get("innatePopulationFactor"))
+	obj.InnateScannerFactor = getFloat[float64](o.Get("innateScannerFactor"))
 	obj.CanBuildDefenses = getBool(o.Get("canBuildDefenses"))
 	obj.LivesOnStarbases = getBool(o.Get("livesOnStarbases"))
+	obj.MinHabFloor = getInt[int](o.Get("minHabFloor"))
 	return obj
 }
 func SetPRTSpec(o js.Value, obj *cs.PRTSpec) {
@@ -1878,7 +1881,8 @@ func SetPRTSpec(o js.Value, obj *cs.PRTSpec) {
 	o.Set("builtInScanner", map[string]any{})
 	SetBuiltInScanner(o.Get("builtInScanner"), &obj.BuiltInScanner)
 	o.Set("techsCostExtraLevel", obj.TechsCostExtraLevel)
-	o.Set("freighterGrowthFactor", obj.FreighterGrowthFactor)
+	o.Set("freighterGrowth", map[string]any{})
+	SetFreighterGrowth(o.Get("freighterGrowth"), &obj.FreighterGrowth)
 	o.Set("growthFactor", obj.GrowthFactor)
 	o.Set("maxPopulationOffset", obj.MaxPopulationOffset)
 	o.Set("builtInCloakUnits", obj.BuiltInCloakUnits)
@@ -1906,11 +1910,13 @@ func SetPRTSpec(o js.Value, obj *cs.PRTSpec) {
 	o.Set("starbaseRepairFactor", obj.StarbaseRepairFactor)
 	o.Set("starbaseCostFactor", obj.StarbaseCostFactor)
 	o.Set("innateMining", obj.InnateMining)
+	o.Set("innateMinesFactor", obj.InnateMinesFactor)
 	o.Set("innateResources", obj.InnateResources)
 	o.Set("innateScanner", obj.InnateScanner)
-	o.Set("innatePopulationFactor", obj.InnatePopulationFactor)
+	o.Set("innateScannerFactor", obj.InnateScannerFactor)
 	o.Set("canBuildDefenses", obj.CanBuildDefenses)
 	o.Set("livesOnStarbases", obj.LivesOnStarbases)
+	o.Set("minHabFloor", obj.MinHabFloor)
 }
 
 func GetPlanet(o js.Value) cs.Planet {
@@ -1918,6 +1924,7 @@ func GetPlanet(o js.Value) cs.Planet {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.PlanetOrders = GetPlanetOrders(o)
 	obj.Hab = GetHab(o.Get("hab"))
@@ -1935,6 +1942,7 @@ func GetPlanet(o js.Value) cs.Planet {
 	return obj
 }
 func SetPlanet(o js.Value, obj *cs.Planet) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	SetPlanetOrders(o, &obj.PlanetOrders)
 	o.Set("hab", map[string]any{})
@@ -1963,11 +1971,11 @@ func GetPlanetIntel(o js.Value) cs.PlanetIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.Hab = GetHab(o.Get("hab"))
 	obj.BaseHab = GetHab(o.Get("baseHab"))
 	obj.MineralConcentration = GetMineral(o.Get("mineralConcentration"))
-	obj.Starbase = getPointer(GetFleetIntel(o.Get("starbase")))
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	obj.CargoDiscovered = getBool(o.Get("cargoDiscovered"))
 	obj.PlanetHabitability = getInt[int](o.Get("planetHabitability"))
@@ -1977,15 +1985,14 @@ func GetPlanetIntel(o js.Value) cs.PlanetIntel {
 	return obj
 }
 func SetPlanetIntel(o js.Value, obj *cs.PlanetIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("hab", map[string]any{})
 	SetHab(o.Get("hab"), &obj.Hab)
 	o.Set("baseHab", map[string]any{})
 	SetHab(o.Get("baseHab"), &obj.BaseHab)
 	o.Set("mineralConcentration", map[string]any{})
 	SetMineral(o.Get("mineralConcentration"), &obj.MineralConcentration)
-	o.Set("starbase", map[string]any{})
-	SetFleetIntel(o.Get("starbase"), obj.Starbase)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
 	o.Set("cargoDiscovered", obj.CargoDiscovered)
@@ -2237,7 +2244,6 @@ func GetPlayerIntels(o js.Value) cs.PlayerIntels {
 	obj.ScoreIntels = GetSlice(o.Get("scoreIntels"), GetScoreIntel)
 	obj.PlanetIntels = GetSlice(o.Get("planetIntels"), GetPlanetIntel)
 	obj.FleetIntels = GetSlice(o.Get("fleetIntels"), GetFleetIntel)
-	obj.StarbaseIntels = GetSlice(o.Get("starbaseIntels"), GetFleetIntel)
 	obj.ShipDesignIntels = GetSlice(o.Get("shipDesignIntels"), GetShipDesignIntel)
 	obj.MineralPacketIntels = GetSlice(o.Get("mineralPacketIntels"), GetMineralPacketIntel)
 	obj.MineFieldIntels = GetSlice(o.Get("mineFieldIntels"), GetMineFieldIntel)
@@ -2257,8 +2263,6 @@ func SetPlayerIntels(o js.Value, obj *cs.PlayerIntels) {
 	SetSlice(o.Get("planetIntels"), obj.PlanetIntels, SetPlanetIntel)
 	o.Set("fleetIntels", []any{})
 	SetSlice(o.Get("fleetIntels"), obj.FleetIntels, SetFleetIntel)
-	o.Set("starbaseIntels", []any{})
-	SetSlice(o.Get("starbaseIntels"), obj.StarbaseIntels, SetFleetIntel)
 	o.Set("shipDesignIntels", []any{})
 	SetSlice(o.Get("shipDesignIntels"), obj.ShipDesignIntels, SetShipDesignIntel)
 	o.Set("mineralPacketIntels", []any{})
@@ -2303,7 +2307,7 @@ func GetPlayerMessage(o js.Value) cs.PlayerMessage {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.PlayerMessageTarget = GetPlayerMessageTarget(o)
+	obj.Target = GetTarget[cs.PlayerMessageTargetType](o)
 	obj.Type = GetPlayerMessageType(o.Get("type"))
 	obj.Text = string(getString(o.Get("text")))
 	obj.BattleNum = getInt[int](o.Get("battleNum"))
@@ -2311,7 +2315,7 @@ func GetPlayerMessage(o js.Value) cs.PlayerMessage {
 	return obj
 }
 func SetPlayerMessage(o js.Value, obj *cs.PlayerMessage) {
-	SetPlayerMessageTarget(o, &obj.PlayerMessageTarget)
+	SetTarget(o, &obj.Target)
 	o.Set("type", int(obj.Type))
 	o.Set("text", obj.Text)
 	o.Set("battleNum", obj.BattleNum)
@@ -2324,7 +2328,7 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectTarget = GetMapObjectTarget(o)
+	obj.Target = GetTarget[cs.MapObjectType](o)
 	obj.Amount = getInt[int](o.Get("amount"))
 	obj.Amount2 = getInt[int](o.Get("amount2"))
 	obj.PrevAmount = getInt[int](o.Get("prevAmount"))
@@ -2345,10 +2349,11 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.MineralPacketDamage = getPointer(GetMineralPacketDamage(o.Get("mineralPacketDamage")))
 	obj.MineFieldDamage = getPointer(GetMineFieldDamage(o.Get("mineFieldDamage")))
 	obj.MysteryTrader = getPointer(GetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader")))
+	obj.TerraformAmount = GetHab(o.Get("terraformAmount"))
 	return obj
 }
 func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
-	SetMapObjectTarget(o, &obj.MapObjectTarget)
+	SetTarget(o, &obj.Target)
 	o.Set("amount", obj.Amount)
 	o.Set("amount2", obj.Amount2)
 	o.Set("prevAmount", obj.PrevAmount)
@@ -2378,6 +2383,8 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	SetMineFieldDamage(o.Get("mineFieldDamage"), obj.MineFieldDamage)
 	o.Set("mysteryTrader", map[string]any{})
 	SetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader"), obj.MysteryTrader)
+	o.Set("terraformAmount", map[string]any{})
+	SetHab(o.Get("terraformAmount"), &obj.TerraformAmount)
 }
 
 func GetPlayerMessageSpecComet(o js.Value) cs.PlayerMessageSpecComet {
@@ -2838,7 +2845,7 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.CanDetectStargatePlanets = getBool(o.Get("canDetectStargatePlanets"))
 	obj.ShipsVanishInVoid = getBool(o.Get("shipsVanishInVoid"))
 	obj.TechsCostExtraLevel = getInt[int](o.Get("techsCostExtraLevel"))
-	obj.FreighterGrowthFactor = getFloat[float64](o.Get("freighterGrowthFactor"))
+	obj.FreighterGrowth = GetFreighterGrowth(o.Get("freighterGrowth"))
 	obj.GrowthFactor = getFloat[float64](o.Get("growthFactor"))
 	obj.MaxPopulationOffset = getFloat[float64](o.Get("maxPopulationOffset"))
 	obj.BuiltInCloakUnits = getInt[int](o.Get("builtInCloakUnits"))
@@ -2864,11 +2871,13 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.RepairFactor = getFloat[float64](o.Get("repairFactor"))
 	obj.StarbaseRepairFactor = getFloat[float64](o.Get("starbaseRepairFactor"))
 	obj.InnateMining = getBool(o.Get("innateMining"))
+	obj.InnateMinesFactor = getFloat[float64](o.Get("innateMinesFactor"))
 	obj.InnateResources = getBool(o.Get("innateResources"))
 	obj.InnateScanner = getBool(o.Get("innateScanner"))
-	obj.InnatePopulationFactor = getFloat[float64](o.Get("innatePopulationFactor"))
+	obj.InnateScannerFactor = getFloat[float64](o.Get("innateScannerFactor"))
 	obj.CanBuildDefenses = getBool(o.Get("canBuildDefenses"))
 	obj.LivesOnStarbases = getBool(o.Get("livesOnStarbases"))
+	obj.MinHabFloor = getInt[int](o.Get("minHabFloor"))
 	obj.FuelEfficiencyOffset = getFloat[float64](o.Get("fuelEfficiencyOffset"))
 	obj.MineralAlchemyCostOffset = getInt[int](o.Get("mineralAlchemyCostOffset"))
 	obj.ScrapMineralOffset = getFloat[float64](o.Get("scrapMineralOffset"))
@@ -2925,7 +2934,8 @@ func SetRaceSpec(o js.Value, obj *cs.RaceSpec) {
 	o.Set("canDetectStargatePlanets", obj.CanDetectStargatePlanets)
 	o.Set("shipsVanishInVoid", obj.ShipsVanishInVoid)
 	o.Set("techsCostExtraLevel", obj.TechsCostExtraLevel)
-	o.Set("freighterGrowthFactor", obj.FreighterGrowthFactor)
+	o.Set("freighterGrowth", map[string]any{})
+	SetFreighterGrowth(o.Get("freighterGrowth"), &obj.FreighterGrowth)
 	o.Set("growthFactor", obj.GrowthFactor)
 	o.Set("maxPopulationOffset", obj.MaxPopulationOffset)
 	o.Set("builtInCloakUnits", obj.BuiltInCloakUnits)
@@ -2952,11 +2962,13 @@ func SetRaceSpec(o js.Value, obj *cs.RaceSpec) {
 	o.Set("repairFactor", obj.RepairFactor)
 	o.Set("starbaseRepairFactor", obj.StarbaseRepairFactor)
 	o.Set("innateMining", obj.InnateMining)
+	o.Set("innateMinesFactor", obj.InnateMinesFactor)
 	o.Set("innateResources", obj.InnateResources)
 	o.Set("innateScanner", obj.InnateScanner)
-	o.Set("innatePopulationFactor", obj.InnatePopulationFactor)
+	o.Set("innateScannerFactor", obj.InnateScannerFactor)
 	o.Set("canBuildDefenses", obj.CanBuildDefenses)
 	o.Set("livesOnStarbases", obj.LivesOnStarbases)
+	o.Set("minHabFloor", obj.MinHabFloor)
 	o.Set("fuelEfficiencyOffset", obj.FuelEfficiencyOffset)
 	o.Set("mineralAlchemyCostOffset", obj.MineralAlchemyCostOffset)
 	o.Set("scrapMineralOffset", obj.ScrapMineralOffset)
@@ -3092,7 +3104,7 @@ func GetRules(o js.Value) cs.Rules {
 	obj.MineFieldCloak = getInt[int](o.Get("mineFieldCloak"))
 	obj.MineFieldStatsByType = GetStringMap[map[cs.MineFieldType]cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldStats)
 	obj.MineralDecayFactor = getInt[int](o.Get("mineralDecayFactor"))
-	obj.MinMaxPopulationPercent = getFloat[float64](o.Get("minMaxPopulationPercent"))
+	obj.MinHabFloor = getInt[int](o.Get("minHabFloor"))
 	obj.MysteryTraderRules = GetMysteryTraderRules(o.Get("mysteryTraderRules"))
 	obj.PacketDecayRate = GetIntMap[map[int]float64](o.Get("packetDecayRate"), getFloat)
 	obj.PacketMaxOverwarpSpeed = getInt[int](o.Get("packetMaxOverwarpSpeed"))
@@ -3100,6 +3112,8 @@ func GetRules(o js.Value) cs.Rules {
 	obj.PlanetMinDistance = getInt[int](o.Get("planetMinDistance"))
 	obj.PopulationOvercrowdDieoffRate = getFloat[float64](o.Get("populationOvercrowdDieoffRate"))
 	obj.PopulationOvercrowdDieoffRateMax = getFloat[float64](o.Get("populationOvercrowdDieoffRateMax"))
+	obj.PopulationOvercrowdResourcePenalty = getFloat[float64](o.Get("populationOvercrowdResourcePenalty"))
+	obj.PopulationOvercrowdResourceMax = getFloat[float64](o.Get("populationOvercrowdResourceMax"))
 	obj.PopulationScannerError = getFloat[float64](o.Get("populationScannerError"))
 	obj.PRTSpecs = GetStringMap[map[cs.PRT]cs.PRTSpec](o.Get("prtSpecs"), GetPRTSpec)
 	obj.RaceStartingPoints = getInt[int](o.Get("raceStartingPoints"))
@@ -3174,7 +3188,7 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	}
 	o.Set("mineFieldStatsByType", mineFieldStatsByTypeMap)
 	o.Set("mineralDecayFactor", obj.MineralDecayFactor)
-	o.Set("minMaxPopulationPercent", obj.MinMaxPopulationPercent)
+	o.Set("minHabFloor", obj.MinHabFloor)
 	o.Set("mysteryTraderRules", map[string]any{})
 	SetMysteryTraderRules(o.Get("mysteryTraderRules"), &obj.MysteryTraderRules)
 	packetDecayRateMap := js.ValueOf(map[string]any{})
@@ -3187,6 +3201,8 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	o.Set("planetMinDistance", obj.PlanetMinDistance)
 	o.Set("populationOvercrowdDieoffRate", obj.PopulationOvercrowdDieoffRate)
 	o.Set("populationOvercrowdDieoffRateMax", obj.PopulationOvercrowdDieoffRateMax)
+	o.Set("populationOvercrowdResourcePenalty", obj.PopulationOvercrowdResourcePenalty)
+	o.Set("populationOvercrowdResourceMax", obj.PopulationOvercrowdResourceMax)
 	o.Set("populationScannerError", obj.PopulationScannerError)
 	prtSpecsMap := js.ValueOf(map[string]any{})
 	for key, value := range obj.PRTSpecs {
@@ -3259,11 +3275,13 @@ func GetSalvage(o js.Value) cs.Salvage {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	return obj
 }
 func SetSalvage(o js.Value, obj *cs.Salvage) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
@@ -3274,12 +3292,14 @@ func GetSalvageIntel(o js.Value) cs.SalvageIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	return obj
 }
 func SetSalvageIntel(o js.Value, obj *cs.SalvageIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
 }
@@ -3358,6 +3378,9 @@ func GetShipDesignIntel(o js.Value) cs.ShipDesignIntel {
 		return obj
 	}
 	obj.Intel = GetIntel(o)
+	obj.Name = string(getString(o.Get("name")))
+	obj.Num = getInt[int](o.Get("num"))
+	obj.PlayerNum = getInt[int](o.Get("playerNum"))
 	obj.Hull = string(getString(o.Get("hull")))
 	obj.HullSetNumber = getInt[int](o.Get("hullSetNumber"))
 	obj.Version = getInt[int](o.Get("version"))
@@ -3367,6 +3390,9 @@ func GetShipDesignIntel(o js.Value) cs.ShipDesignIntel {
 }
 func SetShipDesignIntel(o js.Value, obj *cs.ShipDesignIntel) {
 	SetIntel(o, &obj.Intel)
+	o.Set("name", obj.Name)
+	o.Set("num", obj.Num)
+	o.Set("playerNum", obj.PlayerNum)
 	o.Set("hull", obj.Hull)
 	o.Set("hullSetNumber", obj.HullSetNumber)
 	o.Set("version", obj.Version)
@@ -3718,6 +3744,27 @@ func GetTags(o js.Value) cs.Tags {
 	}
 	obj = GetStringMap[map[string]string](o, getString)
 	return obj
+}
+
+func GetTarget[T cs.PlayerMessageTargetType | cs.MapObjectType](o js.Value) cs.Target[T] {
+	var obj cs.Target[T]
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.TargetPosition = GetVector(o.Get("targetPosition"))
+	obj.TargetType = T(getString(o.Get("targetType")))
+	obj.TargetName = string(getString(o.Get("targetName")))
+	obj.TargetNum = getInt[int](o.Get("targetNum"))
+	obj.TargetPlayerNum = getInt[int](o.Get("targetPlayerNum"))
+	return obj
+}
+func SetTarget[T cs.PlayerMessageTargetType | cs.MapObjectType](o js.Value, obj *cs.Target[T]) {
+	o.Set("targetPosition", map[string]any{})
+	SetVector(o.Get("targetPosition"), &obj.TargetPosition)
+	o.Set("targetType", obj.TargetType)
+	o.Set("targetName", obj.TargetName)
+	o.Set("targetNum", obj.TargetNum)
+	o.Set("targetPlayerNum", obj.TargetPlayerNum)
 }
 
 func GetTech(o js.Value) cs.Tech {
@@ -4457,6 +4504,7 @@ func GetWormhole(o js.Value) cs.Wormhole {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
 	obj.DestinationNum = getInt[int](o.Get("destinationNum"))
 	obj.Stability = GetWormholeStability(o.Get("stability"))
@@ -4465,6 +4513,7 @@ func GetWormhole(o js.Value) cs.Wormhole {
 	return obj
 }
 func SetWormhole(o js.Value, obj *cs.Wormhole) {
+	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
 	o.Set("destinationNum", obj.DestinationNum)
 	o.Set("stability", string(obj.Stability))
@@ -4478,13 +4527,15 @@ func GetWormholeIntel(o js.Value) cs.WormholeIntel {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.MapObjectIntel = GetMapObjectIntel(o)
+	obj.Intel = GetIntel(o)
+	obj.MapObject = GetMapObject(o)
 	obj.DestinationNum = getInt[int](o.Get("destinationNum"))
 	obj.Stability = GetWormholeStability(o.Get("stability"))
 	return obj
 }
 func SetWormholeIntel(o js.Value, obj *cs.WormholeIntel) {
-	SetMapObjectIntel(o, &obj.MapObjectIntel)
+	SetIntel(o, &obj.Intel)
+	SetMapObject(o, &obj.MapObject)
 	o.Set("destinationNum", obj.DestinationNum)
 	o.Set("stability", string(obj.Stability))
 }

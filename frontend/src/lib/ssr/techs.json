@@ -8,8 +8,12 @@
 				"resources": 2
 			},
 			"requirements": {
-				"prtsRequired": ["HE"],
-				"hullsAllowed": ["Mini-Colony Ship"]
+				"prtsRequired": [
+					"HE"
+				],
+				"hullsAllowed": [
+					"Mini-Colony Ship"
+				]
 			},
 			"ranking": 69,
 			"category": "Engine",
@@ -22,7 +26,19 @@
 			"idealSpeed": 6,
 			"freeSpeed": 6,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 150, 275, 480, 576]
+			"fuelUsage": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				150,
+				275,
+				480,
+				576
+			]
 		},
 		{
 			"name": "Quick Jump 5",
@@ -42,7 +58,19 @@
 			"idealSpeed": 5,
 			"freeSpeed": 1,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 25, 100, 100, 100, 180, 500, 800, 900, 1080]
+			"fuelUsage": [
+				0,
+				0,
+				25,
+				100,
+				100,
+				100,
+				180,
+				500,
+				800,
+				900,
+				1080
+			]
 		},
 		{
 			"name": "Fuel Mizer",
@@ -65,7 +93,19 @@
 			"idealSpeed": 6,
 			"freeSpeed": 4,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 0, 0, 0, 35, 120, 175, 235, 360, 420]
+			"fuelUsage": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				35,
+				120,
+				175,
+				235,
+				360,
+				420
+			]
 		},
 		{
 			"name": "Long Hump 6",
@@ -87,7 +127,19 @@
 			"idealSpeed": 6,
 			"freeSpeed": 1,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 20, 60, 100, 100, 105, 450, 750, 900, 1080]
+			"fuelUsage": [
+				0,
+				0,
+				20,
+				60,
+				100,
+				100,
+				105,
+				450,
+				750,
+				900,
+				1080
+			]
 		},
 		{
 			"name": "Daddy Long Legs 7",
@@ -109,7 +161,19 @@
 			"idealSpeed": 7,
 			"freeSpeed": 1,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 20, 60, 70, 100, 100, 110, 600, 750, 900]
+			"fuelUsage": [
+				0,
+				0,
+				20,
+				60,
+				70,
+				100,
+				100,
+				110,
+				600,
+				750,
+				900
+			]
 		},
 		{
 			"name": "Alpha Drive 8",
@@ -131,7 +195,19 @@
 			"idealSpeed": 8,
 			"freeSpeed": 1,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 15, 50, 60, 70, 100, 100, 115, 700, 840]
+			"fuelUsage": [
+				0,
+				0,
+				15,
+				50,
+				60,
+				70,
+				100,
+				100,
+				115,
+				700,
+				840
+			]
 		},
 		{
 			"name": "Trans-Galactic Drive",
@@ -154,7 +230,19 @@
 			"idealSpeed": 9,
 			"freeSpeed": 1,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 15, 35, 45, 55, 70, 80, 90, 100, 120]
+			"fuelUsage": [
+				0,
+				0,
+				15,
+				35,
+				45,
+				55,
+				70,
+				80,
+				90,
+				100,
+				120
+			]
 		},
 		{
 			"name": "Interspace-10",
@@ -178,7 +266,19 @@
 			"idealSpeed": 10,
 			"freeSpeed": 1,
 			"maxSafeSpeed": 10,
-			"fuelUsage": [0, 0, 10, 30, 40, 50, 60, 70, 80, 90, 100]
+			"fuelUsage": [
+				0,
+				0,
+				10,
+				30,
+				40,
+				50,
+				60,
+				70,
+				80,
+				90,
+				100
+			]
 		},
 		{
 			"name": "Enigma Pulsar",
@@ -210,7 +310,19 @@
 			"idealSpeed": 10,
 			"freeSpeed": 1,
 			"maxSafeSpeed": 10,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 60, 70, 80, 90, 100]
+			"fuelUsage": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				60,
+				70,
+				80,
+				90,
+				100
+			]
 		},
 		{
 			"name": "Trans-Star 10",
@@ -232,7 +344,19 @@
 			"idealSpeed": 10,
 			"freeSpeed": 1,
 			"maxSafeSpeed": 10,
-			"fuelUsage": [0, 0, 5, 15, 20, 25, 30, 35, 40, 45, 50]
+			"fuelUsage": [
+				0,
+				0,
+				5,
+				15,
+				20,
+				25,
+				30,
+				35,
+				40,
+				45,
+				50
+			]
 		},
 		{
 			"name": "Radiating Hydro-Ram Scoop",
@@ -259,7 +383,19 @@
 			"idealSpeed": 6,
 			"freeSpeed": 6,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 165, 375, 600, 720]
+			"fuelUsage": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				165,
+				375,
+				600,
+				720
+			]
 		},
 		{
 			"name": "Sub-Galactic Fuel Scoop",
@@ -285,7 +421,19 @@
 			"idealSpeed": 7,
 			"freeSpeed": 5,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 85, 105, 210, 380, 456]
+			"fuelUsage": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				85,
+				105,
+				210,
+				380,
+				456
+			]
 		},
 		{
 			"name": "Trans-Galactic Fuel Scoop",
@@ -311,7 +459,19 @@
 			"idealSpeed": 8,
 			"freeSpeed": 6,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 88, 100, 145, 174]
+			"fuelUsage": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				88,
+				100,
+				145,
+				174
+			]
 		},
 		{
 			"name": "Trans-Galactic Super Scoop",
@@ -337,7 +497,19 @@
 			"idealSpeed": 9,
 			"freeSpeed": 7,
 			"maxSafeSpeed": 9,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 0, 65, 90, 108]
+			"fuelUsage": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				65,
+				90,
+				108
+			]
 		},
 		{
 			"name": "Trans-Galactic Mizer Scoop",
@@ -363,7 +535,19 @@
 			"idealSpeed": 10,
 			"freeSpeed": 8,
 			"maxSafeSpeed": 10,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 0, 0, 70, 84]
+			"fuelUsage": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				70,
+				84
+			]
 		},
 		{
 			"name": "Galaxy Scoop",
@@ -390,7 +574,19 @@
 			"idealSpeed": 10,
 			"freeSpeed": 9,
 			"maxSafeSpeed": 10,
-			"fuelUsage": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 60]
+			"fuelUsage": [
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				60
+			]
 		}
 	],
 	"planetaryScanners": [
@@ -403,13 +599,17 @@
 				"resources": 100
 			},
 			"requirements": {
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
+			"ranking": 0,
 			"category": "PlanetaryScanner",
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 50
+			"scanRange": 50,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Viewer 90",
@@ -421,14 +621,17 @@
 			},
 			"requirements": {
 				"electronics": 1,
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
 			"ranking": 1,
 			"category": "PlanetaryScanner",
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 90
+			"scanRange": 90,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Scoper 150",
@@ -440,14 +643,17 @@
 			},
 			"requirements": {
 				"electronics": 3,
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
 			"ranking": 30,
 			"category": "PlanetaryScanner",
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 150
+			"scanRange": 150,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Scoper 220",
@@ -459,14 +665,17 @@
 			},
 			"requirements": {
 				"electronics": 6,
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
 			"ranking": 40,
 			"category": "PlanetaryScanner",
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 220
+			"scanRange": 220,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Scoper 280",
@@ -478,14 +687,17 @@
 			},
 			"requirements": {
 				"electronics": 8,
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
 			"ranking": 50,
 			"category": "PlanetaryScanner",
 			"tags": {
 				"PlanetaryScanner": true
 			},
-			"scanRange": 280
+			"scanRange": 280,
+			"scanRangePen": 0
 		},
 		{
 			"name": "Snooper 320X",
@@ -499,7 +711,9 @@
 				"energy": 3,
 				"electronics": 10,
 				"biotechnology": 3,
-				"prtsDenied": ["AR"],
+				"prtsDenied": [
+					"AR"
+				],
 				"lrtsDenied": 256
 			},
 			"ranking": 60,
@@ -522,7 +736,9 @@
 				"energy": 4,
 				"electronics": 13,
 				"biotechnology": 6,
-				"prtsDenied": ["AR"],
+				"prtsDenied": [
+					"AR"
+				],
 				"lrtsDenied": 256
 			},
 			"ranking": 70,
@@ -545,7 +761,9 @@
 				"energy": 5,
 				"electronics": 16,
 				"biotechnology": 7,
-				"prtsDenied": ["AR"],
+				"prtsDenied": [
+					"AR"
+				],
 				"lrtsDenied": 256
 			},
 			"ranking": 80,
@@ -568,7 +786,9 @@
 				"energy": 7,
 				"electronics": 23,
 				"biotechnology": 9,
-				"prtsDenied": ["AR"],
+				"prtsDenied": [
+					"AR"
+				],
 				"lrtsDenied": 256
 			},
 			"ranking": 90,
@@ -589,6 +809,7 @@
 			"requirements": {
 				"lrtsRequired": 2
 			},
+			"ranking": 0,
 			"category": "Terraforming",
 			"tags": {
 				"Terraforming": true
@@ -930,8 +1151,11 @@
 				"resources": 15
 			},
 			"requirements": {
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
+			"ranking": 0,
 			"category": "PlanetaryDefense",
 			"tags": {
 				"Defense": true
@@ -948,7 +1172,9 @@
 			},
 			"requirements": {
 				"energy": 5,
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
 			"ranking": 10,
 			"category": "PlanetaryDefense",
@@ -967,7 +1193,9 @@
 			},
 			"requirements": {
 				"energy": 10,
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
 			"ranking": 20,
 			"category": "PlanetaryDefense",
@@ -986,7 +1214,9 @@
 			},
 			"requirements": {
 				"energy": 16,
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
 			"ranking": 30,
 			"category": "PlanetaryDefense",
@@ -1005,7 +1235,9 @@
 			},
 			"requirements": {
 				"energy": 23,
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
 			"ranking": 40,
 			"category": "PlanetaryDefense",
@@ -1033,6 +1265,7 @@
 			"ranking": 45,
 			"category": "Planetary",
 			"origin": "MysteryTrader",
+			"tags": {},
 			"resetPlanet": true
 		}
 	],
@@ -1048,13 +1281,17 @@
 			"requirements": {
 				"propulsion": 5,
 				"construction": 5,
-				"prtsDenied": ["HE"]
+				"prtsDenied": [
+					"HE"
+				]
 			},
+			"ranking": 0,
 			"category": "Orbital",
 			"tags": {
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 100,
 			"safeRange": 250,
 			"maxHullMass": 500,
@@ -1071,8 +1308,12 @@
 			"requirements": {
 				"propulsion": 6,
 				"construction": 10,
-				"prtsDenied": ["HE"],
-				"prtsRequired": ["IT"]
+				"prtsDenied": [
+					"HE"
+				],
+				"prtsRequired": [
+					"IT"
+				]
 			},
 			"ranking": 30,
 			"category": "Orbital",
@@ -1080,6 +1321,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 2147483647,
 			"safeRange": 300,
 			"maxHullMass": 2147483647,
@@ -1096,7 +1338,9 @@
 			"requirements": {
 				"propulsion": 11,
 				"construction": 7,
-				"prtsDenied": ["HE"]
+				"prtsDenied": [
+					"HE"
+				]
 			},
 			"ranking": 10,
 			"category": "Orbital",
@@ -1104,6 +1348,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 150,
 			"safeRange": 600,
 			"maxHullMass": 750,
@@ -1120,7 +1365,9 @@
 			"requirements": {
 				"propulsion": 9,
 				"construction": 13,
-				"prtsDenied": ["HE"]
+				"prtsDenied": [
+					"HE"
+				]
 			},
 			"ranking": 20,
 			"category": "Orbital",
@@ -1128,6 +1375,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 300,
 			"safeRange": 500,
 			"maxHullMass": 1500,
@@ -1144,8 +1392,12 @@
 			"requirements": {
 				"propulsion": 16,
 				"construction": 12,
-				"prtsDenied": ["HE"],
-				"prtsRequired": ["IT"]
+				"prtsDenied": [
+					"HE"
+				],
+				"prtsRequired": [
+					"IT"
+				]
 			},
 			"ranking": 40,
 			"category": "Orbital",
@@ -1153,6 +1405,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 100,
 			"safeRange": 2147483647,
 			"maxHullMass": 500,
@@ -1169,8 +1422,12 @@
 			"requirements": {
 				"propulsion": 12,
 				"construction": 18,
-				"prtsDenied": ["HE"],
-				"prtsRequired": ["IT"]
+				"prtsDenied": [
+					"HE"
+				],
+				"prtsRequired": [
+					"IT"
+				]
 			},
 			"ranking": 50,
 			"category": "Orbital",
@@ -1178,6 +1435,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 2147483647,
 			"safeRange": 800,
 			"maxHullMass": 2147483647,
@@ -1194,8 +1452,12 @@
 			"requirements": {
 				"propulsion": 19,
 				"construction": 24,
-				"prtsDenied": ["HE"],
-				"prtsRequired": ["IT"]
+				"prtsDenied": [
+					"HE"
+				],
+				"prtsRequired": [
+					"IT"
+				]
 			},
 			"ranking": 60,
 			"category": "Orbital",
@@ -1203,6 +1465,7 @@
 				"Stargate": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"safeHullMass": 2147483647,
 			"safeRange": 2147483647,
 			"maxHullMass": 2147483647,
@@ -1218,7 +1481,9 @@
 			},
 			"requirements": {
 				"energy": 4,
-				"prtsRequired": ["PP"]
+				"prtsRequired": [
+					"PP"
+				]
 			},
 			"ranking": 70,
 			"category": "Orbital",
@@ -1226,6 +1491,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 5
 		},
 		{
@@ -1238,7 +1504,9 @@
 			},
 			"requirements": {
 				"energy": 7,
-				"prtsRequired": ["PP"]
+				"prtsRequired": [
+					"PP"
+				]
 			},
 			"ranking": 80,
 			"category": "Orbital",
@@ -1246,6 +1514,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 6
 		},
 		{
@@ -1265,6 +1534,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 7
 		},
 		{
@@ -1277,7 +1547,9 @@
 			},
 			"requirements": {
 				"energy": 11,
-				"prtsRequired": ["PP"]
+				"prtsRequired": [
+					"PP"
+				]
 			},
 			"ranking": 100,
 			"category": "Orbital",
@@ -1285,6 +1557,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 8
 		},
 		{
@@ -1297,7 +1570,9 @@
 			},
 			"requirements": {
 				"energy": 13,
-				"prtsRequired": ["PP"]
+				"prtsRequired": [
+					"PP"
+				]
 			},
 			"ranking": 110,
 			"category": "Orbital",
@@ -1305,6 +1580,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 9
 		},
 		{
@@ -1324,6 +1600,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 10
 		},
 		{
@@ -1336,7 +1613,9 @@
 			},
 			"requirements": {
 				"energy": 17,
-				"prtsRequired": ["PP"]
+				"prtsRequired": [
+					"PP"
+				]
 			},
 			"ranking": 130,
 			"category": "Orbital",
@@ -1344,6 +1623,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 11
 		},
 		{
@@ -1356,7 +1636,9 @@
 			},
 			"requirements": {
 				"energy": 20,
-				"prtsRequired": ["PP"]
+				"prtsRequired": [
+					"PP"
+				]
 			},
 			"ranking": 140,
 			"category": "Orbital",
@@ -1364,6 +1646,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 12
 		},
 		{
@@ -1376,7 +1659,9 @@
 			},
 			"requirements": {
 				"energy": 24,
-				"prtsRequired": ["PP"]
+				"prtsRequired": [
+					"PP"
+				]
 			},
 			"ranking": 150,
 			"category": "Orbital",
@@ -1384,6 +1669,7 @@
 				"MassDriver": true
 			},
 			"hullSlotType": 4096,
+			"mass": 0,
 			"packetSpeed": 13
 		},
 		{
@@ -1550,8 +1836,11 @@
 			},
 			"requirements": {
 				"biotechnology": 6,
-				"prtsRequired": ["CA"]
+				"prtsRequired": [
+					"CA"
+				]
 			},
+			"ranking": 0,
 			"category": "MineRobot",
 			"tags": {
 				"TerraformingRobot": true
@@ -1571,6 +1860,7 @@
 			"requirements": {
 				"weapons": 2
 			},
+			"ranking": 0,
 			"category": "Bomb",
 			"tags": {
 				"Bomb": true
@@ -1769,7 +2059,9 @@
 			"requirements": {
 				"weapons": 10,
 				"biotechnology": 12,
-				"prtsRequired": ["CA"]
+				"prtsRequired": [
+					"CA"
+				]
 			},
 			"ranking": 80,
 			"category": "Bomb",
@@ -1790,7 +2082,9 @@
 			"requirements": {
 				"weapons": 5,
 				"biotechnology": 7,
-				"prtsDenied": ["IS"]
+				"prtsDenied": [
+					"IS"
+				]
 			},
 			"ranking": 90,
 			"category": "Bomb",
@@ -1813,7 +2107,9 @@
 			"requirements": {
 				"weapons": 10,
 				"biotechnology": 10,
-				"prtsDenied": ["IS"]
+				"prtsDenied": [
+					"IS"
+				]
 			},
 			"ranking": 110,
 			"category": "Bomb",
@@ -1836,7 +2132,9 @@
 			"requirements": {
 				"weapons": 15,
 				"biotechnology": 12,
-				"prtsDenied": ["IS"]
+				"prtsDenied": [
+					"IS"
+				]
 			},
 			"ranking": 120,
 			"category": "Bomb",
@@ -1859,7 +2157,9 @@
 			"requirements": {
 				"weapons": 22,
 				"biotechnology": 15,
-				"prtsDenied": ["IS"]
+				"prtsDenied": [
+					"IS"
+				]
 			},
 			"ranking": 130,
 			"category": "Bomb",
@@ -1882,7 +2182,9 @@
 			"requirements": {
 				"weapons": 26,
 				"biotechnology": 17,
-				"prtsDenied": ["IS"]
+				"prtsDenied": [
+					"IS"
+				]
 			},
 			"ranking": 140,
 			"category": "Bomb",
@@ -2006,7 +2308,9 @@
 				"energy": 4,
 				"electronics": 4,
 				"biotechnology": 4,
-				"prtsRequired": ["SS"]
+				"prtsRequired": [
+					"SS"
+				]
 			},
 			"ranking": 60,
 			"category": "Scanner",
@@ -2030,7 +2334,9 @@
 			"requirements": {
 				"energy": 3,
 				"electronics": 6,
-				"prtsRequired": ["SS"]
+				"prtsRequired": [
+					"SS"
+				]
 			},
 			"ranking": 70,
 			"category": "Scanner",
@@ -2218,7 +2524,9 @@
 				"energy": 10,
 				"electronics": 15,
 				"biotechnology": 10,
-				"prtsRequired": ["SS"]
+				"prtsRequired": [
+					"SS"
+				]
 			},
 			"ranking": 150,
 			"category": "Scanner",
@@ -2372,7 +2680,9 @@
 			"requirements": {
 				"energy": 4,
 				"construction": 10,
-				"prtsRequired": ["IS"]
+				"prtsRequired": [
+					"IS"
+				]
 			},
 			"ranking": 70,
 			"category": "Armor",
@@ -2395,7 +2705,9 @@
 			"requirements": {
 				"construction": 10,
 				"electronics": 3,
-				"prtsRequired": ["SS"]
+				"prtsRequired": [
+					"SS"
+				]
 			},
 			"ranking": 80,
 			"category": "Armor",
@@ -2507,8 +2819,11 @@
 				"resources": 3
 			},
 			"requirements": {
-				"prtsRequired": ["SS"]
+				"prtsRequired": [
+					"SS"
+				]
 			},
+			"ranking": 0,
 			"category": "Electrical",
 			"tags": {
 				"Cloak": true
@@ -2568,7 +2883,9 @@
 			"requirements": {
 				"energy": 10,
 				"electronics": 12,
-				"prtsRequired": ["SS"]
+				"prtsRequired": [
+					"SS"
+				]
 			},
 			"ranking": 30,
 			"category": "Electrical",
@@ -2676,7 +2993,9 @@
 			"requirements": {
 				"energy": 2,
 				"electronics": 6,
-				"prtsRequired": ["IS"]
+				"prtsRequired": [
+					"IS"
+				]
 			},
 			"ranking": 70,
 			"category": "Electrical",
@@ -2737,7 +3056,9 @@
 			"requirements": {
 				"energy": 16,
 				"electronics": 22,
-				"prtsRequired": ["IS"]
+				"prtsRequired": [
+					"IS"
+				]
 			},
 			"ranking": 100,
 			"category": "Electrical",
@@ -2776,7 +3097,9 @@
 			"requirements": {
 				"energy": 14,
 				"electronics": 8,
-				"prtsRequired": ["HE"]
+				"prtsRequired": [
+					"HE"
+				]
 			},
 			"ranking": 120,
 			"category": "Electrical",
@@ -2797,10 +3120,13 @@
 			"requirements": {
 				"energy": 14,
 				"propulsion": 8,
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 130,
 			"category": "Electrical",
+			"tags": {},
 			"hullSlotType": 64,
 			"mass": 2,
 			"reduceMovement": 4
@@ -2815,10 +3141,13 @@
 			"requirements": {
 				"energy": 8,
 				"electronics": 14,
-				"prtsRequired": ["IS"]
+				"prtsRequired": [
+					"IS"
+				]
 			},
 			"ranking": 140,
 			"category": "Electrical",
+			"tags": {},
 			"hullSlotType": 64,
 			"mass": 1,
 			"reduceCloaking": true
@@ -2834,7 +3163,9 @@
 			"requirements": {
 				"weapons": 12,
 				"biotechnology": 7,
-				"prtsRequired": ["IT"]
+				"prtsRequired": [
+					"IT"
+				]
 			},
 			"ranking": 150,
 			"category": "Electrical",
@@ -2855,8 +3186,11 @@
 				"resources": 45
 			},
 			"requirements": {
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
+			"ranking": 0,
 			"category": "MineLayer",
 			"tags": {
 				"MineLayer": true
@@ -2899,7 +3233,9 @@
 			"requirements": {
 				"energy": 3,
 				"biotechnology": 7,
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 20,
 			"category": "MineLayer",
@@ -2922,7 +3258,9 @@
 			"requirements": {
 				"energy": 6,
 				"biotechnology": 12,
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 30,
 			"category": "MineLayer",
@@ -2945,7 +3283,9 @@
 			"requirements": {
 				"energy": 5,
 				"biotechnology": 3,
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 40,
 			"category": "MineLayer",
@@ -2968,7 +3308,9 @@
 			"requirements": {
 				"energy": 9,
 				"biotechnology": 5,
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 50,
 			"category": "MineLayer",
@@ -2991,7 +3333,9 @@
 			"requirements": {
 				"energy": 14,
 				"biotechnology": 7,
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 60,
 			"category": "MineLayer",
@@ -3013,7 +3357,10 @@
 			"requirements": {
 				"propulsion": 2,
 				"biotechnology": 2,
-				"prtsRequired": ["SD", "IS"]
+				"prtsRequired": [
+					"SD",
+					"IS"
+				]
 			},
 			"ranking": 70,
 			"category": "MineLayer",
@@ -3035,7 +3382,9 @@
 			"requirements": {
 				"propulsion": 3,
 				"biotechnology": 6,
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 80,
 			"category": "MineLayer",
@@ -3057,7 +3406,9 @@
 			"requirements": {
 				"propulsion": 5,
 				"biotechnology": 11,
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 90,
 			"category": "MineLayer",
@@ -3078,8 +3429,11 @@
 				"resources": 10
 			},
 			"requirements": {
-				"prtsDenied": ["AR"]
+				"prtsDenied": [
+					"AR"
+				]
 			},
+			"ranking": 0,
 			"category": "Mechanical",
 			"tags": {
 				"ColonyModule": true
@@ -3097,8 +3451,12 @@
 				"resources": 20
 			},
 			"requirements": {
-				"prtsRequired": ["AR"],
-				"hullsAllowed": ["Colony Ship"]
+				"prtsRequired": [
+					"AR"
+				],
+				"hullsAllowed": [
+					"Colony Ship"
+				]
 			},
 			"ranking": 10,
 			"category": "Mechanical",
@@ -3268,6 +3626,7 @@
 			"ranking": 75,
 			"category": "Mechanical",
 			"origin": "MysteryTrader",
+			"tags": {},
 			"hullSlotType": 8,
 			"mass": 10,
 			"canJump": true
@@ -3300,6 +3659,7 @@
 				"resources": 5
 			},
 			"requirements": {},
+			"ranking": 0,
 			"category": "BeamWeapon",
 			"tags": {
 				"BeamWeapon": true
@@ -3338,7 +3698,9 @@
 			},
 			"requirements": {
 				"weapons": 5,
-				"prtsRequired": ["IS"]
+				"prtsRequired": [
+					"IS"
+				]
 			},
 			"ranking": 20,
 			"category": "BeamWeapon",
@@ -3589,7 +3951,9 @@
 			},
 			"requirements": {
 				"weapons": 17,
-				"prtsRequired": ["WM"]
+				"prtsRequired": [
+					"WM"
+				]
 			},
 			"ranking": 140,
 			"category": "BeamWeapon",
@@ -3633,7 +3997,9 @@
 			},
 			"requirements": {
 				"weapons": 19,
-				"prtsRequired": ["WM"]
+				"prtsRequired": [
+					"WM"
+				]
 			},
 			"ranking": 160,
 			"category": "BeamWeapon",
@@ -3820,6 +4186,7 @@
 				"resources": 5
 			},
 			"requirements": {},
+			"ranking": 0,
 			"category": "Torpedo",
 			"tags": {
 				"Torpedo": true
@@ -4012,6 +4379,7 @@
 				"weapons": 12,
 				"propulsion": 6
 			},
+			"ranking": 0,
 			"category": "Torpedo",
 			"tags": {
 				"CapitalShipMissile": true,
@@ -4167,7 +4535,9 @@
 			"requirements": {
 				"energy": 7,
 				"construction": 4,
-				"prtsRequired": ["IS"]
+				"prtsRequired": [
+					"IS"
+				]
 			},
 			"ranking": 60,
 			"category": "Shield",
@@ -4190,7 +4560,9 @@
 			"requirements": {
 				"energy": 7,
 				"electronics": 3,
-				"prtsRequired": ["SS"]
+				"prtsRequired": [
+					"SS"
+				]
 			},
 			"ranking": 50,
 			"category": "Shield",
@@ -4325,6 +4697,7 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Freighter",
 			"mass": 25,
 			"armor": 25,
@@ -4346,6 +4719,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -4386,6 +4760,7 @@
 			},
 			"ranking": 20,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Freighter",
 			"mass": 60,
 			"armor": 50,
@@ -4407,6 +4782,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -4447,6 +4823,7 @@
 			},
 			"ranking": 30,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Freighter",
 			"mass": 125,
 			"armor": 150,
@@ -4468,6 +4845,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -4505,10 +4883,13 @@
 			},
 			"requirements": {
 				"construction": 13,
-				"prtsRequired": ["IS"]
+				"prtsRequired": [
+					"IS"
+				]
 			},
 			"ranking": 40,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Freighter",
 			"mass": 175,
 			"armor": 400,
@@ -4530,6 +4911,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -4577,6 +4959,7 @@
 			"requirements": {},
 			"ranking": 40,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Scout",
 			"mass": 8,
 			"armor": 20,
@@ -4640,6 +5023,7 @@
 			},
 			"ranking": 60,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Fighter",
 			"mass": 8,
 			"armor": 45,
@@ -4711,6 +5095,7 @@
 			},
 			"ranking": 50,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Fighter",
 			"mass": 30,
 			"armor": 200,
@@ -4806,6 +5191,7 @@
 			},
 			"ranking": 80,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Fighter",
 			"mass": 90,
 			"armor": 700,
@@ -4897,10 +5283,13 @@
 			},
 			"requirements": {
 				"construction": 10,
-				"prtsRequired": ["WM"]
+				"prtsRequired": [
+					"WM"
+				]
 			},
 			"ranking": 90,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Fighter",
 			"mass": 120,
 			"armor": 1000,
@@ -4995,6 +5384,7 @@
 			},
 			"ranking": 100,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "CapitalShip",
 			"mass": 222,
 			"armor": 2000,
@@ -5118,10 +5508,13 @@
 			},
 			"requirements": {
 				"construction": 16,
-				"prtsRequired": ["WM"]
+				"prtsRequired": [
+					"WM"
+				]
 			},
 			"ranking": 110,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "CapitalShip",
 			"mass": 250,
 			"armor": 4500,
@@ -5264,6 +5657,7 @@
 			},
 			"ranking": 120,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 65,
 			"armor": 150,
@@ -5340,10 +5734,13 @@
 			},
 			"requirements": {
 				"construction": 8,
-				"prtsRequired": ["SS"]
+				"prtsRequired": [
+					"SS"
+				]
 			},
 			"ranking": 130,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 75,
 			"armor": 450,
@@ -5455,6 +5852,7 @@
 			},
 			"ranking": 140,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 125,
 			"armor": 900,
@@ -5553,10 +5951,13 @@
 				"resources": 3
 			},
 			"requirements": {
-				"prtsRequired": ["HE"]
+				"prtsRequired": [
+					"HE"
+				]
 			},
 			"ranking": 150,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Colonizer",
 			"mass": 8,
 			"armor": 10,
@@ -5578,6 +5979,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -5608,6 +6010,7 @@
 			"requirements": {},
 			"ranking": 160,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Colonizer",
 			"mass": 20,
 			"armor": 20,
@@ -5629,6 +6032,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -5662,6 +6066,7 @@
 			},
 			"ranking": 170,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Bomber",
 			"mass": 28,
 			"armor": 50,
@@ -5682,6 +6087,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -5715,6 +6121,7 @@
 			},
 			"ranking": 180,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Bomber",
 			"mass": 69,
 			"armor": 175,
@@ -5735,6 +6142,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -5781,10 +6189,13 @@
 			},
 			"requirements": {
 				"construction": 8,
-				"prtsRequired": ["SS"]
+				"prtsRequired": [
+					"SS"
+				]
 			},
 			"ranking": 190,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Bomber",
 			"mass": 70,
 			"armor": 225,
@@ -5805,6 +6216,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -5862,6 +6274,7 @@
 			},
 			"ranking": 200,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Bomber",
 			"mass": 110,
 			"armor": 450,
@@ -5882,6 +6295,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -5954,6 +6368,7 @@
 			},
 			"ranking": 210,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 10,
 			"armor": 100,
@@ -5974,6 +6389,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6006,6 +6422,7 @@
 			},
 			"ranking": 220,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 80,
 			"armor": 130,
@@ -6026,6 +6443,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6075,6 +6493,7 @@
 			},
 			"ranking": 230,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 110,
 			"armor": 475,
@@ -6095,6 +6514,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6160,6 +6580,7 @@
 			},
 			"ranking": 240,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 110,
 			"armor": 1400,
@@ -6180,6 +6601,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6245,6 +6667,7 @@
 			},
 			"ranking": 250,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "Miner",
 			"mass": 100,
 			"armor": 1500,
@@ -6265,6 +6688,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"slots": [
 				{
 					"type": 2,
@@ -6326,10 +6750,13 @@
 			},
 			"requirements": {
 				"construction": 4,
-				"prtsRequired": ["IS"]
+				"prtsRequired": [
+					"IS"
+				]
 			},
 			"ranking": 260,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "FuelTransport",
 			"mass": 12,
 			"armor": 5,
@@ -6351,6 +6778,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"repairBonus": 0.05,
 			"slots": [
 				{
@@ -6384,6 +6812,7 @@
 			},
 			"ranking": 270,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "FuelTransport",
 			"mass": 111,
 			"armor": 12,
@@ -6405,6 +6834,7 @@
 				"x": 0,
 				"y": 0
 			},
+			"initiative": 0,
 			"repairBonus": 0.1,
 			"slots": [
 				{
@@ -6443,10 +6873,13 @@
 				"resources": 20
 			},
 			"requirements": {
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 280,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MineLayer",
 			"mass": 10,
 			"armor": 60,
@@ -6468,6 +6901,7 @@
 				"y": 0
 			},
 			"mineLayingBonus": 1,
+			"initiative": 0,
 			"immuneToOwnDetonation": true,
 			"slots": [
 				{
@@ -6515,10 +6949,13 @@
 			},
 			"requirements": {
 				"construction": 15,
-				"prtsRequired": ["SD"]
+				"prtsRequired": [
+					"SD"
+				]
 			},
 			"ranking": 290,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MineLayer",
 			"mass": 30,
 			"armor": 1200,
@@ -6540,6 +6977,7 @@
 				"y": 0
 			},
 			"mineLayingBonus": 1,
+			"initiative": 0,
 			"immuneToOwnDetonation": true,
 			"slots": [
 				{
@@ -6606,6 +7044,7 @@
 			},
 			"ranking": 300,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "CapitalShip",
 			"mass": 100,
 			"armor": 5000,
@@ -6745,10 +7184,13 @@
 			},
 			"requirements": {
 				"construction": 10,
-				"prtsRequired": ["HE"]
+				"prtsRequired": [
+					"HE"
+				]
 			},
 			"ranking": 310,
 			"category": "ShipHull",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 85,
 			"armor": 500,
@@ -6846,6 +7288,7 @@
 			"ranking": 305,
 			"category": "ShipHull",
 			"origin": "MysteryTrader",
+			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 70,
 			"armor": 250,
@@ -6938,8 +7381,11 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "OrbitalFort",
+			"mass": 0,
 			"armor": 100,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0
@@ -7019,8 +7465,11 @@
 			},
 			"ranking": 30,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "Starbase",
+			"mass": 0,
 			"armor": 250,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0
@@ -7122,8 +7571,11 @@
 			"requirements": {},
 			"ranking": 30,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "Starbase",
+			"mass": 0,
 			"armor": 500,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0
@@ -7259,8 +7711,11 @@
 			},
 			"ranking": 40,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "Starbase",
+			"mass": 0,
 			"armor": 1000,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0
@@ -7425,12 +7880,17 @@
 			},
 			"requirements": {
 				"construction": 17,
-				"prtsRequired": ["AR"]
+				"prtsRequired": [
+					"AR"
+				]
 			},
 			"ranking": 50,
 			"category": "StarbaseHull",
+			"tags": {},
 			"type": "Starbase",
+			"mass": 0,
 			"armor": 1500,
+			"fuelCapacity": 0,
 			"cargoSlotPosition": {
 				"x": 0,
 				"y": 0

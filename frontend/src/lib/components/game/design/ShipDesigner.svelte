@@ -6,16 +6,15 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';
-	import type { ShipDesign, ShipDesignSlot, ShipDesignSpec } from '$lib/types/ShipDesign';
-	import {
-		HullSlotType,
-		canFillSlot,
-		hullAllowed,
-		type HullSlot,
-		type TechHull,
-		type TechHullComponent
-	} from '$lib/types/Tech';
+	import { canFillSlot, hullAllowed } from '$lib/types/Tech';
 	import { hasRequiredLevels } from '$lib/types/TechLevel';
+	import type { ShipDesign, ShipDesignSlot, ShipDesignSpec } from '$lib/types/cs';
+	import {
+		HullSlotTypeNone,
+		type TechHull,
+		type TechHullComponent,
+		type TechHullSlot
+	} from '$lib/types/cs';
 	import { ChevronLeft, ChevronRight, QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
@@ -43,7 +42,7 @@
 	let highlightedSlots: number[] = $state([]);
 
 	// only show hull components that actually fit on this hull
-	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotType.None);
+	let validHullSlotTypes = hull.slots.reduce((type, slot) => type | +slot.type, HullSlotTypeNone);
 
 	let selectedComponent = $derived(
 		$shipDesignerContext.selectedHullComponent ??
@@ -109,7 +108,11 @@
 	}
 
 	// when a slot is clicked on the hull
-	function slotClicked(index: number, slot: HullSlot, shipDesignSlot: ShipDesignSlot | undefined) {
+	function slotClicked(
+		index: number,
+		slot: TechHullSlot,
+		shipDesignSlot: ShipDesignSlot | undefined
+	) {
 		if (
 			$shipDesignerContext.selectedHullComponent &&
 			canFillSlot($shipDesignerContext.selectedHullComponent.hullSlotType, slot.type)
@@ -131,7 +134,7 @@
 		}
 	}
 
-	function addHullComponent(hc: TechHullComponent, slot: HullSlot, index: number) {
+	function addHullComponent(hc: TechHullComponent, slot: TechHullSlot, index: number) {
 		const existingShipDesignSlot = design.slots.find((s) => s.hullSlotIndex === index + 1);
 
 		if (existingShipDesignSlot) {
@@ -172,6 +175,7 @@
 								type="button"
 								onclick={() => updateHullSetNumber(design.hullSetNumber - 1)}
 								class="btn btn-outline btn-xs normal-case btn-secondary"
+								data-type="prev-hull-set-button"
 							>
 								<Icon src={ChevronLeft} size="16" class="hover:stroke-accent" />
 							</button>
@@ -181,6 +185,7 @@
 								type="button"
 								onclick={() => updateHullSetNumber(design.hullSetNumber + 1)}
 								class="btn btn-outline btn-xs normal-case btn-secondary"
+								data-type="next-hull-set-button"
 							>
 								<Icon src={ChevronRight} size="16" class="hover:stroke-accent" />
 							</button>

@@ -74,7 +74,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name:      "Tech 10 - beam BCs very good",
+			name:      "Tech 10 WM - beam BCs very good",
 			race:      cs.NewRace().WithPRT(cs.WM),
 			techLevel: cs.TechLevel{Energy: 10, Weapons: 10, Propulsion: 10, Construction: 10, Electronics: 10, Biotechnology: 10},
 			year:      27,
@@ -126,7 +126,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 			game.Year = game.Rules.StartingYear + tt.year
 			player := gamer.NewPlayer(0, *tt.race.WithSpec(&game.Rules), &game.Rules)
 			player.Num = 1
-			player.Name = cs.AINames[0][0]
+			player.Name = tt.name
 			universe, err := gamer.GenerateUniverse(game, []*cs.Player{player})
 			if err != nil {
 				t.Error(err)
@@ -157,13 +157,13 @@ func Test_getClosestPlanet(t *testing.T) {
 	aiPlayer := NewAIPlayer(game, &cs.StaticTechStore, player, cs.PlayerMapObjects{})
 
 	planetAt0_0 := cs.PlanetIntel{
-		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 0, Y: 0}},
+		MapObject: cs.MapObject{Position: cs.Vector{X: 0, Y: 0}},
 	}
 	planetAt50_50 := cs.PlanetIntel{
-		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 50, Y: 50}},
+		MapObject: cs.MapObject{Position: cs.Vector{X: 50, Y: 50}},
 	}
 	planetAt100_100 := cs.PlanetIntel{
-		MapObjectIntel: cs.MapObjectIntel{Position: cs.Vector{X: 100, Y: 100}},
+		MapObject: cs.MapObject{Position: cs.Vector{X: 100, Y: 100}},
 	}
 
 	type args struct {

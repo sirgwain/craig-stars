@@ -66,7 +66,6 @@ type Player struct {
 	ScoreIntels                  *ScoreIntels         `json:"scoreIntels,omitempty"`
 	PlanetIntels                 *PlanetIntels        `json:"planetIntels,omitempty"`
 	FleetIntels                  *FleetIntels         `json:"fleetIntels,omitempty"`
-	StarbaseIntels               *FleetIntels         `json:"starbaseIntels,omitempty"`
 	ShipDesignIntels             *ShipDesignIntels    `json:"shipDesignIntels,omitempty"`
 	MineralPacketIntels          *MineralPacketIntels `json:"mineralPacketIntels,omitempty"`
 	MineFieldIntels              *MineFieldIntels     `json:"mineFieldIntels,omitempty"`
@@ -436,7 +435,6 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 		p.scoreIntels AS 'player.scoreIntels',
 		p.planetIntels AS 'player.planetIntels',
 		p.fleetIntels AS 'player.fleetIntels',
-		p.starbaseIntels AS 'player.starbaseIntels',
 		p.shipDesignIntels AS 'player.shipDesignIntels',
 		p.mineralPacketIntels AS 'player.mineralPacketIntels',
 		p.mineFieldIntels AS 'player.mineFieldIntels',
@@ -601,7 +599,6 @@ func (c *client) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels,
 	scoreIntels,
 	planetIntels,
 	fleetIntels,
-	starbaseIntels,
 	shipDesignIntels,
 	mineralPacketIntels,
 	mineFieldIntels,
@@ -875,7 +872,6 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		scoreIntels,
 		planetIntels,
 		fleetIntels,
-		starbaseIntels,
 		shipDesignIntels,
 		mineralPacketIntels,
 		mineFieldIntels,
@@ -932,7 +928,6 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		:scoreIntels,
 		:planetIntels,
 		:fleetIntels,
-		:starbaseIntels,
 		:shipDesignIntels,
 		:mineralPacketIntels,
 		:mineFieldIntels,
@@ -1186,7 +1181,6 @@ func (c *client) UpdatePlayer(player *cs.Player) error {
 		scoreIntels = :scoreIntels,
 		planetIntels = :planetIntels,
 		fleetIntels = :fleetIntels,
-		starbaseIntels = :starbaseIntels,
 		shipDesignIntels = :shipDesignIntels,
 		mineralPacketIntels = :mineralPacketIntels,
 		mineFieldIntels = :mineFieldIntels,

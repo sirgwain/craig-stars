@@ -1,12 +1,12 @@
 <script lang="ts">
 	import Archive from '$lib/components/icons/Archive.svelte';
 	import { me } from '$lib/services/Stores';
-	import type { Game } from '$lib/types/Game';
+	import type { GameWithPlayers } from '$lib/types/cs';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	type Props = {
-		game: Game;
+		game: GameWithPlayers;
 		showNumSubmitted?: boolean;
 		onArchive?: () => void;
 		onDelete?: () => void;
@@ -39,6 +39,8 @@
 			onclick={onDelete}
 			class="btn btn-error btn-sm border-l-secondary rounded-r-md"
 			title="Delete Game"
+			data-type="delete-button"
+			data-id={game.id}
 		>
 			<Icon src={XMark} size="16" class="hover:stroke-accent" />
 		</button>

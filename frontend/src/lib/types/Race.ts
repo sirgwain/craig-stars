@@ -1,275 +1,64 @@
-import type { Cost } from './Cost';
-import type { PartialEnumDictionary } from './EnumDictionary';
-import { HabTypes, type Hab, type HabType } from './Hab';
-import { type QueueItemType, QueueItemTypes } from './QueueItemType';
-import type { TechLevel } from './TechLevel';
+import type { HabType, LRT, PRT, Race } from './cs';
+import {
+	AR,
+	ARM,
+	BET,
+	CA,
+	CE,
+	GR,
+	Grav,
+	HE,
+	IFE,
+	IS,
+	ISB,
+	IT,
+	JoaT,
+	LRTNone,
+	LSP,
+	MA,
+	NAS,
+	NRSE,
+	OBRM,
+	PP,
+	QueueItemTypeAutoDefenses,
+	QueueItemTypeAutoFactories,
+	QueueItemTypeAutoMaxTerraform,
+	QueueItemTypeAutoMineralAlchemy,
+	QueueItemTypeAutoMineralPacket,
+	QueueItemTypeAutoMines,
+	QueueItemTypeAutoMinTerraform,
+	QueueItemTypeBoraniumMineralPacket,
+	QueueItemTypeDefenses,
+	QueueItemTypeFactory,
+	QueueItemTypeGenesisDevice,
+	QueueItemTypeGermaniumMineralPacket,
+	QueueItemTypeIroniumMineralPacket,
+	QueueItemTypeMine,
+	QueueItemTypeMineralAlchemy,
+	QueueItemTypeMixedMineralPacket,
+	QueueItemTypePlanetaryScanner,
+	QueueItemTypeTerraformEnvironment,
+	Rad,
+	ResearchCostStandard,
+	RS,
+	SD,
+	SpendLeftoverPointsOnSurfaceMinerals,
+	SS,
+	Temp,
+	TT,
+	UR,
+	WM,
+	type Hab
+} from './cs';
 
-export interface Race {
-	id?: number;
-	createdAt?: string;
-	updatedAt?: string;
-
-	name: string;
-	pluralName: string;
-	spendLeftoverPointsOn?: string;
-	prt: PRT;
-	lrts: number;
-	habLow: Hab;
-	habHigh: Hab;
-	growthRate: number;
-	popEfficiency: number;
-	factoryOutput: number;
-	factoryCost: number;
-	factoriesCostLess?: boolean;
-	numFactories: number;
-	mineOutput: number;
-	mineCost: number;
-	numMines: number;
-	researchCost: ResearchCost;
-	techsStartHigh?: boolean;
-	immuneGrav?: boolean;
-	immuneTemp?: boolean;
-	immuneRad?: boolean;
-	spec?: RaceSpec;
-}
-
-export enum PRT {
-	/// Hyper Expansion
-	HE = 'HE',
-
-	/// Super Stealth
-	SS = 'SS',
-
-	/// Warmonger
-	WM = 'WM',
-
-	/// Claim Adjuster
-	CA = 'CA',
-
-	/// Inner Strength
-	IS = 'IS',
-
-	/// Space Demolition
-	SD = 'SD',
-
-	/// Packet Physics
-	PP = 'PP',
-
-	/// Interstellar Traveler
-	IT = 'IT',
-
-	/// Alternate Reality
-	AR = 'AR',
-
-	/// Jack of All Trades
-	JoaT = 'JoaT',
-
-	/// This is only for tech requirements
-	None = ''
-}
-
-export enum LRT {
-	// Only used for TechRequirements
-	None = 0,
-
-	// Improved Fuel Efficiency
-	IFE = 1 << 0,
-
-	// Total Terraforming
-	TT = 1 << 1,
-
-	// Advanced Remote Mining
-	ARM = 1 << 2,
-
-	// Improved Starbases
-	ISB = 1 << 3,
-
-	// Generalized Research
-	GR = 1 << 4,
-
-	// Ultimate Recycling
-	UR = 1 << 5,
-
-	// No Ramscoop Engines
-	NRSE = 1 << 6,
-
-	// Only Basic Remote Mining
-	OBRM = 1 << 7,
-
-	// No Advanced Scanners
-	NAS = 1 << 8,
-
-	// Low Starting Population
-	LSP = 1 << 9,
-
-	// Bleeding Edge Technology
-	BET = 1 << 10,
-
-	// Regenerating Shields
-	RS = 1 << 11,
-
-	// Mineral Alchemy
-	MA = 1 << 12,
-
-	// Cheap Engines
-	CE = 1 << 13
-}
-
-export const lrts = [
-	LRT.IFE,
-	LRT.TT,
-	LRT.ARM,
-	LRT.ISB,
-	LRT.GR,
-	LRT.UR,
-	LRT.NRSE,
-	LRT.OBRM,
-	LRT.NAS,
-	LRT.LSP,
-	LRT.BET,
-	LRT.RS,
-	LRT.MA,
-	LRT.CE
-];
-
-export enum SpendLeftoverPointsOn {
-	SurfaceMinerals = 'SurfaceMinerals',
-	MineralConcentrations = 'MineralConcentrations',
-	Mines = 'Mines',
-	Factories = 'Factories',
-	Defenses = 'Defenses'
-}
-
-export enum ResearchCostLevel {
-	Extra = 'Extra',
-	Standard = 'Standard',
-	Less = 'Less'
-}
-
-export interface ResearchCost {
-	energy: ResearchCostLevel;
-	weapons: ResearchCostLevel;
-	propulsion: ResearchCostLevel;
-	construction: ResearchCostLevel;
-	electronics: ResearchCostLevel;
-	biotechnology: ResearchCostLevel;
-}
-
-export type RaceSpec = {
-	newTechCostFactor: number;
-	miniaturizationMax: number;
-	miniaturizationPerLevel: number;
-	builtInScanner: BuiltInScanner;
-	armorStrengthFactor: number;
-	scanRangeFactor: number;
-	habCenter?: Hab;
-	costs: PartialEnumDictionary<QueueItemType, Cost>;
-	startingTechLevels?: TechLevel;
-	startingPlanets?: StartingPlanet[];
-	techCostOffset: Record<string, number>;
-	mineralsPerSingleMineralPacket?: number;
-	mineralsPerMixedMineralPacket?: number;
-	packetResourceCost?: number;
-	packetMineralCostFactor?: number;
-	packetReceiverFactor?: number;
-	packetDecayFactor?: number;
-	packetOverSafeWarpPenalty?: number;
-	packetBuiltInScanner?: boolean;
-	detectPacketDestinationStarbases?: boolean;
-	detectAllPackets?: boolean;
-	packetTerraformChance?: number;
-	packetPermaformChance?: number;
-	packetPermaTerraformSizeUnit?: number;
-	canGateCargo?: boolean;
-	canDetectStargatePlanets?: boolean;
-	shipsVanishInVoid?: boolean;
-	techsCostExtraLevel?: number;
-	freighterGrowthFactor?: number;
-	growthFactor?: number;
-	maxPopulationOffset?: number;
-	builtInCloakUnits?: number;
-	stealsResearch?: StealsResearch;
-	freeCargoCloaking?: boolean;
-	mineFieldsAreScanners?: boolean;
-	mineFieldRateMoveFactor?: number;
-	mineFieldSafeWarpBonus?: number;
-	mineFieldMinDecayFactor?: number;
-	mineFieldBaseDecayRate?: number;
-	mineFieldPlanetDecayRate?: number;
-	mineFieldMaxDecayRate?: number;
-	canDetonateMineFields?: boolean;
-	mineFieldDetonateDecayRate?: number;
-	discoverDesignOnScan?: boolean;
-	canRemoteMineOwnPlanets?: boolean;
-	invasionAttackBonus?: number;
-	invasionDefendBonus?: number;
-	movementBonus?: number;
-	instaforming?: boolean;
-	permaformChance?: number;
-	permaformPopulation?: number;
-	repairFactor?: number;
-	starbaseRepairFactor?: number;
-	innateMining?: boolean;
-	innateResources?: boolean;
-	innateScanner?: boolean;
-	innatePopulationFactor?: number;
-	canBuildDefenses?: boolean;
-	livesOnStarbases?: boolean;
-	fuelEfficiencyOffset?: number;
-	terraformCostOffset?: Cost;
-	mineralAlchemyCostOffset?: number;
-	scrapMineralOffset?: number;
-	scrapMineralOffsetStarbase?: number;
-	scrapResourcesOffset?: number;
-	scrapResourcesOffsetStarbase?: number;
-	startingPopulationFactor?: number;
-	starbaseBuiltInCloakUnits?: number;
-	starbaseCostFactor?: number;
-	researchFactor?: number;
-	researchSplashDamage?: number;
-	shieldStrengthFactor?: number;
-	shieldRegenerationRate?: number;
-	engineFailureRate?: number;
-	engineReliableSpeed?: number;
-};
-
-type BuiltInScanner = {
-	normalMulti?: TechLevel;
-	penMulti?: TechLevel;
-};
-
-declare interface StealsResearch {
-	energy?: number;
-	weapons?: number;
-	propulsion?: number;
-	construction?: number;
-	electronics?: number;
-	biotechnology?: number;
-}
-
-declare interface StartingPlanet {
-	population?: number;
-	habPenaltyFactor?: number;
-	hasStargate?: boolean;
-	hasMassDriver?: boolean;
-	starbaseDesignName?: string;
-	starbaseHull?: string;
-	startingFleets?: StartingFleet[];
-}
-
-declare interface StartingFleet {
-	name?: string;
-	hullName?: string;
-	hullSetNumber?: number;
-	purpose?: string;
-}
+export const lrts = [IFE, TT, ARM, ISB, GR, UR, NRSE, OBRM, NAS, LSP, BET, RS, MA, CE] as const;
 
 export const humanoid = (): Race => ({
 	name: 'Humanoid',
 	pluralName: 'Humanoids',
-	spendLeftoverPointsOn: SpendLeftoverPointsOn.SurfaceMinerals,
-	prt: PRT.JoaT,
-	lrts: LRT.None,
+	spendLeftoverPointsOn: SpendLeftoverPointsOnSurfaceMinerals,
+	prt: JoaT,
+	lrts: LRTNone,
 	habLow: { grav: 15, temp: 15, rad: 15 },
 	habHigh: { grav: 85, temp: 85, rad: 85 },
 	growthRate: 15,
@@ -281,12 +70,12 @@ export const humanoid = (): Race => ({
 	mineCost: 5,
 	numMines: 10,
 	researchCost: {
-		energy: ResearchCostLevel.Standard,
-		weapons: ResearchCostLevel.Standard,
-		propulsion: ResearchCostLevel.Standard,
-		construction: ResearchCostLevel.Standard,
-		electronics: ResearchCostLevel.Standard,
-		biotechnology: ResearchCostLevel.Standard
+		energy: ResearchCostStandard,
+		weapons: ResearchCostStandard,
+		propulsion: ResearchCostStandard,
+		construction: ResearchCostStandard,
+		electronics: ResearchCostStandard,
+		biotechnology: ResearchCostStandard
 	},
 	spec: {
 		newTechCostFactor: 1,
@@ -300,81 +89,81 @@ export const humanoid = (): Race => ({
 			rad: 50
 		},
 		costs: {
-			[QueueItemTypes.AutoDefenses]: {
+			[QueueItemTypeAutoDefenses]: {
 				ironium: 5,
 				boranium: 5,
 				germanium: 5,
 				resources: 15
 			},
-			[QueueItemTypes.AutoFactories]: {
+			[QueueItemTypeAutoFactories]: {
 				germanium: 4,
 				resources: 10
 			},
-			[QueueItemTypes.AutoMaxTerraform]: {
+			[QueueItemTypeAutoMaxTerraform]: {
 				resources: 100
 			},
-			[QueueItemTypes.AutoMinTerraform]: {
+			[QueueItemTypeAutoMinTerraform]: {
 				resources: 100
 			},
-			[QueueItemTypes.AutoMineralAlchemy]: {
+			[QueueItemTypeAutoMineralAlchemy]: {
 				resources: 100
 			},
-			[QueueItemTypes.AutoMineralPacket]: {
+			[QueueItemTypeAutoMineralPacket]: {
 				ironium: 40,
 				boranium: 40,
 				germanium: 40,
 				resources: 10
 			},
-			[QueueItemTypes.AutoMines]: {
+			[QueueItemTypeAutoMines]: {
 				resources: 5
 			},
-			[QueueItemTypes.BoraniumMineralPacket]: {
+			[QueueItemTypeBoraniumMineralPacket]: {
 				boranium: 100,
 				resources: 10
 			},
-			[QueueItemTypes.Defenses]: {
+			[QueueItemTypeDefenses]: {
 				ironium: 5,
 				boranium: 5,
 				germanium: 5,
 				resources: 15
 			},
-			[QueueItemTypes.Factory]: {
+			[QueueItemTypeFactory]: {
 				germanium: 4,
 				resources: 10
 			},
-			[QueueItemTypes.GermaniumMineralPacket]: {
+			[QueueItemTypeGermaniumMineralPacket]: {
 				germanium: 100,
 				resources: 10
 			},
-			[QueueItemTypes.IroniumMineralPacket]: {
+			[QueueItemTypeIroniumMineralPacket]: {
 				ironium: 100,
 				resources: 10
 			},
-			[QueueItemTypes.Mine]: {
+			[QueueItemTypeMine]: {
 				resources: 5
 			},
-			[QueueItemTypes.MineralAlchemy]: {
+			[QueueItemTypeMineralAlchemy]: {
 				resources: 100
 			},
-			[QueueItemTypes.MixedMineralPacket]: {
+			[QueueItemTypeMixedMineralPacket]: {
 				ironium: 40,
 				boranium: 40,
 				germanium: 40,
 				resources: 10
 			},
-			[QueueItemTypes.PlanetaryScanner]: {
+			[QueueItemTypePlanetaryScanner]: {
 				ironium: 10,
 				boranium: 10,
 				germanium: 70,
 				resources: 100
 			},
-			[QueueItemTypes.GenesisDevice]: {
+			[QueueItemTypeGenesisDevice]: {
 				ironium: 0,
 				boranium: 0,
 				germanium: 0,
 				resources: 5000
 			},
-			[QueueItemTypes.TerraformEnvironment]: {
+			[QueueItemTypeTerraformEnvironment]: {
 				resources: 100
 			}
 		},
@@ -448,9 +237,8 @@ export const humanoid = (): Race => ({
 		invasionDefendBonus: 1,
 		repairFactor: 1,
 		starbaseRepairFactor: 1,
-		innatePopulationFactor: 1,
+		innateScannerFactor: 1,
 		canBuildDefenses: true,
-		terraformCostOffset: {},
 		startingPopulationFactor: 1,
 		starbaseCostFactor: 1,
 		researchFactor: 1,
@@ -462,63 +250,63 @@ export const humanoid = (): Race => ({
 
 export const getLabelForPRT = (prt: PRT): string => {
 	switch (prt) {
-		case PRT.HE:
+		case HE:
 			return 'Hyper Expansion';
-		case PRT.SS:
+		case SS:
 			return 'Super Stealth';
-		case PRT.WM:
+		case WM:
 			return 'Warmonger';
-		case PRT.CA:
+		case CA:
 			return 'Claim Adjuster';
-		case PRT.IS:
+		case IS:
 			return 'Inner Strength';
-		case PRT.SD:
+		case SD:
 			return 'Space Demolition';
-		case PRT.PP:
+		case PP:
 			return 'Packet Physics';
-		case PRT.IT:
+		case IT:
 			return 'Interstellar Traveler';
-		case PRT.AR:
+		case AR:
 			return 'Alternate Reality';
-		case PRT.JoaT:
+		case JoaT:
 			return 'Jack of All Trades';
 		default:
-			return prt.toString();
+			return toString();
 	}
 };
 
 export const getLabelForLRT = (lrt: LRT): string => {
 	switch (lrt) {
-		case LRT.IFE:
+		case IFE:
 			return 'Improved Fuel Efficiency';
-		case LRT.TT:
+		case TT:
 			return 'Total Terraforming';
-		case LRT.ARM:
+		case ARM:
 			return 'Advanced Remote Mining';
-		case LRT.ISB:
+		case ISB:
 			return 'Improved Starbases';
-		case LRT.GR:
+		case GR:
 			return 'Generalized Research';
-		case LRT.UR:
+		case UR:
 			return 'Ultimate Recycling';
-		case LRT.NRSE:
+		case NRSE:
 			return 'No Ram Scoop Engines';
-		case LRT.OBRM:
+		case OBRM:
 			return 'Only Basic Remote Mining';
-		case LRT.NAS:
+		case NAS:
 			return 'No Advanced Scanners';
-		case LRT.LSP:
+		case LSP:
 			return 'Low Starting Population';
-		case LRT.BET:
+		case BET:
 			return 'Bleeding Edge Technology';
-		case LRT.RS:
+		case RS:
 			return 'Regenerating Shields';
-		case LRT.MA:
+		case MA:
 			return 'Mineral Alchemy';
-		case LRT.CE:
+		case CE:
 			return 'Cheap Engines';
 		default:
-			return lrt.toString();
+			return toString();
 	}
 };
 
@@ -627,11 +415,13 @@ export function getHabChance(race: Race): number {
 
 export function isImmune(race: Race, habType: HabType): boolean {
 	switch (habType) {
-		case HabTypes.Gravity:
+		case Grav:
 			return race.immuneGrav ?? false;
-		case HabTypes.Temperature:
+		case Temp:
 			return race.immuneTemp ?? false;
-		case HabTypes.Radiation:
+		case Rad:
 			return race.immuneRad ?? false;
 	}
+
+	return false;
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { StargateWarpSpeed } from '$lib/types/Constants';
-	import type { Fleet, Waypoint } from '$lib/types/Fleet';
+	import { StargateWarpSpeed } from '$lib/types/cs';
+	import type { Fleet } from '$lib/types/cs';
+	import type { Waypoint } from '$lib/types/cs';
 	import { distance } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';

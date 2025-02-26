@@ -395,10 +395,10 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 			player.Race.Spec.MiniaturizationSpec = tt.args.miniaturizationSpec
 			player.Race.Spec.StarbaseCostFactor = tt.args.starbaseCostFactor
 			player.Race.Spec.TechCostOffset = tt.args.techCostOffset
-			design := NewShipDesign(player, 1).
+			design := NewShipDesign(player.Num, 1).
 				WithHull(tt.args.oldDesignHull).
 				WithSlots(tt.args.oldDesignSlots)
-			newDesign := NewShipDesign(player, 1).
+			newDesign := NewShipDesign(player.Num, 1).
 				WithHull(tt.args.newDesignHull).
 				WithSlots(tt.args.newDesignSlots)
 			got, err := p.StarbaseUpgradeCost(&rules, tt.args.techLevels, player.Race.Spec, design, newDesign)
@@ -516,7 +516,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Default Starbase w/ ISB",
+			name: "Default Starbase with ISB",
 			args: args{
 				techLevels:          TechLevel{2, 2, 2, 2, 2, 2},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
@@ -542,7 +542,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Empty Dock w/ ISB, 20% miniaturization",
+			name: "Empty Dock with ISB, 20% miniaturization",
 			args: args{
 				techLevels:          TechLevel{0, 0, 0, 9, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
@@ -559,7 +559,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Empty Dock w/ BET, ISB",
+			name: "Empty Dock with BET, ISB",
 			args: args{
 				techLevels:          TechLevel{0, 0, 0, 4, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{2.0, 0.8, 0.05},
@@ -644,7 +644,7 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 			player.Race.Spec.MiniaturizationSpec = tt.args.miniaturizationSpec
 			player.Race.Spec.StarbaseCostFactor = tt.args.starbaseCostFactor
 			player.Race.Spec.TechCostOffset = tt.args.techCostOffset
-			design := NewShipDesign(player, 1).WithName(tt.name).
+			design := NewShipDesign(player.Num, 1).WithName(tt.name).
 				WithHull(tt.args.hull).
 				WithSlots(tt.args.slots)
 			got, err := c.GetDesignCost(&rules, player.TechLevels, player.Race.Spec, design)

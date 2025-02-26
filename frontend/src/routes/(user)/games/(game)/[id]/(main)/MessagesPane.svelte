@@ -1,13 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getScannerTarget } from '$lib/types/Battle';
-	import type { MapObject } from '$lib/types/MapObject';
-	import {
-		MessageTargetType,
-		MessageType,
-		getNextVisibleMessageNum,
-		type Message
-	} from '$lib/types/Message';
+	import type { MapObject } from '$lib/types/cs';
+	import { PlayerMessagePlayerGainTechLevel, TargetNone, type PlayerMessage } from '$lib/types/cs';
+	import { getNextVisibleMessageNum } from '$lib/types/Message';
 	import {
 		ArrowLongLeft,
 		ArrowLongRight,
@@ -34,7 +30,7 @@
 
 	type Props = {
 		showMessages?: boolean;
-		messages: Message[];
+		messages: PlayerMessage[];
 	};
 
 	let { showMessages = $bindable(false), messages }: Props = $props();
@@ -54,7 +50,7 @@
 	function getPreviousVisibleMessageNum(
 		num: number,
 		showFilteredMessages: boolean,
-		messages: Message[]
+		messages: PlayerMessage[]
 	): number {
 		for (let i = num - 1; i >= 0; i--) {
 			if (
@@ -68,16 +64,16 @@
 		return num;
 	}
 
-	function isMessageGotoable(message: Message | undefined): boolean {
+	function isMessageGotoable(message: PlayerMessage | undefined): boolean {
 		if (!message) {
 			return false;
 		}
 
-		if (message.targetType !== MessageTargetType.None) {
+		if (message.targetType !== TargetNone) {
 			return true;
 		}
 
-		return message.type === MessageType.PlayerGainTechLevel;
+		return message.type === PlayerMessagePlayerGainTechLevel;
 	}
 
 	const previous = (event: Event) => {

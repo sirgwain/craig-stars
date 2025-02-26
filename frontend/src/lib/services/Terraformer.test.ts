@@ -1,14 +1,14 @@
-import { Player } from '$lib/types/Player';
+import { CommandedPlayer } from '$lib/types/Player';
 import { describe, expect, it } from 'vitest';
 import { getMinTerraformAmount, getTerraformAmount } from './Terraformer';
-import type { TechStore } from '$lib/types/Tech';
+import type { TechStore } from '$lib/types/cs';
 import techjson from '$lib/ssr/techs.json';
 
 describe('Terraformer test', () => {
 	const techStore = techjson as TechStore;
 
 	it('getTerraformAmount - no ability', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 
 		expect(
 			getTerraformAmount(
@@ -30,7 +30,7 @@ describe('Terraformer test', () => {
 	});
 
 	it('getTerraformAmount - 3 ability', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.techLevels = {
 			energy: 3,
 			weapons: 3,
@@ -78,7 +78,7 @@ describe('Terraformer test', () => {
 	});
 
 	it('getTerraformAmount - 3 ability, already partially terraformed', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.techLevels = {
 			energy: 3,
 			weapons: 3,
@@ -108,7 +108,7 @@ describe('Terraformer test', () => {
 	});
 
 	it('getTerraformAmount - high ability, already partially terraformed', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.techLevels = {
 			energy: 11,
 			weapons: 14,
@@ -129,7 +129,7 @@ describe('Terraformer test', () => {
 	});
 
 	it('getMinTerraformAmount - 3 ability, no need to terraform', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.techLevels = {
 			energy: 3,
 			weapons: 3,
@@ -159,7 +159,7 @@ describe('Terraformer test', () => {
 	});
 
 	it('getMinTerraformAmount - 3 ability, need to terraform', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.techLevels = {
 			energy: 3,
 			weapons: 3,
@@ -189,7 +189,7 @@ describe('Terraformer test', () => {
 	});
 
 	it('getMinTerraformAmount - 3 ability, need to terraform, partially terraformed already', () => {
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.techLevels = {
 			energy: 3,
 			weapons: 3,

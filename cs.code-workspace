@@ -2,12 +2,12 @@
   "folders": [
     {
       "name": "root",
-      "path": "./"
+      "path": "./",
     },
     {
       "name": "frontend",
-      "path": "frontend"
-    }
+      "path": "frontend",
+    },
   ],
   "settings": {
     "testing.automaticallyOpenPeekView": "never",
@@ -16,8 +16,8 @@
       "template": "json:\"{{camel}},omitempty\"",
       "json": {
         "cases": ["camel"],
-        "options": ["omitempty", "-"]
-      }
+        "options": ["omitempty", "-"],
+      },
     },
-  }
+  },
 }

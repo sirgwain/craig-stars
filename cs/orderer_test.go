@@ -11,7 +11,7 @@ import (
 
 func Test_orders_SplitFleetTokens(t *testing.T) {
 	player := testPlayer().WithNum(1)
-	scoutDesign := NewShipDesign(player, 1).
+	scoutDesign := NewShipDesign(player.Num, 1).
 		WithName("Long Range Scout").
 		WithHull(Scout.Name).
 		WithSlots([]ShipDesignSlot{
@@ -21,7 +21,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		}).
 		WithSpec(&rules, player)
 
-	freighterDesign := NewShipDesign(player, 2).
+	freighterDesign := NewShipDesign(player.Num, 2).
 		WithName("Teamster").
 		WithHull(SmallFreighter.Name).
 		WithSlots([]ShipDesignSlot{
@@ -460,7 +460,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 
 func Test_orders_SplitAll(t *testing.T) {
 	player := testPlayer().WithNum(1)
-	scoutDesign := NewShipDesign(player, 1).
+	scoutDesign := NewShipDesign(player.Num, 1).
 		WithName("Long Range Scout").
 		WithHull(Scout.Name).
 		WithSlots([]ShipDesignSlot{
@@ -470,7 +470,7 @@ func Test_orders_SplitAll(t *testing.T) {
 		}).
 		WithSpec(&rules, player)
 
-	freighterDesign := NewShipDesign(player, 2).
+	freighterDesign := NewShipDesign(player.Num, 2).
 		WithName("Teamster").
 		WithHull(SmallFreighter.Name).
 		WithSlots([]ShipDesignSlot{
@@ -480,7 +480,7 @@ func Test_orders_SplitAll(t *testing.T) {
 		}).
 		WithSpec(&rules, player)
 
-	freighter2Design := NewShipDesign(player, 3).
+	freighter2Design := NewShipDesign(player.Num, 3).
 		WithName("Teamster2").
 		WithHull(SmallFreighter.Name).
 		WithSlots([]ShipDesignSlot{
@@ -687,7 +687,7 @@ func Test_orders_SplitAll(t *testing.T) {
 func Test_orders_Merge(t *testing.T) {
 
 	player := testPlayer().WithNum(1)
-	scoutDesign := NewShipDesign(player, 1).
+	scoutDesign := NewShipDesign(player.Num, 1).
 		WithName("Long Range Scout").
 		WithHull(Scout.Name).
 		WithSlots([]ShipDesignSlot{
@@ -697,7 +697,7 @@ func Test_orders_Merge(t *testing.T) {
 		}).
 		WithSpec(&rules, player)
 
-	freighterDesign := NewShipDesign(player, 2).
+	freighterDesign := NewShipDesign(player.Num, 2).
 		WithName("Teamster").
 		WithHull(SmallFreighter.Name).
 		WithSlots([]ShipDesignSlot{
@@ -1337,7 +1337,7 @@ func Test_orders_TransferMineralPacketCargo(t *testing.T) {
 
 func Test_orders_SplitFleet(t *testing.T) {
 	player := NewPlayer(0, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	scoutDesign := NewShipDesign(player, 1).
+	scoutDesign := NewShipDesign(player.Num, 1).
 		WithName("Long Range Scout").
 		WithHull(Scout.Name).
 		WithSlots([]ShipDesignSlot{
@@ -1347,7 +1347,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 		}).
 		WithSpec(&rules, player)
 
-	freighterDesign := NewShipDesign(player, 2).
+	freighterDesign := NewShipDesign(player.Num, 2).
 		WithName("Teamster").
 		WithHull(SmallFreighter.Name).
 		WithSlots([]ShipDesignSlot{
@@ -1655,7 +1655,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						Quantity:        3,
 						DesignNum:       1,
 						QuantityDamaged: 2,
-						Damage:          (10. + 5.) / 2.,
+						Damage:          7,
 					},
 				},
 			},

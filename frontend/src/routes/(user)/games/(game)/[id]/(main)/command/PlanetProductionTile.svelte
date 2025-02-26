@@ -6,7 +6,7 @@
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedPlanet } from '$lib/types/Planet';
-	import type { ProductionQueueItem } from '$lib/types/Production';
+	import type { ProductionQueueItem } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
 
 	const { cs } = getGameContext();

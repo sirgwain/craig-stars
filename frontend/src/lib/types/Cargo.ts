@@ -1,17 +1,5 @@
-import type { Mineral } from './Mineral';
-
-export type Cargo = {
-	colonists?: number;
-} & Mineral;
-
-export const CargoTypes = {
-	Ironium: 'ironium',
-	Boranium: 'boranium',
-	Germanium: 'germanium',
-	Colonists: 'colonists'
-} as const;
-
-export type CargoType = (typeof CargoTypes)[keyof typeof CargoTypes];
+import type { Cargo } from './cs';
+import type { Mineral } from './cs';
 
 export const totalCargo = (c: Cargo | undefined) =>
 	c ? (c.ironium ?? 0) + (c.boranium ?? 0) + (c.germanium ?? 0) + (c.colonists ?? 0) : 0;

@@ -7,8 +7,9 @@
 		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { Infinite } from '$lib/types/Constants';
-	import { getDamagePercentForToken, type CommandedFleet, type Waypoint } from '$lib/types/Fleet';
+	import { Infinite } from '$lib/types/cs';
+	import { getDamagePercentForToken, type CommandedFleet } from '$lib/types/Fleet';
+	import { type Waypoint } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
 
 	const { player, universe } = getGameContext();

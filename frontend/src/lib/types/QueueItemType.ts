@@ -1,34 +1,55 @@
 import type { DesignFinder } from '$lib/services/Universe';
 import { startCase } from 'lodash-es';
-import type { ProductionQueueItem } from './Production';
+import {
+	QueueItemTypeAutoDefenses,
+	QueueItemTypeAutoFactories,
+	QueueItemTypeAutoMaxTerraform,
+	QueueItemTypeAutoMineralAlchemy,
+	QueueItemTypeAutoMineralPacket,
+	QueueItemTypeAutoMines,
+	QueueItemTypeAutoMinTerraform,
+	QueueItemTypeBoraniumMineralPacket,
+	QueueItemTypeDefenses,
+	QueueItemTypeFactory,
+	QueueItemTypeGenesisDevice,
+	QueueItemTypeGermaniumMineralPacket,
+	QueueItemTypeIroniumMineralPacket,
+	QueueItemTypeMine,
+	QueueItemTypeMineralAlchemy,
+	QueueItemTypeMixedMineralPacket,
+	QueueItemTypePlanetaryScanner,
+	QueueItemTypeShipToken,
+	QueueItemTypeStarbase,
+	QueueItemTypeTerraformEnvironment,
+	type ProductionQueueItem,
+	type QueueItemType
+} from './cs';
 
-export type QueueItemType = (typeof QueueItemTypes)[keyof typeof QueueItemTypes];
+export const validQueueItemTypes = new Set([
+	QueueItemTypeIroniumMineralPacket,
+	QueueItemTypeBoraniumMineralPacket,
+	QueueItemTypeGermaniumMineralPacket,
+	QueueItemTypeMixedMineralPacket,
+	QueueItemTypeFactory,
+	QueueItemTypeMine,
+	QueueItemTypeDefenses,
+	QueueItemTypeMineralAlchemy,
+	QueueItemTypeTerraformEnvironment,
+	QueueItemTypeAutoMines,
+	QueueItemTypeAutoFactories,
+	QueueItemTypeAutoDefenses,
+	QueueItemTypeAutoMineralAlchemy,
+	QueueItemTypeAutoMinTerraform,
+	QueueItemTypeAutoMaxTerraform,
+	QueueItemTypeAutoMineralPacket,
+	QueueItemTypeShipToken,
+	QueueItemTypeStarbase,
+	QueueItemTypePlanetaryScanner,
+	QueueItemTypeGenesisDevice
+]);
 
-export const QueueItemTypes = {
-	AutoMines: 'AutoMines',
-	AutoFactories: 'AutoFactories',
-	AutoDefenses: 'AutoDefenses',
-	AutoMineralAlchemy: 'AutoMineralAlchemy',
-	AutoMinTerraform: 'AutoMinTerraform',
-	AutoMaxTerraform: 'AutoMaxTerraform',
-	AutoMineralPacket: 'AutoMineralPacket',
-	Factory: 'Factory',
-	Mine: 'Mine',
-	Defenses: 'Defenses',
-	MineralAlchemy: 'MineralAlchemy',
-	TerraformEnvironment: 'TerraformEnvironment',
-	IroniumMineralPacket: 'IroniumMineralPacket',
-	BoraniumMineralPacket: 'BoraniumMineralPacket',
-	GermaniumMineralPacket: 'GermaniumMineralPacket',
-	MixedMineralPacket: 'MixedMineralPacket',
-	ShipToken: 'ShipToken',
-	Starbase: 'Starbase',
-	PlanetaryScanner: 'PlanetaryScanner',
-	GenesisDevice: 'GenesisDevice'
-} as const;
-
-export const stringToQueueItemType = (value: string): QueueItemType => {
-	return QueueItemTypes[value as keyof typeof QueueItemTypes];
+export const stringToQueueItemType = (value: string): QueueItemType | undefined => {
+	return validQueueItemTypes.has(value) ? value : undefined;
 };
 
 /**
@@ -38,13 +59,13 @@ export const stringToQueueItemType = (value: string): QueueItemType => {
  */
 export const isAuto = (type: QueueItemType): boolean => {
 	switch (type) {
-		case QueueItemTypes.AutoMines:
-		case QueueItemTypes.AutoFactories:
-		case QueueItemTypes.AutoDefenses:
-		case QueueItemTypes.AutoMineralAlchemy:
-		case QueueItemTypes.AutoMinTerraform:
-		case QueueItemTypes.AutoMaxTerraform:
-		case QueueItemTypes.AutoMineralPacket:
+		case QueueItemTypeAutoMines:
+		case QueueItemTypeAutoFactories:
+		case QueueItemTypeAutoDefenses:
+		case QueueItemTypeAutoMineralAlchemy:
+		case QueueItemTypeAutoMinTerraform:
+		case QueueItemTypeAutoMaxTerraform:
+		case QueueItemTypeAutoMineralPacket:
 			return true;
 		default:
 			return false;
@@ -58,19 +79,19 @@ export const isAuto = (type: QueueItemType): boolean => {
  */
 export const concreteType = (type: QueueItemType): QueueItemType => {
 	switch (type) {
-		case QueueItemTypes.AutoMines:
-			return QueueItemTypes.Mine;
-		case QueueItemTypes.AutoFactories:
-			return QueueItemTypes.Factory;
-		case QueueItemTypes.AutoDefenses:
-			return QueueItemTypes.Defenses;
-		case QueueItemTypes.AutoMineralAlchemy:
-			return QueueItemTypes.MineralAlchemy;
-		case QueueItemTypes.AutoMinTerraform:
-		case QueueItemTypes.AutoMaxTerraform:
-			return QueueItemTypes.TerraformEnvironment;
-		case QueueItemTypes.AutoMineralPacket:
-			return QueueItemTypes.MixedMineralPacket;
+		case QueueItemTypeAutoMines:
+			return QueueItemTypeMine;
+		case QueueItemTypeAutoFactories:
+			return QueueItemTypeFactory;
+		case QueueItemTypeAutoDefenses:
+			return QueueItemTypeDefenses;
+		case QueueItemTypeAutoMineralAlchemy:
+			return QueueItemTypeMineralAlchemy;
+		case QueueItemTypeAutoMinTerraform:
+		case QueueItemTypeAutoMaxTerraform:
+			return QueueItemTypeTerraformEnvironment;
+		case QueueItemTypeAutoMineralPacket:
+			return QueueItemTypeMixedMineralPacket;
 		default:
 			return type;
 	}
@@ -78,38 +99,38 @@ export const concreteType = (type: QueueItemType): QueueItemType => {
 
 export function getFullName(item: ProductionQueueItem, designFinder: DesignFinder): string {
 	switch (item.type) {
-		case QueueItemTypes.Starbase:
-		case QueueItemTypes.ShipToken:
+		case QueueItemTypeStarbase:
+		case QueueItemTypeShipToken:
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
-		case QueueItemTypes.AutoMineralAlchemy:
+		case QueueItemTypeAutoMineralAlchemy:
 			return 'Alchemy (Auto Build)';
-		case QueueItemTypes.MineralAlchemy:
+		case QueueItemTypeMineralAlchemy:
 			return 'Alchemy';
-		case QueueItemTypes.AutoMines:
+		case QueueItemTypeAutoMines:
 			return 'Mine (Auto Build)';
-		case QueueItemTypes.AutoFactories:
+		case QueueItemTypeAutoFactories:
 			return 'Factory (Auto Build)';
-		case QueueItemTypes.AutoDefenses:
+		case QueueItemTypeAutoDefenses:
 			return 'Defense (Auto Build)';
-		case QueueItemTypes.AutoMinTerraform:
+		case QueueItemTypeAutoMinTerraform:
 			return 'Minimum Terraform';
-		case QueueItemTypes.AutoMaxTerraform:
+		case QueueItemTypeAutoMaxTerraform:
 			return 'Maximum Terraform';
-		case QueueItemTypes.IroniumMineralPacket:
+		case QueueItemTypeIroniumMineralPacket:
 			return 'Mineral Packet (Ironium)';
-		case QueueItemTypes.BoraniumMineralPacket:
+		case QueueItemTypeBoraniumMineralPacket:
 			return 'Mineral Packet (Boranium)';
-		case QueueItemTypes.GermaniumMineralPacket:
+		case QueueItemTypeGermaniumMineralPacket:
 			return 'Mineral Packet (Germanium)';
-		case QueueItemTypes.TerraformEnvironment:
+		case QueueItemTypeTerraformEnvironment:
 			return 'Terraform Environment';
-		case QueueItemTypes.MixedMineralPacket:
+		case QueueItemTypeMixedMineralPacket:
 			return 'Mixed Mineral Packet';
-		case QueueItemTypes.AutoMineralPacket:
+		case QueueItemTypeAutoMineralPacket:
 			return 'Mixed Mineral Packet (Auto)';
-		case QueueItemTypes.PlanetaryScanner:
+		case QueueItemTypePlanetaryScanner:
 			return 'Planetary Scanner';
-		case QueueItemTypes.GenesisDevice:
+		case QueueItemTypeGenesisDevice:
 			return 'Genesis Device';
 		default:
 			return item.type.toString();
@@ -118,22 +139,22 @@ export function getFullName(item: ProductionQueueItem, designFinder: DesignFinde
 
 export function getShortName(item: ProductionQueueItem, designFinder: DesignFinder): string {
 	switch (item.type) {
-		case QueueItemTypes.Starbase:
-		case QueueItemTypes.ShipToken:
+		case QueueItemTypeStarbase:
+		case QueueItemTypeShipToken:
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
-		case QueueItemTypes.TerraformEnvironment:
+		case QueueItemTypeTerraformEnvironment:
 			return 'Terraform Environment';
-		case QueueItemTypes.AutoMines:
+		case QueueItemTypeAutoMines:
 			return 'Mine (Auto)';
-		case QueueItemTypes.AutoFactories:
+		case QueueItemTypeAutoFactories:
 			return 'Factory (Auto)';
-		case QueueItemTypes.AutoDefenses:
+		case QueueItemTypeAutoDefenses:
 			return 'Defenses (Auto)';
-		case QueueItemTypes.AutoMineralAlchemy:
+		case QueueItemTypeAutoMineralAlchemy:
 			return 'Alchemy (Auto)';
-		case QueueItemTypes.AutoMaxTerraform:
+		case QueueItemTypeAutoMaxTerraform:
 			return 'Max Terraform (Auto)';
-		case QueueItemTypes.AutoMinTerraform:
+		case QueueItemTypeAutoMinTerraform:
 			return 'Min Terraform (Auto)';
 		default:
 			return `${startCase(item.type)}`;

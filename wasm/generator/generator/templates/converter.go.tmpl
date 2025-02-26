@@ -382,6 +382,9 @@ func GetSliceMap[M map[K][]V, K ~string, V any](o js.Value, valueGetter func(o j
 {{- define "SetOtherType" }}
 	{{- if eq .FullType "time.Time" }}
 		SetTime(o, "{{.JsonName}}", obj.{{.Name}})
+	{{- else if eq .GoType "T" }}
+		{{- /* TODO: hack for generics. yuck */}}
+		o.Set("{{.JsonName}}", obj.{{.Name}})
 	{{- else }}
 		// unknown other type {{.Name}} {{.GoType}}
 	{{- end }}
@@ -403,7 +406,7 @@ func GetSliceMap[M map[K][]V, K ~string, V any](o js.Value, valueGetter func(o j
 		{{- if $type.Pointer }}
 			getPointer(Get{{$type.TypeName}}({{$jsObj}}))
 		{{- else }}
-			Get{{$type.TypeName}}({{$jsObj}})
+			Get{{$type.TypeName}}{{$type.GenericTypeString}}({{$jsObj}})
 		{{- end }}
 	{{- else if eq $type.Type "Slice" }}
 		{{ include "GetSlice" . }}
@@ -417,16 +420,19 @@ func GetSliceMap[M map[K][]V, K ~string, V any](o js.Value, valueGetter func(o j
 		getPointer(getTime({{$jsObj}}))
 	{{- else if eq $type.FullType "time.Time" }}
 		getTime({{$jsObj}})
-	{{- else  }}
-		unknown // {{$type.GoType}}
+	{{- else if eq $type.GoType "T" }}
+		{{- /* TODO: hack for generics. yuck */}}
+		{{$type.GoType}}(getString({{$jsObj}}))
+	{{- else }}
+		unknown // {{$type.GoType}} {{$type.UnderlyingType.FullType}}
 	{{- end }}
 {{- end }}
 
 {{- /* Create Get functions for each of our serializer types */}}
 {{- range .Serializers}}
 
-func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
-	var obj {{$.Pkg}}.{{.Name}}
+func Get{{.Name}}{{.Type.GenericTypeString}}(o js.Value) {{.Type.GoType}}{{.Type.GenericTypeParamsString}} {
+	var obj {{.Type.GoType}}{{.Type.GenericTypeParamsString}}
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
@@ -473,7 +479,7 @@ func Get{{.Name}}(o js.Value) {{$.Pkg}}.{{.Name}} {
 
 {{- /* we don't create setter functions for named types, they don't really work */}}
 {{- if eq .Type.Type "Object" }}
-func Set{{.Name}}(o js.Value, obj *{{$.Pkg}}.{{.Name}}) {
+func Set{{.Name}}{{.Type.GenericTypeString}}(o js.Value, obj *{{.Type.GoType}}{{.Type.GenericTypeParamsString}}) {
 	{{- range .Fields}}	
 		{{- if .Ignore }}
 			{{- if and .Exported (ne .JsonName "") }}

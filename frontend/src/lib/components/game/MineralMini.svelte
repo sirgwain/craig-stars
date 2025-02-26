@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Mineral } from '$lib/types/Mineral';
+	import type { Mineral } from '$lib/types/cs';
 
 	type Props = {
 		mineral: Mineral | undefined;

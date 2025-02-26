@@ -6,7 +6,7 @@
 	import { CSError, addError } from '$lib/services/Errors';
 	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
 	import { notify } from '$lib/services/Notifications';
-	import type { ProductionPlan } from '$lib/types/Player';
+	import type { ProductionPlan } from '$lib/types/cs';
 
 	const { game, player, universe, updateProductionPlan } = getGameContext();
 	let num = parseInt($page.params.num);

@@ -1,18 +1,21 @@
-import { GameState, type Game, type GameSettings } from '$lib/types/Game';
 import {
-	Player,
+	GameStateSetup,
+	type Game,
+	type GameSettings,
+	type GameWithPlayers,
+	type Player,
 	type PlayerIntels,
-	type PlayerResponse,
-	type PlayerStatus,
-	type PlayerUniverse
-} from '$lib/types/Player';
+	type PlayerStatus
+} from '$lib/types/cs';
+import { CommandedPlayer } from '$lib/types/Player';
 import type { SessionUser } from '$lib/types/User';
 import { FullGame } from './FullGame';
 import { Service } from './Service';
+import type { PlayerUniverse } from './Universe';
 
 export type TurnGenerationResponse = {
 	game: Game;
-	player?: PlayerResponse;
+	player?: Player;
 	universe?: PlayerUniverse & PlayerIntels;
 };
 
@@ -47,16 +50,16 @@ export class GameService {
 		return Service.post(player, `/api/games/${id}/update-player`);
 	}
 
-	static async loadPlayerGames(): Promise<Game[]> {
-		return Service.get<Game[]>('/api/games');
+	static async loadPlayerGames(): Promise<GameWithPlayers[]> {
+		return Service.get<GameWithPlayers[]>('/api/games');
 	}
 
-	static async loadHostedGames(): Promise<Game[]> {
-		return Service.get<Game[]>('/api/games/hosted');
+	static async loadHostedGames(): Promise<GameWithPlayers[]> {
+		return Service.get<GameWithPlayers[]>('/api/games/hosted');
 	}
 
-	static async loadOpenGames(): Promise<Game[]> {
-		return Service.get<Game[]>('/api/games/open');
+	static async loadOpenGames(): Promise<GameWithPlayers[]> {
+		return Service.get<GameWithPlayers[]>('/api/games/open');
 	}
 
 	static async deleteGame(gameId: number): Promise<void> {
@@ -72,7 +75,7 @@ export class GameService {
 		}
 	}
 
-	static async loadGame(gameId: number | string): Promise<Game> {
+	static async loadGame(gameId: number | string): Promise<GameWithPlayers> {
 		const response = await fetch(`/api/games/${gameId}`, {
 			method: 'GET',
 			headers: {
@@ -83,7 +86,7 @@ export class GameService {
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		return (await response.json()) as Game;
+		return (await response.json()) as GameWithPlayers;
 	}
 
 	static async loadGuest(gameId: number | string, playerNum: number): Promise<SessionUser> {
@@ -100,7 +103,7 @@ export class GameService {
 		return await response.json();
 	}
 
-	static async loadGameByHash(hash: string): Promise<Game[]> {
+	static async loadGameByHash(hash: string): Promise<GameWithPlayers[]> {
 		const response = await fetch(`/api/games/invite/${hash}`, {
 			method: 'GET',
 			headers: {
@@ -111,10 +114,10 @@ export class GameService {
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		return (await response.json()) as Game[];
+		return (await response.json()) as GameWithPlayers[];
 	}
 
-	static async loadLightPlayer(gameId: number): Promise<Player> {
+	static async loadLightPlayer(gameId: number): Promise<CommandedPlayer> {
 		const response = await fetch(`/api/games/${gameId}/player`, {
 			method: 'GET',
 			headers: {
@@ -125,11 +128,11 @@ export class GameService {
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		const json = (await response.json()) as PlayerResponse;
-		return new Player(json);
+		const json = (await response.json()) as Player;
+		return new CommandedPlayer(json);
 	}
 
-	static async loadFullPlayer(gameId: number | string): Promise<Player> {
+	static async loadFullPlayer(gameId: number | string): Promise<CommandedPlayer> {
 		const response = await fetch(`/api/games/${gameId}/full-player`, {
 			method: 'GET',
 			headers: {
@@ -140,8 +143,8 @@ export class GameService {
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		const json = (await response.json()) as PlayerResponse;
-		return new Player(json);
+		const json = (await response.json()) as Player;
+		return new CommandedPlayer(json);
 	}
 
 	static async loadUniverse(gameId: number | string): Promise<UniverseResponse> {
@@ -178,7 +181,7 @@ export class GameService {
 		const id = parseInt(gameId.toString());
 		const game = await GameService.loadGame(id);
 		const fg = Object.assign(new FullGame(), game);
-		if (fg.state != GameState.Setup) {
+		if (fg.state != GameStateSetup) {
 			await Promise.all([
 				GameService.loadFullPlayer(id).then((data) => {
 					fg.player = data;

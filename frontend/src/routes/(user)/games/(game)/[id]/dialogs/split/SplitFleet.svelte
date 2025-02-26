@@ -4,12 +4,12 @@
 	import type { OnCancel, OnOk, SplitFleetEvent } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { emptyCargo, totalCargo, type Cargo } from '$lib/types/Cargo';
-	import {
-		absoluteCargoSize,
-		CargoTransferRequest
-	} from '$lib/types/CargoTransferRequest.svelte';
-	import { CommandedFleet, moveDamagedTokens, type Fleet, type ShipToken } from '$lib/types/Fleet';
+	import { emptyCargo, totalCargo } from '$lib/types/Cargo';
+	import { type Cargo } from '$lib/types/cs';
+	import { absoluteCargoSize, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
+	import { CommandedFleet, moveDamagedTokens } from '$lib/types/Fleet';
+	import { type ShipToken } from '$lib/types/cs';
+	import { type Fleet } from '$lib/types/cs';
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';

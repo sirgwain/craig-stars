@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getBattleRecordDetails } from '$lib/types/Battle';
-	import { MessageType, type Message } from '$lib/types/Message';
+	import { PlayerMessageBattle, PlayerMessageBattleAlly, type PlayerMessage } from '$lib/types/cs';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		message: Message;
+		message: PlayerMessage;
 	};
 
 	let { message }: Props = $props();
@@ -23,7 +23,7 @@
 		theirsLeft: number;
 	};
 
-	function getBattleMessageDetails(message: Message): Details | undefined {
+	function getBattleMessageDetails(message: PlayerMessage): Details | undefined {
 		const battle = $universe.getBattle(message.battleNum);
 		if (battle) {
 			return getBattleRecordDetails(battle, $player, $universe);
@@ -36,7 +36,7 @@
 {#if message.text}
 	{message.text}
 {:else if details}
-	{#if message.type === MessageType.Battle}
+	{#if message.type === PlayerMessageBattle}
 		A battle took place at {details.location}.
 		{#if details.ourDead === 0 && details.theirDead === 0}
 			No ships were lost on either side.
@@ -61,7 +61,7 @@
 			{details.ours === 1 ? 'ship' : 'ships'}, while they lost {details.theirDead ?? 0} out of {details.theirs ??
 				0} ships.
 		{/if}
-	{:else if message.type === MessageType.BattleAlly}
+	{:else if message.type === PlayerMessageBattleAlly}
 		Your ally was involved in a battle at {details.location}.
 		{#if details.ourDead === 0 && details.theirDead === 0}
 			No ships were lost on either side.

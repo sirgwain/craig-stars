@@ -47,17 +47,19 @@ type Field struct {
 	OmitEmpty bool
 	Ignore    bool
 	Exported  bool
+	Generic   bool
 }
 
 // TODO: make a TypeType with struct, map, basic, named (type name mapping to a basic or map type)
 // Named types should use the ValueType as their underlying type, or myabe an underlying type pointer?
 type FieldType struct {
-	TypeName string
-	FullType string
-	GoType   string
-	Type     GeneratorType
-	Package  bool
-	Pointer  bool
+	TypeName     string
+	FullType     string
+	GoType       string
+	Type         GeneratorType
+	Package      bool
+	Pointer      bool
+	GenericTypes []GenericType
 	// the underlying type, if different
 	UnderlyingType *FieldType
 	// the value type for maps, slices, or arrays
@@ -67,8 +69,61 @@ type FieldType struct {
 	ArrayLength int64
 }
 
+type GenericType struct {
+	Name  string       // T
+	Types []*FieldType // cs.PlayerMessageTargetType, cs.MapObjectType
+}
+
 func (t FieldType) IsBasic() bool {
 	return t.Type.IsBasic()
+}
+
+// GenericTypeString will render the generic type string for Get/Set
+// [T cs.PlayerMessageTargetType | cs.MapObjectType]
+// or an empty string if no generic types
+func (t FieldType) GenericTypeString() string {
+	if len(t.GenericTypes) == 0 {
+		return ""
+	}
+	typeString := "["
+
+	for i, gt := range t.GenericTypes {
+		if i > 0 {
+			typeString += ", "
+		}
+		typeString += gt.Name + " "
+
+		for j, t := range gt.Types {
+			if j > 0 {
+				typeString += " | "
+			}
+			typeString += t.GoType
+		}
+	}
+
+	typeString += "]"
+
+	return typeString
+}
+
+// GenericTypeParamsString will render the generic type params only
+// [T, U]
+// or an empty string if no generic types
+func (t FieldType) GenericTypeParamsString() string {
+	if len(t.GenericTypes) == 0 {
+		return ""
+	}
+	typeString := "["
+
+	for i, gt := range t.GenericTypes {
+		if i > 0 {
+			typeString += ", "
+		}
+		typeString += gt.Name
+	}
+	typeString += "]"
+
+	return typeString
 }
 
 func GeneratorTypeFromBasicType(basic string) GeneratorType {

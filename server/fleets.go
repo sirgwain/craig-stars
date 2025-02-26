@@ -722,8 +722,28 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 		return
 	}
 
+	// return the updated intel as a dest to the player
+	var dest interface{}
+	if mineralPacket.PlayerNum == fullPlayer.Num {
+		// if the player owns the mineral packet, they get their full mineral packet back
+		dest = mineralPacket
+	} else {
+		// if the player doesn't own the mineral packet, give them the updated dest as an intel
+		for _, intel := range fullPlayer.MineralPacketIntels {
+			if intel.PlayerNum == mineralPacket.PlayerNum && intel.Num == mineralPacket.Num {
+				dest = &intel
+				break
+			}
+		}
+
+		if dest == nil {
+			log.Error().Int64("GameID", game.ID).Msgf("transferCargoFleetMineralPacket failed to find intel for dest mineral packet")
+			dest = &cs.MineralPacketIntel{MapObject: mineralPacket.MapObject, Cargo: mineralPacket.Cargo}
+		}
+	}
+
 	// success
-	rest.RenderJSON(w, rest.JSON{"fleet": fleet, "dest": mineralPacket, "mineralPackets": fullPlayer.MineralPacketIntels})
+	rest.RenderJSON(w, rest.JSON{"fleet": fleet, "dest": dest})
 }
 
 // transfer cargo from a fleet to/from a fleet

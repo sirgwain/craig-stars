@@ -1,25 +1,30 @@
 <script lang="ts">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
-	import { MineFieldTypes } from '$lib/types/MineField';
-
-	import { Player } from '$lib/types/Player';
-	import { PRT } from '$lib/types/Race';
 	import {
-		HullSlotType,
-		TechCategory,
+		HE,
+		HullSlotTypeEngine,
+		HullSlotTypeShield,
+		IS,
+		MineFieldTypeStandard,
+		SD,
+		TechCategoryBeamWeapon,
+		TechCategoryEngine,
+		TechCategoryMineLayer,
+		TechCategoryScanner,
+		TechCategoryShield,
 		type TechEngine,
 		type TechHullComponent
-	} from '$lib/types/Tech';
+	} from '$lib/types/cs';
+	import { CommandedPlayer } from '$lib/types/Player';
 	import TestBreadcrumb from '../TestBreadcrumb.svelte';
 
 	const settlersDelight: TechEngine = {
-		techStoreId: 1,
 		name: "Settler's Delight",
 		cost: { ironium: 1, germanium: 1, resources: 2 },
-		requirements: { prtsRequired: [PRT.HE] },
+		requirements: { prtsRequired: [HE] },
 		ranking: 10,
-		category: TechCategory.Engine,
-		hullSlotType: HullSlotType.Engine,
+		category: TechCategoryEngine,
+		hullSlotType: HullSlotTypeEngine,
 		mass: 2,
 		idealSpeed: 6,
 		freeSpeed: 6,
@@ -31,8 +36,8 @@
 		cost: { ironium: 1, germanium: 1, resources: 4 },
 		requirements: {},
 		ranking: 10,
-		category: TechCategory.Shield,
-		hullSlotType: HullSlotType.Shield,
+		category: TechCategoryShield,
+		hullSlotType: HullSlotTypeShield,
 		mass: 1,
 		shield: 25
 	};
@@ -52,7 +57,7 @@
 				lrtsDenied: 256
 			},
 			ranking: 80,
-			category: TechCategory.Scanner,
+			category: TechCategoryScanner,
 			hullSlotType: 4,
 			mass: 6,
 			scanRange: 185,
@@ -66,10 +71,10 @@
 			},
 			requirements: {
 				weapons: 5,
-				prtsRequired: [PRT.IS]
+				prtsRequired: [IS]
 			},
 			ranking: 20,
-			category: TechCategory.BeamWeapon,
+			category: TechCategoryBeamWeapon,
 			hullSlotType: 2048,
 			mass: 3,
 			power: 16,
@@ -87,13 +92,13 @@
 				resources: 40
 			},
 			requirements: {
-				prtsRequired: [PRT.SD]
+				prtsRequired: [SD]
 			},
 			ranking: 10,
-			category: TechCategory.MineLayer,
+			category: TechCategoryMineLayer,
 			hullSlotType: 8192,
 			mass: 25,
-			mineFieldType: MineFieldTypes.Standard,
+			mineFieldType: MineFieldTypeStandard,
 			mineLayingRate: 40
 		},
 		{
@@ -107,7 +112,7 @@
 				lrtsRequired: 1
 			},
 			ranking: 40,
-			category: TechCategory.Engine,
+			category: TechCategoryEngine,
 			hullSlotType: 0,
 			mass: 6,
 			idealSpeed: 6,
@@ -116,7 +121,7 @@
 		}
 	];
 
-	const testPlayer = new Player();
+	const testPlayer = new CommandedPlayer();
 </script>
 
 <TestBreadcrumb title="Techs" />

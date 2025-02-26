@@ -9,7 +9,7 @@
 	import { createGameContext, gameKey, type GameContext } from '$lib/services/GameContext';
 	import { GameService } from '$lib/services/GameService';
 	import { clearLoadingModalText, me, setLoadingModalText } from '$lib/services/Stores';
-	import { GameState } from '$lib/types/Game';
+	import { GameStateSetup, GameStateWaitingForPlayers, type GameState } from '$lib/types/cs';
 	import { wait } from '$lib/wait';
 	import { loadWasm } from '$lib/wasm';
 	import hotkeys from 'hotkeys-js';
@@ -30,7 +30,7 @@
 	let contextSetup = $state(false);
 
 	let unsubscribe: Unsubscriber | undefined = $state();
-	let gameState: GameState = $state(GameState.Setup);
+	let gameState: GameState = $state(GameStateSetup);
 	let year: number = $state(2400);
 
 	onMount(async () => {
@@ -41,7 +41,7 @@
 			const loaded = await GameService.loadFullGame(id);
 			const cs = await loadWasm();
 			context = createGameContext(cs, loaded);
-			if (loaded.state == GameState.WaitingForPlayers) {
+			if (loaded.state == GameStateWaitingForPlayers) {
 				context.setFullyLoaded(true);
 			}
 
@@ -97,7 +97,7 @@
 			gameState = loaded.state;
 			year = loaded.year;
 			context.resetContext(loaded);
-			if (loaded.state == GameState.WaitingForPlayers) {
+			if (loaded.state == GameStateWaitingForPlayers) {
 				context.setFullyLoaded(true);
 			}
 
@@ -106,7 +106,7 @@
 
 		// if the game is active and we haven't submitted our turn
 		// bind the navigation hotkeys
-		if (gameState == GameState.WaitingForPlayers && !get(context.player).submittedTurn) {
+		if (gameState == GameStateWaitingForPlayers && !get(context.player).submittedTurn) {
 			// reset key bindings
 			unbindNavigationHotkeys();
 			hotkeys.unbind('F9', 'root');
@@ -128,7 +128,7 @@
 		// waiting to submit our turn
 		const g = get(context.game);
 		const p = get(context.player);
-		if (g.state != GameState.WaitingForPlayers || p.submittedTurn) {
+		if (g.state != GameStateWaitingForPlayers || p.submittedTurn) {
 			return;
 		}
 

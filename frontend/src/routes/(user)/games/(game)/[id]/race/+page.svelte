@@ -5,8 +5,8 @@
 	import PRTDescription from '$lib/components/game/race/PRTDescription.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { HabTypes } from '$lib/types/Hab';
 	import { getLabelForPRT } from '$lib/types/Race';
+	import { Grav, Rad, Temp } from '$lib/types/cs';
 	import HabBar from './HabBar.svelte';
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';
@@ -51,19 +51,19 @@
 
 	<div class="flex flex-col gap-2">
 		<HabBar
-			habType={HabTypes.Gravity}
+			habType={Grav}
 			habLow={race.habLow.grav}
 			habHigh={race.habHigh.grav}
 			immune={race.immuneGrav}
 		/>
 		<HabBar
-			habType={HabTypes.Temperature}
+			habType={Temp}
 			habLow={race.habLow.temp}
 			habHigh={race.habHigh.temp}
 			immune={race.immuneTemp}
 		/>
 		<HabBar
-			habType={HabTypes.Radiation}
+			habType={Rad}
 			habLow={race.habLow.rad}
 			habHigh={race.habHigh.rad}
 			immune={race.immuneRad}

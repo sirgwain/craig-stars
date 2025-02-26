@@ -1,11 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { CommandedFleet, moveDamagedTokens, type ShipToken } from './Fleet';
-import { Infinite } from './Constants';
-import { None } from './Constants';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { CommandedFleet, moveDamagedTokens } from './Fleet';
 import { cottonPicker, longRangeScout, santaMaria, TestDesignFinder } from './Mock.test';
 import { CommandedPlanet } from './Planet';
-import { Player, PlayerRelation } from './Player';
-import type { RaceSpec } from './Race';
+import { CommandedPlayer } from './Player';
+import type { RaceSpec } from './cs';
+import { Infinite, None, PlayerRelationEnemy, PlayerRelationFriend, type ShipToken } from './cs';
 
 describe('Fleet test', () => {
 	it('getFuelUsage', () => {
@@ -68,19 +67,19 @@ describe('Fleet test', () => {
 		ownedPlanet.playerNum = 1;
 
 		// create an AR player that can remote mine their own planets
-		const arPlayer = new Player();
+		const arPlayer = new CommandedPlayer();
 		arPlayer.race.spec = Object.assign(arPlayer.race.spec ?? {}, {
 			canRemoteMineOwnPlanets: true
 		} as RaceSpec);
 		arPlayer.num = 1;
 
 		// mine away!
-		expect(remoteMiner.canRemoteMine(new Player(), goodPlanet)).toBe(true);
+		expect(remoteMiner.canRemoteMine(new CommandedPlayer(), goodPlanet)).toBe(true);
 		// scouts can't remote mine
-		expect(scout.canRemoteMine(new Player(), goodPlanet)).toBe(false);
+		expect(scout.canRemoteMine(new CommandedPlayer(), goodPlanet)).toBe(false);
 
 		// can't remote mine an owned planet
-		expect(remoteMiner.canRemoteMine(new Player(), ownedPlanet)).toBe(false);
+		expect(remoteMiner.canRemoteMine(new CommandedPlayer(), ownedPlanet)).toBe(false);
 
 		// can remote mine an owned planet if we are AR
 		expect(remoteMiner.canRemoteMine(arPlayer, ownedPlanet)).toBe(true);
@@ -95,17 +94,17 @@ describe('Fleet test', () => {
 		const scout = new CommandedFleet(longRangeScout);
 
 		// make a new player that is friendly to player 2, not to player 3
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.num = 1;
 		player.relations = [
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Enemy
+				relation: PlayerRelationEnemy
 			}
 		];
 
@@ -155,17 +154,17 @@ describe('Fleet test', () => {
 		scout.cargo.colonists = 0;
 
 		// can gate, have cargo, can gate cargo
-		const itPlayer = new Player();
+		const itPlayer = new CommandedPlayer();
 		itPlayer.num = 1;
 		itPlayer.relations = [
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Enemy
+				relation: PlayerRelationEnemy
 			}
 		];
 		itPlayer.race.spec = Object.assign({}, { canGateCargo: true }) as RaceSpec;
@@ -178,17 +177,17 @@ describe('Fleet test', () => {
 		const scout = new CommandedFleet(longRangeScout);
 
 		// make a new player that is friendly to player 2, not to player 3
-		const player = new Player();
+		const player = new CommandedPlayer();
 		player.num = 1;
 		player.relations = [
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Friend
+				relation: PlayerRelationFriend
 			},
 			{
-				relation: PlayerRelation.Enemy
+				relation: PlayerRelationEnemy
 			}
 		];
 
@@ -213,57 +212,63 @@ describe('Fleet test', () => {
 		expect(scout.canFuel(player, target)).toBe(false);
 	});
 
-	it('returns minimal speeds for distances', () => {
+	describe('Warp Speed Utilities', () => {
 		const fleet = new CommandedFleet(longRangeScout);
 		const designFinder = new TestDesignFinder();
-		// one year to go 49 ly
-		expect(fleet.getMinimalWarp(designFinder, 0, 0, 49, 7, 1, 9)).toBe(7);
 
-		// two years at warp 7, two at warp 6 or warp 5, pick warp 5
-		expect(fleet.getMinimalWarp(designFinder, 0, 0, 50, 7, 1, 9)).toBe(5);
+		beforeEach(() => {
+			fleet.fuel = 300;
+		});
 
-		// warp 6 takes 3 years to 72, so in 73 we can make it in 2 at warp 7
-		expect(fleet.getMinimalWarp(designFinder, 0, 0, 73, 7, 1, 9)).toBe(7);
+		it('getMinimalWarp returns minimal speeds for distances', () => {
+			// one year to go 49 ly
+			expect(fleet.getMinimalWarp(designFinder, 0, 0, 49, 7, 1, 9)).toBe(7);
 
-		// this is obvious
-		expect(fleet.getMinimalWarp(designFinder, 0, 0, 36, 7, 1, 9)).toBe(6);
+			// two years at warps 7, 6 or 5; pick warp 5
+			expect(fleet.getMinimalWarp(designFinder, 0, 0, 50, 7, 1, 9)).toBe(5);
 
-		// might as well go warp 5
-		expect(fleet.getMinimalWarp(designFinder, 0, 0, 25, 7, 1, 9)).toBe(5);
+			// 2 years for warp 6 but 2 for warp 7
+			expect(fleet.getMinimalWarp(designFinder, 0, 0, 73, 7, 1, 9)).toBe(7);
 
-		// go slower if going this speed would run out of fuel
-		// assume we've used 200mg of fuel from previous waypoints
-		expect(fleet.getMinimalWarp(designFinder, 0, 200, 200, 7, 1, 9)).toBe(6);
+			// slow down from a higher warp
+			expect(fleet.getMinimalWarp(designFinder, 0, 0, 36, 7, 1, 9)).toBe(6);
+			expect(fleet.getMinimalWarp(designFinder, 0, 0, 25, 7, 1, 9)).toBe(5);
 
-		// getMinimalWarp is called by getMaxWarp as well to find the mininmum from some
-		// max starting point. Make sure we don't exceed safe warp
-		// if we have enough fuel to go warp 10, but our engine is only safe at warp 9, slow it down
-		expect(fleet.getMinimalWarp(designFinder, 0, 0, 100, 10, 1, 9)).toBe(9);
-	});
+			// go slower if going this fast would run out of fuel
+			expect(fleet.getMinimalWarp(designFinder, 0, 200, 200, 7, 1, 9)).toBe(6);
 
-	it('returns fastest speed without running out of fuel', () => {
-		const fleet = new CommandedFleet(longRangeScout);
-		const designFinder = new TestDesignFinder();
-		// one year to go 81 ly, plenty `of fuel
-		fleet.fuel = 300;
-		expect(fleet.getMaxWarp(designFinder, 0, 0, 81, 1, 9)).toBe(9);
+			// Make sure we don't exceed safe warp - don't go at warp 10 if
+			// we can only safely handle warp 9 safely
+			expect(fleet.getMinimalWarp(designFinder, 0, 0, 100, 10, 1, 9)).toBe(9);
 
-		// one year to go 64 ly, plenty of fuel
-		fleet.fuel = 300;
-		expect(fleet.getMaxWarp(designFinder, 0, 0, 64, 1, 9)).toBe(8);
+			// stay at w10 if using a capable engine
+			expect(fleet.getMinimalWarp(designFinder, 0, 0, 100, 10, 1, 10)).toBe(10);
+		});
 
-		// don't go faster than we need, go warp 5 for 25ly
-		fleet.fuel = 300;
-		expect(fleet.getMaxWarp(designFinder, 0, 0, 25, 1, 9)).toBe(5);
+		it('getMaxWarp returns fastest usable speed without running out of fuel', () => {
+			const fleet = new CommandedFleet(longRangeScout);
+			const designFinder = new TestDesignFinder();
+			// one year to go 81 ly, plenty of fuel
+			fleet.fuel = 300;
+			expect(fleet.getMaxWarp(designFinder, 0, 0, 81, 1, 9)).toBe(9);
 
-		// make sure we don't run out of fuel over long distances
-		// 300 ly at warp 9 would take 338mg of fuel, so go warp 8 (using 282mg fuel)
-		fleet.fuel = 300;
-		expect(fleet.getMaxWarp(designFinder, 0, 0, 300, 1, 9)).toBe(8);
+			// one year to go 64 ly, plenty of fuel
+			fleet.fuel = 300;
+			expect(fleet.getMaxWarp(designFinder, 0, 0, 64, 1, 9)).toBe(8);
 
-		// go even slower if we've already allocated fuel to previous waypoints
-		fleet.fuel = 300;
-		expect(fleet.getMaxWarp(designFinder, 0, 100, 300, 1, 9)).toBe(7);
+			// don't go faster than we need, go warp 5 for 25ly
+			fleet.fuel = 300;
+			expect(fleet.getMaxWarp(designFinder, 0, 0, 25, 1, 9)).toBe(5);
+
+			// make sure we don't run out of fuel over long distances
+			// 300 ly at warp 9 would take 338mg of fuel, so go warp 8 (using 282mg fuel)
+			fleet.fuel = 300;
+			expect(fleet.getMaxWarp(designFinder, 0, 0, 300, 1, 9)).toBe(8);
+
+			// go even slower if we've already allocated fuel to previous waypoints
+			fleet.fuel = 300;
+			expect(fleet.getMaxWarp(designFinder, 0, 100, 300, 1, 9)).toBe(7);
+		});
 	});
 });
 

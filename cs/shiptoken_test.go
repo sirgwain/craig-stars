@@ -7,13 +7,13 @@ import (
 
 func TestShipToken_applyMineDamage(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
-	design := NewShipDesign(player, 1)
+	design := NewShipDesign(player.Num, 1)
 
 	// set some spec values we care about
 	design.Spec.Mass = 100
 	design.Spec.Armor = 100
 
-	designShielded := NewShipDesign(player, 1)
+	designShielded := NewShipDesign(player.Num, 1)
 	designShielded.Spec.Mass = 100
 	designShielded.Spec.Armor = 150
 	designShielded.Spec.Shields = 50
@@ -153,8 +153,8 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 
 func TestShipToken_applyOvergateDamage(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
-	design := NewShipDesign(player, 1)
-	heavyDesign := NewShipDesign(player, 1)
+	design := NewShipDesign(player.Num, 1)
+	heavyDesign := NewShipDesign(player.Num, 1)
 
 	// 100kT ship with 100 armor
 	mass := 100
@@ -437,7 +437,7 @@ func TestShipToken_getStargateMassVanishingChance(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			design := NewShipDesign(player, 1)
+			design := NewShipDesign(player.Num, 1)
 			design.Spec.Mass = tt.fields.mass
 
 			tr := &ShipToken{
@@ -481,7 +481,7 @@ func TestShipToken_getStargateRangeVanishingChance(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := NewPlayer(1, NewRace().WithSpec(&rules))
-			design := NewShipDesign(player, 1)
+			design := NewShipDesign(player.Num, 1)
 			tr := &ShipToken{
 				Quantity: 1,
 				design:   design,

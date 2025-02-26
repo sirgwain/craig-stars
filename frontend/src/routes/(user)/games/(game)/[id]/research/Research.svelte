@@ -2,7 +2,7 @@
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
-	import { NextResearchField, Player } from '$lib/types/Player';
+	import { CommandedPlayer, NextResearchFields, TechFields } from '$lib/types/Player';
 	import { Beaker } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -10,9 +10,8 @@
 	import Factory from '$lib/components/icons/Factory.svelte';
 	import Microscope from '$lib/components/icons/Microscope.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { TechField, type TechLevel } from '$lib/types/TechLevel';
+	import type { TechField, TechLevel } from '$lib/types/cs';
 	import { startCase } from 'lodash-es';
-	import { $enum as eu } from 'ts-enum-util';
 	import FutureTechs from './FutureTechs.svelte';
 
 	const { player } = getGameContext();
@@ -22,7 +21,7 @@
 	};
 	let { onUpdatePlayer }: Props = $props();
 
-	const getLevel = (player: Player, field: TechField | string): number => {
+	const getLevel = (player: CommandedPlayer, field: TechField | string): number => {
 		const f: keyof TechLevel = `${field}`.toLowerCase() as keyof TechLevel;
 		return player.techLevels[f] ?? 0;
 	};
@@ -103,7 +102,7 @@
 			<div class="text-center">
 				Current Level <div class="divider secondary w-[90%]"></div>
 			</div>
-			{#each eu(TechField).getKeys() as field}
+			{#each TechFields as field}
 				<div class="form-control">
 					<label class="label cursor-pointer">
 						<span class="label-text">{startCase(field.toString())}</span>
@@ -124,7 +123,7 @@
 		</div>
 		<EnumSelect
 			name="nextResearchField"
-			enumType={NextResearchField}
+			options={NextResearchFields}
 			bind:value={$player.nextResearchField}
 			onchange={onUpdatePlayer}
 		/>

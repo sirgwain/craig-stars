@@ -3,8 +3,9 @@
 
 	import SelectedMapObject from '$lib/components/icons/SelectedMapObject.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, equal, type MapObject } from '$lib/types/MapObject';
+	import type { Fleet } from '$lib/types/cs';
+	import { MapObjectTypeFleet, MapObjectTypePlanet, type MapObject } from '$lib/types/cs';
+	import { equal } from '$lib/types/MapObject';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { selectedMapObject, commandedMapObject, settings } = getGameContext();
@@ -15,8 +16,8 @@
 	): boolean => {
 		if (
 			equal(selectedMapObject, commandedMapObject) ||
-			(commandedMapObject?.type == MapObjectType.Fleet &&
-				selectedMapObject?.type == MapObjectType.Planet &&
+			(commandedMapObject?.type == MapObjectTypeFleet &&
+				selectedMapObject?.type == MapObjectTypePlanet &&
 				(commandedMapObject as Fleet).orbitingPlanetNum == selectedMapObject.num)
 		) {
 			return true;

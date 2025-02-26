@@ -1,13 +1,20 @@
 <script lang="ts">
 	import { clickOutside } from '$lib/clickOutside';
 	import { onScannerContextPopup } from '$lib/components/game/tooltips/ScannerContextPopup.svelte';
+	import type { SelectWaypointProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { None } from '$lib/types/Constants';
+	import {
+		MapObjectTypeFleet,
+		None,
+		type MapObject,
+		type Vector,
+		type Waypoint
+	} from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type Fleet, type Waypoint, type WaypointDest } from '$lib/types/Fleet';
-	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
-	import { emptyVector, equal, type Vector } from '$lib/types/Vector';
+	import { type WaypointDest } from '$lib/types/Fleet';
+	import { type AnyFleet } from '$lib/services/Universe';
+	import { emptyVector, equal } from '$lib/types/Vector';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
 	import { ZoomTransform, zoom, type D3ZoomEvent, type ZoomBehavior } from 'd3-zoom';
@@ -33,7 +40,6 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import type { SelectWaypointProps } from '$lib/services/Events';
 
 	const {
 		game,
@@ -293,7 +299,7 @@
 			return;
 		}
 
-		if (found?.type == MapObjectType.Fleet && !filterFleet($player, found as Fleet, $settings)) {
+		if (found?.type == MapObjectTypeFleet && !filterFleet($player, found as AnyFleet, $settings)) {
 			// this object we clicked is filtered out, don't do anything
 			return;
 		}
@@ -452,13 +458,15 @@
 	const data = derivedStore([universe, commandedFleet], ([u, f]) => [
 		// add mapobject waypoints
 		...(f?.getWaypointMapObjects(u) || []),
-		...u.fleets.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
-		...u.mysteryTraders,
-		...u.mineralPackets,
-		...u.salvages,
-		...u.wormholes,
+		...u
+			.getAllFleets()
+			.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
+		...u.mysteryTraderIntels,
+		...u.mineralPacketIntels,
+		...u.salvageIntels,
+		...u.wormholeIntels,
 		...u.mineFields,
-		...u.planets
+		...u.allPlanets
 	]);
 
 	// all our data in LayerCake are mapObjects/waypoints. Add this custom getter to get the

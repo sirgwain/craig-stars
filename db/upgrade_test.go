@@ -14,20 +14,20 @@ func TestEnsureUpgrade(t *testing.T) {
 
 	version, err := c.getVersion()
 	if err != nil {
-		t.Errorf("EnsureUpgrade() failed to getVersion(): %v", err)
+		t.Errorf("EnsureUpgrade() failed to getVersion(): \n%v", err)
 		return
 	}
 
 	// start at 0, run an upgrade
 	assert.Equal(t, 0, version.Current)
 	if err := c.ensureUpgrade(); err != nil {
-		t.Errorf("EnsureUpgrade() failed: %v", err)
+		t.Errorf("EnsureUpgrade() failed: \n%v", err)
 		return
 	}
 
 	version, err = c.getVersion()
 	if err != nil {
-		t.Errorf("EnsureUpgrade() failed to getVersion() after upgrade: %v", err)
+		t.Errorf("EnsureUpgrade() failed to getVersion() after upgrade: \n%v", err)
 		return
 	}
 

@@ -1,4 +1,5 @@
-import type { PlayerResponse, TransportPlan } from '$lib/types/Player';
+import type { Player } from '$lib/types/cs';
+import type { TransportPlan } from '$lib/types/cs';
 import { Service } from './Service';
 
 export class TransportPlanService {
@@ -19,7 +20,7 @@ export class TransportPlanService {
 		return Service.create(transportPlan, `/api/games/${gameId}/transport-plans`);
 	}
 
-	static async delete(gameId: number | string, num: number | string): Promise<PlayerResponse> {
+	static async delete(gameId: number | string, num: number | string): Promise<Player> {
 		const url = `/api/games/${gameId}/transport-plans/${num}`;
 		const response = await fetch(url, {
 			method: 'DELETE',
@@ -31,6 +32,6 @@ export class TransportPlanService {
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		return (await response.json()) as PlayerResponse;
+		return (await response.json()) as Player;
 	}
 }

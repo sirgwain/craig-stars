@@ -2,7 +2,6 @@ package cs
 
 import (
 	"reflect"
-	"slices"
 	"testing"
 )
 
@@ -31,7 +30,6 @@ func TestTechStore_GetBestEngine(t *testing.T) {
 }
 
 func TestTechStore_GetBestBattleEngine(t *testing.T) {
-	// TODO: Fix this someday
 	type args struct {
 		player *Player
 		hull   *TechHull
@@ -90,21 +88,25 @@ func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
 		race       *Race
 		mtTechs    bool
 	}
-	type args struct {
-		slot HullSlotType
-	}
 	tests := []struct {
 		name   string
 		fields fields
-		args   args
+		slot   HullSlotType
 		want   []*TechHullComponent
 	}{
-		{name: "max tech MT shields with IS", fields: fields{TechLevel{26, 26, 26, 26, 26, 26}, NewRace().WithPRT(IS), true},
-			args: args{slot: HullSlotTypeShield},
-			want: []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &CrobySharmor, &BearNeutrinoBarrier, &LangstonShell, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield}},
-		{name: "Default Shields/Armors", fields: fields{TechLevel{26, 26, 26, 26, 26, 26}, NewRace().WithPRT(JoaT), false},
-			args: args{slot: HullSlotTypeShieldArmor}, want: []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield,
-				&Tritanium, &Crobmnium, &Carbonic, &Strobnium, &Organic, &Kelarium, &Neutronium, &Valanium, &Superlatanium}},
+		{
+			name:   "max tech MT shields with IS",
+			fields: fields{TechLevel{26, 26, 26, 26, 26, 26}, NewRace().WithPRT(IS), true},
+			slot:   HullSlotTypeShield,
+			want:   []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &CrobySharmor, &GorillaDelagator, &LangstonShell, &ElephantHideFortress, &CompletePhaseShield},
+		},
+		{
+			name:   "Default Shields/Armors",
+			fields: fields{TechLevel{26, 26, 26, 26, 26, 26}, NewRace().WithPRT(JoaT), false},
+			slot:   HullSlotTypeShieldArmor,
+			want: []*TechHullComponent{&MoleSkinShield, &CowHideShield, &WolverineDiffuseShield, &BearNeutrinoBarrier, &GorillaDelagator, &ElephantHideFortress, &CompletePhaseShield,
+				&Tritanium, &Crobmnium, &Carbonic, &Strobnium, &Organic, &Kelarium, &Neutronium, &Valanium, &Superlatanium},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -114,13 +116,7 @@ func TestTechStore_GetHullComponentsByHullSlotType(t *testing.T) {
 					player.AcquiredTechs[tech.Name] = true
 				}
 			}
-			got := rules.techs.GetHullComponentsByHullSlotType(player, tt.args.slot, "Nubian")
-			slices.SortStableFunc(tt.want, func(a, b *TechHullComponent) int {
-				if a.HullSlotType == b.HullSlotType {
-					return a.Ranking - b.Ranking
-				}
-				return int(a.HullSlotType) - int(b.HullSlotType)
-			}) // sort want slots bc I'm lazy
+			got := rules.techs.GetHullComponentsByHullSlotType(player, tt.slot, "Nubian")
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetHullComponentsByHullSlotType returned incorrect values; got:\n%v, want:\n%v", got, tt.want)
 			}
