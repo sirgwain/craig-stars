@@ -1,0 +1,56 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Vitest: run tests",
+			"type": "shell",
+			"command": "mage test_vitest",
+			"group": "test",
+			"args": ["${input:vitestArgs}"],
+			"icon": {
+				"color": "terminal.ansiGreen",
+				"id": "lightbulb-sparkle",
+			},
+			"detail": "Run frontend tests using Vitest."
+		},
+		{
+			"label": "Playwright: run tests",
+			"type": "shell",
+			"command": "mage test_playwright",
+			"group": "test",
+			"args": ["${input:playwrightArgs}"],
+			"icon": {
+				"color": "terminal.ansiGreen",
+				"id": "browser",
+			},
+			"detail": "Run end-to-end tests using Playwright."
+		},
+		{
+			"label": "ESLint: run lint checks",
+			"type": "shell",
+			"command": "mage lint",
+			"group": "test",
+			"icon": {
+				"color": "terminal.ansiGreen",
+				"id": "debug"
+			},
+			"detail": "Run ESLint code quality checks on frontend code."
+		},
+
+	],
+	"inputs": [
+		{
+			"id": "vitestArgs",
+			"type": "promptString",
+			"default": "",
+			"description": "Enter command-line arguments to pass to vitest. --run is included."
+		},
+		{
+			"id": "playwrightArgs",
+			"type": "promptString",
+			"default": "",
+			"description": "Enter command-line arguments to pass to playwright."
+		},
+	]
+
+}

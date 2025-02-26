@@ -1184,10 +1184,15 @@ func TestFleet_transferToDest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			err := tt.fleet.transferToDest(tt.args.dest, tt.args.cargoType, tt.args.transferAmount)
-			test.CheckUnexpectedError(t, err, tt.wantErr)
-
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("Fleet.transferToDest() did not return error when expected")
+				} else {
+					t.Fatalf("Fleet.transferToDest() errored unexpectedly; err = \n%v", err)
+				}
+			}
 			if *tt.args.dest.getCargo() != tt.wantDestCargo {
-				t.Errorf("Fleet.transferToDest() destCargo = %v, wantDestCargo %v", *tt.args.dest.getCargo(), tt.wantDestCargo)
+				t.Errorf("Fleet.transferToDest() gave destination cargo \n%v, wanted \n%v", *tt.args.dest.getCargo(), tt.wantDestCargo)
 			}
 
 			if tt.fleet.Cargo != tt.wantFleetCargo {

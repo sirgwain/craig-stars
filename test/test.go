@@ -3,11 +3,9 @@ package test
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"os"
-	"testing"
 
 	"github.com/nsf/jsondiff"
 )
@@ -87,7 +85,7 @@ func parseJSONDiff(gotJSON, wantJSON []byte, testName string) string {
 			path = "../tmp/diff.jsonl"
 			body = diff
 		}
-		if FileExists(path) {
+		if _, err := os.Stat(path); err == nil {
 			// add extra newline in header to properly delimit sections
 			header = "\n" + header
 		}
@@ -109,31 +107,6 @@ func AppendFile[S ~string | ~[]byte](path string, data S) error {
 		return fmt.Errorf("could not append data to file %q; error: \n%w", path, err)
 	}
 	return nil
-}
-
-// FileExists reports whether a file at path exists or not.
-// It does not actually open the file or modify it in any way.
-func FileExists(path string) bool {
-	// This is the idiosyncratic check for file existence
-	_, err := os.Stat(path)
-	return !errors.Is(err, os.ErrNotExist)
-}
-
-// Check for the existence of an expected or unexpected error within a test,
-// failing the test as appropriate.
-func CheckUnexpectedError(t *testing.T, err error, wantErr bool) {
-	t.Helper()
-	if (err != nil) == wantErr {
-		return
-	}
-
-	errMsg := fmt.Sprintf("%s() errored unexpectedly;\n", t.Name())
-	if err != nil {
-		errMsg += fmt.Sprintf("test produced error \"%v\" despite expecting none", err)
-	} else {
-		errMsg += "test failed to error when expected to"
-	}
-	t.Error(errMsg)
 }
 
 // compare two floats within a tolerance range

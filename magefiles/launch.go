@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	"github.com/sirgwain/craig-stars/test"
 )
 
 var Aliases = map[string]interface{}{
@@ -42,7 +42,7 @@ func Build() error {
 }
 
 // Clean up various temporary directories.
-// This removes everything in dist and frontend/build.
+// This runs go clean and removes everything in dist, tmp and frontend/build.
 func Clean() error {
 	if err := sh.RunV("go", "clean"); err != nil {
 		return err
@@ -50,55 +50,48 @@ func Clean() error {
 	if err := sh.Rm("dist"); err != nil {
 		return err
 	}
-	if err := sh.Rm("frontend/build"); err != nil {
+	if err := sh.Rm("tmp"); err != nil {
 		return err
 	}
-	return nil
+	if err := os.MkdirAll("tmp", 0755); err != nil {
+		return mg.Fatalf(1, "error re-creating tmp dir: \n%w", err)
+	}
+
+	return sh.Rm("frontend/build")
 }
 
 // Copy wasm executable from GOROOT to frontend folder.
-// This copies the "wasm_exec.js" file from your GOROOT into
+// This copies the "wasm_exec.js" file from GOROOT/lib/wasm into
 // frontend/src/lib/wasm, creating the folder if not already present.
 func Copy_Wasm_Exec() error {
 	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
-	path, err := findWASMLocation()
+
+	// Find GOROOT
+	goroot, err := sh.Output("go", "env", "GOROOT")
 	if err != nil {
 		return err
 	}
+	goroot = strings.ReplaceAll(goroot, "\\", "/") // replace backslashes on windows
 
+	// check if wasm executable exists or not.
+	// Go 1.24 moved wasm_exec.js from misc/wasm to lib/wasm,
+	// but we require go 1.24 anyways so it shouldn't matter.
+	if _, err := os.Stat(goroot + "/lib/wasm/wasm_exec.js"); errors.Is(err, os.ErrNotExist) {
+		// file doesn't exist
+		return mg.Fatalf(1, "executable was not found inside GOROOT %v", goroot)
+	} else if err != nil {
+		// some other random error
+		return mg.Fatalf(1, "error during os.Stat(): \n%w", err)
+	}
+
+	// file exists
+	path := goroot + "/lib/wasm/wasm_exec.js"
 	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js", path); err != nil {
 		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)
 	}
 	return nil
-}
-
-// find location of WASM executable
-func findWASMLocation() (path string, err error) {
-	// Find GOROOT
-	goroot, err := sh.Output("go", "env", "GOROOT")
-	if err != nil {
-		return "", err
-	}
-	goroot = strings.ReplaceAll(goroot, "\\", "/") // replace backslashes on windows
-
-	// Go 1.24 changed the location of wasm_exec.js from misc to lib;
-	// if we find it inside misc, warn about updating go version
-	if !test.FileExists(goroot + "/misc/wasm/wasm_exec.js") {
-		if _, ok := os.LookupEnv("CI"); ok {
-			// warn instead of erroring on CI runs so this doesn't break things
-			fmt.Println("wasm executable found in misc instead of lib;\nConsider upgrading workflow to Go 1.24")
-			return goroot + "/misc/wasm/wasm_exec.js", nil
-		}
-		return "", fmt.Errorf("wasm executable found in misc instead of lib;\nUpgrade to Go 1.24")
-	}
-
-	if test.FileExists(goroot + "/lib/wasm/wasm_exec.js") {
-		return goroot + "/lib/wasm/wasm_exec.js", nil
-	}
-
-	return "", fmt.Errorf("executable was not found inside GOROOT %v", goroot)
 }
 
 // Tidy up go.mod (equivalent to "go mod tidy -v")
@@ -188,7 +181,7 @@ func Build_Backend_CI(version, hash, releaseTime string) error {
 	mg.Deps(Build_WASM)
 	// Go passes these arguments directly to build without any quoting or escaping (hence why no surrounding quotes)
 	args := ldflags
-	// TODO: Change these if/when mage updates to support default arguments
+	// TODO: Change these strings if/when mage updates to support default arguments
 	if version != "" {
 		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'", version)
 	}
@@ -254,7 +247,7 @@ func Launch() error {
 
 // Launch the backend go server using air for hot reloads.
 func Launch_Backend() error {
-	return sh.RunV("air")
+	return sh.RunV("go", "tool", "github.com/air-verse/air")
 }
 
 // Launch the frontend svelte server.

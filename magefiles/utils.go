@@ -15,32 +15,78 @@ import (
 	"github.com/sirgwain/craig-stars/test"
 )
 
-// Test both the backend and frontend in succession, along with ESLint lint checks.
+// Run all frontend/backend tests and lint checks.
 func Test() error {
+	if err := Lint(); err != nil {
+		return err
+	}
+
+	err := Test_Golang("./...")
+	defer func() {
+		if err := Merge_Temp_JSON(); err != nil {
+			fmt.Print(err)
+		}
+	}()
+
+	if err != nil {
+		return err
+	}
+
+	if err := Test_Vitest(""); err != nil {
+		return err
+	}
+
+	return Test_Playwright("")
+}
+
+// Run ESLint lint checks on frontend code.
+func Lint() error {
 	fmt.Println("Running ESLint linting checks...")
 	cmd := exec.Command("npm", "run-script", "lint")
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
+	return cmd.Run()
+}
 
+// Run backend golang tests via gotestsum, passing the passed in args to "go test".
+func Test_Golang(goTestArgs string) error {
 	fmt.Println("Running backend tests...")
-	if err := sh.RunV("go", "test", "./..."); err != nil {
-		return err
-	}
 
-	fmt.Println("Running frontend tests...")
-	cmd = exec.Command("npm", "run-script", "test")
+	if goTestArgs = strings.TrimSpace(goTestArgs); goTestArgs == "" {
+		goTestArgs = "./..."
+	}
+	return sh.RunV("go", "tool", "gotest.tools/gotestsum",
+		"--format=testname",
+		"--format-hide-empty-pkg",
+		"--format-icons=default",
+		"--junitfile tmp/test-results/go-test-report.xml",
+		"--junitfile-hide-empty-pkg",
+		"--junitfile-project-name craig-stars",
+		"--junitfile-testname-classname short",
+		"--junitfile-testsuite-name short",
+		"--", goTestArgs)
+}
+
+// Run frontend tests using Vitest.
+func Test_Vitest(vitestArgs string) error {
+	fmt.Println("Running vitest tests...")
+	cmd := exec.Command("npm", "run-script", "test:unit", "--", vitestArgs)
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
+	return cmd.Run()
+}
 
-	return nil
+// Run end-to-end tests using Playwright.
+func Test_Playwright(playwrightArgs string) error {
+	fmt.Println("Running playwright tests...")
+	cmd := exec.Command("npm", "run-script", "test:e2e", "--", playwrightArgs)
+	cmd.Dir = "./frontend"
+	os.Setenv("PLAYWRIGHT_JUNIT_OUTPUT_NAME", "tmp/test-results/playwright-report.xml")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // Download frontend image files, replacing existent ones if present.
@@ -187,6 +233,7 @@ func unzipTempFile(tmpName string) error {
 // Merge all temp json files from tmp folder together into 1 file.
 // This takes all files matching the format "diff_**.jsonl"
 // and merges them together into 1 large file.
+// Comments are added between failing tests from different packages.
 func Merge_Temp_JSON() error {
 	tmp, err := os.Open("tmp")
 	if err != nil {
@@ -215,18 +262,19 @@ func Merge_Temp_JSON() error {
 		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
 
 		// grab file data
-		file, _ := os.Open("tmp/" + fileName)
+		file, _ := os.Open("tmp/" + fileName) // err can be discarded since we only check files in the directory
 		defer file.Close()
 		fileBytes, err := io.ReadAll(file)
 		if err != nil {
 			return mg.Fatalf(1, "error during io.ReadAll: \n%w", err)
 		}
 
-		// Add a short comment mentioning which package we're in to the start of the file
+		// Add a header mentioning which package we're in to the start of the file
 		contents := "//*" +
 			strings.ToUpper(pkgName) + "\n" +
 			string(fileBytes)
 		if count == 0 {
+			// truncate file if it already exists
 			err = os.WriteFile("tmp/diff.jsonl", []byte(contents), 0644)
 		} else {
 			err = test.AppendFile("tmp/diff.jsonl", "\n"+contents)
@@ -240,7 +288,7 @@ func Merge_Temp_JSON() error {
 
 	var message string
 	if count > 0 {
-		message = fmt.Sprintf("Successfully merged %d json files into tmp/diff.jsonl.", count)
+		message = fmt.Sprintf("Successfully merged %d temp json files into tmp/diff.jsonl.", count)
 	} else {
 		message = "No JSON files to merge were found."
 	}

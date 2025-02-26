@@ -11,9 +11,10 @@ const pkg = JSON.parse(json);
 
 export default defineConfig(({ mode }) => ({
 	test: {
-		reporters: process.env.CI ? ['junit', 'github-actions'] : 'default',
+		reporters: ['junit', process.env.CI ? 'github-actions' : 'default'],
 		include: ['src/**/*.{test,spec}.{js,ts}'],
-		environment: 'jsdom'
+		environment: 'jsdom',
+		outputFile: "../tmp/test-results/vitest-report.xml"
 	},
 	resolve: {
 		conditions: mode === 'test' ? ['browser'] : []

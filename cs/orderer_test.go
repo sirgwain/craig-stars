@@ -1102,9 +1102,9 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			err := o.TransferPlanetCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount, []*Planet{tt.args.dest})
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Errorf("orders.TransferPlanetCargo() did not return error when expected")
+					t.Fatalf("orders.TransferPlanetCargo() did not return error when expected")
 				} else {
-					t.Errorf("orders.TransferPlanetCargo() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("orders.TransferPlanetCargo() errored unexpectedly; err = \n%v", err)
 				}
 			}
 
@@ -1241,9 +1241,9 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 			err := o.TransferFleetCargo(&rules, player, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Errorf("orders.TransferFleetCargo() did not return error when expected")
+					t.Fatalf("orders.TransferFleetCargo() did not return error when expected")
 				} else {
-					t.Errorf("orders.TransferFleetCargo() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("orders.TransferFleetCargo() errored unexpectedly; err = \n%v", err)
 				}
 			}
 			if err == nil {
@@ -1333,9 +1333,9 @@ func Test_orders_TransferMineralPacketCargo(t *testing.T) {
 			err := o.TransferMineralPacketCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Errorf("orders.TransferMineralPacketCargo() did not return error when expected")
+					t.Fatalf("orders.TransferMineralPacketCargo() did not return error when expected")
 				} else {
-					t.Errorf("orders.TransferMineralPacketCargo() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("orders.TransferMineralPacketCargo() errored unexpectedly; err = \n%v", err)
 				}
 			}
 
@@ -1820,9 +1820,17 @@ func Test_orders_SplitFleet(t *testing.T) {
 				DestTokens:     tt.args.destTokens,
 				TransferAmount: tt.args.transferAmount,
 			})
-			test.CheckUnexpectedError(t, err, tt.want.err)
+
+			if (err != nil) != tt.want.err {
+				if tt.want.err {
+					t.Fatalf("orders.TransferMineralPacketCargo() did not return error when expected")
+				} else {
+					t.Fatalf("orders.TransferMineralPacketCargo() errored unexpectedly; err = \n%v", err)
+				}
+			}
+
 			if err != nil && !strings.Contains(fmt.Sprint(err), tt.want.errContains) {
-				t.Errorf("orders.SplitFleet() error = %v, wantErrContains %s", err, tt.want.errContains)
+				t.Errorf("orders.SplitFleet() returned error \n%v, expected error to contain \n%s", err, tt.want.errContains)
 			}
 			if err == nil {
 				// the dest and source should have the passed in tokens
