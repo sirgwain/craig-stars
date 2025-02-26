@@ -55,10 +55,6 @@ jobs:
           --junitfile-testname-classname short
           --junitfile-testsuite-name short
 
-      - name: Find and merge failing JSON diff files
-        run: mage merge_temp_json
-        if: always()
-
       - name: Upload merged JSON diff to cloud
         uses: actions/upload-artifact@v4
         with:

@@ -70,14 +70,14 @@ While manual local dev testing is good, software testing & debugging are also cr
 - [Vitest](https://vitest.dev/guide/cli.html) for frontend unit tests.
 - [Playwright](https://playwright.dev/docs/running-tests) for end-to-end integration tests.
 
-After writing new or updating existing tests, there are several options as for how to run them:
+After writing new or updating existing tests, there are several options as for how to run them.
 
-- Run tests from the command line:
+- Run from the command line:
   - `mage test` to run everything at once. Great for overall checks to make sure everything works, bad for specific problem fixes.
   - `mage test_golang`, `mage test_vitest` and `mage test_playwright` to run tests for a given test provider. Each passes their arguments directly to the test provider.
   - Protip: to run test functions matching a regex, run `mage test_backend --run="XXX"`, `mage test-frontend -- XXX`.
-- Run tests using th
-- Run/debug using the Testing panel in the activity bar - tests can be filtered by result, directory, etc.
+  - Run tests using the various VS Code tasks inside `tasks.json`. These technically occur within the UI
+- Run/debug using the Test Explorer panel in the activity bar - tests can be filtered by result, directory, etc.
 - Run/debug using the small buttons displayed in test files and next to test functions.
 
 NOTE: VSCode's Test Explorer has been known to adversely affect test performance. If your tests are failing due to timing out, try increasing the "Test timeout" variable in your settings.

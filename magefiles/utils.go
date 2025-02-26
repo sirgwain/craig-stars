@@ -22,12 +22,6 @@ func Test() error {
 	}
 
 	err := Test_Golang("./...")
-	defer func() {
-		if err := Merge_Temp_JSON(); err != nil {
-			fmt.Print(err)
-		}
-	}()
-
 	if err != nil {
 		return err
 	}
@@ -56,6 +50,13 @@ func Test_Golang(goTestArgs string) error {
 	if goTestArgs = strings.TrimSpace(goTestArgs); goTestArgs == "" {
 		goTestArgs = "./..."
 	}
+	defer func() {
+		// merge json once we're done
+		if err := Merge_Temp_JSON(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
 	return sh.RunV("go", "tool", "gotest.tools/gotestsum",
 		"--format=testname",
 		"--format-hide-empty-pkg",
@@ -66,6 +67,77 @@ func Test_Golang(goTestArgs string) error {
 		"--junitfile-testname-classname short",
 		"--junitfile-testsuite-name short",
 		"--", goTestArgs)
+}
+
+// Remove all temp json files inside tmp and merge them into 1 large file.
+// This takes all files matching the format "diff_**.jsonl"
+// and merges them together into 1 large file.
+// Comments are added between failing tests from different packages.
+func Merge_Temp_JSON() error {
+	tmp, err := os.Open("tmp")
+	if err != nil {
+		return mg.Fatalf(1, "error while opening temp folder: \n%w", err)
+	}
+	fileNames, err := tmp.Readdirnames(-1)
+	if err != nil {
+		return mg.Fatalf(1, "error while reading temp folder files: \n%w", err)
+	}
+
+	if len(fileNames) == 0 {
+		fmt.Println("No JSON diffs were found inside tmp to merge; exiting")
+		return nil
+	}
+
+	count := 0
+	for _, fileName := range fileNames {
+		if !strings.HasPrefix(fileName, "diff_") ||
+			!strings.HasSuffix(fileName, ".jsonl") {
+			// file doesn't start with correct prefix; probably not a json file
+			continue
+		}
+
+		// extract name of package from file name
+		pkgName, _ := strings.CutPrefix(fileName, "diff_")
+		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
+
+		// grab file data
+		file, _ := os.Open("tmp/" + fileName) // err can be discarded since we only check files actually in the directory
+		defer file.Close()
+		fileBytes, err := io.ReadAll(file)
+		if err != nil {
+			return mg.Fatalf(1, "error during io.ReadAll: \n%w", err)
+		}
+
+		// Add a header mentioning which package we're in to the start of the file
+		contents := "//*" +
+			strings.ToUpper(pkgName) + "\n" +
+			string(fileBytes)
+		if count == 0 {
+			// truncate file if it already exists
+			if err := os.WriteFile("tmp/diff.jsonl", []byte(contents), 0644); err != nil {
+				return mg.Fatalf(1, "error during os.WriteFile: \n%w", err)
+			}
+		} else {
+			if err := test.AppendFile("tmp/diff.jsonl", "\n"+contents); err != nil {
+				return mg.Fatalf(1, "error during test.AppendFile: \n%w", err)
+			}
+		}
+
+		count++
+		// remove test file after being merged
+		if err := sh.Rm(fileName); err != nil {
+			return err
+		}
+	}
+
+	var message string
+	if count > 0 {
+		message = fmt.Sprintf("Successfully merged %d temp json files into tmp/diff.jsonl.", count)
+	} else {
+		message = "No JSON files to merge were found."
+	}
+	fmt.Println(message, "\nHave a nice day.")
+	return nil
 }
 
 // Run frontend tests using Vitest.
@@ -227,71 +299,5 @@ func unzipTempFile(tmpName string) error {
 	}
 	fmt.Println("unzipped images to frontend/static/images")
 
-	return nil
-}
-
-// Merge all temp json files from tmp folder together into 1 file.
-// This takes all files matching the format "diff_**.jsonl"
-// and merges them together into 1 large file.
-// Comments are added between failing tests from different packages.
-func Merge_Temp_JSON() error {
-	tmp, err := os.Open("tmp")
-	if err != nil {
-		return mg.Fatalf(1, "error while opening temp folder: \n%w", err)
-	}
-	fileNames, err := tmp.Readdirnames(-1)
-	if err != nil {
-		return mg.Fatalf(1, "error while reading temp folder files: \n%w", err)
-	}
-
-	if len(fileNames) == 0 {
-		fmt.Println("No JSON diffs were found inside ./tmp to merge; exiting")
-		return nil
-	}
-
-	count := 0
-	for _, fileName := range fileNames {
-		if !strings.HasPrefix(fileName, "diff_") ||
-			!strings.HasSuffix(fileName, ".jsonl") {
-			// file doesn't start with correct prefix; probably not a json file
-			continue
-		}
-
-		// extract name of package from file name
-		pkgName, _ := strings.CutPrefix(fileName, "diff_")
-		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
-
-		// grab file data
-		file, _ := os.Open("tmp/" + fileName) // err can be discarded since we only check files in the directory
-		defer file.Close()
-		fileBytes, err := io.ReadAll(file)
-		if err != nil {
-			return mg.Fatalf(1, "error during io.ReadAll: \n%w", err)
-		}
-
-		// Add a header mentioning which package we're in to the start of the file
-		contents := "//*" +
-			strings.ToUpper(pkgName) + "\n" +
-			string(fileBytes)
-		if count == 0 {
-			// truncate file if it already exists
-			err = os.WriteFile("tmp/diff.jsonl", []byte(contents), 0644)
-		} else {
-			err = test.AppendFile("tmp/diff.jsonl", "\n"+contents)
-		}
-		if err != nil {
-			return mg.Fatalf(1, "error during test.AppendFile: \n%w", err)
-		}
-
-		count++
-	}
-
-	var message string
-	if count > 0 {
-		message = fmt.Sprintf("Successfully merged %d temp json files into tmp/diff.jsonl.", count)
-	} else {
-		message = "No JSON files to merge were found."
-	}
-	fmt.Println(message, "\nHave a nice day.")
 	return nil
 }
