@@ -20,7 +20,8 @@ func TestCompareAsJSON(t *testing.T) {
 			got:        cs.NewPlanet().WithMines(40),
 			want:       cs.NewPlanet().WithNum(20),
 			wantFailed: true,
-			wantDiff: `{
+			wantDiff: `// TestCompareAsJSON/2 different planets
+{
 	"mines": {"changed": [40, 0]},
 	"num": {"changed": [0, 20]}
 }
@@ -37,9 +38,8 @@ func TestCompareAsJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// fixup by adding doc comment
-			tt.wantDiff = "// " + t.Name() + "\n" + tt.wantDiff
 			m := new(mockTestingT)
-			m.name = tt.name
+			m.name = t.Name()
 			CompareAsJSON(m, tt.got, tt.want)
 			// Check if function failed;
 			// m.failed is set to true when func would've normally failed a test
@@ -60,7 +60,7 @@ func TestCompareAsJSON(t *testing.T) {
 			}
 			gotDiff := string(gotBytes)
 			if gotDiff != tt.wantDiff {
-				t.Errorf("CompareAsJSON() outputted incorrect diff:\nGot: %v\nWant: %v", gotDiff, tt.wantDiff)
+				t.Errorf("CompareAsJSON() outputted incorrect diff:\nGot: \n%v\nWant: \n%v", gotDiff, tt.wantDiff)
 			}
 		})
 

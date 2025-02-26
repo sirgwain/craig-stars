@@ -1564,7 +1564,7 @@ export interface Rules extends CostRules, BattleRules, UniverseGenerationRules {
 	populationOvercrowdResourceMax: number /* float64 */;
 	populationScannerError: number /* float64 */;
 	prtSpecs: { [key: PRT]: PRTSpec };
-	raceStartingPoints: number /* int */;
+	raceStartingPoints: number /* int */; // TODO: Change this into a "handicap" system with bonuses/penalties per PRT/LRT
 	radiatingImmune: number /* int */;
 	randomArtifactResearchBonusRange: number /* int */[];
 	randomCometMinYear: number /* int */;
@@ -1593,7 +1593,7 @@ export interface Rules extends CostRules, BattleRules, UniverseGenerationRules {
 	wormholeStatsByStability: { [key: WormholeStability]: WormholeStats };
 }
 export interface UniverseGenerationRules {
-	habDropoffRange: Hab; // Controls up to how many clicks (inclusive) away from MinHab & MaxHab do planet habs become linearly less likely
+	habDropoffRange: Hab; // Controls up to how many clicks (inclusive) away from MinHab & MaxHab planet habs become linearly less likely
 	highRadMineralConcentrationBonusThreshold: number /* int */;
 	limitMineralConcentration: number /* int */;
 	maxExtraWorldDistance: number /* int */;
@@ -1608,7 +1608,7 @@ export interface UniverseGenerationRules {
 	minMineralConcentration: number /* int */;
 	minStartingMineralConcentration: number /* int */;
 	minStartingMineralSurface: number /* int */;
-	raceLeftoverPointsPerItem: { [key: SpendLeftoverPointsOn]: number /* int */ };
+	raceLeftoverPointsPerItem: { [key: SpendLeftoverPointsOn]: number /* int */ }; // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT
 	startingYear: number /* int */;
 	wormholeMinPlanetDistance: number /* int */;
 }

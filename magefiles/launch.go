@@ -110,9 +110,11 @@ func Generate() error {
 	if err := sh.RunV("go", "tool", "github.com/gzuidhof/tygo", "generate"); err != nil {
 		return err
 	}
+
 	// format generated tygo file on non-CI runs
 	if _, ok := os.LookupEnv("CI"); !ok {
-		cmd := exec.Command("npx", "prettier", "--write src/lib/types/cs.ts")
+		fmt.Println("running prettier on tygo generated file")
+		cmd := exec.Command("npx", "prettier", "--write", "./src/lib/types/cs.ts")
 		cmd.Dir = "./frontend"
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr

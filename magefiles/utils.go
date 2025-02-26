@@ -71,7 +71,7 @@ func Test_Golang(goTestArgs string) error {
 
 // Remove all temp json files inside tmp and merge them into 1 large file.
 // This takes all files matching the format "diff_**.jsonl"
-// and merges them together into 1 large file.
+// and merges them together into 1 large file for easy parsing & CI uploading.
 // Comments are added between failing tests from different packages.
 func Merge_Temp_JSON() error {
 	tmp, err := os.Open("tmp")
@@ -155,7 +155,6 @@ func Test_Playwright(playwrightArgs string) error {
 	fmt.Println("Running playwright tests...")
 	cmd := exec.Command("npm", "run-script", "test:e2e", "--", playwrightArgs)
 	cmd.Dir = "./frontend"
-	os.Setenv("PLAYWRIGHT_JUNIT_OUTPUT_NAME", "tmp/test-results/playwright-report.xml")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

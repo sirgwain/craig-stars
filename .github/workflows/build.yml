@@ -14,7 +14,7 @@ on:
 
 env:
   go-version: 1.24.x
-  test_results: ./tmp/test-results
+  temp_dir: ./tmp
 
 jobs:
   test_backend:
@@ -49,17 +49,21 @@ jobs:
           go run gotest.tools/gotestsum@latest \
           --format=github-actions \
           --format-hide-empty-pkg \
-          --junitfile ${{env.test_results}}/go-test-report.xml \
+          --junitfile ${{env.temp_dir}}/test-results/go-test-report.xml \
           --junitfile-hide-empty-pkg
           --junitfile-project-name ${{github.repository}}
           --junitfile-testname-classname short
           --junitfile-testsuite-name short
 
+      - name: Merge failed JSON diffs
+        run: mage merge-temp-json
+        if: always()
+
       - name: Upload merged JSON diff to cloud
         uses: actions/upload-artifact@v4
         with:
           name: "JSON Diff"
-          path: "./tmp/diff.json"
+          path: "${{env.temp_dir}}/diff.json"
           if-no-files-found: ignore
           overwrite: true
           retention-days: 7
@@ -68,7 +72,7 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: ${{env.test_results}}/go-test-report.xml
+          paths: ${{env.temp_dir}}/test-results/go-test-report.xml
         if: always()
 
   build:
@@ -107,17 +111,13 @@ jobs:
         with:
           install-only: true
 
-      - name: Install Node.js dependencies
-        run: npm ci
-        working-directory: ./frontend
-
       - name: Generate Go files and frontend static resources
         run: mage generate
 
-      - name: Grab images for playwright tests
+      - name: Download images for playwright tests
         run: mage images
 
-      - name: Copy wasm_exec into frontend folder
+      - name: Copy wasm_exec into frontend
         run: mage copy_wasm_exec
 
       - name: Build Backend Go Binary
@@ -128,33 +128,35 @@ jobs:
         run: npx playwright install --with-deps
         working-directory: ./frontend
 
-      - name: Set Playwright env vars for logging
-        run: echo "{PLAYWRIGHT_JUNIT_OUTPUT_NAME}={.${{env.test_results}}/playwright-report.xml}" >> $GITHUB_ENV
-
       - name: Run Playwright tests
         run: npx playwright test
         working-directory: ./frontend
         id: playwright-test
 
-      - name: Upload Playwright report
+      - name: Upload Playwright reports on fail
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: ${{env.test_results}}/playwright-report.xml
+          path: |
+            ${{env.temp_dir}}/playwright-report
+            ${{env.temp_dir}}/test-results/playwright-report.xml
+          overwrite: true
           retention-days: 7
-        if: always()
+        if: ${{steps.playwright-test.outcome}} == failure
 
       - name: Run Vitest tests
         run: npx vitest --run
         working-directory: ./frontend
+        id: vitest-test
 
       - name: Upload Vitest report
         uses: actions/upload-artifact@v4
         with:
           name: vitest-report
-          path: ${{env.test_results}}/vitest-report.xml
+          path: ${{env.temp_dir}}/test-results/vitest-report.xml
+          overwrite: true
           retention-days: 7
-        if: always()
+        if: ${{steps.vitest-test.outcome}} == failure
 
       - name: Build Frontend Binary
         run: npm run build
@@ -163,5 +165,5 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: "${{env.test_results}}/*_report.xml"
+          paths: "${{env.temp_dir}}/test-results/*_report.xml"
         if: always()

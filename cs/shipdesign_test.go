@@ -212,9 +212,12 @@ func TestShipDesign_Validate(t *testing.T) {
 				Hull:  tt.fields.Hull,
 				Slots: tt.fields.Slots,
 			}
-			err := sd.Validate(&rules, tt.args.player)
-			if (err == nil) != tt.wantErr {
-
+			if err := sd.Validate(&rules, tt.args.player); (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Errorf("ShipDesign.Validate() failed to error when expected")
+				} else {
+					t.Fatalf("ShipDesign.Validate() errored unexpectedly; err = \n%v", err)
+				}
 			}
 		})
 	}

@@ -11,12 +11,14 @@ craig-stars is a web based game. The backend logic and server is written in [Go]
 
 ### Go Deps
 
-After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make-like build tool/command executer helping to execute complex build commands.
+After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make-like build tool/command executer written in Go for execution of complex build commands.
 It's included in the project's `go.mod` dependency tracker anyways, but using `go install` allows us to run it from the command line directly.
 
 ```bash
 go install github.com/magefile/mage@latest
 ```
+
+**Disclaimer**: Magefile commands must be run from the repository root (otherwise mage won't find the files).
 
 ## Assets
 
@@ -34,7 +36,7 @@ After performing all that setup, you should be good to go!
 You have 2 methods to launch the server:
 
 1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This builds the server before launching the frontend and backend in separate terminals.
-2. Run `mage run` from your terminal. This does essentially the same thing, but launches them inside the same terminal within separate goroutines. (_Note_: Don't worry if Mage complains about exceeding cleanup deadlines.)
+2. Run `mage run` from your terminal inside the root folder. This does essentially the same thing, but launches them inside the same terminal within separate goroutines. (_Note_: Don't worry if Mage complains about exceeding cleanup deadlines.)
 
 On first launch, this will create an empty database in `./data` with a single `admin` user (password `admin`). (If it fails, try clearing the data folder and trying again.)
 
@@ -52,35 +54,31 @@ mage launch_frontend
 mage launch_backend
 ```
 
-(For those curious, this is how VS Code launches the server.)
+(For those curious, this is how the aforementioned build task launches the server.)
 
 # Visual Studio Code
 
-[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use frontend and backend plugins without issue in the same repo.
-It also contains [tasks.json](/.vscode/tasks.json) and [launch.json](/.vscode/tasks.json) files containing various prebuilt commands and debug configurations. (There's a build task to build & launch the entire server in 1 button press.)
-It also comes with a built in terminal, debugging support, and an array of assorted bells and whistles useful for general software development.
+[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened inside VS Code in order to use frontend and backend plugins without issue in the same repo. The repository also contains [tasks.json](/.vscode/tasks.json) and [launch.json](/.vscode/tasks.json) files containing various prebuilt commands and debug configurations.
 
 ## Running Tests
 
-While manual local dev testing is good, software testing & debugging are also crucial to ensure things run (and continue to run) smoothly.\
-`craig-stars` makes use of 3 different software testing providers:
+While manual local dev testing is certainly valuable, software testing & debugging are also crucial to ensure things run (and continue to run) smoothly.\
+`craig-stars` makes use of 3 different automated software testing providers:
 
-- [gotestsum](https://github.com/gotestyourself/gotestsum) for backend Golang unit tests. This runs `go test` under the hood
-  - _Note_: `VSCode-Go` doesn't currently support running alternate test tools, so running tests from within VS Code's UI will just use regular old `go test`.
-- [Vitest](https://vitest.dev/guide/cli.html) for frontend unit tests.
-- [Playwright](https://playwright.dev/docs/running-tests) for end-to-end integration tests.
+- [gotestsum](https://github.com/gotestyourself/gotestsum) for backend Golang unit tests. This runs `go test` under the hood and does fancy formatting on the output.
+- [Vitest](https://vitest.dev/) for frontend unit tests.
+- [Playwright](https://playwright.dev/) for end-to-end integration tests.
 
 After writing new or updating existing tests, there are several options as for how to run them.
 
-- Run from the command line:
-  - `mage test` to run everything at once. Great for overall checks to make sure everything works, bad for specific problem fixes.
-  - `mage test_golang`, `mage test_vitest` and `mage test_playwright` to run tests for a given test provider. Each passes their arguments directly to the test provider.
-  - Protip: to run test functions matching a regex, run `mage test_backend --run="XXX"`, `mage test-frontend -- XXX`.
-  - Run tests using the various VS Code tasks inside `tasks.json`. These technically occur within the UI
-- Run/debug using the Test Explorer panel in the activity bar - tests can be filtered by result, directory, etc.
-- Run/debug using the small buttons displayed in test files and next to test functions.
+- Run `mage test` to run everything at once. Great for overall checks to make sure everything works, bad for specific problem fixes.
+- Run `mage test_golang`, `mage test_vitest` and `mage test_playwright` to run tests for a given test provider at a time. Each passes their arguments directly to the test provider, so you can pass all the same arguments as you would to `go test` or `vitest`.
+  - Protip: To test only files matching a specific file name or regex, you can use the `--run=` flag for `go test` or simply type it in for vitest & playwright.
+- Run the various test tasks inside `tasks.json` (the green ones with icons). There's 4 in total, one for each of the above mage commands.
+- Run tests from VS Code's UI, via either the Test Explorer panel or the small buttons displayed within test files.
+  - _Note_: `vscode-go` doesn't currently support running alternate test tools from the UI, so running tests this way will just use plain old `go test`.
 
-NOTE: VSCode's Test Explorer has been known to adversely affect test performance. If your tests are failing due to timing out, try increasing the "Test timeout" variable in your settings.
+_NOTE_: Slower devices may have trouble running backend tests within the default timeout of 30s, especially ones inside `./server` involving serialization to/from the database. If your tests are routinely timing out, consider increasing the "Go: Test Timeout" variable in your settings.
 
 # Troubleshooting
 

@@ -22,8 +22,5 @@
         "options": ["omitempty", "-"],
       },
     },
-    "files.eol": "\n",
-    // Increase test timeout so slower devices can run turn generation tests without failing
-    "go.testTimeout": "300s",
   },
 }

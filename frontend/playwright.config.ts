@@ -11,13 +11,15 @@ export default defineConfig({
 	// single threaded or we need to use a non memory db
 	workers: 1,
 
-	reporter: process.env.CI
-		? [
-				['github'],
-				['junit', { outputFile: 'test-results.json' }],
-				['html', { outputFolder: 'playwright-report', open: 'never' }]
-			]
-		: [['list'], ['html', { outputFolder: 'playwright-report', open: 'on-failure' }]],
+	reporter: [
+		process.env.CI ? ['github'] : ['list'],
+		// Change these if we ever change github action's tmpdir folder
+		['junit', { outputFile: '../tmp/test-results/playwright-report.xml' }],
+		[
+			'html',
+			{ outputFolder: '../tmp/playwright-report', open: process.env.CI ? 'never' : 'on-failure' }
+		]
+	],
 	webServer: [
 		{
 			cwd: '../',
