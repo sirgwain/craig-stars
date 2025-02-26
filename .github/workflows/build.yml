@@ -115,11 +115,17 @@ jobs:
         run: npm ci
         working-directory: ./frontend
 
+      - name: Generate Go files and frontend static resources
+        run: mage generate
+
       - name: Grab images for playwright tests
         run: mage images
 
+      - name: Copy wasm_exec into frontend folder
+        run: mage copy_wasm_exec
+
       - name: Build Backend Go Binary
-        run: CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend_ci "" "" ""
+        run: CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend
 
         # build the frontend (slow)
       - name: Install Playwright Browsers
