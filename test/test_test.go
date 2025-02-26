@@ -20,7 +20,7 @@ func TestCompareAsJSON(t *testing.T) {
 			got:        cs.NewPlanet().WithMines(40),
 			want:       cs.NewPlanet().WithNum(20),
 			wantFailed: true,
-			wantDiff: `// TestCompareAsJSON/2 different planets
+			wantDiff: `// TestCompareAsJSON/2_different_planets
 {
 	"mines": {"changed": [40, 0]},
 	"num": {"changed": [0, 20]}
