@@ -62,7 +62,10 @@ func TestCompareAsJSON(t *testing.T) {
 			if gotDiff != tt.wantDiff {
 				t.Errorf("CompareAsJSON() outputted incorrect diff:\nGot: \n%v\nWant: \n%v", gotDiff, tt.wantDiff)
 			}
-			os.RemoveAll("../tmp/diff.jsonl") // delete temp diff afterwards
+			if _, err := os.Create("../tmp/diff.jsonl"); err != nil {
+				// truncate temp diff file afterwards
+				t.Errorf("failure during truncating tmp/diff.jsonl; \n%v", err)
+			}
 		})
 
 	}
