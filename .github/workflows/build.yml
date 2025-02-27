@@ -49,9 +49,9 @@ jobs:
           go run gotest.tools/gotestsum@latest \
           --format=github-actions \
           --format-hide-empty-pkg \
-          --rerun-fails=2 \
-          --rerun-fails-max-failures=10 \
-          --rerun-fails-run-root-test
+          --rerun-fails \
+          --rerun-fails-run-root-test \
+          --rerun-fails-report ${{env.temp_dir}}/test-results/gotestsum-flake-report.txt
           --junitfile ${{env.temp_dir}}/test-results/gotestsum-report.xml \
           --junitfile-hide-empty-pkg \
           --junitfile-project-name ${{github.repository}} \
@@ -72,11 +72,11 @@ jobs:
           retention-days: 7
         if: ${{steps.go-tests.outcome}} == 'failure'
 
-      - name: Upload JUnit report
+      - name: Upload gotestsum reports
         uses: actions/upload-artifact@v4
         with:
           name: gotestsum-report
-          path: ${{env.temp_dir}}/test-results/gotestsum-report.xml
+          path: ${{env.temp_dir}}/test-results/*
           overwrite: true
           retention-days: 7
         if: ${{steps.go-tests.outcome}} == 'failure'
@@ -145,13 +145,11 @@ jobs:
         working-directory: ./frontend
         id: playwright-test
 
-      - name: Upload Playwright reports on fail
+      - name: Upload Playwright reports
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: |
-            ${{env.temp_dir}}/playwright-report
-            ${{env.temp_dir}}/test-results/playwright-report.xml
+          path: ${{env.temp_dir}}/test-results/playwright-report
           overwrite: true
           retention-days: 7
         if: ${{steps.playwright-test.outcome}} == 'failure'
@@ -177,5 +175,5 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: "${{env.temp_dir}}/test-results/*_report.xml"
+          paths: "${{env.temp_dir}}/**/*_report.xml"
         if: always()

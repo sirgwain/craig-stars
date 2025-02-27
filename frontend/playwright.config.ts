@@ -13,12 +13,13 @@ export default defineConfig({
 
 	reporter: [
 		process.env.CI ? ['github'] : ['list'],
-		// Change these if we ever change github action's tmpdir folder
-		['junit', { outputFile: '../tmp/test-results/playwright-report.xml' }],
 		[
 			'html',
-			{ outputFolder: '../tmp/playwright-report', open: process.env.CI ? 'never' : 'on-failure' }
-		]
+			{ outputFolder: '../tmp/test-results/playwright-reports', open: process.env.CI ? 'never' : 'on-failure' }
+		],
+
+		// Change these if we ever change github action's tmpdir folder
+		['junit', { outputFile: '../tmp/test-results/playwright-reports/playwright-report.xml' }]
 	],
 	webServer: [
 		{
