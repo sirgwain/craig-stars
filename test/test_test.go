@@ -1,6 +1,7 @@
 package test
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -35,18 +36,14 @@ func TestCompareAsJSON(t *testing.T) {
 			wantDiff:   "",
 		},
 	}
-	defer func() {
-		// remove json for CI reasons
-		if err := os.RemoveAll("../tmp/diff.jsonl"); err != nil {
-			t.Error(err)
-		}
-	}()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := os.Create("../tmp/diff.jsonl"); err != nil {
-				// truncate temp diff file before test start
-				t.Errorf("failure during truncating tmp/diff.jsonl; \n%v", err)
-			}
+			defer func() {
+				// remove json to make sure successive runs still pass
+				if err := os.RemoveAll("../tmp/diff.jsonl"); err != nil {
+					t.Error(err)
+				}
+			}()
 			// fixup by adding doc comment
 			m := new(mockTestingT)
 			m.name = t.Name()
@@ -63,14 +60,26 @@ func TestCompareAsJSON(t *testing.T) {
 				t.Errorf("CompareAsJSON() %s; test failed flag returned %v instead of %v", s, m.failed, tt.wantFailed)
 			}
 
-			// check the diff file to make sure it outputted the correct text
-			gotBytes, err := os.ReadFile("../tmp/diff.jsonl")
-			if err != nil {
-				t.Fatalf("error reading diff file: \n%v", err)
-			}
-			gotDiff := string(gotBytes)
-			if gotDiff != tt.wantDiff {
-				t.Errorf("CompareAsJSON() outputted incorrect diff:\nGot: \n%v\nWant: \n%v", gotDiff, tt.wantDiff)
+			if tt.wantFailed {
+				// check the diff file to make sure it outputted the correct text
+				gotBytes, err := os.ReadFile("../tmp/diff.jsonl")
+				if err != nil {
+					t.Fatalf("error reading diff file: \n%v", err)
+				}
+				gotDiff := string(gotBytes)
+				if gotDiff != tt.wantDiff {
+					t.Errorf("CompareAsJSON() outputted incorrect diff:\nGot: \n%v\nWant: \n%v", gotDiff, tt.wantDiff)
+				}
+			} else if _, err := os.Stat("../tmp/diff.jsonl"); !errors.Is(err, os.ErrNotExist) {
+				// if we want the test to succeed, make sure the function didn't create the diff file
+				if err != nil {
+					t.Fatalf("error checking file existence: \n%v", err)
+				}
+				gotBytes, err := os.ReadFile("../tmp/diff.jsonl")
+				if err != nil {
+					t.Fatalf("error reading diff file: \n%v", err)
+				}
+				t.Fatalf("CompareAsJSON() created diff file when it wasn't supposed to; outputted diff:\n%s", gotBytes)
 			}
 
 		})

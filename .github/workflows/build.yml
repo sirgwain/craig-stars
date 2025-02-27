@@ -49,10 +49,11 @@ jobs:
           go run gotest.tools/gotestsum@latest \
           --format=github-actions \
           --format-hide-empty-pkg \
+          --rerun-fails=2 \
           --junitfile ${{env.temp_dir}}/test-results/gotestsum-report.xml \
-          --junitfile-hide-empty-pkg
-          --junitfile-project-name ${{github.repository}}
-          --junitfile-testname-classname short
+          --junitfile-hide-empty-pkg \
+          --junitfile-project-name ${{github.repository}} \
+          --junitfile-testname-classname short \
           --junitfile-testsuite-name short
 
       - name: Merge failed JSON diffs
@@ -81,7 +82,7 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: ${{env.temp_dir}}/test-results/go-test-report.xml
+          paths: ${{env.temp_dir}}/test-results/gotestsum-report.xml
         if: always()
 
   build:
@@ -151,7 +152,7 @@ jobs:
             ${{env.temp_dir}}/test-results/playwright-report.xml
           overwrite: true
           retention-days: 7
-        if: ${{steps.playwright-test.outcome}} =='failure'
+        if: ${{steps.playwright-test.outcome}} == 'failure'
 
       - name: Run Vitest tests
         run: npx vitest --run
