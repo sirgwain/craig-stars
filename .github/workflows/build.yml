@@ -50,6 +50,8 @@ jobs:
           --format=github-actions \
           --format-hide-empty-pkg \
           --rerun-fails=2 \
+          --rerun-fails-max-failures=10 \
+          --rerun-fails-run-root-test
           --junitfile ${{env.temp_dir}}/test-results/gotestsum-report.xml \
           --junitfile-hide-empty-pkg \
           --junitfile-project-name ${{github.repository}} \
