@@ -44,7 +44,7 @@ jobs:
 
       - name: Test Go Files
         id: go-tests
-        run: mage test_backend "./..."
+        run: mage test_golang "./..."
 
       - name: Upload gotestsum reports
         uses: actions/upload-artifact@v4
