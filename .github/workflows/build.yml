@@ -51,7 +51,7 @@ jobs:
           --format-hide-empty-pkg \
           --rerun-fails \
           --rerun-fails-run-root-test \
-          --rerun-fails-report ${{env.temp_dir}}/test-results/gotestsum-flake-report.txt
+          --rerun-fails-report ${{env.temp_dir}}/test-results/gotestsum-flake-report.txt \
           --junitfile ${{env.temp_dir}}/test-results/gotestsum-report.xml \
           --junitfile-hide-empty-pkg \
           --junitfile-project-name ${{github.repository}} \
@@ -62,21 +62,13 @@ jobs:
         run: mage merge_temp_json
         if: ${{steps.go-tests.outcome}} == 'failure'
 
-      - name: Upload merged JSON diff to cloud
-        uses: actions/upload-artifact@v4
-        with:
-          name: "JSON Diff"
-          path: "${{env.temp_dir}}/diff.jsonl"
-          if-no-files-found: ignore
-          overwrite: true
-          retention-days: 7
-        if: ${{steps.go-tests.outcome}} == 'failure'
-
       - name: Upload gotestsum reports
         uses: actions/upload-artifact@v4
         with:
           name: gotestsum-report
-          path: ${{env.temp_dir}}/test-results/*
+          path: |
+            ${{env.temp_dir}}/diff.jsonl
+            ${{env.temp_dir}}/test-results/*
           overwrite: true
           retention-days: 7
         if: ${{steps.go-tests.outcome}} == 'failure'
@@ -84,7 +76,7 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: ${{env.temp_dir}}/test-results/gotestsum-report.xml
+          paths: "${{env.temp_dir}}/**/*_report.xml"
         if: always()
 
   build:
