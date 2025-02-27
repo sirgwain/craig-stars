@@ -44,12 +44,14 @@ func Lint() error {
 }
 
 // Run backend golang tests via gotestsum, passing the passed in args to "go test".
+// Gotestsum args are dependent on the value of $CI and $GITHUB_REPOSITORY/$GH_REPO.
 func Test_Golang(goTestArgs string) error {
 	fmt.Println("Running backend tests...")
 
 	if goTestArgs = strings.TrimSpace(goTestArgs); goTestArgs == "" {
 		goTestArgs = "./..."
 	}
+
 	defer func() {
 		// merge json once we're done
 		if err := Merge_Temp_JSON(); err != nil {
@@ -57,16 +59,32 @@ func Test_Golang(goTestArgs string) error {
 		}
 	}()
 
-	return sh.RunV("go", "tool", "gotest.tools/gotestsum",
-		"--format=testname",
-		"--format-hide-empty-pkg",
-		"--format-icons=default",
-		"--junitfile tmp/test-results/go-test-report.xml",
-		"--junitfile-hide-empty-pkg",
-		"--junitfile-project-name craig-stars",
-		"--junitfile-testname-classname short",
-		"--junitfile-testsuite-name short",
-		"--", goTestArgs)
+	fileToRead := "gotestsum/gotestsum_config.txt"
+	if CI := os.Getenv("CI"); strings.TrimSpace(CI) != "" {
+		// use CI config if on CI
+		fileToRead = "gotestsum/gotestsum_config_ci.txt"
+	}
+	configBytes, err := os.ReadFile(fileToRead)
+	if err != nil {
+		return mg.Fatalf(1, "error while reading gotestsum config file: \n%w", err)
+	}
+
+	// extract values delimited by commas and whitespace
+	config := strings.FieldsFunc(string(configBytes), func(r rune) bool {
+		return (r == ',' || r == ' ' || r == '\n' || r == '\r')
+	})
+
+	// if $GITHUB_REPOSITORY is set and nonempty, use that as package name for JUnit report.
+	// Otherwise, check for $GH_REPO before falling back to a default string.
+	var repoName string = "craig-stars"
+	if r := strings.TrimSpace(os.Getenv("GITHUB_REPOSITORY")); r != "" {
+		repoName = r
+	} else if r = strings.TrimSpace(os.Getenv("GH_REPO")); r != "" {
+		repoName = r
+	}
+
+	// "go", "tool"
+	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": repoName}, config[0], config[1:]...)
 }
 
 // Remove all temp json files inside tmp and merge them into 1 large file.
@@ -101,11 +119,9 @@ func Merge_Temp_JSON() error {
 		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
 
 		// grab file data
-		file, _ := os.Open("tmp/" + fileName) // err can be discarded since we only check files actually in the directory
-		defer file.Close()
-		fileBytes, err := io.ReadAll(file)
+		fileBytes, err := os.ReadFile("tmp/" + fileName)
 		if err != nil {
-			return mg.Fatalf(1, "error during io.ReadAll: \n%w", err)
+			return mg.Fatalf(1, "error during os.ReadFile: \n%w", err)
 		}
 
 		// Add a header mentioning which package we're in to the start of the file

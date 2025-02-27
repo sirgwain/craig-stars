@@ -60,25 +60,31 @@ mage launch_backend
 
 [Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened inside VS Code in order to use frontend and backend plugins without issue in the same repo. The repository also contains [tasks.json](/.vscode/tasks.json) and [launch.json](/.vscode/tasks.json) files containing various prebuilt commands and debug configurations.
 
-## Running Tests
+# Testing
+
+<!--? Do we need to move this to its own section? -->
 
 While manual local dev testing is certainly valuable, software testing & debugging are also crucial to ensure things run (and continue to run) smoothly.\
 `craig-stars` makes use of 3 different automated software testing providers:
 
 - [gotestsum](https://github.com/gotestyourself/gotestsum) for backend Golang unit tests. This runs `go test` under the hood and does fancy formatting on the output.
 - [Vitest](https://vitest.dev/) for frontend unit tests.
-- [Playwright](https://playwright.dev/) for end-to-end integration tests.
+- [Playwright](https://playwright.dev/) for end-to-end integration/UI tests.
+
+Each provider comes with its [own](../gotestsum) [config](../frontend/vite.config.ts) [files](../frontend/playwright.config.ts), with varying settings for CI and non-CI runs.
+
+## Running & Debugging tests
 
 After writing new or updating existing tests, there are several options as for how to run them.
 
 - Run `mage test` to run everything at once. Great for overall checks to make sure everything works, bad for specific problem fixes.
-- Run `mage test_golang`, `mage test_vitest` and `mage test_playwright` to run tests for a given test provider at a time. Each passes their arguments directly to the test provider, so you can pass all the same arguments as you would to `go test` or `vitest`.
-  - Protip: To test only files matching a specific file name or regex, you can use the `--run=` flag for `go test` or simply type it in for vitest & playwright.
+- Run `mage test_golang`, `mage test_vitest` and `mage test_playwright` to run tests for a given test provider at a time. Each passes their arguments directly to the test provider, so you can pass all the same arguments to them as you would to `go test` or `vitest`. (Test reports are saved to `tmp/test-results` as JUnit XML files.)
+  - Protip: To test only files matching a specific file name or regex, you can use the `--run=` flag for `go test` or simply enter the test file name for vitest & playwright.
 - Run the various test tasks inside `tasks.json` (the green ones with icons). There's 4 in total, one for each of the above mage commands.
 - Run tests from VS Code's UI, via either the Test Explorer panel or the small buttons displayed within test files.
-  - _Note_: `vscode-go` doesn't currently support running alternate test tools from the UI, so running tests this way will just use plain old `go test`.
+  - Unfortunately, `vscode-go` doesn't currently support running alternate test tools for UI commands, so running backend tests this way will just use plain old `go test`.
 
-_NOTE_: Slower devices may have trouble running backend tests within the default timeout of 30s, especially ones inside `./server` involving serialization to/from the database. If your tests are routinely timing out, consider increasing the "Go: Test Timeout" variable in your settings.
+_NOTE_: Slower devices may have trouble running backend tests within the default timeout of 30s, especially ones inside `./server` involving repeated serialization to & from the database. If your tests are routinely timing out while succeeding on CI, consider increasing the "Go: Test Timeout" variable in your local settings.
 
 # Troubleshooting
 

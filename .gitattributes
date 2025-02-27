@@ -1,6 +1,8 @@
+# Use linefeeds for everything by default.
 * text=auto eol=lf
 
 # Treat all Go files in this repo as binary, with no git magic updating
 # line endings. Gofmt changes all line endings to LF when formatting,
-# so we don't need (or particularly want) git changing them to CRLF on pull.
+# so we neither need nor particularly want git changing them to CRLF
+# pre-pull.
 *.go -text diff=golang

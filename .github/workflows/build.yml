@@ -14,7 +14,6 @@ on:
 
 env:
   go-version: 1.24.x
-  temp_dir: ./tmp
 
 jobs:
   test_backend:
@@ -45,30 +44,15 @@ jobs:
 
       - name: Test Go Files
         id: go-tests
-        run: |
-          go run gotest.tools/gotestsum@latest \
-          --format=github-actions \
-          --format-hide-empty-pkg \
-          --rerun-fails \
-          --rerun-fails-run-root-test \
-          --rerun-fails-report ${{env.temp_dir}}/test-results/gotestsum-flake-report.txt \
-          --junitfile ${{env.temp_dir}}/test-results/gotestsum-report.xml \
-          --junitfile-hide-empty-pkg \
-          --junitfile-project-name ${{github.repository}} \
-          --junitfile-testname-classname short \
-          --junitfile-testsuite-name short
-
-      - name: Merge failed JSON diffs
-        run: mage merge_temp_json
-        if: ${{steps.go-tests.outcome}} == 'failure'
+        run: mage test_backend "./..."
 
       - name: Upload gotestsum reports
         uses: actions/upload-artifact@v4
         with:
           name: gotestsum-report
           path: |
-            ${{env.temp_dir}}/diff.jsonl
-            ${{env.temp_dir}}/test-results/*
+            tmp/diff.jsonl
+            tmp/test-results/*
           overwrite: true
           retention-days: 7
         if: ${{steps.go-tests.outcome}} == 'failure'
@@ -76,7 +60,7 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: "${{env.temp_dir}}/**/*_report.xml"
+          paths: "tmp/**/*_report.xml"
         if: always()
 
   build:
@@ -115,14 +99,8 @@ jobs:
         with:
           install-only: true
 
-      - name: Generate Go files and frontend static resources
-        run: mage generate
-
-      - name: Download images for playwright tests
-        run: mage images
-
-      - name: Copy wasm_exec into frontend
-        run: mage copy_wasm_exec
+      - name: Perform mage setup tasks (generate, images, copy_wasm)
+        run: mage generate images copy_wasm_exec
 
       - name: Build Backend Go Binary
         run: CGO_ENABLED=1 GOARCH=amd64 GOOS=linux mage build_backend
@@ -141,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: ${{env.temp_dir}}/test-results/playwright-report
+          path: tmp/test-results/playwright-report
           overwrite: true
           retention-days: 7
         if: ${{steps.playwright-test.outcome}} == 'failure'
@@ -155,7 +133,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vitest-report
-          path: ${{env.temp_dir}}/test-results/vitest-report.xml
+          path: tmp/test-results/vitest-report.xml
           overwrite: true
           retention-days: 7
         if: ${{steps.vitest-test.outcome}} == 'failure'
@@ -167,5 +145,5 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: "${{env.temp_dir}}/**/*_report.xml"
+          paths: "tmp/**/*_report.xml"
         if: always()
