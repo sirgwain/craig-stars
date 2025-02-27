@@ -35,8 +35,18 @@ func TestCompareAsJSON(t *testing.T) {
 			wantDiff:   "",
 		},
 	}
+	defer func() {
+		// remove json for CI reasons
+		if err := os.RemoveAll("../tmp/diff.jsonl"); err != nil {
+			t.Error(err)
+		}
+	}()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if _, err := os.Create("../tmp/diff.jsonl"); err != nil {
+				// truncate temp diff file before test start
+				t.Errorf("failure during truncating tmp/diff.jsonl; \n%v", err)
+			}
 			// fixup by adding doc comment
 			m := new(mockTestingT)
 			m.name = t.Name()
@@ -62,10 +72,7 @@ func TestCompareAsJSON(t *testing.T) {
 			if gotDiff != tt.wantDiff {
 				t.Errorf("CompareAsJSON() outputted incorrect diff:\nGot: \n%v\nWant: \n%v", gotDiff, tt.wantDiff)
 			}
-			if _, err := os.Create("../tmp/diff.jsonl"); err != nil {
-				// truncate temp diff file afterwards
-				t.Errorf("failure during truncating tmp/diff.jsonl; \n%v", err)
-			}
+
 		})
 
 	}
