@@ -7,22 +7,29 @@ craig-stars is a web based game. The backend logic and server is written in [Go]
 - Golang: 1.24 or higher, obtainable from [their website](https://go.dev/dl/)
 - npm: [how to install](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 - Respository forked and cloned on your device (instructions [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository))
-- The [GNU compiler collection](https://gcc.gnu.org/) built locally on your device. Windows users can use [Mingw-w64](https://www.mingw-w64.org/), while linux/mac users can follow the [normal install instructions](https://gcc.gnu.org/install/index.html).
+- The [GNU compiler collection](https://gcc.gnu.org/) built locally and inside your `$PATH`.
+  - Windows users can use [MinGW-W64](https://www.mingw-w64.org/) to compile the GCC binaries. \
+    **_Cygwin will not work_** as it is missing several instructions needed for `cgo` to function (see [this issue](https://github.com/golang/go/issues/59490) for more info).
+  - Linux/mac users can follow the [normal install instructions](https://gcc.gnu.org/install/index.html).
 
 ### Go Deps
 
-After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make-like build tool/command executer written in Go for execution of complex build commands.
-It's included in the project's `go.mod` dependency tracker anyways, but using `go install` allows us to run it from the command line directly.
+After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make/rake-like build tool & command executer written in Go[^1].
+Run the following command in your terminal of choice:
 
 ```bash
 go install github.com/magefile/mage@latest
 ```
 
-**Disclaimer**: Magefile commands must be run from the repository root (otherwise mage won't find the files).
+Once it finishes installing, check by running `mage` - if all went well, you should get a list of available targets defined in the repo's [magefiles](../magefiles) directory.
+
+**Disclaimer**: Magefile targets must always be run from inside the _repository root_. This does not apply to the equivalent VS Code tasks, however (which always launch from root).
+
+[^1]: Techincally mage is already in the project's `go.mod` files, but you need it installed to call it via the command line.
 
 ## Assets
 
-You will also need art assets for ships and planets - otherwise they'll just look like black boxes. Thankfully, you can now download the images with a single magefile command! (For obvious reasons, this requires an internet connection.)
+You will also need art assets for ships and planets - otherwise they'll both look like black boxes and make the playwright tests very unhappy. Thankfully, you can now download all the images with a single magefile command! (For obvious reasons, this requires an internet connection.)
 
 ```bash
 mage images
@@ -36,9 +43,9 @@ After performing all that setup, you should be good to go!
 You have 2 methods to launch the server:
 
 1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This builds the server before launching the frontend and backend in separate terminals.
-2. Run `mage run` from your terminal inside the root folder. This does essentially the same thing, but launches them inside the same terminal within separate goroutines. (_Note_: Don't worry if Mage complains about exceeding cleanup deadlines.)
+2. Run `mage run` from your terminal inside the root folder. This does essentially the same thing, but launches them inside the same terminal within separate goroutines. (_Note_: Don't worry if Mage complains about cleanup deadlines when shutting down.)
 
-On first launch, this will create an empty database in `./data` with a single `admin` user (password `admin`). (If it fails, try clearing the data folder and trying again.)
+Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data`, containing a single `admin` user (password `admin`). (If it fails, try clearing the data folder and trying again.)
 
 With some luck, you should get a localhost link from npm (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically via air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
 

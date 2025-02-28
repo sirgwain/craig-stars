@@ -1,12 +1,12 @@
-"go", "tool", "gotest.tools/gotestsum",
-"--format=github-actions",
-"--format-hide-empty-pkg",
-"--rerun-fails",
-"--rerun-fails-run-root-test",
-"--rerun-fails-report tmp/test-results/gotestsum-flake-report.txt
-"--junitfile tmp/test-results/go-test-report.xml",
-"--junitfile-hide-empty-pkg",
-"--junitfile-project-name=$GITHUB_REPOSITORY",
-"--junitfile-testcase-classname=short",
-"--junitfile-testsuite-name=short",
-"--"
+go, tool, gotest.tools/gotestsum,
+--format=github-actions,
+--format-hide-empty-pkg,
+--rerun-fails,
+--rerun-fails-run-root-test,
+--rerun-fails-report tmp/test-results/gotestsum-flake-report.txt
+--junitfile tmp/test-results/go-test-report.xml,
+--junitfile-hide-empty-pkg,
+--junitfile-project-name=$GITHUB_REPOSITORY,
+--junitfile-testcase-classname=short,
+--junitfile-testsuite-name=short,
+--

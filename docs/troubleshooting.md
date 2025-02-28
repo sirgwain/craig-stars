@@ -5,15 +5,19 @@
 Things don't always go as planned (in practice, they hardly ever do).\
 In the event things turn south while setting up, consult this semi-curated list of past problems and potential resolutions:
 
-<!-- TODO: Improve intro and sort these in vague order of precedence-->
+<!-- TODO: Improve intro/formatting and sort these in vague order of precedence-->
 
 - "I try to click on the login button on localhost using the admin credentials and it does nothing! Worse, an error pops up in my terminal!"
 
-You might be running the frontend server without the backend. Open a new terminal tab and type `mage launch_backend` to launch the backend to handle all the nitty gritty logic stuff.
+You might be running the frontend server without the backend. Open a new terminal tab and type `mage launch_backend` to launch the backend server needed to handle all the nitty gritty logic & server shenanigans.
 
 - "My computer complains about undefined Sqlite Drivers!"
 
-Check that you have `GCC` built and in your PATH. If you haven't installed it yet, _go do that_.
+Check that you have GCC built and in your `$PATH` for `go-sqlite3`. If you haven't installed GCC yet, _go do that_.
+
+- "Booting up the server produces error messages referencing `gcc_libinit_windows.c` and `_beginthread`!
+
+This issue typically arises from building GCC using Cygwin64 or another compiler incompatible with `cgo`. Use [MinGW-W64](https://www.mingw-w64.org/) instead.
 
 - "While building the server, I get an obscure error about 'executable not found in %PATH%' or 'build target excluding all files in XXX'!"
 

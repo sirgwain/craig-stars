@@ -20,8 +20,8 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 
 	type fields struct {
 		quantity        int
-		DamagePerToken  float64
-		QuantityDamaged int
+		damage          float64
+		quantityDamaged int
 		design          *ShipDesign
 	}
 	tests := []struct {
@@ -68,8 +68,8 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			fields: fields{
 				design:          design,
 				quantity:        2,
-				QuantityDamaged: 1,
-				DamagePerToken:  50,
+				quantityDamaged: 1,
+				damage:          50,
 			},
 			damage: 75,
 			want: tokenDamage{
@@ -115,8 +115,8 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			st := &ShipToken{
 				Quantity:        tt.fields.quantity,
-				Damage:          tt.fields.DamagePerToken,
-				QuantityDamaged: tt.fields.QuantityDamaged,
+				Damage:          tt.fields.damage,
+				QuantityDamaged: tt.fields.quantityDamaged,
 				design:          tt.fields.design,
 			}
 			if got := st.applyMineDamage(tt.damage); !reflect.DeepEqual(got, tt.want) {
@@ -572,13 +572,19 @@ func TestShipToken_getOvergateRangeVanishingChance(t *testing.T) {
 		want      float64
 	}{
 		{
-			name:      "no vanishing chance",
-			dist:      100,
+			name:      "within limits; no vanish",
+			dist:      50,
 			safeRange: 100,
 			want:      0,
 		},
 		{
-			name:      "20% vanishing chance for 3.4x range",
+			name:      "infinite gate, no vanish",
+			dist:      200_000,
+			safeRange: InfiniteGate,
+			want:      0,
+		},
+		{
+			name:      "3.4x range;",
 			dist:      340,
 			safeRange: 100,
 			want:      0.2,

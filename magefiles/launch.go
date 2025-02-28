@@ -19,6 +19,13 @@ var Aliases = map[string]interface{}{
 	"copy_wasm":    Copy_Wasm_Exec,
 }
 
+// is_CI reports whether the current process is running in CI (continuous integration)
+// by checking the "CI" environment variable.
+func is_CI() bool {
+	CI := strings.TrimSpace(os.Getenv("CI"))
+	return CI != "" && strings.ToLower(CI) != "false"
+}
+
 // Build and launch the server for local development.
 // This calls both Build and Launch consecutively.
 func Run() error {
@@ -26,7 +33,6 @@ func Run() error {
 		return err
 	}
 	return Launch()
-
 }
 
 // Build the frontend and backend consecutively, alongside some setup work.
@@ -112,14 +118,14 @@ func Generate() error {
 	}
 
 	// format generated tygo file on non-CI runs
-	if _, ok := os.LookupEnv("CI"); !ok {
+	if !is_CI() {
 		fmt.Println("running prettier on tygo generated file")
 		cmd := exec.Command("npx", "prettier", "--write", "./src/lib/types/cs.ts")
 		cmd.Dir = "./frontend"
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
-			return mg.Fatalf(1, "error during prettier formatting after generation: \n%w", err)
+			return mg.Fatalf(1, "error during npx prettier --write: \n%w", err)
 		}
 	}
 
@@ -168,8 +174,8 @@ func Build_Frontend() error {
 }
 
 // Build the backend Golang executable for local dev, as well as the WASM binary.
-// This builds the binary for main.go without any version control info.
-// Air runs this whenever changes are detected.
+// This builds the binary for main.go without any version control info;
+// Air runs this whenever changes are detected in backend files.
 func Build_Backend() error {
 	return build_backend(ldflags, "-buildvcs=false")
 }
@@ -202,8 +208,10 @@ func build_backend(buildArgs ...string) error {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
 
-	flags := append(append([]string{"build"}, buildArgs...), "-o",
-		fmt.Sprintf("dist/%s", binary_name), "main.go")
+	f := make([]string, len(buildArgs)+4)
+	f[0] = "build"
+	flags := append(append(f, buildArgs...), "-o",
+		"dist/"+binary_name, "main.go")
 	if err := sh.RunV("go", flags...); err != nil {
 		return err
 	}

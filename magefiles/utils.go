@@ -55,7 +55,7 @@ func Test_Golang(goTestArgs string) error {
 	// read gotestsum config args from text file
 	// use CI config if on CI; else regular config
 	var filePath string
-	if CI := strings.TrimSpace(os.Getenv("CI")); CI != "" && strings.ToLower(CI) != "false" {
+	if is_CI() {
 		fmt.Println("CI run detected; using CI config")
 		filePath = "gotestsum/gotestsum_ci.config.txt"
 	} else {
@@ -71,7 +71,7 @@ func Test_Golang(goTestArgs string) error {
 	configVals := strings.FieldsFunc(string(configBytes), func(r rune) bool {
 		return (r == ',' || r == ' ' || r == '\n' || r == '\r')
 	})
-	fmt.Printf("Config file at %s successfully read.\nContents: %s", filePath, strings.Join(configVals, "\n"))
+	fmt.Printf("Config file at %s successfully read.\nContents: %s", filePath, strings.Join(configVals, ", "))
 
 	// if $GITHUB_REPOSITORY is set and nonempty, use that as package name for JUnit report.
 	// Otherwise, check for $GH_REPO before falling back to a default string.
