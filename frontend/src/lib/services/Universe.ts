@@ -527,15 +527,15 @@ export class Universe implements PlayerUniverse, DesignFinder {
 			case MapObjectTypePlanet:
 				return target.targetNum ? this.getPlanet(target.targetNum) : undefined;
 			case MapObjectTypeFleet:
-				return [...this.fleets, ...this.fleetIntels].find(
+				return this.allFleets.find(
 					(f) => f.num === target.targetNum && f.playerNum === target.targetPlayerNum
 				);
 			case MapObjectTypeMineField:
-				return this.mineFields.find(
+				return this.allMineFields.find(
 					(mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum
 				);
 			case MapObjectTypeMineralPacket:
-				return this.mineralPacketIntels.find(
+				return this.allMineralPackets.find(
 					(p) => p.num === target.targetNum && p.playerNum === target.targetPlayerNum
 				);
 			case MapObjectTypeSalvage:
