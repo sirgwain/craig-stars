@@ -52,27 +52,27 @@ func Test_Golang(goTestArgs string) error {
 		goTestArgs = "./..."
 	}
 
-	defer func() {
-		// merge json once we're done
-		if err := Merge_Temp_JSON(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
-	fileToRead := "gotestsum/gotestsum_config.txt"
-	if CI := os.Getenv("CI"); strings.TrimSpace(CI) != "" {
-		// use CI config if on CI
-		fileToRead = "gotestsum/gotestsum_config_ci.txt"
+	// read gotestsum config args from text file
+	// use CI config if on CI; else regular config
+	var filePath string
+	if CI := strings.TrimSpace(os.Getenv("CI")); CI != "" && strings.ToLower(CI) != "false" {
+		fmt.Println("CI run detected; using CI config")
+		filePath = "gotestsum/gotestsum_ci.config.txt"
+	} else {
+		fmt.Println("Non-CI run detected; using default config")
+		filePath = "gotestsum/gotestsum.config.txt"
 	}
-	configBytes, err := os.ReadFile(fileToRead)
+
+	configBytes, err := os.ReadFile(filePath)
 	if err != nil {
-		return mg.Fatalf(1, "error while reading gotestsum config file: \n%w", err)
+		return mg.Fatalf(1, "error reading gotestsum config file: \n%w", err)
 	}
 
-	// extract values delimited by commas and whitespace
-	config := strings.FieldsFunc(string(configBytes), func(r rune) bool {
+	// extract config values delimited by commas and whitespace
+	configVals := strings.FieldsFunc(string(configBytes), func(r rune) bool {
 		return (r == ',' || r == ' ' || r == '\n' || r == '\r')
 	})
+	fmt.Printf("Config file at %s successfully read.\nContents: %s", filePath, strings.Join(configVals, "\n"))
 
 	// if $GITHUB_REPOSITORY is set and nonempty, use that as package name for JUnit report.
 	// Otherwise, check for $GH_REPO before falling back to a default string.
@@ -83,8 +83,17 @@ func Test_Golang(goTestArgs string) error {
 		repoName = r
 	}
 
-	// "go", "tool"
-	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": repoName}, config[0], config[1:]...)
+	// merge any produced json files together once we're done testing
+	// we only do this after all the setup to save time
+	defer func() {
+		if err := Merge_Temp_JSON(); err != nil {
+			fmt.Println("error merging temp JSON diffs after test run:\n%v", err)
+		}
+	}()
+
+	// run command with passed in config flags
+	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": repoName}, 
+		config[0], config[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
 }
 
 // Remove all temp json files inside tmp and merge them into 1 large file.
