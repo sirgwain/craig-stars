@@ -62,7 +62,6 @@ func Test_Golang(goTestArgs string) error {
 		fmt.Println("Non-CI run detected; using default config")
 		filePath = "gotestsum/gotestsum.config.txt"
 	}
-
 	configBytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return mg.Fatalf(1, "error reading gotestsum config file: \n%w", err)
@@ -87,13 +86,12 @@ func Test_Golang(goTestArgs string) error {
 	// we only do this after all the setup to save time
 	defer func() {
 		if err := Merge_Temp_JSON(); err != nil {
-			fmt.Println("error merging temp JSON diffs after test run:\n%v", err)
+			fmt.Printf("error merging temp JSON diffs after test run:\n%v\n", err)
 		}
 	}()
 
-	// run command with passed in config flags
-	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": repoName}, 
-		config[0], config[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
+	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": repoName},
+		configVals[0], configVals[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
 }
 
 // Remove all temp json files inside tmp and merge them into 1 large file.
