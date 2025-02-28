@@ -19,18 +19,15 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 	designShielded.Spec.Shields = 50
 
 	type fields struct {
-		Quantity        int
-		Damage          float64
+		quantity        int
+		DamagePerToken  float64
 		QuantityDamaged int
 		design          *ShipDesign
-	}
-	type args struct {
-		damage int
 	}
 	tests := []struct {
 		name                string
 		fields              fields
-		args                args
+		damage              int
 		want                tokenDamage
 		wantQuantity        int
 		wantDamage          float64
@@ -40,11 +37,9 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			name: "1 ship, do 50 damage, don't destroy ship",
 			fields: fields{
 				design:   design,
-				Quantity: 1,
+				quantity: 1,
 			},
-			args: args{
-				damage: 50,
-			},
+			damage: 50,
 			want: tokenDamage{
 				damage:         50,
 				shipsDestroyed: 0,
@@ -57,11 +52,9 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			name: "10 ships, do 850 damage, destroy 8 ships, leave 2 damaged",
 			fields: fields{
 				design:   design,
-				Quantity: 10,
+				quantity: 10,
 			},
-			args: args{
-				damage: 850,
-			},
+			damage: 850,
 			want: tokenDamage{
 				damage:         850,
 				shipsDestroyed: 8,
@@ -74,13 +67,11 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			name: "2 ships, with 50 damage already, do 75 more damage, destroy ship",
 			fields: fields{
 				design:          design,
-				Quantity:        2,
+				quantity:        2,
 				QuantityDamaged: 1,
-				Damage:          50,
+				DamagePerToken:  50,
 			},
-			args: args{
-				damage: 75,
-			},
+			damage: 75,
 			want: tokenDamage{
 				damage:         75,
 				shipsDestroyed: 1,
@@ -93,11 +84,9 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			name: "1 shielded ship, do 50 damage, don't destroy ship",
 			fields: fields{
 				design:   designShielded,
-				Quantity: 1,
+				quantity: 1,
 			},
-			args: args{
-				damage: 50,
-			},
+			damage: 50,
 			want: tokenDamage{
 				damage:         25,
 				shipsDestroyed: 0,
@@ -107,14 +96,12 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 			wantDamage:          25,
 		},
 		{
-			name: "take 150 mine damage, our shields absorb 50 and our token  takes the rest",
+			name: "take 150 mine damage, our shields absorb 50 and our token takes the rest",
 			fields: fields{
 				design:   designShielded,
-				Quantity: 1,
+				quantity: 1,
 			},
-			args: args{
-				damage: 150,
-			},
+			damage: 150,
 			want: tokenDamage{
 				damage:         100,
 				shipsDestroyed: 0,
@@ -127,12 +114,12 @@ func TestShipToken_applyMineDamage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			st := &ShipToken{
-				Quantity:        tt.fields.Quantity,
-				Damage:          tt.fields.Damage,
+				Quantity:        tt.fields.quantity,
+				Damage:          tt.fields.DamagePerToken,
 				QuantityDamaged: tt.fields.QuantityDamaged,
 				design:          tt.fields.design,
 			}
-			if got := st.applyMineDamage(tt.args.damage); !reflect.DeepEqual(got, tt.want) {
+			if got := st.applyMineDamage(tt.damage); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ShipToken.ApplyMineDamage() = %v, want %v", got, tt.want)
 			}
 
@@ -400,51 +387,168 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 	}
 }
 
-func TestShipToken_getOvergateMassVanishingChance(t *testing.T) {
-	player := NewPlayer(1, NewRace().WithSpec(&rules))
-
+func TestShipToken_applyOvergateVanishing(t *testing.T) {
 	type fields struct {
-		mass int
+		quantity        int
+		quantityDamaged int
+		mass            int
 	}
 	type args struct {
-		safeSourceMass int
-		maxMassFactor  int
+		distance    float64
+		sourceRange int
+		sourceMass  int
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   float64
+		name                string
+		fields              fields
+		args                args
+		rng                 rng
+		wantQuantity        int
+		wantQuantityDamaged int
 	}{
 		{
-			name:   "no vanishing chance",
-			fields: fields{mass: 200},
-			args:   args{safeSourceMass: 200, maxMassFactor: 5},
-			want:   0,
+			name: "no vanish; within limits",
+			fields: fields{
+				quantity:        1,
+				quantityDamaged: 0,
+				mass:            412,
+			},
+			args: args{
+				distance:    69420,
+				sourceRange: 77777,
+				sourceMass:  66666,
+			},
+			rng:                 newFloat64Random(0),
+			wantQuantity:        1,
+			wantQuantityDamaged: 0,
 		},
 		{
-			name:   "no vanishing chance for 318kT on a 300/500 gate, due to rounding",
-			fields: fields{mass: 318},
-			args:   args{safeSourceMass: 300, maxMassFactor: 5},
-			want:   0,
+			name: "no vanish; failed rng roll",
+			fields: fields{
+				quantity:        1,
+				quantityDamaged: 0,
+				mass:            490,
+			},
+			args: args{
+				distance:    340,
+				sourceRange: 100,
+				sourceMass:  100,
+			},
+			// overall chance: 1-(0.66*0.8)=47.2% vanish chance
+			rng:                 newFloat64Random(0.48),
+			wantQuantity:        1,
+			wantQuantityDamaged: 0,
 		},
 		{
-			name:   "200kT ship in a 100kt gate has a 14% chance of vanishing",
-			fields: fields{mass: 600},
-			args:   args{safeSourceMass: 300, maxMassFactor: 5},
-			want:   .14,
+			name: "vanish; high roll",
+			fields: fields{
+				quantity:        1,
+				quantityDamaged: 0,
+				mass:            490,
+			},
+			args: args{
+				distance:    340,
+				sourceRange: 100,
+				sourceMass:  100,
+			},
+			rng:                 newFloat64Random(0),
+			wantQuantity:        0,
+			wantQuantityDamaged: 0,
+		},
+		{
+			name: "vanish; damaged ships",
+			fields: fields{
+				quantity:        1,
+				quantityDamaged: 1,
+				mass:            490,
+			},
+			args: args{
+				distance:    340,
+				sourceRange: 100,
+				sourceMass:  100,
+			},
+			rng:                 newFloat64Random(0),
+			wantQuantity:        0,
+			wantQuantityDamaged: 0,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			design := NewShipDesign(player.Num, 1)
-			design.Spec.Mass = tt.fields.mass
-
-			tr := &ShipToken{
-				Quantity: 1,
-				design:   design,
+			rCopy := rules
+			rCopy.random = tt.rng
+			st := &ShipToken{
+				Quantity:        tt.fields.quantity,
+				QuantityDamaged: tt.fields.quantityDamaged,
 			}
-			if got := tr.getOvergateMassVanishingChance(tt.args.safeSourceMass, tt.args.maxMassFactor); got != tt.want {
+			if st.QuantityDamaged > 0 {
+				// give token some damage if any tokens are hurt
+				st.Damage = 69
+			}
+			st.applyOvergateVanishing(&rCopy, tt.args.distance, tt.args.sourceRange, tt.args.sourceMass)
+			if st.Quantity != tt.wantQuantity {
+				t.Errorf("ShipToken.applyOvergateVanishing() produced token quantity %v, want %v", st.Quantity, tt.wantQuantity)
+			}
+
+			if st.QuantityDamaged != tt.wantQuantityDamaged {
+				t.Errorf("ShipToken.applyOvergateVanishing() produced token with %v damaged tokens, want %v", st.QuantityDamaged, tt.wantQuantityDamaged)
+			}
+
+			if (st.Damage != 0) != (tt.wantQuantityDamaged == 0) {
+				if tt.wantQuantityDamaged == 0 {
+					t.Error("ShipToken.applyOvergateDamage() produced damaged token; expected none")
+				} else {
+					t.Error("ShipToken.applyOvergateDamage() produced undamaged token; expected damage")
+				}
+			}
+		})
+	}
+}
+
+func TestShipToken_getOvergateMassVanishingChance(t *testing.T) {
+	player := NewPlayer(1, NewRace().WithSpec(&rules))
+	design := NewShipDesign(player.Num, 1)
+	tests := []struct {
+		name           string
+		mass           int
+		safeSourceMass int
+		want           float64
+	}{
+		{
+			name:           "infinite gate",
+			mass:           2,
+			safeSourceMass: InfiniteGate,
+			want:           0,
+		},
+		{
+			name:           "at limit",
+			mass:           200,
+			safeSourceMass: 200,
+			want:           0,
+		},
+		{
+			name:           "rounding check; no vanishing",
+			mass:           318,
+			safeSourceMass: 300,
+			want:           0,
+		},
+		{
+			name:           "200kT ship in a 100kt gate",
+			mass:           200,
+			safeSourceMass: 100,
+			want:           0.14, // floor(33.333*(1-9/16))/100 = floor(14.58)/100 = 14%
+		},
+		{
+			name:           "4.9x weight limit",
+			mass:           490,
+			safeSourceMass: 100,
+			want:           0.33, // floor(33.333*(1-1/16000))/100 = floor(33.33)/100 = 33%
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			design.Spec.Mass = tt.mass
+			st := &ShipToken{design: design}
+			if got := st.getOvergateMassVanishingChance(tt.safeSourceMass, rules.StargateMaxHullMassFactor); got != tt.want {
 				t.Errorf("ShipToken.getOvergateMassVanishingChance() = %v, want %v", got, tt.want)
 			}
 		})
@@ -452,42 +556,31 @@ func TestShipToken_getOvergateMassVanishingChance(t *testing.T) {
 }
 
 func TestShipToken_getOvergateRangeVanishingChance(t *testing.T) {
-	type args struct {
+	tests := []struct {
+		name      string
 		dist      float64
 		safeRange int
-	}
-	tests := []struct {
-		name string
-		args args
-		want float64
+		want      float64
 	}{
 		{
-			name: "no vanishing chance",
-			args: args{
-				dist:      100,
-				safeRange: 100,
-			},
-			want: 0,
+			name:      "no vanishing chance",
+			dist:      100,
+			safeRange: 100,
+			want:      0,
 		},
 		{
-			name: "20% vanishing chance for 3.4x range",
-			args: args{
-				dist:      340,
-				safeRange: 100,
-			},
-			want: .2,
+			name:      "20% vanishing chance for 3.4x range",
+			dist:      340,
+			safeRange: 100,
+			want:      0.2,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := NewPlayer(1, NewRace().WithSpec(&rules))
-			design := NewShipDesign(player.Num, 1)
-			tr := &ShipToken{
-				Quantity: 1,
-				design:   design,
-			}
+			tr := &ShipToken{design: NewShipDesign(player.Num, 1)}
 
-			if got := tr.getOvergateRangeVanishingChance(tt.args.dist, tt.args.safeRange); got != tt.want {
+			if got := tr.getOvergateRangeVanishingChance(tt.dist, tt.safeRange); got != tt.want {
 				t.Errorf("ShipToken.getOvergateRangeVanishingChance() = %v, want %v", got, tt.want)
 			}
 		})

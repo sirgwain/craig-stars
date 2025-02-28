@@ -5,9 +5,9 @@ import "math"
 // A Fleet contains multiple ShipTokens, each of which have a design and a quantity.
 type ShipToken struct {
 	DesignNum       int     `json:"designNum"`
-	Quantity        int     `json:"quantity"`                  // the number of ships in the token
-	Damage          float64 `json:"damage,omitempty"`          // damage is stored per ship in the token
-	QuantityDamaged int     `json:"quantityDamaged,omitempty"` // the number of ships in the token that the damage applies to
+	Quantity        int     `json:"quantity"`                  // number of ships in the token
+	Damage          float64 `json:"damage,omitempty"`          // damage per damaged ship in the token
+	QuantityDamaged int     `json:"quantityDamaged,omitempty"` // number of damaged ships in token
 	design          *ShipDesign
 }
 
@@ -46,8 +46,9 @@ func (st *ShipToken) applyMineDamage(damage int) tokenDamage {
 	return tokenDamage{damage: armorDamage, shipsDestroyed: shipsDestroyed}
 }
 
-// applyOvergateVanishing vanishes overgating fleets exceeding safe limits,
-// reducing fleet quanitity as appropriate.
+// applyOvergateVanishing vanishes overgating ship tokens exceeding safe limits,
+// reducing token quanitity as appropriate.
+// It returns the total number of tokens vanished (origQty - newQty).
 func (token *ShipToken) applyOvergateVanishing(rules *Rules, distance float64, sourceRange, sourceMass int) (shipsLost int) {
 	rangeVanishChance := token.getOvergateRangeVanishingChance(distance, sourceRange)
 	massVanishChance := token.getOvergateMassVanishingChance(sourceMass, rules.StargateMaxHullMassFactor)
@@ -57,27 +58,28 @@ func (token *ShipToken) applyOvergateVanishing(rules *Rules, distance float64, s
 	}
 
 	// Combined vanishing chance formula courtesy of ekolis
+	// Both checks fire independently, so the chance of both passing is
+	// 1-(rangeFailChance*massFailChance)
 	vanishingChance := 1 - (1-rangeVanishChance)*(1-massVanishChance)
 
-	origQty := token.Quantity // original qty tracker
-
 	// check each token one by one to see if it kersplodes
-	for range origQty {
+	for range token.Quantity {
 		if vanishingChance >= rules.random.Float64() {
-			// oh no, we lost a ship!
-			token.Quantity--
-			token.QuantityDamaged-- // get rid of damaged ships first; we cap this at the end
+			shipsLost++
 		}
 	}
 
-	// reset token damage to 0 if none remain
+	// reduce token quantity by however many ships died,
+	// prioritizing damaged ones if possible.
+	token.Quantity -= shipsLost
+	token.QuantityDamaged -= shipsLost
 	if token.QuantityDamaged <= 0 {
-		token.QuantityDamaged = 0
+		// reset token damage to 0 if none remain
 		token.Damage = 0
+		token.QuantityDamaged = 0
 	}
 
-	// ships destroyed equals original qty - current qty
-	return origQty - token.QuantityDamaged
+	return shipsLost
 }
 
 // Apply overgate damage (if any) to each token that overgated
@@ -159,9 +161,9 @@ func (t *ShipToken) getStargateMassDamageFactor(safeSourceMass int, safeDestMass
 func (t *ShipToken) getOvergateMassVanishingChance(safeSourceMass int, maxMassFactor int) (massChance float64) {
 	// Mass Vanishing % = 100/3*[1-(5*maxMass-mass)^2/(4*maxMass)^2], rounded down to nearest 1%.
 	// where maxMass is the maximum safe mass for the sending gate.
-	vanishingChance := 100 * (1 -
+	vanishingChance := 100.0 / 3 * (1 -
 		float64(PowInt(maxMassFactor*safeSourceMass-t.design.Spec.Mass, 2))/
-			float64(PowInt(4*safeSourceMass, 2))) / 3
+			float64(PowInt(4*safeSourceMass, 2)))
 
 	// return chance rounded down to nearest %
 	return math.Floor(vanishingChance) / 100
