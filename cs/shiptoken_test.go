@@ -163,7 +163,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 		safeRange      int
 		safeSourceMass int
 		safeDestMass   int
-		maxMassFactor  int
 	}
 	tests := []struct {
 		name                string
@@ -185,7 +184,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      100,
 				safeSourceMass: mass,
 				safeDestMass:   mass,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{},
 			wantQuantity:        1,
@@ -203,7 +201,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      100,
 				safeSourceMass: mass / 2,
 				safeDestMass:   mass / 2,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{damage: 44},
 			wantQuantity:        1,
@@ -221,7 +218,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      100,
 				safeSourceMass: mass / 2,
 				safeDestMass:   mass / 2,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{damage: 44},
 			wantQuantity:        2,
@@ -239,7 +235,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      300,
 				safeSourceMass: mass,
 				safeDestMass:   mass,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{damage: 0},
 			wantQuantity:        1,
@@ -257,7 +252,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      100,
 				safeSourceMass: mass,
 				safeDestMass:   mass,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{damage: 50},
 			wantQuantity:        2,
@@ -277,7 +271,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      100,
 				safeSourceMass: mass,
 				safeDestMass:   mass,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{damage: 50, shipsDestroyed: 1},
 			wantQuantity:        1,
@@ -295,7 +288,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      100,
 				safeSourceMass: mass,
 				safeDestMass:   mass,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{damage: 98},
 			wantQuantity:        1,
@@ -314,7 +306,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      100,
 				safeSourceMass: 100,
 				safeDestMass:   InfiniteGate,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{damage: 25},
 			wantQuantity:        1,
@@ -333,7 +324,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      100,
 				safeSourceMass: 100,
 				safeDestMass:   100,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{damage: 44}, // armor * (1 - .75 * .75)
 			wantQuantity:        1,
@@ -352,7 +342,6 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				safeRange:      100,
 				safeSourceMass: 100,
 				safeDestMass:   InfiniteGate,
-				maxMassFactor:  5,
 			},
 			want:                tokenDamage{damage: 44}, // armor * (1 - .75 * .75)
 			wantQuantity:        1,
@@ -368,7 +357,7 @@ func TestShipToken_applyOvergateDamage(t *testing.T) {
 				QuantityDamaged: tt.fields.QuantityDamaged,
 				design:          tt.fields.design,
 			}
-			if got := st.applyOvergateDamage(tt.args.dist, tt.args.safeRange, tt.args.safeSourceMass, tt.args.safeDestMass, tt.args.maxMassFactor); !reflect.DeepEqual(got, tt.want) {
+			if got := st.applyOvergateDamage(tt.args.dist, tt.args.safeRange, tt.args.safeSourceMass, tt.args.safeDestMass, rules.StargateMaxHullMassFactor); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ShipToken.applyOvergateDamage() = %v, want %v", got, tt.want)
 			}
 			if st.Quantity != tt.wantQuantity {
@@ -411,12 +400,12 @@ func TestShipToken_applyOvergateVanishing(t *testing.T) {
 			fields: fields{
 				quantity:        1,
 				quantityDamaged: 0,
-				mass:            412,
+				mass:            1,
 			},
 			args: args{
-				distance:    69420,
-				sourceRange: 77777,
-				sourceMass:  66666,
+				distance:    1,
+				sourceRange: 1,
+				sourceMass:  1,
 			},
 			rng:                 newFloat64Random(0),
 			wantQuantity:        1,
@@ -434,32 +423,32 @@ func TestShipToken_applyOvergateVanishing(t *testing.T) {
 				sourceRange: 100,
 				sourceMass:  100,
 			},
-			// overall chance: 1-(0.66*0.8)=47.2% vanish chance
-			rng:                 newFloat64Random(0.48),
+			// overall chance: 1-(0.67*0.8)=46.4% vanish chance
+			rng:                 newFloat64Random(0.47),
 			wantQuantity:        1,
 			wantQuantityDamaged: 0,
 		},
 		{
-			name: "vanish; high roll",
+			name: "all vanish; 20 high rolls",
 			fields: fields{
-				quantity:        1,
+				quantity:        20,
 				quantityDamaged: 0,
-				mass:            490,
+				mass:            180, // 11% vanish chance
 			},
 			args: args{
-				distance:    340,
+				distance:    100,
 				sourceRange: 100,
 				sourceMass:  100,
 			},
-			rng:                 newFloat64Random(0),
+			rng:                 newFloat64Random(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1),
 			wantQuantity:        0,
 			wantQuantityDamaged: 0,
 		},
 		{
-			name: "vanish; damaged ships",
+			name: "partial vanish; damaged ships",
 			fields: fields{
-				quantity:        1,
-				quantityDamaged: 1,
+				quantity:        5,
+				quantityDamaged: 2,
 				mass:            490,
 			},
 			args: args{
@@ -467,7 +456,24 @@ func TestShipToken_applyOvergateVanishing(t *testing.T) {
 				sourceRange: 100,
 				sourceMass:  100,
 			},
-			rng:                 newFloat64Random(0),
+			// 1 vanishes; still has 1 damaged token left
+			rng:                 newFloat64Random(0, 1, 1, 1, 1),
+			wantQuantity:        4,
+			wantQuantityDamaged: 1,
+		},
+		{
+			name: "full vanish; damaged ships",
+			fields: fields{
+				quantity:        5,
+				quantityDamaged: 2,
+				mass:            2,
+			},
+			args: args{
+				distance:    1,
+				sourceRange: 1,
+				sourceMass:  1,
+			},
+			rng:                 newFloat64Random(0, 0, 0, 0, 0),
 			wantQuantity:        0,
 			wantQuantityDamaged: 0,
 		},
@@ -476,11 +482,14 @@ func TestShipToken_applyOvergateVanishing(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			rCopy := rules
 			rCopy.random = tt.rng
+			d := NewShipDesign(1, 1)
+			d.Spec.Mass = tt.fields.mass
 			st := &ShipToken{
 				Quantity:        tt.fields.quantity,
 				QuantityDamaged: tt.fields.quantityDamaged,
+				design:          d,
 			}
-			if st.QuantityDamaged > 0 {
+			if tt.fields.quantityDamaged > 0 {
 				// give token some damage if any tokens are hurt
 				st.Damage = 69
 			}
@@ -493,7 +502,7 @@ func TestShipToken_applyOvergateVanishing(t *testing.T) {
 				t.Errorf("ShipToken.applyOvergateVanishing() produced token with %v damaged tokens, want %v", st.QuantityDamaged, tt.wantQuantityDamaged)
 			}
 
-			if (st.Damage != 0) != (tt.wantQuantityDamaged == 0) {
+			if (st.Damage == 0) != (tt.wantQuantityDamaged == 0) {
 				if tt.wantQuantityDamaged == 0 {
 					t.Error("ShipToken.applyOvergateDamage() produced damaged token; expected none")
 				} else {
