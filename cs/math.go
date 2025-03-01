@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 
 	"golang.org/x/exp/constraints"
@@ -29,6 +30,42 @@ func roundHalfTowards0(x float64) float64 {
 		return t + math.Copysign(1, x)
 	}
 	return t
+}
+
+func splitValues(sourceCapacity, destCapacity1, destCapacity2 int, values ...int) ([]int, []int, error) {
+	if destCapacity1+destCapacity2 != sourceCapacity {
+		return nil, nil, fmt.Errorf("bucket sizes must sum to %d", sourceCapacity)
+	}
+
+	bucket1 := make([]int, len(values))
+	bucket2 := make([]int, len(values))
+
+	remaining1 := destCapacity1
+	remaining2 := destCapacity2
+
+	for i, count := range values {
+		// Distribute proportionally
+		split1 := (count*destCapacity1 + sourceCapacity/2) / sourceCapacity // Round to nearest
+		split2 := count - split1
+
+		// Ensure we do not exceed the remaining capacity
+		if split2 > remaining2 {
+			split2 = remaining2
+			split1 = count - split2
+		}
+		if split1 > remaining1 {
+			split1 = remaining1
+			split2 = count - split1
+		}
+
+		bucket1[i] = split1
+		bucket2[i] = split2
+
+		remaining1 -= split1
+		remaining2 -= split2
+	}
+
+	return bucket1, bucket2, nil
 }
 
 // Clamps value between min and max and returns the result.

@@ -663,42 +663,20 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	fleet.Tokens = tokens
 	fleet.FleetOrders = source.FleetOrders
 
-	// the fleet has some percentage of fuel fullness
-	fleetFuelFullness := float64(source.Fuel) / float64(source.Spec.FuelCapacity)
-
-	totalCargo := source.Cargo.Total()
-	totalCargoCapacity := source.Spec.CargoCapacity
+	// for splitting fuel and cargo
+	originalCargoCapacity := source.Spec.CargoCapacity
+	originalFuelCapacity := source.Spec.FuelCapacity
+	destCargoCapacity := 0
+	destFuelCapacity := 0
 
 	// now remove all the tokens from the old fleet
 	for i := range tokens {
 		splitToken := &tokens[i]
 		sourceToken := sourceTokensByDesign[splitToken.DesignNum]
-		// quantity := sourceToken.Quantity
-		// quantityDamaged := sourceToken.QuantityDamaged
 
-		// each ship in a token has some amount of fuel, based on the total fuel on the fleet
-		shipFuel := fleetFuelFullness * float64(sourceToken.design.Spec.FuelCapacity)
-
-		var shipCargoPercent float64 = 0
-		if totalCargo > 0 && splitToken.design.Spec.CargoCapacity > 0 {
-			// see how much this ship's cargo capacity is compared to the fleet total
-			shipCargoPercent = float64(splitToken.design.Spec.CargoCapacity) / float64(totalCargoCapacity)
-		}
-
-		// leave any remainder fuel on the source
-		fuelToMove := int(math.Floor(shipFuel * float64(splitToken.Quantity)))
-		fleet.Fuel += fuelToMove
-		source.Fuel -= fuelToMove
-
-		if totalCargo > 0 && shipCargoPercent > 0 {
-			fleet.Cargo = Cargo{
-				Ironium:   int(math.Floor(shipCargoPercent * float64(splitToken.Quantity) * float64(source.Cargo.Ironium))),
-				Boranium:  int(math.Floor(shipCargoPercent * float64(splitToken.Quantity) * float64(source.Cargo.Boranium))),
-				Germanium: int(math.Floor(shipCargoPercent * float64(splitToken.Quantity) * float64(source.Cargo.Germanium))),
-				Colonists: int(math.Floor(shipCargoPercent * float64(splitToken.Quantity) * float64(source.Cargo.Colonists))),
-			}
-			source.Cargo = source.Cargo.Subtract(fleet.Cargo)
-		}
+		// track how much cargo capacity our destination will get
+		destCargoCapacity += splitToken.design.Spec.CargoCapacity * splitToken.Quantity
+		destFuelCapacity += splitToken.design.Spec.FuelCapacity * splitToken.Quantity
 
 		// split damage
 		if sourceToken.QuantityDamaged > 0 {
@@ -718,6 +696,21 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 		}
 
 		sourceToken.Quantity -= splitToken.Quantity
+	}
+
+	fuel1, fuel2, err := splitValues(originalFuelCapacity, originalFuelCapacity-destFuelCapacity, destFuelCapacity, source.Fuel)
+	if err != nil {
+		return nil, fmt.Errorf("unable to split fuel %w", err)
+	}
+	source.Fuel = fuel1[0]
+	fleet.Fuel = fuel2[0]
+
+	// split cargo
+	if originalCargoCapacity > 0 {
+		source.Cargo, fleet.Cargo, err = source.Cargo.Split(originalCargoCapacity, originalCargoCapacity-destCargoCapacity, destCargoCapacity)
+		if err != nil {
+			return nil, fmt.Errorf("unable to split cargo %w", err)
+		}
 	}
 
 	// remove any empty tokens

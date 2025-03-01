@@ -31,6 +31,15 @@ func NewCargoFromMineralsAndPop(mineral Mineral, pop int) Cargo {
 	}
 }
 
+func NewCargoFromArray(values [4]int) Cargo {
+	return Cargo{
+		Ironium:   values[0],
+		Boranium:  values[1],
+		Germanium: values[2],
+		Colonists: values[3],
+	}
+}
+
 func (c CargoType) String() string {
 	switch c {
 	case Ironium:
@@ -154,6 +163,15 @@ func (c Cargo) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Colonists
 }
 
+func (c Cargo) ToArray() [4]int {
+	return [4]int{
+		c.Ironium,
+		c.Boranium,
+		c.Germanium,
+		c.Colonists,
+	}
+}
+
 // return true if this cargo can have transferAmount taken from it
 func (c Cargo) CanTransfer(transferAmount Cargo) bool {
 	return (c.Ironium >= transferAmount.Ironium &&
@@ -256,4 +274,15 @@ func (c Cargo) GreatestMineralType() CargoType {
 	}
 
 	return None
+}
+
+// split a cargo into two cargos based on capacity
+func (source Cargo) Split(sourceCapacity, capacity1, capacity2 int) (Cargo, Cargo, error) {
+	sourceArray := source.ToArray()
+	split1, split2, err := splitValues(sourceCapacity, capacity1, capacity2, (sourceArray[:])...)
+	if err != nil {
+		return Cargo{}, Cargo{}, err
+	}
+
+	return NewCargoFromArray([4]int(split1)), NewCargoFromArray([4]int(split2)), nil
 }

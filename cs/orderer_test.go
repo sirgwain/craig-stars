@@ -303,6 +303,67 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "split a single freighter out of 3, uneven cargo and fuel",
+			args: args{
+				player: player,
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Teamster #1",
+					},
+					BaseName: "Teamster",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 3},
+					},
+					Fuel:  10,
+					Cargo: Cargo{10, 10, 10, 10},
+				},
+				tokens: []ShipToken{
+					{DesignNum: freighterDesign.Num, Quantity: 1}, // split out one freighter
+				},
+			},
+			wantSourceFleet: &Fleet{
+				MapObject: MapObject{
+					Type:      MapObjectTypeFleet,
+					Num:       1,
+					PlayerNum: player.Num,
+					Name:      "Teamster #1",
+				},
+				BaseName: "Teamster",
+				FleetOrders: FleetOrders{
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+				},
+				Tokens: []ShipToken{
+					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2},
+				},
+				Fuel:  7,                 // keep 7/10 fuel
+				Cargo: Cargo{7, 7, 7, 7}, // 7/10 cargo
+			},
+			wantNewFleet: &Fleet{
+				MapObject: MapObject{
+					Type:      MapObjectTypeFleet,
+					Num:       2,
+					PlayerNum: player.Num,
+					Name:      "Teamster #2",
+				},
+				BaseName: "Teamster",
+				FleetOrders: FleetOrders{
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+				},
+				Tokens: []ShipToken{
+					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
+				},
+				Fuel:  3,                 // keep 3 fuel
+				Cargo: Cargo{3, 3, 3, 3}, // keep 3 cargo
+			},
+			wantErr: false,
+		},
+		{
 			name: "split a scoutx2 with 1 damaged and freighterx3 with 3 damaged into two fleets",
 			args: args{
 				player: player,
