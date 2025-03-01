@@ -491,7 +491,7 @@ func TestShipToken_applyOvergateVanishing(t *testing.T) {
 			}
 			if tt.fields.quantityDamaged > 0 {
 				// give token some damage if any tokens are hurt
-				st.Damage = 69
+				st.Damage = 1
 			}
 			st.applyOvergateVanishing(&rCopy, tt.args.distance, tt.args.sourceRange, tt.args.sourceMass)
 			if st.Quantity != tt.wantQuantity {
@@ -504,9 +504,9 @@ func TestShipToken_applyOvergateVanishing(t *testing.T) {
 
 			if (st.Damage == 0) != (tt.wantQuantityDamaged == 0) {
 				if tt.wantQuantityDamaged == 0 {
-					t.Error("ShipToken.applyOvergateDamage() produced damaged token; expected none")
+					t.Error("ShipToken.applyOvergateDamage() produced damaged tokens; expected none")
 				} else {
-					t.Error("ShipToken.applyOvergateDamage() produced undamaged token; expected damage")
+					t.Error("ShipToken.applyOvergateDamage() produced undamaged tokens; expected damage")
 				}
 			}
 		})
