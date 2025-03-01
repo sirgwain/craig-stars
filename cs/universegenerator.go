@@ -260,12 +260,9 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 					// player can't use hull; move on
 					continue
 				}
-				design, err := DesignShip(&ug.Game.Rules, hull, startingFleet.Name, player, num, startingFleet.HullSetNumber, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
+				design, err := DesignShip(&ug.Game.Rules, hull, startingFleet.Name, player, num, int(startingFleet.HullSetNumber), startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
 				if err != nil {
-					return fmt.Errorf("DesignShip returned error %w", err)
-				}
-				if design == nil {
-					return fmt.Errorf("failed to design ship for %s", hull)
+					return fmt.Errorf("DesignShip returned error \n%w", err)
 				}
 				player.Designs = append(player.Designs, design)
 				designNames.Add(design.Name)
