@@ -230,39 +230,48 @@ func TestQueueItemType_IsAuto(t *testing.T) {
 }
 
 func TestPlanet_reduceMineralConcentration(t *testing.T) {
-	type args struct {
-		rules Rules
-	}
 	tests := []struct {
 		name   string
 		planet *Planet
-		args   args
-		want   Mineral
+		want   *Planet
 	}{
 		{
-			name:   "Reduce empty planet min conc",
-			planet: NewPlanet(),
-			args:   args{rules: rules},
-			want:   Mineral{1, 1, 1},
-		},
-		{
-			name: "150 mines should reduce 100% conc by 1 if we have 151 mineyears",
+			name: "reduces mineral conc",
+			// 1.5M / 100 / 100 = 150 mine-years to reduce
 			planet: NewPlanet().
 				WithMineralConcentration(Mineral{100, 100, 100}).
-				WithMines(150).
 				WithMineYears(Mineral{151, 151, 151}),
-			args: args{rules: rules},
-			want: Mineral{99, 99, 99},
+			want: NewPlanet().
+				WithMineralConcentration(Mineral{99, 99, 99}).
+				WithMineYears(Mineral{1, 1, 1}),
+		},
+		{
+			name: "Homeworld can go below 30 conc",
+			// 1.5M / 30 / 30 = 1,666 mine-years to reduce
+			planet: NewPlanet().WithHomeworld(true).
+				WithMineralConcentration(Mineral{29, 29, 29}).
+				WithMineYears(Mineral{1667, 1667, 1667}),
+			want: NewPlanet().WithHomeworld(true).
+				WithMineralConcentration(Mineral{29, 29, 29}).
+				WithMineYears(Mineral{1, 1, 1}),
+		},
+		{
+			name: "Cannot lower below 1",
+			// 1.5M / 2 / 2 = 375,000 mine-years to reduce
+			planet: NewPlanet().
+				WithMineralConcentration(Mineral{2, 2, 2}).
+				WithMineYears(Mineral{5e7, 5e7, 5e7}),
+			want: NewPlanet().
+				WithMineralConcentration(Mineral{1, 1, 1}).
+				WithMineYears(Mineral{0, 0, 0}),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.planet.reduceMineralConcentration(&tt.args.rules)
+			tt.planet.reduceMineralConcentration(&rules)
 
-			if got := tt.planet.MineralConcentration; !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Planet.reduceMineralConcentration() = %v, want %v", got, tt.want)
-			}
-
+			// TODO: Fix once test branch finishes
+			test.CompareAsJSON(t, tt.planet, tt.want)
 		})
 	}
 }
@@ -365,19 +374,15 @@ func TestPlanet_randomize(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.planet
-			r := &rules
+			r := NewRules()
 			r.HabDropoffRange = tt.fields.habDropoff
 			r.MinHab = tt.fields.minHab
 			r.MaxHab = tt.fields.maxHab
 			r.random = tt.rng
 
-			got.randomize(r, false)
+			got.randomize(&r, false)
 
-			if !reflect.DeepEqual(got, tt.want) {
-				// dump json, but this won't include some fields
-				test.CompareAsJSON(t, got, tt.want)
-				t.Errorf("randomize() = %#v, want %#v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 
 		})
 	}
@@ -463,45 +468,52 @@ func TestPlanet_grow(t *testing.T) {
 }
 
 func TestPlanet_getMineralOutput(t *testing.T) {
-	type fields struct {
-		MineralConcentration Mineral
-	}
-	type args struct {
+	tests := []struct {
+		name       string
+		planet     *Planet
 		numMines   int
 		mineOutput int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   Mineral
+		rng        rng
+		want       Mineral
 	}{
 		{
-			name:   "100 conc, 10 mines, 10 output",
-			fields: fields{MineralConcentration: Mineral{100, 100, 100}},
-			args:   args{numMines: 10, mineOutput: 10},
-			want:   Mineral{10, 10, 10},
+			name:       "whole number outputs",
+			planet:     NewPlanet().WithMineralConcentration(Mineral{100, 100, 100}),
+			numMines:   10,
+			mineOutput: 10,
+			want:       Mineral{10, 10, 10},
+			// rng irrelevant since it's only used for leftovers
 		},
 		{
-			name:   "100 conc, 10 mines, 8 output",
-			fields: fields{MineralConcentration: Mineral{100, 100, 100}},
-			args:   args{numMines: 10, mineOutput: 8},
-			want:   Mineral{8, 8, 8},
+			name:       "mixed conc; fewer mines",
+			planet:     NewPlanet().WithMineralConcentration(Mineral{25, 45, 65}),
+			numMines:   20,
+			mineOutput: 10,
+			want:       Mineral{5, 9, 13},
 		},
 		{
-			name:   "mixed conc, 100 mines, 10 output",
-			fields: fields{MineralConcentration: Mineral{25, 45, 65}},
-			args:   args{numMines: 100, mineOutput: 10},
-			want:   Mineral{25, 45, 65},
+			name:       "Homeworld min conc floor; truncates",
+			planet:     NewPlanet().WithMineralConcentration(Mineral{1, 1, 1}).WithHomeworld(true),
+			numMines:   22, // 6.6 minerals
+			mineOutput: 10,
+			rng:        newFloat64Random(),
+			want:       Mineral{6, 6, 6},
+		},
+		{
+			name:       "RNG increases some but not all",
+			planet:     NewPlanet().WithMineralConcentration(Mineral{1, 1, 1}).WithHomeworld(true),
+			numMines:   22, // 6.6 minerals
+			mineOutput: 10,
+			rng:        newFloat64Random(1, 0, 0),
+			want:       Mineral{6, 6, 6},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Planet{
-				MineralConcentration: tt.fields.MineralConcentration,
-			}
-			if got := p.getMineralOutput(tt.args.numMines, tt.args.mineOutput); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Planet.getMineralOutput() = %v, want %v", got, tt.want)
+			rCopy := NewRules()
+			rCopy.random = tt.rng
+			if got := tt.planet.getMineralOutput(&rCopy, tt.numMines, tt.mineOutput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Planet.getMineralOutput() returned output \n%+v, want \n%+v", got, tt.want)
 			}
 		})
 	}

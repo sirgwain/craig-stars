@@ -339,10 +339,10 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 			var playerPlanet *Planet
 			if startingPlanet.Homeworld && homeworld == nil {
 				// place homworld and track it so we know where to base extra world placement on
-				playerPlanet = ug.placeHomeworld(startingPlanet, ownedPlanets, minPlayerDistance)
+				playerPlanet = ug.placeHomeworld(ownedPlanets, minPlayerDistance)
 				homeworld = playerPlanet
 			} else {
-				playerPlanet = ug.placeExtraWorld(startingPlanet, homeworld.Position)
+				playerPlanet = ug.placeExtraWorld(homeworld.Position)
 			}
 
 			if playerPlanet == nil {
@@ -390,11 +390,11 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 }
 
 // place a homeworld during universe generation
-func (ug *universeGenerator) placeHomeworld(startingPlanet StartingPlanet, ownedPlanets []*Planet, minPlanetDistance float64) (homeworld *Planet) {
+func (ug *universeGenerator) placeHomeworld(ownedPlanets []*Planet, minPlanetDistance float64) (homeworld *Planet) {
 	farthestDistance := float64(math.MinInt)
 
 	// homeworld should be distant from other players' planets
-	for _, planet := range ug.universe.Planets {
+	for _, planet := range ug.Universe.Planets {
 		if planet.Owned() {
 			// can't re-assign owned planets
 			continue
@@ -424,10 +424,10 @@ func (ug *universeGenerator) placeHomeworld(startingPlanet StartingPlanet, owned
 }
 
 // place an extra world during universe generation
-func (ug *universeGenerator) placeExtraWorld(startingPlanet StartingPlanet, homeworldPos Vector) (extraPlanet *Planet) {
+func (ug *universeGenerator) placeExtraWorld(homeworldPos Vector) (extraPlanet *Planet) {
 	rules := ug.Rules
 	var closestDistance float64
-	for _, planet := range ug.universe.Planets {
+	for _, planet := range ug.Universe.Planets {
 		if planet.Owned() {
 			continue
 		}
@@ -471,7 +471,7 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		extraPoints >= pointsThreshold:
 		planet.MineralConcentration = planet.MineralConcentration.Equalize(extraPoints / pointsThreshold)
 	case extraPoints > 0:
-    // surface minerals
+		// surface minerals
 		kTPerPoint := rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
 		// example situation: 25 unspent points; HW has 400I, 300B and 350G
 		// first we start by increasing B up to 350, using 5 points.
@@ -509,11 +509,11 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		diffHighest := mSlice[2] - mSlice[0]
 		if diffHighest != 0 && extraPoints > 1 {
 			// again, truncation means mSlice[0] & mSlice[1] are still guaranteed
-      // to be lower than mSlice[2] after addition.
+			// to be lower than mSlice[2] after addition.
 			amtToAdd := Min(extraPoints, (diffHighest/kTPerPoint)*2)
 			mSlice[0] += (amtToAdd / 2) * kTPerPoint
 			mSlice[1] += (amtToAdd / 2) * kTPerPoint
-      extraPoints -= (amtToAdd - amtToAdd % 2) // equivalent to 2*(a/2) 
+			extraPoints -= (amtToAdd - amtToAdd%2) // equivalent to 2*(a/2)
 		}
 
 		// all 3 equal; divide remainders evenly
@@ -528,7 +528,7 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		}
 
 		planet.SurfaceMinerals = NewMineral(mSlice[origOrder[0]], mSlice[origOrder[1]], mSlice[origOrder[2]])
-  }
+	}
 }
 
 // build a starbase on a planet
@@ -591,12 +591,12 @@ func (ug *universeGenerator) applyAccBBS() {
 
 		// Add 25% extra homeworld surface minerals
 		// (the help manual lied when it said 20%)
-		planet.Cargo = planet.Cargo.AddMineral(planet.Cargo.ToMineral().MultiplyFloat64(0.25, math.Floor))
+		planet.SurfaceMinerals = planet.SurfaceMinerals.MultiplyFloat64(1.25, math.Floor)
 
 		// AccBBS adds 20% addiional starting pop (+5K over the default 25K)
 		// per 1% of a race's growth rate.
 		race := ug.getPlayer(planet.PlayerNum).Race
-		planet.Cargo.Colonists += int(float64(planet.Cargo.Colonists*race.GrowthRate) *
+		planet.Population += int(float64(planet.Population*race.GrowthRate) *
 			race.Spec.GrowthFactor / 5)
 	}
 }

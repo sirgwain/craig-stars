@@ -63,8 +63,8 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 	numBuilt := make([]int, len(planet.ProductionQueue))
 	producer := newProducer(log.Logger, rules, &planet, player)
 	for year := 1; year <= 100; year++ {
-		// mine for minerals &
-		planet.mine(rules)
+		// mine for minerals & stuff
+		planet.mine(rules, planet.Spec.MiningOutput, planet.Mines)
 		// TODO: Simulate remote mining for AR (likely by including the mineral outputs of remote miners directly in the planet's spec)
 
 		// build stuff

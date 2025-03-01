@@ -173,6 +173,11 @@ func (p *Planet) WithScanner(scanner bool) *Planet {
 	return p
 }
 
+func (p *Planet) WithHomeworld(homeworld bool) *Planet {
+	p.Homeworld = homeworld
+	return p
+}
+
 func (p *Planet) String() string {
 	return fmt.Sprintf("Planet %v", p.MapObject)
 }
@@ -181,11 +186,6 @@ func (p *Planet) String() string {
 // TODO: Review all references to make sure this is being used correctly
 func (p *Planet) GetPopulation() (wholePop int) {
 	return roundToNearest100(p.Population, math.Floor)
-}
-
-// return planet population not in a multiple of 100
-func (p *Planet) partialPopulation() (partialPop int) {
-	return p.Population % 100
 }
 
 // Add cargo to this planet
@@ -202,16 +202,10 @@ func (p *Planet) setPopulation(pop int) {
 
 // set cargo to specified value
 //
-//! REMEMBER TO REMOVE THIS BOZO
+// ! REMEMBER TO REMOVE THIS BOZO
 func (p *Planet) setCargo(cargo Cargo) {
 	p.SurfaceMinerals = cargo.ToMineral()
 	p.Population = cargo.Colonists * 100
-}
-
-// Add specified amount of pop
-// TODO: Remove this in favor of plain old addition
-func (p *Planet) addPopulation(pop int) {
-	p.Population += pop
 }
 
 // Return the amount of population that is productive for producing resources,
@@ -291,7 +285,7 @@ func (p *Planet) emptyPlanet() {
 	p.Hab = p.BaseHab.Add(p.TerraformedAmount)
 }
 
-// randomize a planet with new hab range, minerals, etc
+// randomize a planet with new hab range, minerals, etc;
 // Used in universe generation as well as for genesis device resets
 func (p *Planet) randomize(rules *Rules, accBBS bool) {
 	// From @SuicideJunkie's tests and @edmundmk's previous research,
@@ -350,8 +344,7 @@ func randomizeMinerals(rules *Rules, rad int, accBBS bool) Mineral {
 	// add a small amount of minerals for accBBS
 	if accBBS {
 		for _, minType := range MineralTypes {
-			concAmount := minConc.GetAmount(minType)
-			if concAmount < 40 {
+			if concAmount := minConc.GetAmount(minType); concAmount < 40 {
 				minConc.Set(minType, concAmount+5)
 			}
 		}
@@ -503,16 +496,29 @@ func (p *Planet) shortestDistanceToPlanets(otherPlanets []*Planet) float64 {
 	return math.Sqrt(minDistanceSquared)
 }
 
-// get the mineral output of a planet based on mineOutput (10 for remote mining)
-func (p *Planet) getMineralOutput(numMines int, mineOutput int) Mineral {
-  // TODO: Add fractional mineral outputs (% chance for extra) for sub-integer amounts
-  // TODO: Make this take *Rules and check HW min conc floors for non-remote mining, and change
-  // reduceMineralConcentrations to continue reducing HW mins
-	return Mineral{
-		int(float64(p.MineralConcentration.Ironium*numMines*mineOutput) / 1000),
-		int(float64(p.MineralConcentration.Boranium*numMines*mineOutput) / 1000),
-		int(float64(p.MineralConcentration.Germanium*numMines*mineOutput) / 1000),
+// getMineralOutput returns the mineral output of this Planet
+// were it to be mined with the given numMines and mineOutput.
+//
+// Takes into account HW conc flooring as appropriate.
+func (p *Planet) getMineralOutput(rules *Rules, numMines int, mineOutput int) (output Mineral) {
+	for _, minType := range MineralTypes {
+		conc := p.MineralConcentration.GetAmount(minType)
+		if p.Homeworld && p.Owned() {
+			// only apply HW conc floor if planet is owned.
+			// player # checks not needed since only unowned or self-owned planets
+			// can be mined to begin with.
+			conc = Max(conc, rules.MinHomeworldMineralConcentration)
+		}
+
+		// extract whole/fractional parts of output,
+		// using the fractional portion as a chance for 1 extra kT
+		whole, frac := math.Modf(float64(conc*numMines*mineOutput) / 1000)
+		if frac >= rules.random.Float64() {
+			whole += 1
+		}
+		output.Set(minType, int(whole))
 	}
+	return output
 }
 
 // Get how much a player will grow on a planet, given the max population the player can have on the planet..
@@ -584,7 +590,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	// Compute resources per year
 	spec.computeResourcesPerYear(player, planet.Factories, productivePop, installationPop)
-	spec.MiningOutput = planet.getMineralOutput(Min(spec.MaxMines, planet.Mines), race.MineOutput)
+	spec.MiningOutput = planet.getMineralOutput(rules, Min(spec.MaxMines, planet.Mines), race.MineOutput)
 	spec.computeResourcesPerYearAvailable(player, planet)
 
 	if race.Spec.CanBuildDefenses {
@@ -595,14 +601,14 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	if race.Spec.InnateScanner {
 		// compute AR organic scan range
-    // TODO: confirm rounding behavior with NAS
+		// TODO: confirm rounding behavior with NAS
 		spec.Scanner = "Organic"
 		spec.ScanRange = int(float64(innateScanner(player.Race.Spec.InnateScannerFactor, productivePop)) * player.Race.Spec.ScanRangeFactor)
 		if !player.Race.Spec.NoAdvancedScanners && planet.Starbase != nil {
 			spec.ScanRangePen = int(float64(spec.ScanRange) * planet.Starbase.Spec.InnateScanRangePenFactor)
 		}
 	} else if planet.Scanner {
-    // normal scanner ranges
+		// normal scanner ranges
 		scanner := player.Spec.PlanetaryScanner
 		spec.Scanner = scanner.Name
 		spec.ScanRange = int(float64(scanner.ScanRange) * player.Race.Spec.ScanRangeFactor)
@@ -745,10 +751,10 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 	return Infinite
 }
 
-// mine minerals on this planet
-func (planet *Planet) mine(rules *Rules) {
-	planet.AddMineral(planet.Spec.MiningOutput)
-	planet.MineYears = planet.MineYears.AddToAll(planet.Mines)
+// mine this planet using the given miningOutput and numMines
+func (planet *Planet) mine(rules *Rules, miningOutput Mineral, numMines int) {
+	planet.AddMineral(miningOutput)
+	planet.MineYears = planet.MineYears.AddToAll(numMines)
 	planet.reduceMineralConcentration(rules)
 }
 
@@ -765,37 +771,28 @@ func (planet *Planet) grow(player *Player) {
 	}
 }
 
-// reduce the mineral concentrations of a planet after mining.
+// reduce the mineral concentrations of a planet after mining based on MineYears.
 func (planet *Planet) reduceMineralConcentration(rules *Rules) {
-  // TODO: Refactor this to clean it up
-	mineralDecayFactor := rules.MineralDecayFactor
+	mineralDecayFactor := rules.MineralDecayFactor // 1.5M by default
 	minMineralConcentration := rules.MinMineralConcentration
-	if planet.Homeworld {
-		minMineralConcentration = rules.MinHomeworldMineralConcentration
-	}
 
-	planetMineYears := planet.MineYears.ToSlice()
-	planetMineralConcentration := planet.MineralConcentration.ToSlice()
-	for i, conc := range planetMineralConcentration {
-		if conc < minMineralConcentration {
-			// can't have less than min, make sure we have that at least
-			conc = minMineralConcentration
-			planetMineralConcentration[i] = conc
+	// "In short, mine years are like a very funky odometer" - Matthew T.
+	for _, minType := range MineralTypes {
+		conc := planet.MineralConcentration.GetAmount(minType)
+		mineYears := planet.MineYears.GetAmount(minType)
+
+		mineYearsToRollover := mineralDecayFactor / (conc * conc)
+		if mineYears <= mineYearsToRollover {
+			// mine years under cap; move on
+			continue
 		}
 
-		minesPer := mineralDecayFactor / conc / conc
-		mineYears := planetMineYears[i]
-		if mineYears > minesPer {
-			conc -= mineYears / minesPer
-			if conc < minMineralConcentration {
-				conc = minMineralConcentration
-			}
-			mineYears %= minesPer
-
-			planetMineYears[i] = mineYears
-			planetMineralConcentration[i] = conc
+		newConc := Max(conc-(mineYears/mineYearsToRollover), minMineralConcentration)
+		planet.MineralConcentration.Set(minType, newConc)
+		if newConc == minMineralConcentration {
+			planet.MineYears.Set(minType, 0)
+		} else {
+			planet.MineYears.Set(minType, mineYears%mineYearsToRollover)
 		}
 	}
-	planet.MineYears = NewMineral(planetMineYears[0], planetMineYears[1], planetMineYears[2])
-	planet.MineralConcentration = NewMineral(planetMineralConcentration[0], planetMineralConcentration[1], planetMineralConcentration[2])
 }

@@ -47,20 +47,26 @@ func (m Mineral) PrettyString() string {
 	return strings.Join(texts, ", ")
 }
 
-func (m *Mineral) Set(mineralType MineralType, value int) *Mineral {
-	switch mineralType {
+// Set sets the value corresponding to minType to amt.
+// Unlike all the other Mineral functions, this _will_ mutate the original struct's values,
+// and is best used for more complex cases not handled by other functions.
+func (m *Mineral) Set(minType MineralType, amt int) {
+	switch minType {
 	case Ironium:
-		m.Ironium = value
+		m.Ironium = amt
 	case Boranium:
-		m.Boranium = value
+		m.Boranium = amt
 	case Germanium:
-		m.Germanium = value
-
+		m.Germanium = amt
+	default:
+		panic(fmt.Sprintf("mineral.Set called with invalid MineralType %s", minType))
 	}
-	return m
 }
 
-// return higher of 2 Mineral structs for all MineralTypes separately
+// Max returns a Mineral struct containing the higher of
+// m's and other's values for each MineralType.
+//
+//  Mineral{1, 2, 3}.Max(Mineral{4, 0, 5}) = Mineral{4, 2, 5}
 func (m Mineral) Max(other Mineral) Mineral {
 	return Mineral{
 		Ironium:   Max(m.Ironium, other.Ironium),
@@ -69,17 +75,29 @@ func (m Mineral) Max(other Mineral) Mineral {
 	}
 }
 
-func (m Mineral) GetAmount(mineralType MineralType) int {
-	var amt int
-	switch mineralType {
-	case Ironium:
-		amt = m.Ironium
-	case Boranium:
-		amt = m.Boranium
-	case Germanium:
-		amt = m.Germanium
+// MaxNum return the higher of max and this Mineral struct's values
+// for each MineralType.
+//
+//  Mineral{1, 2, 3}.MaxNum(2) = Mineral{2, 2, 3}
+func (m Mineral) MaxNum(max int) Mineral {
+	return Mineral{
+		Ironium:   Max(m.Ironium, max),
+		Boranium:  Max(m.Boranium, max),
+		Germanium: Max(m.Germanium, max),
 	}
-	return amt
+}
+
+func (m Mineral) GetAmount(minType MineralType) int {
+	switch minType {
+	case Ironium:
+		return m.Ironium
+	case Boranium:
+		return m.Boranium
+	case Germanium:
+		return m.Germanium
+	default:
+		panic(fmt.Sprintf("Mineral.GetAmount called with invalid MineralType %q", minType))
+	}
 }
 
 func (m Mineral) Total() int {
@@ -112,7 +130,7 @@ func (m Mineral) ToCost() Cost {
 	}
 }
 
-// add two minerals
+// add two minerals and return the result.
 func (m Mineral) Add(other Mineral) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium + other.Ironium,
@@ -145,25 +163,6 @@ func (m Mineral) AddNum(minType MineralType, amt int) Mineral {
 	return m
 }
 
-// subtract two minerals
-func (m Mineral) Subtract(other Mineral) Mineral {
-	return Mineral{
-		Ironium:   m.Ironium - other.Ironium,
-		Boranium:  m.Boranium - other.Boranium,
-		Germanium: m.Germanium - other.Germanium,
-	}
-}
-
-// Subtract the mineral components of a Cost from this Mineral;
-// equivalent to m.Subtract(c
-func (m Mineral) SubtractCost(c Cost) Mineral {
-	return Mineral{
-		Ironium:   m.Ironium - c.Ironium,
-		Boranium:  m.Boranium - c.Boranium,
-		Germanium: m.Germanium - c.Germanium,
-	}
-}
-
 // Multiply all components of a mineral by a float64, round them using roundFunc and
 // return the result truncated to an integer.
 func (m Mineral) MultiplyFloat64(factor float64, roundFunc func(float64) float64) Mineral {
@@ -171,15 +170,6 @@ func (m Mineral) MultiplyFloat64(factor float64, roundFunc func(float64) float64
 		Ironium:   int(roundFunc(float64(m.Ironium) * factor)),
 		Boranium:  int(roundFunc(float64(m.Boranium) * factor)),
 		Germanium: int(roundFunc(float64(m.Germanium) * factor)),
-	}
-}
-
-// Return this Mineral with a minimum of zero for each value
-func (m Mineral) MinZero() Mineral {
-	return Mineral{
-		Ironium:   Max(m.Ironium, 0),
-		Boranium:  Max(m.Boranium, 0),
-		Germanium: Max(m.Germanium, 0),
 	}
 }
 

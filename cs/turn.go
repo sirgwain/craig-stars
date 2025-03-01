@@ -1304,7 +1304,7 @@ func (t *turnGenerator) detonateMines() {
 func (t *turnGenerator) planetMine() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
-			planet.mine(&t.game.Rules)
+			planet.mine(&t.game.Rules, planet.Spec.MiningOutput, planet.Mines)
 			t.log.Debug().
 				Int("Player", planet.PlayerNum).
 				Str("Planet", planet.Name).
@@ -1345,7 +1345,7 @@ func (t *turnGenerator) fleetRemoteMineAR() {
 
 		// If this is our own planet, remote mine it (happens earlier than normal)
 		if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
-			t.remoteMine(fleet, player, planet, true)
+			t.remoteMine(fleet, player, planet)
 		}
 	}
 }
@@ -1389,35 +1389,31 @@ func (t *turnGenerator) fleetRemoteMine() {
 			continue
 		}
 
-		t.remoteMine(fleet, player, planet, false)
+		if fleet.PreviousPosition != nil {
+			// just got here this turn; don't mine
+			continue
+		}
+
+		t.remoteMine(fleet, player, planet)
 	}
 }
 
 // remote mine a planet
-func (t *turnGenerator) remoteMine(fleet *Fleet, player *Player, planet *Planet, ARMining bool) {
-	// don't mine if we moved here this round and aren't AR self mining
-	if fleet.PreviousPosition != nil && !ARMining {
-		return
-	}
-	numMines := fleet.Spec.MiningRate
-	mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
-  // TODO: Maybe refactor planet.Mine to work with this?
-	planet.SurfaceMinerals = planet.SurfaceMinerals.Add(mineralOutput)
-	planet.MineYears = planet.MineYears.AddToAll(numMines)
-	planet.reduceMineralConcentration(&t.game.Rules)
+func (t *turnGenerator) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
+	miningOutput := planet.getMineralOutput(&t.game.Rules, fleet.Spec.MiningRate, t.game.Rules.RemoteMiningMineOutput)
+	planet.mine(&t.game.Rules, miningOutput, fleet.Spec.MiningRate)
 	planet.MarkDirty()
 
 	// make sure we know about this planet's cargo after remote mining;
-	// mark this fleet as having remote mined
-	// so it doesn't get counted twice
+	// mark this fleet as having remote mined so it doesn't get counted twice
 	fleet.remoteMined = true
-	messager.fleetRemoteMined(player, fleet, planet, mineralOutput)
+	messager.fleetRemoteMined(player, fleet, planet, miningOutput)
 
 	t.log.Debug().
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Str("Planet", planet.Name).
-		Str("Minerals outputted", mineralOutput.PrettyString()).
+		Str("Minerals outputted", miningOutput.PrettyString()).
 		Msgf("fleet remote mined planet")
 }
 

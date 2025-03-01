@@ -120,11 +120,15 @@ func (c cost[T]) GetAmount(costType CostType) T {
 		return c.Germanium
 	case Resources:
 		return c.Resources
+	default:
+		panic(fmt.Sprintf("GetAmount called with invalid CostType %s", costType))
 	}
-	panic(fmt.Sprintf("GetAmount called with invalid CostType %s", costType))
 }
 
-func (c cost[T]) Set(costType CostType, amt T) cost[T] {
+// Set sets the value corresponding to costType to amt.
+// Unlike all the other Cost functions, this _will_ mutate the original struct's values,
+// and is best used for more complex cases not handled by other functions.
+func (c *cost[T]) Set(costType CostType, amt T) {
 	switch costType {
 	case Ironium:
 		c.Ironium = amt
@@ -135,9 +139,8 @@ func (c cost[T]) Set(costType CostType, amt T) cost[T] {
 	case Resources:
 		c.Resources = amt
 	default:
-		panic(fmt.Sprintf("SetAmount called with invalid CostType %s", costType))
+		panic(fmt.Sprintf("cost.Set called with invalid CostType %s", costType))
 	}
-	return c
 }
 
 // Return the Cargo equivalent of a Cost struct, truncating values as necessary.
@@ -276,9 +279,9 @@ func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
 	quotient := CostFloat64{}
 	for _, ct := range CostTypes {
 		if divisor.GetAmount(ct) == 0 {
-			quotient = quotient.Set(ct, float64(math.Inf(1)))
+			quotient.Set(ct, float64(math.Inf(1)))
 		} else {
-			quotient = quotient.Set(ct, float64(dividend.GetAmount(ct))/float64(divisor.GetAmount(ct)))
+			quotient.Set(ct, float64(dividend.GetAmount(ct))/float64(divisor.GetAmount(ct)))
 		}
 	}
 
