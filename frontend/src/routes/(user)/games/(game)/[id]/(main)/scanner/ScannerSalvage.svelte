@@ -27,12 +27,12 @@
 		fill="none"
 		class="rotate"
 	/>
-
-	<style>
-		.rotate {
-			transform-box: fill-box;
-			transform-origin: center;
-			transform: rotate(45deg);
-		}
-	</style>
 </MapObjectScaler>
+
+<style>
+	.rotate {
+		transform-box: fill-box;
+		transform-origin: center;
+		transform: rotate(45deg);
+	}
+</style>
