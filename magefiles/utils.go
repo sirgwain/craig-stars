@@ -71,15 +71,15 @@ func Test_Golang(goTestArgs string) error {
 	configVals := strings.FieldsFunc(string(configBytes), func(r rune) bool {
 		return (r == ',' || r == ' ' || r == '\n' || r == '\r')
 	})
-	fmt.Printf("Config file at %s successfully read.\nContents: %s", filePath, strings.Join(configVals, ", "))
+	fmt.Printf("Config file at %s successfully read.\n", filePath)
 
-	// if $GITHUB_REPOSITORY is set and nonempty, use that as package name for JUnit report.
-	// Otherwise, check for $GH_REPO before falling back to a default string.
-	var repoName string = "craig-stars"
+	// if $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
+	// Otherwise, check for $GH_REPO (from github CLI) before falling back to a default string.
+	var pkgName string = "craig-stars"
 	if r := strings.TrimSpace(os.Getenv("GITHUB_REPOSITORY")); r != "" {
-		repoName = r
+		pkgName = r
 	} else if r = strings.TrimSpace(os.Getenv("GH_REPO")); r != "" {
-		repoName = r
+		pkgName = r
 	}
 
 	// merge any produced json files together once we're done testing
@@ -90,7 +90,7 @@ func Test_Golang(goTestArgs string) error {
 		}
 	}()
 
-	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": repoName},
+	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": pkgName},
 		configVals[0], configVals[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
 }
 
@@ -211,7 +211,7 @@ func Images() error {
 		if err := sh.Rm(tmpName); err != nil {
 			panic(err)
 		}
-		fmt.Printf("removed temp file at %s", tmpName)
+		fmt.Println("removed temp file at", tmpName)
 	}()
 
 	if err := unzipTempFile(tmpName); err != nil {
