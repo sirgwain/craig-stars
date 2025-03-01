@@ -208,7 +208,7 @@ func build_backend(buildArgs ...string) error {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
 
-	f := make([]string, len(buildArgs)+4)
+	f := make([]string, 1, len(buildArgs)+4)
 	f[0] = "build"
 	flags := append(append(f, buildArgs...), "-o",
 		"dist/"+binary_name, "main.go")
