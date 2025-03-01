@@ -160,14 +160,14 @@ func (p GuestHandler) getCredentials(w http.ResponseWriter, r *http.Request) (cr
 	if contentType == "application/json" {
 		var creds credentials
 		if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-			return credentials{}, fmt.Errorf("failed to parse request body: %w", err)
+			return credentials{}, fmt.Errorf("failed to parse request body: \n%w", err)
 		}
 		return creds, nil
 	}
 
 	// POST with form
 	if err := r.ParseForm(); err != nil {
-		return credentials{}, fmt.Errorf("failed to parse request: %w", err)
+		return credentials{}, fmt.Errorf("failed to parse request: \n%w", err)
 	}
 
 	return credentials{
@@ -188,11 +188,11 @@ func (p GuestHandler) LogoutHandler(w http.ResponseWriter, _ *http.Request) {
 func randToken() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
-		return "", fmt.Errorf("can't get random: %w", err)
+		return "", fmt.Errorf("can't get random: \n%w", err)
 	}
 	s := sha1.New()
 	if _, err := s.Write(b); err != nil {
-		return "", fmt.Errorf("can't write randoms to sha1: %w", err)
+		return "", fmt.Errorf("can't write randoms to sha1: \n%w", err)
 	}
 	return fmt.Sprintf("%x", s.Sum(nil)), nil
 }

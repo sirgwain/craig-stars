@@ -21,7 +21,7 @@ Run the following command in your terminal of choice:
 go install github.com/magefile/mage@latest
 ```
 
-Once it finishes installing, check by running `mage` - if all went well, you should get a list of available targets defined in the repo's [magefiles](../magefiles) directory.
+Once it finishes installing, check by running `mage` - if all went well, you should get a list of available targets defined in the repo's [magefiles](../magefiles) directory. (Don't worry about the wonky capitalization - magefile commands are always _case-insensitive_.)
 
 **Disclaimer**: Magefile targets must always be run from inside the _repository root_. This does not apply to the equivalent VS Code tasks, however (which always launch from root).
 

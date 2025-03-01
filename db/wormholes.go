@@ -144,7 +144,7 @@ func (c *client) updateWormhole(wormhole *cs.Wormhole) error {
 
 func (c *client) deleteWormhole(wormholeID int64) error {
 	if _, err := c.writer.Exec("DELETE FROM wormholes where id = ?", wormholeID); err != nil {
-		return fmt.Errorf("delete wormhole %d %w", wormholeID, err)
+		return fmt.Errorf("delete wormhole %d: \n%w", wormholeID, err)
 	}
 	return nil
 }

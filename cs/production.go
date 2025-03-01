@@ -341,17 +341,17 @@ func (p *producer) getItemCost(rules *Rules, player *Player, planet *Planet, ite
 	if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
 		cost, err = costCalculator.StarbaseUpgradeCost(rules, player.TechLevels, player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
 		if err != nil {
-			return Cost{}, fmt.Errorf("failed to compute starbase upgrade cost, err %w", err)
+			return Cost{}, fmt.Errorf("failed to compute starbase upgrade cost: \n%w", err)
 		}
 	} else if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
 		cost, err = costCalculator.GetDesignCost(rules, player.TechLevels, player.Race.Spec, item.design)
 		if err != nil {
-			return Cost{}, fmt.Errorf("failed to get design cost, error %w", err)
+			return Cost{}, fmt.Errorf("failed to get design cost: \n%w", err)
 		}
 	} else {
 		cost, err = costCalculator.CostOfOne(player, item)
 		if err != nil {
-			return Cost{}, fmt.Errorf("failed to compute cost of %s, err %w", item.Type, err)
+			return Cost{}, fmt.Errorf("failed to compute cost of %s: \n%w", item.Type, err)
 		}
 	}
 	return cost, nil

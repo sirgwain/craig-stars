@@ -9,7 +9,8 @@
     {
       "label": "Run all tests",
       "type": "shell",
-      "command": "mage test",
+      "command": "mage",
+      "args": ["test"],
       "group": {
         "kind": "test",
         "isDefault": "true"
@@ -18,14 +19,13 @@
         "color": "terminal.ansiGreen",
         "id": "beaker"
       },
-      "dependsOn": [],
       "detail": "Run all backend/frontend tests and linting checks."
     },
     {
       "label": "Go: run tests",
       "type": "shell",
-      "command": "mage test_golang",
-      "args": ["${input:goTestArgs}"],
+      "command": "mage",
+      "args": ["test_golang", "--run=\"^${input:goTestName}\""],
       "group": "test",
       "icon": {
         "color": "terminal.ansiGreen",
@@ -39,12 +39,12 @@
       "problemMatcher": "$go",
       "command": "test",
       "args": [
-        "run=$^",
-        "-bench=${input:goTestArgs}",
-        "-benchmem",
-        "-benchtime=${input:benchTime}s",
-        "-benchcount=5",
-        "-json tmp/test-results/go-benchresults.json"
+        "--run=$^",
+        "--bench=\"^${input:goTestName}\"",
+        "--benchmem",
+        "--benchtime=${input:benchTime}s",
+        "--benchcount=5",
+        "--json tmp/test-results/go-benchresults.json"
       ],
       "group": "test",
       "icon": {
@@ -88,7 +88,8 @@
     {
       "label": "Build server",
       "type": "shell",
-      "command": "mage build",
+      "command": "mage",
+      "args": ["build"],
       "icon": {
         "color": "terminal.ansiCyan",
         "id": "symbol-constructor"
@@ -113,7 +114,8 @@
       "hide": true,
       "label": "launch backend",
       "type": "shell",
-      "command": "mage launch_backend",
+      "command": "mage",
+      "args": ["launch_backend"],
       "icon": {
         "color": "terminal.ansiBlue",
         "id": "rocket"
@@ -123,7 +125,8 @@
       "hide": true,
       "label": "launch frontend",
       "type": "shell",
-      "command": "mage launch_frontend",
+      "command": "mage",
+      "args": ["launch_frontend"],
       "icon": {
         "color": "terminal.ansiBlue",
         "id": "radio-tower"
@@ -133,13 +136,14 @@
       "hide": true,
       "label": "Compile Mage debug file",
       "type": "shell",
+      "command": "mage",
+      "args": ["-compile", "./magefile-debug"],
+      "presentation": {
+        "panel": "shared"
+      },
       "icon": {
         "id": "debug-console",
         "color": "terminal.ansiBlack"
-      },
-      "command": "mage -compile ./magefile-debug",
-      "presentation": {
-        "panel": "shared"
       }
     },
     {
@@ -158,16 +162,16 @@
   ],
   "inputs": [
     {
-      "id": "goTestArgs",
+      "id": "goTestName",
       "type": "promptString",
-      "default": "./...",
-      "description": "Enter command-line arguments to pass to go test."
+      "default": ".*",
+      "description": "Enter regex of test file names to run. Subtests are separated by slashes (/) and spaces are replaced by underscores (_)."
     },
     {
       "id": "benchTime",
       "type": "promptString",
       "default": "3",
-      "description": "Enter amount of time to run each benchmark for."
+      "description": "Enter amount of time (in seconds) to run each benchmark for."
     }
   ]
 }

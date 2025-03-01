@@ -176,7 +176,7 @@ func (c *client) updateMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
 
 func (c *client) deleteMysteryTrader(mysteryTraderID int64) error {
 	if _, err := c.writer.Exec("DELETE FROM mysteryTraders where id = ?", mysteryTraderID); err != nil {
-		return fmt.Errorf("delete mysteryTrader %d %w", mysteryTraderID, err)
+		return fmt.Errorf("delete mysteryTrader %d: \n%w", mysteryTraderID, err)
 	}
 	return nil
 }

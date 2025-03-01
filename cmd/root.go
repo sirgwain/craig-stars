@@ -31,7 +31,7 @@ func logPreRun(cmd *cobra.Command, args []string) error {
 	writer = zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime}
 	if logFile != "" {
 		if err := os.MkdirAll(filepath.Dir(logFile), 0755); err != nil {
-			return fmt.Errorf("failed to create log dir %s %w", filepath.Base(logFile), err)
+			return fmt.Errorf("failed to create log dir %s: \n%w", filepath.Base(logFile), err)
 		}
 		logFileWriter, err := os.OpenFile(
 			logFile,
@@ -39,7 +39,7 @@ func logPreRun(cmd *cobra.Command, args []string) error {
 			0664,
 		)
 		if err != nil {
-			return fmt.Errorf("failed to create log file %s %w", logFile, err)
+			return fmt.Errorf("failed to create log file %s: \n%w", logFile, err)
 		}
 
 		// make a file and console writer

@@ -96,10 +96,10 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 				player := ug.Players[planet.PlayerNum-1]
 				planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
 				if err := planet.PopulateProductionQueueDesigns(player); err != nil {
-					return nil, fmt.Errorf("planet %s failed to populate queue design; error: \n%w", planet, err)
+					return nil, fmt.Errorf("planet %s failed to populate queue design: \n%w", planet, err)
 				}
 				if err := planet.PopulateProductionQueueEstimates(&ug.Rules, player); err != nil {
-					return nil, fmt.Errorf("planet %s failed to populate queue estimates; error: \n%w", planet.Name, err)
+					return nil, fmt.Errorf("planet %s failed to populate queue estimates: \n%w", planet.Name, err)
 				}
 			}
 		}
@@ -146,7 +146,7 @@ func (ug *universeGenerator) generatePlanets() error {
 			pos = Vector{X: float64(rules.random.Intn(width)), Y: float64(rules.random.Intn(height))}
 			posCheckCount++
 			if posCheckCount > 1000 {
-				return fmt.Errorf("could not find a valid position for a planet in 1000 tries;\n min distance: %d, numPlanets: %d, area: %v", rules.PlanetMinDistance, numPlanets, ug.area)
+				return fmt.Errorf("valid position for planet was not in 1000 tries;\n min distance: %d, numPlanets: %d, area: %v", rules.PlanetMinDistance, numPlanets, ug.area)
 			}
 		}
 
@@ -255,7 +255,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 					// multiple starting fleets will use the same design
 					continue
 				}
-				hull := techStore.GetHull(techStore.transformName(string(startingFleet.HullName)))
+				hull := techStore.GetHull(string(startingFleet.HullName))
 				if !player.HasTech(&hull.Tech) {
 					// player can't use hull; move on
 					continue
@@ -276,7 +276,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 			design := starbaseDesigns[i]
 			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
+				return fmt.Errorf("ComputeShipDesignSpec returned error: \n%w", err)
 			}
 			player.Designs = append(player.Designs, design)
 		}
@@ -383,7 +383,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			}
 
 			if playerPlanet == nil {
-				return fmt.Errorf("could not find homeworld for player %v among %d planets, minDistance: %0.1f", player, len(ug.Universe.Planets), minPlayerDistance)
+				return fmt.Errorf("homeworld for player %v was not found among %d planets;\nminDistance: %0.1f", player, len(ug.Universe.Planets), minPlayerDistance)
 			}
 
 			ownedPlanets = append(ownedPlanets, playerPlanet)
@@ -407,7 +407,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			// add a starbase to this planet
 			if startingPlanet.StarbaseDesignName != "" {
 				if err := ug.buildStarbase(player, playerPlanet, startingPlanet.StarbaseDesignName); err != nil {
-					return fmt.Errorf("building starbase during universe gen failed: error %w", err)
+					return fmt.Errorf("building starbase during universe gen failed: \n%w", err)
 				}
 			}
 
@@ -418,7 +418,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 
 			// generate some fleets on the homeworld
 			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
-				return fmt.Errorf("generating fleets for planet %s during universe gen failed: error %w", playerPlanet, err)
+				return fmt.Errorf("generating fleets for planet %s during universe gen failed: \n%w", playerPlanet, err)
 			}
 		}
 	}
@@ -528,7 +528,8 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 	for _, startingFleet := range startingFleets {
 		design := player.GetDesignByName(startingFleet.Name)
 		if design == nil {
-			return fmt.Errorf("no design named %q found for player %s", startingFleet.Name, player)
+			// design got ommitted (likely due to a missing hull or similar); just smile and wave
+			continue
 		}
 		fleet := newFleetForDesign(player, design, 1, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.Engine.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
@@ -540,7 +541,7 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 		ug.Universe.Fleets = append(ug.Universe.Fleets, &fleet)
 		design.Spec.NumInstances++
 		design.Spec.NumBuilt++
-		(*fleetNum)++ // increment the fleet num
+		(*fleetNum)++ // increment fleet num
 	}
 
 	return nil

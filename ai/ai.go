@@ -312,7 +312,7 @@ func (ai *aiPlayer) updateWarfleets() (err error) {
 		// if design is nil, try to make one from scratch
 		ai.designsByPurpose[cs.ShipDesignPurposeBeamFighter], err = ai.designShip(ai.config.namesByPurpose[cs.ShipDesignPurposeBeamFighter], cs.ShipDesignPurposeBeamFighter, cs.FleetPurposeFighter) // fleet purpose unimportant as it's just used for radrams
 		if err != nil {
-			return fmt.Errorf("error designing beam fighter during warship quantity updating: %w", err)
+			return fmt.Errorf("error designing beam fighter during warship quantity updating: \n%w", err)
 		}
 		beamDesign = ai.designsByPurpose[cs.ShipDesignPurposeBeamFighter]
 	}
@@ -321,7 +321,7 @@ func (ai *aiPlayer) updateWarfleets() (err error) {
 		// if design is nil, try to make one from scratch
 		ai.designsByPurpose[cs.ShipDesignPurposeTorpedoFighter], err = ai.designShip(ai.config.namesByPurpose[cs.ShipDesignPurposeTorpedoFighter], cs.ShipDesignPurposeTorpedoFighter, cs.FleetPurposeFighter) // fleet purpose unimportant as it's just used for radrams
 		if err != nil {
-			return fmt.Errorf("error designing torpedo fighter during warship quantity updating: %w", err)
+			return fmt.Errorf("error designing torpedo fighter during warship quantity updating: \n%w", err)
 		}
 		torpDesign = ai.designsByPurpose[cs.ShipDesignPurposeTorpedoFighter]
 	}
@@ -493,7 +493,7 @@ func (ai *aiPlayer) ProcessTurn() error {
 			return err
 		}
 		if err := ai.bomb(); err != nil {
-				return err
+			return err
 		}
 	}
 	if err := ai.updateFleetWarpSpeed(); err != nil {

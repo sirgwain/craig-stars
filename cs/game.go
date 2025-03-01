@@ -410,7 +410,7 @@ func (g *FullGame) computeSpecs() error {
 			var err error
 			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
+				return fmt.Errorf("ComputeShipDesignSpec returned error: \n%w", err)
 			}
 			design.Spec.NumBuilt = numBuilt
 		}
@@ -431,10 +431,10 @@ func (g *FullGame) computeSpecs() error {
 			player := g.getPlayer(planet.PlayerNum)
 			planet.Spec = computePlanetSpec(rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
-				return fmt.Errorf("planet %s unable to populate queue designs %w", planet.Name, err)
+				return fmt.Errorf("planet %s unable to populate queue designs: \n%w", planet.Name, err)
 			}
 			if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
-				return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+				return fmt.Errorf("planet %s unable to populate queue estimates: \n%w", planet.Name, err)
 			}
 
 			planet.MarkDirty()

@@ -348,7 +348,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	var err error
 	spec.Cost, err = c.GetDesignCost(rules, techLevels, raceSpec, design)
 	if err != nil {
-		return ShipDesignSpec{}, fmt.Errorf("failed to get design cost; error %w", err)
+		return ShipDesignSpec{}, fmt.Errorf("failed to get design cost: \n%w", err)
 	}
 
 	// count the number of each type of battle component we have
@@ -987,7 +987,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 	var err error
 	design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 	if err != nil {
-		return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during DesignShip, error: %w", err)
+		return &ShipDesign{}, fmt.Errorf("computeShipDesignSpec errored during DesignShip: \n%w", err)
 	}
 	return design, nil
 }
@@ -1069,7 +1069,7 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 	// get our engine slots out of the way
 	if len(engineSlots) == 0 && !hull.Starbase {
-		return nil, fmt.Errorf("designWarship could not find any engine slots in hull %q", hull)
+		return nil, fmt.Errorf("no engine slots found in hull %q", hull)
 	} else {
 		bestEngine := techStore.GetBestBattleEngine(player, hull, numEngines)
 		for _, i := range engineSlots {
@@ -1173,7 +1173,7 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 			// add whatever we need the most
 			itemToPlace, err = tc.GetMostNeededComponent(design, hullSlot.Type, designSlot.Quantity)
 			if err != nil {
-				return nil, fmt.Errorf("getMostNeededComponent failed to get parts, error %w", err)
+				return nil, fmt.Errorf("getMostNeededComponent failed to get parts: \n%w", err)
 			}
 		}
 
@@ -1209,7 +1209,7 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 			design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+				return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation: \n%w", err)
 			}
 
 		}
@@ -1225,7 +1225,7 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		})
 		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 		if err != nil {
-			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation: \n%w", err)
 		}
 		prevCapacitating := design.Spec.BeamBonus
 	capLoop:
@@ -1257,7 +1257,7 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		})
 		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 		if err != nil {
-			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation: \n%w", err)
 		}
 		prevJamming := design.Spec.TorpedoJamming
 	jamLoop:
@@ -1291,7 +1291,7 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 		})
 		design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 		if err != nil {
-			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+			return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation: \n%w", err)
 		}
 	jetLoop:
 		for _, id := range jetSlots {
@@ -1321,7 +1321,7 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	// and check to make sure it's actually functional
 	design.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, design)
 	if err != nil {
-		return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation, error: %w", err)
+		return nil, fmt.Errorf("computeShipDesignSpec errored during warship part allocation: \n%w", err)
 	}
 
 	// re-sort hull slots by ascending slot index and remove unused capacity

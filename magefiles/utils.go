@@ -21,7 +21,7 @@ func Test() error {
 		return err
 	}
 
-	err := Test_Golang("./...")
+	err := Test_Golang("")
 	if err != nil {
 		return err
 	}
@@ -43,14 +43,11 @@ func Lint() error {
 	return cmd.Run()
 }
 
-// Run backend golang tests via gotestsum, passing the passed in args to "go test".
+// Run backend golang tests using gotestsum with passing args to "go test".
+// This runs all tests across all packages.
 // Gotestsum args are dependent on the value of $CI and $GITHUB_REPOSITORY/$GH_REPO.
 func Test_Golang(goTestArgs string) error {
 	fmt.Println("Running backend tests...")
-
-	if goTestArgs = strings.TrimSpace(goTestArgs); goTestArgs == "" {
-		goTestArgs = "./..."
-	}
 
 	// read gotestsum config args from text file
 	// use CI config if on CI; else regular config
@@ -163,7 +160,7 @@ func Merge_Temp_JSON() error {
 	return nil
 }
 
-// Run frontend tests using Vitest.
+// Run frontend tests using Vitest with the given args.
 func Test_Vitest(vitestArgs string) error {
 	fmt.Println("Running vitest tests...")
 	cmd := exec.Command("npm", "run-script", "test:unit", "--", vitestArgs)
@@ -173,7 +170,7 @@ func Test_Vitest(vitestArgs string) error {
 	return cmd.Run()
 }
 
-// Run end-to-end tests using Playwright.
+// Run end-to-end tests using Playwright with the given args.
 func Test_Playwright(playwrightArgs string) error {
 	fmt.Println("Running playwright tests...")
 	cmd := exec.Command("npm", "run-script", "test:e2e", "--", playwrightArgs)
@@ -185,11 +182,10 @@ func Test_Playwright(playwrightArgs string) error {
 
 // Download frontend image files, replacing existent ones if present.
 func Images() error {
-
 	// switch dir
 	originalDir, err := os.Getwd()
 	if err != nil {
-		return mg.Fatalf(1, "could not get working directory to revert to: \n%w", err)
+		return mg.Fatalf(1, "error during os.Getwd: \n%w", err)
 	}
 
 	if err := os.Chdir("./frontend/static"); err != nil {

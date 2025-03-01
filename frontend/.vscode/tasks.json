@@ -9,9 +9,9 @@
 		{
 			"label": "Vitest: run tests",
 			"type": "shell",
-			"command": "mage test_vitest",
+			"command": "mage",
+			"args": ["test_vitest, ${input:vitestArgs}"],
 			"group": "test",
-			"args": ["${input:vitestArgs}"],
 			"icon": {
 				"color": "terminal.ansiGreen",
 				"id": "lightbulb-sparkle",
@@ -21,9 +21,9 @@
 		{
 			"label": "Playwright: run tests",
 			"type": "shell",
-			"command": "mage test_playwright",
+			"command": "mage",
+			"args": ["test_playwright, ${input:playwrightArgs}"],
 			"group": "test",
-			"args": ["${input:playwrightArgs}"],
 			"icon": {
 				"color": "terminal.ansiGreen",
 				"id": "browser",
@@ -33,7 +33,8 @@
 		{
 			"label": "ESLint: run lint checks",
 			"type": "shell",
-			"command": "mage lint",
+			"command": "mage",
+			"args": ["lint"],
 			"group": "test",
 			"icon": {
 				"color": "terminal.ansiGreen",

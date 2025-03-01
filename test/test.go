@@ -31,19 +31,16 @@ func CompareAsJSON(t TestingT, got, want any) {
 	if got == nil && want == nil {
 		return
 	} else if (got == nil) != (want == nil) { // one is nil and the other isn't
-		t.Errorf("Unequal values (nilness): got = %v, want = %v", got, want)
-		return
+		t.Fatalf("Unequal values (nilness): got = %v, want = %v", got, want)
 	}
 
 	gotJson, err := json.MarshalIndent(got, "", "\t")
 	if err != nil {
-		t.Errorf("compareAsJSON could not marshal got (%q) to json: \n%v", got, err)
-		return
+		t.Fatalf("CompareAsJSON could not marshal got (%q) to json: \n%v", got, err)
 	}
 	wantJson, err := json.MarshalIndent(want, "", "\t")
 	if err != nil {
-		t.Errorf("compareAsJSON could not marshal want (%q) to json: \n%v", want, err)
-		return
+		t.Fatalf("CompareAsJSON could not marshal want (%q) to json: \n%v", want, err)
 	}
 
 	if string(gotJson) == string(wantJson) {
@@ -52,7 +49,7 @@ func CompareAsJSON(t TestingT, got, want any) {
 
 	diff := parseJSONDiff(gotJson, wantJson, t.Name())
 
-	t.Errorf("JSONs not equal; diff between got & want: \n%s", diff)
+	t.Fatalf("JSONs not equal; diff between got & want: \n%s", diff)
 }
 
 // parsing options for jsondiff
@@ -99,12 +96,12 @@ func parseJSONDiff(gotJSON, wantJSON []byte, testName string) string {
 func AppendFile[S ~string | ~[]byte](path string, data S) error {
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return fmt.Errorf("could not open file %q; error: \n%w", path, err)
+		return fmt.Errorf("error opening file %q: \n%w", path, err)
 	}
 	defer f.Close()
 
 	if _, err := f.Write([]byte(data)); err != nil {
-		return fmt.Errorf("could not append data to file %q; error: \n%w", path, err)
+		return fmt.Errorf("error appending data to file %q: \n%w", path, err)
 	}
 	return nil
 }

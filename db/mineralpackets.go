@@ -192,7 +192,7 @@ func (c *client) UpdateMineralPacket(mineralPacket *cs.MineralPacket) error {
 
 func (c *client) deleteMineralPacket(mineralPacketID int64) error {
 	if _, err := c.writer.Exec("DELETE FROM mineralPackets where id = ?", mineralPacketID); err != nil {
-		return fmt.Errorf("delete mineralPacket %d %w", mineralPacketID, err)
+		return fmt.Errorf("delete mineralPacket %d: \n%w", mineralPacketID, err)
 	}
 	return nil
 }

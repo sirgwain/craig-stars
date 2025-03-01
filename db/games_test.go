@@ -108,7 +108,7 @@ func TestGetGame(t *testing.T) {
 
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("GetGame() returned did not return error when expected")
+					t.Fatalf("GetGame() did not return error when expected")
 				} else {
 					t.Fatalf("GetGame() returned errored unexpectedly; err = \n%v", err)
 				}

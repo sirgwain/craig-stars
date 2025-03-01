@@ -168,7 +168,7 @@ func (c *client) UpdateSalvage(salvage *cs.Salvage) error {
 
 func (c *client) deleteSalvage(salvageID int64) error {
 	if _, err := c.writer.Exec("DELETE FROM salvages where id = ?", salvageID); err != nil {
-		return fmt.Errorf("delete salvage %d %w", salvageID, err)
+		return fmt.Errorf("delete salvage %d: \n%w", salvageID, err)
 	}
 	return nil
 }
