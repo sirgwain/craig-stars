@@ -244,18 +244,23 @@ func (ug *universeGenerator) generatePlayerPlans() {
 // generate designs for each player
 func (ug *universeGenerator) generatePlayerShipDesigns() error {
 	var err error
+	techStore := ug.Rules.techs
 	for _, player := range ug.Players {
 		designNames := mapset.NewSet[string]()
 		num := 1
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
 				if designNames.Contains(startingFleet.Name) {
-					// only one design per name, i.e. Scout, Armed Probe
+					// only create one design per name, i.e. Scout, Armed Probe
+					// multiple starting fleets will use the same design
 					continue
 				}
-				techStore := ug.Rules.techs
-				hull := techStore.GetHull(string(startingFleet.HullName))
-				design, err := DesignShip(&ug.Game.Rules, hull, startingFleet.Name, player, num, player.DefaultHullSet, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
+				hull := techStore.GetHull(techStore.transformName(string(startingFleet.HullName)))
+				if !player.HasTech(&hull.Tech) {
+					// player can't use hull; move on
+					continue
+				}
+				design, err := DesignShip(&ug.Game.Rules, hull, startingFleet.Name, player, num, startingFleet.HullSetNumber, startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
 				if err != nil {
 					return fmt.Errorf("DesignShip returned error %w", err)
 				}
