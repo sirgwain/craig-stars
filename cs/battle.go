@@ -939,7 +939,7 @@ func RunTestBattle(players []*Player, fleets []*Fleet) (*BattleRecord, error) {
 			var err error
 			design.Spec, err = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return nil, fmt.Errorf("ComputeShipDesignSpec returned error: \n%w", err)
+				return nil, fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 			}
 			designsByNum[playerObjectKey(design.PlayerNum, design.Num)] = design
 		}

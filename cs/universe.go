@@ -141,7 +141,7 @@ func (u *Universe) buildMaps(players []*Player) error {
 			if planet.PlayerNum > 0 && planet.PlayerNum < len(players)+1 {
 				player := players[planet.PlayerNum-1]
 				if err := planet.PopulateProductionQueueDesigns(player); err != nil {
-					return fmt.Errorf("planet %s unable to populate queue designs: \n%w", planet.Name, err)
+					return fmt.Errorf("planet %s unable to populate queue designs: %w", planet.Name, err)
 				}
 			} else {
 				return fmt.Errorf("planet %s owner %d out of range", planet.Name, planet.PlayerNum)

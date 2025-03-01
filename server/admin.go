@@ -191,7 +191,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		for _, player := range players {
 			player.UserID = user.ID
 			if err := c.UpdatePlayerUserId(&player); err != nil {
-				return fmt.Errorf("update Player UserID: \n%w", err)
+				return fmt.Errorf("update Player UserID: %w", err)
 			}
 		}
 
@@ -199,7 +199,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		for _, race := range races {
 			race.UserID = user.ID
 			if err := c.UpdateRace(&race); err != nil {
-				return fmt.Errorf("update Race UserID: \n%w", err)
+				return fmt.Errorf("update Race UserID: %w", err)
 			}
 		}
 
@@ -207,12 +207,12 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		for _, game := range games {
 			game.HostID = user.ID
 			if err := c.UpdateGameHost(game.ID, game.HostID); err != nil {
-				return fmt.Errorf("update Game HostID: \n%w", err)
+				return fmt.Errorf("update Game HostID: %w", err)
 			}
 		}
 
 		if err := c.DeleteUser(guestUser.ID); err != nil {
-			return fmt.Errorf("delete guest user: \n%w", err)
+			return fmt.Errorf("delete guest user: %w", err)
 		}
 
 		return nil

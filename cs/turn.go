@@ -1740,7 +1740,7 @@ func (t *turnGenerator) playerResearch() error {
 			numInstances := design.Spec.NumInstances
 			design.Spec, err = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return fmt.Errorf("ComputeShipDesignSpec returned error: \n%w", err)
+				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 			}
 			design.Spec.NumBuilt = numBuilt
 			design.Spec.NumInstances = numInstances
@@ -2330,7 +2330,7 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 						var err error
 						design.Spec, err = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
 						if err != nil {
-							return fmt.Errorf("ComputeShipDesignSpec returned error: \n%w", err)
+							return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 						}
 						player.Designs = append(player.Designs, design)
 						t.game.addDesign(design)
@@ -2836,7 +2836,7 @@ func (t *turnGenerator) scan() error {
 
 		scanner := newPlayerScanner(t.game.Universe, t.game.Players, &t.game.Rules, player)
 		if err := scanner.scan(); err != nil {
-			return fmt.Errorf("scan universe and update player intel ->: \n%w", err)
+			return fmt.Errorf("scan universe and update player intel ->: %w", err)
 		}
 		t.fleetPatrol(player)
 

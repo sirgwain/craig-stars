@@ -131,7 +131,7 @@ func (c *client) GetFleet(id int64) (*cs.Fleet, error) {
 
 	designs, err := c.getShipDesignsByNums(fleet.GameID, fleet.PlayerNum, designNums)
 	if err != nil {
-		return nil, fmt.Errorf("get designs by nums ->: \n%w", err)
+		return nil, fmt.Errorf("get designs by nums ->: %w", err)
 	}
 
 	fleet.InjectDesigns(designs)
@@ -323,18 +323,18 @@ func (c *client) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) er
 		if fleet.ID == 0 {
 			fleet.GameID = gameID
 			if err := c.CreateFleet(fleet); err != nil {
-				return fmt.Errorf("create fleet: \n%w", err)
+				return fmt.Errorf("create fleet: %w", err)
 			}
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
 
 		} else if fleet.Delete {
 			if err := c.DeleteFleet(fleet.ID); err != nil {
-				return fmt.Errorf("delete fleet: \n%w", err)
+				return fmt.Errorf("delete fleet: %w", err)
 			}
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
 		} else {
 			if err := c.UpdateFleet(fleet); err != nil {
-				return fmt.Errorf("update fleet: \n%w", err)
+				return fmt.Errorf("update fleet: %w", err)
 			}
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
 		}
@@ -389,7 +389,7 @@ func (c *client) UpdateFleet(fleet *cs.Fleet) error {
 
 func (c *client) DeleteFleet(fleetID int64) error {
 	if _, err := c.writer.Exec("DELETE FROM fleets where id = ?", fleetID); err != nil {
-		return fmt.Errorf("delete fleet %d: \n%w", fleetID, err)
+		return fmt.Errorf("delete fleet %d: %w", fleetID, err)
 	}
 	return nil
 }

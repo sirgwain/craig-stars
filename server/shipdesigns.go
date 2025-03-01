@@ -273,28 +273,28 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 
 		for _, fleet := range fleetsToUpdate {
 			if err := c.UpdateFleet(fleet); err != nil {
-				return fmt.Errorf("update fleet in database: \n%w", err)
+				return fmt.Errorf("update fleet in database: %w", err)
 			}
 			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated fleet %s after deleting design", fleet.Name)
 		}
 
 		for _, fleet := range fleetsToDelete {
 			if err := c.DeleteFleet(fleet.ID); err != nil {
-				return fmt.Errorf("delete fleet from database: \n%w", err)
+				return fmt.Errorf("delete fleet from database: %w", err)
 			}
 			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted fleet %s after deleting design", fleet.Name)
 		}
 
 		for _, planet := range planetsToUpdate {
 			if err := c.UpdatePlanet(planet); err != nil {
-				return fmt.Errorf("update planet in database: \n%w", err)
+				return fmt.Errorf("update planet in database: %w", err)
 			}
 			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated planet %s after deleting design", planet.Name)
 
 		}
 
 		if err := c.DeleteShipDesign(design.ID); err != nil {
-			return fmt.Errorf("delete design from database: \n%w", err)
+			return fmt.Errorf("delete design from database: %w", err)
 		}
 		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted design %s", design.Name)
 

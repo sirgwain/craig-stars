@@ -96,10 +96,10 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 				player := ug.Players[planet.PlayerNum-1]
 				planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
 				if err := planet.PopulateProductionQueueDesigns(player); err != nil {
-					return nil, fmt.Errorf("planet %s failed to populate queue design: \n%w", planet, err)
+					return nil, fmt.Errorf("planet %s failed to populate queue design: %w", planet, err)
 				}
 				if err := planet.PopulateProductionQueueEstimates(&ug.Rules, player); err != nil {
-					return nil, fmt.Errorf("planet %s failed to populate queue estimates: \n%w", planet.Name, err)
+					return nil, fmt.Errorf("planet %s failed to populate queue estimates: %w", planet.Name, err)
 				}
 			}
 		}
@@ -262,7 +262,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 				}
 				design, err := DesignShip(&ug.Game.Rules, hull, startingFleet.Name, player, num, int(startingFleet.HullSetNumber), startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
 				if err != nil {
-					return fmt.Errorf("DesignShip returned error \n%w", err)
+					return fmt.Errorf("DesignShip returned error %w", err)
 				}
 				player.Designs = append(player.Designs, design)
 				designNames.Add(design.Name)
@@ -276,7 +276,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 			design := starbaseDesigns[i]
 			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return fmt.Errorf("ComputeShipDesignSpec returned error: \n%w", err)
+				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 			}
 			player.Designs = append(player.Designs, design)
 		}
@@ -407,7 +407,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 			// add a starbase to this planet
 			if startingPlanet.StarbaseDesignName != "" {
 				if err := ug.buildStarbase(player, playerPlanet, startingPlanet.StarbaseDesignName); err != nil {
-					return fmt.Errorf("building starbase during universe gen failed: \n%w", err)
+					return fmt.Errorf("building starbase during universe gen failed: %w", err)
 				}
 			}
 
@@ -418,7 +418,7 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 
 			// generate some fleets on the homeworld
 			if err := ug.generatePlayerFleets(player, playerPlanet, &fleetNum, startingPlanet.StartingFleets); err != nil {
-				return fmt.Errorf("generating fleets for planet %s during universe gen failed: \n%w", playerPlanet, err)
+				return fmt.Errorf("generating fleets for planet %s during universe gen failed: %w", playerPlanet, err)
 			}
 		}
 	}
