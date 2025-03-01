@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Game } from '$lib/types/Game';
+	import type { Game } from '$lib/types/cs';
 	import { format, parseJSON } from 'date-fns';
 
 	type Props = {

@@ -16,8 +16,6 @@ func createTestGameRunner() GameRunner {
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
 	cfg.Database.Filename = ":memory:"
-	cfg.Database.UsersFilename = ":memory:"
-	cfg.Database.Recreate = true
 	cfg.Database.DebugLogging = true
 	if err := dbConn.Connect(cfg); err != nil {
 		panic(fmt.Errorf("could not connect to test database, error %w", err))
@@ -50,17 +48,8 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 	dbConn := db.NewConn()
 	cfg := &config.Config{}
 	cfg.Database.Filename = ":memory:"
-	cfg.Database.UsersFilename = ":memory:"
 	if err := dbConn.Connect(cfg); err != nil {
 		panic(fmt.Errorf("could not connect to test database, error %w", err))
-	}
-
-	// create a race per PRT
-	for _, prt := range cs.PRTs {
-		race := cs.NewRace()
-		race.PRT = prt
-		race.Name = fmt.Sprintf("%v", prt)
-		race.PluralName = fmt.Sprintf("%vs", prt)
 	}
 
 	gr := gameRunner{

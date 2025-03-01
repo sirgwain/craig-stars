@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Select from '$lib/components/Select.svelte';
 	import { RaceService } from '$lib/services/RaceService';
-	import type { NewGamePlayer } from '$lib/types/Game';
-	import { humanoid, type Race } from '$lib/types/Race';
+	import type { NewGamePlayer } from '$lib/types/cs';
+	import { humanoid } from '$lib/types/Race';
+	import { type Race } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 
 	// races for the host

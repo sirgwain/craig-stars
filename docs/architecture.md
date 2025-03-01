@@ -1,7 +1,9 @@
 # Architecture
+
 `craig-stars` is a monorepo containing code for both the frontend client and the backend server.
 
 ## Tech Stack
+
 `craig-stars` is built on top of the following excellent technologies:
 
 - [golang](https://go.dev)
@@ -21,6 +23,7 @@
 Icons are either hand crafted, taken from the original Stars! files or from the wonderful [game-icons.net](https://game-icons.net) and [heroicons.com](https://heroicons.com).
 
 ## File Structure
+
 The repository file structure is broken down as follows:
 
 | path        | description                                                                                                                                                                                                             |
@@ -220,7 +223,7 @@ This context contains reactive stores with the state of the game, for example a 
 
 ```html
 <script lang="ts">
-  import { getGameContext } from '$lib/services/Contexts';
+  import { getGameContext } from "$lib/services/Contexts";
 
   const { game, player, universe } = getGameContext();
 </script>

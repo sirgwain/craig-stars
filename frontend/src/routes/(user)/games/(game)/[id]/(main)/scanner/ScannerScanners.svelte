@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 
-	import { NoScanner } from '$lib/types/Constants';
+	import { NoScanner } from '$lib/types/cs';
 	import { positionKey } from '$lib/types/MapObject';
-	import type { Vector } from '$lib/types/Vector';
+	import type { Vector } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
@@ -21,7 +21,7 @@
 
 		if ($settings.showScanners) {
 			$universe.planets
-				.filter((p) => p.playerNum == $player.num && p.spec?.scanner)
+				.filter((p) => p.spec?.scanner)
 				.forEach((planet) =>
 					scannersByPosition.set(positionKey(planet), {
 						position: planet.position,
@@ -31,11 +31,7 @@
 				);
 
 			$universe.fleets
-				.filter(
-					(fleet) =>
-						fleet.playerNum == $player.num &&
-						((fleet.spec?.scanRange ?? 0) > 0 || (fleet.spec?.scanRangePen ?? 0) > 0)
-				)
+				.filter((fleet) => (fleet.spec?.scanRange ?? 0) > 0 || (fleet.spec?.scanRangePen ?? 0) > 0)
 				.forEach((fleet) => {
 					const key = positionKey(fleet);
 					const scanner = {
@@ -52,7 +48,7 @@
 					}
 				});
 
-			$universe.mineralPackets
+			$universe.mineralPacketIntels
 				.filter(
 					(packet) =>
 						packet.playerNum == $player.num &&
@@ -62,8 +58,8 @@
 					const key = positionKey(packet);
 					const scanner = {
 						position: packet.position,
-						scanRange: packet.scanRange,
-						scanRangePen: packet.scanRangePen
+						scanRange: packet.scanRange ?? 0,
+						scanRangePen: packet.scanRangePen ?? 0
 					};
 					const existing = scannersByPosition.get(key);
 					if (existing) {
@@ -75,7 +71,7 @@
 				});
 		}
 		if ($settings.showAllyScanners) {
-			$universe.planets
+			$universe.planetIntels
 				.filter((p) => $player.isSharingMap(p.playerNum) && p.spec?.scanner)
 				.forEach((planet) =>
 					scannersByPosition.set(positionKey(planet), {
@@ -86,7 +82,7 @@
 				);
 
 			// find ally's scanners
-			$universe.fleets
+			$universe.fleetIntels
 				.filter(
 					(fleet) =>
 						$player.isSharingMap(fleet.playerNum) &&
@@ -108,7 +104,7 @@
 					}
 				});
 
-			$universe.mineralPackets
+			$universe.mineralPacketIntels
 				.filter(
 					(packet) =>
 						$player.isSharingMap(packet.playerNum) &&
@@ -118,8 +114,8 @@
 					const key = positionKey(packet);
 					const scanner = {
 						position: packet.position,
-						scanRange: packet.scanRange,
-						scanRangePen: packet.scanRangePen
+						scanRange: packet.scanRange ?? 0,
+						scanRangePen: packet.scanRangePen ?? 0
 					};
 					const existing = scannersByPosition.get(key);
 					if (existing) {

@@ -1,20 +1,20 @@
 {
-    // without these, vscode complains even though
-    // the actual build works fine
-    "go.toolsEnvVars": {
-        "CGO_ENABLED": "1",
-        "GOOS": "",
-        "GOARCH": ""
-    },
+  // without these, vscode complains even though
+  // the actual build works fine
+  "go.toolsEnvVars": {
+    "CGO_ENABLED": "1",
+    "GOOS": "",
+    "GOARCH": ""
+  },
 
-    "files.exclude": {
-        "frontend": true
-    },
+  "files.exclude": {
+    "frontend": true
+  },
 
-    // Normally, 90s should be enough time for tests to run, but on slower computers
-    // generating turns can take upwards of several minutes to execute even in optimal conditions
-    "go.testTimeout": "300s",
-    
-    // Allows prettier to format json files in backend
-    "prettier.configPath": "frontend/.prettierrc"
+  // Normally, 90s should be enough time for tests to run, but on slower computers
+  // generating turns can take upwards of several minutes to execute even in optimal conditions
+  "go.testTimeout": "300s",
+
+  // Allows prettier to format json files in backend
+  "prettier.configPath": "frontend/.prettierrc"
 }

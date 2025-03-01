@@ -1,5 +1,5 @@
-import type { MapObject } from '$lib/types/MapObject';
-import type { Player } from '$lib/types/Player';
+import type { MapObject } from '$lib/types/cs';
+import type { CommandedPlayer } from '$lib/types/Player';
 import { find } from 'lodash-es';
 import { getContext, setContext } from 'svelte';
 import type { Readable } from 'svelte/store';
@@ -39,7 +39,7 @@ export function getViewportCoords(
 // for a list of orbiting fleets, return whether there are enemies, friends, both or neither
 export function getEnemiesAndFriends(
 	orbitingFleets: MapObject[],
-	player: Player
+	player: CommandedPlayer
 ): { enemies: boolean; friends: boolean } {
 	const playerNums = new Set<number>(orbitingFleets.map((f) => f.playerNum));
 	if (playerNums.size == 1) {

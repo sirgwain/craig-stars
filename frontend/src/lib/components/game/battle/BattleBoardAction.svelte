@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { designFinderKey, playerFinderKey } from '$lib/services/GameContext';
 	import type { DesignFinder, PlayerFinder } from '$lib/services/Universe';
-	import { Battle, TokenActionType, type TokenAction } from '$lib/types/Battle';
+	import { Battle } from '$lib/types/Battle';
+	import {
+		TokenActionBeamFire,
+		TokenActionMove,
+		TokenActionRanAway,
+		TokenActionTorpedoFire,
+		type BattleRecordTokenAction
+	} from '$lib/types/cs';
 	import { getContext } from 'svelte';
 
 	const designFinder = getContext<DesignFinder>(designFinderKey);
@@ -9,7 +16,7 @@
 
 	type Props = {
 		battle: Battle;
-		action: TokenAction | undefined;
+		action: BattleRecordTokenAction | undefined;
 		phase: number;
 	};
 
@@ -32,13 +39,13 @@
 </script>
 
 {#if action}
-	{#if action.type === TokenActionType.Move}
+	{#if action.type === TokenActionMove}
 		{`${getTokenDescription(action.tokenNum)} moved from ${action.from.x}, ${action.from.y} to ${
 			action.to.x
 		},${action.to.y}`}
-	{:else if action.type === TokenActionType.RanAway}
+	{:else if action.type === TokenActionRanAway}
 		{`${getTokenDescription(action.tokenNum)} ran away`}
-	{:else if action.type === TokenActionType.BeamFire}
+	{:else if action.type === TokenActionBeamFire}
 		{`The ${getTokenDescription(action.tokenNum)} at (${action.from.x}, ${
 			action.from.y
 		}) attacks the ${getTokenDescription(action.targetNum)} at (${action.to.x}, ${action.to.y})`}
@@ -49,7 +56,7 @@
 		{:else}
 			{`doing ${action.damageDoneShields} damage to shields`}
 		{/if}
-	{:else if action.type === TokenActionType.TorpedoFire}
+	{:else if action.type === TokenActionTorpedoFire}
 		{`The ${getTokenDescription(action.tokenNum)} attacks the ${getTokenDescription(
 			action.targetNum
 		)} at (${action.to.x}, ${action.to.y})`}

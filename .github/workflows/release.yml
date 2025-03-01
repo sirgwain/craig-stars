@@ -48,18 +48,28 @@ jobs:
         id: buildTime
         run: echo "buildTime=`date +'%y.%m.%d %H:%M:%S'`" >> $GITHUB_OUTPUT
 
-      #  setup backend stuff
+      #  setup build environment
       - name: Setup Go environment
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Setup Mage
         uses: magefile/mage-action@v3
         with:
           install-only: true
+      - name: Install tygo
+        run: go install github.com/gzuidhof/tygo@v0.2.17
+      - name: Install Node.js dependencies for prettier
+        run: npm ci
+        working-directory: ./frontend
 
       # generate the backend go files needed for release
       - name: Build a CI version of the backend with version/build time
@@ -71,14 +81,7 @@ jobs:
       - name: Copy wasm_exec into frontend folder for the node build step
         run: mage copy_wasm_exec
 
-      # build the frontend (this is slow)
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
-        working-directory: ./frontend
+      # set the version in package.json and build the frontend
       - run: jq ".version = \"${{ needs.tag.outputs.version }}\"" package.json > package.json.tmp && mv package.json.tmp package.json
         working-directory: ./frontend
       - run: npm run build

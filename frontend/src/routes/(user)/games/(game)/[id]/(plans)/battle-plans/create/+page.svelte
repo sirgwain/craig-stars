@@ -2,22 +2,27 @@
 	import { goto } from '$app/navigation';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { getGameContext } from '$lib/services/GameContext';
 	import { CSError, addError } from '$lib/services/Errors';
-	import { BattleAttackWho, BattleTactic, BattleTarget } from '$lib/types/Battle';
-	import type { BattlePlan } from '$lib/types/Player';
-	import BattlePlanEditor from '../BattlePlanEditor.svelte';
+	import { getGameContext } from '$lib/services/GameContext';
 	import { notify } from '$lib/services/Notifications';
+	import type { BattlePlan } from '$lib/types/cs';
+	import {
+		BattleAttackWhoEnemiesAndNeutrals,
+		BattleTacticMaximizeDamageRatio,
+		BattleTargetAny,
+		BattleTargetArmedShips
+	} from '$lib/types/cs';
+	import BattlePlanEditor from '../BattlePlanEditor.svelte';
 
 	const { game, player, createBattlePlan } = getGameContext();
 
 	let plan: BattlePlan = $state({
 		num: 0,
 		name: '',
-		primaryTarget: BattleTarget.ArmedShips,
-		secondaryTarget: BattleTarget.Any,
-		tactic: BattleTactic.MaximizeDamageRatio,
-		attackWho: BattleAttackWho.EnemiesAndNeutrals,
+		primaryTarget: BattleTargetArmedShips,
+		secondaryTarget: BattleTargetAny,
+		tactic: BattleTacticMaximizeDamageRatio,
+		attackWho: BattleAttackWhoEnemiesAndNeutrals,
 		dumpCargo: false
 	});
 

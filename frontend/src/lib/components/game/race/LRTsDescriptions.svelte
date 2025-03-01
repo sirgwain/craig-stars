@@ -1,5 +1,23 @@
 <script lang="ts">
-	import { getLabelForLRT, LRT, lrts, type Race } from '$lib/types/Race';
+	import { getLabelForLRT, lrts } from '$lib/types/Race';
+	import {
+		ARM,
+		BET,
+		CE,
+		GR,
+		IFE,
+		ISB,
+		LSP,
+		MA,
+		NAS,
+		NRSE,
+		OBRM,
+		RS,
+		TT,
+		UR,
+		type LRT,
+		type Race
+	} from '$lib/types/cs';
 
 	type Props = {
 		race: Race;
@@ -9,36 +27,36 @@
 
 	const getDescriptionForLRT = (lrt: LRT) => {
 		switch (lrt) {
-			case LRT.IFE:
+			case IFE:
 				return 'This gives you access to the Fuel Mizer and Galaxy Scoop engines and increases your starting Propulsion tech by 1 level. All engines use 15% less fuel.';
-			case LRT.TT:
+			case TT:
 				return 'You will gain access to additional terraforming technologies by researching Biotechnology, starting with a 3% adjustment to all 3 environmental attributes and reaching a maximum of 30%. Terraforming requires 30% fewer resources.';
-			case LRT.ARM:
+			case ARM:
 				return 'Gives you three additional mining hulls and two new robots, allowing for the eventual creation of cheap, efficient and lightweight remote mining ships. You will start the game with two Midget Miners.';
-			case LRT.ISB:
+			case ISB:
 				return 'Gives you two new starbase designs. The Space Dock is a cheap starbase with a small space dock that can refuel ships and build small to medium sized vessels. The Ultra-Station is much larger and better fortified than a standard Starbase. Your starbases are automatically cloaked by 20% and cost 20% less to build.';
-			case LRT.GR:
+			case GR:
 				return 'Your race takes a holistic approach to research. Only half of the resources dedicated to research will be applied to the currently selected field, but 15% of the amount will be applied to all other fields (for a total of 125%).';
-			case LRT.UR:
+			case UR:
 				return 'When you scrap a fleet at a starbase, you will recover 90% of the minerals and up to 70% of the resources used to produce the fleet, avaliable for use in production the following year. Scrapping at a planet will yield half the amount of minerals and resources. Note that these resources are not additive and depend on the yearly production of the planet in question.';
-			case LRT.NRSE:
+			case NRSE:
 				return 'You will not be able to build the Radiating Hydro-Ram Scoop, Sub-Galactic Fuel Scoop, Trans-Galactic Fuel Scoop, Trans-Galactic Super Scoop, Trans-Galactic Mizer Scoop or the Galaxy Scoop. You will be able to build the Interspace-10 engine, which, though expensive, can safely travel at warp 10 much earlier than other engines.';
-			case LRT.OBRM:
+			case OBRM:
 				return "The only mining ship available to you will be the Mini-Miner. This trait overrides 'Advanced Remote Mining'. Your maximum population per planet is increased by 10%.";
-			case LRT.NAS:
+			case NAS:
 				return 'You will not have access to any penetrating scanners that can scan planets from a distance and see fleets hiding behind planets. However, all ranges for conventional scanners are doubled.';
-			case LRT.LSP:
+			case LSP:
 				return 'Instead of 25000 initial population, you will start with 17500 (30% fewer). It takes a long time to overcome a lower starting population - it helps to have a high growth rate, but even then it can be painful.';
-			case LRT.BET:
+			case BET:
 				return 'New technologies initially cost twice as much to build. As soon as you exceed all of the tech requirements by one level, the cost drops back to normal. Miniaturization (the lowering of production costs at higher tech levels) occurs at 5% per level, up to 80%. (Without this trait, miniaturization occurs at 4% per level and caps at 75%.)';
-			case LRT.RS:
+			case RS:
 				return 'All shields are 40% stronger than their listed rating. Shields regenerate 10% of their maximum strength after each round of battle until destroyed. However, any armor components added to your ships will only have 50% of their rated strength. (The base armor granted by ship & starbase hulls is unaffected, as is any bonus armor granted by certain special components.)';
-			case LRT.MA:
+			case MA:
 				return 'You will be able to turn resources into minerals more efficiently. One instance of mineral alchemy will use 25 resources (instead of 100) to produce 1kT of each mineral.';
-			case LRT.CE:
+			case CE:
 				return 'Engines cost you 50% less to build, but aren’t entirely reliable. When attempting to travel at speeds above warp 6, there is a 10% chance the engines will refuse to engage. Your starting Propulsion tech level will be increased by 1.';
 			default:
-				return lrt.toString();
+				return toString();
 		}
 	};
 </script>

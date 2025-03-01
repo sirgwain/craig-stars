@@ -1,4 +1,4 @@
-import { type MineField, type MineFieldOrders } from '$lib/types/MineField';
+import { type MineField, type MineFieldOrders } from '$lib/types/cs';
 import { Service } from './Service';
 
 // orders sent to the server

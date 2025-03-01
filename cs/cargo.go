@@ -48,6 +48,15 @@ var CargoTypes = [4]CargoType{
 	Colonists,
 }
 
+func NewCargoFromMineralsAndPop(mineral Mineral, pop int) Cargo {
+	return Cargo{
+		Ironium:   mineral.Ironium,
+		Boranium:  mineral.Boranium,
+		Germanium: mineral.Germanium,
+		Colonists: pop / 100,
+	}
+}
+
 func (c CargoType) String() string {
 	switch c {
 	case Ironium:

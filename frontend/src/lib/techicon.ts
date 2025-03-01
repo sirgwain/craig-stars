@@ -1,8 +1,8 @@
 import { kebabCase } from 'lodash-es';
-import type { ShipDesign } from './types/ShipDesign';
-import { TechCategory, type Tech } from './types/Tech';
+import type { AnyShipDesign } from './services/Universe';
+import { TechCategoryShipHull, TechCategoryStarbaseHull, type Tech } from './types/cs';
 
-export function getHullIcon(design: ShipDesign | undefined): string {
+export function getHullIcon(design: AnyShipDesign | undefined): string {
 	if (!design) {
 		return '';
 	}
@@ -14,7 +14,7 @@ export function getTechIcon(tech: Tech | undefined, hullSetNumber: number): stri
 		return '';
 	}
 	const name = kebabCase(tech?.name.replace("'", '').replace(' ', '').replace('±', ''));
-	if ([TechCategory.ShipHull, TechCategory.StarbaseHull].includes(tech?.category)) {
+	if ([TechCategoryShipHull, TechCategoryStarbaseHull].includes(tech?.category)) {
 		return `hull-${name}-${hullSetNumber ?? 0}`;
 	} else {
 		return `${name}`;

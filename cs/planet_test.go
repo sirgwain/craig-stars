@@ -31,7 +31,7 @@ func testSpaceStation(player *Player, planet *Planet) *Fleet {
 			{
 				DesignNum: 1,
 				Quantity:  1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(SpaceStation.Name).
 					WithSlots([]ShipDesignSlot{
 						{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
@@ -64,7 +64,7 @@ func testDeathStar(player *Player, planet *Planet) *Fleet {
 			{
 				DesignNum: 1,
 				Quantity:  1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithHull(DeathStar.Name).
 					WithSlots([]ShipDesignSlot{}).
 					WithSpec(&rules, player)},
@@ -78,27 +78,6 @@ func testDeathStar(player *Player, planet *Planet) *Fleet {
 	}
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 	return fleet
-}
-
-func TestPlanet_String(t *testing.T) {
-
-	tests := []struct {
-		name string
-		p    *Planet
-		want string
-	}{
-		{"MapObject String()", &Planet{MapObject: MapObject{GameDBObject: GameDBObject{GameID: 1, ID: 2}, Num: 3, Name: "Bob's Revenge"}},
-			"Planet GameID:     1, ID:     2, Num:   3 Bob's Revenge"},
-		{"MapObject String()", &Planet{MapObject: MapObject{GameDBObject: GameDBObject{GameID: 12345, ID: 23456}, Num: 120, Name: "Craig's Planet"}},
-			"Planet GameID: 12345, ID: 23456, Num: 120 Craig's Planet"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.p.String(); got != tt.want {
-				t.Errorf("MapObject.String() = %v, want %v", got, tt.want)
-			}
-		})
-	}
 }
 
 func Test_innateMines(t *testing.T) {
@@ -392,7 +371,7 @@ func TestPlanet_randomize(t *testing.T) {
 			r.MaxHab = tt.fields.maxHab
 			r.random = tt.rng
 
-			got.randomize(r)
+			got.randomize(r, false)
 
 			if !reflect.DeepEqual(got, tt.want) {
 				// dump json, but this won't include some fields

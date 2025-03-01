@@ -1,12 +1,36 @@
 <script lang="ts">
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { techs } from '$lib/services/Stores';
-	import type { ShipDesignSlot } from '$lib/types/ShipDesign';
-	import { HullSlotType } from '$lib/types/Tech';
+	import {
+		HullSlotTypeArmor,
+		HullSlotTypeArmorScannerElectricalMechanical,
+		HullSlotTypeBomb,
+		HullSlotTypeCargo,
+		HullSlotTypeElectrical,
+		HullSlotTypeElectricalMechanical,
+		HullSlotTypeEngine,
+		HullSlotTypeGeneral,
+		HullSlotTypeMechanical,
+		HullSlotTypeMineElectricalMechanical,
+		HullSlotTypeMineLayer,
+		HullSlotTypeMining,
+		HullSlotTypeNone,
+		HullSlotTypeOrbital,
+		HullSlotTypeOrbitalElectrical,
+		HullSlotTypeScanner,
+		HullSlotTypeScannerElectricalMechanical,
+		HullSlotTypeShield,
+		HullSlotTypeShieldArmor,
+		HullSlotTypeShieldElectricalMechanical,
+		HullSlotTypeSpaceDock,
+		HullSlotTypeWeapon,
+		HullSlotTypeWeaponShield,
+		type HullSlotType,
+		type ShipDesignSlot
+	} from '$lib/types/cs';
 	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';
-	import { $enum as eu } from 'ts-enum-util';
 
 	type Props = {
 		type?: HullSlotType;
@@ -22,7 +46,7 @@
 	};
 
 	let {
-		type = HullSlotType.General,
+		type = HullSlotTypeGeneral,
 		capacity = 1,
 		required = false,
 		shipDesignSlot = $bindable(),
@@ -36,32 +60,54 @@
 
 	function typeDescription() {
 		switch (type) {
-			case HullSlotType.MineLayer:
+			case HullSlotTypeNone:
+				return 'None';
+			case HullSlotTypeEngine:
+				return 'Engine';
+			case HullSlotTypeScanner:
+				return 'Scanner';
+			case HullSlotTypeBomb:
+				return 'Bomb';
+			case HullSlotTypeMining:
+				return 'Mining';
+			case HullSlotTypeElectrical:
+				return 'Electrical';
+			case HullSlotTypeShield:
+				return 'Shield';
+			case HullSlotTypeArmor:
+				return 'Armor';
+			case HullSlotTypeCargo:
+				return 'Cargo';
+			case HullSlotTypeWeapon:
+				return 'Weapon';
+			case HullSlotTypeOrbital:
+				return 'Orbital';
+			case HullSlotTypeMineLayer:
 				return 'Mine\nLayer';
-			case HullSlotType.Mechanical:
+			case HullSlotTypeMechanical:
 				return 'Mech';
-			case HullSlotType.SpaceDock:
+			case HullSlotTypeSpaceDock:
 				return 'Space Dock';
-			case HullSlotType.ShieldArmor:
+			case HullSlotTypeShieldArmor:
 				return 'Shield\nor\nArmor';
-			case HullSlotType.ShieldElectricalMechanical:
+			case HullSlotTypeShieldElectricalMechanical:
 				return 'Shield\nElect\nMech';
-			case HullSlotType.OrbitalElectrical:
+			case HullSlotTypeOrbitalElectrical:
 				return 'Orbital\nor\nElectrical';
-			case HullSlotType.WeaponShield:
+			case HullSlotTypeWeaponShield:
 				return 'Weapon\nor\nShield';
-			case HullSlotType.ScannerElectricalMechanical:
+			case HullSlotTypeScannerElectricalMechanical:
 				return 'Scanner\nElec\nMech';
-			case HullSlotType.ArmorScannerElectricalMechanical:
+			case HullSlotTypeArmorScannerElectricalMechanical:
 				return 'Armor\nScanner\nElec/Mech';
-			case HullSlotType.ElectricalMechanical:
+			case HullSlotTypeElectricalMechanical:
 				return 'Elec\nor\nMech';
-			case HullSlotType.MineElectricalMechanical:
+			case HullSlotTypeMineElectricalMechanical:
 				return 'Mine\nElec\nMech';
-			case HullSlotType.General:
+			case HullSlotTypeGeneral:
 				return 'General\nPurpose';
 			default:
-				return eu(HullSlotType).getKeyOrDefault(type, 'General');
+				return 'Unknown';
 		}
 	}
 
@@ -88,6 +134,8 @@
 			}
 		}}
 		class="w-full h-full"
+		data-type="hull-component-button"
+		data-id={shipDesignSlot?.hullComponent}
 	>
 		<div class="flex flex-col justify-between w-full h-full">
 			{#if shipDesignSlot}
@@ -112,6 +160,8 @@
 		class="btn btn-sm px-1 z-30"
 		disabled={capacity === shipDesignSlot?.quantity}
 		onclick={() => shipDesignSlot?.quantity && shipDesignSlot.quantity++}
+		data-type="increase-hull-component-button"
+		data-id={shipDesignSlot?.hullComponent}
 	>
 		<Icon src={Plus} size="24" class="hover:stroke-accent" />
 	</button>
@@ -128,10 +178,18 @@
 				}
 			}
 		}}
+		data-type="decrease-hull-component-button"
+		data-id={shipDesignSlot?.hullComponent}
 	>
 		<Icon src={Minus} size="24" class="hover:stroke-accent" />
 	</button>
-	<button type="button" class="btn btn-sm px-1 z-30" onclick={onDelete}>
+	<button
+		type="button"
+		class="btn btn-sm px-1 z-30"
+		onclick={onDelete}
+		data-type="delete-hull-component-button"
+		data-id={shipDesignSlot?.hullComponent}
+	>
 		<Icon src={Trash} size="24" class="hover:stroke-accent" />
 	</button>
 </div>

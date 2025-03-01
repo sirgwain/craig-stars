@@ -7,7 +7,8 @@
 	import { notify } from '$lib/services/Notifications';
 	import { RaceService } from '$lib/services/RaceService';
 	import { Service } from '$lib/services/Service';
-	import { humanoid, type Race } from '$lib/types/Race';
+	import { humanoid } from '$lib/types/Race';
+	import { type Race } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 	import RaceEditor from './RaceEditor.svelte';
 	import RacePoints from './RacePoints.svelte';

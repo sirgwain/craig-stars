@@ -38,7 +38,7 @@ func (s scanner) RangePenSquared(cloakFactor float64) float64 {
 	return math.Ceil(r * r)
 }
 
-type playerScan struct {
+type playerScanner struct {
 	universe          *Universe
 	rules             *Rules
 	player            *Player
@@ -47,16 +47,12 @@ type playerScan struct {
 	discoverer        discoverer
 }
 
-type playerScanner interface {
-	scan() error
-}
-
 func newPlayerScanner(universe *Universe, players []*Player, rules *Rules, player *Player) playerScanner {
-	return &playerScan{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), player.discoverer}
+	return playerScanner{universe, rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), player.discoverer}
 }
 
 // scan planets, fleets, etc for a player
-func (scan *playerScan) scan() error {
+func (scan *playerScanner) scan() error {
 	scanners := scan.getScanners()
 	remoteMiningScanners := scan.getRemoteMiningScanners()
 	cargoScanners := scan.getCargoScanners()
@@ -89,7 +85,7 @@ func (scan *playerScan) scan() error {
 }
 
 // scan all planets with this player's scanners
-func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner, starGateScanners []scanner) error {
+func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scanner, starGateScanners []scanner) error {
 	for _, planet := range scan.universe.Planets {
 		if planet.OwnedBy(scan.player.Num) {
 			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true); err != nil {
@@ -157,7 +153,7 @@ func (scan *playerScan) scanPlanets(scanners []scanner, cargoScanners []scanner,
 }
 
 // scan this planet
-func (scan *playerScan) scanPlanet(planet *Planet, scanner scanner) (bool, error) {
+func (scan *playerScanner) scanPlanet(planet *Planet, scanner scanner) (bool, error) {
 	if scanner.RangePen != NoScanner && float64(scanner.RangePenSquared(NoCloakFactor)) >= scanner.Position.DistanceSquaredTo(planet.Position) {
 		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
@@ -186,7 +182,7 @@ func (scan *playerScan) scanPlanet(planet *Planet, scanner scanner) (bool, error
 }
 
 // scan all fleets and discover their designs if we should
-func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) {
+func (scan *playerScanner) scanFleets(scanners []scanner, cargoScanners []scanner) {
 	// scan fleets
 	fleetsToScan := []*Fleet{}
 	fleetsToCargoScan := []*Fleet{}
@@ -234,7 +230,7 @@ func (scan *playerScan) scanFleets(scanners []scanner, cargoScanners []scanner) 
 
 // return true if this scanner successfully scans this fleet, taking into account cloaking
 // and the fleet's cloak penetration
-func (scan *playerScan) fleetInScannerRange(fleet *Fleet, scanner scanner) bool {
+func (scan *playerScanner) fleetInScannerRange(fleet *Fleet, scanner scanner) bool {
 	cloakFactor := getCloakFactor(fleet.Spec.CloakPercent, scanner.CloakReductionFactor)
 	distanceSquared := scanner.Position.DistanceSquaredTo(fleet.Position)
 	scanRangePenSqaured := scanner.RangePenSquared(cloakFactor)
@@ -254,7 +250,7 @@ func (scan *playerScan) fleetInScannerRange(fleet *Fleet, scanner scanner) bool 
 }
 
 // scan all fleets and discover their designs if we should
-func (scan *playerScan) scanWormholes(scanners []scanner) {
+func (scan *playerScanner) scanWormholes(scanners []scanner) {
 	for _, wormhole := range scan.universe.Wormholes {
 		intel := scan.player.getWormholeIntel(wormhole.Num)
 
@@ -307,7 +303,7 @@ func (scan *playerScan) scanWormholes(scanners []scanner) {
 }
 
 // scan Mystery Traders
-func (scan *playerScan) scanMysteryTraders() {
+func (scan *playerScanner) scanMysteryTraders() {
 	for _, mysteryTrader := range scan.universe.MysteryTraders {
 		if mysteryTrader.Delete {
 			continue
@@ -318,7 +314,7 @@ func (scan *playerScan) scanMysteryTraders() {
 }
 
 // scan all fleets and discover their designs if we should
-func (scan *playerScan) scanMineralPackets(scanners []scanner) {
+func (scan *playerScanner) scanMineralPackets(scanners []scanner) {
 	for _, packet := range scan.universe.MineralPackets {
 		if packet.Delete {
 			continue
@@ -352,7 +348,7 @@ func (scan *playerScan) scanMineralPackets(scanners []scanner) {
 }
 
 // scan all fleets and discover their designs if we should
-func (scan *playerScan) scanMineFields(scanners []scanner) {
+func (scan *playerScanner) scanMineFields(scanners []scanner) {
 	for _, mineField := range scan.universe.MineFields {
 		if mineField.Delete {
 			continue
@@ -386,7 +382,7 @@ func (scan *playerScan) scanMineFields(scanners []scanner) {
 }
 
 // scan all fleets and discover their designs if we should
-func (scan *playerScan) scanSalvages(scanners []scanner) {
+func (scan *playerScanner) scanSalvages(scanners []scanner) {
 	for _, salvage := range scan.universe.Salvages {
 		if salvage.Delete {
 			continue
@@ -406,7 +402,7 @@ func (scan *playerScan) scanSalvages(scanners []scanner) {
 }
 
 // discover any map sharing ally data
-func (scan *playerScan) discoverAllies() error {
+func (scan *playerScanner) discoverAllies() error {
 	for _, player := range scan.players {
 		if !player.IsSharingMap(scan.player.Num) {
 			continue
@@ -474,7 +470,7 @@ func (scan *playerScan) discoverAllies() error {
 	return nil
 }
 
-func (scan *playerScan) discoverPlayers() {
+func (scan *playerScanner) discoverPlayers() {
 	for player, discovered := range scan.discoveredPlayers {
 		if discovered {
 			scan.discoverer.discoverPlayer(scan.players[player-1])
@@ -484,7 +480,7 @@ func (scan *playerScan) discoverPlayers() {
 
 // get a list of unique scanners per player.
 // This is a minimal list only containing the best scanner values for each position
-func (scan *playerScan) getScanners() []scanner {
+func (scan *playerScanner) getScanners() []scanner {
 	scanningFleetsByPosition := map[Vector]scanner{}
 	for _, fleet := range scan.universe.Fleets {
 		if fleet.Delete {
@@ -593,7 +589,7 @@ func (scan *playerScan) getScanners() []scanner {
 }
 
 // get a list of remote mining scanners by player
-func (scan *playerScan) getRemoteMiningScanners() []scanner {
+func (scan *playerScanner) getRemoteMiningScanners() []scanner {
 	scanningFleetsByPosition := map[Vector]scanner{}
 	for _, fleet := range scan.universe.Fleets {
 		// find any fleets that remote mined this turn, but only add one per position
@@ -613,7 +609,7 @@ func (scan *playerScan) getRemoteMiningScanners() []scanner {
 }
 
 // get a list of scanners that can scan cargo from fleets or planets
-func (scan *playerScan) getCargoScanners() []scanner {
+func (scan *playerScanner) getCargoScanners() []scanner {
 	scanners := []scanner{}
 	scanningFleetsByPosition := map[Vector]scanner{}
 
@@ -644,7 +640,7 @@ func (scan *playerScan) getCargoScanners() []scanner {
 }
 
 // get a list of star gates that can scan other star gates by player
-func (scan *playerScan) getStarGateScanners() []scanner {
+func (scan *playerScanner) getStarGateScanners() []scanner {
 	scanners := []scanner{}
 	if !scan.player.Race.Spec.CanDetectStargatePlanets {
 		return scanners
@@ -664,7 +660,7 @@ func (scan *playerScan) getStarGateScanners() []scanner {
 }
 
 // make sure our fleets are pointing to valid targets
-func (scan *playerScan) updateFleetTargets() {
+func (scan *playerScanner) updateFleetTargets() {
 	for _, fleet := range scan.universe.Fleets {
 		// skip deleted fleets
 		if fleet.Delete {

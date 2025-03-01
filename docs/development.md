@@ -13,11 +13,12 @@ After all that, you'll also need to install 2 important Go dependencies:
 
 - [Mage](https://github.com/magefile/mage), a make-like build tool/command executer helping to execute complex build commands.
 - [Air](https://github.com/air-verse/air), a server utility aiding with automatic backend server restarting.
+- [tygo](https://github.com/gzuidhof/tygo), a generator for creating typescript types for golang types.
 
 Both can be installed using a single `go install` command:
 
 ```bash
-go install github.com/magefile/mage@latest github.com/air-verse/air@latest
+go install github.com/magefile/mage@latest github.com/air-verse/air@latest github.com/gzuidhof/tygo@latest
 ```
 
 (Mage should be included in go.mod regardless, but it never hurts to make sure it's there.)
@@ -45,21 +46,9 @@ mage run
 
 If setup correctly, you should get a localhost link from npm (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically via air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
 
-### Launching Backend/Frontend only
-
-If one wants to launch the backend or frontend separately (such as to have both processes in separate terminals), there are mage commands to launch them independently.
-
-```bash
-mage launch_frontend
-```
-
-```bash
-mage launch_backend
-```
-
 # Visual Studio Code
 
-[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use frontend and backend plugins without issue in the same repo, as well as [tasks.json](/..vscode/tasks.json) and [launch.json](/..vscode/tasks.json) files containing various prebuilt commands and debug configurations.
+[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use frontend and backend plugins without issue in the same repo, as well as [tasks.json](/.vscode/tasks.json) and [launch.json](/.vscode/tasks.json) files containing various prebuilt commands and debug configurations. (There's even one to launch the entire server in 1 press.)
 It also comes with a built in terminal, debugging support, and an array of assorted bells and whistles useful for general software development.
 
 ## Testing

@@ -1,6 +1,10 @@
 <script lang="ts">
-	import { WaypointTaskTransportAction } from '$lib/types/Fleet';
-	import type { TransportPlan } from '$lib/types/Player';
+	import type { TransportPlan } from '$lib/types/cs';
+	import {
+		TransportActionFillPercent,
+		TransportActionNone,
+		TransportActionWaitForPercent
+	} from '$lib/types/cs';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import TransportActionDescription from './TransportActionDescription.svelte';
@@ -21,16 +25,11 @@
 	};
 
 	const isEmpty = (plan: TransportPlan) =>
-		(plan.tasks.fuel.action ?? WaypointTaskTransportAction.None) ==
-			WaypointTaskTransportAction.None &&
-		(plan.tasks.ironium.action ?? WaypointTaskTransportAction.None) ==
-			WaypointTaskTransportAction.None &&
-		(plan.tasks.boranium.action ?? WaypointTaskTransportAction.None) ==
-			WaypointTaskTransportAction.None &&
-		(plan.tasks.germanium.action ?? WaypointTaskTransportAction.None) ==
-			WaypointTaskTransportAction.None &&
-		(plan.tasks.colonists.action ?? WaypointTaskTransportAction.None) ==
-			WaypointTaskTransportAction.None;
+		(plan.tasks.fuel.action ?? TransportActionNone) == TransportActionNone &&
+		(plan.tasks.ironium.action ?? TransportActionNone) == TransportActionNone &&
+		(plan.tasks.boranium.action ?? TransportActionNone) == TransportActionNone &&
+		(plan.tasks.germanium.action ?? TransportActionNone) == TransportActionNone &&
+		(plan.tasks.colonists.action ?? TransportActionNone) == TransportActionNone;
 </script>
 
 <div
@@ -61,10 +60,9 @@
 				<TransportActionDescription
 					action={plan.tasks.ironium.action}
 					amount={plan.tasks.ironium.amount}
-					units={[
-						WaypointTaskTransportAction.WaitForPercent,
-						WaypointTaskTransportAction.FillPercent
-					].indexOf(plan.tasks.ironium.action ?? WaypointTaskTransportAction.None) != -1
+					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
+						plan.tasks.ironium.action ?? TransportActionNone
+					) != -1
 						? '%'
 						: 'kT'}
 					title="Ironium"
@@ -73,10 +71,9 @@
 				<TransportActionDescription
 					action={plan.tasks.boranium.action}
 					amount={plan.tasks.boranium.amount}
-					units={[
-						WaypointTaskTransportAction.WaitForPercent,
-						WaypointTaskTransportAction.FillPercent
-					].indexOf(plan.tasks.boranium.action ?? WaypointTaskTransportAction.None) != -1
+					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
+						plan.tasks.boranium.action ?? TransportActionNone
+					) != -1
 						? '%'
 						: 'kT'}
 					title="Boranium"
@@ -85,10 +82,9 @@
 				<TransportActionDescription
 					action={plan.tasks.germanium.action}
 					amount={plan.tasks.germanium.amount}
-					units={[
-						WaypointTaskTransportAction.WaitForPercent,
-						WaypointTaskTransportAction.FillPercent
-					].indexOf(plan.tasks.germanium.action ?? WaypointTaskTransportAction.None) != -1
+					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
+						plan.tasks.germanium.action ?? TransportActionNone
+					) != -1
 						? '%'
 						: 'kT'}
 					title="Germanium"
@@ -97,10 +93,9 @@
 				<TransportActionDescription
 					action={plan.tasks.colonists.action}
 					amount={plan.tasks.colonists.amount}
-					units={[
-						WaypointTaskTransportAction.WaitForPercent,
-						WaypointTaskTransportAction.FillPercent
-					].indexOf(plan.tasks.colonists.action ?? WaypointTaskTransportAction.None) != -1
+					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
+						plan.tasks.colonists.action ?? TransportActionNone
+					) != -1
 						? '%'
 						: '00'}
 					title="Colonists"
@@ -111,7 +106,13 @@
 		{#if showDelete}
 			<div class="card-actions justify-start">
 				<div>
-					<button type="button" class="btn" onclick={() => deletePlan(plan)}>
+					<button
+						type="button"
+						class="btn"
+						onclick={() => deletePlan(plan)}
+						data-type="delete-button"
+						data-id={`${plan.name}`}
+					>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				</div>

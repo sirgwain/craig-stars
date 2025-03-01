@@ -6,12 +6,12 @@
 	import Select from '$lib/components/Select.svelte';
 	import { AdminService } from '$lib/services/AdminService';
 	import { Service } from '$lib/services/Service';
-	import type { Game } from '$lib/types/Game';
+	import type { GameWithPlayers } from '$lib/types/cs';
 	import type { User } from '$lib/types/User';
 	import { onMount } from 'svelte';
 
 	let users: User[] = $state([]);
-	let games: Game[] = $state([]);
+	let games: GameWithPlayers[] = $state([]);
 	let id = $page.params.id;
 	let guestUser: User | undefined = $state();
 	let targetUserId: number | undefined = $state();
@@ -77,7 +77,7 @@
 				<SectionHeader>Guest User Games</SectionHeader>
 				<ul>
 					{#each games as game}
-						<li>{game.name} - {game.players.length} players</li>
+						<li>{game.name} - {game.players?.length ?? 0} players</li>
 					{/each}
 				</ul>
 			{/if}

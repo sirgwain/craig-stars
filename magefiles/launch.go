@@ -88,6 +88,11 @@ func Generate() error {
 		return err
 	}
 
+	fmt.Println("running tygo generate")
+	if err := sh.RunV("tygo", "generate"); err != nil {
+		return err
+	}
+
 	fmt.Println("generating techs.json")
 	techs2json, err := sh.Output("go", "run", "main.go", "generate", "techsjson")
 	if err != nil {
@@ -105,6 +110,24 @@ func Generate() error {
 	if err := os.WriteFile("frontend/src/lib/ssr/rules.json", []byte(rules2json), 0644); err != nil {
 		return mg.Fatalf(1, "error during os.WriteFile for rules.json: \n%w", err)
 	}
+
+	if err := Format(); err != nil {
+		return mg.Fatalf(1, "error during format after generation: \n%w", err)
+	}
+
+	return nil
+}
+
+// Build the frontend using SvelteKit.
+func Format() error {
+	cmd := exec.Command("npm", "run", "format")
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -133,6 +156,7 @@ func Build_Frontend() error {
 
 // Build the backend Golang executable for local dev, as well as the WASM binary.
 // This builds the binary for main.go without any version control info.
+// Air runs this whenever changes are detected.
 func Build_Backend() error {
 	return build_backend(ldflags, "-buildvcs=false")
 }
@@ -146,7 +170,7 @@ func Build_Backend_CI(version, hash, releaseTime string) error {
 	mg.Deps(Build_WASM)
 	// Go passes these arguments directly to build without any quoting or escaping (hence why no surrounding quotes)
 	args := ldflags
-	// If/when mage supports default arguments, these should probably be changed to account for it
+	// TODO: Change these if/when mage updates to support default arguments
 	if version != "" {
 		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'", version)
 	}
@@ -210,23 +234,16 @@ func Launch() error {
 	return <-c
 }
 
-// Launch the backend go server using air.
+// Launch the backend go server using air for hot reloads.
 func Launch_Backend() error {
-	mg.Deps(Generate)
 	return sh.RunV("air")
 }
 
 // Launch the frontend svelte server.
 func Launch_Frontend() error {
-	mg.Deps(Copy_Wasm_Exec)
-
 	cmd := exec.Command("npm", "run-script", "dev")
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return sh.RunV("npm", "run-script", "dev")
+	return cmd.Run()
 }

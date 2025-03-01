@@ -6,7 +6,7 @@
 	import BattlePlanEditor from '../BattlePlanEditor.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { notify } from '$lib/services/Notifications';
-	import type { BattlePlan } from '$lib/types/Player';
+	import type { BattlePlan } from '$lib/types/cs';
 
 	const { game, player, updateBattlePlan } = getGameContext();
 	let num = parseInt($page.params.num);

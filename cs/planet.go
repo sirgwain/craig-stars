@@ -9,21 +9,22 @@ import (
 // Players also start the game knowing all planet names and locations.
 // I suppose these should have been named Stars, since they represent a star system, ah well..
 type Planet struct {
-	MapObject
-	PlanetOrders
-	Hab                  Hab        `json:"hab,omitempty"`
-	BaseHab              Hab        `json:"baseHab,omitempty"`
-	TerraformedAmount    Hab        `json:"terraformedAmount,omitempty"`
-	MineralConcentration Mineral    `json:"mineralConcentration,omitempty"`
-	MineYears            Mineral    `json:"mineYears,omitempty"`
+	GameDBObject         `tstype:",extends"`
+	MapObject            `tstype:",extends"`
+	PlanetOrders         `tstype:",extends"`
+	Hab                  Hab        `json:"hab"`
+	BaseHab              Hab        `json:"baseHab"`
+	TerraformedAmount    Hab        `json:"terraformedAmount"`
+	MineralConcentration Mineral    `json:"mineralConcentration"`
+	MineYears            Mineral    `json:"mineYears"`
 	SurfaceMinerals      Mineral    `json:"surfaceMinerals,omitempty"`
 	Population           int        `json:"population,omitempty"` // Exact population to nearest colonist
-	Mines                int        `json:"mines,omitempty"`
-	Factories            int        `json:"factories,omitempty"`
-	Defenses             int        `json:"defenses,omitempty"`
+	Mines                int        `json:"mines"`
+	Factories            int        `json:"factories"`
+	Defenses             int        `json:"defenses"`
 	Homeworld            bool       `json:"homeworld,omitempty"`
 	Scanner              bool       `json:"scanner,omitempty"`
-	Spec                 PlanetSpec `json:"spec,omitempty"`
+	Spec                 PlanetSpec `json:"spec"`
 	RandomArtifact       bool       `json:"-"`
 	Starbase             *Fleet     `json:"-"`
 	Dirty                bool       `json:"-"`
@@ -41,7 +42,7 @@ type PlanetOrders struct {
 }
 
 type PlanetSpec struct {
-	PlanetStarbaseSpec
+	PlanetStarbaseSpec                        `tstype:",extends"`
 	CanTerraform                              bool    `json:"canTerraform,omitempty"`
 	Defense                                   string  `json:"defense,omitempty"`
 	DefenseCoverage                           float64 `json:"defenseCoverage,omitempty"`
@@ -142,8 +143,18 @@ func (p *Planet) WithPlayerNum(playerNum int) *Planet {
 	return p
 }
 
+func (p *Planet) WithFactories(factories int) *Planet {
+	p.Factories = factories
+	return p
+}
+
 func (p *Planet) WithMines(mines int) *Planet {
 	p.Mines = mines
+	return p
+}
+
+func (p *Planet) WithDefenses(defenses int) *Planet {
+	p.Defenses = defenses
 	return p
 }
 
@@ -163,7 +174,7 @@ func (p *Planet) WithScanner(scanner bool) *Planet {
 }
 
 func (p *Planet) String() string {
-	return fmt.Sprintf("Planet %s", &p.MapObject)
+	return fmt.Sprintf("Planet %v", p.MapObject)
 }
 
 // return planetary population rounded down to the nearest multiple of 100
@@ -282,7 +293,7 @@ func (p *Planet) emptyPlanet() {
 
 // randomize a planet with new hab range, minerals, etc
 // Used in universe generation as well as for genesis device resets
-func (p *Planet) randomize(rules *Rules) {
+func (p *Planet) randomize(rules *Rules, accBBS bool) {
 	// From @SuicideJunkie's tests and @edmundmk's previous research,
 	// grav and temp are weighted slightly towards the center while
 	// rad is completely random (though all 3 are clamped between 1 and 99).
@@ -311,29 +322,39 @@ func (p *Planet) randomize(rules *Rules) {
 	// reset the other stuff
 	p.BaseHab = p.Hab
 	p.TerraformedAmount = Hab{}
-	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad)
+	p.MineralConcentration = randomizeMinerals(rules, p.Hab.Rad, accBBS)
 	p.MineYears = Mineral{}
 
 }
 
 // Randomize a planet's mineral concentration within bounds set in Rules
-func randomizeMinerals(rules *Rules, rad int) Mineral {
+func randomizeMinerals(rules *Rules, rad int, accBBS bool) Mineral {
 
 	// These two variables are the shape of the normal distribution
 	// based on comparing it with Stars! output
 	mean := 80.0
 	variance := 20.0
 
-	// These two are the min and max of the minerals to be returned,
-	// They clamp the results
+	// min and max of the minerals to be returned,
+	// clamping the results
 	mMin := rules.MinStartingMineralConcentration
 	mMax := rules.MaxStartingMineralConcentration
 
-	// creates a mineral concentration
+	// create a normalized mineral concentration
 	minConc := Mineral{
 		Ironium:   1 + NormalSample(rules.random, mean, variance, mMax),
 		Boranium:  1 + NormalSample(rules.random, mean, variance, mMax),
 		Germanium: 1 + NormalSample(rules.random, mean, variance, mMax),
+	}
+
+	// add a small amount of minerals for accBBS
+	if accBBS {
+		for _, minType := range MineralTypes {
+			concAmount := minConc.GetAmount(minType)
+			if concAmount < 40 {
+				minConc.Set(minType, concAmount+5)
+			}
+		}
 	}
 
 	// limit at least one mineral
@@ -483,8 +504,10 @@ func (p *Planet) shortestDistanceToPlanets(otherPlanets []*Planet) float64 {
 }
 
 // get the mineral output of a planet based on mineOutput (10 for remote mining)
-// TODO: Add fractional mineral outputs (% chance for extra) for sub-integer amounts
 func (p *Planet) getMineralOutput(numMines int, mineOutput int) Mineral {
+  // TODO: Add fractional mineral outputs (% chance for extra) for sub-integer amounts
+  // TODO: Make this take *Rules and check HW min conc floors for non-remote mining, and change
+  // reduceMineralConcentrations to continue reducing HW mins
 	return Mineral{
 		int(float64(p.MineralConcentration.Ironium*numMines*mineOutput) / 1000),
 		int(float64(p.MineralConcentration.Boranium*numMines*mineOutput) / 1000),
@@ -492,7 +515,8 @@ func (p *Planet) getMineralOutput(numMines int, mineOutput int) Mineral {
 	}
 }
 
-// Get how much a player will grow on a planet, given the max population the player can have on the planet
+// Get how much a player will grow on a planet, given the max population the player can have on the planet..
+// Returns exact value to nearest colonist.
 func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOvercrowdDieoffRate, populationOvercrowdDieoffRateMax float64) int {
 	race := &player.Race
 	pop := p.GetPopulation()
@@ -511,24 +535,22 @@ func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOv
 		// A 200% capacity planet is 100% over cap and thus loses
 		// (0.04 * 100 = 4%) population each year.
 		// This maxes out at 400% capacity (300% extra) at 12% deaths/yr.
-
 		dieoffPercent := Clamp((capacity-1)*populationOvercrowdDieoffRate, 0, populationOvercrowdDieoffRateMax)
 		return int(math.Round(float64(pop) * -dieoffPercent))
 	}
 
-	// normal pop growth calcs
-	growthFactor := race.Spec.GrowthFactor
-	popGrowth := math.Round(float64(pop*race.GrowthRate*habValue) * growthFactor / 10000)
+	// perform normal pop growth calcs, applying penalty for partially crowded planets
+	popGrowth := math.Round(float64(pop*race.GrowthRate*habValue) * race.Spec.GrowthFactor / 10000) // divide by 10000 as growthRate and habValue are both percents
 
 	if capacity > 0.25 {
 		crowdingFactor := math.Pow(1-capacity, 2) * 16 / 9
 		popGrowth *= crowdingFactor
 	}
 
-	// return exact value to nearest colonist
 	return int(popGrowth)
 }
 
+// compute a planet's PlanetSpec.
 func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
@@ -543,8 +565,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	// terraforming
 	terraformer := NewTerraformer()
-	spec.TerraformAmount = terraformer.getTerraformAmount(planet.Hab, planet.BaseHab, player, player)
-	spec.MinTerraformAmount = terraformer.getMinTerraformAmount(planet.Hab, planet.BaseHab, player, player)
+	spec.TerraformAmount = terraformer.GetTerraformAmount(planet.Hab, planet.BaseHab, player, player)
+	spec.MinTerraformAmount = terraformer.GetMinTerraformAmount(planet.Hab, planet.BaseHab, player, player)
 	spec.CanTerraform = spec.TerraformAmount.absSum() > 0
 	spec.TerraformedHabitability = race.GetPlanetHabitability(planet.Hab.Add(spec.TerraformAmount))
 
@@ -568,18 +590,19 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	if race.Spec.CanBuildDefenses {
 		spec.MaxDefenses = 100
 		spec.Defense = player.Spec.Defense.Name
-		spec.DefenseCoverage = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100)), float64(Clamp(planet.Defenses, 0, spec.MaxDefenses)))))
-		spec.DefenseCoverageSmart = float64(1.0 - (math.Pow((1 - (player.Spec.Defense.DefenseCoverage / 100 * rules.SmartDefenseCoverageFactor)), float64(Clamp(planet.Defenses, 0, spec.MaxDefenses)))))
+		spec.computeDefenseCoverage(rules, player.Spec.Defense.DefenseCoverage, planet.Defenses)
 	}
 
 	if race.Spec.InnateScanner {
-		// calculate AR organic scan ranes
+		// compute AR organic scan range
+    // TODO: confirm rounding behavior with NAS
 		spec.Scanner = "Organic"
 		spec.ScanRange = int(float64(innateScanner(player.Race.Spec.InnateScannerFactor, productivePop)) * player.Race.Spec.ScanRangeFactor)
 		if !player.Race.Spec.NoAdvancedScanners && planet.Starbase != nil {
 			spec.ScanRangePen = int(float64(spec.ScanRange) * planet.Starbase.Spec.InnateScanRangePenFactor)
 		}
 	} else if planet.Scanner {
+    // normal scanner ranges
 		scanner := player.Spec.PlanetaryScanner
 		spec.Scanner = scanner.Name
 		spec.ScanRange = int(float64(scanner.ScanRange) * player.Race.Spec.ScanRangeFactor)
@@ -617,6 +640,16 @@ func computePlanetStarbaseSpec(planet *Planet) PlanetStarbaseSpec {
 	}
 
 	return spec
+}
+
+// Compute and update this planet's regular and smart defense coverage values
+// TODO: Test this
+func (spec *PlanetSpec) computeDefenseCoverage(rules *Rules, coverage float64, numDefenses int) {
+	// coverage is a percentage, so divide by 100
+	blocked := math.Pow(1-coverage/100, float64(Clamp(numDefenses, 0, spec.MaxDefenses)))
+	spec.DefenseCoverage = 1 - blocked
+	blockedSmart := math.Pow(1-(coverage/100)*rules.SmartDefenseCoverageFactor, float64(Clamp(numDefenses, 0, spec.MaxDefenses)))
+	spec.DefenseCoverageSmart = 1 - blockedSmart
 }
 
 // Compute the amount of resources this planet will produce per year, as well as its
@@ -734,6 +767,7 @@ func (planet *Planet) grow(player *Player) {
 
 // reduce the mineral concentrations of a planet after mining.
 func (planet *Planet) reduceMineralConcentration(rules *Rules) {
+  // TODO: Refactor this to clean it up
 	mineralDecayFactor := rules.MineralDecayFactor
 	minMineralConcentration := rules.MinMineralConcentration
 	if planet.Homeworld {
@@ -742,8 +776,7 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 
 	planetMineYears := planet.MineYears.ToSlice()
 	planetMineralConcentration := planet.MineralConcentration.ToSlice()
-	for i := range 3 {
-		conc := planetMineralConcentration[i]
+	for i, conc := range planetMineralConcentration {
 		if conc < minMineralConcentration {
 			// can't have less than min, make sure we have that at least
 			conc = minMineralConcentration
@@ -763,6 +796,6 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 			planetMineralConcentration[i] = conc
 		}
 	}
-	planet.MineYears = NewMineral(planetMineYears)
-	planet.MineralConcentration = NewMineral(planetMineralConcentration)
+	planet.MineYears = NewMineral(planetMineYears[0], planetMineYears[1], planetMineYears[2])
+	planet.MineralConcentration = NewMineral(planetMineralConcentration[0], planetMineralConcentration[1], planetMineralConcentration[2])
 }

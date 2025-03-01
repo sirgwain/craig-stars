@@ -2,11 +2,10 @@
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None, Unexplored } from '$lib/types/Constants';
-	import { type Fleet } from '$lib/types/Fleet';
-	import { getMapObjectName, owned, ownedBy, type MapObject } from '$lib/types/MapObject';
-	import type { MysteryTrader } from '$lib/types/MysteryTrader';
-	import { type Planet } from '$lib/types/Planet';
+	import type { MysteryTraderIntel, PlanetIntel } from '$lib/types/cs';
+	import { None, ReportAgeUnexplored, type MapObject } from '$lib/types/cs';
+	import type { AnyFleet } from '$lib/services/Universe';
+	import { getMapObjectName, owned, ownedBy } from '$lib/types/MapObject';
 	import { onMount } from 'svelte';
 
 	const { player, universe, settings } = getGameContext();
@@ -28,9 +27,9 @@
 	}: Props = $props();
 
 	type Results = {
-		planets: Planet[];
-		fleets: Fleet[];
-		mysteryTraders: MysteryTrader[];
+		planets: PlanetIntel[];
+		fleets: AnyFleet[];
+		mysteryTraders: MysteryTraderIntel[];
 	};
 
 	function getResults(search: string): Results {
@@ -44,8 +43,8 @@
 		const terms = search.split(' ');
 
 		const planets = $universe.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending);
-		const fleets = $universe.getFleets($settings.sortFleetsKey, $settings.sortFleetsDescending);
-		const mysteryTraders = $universe.mysteryTraders;
+		const fleets = $universe.getAllFleets($settings.sortFleetsKey, $settings.sortFleetsDescending);
+		const mysteryTraders = $universe.mysteryTraderIntels;
 
 		// return true if a mapboject name or player matches a search term
 		const termSearch = (term: string, mo: MapObject): boolean =>
@@ -66,7 +65,7 @@
 
 			mysteryTraders:
 				mysteryTraders
-					.filter((i) => terms.every((term) => termSearch(term, i)))
+					.filter((i) => terms.every((term) => termSearch(term, i as unknown as MapObject)))
 					.slice(0, maxMiscResults) ?? []
 		};
 	}
@@ -130,9 +129,9 @@
 				? results.fleets[selectedItemIndex - results.planets.length]
 				: selectedItemIndex <
 					  results.planets.length + results.fleets.length + results.mysteryTraders.length
-					? results.mysteryTraders[
+					? (results.mysteryTraders[
 							selectedItemIndex - results.planets.length + results.fleets.length
-						]
+						] as unknown as MapObject)
 					: undefined
 	);
 </script>
@@ -174,7 +173,7 @@
 									{:else}
 										{planet.name}
 									{/if}
-									{#if planet.reportAge != Unexplored}
+									{#if 'reportAge' in planet && planet.reportAge !== ReportAgeUnexplored}
 										{#if owned(planet)}
 											<div>-</div>
 											<div class="text-base my-auto">

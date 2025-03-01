@@ -60,13 +60,27 @@ jobs:
           go-version: ${{ env.go-version }}
           check-latest: true
           cache: true
-
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
       - name: Setup Mage
         uses: magefile/mage-action@v3
         with:
           install-only: true
-      - name: Generate Go files
+      - name: Install tygo
+        run: go install github.com/gzuidhof/tygo@v0.2.17
+      - name: Install Node.js dependencies
+        run: npm ci
+        working-directory: ./frontend
+      - name: Generate Go files and frontend static resources
         run: mage generate
+      - name: Grab images so tests don't complain
+        run: mage images
+      - name: Copy wasm_exec into frontend folder for the node build step
+        run: mage copy_wasm_exec
 
       - name: Build Backend Go Binary
         run: |
@@ -94,6 +108,12 @@ jobs:
       - name: Run Playwright tests
         run: npx playwright test
         working-directory: ./frontend
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 1
 
       - name: Run Vitest tests
         run: npx vitest --run --outputFile.junit=.${{env.test_results}}/vitest_report.xml

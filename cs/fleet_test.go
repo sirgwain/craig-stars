@@ -20,7 +20,7 @@ func testLongRangeScoutWithQuantity(player *Player, quantity int) *Fleet {
 			{
 				Quantity:  quantity,
 				DesignNum: 1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithName("Long Range Scout").
 					WithHull(Scout.Name).
 					WithSlots([]ShipDesignSlot{
@@ -62,7 +62,7 @@ func testSmallFreighterWithQuantity(player *Player, quantity int) *Fleet {
 			{
 				Quantity:  quantity,
 				DesignNum: 1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithName("Small Freighter").
 					WithHull(SmallFreighter.Name).
 					WithSlots([]ShipDesignSlot{
@@ -99,7 +99,7 @@ func testGalleon(player *Player) *Fleet {
 			{
 				Quantity:  1,
 				DesignNum: 1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithName("Galleon").
 					WithHull(Galleon.Name).
 					WithSlots([]ShipDesignSlot{
@@ -135,7 +135,7 @@ func testMiniMineLayer(player *Player) *Fleet {
 			{
 				Quantity:  1,
 				DesignNum: 1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithName("Little Hen").
 					WithHull(MiniMineLayer.Name).
 					WithSlots([]ShipDesignSlot{
@@ -168,7 +168,7 @@ func testCloakedScout(player *Player) *Fleet {
 			{
 				DesignNum: 1,
 				Quantity:  1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithName("Cloaked Scout").
 					WithHull(Scout.Name).
 					WithSlots([]ShipDesignSlot{
@@ -193,7 +193,7 @@ func testRemoteTerraformer(player *Player) *Fleet {
 			{
 				Quantity:  1,
 				DesignNum: 1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithName("Remote Terraformer").
 					WithHull(MiniMiner.Name).
 					WithSlots([]ShipDesignSlot{
@@ -229,7 +229,7 @@ func testGatePrivateer(player *Player, quantity int) *Fleet {
 			{
 				Quantity:  quantity,
 				DesignNum: 1,
-				design: NewShipDesign(player, 1).
+				design: NewShipDesign(player.Num, 1).
 					WithName("Gate Privateer").
 					WithHull(Privateer.Name).
 					WithSlots([]ShipDesignSlot{
@@ -281,7 +281,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					DesignNum: 1,
 					Quantity:  1,
-					design: NewShipDesign(starterHumanoidPlayer, 1).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 1).
 						WithHull(Scout.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -317,7 +317,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					Quantity:  1,
 					DesignNum: 1,
-					design: NewShipDesign(starterHumanoidPlayer, 1).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 1).
 						WithHull(SpaceStation.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
@@ -357,7 +357,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					Quantity:  1,
 					DesignNum: 1,
-					design: NewShipDesign(starterHumanoidPlayer, 1).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 1).
 						WithHull(Scout.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -395,7 +395,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					Quantity:  2,
 					DesignNum: 1,
-					design: NewShipDesign(starterHumanoidPlayer, 1).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 1).
 						WithHull(Scout.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -433,7 +433,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					Quantity:  1,
 					DesignNum: 1,
-					design: NewShipDesign(starterHumanoidPlayer, 1).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 1).
 						WithHull(Scout.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -445,7 +445,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					Quantity:  1,
 					DesignNum: 2,
-					design: NewShipDesign(starterHumanoidPlayer, 2).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 2).
 						WithHull(Scout.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -484,7 +484,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					DesignNum: 1,
 					Quantity:  0,
-					design: NewShipDesign(starterHumanoidPlayer, 1).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 1).
 						WithHull(Scout.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -521,7 +521,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					Quantity:  1,
 					DesignNum: 1,
-					design: NewShipDesign(starterHumanoidPlayer, 1).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 1).
 						WithHull(MiniBomber.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -559,7 +559,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					Quantity:  2,
 					DesignNum: 1,
-					design: NewShipDesign(starterHumanoidPlayer, 1).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 1).
 						WithHull(MiniBomber.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -597,7 +597,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				{
 					Quantity:  2,
 					DesignNum: 1,
-					design: NewShipDesign(starterHumanoidPlayer, 1).
+					design: NewShipDesign(starterHumanoidPlayer.Num, 1).
 						WithHull(B52Bomber.Name).
 						WithSlots([]ShipDesignSlot{
 							{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 4},
@@ -1222,7 +1222,7 @@ func TestFleet_repairFleet(t *testing.T) {
 						QuantityDamaged: 1,
 						Damage:          10,
 						DesignNum:       1,
-						design: NewShipDesign(player, 1).
+						design: NewShipDesign(player.Num, 1).
 							WithHull(Scout.Name).
 							WithSlots([]ShipDesignSlot{
 								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -1251,7 +1251,7 @@ func TestFleet_repairFleet(t *testing.T) {
 						QuantityDamaged: 2,
 						Damage:          10,
 						DesignNum:       1,
-						design: NewShipDesign(player, 1).
+						design: NewShipDesign(player.Num, 1).
 							WithHull(MidgetMiner.Name). // has 100dp armor
 							WithSlots([]ShipDesignSlot{
 								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -1280,7 +1280,7 @@ func TestFleet_repairFleet(t *testing.T) {
 						QuantityDamaged: 1,
 						Damage:          20,
 						DesignNum:       1,
-						design: NewShipDesign(player, 1).
+						design: NewShipDesign(player.Num, 1).
 							WithHull(MidgetMiner.Name). // has 100dp armor
 							WithSlots([]ShipDesignSlot{
 								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -1309,7 +1309,7 @@ func TestFleet_repairFleet(t *testing.T) {
 						QuantityDamaged: 2,
 						Damage:          5,
 						DesignNum:       1,
-						design: NewShipDesign(player, 1).
+						design: NewShipDesign(player.Num, 1).
 							WithHull(MidgetMiner.Name). // has 100dp armor
 							WithSlots([]ShipDesignSlot{
 								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
@@ -1375,7 +1375,7 @@ func TestFleet_repairStarbase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := NewPlayer(1, NewRace().WithPRT(tt.args.prt).WithSpec(&rules)).withSpec(&rules)
-			starbase := newStarbase(player, NewPlanet(), NewShipDesign(player, 1).WithHull(SpaceStation.Name).WithSpec(&rules, player), "Starbase")
+			starbase := newStarbase(player, NewPlanet(), NewShipDesign(player.Num, 1).WithHull(SpaceStation.Name).WithSpec(&rules, player), "Starbase")
 			starbase.Tokens[0].QuantityDamaged = 1
 			starbase.Tokens[0].Damage = tt.args.damage
 			starbase.Tokens[0].design.Spec.Armor = tt.args.armor

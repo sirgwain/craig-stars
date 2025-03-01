@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BattlePlan } from '$lib/types/Player';
+	import type { BattlePlan } from '$lib/types/cs';
 	import { Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
@@ -52,7 +52,12 @@
 		{#if showDelete}
 			<div class="card-actions justify-start">
 				<div>
-					<button class="btn" onclick={() => deletePlan(plan)}>
+					<button
+						class="btn"
+						onclick={() => deletePlan(plan)}
+						data-type="delete-button"
+						data-id={`${plan.name}`}
+					>
 						<Icon src={Trash} size="24" class="hover:stroke-accent" />
 					</button>
 				</div>

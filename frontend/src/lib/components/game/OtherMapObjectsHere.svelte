@@ -1,8 +1,16 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { type CommandedFleet, type Target } from '$lib/types/Fleet';
-	import { MapObjectType, equal, getMapObjectName, type MapObject } from '$lib/types/MapObject';
-	import type { Vector } from '$lib/types/Vector';
+	import { type CommandedFleet } from '$lib/types/Fleet';
+	import { equal, getMapObjectName } from '$lib/types/MapObject';
+	import type { MapObjectTarget, Vector } from '$lib/types/cs';
+	import {
+		MapObjectTypeFleet,
+		MapObjectTypeMineField,
+		MapObjectTypeMineralPacket,
+		MapObjectTypeNone,
+		MapObjectTypePlanet,
+		type MapObject
+	} from '$lib/types/cs';
 	import { flatten, keys } from 'lodash-es';
 	import type { HTMLSelectAttributes } from 'svelte/elements';
 
@@ -15,7 +23,7 @@
 	type Props = {
 		fleet: CommandedFleet;
 		otherMapObjectsHere: Dictionary<MapObject[]>;
-		target: Target;
+		target: MapObjectTarget;
 		position: Vector;
 		onSelected: (selected: Partial<MapObject>) => void;
 	} & HTMLSelectAttributes;
@@ -25,9 +33,9 @@
 	// true if this mapObject is also our current target
 	function isTarget(mo: MapObject) {
 		if (
-			target.targetType === MapObjectType.Fleet ||
-			target.targetType === MapObjectType.MineField ||
-			target.targetType === MapObjectType.MineralPacket
+			target.targetType === MapObjectTypeFleet ||
+			target.targetType === MapObjectTypeMineField ||
+			target.targetType === MapObjectTypeMineralPacket
 		) {
 			// fleets, minefields, and mineral packets are keyed off of player num as well as type/num
 			return (
@@ -48,17 +56,17 @@
 	let everythingElse = $derived(
 		flatten(
 			keys(otherMapObjectsHere).map((k) =>
-				k !== MapObjectType.Planet && k !== MapObjectType.Fleet && k !== MapObjectType.MineField
+				k !== MapObjectTypePlanet && k !== MapObjectTypeFleet && k !== MapObjectTypeMineField
 					? otherMapObjectsHere[k]
 					: []
 			)
 		)
 	);
 	let allObjects = $derived([
-		{ type: MapObjectType.None, position: position },
-		...(otherMapObjectsHere[MapObjectType.Planet] ?? []),
-		...(otherMapObjectsHere[MapObjectType.Fleet] ?? []),
-		...(otherMapObjectsHere[MapObjectType.MineField] ?? []),
+		{ type: MapObjectTypeNone, position: position },
+		...(otherMapObjectsHere[MapObjectTypePlanet] ?? []),
+		...(otherMapObjectsHere[MapObjectTypeFleet] ?? []),
+		...(otherMapObjectsHere[MapObjectTypeMineField] ?? []),
 		...everythingElse
 	]);
 </script>
@@ -72,29 +80,29 @@
 >
 	<!-- allow for the non target -->
 	<optgroup label="Space">
-		<option selected={target.targetType === MapObjectType.None} value={0}
+		<option selected={target.targetType === MapObjectTypeNone} value={0}
 			>{`Space (${position.x ?? 0}, ${position.y ?? 0})`}</option
 		>
 	</optgroup>
 
-	{#if otherMapObjectsHere[MapObjectType.Planet]}
+	{#if otherMapObjectsHere[MapObjectTypePlanet]}
 		<optgroup label="Planets">
-			{#each otherMapObjectsHere[MapObjectType.Planet] as mo, index}
+			{#each otherMapObjectsHere[MapObjectTypePlanet] as mo, index}
 				<option selected={isTarget(mo)} value={1 + index}>{mo.name}</option>
 			{/each}
 		</optgroup>
 	{/if}
 
-	{#if otherMapObjectsHere[MapObjectType.Fleet]}
+	{#if otherMapObjectsHere[MapObjectTypeFleet]}
 		<optgroup label="Fleets">
-			{#each otherMapObjectsHere[MapObjectType.Fleet] as mo, index}
+			{#each otherMapObjectsHere[MapObjectTypeFleet] as mo, index}
 				{#if !equal(fleet, mo)}
 					<option
 						style={mo.playerNum != $player.num
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
 							: ''}
 						selected={isTarget(mo)}
-						value={1 + index + (otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0)}
+						value={1 + index + (otherMapObjectsHere[MapObjectTypePlanet]?.length ?? 0)}
 						>{getMapObjectName(mo)}</option
 					>
 				{/if}
@@ -102,15 +110,15 @@
 		</optgroup>
 	{/if}
 
-	{#if otherMapObjectsHere[MapObjectType.MineField]}
+	{#if otherMapObjectsHere[MapObjectTypeMineField]}
 		<optgroup label="Mine Fields">
-			{#each otherMapObjectsHere[MapObjectType.MineField] as mo, index}
+			{#each otherMapObjectsHere[MapObjectTypeMineField] as mo, index}
 				<option
 					selected={isTarget(mo)}
 					value={1 +
 						index +
-						(otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0) +
-						(otherMapObjectsHere[MapObjectType.Fleet]?.length ?? 0)}>{mo.name}</option
+						(otherMapObjectsHere[MapObjectTypePlanet]?.length ?? 0) +
+						(otherMapObjectsHere[MapObjectTypeFleet]?.length ?? 0)}>{mo.name}</option
 				>
 			{/each}
 		</optgroup>
@@ -123,9 +131,9 @@
 					selected={isTarget(mo)}
 					value={1 +
 						index +
-						(otherMapObjectsHere[MapObjectType.Planet]?.length ?? 0) +
-						(otherMapObjectsHere[MapObjectType.Fleet]?.length ?? 0) +
-						(otherMapObjectsHere[MapObjectType.MineField]?.length ?? 0)}>{mo.name}</option
+						(otherMapObjectsHere[MapObjectTypePlanet]?.length ?? 0) +
+						(otherMapObjectsHere[MapObjectTypeFleet]?.length ?? 0) +
+						(otherMapObjectsHere[MapObjectTypeMineField]?.length ?? 0)}>{mo.name}</option
 				>
 			{/each}
 		</optgroup>

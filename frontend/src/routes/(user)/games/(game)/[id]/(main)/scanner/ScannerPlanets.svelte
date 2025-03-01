@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet } from '$lib/types/Fleet';
-	import { MapObjectType, type MapObject } from '$lib/types/MapObject';
-	import type { Planet } from '$lib/types/Planet';
+	import type { Fleet, PlanetIntel } from '$lib/types/cs';
+	import { MapObjectTypeFleet, type MapObject } from '$lib/types/cs';
+	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import ScannerPlanetMineralConcentration from './ScannerPlanetMineralConcentration.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
@@ -13,12 +13,12 @@
 	const { universe, settings, commandedMapObject, commandedPlanet } = getGameContext();
 
 	const commanded = (
-		planet: Planet,
+		planet: PlanetIntel,
 		commandedMapObject: MapObject | undefined,
-		commandedPlanet: Planet | undefined
+		commandedPlanet: CommandedPlanet | undefined
 	): boolean => {
 		if (
-			commandedMapObject?.type == MapObjectType.Fleet &&
+			commandedMapObject?.type == MapObjectTypeFleet &&
 			(commandedMapObject as Fleet).orbitingPlanetNum == planet.num
 		) {
 			return true;
@@ -30,7 +30,7 @@
 </script>
 
 <!-- Planets -->
-{#each $universe.planets as planet (planet.num)}
+{#each $universe.planetIntels as planet (planet.num)}
 	{#if $settings.planetViewState == PlanetViewState.Percent}
 		<ScannerPlanetPercent {planet} />
 	{:else if $settings.planetViewState == PlanetViewState.Population}

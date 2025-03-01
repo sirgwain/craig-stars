@@ -310,8 +310,8 @@ func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
 	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 	player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
 
-	// add two designs, a colony ship with fuel mizer and medium freighter with fuel mizer
-	player.Designs = append(player.Designs, NewShipDesign(player, 1).
+	// add two designs, a colony ship w/fuel mizer and medium freighter w/fuel mizer
+	player.Designs = append(player.Designs, NewShipDesign(player.Num, 1).
 		WithHull(ColonyShip.Name).
 		WithSlots([]ShipDesignSlot{
 			{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
@@ -319,7 +319,7 @@ func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
 		}).
 		WithSpec(&rules, player))
 
-	player.Designs = append(player.Designs, NewShipDesign(player, 2).
+	player.Designs = append(player.Designs, NewShipDesign(player.Num, 2).
 		WithHull(MediumFreighter.Name).
 		WithSlots([]ShipDesignSlot{
 			{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
@@ -355,12 +355,12 @@ func Test_production_produceStarbaseUpgrade(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
 
 	// create a new starbase
-	starbaseDesign1 := NewShipDesign(player, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	starbaseDesign1 := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
 	starbase1 := newStarbase(player, planet,
 		starbaseDesign1,
 		"Starbase",
 	)
-	starbaseDesign2 := NewShipDesign(player, 3).WithHull(SpaceStation.Name).
+	starbaseDesign2 := NewShipDesign(player.Num, 3).WithHull(SpaceStation.Name).
 		WithSlots([]ShipDesignSlot{
 			{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
 		}).WithSpec(&rules, player)
@@ -470,7 +470,7 @@ func Test_production_allocatePartialBuild(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			production := production{planet: planet}
+			production := producer{planet: planet}
 
 			if got := production.allocatePartialBuild(tt.args.costPerItem, tt.args.allocated); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Planet.allocatePartialBuild() = %v, want %v", got, tt.want)

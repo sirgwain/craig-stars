@@ -1,5 +1,5 @@
 import type { FilterOptions } from './Filter';
-import type { MessageType } from './Message';
+import type { PlayerMessageType } from './cs';
 
 export enum PlanetViewState {
 	// I do enjoy the classics
@@ -70,16 +70,16 @@ export class PlayerSettings implements FilterOptions {
 		this.messageTypeFilterArray.forEach((t) => this.messageTypeFilter.add(t));
 	}
 
-	filterMessageType(type: MessageType) {
+	filterMessageType(type: PlayerMessageType) {
 		this.messageTypeFilter.add(Number(type));
 	}
-	showMessageType(type: MessageType) {
+	showMessageType(type: PlayerMessageType) {
 		this.messageTypeFilter.delete(Number(type));
 	}
-	isMessageFiltered(type: MessageType) {
+	isMessageFiltered(type: PlayerMessageType) {
 		return this.messageTypeFilter.has(Number(type));
 	}
-	isMessageVisible(type: MessageType) {
+	isMessageVisible(type: PlayerMessageType) {
 		return !this.messageTypeFilter.has(Number(type));
 	}
 }

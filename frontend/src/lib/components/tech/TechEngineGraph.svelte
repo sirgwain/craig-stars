@@ -1,12 +1,11 @@
 <script lang="ts">
-	import type { TechEngine } from '$lib/types/Tech';
-
 	import { scaleSqrt } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
 	import Area from '../graph/Area.svelte';
 	import AxisX from '../graph/AxisX.html.svelte';
 	import AxisY from '../graph/AxisY.html.svelte';
 	import Line from '../graph/Line.svelte';
+	import type { TechEngine } from '$lib/types/cs';
 
 	type Props = {
 		engine: TechEngine;

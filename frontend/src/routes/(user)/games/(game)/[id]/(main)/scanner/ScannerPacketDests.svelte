@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None } from '$lib/types/Constants';
+	import { None } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 

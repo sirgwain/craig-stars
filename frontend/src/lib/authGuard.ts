@@ -1,4 +1,4 @@
-import { User, userNotFound, UserStatus, type SessionUser } from '$lib/types/User';
+import { User, userNotFound, UserStatuses, type SessionUser } from '$lib/types/User';
 import { me } from './services/Stores';
 
 export async function authGuard(): Promise<User | undefined> {
@@ -17,7 +17,7 @@ export async function authGuard(): Promise<User | undefined> {
 		const sessionUser = (await response.json()) as SessionUser;
 		const user = Object.assign(new User(), sessionUser);
 
-		user.status = UserStatus.LoggedIn;
+		user.status = UserStatuses.LoggedIn;
 		me.update(() => user);
 
 		return user;

@@ -10,9 +10,8 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
-	import { None, Unexplored } from '$lib/types/Constants';
-	import { HabTypes, add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
-	import { type Planet } from '$lib/types/Planet';
+	import { Grav, None, Rad, ReportAgeUnexplored, Temp, type PlanetIntel } from '$lib/types/cs';
+	import { add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
@@ -20,7 +19,7 @@
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		planet: Planet;
+		planet: PlanetIntel;
 	};
 
 	let { planet }: Props = $props();
@@ -76,7 +75,7 @@
 		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
 			player: $player,
 			planet,
-			habType: HabTypes.Gravity
+			habType: Grav
 		});
 	}
 
@@ -85,7 +84,7 @@
 		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
 			player: $player,
 			planet,
-			habType: HabTypes.Temperature
+			habType: Temp
 		});
 	}
 
@@ -94,13 +93,13 @@
 		showTooltip<HabTooltipProps>(e.x, e.y, HabTooltip, {
 			player: $player,
 			planet,
-			habType: HabTypes.Radiation
+			habType: Rad
 		});
 	}
 </script>
 
 <div class="flex flex-col min-h-[11rem] select-none">
-	{#if planet.reportAge == Unexplored}
+	{#if 'reportAge' in planet && planet.reportAge === ReportAgeUnexplored}
 		<div class="m-auto">
 			<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent" />
 		</div>
@@ -125,17 +124,21 @@
 		<div class="flex justify-between">
 			<div class="ml-[5.5rem]">
 				<div>
-					{#if (planet.reportAge ?? 0) == 0}
-						Report is current
-					{:else if planet.reportAge == 1}
-						Report is 1 year old
+					{#if 'reportAge' in planet}
+						{#if (planet.reportAge ?? 0) == 0}
+							Report is current
+						{:else if planet.reportAge == 1}
+							Report is 1 year old
+						{:else}
+							Report is {planet.reportAge} years old
+						{/if}
 					{:else}
-						Report is {planet.reportAge} years old
+						Report is current
 					{/if}
 				</div>
 			</div>
 			<div>
-				{#if planet.reportAge != Unexplored && planet.playerNum != $player.num && planet.playerNum != None}
+				{#if 'reportAge' in planet && planet.reportAge !== ReportAgeUnexplored && planet.playerNum != $player.num && planet.playerNum != None}
 					<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
 						>{$universe.getPlayerPluralName(planet.playerNum)}</span
 					>

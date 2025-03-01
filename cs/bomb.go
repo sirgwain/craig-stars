@@ -1,3 +1,26 @@
+// Bombers orbiting enemy planets will Bomb planets
+// ============================================================================
+// Algorithms:
+// Normalpopkills = sum[bomb_kill_perc(n)*#(n)] * (1-Def(pop))
+// Minkills = sum[bomb_kill_min(n)*#(n)] * (1-Def(pop))
+//
+// 10 Cherry and 5 M-70 bombing vs 100 Neutron Defs (97.92%)
+//
+// The calculations are, population kill:
+//
+// a    0.025 * 10  0.25        10 Cherry bombs
+// b    0.012 * 5   0.06        5 M-70 bombs
+// c    a + b       0.31        Total kill factor
+// d    1 - 0.97    0.0208      1 - defense factor for 100 neutron defences
+// e    c * d           0.006448    Total kill factor
+// f    pop * c         64.48       Total colonists killed
+//
+// Minimum kill:
+//
+// a 10*300 + 5*300  4500
+// b 1 - 0.97        0.0208   1 - defense factor for 100 neutron defences
+// c a *b            156      Total minimum kill
+// ============================================================================
 package cs
 
 import (
@@ -26,41 +49,13 @@ type BombingResult struct {
 	fleet              *Fleet
 }
 
-type bomb struct {
+type bomber struct {
 	rules *Rules
 	log   zerolog.Logger
 }
 
-// Bombers orbiting enemy planets will Bomb planets
-// ============================================================================
-// Algorithms:
-// Normalpopkills = sum[bomb_kill_perc(n)*#(n)] * (1-Def(pop))
-// Minkills = sum[bomb_kill_min(n)*#(n)] * (1-Def(pop))
-//
-// 10 Cherry and 5 M-70 bombing vs 100 Neutron Defs (97.92%)
-//
-// The calculations are, population kill:
-//
-// a    0.025 * 10  0.25        10 Cherry bombs
-// b    0.012 * 5   0.06        5 M-70 bombs
-// c    a + b       0.31        Total kill factor
-// d    1 - 0.97    0.0208      1 - defense factor for 100 neutron defences
-// e    c * d           0.006448    Total kill factor
-// f    pop * c         64.48       Total colonists killed
-//
-// Minimum kill:
-//
-// a 10*300 + 5*300  4500
-// b 1 - 0.97        0.0208   1 - defense factor for 100 neutron defences
-// c a *b            156      Total minimum kill
-// ============================================================================
-type bomber interface {
-	// Attempt to bomb this planet
-	bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*Fleet, pg playerGetter)
-}
-
-func NewBomber(log zerolog.Logger, rules *Rules) bomber {
-	return &bomb{rules: rules, log: log}
+func newBomber(log zerolog.Logger, rules *Rules) bomber {
+	return bomber{rules: rules, log: log}
 }
 
 // add two bombing results and return the total
@@ -83,7 +78,7 @@ func (result BombingResult) Add(r BombingResult) BombingResult {
 }
 
 // bomb this planet if there are any bombers orbiting it
-func (b *bomb) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*Fleet, pg playerGetter) {
+func (b *bomber) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*Fleet, pg playerGetter) {
 	// get a list of all players orbiting the planet
 	orbitingPlayerNums := map[int]bool{}
 	resultsByPlayer := map[int]BombingResult{}
@@ -144,7 +139,7 @@ func (b *bomb) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*F
 }
 
 // get a slice of all bombers for a player
-func (b *bomb) getBombersForPlayer(fleets []*Fleet, playerNum int) []*Fleet {
+func (b *bomber) getBombersForPlayer(fleets []*Fleet, playerNum int) []*Fleet {
 	result := []*Fleet{}
 	for _, fleet := range fleets {
 		if fleet.PlayerNum == playerNum {
@@ -155,7 +150,7 @@ func (b *bomb) getBombersForPlayer(fleets []*Fleet, playerNum int) []*Fleet {
 }
 
 // bomb this planet with a slice of fleets
-func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
+func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
 
 	// do all normal bombs
 	bombs := []Bomb{}
@@ -232,7 +227,7 @@ func (b *bomb) normalBombPlanet(planet *Planet, defender *Player, attacker *Play
 }
 
 // smartbomb the planet for each fleet
-func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
+func (b *bomber) smartBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
 	smartDefenseCoverage := planet.Spec.DefenseCoverageSmart
 
 	// get all smart bombs from these fleets
@@ -279,7 +274,7 @@ func (b *bomb) smartBombPlanet(planet *Planet, defender *Player, attacker *Playe
 }
 
 // retroBombPlanet a planet for each fleet
-func (b *bomb) retroBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
+func (b *bomber) retroBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
 	// do all retro bombs
 	bombs := []Bomb{}
 	fleets := []*Fleet{}
@@ -330,7 +325,7 @@ func (b *bomb) retroBombPlanet(planet *Planet, defender *Player, attacker *Playe
 }
 
 // getUnterraformAmount gets the amount we should unterraform with retro bombs
-func (b *bomb) getUnterraformAmount(retroBombAmount int, baseHab, hab Hab) Hab {
+func (b *bomber) getUnterraformAmount(retroBombAmount int, baseHab, hab Hab) Hab {
 	unterraformAmount := Hab{}
 	for i := 0; i < retroBombAmount; i++ {
 		// find the current diff based on the unterraforming we've done so far
@@ -358,7 +353,7 @@ func (b *bomb) getUnterraformAmount(retroBombAmount int, baseHab, hab Hab) Hab {
 }
 
 // Get colonists killed using the KillRate of a bomb
-func (b *bomb) getColonistsKilledForBombs(population int, defenseCoverage float64, bombs []Bomb) float64 {
+func (b *bomber) getColonistsKilledForBombs(population int, defenseCoverage float64, bombs []Bomb) float64 {
 	// calculate the killRate for all these bombs
 	var killRate float64 = 0
 	for _, bomb := range bombs {
@@ -369,7 +364,7 @@ func (b *bomb) getColonistsKilledForBombs(population int, defenseCoverage float6
 }
 
 // Get minimum colonists killed using the MinKillRate of a bomb
-func (b *bomb) getMinColonistsKilledForBombs(defenseCoverage float64, bombs []Bomb) float64 {
+func (b *bomber) getMinColonistsKilledForBombs(defenseCoverage float64, bombs []Bomb) int {
 	// calculate the minKill for all these bombs
 	minKill := 0
 	for _, bomb := range bombs {
@@ -397,9 +392,7 @@ func (b *bomb) getMinColonistsKilledForBombs(defenseCoverage float64, bombs []Bo
 // of its factories, mines, and defenses. If there had been 350 mines,
 // 550 factories, and 100 defenses, the losses would be 140 mines, 220
 // factories, and 40 defenses.
-
-// getStructuresDestroyed gets the structures destroyed using the StructureDestroyRate of a bomb
-func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int {
+func (b *bomber) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int {
 	// calculate the StructureDestroyRate for all these bombs
 	var structuresDestroyed float64 = 0
 	for _, bomb := range bombs {
@@ -441,9 +434,7 @@ func (b *bomb) getStructuresDestroyed(defenseCoverage float64, bombs []Bomb) int
 //	= 8.37% of planetary pop will be killed.
 //
 // ============================================================================
-
-// Get number of colonists killed via smart bombs
-func (b *bomb) getColonistsKilledWithSmartBombs(population int, defenseCoverageSmart float64, bombs []Bomb) float64 {
+func (b *bomber) getColonistsKilledWithSmartBombs(population int, defenseCoverageSmart float64, bombs []Bomb) float64 {
 	smartKillRate := 0.0
 	for _, bomb := range bombs {
 		if smartKillRate == 0 {

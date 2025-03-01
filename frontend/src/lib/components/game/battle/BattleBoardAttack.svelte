@@ -1,6 +1,7 @@
 <script lang="ts">
 	import TorpedoHit from '$lib/components/icons/TorpedoHit.svelte';
-	import { Battle, TokenActionType } from '$lib/types/Battle';
+	import { Battle } from '$lib/types/Battle';
+	import { TokenActionBeamFire, TokenActionTorpedoFire } from '$lib/types/cs';
 	import { subtract } from '$lib/types/Vector';
 
 	type Props = {
@@ -29,7 +30,7 @@
 </script>
 
 <div class="absolute w-full h-full z-30 pointer-events-none">
-	{#if actionToken?.action?.type === TokenActionType.BeamFire && targetVector}
+	{#if actionToken?.action?.type === TokenActionBeamFire && targetVector}
 		<div class="relative left-0 top-0 w-full h-full">
 			<svg class="w-full h-full">
 				<path
@@ -40,7 +41,7 @@
 				/>
 			</svg>
 		</div>
-	{:else if action?.type === TokenActionType.TorpedoFire}
+	{:else if action?.type === TokenActionTorpedoFire}
 		<div class="relative left-0 top-0 w-full h-full">
 			<TorpedoHit
 				class="w-8 h-8 fill-transparent"

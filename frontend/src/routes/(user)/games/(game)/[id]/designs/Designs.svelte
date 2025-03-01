@@ -6,22 +6,22 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
+	import type { AnyShipDesign } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
-	import type { ShipDesign } from '$lib/types/ShipDesign';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	const { game, player, universe } = getGameContext();
 
 	type Props = {
-		designs: ShipDesign[];
+		designs: AnyShipDesign[];
 	};
 
 	let { designs }: Props = $props();
 
 	// filterable designs
 	let search = $state('');
-	let filteredDesigns: ShipDesign[] = $derived(
+	let filteredDesigns: AnyShipDesign[] = $derived(
 		designs
 			.sort((a, b) =>
 				a.playerNum != b.playerNum ? a.playerNum - b.playerNum : (a.num ?? 0) - (b.num ?? 0)
@@ -35,7 +35,7 @@
 			) ?? []
 	);
 
-	type TableShipDesign = ShipDesign & {
+	type TableShipDesign = AnyShipDesign & {
 		rating?: never;
 		armor?: never;
 		shields?: never;

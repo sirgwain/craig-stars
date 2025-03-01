@@ -5,17 +5,21 @@
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
 	import { Service } from '$lib/services/Service';
 	import {
-		Density,
-		GameStartMode,
-		NewGamePlayerType,
-		PlayerPositions,
-		Size,
-		VictoryCondition,
+		AIDifficultyNone,
+		AIDifficultyNormal,
+		DensityNormal,
+		GameStartModeNormal,
+		NewGamePlayerTypeAI,
+		NewGamePlayerTypeHost,
+		PlayerPositionsModerate,
+		SizeSmall,
+		VictoryConditionAttainTechLevels,
+		VictoryConditionExceedsSecondPlaceScore,
+		VictoryConditionOwnPlanets,
 		type Game,
 		type GameSettings,
-		type NewGamePlayers,
 		type NewGamePlayer as Player
-	} from '$lib/types/Game';
+	} from '$lib/types/cs';
 	import { PlusCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import GameSettingsEditor from './GameSettingsEditor.svelte';
@@ -24,37 +28,52 @@
 	import VictoryConditions from './VictoryConditions.svelte';
 
 	type Props = {
-		players?: { type: NewGamePlayerType; color: string }[];
+		players?: Player[];
 		name?: string;
 	};
 
 	let {
 		players = [
-			{ type: NewGamePlayerType.Host, color: getColor(0) },
-			{ type: NewGamePlayerType.AI, color: getColor(1) },
-			{ type: NewGamePlayerType.AI, color: getColor(2) }
+			{
+				type: NewGamePlayerTypeHost,
+				color: getColor(0),
+				aiDifficulty: AIDifficultyNone,
+				hullSetNum: 0
+			},
+			{
+				type: NewGamePlayerTypeAI,
+				color: getColor(1),
+				aiDifficulty: AIDifficultyNormal,
+				hullSetNum: 0
+			},
+			{
+				type: NewGamePlayerTypeAI,
+				color: getColor(2),
+				aiDifficulty: AIDifficultyNormal,
+				hullSetNum: 0
+			}
 		],
 		name = 'A Barefoot Jaywalk'
 	}: Props = $props();
 
-	let settings: GameSettings & NewGamePlayers = $state({
+	let settings: GameSettings = $state({
 		name,
 		public: false,
-		size: Size.Small,
-		density: Density.Normal,
-		playerPositions: PlayerPositions.Moderate,
+		size: SizeSmall,
+		density: DensityNormal,
+		playerPositions: PlayerPositionsModerate,
 		randomEvents: true,
 		computerPlayersFormAlliances: false,
 		publicPlayerScores: false,
 		maxMinerals: false,
-		acceleratedPlay: false,
-		startMode: GameStartMode.Normal,
+		startMode: GameStartModeNormal,
+		quickStartTurns: 0,
 		players,
 		victoryConditions: {
 			conditions:
-				VictoryCondition.OwnPlanets |
-				VictoryCondition.AttainTechLevels |
-				VictoryCondition.ExceedsSecondPlaceScore,
+				VictoryConditionOwnPlanets |
+				VictoryConditionAttainTechLevels |
+				VictoryConditionExceedsSecondPlaceScore,
 			numCriteriaRequired: 1,
 			yearsPassed: 50,
 			ownPlanets: 60,
@@ -91,7 +110,12 @@
 
 		settings.players = [
 			...settings.players,
-			{ type: NewGamePlayerType.AI, color: getFirstAvailableColor(usedColors) }
+			{
+				type: NewGamePlayerTypeAI,
+				color: getFirstAvailableColor(usedColors),
+				aiDifficulty: AIDifficultyNormal,
+				hullSetNum: 0
+			}
 		];
 	};
 

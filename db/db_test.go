@@ -13,8 +13,6 @@ func connectTestDB() *client {
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
 	cfg.Database.Filename = ":memory:"
-	cfg.Database.UsersFilename = ":memory:"
-	cfg.Database.Recreate = true
 	cfg.Database.DebugLogging = true
 	cfg.Database.SkipUpgrade = true
 	if err := dbConn.Connect(cfg); err != nil {

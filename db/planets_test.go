@@ -20,7 +20,8 @@ func TestCreatePlanet(t *testing.T) {
 		wantErr bool
 	}{
 		{"Create", args{connectTestDB(), &cs.Planet{
-			MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: 1}, Name: "test"}},
+			GameDBObject: cs.GameDBObject{GameID: 1},
+			MapObject:    cs.MapObject{Name: "test"}},
 		}, false},
 	}
 	for _, tt := range tests {
@@ -56,7 +57,7 @@ func TestGetPlanets(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []*cs.Planet{}, result)
 
-	planet := cs.Planet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
+	planet := cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}
 	if err := c.createPlanet(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -73,7 +74,7 @@ func TestGetPlanet(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame()
-	planet := cs.Planet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}, Name: "name", Type: cs.MapObjectTypePlanet}}
+	planet := cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{Name: "name", Type: cs.MapObjectTypePlanet}}
 	if err := c.createPlanet(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -114,7 +115,7 @@ func TestUpdatePlanet(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame()
-	planet := cs.Planet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: game.ID}}}
+	planet := cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}
 	if err := c.createPlanet(&planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
@@ -143,25 +144,27 @@ func TestGetPlanetByNum(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer()
-	planet1 := cs.Planet{MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, Name: "name", Num: 1, Type: cs.MapObjectTypePlanet}}
+	planet1 := cs.Planet{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{Name: "name", Num: 1, Type: cs.MapObjectTypePlanet}}
 	if err := c.createPlanet(&planet1); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
 	planet2 := cs.Planet{
-		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, Name: "name", PlayerNum: player.Num, Num: 2, Type: cs.MapObjectTypePlanet},
+		GameDBObject: cs.GameDBObject{GameID: g.ID},
+		MapObject:    cs.MapObject{Name: "name", PlayerNum: player.Num, Num: 2, Type: cs.MapObjectTypePlanet},
 	}
 	if err := c.createPlanet(&planet2); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	design := cs.NewShipDesign(player, 1).WithHull(cs.SpaceStation.Name)
+	design := cs.NewShipDesign(player.Num, 1).WithHull(cs.SpaceStation.Name)
 	c.createTestShipDesign(player, design)
 
 	fleet := cs.Fleet{
-		MapObject: cs.MapObject{GameDBObject: cs.GameDBObject{GameID: g.ID}, PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeFleet},
+		GameDBObject: cs.GameDBObject{GameID: g.ID},
+		MapObject:    cs.MapObject{PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeFleet},
 		Tokens: []cs.ShipToken{
 			{Quantity: 1, DesignNum: design.Num},
 		},

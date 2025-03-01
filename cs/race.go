@@ -8,30 +8,30 @@ import (
 // A user can have multiple races stored in the database. Each time a game is created, a Race is copied
 // into the Player object and stored separately (so changes to the User's race don't impact running games)
 type Race struct {
-	DBObject
+	DBObject              `tstype:",extends"`
 	UserID                int64                 `json:"userId,omitempty"`
-	Name                  string                `json:"name,omitempty"`
-	PluralName            string                `json:"pluralName,omitempty"`
-	SpendLeftoverPointsOn SpendLeftoverPointsOn `json:"spendLeftoverPointsOn,omitempty"`
-	PRT                   PRT                   `json:"prt,omitempty"`
-	LRTs                  Bitmask               `json:"lrts,omitempty"`
-	HabLow                Hab                   `json:"habLow,omitempty"`
-	HabHigh               Hab                   `json:"habHigh,omitempty"`
-	GrowthRate            int                   `json:"growthRate,omitempty"`
-	PopEfficiency         int                   `json:"popEfficiency,omitempty"`
-	FactoryOutput         int                   `json:"factoryOutput,omitempty"`
-	FactoryCost           int                   `json:"factoryCost,omitempty"`
-	NumFactories          int                   `json:"numFactories,omitempty"`
+	Name                  string                `json:"name"`
+	PluralName            string                `json:"pluralName"`
+	SpendLeftoverPointsOn SpendLeftoverPointsOn `json:"spendLeftoverPointsOn"`
+	PRT                   PRT                   `json:"prt"`
+	LRTs                  Bitmask               `json:"lrts"`
+	HabLow                Hab                   `json:"habLow"`
+	HabHigh               Hab                   `json:"habHigh"`
+	GrowthRate            int                   `json:"growthRate"`
+	PopEfficiency         int                   `json:"popEfficiency"`
+	FactoryOutput         int                   `json:"factoryOutput"`
+	FactoryCost           int                   `json:"factoryCost"`
+	NumFactories          int                   `json:"numFactories"`
 	FactoriesCostLess     bool                  `json:"factoriesCostLess,omitempty"`
 	ImmuneGrav            bool                  `json:"immuneGrav,omitempty"`
 	ImmuneTemp            bool                  `json:"immuneTemp,omitempty"`
 	ImmuneRad             bool                  `json:"immuneRad,omitempty"`
-	MineOutput            int                   `json:"mineOutput,omitempty"`
-	MineCost              int                   `json:"mineCost,omitempty"`
-	NumMines              int                   `json:"numMines,omitempty"`
-	ResearchCost          ResearchCost          `json:"researchCost,omitempty"`
+	MineOutput            int                   `json:"mineOutput"`
+	MineCost              int                   `json:"mineCost"`
+	NumMines              int                   `json:"numMines"`
+	ResearchCost          ResearchCost          `json:"researchCost"`
 	TechsStartHigh        bool                  `json:"techsStartHigh,omitempty"`
-	Spec                  RaceSpec              `json:"spec,omitempty"`
+	Spec                  RaceSpec              `json:"spec"`
 }
 
 type ResearchCostLevel string
@@ -45,6 +45,7 @@ const (
 type SpendLeftoverPointsOn string
 
 const (
+	SpendLeftoverPointsOnNone                  SpendLeftoverPointsOn = "" // TODO: remove this and make surface mins the zero value
 	SpendLeftoverPointsOnSurfaceMinerals       SpendLeftoverPointsOn = "SurfaceMinerals"
 	SpendLeftoverPointsOnMineralConcentrations SpendLeftoverPointsOn = "MineralConcentrations"
 	SpendLeftoverPointsOnMines                 SpendLeftoverPointsOn = "Mines"
@@ -53,12 +54,12 @@ const (
 )
 
 type ResearchCost struct {
-	Energy        ResearchCostLevel `json:"energy,omitempty"`
-	Weapons       ResearchCostLevel `json:"weapons,omitempty"`
-	Propulsion    ResearchCostLevel `json:"propulsion,omitempty"`
-	Construction  ResearchCostLevel `json:"construction,omitempty"`
-	Electronics   ResearchCostLevel `json:"electronics,omitempty"`
-	Biotechnology ResearchCostLevel `json:"biotechnology,omitempty"`
+	Energy        ResearchCostLevel `json:"energy"`
+	Weapons       ResearchCostLevel `json:"weapons"`
+	Propulsion    ResearchCostLevel `json:"propulsion"`
+	Construction  ResearchCostLevel `json:"construction"`
+	Electronics   ResearchCostLevel `json:"electronics"`
+	Biotechnology ResearchCostLevel `json:"biotechnology"`
 }
 
 func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
@@ -83,8 +84,8 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 }
 
 type RaceSpec struct {
-	MiniaturizationSpec
-	ScannerSpec
+	MiniaturizationSpec              `tstype:",extends"`
+	ScannerSpec                      `tstype:",extends"`
 	HabCenter                        Hab                    `json:"habCenter,omitempty"`
 	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
 	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`
@@ -336,6 +337,7 @@ func NewRace() *Race {
 			Electronics:   ResearchCostStandard,
 			Biotechnology: ResearchCostStandard,
 		},
+		SpendLeftoverPointsOn: SpendLeftoverPointsOnSurfaceMinerals,
 	}
 }
 
@@ -423,6 +425,7 @@ func Rabbitoids() Race {
 			Electronics:   ResearchCostStandard,
 			Biotechnology: ResearchCostLess,
 		},
+		SpendLeftoverPointsOn: SpendLeftoverPointsOnDefenses,
 	}
 }
 
@@ -452,6 +455,7 @@ func Insectoids() Race {
 			Electronics:   ResearchCostStandard,
 			Biotechnology: ResearchCostExtra,
 		},
+		SpendLeftoverPointsOn: SpendLeftoverPointsOnMineralConcentrations,
 	}
 }
 
@@ -1298,13 +1302,10 @@ func (race *Race) getPlanetHabForHabIndex(iterIndex int, habType HabType, loopIn
 	return planetHab, terraformOffset
 }
 
-// get leftover points for a race and the type of points to spend it on
-func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (int, SpendLeftoverPointsOn) {
-	points := race.ComputeRacePoints(startingPoints)
-	if points < 0 {
-		points = 0
-	} else if points > 50 {
-		points = 50
-	}
+// get leftover points for a race and the type of points to spend it on, capping them as applicable.
+func (race *Race) ComputeLeftoverRacePoints(startingPoints int) (leftoverPoints int, pointsType SpendLeftoverPointsOn) {
+	// TODO: Add rules checks for race point handicaps if/when it becomes a thing
+	// Also need to add rules vars for starting points caps
+	points := Clamp(0, race.ComputeRacePoints(startingPoints), 50)
 	return points, race.SpendLeftoverPointsOn
 }

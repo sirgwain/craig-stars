@@ -3,31 +3,28 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { startCase } from 'lodash-es';
 	import type { HTMLSelectAttributes } from 'svelte/elements';
-	import { $enum as eu } from 'ts-enum-util';
-	import type { StringKeyOf } from 'ts-enum-util/dist/types/types';
 
 	// enums are strings or numbers
-	type T = $$Generic<Record<StringKeyOf<E>, number | string>>;
-	type TT = T[Extract<keyof T, string>];
+	type T = $$Generic;
 
 	type Props<T> = {
 		name: string;
+		options: T[];
 		title?: string | undefined;
 		tooltip?: string | undefined;
-		enumType: T;
 		titleClass?: string;
-		typeTitle?: (type: TT) => string;
+		typeTitle?: (type: T) => string;
 		showEmpty?: boolean;
 	} & HTMLSelectAttributes;
 
 	let {
 		name,
+		options,
 		value = $bindable(),
 		title = startCase(name),
 		tooltip,
-		enumType,
 		titleClass = 'label-text w-32 text-right',
-		typeTitle = (type: TT) => startCase(`${type}`),
+		typeTitle = (type: T) => startCase(`${type}`),
 		showEmpty = false,
 		...rest
 	}: Props<T> = $props();
@@ -37,7 +34,7 @@
 	<label class="label"
 		><span class={titleClass}>{title}</span>
 		<select class="select input-bordered ml-2 flex-grow" {name} bind:value {...rest}>
-			{#each eu(enumType).getValues() as type}
+			{#each options as type}
 				{#if showEmpty || `${type}` !== ''}
 					<option value={type}>{typeTitle(type)}</option>
 				{/if}

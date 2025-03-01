@@ -2,7 +2,7 @@ package cs
 
 import "testing"
 
-func Test_clamp(t *testing.T) {
+func TestClamp(t *testing.T) {
 	type args struct {
 		value int
 		min   int
@@ -24,6 +24,27 @@ func Test_clamp(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Clamp(tt.args.value, tt.args.min, tt.args.max); got != tt.want {
 				t.Errorf("clamp() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAbsMin(t *testing.T) {
+	tests := []struct {
+		name string
+		nums []float64
+		want float64
+	}{
+		{"grabs closest to 0", []float64{1, 2, 3, 0}, 0},
+		{"all negative", []float64{-1, -1.2, -0.31, -4}, -0.31},
+		{"mix; lowest positive", []float64{1, -222, 3, -10.3333}, 1},
+		{"mix; lowest negative", []float64{2025, -1997, 2001, -3}, -3},
+		{"takes last of absolute equals", []float64{1, 1, 1, 1, -1}, -1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := AbsMin(tt.nums...); got != tt.want {
+				t.Errorf("AbsMin() returned value %v, want %v", got, tt.want)
 			}
 		})
 	}

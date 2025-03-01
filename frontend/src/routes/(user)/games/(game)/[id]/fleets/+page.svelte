@@ -5,7 +5,8 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { fleetsSortBy, getEta, getLocation, type Fleet } from '$lib/types/Fleet';
+	import { fleetsSortBy, getEta, getLocation } from '$lib/types/Fleet';
+	import { type Fleet } from '$lib/types/cs';
 
 	const { game, player, universe, settings, commandMapObject, zoomToMapObject } = getGameContext();
 
@@ -29,6 +30,7 @@
 		eta?: never;
 		composition?: never;
 		cloak?: never;
+		mass?: never;
 	};
 	const columns: TableColumn<TableFleet>[] = [
 		{

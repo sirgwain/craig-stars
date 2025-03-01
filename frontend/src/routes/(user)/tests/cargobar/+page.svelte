@@ -1,6 +1,6 @@
 <script lang="ts">
 	import CargoBar from '$lib/components/game/CargoBar.svelte';
-	import type { Cargo } from '$lib/types/Cargo';
+	import type { Cargo } from '$lib/types/cs';
 
 	const cargo1: Cargo = {
 		ironium: 1,

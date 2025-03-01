@@ -4,7 +4,7 @@
  -->
 <script lang="ts">
 	import { radiansToDegrees } from '$lib/services/Math';
-	import type { MysteryTrader } from '$lib/types/MysteryTrader';
+	import type { MysteryTraderIntel } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import { getScannerContext } from './Scanner';
@@ -16,7 +16,7 @@
 	const angleOffset = 225;
 
 	type Props = {
-		mysteryTrader: MysteryTrader;
+		mysteryTrader: MysteryTraderIntel;
 	};
 
 	let { mysteryTrader }: Props = $props();

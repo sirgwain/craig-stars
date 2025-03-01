@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { me } from '$lib/services/Stores';
-	import type { Game } from '$lib/types/Game';
+	import type { GameWithPlayers } from '$lib/types/cs';
 	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
 	type Props = {
-		game: Game;
+		game: GameWithPlayers;
 		onDelete?: () => void;
 	};
 
 	let { game, onDelete }: Props = $props();
 
-	function ready(game: Game): boolean {
+	function ready(game: GameWithPlayers): boolean {
 		return game.players.find((p) => p.userId == $me.id)?.ready ?? false;
 	}
 </script>

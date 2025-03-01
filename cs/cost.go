@@ -8,6 +8,15 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+//tygo:emit
+var _ = `export type cost<T extends number = number> = {
+    ironium?: T;
+    boranium?: T;
+    germanium?: T;
+    resources?: T;
+};
+`
+
 // A Cost represents minerals and resources required to build something, like a mine, factory, or ship
 // These are by default integers, but sometimes need to be treated as floats for applying
 // discounts and miniaturization
@@ -48,17 +57,8 @@ func NewCost[T number](ironium, boranium, germanium, resources T) cost[T] {
 	}
 }
 
-// Convert a Mineral struct to a Cost struct.
-func FromMineral[T number](c Mineral) cost[T] {
-	return cost[T]{
-		Ironium:   T(c.Ironium),
-		Boranium:  T(c.Boranium),
-		Germanium: T(c.Germanium),
-	}
-}
-
 // Create a Cost struct from a Mineral struct and a resources value.
-func FromMineralAndResources(m Mineral, resources int) Cost {
+func NewCostFromMineralAndResources(m Mineral, resources int) Cost {
 	return Cost{
 		Ironium:   m.Ironium,
 		Boranium:  m.Boranium,
@@ -67,34 +67,31 @@ func FromMineralAndResources(m Mineral, resources int) Cost {
 	}
 }
 
-// Return the CostType with the Nth highest numerical value in a Cost struct (1 = highest, 2 = 2nd highest, etc).
-// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc).
+// HighestType returns the CostType and numerical value of the
+// Nth highest value in a Cost struct.
+// Negative indices count backwards from lowest value.
+// (1 = highest, 2 = 2nd highest, -1 = lowest, etc etc).
 //
 // Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
 //
 // panics if ranking is 0 or if abs(ranking) is greater than 4
-func (c cost[T]) HighestType(ranking int) CostType {
-	if ranking == 0 || Abs(ranking) > 4 {
-		panic(fmt.Sprintf("HighestType called with incorrect ranking %d; must be non-zero integer between -4 and 4", ranking))
-	}
-	return c.GetTypeFromAmount(c.HighestAmount(ranking))
-}
-
-// Return the numerical value of the Nth highest CostType in a Cost struct (1 = highest, 2 = 2nd highest, etc).
-// Negative indices count backwards from lowest value (-1 = lowest, -2 = 2nd lowest, etc).
-//
-// panics if ranking is 0 or if abs(ranking) is greater than 4
-func (c cost[T]) HighestAmount(ranking int) T {
-	if ranking == 0 || Abs(ranking) > 4 {
-		panic(fmt.Sprintf("HighestAmount called with incorrect ranking %d; must be non-zero integer between -4 and 4", ranking))
-	}
+func (c cost[T]) HighestType(ranking int) (costType CostType, value T) {
+	// Fun fact: this code is designed to work for any arbitrarily large struct
+	// of similarly typed comparable values, only requiring changes to the
+	// method signature, doc comment and error message
 	a := c.ToSlice()
+	if ranking == 0 || Abs(ranking) > len(a) {
+		panic(fmt.Sprintf("Cost.HighestType() called with incorrect ranking %d; must be non-zero integer between -%d and %[2]d", ranking, len(a)))
+	}
+
 	slices.Sort(a[:])
 	if ranking > 0 {
-		return a[4-ranking] // Slice is ordered in ascending order, so biggest values will be at the end
+		value = a[len(a)-ranking] // Slice is ordered in ascending order, so biggest values will be at the end
 	} else {
-		return a[-ranking-1] // negative indices count from the start (lowest first)
+		value = a[-ranking-1] // negative indices count from the start (lowest first)
 	}
+
+	return c.GetTypeFromAmount(value), value
 }
 
 // Return the first valid CostType in a Cost struct with the given numerical value;

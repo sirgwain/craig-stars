@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { WaypointTaskTransportAction, type WaypointTransportTasks } from '$lib/types/Fleet';
+	import {
+		TransportActionLoadAmount,
+		TransportActionUnloadAmount,
+		type WaypointTransportTasks
+	} from '$lib/types/cs';
 	import TransportTasks from './TransportTask.svelte';
 
 	type Props = {
@@ -44,7 +48,7 @@
 		bind:action={transportTasks.colonists.action}
 		bind:amount={transportTasks.colonists.amount}
 	/>
-	{#if transportTasks.colonists.amount && (transportTasks.colonists.action === WaypointTaskTransportAction.LoadAmount || transportTasks.colonists.action === WaypointTaskTransportAction.UnloadAmount)}
+	{#if transportTasks.colonists.amount && (transportTasks.colonists.action === TransportActionLoadAmount || transportTasks.colonists.action === TransportActionUnloadAmount)}
 		<div class="col-start-2 col-span-3 ml-2">
 			<span class="italic"
 				>{(transportTasks.colonists.amount * 100).toLocaleString()} colonists</span

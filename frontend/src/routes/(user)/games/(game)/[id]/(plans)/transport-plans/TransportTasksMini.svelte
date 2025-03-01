@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { WaypointTransportTasks } from '$lib/types/Fleet';
+	import type { WaypointTransportTasks } from '$lib/types/cs';
 	import TransportActionIcon from './TransportActionIcon.svelte';
 
 	type Props = {
