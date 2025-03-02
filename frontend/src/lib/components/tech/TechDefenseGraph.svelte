@@ -124,7 +124,7 @@
 
 		<Html>
 			<GroupLabels />
-			<!-- TODO: get this working so we can see values on our graphs 
+			<!-- TODO: get this working so we can see values on our graphs
 			 https://layercake.graphics/components/SharedTooltip.html.svelte
 			 -->
 			<!-- <SharedTooltip dataset={dataQuadTree} /> -->

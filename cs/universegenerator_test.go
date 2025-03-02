@@ -206,9 +206,7 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 			}
 			ug.assignRaceStartingPointBonuses(tt.args.race, tt.args.planet, tt.args.extraPoints, tt.args.pointsType)
 
-			if !test.CompareAsJSON(t, tt.args.planet, tt.want) {
-				t.Errorf("assignRaceStartingPointBonuses() = %v, want %v", tt.args.planet, tt.want)
-			}
+			test.CompareAsJSON(t, tt.args.planet, tt.want)
 		})
 	}
 }
@@ -335,9 +333,7 @@ func Test_universeGenerator_getStartingStarbaseDesigns(t *testing.T) {
 			tt.player.Name = tt.name
 			got := ug.createStartingStarbaseDesigns(&StaticTechStore, tt.player, 1)
 
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("getStartingStarbaseDesigns() = %v, want %v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

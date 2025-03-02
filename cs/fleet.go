@@ -836,7 +836,9 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	dist = math.Min(totalDist, dist)
 
 	// check for CE engine failure
-	if player.Race.Spec.EngineFailureRate > 0 && wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed && player.Race.Spec.EngineFailureRate >= rules.random.Float64() {
+	if player.Race.Spec.EngineFailureRate > 0 &&
+		wp1.WarpSpeed > player.Race.Spec.EngineReliableSpeed &&
+		player.Race.Spec.EngineFailureRate >= rules.random.Float64() {
 		messager.fleetEngineFailure(player, fleet)
 		return &fleetMoveInterrupted{reason: fleetMoveInterruptedEngineFailure}
 	}
@@ -1027,7 +1029,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 	// apply overgate damage and delete tokens (and possibly the fleet)
 	// also vanish tokens for non IT races
-	fleet.applyOvergatePenalty(player, rules, totalDist, wp0, wp1, sourceStargate, destStargate)
+	fleet.applyOvergatePenalty(rules, player, totalDist, wp0, wp1, sourceStargate, destStargate)
 
 	// if the fleet is gone, we're done
 	if len(fleet.Tokens) == 0 {
@@ -1062,51 +1064,21 @@ func (fleet *Fleet) applyOverwarpPenalty(rules *Rules) int {
 	return explodedShips
 }
 
-// applyOvergatePenalty applies damage (if any) to each token that overgated
-func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetStarbaseSpec) {
+// applyOvergatePenalty damages and/or vanishes ShipTokens inside overgating fleets based on distance.
+func (fleet *Fleet) applyOvergatePenalty(rules *Rules, player *Player, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetStarbaseSpec) {
 	var totalDamage, shipsLostToDamage, shipsLostToTheVoid, startingShips int
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]
 		startingShips += token.Quantity
-		// Inner stellar travellers never lose ships to the void, but everyone else does
+		// IT players never lose ships to the void, but everyone else does
 		if player.Race.Spec.ShipsVanishInVoid {
-			rangeVanishChance := token.getStargateRangeVanishingChance(distance, sourceStargate.SafeRange)
-			massVanishingChance := token.getStargateMassVanishingChance(sourceStargate.SafeHullMass, rules.StargateMaxHullMassFactor)
-			// Combined vanishing chance idea courtesy of ekolis
-			vanishingChance := 1 - (1-rangeVanishChance)*(1-massVanishingChance)
-
-			if rangeVanishChance > 0 || massVanishingChance > 0 {
-				for i := 0; i < token.Quantity; i++ {
-					// check if it vanishes due to range, if not, check if it vanishes due
-					// to mass. Each ship can only vanish once
-					if vanishingChance >= rules.random.Float64() {
-						// oh no, we lost a ship!
-						shipsLostToTheVoid++
-						token.Quantity--
-						i--
-						if token.QuantityDamaged > 0 {
-							// get rid of the damaged ships first
-							// if we're out of damaged ships, reset our
-							// token damage to 0
-							token.QuantityDamaged--
-							// can't have damage without damaged ships
-							// I don't think this should ever come up
-							if token.QuantityDamaged == 0 {
-								token.Damage = 0
-							}
-						}
-					}
-				}
-			}
+			shipsLostToTheVoid += token.applyOvergateVanishing(rules, distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass)
 		}
 
-		// if we didn't lose tokens in
-		if token.Quantity > 0 {
-			tokenDamage := token.applyOvergateDamage(distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass, destStargate.SafeHullMass, rules.StargateMaxHullMassFactor)
-
-			totalDamage += tokenDamage.damage
-			shipsLostToDamage += tokenDamage.shipsDestroyed
-		}
+		// damage any remaining tokens if we have any left
+		tokenDamage := token.applyOvergateDamage(distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass, destStargate.SafeHullMass, rules.StargateMaxHullMassFactor)
+		totalDamage += tokenDamage.damage
+		shipsLostToDamage += tokenDamage.shipsDestroyed
 	}
 
 	// remove any tokens that were lost completely
@@ -1114,10 +1086,8 @@ func (fleet *Fleet) applyOvergatePenalty(player *Player, rules *Rules, distance 
 
 	if len(fleet.Tokens) == 0 {
 		messager.fleetStargateDestroyed(player, fleet, wp0, wp1)
-	} else {
-		if totalDamage > 0 || shipsLostToTheVoid > 0 {
-			messager.fleetStargateDamaged(player, fleet, wp0, wp1, totalDamage, shipsLostToDamage, shipsLostToTheVoid)
-		}
+	} else if totalDamage > 0 || shipsLostToTheVoid > 0 {
+		messager.fleetStargateDamaged(player, fleet, wp0, wp1, totalDamage, shipsLostToDamage, shipsLostToTheVoid)
 	}
 }
 
@@ -1127,7 +1097,7 @@ func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64,
 		return 0
 	}
 	// 1 mg of fuel will move 200kT of weight 1 LY at a Fuel Usage Number of 100.
-	// Number of engines doesn't matter. Neither number of ships with the same engine.
+	// Number of engines doesn't matter, nor number of ships with the same engine.
 
 	distanceCeiling := math.Ceil(dist) // rounding to next integer gives best graph fit
 

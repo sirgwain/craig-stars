@@ -65,7 +65,7 @@ func (tx *client) ensureUpgrade() error {
 			//? Maybe make the starter database version -1?
 			// That would make the switch marginally cleaner
 			if u.initStarterDB(); err != nil {
-				return fmt.Errorf("initializing starter database failed: \n%w", err)
+				return fmt.Errorf("initializing starter database failed: %w", err)
 			}
 			err = u.upgrade1()
 		case 1:
@@ -80,14 +80,14 @@ func (tx *client) ensureUpgrade() error {
 
 		// check for any issues upgrading
 		if err != nil {
-			return fmt.Errorf("upgrading database from v%d to v%d failed: \n%w", current, current+1, err)
+			return fmt.Errorf("upgrading database from v%d to v%d failed: %w", current, current+1, err)
 		}
 	}
 
 	// update the version to the latest so our one time upgrade only runs once
 	version.Current = LATEST_VERSION
 	if err = tx.updateVersion(version); err != nil {
-		return fmt.Errorf("updating to latest version failed: \n%w", err)
+		return fmt.Errorf("updating to latest version failed: %w", err)
 	}
 
 	return nil
@@ -124,23 +124,23 @@ func (u *upgrade) upgradeGames(upgradeGame func(fg *cs.FullGame) error) error {
 
 	games, err := u.tx.GetGames()
 	if err != nil {
-		return fmt.Errorf("error while getting all games: \n%w", err)
+		return fmt.Errorf("error while getting all games: %w", err)
 	}
 
 	for _, game := range games {
 		fg, err := u.tx.GetFullGame(game.ID)
 		if err != nil {
-			return fmt.Errorf("retrieving fullGame with ID %d failed: \n%w", game.ID, err)
+			return fmt.Errorf("retrieving fullGame with ID %d failed: %w", game.ID, err)
 		}
 
 		// call the passed in function
 		if err := upgradeGame(fg); err != nil {
-			return fmt.Errorf("upgrading fullGame with ID %d failed: \n%w", game.ID, err)
+			return fmt.Errorf("upgrading fullGame with ID %d failed: %w", game.ID, err)
 		}
 
 		// save changes to the DB
 		if err := u.tx.UpdateFullGame(fg); err != nil {
-			return fmt.Errorf("updating fullGame with ID %d failed: \n%w", game.ID, err)
+			return fmt.Errorf("updating fullGame with ID %d failed: %w", game.ID, err)
 
 		}
 	}

@@ -33,9 +33,8 @@ func Test_generateMysteryTrader(t *testing.T) {
 			rulesCopy := rules
 			rulesCopy.random = tt.args.random
 
-			if got := generateMysteryTrader(&rulesCopy, tt.args.game, tt.args.num); !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("generateMysteryTrader() = \n%v, want \n%v", got, tt.want)
-			}
+			got := generateMysteryTrader(&rulesCopy, tt.args.game, tt.args.num)
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -202,9 +201,8 @@ func TestMysteryTrader_meet(t *testing.T) {
 			rulesCopy.random = tt.fields.random
 
 			mt := newMysteryTrader(Vector{20, 20}, 1, 7, Vector{380, 20}, tt.fields.RequestedBoon, tt.fields.Reward)
-			if got := mt.meet(&rulesCopy, tt.args.game, tt.args.fleet, player); !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("MysteryTrader.meet() = %v, want %v", got, tt.want)
-			}
+			got := mt.meet(&rulesCopy, tt.args.game, tt.args.fleet, player)
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

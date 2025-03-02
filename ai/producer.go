@@ -46,7 +46,7 @@ func (ai *aiPlayer) produce() error {
 				// design and upgrade this ship
 				design, err := ai.designShip(ai.config.namesByPurpose[ship.purpose], ship.purpose, fleetMakeup.purpose)
 				if err != nil {
-					return fmt.Errorf("unable to design ship %v %w", ship.purpose, err)
+					return fmt.Errorf("unable to design ship %v: %w", ship.purpose, err)
 				}
 				if design == nil {
 					log.Debug().
@@ -342,7 +342,7 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 		cost, err = costCalculator.GetDesignCost(&ai.game.Rules, ai.Player.TechLevels, ai.Player.Race.Spec, design)
 	}
 	if err != nil {
-		return math.MaxInt, fmt.Errorf("calculate starbase cost %w", err)
+		return math.MaxInt, fmt.Errorf("calculate starbase cost: %w", err)
 	}
 
 	// calculate how long it take to build

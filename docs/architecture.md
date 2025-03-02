@@ -26,17 +26,17 @@ Icons are either hand crafted, taken from the original Stars! files or from the 
 
 The repository file structure is broken down as follows:
 
-| path        | description                                                                                                                                                                                                             |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`         | The root folder contains the `main.go` entrypoint into the application.                                                                                                                                                 |
-| `/cs`       | All core game logic and models are in the `cs` package. This is also what handles universe and turn generation logic. More details in the [cs](#cs) section                                                             |
-| `/db`       | The `db` package handles serializing games to and from the database, as well as any UI database queries. More details in the [db](#db) section.                                                                         |
-| `/server`   | The `server` package is where the webserver routes are configured. It also is the "glue" package that ties the game logic together with the database serialization. More details in the [server](#server) section.      |
-| `/cmd`      | The `cmd` package is where command line parsing is handled, as well as the entrypoint for serving the application.                                                                                                      |
-| `/config`   | The `config` package is craig-stars configuration code lives. This config is loaded from `data/config/config.yaml` and is shared by the database and the server. The config defaults to settings for local development. |
-| `/ai`       | The `ai` package is where the logic for ai players resides. The AI strives to be "just another player" with no special insight into the game world.                                                                     |
-| `/test`     | The `test` package contains common testing utilities.                                                                                                                                                                   |
-| `/frontend` | The `frontend` folder contains all the sveltekit front end code. More details in the [frontend](#frontend) section.                                                                                                     |
+| path        | description                                                                                                                                                                                                                      |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`         | The root folder contains the `main.go` entrypoint into the application, as well as various config and formatting files.                                                                                                          |
+| `/cs`       | The `cs` package houses all internal game logic, data types and models, comprising the majority of the backend code. It serves as the backbone upon which all the other packages rely on. More details in the [cs](#cs) section. |
+| `/db`       | The `db` package handles serializing games to and from the database, as well as any UI database queries. More details in the [db](#db) section.                                                                                  |
+| `/server`   | The `server` package is where the webserver routes are configured. It is the "glue" that ties the game logic together with database serialization. More details in the [server](#server) section.                                |
+| `/cmd`      | The `cmd` package is where command line parsing is handled, as well as the entrypoint for serving the application.                                                                                                               |
+| `/config`   | The `config` package is craig-stars configuration code lives. This config is loaded from `data/config/config.yaml` and is shared by the database and the server. The config defaults to settings for local development.          |
+| `/ai`       | The `ai` package is where the logic for ai players resides. The AI strives to be "just another player" with no special insight or privileges compared to a human player.                                                         |
+| `/test`     | The `test` package contains various common testing utilities. Highlights include `CompareAsJSON` and `CheckUnexpectedErrors`; see their doc comments for usage info.                                                             |
+| `/frontend` | The `frontend` folder contains all the SvelteKit\TypeScript frontend code (as well as formatting files for said frontend code). More details in the [frontend](#frontend) section.                                               |
 
 ## cs
 
@@ -185,19 +185,19 @@ The main [game view](</frontend/src/routes/(user)/games/(game)/[id]/(main)/Game.
 
 ![Game View](screenshots/screenshot1.png)
 
-| section      | description                                                          |
-| ------------ | -------------------------------------------------------------------- |
-| Scanner      | The zoomable and pannable map display of the universe                |
-| Command Pane | Tiles with information about the currently commanded planet or fleet |
-| Summary Pane | A small summary about the currently selected map object              |
+| section      | description                                                           |
+| ------------ | --------------------------------------------------------------------- |
+| Scanner      | The zoomable and pannable map display of the universe.                |
+| Command Pane | Tiles with information about the currently commanded planet or fleet. |
+| Summary Pane | A small summary about the currently selected map object.              |
 
 ### frontend structure
 
-| path     | description                                                                                                                                                                                                                                                                              |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `css`    | Contains tailwind `@apply` overrides and the various icon classes for techs and planets                                                                                                                                                                                                  |
-| `lib`    | `lib` contains type definitions for server side models, Service classes for interacting with the backend `/api`, and any reusauble components (components that exist outside of a single page)                                                                                           |
-| `routes` | `routes` contains all the user accessible routes for the application. Almost all routes require the user to be logged in and are in the `(user)` route group. The main game view is located under [src/routes/(user)/games/(game)/[id]](</frontend/src/routes/(user)/games/(game)/[id]>) |
+| path     | description                                                                                                                                                                                                                                                                               |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `css`    | Contains tailwind `@apply` overrides and the various icon classes for techs and planets.                                                                                                                                                                                                  |
+| `lib`    | `lib` contains type definitions for server side models, Service classes for interacting with the backend `/api`, and any reusauble components (components that exist outside of a single page).                                                                                           |
+| `routes` | `routes` contains all the user accessible routes for the application. Almost all routes require the user to be logged in and are in the `(user)` route group. The main game view is located under [src/routes/(user)/games/(game)/[id]](</frontend/src/routes/(user)/games/(game)/[id]>). |
 
 ### stores
 

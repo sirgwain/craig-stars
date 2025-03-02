@@ -10,6 +10,9 @@
     },
   ],
   "settings": {
+    "[json][jsonc][jsonl][js][ts][css][html]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+    },
     "testing.automaticallyOpenPeekView": "never",
     "typescript.tsdk": "frontend/node_modules/typescript/lib",
     "goStructTagAutogen.generation": {

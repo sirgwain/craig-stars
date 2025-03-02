@@ -642,9 +642,8 @@ func Test_computeFleetSpec(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet); !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("ComputeFleetSpec() = \n%v, want \n%v", got, tt.want)
-			}
+			got := ComputeFleetSpec(tt.args.rules, tt.args.player, tt.args.fleet)
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -1184,12 +1183,16 @@ func TestFleet_transferToDest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := tt.fleet.transferToDest(tt.args.dest, tt.args.cargoType, tt.args.transferAmount); (err != nil) != tt.wantErr {
-				t.Errorf("Fleet.transferToDest() error = %v, wantErr %v", err, tt.wantErr)
+			err := tt.fleet.transferToDest(tt.args.dest, tt.args.cargoType, tt.args.transferAmount)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("Fleet.transferToDest() did not return error when expected")
+				} else {
+					t.Fatalf("Fleet.transferToDest() errored unexpectedly; err = \n%v", err)
+				}
 			}
-
 			if *tt.args.dest.getCargo() != tt.wantDestCargo {
-				t.Errorf("Fleet.transferToDest() destCargo = %v, wantDestCargo %v", *tt.args.dest.getCargo(), tt.wantDestCargo)
+				t.Errorf("Fleet.transferToDest() gave destination cargo \n%v, wanted \n%v", *tt.args.dest.getCargo(), tt.wantDestCargo)
 			}
 
 			if tt.fleet.Cargo != tt.wantFleetCargo {

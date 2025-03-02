@@ -20,34 +20,57 @@ require (
 	github.com/golodash/godash v1.3.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/magefile/mage v1.15.0
+	github.com/nsf/jsondiff v0.0.0-20230430225905-43f6cf3098c1
 	github.com/simukti/sqldb-logger v0.0.0-20230108155151-646c1a075551
 	golang.org/x/exp v0.0.0-20250215185904-eff6e970281f
 	golang.org/x/tools v0.30.0
 )
 
 require (
+	dario.cat/mergo v1.0.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
+	github.com/air-verse/air v1.61.7 // indirect
+	github.com/bep/godartsass v1.2.0 // indirect
+	github.com/bep/godartsass/v2 v2.1.0 // indirect
+	github.com/bep/golibsass v1.2.0 // indirect
+	github.com/bitfield/gotestdox v0.2.2 // indirect
+	github.com/cli/safeexec v1.0.1 // indirect
+	github.com/creack/pty v1.1.23 // indirect
+	github.com/dave/jennifer v1.6.0 // indirect
 	github.com/disgoorg/json v1.2.0 // indirect
+	github.com/dnephin/pflag v1.0.7 // indirect
+	github.com/fatih/color v1.17.0 // indirect
+	github.com/fatih/structtag v1.2.0 // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gohugoio/hugo v0.134.3 // indirect
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gzuidhof/tygo v0.2.17 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
+	github.com/jmattheis/goverter v1.8.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
+	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/rrivera/identicon v0.0.0-20240116195454-d5ba35832c0d // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20240107134140-fcbab37b09ad // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
+	github.com/tdewolff/parse/v2 v2.7.15 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	golang.org/x/term v0.29.0 // indirect
+	google.golang.org/protobuf v1.36.1 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gotest.tools/gotestsum v1.12.0 // indirect
 )
 
 require (
@@ -84,7 +107,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.9 // indirect
 	github.com/mattn/go-sqlite3 v1.14.24
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.1-0.20231216201459-8508981c8b6c // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/afero v1.12.0 // indirect
@@ -96,4 +119,11 @@ require (
 	golang.org/x/text v0.22.0
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+
+tool (
+	github.com/air-verse/air
+	github.com/gzuidhof/tygo
+	github.com/jmattheis/goverter/cmd/goverter
+	gotest.tools/gotestsum
 )

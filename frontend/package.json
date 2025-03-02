@@ -9,9 +9,9 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:e2e": "playwright test",
-		"test": "npm run test:e2e && npm run test:unit -- --run",
-		"test:unit": "vitest",
-		"lint": "eslint . && prettier --check .",
+		"test": "npm run test:e2e && npm run test:unit",
+		"test:unit": "vitest --run",
+		"lint": "eslint .",
 		"format": "prettier --write ."
 	},
 	"devDependencies": {

@@ -101,37 +101,37 @@ func (ai *aiPlayer) designStarbases() error {
 	purpose := cs.ShipDesignPurposeFuelDepot
 	ai.fuelDepotDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 	if err != nil {
-		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
 	}
 
 	purpose = cs.ShipDesignPurposeFort
 	ai.fortDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 	if err != nil {
-		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
 	}
 
 	purpose = cs.ShipDesignPurposeStarbaseUnarmed
 	ai.starbaseUnarmedDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 	if err != nil {
-		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
 	}
 
 	purpose = cs.ShipDesignPurposeStarbaseQuarter
 	ai.starbaseQuarterDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 	if err != nil {
-		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
 	}
 
 	purpose = cs.ShipDesignPurposeStarbaseHalf
 	ai.starbaseHalfDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 	if err != nil {
-		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
 	}
 
 	purpose = cs.ShipDesignPurposeStarbase
 	ai.starbaseDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 	if err != nil {
-		return fmt.Errorf("unable to design ship %v %w", purpose, err)
+		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
 	}
 
 	return nil

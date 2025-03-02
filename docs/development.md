@@ -7,25 +7,29 @@ craig-stars is a web based game. The backend logic and server is written in [Go]
 - Golang: 1.24 or higher, obtainable from [their website](https://go.dev/dl/)
 - npm: [how to install](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 - Respository forked and cloned on your device (instructions [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository))
-- The [GNU compiler collection](https://gcc.gnu.org/) built locally on your device. Windows users can use [Mingw-w64](https://www.mingw-w64.org/), while linux/mac users can follow the [normal install instructions](https://gcc.gnu.org/install/index.html).
+- The [GNU compiler collection](https://gcc.gnu.org/) built locally and inside your `$PATH`.
+  - Windows users can use [MinGW-W64](https://www.mingw-w64.org/) to compile the GCC binaries. \
+    **_Cygwin will not work_** as it is missing several instructions needed for `cgo` to function (see [this issue](https://github.com/golang/go/issues/59490) for more info).
+  - Linux/mac users can follow the [normal install instructions](https://gcc.gnu.org/install/index.html).
 
-After all that, you'll also need to install 2 important Go dependencies:
+### Go Deps
 
-- [Mage](https://github.com/magefile/mage), a make-like build tool/command executer helping to execute complex build commands.
-- [Air](https://github.com/air-verse/air), a server utility aiding with automatic backend server restarting.
-- [tygo](https://github.com/gzuidhof/tygo), a generator for creating typescript types for golang types.
-
-Both can be installed using a single `go install` command:
+After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make/rake-like build tool & command executer written in Go[^1].
+Run the following command in your terminal of choice:
 
 ```bash
-go install github.com/magefile/mage@latest github.com/air-verse/air@latest github.com/gzuidhof/tygo@latest
+go install github.com/magefile/mage@latest
 ```
 
-(Mage should be included in go.mod regardless, but it never hurts to make sure it's there.)
+Once it finishes installing, check by running `mage` - if all went well, you should get a list of available targets defined in the repo's [magefiles](../magefiles) directory. (Don't worry about the wonky capitalization - magefile commands are always _case-insensitive_.)
+
+**Disclaimer**: Magefile targets must always be run from inside the _repository root_. This does not apply to the equivalent VS Code tasks, however (which always launch from root).
+
+[^1]: Techincally mage is already in the project's `go.mod` files, but you need it installed to call it via the command line.
 
 ## Assets
 
-You will also need art assets for ships and planets - otherwise they'll just look like black boxes. Thankfully, you can now download the images with a single magefile command! (For obvious reasons, this requires an internet connection.)
+You will also need art assets for ships and planets - otherwise they'll both look like black boxes and make the playwright tests very unhappy. Thankfully, you can now download all the images with a single magefile command! (For obvious reasons, this requires an internet connection.)
 
 ```bash
 mage images
@@ -35,32 +39,59 @@ This will clear out the previous images folder before downloading the zip file a
 
 ## Building and Launching
 
-After performing all that setup, you're good to go!
-Head to the repo's root folder in your terminal and enter the following command to build and launch the server:
+After performing all that setup, you should be good to go!
+You have 2 methods to launch the server:
+
+1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This builds the server before launching the frontend and backend in separate terminals.
+2. Run `mage run` from your terminal inside the root folder. This does essentially the same thing, but launches them inside the same terminal within separate goroutines. (_Note_: Don't worry if Mage complains about cleanup deadlines when shutting down.)
+
+Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data`, containing a single `admin` user (password `admin`). (If it fails, try clearing the data folder and trying again.)
+
+With some luck, you should get a localhost link from npm (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically via air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
+
+### Launching Backend/Frontend only
+
+If one wants to launch the backend or frontend separately (such as to have both processes in separate terminals), there are mage commands to launch them separately.
 
 ```bash
-mage run
+mage launch_frontend
 ```
 
-**Note** On first launch, this will create an empty database with a single `admin` user, password `admin`.
+```bash
+mage launch_backend
+```
 
-If setup correctly, you should get a localhost link from npm (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically via air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
+(For those curious, this is how the aforementioned build task launches the server.)
 
 # Visual Studio Code
 
-[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened with VS Code in order to use frontend and backend plugins without issue in the same repo, as well as [tasks.json](/.vscode/tasks.json) and [launch.json](/.vscode/tasks.json) files containing various prebuilt commands and debug configurations. (There's even one to launch the entire server in 1 press.)
-It also comes with a built in terminal, debugging support, and an array of assorted bells and whistles useful for general software development.
+[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened inside VS Code in order to use frontend and backend plugins without issue in the same repo. The repository also contains [tasks.json](/.vscode/tasks.json) and [launch.json](/.vscode/tasks.json) files containing various prebuilt commands and debug configurations.
 
-## Testing
+# Testing
 
-While manual local dev testing is good, software testing & debugging are also crucial to ensure things run (and continue to run) smoothly. After writing new or updating existing tests, there are several options as for how to run them:
+<!--? Do we need to move this to its own section? -->
 
-- Run `mage test` to run all the tests at once (great for overall checks to make sure everything works, bad for specific problem fixes)
-- Run tests via command line (`go test` and `npm run test` for backend/frontend respectively, followed by the specific test file name(s) for specific coverage)
-- Run/debug using the Testing panel in the activity bar - tests can be filtered by result, directory, etc.
-- Run/debug using the small buttons displayed in test files and next to test functions.
+While manual local dev testing is certainly valuable, software testing & debugging are also crucial to ensure things run (and continue to run) smoothly.\
+`craig-stars` makes use of 3 different automated software testing providers:
 
-NOTE: VSCode's Test Explorer has been known to adversely affect test performance. If your tests are failing due to timing out, try increasing the "Test timeout" variable in your settings.
+- [gotestsum](https://github.com/gotestyourself/gotestsum) for backend Golang unit tests. This runs `go test` under the hood and does fancy formatting on the output.
+- [Vitest](https://vitest.dev/) for frontend unit tests.
+- [Playwright](https://playwright.dev/) for end-to-end integration/UI tests.
+
+Each provider comes with its [own](../gotestsum) [config](../frontend/vite.config.ts) [files](../frontend/playwright.config.ts), with varying settings for CI and non-CI runs.
+
+## Running & Debugging tests
+
+After writing new or updating existing tests, there are several options as for how to run them.
+
+- Run `mage test` to run everything at once. Great for overall checks to make sure everything works, bad for specific problem fixes.
+- Run `mage test_golang`, `mage test_vitest` and `mage test_playwright` to run tests for a given test provider at a time. Each passes their arguments directly to the test provider, so you can pass all the same arguments to them as you would to `go test` or `vitest`. (Test reports are saved to `tmp/test-results` as JUnit XML files.)
+  - Protip: To test only files matching a specific file name or regex, you can use the `--run=` flag for `go test` or simply enter the test file name for vitest & playwright.
+- Run the various test tasks inside `tasks.json` (the green ones with icons). There's 4 in total, one for each of the above mage commands.
+- Run tests from VS Code's UI, via either the Test Explorer panel or the small buttons displayed within test files.
+  - Unfortunately, `vscode-go` doesn't currently support running alternate test tools for UI commands, so running backend tests this way will just use plain old `go test`.
+
+_NOTE_: Slower devices may have trouble running backend tests within the default timeout of 30s, especially ones inside `./server` involving repeated serialization to & from the database. If your tests are routinely timing out while succeeding on CI, consider increasing the "Go: Test Timeout" variable in your local settings.
 
 # Troubleshooting
 

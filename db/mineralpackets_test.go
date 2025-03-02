@@ -36,12 +36,14 @@ func TestCreateMineralPacket(t *testing.T) {
 			// id is automatically added
 			want.ID = tt.args.mineralPacket.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateMineralPacket() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreateMineralPacket() did not return error when expected")
+				} else {
+					t.Fatalf("CreateMineralPacket() errored unexpectedly; err = \n%v", err)
+				}
 			}
-			if !test.CompareAsJSON(t, tt.args.mineralPacket, &want) {
-				t.Errorf("CreateMineralPacket() = \n%v, want \n%v", tt.args.mineralPacket, want)
-			}
+
+			test.CompareAsJSON(t, tt.args.mineralPacket, &want)
 		})
 	}
 }
@@ -77,16 +79,18 @@ func TestGetMineralPacket(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetMineralPacket(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetMineralPacket() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetMineralPacket() did not return error when expected")
+				} else {
+					t.Fatalf("GetMineralPacket() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetMineralPacket() = %v, want %v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

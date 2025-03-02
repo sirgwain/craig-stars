@@ -493,7 +493,7 @@ func (ai *aiPlayer) ProcessTurn() error {
 			return err
 		}
 		if err := ai.bomb(); err != nil {
-				return err
+			return err
 		}
 	}
 	if err := ai.updateFleetWarpSpeed(); err != nil {

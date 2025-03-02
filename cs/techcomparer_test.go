@@ -388,8 +388,11 @@ func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 			}
 			got, err := tc.GetMostNeededComponent(design, tt.args.hullSlotType, tt.args.qty)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("techCompare.getMostNeededComponent() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("techCompare.getMostNeededComponent() did not return error when expected")
+				} else {
+					t.Fatalf("techCompare.getMostNeededComponent() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("techCompare.getMostNeededComponent() = %v, want %v", got, tt.want)
@@ -466,7 +469,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 			want: 2.11, // 2.55 / 1.21
 		},
 		{
-			name: "1 Mega Poly on armored ship w/ RS",
+			name: "1 Mega Poly on armored ship with RS",
 			args: args{
 				armorMulti: 0.5, shieldMulti: 1.4,
 				hc:         &MegaPolyShell,
@@ -482,7 +485,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 			want: 1.41, // (1460+140+(200/1.7))/1460 * 1.2 = 1.17 * 1.2 = 1.41
 		},
 		{
-			name: "3 Mega Polys on armored starbase w/ 10% jam",
+			name: "3 Mega Polys on armored starbase with 10% jam",
 			args: args{
 				armorMulti: 1, shieldMulti: 1,
 				hc:         &MegaPolyShell,

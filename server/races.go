@@ -126,7 +126,7 @@ func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
 
 	// validate
 	if race.ID != existingRace.ID || race.UserID != existingRace.UserID {
-		log.Error().Int64("ID", race.ID).Msgf("race.ID %d != existingRace.ID %d or race.UserID  %d != existingRace.UserID %d", race.ID, existingRace.ID, race.UserID, existingRace.UserID)
+		log.Error().Int64("ID", race.ID).Msgf("race.ID %d != existingRace.ID %d or race.UserID %d != existingRace.UserID %d", race.ID, existingRace.ID, race.UserID, existingRace.UserID)
 		render.Render(w, r, ErrBadRequest(fmt.Errorf("race id/user id does not match existing race")))
 		return
 	}

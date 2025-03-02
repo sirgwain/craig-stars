@@ -163,10 +163,10 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 	return result
 }
 
-{{- /* 
-	Render a function like 
+{{- /*
+	Render a function like
 
-	getInt[int](o.Get("grav")) 
+	getInt[int](o.Get("grav"))
 */}}
 {{- define "GetBasicGetter" }}
 	{{- $type := .type }}
@@ -183,10 +183,10 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 	{{- end }}
 {{- end }}
 
-{{- /* 
-	Render a function like 
+{{- /*
+	Render a function like
 
-	getInt[int](o.Get("grav")) 
+	getInt[int](o.Get("grav"))
 */}}
 {{- define "GetBasic" }}
 	{{- $type := .type }}
@@ -367,12 +367,12 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 	{{- end }}
 {{- end }}
 
-{{- /* 
-	Render a function like 
+{{- /*
+	Render a function like
 
-	getInt[int](o.Get("grav")) 
-	or 
-	GetHab(o.Get("habLow")) 
+	getInt[int](o.Get("grav"))
+	or
+	GetHab(o.Get("habLow"))
 */}}
 {{- define "GetValue" }}
 	{{- $type := .type }}
@@ -393,7 +393,7 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 		{{ include "GetMap" . }}
 	{{- else if eq $type.Type "Named" }}
 		Get{{$type.TypeName}}({{$jsObj}})
-	{{- else if eq $type.FullType "*time.Time" }}		
+	{{- else if eq $type.FullType "*time.Time" }}
 		getPointer(getTime({{$jsObj}}))
 	{{- else if eq $type.FullType "time.Time" }}
 		getTime({{$jsObj}})
@@ -421,13 +421,13 @@ func Get{{.Name}}{{.Type.GenericTypeString}}(o js.Value) {{.Type.GoType}}{{.Type
 				{{- end }}
 				{{- continue }}
 			{{- end }}
-		
+
 			{{- /* for the js object, we do something like o.Get("habLow") for the jsObj */}}
 			{{- $jsObj := "o" }}
 			{{- if ne .JsonName "" }}
 				{{- $jsObj = printf "o.Get(\"%s\")" .JsonName }}
 			{{- end }}
-			
+
 			{{- /* the GetValue function expects two args, a type and a jsObj */}}
 			{{- $context := dict "type" .FieldType "jsObj" $jsObj}}
 			{{- if eq $context.type.Type "Array" }}
@@ -457,7 +457,7 @@ func Get{{.Name}}{{.Type.GenericTypeString}}(o js.Value) {{.Type.GoType}}{{.Type
 {{- /* we don't create setter functions for named types, they don't really work */}}
 {{- if eq .Type.Type "Object" }}
 func Set{{.Name}}{{.Type.GenericTypeString}}(o js.Value, obj *{{.Type.GoType}}{{.Type.GenericTypeParamsString}}) {
-	{{- range .Fields}}	
+	{{- range .Fields}}
 		{{- if .Ignore }}
 			{{- if and .Exported (ne .JsonName "") }}
 				// {{.Name}} {{.JsonName}} {{ .Type }} ignored
@@ -486,4 +486,3 @@ func Set{{.Name}}{{.Type.GenericTypeString}}(o js.Value, obj *{{.Type.GoType}}{{
 {{- end}}
 
 {{- end}}
-

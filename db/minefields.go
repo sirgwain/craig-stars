@@ -189,7 +189,7 @@ func (c *client) UpdateMineField(mineField *cs.MineField) error {
 
 func (c *client) deleteMineField(mineFieldID int64) error {
 	if _, err := c.writer.Exec("DELETE FROM mineFields where id = ?", mineFieldID); err != nil {
-		return fmt.Errorf("delete mineField %d %w", mineFieldID, err)
+		return fmt.Errorf("delete mineField %d: %w", mineFieldID, err)
 	}
 	return nil
 }

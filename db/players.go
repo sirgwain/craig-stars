@@ -329,7 +329,7 @@ func (c *client) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
 
 		designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
 		if err != nil {
-			return nil, fmt.Errorf("get designs for player %w", err)
+			return nil, fmt.Errorf("get designs for player: %w", err)
 		}
 		player.Designs = designs
 	}
@@ -342,7 +342,7 @@ func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 
 	items := []Player{}
 	if err := c.reader.Select(&items, `
-	SELECT 
+	SELECT
 	id,
 	createdAt,
 	updatedAt,
@@ -355,7 +355,7 @@ func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 	aiDifficulty,
 	guest,
 	submittedTurn,
-	color 
+	color
 	FROM players WHERE gameId = ? ORDER BY num`, gameID); err != nil {
 		if err == sql.ErrNoRows {
 			return []*cs.Player{}, nil
@@ -381,7 +381,7 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 	rows := []playerDesignsJoin{}
 
 	err := c.reader.Select(&rows, fmt.Sprintf(`
-	SELECT 
+	SELECT
 		p.id AS 'player.id',
 		p.createdAt AS 'player.createdAt',
 		p.updatedAt AS 'player.updatedAt',
@@ -437,7 +437,7 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 		p.archived AS 'player.archived',
 		p.spec AS 'player.spec',
 
-		
+
 		COALESCE(d.id, 0) AS 'shipDesign.id',
 		d.createdAt AS 'shipDesign.createdAt',
 		d.updatedAt AS 'shipDesign.updatedAt',
@@ -518,7 +518,7 @@ func (c *client) GetPlayer(id int64) (*cs.Player, error) {
 func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.reader.Get(&item, `
-	SELECT 
+	SELECT
 	id,
 	createdAt,
 	updatedAt,
@@ -562,7 +562,7 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	victor,
 	archived,
 	spec
-	FROM players 
+	FROM players
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -591,7 +591,7 @@ func (c *client) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels,
 	wormholeIntels,
 	mysteryTraderIntels,
 	salvageIntels
-	FROM players 
+	FROM players
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -618,7 +618,7 @@ func (c *client) GetPlayerByNum(gameID int64, num int) (*cs.Player, error) {
 	// get designs
 	designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
 	if err != nil {
-		return nil, fmt.Errorf("get player designs %w", err)
+		return nil, fmt.Errorf("get player designs: %w", err)
 	}
 	player.Designs = designs
 
@@ -628,7 +628,7 @@ func (c *client) GetPlayerByNum(gameID int64, num int) (*cs.Player, error) {
 func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	item := Player{}
 	if err := c.reader.Get(&item, `
-	SELECT 
+	SELECT
 	id,
 	createdAt,
 	updatedAt,
@@ -671,7 +671,7 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	victor,
 	archived,
 	spec
-	FROM players 
+	FROM players
 	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -700,31 +700,31 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, err
 
 	designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
 	if err != nil {
-		return nil, fmt.Errorf("get player designs %w", err)
+		return nil, fmt.Errorf("get player designs: %w", err)
 	}
 	player.Designs = designs
 
 	planets, err := c.GetPlanetsForPlayer(player.GameID, player.Num)
 	if err != nil {
-		return nil, fmt.Errorf("get player planets %w", err)
+		return nil, fmt.Errorf("get player planets: %w", err)
 	}
 	player.Planets = planets
 
 	mineFields, err := c.GetMineFieldsForPlayer(player.GameID, player.Num)
 	if err != nil {
-		return nil, fmt.Errorf("get player mineFields %w", err)
+		return nil, fmt.Errorf("get player mineFields: %w", err)
 	}
 	player.MineFields = mineFields
 
 	mineralPackets, err := c.GetMineralPacketsForPlayer(player.GameID, player.Num)
 	if err != nil {
-		return nil, fmt.Errorf("get player mineralPackets %w", err)
+		return nil, fmt.Errorf("get player mineralPackets: %w", err)
 	}
 	player.MineralPackets = mineralPackets
 
 	fleets, err := c.GetFleetsForPlayer(player.GameID, player.Num)
 	if err != nil {
-		return nil, fmt.Errorf("get player fleets %w", err)
+		return nil, fmt.Errorf("get player fleets: %w", err)
 	}
 
 	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
@@ -754,25 +754,25 @@ func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects
 
 	planets, err := c.GetPlanetsForPlayer(gameID, num)
 	if err != nil {
-		return nil, fmt.Errorf("get player planets %w", err)
+		return nil, fmt.Errorf("get player planets: %w", err)
 	}
 	mapObjects.Planets = planets
 
 	mineFields, err := c.GetMineFieldsForPlayer(gameID, num)
 	if err != nil {
-		return nil, fmt.Errorf("get player mineFields %w", err)
+		return nil, fmt.Errorf("get player mineFields: %w", err)
 	}
 	mapObjects.MineFields = mineFields
 
 	mineralPackets, err := c.GetMineralPacketsForPlayer(gameID, num)
 	if err != nil {
-		return nil, fmt.Errorf("get player mineralPackets %w", err)
+		return nil, fmt.Errorf("get player mineralPackets: %w", err)
 	}
 	mapObjects.MineralPackets = mineralPackets
 
 	fleets, err := c.GetFleetsForPlayer(gameID, num)
 	if err != nil {
-		return nil, fmt.Errorf("get player fleets %w", err)
+		return nil, fmt.Errorf("get player fleets: %w", err)
 	}
 	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
 	mapObjects.Fleets = make([]*cs.Fleet, 0, len(fleets))
@@ -806,7 +806,7 @@ func (c *client) GetPlayerWithDesignsForGame(gameID int64, num int) (*cs.Player,
 
 	designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
 	if err != nil {
-		return nil, fmt.Errorf("get player designs %w", err)
+		return nil, fmt.Errorf("get player designs: %w", err)
 	}
 	player.Designs = designs
 

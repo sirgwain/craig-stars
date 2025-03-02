@@ -230,7 +230,7 @@ func (store *TechStore) GetHullComponentsByHullSlotType(player *Player, slot Hul
 		}
 	}
 	slices.SortStableFunc(hullComponents, func(a, b *TechHullComponent) int {
-		// Compare by HullSlotType
+		// Sort by HullSlotType, then by ranking within said type
 		cmp := a.HullSlotType - b.HullSlotType
 		if cmp != 0 {
 			return int(cmp)

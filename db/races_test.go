@@ -30,8 +30,11 @@ func TestCreateRace(t *testing.T) {
 			// id is automatically added
 			want.ID = tt.args.race.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateRace() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreateRace() did not return error when expected")
+				} else {
+					t.Fatalf("CreateRace() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if !reflect.DeepEqual(tt.args.race, &want) {
 				t.Errorf("CreateRace() = \n%v, want \n%v", tt.args.race, want)
@@ -99,16 +102,18 @@ func TestGetRace(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetRace(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetRace() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetRace() did not return error when expected")
+				} else {
+					t.Fatalf("GetRace() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetRace() = %v, want %v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

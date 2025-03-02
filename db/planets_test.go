@@ -36,8 +36,11 @@ func TestCreatePlanet(t *testing.T) {
 			// id is automatically added
 			want.ID = tt.args.planet.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreatePlanet() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreatePlanet() did not return error when expected")
+				} else {
+					t.Fatalf("CreatePlanet() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if !reflect.DeepEqual(tt.args.planet, &want) {
 				t.Errorf("CreatePlanet() = \n%v, want \n%v", tt.args.planet, want)
@@ -96,16 +99,18 @@ func TestGetPlanet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetPlanet(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetPlanet() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetPlanet() did not return error when expected")
+				} else {
+					t.Fatalf("GetPlanet() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetPlanet() = %v, want %v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -199,25 +204,26 @@ func TestGetPlanetByNum(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetPlanetByNum(tt.args.gameID, tt.args.num)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetPlanet() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetPlanet() did not return error when expected")
+				} else {
+					t.Fatalf("GetPlanet() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetPlanetByNum() = %v, want %v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 
 			if tt.want != nil && tt.want.Starbase != nil {
 				if got.Starbase != nil {
 					tt.want.Starbase.UpdatedAt = got.Starbase.UpdatedAt
 					tt.want.Starbase.CreatedAt = got.Starbase.CreatedAt
 				}
-				if !test.CompareAsJSON(t, got.Starbase, tt.want.Starbase) {
-					t.Errorf("GetPlanetByNum() Starbase = %v, want %v", got, tt.want)
-				}
+
+				test.CompareAsJSON(t, got.Starbase, tt.want.Starbase)
 			}
 		})
 	}

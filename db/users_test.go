@@ -29,8 +29,11 @@ func TestCreateUser(t *testing.T) {
 			// id is automatically added
 			want.ID = tt.args.user.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateUser() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreateUser() did not return error when expected")
+				} else {
+					t.Fatalf("CreateUser() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if !reflect.DeepEqual(tt.args.user, &want) {
 				t.Errorf("CreateUser() = \n%v, want \n%v", tt.args.user, want)
@@ -97,8 +100,11 @@ func TestGetUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetUser(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetUser() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetUser() did not return error when expected")
+				} else {
+					t.Fatalf("GetUser() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt

@@ -152,6 +152,7 @@ const (
 	StartingFleetHullColonyShip      StartingFleetHull = "Colony Ship"
 	StartingFleetHullDestroyer       StartingFleetHull = "Destroyer"
 	StartingFleetHullMediumFreighter StartingFleetHull = "Medium Freighter"
+	StartingFleetHullMiniBomber      StartingFleetHull = "Mini Bomber"
 	StartingFleetHullMiniColonyShip  StartingFleetHull = "Mini-Colony Ship"
 	StartingFleetHullMiniMineLayer   StartingFleetHull = "Mini Mine Layer"
 	StartingFleetHullMiniMiner       StartingFleetHull = "Mini-Miner"
@@ -291,6 +292,7 @@ func wmSpec() PRTSpec {
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
 		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
 		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
+		{"Gadfly", StartingFleetHullMiniBomber, 1, ShipDesignPurposeBomber},
 	}
 
 	spec.TechCostOffset = TechCostOffset{

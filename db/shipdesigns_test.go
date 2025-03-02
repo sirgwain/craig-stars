@@ -35,8 +35,11 @@ func TestCreateShipDesign(t *testing.T) {
 			want.PlayerNum = player.Num
 			want.ID = tt.args.shipDesign.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateShipDesign() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreateShipDesign() did not return error when expected")
+				} else {
+					t.Fatalf("CreateShipDesign() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if !reflect.DeepEqual(tt.args.shipDesign, &want) {
 				t.Errorf("CreateShipDesign() = \n%v, want \n%v", tt.args.shipDesign, want)
@@ -74,16 +77,18 @@ func TestGetShipDesign(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetShipDesign(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetShipDesign() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetShipDesign() did not return error when expected")
+				} else {
+					t.Fatalf("GetShipDesign() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetShipDesign() = %v, want %v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
