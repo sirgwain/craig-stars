@@ -144,16 +144,16 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 				extraPoints: 2,
 				pointsType:  SpendLeftoverPointsOnFactories,
 			},
-			want: NewPlanet().WithCargo(Cargo{10, 10, 0, 0}),
+			want: NewPlanet().WithCargo(Cargo{12, 5, 5, 0}),
 		},
 		{
-			name: "8 points into mines; can't use",
+			name: "2 points into mines; can't use",
 			args: args{
 				race:        NewRace().WithPRT(AR).WithSpec(&rules),
-				extraPoints: 8,
+				extraPoints: 2,
 				pointsType:  SpendLeftoverPointsOnMines,
 			},
-			want: NewPlanet().WithCargo(Cargo{30, 30, 20, 0}),
+			want: NewPlanet().WithCargo(Cargo{12, 5, 5, 0}), // yes this is weird i know del with it
 		},
 		{
 			name: "43 points into defenses; extra wasted",
@@ -176,15 +176,14 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 			// [40, 35, 37] -> [40, 37, 37] -> [40, 40, 40] -> [41, 41, 40]
 		},
 		{
-			name: "32 points into surface minerals with some cargo",
+			name: "36 points into surface minerals with some cargo",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
-				extraPoints: 32,
+				extraPoints: 36,
 				pointsType:  SpendLeftoverPointsOnSurfaceMinerals,
-				planet:      NewPlanet().WithCargo(Cargo{2, 101, 200, 220}),
+				planet:      NewPlanet().WithCargo(Cargo{1, 2, 3, 220}),
 			},
-			want: NewPlanet().WithCargo(Cargo{202, 211, 210, 220}),
-			// [2, 101, 200] -> [92, 101, 200] -> [192, 201, 200] -> [202, 211, 210]
+			want: NewPlanet().WithCargo(Cargo{181, 92, 93, 220}),
 		},
 		{
 			name: "invalid starting point type; uses surface mins",
@@ -193,10 +192,8 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 				extraPoints: 1,
 				pointsType:  "BANANANANA",
 			},
-			want: NewPlanet().WithCargo(Cargo{10, 0, 0, 0}),
+			want: NewPlanet().WithCargo(Cargo{5, 2, 2, 0}),
 		},
-		// TODO: Make more tests for surface minerals/concentration
-		// once I actually understand how the damn things work
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

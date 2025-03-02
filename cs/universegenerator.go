@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-	"slices"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog"
@@ -471,63 +470,12 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		extraPoints >= pointsThreshold:
 		planet.MineralConcentration = planet.MineralConcentration.Equalize(extraPoints / pointsThreshold)
 	case extraPoints > 0:
-		// surface minerals
-		kTPerPoint := rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
-		// example situation: 25 unspent points; HW has 400I, 300B and 350G
-		// first we start by increasing B up to 350, using 5 points.
-		// B & G are now equal, so we increase both by 50 (using 10 points).
-		// The remaining 10 gets spread equally among all 3.
-
-		// TODO: Figure out how OG stars does this stuff cuz IDK
-		// currently just using the old algorithm out of spite
-		mArray := planet.SurfaceMinerals.ToSlice()
-		mSlice := mArray[:]
-		var origOrder = []int{0, 1, 2} // original value order; used to "un-shuffle" slice at the end
-
-		// sort mineral values/types
-		slices.SortFunc(mSlice, func(a, b int) int {
-			diff := a - b
-			if diff < 0 {
-				// shuffle around original order slice to keep it in sync
-				i := slices.Index(mSlice, a)
-				origOrder[i], origOrder[i-1] = origOrder[i-1], origOrder[i]
-			}
-			return diff
-		})
-
-		// equalize lowest 2
-		diffLowest := mSlice[1] - mSlice[0]
-		if diffLowest != 0 {
-			// this truncation in amtToAdd ensures that mSlice[0] is still the lowest
-			// even after topping it up
-			amtToAdd := Min(extraPoints, diffLowest/kTPerPoint)
-			mSlice[0] += amtToAdd * kTPerPoint
-			extraPoints -= amtToAdd
-		}
-
-		// lowest 2 equal; equalize both with highest
-		diffHighest := mSlice[2] - mSlice[0]
-		if diffHighest != 0 && extraPoints > 1 {
-			// again, truncation means mSlice[0] & mSlice[1] are still guaranteed
-			// to be lower than mSlice[2] after addition.
-			amtToAdd := Min(extraPoints, (diffHighest/kTPerPoint)*2)
-			mSlice[0] += (amtToAdd / 2) * kTPerPoint
-			mSlice[1] += (amtToAdd / 2) * kTPerPoint
-			extraPoints -= (amtToAdd - amtToAdd%2) // equivalent to 2*(a/2)
-		}
-
-		// all 3 equal; divide remainders evenly
-		if third := extraPoints / 3; third > 0 {
-			for i := range mSlice {
-				mSlice[i] += third * kTPerPoint
-			}
-			extraPoints %= 3
-		}
-		for i := range extraPoints {
-			mSlice[i] += kTPerPoint
-		}
-
-		planet.SurfaceMinerals = NewMineral(mSlice[origOrder[0]], mSlice[origOrder[1]], mSlice[origOrder[2]])
+		// rough algorithm taken directly from Stars! source
+		ktLeft := extraPoints * rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
+		lowestType, _ := planet.SurfaceMinerals.HighestType(-1)
+		planet.SurfaceMinerals = planet.SurfaceMinerals.AddNum(lowestType,
+			ktLeft/4+ktLeft%3)
+		planet.SurfaceMinerals = planet.SurfaceMinerals.AddToAll(ktLeft / 4)
 	}
 }
 
