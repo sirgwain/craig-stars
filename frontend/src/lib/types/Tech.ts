@@ -1,5 +1,6 @@
 import { clamp } from '$lib/services/Math';
 import {
+	HullSlotTypeWeapon,
 	TechCategoryArmor,
 	TechCategoryBeamWeapon,
 	TechCategoryBomb,
@@ -28,6 +29,8 @@ import {
 	type Tech,
 	type TechCategory,
 	type TechDefense,
+	type TechHull,
+	type TechHullComponent,
 	type TechStore,
 	type TechTerraform,
 	type TerraformHabType
@@ -86,8 +89,8 @@ export const TechCategories: TechCategory[] = [
 
 /**
  * Determine if a tech is a hull component
- * @param category The category to check
- * @returns
+ * @param category The TechCategory to check
+ * @returns true if the tech category contains TechHullComponents
  */
 export function isHullComponent(category: TechCategory | undefined): boolean {
 	switch (category) {
@@ -118,7 +121,7 @@ export function isHullComponent(category: TechCategory | undefined): boolean {
 
 /** check if this tech is a hull
  * @param tech The tech to check
- * @returns true if this tech is degined and is a ship hull; talse otherwise
+ * @returns true if this tech is defined and is a ship hull; false otherwise
  */
 export function isHull(tech: Tech | undefined): boolean {
 	if (!tech) {
@@ -132,14 +135,18 @@ export function canFillSlot(hcType: HullSlotType, type: HullSlotType): boolean {
 }
 
 // true if this hull is allowed to mount this component
-export function hullAllowed(hull: string, tech: Tech): boolean {
+export function hullAllowed(hull: TechHull, tech: Tech): boolean {
 	const hullAllowed = tech.requirements.hullsAllowed
-		? tech.requirements.hullsAllowed.indexOf(hull) != -1
+		? tech.requirements.hullsAllowed.indexOf(hull.name) != -1
 		: true;
 	const hullDenied = tech.requirements.hullsDenied
-		? tech.requirements.hullsDenied.indexOf(hull) != -1
+		? tech.requirements.hullsDenied.indexOf(hull.name) != -1
 		: false;
-	return hullAllowed && !hullDenied;
+	const notArmedAndUnarmedPart =
+		isHullComponent(tech.category) && // short circuiting makes this safe
+		((tech as TechHullComponent).cloakUnarmedOnly ?? false) &&
+		hull.slots.some((slot) => (slot.type & HullSlotTypeWeapon) != 0);
+	return hullAllowed && !hullDenied && notArmedAndUnarmedPart;
 }
 
 export function getDefenseCoverage(defense: TechDefense, defenses: number): number {
