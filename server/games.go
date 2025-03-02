@@ -653,7 +653,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 
 	// only allow one GenerateTurn to run at a time for a game
 	// TODO: handle this differently if you ever scale out beyond one instance. :)
-	result, err, _ := s.sf.Do(strconv.FormatInt(game.ID, 10), func() (interface{}, error) {
+	result, err, _ := s.sf.Do(strconv.FormatInt(game.ID, 10), func() (any, error) {
 		gr := s.newGameRunner()
 		result, err := gr.GenerateTurn(game.ID)
 		if err != nil {

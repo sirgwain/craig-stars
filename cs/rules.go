@@ -708,7 +708,7 @@ func (rules *Rules) GetNumPlanets(size Size, density Density) (int, error) {
 
 	}
 
-	return 0, fmt.Errorf("unable to GetNumPlanets for Size: %v, Density: %v", size, density)
+	return 0, fmt.Errorf("invalid arguments passed to GetNumPlanets():\nSize: %v\nDensity: %v", size, density)
 }
 
 // Get the area of a universe based on size

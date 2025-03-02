@@ -14,6 +14,7 @@ const InfiniteGate = math.MaxInt32
 
 // The TechStore contains all techs in the game. Eventually these will be user modifiable and
 // referenced per game, but for now all games use the StaticTechStore, which contains the default Stars! techs.
+// TODO: Add more doc comments clarifying which lists are/aren't sorted
 type TechStore struct {
 	Engines                  []TechEngine           `json:"engines"`
 	PlanetaryScanners        []TechPlanetaryScanner `json:"planetaryScanners"`
@@ -23,9 +24,9 @@ type TechStore struct {
 	HullComponents           []TechHullComponent    `json:"hullComponents"`
 	Hulls                    []TechHull             `json:"hulls"`
 	techs                    []*Tech
-	techsByName              map[string]interface{}
+	techsByName              map[string]TechItem // map of tech name to tech item; contains pointers to all tech items
 	hullComponentsByName     map[string]*TechHullComponent
-	hullComponentsByCategory map[TechCategory][]TechHullComponent
+	hullComponentsByCategory map[TechCategory][]*TechHullComponent
 	hullComponentsBySlot     map[HullSlotType][]*TechHullComponent
 	hullsByName              map[string]*TechHull
 	hullsByType              map[TechHullType][]*TechHull
@@ -48,12 +49,12 @@ func init() {
 }
 
 type TechFinder interface {
-	GetTech(name string) interface{}
+	GetTech(name string) TechItem
 	GetEngine(name string) *TechEngine
 	GetHull(name string) *TechHull
 	GetHullComponent(name string) *TechHullComponent
 	GetHullsByType(techHullType TechHullType) []*TechHull
-	GetHullComponentsByCategory(category TechCategory) []TechHullComponent
+	GetHullComponentsByCategory(category TechCategory) []*TechHullComponent
 	GetHullComponentsByHullSlotType(player *Player, slot HullSlotType, hullName string) []*TechHullComponent
 	GetBestPlanetaryScanner(player *Player) *TechPlanetaryScanner
 	GetBestDefense(player *Player) *TechDefense
@@ -83,95 +84,94 @@ func (store *TechStore) Init() {
 		len(store.Planetaries)+
 		len(store.HullComponents)+
 		len(store.Hulls))
-	store.techsByName = make(map[string]interface{}, len(store.techs))
+	store.techsByName = make(map[string]TechItem, len(store.techs))
 	store.hullsByName = make(map[string]*TechHull, len(store.Hulls))
 	store.enginesByName = make(map[string]*TechEngine, len(store.Engines))
 	store.hullComponentsByName = make(map[string]*TechHullComponent, len(store.Engines)+len(store.HullComponents))
-	store.hullComponentsByCategory = make(map[TechCategory][]TechHullComponent, len(TechCategories))
+	store.hullComponentsByCategory = make(map[TechCategory][]*TechHullComponent, len(TechCategories))
 	store.hullComponentsBySlot = make(map[HullSlotType][]*TechHullComponent, len(BasicHullSlotTypes))
 
 	// we have **12** hull types currently, but it's just for performance
 	store.hullsByType = make(map[TechHullType][]*TechHull, len(TechHullTypes))
 
 	for i := range store.Hulls {
-		tech := &store.Hulls[i]
-		name := store.transformName(tech.Name)
-		store.techs = append(store.techs, &tech.Tech)
-		store.techsByName[name] = tech
-		store.hullsByName[name] = tech
+		hull := &store.Hulls[i]
+		name := store.transformName(hull.Name)
+		store.techs = append(store.techs, &hull.Tech)
+		store.techsByName[name] = hull
+		store.hullsByName[name] = hull
 
-		hullsByType, found := store.hullsByType[tech.Type]
+		hullsByType, found := store.hullsByType[hull.Type]
 		if !found {
 			hullsByType = make([]*TechHull, 0, 1)
 		}
-		hullsByType = append(hullsByType, tech)
+		store.hullsByType[hull.Type] = append(hullsByType, hull)
 
-		store.hullsByType[tech.Type] = hullsByType
 	}
 
 	for i := range store.Engines {
-		tech := &store.Engines[i]
-		name := store.transformName(tech.Name)
-		store.techs = append(store.techs, &tech.Tech)
-		store.techsByName[name] = tech
-		store.enginesByName[name] = tech
-		store.hullComponentsByName[name] = &tech.TechHullComponent
-		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], tech.TechHullComponent)
-		store.hullComponentsBySlot[tech.HullSlotType] = append(store.hullComponentsBySlot[tech.HullSlotType], &tech.TechHullComponent)
+		engine := &store.Engines[i]
+		name := store.transformName(engine.Name)
+		store.techs = append(store.techs, &engine.Tech)
+		store.techsByName[name] = engine
+		store.enginesByName[name] = engine
+		store.hullComponentsByName[name] = &engine.TechHullComponent
+		store.hullComponentsByCategory[engine.Category] = append(store.hullComponentsByCategory[engine.Category], &engine.TechHullComponent)
+		store.hullComponentsBySlot[engine.HullSlotType] = append(store.hullComponentsBySlot[engine.HullSlotType], &engine.TechHullComponent)
 	}
 
 	for i := range store.HullComponents {
-		tech := &store.HullComponents[i]
-		name := store.transformName(tech.Name)
-		store.techs = append(store.techs, &tech.Tech)
-		store.techsByName[name] = tech
-		store.hullComponentsByName[name] = tech
-		store.hullComponentsByCategory[tech.Category] = append(store.hullComponentsByCategory[tech.Category], *tech)
-		store.hullComponentsBySlot[tech.HullSlotType] = append(store.hullComponentsBySlot[tech.HullSlotType], tech)
+		hc := &store.HullComponents[i]
+		name := store.transformName(hc.Name)
+		store.techs = append(store.techs, &hc.Tech)
+		store.techsByName[name] = hc
+		store.hullComponentsByName[name] = hc
+		store.hullComponentsByCategory[hc.Category] = append(store.hullComponentsByCategory[hc.Category], hc)
+		store.hullComponentsBySlot[hc.HullSlotType] = append(store.hullComponentsBySlot[hc.HullSlotType], hc)
 	}
 
 	for i := range store.PlanetaryScanners {
-		tech := &store.PlanetaryScanners[i]
-		name := store.transformName(tech.Name)
-		store.techs = append(store.techs, &tech.Tech)
-		store.techsByName[name] = tech
+		scanner := &store.PlanetaryScanners[i]
+		name := store.transformName(scanner.Name)
+		store.techs = append(store.techs, &scanner.Tech)
+		store.techsByName[name] = scanner
 	}
 
 	for i := range store.Terraforms {
-		tech := &store.Terraforms[i]
-		name := store.transformName(tech.Name)
-		store.techs = append(store.techs, &tech.Tech)
-		store.techsByName[name] = tech
+		terraform := &store.Terraforms[i]
+		name := store.transformName(terraform.Name)
+		store.techs = append(store.techs, &terraform.Tech)
+		store.techsByName[name] = terraform
 	}
 
 	for i := range store.Defenses {
-		tech := &store.Defenses[i]
-		name := store.transformName(tech.Name)
-		store.techs = append(store.techs, &tech.Tech)
-		store.techsByName[name] = tech
+		defense := &store.Defenses[i]
+		name := store.transformName(defense.Name)
+		store.techs = append(store.techs, &defense.Tech)
+		store.techsByName[name] = defense
 	}
 
 	for i := range store.Planetaries {
-		tech := &store.Planetaries[i]
-		name := store.transformName(tech.Name)
-		store.techs = append(store.techs, &tech.Tech)
-		store.techsByName[name] = tech
+		planetary := &store.Planetaries[i]
+		name := store.transformName(planetary.Name)
+		store.techs = append(store.techs, &planetary.Tech)
+		store.techsByName[name] = planetary
 	}
 
 	// sort our lists by ranking
-	for _, category := range TechCategories {
-		slices.SortStableFunc(store.hullComponentsByCategory[category], func(a, b TechHullComponent) int { return a.Ranking - b.Ranking })
+	for category := range store.hullComponentsByCategory {
+		slices.SortStableFunc(store.hullComponentsByCategory[category], func(a, b *TechHullComponent) int { return a.Ranking - b.Ranking })
 	}
-	for _, hst := range BasicHullSlotTypes {
+	for hst := range store.hullComponentsBySlot {
 		slices.SortStableFunc(store.hullComponentsBySlot[hst], func(a, b *TechHullComponent) int { return a.Ranking - b.Ranking })
 	}
-	for _, ht := range TechHullTypes {
+	for ht := range store.hullsByType {
 		slices.SortStableFunc(store.hullsByType[ht], func(a, b *TechHull) int { return a.Ranking - b.Ranking })
 	}
 }
 
-// get tech from name
-func (store *TechStore) GetTech(name string) (tech interface{}) {
+// get tech from name; returns pointer to parent tech item
+func (store *TechStore) GetTech(name string) (tech TechItem) {
 	return store.techsByName[store.transformName(name)]
 }
 
@@ -192,38 +192,60 @@ func (store *TechStore) GetHullComponent(name string) (hullComponent *TechHullCo
 
 // get a list of all hulls for a given TechHullType, sorted by ranking
 func (store *TechStore) GetHullsByType(techHullType TechHullType) (hulls []*TechHull) {
-	return slices.Clone(store.hullsByType[techHullType])
+	return store.hullsByType[techHullType]
 }
 
 // return all techs learned in the last tech level
 // TODO: remove this as recently gained techs are now tracked in players' research spec
 func (store *TechStore) GetTechsJustGained(player *Player, field TechField) (techs []*Tech) {
 	for _, tech := range store.techs {
-		if player.HasTech(tech) && tech.Requirements.TechLevel.LevelsAboveField(player.TechLevels, field) == 0 {
+		if player.HasTech(tech) &&
+			tech.Requirements.TechLevel.LevelsAboveField(player.TechLevels, field) == 0 {
 			techs = append(techs, tech)
 		}
 	}
 	return techs
 }
 
+// GetUsableTechs returns a slice of all TechItems whose requirements are satisfied by tl, sorted by
+// TechItemType.
+// It does not check for PRT or LRT incompatibilities.
+//
+// Iterating over techs normally should be more than sufficient for most cases;
+// this should only be called for repeated requests to the same slice.
+func (store *TechStore) GetUsableTechs(tl TechLevel) (techItemsByType map[TechItemType][]TechItem) {
+	techItemsByType = make(map[TechItemType][]TechItem, len(TechItemTypes))
+	// check each tech in the techStore
+	for _, tech := range store.techs {
+		if !tl.HasRequiredLevels(tech.Requirements.TechLevel) {
+			continue
+		}
+
+		// Add parent items to the techstore
+		parentItem := store.GetTech(tech.Name)
+		itemType := parentItem.getType()
+		techItemsByType[itemType] = append(techItemsByType[itemType], parentItem)
+	}
+
+	return techItemsByType
+}
+
 // get list of all hull components for the specified category, sorted by ascending ranking
-func (store *TechStore) GetHullComponentsByCategory(category TechCategory) (hullComponents []TechHullComponent) {
-	return slices.Clone(store.hullComponentsByCategory[category])
+func (store *TechStore) GetHullComponentsByCategory(category TechCategory) (hullComponents []*TechHullComponent) {
+	return store.hullComponentsByCategory[category]
 }
 
 // get list of all techs for the specified HullSlotType(s) that can be used by a player,
 // sorted by slot type & ranking
 func (store *TechStore) GetHullComponentsByHullSlotType(player *Player, slot HullSlotType, hullName string) (hullComponents []*TechHullComponent) {
-
 	for _, hst := range BasicHullSlotTypes {
-		if hst&slot == 0 {
+		if hst&slot == 0 { // incompatible slot type means we can skip all its parts
 			continue
 		}
 		for _, hc := range store.hullComponentsBySlot[hst] {
 			// if we have and can use this part, add it to the list
 			if player.HasTech(&hc.Tech) &&
-				!(len(hc.Tech.Requirements.HullsAllowed) > 0 && !slices.Contains(hc.Tech.Requirements.HullsAllowed, hullName)) &&
-				!(len(hc.Tech.Requirements.HullsDenied) > 0 && slices.Contains(hc.Tech.Requirements.HullsDenied, hullName)) &&
+				hc.allowedOnHull(hullName) &&
 				hc.HullSlotType&slot != 0 {
 				hullComponents = append(hullComponents, hc)
 			}
@@ -1119,7 +1141,7 @@ var CherryBomb = TechHullComponent{Tech: NewTech("Cherry Bomb", NewCost(1, 25, 0
 	HullSlotType:         HullSlotTypeBomb,
 }
 
-var LBU17Bomb = TechHullComponent{Tech: NewTech("LBU-17 Bomb", NewCost(1, 15, 15, 7), TechRequirements{TechLevel: TechLevel{Weapons: 5, Electronics: 8}}, 50, TechCategoryBomb, TechTagBomb, TechTagStructureBomb),
+var LBU17Bomb = TechHullComponent{Tech: NewTech("LBU-17 Bomb", NewCost(1, 15, 15, 7), TechRequirements{TechLevel: TechLevel{Weapons: 5, Electronics: 8}}, 50, TechCategoryBomb, TechTagStructureBomb),
 
 	Mass:                 30,
 	StructureDestroyRate: 16,
@@ -1127,7 +1149,7 @@ var LBU17Bomb = TechHullComponent{Tech: NewTech("LBU-17 Bomb", NewCost(1, 15, 15
 	HullSlotType:         HullSlotTypeBomb,
 }
 
-var LBU32Bomb = TechHullComponent{Tech: NewTech("LBU-32 Bomb", NewCost(1, 24, 15, 10), TechRequirements{TechLevel: TechLevel{Weapons: 10, Electronics: 10}}, 60, TechCategoryBomb, TechTagBomb, TechTagStructureBomb),
+var LBU32Bomb = TechHullComponent{Tech: NewTech("LBU-32 Bomb", NewCost(1, 24, 15, 10), TechRequirements{TechLevel: TechLevel{Weapons: 10, Electronics: 10}}, 60, TechCategoryBomb, TechTagStructureBomb),
 
 	Mass:                 35,
 	StructureDestroyRate: 28,
@@ -1135,7 +1157,7 @@ var LBU32Bomb = TechHullComponent{Tech: NewTech("LBU-32 Bomb", NewCost(1, 24, 15
 	HullSlotType:         HullSlotTypeBomb,
 }
 
-var LBU74Bomb = TechHullComponent{Tech: NewTech("LBU-74 Bomb", NewCost(1, 33, 12, 14), TechRequirements{TechLevel: TechLevel{Weapons: 15, Electronics: 12}}, 70, TechCategoryBomb, TechTagBomb, TechTagStructureBomb),
+var LBU74Bomb = TechHullComponent{Tech: NewTech("LBU-74 Bomb", NewCost(1, 33, 12, 14), TechRequirements{TechLevel: TechLevel{Weapons: 15, Electronics: 12}}, 70, TechCategoryBomb, TechTagStructureBomb),
 
 	Mass:                 45,
 	StructureDestroyRate: 45,
@@ -1150,7 +1172,7 @@ var RetroBomb = TechHullComponent{Tech: NewTech("Retro Bomb", NewCost(15, 15, 10
 	HullSlotType:    HullSlotTypeBomb,
 }
 
-var SmartBomb = TechHullComponent{Tech: NewTech("Smart Bomb", NewCost(1, 22, 0, 27), TechRequirements{TechLevel: TechLevel{Weapons: 5, Biotechnology: 7}, PRTsDenied: []PRT{IS}}, 90, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var SmartBomb = TechHullComponent{Tech: NewTech("Smart Bomb", NewCost(1, 22, 0, 27), TechRequirements{TechLevel: TechLevel{Weapons: 5, Biotechnology: 7}, PRTsDenied: []PRT{IS}}, 90, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         50,
 	Smart:        true,
@@ -1158,7 +1180,7 @@ var SmartBomb = TechHullComponent{Tech: NewTech("Smart Bomb", NewCost(1, 22, 0, 
 	HullSlotType: HullSlotTypeBomb,
 }
 
-var NeutronBomb = TechHullComponent{Tech: NewTech("Neutron Bomb", NewCost(1, 30, 0, 30), TechRequirements{TechLevel: TechLevel{Weapons: 10, Biotechnology: 10}, PRTsDenied: []PRT{IS}}, 110, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var NeutronBomb = TechHullComponent{Tech: NewTech("Neutron Bomb", NewCost(1, 30, 0, 30), TechRequirements{TechLevel: TechLevel{Weapons: 10, Biotechnology: 10}, PRTsDenied: []PRT{IS}}, 110, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         57,
 	Smart:        true,
@@ -1166,7 +1188,7 @@ var NeutronBomb = TechHullComponent{Tech: NewTech("Neutron Bomb", NewCost(1, 30,
 	HullSlotType: HullSlotTypeBomb,
 }
 
-var EnrichedNeutronBomb = TechHullComponent{Tech: NewTech("Enriched Neutron Bomb", NewCost(1, 36, 0, 25), TechRequirements{TechLevel: TechLevel{Weapons: 15, Biotechnology: 12}, PRTsDenied: []PRT{IS}}, 120, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var EnrichedNeutronBomb = TechHullComponent{Tech: NewTech("Enriched Neutron Bomb", NewCost(1, 36, 0, 25), TechRequirements{TechLevel: TechLevel{Weapons: 15, Biotechnology: 12}, PRTsDenied: []PRT{IS}}, 120, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         64,
 	Smart:        true,
@@ -1174,7 +1196,7 @@ var EnrichedNeutronBomb = TechHullComponent{Tech: NewTech("Enriched Neutron Bomb
 	HullSlotType: HullSlotTypeBomb,
 }
 
-var PeerlessBomb = TechHullComponent{Tech: NewTech("Peerless Bomb", NewCost(1, 33, 0, 32), TechRequirements{TechLevel: TechLevel{Weapons: 22, Biotechnology: 15}, PRTsDenied: []PRT{IS}}, 130, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var PeerlessBomb = TechHullComponent{Tech: NewTech("Peerless Bomb", NewCost(1, 33, 0, 32), TechRequirements{TechLevel: TechLevel{Weapons: 22, Biotechnology: 15}, PRTsDenied: []PRT{IS}}, 130, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         55,
 	Smart:        true,
@@ -1182,7 +1204,7 @@ var PeerlessBomb = TechHullComponent{Tech: NewTech("Peerless Bomb", NewCost(1, 3
 	HullSlotType: HullSlotTypeBomb,
 }
 
-var AnnihilatorBomb = TechHullComponent{Tech: NewTech("Annihilator Bomb", NewCost(1, 30, 0, 28), TechRequirements{TechLevel: TechLevel{Weapons: 26, Biotechnology: 17}, PRTsDenied: []PRT{IS}}, 140, TechCategoryBomb, TechTagBomb, TechTagSmartBomb),
+var AnnihilatorBomb = TechHullComponent{Tech: NewTech("Annihilator Bomb", NewCost(1, 30, 0, 28), TechRequirements{TechLevel: TechLevel{Weapons: 26, Biotechnology: 17}, PRTsDenied: []PRT{IS}}, 140, TechCategoryBomb, TechTagSmartBomb),
 
 	Mass:         50,
 	Smart:        true,

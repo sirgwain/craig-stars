@@ -73,6 +73,16 @@ func newTechTags(tags ...TechTag) TechTags {
 	return newTechTags
 }
 
+// HasTag reports whether tt has this tag.
+// For offensive tags, this excludes components unable to deal hull damage.
+func (tt TechTags) HasTag(tag TechTag) (hasTag bool) {
+	if tag == TechTagBeamWeapon || tag == TechTagTorpedo || tag == TechTagCapitalShipMissile {
+		// If we want a beam or torpedo weapon, don't pick items unable to deal hull damage
+		return tt[tag] && !tt[TechTagShieldSapper]
+	}
+	return tt[tag]
+}
+
 // returns true if tt has at least 1 of the specified TechTags
 // and none of the tags in tagsToExclude
 //
@@ -84,21 +94,15 @@ func (tt TechTags) hasTags(tagsToInclude []TechTag, tagsToExclude ...TechTag) bo
 
 	for _, tag := range tt.GetTags() {
 		switch {
-		case whitelist.HasTag(tag):
+		case whitelist[tag]:
 			hasTag = true
-		case blacklist.HasTag(tag):
+		case blacklist[tag]:
 			// our TechTags has a blacklisted tag not
 			// also in our whitelist; automatic fail
 			return false
 		}
 	}
 	return hasTag
-}
-
-// return true if tt has this tag
-func (tt TechTags) HasTag(tag TechTag) bool {
-	_, ok := tt[tag]
-	return ok
 }
 
 // return unsorted list of all tags in tt

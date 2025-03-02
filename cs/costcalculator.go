@@ -43,15 +43,14 @@ func GetCostEfficiencyRatio[T number](numerator, denominator cost[T], costTypes 
 	return float64(hcTally) / float64(otherTally)
 }
 
-// GetTechCost is an exported method to get a player's cost for a tech, used by wasm
+// GetTechCost is an exported method to get a player's cost for a tech, used by wasm and AI
 func (c *costCalculate) GetTechCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, tech Tech) Cost {
 	return getPlayerCost(tech, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset).ToCost()
 }
 
-// Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers
+// Get baseline cost for this technology given a player's tech levels, minaturization stats & racial cost modifiers.
 //
-// Rounds value in accordance with base game's cost calcs,
-// but returns it as a floating point cost
+// Rounds value in accordance with base game's cost calcs, but returns it as a floating point cost
 // to allow combination with other float multipliers down the line
 func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec MiniaturizationSpec, costOffset TechCostOffset) (techCost CostFloat64) {
 	// figure out miniaturization discounts - base cost is reduced by
@@ -100,7 +99,7 @@ func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec Miniatur
 	})
 }
 
-// Calculate the upgrade cost for replacing one starbase design with another
+// Calculate the upgrade cost for replacing one starbase design with another.
 //
 // Takes into account part replacement refunds and minimum costs
 func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error) {
@@ -115,7 +114,7 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	newComponents := map[*TechHullComponent]int{}
 	oldComponentsByCategory := map[TechCategory][]*TechHullComponent{} // Maps component category to hull components
 	newComponentsByCategory := map[TechCategory][]*TechHullComponent{}
-	categories := map[TechCategory]bool{}
+	categories := map[TechCategory]bool{} // record of we have techs of this category on the hull
 	// wrapper function so I don't have to write everything out all the time
 	getItemCost := func(t Tech) CostFloat64 {
 		return getPlayerCost(t, techLevels, raceSpec.MiniaturizationSpec, raceSpec.TechCostOffset)
@@ -158,9 +157,9 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		}
 	}
 
-	// Iterate through all new parts in our new base list
-	// to see if they are present on the old base
-	// and remove any duplicates
+	// Iterate through all new parts in our new base list to see if they are present
+	// on the old base, removing any duplicates we find
+	// This lets us only deal with components in excess.
 	if len(oldComponents) > 0 && len(newComponents) > 0 {
 		for item, newQuantity := range newComponents {
 			oldQuantity := oldComponents[item]
@@ -205,9 +204,9 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 		}
 	}
 
-	// At this point, we should have 4 maps in total: 2 for each base design
+	// At this point, we should have 4 maps in total: 2 for each design
 	// XXXComponents contains all components unique to each base mapped to their respective quantities
-	// XXXComponentsByCategory contains all categories present in each base
+	// XXXComponentsByCategory contains all TechCategories present in each base
 	// mapped to a slice of all components of that category on said base
 	// Now, all that's left to do are the cost calcs!
 
@@ -247,15 +246,15 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	return MultiplyCost(cost.Max(minCost), raceSpec.StarbaseCostFactor).Round(math.Ceil).ToCost().MinZero(), nil
 }
 
-// Get the cost of one item in a production queue, for a player
+// Get the cost of one item in a production queue for a given player
 func (c *costCalculate) CostOfOne(player *Player, item ProductionQueueItem) (Cost, error) {
 	cost := player.Race.Spec.Costs[item.Type]
 	if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
-		if item.design != nil {
-			cost = item.design.Spec.Cost // should never happen since it isn't called for designs
-		} else {
+		// cost is pre-calculated in the design spec
+		if item.design == nil {
 			return Cost{}, fmt.Errorf("ship design #%d not populated in production queue during CostOfOne", item.DesignNum)
 		}
+		cost = item.design.Spec.Cost
 	}
 	return cost, nil
 }

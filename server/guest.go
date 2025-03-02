@@ -36,14 +36,14 @@ type GuestHandler struct {
 
 // HashChecker defines interface to check credentials
 type HashChecker interface {
-	Check(hash string) (username string, attributes map[string]interface{}, err error)
+	Check(hash string) (username string, attributes map[string]any, err error)
 }
 
 // HashCheckerFunc type is an adapter to allow the use of ordinary functions as CredsChecker.
-type HashCheckerFunc func(hash string) (username string, attributes map[string]interface{}, err error)
+type HashCheckerFunc func(hash string) (username string, attributes map[string]any, err error)
 
 // Check calls f(user,passwd)
-func (f HashCheckerFunc) Check(hash string) (username string, attributes map[string]interface{}, err error) {
+func (f HashCheckerFunc) Check(hash string) (username string, attributes map[string]any, err error) {
 	return f(hash)
 }
 

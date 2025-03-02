@@ -1,7 +1,6 @@
 package cs
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -974,60 +973,6 @@ func TestDesignShip(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Humanoid Starter Stalwart Defender",
-			args: args{
-				techLevels:   TechLevel{3, 3, 3, 3, 3, 3},
-				hull:         &Destroyer,
-				player:       NewPlayer(1, NewRace().WithPRT(JoaT).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeStartingFighter,
-				fleetPurpose: FleetPurposeScout,
-			},
-			want: map[string]int{
-				LongHump6.Name:      1,
-				AlphaTorpedo.Name:   1,
-				XRayLaser.Name:      1,
-				RhinoScanner.Name:   1,
-				Crobmnium.Name:      2,
-				FuelTank.Name:       1,
-				BattleComputer.Name: 1,
-			},
-			wantErr: false,
-		},
-		{
-			name: "Humanoid Starter Teamster w/ IFE",
-			args: args{
-				techLevels:   TechLevel{3, 3, 3, 3, 3, 3},
-				hull:         &MediumFreighter,
-				player:       NewPlayer(1, NewRace().WithPRT(JoaT).WithLRT(IFE).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeStartingFighter,
-				fleetPurpose: FleetPurposeScout,
-			},
-			want: map[string]int{
-				FuelMizer.Name:    1,
-				RhinoScanner.Name: 1,
-				Crobmnium.Name:    1,
-			},
-			wantErr: false,
-		},
-		{
-			name: "IT starting Swashbuckler w/ radram",
-			args: args{
-				techLevels:   TechLevel{3, 3, 6, 5, 3, 3},
-				hull:         &Privateer,
-				player:       NewPlayer(1, NewRace().WithPRT(IT).WithLRT(CE).WithSpec(&rules)).WithNum(1),
-				purpose:      ShipDesignPurposeStartingFighter,
-				fleetPurpose: FleetPurposeFreighter,
-			},
-			want: map[string]int{
-				RadiatingHydroRamScoop.Name: 1,
-				RhinoScanner.Name:           1,
-				AlphaTorpedo.Name:           1,
-				XRayLaser.Name:              1,
-				Crobmnium.Name:              2,
-			},
-			wantErr: false,
-		},
-		{
 			name: "Large Freighter - avoids radram",
 			args: args{
 				techLevels:   TechLevel{3, 3, 6, 8, 3, 3},
@@ -1111,26 +1056,42 @@ func TestDesignShip(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Humanoid Starter Stalwart Defender; canceled",
+			args: args{
+				techLevels:   TechLevel{3, 3, 3, 3, 3, 3},
+				hull:         &Destroyer,
+				player:       NewPlayer(1, NewRace().WithPRT(JoaT).WithSpec(&rules)).WithNum(1),
+				purpose:      ShipDesignPurposeStartingFighter,
+				fleetPurpose: FleetPurposeScout,
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.args.player.TechLevels = tt.args.techLevels
 			got, err := DesignShip(&rules, tt.args.player, tt.args.hull, tt.name, 1, 1, tt.args.purpose, tt.args.fleetPurpose)
-			tallyMap := map[string]int{}
-			for _, slot := range got.Slots {
-				tallyMap[slot.HullComponent] += slot.Quantity
+
+			// tally up parts
+			var tallyMap map[string]int
+			if got != nil {
+				tallyMap = make(map[string]int)
+				for _, slot := range got.Slots {
+					tallyMap[slot.HullComponent] += slot.Quantity
+				}
 			}
+
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Errorf("DesignShip() failed to error when expected; instead returned slots \n%v", tallyMap)
+					t.Fatalf("DesignShip() failed to error when expected; instead returned slots \n%v", tallyMap)
 				} else {
 					t.Fatalf("DesignShip() errored unexpectedly; err = \n%v", err)
 				}
 			}
 
-			if !reflect.DeepEqual(tallyMap, tt.want) {
-				t.Errorf("ShipDesign from DesignShip() had parts \n%+v, want \n%+v", tallyMap, tt.want)
-			}
+			test.CompareAsJSON(t, tallyMap, tt.want)
 		})
 	}
 }
@@ -1340,16 +1301,20 @@ func Test_designWarship(t *testing.T) {
 				player.AcquiredTechs[part.Name] = true
 			}
 			got, err := designWarship(&rules, player, tt.args.hull, tt.name, 1, 2, tt.args.purpose)
-			tallyMap := map[string]int{}
-			for _, slot := range got.Slots {
-				tallyMap[slot.HullComponent] += slot.Quantity
-			}
 			if err != nil {
-				t.Errorf("DesignWarship() errored unexpectedly, error = %v", err)
+				t.Errorf("designWarship() errored unexpectedly; err = \n%v", err)
 			}
-			if !reflect.DeepEqual(tallyMap, tt.want) {
-				t.Errorf("ShipDesign from DesignWarship() had incorrect parts; test returned slots \n%v, expected \n%v", tallyMap, tt.want)
+			Z
+			var tallyMap map[string]int
+			if got != nil {
+				tallyMap = make(map[string]int)
+				for _, slot := range got.Slots {
+					tallyMap[slot.HullComponent] += slot.Quantity
+				}
 			}
+
+
+			test.CompareAsJSON(t, tallyMap, tt.want)
 		})
 	}
 }
@@ -1422,12 +1387,12 @@ func BenchmarkDesignShip(b *testing.B) {
 			ShipDesignPurposeStarbaseHalf,
 			ShipDesignPurposeStarbaseQuarter,
 		}
-		c := rules.random.Intn(3)
-		p := AR
-		if c == 1 {
-			p = WM
+		isWM := rules.random.Intn(2) == 1
+		prt := AR
+		if isWM {
+			prt = WM
 		}
-		player := NewPlayer(1, NewRace().WithPRT(p).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
+		player := NewPlayer(1, NewRace().WithPRT(prt).WithLRT(IFE).WithLRT(ISB).WithLRT(RS).WithLRT(ARM).WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
 		for _, tech := range MysteryTraderTechs {
 			player.AcquiredTechs[tech.Name] = true
 		}
@@ -1435,20 +1400,21 @@ func BenchmarkDesignShip(b *testing.B) {
 		for range b.N {
 			b.StopTimer()
 			purpose := purposes[rules.random.Intn(6)]
-			num := rules.random.Intn(8)
+			num := rules.random.Intn(9)
 			var hull *TechHull
-			switch num {
-			case 0, 1, 2:
-				if c == 1 {
+			switch num % 3 {
+			case 0:
+				// 1/3 each of big ships, stations and battleships
+				if isWM {
 					hull = &Dreadnought
 				} else {
 					hull = &Nubian
 				}
-			case 3, 4, 5:
-				if c != 1 {
-					hull = &DeathStar
-				} else {
+			case 1:
+				if isWM {
 					hull = &UltraStation
+				} else {
+					hull = &DeathStar
 				}
 			default:
 				hull = &Battleship

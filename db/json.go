@@ -8,7 +8,7 @@ import (
 )
 
 // helper to convert an item into JSON
-func valueJSON(item interface{}) (driver.Value, error) {
+func valueJSON(item any) (driver.Value, error) {
 	if isNil(item) {
 		return nil, nil
 	}
@@ -21,7 +21,7 @@ func valueJSON(item interface{}) (driver.Value, error) {
 }
 
 // helper to scan a text JSON column back into a struct
-func scanJSON(src interface{}, dest interface{}) error {
+func scanJSON(src any, dest any) error {
 	if src == nil {
 		// leave empty
 		return nil
@@ -36,7 +36,7 @@ func scanJSON(src interface{}, dest interface{}) error {
 	return errors.New("type assertion failed")
 }
 
-func isNil(i interface{}) bool {
+func isNil(i any) bool {
 	if i == nil {
 		return true
 	}

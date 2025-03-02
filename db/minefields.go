@@ -43,7 +43,7 @@ func (item *MineFieldSpec) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *MineFieldSpec) Scan(src interface{}) error {
+func (item *MineFieldSpec) Scan(src any) error {
 	return scanJSON(src, item)
 }
 

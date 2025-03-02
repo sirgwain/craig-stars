@@ -67,7 +67,7 @@ func Test_getPlayerCost(t *testing.T) {
 }
 
 func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
-	p := NewCostCalculator()
+	c := NewCostCalculator()
 	type args struct {
 		techLevels          TechLevel
 		miniaturizationSpec MiniaturizationSpec
@@ -401,10 +401,10 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 			newDesign := NewShipDesign(player.Num, 1).
 				WithHull(tt.args.newDesignHull).
 				WithSlots(tt.args.newDesignSlots)
-			got, err := p.StarbaseUpgradeCost(&rules, tt.args.techLevels, player.Race.Spec, design, newDesign)
+			got, err := c.StarbaseUpgradeCost(&rules, tt.args.techLevels, player.Race.Spec, design, newDesign)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("costCalculate.StarbaseUpgradeCost() did not return error when expected")
+					t.Fatalf("costCalculate.StarbaseUpgradeCost() did not return error when expected; returned cost %v", got)
 				} else {
 					t.Fatalf("costCalculate.StarbaseUpgradeCost() errored unexpectedly; err = \n%v", err)
 				}

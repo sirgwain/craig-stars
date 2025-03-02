@@ -59,7 +59,7 @@ func (item *Rules) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *Rules) Scan(src interface{}) error {
+func (item *Rules) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -121,7 +121,7 @@ func (c *client) GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, er
 	return &games[0], nil
 }
 
-func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]cs.GameWithPlayers, error) {
+func (c *client) getGameWithPlayersStatus(where string, args ...any) ([]cs.GameWithPlayers, error) {
 	type gamePlayersJoin struct {
 		Game            `json:"game,omitempty"`
 		cs.PlayerStatus `json:"player,omitempty"`

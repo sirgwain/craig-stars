@@ -142,15 +142,13 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 		return nil, err
 	}
 
-	if err := ug.generatePlayerPlanetReports(); err != nil {
-		return nil, err
-	}
+	ug.generatePlayerPlanetReports()
 
 	ug.applyGameStartModeModifier()
 
 	// setup all the specs for planets, fleets, etc
-	// Normal games only need to compute player specs and whatnot, but max mode games require
-	// complete re-computation due to changing techLevels, etc.
+	// Normal games only need to compute player/planet/fleet specs, but custom start games require
+	// complete re-computation due to changing player tech levels, etc.
 	if ug.StartMode != GameStartModeNormal {
 		ug.computeSpecs()
 	} else {
@@ -310,54 +308,56 @@ func (ug *universeGenerator) generatePlayerPlans() {
 }
 
 // generate designs for each player
+// TODO: TEST THIS
 func (ug *universeGenerator) generatePlayerShipDesigns() error {
 	var err error
-	techStore := ug.Rules.techs
 	for _, player := range ug.Players {
-		designNames := mapset.NewSet[string]()
+		startingFleets := mapset.NewSet[StartingFleet]()
 		num := 1
+		sf := newStartingFleeter(&ug.Rules, player)
+
+		// initialize designs for each player's starting planets
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
-				if designNames.Contains(startingFleet.Name) {
-					// only create one design per name, i.e. Scout, Armed Probe
-					// multiple starting fleets will use the same design
+				if startingFleets.Contains(startingFleet) {
+					// only one design per fleet type
 					continue
 				}
-				hull := techStore.GetHull(string(startingFleet.HullName))
-				if !player.HasTech(&hull.Tech) {
-					// player can't use hull; move on
-					continue
-				}
-				design, err := DesignShip(&ug.Game.Rules, player, hull, startingFleet.Name, num, int(startingFleet.HullSetNumber), startingFleet.Purpose, FleetPurposeFromShipDesignPurpose(startingFleet.Purpose))
+
+				design, err := sf.createStartingDesign(&startingFleet, num)
 				if err != nil {
-					return fmt.Errorf("DesignShip returned error %w", err)
+					return fmt.Errorf("createStartingDesign returned error: %w", err)
 				}
-				player.Designs = append(player.Designs, design)
-				designNames.Add(design.Name)
+
+				if design != nil {
+					// only add to designs slice if we successfully created one
+					player.Designs = append(player.Designs, design)
+				}
+
+				startingFleets.Add(startingFleet)
 				num++
 			}
 		}
 
-		starbaseDesigns := ug.createStartingStarbaseDesigns(ug.Rules.techs, player, num)
-
-		for i := range starbaseDesigns {
-			design := starbaseDesigns[i]
+		// compute starbase designs
+		starbases := ug.createStartingStarbaseDesigns(ug.Rules.techs, player, num)
+		for _, design := range starbases {
 			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
 				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 			}
 			player.Designs = append(player.Designs, design)
+			fmt.Println(design.Name)
 		}
 	}
 	return nil
 }
 
 // have each player discover all the planets in the universe
-func (ug *universeGenerator) generatePlayerPlanetReports() error {
+func (ug *universeGenerator) generatePlayerPlanetReports() {
 	for _, player := range ug.Players {
 		player.initDefaultPlanetIntels(ug.Universe.Planets)
 	}
-	return nil
 }
 
 // generate player starting positions in the given area
@@ -591,12 +591,21 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 
 func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet, fleetNum *int, startingFleets []StartingFleet) error {
 	for _, startingFleet := range startingFleets {
-		design := player.GetDesignByName(startingFleet.Name)
-		if design == nil {
-			// design got ommitted (likely due to a missing hull or similar); just smile and wave
+		if startingFleet.name == "" {
+			// no name indicates ommitted design; just smile and wave
 			continue
 		}
-		fleet := newFleetForDesign(player, design, 1, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.Engine.IdealSpeed)})
+
+		design := player.GetDesignByName(startingFleet.name)
+		if design == nil {
+			// TODO: Should we return an error for this?
+			// All ships by this point should by all means be in the design list
+			continue
+		}
+
+		// make new fleet
+		fleet := newFleetForDesign(player, design, 1, *fleetNum, startingFleet.name,
+			[]Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.Engine.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
 		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
@@ -679,6 +688,11 @@ func (ug *universeGenerator) createStartingStarbaseDesigns(techStore *TechStore,
 	designs := make([]*ShipDesign, len(player.Race.Spec.StartingPlanets))
 
 	for i, startingPlanet := range player.Race.Spec.StartingPlanets {
+		if startingPlanet.StarbaseDesignName == "" {
+			// no starbase name means no design, so skip
+			continue
+		}
+
 		var starbase *ShipDesign
 		var purpose ShipDesignPurpose
 		switch {
@@ -717,13 +731,13 @@ func (ug *universeGenerator) createStartingStarbaseDesigns(techStore *TechStore,
 	return designs
 }
 
-// Player starting starbases are all the same, regardless of starting tech level
-// They get half filled with the starter beam & shield
+// fillStarbaseSlots fills a starbase's slots with starting components.
+// All slots are half filled with the starter beam & shield.
 func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, startingPlanet StartingPlanet) {
 	hull := techStore.GetHull(starbase.Hull)
 	beamWeapon := techStore.GetHullComponentsByCategory(TechCategoryBeamWeapon)[0]
 	shield := techStore.GetHullComponentsByCategory(TechCategoryShield)[0]
-	var massDriver, stargate TechHullComponent
+	var massDriver, stargate *TechHullComponent
 	var haveDriver, haveGate bool
 	for _, hc := range techStore.GetHullComponentsByCategory(TechCategoryOrbital) {
 		if hc.PacketSpeed > 0 {
@@ -736,7 +750,7 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, startingPlane
 		}
 
 		if (haveDriver || !startingPlanet.HasMassDriver) && // we either don't need a driver or have one already
-			(haveGate || !startingPlanet.HasStargate) { // we either don't need a driver or have one already
+			(haveGate || !startingPlanet.HasStargate) { // we either don't need a gate or have one already
 			// we have all the orbital components we need; done with lookup
 			break
 		}
@@ -745,15 +759,15 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, startingPlane
 	placedMassDriver := false
 	placedStargate := false
 	for index, slot := range hull.Slots {
-		var item TechHullComponent
-		qty := int(math.Round(float64(slot.Capacity) / 2))
+		var item *TechHullComponent
+		qty := int(math.Round(float64(slot.Capacity) / 2)) // fill slots half full
 		switch {
 		case slot.Type&HullSlotTypeWeapon != 0:
 			item = beamWeapon
 		case slot.Type&HullSlotTypeShield != 0:
 			item = shield
 		case slot.Type&HullSlotTypeOrbital != 0:
-			qty = 1
+			qty = 1 // only 1 driver/stargate needed
 			if startingPlanet.HasStargate && !placedStargate {
 				item = stargate
 			} else if startingPlanet.HasMassDriver && !placedMassDriver {
@@ -761,7 +775,7 @@ func fillStarbaseSlots(techStore *TechStore, starbase *ShipDesign, startingPlane
 			}
 		}
 
-		if item.Name != "" {
+		if item != nil && item.Name != "" {
 			starbase.Slots = append(starbase.Slots, ShipDesignSlot{
 				HullComponent: item.Name,
 				HullSlotIndex: index + 1,

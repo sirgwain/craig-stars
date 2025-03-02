@@ -32,7 +32,7 @@ func newTurnGenerator(game *FullGame) turnGenerator {
 	return t
 }
 
-// generate a new turn
+// generate a new turn.
 // TODO: add more error handling. A failed turn generation is easier to fix than
 // a corrupt game
 func (t *turnGenerator) generateTurn() error {

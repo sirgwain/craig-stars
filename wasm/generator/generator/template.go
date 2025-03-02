@@ -23,7 +23,7 @@ func RenderSerializer(pkg string, serializers []Serializer) (string, error) {
 	t = template.Must(t.
 		Funcs(sprig.FuncMap()).
 		Funcs(template.FuncMap{
-			"include": func(name string, data interface{}) string {
+			"include": func(name string, data any) string {
 				result, err := includeTemplate(t, name, data)
 				if err != nil {
 					log.Fatalf("failed to include %s %v", name, err)
@@ -34,7 +34,7 @@ func RenderSerializer(pkg string, serializers []Serializer) (string, error) {
 		ParseFS(templatesFS, "templates/*"))
 
 	var out bytes.Buffer
-	if err := t.ExecuteTemplate(&out, "converter.go.tmpl", map[string]interface{}{
+	if err := t.ExecuteTemplate(&out, "converter.go.tmpl", map[string]any{
 		"Pkg":         pkg,
 		"Serializers": serializers,
 	}); err != nil {
@@ -45,7 +45,7 @@ func RenderSerializer(pkg string, serializers []Serializer) (string, error) {
 }
 
 // Define a custom function to include templates
-func includeTemplate(tmpl *template.Template, name string, data interface{}) (string, error) {
+func includeTemplate(tmpl *template.Template, name string, data any) (string, error) {
 	var result strings.Builder
 	err := tmpl.ExecuteTemplate(&result, name, data)
 	if err != nil {

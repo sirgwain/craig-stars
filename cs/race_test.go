@@ -60,8 +60,9 @@ func Test_computeRaceSpec(t *testing.T) {
 		race *Race
 		want RaceSpec
 	}{
+		// TODO: Add test cases for other PRTs
 		{
-			name: "humanoids with arm",
+			name: "humanoids with ARM + UR",
 			race: NewRace().WithLRT(ARM).WithLRT(UR),
 			want: RaceSpec{
 				Costs: map[QueueItemType]Cost{
@@ -115,14 +116,14 @@ func Test_computeRaceSpec(t *testing.T) {
 					StarbaseDesignName: "Starbase",
 					StarbaseHull:       SpaceStation.Name,
 					StartingFleets: []StartingFleet{
-						{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-						{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-						{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeStartingFighter},
-						{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
-						{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
-						{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
-						{"Potato Bug", StartingFleetHullMidgetMiner, 0, ShipDesignPurposeMiner},
-						{"Potato Bug", StartingFleetHullMidgetMiner, 0, ShipDesignPurposeMiner},
+						{HullType: TechHullTypeScout, Type: StartingFleetTypeFighter},                       // Armed Probe
+						{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},                         // Long Range Scout
+						{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer},                 // Santa Maria
+						{HullType: TechHullTypeFreighter, Type: StartingFleetTypeFighter},                   // Teamster/Swashbuckler
+						{HullType: TechHullTypeFighter, Type: StartingFleetTypeFighter},                     // Stalwart Defender
+						{HullType: TechHullTypeMiner, Type: StartingFleetTypeMiner},                         // Cotton Picker
+						{HullType: TechHullTypeMiner, Type: StartingFleetTypeMiner, UsesCheapestHull: true}, // Potato Bug x2
+						{HullType: TechHullTypeMiner, Type: StartingFleetTypeMiner, UsesCheapestHull: true},
 					},
 				}},
 				ArmorStrengthFactor:            1,
@@ -135,12 +136,12 @@ func Test_computeRaceSpec(t *testing.T) {
 				InnateScannerFactor:            1,
 				InvasionAttackBonus:            1.1,
 				InvasionDefendBonus:            1,
-				MaxPopulationOffset:            .2,
-				MineFieldBaseDecayRate:         .02,
-				MineFieldDetonateDecayRate:     .25,
-				MineFieldMaxDecayRate:          .5,
+				MaxPopulationOffset:            0.2,
+				MineFieldBaseDecayRate:         0.02,
+				MineFieldDetonateDecayRate:     0.25,
+				MineFieldMaxDecayRate:          0.5,
 				MineFieldMinDecayFactor:        1,
-				MineFieldPlanetDecayRate:       .04,
+				MineFieldPlanetDecayRate:       0.04,
 				MineralsPerMixedMineralPacket:  40,
 				MineralsPerSingleMineralPacket: 100,
 				PacketDecayFactor:              1,
@@ -150,10 +151,10 @@ func Test_computeRaceSpec(t *testing.T) {
 				PacketResourceCost:             10,
 				RepairFactor:                   1,
 				ResearchFactor:                 1,
-				ScrapMineralOffset:             .45 - (1.0 / 3),
-				ScrapMineralOffsetStarbase:     .9 - (1.0 / 3),
-				ScrapResourcesOffset:           .35,
-				ScrapResourcesOffsetStarbase:   .7,
+				ScrapMineralOffset:             0.45 - (1.0 / 3),
+				ScrapMineralOffsetStarbase:     0.9 - (1.0 / 3),
+				ScrapResourcesOffset:           0.35,
+				ScrapResourcesOffsetStarbase:   0.7,
 				ShieldStrengthFactor:           1,
 				ShipsVanishInVoid:              true,
 				StarbaseCostFactor:             1,
@@ -218,12 +219,12 @@ func Test_computeRaceSpec(t *testing.T) {
 					StarbaseDesignName: "Starbase",
 					StarbaseHull:       SpaceStation.Name,
 					StartingFleets: []StartingFleet{
-						{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-						{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-						{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeStartingFighter},
-						{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
-						{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
-						{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
+						{HullType: TechHullTypeScout, Type: StartingFleetTypeFighter},       // Armed Probe
+						{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},         // Long Range Scout
+						{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer}, // Santa Maria
+						{HullType: TechHullTypeFreighter, Type: StartingFleetTypeFighter},   // Teamster/Swashbuckler
+						{HullType: TechHullTypeFighter, Type: StartingFleetTypeFighter},     // Stalwart Defender
+						{HullType: TechHullTypeMiner, Type: StartingFleetTypeMiner},         // Cotton Picker
 					},
 				}},
 				ArmorStrengthFactor:            1,
@@ -236,12 +237,12 @@ func Test_computeRaceSpec(t *testing.T) {
 				InnateScannerFactor:            1,
 				InvasionAttackBonus:            1.1,
 				InvasionDefendBonus:            1,
-				MaxPopulationOffset:            .2,
-				MineFieldBaseDecayRate:         .02,
-				MineFieldDetonateDecayRate:     .25,
-				MineFieldMaxDecayRate:          .5,
+				MaxPopulationOffset:            0.2,
+				MineFieldBaseDecayRate:         0.02,
+				MineFieldDetonateDecayRate:     0.25,
+				MineFieldMaxDecayRate:          0.5,
 				MineFieldMinDecayFactor:        1,
-				MineFieldPlanetDecayRate:       .04,
+				MineFieldPlanetDecayRate:       0.04,
 				MineralsPerMixedMineralPacket:  40,
 				MineralsPerSingleMineralPacket: 100,
 				PacketDecayFactor:              1,
@@ -251,7 +252,8 @@ func Test_computeRaceSpec(t *testing.T) {
 				PacketResourceCost:             10,
 				RepairFactor:                   1,
 				ResearchFactor:                 1,
-				ScrapMineralOffsetStarbase:     .8 - (1.0 / 3),
+				ScrapMineralOffset:             0,
+				ScrapMineralOffsetStarbase:     0.8 - (1.0 / 3),
 				ShieldStrengthFactor:           1,
 				ShipsVanishInVoid:              true,
 				StarbaseCostFactor:             1,

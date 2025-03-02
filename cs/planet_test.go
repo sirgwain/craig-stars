@@ -329,7 +329,7 @@ func TestPlanet_randomize(t *testing.T) {
 		want   *Planet
 	}{
 		{
-			name:   "normal w/ all 0 rng; shouldn't reset production queue",
+			name:   "normal with all 0 rng; shouldn't reset production queue",
 			fields: fields{rules.HabDropoffRange, rules.MinHab, rules.MaxHab},
 			planet: NewPlanet().WithOrders(PlanetOrders{
 				ProductionQueue: []ProductionQueueItem{

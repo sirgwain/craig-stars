@@ -2,7 +2,23 @@ package cs
 
 import (
 	"fmt"
+	"slices"
 )
+
+// The basic skeleton of a Tech item, containing name, cost and other globally applicable information.
+//
+// TODO: Migrate all Tech item stats to an embedded field to allow uncouplling of properties from item types
+//
+// TODO: Add a way to access parent item properties from within the tech item
+type Tech struct {
+	Name         string           `json:"name"`
+	Cost         Cost             `json:"cost"`
+	Requirements TechRequirements `json:"requirements"`
+	Ranking      int              `json:"ranking"`
+	Category     TechCategory     `json:"category"`
+	Origin       TechOrigin       `json:"origin,omitempty"`
+	Tags         TechTags         `json:"tags"`
+}
 
 type TechCategory string
 
@@ -49,17 +65,6 @@ var TechCategories = []TechCategory{
 	TechCategoryTorpedo,
 }
 
-// The basic skeleton of a Tech item, containing name, cost and other essential info.
-type Tech struct {
-	Name         string           `json:"name"`
-	Cost         Cost             `json:"cost"`
-	Requirements TechRequirements `json:"requirements" `
-	Ranking      int              `json:"ranking"`
-	Category     TechCategory     `json:"category"`
-	Origin       TechOrigin       `json:"origin,omitempty"`
-	Tags         TechTags         `json:"tags,omitempty"`
-}
-
 type TechOrigin string
 
 const (
@@ -76,6 +81,12 @@ type TechRequirements struct {
 	HullsAllowed []string `json:"hullsAllowed,omitempty"`
 	HullsDenied  []string `json:"hullsDenied,omitempty"`
 	Acquirable   bool     `json:"acquirable,omitempty"`
+}
+
+// allowedOnHull reports whether this tech can be mounted on a hull of the given name.
+func (t *Tech) allowedOnHull(hullName string) bool {
+	return !(len(t.Requirements.HullsAllowed) > 0 && !slices.Contains(t.Requirements.HullsAllowed, hullName)) &&
+		!(len(t.Requirements.HullsDenied) > 0 && slices.Contains(t.Requirements.HullsDenied, hullName))
 }
 
 type TechHullComponent struct {
@@ -317,7 +328,7 @@ func (hst HullSlotType) String() string {
 	case HullSlotTypeBomb:
 		return "bomb"
 	case HullSlotTypeMining:
-		return "mining"
+		return "mining robot"
 	case HullSlotTypeElectrical:
 		return "electrical"
 	case HullSlotTypeShield:
@@ -335,21 +346,21 @@ func (hst HullSlotType) String() string {
 	case HullSlotTypeMineLayer:
 		return "minelayer"
 	case HullSlotTypeOrbitalElectrical:
-		return "orbital electrical"
+		return "orbital/electrical"
 	case HullSlotTypeElectricalMechanical:
-		return "electrical mechanical"
+		return "electrical/mechanical"
 	case HullSlotTypeShieldElectricalMechanical:
-		return "shield electrical mechanical"
+		return "shield/electrical/mechanical"
 	case HullSlotTypeScannerElectricalMechanical:
-		return "scanner electrical mechanical"
+		return "scanner/electrical/mechanical"
 	case HullSlotTypeArmorScannerElectricalMechanical:
-		return "armor scanner electrical mechanical"
+		return "armor/scanner/electrical/mechanical"
 	case HullSlotTypeMineElectricalMechanical:
-		return "mine electrical mechanical"
+		return "minelayer/electrical/mechanical"
 	case HullSlotTypeShieldArmor:
-		return "shield armor"
+		return "shield/armor"
 	case HullSlotTypeWeaponShield:
-		return "weapon shield"
+		return "weapon/shield"
 	case HullSlotTypeGeneral:
 		return "general"
 	default:
@@ -401,9 +412,8 @@ func FromHabType(habType HabType) TerraformHabType {
 		return TerraformHabTypeTemp
 	case Rad:
 		return TerraformHabTypeRad
-	default:
-		return TerraformHabTypeNone
 	}
+	return TerraformHabTypeNone
 }
 
 func NewTech(name string, cost Cost, requirements TechRequirements, ranking int, category TechCategory, tags ...TechTag) Tech {
@@ -422,6 +432,8 @@ func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ra
 	t.Origin = origin
 	return t
 }
+
+// String functions to make these implement fmt.Stringer
 
 func (t *Tech) String() string                 { return t.Name }
 func (t *TechHull) String() string             { return t.Name }

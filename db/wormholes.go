@@ -34,7 +34,7 @@ func (item *WormholeSpec) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *WormholeSpec) Scan(src interface{}) error {
+func (item *WormholeSpec) Scan(src any) error {
 	return scanJSON(src, item)
 }
 

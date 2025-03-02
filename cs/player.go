@@ -348,10 +348,9 @@ func (p *Player) GetForeignDesign(playerNum int, num int) *ShipDesignIntel {
 	return nil
 }
 
-// Get a player ShipDesign, or nil if no design found
+// Get a player ShipDesign, or nil if none are found
 func (p *Player) GetDesignByName(name string) *ShipDesign {
-	for i := range p.Designs {
-		design := p.Designs[i]
+	for _, design := range p.Designs {
 		if design.Name == name {
 			return design
 		}
@@ -359,20 +358,15 @@ func (p *Player) GetDesignByName(name string) *ShipDesign {
 	return nil
 }
 
-// get the latest ship design by purpose
-func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
-	var latest *ShipDesign = nil
-	for i := range p.Designs {
-		design := p.Designs[i]
-		if design.Purpose == purpose {
-			if latest == nil {
-				latest = design
-			} else {
-				if latest.Version < design.Version {
-					latest = design
-				}
-			}
+// get the latest ship design by purpose, or nil if none with this purpose exist
+func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) (latest *ShipDesign) {
+	for _, design := range p.Designs {
+		if design.Purpose != purpose {
+			continue
+		}
 
+		if latest == nil || latest.Version < design.Version {
+			latest = design
 		}
 	}
 
@@ -552,19 +546,13 @@ func ComputePlayerResearchSpec(player *Player, rules *Rules, planets []*Planet) 
 	return spec
 }
 
-// return true if the player currently has this tech
+// HasTech reports whether a player currently has a given tech, checking tech level requirements, PRT/LRT bans and tech item acquirability.
 func (p *Player) HasTech(tech *Tech) bool {
-	return p.CanLearnTech(tech) && p.TechLevels.HasRequiredLevels(tech.Requirements.TechLevel) && (!tech.Requirements.Acquirable || p.HasAcquiredTech(tech))
+	return p.TechLevels.HasRequiredLevels(tech.Requirements.TechLevel) &&
+		p.CanLearnTech(tech) && p.HasAcquiredTech(tech)
 }
 
-// HasAcquiredTech returns true if the player has acquired a tech from a different origin
-func (p *Player) HasAcquiredTech(tech *Tech) bool {
-	if !tech.Requirements.Acquirable {
-		return true
-	}
-	return p.AcquiredTechs[tech.Name]
-}
-
+// CanLearnTech reports whether a player can learn a given tech based on PRT and LRT requirements.
 func (p *Player) CanLearnTech(tech *Tech) bool {
 	requirements := tech.Requirements
 	if len(requirements.PRTsRequired) != 0 && !slices.Contains(requirements.PRTsRequired, p.Race.PRT) {
@@ -585,7 +573,13 @@ func (p *Player) CanLearnTech(tech *Tech) bool {
 	return true
 }
 
-// return the cost, in resources, it will take to reach this tech level
+// HasAcquiredTech reports whether a player has acquired a given tech.
+// If the tech isn't acquirable to begin with, this returns true.
+func (p *Player) HasAcquiredTech(tech *Tech) bool {
+	return !tech.Requirements.Acquirable || p.AcquiredTechs[tech.Name]
+}
+
+// return the cost in resources needed to reach this tech level
 func (p *Player) GetResearchCost(rules *Rules, techLevel TechLevel) int {
 	researcher := newResearcher(rules)
 

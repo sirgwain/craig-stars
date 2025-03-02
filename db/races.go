@@ -55,7 +55,7 @@ func (item *RaceSpec) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *RaceSpec) Scan(src interface{}) error {
+func (item *RaceSpec) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
