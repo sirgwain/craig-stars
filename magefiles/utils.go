@@ -163,6 +163,9 @@ func Merge_Temp_JSON() error {
 // Run frontend tests using Vitest with the given args.
 func Test_Vitest(vitestArgs string) error {
 	fmt.Println("Running vitest tests...")
+	if vitestArgs == "" {
+		vitestArgs = "."
+	}
 	cmd := exec.Command("npm", "run-script", "test:unit", "--", vitestArgs)
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
@@ -173,6 +176,9 @@ func Test_Vitest(vitestArgs string) error {
 // Run end-to-end tests using Playwright with the given args.
 func Test_Playwright(playwrightArgs string) error {
 	fmt.Println("Running playwright tests...")
+	if playwrightArgs == "" {
+		playwrightArgs = "."
+	}
 	cmd := exec.Command("npm", "run-script", "test:e2e", "--", playwrightArgs)
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout

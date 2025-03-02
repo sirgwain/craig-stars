@@ -48,13 +48,13 @@
 		{
 			"id": "vitestArgs",
 			"type": "promptString",
-			"default": "",
+			"default": ".",
 			"description": "Enter command-line arguments to pass to vitest. --run is included."
 		},
 		{
 			"id": "playwrightArgs",
 			"type": "promptString",
-			"default": "",
+			"default": ".",
 			"description": "Enter command-line arguments to pass to playwright."
 		},
 	]

@@ -18,7 +18,7 @@ func createTestGameRunner() GameRunner {
 	cfg.Database.Filename = ":memory:"
 	cfg.Database.DebugLogging = true
 	if err := dbConn.Connect(cfg); err != nil {
-		panic(fmt.Errorf("error connecting to test database: \n: \n%w", err))
+		panic(fmt.Errorf("error connecting to test database: \n%w", err))
 	}
 
 	return &gameRunner{
@@ -34,7 +34,7 @@ func Test_gameRunner_HostGame(t *testing.T) {
 	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(cs.Humanoids()).WithAIPlayer(cs.AIDifficultyNormal, 0))
 
 	if err != nil {
-		t.Errorf("host game returned error %v", err)
+		t.Errorf("host game returned error \n%v", err)
 		return
 	}
 
