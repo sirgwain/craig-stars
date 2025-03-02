@@ -7,8 +7,13 @@ CREATE TABLE users (
   email TEXT,
   verified NUMERIC,
   banned NUMERIC,
-  role TEXT NOT NULL
-, lastLogin TIMESTAMP, discordId TEXT, discordAvatar TEXT, gameId INTEGER NOT NULL DEFAULT 0, playerNum INTEGER NOT NULL DEFAULT 0);
+  role TEXT NOT NULL,
+  lastLogin TIMESTAMP,
+  discordId TEXT,
+  discordAvatar TEXT,
+  gameId INTEGER NOT NULL DEFAULT 0,
+  playerNum INTEGER NOT NULL DEFAULT 0
+);
 CREATE TABLE races (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
@@ -82,8 +87,10 @@ CREATE TABLE games (
   areaX REAL,
   areaY REAL,
   year INTEGER,
-  victorDeclared NUMERIC
-, maxMinerals NUMERIC DEFAULT 0, archived NUMERIC NOT NULL default 0);
+  victorDeclared NUMERIC,
+  maxMinerals NUMERIC DEFAULT 0,
+  archived NUMERIC NOT NULL default 0
+);
 CREATE TABLE rules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
@@ -197,7 +204,11 @@ CREATE TABLE players (
   scoreHistory TEXT,
   achievedVictoryConditions INTEGER,
   victor NUMERIC,
-  spec TEXT, guest NUMERIC NOT NULL default 0, aiDifficulty TEXT DEFAULT "", acquiredTechs TEXT, archived NUMERIC NOT NULL default 0,
+  spec TEXT,
+  guest NUMERIC NOT NULL default 0,
+  aiDifficulty TEXT DEFAULT "",
+  acquiredTechs TEXT,
+  archived NUMERIC NOT NULL default 0,
   UNIQUE (gameId, num),
   CONSTRAINT fkGamesPlayers FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
@@ -230,7 +241,9 @@ CREATE TABLE fleets (
   previousPositionY REAL,
   orbitingPlanetNum INTEGER,
   starbase NUMERIC,
-  spec TEXT, purpose TEXT NOT NULL default '', tags TEXT,
+  spec TEXT,
+  purpose TEXT NOT NULL default '',
+  tags TEXT,
   CONSTRAINT fkPlayersFleets FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num) ON DELETE CASCADE,
   CONSTRAINT fkGamesFleets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
@@ -250,7 +263,10 @@ CREATE TABLE shipDesigns (
   canDelete NUMERIC,
   slots TEXT,
   purpose TEXT,
-  spec TEXT, cannotDelete NUMERIC NOT NULL default 0, originalPlayerNum INTEGER DEFAULT 0, mysteryTrader NUMERIC,
+  spec TEXT,
+  cannotDelete NUMERIC NOT NULL default 0,
+  originalPlayerNum INTEGER DEFAULT 0,
+  mysteryTrader NUMERIC,
   UNIQUE (gameId, playerNum, num),
   UNIQUE (gameId, playerNum, name),
   CONSTRAINT fkPlayersDesigns FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num) ON DELETE CASCADE
@@ -296,7 +312,9 @@ CREATE TABLE planets (
   packetTargetNum INTEGER,
   packetSpeed INTEGER,
   productionQueue TEXT,
-  spec TEXT, tags TEXT, randomArtifact NUMERIC DEFAULT 0,
+  spec TEXT,
+  tags TEXT,
+  randomArtifact NUMERIC DEFAULT 0,
   UNIQUE (gameId, num),
   CONSTRAINT fkGamesPlanets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
@@ -319,7 +337,8 @@ CREATE TABLE mineralPackets (
   scanRange INTEGER,
   scanRangePen INTEGER,
   headingX REAL,
-  headingY REAL, tags TEXT,
+  headingY REAL,
+  tags TEXT,
   UNIQUE (gameId, playerNum, num),
   CONSTRAINT fkPlayersMineralPackets FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num),
   CONSTRAINT fkGamesMineralPackets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
@@ -336,7 +355,8 @@ CREATE TABLE salvages (
   playerNum INTEGER,
   ironium INTEGER,
   boranium INTEGER,
-  germanium INTEGER, tags TEXT,
+  germanium INTEGER,
+  tags TEXT,
   UNIQUE (gameId, num),
   CONSTRAINT fkPlayersSalvages FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num),
   CONSTRAINT fkGamesSalvages FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
@@ -353,7 +373,8 @@ CREATE TABLE wormholes (
   destinationNum INTEGER,
   stability TEXT,
   yearsAtStability INTEGER,
-  spec TEXT, tags TEXT,
+  spec TEXT,
+  tags TEXT,
   UNIQUE (gameId, num),
   CONSTRAINT fkGamesWormholes FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
@@ -369,7 +390,13 @@ CREATE TABLE mysteryTraders (
   headingX REAL,
   headingY REAL,
   warpSpeed INTEGER,
-  spec TEXT, tags TEXT, requestedBoon INTEGER, destinationX REAL, destinationY REAL, rewardType TEXT, playersRewarded TEXT,
+  spec TEXT,
+  tags TEXT,
+  requestedBoon INTEGER,
+  destinationX REAL,
+  destinationY REAL,
+  rewardType TEXT,
+  playersRewarded TEXT,
   UNIQUE (gameId, num),
   CONSTRAINT fkGamesMysteryTraders FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
@@ -386,17 +413,19 @@ CREATE TABLE mineFields (
   numMines INTEGER,
   detonate NUMERIC,
   mineFieldType TEXT,
-  spec TEXT, tags TEXT,
+  spec TEXT,
+  tags TEXT,
   UNIQUE (gameId, playerNum, num),
   CONSTRAINT fkPlayersMineFields FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num),
   CONSTRAINT fkGamesMineFields FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
-CREATE UNIQUE INDEX fleetStarbasePlanet on fleets(gameId, playerNum, planetNum) WHERE starbase = 1;
+CREATE UNIQUE INDEX fleetStarbasePlanet on fleets(gameId, playerNum, planetNum)
+WHERE starbase = 1;
 CREATE TABLE versions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-    updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-    current NUMERIC
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  current NUMERIC
 );
 INSERT INTO versions (current)
 VALUES (0);

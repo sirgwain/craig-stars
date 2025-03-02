@@ -1,1 +1,2 @@
-ALTER TABLE players ADD starbaseIntels TEXT;
+ALTER TABLE players
+ADD starbaseIntels TEXT;

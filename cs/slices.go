@@ -1,6 +1,6 @@
 package cs
 
-// Finds and returns the first element in s for which 
+// Finds and returns the first element in s for which
 // funcToCall returns true, or the type's zero value
 // if none are found.
 func FindSlice[S ~[]V, V any](s S, funcToCall func(V) bool) (firstValue V) {

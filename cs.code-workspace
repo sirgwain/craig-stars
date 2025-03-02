@@ -1,26 +1,26 @@
 {
-  "folders": [
-    {
-      "name": "root",
-      "path": "./",
-    },
-    {
-      "name": "frontend",
-      "path": "frontend",
-    },
-  ],
-  "settings": {
-    "[json][jsonc][jsonl][js][ts][css][html]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode",
-    },
-    "testing.automaticallyOpenPeekView": "never",
-    "typescript.tsdk": "frontend/node_modules/typescript/lib",
-    "goStructTagAutogen.generation": {
-      "template": "json:\"{{camel}},omitempty\"",
-      "json": {
-        "cases": ["camel"],
-        "options": ["omitempty", "-"],
-      },
-    },
-  },
+	"folders": [
+		{
+			"name": "root",
+			"path": "./"
+		},
+		{
+			"name": "frontend",
+			"path": "frontend"
+		}
+	],
+	"settings": {
+		"[json][jsonc][jsonl][js][ts][css][html]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode"
+		},
+		"testing.automaticallyOpenPeekView": "never",
+		"typescript.tsdk": "frontend/node_modules/typescript/lib",
+		"goStructTagAutogen.generation": {
+			"template": "json:\"{{camel}},omitempty\"",
+			"json": {
+				"cases": ["camel"],
+				"options": ["omitempty", "-"]
+			}
+		}
+	}
 }

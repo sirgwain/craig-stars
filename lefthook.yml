@@ -18,7 +18,8 @@ pre-commit:
         - "frontend/**"
         - "*.go"
       files: git diff --cached --name-only --diff-filter=ACMR
-      run: npx prettier --ignore-unknown --write {files}
+      # use frontend config to avoid using default config and backend indentation
+      run: npx prettier --ignore-unknown --write {files} --config=./frontend/.prettierrc
       stage_fixed: true
     prettier_frontend:
       root: "frontend/"

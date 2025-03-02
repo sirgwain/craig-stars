@@ -1,177 +1,177 @@
 {
-  "version": "2.0.0",
-  "presentation": {
-    "panel": "dedicated",
-    "showReuseMessage": false,
-    "clear": true
-  },
-  "tasks": [
-    {
-      "label": "Run all tests",
-      "type": "shell",
-      "command": "mage",
-      "args": ["test"],
-      "group": {
-        "kind": "test",
-        "isDefault": "true"
-      },
-      "icon": {
-        "color": "terminal.ansiGreen",
-        "id": "beaker"
-      },
-      "detail": "Run all backend/frontend tests and linting checks."
-    },
-    {
-      "label": "Go: run tests",
-      "type": "shell",
-      "command": "mage",
-      "args": ["test_golang", "--run=\"^${input:goTestName}\""],
-      "group": "test",
-      "icon": {
-        "color": "terminal.ansiGreen",
-        "id": "run-below"
-      },
-      "detail": "Run backend tests using gotestsum."
-    },
-    {
-      "label": "Go: run benchmarks",
-      "type": "go",
-      "problemMatcher": "$go",
-      "command": "test",
-      "args": [
-        "--run=$^",
-        "--bench=\"^${input:goTestName}\"",
-        "--benchmem",
-        "--benchtime=${input:benchTime}s",
-        "--benchcount=5",
-        "--json tmp/test-results/go-benchresults.json"
-      ],
-      "group": "test",
-      "icon": {
-        "color": "terminal.ansiYellow",
-        "id": "clock"
-      },
-      "detail": "Run Go benchmarks and save the results to JSON."
-    },
-    {
-      "label": "Go: generate files",
-      "type": "shell",
-      "problemMatcher": "$go",
-      "group": "build",
-      "icon": {
-        "color": "terminal.ansiMagenta",
-        "id": "table"
-      },
-      "command": "mage generate",
-      "detail": "Generate various backend and frontend files."
-    },
-    // Build commands for starting the server
-    {
-      "label": "Build & launch server",
-      "type": "shell",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "dependsOn": ["Build server", "Launch server"],
-      "command": "echo \"Have a nice day.\"",
-      "icon": {
-        "color": "terminal.ansiCyan",
-        "id": "run-all"
-      },
-      "dependsOrder": "sequence",
-      "presentation": {
-        "panel": "shared"
-      },
-      "detail": "Start up the server for local development using mage."
-    },
-    {
-      "label": "Build server",
-      "type": "shell",
-      "command": "mage",
-      "args": ["build"],
-      "icon": {
-        "color": "terminal.ansiCyan",
-        "id": "symbol-constructor"
-      },
-      "detail": "Build server without launching it."
-    },
-    {
-      "label": "Launch server",
-      "type": "shell",
-      "dependsOn": ["launch backend", "launch frontend"],
-      "command": "echo \"Done running server; exiting\"",
-      "icon": {
-        "color": "terminal.ansiCyan",
-        "id": "bell"
-      },
-      "presentation": {
-        "panel": "shared"
-      },
-      "detail": "Launch frontend and backend in separate terminals without building anything."
-    },
-    {
-      "hide": true,
-      "label": "launch backend",
-      "type": "shell",
-      "command": "mage",
-      "args": ["launch_backend"],
-      "icon": {
-        "color": "terminal.ansiBlue",
-        "id": "rocket"
-      }
-    },
-    {
-      "hide": true,
-      "label": "launch frontend",
-      "type": "shell",
-      "command": "mage",
-      "args": ["launch_frontend"],
-      "icon": {
-        "color": "terminal.ansiBlue",
-        "id": "radio-tower"
-      }
-    },
-    {
-      "hide": true,
-      "label": "Compile Mage debug file",
-      "type": "shell",
-      "command": "mage",
-      "args": ["-compile", "./magefile-debug"],
-      "presentation": {
-        "panel": "shared"
-      },
-      "icon": {
-        "id": "debug-console",
-        "color": "terminal.ansiBlack"
-      }
-    },
-    {
-      "hide": true,
-      "label": "Delete Mage debug file",
-      "type": "shell",
-      "icon": {
-        "id": "trash",
-        "color": "terminal.ansiRed"
-      },
-      "command": "rm magefiles/magefile-debug",
-      "presentation": {
-        "panel": "shared"
-      }
-    }
-  ],
-  "inputs": [
-    {
-      "id": "goTestName",
-      "type": "promptString",
-      "default": ".*",
-      "description": "Enter regex of test file names to run. Subtests are separated by slashes (/) and spaces are replaced by underscores (_)."
-    },
-    {
-      "id": "benchTime",
-      "type": "promptString",
-      "default": "3",
-      "description": "Enter amount of time (in seconds) to run each benchmark for."
-    }
-  ]
+	"version": "2.0.0",
+	"presentation": {
+		"panel": "dedicated",
+		"showReuseMessage": false,
+		"clear": true
+	},
+	"tasks": [
+		{
+			"label": "Run all tests",
+			"type": "shell",
+			"command": "mage",
+			"args": ["test"],
+			"group": {
+				"kind": "test",
+				"isDefault": "true"
+			},
+			"icon": {
+				"color": "terminal.ansiGreen",
+				"id": "beaker"
+			},
+			"detail": "Run all backend/frontend tests and linting checks."
+		},
+		{
+			"label": "Go: run tests",
+			"type": "shell",
+			"command": "mage",
+			"args": ["test_golang", "--run=\"^${input:goTestName}\""],
+			"group": "test",
+			"icon": {
+				"color": "terminal.ansiGreen",
+				"id": "run-below"
+			},
+			"detail": "Run backend tests using gotestsum."
+		},
+		{
+			"label": "Go: run benchmarks",
+			"type": "go",
+			"problemMatcher": "$go",
+			"command": "test",
+			"args": [
+				"--run=$^",
+				"--bench=\"^${input:goTestName}\"",
+				"--benchmem",
+				"--benchtime=${input:benchTime}s",
+				"--benchcount=5",
+				"--json tmp/test-results/go-benchresults.json"
+			],
+			"group": "test",
+			"icon": {
+				"color": "terminal.ansiYellow",
+				"id": "clock"
+			},
+			"detail": "Run Go benchmarks and save the results to JSON."
+		},
+		{
+			"label": "Go: generate files",
+			"type": "shell",
+			"problemMatcher": "$go",
+			"group": "build",
+			"icon": {
+				"color": "terminal.ansiMagenta",
+				"id": "table"
+			},
+			"command": "mage generate",
+			"detail": "Generate various backend and frontend files."
+		},
+		// Build commands for starting the server
+		{
+			"label": "Build & launch server",
+			"type": "shell",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"dependsOn": ["Build server", "Launch server"],
+			"command": "echo \"Have a nice day.\"",
+			"icon": {
+				"color": "terminal.ansiCyan",
+				"id": "run-all"
+			},
+			"dependsOrder": "sequence",
+			"presentation": {
+				"panel": "shared"
+			},
+			"detail": "Start up the server for local development using mage."
+		},
+		{
+			"label": "Build server",
+			"type": "shell",
+			"command": "mage",
+			"args": ["build"],
+			"icon": {
+				"color": "terminal.ansiCyan",
+				"id": "symbol-constructor"
+			},
+			"detail": "Build server without launching it."
+		},
+		{
+			"label": "Launch server",
+			"type": "shell",
+			"dependsOn": ["launch backend", "launch frontend"],
+			"command": "echo \"Done running server; exiting\"",
+			"icon": {
+				"color": "terminal.ansiCyan",
+				"id": "bell"
+			},
+			"presentation": {
+				"panel": "shared"
+			},
+			"detail": "Launch frontend and backend in separate terminals without building anything."
+		},
+		{
+			"hide": true,
+			"label": "launch backend",
+			"type": "shell",
+			"command": "mage",
+			"args": ["launch_backend"],
+			"icon": {
+				"color": "terminal.ansiBlue",
+				"id": "rocket"
+			}
+		},
+		{
+			"hide": true,
+			"label": "launch frontend",
+			"type": "shell",
+			"command": "mage",
+			"args": ["launch_frontend"],
+			"icon": {
+				"color": "terminal.ansiBlue",
+				"id": "radio-tower"
+			}
+		},
+		{
+			"hide": true,
+			"label": "Compile Mage debug file",
+			"type": "shell",
+			"command": "mage",
+			"args": ["-compile", "./magefile-debug"],
+			"presentation": {
+				"panel": "shared"
+			},
+			"icon": {
+				"id": "debug-console",
+				"color": "terminal.ansiBlack"
+			}
+		},
+		{
+			"hide": true,
+			"label": "Delete Mage debug file",
+			"type": "shell",
+			"icon": {
+				"id": "trash",
+				"color": "terminal.ansiRed"
+			},
+			"command": "rm magefiles/magefile-debug",
+			"presentation": {
+				"panel": "shared"
+			}
+		}
+	],
+	"inputs": [
+		{
+			"id": "goTestName",
+			"type": "promptString",
+			"default": ".*",
+			"description": "Enter regex of test file names to run. Subtests are separated by slashes (/) and spaces are replaced by underscores (_)."
+		},
+		{
+			"id": "benchTime",
+			"type": "promptString",
+			"default": "3",
+			"description": "Enter amount of time (in seconds) to run each benchmark for."
+		}
+	]
 }
