@@ -142,11 +142,11 @@ export function hullAllowed(hull: TechHull, tech: Tech): boolean {
 	const hullDenied = tech.requirements.hullsDenied
 		? tech.requirements.hullsDenied.indexOf(hull.name) != -1
 		: false;
-	const notArmedAndUnarmedPart =
+	const armedWithUnarmedPart =
 		isHullComponent(tech.category) && // short circuiting makes this safe
 		((tech as TechHullComponent).cloakUnarmedOnly ?? false) &&
-		hull.slots.some((slot) => (slot.type & HullSlotTypeWeapon) != 0);
-	return hullAllowed && !hullDenied && notArmedAndUnarmedPart;
+		hull.slots.some(slot => canFillSlot(slot.type, HullSlotTypeWeapon));
+	return hullAllowed && !hullDenied && !armedWithUnarmedPart;
 }
 
 export function getDefenseCoverage(defense: TechDefense, defenses: number): number {
