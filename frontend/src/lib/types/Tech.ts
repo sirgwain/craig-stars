@@ -130,21 +130,28 @@ export function isHull(tech: Tech | undefined): boolean {
 	return [TechCategoryShipHull, TechCategoryStarbaseHull].includes(tech.category);
 }
 
+/**
+ * Checks if the {@linkcode HullSlotType} of a given {@linkcode TechHullSlot}
+   can be filled with an item of another HullSlotType.
+ * @param hcType - The type of the hull slot to check.
+ * @param slotType - The type of the slot to check.
+ * @returns `true` if the slot can be filled with a weapon, `false` otherwise.
+ */
 export function canFillSlot(hcType: HullSlotType, type: HullSlotType): boolean {
 	return (hcType & type) > 0;
 }
 
-// true if this hull is allowed to mount this component
-export function hullAllowed(hull: TechHull, tech: Tech): boolean {
-	const hullAllowed = tech.requirements.hullsAllowed
-		? tech.requirements.hullsAllowed.indexOf(hull.name) != -1
-		: true;
-	const hullDenied = tech.requirements.hullsDenied
-		? tech.requirements.hullsDenied.indexOf(hull.name) != -1
-		: false;
-	const armedWithUnarmedPart =
-		isHullComponent(tech.category) && // short circuiting makes this safe
-		((tech as TechHullComponent).cloakUnarmedOnly ?? false) &&
+/**
+ * Checks if a given {@linkcode TechHull} is allowed to use a given {@linkcode TechHullComponent}.
+ * @param hull - The {@linkcode TechHull|hull} being checked.
+ * @param hc - The {@linkcode TechHullComponent|hull component} to be used.
+ * @returns `true` if the hull is allowed to use the component, `false` otherwise.
+ */
+export function hullAllowed(hull: TechHull, hc: TechHullComponent): boolean {
+	// nullish coaclescing makes this work ("undefined == -1" is always false)
+	const hullAllowed = hc.requirements.hullsAllowed?.indexOf(hull.name) != -1
+	const hullDenied = hc.requirements.hullsDenied?.indexOf(hull.name) == -1
+	const armedWithUnarmedPart = (hc.cloakUnarmedOnly ?? false) &&
 		hull.slots.some(slot => canFillSlot(slot.type, HullSlotTypeWeapon));
 	return hullAllowed && !hullDenied && !armedWithUnarmedPart;
 }

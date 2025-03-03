@@ -11,10 +11,7 @@
 			"type": "shell",
 			"command": "mage",
 			"args": ["test"],
-			"group": {
-				"kind": "test",
-				"isDefault": "true"
-			},
+			"group": "test",
 			"icon": {
 				"color": "terminal.ansiGreen",
 				"id": "beaker"

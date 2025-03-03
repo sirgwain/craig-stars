@@ -10,7 +10,7 @@
 		}
 	],
 	"settings": {
-		"[json][jsonc][jsonl][js][ts][css][html]": {
+		"[json][jsonc][jsonl][js][ts][css][html][svelte]": {
 			"editor.defaultFormatter": "esbenp.prettier-vscode"
 		},
 		"testing.automaticallyOpenPeekView": "never",
