@@ -36,8 +36,11 @@ func TestCreateWormhole(t *testing.T) {
 			// id is automatically added
 			want.ID = tt.args.wormhole.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateWormhole() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreateWormhole() did not return error when expected")
+				} else {
+					t.Fatalf("CreateWormhole() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if !reflect.DeepEqual(tt.args.wormhole, &want) {
 				t.Errorf("CreateWormhole() = \n%v, want \n%v", tt.args.wormhole, want)
@@ -96,16 +99,18 @@ func TestGetWormhole(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetWormhole(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetWormhole() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetWormhole() did not return error when expected")
+				} else {
+					t.Fatalf("GetWormhole() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetWormhole() = %v, want %v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

@@ -264,7 +264,7 @@ func (settings *GameSettings) WithOpenPlayerSlot() *GameSettings {
 	return settings
 }
 
-// Add an AI player
+// Add an AI player to this GameSettings
 func (settings *GameSettings) WithAIPlayer(aiDifficulty AIDifficulty, defaultHullSet int) *GameSettings {
 	settings.Players = append(settings.Players, NewGamePlayer{Type: NewGamePlayerTypeAI, AIDifficulty: aiDifficulty, DefaultHullSet: defaultHullSet})
 	return settings
@@ -431,10 +431,10 @@ func (g *FullGame) computeSpecs() error {
 			player := g.getPlayer(planet.PlayerNum)
 			planet.Spec = computePlanetSpec(rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
-				return fmt.Errorf("planet %s unable to populate queue designs %w", planet.Name, err)
+				return fmt.Errorf("planet %s unable to populate queue designs: %w", planet.Name, err)
 			}
 			if err := planet.PopulateProductionQueueEstimates(rules, player); err != nil {
-				return fmt.Errorf("planet %s unable to populate queue estimates %w", planet.Name, err)
+				return fmt.Errorf("planet %s unable to populate queue estimates: %w", planet.Name, err)
 			}
 
 			planet.MarkDirty()

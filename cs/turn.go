@@ -1914,7 +1914,7 @@ func (t *turnGenerator) playerResearch() error {
 			numInstances := design.Spec.NumInstances
 			design.Spec, err = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {
-				return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+				return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 			}
 			design.Spec.NumBuilt = numBuilt
 			design.Spec.NumInstances = numInstances
@@ -2504,7 +2504,7 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 						var err error
 						design.Spec, err = ComputeShipDesignSpec(&t.game.Rules, player.TechLevels, player.Race.Spec, design)
 						if err != nil {
-							return fmt.Errorf("ComputeShipDesignSpec returned error %w", err)
+							return fmt.Errorf("ComputeShipDesignSpec returned error: %w", err)
 						}
 						player.Designs = append(player.Designs, design)
 						t.game.addDesign(design)
@@ -3010,7 +3010,7 @@ func (t *turnGenerator) scan() error {
 
 		scanner := newPlayerScanner(t.game.Universe, t.game.Players, &t.game.Rules, player)
 		if err := scanner.scan(); err != nil {
-			return fmt.Errorf("scan universe and update player intel -> %w", err)
+			return fmt.Errorf("scan universe and update player intel failed: %w", err)
 		}
 		t.fleetPatrol(player)
 
@@ -3020,10 +3020,6 @@ func (t *turnGenerator) scan() error {
 	return nil
 }
 
-// Calculate the score for this year for each player
-//
-// Note: this depends on each player having updated player reports
-//
 // Here's how empires score:
 // Planets:  From 1 to 6 points, scoring 1 point for each 100,000 colonists
 // Starbases: 3 points each (doesn't include Orbital Forts)
@@ -3039,6 +3035,8 @@ func (t *turnGenerator) scan() error {
 //	                    4 points for level 10 and above
 //
 // Resources: 1 point for every 30 resources
+
+// Calculate the score for this year for each player.
 func (t *turnGenerator) calculateScores() {
 	scores := make([]PlayerScore, len(t.game.Players))
 

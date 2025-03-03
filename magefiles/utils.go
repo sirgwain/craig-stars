@@ -8,46 +8,190 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"github.com/sirgwain/craig-stars/test"
 )
 
-// Test both the backend and frontend in succession.
+// Run all frontend/backend tests and lint checks.
 func Test() error {
-	fmt.Println("go test ./...")
-	if err := sh.RunV("go", "test", "./..."); err != nil {
+	if err := Lint(); err != nil {
 		return err
 	}
 
-	fmt.Println("npm run test")
-	cmd := exec.Command("npm", "run-script", "test")
+	err := Test_Golang("")
+	if err != nil {
+		return err
+	}
+
+	if err := Test_Vitest(""); err != nil {
+		return err
+	}
+
+	return Test_Playwright("")
+}
+
+// Run ESLint lint checks on frontend code.
+func Lint() error {
+	fmt.Println("Running ESLint linting checks...")
+	cmd := exec.Command("npm", "run-script", "lint")
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
+	return cmd.Run()
+}
+
+// Run backend golang tests using gotestsum with passing args to "go test".
+// This runs all tests across all packages.
+// Gotestsum args are dependent on the value of $CI and $GITHUB_REPOSITORY/$GH_REPO.
+func Test_Golang(goTestArgs string) error {
+	fmt.Println("Running backend tests...")
+
+	// read gotestsum config args from text file
+	// use CI config if on CI; else regular config
+	var filePath string
+	if is_CI() {
+		fmt.Println("CI run detected; using CI config")
+		filePath = "gotestsum/gotestsum_ci.config.txt"
+	} else {
+		fmt.Println("Non-CI run detected; using default config")
+		filePath = "gotestsum/gotestsum.config.txt"
+	}
+	configBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return mg.Fatalf(1, "error reading gotestsum config file: \n%w", err)
 	}
 
-	fmt.Println("npm run lint")
-	cmd = exec.Command("npm", "run-script", "lint")
-	cmd.Dir = "./frontend"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
+	// extract config values delimited by commas and whitespace
+	configVals := strings.FieldsFunc(string(configBytes), func(r rune) bool {
+		return (r == ',' || r == ' ' || r == '\n' || r == '\r')
+	})
+	fmt.Printf("Config file at %s successfully read.\n", filePath)
+
+	// if $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
+	// Otherwise, check for $GH_REPO (from github CLI) before falling back to a default string.
+	var pkgName string = "craig-stars"
+	if r := strings.TrimSpace(os.Getenv("GITHUB_REPOSITORY")); r != "" {
+		pkgName = r
+	} else if r = strings.TrimSpace(os.Getenv("GH_REPO")); r != "" {
+		pkgName = r
 	}
 
+	// merge any produced json files together once we're done testing
+	// we only do this after all the setup to save time
+	defer func() {
+		if err := Merge_Temp_JSON(); err != nil {
+			fmt.Printf("error merging temp JSON diffs after test run:\n%v\n", err)
+		}
+	}()
+
+	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": pkgName},
+		configVals[0], configVals[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
+}
+
+// Remove all temp json files inside tmp and merge them into 1 large file.
+// This takes all files matching the format "diff_**.jsonl"
+// and merges them together into 1 large file for easy parsing & CI uploading.
+// Comments are added between failing tests from different packages.
+func Merge_Temp_JSON() error {
+	tmp, err := os.Open("tmp")
+	if err != nil {
+		return mg.Fatalf(1, "error while opening temp folder: \n%w", err)
+	}
+	fileNames, err := tmp.Readdirnames(-1)
+	if err != nil {
+		return mg.Fatalf(1, "error while reading temp folder files: \n%w", err)
+	}
+
+	if len(fileNames) == 0 {
+		fmt.Println("No JSON diffs were found inside tmp to merge; exiting")
+		return nil
+	}
+
+	count := 0
+	for _, fileName := range fileNames {
+		if !strings.HasPrefix(fileName, "diff_") ||
+			!strings.HasSuffix(fileName, ".jsonl") {
+			// file doesn't start with correct prefix; probably not a json file
+			continue
+		}
+
+		// extract name of package from file name
+		pkgName, _ := strings.CutPrefix(fileName, "diff_")
+		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
+
+		// grab file data
+		fileBytes, err := os.ReadFile("tmp/" + fileName)
+		if err != nil {
+			return mg.Fatalf(1, "error during os.ReadFile: \n%w", err)
+		}
+
+		// Add a header mentioning which package we're in to the start of the file
+		contents := "//*" +
+			strings.ToUpper(pkgName) + "\n" +
+			string(fileBytes)
+		if count == 0 {
+			// truncate file if it already exists
+			if err := os.WriteFile("tmp/diff.jsonl", []byte(contents), 0644); err != nil {
+				return mg.Fatalf(1, "error during os.WriteFile: \n%w", err)
+			}
+		} else {
+			if err := test.AppendFile("tmp/diff.jsonl", "\n"+contents); err != nil {
+				return mg.Fatalf(1, "error during test.AppendFile: \n%w", err)
+			}
+		}
+
+		count++
+		// remove test file after being merged
+		if err := sh.Rm(fileName); err != nil {
+			return err
+		}
+	}
+
+	var message string
+	if count > 0 {
+		message = fmt.Sprintf("Successfully merged %d temp json files into tmp/diff.jsonl.", count)
+	} else {
+		message = "No JSON files to merge were found."
+	}
+	fmt.Println(message, "\nHave a nice day.")
 	return nil
+}
+
+// Run frontend tests using Vitest with the given args.
+func Test_Vitest(vitestArgs string) error {
+	fmt.Println("Running vitest tests...")
+	if vitestArgs == "" {
+		vitestArgs = "."
+	}
+	cmd := exec.Command("npm", "run-script", "test:unit", "--", vitestArgs)
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+// Run end-to-end tests using Playwright with the given args.
+func Test_Playwright(playwrightArgs string) error {
+	fmt.Println("Running playwright tests...")
+	if playwrightArgs == "" {
+		playwrightArgs = "."
+	}
+	cmd := exec.Command("npm", "run-script", "test:e2e", "--", playwrightArgs)
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // Download frontend image files, replacing existent ones if present.
 func Images() error {
-
 	// switch dir
 	originalDir, err := os.Getwd()
 	if err != nil {
-		return mg.Fatalf(1, "could not get working directory to revert to: \n%w", err)
+		return mg.Fatalf(1, "error during os.Getwd: \n%w", err)
 	}
 
 	if err := os.Chdir("./frontend/static"); err != nil {
@@ -65,26 +209,29 @@ func Images() error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err := sh.Rm(tmpName); err != nil {
+			panic(err)
+		}
+		fmt.Println("removed temp file at", tmpName)
+	}()
 
 	if err := unzipTempFile(tmpName); err != nil {
 		return err
 	}
 
-	if err := sh.Rm(tmpName); err != nil {
-		panic(err)
-	}
-
 	return nil
 }
 
-func downloadImagesZip() (string, error) {
+// Download and store images zip to a temp file
+func downloadImagesZip() (tmpFileName string, err error) {
 	// create temp file to store zip file from http request
-	tmpFile, err := os.CreateTemp("", "images.zip")
+	tmpFile, err := os.CreateTemp("", "images_*.zip")
 	if err != nil {
 		return "", mg.Fatalf(1, "error during os.CreateTemp: \n%w", err)
 	}
 	defer func() {
-		// close and remove temp file after we're done
+		// close temp file after we're done
 		tmpFile.Close()
 	}()
 
@@ -105,7 +252,7 @@ func downloadImagesZip() (string, error) {
 	if request.StatusCode != 200 {
 		statusText := http.StatusText(request.StatusCode)
 		if statusText == "" {
-			statusText = "unknown status code"
+			statusText = "unknown"
 		}
 		return "", mg.Fatalf(1, "http web request returned status code %d (%s)", request.StatusCode, statusText)
 	}
@@ -116,11 +263,11 @@ func downloadImagesZip() (string, error) {
 		return "", mg.Fatalf(1, "error during io.Copy: \n%w", err)
 	}
 
-	fmt.Printf("downloaded images.zip to %s\n", tmpName)
+	fmt.Println("downloaded images.zip to", tmpName)
 	return tmpName, nil
 }
 
-// unzip the temp file with the given path; used during image download
+// unzip the temp file at the given path
 func unzipTempFile(tmpName string) error {
 	// create zip reader to unzip temp file contents
 	reader, err := zip.OpenReader(tmpName)
@@ -174,7 +321,7 @@ func unzipTempFile(tmpName string) error {
 			return mg.Fatalf(1, "error during io.Copy: \n%w", err)
 		}
 	}
-	fmt.Println("Unzipped images to frontend/static/images")
+	fmt.Println("unzipped images to frontend/static/images")
 
 	return nil
 }

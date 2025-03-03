@@ -450,7 +450,7 @@ func Start(config config.Config) error {
 		go func() {
 			<-shutdownCtx.Done()
 			if shutdownCtx.Err() == context.DeadlineExceeded {
-				log.Fatal().Msg("graceful shutdown timed out.. forcing exit.")
+				log.Fatal().Msg("graceful shutdown timed out - forcing exit.")
 			}
 		}()
 

@@ -36,8 +36,11 @@ func TestCreateMysteryTrader(t *testing.T) {
 			// id is automatically added
 			want.ID = tt.args.mysteryTrader.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateMysteryTrader() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreateMysteryTrader() did not return error when expected")
+				} else {
+					t.Fatalf("CreateMysteryTrader() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if !reflect.DeepEqual(tt.args.mysteryTrader, &want) {
 				t.Errorf("CreateMysteryTrader() = \n%v, want \n%v", tt.args.mysteryTrader, want)
@@ -96,16 +99,18 @@ func TestGetMysteryTrader(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetMysteryTrader(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetMysteryTrader() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetMysteryTrader() did not return error when expected")
+				} else {
+					t.Fatalf("GetMysteryTrader() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetMysteryTrader() = %v, want %v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

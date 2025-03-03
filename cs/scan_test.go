@@ -204,9 +204,8 @@ func Test_updateFleetTargets(t *testing.T) {
 			scan := newPlayerScanner(game.Universe, game.Players, &game.Rules, player)
 			scan.scan()
 			// check the waypoints returned vs what we want
-			if got := fleet.Waypoints; !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("updateFleetTargets() = \n%v, want \n%v", got, tt.want)
-			}
+			got := fleet.Waypoints
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -326,9 +325,8 @@ func Test_scanWormholes(t *testing.T) {
 			scan.scanWormholes(tt.args.scanners)
 
 			// check the waypoints returned vs what we want
-			if got := player.WormholeIntels; !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("scanWormholes() = \n%v, want \n%v", got, tt.want)
-			}
+			got := player.WormholeIntels
+			test.CompareAsJSON(t, got, tt.want)
 
 		})
 	}
@@ -471,9 +469,8 @@ func Test_scanMineFields(t *testing.T) {
 			scan.scanMineFields(tt.args.scanners)
 
 			// check the waypoints returned vs what we want
-			if got := player.MineFieldIntels; !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("scanMineFields() = \n%v, want \n%v", got, tt.want)
-			}
+			got := player.MineFieldIntels
+			test.CompareAsJSON(t, got, tt.want)
 
 		})
 	}

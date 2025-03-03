@@ -796,7 +796,8 @@ func (d *discover) discoverPlayer(player *Player) {
 	}
 }
 
-// discover a player's score
+// discover a player's score history
+// TODO: Hide first 20 years of score for non-dead players
 func (d *discover) discoverPlayerScores(player *Player) {
 	intel := &d.player.PlayerIntels.ScoreIntels[player.Num-1]
 

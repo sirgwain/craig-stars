@@ -501,19 +501,20 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 			}
 			gotNewFleet, err := o.splitFleetTokens(&rules, tt.args.player, playerFleets, tt.args.source, tt.args.tokens)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("orders.SplitFleetTokens() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("orders.SplitFleetTokens() did not return error when expected")
+				} else {
+					t.Fatalf("orders.SplitFleetTokens() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if err == nil {
 				// compute the spec for our wantSourceFleet. No need to pass this one in
 				tt.wantSourceFleet.Spec = ComputeFleetSpec(&rules, player, tt.wantSourceFleet)
 				tt.wantNewFleet.Spec = ComputeFleetSpec(&rules, player, tt.wantNewFleet)
-				if !test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet) {
-					t.Errorf("orders.SplitFleetTokens() gotSourceFleet = \n%v, wantSourceFleet = \n%v", tt.args.source, tt.wantSourceFleet)
-				}
-				if !test.CompareAsJSON(t, gotNewFleet, tt.wantNewFleet) {
-					t.Errorf("orders.SplitFleetTokens() gotNewFleet = \n%v, wantNewFleet = \n%v", gotNewFleet, tt.wantNewFleet)
-				}
+
+				test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet)
+
+				test.CompareAsJSON(t, gotNewFleet, tt.wantNewFleet)
 			}
 		})
 	}
@@ -722,23 +723,22 @@ func Test_orders_SplitAll(t *testing.T) {
 
 			gotNewFleets, err := o.SplitAll(&rules, tt.args.player, playerFleets, tt.args.source)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("orders.SplitFleetTokens() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("orders.SplitFleetTokens() did not return error when expected")
+				} else {
+					t.Fatalf("orders.SplitFleetTokens() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if err == nil {
 				// compute the spec for our wantSourceFleet. No need to pass this one in
 				tt.wantSourceFleet.Spec = ComputeFleetSpec(&rules, player, tt.wantSourceFleet)
 
-				if !test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet) {
-					t.Errorf("orders.SplitFleetTokens() gotSourceFleet = \n%v, wantSourceFleet = \n%v", tt.args.source, tt.wantSourceFleet)
-				}
+				test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet)
 
 				for i, fleet := range tt.wantNewFleets {
 					fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 
-					if !test.CompareAsJSON(t, gotNewFleets[i], fleet) {
-						t.Errorf("orders.SplitFleetTokens() gotNewFleet = \n%v, wantNewFleet = \n%v", gotNewFleets[i], fleet)
-					}
+					test.CompareAsJSON(t, gotNewFleets[i], fleet)
 				}
 			}
 		})
@@ -1067,13 +1067,14 @@ func Test_orders_Merge(t *testing.T) {
 
 			got, err := o.Merge(&rules, player, tt.fleets)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("orders.Merge() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("orders.Merge() did not return error when expected")
+				} else {
+					t.Fatalf("orders.Merge() errored unexpectedly; err = \n%v", err)
+				}
 			}
 
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("orders.Merge() = %v, want %v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -1161,7 +1162,11 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			destCargo := tt.args.dest.Cargo
 			err := o.TransferPlanetCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount, []*Planet{tt.args.dest})
 			if (err != nil) != tt.wantErr {
-				t.Errorf("orders.TransferPlanetCargo() error = %v, wantErr %v", err, tt.wantErr)
+				if tt.wantErr {
+					t.Fatalf("orders.TransferPlanetCargo() did not return error when expected")
+				} else {
+					t.Fatalf("orders.TransferPlanetCargo() errored unexpectedly; err = \n%v", err)
+				}
 			}
 
 			if err == nil {
@@ -1296,7 +1301,11 @@ func Test_orders_TransferFleetCargo(t *testing.T) {
 
 			err := o.TransferFleetCargo(&rules, player, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("orders.TransferFleetCargo() error = %v, wantErr %v", err, tt.wantErr)
+				if tt.wantErr {
+					t.Fatalf("orders.TransferFleetCargo() did not return error when expected")
+				} else {
+					t.Fatalf("orders.TransferFleetCargo() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if err == nil {
 				// we should transfer from the dest to the soruce
@@ -1384,7 +1393,11 @@ func Test_orders_TransferMineralPacketCargo(t *testing.T) {
 			destCargo := tt.args.dest.Cargo
 			err := o.TransferMineralPacketCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("orders.TransferMineralPacketCargo() error = %v, wantErr %v", err, tt.wantErr)
+				if tt.wantErr {
+					t.Fatalf("orders.TransferMineralPacketCargo() did not return error when expected")
+				} else {
+					t.Fatalf("orders.TransferMineralPacketCargo() errored unexpectedly; err = \n%v", err)
+				}
 			}
 
 			if err == nil {
@@ -1868,11 +1881,17 @@ func Test_orders_SplitFleet(t *testing.T) {
 				DestTokens:     tt.args.destTokens,
 				TransferAmount: tt.args.transferAmount,
 			})
+
 			if (err != nil) != tt.want.err {
-				t.Errorf("orders.SplitFleet() error = %v, wantErr %v", err, tt.want.err)
+				if tt.want.err {
+					t.Fatalf("orders.TransferMineralPacketCargo() did not return error when expected")
+				} else {
+					t.Fatalf("orders.TransferMineralPacketCargo() errored unexpectedly; err = \n%v", err)
+				}
 			}
+
 			if err != nil && !strings.Contains(fmt.Sprint(err), tt.want.errContains) {
-				t.Errorf("orders.SplitFleet() error = %v, wantErrContains %s", err, tt.want.errContains)
+				t.Errorf("orders.SplitFleet() returned error \n%v, expected error to contain \n%s", err, tt.want.errContains)
 			}
 			if err == nil {
 				// the dest and source should have the passed in tokens

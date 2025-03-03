@@ -30,8 +30,11 @@ func TestCreateGame(t *testing.T) {
 			// id is automatically added
 			want.ID = tt.args.game.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateGame() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreateGame() did not return error when expected")
+				} else {
+					t.Fatalf("CreateGame() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if !reflect.DeepEqual(tt.args.game, &want) {
 				t.Errorf("CreateGame() = \n%v, want \n%v", tt.args.game, want)
@@ -95,10 +98,6 @@ func TestGetGame(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetGame(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetGame() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
 			// GetGame returns a GameWithPlayers so we need the empty slice for comparison
 			var want *cs.GameWithPlayers
 			if tt.want != nil && got != nil {
@@ -106,9 +105,15 @@ func TestGetGame(t *testing.T) {
 				want.UpdatedAt = got.UpdatedAt
 				want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, want) {
-				t.Errorf("GetGame() = %v, want %v", got, tt.want)
+
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("GetGame() did not return error when expected")
+				} else {
+					t.Fatalf("GetGame() returned errored unexpectedly; err = \n%v", err)
+				}
 			}
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }

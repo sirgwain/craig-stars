@@ -102,7 +102,7 @@ func GetConfig() *Config {
 
 		err := viper.ReadInConfig()
 		if err != nil {
-			panic(fmt.Sprintln("fatal error config file: default \n", err))
+			panic(fmt.Sprintln("fatal error loading config file: \n", err))
 		}
 
 		viper.Unmarshal(&config)

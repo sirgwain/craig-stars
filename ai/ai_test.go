@@ -35,15 +35,13 @@ func Test_aiPlayer_ProcessTurn(t *testing.T) {
 			player.Name = cs.AINames[0][0]
 			universe, err := gamer.GenerateUniverse(game, []*cs.Player{player})
 			if err != nil {
-				t.Error(err)
-				return
+				t.Fatalf("gamer.generateUniverse() failed: \n%v", err)
 			}
 
 			// process a turn
 			ai := NewAIPlayer(game, &cs.StaticTechStore, player, universe.GetPlayerMapObjects(player.Num))
 			if err := ai.ProcessTurn(); err != nil {
-				t.Errorf("process turn %v", err)
-				return
+				t.Fatalf("ai turn processing failed: \n%v", err)
 			}
 			ai.SubmittedTurn = true
 
@@ -60,7 +58,6 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 		techLevel cs.TechLevel
 		year      int
 		want      []fleetShip
-		wantErr   bool
 	}{
 		{
 			name:      "Tech 0 - default plan due to no warships",
@@ -71,7 +68,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 5},
 				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 7},
 				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 7},
-			}, wantErr: false,
+			},
 		},
 		{
 			name:      "Tech 10 WM - beam BCs very good",
@@ -82,7 +79,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 5},
 				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 14},
 				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 3}, // 19/5
-			}, wantErr: false,
+			},
 		},
 		{
 			name:      "Tech 12 WM - Jihad BCs",
@@ -93,7 +90,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 7},
 				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 16},
 				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 4}, // 23/5
-			}, wantErr: false,
+			},
 		},
 		{
 			name:      "Tech 24 - Fairly even",
@@ -105,7 +102,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 36},
 				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 24},
 				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 20}, // 100/5
-			}, wantErr: false,
+			},
 		},
 		{
 			name:      "Tech 26 HE - Beam leaning",
@@ -116,7 +113,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 40},
 				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 60},
 				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 20}, // 100/5
-			}, wantErr: false,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -129,19 +126,18 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 			player.Name = tt.name
 			universe, err := gamer.GenerateUniverse(game, []*cs.Player{player})
 			if err != nil {
-				t.Error(err)
-				return
+				t.Fatal(err)
 			}
 			ai := NewAIPlayer(game, &cs.StaticTechStore, player, universe.GetPlayerMapObjects(player.Num))
 			ai.Player.TechLevels = tt.techLevel
 
 			// update warship designs
 			if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter], err = ai.designShip("Fuel Pod", cs.ShipDesignPurposeFuelFreighter, cs.FleetPurposeFreighter); err != nil {
-				t.Errorf("designing fuel ship for test returned error %v", err)
+				t.Errorf("designing fuel ship for test returned error \n%v", err)
 			}
 
-			if err = ai.updateWarfleets(); (err != nil) != tt.wantErr {
-				t.Errorf("aiPlayer.updateWarfleets() errored; error = %v", err)
+			if err = ai.updateWarfleets(); err != nil {
+				t.Errorf("aiPlayer.updateWarfleets() errored: \n%v", err)
 			}
 			got := ai.fleetsByPurpose[cs.FleetPurposeBomber].ships
 			if !reflect.DeepEqual(got, tt.want) {
@@ -166,36 +162,49 @@ func Test_getClosestPlanet(t *testing.T) {
 		MapObject: cs.MapObject{Position: cs.Vector{X: 100, Y: 100}},
 	}
 
-	type args struct {
+	tests := []struct {
+		name                string
 		position            cs.Vector
 		unknownPlanetsByNum map[int]cs.PlanetIntel
-	}
-	tests := []struct {
-		name string
-		args args
-		want *cs.PlanetIntel
+		want                *cs.PlanetIntel
 	}{
-		{"no planets, should be nil", args{cs.Vector{}, map[int]cs.PlanetIntel{}}, nil},
-		{"1 planet, should be it", args{cs.Vector{}, map[int]cs.PlanetIntel{
-			1: planetAt0_0,
-		}}, &planetAt0_0},
-		{"2 planets, should be closer one", args{cs.Vector{}, map[int]cs.PlanetIntel{
-			1: planetAt100_100,
-			2: planetAt50_50,
-		}}, &planetAt50_50},
-		{"2 planets, should be closer one, regardless of order", args{cs.Vector{}, map[int]cs.PlanetIntel{
-			1: planetAt50_50,
-			2: planetAt100_100,
-		}}, &planetAt50_50},
-		{"3 planets, should be closer one", args{cs.Vector{}, map[int]cs.PlanetIntel{
-			1: planetAt50_50,
-			2: planetAt100_100,
-			3: planetAt0_0,
-		}}, &planetAt0_0},
+		{
+			name:                "no planets",
+			position:            cs.Vector{},
+			unknownPlanetsByNum: map[int]cs.PlanetIntel{},
+			want:                nil,
+		},
+		{
+			name:     "1 planet",
+			position: cs.Vector{},
+			unknownPlanetsByNum: map[int]cs.PlanetIntel{
+				1: planetAt0_0,
+			},
+			want: &planetAt0_0,
+		},
+		{
+			name:     "2 planets - picks closest",
+			position: cs.Vector{},
+			unknownPlanetsByNum: map[int]cs.PlanetIntel{
+				1: planetAt100_100,
+				2: planetAt50_50,
+			},
+			want: &planetAt50_50,
+		},
+		{
+			name:     "3 planets - picks closest",
+			position: cs.Vector{},
+			unknownPlanetsByNum: map[int]cs.PlanetIntel{
+				12: planetAt0_0,
+				1:  planetAt50_50,
+				2:  planetAt100_100,
+			},
+			want: &planetAt0_0,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := aiPlayer.getClosestPlanetIntel(tt.args.position, tt.args.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
+			if got := aiPlayer.getClosestPlanetIntel(tt.position, tt.unknownPlanetsByNum); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getClosestPlanet() = %v, want %v", got, tt.want)
 			}
 		})

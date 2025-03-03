@@ -37,12 +37,14 @@ func TestCreateMineField(t *testing.T) {
 			// id is automatically added
 			want.ID = tt.args.mineField.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateMineField() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreateMineField() did not return error when expected")
+				} else {
+					t.Fatalf("CreateMineField() errored unexpectedly; err = \n%v", err)
+				}
 			}
-			if !test.CompareAsJSON(t, tt.args.mineField, &want) {
-				t.Errorf("CreateMineField() = \n%v, want \n%v", tt.args.mineField, want)
-			}
+
+			test.CompareAsJSON(t, tt.args.mineField, &want)
 		})
 	}
 }
@@ -79,16 +81,18 @@ func TestGetMineField(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetMineField(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetMineField() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetMineField() did not return error when expected")
+				} else {
+					t.Fatalf("GetMineField() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetMineField() = %v, want %v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }

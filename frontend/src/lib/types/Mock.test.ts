@@ -385,9 +385,7 @@ export const cottonPicker: Fleet = {
 		baseCloakedCargo: 574,
 		basePacketSpeed: 0,
 		massEmpty: 574,
-		purposes: {
-			Miner: true
-		},
+		purposes: { Miner: true },
 		totalShips: 1
 	}
 };

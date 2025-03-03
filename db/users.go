@@ -29,7 +29,7 @@ func (c *client) GetUsers() ([]cs.User, error) {
 	// don't include password in bulk select
 	items := []User{}
 	if err := c.reader.Select(&items, `
-	SELECT 
+	SELECT
 		createdAt,
 		updatedAt,
 		username,
@@ -129,7 +129,7 @@ func (c *client) GetUsersForGame(gameID int64) ([]cs.User, error) {
 	// don't include password in bulk select
 	items := []User{}
 	if err := c.reader.Select(&items, `
-	SELECT 
+	SELECT
 		createdAt,
 		updatedAt,
 		username,
@@ -172,7 +172,7 @@ func (c *client) CreateUser(user *cs.User) error {
 		lastLogin,
 		discordId,
 		discordAvatar
-	) 
+	)
 	VALUES (
 		CURRENT_TIMESTAMP,
 		CURRENT_TIMESTAMP,
@@ -209,7 +209,7 @@ func (c *client) UpdateUser(user *cs.User) error {
 	item := c.converter.ConvertGameUser(user)
 
 	if _, err := c.writer.NamedExec(`
-	UPDATE users SET 
+	UPDATE users SET
 		updatedAt = CURRENT_TIMESTAMP,
 		username = :username,
 		gameId = :gameId,

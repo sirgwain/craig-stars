@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { getDefenseCoverage, getSmartDefenseCoverage, type TechDefense } from '$lib/types/Tech';
+	import { getDefenseCoverage, getSmartDefenseCoverage } from '$lib/types/Tech';
 
+	import type { TechDefense } from '$lib/types/cs';
 	import { scaleOrdinal } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
 	import AxisX from '../graph/AxisX.html.svelte';
@@ -123,7 +124,7 @@
 
 		<Html>
 			<GroupLabels />
-			<!-- TODO: get this working so we can see values on our graphs 
+			<!-- TODO: get this working so we can see values on our graphs
 			 https://layercake.graphics/components/SharedTooltip.html.svelte
 			 -->
 			<!-- <SharedTooltip dataset={dataQuadTree} /> -->

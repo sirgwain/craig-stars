@@ -52,7 +52,7 @@ RUN mkdir -p /workspace/artifacts/frontend
 RUN mkdir -p /workspace/dist
 
 # copy craig-stars binary for executing with ENTRYPOINT
-COPY --from=build /go/bin/main /usr/local/bin/craig-stars 
+COPY --from=build /go/bin/main /usr/local/bin/craig-stars
 
 # copy craig-stars binary into artifacts folder and tar it up
 COPY --from=build /go/bin/main /workspace/artifacts/craig-stars/craig-stars

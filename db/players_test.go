@@ -34,8 +34,11 @@ func TestCreatePlayer(t *testing.T) {
 			// id is automatically added
 			want.ID = tt.args.player.ID
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CreatePlayer() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("CreatePlayer() did not return error when expected")
+				} else {
+					t.Fatalf("CreatePlayer() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if !reflect.DeepEqual(tt.args.player, &want) {
 				t.Errorf("CreatePlayer() = \n%v, want \n%v", tt.args.player, want)
@@ -103,16 +106,18 @@ func TestGetPlayer(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetPlayer(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetPlayer() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("GetPlayer() did not return error when expected")
+				} else {
+					t.Fatalf("GetPlayer() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != nil {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !test.CompareAsJSON(t, got, tt.want) {
-				t.Errorf("GetPlayer() = %v, want %v", got, tt.want)
-			}
+
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -171,9 +176,8 @@ func Test_getPlayerWithDesigns(t *testing.T) {
 		}
 
 	}
-	if !test.CompareAsJSON(t, got, []*cs.Player{&player}) {
-		t.Errorf("getPlayerWithDesigns() = %v, want %v", got, player)
-	}
+
+	test.CompareAsJSON(t, got, []*cs.Player{&player})
 }
 
 func TestGetPlayers(t *testing.T) {

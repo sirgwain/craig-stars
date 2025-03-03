@@ -18,7 +18,7 @@ func createTestGameRunner() GameRunner {
 	cfg.Database.Filename = ":memory:"
 	cfg.Database.DebugLogging = true
 	if err := dbConn.Connect(cfg); err != nil {
-		panic(fmt.Errorf("could not connect to test database, error %w", err))
+		panic(fmt.Errorf("error connecting to test database: \n%w", err))
 	}
 
 	return &gameRunner{
@@ -34,7 +34,7 @@ func Test_gameRunner_HostGame(t *testing.T) {
 	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(cs.Humanoids()).WithAIPlayer(cs.AIDifficultyNormal, 0))
 
 	if err != nil {
-		t.Errorf("host game returned error %v", err)
+		t.Errorf("host game returned error \n%v", err)
 		return
 	}
 
@@ -49,7 +49,15 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 	cfg := &config.Config{}
 	cfg.Database.Filename = ":memory:"
 	if err := dbConn.Connect(cfg); err != nil {
-		panic(fmt.Errorf("could not connect to test database, error %w", err))
+		panic(fmt.Errorf("error connecting to test database: \n%w", err))
+	}
+
+	// create a race per PRT
+	for _, prt := range cs.PRTs {
+		race := cs.NewRace()
+		race.PRT = prt
+		race.Name = fmt.Sprintf("%v", prt)
+		race.PluralName = fmt.Sprintf("%vs", prt)
 	}
 
 	gr := gameRunner{
@@ -84,7 +92,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 		}
 
 		if _, err := gr.GenerateTurn(fullGame.ID); err != nil {
-			t.Errorf("GenerateTurn failed to generate turn on year %d; error: /n%v", fullGame.Game.Year, err)
+			t.Errorf("GenerateTurn failed on year %d: \n%v", fullGame.Game.Year, err)
 		}
 	}
 }
@@ -99,7 +107,7 @@ func Test_gameRunner_getGuestNum(t *testing.T) {
 		{"1", "guest-1-1", 1, false},
 		{"20", "guest-29-20", 20, false},
 		{"fail", "bob", 0, true},
-		{"fail", "bob-1-bob", 0, true},
+		{"fail 2", "bob-1-bob", 0, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -107,8 +115,11 @@ func Test_gameRunner_getGuestNum(t *testing.T) {
 			u := cs.User{Username: tt.username}
 			got, err := gr.getGuestNum(&u)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("gameRunner.getGuestNum() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				if tt.wantErr {
+					t.Fatalf("gameRunner.getGuestNum() did not return error when expected")
+				} else {
+					t.Fatalf("gameRunner.getGuestNum() errored unexpectedly; err = \n%v", err)
+				}
 			}
 			if got != tt.want {
 				t.Errorf("gameRunner.getGuestNum() = %v, want %v", got, tt.want)

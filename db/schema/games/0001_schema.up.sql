@@ -186,7 +186,8 @@ CREATE TABLE IF NOT EXISTS fleets (
   CONSTRAINT fkPlayersFleets FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num) ON DELETE CASCADE,
   CONSTRAINT fkGamesFleets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
-CREATE UNIQUE INDEX IF NOT EXISTS fleetNum on fleets(gameId, playerNum, num) WHERE starbase = 0;
+CREATE UNIQUE INDEX IF NOT EXISTS fleetNum on fleets(gameId, playerNum, num)
+WHERE starbase = 0;
 CREATE TABLE IF NOT EXISTS shipDesigns (
   id INTEGER PRIMARY KEY,
   createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,

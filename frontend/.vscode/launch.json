@@ -9,9 +9,13 @@
 			"autoAttachChildProcesses": true,
 			"skipFiles": ["<node_internals>/**", "**/node_modules/**", "**/node_modules.nosync/**"],
 			"program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
-			"args": ["run", "${relativeFile}"],
+			"args": ["--run", "${relativeFile}"],
 			"smartStep": true,
-			"console": "integratedTerminal"
+			"console": "integratedTerminal",
+			"presentation": {
+				"group": "a",
+				"order": 2
+			}
 		}
 	]
 }

@@ -16,28 +16,28 @@ func connectTestDB() *client {
 	cfg.Database.DebugLogging = true
 	cfg.Database.SkipUpgrade = true
 	if err := dbConn.Connect(cfg); err != nil {
-		panic(fmt.Errorf("connect to test database, %w", err))
+		panic(fmt.Errorf("error while connecting to test database: \n%w", err))
 	}
 
 	// create a test user
 	user, err := cs.NewUser("admin", "admin", "admin@craig-stars.net", cs.RoleAdmin)
 	if err != nil {
-		panic(fmt.Errorf("generate test user, %w", err))
+		panic(fmt.Errorf("error generating test user: \n%w", err))
 	}
 
 	if err := dbConn.WrapInTransaction(func(c Client) error {
 		if err := c.CreateUser(user); err != nil {
-			return fmt.Errorf("create test database user, %w", err)
+			return fmt.Errorf("error creating test database user: \n%w", err)
 		}
 		return nil
 	}); err != nil {
-		panic(fmt.Errorf("create test user in db, %w", err))
+		panic(fmt.Errorf("error creating test user in db: \n%w", err))
 	}
 
 	// create a new c from a transaction
 	c, err := dbConn.BeginTransaction()
 	if err != nil {
-		panic(fmt.Errorf("begin test transaction, %w", err))
+		panic(fmt.Errorf("error beginning test transaction: \n%w", err))
 	}
 
 	return c.(*client)
@@ -45,7 +45,7 @@ func connectTestDB() *client {
 
 func closeTestDB(c *client) {
 	if err := c.commit(); err != nil {
-		panic(fmt.Errorf("commit test transaction, %w", err))
+		panic(fmt.Errorf("error commiting test transaction: \n%w", err))
 	}
 }
 
@@ -55,7 +55,7 @@ func (c *client) createTestGame() *cs.Game {
 	game := cs.NewGame()
 	game.HostID = 1
 	if err := c.CreateGame(game); err != nil {
-		panic(fmt.Errorf("create test database game, %w", err))
+		panic(fmt.Errorf("error creating test database game: \n%w", err))
 	}
 
 	return game
@@ -67,7 +67,7 @@ func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 	gameClient := cs.NewGamer()
 	game := gameClient.CreateGame(1, *cs.NewGameSettings())
 	if err := c.CreateGame(game); err != nil {
-		panic(fmt.Errorf("create test database game, %w", err))
+		panic(fmt.Errorf("error creating test database game: \n%w", err))
 	}
 
 	player := gameClient.NewPlayer(1, cs.Humanoids(), &game.Rules)
@@ -75,7 +75,7 @@ func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 	player.GameID = game.ID
 
 	if err := c.CreatePlayer(player); err != nil {
-		panic(fmt.Errorf("create test database game player %w", err))
+		panic(fmt.Errorf("error creating test database game player: \n%w", err))
 	}
 
 	return game, player
@@ -85,7 +85,7 @@ func (c *client) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) 
 	design.PlayerNum = player.Num
 	design.GameID = player.GameID
 	if err := c.CreateShipDesign(design); err != nil {
-		panic(fmt.Errorf("create test design %w", err))
+		panic(fmt.Errorf("error creating test design: \n%w", err))
 	}
 }
 
