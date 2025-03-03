@@ -62,32 +62,41 @@
 			"command": "mage generate",
 			"detail": "Generate various backend and frontend files."
 		},
-		// Build commands for debugging the server
 		{
 			"label": "Build & launch server",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
-			"dependsOn": ["build server", "launch backend", "launch frontend", "open browser"],
+			"dependsOn": ["Build server", "Launch server"],
 			"dependsOrder": "sequence",
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "browser"
 			},
-			"detail": "Start up the server for local development and launch it for debugging."
+			"detail": "Build and start up the local server for debugging."
 		},
 		{
-			"hide": true,
-			"label": "build server",
+			"label": "Build server",
 			"type": "shell",
 			"command": "mage",
 			"args": ["build"],
+			"group": "build",
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "symbol-constructor"
 			},
 			"detail": "Build server without launching it."
+		},
+		{
+			"label": "Launch server",
+			"dependsOn": ["launch backend", "middle task"],
+			"detail": "Launch frontend/backend servers and open localhost without building anything.",
+			"group": "build",
+			"icon": {
+				"color": "terminal.ansiCyan",
+				"id": "rocket"
+			}
 		},
 		{
 			"hide": true,
@@ -96,62 +105,54 @@
 			"command": "mage",
 			"args": ["launch_backend"],
 			"icon": {
-				"color": "terminal.ansiBlue",
+				"color": "terminal.ansiCyan",
 				"id": "radio-tower"
-			},
+			}
+		},
+		{
+			// needed to run tasks in sequence so we only open localhost after we finish.
+			"hide": true,
+			"label": "middle task",
+			"dependsOn": ["launch frontend", "open localhost"],
+			"dependsOrder": "sequence",
 			"presentation": {
-				"panel": "dedicated",
-				"showReuseMessage": false,
-				"clear": true
+				"panel": "shared"
+			}
+		},
+		{
+			"hide": true,
+			"label": "launch frontend",
+			"isBackground": true,
+			"type": "shell",
+			"command": "mage",
+			"args": ["launch_frontend"],
+			"icon": {
+				"color": "terminal.ansiCyan",
+				"id": "broadcast"
 			},
-			// problem matcher needed to signify task end
+			// problem matcher needed to signify task end so we know when to boot up the browser
 			"problemMatcher": [
 				{
 					"pattern": [{ "regexp": ".", "file": 1, "line": 1, "column": 1, "message": 1 }],
 					"background": {
 						"activeOnStart": true,
 						"beginsPattern": { "regexp": "." },
-						"endsPattern": { "regexp": "starting http server" }
+						"endsPattern": { "regexp": "VITE .* ready in .*$" }
 					}
 				}
 			]
 		},
 		{
 			"hide": true,
-			"label": "launch frontend",
-			"type": "shell",
-			"isBackground": true,
-			"command": "mage",
-			"args": ["launch_frontend"],
-			"icon": {
-				"color": "terminal.ansiBlue",
-				"id": "broadcast"
+			"label": "open localhost",
+			"command": "explorer", // despite what it may seem, this just opens the default web browser
+			"windows": {
+				"command": "explorer.exe"
 			},
-			// problem matcher needed to tell debug server when to start debugging
-			"problemMatcher": [
-				{
-					"pattern": [{ "regexp": ".", "file": 1, "line": 1, "column": 1, "message": 1 }],
-					"background": {
-						"activeOnStart": true,
-						"beginsPattern": { "regexp": "." },
-						"endsPattern": { "regexp": "VITE .* ready in" }
-					}
-				}
-			],
-			"presentation": {
-				"panel": "dedicated",
-				"showReuseMessage": false,
-				"clear": true
-			}
-		},
-		{
-			"hide": true,
-			"label": "open browser",
-			"command": "${command:extension.js-debug.debugLink}",
 			"args": ["http://localhost:5173"],
 			"icon": {
-				"color": "terminal.ansiBlue",
-				"id": "broadcast"
+				"color": "terminal.ansiCyan",
+				"id": "browser"
 			}
 		},
 		{

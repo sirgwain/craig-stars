@@ -21,6 +21,9 @@
 				"cases": ["camel"],
 				"options": ["omitempty", "-"]
 			}
-		}
+		},
+		// stop VS Code from trying to mess with tasks
+		"task.autoDetect": "off",
+		"task.problemMatchers.neverPrompt": true
 	}
 }
