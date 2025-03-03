@@ -178,6 +178,10 @@ func (c Cargo) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Colonists
 }
 
+func (c Cargo) absSum() int {
+	return Abs(c.Ironium) + Abs(c.Boranium) + Abs(c.Germanium) + Abs(c.Colonists)
+}
+
 func (c Cargo) ToArray() [4]int {
 	return [4]int{
 		c.Ironium,

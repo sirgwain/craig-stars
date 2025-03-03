@@ -541,8 +541,13 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	source.Spec = ComputeFleetSpec(rules, player, source)
 	dest.Spec = ComputeFleetSpec(rules, player, dest)
 
-	// finally, transfer the cargo
+	// transfer the cargo as per the player's request
 	if err = o.TransferFleetCargo(rules, player, player, source, dest, request.TransferAmount); err != nil {
+		return nil, nil, err
+	}
+
+	// split any immediate cargo transfers we did before based on capacity
+	if err := player.CargoTransfers.splitFleetCargoTransfers(source, dest); err != nil {
 		return nil, nil, err
 	}
 
@@ -761,6 +766,12 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	// update fleet specs
 	fleet.Spec = ComputeFleetSpec(rules, player, &fleet)
 	source.Spec = ComputeFleetSpec(rules, player, source)
+
+	// split any immediate cargo transfers as well
+	if err := player.CargoTransfers.splitFleetCargoTransfers(source, &fleet); err != nil {
+		return nil, fmt.Errorf("unable to split immediate cargo transfers %w", err)
+	}
+
 	return &fleet, nil
 }
 
@@ -812,6 +823,9 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		// mark the merging fleet for deletion
 		mergingFleet.Delete = true
 	}
+
+	// merge cargo transfers
+	player.CargoTransfers.mergeFleetCargoTransfers(fleet, fleets)
 
 	log.Info().
 		Int64("GameID", player.GameID).

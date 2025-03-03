@@ -315,7 +315,6 @@ func (c *client) CreateFleet(fleet *cs.Fleet) error {
 }
 
 // This should always be wrapped in a transaction
-// TODO: move this logic into a wrapInTransaction instead of in the db
 func (c *client) CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) error {
 
 	// create/update fleets

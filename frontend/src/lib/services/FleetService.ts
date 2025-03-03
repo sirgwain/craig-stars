@@ -1,6 +1,13 @@
 import type { CargoDest, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 import { CommandedFleet } from '$lib/types/Fleet';
-import type { Cargo, MapObject, MineralPacketIntel, Player, SalvageIntel } from '$lib/types/cs';
+import type {
+	Cargo,
+	CargoTransfers,
+	MapObject,
+	MineralPacketIntel,
+	Player,
+	SalvageIntel
+} from '$lib/types/cs';
 import { type Fleet, type FleetOrders, type ShipToken, type Waypoint } from '$lib/types/cs';
 import { Service } from './Service';
 
@@ -24,6 +31,17 @@ type TransferCargoResponse = {
 type SplitFleetResponse = {
 	source: Fleet;
 	dest?: Fleet;
+	cargoTransfers: CargoTransfers;
+};
+
+type SplitAllResponse = {
+	fleets: Fleet[];
+	cargoTransfers: CargoTransfers;
+};
+
+type MergeResponse = {
+	fleet: Fleet;
+	cargoTransfers: CargoTransfers;
 };
 
 export class FleetService {
@@ -105,7 +123,7 @@ export class FleetService {
 		return await response.json();
 	}
 
-	static async splitAll(gameId: number | string, fleet: Fleet): Promise<Fleet[]> {
+	static async splitAll(gameId: number | string, fleet: Fleet): Promise<SplitAllResponse> {
 		const url = `/api/games/${gameId}/fleets/${fleet.num}/split-all`;
 		const response = await fetch(url, {
 			method: 'POST',
@@ -117,10 +135,10 @@ export class FleetService {
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		return (await response.json()) as Fleet[];
+		return (await response.json()) as SplitAllResponse;
 	}
 
-	static async merge(fleet: CommandedFleet, fleetNums: number[]): Promise<CommandedFleet> {
+	static async merge(fleet: CommandedFleet, fleetNums: number[]): Promise<MergeResponse> {
 		const url = `/api/games/${fleet.gameId}/fleets/${fleet.num}/merge`;
 		const response = await fetch(url, {
 			method: 'POST',
@@ -134,7 +152,7 @@ export class FleetService {
 			await Service.throwError(response);
 		}
 
-		return Object.assign(fleet, await response.json());
+		return (await response.json()) as MergeResponse;
 	}
 
 	static async updateFleetOrders(fleet: CommandedFleet): Promise<Fleet> {

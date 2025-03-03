@@ -108,6 +108,7 @@ type Client interface {
 	SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error
 	ArchivePlayer(gameID int64, num int, archived bool) error
 	UpdatePlayerOrders(player *cs.Player) error
+	UpdatePlayerCargoTransfers(player *cs.Player) error
 	UpdatePlayerRelations(player *cs.Player) error
 	UpdatePlayerSpec(player *cs.Player) error
 	UpdatePlayerPlans(player *cs.Player) error
