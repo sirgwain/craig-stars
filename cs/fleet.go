@@ -1023,7 +1023,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	// dump cargo if we aren't IT or using a jump gate
 	if !fleet.Spec.CanJump && fleet.Cargo.Total() > 0 && !player.Race.Spec.CanGateCargo {
 		messager.fleetStargateDumpedCargo(player, fleet, wp0, wp1, fleet.Cargo)
-		sourcePlanet.Cargo = sourcePlanet.Cargo.Add(fleet.Cargo)
+		sourcePlanet.addCargo(fleet.Cargo)
 		fleet.Cargo = Cargo{}
 	}
 
@@ -1230,7 +1230,7 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet) {
 	planet.PlayerNum = player.Num
 	planet.ProductionQueue = []ProductionQueueItem{}
-	planet.Cargo = planet.Cargo.Add(fleet.Cargo)
+	planet.addCargo(fleet.Cargo)
 	fleet.Cargo = Cargo{}
 
 	if len(player.ProductionPlans) > 0 {
@@ -1239,7 +1239,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	}
 
 	if player.Race.Spec.InnateMining {
-		planet.Mines = innateMines(player.Race.Spec.InnateMinesFactor, planet.population())
+		planet.Mines = innateMines(player.Race.Spec.InnateMinesFactor, planet.GetPopulation())
 	}
 
 	if player.Race.Spec.InnateScanner {

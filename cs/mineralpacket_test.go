@@ -15,7 +15,6 @@ func TestMineralPacket_movePacket(t *testing.T) {
 		builtThisTurn bool
 	}
 	type args struct {
-		rules        *Rules
 		player       *Player
 		target       *Planet
 		planetPlayer *Player
@@ -44,7 +43,7 @@ func TestMineralPacket_movePacket(t *testing.T) {
 			packet := newMineralPacket(tt.args.player, 1, tt.fields.WarpSpeed, 5, tt.fields.Cargo, Vector{}, tt.args.target.Num)
 			packet.builtThisTurn = tt.fields.builtThisTurn
 
-			packet.movePacket(tt.args.rules, tt.args.player, tt.args.target, tt.args.planetPlayer)
+			packet.movePacket(&rules, tt.args.player, tt.args.target, tt.args.planetPlayer)
 
 			if packet.Position != tt.want {
 				t.Errorf("MineralPacket.movePacket() = %v, want %v", packet, tt.want)
@@ -53,54 +52,76 @@ func TestMineralPacket_movePacket(t *testing.T) {
 	}
 }
 
-func TestMineralPacket_completeMoveEmptyPlanet(t *testing.T) {
-	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1)
+func TestMineralPacket_completeMove(t *testing.T) {
+	t.Run("Uncaught", func(t *testing.T) {
+		player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
+		planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).
+			WithCargo(Cargo{0, 0, 0, 1000})
 
-	packet := newMineralPacket(player, 1, 5, 5, Cargo{300, 0, 0, 0}, Vector{}, planet.Num)
+		packet := newMineralPacket(player, 1, 5, 5, Cargo{300, 0, 0, 0}, Vector{}, planet.Num)
 
-	packet.movePacket(&rules, player, planet, nil)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100})
-	assert.True(t, packet.Delete)
-}
+		packet.movePacket(&rules, player, planet, nil)
+		assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 100}, "uncaught packet should transfer 1/3 of minerals to surface")
+		assert.True(t, packet.Delete, "packet should be deleted after landing")
+	})
 
-func TestMineralPacket_completeMoveUncaught(t *testing.T) {
-	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).WithCargo(Cargo{Colonists: 10000})
+	t.Run("Uncaught, doesn't kill planet", func(t *testing.T) {
+		player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
+		planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).
+			WithCargo(Cargo{Colonists: 10_000})
 
-	packet := newMineralPacket(player, 1, 5, 5, Cargo{480, 0, 0, 0}, Vector{}, planet.Num)
+		packet := newMineralPacket(player, 1, 5, 5, Cargo{480, 0, 0, 0}, Vector{}, planet.Num)
 
-	// 7500 colonists killed by 480kT undefended
-	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 160, Colonists: 9250})
-	assert.True(t, packet.Delete)
+		packet.movePacket(&rules, player, planet, player)
+		assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 160}, "uncaught packet should transfer 1/3 of minerals to surface")
+		assert.Equal(t, planet.Population, 925_000, "packet impact should kill 7.5% population, killed %3f% "+"planet population instead", 1-float64(planet.Population)/10_000)
+		assert.True(t, packet.Delete, "packet should be deleted after landing")
+	})
 
-}
+	t.Run("AR; no damage", func(t *testing.T) {
+		player := NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).WithNum(1).withSpec(&rules)
+		planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).
+			WithCargo(Cargo{Colonists: 100})
 
-func TestMineralPacket_completeMoveUncaughtAR(t *testing.T) {
-	player := NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).WithCargo(Cargo{Colonists: 100})
+		packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
 
-	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
+		packet.movePacket(&rules, player, planet, player)
+		assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 33}, "AR packet should transfer 1/3 of minerals to surface")
+		assert.Equal(t, planet.Population, 10000, "AR packet should not damage population")
+		assert.True(t, packet.Delete, "packet should be deleted after landing")
+	})
 
-	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 33, Colonists: 100})
-	assert.True(t, packet.Delete)
+	t.Run("Safely caught; no damage", func(t *testing.T) {
+		player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
+		planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).
+			WithPopulation(10_000)
+		planet.Spec.HasStarbase = true
+		planet.Spec.HasMassDriver = true
+		planet.Spec.SafePacketSpeed = 5
 
-}
-func TestMineralPacket_completeMoveCaught(t *testing.T) {
-	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	planet := NewPlanet().withPosition(Vector{20, 0}).WithNum(1).WithPlayerNum(1).WithCargo(Cargo{Colonists: 100})
-	planet.Spec.HasStarbase = true
-	planet.Spec.HasMassDriver = true
-	planet.Spec.SafePacketSpeed = 5
+		packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
 
-	packet := newMineralPacket(player, 1, 5, 5, Cargo{100, 0, 0, 0}, Vector{}, planet.Num)
+		packet.movePacket(&rules, player, planet, player)
+		assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 100}, "caught packet should transfer all minerals to surface")
+		assert.Equal(t, planet.Population, 10000, "caught packet should not damage population")
+		assert.True(t, packet.Delete, "packet should be deleted after landing")
+	})
 
-	packet.movePacket(&rules, player, planet, player)
-	assert.Equal(t, planet.Cargo, Cargo{Ironium: 100, Colonists: 100})
-	assert.True(t, packet.Delete)
+	t.Run("massive packet destroys defended planet", func(t *testing.T) {
+		player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
 
+		planet := NewPlanet().withPosition(Vector{100, 0}).WithNum(1).WithPlayerNum(1).
+			WithPopulation(1_000_000)
+		planet.Spec.DefenseCoverage = 0.95
+
+		packet := newMineralPacket(player, 1, 10, 7, Cargo{Ironium: 300_000, Boranium: 100_000, Germanium: 100_000}, Vector{}, planet.Num)
+
+		packet.completeMove(&rules, player, planet, player)
+
+		assert.Zero(t, planet.Population, "planet should be dead")
+		assert.Equal(t, planet.SurfaceMinerals, Mineral{Ironium: 100_000}, "1/3 uncaught minerals should go on planet")
+		assert.True(t, packet.Delete, "packet should be deleted")
+	})
 }
 
 func TestMineralPacket_getPacketDecayRate(t *testing.T) {
@@ -168,7 +189,7 @@ func TestMineralPacket_estimateDamage(t *testing.T) {
 				planetPop:         1000000,
 				mass:              Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
 			},
-			MineralPacketDamage{Killed: 4700},
+			MineralPacketDamage{Killed: 4600},
 		},
 		{
 			"1 yr away; vanishing packet",

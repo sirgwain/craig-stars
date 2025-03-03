@@ -146,10 +146,10 @@ func (ai *aiPlayer) scoutPackets() error {
 					continue
 				}
 
-				// fling a packet with the mineral we have the most of
-				cargoType := planet.Cargo.GreatestMineralType()
+				// fling a packet with the mineral we have the largest amount of
+				highestType, _ := planet.SurfaceMinerals.HighestType(1)
 				queueItemType := cs.QueueItemTypeMixedMineralPacket
-				switch cargoType {
+				switch highestType {
 				case cs.Ironium:
 					queueItemType = cs.QueueItemTypeIroniumMineralPacket
 				case cs.Boranium:
@@ -158,7 +158,8 @@ func (ai *aiPlayer) scoutPackets() error {
 					queueItemType = cs.QueueItemTypeGermaniumMineralPacket
 				}
 
-				// Build a new packet targetted towards this planet
+				// Build a new packet targeted towards this planet
+				// TODO: Make sure it adds enough minerals to kill the planet
 				planet.PacketTargetNum = farthest.Num
 				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: queueItemType, Quantity: 1}}, planet.ProductionQueue...)
 				delete(unknownPlanetsByNum, farthest.Num)

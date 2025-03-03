@@ -181,7 +181,7 @@ type builtShip struct {
 func (p *producer) produce() (productionResult, error) {
 	planet := p.planet
 	result := productionResult{}
-	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddMineral(planet.Cargo.ToMineral())
+	available := Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddMineral(planet.SurfaceMinerals)
 	newQueue := []ProductionQueueItem{}
 	for itemIndex, item := range planet.ProductionQueue {
 		cost, err := p.getItemCost(p.rules, p.player, p.planet, item)
@@ -249,7 +249,7 @@ func (p *producer) produce() (productionResult, error) {
 			// planets are ending up with negative minerals. Trying to figure out why...
 			if available.MinZero() != available {
 				p.log.Warn().
-					Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
+					Str("Minerals", fmt.Sprintf("%+v", planet.SurfaceMinerals)).
 					Str("ProductionQueue", fmt.Sprintf("%+v", planet.ProductionQueue)).
 					Str("itemResult", fmt.Sprintf("%+v", result)).
 					Msgf("available minerals and resources went negative - available: %+v", available)
@@ -317,16 +317,17 @@ func (p *producer) produce() (productionResult, error) {
 		}
 
 	}
-	// replace the queue with what's leftover
+
+	// replace the queue with what's leftover and dock any used surface minerals
 	planet.ProductionQueue = newQueue
-	planet.Cargo = Cargo{available.Ironium, available.Boranium, available.Germanium, planet.Cargo.Colonists}
-	if planet.Cargo.MinZero() != planet.Cargo {
+	planet.SurfaceMinerals = Mineral{available.Ironium, available.Boranium, available.Germanium}
+	if planet.SurfaceMinerals.MaxNum(0) != planet.SurfaceMinerals {
 		p.log.Warn().
-			Str("Cargo", fmt.Sprintf("%+v", planet.Cargo)).
+			Str("Surface Minerals", fmt.Sprintf("%+v", planet.SurfaceMinerals)).
 			Str("productionResult", fmt.Sprintf("%+v", result)).
-			Msgf("planet cargo was negative after production: %s", planet.Cargo.PrettyString())
-		return result, fmt.Errorf("planet cargo was negative after production")
-		// planet.Cargo = planet.Cargo.MinZero()
+			Msgf("planet minerals went negative after production: %s", planet.SurfaceMinerals.PrettyString())
+		return result, fmt.Errorf("planet minerals went after production")
+		// planet.SurfaceMinerals = planet.SurfaceMinerals.MaxNum(0)
 	}
 
 	// any leftover resources go back to the player for research

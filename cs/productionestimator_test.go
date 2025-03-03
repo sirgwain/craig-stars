@@ -295,22 +295,14 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			name: "5 auto factories, then 5 auto mines, no minerals on hand, low resources",
 			args: args{
 				items: []ProductionQueueItem{
-					{
-						Type:     QueueItemTypeAutoFactories,
-						Quantity: 5,
-					},
-					{
-						Type:     QueueItemTypeAutoMines,
-						Quantity: 5,
-					},
-				},
-				surfaceMinerals: Mineral{},
-				population:      2000,
+					{Type: QueueItemTypeAutoFactories, Quantity: 5},
+					{Type: QueueItemTypeAutoMines, Quantity: 5}},
+				population: 2000,
 			},
 			want: []ProductionQueueItem{
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-						YearsToBuildOne: 14,
+						YearsToBuildOne: 15,
 						YearsToBuildAll: 23,
 						YearsToSkipAuto: 1,
 					},
@@ -319,8 +311,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-						YearsToBuildOne: 15,
-						YearsToBuildAll: 25, // it takes a while to build all these mines
+						YearsToBuildOne: 16,
+						YearsToBuildAll: 26, // it takes a while to build all these mines
 						YearsToSkipAuto: Infinite,
 					},
 					Type:     QueueItemTypeAutoMines,
@@ -433,8 +425,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 			planet := NewPlanet().WithPlayerNum(1)
 			planet.Hab = Hab{50, 50, 50}                         // perfect hab
-			planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for a 1kT per mine output
-			planet.Cargo = planet.Cargo.AddMineral(tt.args.surfaceMinerals)
+			planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for 1kT per mine output
+			planet.SurfaceMinerals = tt.args.surfaceMinerals
 			planet.setPopulation(tt.args.population)
 			planet.Mines = tt.args.mines
 			planet.Factories = tt.args.factories

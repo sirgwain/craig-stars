@@ -333,7 +333,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 		{
 			name: "Mini bomber, 10k planet, 10 defenses, 100 mines and factories, uses min kill rate",
 			args: args{
-				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Cargo: Cargo{Colonists: 100}, Hab: Hab{50, 50, 50}},
+				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Population: 10000, Hab: Hab{50, 50, 50}},
 				planetOwner:  planetOwner,
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, LadyFingerBomb)},
 				pg:           newTestPlayerGetter(fleetOwner, planetOwner),
@@ -343,7 +343,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 		{
 			name: "Two mini bombers, one with smart bombs",
 			args: args{
-				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Cargo: Cargo{Colonists: 100}, Hab: Hab{50, 50, 50}},
+				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Population: 10000, Hab: Hab{50, 50, 50}},
 				planetOwner:  planetOwner,
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, LadyFingerBomb), testMiniBomber(fleetOwner, SmartBomb)},
 				pg:           newTestPlayerGetter(fleetOwner, planetOwner),
@@ -353,7 +353,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 		{
 			name: "Three mini bombers, one with smart bombs, one with retro bombs",
 			args: args{
-				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Cargo: Cargo{Colonists: 100}, Hab: Hab{50, 50, 50}, BaseHab: Hab{50, 49, 50}},
+				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Population: 10000, Hab: Hab{50, 50, 50}, BaseHab: Hab{50, 49, 50}},
 				planetOwner:  planetOwner,
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, LadyFingerBomb), testMiniBomber(fleetOwner, SmartBomb), testMiniBomber(fleetOwner, RetroBomb)},
 				pg:           newTestPlayerGetter(fleetOwner, planetOwner),
@@ -370,7 +370,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 			b.bombPlanet(tt.args.planet, tt.args.planetOwner, tt.args.enemyBombers, tt.args.pg)
 
 			got := want{
-				population: tt.args.planet.population(),
+				population: tt.args.planet.GetPopulation(),
 				mines:      tt.args.planet.Mines,
 				factories:  tt.args.planet.Factories,
 				defenses:   tt.args.planet.Defenses,

@@ -6,12 +6,13 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-// Round a number (int or float) to the nearest multiple of 100 and return the resulting integer.
+// Round a value to the nearest 100 using the specified rounding function
+// and return the result.
 //
-// Typically used to convert floating-point population values back into colonist Cargo values,
-// which are stored in discrete units of 100 colonists/1kT.
-func roundToNearest100[T int | float64](value T) int {
-	return int(math.Round(float64(value)/100) * 100)
+// Population is often updated with floating point/integer math, but we typically have to convert
+// it back to Colonist cargo values, which are stored in units of 100 colonists per 1kT
+func roundToNearest100[T int | float64](value T, roundFunc func(float64) float64) T {
+	return T(roundFunc(float64(value)/100) * 100)
 }
 
 // Round a float to the given precision value using math.Round()

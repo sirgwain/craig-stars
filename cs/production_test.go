@@ -12,7 +12,7 @@ func Test_production_produceOneConcreteMine(t *testing.T) {
 
 	// build 1 mine
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeMine, Quantity: 1}}
-	planet.Cargo = Cargo{10, 20, 30, 2500}
+	planet.setCargo(Cargo{10, 20, 30, 2500})
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxPossibleMines: 100, MaxPopulation: 1_000_000}
 	planet.Mines = 0
 
@@ -24,7 +24,7 @@ func Test_production_produceOneConcreteMine(t *testing.T) {
 
 	// build 5 auto mines, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeAutoMines, Quantity: 5}}
-	planet.Cargo = Cargo{10, 20, 30, 2500}
+	planet.setCargo(Cargo{10, 20, 30, 2500})
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxMines: 100, MaxPopulation: 1_000_000}
 	planet.Mines = 0
 	player.Messages = []PlayerMessage{}
@@ -43,7 +43,7 @@ func Test_production_produceAutoFactories(t *testing.T) {
 
 	// build 5 auto factories, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeAutoFactories, Quantity: 5}}
-	planet.Cargo = Cargo{10, 20, 30, 2500}
+	planet.setCargo(Cargo{10, 20, 30, 2500})
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100, MaxPopulation: 1_000_000}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
@@ -72,7 +72,7 @@ func Test_production_produceFactoriesThenMinesWithLowGerm(t *testing.T) {
 	}
 	// give a planet with enough germanium to build 2.5 factories
 	// and enough resources to build all factories and all mines
-	planet.Cargo = Cargo{0, 0, 10, 2500}
+	planet.setCargo(Cargo{0, 0, 10, 2500})
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, MaxFactories: 100, MaxMines: 100, MaxPopulation: 1_000_000}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
@@ -97,7 +97,7 @@ func Test_production_produceFactoriesToMaxAndPartialMine(t *testing.T) {
 		{Type: QueueItemTypeAutoFactories, Quantity: 5},
 		{Type: QueueItemTypeAutoMines, Quantity: 5},
 	}
-	planet.Cargo = Cargo{0, 0, 8, 2500}
+	planet.setCargo(Cargo{0, 0, 8, 2500})
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 10*2 + 8, MaxFactories: 100, MaxMines: 100, MaxPopulation: 1_000_000}
 	planet.Factories = 0
 	player.Messages = []PlayerMessage{}
@@ -126,7 +126,7 @@ func Test_production_produceDefensesToMax(t *testing.T) {
 		{Type: QueueItemTypeDefenses, Quantity: 1, Allocated: Cost{5, 5, 5, 14}},
 		{Type: QueueItemTypeAutoDefenses, Quantity: 100},
 	}
-	planet.Cargo = Cargo{5000, 5000, 5000, 1_000_000}
+	planet.setCargo(Cargo{5000, 5000, 5000, 1_000_000})
 	planet.Defenses = 90
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 	player.Messages = []PlayerMessage{}
@@ -148,7 +148,7 @@ func Test_production_produceFactoriesToMaxThenMines(t *testing.T) {
 		{Type: QueueItemTypeAutoFactories, Quantity: 10},
 		{Type: QueueItemTypeAutoMines, Quantity: 10},
 	}
-	planet.Cargo = Cargo{1000, 1000, 1000, 100}
+	planet.setCargo(Cargo{1000, 1000, 1000, 100})
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, MaxFactories: 10, MaxMines: 10, MaxPopulation: 1_000_000}
 	planet.Factories = 9
 	planet.Mines = 0
@@ -178,7 +178,7 @@ func Test_production_producePartialMine(t *testing.T) {
 		{Type: QueueItemTypeAutoFactories, Quantity: 100},
 		{Type: QueueItemTypeAutoMines, Quantity: 100},
 	}
-	planet.Cargo = Cargo{0, 0, 0, 25}
+	planet.setCargo(Cargo{0, 0, 0, 25})
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 2, MaxFactories: 10, MaxMines: 10, MaxPopulation: 1_000_000}
 	player.Messages = []PlayerMessage{}
 
@@ -214,7 +214,7 @@ func Test_production_producePartialFactoryAndMoreAuto(t *testing.T) {
 		{Type: QueueItemTypeAutoFactories, Quantity: 100},
 		{Type: QueueItemTypeAutoMines, Quantity: 100},
 	}
-	planet.Cargo = Cargo{361, 382, 1173, 331}
+	planet.setCargo(Cargo{361, 382, 1173, 331})
 	planet.Mines = 11
 	planet.Factories = 16
 	planet.Spec = computePlanetSpec(&rules, player, planet)
@@ -255,7 +255,7 @@ func Test_production_producePartialFactory(t *testing.T) {
 		{Type: QueueItemTypeAutoFactories, Quantity: 100},
 		{Type: QueueItemTypeAutoMines, Quantity: 100},
 	}
-	planet.Cargo = Cargo{7, 2, 1, 37}
+	planet.setCargo(Cargo{7, 2, 1, 37})
 	planet.Mines = 2
 	planet.Factories = 1
 	planet.Spec = computePlanetSpec(&rules, player, planet)
@@ -265,7 +265,7 @@ func Test_production_producePartialFactory(t *testing.T) {
 	producer.produce()
 
 	// We should consume 1kT germanium and allocate appropriate resources to match
-	assert.Equal(t, Cargo{7, 2, 0, 37}, planet.Cargo)
+	assert.Equal(t, Cargo{7, 2, 0, 37}, planet.getCargo())
 	assert.Equal(t, Cost{Germanium: 3, Resources: 7}, planet.ProductionQueue[0].Allocated)
 
 }
@@ -283,7 +283,7 @@ func Test_production_produceBuildToMinesFactoriesToMax(t *testing.T) {
 		{Type: QueueItemTypeAutoMines, Quantity: 100},
 		{Type: QueueItemTypeAutoFactories, Quantity: 100},
 	}
-	planet.Cargo = Cargo{1000, 1000, 1000, 1000}
+	planet.setCargo(Cargo{1000, 1000, 1000, 1000})
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 
 	// max mines for current setting
@@ -335,7 +335,7 @@ func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
 		{Type: QueueItemTypeAutoFactories, Quantity: 250},
 		{Type: QueueItemTypeAutoMaxTerraform, Quantity: 10},
 	}
-	planet.Cargo = Cargo{1000, 1000, 77, 3166}
+	planet.setCargo(Cargo{1000, 1000, 77, 3166})
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 
 	// should build nothing, but queue up a mine partially done
@@ -379,7 +379,7 @@ func Test_production_produceStarbaseUpgrade(t *testing.T) {
 	planet.ProductionQueue = []ProductionQueueItem{
 		{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 3, design: starbaseDesign2},
 	}
-	planet.Cargo = Cargo{1000, 1000, 1000, 10000}
+	planet.setCargo(Cargo{1000, 1000, 1000, 10000})
 	planet.Spec = computePlanetSpec(&rules, player, planet)
 
 	// should build nothing, but queue up a mine partially done
@@ -401,7 +401,7 @@ func Test_production_produceTerraform(t *testing.T) {
 	planet.ProductionQueue = []ProductionQueueItem{
 		{Type: QueueItemTypeTerraformEnvironment, Quantity: 5},
 	}
-	planet.Cargo = Cargo{0, 0, 8, 2500}
+	planet.setCargo(Cargo{0, 0, 8, 2500})
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, TerraformAmount: Hab{2, 2, 1}}
 	planet.BaseHab = Hab{40, 40, 40}
 	planet.Hab = Hab{40, 40, 40}
@@ -422,7 +422,7 @@ func Test_production_produceMineralPackets(t *testing.T) {
 
 	// build 5 auto factories, leaving them in the queue
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypeMixedMineralPacket, Quantity: 1}}
-	planet.Cargo = Cargo{100, 100, 100, 2500}
+	planet.setCargo(Cargo{100, 100, 100, 2500})
 	planet.PacketSpeed = 6
 	planet.PacketTargetNum = 1
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, PlanetStarbaseSpec: PlanetStarbaseSpec{HasMassDriver: true, SafePacketSpeed: 6, BasePacketSpeed: 6}}
@@ -440,7 +440,7 @@ func Test_production_produceScanner(t *testing.T) {
 
 	// build a scanner
 	planet.ProductionQueue = []ProductionQueueItem{{Type: QueueItemTypePlanetaryScanner, Quantity: 1}}
-	planet.Cargo = Cargo{1000, 1000, 1000, 100_000}
+	planet.setCargo(Cargo{1000, 1000, 1000, 100_000})
 	planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 1000, MaxPopulation: 1_000_000}
 	planet.Scanner = false
 

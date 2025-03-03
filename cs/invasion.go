@@ -1,6 +1,9 @@
 package cs
 
-import "github.com/rs/zerolog"
+import (
+	"github.com/rs/zerolog"
+	"math"
+)
 
 // invade a planet with a colonist drop
 func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet, defender *Player, attacker *Player, colonistsDropped int) {
@@ -8,7 +11,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 
 	// figure out how many attackers are stopped by defenses
 	attackers := int(float64(colonistsDropped) * (1 - planet.Spec.DefenseCoverage*invasionDefenseCoverageFactor))
-	defenders := planet.population()
+	defenders := planet.GetPopulation()
 
 	// determine bonuses for warmongers and inner strength
 	attackBonus := attacker.Race.Spec.InvasionAttackBonus
@@ -19,7 +22,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 
 	if float64(attackers)*attackBonus > float64(defenders)*defenseBonus {
 		remainingDefenders = 0
-		remainingAttackers = roundToNearest100(float64(attackers) - float64(defenders)*defenseBonus/attackBonus)
+		remainingAttackers = int(roundToNearest100(float64(attackers)-float64(defenders)*defenseBonus/attackBonus, math.Round))
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingAttackers == 0 {
@@ -29,13 +32,11 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 		var attackersKilled = colonistsDropped - remainingAttackers
 
 		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population(), true)
-		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.population(), true)
+		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.GetPopulation(), true)
+		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, attackersKilled, planet.GetPopulation(), true)
 
-		// empty this planet
+		// empty the planet and take it over
 		planet.emptyPlanet()
-
-		// take over the planet.
 		planet.PlayerNum = attacker.Num
 		planet.setPopulation(remainingAttackers)
 
@@ -43,7 +44,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 		// the last dying colonist sends a report to their compatriots
 		defender.discoverer.discoverPlanet(rules, planet, true)
 
-		// apply a production plan
+		// apply default production plan
 		if len(attacker.ProductionPlans) > 0 {
 			plan := attacker.ProductionPlans[0]
 			plan.Apply(planet)
@@ -70,20 +71,21 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 			}
 		}
 	} else {
+		// defenders won
 		remainingAttackers = 0
-		remainingDefenders = roundToNearest100(float64(defenders) - (float64(attackers)*attackBonus)/defenseBonus)
+		remainingDefenders = int(roundToNearest100(float64(defenders)-(float64(attackers)*attackBonus)/defenseBonus, math.Round))
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingDefenders == 0 {
 			remainingDefenders = 100
 		}
-		defendersKilled := planet.population() - remainingDefenders
+		defendersKilled := planet.GetPopulation() - remainingDefenders
 
 		// notify each player of the invasion
 		messager.planetInvaded(defender, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, colonistsDropped, defendersKilled, false)
 		messager.planetInvaded(attacker, planet, fleet, defender.Race.PluralName, attacker.Race.PluralName, colonistsDropped, defendersKilled, false)
 
-		// reduce the population to however many colonists remain
+		// reduce the population by however many colonists were killed
 		planet.setPopulation(remainingDefenders)
 	}
 

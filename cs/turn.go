@@ -183,17 +183,17 @@ func (t *turnGenerator) scrapFleet(fleet *Fleet, colonize bool) {
 	cost := fleet.getScrapAmount(&t.game.Rules, player, planet, colonize)
 
 	if planet != nil {
-		// scrap over a planet
-		planet.Cargo = planet.Cargo.AddCostMinerals(cost)
+		// scrap over a planet; add refunded minerals to planet surface
+		planet.SurfaceMinerals = planet.SurfaceMinerals.Add(cost.ToMineral())
 		// UR bonus resources only come into play for normal scrapping
 		// but fleet.getScrapAmount already sets it to 0 regardless
 		planet.bonusResources += cost.Resources
 		if planet.OwnedBy(player.Num) {
 			// add colonists to planet cargo if it's our own planet
-			planet.Cargo = planet.Cargo.Add(fleet.Cargo)
+			planet.addCargo(fleet.Cargo)
 		} else {
 			// if not our planet, only the minerals in cargo get transferred (bye bye colonists)
-			planet.Cargo = planet.Cargo.AddMineral(fleet.Cargo.ToMineral())
+			planet.SurfaceMinerals = planet.SurfaceMinerals.Add(fleet.Cargo.ToMineral())
 		}
 
 		// Check for level/component tech trading.
@@ -518,7 +518,7 @@ func (t *turnGenerator) fleetTransferCargo(fleet *Fleet, transferAmount int, car
 			// invasion!
 			attacker := player
 
-			if !planet.Owned() || planet.population() == 0 {
+			if !planet.Owned() || planet.GetPopulation() == 0 {
 				// can't invade uninhabited planets
 				messager.planetInvadeEmpty(attacker, planet, fleet)
 				return fmt.Errorf("can't invade empty planet")
@@ -766,7 +766,7 @@ func (t *turnGenerator) packetMove(builtThisTurn bool) {
 			Str("Position", packet.Position.String()).
 			Msgf("moved packet")
 
-		if planetPlayer != nil && planet.population() == 0 {
+		if planetPlayer != nil && planet.GetPopulation() == 0 {
 			// this planet just got killed by a packet
 			if starbase != nil {
 				t.game.deleteStarbase(starbase)
@@ -1103,7 +1103,7 @@ func (t *turnGenerator) fleetReproduce() {
 			fleet.Cargo.Colonists = fleet.Cargo.Colonists - over
 			if planet != nil && planet.OwnedBy(fleet.PlayerNum) {
 				// add colonists to the planet this fleet is orbiting
-				planet.Cargo.Colonists = planet.Cargo.Colonists + over
+				planet.Population += over * 100
 			}
 		}
 
@@ -1304,7 +1304,7 @@ func (t *turnGenerator) detonateMines() {
 func (t *turnGenerator) planetMine() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
-			planet.mine(&t.game.Rules)
+			planet.mine(&t.game.Rules, planet.Spec.MiningOutput, planet.Mines)
 			t.log.Debug().
 				Int("Player", planet.PlayerNum).
 				Str("Planet", planet.Name).
@@ -1345,7 +1345,7 @@ func (t *turnGenerator) fleetRemoteMineAR() {
 
 		// If this is our own planet, remote mine it (happens earlier than normal)
 		if planet.OwnedBy(fleet.PlayerNum) && player.Race.Spec.CanRemoteMineOwnPlanets {
-			t.remoteMine(fleet, player, planet, true)
+			t.remoteMine(fleet, player, planet)
 		}
 	}
 }
@@ -1389,34 +1389,31 @@ func (t *turnGenerator) fleetRemoteMine() {
 			continue
 		}
 
-		t.remoteMine(fleet, player, planet, false)
+		if fleet.PreviousPosition != nil {
+			// just got here this turn; don't mine
+			continue
+		}
+
+		t.remoteMine(fleet, player, planet)
 	}
 }
 
 // remote mine a planet
-func (t *turnGenerator) remoteMine(fleet *Fleet, player *Player, planet *Planet, ARMining bool) {
-	// don't mine if we moved here this round and aren't AR self mining
-	if fleet.PreviousPosition != nil && !ARMining {
-		return
-	}
-	numMines := fleet.Spec.MiningRate
-	mineralOutput := planet.getMineralOutput(numMines, t.game.Rules.RemoteMiningMineOutput)
-	planet.Cargo = planet.Cargo.AddMineral(mineralOutput)
-	planet.MineYears = planet.MineYears.AddToAll(numMines)
-	planet.reduceMineralConcentration(&t.game.Rules)
+func (t *turnGenerator) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
+	miningOutput := planet.getMineralOutput(&t.game.Rules, fleet.Spec.MiningRate, t.game.Rules.RemoteMiningMineOutput)
+	planet.mine(&t.game.Rules, miningOutput, fleet.Spec.MiningRate)
 	planet.MarkDirty()
 
 	// make sure we know about this planet's cargo after remote mining;
-	// mark this fleet as having remote mined
-	// so it gets added as a planetary cargo scanner
+	// mark this fleet as having remote mined so it doesn't get counted twice
 	fleet.remoteMined = true
-	messager.fleetRemoteMined(player, fleet, planet, mineralOutput)
+	messager.fleetRemoteMined(player, fleet, planet, miningOutput)
 
 	t.log.Debug().
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Str("Planet", planet.Name).
-		Str("Minerals outputted", mineralOutput.PrettyString()).
+		Str("Minerals outputted", miningOutput.PrettyString()).
 		Msgf("fleet remote mined planet")
 }
 
@@ -1781,8 +1778,8 @@ func (t *turnGenerator) permaform() {
 				continue
 			}
 			adjustedPermaformChance := player.Race.Spec.PermaformChance
-			if planet.population() <= player.Race.Spec.PermaformPopulation {
-				adjustedPermaformChance *= float64(planet.population() / player.Race.Spec.PermaformPopulation)
+			if planet.GetPopulation() <= player.Race.Spec.PermaformPopulation {
+				adjustedPermaformChance *= float64(planet.GetPopulation() / player.Race.Spec.PermaformPopulation)
 			}
 
 			if adjustedPermaformChance >= t.game.Rules.random.Float64() {
@@ -1812,15 +1809,15 @@ func (t *turnGenerator) planetGrow() {
 	for _, planet := range t.game.Planets {
 		if planet.Owned() {
 			player := t.game.getPlayer(planet.PlayerNum)
-			prevPop := planet.population()
+			prevPop := planet.GetPopulation()
 			planet.grow(player)
 
-			// tell players about dieing colonists
-			if planet.Spec.GrowthAmount < 0 {
+			// tell players about dying colonists
+			if diff := planet.GetPopulation() - prevPop; diff > 100 {
 				if planet.Spec.PopulationDensity > 1 {
-					messager.planetPopulationDecreasedOvercrowding(player, planet, planet.Spec.GrowthAmount)
+					messager.planetPopulationDecreasedOvercrowding(player, planet, diff)
 				} else {
-					messager.planetPopulationDecreased(player, planet, prevPop, planet.population())
+					messager.planetPopulationDecreased(player, planet, prevPop, planet.GetPopulation())
 				}
 			}
 
@@ -1830,10 +1827,10 @@ func (t *turnGenerator) planetGrow() {
 				Int("Capacity", int(planet.Spec.PopulationDensity*100)).
 				Int("PrevPopulation", prevPop).
 				Int("GrowthAmount", planet.Spec.GrowthAmount).
-				Int("Population", planet.population()).
+				Int("Population", planet.GetPopulation()).
 				Msgf("planet grow")
 
-			if planet.population() <= 0 {
+			if planet.GetPopulation() <= 0 {
 				planet.emptyPlanet()
 				messager.planetDiedOff(player, planet)
 
@@ -1957,14 +1954,14 @@ func (t *turnGenerator) randomCometStrike() {
 	habChanged := Hab{terraformAmount[0], terraformAmount[1], terraformAmount[2]}
 	colonistsKilled := 0
 
-	planet.Cargo = planet.Cargo.AddMineral(mineralsAdded)
+	planet.SurfaceMinerals = planet.SurfaceMinerals.Add(mineralsAdded)
 	planet.MineralConcentration = planet.MineralConcentration.Add(mineralConcentrationIncreased).Clamp(t.game.Rules.MinMineralConcentration, t.game.Rules.MaxMineralConcentration)
 	planet.Hab = planet.Hab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
 	planet.BaseHab = planet.BaseHab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
-	if planet.Cargo.Colonists > 0 {
-		pop := planet.population()
-		planet.Cargo.Colonists = int(float64(planet.Cargo.Colonists) * (1 - stats.PopKilledPercent))
-		colonistsKilled = pop - planet.population()
+	if planet.Population > 0 {
+		pop := planet.GetPopulation()
+		planet.Population = int(roundToNearest100(float64(pop)*(1-stats.PopKilledPercent), math.Floor))
+		colonistsKilled = pop - planet.GetPopulation()
 	}
 	planet.MarkDirty()
 
@@ -1975,10 +1972,10 @@ func (t *turnGenerator) randomCometStrike() {
 	t.log.Debug().
 		Str("Planet", planet.Name).
 		Int("Player", planet.PlayerNum).
-		Str("MineralsAdded", fmt.Sprintf("%+v", mineralsAdded)).
-		Str("MineralConcentrationIncreased", fmt.Sprintf("%+v", mineralConcentrationIncreased)).
-		Str("HabChanged", fmt.Sprintf("%+v", habChanged)).
-		Int("ColonistsKilled", colonistsKilled).
+		Str("Minerals Added", fmt.Sprintf("%+v", mineralsAdded)).
+		Str("Mineral Concentration Increased", fmt.Sprintf("%+v", mineralConcentrationIncreased)).
+		Str("Hab Changed", fmt.Sprintf("%+v", habChanged)).
+		Int("Colonists Killed", colonistsKilled).
 		Msgf("planet struck by %v comet", size)
 
 }
@@ -2140,7 +2137,7 @@ func (t *turnGenerator) fleetBattle() {
 				if planet == nil {
 					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
 				} else {
-					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
+					planet.SurfaceMinerals = planet.SurfaceMinerals.Add(salvageMinerals)
 				}
 			}
 
@@ -2216,7 +2213,7 @@ func (t *turnGenerator) fleetBattle() {
 func (t *turnGenerator) fleetBomb() {
 	bomber := newBomber(t.log, &t.game.Rules)
 	for _, planet := range t.game.Planets {
-		if !planet.Owned() || planet.population() == 0 || planet.Spec.HasStarbase {
+		if !planet.Owned() || planet.GetPopulation() == 0 || planet.Spec.HasStarbase {
 			// can't bomb uninhabited planets, planets with starbases
 			continue
 		}
@@ -2875,7 +2872,7 @@ func (t *turnGenerator) calculateScores() {
 				score.Starbases++
 			}
 			// Planets: From 1 to 6 points, scoring 1 point for each 100,000 colonists
-			score.Score += int(math.Min(float64(planet.population()/100000), 6))
+			score.Score += int(math.Min(float64(planet.GetPopulation()/100000), 6))
 			score.Resources += planet.Spec.ResourcesPerYear
 		}
 	}
@@ -3027,7 +3024,7 @@ func (t *turnGenerator) checkDeath() {
 		for _, planet := range t.game.Planets {
 			if planet.PlayerNum == player.Num {
 				numPlanets++
-				numColonists += planet.population()
+				numColonists += planet.GetPopulation()
 			}
 		}
 

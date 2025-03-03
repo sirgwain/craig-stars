@@ -122,7 +122,7 @@ func (tl *TechLevel) Set(field TechField, level int) {
 	}
 }
 
-// add together 2 TechLevels and return the result
+// Add 2 TechLevel structs together and return the result
 func (tl TechLevel) Add(other TechLevel) TechLevel {
 	return TechLevel{
 		tl.Energy + other.Energy,
@@ -134,7 +134,7 @@ func (tl TechLevel) Add(other TechLevel) TechLevel {
 	}
 }
 
-// deduct the given TechLevel from another TechLevel and return the result
+// Subtract the given TechLevel from another TechLevel and return the result
 func (tl TechLevel) Subtract(other TechLevel) TechLevel {
 	return TechLevel{
 		tl.Energy - other.Energy,

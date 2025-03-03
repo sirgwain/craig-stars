@@ -106,16 +106,16 @@ func (ai *aiPlayer) transportColonists() error {
 					// it will grow slower after 25%
 					colonistsToLoad := cs.Min(int(float64(planet.Spec.MaxPopulation)*ai.config.colonistTransportDensity), fleet.Spec.CargoCapacity)
 
-					// load colonists but only if taking  these colonists doesn't reduce our pop too much
+					// load colonists but only if taking these colonists doesn't reduce our pop too much
 					// take into account how much we're going to grow
 					orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
-					growth := orbiting.Spec.GrowthAmount
-					newDensity := float64(((orbiting.Cargo.Colonists-colonistsToLoad)*100)+growth) / float64(orbiting.Spec.MaxPopulation)
+					popNextYear := orbiting.PopNextYear(true)
+					newDensity := float64(popNextYear-colonistsToLoad*100) / float64(orbiting.Spec.MaxPopulation)
 					if newDensity < ai.config.colonistTransportDensity {
 						log.Debug().
 							Int64("GameID", ai.GameID).
 							Int("PlayerNum", ai.Num).
-							Int("ColonistsAvailable", orbiting.Cargo.Colonists*100).
+							Int("ColonistsAvailable", popNextYear).
 							Int("ColonistsNeeded", colonistsToLoad*100).
 							Int("DensityAfterLoad", int(newDensity)).
 							Msgf("Fleet %s cannot load colonists from %s", fleet.Name, orbiting.Name)
@@ -123,7 +123,7 @@ func (ai *aiPlayer) transportColonists() error {
 						continue
 					}
 					if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}, ai.Planets); err != nil {
-						// something went wrong, skipi this planet
+						// something went wrong, skip this planet
 						log.Error().Err(err).Msg("transferring colonists from planet, skipping")
 						continue
 					}

@@ -78,7 +78,7 @@ func (ai *aiPlayer) bomb() error {
 				Int64("GameID", ai.GameID).
 				Int("PlayerNum", ai.Num).
 				Int("WarpSpeed", warpSpeed).
-				Int("Population", bestPlanet.Spec.Population).
+				Int("Population", bestPlanet.Population).
 				Bool("HasStarbase", bestPlanet.Spec.HasStarbase).
 				Msgf("Fleet %s targeting %s for bombing", fleet.Name, bestPlanet.Name)
 
@@ -104,7 +104,7 @@ func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]cs.Plan
 		intel := planets[num]
 		// go for low pop planets to clean them up quickly
 		// like the snowball method of paying off debt
-		pop := intel.Spec.Population
+		pop := intel.Population
 
 		// avoid starbases if there are better targets
 		starbaseFactor := 1.0

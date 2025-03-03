@@ -6,11 +6,37 @@ import (
 )
 
 // Cargo represents minerals and colonists that are in cargo holds, salvage, mineral packets, or on planets.
+// 1 kT of Cargo respresents 1 unit of minerals or 100 colonists.
 type Cargo struct {
 	Ironium   int `json:"ironium,omitempty"`
 	Boranium  int `json:"boranium,omitempty"`
 	Germanium int `json:"germanium,omitempty"`
 	Colonists int `json:"colonists,omitempty"`
+}
+
+// Create a new Cargo struct from a Mineral struct and population count
+func NewCargoFromMineral(mineral Mineral, pop int) Cargo {
+	return Cargo{
+		Ironium:   mineral.Ironium,
+		Boranium:  mineral.Ironium,
+		Germanium: mineral.Ironium,
+		Colonists: pop,
+	}
+}
+
+func NewCargoFromType(cargoType CargoType, amt int) Cargo {
+	c := Cargo{}
+	switch cargoType {
+	case Ironium:
+		c.Ironium = amt
+	case Boranium:
+		c.Boranium = amt
+	case Germanium:
+		c.Germanium = amt
+	case Colonists:
+		c.Colonists = amt
+	}
+	return c
 }
 
 type CargoType = ResourceType
@@ -117,15 +143,6 @@ func (c Cargo) Multiply(product float64) Cargo {
 }
 
 func (c Cargo) AddMineral(other Mineral) Cargo {
-	return Cargo{
-		Ironium:   c.Ironium + other.Ironium,
-		Boranium:  c.Boranium + other.Boranium,
-		Germanium: c.Germanium + other.Germanium,
-		Colonists: c.Colonists,
-	}
-}
-
-func (c Cargo) AddCostMinerals(other Cost) Cargo {
 	return Cargo{
 		Ironium:   c.Ironium + other.Ironium,
 		Boranium:  c.Boranium + other.Boranium,

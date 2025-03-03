@@ -57,12 +57,12 @@ func (ai *aiPlayer) colonize() error {
 					target := ai.getPlanetIntel(wp.TargetNum)
 					if target.Owned() {
 						// our target is owned by someone else, see if they are an enemy and if we can invade them
-						if ai.IsEnemy(target.PlayerNum) && !target.Spec.HasStarbase && target.Spec.Population < int(float64(fleet.Cargo.Colonists*100)/ai.config.invasionFactor) {
+						if ai.IsEnemy(target.PlayerNum) && !target.Spec.HasStarbase && target.Population < int(float64(fleet.Cargo.Colonists*100)/ai.config.invasionFactor) {
 							log.Debug().
 								Int64("GameID", ai.GameID).
 								Int("PlayerNum", ai.Num).
 								Int("Invaders", fleet.Cargo.Colonists*100).
-								Int("Defenders", target.Spec.Population).
+								Int("Defenders", target.Population).
 								Bool("HasStarbase", target.Spec.HasStarbase).
 								Msgf("Colonizer %s switched to invasion of %s", fleet.Name, target.Name)
 
@@ -109,37 +109,40 @@ func (ai *aiPlayer) colonize() error {
 				}
 
 				// don't load more than 100% of the planet cap
-				colonistsToLoad := cs.Min(planet.Spec.MaxPopulation, fleet.Spec.CargoCapacity)
+				// TODO: Make this better:
+				// * _Don't_ send colonizers if we don't need them
+				// * Only load up to a preset % of cap (rather than trying to take everything and aborting if we load too much)
+				colonistsToLoad := cs.Min(planet.Spec.MaxPopulation/100, fleet.Spec.CargoCapacity)
 
 				// we are over our world, load colonists
-				// but only if taking  these colonists doesn't reduce our pop too much
+				// but only if taking these colonists doesn't reduce our pop too much
 				// take into account how much we're going to grow
 				orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
-				growth := orbiting.Spec.GrowthAmount
-				newDensity := float64(((orbiting.Cargo.Colonists-colonistsToLoad)*100)+growth) / float64(orbiting.Spec.MaxPopulation)
+				popNextYear := orbiting.PopNextYear(true)
+				newDensity := float64(popNextYear-colonistsToLoad*100) / float64(orbiting.Spec.MaxPopulation)
 				if newDensity < ai.config.colonizerPopulationDensity {
 					log.Debug().
 						Int64("GameID", ai.GameID).
 						Int("PlayerNum", ai.Num).
-						Int("ColonistsAvailable", orbiting.Cargo.Colonists*100).
+						Int("ColonistsAvailable", popNextYear).
 						Int("ColonistsNeeded", colonistsToLoad*100).
-						Int("DensityAfterLoad", int(newDensity)).
-						Msgf("Fleet %s cannot load colonists from %s", fleet.Name, orbiting.Name)
+						Float64("DensityAfterLoad", newDensity).
+						Msgf("Fleet %s aborting loading colonists from planet %s; too little pop", fleet.Name, orbiting.Name)
 
 					continue
 				}
 				if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}, ai.Planets); err != nil {
-					// something went wrong, skipi this planet
-					log.Error().Err(err).Msg("transferring colonists from planet, skipping")
+					// something went wrong, skip this planet
+					log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
 					continue
 				}
 
 				log.Debug().
 					Int64("GameID", ai.GameID).
 					Int("PlayerNum", ai.Num).
-					Int("ColonistsAvailable", orbiting.Cargo.Colonists*100).
+					Int("ColonistsAvailable", popNextYear).
 					Int("ColonistsNeeded", colonistsToLoad*100).
-					Int("DensityAfterLoad", int(newDensity)).
+					Float64("DensityAfterLoad", newDensity).
 					Msgf("Fleet %s loaded %d colonists from %s", fleet.Name, colonistsToLoad*100, orbiting.Name)
 
 			}

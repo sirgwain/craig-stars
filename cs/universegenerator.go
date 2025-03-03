@@ -3,7 +3,6 @@ package cs
 import (
 	"fmt"
 	"math"
-	"slices"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog"
@@ -71,7 +70,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	}
 	ug.generatePlayerRelations()
 
-	if err := ug.generatePlayerHomeworlds(ug.area); err != nil {
+	if err := ug.generatePlayerStartingPlanets(ug.area); err != nil {
 		return nil, err
 	}
 
@@ -292,20 +291,23 @@ func (ug *universeGenerator) generatePlayerPlanetReports() error {
 	return nil
 }
 
-func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
+// generate player starting positions in the given area
+func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 
 	ownedPlanets := []*Planet{}
 	rules := &ug.Rules
 	random := rules.random
 
-	// each player homeworld has the same random mineral concentration, for fairness
-	homeworldMinConc := Mineral{
-		Ironium:   rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
-		Boranium:  rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
-		Germanium: rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
-	}
+	// each player homeworld has the same baseline random mineral concentration, for fairness
+	var homeworldMinConc Mineral
 	if ug.MaxMinerals {
 		homeworldMinConc = Mineral{100, 100, 100}
+	} else {
+		homeworldMinConc = Mineral{
+			Ironium:   rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
+			Boranium:  rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
+			Germanium: rules.MinHomeworldMineralConcentration + random.Intn(rules.MaxStartingMineralConcentration),
+		}
 	}
 
 	homeworldSurfaceMinerals := Mineral{
@@ -326,60 +328,22 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 		var homeworld *Planet
 		extraPoints, pointsType := player.Race.ComputeLeftoverRacePoints(rules.RaceStartingPoints)
 
+		// assign player starting planets
+		// TODO: Add custom planet placement support
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			if !startingPlanet.Homeworld && homeworld == nil {
-				// TODO: Do we want to support multiple homeworlds in subsequent slots?
+				// Since extra planets _have_ to be placed around the homeworld,
+				// the homeworld must be the first thing we place
 				return fmt.Errorf("first planet in player #%d's startingPlanets was not homeworld, exiting", player.Num)
 			}
 
-			// find a playerPlanet that is a min distance from other homeworlds
-
 			var playerPlanet *Planet
-			farthestDistance := float64(math.MinInt)
-			closestDistance := math.MaxFloat64
-
-			if startingPlanet.Homeworld && homeworld == nil { // planet is homeworld & we have no other
-				// homeworld should be distant from other players
-				for _, planet := range ug.Universe.Planets {
-					if planet.Owned() {
-						continue
-					}
-
-					// if we find a planet far enough away
-					// from other players' planets, use it.
-					// Otherwise, keep track of the furthest one away
-					// and default to it at the end.
-					shortedDistanceToPlanets := planet.shortestDistanceToPlanets(&ownedPlanets)
-					if len(ownedPlanets) == 0 || shortedDistanceToPlanets > minPlayerDistance {
-						playerPlanet = planet
-						break
-					}
-
-					if shortedDistanceToPlanets >= farthestDistance {
-						farthestDistance = shortedDistanceToPlanets
-						playerPlanet = planet
-					}
-				}
-
+			if startingPlanet.Homeworld && homeworld == nil {
+				// place homworld and track it so we know where to base extra world placement on
+				playerPlanet = ug.placeHomeworld(ownedPlanets, minPlayerDistance)
 				homeworld = playerPlanet
 			} else {
-				// extra planets are close to the homeworld
-				for _, planet := range ug.Universe.Planets {
-					if planet.Owned() {
-						continue
-					}
-
-					// if we can't find a planet within tolerances, pick the closest one
-					distToHomeworld := planet.Position.DistanceSquaredTo(homeworld.Position)
-					if distToHomeworld <= closestDistance {
-						closestDistance = distToHomeworld
-						playerPlanet = planet
-					}
-					if distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) && distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance) {
-						playerPlanet = planet
-						break
-					}
-				}
+				playerPlanet = ug.placeExtraWorld(homeworld.Position)
 			}
 
 			if playerPlanet == nil {
@@ -426,6 +390,69 @@ func (ug *universeGenerator) generatePlayerHomeworlds(area Vector) error {
 	return nil
 }
 
+// place a homeworld during universe generation
+func (ug *universeGenerator) placeHomeworld(ownedPlanets []*Planet, minPlanetDistance float64) (homeworld *Planet) {
+	farthestDistance := float64(math.MinInt)
+
+	// homeworld should be distant from other players' planets
+	for _, planet := range ug.Universe.Planets {
+		if planet.Owned() {
+			// can't re-assign owned planets
+			continue
+		}
+
+		if len(ownedPlanets) == 0 {
+			// no owned planets means we grab the first one we see
+			return planet
+		}
+
+		// figure out how far we are from other players' planets
+		shortestDistanceToPlanets := planet.shortestDistanceToPlanets(ownedPlanets)
+
+		// if the planet we find is within tolerance, use it;
+		// otherwise, keep track of the furthest one away as a failsafe
+		if shortestDistanceToPlanets >= minPlanetDistance {
+			return planet
+		}
+
+		if shortestDistanceToPlanets >= farthestDistance {
+			farthestDistance = shortestDistanceToPlanets
+			homeworld = planet
+		}
+
+	}
+	return homeworld
+}
+
+// place an extra world during universe generation
+func (ug *universeGenerator) placeExtraWorld(homeworldPos Vector) (extraPlanet *Planet) {
+	rules := ug.Rules
+	var closestDistance float64
+	for _, planet := range ug.Universe.Planets {
+		if planet.Owned() {
+			continue
+		}
+
+		// check how close this planet is to our homeworld
+		distToHomeworld := planet.Position.DistanceSquaredTo(homeworldPos)
+
+		// if it's within tolerances, use it
+		if distToHomeworld <= float64(rules.MaxExtraWorldDistance*rules.MaxExtraWorldDistance) &&
+			distToHomeworld >= float64(rules.MinExtraWorldDistance*rules.MinExtraWorldDistance) {
+			return planet
+		}
+
+		// if we can't find a planet within tolerances, track the closest one
+		// and default to it if none are found
+		if distToHomeworld < closestDistance {
+			closestDistance = distToHomeworld
+			extraPlanet = planet
+		}
+	}
+
+	return extraPlanet
+}
+
 // Assign race starting point bonuses to a player's homeworld
 func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *Planet, extraPoints int, pointsType SpendLeftoverPointsOn) {
 	rules := ug.Rules
@@ -445,63 +472,12 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		extraPoints >= pointsThreshold:
 		planet.MineralConcentration = planet.MineralConcentration.Equalize(extraPoints / pointsThreshold)
 	case extraPoints > 0:
-		kTPerPoint := rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
-		// example situation: 25 unspent points; HW has 400I, 300B and 350G
-		// first we start by increasing B up to 350, using 5 points.
-		// B & G are now equal, so we increase both by 50 (using 10 points).
-		// The remaining 10 gets spread equally among all 3.
-
-		// TODO: Figure out how OG stars does this stuff cuz IDK
-		// currently just using the old algorithm out of spite
-		mArray := planet.Cargo.ToMineral().ToSlice()
-		mSlice := mArray[:]
-		var origOrder = []int{0, 1, 2} // original value order; used to "un-shuffle" slice at the end
-
-		// sort mineral values/types
-		slices.SortFunc(mSlice, func(a, b int) int {
-			diff := a - b
-			if diff < 0 {
-				// shuffle around original order slice to keep it in sync
-				i := slices.Index(mSlice, a)
-				origOrder[i], origOrder[i-1] = origOrder[i-1], origOrder[i]
-			}
-			return diff
-		})
-
-		// equalize lowest 2
-		diffLowest := mSlice[1] - mSlice[0]
-		if diffLowest != 0 {
-			// this truncation in amtToAdd ensures that mSlice[0] is still the lowest
-			// even after topping it up
-			amtToAdd := Min(extraPoints, diffLowest/kTPerPoint)
-			mSlice[0] += amtToAdd * kTPerPoint
-			extraPoints -= amtToAdd
-		}
-
-		// lowest 2 equal; equalize both with highest
-		diffHighest := mSlice[2] - mSlice[0]
-		if diffHighest != 0 && extraPoints > 1 {
-			// again, truncation makes this work
-			amtToAdd := Min(extraPoints, (diffHighest/kTPerPoint)*2)
-			mSlice[0] += (amtToAdd / 2) * kTPerPoint
-			mSlice[1] += (amtToAdd / 2) * kTPerPoint
-			extraPoints -= amtToAdd
-		}
-
-		// all 3 equal; divide remainders evenly
-		if third := extraPoints / 3; third > 0 {
-			for i := range mSlice {
-				mSlice[i] += third * kTPerPoint
-			}
-			extraPoints %= 3
-		}
-		for i := range extraPoints {
-			mSlice[i] += kTPerPoint
-		}
-
-		planet.Cargo = NewCargoFromMineralsAndPop(
-			NewMineral(mSlice[origOrder[0]], mSlice[origOrder[1]], mSlice[origOrder[2]]),
-			planet.Cargo.Colonists*100)
+		// rough algorithm taken directly from Stars! source
+		ktLeft := extraPoints * rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
+		lowestType, _ := planet.SurfaceMinerals.HighestType(-1)
+		planet.SurfaceMinerals = planet.SurfaceMinerals.AddNum(lowestType,
+			ktLeft/4+ktLeft%3)
+		planet.SurfaceMinerals = planet.SurfaceMinerals.AddToAll(ktLeft / 4)
 	}
 }
 
@@ -566,12 +542,12 @@ func (ug *universeGenerator) applyAccBBS() {
 
 		// Add 25% extra homeworld surface minerals
 		// (the help manual lied when it said 20%)
-		planet.Cargo = planet.Cargo.AddMineral(planet.Cargo.ToMineral().MultiplyFloat64(0.25, math.Floor))
+		planet.SurfaceMinerals = planet.SurfaceMinerals.MultiplyFloat64(1.25, math.Floor)
 
 		// AccBBS adds 20% addiional starting pop (+5K over the default 25K)
 		// per 1% of a race's growth rate.
 		race := ug.getPlayer(planet.PlayerNum).Race
-		planet.Cargo.Colonists += int(float64(planet.Cargo.Colonists*race.GrowthRate) *
+		planet.Population += int(float64(planet.Population*race.GrowthRate) *
 			race.Spec.GrowthFactor / 5)
 	}
 }
@@ -589,9 +565,7 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 	for _, planet := range ug.Planets {
 		// max out min concs and add a lot of surface minerals
 		planet.MineralConcentration = Mineral{rules.MaxMineralConcentration, rules.MaxMineralConcentration, rules.MaxMineralConcentration}
-		planet.Cargo.Ironium = 1_000_000
-		planet.Cargo.Boranium = 1_000_000
-		planet.Cargo.Germanium = 1_000_000
+		planet.SurfaceMinerals = Mineral{1_000_000, 1_000_000, 1_000_000}
 		if !planet.Owned() {
 			continue
 		}
@@ -603,10 +577,10 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 			planet.Defenses = 100
 		}
 		if !player.Race.Spec.InnateMining {
-			planet.Mines = getMaxInstallations(player.Race.NumMines, planet.population())
+			planet.Mines = getMaxInstallations(player.Race.NumMines, planet.GetPopulation())
 		}
 		if !player.Race.Spec.InnateResources {
-			planet.Factories = getMaxInstallations(player.Race.NumFactories, planet.population())
+			planet.Factories = getMaxInstallations(player.Race.NumFactories, planet.GetPopulation())
 		}
 	}
 }
