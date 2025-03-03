@@ -62,28 +62,24 @@
 			"command": "mage generate",
 			"detail": "Generate various backend and frontend files."
 		},
-		// Build commands for starting the server
+		// Build commands for debugging the server
 		{
 			"label": "Build & launch server",
-			"type": "shell",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
-			"dependsOn": ["Build server", "Launch server"],
-			"command": "echo \"Have a nice day.\"",
+			"dependsOn": ["build server", "launch backend", "launch frontend", "open browser"],
+			"dependsOrder": "sequence",
 			"icon": {
 				"color": "terminal.ansiCyan",
-				"id": "run-all"
+				"id": "browser"
 			},
-			"dependsOrder": "sequence",
-			"presentation": {
-				"panel": "shared"
-			},
-			"detail": "Start up the server for local development using mage."
+			"detail": "Start up the server for local development and launch it for debugging."
 		},
 		{
-			"label": "Build server",
+			"hide": true,
+			"label": "build server",
 			"type": "shell",
 			"command": "mage",
 			"args": ["build"],
@@ -94,20 +90,6 @@
 			"detail": "Build server without launching it."
 		},
 		{
-			"label": "Launch server",
-			"type": "shell",
-			"dependsOn": ["launch backend", "launch frontend"],
-			"command": "echo \"Done running server; exiting\"",
-			"icon": {
-				"color": "terminal.ansiCyan",
-				"id": "bell"
-			},
-			"presentation": {
-				"panel": "shared"
-			},
-			"detail": "Launch frontend and backend in separate terminals without building anything."
-		},
-		{
 			"hide": true,
 			"label": "launch backend",
 			"type": "shell",
@@ -115,18 +97,61 @@
 			"args": ["launch_backend"],
 			"icon": {
 				"color": "terminal.ansiBlue",
-				"id": "rocket"
-			}
+				"id": "radio-tower"
+			},
+			"presentation": {
+				"panel": "dedicated",
+				"showReuseMessage": false,
+				"clear": true
+			},
+			// problem matcher needed to signify task end
+			"problemMatcher": [
+				{
+					"pattern": [{ "regexp": ".", "file": 1, "line": 1, "column": 1, "message": 1 }],
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": { "regexp": "." },
+						"endsPattern": { "regexp": "starting http server" }
+					}
+				}
+			]
 		},
 		{
 			"hide": true,
 			"label": "launch frontend",
 			"type": "shell",
+			"isBackground": true,
 			"command": "mage",
 			"args": ["launch_frontend"],
 			"icon": {
 				"color": "terminal.ansiBlue",
-				"id": "radio-tower"
+				"id": "broadcast"
+			},
+			// problem matcher needed to tell debug server when to start debugging
+			"problemMatcher": [
+				{
+					"pattern": [{ "regexp": ".", "file": 1, "line": 1, "column": 1, "message": 1 }],
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": { "regexp": "." },
+						"endsPattern": { "regexp": "VITE .* ready in" }
+					}
+				}
+			],
+			"presentation": {
+				"panel": "dedicated",
+				"showReuseMessage": false,
+				"clear": true
+			}
+		},
+		{
+			"hide": true,
+			"label": "open browser",
+			"command": "${command:extension.js-debug.debugLink}",
+			"args": ["http://localhost:5173"],
+			"icon": {
+				"color": "terminal.ansiBlue",
+				"id": "broadcast"
 			}
 		},
 		{
@@ -139,8 +164,8 @@
 				"panel": "shared"
 			},
 			"icon": {
-				"id": "debug-console",
-				"color": "terminal.ansiBlack"
+				"color": "terminal.ansiBlack",
+				"id": "debug-console"
 			}
 		},
 		{
@@ -148,8 +173,8 @@
 			"label": "Delete Mage debug file",
 			"type": "shell",
 			"icon": {
-				"id": "trash",
-				"color": "terminal.ansiRed"
+				"color": "terminal.ansiBlack",
+				"id": "trash"
 			},
 			"command": "rm magefiles/magefile-debug",
 			"presentation": {

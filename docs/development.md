@@ -42,26 +42,14 @@ This will clear out the previous images folder before downloading the zip file a
 After performing all that setup, you should be good to go!
 You have 2 methods to launch the server:
 
-1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This builds the server before launching the frontend and backend in separate terminals.
-2. Run `mage run` from your terminal inside the root folder. This does essentially the same thing, but launches them inside the same terminal within separate goroutines. (_Note_: Don't worry if Mage complains about cleanup deadlines when shutting down.)
+1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This builds the server before launching the frontend and backend in separate task terminals and opening the localhost link in the browser hooked up to a JS debugger. (If you don't want the debugger, just stop debugging and carry on from there.)
+2. Run `mage run` from your terminal inside the root folder. This does essentially the same thing, but stalls after launching the backend and frontend[^2]. You'll just need to launch
 
 Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data`, containing a single `admin` user (password `admin`). (If it fails, try clearing the data folder and trying again.)
 
 With some luck, you should get a localhost link from npm (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically via air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
 
-### Launching Backend/Frontend only
-
-If one wants to launch the backend or frontend separately (such as to have both processes in separate terminals), there are mage commands to launch them separately.
-
-```bash
-mage launch_frontend
-```
-
-```bash
-mage launch_backend
-```
-
-(For those curious, this is how the aforementioned build task launches the server.)
+[^2]: Note: Mage might complain about cleanup deadlines upon shutting the server down. Feel free to ignore it.
 
 # Visual Studio Code
 

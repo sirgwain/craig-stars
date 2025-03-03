@@ -1167,6 +1167,12 @@
 							"hullName": "Scout",
 							"hullSetNumber": 1,
 							"purpose": "FighterScout"
+						},
+						{
+							"name": "Gadfly",
+							"hullName": "Mini Bomber",
+							"hullSetNumber": 1,
+							"purpose": "Bomber"
 						}
 					],
 					"homeworld": true
@@ -1219,7 +1225,7 @@
 	"randomCometMinYear": 10,
 	"randomCometMinYearPlayerWorld": 20,
 	"randomEventChances": {
-		"AncientArtifact": 0.33,
+		"AncientArtifact": 0.3333333333333333,
 		"Comet": 0.05,
 		"MineralDeposit": 0.05,
 		"PlanetaryChange": 0.05
