@@ -488,7 +488,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 			Str("Fleet", fleet.Name).
 			Str("Planet", planet.Name).
 			Str("FleetCargo", fmt.Sprintf("%v", fleet.Cargo)).
-			Str("PlanetCargo", fmt.Sprintf("%v", cs.NewCargoFromMineral(planet.SurfaceMinerals, planet.GetPopulation()))).
+			Str("PlanetCargo", fmt.Sprintf("%v", planet.Cargo)).
 			Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
 			Err(err).Msg("transfer cargo")
 		render.Render(w, r, ErrInternalServerError(err))

@@ -91,6 +91,10 @@ type PlanetIntel struct {
 	Spec                          PlanetSpec `json:"spec"`
 }
 
+func (pi *PlanetIntel) GetPopulation() int {
+	return pi.Cargo.Colonists * 100
+}
+
 type ShipDesignIntel struct {
 	Intel         `tstype:",extends"`
 	Name          string           `json:"name"`
@@ -320,10 +324,11 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 		// players & their allies know their exact planet pops, but foreign pop readings are slightly off
 		sharingMapWithOwner := player.IsSharingMap(planet.PlayerNum)
 		if ownedByPlayer || sharingMapWithOwner {
-			intel.Spec.Population = planet.population()
+			intel.Cargo.Colonists = planet.Cargo.Colonists
 		} else {
+			// generate a random error within range [1-scanError, 1+scanError]
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError*2) - rules.PopulationScannerError
-			intel.Spec.Population = Max(0, roundToNearest100(float64(planet.population())*(1-randomPopulationError)))
+			intel.Cargo.Colonists = Max(0, int(float64(planet.Cargo.Colonists)*(1-randomPopulationError)))
 		}
 	}
 	return nil
@@ -345,7 +350,7 @@ func (d *discover) clearPlanetOwnerIntel(planet *Planet) error {
 	// if we've been invaded, reset our planet knowledge as if it was
 	// unowned, but we maintain knowledge of hab
 	intel.PlayerNum = Unowned
-	intel.Spec.Population = 0
+	intel.Cargo.Colonists = 0
 	intel.Spec.HasStarbase = false
 	intel.Spec.HasStargate = false
 	intel.Spec.DockCapacity = None

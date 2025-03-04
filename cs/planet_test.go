@@ -195,10 +195,7 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Planet{
-				Population: tt.fields.Population,
-				Hab:        tt.fields.Hab,
-			}
+			p := NewPlanet().WithHab(tt.fields.Hab).WithPopulation(tt.fields.Population)
 			// If at default, set growth rate to 10% for easier math
 			if tt.args.player.Race.GrowthRate == 15 {
 				tt.args.player.Race.GrowthRate = 10
@@ -450,17 +447,15 @@ func TestPlanet_grow(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := NewPlayer(0, tt.args.race).WithNum(1)
-			planet := NewPlanet().WithPlayerNum(player.Num)
-			planet.Hab = tt.fields.hab
-			planet.BaseHab = tt.fields.hab
-			planet.setPopulation(tt.fields.population)
+			planet := NewPlanet().WithPlayerNum(player.Num).
+				WithHab(tt.fields.hab).WithPopulation(tt.fields.population)
 			for range tt.fields.turnsToGrow {
 				planet.Spec = computePlanetSpec(&rules, player, planet)
 				planet.grow(player)
 			}
 
-			if planet.Population != tt.want {
-				t.Errorf("planet.grow() gave %v pop, want %v", planet.Population, tt.want)
+			if exactPop := planet.exactPopulation(); exactPop != tt.want {
+				t.Errorf("planet.grow() gave %v pop, want %v", exactPop, tt.want)
 			}
 
 		})

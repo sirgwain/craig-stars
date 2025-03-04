@@ -147,7 +147,7 @@ func (ai *aiPlayer) scoutPackets() error {
 				}
 
 				// fling a packet with the mineral we have the largest amount of
-				highestType, _ := planet.SurfaceMinerals.HighestType(1)
+				highestType, _ := planet.Cargo.ToMineral().HighestType(1)
 				queueItemType := cs.QueueItemTypeMixedMineralPacket
 				switch highestType {
 				case cs.Ironium:

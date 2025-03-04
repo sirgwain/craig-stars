@@ -99,7 +99,7 @@ func (b *bomber) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []
 	}
 
 	// bomb the planet with smart bombs
-	if planet.Population > 0 {
+	if planet.GetPopulation() > 0 {
 		for playerNum := range orbitingPlayerNums {
 			result := b.smartBombPlanet(planet, planetOwner, pg.getPlayer(playerNum), b.getBombersForPlayer(enemyBombers, playerNum))
 			resultsByPlayer[playerNum] = resultsByPlayer[playerNum].Add(result)
@@ -171,9 +171,8 @@ func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Pl
 	killRateColonistsKilled := roundToNearest100(b.getColonistsKilledForBombs(planet.GetPopulation(), defenseCoverage, bombs), math.Round)
 	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs), math.Round)
 
-	killed := int(Max(killRateColonistsKilled, minColonistsKilled))
-	leftoverPopulation := Max(0, planet.Population-killed)
-	planet.setPopulation(leftoverPopulation)
+	killed := Max(killRateColonistsKilled, minColonistsKilled, planet.GetPopulation())
+	planet.addPopulation(-killed)
 
 	// apply this against mines/factories and defenses proportionally
 	structuresDestroyed := b.getStructuresDestroyed(defenseCoverage, bombs)
@@ -221,7 +220,7 @@ func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Pl
 		MinesDestroyed:     minesDestroyed,
 		FactoriesDestroyed: factoriesDestroyed,
 		DefensesDestroyed:  defensesDestroyed,
-		PlanetEmptied:      leftoverPopulation < 100,
+		PlanetEmptied:      killed == planet.GetPopulation(),
 		fleet:              fleets[0],
 	}
 }
@@ -250,7 +249,7 @@ func (b *bomber) smartBombPlanet(planet *Planet, defender *Player, attacker *Pla
 	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(smartDefenseCoverage, bombs), math.Round)
 
 	killed := int(Max(killRateColonistsKilled, minColonistsKilled))
-	leftoverPopulation := Max(0, planet.Population-killed)
+	leftoverPopulation := Max(0, planet.GetPopulation()-killed)
 	planet.setPopulation(leftoverPopulation)
 
 	// update planet spec

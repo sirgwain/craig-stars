@@ -474,10 +474,11 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 	case extraPoints > 0:
 		// rough algorithm taken directly from Stars! source
 		ktLeft := extraPoints * rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
-		lowestType, _ := planet.SurfaceMinerals.HighestType(-1)
-		planet.SurfaceMinerals = planet.SurfaceMinerals.AddNum(lowestType,
-			ktLeft/4+ktLeft%3)
-		planet.SurfaceMinerals = planet.SurfaceMinerals.AddToAll(ktLeft / 4)
+		m := planet.Cargo.ToMineral()
+		lowestType, _ := m.HighestType(-1)
+		m = m.AddNum(lowestType, ktLeft/4+ktLeft%3)
+		m = m.AddToAll(ktLeft / 4)
+		planet.Cargo = NewCargoFromMineral(m, planet.Cargo.Colonists*100)
 	}
 }
 
@@ -542,12 +543,12 @@ func (ug *universeGenerator) applyAccBBS() {
 
 		// Add 25% extra homeworld surface minerals
 		// (the help manual lied when it said 20%)
-		planet.SurfaceMinerals = planet.SurfaceMinerals.MultiplyFloat64(1.25, math.Floor)
+		planet.Cargo.SetMineral(planet.Cargo.ToMineral().MultiplyFloat64(1.25, math.Floor))
 
 		// AccBBS adds 20% addiional starting pop (+5K over the default 25K)
 		// per 1% of a race's growth rate.
 		race := ug.getPlayer(planet.PlayerNum).Race
-		planet.Population += int(float64(planet.Population*race.GrowthRate) *
+		planet.Cargo.Colonists += int(float64(planet.Cargo.Colonists*race.GrowthRate) *
 			race.Spec.GrowthFactor / 5)
 	}
 }
@@ -565,7 +566,7 @@ func (ug *universeGenerator) maxPlayersAndPlanets() {
 	for _, planet := range ug.Planets {
 		// max out min concs and add a lot of surface minerals
 		planet.MineralConcentration = Mineral{rules.MaxMineralConcentration, rules.MaxMineralConcentration, rules.MaxMineralConcentration}
-		planet.SurfaceMinerals = Mineral{1_000_000, 1_000_000, 1_000_000}
+		planet.Cargo = Cargo{1_000_000, 1_000_000, 1_000_000, 0}
 		if !planet.Owned() {
 			continue
 		}

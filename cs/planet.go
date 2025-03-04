@@ -17,8 +17,7 @@ type Planet struct {
 	TerraformedAmount    Hab        `json:"terraformedAmount"`
 	MineralConcentration Mineral    `json:"mineralConcentration"`
 	MineYears            Mineral    `json:"mineYears"`
-	SurfaceMinerals      Mineral    `json:"surfaceMinerals,omitempty"`
-	Population           int        `json:"population,omitempty"` // Exact population to nearest colonist
+	Cargo                Cargo      `json:"cargo"`
 	Mines                int        `json:"mines"`
 	Factories            int        `json:"factories"`
 	Defenses             int        `json:"defenses"`
@@ -56,6 +55,7 @@ type PlanetSpec struct {
 	MaxPossibleFactories                      int     `json:"maxPossibleFactories,omitempty"`
 	MaxPossibleMines                          int     `json:"maxPossibleMines,omitempty"`
 	MiningOutput                              Mineral `json:"miningOutput,omitempty"`
+	PartialPopulation                         int     `json:"partialPopulation,omitempty"` // population not in a multiple of 100
 	PopulationDensity                         float64 `json:"populationDensity,omitempty"`
 	ResourcesPerYear                          int     `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearAvailable                 int     `json:"resourcesPerYearAvailable,omitempty"`
@@ -91,10 +91,6 @@ func (item *ProductionQueueItem) String() string {
 	return fmt.Sprintf("ProductionQueueItem %d %s (%d)", item.Quantity, item.Type, item.DesignNum)
 }
 
-func (p *Planet) AddMineral(m Mineral) {
-	p.SurfaceMinerals = p.SurfaceMinerals.Add(m)
-}
-
 func NewPlanet() *Planet {
 	return &Planet{MapObject: MapObject{Type: MapObjectTypePlanet, PlayerNum: Unowned}, Dirty: true}
 }
@@ -118,23 +114,21 @@ func (p *Planet) WithNum(num int) *Planet {
 	return p
 }
 
-func (p *Planet) WithMinerals(minerals Mineral) *Planet {
-	p.SurfaceMinerals = minerals
-	return p
-}
-
 func (p *Planet) WithPopulation(pop int) *Planet {
-	p.Population = pop
+	p.Cargo.Colonists = pop / 100
+	p.Spec.PartialPopulation = pop % 100
 	return p
 }
 
-// Set planet Minerals/pop to the values inside the Cargo struct;
-// essentially just a fancy wrapper function
-//
-//	REMEMBER TO DELETE THIS BOZO
+// Set a planet's Hab and BaseHab and return the resulting struct.
+func (p *Planet) WithHab(hab Hab) *Planet {
+	p.Hab = hab
+	p.BaseHab = hab
+	return p
+}
+
 func (p *Planet) WithCargo(cargo Cargo) *Planet {
-	p.SurfaceMinerals = cargo.ToMineral()
-	p.Population = cargo.Colonists * 100
+	p.Cargo = cargo
 	return p
 }
 
@@ -185,27 +179,31 @@ func (p *Planet) String() string {
 // return planetary population rounded down to the nearest multiple of 100
 // TODO: Review all references to make sure this is being used correctly
 func (p *Planet) GetPopulation() (wholePop int) {
-	return roundToNearest100(p.Population, math.Floor)
+	return p.Cargo.Colonists * 100
 }
 
-// Add cargo to this planet
-func (p *Planet) addCargo(cargo Cargo) {
-	p.SurfaceMinerals = p.SurfaceMinerals.Add(cargo.ToMineral())
-	p.Population += cargo.Colonists * 100
-}
-
-// set pop to specified value
-// TODO: remove this
-func (p *Planet) setPopulation(pop int) {
-	p.Population = pop
+func (p *Planet) exactPopulation() (exactPop int) {
+	return p.Cargo.Colonists*100 + p.Spec.PartialPopulation
 }
 
 // set cargo to specified value
-//
-// ! REMEMBER TO REMOVE THIS BOZO
+// TODO: Remove this bc it's unnecessary
 func (p *Planet) setCargo(cargo Cargo) {
-	p.SurfaceMinerals = cargo.ToMineral()
-	p.Population = cargo.Colonists * 100
+	p.Cargo = cargo
+}
+
+// set pop to specified value
+// TODO: Verify that this isn't being misused
+func (p *Planet) setPopulation(pop int) {
+	p.Cargo.Colonists = pop / 100
+	p.Spec.PartialPopulation = pop % 100
+}
+
+// add specified amount of pop
+func (p *Planet) addPopulation(pop int) {
+	p.Spec.PartialPopulation += pop
+	p.Cargo.Colonists += p.Spec.PartialPopulation / 100
+	p.Spec.PartialPopulation %= 100
 }
 
 // Return the amount of population that is productive for producing resources,
@@ -413,17 +411,15 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	// BaseHab is the same as Hab
 	p.BaseHab = p.Hab
 
+	raceSpec := player.Race.Spec
+
 	p.MineralConcentration = concentration
-	p.SurfaceMinerals = surface
+	p.Cargo = NewCargoFromMineral(surface,
+		int(float64(startingPlanet.Population)*raceSpec.StartingPopulationFactor))
 
 	// empty queue, no terraform
 	p.ProductionQueue = []ProductionQueueItem{}
 	p.TerraformedAmount = Hab{}
-
-	raceSpec := player.Race.Spec
-
-	// set the homeworld pop to our starting planet pop
-	p.setPopulation(int(float64(startingPlanet.Population) * raceSpec.StartingPopulationFactor))
 
 	if raceSpec.InnateMining {
 		p.Mines = innateMines(raceSpec.InnateMinesFactor, p.GetPopulation())
@@ -458,7 +454,7 @@ func (p *Planet) setStarbase(starbase *Fleet) {
 
 // return the amount of population this planet will have next year
 func (p *Planet) PopNextYear(floorTo100 bool) int {
-	pop := p.Population + p.Spec.GrowthAmount
+	pop := p.GetPopulation() + p.Spec.GrowthAmount
 	if floorTo100 {
 		return roundToNearest100(pop, math.Floor)
 	}
@@ -467,7 +463,7 @@ func (p *Planet) PopNextYear(floorTo100 bool) int {
 
 // return the net change in population next year
 func (p *Planet) getPopGrowth(floorTo100 bool) int {
-	prevPop := p.Population
+	prevPop := p.GetPopulation()
 	if floorTo100 {
 		prevPop = p.GetPopulation()
 	}
@@ -753,7 +749,7 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 
 // mine this planet using the given miningOutput and numMines
 func (planet *Planet) mine(rules *Rules, miningOutput Mineral, numMines int) {
-	planet.AddMineral(miningOutput)
+	planet.Cargo = planet.Cargo.AddMineral(miningOutput)
 	planet.MineYears = planet.MineYears.AddToAll(numMines)
 	planet.reduceMineralConcentration(rules)
 }
@@ -764,7 +760,7 @@ func (planet *Planet) grow(player *Player) {
 		// don't grow or reduce if at zero pop, planet is ded
 		return
 	}
-	planet.setPopulation(Max(planet.Population+planet.Spec.GrowthAmount, 100)) // floor pop at 100
+	planet.setPopulation(Max(planet.exactPopulation()+planet.Spec.GrowthAmount, 100)) // floor pop at 100
 
 	if player.Race.Spec.InnateMining {
 		planet.Mines = innateMines(player.Race.Spec.InnateMinesFactor, planet.GetPopulation())

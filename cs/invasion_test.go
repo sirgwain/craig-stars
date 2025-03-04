@@ -21,17 +21,17 @@ func Test_invadePlanet(t *testing.T) {
 		want Planet
 	}{
 		{
-			name: "10,000 attackers vs 10,000 defenders, attacker wins",
+			name: "10000 attackers 10000 defenders, attacker wins",
 			args: args{
 				planet: &Planet{
 					MapObject: MapObject{
 						PlayerNum: 1,
 						Name:      "Brin",
 					},
-					Population: 10_000,
-					Mines:      100,
-					Factories:  100,
-					Defenses:   0,
+					Cargo:     Cargo{}.WithPopulation(10_000),
+					Mines:     100,
+					Factories: 100,
+					Defenses:  0,
 				},
 				fleet: &Fleet{
 					MapObject: MapObject{
@@ -44,8 +44,8 @@ func Test_invadePlanet(t *testing.T) {
 				colonistsDropped: 10_000,
 			},
 			want: Planet{
-				MapObject:  MapObject{Name: "Brin", PlayerNum: 2},
-				Population: 90_000, Mines: 100, Factories: 100,
+				MapObject: MapObject{Name: "Brin", PlayerNum: 2},
+				Cargo:     Cargo{}.WithPopulation(900), Mines: 100, Factories: 100,
 				PlanetOrders: PlanetOrders{
 					ProductionQueue:                   defaultPlan.ToQueueItems(),
 					ContributesOnlyLeftoverToResearch: defaultPlan.ContributesOnlyLeftoverToResearch,
@@ -53,17 +53,17 @@ func Test_invadePlanet(t *testing.T) {
 			},
 		},
 		{
-			name: "500,000 attackers vs 1,000,000 undefended defenders, defenders win",
+			name: "5000 attackers for 10000 undefended defenders, defenders win",
 			args: args{
 				planet: &Planet{
 					MapObject: MapObject{
 						PlayerNum: 1,
 						Name:      "Brin",
 					},
-					Population: 1_000_000,
-					Mines:      100,
-					Factories:  100,
-					Defenses:   0,
+					Cargo:     Cargo{}.WithPopulation(10_000),
+					Mines:     100,
+					Factories: 100,
+					Defenses:  0,
 				},
 				fleet: &Fleet{
 					MapObject: MapObject{
@@ -73,22 +73,22 @@ func Test_invadePlanet(t *testing.T) {
 				},
 				defender:         NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules),
 				attacker:         NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules),
-				colonistsDropped: 500_000,
+				colonistsDropped: 5000,
 			},
-			want: Planet{MapObject: MapObject{Name: "Brin", PlayerNum: 1}, Population: 450_000, Mines: 100, Factories: 100},
+			want: Planet{MapObject: MapObject{Name: "Brin", PlayerNum: 1}, Cargo: Cargo{}.WithPopulation(4500), Mines: 100, Factories: 100},
 		},
 		{
-			name: "10,000,000 attackers vs 10,000,000 well defended defenders, defenders win",
+			name: "100,000 attackers for 100,000 well defended defenders, defenders win",
 			args: args{
 				planet: &Planet{
 					MapObject: MapObject{
 						PlayerNum: 1,
 						Name:      "Brin",
 					},
-					Population: 10_000_000,
-					Mines:      100,
-					Factories:  100,
-					Defenses:   1000,
+					Cargo:     Cargo{}.WithPopulation(100_000),
+					Mines:     100,
+					Factories: 100,
+					Defenses:  1000,
 				},
 				fleet: &Fleet{
 					MapObject: MapObject{
@@ -98,9 +98,9 @@ func Test_invadePlanet(t *testing.T) {
 				},
 				defender:         NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules),
 				attacker:         NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules),
-				colonistsDropped: 10_000_000,
+				colonistsDropped: 100_000,
 			},
-			want: Planet{MapObject: MapObject{Name: "Brin", PlayerNum: 1}, Population: 4_200_000, Mines: 100, Factories: 100, Defenses: 1000},
+			want: Planet{MapObject: MapObject{Name: "Brin", PlayerNum: 1}, Cargo: Cargo{}.WithPopulation(42_000), Mines: 100, Factories: 100, Defenses: 1000},
 		},
 	}
 	for _, tt := range tests {

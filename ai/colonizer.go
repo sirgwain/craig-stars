@@ -57,12 +57,12 @@ func (ai *aiPlayer) colonize() error {
 					target := ai.getPlanetIntel(wp.TargetNum)
 					if target.Owned() {
 						// our target is owned by someone else, see if they are an enemy and if we can invade them
-						if ai.IsEnemy(target.PlayerNum) && !target.Spec.HasStarbase && target.Population < int(float64(fleet.Cargo.Colonists*100)/ai.config.invasionFactor) {
+						if ai.IsEnemy(target.PlayerNum) && !target.Spec.HasStarbase && target.GetPopulation() < int(float64(fleet.Cargo.Colonists*100)/ai.config.invasionFactor) {
 							log.Debug().
 								Int64("GameID", ai.GameID).
 								Int("PlayerNum", ai.Num).
 								Int("Invaders", fleet.Cargo.Colonists*100).
-								Int("Defenders", target.Population).
+								Int("Defenders", target.GetPopulation()).
 								Bool("HasStarbase", target.Spec.HasStarbase).
 								Msgf("Colonizer %s switched to invasion of %s", fleet.Name, target.Name)
 

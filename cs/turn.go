@@ -183,17 +183,17 @@ func (t *turnGenerator) scrapFleet(fleet *Fleet, colonize bool) {
 	cost := fleet.getScrapAmount(&t.game.Rules, player, planet, colonize)
 
 	if planet != nil {
-		// scrap over a planet; add refunded minerals to planet surface
-		planet.SurfaceMinerals = planet.SurfaceMinerals.Add(cost.ToMineral())
+		// scrap over a planet
+		planet.Cargo = planet.Cargo.AddMineral(cost.ToMineral())
 		// UR bonus resources only come into play for normal scrapping
 		// but fleet.getScrapAmount already sets it to 0 regardless
 		planet.bonusResources += cost.Resources
 		if planet.OwnedBy(player.Num) {
 			// add colonists to planet cargo if it's our own planet
-			planet.addCargo(fleet.Cargo)
+			planet.Cargo = planet.Cargo.Add(fleet.Cargo)
 		} else {
 			// if not our planet, only the minerals in cargo get transferred (bye bye colonists)
-			planet.SurfaceMinerals = planet.SurfaceMinerals.Add(fleet.Cargo.ToMineral())
+			planet.Cargo = planet.Cargo.AddMineral(fleet.Cargo.ToMineral())
 		}
 
 		// Check for level/component tech trading.
@@ -1103,7 +1103,7 @@ func (t *turnGenerator) fleetReproduce() {
 			fleet.Cargo.Colonists = fleet.Cargo.Colonists - over
 			if planet != nil && planet.OwnedBy(fleet.PlayerNum) {
 				// add colonists to the planet this fleet is orbiting
-				planet.Population += over * 100
+				planet.Cargo.Colonists = planet.Cargo.Colonists + over
 			}
 		}
 
@@ -1812,10 +1812,10 @@ func (t *turnGenerator) planetGrow() {
 			prevPop := planet.GetPopulation()
 			planet.grow(player)
 
-			// tell players about dying colonists
-			if diff := planet.GetPopulation() - prevPop; diff > 100 {
+			// tell players about dieing colonists
+			if planet.Spec.GrowthAmount < 0 {
 				if planet.Spec.PopulationDensity > 1 {
-					messager.planetPopulationDecreasedOvercrowding(player, planet, diff)
+					messager.planetPopulationDecreasedOvercrowding(player, planet, planet.Spec.GrowthAmount)
 				} else {
 					messager.planetPopulationDecreased(player, planet, prevPop, planet.GetPopulation())
 				}
@@ -1954,13 +1954,13 @@ func (t *turnGenerator) randomCometStrike() {
 	habChanged := Hab{terraformAmount[0], terraformAmount[1], terraformAmount[2]}
 	colonistsKilled := 0
 
-	planet.SurfaceMinerals = planet.SurfaceMinerals.Add(mineralsAdded)
+	planet.Cargo = planet.Cargo.AddMineral(mineralsAdded)
 	planet.MineralConcentration = planet.MineralConcentration.Add(mineralConcentrationIncreased).Clamp(t.game.Rules.MinMineralConcentration, t.game.Rules.MaxMineralConcentration)
 	planet.Hab = planet.Hab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
 	planet.BaseHab = planet.BaseHab.Add(habChanged).Clamp(t.game.Rules.MinHab, t.game.Rules.MaxHab)
-	if planet.Population > 0 {
+	if planet.Cargo.Colonists > 0 {
 		pop := planet.GetPopulation()
-		planet.Population = int(roundToNearest100(float64(pop)*(1-stats.PopKilledPercent), math.Floor))
+		planet.Cargo.Colonists = int(float64(planet.Cargo.Colonists) * (1 - stats.PopKilledPercent))
 		colonistsKilled = pop - planet.GetPopulation()
 	}
 	planet.MarkDirty()
@@ -1972,10 +1972,10 @@ func (t *turnGenerator) randomCometStrike() {
 	t.log.Debug().
 		Str("Planet", planet.Name).
 		Int("Player", planet.PlayerNum).
-		Str("Minerals Added", fmt.Sprintf("%+v", mineralsAdded)).
-		Str("Mineral Concentration Increased", fmt.Sprintf("%+v", mineralConcentrationIncreased)).
-		Str("Hab Changed", fmt.Sprintf("%+v", habChanged)).
-		Int("Colonists Killed", colonistsKilled).
+		Str("MineralsAdded", fmt.Sprintf("%+v", mineralsAdded)).
+		Str("MineralConcentrationIncreased", fmt.Sprintf("%+v", mineralConcentrationIncreased)).
+		Str("HabChanged", fmt.Sprintf("%+v", habChanged)).
+		Int("ColonistsKilled", colonistsKilled).
 		Msgf("planet struck by %v comet", size)
 
 }
@@ -2137,7 +2137,7 @@ func (t *turnGenerator) fleetBattle() {
 				if planet == nil {
 					t.game.createSalvage(record.Position, salvageOwner, salvageMinerals.ToCargo())
 				} else {
-					planet.SurfaceMinerals = planet.SurfaceMinerals.Add(salvageMinerals)
+					planet.Cargo = planet.Cargo.AddMineral(salvageMinerals)
 				}
 			}
 

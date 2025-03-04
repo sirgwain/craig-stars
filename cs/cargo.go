@@ -48,15 +48,6 @@ var CargoTypes = [4]CargoType{
 	Colonists,
 }
 
-func NewCargoFromMineralsAndPop(mineral Mineral, pop int) Cargo {
-	return Cargo{
-		Ironium:   mineral.Ironium,
-		Boranium:  mineral.Boranium,
-		Germanium: mineral.Germanium,
-		Colonists: pop / 100,
-	}
-}
-
 func (c CargoType) String() string {
 	switch c {
 	case Ironium:
@@ -253,6 +244,7 @@ func (c Cargo) WithCargo(t CargoType, amount int) Cargo {
 	return c
 }
 
+// TODO: Remove this in favor of simple assignment (this just seems dumb lol)
 func (c Cargo) WithPopulation(amount int) Cargo {
 	c.Colonists = amount / 100
 	return c
@@ -273,4 +265,14 @@ func (c Cargo) GreatestMineralType() CargoType {
 	}
 
 	return None
+}
+
+// Set the mineral portion of a Cargo, leaving population unaffected.
+func (c *Cargo) SetMineral(d Mineral) {
+	c = &Cargo{
+		Ironium:   d.Ironium,
+		Boranium:  d.Boranium,
+		Germanium: d.Germanium,
+		Colonists: c.Colonists,
+	}
 }

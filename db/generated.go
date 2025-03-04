@@ -267,7 +267,7 @@ func (c *GameConverter) ConvertGamePlanet(source *cs.Planet) *Planet {
 		dbPlanet.Ironium = (*source).SurfaceMinerals.Ironium
 		dbPlanet.Boranium = (*source).SurfaceMinerals.Boranium
 		dbPlanet.Germanium = (*source).SurfaceMinerals.Germanium
-		dbPlanet.Colonists = (*source).Population
+		dbPlanet.Colonists = (*source).GetPopulation()
 		dbPlanet.Mines = (*source).Mines
 		dbPlanet.Factories = (*source).Factories
 		dbPlanet.Defenses = (*source).Defenses
@@ -556,7 +556,7 @@ func (c *GameConverter) ConvertPlanet(source *Planet) *cs.Planet {
 		csPlanet.MineralConcentration = ExtendMineralConcentration((*source))
 		csPlanet.MineYears = ExtendMineYears((*source))
 		csPlanet.SurfaceMinerals = c.dbPlanetToCsMineral((*source))
-		csPlanet.Population = (*source).Colonists
+		csPlanet.GetPopulation() = (*source).Colonists
 		csPlanet.Mines = (*source).Mines
 		csPlanet.Factories = (*source).Factories
 		csPlanet.Defenses = (*source).Defenses

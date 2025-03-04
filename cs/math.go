@@ -7,12 +7,12 @@ import (
 )
 
 // Round a value to the nearest 100 using the specified rounding function
-// and return the result.
+// and return the result as an integer.
 //
 // Population is often updated with floating point/integer math, but we typically have to convert
 // it back to Colonist cargo values, which are stored in units of 100 colonists per 1kT
-func roundToNearest100[T int | float64](value T, roundFunc func(float64) float64) T {
-	return T(roundFunc(float64(value)/100) * 100)
+func roundToNearest100[T int | float64](value T, roundFunc func(float64) float64) int {
+	return int(roundFunc(float64(value)/100) * 100)
 }
 
 // Round a float to the given precision value using math.Round()

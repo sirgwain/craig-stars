@@ -31,7 +31,7 @@ func TestGenerateUniverse(t *testing.T) {
 		pmo := universe.GetPlayerMapObjects(player.Num)
 		assert.Equal(t, 1, len(pmo.Planets))
 		homeworld := pmo.Planets[0]
-		assert.Equal(t, 25_000, homeworld.Population)
+		assert.Equal(t, 25_000, homeworld.GetPopulation())
 		assert.True(t, homeworld.Spec.HasStarbase)
 	})
 
@@ -65,7 +65,7 @@ func TestGenerateUniverse(t *testing.T) {
 			popPerPlanet := popPerPlayerPerPlanet[playerNum-1]
 			assert.Equal(t, len(popPerPlanet), len(planets))
 			for i, p := range planets {
-				assert.Equal(t, popPerPlanet[i], p.Population)
+				assert.Equal(t, popPerPlanet[i], p.GetPopulation())
 			}
 		}
 	})
@@ -95,7 +95,7 @@ func TestGenerateUniverse(t *testing.T) {
 		pmo := universe.GetPlayerMapObjects(player.Num)
 		assert.Equal(t, 1, len(pmo.Planets))
 		homeworld := pmo.Planets[0]
-		assert.Equal(t, homeworld.Population, homeworld.Spec.MaxPopulation)
+		assert.Equal(t, homeworld.GetPopulation(), homeworld.Spec.MaxPopulation)
 		assert.True(t, homeworld.Spec.HasStarbase)
 		assert.Equal(t, homeworld.Factories, homeworld.Spec.MaxPossibleFactories)
 		assert.Equal(t, homeworld.Mines, homeworld.Spec.MaxPossibleMines)
