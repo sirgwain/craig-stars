@@ -145,7 +145,10 @@
 		{
 			"hide": true,
 			"label": "open localhost",
-			"command": "open", // despite what it may seem, this just opens the default web browser
+			"command": "xdg-open",
+			"osx": {
+				"command": "open"
+			},
 			"windows": {
 				"command": "explorer.exe"
 			},
