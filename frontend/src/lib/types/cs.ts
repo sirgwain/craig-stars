@@ -1876,7 +1876,7 @@ export const TechCategoryStarbaseHull: TechCategory = 'StarbaseHull';
 export const TechCategoryTerraforming: TechCategory = 'Terraforming';
 export const TechCategoryTorpedo: TechCategory = 'Torpedo';
 /**
- * The basic skeleton of a Tech item, containing name, cost and
+ * The basic skeleton of a Tech item, containing name, cost and other essential info.
  */
 export interface Tech {
 	name: string;

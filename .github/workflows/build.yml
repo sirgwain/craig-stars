@@ -60,7 +60,7 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: "tmp/**/*_report.xml"
+          paths: "tmp/**/*-report.xml"
         if: always()
 
   build:
@@ -145,5 +145,5 @@ jobs:
       - name: Produce Test Summary
         uses: test-summary/action@v2
         with:
-          paths: "tmp/**/*_report.xml"
+          paths: "tmp/**/*-report.xml"
         if: always()

@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
 		reporters: ['junit', process.env.CI ? 'github-actions' : 'default'],
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		environment: 'jsdom',
-		outputFile: "../tmp/test-results/vitest-report.xml"
+		outputFile: '../tmp/test-results/vitest-report.xml'
 	},
 	resolve: {
 		conditions: mode === 'test' ? ['browser'] : []

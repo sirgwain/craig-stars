@@ -193,9 +193,12 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 		return fmt.Errorf("hull %q is not available to player", hull)
 	}
 
+	var transportCloakName string // name of the first unarmed only component we see
+
 	// slot index checks
 	for index, designSlot := range sd.Slots {
-		hullSlot := hull.Slots[Clamp(designSlot.HullSlotIndex, 1, len(hull.Slots))-1] // prevents index out of range for nil errors & lets us use nice switch statement
+		// prevents index out of range for nil errors & lets us use nice switch statement
+		hullSlot := hull.Slots[Clamp(designSlot.HullSlotIndex, 1, len(hull.Slots))-1]
 		switch {
 		case designSlot.HullSlotIndex <= 0:
 			return fmt.Errorf("design slot #%d's HullSlotIndex is 0 or less (%d)", index, designSlot.HullSlotIndex)
@@ -212,6 +215,11 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 			hc := rules.techs.GetHullComponent(designSlot.HullComponent)
 			if hc == nil {
 				return fmt.Errorf("hull component %q was not found in tech store", designSlot.HullComponent)
+			}
+
+			if hc.CloakUnarmedOnly && transportCloakName != "" {
+				// track transport cloak
+				transportCloakName = hc.Name
 			}
 
 			if hullSlot.Type&hc.HullSlotType == 0 {
@@ -233,22 +241,27 @@ func (sd *ShipDesign) Validate(rules *Rules, player *Player) error {
 
 	}
 
-	// check required slots to make sure they're filled properly
-	// above we verify quantity of components in slots, this ensures we don't have
-	// an empty hull or a hull with no engine ShipDesignSlot.
+	// check hull slots to make sure they're filled properly.
+	// we already verified all filled slots above, but this ensures we don't have
+	// an empty hull or a hull with no engine.
 	for i, hullSlot := range hull.Slots {
-		if hullSlot.Required {
-			found := false
-			for _, slot := range sd.Slots {
-				if slot.HullSlotIndex-1 == i && slot.HullComponent != "" {
-					found = true
-					break
-				}
-			}
+		if hullSlot.Type&HullSlotTypeWeapon != 0 && transportCloakName != "" {
+			return fmt.Errorf("hull component %q cannot be mounted on a hull capable of using weapons", transportCloakName)
+		}
+		if !hullSlot.Required {
+			continue
+		}
 
-			if !found {
-				return fmt.Errorf("%d %s required", hullSlot.Capacity, hullSlot.Type.String())
+		found := false
+		for _, slot := range sd.Slots {
+			if slot.HullSlotIndex-1 == i && slot.HullComponent != "" {
+				found = true
+				break
 			}
+		}
+
+		if !found {
+			return fmt.Errorf("%d %s required", hullSlot.Capacity, hullSlot.Type.String())
 		}
 	}
 
