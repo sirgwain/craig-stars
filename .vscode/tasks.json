@@ -145,7 +145,7 @@
 		{
 			"hide": true,
 			"label": "open localhost",
-			"command": "explorer", // despite what it may seem, this just opens the default web browser
+			"command": "open", // despite what it may seem, this just opens the default web browser
 			"windows": {
 				"command": "explorer.exe"
 			},
