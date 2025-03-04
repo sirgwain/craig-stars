@@ -223,9 +223,9 @@ This context contains reactive stores with the state of the game, for example a 
 
 ```html
 <script lang="ts">
-  import { getGameContext } from "$lib/services/Contexts";
+	import { getGameContext } from "$lib/services/Contexts";
 
-  const { game, player, universe } = getGameContext();
+	const { game, player, universe } = getGameContext();
 </script>
 
 <h1>{game.year}</h1>

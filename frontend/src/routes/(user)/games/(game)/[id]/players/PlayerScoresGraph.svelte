@@ -49,9 +49,10 @@
 	let highestValue = $derived(
 		Math.max(
 			...$universe.scoreIntels
-				.filter((score) => score && score.length > 0)
+				.map((score) => score.scoreHistory)
+				.filter((scoreHistory) => scoreHistory && scoreHistory.length > 0)
 				.flat()
-				.map((score) => score[type] ?? 0)
+				.map((scoreHistory) => scoreHistory[type] ?? 0)
 		)
 	);
 
@@ -63,7 +64,7 @@
 	let dataLong: DataLongTypeItem[] = $derived(
 		$universe.playerIntels.map((playerIntel, i) => {
 			const name = playerIntel.racePluralName ?? playerIntel.name;
-			const playerScores = $universe.scoreIntels[i];
+			const playerScores = $universe.scoreIntels[i].scoreHistory;
 
 			return {
 				[zKey]: String(playerIntel.num),

@@ -1,5 +1,6 @@
 import { clamp } from '$lib/services/Math';
 import {
+	HullSlotTypeWeapon,
 	TechCategoryArmor,
 	TechCategoryBeamWeapon,
 	TechCategoryBomb,
@@ -28,6 +29,8 @@ import {
 	type Tech,
 	type TechCategory,
 	type TechDefense,
+	type TechHull,
+	type TechHullComponent,
 	type TechStore,
 	type TechTerraform,
 	type TerraformHabType
@@ -86,8 +89,8 @@ export const TechCategories: TechCategory[] = [
 
 /**
  * Determine if a tech is a hull component
- * @param category The category to check
- * @returns
+ * @param category The TechCategory to check
+ * @returns true if the tech category contains TechHullComponents
  */
 export function isHullComponent(category: TechCategory | undefined): boolean {
 	switch (category) {
@@ -118,7 +121,7 @@ export function isHullComponent(category: TechCategory | undefined): boolean {
 
 /** check if this tech is a hull
  * @param tech The tech to check
- * @returns true if this tech is degined and is a ship hull; talse otherwise
+ * @returns true if this tech is defined and is a ship hull; false otherwise
  */
 export function isHull(tech: Tech | undefined): boolean {
 	if (!tech) {
@@ -127,19 +130,33 @@ export function isHull(tech: Tech | undefined): boolean {
 	return [TechCategoryShipHull, TechCategoryStarbaseHull].includes(tech.category);
 }
 
+/**
+ * Checks if the {@linkcode HullSlotType} of a given {@linkcode TechHullSlot}
+   can be filled with an item of another HullSlotType.
+ * @param hcType - The {@linkcode HullSlotType} to check against.
+ * @param slotType - The {@linkcode HullSlotType} of the item being placed.
+ * @returns `true` if the two slots are compatible, `false` otherwise.
+ */
 export function canFillSlot(hcType: HullSlotType, type: HullSlotType): boolean {
 	return (hcType & type) > 0;
 }
 
-// true if this hull is allowed to mount this component
-export function hullAllowed(hull: string, tech: Tech): boolean {
-	const hullAllowed = tech.requirements.hullsAllowed
-		? tech.requirements.hullsAllowed.indexOf(hull) != -1
-		: true;
-	const hullDenied = tech.requirements.hullsDenied
-		? tech.requirements.hullsDenied.indexOf(hull) != -1
-		: false;
-	return hullAllowed && !hullDenied;
+/**
+ * Checks if a given {@linkcode TechHull} is allowed to use a given {@linkcode TechHullComponent}.
+ * @param hull - The {@linkcode TechHull} being checked.
+ * @param hc - The {@linkcode TechHullComponent} to be used.
+ * @returns `true` if the hull can use the component, `false` otherwise.
+ */
+export function hullAllowed(hull: TechHull, hc: TechHullComponent): boolean {
+	/* nullish coaclescing makes this work - undefined is never equal to -1,
+	so a null array will be treated as allowing all or denying no hulls
+	*/
+	const hullAllowed = hc.requirements.hullsAllowed?.indexOf(hull.name) != -1;
+	const hullDenied = hc.requirements.hullsDenied?.indexOf(hull.name) == -1;
+	const armedWithUnarmedPart =
+		(hc.cloakUnarmedOnly ?? false) &&
+		hull.slots.some((slot) => canFillSlot(slot.type, HullSlotTypeWeapon));
+	return hullAllowed && !hullDenied && !armedWithUnarmedPart;
 }
 
 export function getDefenseCoverage(defense: TechDefense, defenses: number): number {
@@ -148,15 +165,14 @@ export function getDefenseCoverage(defense: TechDefense, defenses: number): numb
 
 export function getSmartDefenseCoverage(
 	defense: TechDefense,
-	defenses: number,
-	smartDefenseCoverageFactor?: number
+	numDefenses: number,
+	smartDefenseCoverageFactor: number = 0.5
 ): number {
-	smartDefenseCoverageFactor ??= 0.5;
 	return (
 		1.0 -
 		Math.pow(
 			1 - (defense.defenseCoverage / 100) * smartDefenseCoverageFactor,
-			clamp(defenses, 0, 100)
+			clamp(numDefenses, 0, 100)
 		)
 	);
 }
@@ -164,27 +180,25 @@ export function getSmartDefenseCoverage(
 export function getCloakPercentForCloakUnits(cloakUnits: number): number {
 	if (cloakUnits <= 100) {
 		return cloakUnits / 2;
-	} else {
-		cloakUnits = cloakUnits - 100;
-		if (cloakUnits <= 200) {
-			return 50 + cloakUnits / 8;
-		} else {
-			cloakUnits = cloakUnits - 200;
-			if (cloakUnits < 312) {
-				return 75 + cloakUnits / 24;
-			} else {
-				cloakUnits = cloakUnits - 312;
-				if (cloakUnits <= 512) {
-					return 88 + cloakUnits / 64;
-				} else if (cloakUnits < 768) {
-					return 96;
-				} else if (cloakUnits < 1000) {
-					return 97;
-				} else {
-					return 99;
-				}
-			}
-		}
+	}
+	cloakUnits -= 100;
+	if (cloakUnits <= 200) {
+		return 50 + cloakUnits / 8;
+	}
+	cloakUnits -= 200;
+	if (cloakUnits < 312) {
+		return 75 + cloakUnits / 24;
+	}
+	cloakUnits -= 512;
+	switch (true) {
+		case cloakUnits <= 512:
+			return 88 + cloakUnits / 64;
+		case cloakUnits < 768:
+			return 96;
+		case cloakUnits < 1000:
+			return 97;
+		default:
+			return 98;
 	}
 }
 

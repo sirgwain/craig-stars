@@ -16,7 +16,7 @@ import {
 } from './cs';
 
 describe('Planet test', () => {
-	const techStore = techjson as TechStore;
+	const techStore = techjson as unknown as TechStore;
 
 	it('getMaxPopulation', () => {
 		const planet = new CommandedPlanet();

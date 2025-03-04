@@ -1167,6 +1167,12 @@
 							"hullName": "Scout",
 							"hullSetNumber": 1,
 							"purpose": "FighterScout"
+						},
+						{
+							"name": "Gadfly",
+							"hullName": "Mini Bomber",
+							"hullSetNumber": 1,
+							"purpose": "Bomber"
 						}
 					],
 					"homeworld": true

@@ -1866,9 +1866,9 @@ export const ShipDesignPurposeStarterColony: ShipDesignPurpose = 'StarterColony'
  */
 export interface ShipToken {
 	designNum: number /* int */;
-	quantity: number /* int */; // the number of ships in the token
-	damage?: number /* float64 */; // damage is stored per ship in the token
-	quantityDamaged?: number /* int */; // the number of ships in the token that the damage applies to
+	quantity: number /* int */; // number of ships in the token
+	damage?: number /* float64 */; // damage per damaged ship in the token
+	quantityDamaged?: number /* int */; // number of damaged ships in token
 }
 
 //////////
@@ -1895,7 +1895,7 @@ export const TechCategoryStarbaseHull: TechCategory = 'StarbaseHull';
 export const TechCategoryTerraforming: TechCategory = 'Terraforming';
 export const TechCategoryTorpedo: TechCategory = 'Torpedo';
 /**
- * The basic skeleton of a Tech item, containing name, cost and
+ * The basic skeleton of a Tech item, containing name, cost and other essential info.
  */
 export interface Tech {
 	name: string;
@@ -2315,6 +2315,7 @@ export type StartingFleetHull = string;
 export const StartingFleetHullColonyShip: StartingFleetHull = 'Colony Ship';
 export const StartingFleetHullDestroyer: StartingFleetHull = 'Destroyer';
 export const StartingFleetHullMediumFreighter: StartingFleetHull = 'Medium Freighter';
+export const StartingFleetHullMiniBomber: StartingFleetHull = 'Mini Bomber';
 export const StartingFleetHullMiniColonyShip: StartingFleetHull = 'Mini-Colony Ship';
 export const StartingFleetHullMiniMineLayer: StartingFleetHull = 'Mini Mine Layer';
 export const StartingFleetHullMiniMiner: StartingFleetHull = 'Mini-Miner';
