@@ -171,7 +171,7 @@ func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Pl
 	killRateColonistsKilled := roundToNearest100(b.getColonistsKilledForBombs(planet.GetPopulation(), defenseCoverage, bombs), math.Round)
 	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs), math.Round)
 
-	killed := Max(killRateColonistsKilled, minColonistsKilled, planet.GetPopulation())
+	killed := Max(killRateColonistsKilled, minColonistsKilled)
 	planet.addPopulation(-killed)
 
 	// apply this against mines/factories and defenses proportionally
@@ -220,7 +220,7 @@ func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Pl
 		MinesDestroyed:     minesDestroyed,
 		FactoriesDestroyed: factoriesDestroyed,
 		DefensesDestroyed:  defensesDestroyed,
-		PlanetEmptied:      killed == planet.GetPopulation(),
+		PlanetEmptied:      planet.Cargo.Colonists == 0,
 		fleet:              fleets[0],
 	}
 }
@@ -248,9 +248,8 @@ func (b *bomber) smartBombPlanet(planet *Planet, defender *Player, attacker *Pla
 	killRateColonistsKilled := roundToNearest100(b.getColonistsKilledWithSmartBombs(planet.GetPopulation(), smartDefenseCoverage, bombs), math.Round)
 	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(smartDefenseCoverage, bombs), math.Round)
 
-	killed := int(Max(killRateColonistsKilled, minColonistsKilled))
-	leftoverPopulation := Max(0, planet.GetPopulation()-killed)
-	planet.setPopulation(leftoverPopulation)
+	killed := Max(killRateColonistsKilled, minColonistsKilled)
+	planet.addPopulation(-killed)
 
 	// update planet spec
 	planet.Spec = computePlanetSpec(b.rules, defender, planet)
@@ -268,7 +267,7 @@ func (b *bomber) smartBombPlanet(planet *Planet, defender *Player, attacker *Pla
 		BomberName:      fleets[0].Name,
 		NumBombers:      len(fleets),
 		ColonistsKilled: killed,
-		PlanetEmptied:   leftoverPopulation < 100,
+		PlanetEmptied:   planet.Cargo.Colonists == 0,
 		fleet:           fleets[0],
 	}
 }

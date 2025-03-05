@@ -112,6 +112,7 @@ func Merge_Temp_JSON() error {
 
 	count := 0
 	for _, fileName := range fileNames {
+		fullName := filepath.Join("tmp", fileName)
 		if !strings.HasPrefix(fileName, "diff_") ||
 			!strings.HasSuffix(fileName, ".jsonl") {
 			// file doesn't start with correct prefix; probably not a json file
@@ -123,7 +124,7 @@ func Merge_Temp_JSON() error {
 		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
 
 		// grab file data
-		fileBytes, err := os.ReadFile("tmp/" + fileName)
+		fileBytes, err := os.ReadFile(fullName)
 		if err != nil {
 			return mg.Fatalf(1, "error during os.ReadFile: \n%w", err)
 		}
@@ -145,7 +146,7 @@ func Merge_Temp_JSON() error {
 
 		count++
 		// remove test file after being merged
-		if err := sh.Rm(fileName); err != nil {
+		if err := sh.Rm(fullName); err != nil {
 			return err
 		}
 	}

@@ -264,10 +264,10 @@ func (c *GameConverter) ConvertGamePlanet(source *cs.Planet) *Planet {
 		dbPlanet.MineYearsIronium = (*source).MineYears.Ironium
 		dbPlanet.MineYearsBoranium = (*source).MineYears.Boranium
 		dbPlanet.MineYearsGermanium = (*source).MineYears.Germanium
-		dbPlanet.Ironium = (*source).SurfaceMinerals.Ironium
-		dbPlanet.Boranium = (*source).SurfaceMinerals.Boranium
-		dbPlanet.Germanium = (*source).SurfaceMinerals.Germanium
-		dbPlanet.Colonists = (*source).GetPopulation()
+		dbPlanet.Ironium = (*source).Cargo.Ironium
+		dbPlanet.Boranium = (*source).Cargo.Boranium
+		dbPlanet.Germanium = (*source).Cargo.Germanium
+		dbPlanet.Colonists = (*source).Cargo.Colonists
 		dbPlanet.Mines = (*source).Mines
 		dbPlanet.Factories = (*source).Factories
 		dbPlanet.Defenses = (*source).Defenses
@@ -555,8 +555,7 @@ func (c *GameConverter) ConvertPlanet(source *Planet) *cs.Planet {
 		csPlanet.TerraformedAmount = ExtendTerraformedAmount((*source))
 		csPlanet.MineralConcentration = ExtendMineralConcentration((*source))
 		csPlanet.MineYears = ExtendMineYears((*source))
-		csPlanet.SurfaceMinerals = c.dbPlanetToCsMineral((*source))
-		csPlanet.GetPopulation() = (*source).Colonists
+		csPlanet.Cargo = c.dbPlanetToCsCargo((*source))
 		csPlanet.Mines = (*source).Mines
 		csPlanet.Factories = (*source).Factories
 		csPlanet.Defenses = (*source).Defenses
@@ -802,13 +801,6 @@ func (c *GameConverter) dbPlanetToCsHab(source Planet) cs.Hab {
 	csHab.Temp = source.Temp
 	csHab.Rad = source.Rad
 	return csHab
-}
-func (c *GameConverter) dbPlanetToCsMineral(source Planet) cs.Mineral {
-	var csMineral cs.Mineral
-	csMineral.Ironium = source.Ironium
-	csMineral.Boranium = source.Boranium
-	csMineral.Germanium = source.Germanium
-	return csMineral
 }
 func (c *GameConverter) dbPlanetToCsPlanetOrders(source Planet) cs.PlanetOrders {
 	var csPlanetOrders cs.PlanetOrders

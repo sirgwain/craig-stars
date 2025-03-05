@@ -1310,7 +1310,6 @@ func (t *turnGenerator) planetMine() {
 				Str("Planet", planet.Name).
 				Str("Minerals", planet.Spec.MiningOutput.PrettyString()).
 				Msgf("planet mined")
-
 		}
 	}
 }

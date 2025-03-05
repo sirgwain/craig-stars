@@ -13,11 +13,10 @@ import (
 // Compare two objects as json outputs for testing.
 //
 // If the comparison fails, this marks the test as a failure
-// and writes 3 json files to the tmp folder,
-// containing both values being compared and a pretty-printed
-// difference between them.
+// and writes a json file to the tmp folder containing a pretty-printed
+// difference between the 2 values.
 //
-// These files are continuously appended to during a test run (sectioned off by test name),
+// The file is continuously appended to during a test run (sectioned off by test name),
 // and should ideally be moved or removed after the package finishes testing.
 // Invocation from parallel tests is untested and not recommended.
 //
@@ -68,26 +67,13 @@ func parseJSONDiff(gotJSON, wantJSON []byte, testName string) string {
 
 	os.MkdirAll("../tmp", 0755) // create temp folder
 	// append files 1 by 1
-	for i := range 3 {
-		header := "// " + testName + "\n" // header containing test name & extra newlines
-		var path, body string
-		switch i {
-		case 0:
-			path = "../tmp/got.jsonl"
-			body = string(gotJSON)
-		case 1:
-			path = "../tmp/want.jsonl"
-			body = string(wantJSON)
-		case 2:
-			path = "../tmp/diff.jsonl"
-			body = diff
-		}
-		if _, err := os.Stat(path); err == nil {
-			// add extra newline in header to properly delimit sections
-			header = "\n" + header
-		}
-		_ = AppendFile(path, header+body+"\n")
+	header := "// " + testName + "\n" // header containing test name & extra newlines
+	path := "../tmp/diff.jsonl"
+	if _, err := os.Stat(path); err == nil {
+		// add extra newline in header to properly delimit sections
+		header = "\n" + header
 	}
+	_ = AppendFile(path, header+diff+"\n")
 
 	return diff
 }

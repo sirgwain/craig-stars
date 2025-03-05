@@ -204,8 +204,7 @@ type Converter interface {
 	// goverter:map MineYears.Ironium MineYearsIronium
 	// goverter:map MineYears.Boranium MineYearsBoranium
 	// goverter:map MineYears.Germanium MineYearsGermanium
-	// goverter:autoMap SurfaceMinerals
-	// goverter:map Population Colonists
+	// goverter:autoMap Cargo
 	ConvertGamePlanet(source *cs.Planet) *Planet
 
 	// goverter:map . Hab
@@ -213,13 +212,12 @@ type Converter interface {
 	// goverter:map . TerraformedAmount | ExtendTerraformedAmount
 	// goverter:map . MineralConcentration | ExtendMineralConcentration
 	// goverter:map . MineYears | ExtendMineYears
-	// goverter:map . SurfaceMinerals
+	// goverter:map . Cargo
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendPlanetMapObject
 	// goverter:map . PlanetOrders
 	// goverter:ignore Starbase
 	// goverter:ignore Dirty
-	// goverter:map Colonists Population
 	ConvertPlanet(source *Planet) *cs.Planet
 
 	// goverter:autoMap GameDBObject

@@ -25,7 +25,7 @@
       "label": "Go: run tests",
       "type": "shell",
       "command": "mage",
-      "args": ["test_golang", "--run=\"^${input:goTestName}\""],
+      "args": ["test_golang", "--run=\"${input:goTestName}\""],
       "group": "test",
       "icon": {
         "color": "terminal.ansiGreen",

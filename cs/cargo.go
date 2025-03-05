@@ -269,10 +269,7 @@ func (c Cargo) GreatestMineralType() CargoType {
 
 // Set the mineral portion of a Cargo, leaving population unaffected.
 func (c *Cargo) SetMineral(d Mineral) {
-	c = &Cargo{
-		Ironium:   d.Ironium,
-		Boranium:  d.Boranium,
-		Germanium: d.Germanium,
-		Colonists: c.Colonists,
-	}
+	c.Ironium = d.Ironium
+	c.Boranium = d.Boranium
+	c.Germanium = d.Germanium
 }

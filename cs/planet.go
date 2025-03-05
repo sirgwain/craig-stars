@@ -186,14 +186,9 @@ func (p *Planet) exactPopulation() (exactPop int) {
 	return p.Cargo.Colonists*100 + p.Spec.PartialPopulation
 }
 
-// set cargo to specified value
-// TODO: Remove this bc it's unnecessary
-func (p *Planet) setCargo(cargo Cargo) {
-	p.Cargo = cargo
-}
-
-// set pop to specified value
-// TODO: Verify that this isn't being misused
+// set pop to specified value.
+// TODO: Remove this - it should only be used for tests, but we have
+// withPopulation thatdoes the same job but better
 func (p *Planet) setPopulation(pop int) {
 	p.Cargo.Colonists = pop / 100
 	p.Spec.PartialPopulation = pop % 100
@@ -203,7 +198,13 @@ func (p *Planet) setPopulation(pop int) {
 func (p *Planet) addPopulation(pop int) {
 	p.Spec.PartialPopulation += pop
 	p.Cargo.Colonists += p.Spec.PartialPopulation / 100
-	p.Spec.PartialPopulation %= 100
+	if p.Cargo.Colonists <= 0 {
+		// if below 0 pop, clear partial population (planet is donezo; also prevents negative pop)
+		p.Cargo.Colonists = 0
+		p.Spec.PartialPopulation = 0
+	} else {
+		p.Spec.PartialPopulation %= 100
+	}
 }
 
 // Return the amount of population that is productive for producing resources,
@@ -461,15 +462,6 @@ func (p *Planet) PopNextYear(floorTo100 bool) int {
 	return pop
 }
 
-// return the net change in population next year
-func (p *Planet) getPopGrowth(floorTo100 bool) int {
-	prevPop := p.GetPopulation()
-	if floorTo100 {
-		prevPop = p.GetPopulation()
-	}
-	return p.PopNextYear(floorTo100) - prevPop
-}
-
 // Get the number of innate mines a player would have with the given amount of population
 func innateMines(innateMinesFactor float64, population int) int {
 	// Verified - floored to nearest integer
@@ -509,7 +501,7 @@ func (p *Planet) getMineralOutput(rules *Rules, numMines int, mineOutput int) (o
 		// extract whole/fractional parts of output,
 		// using the fractional portion as a chance for 1 extra kT
 		whole, frac := math.Modf(float64(conc*numMines*mineOutput) / 1000)
-		if frac >= rules.random.Float64() {
+		if frac > rules.random.Float64() { // strictly greater means we never add on an even division
 			whole += 1
 		}
 		output.Set(minType, int(whole))
@@ -612,6 +604,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	}
 
 	spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
+
+	spec.PartialPopulation = planet.Spec.PartialPopulation // keep partial pop tracker intact
 
 	return spec
 }
@@ -756,11 +750,15 @@ func (planet *Planet) mine(rules *Rules, miningOutput Mineral, numMines int) {
 
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
-	if planet.GetPopulation() == 0 {
+	if planet.Cargo.Colonists == 0 {
 		// don't grow or reduce if at zero pop, planet is ded
 		return
 	}
-	planet.setPopulation(Max(planet.exactPopulation()+planet.Spec.GrowthAmount, 100)) // floor pop at 100
+	planet.addPopulation(planet.Spec.GrowthAmount)
+	if planet.Cargo.Colonists == 0 {
+		// floor pop at 100 for now
+		planet.Cargo.Colonists = 1
+	}
 
 	if player.Race.Spec.InnateMining {
 		planet.Mines = innateMines(player.Race.Spec.InnateMinesFactor, planet.GetPopulation())
@@ -774,7 +772,7 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 
 	// "In short, mine years are like a very funky odometer" - Matthew T.
 	for _, minType := range MineralTypes {
-		conc := planet.MineralConcentration.GetAmount(minType)
+		conc := Max(minMineralConcentration, planet.MineralConcentration.GetAmount(minType)) // min prevents division by 0
 		mineYears := planet.MineYears.GetAmount(minType)
 
 		mineYearsToRollover := mineralDecayFactor / (conc * conc)

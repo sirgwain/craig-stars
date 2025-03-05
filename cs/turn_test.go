@@ -301,7 +301,7 @@ func Test_turn_grow(t *testing.T) {
 	}
 	turn.game.Universe.buildMaps(game.Players)
 
-	turn.generateTurn()
+	turn.planetGrow()
 
 	// one planet should grow, another should not, the other should die off completely
 	assert.Equal(t, 115_000, planet1.exactPopulation())
@@ -310,6 +310,7 @@ func Test_turn_grow(t *testing.T) {
 	assert.Equal(t, 2_304_000, planet4.exactPopulation())
 }
 
+// TODO: Condense these into subtests using t.Run() for easier debugging
 func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	game := createTwoPlayerGame()
 	player1 := game.Players[0]

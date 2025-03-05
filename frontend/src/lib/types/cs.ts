@@ -89,7 +89,7 @@ export type Bitmask = number /* uint32 */;
 export interface Bomb {
 	quantity?: number /* int */;
 	killRate?: number /* float64 */;
-	minKillRate?: number /* int */;
+	minKillRate?: number /* int */; // ? Why is MinKillRate an int but KillRate a float?
 	structureDestroyRate?: number /* float64 */;
 	unterraformRate?: number /* int */;
 }
@@ -109,6 +109,7 @@ export interface BombingResult {
 
 /**
  * Cargo represents minerals and colonists that are in cargo holds, salvage, mineral packets, or on planets.
+ * 1 kT of Cargo respresents 1 unit of minerals or 100 colonists.
  */
 export interface Cargo {
 	ironium?: number /* int */;
@@ -965,7 +966,7 @@ export interface PlanetSpec extends PlanetStarbaseSpec {
 	maxPossibleFactories?: number /* int */;
 	maxPossibleMines?: number /* int */;
 	miningOutput?: Mineral;
-	population?: number /* int */;
+	partialPopulation?: number /* int */; // population not in a multiple of 100
 	populationDensity?: number /* float64 */;
 	resourcesPerYear?: number /* int */;
 	resourcesPerYearAvailable?: number /* int */;
@@ -1464,7 +1465,7 @@ export const CE: LRT = 1 << (14 - 1);
 // source: random.go
 
 /**
- * the rng rules all
+ * The rng interface used by the rules struct, implemented to allow for custom fixed rng methods or seeds
  */
 
 //////////
@@ -1608,7 +1609,7 @@ export interface UniverseGenerationRules {
 	minMineralConcentration: number /* int */;
 	minStartingMineralConcentration: number /* int */;
 	minStartingMineralSurface: number /* int */;
-	raceLeftoverPointsPerItem: { [key: SpendLeftoverPointsOn]: number /* int */ }; // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT
+	raceLeftoverPointsPerItem: { [key: SpendLeftoverPointsOn]: number /* int */ }; // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT/point
 	startingYear: number /* int */;
 	wormholeMinPlanetDistance: number /* int */;
 }
@@ -1847,9 +1848,9 @@ export const ShipDesignPurposeStarterColony: ShipDesignPurpose = 'StarterColony'
  */
 export interface ShipToken {
 	designNum: number /* int */;
-	quantity: number /* int */; // the number of ships in the token
-	damage?: number /* float64 */; // damage is stored per ship in the token
-	quantityDamaged?: number /* int */; // the number of ships in the token that the damage applies to
+	quantity: number /* int */; // number of ships in the token
+	damage?: number /* float64 */; // damage per damaged ship in the token
+	quantityDamaged?: number /* int */; // number of damaged ships in token
 }
 
 //////////
@@ -2296,6 +2297,7 @@ export type StartingFleetHull = string;
 export const StartingFleetHullColonyShip: StartingFleetHull = 'Colony Ship';
 export const StartingFleetHullDestroyer: StartingFleetHull = 'Destroyer';
 export const StartingFleetHullMediumFreighter: StartingFleetHull = 'Medium Freighter';
+export const StartingFleetHullMiniBomber: StartingFleetHull = 'Mini Bomber';
 export const StartingFleetHullMiniColonyShip: StartingFleetHull = 'Mini-Colony Ship';
 export const StartingFleetHullMiniMineLayer: StartingFleetHull = 'Mini Mine Layer';
 export const StartingFleetHullMiniMiner: StartingFleetHull = 'Mini-Miner';

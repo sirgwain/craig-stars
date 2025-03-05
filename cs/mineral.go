@@ -48,8 +48,8 @@ func (m Mineral) PrettyString() string {
 }
 
 // Set sets the value corresponding to minType to amt.
-// Unlike all the other Mineral functions, this _will_ mutate the original struct's values,
-// and is best used for more complex cases not handled by other functions.
+// Unlike all other Mineral functions, this _will_ mutate the original struct's values,
+// and is best used for more complex cases not handled by simple addition.
 func (m *Mineral) Set(minType MineralType, amt int) {
 	switch minType {
 	case Ironium:
@@ -66,7 +66,7 @@ func (m *Mineral) Set(minType MineralType, amt int) {
 // Max returns a Mineral struct containing the higher of
 // m's and other's values for each MineralType.
 //
-//  Mineral{1, 2, 3}.Max(Mineral{4, 0, 5}) = Mineral{4, 2, 5}
+//	Mineral{1, 2, 3}.Max(Mineral{4, 0, 5}) = Mineral{4, 2, 5}
 func (m Mineral) Max(other Mineral) Mineral {
 	return Mineral{
 		Ironium:   Max(m.Ironium, other.Ironium),
@@ -78,7 +78,7 @@ func (m Mineral) Max(other Mineral) Mineral {
 // MaxNum return the higher of max and this Mineral struct's values
 // for each MineralType.
 //
-//  Mineral{1, 2, 3}.MaxNum(2) = Mineral{2, 2, 3}
+//	Mineral{1, 2, 3}.MaxNum(2) = Mineral{2, 2, 3}
 func (m Mineral) MaxNum(max int) Mineral {
 	return Mineral{
 		Ironium:   Max(m.Ironium, max),
