@@ -13,165 +13,141 @@ func TestShipDesign_Validate(t *testing.T) {
 		Hull  string
 		Slots []ShipDesignSlot
 	}
-	type args struct {
-		player *Player
-	}
 	tests := []struct {
 		name    string
 		fields  fields
-		args    args
+		player  *Player
 		wantErr bool
 	}{
 		{
 			name: "valid design",
 			fields: fields{
 				Name: "Scout",
-				Hull: "Scout",
+				Hull: Scout.Name,
 				Slots: []ShipDesignSlot{
 					{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
 					{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
 					{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}),
 			wantErr: false,
 		},
 		{
 			name: "no name",
 			fields: fields{
 				Name: "",
-				Hull: "Scout",
+				Hull: Scout.Name,
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
 		},
 		{
 			name: "invalid hull",
 			fields: fields{
 				Name: "Scout",
-				Hull: "some unknown hull",
+				Hull: "insert generic unknown hull here",
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
 		},
 		{
-			name: "invalid HullSlotIndex - negative",
+			name: "negative HullSlotIndex",
 			fields: fields{
 				Name: "Scout",
-				Hull: "Scout",
+				Hull: Scout.Name,
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: -1, Quantity: 1},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
 		},
 		{
-			name: "invalid HullSlotIndex - out of bounds",
+			name: "HullSlotIndex out of bounds",
 			fields: fields{
 				Name: "Scout",
-				Hull: "Scout",
+				Hull: Scout.Name,
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 10, Quantity: 1},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
 		},
 		{
-			name: "invalid Quantity",
+			name: "quantity out of bounds",
 			fields: fields{
 				Name: "Scout",
-				Hull: "Scout",
+				Hull: Scout.Name,
 				Slots: []ShipDesignSlot{
 					{HullComponent: BatScanner.Name, HullSlotIndex: 1, Quantity: 2},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
 		},
 		{
-			name: "invalid Required",
+			name: "lacking required component",
 			fields: fields{
 				Name:  "Scout",
-				Hull:  "Scout",
+				Hull:  Scout.Name,
 				Slots: []ShipDesignSlot{},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
-		}, {
-			name: "invalid Required Quantity",
+		},
+		{
+			name: "invalid required quantity",
 			fields: fields{
-				Name: "Scout",
-				Hull: "Scout",
+				Name: "Big Mutha",
+				Hull: LargeFreighter.Name,
 				Slots: []ShipDesignSlot{
-					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 0},
+					{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1}, // needs 2 but has 1
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}),
 			wantErr: true,
 		},
 		{
 			name: "invalid component",
 			fields: fields{
 				Name: "Scout",
-				Hull: "Scout",
+				Hull: Scout.Name,
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-					{HullComponent: "unknown", HullSlotIndex: 2, Quantity: 1},
+					{HullComponent: "Windows Phone 7", HullSlotIndex: 2, Quantity: 1},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
 		},
 		{
 			name: "invalid component type - cargo pod in scanner",
 			fields: fields{
 				Name: "Scout",
-				Hull: "Scout",
+				Hull: Scout.Name,
 				Slots: []ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
 					{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
 		},
 		{
 			name: "invalid component - player can't build",
 			fields: fields{
 				Name: "Scout",
-				Hull: "Scout",
+				Hull: Scout.Name,
 				Slots: []ShipDesignSlot{
 					{HullComponent: GalaxyScoop.Name, HullSlotIndex: 1, Quantity: 1},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
 		},
 		{
@@ -184,13 +160,11 @@ func TestShipDesign_Validate(t *testing.T) {
 					{HullComponent: OrbitalConstructionModule.Name, HullSlotIndex: 2, Quantity: 1},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithSpec(&rules)),
-			},
+			player:  NewPlayer(1, NewRace().WithSpec(&rules)),
 			wantErr: true,
 		},
 		{
-			name: "valid component - player is AR",
+			name: "valid - has component",
 			fields: fields{
 				Name: "Santa Maria",
 				Hull: ColonyShip.Name,
@@ -199,9 +173,34 @@ func TestShipDesign_Validate(t *testing.T) {
 					{HullComponent: OrbitalConstructionModule.Name, HullSlotIndex: 2, Quantity: 1},
 				},
 			},
-			args: args{
-				player: NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)),
+			player:  NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)),
+			wantErr: false,
+		},
+		{
+			name: "invalid - hull can have weapons",
+			fields: fields{
+				Name: "Scouty Boi",
+				Hull: Scout.Name,
+				Slots: []ShipDesignSlot{
+					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: TransportCloaking.Name, HullSlotIndex: 2, Quantity: 1},
+				},
 			},
+			player:  NewPlayer(1, NewRace().WithPRT(SS).WithSpec(&rules)),
+			wantErr: true,
+		},
+		{
+			name: "valid - unarmed",
+			fields: fields{
+				Name: "Shadow Transport",
+				Hull: MediumFreighter.Name,
+				Slots: []ShipDesignSlot{
+					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: TransportCloaking.Name, HullSlotIndex: 2, Quantity: 1},
+				},
+			},
+			player: NewPlayer(1, NewRace().WithPRT(SS).WithSpec(&rules)).
+				WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}),
 			wantErr: false,
 		},
 	}
@@ -212,7 +211,7 @@ func TestShipDesign_Validate(t *testing.T) {
 				Hull:  tt.fields.Hull,
 				Slots: tt.fields.Slots,
 			}
-			if err := sd.Validate(&rules, tt.args.player); (err != nil) != tt.wantErr {
+			if err := sd.Validate(&rules, tt.player); (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Errorf("ShipDesign.Validate() failed to error when expected")
 				} else {
