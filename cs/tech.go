@@ -49,7 +49,7 @@ var TechCategories = []TechCategory{
 	TechCategoryTorpedo,
 }
 
-// The basic skeleton of a Tech item, containing name, cost and
+// The basic skeleton of a Tech item, containing name, cost and other essential info.
 type Tech struct {
 	Name         string           `json:"name"`
 	Cost         Cost             `json:"cost"`

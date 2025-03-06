@@ -64,7 +64,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostExtra,
 			Biotechnology: cs.ResearchCostExtra,
 		},
-		TechsStartHigh: true,
+		TechsStartHigh:        true,
 		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnMineralConcentrations,
 	},
 	{
@@ -98,7 +98,7 @@ var Races []cs.Race = []cs.Race{
 			Electronics:   cs.ResearchCostExtra,
 			Biotechnology: cs.ResearchCostExtra,
 		},
-		TechsStartHigh: true,
+		TechsStartHigh:        true,
 		SpendLeftoverPointsOn: cs.SpendLeftoverPointsOnSurfaceMinerals,
 	},
 	{

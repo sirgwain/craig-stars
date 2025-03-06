@@ -1,6 +1,6 @@
 # Local Development
 
-craig-stars is a web based game. The backend logic and server is written in [Go](https://go.dev), while the frontend client is written in [TypeScript](https://www.typescriptlang.org) and powered by [`SvelteKit`](https://kit.svelte.dev).
+craig-stars is a web based game. The backend logic and server is written in [Go](https://go.dev), while the frontend client is written in [TypeScript](https://www.typescriptlang.org) and powered by [SvelteKit](https://kit.svelte.dev).
 
 ## Prerequisites:
 
@@ -42,26 +42,22 @@ This will clear out the previous images folder before downloading the zip file a
 After performing all that setup, you should be good to go!
 You have 2 methods to launch the server:
 
-1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This builds the server before launching the frontend and backend in separate terminals.
-2. Run `mage run` from your terminal inside the root folder. This does essentially the same thing, but launches them inside the same terminal within separate goroutines. (_Note_: Don't worry if Mage complains about cleanup deadlines when shutting down.)
+1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This starts up the default build task to:
+   - Build both backend and frontend files
+   - Launch both backend and frontend servers in separate task terminals
+   - Open the localhost link in your default web browser once the frontend finishes[^2].\
+     The browser launch tends to produce false positives, so don't worry if it shows up as having failed.
+2. Run `mage run` from your terminal inside the root folder. This does essentially the same series of steps as the VS Code task, but launches both backend and frontend servers inside the same terminal before stalling. You'll have to open the browser link yourself in a new tab (difficult, I know)[^3].
 
-Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data`, containing a single `admin` user (password `admin`). (If it fails, try clearing the data folder and trying again.)
+Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch.
 
-With some luck, you should get a localhost link from npm (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically via air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
+If successful, you should get a localhost link from vite (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically using air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
 
-### Launching Backend/Frontend only
+<!--! remember to remove this if/when the issue is fixed -->
 
-If one wants to launch the backend or frontend separately (such as to have both processes in separate terminals), there are mage commands to launch them separately.
+[^2]: **NOTE**: Due to a [long-standing bug in VS Code](https://github.com/microsoft/vscode/issues/70283) involving dependencies and background tasks, the "open localhost" task will still be run even if the frontend launch command fails partway through. (Seen as the alternative is opening the window _before_ the server even starts, this is still the lesser of the 2 evils.)
 
-```bash
-mage launch_frontend
-```
-
-```bash
-mage launch_backend
-```
-
-(For those curious, this is how the aforementioned build task launches the server.)
+[^3]: If Mage happens to complain about cleanup deadlines when you shut the server down, feel free to ignore it.
 
 # Visual Studio Code
 
@@ -71,7 +67,7 @@ mage launch_backend
 
 <!--? Do we need to move this to its own section? -->
 
-While manual local dev testing is certainly valuable, software testing & debugging are also crucial to ensure things run (and continue to run) smoothly.\
+While manual local dev testing is certainly invaluable, software testing & debugging are also crucial to ensure things run (and continue to run) smoothly.\
 `craig-stars` makes use of 3 different automated software testing providers:
 
 - [gotestsum](https://github.com/gotestyourself/gotestsum) for backend Golang unit tests. This runs `go test` under the hood and does fancy formatting on the output.
@@ -80,7 +76,7 @@ While manual local dev testing is certainly valuable, software testing & debuggi
 
 Each provider comes with its [own](../gotestsum) [config](../frontend/vite.config.ts) [files](../frontend/playwright.config.ts), with varying settings for CI and non-CI runs.
 
-## Running & Debugging tests
+## Running tests
 
 After writing new or updating existing tests, there are several options as for how to run them.
 

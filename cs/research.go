@@ -52,7 +52,7 @@ func newResearcher(rules *Rules) researcher { return researcher{rules} }
 // In general,
 // totalCost=(baseCost + (totalLevels * 10)) * costFactor
 // If 'Slow Tech Advances' is enabled, totalCost is then doubled.
-// 
+//
 // Below is a table showing the base cost of each level:
 //	1     50              14    18040
 //	2     80              15    22440
