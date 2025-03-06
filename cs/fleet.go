@@ -1123,7 +1123,8 @@ func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64,
 	// trip is < 1 ly. Aahh, the joys of rounding! ;o)
 }
 
-// Get the Fuel cost for this fleet to travel a certain distance at a certain speed
+// Get the fuel cost for this fleet to travel a certain distance at a certain speed,
+// exported to allow for cross package usage.
 func (fleet *Fleet) GetFuelCost(player *Player, warpSpeed int, distance float64) int {
 	return fleet.getFuelCost(player, warpSpeed, distance, fleet.Spec.CargoCapacity)
 }
@@ -1143,6 +1144,7 @@ func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64,
 		stackCapacity := token.design.Spec.CargoCapacity * token.Quantity
 
 		if cargoCapacity > 0 {
+			// @sirgwain: Consider making this allocate cargo optimally for least fuel usage as QoL option
 			mass += int(float64(fleetCargo) * (float64(stackCapacity) / float64(cargoCapacity)))
 		}
 

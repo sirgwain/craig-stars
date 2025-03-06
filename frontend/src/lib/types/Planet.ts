@@ -123,7 +123,7 @@ export class CommandedPlanet implements Planet {
 	};
 
 	// get the population from a planet's cargo
-	public get GetPopulation() {
+	public get population() {
 		return (this.cargo.colonists ?? 0) * 100;
 	}
 
