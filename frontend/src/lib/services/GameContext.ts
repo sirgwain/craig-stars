@@ -483,14 +483,14 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		if (mo) {
 			if (mo.type == MapObjectTypePlanet) {
 				const planets = u.getMyPlanets(s.sortPlanetsKey, s.sortPlanetsDescending);
-				const prevIndex = rollover(i - 1, 0, planets.length - 1);
+				const prevIndex = rollover(i - 1, planets.length - 1);
 				const planet = planets[prevIndex];
 				commandMapObject(planet);
 				zoomToMapObject(planet);
 				selectMapObject(planet);
 			} else if (mo.type == MapObjectTypeFleet) {
 				const fleets = u.getMyFleets(s.sortFleetsKey, s.sortFleetsDescending);
-				const prevIndex = rollover(i - 1, 0, fleets.length - 1);
+				const prevIndex = rollover(i - 1, fleets.length - 1);
 				commandMapObject(fleets[prevIndex]);
 				zoomToMapObject(fleets[prevIndex]);
 
@@ -521,7 +521,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		if (mo) {
 			if (mo.type == MapObjectTypePlanet) {
 				const planets = u.getMyPlanets(s.sortPlanetsKey, s.sortPlanetsDescending);
-				const nextIndex = rollover(i + 1, 0, planets.length - 1);
+				const nextIndex = rollover(i + 1, planets.length - 1);
 				const planet = planets[nextIndex];
 				commandMapObject(planet);
 				zoomToMapObject(planet);
@@ -529,7 +529,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			} else if (mo.type == MapObjectTypeFleet) {
 				const fleets = u.getMyFleets(s.sortFleetsKey, s.sortFleetsDescending);
 
-				const nextIndex = rollover(i + 1, 0, fleets.length - 1);
+				const nextIndex = rollover(i + 1, fleets.length - 1);
 				const fleet = fleets[nextIndex];
 				commandMapObject(fleets[nextIndex]);
 				zoomToMapObject(fleets[nextIndex]);

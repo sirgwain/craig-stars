@@ -169,7 +169,7 @@ func (sd *ShipDesign) WithCannotDelete(cannotDelete bool) *ShipDesign {
 
 // Compute the spec for this ShipDesign. This function is mostly for universe generation and tests.
 //
-// See [ComputeShipDesignSpec]
+// See [ComputeShipDesignSpec] for more info.
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	var err error
 	sd.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)

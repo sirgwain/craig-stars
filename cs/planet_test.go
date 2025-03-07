@@ -415,16 +415,16 @@ func TestPlanet_grow(t *testing.T) {
 			want:   100,
 		}, */
 		{
-			name:   "2% value world, 2 years of growth",
-			fields: fields{hab: Hab{15, 20, 20}, population: 599, turnsToGrow: 2},
-			race:   NewRace().WithGrowthRate(15).WithSpec(&rules),
-			want:   601,
+			name:   "40% value world, 20% HE, 3 years",
+			fields: fields{hab: Hab{35, 21, 45}, population: 600, turnsToGrow: 3},
+			race:   NewRace().WithPRT(HE).WithGrowthRate(20).WithSpec(&rules),
+			want:   904, // 600 --> 696 --> 792 --> 904
 		},
 		{
 			name:   "hostile world",
 			fields: fields{hab: Hab{1, 1, 1}, population: 25000, turnsToGrow: 1},
 			race:   NewRace().WithSpec(&rules),
-			want:   23_950, // -42% value
+			want:   23_950, // -42% value = -4.2% pop per year
 		},
 		{
 			name:   "hostile world, pop rounding",
@@ -433,7 +433,7 @@ func TestPlanet_grow(t *testing.T) {
 			want:   192,
 		},
 		{
-			name:   "hostile world, low pop",
+			name:   "hostile world, pop floor",
 			fields: fields{hab: Hab{1, 1, 1}, population: 100, turnsToGrow: 1},
 			race:   NewRace().WithSpec(&rules),
 			want:   100,
@@ -445,7 +445,7 @@ func TestPlanet_grow(t *testing.T) {
 			planet := NewPlanet().WithPlayerNum(player.Num).
 				WithHab(tt.fields.hab).WithPopulation(tt.fields.population)
 			for range tt.fields.turnsToGrow {
-				planet.Spec = computePlanetSpec(&rules, player, planet)
+				planet.Spec = computePlanetSpec(&rules, player, planet) // only really needed for growth amount
 				planet.grow(player)
 			}
 
@@ -463,48 +463,41 @@ func TestPlanet_getMineralOutput(t *testing.T) {
 		planet     *Planet
 		numMines   int
 		mineOutput int
-		rng        rng
 		want       Mineral
 	}{
+		// TODO: Change tests 2 and 4 after frac mineral output bug is fixed
 		{
 			name:       "whole number outputs",
 			planet:     NewPlanet().WithMineralConcentration(Mineral{100, 100, 100}),
 			numMines:   10,
 			mineOutput: 10,
-			rng:        newFloat64Random(),
 			want:       Mineral{10, 10, 10},
-			// rng irrelevant since it's only used for leftovers
 		},
 		{
-			name:       "mixed conc; fewer mines",
+			name:       "mixed conc; truncates",
 			planet:     NewPlanet().WithMineralConcentration(Mineral{25, 45, 65}),
-			numMines:   20,
+			numMines:   22,
 			mineOutput: 10,
-			rng:        newFloat64Random(),
-			want:       Mineral{5, 9, 13},
+			want:       Mineral{5, 9, 14}, // I/B get truncated
 		},
 		{
-			name:       "Homeworld min conc floor; truncates",
+			name:       "Unowned homeworld; no conc floor",
 			planet:     NewPlanet().WithMineralConcentration(Mineral{1, 1, 1}).WithHomeworld(true),
-			numMines:   22, // 6.6 minerals
+			numMines:   100,
 			mineOutput: 10,
-			rng:        newFloat64Random(),
-			want:       Mineral{6, 6, 6},
+			want:       Mineral{1, 1, 1},
 		},
 		{
-			name:       "RNG increases some but not all",
-			planet:     NewPlanet().WithMineralConcentration(Mineral{1, 1, 1}).WithHomeworld(true),
+			name:       "Owned homeworld min conc floor",
+			planet:     NewPlanet().WithMineralConcentration(Mineral{1, 1, 1}).WithHomeworld(true).WithPlayerNum(1),
 			numMines:   22, // 6.6 minerals
 			mineOutput: 10,
-			rng:        newFloat64Random(1, 0, 0),
 			want:       Mineral{6, 6, 6},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rCopy := NewRules()
-			rCopy.random = tt.rng
-			if got := tt.planet.getMineralOutput(&rCopy, tt.numMines, tt.mineOutput); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.planet.getMineralOutput(&rules, tt.numMines, tt.mineOutput); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Planet.getMineralOutput() returned output \n%+v, want \n%+v", got, tt.want)
 			}
 		})

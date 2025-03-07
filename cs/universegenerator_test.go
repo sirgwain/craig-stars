@@ -144,7 +144,7 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 				extraPoints: 2,
 				pointsType:  SpendLeftoverPointsOnFactories,
 			},
-			want: NewPlanet().WithCargo(Cargo{12, 5, 5, 0}),
+			want: NewPlanet().WithCargo(Cargo{12, 5, 5, 0}), // yes this is weird i know del with it
 		},
 		{
 			name: "2 points into mines; can't use",
@@ -153,7 +153,7 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 				extraPoints: 2,
 				pointsType:  SpendLeftoverPointsOnMines,
 			},
-			want: NewPlanet().WithCargo(Cargo{12, 5, 5, 0}), // yes this is weird i know del with it
+			want: NewPlanet().WithCargo(Cargo{12, 5, 5, 0}),
 		},
 		{
 			name: "43 points into defenses; extra wasted",

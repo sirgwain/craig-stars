@@ -281,7 +281,7 @@ func Test_turn_grow(t *testing.T) {
 			BaseHab:   Hab{0, 0, 0},
 		},
 		&Planet{
-			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 3", Num: 3, PlayerNum: player.Num},
+			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 4", Num: 4, PlayerNum: player.Num},
 			Hab:       Hab{50, 50, 50}, // good planet
 			BaseHab:   Hab{50, 50, 50},
 		},
@@ -304,14 +304,14 @@ func Test_turn_grow(t *testing.T) {
 
 	turn.planetGrow()
 
-	// one planet should grow, another should not, the other should die off completely
+	// #1 grows, #2 dies, #3 dies but can't go lower, #4 overpops a tad bit
 	assert.Equal(t, 115_000, planet1.exactPopulation())
 	assert.Equal(t, 95_500, planet2.exactPopulation())
 	assert.Equal(t, 100, planet3.exactPopulation())
 	assert.Equal(t, 2_304_000, planet4.exactPopulation())
 }
 
-// TODO: Condense these into subtests using t.Run() for easier debugging
+// TODO: Condense these into subtests for easier debugging
 func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	game := createTwoPlayerGame()
 	player1 := game.Players[0]
@@ -439,377 +439,380 @@ func Test_turn_fleetRoute(t *testing.T) {
 }
 
 func Test_turn_fleetMove(t *testing.T) {
-	game := createSingleUnitGame()
-
-	planet := game.Planets[0]
-	fleet := game.Fleets[0]
-
-	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{10, 10}, 5))
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	// move to place
-	turn.fleetMove()
-
-	// should have consumed that waypoint and moved to the space
-	assert.Equal(t, 1, len(fleet.Waypoints))
-	assert.Equal(t, Vector{10, 10}, fleet.Position)
-	assert.Equal(t, 1, len(game.getMapObjectsAtPosition(planet.Position)))
-	assert.Equal(t, 1, len(game.getMapObjectsAtPosition(fleet.Position)))
-}
-
-func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
-	game := createSingleUnitGame()
-	player := game.Players[0]
-
-	planet := game.Planets[0]
-
-	planet.Cargo = Cargo{1000, 1000, 1000, 1000}
-
-	// make a new freighter for transport
-	fleet := testSmallFreighter(player)
-	player.Designs[0] = fleet.Tokens[0].design
-	game.Fleets[0] = fleet
-
-	// set a waypoint 2 turns away, load ironium from planet and move
-	fleet.RepeatOrders = true
-	fleet.OrbitingPlanetNum = planet.Num
-	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
-	fleet.Waypoints[0].Task = WaypointTaskTransport
-	fleet.Waypoints[0].TransportTasks.Ironium.Action = TransportActionLoadAll
-
-	// dump all ironium at this waypoint and return
-	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{50, 0}, 5))
-	fleet.Waypoints[1].Task = WaypointTaskTransport
-	fleet.Waypoints[1].TransportTasks.Ironium.Action = TransportActionUnloadAll
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	// move one year
-	turn.generateTurn()
-
-	// should have loaded, moved, but still have waypoints
-	assert.Equal(t, 120, fleet.Cargo.Ironium)
-	assert.Equal(t, 880, planet.Cargo.Ironium)
-	assert.Equal(t, Vector{25, 0}, fleet.Position)
-	assert.Equal(t, 3, len(fleet.Waypoints))
-
-	// generate the second turn, should move to dest and unload
-	turn.generateTurn()
-	assert.Equal(t, 0, fleet.Cargo.Ironium)
-	assert.Equal(t, Vector{50, 0}, fleet.Position)
-	assert.Equal(t, 2, len(fleet.Waypoints))
-	// should have created salvage with ironium drop
-	salvage := game.Salvages[0]
-	assert.Equal(t, 120, salvage.Cargo.Ironium)
-
-	// generate the third turn, should move back towards planet
-	turn.generateTurn()
-	assert.Equal(t, Vector{25, 0}, fleet.Position)
-	assert.Equal(t, 3, len(fleet.Waypoints))
-
-	// generate a fourth turn, should arrive at planet and load ironium
-	turn.generateTurn()
-	assert.Equal(t, Vector{0, 0}, fleet.Position)
-	assert.Equal(t, 120, fleet.Cargo.Ironium)
-	assert.Equal(t, 760, planet.Cargo.Ironium)
-	assert.Equal(t, 2, len(fleet.Waypoints))
-
-	// generate a fifth turn, should move again towards dest
-	turn.generateTurn()
-	assert.Equal(t, Vector{25, 0}, fleet.Position)
-	assert.Equal(t, 3, len(fleet.Waypoints))
-
-}
-
-func Test_turn_fleetMoveTransportRepeat(t *testing.T) {
-	game := createSingleUnitGame()
-	player := game.Players[0]
-
-	planet1 := game.Planets[0]
-	// make a second planet we transfer cargo to
-	planet2 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, Position: Vector{10, 0}, PlayerNum: player.Num},
-		Hab:       Hab{50, 50, 50},
-		BaseHab:   Hab{50, 50, 50},
-	}
-	planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
-	game.Planets = []*Planet{planet1, planet2}
-	player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
-
-	// planet1 has pop, planet2 is a starer colony
-	planet1.Cargo = Cargo{1000, 1000, 1000, 10000}
-	planet2.Cargo = Cargo{Colonists: 25}
-
-	// make a new freighter for transport
-	fleet := testGalleon(player)
-	player.Designs[0] = fleet.Tokens[0].design
-	game.Fleets[0] = fleet
-
-	// set a waypoint nearby for the transport to load colonists from planet1 and dump them on planet2
-	// until planet2 has 25% capacity
-	fleet.RepeatOrders = true
-	fleet.OrbitingPlanetNum = planet1.Num
-	fleet.Waypoints[0] = NewPlanetWaypoint(planet1.Position, planet1.Num, planet1.Name, 5)
-	fleet.Waypoints[0].Task = WaypointTaskTransport
-	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionLoadAll
-
-	// dump all colonists at this waypoint and return
-	fleet.Waypoints = append(fleet.Waypoints, NewPlanetWaypoint(planet2.Position, planet2.Num, planet2.Name, 5))
-	fleet.Waypoints[1].Task = WaypointTaskTransport
-	fleet.Waypoints[1].TransportTasks.Colonists.Action = TransportActionSetWaypointTo
-	fleet.Waypoints[1].TransportTasks.Colonists.Amount = 2500
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	// move one year
-	turn.generateTurn()
-
-	// should have loaded, moved, dropped
-	assert.Equal(t, 10000-1000+150, planet1.Cargo.Colonists) // planet1 loaded colonists on freighter, then grew
-	assert.Equal(t, Vector{10, 0}, fleet.Position)
-	assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
-	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
-	assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
-	assert.Equal(t, 25+4+1000, planet2.Cargo.Colonists)
-	assert.Equal(t, 2, len(fleet.Waypoints))
-
-	// generate the second turn, should move back to planet1
-	turn.generateTurn()
-
-	// should have arrived back at homeworld, loaded
-	assert.Equal(t, 8288, planet1.Cargo.Colonists)
-	assert.Equal(t, Vector{0, 0}, fleet.Position)
-	assert.Equal(t, Vector{0, 0}, fleet.Waypoints[0].Position)
-	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
-	assert.Equal(t, planet1.Num, fleet.Waypoints[0].TargetNum)
-	assert.Equal(t, 1000, fleet.Cargo.Colonists)
-	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[1].TargetType)
-	assert.Equal(t, planet2.Num, fleet.Waypoints[1].TargetNum)
-	assert.Equal(t, 2, len(fleet.Waypoints))
-
-	// generate the third turn, should move back to planet2 and unload
-	turn.generateTurn()
-
-	assert.Equal(t, 8499, planet1.Cargo.Colonists)
-	assert.Equal(t, Vector{10, 0}, fleet.Position)
-	assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
-	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
-	assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
-	assert.Equal(t, Cargo{}, fleet.Cargo)
-	assert.Equal(t, 2360, planet2.Cargo.Colonists)
-	assert.Equal(t, 2, len(fleet.Waypoints))
-
-	// generate a couple more turns, we should eventually stop unloading cargo due to the SetAmountTo and growth
-	// p2 -> p1
-	turn.generateTurn()
-	// p1 -> p2
-	turn.generateTurn()
-
-	assert.Equal(t, 7956, planet1.Cargo.Colonists)
-	assert.Equal(t, Vector{10, 0}, fleet.Position)
-	assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
-	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
-	assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
-	assert.Equal(t, Cargo{Colonists: 1000}, fleet.Cargo) // we have leftover
-	assert.Equal(t, 3121, planet2.Cargo.Colonists)       // planet is ready to go!
-	assert.Equal(t, 2, len(fleet.Waypoints))
-
-}
-
-func Test_turn_fleetMoveTransportWaitForPercent(t *testing.T) {
-	game := createSingleUnitGame()
-	player := game.Players[0]
-
-	planet1 := game.Planets[0]
-	// make a second planet we transfer cargo to
-	planet2 := &Planet{
-		MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, Position: Vector{10, 0}, PlayerNum: player.Num},
-		Hab:       Hab{50, 50, 50},
-		BaseHab:   Hab{50, 50, 50},
-	}
-	planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
-	game.Planets = []*Planet{planet1, planet2}
-	player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
-
-	// pull from planet1 to planet2
-	planet1.MineralConcentration = Mineral{100, 100, 100}
-	planet1.Mines = 300
-	planet1.Cargo = Cargo{100, 100, 100, 10000} // start with cargo, mine the rest
-	planet2.Cargo = Cargo{0, 0, 0, 1000}
-
-	// make a new freighter for transport
-	fleet := testGalleon(player)
-	player.Designs[0] = fleet.Tokens[0].design
-	game.Fleets[0] = fleet
-
-	// set a waypoint nearby for the transport to wait until we have an even amount of cargo in the hold, then dump on planet2
-	fleet.RepeatOrders = true
-	fleet.OrbitingPlanetNum = planet1.Num
-	fleet.Waypoints[0] = NewPlanetWaypoint(planet1.Position, planet1.Num, planet1.Name, 5)
-	fleet.Waypoints[0].Task = WaypointTaskTransport
-	fleet.Waypoints[0].TransportTasks.Ironium.Action = TransportActionWaitForPercent
-	fleet.Waypoints[0].TransportTasks.Ironium.Amount = 33
-	fleet.Waypoints[0].TransportTasks.Boranium.Action = TransportActionWaitForPercent
-	fleet.Waypoints[0].TransportTasks.Boranium.Amount = 33
-	fleet.Waypoints[0].TransportTasks.Germanium.Action = TransportActionWaitForPercent
-	fleet.Waypoints[0].TransportTasks.Germanium.Amount = 34
-
-	// dump all at this waypoint and return
-	fleet.Waypoints = append(fleet.Waypoints, NewPlanetWaypoint(planet2.Position, planet2.Num, planet2.Name, 5))
-	fleet.Waypoints[1].Task = WaypointTaskTransport
-	fleet.Waypoints[1].TransportTasks.Ironium.Action = TransportActionUnloadAll
-	fleet.Waypoints[1].TransportTasks.Boranium.Action = TransportActionUnloadAll
-	fleet.Waypoints[1].TransportTasks.Germanium.Action = TransportActionUnloadAll
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	// load and grow and wait
-	turn.generateTurn()
-
-	// should have loaded all cargo, but waited for more to be generated
-	assert.Equal(t, Vector{0, 0}, fleet.Position)
-	assert.Equal(t, Vector{0, 0}, fleet.Waypoints[0].Position)
-	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
-	assert.Equal(t, planet1.Num, fleet.Waypoints[0].TargetNum)
-	assert.Equal(t, Cargo{100, 100, 100, 0}, fleet.Cargo)
-	assert.Equal(t, 2, len(fleet.Waypoints))
-
-	// we should load the rest and move
-	turn.generateTurn()
-
-	// should have loaded all cargo, and moved to planet2 to dump
-	assert.Equal(t, Vector{10, 0}, fleet.Position)
-	assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
-	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
-	assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
-	assert.Equal(t, Cargo{0, 0, 0, 0}, fleet.Cargo)
-	assert.Equal(t, Mineral{330, 330, 340}, planet2.Cargo.ToMineral())
-	assert.Equal(t, 2, len(fleet.Waypoints))
-	// go back and load again from p1
-	assert.Equal(t, Vector{0, 0}, fleet.Waypoints[1].Position)
-	assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[1].TargetType)
-	assert.Equal(t, planet1.Num, fleet.Waypoints[1].TargetNum)
-
-}
-
-func Test_turn_fleetMoveStoppedByMineField(t *testing.T) {
-	game := createSingleUnitGame()
-	rules := &game.Rules
-
-	// change the rules so going 4 warp over the limit guarantee's a hit
-	stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
-	stats.MaxSpeed = 5
-	stats.ChanceOfHit = 1
-	stats.MinDecay = 0 // turn off decay
-	rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
-
-	// create a new MineField 20ly away with 10ly radius
-	radius := 10
-	mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
-	mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
-	mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
-	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
-	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
-	// setup initial planet intels so turn generation works
-	mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
-
-	// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
-	player := game.Players[0]
-	player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
-
-	game.Players = append(game.Players, mineFieldPlayer)
-	game.MineFields = append(game.MineFields, mineField)
-
-	// move us straight through a minefield
-	fleet := game.Fleets[0]
-	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{36, 0}, 6))
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	// let's go!!
-	turn.generateTurn()
-
-	// we should have struck the minefield and lost the ship
-	assert.True(t, fleet.Delete)
-	assert.Equal(t, 2, len(game.Players[0].Messages))
-	assert.Equal(t, 2, len(game.Players[1].Messages))
-
-	// the MineField should have lost some mines in the collision
-	assert.Equal(t, 88, mineField.NumMines)
-	assert.Equal(t, Vector{10, 0}, fleet.Position)
-}
-
-func Test_turn_fleetMoveDestroyedByMineField(t *testing.T) {
-	game := createSingleUnitGame()
-	rules := &game.Rules
-
-	// change the rules so going 4 warp over the limit guarantee's a hit
-	stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
-	stats.MaxSpeed = 5
-	stats.ChanceOfHit = .25
-	stats.MinDecay = 0 // turn off decay
-	rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
-
-	// create a new MineField 20ly away with 10ly radius
-	radius := 10
-	mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
-	mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
-	mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
-	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
-	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
-	// setup initial planet intels so turn generation works
-	mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
-
-	// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
-	player := game.Players[0]
-	player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
-
-	game.Players = append(game.Players, mineFieldPlayer)
-	game.MineFields = append(game.MineFields, mineField)
-
-	// move us straight through a minefield
-	fleet := game.Fleets[0]
-	fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{81, 0}, 9))
-
-	turn := turnGenerator{
-		game: game,
-		log:  testLogger,
-	}
-	turn.game.Universe.buildMaps(game.Players)
-
-	// let's go!!
-	turn.generateTurn()
-
-	// we should have struck the minefield and lost the ship
-	assert.True(t, fleet.Delete)
-	assert.Equal(t, 2, len(game.Players[0].Messages))
-	assert.Equal(t, 2, len(game.Players[1].Messages))
-
-	// the MineField should have lost some mines in the collision
-	assert.Equal(t, 88, mineField.NumMines)
+	t.Run("default", func(t *testing.T) {
+		game := createSingleUnitGame()
+
+		planet := game.Planets[0]
+		fleet := game.Fleets[0]
+
+		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{10, 10}, 5))
+
+		turn := turnGenerator{
+			game: game,
+			log:  testLogger,
+		}
+		turn.game.Universe.buildMaps(game.Players)
+
+		// move to place
+		turn.fleetMove()
+
+		// should have consumed that waypoint and moved to the space
+		assert.Equal(t, 1, len(fleet.Waypoints))
+		assert.Equal(t, Vector{10, 10}, fleet.Position)
+		assert.Equal(t, 1, len(game.getMapObjectsAtPosition(planet.Position)))
+		assert.Equal(t, 1, len(game.getMapObjectsAtPosition(fleet.Position)))
+	})
+
+	t.Run("Repeat Orders", func(t *testing.T) {
+		game := createSingleUnitGame()
+		player := game.Players[0]
+
+		planet := game.Planets[0]
+
+		planet.Cargo = Cargo{1000, 1000, 1000, 1000}
+
+		// make a new freighter for transport
+		fleet := testSmallFreighter(player)
+		player.Designs[0] = fleet.Tokens[0].design
+		game.Fleets[0] = fleet
+
+		// set a waypoint 2 turns away, load ironium from planet and move
+		fleet.RepeatOrders = true
+		fleet.OrbitingPlanetNum = planet.Num
+		fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 5)
+		fleet.Waypoints[0].Task = WaypointTaskTransport
+		fleet.Waypoints[0].TransportTasks.Ironium.Action = TransportActionLoadAll
+
+		// dump all ironium at this waypoint and return
+		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{50, 0}, 5))
+		fleet.Waypoints[1].Task = WaypointTaskTransport
+		fleet.Waypoints[1].TransportTasks.Ironium.Action = TransportActionUnloadAll
+
+		turn := turnGenerator{
+			game: game,
+			log:  testLogger,
+		}
+		turn.game.Universe.buildMaps(game.Players)
+
+		// move one year
+		turn.generateTurn()
+
+		// should have loaded, moved, but still have waypoints
+		assert.Equal(t, 120, fleet.Cargo.Ironium)
+		assert.Equal(t, 880, planet.Cargo.Ironium)
+		assert.Equal(t, Vector{25, 0}, fleet.Position)
+		assert.Equal(t, 3, len(fleet.Waypoints))
+
+		// generate the second turn, should move to dest and unload
+		turn.generateTurn()
+		assert.Equal(t, 0, fleet.Cargo.Ironium)
+		assert.Equal(t, Vector{50, 0}, fleet.Position)
+		assert.Equal(t, 2, len(fleet.Waypoints))
+		// should have created salvage with ironium drop
+		salvage := game.Salvages[0]
+		assert.Equal(t, 120, salvage.Cargo.Ironium)
+
+		// generate the third turn, should move back towards planet
+		turn.generateTurn()
+		assert.Equal(t, Vector{25, 0}, fleet.Position)
+		assert.Equal(t, 3, len(fleet.Waypoints))
+
+		// generate a fourth turn, should arrive at planet and load ironium
+		turn.generateTurn()
+		assert.Equal(t, Vector{0, 0}, fleet.Position)
+		assert.Equal(t, 120, fleet.Cargo.Ironium)
+		assert.Equal(t, 760, planet.Cargo.Ironium)
+		assert.Equal(t, 2, len(fleet.Waypoints))
+
+		// generate a fifth turn, should move again towards dest
+		turn.generateTurn()
+		assert.Equal(t, Vector{25, 0}, fleet.Position)
+		assert.Equal(t, 3, len(fleet.Waypoints))
+
+	})
+
+	t.Run("TransportRepeat", func(t *testing.T) {
+		game := createSingleUnitGame()
+		player := game.Players[0]
+
+		planet1 := game.Planets[0]
+		// make a second planet we transfer cargo to
+		planet2 := &Planet{
+			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, Position: Vector{10, 0}, PlayerNum: player.Num},
+			Hab:       Hab{50, 50, 50},
+			BaseHab:   Hab{50, 50, 50},
+		}
+		planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
+		game.Planets = []*Planet{planet1, planet2}
+		player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
+
+		// planet1 has pop, planet2 is a starter colony
+		planet1.Cargo = Cargo{1000, 1000, 1000, 10000}
+		planet2.Cargo = Cargo{Colonists: 25}
+
+		// make a new freighter for transport
+		fleet := testGalleon(player)
+		player.Designs[0] = fleet.Tokens[0].design
+		game.Fleets[0] = fleet
+
+		// set a waypoint nearby for the transport to load colonists from planet1 and dump them on planet2
+		// until planet2 has 25% capacity
+		fleet.RepeatOrders = true
+		fleet.OrbitingPlanetNum = planet1.Num
+		fleet.Waypoints[0] = NewPlanetWaypoint(planet1.Position, planet1.Num, planet1.Name, 5)
+		fleet.Waypoints[0].Task = WaypointTaskTransport
+		fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionLoadAll
+
+		// dump all colonists at this waypoint and return
+		fleet.Waypoints = append(fleet.Waypoints, NewPlanetWaypoint(planet2.Position, planet2.Num, planet2.Name, 5))
+		fleet.Waypoints[1].Task = WaypointTaskTransport
+		fleet.Waypoints[1].TransportTasks.Colonists.Action = TransportActionSetWaypointTo
+		fleet.Waypoints[1].TransportTasks.Colonists.Amount = 2500
+
+		turn := turnGenerator{
+			game: game,
+			log:  testLogger,
+		}
+		turn.game.Universe.buildMaps(game.Players)
+
+		// move one year
+		turn.generateTurn()
+
+		// should have loaded, moved & dropped pop
+		assert.Equal(t, 9150, planet1.Cargo.Colonists) // 10000-1000+150
+		assert.Equal(t, Vector{10, 0}, fleet.Position)
+		assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
+		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
+		assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
+		assert.Equal(t, 1028, planet2.Cargo.Colonists)
+		assert.Equal(t, 75, planet2.PartialPopulation)
+		assert.Equal(t, 2, len(fleet.Waypoints))
+
+		// generate the second turn, should move back to planet 1
+		turn.generateTurn()
+
+		// should have arrived back at homeworld & loaded more pop
+		assert.Equal(t, 8287, planet1.Cargo.Colonists)
+		assert.Equal(t, Vector{0, 0}, fleet.Position)
+		assert.Equal(t, Vector{0, 0}, fleet.Waypoints[0].Position)
+		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
+		assert.Equal(t, planet1.Num, fleet.Waypoints[0].TargetNum)
+		assert.Equal(t, 1000, fleet.Cargo.Colonists)
+		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[1].TargetType)
+		assert.Equal(t, planet2.Num, fleet.Waypoints[1].TargetNum)
+		assert.Equal(t, 2, len(fleet.Waypoints))
+
+		// generate the third turn, should move back to planet2 and unload
+		turn.generateTurn()
+
+		assert.Equal(t, 8499, planet1.Cargo.Colonists)
+		assert.Equal(t, Vector{10, 0}, fleet.Position)
+		assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
+		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
+		assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
+		assert.Equal(t, Cargo{}, fleet.Cargo)
+		assert.Equal(t, 2360, planet2.Cargo.Colonists)
+		assert.Equal(t, 2, len(fleet.Waypoints))
+
+		// generate a couple more turns, we should eventually stop unloading cargo due to the SetAmountTo and growth
+		// p2 -> p1
+		turn.generateTurn()
+		// p1 -> p2
+		turn.generateTurn()
+
+		assert.Equal(t, 7956, planet1.Cargo.Colonists)
+		assert.Equal(t, Vector{10, 0}, fleet.Position)
+		assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
+		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
+		assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
+		assert.Equal(t, Cargo{Colonists: 1000}, fleet.Cargo) // we have leftover
+		assert.Equal(t, 3121, planet2.Cargo.Colonists)       // planet is ready to go!
+		assert.Equal(t, 2, len(fleet.Waypoints))
+
+	})
+
+	t.Run("Wait for %", func(t *testing.T) {
+		game := createSingleUnitGame()
+		player := game.Players[0]
+
+		planet1 := game.Planets[0]
+		// make a second planet we transfer cargo to
+		planet2 := &Planet{
+			MapObject: MapObject{Type: MapObjectTypePlanet, Name: "Planet 2", Num: 2, Position: Vector{10, 0}, PlayerNum: player.Num},
+			Hab:       Hab{50, 50, 50},
+			BaseHab:   Hab{50, 50, 50},
+		}
+		planet2.Spec = computePlanetSpec(&game.Rules, player, planet2)
+		game.Planets = []*Planet{planet1, planet2}
+		player.initDefaultPlanetIntels([]*Planet{planet1, planet2})
+
+		// pull from planet1 to planet2
+		planet1.MineralConcentration = Mineral{100, 100, 100}
+		planet1.Mines = 300
+		planet1.Cargo = Cargo{100, 100, 100, 10000} // start with cargo, mine the rest
+		planet2.Cargo = Cargo{0, 0, 0, 1000}
+
+		// make a new freighter for transport
+		fleet := testGalleon(player)
+		player.Designs[0] = fleet.Tokens[0].design
+		game.Fleets[0] = fleet
+
+		// set a waypoint nearby for the transport to wait until we have an even amount of cargo in the hold, then dump on planet2
+		fleet.RepeatOrders = true
+		fleet.OrbitingPlanetNum = planet1.Num
+		fleet.Waypoints[0] = NewPlanetWaypoint(planet1.Position, planet1.Num, planet1.Name, 5)
+		fleet.Waypoints[0].Task = WaypointTaskTransport
+		fleet.Waypoints[0].TransportTasks.Ironium.Action = TransportActionWaitForPercent
+		fleet.Waypoints[0].TransportTasks.Ironium.Amount = 33
+		fleet.Waypoints[0].TransportTasks.Boranium.Action = TransportActionWaitForPercent
+		fleet.Waypoints[0].TransportTasks.Boranium.Amount = 33
+		fleet.Waypoints[0].TransportTasks.Germanium.Action = TransportActionWaitForPercent
+		fleet.Waypoints[0].TransportTasks.Germanium.Amount = 34
+
+		// dump all at this waypoint and return
+		fleet.Waypoints = append(fleet.Waypoints, NewPlanetWaypoint(planet2.Position, planet2.Num, planet2.Name, 5))
+		fleet.Waypoints[1].Task = WaypointTaskTransport
+		fleet.Waypoints[1].TransportTasks.Ironium.Action = TransportActionUnloadAll
+		fleet.Waypoints[1].TransportTasks.Boranium.Action = TransportActionUnloadAll
+		fleet.Waypoints[1].TransportTasks.Germanium.Action = TransportActionUnloadAll
+
+		turn := turnGenerator{
+			game: game,
+			log:  testLogger,
+		}
+		turn.game.Universe.buildMaps(game.Players)
+
+		// load and grow and wait
+		turn.generateTurn()
+
+		// should have loaded all cargo, but waited for more to be generated
+		assert.Equal(t, Vector{0, 0}, fleet.Position)
+		assert.Equal(t, Vector{0, 0}, fleet.Waypoints[0].Position)
+		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
+		assert.Equal(t, planet1.Num, fleet.Waypoints[0].TargetNum)
+		assert.Equal(t, Cargo{100, 100, 100, 0}, fleet.Cargo)
+		assert.Equal(t, 2, len(fleet.Waypoints))
+
+		// we should load the rest and move
+		turn.generateTurn()
+
+		// should have loaded all cargo, and moved to planet2 to dump
+		assert.Equal(t, Vector{10, 0}, fleet.Position)
+		assert.Equal(t, Vector{10, 0}, fleet.Waypoints[0].Position)
+		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[0].TargetType)
+		assert.Equal(t, planet2.Num, fleet.Waypoints[0].TargetNum)
+		assert.Equal(t, Cargo{0, 0, 0, 0}, fleet.Cargo)
+		assert.Equal(t, Mineral{330, 330, 340}, planet2.Cargo.ToMineral())
+		assert.Equal(t, 2, len(fleet.Waypoints))
+		// go back and load again from p1
+		assert.Equal(t, Vector{0, 0}, fleet.Waypoints[1].Position)
+		assert.Equal(t, MapObjectTypePlanet, fleet.Waypoints[1].TargetType)
+		assert.Equal(t, planet1.Num, fleet.Waypoints[1].TargetNum)
+
+	})
+
+	t.Run("Stopped by minefield", func(t *testing.T) {
+		game := createSingleUnitGame()
+		rules := &game.Rules
+
+		// change the rules so going 4 warp over the limit guarantee's a hit
+		stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
+		stats.MaxSpeed = 5
+		stats.ChanceOfHit = 1
+		stats.MinDecay = 0 // turn off decay
+		rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
+
+		// create a new MineField 20ly away with 10ly radius
+		radius := 10
+		mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+		mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
+		mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
+		mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
+		mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
+		mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+		// setup initial planet intels so turn generation works
+		mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
+
+		// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
+		player := game.Players[0]
+		player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
+
+		game.Players = append(game.Players, mineFieldPlayer)
+		game.MineFields = append(game.MineFields, mineField)
+
+		// move us straight through a minefield
+		fleet := game.Fleets[0]
+		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{36, 0}, 6))
+
+		turn := turnGenerator{
+			game: game,
+			log:  testLogger,
+		}
+		turn.game.Universe.buildMaps(game.Players)
+
+		// let's go!!
+		turn.generateTurn()
+
+		// we should have struck the minefield and lost the ship
+		assert.True(t, fleet.Delete)
+		assert.Equal(t, 2, len(game.Players[0].Messages))
+		assert.Equal(t, 2, len(game.Players[1].Messages))
+
+		// the MineField should have lost some mines in the collision
+		assert.Equal(t, 88, mineField.NumMines)
+		assert.Equal(t, Vector{10, 0}, fleet.Position)
+	})
+
+	t.Run("Destroyed by minefield", func(t *testing.T) {
+		game := createSingleUnitGame()
+		rules := &game.Rules
+
+		// change the rules so going 4 warp over the limit guarantee's a hit
+		stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
+		stats.MaxSpeed = 5
+		stats.ChanceOfHit = .25
+		stats.MinDecay = 0 // turn off decay
+		rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
+
+		// create a new MineField 20ly away with 10ly radius
+		radius := 10
+		mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+		mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
+		mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
+		mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
+		mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
+		mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+		// setup initial planet intels so turn generation works
+		mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
+
+		// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
+		player := game.Players[0]
+		player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
+
+		game.Players = append(game.Players, mineFieldPlayer)
+		game.MineFields = append(game.MineFields, mineField)
+
+		// move us straight through a minefield
+		fleet := game.Fleets[0]
+		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{81, 0}, 9))
+
+		turn := turnGenerator{
+			game: game,
+			log:  testLogger,
+		}
+		turn.game.Universe.buildMaps(game.Players)
+
+		// let's go!!
+		turn.generateTurn()
+
+		// we should have struck the minefield and lost the ship
+		assert.True(t, fleet.Delete)
+		assert.Equal(t, 2, len(game.Players[0].Messages))
+		assert.Equal(t, 2, len(game.Players[1].Messages))
+
+		// the MineField should have lost some mines in the collision
+		assert.Equal(t, 88, mineField.NumMines)
+	})
 }
 
 func Test_turn_permaform(t *testing.T) {

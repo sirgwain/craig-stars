@@ -168,8 +168,8 @@ func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Pl
 
 	// figure out the killRate and minKillRate for this fleet's bombs
 	defenseCoverage := planet.Spec.DefenseCoverage
-	killRateColonistsKilled := roundToNearest100(b.getColonistsKilledForBombs(planet.GetPopulation(), defenseCoverage, bombs), math.Round)
-	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs), math.Round)
+	killRateColonistsKilled := roundTo100(b.getColonistsKilledForBombs(planet.GetPopulation(), defenseCoverage, bombs), math.Round)
+	minColonistsKilled := roundTo100(b.getMinColonistsKilledForBombs(defenseCoverage, bombs), math.Round)
 
 	killed := Max(killRateColonistsKilled, minColonistsKilled)
 	planet.addPopulation(-killed)
@@ -245,8 +245,8 @@ func (b *bomber) smartBombPlanet(planet *Planet, defender *Player, attacker *Pla
 
 	// figure out the killRate and minKillRate for this fleet's bombs
 	// TODO: Check how this rounds
-	killRateColonistsKilled := roundToNearest100(b.getColonistsKilledWithSmartBombs(planet.GetPopulation(), smartDefenseCoverage, bombs), math.Round)
-	minColonistsKilled := roundToNearest100(b.getMinColonistsKilledForBombs(smartDefenseCoverage, bombs), math.Round)
+	killRateColonistsKilled := roundTo100(b.getColonistsKilledWithSmartBombs(planet.GetPopulation(), smartDefenseCoverage, bombs), math.Round)
+	minColonistsKilled := roundTo100(b.getMinColonistsKilledForBombs(smartDefenseCoverage, bombs), math.Round)
 
 	killed := Max(killRateColonistsKilled, minColonistsKilled)
 	planet.addPopulation(-killed)

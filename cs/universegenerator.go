@@ -136,7 +136,7 @@ func (ug *universeGenerator) generatePlanets() error {
 	occupiedLocations := make([]Vector, numPlanets)
 	width, height := int(ug.area.X), int(ug.area.Y)
 
-	for i := 0; i < numPlanets; i++ {
+	for i := range numPlanets {
 
 		// find a valid position for the planet
 		posCheckCount := 0
@@ -187,7 +187,7 @@ func (ug *universeGenerator) generateWormholes() error {
 		planetPositions[i] = planet.Position
 	}
 
-	for i := 0; i < numPairs*2; i++ {
+	for i := range numPairs * 2 {
 		position, stability, err := generateWormhole(ug.Universe, ug.area, ug.Rules.random, planetPositions, wormholePositions, ug.Rules.WormholeMinPlanetDistance)
 
 		if err != nil {
@@ -196,6 +196,7 @@ func (ug *universeGenerator) generateWormholes() error {
 
 		var companion *Wormhole
 		if i%2 > 0 {
+			// every wormhole needs a companiom
 			companion = wormholes[i-1]
 		}
 		wormhole := ug.Universe.createWormhole(&ug.Rules, position, stability, companion)
@@ -478,7 +479,7 @@ func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *
 		lowestType, _ := m.HighestType(-1)
 		m = m.AddNum(lowestType, ktLeft/4+ktLeft%3)
 		m = m.AddToAll(ktLeft / 4)
-		planet.Cargo = NewCargoFromMineral(m, planet.Cargo.Colonists*100)
+		planet.Cargo.SetMineral(m)
 	}
 }
 

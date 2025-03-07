@@ -1399,20 +1399,20 @@ func (t *turnGenerator) fleetRemoteMine() {
 
 // remote mine a planet
 func (t *turnGenerator) remoteMine(fleet *Fleet, player *Player, planet *Planet) {
-	miningOutput := planet.getMineralOutput(&t.game.Rules, fleet.Spec.MiningRate, t.game.Rules.RemoteMiningMineOutput)
-	planet.mine(&t.game.Rules, miningOutput, fleet.Spec.MiningRate)
+	output := planet.getMineralOutput(&t.game.Rules, fleet.Spec.MiningRate, t.game.Rules.RemoteMiningMineOutput)
+	planet.mine(&t.game.Rules, output, fleet.Spec.MiningRate)
 	planet.MarkDirty()
 
 	// make sure we know about this planet's cargo after remote mining;
 	// mark this fleet as having remote mined so it doesn't get counted twice
 	fleet.remoteMined = true
-	messager.fleetRemoteMined(player, fleet, planet, miningOutput)
+	messager.fleetRemoteMined(player, fleet, planet, output)
 
 	t.log.Debug().
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
 		Str("Planet", planet.Name).
-		Str("Minerals outputted", miningOutput.PrettyString()).
+		Str("Mineral output", output.PrettyString()).
 		Msgf("fleet remote mined planet")
 }
 
@@ -1806,38 +1806,40 @@ func (t *turnGenerator) permaform() {
 // grow all owned planets by some population
 func (t *turnGenerator) planetGrow() {
 	for _, planet := range t.game.Planets {
-		if planet.Owned() {
-			player := t.game.getPlayer(planet.PlayerNum)
-			prevPop := planet.GetPopulation()
-			planet.grow(player)
+		if !planet.Owned() {
+			continue
+		}
+		player := t.game.getPlayer(planet.PlayerNum)
+		prevPop := planet.GetPopulation()
+		planet.grow(player)
 
-			// tell players about dieing colonists
-			if planet.Spec.GrowthAmount < 0 {
-				if planet.Spec.PopulationDensity > 1 {
-					messager.planetPopulationDecreasedOvercrowding(player, planet, planet.Spec.GrowthAmount)
-				} else {
-					messager.planetPopulationDecreased(player, planet, prevPop, planet.GetPopulation())
-				}
+		// tell players about dying colonists
+		if planet.Spec.GrowthAmount < 0 {
+			if planet.Spec.PopulationDensity > 1 {
+				messager.planetPopulationDecreasedOvercrowding(player, planet, planet.Spec.GrowthAmount)
+			} else {
+				messager.planetPopulationDecreased(player, planet, prevPop, planet.GetPopulation())
 			}
+		}
+
+		t.log.Debug().
+			Int("Player", planet.PlayerNum).
+			Str("Planet", planet.Name).
+			Int("Capacity", int(planet.Spec.PopulationDensity*100)).
+			Int("PrevPopulation", prevPop).
+			Int("GrowthAmount", planet.Spec.GrowthAmount).
+			Int("Population", planet.GetPopulation()).
+			Msgf("planet grew")
+
+		if planet.GetPopulation() <= 0 {
+			planet.emptyPlanet()
+			messager.planetDiedOff(player, planet)
 
 			t.log.Debug().
-				Int("Player", planet.PlayerNum).
+				Int("Player", player.Num).
 				Str("Planet", planet.Name).
-				Int("Capacity", int(planet.Spec.PopulationDensity*100)).
-				Int("PrevPopulation", prevPop).
-				Int("GrowthAmount", planet.Spec.GrowthAmount).
-				Int("Population", planet.GetPopulation()).
-				Msgf("planet grow")
+				Msgf("planet pop died off")
 
-			if planet.GetPopulation() <= 0 {
-				planet.emptyPlanet()
-				messager.planetDiedOff(player, planet)
-
-				t.log.Debug().
-					Int("Player", player.Num).
-					Str("Planet", planet.Name).
-					Msgf("planet pop died off")
-			}
 		}
 	}
 }
@@ -1869,7 +1871,7 @@ func (t *turnGenerator) fleetRefuel() {
 			continue
 		}
 
-		// can only fuel on docks
+		// can only refuel on docks
 		if planet.Spec.DockCapacity == 0 {
 			continue
 		}
@@ -1894,6 +1896,7 @@ func (t *turnGenerator) fleetRefuel() {
 // strike a random planet with a comet
 func (t *turnGenerator) randomCometStrike() {
 	if t.game.Year < t.game.Rules.StartingYear+t.game.Rules.RandomCometMinYear {
+		// no comets in the first 10 years
 		return
 	}
 
@@ -1920,7 +1923,7 @@ func (t *turnGenerator) randomCometStrike() {
 	var mineralConcentration [3]int
 	var terraformAmount [3]int
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		// every mineral gets a slight boost
 		minerals[i] = (stats.AllMinerals + random.Intn(stats.AllRandomMinerals))
 
@@ -1979,10 +1982,11 @@ func (t *turnGenerator) randomCometStrike() {
 
 }
 
+// TODO: Implement this
 func (t *turnGenerator) randomMineralDeposit() {
-
 }
 
+// TODO: Implement this
 func (t *turnGenerator) randomPlanetaryChange() {
 
 }

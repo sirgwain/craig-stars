@@ -143,7 +143,7 @@ func (packet *MineralPacket) completeMove(rules *Rules, player *Player, planet *
 	} else if planetPlayer != nil {
 		// kill off colonists and defenses
 		// note, for AR races, this will be 0 colonists killed or structures destroyed
-		planet.addPopulation(-roundToNearest100(damage.Killed, math.Round))
+		planet.addPopulation(-roundTo100(damage.Killed, math.Round))
 		planet.Defenses = Clamp(planet.Defenses-damage.DefensesDestroyed, 0, planet.Defenses)
 
 		messager.planetPacketDamage(planetPlayer, planet, packet, damage.Killed, damage.DefensesDestroyed)
@@ -214,7 +214,7 @@ func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) Min
 	rawDamage := float64((speedOfPacket-speedOfReceiver)*weight) / 160
 	damageWithDefenses := rawDamage * (1 - planet.Spec.DefenseCoverage)
 	// TODO: How does this round?
-	colonistsKilled := roundToNearest100(math.Max(damageWithDefenses*float64(planet.GetPopulation())/1000, damageWithDefenses*100), math.Round)
+	colonistsKilled := roundTo100(math.Max(damageWithDefenses*float64(planet.GetPopulation())/1000, damageWithDefenses*100), math.Round)
 	defensesDestroyed := int(math.Max(float64(planet.Defenses)*damageWithDefenses/1000, damageWithDefenses/20))
 
 	// kill off colonists and defenses

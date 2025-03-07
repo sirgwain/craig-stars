@@ -92,7 +92,7 @@ func Test_Golang(goTestArgs string) error {
 }
 
 // Remove all temp json files inside tmp and merge them into 1 large file.
-// This takes all files matching the format "diff_**.jsonl"
+// This takes all files matching the format "XXX_**.jsonl"
 // and merges them together into 1 large file for easy parsing & CI uploading.
 // Comments are added between failing tests from different packages.
 func Merge_Temp_JSON() error {
@@ -113,14 +113,18 @@ func Merge_Temp_JSON() error {
 	count := 0
 	for _, fileName := range fileNames {
 		fullName := filepath.Join("tmp", fileName)
-		if !strings.HasPrefix(fileName, "diff_") ||
-			!strings.HasSuffix(fileName, ".jsonl") {
-			// file doesn't start with correct prefix; probably not a json file
+		if !strings.HasSuffix(fileName, ".jsonl") {
+			// file doesn't start with correct suffix
 			continue
 		}
 
-		// extract name of package from file name
-		pkgName, _ := strings.CutPrefix(fileName, "diff_")
+		prefix, pkgName, found := strings.Cut(fileName, "_")
+		if !found {
+			// file name has no underscores, so it 100% isn't a preformatted JSON file
+			continue
+		}
+
+		// extract name of package from chunk after file extension
 		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
 
 		// grab file data
@@ -128,20 +132,19 @@ func Merge_Temp_JSON() error {
 		if err != nil {
 			return mg.Fatalf(1, "error during os.ReadFile: \n%w", err)
 		}
+		path := filepath.Join("tmp", prefix+".jsonl") // target file path w/o package name
 
 		// Add a header mentioning which package we're in to the start of the file
 		contents := "//*" +
 			strings.ToUpper(pkgName) + "\n" +
 			string(fileBytes)
 		if count == 0 {
-			// truncate file if it already exists
-			if err := os.WriteFile("tmp/diff.jsonl", []byte(contents), 0644); err != nil {
+			// truncate file if it already exists; otherwise add a newline
+			if err := os.WriteFile(path, []byte(contents), 0644); err != nil {
 				return mg.Fatalf(1, "error during os.WriteFile: \n%w", err)
 			}
-		} else {
-			if err := test.AppendFile("tmp/diff.jsonl", "\n"+contents); err != nil {
-				return mg.Fatalf(1, "error during test.AppendFile: \n%w", err)
-			}
+		} else if err := test.AppendFile(path, "\n"+contents); err != nil {
+			return mg.Fatalf(1, "error during test.AppendFile: \n%w", err)
 		}
 
 		count++
@@ -153,7 +156,7 @@ func Merge_Temp_JSON() error {
 
 	var message string
 	if count > 0 {
-		message = fmt.Sprintf("Successfully merged %d temp json files into tmp/diff.jsonl.", count)
+		message = fmt.Sprintf("Successfully merged a total of %d temp json files together.", count)
 	} else {
 		message = "No JSON files to merge were found."
 	}

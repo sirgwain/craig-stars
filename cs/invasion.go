@@ -1,8 +1,9 @@
 package cs
 
 import (
-	"github.com/rs/zerolog"
 	"math"
+
+	"github.com/rs/zerolog"
 )
 
 // invade a planet with a colonist drop
@@ -22,7 +23,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 
 	if float64(attackers)*attackBonus > float64(defenders)*defenseBonus {
 		remainingDefenders = 0
-		remainingAttackers = int(roundToNearest100(float64(attackers)-float64(defenders)*defenseBonus/attackBonus, math.Round))
+		remainingAttackers = int(roundTo100(float64(attackers)-float64(defenders)*defenseBonus/attackBonus, math.Round))
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingAttackers == 0 {
@@ -73,7 +74,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 	} else {
 		// defenders won
 		remainingAttackers = 0
-		remainingDefenders = int(roundToNearest100(float64(defenders)-(float64(attackers)*attackBonus)/defenseBonus, math.Round))
+		remainingDefenders = int(roundTo100(float64(defenders)-(float64(attackers)*attackBonus)/defenseBonus, math.Round))
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingDefenders == 0 {

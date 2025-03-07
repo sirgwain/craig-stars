@@ -13,15 +13,16 @@ import (
 // Compare two objects as json outputs for testing.
 //
 // If the comparison fails, this marks the test as a failure
-// and writes a json file to the tmp folder containing a pretty-printed
-// difference between the 2 values.
+// and writes 3 JSONL files to ./tmp containing both values
+// serialized to JSON and a pretty-printed
+// difference between the 2.
 //
-// The file is continuously appended to during a test run (sectioned off by test name),
+// The files are continuously appended to during a test run (sectioned off by test name),
 // and should ideally be moved or removed after the package finishes testing.
 // Invocation from parallel tests is untested and not recommended.
 //
-// The json difference is passed to t.Errorf, so no extra calls to t.Log or t.Error
-// are needed after calling this.
+// The json difference is passed to t.Fatalf, so no extra function calls
+// should be made after calling this.
 func CompareAsJSON(t TestingT, got, want any) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -46,12 +47,16 @@ func CompareAsJSON(t TestingT, got, want any) {
 		return
 	}
 
-	diff := parseJSONDiff(gotJson, wantJson, t.Name())
+	diff, err := parseJSONDiff(gotJson, wantJson, t.Name())
+	if err != nil {
+		t.Fatalf("error creating JSON diffs: \n%v", err)
+	}
 
 	t.Fatalf("JSONs not equal; diff between got & want: \n%s", diff)
 }
 
-// parsing options for jsondiff
+// parsing options for jsondiff.
+// Fun fact: these settings produce output that is 100% valid JSONL!
 var options = jsondiff.Options{
 	Added:            jsondiff.Tag{Begin: "\"prop-added\": {", End: "}"},
 	Removed:          jsondiff.Tag{Begin: "\"prop-removed\": {", End: "}"},
@@ -62,20 +67,32 @@ var options = jsondiff.Options{
 }
 
 // Parse JSON diffs, creating files to log values as appropriate.
-func parseJSONDiff(gotJSON, wantJSON []byte, testName string) string {
-	_, diff := jsondiff.Compare(gotJSON, wantJSON, &options)
+func parseJSONDiff(gotJSON, wantJSON []byte, testName string) (diff string, err error) {
+	_, diff = jsondiff.Compare(gotJSON, wantJSON, &options)
 
-	os.MkdirAll("../tmp", 0755) // create temp folder
-	// append files 1 by 1
-	header := "// " + testName + "\n" // header containing test name & extra newlines
-	path := "../tmp/diff.jsonl"
-	if _, err := os.Stat(path); err == nil {
-		// add extra newline in header to properly delimit sections
-		header = "\n" + header
+	os.MkdirAll("../tmp", 0755)
+	for i := range 3 {
+		var path string
+		switch i {
+		case 0:
+			path = "../tmp/got.jsonl"
+		case 1:
+			path = "../tmp/want.jsonl"
+		case 2:
+			path = "../tmp/diff.jsonl"
+		}
+
+		header := "// " + testName + "\n" // header containing test name & extra newlines
+		if _, err := os.Stat(path); err == nil {
+			// add extra newline in header to properly delimit sections on existing files
+			header = "\n" + header
+		}
+		if err = AppendFile(path, header+diff+"\n"); err != nil {
+			return "", err
+		}
 	}
-	_ = AppendFile(path, header+diff+"\n")
 
-	return diff
+	return diff, nil
 }
 
 // Appends a string or byte slice to the named file, creating it if necessary.

@@ -14,7 +14,8 @@ type Cargo struct {
 	Colonists int `json:"colonists,omitempty"`
 }
 
-// Create a new Cargo struct from a Mineral struct and population count
+// Create a new Cargo struct from a Mineral struct and population amount.
+// Assumes pop is already in kT.
 func NewCargoFromMineral(mineral Mineral, pop int) Cargo {
 	return Cargo{
 		Ironium:   mineral.Ironium,

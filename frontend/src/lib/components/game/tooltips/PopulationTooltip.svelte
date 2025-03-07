@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import { roundToNearest100 } from '$lib/services/Math';
+	import { roundTo100 } from '$lib/services/Math';
 	import { ReportAgeUnexplored } from '$lib/types/cs';
 	import type { CommandedPlayer } from '$lib/types/Player';
 	export type PopulationTooltipProps = {
@@ -87,7 +87,7 @@
 				population on
 				<span class="font-semibold">{planet.name}</span> is approximately
 				<span class="font-semibold"
-					>{roundToNearest100(planet.spec.population ?? 0).toLocaleString()}</span
+					>{roundTo100(planet.spec.population ?? 0).toLocaleString()}</span
 				>.
 			</p>
 			{#if habitability > 0}

@@ -7,7 +7,7 @@ import (
 	"github.com/sirgwain/craig-stars/test"
 )
 
-// create a new long rang scout fleet for testing
+// create a new mini bomber fleet for testing
 func testMiniBomber(player *Player, bomb TechHullComponent) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
@@ -338,7 +338,7 @@ func Test_bomber_bombPlanet(t *testing.T) {
 			want: want{population: 9500, mines: 98, factories: 98, defenses: 9, hab: Hab{50, 50, 50}},
 		},
 		{
-			name: "Cherry bombers nuke planet; reset partial",
+			name: "Cherry bombers nuke planet; reset partial pop",
 			args: args{
 				planet:       NewPlanet().WithPopulation(255),
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, CherryBomb)},

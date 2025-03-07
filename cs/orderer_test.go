@@ -1031,67 +1031,67 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"transfer 10kT Ironium from planet",
-			args{
+			name: "transfer 10kT Ironium from planet",
+			args: args{
 				source:         testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{Ironium: 10}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10kT Ironium from planet",
-			args{
+			name: "fail to transfer 10kT Ironium from planet",
+			args: args{
 				source:         testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{Ironium: 5}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 10kT Ironium to planet",
-			args{
+			name: "transfer 10kT Ironium to planet",
+			args: args{
 				source:         testTeamster(player).withCargo(Cargo{Ironium: 10}),
 				dest:           NewPlanet(),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10kT Ironium to planet",
-			args{
+			name: "fail to transfer 10kT Ironium to planet",
+			args: args{
 				source:         testTeamster(player),
 				dest:           NewPlanet(),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 210kT Mixed Minerals from planet",
-			args{
+			name: "transfer 210kT Mixed Minerals from planet",
+			args: args{
 				source:         testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 211kT Mixed Minerals from planet",
-			args{
+			name: "fail to transfer 211kT Mixed Minerals from planet",
+			args: args{
 				source:         testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 4000kT Mixed Cargo from planet where planet is out of one mineral",
-			args{
+			name: "fail to transfer mixed cargo from planet lacking one mineral",
+			args: args{
 				source:         testPrivateer(player, 10),
 				dest:           NewPlanet().WithCargo(Cargo{2726 + 366, 4763 + 414, 0, 1601 + 3027}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 366, Boranium: 414, Germanium: 193, Colonists: 3027}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

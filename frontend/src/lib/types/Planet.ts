@@ -1,4 +1,4 @@
-import { roundToNearest100 } from '$lib/services/Math';
+import { roundTo100 } from '$lib/services/Math';
 import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
 import type { AnyPlanet, DesignFinder } from '$lib/services/Universe';
 import type { CS } from '$lib/wasm';
@@ -141,7 +141,7 @@ export class CommandedPlanet implements Planet {
 			maxPossiblePop = this.starbase?.spec?.maxPopulation ?? 0;
 		}
 
-		return roundToNearest100(
+		return roundTo100(
 			Math.max(minMaxPop, (maxPossiblePop * maxPopulationFactor * habitability) / 100.0)
 		);
 	}
@@ -152,33 +152,30 @@ export class CommandedPlanet implements Planet {
 		populationOvercrowdDieoffRate: number,
 		populationOvercrowdDieoffRateMax: number
 	): number {
-		const growthFactor = race.spec?.growthFactor ?? 0;
-		const capacity = this.population / maxPopulation;
 		const habValue = getPlanetHabitability(race, this.hab);
+		const pop = this.population;
 
-		if (habValue > 0) {
-			let popGrowth =
-				((this.population * race.growthRate * growthFactor) / 100.0) * (habValue / 100.0) + 0.5;
-
-			if (capacity > 1) {
-				// Overpopulation calculations
-				const dieoffPercent = Math.max(
-					Math.min((1 - capacity) * populationOvercrowdDieoffRate, 0),
-					-populationOvercrowdDieoffRateMax
-				);
-				popGrowth = this.population * dieoffPercent;
-			} else if (capacity > 0.25) {
-				const crowdingFactor = (16 / 9) * (1 - capacity) * (1 - capacity);
-				popGrowth *= crowdingFactor;
-			}
-
-			// Round to the nearest 100 colonists
-			return roundToNearest100(popGrowth);
-		} else {
-			// Kill off (habValue / 10)% colonists every year
-			const deathAmount = this.population * (habValue / 1000);
-			return roundToNearest100(Math.max(deathAmount, -100));
+		if (habValue < 0) {
+			// Red worlds kill off (habValue / 10)% colonists every year
+			return Math.round((pop * habValue) / 1000);
 		}
+
+		const capacity = pop / maxPopulation;
+		if (capacity > 1) {
+			// Overpopulation kills 0.04% population per 1% over cap.
+			const dieoffPercent = Math.min((capacity - 1) * populationOvercrowdDieoffRate, populationOvercrowdDieoffRateMax);
+			return Math.round(pop * -dieoffPercent);
+		}
+
+		// Normal population growth calculations
+		let popGrowth = Math.round((pop * race.growthRate * habValue * (race.spec?.growthFactor ?? 1)) / 10000);
+
+		if (capacity > 0.25) {
+			const crowdingFactor = Math.pow(1 - capacity, 2) * 16 / 9;
+			popGrowth *= crowdingFactor;
+		}
+
+		return popGrowth;
 	}
 
 	public getProductivePopulation(maxPop: number): number {
