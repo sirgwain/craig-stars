@@ -155,12 +155,12 @@
 		},
 		{
 			key: 'defense',
-			title: 'Defense',
+			title: 'Defense Coverage',
 			sortBy: planetsSortBy('defense')
 		},
 		{
 			key: 'minerals',
-			title: 'Minerals',
+			title: 'Surface Minerals',
 			sortBy: planetsSortBy('minerals')
 		},
 		{
@@ -194,7 +194,7 @@
 		},
 		{
 			key: 'routingDestination',
-			title: 'routing Destination',
+			title: 'Routing Destination',
 			hidden: $settings.showAllPlanets,
 			sortable: false
 		}

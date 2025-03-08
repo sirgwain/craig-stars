@@ -12,15 +12,16 @@ func FindSlice[S ~[]V, V any](s S, funcToCall func(V) bool) (firstValue V) {
 	return firstValue
 }
 
-// Finds and returns a slice containing all elements in s for which
-// funcToCall returns true, or an empty slice
-// if none are found.
-func FilterSlice[S ~[]V, V any](s S, funcToCall func(V) bool) (allValues S) {
-	values := S{}
+// FilterSlice removes any elements from s for which keep does NOT return true,
+// returning the modified slice.
+// FilterSlice zeroes the elements between the new length and the original length.
+func FilterSlice[S ~[]V, V any](s S, keep func(V) bool) S {
+	values := s[:0] // minimzes
 	for _, v := range s {
-		if funcToCall(v) {
+		if keep(v) {
 			values = append(values, v)
 		}
 	}
-	return values
+	clear(s[len(values):]) // zero out for GC
+	return s[:len(values)]
 }

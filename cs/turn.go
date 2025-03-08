@@ -1445,7 +1445,7 @@ func (t *turnGenerator) planetProduction() error {
 
 			// message about mineral alchemy
 			if result.alchemy != (Mineral{}) {
-				// alchemy builds evenly, but we only message the single amount
+				// alchemy builds evenly, so we only message the single amount
 				numBuilt := result.alchemy.Ironium
 				messager.planetBuiltMineralAlchemy(player, planet, numBuilt)
 			}
@@ -1456,6 +1456,9 @@ func (t *turnGenerator) planetProduction() error {
 					messager.planetTerraform(player, planet, terraformResult.Type, terraformResult.Direction)
 				}
 			}
+
+			// handle built fleets
+			// TODO: Add option to merge with existing fleets at location
 			for _, token := range result.tokens {
 				design := token.design
 				if design == nil {
@@ -1522,6 +1525,7 @@ func (t *turnGenerator) planetProduction() error {
 }
 
 // build a fleet with some number of tokens
+// TODO: Add routing support
 func (t *turnGenerator) buildFleet(player *Player, planet *Planet, token ShipToken, tags Tags) (*Fleet, error) {
 	fleet, err := t.addFleet(player, planet.Position, token, tags)
 	if err != nil {
@@ -1807,18 +1811,20 @@ func (t *turnGenerator) permaform() {
 func (t *turnGenerator) planetGrow() {
 	for _, planet := range t.game.Planets {
 		if !planet.Owned() {
+			// can't grow what doesn't exist
 			continue
 		}
 		player := t.game.getPlayer(planet.PlayerNum)
-		prevPop := planet.GetPopulation()
+		prevPop := planet.exactPopulation()
 		planet.grow(player)
 
 		// tell players about dying colonists
 		if planet.Spec.GrowthAmount < 0 {
-			if planet.Spec.PopulationDensity > 1 {
-				messager.planetPopulationDecreasedOvercrowding(player, planet, planet.Spec.GrowthAmount)
-			} else {
+			if player.Race.GetPlanetHabitability(planet.Hab) < 0 {
+				// negative hab pop loss takes priority over overcrowding deaths, so the messages should too
 				messager.planetPopulationDecreased(player, planet, prevPop, planet.GetPopulation())
+			} else {
+				messager.planetPopulationDecreasedOvercrowding(player, planet, planet.Spec.GrowthAmount)
 			}
 		}
 
@@ -1828,17 +1834,17 @@ func (t *turnGenerator) planetGrow() {
 			Int("Capacity", int(planet.Spec.PopulationDensity*100)).
 			Int("PrevPopulation", prevPop).
 			Int("GrowthAmount", planet.Spec.GrowthAmount).
-			Int("Population", planet.GetPopulation()).
+			Int("Population", planet.exactPopulation()).
 			Msgf("planet grew")
 
-		if planet.GetPopulation() <= 0 {
+		if planet.GetPopulation() <= 0 { // should never happen, but covers our bases
 			planet.emptyPlanet()
 			messager.planetDiedOff(player, planet)
 
-			t.log.Debug().
+			t.log.Warn().
 				Int("Player", player.Num).
 				Str("Planet", planet.Name).
-				Msgf("planet pop died off")
+				Msgf("planet pop died off after growth")
 
 		}
 	}

@@ -215,13 +215,13 @@ export class CommandedFleet implements Fleet {
 
 	/**
 	 * Add a {@linkcode Waypoint} to this {@linkcode CommandedFleet}.
-	 * @param player The player controlling the fleet.
+	 * @param player The {@linkcode Player} controlling the fleet.
 	 * @param universe Universe object
-	 * @param dest Waypoint destination ()
+	 * @param dest The {@linkcode WaypointDest|destination} of the newly placed waypoint.
 	 * @param currentSelectedWaypointIndex
-	 * @param highestShipMass
-	 * @param fastestWaypoint
-	 * @returns
+	 * @param highestShipMass the mass of the highest ship design in the fleet
+	 * @param fastestWaypoint Whether to use the fastest warp speed or
+	 * @returns The waypoint index of the newly placed waypoint
 	 */
 	addWaypoint(
 		player: CommandedPlayer,
@@ -537,16 +537,17 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/** Return the highest useful speed less than or equal to a given warp speed
-	to reach a given destinaton.
-	 * @param designFinder
-	 * @param fuelEfficiencyOffset
-	 * @param fuelAlreadyAllocated
-	 * @param dist
-	 * @param startSpeed
-	 * @param freeSpeed
-	 * @param maxSafeSpeed
-	 * @returns
-	 */
+	to reach a given destination.
+	 * TODO: Move this to backend so the AI can use it
+	 * @param designFinder DesignFinder to find ship designs
+	 * @param fuelEfficiencyOffset Sum of all racial fuel cost bonuses/penalties
+	 * @param fuelAlreadyAllocated Amount of fuel already allocated for prior waypoints (cannot be spent)
+	 * @param dist Distance to destination
+	 * @param startSpeed Initial speed to start checking against
+	 * @param freeSpeed Maximum free speed of engine
+	 * @param maxSafeSpeed Maximum safe speed of engine
+	 * @returns The highest useful warp speed we can go at to reach the destination
+	*/
 	getMinimalWarp(
 		designFinder: DesignFinder,
 		fuelEfficiencyOffset: number,
@@ -644,7 +645,7 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
-	 *
+	 * Check if a fleet can colonize a planet.
 	 * @param target the target planet to check
 	 * @returns true if this fleet can colonize this planet
 	 */
@@ -658,15 +659,15 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
-	 *
+	 * Check if a fleet can remote mine a planet.
+	 * @param player The CommandedPlayer commanding the fleet
 	 * @param target the target planet to check
-	 * @returns true if this fleet can colonize this planet
+	 * @returns true if this fleet can remote mine this planet
 	 */
 	canRemoteMine(player: CommandedPlayer, target: PlanetIntel): boolean {
-		return !!(
-			this.spec.miningRate &&
-			this.spec.miningRate > 0 &&
-			(!owned(target) || (ownedBy(target, player.num) && player.race.spec?.canRemoteMineOwnPlanets))
+		// We can mine unowned planets (as well as self-owned ones)
+		return (this.spec.miningRate ?? 0) > 0 &&
+			(!owned(target) || (ownedBy(target, player.num) && (player.race.spec.canRemoteMineOwnPlanets ?? false))
 		);
 	}
 

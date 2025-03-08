@@ -66,6 +66,7 @@ export class CommandedPlanet implements Planet {
 	mineralConcentration: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
 	mineYears: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
 	cargo: Cargo = { ironium: 0, boranium: 0, germanium: 0, colonists: 0 };
+	partialPopulation: 0,
 	mines = 0;
 	factories = 0;
 	defenses = 0;
@@ -96,7 +97,6 @@ export class CommandedPlanet implements Planet {
 		maxPossibleFactories: 0,
 		maxDefenses: 0,
 		populationDensity: 0,
-		population: 0,
 		maxPopulation: 0,
 		growthAmount: 0,
 		miningOutput: { ironium: 0, boranium: 0, germanium: 0 },

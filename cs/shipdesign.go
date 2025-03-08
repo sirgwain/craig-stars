@@ -174,7 +174,7 @@ func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
 	var err error
 	sd.Spec, err = ComputeShipDesignSpec(rules, player.TechLevels, player.Race.Spec, sd)
 	if err != nil {
-		panic(fmt.Sprintf("ComputeShipDesignSpec returned error %v", err))
+		panic(fmt.Sprintf("ComputeShipDesignSpec returned error: \n%v", err))
 	}
 	return sd
 }

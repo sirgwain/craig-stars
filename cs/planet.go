@@ -18,7 +18,7 @@ type Planet struct {
 	MineralConcentration Mineral    `json:"mineralConcentration"`
 	MineYears            Mineral    `json:"mineYears"`
 	Cargo                Cargo      `json:"cargo"`
-	PartialPopulation    int        `json:"partialPopulation,omitempty"` // population not in a multiple of 100
+	PartialPopulation    int        `json:"partialPopulation"` // population not in a multiple of 100
 	Mines                int        `json:"mines"`
 	Factories            int        `json:"factories"`
 	Defenses             int        `json:"defenses"`
@@ -171,6 +171,11 @@ func (p *Planet) WithScanner(scanner bool) *Planet {
 
 func (p *Planet) WithHomeworld(homeworld bool) *Planet {
 	p.Homeworld = homeworld
+	return p
+}
+
+func (p *Planet) WithContributesOnlyLeftoverToResearch(contributes bool) *Planet {
+	p.ContributesOnlyLeftoverToResearch = contributes
 	return p
 }
 

@@ -66,13 +66,12 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		}
 	}
 
-	// keep track of items built so we know how many auto items are completed
-	numBuilt := make([]int, len(planet.ProductionQueue))
+	numBuilt := make([]int, len(planet.ProductionQueue)) // slice tracking items built for each production queue item
 	producer := newProducer(log.Logger, rules, &planet, player)
 	for year := 1; year <= 100; year++ {
 		// mine for minerals
 		planet.mine(rules, planet.Spec.MiningOutput, planet.Mines)
-		// remote mine for AR
+		// TODO: Simulate AR remote mining (perhaps with a slice of mining rates passed down by the caller)
 		//remoteMine()
 
 		// build!
@@ -93,47 +92,45 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			item := &items[itemBuilt.index]
 			maxBuildable := planet.maxBuildable(player, item.Type)
 
-			// this will be skipped if we've hit the max allowed
+			// item will be skipped if we've hit the max allowed
 			if itemBuilt.skipped {
 				if year == 1 && maxBuildable == 0 {
 					item.Skipped = true
 					item.YearsToSkipAuto = 1
-				} else {
-					if item.YearsToSkipAuto == Infinite {
-						item.YearsToSkipAuto = year
-					}
+				} else if item.YearsToSkipAuto == Infinite {
+					item.YearsToSkipAuto = year
 				}
 				continue
 			}
-
-			// this item will never complete
+			// skip items that never complete
 			if itemBuilt.never {
 				continue
 			}
-			numBuiltSoFar := numBuilt[itemBuilt.index] + itemBuilt.numBuilt
-			numBuilt[itemBuilt.index] = numBuiltSoFar
 
-			// see if we already recorded when the first item was built
-			first := item.YearsToBuildOne
-			if first == Infinite {
-				// we built one, update the years to build one
+			numBuilt[itemBuilt.index] += itemBuilt.numBuilt
+
+			// record the year the first item was built (if not already)
+			if item.YearsToBuildOne == Infinite {
 				item.YearsToBuildOne = year
 			}
 
-			// check if we built the last one of this group
-			// if we've built the item's original quantity, or we've built some and the maxBuildable remaining is 0
-			// we're done
-			last := item.YearsToBuildAll
-			if last == Infinite {
+			// check if we've built the last item in this group
+			if item.YearsToBuildAll == Infinite {
+				var num int
 				if item.Type.IsAuto() {
-					if itemBuilt.numBuilt >= item.Quantity || (maxBuildable != Infinite && itemBuilt.numBuilt >= maxBuildable) {
-						item.YearsToBuildAll = year
-					}
+					// for auto items, we check how many were built this current year
+					// (since they refresh each year)
+					num = itemBuilt.numBuilt
 				} else {
-					if numBuiltSoFar >= item.Quantity || (maxBuildable != Infinite && itemBuilt.numBuilt >= maxBuildable) {
-						item.YearsToBuildAll = year
-					}
+					// non auto items never reset, so we check the total items built across all years
+					num = numBuilt[itemBuilt.index]
 				}
+				// if we've built up to the item's original quantity or
+				// maxBuildable, count the item
+				if num >= item.Quantity || (maxBuildable != Infinite && num >= maxBuildable) {
+					item.YearsToBuildAll = year
+				}
+
 			}
 		}
 
@@ -142,12 +139,12 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			break
 		}
 
-		// grow pop
+		// grow pop & compute spec
 		planet.grow(player)
 		planet.Spec = computePlanetSpec(rules, player, &planet)
 
 		// colonists died off, no more production
-		if planet.GetPopulation() < 0 {
+		if planet.GetPopulation() <= 0 {
 			break
 		}
 	}

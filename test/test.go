@@ -12,16 +12,15 @@ import (
 
 // Compare two objects as json outputs for testing.
 //
-// If the comparison fails, this marks the test as a failure
-// and writes 3 JSONL files to ./tmp containing both values
-// serialized to JSON and a pretty-printed
-// difference between the 2.
+// If the comparison fails, this marks the test as a failure and
+// writes 3 JSONL files to ./tmp, containing serialized versions of got and want
+// and a pretty-printed difference between them courtesy of [github.com/nsf/jsondiff].
 //
-// The files are continuously appended to during a test run (sectioned off by test name),
-// and should ideally be moved or removed after the package finishes testing.
+// These files are continuously appended to during a test run (sectioned off by test name),
+// and should be moved or removed after the package finishes testing.
 // Invocation from parallel tests is untested and not recommended.
 //
-// The json difference is passed to t.Fatalf, so no extra function calls
+// The json difference is passed to [testing.T.Fatalf], so no extra function calls
 // should be made after calling this.
 func CompareAsJSON(t TestingT, got, want any) {
 	if h, ok := t.(tHelper); ok {
@@ -47,7 +46,7 @@ func CompareAsJSON(t TestingT, got, want any) {
 		return
 	}
 
-	diff, err := parseJSONDiff(gotJson, wantJson, t.Name())
+	diff, err := parseJSONDiff(string(gotJson), string(wantJson), t.Name())
 	if err != nil {
 		t.Fatalf("error creating JSON diffs: \n%v", err)
 	}
@@ -56,30 +55,35 @@ func CompareAsJSON(t TestingT, got, want any) {
 }
 
 // parsing options for jsondiff.
-// Fun fact: these settings produce output that is 100% valid JSONL!
 var options = jsondiff.Options{
-	Added:            jsondiff.Tag{Begin: "\"prop-added\": {", End: "}"},
-	Removed:          jsondiff.Tag{Begin: "\"prop-removed\": {", End: "}"},
+	Added:            jsondiff.Tag{Begin: "{\"prop-added\": {", End: "}"},
+	Removed:          jsondiff.Tag{Begin: "{\"prop-removed\": {", End: "}"},
 	Changed:          jsondiff.Tag{Begin: "{\"changed\": [", End: "]}"},
 	ChangedSeparator: ", ",
 	Indent:           "\t", // tab indentation
-	SkipMatches:      true,
+
+	SkipMatches: true,
 }
 
 // Parse JSON diffs, creating files to log values as appropriate.
-func parseJSONDiff(gotJSON, wantJSON []byte, testName string) (diff string, err error) {
-	_, diff = jsondiff.Compare(gotJSON, wantJSON, &options)
+func parseJSONDiff(gotJSON, wantJSON, testName string) (diff string, err error) {
+	// compare diff without whitespace because jsondiff REALLY hates whitespace
+	_, diff = jsondiff.Compare([]byte(gotJSON), []byte(wantJSON), &options)
 
 	os.MkdirAll("../tmp", 0755)
 	for i := range 3 {
 		var path string
+		var body string
 		switch i {
 		case 0:
 			path = "../tmp/got.jsonl"
+			body = gotJSON
 		case 1:
 			path = "../tmp/want.jsonl"
+			body = wantJSON
 		case 2:
 			path = "../tmp/diff.jsonl"
+			body = diff
 		}
 
 		header := "// " + testName + "\n" // header containing test name & extra newlines
@@ -87,7 +91,7 @@ func parseJSONDiff(gotJSON, wantJSON []byte, testName string) (diff string, err 
 			// add extra newline in header to properly delimit sections on existing files
 			header = "\n" + header
 		}
-		if err = AppendFile(path, header+diff+"\n"); err != nil {
+		if err = AppendFile(path, header+body+"\n"); err != nil {
 			return "", err
 		}
 	}

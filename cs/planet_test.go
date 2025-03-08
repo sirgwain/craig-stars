@@ -9,7 +9,7 @@ import (
 )
 
 func newTestPlayerPlanet() (player *Player, planet *Planet) {
-	player = NewPlayer(1, NewRace())
+	player = NewPlayer(1, NewRace()).WithNum(1)
 	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 	planet = &Planet{}
 	planet.PlayerNum = player.Num
@@ -407,11 +407,17 @@ func TestPlanet_grow(t *testing.T) {
 			race:   NewRace().WithSpec(&rules),
 			want:   545_370, // 60.4% GR multi due to crowding
 		},
+		{
+			name:   "pas de population, pas de croissance",
+			fields: fields{hab: Hab{50, 50, 50}, population: 0, turnsToGrow: 1},
+			race:   NewRace().WithSpec(&rules),
+			want:   0,
+		},
 		// TODO: Check in OG game if 0% worlds actually grow pop or not
 		/* {
 			name:   "0% value world, don't make colonists",
 			fields: fields{hab: Hab{15, 15, 15}, population: 100, turnsToGrow: 1},
-			race:    NewRace().WithSpec(&rules),
+			race:   NewRace().WithSpec(&rules),
 			want:   100,
 		}, */
 		{

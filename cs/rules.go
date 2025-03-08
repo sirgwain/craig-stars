@@ -24,6 +24,7 @@ type Rules struct {
 	InvasionDefenseCoverageFactor      float64                             `json:"invasionDefenseCoverageFactor"`
 	LRTSpecs                           map[LRT]LRTSpec                     `json:"lrtSpecs"`
 	MaxPopulation                      int                                 `json:"maxPopulation"`
+	MinPopFloor                        int                                 `json:"minPopFloor"`
 	MaxTechLevel                       int                                 `json:"maxTechLevel"`
 	MineFieldCloak                     int                                 `json:"mineFieldCloak"`
 	MineFieldStatsByType               map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
@@ -228,9 +229,9 @@ func NewRules() Rules {
 func NewRulesWithSeed(seed int64) Rules {
 	random := rand.New(rand.NewSource(seed))
 
-  // @sirgwain: We should consider moving these comments to the corresponding 
-  // struct field definitions for editor syntax highlighting
-  // (also just more comments never hurts)
+	// @sirgwain: We should consider moving these comments to the corresponding
+	// struct field definitions for editor syntax highlighting
+	// (also just more comments never hurts)
 	return Rules{
 		random: random,
 		CostRules: CostRules{
@@ -291,15 +292,15 @@ func NewRulesWithSeed(seed int64) Rules {
 			BeamBonusCap:     2.55, // 2.55x damage max from beam capacitors
 			JammerCap: JammerCap{
 				Starbase: 1,    // starbases have no explicit jamming hardcap, but an innate 0.75x jamming multi
-				Ship:     0.95, // ships hardcap at 95% jamming 
+				Ship:     0.95, // ships hardcap at 95% jamming
 			},
 			JammerMulti: JammerCap{
 				Starbase: 0.75, // starbases have innate 0.75x jamming multipler by default
 				Ship:     1,    // ships have no innate jamming multipler
 			},
-      MovementMin:         2,   // minimum of 2 battle board movement (1, 0, 1, 0...)
-			MovementMax:         10,  // minimum of 10 battle board movement (3, 2, 3, 2...)
-			MovesToRunAway:      7, 
+			MovementMin:         2,  // minimum of 2 battle board movement (1, 0, 1, 0...)
+			MovementMax:         10, // minimum of 10 battle board movement (3, 2, 3, 2...)
+			MovesToRunAway:      7,
 			NumBattleRounds:     16,
 			TorpedoSplashDamage: 0.125,
 		},
@@ -308,7 +309,7 @@ func NewRulesWithSeed(seed int64) Rules {
 			// More specifically, a hab value N clicks away from MinHab/MaxHab with dropoff range of H
 			// becomes (N+1/H+1)x as likely as a normal mid-value hab
 			// Ex: 6 temp is 5 clicks away from min (1) and is thus 6/10x as likely to generate;
-      // 99 temp is 1 click away from max (100) and is thus 1/10x as likely.
+			// 99 temp is 1 click away from max (100) and is thus 1/10x as likely.
 			HabDropoffRange: Hab{
 				Grav: 9,
 				Temp: 9,
@@ -342,6 +343,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		TachyonCloakReduction:              .05, // 5% diminishing cloak reduction per detector
 		TachyonMaxCloakReduction:           .81, // tachyon detectors cap at 81% cloaking reduction
 		MaxPopulation:                      1_000_000,
+		MinPopFloor:                        100,  // low value planets cannot fall below 100 pop from natural growth
 		MinHabFloor:                        5,    // minimum of 5% effective habitability for inhabited planet productivity/maxpop
 		PopulationOvercrowdDieoffRate:      .04,  // overcrowded pops die off at 4% per 100% over cap
 		PopulationOvercrowdDieoffRateMax:   .12,  // overcrowded pops will not die off more than 12% (400% capacity) per year

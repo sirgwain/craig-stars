@@ -272,7 +272,7 @@ func MultiplyByCost[T, F number](c cost[T], other cost[F]) (result cost[T]) {
 	}
 }
 
-// dDivide a cost by another cost
+// Divide a cost by another cost
 // and return how many times divisor can go into dividend
 // as a float64
 func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {

@@ -117,6 +117,8 @@ type WaypointTransportTask struct {
 	Action WaypointTaskTransportAction `json:"action,omitempty"`
 }
 
+// TODO: Add a "set waypoint to %" command
+
 type WaypointTaskTransportAction string
 
 type transportTaskByType map[CargoType]WaypointTransportTask
@@ -143,16 +145,15 @@ const (
 	// Unload the amount specified only if the fleet is carrying that amount.
 	TransportActionUnloadAmount WaypointTaskTransportAction = "UnloadAmount"
 
-	// Loads up to the specified portion of the cargo hold subject to amount available at waypoint and room left in hold.
+	// Loads up to the specified portion of the cargo hold, subject to amount available at waypoint and room left in hold.
 	TransportActionFillPercent WaypointTaskTransportAction = "FillPercent"
 
 	// Remain at the waypoint until exactly X % of the hold is filled.
 	TransportActionWaitForPercent WaypointTaskTransportAction = "WaitForPercent"
 
 	// (minerals and colonists only) This command waits until all other loads and unloads are complete,
-	// then loads as many colonists or amount of a mineral as will fit in the remaining space. For example,
-	// setting Load All Germanium, Load Dunnage Ironium, will load all the Germanium that is available,
-	// then as much Ironium as possible. If more than one dunnage cargo is specified, they are loaded in
+	// then loads as many colonists or minerals will fit in the remaining space.
+	// If more than one dunnage cargo is specified, they are performed in
 	// the order of Ironium, Boranium, Germanium, and Colonists.
 	TransportActionLoadDunnage WaypointTaskTransportAction = "LoadDunnage"
 
@@ -161,7 +162,8 @@ const (
 	TransportActionSetAmountTo WaypointTaskTransportAction = "SetAmountTo"
 
 	// Load or unload the cargo until the amount at the waypoint is the amount specified.
-	// This order is always carried out to the best of the fleet’s ability that turn but does not prevent the fleet from moving on.
+	// This order is always carried out to the best of the fleet’s ability that turn
+	// but does not prevent the fleet from moving on.
 	TransportActionSetWaypointTo WaypointTaskTransportAction = "SetWaypointTo"
 )
 
@@ -490,7 +492,7 @@ func (f *Fleet) InjectDesigns(designs []*ShipDesign) error {
 	return nil
 }
 
-// compute all the computable values of this fleet (cargo capacity, armor, mass)
+// compute all the computable values of this fleet (cargo capacity, armor, mass, etc.)
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
