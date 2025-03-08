@@ -259,12 +259,13 @@ func (p *producer) produce() (result productionResult, err error) {
 			p.addPlanetaryInstallations(item, numBuilt)
 
 			if item.Type.IsTerraform() {
-				result.terraformResults = append(result.terraformResults, p.terraformPlanet(numBuilt)...)
+				result.terraformResults = append(result.terraformResults, 
+					p.terraformPlanet(numBuilt)...)
 			}
 
 			p.updateProductionResult(item, numBuilt, cost, &result)
 
-			// if we built mineral alchemy, add it back in to our available amount
+			// if we built mineral alchemy, add it back in to our pot to use later
 			available = available.Add(result.alchemy.ToCost())
 
 			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: numBuilt})
@@ -293,6 +294,7 @@ func (p *producer) produce() (result productionResult, err error) {
 				if i = p.clampConcreteItemQty(i, maxBuildable); i.Quantity <= 0 {
 					// can't build any more stuff; delete item
 					// TODO: Maybe message the player about this
+					// TODO: change this to mutate the items being added
 					p.log.Debug().
 						Any("Item", i).
 						Int("PrevQty", oldQty).
@@ -407,72 +409,13 @@ func (p *producer) getItemCost(rules *Rules, player *Player, planet *Planet, ite
 	return cost, nil
 }
 
-// Allocate minerals and resources to the top item on this production queue
-// and return the leftovers.
-func (p *producer) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost {
-	// Costs are allocated by lowest percentage (except resources), i.e. if we require
-	// Cost(10, 10, 10, 100) and we only have Cost(1, 10, 10, 100)
-	// we allocate Cost(1, 1, 1, 100).
-	// The min amount we have is 10 percent of the ironium, so we
-	// apply 10 percent to each cost amount
-	ironiumPerc := 1.0
-	if costPerItem.Ironium > 0 {
-		ironiumPerc = math.Min(1, float64(allocated.Ironium)/float64(costPerItem.Ironium))
+// Clamp a concrete item's quantity down to however much stuff we can actually build.
+// Does not clamp auto items.
+func (p *producer) clampConcreteItemQty(item ProductionQueueItem, maxBuildable int) ProductionQueueItem {
+	if !item.Type.IsAuto() && (maxBuildable == Infinite || item.Quantity > maxBuildable) {
+		item.Quantity = maxBuildable
 	}
-	boraniumPerc := 1.0
-	if costPerItem.Boranium > 0 {
-		boraniumPerc = math.Min(1, float64(allocated.Boranium)/float64(costPerItem.Boranium))
-	}
-	germaniumPerc := 1.0
-	if costPerItem.Germanium > 0 {
-		germaniumPerc = math.Min(1, float64(allocated.Germanium)/float64(costPerItem.Germanium))
-	}
-	resourcesPerc := 1.0
-	if costPerItem.Resources > 0 {
-		resourcesPerc = math.Min(1, float64(allocated.Resources)/float64(costPerItem.Resources))
-	}
-
-	// figure out the lowest percentage
-	minPerc := Min(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
-
-	// allocate the lowest percentage of each cost
-	newAllocated := Cost{
-		int(float64(costPerItem.Ironium) * minPerc),
-		int(float64(costPerItem.Boranium) * minPerc),
-		int(float64(costPerItem.Germanium) * minPerc),
-		int(float64(costPerItem.Resources) * minPerc),
-	}
-
-	// return the amount we allocate to the top queued item
-	return newAllocated
-}
-
-// for things that are built on the planet (mines, factories, etc) add them
-func (p *producer) addPlanetaryInstallations(item ProductionQueueItem, numBuilt int) {
-	switch item.Type {
-	case QueueItemTypeAutoMines, QueueItemTypeMine:
-		p.planet.Mines += numBuilt
-	case QueueItemTypeAutoFactories, QueueItemTypeFactory:
-		p.planet.Factories += numBuilt
-	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
-		p.planet.Defenses += numBuilt
-	case QueueItemTypePlanetaryScanner:
-		p.planet.Scanner = true
-	}
-}
-
-// terraform the planet and save the results for messages
-func (p *producer) terraformPlanet(numSteps int) []TerraformResult {
-	planet, player := p.planet, p.player
-	terraformer := NewTerraformer()
-	terraformResults := make([]TerraformResult, numSteps)
-
-	for i := 0; i < numSteps; i++ {
-		// terraform one at a time to ensure the best things get terraformed
-		terraformResults[i] = terraformer.TerraformOneStep(planet, player, nil, false)
-	}
-
-	return terraformResults
+	return item
 }
 
 // validate an item in the production queue
@@ -492,9 +435,9 @@ func (p *producer) validateItem(item ProductionQueueItem, maxBuildable int, plan
 	return PlayerMessage{}, true
 }
 
-// determine how many of this production item we can build
+// getNumBuilt returns how many of a given production queue item we can build
+// and how how much to spend on it.
 func (p *producer) getNumBuilt(item ProductionQueueItem, cost, availableToSpend Cost, maxBuildable int) (numBuilt int, spent Cost) {
-
 	// add in anything allocated in previous turns
 	availableToSpend = availableToSpend.Add(item.Allocated)
 	item.Allocated = Cost{}
@@ -513,10 +456,39 @@ func (p *producer) getNumBuilt(item ProductionQueueItem, cost, availableToSpend 
 	return numBuilt, spent
 }
 
-// add built items to planet, build fleets, update player messages, etc
+// add any planetary installations built during production to the planet building them.
+func (p *producer) addPlanetaryInstallations(item ProductionQueueItem, numBuilt int) {
+	switch item.Type {
+	case QueueItemTypeAutoMines, QueueItemTypeMine:
+		p.planet.Mines += numBuilt
+	case QueueItemTypeAutoFactories, QueueItemTypeFactory:
+		p.planet.Factories += numBuilt
+	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
+		p.planet.Defenses += numBuilt
+	case QueueItemTypePlanetaryScanner:
+		p.planet.Scanner = true
+	}
+}
+
+// terraform a planet during production and save the results for messages
+func (p *producer) terraformPlanet(numSteps int) []TerraformResult {
+	planet, player := p.planet, p.player
+	terraformer := NewTerraformer()
+	terraformResults := make([]TerraformResult, numSteps)
+
+	for i := range numSteps {
+		// terraform one step at a time to ensure the best things get terraformed
+		terraformResults[i] = terraformer.TerraformOneStep(planet, player, nil, false)
+	}
+
+	return terraformResults
+}
+
+// updateProductionResult updates a production result with information about a newly built item.
 func (p *producer) updateProductionResult(item ProductionQueueItem, numBuilt int, cost Cost, result *productionResult) {
 	switch item.Type {
 	case QueueItemTypeAutoMineralAlchemy, QueueItemTypeMineralAlchemy:
+		// TODO: Fix this to append to a single integer tally
 		result.alchemy = Mineral{
 			numBuilt,
 			numBuilt,
@@ -545,11 +517,42 @@ func (p *producer) updateProductionResult(item ProductionQueueItem, numBuilt int
 	}
 }
 
-// Clamp a concrete item's quantity down to however much stuff we can actually build.
-// Does not clamp auto items.
-func (p *producer) clampConcreteItemQty(item ProductionQueueItem, maxBuildable int) ProductionQueueItem {
-	if !item.Type.IsAuto() && (maxBuildable == Infinite || item.Quantity > maxBuildable) {
-		item.Quantity = maxBuildable
+// allocatePartialBuild returns the amount of minerals and resources to allocate 
+// to a partially built production queue item, based on its cost and available 
+// minerals/resources.
+func (p *producer) allocatePartialBuild(costPerItem Cost, available Cost) (allocated Cost) {
+	// Costs are allocated by lowest percentage (except resources), i.e. if we require
+	// Cost(10, 10, 10, 100) and we only have Cost(1, 10, 10, 100)
+	// we allocate Cost(1, 1, 1, 100).
+	// The min amount we have is 10% for ironium, so we
+	// apply 10% to each cost amount
+	ironiumPerc := 1.0
+	if costPerItem.Ironium > 0 {
+		ironiumPerc = math.Min(1, float64(available.Ironium)/float64(costPerItem.Ironium))
 	}
-	return item
+	boraniumPerc := 1.0
+	if costPerItem.Boranium > 0 {
+		boraniumPerc = math.Min(1, float64(available.Boranium)/float64(costPerItem.Boranium))
+	}
+	germaniumPerc := 1.0
+	if costPerItem.Germanium > 0 {
+		germaniumPerc = math.Min(1, float64(available.Germanium)/float64(costPerItem.Germanium))
+	}
+	resourcesPerc := 1.0
+	if costPerItem.Resources > 0 {
+		resourcesPerc = math.Min(1, float64(available.Resources)/float64(costPerItem.Resources))
+	}
+
+	// figure out the lowest percentage
+	minPerc := Min(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
+
+	// allocate the lowest percentage of each cost, rounded down
+	allocated = Cost{
+		int(float64(costPerItem.Ironium) * minPerc),
+		int(float64(costPerItem.Boranium) * minPerc),
+		int(float64(costPerItem.Germanium) * minPerc),
+		int(float64(costPerItem.Resources) * minPerc),
+	}
+
+	return allocated
 }
