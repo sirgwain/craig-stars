@@ -9,6 +9,7 @@ import (
 )
 
 func Test_production_produce(t *testing.T) {
+	// TODO: Add tests for mineral alchemy & auto mineral alchemy
 	t.Run("1 Mine", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 
@@ -94,11 +95,12 @@ func Test_production_produce(t *testing.T) {
 	t.Run("Refund invalid items", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 
-		// make defenses an even 10 in all
+		// make defenses an even 10 in all for cost
 		rCopy := rules
 		rCopy.DefenseCost = Cost{10, 10, 10, 10}
 		rCopy.PlanetaryScannerCost = Cost{999, 999, 999, 999}
 
+		// exactly enough to finish 10 defenses
 		planet.Cargo = Cargo{100, 100, 100, 1000}
 		planet.Defenses = 90
 		planet.ContributesOnlyLeftoverToResearch = true
@@ -114,7 +116,7 @@ func Test_production_produce(t *testing.T) {
 			// super expensive scanner to soak up leftover minerals
 			{Type: QueueItemTypePlanetaryScanner, Quantity: 1},
 		}
-		planet.Spec = computePlanetSpec(&rules, player, planet)
+		planet.Spec = computePlanetSpec(&rCopy, player, planet)
 		player.Messages = []PlayerMessage{}
 
 		// should end up with 100 defenses, with auto defenses still in the queue;
@@ -298,7 +300,7 @@ func Test_production_produce(t *testing.T) {
 		player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 		player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
 
-		// add two designs, a colony ship w/fuel mizer and medium freighter w/fuel mizer
+		// add two designs, a colony ship and medium freighter with fuel mizer
 		player.Designs = append(player.Designs, NewShipDesign(player.Num, 1).
 			WithHull(ColonyShip.Name).
 			WithSlots([]ShipDesignSlot{
@@ -415,7 +417,7 @@ func Test_production_produce(t *testing.T) {
 		planet.PacketTargetNum = 1
 		planet.Spec = PlanetSpec{ResourcesPerYearAvailable: 100, PlanetStarbaseSpec: PlanetStarbaseSpec{HasMassDriver: true, SafePacketSpeed: 6, BasePacketSpeed: 6}}
 
-		// should build 5 mine, leaving the auto build in the queu
+		// should build 5 mine, leaving the auto build in the queue
 		producer := newProducer(testLogger, &rules, planet, player)
 		result, err := producer.produce()
 		assert.Nil(t, err)

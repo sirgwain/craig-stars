@@ -43,7 +43,7 @@ func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, cost C
 //   - grow pop on the planet
 //
 // For each year of growth, it checks what was built. If an item was built for the first time
-// it records the year. If the item completed building, it records the last year
+// it records the year. If the item completed building, it records the last year.
 // when all items are complete or 100 years have passed, iit returns
 func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) (items []ProductionQueueItem, leftoverResourcesForResearch int, err error) {
 

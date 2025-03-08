@@ -12,16 +12,21 @@ func FindSlice[S ~[]V, V any](s S, funcToCall func(V) bool) (firstValue V) {
 	return firstValue
 }
 
-// FilterSlice removes any elements from s for which keep does NOT return true,
-// returning the modified slice.
-// FilterSlice zeroes the elements between the new length and the original length.
-func FilterSlice[S ~[]V, V any](s S, keep func(V) bool) S {
-	values := s[:0] // minimzes
+// MapSlice applies mapFunc on every element in s, returning the modified slice.
+// Any elements for which keep evaluates to false are instead removed entirely.
+// MapSlice zeroes the elements between the new length and the original length.
+//
+//	MapSlice([]int{1, 2, 3, 4, 6}, func(i int) (int, bool) {
+//	   return i + 1, i % 3 != 0
+//	}) = []int{2, 3, 5}
+func MapSlice[S ~[]V, V any](s S, mapFunc func(V) (new V, keep bool)) S {
+	values := s[:0] // minimizes reallocation
 	for _, v := range s {
-		if keep(v) {
-			values = append(values, v)
+		if new, keep := mapFunc(v); keep {
+			values = append(values, new)
 		}
 	}
+	s = values
 	clear(s[len(values):]) // zero out for GC
 	return s[:len(values)]
 }

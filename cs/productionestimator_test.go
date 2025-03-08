@@ -141,7 +141,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					planet: NewPlanet().WithCargo(Cargo{0, 0, 0, 1000}).
 						WithContributesOnlyLeftoverToResearch(true),
 				},
-				want:                  []ProductionQueueItem{},
+				want:                  nil,
 				wantLeftoverResources: 0,
 				wantErr:               true,
 			},
@@ -169,12 +169,13 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 							YearsToBuildAll: 4,
 							YearsToSkipAuto: Infinite,
 						},
-						Type:     QueueItemTypeShipToken,
-						design:   testLongRangeScoutDesign(1),
-						Quantity: 3,
+						Type:      QueueItemTypeShipToken,
+						design:    testLongRangeScoutDesign(1),
+						Quantity:  3,
+						Allocated: Cost{8, 1, 3, 4},
 					},
 				},
-				wantLeftoverResources: 22,
+				wantLeftoverResources: 174,
 				wantErr:               false,
 			},
 			{
@@ -436,6 +437,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				wantErr:               false,
 			},
 		}
+
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				e := NewCompletionEstimator()
@@ -446,6 +448,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for 1kT per mine output
 				planet.PlayerNum = 1
 				planet.Spec = computePlanetSpec(&rules, player, planet)
+				t.Logf("resources: %d", planet.Spec.ResourcesPerYear)
 
 				// compute specs for designs in queue
 				for _, item := range tt.args.items {
@@ -477,6 +480,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						t.Fatalf("CompletionEstimator.GetProductionWithEstimates() errored unexpectedly; err = \n%v", err)
 					}
 				}
+
 				if gotLeftover != tt.wantLeftoverResources {
 					t.Errorf("GetProductionWithEstimates() leftover = %d, wantLeftover %d", gotLeftover, tt.wantLeftoverResources)
 				}
@@ -595,7 +599,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					WithTechLevels(TechLevel{Energy: 1}).
 					WithNum(1).withSpec(&rules)
 
-				planet := tt.args.planet.WithPlayerNum(1).WithContributesOnlyLeftoverToResearch(true)
+				planet := tt.args.planet.WithPlayerNum(1).
+					WithContributesOnlyLeftoverToResearch(true)
+				planet.Starbase = testSpaceStation(player, planet)
 				planet.Hab = Hab{50, 50, 50}                         // perfect hab
 				planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for 1kT per mine output
 				planet.Spec = computePlanetSpec(&rules, player, planet)
@@ -619,7 +625,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				}
 
 				if gotLeftover != tt.wantLeftoverResources {
-					t.Errorf("GetProductionWithEstimates() leftover = \n%v, wantLeftover \n%v", gotLeftover, tt.wantLeftoverResources)
+					t.Errorf("CompletionEstimator.GetProductionWithEstimates() leftover = \n%v, wantLeftover \n%v", gotLeftover, tt.wantLeftoverResources)
 				}
 
 				test.CompareAsJSON(t, got, tt.want)

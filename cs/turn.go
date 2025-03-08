@@ -1419,107 +1419,107 @@ func (t *turnGenerator) remoteMine(fleet *Fleet, player *Player, planet *Planet)
 // go through each player planet and process its production queue
 func (t *turnGenerator) planetProduction() error {
 	for _, planet := range t.game.Planets {
-		if planet.Owned() {
-			player := t.game.Players[planet.PlayerNum-1]
-			producer := newProducer(t.log, &t.game.Rules, planet, player)
-			result, err := producer.produce()
+		if !planet.Owned() {
+			continue
+		}
+
+		player := t.game.Players[planet.PlayerNum-1]
+		producer := newProducer(t.log, &t.game.Rules, planet, player)
+		result, err := producer.produce()
+		if err != nil {
+			return err
+		}
+
+		// add any invalid messages we encountered
+		if len(result.messages) > 0 {
+			player.Messages = append(player.Messages, result.messages...)
+		}
+
+		// message about planetary installations
+		if result.mines > 0 {
+			messager.planetBuiltMines(player, planet, result.mines)
+		}
+		if result.factories > 0 {
+			messager.planetBuiltFactories(player, planet, result.factories)
+		}
+		if result.defenses > 0 {
+			messager.planetBuiltDefenses(player, planet, result.defenses)
+		}
+
+		// message about mineral alchemy
+		if result.alchemy > 0 {
+			messager.planetBuiltMineralAlchemy(player, planet, result.alchemy)
+		}
+
+		// message about each terraform step
+		if len(result.terraformResults) > 0 {
+			for _, terraformResult := range result.terraformResults {
+				messager.planetTerraform(player, planet, terraformResult.Type, terraformResult.Direction)
+			}
+		}
+
+		// handle built fleets
+		// TODO: Add option to merge with existing fleets at location
+		for _, token := range result.tokens {
+			design := token.design
+			if design == nil {
+				return fmt.Errorf("player %d has no design %d", player.Num, token.DesignNum)
+			}
+			design.Spec.NumBuilt += token.Quantity
+			design.Spec.NumInstances += token.Quantity
+
+			player.Stats.FleetsBuilt++
+			player.Stats.TokensBuilt += token.Quantity
+
+			fleet, err := t.buildFleet(player, planet, token.ShipToken, token.tags)
 			if err != nil {
 				return err
 			}
-
-			// add any invalid messages we encountered
-			if len(result.messages) > 0 {
-				player.Messages = append(player.Messages, result.messages...)
-			}
-
-			// message about planetary installations
-			if result.mines > 0 {
-				messager.planetBuiltMines(player, planet, result.mines)
-			}
-			if result.factories > 0 {
-				messager.planetBuiltFactories(player, planet, result.factories)
-			}
-			if result.defenses > 0 {
-				messager.planetBuiltDefenses(player, planet, result.defenses)
-			}
-
-			// message about mineral alchemy
-			if result.alchemy != (Mineral{}) {
-				// alchemy builds evenly, so we only message the single amount
-				numBuilt := result.alchemy.Ironium
-				messager.planetBuiltMineralAlchemy(player, planet, numBuilt)
-			}
-
-			// message about each terraform step
-			if len(result.terraformResults) > 0 {
-				for _, terraformResult := range result.terraformResults {
-					messager.planetTerraform(player, planet, terraformResult.Type, terraformResult.Direction)
-				}
-			}
-
-			// handle built fleets
-			// TODO: Add option to merge with existing fleets at location
-			for _, token := range result.tokens {
-				design := token.design
-				if design == nil {
-					return fmt.Errorf("player %d has no design %d", player.Num, token.DesignNum)
-				}
-				design.Spec.NumBuilt += token.Quantity
-				design.Spec.NumInstances += token.Quantity
-
-				player.Stats.FleetsBuilt++
-				player.Stats.TokensBuilt += token.Quantity
-
-				fleet, err := t.buildFleet(player, planet, token.ShipToken, token.tags)
-				if err != nil {
-					return err
-				}
-				messager.fleetBuilt(player, planet, fleet, token.Quantity)
-			}
-			if result.packets != (Cargo{}) {
-				target := t.game.getPlanet(planet.PacketTargetNum)
-				packet := t.buildMineralPacket(player, planet, result.packets, target)
-				messager.planetBuiltMineralPacket(player, planet, packet)
-			}
-			if result.starbase != nil {
-				starbase, err := t.buildStarbase(player, planet, result.starbase)
-				if err != nil {
-					return err
-				}
-				planet.Starbase = starbase
-				planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
-				messager.planetBuiltStarbase(player, planet, starbase)
-			}
-			if result.scanner {
-				planet.Scanner = true
-				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
-				messager.planetBuiltScanner(player, planet, planet.Spec.Scanner)
-			}
-			if result.reset {
-				// planet was reset with a genesis device
-				planet.randomize(&t.game.Rules, t.game.StartMode == GameStartModeAccBBS)
-				planet.Mines = 0
-				planet.Factories = 0
-				planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
-				messager.planetBuiltGenesisDevice(player, planet)
-			}
-
-			// log what we actually did
-			for _, itemBuilt := range result.itemsBuilt {
-				if itemBuilt.numBuilt > 0 {
-					t.log.Debug().
-						Int("Player", planet.PlayerNum).
-						Str("Planet", planet.Name).
-						Str("Item", string(itemBuilt.queueItemType)).
-						Int("DesignNum", itemBuilt.designNum).
-						Int("NumBuilt", itemBuilt.numBuilt).
-						Msgf("built item")
-				}
-			}
-
-			// any leftover resources go back to the player for research
-			player.leftoverResources += result.leftoverResources
+			messager.fleetBuilt(player, planet, fleet, token.Quantity)
 		}
+		if result.packets != (Cargo{}) {
+			target := t.game.getPlanet(planet.PacketTargetNum)
+			packet := t.buildMineralPacket(player, planet, result.packets, target)
+			messager.planetBuiltMineralPacket(player, planet, packet)
+		}
+		if result.starbase != nil {
+			starbase, err := t.buildStarbase(player, planet, result.starbase)
+			if err != nil {
+				return err
+			}
+			planet.Starbase = starbase
+			planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
+			messager.planetBuiltStarbase(player, planet, starbase)
+		}
+		if result.scanner {
+			planet.Scanner = true
+			planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+			messager.planetBuiltScanner(player, planet, planet.Spec.Scanner)
+		}
+		if result.reset {
+			// planet was reset with a genesis device
+			planet.randomize(&t.game.Rules, t.game.StartMode == GameStartModeAccBBS)
+			planet.Mines = 0
+			planet.Factories = 0
+			planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+			messager.planetBuiltGenesisDevice(player, planet)
+		}
+
+		// log what we actually did
+		for _, itemBuilt := range result.itemsBuilt {
+			if itemBuilt.numBuilt > 0 {
+				t.log.Debug().
+					Int("Player", planet.PlayerNum).
+					Str("Planet", planet.Name).
+					Str("Item", string(itemBuilt.queueItemType)).
+					Int("DesignNum", itemBuilt.designNum).
+					Int("NumBuilt", itemBuilt.numBuilt).
+					Msgf("built item")
+			}
+		}
+
+		// any leftover resources go back to the player for research
+		player.leftoverResources += result.leftoverResources
 	}
 	return nil
 }

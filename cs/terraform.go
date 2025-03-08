@@ -4,6 +4,7 @@ import "math"
 
 // The Terraformer interface handles terraforming planets
 type Terraformer interface {
+	getTerraformAbility(player *Player) Hab
 	GetBestTerraform(planet *Planet, player *Player, terraformer *Player) *HabType
 	TerraformHab(planet *Planet, terraformer *Player, habType HabType, amount int) TerraformResult
 	PermaformHab(planet *Planet, planetPlayer *Player, habType HabType, amount int) TerraformResult

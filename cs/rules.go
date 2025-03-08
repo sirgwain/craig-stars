@@ -104,6 +104,7 @@ type CostRules struct {
 	TechBaseCost                   []int   `json:"techBaseCost"`
 }
 
+// A slightly fancier map[bool]float64 that can be serialized to JSON
 type JammerCap struct {
 	Ship     float64
 	Starbase float64

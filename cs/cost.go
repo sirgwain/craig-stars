@@ -222,6 +222,17 @@ func (c cost[T]) AddNum(costType CostType, amount T) cost[T] {
 	return c
 }
 
+// Add amt to all components of this Cost struct and return the result.
+// Resources are left unaffected.
+func (c cost[T]) AddToAll(amt T) cost[T] {
+	return cost[T]{
+		Ironium:   c.Ironium + amt,
+		Boranium:  c.Boranium + amt,
+		Germanium: c.Germanium + amt,
+		Resources: c.Resources + amt,
+	}
+}
+
 // Add a Mineral to a cost struct and return the result.
 func (c cost[T]) AddMineral(other Mineral) cost[T] {
 	return cost[T]{
@@ -232,6 +243,16 @@ func (c cost[T]) AddMineral(other Mineral) cost[T] {
 	}
 }
 
+// Add amt to all mineral components of this Cost struct and return the result.
+// Resources are left unaffected.
+func (c cost[T]) AddToAllMineral(amt T) cost[T] {
+	return cost[T]{
+		Ironium:   c.Ironium + amt,
+		Boranium:  c.Boranium + amt,
+		Germanium: c.Germanium + amt,
+		Resources: c.Resources,
+	}
+}
 func (c cost[T]) Subtract(other cost[T]) cost[T] {
 	return cost[T]{
 		Ironium:   c.Ironium - other.Ironium,
@@ -279,7 +300,7 @@ func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
 	quotient := CostFloat64{}
 	for _, ct := range CostTypes {
 		if divisor.GetAmount(ct) == 0 {
-			quotient.Set(ct, float64(math.Inf(1)))
+			quotient.Set(ct, math.Inf(1))
 		} else {
 			quotient.Set(ct, float64(dividend.GetAmount(ct))/float64(divisor.GetAmount(ct)))
 		}
