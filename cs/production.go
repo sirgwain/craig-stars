@@ -211,7 +211,7 @@ func (p *producer) produce() (result productionResult, err error) {
 		available = available.Add(item.Allocated)
 		item.Allocated = Cost{}
 
-		// clamp concrete item's quantities to maxBuildable.
+		// clamp concrete items' quantities down to maxBuildable.
 		// We check everything in the queue after building stuff, but this ensures
 		// we don't accidentally try to make extra items over cap.
 		if !item.Type.IsAuto() {
@@ -229,8 +229,8 @@ func (p *producer) produce() (result productionResult, err error) {
 			}
 		}
 
-		// check for auto items we should skip due to lack of minerals
-		if item.Type.IsAuto() && available.DivideMineral(cost.ToMineral()) < 1 {
+		// check for auto items we should skip due to not being buildable or lacking minerals
+		if item.Type.IsAuto() && (maxBuildable <= 0 || available.DivideMineral(cost.ToMineral()) < 1) {
 			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, skipped: true})
 			newQueue = append(newQueue, item)
 
