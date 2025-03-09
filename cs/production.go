@@ -286,18 +286,20 @@ func (p *producer) produce() (result productionResult, err error) {
 			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, skipped: true})
 		}
 
-		// Elide any items within the queue that are over cap
+		// Elide any concrete items within the queue that are over cap
 		planet.ProductionQueue = MapSlice(planet.ProductionQueue,
 			func(i ProductionQueueItem) (ProductionQueueItem, bool) {
 				if i.Type.IsAuto() {
+					// leave auto items alone
 					return i, true
 				}
 
 				oldQty := i.Quantity
 				maxBuildable := planet.maxBuildable(p.player, i.Type)
 
+				// cut item quantity down to its max buildable amount
 				if i = p.clampItemQty(i, maxBuildable); i.Quantity <= 0 {
-					// invalid queue item qty; mark item as being skipped
+					// if it hits 0 quantity, mark item as skipped and remove it from queue
 					p.handleInvalidQty(i, &cost, &result, &itemIndex)
 					p.log.Debug().
 						Any("Item", i).
@@ -420,8 +422,10 @@ func (p *producer) clampItemQty(item ProductionQueueItem, maxBuildable int) Prod
 
 // Perform necessary cleanup to handle concrete items with invalid quantities.
 func (p *producer) handleInvalidQty(i ProductionQueueItem, available *Cost, result *productionResult, itemIndex *int) {
-	// TODO: Fix the index out of range panic if index is nil
-	result.itemsBuilt[i.index] = itemBuilt{index: i.index, skipped: true}
+	if i.index >= 0 && i.index < len(result.itemsBuilt) {
+		// don't set skipped when actually producing during turns
+		result.itemsBuilt[i.index] = itemBuilt{index: i.index, skipped: true}
+	}
 	result.messages = append(result.messages,
 		newPlanetMessage(PlayerMessagePlanetBuiltInvalidItem, p.planet).
 			withSpec(PlayerMessageSpec{Name: p.planet.Name, QueueItemType: i.Type}))
