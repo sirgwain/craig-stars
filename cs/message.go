@@ -335,7 +335,7 @@ func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet,
 		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt}.withTargetPlanet(planet)))
 }
 
-func (m *messageClient) fleetImmediateCargoTransferInvalid(player *Player, fleet *Fleet, reason string) {
+func (m *messageClient) fleetByHandCargoTransferInvalid(player *Player, fleet *Fleet, reason string) {
 	text := reason
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetImmediateTransferInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }

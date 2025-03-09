@@ -130,11 +130,22 @@ export const Unlimited = -1;
 //////////
 // source: cargotransfer.go
 
-export type CargoTransfers = { [key: string]: ImmediateCargoTransfer[] };
-export interface ImmediateCargoTransfer extends MapObjectTarget {
+export type CargoTransfers = { [key: string]: ByHandCargoTransfer[] };
+export interface ByHandCargoTransfer extends MapObjectTarget {
 	sourceFleetNum?: number /* int */;
 	cargo: Cargo;
 }
+export type CargoTransferInvalidReason = number /* int */;
+export const CargoTransferInvalidNone: CargoTransferInvalidReason = 0;
+export const CargoTransferInvalidOwned: CargoTransferInvalidReason = 1;
+export const CargoTransferInvalidCargo: CargoTransferInvalidReason = 2;
+export const CargoTransferInvalidCargoCapacity: CargoTransferInvalidReason = 3;
+export const CargoTransferInvalidDestCargo: CargoTransferInvalidReason = 4;
+export const CargoTransferInvalidDestCargoCapacity: CargoTransferInvalidReason = 5;
+export const CargoTransferInvalidDestStarbase: CargoTransferInvalidReason = 6;
+/**
+ * dunnage tasks are done after regular tasks
+ */
 
 //////////
 // source: cost.go

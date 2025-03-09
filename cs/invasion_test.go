@@ -1,119 +1,83 @@
 package cs
 
 import (
+	"reflect"
 	"testing"
-
-	"github.com/sirgwain/craig-stars/test"
 )
 
-func Test_invadePlanet(t *testing.T) {
-	defaultPlan := NewPlayer(0, NewRace()).defaultPlans().ProductionPlans[0]
-	type args struct {
-		planet           *Planet
-		fleet            *Fleet
-		defender         *Player
-		attacker         *Player
-		colonistsDropped int
-	}
+func Test_invasion_resolve(t *testing.T) {
 	tests := []struct {
-		name string
-		args args
-		want Planet
+		name     string
+		invasion invasion
+		want     invasionResult
 	}{
 		{
 			name: "10000 attackers 10000 defenders, attacker wins",
-			args: args{
+			invasion: invasion{
 				planet: &Planet{
-					MapObject: MapObject{
-						PlayerNum: 1,
-						Name:      "Brin",
-					},
-					Cargo:     Cargo{}.WithPopulation(10_000),
-					Mines:     100,
-					Factories: 100,
-					Defenses:  0,
+					Cargo: Cargo{}.WithPopulation(10_000),
 				},
-				fleet: &Fleet{
-					MapObject: MapObject{
-						PlayerNum: 2,
-						Name:      "Teamster #1",
-					},
-				},
-				defender:         NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules),
-				attacker:         NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules),
-				colonistsDropped: 10_000,
+				defender:  NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules),
+				attacker:  NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules),
+				attackers: 10_000,
 			},
-			want: Planet{
-				MapObject: MapObject{Name: "Brin", PlayerNum: 2},
-				Cargo:     Cargo{}.WithPopulation(900), Mines: 100, Factories: 100,
-				PlanetOrders: PlanetOrders{
-					ProductionQueue:                   defaultPlan.ToQueueItems(),
-					ContributesOnlyLeftoverToResearch: defaultPlan.ContributesOnlyLeftoverToResearch,
-				},
+			want: invasionResult{
+				defenders:          10_000,
+				attackersKilled:    9_100,
+				defendersKilled:    10_000,
+				remainingAttackers: 900,
+				remainingDefenders: 0,
+				successful:         true,
 			},
 		},
 		{
 			name: "5000 attackers for 10000 undefended defenders, defenders win",
-			args: args{
+			invasion: invasion{
 				planet: &Planet{
-					MapObject: MapObject{
-						PlayerNum: 1,
-						Name:      "Brin",
-					},
-					Cargo:     Cargo{}.WithPopulation(10_000),
-					Mines:     100,
-					Factories: 100,
-					Defenses:  0,
+					Cargo: Cargo{}.WithPopulation(10_000),
 				},
-				fleet: &Fleet{
-					MapObject: MapObject{
-						PlayerNum: 2,
-						Name:      "Teamster #1",
-					},
-				},
-				defender:         NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules),
-				attacker:         NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules),
-				colonistsDropped: 5000,
+				defender:  NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules),
+				attacker:  NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules),
+				attackers: 5000,
 			},
-			want: Planet{MapObject: MapObject{Name: "Brin", PlayerNum: 1}, Cargo: Cargo{}.WithPopulation(4500), Mines: 100, Factories: 100},
+			want: invasionResult{
+				defenders:          10_000,
+				attackersKilled:    5000,
+				defendersKilled:    5500,
+				remainingAttackers: 0,
+				remainingDefenders: 4500,
+				successful:         false,
+			},
 		},
 		{
 			name: "100,000 attackers for 100,000 well defended defenders, defenders win",
-			args: args{
+			invasion: invasion{
 				planet: &Planet{
-					MapObject: MapObject{
-						PlayerNum: 1,
-						Name:      "Brin",
-					},
-					Cargo:     Cargo{}.WithPopulation(100_000),
-					Mines:     100,
-					Factories: 100,
-					Defenses:  1000,
+					Cargo: Cargo{}.WithPopulation(100_000),
+					Spec:  PlanetSpec{DefenseCoverage: .9},
 				},
-				fleet: &Fleet{
-					MapObject: MapObject{
-						PlayerNum: 2,
-						Name:      "Teamster #1",
-					},
-				},
-				defender:         NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules),
-				attacker:         NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules),
-				colonistsDropped: 100_000,
+				defender:  NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules),
+				attacker:  NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules),
+				attackers: 100_000,
 			},
-			want: Planet{MapObject: MapObject{Name: "Brin", PlayerNum: 1}, Cargo: Cargo{}.WithPopulation(42_000), Mines: 100, Factories: 100, Defenses: 1000},
+			want: invasionResult{
+				defenders:          100_000,
+				attackersKilled:    100_000,
+				defendersKilled:    35700,
+				remainingAttackers: 0,
+				remainingDefenders: 64_300,
+				successful:         false,
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.args.planet.Spec = computePlanetSpec(&rules, tt.args.attacker, tt.args.planet)
-			tt.want.Spec = computePlanetSpec(&rules, tt.args.attacker, &tt.want)
-			invadePlanet(testLogger, &rules, tt.args.planet, tt.args.fleet.Name, tt.args.defender, tt.args.attacker, tt.args.colonistsDropped)
-
-			// recompute planet spec after invasion
-			tt.args.planet.Spec = computePlanetSpec(&rules, tt.args.attacker, tt.args.planet)
-
-			got := *tt.args.planet
-			test.CompareAsJSON(t, got, tt.want)
+			got := tt.invasion.resolve(&rules)
+			// zero out the invasion itself in the result, we only care about the result numbers
+			got.invasion = invasion{}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("invasion.resolve() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

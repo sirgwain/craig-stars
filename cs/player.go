@@ -879,17 +879,17 @@ func (p *Player) InjectDesigns(fleets []*Fleet) error {
 }
 
 // getJettison sums all jettison cargo calls for this position to determine the total amount of jettisoned cargo here
-func (p *Player) getJettison(position Vector) Cargo {
-	return p.CargoTransfers.getJettison(position)
+func (p *Player) getByHandTransfer(target MapObjectTarget) Cargo {
+	return p.CargoTransfers.getByHandTransfer(target)
 }
 
 // jettisonCargo jettison's cargo
-func (p *Player) jettisonCargo(fleet *Fleet, jettison Cargo) {
+func (p *Player) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Cargo) {
 	if p.CargoTransfers == nil {
 		p.CargoTransfers = CargoTransfers{}
 	}
 
-	p.CargoTransfers.jettisonCargo(fleet, jettison)
+	p.CargoTransfers.transferByHand(fleet, target, cargo)
 }
 
 // validate this battle plan

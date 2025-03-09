@@ -104,6 +104,17 @@ func (c Cargo) NegativeOnly() Cargo {
 	}
 }
 
+// PositiveOnly returns a cargo with only negative values
+// used for identifying unloading cargo
+func (c Cargo) PositiveOnly() Cargo {
+	return Cargo{
+		Ironium:   Max(c.Ironium, 0),
+		Boranium:  Max(c.Boranium, 0),
+		Germanium: Max(c.Germanium, 0),
+		Colonists: Max(c.Colonists, 0),
+	}
+}
+
 func (c Cargo) Negative() Cargo {
 	return Cargo{
 		Ironium:   -c.Ironium,
@@ -256,6 +267,19 @@ func (c Cargo) GetAmount(t CargoType) int {
 		return c.Colonists
 	}
 	return 0
+}
+
+func (c *Cargo) SetAmount(t CargoType, amount int) {
+	switch t {
+	case Ironium:
+		c.Ironium = amount
+	case Boranium:
+		c.Boranium = amount
+	case Germanium:
+		c.Germanium = amount
+	case Colonists:
+		c.Colonists = amount
+	}
 }
 
 // get the amount for a type of cargo

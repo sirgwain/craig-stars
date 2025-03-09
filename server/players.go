@@ -344,6 +344,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	orderer := cs.NewOrderer()
+	orders.CargoTransfers = player.CargoTransfers // don't let the player update cargoTransfers outside of a fleet transfer function
 	orderer.UpdatePlayerOrders(player, planets, *orders.PlayerOrders, &game.Rules)
 
 	// save the updated fleets back to the database

@@ -28,8 +28,6 @@ type Planet struct {
 	Starbase             *Fleet     `json:"-"`
 	Dirty                bool       `json:"-"`
 	bonusResources       int
-	invasionsByPlayer    map[int]int // track players that transferred colonists to this world
-
 }
 
 type PlanetOrders struct {

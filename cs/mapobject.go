@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -49,6 +50,10 @@ const (
 const (
 	TagPurpose = "purpose"
 )
+
+func (mo MapObject) String() string {
+	return fmt.Sprintf("MapObject: %s", mo.Name)
+}
 
 // Owned reports whether this MapObject is owned by a player (playerNum != 0)
 func (mo *MapObject) Owned() bool {

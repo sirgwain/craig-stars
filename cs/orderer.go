@@ -162,14 +162,15 @@ func (o *orders) JettisonFleetCargo(player *Player, fleet *Fleet, jettison Cargo
 		}
 
 		// subtract the jettison from the existing jettison cargo (jettison is negative if we are transfering to the existing jettison, positive if transfering from the existing jettison)
-		existingJettison := player.getJettison(fleet.Position)
+		target := MapObjectTarget{TargetPosition: fleet.Position}
+		existingJettison := player.getByHandTransfer(target)
 		existingJettison = existingJettison.Subtract(jettison)
 		if existingJettison.HasNegative() {
 			return fmt.Errorf("jettison cargo cannot be negative")
 		}
 
 		// record this call with the player
-		player.jettisonCargo(fleet, jettison.Negative())
+		player.transferByHand(fleet, target, jettison.Negative())
 
 		log.Info().
 			Int64("GameID", player.GameID).
@@ -547,7 +548,7 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	}
 
 	// split any immediate cargo transfers we did before based on capacity
-	if err := player.CargoTransfers.splitFleetCargoTransfers(source, dest); err != nil {
+	if err := player.CargoTransfers.splitByHandTransfers(source, dest); err != nil {
 		return nil, nil, err
 	}
 
@@ -768,7 +769,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// split any immediate cargo transfers as well
-	if err := player.CargoTransfers.splitFleetCargoTransfers(source, &fleet); err != nil {
+	if err := player.CargoTransfers.splitByHandTransfers(source, &fleet); err != nil {
 		return nil, fmt.Errorf("unable to split immediate cargo transfers %w", err)
 	}
 
@@ -825,7 +826,7 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 	}
 
 	// merge cargo transfers
-	player.CargoTransfers.mergeFleetCargoTransfers(fleet, fleets)
+	player.CargoTransfers.mergeByHandTransfers(fleet, fleets)
 
 	log.Info().
 		Int64("GameID", player.GameID).

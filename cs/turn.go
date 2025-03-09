@@ -56,8 +56,9 @@ func (t *turnGenerator) generateTurn() error {
 
 	// wp0 tasks
 	t.fleetInit()
-	t.immediateCargoTransfers()
-	t.clearImmediateCargoTransfers()
+	t.byHandLoads()
+	t.byHandUnloads()
+	t.clearByHandCargoTransfers()
 	t.fleetScrap()
 	t.fleetUnload()
 	t.fleetColonize()
@@ -162,10 +163,10 @@ func (t *turnGenerator) fleetInit() {
 	}
 }
 
-// immediateCargoTransfers will do any by hand cargo transfer orders that happened against objects a player doesn't own
-func (t *turnGenerator) immediateCargoTransfers() {
+// byHandLoads will do any by hand cargo transfer orders
+func (t *turnGenerator) byHandLoads() {
 
-	invader := invader{}
+	cargoTransferer := newCargoTransferer(t.log, t.game)
 
 	for _, player := range t.game.Players {
 		if len(player.CargoTransfers) == 0 {
@@ -175,149 +176,136 @@ func (t *turnGenerator) immediateCargoTransfers() {
 		// CargoTransfers are a map of transfer per location
 		// process each transfer for a location in order
 		for _, transfers := range player.CargoTransfers {
+			results := cargoTransferer.loadByHands(player, transfers)
 
-			// a player maybe steal some cargo, then split their fleet
-			// and the immediate cargo transfers will be split. For the purposes of
-			// validating immediate cargo transfers, if any fleet at this location can steal cargo
-			// all of them can
-			canStealFleetCargo := false
-			_ = canStealFleetCargo
-
-			canStealPlanetCargo := false
-			for _, transfer := range transfers {
-				fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
-				if fleet.Spec.CanStealFleetCargo {
-					canStealFleetCargo = true
-					canStealPlanetCargo = true
-				}
-			}
-
-			for _, transfer := range transfers {
-				cargo := transfer.Cargo
-				if cargo == (Cargo{}) {
-					// skip any empty requests, hopefully we have none...
+			// for by hand transfers, we only care if something went wrong
+			for _, result := range results {
+				if result.invalid == CargoTransferInvalidNone {
 					continue
 				}
-
-				fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
-				if fleet == nil {
-					// don't kill turn processing for this because it's unclear how to fix it to unblock players
-					t.log.Error().
-						Int("Player", player.Num).
-						Int("Fleet", transfer.SourceFleetNum).
-						Msgf("fleet not found for immediateCargoTransfer")
-					continue
-				}
-
-				switch transfer.TargetType {
-				case MapObjectTypeNone:
-					// jettison
-					// dump on a planet if the fleet is orbiting one
-					// Not sure this case will ever be true. The UI should make this an immediate planet cargo transfer
-					if fleet.OrbitingPlanetNum != None {
-						// log it and move on, not worth erroring out turn generation for
-						t.log.Error().
-							Int("Player", player.Num).
-							Str("Fleet", fleet.Name).
-							Int("PlanetNum", fleet.OrbitingPlanetNum).
-							Str("Jettison", fmt.Sprintf("%v", cargo)).
-							Msgf("jettison attempted when orbiting a planet")
-						messager.fleetImmediateCargoTransferInvalid(player, fleet, fmt.Sprintf("%s attempted to jettison to deep space while orbiting a planet", fleet.Name))
-						continue
-					}
-
-					// create a new salvage for this cargo
-					t.game.getOrCreateSalvage(fleet.Position, fleet.PlayerNum, cargo)
-
-					t.log.Debug().
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("Cargo", fmt.Sprintf("%v", cargo)).
-						Msgf("jettisoned cargo to deep space")
-
-				case MapObjectTypePlanet:
-					// planet transport
-					if fleet.OrbitingPlanetNum != transfer.TargetNum {
-						// uh oh, bad data
-						// log it and move on, not worth erroring out turn generation for
-						t.log.Error().
-							Int("Player", player.Num).
-							Str("Fleet", fleet.Name).
-							Int("PlanetNum", fleet.OrbitingPlanetNum).
-							Int("TargetNum", transfer.TargetNum).
-							Str("TargetName", transfer.TargetName).
-							Str("Cargo", fmt.Sprintf("%v", cargo)).
-							Msgf("immediate cargo transfer failed, fleet is not in orbit of planet")
-						messager.fleetImmediateCargoTransferInvalid(player, fleet, fmt.Sprintf("%s is not in orbit of planet %s", fleet.Name, transfer.TargetName))
-						continue
-					}
-
-					planet := t.game.getPlanet(transfer.TargetNum)
-					if planet.Owned() && !planet.OwnedBy(fleet.PlayerNum) {
-						// check for invasions
-						if cargo.Colonists > 0 {
-							invader.addInvasion(invasion{
-								planet:           planet,
-								defender:         t.game.getPlayer(planet.PlayerNum),
-								attacker:         player,
-								colonistsDropped: cargo.Colonists * 100,
-								fleetName:        fleet.Name,
-							})
-						}
-						// can't steal colonists
-						cargo.Colonists = 0
-
-						if cargo.HasNegative() && !canStealPlanetCargo {
-							// stealing not allowed
-							t.log.Debug().
-								Int("Player", fleet.PlayerNum).
-								Str("Planet", planet.Name).
-								Str("Fleet", fleet.Name).
-								Str("Cargo", fmt.Sprintf("%v", cargo)).
-								Msgf("steal cargo not allowed")
-							player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetStealCargoNotAllowed, fleet).
-								withSpec(PlayerMessageSpec{Cargo: &cargo}.withTargetPlanet(planet)))
-							continue
-						}
-					}
-
-					// invasion resolved, stealing allowed, transfer cargo
-					transferred := cargo
-					for _, cargoType := range CargoTypes {
-						amount := cargo.GetAmount(cargoType)
-						if amount < 0 {
-							// make sure the planet has enough cargo to allow this
-							transferredAmount := Min(amount, planet.Cargo.GetAmount(cargoType))
-							if transferredAmount != amount {
-								t.log.Debug().
-									Int("Player", fleet.PlayerNum).
-									Str("Planet", planet.Name).
-									Str("Fleet", fleet.Name).
-									Str("Cargo", fmt.Sprintf("%v", cargo)).
-									Str("PlanetCargo", fmt.Sprintf("%v", planet.Cargo)).
-									Msgf("planet didn't have enough cargo to transfer")
-								transferred = transferred.WithCargo(cargoType, transferredAmount)
-							}
-						}
-					}
-					if transferred != cargo {
-						player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetImmediateTransferNotComplete, fleet).
-							withSpec(PlayerMessageSpec{Cargo: &cargo, Cargo2: &transferred}.withTargetPlanet(planet)))
-					}
-					// update the planet
-					planet.Cargo = planet.Cargo.Add(transferred)
-
-				}
+				messager.fleetTransportInvalid(player, result.fleet, result.dest, result.cargoType, result.transferred)
 			}
 		}
 	}
 
-	// resolve any immediate invasions
-	invader.resolveInvasions(t.log, &t.game.Rules)
 }
 
-// clearImmediateCargoTransfers clear's out all by-hand style cargo transfers after they are processed
-func (t *turnGenerator) clearImmediateCargoTransfers() {
+func (t *turnGenerator) byHandUnloads() {
+
+	cargoTransferer := newCargoTransferer(t.log, t.game)
+
+	for _, player := range t.game.Players {
+		if len(player.CargoTransfers) == 0 {
+			continue
+		}
+
+		// CargoTransfers are a map of transfer per location
+		// process each transfer for a location in order
+		for _, transfers := range player.CargoTransfers {
+			results := cargoTransferer.unloadByHands(player, transfers)
+
+			for _, result := range results {
+
+				if result.invalid != CargoTransferInvalidNone {
+					player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetImmediateTransferNotComplete, result.fleet))
+					// withSpec(PlayerMessageSpec{Cargo: &cargo, Cargo2: &transferred}.withTargetPlanet(result.dest)))
+					continue
+				}
+
+			}
+
+			// send messages for results
+			_ = results
+		}
+	}
+
+	// resolve any by hand invasions
+	t.resolveInvasions(cargoTransferer.invader)
+
+}
+
+// resolveInvasions resolves all invasions for an invader helper
+func (t *turnGenerator) resolveInvasions(invader invader) {
+	invasions := invader.resolveInvasions(&t.game.Rules)
+	for _, invasion := range invasions {
+		planet := invasion.planet
+		attacker := invasion.attacker
+		defender := invasion.defender
+
+		t.log.Debug().
+			Int("Defender", defender.Num).
+			Int("Attacker", attacker.Num).
+			Str("Fleet", invasion.fleetDescription()).
+			Str("Planet", planet.Name).
+			Int("Attackers", invasion.attackers).
+			Int("Defenders", invasion.defenders).
+			Int("RemainingAttackers", invasion.remainingAttackers).
+			Int("RemainingDefenders", invasion.remainingDefenders).
+			Bool("AttackerWon", invasion.successful).
+			Msgf("planet invaded")
+
+		// during invasion, even if the player loses the planet, they discover the invader
+		for _, fleet := range invasion.fleets {
+
+			for _, token := range fleet.Tokens {
+				defender.discoverer.discoverDesign(token.design, defender.Race.Spec.DiscoverDesignOnScan)
+			}
+			defender.discoverer.discoverFleet(fleet, false)
+		}
+
+		// notify each player of the invasion
+		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
+		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
+
+		if !invasion.successful {
+			// reduce the population to however many colonists remain and move on
+			planet.setPopulation(invasion.remainingDefenders)
+			continue
+		}
+
+		// empty this planet
+		planet.emptyPlanet()
+
+		// take over the planet.
+		planet.PlayerNum = invasion.attacker.Num
+		planet.setPopulation(invasion.remainingAttackers)
+
+		// apply a production plan
+		if len(attacker.ProductionPlans) > 0 {
+			plan := attacker.ProductionPlans[0]
+			plan.Apply(planet)
+		}
+
+		// make sure the defender knows about this new planet
+		// the last dying colonist sends a report to their compatriots
+		defender.discoverer.clearPlanetOwnerIntel(planet)
+		defender.discoverer.discoverPlanet(&t.game.Rules, planet, true)
+
+		// check for tech trades
+		if !attacker.techLevelGained {
+			tt := newTechTrader()
+			field := tt.checkInvasionTechTrade(&t.game.Rules, attacker, defender.TechLevels)
+			if field != TechFieldNone {
+				// sweet, we gained a tech level
+				attacker.techLevelGained = true
+				attacker.TechLevels.Set(field, attacker.TechLevels.Get(field)+1) // add 1 to corresponding lvl
+
+				messager.playerTechGainedInvasion(attacker, planet, field)
+				attacker.updateTechsJustGained(t.game.Rules.techs, field)
+
+				t.log.Debug().
+					Int("Attacker", attacker.Num).
+					Int("Defender", defender.Num).
+					Str("Planet", planet.Name).
+					Str("field", string(field)).
+					Msgf("invader gained tech level")
+			}
+		}
+	}
+}
+
+// clearByHandCargoTransfers clear's out all by-hand style cargo transfers after they are processed
+func (t *turnGenerator) clearByHandCargoTransfers() {
 	for _, p := range t.game.Players {
 		p.CargoTransfers = CargoTransfers{}
 	}
@@ -497,177 +485,106 @@ func (t *turnGenerator) fleetColonize() {
 
 // fleetUnload executes wp0/wp1 unload transport tasks for fleets
 func (t *turnGenerator) fleetUnload() {
+	cargoTransferer := newCargoTransferer(t.log, t.game)
+
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
 		}
 
+		player := t.game.getPlayer(fleet.PlayerNum)
 		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
-			wp.WaitAtWaypoint = wp.WaitAtWaypoint || t.fleetUnloadCargo(fleet, wp.MapObjectTarget, wp.TransportTasks)
-		}
-	}
-}
+			dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
+			if !ok {
+				// unload to salvage in deep space
+				dest = t.game.getOrCreateSalvage(fleet.Position, player.Num, Cargo{})
+				t.log.Debug().
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Position", fleet.Position.String()).
+					Msgf("created salvage")
+			}
 
-// fleetUnloadCargo processes a fleet's unload transport tasks
-// it will return true if any of these tasks require waiting at the waypoint
-func (t *turnGenerator) fleetUnloadCargo(fleet *Fleet, target MapObjectTarget, transportTasks WaypointTransportTasks) (waitAtWaypoint bool) {
-	dest, found := t.game.getCargoHolder(target.TargetType, target.TargetNum, target.TargetPlayerNum)
-	var salvage *Salvage
-	if !found {
+			results := cargoTransferer.unload(fleet, dest, wp.TransportTasks)
 
-		salvage = t.game.getOrCreateSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
-		dest = salvage
+			for _, result := range results {
+				if result.invalid != CargoTransferInvalidNone {
+					t.log.Debug().
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", result.transferred).
+						Str("cargoType", result.cargoType.String()).
+						Msgf("unload cargo failed %v", result.invalid)
+					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred)
 
-		t.log.Debug().
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Str("Position", fleet.Position.String()).
-			Msgf("created salvage")
-
-	}
-
-	for cargoType, task := range transportTasks.getTransportTasks() {
-		transferAmount, wait := fleet.getCargoUnloadAmount(dest, cargoType, task)
-
-		waitAtWaypoint = waitAtWaypoint || wait
-
-		if err := t.fleetTransferCargo(fleet, transferAmount, cargoType, dest); err != nil {
-			t.log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Str("Dest", dest.getMapObject().Name).
-				Int("Transfered", transferAmount).
-				Str("cargoType", cargoType.String()).
-				Msgf("unload cargo failed %v", err)
-		} else {
-			t.log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Str("Dest", dest.getMapObject().Name).
-				Int("Transfered", transferAmount).
-				Str("cargoType", cargoType.String()).
-				Msgf("unloaded cargo")
-		}
-
-	}
-
-	// we tried to load/unload from empty space but we didn't deposit any cargo
-	// into the salvage, so remove this empty salvage
-	if salvage != nil {
-		salvage.Cargo.Colonists = 0
-		if salvage.Cargo.Total() == 0 {
-			t.game.deleteSalvage(salvage)
+					continue
+				}
+				wp.WaitAtWaypoint = wp.WaitAtWaypoint || result.waitAtWaypoint
+				t.log.Debug().
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Dest", dest.getMapObject().Name).
+					Int("Transfered", result.transferred).
+					Str("cargoType", result.cargoType.String()).
+					Msgf("unloaded cargo")
+				messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
+			}
+			if planet, ok := dest.(*Planet); ok {
+				planet.MarkDirty()
+			}
 		}
 	}
 
-	return waitAtWaypoint
+	// resolve any by hand invasions
+	t.resolveInvasions(cargoTransferer.invader)
 }
 
 func (t *turnGenerator) fleetLoad() {
+	cargoTransferer := newCargoTransferer(t.log, t.game)
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
 			continue
 		}
 
+		player := t.game.getPlayer(fleet.PlayerNum)
 		wp := &fleet.Waypoints[0]
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
 			dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
 			if !ok || dest.deleted() {
 				// can't load from space
-				return
+				continue
 			}
 
-			// dunnage tasks are done after regular tasks
-			type dunnageTask struct {
-				cargoType CargoType
-				task      WaypointTransportTask
-			}
-			dunnageTasks := []dunnageTask{}
+			results := cargoTransferer.load(fleet, dest, wp.TransportTasks)
+			for _, result := range results {
+				if result.invalid != CargoTransferInvalidNone {
+					t.log.Debug().
+						Int("Player", fleet.PlayerNum).
+						Str("Fleet", fleet.Name).
+						Str("Dest", dest.getMapObject().Name).
+						Int("Transfered", result.transferred).
+						Str("cargoType", result.cargoType.String()).
+						Msgf("load cargo failed %v", result.invalid)
+					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred)
 
-			// process regular load tasks
-			for cargoType, task := range wp.TransportTasks.getTransportTasks() {
-				if task.Action == TransportActionLoadDunnage {
-					dunnageTasks = append(dunnageTasks, dunnageTask{cargoType, task})
 					continue
 				}
-
-				// process transport task
-				transferAmount, waitAtWaypoint := fleet.getCargoLoadAmount(dest, cargoType, task)
-
-				// if we need to wait for any task, wait
-				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
-
-				if err := t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest); err != nil {
-					t.log.Debug().
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("Dest", dest.getMapObject().Name).
-						Int("Transfered", transferAmount).
-						Str("cargoType", cargoType.String()).
-						Msgf("load cargo failed %v", err)
-				} else {
-					t.log.Debug().
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("Dest", dest.getMapObject().Name).
-						Int("Transfered", transferAmount).
-						Str("cargoType", cargoType.String()).
-						Msgf("loaded cargo")
-				}
-			}
-
-			// process dunnage tasks
-			for _, dunnageTask := range dunnageTasks {
-				cargoType, task := dunnageTask.cargoType, dunnageTask.task
-
-				transferAmount, waitAtWaypoint := fleet.getCargoLoadAmount(dest, cargoType, task)
-
-				// if we need to wait for any task, wait
-				wp.WaitAtWaypoint = wp.WaitAtWaypoint || waitAtWaypoint
-
-				if err := t.fleetTransferCargo(fleet, -transferAmount, cargoType, dest); err != nil {
-					t.log.Debug().
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("Dest", dest.getMapObject().Name).
-						Int("Transfered", transferAmount).
-						Str("cargoType", cargoType.String()).
-						Msgf("dunnage load cargo failed %v", err)
-
-				} else {
-					t.log.Debug().
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("Dest", dest.getMapObject().Name).
-						Int("Transfered", transferAmount).
-						Str("cargoType", cargoType.String()).
-						Msgf("dunnage loaded cargo")
-				}
-
-			}
-
-			// delete this salvage if we emptied it
-			if salvage, ok := dest.(*Salvage); ok && salvage.Cargo == (Cargo{}) {
-				t.game.deleteSalvage(salvage)
-
+				wp.WaitAtWaypoint = wp.WaitAtWaypoint || result.waitAtWaypoint
 				t.log.Debug().
-					Int("Player", salvage.PlayerNum).
-					Str("Salvage", salvage.Name).
-					Msgf("deleted salvage")
-
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Dest", dest.getMapObject().Name).
+					Int("Transfered", result.transferred).
+					Str("cargoType", result.cargoType.String()).
+					Msgf("loaded cargo")
+				messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
 			}
-			// delete this packet if we emptied it
-			if packet, ok := dest.(*MineralPacket); ok && packet.Cargo == (Cargo{}) {
-				t.game.deletePacket(packet)
-
-				t.log.Debug().
-					Int("Player", packet.PlayerNum).
-					Str("Packet", packet.Name).
-					Msgf("deleted salvage")
-
+			if planet, ok := dest.(*Planet); ok {
+				planet.MarkDirty()
 			}
 
 			// after load, remove the transport task if this isn't a repeating order
@@ -677,60 +594,32 @@ func (t *turnGenerator) fleetLoad() {
 			}
 		}
 	}
-}
 
-// fleetTransferCargo transfers cargo from a fleet to a cargo holder
-// this will send a player a message if they are not allowed to load from this cargoholder
-// this will trigger an invasion if a player unloads colonists onto a planet
-func (t *turnGenerator) fleetTransferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest cargoHolder) error {
-	if transferAmount != 0 {
-		player := t.game.Players[fleet.PlayerNum-1]
-		planet, ok := dest.(*Planet)
-		if transferAmount > 0 && cargoType == Colonists && ok && !planet.OwnedBy(fleet.PlayerNum) {
-			// invasion!
-			attacker := player
+	// after load delete any empty salvages or packets
+	for _, salvage := range t.game.Salvages {
+		// delete this salvage if we emptied it
+		salvage.Cargo.Colonists = 0 // make sure we kill off any colonists dumped into deep space
+		if salvage.Cargo == (Cargo{}) {
+			t.game.deleteSalvage(salvage)
 
-			if !planet.Owned() || planet.population() == 0 {
-				// can't invade uninhabited planets
-				messager.planetInvadeEmpty(attacker, planet, fleet)
-				return fmt.Errorf("can't invade empty planet")
-			}
-			if planet.Spec.HasStarbase {
-				// can't invade starbase planet
-				messager.planetInvadeStarbase(attacker, planet, fleet)
-				return fmt.Errorf("can't invade planet with starbase")
-			}
-			defender := t.game.getPlayer(planet.PlayerNum)
-			// during invasion, even if the player loses the planet, they discover the invader
-			for _, token := range fleet.Tokens {
-				defender.discoverer.discoverDesign(token.design, defender.Race.Spec.DiscoverDesignOnScan)
-			}
-			defender.discoverer.discoverFleet(fleet, false)
+			t.log.Debug().
+				Int("Player", salvage.PlayerNum).
+				Str("Salvage", salvage.Name).
+				Msgf("deleted salvage")
 
-			invadePlanet(t.log, &t.game.Rules, planet, fleet.Name, defender, player, transferAmount*100)
-			fleet.Cargo.Colonists -= transferAmount
-
-			if planet.Num != defender.Num {
-				// the planet was lost, but we should discover the owner at least
-				defender.discoverer.clearPlanetOwnerIntel(planet)
-				defender.discoverer.discoverPlanet(&t.game.Rules, planet, false)
-			}
-
-		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
-			// can't load from things we don't own
-			messager.fleetTransportInvalid(player, fleet, dest, cargoType, transferAmount)
-			return fmt.Errorf("can't load from planet we don't own")
-		} else {
-			fleet.transferToDest(dest, cargoType, transferAmount)
-			messager.fleetTransportedCargo(player, fleet, dest, cargoType, transferAmount)
-
-			// mark this planet for saving, it could be unowned and would miss this
-			if planet, ok := dest.(*Planet); ok {
-				planet.MarkDirty()
-			}
 		}
 	}
-	return nil
+	for _, packet := range t.game.MineralPackets {
+		// delete this packet if we emptied it
+		if packet.Cargo == (Cargo{}) {
+			t.game.deletePacket(packet)
+
+			t.log.Debug().
+				Int("Player", packet.PlayerNum).
+				Str("Packet", packet.Name).
+				Msgf("deleted salvage")
+		}
+	}
 }
 
 func (t *turnGenerator) fleetMerge() {

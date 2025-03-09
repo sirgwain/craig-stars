@@ -351,6 +351,12 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	assert.True(t, slices.ContainsFunc(player2.Messages, func(message PlayerMessage) bool {
 		return message.Type == PlayerMessagePlanetInvaded
 	}))
+
+	// make sure player one knows they lost their planet
+	assert.True(t, slices.ContainsFunc(player2.PlanetIntels, func(p PlanetIntel) bool {
+		return p.Num == planet.Num && p.PlayerNum == player1.Num
+	}))
+
 }
 
 func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
@@ -465,9 +471,7 @@ func Test_turn_fleetMove(t *testing.T) {
 func Test_turn_fleetMoveRepeatOrders(t *testing.T) {
 	game := createSingleUnitGame()
 	player := game.Players[0]
-
 	planet := game.Planets[0]
-
 	planet.Cargo = Cargo{1000, 1000, 1000, 1000}
 
 	// make a new freighter for transport

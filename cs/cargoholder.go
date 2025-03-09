@@ -10,7 +10,7 @@ type cargoHolder interface {
 	getCargoCapacity() int
 	getFuel() int
 	getFuelCapacity() int
-	canLoad(playerNum int) bool
+	canLoad(fleet *Fleet) bool
 	canTransfer(transferAmount CargoTransferRequest) bool
 	deleted() bool
 }
@@ -40,8 +40,8 @@ func (ch *Planet) getFuelCapacity() int {
 }
 
 // players can load from unowned planets or planets they own
-func (ch *Planet) canLoad(playerNum int) bool {
-	return !ch.Owned() || ch.OwnedBy(playerNum)
+func (ch *Planet) canLoad(fleet *Fleet) bool {
+	return !ch.Owned() || ch.OwnedBy(fleet.PlayerNum) || fleet.Spec.CanStealPlanetCargo
 }
 
 // planets can't transfer fuel
@@ -76,8 +76,8 @@ func (ch *Fleet) getFuelCapacity() int {
 }
 
 // players can load from fleets they own
-func (ch *Fleet) canLoad(playerNum int) bool {
-	return ch.OwnedBy(playerNum)
+func (ch *Fleet) canLoad(fleet *Fleet) bool {
+	return ch.OwnedBy(fleet.PlayerNum) || fleet.Spec.CanStealFleetCargo
 }
 
 // planets can't transfer fuel
@@ -117,7 +117,7 @@ func (ch *Salvage) canTransfer(transferAmount CargoTransferRequest) bool {
 }
 
 // players can load from all salvages
-func (ch *Salvage) canLoad(playerNum int) bool {
+func (ch *Salvage) canLoad(fleet *Fleet) bool {
 	return true
 }
 
@@ -147,7 +147,7 @@ func (ch *MineralPacket) getFuelCapacity() int {
 }
 
 // players can load from all mineralPackets
-func (ch *MineralPacket) canLoad(playerNum int) bool {
+func (ch *MineralPacket) canLoad(fleet *Fleet) bool {
 	return true
 }
 
