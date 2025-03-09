@@ -410,7 +410,7 @@ func (p *producer) getItemCost(rules *Rules, player *Player, planet *Planet, ite
 	return cost, nil
 }
 
-// Clamp a  item's quantity down to however much stuff we can actually build.
+// Clamp a queue item's quantity down to however much stuff we can actually build.
 func (p *producer) clampItemQty(item ProductionQueueItem, maxBuildable int) ProductionQueueItem {
 	if maxBuildable != Infinite && item.Quantity > maxBuildable {
 		item.Quantity = maxBuildable
@@ -420,6 +420,7 @@ func (p *producer) clampItemQty(item ProductionQueueItem, maxBuildable int) Prod
 
 // Perform necessary cleanup to handle concrete items with invalid quantities.
 func (p *producer) handleInvalidQty(i ProductionQueueItem, available *Cost, result *productionResult, itemIndex *int) {
+	// TODO: Fix the index out of range panic if index is nil
 	result.itemsBuilt[i.index] = itemBuilt{index: i.index, skipped: true}
 	result.messages = append(result.messages,
 		newPlanetMessage(PlayerMessagePlanetBuiltInvalidItem, p.planet).
