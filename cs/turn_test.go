@@ -2,9 +2,12 @@ package cs
 
 import (
 	"math"
+	"os"
 	"slices"
 	"testing"
+	"time"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,7 +15,8 @@ import (
 // many functions require a copy of the current game's rules.
 // for testing, create a standard rules var every test can use
 var rules = NewRules()
-var testLogger = log.With().Bool("TestMode", true).Logger()
+var writer = zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime}
+var testLogger = log.With().Bool("TestMode", true).Logger().Output(writer)
 
 type MockRand struct {
 	int63Result int64

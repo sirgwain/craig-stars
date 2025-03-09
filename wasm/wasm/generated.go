@@ -565,15 +565,6 @@ func SetCargo(o js.Value, obj *cs.Cargo) {
 	o.Set("colonists", obj.Colonists)
 }
 
-func GetCargoTransferInvalidReason(o js.Value) cs.CargoTransferInvalidReason {
-	var obj cs.CargoTransferInvalidReason
-	if o.IsUndefined() || o.IsNull() {
-		return obj
-	}
-	obj = getInt[cs.CargoTransferInvalidReason](o)
-	return obj
-}
-
 func GetCargoTransferRequest(o js.Value) cs.CargoTransferRequest {
 	var obj cs.CargoTransferRequest
 	if o.IsUndefined() || o.IsNull() {
@@ -586,6 +577,15 @@ func GetCargoTransferRequest(o js.Value) cs.CargoTransferRequest {
 func SetCargoTransferRequest(o js.Value, obj *cs.CargoTransferRequest) {
 	SetCargo(o, &obj.Cargo)
 	o.Set("fuel", obj.Fuel)
+}
+
+func GetCargoTransferStatus(o js.Value) cs.CargoTransferStatus {
+	var obj cs.CargoTransferStatus
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = getInt[cs.CargoTransferStatus](o)
+	return obj
 }
 
 func GetCargoTransfers(o js.Value) cs.CargoTransfers {

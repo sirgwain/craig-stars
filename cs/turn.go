@@ -180,7 +180,7 @@ func (t *turnGenerator) byHandLoads() {
 
 			// for by hand transfers, we only care if something went wrong
 			for _, result := range results {
-				if result.invalid == CargoTransferInvalidNone {
+				if result.status == CargoTransferStatusNone {
 					continue
 				}
 				messager.fleetTransportInvalid(player, result.fleet, result.dest, result.cargoType, result.transferred)
@@ -206,7 +206,7 @@ func (t *turnGenerator) byHandUnloads() {
 
 			for _, result := range results {
 
-				if result.invalid != CargoTransferInvalidNone {
+				if result.status != CargoTransferStatusNone {
 					player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetImmediateTransferNotComplete, result.fleet))
 					// withSpec(PlayerMessageSpec{Cargo: &cargo, Cargo2: &transferred}.withTargetPlanet(result.dest)))
 					continue
@@ -510,14 +510,14 @@ func (t *turnGenerator) fleetUnload() {
 			results := cargoTransferer.unload(fleet, dest, wp.TransportTasks)
 
 			for _, result := range results {
-				if result.invalid != CargoTransferInvalidNone {
+				if result.status != CargoTransferStatusNone {
 					t.log.Debug().
 						Int("Player", fleet.PlayerNum).
 						Str("Fleet", fleet.Name).
 						Str("Dest", dest.getMapObject().Name).
 						Int("Transfered", result.transferred).
 						Str("cargoType", result.cargoType.String()).
-						Msgf("unload cargo failed %v", result.invalid)
+						Msgf("unload cargo failed %v", result.status)
 					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred)
 
 					continue
@@ -561,14 +561,14 @@ func (t *turnGenerator) fleetLoad() {
 
 			results := cargoTransferer.load(fleet, dest, wp.TransportTasks)
 			for _, result := range results {
-				if result.invalid != CargoTransferInvalidNone {
+				if result.status != CargoTransferStatusNone {
 					t.log.Debug().
 						Int("Player", fleet.PlayerNum).
 						Str("Fleet", fleet.Name).
 						Str("Dest", dest.getMapObject().Name).
 						Int("Transfered", result.transferred).
 						Str("cargoType", result.cargoType.String()).
-						Msgf("load cargo failed %v", result.invalid)
+						Msgf("load cargo failed %v", result.status)
 					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred)
 
 					continue
@@ -1194,12 +1194,14 @@ func (t *turnGenerator) fleetReproduce() {
 // decay each salvage and remove it from the universe if it's empty
 func (t *turnGenerator) decaySalvage() {
 	for _, salvage := range t.game.Salvages {
+		beforeCargo := salvage.Cargo
 		salvage.decay(&t.game.Rules)
 
 		t.log.Debug().
 			Int("Player", salvage.PlayerNum).
 			Str("Salvage", salvage.Name).
-			Str("Cargo", salvage.Cargo.PrettyString()).
+			Str("CargoBefore", beforeCargo.PrettyString()).
+			Str("CargoAfter", salvage.Cargo.PrettyString()).
 			Msgf("decayed salvage")
 
 		if (salvage.Cargo == Cargo{}) {

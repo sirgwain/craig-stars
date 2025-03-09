@@ -36,7 +36,7 @@ type Orderer interface {
 	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error
-	JettisonFleetCargo(player *Player, fleet *Fleet, jettison Cargo) error
+	TransferJettisonCargo(player *Player, fleet *Fleet, jettison Cargo) error
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
 	TransferPlanetCargo(rules *Rules, player *Player, source *Fleet, dest *Planet, transferAmount CargoTransferRequest, playerPlanets []*Planet) error
 	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error)
@@ -149,8 +149,8 @@ func (o *orders) updatePlanetSpec(rules *Rules, player *Player, planet *Planet) 
 	return nil
 }
 
-// JettisonFleetCargo will update the fleet jettison cargo
-func (o *orders) JettisonFleetCargo(player *Player, fleet *Fleet, jettison Cargo) error {
+// TransferJettisonCargo will update the fleet jettison cargo
+func (o *orders) TransferJettisonCargo(player *Player, fleet *Fleet, jettison Cargo) error {
 	// do a transfer request to the Jettison
 	// If jettisoning 1kt Ironium jettison will be {Ironium: -1}
 

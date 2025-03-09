@@ -135,14 +135,14 @@ export interface ByHandCargoTransfer extends MapObjectTarget {
 	sourceFleetNum?: number /* int */;
 	cargo: Cargo;
 }
-export type CargoTransferInvalidReason = number /* int */;
-export const CargoTransferInvalidNone: CargoTransferInvalidReason = 0;
-export const CargoTransferInvalidOwned: CargoTransferInvalidReason = 1;
-export const CargoTransferInvalidCargo: CargoTransferInvalidReason = 2;
-export const CargoTransferInvalidCargoCapacity: CargoTransferInvalidReason = 3;
-export const CargoTransferInvalidDestCargo: CargoTransferInvalidReason = 4;
-export const CargoTransferInvalidDestCargoCapacity: CargoTransferInvalidReason = 5;
-export const CargoTransferInvalidDestStarbase: CargoTransferInvalidReason = 6;
+export type CargoTransferStatus = number /* int */;
+export const CargoTransferStatusNone: CargoTransferStatus = 0;
+export const CargoTransferStatusOwned: CargoTransferStatus = 1;
+export const CargoTransferStatusCargo: CargoTransferStatus = 2;
+export const CargoTransferStatusCargoCapacity: CargoTransferStatus = 3;
+export const CargoTransferStatusDestCargo: CargoTransferStatus = 4;
+export const CargoTransferStatusDestCargoCapacity: CargoTransferStatus = 5;
+export const CargoTransferStatusDestStarbase: CargoTransferStatus = 6;
 /**
  * dunnage tasks are done after regular tasks
  */

@@ -15,6 +15,10 @@ type Target[T PlayerMessageTargetType | MapObjectType] struct {
 type MapObjectTarget = Target[MapObjectType]
 type PlayerMessageTarget = Target[PlayerMessageTargetType]
 
+func (t Target[T]) String() string {
+	return fmt.Sprintf("Target: %s Type: %s Player: %d Num: %d", t.TargetName, t.TargetType, t.TargetPlayerNum, t.TargetNum)
+}
+
 // Throughout a turn various events will result in messages being sent to players.
 // Messages have a type and a target (the target is focused in the UI when you click the Goto button)
 // Messages also have a Spec that is used to store specific numbers for the UI to display on the message.
@@ -335,7 +339,7 @@ func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet,
 		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt}.withTargetPlanet(planet)))
 }
 
-func (m *messageClient) fleetByHandCargoTransferInvalid(player *Player, fleet *Fleet, reason string) {
+func (m *messageClient) fleetByHandCargoTransferStatus(player *Player, fleet *Fleet, reason string) {
 	text := reason
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetImmediateTransferInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }

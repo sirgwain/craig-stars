@@ -508,7 +508,7 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 		args           args
 		wantFleetCargo Cargo
 		wantDestCargo  Cargo
-		wantInvalid    CargoTransferInvalidReason
+		wantInvalid    CargoTransferStatus
 	}{
 		{
 			name:           "transfer 10kT to planet",
@@ -537,7 +537,7 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 			fleet:         testSmallFreighter(player),
 			args:          args{dest: NewPlanet().WithCargo(Cargo{Ironium: 1000}), cargoType: Ironium, transferAmount: -1000},
 			wantDestCargo: Cargo{Ironium: 1000},
-			wantInvalid:   CargoTransferInvalidCargoCapacity,
+			wantInvalid:   CargoTransferStatusCargoCapacity,
 		},
 		{
 			name:           "transfer 1000kT to planet, error",
@@ -545,7 +545,7 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 			args:           args{dest: NewPlanet().WithCargo(Cargo{Ironium: 1000}), cargoType: Ironium, transferAmount: 1000},
 			wantFleetCargo: Cargo{Ironium: 10},
 			wantDestCargo:  Cargo{Ironium: 1000},
-			wantInvalid:    CargoTransferInvalidCargo,
+			wantInvalid:    CargoTransferStatusCargo,
 		},
 		{
 			name:           "transfer 120kT to another fleet with cargo, error",
@@ -553,7 +553,7 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 			args:           args{dest: testSmallFreighter(player).withCargo(Cargo{Ironium: 100}), cargoType: Ironium, transferAmount: 120},
 			wantFleetCargo: Cargo{Ironium: 120},
 			wantDestCargo:  Cargo{Ironium: 100},
-			wantInvalid:    CargoTransferInvalidDestCargoCapacity,
+			wantInvalid:    CargoTransferStatusDestCargoCapacity,
 		},
 	}
 	for _, tt := range tests {
@@ -606,10 +606,9 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 			},
 			want: []cargoTransferResult{
 				{
-					cargoTransferType: cargoTransferTypeLoad,
-					cargoType:         Ironium,
-					transferred:       -10,
-					wanted:            -10,
+					cargoType:   Ironium,
+					transferred: -10,
+					wanted:      -10,
 				},
 			},
 			wantSourceCargo: []Cargo{
@@ -642,10 +641,9 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 			},
 			want: []cargoTransferResult{
 				{
-					cargoTransferType: cargoTransferTypeLoad,
-					cargoType:         Ironium,
-					transferred:       -10,
-					wanted:            -10,
+					cargoType:   Ironium,
+					transferred: -10,
+					wanted:      -10,
 				},
 			},
 			wantSourceCargo: []Cargo{
@@ -671,10 +669,9 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 			},
 			want: []cargoTransferResult{
 				{
-					cargoTransferType: cargoTransferTypeLoad,
-					cargoType:         Ironium,
-					transferred:       0,
-					wanted:            -10,
+					cargoType:   Ironium,
+					transferred: 0,
+					wanted:      -10,
 				},
 			},
 			wantSourceCargo: []Cargo{
@@ -771,10 +768,9 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 			},
 			want: []cargoTransferResult{
 				{
-					cargoTransferType: cargoTransferTypeUnload,
-					cargoType:         Ironium,
-					transferred:       10,
-					wanted:            10,
+					cargoType:   Ironium,
+					transferred: 10,
+					wanted:      10,
 				},
 			},
 			wantSourceCargo: []Cargo{
@@ -802,21 +798,14 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 				{
 					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
 					SourceFleetNum:  1,
-					Cargo:           Cargo{Ironium: -10, Germanium: 10}, // dump 10kT Germanium, load 10kT ironium
+					Cargo:           Cargo{Ironium: -10, Germanium: 10}, // load 10kT ironium, dump 10kT Germanium
 				},
 			},
 			want: []cargoTransferResult{
 				{
-					cargoTransferType: cargoTransferTypeUnload,
-					cargoType:         Ironium,
-					transferred:       10,
-					wanted:            10,
-				},
-				{
-					cargoTransferType: cargoTransferTypeUnload,
-					cargoType:         Germanium,
-					transferred:       10,
-					wanted:            10,
+					cargoType:   Germanium,
+					transferred: 10,
+					wanted:      10,
 				},
 			},
 			wantSourceCargo: []Cargo{
@@ -824,7 +813,43 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 				{Ironium: 0},
 			},
 			wantTargetCargo: []Cargo{
-				{Ironium: 10, Germanium: 10}, // should end up with 10 ironium, 10 germ. Loads would happen earlier
+				{Ironium: 0, Germanium: 10}, // should end up with 0 ironium, 10 germ
+			},
+		},
+		{
+			name: "unload 50kTi ironium, another fleet loads 10kT, should end up with 40kT unloaded",
+			fields: fields{
+				fleets: []*Fleet{
+					testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 0}),
+					testSmallFreighter(player).withNum(2).withCargo(Cargo{Ironium: 10}),
+				},
+				targets: []cargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{})},
+			},
+			transfers: []ByHandCargoTransfer{
+				{
+					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
+					SourceFleetNum:  1,
+					Cargo:           Cargo{Ironium: 50}, // dump 50kT onto the salvage
+				},
+				{
+					MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypePlanet, TargetNum: 1},
+					SourceFleetNum:  2,
+					Cargo:           Cargo{Ironium: -10}, // load 10kT ironium
+				},
+			},
+			want: []cargoTransferResult{
+				{
+					cargoType:   Ironium,
+					transferred: 40,
+					wanted:      40,
+				},
+			},
+			wantSourceCargo: []Cargo{
+				{Ironium: 0},
+				{Ironium: 10},
+			},
+			wantTargetCargo: []Cargo{
+				{Ironium: 40}, // should end up with 40 ironium
 			},
 		},
 	}

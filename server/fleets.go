@@ -575,7 +575,7 @@ func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Reque
 	}
 
 	orderer := cs.NewOrderer()
-	if err := orderer.JettisonFleetCargo(fullPlayer, fleet, transferAmount.Cargo); err != nil {
+	if err := orderer.TransferJettisonCargo(fullPlayer, fleet, transferAmount.Cargo); err != nil {
 		log.Error().Err(err).Msg("transfer cargo")
 		return
 	}
