@@ -58,7 +58,7 @@ func (r CargoTransferStatus) String() string {
 type cargoTransferResult struct {
 	status         CargoTransferStatus // if transfer fails, this is the reason
 	fleet          *Fleet
-	dest           cargoHolder
+	dest           CargoHolder
 	cargoType      CargoType
 	transferred    int
 	wanted         int
@@ -92,20 +92,24 @@ func (cargoTransfers CargoTransfers) getByHandTransfer(target MapObjectTarget) C
 
 // transferByHand adds a byHand transfer to a target
 func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Cargo) {
-	transfer := ByHandCargoTransfer{
-		SourceFleetNum:  fleet.Num,
-		Cargo:           cargo,
-		MapObjectTarget: target,
-	}
-
 	// add the new cargo transfer to the player
 	key := fleet.Position.String()
 	transfers := cargoTransfers[key]
 
 	// if the last transfer is the same fleet/target, just update it instead of creating another one
-	if transfers != nil && transfers[len(transfers)-1].SourceFleetNum == fleet.Num && transfers[len(transfers)-1].MapObjectTarget == transfer.MapObjectTarget {
-		transfers[len(transfers)-1].Cargo = transfers[len(transfers)-1].Cargo.Add(cargo)
+	var lastTransfer *ByHandCargoTransfer
+	if len(transfers) > 0 {
+		lastTransfer = &transfers[len(transfers)-1]
+	}
+	if lastTransfer != nil && lastTransfer.SourceFleetNum == fleet.Num && lastTransfer.MapObjectTarget == target {
+		lastTransfer.Cargo = lastTransfer.Cargo.Add(cargo)
 		return
+	}
+
+	transfer := ByHandCargoTransfer{
+		SourceFleetNum:  fleet.Num,
+		Cargo:           cargo,
+		MapObjectTarget: target,
 	}
 
 	// add a new immediate cargo transfer for this jettison
@@ -273,8 +277,8 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 				// if we are loading cargo, take it from the bucket first
 				if amount < 0 && amountInBucket > 0 {
 					loadAmount := Min(0, amount+amountInBucket)
-					cargoInBucket.SetAmount(cargoType, amountInBucket+loadAmount)
-					cargoToLoad.SetAmount(cargoType, loadAmount)
+					cargoInBucket = cargoInBucket.SetAmount(cargoType, amountInBucket+loadAmount)
+					cargoToLoad = cargoToLoad.SetAmount(cargoType, loadAmount)
 
 					log.Debug().
 						Int("Player", player.Num).
@@ -312,16 +316,23 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 			fleet.Cargo = fleet.Cargo.Add(cargoToLoad.NegativeOnly())
 
 			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
-			if !ok || dest.deleted() {
+			if !ok || dest.Deleted() {
 				// can't load from space
 				continue
+			}
+
+			mo := dest.GetMapObject()
+			if mo.OwnedBy(fleet.PlayerNum) {
+				// this transfer already happened so reverse it and add it again for real this time
+				dest.SetCargo(dest.GetCargo().Subtract(cargoToLoad.NegativeOnly()))
 			}
 			log.Debug().
 				Int("Player", fleet.PlayerNum).
 				Str("Fleet", fleet.Name).
-				Str("Dest", dest.getMapObject().Name).
+				Str("Dest", dest.GetMapObject().Name).
 				Str("Cargo", fleet.Cargo.PrettyString()).
-				Str("cargoToLoad", cargoToLoad.PrettyString()).
+				Str("DestCargo", dest.GetCargo().PrettyString()).
+				Str("CargoToLoad", cargoToLoad.PrettyString()).
 				Msgf("by hand load cargo")
 
 			results = append(results, t.load(fleet, dest, transportTasks)...)
@@ -367,8 +378,8 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				// if we are loading cargo, take it from the bucket first
 				if amount > 0 && amountInBucket < 0 {
 					unloadAmount := Max(0, amount+amountInBucket)
-					cargoInBucket.SetAmount(cargoType, amountInBucket+unloadAmount)
-					cargoToUnload.SetAmount(cargoType, unloadAmount)
+					cargoInBucket = cargoInBucket.SetAmount(cargoType, amountInBucket+unloadAmount)
+					cargoToUnload = cargoToUnload.SetAmount(cargoType, unloadAmount)
 
 					log.Debug().
 						Int("Player", player.Num).
@@ -406,17 +417,26 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 			fleet.Cargo = fleet.Cargo.Add(cargoToUnload.PositiveOnly())
 
 			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
+			newlyCreatedSalvage := false
 			if !ok && transfer.TargetType == MapObjectTypeNone {
 				// create a salvage
 				dest = t.game.getOrCreateSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
+				newlyCreatedSalvage = true
+			}
+
+			mo := dest.GetMapObject()
+			if mo.OwnedBy(fleet.PlayerNum) && !newlyCreatedSalvage {
+				// this transfer already happened so reverse it and transfer it again for real this time
+				dest.SetCargo(dest.GetCargo().Subtract(cargoToUnload.PositiveOnly()))
 			}
 
 			log.Debug().
 				Int("Player", fleet.PlayerNum).
 				Str("Fleet", fleet.Name).
-				Str("Dest", dest.getMapObject().Name).
+				Str("Dest", dest.GetMapObject().Name).
 				Str("Cargo", fleet.Cargo.PrettyString()).
-				Str("cargoToUnload", cargoToUnload.PrettyString()).
+				Str("DestCargo", dest.GetCargo().PrettyString()).
+				Str("CargoToUnload", cargoToUnload.PrettyString()).
 				Msgf("by hand unload cargo")
 
 			results = append(results, t.unload(fleet, dest, transportTasks)...)
@@ -426,7 +446,7 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 }
 
 // load executes cargo load operations for a single fleet, returning a result for each cargoType transfered
-func (t *cargoTransferer) load(fleet *Fleet, dest cargoHolder, transportTasks WaypointTransportTasks) []cargoTransferResult {
+func (t *cargoTransferer) load(fleet *Fleet, dest CargoHolder, transportTasks WaypointTransportTasks) []cargoTransferResult {
 	results := []cargoTransferResult{}
 
 	// dunnage tasks are done after regular tasks
@@ -503,7 +523,7 @@ func (t *cargoTransferer) load(fleet *Fleet, dest cargoHolder, transportTasks Wa
 	return results
 }
 
-func (t *cargoTransferer) unload(fleet *Fleet, dest cargoHolder, transportTasks WaypointTransportTasks) []cargoTransferResult {
+func (t *cargoTransferer) unload(fleet *Fleet, dest CargoHolder, transportTasks WaypointTransportTasks) []cargoTransferResult {
 	results := []cargoTransferResult{}
 
 	for cargoType, task := range transportTasks.getTransportTasks() {
@@ -527,7 +547,7 @@ func (t *cargoTransferer) unload(fleet *Fleet, dest cargoHolder, transportTasks 
 }
 
 // transferCargo transfers a single cargo type to/from the fleet to/from the dest
-func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest cargoHolder) (transferred int, invalid CargoTransferStatus) {
+func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoType CargoType, dest CargoHolder) (transferred int, invalid CargoTransferStatus) {
 	if transferAmount == 0 {
 		return 0, CargoTransferStatusNone
 	}
@@ -541,9 +561,9 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 			t.log.Debug().
 				Int("Player", fleet.PlayerNum).
 				Str("Fleet", fleet.Name).
-				Str("Dest", dest.getMapObject().Name).
+				Str("Dest", dest.GetMapObject().Name).
 				Str("cargoType", cargoType.String()).
-				Msgf("fleet %s cannot unload %d00 colonists to %s, starbase is in orbit", fleet.Name, transferAmount, dest.getMapObject().Name)
+				Msgf("fleet %s cannot unload %d00 colonists to %s, starbase is in orbit", fleet.Name, transferAmount, dest.GetMapObject().Name)
 
 			return 0, CargoTransferStatusDestStarbase
 		}
@@ -571,16 +591,16 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 }
 
 // getTransferAmount gets the amount of cargo to transfer for loading a cargo type from a cargoholder
-func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest cargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
+func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
 	availableCapacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
-	availableToLoad := dest.getCargo().GetAmount(cargoType)
+	availableToLoad := dest.GetCargo().GetAmount(cargoType)
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
 	totalCapacity := fleet.Spec.CargoCapacity
 
 	// fuel transfers use different tanks
 	if cargoType == Fuel {
 		availableCapacity = fleet.Spec.FuelCapacity - fleet.Fuel
-		availableToLoad = dest.getFuel()
+		availableToLoad = dest.GetFuel()
 		currentAmount = fleet.Fuel
 		totalCapacity = fleet.Spec.FuelCapacity
 	}
@@ -590,19 +610,19 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest cargoHolder, car
 		// fuel only
 		// we set our fuel to whatever it takes to finish our waypoints and transfer the rest to the ICargoHolder target.
 		// If the target is a planet or starbase (and has infinite fuel capacity), we skip this and don't give them our fuel
-		if cargoType == Fuel && dest.getFuelCapacity() != Unlimited {
+		if cargoType == Fuel && dest.GetFuelCapacity() != Unlimited {
 			fuelRequiredForWaypoints := 0
 			for i := 1; i < len(fleet.Waypoints); i++ {
 				fuelRequiredForWaypoints += fleet.Waypoints[i].EstFuelUsage
 			}
 			leftoverFuel := fleet.Fuel - fuelRequiredForWaypoints
 			wantToTransfer = leftoverFuel
-			fuelCapacityAvailable := dest.getFuelCapacity() - dest.getFuel()
+			fuelCapacityAvailable := dest.GetFuelCapacity() - dest.GetFuel()
 			if leftoverFuel > 0 && fuelCapacityAvailable > 0 {
 				// transfer the lowest of how much fuel capacity they have available or how much we can give
 				// this is a bit weird because we are doing a "Load", but it's actually an unload of fuel
 				// from us to a dest fleet, so make the transferAmount negative.
-				transferAmount = Max(-leftoverFuel, -(dest.getFuelCapacity() - dest.getFuel()))
+				transferAmount = Max(-leftoverFuel, -(dest.GetFuelCapacity() - dest.GetFuel()))
 			}
 		}
 	case TransportActionLoadAll:
@@ -665,15 +685,15 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest cargoHolder, car
 }
 
 // getCargoUnloadAmount gets the amount of cargo to transfer for unloading a cargo type from a cargoholder
-func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest cargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
+func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
 
-	capacity := dest.getCargoCapacity()
+	capacity := dest.GetCargoCapacity()
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
 
 	var availableToUnload int
 	if cargoType == Fuel {
 		availableToUnload = fleet.Fuel
-		capacity = Max(0, dest.getFuelCapacity()-dest.getFuel())
+		capacity = Max(0, dest.GetFuelCapacity()-dest.GetFuel())
 		currentAmount = fleet.Fuel
 	} else {
 		availableToUnload = fleet.Cargo.GetAmount(cargoType)
@@ -701,7 +721,7 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest cargoHolder, c
 		transferAmount = Max(0, Min(availableToUnload, currentAmount-task.Amount))
 	case TransportActionSetWaypointTo:
 		// Make sure the waypoint has at least whatever we specified
-		var currentAmount = dest.getCargo().GetAmount(cargoType)
+		var currentAmount = dest.GetCargo().GetAmount(cargoType)
 
 		if currentAmount >= task.Amount {
 			// no need to transfer any, move on
@@ -721,18 +741,18 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest cargoHolder, c
 
 // transferToDest performs a transfer of a single cargo type to/from a destination
 // returns a status other than None if the transfer fails for some reason
-func (t *cargoTransferer) transferToDest(fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) CargoTransferStatus {
-	destCargo := dest.getCargo()
+func (t *cargoTransferer) transferToDest(fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) CargoTransferStatus {
+	destCargo := dest.GetCargo()
 
 	// check for load from owned dest
-	if transferAmount < 0 && !dest.canLoad(fleet) {
+	if transferAmount < 0 && !dest.CanLoad(fleet) {
 		// can't load from things we don't own
 		t.log.Debug().
 			Int("Player", fleet.PlayerNum).
 			Str("Fleet", fleet.Name).
-			Str("Dest", dest.getMapObject().Name).
+			Str("Dest", dest.GetMapObject().Name).
 			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s cannot load %d to %s, does not own dest", fleet.Name, transferAmount, dest.getMapObject().Name)
+			Msgf("fleet %s cannot load %d to %s, does not own dest", fleet.Name, transferAmount, dest.GetMapObject().Name)
 
 		return CargoTransferStatusOwned
 	}
@@ -741,9 +761,9 @@ func (t *cargoTransferer) transferToDest(fleet *Fleet, dest cargoHolder, cargoTy
 		t.log.Debug().
 			Int("Player", fleet.PlayerNum).
 			Str("Fleet", fleet.Name).
-			Str("Dest", dest.getMapObject().Name).
+			Str("Dest", dest.GetMapObject().Name).
 			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s cannot transfer %d to %s, there is not enough in the fleet to transfer", fleet.Name, transferAmount, dest.getMapObject().Name)
+			Msgf("fleet %s cannot transfer %d to %s, there is not enough in the fleet to transfer", fleet.Name, transferAmount, dest.GetMapObject().Name)
 		return CargoTransferStatusCargo
 	}
 
@@ -751,9 +771,9 @@ func (t *cargoTransferer) transferToDest(fleet *Fleet, dest cargoHolder, cargoTy
 		t.log.Debug().
 			Int("Player", fleet.PlayerNum).
 			Str("Fleet", fleet.Name).
-			Str("Dest", dest.getMapObject().Name).
+			Str("Dest", dest.GetMapObject().Name).
 			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", fleet.Name, fleet.availableCargoSpace(), transferAmount, dest.getMapObject().Name)
+			Msgf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", fleet.Name, fleet.availableCargoSpace(), transferAmount, dest.GetMapObject().Name)
 		return CargoTransferStatusCargoCapacity
 	}
 
@@ -761,26 +781,26 @@ func (t *cargoTransferer) transferToDest(fleet *Fleet, dest cargoHolder, cargoTy
 		t.log.Debug().
 			Int("Player", fleet.PlayerNum).
 			Str("Fleet", fleet.Name).
-			Str("Dest", dest.getMapObject().Name).
+			Str("Dest", dest.GetMapObject().Name).
 			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s cannot transfer %d from %s, there is not enough to transfer", fleet.Name, transferAmount, dest.getMapObject().Name)
+			Msgf("fleet %s cannot transfer %d from %s, there is not enough to transfer", fleet.Name, transferAmount, dest.GetMapObject().Name)
 		return CargoTransferStatusDestCargo
 	}
 
-	if transferAmount > 0 && dest.getCargoCapacity() != Unlimited && (dest.getCargoCapacity()-destCargo.Total()) < transferAmount {
+	if transferAmount > 0 && dest.GetCargoCapacity() != Unlimited && (dest.GetCargoCapacity()-destCargo.Total()) < transferAmount {
 		t.log.Debug().
 			Int("Player", fleet.PlayerNum).
 			Str("Fleet", fleet.Name).
-			Str("Dest", dest.getMapObject().Name).
+			Str("Dest", dest.GetMapObject().Name).
 			Str("cargoType", cargoType.String()).
-			Msgf("fleet %s cannot transfer %d to %s, there is not enough to space to hold the cargo", fleet.Name, transferAmount, dest.getMapObject().Name)
+			Msgf("fleet %s cannot transfer %d to %s, there is not enough to space to hold the cargo", fleet.Name, transferAmount, dest.GetMapObject().Name)
 		return CargoTransferStatusDestCargoCapacity
 
 	}
 
 	// transfer the cargo
-	fleet.Cargo.SubtractAmount(cargoType, transferAmount)
-	destCargo.AddAmount(cargoType, transferAmount)
+	fleet.Cargo = fleet.Cargo.SubtractAmount(cargoType, transferAmount)
+	dest.SetCargo(destCargo.AddAmount(cargoType, transferAmount))
 
 	return CargoTransferStatusNone
 }

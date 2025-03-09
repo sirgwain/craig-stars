@@ -1160,7 +1160,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			o := &orders{}
 			sourceCargo := tt.args.source.Cargo
 			destCargo := tt.args.dest.Cargo
-			err := o.TransferPlanetCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount, []*Planet{tt.args.dest})
+			err := o.TransferByHand(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("orders.TransferPlanetCargo() did not return error when expected")

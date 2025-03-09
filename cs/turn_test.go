@@ -320,6 +320,36 @@ func Test_turn_grow(t *testing.T) {
 	assert.Equal(t, 2_304_000, planet4.population())
 }
 
+func Test_turn_fleetByHandJettison(t *testing.T) {
+	game := createSingleUnitGame()
+	player := game.Players[0]
+
+	// make the player's fleet a cargo ship
+	fleet := testTeamster(player)
+	fleet.Tokens[0].Quantity = 2
+	game.Fleets[0] = fleet
+
+	fleet.Position = Vector{10, 10}
+	fleet.OrbitingPlanetNum = None
+	fleet.Cargo = Cargo{Ironium: 50}
+
+	// transfer 50kT ironium to deep space
+	player.CargoTransfers.transferByHand(fleet, MapObjectTarget{}, Cargo{Ironium: 50})
+
+	turn := turnGenerator{
+		game: game,
+	}
+	turn.game.Universe.buildMaps(game.Players)
+
+	// transfer
+	turn.generateTurn()
+
+	assert.Equal(t, 1, len(game.Salvages))
+	assert.Equal(t, Vector{10, 10}, game.Salvages[0].Position)
+	assert.Equal(t, Cargo{Ironium: 40}, game.Salvages[0].Cargo)
+
+}
+
 func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	game := createTwoPlayerGame()
 	player1 := game.Players[0]

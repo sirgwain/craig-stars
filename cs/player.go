@@ -532,11 +532,11 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 		},
 	}
 
-	spec.PlayerResearchSpec = computePlayerResearchSpec(player, rules, planets)
+	spec.PlayerResearchSpec = ComputePlayerResearchSpec(player, rules, planets)
 	return spec
 }
 
-func computePlayerResearchSpec(player *Player, rules *Rules, planets []*Planet) PlayerResearchSpec {
+func ComputePlayerResearchSpec(player *Player, rules *Rules, planets []*Planet) PlayerResearchSpec {
 	researcher := newResearcher(rules)
 	spec := PlayerResearchSpec{}
 

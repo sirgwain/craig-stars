@@ -7,6 +7,7 @@ import type {
 	BattlePlan,
 	Cargo,
 	CargoTransfers,
+	MapObjectTarget,
 	NextResearchField,
 	Player,
 	PlayerMessage,
@@ -16,15 +17,13 @@ import type {
 	ProductionPlan,
 	ProductionQueueItem,
 	TechField,
-	TransportPlan,
-	Vector
+	TransportPlan
 } from './cs';
 import {
 	Biotechnology,
 	Construction,
 	Electronics,
 	Energy,
-	MapObjectTypeNone,
 	NextResearchFieldBiotechnology,
 	NextResearchFieldConstruction,
 	NextResearchFieldElectronics,
@@ -48,6 +47,7 @@ import {
 	type TechStore
 } from './cs';
 import { HabTypes } from './Hab';
+import { targetsEqual } from './MapObject';
 import type { CommandedPlanet } from './Planet';
 import { humanoid } from './Race';
 import { getBestTerraform } from './Tech';
@@ -249,18 +249,16 @@ export class CommandedPlayer implements Player, CostFinder {
 		return terraformAbility;
 	}
 
-	public getJettison(position: Vector): Cargo {
-		const key = string(position);
+	public getByHandTransfer(target: MapObjectTarget): Cargo {
+		const key = string(target.targetPosition);
 		const transfers = this.cargoTransfers[key];
 		let cargo = emptyCargo();
 		if (!transfers) {
 			return cargo;
 		}
 
-		// sum up all jettison for this location
-		transfers
-			.filter((t) => t.targetType == undefined || t.targetType === MapObjectTypeNone)
-			.forEach((t) => (cargo = add(cargo, t.cargo)));
+		// sum up all transfers for this target
+		transfers.filter((t) => targetsEqual(target, t)).forEach((t) => (cargo = add(cargo, t.cargo)));
 
 		return cargo;
 	}

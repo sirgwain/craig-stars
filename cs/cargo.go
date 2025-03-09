@@ -56,16 +56,16 @@ func (c CargoType) String() string {
 
 func (c Cargo) PrettyString() string {
 	texts := make([]string, 0, 4)
-	if c.Ironium > 0 {
+	if c.Ironium != 0 {
 		texts = append(texts, fmt.Sprintf("%dkT ironium", c.Ironium))
 	}
-	if c.Boranium > 0 {
+	if c.Boranium != 0 {
 		texts = append(texts, fmt.Sprintf("%dkT boranium", c.Boranium))
 	}
-	if c.Germanium > 0 {
+	if c.Germanium != 0 {
 		texts = append(texts, fmt.Sprintf("%dkT germanium", c.Germanium))
 	}
-	if c.Colonists > 0 {
+	if c.Colonists != 0 {
 		texts = append(texts, fmt.Sprintf("%dkT colonists", c.Colonists))
 	}
 	return strings.Join(texts, ", ")
@@ -79,6 +79,8 @@ func (c Cargo) HasMinerals() bool {
 	return (c.Ironium + c.Boranium + c.Germanium) > 0
 }
 
+// HasNegative returns true if any cargo is negative. This will identify
+// a load order
 func (c Cargo) HasNegative() bool {
 	return c.Ironium < 0 || c.Boranium < 0 || c.Germanium < 0 || c.Colonists < 0
 }
@@ -226,7 +228,7 @@ func (c Cargo) CanTransferAmount(cargoType CargoType, transferAmount int) bool {
 
 }
 
-func (c *Cargo) SubtractAmount(cargoType CargoType, transferAmount int) *Cargo {
+func (c Cargo) SubtractAmount(cargoType CargoType, transferAmount int) Cargo {
 	switch cargoType {
 	case Ironium:
 		c.Ironium -= transferAmount
@@ -240,7 +242,7 @@ func (c *Cargo) SubtractAmount(cargoType CargoType, transferAmount int) *Cargo {
 	return c
 }
 
-func (c *Cargo) AddAmount(cargoType CargoType, transferAmount int) *Cargo {
+func (c Cargo) AddAmount(cargoType CargoType, transferAmount int) Cargo {
 	switch cargoType {
 	case Ironium:
 		c.Ironium += transferAmount
@@ -269,7 +271,7 @@ func (c Cargo) GetAmount(t CargoType) int {
 	return 0
 }
 
-func (c *Cargo) SetAmount(t CargoType, amount int) {
+func (c Cargo) SetAmount(t CargoType, amount int) Cargo {
 	switch t {
 	case Ironium:
 		c.Ironium = amount
@@ -280,6 +282,7 @@ func (c *Cargo) SetAmount(t CargoType, amount int) {
 	case Colonists:
 		c.Colonists = amount
 	}
+	return c
 }
 
 // get the amount for a type of cargo

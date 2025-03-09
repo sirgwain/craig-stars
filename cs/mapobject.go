@@ -75,3 +75,13 @@ func (mo *MapObject) SetTag(key, value string) {
 	}
 	mo.Tags[key] = value
 }
+
+func (mo MapObject) ToTarget() MapObjectTarget {
+	return MapObjectTarget{
+		TargetType:      mo.Type,
+		TargetNum:       mo.Num,
+		TargetPlayerNum: mo.PlayerNum,
+		TargetName:      mo.Name,
+		TargetPosition:  mo.Position,
+	}
+}

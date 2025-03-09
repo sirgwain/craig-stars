@@ -514,7 +514,7 @@ func (t *turnGenerator) fleetUnload() {
 					t.log.Debug().
 						Int("Player", fleet.PlayerNum).
 						Str("Fleet", fleet.Name).
-						Str("Dest", dest.getMapObject().Name).
+						Str("Dest", dest.GetMapObject().Name).
 						Int("Transfered", result.transferred).
 						Str("cargoType", result.cargoType.String()).
 						Msgf("unload cargo failed %v", result.status)
@@ -526,7 +526,7 @@ func (t *turnGenerator) fleetUnload() {
 				t.log.Debug().
 					Int("Player", fleet.PlayerNum).
 					Str("Fleet", fleet.Name).
-					Str("Dest", dest.getMapObject().Name).
+					Str("Dest", dest.GetMapObject().Name).
 					Int("Transfered", result.transferred).
 					Str("cargoType", result.cargoType.String()).
 					Msgf("unloaded cargo")
@@ -554,7 +554,7 @@ func (t *turnGenerator) fleetLoad() {
 
 		if !wp.processed && wp.Task == WaypointTaskTransport {
 			dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
-			if !ok || dest.deleted() {
+			if !ok || dest.Deleted() {
 				// can't load from space
 				continue
 			}
@@ -565,7 +565,7 @@ func (t *turnGenerator) fleetLoad() {
 					t.log.Debug().
 						Int("Player", fleet.PlayerNum).
 						Str("Fleet", fleet.Name).
-						Str("Dest", dest.getMapObject().Name).
+						Str("Dest", dest.GetMapObject().Name).
 						Int("Transfered", result.transferred).
 						Str("cargoType", result.cargoType.String()).
 						Msgf("load cargo failed %v", result.status)
@@ -577,7 +577,7 @@ func (t *turnGenerator) fleetLoad() {
 				t.log.Debug().
 					Int("Player", fleet.PlayerNum).
 					Str("Fleet", fleet.Name).
-					Str("Dest", dest.getMapObject().Name).
+					Str("Dest", dest.GetMapObject().Name).
 					Int("Transfered", result.transferred).
 					Str("cargoType", result.cargoType.String()).
 					Msgf("loaded cargo")
@@ -1239,7 +1239,7 @@ func (t *turnGenerator) decayPackets(builtThisTurn bool) {
 		for _, minType := range [3]CargoType{Ironium, Boranium, Germanium} {
 			mineral := float64(packet.Cargo.GetAmount(minType))
 			decayAmount := Max(int(decayRate*mineral), int(float64(t.game.Rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
-			packet.Cargo.SubtractAmount(minType, decayAmount)
+			packet.Cargo = packet.Cargo.SubtractAmount(minType, decayAmount)
 			packet.Cargo = packet.Cargo.MinZero()
 		}
 		t.log.Debug().
@@ -2364,7 +2364,9 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 					// we gained a level!
 					player.techLevelGained = true
 					player.TechLevels = player.TechLevels.Add(reward.TechLevels)
-					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.withTargetFleet(fleet)))
+					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderMetWithReward, mt).
+						withSpec(PlayerMessageSpec{MysteryTrader: &PlayerMessageSpecMysteryTrader{reward, 0}}.
+							withTargetFleet(fleet)))
 
 					t.log.Debug().
 						Int("MysteryTrader", mt.Num).

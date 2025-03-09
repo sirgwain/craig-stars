@@ -474,44 +474,18 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// don't allow cargo transfers from contested planets
-	if !planet.Owned() {
-		fleetsInOrbit, err := readClient.GetFleetsOrbitingPlanet(fleet.GameID, planet.Num)
-		if err != nil {
-			log.Error().Err(err).Msg("get fleets in orbit of planet from database")
-			render.Render(w, r, ErrInternalServerError(err))
-			return
-		}
+	var playerPlanets []*cs.Planet
 
-		// check if any of these fleets are freighters and are owned by someone other than the player
-		for _, f := range fleetsInOrbit {
-			if f.Spec.CargoCapacity > 0 && f.PlayerNum != fleet.PlayerNum {
-				log.Error().Int64("GameID", fleet.GameID).Int("Num", num).Int("PlayerNum", planet.PlayerNum).Msg("dest planet is contested")
-				render.Render(w, r, ErrForbidden)
-				return
-			}
-		}
-	}
-
-	if planet.Owned() && !planet.OwnedBy(player.Num) {
-		log.Error().Int64("GameID", fleet.GameID).Int("Num", num).Int("PlayerNum", planet.PlayerNum).Msg("dest planet not owned by player")
-		render.Render(w, r, ErrForbidden)
-		return
-	}
-
-	if planet.Starbase != nil {
+	var dest cs.CargoHolder = planet
+	if !planet.OwnedBy(player.Num) {
+		// we don't own this planet, use the intel
+		dest = &player.PlanetIntels[num-1]
+	} else if planet.Starbase != nil {
 		player.InjectDesigns([]*cs.Fleet{planet.Starbase})
 	}
 
-	// load all a player's planets so we can recompute research estimates
-	playerPlanets, err := readClient.GetPlanetsForPlayer(game.ID, player.Num)
-	if err != nil {
-		render.Render(w, r, ErrInternalServerError(err))
-		return
-	}
-
 	orderer := cs.NewOrderer()
-	if err := orderer.TransferPlanetCargo(&game.Rules, player, fleet, planet, transferAmount, playerPlanets); err != nil {
+	if err := orderer.TransferByHand(&game.Rules, player, fleet, dest, transferAmount); err != nil {
 		log.Error().
 			Int64("GameID", game.ID).
 			Int("Player", player.Num).
@@ -525,10 +499,40 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// update this planet and the player's research spec
+	if planet.OwnedBy(player.Num) {
+		// load all a player's planets so we can recompute research estimates
+		playerPlanets, err = readClient.GetPlanetsForPlayer(game.ID, player.Num)
+		if err != nil {
+			render.Render(w, r, ErrInternalServerError(err))
+			return
+		}
+
+		// update the current planet in our list of planets
+		for i, playerPlanet := range playerPlanets {
+			if playerPlanet.Num == planet.Num {
+				playerPlanets[i] = planet
+				break
+			}
+		}
+
+		// update the player spec with the change in resources for this planet
+		// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
+		player.Spec.PlayerResearchSpec = cs.ComputePlayerResearchSpec(player, &game.Rules, playerPlanets)
+	} else if intel, ok := dest.(*cs.PlanetIntel); ok {
+		player.PlanetIntels[num-1] = *intel
+	}
+
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 
-		if err := c.UpdatePlanet(planet); err != nil {
-			return err
+		if planet.OwnedBy(player.Num) {
+			if err := c.UpdatePlanet(planet); err != nil {
+				return err
+			}
+		} else {
+			if err := c.UpdatePlayerPlanetIntels(player); err != nil {
+				return err
+			}
 		}
 
 		if err := c.UpdateFleet(fleet); err != nil {
@@ -536,6 +540,10 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		}
 
 		if err := c.UpdatePlayerSpec(player); err != nil {
+			return err
+		}
+
+		if err := c.UpdatePlayerCargoTransfers(player); err != nil {
 			return err
 		}
 

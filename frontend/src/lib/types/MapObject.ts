@@ -1,4 +1,4 @@
-import type { MapObject, Vector } from './cs';
+import type { MapObject, MapObjectTarget, Vector } from './cs';
 import { None } from './cs';
 import { getTokenCount, hasDestination } from './Fleet';
 import { type AnyFleet } from '$lib/services/Universe';
@@ -67,11 +67,35 @@ export const key = (mo: MapObject | undefined): string => {
 };
 
 // compare two map objects for equivalence using their natural keys (num, type, playerNum)
-export const equal = (mo1: MapObject | undefined, mo2: MapObject | undefined): boolean =>
-	!!(
+export function equal(mo1: MapObject | undefined, mo2: MapObject | undefined): boolean {
+	return !!(
 		mo1 &&
 		mo2 &&
 		mo1?.num === mo2?.num &&
 		mo1?.type === mo2?.type &&
 		mo1?.playerNum === mo2?.playerNum
 	);
+}
+
+export function toTarget(mo: MapObject): MapObjectTarget {
+	return {
+		targetType: mo.type,
+		targetPosition: mo.position,
+		targetNum: mo.num,
+		targetPlayerNum: mo.playerNum,
+		targetName: mo.name
+	};
+}
+// compare two map objects for equivalence using their natural keys (num, type, playerNum)
+export function targetsEqual(
+	mo1: MapObjectTarget | undefined,
+	mo2: MapObjectTarget | undefined
+): boolean {
+	return !!(
+		mo1 &&
+		mo2 &&
+		(mo1?.targetType ?? '') === (mo2?.targetType ?? '') &&
+		mo1?.targetNum === mo2?.targetNum &&
+		mo1?.targetPlayerNum === mo2?.targetPlayerNum
+	);
+}

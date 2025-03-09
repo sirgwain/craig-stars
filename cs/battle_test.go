@@ -106,6 +106,11 @@ func testTeamster(player *Player) *Fleet {
 		},
 		battlePlan:        &player.BattlePlans[0],
 		OrbitingPlanetNum: None,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
 	}
 
 	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)

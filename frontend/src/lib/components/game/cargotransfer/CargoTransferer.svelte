@@ -2,6 +2,7 @@
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
+	import type { AnyFleet } from '$lib/services/Universe';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
 	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 	import { CargoTransferRequest, negative } from '$lib/types/CargoTransferRequest.svelte';
@@ -12,7 +13,6 @@
 		MapObjectTypeSalvage
 	} from '$lib/types/cs';
 	import type { CommandedFleet } from '$lib/types/Fleet';
-	import type { AnyFleet } from '$lib/services/Universe';
 	import FleetTransfer from './FleetTransfer.svelte';
 	import MineralPacketTransfer from './MineralPacketTransfer.svelte';
 	import PlanetTransfer from './PlanetTransfer.svelte';
@@ -48,7 +48,7 @@
 	let srcCargo = $derived(new CargoTransferRequest(src.cargo, src.fuel));
 	let destCargo = $derived(
 		new CargoTransferRequest(
-			dest ? dest.cargo : $player.getJettison(src.position), // we are either tranfering to a location, or jettisoning
+			dest ? dest.cargo : $player.getByHandTransfer({ targetPosition: src.position }), // we are either tranfering to a location, or jettisoning
 			dest && 'fuel' in dest ? dest.fuel : 0
 		)
 	);

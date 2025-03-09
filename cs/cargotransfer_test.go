@@ -207,7 +207,7 @@ func TestCargoTransferer_getCargoLoadAmount(t *testing.T) {
 	planet := NewPlanet().WithCargo(Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 1000})
 
 	type args struct {
-		dest      cargoHolder
+		dest      CargoHolder
 		cargoType CargoType
 		task      WaypointTransportTask
 	}
@@ -372,7 +372,7 @@ func TestCargoTransferer_getCargoUnloadAmount(t *testing.T) {
 	planet := NewPlanet().WithCargo(Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 1000})
 
 	type args struct {
-		dest      cargoHolder
+		dest      CargoHolder
 		cargoType CargoType
 		task      WaypointTransportTask
 	}
@@ -498,7 +498,7 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
 
 	type args struct {
-		dest           cargoHolder
+		dest           CargoHolder
 		cargoType      CargoType
 		transferAmount int
 	}
@@ -565,8 +565,8 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 				t.Errorf("cargoTransferer.transferToDest() got %v, want %v", invalid, tt.wantInvalid)
 			}
 
-			if *tt.args.dest.getCargo() != tt.wantDestCargo {
-				t.Errorf("cargoTransferer.transferToDest() gave destination cargo \n%v, wanted \n%v", *tt.args.dest.getCargo(), tt.wantDestCargo)
+			if tt.args.dest.GetCargo() != tt.wantDestCargo {
+				t.Errorf("cargoTransferer.transferToDest() gave destination cargo \n%v, wanted \n%v", tt.args.dest.GetCargo(), tt.wantDestCargo)
 			}
 
 			if tt.fleet.Cargo != tt.wantFleetCargo {
@@ -581,7 +581,7 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 
 	type fields struct {
 		fleets  []*Fleet
-		targets []cargoHolder
+		targets []CargoHolder
 	}
 	tests := []struct {
 		name            string
@@ -595,7 +595,7 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 			name: "load 10kT ironium from a planet",
 			fields: fields{
 				fleets:  []*Fleet{testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 10})},
-				targets: []cargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 20})},
+				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 20})},
 			},
 			transfers: []ByHandCargoTransfer{
 				{
@@ -625,7 +625,7 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 					testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 20}),
 					testSmallFreighter(player).withNum(2).withCargo(Cargo{Ironium: 0}),
 				},
-				targets: []cargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 20})},
+				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 20})},
 			},
 			transfers: []ByHandCargoTransfer{
 				{
@@ -658,7 +658,7 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 			name: "load 10kT ironium from a planet but someone else got it first",
 			fields: fields{
 				fleets:  []*Fleet{testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 10})},
-				targets: []cargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 0})},
+				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 0})},
 			},
 			transfers: []ByHandCargoTransfer{
 				{
@@ -724,8 +724,8 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 			}
 
 			for i, dest := range tt.fields.targets {
-				if *dest.getCargo() != tt.wantTargetCargo[i] {
-					t.Errorf("cargoTransferer.loadByHands() got dest cargo = %v, want %v", *dest.getCargo(), tt.wantTargetCargo[i])
+				if dest.GetCargo() != tt.wantTargetCargo[i] {
+					t.Errorf("cargoTransferer.loadByHands() got dest cargo = %v, want %v", dest.GetCargo(), tt.wantTargetCargo[i])
 				}
 			}
 			for i, fleet := range tt.fields.fleets {
@@ -742,7 +742,7 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 
 	type fields struct {
 		fleets  []*Fleet
-		targets []cargoHolder
+		targets []CargoHolder
 	}
 	tests := []struct {
 		name            string
@@ -757,7 +757,7 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 			fields: fields{
 				// the fleet has "0" ironium because it already did the transfer on the front end
 				fleets:  []*Fleet{testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 0})},
-				targets: []cargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 10})},
+				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{Ironium: 10})},
 			},
 			transfers: []ByHandCargoTransfer{
 				{
@@ -787,7 +787,7 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 					testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 0}),
 					testSmallFreighter(player).withNum(2).withCargo(Cargo{Ironium: 0}),
 				},
-				targets: []cargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{})},
+				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{})},
 			},
 			transfers: []ByHandCargoTransfer{
 				{
@@ -823,7 +823,7 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 					testSmallFreighter(player).withNum(1).withCargo(Cargo{Ironium: 0}),
 					testSmallFreighter(player).withNum(2).withCargo(Cargo{Ironium: 10}),
 				},
-				targets: []cargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{})},
+				targets: []CargoHolder{NewPlanet().WithNum(1).WithCargo(Cargo{})},
 			},
 			transfers: []ByHandCargoTransfer{
 				{
@@ -896,8 +896,8 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 			}
 
 			for i, dest := range tt.fields.targets {
-				if *dest.getCargo() != tt.wantTargetCargo[i] {
-					t.Errorf("cargoTransferer.unloadByHands() got dest cargo = %v, want %v", *dest.getCargo(), tt.wantTargetCargo[i])
+				if dest.GetCargo() != tt.wantTargetCargo[i] {
+					t.Errorf("cargoTransferer.unloadByHands() got dest cargo = %v, want %v", dest.GetCargo(), tt.wantTargetCargo[i])
 				}
 			}
 			for i, fleet := range tt.fields.fleets {

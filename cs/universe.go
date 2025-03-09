@@ -60,7 +60,7 @@ type mapObjectGetter interface {
 	getMysteryTrader(num int) *MysteryTrader
 	getWormhole(num int) *Wormhole
 	getSalvage(num int) *Salvage
-	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (cargoHolder, bool)
+	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool)
 	getMapObjectsAtPosition(position Vector) []interface{}
 	isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool
 	updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector)
@@ -337,7 +337,7 @@ func (u *Universe) getMysteryTrader(num int) *MysteryTrader {
 }
 
 // get a cargo holder by natural key (num, playerNum, etc)
-func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (cargoHolder, bool) {
+func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool) {
 	switch mapObjectType {
 	case MapObjectTypePlanet:
 		mo := u.getPlanet(num)

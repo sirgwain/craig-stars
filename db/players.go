@@ -1120,6 +1120,38 @@ func (c *client) UpdatePlayerSpec(player *cs.Player) error {
 	return nil
 }
 
+// update a players planet intels (used after creating a new planet)
+func (c *client) UpdatePlayerPlanetIntels(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		planetIntels = :planetIntels
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// update a players fleet intels (used after creating a new fleet)
+func (c *client) UpdatePlayerFleetIntels(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		fleetIntels = :fleetIntels
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // update a players salvage intels (used after creating a new salvage)
 func (c *client) UpdatePlayerSalvageIntels(player *cs.Player) error {
 	item := c.converter.ConvertGamePlayer(player)

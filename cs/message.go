@@ -5,7 +5,7 @@ import (
 )
 
 type Target[T PlayerMessageTargetType | MapObjectType] struct {
-	TargetPosition  Vector `json:"targetPosition,omitempty"`
+	TargetPosition  Vector `json:"targetPosition"`
 	TargetType      T      `json:"targetType,omitempty"`
 	TargetName      string `json:"targetName,omitempty"`
 	TargetNum       int    `json:"targetNum,omitempty"`
@@ -610,13 +610,13 @@ func (m *messageClient) fleetTransferReceived(player *Player, fleet *Fleet, givi
 		withSpec(PlayerMessageSpec{SourcePlayerNum: givingPlayer.Num, DestPlayerNum: player.Num, Name: fleet.BaseName}))
 }
 
-func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) {
+func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
 	text := ""
 	if cargoType == Colonists {
 		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has beamed %d colonists from %s.", fleet.Name, -transferAmount*100, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has beamed %d colonists from %s.", fleet.Name, -transferAmount*100, dest.GetMapObject().Name)
 		} else {
-			text = fmt.Sprintf("%s has beamed %d colonists to %s.", fleet.Name, transferAmount*100, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has beamed %d colonists to %s.", fleet.Name, transferAmount*100, dest.GetMapObject().Name)
 		}
 	} else {
 		units := "kT"
@@ -624,16 +624,16 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 			units = "mg"
 		}
 		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has loaded %d%s of %v from %s.", fleet.Name, -transferAmount, units, cargoType, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has loaded %d%s of %v from %s.", fleet.Name, -transferAmount, units, cargoType, dest.GetMapObject().Name)
 		} else {
-			text = fmt.Sprintf("%s has unloaded %d%s of %v to %s.", fleet.Name, transferAmount, units, cargoType, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has unloaded %d%s of %v to %s.", fleet.Name, transferAmount, units, cargoType, dest.GetMapObject().Name)
 		}
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransferredCargo, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
-func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) {
-	text := fmt.Sprintf("%s attempted to load %dkT of %v from %s, but you do not own %s. The order has been canceled.", fleet.Name, -transferAmount, cargoType, dest.getMapObject().Name, dest.getMapObject().Name)
+func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
+	text := fmt.Sprintf("%s attempted to load %dkT of %v from %s, but you do not own %s. The order has been canceled.", fleet.Name, -transferAmount, cargoType, dest.GetMapObject().Name, dest.GetMapObject().Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransportInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 

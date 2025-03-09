@@ -112,6 +112,8 @@ type Client interface {
 	UpdatePlayerRelations(player *cs.Player) error
 	UpdatePlayerSpec(player *cs.Player) error
 	UpdatePlayerPlans(player *cs.Player) error
+	UpdatePlayerPlanetIntels(player *cs.Player) error
+	UpdatePlayerFleetIntels(player *cs.Player) error
 	UpdatePlayerSalvageIntels(player *cs.Player) error
 	UpdatePlayerMineralPacketIntels(player *cs.Player) error
 	UpdateLightPlayer(player *cs.Player) error

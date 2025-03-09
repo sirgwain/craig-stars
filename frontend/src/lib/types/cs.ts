@@ -7,65 +7,65 @@
  * BattleRecord is a recording of a single battle.
  */
 export interface BattleRecord {
-	num: number /* int */;
-	planetNum?: number /* int */;
-	position: Vector;
-	tokens: BattleRecordToken[];
-	actionsPerRound: BattleRecordTokenAction[][];
-	destroyedTokens?: BattleRecordDestroyedToken[];
-	stats: BattleRecordStats;
+  num: number /* int */;
+  planetNum?: number /* int */;
+  position: Vector;
+  tokens: BattleRecordToken[];
+  actionsPerRound: BattleRecordTokenAction[][];
+  destroyedTokens?: BattleRecordDestroyedToken[];
+  stats: BattleRecordStats;
 }
 export interface BattleRecordStats {
-	numPlayers?: number /* int */;
-	numShipsByPlayer?: { [key: number /* int */]: number /* int */ };
-	shipsDestroyedByPlayer?: { [key: number /* int */]: number /* int */ };
-	damageTakenByPlayer?: { [key: number /* int */]: number /* int */ };
-	cargoLostByPlayer?: { [key: number /* int */]: Cargo };
+  numPlayers?: number /* int */;
+  numShipsByPlayer?: { [key: number /* int */]: number /* int */};
+  shipsDestroyedByPlayer?: { [key: number /* int */]: number /* int */};
+  damageTakenByPlayer?: { [key: number /* int */]: number /* int */};
+  cargoLostByPlayer?: { [key: number /* int */]: Cargo};
 }
 /**
  * A token on a battle board
  */
 export interface BattleRecordToken {
-	num: number /* int */;
-	playerNum: number /* int */;
-	designNum: number /* int */;
-	position: BattleVector;
-	initiative: number /* int */;
-	mass: number /* int */;
-	armor: number /* int */;
-	stackShields?: number /* int */;
-	movement: number /* int */;
-	startingQuantity: number /* int */;
-	startingQuantityDamaged?: number /* int */;
-	startingDamage?: number /* int */;
-	tactic: BattleTactic;
-	primaryTarget: BattleTarget;
-	secondaryTarget: BattleTarget;
-	attackWho: BattleAttackWho;
+  num: number /* int */;
+  playerNum: number /* int */;
+  designNum: number /* int */;
+  position: BattleVector;
+  initiative: number /* int */;
+  mass: number /* int */;
+  armor: number /* int */;
+  stackShields?: number /* int */;
+  movement: number /* int */;
+  startingQuantity: number /* int */;
+  startingQuantityDamaged?: number /* int */;
+  startingDamage?: number /* int */;
+  tactic: BattleTactic;
+  primaryTarget: BattleTarget;
+  secondaryTarget: BattleTarget;
+  attackWho: BattleAttackWho;
 }
 export interface BattleRecordDestroyedToken {
-	num: number /* int */;
-	playerNum: number /* int */;
-	designNum: number /* int */;
-	quantity: number /* int */;
+  num: number /* int */;
+  playerNum: number /* int */;
+  designNum: number /* int */;
+  quantity: number /* int */;
 }
 /**
  * BattleRecordTokenAction represents an action for a token in a battle.
  */
 export interface BattleRecordTokenAction {
-	type: BattleRecordTokenActionType;
-	tokenNum: number /* int */;
-	round: number /* int */;
-	from: BattleVector;
-	to: BattleVector;
-	slot?: number /* int */;
-	targetNum?: number /* int */;
-	target?: ShipToken;
-	tokensDestroyed?: number /* int */;
-	damageDoneShields?: number /* int */;
-	damageDoneArmor?: number /* int */;
-	torpedoHits?: number /* int */;
-	torpedoMisses?: number /* int */;
+  type: BattleRecordTokenActionType;
+  tokenNum: number /* int */;
+  round: number /* int */;
+  from: BattleVector;
+  to: BattleVector;
+  slot?: number /* int */;
+  targetNum?: number /* int */;
+  target?: ShipToken;
+  tokensDestroyed?: number /* int */;
+  damageDoneShields?: number /* int */;
+  damageDoneArmor?: number /* int */;
+  torpedoHits?: number /* int */;
+  torpedoMisses?: number /* int */;
 }
 export type BattleRecordTokenActionType = number /* int */;
 export const TokenActionFire: BattleRecordTokenActionType = 0;
@@ -74,8 +74,8 @@ export const TokenActionTorpedoFire: BattleRecordTokenActionType = 2;
 export const TokenActionMove: BattleRecordTokenActionType = 3;
 export const TokenActionRanAway: BattleRecordTokenActionType = 4;
 export interface BattleVector {
-	x: number /* int */;
-	y: number /* int */;
+  x: number /* int */;
+  y: number /* int */;
 }
 
 //////////
@@ -87,21 +87,21 @@ export type Bitmask = number /* uint32 */;
 // source: bomb.go
 
 export interface Bomb {
-	quantity?: number /* int */;
-	killRate?: number /* float64 */;
-	minKillRate?: number /* int */;
-	structureDestroyRate?: number /* float64 */;
-	unterraformRate?: number /* int */;
+  quantity?: number /* int */;
+  killRate?: number /* float64 */;
+  minKillRate?: number /* int */;
+  structureDestroyRate?: number /* float64 */;
+  unterraformRate?: number /* int */;
 }
 export interface BombingResult {
-	bomberName?: string;
-	numBombers?: number /* int */;
-	colonistsKilled?: number /* int */;
-	minesDestroyed?: number /* int */;
-	factoriesDestroyed?: number /* int */;
-	defensesDestroyed?: number /* int */;
-	unterraformAmount?: Hab;
-	planetEmptied?: boolean;
+  bomberName?: string;
+  numBombers?: number /* int */;
+  colonistsKilled?: number /* int */;
+  minesDestroyed?: number /* int */;
+  factoriesDestroyed?: number /* int */;
+  defensesDestroyed?: number /* int */;
+  unterraformAmount?: Hab;
+  planetEmptied?: boolean;
 }
 
 //////////
@@ -111,10 +111,10 @@ export interface BombingResult {
  * Cargo represents minerals and colonists that are in cargo holds, salvage, mineral packets, or on planets.
  */
 export interface Cargo {
-	ironium?: number /* int */;
-	boranium?: number /* int */;
-	germanium?: number /* int */;
-	colonists?: number /* int */;
+  ironium?: number /* int */;
+  boranium?: number /* int */;
+  germanium?: number /* int */;
+  colonists?: number /* int */;
 }
 export type CargoType = ResourceType;
 
@@ -123,17 +123,18 @@ export type CargoType = ResourceType;
 
 export const Unlimited = -1;
 /**
- * The cargoHolder is an interface implemented by any map object that can hold cargo. It's used for handling
+ * The CargoHolder is an interface implemented by any map object that can hold cargo. It's used for handling
  * cargo transfers between different types of map objects.
  */
+export type CargoHolder = unknown;
 
 //////////
 // source: cargotransfer.go
 
-export type CargoTransfers = { [key: string]: ByHandCargoTransfer[] };
+export type CargoTransfers = { [key: string]: ByHandCargoTransfer[]};
 export interface ByHandCargoTransfer extends MapObjectTarget {
-	sourceFleetNum?: number /* int */;
-	cargo: Cargo;
+  sourceFleetNum?: number /* int */;
+  cargo: Cargo;
 }
 export type CargoTransferStatus = number /* int */;
 export const CargoTransferStatusNone: CargoTransferStatus = 0;
@@ -151,10 +152,10 @@ export const CargoTransferStatusDestStarbase: CargoTransferStatus = 6;
 // source: cost.go
 
 export type cost<T extends number = number> = {
-	ironium?: T;
-	boranium?: T;
-	germanium?: T;
-	resources?: T;
+    ironium?: T;
+    boranium?: T;
+    germanium?: T;
+    resources?: T;
 };
 
 /**
@@ -204,111 +205,111 @@ export const None = 0;
  * Fleets are one of the commandable MapObjects in the game.
  */
 export interface Fleet extends GameDBObject, MapObject, FleetOrders {
-	planetNum: number /* int */; // for starbase fleets that are owned by a planet
-	baseName: string;
-	cargo?: Cargo;
-	fuel: number /* int */;
-	age: number /* int */;
-	tokens: ShipToken[];
-	heading: Vector;
-	warpSpeed?: number /* int */;
-	previousPosition?: Vector;
-	orbitingPlanetNum?: number /* int */;
-	starbase?: boolean;
-	spec: FleetSpec;
+  planetNum: number /* int */; // for starbase fleets that are owned by a planet
+  baseName: string;
+  cargo?: Cargo;
+  fuel: number /* int */;
+  age: number /* int */;
+  tokens: ShipToken[];
+  heading: Vector;
+  warpSpeed?: number /* int */;
+  previousPosition?: Vector;
+  orbitingPlanetNum?: number /* int */;
+  starbase?: boolean;
+  spec: FleetSpec;
 }
 export interface FleetOrders {
-	waypoints: Waypoint[];
-	repeatOrders?: boolean;
-	battlePlanNum?: number /* int */;
-	purpose?: FleetPurpose;
+  waypoints: Waypoint[];
+  repeatOrders?: boolean;
+  battlePlanNum?: number /* int */;
+  purpose?: FleetPurpose;
 }
 export interface FleetSpec extends ShipDesignSpec {
-	baseCloakedCargo?: number /* int */;
-	basePacketSpeed?: number /* int */;
-	hasMassDriver?: boolean;
-	hasStargate?: boolean;
-	massDriver?: string;
-	massEmpty?: number /* int */;
-	maxHullMass?: number /* int */;
-	maxRange?: number /* int */;
-	purposes?: { [key: ShipDesignPurpose]: boolean };
-	safeHullMass?: number /* int */;
-	safeRange?: number /* int */;
-	stargate?: string;
-	totalShips?: number /* int */;
+  baseCloakedCargo?: number /* int */;
+  basePacketSpeed?: number /* int */;
+  hasMassDriver?: boolean;
+  hasStargate?: boolean;
+  massDriver?: string;
+  massEmpty?: number /* int */;
+  maxHullMass?: number /* int */;
+  maxRange?: number /* int */;
+  purposes?: { [key: ShipDesignPurpose]: boolean};
+  safeHullMass?: number /* int */;
+  safeRange?: number /* int */;
+  stargate?: string;
+  totalShips?: number /* int */;
 }
 export interface Waypoint extends MapObjectTarget {
-	position: Vector;
-	warpSpeed: number /* int */;
-	estFuelUsage?: number /* int */;
-	task?: WaypointTask;
-	transportTasks: WaypointTransportTasks;
-	waitAtWaypoint?: boolean;
-	layMineFieldDuration?: number /* int */;
-	patrolRange?: number /* int */;
-	patrolWarpSpeed?: number /* int */;
-	transferToPlayer?: number /* int */;
-	partiallyComplete?: boolean;
+  position: Vector;
+  warpSpeed: number /* int */;
+  estFuelUsage?: number /* int */;
+  task?: WaypointTask;
+  transportTasks: WaypointTransportTasks;
+  waitAtWaypoint?: boolean;
+  layMineFieldDuration?: number /* int */;
+  patrolRange?: number /* int */;
+  patrolWarpSpeed?: number /* int */;
+  transferToPlayer?: number /* int */;
+  partiallyComplete?: boolean;
 }
 export type WaypointTask = string;
-export const WaypointTaskNone = '';
-export const WaypointTaskTransport = 'Transport';
-export const WaypointTaskColonize = 'Colonize';
-export const WaypointTaskRemoteMining = 'RemoteMining';
-export const WaypointTaskMergeWithFleet = 'MergeWithFleet';
-export const WaypointTaskScrapFleet = 'ScrapFleet';
-export const WaypointTaskLayMineField = 'LayMineField';
-export const WaypointTaskPatrol = 'Patrol';
-export const WaypointTaskRoute = 'Route';
-export const WaypointTaskTransferFleet = 'TransferFleet';
+export const WaypointTaskNone = "";
+export const WaypointTaskTransport = "Transport";
+export const WaypointTaskColonize = "Colonize";
+export const WaypointTaskRemoteMining = "RemoteMining";
+export const WaypointTaskMergeWithFleet = "MergeWithFleet";
+export const WaypointTaskScrapFleet = "ScrapFleet";
+export const WaypointTaskLayMineField = "LayMineField";
+export const WaypointTaskPatrol = "Patrol";
+export const WaypointTaskRoute = "Route";
+export const WaypointTaskTransferFleet = "TransferFleet";
 export interface WaypointTransportTasks {
-	fuel: WaypointTransportTask;
-	ironium: WaypointTransportTask;
-	boranium: WaypointTransportTask;
-	germanium: WaypointTransportTask;
-	colonists: WaypointTransportTask;
+  fuel: WaypointTransportTask;
+  ironium: WaypointTransportTask;
+  boranium: WaypointTransportTask;
+  germanium: WaypointTransportTask;
+  colonists: WaypointTransportTask;
 }
 export interface WaypointTransportTask {
-	amount?: number /* int */;
-	action?: WaypointTaskTransportAction;
+  amount?: number /* int */;
+  action?: WaypointTaskTransportAction;
 }
 export type WaypointTaskTransportAction = string;
 /**
  * No transport task for the specified cargo.
  */
-export const TransportActionNone: WaypointTaskTransportAction = '';
+export const TransportActionNone: WaypointTaskTransportAction = "";
 /**
  * (fuel only) Load or unload fuel until the fleet carries only the exact amount
  * needed to reach the next waypoint. You can use this task to send a fleet
  * loaded with fuel to rescue a stranded fleet. The rescue fleet will transfer
  * only the amount of fuel it can spare without stranding itself.
  */
-export const TransportActionLoadOptimal: WaypointTaskTransportAction = 'LoadOptimal';
+export const TransportActionLoadOptimal: WaypointTaskTransportAction = "LoadOptimal";
 /**
  * Load as much of the specified cargo as the fleet can hold.
  */
-export const TransportActionLoadAll: WaypointTaskTransportAction = 'LoadAll';
+export const TransportActionLoadAll: WaypointTaskTransportAction = "LoadAll";
 /**
  * Unload all the specified cargo at the waypoint.
  */
-export const TransportActionUnloadAll: WaypointTaskTransportAction = 'UnloadAll';
+export const TransportActionUnloadAll: WaypointTaskTransportAction = "UnloadAll";
 /**
  * Load the amount specified only if there is room in the hold.
  */
-export const TransportActionLoadAmount: WaypointTaskTransportAction = 'LoadAmount';
+export const TransportActionLoadAmount: WaypointTaskTransportAction = "LoadAmount";
 /**
  * Unload the amount specified only if the fleet is carrying that amount.
  */
-export const TransportActionUnloadAmount: WaypointTaskTransportAction = 'UnloadAmount';
+export const TransportActionUnloadAmount: WaypointTaskTransportAction = "UnloadAmount";
 /**
  * Loads up to the specified portion of the cargo hold subject to amount available at waypoint and room left in hold.
  */
-export const TransportActionFillPercent: WaypointTaskTransportAction = 'FillPercent';
+export const TransportActionFillPercent: WaypointTaskTransportAction = "FillPercent";
 /**
  * Remain at the waypoint until exactly X % of the hold is filled.
  */
-export const TransportActionWaitForPercent: WaypointTaskTransportAction = 'WaitForPercent';
+export const TransportActionWaitForPercent: WaypointTaskTransportAction = "WaitForPercent";
 /**
  * (minerals and colonists only) This command waits until all other loads and unloads are complete,
  * then loads as many colonists or amount of a mineral as will fit in the remaining space. For example,
@@ -316,153 +317,153 @@ export const TransportActionWaitForPercent: WaypointTaskTransportAction = 'WaitF
  * then as much Ironium as possible. If more than one dunnage cargo is specified, they are loaded in
  * the order of Ironium, Boranium, Germanium, and Colonists.
  */
-export const TransportActionLoadDunnage: WaypointTaskTransportAction = 'LoadDunnage';
+export const TransportActionLoadDunnage: WaypointTaskTransportAction = "LoadDunnage";
 /**
  * Load or unload the cargo until the amount on board is the amount specified.
  * If less than the specified cargo is available, the fleet will not move on.
  */
-export const TransportActionSetAmountTo: WaypointTaskTransportAction = 'SetAmountTo';
+export const TransportActionSetAmountTo: WaypointTaskTransportAction = "SetAmountTo";
 /**
  * Load or unload the cargo until the amount at the waypoint is the amount specified.
  * This order is always carried out to the best of the fleet’s ability that turn but does not prevent the fleet from moving on.
  */
-export const TransportActionSetWaypointTo: WaypointTaskTransportAction = 'SetWaypointTo';
+export const TransportActionSetWaypointTo: WaypointTaskTransportAction = "SetWaypointTo";
 /**
  * the purpose for a fleet's existence (ie what it's supposed to be doing),
  * exported to allow the AI to plan ship movements
  */
 export type FleetPurpose = string;
-export const FleetPurposeNone: FleetPurpose = '';
-export const FleetPurposeScout: FleetPurpose = 'Scout';
-export const FleetPurposeColonizer: FleetPurpose = 'Colonizer';
-export const FleetPurposeBomber: FleetPurpose = 'Bomber';
-export const FleetPurposeFighter: FleetPurpose = 'Fighter';
-export const FleetPurposeCapitalShip: FleetPurpose = 'CapitalShip';
-export const FleetPurposeFreighter: FleetPurpose = 'Freighter';
-export const FleetPurposeColonistFreighter: FleetPurpose = 'ColonistFreighter';
-export const FleetPurposeArmedFreighter: FleetPurpose = 'ArmedFreighter';
-export const FleetPurposeMineLayer: FleetPurpose = 'MineLayer';
-export const FleetPurposeMiner: FleetPurpose = 'Miner';
-export const FleetPurposeTerraformer: FleetPurpose = 'Terraformer';
-export const FleetPurposeInvader: FleetPurpose = 'Invader';
+export const FleetPurposeNone: FleetPurpose = "";
+export const FleetPurposeScout: FleetPurpose = "Scout";
+export const FleetPurposeColonizer: FleetPurpose = "Colonizer";
+export const FleetPurposeBomber: FleetPurpose = "Bomber";
+export const FleetPurposeFighter: FleetPurpose = "Fighter";
+export const FleetPurposeCapitalShip: FleetPurpose = "CapitalShip";
+export const FleetPurposeFreighter: FleetPurpose = "Freighter";
+export const FleetPurposeColonistFreighter: FleetPurpose = "ColonistFreighter";
+export const FleetPurposeArmedFreighter: FleetPurpose = "ArmedFreighter";
+export const FleetPurposeMineLayer: FleetPurpose = "MineLayer";
+export const FleetPurposeMiner: FleetPurpose = "Miner";
+export const FleetPurposeTerraformer: FleetPurpose = "Terraformer";
+export const FleetPurposeInvader: FleetPurpose = "Invader";
 
 //////////
 // source: game.go
 
-export type Tags = { [key: string]: string };
+export type Tags = { [key: string]: string};
 export type NewGamePlayerType = string;
-export const NewGamePlayerTypeHost: NewGamePlayerType = 'Host';
-export const NewGamePlayerTypeGuest: NewGamePlayerType = 'Guest';
-export const NewGamePlayerTypeOpen: NewGamePlayerType = 'Open';
-export const NewGamePlayerTypeAI: NewGamePlayerType = 'AI';
+export const NewGamePlayerTypeHost: NewGamePlayerType = "Host";
+export const NewGamePlayerTypeGuest: NewGamePlayerType = "Guest";
+export const NewGamePlayerTypeOpen: NewGamePlayerType = "Open";
+export const NewGamePlayerTypeAI: NewGamePlayerType = "AI";
 export type AIDifficulty = string;
-export const AIDifficultyNone: AIDifficulty = '';
-export const AIDifficultyEasy: AIDifficulty = 'Easy';
-export const AIDifficultyNormal: AIDifficulty = 'Normal';
-export const AIDifficultyHard: AIDifficulty = 'Hard';
-export const AIDifficultyCheater: AIDifficulty = 'Cheater';
+export const AIDifficultyNone: AIDifficulty = "";
+export const AIDifficultyEasy: AIDifficulty = "Easy";
+export const AIDifficultyNormal: AIDifficulty = "Normal";
+export const AIDifficultyHard: AIDifficulty = "Hard";
+export const AIDifficultyCheater: AIDifficulty = "Cheater";
 /**
  * The Game itself tracks some settings, the Rules, the Host and the current state (year/victory declared)
  * All other parts of a Game are stored in the Universe
  */
 export interface Game extends DBObject {
-	hostId: number /* int64 */;
-	name: string;
-	state: GameState;
-	public?: boolean;
-	hash: string;
-	size: Size;
-	density: Density;
-	playerPositions: PlayerPositions;
-	randomEvents?: boolean;
-	computerPlayersFormAlliances?: boolean;
-	publicPlayerScores?: boolean;
-	maxMinerals?: boolean;
-	startMode?: GameStartMode;
-	quickStartTurns?: number /* int */;
-	openPlayerSlots?: number /* int */;
-	numPlayers?: number /* int */;
-	victoryConditions: VictoryConditions;
-	seed: number /* int64 */;
-	rules: Rules;
-	area?: Vector;
-	year?: number /* int */;
-	victorDeclared: boolean;
-	archived: boolean;
+  hostId: number /* int64 */;
+  name: string;
+  state: GameState;
+  public?: boolean;
+  hash: string;
+  size: Size;
+  density: Density;
+  playerPositions: PlayerPositions;
+  randomEvents?: boolean;
+  computerPlayersFormAlliances?: boolean;
+  publicPlayerScores?: boolean;
+  maxMinerals?: boolean;
+  startMode?: GameStartMode;
+  quickStartTurns?: number /* int */;
+  openPlayerSlots?: number /* int */;
+  numPlayers?: number /* int */;
+  victoryConditions: VictoryConditions;
+  seed: number /* int64 */;
+  rules: Rules;
+  area?: Vector;
+  year?: number /* int */;
+  victorDeclared: boolean;
+  archived: boolean;
 }
 /**
  * A new player in a game, only used during game setup
  */
 export interface NewGamePlayer {
-	type: NewGamePlayerType;
-	aiDifficulty: AIDifficulty;
-	color: string;
-	hullSetNum: number /* int */;
-	race?: Race;
+  type: NewGamePlayerType;
+  aiDifficulty: AIDifficulty;
+  color: string;
+  hullSetNum: number /* int */;
+  race?: Race;
 }
 /**
  * The settings for a new game, used during game setup
  */
 export interface GameSettings {
-	name: string;
-	public: boolean;
-	quickStartTurns: number /* int */;
-	size: Size;
-	density: Density;
-	playerPositions: PlayerPositions;
-	randomEvents: boolean;
-	computerPlayersFormAlliances: boolean;
-	publicPlayerScores: boolean;
-	maxMinerals: boolean;
-	startMode: GameStartMode;
-	victoryConditions: VictoryConditions;
-	players: NewGamePlayer[];
-	rules?: Rules;
-	techStore?: TechStore;
+  name: string;
+  public: boolean;
+  quickStartTurns: number /* int */;
+  size: Size;
+  density: Density;
+  playerPositions: PlayerPositions;
+  randomEvents: boolean;
+  computerPlayersFormAlliances: boolean;
+  publicPlayerScores: boolean;
+  maxMinerals: boolean;
+  startMode: GameStartMode;
+  victoryConditions: VictoryConditions;
+  players: NewGamePlayer[];
+  rules?: Rules;
+  techStore?: TechStore;
 }
 /**
  * A game with a list of player statuses
  */
 export interface GameWithPlayers extends Game {
-	players: PlayerStatus[];
+  players: PlayerStatus[];
 }
 /**
  * A game with players and a universe, used in universe and turn generation
  */
 export interface FullGame extends Game, Universe, TechStore {
-	players?: (Player | undefined)[];
+  players?: (Player | undefined)[];
 }
 export type Size = string;
-export const SizeTiny: Size = 'Tiny';
-export const SizeTinyWide: Size = 'TinyWide';
-export const SizeSmall: Size = 'Small';
-export const SizeSmallWide: Size = 'SmallWide';
-export const SizeMedium: Size = 'Medium';
-export const SizeMediumWide: Size = 'MediumWide';
-export const SizeLarge: Size = 'Large';
-export const SizeLargeWide: Size = 'LargeWide';
-export const SizeHuge: Size = 'Huge';
-export const SizeHugeWide: Size = 'HugeWide';
+export const SizeTiny: Size = "Tiny";
+export const SizeTinyWide: Size = "TinyWide";
+export const SizeSmall: Size = "Small";
+export const SizeSmallWide: Size = "SmallWide";
+export const SizeMedium: Size = "Medium";
+export const SizeMediumWide: Size = "MediumWide";
+export const SizeLarge: Size = "Large";
+export const SizeLargeWide: Size = "LargeWide";
+export const SizeHuge: Size = "Huge";
+export const SizeHugeWide: Size = "HugeWide";
 export type Density = string;
-export const DensitySparse: Density = 'Sparse';
-export const DensityNormal: Density = 'Normal';
-export const DensityDense: Density = 'Dense';
-export const DensityPacked: Density = 'Packed';
+export const DensitySparse: Density = "Sparse";
+export const DensityNormal: Density = "Normal";
+export const DensityDense: Density = "Dense";
+export const DensityPacked: Density = "Packed";
 export type PlayerPositions = string;
-export const PlayerPositionsClose: PlayerPositions = 'Close';
-export const PlayerPositionsModerate: PlayerPositions = 'Moderate';
-export const PlayerPositionsFarther: PlayerPositions = 'Farther';
-export const PlayerPositionsDistant: PlayerPositions = 'Distant';
+export const PlayerPositionsClose: PlayerPositions = "Close";
+export const PlayerPositionsModerate: PlayerPositions = "Moderate";
+export const PlayerPositionsFarther: PlayerPositions = "Farther";
+export const PlayerPositionsDistant: PlayerPositions = "Distant";
 export type GameStartMode = string;
-export const GameStartModeNormal: GameStartMode = '';
-export const GameStartModeAccBBS: GameStartMode = 'AccBBS';
-export const GameStartModeMax: GameStartMode = 'Max';
+export const GameStartModeNormal: GameStartMode = "";
+export const GameStartModeAccBBS: GameStartMode = "AccBBS";
+export const GameStartModeMax: GameStartMode = "Max";
 export type GameState = string;
-export const GameStateSetup: GameState = 'Setup';
-export const GameStateGeneratingUniverse: GameState = 'GeneratingUniverse';
-export const GameStateWaitingForPlayers: GameState = 'WaitingForPlayers';
-export const GameStateGeneratingTurn: GameState = 'GeneratingTurn';
-export const GameStateGeneratingTurnError: GameState = 'GeneratingTurnError';
+export const GameStateSetup: GameState = "Setup";
+export const GameStateGeneratingUniverse: GameState = "GeneratingUniverse";
+export const GameStateWaitingForPlayers: GameState = "WaitingForPlayers";
+export const GameStateGeneratingTurn: GameState = "GeneratingTurn";
+export const GameStateGeneratingTurnError: GameState = "GeneratingTurnError";
 
 //////////
 // source: hab.go
@@ -471,9 +472,9 @@ export const GameStateGeneratingTurnError: GameState = 'GeneratingTurnError';
  * Represents a habitability point for a planet. Values range from 1 to 99
  */
 export interface Hab {
-	grav?: number /* int */;
-	temp?: number /* int */;
-	rad?: number /* int */;
+  grav?: number /* int */;
+  temp?: number /* int */;
+  rad?: number /* int */;
 }
 export type HabType = number /* int */;
 export const Grav: HabType = 0;
@@ -494,77 +495,77 @@ export const Unowned = 0;
  * is used to support discovering for a player and all of their allies when scanning, invading, etc
  */
 export interface Intel {
-	reportAge: number /* int */;
+  reportAge: number /* int */;
 }
 export interface PlanetIntel extends Intel, MapObject {
-	hab?: Hab;
-	baseHab?: Hab;
-	mineralConcentration?: Mineral;
-	cargo?: Cargo;
-	cargoDiscovered?: boolean;
-	planetHabitability?: number /* int */;
-	planetHabitabilityTerraformed?: number /* int */;
-	homeworld?: boolean;
-	spec: PlanetSpec;
+  hab?: Hab;
+  baseHab?: Hab;
+  mineralConcentration?: Mineral;
+  cargo?: Cargo;
+  cargoDiscovered?: boolean;
+  planetHabitability?: number /* int */;
+  planetHabitabilityTerraformed?: number /* int */;
+  homeworld?: boolean;
+  spec: PlanetSpec;
 }
 export interface ShipDesignIntel extends Intel {
-	name: string;
-	num: number /* int */;
-	playerNum: number /* int */;
-	hull: string;
-	hullSetNumber: number /* int */;
-	version: number /* int */;
-	slots: ShipDesignSlot[];
-	spec: ShipDesignSpec;
+  name: string;
+  num: number /* int */;
+  playerNum: number /* int */;
+  hull: string;
+  hullSetNumber: number /* int */;
+  version: number /* int */;
+  slots: ShipDesignSlot[];
+  spec: ShipDesignSpec;
 }
 export interface FleetIntel extends Intel, MapObject {
-	baseName: string;
-	heading: Vector;
-	orbitingPlanetNum?: number /* int */;
-	warpSpeed: number /* int */;
-	mass: number /* int */;
-	cargo?: Cargo;
-	cargoDiscovered?: boolean;
-	freighter?: boolean;
-	scanRange?: number /* int */;
-	scanRangePen?: number /* int */;
-	tokens: ShipToken[];
+  baseName: string;
+  heading: Vector;
+  orbitingPlanetNum?: number /* int */;
+  warpSpeed: number /* int */;
+  mass: number /* int */;
+  cargo?: Cargo;
+  cargoDiscovered?: boolean;
+  freighter?: boolean;
+  scanRange?: number /* int */;
+  scanRangePen?: number /* int */;
+  tokens: ShipToken[];
 }
 export interface MineralPacketIntel extends Intel, MapObject {
-	warpSpeed: number /* int */;
-	heading: Vector;
-	cargo: Cargo;
-	targetPlanetNum: number /* int */;
-	scanRange?: number /* int */;
-	scanRangePen?: number /* int */;
+  warpSpeed: number /* int */;
+  heading: Vector;
+  cargo: Cargo;
+  targetPlanetNum: number /* int */;
+  scanRange?: number /* int */;
+  scanRangePen?: number /* int */;
 }
 export interface SalvageIntel extends Intel, MapObject {
-	cargo: Cargo;
+  cargo: Cargo;
 }
 export interface MineFieldIntel extends Intel, MapObject {
-	numMines: number /* int */;
-	mineFieldType: MineFieldType;
-	spec: MineFieldSpec;
+  numMines: number /* int */;
+  mineFieldType: MineFieldType;
+  spec: MineFieldSpec;
 }
 export interface WormholeIntel extends Intel, MapObject {
-	destinationNum?: number /* int */;
-	stability?: WormholeStability;
+  destinationNum?: number /* int */;
+  stability?: WormholeStability;
 }
 export interface MysteryTraderIntel extends Intel, MapObject {
-	warpSpeed: number /* int */;
-	heading: Vector;
-	requestedBoon: number /* int */;
+  warpSpeed: number /* int */;
+  heading: Vector;
+  requestedBoon: number /* int */;
 }
 export interface PlayerIntel {
-	name: string;
-	num: number /* int */;
-	color: string;
-	seen?: boolean;
-	raceName?: string;
-	racePluralName?: string;
+  name: string;
+  num: number /* int */;
+  color: string;
+  seen?: boolean;
+  raceName?: string;
+  racePluralName?: string;
 }
 export interface ScoreIntel {
-	scoreHistory: PlayerScore[];
+  scoreHistory: PlayerScore[];
 }
 
 //////////
@@ -576,51 +577,51 @@ export interface ScoreIntel {
  * allow serialization.
  */
 export interface DBObject {
-	id?: number /* int64 */;
-	createdAt?: string /* RFC3339 */;
-	updatedAt?: string /* RFC3339 */;
+  id?: number /* int64 */;
+  createdAt?: string /* RFC3339 */;
+  updatedAt?: string /* RFC3339 */;
 }
 /**
  * A GameObject is a database object that is associated with a game.
  */
 export interface GameDBObject {
-	id?: number /* int64 */;
-	gameId?: number /* int64 */;
-	createdAt?: string /* RFC3339 */;
-	updatedAt?: string /* RFC3339 */;
+  id?: number /* int64 */;
+  gameId?: number /* int64 */;
+  createdAt?: string /* RFC3339 */;
+  updatedAt?: string /* RFC3339 */;
 }
 /**
  * Each object in the universe is a MapObject. MapObjects have a unique Num (and often a PlayerNum
  * for player-owned map objects), as well as a Position in space.
  */
 export interface MapObject {
-	type: MapObjectType;
-	position: Vector;
-	num: number /* int */;
-	playerNum: number /* int */;
-	name: string;
-	tags: Tags;
+  type: MapObjectType;
+  position: Vector;
+  num: number /* int */;
+  playerNum: number /* int */;
+  name: string;
+  tags: Tags;
 }
 export type MapObjectType = string;
-export const MapObjectTypeNone: MapObjectType = '';
-export const MapObjectTypePlanet: MapObjectType = 'Planet';
-export const MapObjectTypeFleet: MapObjectType = 'Fleet';
-export const MapObjectTypeWormhole: MapObjectType = 'Wormhole';
-export const MapObjectTypeMineField: MapObjectType = 'MineField';
-export const MapObjectTypeMysteryTrader: MapObjectType = 'MysteryTrader';
-export const MapObjectTypeSalvage: MapObjectType = 'Salvage';
-export const MapObjectTypeMineralPacket: MapObjectType = 'MineralPacket';
-export const TagPurpose = 'purpose';
+export const MapObjectTypeNone: MapObjectType = "";
+export const MapObjectTypePlanet: MapObjectType = "Planet";
+export const MapObjectTypeFleet: MapObjectType = "Fleet";
+export const MapObjectTypeWormhole: MapObjectType = "Wormhole";
+export const MapObjectTypeMineField: MapObjectType = "MineField";
+export const MapObjectTypeMysteryTrader: MapObjectType = "MysteryTrader";
+export const MapObjectTypeSalvage: MapObjectType = "Salvage";
+export const MapObjectTypeMineralPacket: MapObjectType = "MineralPacket";
+export const TagPurpose = "purpose";
 
 //////////
 // source: message.go
 
 export interface Target<T extends PlayerMessageTargetType | MapObjectType> {
-	targetPosition?: Vector;
-	targetType?: T;
-	targetName?: string;
-	targetNum?: number /* int */;
-	targetPlayerNum?: number /* int */;
+  targetPosition: Vector;
+  targetType?: T;
+  targetName?: string;
+  targetNum?: number /* int */;
+  targetPlayerNum?: number /* int */;
 }
 export type MapObjectTarget = Target<MapObjectType>;
 export type PlayerMessageTarget = Target<PlayerMessageTargetType>;
@@ -630,67 +631,67 @@ export type PlayerMessageTarget = Target<PlayerMessageTargetType>;
  * Messages also have a Spec that is used to store specific numbers for the UI to display on the message.
  */
 export interface PlayerMessage extends Target<PlayerMessageTargetType> {
-	type: PlayerMessageType;
-	text?: string;
-	battleNum?: number /* int */;
-	spec: PlayerMessageSpec;
+  type: PlayerMessageType;
+  text?: string;
+  battleNum?: number /* int */;
+  spec: PlayerMessageSpec;
 }
 /**
  * The PlayerMessageSpec contains data specific to each message, like the amount of mines built
  * or the field of research leveled up in.
  */
 export interface PlayerMessageSpec extends Target<MapObjectType> {
-	amount?: number /* int */;
-	amount2?: number /* int */;
-	prevAmount?: number /* int */;
-	sourcePlayerNum?: number /* int */;
-	destPlayerNum?: number /* int */;
-	name?: string;
-	cost?: Cost;
-	mineral?: Mineral;
-	cargo?: Cargo;
-	cargo2?: Cargo;
-	queueItemType?: QueueItemType;
-	field?: TechField;
-	nextField?: TechField;
-	techGained?: string;
-	lostTargetType?: MapObjectType;
-	battle?: BattleRecordStats;
-	comet?: PlayerMessageSpecComet;
-	bombing?: BombingResult;
-	mineralPacketDamage?: MineralPacketDamage;
-	mineFieldDamage?: MineFieldDamage;
-	mysteryTrader?: PlayerMessageSpecMysteryTrader;
-	invasion?: PlayerMessageSpecInvasion;
-	terraformAmount?: Hab;
+  amount?: number /* int */;
+  amount2?: number /* int */;
+  prevAmount?: number /* int */;
+  sourcePlayerNum?: number /* int */;
+  destPlayerNum?: number /* int */;
+  name?: string;
+  cost?: Cost;
+  mineral?: Mineral;
+  cargo?: Cargo;
+  cargo2?: Cargo;
+  queueItemType?: QueueItemType;
+  field?: TechField;
+  nextField?: TechField;
+  techGained?: string;
+  lostTargetType?: MapObjectType;
+  battle?: BattleRecordStats;
+  comet?: PlayerMessageSpecComet;
+  bombing?: BombingResult;
+  mineralPacketDamage?: MineralPacketDamage;
+  mineFieldDamage?: MineFieldDamage;
+  mysteryTrader?: PlayerMessageSpecMysteryTrader;
+  invasion?: PlayerMessageSpecInvasion;
+  terraformAmount?: Hab;
 }
 export interface PlayerMessageSpecComet {
-	size?: CometSize;
-	mineralsAdded?: Mineral;
-	mineralConcentrationIncreased?: Mineral;
-	habChanged?: Hab;
-	colonistsKilled?: number /* int */;
+  size?: CometSize;
+  mineralsAdded?: Mineral;
+  mineralConcentrationIncreased?: Mineral;
+  habChanged?: Hab;
+  colonistsKilled?: number /* int */;
 }
 export interface PlayerMessageSpecMysteryTrader extends MysteryTraderReward {
-	fleetNum: number /* int */;
+  fleetNum: number /* int */;
 }
 export interface PlayerMessageSpecInvasion {
-	fleetName?: string;
-	attackerPlayerNum: number /* int */;
-	defenderPlayerNum: number /* int */;
-	attackersKilled: number /* int */;
-	defendersKilled: number /* int */;
-	successful: boolean;
+  fleetName?: string;
+  attackerPlayerNum: number /* int */;
+  defenderPlayerNum: number /* int */;
+  attackersKilled: number /* int */;
+  defendersKilled: number /* int */;
+  successful: boolean;
 }
 export type PlayerMessageTargetType = string;
-export const TargetNone: PlayerMessageTargetType = '';
-export const TargetPlanet: PlayerMessageTargetType = 'Planet';
-export const TargetFleet: PlayerMessageTargetType = 'Fleet';
-export const TargetWormhole: PlayerMessageTargetType = 'Wormhole';
-export const TargetMineField: PlayerMessageTargetType = 'MineField';
-export const TargetMysteryTrader: PlayerMessageTargetType = 'MysteryTrader';
-export const TargetMineralPacket: PlayerMessageTargetType = 'MineralPacket';
-export const TargetBattle: PlayerMessageTargetType = 'Battle';
+export const TargetNone: PlayerMessageTargetType = "";
+export const TargetPlanet: PlayerMessageTargetType = "Planet";
+export const TargetFleet: PlayerMessageTargetType = "Fleet";
+export const TargetWormhole: PlayerMessageTargetType = "Wormhole";
+export const TargetMineField: PlayerMessageTargetType = "MineField";
+export const TargetMysteryTrader: PlayerMessageTargetType = "MysteryTrader";
+export const TargetMineralPacket: PlayerMessageTargetType = "MineralPacket";
+export const TargetBattle: PlayerMessageTargetType = "Battle";
 export type PlayerMessageType = number /* int */;
 export const PlayerMessageNone: PlayerMessageType = 0;
 export const PlayerMessageInfo: PlayerMessageType = 1;
@@ -801,37 +802,37 @@ export const PlayerMessageFleetStealCargoNotAllowed: PlayerMessageType = 103;
 // source: minefield.go
 
 export type MineFieldType = string;
-export const MineFieldTypeStandard: MineFieldType = 'Standard';
-export const MineFieldTypeHeavy: MineFieldType = 'Heavy';
-export const MineFieldTypeSpeedBump: MineFieldType = 'SpeedBump';
+export const MineFieldTypeStandard: MineFieldType = "Standard";
+export const MineFieldTypeHeavy: MineFieldType = "Heavy";
+export const MineFieldTypeSpeedBump: MineFieldType = "SpeedBump";
 export interface MineField extends GameDBObject, MapObject, MineFieldOrders {
-	mineFieldType: MineFieldType;
-	numMines: number /* int */;
-	spec: MineFieldSpec;
+  mineFieldType: MineFieldType;
+  numMines: number /* int */;
+  spec: MineFieldSpec;
 }
 export interface MineFieldOrders {
-	detonate?: boolean;
+  detonate?: boolean;
 }
 export interface MineFieldSpec {
-	radius: number /* float64 */;
-	decayRate: number /* int */;
-	canDetonate: boolean;
+  radius: number /* float64 */;
+  decayRate: number /* int */;
+  canDetonate: boolean;
 }
 export interface MineFieldStats {
-	minDamagePerFleetRS: number /* int */;
-	damagePerEngineRS: number /* int */;
-	maxSpeed: number /* int */;
-	chanceOfHit: number /* float64 */;
-	minDamagePerFleet: number /* int */;
-	damagePerEngine: number /* int */;
-	sweepFactor: number /* float64 */;
-	minDecay: number /* int */;
-	canDetonate: boolean;
+  minDamagePerFleetRS: number /* int */;
+  damagePerEngineRS: number /* int */;
+  maxSpeed: number /* int */;
+  chanceOfHit: number /* float64 */;
+  minDamagePerFleet: number /* int */;
+  damagePerEngine: number /* int */;
+  sweepFactor: number /* float64 */;
+  minDecay: number /* int */;
+  canDetonate: boolean;
 }
 export interface MineFieldDamage {
-	damage?: number /* int */;
-	shipsDestroyed?: number /* int */;
-	fleetDestroyed?: boolean;
+  damage?: number /* int */;
+  shipsDestroyed?: number /* int */;
+  fleetDestroyed?: boolean;
 }
 
 //////////
@@ -841,9 +842,9 @@ export interface MineFieldDamage {
  * Minerals are mined from planets and turned into Cargo
  */
 export interface Mineral {
-	ironium?: number /* int */;
-	boranium?: number /* int */;
-	germanium?: number /* int */;
+  ironium?: number /* int */;
+  boranium?: number /* int */;
+  germanium?: number /* int */;
 }
 export type MineralType = ResourceType;
 
@@ -854,18 +855,18 @@ export type MineralType = ResourceType;
  * Starbases with Packet Throwers can build mineral packets and fling them at other planets.
  */
 export interface MineralPacket extends GameDBObject, MapObject {
-	targetPlanetNum: number /* int */;
-	cargo: Cargo;
-	warpSpeed: number /* int */;
-	safeWarpSpeed: number /* int */;
-	heading: Vector;
-	scanRange: number /* int */;
-	scanRangePen: number /* int */;
+  targetPlanetNum: number /* int */;
+  cargo: Cargo;
+  warpSpeed: number /* int */;
+  safeWarpSpeed: number /* int */;
+  heading: Vector;
+  scanRange: number /* int */;
+  scanRangePen: number /* int */;
 }
 export interface MineralPacketDamage {
-	killed?: number /* int */;
-	defensesDestroyed?: number /* int */;
-	uncaught?: number /* int */;
+  killed?: number /* int */;
+  defensesDestroyed?: number /* int */;
+  uncaught?: number /* int */;
 }
 /**
  * this mineral packet will decay to nothing before reaching its target
@@ -879,69 +880,70 @@ export const MineralPacketDecayToNothing = -1;
  * The mystery trader travels through space and gives a boon to any player that gives it a fleet full of minerals
  */
 export interface MysteryTrader extends GameDBObject, MapObject {
-	warpSpeed?: number /* int */;
-	destination: Vector;
-	requestedBoon?: number /* int */;
-	rewardType: MysteryTraderRewardType;
-	heading?: Vector;
-	playersRewarded: { [key: number /* int */]: boolean };
-	spec: MysteryTraderSpec;
+  warpSpeed?: number /* int */;
+  destination: Vector;
+  requestedBoon?: number /* int */;
+  rewardType: MysteryTraderRewardType;
+  heading?: Vector;
+  playersRewarded: { [key: number /* int */]: boolean};
+  spec: MysteryTraderSpec;
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface MysteryTraderSpec {}
+export interface MysteryTraderSpec {
+}
 export type MysteryTraderRewardType = string;
-export const MysteryTraderRewardNone: MysteryTraderRewardType = '';
-export const MysteryTraderRewardResearch: MysteryTraderRewardType = 'Research';
-export const MysteryTraderRewardEngine: MysteryTraderRewardType = 'Engine';
-export const MysteryTraderRewardBomb: MysteryTraderRewardType = 'Bomb';
-export const MysteryTraderRewardArmor: MysteryTraderRewardType = 'Armor';
-export const MysteryTraderRewardShield: MysteryTraderRewardType = 'Shield';
-export const MysteryTraderRewardElectrical: MysteryTraderRewardType = 'Electrical';
-export const MysteryTraderRewardMechanical: MysteryTraderRewardType = 'Mechanical';
-export const MysteryTraderRewardTorpedo: MysteryTraderRewardType = 'Torpedo';
-export const MysteryTraderRewardMineRobot: MysteryTraderRewardType = 'MineRobot';
-export const MysteryTraderRewardShipHull: MysteryTraderRewardType = 'ShipHull';
-export const MysteryTraderRewardBeamWeapon: MysteryTraderRewardType = 'BeamWeapon';
-export const MysteryTraderRewardMineLayer: MysteryTraderRewardType = 'MineLayer';
-export const MysteryTraderRewardGenesis: MysteryTraderRewardType = 'Genesis';
-export const MysteryTraderRewardJumpGate: MysteryTraderRewardType = 'JumpGate';
-export const MysteryTraderRewardLifeboat: MysteryTraderRewardType = 'Lifeboat';
+export const MysteryTraderRewardNone: MysteryTraderRewardType = "";
+export const MysteryTraderRewardResearch: MysteryTraderRewardType = "Research";
+export const MysteryTraderRewardEngine: MysteryTraderRewardType = "Engine";
+export const MysteryTraderRewardBomb: MysteryTraderRewardType = "Bomb";
+export const MysteryTraderRewardArmor: MysteryTraderRewardType = "Armor";
+export const MysteryTraderRewardShield: MysteryTraderRewardType = "Shield";
+export const MysteryTraderRewardElectrical: MysteryTraderRewardType = "Electrical";
+export const MysteryTraderRewardMechanical: MysteryTraderRewardType = "Mechanical";
+export const MysteryTraderRewardTorpedo: MysteryTraderRewardType = "Torpedo";
+export const MysteryTraderRewardMineRobot: MysteryTraderRewardType = "MineRobot";
+export const MysteryTraderRewardShipHull: MysteryTraderRewardType = "ShipHull";
+export const MysteryTraderRewardBeamWeapon: MysteryTraderRewardType = "BeamWeapon";
+export const MysteryTraderRewardMineLayer: MysteryTraderRewardType = "MineLayer";
+export const MysteryTraderRewardGenesis: MysteryTraderRewardType = "Genesis";
+export const MysteryTraderRewardJumpGate: MysteryTraderRewardType = "JumpGate";
+export const MysteryTraderRewardLifeboat: MysteryTraderRewardType = "Lifeboat";
 export interface MysteryTraderReward {
-	type: MysteryTraderRewardType;
-	techLevels: TechLevel;
-	tech?: string;
-	ship?: ShipDesign;
-	shipCount?: number /* int */;
+  type: MysteryTraderRewardType;
+  techLevels: TechLevel;
+  tech?: string;
+  ship?: ShipDesign;
+  shipCount?: number /* int */;
 }
 
 //////////
 // source: orderer.go
 
 export interface CargoTransferRequest extends Cargo {
-	fuel?: number /* int */;
+  fuel?: number /* int */;
 }
 export interface SplitFleetRequest {
-	/**
-	 * The source fleet to split tokens from
-	 */
-	sourcefleet?: Fleet;
-	/**
-	 * an optional destination fleet to give tokens to. If nil a new fleet will be crated
-	 */
-	destfleet?: Fleet;
-	/**
-	 * a matching slice of source and dest tokens that only differ in token.Quantity
-	 */
-	sourceTokens?: ShipToken[];
-	destTokens?: ShipToken[];
-	/**
-	 * a name for the dest fleet, if it is newly created
-	 */
-	destBaseName?: string;
-	/**
-	 * the amount of cargo to transfer from the source fleet to the dest when splitting
-	 */
-	transferAmount?: CargoTransferRequest;
+  /**
+   * The source fleet to split tokens from
+   */
+  sourcefleet?: Fleet;
+  /**
+   * an optional destination fleet to give tokens to. If nil a new fleet will be crated
+   */
+  destfleet?: Fleet;
+  /**
+   * a matching slice of source and dest tokens that only differ in token.Quantity
+   */
+  sourceTokens?: ShipToken[];
+  destTokens?: ShipToken[];
+  /**
+   * a name for the dest fleet, if it is newly created
+   */
+  destBaseName?: string;
+  /**
+   * the amount of cargo to transfer from the source fleet to the dest when splitting
+   */
+  transferAmount?: CargoTransferRequest;
 }
 /**
  * The Orderer interface is used to handle any game logic with updating orders. This is used for
@@ -958,71 +960,71 @@ export type Orderer = unknown;
  * I suppose these should have been named Stars, since they represent a star system, ah well..
  */
 export interface Planet extends GameDBObject, MapObject, PlanetOrders {
-	hab: Hab;
-	baseHab: Hab;
-	terraformedAmount: Hab;
-	mineralConcentration: Mineral;
-	mineYears: Mineral;
-	cargo: Cargo;
-	mines: number /* int */;
-	factories: number /* int */;
-	defenses: number /* int */;
-	homeworld?: boolean;
-	scanner?: boolean;
-	spec: PlanetSpec;
+  hab: Hab;
+  baseHab: Hab;
+  terraformedAmount: Hab;
+  mineralConcentration: Mineral;
+  mineYears: Mineral;
+  cargo: Cargo;
+  mines: number /* int */;
+  factories: number /* int */;
+  defenses: number /* int */;
+  homeworld?: boolean;
+  scanner?: boolean;
+  spec: PlanetSpec;
 }
 export interface PlanetOrders {
-	contributesOnlyLeftoverToResearch?: boolean;
-	productionQueue?: ProductionQueueItem[];
-	routeTargetType?: MapObjectType;
-	routeTargetNum?: number /* int */;
-	routeTargetPlayerNum?: number /* int */;
-	packetTargetNum?: number /* int */;
-	packetSpeed?: number /* int */;
+  contributesOnlyLeftoverToResearch?: boolean;
+  productionQueue?: ProductionQueueItem[];
+  routeTargetType?: MapObjectType;
+  routeTargetNum?: number /* int */;
+  routeTargetPlayerNum?: number /* int */;
+  packetTargetNum?: number /* int */;
+  packetSpeed?: number /* int */;
 }
 export interface PlanetSpec extends PlanetStarbaseSpec {
-	canTerraform?: boolean;
-	defense?: string;
-	defenseCoverage?: number /* float64 */;
-	defenseCoverageSmart?: number /* float64 */;
-	growthAmount?: number /* int */;
-	habitability?: number /* int */;
-	maxDefenses?: number /* int */;
-	maxFactories?: number /* int */;
-	maxMines?: number /* int */;
-	maxPopulation?: number /* int */;
-	maxPossibleFactories?: number /* int */;
-	maxPossibleMines?: number /* int */;
-	miningOutput?: Mineral;
-	population?: number /* int */;
-	populationDensity?: number /* float64 */;
-	resourcesPerYear?: number /* int */;
-	resourcesPerYearAvailable?: number /* int */;
-	resourcesPerYearResearch?: number /* int */;
-	resourcesPerYearResearchEstimatedLeftover?: number /* int */;
-	scanner?: string;
-	scanRange?: number /* int */;
-	scanRangePen?: number /* int */;
-	terraformAmount?: Hab;
-	minTerraformAmount?: Hab;
-	terraformedHabitability?: number /* int */;
-	contested?: boolean;
+  canTerraform?: boolean;
+  defense?: string;
+  defenseCoverage?: number /* float64 */;
+  defenseCoverageSmart?: number /* float64 */;
+  growthAmount?: number /* int */;
+  habitability?: number /* int */;
+  maxDefenses?: number /* int */;
+  maxFactories?: number /* int */;
+  maxMines?: number /* int */;
+  maxPopulation?: number /* int */;
+  maxPossibleFactories?: number /* int */;
+  maxPossibleMines?: number /* int */;
+  miningOutput?: Mineral;
+  population?: number /* int */;
+  populationDensity?: number /* float64 */;
+  resourcesPerYear?: number /* int */;
+  resourcesPerYearAvailable?: number /* int */;
+  resourcesPerYearResearch?: number /* int */;
+  resourcesPerYearResearchEstimatedLeftover?: number /* int */;
+  scanner?: string;
+  scanRange?: number /* int */;
+  scanRangePen?: number /* int */;
+  terraformAmount?: Hab;
+  minTerraformAmount?: Hab;
+  terraformedHabitability?: number /* int */;
+  contested?: boolean;
 }
 export interface PlanetStarbaseSpec {
-	hasMassDriver?: boolean;
-	hasStarbase?: boolean;
-	hasStargate?: boolean;
-	starbaseDesignName?: string;
-	starbaseDesignNum?: number /* int */;
-	dockCapacity?: number /* int */;
-	basePacketSpeed?: number /* int */;
-	safePacketSpeed?: number /* int */;
-	safeHullMass?: number /* int */;
-	safeRange?: number /* int */;
-	maxRange?: number /* int */;
-	maxHullMass?: number /* int */;
-	stargate?: string;
-	massDriver?: string;
+  hasMassDriver?: boolean;
+  hasStarbase?: boolean;
+  hasStargate?: boolean;
+  starbaseDesignName?: string;
+  starbaseDesignNum?: number /* int */;
+  dockCapacity?: number /* int */;
+  basePacketSpeed?: number /* int */;
+  safePacketSpeed?: number /* int */;
+  safeHullMass?: number /* int */;
+  safeRange?: number /* int */;
+  maxRange?: number /* int */;
+  maxHullMass?: number /* int */;
+  stargate?: string;
+  massDriver?: string;
 }
 
 //////////
@@ -1033,213 +1035,214 @@ export interface PlanetStarbaseSpec {
  * It is tied to a single User (or no user, for AI)
  */
 export interface Player extends GameDBObject, PlayerOrders, PlayerIntels, PlayerPlans {
-	userId?: number /* int64 */;
-	name: string;
-	num: number /* int */;
-	ready: boolean;
-	aiControlled?: boolean;
-	aiDifficulty?: AIDifficulty;
-	guest?: boolean;
-	submittedTurn: boolean;
-	color: string;
-	defaultHullSet?: number /* int */;
-	race: Race;
-	techLevels: TechLevel;
-	techLevelsSpent: TechLevel;
-	researchSpentLastYear?: number /* int */;
-	relations?: PlayerRelationship[];
-	messages?: PlayerMessage[];
-	designs?: (ShipDesign | undefined)[];
-	scoreHistory: PlayerScore[];
-	acquiredTechs?: { [key: string]: boolean };
-	achievedVictoryConditions?: Bitmask;
-	victor: boolean;
-	archived: boolean;
-	stats?: PlayerStats;
-	spec: PlayerSpec;
+  userId?: number /* int64 */;
+  name: string;
+  num: number /* int */;
+  ready: boolean;
+  aiControlled?: boolean;
+  aiDifficulty?: AIDifficulty;
+  guest?: boolean;
+  submittedTurn: boolean;
+  color: string;
+  defaultHullSet?: number /* int */;
+  race: Race;
+  techLevels: TechLevel;
+  techLevelsSpent: TechLevel;
+  researchSpentLastYear?: number /* int */;
+  relations?: PlayerRelationship[];
+  messages?: PlayerMessage[];
+  designs?: (ShipDesign | undefined)[];
+  scoreHistory: PlayerScore[];
+  acquiredTechs?: { [key: string]: boolean};
+  achievedVictoryConditions?: Bitmask;
+  victor: boolean;
+  archived: boolean;
+  stats?: PlayerStats;
+  spec: PlayerSpec;
 }
 /**
  * a player and all mapobjects the player owns
  * this is used by the UI when loading a player's game
  */
-export interface FullPlayer extends Player, PlayerMapObjects {}
+export interface FullPlayer extends Player, PlayerMapObjects {
+}
 export interface PlayerStatus {
-	updatedAt?: string /* RFC3339 */;
-	userId?: number /* int64 */;
-	name: string;
-	num: number /* int */;
-	ready?: boolean;
-	aiControlled?: boolean;
-	guest?: boolean;
-	submittedTurn?: boolean;
-	color?: string;
-	victor?: boolean;
-	archived?: boolean;
+  updatedAt?: string /* RFC3339 */;
+  userId?: number /* int64 */;
+  name: string;
+  num: number /* int */;
+  ready?: boolean;
+  aiControlled?: boolean;
+  guest?: boolean;
+  submittedTurn?: boolean;
+  color?: string;
+  victor?: boolean;
+  archived?: boolean;
 }
 export interface PlayerIntels {
-	battleRecords?: BattleRecord[];
-	playerIntels?: PlayerIntel[];
-	scoreIntels?: ScoreIntel[];
-	planetIntels?: PlanetIntel[];
-	fleetIntels?: FleetIntel[];
-	shipDesignIntels?: ShipDesignIntel[];
-	mineralPacketIntels?: MineralPacketIntel[];
-	mineFieldIntels?: MineFieldIntel[];
-	wormholeIntels?: WormholeIntel[];
-	mysteryTraderIntels?: MysteryTraderIntel[];
-	salvageIntels?: SalvageIntel[];
+  battleRecords?: BattleRecord[];
+  playerIntels?: PlayerIntel[];
+  scoreIntels?: ScoreIntel[];
+  planetIntels?: PlanetIntel[];
+  fleetIntels?: FleetIntel[];
+  shipDesignIntels?: ShipDesignIntel[];
+  mineralPacketIntels?: MineralPacketIntel[];
+  mineFieldIntels?: MineFieldIntel[];
+  wormholeIntels?: WormholeIntel[];
+  mysteryTraderIntels?: MysteryTraderIntel[];
+  salvageIntels?: SalvageIntel[];
 }
 export interface PlayerPlans {
-	productionPlans?: ProductionPlan[];
-	battlePlans?: BattlePlan[];
-	transportPlans?: TransportPlan[];
+  productionPlans?: ProductionPlan[];
+  battlePlans?: BattlePlan[];
+  transportPlans?: TransportPlan[];
 }
 export interface PlayerOrders {
-	researching?: TechField;
-	nextResearchField?: NextResearchField;
-	researchAmount?: number /* int */;
-	cargoTransfers?: CargoTransfers;
+  researching?: TechField;
+  nextResearchField?: NextResearchField;
+  researchAmount?: number /* int */;
+  cargoTransfers?: CargoTransfers;
 }
 export interface PlayerStats {
-	fleetsBuilt?: number /* int */;
-	starbasesBuilt?: number /* int */;
-	tokensBuilt?: number /* int */;
-	planetsColonized?: number /* int */;
+  fleetsBuilt?: number /* int */;
+  starbasesBuilt?: number /* int */;
+  tokensBuilt?: number /* int */;
+  planetsColonized?: number /* int */;
 }
 export interface PlayerRelationship {
-	relation: PlayerRelation;
-	shareMap?: boolean;
+  relation: PlayerRelation;
+  shareMap?: boolean;
 }
 export type PlayerRelation = string;
-export const PlayerRelationNeutral: PlayerRelation = 'Neutral';
-export const PlayerRelationFriend: PlayerRelation = 'Friend';
-export const PlayerRelationEnemy: PlayerRelation = 'Enemy';
+export const PlayerRelationNeutral: PlayerRelation = "Neutral";
+export const PlayerRelationFriend: PlayerRelation = "Friend";
+export const PlayerRelationEnemy: PlayerRelation = "Enemy";
 export interface PlayerSpec extends PlayerResearchSpec {
-	planetaryScanner: TechPlanetaryScanner;
-	defense: TechDefense;
-	terraform: { [key: TerraformHabType]: TechTerraform | undefined };
+  planetaryScanner: TechPlanetaryScanner;
+  defense: TechDefense;
+  terraform: { [key: TerraformHabType]: TechTerraform | undefined};
 }
 export interface PlayerResearchSpec {
-	resourcesPerYear: number /* int */;
-	resourcesPerYearResearch: number /* int */;
-	resourcesPerYearResearchEstimated: number /* int */;
-	currentResearchCost: number /* int */;
-	techsJustGained: (Tech | undefined)[];
+  resourcesPerYear: number /* int */;
+  resourcesPerYearResearch: number /* int */;
+  resourcesPerYearResearchEstimated: number /* int */;
+  currentResearchCost: number /* int */;
+  techsJustGained: (Tech | undefined)[];
 }
 export interface PlayerScore {
-	planets: number /* int */;
-	starbases: number /* int */;
-	unarmedShips: number /* int */;
-	escortShips: number /* int */;
-	capitalShips: number /* int */;
-	techLevels: number /* int */;
-	resources: number /* int */;
-	score: number /* int */;
-	rank: number /* int */;
-	achievedVictoryConditions: Bitmask;
+  planets: number /* int */;
+  starbases: number /* int */;
+  unarmedShips: number /* int */;
+  escortShips: number /* int */;
+  capitalShips: number /* int */;
+  techLevels: number /* int */;
+  resources: number /* int */;
+  score: number /* int */;
+  rank: number /* int */;
+  achievedVictoryConditions: Bitmask;
 }
 export interface BattlePlan {
-	num: number /* int */;
-	name: string;
-	primaryTarget: BattleTarget;
-	secondaryTarget: BattleTarget;
-	tactic: BattleTactic;
-	attackWho: BattleAttackWho;
-	dumpCargo: boolean;
+  num: number /* int */;
+  name: string;
+  primaryTarget: BattleTarget;
+  secondaryTarget: BattleTarget;
+  tactic: BattleTactic;
+  attackWho: BattleAttackWho;
+  dumpCargo: boolean;
 }
 export type BattleTarget = string;
-export const BattleTargetNone: BattleTarget = '';
-export const BattleTargetAny: BattleTarget = 'Any';
-export const BattleTargetStarbase: BattleTarget = 'Starbase';
-export const BattleTargetArmedShips: BattleTarget = 'ArmedShips';
-export const BattleTargetBombersFreighters: BattleTarget = 'BombersFreighters';
-export const BattleTargetUnarmedShips: BattleTarget = 'UnarmedShips';
-export const BattleTargetFuelTransports: BattleTarget = 'FuelTransports';
-export const BattleTargetFreighters: BattleTarget = 'Freighters';
+export const BattleTargetNone: BattleTarget = "";
+export const BattleTargetAny: BattleTarget = "Any";
+export const BattleTargetStarbase: BattleTarget = "Starbase";
+export const BattleTargetArmedShips: BattleTarget = "ArmedShips";
+export const BattleTargetBombersFreighters: BattleTarget = "BombersFreighters";
+export const BattleTargetUnarmedShips: BattleTarget = "UnarmedShips";
+export const BattleTargetFuelTransports: BattleTarget = "FuelTransports";
+export const BattleTargetFreighters: BattleTarget = "Freighters";
 export type BattleTactic = string;
 /**
  * RUN AWAY!
  */
-export const BattleTacticDisengage: BattleTactic = 'Disengage';
+export const BattleTacticDisengage: BattleTactic = "Disengage";
 /**
  * MaximizeDamage until we are damaged, then disengage
  */
-export const BattleTacticDisengageIfChallenged: BattleTactic = 'DisengageIfChallenged';
+export const BattleTacticDisengageIfChallenged: BattleTactic = "DisengageIfChallenged";
 /**
  * If in range of enemy weapons, move away. Only fire if cornered or if from a safe range
  */
-export const BattleTacticMinimizeDamageToSelf: BattleTactic = 'MinimizeDamageToSelf';
-export const BattleTacticMaximizeNetDamage: BattleTactic = 'MaximizeNetDamage';
-export const BattleTacticMaximizeDamageRatio: BattleTactic = 'MaximizeDamageRatio';
-export const BattleTacticMaximizeDamage: BattleTactic = 'MaximizeDamage';
+export const BattleTacticMinimizeDamageToSelf: BattleTactic = "MinimizeDamageToSelf";
+export const BattleTacticMaximizeNetDamage: BattleTactic = "MaximizeNetDamage";
+export const BattleTacticMaximizeDamageRatio: BattleTactic = "MaximizeDamageRatio";
+export const BattleTacticMaximizeDamage: BattleTactic = "MaximizeDamage";
 export type BattleAttackWho = string;
-export const BattleAttackWhoEnemies: BattleAttackWho = 'Enemies';
-export const BattleAttackWhoEnemiesAndNeutrals: BattleAttackWho = 'EnemiesAndNeutrals';
-export const BattleAttackWhoEveryone: BattleAttackWho = 'Everyone';
+export const BattleAttackWhoEnemies: BattleAttackWho = "Enemies";
+export const BattleAttackWhoEnemiesAndNeutrals: BattleAttackWho = "EnemiesAndNeutrals";
+export const BattleAttackWhoEveryone: BattleAttackWho = "Everyone";
 export interface TransportPlan {
-	num: number /* int */;
-	name: string;
-	tasks: WaypointTransportTasks;
+  num: number /* int */;
+  name: string;
+  tasks: WaypointTransportTasks;
 }
 export interface ProductionPlan {
-	num: number /* int */;
-	name: string;
-	items: ProductionPlanItem[];
-	contributesOnlyLeftoverToResearch?: boolean;
+  num: number /* int */;
+  name: string;
+  items: ProductionPlanItem[];
+  contributesOnlyLeftoverToResearch?: boolean;
 }
 export interface ProductionPlanItem {
-	type: QueueItemType;
-	designNum: number /* int */;
-	quantity: number /* int */;
+  type: QueueItemType;
+  designNum: number /* int */;
+  quantity: number /* int */;
 }
 /**
  * All mapobjects that a player can issue commands to
  */
 export interface PlayerMapObjects {
-	planets: (Planet | undefined)[];
-	fleets: (Fleet | undefined)[];
-	starbases: (Fleet | undefined)[];
-	mineFields: (MineField | undefined)[];
-	mineralPackets: (MineralPacket | undefined)[];
+  planets: (Planet | undefined)[];
+  fleets: (Fleet | undefined)[];
+  starbases: (Fleet | undefined)[];
+  mineFields: (MineField | undefined)[];
+  mineralPackets: (MineralPacket | undefined)[];
 }
 
 //////////
 // source: production.go
 
 export interface QueueItemCompletionEstimate {
-	skipped?: boolean;
-	yearsToBuildOne?: number /* int */;
-	yearsToBuildAll?: number /* int */;
-	yearsToSkipAuto?: number /* int */;
+  skipped?: boolean;
+  yearsToBuildOne?: number /* int */;
+  yearsToBuildAll?: number /* int */;
+  yearsToSkipAuto?: number /* int */;
 }
 export interface ProductionQueueItem extends QueueItemCompletionEstimate {
-	type: QueueItemType;
-	designNum?: number /* int */;
-	quantity: number /* int */;
-	allocated: Cost;
-	tags: Tags;
+  type: QueueItemType;
+  designNum?: number /* int */;
+  quantity: number /* int */;
+  allocated: Cost;
+  tags: Tags;
 }
 export type QueueItemType = string;
-export const QueueItemTypeIroniumMineralPacket: QueueItemType = 'IroniumMineralPacket';
-export const QueueItemTypeBoraniumMineralPacket: QueueItemType = 'BoraniumMineralPacket';
-export const QueueItemTypeGermaniumMineralPacket: QueueItemType = 'GermaniumMineralPacket';
-export const QueueItemTypeMixedMineralPacket: QueueItemType = 'MixedMineralPacket';
-export const QueueItemTypeFactory: QueueItemType = 'Factory';
-export const QueueItemTypeMine: QueueItemType = 'Mine';
-export const QueueItemTypeDefenses: QueueItemType = 'Defenses';
-export const QueueItemTypeMineralAlchemy: QueueItemType = 'MineralAlchemy';
-export const QueueItemTypeTerraformEnvironment: QueueItemType = 'TerraformEnvironment';
-export const QueueItemTypeAutoMines: QueueItemType = 'AutoMines';
-export const QueueItemTypeAutoFactories: QueueItemType = 'AutoFactories';
-export const QueueItemTypeAutoDefenses: QueueItemType = 'AutoDefenses';
-export const QueueItemTypeAutoMineralAlchemy: QueueItemType = 'AutoMineralAlchemy';
-export const QueueItemTypeAutoMinTerraform: QueueItemType = 'AutoMinTerraform';
-export const QueueItemTypeAutoMaxTerraform: QueueItemType = 'AutoMaxTerraform';
-export const QueueItemTypeAutoMineralPacket: QueueItemType = 'AutoMineralPacket';
-export const QueueItemTypeShipToken: QueueItemType = 'ShipToken';
-export const QueueItemTypeStarbase: QueueItemType = 'Starbase';
-export const QueueItemTypePlanetaryScanner: QueueItemType = 'PlanetaryScanner';
-export const QueueItemTypeGenesisDevice: QueueItemType = 'GenesisDevice';
+export const QueueItemTypeIroniumMineralPacket: QueueItemType = "IroniumMineralPacket";
+export const QueueItemTypeBoraniumMineralPacket: QueueItemType = "BoraniumMineralPacket";
+export const QueueItemTypeGermaniumMineralPacket: QueueItemType = "GermaniumMineralPacket";
+export const QueueItemTypeMixedMineralPacket: QueueItemType = "MixedMineralPacket";
+export const QueueItemTypeFactory: QueueItemType = "Factory";
+export const QueueItemTypeMine: QueueItemType = "Mine";
+export const QueueItemTypeDefenses: QueueItemType = "Defenses";
+export const QueueItemTypeMineralAlchemy: QueueItemType = "MineralAlchemy";
+export const QueueItemTypeTerraformEnvironment: QueueItemType = "TerraformEnvironment";
+export const QueueItemTypeAutoMines: QueueItemType = "AutoMines";
+export const QueueItemTypeAutoFactories: QueueItemType = "AutoFactories";
+export const QueueItemTypeAutoDefenses: QueueItemType = "AutoDefenses";
+export const QueueItemTypeAutoMineralAlchemy: QueueItemType = "AutoMineralAlchemy";
+export const QueueItemTypeAutoMinTerraform: QueueItemType = "AutoMinTerraform";
+export const QueueItemTypeAutoMaxTerraform: QueueItemType = "AutoMaxTerraform";
+export const QueueItemTypeAutoMineralPacket: QueueItemType = "AutoMineralPacket";
+export const QueueItemTypeShipToken: QueueItemType = "ShipToken";
+export const QueueItemTypeStarbase: QueueItemType = "Starbase";
+export const QueueItemTypePlanetaryScanner: QueueItemType = "PlanetaryScanner";
+export const QueueItemTypeGenesisDevice: QueueItemType = "GenesisDevice";
 /**
  * for logging and for estimating, keep track of each item built
  */
@@ -1252,182 +1255,181 @@ export const QueueItemTypeGenesisDevice: QueueItemType = 'GenesisDevice';
  * into the Player object and stored separately (so changes to the User's race don't impact running games)
  */
 export interface Race extends DBObject {
-	userId?: number /* int64 */;
-	name: string;
-	pluralName: string;
-	spendLeftoverPointsOn: SpendLeftoverPointsOn;
-	prt: PRT;
-	lrts: Bitmask;
-	habLow: Hab;
-	habHigh: Hab;
-	growthRate: number /* int */;
-	popEfficiency: number /* int */;
-	factoryOutput: number /* int */;
-	factoryCost: number /* int */;
-	numFactories: number /* int */;
-	factoriesCostLess?: boolean;
-	immuneGrav?: boolean;
-	immuneTemp?: boolean;
-	immuneRad?: boolean;
-	mineOutput: number /* int */;
-	mineCost: number /* int */;
-	numMines: number /* int */;
-	researchCost: ResearchCost;
-	techsStartHigh?: boolean;
-	spec: RaceSpec;
+  userId?: number /* int64 */;
+  name: string;
+  pluralName: string;
+  spendLeftoverPointsOn: SpendLeftoverPointsOn;
+  prt: PRT;
+  lrts: Bitmask;
+  habLow: Hab;
+  habHigh: Hab;
+  growthRate: number /* int */;
+  popEfficiency: number /* int */;
+  factoryOutput: number /* int */;
+  factoryCost: number /* int */;
+  numFactories: number /* int */;
+  factoriesCostLess?: boolean;
+  immuneGrav?: boolean;
+  immuneTemp?: boolean;
+  immuneRad?: boolean;
+  mineOutput: number /* int */;
+  mineCost: number /* int */;
+  numMines: number /* int */;
+  researchCost: ResearchCost;
+  techsStartHigh?: boolean;
+  spec: RaceSpec;
 }
 export type ResearchCostLevel = string;
-export const ResearchCostExtra: ResearchCostLevel = 'Extra';
-export const ResearchCostStandard: ResearchCostLevel = 'Standard';
-export const ResearchCostLess: ResearchCostLevel = 'Less';
+export const ResearchCostExtra: ResearchCostLevel = "Extra";
+export const ResearchCostStandard: ResearchCostLevel = "Standard";
+export const ResearchCostLess: ResearchCostLevel = "Less";
 export type SpendLeftoverPointsOn = string;
-export const SpendLeftoverPointsOnNone: SpendLeftoverPointsOn = '';
-export const SpendLeftoverPointsOnSurfaceMinerals: SpendLeftoverPointsOn = 'SurfaceMinerals';
-export const SpendLeftoverPointsOnMineralConcentrations: SpendLeftoverPointsOn =
-	'MineralConcentrations';
-export const SpendLeftoverPointsOnMines: SpendLeftoverPointsOn = 'Mines';
-export const SpendLeftoverPointsOnFactories: SpendLeftoverPointsOn = 'Factories';
-export const SpendLeftoverPointsOnDefenses: SpendLeftoverPointsOn = 'Defenses';
+export const SpendLeftoverPointsOnNone: SpendLeftoverPointsOn = "";
+export const SpendLeftoverPointsOnSurfaceMinerals: SpendLeftoverPointsOn = "SurfaceMinerals";
+export const SpendLeftoverPointsOnMineralConcentrations: SpendLeftoverPointsOn = "MineralConcentrations";
+export const SpendLeftoverPointsOnMines: SpendLeftoverPointsOn = "Mines";
+export const SpendLeftoverPointsOnFactories: SpendLeftoverPointsOn = "Factories";
+export const SpendLeftoverPointsOnDefenses: SpendLeftoverPointsOn = "Defenses";
 export interface ResearchCost {
-	energy: ResearchCostLevel;
-	weapons: ResearchCostLevel;
-	propulsion: ResearchCostLevel;
-	construction: ResearchCostLevel;
-	electronics: ResearchCostLevel;
-	biotechnology: ResearchCostLevel;
+  energy: ResearchCostLevel;
+  weapons: ResearchCostLevel;
+  propulsion: ResearchCostLevel;
+  construction: ResearchCostLevel;
+  electronics: ResearchCostLevel;
+  biotechnology: ResearchCostLevel;
 }
 export interface RaceSpec extends MiniaturizationSpec, ScannerSpec {
-	habCenter?: Hab;
-	costs?: { [key: QueueItemType]: Cost };
-	startingTechLevels?: TechLevel;
-	startingPlanets?: StartingPlanet[];
-	techCostOffset?: TechCostOffset;
-	mineralsPerSingleMineralPacket?: number /* int */;
-	mineralsPerMixedMineralPacket?: number /* int */;
-	packetResourceCost?: number /* int */;
-	packetMineralCostFactor?: number /* float64 */;
-	packetReceiverFactor?: number /* float64 */;
-	packetDecayFactor?: number /* float64 */;
-	packetOverSafeWarpPenalty?: number /* int */;
-	packetBuiltInScanner?: boolean;
-	detectPacketDestinationStarbases?: boolean;
-	detectAllPackets?: boolean;
-	packetTerraformChance?: number /* float64 */;
-	packetPermaformChance?: number /* float64 */;
-	packetPermaTerraformSizeUnit?: number /* int */;
-	canGateCargo?: boolean;
-	canDetectStargatePlanets?: boolean;
-	shipsVanishInVoid?: boolean;
-	techsCostExtraLevel?: number /* int */;
-	freighterGrowth?: FreighterGrowth;
-	growthFactor?: number /* float64 */;
-	maxPopulationOffset?: number /* float64 */;
-	builtInCloakUnits?: number /* int */;
-	stealsResearch?: StealsResearch;
-	freeCargoCloaking?: boolean;
-	mineFieldsAreScanners?: boolean;
-	mineFieldRateMoveFactor?: number /* float64 */;
-	mineFieldSafeWarpBonus?: number /* int */;
-	mineFieldMinDecayFactor?: number /* float64 */;
-	mineFieldBaseDecayRate?: number /* float64 */;
-	mineFieldPlanetDecayRate?: number /* float64 */;
-	mineFieldMaxDecayRate?: number /* float64 */;
-	canDetonateMineFields?: boolean;
-	mineFieldDetonateDecayRate?: number /* float64 */;
-	discoverDesignOnScan?: boolean;
-	canRemoteMineOwnPlanets?: boolean;
-	invasionAttackBonus?: number /* float64 */;
-	invasionDefendBonus?: number /* float64 */;
-	movementBonus?: number /* float64 */;
-	instaforming?: boolean;
-	permaformChance?: number /* float64 */;
-	permaformPopulation?: number /* int */;
-	repairFactor?: number /* float64 */;
-	starbaseRepairFactor?: number /* float64 */;
-	innateMining?: boolean;
-	innateMinesFactor?: number /* float64 */;
-	innateResources?: boolean;
-	innateScanner?: boolean;
-	innateScannerFactor?: number /* float64 */;
-	canBuildDefenses?: boolean;
-	livesOnStarbases?: boolean;
-	minHabFloor?: number /* int */;
-	fuelEfficiencyOffset?: number /* float64 */;
-	mineralAlchemyCostOffset?: number /* int */;
-	scrapMineralOffset?: number /* float64 */;
-	scrapMineralOffsetStarbase?: number /* float64 */;
-	scrapResourcesOffset?: number /* float64 */;
-	scrapResourcesOffsetStarbase?: number /* float64 */;
-	startingPopulationFactor?: number /* float64 */;
-	starbaseBuiltInCloakUnits?: number /* int */;
-	starbaseCostFactor?: number /* float64 */;
-	researchFactor?: number /* float64 */;
-	researchSplashDamage?: number /* float64 */;
-	armorStrengthFactor?: number /* float64 */;
-	shieldStrengthFactor?: number /* float64 */;
-	shieldRegenerationRate?: number /* float64 */;
-	engineFailureRate?: number /* float64 */;
-	engineReliableSpeed?: number /* int */;
+  habCenter?: Hab;
+  costs?: { [key: QueueItemType]: Cost};
+  startingTechLevels?: TechLevel;
+  startingPlanets?: StartingPlanet[];
+  techCostOffset?: TechCostOffset;
+  mineralsPerSingleMineralPacket?: number /* int */;
+  mineralsPerMixedMineralPacket?: number /* int */;
+  packetResourceCost?: number /* int */;
+  packetMineralCostFactor?: number /* float64 */;
+  packetReceiverFactor?: number /* float64 */;
+  packetDecayFactor?: number /* float64 */;
+  packetOverSafeWarpPenalty?: number /* int */;
+  packetBuiltInScanner?: boolean;
+  detectPacketDestinationStarbases?: boolean;
+  detectAllPackets?: boolean;
+  packetTerraformChance?: number /* float64 */;
+  packetPermaformChance?: number /* float64 */;
+  packetPermaTerraformSizeUnit?: number /* int */;
+  canGateCargo?: boolean;
+  canDetectStargatePlanets?: boolean;
+  shipsVanishInVoid?: boolean;
+  techsCostExtraLevel?: number /* int */;
+  freighterGrowth?: FreighterGrowth;
+  growthFactor?: number /* float64 */;
+  maxPopulationOffset?: number /* float64 */;
+  builtInCloakUnits?: number /* int */;
+  stealsResearch?: StealsResearch;
+  freeCargoCloaking?: boolean;
+  mineFieldsAreScanners?: boolean;
+  mineFieldRateMoveFactor?: number /* float64 */;
+  mineFieldSafeWarpBonus?: number /* int */;
+  mineFieldMinDecayFactor?: number /* float64 */;
+  mineFieldBaseDecayRate?: number /* float64 */;
+  mineFieldPlanetDecayRate?: number /* float64 */;
+  mineFieldMaxDecayRate?: number /* float64 */;
+  canDetonateMineFields?: boolean;
+  mineFieldDetonateDecayRate?: number /* float64 */;
+  discoverDesignOnScan?: boolean;
+  canRemoteMineOwnPlanets?: boolean;
+  invasionAttackBonus?: number /* float64 */;
+  invasionDefendBonus?: number /* float64 */;
+  movementBonus?: number /* float64 */;
+  instaforming?: boolean;
+  permaformChance?: number /* float64 */;
+  permaformPopulation?: number /* int */;
+  repairFactor?: number /* float64 */;
+  starbaseRepairFactor?: number /* float64 */;
+  innateMining?: boolean;
+  innateMinesFactor?: number /* float64 */;
+  innateResources?: boolean;
+  innateScanner?: boolean;
+  innateScannerFactor?: number /* float64 */;
+  canBuildDefenses?: boolean;
+  livesOnStarbases?: boolean;
+  minHabFloor?: number /* int */;
+  fuelEfficiencyOffset?: number /* float64 */;
+  mineralAlchemyCostOffset?: number /* int */;
+  scrapMineralOffset?: number /* float64 */;
+  scrapMineralOffsetStarbase?: number /* float64 */;
+  scrapResourcesOffset?: number /* float64 */;
+  scrapResourcesOffsetStarbase?: number /* float64 */;
+  startingPopulationFactor?: number /* float64 */;
+  starbaseBuiltInCloakUnits?: number /* int */;
+  starbaseCostFactor?: number /* float64 */;
+  researchFactor?: number /* float64 */;
+  researchSplashDamage?: number /* float64 */;
+  armorStrengthFactor?: number /* float64 */;
+  shieldStrengthFactor?: number /* float64 */;
+  shieldRegenerationRate?: number /* float64 */;
+  engineFailureRate?: number /* float64 */;
+  engineReliableSpeed?: number /* int */;
 }
 export interface MiniaturizationSpec {
-	newTechCostFactor?: number /* float64 */;
-	miniaturizationMax?: number /* float64 */;
-	miniaturizationPerLevel?: number /* float64 */;
+  newTechCostFactor?: number /* float64 */;
+  miniaturizationMax?: number /* float64 */;
+  miniaturizationPerLevel?: number /* float64 */;
 }
 export interface ScannerSpec {
-	builtInScanner?: BuiltInScanner;
-	noAdvancedScanners?: boolean;
-	scanRangeFactor?: number /* float64 */;
+  builtInScanner?: BuiltInScanner;
+  noAdvancedScanners?: boolean;
+  scanRangeFactor?: number /* float64 */;
 }
 export interface BuiltInScanner {
-	normalMulti?: TechLevel;
-	penMulti?: TechLevel;
+  normalMulti?: TechLevel;
+  penMulti?: TechLevel;
 }
 export type PRT = string;
 /**
  * The lack of a PRT; only used in tech requirements
  */
-export const PRTNone: PRT = '';
+export const PRTNone: PRT = "";
 /**
  * Hyper Expansion
  */
-export const HE: PRT = 'HE';
+export const HE: PRT = "HE";
 /**
  * Super Stealth
  */
-export const SS: PRT = 'SS';
+export const SS: PRT = "SS";
 /**
  * Warmonger
  */
-export const WM: PRT = 'WM';
+export const WM: PRT = "WM";
 /**
  * Claim Adjuster
  */
-export const CA: PRT = 'CA';
+export const CA: PRT = "CA";
 /**
  * Inner Strength
  */
-export const IS: PRT = 'IS';
+export const IS: PRT = "IS";
 /**
  * Space Demolition
  */
-export const SD: PRT = 'SD';
+export const SD: PRT = "SD";
 /**
  * Packet Physics
  */
-export const PP: PRT = 'PP';
+export const PP: PRT = "PP";
 /**
  * Interstellar Traveler
  */
-export const IT: PRT = 'IT';
+export const IT: PRT = "IT";
 /**
  * Alternate Reality
  */
-export const AR: PRT = 'AR';
+export const AR: PRT = "AR";
 /**
  * Jack of All Trades
  */
-export const JoaT: PRT = 'JoaT';
+export const JoaT: PRT = "JoaT";
 export type LRT = Bitmask;
 /**
  * No LRT; only used for tech requirements
@@ -1516,32 +1518,32 @@ export const RandomEventTypeMysteryTrader: RandomEventType = 4;
 // source: rect.go
 
 export interface Rect {
-	x: number /* float64 */;
-	y: number /* float64 */;
-	width?: number /* float64 */;
-	height?: number /* float64 */;
+  x: number /* float64 */;
+  y: number /* float64 */;
+  width?: number /* float64 */;
+  height?: number /* float64 */;
 }
 
 //////////
 // source: research.go
 
 export type TechField = string;
-export const TechFieldNone: TechField = '';
-export const Energy: TechField = 'Energy';
-export const Weapons: TechField = 'Weapons';
-export const Propulsion: TechField = 'Propulsion';
-export const Construction: TechField = 'Construction';
-export const Electronics: TechField = 'Electronics';
-export const Biotechnology: TechField = 'Biotechnology';
+export const TechFieldNone: TechField = "";
+export const Energy: TechField = "Energy";
+export const Weapons: TechField = "Weapons";
+export const Propulsion: TechField = "Propulsion";
+export const Construction: TechField = "Construction";
+export const Electronics: TechField = "Electronics";
+export const Biotechnology: TechField = "Biotechnology";
 export type NextResearchField = string;
-export const NextResearchFieldSameField: NextResearchField = 'SameField';
-export const NextResearchFieldEnergy: NextResearchField = 'Energy';
-export const NextResearchFieldWeapons: NextResearchField = 'Weapons';
-export const NextResearchFieldPropulsion: NextResearchField = 'Propulsion';
-export const NextResearchFieldConstruction: NextResearchField = 'Construction';
-export const NextResearchFieldElectronics: NextResearchField = 'Electronics';
-export const NextResearchFieldBiotechnology: NextResearchField = 'Biotechnology';
-export const NextResearchFieldLowestField: NextResearchField = 'LowestField';
+export const NextResearchFieldSameField: NextResearchField = "SameField";
+export const NextResearchFieldEnergy: NextResearchField = "Energy";
+export const NextResearchFieldWeapons: NextResearchField = "Weapons";
+export const NextResearchFieldPropulsion: NextResearchField = "Propulsion";
+export const NextResearchFieldConstruction: NextResearchField = "Construction";
+export const NextResearchFieldElectronics: NextResearchField = "Electronics";
+export const NextResearchFieldBiotechnology: NextResearchField = "Biotechnology";
+export const NextResearchFieldLowestField: NextResearchField = "LowestField";
 /**
  * The researcher interface is used during turn generation to researcher for a player
  * and researcher with splash damage/stolen resources
@@ -1567,169 +1569,169 @@ export const Resources: ResourceType = 5;
  * games just use the default rule set.
  */
 export interface Rules extends CostRules, BattleRules, UniverseGenerationRules {
-	id: number /* int64 */;
-	createdAt: string /* RFC3339 */;
-	updatedAt: string /* RFC3339 */;
-	gameId: number /* int64 */;
-	acquirablePartTradeChanceBase: number /* float64 */;
-	acquirablePartTradeItemMax: number /* int */;
-	cometStatsBySize: { [key: CometSize]: CometStats };
-	fleetSafeSpeedExplosionChance: number /* float64 */;
-	invasionDefenseCoverageFactor: number /* float64 */;
-	lrtSpecs: { [key: LRT]: LRTSpec };
-	maxPopulation: number /* int */;
-	maxTechLevel: number /* int */;
-	mineFieldCloak: number /* int */;
-	mineFieldStatsByType: { [key: MineFieldType]: MineFieldStats };
-	mineralDecayFactor: number /* int */;
-	minHabFloor: number /* int */; // @sirgwain: Do we need this? It's only used as a default value for race generation
-	mysteryTraderRules: MysteryTraderRules;
-	packetDecayRate: { [key: number /* int */]: number /* float64 */ };
-	packetMaxOverwarpSpeed: number /* int */;
-	packetMinDecay: number /* int */;
-	planetMinDistance: number /* int */;
-	populationOvercrowdDieoffRate: number /* float64 */;
-	populationOvercrowdDieoffRateMax: number /* float64 */;
-	populationOvercrowdResourcePenalty: number /* float64 */;
-	populationOvercrowdResourceMax: number /* float64 */;
-	populationScannerError: number /* float64 */;
-	prtSpecs: { [key: PRT]: PRTSpec };
-	raceStartingPoints: number /* int */; // TODO: Change this into a "handicap" system with bonuses/penalties per PRT/LRT
-	radiatingImmune: number /* int */;
-	randomArtifactResearchBonusRange: number /* int */[];
-	randomCometMinYear: number /* int */;
-	randomCometMinYearPlayerWorld: number /* int */;
-	randomEventChances: { [key: RandomEvent]: number /* float64 */ };
-	randomMineralDepositBonusRange: number /* int */[];
-	remoteMiningMineOutput: number /* int */;
-	repairRates: { [key: RepairRate]: number /* float64 */ };
-	salvageDecayMin: number /* int */;
-	salvageDecayRate: number /* float64 */;
-	salvageFromBattleFactor: number /* float64 */;
-	scrapColonizeAmount: number /* float64 */;
-	scrapMineralAmount: number /* float64 */;
-	scrapResourceAmount: number /* float64 */;
-	showPublicScoresAfterYears: number /* int */;
-	smartDefenseCoverageFactor: number /* float64 */;
-	stargateMaxHullMassFactor: number /* int */;
-	stargateMaxRangeFactor: number /* int */;
-	tachyonCloakReduction: number /* float64 */;
-	tachyonMaxCloakReduction: number /* float64 */;
-	techsId: number /* int64 */;
-	techTradeChance: number /* float64 */;
-	torpedoSplashDamage: number /* float64 */;
-	wormholeCloak: number /* int */;
-	wormholePairsForSize: { [key: Size]: number /* int */ };
-	wormholeStatsByStability: { [key: WormholeStability]: WormholeStats };
+  id: number /* int64 */;
+  createdAt: string /* RFC3339 */;
+  updatedAt: string /* RFC3339 */;
+  gameId: number /* int64 */;
+  acquirablePartTradeChanceBase: number /* float64 */;
+  acquirablePartTradeItemMax: number /* int */;
+  cometStatsBySize: { [key: CometSize]: CometStats};
+  fleetSafeSpeedExplosionChance: number /* float64 */;
+  invasionDefenseCoverageFactor: number /* float64 */;
+  lrtSpecs: { [key: LRT]: LRTSpec};
+  maxPopulation: number /* int */;
+  maxTechLevel: number /* int */;
+  mineFieldCloak: number /* int */;
+  mineFieldStatsByType: { [key: MineFieldType]: MineFieldStats};
+  mineralDecayFactor: number /* int */;
+  minHabFloor: number /* int */; // @sirgwain: Do we need this? It's only used as a default value for race generation
+  mysteryTraderRules: MysteryTraderRules;
+  packetDecayRate: { [key: number /* int */]: number /* float64 */};
+  packetMaxOverwarpSpeed: number /* int */;
+  packetMinDecay: number /* int */;
+  planetMinDistance: number /* int */;
+  populationOvercrowdDieoffRate: number /* float64 */;
+  populationOvercrowdDieoffRateMax: number /* float64 */;
+  populationOvercrowdResourcePenalty: number /* float64 */;
+  populationOvercrowdResourceMax: number /* float64 */;
+  populationScannerError: number /* float64 */;
+  prtSpecs: { [key: PRT]: PRTSpec};
+  raceStartingPoints: number /* int */; // TODO: Change this into a "handicap" system with bonuses/penalties per PRT/LRT
+  radiatingImmune: number /* int */;
+  randomArtifactResearchBonusRange: number /* int */[];
+  randomCometMinYear: number /* int */;
+  randomCometMinYearPlayerWorld: number /* int */;
+  randomEventChances: { [key: RandomEvent]: number /* float64 */};
+  randomMineralDepositBonusRange: number /* int */[];
+  remoteMiningMineOutput: number /* int */;
+  repairRates: { [key: RepairRate]: number /* float64 */};
+  salvageDecayMin: number /* int */;
+  salvageDecayRate: number /* float64 */;
+  salvageFromBattleFactor: number /* float64 */;
+  scrapColonizeAmount: number /* float64 */;
+  scrapMineralAmount: number /* float64 */;
+  scrapResourceAmount: number /* float64 */;
+  showPublicScoresAfterYears: number /* int */;
+  smartDefenseCoverageFactor: number /* float64 */;
+  stargateMaxHullMassFactor: number /* int */;
+  stargateMaxRangeFactor: number /* int */;
+  tachyonCloakReduction: number /* float64 */;
+  tachyonMaxCloakReduction: number /* float64 */;
+  techsId: number /* int64 */;
+  techTradeChance: number /* float64 */;
+  torpedoSplashDamage: number /* float64 */;
+  wormholeCloak: number /* int */;
+  wormholePairsForSize: { [key: Size]: number /* int */};
+  wormholeStatsByStability: { [key: WormholeStability]: WormholeStats};
 }
 export interface UniverseGenerationRules {
-	habDropoffRange: Hab; // Controls up to how many clicks (inclusive) away from MinHab & MaxHab planet habs become linearly less likely
-	highRadMineralConcentrationBonusThreshold: number /* int */;
-	limitMineralConcentration: number /* int */;
-	maxExtraWorldDistance: number /* int */;
-	maxHab: number /* int */;
-	maxMineralConcentration: number /* int */;
-	maxStartingMineralConcentration: number /* int */;
-	maxStartingMineralSurface: number /* int */;
-	minExtraPlanetMineralConcentration: number /* int */;
-	minExtraWorldDistance: number /* int */;
-	minHab: number /* int */;
-	minHomeworldMineralConcentration: number /* int */;
-	minMineralConcentration: number /* int */;
-	minStartingMineralConcentration: number /* int */;
-	minStartingMineralSurface: number /* int */;
-	raceLeftoverPointsPerItem: { [key: SpendLeftoverPointsOn]: number /* int */ }; // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT
-	startingYear: number /* int */;
-	wormholeMinPlanetDistance: number /* int */;
+  habDropoffRange: Hab; // Controls up to how many clicks (inclusive) away from MinHab & MaxHab planet habs become linearly less likely
+  highRadMineralConcentrationBonusThreshold: number /* int */;
+  limitMineralConcentration: number /* int */;
+  maxExtraWorldDistance: number /* int */;
+  maxHab: number /* int */;
+  maxMineralConcentration: number /* int */;
+  maxStartingMineralConcentration: number /* int */;
+  maxStartingMineralSurface: number /* int */;
+  minExtraPlanetMineralConcentration: number /* int */;
+  minExtraWorldDistance: number /* int */;
+  minHab: number /* int */;
+  minHomeworldMineralConcentration: number /* int */;
+  minMineralConcentration: number /* int */;
+  minStartingMineralConcentration: number /* int */;
+  minStartingMineralSurface: number /* int */;
+  raceLeftoverPointsPerItem: { [key: SpendLeftoverPointsOn]: number /* int */}; // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT
+  startingYear: number /* int */;
+  wormholeMinPlanetDistance: number /* int */;
 }
 export interface CostRules {
-	defenseCost: Cost;
-	factoryCostGermanium: number /* int */;
-	mineralAlchemyCost: number /* int */;
-	planetaryScannerCost: Cost;
-	starbaseComponentCostReduction: number /* float64 */;
-	starbaseHullRefundFactor: number /* float64 */;
-	terraformCost: Cost;
-	techBaseCost: number /* int */[];
+  defenseCost: Cost;
+  factoryCostGermanium: number /* int */;
+  mineralAlchemyCost: number /* int */;
+  planetaryScannerCost: Cost;
+  starbaseComponentCostReduction: number /* float64 */;
+  starbaseHullRefundFactor: number /* float64 */;
+  terraformCost: Cost;
+  techBaseCost: number /* int */[];
 }
 export interface JammerCap {
-	Ship: number /* float64 */;
-	Starbase: number /* float64 */;
+  Ship: number /* float64 */;
+  Starbase: number /* float64 */;
 }
 export interface BattleRules {
-	beamRangeDropoff: number /* float64 */;
-	beamBonusCap: number /* float64 */;
-	jammerCap: JammerCap;
-	jammerMulti: JammerCap;
-	movementMin: number /* int */;
-	movementMax: number /* int */;
-	movesToRunAway: number /* int */;
-	numBattleRounds: number /* int */;
-	torpedoSplashDamage: number /* float64 */;
+  beamRangeDropoff: number /* float64 */;
+  beamBonusCap: number /* float64 */;
+  jammerCap: JammerCap;
+  jammerMulti: JammerCap;
+  movementMin: number /* int */;
+  movementMax: number /* int */;
+  movesToRunAway: number /* int */;
+  numBattleRounds: number /* int */;
+  torpedoSplashDamage: number /* float64 */;
 }
 export type RandomEvent = string;
-export const RandomEventComet: RandomEvent = 'Comet';
-export const RandomEventMineralDeposit: RandomEvent = 'MineralDeposit';
-export const RandomEventPlanetaryChange: RandomEvent = 'PlanetaryChange';
-export const RandomEventAncientArtifact: RandomEvent = 'AncientArtifact';
+export const RandomEventComet: RandomEvent = "Comet";
+export const RandomEventMineralDeposit: RandomEvent = "MineralDeposit";
+export const RandomEventPlanetaryChange: RandomEvent = "PlanetaryChange";
+export const RandomEventAncientArtifact: RandomEvent = "AncientArtifact";
 export type CometSize = string;
-export const CometSmall: CometSize = 'Small';
-export const CometMedium: CometSize = 'Medium';
-export const CometLarge: CometSize = 'Large';
-export const CometHuge: CometSize = 'Huge';
+export const CometSmall: CometSize = "Small";
+export const CometMedium: CometSize = "Medium";
+export const CometLarge: CometSize = "Large";
+export const CometHuge: CometSize = "Huge";
 /**
  * each type of comet has stats for minerals added to each mineral type
  * as well as some additional mineral types that get bonuses
  */
 export interface CometStats {
-	allMinerals: number /* int */;
-	allRandomMinerals: number /* int */;
-	bonusMinerals: number /* int */;
-	bonusRandomMinerals: number /* int */;
-	bonusMinConcentration: number /* int */;
-	bonusRandomConcentration: number /* int */;
-	bonusAffectsMinerals: number /* int */;
-	minTerraform: number /* int */;
-	randomTerraform: number /* int */;
-	affectsHabs: number /* int */;
-	popKilledPercent: number /* float64 */;
+  allMinerals: number /* int */;
+  allRandomMinerals: number /* int */;
+  bonusMinerals: number /* int */;
+  bonusRandomMinerals: number /* int */;
+  bonusMinConcentration: number /* int */;
+  bonusRandomConcentration: number /* int */;
+  bonusAffectsMinerals: number /* int */;
+  minTerraform: number /* int */;
+  randomTerraform: number /* int */;
+  affectsHabs: number /* int */;
+  popKilledPercent: number /* float64 */;
 }
 export type RepairRate = string;
-export const RepairRateNone: RepairRate = 'None';
-export const RepairRateMoving: RepairRate = 'Moving';
-export const RepairRateStopped: RepairRate = 'Stopped';
-export const RepairRateOrbiting: RepairRate = 'Orbiting';
-export const RepairRateOrbitingOwnPlanet: RepairRate = 'OrbitingOwnPlanet';
-export const RepairRateStarbase: RepairRate = 'Starbase';
+export const RepairRateNone: RepairRate = "None";
+export const RepairRateMoving: RepairRate = "Moving";
+export const RepairRateStopped: RepairRate = "Stopped";
+export const RepairRateOrbiting: RepairRate = "Orbiting";
+export const RepairRateOrbitingOwnPlanet: RepairRate = "OrbitingOwnPlanet";
+export const RepairRateStarbase: RepairRate = "Starbase";
 export interface MysteryTraderRules {
-	chanceSpawn: number /* int */[];
-	chanceMaxTechGetsPart: number /* int */;
-	chanceCourseChange: number /* int */;
-	chanceSpeedUpOnly: number /* int */;
-	chanceAgain: number /* int */;
-	evenYearOnly: boolean;
-	genesisDeviceCost: Cost;
-	maxMysteryTraders: number /* int */;
-	maxWarp: number /* int */;
-	minWarp: number /* int */;
-	minYear: number /* int */;
-	requestedBoon: number /* int */;
-	techBoon: MysteryTraderTechBoonRules[];
+  chanceSpawn: number /* int */[];
+  chanceMaxTechGetsPart: number /* int */;
+  chanceCourseChange: number /* int */;
+  chanceSpeedUpOnly: number /* int */;
+  chanceAgain: number /* int */;
+  evenYearOnly: boolean;
+  genesisDeviceCost: Cost;
+  maxMysteryTraders: number /* int */;
+  maxWarp: number /* int */;
+  minWarp: number /* int */;
+  minYear: number /* int */;
+  requestedBoon: number /* int */;
+  techBoon: MysteryTraderTechBoonRules[];
 }
 export interface MysteryTraderTechBoonRules {
-	techLevels: number /* int */;
-	rewards: MysteryTraderTechBoonMineralsReward[];
+  techLevels: number /* int */;
+  rewards: MysteryTraderTechBoonMineralsReward[];
 }
 export interface MysteryTraderTechBoonMineralsReward {
-	mineralsGiven: number /* int */;
-	reward: number /* int */;
+  mineralsGiven: number /* int */;
+  reward: number /* int */;
 }
 
 //////////
 // source: salvage.go
 
 export interface Salvage extends GameDBObject, MapObject {
-	cargo?: Cargo;
+  cargo?: Cargo;
 }
 
 //////////
@@ -1750,119 +1752,119 @@ export const NoCloakFactor = 1;
  * Deleting a design deletes all fleets associated with it.
  */
 export interface ShipDesign extends GameDBObject {
-	num?: number /* int */;
-	playerNum: number /* int */;
-	originalPlayerNum: number /* int */;
-	name: string;
-	version: number /* int */;
-	hull: string;
-	hullSetNumber: number /* int */;
-	cannotDelete?: boolean;
-	mysteryTrader?: boolean;
-	slots: ShipDesignSlot[];
-	purpose?: ShipDesignPurpose;
-	spec: ShipDesignSpec;
+  num?: number /* int */;
+  playerNum: number /* int */;
+  originalPlayerNum: number /* int */;
+  name: string;
+  version: number /* int */;
+  hull: string;
+  hullSetNumber: number /* int */;
+  cannotDelete?: boolean;
+  mysteryTrader?: boolean;
+  slots: ShipDesignSlot[];
+  purpose?: ShipDesignPurpose;
+  spec: ShipDesignSpec;
 }
 export interface ShipDesignSlot {
-	hullComponent: string;
-	hullSlotIndex: number /* int */;
-	quantity: number /* int */;
+  hullComponent: string;
+  hullSlotIndex: number /* int */;
+  quantity: number /* int */;
 }
 export interface ShipDesignSpec {
-	additionalMassDrivers?: number /* int */;
-	armor: number /* int */;
-	basePacketSpeed?: number /* int */;
-	beamBonus?: number /* float64 */;
-	beamDefense?: number /* float64 */;
-	bomber?: boolean;
-	bombs?: Bomb[];
-	canJump?: boolean;
-	canLayMines?: boolean;
-	canStealFleetCargo?: boolean;
-	canStealPlanetCargo?: boolean;
-	cargoCapacity?: number /* int */;
-	cloakPercent?: number /* int */;
-	cloakPercentFullCargo?: number /* int */;
-	cloakUnits?: number /* int */;
-	colonizer?: boolean;
-	cost: Cost;
-	engine: Engine;
-	estimatedRange?: number /* int */;
-	estimatedRangeFull?: number /* int */;
-	fuelCapacity?: number /* int */;
-	fuelGeneration?: number /* int */;
-	hasWeapons?: boolean;
-	hullType: TechHullType;
-	immuneToOwnDetonation?: boolean;
-	initiative: number /* int */;
-	innateScanRangePenFactor?: number /* float64 */;
-	mass: number /* int */;
-	massDriver?: string;
-	maxHullMass?: number /* int */;
-	maxPopulation?: number /* int */;
-	maxRange?: number /* int */;
-	mineLayingRateByMineType?: { [key: MineFieldType]: number /* int */ };
-	mineSweep?: number /* int */;
-	miningRate?: number /* int */;
-	movement: number /* int */;
-	movementBonus?: number /* float64 */;
-	movementFull?: number /* int */;
-	numBuilt?: number /* int */;
-	numEngines: number /* int */;
-	numInstances?: number /* int */;
-	orbitalConstructionModule?: boolean;
-	powerRating?: number /* int */;
-	radiating?: boolean;
-	reduceCloaking?: number /* float64 */;
-	reduceMovement?: number /* int */;
-	repairBonus?: number /* float64 */;
-	retroBombs?: Bomb[];
-	safeHullMass?: number /* int */;
-	safePacketSpeed?: number /* int */;
-	safeRange?: number /* int */;
-	scanner?: boolean;
-	scanRange?: number /* int */;
-	scanRangePen?: number /* int */;
-	shields?: number /* int */;
-	smartBombs?: Bomb[];
-	spaceDock?: number /* int */;
-	starbase?: boolean;
-	stargate?: string;
-	techLevel: TechLevel;
-	terraformRate?: number /* int */;
-	torpedoBonus?: number /* float64 */;
-	torpedoJamming?: number /* float64 */;
-	weaponSlots?: ShipDesignSlot[];
+  additionalMassDrivers?: number /* int */;
+  armor: number /* int */;
+  basePacketSpeed?: number /* int */;
+  beamBonus?: number /* float64 */;
+  beamDefense?: number /* float64 */;
+  bomber?: boolean;
+  bombs?: Bomb[];
+  canJump?: boolean;
+  canLayMines?: boolean;
+  canStealFleetCargo?: boolean;
+  canStealPlanetCargo?: boolean;
+  cargoCapacity?: number /* int */;
+  cloakPercent?: number /* int */;
+  cloakPercentFullCargo?: number /* int */;
+  cloakUnits?: number /* int */;
+  colonizer?: boolean;
+  cost: Cost;
+  engine: Engine;
+  estimatedRange?: number /* int */;
+  estimatedRangeFull?: number /* int */;
+  fuelCapacity?: number /* int */;
+  fuelGeneration?: number /* int */;
+  hasWeapons?: boolean;
+  hullType: TechHullType;
+  immuneToOwnDetonation?: boolean;
+  initiative: number /* int */;
+  innateScanRangePenFactor?: number /* float64 */;
+  mass: number /* int */;
+  massDriver?: string;
+  maxHullMass?: number /* int */;
+  maxPopulation?: number /* int */;
+  maxRange?: number /* int */;
+  mineLayingRateByMineType?: { [key: MineFieldType]: number /* int */};
+  mineSweep?: number /* int */;
+  miningRate?: number /* int */;
+  movement: number /* int */;
+  movementBonus?: number /* float64 */;
+  movementFull?: number /* int */;
+  numBuilt?: number /* int */;
+  numEngines: number /* int */;
+  numInstances?: number /* int */;
+  orbitalConstructionModule?: boolean;
+  powerRating?: number /* int */;
+  radiating?: boolean;
+  reduceCloaking?: number /* float64 */;
+  reduceMovement?: number /* int */;
+  repairBonus?: number /* float64 */;
+  retroBombs?: Bomb[];
+  safeHullMass?: number /* int */;
+  safePacketSpeed?: number /* int */;
+  safeRange?: number /* int */;
+  scanner?: boolean;
+  scanRange?: number /* int */;
+  scanRangePen?: number /* int */;
+  shields?: number /* int */;
+  smartBombs?: Bomb[];
+  spaceDock?: number /* int */;
+  starbase?: boolean;
+  stargate?: string;
+  techLevel: TechLevel;
+  terraformRate?: number /* int */;
+  torpedoBonus?: number /* float64 */;
+  torpedoJamming?: number /* float64 */;
+  weaponSlots?: ShipDesignSlot[];
 }
 export type ShipDesignPurpose = string;
-export const ShipDesignPurposeNone: ShipDesignPurpose = '';
-export const ShipDesignPurposeScout: ShipDesignPurpose = 'Scout';
-export const ShipDesignPurposeColonizer: ShipDesignPurpose = 'Colonizer';
-export const ShipDesignPurposeBomber: ShipDesignPurpose = 'Bomber';
-export const ShipDesignPurposeStructureBomber: ShipDesignPurpose = 'StructureBomber';
-export const ShipDesignPurposeSmartBomber: ShipDesignPurpose = 'SmartBomber';
-export const ShipDesignPurposeStartingFighter: ShipDesignPurpose = 'StartingFighter';
-export const ShipDesignPurposeFighterScout: ShipDesignPurpose = 'FighterScout';
-export const ShipDesignPurposeTorpedoFighter: ShipDesignPurpose = 'TorpedoFighter';
-export const ShipDesignPurposeBeamFighter: ShipDesignPurpose = 'BeamFighter';
-export const ShipDesignPurposeFreighter: ShipDesignPurpose = 'Freighter';
-export const ShipDesignPurposeColonistFreighter: ShipDesignPurpose = 'ColonistFreighter';
-export const ShipDesignPurposeFuelFreighter: ShipDesignPurpose = 'FuelFreighter';
-export const ShipDesignPurposeMultiPurposeFreighter: ShipDesignPurpose = 'MultiPurposeFreighter';
-export const ShipDesignPurposeArmedFreighter: ShipDesignPurpose = 'ArmedFreighter';
-export const ShipDesignPurposeMiner: ShipDesignPurpose = 'Miner';
-export const ShipDesignPurposeTerraformer: ShipDesignPurpose = 'Terraformer';
-export const ShipDesignPurposeDamageMineLayer: ShipDesignPurpose = 'DamageMineLayer';
-export const ShipDesignPurposeSpeedMineLayer: ShipDesignPurpose = 'SpeedMineLayer';
-export const ShipDesignPurposeStarbase: ShipDesignPurpose = 'Starbase';
-export const ShipDesignPurposeStarbaseUnarmed: ShipDesignPurpose = 'StarbaseUnarmed';
-export const ShipDesignPurposeFuelDepot: ShipDesignPurpose = 'FuelDepot';
-export const ShipDesignPurposeStarbaseQuarter: ShipDesignPurpose = 'StarbaseQuarter';
-export const ShipDesignPurposeStarbaseHalf: ShipDesignPurpose = 'StarbaseHalf';
-export const ShipDesignPurposePacketThrower: ShipDesignPurpose = 'PacketThrower';
-export const ShipDesignPurposeStargater: ShipDesignPurpose = 'Stargater';
-export const ShipDesignPurposeFort: ShipDesignPurpose = 'Fort';
-export const ShipDesignPurposeStarterColony: ShipDesignPurpose = 'StarterColony';
+export const ShipDesignPurposeNone: ShipDesignPurpose = "";
+export const ShipDesignPurposeScout: ShipDesignPurpose = "Scout";
+export const ShipDesignPurposeColonizer: ShipDesignPurpose = "Colonizer";
+export const ShipDesignPurposeBomber: ShipDesignPurpose = "Bomber";
+export const ShipDesignPurposeStructureBomber: ShipDesignPurpose = "StructureBomber";
+export const ShipDesignPurposeSmartBomber: ShipDesignPurpose = "SmartBomber";
+export const ShipDesignPurposeStartingFighter: ShipDesignPurpose = "StartingFighter";
+export const ShipDesignPurposeFighterScout: ShipDesignPurpose = "FighterScout";
+export const ShipDesignPurposeTorpedoFighter: ShipDesignPurpose = "TorpedoFighter";
+export const ShipDesignPurposeBeamFighter: ShipDesignPurpose = "BeamFighter";
+export const ShipDesignPurposeFreighter: ShipDesignPurpose = "Freighter";
+export const ShipDesignPurposeColonistFreighter: ShipDesignPurpose = "ColonistFreighter";
+export const ShipDesignPurposeFuelFreighter: ShipDesignPurpose = "FuelFreighter";
+export const ShipDesignPurposeMultiPurposeFreighter: ShipDesignPurpose = "MultiPurposeFreighter";
+export const ShipDesignPurposeArmedFreighter: ShipDesignPurpose = "ArmedFreighter";
+export const ShipDesignPurposeMiner: ShipDesignPurpose = "Miner";
+export const ShipDesignPurposeTerraformer: ShipDesignPurpose = "Terraformer";
+export const ShipDesignPurposeDamageMineLayer: ShipDesignPurpose = "DamageMineLayer";
+export const ShipDesignPurposeSpeedMineLayer: ShipDesignPurpose = "SpeedMineLayer";
+export const ShipDesignPurposeStarbase: ShipDesignPurpose = "Starbase";
+export const ShipDesignPurposeStarbaseUnarmed: ShipDesignPurpose = "StarbaseUnarmed";
+export const ShipDesignPurposeFuelDepot: ShipDesignPurpose = "FuelDepot";
+export const ShipDesignPurposeStarbaseQuarter: ShipDesignPurpose = "StarbaseQuarter";
+export const ShipDesignPurposeStarbaseHalf: ShipDesignPurpose = "StarbaseHalf";
+export const ShipDesignPurposePacketThrower: ShipDesignPurpose = "PacketThrower";
+export const ShipDesignPurposeStargater: ShipDesignPurpose = "Stargater";
+export const ShipDesignPurposeFort: ShipDesignPurpose = "Fort";
+export const ShipDesignPurposeStarterColony: ShipDesignPurpose = "StarterColony";
 /**
  * partCache is a cache of HullComponents by TechTag with a load function
  * that allows loading components for a specific HullSlot
@@ -1876,163 +1878,164 @@ export const ShipDesignPurposeStarterColony: ShipDesignPurpose = 'StarterColony'
  * A Fleet contains multiple ShipTokens, each of which have a design and a quantity.
  */
 export interface ShipToken {
-	designNum: number /* int */;
-	quantity: number /* int */; // number of ships in the token
-	damage?: number /* float64 */; // damage per damaged ship in the token
-	quantityDamaged?: number /* int */; // number of damaged ships in token
+  designNum: number /* int */;
+  quantity: number /* int */; // number of ships in the token
+  damage?: number /* float64 */; // damage per damaged ship in the token
+  quantityDamaged?: number /* int */; // number of damaged ships in token
 }
 
 //////////
 // source: tech.go
 
 export type TechCategory = string;
-export const TechCategoryNone: TechCategory = '';
-export const TechCategoryArmor: TechCategory = 'Armor';
-export const TechCategoryBeamWeapon: TechCategory = 'BeamWeapon';
-export const TechCategoryBomb: TechCategory = 'Bomb';
-export const TechCategoryElectrical: TechCategory = 'Electrical';
-export const TechCategoryEngine: TechCategory = 'Engine';
-export const TechCategoryMechanical: TechCategory = 'Mechanical';
-export const TechCategoryMineLayer: TechCategory = 'MineLayer';
-export const TechCategoryMineRobot: TechCategory = 'MineRobot';
-export const TechCategoryOrbital: TechCategory = 'Orbital';
-export const TechCategoryPlanetary: TechCategory = 'Planetary';
-export const TechCategoryPlanetaryScanner: TechCategory = 'PlanetaryScanner';
-export const TechCategoryPlanetaryDefense: TechCategory = 'PlanetaryDefense';
-export const TechCategoryScanner: TechCategory = 'Scanner';
-export const TechCategoryShield: TechCategory = 'Shield';
-export const TechCategoryShipHull: TechCategory = 'ShipHull';
-export const TechCategoryStarbaseHull: TechCategory = 'StarbaseHull';
-export const TechCategoryTerraforming: TechCategory = 'Terraforming';
-export const TechCategoryTorpedo: TechCategory = 'Torpedo';
+export const TechCategoryNone: TechCategory = "";
+export const TechCategoryArmor: TechCategory = "Armor";
+export const TechCategoryBeamWeapon: TechCategory = "BeamWeapon";
+export const TechCategoryBomb: TechCategory = "Bomb";
+export const TechCategoryElectrical: TechCategory = "Electrical";
+export const TechCategoryEngine: TechCategory = "Engine";
+export const TechCategoryMechanical: TechCategory = "Mechanical";
+export const TechCategoryMineLayer: TechCategory = "MineLayer";
+export const TechCategoryMineRobot: TechCategory = "MineRobot";
+export const TechCategoryOrbital: TechCategory = "Orbital";
+export const TechCategoryPlanetary: TechCategory = "Planetary";
+export const TechCategoryPlanetaryScanner: TechCategory = "PlanetaryScanner";
+export const TechCategoryPlanetaryDefense: TechCategory = "PlanetaryDefense";
+export const TechCategoryScanner: TechCategory = "Scanner";
+export const TechCategoryShield: TechCategory = "Shield";
+export const TechCategoryShipHull: TechCategory = "ShipHull";
+export const TechCategoryStarbaseHull: TechCategory = "StarbaseHull";
+export const TechCategoryTerraforming: TechCategory = "Terraforming";
+export const TechCategoryTorpedo: TechCategory = "Torpedo";
 /**
  * The basic skeleton of a Tech item, containing name, cost and other essential info.
  */
 export interface Tech {
-	name: string;
-	cost: Cost;
-	requirements: TechRequirements;
-	ranking: number /* int */;
-	category: TechCategory;
-	origin?: TechOrigin;
-	tags: TechTags;
+  name: string;
+  cost: Cost;
+  requirements: TechRequirements;
+  ranking: number /* int */;
+  category: TechCategory;
+  origin?: TechOrigin;
+  tags: TechTags;
 }
 export type TechOrigin = string;
-export const OriginNone: TechOrigin = '';
-export const OriginMysteryTrader: TechOrigin = 'MysteryTrader';
+export const OriginNone: TechOrigin = "";
+export const OriginMysteryTrader: TechOrigin = "MysteryTrader";
 export interface TechRequirements extends TechLevel {
-	prtsDenied?: PRT[];
-	lrtsRequired?: LRT;
-	lrtsDenied?: LRT;
-	prtsRequired?: PRT[];
-	hullsAllowed?: string[];
-	hullsDenied?: string[];
-	acquirable?: boolean;
+  prtsDenied?: PRT[];
+  lrtsRequired?: LRT;
+  lrtsDenied?: LRT;
+  prtsRequired?: PRT[];
+  hullsAllowed?: string[];
+  hullsDenied?: string[];
+  acquirable?: boolean;
 }
 export interface TechHullComponent extends Tech {
-	hullSlotType: HullSlotType;
-	mass: number /* int */;
-	scanner?: boolean;
-	scanRange?: number /* int */;
-	scanRangePen?: number /* int */;
-	safeHullMass?: number /* int */;
-	safeRange?: number /* int */;
-	maxHullMass?: number /* int */;
-	maxRange?: number /* int */;
-	radiating?: boolean;
-	packetSpeed?: number /* int */;
-	cloakUnits?: number /* int */;
-	terraformRate?: number /* int */;
-	miningRate?: number /* int */;
-	killRate?: number /* float64 */;
-	minKillRate?: number /* int */;
-	structureDestroyRate?: number /* float64 */;
-	unterraformRate?: number /* int */;
-	smart?: boolean;
-	canStealFleetCargo?: boolean;
-	canStealPlanetCargo?: boolean;
-	armor?: number /* int */;
-	shield?: number /* int */;
-	torpedoBonus?: number /* float64 */;
-	initiativeBonus?: number /* int */;
-	beamBonus?: number /* float64 */;
-	reduceMovement?: number /* int */;
-	torpedoJamming?: number /* float64 */;
-	reduceCloaking?: boolean;
-	cloakUnarmedOnly?: boolean;
-	mineFieldType?: MineFieldType;
-	mineLayingRate?: number /* int */;
-	beamDefense?: number /* float64 */;
-	cargoBonus?: number /* int */;
-	colonizationModule?: boolean;
-	fuelBonus?: number /* int */;
-	fuelGeneration?: number /* int */;
-	movementBonus?: number /* float64 */;
-	orbitalConstructionModule?: boolean;
-	power?: number /* int */;
-	range?: number /* int */;
-	initiative?: number /* int */;
-	gatling?: boolean;
-	hitsAllTargets?: boolean;
-	damageShieldsOnly?: boolean;
-	accuracy?: number /* int */;
-	capitalShipMissile?: boolean;
-	canJump?: boolean;
+  hullSlotType: HullSlotType;
+  mass: number /* int */;
+  scanner?: boolean;
+  scanRange?: number /* int */;
+  scanRangePen?: number /* int */;
+  safeHullMass?: number /* int */;
+  safeRange?: number /* int */;
+  maxHullMass?: number /* int */;
+  maxRange?: number /* int */;
+  radiating?: boolean;
+  packetSpeed?: number /* int */;
+  cloakUnits?: number /* int */;
+  terraformRate?: number /* int */;
+  miningRate?: number /* int */;
+  killRate?: number /* float64 */;
+  minKillRate?: number /* int */;
+  structureDestroyRate?: number /* float64 */;
+  unterraformRate?: number /* int */;
+  smart?: boolean;
+  canStealFleetCargo?: boolean;
+  canStealPlanetCargo?: boolean;
+  armor?: number /* int */;
+  shield?: number /* int */;
+  torpedoBonus?: number /* float64 */;
+  initiativeBonus?: number /* int */;
+  beamBonus?: number /* float64 */;
+  reduceMovement?: number /* int */;
+  torpedoJamming?: number /* float64 */;
+  reduceCloaking?: boolean;
+  cloakUnarmedOnly?: boolean;
+  mineFieldType?: MineFieldType;
+  mineLayingRate?: number /* int */;
+  beamDefense?: number /* float64 */;
+  cargoBonus?: number /* int */;
+  colonizationModule?: boolean;
+  fuelBonus?: number /* int */;
+  fuelGeneration?: number /* int */;
+  movementBonus?: number /* float64 */;
+  orbitalConstructionModule?: boolean;
+  power?: number /* int */;
+  range?: number /* int */;
+  initiative?: number /* int */;
+  gatling?: boolean;
+  hitsAllTargets?: boolean;
+  damageShieldsOnly?: boolean;
+  accuracy?: number /* int */;
+  capitalShipMissile?: boolean;
+  canJump?: boolean;
 }
 export interface Engine {
-	idealSpeed: number /* int */;
-	freeSpeed: number /* int */;
-	maxSafeSpeed: number /* int */;
-	fuelUsage: number /* int */[];
+  idealSpeed: number /* int */;
+  freeSpeed: number /* int */;
+  maxSafeSpeed: number /* int */;
+  fuelUsage: number /* int */[];
 }
-export interface TechEngine extends TechHullComponent, Engine {}
+export interface TechEngine extends TechHullComponent, Engine {
+}
 export interface TechHull extends Tech {
-	type: TechHullType;
-	mass: number /* int */;
-	armor: number /* int */;
-	shield?: number /* int */;
-	fuelCapacity: number /* int */;
-	fuelGeneration?: number /* int */;
-	cargoCapacity?: number /* int */;
-	cargoSlotPosition?: Vector;
-	cargoSlotSize?: Vector;
-	cargoSlotCircle?: boolean;
-	spaceDock?: number /* int */;
-	spaceDockSlotPosition?: Vector;
-	spaceDockSlotSize?: Vector;
-	spaceDockSlotCircle?: boolean;
-	mineLayingBonus?: number /* float64 */;
-	initiative: number /* int */;
-	repairBonus?: number /* float64 */;
-	immuneToOwnDetonation?: boolean;
-	rangeBonus?: number /* int */;
-	starbase?: boolean;
-	orbitalConstructionHull?: boolean;
-	builtInScanner?: boolean;
-	doubleMineEfficiency?: boolean;
-	maxPopulation?: number /* int */;
-	innateScanRangePenFactor?: number /* float64 */;
-	slots: TechHullSlot[];
+  type: TechHullType;
+  mass: number /* int */;
+  armor: number /* int */;
+  shield?: number /* int */;
+  fuelCapacity: number /* int */;
+  fuelGeneration?: number /* int */;
+  cargoCapacity?: number /* int */;
+  cargoSlotPosition?: Vector;
+  cargoSlotSize?: Vector;
+  cargoSlotCircle?: boolean;
+  spaceDock?: number /* int */;
+  spaceDockSlotPosition?: Vector;
+  spaceDockSlotSize?: Vector;
+  spaceDockSlotCircle?: boolean;
+  mineLayingBonus?: number /* float64 */;
+  initiative: number /* int */;
+  repairBonus?: number /* float64 */;
+  immuneToOwnDetonation?: boolean;
+  rangeBonus?: number /* int */;
+  starbase?: boolean;
+  orbitalConstructionHull?: boolean;
+  builtInScanner?: boolean;
+  doubleMineEfficiency?: boolean;
+  maxPopulation?: number /* int */;
+  innateScanRangePenFactor?: number /* float64 */;
+  slots: TechHullSlot[];
 }
 export interface TechHullSlot {
-	type: HullSlotType;
-	capacity: number /* int */;
-	required?: boolean;
-	position: Vector;
+  type: HullSlotType;
+  capacity: number /* int */;
+  required?: boolean;
+  position: Vector;
 }
 export type TechHullType = string;
-export const TechHullTypeBomber: TechHullType = 'Bomber';
-export const TechHullTypeColonizer: TechHullType = 'Colonizer';
-export const TechHullTypeCapitalShip: TechHullType = 'CapitalShip';
-export const TechHullTypeFighter: TechHullType = 'Fighter';
-export const TechHullTypeFreighter: TechHullType = 'Freighter';
-export const TechHullTypeFuelTransport: TechHullType = 'FuelTransport';
-export const TechHullTypeMiner: TechHullType = 'Miner';
-export const TechHullTypeMineLayer: TechHullType = 'MineLayer';
-export const TechHullTypeMultiPurposeFreighter: TechHullType = 'MultiPurposeFreighter';
-export const TechHullTypeOrbitalFort: TechHullType = 'OrbitalFort';
-export const TechHullTypeScout: TechHullType = 'Scout';
-export const TechHullTypeStarbase: TechHullType = 'Starbase';
+export const TechHullTypeBomber: TechHullType = "Bomber";
+export const TechHullTypeColonizer: TechHullType = "Colonizer";
+export const TechHullTypeCapitalShip: TechHullType = "CapitalShip";
+export const TechHullTypeFighter: TechHullType = "Fighter";
+export const TechHullTypeFreighter: TechHullType = "Freighter";
+export const TechHullTypeFuelTransport: TechHullType = "FuelTransport";
+export const TechHullTypeMiner: TechHullType = "Miner";
+export const TechHullTypeMineLayer: TechHullType = "MineLayer";
+export const TechHullTypeMultiPurposeFreighter: TechHullType = "MultiPurposeFreighter";
+export const TechHullTypeOrbitalFort: TechHullType = "OrbitalFort";
+export const TechHullTypeScout: TechHullType = "Scout";
+export const TechHullTypeStarbase: TechHullType = "Starbase";
 export type HullSlotType = Bitmask;
 export const HullSlotTypeNone = 0;
 export const HullSlotTypeEngine: HullSlotType = 1 << 1;
@@ -2050,45 +2053,35 @@ export const HullSlotTypeOrbital: HullSlotType = 1 << 12;
 export const HullSlotTypeMineLayer: HullSlotType = 1 << 13;
 export const HullSlotTypeElectricalMechanical = HullSlotTypeElectrical | HullSlotTypeMechanical;
 export const HullSlotTypeOrbitalElectrical = HullSlotTypeOrbital | HullSlotTypeElectrical;
-export const HullSlotTypeShieldElectricalMechanical =
-	HullSlotTypeShield | HullSlotTypeElectrical | HullSlotTypeMechanical;
-export const HullSlotTypeScannerElectricalMechanical =
-	HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical;
-export const HullSlotTypeArmorScannerElectricalMechanical =
-	HullSlotTypeArmor | HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical;
-export const HullSlotTypeMineElectricalMechanical =
-	HullSlotTypeMineLayer | HullSlotTypeElectrical | HullSlotTypeMechanical;
+export const HullSlotTypeShieldElectricalMechanical = HullSlotTypeShield | HullSlotTypeElectrical | HullSlotTypeMechanical;
+export const HullSlotTypeScannerElectricalMechanical = HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical;
+export const HullSlotTypeArmorScannerElectricalMechanical = HullSlotTypeArmor | HullSlotTypeScanner | HullSlotTypeElectrical | HullSlotTypeMechanical;
+export const HullSlotTypeMineElectricalMechanical = HullSlotTypeMineLayer | HullSlotTypeElectrical | HullSlotTypeMechanical;
 export const HullSlotTypeShieldArmor = HullSlotTypeShield | HullSlotTypeArmor;
 export const HullSlotTypeWeaponShield = HullSlotTypeShield | HullSlotTypeWeapon;
-export const HullSlotTypeGeneral =
-	HullSlotTypeScanner |
-	HullSlotTypeMechanical |
-	HullSlotTypeElectrical |
-	HullSlotTypeShield |
-	HullSlotTypeArmor |
-	HullSlotTypeWeapon |
-	HullSlotTypeMineLayer;
+export const HullSlotTypeGeneral = HullSlotTypeScanner | HullSlotTypeMechanical | HullSlotTypeElectrical | HullSlotTypeShield | HullSlotTypeArmor | HullSlotTypeWeapon | HullSlotTypeMineLayer;
 export interface TechPlanetary extends Tech {
-	resetPlanet?: boolean;
+  resetPlanet?: boolean;
 }
 export interface TechPlanetaryScanner extends TechPlanetary {
-	scanRange: number /* int */;
-	scanRangePen: number /* int */;
+  scanRange: number /* int */;
+  scanRangePen: number /* int */;
 }
 export interface Defense {
-	defenseCoverage: number /* float64 */;
+  defenseCoverage: number /* float64 */;
 }
-export interface TechDefense extends TechPlanetary, Defense {}
+export interface TechDefense extends TechPlanetary, Defense {
+}
 export interface TechTerraform extends Tech {
-	ability: number /* int */;
-	habType: TerraformHabType;
+  ability: number /* int */;
+  habType: TerraformHabType;
 }
 export type TerraformHabType = string;
-export const TerraformHabTypeNone: TerraformHabType = '';
-export const TerraformHabTypeGrav: TerraformHabType = 'Grav';
-export const TerraformHabTypeTemp: TerraformHabType = 'Temp';
-export const TerraformHabTypeRad: TerraformHabType = 'Rad';
-export const TerraformHabTypeAll: TerraformHabType = 'All';
+export const TerraformHabTypeNone: TerraformHabType = "";
+export const TerraformHabTypeGrav: TerraformHabType = "Grav";
+export const TerraformHabTypeTemp: TerraformHabType = "Temp";
+export const TerraformHabTypeRad: TerraformHabType = "Rad";
+export const TerraformHabTypeAll: TerraformHabType = "All";
 
 //////////
 // source: techcomparer.go
@@ -2107,12 +2100,12 @@ export type TechComparer = unknown;
  * Represents a TechLevel a player has or a tech requires, or the amount of research spent on a tech level
  */
 export interface TechLevel {
-	energy?: number /* int */;
-	weapons?: number /* int */;
-	propulsion?: number /* int */;
-	construction?: number /* int */;
-	electronics?: number /* int */;
-	biotechnology?: number /* int */;
+  energy?: number /* int */;
+  weapons?: number /* int */;
+  propulsion?: number /* int */;
+  construction?: number /* int */;
+  electronics?: number /* int */;
+  biotechnology?: number /* int */;
 }
 
 //////////
@@ -2122,19 +2115,19 @@ export const UnlimitedSpaceDock = -1;
 export const NoScanner = -1;
 export const NoGate = -1;
 export const Infinite = -1;
-export const InfiniteGate = 2147483647; /* math.MaxInt32 */
+export const InfiniteGate = 2147483647 /* math.MaxInt32 */;
 /**
  * The TechStore contains all techs in the game. Eventually these will be user modifiable and
  * referenced per game, but for now all games use the StaticTechStore, which contains the default Stars! techs.
  */
 export interface TechStore {
-	engines: TechEngine[];
-	planetaryScanners: TechPlanetaryScanner[];
-	terraforms: TechTerraform[];
-	defenses: TechDefense[];
-	planetaries: TechPlanetary[];
-	hullComponents: TechHullComponent[];
-	hulls: TechHull[];
+  engines: TechEngine[];
+  planetaryScanners: TechPlanetaryScanner[];
+  terraforms: TechTerraform[];
+  defenses: TechDefense[];
+  planetaries: TechPlanetary[];
+  hullComponents: TechHullComponent[];
+  hulls: TechHull[];
 }
 export type TechFinder = unknown;
 
@@ -2148,44 +2141,44 @@ export type TechFinder = unknown;
  * as well as for categorizing parts during ship designing.
  */
 export type TechTag = string;
-export const TechTagNone: TechTag = 'None';
-export const TechTagArmor: TechTag = 'Armor';
-export const TechTagBeamCapacitor: TechTag = 'BeamCapacitor';
-export const TechTagBeamDeflector: TechTag = 'BeamDeflector';
-export const TechTagBeamWeapon: TechTag = 'BeamWeapon';
-export const TechTagBomb: TechTag = 'Bomb';
-export const TechTagCapitalShipMissile: TechTag = 'CapitalShipMissile';
-export const TechTagCargoPod: TechTag = 'CargoPod';
-export const TechTagCloak: TechTag = 'Cloak';
-export const TechTagColonyModule: TechTag = 'ColonyModule';
-export const TechTagDefense: TechTag = 'Defense';
-export const TechTagEngine: TechTag = 'Engine';
-export const TechTagFuelTank: TechTag = 'FuelTank';
-export const TechTagGatlingGun: TechTag = 'GatlingGun';
-export const TechTagHeavyMineLayer: TechTag = 'HeavyMineLayer';
-export const TechTagInitiativeBonus: TechTag = 'InitiativeBonus';
-export const TechTagMassDriver: TechTag = 'MassDriver';
-export const TechTagManeuveringJet: TechTag = 'ManeuveringJet';
-export const TechTagMineLayer: TechTag = 'MineLayer';
-export const TechTagMiningRobot: TechTag = 'MiningRobot';
-export const TechTagPlanetaryScanner: TechTag = 'PlanetaryScanner';
-export const TechTagRamscoop: TechTag = 'Ramscoop';
-export const TechTagTerraformingRobot: TechTag = 'TerraformingRobot';
-export const TechTagScanner: TechTag = 'Scanner';
-export const TechTagShield: TechTag = 'Shield';
-export const TechTagShieldSapper: TechTag = 'ShieldSapper';
-export const TechTagSmartBomb: TechTag = 'SmartBomb';
-export const TechTagSpeedMineLayer: TechTag = 'SpeedMineLayer';
-export const TechTagStargate: TechTag = 'Stargate';
-export const TechTagStructureBomb: TechTag = 'StructureBomb';
-export const TechTagTerraforming: TechTag = 'Terraforming';
-export const TechTagTorpedo: TechTag = 'Torpedo';
-export const TechTagTorpedoJammer: TechTag = 'TorpedoJammer';
-export const TechTagTorpedoBonus: TechTag = 'TorpedoBonus';
+export const TechTagNone: TechTag = "None";
+export const TechTagArmor: TechTag = "Armor";
+export const TechTagBeamCapacitor: TechTag = "BeamCapacitor";
+export const TechTagBeamDeflector: TechTag = "BeamDeflector";
+export const TechTagBeamWeapon: TechTag = "BeamWeapon";
+export const TechTagBomb: TechTag = "Bomb";
+export const TechTagCapitalShipMissile: TechTag = "CapitalShipMissile";
+export const TechTagCargoPod: TechTag = "CargoPod";
+export const TechTagCloak: TechTag = "Cloak";
+export const TechTagColonyModule: TechTag = "ColonyModule";
+export const TechTagDefense: TechTag = "Defense";
+export const TechTagEngine: TechTag = "Engine";
+export const TechTagFuelTank: TechTag = "FuelTank";
+export const TechTagGatlingGun: TechTag = "GatlingGun";
+export const TechTagHeavyMineLayer: TechTag = "HeavyMineLayer";
+export const TechTagInitiativeBonus: TechTag = "InitiativeBonus";
+export const TechTagMassDriver: TechTag = "MassDriver";
+export const TechTagManeuveringJet: TechTag = "ManeuveringJet";
+export const TechTagMineLayer: TechTag = "MineLayer";
+export const TechTagMiningRobot: TechTag = "MiningRobot";
+export const TechTagPlanetaryScanner: TechTag = "PlanetaryScanner";
+export const TechTagRamscoop: TechTag = "Ramscoop";
+export const TechTagTerraformingRobot: TechTag = "TerraformingRobot";
+export const TechTagScanner: TechTag = "Scanner";
+export const TechTagShield: TechTag = "Shield";
+export const TechTagShieldSapper: TechTag = "ShieldSapper";
+export const TechTagSmartBomb: TechTag = "SmartBomb";
+export const TechTagSpeedMineLayer: TechTag = "SpeedMineLayer";
+export const TechTagStargate: TechTag = "Stargate";
+export const TechTagStructureBomb: TechTag = "StructureBomb";
+export const TechTagTerraforming: TechTag = "Terraforming";
+export const TechTagTorpedo: TechTag = "Torpedo";
+export const TechTagTorpedoJammer: TechTag = "TorpedoJammer";
+export const TechTagTorpedoBonus: TechTag = "TorpedoBonus";
 /**
  * A collection of an object's TechTags (like on a tech part)
  */
-export type TechTags = { [key: TechTag]: boolean };
+export type TechTags = { [key: TechTag]: boolean};
 
 //////////
 // source: terraform.go
@@ -2195,144 +2188,144 @@ export type TechTags = { [key: TechTag]: boolean };
  */
 export type Terraformer = unknown;
 export interface TerraformResult {
-	Type: HabType;
-	Direction: number /* int */;
+  Type: HabType;
+  Direction: number /* int */;
 }
 
 //////////
 // source: traits.go
 
 export interface PRTSpec {
-	prt?: PRT;
-	pointCost?: number /* int */;
-	startingTechLevels?: TechLevel;
-	startingPlanets?: StartingPlanet[];
-	techCostOffset?: TechCostOffset;
-	mineralsPerSingleMineralPacket?: number /* int */;
-	mineralsPerMixedMineralPacket?: number /* int */;
-	packetResourceCost?: number /* int */;
-	packetMineralCostFactor?: number /* float64 */;
-	packetReceiverFactor?: number /* float64 */;
-	packetDecayFactor?: number /* float64 */;
-	packetOverSafeWarpPenalty?: number /* int */;
-	packetBuiltInScanner?: boolean;
-	detectPacketDestinationStarbases?: boolean;
-	detectAllPackets?: boolean;
-	packetTerraformChance?: number /* float64 */;
-	packetPermaformChance?: number /* float64 */;
-	packetPermaTerraformSizeUnit?: number /* int */;
-	canGateCargo?: boolean;
-	canDetectStargatePlanets?: boolean;
-	shipsVanishInVoid?: boolean;
-	builtInScanner?: BuiltInScanner;
-	techsCostExtraLevel?: number /* int */;
-	freighterGrowth?: FreighterGrowth;
-	growthFactor?: number /* float64 */;
-	maxPopulationOffset?: number /* float64 */;
-	builtInCloakUnits?: number /* int */;
-	stealsResearch?: StealsResearch;
-	freeCargoCloaking?: boolean;
-	mineFieldsAreScanners?: boolean;
-	mineFieldRateMoveFactor?: number /* float64 */;
-	mineFieldSafeWarpBonus?: number /* int */;
-	mineFieldMinDecayFactor?: number /* float64 */;
-	mineFieldBaseDecayRate?: number /* float64 */;
-	mineFieldPlanetDecayRate?: number /* float64 */;
-	mineFieldMaxDecayRate?: number /* float64 */;
-	canDetonateMineFields?: boolean;
-	mineFieldDetonateDecayRate?: number /* float64 */;
-	discoverDesignOnScan?: boolean;
-	canRemoteMineOwnPlanets?: boolean;
-	invasionAttackBonus?: number /* float64 */;
-	invasionDefendBonus?: number /* float64 */;
-	movementBonus?: number /* float64 */;
-	instaforming?: boolean;
-	permaformChance?: number /* float64 */;
-	permaformPopulation?: number /* int */;
-	repairFactor?: number /* float64 */;
-	starbaseRepairFactor?: number /* float64 */;
-	starbaseCostFactor?: number /* float64 */;
-	innateMining?: boolean;
-	innateMinesFactor?: number /* float64 */;
-	innateResources?: boolean;
-	innateScanner?: boolean;
-	innateScannerFactor?: number /* float64 */;
-	canBuildDefenses?: boolean;
-	livesOnStarbases?: boolean;
-	minHabFloor?: number /* int */;
+  prt?: PRT;
+  pointCost?: number /* int */;
+  startingTechLevels?: TechLevel;
+  startingPlanets?: StartingPlanet[];
+  techCostOffset?: TechCostOffset;
+  mineralsPerSingleMineralPacket?: number /* int */;
+  mineralsPerMixedMineralPacket?: number /* int */;
+  packetResourceCost?: number /* int */;
+  packetMineralCostFactor?: number /* float64 */;
+  packetReceiverFactor?: number /* float64 */;
+  packetDecayFactor?: number /* float64 */;
+  packetOverSafeWarpPenalty?: number /* int */;
+  packetBuiltInScanner?: boolean;
+  detectPacketDestinationStarbases?: boolean;
+  detectAllPackets?: boolean;
+  packetTerraformChance?: number /* float64 */;
+  packetPermaformChance?: number /* float64 */;
+  packetPermaTerraformSizeUnit?: number /* int */;
+  canGateCargo?: boolean;
+  canDetectStargatePlanets?: boolean;
+  shipsVanishInVoid?: boolean;
+  builtInScanner?: BuiltInScanner;
+  techsCostExtraLevel?: number /* int */;
+  freighterGrowth?: FreighterGrowth;
+  growthFactor?: number /* float64 */;
+  maxPopulationOffset?: number /* float64 */;
+  builtInCloakUnits?: number /* int */;
+  stealsResearch?: StealsResearch;
+  freeCargoCloaking?: boolean;
+  mineFieldsAreScanners?: boolean;
+  mineFieldRateMoveFactor?: number /* float64 */;
+  mineFieldSafeWarpBonus?: number /* int */;
+  mineFieldMinDecayFactor?: number /* float64 */;
+  mineFieldBaseDecayRate?: number /* float64 */;
+  mineFieldPlanetDecayRate?: number /* float64 */;
+  mineFieldMaxDecayRate?: number /* float64 */;
+  canDetonateMineFields?: boolean;
+  mineFieldDetonateDecayRate?: number /* float64 */;
+  discoverDesignOnScan?: boolean;
+  canRemoteMineOwnPlanets?: boolean;
+  invasionAttackBonus?: number /* float64 */;
+  invasionDefendBonus?: number /* float64 */;
+  movementBonus?: number /* float64 */;
+  instaforming?: boolean;
+  permaformChance?: number /* float64 */;
+  permaformPopulation?: number /* int */;
+  repairFactor?: number /* float64 */;
+  starbaseRepairFactor?: number /* float64 */;
+  starbaseCostFactor?: number /* float64 */;
+  innateMining?: boolean;
+  innateMinesFactor?: number /* float64 */;
+  innateResources?: boolean;
+  innateScanner?: boolean;
+  innateScannerFactor?: number /* float64 */;
+  canBuildDefenses?: boolean;
+  livesOnStarbases?: boolean;
+  minHabFloor?: number /* int */;
 }
 export interface LRTSpec {
-	lrt?: LRT;
-	startingFleets?: StartingFleet[];
-	pointCost?: number /* int */;
-	startingTechLevels?: TechLevel;
-	techCostOffset?: TechCostOffset;
-	newTechCostFactorOffset?: number /* float64 */;
-	miniaturizationMax?: number /* float64 */;
-	miniaturizationPerLevel?: number /* float64 */;
-	noAdvancedScanners?: boolean;
-	scanRangeFactorOffset?: number /* float64 */;
-	fuelEfficiencyOffset?: number /* float64 */;
-	maxPopulationOffset?: number /* float64 */;
-	mineralAlchemyCostOffset?: number /* int */;
-	scrapMineralOffset?: number /* float64 */;
-	scrapMineralOffsetStarbase?: number /* float64 */;
-	scrapResourcesOffset?: number /* float64 */;
-	scrapResourcesOffsetStarbase?: number /* float64 */;
-	startingPopulationFactorDelta?: number /* float64 */;
-	starbaseBuiltInCloakUnits?: number /* int */;
-	starbaseCostFactor?: number /* float64 */;
-	researchFactorOffset?: number /* float64 */;
-	researchSplashDamage?: number /* float64 */;
-	shieldStrengthFactorOffset?: number /* float64 */;
-	shieldRegenerationRateOffset?: number /* float64 */;
-	armorStrengthFactorOffset?: number /* float64 */;
-	engineFailureRateOffset?: number /* float64 */;
-	engineReliableSpeed?: number /* int */;
+  lrt?: LRT;
+  startingFleets?: StartingFleet[];
+  pointCost?: number /* int */;
+  startingTechLevels?: TechLevel;
+  techCostOffset?: TechCostOffset;
+  newTechCostFactorOffset?: number /* float64 */;
+  miniaturizationMax?: number /* float64 */;
+  miniaturizationPerLevel?: number /* float64 */;
+  noAdvancedScanners?: boolean;
+  scanRangeFactorOffset?: number /* float64 */;
+  fuelEfficiencyOffset?: number /* float64 */;
+  maxPopulationOffset?: number /* float64 */;
+  mineralAlchemyCostOffset?: number /* int */;
+  scrapMineralOffset?: number /* float64 */;
+  scrapMineralOffsetStarbase?: number /* float64 */;
+  scrapResourcesOffset?: number /* float64 */;
+  scrapResourcesOffsetStarbase?: number /* float64 */;
+  startingPopulationFactorDelta?: number /* float64 */;
+  starbaseBuiltInCloakUnits?: number /* int */;
+  starbaseCostFactor?: number /* float64 */;
+  researchFactorOffset?: number /* float64 */;
+  researchSplashDamage?: number /* float64 */;
+  shieldStrengthFactorOffset?: number /* float64 */;
+  shieldRegenerationRateOffset?: number /* float64 */;
+  armorStrengthFactorOffset?: number /* float64 */;
+  engineFailureRateOffset?: number /* float64 */;
+  engineReliableSpeed?: number /* int */;
 }
-export type TechCostOffset = { [key: TechTag]: number /* float64 */ };
+export type TechCostOffset = { [key: TechTag]: number /* float64 */};
 export interface StartingPlanet {
-	population?: number /* int */;
-	mines?: number /* int */;
-	factories?: number /* int */;
-	defenses?: number /* int */;
-	habPenaltyFactor?: number /* float64 */;
-	hasStargate?: boolean;
-	hasMassDriver?: boolean;
-	starbaseDesignName?: string;
-	starbaseHull?: string;
-	startingFleets?: StartingFleet[];
-	homeworld?: boolean;
+  population?: number /* int */;
+  mines?: number /* int */;
+  factories?: number /* int */;
+  defenses?: number /* int */;
+  habPenaltyFactor?: number /* float64 */;
+  hasStargate?: boolean;
+  hasMassDriver?: boolean;
+  starbaseDesignName?: string;
+  starbaseHull?: string;
+  startingFleets?: StartingFleet[];
+  homeworld?: boolean;
 }
 export interface StartingFleet {
-	name?: string;
-	hullName?: StartingFleetHull;
-	hullSetNumber?: number /* uint */;
-	purpose?: ShipDesignPurpose;
+  name?: string;
+  hullName?: StartingFleetHull;
+  hullSetNumber?: number /* uint */;
+  purpose?: ShipDesignPurpose;
 }
 export interface StealsResearch {
-	energy?: number /* float64 */;
-	weapons?: number /* float64 */;
-	propulsion?: number /* float64 */;
-	construction?: number /* float64 */;
-	electronics?: number /* float64 */;
-	biotechnology?: number /* float64 */;
+  energy?: number /* float64 */;
+  weapons?: number /* float64 */;
+  propulsion?: number /* float64 */;
+  construction?: number /* float64 */;
+  electronics?: number /* float64 */;
+  biotechnology?: number /* float64 */;
 }
 export interface FreighterGrowth {
-	absolute?: boolean; // Whether the freighter growth is absolute (flat % of pop in fleet) or relative based on growth rate
-	rate?: number /* float64 */;
+  absolute?: boolean; // Whether the freighter growth is absolute (flat % of pop in fleet) or relative based on growth rate
+  rate?: number /* float64 */;
 }
 export type StartingFleetHull = string;
-export const StartingFleetHullColonyShip: StartingFleetHull = 'Colony Ship';
-export const StartingFleetHullDestroyer: StartingFleetHull = 'Destroyer';
-export const StartingFleetHullMediumFreighter: StartingFleetHull = 'Medium Freighter';
-export const StartingFleetHullMiniBomber: StartingFleetHull = 'Mini Bomber';
-export const StartingFleetHullMiniColonyShip: StartingFleetHull = 'Mini-Colony Ship';
-export const StartingFleetHullMiniMineLayer: StartingFleetHull = 'Mini Mine Layer';
-export const StartingFleetHullMiniMiner: StartingFleetHull = 'Mini-Miner';
-export const StartingFleetHullMidgetMiner: StartingFleetHull = 'Midget-Miner';
-export const StartingFleetHullPrivateer: StartingFleetHull = 'Privateer';
-export const StartingFleetHullScout: StartingFleetHull = 'Scout';
+export const StartingFleetHullColonyShip: StartingFleetHull = "Colony Ship";
+export const StartingFleetHullDestroyer: StartingFleetHull = "Destroyer";
+export const StartingFleetHullMediumFreighter: StartingFleetHull = "Medium Freighter";
+export const StartingFleetHullMiniBomber: StartingFleetHull = "Mini Bomber";
+export const StartingFleetHullMiniColonyShip: StartingFleetHull = "Mini-Colony Ship";
+export const StartingFleetHullMiniMineLayer: StartingFleetHull = "Mini Mine Layer";
+export const StartingFleetHullMiniMiner: StartingFleetHull = "Mini-Miner";
+export const StartingFleetHullMidgetMiner: StartingFleetHull = "Midget-Miner";
+export const StartingFleetHullPrivateer: StartingFleetHull = "Privateer";
+export const StartingFleetHullScout: StartingFleetHull = "Scout";
 
 //////////
 // source: universe.go
@@ -2342,14 +2335,14 @@ export const StartingFleetHullScout: StartingFleetHull = 'Scout';
  * The Universe is used by the turn generator to lookup objects in space
  */
 export interface Universe {
-	planets?: (Planet | undefined)[];
-	fleets?: (Fleet | undefined)[];
-	starbases?: (Fleet | undefined)[];
-	wormholes?: (Wormhole | undefined)[];
-	mineralPackets?: (MineralPacket | undefined)[];
-	mineFields?: (MineField | undefined)[];
-	mysteryTraders?: (MysteryTrader | undefined)[];
-	salvage?: (Salvage | undefined)[];
+  planets?: (Planet | undefined)[];
+  fleets?: (Fleet | undefined)[];
+  starbases?: (Fleet | undefined)[];
+  wormholes?: (Wormhole | undefined)[];
+  mineralPackets?: (MineralPacket | undefined)[];
+  mineFields?: (MineField | undefined)[];
+  mysteryTraders?: (MysteryTrader | undefined)[];
+  salvage?: (Salvage | undefined)[];
 }
 
 //////////
@@ -2371,23 +2364,23 @@ export type UniverseGenerator = unknown;
  * in the cs package, but I didn't feel like breaking it out into a new package.
  */
 export interface User extends DBObject {
-	username: string;
-	password: string;
-	email: string;
-	role: UserRole;
-	banned: boolean;
-	verified: boolean;
-	gameId?: number /* int64 */;
-	playerNum?: number /* int */;
-	lastLogin?: string /* RFC3339 */;
-	discordId?: string;
-	discordAvatar?: string;
+  username: string;
+  password: string;
+  email: string;
+  role: UserRole;
+  banned: boolean;
+  verified: boolean;
+  gameId?: number /* int64 */;
+  playerNum?: number /* int */;
+  lastLogin?: string /* RFC3339 */;
+  discordId?: string;
+  discordAvatar?: string;
 }
 export type UserRole = string;
-export const RoleNone: UserRole = '';
-export const RoleUser: UserRole = 'user';
-export const RoleAdmin: UserRole = 'admin';
-export const RoleGuest: UserRole = 'guest';
+export const RoleNone: UserRole = "";
+export const RoleUser: UserRole = "user";
+export const RoleAdmin: UserRole = "admin";
+export const RoleGuest: UserRole = "guest";
 /**
  * password hashing from https://www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
  */
@@ -2400,25 +2393,25 @@ export const RoleGuest: UserRole = 'guest';
  * Many of these functions were taken from Godot source, thanks Godot folks.
  */
 export interface Vector {
-	x: number /* float64 */;
-	y: number /* float64 */;
+  x: number /* float64 */;
+  y: number /* float64 */;
 }
 
 //////////
 // source: victory.go
 
 export interface VictoryConditions {
-	conditions: Bitmask;
-	numCriteriaRequired: number /* int */;
-	yearsPassed: number /* int */;
-	ownPlanets: number /* int */;
-	attainTechLevel: number /* int */;
-	attainTechLevelNumFields: number /* int */;
-	exceedsScore: number /* int */;
-	exceedsSecondPlaceScore: number /* int */;
-	productionCapacity: number /* int */;
-	ownCapitalShips: number /* int */;
-	highestScoreAfterYears: number /* int */;
+  conditions: Bitmask;
+  numCriteriaRequired: number /* int */;
+  yearsPassed: number /* int */;
+  ownPlanets: number /* int */;
+  attainTechLevel: number /* int */;
+  attainTechLevelNumFields: number /* int */;
+  exceedsScore: number /* int */;
+  exceedsSecondPlaceScore: number /* int */;
+  productionCapacity: number /* int */;
+  ownCapitalShips: number /* int */;
+  highestScoreAfterYears: number /* int */;
 }
 export type VictoryCondition = Bitmask;
 export const VictoryConditionNone = 0;
@@ -2439,25 +2432,25 @@ export const VictoryConditionHighestScoreAfterYears: VictoryCondition = 1 << (7 
 // source: wormhole.go
 
 export interface Wormhole extends GameDBObject, MapObject {
-	destinationNum?: number /* int */;
-	stability?: WormholeStability;
-	yearsAtStability?: number /* int */;
-	spec: WormholeSpec;
+  destinationNum?: number /* int */;
+  stability?: WormholeStability;
+  yearsAtStability?: number /* int */;
+  spec: WormholeSpec;
 }
 export interface WormholeSpec {
-	Stats: WormholeStats;
+  Stats: WormholeStats;
 }
 export interface WormholeStats {
-	yearsToDegrade: number /* int */;
-	chanceToJump: number /* float64 */;
-	jiggleDistance: number /* int */;
+  yearsToDegrade: number /* int */;
+  chanceToJump: number /* float64 */;
+  jiggleDistance: number /* int */;
 }
 export type WormholeStability = string;
-export const WormholeStabilityNone: WormholeStability = '';
-export const WormholeStabilityRockSolid: WormholeStability = 'RockSolid';
-export const WormholeStabilityStable: WormholeStability = 'Stable';
-export const WormholeStabilityMostlyStable: WormholeStability = 'MostlyStable';
-export const WormholeStabilityAverage: WormholeStability = 'Average';
-export const WormholeStabilitySlightlyVolatile: WormholeStability = 'SlightlyVolatile';
-export const WormholeStabilityVolatile: WormholeStability = 'Volatile';
-export const WormholeStabilityExtremelyVolatile: WormholeStability = 'ExtremelyVolatile';
+export const WormholeStabilityNone: WormholeStability = "";
+export const WormholeStabilityRockSolid: WormholeStability = "RockSolid";
+export const WormholeStabilityStable: WormholeStability = "Stable";
+export const WormholeStabilityMostlyStable: WormholeStability = "MostlyStable";
+export const WormholeStabilityAverage: WormholeStability = "Average";
+export const WormholeStabilitySlightlyVolatile: WormholeStability = "SlightlyVolatile";
+export const WormholeStabilityVolatile: WormholeStability = "Volatile";
+export const WormholeStabilityExtremelyVolatile: WormholeStability = "ExtremelyVolatile";
