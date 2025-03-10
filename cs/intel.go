@@ -328,7 +328,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 		} else {
 			// generate a random error within range [1-scanError, 1+scanError]
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError*2) - rules.PopulationScannerError
-			intel.Cargo.Colonists = Max(0, int(float64(planet.Cargo.Colonists)*(1-randomPopulationError)))
+			intel.Cargo.Colonists = max(0, int(float64(planet.Cargo.Colonists)*(1-randomPopulationError)))
 		}
 	}
 	return nil

@@ -516,8 +516,8 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		if token.design.Spec.Starbase {
 			spec.Starbase = true
 		}
-		spec.MaxPopulation = Max(spec.MaxPopulation, token.design.Spec.MaxPopulation)
-		spec.InnateScanRangePenFactor = math.Max(spec.InnateScanRangePenFactor, token.design.Spec.InnateScanRangePenFactor) // Ultra Station and Death Stars have pen scanning
+		spec.MaxPopulation = max(spec.MaxPopulation, token.design.Spec.MaxPopulation)
+		spec.InnateScanRangePenFactor = max(spec.InnateScanRangePenFactor, token.design.Spec.InnateScanRangePenFactor) // Ultra Station and Death Stars have pen scanning
 
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
@@ -527,9 +527,9 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 				spec.Engine.FreeSpeed = token.design.Spec.Engine.FreeSpeed
 				spec.Engine.MaxSafeSpeed = token.design.Spec.Engine.MaxSafeSpeed
 			} else {
-				spec.Engine.IdealSpeed = Min(spec.Engine.IdealSpeed, token.design.Spec.Engine.IdealSpeed)
+				spec.Engine.IdealSpeed = min(spec.Engine.IdealSpeed, token.design.Spec.Engine.IdealSpeed)
 				spec.Engine.FreeSpeed = token.design.Spec.Engine.FreeSpeed
-				spec.Engine.MaxSafeSpeed = Min(spec.Engine.MaxSafeSpeed, token.design.Spec.Engine.MaxSafeSpeed)
+				spec.Engine.MaxSafeSpeed = min(spec.Engine.MaxSafeSpeed, token.design.Spec.Engine.MaxSafeSpeed)
 			}
 		}
 		// cost
@@ -584,13 +584,13 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		}
 
 		// We should only have one ship stack with spacdock capabilities, but for this logic just go with the max
-		spec.SpaceDock = Max(spec.SpaceDock, token.design.Spec.SpaceDock)
+		spec.SpaceDock = max(spec.SpaceDock, token.design.Spec.SpaceDock)
 
 		// sadly, the fleet only gets the best repair bonus from one design
-		spec.RepairBonus = math.Max(spec.RepairBonus, token.design.Spec.RepairBonus)
+		spec.RepairBonus = max(spec.RepairBonus, token.design.Spec.RepairBonus)
 
-		spec.ScanRange = Max(spec.ScanRange, token.design.Spec.ScanRange)
-		spec.ScanRangePen = Max(spec.ScanRangePen, token.design.Spec.ScanRangePen)
+		spec.ScanRange = max(spec.ScanRange, token.design.Spec.ScanRange)
+		spec.ScanRangePen = max(spec.ScanRangePen, token.design.Spec.ScanRangePen)
 		if token.design.Spec.Scanner {
 			spec.Scanner = true
 		}
@@ -630,7 +630,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		}
 
 		// choose the best tachyon detector ship
-		spec.ReduceCloaking = math.Min(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
+		spec.ReduceCloaking = min(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
 
 		spec.CanJump = spec.CanJump || token.design.Spec.CanJump
 		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.design.Spec.CanStealFleetCargo
@@ -705,7 +705,7 @@ func computeFleetCloakPercent(spec *FleetSpec, cargoTotal int, freeCargoCloaking
 
 // make sure we don't overflow our fuel. After a battle, we might have more fuel than our fleet can hold
 func (fleet *Fleet) reduceFuelToMax() {
-	fleet.Fuel = Min(fleet.Spec.FuelCapacity, fleet.Fuel)
+	fleet.Fuel = min(fleet.Spec.FuelCapacity, fleet.Fuel)
 }
 
 // make sure we don't overflow our cargo. After a battle, we might have more cargo than our fleet can hold
@@ -726,13 +726,13 @@ func (fleet *Fleet) reduceCargoToMax() Cargo {
 
 		// save the people first!
 		if fleet.Cargo.Colonists > 0 {
-			fleet.Cargo.Colonists = Min(fleet.Cargo.Colonists, capacity)
+			fleet.Cargo.Colonists = min(fleet.Cargo.Colonists, capacity)
 		}
 
 		// if we have 110kT of space and 10kT is taken up by colonists, we have 100kT remaining capacity
 		// if we have 200kT of minerals left, we keep half of each
 		minerals := fleet.Cargo.ToMineral()
-		remainingCapacity := Max(0, capacity-fleet.Cargo.Colonists)
+		remainingCapacity := max(0, capacity-fleet.Cargo.Colonists)
 
 		// if we have no capacity left, drop all minerals and
 		if remainingCapacity == 0 {
@@ -835,7 +835,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	vectorTravelled := wp1.Position.Subtract(fleet.Position).Normalized().Scale(dist)
 	dist = vectorTravelled.Length()
 	// don't overshoot
-	dist = math.Min(totalDist, dist)
+	dist = min(totalDist, dist)
 
 	// check for CE engine failure
 	if player.Race.Spec.EngineFailureRate > 0 &&
@@ -894,7 +894,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	}
 
 	// message the player about fuel generation
-	fuelGenerated = Min(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
+	fuelGenerated = min(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
 	if fuelGenerated > 0 {
 		fleet.Fuel += fuelGenerated
 		messager.fleetGeneratedFuel(player, fleet, fuelGenerated)
@@ -1006,7 +1006,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 	// only the source gate matters for range
 	minSafeRange := sourceStargate.SafeRange
-	minSafeHullMass := Min(sourceStargate.SafeHullMass, destStargate.SafeHullMass)
+	minSafeHullMass := min(sourceStargate.SafeHullMass, destStargate.SafeHullMass)
 
 	// check if we are exceeding the max distance
 	if totalDist > float64(minSafeRange*rules.StargateMaxRangeFactor) {
@@ -1340,14 +1340,14 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 				// transfer the lowest of how much fuel capacity they have available or how much we can give
 				// this is a bit weird because we are doing a "Load", but it's actually an unload of fuel
 				// from us to a dest fleet, so make the transferAmount negative.
-				transferAmount = Max(-leftoverFuel, -(dest.getFuelCapacity() - dest.getFuel()))
+				transferAmount = max(-leftoverFuel, -(dest.getFuelCapacity() - dest.getFuel()))
 			}
 		}
 	case TransportActionLoadAll:
 		// load all available, based on our constraints
-		transferAmount = Min(availableToLoad, availableCapacity)
+		transferAmount = min(availableToLoad, availableCapacity)
 	case TransportActionLoadAmount:
-		transferAmount = Min(Min(availableToLoad, task.Amount), availableCapacity)
+		transferAmount = min(availableToLoad, task.Amount, availableCapacity)
 	case TransportActionWaitForPercent, TransportActionFillPercent:
 		// we want a percent of our hold to be filled with some amount, figure out how
 		// much that is in kT, i.e. 50% of 100kT would be 50kT of this mineral
@@ -1361,14 +1361,14 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 			// transfer up to our percent specified
 			// wait here if we haven't loaded the amount we want
 			// but move on if we are out of cargo space (in case the user suffers from innumeracy and said they wanted 50% 50% 50%)
-			transferAmount = Min(Min(availableToLoad, taskAmountkT-currentAmount), availableCapacity)
+			transferAmount = min(availableToLoad, taskAmountkT-currentAmount, availableCapacity)
 			if (transferAmount+currentAmount) < taskAmountkT && task.Action == TransportActionWaitForPercent && (availableCapacity-transferAmount) > 0 {
 				waitAtWaypoint = true
 			}
 		}
 	case TransportActionSetAmountTo:
 		// only transfer the min of what we have, vs what we need, vs the capacity
-		transferAmount = Max(0, Min(Min(availableToLoad, task.Amount-currentAmount), availableCapacity))
+		transferAmount = max(0, min(availableToLoad, task.Amount-currentAmount, availableCapacity))
 		if transferAmount < (task.Amount - currentAmount) {
 			waitAtWaypoint = true
 		}
@@ -1380,7 +1380,7 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 			break
 		} else {
 			// only transfer down to what we set
-			transferAmount = Min(Min(availableToLoad, availableToLoad-task.Amount), availableCapacity)
+			transferAmount = min(availableToLoad, availableToLoad-task.Amount, availableCapacity)
 		}
 
 	case TransportActionLoadDunnage:
@@ -1389,7 +1389,7 @@ func (fleet *Fleet) getCargoLoadAmount(dest cargoHolder, cargoType CargoType, ta
 		// space. For example, setting Load All Germanium, Load Dunnage Ironium, will load all the
 		// Germanium that is available, then as much Ironium as possible. If more than one dunnage cargo
 		// is specified, they are loaded in the order of Ironium, Boranium, Germanium, and Colonists.
-		transferAmount = Min(availableToLoad, availableCapacity)
+		transferAmount = min(availableToLoad, availableCapacity)
 	}
 
 	// let the caller know how much of this cargo we load
@@ -1405,7 +1405,7 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 	var availableToUnload int
 	if cargoType == Fuel {
 		availableToUnload = fleet.Fuel
-		capacity = Max(0, dest.getFuelCapacity()-dest.getFuel())
+		capacity = max(0, dest.getFuelCapacity()-dest.getFuel())
 		currentAmount = fleet.Fuel
 	} else {
 		availableToUnload = fleet.Cargo.GetAmount(cargoType)
@@ -1416,18 +1416,18 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 		if capacity == Unlimited {
 			transferAmount = availableToUnload
 		} else {
-			transferAmount = Min(availableToUnload, capacity)
+			transferAmount = min(availableToUnload, capacity)
 		}
 	case TransportActionUnloadAmount:
 		// don't unload more than the task says
 		if capacity == Unlimited {
-			transferAmount = Min(availableToUnload, task.Amount)
+			transferAmount = min(availableToUnload, task.Amount)
 		} else {
-			transferAmount = Min(Min(availableToUnload, task.Amount), capacity)
+			transferAmount = min(availableToUnload, task.Amount, capacity)
 		}
 	case TransportActionSetAmountTo:
 		// set the amount in our hold to amount, or do nothing if we have under that amount
-		transferAmount = Max(0, Min(availableToUnload, currentAmount-task.Amount))
+		transferAmount = max(0, min(availableToUnload, currentAmount-task.Amount))
 	case TransportActionSetWaypointTo:
 		// Make sure the waypoint has at least whatever we specified
 		var currentAmount = dest.getCargo().GetAmount(cargoType)
@@ -1438,9 +1438,9 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 		} else {
 			// only transfer the min of what we have, vs what we need, vs the capacity
 			if capacity == Unlimited {
-				transferAmount = Min(availableToUnload, task.Amount-currentAmount)
+				transferAmount = min(availableToUnload, task.Amount-currentAmount)
 			} else {
-				transferAmount = Min(Min(availableToUnload, task.Amount-currentAmount), capacity)
+				transferAmount = min(availableToUnload, task.Amount-currentAmount, capacity)
 			}
 		}
 	}
@@ -1496,10 +1496,10 @@ func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player
 			// 100dp armor@3% repair over a planet means
 			// it repairs 3dp per turn. All damaged tokens repair
 			// at the same rate
-			repairAmount := Max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
+			repairAmount := max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
 
 			// Remove damage from this fleet by its armor * repairRate
-			token.Damage = math.Floor(math.Max(0, token.Damage-float64(repairAmount)))
+			token.Damage = math.Floor(max(0, token.Damage-float64(repairAmount)))
 			if token.Damage == 0 {
 				token.QuantityDamaged = 0
 			}
@@ -1523,10 +1523,10 @@ func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Pla
 	token := &fleet.Tokens[0]
 
 	// IS races repair starbases 1.5x
-	repairAmount := Max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.StarbaseRepairFactor))
+	repairAmount := max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.StarbaseRepairFactor))
 
 	// Remove damage from this fleet by its armor * repairRate
-	token.Damage = math.Floor(math.Max(0, fleet.Tokens[0].Damage-float64(repairAmount)))
+	token.Damage = math.Floor(max(0, fleet.Tokens[0].Damage-float64(repairAmount)))
 
 	log.Debug().
 		Int("Player", fleet.PlayerNum).

@@ -2,7 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"math"
 )
 
 // The TechComparer interface compares techs and techHullComponents
@@ -350,24 +349,25 @@ tagLoop:
 			// grab shield and armor stats
 			hcArmor, hcShield := getArmorShieldAmounts(float64(hc.Armor), float64(hc.Shield), qty, player.Race.Spec, hc.Category == TechCategoryArmor)
 			oldArmor := float64(design.Spec.Armor)
-			oldShield := float64(Max(design.Spec.Shields, 1)) // prevents divide by 0 errors
+			oldShield := max(float64(design.Spec.Shields), 1) // prevents divide by 0 errors
 			if oldArmor/oldShield < 1.2 && oldArmor/oldShield > 1/1.2 && !design.Spec.Starbase {
 				// our armor ratio is good enough that we don't really need
 				// more armor/shields; can just build more ships for more overall chung
+				// TODO: Remove once I figure out how to make the AI realize money exists
 				continue tagLoop
 			}
-			newArmor := math.Max(hcArmor+oldArmor, 1) // prevents divide by 0 errors
-			newShield := math.Max(hcShield+oldShield, 1)
+			newArmor := max(hcArmor+oldArmor, 1) // prevents divide by 0 errors
+			newShield := max(hcShield+oldShield, 1)
 
 			// apply scaling score penalty for adding more armor/shield when we already have lots
 			// margin of error before penalty kicks in is 30%
 			if newArmor/newShield > 1.3 {
 				// reduce our effective armor bonus for adding too much armor
-				hcArmor /= 1 + (math.Min(newArmor/newShield, 4.3) - 1.3)
+				hcArmor /= 1 + (min(newArmor/newShield, 4.3) - 1.3)
 				newArmor = hcArmor + oldArmor
 			} else if newShield/newArmor > 1.3 {
 				// reduce our effective shield bonus for adding too much shield
-				hcShield /= 1 + (math.Min(newShield/newArmor, 4.3) - 1.3)
+				hcShield /= 1 + (min(newShield/newArmor, 4.3) - 1.3)
 				newShield = hcShield + oldShield
 			}
 
@@ -379,7 +379,7 @@ tagLoop:
 				continue // beam bonus meaningless on missile boats
 			}
 			// boost *= new beam bonus / old beam bonus
-			relativeBoost *= (math.Min(getNewBeamBonus(design.Spec.BeamBonus, hc.BeamBonus, qty), rules.BeamBonusCap) / design.Spec.BeamBonus)
+			relativeBoost *= (min(getNewBeamBonus(design.Spec.BeamBonus, hc.BeamBonus, qty), rules.BeamBonusCap) / design.Spec.BeamBonus)
 		case tag == TechTagTorpedoBonus:
 			if design.Purpose.IsBeamShip() {
 				continue // torpedo bonus meaningless on beam ships

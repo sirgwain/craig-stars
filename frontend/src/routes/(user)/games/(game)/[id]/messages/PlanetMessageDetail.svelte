@@ -134,9 +134,9 @@
 {:else if message.type === PlayerMessagePlanetBuiltStarbase}
 	{planet.name} has built a new {message.spec.name}.
 	{#if planet.spec.dockCapacity == UnlimitedSpaceDock}
-		Ships of any size can now be built here.
+		Ships of any size can now be built at this facility.
 	{:else if (planet.spec.dockCapacity ?? 0) > 0}
-		Ships up to {planet.spec.dockCapacity}kT in mass can now be built at this facility.
+		Ships of up to {planet.spec.dockCapacity}kT in mass can now be built at this facility.
 	{/if}
 {:else if message.type === PlayerMessagePlanetCometStrike}
 	{#if message.spec.comet?.size == CometSmall}

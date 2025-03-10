@@ -219,8 +219,8 @@ func (p *Planet) addPopulation(pop int) {
 // Return the amount of population considered productive for resource production,
 // taking into account overcrowding penalties.
 func productivePopulation(pop, maxPop int, overcrowdPenalty, overcrowdResourceMax float64) int {
-	popOverCap := float64(pop) + Max(0, float64(pop-maxPop)*overcrowdPenalty)
-	return roundTo100(Min(
+	popOverCap := float64(pop) + max(0, float64(pop-maxPop)*overcrowdPenalty)
+	return roundTo100(min(
 		float64(maxPop)*(1+overcrowdResourceMax), popOverCap), math.Floor)
 }
 
@@ -228,7 +228,7 @@ func productivePopulation(pop, maxPop int, overcrowdPenalty, overcrowdResourceMa
 // (it just caps at max pop)
 // TODO: remove this reskin of Min
 func productiveInstallationPopulation(pop, maxPop int) int {
-	return Min(pop, maxPop)
+	return min(pop, maxPop)
 }
 
 // return true if this planet is able to build a ship with the given mass;
@@ -393,9 +393,9 @@ func randomizeMinerals(rules *Rules, rad int, accBBS bool) Mineral {
 	// we have high rad, add some bonus minerals
 	if rad >= rules.HighRadMineralConcentrationBonusThreshold {
 		minConc = Mineral{
-			Ironium:   minConc.Ironium + rules.random.Intn(99-Min(minConc.Ironium, 98))/2,
-			Boranium:  minConc.Boranium + rules.random.Intn(99-Min(minConc.Boranium, 98))/2,
-			Germanium: minConc.Germanium + rules.random.Intn(99-Min(minConc.Germanium, 98))/2,
+			Ironium:   minConc.Ironium + rules.random.Intn(99-min(minConc.Ironium, 98))/2,
+			Boranium:  minConc.Boranium + rules.random.Intn(99-min(minConc.Boranium, 98))/2,
+			Germanium: minConc.Germanium + rules.random.Intn(99-min(minConc.Germanium, 98))/2,
 		}
 	}
 
@@ -495,7 +495,7 @@ func (p *Planet) shortestDistanceToPlanets(otherPlanets []*Planet) float64 {
 	minDistanceSquared := math.MaxFloat64
 	for _, planet := range otherPlanets {
 		distSquared := p.Position.DistanceSquaredTo(planet.Position)
-		minDistanceSquared = math.Min(minDistanceSquared, distSquared)
+		minDistanceSquared = min(minDistanceSquared, distSquared)
 	}
 	return math.Sqrt(minDistanceSquared)
 }
@@ -511,7 +511,7 @@ func (p *Planet) getMineralOutput(rules *Rules, numMines int, mineOutput int) (o
 			// only apply HW conc floor if planet is owned.
 			// We don't need to worry about remote miners since only unowned
 			// or self-owned planets (for ARs) can be mined remotely.
-			conc = Max(conc, rules.MinHomeworldMineralConcentration)
+			conc = max(conc, rules.MinHomeworldMineralConcentration)
 		}
 
 		// TODO: Check how Stars! does fractional mineral concs
@@ -591,7 +591,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	// Compute resources per year and mining output
 	spec.computeResourcesPerYear(player, planet.Factories, productivePop, installationPop)
-	spec.MiningOutput = planet.getMineralOutput(rules, Min(spec.MaxMines, planet.Mines), race.MineOutput)
+	spec.MiningOutput = planet.getMineralOutput(rules, min(spec.MaxMines, planet.Mines), race.MineOutput)
 	spec.computeResourcesPerYearAvailable(player, planet)
 
 	if race.Spec.CanBuildDefenses {
@@ -672,7 +672,7 @@ func (spec *PlanetSpec) computeResourcesPerYear(player *Player, numFacts, produc
 
 		spec.MaxFactories = getMaxInstallations(player.Race.NumFactories, installationPop)
 		spec.MaxPossibleFactories = spec.MaxPopulation * player.Race.NumFactories / 10000 // factory count rounds down
-		resourcesFromFactories := int(math.Ceil(float64(Min(numFacts, spec.MaxFactories)*player.Race.FactoryOutput) / 10))
+		resourcesFromFactories := int(math.Ceil(float64(min(numFacts, spec.MaxFactories)*player.Race.FactoryOutput) / 10))
 
 		// Add them together
 		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
@@ -723,18 +723,18 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 		// no need to floor inside popNextYear
 		futurePop := productiveInstallationPopulation(planet.PopNextYear(false), planet.Spec.MaxPopulation)
 		maxMines := getMaxInstallations(player.Race.NumMines, futurePop)
-		return Max(0, maxMines-planet.Mines)
+		return max(0, maxMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
 		// for autobuild purposes, the maxFactories is next year's pop
 		futurePop := productiveInstallationPopulation(planet.PopNextYear(false), planet.Spec.MaxPopulation)
 		maxFactories := getMaxInstallations(player.Race.NumFactories, futurePop)
-		return Max(0, maxFactories-planet.Factories)
+		return max(0, maxFactories-planet.Factories)
 	case QueueItemTypeMine:
-		return Max(0, planet.Spec.MaxPossibleMines-planet.Mines)
+		return max(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeFactory:
-		return Max(0, planet.Spec.MaxPossibleFactories-planet.Factories)
+		return max(0, planet.Spec.MaxPossibleFactories-planet.Factories)
 	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
-		return Max(0, planet.Spec.MaxDefenses-planet.Defenses)
+		return max(0, planet.Spec.MaxDefenses-planet.Defenses)
 	case QueueItemTypeTerraformEnvironment, QueueItemTypeAutoMaxTerraform:
 		return planet.Spec.TerraformAmount.absSum()
 	case QueueItemTypeAutoMinTerraform:
@@ -786,7 +786,7 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 
 	// "In short, mine years are like a very funky odometer" - Matthew T.
 	for _, minType := range MineralTypes {
-		conc := Max(minMineralConcentration, planet.MineralConcentration.GetAmount(minType)) // min prevents division by 0
+		conc := max(minMineralConcentration, planet.MineralConcentration.GetAmount(minType)) // min prevents division by 0
 		mineYears := planet.MineYears.GetAmount(minType)
 
 		mineYearsToRollover := mineralDecayFactor / (conc * conc)
@@ -795,7 +795,7 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 			continue
 		}
 
-		newConc := Max(conc-(mineYears/mineYearsToRollover), minMineralConcentration)
+		newConc := max(conc-(mineYears/mineYearsToRollover), minMineralConcentration)
 		planet.MineralConcentration.Set(minType, newConc)
 		if newConc == minMineralConcentration {
 			planet.MineYears.Set(minType, 0)

@@ -420,7 +420,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
 			spec.Initiative += component.InitiativeBonus * slot.Quantity
 			spec.MovementBonus += component.MovementBonus * float64(slot.Quantity)
-			spec.ReduceMovement = Max(spec.ReduceMovement, component.ReduceMovement) // these don't stack
+			spec.ReduceMovement = max(spec.ReduceMovement, component.ReduceMovement) // these don't stack
 			spec.MiningRate += component.MiningRate * slot.Quantity
 			spec.TerraformRate += component.TerraformRate * slot.Quantity
 			spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || component.OrbitalConstructionModule
@@ -516,7 +516,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 				if spec.BasePacketSpeed == component.PacketSpeed {
 					spec.AdditionalMassDrivers++
 				}
-				spec.BasePacketSpeed = Max(spec.BasePacketSpeed, component.PacketSpeed)
+				spec.BasePacketSpeed = max(spec.BasePacketSpeed, component.PacketSpeed)
 				spec.MassDriver = component.Name
 			}
 
@@ -555,7 +555,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 	if numTachyonDetectors > 0 {
 		// 95% ^ (SQRT(#_of_detectors) = reduction factor for other players' cloaks (capped at 81% or 17TDs)
-		spec.ReduceCloaking = math.Min(math.Pow((1-rules.TachyonCloakReduction), math.Sqrt(float64(numTachyonDetectors))), rules.TachyonMaxCloakReduction)
+		spec.ReduceCloaking = min(math.Pow((1-rules.TachyonCloakReduction), math.Sqrt(float64(numTachyonDetectors))), rules.TachyonMaxCloakReduction)
 	} else {
 		spec.ReduceCloaking = 1
 	}
@@ -596,7 +596,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 		// round off answer and apply relevant caps/multipliers
 		// golang, why you be like this? nobody wants 1-.2^1 to be .199999994
-		spec.TorpedoJamming = roundFloat(math.Min(spec.TorpedoJamming,
+		spec.TorpedoJamming = roundFloat(min(spec.TorpedoJamming,
 			rules.JammerCap.Get(hull.Starbase))*
 			rules.JammerMulti.Get(hull.Starbase), 4)
 
@@ -619,7 +619,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		}
 
 		// Return final % bonus, rounded to 4 decimal places and capped at 2.55x base damage
-		spec.BeamBonus = math.Min(roundFloat(spec.BeamBonus, 4), rules.BeamBonusCap)
+		spec.BeamBonus = min(roundFloat(spec.BeamBonus, 4), rules.BeamBonusCap)
 	}
 
 	if len(beamDeflectorsByCount) > 0 {
@@ -1393,7 +1393,7 @@ func (spec *ShipDesignSpec) getJamOrComputerBonus(rules *Rules, hc *TechHullComp
 	}
 
 	// *I HATE FLOATING POINT ROUNDING ERRORS*
-	newBonus := math.Min(getNewJamming(oldBonus, hcBonus, jamMulti, qty), cap)
+	newBonus := min(getNewJamming(oldBonus, hcBonus, jamMulti, qty), cap)
 
 	return (1 + newBonus) / (1 + oldBonus)
 }

@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/rs/zerolog/log"
@@ -8,43 +9,41 @@ import (
 
 // The CompletionEstimator is used for populating completion estimates in a planet's production queue
 type CompletionEstimator interface {
-	// get the estimated years to build one item with minerals on hand and some yearly mineral/resource output
+	// Get the estimated years to build one item with minerals on hand and some yearly mineral/resource output
 	GetYearsToBuildOne(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int
 
-	// get a ProductionQueue with estimates filled in
+	// GetProductionWithEstimates populates a planet's production queue with estimates
+	// for how long each item will take.
+	// It simulates up to 10 years of growth, mining & production,
+	// recording the first and last time each item was completed.
+	//
+	// It returns the new updated queue, an amount of leftover resources, and any error encountered.
+	// An unsuccessful run will return nil, 0, err.
 	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) ([]ProductionQueueItem, int, error)
 }
 
-type completionEstimate struct {
-}
+type completionEstimate struct{}
 
 func NewCompletionEstimator() CompletionEstimator {
 	return &completionEstimate{}
 }
 
 // get the estimated years to build one item
-func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int {
-	numBuiltInAYear := yearlyAvailableToSpend.ToCostFloat64().DivideCost(
-		cost.Subtract(item.Allocated).SubtractMineral(mineralsOnHand).MinZero().ToCostFloat64())
-	if numBuiltInAYear == 0 || math.IsInf(numBuiltInAYear, 1) {
+func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, itemCost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int {
+	yearsToBuild := itemCost.Subtract(item.Allocated).SubtractMineral(mineralsOnHand).MinZero().
+		DivideCost(yearlyAvailableToSpend)
+	if math.IsInf(yearsToBuild, 0) {
 		return Infinite
 	}
-	return int(math.Ceil(1 / numBuiltInAYear))
+	return int(math.Ceil(yearsToBuild))
 }
 
-// simulate up to 100 years of production to determine the time each item will take to build
-// this function will take a copy of the planet and do the following:
-// * clone the production queue
-// * add an index to each production queue item so we can track it in the produce() result
-// * default each item to never being completed
-// * simulate 100 years of growth
-//   - mine for resources
-//   - run production (including terraforming the planet, building mines and factories, etc)
-//   - grow pop on the planet
+// Simulate up to 100 years of growth (including mining & production)
+// on a planet to determine how long each production queue item will take to build.
 //
-// For each year of growth, it checks what was built. If an item was built for the first time
-// it records the year. If the item completed building, it records the last year.
-// when all items are complete or 100 years have passed, iit returns
+// After each year of growth, it checks what was built and records the year of the first and
+// last completion.
+// Items not finished within 100 turns are labeled as "never completable".
 func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) (items []ProductionQueueItem, leftoverResourcesForResearch int, err error) {
 
 	// copy the queue so we can update it
@@ -55,11 +54,10 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		return items, planet.Spec.ResourcesPerYear, nil
 	}
 
-	// reset any estimates
+	// reset any prior estimates and add indices to queue items
 	for i := range items {
 		planet.ProductionQueue[i].index = i
-		item := &items[i]
-		item.QueueItemCompletionEstimate = QueueItemCompletionEstimate{
+		planet.ProductionQueue[i].QueueItemCompletionEstimate = QueueItemCompletionEstimate{
 			YearsToBuildOne: Infinite,
 			YearsToBuildAll: Infinite,
 			YearsToSkipAuto: Infinite,
@@ -77,7 +75,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		// build!
 		result, err := producer.produce()
 		if err != nil {
-			return nil, 0, err
+			return nil, 0, fmt.Errorf("error while producing items: %w", err)
 		}
 
 		if year == 1 {
@@ -86,30 +84,27 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 
 		for _, itemBuilt := range result.itemsBuilt {
 			if itemBuilt.index == -1 {
-				// skip partial auto builds
+				// item is a half-built concrete version of an auto item; skip
 				continue
 			}
 			item := &items[itemBuilt.index]
 			maxBuildable := planet.maxBuildable(player, item.Type)
 
-			// item will be skipped if we've hit the max allowed
-			if itemBuilt.skipped {
-				if year == 1 && maxBuildable == 0 {
-					item.Skipped = true
-					item.YearsToSkipAuto = 1
-				} else if item.YearsToSkipAuto == Infinite {
-					item.YearsToSkipAuto = year
-				}
+			// auto items will be skipped if we've hit the max allowed
+			if itemBuilt.skipped && item.YearsToSkipAuto == Infinite {
+				item.YearsToSkipAuto = year
 				continue
 			}
-			// skip items that never complete
-			if itemBuilt.never {
+
+			// log any invalid items getting canceled & removed from the queue
+			if itemBuilt.canceled {
+				item.Canceled = true
 				continue
 			}
 
 			numBuilt[itemBuilt.index] += itemBuilt.numBuilt
 
-			// record the year the first item was built (if not already)
+			// record the year the first item was built (if not done beforehand)
 			if item.YearsToBuildOne == Infinite {
 				item.YearsToBuildOne = year
 			}
@@ -126,7 +121,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 					num = numBuilt[itemBuilt.index]
 				}
 				// if we've built up to the item's original quantity or
-				// maxBuildable, count the item
+				// maxBuildable, mark it as done
 				if num >= item.Quantity || (maxBuildable != Infinite && num >= maxBuildable) {
 					item.YearsToBuildAll = year
 				}

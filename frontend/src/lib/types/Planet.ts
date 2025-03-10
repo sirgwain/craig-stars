@@ -66,7 +66,7 @@ export class CommandedPlanet implements Planet {
 	mineralConcentration: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
 	mineYears: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
 	cargo: Cargo = { ironium: 0, boranium: 0, germanium: 0, colonists: 0 };
-	partialPopulation: 0,
+	partialPopulation = 0;
 	mines = 0;
 	factories = 0;
 	defenses = 0;
@@ -639,7 +639,7 @@ export function planetsSortBy(
 			return (a, b) =>
 				(a.spec.starbaseDesignName ?? '').localeCompare(b.spec.starbaseDesignName ?? '');
 		case 'population':
-			return (a, b) => (a.spec.population ?? 0) - (b.spec.population ?? 0);
+			return (a, b) => (a.cargo?.colonists ?? 0) - (b.cargo?.colonists ?? 0);
 		case 'populationDensity':
 			return (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0);
 		case 'populationGrowth':

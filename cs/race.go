@@ -679,7 +679,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		InnateScannerFactor:     prtSpec.InnateScannerFactor,
 		CanBuildDefenses:        prtSpec.CanBuildDefenses,
 		LivesOnStarbases:        prtSpec.LivesOnStarbases,
-		MinHabFloor:             Max(prtSpec.MinHabFloor, rules.MinHabFloor),
+		MinHabFloor:             max(prtSpec.MinHabFloor, rules.MinHabFloor),
 
 		// CA
 		Instaforming:        prtSpec.Instaforming,
@@ -744,7 +744,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		spec.StartingPopulationFactor += lrtSpec.StartingPopulationFactorDelta
 		spec.StarbaseBuiltInCloakUnits += lrtSpec.StarbaseBuiltInCloakUnits
 		if lrtSpec.StarbaseCostFactor > 0 {
-			spec.StarbaseCostFactor = math.Min(spec.StarbaseCostFactor, lrtSpec.StarbaseCostFactor) // this isn't cumulative
+			spec.StarbaseCostFactor = min(spec.StarbaseCostFactor, lrtSpec.StarbaseCostFactor) // this isn't cumulative
 		}
 		spec.ResearchFactor += lrtSpec.ResearchFactorOffset
 		spec.ResearchSplashDamage += lrtSpec.ResearchSplashDamage
@@ -758,7 +758,7 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		// CE
 		spec.EngineFailureRate += lrtSpec.EngineFailureRateOffset
 		if lrtSpec.EngineReliableSpeed != 0 {
-			spec.EngineReliableSpeed = Min(spec.EngineReliableSpeed, lrtSpec.EngineReliableSpeed)
+			spec.EngineReliableSpeed = min(spec.EngineReliableSpeed, lrtSpec.EngineReliableSpeed)
 		}
 
 		spec.StartingPlanets[0].StartingFleets = append(spec.StartingPlanets[0].StartingFleets, lrtSpec.StartingFleets...)

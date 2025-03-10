@@ -21,8 +21,8 @@ func Test() error {
 		return err
 	}
 
-	err := Test_Golang("")
-	if err != nil {
+	mg.Deps(cleanTmpDir)
+	if err := Test_Golang(""); err != nil {
 		return err
 	}
 
@@ -43,11 +43,22 @@ func Lint() error {
 	return cmd.Run()
 }
 
+func cleanTmpDir() error {
+	if err := os.RemoveAll("tmp"); err != nil {
+		return mg.Fatalf(1, "error cleaning out tmp dir: \n%w", err)
+	}
+	if err := os.Mkdir("tmp", 0755); err != nil {
+		return mg.Fatalf(1, "error recreating tmp dir: \n%w", err)
+	}
+	return nil
+}
+
 // Run backend golang tests using gotestsum with passing args to "go test".
 // This runs all tests across all packages.
 // Gotestsum args are dependent on the value of $CI and $GITHUB_REPOSITORY/$GH_REPO.
 func Test_Golang(goTestArgs string) error {
 	fmt.Println("Running backend tests...")
+	mg.Deps(cleanTmpDir)
 
 	// read gotestsum config args from text file
 	// use CI config if on CI; else regular config
@@ -66,9 +77,12 @@ func Test_Golang(goTestArgs string) error {
 
 	// extract config values delimited by commas and whitespace
 	configVals := strings.FieldsFunc(string(configBytes), func(r rune) bool {
-		return (r == ',' || r == ' ' || r == '\n' || r == '\r')
+		return (r == ',' || r == ' ' || r == '\r' || r == '\n')
 	})
 	fmt.Printf("Config file at %s successfully read.\n", filePath)
+
+	// tack on the config vals
+	configVals = append(configVals, strings.TrimSpace(goTestArgs))
 
 	// if $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
 	// Otherwise, check for $GH_REPO (from github CLI) before falling back to a default string.
@@ -167,6 +181,8 @@ func Merge_Temp_JSON() error {
 // Run frontend tests using Vitest with the given args.
 func Test_Vitest(vitestArgs string) error {
 	fmt.Println("Running vitest tests...")
+	mg.Deps(cleanTmpDir)
+
 	if vitestArgs == "" {
 		vitestArgs = "."
 	}
@@ -180,6 +196,8 @@ func Test_Vitest(vitestArgs string) error {
 // Run end-to-end tests using Playwright with the given args.
 func Test_Playwright(playwrightArgs string) error {
 	fmt.Println("Running playwright tests...")
+	mg.Deps(cleanTmpDir)
+
 	if playwrightArgs == "" {
 		playwrightArgs = "."
 	}

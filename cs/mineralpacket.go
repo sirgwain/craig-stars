@@ -61,10 +61,10 @@ func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int,
 func (packet *MineralPacket) getPacketDecayRate(rules *Rules, race *Race) float64 {
 
 	// we only care about packets thrown up to 3 warps over the limit
-	overSafeWarp := Min(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
+	overSafeWarp := min(packet.WarpSpeed-packet.SafeWarpSpeed, 3)
 
 	// IT is always counted as being 1 more over the safe warp
-	overSafeWarp = Min(race.Spec.PacketOverSafeWarpPenalty+overSafeWarp, 3)
+	overSafeWarp = min(race.Spec.PacketOverSafeWarpPenalty+overSafeWarp, 3)
 
 	packetDecayRate := 0.0
 	if overSafeWarp > 0 {
@@ -96,7 +96,7 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 	dist = vectorTravelled.Length()
 
 	// don't overshoot
-	dist = math.Min(totalDist, dist)
+	dist = min(totalDist, dist)
 
 	if totalDist == dist {
 		packet.completeMove(rules, player, target, planetPlayer)
@@ -214,13 +214,13 @@ func (packet *MineralPacket) getDamage(planet *Planet, planetPlayer *Player) Min
 	rawDamage := float64((speedOfPacket-speedOfReceiver)*weight) / 160
 	damageWithDefenses := rawDamage * (1 - planet.Spec.DefenseCoverage)
 	// TODO: How does this round?
-	colonistsKilled := roundTo100(math.Max(damageWithDefenses*float64(planet.GetPopulation())/1000, damageWithDefenses*100), math.Round)
-	defensesDestroyed := int(math.Max(float64(planet.Defenses)*damageWithDefenses/1000, damageWithDefenses/20))
+	colonistsKilled := roundTo100(max(damageWithDefenses*float64(planet.GetPopulation())/1000, damageWithDefenses*100), math.Round)
+	defensesDestroyed := int(max(float64(planet.Defenses)*damageWithDefenses/1000, damageWithDefenses/20))
 
 	// kill off colonists and destroy defenses, up to however much actually exists
 	return MineralPacketDamage{
-		Killed:            Min(colonistsKilled, planet.GetPopulation()),
-		DefensesDestroyed: Min(planet.Defenses, defensesDestroyed),
+		Killed:            min(colonistsKilled, planet.GetPopulation()),
+		DefensesDestroyed: min(planet.Defenses, defensesDestroyed),
 		Uncaught:          uncaught,
 	}
 
@@ -258,7 +258,7 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 
 			// subtract either the normal or minimum decay amounts, whichever is higher (rounded DOWN)
 			if mineral > 0 {
-				decayAmount := int(Max(decayRate*float64(mineral),
+				decayAmount := int(max(decayRate*float64(mineral),
 					float64(rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
 				packetCopy.Cargo.SubtractAmount(minType, decayAmount)
 			}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 
 	"github.com/nsf/jsondiff"
 )
@@ -51,14 +52,18 @@ func CompareAsJSON(t TestingT, got, want any) {
 		t.Fatalf("error creating JSON diffs: \n%v", err)
 	}
 
-	t.Fatalf("JSONs not equal; diff between got & want: \n%s", diff)
+	r := strings.NewReplacer("/* ", "", " */", ":")
+
+	t.Fatalf("JSONs not equal; diff between got & want: \n%s", r.Replace(diff))
 }
 
 // parsing options for jsondiff.
+// Unfortunately, jsondiff is terrible at rendering added/removed nested objects,
+// so we add comments to the file diff.
 var options = jsondiff.Options{
-	Added:            jsondiff.Tag{Begin: "{\"prop-added\": {", End: "}"},
-	Removed:          jsondiff.Tag{Begin: "{\"prop-removed\": {", End: "}"},
-	Changed:          jsondiff.Tag{Begin: "{\"changed\": [", End: "]}"},
+	Added:            jsondiff.Tag{Begin: "/* Added */ ", End: ""},
+	Removed:          jsondiff.Tag{Begin: "/* Removed */ ", End: ""},
+	Changed:          jsondiff.Tag{Begin: "/* Changed */ [ ", End: " ]"},
 	ChangedSeparator: ", ",
 	Indent:           "\t", // tab indentation
 

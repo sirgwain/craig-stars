@@ -22,7 +22,7 @@ func (st *ShipToken) applyMineDamage(damage int) tokenDamage {
 	shields := st.design.Spec.Shields
 	armor := st.design.Spec.Armor
 	possibleDamageToShields := float64(damage) * 0.5
-	actualDamageToShields := math.Min(float64(shields), possibleDamageToShields)
+	actualDamageToShields := min(float64(shields), possibleDamageToShields)
 	armorDamage := damage - int(actualDamageToShields)
 	existingStackDamage := st.Damage * float64(st.QuantityDamaged) // get the total stack damage
 
@@ -30,7 +30,7 @@ func (st *ShipToken) applyMineDamage(damage int) tokenDamage {
 	stackDamage := math.Floor(float64(existingStackDamage) + float64(armorDamage))
 
 	// from the new total stack damage, figure out how many ships were destroyed
-	shipsDestroyed := int(math.Min(float64(st.Quantity), math.Floor(float64(stackDamage)/float64(armor))))
+	shipsDestroyed := int(min(float64(st.Quantity), math.Floor(float64(stackDamage)/float64(armor))))
 	st.Quantity -= shipsDestroyed
 
 	if st.Quantity > 0 {
@@ -61,7 +61,7 @@ func (st *ShipToken) applyOvergateDamage(dist float64, safeRange int, safeSource
 	massDamageFactor := st.getStargateMassDamageFactor(safeSourceMass, safeDestMass, maxMassFactor)
 
 	// damage capped at 98% for a single overgate
-	totalDamageFactor := math.Min(0.98, massDamageFactor+(1-massDamageFactor)*rangeDamageFactor)
+	totalDamageFactor := min(0.98, massDamageFactor+(1-massDamageFactor)*rangeDamageFactor)
 
 	// apply damage as a percentage of armor to all tokens
 	armor := st.design.Spec.Armor
@@ -124,8 +124,8 @@ func (t *ShipToken) getStargateMassDamageFactor(safeSourceMass int, safeDestMass
 // reducing token quanitity as appropriate.
 // It returns the total number of tokens vanished (origQty - newQty).
 func (token *ShipToken) applyOvergateVanishing(rules *Rules, distance float64, sourceRange, sourceMass int) (shipsLost int) {
-	rangeVanishChance := Max(0, token.getOvergateRangeVanishingChance(distance, sourceRange))
-	massVanishChance := Max(0, token.getOvergateMassVanishingChance(sourceMass, rules.StargateMaxHullMassFactor))
+	rangeVanishChance := max(0, token.getOvergateRangeVanishingChance(distance, sourceRange))
+	massVanishChance := max(0, token.getOvergateMassVanishingChance(sourceMass, rules.StargateMaxHullMassFactor))
 	if rangeVanishChance == 0 && massVanishChance == 0 {
 		// neither range nor mass can harm us; return
 		return

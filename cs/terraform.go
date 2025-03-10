@@ -47,7 +47,7 @@ func (t *terraform) getTerraformAbility(player *Player) Hab {
 		// find out which terraform tech has the greater terraform ability
 		ability := totalTerraformAbility
 		if bestHabTerraform != nil {
-			ability = Max(ability, bestHabTerraform.Ability)
+			ability = max(ability, bestHabTerraform.Ability)
 			terraformAbility.Set(habType, ability)
 		}
 
@@ -102,7 +102,7 @@ func (t *terraform) GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 				// we can either terrform up to our full ability, or however much
 				// we have left to terraform on this
 				alreadyTerraformed := fromIdealBase - fromIdeal
-				terraformAmount.Set(habType, Min(ability-alreadyTerraformed, fromIdeal))
+				terraformAmount.Set(habType, min(ability-alreadyTerraformed, fromIdeal))
 			}
 		} else if fromIdeal < 0 {
 			if enemy {
@@ -111,7 +111,7 @@ func (t *terraform) GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 			} else {
 				// i.e. our ideal is 50 and the planet hab is 53
 				alreadyTerraformed := fromIdeal - fromIdealBase
-				terraformAmount.Set(habType, Max(-(ability-alreadyTerraformed), fromIdeal))
+				terraformAmount.Set(habType, max(-(ability-alreadyTerraformed), fromIdeal))
 			}
 		} else if enemy {
 			// the terrformer is enemies with the player, terraform away from ideal
@@ -186,11 +186,11 @@ func (t *terraform) GetMinTerraformAmount(hab Hab, baseHab Hab, player *Player, 
 			// we can either terrform up to our full ability, or however much
 			// we have left to terraform on this
 			alreadyTerraformed := fromIdealBaseDistance - fromIdealDistance
-			terraformAmountPossible := Min(ability-alreadyTerraformed, fromIdealDistance)
+			terraformAmountPossible := min(ability-alreadyTerraformed, fromIdealDistance)
 
 			// if we are in range for this hab type, we won't terraform at all, otherwise return the max possible terraforming
 			// left.
-			terraformAmount.Set(habType, Min(fromHabitableDistance, terraformAmountPossible))
+			terraformAmount.Set(habType, min(fromHabitableDistance, terraformAmountPossible))
 		}
 
 	}

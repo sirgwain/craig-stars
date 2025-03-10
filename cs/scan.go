@@ -370,7 +370,7 @@ func (scan *playerScanner) scanMineFields(scanners []scanner) {
 				cloakFactor = 1
 			}
 
-			distanceToEdge := math.Max(0, scanner.Position.DistanceTo(mineField.Position)-mineField.Spec.Radius)
+			distanceToEdge := max(0, scanner.Position.DistanceTo(mineField.Position)-mineField.Spec.Radius)
 			scannerRange := float64(scanner.Range) * cloakFactor
 			// we only care about regular scanners for wormholes
 			if scannerRange >= distanceToEdge {
@@ -496,12 +496,12 @@ func (scan *playerScanner) getScanners() []scanner {
 				scanner.CloakReductionFactor = 1
 			}
 			if fleet.Spec.ScanRange != NoScanner {
-				scanner.Range = Max(scanner.Range, fleet.Spec.ScanRange)
+				scanner.Range = max(scanner.Range, fleet.Spec.ScanRange)
 			}
 			if fleet.Spec.ScanRangePen != NoScanner {
-				scanner.RangePen = Max(scanner.RangePen, fleet.Spec.ScanRangePen)
+				scanner.RangePen = max(scanner.RangePen, fleet.Spec.ScanRangePen)
 			}
-			scanner.CloakReductionFactor = math.Min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
+			scanner.CloakReductionFactor = min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
 			scanningFleetsByPosition[fleet.Position] = scanner
 		}
 	}
@@ -529,9 +529,9 @@ func (scan *playerScanner) getScanners() []scanner {
 			}
 			// use the fleet scanner if it's better
 			if fleetScanner, ok := scanningFleetsByPosition[planet.Position]; ok {
-				planetaryScanner.Range = Max(planetaryScanner.Range, fleetScanner.Range)
-				planetaryScanner.RangePen = Max(planetaryScanner.RangePen, fleetScanner.RangePen)
-				planetaryScanner.CloakReductionFactor = math.Min(planetaryScanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
+				planetaryScanner.Range = max(planetaryScanner.Range, fleetScanner.Range)
+				planetaryScanner.RangePen = max(planetaryScanner.RangePen, fleetScanner.RangePen)
+				planetaryScanner.CloakReductionFactor = min(planetaryScanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
 			}
 			scanners = append(scanners, planetaryScanner)
 		}
@@ -623,9 +623,9 @@ func (scan *playerScanner) getCargoScanners() []scanner {
 				scanner.RangePen = NoScanner
 				scanner.CloakReductionFactor = 1
 			}
-			scanner.Range = Max(scanner.Range, fleet.Spec.ScanRange)
-			scanner.RangePen = Max(scanner.RangePen, fleet.Spec.ScanRangePen)
-			scanner.CloakReductionFactor = math.Min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
+			scanner.Range = max(scanner.Range, fleet.Spec.ScanRange)
+			scanner.RangePen = max(scanner.RangePen, fleet.Spec.ScanRangePen)
+			scanner.CloakReductionFactor = min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
 			scanner.DiscoverFleetCargo = fleet.Spec.CanStealFleetCargo
 			scanner.DiscoverPlanetCargo = fleet.Spec.CanStealPlanetCargo
 			scanningFleetsByPosition[fleet.Position] = scanner
@@ -647,7 +647,7 @@ func (scan *playerScanner) getStarGateScanners() []scanner {
 	}
 	for _, planet := range scan.universe.Planets {
 		if planet.PlayerNum == scan.player.Num && planet.Spec.PlanetStarbaseSpec.HasStargate {
-			penRange := Min(planet.Spec.PlanetStarbaseSpec.SafeRange, math.MaxInt16)
+			penRange := min(planet.Spec.PlanetStarbaseSpec.SafeRange, math.MaxInt16)
 			scanner := scanner{
 				Position:             planet.Position,
 				RangePen:             penRange,

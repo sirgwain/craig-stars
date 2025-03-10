@@ -68,7 +68,7 @@ func getPlayerCost(tech Tech, techLevels TechLevel, miniaturizationSpec Miniatur
 	var miniaturizationFactor float64
 	if numTechLevelsAboveRequired > 0 {
 		// Ex: 5 tech levels * 4% discount per level = 20% cheaper (0.8x price modifier)
-		miniaturizationFactor = 1 - math.Min(miniaturizationSpec.MiniaturizationMax,
+		miniaturizationFactor = 1 - min(miniaturizationSpec.MiniaturizationMax,
 			miniaturizationSpec.MiniaturizationPerLevel*float64(numTechLevelsAboveRequired))
 	} else {
 		// New techs cost BET races 2x and will
@@ -139,7 +139,7 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 
 	// Next, iterate through both designs' slots and tally up items in each
 	// Also check if they even exist (and return error if so)
-	for i := range Max(len(design.Slots), len(newDesign.Slots)) {
+	for i := range max(len(design.Slots), len(newDesign.Slots)) {
 		// don't wanna index arrays out of bounds!
 		if i < len(design.Slots) {
 			hc := rules.techs.GetHullComponent(design.Slots[i].HullComponent)

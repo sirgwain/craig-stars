@@ -273,8 +273,7 @@ func (spec PlayerMessageSpec) withTargetMinefield(mineField *MineField) PlayerMe
 	return spec
 }
 
-type messageClient struct {
-}
+type messageClient struct{}
 
 var messager = messageClient{}
 
@@ -698,7 +697,10 @@ func (m *messageClient) planetBuiltStarbase(player *Player, planet *Planet, flee
 
 func (m *messageClient) planetColonized(player *Player, planet *Planet) {
 	text := fmt.Sprintf("Your colonists are now in control of %s.", planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetColonized, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, PlayerMessage{
+		Type:   PlayerMessagePlanetColonized,
+		Text:   text,
+		Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
 func (m *messageClient) planetComet(player *Player, planet *Planet, size CometSize, mineralsAdded Mineral, mineralConcentrationIncreased Mineral, habChanged Hab, colonistsKilled int) {
@@ -714,15 +716,15 @@ func (m *messageClient) planetComet(player *Player, planet *Planet, size CometSi
 				},
 			},
 		))
-	} else {
-		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetCometStrike, planet).withSpec(
-			PlayerMessageSpec{
-				Comet: &PlayerMessageSpecComet{
-					Size: size,
-				},
-			},
-		))
+		return
 	}
+	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetCometStrike, planet).withSpec(
+		PlayerMessageSpec{
+			Comet: &PlayerMessageSpecComet{
+				Size: size,
+			},
+		},
+	))
 }
 
 func (m *messageClient) planetDiedOff(player *Player, planet *Planet) {

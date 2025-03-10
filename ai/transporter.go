@@ -104,7 +104,7 @@ func (ai *aiPlayer) transportColonists() error {
 				if orbiting != nil {
 					// don't load more than 25% of the target planet
 					// it will grow slower after 25%
-					colonistsToLoad := cs.Min(int(float64(planet.Spec.MaxPopulation)*ai.config.colonistTransportDensity), fleet.Spec.CargoCapacity)
+					colonistsToLoad := min(int(float64(planet.Spec.MaxPopulation)*ai.config.colonistTransportDensity), fleet.Spec.CargoCapacity)
 
 					// load colonists but only if taking these colonists doesn't reduce our pop too much
 					// take into account how much we're going to grow

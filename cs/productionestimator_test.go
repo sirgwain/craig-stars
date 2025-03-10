@@ -363,9 +363,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						WithMines(700).WithFactories(700),
 				},
 				want: []ProductionQueueItem{
+					// we skip the terraforming and easily finish everything else
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							Skipped:         true, // this is skipped as it's not needed
 							YearsToBuildOne: Infinite,
 							YearsToBuildAll: Infinite,
 							YearsToSkipAuto: 1,
@@ -375,7 +375,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1, // we easily build all auto buildable factories in one turn
+							YearsToBuildOne: 1,
 							YearsToBuildAll: 1,
 							YearsToSkipAuto: Infinite,
 						},
@@ -384,7 +384,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1, // we easily build all auto buildable mines in one turn
+							YearsToBuildOne: 1,
 							YearsToBuildAll: 1,
 							YearsToSkipAuto: Infinite,
 						},
@@ -414,7 +414,6 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							Skipped:         true,
 							YearsToBuildOne: Infinite,
 							YearsToBuildAll: Infinite,
 							YearsToSkipAuto: 1,
@@ -424,7 +423,6 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							Skipped:         true,
 							YearsToBuildOne: Infinite,
 							YearsToBuildAll: Infinite,
 							YearsToSkipAuto: 1,

@@ -293,9 +293,7 @@ func MultiplyByCost[T, F number](c cost[T], other cost[F]) (result cost[T]) {
 	}
 }
 
-// Divide a cost by another cost
-// and return how many times divisor can go into dividend
-// as a float64
+// DivideCost returns how many times divisor can go into dividend as a float64.
 func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
 	quotient := CostFloat64{}
 	for _, ct := range CostTypes {
@@ -309,10 +307,10 @@ func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
 	return quotient.MinAmount()
 }
 
-// Divide a cost by a mineral and return how many times divisor can go into dividend.
+// DivideMineral returns how many times divisor can go into dividend as a float64.
 //
 // This will tell us if we have enough minerals to build some item
-// (and how many we can make)
+// (and if so, how many we can make)
 func (dividend cost[T]) DivideMineral(divisor Mineral) float64 {
 	dc := divisor.ToCost().ToCostFloat64()
 	return dividend.ToCostFloat64().DivideCost(dc)
@@ -321,26 +319,26 @@ func (dividend cost[T]) DivideMineral(divisor Mineral) float64 {
 // Return greater of 2 Cost structs for all CostTypes separately
 func (c cost[T]) Max(other cost[T]) cost[T] {
 	return cost[T]{
-		Ironium:   Max(c.Ironium, other.Ironium),
-		Boranium:  Max(c.Boranium, other.Boranium),
-		Germanium: Max(c.Germanium, other.Germanium),
-		Resources: Max(c.Resources, other.Resources),
+		Ironium:   max(c.Ironium, other.Ironium),
+		Boranium:  max(c.Boranium, other.Boranium),
+		Germanium: max(c.Germanium, other.Germanium),
+		Resources: max(c.Resources, other.Resources),
 	}
 }
 
 // Return this Cost with a minimum of zero for each value
 func (c cost[T]) MinZero() cost[T] {
 	return cost[T]{
-		Ironium:   Max(c.Ironium, 0),
-		Boranium:  Max(c.Boranium, 0),
-		Germanium: Max(c.Germanium, 0),
-		Resources: Max(c.Resources, 0),
+		Ironium:   max(c.Ironium, 0),
+		Boranium:  max(c.Boranium, 0),
+		Germanium: max(c.Germanium, 0),
+		Resources: max(c.Resources, 0),
 	}
 }
 
 // Return the lowest numerical value in a Cost struct
 func (c cost[T]) MinAmount() T {
-	return Min(c.Ironium, c.Boranium, c.Germanium, c.Resources)
+	return min(c.Ironium, c.Boranium, c.Germanium, c.Resources)
 }
 
 // Round a cost struct's values by calling roundFunc on each of its values in turn.

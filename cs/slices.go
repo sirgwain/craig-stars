@@ -12,7 +12,7 @@ func FindSlice[S ~[]V, V any](s S, funcToCall func(V) bool) (firstValue V) {
 	return firstValue
 }
 
-// MapSlice applies mapFunc on every element in s, returning the modified slice.
+// MapSlice modifies each element in s according to mapFunc, returning the modified slice.
 // Any elements for which keep evaluates to false are instead removed entirely.
 // MapSlice zeroes the elements between the new length and the original length.
 //

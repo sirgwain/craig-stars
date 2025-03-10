@@ -394,13 +394,13 @@ func (ai *aiPlayer) getWarshipCount() (warshipQty warshipCount) {
 		warshipQty.warships = 60
 	default: // 2475+ non-BBS; 2470+ acc-BBS
 		warshipQty.bombers = 40
-		warshipQty.warships = cs.Min((yearsAfterStart/5)*6, 150)
+		warshipQty.warships = min((yearsAfterStart/5)*6, 150)
 	}
 
 	// only add on fuel transports if we have them and they can repair our fleets
 	if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter] != nil &&
 		ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter].Spec.RepairBonus > 0 {
-		warshipQty.fuelTransports = cs.Min((warshipQty.bombers+warshipQty.warships)/5, 25)
+		warshipQty.fuelTransports = min((warshipQty.bombers+warshipQty.warships)/5, 25)
 	}
 
 	return warshipQty
