@@ -459,9 +459,9 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 
 // transfer cargo from a fleet to/from a planet
 func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, num int, transferAmount cs.CargoTransferRequest) {
-	readClient := s.contextDb(r)
+	readWriteClient := s.contextDb(r)
 	// find the planet planet by id so we can perform the transfer
-	planet, err := readClient.GetPlanetByNum(game.ID, num)
+	planet, err := readWriteClient.GetPlanetByNum(game.ID, num)
 	if err != nil {
 		log.Error().Err(err).Msg("get planet from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -474,12 +474,10 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var playerPlanets []*cs.Planet
-
 	var dest cs.CargoHolder = planet
 	if !planet.OwnedBy(player.Num) {
 		// we don't own this planet, use the intel
-		dest = &player.PlanetIntels[num-1]
+		dest = player.GetPlanetIntel(num)
 	} else if planet.Starbase != nil {
 		player.InjectDesigns([]*cs.Fleet{planet.Starbase})
 	}
@@ -502,7 +500,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 	// update this planet and the player's research spec
 	if planet.OwnedBy(player.Num) {
 		// load all a player's planets so we can recompute research estimates
-		playerPlanets, err = readClient.GetPlanetsForPlayer(game.ID, player.Num)
+		playerPlanets, err := readWriteClient.GetPlanetsForPlayer(game.ID, player.Num)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -549,7 +547,10 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 
 		return nil
 	}); err != nil {
-		log.Error().Err(err).Int64("PlanetID", planet.ID).Int64("FleetID", fleet.ID).Msg("update planet and fleet in database")
+		log.Error().
+			Err(err).
+			Str("Planet", planet.Name).
+			Int64("FleetID", fleet.ID).Msg("update planet and fleet in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
@@ -563,12 +564,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		Msgf("%s transfered %v to/from Planet %s", fleet.Name, transferAmount, planet.Name)
 
 	// success
-	// only return an updated mapobject if we own it
-	if planet.PlayerNum == player.Num {
-		rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": planet})
-	} else {
-		rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet})
-	}
+	rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": dest})
 }
 
 // transfer cargo from a fleet to/from the fleet's jettison
@@ -621,63 +617,32 @@ func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Reque
 
 // transfer cargo from a fleet to/from a planet
 func (s *server) transferCargoFleetSalvage(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, num int, transferAmount cs.CargoTransferRequest) {
-	var salvage *cs.Salvage
-	var fullPlayer *cs.Player
+
+	var dest cs.CargoHolder = player.GetSalvageIntel(num)
+
+	orderer := cs.NewOrderer()
+
+	if err := orderer.TransferByHand(&game.Rules, player, fleet, dest, transferAmount); err != nil {
+		log.Error().Err(err).Msg("transfer cargo")
+		render.Render(w, r, ErrInternalServerError(err))
+		return
+	}
 
 	// wrap this whole thing in a transaction so we don't run into a case where two players load the same mineral packet
 	// at the same time and update it
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		var err error
-		// find the salvage salvage by id so we can perform the transfer
-		salvage, err = c.GetSalvageByNum(game.ID, num)
-		if err != nil {
-			log.Error().Err(err).Msg("get salvage from database")
-			return err
-		}
-
-		salvages, err := c.GetSalvagesForGame(game.ID)
-		if err != nil {
-			log.Error().Err(err).Msg("get salvages from database")
-			return err
-		}
-		nextSalvageNum := 1
-		if len(salvages) > 0 {
-			nextSalvageNum = salvages[len(salvages)-1].Num + 1
-		}
-
-		fullPlayer, err = c.GetPlayer(player.ID)
-		if err != nil {
-			log.Error().Err(err).Msg("get player from database")
-			return err
-		}
-
-		orderer := cs.NewOrderer()
-		salvage, err = orderer.TransferSalvageCargo(&game.Rules, fullPlayer, fleet, salvage, nextSalvageNum, transferAmount)
-		if err != nil {
-			log.Error().Err(err).Msg("transfer cargo")
-			return err
-		}
-
-		if salvage.ID == 0 {
-			salvage.GameID = game.ID
-			if err := c.CreateSalvage(salvage); err != nil {
-				log.Error().Err(err).Int64("ID", salvage.ID).Msg("create salvage in database")
-				return err
-			}
-		} else {
-			if err := c.UpdateSalvage(salvage); err != nil {
-				log.Error().Err(err).Int64("ID", salvage.ID).Msg("update salvage in database")
-				return err
-			}
-		}
 
 		if err := c.UpdateFleet(fleet); err != nil {
 			log.Error().Err(err).Msg("update fleet in database")
 			return err
 		}
 
-		if err := c.UpdatePlayerSalvageIntels(fullPlayer); err != nil {
+		if err := c.UpdatePlayerSalvageIntels(player); err != nil {
 			log.Error().Err(err).Msg("update player in database")
+			return err
+		}
+
+		if err := c.UpdatePlayerCargoTransfers(player); err != nil {
 			return err
 		}
 
@@ -685,9 +650,9 @@ func (s *server) transferCargoFleetSalvage(w http.ResponseWriter, r *http.Reques
 			Int64("GameID", fleet.GameID).
 			Int("Player", fleet.PlayerNum).
 			Str("Fleet", fleet.Name).
-			Str("Salvage", salvage.Name).
+			Str("Salvage", dest.GetMapObject().Name).
 			Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
-			Msgf("%s transfered %v to/from Salvage %s", fleet.Name, transferAmount, salvage.Name)
+			Msgf("%s transfered %v to/from Salvage %s", fleet.Name, transferAmount, dest.GetMapObject().Name)
 
 		return nil
 	}); err != nil {
@@ -697,40 +662,44 @@ func (s *server) transferCargoFleetSalvage(w http.ResponseWriter, r *http.Reques
 	}
 
 	// success
-	rest.RenderJSON(w, rest.JSON{"fleet": fleet, "dest": salvage, "salvages": fullPlayer.SalvageIntels})
+	rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": dest})
 }
 
 // transfer cargo from a fleet to/from a planet
 func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, playerNum, num int, transferAmount cs.CargoTransferRequest) {
+	readWriteClient := s.contextDb(r)
 	var mineralPacket *cs.MineralPacket
-	var fullPlayer *cs.Player
-	// wrap this whole thing in a transaction so we don't run into a case where two players load the same mineral packet
-	// at the same time and update it
-	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		// find the mineralPacket mineralPacket by id so we can perform the transfer
-		var err error
-		mineralPacket, err = c.GetMineralPacketByNum(game.ID, playerNum, num)
+
+	// find the mineralPacket mineralPacket by id so we can perform the transfer
+	var err error
+	var dest cs.CargoHolder
+
+	if playerNum == player.Num {
+		dest, err = readWriteClient.GetMineralPacketByNum(game.ID, playerNum, num)
 		if err != nil {
 			log.Error().Err(err).Msg("get mineralPacket from database")
-			return err
+			render.Render(w, r, ErrInternalServerError(err))
 		}
+	} else {
+		dest = player.GetMineralPacketIntel(playerNum, num)
+	}
 
-		fullPlayer, err = c.GetPlayer(player.ID)
-		if err != nil {
-			log.Error().Err(err).Msg("get player from database")
-			return err
-		}
+	orderer := cs.NewOrderer()
+	if err := orderer.TransferByHand(&game.Rules, player, fleet, dest, transferAmount); err != nil {
+		log.Error().Err(err).Msg("transfer cargo")
+		render.Render(w, r, ErrInternalServerError(err))
+	}
 
-		orderer := cs.NewOrderer()
-		if err := orderer.TransferMineralPacketCargo(&game.Rules, fullPlayer, fleet, mineralPacket, transferAmount); err != nil {
-			log.Error().Err(err).Msg("transfer cargo")
-			return err
-		}
+	if err := s.db.WrapInTransaction(func(c db.Client) error {
 
-		// save the updated fleet and packet back to the database
-		if err := c.UpdateMineralPacket(mineralPacket); err != nil {
-			log.Error().Err(err).Int64("ID", mineralPacket.ID).Msg("update mineralPacket in database")
-			return err
+		if mineralPacket != nil {
+			if err := c.UpdateMineralPacket(mineralPacket); err != nil {
+				return err
+			}
+		} else {
+			if err := c.UpdatePlayerMineralPacketIntels(player); err != nil {
+				return err
+			}
 		}
 
 		if err := c.UpdateFleet(fleet); err != nil {
@@ -738,18 +707,9 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 			return err
 		}
 
-		if err := c.UpdatePlayerMineralPacketIntels(fullPlayer); err != nil {
-			log.Error().Err(err).Msg("update player in database")
+		if err := c.UpdatePlayerCargoTransfers(player); err != nil {
 			return err
 		}
-
-		log.Info().
-			Int64("GameID", fleet.GameID).
-			Int("Player", fleet.PlayerNum).
-			Str("Fleet", fleet.Name).
-			Str("MineralPacket", mineralPacket.Name).
-			Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
-			Msgf("%s transfered %v to/from MineralPacket %s", fleet.Name, transferAmount, mineralPacket.Name)
 
 		return nil
 	}); err != nil {
@@ -758,92 +718,74 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// return the updated intel as a dest to the player
-	var dest interface{}
-	if mineralPacket.PlayerNum == fullPlayer.Num {
-		// if the player owns the mineral packet, they get their full mineral packet back
-		dest = mineralPacket
-	} else {
-		// if the player doesn't own the mineral packet, give them the updated dest as an intel
-		for _, intel := range fullPlayer.MineralPacketIntels {
-			if intel.PlayerNum == mineralPacket.PlayerNum && intel.Num == mineralPacket.Num {
-				dest = &intel
-				break
-			}
-		}
-
-		if dest == nil {
-			log.Error().Int64("GameID", game.ID).Msgf("transferCargoFleetMineralPacket failed to find intel for dest mineral packet")
-			dest = &cs.MineralPacketIntel{MapObject: mineralPacket.MapObject, Cargo: mineralPacket.Cargo}
-		}
-	}
+	log.Info().
+		Int64("GameID", fleet.GameID).
+		Int("Player", fleet.PlayerNum).
+		Str("Fleet", fleet.Name).
+		Str("MineralPacket", mineralPacket.Name).
+		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
+		Msgf("%s transfered %v to/from MineralPacket %s", fleet.Name, transferAmount, mineralPacket.Name)
 
 	// success
-	rest.RenderJSON(w, rest.JSON{"fleet": fleet, "dest": dest})
+	rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": dest})
 }
 
 // transfer cargo from a fleet to/from a fleet
-func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, destPlayerNum int, destNum int, transferAmount cs.CargoTransferRequest, fuelTransferAmount int) {
+func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, playerNum int, num int, transferAmount cs.CargoTransferRequest, fuelTransferAmount int) {
 	readWriteClient := s.contextDb(r)
-	// find the dest dest by id so we can perform the transfer
-	dest, err := readWriteClient.GetFleetByNum(game.ID, destPlayerNum, destNum)
-	if err != nil {
-		log.Error().Err(err).Msg("get dest fleet from database")
-		render.Render(w, r, ErrInternalServerError(err))
-		return
-	}
 
-	if dest == nil {
-		log.Error().Int64("GameID", fleet.GameID).Int("PlayerNum", destPlayerNum).Int("Num", destNum).Msg("dest fleet not found")
-		render.Render(w, r, ErrNotFound)
-		return
-	}
+	var err error
+	var dest cs.CargoHolder
+	var destFleet *cs.Fleet
 
-	if dest.Owned() && !dest.OwnedBy(player.Num) {
-		log.Error().Int64("GameID", fleet.GameID).Int("Num", fleet.Num).Int("PlayerNum", fleet.PlayerNum).Msg("dest fleet not owned by player")
-		render.Render(w, r, ErrForbidden)
-		return
-	}
-
-	// if we are transferring cargo to another player, load them from the DB
-	destPlayer := player
-	if dest.PlayerNum != player.Num {
-		destPlayer, err = readWriteClient.GetPlayerByNum(game.ID, dest.PlayerNum)
+	// load the full fleet if we own it
+	if playerNum == player.Num {
+		destFleet, err = readWriteClient.GetFleetByNum(game.ID, playerNum, num)
 		if err != nil {
-			log.Error().Err(err).Msg("get dest player from database")
+			log.Error().Err(err).Msg("get fleet from database")
 			render.Render(w, r, ErrInternalServerError(err))
+		}
+
+		if destFleet == nil {
+			log.Error().Int64("GameID", fleet.GameID).Int("PlayerNum", playerNum).Int("Num", num).Msg("dest fleet not found")
+			render.Render(w, r, ErrNotFound)
 			return
 		}
 
-		destPlayer.Designs, err = readWriteClient.GetShipDesignsForPlayer(game.ID, destPlayer.Num)
-		if err != nil {
-			log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", destPlayer.Num).Msg("get fleets for player")
-			render.Render(w, r, ErrInternalServerError(err))
-			return
-		}
-
-		dest.InjectDesigns(destPlayer.Designs)
+		destFleet.InjectDesigns(player.Designs)
+		dest = destFleet
 	} else {
-		dest.InjectDesigns(player.Designs)
+		dest = player.GetFleetIntel(playerNum, num)
 	}
 
 	orderer := cs.NewOrderer()
-	if err := orderer.TransferFleetCargo(&game.Rules, player, destPlayer, fleet, dest, transferAmount); err != nil {
+	if err := orderer.TransferByHand(&game.Rules, player, fleet, dest, transferAmount); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("transfer fleet cargo")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.UpdateFleet(dest); err != nil {
-			log.Error().Err(err).Msg("update fleet in database")
-			return err
+		if destFleet != nil {
+			if err := c.UpdateFleet(destFleet); err != nil {
+				log.Error().Err(err).Msg("update fleet in database")
+				return err
+			}
+		} else {
+			if err := c.UpdatePlayerFleetIntels(player); err != nil {
+				return err
+			}
 		}
 
 		if err := c.UpdateFleet(fleet); err != nil {
 			log.Error().Err(err).Msg("update fleet in database")
 			return err
 		}
+
+		if err := c.UpdatePlayerCargoTransfers(player); err != nil {
+			return err
+		}
+
 		return nil
 	}); err != nil {
 		log.Error().Err(err).Msg("update game in database")
@@ -855,15 +797,10 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 		Int64("GameID", fleet.GameID).
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
-		Str("Planet", dest.Name).
+		Str("Dest", dest.GetMapObject().Name).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
-		Msgf("%s transfered %v to/from Fleet %s", fleet.Name, transferAmount, dest.Name)
+		Msgf("%s transfered %v to/from Fleet %s", fleet.Name, transferAmount, dest.GetMapObject().Name)
 
 	// success
-	// only return an updated mapobject if we own it
-	if dest.PlayerNum == player.Num {
-		rest.RenderJSON(w, rest.JSON{"fleet": fleet, "dest": dest})
-	} else {
-		rest.RenderJSON(w, rest.JSON{"fleet": fleet})
-	}
+	rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": dest})
 }

@@ -844,6 +844,7 @@ func GetFleetIntel(o js.Value) cs.FleetIntel {
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.OrbitingPlanetNum = getInt[int](o.Get("orbitingPlanetNum"))
 	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
+	obj.Fuel = getInt[int](o.Get("fuel"))
 	obj.Mass = getInt[int](o.Get("mass"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	obj.CargoDiscovered = getBool(o.Get("cargoDiscovered"))
@@ -851,6 +852,7 @@ func GetFleetIntel(o js.Value) cs.FleetIntel {
 	obj.ScanRange = getInt[int](o.Get("scanRange"))
 	obj.ScanRangePen = getInt[int](o.Get("scanRangePen"))
 	obj.Tokens = GetSlice(o.Get("tokens"), GetShipToken)
+	obj.Spec = GetFleetSpec(o.Get("spec"))
 	return obj
 }
 func SetFleetIntel(o js.Value, obj *cs.FleetIntel) {
@@ -861,6 +863,7 @@ func SetFleetIntel(o js.Value, obj *cs.FleetIntel) {
 	SetVector(o.Get("heading"), &obj.Heading)
 	o.Set("orbitingPlanetNum", obj.OrbitingPlanetNum)
 	o.Set("warpSpeed", obj.WarpSpeed)
+	o.Set("fuel", obj.Fuel)
 	o.Set("mass", obj.Mass)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
@@ -870,6 +873,8 @@ func SetFleetIntel(o js.Value, obj *cs.FleetIntel) {
 	o.Set("scanRangePen", obj.ScanRangePen)
 	o.Set("tokens", []any{})
 	SetSlice(o.Get("tokens"), obj.Tokens, SetShipToken)
+	o.Set("spec", map[string]any{})
+	SetFleetSpec(o.Get("spec"), &obj.Spec)
 }
 
 func GetFleetOrders(o js.Value) cs.FleetOrders {

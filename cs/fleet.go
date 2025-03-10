@@ -327,6 +327,7 @@ func (f *Fleet) withPlayerNum(playerNum int) *Fleet {
 
 func (f *Fleet) withNum(num int) *Fleet {
 	f.Num = num
+	f.Name = fmt.Sprintf("%s #%d", f.BaseName, f.Num)
 	return f
 }
 

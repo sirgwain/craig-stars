@@ -196,6 +196,43 @@ func (ch *Fleet) Deleted() bool {
 	return ch.Delete
 }
 
+func (ch *FleetIntel) GetMapObject() MapObject {
+	return ch.MapObject
+}
+
+func (ch *FleetIntel) GetCargo() Cargo {
+	return ch.Cargo
+}
+
+func (ch *FleetIntel) SetCargo(cargo Cargo) {
+	ch.Cargo = cargo
+}
+
+func (ch *FleetIntel) GetFuel() int {
+	return ch.Fuel
+}
+
+func (ch *FleetIntel) GetCargoCapacity() int {
+	return ch.Spec.CargoCapacity
+}
+
+func (ch *FleetIntel) GetFuelCapacity() int {
+	return ch.Spec.FuelCapacity
+}
+
+// players can load from fleets they own
+func (ch *FleetIntel) CanLoad(fleet *Fleet) bool {
+	return ch.OwnedBy(fleet.PlayerNum) || fleet.Spec.CanStealFleetCargo
+}
+
+// planets can't transfer fuel
+func (ch *FleetIntel) CanTransfer(transferAmount CargoTransferRequest) bool {
+	return ch.Fuel >= transferAmount.Fuel && ch.Cargo.CanTransfer(transferAmount.Cargo)
+}
+func (ch *FleetIntel) Deleted() bool {
+	return false
+}
+
 func (ch *Salvage) GetMapObject() MapObject {
 	return ch.MapObject
 }
@@ -234,6 +271,47 @@ func (ch *Salvage) CanLoad(fleet *Fleet) bool {
 }
 
 func (ch *Salvage) Deleted() bool {
+	return ch.Delete
+}
+
+func (ch *SalvageIntel) GetMapObject() MapObject {
+	return ch.MapObject
+}
+
+func (ch *SalvageIntel) GetCargo() Cargo {
+	return ch.Cargo
+}
+
+func (ch *SalvageIntel) SetCargo(cargo Cargo) {
+	ch.Cargo = cargo
+}
+
+func (ch *SalvageIntel) GetCargoCapacity() int {
+	return Unlimited
+}
+
+func (ch *SalvageIntel) GetFuel() int {
+	return 0
+}
+
+func (ch *SalvageIntel) GetFuelCapacity() int {
+	return 0
+}
+
+// salvage can't transfer fuel
+func (ch *SalvageIntel) CanTransfer(transferAmount CargoTransferRequest) bool {
+	if transferAmount.Fuel != 0 {
+		return false
+	}
+	return ch.Cargo.CanTransfer(transferAmount.Cargo)
+}
+
+// players can load from all salvages
+func (ch *SalvageIntel) CanLoad(fleet *Fleet) bool {
+	return true
+}
+
+func (ch *SalvageIntel) Deleted() bool {
 	return ch.Delete
 }
 
@@ -283,4 +361,52 @@ func (ch *MineralPacket) CanTransfer(transferAmount CargoTransferRequest) bool {
 
 func (ch *MineralPacket) Deleted() bool {
 	return ch.Delete
+}
+
+func (ch *MineralPacketIntel) GetMapObject() MapObject {
+	return ch.MapObject
+}
+
+func (ch *MineralPacketIntel) GetCargo() Cargo {
+	return ch.Cargo
+}
+
+func (ch *MineralPacketIntel) SetCargo(cargo Cargo) {
+	ch.Cargo = cargo
+}
+
+func (ch *MineralPacketIntel) GetCargoCapacity() int {
+	// can't add to it, only take away
+	return ch.Cargo.Total()
+}
+
+func (ch *MineralPacketIntel) GetFuel() int {
+	return 0
+}
+
+func (ch *MineralPacketIntel) GetFuelCapacity() int {
+	return 0
+}
+
+// players can load from all mineralPacketIntels
+func (ch *MineralPacketIntel) CanLoad(fleet *Fleet) bool {
+	return true
+}
+
+// mineral packets can't transfer fuel
+func (ch *MineralPacketIntel) CanTransfer(transferAmount CargoTransferRequest) bool {
+	if transferAmount.Fuel != 0 || transferAmount.Colonists != 0 {
+		return false
+	}
+
+	// can't receive cargo, only give it away
+	if transferAmount.HasNegative() {
+		return false
+	}
+
+	return ch.Cargo.CanTransfer(transferAmount.Cargo)
+}
+
+func (ch *MineralPacketIntel) Deleted() bool {
+	return false
 }

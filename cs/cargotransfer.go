@@ -132,6 +132,17 @@ func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *F
 			updatedTransfers = append(updatedTransfers, transfer)
 			continue
 		}
+		// if one of the splits is empty assign the by hand transfer to the other one
+		if source.Spec.CargoCapacity == 0 {
+			transfer.SourceFleetNum = dest.Num
+			updatedTransfers = append(updatedTransfers, transfer)
+			continue
+		} else if dest.Spec.CargoCapacity == 0 {
+			transfer.SourceFleetNum = source.Num
+			updatedTransfers = append(updatedTransfers, transfer)
+			continue
+		}
+
 		// split this transfer
 		sourceCargo := transfer.Cargo.ToArray()
 		cargo1, cargo2, err := splitValues(

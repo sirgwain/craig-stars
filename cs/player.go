@@ -441,11 +441,11 @@ func (p *Player) incrementReportAge() {
 	}
 }
 
-func (p *Player) getPlanetIntel(num int) *PlanetIntel {
+func (p *Player) GetPlanetIntel(num int) *PlanetIntel {
 	return &p.PlanetIntels[num-1]
 }
 
-func (p *Player) getWormholeIntel(num int) *WormholeIntel {
+func (p *Player) GetWormholeIntel(num int) *WormholeIntel {
 	for i := range p.WormholeIntels {
 		intel := &p.WormholeIntels[i]
 		if intel.Num == num {
@@ -455,7 +455,7 @@ func (p *Player) getWormholeIntel(num int) *WormholeIntel {
 	return nil
 }
 
-func (p *Player) getMysteryTraderIntel(num int) *MysteryTraderIntel {
+func (p *Player) GetMysteryTraderIntel(num int) *MysteryTraderIntel {
 	for i := range p.MysteryTraderIntels {
 		intel := &p.MysteryTraderIntels[i]
 		if intel.Num == num {
@@ -465,7 +465,7 @@ func (p *Player) getMysteryTraderIntel(num int) *MysteryTraderIntel {
 	return nil
 }
 
-func (p *Player) getMineFieldIntel(playerNum, num int) *MineFieldIntel {
+func (p *Player) GetMineFieldIntel(playerNum, num int) *MineFieldIntel {
 	for i := range p.MineFieldIntels {
 		intel := &p.MineFieldIntels[i]
 		if intel.PlayerNum == playerNum && intel.Num == num {
@@ -476,7 +476,7 @@ func (p *Player) getMineFieldIntel(playerNum, num int) *MineFieldIntel {
 	return nil
 }
 
-func (p *Player) getMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
+func (p *Player) GetMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
 	for i := range p.MineralPacketIntels {
 		intel := &p.MineralPacketIntels[i]
 		if intel.PlayerNum == playerNum && intel.Num == num {
@@ -487,7 +487,7 @@ func (p *Player) getMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
 	return nil
 }
 
-func (p *Player) getFleetIntel(playerNum, num int) *FleetIntel {
+func (p *Player) GetFleetIntel(playerNum, num int) *FleetIntel {
 	for i := range p.FleetIntels {
 		intel := &p.FleetIntels[i]
 		if intel.PlayerNum == playerNum && intel.Num == num {
@@ -498,7 +498,7 @@ func (p *Player) getFleetIntel(playerNum, num int) *FleetIntel {
 	return nil
 }
 
-func (p *Player) getShipDesignIntel(playerNum, num int) *ShipDesignIntel {
+func (p *Player) GetShipDesignIntel(playerNum, num int) *ShipDesignIntel {
 	for i := range p.ShipDesignIntels {
 		intel := &p.ShipDesignIntels[i]
 		if intel.PlayerNum == playerNum && intel.Num == num {
@@ -509,7 +509,7 @@ func (p *Player) getShipDesignIntel(playerNum, num int) *ShipDesignIntel {
 	return nil
 }
 
-func (p *Player) getSalvageIntel(num int) *SalvageIntel {
+func (p *Player) GetSalvageIntel(num int) *SalvageIntel {
 	for i := range p.SalvageIntels {
 		intel := &p.SalvageIntels[i]
 		if intel.Num == num {

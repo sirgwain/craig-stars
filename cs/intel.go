@@ -110,6 +110,7 @@ type FleetIntel struct {
 	Heading           Vector      `json:"heading"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
 	WarpSpeed         int         `json:"warpSpeed"`
+	Fuel              int         `json:"fuel"`
 	Mass              int         `json:"mass"`
 	Cargo             Cargo       `json:"cargo,omitempty"`
 	CargoDiscovered   bool        `json:"cargoDiscovered,omitempty"`
@@ -117,6 +118,7 @@ type FleetIntel struct {
 	ScanRange         int         `json:"scanRange,omitempty"`
 	ScanRangePen      int         `json:"scanRangePen,omitempty"`
 	Tokens            []ShipToken `json:"tokens"`
+	Spec              FleetSpec   `json:"spec"`
 }
 
 type MineralPacketIntel struct {
@@ -450,7 +452,7 @@ func (d *discover) discoverPlanetTerraformability(planetNum int) error {
 // discover a fleet and add it to the player's fleet intel
 func (d *discover) discoverFleet(fleet *Fleet, discoverName bool) {
 	player := d.player
-	intel := player.getFleetIntel(fleet.PlayerNum, fleet.Num)
+	intel := player.GetFleetIntel(fleet.PlayerNum, fleet.Num)
 	if intel == nil {
 		// discover this new mineField
 		intel = newFleetIntel(fleet.PlayerNum, fleet.Num)
@@ -466,7 +468,7 @@ func (d *discover) discoverFleet(fleet *Fleet, discoverName bool) {
 	intel.Name = fmt.Sprintf("%s #%d", fleet.Tokens[0].design.Hull, fleet.Num)
 
 	// we don't learn the fleet name, just the name of the first design in the fleet
-	designIntel := d.player.getShipDesignIntel(fleet.PlayerNum, fleet.Tokens[0].DesignNum)
+	designIntel := d.player.GetShipDesignIntel(fleet.PlayerNum, fleet.Tokens[0].DesignNum)
 	if designIntel != nil {
 		intel.BaseName = designIntel.Name
 		intel.Name = fmt.Sprintf("%s #%d", designIntel.Name, fleet.Num)
@@ -481,7 +483,8 @@ func (d *discover) discoverFleet(fleet *Fleet, discoverName bool) {
 	intel.OrbitingPlanetNum = fleet.OrbitingPlanetNum
 	intel.Heading = fleet.Heading
 	intel.WarpSpeed = fleet.WarpSpeed
-	intel.Mass = fleet.Spec.Mass
+	intel.Mass = fleet.Spec.Mass // TODO: remove this old intel.Mass
+	intel.Spec.Mass = fleet.Spec.Mass
 	intel.Freighter = fleet.Spec.CargoCapacity > 0
 	intel.Tokens = fleet.Tokens
 
@@ -490,16 +493,17 @@ func (d *discover) discoverFleet(fleet *Fleet, discoverName bool) {
 // discover cargo for an existing fleet
 func (d *discover) discoverFleetCargo(fleet *Fleet) {
 	player := d.player
-	existingIntel := player.getFleetIntel(fleet.PlayerNum, fleet.Num)
+	existingIntel := player.GetFleetIntel(fleet.PlayerNum, fleet.Num)
 	if existingIntel != nil {
 		existingIntel.Cargo = fleet.Cargo
+		existingIntel.Fuel = fleet.Fuel
 		existingIntel.CargoDiscovered = true
 	}
 }
 
 func (d *discover) discoverFleetScanner(fleet *Fleet) {
 	player := d.player
-	existingIntel := player.getFleetIntel(fleet.PlayerNum, fleet.Num)
+	existingIntel := player.GetFleetIntel(fleet.PlayerNum, fleet.Num)
 	if existingIntel != nil {
 		existingIntel.ScanRange = fleet.Spec.ScanRange
 		existingIntel.ScanRangePen = fleet.Spec.ScanRangePen
@@ -509,7 +513,7 @@ func (d *discover) discoverFleetScanner(fleet *Fleet) {
 // discover a salvage and add it to the player's salvage intel
 func (d *discover) discoverSalvage(salvage *Salvage) {
 	player := d.player
-	intel := player.getSalvageIntel(salvage.Num)
+	intel := player.GetSalvageIntel(salvage.Num)
 	if intel == nil {
 		// discover this new wormhole
 		player.SalvageIntels = append(player.SalvageIntels, *newSalvageIntel(salvage.PlayerNum, salvage.Num))
@@ -531,7 +535,7 @@ func (d *discover) discoverSalvage(salvage *Salvage) {
 // discover a mineField and add it to the player's mineField intel
 func (d *discover) discoverMineField(mineField *MineField) {
 	player := d.player
-	intel := player.getMineFieldIntel(mineField.PlayerNum, mineField.Num)
+	intel := player.GetMineFieldIntel(mineField.PlayerNum, mineField.Num)
 	if intel == nil {
 		// discover this new mineField
 		intel = newMineFieldIntel(mineField.PlayerNum, mineField.Num)
@@ -553,7 +557,7 @@ func (d *discover) discoverMineField(mineField *MineField) {
 // discover a mineralPacket and add it to the player's mineralPacket intel
 func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet) {
 	player := d.player
-	intel := player.getMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
+	intel := player.GetMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
 	if intel == nil {
 		// discover this new mineralPacket
 		intel = newMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
@@ -584,7 +588,7 @@ func (d *discover) discoverMineralPacket(rules *Rules, mineralPacket *MineralPac
 
 func (d *discover) discoverMineralPacketScanner(mineralPacket *MineralPacket) {
 	player := d.player
-	existingIntel := player.getMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
+	existingIntel := player.GetMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
 	if existingIntel != nil {
 		existingIntel.ScanRange = mineralPacket.ScanRange
 		existingIntel.ScanRangePen = mineralPacket.ScanRangePen
@@ -593,7 +597,7 @@ func (d *discover) discoverMineralPacketScanner(mineralPacket *MineralPacket) {
 
 func (d *discover) discoverMineralPacketCargo(mineralPacket *MineralPacket) {
 	player := d.player
-	existingIntel := player.getMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
+	existingIntel := player.GetMineralPacketIntel(mineralPacket.PlayerNum, mineralPacket.Num)
 	if existingIntel != nil {
 		existingIntel.Cargo = mineralPacket.Cargo
 	}
@@ -603,7 +607,7 @@ func (d *discover) discoverMineralPacketCargo(mineralPacket *MineralPacket) {
 // the design and aren't discovering slots
 func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 	player := d.player
-	intel := player.getShipDesignIntel(design.PlayerNum, design.Num)
+	intel := player.GetShipDesignIntel(design.PlayerNum, design.Num)
 	if intel == nil {
 		// create a new intel for this design
 		intel = &ShipDesignIntel{
@@ -687,7 +691,7 @@ func (d *discover) discoverDesign(design *ShipDesign, discoverSlots bool) {
 // discover a wormhole and add it to the player's wormhole intel
 func (d *discover) discoverWormhole(wormhole *Wormhole) {
 	player := d.player
-	intel := player.getWormholeIntel(wormhole.Num)
+	intel := player.GetWormholeIntel(wormhole.Num)
 	if intel == nil {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole.Num))
@@ -704,7 +708,7 @@ func (d *discover) discoverWormhole(wormhole *Wormhole) {
 
 func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 	player := d.player
-	intel1 := player.getWormholeIntel(wormhole1.Num)
+	intel1 := player.GetWormholeIntel(wormhole1.Num)
 	if intel1 == nil {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole1.Num))
@@ -714,7 +718,7 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 			Msgf("player discovered wormhole1 link")
 	}
 
-	intel2 := player.getWormholeIntel(wormhole2.Num)
+	intel2 := player.GetWormholeIntel(wormhole2.Num)
 	if intel2 == nil {
 		// discover this new wormhole
 		player.WormholeIntels = append(player.WormholeIntels, *newWormholeIntel(wormhole2.Num))
@@ -738,7 +742,7 @@ func (d *discover) discoverWormholeLink(wormhole1, wormhole2 *Wormhole) {
 // forget about a wormhole
 func (d *discover) forgetWormhole(num int) {
 	player := d.player
-	intel := player.getWormholeIntel(num)
+	intel := player.GetWormholeIntel(num)
 
 	if intel == nil {
 		// no wormhole to forget
@@ -755,7 +759,7 @@ func (d *discover) forgetWormhole(num int) {
 		Msgf("player forgot wormhole")
 
 		// if we knew the destination, remove the link
-	intelLink := player.getWormholeIntel(dest)
+	intelLink := player.GetWormholeIntel(dest)
 	if intelLink != nil {
 		intelLink.DestinationNum = None
 	}
@@ -764,7 +768,7 @@ func (d *discover) forgetWormhole(num int) {
 // discover a mysteryTrader and add it to the player's mysteryTrader intel
 func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
 	player := d.player
-	intel := player.getMysteryTraderIntel(mysteryTrader.Num)
+	intel := player.GetMysteryTraderIntel(mysteryTrader.Num)
 	if intel == nil {
 		// discover this new mysteryTrader
 		player.MysteryTraderIntels = append(player.MysteryTraderIntels, *newMysteryTraderIntel(mysteryTrader.Num))
