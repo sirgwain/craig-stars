@@ -878,12 +878,12 @@ func (p *Player) InjectDesigns(fleets []*Fleet) error {
 	return nil
 }
 
-// getJettison sums all jettison cargo calls for this position to determine the total amount of jettisoned cargo here
+// getByHandTransfer sums all by hand cargo transfers for this target to determine the total amount of cargo here
 func (p *Player) getByHandTransfer(target MapObjectTarget) Cargo {
 	return p.CargoTransfers.getByHandTransfer(target)
 }
 
-// jettisonCargo jettison's cargo
+// transferByHand transfers cargo to a target
 func (p *Player) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Cargo) {
 	if p.CargoTransfers == nil {
 		p.CargoTransfers = CargoTransfers{}

@@ -441,7 +441,7 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 
 	switch transfer.MO.Type {
 	case cs.MapObjectTypeNone:
-		s.transferCargoFleetJettison(w, r, player, fleet, transfer.TransferAmount)
+		s.transferCargoFleetJettison(w, r, &game.Game, player, fleet, transfer.TransferAmount)
 	case cs.MapObjectTypePlanet:
 		s.transferCargoFleetPlanet(w, r, &game.Game, player, fleet, transfer.MO.Num, transfer.TransferAmount)
 	case cs.MapObjectTypeFleet:
@@ -572,7 +572,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 }
 
 // transfer cargo from a fleet to/from the fleet's jettison
-func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Request, player *cs.Player, fleet *cs.Fleet, transferAmount cs.CargoTransferRequest) {
+func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, transferAmount cs.CargoTransferRequest) {
 
 	readClient := s.contextDb(r)
 
@@ -583,7 +583,7 @@ func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Reque
 	}
 
 	orderer := cs.NewOrderer()
-	if err := orderer.TransferJettisonCargo(fullPlayer, fleet, transferAmount.Cargo); err != nil {
+	if err := orderer.TransferByHand(&game.Rules, fullPlayer, fleet, nil, transferAmount); err != nil {
 		log.Error().Err(err).Msg("transfer cargo")
 		return
 	}

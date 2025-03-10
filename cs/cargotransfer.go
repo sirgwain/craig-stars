@@ -112,7 +112,7 @@ func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObje
 		MapObjectTarget: target,
 	}
 
-	// add a new immediate cargo transfer for this jettison
+	// add a new immediate cargo transfer target
 	cargoTransfers[key] = append(cargoTransfers[key], transfer)
 }
 

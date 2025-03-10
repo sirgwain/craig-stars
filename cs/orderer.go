@@ -37,7 +37,6 @@ type Orderer interface {
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error
 	TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest CargoHolder, transferAmount CargoTransferRequest) error
-	TransferJettisonCargo(player *Player, fleet *Fleet, jettison Cargo) error
 	TransferFleetCargo(rules *Rules, player, destPlayer *Player, source, dest *Fleet, transferAmount CargoTransferRequest) error
 	TransferSalvageCargo(rules *Rules, player *Player, source *Fleet, dest *Salvage, nextSalvageNum int, transferAmount CargoTransferRequest) (*Salvage, error)
 	TransferMineralPacketCargo(rules *Rules, player *Player, source *Fleet, dest *MineralPacket, transferAmount CargoTransferRequest) error
@@ -149,41 +148,6 @@ func (o *orders) updatePlanetSpec(rules *Rules, player *Player, planet *Planet) 
 	return nil
 }
 
-// TransferJettisonCargo will update the fleet jettison cargo
-func (o *orders) TransferJettisonCargo(player *Player, fleet *Fleet, jettison Cargo) error {
-	// do a transfer request to the Jettison
-	// If jettisoning 1kt Ironium jettison will be {Ironium: -1}
-
-	if jettison != (Cargo{}) {
-		// add our jettison cargo to the fleet cargo (jettison is negative if we are transfering to the jettison, positive if transfering from)
-		fleet.Cargo = fleet.Cargo.Add(jettison)
-		if fleet.Cargo.HasNegative() {
-			return fmt.Errorf("fleet does not have the cargo to jettison")
-		}
-
-		// subtract the jettison from the existing jettison cargo (jettison is negative if we are transfering to the existing jettison, positive if transfering from the existing jettison)
-		target := MapObjectTarget{TargetPosition: fleet.Position}
-		existingJettison := player.getByHandTransfer(target)
-		existingJettison = existingJettison.Subtract(jettison)
-		if existingJettison.HasNegative() {
-			return fmt.Errorf("jettison cargo cannot be negative")
-		}
-
-		// record this call with the player
-		player.transferByHand(fleet, target, jettison.Negative())
-
-		log.Info().
-			Int64("GameID", player.GameID).
-			Int("PlayerNum", player.Num).
-			Str("Fleet", fleet.Name).
-			Str("Cargo", fmt.Sprintf("%v", fleet.Cargo)).
-			Str("Jettison", fmt.Sprintf("%v", jettison)).
-			Msg("jettison cargo")
-	}
-
-	return nil
-}
-
 // update the orders to a fleet
 func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
 	// copy user modifiable things to the fleet fleet
@@ -238,7 +202,15 @@ func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, ord
 // TransferByHand does a by hand transfer of cargo to/from a dest
 func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest CargoHolder, transferAmount CargoTransferRequest) error {
 
-	destName := dest.GetMapObject().Name
+	var destName string
+	if dest == nil {
+		// create a new jettison from any existing jettison
+		dest = newJettison(fleet.Position, player.getByHandTransfer(MapObjectTarget{TargetPosition: fleet.Position}))
+		destName = "jettison"
+	} else {
+		destName = dest.GetMapObject().Name
+	}
+
 	if transferAmount.Cargo.HasNegative() && !dest.CanLoad(fleet) {
 		return fmt.Errorf("fleet %s is not allowed to load cargo from %s", fleet.Name, dest.GetMapObject().Name)
 	}

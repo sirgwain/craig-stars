@@ -16,6 +16,61 @@ type CargoHolder interface {
 	Deleted() bool
 }
 
+// jettison is only used in by hand transfers but never saved
+type jettison struct {
+	MapObject
+	Cargo Cargo
+}
+
+func newJettison(posiiton Vector, cargo Cargo) *jettison {
+	return &jettison{
+		MapObject: MapObject{
+			Position: posiiton,
+		},
+		Cargo: cargo,
+	}
+}
+
+func (ch *jettison) GetMapObject() MapObject {
+	return ch.MapObject
+}
+
+func (ch *jettison) GetCargo() Cargo {
+	return ch.Cargo
+}
+
+func (ch *jettison) SetCargo(cargo Cargo) {
+	ch.Cargo = cargo
+}
+
+func (ch *jettison) GetCargoCapacity() int {
+	return Unlimited
+}
+
+func (ch *jettison) GetFuel() int {
+	return 0
+}
+
+func (ch *jettison) GetFuelCapacity() int {
+	return 0
+}
+
+// players can load from unowned planets or planets they own
+func (ch *jettison) CanLoad(fleet *Fleet) bool {
+	return true
+}
+
+// planets can't transfer fuel
+func (ch *jettison) CanTransfer(transferAmount CargoTransferRequest) bool {
+	if transferAmount.Fuel > 0 {
+		return false
+	}
+	return ch.Cargo.CanTransfer(transferAmount.Cargo)
+}
+func (ch *jettison) Deleted() bool {
+	return false
+}
+
 func (ch *Planet) GetMapObject() MapObject {
 	return ch.MapObject
 }

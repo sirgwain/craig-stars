@@ -1079,10 +1079,84 @@ func Test_orders_Merge(t *testing.T) {
 	}
 }
 
-func Test_orders_TransferPlanetCargo(t *testing.T) {
+func Test_orders_TransferByHandJettison(t *testing.T) {
 	player := NewPlayer(0, NewRace().WithSpec(&rules)).withSpec(&rules)
 	type args struct {
-		source         *Fleet
+		fleet          *Fleet
+		transferAmount CargoTransferRequest
+		transfers      []ByHandCargoTransfer
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantCargo Cargo
+		wantErr   bool
+	}{
+		{
+			name: "transfer 10kT Ironium to jettison",
+			args: args{
+				fleet:          testTeamster(player).withCargo(Cargo{Ironium: 10}),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
+			},
+			wantCargo: Cargo{Ironium: 10},
+			wantErr:   false,
+		},
+		{
+			name: "fail to transfer 10kT Ironium from jettison",
+			args: args{
+				fleet:          testTeamster(player),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
+			},
+			wantErr: true,
+		},
+		{
+			name: "fail to transfer 10kT Ironium to jettison",
+			args: args{
+				fleet:          testTeamster(player),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
+			},
+			wantErr: true,
+		},
+		{
+			name: "transfer 10kT Ironium from jettison",
+			args: args{
+				fleet:          testTeamster(player),
+				transferAmount: CargoTransferRequest{Cargo{Ironium: 1}, 0},
+				// create a transfer jettisoning 10kT
+				transfers: []ByHandCargoTransfer{{Cargo: Cargo{Ironium: 10}}},
+			},
+			wantCargo: Cargo{Ironium: 9},
+			wantErr:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &orders{}
+			sourceCargo := tt.args.fleet.Cargo
+			player.CargoTransfers[tt.args.fleet.Position.String()] = tt.args.transfers
+
+			err := o.TransferByHand(&rules, player, tt.args.fleet, nil, tt.args.transferAmount)
+			if (err != nil) != tt.wantErr {
+				if tt.wantErr {
+					t.Fatalf("orders.TransferByHand() jettison did not return error when expected")
+				} else {
+					t.Fatalf("orders.TransferByHand() jettison errored unexpectedly; err = \n%v", err)
+				}
+			}
+
+			if err == nil {
+				// we should transfer from the dest to the soruce
+				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), tt.args.fleet.Cargo)
+				assert.Equal(t, tt.wantCargo, player.getByHandTransfer(MapObjectTarget{TargetPosition: tt.args.fleet.Position}))
+			}
+		})
+	}
+}
+
+func Test_orders_TransferByHandPlanet(t *testing.T) {
+	player := NewPlayer(0, NewRace().WithSpec(&rules)).withSpec(&rules)
+	type args struct {
+		fleet          *Fleet
 		dest           *Planet
 		transferAmount CargoTransferRequest
 	}
@@ -1094,7 +1168,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 		{
 			"transfer 10kT Ironium from planet",
 			args{
-				source:         testTeamster(player),
+				fleet:          testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{Ironium: 10}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
@@ -1103,7 +1177,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 		{
 			"fail to transfer 10kT Ironium from planet",
 			args{
-				source:         testTeamster(player),
+				fleet:          testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{Ironium: 5}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
@@ -1112,7 +1186,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 		{
 			"transfer 10kT Ironium to planet",
 			args{
-				source:         testTeamster(player).withCargo(Cargo{Ironium: 10}),
+				fleet:          testTeamster(player).withCargo(Cargo{Ironium: 10}),
 				dest:           NewPlanet(),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
@@ -1121,7 +1195,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 		{
 			"fail to transfer 10kT Ironium to planet",
 			args{
-				source:         testTeamster(player),
+				fleet:          testTeamster(player),
 				dest:           NewPlanet(),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
@@ -1130,7 +1204,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 		{
 			"transfer 210kT Mixed Minerals from planet",
 			args{
-				source:         testTeamster(player),
+				fleet:          testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
@@ -1139,7 +1213,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 		{
 			"fail to transfer 211kT Mixed Minerals from planet",
 			args{
-				source:         testTeamster(player),
+				fleet:          testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1}, 0},
 			},
@@ -1148,7 +1222,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 		{
 			"transfer 4000kT Mixed Cargo from planet where planet is out of one mineral",
 			args{
-				source:         testPrivateer(player, 10),
+				fleet:          testPrivateer(player, 10),
 				dest:           NewPlanet().WithCargo(Cargo{2726 + 366, 4763 + 414, 0, 1601 + 3027}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 366, Boranium: 414, Germanium: 193, Colonists: 3027}, 0},
 			},
@@ -1158,20 +1232,20 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			o := &orders{}
-			sourceCargo := tt.args.source.Cargo
+			sourceCargo := tt.args.fleet.Cargo
 			destCargo := tt.args.dest.Cargo
-			err := o.TransferByHand(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount)
+			err := o.TransferByHand(&rules, player, tt.args.fleet, tt.args.dest, tt.args.transferAmount)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("orders.TransferPlanetCargo() did not return error when expected")
+					t.Fatalf("orders.TransferByHand() planet did not return error when expected")
 				} else {
-					t.Fatalf("orders.TransferPlanetCargo() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("orders.TransferByHand() planet errored unexpectedly; err = \n%v", err)
 				}
 			}
 
 			if err == nil {
 				// we should transfer from the dest to the soruce
-				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), tt.args.source.Cargo)
+				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), tt.args.fleet.Cargo)
 				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), tt.args.dest.Cargo)
 			}
 		})
