@@ -58,6 +58,7 @@
 {#if fleet}
 	<CommandTile title="Other Fleets Here">
 		<select
+			data-type="other-fleets-here-select"
 			onchange={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
 			class="select select-outline select-secondary select-sm py-0 text-sm"
 		>

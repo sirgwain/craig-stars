@@ -55,6 +55,7 @@
 
 <CommandTile title="Fleets In Orbit">
 	<select
+		data-type="fleets-in-orbit-select"
 		onchange={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
 		class="select select-outline select-secondary select-sm py-0 text-sm"
 	>

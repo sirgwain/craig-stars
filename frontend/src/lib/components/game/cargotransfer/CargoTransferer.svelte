@@ -218,6 +218,7 @@
 		<div class="flex-none flex flex-col mx-0.5 w-20 px-1 mt-8">
 			{#if dest?.type == MapObjectTypeFleet}
 				<TransferButtons
+					data-id="fuel"
 					onTransferToSource={() => transferFuel(quantityModifier)}
 					onTransferToDest={() => transferFuel(-quantityModifier)}
 					class="mt-8 sm:mt-2"
@@ -227,18 +228,22 @@
 			{/if}
 			<div class="mt-28 h-40 sm:mt-16 sm:h-28 flex flex-col justify-between">
 				<TransferButtons
+					data-id="ironium"
 					onTransferToSource={() => transferIronium(quantityModifier)}
 					onTransferToDest={() => transferIronium(-quantityModifier)}
 				/>
 				<TransferButtons
+					data-id="boranium"
 					onTransferToSource={() => transferBoranium(quantityModifier)}
 					onTransferToDest={() => transferBoranium(-quantityModifier)}
 				/>
 				<TransferButtons
+					data-id="germanium"
 					onTransferToSource={() => transferGermanium(quantityModifier)}
 					onTransferToDest={() => transferGermanium(-quantityModifier)}
 				/>
 				<TransferButtons
+					data-id="colonists"
 					onTransferToSource={() => transferColonists(quantityModifier)}
 					onTransferToDest={() => transferColonists(-quantityModifier)}
 				/>
