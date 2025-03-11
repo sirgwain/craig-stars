@@ -748,6 +748,9 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 		return 1
 	case QueueItemTypeGenesisDevice:
 		return 1
+		// TODO: Enable once auto alchemy gets fixed
+		/* case QueueItemTypeAutoMineralAlchemy:
+		return 1 */
 	}
 	// default to infinite
 	return Infinite
