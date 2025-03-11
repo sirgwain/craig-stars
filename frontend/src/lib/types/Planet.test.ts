@@ -27,38 +27,6 @@ describe('Planet test', () => {
 		expect(planet.getMaxPopulation(defaultRules, player, 100)).toBe(1_200_000);
 	});
 
-	it('getGrowthAmount', () => {
-		const planet = new CommandedPlanet();
-		const player = new CommandedPlayer();
-		const race = player.race; // defaults to humanoid
-		race.growthRate = 10; // 10% growth
-
-		planet.hab = { grav: 50, temp: 50, rad: 50 };
-		planet.population = 100_000;
-
-		// should be 1_200_000
-		const maxPopulation = planet.getMaxPopulation(defaultRules, player, 100);
-
-		// should grow 10%
-		expect(
-			planet.getGrowthAmount(
-				race,
-				maxPopulation,
-				defaultRules.populationOvercrowdDieoffRate ?? 0.04,
-				defaultRules.populationOvercrowdDieoffRateMax ?? 0.12
-			)
-		).toBe(10000);
-	});
-
-	it('getProductivePopulation', () => {
-		const planet = new CommandedPlanet();
-
-		planet.population = 100_000;
-
-		expect(planet.getProductivePopulation(1_000_000)).toBe(100_000);
-		expect(planet.getProductivePopulation(10_000)).toBe(30_000);
-	});
-
 	it('getInnateMines', () => {
 		const planet = new CommandedPlanet();
 		const race = humanoid();
@@ -86,19 +54,7 @@ describe('Planet test', () => {
 
 		expect(planet.getMaxFactories(race, 10_000)).toBe(10);
 		expect(planet.getMaxFactories(race, 100_000)).toBe(100);
-	});
-
-	it('getResourcesPerYear', () => {
-		const planet = new CommandedPlanet();
-		const player = new CommandedPlayer();
-		planet.hab = { grav: 50, temp: 50, rad: 50 };
-		planet.population = 10_000;
-		expect(planet.getResourcesAvailable(player)).toBe(10);
-
-		// 1 resource per factory
-		planet.factories = 1;
-		expect(planet.getResourcesAvailable(player)).toBe(11);
-	});
+	})
 
 	it('getMaxBuildable', () => {
 		const planet = new CommandedPlanet();
@@ -127,37 +83,5 @@ describe('Planet test', () => {
 		expect(planet.getMaxBuildable(techStore, player, 1, QueueItemTypePlanetaryScanner)).toBe(0);
 	});
 
-	it('grows', () => {
-		const planet = new CommandedPlanet();
-		const player = new CommandedPlayer();
 
-		planet.hab = { grav: 50, temp: 50, rad: 50 };
-		planet.population = 100_000;
-
-		planet.grow(defaultRules, player);
-		expect(planet.population).toBe(115_000);
-	});
-
-	it('mines', () => {
-		const planet = new CommandedPlanet();
-		const player = new CommandedPlayer();
-
-		planet.population = 100_000;
-		planet.mines = 10;
-		planet.mineralConcentration = { ironium: 100, boranium: 100, germanium: 100 };
-
-		planet.mine(defaultRules, player.race);
-		expect(planet.cargo).toEqual({ ironium: 10, boranium: 10, germanium: 10, colonists: 1_000 });
-	});
-
-	it('reduceMineralConcentration', () => {
-		const planet = new CommandedPlanet();
-
-		planet.mines = 150;
-		planet.mineralConcentration = { ironium: 100, boranium: 100, germanium: 100 };
-		planet.mineYears = { ironium: 151, boranium: 151, germanium: 151 };
-
-		planet.reduceMineralConcentration(defaultRules);
-		expect(planet.mineralConcentration).toEqual({ ironium: 99, boranium: 99, germanium: 99 });
-	});
 });

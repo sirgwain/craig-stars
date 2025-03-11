@@ -40,7 +40,7 @@ type PlayerMessageSpec struct {
 	SourcePlayerNum       int                             `json:"sourcePlayerNum,omitempty"`
 	DestPlayerNum         int                             `json:"destPlayerNum,omitempty"`
 	Name                  string                          `json:"name,omitempty"`
-	Cost                  *Cost                           `json:"cost,omitempty"`
+	Cost                  Cost                            `json:"cost,omitempty"`
 	Mineral               *Mineral                        `json:"mineral,omitempty"`
 	Cargo                 *Cargo                          `json:"cargo,omitempty"`
 	QueueItemType         QueueItemType                   `json:"queueItemType,omitempty"`
@@ -475,7 +475,7 @@ func (m *messageClient) fleetRouted(player *Player, fleet *Fleet, planet *Planet
 func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, cost Cost, planet *Planet) {
 	if planet != nil {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageFleetScrapped, planet).
-			withSpec(PlayerMessageSpec{Cost: &cost, Cargo: &fleet.Cargo}.withTargetFleet(fleet)))
+			withSpec(PlayerMessageSpec{Cost: cost, Cargo: &fleet.Cargo}.withTargetFleet(fleet)))
 	} else {
 		player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetScrapped, fleet))
 	}

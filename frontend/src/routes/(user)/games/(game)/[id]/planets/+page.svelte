@@ -16,6 +16,7 @@
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
+	import { population } from '$lib/types/Cargo';
 
 	const {
 		game,
@@ -306,7 +307,7 @@
 					{row.spec.starbaseDesignName ?? ''}
 				{:else if column.key == 'population'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
-						{row.spec.population ? row.spec.population.toLocaleString() : ''}
+						{population(row.cargo) ? population(row.cargo).toLocaleString() : ''}
 					</div>
 				{:else if column.key == 'populationDensity'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>

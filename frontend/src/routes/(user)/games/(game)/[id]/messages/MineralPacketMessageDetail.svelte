@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { AnyMineralPacket } from '$lib/services/Universe';
-	import { totalCargo } from '$lib/types/Cargo';
+	import { population, totalCargo } from '$lib/types/Cargo';
 	import type { PlayerIntel } from '$lib/types/cs';
 	import {
 		MineralPacketDecayToNothing,
@@ -66,7 +66,7 @@
 		{:else if (damage.killed ?? 0) > 0 || (damage.defensesDestroyed ?? 0) > 0}
 			<!-- uh oh, this packet will damage us. report how much and when -->
 			{#if target?.spec.hasStarbase}
-				{#if (damage.killed ?? 0) >= (target?.spec.population ?? 0)}
+				{#if (damage.killed ?? 0) >= population(target?.cargo)}
 					Your starbase does not have a powerful enough mass driver to safely catch this packet. The
 					entire planet will be annihilated when it strikes in {eta} years.
 				{:else}
@@ -75,7 +75,7 @@
 						0}
 					colonists will be killed when it strikes in {eta} years.
 				{/if}
-			{:else if (damage.killed ?? 0) >= (target?.spec.population ?? 0)}
+			{:else if (damage.killed ?? 0) >= population(target?.cargo)}
 				You have no starbase with a mass driver to catch this packet. The entire planet will be
 				annihilated when it strikes in {eta} years.
 			{:else}

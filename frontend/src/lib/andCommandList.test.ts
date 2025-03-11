@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { andCommaList } from './andCommandList';
 
-describe('andCommandList test', () => {
+describe('andCommandList', () => {
 	it('combines strings', () => {
 		expect(andCommaList(['word1'])).toBe('word1');
 		expect(andCommaList(['word1', 'word2'])).toBe('word1 and word2');
 		expect(andCommaList(['word1', 'word2', 'word3'])).toBe('word1, word2 and word3');
 		expect(andCommaList(['word1', '', 'word3'])).toBe('word1 and word3');
+	});
+	it('skips nullish strings', () => {
+		expect(andCommaList([''])).toBe('');
+		expect(andCommaList(['0', 'apple yay'])).toBe('apple yay');
+		expect(andCommaList(['aeeee', '0', 'apple yay'])).toBe('aeeee and apple yay');
 	});
 });

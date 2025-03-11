@@ -1,13 +1,12 @@
 import { roundTo100 } from '$lib/services/Math';
 import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
-import type { AnyPlanet, DesignFinder } from '$lib/services/Universe';
+import type { AnyPlanet } from '$lib/services/Universe';
 import type { CS } from '$lib/wasm';
-import { cloneDeep, sortBy, startCase } from 'lodash-es';
-import { addMineral } from './Cargo';
+import { cloneDeep, sortBy } from 'lodash-es';
+import { population } from './Cargo';
 import type {
 	Fleet,
 	Planet,
-	PlanetIntel,
 	PlanetSpec,
 	ProductionQueueItem,
 	Rules,
@@ -48,10 +47,13 @@ import {
 	type Race,
 	type TechStore
 } from './cs';
-import { absSum, add, getHabValue, getLargest, withHabValue } from './Hab';
-import { addToAll, totalMinerals } from './Mineral';
+import { absSum } from './Hab';
+import { totalMinerals } from './Mineral';
 import type { CommandedPlayer } from './Player';
-import { getPlanetHabitability } from './Race';
+import { fromQueueItemType } from './QueueItemType';
+import { getGameContext } from '$lib/services/GameContext';
+
+const { cs } = getGameContext();
 
 /**
  * A planet that can be commanded and updated by the player
@@ -122,9 +124,8 @@ export class CommandedPlanet implements Planet {
 		hasStargate: false
 	};
 
-	// get the population from a planet's cargo
-	public get population() {
-		return (this.cargo.colonists ?? 0) * 100;
+	public get population(): number {
+		return Math.floor((this.cargo.colonists ?? 0) / 100);
 	}
 
 	public set population(value: number) {
@@ -144,42 +145,6 @@ export class CommandedPlanet implements Planet {
 		return roundTo100(
 			Math.max(minMaxPop, (maxPossiblePop * maxPopulationFactor * habitability) / 100.0)
 		);
-	}
-
-	public getGrowthAmount(
-		race: Race,
-		maxPopulation: number,
-		populationOvercrowdDieoffRate: number,
-		populationOvercrowdDieoffRateMax: number
-	): number {
-		const habValue = getPlanetHabitability(race, this.hab);
-		const pop = this.population;
-
-		if (habValue < 0) {
-			// Red worlds kill off (habValue / 10)% colonists every year
-			return Math.round((pop * habValue) / 1000);
-		}
-
-		const capacity = pop / maxPopulation;
-		if (capacity > 1) {
-			// Overpopulation kills 0.04% population per 1% over cap.
-			const dieoffPercent = Math.min((capacity - 1) * populationOvercrowdDieoffRate, populationOvercrowdDieoffRateMax);
-			return Math.round(pop * -dieoffPercent);
-		}
-
-		// Normal population growth calculations
-		let popGrowth = Math.round((pop * race.growthRate * habValue * (race.spec?.growthFactor ?? 1)) / 10000);
-
-		if (capacity > 0.25) {
-			const crowdingFactor = Math.pow(1 - capacity, 2) * 16 / 9;
-			popGrowth *= crowdingFactor;
-		}
-
-		return popGrowth;
-	}
-
-	public getProductivePopulation(maxPop: number): number {
-		return Math.min(this.population, 3 * maxPop);
 	}
 
 	public getInnateMines(race: Race, population: number): number {
@@ -219,7 +184,7 @@ export class CommandedPlanet implements Planet {
 		type: QueueItemType,
 		amountInQueue = 0
 	): number {
-		const productivePop = this.getProductivePopulation(maxPopulation);
+		const productivePop = cs.productivePopulation(this);
 		const race = player.race;
 
 		switch (type) {
@@ -227,13 +192,13 @@ export class CommandedPlanet implements Planet {
 			case QueueItemTypeDefenses:
 				return Math.max(0, 100 - (this.defenses + amountInQueue));
 			case QueueItemTypeAutoMines:
-				return Math.max(0, this.getMaxMines(race, productivePop) - (this.mines + amountInQueue));
+				return Math.max(0, this.getMaxMines(race, productivePop ?? 0) - (this.mines + amountInQueue));
 			case QueueItemTypeMine:
-				return Math.max(0, this.getMaxMines(race, maxPopulation) - (this.mines + amountInQueue));
+				return Math.max(0, this.getMaxMines(race, maxPopulation ?? 0) - (this.mines + amountInQueue));
 			case QueueItemTypeAutoFactories:
 				return Math.max(
 					0,
-					this.getMaxFactories(race, productivePop) - (this.factories + amountInQueue)
+					this.getMaxFactories(race, productivePop ?? 0) - (this.factories + amountInQueue)
 				);
 			case QueueItemTypeFactory:
 				return Math.max(
@@ -290,104 +255,6 @@ export class CommandedPlanet implements Planet {
 		return this.productionQueue;
 	}
 
-	// grow pop on this planet. This is used when estimating production queues
-	public grow(rules: Rules, player: CommandedPlayer) {
-		const habitability = getPlanetHabitability(player.race, this.hab);
-		const maxPopulation = this.getMaxPopulation(rules, player, habitability);
-		const growthAmount = this.getGrowthAmount(
-			player.race,
-			maxPopulation,
-			rules.populationOvercrowdDieoffRate ?? 0.04,
-			rules.populationOvercrowdDieoffRateMax ?? 0.12
-		);
-		this.population = this.population + growthAmount;
-
-		if (player.race.spec?.innateMining) {
-			const productivePop = this.getProductivePopulation(maxPopulation);
-			this.mines = this.getInnateMines(player.race, productivePop);
-		}
-	}
-
-	public mine(rules: Rules, race: Race) {
-		this.cargo = addMineral(this.cargo, this.getMineralOutput(this.mines, race.mineOutput));
-		this.mineYears = addToAll(this.mineYears, this.mines);
-		this.reduceMineralConcentration(rules);
-	}
-
-	reduceMineralConcentration(rules: Rules) {
-		const mineralDecayFactor = rules.mineralDecayFactor ?? 1_500_000;
-		let minMineralConcentration = rules.minMineralConcentration ?? 1;
-		if (this.homeworld) {
-			minMineralConcentration = rules.minHomeworldMineralConcentration ?? 30;
-		}
-
-		const planetMineYears = [
-			this.mineYears.ironium ?? 0,
-			this.mineYears.boranium ?? 0,
-			this.mineYears.germanium ?? 0
-		];
-		const planetMineralConcentration = [
-			this.mineralConcentration.ironium ?? 0,
-			this.mineralConcentration.boranium ?? 0,
-			this.mineralConcentration.germanium ?? 0
-		];
-
-		for (let i = 0; i < 3; i++) {
-			let conc = planetMineralConcentration[i];
-
-			if (conc < minMineralConcentration) {
-				// Ensure the concentration is at least the minimum value
-				conc = minMineralConcentration;
-				planetMineralConcentration[i] = conc;
-			}
-
-			const minesPer = Math.floor(mineralDecayFactor / conc / conc);
-			let mineYears = planetMineYears[i];
-
-			if (mineYears > minesPer) {
-				conc -= Math.floor(mineYears / minesPer);
-
-				if (conc < minMineralConcentration) {
-					conc = minMineralConcentration;
-				}
-
-				mineYears %= minesPer;
-
-				planetMineYears[i] = mineYears;
-				planetMineralConcentration[i] = conc;
-			}
-		}
-
-		this.mineYears = {
-			ironium: planetMineYears[0],
-			boranium: planetMineYears[1],
-			germanium: planetMineYears[2]
-		};
-		this.mineralConcentration = {
-			ironium: planetMineralConcentration[0],
-			boranium: planetMineralConcentration[1],
-			germanium: planetMineralConcentration[2]
-		};
-	}
-
-	// terraform this planet one step
-	public terraformOneStep(techStore: TechStore, player: CommandedPlayer) {
-		const terraformAmount = getTerraformAmount(techStore, this.hab, this.baseHab, player);
-
-		if (absSum(terraformAmount) === 0) {
-			// no need to terraform, return
-			return;
-		}
-
-		const habType = getLargest(terraformAmount);
-		const terraformPossibleAmount = getHabValue(terraformAmount, habType);
-		if (terraformPossibleAmount > 0) {
-			this.hab = add(this.hab, withHabValue(habType, 1));
-		} else {
-			this.hab = add(this.hab, withHabValue(habType, -1));
-		}
-	}
-
 	// get the mineral output of a planet based on mineOutput (10 for remote mining)
 	public getMineralOutput(numMines: number, mineOutput: number): Mineral {
 		return {
@@ -401,25 +268,6 @@ export class CommandedPlanet implements Planet {
 				((((this.mineralConcentration.germanium ?? 0) / 100) * numMines) / 10) * mineOutput
 			)
 		};
-	}
-
-	// get the resources produced by this planet each year
-	public getResourcesAvailable(player: CommandedPlayer): number {
-		const productivePop = this.getProductivePopulation(this.population);
-		const race = player.race;
-		if (race.spec?.innateMining) {
-			return Math.floor(
-				Math.sqrt((productivePop * (player.techLevels.energy ?? 0)) / race.popEfficiency)
-			);
-		} else {
-			// compute resources from population
-			const resourcesFromPop = productivePop / (race.popEfficiency * 100);
-
-			// compute resources from factories
-			const resourcesFromFactories = (this.factories * race.factoryOutput) / 10;
-
-			return Math.floor(resourcesFromPop + resourcesFromFactories);
-		}
 	}
 
 	/**
@@ -559,56 +407,20 @@ export class CommandedPlanet implements Planet {
 	}
 }
 
-export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
-	type,
-	quantity: 1,
-	allocated: {},
-	tags: {}
-});
-
-export const getQueueItemShortName = (
-	item: ProductionQueueItem,
-	designFinder: DesignFinder
-): string => {
-	switch (item.type) {
-		case QueueItemTypeStarbase:
-		case QueueItemTypeShipToken:
-			return designFinder.getMyDesign(item.designNum)?.name ?? '';
-		case QueueItemTypeTerraformEnvironment:
-			return 'Terraform Environment';
-		case QueueItemTypeAutoMines:
-			return 'Mine (Auto)';
-		case QueueItemTypeAutoFactories:
-			return 'Factory (Auto)';
-		case QueueItemTypeAutoDefenses:
-			return 'Defenses (Auto)';
-		case QueueItemTypeAutoMineralAlchemy:
-			return 'Alchemy (Auto)';
-		case QueueItemTypeAutoMaxTerraform:
-			return 'Max Terraform (Auto)';
-		case QueueItemTypeAutoMinTerraform:
-			return 'Min Terraform (Auto)';
-		default:
-			return `${startCase(item.type)}`;
-	}
-};
-
 export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {
 	return {
 		ironium:
-			((((planet.mineralConcentration?.ironium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput,
+			((((planet.mineralConcentration?.ironium ?? 0)) * numMines) / 1000.0) * mineOutput,
 		boranium:
-			((((planet.mineralConcentration?.boranium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput,
+			((((planet.mineralConcentration?.boranium ?? 0)) * numMines) / 1000.0) * mineOutput,
 		germanium:
-			((((planet.mineralConcentration?.germanium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput
+			((((planet.mineralConcentration?.germanium ?? 0)) * numMines) / 1000.0) * mineOutput
 	};
 }
 
 // planetsSortBy returns a sortBy function for planets by key. This is used by the planets report page
 // and sorting when cycling through Planets
-export function planetsSortBy(
-	key: string
-): ((a: Planet | PlanetIntel, b: Planet | PlanetIntel) => number) | undefined {
+export function planetsSortBy(key: string): ((a: AnyPlanet, b: AnyPlanet) => number) | undefined {
 	switch (key) {
 		case 'name':
 			return (a, b) => a.name.localeCompare(b.name);
@@ -639,7 +451,7 @@ export function planetsSortBy(
 			return (a, b) =>
 				(a.spec.starbaseDesignName ?? '').localeCompare(b.spec.starbaseDesignName ?? '');
 		case 'population':
-			return (a, b) => (a.cargo?.colonists ?? 0) - (b.cargo?.colonists ?? 0);
+			return (a, b) => (population(a.cargo) ?? 0) - (population(b.cargo) ?? 0);
 		case 'populationDensity':
 			return (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0);
 		case 'populationGrowth':

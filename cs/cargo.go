@@ -116,6 +116,24 @@ func (c Cargo) Add(other Cargo) Cargo {
 	}
 }
 
+func (c Cargo) AddMineral(other Mineral) Cargo {
+	return Cargo{
+		Ironium:   c.Ironium + other.Ironium,
+		Boranium:  c.Boranium + other.Boranium,
+		Germanium: c.Germanium + other.Germanium,
+		Colonists: c.Colonists,
+	}
+}
+
+func (c Cargo) AddCostMinerals(other Cost) Cargo {
+	return Cargo{
+		Ironium:   c.Ironium + other.Ironium,
+		Boranium:  c.Boranium + other.Boranium,
+		Germanium: c.Germanium + other.Germanium,
+		Colonists: c.Colonists,
+	}
+}
+
 func (c Cargo) Subtract(other Cargo) Cargo {
 	return Cargo{
 		Ironium:   c.Ironium - other.Ironium,
@@ -131,15 +149,6 @@ func (c Cargo) Multiply(product float64) Cargo {
 		int(float64(c.Boranium) * product),
 		int(float64(c.Germanium) * product),
 		int(float64(c.Colonists) * product),
-	}
-}
-
-func (c Cargo) AddMineral(other Mineral) Cargo {
-	return Cargo{
-		Ironium:   c.Ironium + other.Ironium,
-		Boranium:  c.Boranium + other.Boranium,
-		Germanium: c.Germanium + other.Germanium,
-		Colonists: c.Colonists,
 	}
 }
 

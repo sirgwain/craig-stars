@@ -52,14 +52,15 @@ func CompareAsJSON(t TestingT, got, want any) {
 		t.Fatalf("error creating JSON diffs: \n%v", err)
 	}
 
+	// replace comments
 	r := strings.NewReplacer("/* ", "", " */", ":")
 
 	t.Fatalf("JSONs not equal; diff between got & want: \n%s", r.Replace(diff))
 }
 
-// parsing options for jsondiff.
-// Unfortunately, jsondiff is terrible at rendering added/removed nested objects,
-// so we add comments to the file diff.
+// Parsing options for jsondiff.
+// Fun fact: this is guaranteed to produce valid JSONL syntax.
+// Block comments are removed in the stdout version since we don't care about syntax there.
 var options = jsondiff.Options{
 	Added:            jsondiff.Tag{Begin: "/* Added */ ", End: ""},
 	Removed:          jsondiff.Tag{Begin: "/* Removed */ ", End: ""},

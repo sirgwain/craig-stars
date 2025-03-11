@@ -10,8 +10,7 @@
 		QueueItemTypeAutoMinTerraform,
 		type ProductionQueueItem
 	} from '$lib/types/cs';
-	import { fromQueueItemType, getQueueItemShortName } from '$lib/types/Planet';
-	import { isAuto } from '$lib/types/QueueItemType';
+	import { fromQueueItemType, getShortName, isAuto } from '$lib/types/QueueItemType';
 	import ProductionItemsButtons from './ProductionItemsButtons.svelte';
 
 	type Props = {
@@ -26,6 +25,7 @@
 
 	let {
 		designFinder,
+		/* TODO: Add concrete items to queue options */
 		availableItems = [
 			fromQueueItemType(QueueItemTypeAutoFactories),
 			fromQueueItemType(QueueItemTypeAutoMines),
@@ -35,7 +35,7 @@
 			fromQueueItemType(QueueItemTypeAutoMinTerraform)
 		],
 		queueItems = $bindable([]),
-		queueItemDescription = getQueueItemShortName,
+		queueItemDescription = getShortName,
 		onAvailableItemSelected,
 		onQueueItemSelected
 	}: Props = $props();

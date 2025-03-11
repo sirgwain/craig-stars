@@ -312,8 +312,8 @@ func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
 // This will tell us if we have enough minerals to build some item
 // (and if so, how many we can make)
 func (dividend cost[T]) DivideMineral(divisor Mineral) float64 {
-	dc := divisor.ToCost().ToCostFloat64()
-	return dividend.ToCostFloat64().DivideCost(dc)
+	dc := divisor.ToCost()
+	return dividend.ToCost().DivideCost(dc)
 }
 
 // Return greater of 2 Cost structs for all CostTypes separately

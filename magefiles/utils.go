@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/magefile/mage/mg"
@@ -22,7 +23,7 @@ func Test() error {
 	}
 
 	mg.Deps(cleanTmpDir)
-	if err := Test_Golang(""); err != nil {
+	if err := Test_Golang("./..."); err != nil {
 		return err
 	}
 
@@ -53,9 +54,11 @@ func cleanTmpDir() error {
 	return nil
 }
 
-// Run backend golang tests using gotestsum with passing args to "go test".
-// This runs all tests across all packages.
-// Gotestsum args are dependent on the value of $CI and $GITHUB_REPOSITORY/$GH_REPO.
+// Run backend tests using gotestsum, passing args to "go test".
+// CI runs will always run all tests across all packages,
+// whereas non-CI runs can specify which package(s) to run as part of goTestArgs.
+// If a package identifier is omitted on non-CI runs,
+// it will default to running everything ("./...").
 func Test_Golang(goTestArgs string) error {
 	fmt.Println("Running backend tests...")
 	mg.Deps(cleanTmpDir)
@@ -70,6 +73,7 @@ func Test_Golang(goTestArgs string) error {
 		fmt.Println("Non-CI run detected; using default config")
 		filePath = "gotestsum/gotestsum.config.txt"
 	}
+
 	configBytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return mg.Fatalf(1, "error reading gotestsum config file: \n%w", err)
@@ -81,8 +85,19 @@ func Test_Golang(goTestArgs string) error {
 	})
 	fmt.Printf("Config file at %s successfully read.\n", filePath)
 
-	// tack on the config vals
-	configVals = append(configVals, strings.TrimSpace(goTestArgs))
+	// If the user forgot to add a package mark for non-CI runs,
+	// do them a favor rather than outright failing.
+	// CI runs are exempt from this as they're supposed to make sure *everything* works
+	args := strings.Fields(goTestArgs)
+	if !is_CI() && slices.IndexFunc(args, func(s string) bool {
+		return strings.HasPrefix(s, "./")
+	}) == -1 {
+		fmt.Println("No package identifier identified; defaulting to running everything")
+		args = append([]string{"./..."}, args...)
+	}
+	// tack on whatever config vals were passed by the user.
+
+	configVals = append(configVals, args...)
 
 	// if $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
 	// Otherwise, check for $GH_REPO (from github CLI) before falling back to a default string.
@@ -93,8 +108,8 @@ func Test_Golang(goTestArgs string) error {
 		pkgName = r
 	}
 
-	// merge any produced json files together once we're done testing
-	// we only do this after all the setup to save time
+	// merge together any produced json files together once we're done testing
+	// we only do this now to save time (if the prior steps fail, we probably aren't)
 	defer func() {
 		if err := Merge_Temp_JSON(); err != nil {
 			fmt.Printf("error merging temp JSON diffs after test run:\n%v\n", err)
@@ -120,7 +135,7 @@ func Merge_Temp_JSON() error {
 	}
 
 	if len(fileNames) == 0 {
-		fmt.Println("No JSON diffs were found inside tmp to merge; exiting")
+		fmt.Println("No files were found inside ./tmp, exiting")
 		return nil
 	}
 
@@ -149,7 +164,7 @@ func Merge_Temp_JSON() error {
 		path := filepath.Join("tmp", prefix+".jsonl") // target file path w/o package name
 
 		// Add a header mentioning which package we're in to the start of the file
-		contents := "//*" +
+		contents := "//* " +
 			strings.ToUpper(pkgName) + "\n" +
 			string(fileBytes)
 		if count == 0 {
@@ -186,6 +201,7 @@ func Test_Vitest(vitestArgs string) error {
 	if vitestArgs == "" {
 		vitestArgs = "."
 	}
+
 	cmd := exec.Command("npm", "run-script", "test:unit", "--", vitestArgs)
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
@@ -201,6 +217,7 @@ func Test_Playwright(playwrightArgs string) error {
 	if playwrightArgs == "" {
 		playwrightArgs = "."
 	}
+
 	cmd := exec.Command("npm", "run-script", "test:e2e", "--", playwrightArgs)
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
@@ -220,7 +237,7 @@ func Images() error {
 		return mg.Fatalf(1, "error during os.Chdir: \n%w", err)
 	}
 
-	// revert the current dir after this call
+	// revert working dir afterwards
 	defer func() {
 		if err := os.Chdir(originalDir); err != nil {
 			panic(fmt.Errorf("error reverting to original directory: \n%v", err))

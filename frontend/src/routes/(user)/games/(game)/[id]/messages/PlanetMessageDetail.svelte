@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { totalMinerals } from '$lib/types/Cost';
+	import { sum, totalMinerals } from '$lib/types/Cost';
 	import { absSum } from '$lib/types/Hab';
+	import { getName, getPluralName } from '$lib/types/QueueItemType';
 	import type { PlanetIntel, PlayerIntel } from '$lib/types/cs';
 	import {
 		CometHuge,
@@ -52,7 +54,7 @@
 
 	let { message, planet, owner }: Props = $props();
 
-	let growthRate = $derived($player.race.growthRate * ($player.race.spec?.growthFactor ?? 0));
+	let growthRate = $derived($player.race.growthRate * ($player.race.spec?.growthFactor ?? 1));
 </script>
 
 {#if message.text}
@@ -121,14 +123,72 @@
 		You have built {message.spec.amount ?? 0} mines on {planet.name}.
 	{/if}
 {:else if message.type === PlayerMessagePlanetBuiltInvalidItem}
-	You have attempted to build a {message.spec.queueItemType?.toLowerCase()} on {planet.name}, but {planet.name}
-	is unable to build any of these. The order has been canceled.
+	{@const name =
+		message.spec.prevAmount === 1
+			? getName(message.spec.queueItemType)
+			: getPluralName(message.spec.queueItemType)}
+	{@const qty =
+		message.spec.prevAmount === 1
+			? name.charAt(0).match('[aeiou]')
+				? 'a'
+				: 'an'
+			: (message.spec.prevAmount ?? 0).toLocaleString()}
+	You have attempted to build {qty}
+	{name} on {planet.name}, but
+	{planet.name}
+	{#if message.spec.amount2 === 0}
+		is unable to build any more of them. The order has
+	{:else}
+		can only build {(message.spec.amount ?? 0).toLocaleString()} more of them. The remaining
+		{(message.spec.amount2 ?? 0).toLocaleString()} items have
+	{/if}
+	{#if message.spec.cost && sum(message.spec.cost) > 0}
+		been canceled and you have been refunded {andCommaList([
+			(message.spec.cost.ironium ?? 0) > 0 ? `${message.spec.cost.ironium}kT pf Ironium` : '',
+			(message.spec.cost.boranium ?? 0) > 0 ? `${message.spec.cost.boranium}kT of Boranium` : '',
+			(message.spec.cost.germanium ?? 0) > 0 ? `${message.spec.cost.germanium}kT of Germanium` : '',
+			(message.spec.cost.resources ?? 0) > 0 ? `${message.spec.cost.resources} resources` : ''
+		])}.
+	{:else}
+		been canceled.
+	{/if}
 {:else if message.type === PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver}
-	You have attempted to build a mineral packet on {planet.name}, but you have no starbase equipped
-	with a mass driver on this planet. The order has been canceled.
+	{#if message.spec.amount === 1}
+		You have attempted to build a mineral packet on {planet.name}, but you have no starbase equipped
+		with a mass driver on this planet. The order has
+	{:else}
+		You have attempted to build a total of {(message.spec.amount ?? 0).toLocaleString()} mineral packets
+		on {planet.name}, but you have no starbase equipped with a mass driver on this planet. The
+		orders have
+	{/if}
+	{#if message.spec.cost && sum(message.spec.cost) > 0}
+		been canceled and you have been refunded {andCommaList([
+			(message.spec.cost.ironium ?? 0) > 0 ? `${message.spec.cost.ironium}kT pf Ironium` : '',
+			(message.spec.cost.boranium ?? 0) > 0 ? `${message.spec.cost.boranium}kT of Boranium` : '',
+			(message.spec.cost.germanium ?? 0) > 0 ? `${message.spec.cost.germanium}kT of Germanium` : '',
+			(message.spec.cost.resources ?? 0) > 0 ? `${message.spec.cost.resources} resources` : ''
+		])}.
+	{:else}
+		been canceled.
+	{/if}
 {:else if message.type === PlayerMessagePlanetBuiltInvalidMineralPacketNoTarget}
-	You have attempted to build a mineral packet on {planet.name}, but you have failed to specify a
-	planet to target. The order has been canceled.
+	{#if message.spec.amount === 1}
+		You have attempted to build a mineral packet on {planet.name}, but you have failed to specify a
+		planet to target. The order has
+	{:else}
+		You have attempted to build a total of {(message.spec.amount ?? 0).toLocaleString()} mineral packets
+		on {planet.name}, but you have failed to specify a planet to target. The orders have
+	{/if}
+	{#if message.spec.cost && sum(message.spec.cost) > 0}
+		been canceled and you have been refunded {andCommaList([
+			(message.spec.cost.ironium ?? 0) > 0 ? `${message.spec.cost.ironium}kT pf Ironium` : '',
+			(message.spec.cost.boranium ?? 0) > 0 ? `${message.spec.cost.boranium}kT of Boranium` : '',
+			(message.spec.cost.germanium ?? 0) > 0 ? `${message.spec.cost.germanium}kT of Germanium` : '',
+			(message.spec.cost.resources ?? 0) > 0 ? `${message.spec.cost.resources} resources` : ''
+		])}
+	{:else}
+		been canceled.
+	{/if}
 {:else if message.type === PlayerMessagePlanetBuiltScanner}
 	{planet.name} has built a new {message.spec.name} planetary scanner.
 {:else if message.type === PlayerMessagePlanetBuiltStarbase}
@@ -158,7 +218,7 @@
 		A small comet has crashed into your planet {planet.name}, killing {(
 			message.spec.comet?.colonistsKilled ?? 0
 		).toLocaleString()} of your colonists. The comet brought additional minerals and has slightly altered
-		the planet's habitat.
+		the planet's environment.
 	{:else if message.spec.comet?.size == CometMedium}
 		A medium-sized comet has crashed into your planet {planet.name}, killing {(
 			message.spec.comet?.colonistsKilled ?? 0
@@ -175,7 +235,10 @@
 		).toLocaleString()} of your colonists. The comet has embedded vast stores of minerals and drastically
 		altered the planet's environment.
 	{:else}
-		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
+		A comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet brought additional minerals and has altered the
+		planet's environment.
 	{/if}
 {:else if message.type === PlayerMessagePlanetDiedOff}
 	{#if $player.race.spec?.livesOnStarbases}
@@ -243,7 +306,7 @@
 	In the process of {message.spec.name} being scrapped above {planet.name}, you have gained a level
 	in {message.spec.field}.
 {:else if message.type === PlayerMessagePlayerAcquirablePartGainedScrapFleet}
-	In the process of {message.spec.name} being scrapped above {planet.name}, you have learned to
+	In the process of {message.spec.name} being scrapped above {planet.name}, you have learned how to
 	build {message.spec.techGained}.
 {:else if message.type === PlayerMessagePlayerTechLevelGainedBattle}
 	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message

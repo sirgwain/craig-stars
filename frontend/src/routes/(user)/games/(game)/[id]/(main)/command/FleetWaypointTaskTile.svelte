@@ -257,7 +257,7 @@
 					warnSpeed={fleet.spec.engine.maxSafeSpeed
 						? fleet.spec.engine.maxSafeSpeed + 1
 						: undefined}
-					warp0Text={'Automatic'}
+					warp0Text='Automatic'
 				/>
 			</span>
 		</div>

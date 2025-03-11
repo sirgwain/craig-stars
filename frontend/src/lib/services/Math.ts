@@ -38,9 +38,12 @@ export const radiansToDegrees = (radians: number): number => radians * (180 / Ma
  * Round a value to a multiple of 100 using the specified rounding function
  * and return the result as an integer.
  * @param value the value beind rounded
- * @param roundFunc the function to round the result with; defaults to math.round
+ * @param roundFunc the function to round the result with (default {@linkcode Math.round})
  * @returns value rounded to the nearest multiple of 100
  */
-export const roundTo100 = (value: number, roundFunc: (a: number) => number = Math.round): number => {
+export const roundTo100 = (
+	value: number,
+	roundFunc: (a: number) => number = Math.round
+): number => {
 	return roundFunc(value / 100) * 100;
-}
+};

@@ -201,7 +201,7 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 				tt.args.player.Race.GrowthRate = 10
 			}
 			tt.args.player.Race.Spec = computeRaceSpec(&tt.args.player.Race, &rules)
-			if got := p.getGrowthAmount(tt.args.player, tt.args.maxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax); got != tt.want {
+			if got := p.GetGrowthAmount(tt.args.player, tt.args.maxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax); got != tt.want {
 				t.Errorf("Planet.getGrowthAmount() = %v, want %v", got, tt.want)
 			}
 		})
@@ -603,7 +603,7 @@ func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.spec.computeResourcesPerYear(tt.args.player, tt.args.numFacts, tt.args.productivePop, tt.args.installationPop)
+			tt.spec.ComputeResourcesPerYear(tt.args.player, tt.args.numFacts, tt.args.productivePop, tt.args.installationPop)
 			test.CompareAsJSON(t, tt.spec, tt.want)
 		})
 	}

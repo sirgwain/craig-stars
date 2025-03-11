@@ -666,8 +666,10 @@ export class CommandedFleet implements Fleet {
 	 */
 	canRemoteMine(player: CommandedPlayer, target: PlanetIntel): boolean {
 		// We can mine unowned planets (as well as self-owned ones)
-		return (this.spec.miningRate ?? 0) > 0 &&
-			(!owned(target) || (ownedBy(target, player.num) && (player.race.spec.canRemoteMineOwnPlanets ?? false))
+		return (
+			(this.spec.miningRate ?? 0) > 0 &&
+			(!owned(target) ||
+				(ownedBy(target, player.num) && (player.race.spec.canRemoteMineOwnPlanets ?? false)))
 		);
 	}
 

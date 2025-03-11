@@ -38,9 +38,9 @@ func roundHalfTowards0(x float64) float64 {
 //
 // Equivalent to
 //
-//	min(minVal, max(value, maxVal))
+//	max(minVal, min(value, maxVal))
 func Clamp[T constraints.Ordered](value, minVal, maxVal T) T {
-	return min(minVal, max(value, maxVal))
+	return max(minVal, min(value, maxVal))
 }
 
 // AbsMin returns the absolutely lowest (closest to 0)

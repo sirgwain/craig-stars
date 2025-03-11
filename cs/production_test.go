@@ -100,34 +100,90 @@ func Test_production_produce(t *testing.T) {
 		rCopy.DefenseCost = Cost{10, 10, 10, 10}
 		rCopy.PlanetaryScannerCost = Cost{999, 999, 999, 999}
 
+		planet.Name = t.Name()
 		// exactly enough to finish 10 defenses
 		planet.Cargo = Cargo{100, 100, 100, 1000}
 		planet.Defenses = 90
 		planet.ContributesOnlyLeftoverToResearch = true
 
-		player.Race = *player.Race.WithSpec(&rCopy)
-		planet.Spec = computePlanetSpec(&rCopy, player, planet)
-		player.Spec = computePlayerSpec(player, &rCopy, []*Planet{planet})
-
-		// The 100 auto defenses should remove the auto defense from the queue
+		// The 100 auto defenses should remove the concrete defenses from the queue
 		planet.ProductionQueue = []ProductionQueueItem{
 			{Type: QueueItemTypeAutoDefenses, Quantity: 100},
 			{Type: QueueItemTypeDefenses, Quantity: 90, Allocated: Cost{5, 5, 5, 5}},
+			{Type: QueueItemTypeDefenses, Quantity: 11, Allocated: Cost{5, 5, 5, 5}},
+			{Type: QueueItemTypeDefenses, Quantity: 10, Allocated: Cost{5, 5, 5, 5}},
 			// super expensive scanner to soak up leftover minerals
 			{Type: QueueItemTypePlanetaryScanner, Quantity: 1},
 		}
+
+		player.Race = *player.Race.WithSpec(&rCopy)
 		planet.Spec = computePlanetSpec(&rCopy, player, planet)
+		player.Spec = computePlayerSpec(player, &rCopy, []*Planet{planet})
 		player.Messages = []PlayerMessage{}
 
 		// should end up with 100 defenses, with auto defenses still in the queue;
-		// scanner should soak up allocated resources from first defense item
+		// scanner should soak up allocated resources from defense items
 		wantQueue := []ProductionQueueItem{
 			{Type: QueueItemTypeAutoDefenses, Quantity: 100},
-			{Type: QueueItemTypePlanetaryScanner, Quantity: 1, Allocated: Cost{5, 5, 5, 5}},
+			{Type: QueueItemTypePlanetaryScanner, Quantity: 1, Allocated: Cost{15, 15, 15, 15}},
 		}
+
+		wantMessages := []PlayerMessage{{
+			Target: PlayerMessageTarget{
+				TargetType: TargetPlanet,
+				TargetName: planet.Name,
+				TargetNum:  planet.Num,
+			},
+			Type: PlayerMessagePlanetBuiltInvalidItem,
+			Spec: PlayerMessageSpec{
+				Name:          planet.Name,
+				Cost:          Cost{15, 15, 15, 15},
+				QueueItemType: QueueItemTypeDefenses,
+				Amount:        101,
+				Amount2:       10,
+				PrevAmount:    111,
+			},
+		}}
+
+		producer := newProducer(testLogger, &rCopy, planet, player)
+		result, err := producer.produce()
+		assert.NoError(t, err)
+		assert.Equal(t, 100, planet.Defenses)
+		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
+		test.CompareAsJSON(t, result.messages, wantMessages)
+	})
+
+	t.Run("Don't refund invalid items if nothing built", func(t *testing.T) {
+		player, planet := newTestPlayerPlanet()
+
+		rCopy := rules
+		rCopy.DefenseCost = Cost{0, 0, 0, 0} // defenses finish instantly if we get to them
+
+		planet.Cargo = Cargo{1, 1, 7, 100}
+		planet.Defenses = 100
+		planet.ContributesOnlyLeftoverToResearch = true
+
+		// 10 concrete defenses over cap
+		planet.ProductionQueue = []ProductionQueueItem{
+			// super expensive scanner to soak up leftover minerals
+			{Type: QueueItemTypePlanetaryScanner, Quantity: 1},
+			{Type: QueueItemTypeDefenses, Quantity: 10, Allocated: Cost{5, 5, 5, 5}},
+		}
+
+		player.Race = *player.Race.WithSpec(&rCopy)
+		planet.Spec = computePlanetSpec(&rCopy, player, planet)
+		player.Spec = computePlayerSpec(player, &rCopy, []*Planet{planet})
+		player.Messages = []PlayerMessage{}
+
+		// defenses stay in queue since nothing got built
+		wantQueue := []ProductionQueueItem{
+			{Type: QueueItemTypePlanetaryScanner, Quantity: 1, Allocated: Cost{1, 1, 7, 10}},
+			{Type: QueueItemTypeDefenses, Quantity: 10, Allocated: Cost{5, 5, 5, 5}},
+		}
+
 		producer := newProducer(testLogger, &rCopy, planet, player)
 		producer.produce()
-		assert.Equal(t, 100, planet.Defenses)
+		assert.Equal(t, 90, planet.Defenses)
 		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
 	})
 

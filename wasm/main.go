@@ -119,7 +119,7 @@ func computeShipDesignSpec(args []js.Value) interface{} {
 	design := wasm.GetShipDesign(args[0])
 	spec, err := cs.ComputeShipDesignSpec(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, &design)
 	if err != nil {
-		return wasm.NewError(fmt.Errorf("invalid design %v", err))
+		return wasm.NewError(fmt.Errorf("invalid design: %v", err))
 	}
 	log.Debug().Msgf("computed spec for design %s", design.Name)
 
@@ -142,10 +142,10 @@ func starbaseUpgradeCost(args []js.Value) interface{} {
 	costCalculatoor := cs.NewCostCalculator()
 	cost, err := costCalculatoor.StarbaseUpgradeCost(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, &design, &newDesign)
 	if err != nil {
-		return wasm.NewError(fmt.Errorf("unable to calculate starbase upgrade cost %v", err))
+		return wasm.NewError(fmt.Errorf("unable to calculate starbase upgrade cost: %v", err))
 	}
 
-	log.Debug().Msgf("computed starbase upgrade cost for design %s -> %s %v", design.Name, newDesign.Name, cost)
+	log.Debug().Msgf("computed starbase upgrade cost for design %s -> %s: %v", design.Name, newDesign.Name, cost)
 
 	o := js.ValueOf(map[string]any{})
 	wasm.SetCost(o, &cost)
@@ -164,7 +164,7 @@ func techCost(args []js.Value) interface{} {
 	costCalculatoor := cs.NewCostCalculator()
 	cost := costCalculatoor.GetTechCost(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, tech)
 
-	log.Debug().Msgf("computed tech cost %s %v", tech.Name, cost)
+	log.Debug().Msgf("computed tech cost %s: %v", tech.Name, cost)
 
 	o := js.ValueOf(map[string]any{})
 	wasm.SetCost(o, &cost)
@@ -173,7 +173,7 @@ func techCost(args []js.Value) interface{} {
 }
 
 // wasm wrapper for estimating planet production
-// takes 2 arguments: planet, player (with designs)
+// takes 1 argument: the planet
 func estimateProduction(args []js.Value) interface{} {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
@@ -193,16 +193,67 @@ func estimateProduction(args []js.Value) interface{} {
 	// make sure if we have a starbase, it has a design so we can compute
 	// upgrade costs
 	if err := planet.PopulateStarbaseDesign(&ctx.player); err != nil {
-		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design. %v", err))
+		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design.: %v", err))
 	}
 
 	if err := planet.PopulateProductionQueueDesigns(&ctx.player); err != nil {
-		return wasm.NewError(fmt.Errorf("failed to populate production queue designs. %v", err))
+		return wasm.NewError(fmt.Errorf("failed to populate production queue designs.: %v", err))
 	}
 
 	planet.PopulateProductionQueueEstimates(&ctx.rules, &ctx.player)
 
 	log.Debug().Msgf("estimated production of %s\n", planet.Name)
+	o := js.ValueOf(map[string]any{})
+	wasm.SetPlanet(o, &planet)
+	return o
+}
+
+// wasm wrapper for estimating planet growth amount
+// takes 1 argument: the planet
+func growthAmount(args []js.Value) interface{} {
+	if len(args) != 1 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	planet := wasm.GetPlanet(args[0])
+
+	growth := planet.GetGrowthAmount(&ctx.player, planet.Spec.MaxPopulation, ctx.rules.PopulationOvercrowdDieoffRate, ctx.rules.PopulationOvercrowdDieoffRateMax)
+
+	log.Debug().Msgf("calculated planet growth amount: %s\n", growth)
+	return js.ValueOf(growth)
+}
+
+// wasm wrapper for calculating planet yearly resource production
+// takes 1 argument: the planet
+func productivePopulation(args []js.Value) interface{} {
+	if len(args) != 1 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	planet := wasm.GetPlanet(args[0])
+
+	pop := cs.ProductivePopulation(planet.GetPopulation(), planet.Spec.MaxPopulation,
+		ctx.rules.PopulationOvercrowdResourcePenalty, ctx.rules.PopulationOvercrowdResourceMax)
+
+	log.Debug().Msgf("calculated planet productive pop: %s\n", pop)
+	return js.ValueOf(pop)
+}
+
+// wasm wrapper for updating planet yearly resource production
+// takes 1 argument: the planet
+func updateResourcesAvailable(args []js.Value) interface{} {
+	if len(args) != 1 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	planet := wasm.GetPlanet(args[0])
+
+	planet.Spec.ComputeResourcesPerYear(&ctx.player, planet.Factories,
+		cs.ProductivePopulation(planet.GetPopulation(), planet.Spec.MaxPopulation,
+			ctx.rules.PopulationOvercrowdResourcePenalty, ctx.rules.PopulationOvercrowdResourceMax),
+		min(planet.GetPopulation(), planet.Spec.MaxPopulation))
+
+	log.Debug().Msgf("calculated planet resource stats.\n")
 	o := js.ValueOf(map[string]any{})
 	wasm.SetPlanet(o, &planet)
 	return o
@@ -222,6 +273,9 @@ func main() {
 	wasm.ExposeFunction("starbaseUpgradeCost", starbaseUpgradeCost)
 	wasm.ExposeFunction("techCost", techCost)
 	wasm.ExposeFunction("estimateProduction", estimateProduction)
+	wasm.ExposeFunction("growthAmount", growthAmount)
+	wasm.ExposeFunction("productivePopulation", productivePopulation)
+	wasm.ExposeFunction("resourcesAvailable", updateResourcesAvailable)
 	wasm.Ready()
 
 	// fmt.Println("wasm initialized")

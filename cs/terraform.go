@@ -232,8 +232,8 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 		playerHabIdeal := habCenter.Get(habType)
 
 		// figure out what our hab is without any instaforming
-		// instaforming doesn't count as "terraforming" in that the planet doesn't change, it's just more habitable
-		// for the CA populace
+		// instaforming doesn't count as "terraforming" in that the planet doesn't change
+		// it's just more habitable for the CA populace
 		habWithoutInstaforming := planet.BaseHab.Add(planet.TerraformedAmount)
 
 		// the distance from the current hab of this planet
@@ -281,12 +281,7 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 			newHab := planet.Hab
 			newHab.Set(habType, planet.Hab.Get(habType)+direction)
 			habitability := player.Race.GetPlanetHabitability(newHab)
-			if habitability > greenness {
-				greenness = habitability
-				greatest = fromIdealDist
-				newBest := habType
-				bestHabType = &newBest
-			} else if habitability == greenness && fromIdealDist > greatest {
+			if habitability > greenness || (habitability == greenness && fromIdealDist > greatest) {
 				greenness = habitability
 				greatest = fromIdealDist
 				newBest := habType

@@ -218,7 +218,7 @@ func (p *Planet) addPopulation(pop int) {
 
 // Return the amount of population considered productive for resource production,
 // taking into account overcrowding penalties.
-func productivePopulation(pop, maxPop int, overcrowdPenalty, overcrowdResourceMax float64) int {
+func ProductivePopulation(pop, maxPop int, overcrowdPenalty, overcrowdResourceMax float64) int {
 	popOverCap := float64(pop) + max(0, float64(pop-maxPop)*overcrowdPenalty)
 	return roundTo100(min(
 		float64(maxPop)*(1+overcrowdResourceMax), popOverCap), math.Floor)
@@ -226,7 +226,7 @@ func productivePopulation(pop, maxPop int, overcrowdPenalty, overcrowdResourceMa
 
 // Return the amount of population that will operate installations on a planet
 // (it just caps at max pop)
-// TODO: remove this reskin of Min
+// TODO: remove this abhorrent reskin of min
 func productiveInstallationPopulation(pop, maxPop int) int {
 	return min(pop, maxPop)
 }
@@ -524,7 +524,7 @@ func (p *Planet) getMineralOutput(rules *Rules, numMines int, mineOutput int) (o
 // Get how much a player will grow on a planet, given the max population the player can have on the planet.
 //
 // Returns exact value to nearest colonist.
-func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOvercrowdDieoffRate, populationOvercrowdDieoffRateMax float64) int {
+func (p *Planet) GetGrowthAmount(player *Player, maxPopulation int, populationOvercrowdDieoffRate, populationOvercrowdDieoffRateMax float64) int {
 	race := &player.Race
 	pop := p.GetPopulation()
 	habValue := race.GetPlanetHabitability(p.Hab)
@@ -568,7 +568,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	if spec.MaxPopulation > 0 {
 		spec.PopulationDensity = float64(planet.GetPopulation()) / float64(spec.MaxPopulation)
 	}
-	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax)
+	spec.GrowthAmount = planet.GetGrowthAmount(player, spec.MaxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax)
 
 	// terraforming
 	terraformer := NewTerraformer()
@@ -579,7 +579,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	// population will generate resources up to 3x max pop, but they can only
 	// operate structures up to max pop
-	productivePop := productivePopulation(planet.GetPopulation(), spec.MaxPopulation, rules.PopulationOvercrowdResourcePenalty, rules.PopulationOvercrowdResourceMax)
+	productivePop := ProductivePopulation(planet.GetPopulation(), spec.MaxPopulation, rules.PopulationOvercrowdResourcePenalty, rules.PopulationOvercrowdResourceMax)
 	installationPop := productiveInstallationPopulation(planet.GetPopulation(), spec.MaxPopulation)
 
 	if !race.Spec.InnateMining {
@@ -590,7 +590,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	}
 
 	// Compute resources per year and mining output
-	spec.computeResourcesPerYear(player, planet.Factories, productivePop, installationPop)
+	spec.ComputeResourcesPerYear(player, planet.Factories, productivePop, installationPop)
 	spec.MiningOutput = planet.getMineralOutput(rules, min(spec.MaxMines, planet.Mines), race.MineOutput)
 	spec.computeResourcesPerYearAvailable(player, planet)
 
@@ -661,7 +661,7 @@ func (spec *PlanetSpec) computeDefenseCoverage(rules *Rules, coverage float64, n
 
 // Compute the amount of resources this planet will produce per year, as well as its
 // MaxFactories and MaxPossibleFactories fields.
-func (spec *PlanetSpec) computeResourcesPerYear(player *Player, numFacts, productivePop, installationPop int) {
+func (spec *PlanetSpec) ComputeResourcesPerYear(player *Player, numFacts, productivePop, installationPop int) {
 	if player.Race.Spec.InnateResources {
 		// Compute resources for AR
 		spec.ResourcesPerYear = int(math.Ceil(float64(spec.Habitability) / 100 * // Confirmed: AR resources round up in base game

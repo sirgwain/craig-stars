@@ -19,6 +19,9 @@ export type CS = {
 	starbaseUpgradeCost: (design: ShipDesign, newDesign: ShipDesign) => Cost | undefined;
 	techCost: (tech: Tech) => Cost | undefined;
 	estimateProduction: (planet: Planet) => Planet | undefined;
+	growthAmount: (planet: Planet) => number | undefined;
+	productivePopulation: (planet: Planet) => number | undefined;
+	updateResourcesAvailable: (planet: Planet) => number | undefined;
 };
 
 // load a wasm module and returns a wrapper for executing functions
@@ -146,6 +149,29 @@ class CSWasmWrapper implements CS {
 
 	getResearchCost(techLevel: TechLevel): number | undefined {
 		const result = this.wasm.getResearchCost(techLevel);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+
+	growthAmount(planet: Planet): number | undefined {
+		const result = this.wasm.growthAmount(planet);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+
+	productivePopulation(planet: Planet): number | undefined {
+		const result = this.wasm.productivePopulation(planet);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+	updateResourcesAvailable(planet: Planet): number | undefined {
+		const result = this.wasm.updateResourcesAvailable(planet);
 		if (this.checkError()) {
 			return undefined;
 		}
