@@ -159,7 +159,7 @@
 		<button
 			onclick={onShowSearch}
 			class="btn btn-outline btn-sm normal-case btn-secondary"
-			title="previous"
+			title="search"
 			><Icon src={MagnifyingGlass} size="16" class="hover:stroke-accent inline" /></button
 		>
 

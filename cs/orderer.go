@@ -357,12 +357,12 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	if dest == nil {
 		// create a new fleet
 		// now create the new fleet
-		fleetNum := player.getNextFleetNum(playerFleets)
+		fleetNum := player.GetNextFleetNum(playerFleets)
 		baseName := source.BaseName
 		if request.DestBaseName != "" {
 			baseName = request.DestBaseName
 		}
-		fleet := newFleet(player, fleetNum, baseName, source.Waypoints)
+		fleet := NewFleet(player, fleetNum, baseName, source.Waypoints)
 		fleet.OrbitingPlanetNum = source.OrbitingPlanetNum
 		fleet.Heading = source.Heading
 		fleet.WarpSpeed = source.WarpSpeed
@@ -372,7 +372,7 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		// create a slice of empty tokens we will populate
 		fleet.Tokens = make([]ShipToken, len(source.Tokens))
 
-		dest = &fleet
+		dest = fleet
 	}
 
 	// update the tokens for each fleet
@@ -526,7 +526,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	}
 
 	// now create the new fleet
-	fleetNum := player.getNextFleetNum(playerFleets)
+	fleetNum := player.GetNextFleetNum(playerFleets)
 
 	// build a map of designs so we can fill in the tokens
 	designsByNum := make(map[int]*ShipDesign, len(player.Designs))

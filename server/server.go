@@ -23,6 +23,8 @@ import (
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
+	"github.com/sirgwain/craig-stars/test/testgames"
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/singleflight"
 
@@ -64,6 +66,12 @@ func Start(config config.Config) error {
 	dbConn := db.NewConn()
 	if err := dbConn.Connect(&config); err != nil {
 		return fmt.Errorf("failed to connect to database %v", err)
+	}
+
+	if viper.GetBool("test-mode") {
+		if err := testgames.CreateTestGames(dbConn.NewReadWriteClient()); err != nil {
+			return err
+		}
 	}
 
 	// create a server

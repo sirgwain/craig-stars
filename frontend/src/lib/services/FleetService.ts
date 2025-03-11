@@ -4,9 +4,7 @@ import type {
 	Cargo,
 	CargoTransfers,
 	MapObject,
-	MineralPacketIntel,
-	Player,
-	SalvageIntel
+	Player
 } from '$lib/types/cs';
 import { type Fleet, type FleetOrders, type ShipToken, type Waypoint } from '$lib/types/cs';
 import { Service } from './Service';
@@ -24,8 +22,6 @@ type TransferCargoResponse = {
 	fleet: Fleet;
 	dest: MapObject | undefined;
 	player: Player | undefined;
-	salvages?: SalvageIntel[];
-	mineralPackets?: MineralPacketIntel[];
 };
 
 type SplitFleetResponse = {

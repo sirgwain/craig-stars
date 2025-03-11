@@ -490,6 +490,20 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.resetMyMapObjectsByPosition();
 	}
 
+	updateSalvage(salvage: SalvageIntel) {
+		const index = this.salvageIntels.findIndex(
+			(mf) => mf.playerNum === salvage.playerNum && mf.num === salvage.num
+		);
+		if (index != -1) {
+			this.salvageIntels = [
+				...this.salvageIntels.slice(0, index),
+				salvage as SalvageIntel,
+				...this.salvageIntels.slice(index + 1)
+			];
+		}
+		this.resetMapObjectsByPosition();
+	}
+
 	updateSalvages(salvages: SalvageIntel[]) {
 		this.salvageIntels = salvages;
 		this.resetMapObjectsByPosition();

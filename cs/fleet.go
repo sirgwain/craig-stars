@@ -248,8 +248,8 @@ type fleetMoveInterrupted struct {
 	mineField *MineField
 }
 
-func newFleet(player *Player, num int, name string, waypoints []Waypoint) Fleet {
-	return Fleet{
+func NewFleet(player *Player, num int, name string, waypoints []Waypoint) *Fleet {
+	return &Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,

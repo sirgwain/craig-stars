@@ -112,6 +112,7 @@
 				{/if}
 				<button
 					type="button"
+					data-type="cycle-selected-map-object-button"
 					onpointerdown={(e) => {
 						e.preventDefault();
 						selectNextMapObject();

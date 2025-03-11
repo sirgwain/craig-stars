@@ -8,6 +8,7 @@ import type {
 	GameSettings,
 	MineField,
 	PlayerMessageTargetType,
+	SalvageIntel,
 	ShipDesign
 } from '$lib/types/cs';
 import {
@@ -1046,10 +1047,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		} else if (result.dest?.type == MapObjectTypeMineralPacket) {
 			const destMineralPacket = result.dest as AnyMineralPacket;
 			u.updateMineralPacket(destMineralPacket);
-		}
-
-		if (result.salvages) {
-			u.updateSalvages(result.salvages);
+		} else if (result.dest?.type == MapObjectTypeSalvage) {
+			const destSalvage = result.dest as SalvageIntel;
+			u.updateSalvage(destSalvage);
 		}
 
 		const smo = get(selectedMapObject);

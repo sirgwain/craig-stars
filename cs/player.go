@@ -824,7 +824,7 @@ func (p *Player) IsSharingMap(playerNum int) bool {
 	return playerNum != p.Num && playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationFriend && p.Relations[playerNum-1].ShareMap
 }
 
-func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
+func (p *Player) GetNextFleetNum(playerFleets []*Fleet) int {
 	num := 1
 
 	orderedFleets := make([]*Fleet, len(playerFleets))

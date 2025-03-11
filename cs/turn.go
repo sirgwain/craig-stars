@@ -1611,7 +1611,7 @@ func (t *turnGenerator) buildFleet(player *Player, planet *Planet, token ShipTok
 // add a new fleet to the universe
 func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToken, tags Tags) (*Fleet, error) {
 	playerFleets := t.game.getFleets(player.Num)
-	fleetNum := player.getNextFleetNum(playerFleets)
+	fleetNum := player.GetNextFleetNum(playerFleets)
 	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPositionWaypoint(position, token.design.Spec.Engine.IdealSpeed)})
 	fleet.Position = position
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
@@ -2640,7 +2640,7 @@ func (t *turnGenerator) fleetTransferOwner() {
 			}
 
 			playerFleets := t.game.getFleets(targetPlayer.Num)
-			fleet.Num = targetPlayer.getNextFleetNum(playerFleets)
+			fleet.Num = targetPlayer.GetNextFleetNum(playerFleets)
 			fleet.PlayerNum = targetPlayer.Num
 
 			// clear out the waypoints
