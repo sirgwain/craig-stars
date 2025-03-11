@@ -167,11 +167,11 @@ export function getShortName(item: ProductionQueueItem, designFinder: DesignFind
 }
 
 /**
- * Get the proper name of a {@linkcode QueueItemType}.
- * @param type the {@linkcode QueueItemType} being checked
+ * Get the proper name of a {@linkcode QueueItemType},
+ * @param type the {@linkcode QueueItemType} being checked.
  * @returns The singular form of this {@linkcode QueueItemType}, suitable for use in messages.
  */
-export const getName = (type: QueueItemType | undefined) => {
+export const getName = (type: QueueItemType) => {
 	switch (type) {
 		case QueueItemTypeAutoMineralAlchemy:
 			return 'auto mineral alchemy';
@@ -190,6 +190,7 @@ export const getName = (type: QueueItemType | undefined) => {
 		case QueueItemTypeDefenses:
 			return 'defense outpost';
 		case QueueItemTypeIroniumMineralPacket:
+		// @sirgwain: should these be capitalized if all they doing is going in messages?
 			return 'ironium mineral packet';
 		case QueueItemTypeBoraniumMineralPacket:
 			return 'boranium mineral packet';
@@ -212,12 +213,13 @@ export const getName = (type: QueueItemType | undefined) => {
 
 /**
  * Get the plural name of a {@linkcode QueueItemType}.
- * @param type the {@linkcode QueueItemType} being checked
+ * @param type the {@linkcode QueueItemType} being checked.
  * @returns The plural form of this {@linkcode QueueItemType}, suitable for use in messages.
  */
-export const getPluralName = (type: QueueItemType | undefined) => {
+export const getPluralName = (type: QueueItemType) => {
 	switch (type) {
 		case QueueItemTypeAutoMineralAlchemy:
+			// yes, the plural of "alchemy" is alchemies. FIGHT ME
 			return 'auto mineral alchemies';
 		case QueueItemTypeMineralAlchemy:
 			return 'mineral alchemies';

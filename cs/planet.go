@@ -625,26 +625,28 @@ func computePlanetStarbaseSpec(planet *Planet) PlanetStarbaseSpec {
 	spec := PlanetStarbaseSpec{}
 
 	starbase := planet.Starbase
-	spec.HasStarbase = starbase != nil
-	if starbase != nil {
-		spec.StarbaseDesignNum = planet.Starbase.Tokens[0].DesignNum
-		spec.StarbaseDesignName = planet.Starbase.Tokens[0].design.Name
-		if starbase.Spec.HasStargate {
-			spec.HasStargate = true
-			spec.Stargate = starbase.Spec.Stargate
-			spec.SafeHullMass = starbase.Spec.SafeHullMass
-			spec.SafeRange = starbase.Spec.SafeRange
-			spec.MaxHullMass = starbase.Spec.MaxHullMass
-			spec.MaxRange = starbase.Spec.MaxRange
-		}
-		if starbase.Spec.HasMassDriver {
-			spec.HasMassDriver = true
-			spec.MassDriver = starbase.Spec.MassDriver
-			spec.BasePacketSpeed = starbase.Spec.BasePacketSpeed
-			spec.SafePacketSpeed = starbase.Spec.SafePacketSpeed
-		}
-		spec.DockCapacity = starbase.Spec.SpaceDock
+	if starbase == nil {
+		return spec
 	}
+
+	spec.HasStarbase = true
+	spec.StarbaseDesignNum = planet.Starbase.Tokens[0].DesignNum
+	spec.StarbaseDesignName = planet.Starbase.Tokens[0].design.Name
+	if starbase.Spec.HasStargate {
+		spec.HasStargate = true
+		spec.Stargate = starbase.Spec.Stargate
+		spec.SafeHullMass = starbase.Spec.SafeHullMass
+		spec.SafeRange = starbase.Spec.SafeRange
+		spec.MaxHullMass = starbase.Spec.MaxHullMass
+		spec.MaxRange = starbase.Spec.MaxRange
+	}
+	if starbase.Spec.HasMassDriver {
+		spec.HasMassDriver = true
+		spec.MassDriver = starbase.Spec.MassDriver
+		spec.BasePacketSpeed = starbase.Spec.BasePacketSpeed
+		spec.SafePacketSpeed = starbase.Spec.SafePacketSpeed
+	}
+	spec.DockCapacity = starbase.Spec.SpaceDock
 
 	return spec
 }
@@ -748,12 +750,12 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 		return 1
 	case QueueItemTypeGenesisDevice:
 		return 1
-		// TODO: Enable once auto alchemy gets fixed
-		/* case QueueItemTypeAutoMineralAlchemy:
-		return 1 */
+	// TODO: Enable once auto alchemy gets fixed
+	/* case QueueItemTypeAutoMineralAlchemy:
+	return 1 */
+	default:
+		return Infinite
 	}
-	// default to infinite
-	return Infinite
 }
 
 // mine this planet using the given miningOutput and numMines

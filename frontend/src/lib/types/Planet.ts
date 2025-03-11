@@ -168,13 +168,22 @@ export class CommandedPlanet implements Planet {
 		return 0;
 	}
 
-	// get the amount of a given item in the queue
+	/**
+	 * Get the amount of a given item in a planet's production queue
+	 * @param type the {@linkcode QueueItemType} of the item being checked
+	 * @param designNum the design number of the item being checked, or `undefined` if none are provided
+	 * @param queueItems an array of queue items to check, or this
+	 * @returns
+	 */
 	public getAmountInQueue(
 		type: QueueItemType,
-		queueItems: ProductionQueueItem[] | undefined = undefined
+		designNum: number | undefined = undefined,
+		queueItems: ProductionQueueItem[] = this.productionQueue
 	): number {
-		queueItems = queueItems ?? this.productionQueue;
-		return queueItems.reduce((count, i) => count + (i.type === type ? i.quantity : 0), 0);
+		return queueItems.reduce(
+			(count, i) => count + (i.type === type && i.designNum === designNum ? i.quantity : 0),
+			0
+		);
 	}
 
 	public getMaxBuildable(
@@ -192,9 +201,15 @@ export class CommandedPlanet implements Planet {
 			case QueueItemTypeDefenses:
 				return Math.max(0, 100 - (this.defenses + amountInQueue));
 			case QueueItemTypeAutoMines:
-				return Math.max(0, this.getMaxMines(race, productivePop ?? 0) - (this.mines + amountInQueue));
+				return Math.max(
+					0,
+					this.getMaxMines(race, productivePop ?? 0) - (this.mines + amountInQueue)
+				);
 			case QueueItemTypeMine:
-				return Math.max(0, this.getMaxMines(race, maxPopulation ?? 0) - (this.mines + amountInQueue));
+				return Math.max(
+					0,
+					this.getMaxMines(race, maxPopulation ?? 0) - (this.mines + amountInQueue)
+				);
 			case QueueItemTypeAutoFactories:
 				return Math.max(
 					0,
@@ -214,16 +229,16 @@ export class CommandedPlanet implements Planet {
 				return (
 					absSum(getTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
 				);
+			case QueueItemTypeAutoMineralAlchemy: // TODO: Make this cap 1 after auto alchemy rework
 			case QueueItemTypeAutoMineralPacket:
 			case QueueItemTypeIroniumMineralPacket:
 			case QueueItemTypeBoraniumMineralPacket:
 			case QueueItemTypeGermaniumMineralPacket:
 			case QueueItemTypeMixedMineralPacket:
-			case QueueItemTypeAutoMineralAlchemy:
 			case QueueItemTypeMineralAlchemy:
 				return Number.MAX_SAFE_INTEGER - amountInQueue;
 			case QueueItemTypePlanetaryScanner:
-				// only one scanner per planet, assuming the race can build scanners...
+				// only one scanner per planet, assuming the race can build them
 				return Math.max(0, (this.scanner || race.spec?.innateScanner ? 0 : 1) - amountInQueue);
 			case QueueItemTypeGenesisDevice:
 				return 1;
@@ -409,12 +424,9 @@ export class CommandedPlanet implements Planet {
 
 export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {
 	return {
-		ironium:
-			((((planet.mineralConcentration?.ironium ?? 0)) * numMines) / 1000.0) * mineOutput,
-		boranium:
-			((((planet.mineralConcentration?.boranium ?? 0)) * numMines) / 1000.0) * mineOutput,
-		germanium:
-			((((planet.mineralConcentration?.germanium ?? 0)) * numMines) / 1000.0) * mineOutput
+		ironium: (((planet.mineralConcentration?.ironium ?? 0) * numMines) / 1000.0) * mineOutput,
+		boranium: (((planet.mineralConcentration?.boranium ?? 0) * numMines) / 1000.0) * mineOutput,
+		germanium: (((planet.mineralConcentration?.germanium ?? 0) * numMines) / 1000.0) * mineOutput
 	};
 }
 

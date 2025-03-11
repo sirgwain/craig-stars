@@ -38,6 +38,7 @@ type Planet struct {
 	Boranium                          int                   `json:"boranium,omitempty"`
 	Germanium                         int                   `json:"germanium,omitempty"`
 	Colonists                         int                   `json:"colonists,omitempty"`
+	PartialPopulation                 int                   `json:"partialPopulation,omitempty"`
 	Mines                             int                   `json:"mines,omitempty"`
 	Factories                         int                   `json:"factories,omitempty"`
 	Defenses                          int                   `json:"defenses,omitempty"`

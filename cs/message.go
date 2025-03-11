@@ -18,9 +18,9 @@ type Target[T PlayerMessageTargetType | MapObjectType] struct {
 type MapObjectTarget = Target[MapObjectType]
 type PlayerMessageTarget = Target[PlayerMessageTargetType]
 
-// Throughout a turn various events will result in messages being sent to players.
-// Messages have a type and a target (the target is focused in the UI when you click the Goto button)
-// Messages also have a Spec that is used to store specific numbers for the UI to display on the message.
+// Throughout a turn, various events will result in messages being sent to players.
+// Messages have a type and a target (focused in the UI upon clicking the "Goto" button)
+// Messages also have a Spec that is used to store specific values for the UI to display.
 type PlayerMessage struct {
 	Target[PlayerMessageTargetType] `tstype:",extends"`
 	Type                            PlayerMessageType `json:"type"`
@@ -29,14 +29,17 @@ type PlayerMessage struct {
 	Spec                            PlayerMessageSpec `json:"spec"`
 }
 
-// The PlayerMessageSpec contains data specific to each message, like the amount of mines built
-// or the field of research leveled up in.
+// The PlayerMessageSpec contains various data specific to each message,
+// like the amount of something being built or the field of research being completed.
+// Each PlayerMessageTargetType will interpret these values differently, and many
+// will ignore it entirely.
 type PlayerMessageSpec struct {
 	// the thing being targeted by the message target, i.e. the planet for a fleet bombed a planet message
 	Target[MapObjectType] `tstype:",extends"`
 	Amount                int                             `json:"amount,omitempty"`
 	Amount2               int                             `json:"amount2,omitempty"`
 	PrevAmount            int                             `json:"prevAmount,omitempty"`
+	Bool                  bool                            `json:"bool,omitempty"`
 	SourcePlayerNum       int                             `json:"sourcePlayerNum,omitempty"`
 	DestPlayerNum         int                             `json:"destPlayerNum,omitempty"`
 	Name                  string                          `json:"name,omitempty"`
@@ -310,7 +313,7 @@ func (mc *messageClient) battleReports(player *Player) {
 }
 
 /*
- * Fleet Messages
+* Fleet Messages
  */
 
 func (m *messageClient) fleetBombedPlanet(player *Player, fleet *Fleet, planet *Planet, bombing BombingResult) {
@@ -627,7 +630,7 @@ func (m *messageClient) fleetTargetLost(player *Player, fleet *Fleet, targetName
 }
 
 /*
- * MineralPacket Messages
+* MineralPacket Messages
  */
 
 func (m *messageClient) planetBuiltMineralPacket(player *Player, planet *Planet, packet *MineralPacket) {
@@ -644,7 +647,7 @@ func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, 
 }
 
 /*
- * Planet Messages
+* Planet Messages
  */
 
 func (m *messageClient) planetHomeworld(player *Player, planet *Planet) {
@@ -924,7 +927,7 @@ func (m *messageClient) planetTerraform(player *Player, planet *Planet, habType 
 }
 
 /*
- * Player Messages
+* Player Messages
  */
 
 func (m *messageClient) playerDiscovered(player *Player, otherPlayer *Player) {

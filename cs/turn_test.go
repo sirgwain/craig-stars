@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -1724,14 +1725,12 @@ func Test_turn_buildStarbase(t *testing.T) {
 	player := game.Players[0]
 	planet := game.Planets[0]
 
-	// create a new starbase design
-	starbaseDesign := NewShipDesign(player.Num, 2).WithName("Sad empty base").WithHull(SpaceStation.Name).WithSpec(&rules, player)
-	player.Designs = append(player.Designs, starbaseDesign)
+	// create a new starbase design & add it to the queue
+	emptyBaseDesign := NewShipDesign(player.Num, 2).WithName("Sad empty base").WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	player.Designs = append(player.Designs, emptyBaseDesign)
 
-	// build a starbase
-	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: starbaseDesign.Num})
-	planet.Cargo = Mineral{1000, 1000, 1000}.ToCargo()
-	planet.setPopulation(1_000_000)
+	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: emptyBaseDesign.Num})
+	planet.Cargo = Cargo{1000, 1000, 1000, 10_000}
 	planet.Factories = 1000
 
 	turn := turnGenerator{
@@ -1744,31 +1743,65 @@ func Test_turn_buildStarbase(t *testing.T) {
 	assert.Nil(t, planet.Starbase)
 	assert.Equal(t, 0, len(game.Starbases))
 
-	// generate a turn to build a starbase
+	// generate a turn to build the starbase
 	turn.generateTurn()
 
-	// should have a starbase at the planet
+	emptyBaseDesign.Spec.NumBuilt++ // increment numBuilt so json doesn't error
+
+	// should have the old base on the planet
 	assert.NotNil(t, planet.Starbase)
 	assert.Equal(t, 1, len(game.Starbases))
+	test.CompareAsJSON(t, planet.Starbase.Tokens[0].design, emptyBaseDesign)
+
+	// give new base 90% damage
+	planet.Starbase.Tokens[0].Damage = 450
 
 	// upgrade the starbase with A LASER!
-	starbaseDesignUpgrade := NewShipDesign(player.Num, 3).WithName("LASER BASE!").WithHull(SpaceStation.Name).WithSlots(
+	// Also some superlat to check armor dmg stats
+	starbaseDesignUpgrade := NewShipDesign(player.Num, 3).WithName("LASER BASE!!!!!!").WithHull(SpaceStation.Name).WithSlots(
 		[]ShipDesignSlot{
 			{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 1},
-		},
-	).WithSpec(&rules, player)
+			{HullComponent: Superlatanium.Name, HullSlotIndex: 4, Quantity: 1},
+		}).WithSpec(&rules, player)
 	player.Designs = append(player.Designs, starbaseDesignUpgrade)
 
-	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: starbaseDesignUpgrade.Num})
+	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{
+		Type:      QueueItemTypeStarbase,
+		Quantity:  1,
+		DesignNum: starbaseDesignUpgrade.Num,
+	})
 
 	// generate a turn to upgrade the starbase
 	turn.generateTurn()
 
-	// should have an upgraded starbase at the planet, and the other should be
-	// marked for deletion
-	assert.Equal(t, "LASER BASE!", planet.Starbase.Tokens[0].design.Name)
+	starbaseDesignUpgrade.Spec.NumBuilt++
+
+	// should have an upgraded starbase at the planet,
+	// with the other base marked for deletion
+	// New base inherits 90% damage from the original due to no repairs
 	assert.Equal(t, 2, len(game.Starbases))
+	test.CompareAsJSON(t, planet.Starbase.Tokens[0].design, starbaseDesignUpgrade)
+	assert.InDelta(t, 0.9, planet.Starbase.Tokens[0].Damage/
+		float64(planet.Starbase.Tokens[0].design.Spec.Armor), 0.005)
 	assert.True(t, game.Starbases[0].Delete)
+	assert.False(t, game.Starbases[1].Delete)
+
+	// give player RS and swap back to the old base
+	player.Race = *player.Race.WithLRT(RS)
+
+	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: emptyBaseDesign.Num})
+
+	turn.generateTurn()
+
+	// should have the old base again, with the laser base marked for deletion
+	// still has roughly 90% damage
+	assert.Equal(t, 2, len(game.Starbases))
+	test.CompareAsJSON(t, planet.Starbase.Tokens[0].design, emptyBaseDesign)
+	assert.InDelta(t, 0.9, planet.Starbase.Tokens[0].Damage/
+		float64(planet.Starbase.Tokens[0].design.Spec.Armor), 0.005)
+	assert.False(t, game.Starbases[0].Delete)
+	assert.True(t, game.Starbases[1].Delete)
+
 }
 
 func Test_turn_fleetTransferOwner(t *testing.T) {

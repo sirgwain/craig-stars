@@ -1450,70 +1450,76 @@ func (fleet *Fleet) getCargoUnloadAmount(dest cargoHolder, cargoType CargoType, 
 // Repair a fleet. This changes based on where the fleet is
 func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player, orbiting *Planet) {
 	needsRepair := false
+	// Check if anything even needs repairing
 	for _, token := range fleet.Tokens {
 		if token.QuantityDamaged > 0 {
 			needsRepair = true
+			break
 		}
 	}
+
 	if !needsRepair {
 		return
 	}
 
-	rate := RepairRateMoving
-
-	if len(fleet.Waypoints) == 1 {
-		if orbiting != nil {
-			if fleet.Spec.Bomber && player.IsEnemy(orbiting.PlayerNum) {
-				// no repairs while bombing
-				rate = RepairRateNone
-			} else {
-				if orbiting.OwnedBy(player.Num) {
-					rate = RepairRateOrbitingOwnPlanet
-				} else {
-					rate = RepairRateOrbiting
-				}
-			}
-		} else {
-			rate = RepairRateStopped
-		}
+	var rate RepairRate
+	switch {
+	case len(fleet.Waypoints) > 1:
+		rate = RepairRateMoving
+	case orbiting == nil:
+		// we're standing still, but not at a planet
+		rate = RepairRateStopped
+	case fleet.Spec.Bomber && player.IsEnemy(orbiting.PlayerNum):
+		// no repairs while bombing
+		rate = RepairRateNone
+	case orbiting.OwnedBy(player.Num):
+		// Confirmed - boosted repairs only occur on _your_ planets (not allies')
+		rate = RepairRateOrbitingOwnPlanet
+	default:
+		rate = RepairRateOrbiting
 	}
 
 	repairRate := rules.RepairRates[rate]
-	if repairRate > 0 {
-		// apply any bonuses for the fleet
-		repairRate += fleet.Spec.RepairBonus
+	if repairRate <= 0 {
+		return
+	}
 
-		if rate == RepairRateOrbitingOwnPlanet && orbiting.Starbase != nil && !orbiting.Starbase.Delete {
-			// apply any bonuses for the starbase if we own this planet and it has a starbase
-			repairRate += orbiting.Starbase.Spec.RepairBonus
+	// apply any bonuses for this fleet
+	// TODO: Should this apply to _all_ fleets at the given location?
+	// We could probably pre-screen fleets at the same location for global
+	// repair bonus the first time around and recycle that value for subsequent ones
+	repairRate += fleet.Spec.RepairBonus
+
+	if rate == RepairRateOrbitingOwnPlanet && orbiting.Starbase != nil && !orbiting.Starbase.Delete {
+		// apply any bonuses from orbiting our own starbase (if present)
+		repairRate += orbiting.Starbase.Spec.RepairBonus
+	}
+
+	for i := range fleet.Tokens {
+		token := &fleet.Tokens[i]
+
+		// IS races double repair
+		// repair some percentage of armor
+		// 100dp armor@3% repair over a planet means
+		// it repairs 3dp per turn. All damaged tokens repair
+		// at the same rate
+		repairAmount := max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
+
+		// Remove damage from this fleet by its armor * repairRate
+		token.Damage = math.Floor(max(0, token.Damage-float64(repairAmount)))
+		if token.Damage == 0 {
+			token.QuantityDamaged = 0
 		}
 
-		for i := range fleet.Tokens {
-			token := &fleet.Tokens[i]
+		log.Debug().
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Str("Token", token.design.Name).
+			Int("RepairAmount", repairAmount).
+			Int("QuantityDamaged", token.QuantityDamaged).
+			Int("Damage", int(token.Damage)).
+			Msgf("fleet token repaired")
 
-			// IS races double repair
-			// repair some percentage of armor
-			// 100dp armor@3% repair over a planet means
-			// it repairs 3dp per turn. All damaged tokens repair
-			// at the same rate
-			repairAmount := max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
-
-			// Remove damage from this fleet by its armor * repairRate
-			token.Damage = math.Floor(max(0, token.Damage-float64(repairAmount)))
-			if token.Damage == 0 {
-				token.QuantityDamaged = 0
-			}
-
-			log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Str("Token", token.design.Name).
-				Int("RepairAmount", repairAmount).
-				Int("QuantityDamaged", token.QuantityDamaged).
-				Int("Damage", int(token.Damage)).
-				Msgf("fleet token repaired")
-
-		}
 	}
 }
 

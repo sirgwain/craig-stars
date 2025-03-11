@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { sum, totalMinerals } from '$lib/types/Cost';
+	import { totalMinerals } from '$lib/types/Cost';
 	import { absSum } from '$lib/types/Hab';
 	import { getName, getPluralName } from '$lib/types/QueueItemType';
 	import type { PlanetIntel, PlayerIntel } from '$lib/types/cs';
@@ -55,6 +55,22 @@
 	let { message, planet, owner }: Props = $props();
 
 	let growthRate = $derived($player.race.growthRate * ($player.race.spec?.growthFactor ?? 1));
+	let canceledMessage = $derived.by(() => {
+		if (!message.spec.cost) {
+			return '';
+		}
+		return (
+			' and you have been refunded' +
+			andCommaList([
+				(message.spec.cost.ironium ?? 0) > 0 ? `${message.spec.cost.ironium}kT pf Ironium` : '',
+				(message.spec.cost.boranium ?? 0) > 0 ? `${message.spec.cost.boranium}kT of Boranium` : '',
+				(message.spec.cost.germanium ?? 0) > 0
+					? `${message.spec.cost.germanium}kT of Germanium`
+					: '',
+				(message.spec.cost.resources ?? 0) > 0 ? `${message.spec.cost.resources} resources` : ''
+			])
+		);
+	});
 </script>
 
 {#if message.text}
@@ -123,72 +139,72 @@
 		You have built {message.spec.amount ?? 0} mines on {planet.name}.
 	{/if}
 {:else if message.type === PlayerMessagePlanetBuiltInvalidItem}
-	{@const name =
+	{@const itemName =
 		message.spec.prevAmount === 1
-			? getName(message.spec.queueItemType)
-			: getPluralName(message.spec.queueItemType)}
+			? getName(message.spec.queueItemType!)
+			: getPluralName(message.spec.queueItemType!)}
+
 	{@const qty =
 		message.spec.prevAmount === 1
-			? name.charAt(0).match('[aeiou]')
-				? 'a'
-				: 'an'
+			? ['a', 'e', 'i', 'o', 'u'].includes(itemName.charAt(0))
+				? 'an'
+				: 'a'
 			: (message.spec.prevAmount ?? 0).toLocaleString()}
 	You have attempted to build {qty}
-	{name} on {planet.name}, but
-	{planet.name}
+	{itemName} on {planet.name}, but {planet.name}
 	{#if message.spec.amount2 === 0}
-		is unable to build any more of them. The order has
+		is unable to build any more of them. All
 	{:else}
-		can only build {(message.spec.amount ?? 0).toLocaleString()} more of them. The remaining
-		{(message.spec.amount2 ?? 0).toLocaleString()} items have
+		can only build {(message.spec.amount2 ?? 0).toLocaleString()} more of them. The remaining
 	{/if}
-	{#if message.spec.cost && sum(message.spec.cost) > 0}
-		been canceled and you have been refunded {andCommaList([
-			(message.spec.cost.ironium ?? 0) > 0 ? `${message.spec.cost.ironium}kT pf Ironium` : '',
-			(message.spec.cost.boranium ?? 0) > 0 ? `${message.spec.cost.boranium}kT of Boranium` : '',
-			(message.spec.cost.germanium ?? 0) > 0 ? `${message.spec.cost.germanium}kT of Germanium` : '',
-			(message.spec.cost.resources ?? 0) > 0 ? `${message.spec.cost.resources} resources` : ''
-		])}.
-	{:else}
-		been canceled.
-	{/if}
+	{(message.spec.amount ?? 0).toLocaleString()} items have been canceled{canceledMessage}.
 {:else if message.type === PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver}
-	{#if message.spec.amount === 1}
-		You have attempted to build a mineral packet on {planet.name}, but you have no starbase equipped
-		with a mass driver on this planet. The order has
+	{@const itemName = message.spec.queueItemType
+		? message.spec.prevAmount === 1
+			? getName(message.spec.queueItemType)
+			: getPluralName(message.spec.queueItemType)
+		: (message.spec.prevAmount ?? 0) > 1
+			? 'mineral packets'
+			: 'NEGATIVE PACKET QUANTITY AAAAAAAAAAAAAA'}
+	<!-- QueueItemType is set if and only if exactly 1 packet type was canceled, so it
+		being false necessitates having at least 2 invalid packets in the queue.
+		message.spec.prevAmount tracks initial item quantity, so it being below 1
+		means we tried to build 0 or less packets. -->
+	{@const qty = message.spec.queueItemType
+		? 'a ' + (message.spec.amount ?? 0) + 'kT'
+		: (message.spec.amount ?? 0) + 'kT worth of'}
+	You have attempted to build {qty}
+	{itemName} on {planet.name}, but you have no starbase equipped with a mass driver on this planet
+	to fling it with.
+	{#if message.spec.queueItemType || message.spec.amount2 === 1}
+		The order has been canceled
 	{:else}
-		You have attempted to build a total of {(message.spec.amount ?? 0).toLocaleString()} mineral packets
-		on {planet.name}, but you have no starbase equipped with a mass driver on this planet. The
-		orders have
+		All {message.spec.amount2 ?? 0} orders have been canceled
 	{/if}
-	{#if message.spec.cost && sum(message.spec.cost) > 0}
-		been canceled and you have been refunded {andCommaList([
-			(message.spec.cost.ironium ?? 0) > 0 ? `${message.spec.cost.ironium}kT pf Ironium` : '',
-			(message.spec.cost.boranium ?? 0) > 0 ? `${message.spec.cost.boranium}kT of Boranium` : '',
-			(message.spec.cost.germanium ?? 0) > 0 ? `${message.spec.cost.germanium}kT of Germanium` : '',
-			(message.spec.cost.resources ?? 0) > 0 ? `${message.spec.cost.resources} resources` : ''
-		])}.
-	{:else}
-		been canceled.
-	{/if}
+	{canceledMessage}.
 {:else if message.type === PlayerMessagePlanetBuiltInvalidMineralPacketNoTarget}
-	{#if message.spec.amount === 1}
-		You have attempted to build a mineral packet on {planet.name}, but you have failed to specify a
-		planet to target. The order has
+	{@const itemName = message.spec.queueItemType
+		? message.spec.prevAmount === 1
+			? getName(message.spec.queueItemType)
+			: getPluralName(message.spec.queueItemType)
+		: (message.spec.prevAmount ?? 0) > 1
+			? 'mineral packets'
+			: 'NEGATIVE PACKET QUANTITY AAAAAAAAAAAAAA'}
+	<!-- QueueItemType is set if and only if exactly 1 packet type was canceled, so it
+		being false necessitates having at least 2 invalid packets in the queue.
+		message.spec.prevAmount tracks initial item quantity, so it being below 1
+		means we tried to build 0 or less packets. -->
+	{@const qty = message.spec.queueItemType
+		? 'a ' + (message.spec.amount ?? 0) + 'kT'
+		: (message.spec.amount ?? 0) + 'kT worth of'}
+	You have attempted to build {qty}
+	{itemName} on {planet.name}, but you have failed to specify a planet to target.
+	{#if message.spec.queueItemType || message.spec.amount2 === 1}
+		The order has been canceled
 	{:else}
-		You have attempted to build a total of {(message.spec.amount ?? 0).toLocaleString()} mineral packets
-		on {planet.name}, but you have failed to specify a planet to target. The orders have
+		All {message.spec.amount2 ?? 0} orders have been canceled
 	{/if}
-	{#if message.spec.cost && sum(message.spec.cost) > 0}
-		been canceled and you have been refunded {andCommaList([
-			(message.spec.cost.ironium ?? 0) > 0 ? `${message.spec.cost.ironium}kT pf Ironium` : '',
-			(message.spec.cost.boranium ?? 0) > 0 ? `${message.spec.cost.boranium}kT of Boranium` : '',
-			(message.spec.cost.germanium ?? 0) > 0 ? `${message.spec.cost.germanium}kT of Germanium` : '',
-			(message.spec.cost.resources ?? 0) > 0 ? `${message.spec.cost.resources} resources` : ''
-		])}
-	{:else}
-		been canceled.
-	{/if}
+	{canceledMessage}.
 {:else if message.type === PlayerMessagePlanetBuiltScanner}
 	{planet.name} has built a new {message.spec.name} planetary scanner.
 {:else if message.type === PlayerMessagePlanetBuiltStarbase}

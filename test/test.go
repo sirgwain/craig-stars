@@ -15,14 +15,16 @@ import (
 //
 // If the comparison fails, this marks the test as a failure and
 // writes 3 JSONL files to ./tmp, containing serialized versions of got and want
-// and a pretty-printed difference between them courtesy of [github.com/nsf/jsondiff].
+// and a pretty-printed difference between the two (courtesy of [github.com/nsf/jsondiff]).
+// This json difference is passed to [testing.T.Errorf] as well for ease of use.
 //
 // These files are continuously appended to during a test run (sectioned off by test name),
-// and should be moved or removed after the package finishes testing.
+// and must be moved or removed after the package finishes testing (such as [TestMain]).
 // Invocation from parallel tests is untested and not recommended.
 //
-// The json difference is passed to [testing.T.Fatalf], so no extra function calls
-// should be made after calling this.
+// Failures to parse JSON will halt test execution and fail immediately.
+//
+// [TestMain]: https://pkg.go.dev/testing#hdr-Main
 func CompareAsJSON(t TestingT, got, want any) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -31,7 +33,7 @@ func CompareAsJSON(t TestingT, got, want any) {
 	if got == nil && want == nil {
 		return
 	} else if (got == nil) != (want == nil) { // one is nil and the other isn't
-		t.Fatalf("Unequal values (nilness): got = %v, want = %v", got, want)
+		t.Errorf("Unequal values (nilness): got = %v, want = %v", got, want)
 	}
 
 	gotJson, err := json.MarshalIndent(got, "", "\t")
@@ -52,28 +54,26 @@ func CompareAsJSON(t TestingT, got, want any) {
 		t.Fatalf("error creating JSON diffs: \n%v", err)
 	}
 
-	// replace comments
+	// Remove block comments in the stdout version since we don't care about proper syntax
 	r := strings.NewReplacer("/* ", "", " */", ":")
 
-	t.Fatalf("JSONs not equal; diff between got & want: \n%s", r.Replace(diff))
+	t.Errorf("JSONs not equal; diff between got & want: \n%s", r.Replace(diff))
 }
 
 // Parsing options for jsondiff.
-// Fun fact: this is guaranteed to produce valid JSONL syntax.
-// Block comments are removed in the stdout version since we don't care about syntax there.
+// Fun fact: this is guaranteed to produce valid JSONL
+// assuming the input is also valid (which it always is).
 var options = jsondiff.Options{
 	Added:            jsondiff.Tag{Begin: "/* Added */ ", End: ""},
 	Removed:          jsondiff.Tag{Begin: "/* Removed */ ", End: ""},
 	Changed:          jsondiff.Tag{Begin: "/* Changed */ [ ", End: " ]"},
 	ChangedSeparator: ", ",
 	Indent:           "\t", // tab indentation
-
-	SkipMatches: true,
+	SkipMatches:      true,
 }
 
 // Parse JSON diffs, creating files to log values as appropriate.
 func parseJSONDiff(gotJSON, wantJSON, testName string) (diff string, err error) {
-	// compare diff without whitespace because jsondiff REALLY hates whitespace
 	_, diff = jsondiff.Compare([]byte(gotJSON), []byte(wantJSON), &options)
 
 	os.MkdirAll("../tmp", 0755)

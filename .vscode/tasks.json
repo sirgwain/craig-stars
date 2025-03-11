@@ -5,10 +5,11 @@
 		"showReuseMessage": false,
 		"clear": true
 	},
+	"type": "shell",
+	"runOptions": { "reevaluateOnRerun": false },
 	"tasks": [
 		{
 			"label": "Run all tests",
-			"type": "process",
 			"command": "mage",
 			"args": ["test"],
 			"group": "test",
@@ -23,12 +24,11 @@
 		},
 		{
 			"label": "Go: run tests",
-			"type": "shell",
 			"command": "mage",
 			"args": [
 				"test_golang",
 				{
-					"value": "--run=\"${input:goTestName}\"",
+					"value": "${input:packages} --run=\"${input:goTestName}\"",
 					"quoting": "strong"
 				}
 			],
@@ -67,7 +67,6 @@
 		},
 		{
 			"label": "Go: generate files",
-			"type": "process",
 			"problemMatcher": "$go",
 			"group": "build",
 			"icon": {
@@ -99,7 +98,6 @@
 		},
 		{
 			"label": "Build server",
-			"type": "shell",
 			"command": "mage",
 			"args": ["build"],
 			"group": "build",
@@ -128,7 +126,6 @@
 		{
 			"hide": true,
 			"label": "Launch backend",
-			"type": "shell",
 			"command": "mage",
 			"args": ["launch_backend"],
 			"icon": {
@@ -154,7 +151,6 @@
 			"hide": true,
 			"label": "Launch frontend",
 			"isBackground": true,
-			"type": "shell",
 			"command": "mage",
 			"args": ["launch_frontend"],
 			"icon": {
@@ -195,7 +191,6 @@
 		{
 			"hide": true,
 			"label": "Compile Mage debug file",
-			"type": "shell",
 			"command": "mage",
 			"args": ["-compile", "./magefile-debug"],
 			"icon": {
@@ -210,7 +205,6 @@
 		{
 			"hide": true,
 			"label": "Delete Mage debug file",
-			"type": "shell",
 			"command": "rm magefiles/magefile-debug",
 			"icon": {
 				"color": "terminal.ansiBlack",
@@ -223,6 +217,12 @@
 		}
 	],
 	"inputs": [
+		{
+			"id": "packages",
+			"type": "promptString",
+			"default": "./...",
+			"description": "Enter list of packages to run \"go test\" on (relative from workspace root). Defaults to running all tests if left empty."
+		},
 		{
 			"id": "goTestName",
 			"type": "promptString",

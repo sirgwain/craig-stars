@@ -16,7 +16,9 @@
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 
 	let reportAge = $derived('reportAge' in planet ? (planet.reportAge ?? 0) : 0);
-	let growthAmount = $derived(roundTo100((planet.spec.growthAmount ?? 0) + (planet.spec.partialPopulation ?? 0), Math.floor));
+	let growthAmount = $derived(
+		roundTo100((planet.spec.growthAmount ?? 0) + (planet.spec.partialPopulation ?? 0), Math.floor)
+	);
 	let habitability = $derived(planet.spec.habitability ?? 0);
 	let population = $derived((planet.cargo?.colonists ?? 0) * 100);
 </script>
@@ -87,8 +89,7 @@
 				The <span class="font-semibold">{playerFinder.getPlayerName(planet.playerNum)}</span>
 				population on
 				<span class="font-semibold">{planet.name}</span> is approximately
-				<span class="font-semibold">{roundTo100(population ?? 0).toLocaleString()}</span
-				>.
+				<span class="font-semibold">{roundTo100(population ?? 0).toLocaleString()}</span>.
 			</p>
 			{#if habitability > 0}
 				<p>

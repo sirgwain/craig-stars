@@ -75,6 +75,7 @@ type QueueItemCompletionEstimate struct {
 type QueueItemType string
 
 const (
+	QueueItemTypeNone                   QueueItemType = ""
 	QueueItemTypeIroniumMineralPacket   QueueItemType = "IroniumMineralPacket"
 	QueueItemTypeBoraniumMineralPacket  QueueItemType = "BoraniumMineralPacket"
 	QueueItemTypeGermaniumMineralPacket QueueItemType = "GermaniumMineralPacket"
@@ -108,7 +109,7 @@ func (t QueueItemType) IsAuto() bool {
 		t == QueueItemTypeAutoMineralPacket
 }
 
-// true if this is a packet type
+// true if this is a packet type (concrete or auto)
 func (t QueueItemType) IsPacket() bool {
 	return t == QueueItemTypeAutoMineralPacket ||
 		t == QueueItemTypeMixedMineralPacket ||
@@ -267,8 +268,9 @@ func (p *producer) produce() (result productionResult, err error) {
 		}
 
 		// make sure this item is buildable, notifying the player and canceling it if not.
-		if msgType, valid := p.validateItem(item, planet); !valid {
-			p.updatePacketCanceledMessage(msgType, &result, item)
+		if msgType, valid := p.validateItem(item, planet, result.starbase); !valid {
+			p.updatePacketCanceledMessage(msgType, &result, item,
+				itemCost.ToMineral().MultiplyFloat64(1/p.player.Race.Spec.PacketMineralCostFactor, math.Floor).Total())
 			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, canceled: true})
 			continue
 		}
@@ -479,8 +481,11 @@ func (p *producer) getItemCost(rules *Rules, player *Player, planet *Planet, ite
 }
 
 // validate an item in the production queue
-func (p *producer) validateItem(item ProductionQueueItem, planet *Planet) (msgType PlayerMessageType, valid bool) {
-	if item.Type.IsPacket() && !planet.Spec.HasMassDriver {
+func (p *producer) validateItem(item ProductionQueueItem, planet *Planet, builtBase *ShipDesign) (msgType PlayerMessageType, valid bool) {
+	if item.Type.IsPacket() && !planet.Spec.HasMassDriver &&
+		(builtBase == nil || builtBase.Spec.SafePacketSpeed == 0) {
+		// We have no mass driver ATM and our current queued starbase
+		// either doesn't exist or can't fling packets
 		return PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver, false
 	}
 	if item.Type.IsPacket() && planet.PacketTargetNum == None {
@@ -625,28 +630,40 @@ func (p *producer) updateCanceledMessage(result *productionResult, item Producti
 				PrevAmount:    item.Quantity + numCanceled, // Total amount
 			}))
 	} else {
+		msg := &result.messages[index]
 		// update the previous message with more amounts
-		result.messages[index].Spec.Amount += numCanceled
-		result.messages[index].Spec.PrevAmount += item.Quantity + numCanceled
-		result.messages[index].Spec.Cost = result.messages[index].Spec.Cost.Add(item.Allocated)
+		msg.Spec.Amount += numCanceled
+		msg.Spec.PrevAmount += item.Quantity + numCanceled
+		msg.Spec.Cost = msg.Spec.Cost.Add(item.Allocated)
 	}
 }
 
-func (p *producer) updatePacketCanceledMessage(msgType PlayerMessageType, result *productionResult, item ProductionQueueItem) {
+func (p *producer) updatePacketCanceledMessage(msgType PlayerMessageType, result *productionResult, item ProductionQueueItem, weight int) {
+	// For packets, we don't care _what_ type of packet got canceled, only that _a_ packet was canceled.
 	if index := slices.IndexFunc(result.messages, func(message PlayerMessage) bool {
-		return message.Type == msgType && message.Spec.QueueItemType == item.Type
+		return message.Type == msgType
 	}); index == -1 {
 		// message for this type doesn't exist; add one
 		result.messages = append(result.messages, newPlanetMessage(msgType, p.planet).
 			withSpec(PlayerMessageSpec{
 				Name:          p.planet.Name,
+				QueueItemType: item.Type, // Keep track of item type if this is the _only_ packet in the queue
 				Cost:          item.Allocated,
-				QueueItemType: item.Type,
-				Amount:        item.Quantity, // Amount canceled
+				Amount:        weight,        // total kT of packet cargo
+				Amount2:       1,             // number of orders
+				PrevAmount:    item.Quantity, // Items built (equal to items canceled)
 			}))
 	} else {
+		msg := &result.messages[index]
 		// update the previous message with more amounts
-		result.messages[index].Spec.Amount += item.Quantity
-		result.messages[index].Spec.Cost = result.messages[index].Spec.Cost.Add(item.Allocated)
+		if msg.Spec.QueueItemType != item.Type {
+			// If this is a different kind of packet than earlier
+			msg.Spec.QueueItemType = QueueItemTypeNone
+		}
+
+		msg.Spec.PrevAmount += item.Quantity
+		msg.Spec.Amount += weight
+		msg.Spec.Amount2++
+		msg.Spec.Cost = msg.Spec.Cost.Add(item.Allocated)
 	}
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { population } from '$lib/types/Cargo'
+	import { population } from '$lib/types/Cargo';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { PlanetIntel } from '$lib/types/cs';
 	import MapObjectScaler from './MapObjectScaler.svelte';
@@ -33,9 +33,7 @@
 		let strokeColor = '#555';
 
 		// TODO: Make radius/width configurable in settings
-		let radius = Math.sqrt(
-			Math.max((pop / 1_300_000) * fullyPopulatedArea, minArea) / Math.PI
-		);
+		let radius = Math.sqrt(Math.max((pop / 1_300_000) * fullyPopulatedArea, minArea) / Math.PI);
 		let strokeWidth = pop / 1_300_000;
 
 		if (planet.playerNum) {

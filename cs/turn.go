@@ -1579,8 +1579,13 @@ func (t *turnGenerator) buildStarbase(player *Player, planet *Planet, design *Sh
 	player.Stats.TokensBuilt++
 	design.Spec.NumBuilt++
 
-	// remove the old starbase
+	var prevDamage float64
+	var prevArmor int
+	// remove the old starbase, tracking its prior damage
 	if planet.Starbase != nil {
+		// TODO: Make this account for quantity if or when multi token starbases become a thing
+		prevDamage = planet.Starbase.Tokens[0].Damage
+		prevArmor = planet.Starbase.Tokens[0].design.Spec.Armor
 		t.game.deleteStarbase(planet.Starbase)
 		planet.Starbase = nil
 		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
@@ -1588,12 +1593,19 @@ func (t *turnGenerator) buildStarbase(player *Player, planet *Planet, design *Sh
 
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, &starbase)
+
+	// if the prior starbase was damaged, set the new base's damage proportionally to the old base's dmg %
+	if prevDamage > 0 && prevArmor > 0 {
+		starbase.Tokens[0].QuantityDamaged = 1
+		starbase.Tokens[0].Damage = (prevDamage / float64(prevArmor)) * float64(starbase.Tokens[0].design.Spec.Armor)
+	}
+
 	planet.setStarbase(&starbase)
 	t.log.Debug().
 		Int("Player", starbase.PlayerNum).
 		Str("Planet", planet.Name).
 		Str("Starbase", starbase.Name).
-		Msgf("starbase built")
+		Msgf("built starbase")
 
 	t.game.Starbases = append(t.game.Starbases, &starbase)
 	if err := t.game.addStarbase(&starbase); err != nil {

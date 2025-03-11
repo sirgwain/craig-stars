@@ -448,7 +448,7 @@ func (u *Universe) addStarbase(starbase *Fleet) error {
 		token := &starbase.Tokens[i]
 		token.design = u.designsByNum[playerObjectKey(starbase.PlayerNum, token.DesignNum)]
 		if token.design == nil {
-			return fmt.Errorf("unable to find design %d for fleet %s", token.DesignNum, starbase.Name)
+			return fmt.Errorf("unable to find design %d for starbase fleet %s", token.DesignNum, starbase.Name)
 		}
 	}
 

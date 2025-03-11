@@ -10,7 +10,7 @@ describe('andCommandList', () => {
 	});
 	it('skips nullish strings', () => {
 		expect(andCommaList([''])).toBe('');
-		expect(andCommaList(['0', 'apple yay'])).toBe('apple yay');
-		expect(andCommaList(['aeeee', '0', 'apple yay'])).toBe('aeeee and apple yay');
+		expect(andCommaList(['', 'apple yay'])).toBe('apple yay');
+		expect(andCommaList(['aeeee', '', 'apple yay'])).toBe('aeeee and apple yay');
 	});
 });

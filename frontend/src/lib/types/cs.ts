@@ -287,7 +287,7 @@ export const TransportActionLoadAmount: WaypointTaskTransportAction = 'LoadAmoun
  */
 export const TransportActionUnloadAmount: WaypointTaskTransportAction = 'UnloadAmount';
 /**
- * Loads up to the specified portion of the cargo hold subject to amount available at waypoint and room left in hold.
+ * Loads up to the specified portion of the cargo hold, subject to amount available at waypoint and room left in hold.
  */
 export const TransportActionFillPercent: WaypointTaskTransportAction = 'FillPercent';
 /**
@@ -296,9 +296,8 @@ export const TransportActionFillPercent: WaypointTaskTransportAction = 'FillPerc
 export const TransportActionWaitForPercent: WaypointTaskTransportAction = 'WaitForPercent';
 /**
  * (minerals and colonists only) This command waits until all other loads and unloads are complete,
- * then loads as many colonists or amount of a mineral as will fit in the remaining space. For example,
- * setting Load All Germanium, Load Dunnage Ironium, will load all the Germanium that is available,
- * then as much Ironium as possible. If more than one dunnage cargo is specified, they are loaded in
+ * then loads as many colonists or minerals will fit in the remaining space.
+ * If more than one dunnage cargo is specified, they are performed in
  * the order of Ironium, Boranium, Germanium, and Colonists.
  */
 export const TransportActionLoadDunnage: WaypointTaskTransportAction = 'LoadDunnage';
@@ -309,7 +308,8 @@ export const TransportActionLoadDunnage: WaypointTaskTransportAction = 'LoadDunn
 export const TransportActionSetAmountTo: WaypointTaskTransportAction = 'SetAmountTo';
 /**
  * Load or unload the cargo until the amount at the waypoint is the amount specified.
- * This order is always carried out to the best of the fleet’s ability that turn but does not prevent the fleet from moving on.
+ * This order is always carried out to the best of the fleet’s ability that turn
+ * but does not prevent the fleet from moving on.
  */
 export const TransportActionSetWaypointTo: WaypointTaskTransportAction = 'SetWaypointTo';
 /**
@@ -610,9 +610,9 @@ export interface Target<T extends PlayerMessageTargetType | MapObjectType> {
 export type MapObjectTarget = Target<MapObjectType>;
 export type PlayerMessageTarget = Target<PlayerMessageTargetType>;
 /**
- * Throughout a turn various events will result in messages being sent to players.
- * Messages have a type and a target (the target is focused in the UI when you click the Goto button)
- * Messages also have a Spec that is used to store specific numbers for the UI to display on the message.
+ * Throughout a turn, various events will result in messages being sent to players.
+ * Messages have a type and a target (focused in the UI upon clicking the "Goto" button)
+ * Messages also have a Spec that is used to store specific values for the UI to display.
  */
 export interface PlayerMessage extends Target<PlayerMessageTargetType> {
 	type: PlayerMessageType;
@@ -621,13 +621,16 @@ export interface PlayerMessage extends Target<PlayerMessageTargetType> {
 	spec: PlayerMessageSpec;
 }
 /**
- * The PlayerMessageSpec contains data specific to each message, like the amount of mines built
- * or the field of research leveled up in.
+ * The PlayerMessageSpec contains various data specific to each message,
+ * like the amount of something being built or the field of research being completed.
+ * Each PlayerMessageTargetType will interpret these values differently, and many
+ * will ignore it entirely.
  */
 export interface PlayerMessageSpec extends Target<MapObjectType> {
 	amount?: number /* int */;
 	amount2?: number /* int */;
 	prevAmount?: number /* int */;
+	bool?: boolean;
 	sourcePlayerNum?: number /* int */;
 	destPlayerNum?: number /* int */;
 	name?: string;
@@ -936,6 +939,7 @@ export interface Planet extends GameDBObject, MapObject, PlanetOrders {
 	mineralConcentration: Mineral;
 	mineYears: Mineral;
 	cargo: Cargo;
+	partialPopulation: number /* int */; // population not in a multiple of 100
 	mines: number /* int */;
 	factories: number /* int */;
 	defenses: number /* int */;
@@ -966,7 +970,6 @@ export interface PlanetSpec extends PlanetStarbaseSpec {
 	maxPossibleFactories?: number /* int */;
 	maxPossibleMines?: number /* int */;
 	miningOutput?: Mineral;
-	partialPopulation?: number /* int */; // population not in a multiple of 100
 	populationDensity?: number /* float64 */;
 	resourcesPerYear?: number /* int */;
 	resourcesPerYearAvailable?: number /* int */;
@@ -1177,12 +1180,9 @@ export interface PlayerMapObjects {
 //////////
 // source: production.go
 
-export interface QueueItemCompletionEstimate {
-	skipped?: boolean;
-	yearsToBuildOne?: number /* int */;
-	yearsToBuildAll?: number /* int */;
-	yearsToSkipAuto?: number /* int */;
-}
+/**
+ * The producer struct performs planetary production.
+ */
 export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	type: QueueItemType;
 	designNum?: number /* int */;
@@ -1190,7 +1190,14 @@ export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	allocated: Cost;
 	tags: Tags;
 }
+export interface QueueItemCompletionEstimate {
+	canceled?: boolean;
+	yearsToBuildOne?: number /* int */;
+	yearsToBuildAll?: number /* int */;
+	yearsToSkipAuto?: number /* int */;
+}
 export type QueueItemType = string;
+export const QueueItemTypeNone: QueueItemType = '';
 export const QueueItemTypeIroniumMineralPacket: QueueItemType = 'IroniumMineralPacket';
 export const QueueItemTypeBoraniumMineralPacket: QueueItemType = 'BoraniumMineralPacket';
 export const QueueItemTypeGermaniumMineralPacket: QueueItemType = 'GermaniumMineralPacket';
@@ -1212,7 +1219,7 @@ export const QueueItemTypeStarbase: QueueItemType = 'Starbase';
 export const QueueItemTypePlanetaryScanner: QueueItemType = 'PlanetaryScanner';
 export const QueueItemTypeGenesisDevice: QueueItemType = 'GenesisDevice';
 /**
- * for logging and for estimating, keep track of each item built
+ * A record of a built queue item, used for logging & estimating
  */
 
 //////////
@@ -1465,7 +1472,7 @@ export const CE: LRT = 1 << (14 - 1);
 // source: random.go
 
 /**
- * The rng interface used by the rules struct, implemented to allow for custom fixed rng methods or seeds
+ * The rng interface used by the rules struct, implemented as an interface to allow for custom fixed rng methods or seeds.
  */
 
 //////////
@@ -1549,6 +1556,7 @@ export interface Rules extends CostRules, BattleRules, UniverseGenerationRules {
 	invasionDefenseCoverageFactor: number /* float64 */;
 	lrtSpecs: { [key: LRT]: LRTSpec };
 	maxPopulation: number /* int */;
+	minPopFloor: number /* int */;
 	maxTechLevel: number /* int */;
 	mineFieldCloak: number /* int */;
 	mineFieldStatsByType: { [key: MineFieldType]: MineFieldStats };
@@ -1623,6 +1631,9 @@ export interface CostRules {
 	terraformCost: Cost;
 	techBaseCost: number /* int */[];
 }
+/**
+ * A slightly fancier map[bool]float64 that can be serialized to JSON
+ */
 export interface JammerCap {
 	Ship: number /* float64 */;
 	Starbase: number /* float64 */;

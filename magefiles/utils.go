@@ -88,6 +88,7 @@ func Test_Golang(goTestArgs string) error {
 	// If the user forgot to add a package mark for non-CI runs,
 	// do them a favor rather than outright failing.
 	// CI runs are exempt from this as they're supposed to make sure *everything* works
+	// (not to mention rerun-fails)
 	args := strings.Fields(goTestArgs)
 	if !is_CI() && slices.IndexFunc(args, func(s string) bool {
 		return strings.HasPrefix(s, "./")
@@ -95,8 +96,8 @@ func Test_Golang(goTestArgs string) error {
 		fmt.Println("No package identifier identified; defaulting to running everything")
 		args = append([]string{"./..."}, args...)
 	}
-	// tack on whatever config vals were passed by the user.
 
+	// tack on whatever config vals were passed by the user.
 	configVals = append(configVals, args...)
 
 	// if $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.

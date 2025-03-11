@@ -54,7 +54,7 @@ describe('Planet test', () => {
 
 		expect(planet.getMaxFactories(race, 10_000)).toBe(10);
 		expect(planet.getMaxFactories(race, 100_000)).toBe(100);
-	})
+	});
 
 	it('getMaxBuildable', () => {
 		const planet = new CommandedPlanet();
@@ -82,6 +82,4 @@ describe('Planet test', () => {
 		planet.scanner = true;
 		expect(planet.getMaxBuildable(techStore, player, 1, QueueItemTypePlanetaryScanner)).toBe(0);
 	});
-
-
 });
