@@ -6,7 +6,7 @@ import ts from 'typescript-eslint';
 
 export default ts.config(
 	js.configs.recommended,
-	...ts.configs.recommended,
+	...ts.configs.recommendedTypeChecked,
 	...svelte.configs['flat/recommended'],
 	prettier,
 	...svelte.configs['flat/prettier'],
@@ -15,7 +15,27 @@ export default ts.config(
 			globals: {
 				...globals.browser,
 				...globals.node
-			}
+			},
+			parserOptions: {
+				extraFileExtensions: [".svelte"],
+				projectService: true,
+				tsconfigRootDir: import.meta.dirname,
+			  },
+
+		}
+	},
+	{
+		rules: {
+			'no-var': 'error',
+			'@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
+			'@typescript-eslint/no-unnecessary-condition': [
+				'error',
+				{
+					// allow True, False, 1 and 0 as loop conditions
+					allowConstantLoopConditions: 'only-allowed-literals',
+					checkTypePredicates: true,
+				},
+			],
 		}
 	},
 	{
@@ -32,7 +52,12 @@ export default ts.config(
 				'error',
 				{ argsIgnorePattern: '^_', caughtErrors: 'all', caughtErrorsIgnorePattern: '^_' }
 			],
-			'no-undef': 'off'
+			'no-undef': 'off',
+			'@typescript-eslint/no-unsafe-member-access': 'off',
+			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-call': 'off',
+			'@typescript-eslint/no-unsafe-condition': 'off',
+
 		}
 	},
 	{

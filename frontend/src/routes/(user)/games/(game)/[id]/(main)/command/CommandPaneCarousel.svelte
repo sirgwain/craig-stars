@@ -37,6 +37,7 @@
 	import PlanetProductionTile from './PlanetProductionTile.svelte';
 	import PlanetStarbaseTile from './PlanetStarbaseTile.svelte';
 	import PlanetStatusTile from './PlanetStatusTile.svelte';
+	import { isIntel } from '$lib/services/Universe';
 
 	const {
 		universe,
@@ -170,7 +171,7 @@
 		if (
 			mo &&
 			mo?.type === MapObjectTypePlanet &&
-			'reportAge' in mo &&
+			isIntel(mo) &&
 			mo.reportAge === ReportAgeUnexplored
 		) {
 			// don't update to the summary view automatically for unknown planets

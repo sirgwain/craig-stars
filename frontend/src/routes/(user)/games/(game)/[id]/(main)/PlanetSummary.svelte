@@ -15,6 +15,7 @@
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
+	import { isIntel } from '$lib/services/Universe';
 
 	const { player, universe } = getGameContext();
 
@@ -99,7 +100,7 @@
 </script>
 
 <div class="flex flex-col min-h-[11rem] select-none">
-	{#if 'reportAge' in planet && planet.reportAge === ReportAgeUnexplored}
+	{#if planet.reportAge === ReportAgeUnexplored}
 		<div class="m-auto">
 			<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent" />
 		</div>
@@ -117,7 +118,7 @@
 						: ''}</span
 				>
 			</div>
-			{#if planet?.spec.population}
+			{#if planet.spec.population}
 				<div>Population: {planet.spec.population.toLocaleString()}</div>
 			{/if}
 		</div>
@@ -125,7 +126,7 @@
 			<div class="ml-[5.5rem]">
 				<div>
 					{#if 'reportAge' in planet}
-						{#if (planet.reportAge ?? 0) == 0}
+						{#if (planet.reportAge) == 0}
 							Report is current
 						{:else if planet.reportAge == 1}
 							Report is 1 year old
@@ -138,7 +139,7 @@
 				</div>
 			</div>
 			<div>
-				{#if 'reportAge' in planet && planet.reportAge !== ReportAgeUnexplored && planet.playerNum != $player.num && planet.playerNum != None}
+				{#if isIntel(planet) && planet.reportAge !== ReportAgeUnexplored && planet.playerNum != $player.num && planet.playerNum != None}
 					<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
 						>{$universe.getPlayerPluralName(planet.playerNum)}</span
 					>
@@ -152,7 +153,7 @@
 				<div class="h-full relative">
 					{#if !$player.race.immuneGrav}
 						<div
-							style={`left: ${habLowPercent.grav.toFixed()}%; width: ${habWidthPercent.grav?.toFixed()}%`}
+							style={`left: ${habLowPercent.grav.toFixed()}%; width: ${habWidthPercent.grav.toFixed()}%`}
 							class="absolute grav-bar h-full"
 						></div>
 					{/if}
@@ -188,7 +189,7 @@
 				<div class="h-full relative">
 					{#if !$player.race.immuneTemp}
 						<div
-							style={`left: ${habLowPercent.temp.toFixed()}%; width: ${habWidthPercent.temp?.toFixed()}%`}
+							style={`left: ${habLowPercent.temp.toFixed()}%; width: ${habWidthPercent.temp.toFixed()}%`}
 							class="absolute temp-bar h-full"
 						></div>
 					{/if}
@@ -216,7 +217,7 @@
 				<div class="h-full relative">
 					{#if !$player.race.immuneRad}
 						<div
-							style={`left: ${habLowPercent.rad.toFixed()}%; width: ${habWidthPercent.rad?.toFixed()}%`}
+							style={`left: ${habLowPercent.rad.toFixed()}%; width: ${habWidthPercent.rad.toFixed()}%`}
 							class="absolute rad-bar h-full"
 						></div>
 					{/if}

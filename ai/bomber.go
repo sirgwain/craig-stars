@@ -3,7 +3,6 @@ package ai
 import (
 	"math"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -37,7 +36,7 @@ func (ai *aiPlayer) bomb() error {
 						target := ai.getPlanetIntel(wp.TargetNum)
 						fleet.Waypoints = fleet.Waypoints[:1]
 						bomberFleets = append(bomberFleets, fleet)
-						log.Debug().
+						ai.log.Debug().
 							Int64("GameID", ai.GameID).
 							Int("PlayerNum", ai.Num).
 							Msgf("Fleet %s was going to bomb %s, but it's no longer a bombable target", fleet.Name, target.Name)
@@ -60,7 +59,7 @@ func (ai *aiPlayer) bomb() error {
 
 	// after colonizing, we may have idle fleets leftover
 	idleFleets := len(bomberFleets)
-	log.Debug().
+	ai.log.Debug().
 		Int64("GameID", ai.GameID).
 		Int("PlayerNum", ai.Num).
 		Msgf("%d bomber, %d bombable planets", idleFleets, len(bombablePlanets))
@@ -74,7 +73,7 @@ func (ai *aiPlayer) bomb() error {
 			delete(bombablePlanets, bestPlanet.Num)
 			idleFleets--
 
-			log.Debug().
+			ai.log.Debug().
 				Int64("GameID", ai.GameID).
 				Int("PlayerNum", ai.Num).
 				Int("WarpSpeed", warpSpeed).
@@ -118,7 +117,7 @@ func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]cs.Plan
 		// closer is better, lower pop is better, starbases are discouraged
 		weight := (1 / float64(pop)) / (2 * yearsToTravel) / starbaseFactor
 
-		// log.Debug().
+		// ai.log.Debug().
 		// 	Int64("GameID", ai.GameID).
 		// 	Int("PlayerNum", ai.Num).
 		// 	Float64("dist", dist).

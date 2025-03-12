@@ -58,13 +58,13 @@
 							i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 							$universe
 								.getPlayerPluralName(i.playerNum)
-								?.toLowerCase()
+								.toLowerCase()
 								.indexOf(search.toLowerCase()) != -1
-					) ?? [])
+					))
 			: ($universe
 					.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
 					.map<TablePlanet>((r) => r as TablePlanet)
-					.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [])
+					.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1))
 	);
 
 	// columns change based on whether we are showing all planets or just the player planets
@@ -100,7 +100,7 @@
 			sortBy: (a, b) =>
 				$universe
 					.getPlayerPluralName(a.playerNum)
-					?.localeCompare($universe.getPlayerPluralName(b.playerNum))
+					.localeCompare($universe.getPlayerPluralName(b.playerNum))
 		},
 		{
 			key: 'reportAge',
@@ -292,7 +292,7 @@
 					>
 				{:else if column.key == 'owner'}
 					<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
-						{owned(row) ? ($universe.getPlayerPluralName(row.playerNum) ?? '') : ''}
+						{owned(row) ? ($universe.getPlayerPluralName(row.playerNum)) : ''}
 					</span>
 				{:else if column.key == 'reportAge' && 'reportAge' in row}
 					{#if row.reportAge == 0 || row.reportAge === undefined}
@@ -314,7 +314,7 @@
 					</div>
 				{:else if column.key == 'populationGrowth'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
-						{(row.spec.growthAmount ?? 0).toLocaleString()}
+						{roundTo100(row.spec.growthAmount ?? 0, Math.trunc).toLocaleString()}
 					</div>
 				{:else if column.key == 'habitability'}
 					{#if row.spec.canTerraform}

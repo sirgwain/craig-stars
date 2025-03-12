@@ -10,12 +10,12 @@
 </script>
 
 <script lang="ts">
-	import type { AnyPlanet, PlayerFinder } from '$lib/services/Universe';
+	import { isIntel, type AnyPlanet, type PlayerFinder } from '$lib/services/Universe';
 	import { owned, ownedBy } from '$lib/types/MapObject';
 
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 
-	let reportAge = $derived('reportAge' in planet ? (planet.reportAge ?? 0) : 0);
+	let reportAge = $derived(isIntel(planet) ? planet.reportAge : 0);
 	let growthAmount = $derived(planet.spec.growthAmount ?? 0);
 	let habitability = $derived(planet.spec.habitability ?? 0);
 </script>
@@ -29,7 +29,7 @@
 					(planet.spec.populationDensity ?? 0) * 100
 				).toFixed()}% of capacity).
 			</p>
-			{#if (planet.spec.habitability ?? 0) > 0 || player.race.spec?.livesOnStarbases}
+			{#if (planet.spec.habitability ?? 0) > 0 || player.race.spec.livesOnStarbases}
 				<p>
 					<span class="font-semibold">{planet.name}</span> will support a population of up to
 					<span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString() ?? 0}</span>

@@ -26,6 +26,7 @@
 	import { startCase } from 'lodash-es';
 	import TransportTasksMini from '../../(plans)/transport-plans/TransportTasksMini.svelte';
 	import CommandTile from './CommandTile.svelte';
+	import { isIntel } from '$lib/services/Universe';
 
 	const { game, player, universe } = getGameContext();
 
@@ -185,7 +186,7 @@
 	{:else if waypoint.task === WaypointTaskRemoteMining}
 		{#if selectedWaypointPlanet}
 			<!-- if this waypoint is owned -->
-			{#if 'reportAge' in selectedWaypointPlanet && selectedWaypointPlanet.reportAge === ReportAgeUnexplored}
+			{#if isIntel(selectedWaypointPlanet) && selectedWaypointPlanet.reportAge === ReportAgeUnexplored}
 				<span class="text-warning"
 					>Warning: This planet is unexplored. We have no way of knowing if we can mine it.</span
 				>

@@ -1,26 +1,3 @@
-// Bombers orbiting enemy planets will Bomb planets
-// ============================================================================
-// Algorithms:
-// Normalpopkills = sum[bomb_kill_perc(n)*#(n)] * (1-Def(pop))
-// Minkills = sum[bomb_kill_min(n)*#(n)] * (1-Def(pop))
-//
-// 10 Cherry and 5 M-70 bombing vs 100 Neutron Defs (97.92%)
-//
-// The calculations are, population kill:
-//
-// a    0.025 * 10  0.25        10 Cherry bombs
-// b    0.012 * 5   0.06        5 M-70 bombs
-// c    a + b       0.31        Total kill factor
-// d    1 - 0.97    0.0208      1 - defense factor for 100 neutron defences
-// e    c * d           0.006448    Total kill factor
-// f    pop * c         64.48       Total colonists killed
-//
-// Minimum kill:
-//
-// a 10*300 + 5*300  4500
-// b 1 - 0.97        0.0208   1 - defense factor for 100 neutron defences
-// c a *b            156      Total minimum kill
-// ============================================================================
 package cs
 
 import (
@@ -29,6 +6,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// Bombers orbiting enemy planets will Bomb planets
 type Bomb struct {
 	Quantity             int     `json:"quantity,omitempty"`
 	KillRate             float64 `json:"killRate,omitempty"`

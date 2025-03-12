@@ -1115,7 +1115,7 @@ func TestDesignShip(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.args.player.TechLevels = tt.args.techLevels
-			got, err := DesignShip(&rules, tt.args.hull, tt.name, tt.args.player, 1, 1, tt.args.purpose, tt.args.fleetPurpose)
+			got, err := DesignShip(&rules, tt.args.player, testLogger, tt.args.hull, tt.name, 1, 1, tt.args.purpose, tt.args.fleetPurpose)
 			tallyMap := map[string]int{}
 			for _, slot := range got.Slots {
 				tallyMap[slot.HullComponent] += slot.Quantity
@@ -1339,7 +1339,7 @@ func Test_designWarship(t *testing.T) {
 			for _, part := range tt.fields.acquiredParts {
 				player.AcquiredTechs[part.Name] = true
 			}
-			got, err := designWarship(&rules, tt.args.hull, tt.name, player, 1, 2, tt.args.purpose)
+			got, err := designWarship(&rules, player, testLogger, tt.args.hull, tt.name, 1, 2, tt.args.purpose)
 			tallyMap := map[string]int{}
 			for _, slot := range got.Slots {
 				tallyMap[slot.HullComponent] += slot.Quantity
@@ -1379,7 +1379,7 @@ func BenchmarkDesignShip(b *testing.B) {
 			}
 			fp := FleetPurposeFromShipDesignPurpose(purpose)
 			b.StartTimer()
-			DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
+			DesignShip(&rules, player, testLogger, hull, "Benchmark Ship", 1, 2, purpose, fp)
 		}
 	})
 
@@ -1409,7 +1409,7 @@ func BenchmarkDesignShip(b *testing.B) {
 			}
 			fp := FleetPurposeFromShipDesignPurpose(purpose)
 			b.StartTimer()
-			DesignShip(&rules, hull, "Benchmark Ship", player, 1, 2, purpose, fp)
+			DesignShip(&rules, player, testLogger, hull, "Benchmark Ship", 1, 2, purpose, fp)
 		}
 	})
 
@@ -1454,7 +1454,7 @@ func BenchmarkDesignShip(b *testing.B) {
 				hull = &Battleship
 			}
 			b.StartTimer()
-			designWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
+			designWarship(&rules, player, testLogger, hull, "Benchmark Ship", 1, 2, purpose)
 		}
 	})
 
@@ -1486,7 +1486,7 @@ func BenchmarkDesignShip(b *testing.B) {
 				hull = &SpaceStation
 			}
 			b.StartTimer()
-			designWarship(&rules, hull, "Benchmark Ship", player, 1, 2, purpose)
+			designWarship(&rules, player, testLogger, hull, "Benchmark Ship", 1, 2, purpose)
 		}
 	})
 }

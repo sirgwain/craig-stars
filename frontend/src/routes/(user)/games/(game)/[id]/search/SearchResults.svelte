@@ -4,7 +4,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { MysteryTraderIntel, PlanetIntel } from '$lib/types/cs';
 	import { None, ReportAgeUnexplored, type MapObject } from '$lib/types/cs';
-	import type { AnyFleet } from '$lib/services/Universe';
+	import { type AnyFleet } from '$lib/services/Universe';
 	import { getMapObjectName, owned, ownedBy } from '$lib/types/MapObject';
 	import { onMount } from 'svelte';
 
@@ -57,16 +57,16 @@
 			planets:
 				planets
 					.filter((i) => terms.every((term) => termSearch(term, i)))
-					.slice(0, maxPlanetResults) ?? [],
+					.slice(0, maxPlanetResults),
 			fleets:
 				fleets
 					.filter((i) => terms.every((term) => termSearch(term, i)))
-					.slice(0, maxFleetResults) ?? [],
+					.slice(0, maxFleetResults),
 
 			mysteryTraders:
 				mysteryTraders
 					.filter((i) => terms.every((term) => termSearch(term, i as unknown as MapObject)))
-					.slice(0, maxMiscResults) ?? []
+					.slice(0, maxMiscResults)
 		};
 	}
 
@@ -173,7 +173,7 @@
 									{:else}
 										{planet.name}
 									{/if}
-									{#if 'reportAge' in planet && planet.reportAge !== ReportAgeUnexplored}
+									{#if planet.reportAge !== ReportAgeUnexplored}
 										{#if owned(planet)}
 											<div>-</div>
 											<div class="text-base my-auto">

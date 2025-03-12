@@ -2,6 +2,7 @@ import { battlesSortBy, getBattleRecordDetails, type BattleRecordDetails } from 
 import type {
 	Cost,
 	FleetIntel,
+	Intel,
 	MapObjectTarget,
 	MineField,
 	MineFieldIntel,
@@ -46,6 +47,18 @@ export type AnyMineField = MineField | MineFieldIntel;
 export type AnyMineralPacket = MineralPacket | MineralPacketIntel;
 export type AnyShipDesign = ShipDesign | ShipDesignIntel;
 
+/**
+ * Check whether a given object is an {@linkcode Intel} or not.
+ * @param obj the object to check
+ * @returns `true` if obj implements {@linkcode Intel}.
+ */
+export function isIntel(obj: unknown): obj is Intel {
+	if (!obj || typeof obj !== 'object') {
+		return false
+	}
+	return 'position' in obj && typeof obj.position === "number"
+}
+
 export type PlayerUniverse = {
 	planets: Planet[];
 	fleets: Fleet[];
@@ -80,21 +93,18 @@ const sortByNum = (a: MapObject, b: MapObject) => a.num - b.num;
 
 function addtoDict(mo: MapObject, dict: Record<string, MapObject[]>) {
 	const key = positionKey(mo);
-	if (!dict[key]) {
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+	if (!dict[key]) { // This is weird due to golang jank with maps
 		dict[key] = [];
 	}
 	dict[key].push(mo);
 }
 
 function positionKey(pos: MapObject | Vector): string {
-	const mo = 'position' in pos && (pos as MapObject);
-	const v = 'x' in pos && (pos as Vector);
-	if (mo) {
-		return `${mo.position.x},${mo.position.y}`;
-	} else if (v) {
-		return `${v.x},${v.y}`;
+	if ('position' in pos) {
+		return `${pos.position.x},${pos.position.y}`;
 	}
-	return '';
+	return `${pos.x},${pos.y}`;
 }
 
 export class Universe implements PlayerUniverse, DesignFinder {
@@ -139,12 +149,12 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	public setData(data: PlayerUniverse): Universe {
-		this.planets = data.planets ?? [];
-		this.fleets = data.fleets ?? [];
-		this.starbases = data.starbases ?? [];
-		this.mineFields = data.mineFields ?? [];
-		this.mineralPackets = data.mineralPackets ?? [];
-		this.designs = data.designs ?? [];
+		this.planets = data.planets
+		this.fleets = data.fleets
+		this.starbases = data.starbases
+		this.mineFields = data.mineFields
+		this.mineralPackets = data.mineralPackets
+		this.designs = data.designs
 
 		this.battleRecords = data.battleRecords ?? [];
 		this.playerIntels = data.playerIntels ?? [];
@@ -222,7 +232,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	getPlayerScore(num: number): PlayerScore | undefined {
 		if (num >= 1 && num <= this.scoreIntels.length) {
 			const history = this.scoreIntels[num - 1].scoreHistory;
-			if (history && history.length > 0) {
+			if (history.length > 0) {
 				return history[history.length - 1];
 			}
 		}
@@ -247,7 +257,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	getPlayerColor(playerNum: number | undefined): string {
 		if (playerNum && playerNum > 0 && playerNum <= this.playerIntels.length) {
 			const intel = this.playerIntels[playerNum - 1];
-			return intel.color ?? '#FF0000';
+			return intel.color || '#FF0000';
 		}
 		return '#FF0000';
 	}
@@ -355,7 +365,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	getSalvageAtPosition(position: MapObject | Vector): SalvageIntel | undefined {
-		const mo = this.getMapObjectsByPosition(position)?.find(
+		const mo = this.getMapObjectsByPosition(position).find(
 			(mo) => mo.type === MapObjectTypeSalvage
 		);
 		if (mo) {
@@ -372,11 +382,9 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	getMyFleetsByPosition(position: MapObject | Vector): Fleet[] {
-		return (
-			(this.getMyMapObjectsByPosition(position)?.filter(
+		return this.getMyMapObjectsByPosition(position).filter(
 				(mo) => mo.type === MapObjectTypeFleet
-			) as Fleet[]) ?? []
-		);
+			) as Fleet[];
 	}
 
 	// getPlanet returns either the player owned planet by a number

@@ -3,7 +3,6 @@ package ai
 import (
 	"fmt"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -60,7 +59,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 		return existing, nil
 	}
 
-	updated, err = cs.DesignShip(&ai.game.Rules, hull, name, ai.Player, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, purpose, fleetPurpose)
+	updated, err = cs.DesignShip(&ai.game.Rules, ai.Player, ai.log, hull, name, ai.GetNextDesignNum(ai.Designs), ai.DefaultHullSet, purpose, fleetPurpose)
 	if err != nil {
 		return existing, fmt.Errorf("cs.DesignShip returned error: %w", err)
 	}
@@ -143,7 +142,7 @@ func (ai *aiPlayer) removeUnusedDesigns() {
 	// find any designs with no instances
 	for _, design := range ai.Designs {
 		if design.Spec.NumInstances == 0 && !design.CannotDelete {
-			// log.Debug().
+			// ai.log.Debug().
 			// 	Int64("GameID", ai.GameID).
 			// 	Int("PlayerNum", ai.Num).
 			// 	Msgf("marking %s for deletion, unused", design.Name)
@@ -158,7 +157,7 @@ func (ai *aiPlayer) removeUnusedDesigns() {
 			if item.DesignNum != 0 {
 				delete(unusedDesigns, item.DesignNum)
 
-				// log.Debug().
+				// ai.log.Debug().
 				// 	Int64("GameID", ai.GameID).
 				// 	Int("PlayerNum", ai.Num).
 				// 	Msgf("design %d still used, not marking for deletion", item.DesignNum)
@@ -170,7 +169,7 @@ func (ai *aiPlayer) removeUnusedDesigns() {
 		if found, found2 := unusedDesigns[design.Num]; found && found2 {
 			// log a message if we're deleting an existing design
 			if design.ID != 0 {
-				log.Debug().
+				ai.log.Debug().
 					Int64("GameID", ai.GameID).
 					Int("PlayerNum", ai.Num).
 					Msgf("marking %s, design %d for deletion, unused", design.Name, design.Num)
