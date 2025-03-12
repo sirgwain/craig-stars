@@ -314,7 +314,7 @@
 					</div>
 				{:else if column.key == 'populationGrowth'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
-						{roundTo100(row.spec.growthAmount ?? 0, Math.trunc).toLocaleString()}
+						{(row.spec.growthAmount ?? 0).toLocaleString()}
 					</div>
 				{:else if column.key == 'habitability'}
 					{#if row.spec.canTerraform}
