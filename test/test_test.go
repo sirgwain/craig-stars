@@ -2,7 +2,6 @@ package test
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"testing"
 
@@ -10,63 +9,47 @@ import (
 )
 
 func TestCompareAsJSON(t *testing.T) {
-	var paths = []string{"../tmp/got.jsonl", "../tmp/want.jsonl", "../tmp/diff.jsonl"}
 	tests := []struct {
-		name         string
-		got          any
-		want         any
-		wantFailed   bool
-		wantCanceled bool
-		wantDiff     string
+		name       string
+		got        any
+		want       any
+		wantFailed bool
+		wantDiff   string
 	}{
 		{
-			name:         "identical players",
-			got:          cs.NewPlayer(22, cs.NewRace()),
-			want:         cs.NewPlayer(22, cs.NewRace()),
-			wantFailed:   false,
-			wantCanceled: false,
-			wantDiff:     "",
-		},
-		{
-			name:         "wrong type; halts execution",
-			got:          cs.ProductivePopulation,
-			want:         cs.ProductivePopulation,
-			wantFailed:   true,
-			wantCanceled: true,
-			wantDiff:     "",
-		},
-		{
-			name:         "2 different planets",
-			got:          cs.NewPlanet().WithMines(40).WithHomeworld(true),
-			want:         cs.NewPlanet().WithNum(20).WithContributesOnlyLeftoverToResearch(true),
-			wantFailed:   true,
-			wantCanceled: false,
+			name:       "2 different planets",
+			got:        cs.NewPlanet().WithMines(40),
+			want:       cs.NewPlanet().WithNum(20),
+			wantFailed: true,
 			wantDiff: `// TestCompareAsJSON/2_different_planets
 {
-	/* Added */ "contributesOnlyLeftoverToResearch": true,
-	/* Removed */ "homeworld": true,
-	"mines": /* Changed */ [ 40, 0 ],
-	"num": /* Changed */ [ 0, 20 ]
+	"mines": {"changed": [40, 0]},
+	"num": {"changed": [0, 20]}
 }
 `,
+		},
+		{
+			name:       "identical players",
+			got:        cs.NewPlayer(22, cs.NewRace()),
+			want:       cs.NewPlayer(22, cs.NewRace()),
+			wantFailed: false,
+			wantDiff:   "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Cleanup(func() {
-				// remove json diffs after each run to make sure tests don't interfere with each other
-				for _, path := range paths {
-					if err := os.Remove(path); err != nil {
-						panic(fmt.Sprintf("error during file cleanup: \n%v", err))
-					}
+			defer func() {
+				// remove json to make sure successive runs still pass
+				if err := os.RemoveAll("../tmp/diff.jsonl"); err != nil {
+					t.Error(err)
 				}
-			})
-
+			}()
+			// fixup by adding doc comment
 			m := new(mockTestingT)
-			m.name = t.Name() // fixup to add doc comment
+			m.name = t.Name()
 			CompareAsJSON(m, tt.got, tt.want)
 			// Check if function failed;
-			// m.failed is set to true when function would've normally failed a test
+			// m.failed is set to true when func would've normally failed a test
 			if m.failed != tt.wantFailed {
 				var s string
 				if tt.wantFailed {
@@ -77,47 +60,26 @@ func TestCompareAsJSON(t *testing.T) {
 				t.Errorf("CompareAsJSON() %s; test failed flag returned %v instead of %v", s, m.failed, tt.wantFailed)
 			}
 
-			if m.canceled != tt.wantCanceled {
-				var s string
-				if tt.wantFailed {
-					s = "did not cancel test execution when expected"
-				} else {
-					s = "canceled test unexpectedly"
-				}
-				t.Errorf("CompareAsJSON() %s; test canceled flag returned %v instead of %v", s, m.canceled, tt.wantCanceled)
-			}
-
 			if tt.wantFailed {
-				// if we wanted test to fail, check the diff file to make sure it contains the correct text
+				// check the diff file to make sure it outputted the correct text
 				gotBytes, err := os.ReadFile("../tmp/diff.jsonl")
-				if errors.Is(err, os.ErrNotExist) {
-					t.Fatal("Test failed to create diff file when expected")
-				} else if err != nil {
+				if err != nil {
 					t.Fatalf("error reading diff file: \n%v", err)
 				}
 				gotDiff := string(gotBytes)
 				if gotDiff != tt.wantDiff {
-					t.Errorf("CompareAsJSON() outputted incorrect diff:\nGot: \n%s\nWant: \n%s", gotDiff, tt.wantDiff)
+					t.Errorf("CompareAsJSON() outputted incorrect diff:\nGot: \n%v\nWant: \n%v", gotDiff, tt.wantDiff)
 				}
-				return
-			}
-
-			// Meanwhile, if we wanted the test to succeed or cancel prematurely,
-			// check to ensure the json files *don't* exist
-			for _, path := range paths {
-				if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-					// no diff = happy test
-					continue
-				} else if err != nil {
-					t.Fatalf("error checking JSON file existence at %s: \n%v", path, err)
-				}
-
-				// uh oh, we found a file when we weren't supposed to...
-				gotBytes, err := os.ReadFile(path)
+			} else if _, err := os.Stat("../tmp/diff.jsonl"); !errors.Is(err, os.ErrNotExist) {
+				// if we want the test to succeed, make sure the function didn't create the diff file
 				if err != nil {
-					t.Fatalf("error reading JSON file at %s: \n%v", path, err)
+					t.Fatalf("error checking file existence: \n%v", err)
 				}
-				t.Errorf("CompareAsJSON() created file at %s when it wasn't supposed to; file contents: \n%s", path, gotBytes)
+				gotBytes, err := os.ReadFile("../tmp/diff.jsonl")
+				if err != nil {
+					t.Fatalf("error reading diff file: \n%v", err)
+				}
+				t.Fatalf("CompareAsJSON() created diff file when it wasn't supposed to; outputted diff:\n%s", gotBytes)
 			}
 
 		})

@@ -6,25 +6,23 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"strings"
 
 	"github.com/nsf/jsondiff"
 )
 
 // Compare two objects as json outputs for testing.
 //
-// If the comparison fails, this marks the test as a failure and
-// writes 3 JSONL files to ./tmp, containing serialized versions of got and want
-// and a pretty-printed difference between the two (courtesy of [github.com/nsf/jsondiff]).
-// This json difference is passed to [testing.T.Errorf] as well for ease of use.
+// If the comparison fails, this marks the test as a failure
+// and writes 3 json files to the tmp folder,
+// containing both values being compared and a pretty-printed
+// difference between them.
 //
 // These files are continuously appended to during a test run (sectioned off by test name),
-// and must be moved or removed after the package finishes testing (such as [TestMain]).
+// and should ideally be moved or removed after the package finishes testing.
 // Invocation from parallel tests is untested and not recommended.
 //
-// Failures to parse JSON will halt test execution and fail immediately.
-//
-// [TestMain]: https://pkg.go.dev/testing#hdr-Main
+// The json difference is passed to t.Errorf, so no extra calls to t.Log or t.Error
+// are needed after calling this.
 func CompareAsJSON(t TestingT, got, want any) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
@@ -33,7 +31,7 @@ func CompareAsJSON(t TestingT, got, want any) {
 	if got == nil && want == nil {
 		return
 	} else if (got == nil) != (want == nil) { // one is nil and the other isn't
-		t.Errorf("Unequal values (nilness): got = %v, want = %v", got, want)
+		t.Fatalf("Unequal values (nilness): got = %v, want = %v", got, want)
 	}
 
 	gotJson, err := json.MarshalIndent(got, "", "\t")
@@ -49,60 +47,49 @@ func CompareAsJSON(t TestingT, got, want any) {
 		return
 	}
 
-	diff, err := parseJSONDiff(string(gotJson), string(wantJson), t.Name())
-	if err != nil {
-		t.Fatalf("error creating JSON diffs: \n%v", err)
-	}
+	diff := parseJSONDiff(gotJson, wantJson, t.Name())
 
-	// Remove block comments in the stdout version since we don't care about proper syntax
-	r := strings.NewReplacer("/* ", "", " */", ":")
-
-	t.Errorf("JSONs not equal; diff between got & want: \n%s", r.Replace(diff))
+	t.Fatalf("JSONs not equal; diff between got & want: \n%s", diff)
 }
 
-// Parsing options for jsondiff.
-// Fun fact: this is guaranteed to produce valid JSONL
-// assuming the input is also valid (which it always is).
+// parsing options for jsondiff
 var options = jsondiff.Options{
-	Added:            jsondiff.Tag{Begin: "/* Added */ ", End: ""},
-	Removed:          jsondiff.Tag{Begin: "/* Removed */ ", End: ""},
-	Changed:          jsondiff.Tag{Begin: "/* Changed */ [ ", End: " ]"},
+	Added:            jsondiff.Tag{Begin: "\"prop-added\": {", End: "}"},
+	Removed:          jsondiff.Tag{Begin: "\"prop-removed\": {", End: "}"},
+	Changed:          jsondiff.Tag{Begin: "{\"changed\": [", End: "]}"},
 	ChangedSeparator: ", ",
 	Indent:           "\t", // tab indentation
 	SkipMatches:      true,
 }
 
 // Parse JSON diffs, creating files to log values as appropriate.
-func parseJSONDiff(gotJSON, wantJSON, testName string) (diff string, err error) {
-	_, diff = jsondiff.Compare([]byte(gotJSON), []byte(wantJSON), &options)
+func parseJSONDiff(gotJSON, wantJSON []byte, testName string) string {
+	_, diff := jsondiff.Compare(gotJSON, wantJSON, &options)
 
-	os.MkdirAll("../tmp", 0755)
+	os.MkdirAll("../tmp", 0755) // create temp folder
+	// append files 1 by 1
 	for i := range 3 {
-		var path string
-		var body string
+		header := "// " + testName + "\n" // header containing test name & extra newlines
+		var path, body string
 		switch i {
 		case 0:
 			path = "../tmp/got.jsonl"
-			body = gotJSON
+			body = string(gotJSON)
 		case 1:
 			path = "../tmp/want.jsonl"
-			body = wantJSON
+			body = string(wantJSON)
 		case 2:
 			path = "../tmp/diff.jsonl"
 			body = diff
 		}
-
-		header := "// " + testName + "\n" // header containing test name & extra newlines
 		if _, err := os.Stat(path); err == nil {
-			// add extra newline in header to properly delimit sections on existing files
+			// add extra newline in header to properly delimit sections
 			header = "\n" + header
 		}
-		if err = AppendFile(path, header+body+"\n"); err != nil {
-			return "", err
-		}
+		_ = AppendFile(path, header+body+"\n")
 	}
 
-	return diff, nil
+	return diff
 }
 
 // Appends a string or byte slice to the named file, creating it if necessary.
