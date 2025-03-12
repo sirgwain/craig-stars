@@ -12,23 +12,25 @@
 <script lang="ts">
 	import type { AnyPlanet, PlayerFinder } from '$lib/services/Universe';
 	import { owned, ownedBy } from '$lib/types/MapObject';
+	import { population } from '$lib/types/Cargo';
 
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 
 	let reportAge = $derived('reportAge' in planet ? (planet.reportAge ?? 0) : 0);
 	let growthAmount = $derived(
-		roundTo100((planet.spec.growthAmount ?? 0) + (planet.spec.partialPopulation ?? 0), Math.floor)
+		isIntel(planet) ? 0 :
+		roundTo100((planet.spec.growthAmount ?? 0) + (planet.partialPopulation), Math.trunc)
 	);
 	let habitability = $derived(planet.spec.habitability ?? 0);
-	let population = $derived((planet.cargo?.colonists ?? 0) * 100);
+	let pop = $derived(population(planet.cargo));
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">
 	<div>
-		{#if ownedBy(planet, player.num) && population}
+		{#if ownedBy(planet, player.num) && pop}
 			<p>
 				Your population on <span class="font-semibold">{planet.name}</span> is
-				<span class="font-semibold">{population.toLocaleString()}</span> ({(
+				<span class="font-semibold">{pop.toLocaleString()}</span> ({(
 					(planet.spec.populationDensity ?? 0) * 100
 				).toFixed()}% of capacity).
 			</p>
@@ -51,7 +53,7 @@
 				<p>
 					Your population on <span class="font-semibold">{planet.name}</span> will grow by
 					<span class="font-semibold">{growthAmount.toLocaleString()}</span>
-					to {(population + growthAmount).toLocaleString()}
+					to {(pop + growthAmount).toLocaleString()}
 					next year.
 				</p>
 			{:else if planet.spec.growthAmount === 0}
@@ -89,7 +91,7 @@
 				The <span class="font-semibold">{playerFinder.getPlayerName(planet.playerNum)}</span>
 				population on
 				<span class="font-semibold">{planet.name}</span> is approximately
-				<span class="font-semibold">{roundTo100(population ?? 0).toLocaleString()}</span>.
+				<span class="font-semibold">{pop.toLocaleString()}</span>. <!-- Rounded to 100 in backend -->
 			</p>
 			{#if habitability > 0}
 				<p>

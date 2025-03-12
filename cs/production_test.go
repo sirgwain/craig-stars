@@ -9,7 +9,7 @@ import (
 )
 
 func Test_production_produce(t *testing.T) {
-	// TODO: Add tests for mineral alchemy & auto mineral alchemy
+	// TODO: Add tests for auto mineral alchemy
 	t.Run("Concrete mine removed from queue", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 
@@ -98,37 +98,49 @@ func Test_production_produce(t *testing.T) {
 		assert.Equal(t, 5, planet.ProductionQueue[1].Quantity)
 	})
 
-	t.Run("Refund invalid packets", func(t *testing.T) {
+	t.Run("	 invalid packets", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 
+		// planet has target, but no driver
 		planet.Name = t.Name()
 		planet.Cargo = Cargo{100, 100, 100, 10}
 		planet.Spec.ResourcesPerYearAvailable = 1
-		planet.PacketTargetNum = planet.Num
+		planet.PacketTargetNum = 23
 		planet.Spec.PlanetStarbaseSpec = PlanetStarbaseSpec{
 			HasMassDriver: false, // oops, no driver!
 		}
 
-		// make a bunch of packets; all will be canceled
+		// make a bunch of packets, along with some stuff to block queue
 		planet.ProductionQueue = []ProductionQueueItem{
-			{Type: QueueItemTypeIroniumMineralPacket, Quantity: 1, Allocated: Cost{3, 5, 4, 77}},
-			{Type: QueueItemTypeBoraniumMineralPacket, Quantity: 2, Allocated: Cost{5, 5, 5, 5}},
-			{Type: QueueItemTypeGermaniumMineralPacket, Quantity: 3},
-			{Type: QueueItemTypeMixedMineralPacket, Quantity: 5, Allocated: Cost{5, 5, 5, 5}},
+			{Type: QueueItemTypeAutoMineralPacket, Quantity: 1, Allocated: Cost{1, 1, 1, 3}},
+			{Type: QueueItemTypeAutoMineralPacket, Quantity: 1},
+			{Type: QueueItemTypeMine, Quantity: 1},
+			{Type: QueueItemTypeBoraniumMineralPacket, Quantity: 2, Allocated: Cost{2, 2, 2, 6}},
+			{Type: QueueItemTypeGermaniumMineralPacket, Quantity: 2},
+			{Type: QueueItemTypeAutoMineralPacket, Quantity: 1},
+			{Type: QueueItemTypeMixedMineralPacket, Quantity: 5, Allocated: Cost{2, 2, 2, 6}},
+			{Type: QueueItemTypeDefenses, Quantity: 100},
 			{Type: QueueItemTypeAutoMineralPacket, Quantity: 3},
 		}
 
+		// build once
 		player.Messages = []PlayerMessage{}
-
 		producer := newProducer(testLogger, &rules, planet, player)
 		result, err := producer.produce()
 		assert.NoError(t, err)
 
-		// all the concrete packets went away
-		wantQueue := []ProductionQueueItem{
-			{Type: QueueItemTypeAutoMineralPacket, Quantity: 3, Allocated: Cost{15, 15, 15, 16}},
+		// Should cancel the first 2 packets before stopping to build the mine
+		wantBuilt := []ProductionQueueItem{
+			{Type: QueueItemTypeMine, Quantity: 1, Allocated: Cost{0, 0, 0, 4}},
+			{Type: QueueItemTypeBoraniumMineralPacket, Quantity: 2, Allocated: Cost{2, 2, 2, 6}},
+			{Type: QueueItemTypeGermaniumMineralPacket, Quantity: 2},
+			{Type: QueueItemTypeAutoMineralPacket, Quantity: 1},
+			{Type: QueueItemTypeMixedMineralPacket, Quantity: 5, Allocated: Cost{2, 2, 2, 6}},
+			{Type: QueueItemTypeDefenses, Quantity: 100},
+			{Type: QueueItemTypeAutoMineralPacket, Quantity: 3},
 		}
 
+		// We canceled 2 similar packet types, so QueueItemType is still set
 		wantMessages := []PlayerMessage{{
 			Target: PlayerMessageTarget{
 				TargetType: TargetPlanet,
@@ -137,14 +149,59 @@ func Test_production_produce(t *testing.T) {
 			},
 			Type: PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver,
 			Spec: PlayerMessageSpec{
-				Name:    planet.Name,
-				Cost:    Cost{13, 15, 14, 87},
-				Amount:  8, // amount canceled
-				Amount2: 1200,
+				Name:          planet.Name,
+				QueueItemType: QueueItemTypeAutoMineralPacket,
+				Cost:          Cost{1, 1, 1, 3},
+				Amount:        240, // weight of canceled packets
+				Amount2:       2,   // no. of canceled orders
+				PrevAmount:    2,   // no. of canceled items
 			},
 		}}
 
-		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
+		test.CompareAsJSON(t, planet.ProductionQueue, wantBuilt)
+		test.CompareAsJSON(t, result.messages, wantMessages)
+
+		// give planet a starbase with a driver
+		starbaseDesign := NewShipDesign(player.Num, 3).WithHull(SpaceStation.Name).
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
+			}).WithSpec(&rules, player)
+		starbaseFleet := newStarbase(player, planet, starbaseDesign, t.Name())
+		planet.Starbase = &starbaseFleet
+		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
+
+		planet.PacketTargetNum = None // Oops, no target!
+
+		// Reset messages and produce again
+		player.Messages = []PlayerMessage{}
+		result, err = producer.produce()
+		assert.NoError(t, err)
+
+		// Mine should be finished and 2nd batch of packets should've been canceled;
+		// last auto packet stays due to not being reached yet
+		wantBuilt = []ProductionQueueItem{
+			{Type: QueueItemTypeDefenses, Quantity: 100, Allocated: Cost{4, 4, 4, 12}},
+			{Type: QueueItemTypeAutoMineralPacket, Quantity: 3},
+		}
+
+		wantMessages = []PlayerMessage{{
+			Target: PlayerMessageTarget{
+				TargetType: TargetPlanet,
+				TargetName: planet.Name,
+				TargetNum:  planet.Num,
+			},
+			Type: PlayerMessagePlanetBuiltInvalidMineralPacketNoTarget,
+			Spec: PlayerMessageSpec{
+				Name:          planet.Name,
+				QueueItemType: QueueItemTypeNone, // No QueueItemType due to mixed packet types
+				Cost:          Cost{4, 4, 4, 12},
+				Amount:        1200, // weight of canceled packets
+				Amount2:       4,    // no. of canceled orders
+				PrevAmount:    11,   // amt of canceled items
+			},
+		}}
+
+		test.CompareAsJSON(t, result.itemsBuilt, wantBuilt)
 		test.CompareAsJSON(t, result.messages, wantMessages)
 	})
 
@@ -162,7 +219,7 @@ func Test_production_produce(t *testing.T) {
 		planet.Defenses = 90
 		planet.ContributesOnlyLeftoverToResearch = true
 
-		// The 100 auto defenses should remove the concrete defenses from the queue
+		// Queue up 100 auto defenses, with some concrete defenses in the back of the queue
 		planet.ProductionQueue = []ProductionQueueItem{
 			{Type: QueueItemTypeAutoDefenses, Quantity: 100},
 			{Type: QueueItemTypeDefenses, Quantity: 90, Allocated: Cost{5, 5, 5, 5}},
@@ -178,7 +235,7 @@ func Test_production_produce(t *testing.T) {
 		player.Messages = []PlayerMessage{}
 
 		// should end up with 100 defenses, with auto defenses still in the queue;
-		// scanner should soak up allocated resources from defense items
+		// scanner should soak up allocated resources from canceled defense items
 		wantQueue := []ProductionQueueItem{
 			{Type: QueueItemTypeAutoDefenses, Quantity: 100},
 			{Type: QueueItemTypePlanetaryScanner, Quantity: 1, Allocated: Cost{15, 15, 15, 15}},
@@ -239,7 +296,7 @@ func Test_production_produce(t *testing.T) {
 
 		producer := newProducer(testLogger, &rCopy, planet, player)
 		producer.produce()
-		assert.Equal(t, 90, planet.Defenses)
+		assert.Equal(t, 100, planet.Defenses)
 		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
 	})
 
@@ -278,7 +335,7 @@ func Test_production_produce(t *testing.T) {
 		// build the half completed factory, keep building more factories but don't add a partial mine
 		planet.ProductionQueue = []ProductionQueueItem{
 			{Type: QueueItemTypeFactory, Quantity: 1, Allocated: Cost{Germanium: 2, Resources: 5}},
-			{Type: QueueItemTypeAutoMinTerraform, Quantity: 1},
+			{Type: QueueItemTypeAutoMinTerraform, Quantity: 1}, // skipped
 			{Type: QueueItemTypeAutoFactories, Quantity: 100},
 			{Type: QueueItemTypeAutoMines, Quantity: 100},
 		}
@@ -324,7 +381,7 @@ func Test_production_produce(t *testing.T) {
 			{Type: QueueItemTypeAutoMines, Quantity: 100},
 		}
 		planet.Cargo = Cargo{7, 2, 1, 1000}
-		planet.Spec = computePlanetSpec(&rules, player, planet)
+		planet.Spec.ResourcesPerYearAvailable = 5
 
 		// build nothing due to partial factory blocking the queue
 		wantQueue := []ProductionQueueItem{
@@ -338,16 +395,16 @@ func Test_production_produce(t *testing.T) {
 		result, err := producer.produce()
 		assert.NoError(t, err)
 
-		// should consume 1kT germanium and allocate appropriate resources to match
+		// should consume 1kT germanium, 2 res and allocate appropriate resources to match
 		// Remaining resources go into research (we have nothing else to do with em)
 		assert.Equal(t, Cargo{7, 2, 0, 1000}, planet.Cargo)
 		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
-		assert.Equal(t, result.factories, 0)
-		assert.Equal(t, result.leftoverResources, 98)
+		assert.Equal(t, 0, result.factories)
+		assert.Equal(t, 3, result.leftoverResources)
 
 	})
 
-	t.Run("Accounts for growth", func(t *testing.T) {
+	t.Run("Auto accounts for growth", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 
 		// make mines/factories cheap so we can build them
@@ -430,20 +487,17 @@ func Test_production_produce(t *testing.T) {
 	t.Run("Starbase Upgrade", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 
-		// create a new starbase
+		// create 2 designs for the old and new bases
 		starbaseDesign1 := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).WithSpec(&rules, player)
-		starbase1 := newStarbase(player, planet,
-			starbaseDesign1,
-			"Starbase",
-		)
+		starbaseFleet := newStarbase(player, planet, starbaseDesign1, "Old Base")
 		starbaseDesign2 := NewShipDesign(player.Num, 3).WithHull(SpaceStation.Name).
 			WithSlots([]ShipDesignSlot{
 				{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
 			}).WithSpec(&rules, player)
 
 		player.Designs = append(player.Designs, starbaseDesign1, starbaseDesign2)
-		starbase1.Spec = ComputeFleetSpec(&rules, player, &starbase1)
-		planet.Starbase = &starbase1
+		starbaseFleet.Spec = ComputeFleetSpec(&rules, player, &starbaseFleet)
+		planet.Starbase = &starbaseFleet
 
 		planet.ProductionQueue = []ProductionQueueItem{
 			{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 3, design: starbaseDesign2},
@@ -490,6 +544,7 @@ func Test_production_produce(t *testing.T) {
 			WithSlots([]ShipDesignSlot{
 				{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
 			}).WithSpec(&rules, player)
+		planet.PacketTargetNum = 33
 
 		player.Designs = append(player.Designs, starbaseDesign)
 
@@ -502,11 +557,12 @@ func Test_production_produce(t *testing.T) {
 		planet.Spec.ResourcesPerYearAvailable = 2000
 
 		// should build starbase, then packet
+		planet.PopulateProductionQueueDesigns(player)
 		producer := newProducer(testLogger, &rules, planet, player)
 		result, err := producer.produce()
 		assert.Nil(t, err)
 		assert.NotNil(t, result.starbase)
-		assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets)
+		assert.Equal(t, Cargo{40, 40, 40, 0}, result.packets) // false if item is canceled
 		assert.Equal(t, 0, len(planet.ProductionQueue))
 	})
 

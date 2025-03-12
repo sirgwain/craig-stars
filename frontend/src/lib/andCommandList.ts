@@ -1,11 +1,10 @@
-// for a list of items, return a comma separated list with an and on the final word
-// ex:
-// [a, b, c] will return `a, b and c`.
-// [a, b] will return `a and b`.
-// [a] will return `a`.
-// empty strings in the list are discarded
+/**
+ * Concaentate several strings with commas, adding an "and" on the final word.
+ * @param items a list of strings to concatenate
+ * @param emptyResult a result to return if the string is empty
+ * @returns The concaetation of all items
+*/
 export function andCommaList(items: string[], emptyResult = ''): string {
-	let result = '';
 	const filteredItems = items.filter((i) => !!i);
 
 	if (filteredItems.length == 0) {
@@ -20,15 +19,14 @@ export function andCommaList(items: string[], emptyResult = ''): string {
 		return `${filteredItems[0]} and ${filteredItems[1]}`;
 	}
 
-	for (let i = 0; i < filteredItems.length; i++) {
+	return filteredItems.reduce((prevVal, currVal: string, i: number) => {
 		if (i == filteredItems.length - 1) {
-			result += ' and ';
+			prevVal += ' and ';
 		} else if (i > 0) {
-			result += ', ';
+			prevVal += ', ';
 		}
 
-		result += filteredItems[i];
-	}
+		return prevVal + currVal;
+	});
 
-	return result;
 }

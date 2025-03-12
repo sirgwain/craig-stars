@@ -269,7 +269,7 @@ func (p *producer) produce() (result productionResult, err error) {
 
 		// make sure this item is buildable, notifying the player and canceling it if not.
 		if msgType, valid := p.validateItem(item, planet, result.starbase); !valid {
-			p.updatePacketCanceledMessage(msgType, &result, item,
+			p.updatePacketCanceledMessage(&result, item, msgType,
 				itemCost.ToMineral().MultiplyFloat64(1/p.player.Race.Spec.PacketMineralCostFactor, math.Floor).Total())
 			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, canceled: true})
 			continue
@@ -316,7 +316,7 @@ func (p *producer) produce() (result productionResult, err error) {
 
 		// Elide any concrete items ahead of us inside the queue that are over cap.
 		if itemIndex < len(planet.ProductionQueue)-1 {
-			modQueue := planet.ProductionQueue[:itemIndex+1]
+			modQueue := planet.ProductionQueue[:itemIndex+1] // everything before us can stay
 			for _, item := range planet.ProductionQueue[itemIndex+1:] {
 				if item.Type.IsAuto() {
 					// leave auto items alone
@@ -326,6 +326,7 @@ func (p *producer) produce() (result productionResult, err error) {
 
 				maxBuildable := planet.maxBuildable(p.player, item.Type)
 				if maxBuildable == Infinite {
+					// infinite maxBuildable
 					modQueue = append(modQueue, item)
 					continue
 				}
@@ -338,8 +339,8 @@ func (p *producer) produce() (result productionResult, err error) {
 						Int("Qty", item.Quantity).
 						Int("maxBuildable", maxBuildable).
 						Int("New Quantity", item.Quantity-overCap).
-						Msgf("clamping queue item quantity")
-					item.Quantity -= overCap
+						Msgf("clamping queue item quantity down to maxBuildable")
+					item.Quantity -= overCap // a-(a-b) = a-a+b = b
 				}
 
 				if item.Quantity > 0 {
@@ -348,7 +349,7 @@ func (p *producer) produce() (result productionResult, err error) {
 					// quantity <= 0; remove from new queue
 					available = available.Add(item.Allocated) // refund previously allocated amount
 					result.itemsBuilt = append(result.itemsBuilt,
-						itemBuilt{index: item.index, canceled: true})
+						itemBuilt{index: item.index, queueItemType: item.Type, canceled: true})
 					p.updateCanceledMessage(&result, item, overCap, maxBuildable)
 				}
 			}
@@ -630,15 +631,14 @@ func (p *producer) updateCanceledMessage(result *productionResult, item Producti
 				PrevAmount:    item.Quantity + numCanceled, // Total amount
 			}))
 	} else {
-		msg := &result.messages[index]
 		// update the previous message with more amounts
-		msg.Spec.Amount += numCanceled
-		msg.Spec.PrevAmount += item.Quantity + numCanceled
-		msg.Spec.Cost = msg.Spec.Cost.Add(item.Allocated)
+		result.messages[index].Spec.Amount += numCanceled
+		result.messages[index].Spec.PrevAmount += item.Quantity + numCanceled
+		result.messages[index].Spec.Cost = result.messages[index].Spec.Cost.Add(item.Allocated)
 	}
 }
 
-func (p *producer) updatePacketCanceledMessage(msgType PlayerMessageType, result *productionResult, item ProductionQueueItem, weight int) {
+func (p *producer) updatePacketCanceledMessage(result *productionResult, item ProductionQueueItem, msgType PlayerMessageType, weight int) {
 	// For packets, we don't care _what_ type of packet got canceled, only that _a_ packet was canceled.
 	if index := slices.IndexFunc(result.messages, func(message PlayerMessage) bool {
 		return message.Type == msgType
@@ -654,16 +654,16 @@ func (p *producer) updatePacketCanceledMessage(msgType PlayerMessageType, result
 				PrevAmount:    item.Quantity, // Items built (equal to items canceled)
 			}))
 	} else {
-		msg := &result.messages[index]
 		// update the previous message with more amounts
-		if msg.Spec.QueueItemType != item.Type {
-			// If this is a different kind of packet than earlier
-			msg.Spec.QueueItemType = QueueItemTypeNone
+		if result.messages[index].Spec.QueueItemType != item.Type {
+			// If this is a different kind of packet than earlier, remove QueueItemType
+			// to indicate multiple packet types
+			result.messages[index].Spec.QueueItemType = QueueItemTypeNone
 		}
 
-		msg.Spec.PrevAmount += item.Quantity
-		msg.Spec.Amount += weight
-		msg.Spec.Amount2++
-		msg.Spec.Cost = msg.Spec.Cost.Add(item.Allocated)
+		result.messages[index].Spec.PrevAmount += item.Quantity
+		result.messages[index].Spec.Amount += weight
+		result.messages[index].Spec.Amount2++
+		result.messages[index].Spec.Cost = result.messages[index].Spec.Cost.Add(item.Allocated)
 	}
 }

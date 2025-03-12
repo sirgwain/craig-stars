@@ -59,7 +59,7 @@ export function toMineral(cargo: Cargo): Mineral {
 }
 
 export function population(cargo: Cargo | undefined): number {
-	return Math.floor(cargo?.colonists ?? 0 / 100);
+	return cargo?.colonists ?? 0 * 100;
 }
 
 // if we are displaying cargo as a percent, don't let it be more than 100%

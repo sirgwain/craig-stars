@@ -7,6 +7,7 @@
 	import type { AnyFleet } from '$lib/services/Universe';
 	import { getMapObjectName, owned, ownedBy } from '$lib/types/MapObject';
 	import { onMount } from 'svelte';
+	import { population } from '$lib/types/Cargo';
 
 	const { player, universe, settings } = getGameContext();
 
@@ -177,8 +178,8 @@
 										{#if owned(planet)}
 											<div>-</div>
 											<div class="text-base my-auto">
-												{planet.spec.population
-													? planet.spec.population.toLocaleString() + ' pop'
+												{population(planet.cargo)
+													? population(planet.cargo).toLocaleString() + ' pop'
 													: ''}
 											</div>
 										{/if}

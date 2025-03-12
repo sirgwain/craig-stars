@@ -630,7 +630,6 @@ export interface PlayerMessageSpec extends Target<MapObjectType> {
 	amount?: number /* int */;
 	amount2?: number /* int */;
 	prevAmount?: number /* int */;
-	bool?: boolean;
 	sourcePlayerNum?: number /* int */;
 	destPlayerNum?: number /* int */;
 	name?: string;

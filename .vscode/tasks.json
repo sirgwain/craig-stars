@@ -5,11 +5,10 @@
 		"showReuseMessage": false,
 		"clear": true
 	},
-	"type": "shell",
-	"runOptions": { "reevaluateOnRerun": false },
 	"tasks": [
 		{
 			"label": "Run all tests",
+			"type": "shell",
 			"command": "mage",
 			"args": ["test"],
 			"group": "test",
@@ -17,30 +16,19 @@
 				"color": "terminal.ansiGreen",
 				"id": "beaker"
 			},
-			"detail": "Run all backend/frontend tests and linting checks.",
-			"presentation": {
-				"group": "Tests"
-			}
+			"detail": "Run all backend/frontend tests and linting checks."
 		},
 		{
 			"label": "Go: run tests",
+			"type": "shell",
 			"command": "mage",
-			"args": [
-				"test_golang",
-				{
-					"value": "${input:packages} --run=\"${input:goTestName}\"",
-					"quoting": "strong"
-				}
-			],
+			"args": ["test_golang", "--run=\"^${input:goTestName}\""],
 			"group": "test",
 			"icon": {
 				"color": "terminal.ansiGreen",
 				"id": "run-below"
 			},
-			"detail": "Run backend tests using gotestsum.",
-			"presentation": {
-				"group": "Tests"
-			}
+			"detail": "Run backend tests using gotestsum."
 		},
 		{
 			"label": "Go: run benchmarks",
@@ -49,7 +37,7 @@
 			"command": "test",
 			"args": [
 				"--run=$^",
-				"--bench=\"${input:goTestName}\"",
+				"--bench=\"^${input:goTestName}\"",
 				"--benchmem",
 				"--benchtime=${input:benchTime}s",
 				"--benchcount=5",
@@ -60,13 +48,11 @@
 				"color": "terminal.ansiYellow",
 				"id": "clock"
 			},
-			"detail": "Run Go benchmarks and save the results to JSON.",
-			"presentation": {
-				"group": "Tests"
-			}
+			"detail": "Run Go benchmarks and save the results to JSON."
 		},
 		{
 			"label": "Go: generate files",
+			"type": "shell",
 			"problemMatcher": "$go",
 			"group": "build",
 			"icon": {
@@ -74,10 +60,7 @@
 				"id": "table"
 			},
 			"command": "mage generate",
-			"detail": "Generate various backend and frontend files.",
-			"presentation": {
-				"group": "Build"
-			}
+			"detail": "Generate various backend and frontend files."
 		},
 		{
 			"label": "Build & launch server",
@@ -91,13 +74,11 @@
 				"color": "terminal.ansiCyan",
 				"id": "browser"
 			},
-			"detail": "Build and start up the local server for debugging.",
-			"presentation": {
-				"group": "Build"
-			}
+			"detail": "Build and start up the local server for debugging."
 		},
 		{
 			"label": "Build server",
+			"type": "shell",
 			"command": "mage",
 			"args": ["build"],
 			"group": "build",
@@ -105,52 +86,44 @@
 				"color": "terminal.ansiCyan",
 				"id": "symbol-constructor"
 			},
-			"detail": "Build server without launching it.",
-			"presentation": {
-				"group": "Build"
-			}
+			"detail": "Build server without launching it."
 		},
 		{
 			"label": "Launch server",
-			"dependsOn": ["Launch backend", "middle task"],
+			"dependsOn": ["launch backend", "middle task"],
 			"detail": "Launch frontend/backend servers and open localhost without building anything.",
 			"group": "build",
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "rocket"
-			},
-			"presentation": {
-				"group": "Launch"
 			}
 		},
 		{
 			"hide": true,
-			"label": "Launch backend",
+			"label": "launch backend",
+			"type": "shell",
 			"command": "mage",
 			"args": ["launch_backend"],
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "radio-tower"
-			},
-			"presentation": {
-				"group": "Launch"
 			}
 		},
 		{
 			// needed to run tasks in sequence so we only open localhost after we finish.
 			"hide": true,
 			"label": "middle task",
-			"dependsOn": ["Launch frontend", "open localhost"],
+			"dependsOn": ["launch frontend", "open localhost"],
 			"dependsOrder": "sequence",
 			"presentation": {
-				"panel": "shared",
-				"group": "Launch"
+				"panel": "shared"
 			}
 		},
 		{
 			"hide": true,
-			"label": "Launch frontend",
+			"label": "launch frontend",
 			"isBackground": true,
+			"type": "shell",
 			"command": "mage",
 			"args": ["launch_frontend"],
 			"icon": {
@@ -167,10 +140,7 @@
 						"endsPattern": { "regexp": "VITE .* ready in .*$" }
 					}
 				}
-			],
-			"presentation": {
-				"group": "Launch"
-			}
+			]
 		},
 		{
 			"hide": true,
@@ -191,38 +161,32 @@
 		{
 			"hide": true,
 			"label": "Compile Mage debug file",
+			"type": "shell",
 			"command": "mage",
 			"args": ["-compile", "./magefile-debug"],
+			"presentation": {
+				"panel": "shared"
+			},
 			"icon": {
 				"color": "terminal.ansiBlack",
 				"id": "debug-console"
-			},
-			"presentation": {
-				"panel": "shared",
-				"group": "Debug"
 			}
 		},
 		{
 			"hide": true,
 			"label": "Delete Mage debug file",
-			"command": "rm magefiles/magefile-debug",
+			"type": "shell",
 			"icon": {
 				"color": "terminal.ansiBlack",
 				"id": "trash"
 			},
+			"command": "rm magefiles/magefile-debug",
 			"presentation": {
-				"panel": "shared",
-				"group": "Debug"
+				"panel": "shared"
 			}
 		}
 	],
 	"inputs": [
-		{
-			"id": "packages",
-			"type": "promptString",
-			"default": "./...",
-			"description": "Enter list of packages to run \"go test\" on (relative from workspace root). Defaults to running all tests if left empty."
-		},
 		{
 			"id": "goTestName",
 			"type": "promptString",
