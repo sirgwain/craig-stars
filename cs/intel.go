@@ -2,7 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"math"
 	"slices"
 
 	"github.com/rs/zerolog"

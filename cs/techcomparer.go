@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/rs/zerolog"
+	"math"
 )
 
 // The TechComparer interface compares techs and techHullComponents
