@@ -9,6 +9,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip, techs } from '$lib/services/Stores';
 	import type { CommandedPlanet } from '$lib/types/Planet';
+	import { population } from '$lib/types/Cargo';
 	import CommandTile from './CommandTile.svelte';
 
 	const { player, universe } = getGameContext();
@@ -45,12 +46,12 @@
 		if ($player.race.spec?.innateScanner) {
 			showTooltip(e.x, e.y, InnateScannerTooltip);
 		} else {
-			onTechTooltip(e, $techs.getTech(planet.spec.scanner));
+			onTechTooltip(e, $techs.getTech(planet.spec.scanner ?? ''));
 		}
 	}
-	function onDefensePoopup(e: PointerEvent) {
+	function onDefensePopup(e: PointerEvent) {
 		e.preventDefault();
-		onTechTooltip(e, $techs.getTech(planet.spec.defense));
+		onTechTooltip(e, $techs.getTech(planet.spec.defense ?? ''));
 	}
 </script>
 
@@ -58,7 +59,7 @@
 	<CommandTile title="Status">
 		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>
 			<div class="text-tile-item-title">Population</div>
-			<div>{((planet.cargo.colonists ?? 0) * 100).toLocaleString()}</div>
+			<div>{population(planet.cargo).toLocaleString()}</div>
 		</div>
 		<div class="flex justify-between cursor-help" onpointerdown={onResourcesTooltip}>
 			<div class="text-tile-item-title">Resources/Year</div>
@@ -81,15 +82,15 @@
 		{#if $player.race.spec?.canBuildDefenses}
 			<div class="divider p-0 m-0"></div>
 
-			<div class="flex justify-between cursor-help" onpointerdown={onDefensePoopup}>
+			<div class="flex justify-between cursor-help" onpointerdown={onDefensePopup}>
 				<div class="text-tile-item-title">Defenses</div>
 				<div>{planet.defenses} of {planet.spec.maxDefenses}</div>
 			</div>
-			<div class="flex justify-between cursor-help" onpointerdown={onDefensePoopup}>
+			<div class="flex justify-between cursor-help" onpointerdown={onDefensePopup}>
 				<div class="text-tile-item-title">Defense Type</div>
 				<div>{planet.spec.defense}</div>
 			</div>
-			<div class="flex justify-between cursor-help" onpointerdown={onDefensePoopup}>
+			<div class="flex justify-between cursor-help" onpointerdown={onDefensePopup}>
 				<div class="text-tile-item-title">Defense Coverage</div>
 				<div>
 					{((planet.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%

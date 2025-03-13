@@ -125,11 +125,11 @@ export class CommandedPlanet implements Planet {
 	};
 
 	public get population(): number {
-		return Math.floor((this.cargo.colonists ?? 0) / 100);
+		return Math.trunc((this.cargo.colonists ?? 0) * 100);
 	}
 
 	public set population(value: number) {
-		this.cargo.colonists = Math.floor(value / 100);
+		this.cargo.colonists = Math.trunc(value / 100);
 	}
 
 	// get the max popluation this planet will support for a player

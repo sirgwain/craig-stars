@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"math"
 	"slices"
 
 	"github.com/rs/zerolog"
@@ -322,13 +323,15 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 		}
 
 		// players & their allies know their exact planet pops, but foreign pop readings are slightly off
-		sharingMapWithOwner := player.IsSharingMap(planet.PlayerNum)
-		if ownedByPlayer || sharingMapWithOwner {
+		// @sirgwain: Should this be "you are friend of the planet player" or "they are friends with you"?
+		// Seems kinda off that you can get better intel just by swapping to friend on your end
+		if ownedByPlayer || player.IsFriend(planet.PlayerNum) ||
+			player.IsSharingMap(planet.PlayerNum) {
 			intel.Cargo.Colonists = planet.Cargo.Colonists
 		} else {
 			// generate a random error within range [1-scanError, 1+scanError]
 			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError*2) - rules.PopulationScannerError
-			intel.Cargo.Colonists = max(0, int(float64(planet.Cargo.Colonists)*(1-randomPopulationError)))
+			intel.Cargo.Colonists = max(0, roundTo100(float64(planet.Cargo.Colonists)*(1-randomPopulationError), math.Floor))
 		}
 	}
 	return nil

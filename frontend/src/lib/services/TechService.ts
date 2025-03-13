@@ -50,7 +50,7 @@ export class TechService implements TechStore {
 		this.terraforms = store.terraforms ?? [];
 		this.defenses = store.defenses ?? [];
 		this.planetaries = store.planetaries ?? [];
-		this.hullComponents = (store.engines ?? []).concat(store.hullComponents ?? []);
+		this.hullComponents = ((store.engines ?? []) as TechHullComponent[]).concat(store.hullComponents);
 		this.hulls = store.hulls ?? [];
 
 		this.techs = [];

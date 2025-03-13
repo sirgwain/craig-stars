@@ -669,7 +669,7 @@ export class CommandedFleet implements Fleet {
 		return (
 			(this.spec.miningRate ?? 0) > 0 &&
 			(!owned(target) ||
-				(ownedBy(target, player.num) && (player.race.spec.canRemoteMineOwnPlanets ?? false)))
+				(ownedBy(target, player.num) && !!player.race.spec.canRemoteMineOwnPlanets))
 		);
 	}
 
