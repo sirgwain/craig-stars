@@ -178,14 +178,12 @@
 			getPlanetHabitability($player.race, planet.hab)
 		);
 		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
-		// get the max number of items we can build on this planet.
-		// For auto items, getMaxBuildable function returns the number of items to build,
-		// but we can always add more than what we need
-		const max =
-			/* item.Type === QueueItemTypeAutoMineralAlchemy ? 1 : */ // TODO: enable this later
-			isAuto(item.type)
-				? 5000
-				: planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue);
+		// get the max number of items we can build on this planet. For auto items, let them add 5k because it's ok to
+		// add more than our auto items will build. This getMaxBuildable function returns the number of usuable mines for auto, but
+		// when updating the production queue we don't care about that
+		const max = isAuto(item.type)
+			? 5000
+			: planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue);
 		const quantity = clamp(quantityModifer, 0, max);
 		if (quantity == 0) {
 			// don't add something we can't build any more of

@@ -422,6 +422,39 @@ export class CommandedPlanet implements Planet {
 	}
 }
 
+export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
+	type,
+	quantity: 1,
+	allocated: {},
+	tags: {}
+});
+
+export const getQueueItemShortName = (
+	item: ProductionQueueItem,
+	designFinder: DesignFinder
+): string => {
+	switch (item.type) {
+		case QueueItemTypeStarbase:
+		case QueueItemTypeShipToken:
+			return designFinder.getMyDesign(item.designNum)?.name ?? '';
+		case QueueItemTypeTerraformEnvironment:
+			return 'Terraform Environment';
+		case QueueItemTypeAutoMines:
+			return 'Mine (Auto)';
+		case QueueItemTypeAutoFactories:
+			return 'Factory (Auto)';
+		case QueueItemTypeAutoDefenses:
+			return 'Defenses (Auto)';
+		case QueueItemTypeAutoMineralAlchemy:
+			return 'Alchemy (Auto)';
+		case QueueItemTypeAutoMaxTerraform:
+			return 'Max Terraform (Auto)';
+		case QueueItemTypeAutoMinTerraform:
+			return 'Min Terraform (Auto)';
+		default:
+			return `${startCase(item.type)}`;
+	}
+};
 export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {
 	return {
 		ironium: (((planet.mineralConcentration?.ironium ?? 0) * numMines) / 1000.0) * mineOutput,
