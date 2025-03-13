@@ -334,7 +334,7 @@ func NewRulesWithSeed(seed int64) Rules {
 				SpendLeftoverPointsOnMines:                 2,
 				SpendLeftoverPointsOnFactories:             5,
 				SpendLeftoverPointsOnDefenses:              10,
-				SpendLeftoverPointsOnMineralConcentrations: 3,
+				SpendLeftoverPointsOnMineralConcentrations: 2,  // Due to some high level source code chicanery
 				SpendLeftoverPointsOnSurfaceMinerals:       10, // special case; denotes kT/point
 			},
 			StartingYear:              2400,

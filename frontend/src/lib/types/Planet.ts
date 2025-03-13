@@ -1,8 +1,8 @@
 import { roundTo100 } from '$lib/services/Math';
 import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
-import type { AnyPlanet } from '$lib/services/Universe';
+import type { AnyPlanet, DesignFinder } from '$lib/services/Universe';
 import type { CS } from '$lib/wasm';
-import { cloneDeep, sortBy } from 'lodash-es';
+import { cloneDeep, sortBy, startCase } from 'lodash-es';
 import { population } from './Cargo';
 import type {
 	Fleet,
@@ -50,7 +50,6 @@ import {
 import { absSum } from './Hab';
 import { totalMinerals } from './Mineral';
 import type { CommandedPlayer } from './Player';
-import { fromQueueItemType } from './QueueItemType';
 import { getGameContext } from '$lib/services/GameContext';
 
 const { cs } = getGameContext();
@@ -455,6 +454,18 @@ export const getQueueItemShortName = (
 			return `${startCase(item.type)}`;
 	}
 };
+
+/**
+ * Return the amount this {@linkcode Planet} or {@linkcode PlanetIntel} will grow next year,
+ * truncated to the nearest multiple of 100.
+ * @param planet The planet to check
+ * @returns The planet's growth next year if `planet` is a {@linkcode Planet}, or 0 for a {@linkcode PlanetIntel}
+ */
+export function getGrowth(planet: AnyPlanet): number {
+	// TODO: Change once isIntel is added
+	return 'reportAge' in planet ? 0 : roundTo100(planet.spec.growthAmount ?? 0 + planet.partialPopulation, Math.trunc);
+}
+
 export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {
 	return {
 		ironium: (((planet.mineralConcentration?.ironium ?? 0) * numMines) / 1000.0) * mineOutput,
@@ -500,7 +511,7 @@ export function planetsSortBy(key: string): ((a: AnyPlanet, b: AnyPlanet) => num
 		case 'populationDensity':
 			return (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0);
 		case 'populationGrowth':
-			return (a, b) => (a.spec.growthAmount ?? 0) - (b.spec.growthAmount ?? 0);
+			return (a, b) => (getGrowth(a) - getGrowth(b));
 		case 'habitability':
 			return (a, b) => (a.spec.habitability ?? 0) - (b.spec.habitability ?? 0);
 		case 'mines':

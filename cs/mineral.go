@@ -181,79 +181,6 @@ func (m Mineral) Clamp(min, max int) Mineral {
 	}
 }
 
-// Attempt to equalize a Mineral's values as best as possible by repeatedly
-// adding or subtracting amtToAdd in total.
-// If amtToAdd is positive, it adds to the lowest values;
-// if negative, it subtracts from the highest ones.
-//
-// Ties among equal values will be broken in order of precedence (I>B>G).
-func (m Mineral) Equalize(amtToAdd int) Mineral {
-	if amtToAdd == 0 {
-		return m
-	}
-
-	/*
-		Example scenario:
-		19 Iron, 3 Bor & 31 Germ with 50 total.
-		First, we add 17 Boranium to make it equal to Ironium.
-		Next, we add 13 (31-19) to both Iron and Bor to equalize all 3.
-		The remaining 11 is split evenly 3 ways (4 to I/B, 3 to G).
-	*/
-
-	mArray := m.ToSlice()
-	mSlice := mArray[:]
-	var origOrder = []int{0, 1, 2} // original value order; used to "un-shuffle" slice at the end
-	// sort mineral values/types
-	slices.SortFunc(mSlice, func(a, b int) int {
-		diff := a - b
-		if amtToAdd < 0 {
-			diff = b - a // reverse sorting order for negative indices so we deduct from the highest
-		}
-		if diff < 0 {
-			// shuffle around original order slice to keep it in sync
-			// (3 values is small enough for go to use insertion sort)
-			i := slices.Index(mSlice, a)
-			origOrder[i], origOrder[i-1] = origOrder[i-1], origOrder[i]
-		}
-		return diff
-	})
-
-	addFunc := func(index, amt int) {
-		mSlice[index] += amt
-		amtToAdd -= amt
-	}
-
-	// attempt to equalize lowest 2 (highest 2 for negatives)
-	diffLowest := AbsMin(amtToAdd, mSlice[1]-mSlice[0])
-	if diffLowest != 0 {
-		addFunc(0, diffLowest)
-	}
-
-	// lowest/middle now equal; try to equalize with highest
-	diffMiddle := AbsMin(amtToAdd, (mSlice[2]-mSlice[1])*2)
-	if diffMiddle != 0 {
-		addFunc(0, diffMiddle/2)
-		addFunc(1, diffMiddle/2)
-	}
-
-	// deal with any excess
-	if third := amtToAdd / 3; third != 0 {
-		for i := range mSlice {
-			mSlice[i] += third
-		}
-		amtToAdd %= 3
-	}
-	for i := range Abs(amtToAdd) {
-		if amtToAdd < 0 {
-			// use original order so we add to iron first
-			mSlice[origOrder[i]]--
-		} else {
-			mSlice[origOrder[i]]++
-		}
-	}
-	return NewMineral(mSlice[origOrder[0]], mSlice[origOrder[1]], mSlice[origOrder[2]])
-}
-
 // HighestType returns the MineralType and numerical value of the
 // Nth highest value in a Mineral struct.
 // Negative indices count backwards from lowest value.
@@ -261,7 +188,9 @@ func (m Mineral) Equalize(amtToAdd int) Mineral {
 //
 // Ties are broken in order of precendence (I>B>G); tie order not affected by negative indices
 //
-// panics if ranking is 0 or if abs(ranking) is greater than 3
+// panics if ranking is 0 or if abs(ranking) is greater than 3/
+//
+// Also see [Cost.HighestType]
 func (m Mineral) HighestType(ranking int) (minType MineralType, value int) {
 	a := m.ToSlice()
 	if ranking == 0 || Abs(ranking) > len(a) {

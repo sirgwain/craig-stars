@@ -156,24 +156,25 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 			want: NewPlanet().WithCargo(Cargo{12, 5, 5, 0}),
 		},
 		{
-			name: "43 points into defenses; extra wasted",
+			name: "45 points into defenses; rounds half up",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
-				extraPoints: 43,
+				extraPoints: 45,
 				pointsType:  SpendLeftoverPointsOnDefenses,
 			},
-			want: NewPlanet().WithDefenses(4),
+			// first costs half as much pts
+			want: NewPlanet().WithDefenses(5),
 		},
 		{
-			name: "30 points into concentration; some already",
+			name: "33 points into concentration; some already",
 			args: args{
 				race:        NewRace().WithSpec(&rules),
-				extraPoints: 30,
+				extraPoints: 33,
 				pointsType:  SpendLeftoverPointsOnMineralConcentrations,
-				planet:      NewPlanet().WithMineralConcentration(Mineral{40, 35, 37}),
+				planet:      NewPlanet().WithMineralConcentration(Mineral{35, 35, 37}),
 			},
-			want: NewPlanet().WithMineralConcentration(Mineral{41, 41, 40}),
-			// [40, 35, 37] -> [40, 37, 37] -> [40, 40, 40] -> [41, 41, 40]
+			want: NewPlanet().WithMineralConcentration(Mineral{59, 43, 45}),
+			// 16 points into lowest, then 8 into all
 		},
 		{
 			name: "36 points into surface minerals with some cargo",

@@ -1,5 +1,4 @@
 <script lang="ts" module>
-	import { roundTo100 } from '$lib/services/Math';
 	import { ReportAgeUnexplored } from '$lib/types/cs';
 	import type { CommandedPlayer } from '$lib/types/Player';
 	export type PopulationTooltipProps = {
@@ -13,14 +12,12 @@
 	import type { AnyPlanet, PlayerFinder } from '$lib/services/Universe';
 	import { owned, ownedBy } from '$lib/types/MapObject';
 	import { population } from '$lib/types/Cargo';
+	import { getGrowth } from '$lib/types/Planet';
 
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 
 	let reportAge = $derived('reportAge' in planet ? (planet.reportAge ?? 0) : 0);
-	let growthAmount = $derived(
-		isIntel(planet) ? 0 :
-		roundTo100((planet.spec.growthAmount ?? 0) + (planet.partialPopulation), Math.trunc)
-	);
+	let growthAmount = $derived(getGrowth(planet));
 	let habitability = $derived(planet.spec.habitability ?? 0);
 	let pop = $derived(population(planet.cargo));
 </script>
@@ -56,10 +53,6 @@
 					to {(pop + growthAmount).toLocaleString()}
 					next year.
 				</p>
-			{:else if planet.spec.growthAmount === 0}
-				<p>
-					Your population on <span class="font-semibold">{planet.name}</span> will not grow next year.
-				</p>
 			{:else if growthAmount < 0}
 				{#if (planet.spec.populationDensity ?? 0) > 1}
 					<p><span class="font-semibold">{planet.name}</span> is overcrowded.</p>
@@ -68,6 +61,10 @@
 					Approximately
 					<span class="font-semibold">{Math.abs(growthAmount).toLocaleString()}</span>
 					of your colonists will die next year.
+				</p>
+			{:else}
+				<p>
+					Your population on <span class="font-semibold">{planet.name}</span> will not grow next year.
 				</p>
 			{/if}
 		{:else if !owned(planet) && reportAge !== ReportAgeUnexplored}

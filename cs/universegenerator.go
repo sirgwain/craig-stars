@@ -330,17 +330,20 @@ func (ug *universeGenerator) generatePlayerStartingPlanets(area Vector) error {
 		extraPoints, pointsType := player.Race.ComputeLeftoverRacePoints(rules.RaceStartingPoints)
 
 		// assign player starting planets
-		// TODO: Add custom planet placement support
+		// TODO: Add custom planet placement support for team games:
+		// * Assign random starting planets to each "team" maximizing distance between enemy factions
+		// * Place allied homeworlds around each initial planet within a smaller range
+		// * Place players within each faction randomly and assign starting planets
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			if !startingPlanet.Homeworld && homeworld == nil {
 				// Since extra planets _have_ to be placed around the homeworld,
-				// the homeworld must be the first thing we place
+				// the homeworld needs to be the first thing we place
 				return fmt.Errorf("first planet in player #%d's startingPlanets was not homeworld, exiting", player.Num)
 			}
 
 			var playerPlanet *Planet
 			if startingPlanet.Homeworld && homeworld == nil {
-				// place homworld and track it so we know where to base extra world placement on
+				// place homeworld and track it so we know where to base extra world placement on
 				playerPlanet = ug.placeHomeworld(ownedPlanets, minPlayerDistance)
 				homeworld = playerPlanet
 			} else {
@@ -454,26 +457,42 @@ func (ug *universeGenerator) placeExtraWorld(homeworldPos Vector) (extraPlanet *
 	return extraPlanet
 }
 
-// Assign race starting point bonuses to a player's homeworld
+// Assign race starting point bonuses to a player's homeworld.
 func (ug *universeGenerator) assignRaceStartingPointBonuses(race *Race, planet *Planet, extraPoints int, pointsType SpendLeftoverPointsOn) {
-	rules := ug.Rules
+	// This algorithm was adapted from Stars! source code.
 
-	// add bonuses based on the points type if the race can use it
+	rules := ug.Rules
+	if extraPoints == 0 {
+		// No points makes our life very simple; do nothing!
+		return
+	}
+
+	// add bonuses based on pointsType, swapping to surface mins if the race can't use/afford it
+	// This does deviate from OG Stars! behavior slightly, but we can afford to be nice here.
+	// TODO: Add a small warning symbol on the frontend race screen (along with a message mentioning as such)
 	switch pointsThreshold := rules.RaceLeftoverPointsPerItem[pointsType]; {
 	case pointsType == SpendLeftoverPointsOnDefenses &&
-		extraPoints >= pointsThreshold && !race.Spec.LivesOnStarbases:
-		planet.Defenses += extraPoints / pointsThreshold
+		extraPoints >= (pointsThreshold/2) && !race.Spec.LivesOnStarbases:
+		// For some ungodly reason, starting defenses round half up in OG Stars.
+		// It still costs 10 pts/defense; the first one just costs 5 less
+		planet.Defenses += (extraPoints + pointsThreshold/2) / pointsThreshold
 	case pointsType == SpendLeftoverPointsOnFactories &&
 		extraPoints >= pointsThreshold && !race.Spec.InnateResources:
 		planet.Factories += extraPoints / pointsThreshold
 	case pointsType == SpendLeftoverPointsOnMines &&
 		extraPoints >= pointsThreshold && !race.Spec.InnateMining:
 		planet.Mines += extraPoints / pointsThreshold
-	case pointsType == SpendLeftoverPointsOnMineralConcentrations &&
-		extraPoints >= pointsThreshold:
-		planet.MineralConcentration = planet.MineralConcentration.Equalize(extraPoints / pointsThreshold)
-	case extraPoints > 0:
-		// rough algorithm taken directly from Stars! source
+	case pointsType == SpendLeftoverPointsOnMineralConcentrations:
+		concLeft := max(extraPoints/pointsThreshold, 1) // "Rounds up" the first minconc bonus
+		m := planet.MineralConcentration
+		lowestType, _ := m.HighestType(-1) // Iron takes precedence, just like in base game
+		m = m.AddNum(lowestType, concLeft)
+		m = m.AddToAll((concLeft + 1) / 2)
+		planet.MineralConcentration = m
+	default:
+		// Algorithm taken directly from Stars! source.
+		// Cheater AIs are _supposed_ to get this AND minconcs, but we don't give ours
+		// any special treatment (they *are* supposed to be a lot smarter)
 		ktLeft := extraPoints * rules.RaceLeftoverPointsPerItem[SpendLeftoverPointsOnSurfaceMinerals]
 		m := planet.Cargo.ToMineral()
 		lowestType, _ := m.HighestType(-1)
