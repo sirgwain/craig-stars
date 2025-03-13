@@ -521,7 +521,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
-		if (token.design.Spec.Engine != Engine{}) {
+		if token.design.Spec.Engine != (Engine{}) {
 			if spec.Engine.IdealSpeed == 0 {
 				spec.Engine.IdealSpeed = token.design.Spec.Engine.IdealSpeed
 				spec.Engine.FreeSpeed = token.design.Spec.Engine.FreeSpeed
@@ -620,13 +620,11 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		}
 
 		if token.design.Spec.CloakUnits > 0 {
-			// calculate the cloak units for this token based on the design's cloak units (i.e. 70 cloak units / kT for a stealh cloak)
+			// calculate the cloak units for this token based on the design's cloak units (70 cloak units / kT for a stealth cloak)
 			spec.CloakUnits += token.design.Spec.CloakUnits
-		} else {
+		} else if !player.Race.Spec.FreeCargoCloaking {
 			// if this ship doesn't have cloaking, it counts as cargo (except for races with free cargo cloaking)
-			if !player.Race.Spec.FreeCargoCloaking {
-				spec.BaseCloakedCargo += token.design.Spec.Mass * token.Quantity
-			}
+			spec.BaseCloakedCargo += token.design.Spec.Mass * token.Quantity
 		}
 
 		// choose the best tachyon detector ship

@@ -1098,7 +1098,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			o := &orders{}
 			sourceCargo := tt.args.source.Cargo
-			destCargo := tt.args.dest.getCargo()
+			destCargo := tt.args.dest.Cargo
 			err := o.TransferPlanetCargo(&rules, player, tt.args.source, tt.args.dest, tt.args.transferAmount, []*Planet{tt.args.dest})
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
@@ -1111,7 +1111,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			if err == nil {
 				// we should transfer from the dest to the soruce
 				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), tt.args.source.Cargo)
-				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), tt.args.dest.getCargo())
+				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), tt.args.dest.Cargo)
 			}
 		})
 	}

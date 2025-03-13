@@ -301,8 +301,8 @@ func Test_turn_grow(t *testing.T) {
 		game: game,
 		log:  testLogger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
 
+	turn.computeSpecs()
 	turn.planetGrow()
 
 	// #1 grows, #2 dies, #3 dies but can't go lower, #4 overpops a tad bit
@@ -1724,9 +1724,12 @@ func Test_turn_buildStarbase(t *testing.T) {
 	game := createSingleUnitGame()
 	player := game.Players[0]
 	planet := game.Planets[0]
+	rCopy := rules
+	rCopy.RepairRates[RepairRateStarbase] = 0
+	game.Rules = rCopy
 
 	// create a new starbase design & add it to the queue
-	emptyBaseDesign := NewShipDesign(player.Num, 2).WithName("Sad empty base").WithHull(SpaceStation.Name).WithSpec(&rules, player)
+	emptyBaseDesign := NewShipDesign(player.Num, 2).WithName("Sad empty base").WithHull(SpaceStation.Name).WithSpec(&rCopy, player)
 	player.Designs = append(player.Designs, emptyBaseDesign)
 
 	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: emptyBaseDesign.Num})
@@ -1762,7 +1765,7 @@ func Test_turn_buildStarbase(t *testing.T) {
 		[]ShipDesignSlot{
 			{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 1},
 			{HullComponent: Superlatanium.Name, HullSlotIndex: 4, Quantity: 1},
-		}).WithSpec(&rules, player)
+		}).WithSpec(&rCopy, player)
 	player.Designs = append(player.Designs, starbaseDesignUpgrade)
 
 	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{
@@ -1788,6 +1791,7 @@ func Test_turn_buildStarbase(t *testing.T) {
 
 	// give player RS and swap back to the old base
 	player.Race = *player.Race.WithLRT(RS)
+	planet.Starbase.Tokens[0].Damage = 1125 // 90% of our new 1250 max dp
 
 	planet.ProductionQueue = append(planet.ProductionQueue, ProductionQueueItem{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: emptyBaseDesign.Num})
 
@@ -1795,12 +1799,13 @@ func Test_turn_buildStarbase(t *testing.T) {
 
 	// should have the old base again, with the laser base marked for deletion
 	// still has roughly 90% damage
-	assert.Equal(t, 2, len(game.Starbases))
+	assert.Equal(t, 3, len(game.Starbases))
 	test.CompareAsJSON(t, planet.Starbase.Tokens[0].design, emptyBaseDesign)
 	assert.InDelta(t, 0.9, planet.Starbase.Tokens[0].Damage/
 		float64(planet.Starbase.Tokens[0].design.Spec.Armor), 0.005)
-	assert.False(t, game.Starbases[0].Delete)
+	assert.True(t, game.Starbases[0].Delete)
 	assert.True(t, game.Starbases[1].Delete)
+	assert.False(t, game.Starbases[2].Delete)
 
 }
 

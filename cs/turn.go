@@ -1594,7 +1594,7 @@ func (t *turnGenerator) buildStarbase(player *Player, planet *Planet, design *Sh
 	starbase := newStarbase(player, planet, design, design.Name)
 	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, &starbase)
 
-	// if the prior starbase was damaged, set the new base's damage proportionally to the old base's dmg %
+	// if the prior starbase was damaged, set the new base's damage proportional to the old base's dmg%
 	if prevDamage > 0 && prevArmor > 0 {
 		starbase.Tokens[0].QuantityDamaged = 1
 		starbase.Tokens[0].Damage = (prevDamage / float64(prevArmor)) * float64(starbase.Tokens[0].design.Spec.Armor)
