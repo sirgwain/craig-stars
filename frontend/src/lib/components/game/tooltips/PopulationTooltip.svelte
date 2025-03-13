@@ -17,9 +17,9 @@
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 
 	let reportAge = $derived('reportAge' in planet ? (planet.reportAge ?? 0) : 0);
-	let growthAmount = $derived(getGrowth(planet));
 	let habitability = $derived(planet.spec.habitability ?? 0);
 	let pop = $derived(population(planet.cargo));
+	let growthAmount = $derived(getGrowth(planet));
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">

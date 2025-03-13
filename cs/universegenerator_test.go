@@ -174,7 +174,7 @@ func Test_universeGenerator_assignRaceStartingPointBonuses(t *testing.T) {
 				planet:      NewPlanet().WithMineralConcentration(Mineral{35, 35, 37}),
 			},
 			want: NewPlanet().WithMineralConcentration(Mineral{59, 43, 45}),
-			// 16 points into lowest, then 8 into all
+			// 16 points (33/2) into lowest, then 8 (16/2) into all
 		},
 		{
 			name: "36 points into surface minerals with some cargo",

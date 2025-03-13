@@ -50,9 +50,6 @@ import {
 import { absSum } from './Hab';
 import { totalMinerals } from './Mineral';
 import type { CommandedPlayer } from './Player';
-import { getGameContext } from '$lib/services/GameContext';
-
-const { cs } = getGameContext();
 
 /**
  * A planet that can be commanded and updated by the player
@@ -124,7 +121,8 @@ export class CommandedPlanet implements Planet {
 	};
 
 	public get population(): number {
-		return Math.trunc((this.cargo.colonists ?? 0) * 100);
+		console.log(this.cargo.colonists);
+		return (this.cargo.colonists ?? 0) * 100;
 	}
 
 	public set population(value: number) {
@@ -186,13 +184,13 @@ export class CommandedPlanet implements Planet {
 	}
 
 	public getMaxBuildable(
+		productivePop: number,
 		techStore: TechStore,
 		player: CommandedPlayer,
 		maxPopulation: number,
 		type: QueueItemType,
 		amountInQueue = 0
 	): number {
-		const productivePop = cs.productivePopulation(this);
 		const race = player.race;
 
 		switch (type) {
@@ -463,7 +461,8 @@ export const getQueueItemShortName = (
  */
 export function getGrowth(planet: AnyPlanet): number {
 	// TODO: Change once isIntel is added
-	return 'reportAge' in planet ? 0 : roundTo100(planet.spec.growthAmount ?? 0 + planet.partialPopulation, Math.trunc);
+	const pPop = 'reportAge' in planet ? 0 : planet.partialPopulation
+	return roundTo100(planet.spec.growthAmount ?? 0 + pPop, Math.trunc);
 }
 
 export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {

@@ -66,20 +66,20 @@ describe('Planet test', () => {
 		planet.defenses = 10;
 		planet.population = 100_000;
 
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeMine)).toBe(990);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeAutoMines)).toBe(90);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeFactory)).toBe(990);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeAutoFactories)).toBe(
+		expect(planet.getMaxBuildable(1_000_000, techStore, player, 1_000_000, QueueItemTypeMine)).toBe(990);
+		expect(planet.getMaxBuildable(1_000_000, techStore, player, 1_000_000, QueueItemTypeAutoMines)).toBe(90);
+		expect(planet.getMaxBuildable(1_000_000, techStore, player, 1_000_000, QueueItemTypeFactory)).toBe(990);
+		expect(planet.getMaxBuildable(1_000_000, techStore, player, 1_000_000, QueueItemTypeAutoFactories)).toBe(
 			90
 		);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeDefenses)).toBe(90);
-		expect(planet.getMaxBuildable(techStore, player, 1_000_000, QueueItemTypeAutoDefenses)).toBe(
+		expect(planet.getMaxBuildable(1_000_000, techStore, player, 1_000_000, QueueItemTypeDefenses)).toBe(90);
+		expect(planet.getMaxBuildable(1_000_000, techStore, player, 1_000_000, QueueItemTypeAutoDefenses)).toBe(
 			90
 		);
 
 		// should build a scanner
-		expect(planet.getMaxBuildable(techStore, player, 1, QueueItemTypePlanetaryScanner)).toBe(1);
+		expect(planet.getMaxBuildable(1_000_000, techStore, player, 1, QueueItemTypePlanetaryScanner)).toBe(1);
 		planet.scanner = true;
-		expect(planet.getMaxBuildable(techStore, player, 1, QueueItemTypePlanetaryScanner)).toBe(0);
+		expect(planet.getMaxBuildable(1_000_000, techStore, player, 1, QueueItemTypePlanetaryScanner)).toBe(0);
 	});
 });

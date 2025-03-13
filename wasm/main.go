@@ -208,21 +208,6 @@ func estimateProduction(args []js.Value) interface{} {
 	return o
 }
 
-// wasm wrapper for estimating planet growth amount
-// takes 1 argument: the planet
-func growthAmount(args []js.Value) interface{} {
-	if len(args) != 1 {
-		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
-	}
-
-	planet := wasm.GetPlanet(args[0])
-
-	growth := planet.GetGrowthAmount(&ctx.player, planet.Spec.MaxPopulation, ctx.rules.PopulationOvercrowdDieoffRate, ctx.rules.PopulationOvercrowdDieoffRateMax)
-
-	log.Debug().Msgf("calculated planet growth amount: %s\n", growth)
-	return js.ValueOf(growth)
-}
-
 // wasm wrapper for calculating planet yearly resource production
 // takes 1 argument: the planet
 func productivePopulation(args []js.Value) interface{} {
@@ -273,7 +258,6 @@ func main() {
 	wasm.ExposeFunction("starbaseUpgradeCost", starbaseUpgradeCost)
 	wasm.ExposeFunction("techCost", techCost)
 	wasm.ExposeFunction("estimateProduction", estimateProduction)
-	wasm.ExposeFunction("growthAmount", growthAmount)
 	wasm.ExposeFunction("productivePopulation", productivePopulation)
 	wasm.ExposeFunction("resourcesAvailable", updateResourcesAvailable)
 	wasm.Ready()

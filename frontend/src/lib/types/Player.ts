@@ -194,7 +194,7 @@ export class CommandedPlayer implements Player, CostFinder {
 	): Cost {
 		if (item) {
 			switch (item.type) {
-				case QueueItemTypeStarbase: // TODO: starbase upgrades...
+				case QueueItemTypeStarbase:
 					if (item.designNum) {
 						const design = designFinder.getMyDesign(item.designNum);
 						if (planet?.spec.hasStarbase) {

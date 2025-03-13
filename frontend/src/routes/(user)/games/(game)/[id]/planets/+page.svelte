@@ -315,7 +315,7 @@
 					</div>
 				{:else if column.key == 'populationGrowth'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
-						{(getGrowth(row)).toLocaleString()}
+						{getGrowth(row).toLocaleString()}
 					</div>
 				{:else if column.key == 'habitability'}
 					{#if row.spec.canTerraform}

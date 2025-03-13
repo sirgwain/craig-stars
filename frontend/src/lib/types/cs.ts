@@ -630,6 +630,7 @@ export interface PlayerMessageSpec extends Target<MapObjectType> {
 	amount?: number /* int */;
 	amount2?: number /* int */;
 	prevAmount?: number /* int */;
+	bool?: boolean;
 	sourcePlayerNum?: number /* int */;
 	destPlayerNum?: number /* int */;
 	name?: string;
@@ -1179,9 +1180,12 @@ export interface PlayerMapObjects {
 //////////
 // source: production.go
 
-/**
- * The producer struct performs planetary production.
- */
+export interface QueueItemCompletionEstimate {
+	skipped?: boolean;
+	yearsToBuildOne?: number /* int */;
+	yearsToBuildAll?: number /* int */;
+	yearsToSkipAuto?: number /* int */;
+}
 export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	type: QueueItemType;
 	designNum?: number /* int */;
@@ -1189,14 +1193,7 @@ export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	allocated: Cost;
 	tags: Tags;
 }
-export interface QueueItemCompletionEstimate {
-	canceled?: boolean;
-	yearsToBuildOne?: number /* int */;
-	yearsToBuildAll?: number /* int */;
-	yearsToSkipAuto?: number /* int */;
-}
 export type QueueItemType = string;
-export const QueueItemTypeNone: QueueItemType = '';
 export const QueueItemTypeIroniumMineralPacket: QueueItemType = 'IroniumMineralPacket';
 export const QueueItemTypeBoraniumMineralPacket: QueueItemType = 'BoraniumMineralPacket';
 export const QueueItemTypeGermaniumMineralPacket: QueueItemType = 'GermaniumMineralPacket';
@@ -1218,7 +1215,7 @@ export const QueueItemTypeStarbase: QueueItemType = 'Starbase';
 export const QueueItemTypePlanetaryScanner: QueueItemType = 'PlanetaryScanner';
 export const QueueItemTypeGenesisDevice: QueueItemType = 'GenesisDevice';
 /**
- * A record of a built queue item, used for logging & estimating
+ * for logging and for estimating, keep track of each item built
  */
 
 //////////
