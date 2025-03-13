@@ -114,521 +114,343 @@ func Test_completionEstimate_GetYearsToBuildOne(t *testing.T) {
 }
 
 func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
-	t.Run("Normal", func(t *testing.T) {
-		type args struct {
-			items  []ProductionQueueItem
-			planet *Planet
-		}
-		tests := []struct {
-			name                  string
-			args                  args
-			want                  []ProductionQueueItem
-			wantLeftoverResources int
-			wantErr               bool
-		}{
-			{
-				name: "Invalid Design",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type: QueueItemTypeShipToken,
-							design: NewShipDesign(1, 1).WithSlots([]ShipDesignSlot{
-								{HullComponent: "not a component", HullSlotIndex: 20, Quantity: -1},
-							}),
-							Quantity: 1,
-						},
-					},
-					planet: NewPlanet().WithCargo(Cargo{0, 0, 0, 1000}).
-						WithContributesOnlyLeftoverToResearch(true),
-				},
-				want:                  nil,
-				wantLeftoverResources: 0,
-				wantErr:               true,
-			},
-			{
-				name: "3 half done ships",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:      QueueItemTypeShipToken,
-							design:    testLongRangeScoutDesign(1),
-							Quantity:  3,
-							Allocated: Cost{8, 1, 3, 4},
-							// 40 iron left to build
-						},
-					},
-					planet: NewPlanet().WithCargo(Cargo{6, 100, 100, 1000}).
-						WithMines(10). // 10kT per year
-						WithFactories(1000).
-						WithContributesOnlyLeftoverToResearch(true),
-				},
-				want: []ProductionQueueItem{
+	type args struct {
+		items           []ProductionQueueItem
+		surfaceMinerals Mineral
+		population      int
+		mines           int
+		factories       int
+	}
+	tests := []struct {
+		name                  string
+		args                  args
+		want                  []ProductionQueueItem
+		wantLeftoverResources int
+	}{
+		{
+			name: "one item, never complete",
+			args: args{
+				items: []ProductionQueueItem{
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 4,
-							YearsToSkipAuto: Infinite,
-						},
-						Type:      QueueItemTypeShipToken,
-						design:    testLongRangeScoutDesign(1),
-						Quantity:  3,
-						Allocated: Cost{8, 1, 3, 4},
-					},
-				},
-				wantLeftoverResources: 174,
-				wantErr:               false,
-			},
-			{
-				name: "one item, never completes",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeFactory,
-							Quantity: 1,
-						},
-					},
-					planet: NewPlanet().WithCargo(Cargo{0, 0, 0, 10}),
-				},
-				want: []ProductionQueueItem{
-					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: Infinite,
-						},
 						Type:     QueueItemTypeFactory,
 						Quantity: 1,
 					},
 				},
-				wantLeftoverResources: 1,
-				wantErr:               false,
+				population:      1000,
+				surfaceMinerals: Mineral{},
 			},
-			{
-				name: "one item, 2 years to go",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:      QueueItemTypeFactory,
-							Quantity:  1,
-							Allocated: Cost{Resources: 5},
-						},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: Infinite,
+						YearsToBuildAll: Infinite,
+						YearsToSkipAuto: Infinite,
 					},
-					planet: NewPlanet().WithCargo(Cargo{0, 0, 4, 30}), // enough minerals to finish
+					Type:     QueueItemTypeFactory,
+					Quantity: 1,
 				},
-				want: []ProductionQueueItem{
+			},
+			wantLeftoverResources: 1,
+		},
+		{
+			name: "one item, two years to go",
+			args: args{
+				items: []ProductionQueueItem{
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 2,
-							YearsToBuildAll: 2,
-							YearsToSkipAuto: Infinite,
-						},
 						Type:      QueueItemTypeFactory,
 						Quantity:  1,
 						Allocated: Cost{Resources: 5},
 					},
 				},
-				wantLeftoverResources: 0,
-				wantErr:               false,
+				population:      3_000,                 // 3 resources per turn
+				surfaceMinerals: Mineral{Germanium: 4}, // enough minerals to finish
 			},
-			{
-				name: "two items, first completes this year, second takes 2 years",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeMine,
-							Quantity: 1,
-						},
-						{
-							Type:     QueueItemTypeFactory,
-							Quantity: 2,
-						},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 2,
+						YearsToBuildAll: 2,
+						YearsToSkipAuto: Infinite,
 					},
-					planet: NewPlanet().WithMines(2).WithCargo(Cargo{0, 0, 0, 50}),
-					// 5 resources/2kT per year
+					Type:      QueueItemTypeFactory,
+					Quantity:  1,
+					Allocated: Cost{Resources: 5},
 				},
-				want: []ProductionQueueItem{
+			},
+			wantLeftoverResources: 0,
+		},
+		{
+			name: "two item, first completes this year, second takes 2 years",
+			args: args{
+				items: []ProductionQueueItem{
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 1,
-							YearsToSkipAuto: Infinite,
-						},
 						Type:     QueueItemTypeMine,
 						Quantity: 1,
 					},
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 3,
-							YearsToBuildAll: 5,
-							YearsToSkipAuto: Infinite,
-						},
 						Type:     QueueItemTypeFactory,
 						Quantity: 2,
 					},
 				},
-				wantErr: false,
+				mines:      2,    // mine 2 germ a year
+				population: 5000, // 5 resources per year
 			},
-			{
-				name: "two items, lots of minerals on hand, low resources",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeFactory,
-							Quantity: 1,
-						},
-						{
-							Type:     QueueItemTypeMine,
-							Quantity: 2,
-						},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 1,
+						YearsToBuildAll: 1,
+						YearsToSkipAuto: Infinite,
 					},
-					planet: NewPlanet().WithMines(1).WithCargo(Cargo{100, 100, 100, 10}),
+					Type:     QueueItemTypeMine,
+					Quantity: 1,
 				},
-				want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 3,
+						YearsToBuildAll: 5,
+						YearsToSkipAuto: Infinite,
+					},
+					Type:     QueueItemTypeFactory,
+					Quantity: 2,
+				},
+			},
+		},
+		{
+			name: "two item, lots of minerals on hand, low resources",
+			args: args{
+				items: []ProductionQueueItem{
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 8,
-							YearsToBuildAll: 8,
-							YearsToSkipAuto: Infinite,
-						},
 						Type:     QueueItemTypeFactory,
 						Quantity: 1,
 					},
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 10,
-							YearsToBuildAll: 11,
-							YearsToSkipAuto: Infinite,
-						},
 						Type:     QueueItemTypeMine,
 						Quantity: 2,
 					},
 				},
-				wantErr: false,
+				surfaceMinerals: Mineral{Ironium: 100, Boranium: 100, Germanium: 100},
+				mines:           1,    // 1kT per year in cargo
+				population:      1000, // 1 resource per year for pop
 			},
-			{
-				name: "5 auto factories, then 5 auto mines",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeAutoFactories,
-							Quantity: 5,
-						},
-						{
-							Type:     QueueItemTypeAutoMines,
-							Quantity: 10,
-						},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 8,
+						YearsToBuildAll: 8,
+						YearsToSkipAuto: Infinite,
 					},
-					planet: NewPlanet().WithCargo(Cargo{0, 0, 8, 350}),
+					Type:     QueueItemTypeFactory,
+					Quantity: 1,
 				},
-				want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 9,
+						YearsToBuildAll: 11,
+						YearsToSkipAuto: Infinite,
+					},
+					Type:     QueueItemTypeMine,
+					Quantity: 2,
+				},
+			},
+		},
+		{
+			name: "5 auto factories, then 5 auto mines",
+			args: args{
+				items: []ProductionQueueItem{
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 6,
-							YearsToSkipAuto: 2,
-						},
 						Type:     QueueItemTypeAutoFactories,
 						Quantity: 5,
 					},
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1, // we build some mines in the first year
-							YearsToBuildAll: 9, // we finish them the next year
-							YearsToSkipAuto: Infinite,
-						},
 						Type:     QueueItemTypeAutoMines,
 						Quantity: 10,
 					},
 				},
-				wantErr: false,
+				surfaceMinerals: Mineral{Ironium: 0, Boranium: 0, Germanium: 8}, // start with enough germ for two factories
+				population:      35_000,                                         // 35 resources per year
 			},
-			{
-				name: "Test later year planet with high everything",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeAutoMinTerraform,
-							Quantity: 1,
-						},
-						{
-							Type:     QueueItemTypeAutoFactories,
-							Quantity: 100,
-						},
-						{
-							Type:     QueueItemTypeAutoMines,
-							Quantity: 100,
-						},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 1,
+						YearsToBuildAll: 6,
+						YearsToSkipAuto: 2,
 					},
-					planet: NewPlanet().WithCargo(Cargo{2000, 2000, 2000, 7000}).
-						WithMines(700).WithFactories(700),
+					Type:     QueueItemTypeAutoFactories,
+					Quantity: 5,
 				},
-				want: []ProductionQueueItem{
-					// we skip the terraforming and easily finish everything else
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 1, // we build some mines in the first year
+						YearsToBuildAll: 9, // we finish them the next year
+						YearsToSkipAuto: Infinite,
+					},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 10,
+				},
+			},
+		},
+		{
+			name: "5 auto factories, then 5 auto mines, no minerals on hand, low resources",
+			args: args{
+				items: []ProductionQueueItem{
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: 1,
-						},
+						Type:     QueueItemTypeAutoFactories,
+						Quantity: 5,
+					},
+					{
+						Type:     QueueItemTypeAutoMines,
+						Quantity: 5,
+					},
+				},
+				surfaceMinerals: Mineral{},
+				population:      2000,
+			},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 14,
+						YearsToBuildAll: 23,
+						YearsToSkipAuto: 1,
+					},
+					Type:     QueueItemTypeAutoFactories,
+					Quantity: 5,
+				},
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 15,
+						YearsToBuildAll: 25, // it takes a while to build all these mines
+						YearsToSkipAuto: Infinite,
+					},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 5,
+				},
+			},
+			wantLeftoverResources: 0,
+		},
+		{
+			name: "Test later year planet with high everything",
+			args: args{
+				items: []ProductionQueueItem{
+					{
 						Type:     QueueItemTypeAutoMinTerraform,
 						Quantity: 1,
 					},
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 1,
-							YearsToSkipAuto: Infinite,
-						},
 						Type:     QueueItemTypeAutoFactories,
 						Quantity: 100,
 					},
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 1,
-							YearsToSkipAuto: Infinite,
-						},
 						Type:     QueueItemTypeAutoMines,
 						Quantity: 100,
 					},
 				},
-				wantLeftoverResources: 710,
-				wantErr:               false,
+				surfaceMinerals: Mineral{2000, 2000, 2000},
+				population:      700_000,
+				mines:           700,
+				factories:       700,
 			},
-			{
-				name: "auto factories when have more than max",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeAutoFactories,
-							Quantity: 100,
-						},
-						{
-							Type:     QueueItemTypeAutoMines,
-							Quantity: 100,
-						},
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						Skipped:         true, // this is skipped as it's not needed
+						YearsToBuildOne: Infinite,
+						YearsToBuildAll: Infinite,
+						YearsToSkipAuto: 1,
 					},
-					planet: NewPlanet().WithCargo(Cargo{2000, 2000, 2000, 1000}).
-						WithFactories(200).WithMines(200), // have 200, only operate 100ypeAutoFactories,
+					Type:     QueueItemTypeAutoMinTerraform,
+					Quantity: 1,
 				},
-				want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 1, // we easily build all auto buildable factories in one turn
+						YearsToBuildAll: 1,
+						YearsToSkipAuto: Infinite,
+					},
+					Type:     QueueItemTypeAutoFactories,
+					Quantity: 100,
+				},
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						YearsToBuildOne: 1, // we easily build all auto buildable mines in one turn
+						YearsToBuildAll: 1,
+						YearsToSkipAuto: Infinite,
+					},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 100,
+				},
+			},
+			wantLeftoverResources: 710,
+		},
+		{
+			name: "auto factories when have more than max",
+			args: args{
+				items: []ProductionQueueItem{
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: 1,
-						},
 						Type:     QueueItemTypeAutoFactories,
 						Quantity: 100,
 					},
 					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: 1,
-						},
 						Type:     QueueItemTypeAutoMines,
 						Quantity: 100,
 					},
 				},
-				wantLeftoverResources: 170,
-				wantErr:               false,
+				surfaceMinerals: Mineral{2000, 2000, 2000},
+				population:      100_000,
+				mines:           200, // we have 200, pop only supports 100
+				factories:       200,
 			},
-		}
+			want: []ProductionQueueItem{
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						Skipped:         true,
+						YearsToBuildOne: Infinite,
+						YearsToBuildAll: Infinite,
+						YearsToSkipAuto: 1,
+					},
+					Type:     QueueItemTypeAutoFactories,
+					Quantity: 100,
+				},
+				{
+					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+						Skipped:         true,
+						YearsToBuildOne: Infinite,
+						YearsToBuildAll: Infinite,
+						YearsToSkipAuto: 1,
+					},
+					Type:     QueueItemTypeAutoMines,
+					Quantity: 100,
+				},
+			},
+			wantLeftoverResources: 170,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := NewCompletionEstimator()
 
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-				e := NewCompletionEstimator()
+			player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+			planet := NewPlanet().WithPlayerNum(1)
+			planet.Hab = Hab{50, 50, 50}                         // perfect hab
+			planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for a 1kT per mine output
+			planet.Cargo = planet.Cargo.AddMineral(tt.args.surfaceMinerals)
+			planet.setPopulation(tt.args.population)
+			planet.Mines = tt.args.mines
+			planet.Factories = tt.args.factories
+			planet.Spec = computePlanetSpec(&rules, player, planet)
+			planet.ProductionQueue = tt.args.items
 
-				player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
-				planet := tt.args.planet
-				planet.Hab = Hab{50, 50, 50}                         // perfect hab
-				planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for 1kT per mine output
-				planet.PlayerNum = 1
-				planet.Spec = computePlanetSpec(&rules, player, planet)
-				t.Logf("resources: %d", planet.Spec.ResourcesPerYear)
+			got, gotLeftover, err := e.GetProductionWithEstimates(&rules, player, *planet)
+			if err != nil {
+				t.Errorf("PopulateCompletionEstimates() returned error")
+			}
 
-				// compute specs for designs in queue
-				for _, item := range tt.args.items {
-					if item.design == nil {
-						continue
-					}
-					// discard error for non-failing cases
-					var err error
-					if item.design.Spec, err = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, item.design); err != nil && !tt.wantErr {
-						t.Fatalf("ComputeShipDesignSpec() returned error: \n%v", err)
-					}
-				}
-				for _, item := range tt.want {
-					if item.design == nil {
-						continue
-					}
-					var err error
-					if item.design.Spec, err = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, item.design); err != nil && !tt.wantErr {
-						t.Fatalf("ComputeShipDesignSpec() returned error: \n%v", err)
-					}
-				}
-				planet.ProductionQueue = tt.args.items
+			test.CompareAsJSON(t, got, tt.want)
 
-				got, gotLeftover, err := e.GetProductionWithEstimates(&rules, player, *planet)
-				if (err != nil) != tt.wantErr {
-					if tt.wantErr {
-						t.Fatalf("CompletionEstimator.GetProductionWithEstimates() did not return error when expected")
-					} else {
-						t.Fatalf("CompletionEstimator.GetProductionWithEstimates() errored unexpectedly; err = \n%v", err)
-					}
-				}
-
-				if gotLeftover != tt.wantLeftoverResources {
-					t.Errorf("GetProductionWithEstimates() leftover = %d, wantLeftover %d", gotLeftover, tt.wantLeftoverResources)
-				}
-
-				test.CompareAsJSON(t, got, tt.want)
-			})
-		}
-	})
-
-	t.Run("AR", func(t *testing.T) {
-		santaMaria := NewShipDesign(1, 1).WithHull(ColonyShip.Name).WithSlots([]ShipDesignSlot{
-			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-			{HullComponent: OrbitalConstructionModule.Name, HullSlotIndex: 2, Quantity: 1},
+			if gotLeftover != tt.wantLeftoverResources {
+				t.Errorf("PopulateCompletionEstimates() leftover = \n%v, wantLeftover \n%v", gotLeftover, tt.wantLeftoverResources)
+			}
 		})
-		potatoBug := NewShipDesign(1, 2).WithHull(MidgetMiner.Name).WithSlots([]ShipDesignSlot{
-			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-			{HullComponent: RoboMidgetMiner.Name, HullSlotIndex: 2, Quantity: 2},
-		})
-
-		type args struct {
-			items  []ProductionQueueItem
-			planet *Planet
-		}
-		tests := []struct {
-			name                  string
-			args                  args
-			want                  []ProductionQueueItem
-			wantLeftoverResources int
-		}{
-			{
-				name: "santa maria",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeShipToken,
-							Quantity: 1,
-							design:   santaMaria,
-							// {33, 15, 31, 43}
-						},
-					},
-					planet: NewPlanet().WithCargo(Cargo{100, 100, 100, 250}), // 32 res per year
-				},
-				want: []ProductionQueueItem{
-					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 2,
-							YearsToBuildAll: 2,
-							YearsToSkipAuto: -1,
-						},
-						Type:     QueueItemTypeShipToken,
-						Quantity: 1,
-						design:   santaMaria,
-					},
-				},
-				wantLeftoverResources: 1,
-			},
-			{
-				name: "potato bug",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeShipToken,
-							Quantity: 2,
-							design:   potatoBug,
-							// {41, 0, 12, 123}
-						},
-					},
-					planet: NewPlanet().WithCargo(Cargo{100, 100, 100, 100}),
-					// Res: 32 --> 34 --> 37 --> 40 --> 42 --> 45 --> 48
-				},
-				want: []ProductionQueueItem{
-					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 4,
-							YearsToBuildAll: 7,
-							YearsToSkipAuto: -1,
-						},
-						Type:     QueueItemTypeShipToken,
-						Quantity: 2,
-						design:   potatoBug,
-					},
-				},
-				wantLeftoverResources: 0,
-			},
-			{
-				name: "alchemy",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeMineralAlchemy,
-							Quantity: 1,
-						},
-					},
-					planet: NewPlanet().WithCargo(Cargo{100, 100, 100, 250}),
-				},
-				want: []ProductionQueueItem{
-					{
-						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 3,
-							YearsToBuildAll: 3,
-							YearsToSkipAuto: -1,
-						},
-						Type:     QueueItemTypeMineralAlchemy,
-						Quantity: 1,
-					},
-				},
-				wantLeftoverResources: 1,
-			},
-		}
-
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-
-				e := NewCompletionEstimator()
-				player := NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).
-					WithTechLevels(TechLevel{Energy: 1}).
-					WithNum(1).withSpec(&rules)
-
-				planet := tt.args.planet.WithPlayerNum(1).
-					WithContributesOnlyLeftoverToResearch(true)
-				planet.Starbase = testSpaceStation(player, planet)
-				planet.Hab = Hab{50, 50, 50}                         // perfect hab
-				planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for 1kT per mine output
-				planet.Spec = computePlanetSpec(&rules, player, planet)
-
-				// compute specs for designs in queue
-				for _, item := range tt.args.items {
-					if item.design != nil {
-						item.design = item.design.WithSpec(&rules, player)
-					}
-				}
-				for _, item := range tt.want {
-					if item.design != nil {
-						item.design = item.design.WithSpec(&rules, player)
-					}
-				}
-				planet.ProductionQueue = tt.args.items
-
-				got, gotLeftover, err := e.GetProductionWithEstimates(&rules, player, *planet)
-				if err != nil {
-					t.Fatalf("CompletionEstimator.GetProductionWithEstimates() errored unexpectedly; err = \n%v", err)
-				}
-
-				if gotLeftover != tt.wantLeftoverResources {
-					t.Errorf("CompletionEstimator.GetProductionWithEstimates() leftover = \n%v, wantLeftover \n%v", gotLeftover, tt.wantLeftoverResources)
-				}
-
-				test.CompareAsJSON(t, got, tt.want)
-
-			})
-		}
-	})
+	}
 }
