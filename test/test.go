@@ -1,4 +1,4 @@
-// Package test contains some useful utility functions for testing things.
+// Package test contains some useful utility functions for testing.
 package test
 
 import (

@@ -56,7 +56,7 @@ export function isIntel(obj: unknown): obj is Intel {
 	if (!obj || typeof obj !== 'object') {
 		return false
 	}
-	return 'position' in obj && typeof obj.position === "number"
+	return 'reportAge' in obj && typeof obj.reportAge === "number"
 }
 
 export type PlayerUniverse = {

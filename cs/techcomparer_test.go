@@ -116,7 +116,7 @@ func TestTechComparer_GetBestComponentWithTag(t *testing.T) {
 					player = player.WithAcquiredTech(tech)
 				}
 			}
-			tc := NewTechComparer(&rules, player, testLogger)
+			tc := NewTechComparer(&rules, player)
 			design := NewShipDesign(player.Num, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
 			if tt.fields.beamShip {
 				design.Purpose = ShipDesignPurposeBeamFighter
@@ -290,7 +290,7 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 			race = race.WithLRT(RS)
 		}
 		player := NewPlayer(1, race.WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-		tc := NewTechComparer(&rules, player, testLogger).(*techCompare)
+		tc := NewTechComparer(&rules, player).(*techCompare)
 		design := NewShipDesign(player.Num, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
 		if tt.args.light {
 			design.Purpose = ShipDesignPurposeFreighter
@@ -381,7 +381,7 @@ func Test_techCompare_getMostNeededComponent_ArmorChecks(t *testing.T) {
 			for _, part := range tt.fields.acquiredParts {
 				player.AcquiredTechs[part] = true
 			}
-			tc := NewTechComparer(&rules, player, testLogger)
+			tc := NewTechComparer(&rules, player)
 			design := NewShipDesign(player.Num, 1).WithName(tt.name).WithHull(tt.fields.hull).WithPurpose(ShipDesignPurposeTorpedoFighter)
 			if tt.fields.beamShip {
 				design.Purpose = ShipDesignPurposeBeamFighter
@@ -505,7 +505,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 		player := NewPlayer(1, NewRace())
 		player.Race.Spec.ArmorStrengthFactor = tt.args.armorMulti
 		player.Race.Spec.ShieldStrengthFactor = tt.args.shieldMulti
-		tc := NewTechComparer(&rules, player, testLogger).(*techCompare)
+		tc := NewTechComparer(&rules, player).(*techCompare)
 
 		design := NewShipDesign(player.Num, 1).WithHull("Battleship").WithSpec(&rules, player)
 		design.Spec.Shields = tt.args.shield

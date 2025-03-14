@@ -36,19 +36,14 @@ func Build() {
 		Build_Backend)
 }
 
-// Clean up various temporary directories, optionally clearing the starter database.
+// Clean up various temporary directories.
 // This runs "go clean" and removes everything in dist and frontend/build.
-func Clean(rmData bool) error {
+func Clean() error {
 	if err := sh.RunV("go", "clean"); err != nil {
 		return err
 	}
 	if err := sh.Rm("dist"); err != nil {
 		return err
-	}
-	if rmData {
-		if err := sh.Rm("data"); err != nil {
-			return err
-		}
 	}
 
 	return sh.Rm("frontend/build")

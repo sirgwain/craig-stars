@@ -29,8 +29,8 @@ func TestCompareAsJSON(t *testing.T) {
 		},
 		{
 			name:         "wrong type; halts execution",
-			got:          cs.ProductivePopulation,
-			want:         cs.ProductivePopulation,
+			got:          cs.GetCostEfficiencyRatio[float64],
+			want:         cs.DesignShip,
 			wantFailed:   true,
 			wantCanceled: true,
 			wantDiff:     "",

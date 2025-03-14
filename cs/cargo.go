@@ -241,7 +241,7 @@ func (c Cargo) WithPopulation(amount int) Cargo {
 	return c
 }
 
-// get the mineral with the highest amount
+// return the mineral with the highest amount
 func (c Cargo) GreatestMineralType() CargoType {
 	if c.Ironium >= c.Boranium && c.Ironium >= c.Germanium {
 		return Ironium

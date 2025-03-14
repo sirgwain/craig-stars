@@ -51,10 +51,6 @@
 					to {(planet.spec.population + growthAmount).toLocaleString()}
 					next year.
 				</p>
-			{:else if planet.spec.growthAmount === 0}
-				<p>
-					Your population on <span class="font-semibold">{planet.name}</span> will not grow next year.
-				</p>
 			{:else if growthAmount < 0}
 				{#if (planet.spec.populationDensity ?? 0) > 1}
 					<p><span class="font-semibold">{planet.name}</span> is overcrowded.</p>
@@ -63,6 +59,10 @@
 					Approximately
 					<span class="font-semibold">{Math.abs(growthAmount).toLocaleString()}</span>
 					of your colonists will die next year.
+				</p>
+			{:else}
+				<p>
+					Your population on <span class="font-semibold">{planet.name}</span> will not grow next year.
 				</p>
 			{/if}
 		{:else if !owned(planet) && reportAge !== ReportAgeUnexplored}

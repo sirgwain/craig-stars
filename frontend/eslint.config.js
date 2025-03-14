@@ -20,22 +20,22 @@ export default ts.config(
 				extraFileExtensions: [".svelte"],
 				projectService: true,
 				tsconfigRootDir: import.meta.dirname,
-			  },
-
-		}
+			},
+		},
 	},
 	{
 		rules: {
 			'no-var': 'error',
-			'@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
-			'@typescript-eslint/no-unnecessary-condition': [
+			'@typescript-eslint/ban-ts-comment': [
 				'error',
 				{
-					// allow True, False, 1 and 0 as loop conditions
-					allowConstantLoopConditions: 'only-allowed-literals',
-					checkTypePredicates: true,
+					'ts-expect-error': {descriptionFormat: '^: .+$'},
 				},
 			],
+			'@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
+			'@typescript-eslint/no-unnecessary-condition': 'error',
+			'@typescript-eslint/consistent-type-assertions': 'warn',
+			'@typescript-eslint/no-confusing-non-null-assertion': 'error'
 		}
 	},
 	{
@@ -55,10 +55,16 @@ export default ts.config(
 			'no-undef': 'off',
 			'@typescript-eslint/no-unsafe-member-access': 'off',
 			'@typescript-eslint/no-unsafe-argument': 'off',
+			'@typescript-eslint/no-unsafe-assignment': 'off',
 			'@typescript-eslint/no-unsafe-call': 'off',
 			'@typescript-eslint/no-unsafe-condition': 'off',
 
 		}
+	},
+	{
+		// disable type aware linting on config files (they're for config after all)
+		files: ['**/*.config.{js, ts}'],
+		extends: [ts.configs.disableTypeChecked],
 	},
 	{
 		ignores: [

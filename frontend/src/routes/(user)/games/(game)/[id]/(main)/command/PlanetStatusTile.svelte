@@ -45,12 +45,12 @@
 		if ($player.race.spec?.innateScanner) {
 			showTooltip(e.x, e.y, InnateScannerTooltip);
 		} else {
-			onTechTooltip(e, $techs.getTech(planet.spec.scanner));
+			onTechTooltip(e, $techs.getTech(planet.spec.scanner ?? ''));
 		}
 	}
 	function onDefensePoopup(e: PointerEvent) {
 		e.preventDefault();
-		onTechTooltip(e, $techs.getTech(planet.spec.defense));
+		onTechTooltip(e, $techs.getTech(planet.spec.defense ?? ''));
 	}
 </script>
 

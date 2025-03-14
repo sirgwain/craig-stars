@@ -5,8 +5,6 @@ import (
 	"math"
 	"slices"
 	"strings"
-
-	"github.com/rs/zerolog"
 )
 
 // Fleets are made up of ships, and each ship has a design. Players start with designs created
@@ -135,8 +133,8 @@ const (
 	ShipDesignPurposeStarterColony         ShipDesignPurpose = "StarterColony"
 )
 
-func NewShipDesign(playerNum, designNum int) *ShipDesign {
-	return &ShipDesign{PlayerNum: playerNum, Num: designNum, Slots: []ShipDesignSlot{}}
+func NewShipDesign(playerNum, num int) *ShipDesign {
+	return &ShipDesign{PlayerNum: playerNum, Num: num, Slots: []ShipDesignSlot{}}
 }
 
 func (sd *ShipDesign) WithName(name string) *ShipDesign {
@@ -778,11 +776,11 @@ func newPartCache(design *ShipDesign, tc TechComparer) *partCache {
 // Design a ship/starbase for the AI or as a starting fleet using the best parts available to us
 //
 // Warship design is handled by (and delegated to) [designWarship] instead
-func DesignShip(rules *Rules, player *Player, log zerolog.Logger, hull *TechHull, name string, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
+func DesignShip(rules *Rules, player *Player, hull *TechHull, name string, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
 	techStore := rules.techs
 	design := NewShipDesign(player.Num, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
-	tc := NewTechComparer(rules, player, log)
+	tc := NewTechComparer(rules, player)
 
 	// fuel depots & starter colonies are empty
 	if purpose == ShipDesignPurposeFuelDepot || purpose == ShipDesignPurposeStarterColony {
@@ -795,7 +793,7 @@ func DesignShip(rules *Rules, player *Player, log zerolog.Logger, hull *TechHull
 		purpose == ShipDesignPurposeStarbaseHalf ||
 		purpose == ShipDesignPurposeStarbaseQuarter {
 		// warships & bases get their own separate function for reasons
-		design, err := designWarship(rules, player, log, hull, name, num, hullSetNumber, purpose)
+		design, err := designWarship(rules, player, hull, name, num, hullSetNumber, purpose)
 		if err != nil {
 			return &ShipDesign{}, err
 		} else {
@@ -825,8 +823,6 @@ func DesignShip(rules *Rules, player *Player, log zerolog.Logger, hull *TechHull
 		hullSlotsByFlexibility[b] = append(hullSlotsByFlexibility[b], i) // add list index of the hull slot to our slice
 		partCachesBySlot[hst] = newPartCache(design, tc)
 	}
-
-	log.Debug()
 
 	// loop through hull slots from least flexible to most flexible
 	for i := range maxNum {
@@ -1011,12 +1007,12 @@ func DesignShip(rules *Rules, player *Player, log zerolog.Logger, hull *TechHull
 }
 
 // Design a warship or starbase based on available parts to fit a specified goal
-func designWarship(rules *Rules, player *Player, log zerolog.Logger, hull *TechHull, name string, num int, hullSetNumber int, purpose ShipDesignPurpose) (*ShipDesign, error) {
+func designWarship(rules *Rules, player *Player, hull *TechHull, name string, num int, hullSetNumber int, purpose ShipDesignPurpose) (*ShipDesign, error) {
 
 	//* DISCLAIMER FOR CODE (RE)VIEWERS: THIS IS A *VERY LONG FUNCTION*. Use the hashtags (#) to jump between sections.
 	techStore := rules.techs
 	design := NewShipDesign(player.Num, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
-	tc := NewTechComparer(rules, player, log)
+	tc := NewTechComparer(rules, player)
 
 	// (#) COUNTERS & CONSTANTS
 
@@ -1347,6 +1343,9 @@ func designWarship(rules *Rules, player *Player, log zerolog.Logger, hull *TechH
 	slices.SortFunc(design.Slots, func(m, n ShipDesignSlot) int {
 		return m.HullSlotIndex - n.HullSlotIndex
 	})
+	if len(design.Slots) > len(hull.Slots) {
+		return nil, fmt.Errorf("design contained more slots than hull could contain (%d vs %d)", len(design.Slots), len(hull.Slots))
+	}
 
 	if len(design.Spec.WeaponSlots) == 0 {
 		// our "completed" warship has no actual weapons; we assume the build process failed somehow

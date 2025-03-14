@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Bombers orbiting enemy planets will Bomb planets
+// Bombers orbiting enemy planets will Bomb planets, killing population and destroying installations.
 type Bomb struct {
 	Quantity             int     `json:"quantity,omitempty"`
 	KillRate             float64 `json:"killRate,omitempty"`
@@ -55,7 +55,7 @@ func (result BombingResult) Add(r BombingResult) BombingResult {
 	}
 }
 
-// bomb this planet if there are any bombers orbiting it
+// bomb this planet if there are any bombers orbiting it.
 func (b *bomber) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []*Fleet, pg playerGetter) {
 	// get a list of all players orbiting the planet
 	orbitingPlayerNums := map[int]bool{}
@@ -127,7 +127,7 @@ func (b *bomber) getBombersForPlayer(fleets []*Fleet, playerNum int) []*Fleet {
 	return result
 }
 
-// bomb this planet with a slice of fleets
+// bomb this planet with a slice of fleets.
 func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
 
 	// do all normal bombs
@@ -332,6 +332,9 @@ func (b *bomber) getColonistsKilledForBombs(population int, defenseCoverage floa
 	// calculate the killRate for all these bombs
 	var killRate float64 = 0
 	for _, bomb := range bombs {
+		// These sum up additively - 2 Cherries (2.5%) and an M-80 (1.7%) will result in 6.7% deaths/yr
+		// (reduced by defense coverage)
+
 		killRate += bomb.KillRate * float64(bomb.Quantity)
 	}
 
@@ -343,6 +346,7 @@ func (b *bomber) getMinColonistsKilledForBombs(defenseCoverage float64, bombs []
 	// calculate the minKill for all these bombs
 	minKill := 0
 	for _, bomb := range bombs {
+		// Fairly simple - just add em all up
 		minKill += bomb.MinKillRate * bomb.Quantity
 	}
 

@@ -1,3 +1,5 @@
+// The `cs` package houses all internal game logic and data types for craig-stars.
+// It serves as the "backbone" upon which all the other packages build and rely on.
 package cs
 
 import (

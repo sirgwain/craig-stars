@@ -1,3 +1,5 @@
+// Package `db`  handles serializing games, players and other data types
+// to and from the MySQL database, as well as handling UI database queries.
 package db
 
 import (
