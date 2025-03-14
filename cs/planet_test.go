@@ -583,7 +583,7 @@ func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
 			},
 		},
 		{
-			name: "Crappy AR starter colony with lots of pop, En 10",
+			name: "Negative Hab AR planet",
 			args: args{
 				player: NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).
 					WithTechLevels(TechLevel{10, 0, 0, 0, 0, 0}).withSpec(&rules), // makes calcs easier
@@ -592,11 +592,11 @@ func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
 				installationPop: 1_000_000,
 			},
 			spec: PlanetSpec{
-				Habitability:  25, // min hab floor for AR
+				Habitability:  -45, // floored to 25 for AR
 				MaxPopulation: 500_000,
 			},
 			want: PlanetSpec{
-				Habitability:     25,
+				Habitability:     -45,
 				MaxPopulation:    500_000,
 				ResourcesPerYear: 250,
 			},

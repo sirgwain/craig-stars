@@ -657,7 +657,9 @@ func (spec *PlanetSpec) computeDefenseCoverage(rules *Rules, coverage float64, n
 func (spec *PlanetSpec) ComputeResourcesPerYear(player *Player, numFacts, productivePop, installationPop int) {
 	if player.Race.Spec.InnateResources {
 		// Compute resources for AR
-		spec.ResourcesPerYear = int(math.Ceil(float64(spec.Habitability) / 100 * // Confirmed: AR resources round up in base game
+		habMulti := float64(max(spec.Habitability, player.Race.Spec.MinHabFloor)) / 100
+		// Confirmed: AR resources round up in base game
+		spec.ResourcesPerYear = int(math.Ceil(habMulti *
 			math.Sqrt(float64(productivePop*player.TechLevels.Energy)/float64(player.Race.PopEfficiency))))
 	} else {
 		// compute resources from population & factories
@@ -697,11 +699,9 @@ func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int
 
 	// Habitability is floored at 5% when determining max population
 	// (or 25% for AR races)
-	if habitability < player.Race.Spec.MinHabFloor {
-		habitability = player.Race.Spec.MinHabFloor
-	}
-
-	return int(roundTo100(float64(rules.MaxPopulation*habitability)*maxPopulationFactor/100.0, math.Floor))
+	// We divide by 100 since we store the value as an int rather than a percentage
+	habitability = max(habitability, player.Race.Spec.MinHabFloor)
+	return roundTo100(float64(rules.MaxPopulation*habitability)*maxPopulationFactor/100.0, math.Floor)
 }
 
 // return the maximum number count operable by the given population
