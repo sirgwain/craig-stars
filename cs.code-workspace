@@ -24,6 +24,7 @@
 		},
 		// stop VS Code from trying to mess with tasks
 		"task.autoDetect": "off",
-		"task.problemMatchers.neverPrompt": true
+		"task.problemMatchers.neverPrompt": true,
+		"typescript.tsserver.experimental.enableProjectDiagnostics": true
 	}
 }

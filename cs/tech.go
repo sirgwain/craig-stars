@@ -57,7 +57,7 @@ type Tech struct {
 	Ranking      int              `json:"ranking"`
 	Category     TechCategory     `json:"category"`
 	Origin       TechOrigin       `json:"origin,omitempty"`
-	Tags         TechTags         `json:"tags"`
+	Tags         TechTags         `json:"tags,omitempty"`
 }
 
 type TechOrigin string

@@ -17,10 +17,10 @@
 			},
 			"ranking": 69,
 			"category": "Engine",
-			"tags": {
-				"Engine": true,
-				"Ramscoop": true
-			},
+			"tags": [
+				"Engine",
+				"Ramscoop"
+			],
 			"hullSlotType": 2,
 			"mass": 2,
 			"idealSpeed": 6,
@@ -50,9 +50,9 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "Engine",
-			"tags": {
-				"Engine": true
-			},
+			"tags": [
+				"Engine"
+			],
 			"hullSlotType": 2,
 			"mass": 4,
 			"idealSpeed": 5,
@@ -84,10 +84,10 @@
 			},
 			"ranking": 65,
 			"category": "Engine",
-			"tags": {
-				"Engine": true,
-				"Ramscoop": true
-			},
+			"tags": [
+				"Engine",
+				"Ramscoop"
+			],
 			"hullSlotType": 2,
 			"mass": 6,
 			"idealSpeed": 6,
@@ -119,9 +119,9 @@
 			},
 			"ranking": 30,
 			"category": "Engine",
-			"tags": {
-				"Engine": true
-			},
+			"tags": [
+				"Engine"
+			],
 			"hullSlotType": 2,
 			"mass": 9,
 			"idealSpeed": 6,
@@ -153,9 +153,9 @@
 			},
 			"ranking": 50,
 			"category": "Engine",
-			"tags": {
-				"Engine": true
-			},
+			"tags": [
+				"Engine"
+			],
 			"hullSlotType": 2,
 			"mass": 13,
 			"idealSpeed": 7,
@@ -187,9 +187,9 @@
 			},
 			"ranking": 60,
 			"category": "Engine",
-			"tags": {
-				"Engine": true
-			},
+			"tags": [
+				"Engine"
+			],
 			"hullSlotType": 2,
 			"mass": 17,
 			"idealSpeed": 8,
@@ -222,9 +222,9 @@
 			},
 			"ranking": 70,
 			"category": "Engine",
-			"tags": {
-				"Engine": true
-			},
+			"tags": [
+				"Engine"
+			],
 			"hullSlotType": 2,
 			"mass": 25,
 			"idealSpeed": 9,
@@ -258,9 +258,9 @@
 			},
 			"ranking": 80,
 			"category": "Engine",
-			"tags": {
-				"Engine": true
-			},
+			"tags": [
+				"Engine"
+			],
 			"hullSlotType": 2,
 			"mass": 25,
 			"idealSpeed": 10,
@@ -298,11 +298,11 @@
 			"ranking": 205,
 			"category": "Engine",
 			"origin": "MysteryTrader",
-			"tags": {
-				"Cloak": true,
-				"Engine": true,
-				"ManeuveringJet": true
-			},
+			"tags": [
+				"Cloak",
+				"Engine",
+				"ManeuveringJet"
+			],
 			"hullSlotType": 2,
 			"mass": 20,
 			"cloakUnits": 20,
@@ -336,9 +336,9 @@
 			},
 			"ranking": 130,
 			"category": "Engine",
-			"tags": {
-				"Engine": true
-			},
+			"tags": [
+				"Engine"
+			],
 			"hullSlotType": 2,
 			"mass": 5,
 			"idealSpeed": 10,
@@ -373,10 +373,10 @@
 			},
 			"ranking": 61,
 			"category": "Engine",
-			"tags": {
-				"Engine": true,
-				"Ramscoop": true
-			},
+			"tags": [
+				"Engine",
+				"Ramscoop"
+			],
 			"hullSlotType": 2,
 			"mass": 10,
 			"radiating": true,
@@ -412,10 +412,10 @@
 			},
 			"ranking": 90,
 			"category": "Engine",
-			"tags": {
-				"Engine": true,
-				"Ramscoop": true
-			},
+			"tags": [
+				"Engine",
+				"Ramscoop"
+			],
 			"hullSlotType": 2,
 			"mass": 20,
 			"idealSpeed": 7,
@@ -450,10 +450,10 @@
 			},
 			"ranking": 100,
 			"category": "Engine",
-			"tags": {
-				"Engine": true,
-				"Ramscoop": true
-			},
+			"tags": [
+				"Engine",
+				"Ramscoop"
+			],
 			"hullSlotType": 2,
 			"mass": 19,
 			"idealSpeed": 8,
@@ -488,10 +488,10 @@
 			},
 			"ranking": 130,
 			"category": "Engine",
-			"tags": {
-				"Engine": true,
-				"Ramscoop": true
-			},
+			"tags": [
+				"Engine",
+				"Ramscoop"
+			],
 			"hullSlotType": 2,
 			"mass": 18,
 			"idealSpeed": 9,
@@ -526,10 +526,10 @@
 			},
 			"ranking": 140,
 			"category": "Engine",
-			"tags": {
-				"Engine": true,
-				"Ramscoop": true
-			},
+			"tags": [
+				"Engine",
+				"Ramscoop"
+			],
 			"hullSlotType": 2,
 			"mass": 11,
 			"idealSpeed": 10,
@@ -565,10 +565,10 @@
 			},
 			"ranking": 150,
 			"category": "Engine",
-			"tags": {
-				"Engine": true,
-				"Ramscoop": true
-			},
+			"tags": [
+				"Engine",
+				"Ramscoop"
+			],
 			"hullSlotType": 2,
 			"mass": 8,
 			"idealSpeed": 10,
@@ -605,9 +605,9 @@
 			},
 			"ranking": 0,
 			"category": "PlanetaryScanner",
-			"tags": {
-				"PlanetaryScanner": true
-			},
+			"tags": [
+				"PlanetaryScanner"
+			],
 			"scanRange": 50,
 			"scanRangePen": 0
 		},
@@ -627,9 +627,9 @@
 			},
 			"ranking": 1,
 			"category": "PlanetaryScanner",
-			"tags": {
-				"PlanetaryScanner": true
-			},
+			"tags": [
+				"PlanetaryScanner"
+			],
 			"scanRange": 90,
 			"scanRangePen": 0
 		},
@@ -649,9 +649,9 @@
 			},
 			"ranking": 30,
 			"category": "PlanetaryScanner",
-			"tags": {
-				"PlanetaryScanner": true
-			},
+			"tags": [
+				"PlanetaryScanner"
+			],
 			"scanRange": 150,
 			"scanRangePen": 0
 		},
@@ -671,9 +671,9 @@
 			},
 			"ranking": 40,
 			"category": "PlanetaryScanner",
-			"tags": {
-				"PlanetaryScanner": true
-			},
+			"tags": [
+				"PlanetaryScanner"
+			],
 			"scanRange": 220,
 			"scanRangePen": 0
 		},
@@ -693,9 +693,9 @@
 			},
 			"ranking": 50,
 			"category": "PlanetaryScanner",
-			"tags": {
-				"PlanetaryScanner": true
-			},
+			"tags": [
+				"PlanetaryScanner"
+			],
 			"scanRange": 280,
 			"scanRangePen": 0
 		},
@@ -718,9 +718,9 @@
 			},
 			"ranking": 60,
 			"category": "PlanetaryScanner",
-			"tags": {
-				"PlanetaryScanner": true
-			},
+			"tags": [
+				"PlanetaryScanner"
+			],
 			"scanRange": 320,
 			"scanRangePen": 160
 		},
@@ -743,9 +743,9 @@
 			},
 			"ranking": 70,
 			"category": "PlanetaryScanner",
-			"tags": {
-				"PlanetaryScanner": true
-			},
+			"tags": [
+				"PlanetaryScanner"
+			],
 			"scanRange": 400,
 			"scanRangePen": 200
 		},
@@ -768,9 +768,9 @@
 			},
 			"ranking": 80,
 			"category": "PlanetaryScanner",
-			"tags": {
-				"PlanetaryScanner": true
-			},
+			"tags": [
+				"PlanetaryScanner"
+			],
 			"scanRange": 500,
 			"scanRangePen": 250
 		},
@@ -793,9 +793,9 @@
 			},
 			"ranking": 90,
 			"category": "PlanetaryScanner",
-			"tags": {
-				"PlanetaryScanner": true
-			},
+			"tags": [
+				"PlanetaryScanner"
+			],
 			"scanRange": 620,
 			"scanRangePen": 310
 		}
@@ -811,9 +811,9 @@
 			},
 			"ranking": 0,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 3,
 			"habType": "All"
 		},
@@ -828,9 +828,9 @@
 			},
 			"ranking": 10,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 5,
 			"habType": "All"
 		},
@@ -845,9 +845,9 @@
 			},
 			"ranking": 20,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 7,
 			"habType": "All"
 		},
@@ -862,9 +862,9 @@
 			},
 			"ranking": 30,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 10,
 			"habType": "All"
 		},
@@ -879,9 +879,9 @@
 			},
 			"ranking": 40,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 15,
 			"habType": "All"
 		},
@@ -896,9 +896,9 @@
 			},
 			"ranking": 50,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 20,
 			"habType": "All"
 		},
@@ -913,9 +913,9 @@
 			},
 			"ranking": 60,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 25,
 			"habType": "All"
 		},
@@ -930,9 +930,9 @@
 			},
 			"ranking": 70,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 30,
 			"habType": "All"
 		},
@@ -947,9 +947,9 @@
 			},
 			"ranking": 80,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 3,
 			"habType": "Grav"
 		},
@@ -964,9 +964,9 @@
 			},
 			"ranking": 90,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 7,
 			"habType": "Grav"
 		},
@@ -981,9 +981,9 @@
 			},
 			"ranking": 100,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 11,
 			"habType": "Grav"
 		},
@@ -998,9 +998,9 @@
 			},
 			"ranking": 110,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 15,
 			"habType": "Grav"
 		},
@@ -1015,9 +1015,9 @@
 			},
 			"ranking": 120,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 3,
 			"habType": "Temp"
 		},
@@ -1032,9 +1032,9 @@
 			},
 			"ranking": 130,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 7,
 			"habType": "Temp"
 		},
@@ -1049,9 +1049,9 @@
 			},
 			"ranking": 140,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 11,
 			"habType": "Temp"
 		},
@@ -1066,9 +1066,9 @@
 			},
 			"ranking": 150,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 15,
 			"habType": "Temp"
 		},
@@ -1083,9 +1083,9 @@
 			},
 			"ranking": 160,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 3,
 			"habType": "Rad"
 		},
@@ -1100,9 +1100,9 @@
 			},
 			"ranking": 170,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 7,
 			"habType": "Rad"
 		},
@@ -1117,9 +1117,9 @@
 			},
 			"ranking": 180,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 11,
 			"habType": "Rad"
 		},
@@ -1134,9 +1134,9 @@
 			},
 			"ranking": 190,
 			"category": "Terraforming",
-			"tags": {
-				"Terraforming": true
-			},
+			"tags": [
+				"Terraforming"
+			],
 			"ability": 15,
 			"habType": "Rad"
 		}
@@ -1157,9 +1157,9 @@
 			},
 			"ranking": 0,
 			"category": "PlanetaryDefense",
-			"tags": {
-				"Defense": true
-			},
+			"tags": [
+				"Defense"
+			],
 			"defenseCoverage": 0.99
 		},
 		{
@@ -1178,9 +1178,9 @@
 			},
 			"ranking": 10,
 			"category": "PlanetaryDefense",
-			"tags": {
-				"Defense": true
-			},
+			"tags": [
+				"Defense"
+			],
 			"defenseCoverage": 1.99
 		},
 		{
@@ -1199,9 +1199,9 @@
 			},
 			"ranking": 20,
 			"category": "PlanetaryDefense",
-			"tags": {
-				"Defense": true
-			},
+			"tags": [
+				"Defense"
+			],
 			"defenseCoverage": 2.39
 		},
 		{
@@ -1220,9 +1220,9 @@
 			},
 			"ranking": 30,
 			"category": "PlanetaryDefense",
-			"tags": {
-				"Defense": true
-			},
+			"tags": [
+				"Defense"
+			],
 			"defenseCoverage": 2.99
 		},
 		{
@@ -1241,9 +1241,9 @@
 			},
 			"ranking": 40,
 			"category": "PlanetaryDefense",
-			"tags": {
-				"Defense": true
-			},
+			"tags": [
+				"Defense"
+			],
 			"defenseCoverage": 3.79
 		}
 	],
@@ -1265,7 +1265,6 @@
 			"ranking": 45,
 			"category": "Planetary",
 			"origin": "MysteryTrader",
-			"tags": {},
 			"resetPlanet": true
 		}
 	],
@@ -1287,9 +1286,9 @@
 			},
 			"ranking": 0,
 			"category": "Orbital",
-			"tags": {
-				"Stargate": true
-			},
+			"tags": [
+				"Stargate"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"safeHullMass": 100,
@@ -1317,9 +1316,9 @@
 			},
 			"ranking": 30,
 			"category": "Orbital",
-			"tags": {
-				"Stargate": true
-			},
+			"tags": [
+				"Stargate"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"safeHullMass": 2147483647,
@@ -1344,9 +1343,9 @@
 			},
 			"ranking": 10,
 			"category": "Orbital",
-			"tags": {
-				"Stargate": true
-			},
+			"tags": [
+				"Stargate"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"safeHullMass": 150,
@@ -1371,9 +1370,9 @@
 			},
 			"ranking": 20,
 			"category": "Orbital",
-			"tags": {
-				"Stargate": true
-			},
+			"tags": [
+				"Stargate"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"safeHullMass": 300,
@@ -1401,9 +1400,9 @@
 			},
 			"ranking": 40,
 			"category": "Orbital",
-			"tags": {
-				"Stargate": true
-			},
+			"tags": [
+				"Stargate"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"safeHullMass": 100,
@@ -1431,9 +1430,9 @@
 			},
 			"ranking": 50,
 			"category": "Orbital",
-			"tags": {
-				"Stargate": true
-			},
+			"tags": [
+				"Stargate"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"safeHullMass": 2147483647,
@@ -1461,9 +1460,9 @@
 			},
 			"ranking": 60,
 			"category": "Orbital",
-			"tags": {
-				"Stargate": true
-			},
+			"tags": [
+				"Stargate"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"safeHullMass": 2147483647,
@@ -1487,9 +1486,9 @@
 			},
 			"ranking": 70,
 			"category": "Orbital",
-			"tags": {
-				"MassDriver": true
-			},
+			"tags": [
+				"MassDriver"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"packetSpeed": 5
@@ -1510,9 +1509,9 @@
 			},
 			"ranking": 80,
 			"category": "Orbital",
-			"tags": {
-				"MassDriver": true
-			},
+			"tags": [
+				"MassDriver"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"packetSpeed": 6
@@ -1530,9 +1529,9 @@
 			},
 			"ranking": 90,
 			"category": "Orbital",
-			"tags": {
-				"MassDriver": true
-			},
+			"tags": [
+				"MassDriver"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"packetSpeed": 7
@@ -1553,9 +1552,9 @@
 			},
 			"ranking": 100,
 			"category": "Orbital",
-			"tags": {
-				"MassDriver": true
-			},
+			"tags": [
+				"MassDriver"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"packetSpeed": 8
@@ -1576,9 +1575,9 @@
 			},
 			"ranking": 110,
 			"category": "Orbital",
-			"tags": {
-				"MassDriver": true
-			},
+			"tags": [
+				"MassDriver"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"packetSpeed": 9
@@ -1596,9 +1595,9 @@
 			},
 			"ranking": 120,
 			"category": "Orbital",
-			"tags": {
-				"MassDriver": true
-			},
+			"tags": [
+				"MassDriver"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"packetSpeed": 10
@@ -1619,9 +1618,9 @@
 			},
 			"ranking": 130,
 			"category": "Orbital",
-			"tags": {
-				"MassDriver": true
-			},
+			"tags": [
+				"MassDriver"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"packetSpeed": 11
@@ -1642,9 +1641,9 @@
 			},
 			"ranking": 140,
 			"category": "Orbital",
-			"tags": {
-				"MassDriver": true
-			},
+			"tags": [
+				"MassDriver"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"packetSpeed": 12
@@ -1665,9 +1664,9 @@
 			},
 			"ranking": 150,
 			"category": "Orbital",
-			"tags": {
-				"MassDriver": true
-			},
+			"tags": [
+				"MassDriver"
+			],
 			"hullSlotType": 4096,
 			"mass": 0,
 			"packetSpeed": 13
@@ -1686,9 +1685,9 @@
 			},
 			"ranking": 30,
 			"category": "MineRobot",
-			"tags": {
-				"MiningRobot": true
-			},
+			"tags": [
+				"MiningRobot"
+			],
 			"hullSlotType": 32,
 			"mass": 240,
 			"miningRate": 12
@@ -1707,9 +1706,9 @@
 			},
 			"ranking": 40,
 			"category": "MineRobot",
-			"tags": {
-				"MiningRobot": true
-			},
+			"tags": [
+				"MiningRobot"
+			],
 			"hullSlotType": 32,
 			"mass": 240,
 			"miningRate": 18
@@ -1726,9 +1725,9 @@
 			},
 			"ranking": 10,
 			"category": "MineRobot",
-			"tags": {
-				"MiningRobot": true
-			},
+			"tags": [
+				"MiningRobot"
+			],
 			"hullSlotType": 32,
 			"mass": 80,
 			"miningRate": 5
@@ -1746,9 +1745,9 @@
 			},
 			"ranking": 20,
 			"category": "MineRobot",
-			"tags": {
-				"MiningRobot": true
-			},
+			"tags": [
+				"MiningRobot"
+			],
 			"hullSlotType": 32,
 			"mass": 240,
 			"miningRate": 4
@@ -1767,9 +1766,9 @@
 			},
 			"ranking": 50,
 			"category": "MineRobot",
-			"tags": {
-				"MiningRobot": true
-			},
+			"tags": [
+				"MiningRobot"
+			],
 			"hullSlotType": 32,
 			"mass": 240,
 			"miningRate": 27
@@ -1789,9 +1788,9 @@
 			},
 			"ranking": 60,
 			"category": "MineRobot",
-			"tags": {
-				"MiningRobot": true
-			},
+			"tags": [
+				"MiningRobot"
+			],
 			"hullSlotType": 32,
 			"mass": 80,
 			"miningRate": 25
@@ -1813,12 +1812,12 @@
 			"ranking": 155,
 			"category": "MineRobot",
 			"origin": "MysteryTrader",
-			"tags": {
-				"Cloak": true,
-				"ManeuveringJet": true,
-				"MiningRobot": true,
-				"TorpedoJammer": true
-			},
+			"tags": [
+				"Cloak",
+				"ManeuveringJet",
+				"MiningRobot",
+				"TorpedoJammer"
+			],
 			"hullSlotType": 32,
 			"mass": 20,
 			"cloakUnits": 60,
@@ -1842,9 +1841,9 @@
 			},
 			"ranking": 0,
 			"category": "MineRobot",
-			"tags": {
-				"TerraformingRobot": true
-			},
+			"tags": [
+				"TerraformingRobot"
+			],
 			"hullSlotType": 32,
 			"mass": 80,
 			"cloakUnits": 50,
@@ -1862,9 +1861,9 @@
 			},
 			"ranking": 0,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true
-			},
+			"tags": [
+				"Bomb"
+			],
 			"hullSlotType": 16,
 			"mass": 40,
 			"killRate": 0.6,
@@ -1883,9 +1882,9 @@
 			},
 			"ranking": 10,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true
-			},
+			"tags": [
+				"Bomb"
+			],
 			"hullSlotType": 16,
 			"mass": 45,
 			"killRate": 0.9,
@@ -1904,9 +1903,9 @@
 			},
 			"ranking": 20,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true
-			},
+			"tags": [
+				"Bomb"
+			],
 			"hullSlotType": 16,
 			"mass": 50,
 			"killRate": 1.2,
@@ -1925,9 +1924,9 @@
 			},
 			"ranking": 30,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true
-			},
+			"tags": [
+				"Bomb"
+			],
 			"hullSlotType": 16,
 			"mass": 55,
 			"killRate": 1.7,
@@ -1946,9 +1945,9 @@
 			},
 			"ranking": 40,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true
-			},
+			"tags": [
+				"Bomb"
+			],
 			"hullSlotType": 16,
 			"mass": 52,
 			"killRate": 2.5,
@@ -1969,10 +1968,10 @@
 			},
 			"ranking": 50,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true,
-				"StructureBomb": true
-			},
+			"tags": [
+				"Bomb",
+				"StructureBomb"
+			],
 			"hullSlotType": 16,
 			"mass": 30,
 			"killRate": 0.2,
@@ -1992,10 +1991,10 @@
 			},
 			"ranking": 60,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true,
-				"StructureBomb": true
-			},
+			"tags": [
+				"Bomb",
+				"StructureBomb"
+			],
 			"hullSlotType": 16,
 			"mass": 35,
 			"killRate": 0.3,
@@ -2015,10 +2014,10 @@
 			},
 			"ranking": 70,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true,
-				"StructureBomb": true
-			},
+			"tags": [
+				"Bomb",
+				"StructureBomb"
+			],
 			"hullSlotType": 16,
 			"mass": 45,
 			"killRate": 0.4,
@@ -2040,9 +2039,9 @@
 			"ranking": 95,
 			"category": "Bomb",
 			"origin": "MysteryTrader",
-			"tags": {
-				"Bomb": true
-			},
+			"tags": [
+				"Bomb"
+			],
 			"hullSlotType": 16,
 			"mass": 5,
 			"killRate": 3,
@@ -2065,9 +2064,9 @@
 			},
 			"ranking": 80,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true
-			},
+			"tags": [
+				"Bomb"
+			],
 			"hullSlotType": 16,
 			"mass": 45,
 			"unterraformRate": 1
@@ -2088,10 +2087,10 @@
 			},
 			"ranking": 90,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true,
-				"SmartBomb": true
-			},
+			"tags": [
+				"Bomb",
+				"SmartBomb"
+			],
 			"hullSlotType": 16,
 			"mass": 50,
 			"killRate": 1.3,
@@ -2113,10 +2112,10 @@
 			},
 			"ranking": 110,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true,
-				"SmartBomb": true
-			},
+			"tags": [
+				"Bomb",
+				"SmartBomb"
+			],
 			"hullSlotType": 16,
 			"mass": 57,
 			"killRate": 2.2,
@@ -2138,10 +2137,10 @@
 			},
 			"ranking": 120,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true,
-				"SmartBomb": true
-			},
+			"tags": [
+				"Bomb",
+				"SmartBomb"
+			],
 			"hullSlotType": 16,
 			"mass": 64,
 			"killRate": 3.5,
@@ -2163,10 +2162,10 @@
 			},
 			"ranking": 130,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true,
-				"SmartBomb": true
-			},
+			"tags": [
+				"Bomb",
+				"SmartBomb"
+			],
 			"hullSlotType": 16,
 			"mass": 55,
 			"killRate": 5,
@@ -2188,10 +2187,10 @@
 			},
 			"ranking": 140,
 			"category": "Bomb",
-			"tags": {
-				"Bomb": true,
-				"SmartBomb": true
-			},
+			"tags": [
+				"Bomb",
+				"SmartBomb"
+			],
 			"hullSlotType": 16,
 			"mass": 50,
 			"killRate": 7,
@@ -2207,9 +2206,9 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 2,
 			"scanner": true
@@ -2226,9 +2225,9 @@
 			},
 			"ranking": 20,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 5,
 			"scanner": true,
@@ -2246,9 +2245,9 @@
 			},
 			"ranking": 30,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 2,
 			"scanner": true,
@@ -2268,9 +2267,9 @@
 			},
 			"ranking": 40,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 2,
 			"scanner": true,
@@ -2288,9 +2287,9 @@
 			},
 			"ranking": 50,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 3,
 			"scanner": true,
@@ -2314,9 +2313,9 @@
 			},
 			"ranking": 60,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 15,
 			"scanner": true,
@@ -2340,10 +2339,10 @@
 			},
 			"ranking": 70,
 			"category": "Scanner",
-			"tags": {
-				"Cloak": true,
-				"Scanner": true
-			},
+			"tags": [
+				"Cloak",
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 6,
 			"scanner": true,
@@ -2366,9 +2365,9 @@
 			},
 			"ranking": 80,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 6,
 			"scanner": true,
@@ -2391,9 +2390,9 @@
 			},
 			"ranking": 90,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 4,
 			"scanner": true,
@@ -2413,9 +2412,9 @@
 			},
 			"ranking": 100,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 5,
 			"scanner": true,
@@ -2435,9 +2434,9 @@
 			},
 			"ranking": 110,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 2,
 			"scanner": true,
@@ -2457,9 +2456,9 @@
 			},
 			"ranking": 120,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 4,
 			"scanner": true,
@@ -2481,9 +2480,9 @@
 			},
 			"ranking": 130,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 6,
 			"scanner": true,
@@ -2504,9 +2503,9 @@
 			},
 			"ranking": 140,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 3,
 			"scanner": true,
@@ -2530,9 +2529,9 @@
 			},
 			"ranking": 150,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 20,
 			"scanner": true,
@@ -2555,9 +2554,9 @@
 			},
 			"ranking": 160,
 			"category": "Scanner",
-			"tags": {
-				"Scanner": true
-			},
+			"tags": [
+				"Scanner"
+			],
 			"hullSlotType": 4,
 			"mass": 4,
 			"scanner": true,
@@ -2572,9 +2571,9 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "Armor",
-			"tags": {
-				"Armor": true
-			},
+			"tags": [
+				"Armor"
+			],
 			"hullSlotType": 256,
 			"mass": 60,
 			"armor": 50
@@ -2590,9 +2589,9 @@
 			},
 			"ranking": 20,
 			"category": "Armor",
-			"tags": {
-				"Armor": true
-			},
+			"tags": [
+				"Armor"
+			],
 			"hullSlotType": 256,
 			"mass": 56,
 			"armor": 75
@@ -2608,9 +2607,9 @@
 			},
 			"ranking": 30,
 			"category": "Armor",
-			"tags": {
-				"Armor": true
-			},
+			"tags": [
+				"Armor"
+			],
 			"hullSlotType": 256,
 			"mass": 25,
 			"armor": 100
@@ -2626,9 +2625,9 @@
 			},
 			"ranking": 40,
 			"category": "Armor",
-			"tags": {
-				"Armor": true
-			},
+			"tags": [
+				"Armor"
+			],
 			"hullSlotType": 256,
 			"mass": 54,
 			"armor": 120
@@ -2644,9 +2643,9 @@
 			},
 			"ranking": 50,
 			"category": "Armor",
-			"tags": {
-				"Armor": true
-			},
+			"tags": [
+				"Armor"
+			],
 			"hullSlotType": 256,
 			"mass": 15,
 			"armor": 175
@@ -2663,9 +2662,9 @@
 			},
 			"ranking": 60,
 			"category": "Armor",
-			"tags": {
-				"Armor": true
-			},
+			"tags": [
+				"Armor"
+			],
 			"hullSlotType": 256,
 			"mass": 50,
 			"armor": 180
@@ -2686,10 +2685,10 @@
 			},
 			"ranking": 70,
 			"category": "Armor",
-			"tags": {
-				"Armor": true,
-				"Shield": true
-			},
+			"tags": [
+				"Armor",
+				"Shield"
+			],
 			"hullSlotType": 256,
 			"mass": 50,
 			"armor": 175,
@@ -2711,10 +2710,10 @@
 			},
 			"ranking": 80,
 			"category": "Armor",
-			"tags": {
-				"Armor": true,
-				"Cloak": true
-			},
+			"tags": [
+				"Armor",
+				"Cloak"
+			],
 			"hullSlotType": 256,
 			"mass": 50,
 			"cloakUnits": 50,
@@ -2733,9 +2732,9 @@
 			},
 			"ranking": 90,
 			"category": "Armor",
-			"tags": {
-				"Armor": true
-			},
+			"tags": [
+				"Armor"
+			],
 			"hullSlotType": 256,
 			"mass": 45,
 			"armor": 275
@@ -2758,13 +2757,13 @@
 			"ranking": 105,
 			"category": "Armor",
 			"origin": "MysteryTrader",
-			"tags": {
-				"Armor": true,
-				"Cloak": true,
-				"Scanner": true,
-				"Shield": true,
-				"TorpedoJammer": true
-			},
+			"tags": [
+				"Armor",
+				"Cloak",
+				"Scanner",
+				"Shield",
+				"TorpedoJammer"
+			],
 			"hullSlotType": 256,
 			"mass": 20,
 			"scanner": true,
@@ -2786,9 +2785,9 @@
 			},
 			"ranking": 100,
 			"category": "Armor",
-			"tags": {
-				"Armor": true
-			},
+			"tags": [
+				"Armor"
+			],
 			"hullSlotType": 256,
 			"mass": 40,
 			"armor": 500
@@ -2804,9 +2803,9 @@
 			},
 			"ranking": 110,
 			"category": "Armor",
-			"tags": {
-				"Armor": true
-			},
+			"tags": [
+				"Armor"
+			],
 			"hullSlotType": 256,
 			"mass": 30,
 			"armor": 1500
@@ -2825,9 +2824,9 @@
 			},
 			"ranking": 0,
 			"category": "Electrical",
-			"tags": {
-				"Cloak": true
-			},
+			"tags": [
+				"Cloak"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"cloakUnits": 300,
@@ -2846,9 +2845,9 @@
 			},
 			"ranking": 10,
 			"category": "Electrical",
-			"tags": {
-				"Cloak": true
-			},
+			"tags": [
+				"Cloak"
+			],
 			"hullSlotType": 64,
 			"mass": 2,
 			"cloakUnits": 70
@@ -2866,9 +2865,9 @@
 			},
 			"ranking": 20,
 			"category": "Electrical",
-			"tags": {
-				"Cloak": true
-			},
+			"tags": [
+				"Cloak"
+			],
 			"hullSlotType": 64,
 			"mass": 3,
 			"cloakUnits": 140
@@ -2889,9 +2888,9 @@
 			},
 			"ranking": 30,
 			"category": "Electrical",
-			"tags": {
-				"Cloak": true
-			},
+			"tags": [
+				"Cloak"
+			],
 			"hullSlotType": 64,
 			"mass": 5,
 			"cloakUnits": 540
@@ -2912,12 +2911,12 @@
 			"ranking": 65,
 			"category": "Electrical",
 			"origin": "MysteryTrader",
-			"tags": {
-				"Armor": true,
-				"Cloak": true,
-				"ManeuveringJet": true,
-				"TorpedoJammer": true
-			},
+			"tags": [
+				"Armor",
+				"Cloak",
+				"ManeuveringJet",
+				"TorpedoJammer"
+			],
 			"hullSlotType": 64,
 			"mass": 2,
 			"cloakUnits": 60,
@@ -2933,10 +2932,10 @@
 			"requirements": {},
 			"ranking": 40,
 			"category": "Electrical",
-			"tags": {
-				"InitiativeBonus": true,
-				"TorpedoBonus": true
-			},
+			"tags": [
+				"InitiativeBonus",
+				"TorpedoBonus"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"torpedoBonus": 0.2,
@@ -2954,10 +2953,10 @@
 			},
 			"ranking": 50,
 			"category": "Electrical",
-			"tags": {
-				"InitiativeBonus": true,
-				"TorpedoBonus": true
-			},
+			"tags": [
+				"InitiativeBonus",
+				"TorpedoBonus"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"torpedoBonus": 0.3,
@@ -2975,10 +2974,10 @@
 			},
 			"ranking": 60,
 			"category": "Electrical",
-			"tags": {
-				"InitiativeBonus": true,
-				"TorpedoBonus": true
-			},
+			"tags": [
+				"InitiativeBonus",
+				"TorpedoBonus"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"torpedoBonus": 0.5,
@@ -2999,9 +2998,9 @@
 			},
 			"ranking": 70,
 			"category": "Electrical",
-			"tags": {
-				"TorpedoJammer": true
-			},
+			"tags": [
+				"TorpedoJammer"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"torpedoJamming": 0.1
@@ -3019,9 +3018,9 @@
 			},
 			"ranking": 80,
 			"category": "Electrical",
-			"tags": {
-				"TorpedoJammer": true
-			},
+			"tags": [
+				"TorpedoJammer"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"torpedoJamming": 0.2
@@ -3039,9 +3038,9 @@
 			},
 			"ranking": 90,
 			"category": "Electrical",
-			"tags": {
-				"TorpedoJammer": true
-			},
+			"tags": [
+				"TorpedoJammer"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"torpedoJamming": 0.3
@@ -3062,9 +3061,9 @@
 			},
 			"ranking": 100,
 			"category": "Electrical",
-			"tags": {
-				"TorpedoJammer": true
-			},
+			"tags": [
+				"TorpedoJammer"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"torpedoJamming": 0.5
@@ -3081,9 +3080,9 @@
 			},
 			"ranking": 110,
 			"category": "Electrical",
-			"tags": {
-				"BeamCapacitor": true
-			},
+			"tags": [
+				"BeamCapacitor"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"beamBonus": 0.1
@@ -3103,9 +3102,9 @@
 			},
 			"ranking": 120,
 			"category": "Electrical",
-			"tags": {
-				"BeamCapacitor": true
-			},
+			"tags": [
+				"BeamCapacitor"
+			],
 			"hullSlotType": 64,
 			"mass": 1,
 			"beamBonus": 0.2
@@ -3126,7 +3125,6 @@
 			},
 			"ranking": 130,
 			"category": "Electrical",
-			"tags": {},
 			"hullSlotType": 64,
 			"mass": 2,
 			"reduceMovement": 4
@@ -3147,7 +3145,6 @@
 			},
 			"ranking": 140,
 			"category": "Electrical",
-			"tags": {},
 			"hullSlotType": 64,
 			"mass": 1,
 			"reduceCloaking": true
@@ -3169,9 +3166,9 @@
 			},
 			"ranking": 150,
 			"category": "Electrical",
-			"tags": {
-				"FuelTank": true
-			},
+			"tags": [
+				"FuelTank"
+			],
 			"hullSlotType": 64,
 			"mass": 10,
 			"fuelBonus": 200,
@@ -3192,9 +3189,9 @@
 			},
 			"ranking": 0,
 			"category": "MineLayer",
-			"tags": {
-				"MineLayer": true
-			},
+			"tags": [
+				"MineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 25,
 			"mineFieldType": "Standard",
@@ -3214,9 +3211,9 @@
 			},
 			"ranking": 10,
 			"category": "MineLayer",
-			"tags": {
-				"MineLayer": true
-			},
+			"tags": [
+				"MineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 30,
 			"mineFieldType": "Standard",
@@ -3239,9 +3236,9 @@
 			},
 			"ranking": 20,
 			"category": "MineLayer",
-			"tags": {
-				"MineLayer": true
-			},
+			"tags": [
+				"MineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 30,
 			"mineFieldType": "Standard",
@@ -3264,9 +3261,9 @@
 			},
 			"ranking": 30,
 			"category": "MineLayer",
-			"tags": {
-				"MineLayer": true
-			},
+			"tags": [
+				"MineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 30,
 			"mineFieldType": "Standard",
@@ -3289,9 +3286,9 @@
 			},
 			"ranking": 40,
 			"category": "MineLayer",
-			"tags": {
-				"HeavyMineLayer": true
-			},
+			"tags": [
+				"HeavyMineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 10,
 			"mineFieldType": "Heavy",
@@ -3314,9 +3311,9 @@
 			},
 			"ranking": 50,
 			"category": "MineLayer",
-			"tags": {
-				"HeavyMineLayer": true
-			},
+			"tags": [
+				"HeavyMineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 15,
 			"mineFieldType": "Heavy",
@@ -3339,9 +3336,9 @@
 			},
 			"ranking": 60,
 			"category": "MineLayer",
-			"tags": {
-				"HeavyMineLayer": true
-			},
+			"tags": [
+				"HeavyMineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 20,
 			"mineFieldType": "Heavy",
@@ -3364,9 +3361,9 @@
 			},
 			"ranking": 70,
 			"category": "MineLayer",
-			"tags": {
-				"SpeedMineLayer": true
-			},
+			"tags": [
+				"SpeedMineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 100,
 			"mineFieldType": "SpeedBump",
@@ -3388,9 +3385,9 @@
 			},
 			"ranking": 80,
 			"category": "MineLayer",
-			"tags": {
-				"SpeedMineLayer": true
-			},
+			"tags": [
+				"SpeedMineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 135,
 			"mineFieldType": "SpeedBump",
@@ -3412,9 +3409,9 @@
 			},
 			"ranking": 90,
 			"category": "MineLayer",
-			"tags": {
-				"SpeedMineLayer": true
-			},
+			"tags": [
+				"SpeedMineLayer"
+			],
 			"hullSlotType": 8192,
 			"mass": 140,
 			"mineFieldType": "SpeedBump",
@@ -3435,9 +3432,9 @@
 			},
 			"ranking": 0,
 			"category": "Mechanical",
-			"tags": {
-				"ColonyModule": true
-			},
+			"tags": [
+				"ColonyModule"
+			],
 			"hullSlotType": 8,
 			"mass": 32,
 			"colonizationModule": true
@@ -3460,9 +3457,9 @@
 			},
 			"ranking": 10,
 			"category": "Mechanical",
-			"tags": {
-				"ColonyModule": true
-			},
+			"tags": [
+				"ColonyModule"
+			],
 			"hullSlotType": 8,
 			"mass": 50,
 			"minKillRate": 2000,
@@ -3480,9 +3477,9 @@
 			},
 			"ranking": 20,
 			"category": "Mechanical",
-			"tags": {
-				"CargoPod": true
-			},
+			"tags": [
+				"CargoPod"
+			],
 			"hullSlotType": 8,
 			"mass": 5,
 			"cargoBonus": 50
@@ -3500,9 +3497,9 @@
 			},
 			"ranking": 30,
 			"category": "Mechanical",
-			"tags": {
-				"CargoPod": true
-			},
+			"tags": [
+				"CargoPod"
+			],
 			"hullSlotType": 8,
 			"mass": 7,
 			"cargoBonus": 100
@@ -3523,11 +3520,11 @@
 			"ranking": 35,
 			"category": "Mechanical",
 			"origin": "MysteryTrader",
-			"tags": {
-				"Armor": true,
-				"CargoPod": true,
-				"Cloak": true
-			},
+			"tags": [
+				"Armor",
+				"CargoPod",
+				"Cloak"
+			],
 			"hullSlotType": 8,
 			"mass": 9,
 			"cloakUnits": 20,
@@ -3543,9 +3540,9 @@
 			"requirements": {},
 			"ranking": 40,
 			"category": "Mechanical",
-			"tags": {
-				"FuelTank": true
-			},
+			"tags": [
+				"FuelTank"
+			],
 			"hullSlotType": 8,
 			"mass": 3,
 			"fuelBonus": 250
@@ -3563,9 +3560,9 @@
 			},
 			"ranking": 50,
 			"category": "Mechanical",
-			"tags": {
-				"FuelTank": true
-			},
+			"tags": [
+				"FuelTank"
+			],
 			"hullSlotType": 8,
 			"mass": 8,
 			"fuelBonus": 500
@@ -3583,9 +3580,9 @@
 			},
 			"ranking": 55,
 			"category": "Mechanical",
-			"tags": {
-				"ManeuveringJet": true
-			},
+			"tags": [
+				"ManeuveringJet"
+			],
 			"hullSlotType": 8,
 			"mass": 5,
 			"movementBonus": 1
@@ -3603,9 +3600,9 @@
 			},
 			"ranking": 70,
 			"category": "Mechanical",
-			"tags": {
-				"ManeuveringJet": true
-			},
+			"tags": [
+				"ManeuveringJet"
+			],
 			"hullSlotType": 8,
 			"mass": 5,
 			"movementBonus": 2
@@ -3626,7 +3623,6 @@
 			"ranking": 75,
 			"category": "Mechanical",
 			"origin": "MysteryTrader",
-			"tags": {},
 			"hullSlotType": 8,
 			"mass": 10,
 			"canJump": true
@@ -3645,9 +3641,9 @@
 			},
 			"ranking": 80,
 			"category": "Mechanical",
-			"tags": {
-				"BeamDeflector": true
-			},
+			"tags": [
+				"BeamDeflector"
+			],
 			"hullSlotType": 8,
 			"mass": 1,
 			"beamDefense": 0.1
@@ -3661,9 +3657,9 @@
 			"requirements": {},
 			"ranking": 0,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 10,
@@ -3681,9 +3677,9 @@
 			},
 			"ranking": 10,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 16,
@@ -3704,10 +3700,10 @@
 			},
 			"ranking": 20,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true,
-				"GatlingGun": true
-			},
+			"tags": [
+				"BeamWeapon",
+				"GatlingGun"
+			],
 			"hullSlotType": 2048,
 			"mass": 3,
 			"power": 16,
@@ -3727,9 +3723,9 @@
 			},
 			"ranking": 30,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 26,
@@ -3747,9 +3743,9 @@
 			},
 			"ranking": 40,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 10,
 			"power": 90,
@@ -3766,9 +3762,9 @@
 			},
 			"ranking": 50,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 2,
 			"power": 26,
@@ -3787,10 +3783,10 @@
 			},
 			"ranking": 60,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true,
-				"ShieldSapper": true
-			},
+			"tags": [
+				"BeamWeapon",
+				"ShieldSapper"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 82,
@@ -3809,9 +3805,9 @@
 			},
 			"ranking": 70,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 2,
 			"power": 26,
@@ -3829,10 +3825,10 @@
 			},
 			"ranking": 80,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true,
-				"GatlingGun": true
-			},
+			"tags": [
+				"BeamWeapon",
+				"GatlingGun"
+			],
 			"hullSlotType": 2048,
 			"mass": 3,
 			"power": 31,
@@ -3852,9 +3848,9 @@
 			},
 			"ranking": 90,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 66,
@@ -3872,9 +3868,9 @@
 			},
 			"ranking": 100,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 10,
 			"power": 231,
@@ -3891,9 +3887,9 @@
 			},
 			"ranking": 110,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 2,
 			"power": 66,
@@ -3912,10 +3908,10 @@
 			},
 			"ranking": 120,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true,
-				"ShieldSapper": true
-			},
+			"tags": [
+				"BeamWeapon",
+				"ShieldSapper"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 211,
@@ -3934,9 +3930,9 @@
 			},
 			"ranking": 130,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 2,
 			"power": 66,
@@ -3957,10 +3953,10 @@
 			},
 			"ranking": 140,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true,
-				"GatlingGun": true
-			},
+			"tags": [
+				"BeamWeapon",
+				"GatlingGun"
+			],
 			"hullSlotType": 2048,
 			"mass": 3,
 			"power": 80,
@@ -3980,9 +3976,9 @@
 			},
 			"ranking": 150,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 169,
@@ -4003,9 +3999,9 @@
 			},
 			"ranking": 160,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 10,
 			"power": 592,
@@ -4022,9 +4018,9 @@
 			},
 			"ranking": 170,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 2,
 			"power": 169,
@@ -4049,14 +4045,14 @@
 			"ranking": 195,
 			"category": "BeamWeapon",
 			"origin": "MysteryTrader",
-			"tags": {
-				"BeamWeapon": true,
-				"Bomb": true,
-				"Cloak": true,
-				"MineLayer": true,
-				"Scanner": true,
-				"TorpedoBonus": true
-			},
+			"tags": [
+				"BeamWeapon",
+				"Bomb",
+				"Cloak",
+				"MineLayer",
+				"Scanner",
+				"TorpedoBonus"
+			],
 			"hullSlotType": 2048,
 			"mass": 8,
 			"scanner": true,
@@ -4083,10 +4079,10 @@
 			},
 			"ranking": 180,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true,
-				"ShieldSapper": true
-			},
+			"tags": [
+				"BeamWeapon",
+				"ShieldSapper"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 541,
@@ -4105,9 +4101,9 @@
 			},
 			"ranking": 190,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 2,
 			"power": 169,
@@ -4125,10 +4121,10 @@
 			},
 			"ranking": 200,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true,
-				"GatlingGun": true
-			},
+			"tags": [
+				"BeamWeapon",
+				"GatlingGun"
+			],
 			"hullSlotType": 2048,
 			"mass": 3,
 			"power": 204,
@@ -4148,9 +4144,9 @@
 			},
 			"ranking": 210,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 433,
@@ -4168,9 +4164,9 @@
 			},
 			"ranking": 220,
 			"category": "BeamWeapon",
-			"tags": {
-				"BeamWeapon": true
-			},
+			"tags": [
+				"BeamWeapon"
+			],
 			"hullSlotType": 2048,
 			"mass": 1,
 			"power": 433,
@@ -4188,9 +4184,9 @@
 			"requirements": {},
 			"ranking": 0,
 			"category": "Torpedo",
-			"tags": {
-				"Torpedo": true
-			},
+			"tags": [
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 25,
 			"power": 5,
@@ -4211,9 +4207,9 @@
 			},
 			"ranking": 10,
 			"category": "Torpedo",
-			"tags": {
-				"Torpedo": true
-			},
+			"tags": [
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 25,
 			"power": 12,
@@ -4235,9 +4231,9 @@
 			},
 			"ranking": 20,
 			"category": "Torpedo",
-			"tags": {
-				"Torpedo": true
-			},
+			"tags": [
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 25,
 			"power": 26,
@@ -4259,9 +4255,9 @@
 			},
 			"ranking": 30,
 			"category": "Torpedo",
-			"tags": {
-				"Torpedo": true
-			},
+			"tags": [
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 25,
 			"power": 48,
@@ -4283,9 +4279,9 @@
 			},
 			"ranking": 40,
 			"category": "Torpedo",
-			"tags": {
-				"Torpedo": true
-			},
+			"tags": [
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 25,
 			"power": 90,
@@ -4307,9 +4303,9 @@
 			},
 			"ranking": 50,
 			"category": "Torpedo",
-			"tags": {
-				"Torpedo": true
-			},
+			"tags": [
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 25,
 			"power": 169,
@@ -4331,9 +4327,9 @@
 			},
 			"ranking": 60,
 			"category": "Torpedo",
-			"tags": {
-				"Torpedo": true
-			},
+			"tags": [
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 25,
 			"power": 316,
@@ -4358,9 +4354,9 @@
 			"ranking": 85,
 			"category": "Torpedo",
 			"origin": "MysteryTrader",
-			"tags": {
-				"Torpedo": true
-			},
+			"tags": [
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 8,
 			"power": 60,
@@ -4381,10 +4377,10 @@
 			},
 			"ranking": 0,
 			"category": "Torpedo",
-			"tags": {
-				"CapitalShipMissile": true,
-				"Torpedo": true
-			},
+			"tags": [
+				"CapitalShipMissile",
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 35,
 			"power": 85,
@@ -4406,10 +4402,10 @@
 			},
 			"ranking": 10,
 			"category": "Torpedo",
-			"tags": {
-				"CapitalShipMissile": true,
-				"Torpedo": true
-			},
+			"tags": [
+				"CapitalShipMissile",
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 35,
 			"power": 150,
@@ -4432,10 +4428,10 @@
 			},
 			"ranking": 20,
 			"category": "Torpedo",
-			"tags": {
-				"CapitalShipMissile": true,
-				"Torpedo": true
-			},
+			"tags": [
+				"CapitalShipMissile",
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 35,
 			"power": 280,
@@ -4458,10 +4454,10 @@
 			},
 			"ranking": 30,
 			"category": "Torpedo",
-			"tags": {
-				"CapitalShipMissile": true,
-				"Torpedo": true
-			},
+			"tags": [
+				"CapitalShipMissile",
+				"Torpedo"
+			],
 			"hullSlotType": 2048,
 			"mass": 35,
 			"power": 525,
@@ -4480,9 +4476,9 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "Shield",
-			"tags": {
-				"Shield": true
-			},
+			"tags": [
+				"Shield"
+			],
 			"hullSlotType": 128,
 			"mass": 1,
 			"shield": 25
@@ -4499,9 +4495,9 @@
 			},
 			"ranking": 20,
 			"category": "Shield",
-			"tags": {
-				"Shield": true
-			},
+			"tags": [
+				"Shield"
+			],
 			"hullSlotType": 128,
 			"mass": 1,
 			"shield": 40
@@ -4518,9 +4514,9 @@
 			},
 			"ranking": 30,
 			"category": "Shield",
-			"tags": {
-				"Shield": true
-			},
+			"tags": [
+				"Shield"
+			],
 			"hullSlotType": 128,
 			"mass": 1,
 			"shield": 60
@@ -4541,10 +4537,10 @@
 			},
 			"ranking": 60,
 			"category": "Shield",
-			"tags": {
-				"Armor": true,
-				"Shield": true
-			},
+			"tags": [
+				"Armor",
+				"Shield"
+			],
 			"hullSlotType": 128,
 			"mass": 10,
 			"armor": 65,
@@ -4566,10 +4562,10 @@
 			},
 			"ranking": 50,
 			"category": "Shield",
-			"tags": {
-				"Cloak": true,
-				"Shield": true
-			},
+			"tags": [
+				"Cloak",
+				"Shield"
+			],
 			"hullSlotType": 128,
 			"mass": 2,
 			"cloakUnits": 70,
@@ -4587,9 +4583,9 @@
 			},
 			"ranking": 40,
 			"category": "Shield",
-			"tags": {
-				"Shield": true
-			},
+			"tags": [
+				"Shield"
+			],
 			"hullSlotType": 128,
 			"mass": 1,
 			"shield": 100
@@ -4611,13 +4607,13 @@
 			"ranking": 75,
 			"category": "Shield",
 			"origin": "MysteryTrader",
-			"tags": {
-				"Armor": true,
-				"Cloak": true,
-				"Scanner": true,
-				"Shield": true,
-				"TorpedoJammer": true
-			},
+			"tags": [
+				"Armor",
+				"Cloak",
+				"Scanner",
+				"Shield",
+				"TorpedoJammer"
+			],
 			"hullSlotType": 128,
 			"mass": 10,
 			"scanner": true,
@@ -4640,9 +4636,9 @@
 			},
 			"ranking": 70,
 			"category": "Shield",
-			"tags": {
-				"Shield": true
-			},
+			"tags": [
+				"Shield"
+			],
 			"hullSlotType": 128,
 			"mass": 1,
 			"shield": 175
@@ -4659,9 +4655,9 @@
 			},
 			"ranking": 80,
 			"category": "Shield",
-			"tags": {
-				"Shield": true
-			},
+			"tags": [
+				"Shield"
+			],
 			"hullSlotType": 128,
 			"mass": 1,
 			"shield": 300
@@ -4678,9 +4674,9 @@
 			},
 			"ranking": 90,
 			"category": "Shield",
-			"tags": {
-				"Shield": true
-			},
+			"tags": [
+				"Shield"
+			],
 			"hullSlotType": 128,
 			"mass": 1,
 			"shield": 500
@@ -4697,7 +4693,6 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Freighter",
 			"mass": 25,
 			"armor": 25,
@@ -4760,7 +4755,6 @@
 			},
 			"ranking": 20,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Freighter",
 			"mass": 60,
 			"armor": 50,
@@ -4823,7 +4817,6 @@
 			},
 			"ranking": 30,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Freighter",
 			"mass": 125,
 			"armor": 150,
@@ -4889,7 +4882,6 @@
 			},
 			"ranking": 40,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Freighter",
 			"mass": 175,
 			"armor": 400,
@@ -4959,7 +4951,6 @@
 			"requirements": {},
 			"ranking": 40,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Scout",
 			"mass": 8,
 			"armor": 20,
@@ -5023,7 +5014,6 @@
 			},
 			"ranking": 60,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Fighter",
 			"mass": 8,
 			"armor": 45,
@@ -5095,7 +5085,6 @@
 			},
 			"ranking": 50,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Fighter",
 			"mass": 30,
 			"armor": 200,
@@ -5191,7 +5180,6 @@
 			},
 			"ranking": 80,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Fighter",
 			"mass": 90,
 			"armor": 700,
@@ -5289,7 +5277,6 @@
 			},
 			"ranking": 90,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Fighter",
 			"mass": 120,
 			"armor": 1000,
@@ -5384,7 +5371,6 @@
 			},
 			"ranking": 100,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "CapitalShip",
 			"mass": 222,
 			"armor": 2000,
@@ -5514,7 +5500,6 @@
 			},
 			"ranking": 110,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "CapitalShip",
 			"mass": 250,
 			"armor": 4500,
@@ -5657,7 +5642,6 @@
 			},
 			"ranking": 120,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 65,
 			"armor": 150,
@@ -5740,7 +5724,6 @@
 			},
 			"ranking": 130,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 75,
 			"armor": 450,
@@ -5852,7 +5835,6 @@
 			},
 			"ranking": 140,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 125,
 			"armor": 900,
@@ -5957,7 +5939,6 @@
 			},
 			"ranking": 150,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Colonizer",
 			"mass": 8,
 			"armor": 10,
@@ -6010,7 +5991,6 @@
 			"requirements": {},
 			"ranking": 160,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Colonizer",
 			"mass": 20,
 			"armor": 20,
@@ -6066,7 +6046,6 @@
 			},
 			"ranking": 170,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Bomber",
 			"mass": 28,
 			"armor": 50,
@@ -6121,7 +6100,6 @@
 			},
 			"ranking": 180,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Bomber",
 			"mass": 69,
 			"armor": 175,
@@ -6195,7 +6173,6 @@
 			},
 			"ranking": 190,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Bomber",
 			"mass": 70,
 			"armor": 225,
@@ -6274,7 +6251,6 @@
 			},
 			"ranking": 200,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Bomber",
 			"mass": 110,
 			"armor": 450,
@@ -6368,7 +6344,6 @@
 			},
 			"ranking": 210,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Miner",
 			"mass": 10,
 			"armor": 100,
@@ -6422,7 +6397,6 @@
 			},
 			"ranking": 220,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Miner",
 			"mass": 80,
 			"armor": 130,
@@ -6493,7 +6467,6 @@
 			},
 			"ranking": 230,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Miner",
 			"mass": 110,
 			"armor": 475,
@@ -6580,7 +6553,6 @@
 			},
 			"ranking": 240,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Miner",
 			"mass": 110,
 			"armor": 1400,
@@ -6667,7 +6639,6 @@
 			},
 			"ranking": 250,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "Miner",
 			"mass": 100,
 			"armor": 1500,
@@ -6756,7 +6727,6 @@
 			},
 			"ranking": 260,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "FuelTransport",
 			"mass": 12,
 			"armor": 5,
@@ -6812,7 +6782,6 @@
 			},
 			"ranking": 270,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "FuelTransport",
 			"mass": 111,
 			"armor": 12,
@@ -6879,7 +6848,6 @@
 			},
 			"ranking": 280,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "MineLayer",
 			"mass": 10,
 			"armor": 60,
@@ -6955,7 +6923,6 @@
 			},
 			"ranking": 290,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "MineLayer",
 			"mass": 30,
 			"armor": 1200,
@@ -7044,7 +7011,6 @@
 			},
 			"ranking": 300,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "CapitalShip",
 			"mass": 100,
 			"armor": 5000,
@@ -7190,7 +7156,6 @@
 			},
 			"ranking": 310,
 			"category": "ShipHull",
-			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 85,
 			"armor": 500,
@@ -7288,7 +7253,6 @@
 			"ranking": 305,
 			"category": "ShipHull",
 			"origin": "MysteryTrader",
-			"tags": {},
 			"type": "MultiPurposeFreighter",
 			"mass": 70,
 			"armor": 250,
@@ -7381,7 +7345,6 @@
 			"requirements": {},
 			"ranking": 10,
 			"category": "StarbaseHull",
-			"tags": {},
 			"type": "OrbitalFort",
 			"mass": 0,
 			"armor": 100,
@@ -7465,7 +7428,6 @@
 			},
 			"ranking": 30,
 			"category": "StarbaseHull",
-			"tags": {},
 			"type": "Starbase",
 			"mass": 0,
 			"armor": 250,
@@ -7571,7 +7533,6 @@
 			"requirements": {},
 			"ranking": 30,
 			"category": "StarbaseHull",
-			"tags": {},
 			"type": "Starbase",
 			"mass": 0,
 			"armor": 500,
@@ -7711,7 +7672,6 @@
 			},
 			"ranking": 40,
 			"category": "StarbaseHull",
-			"tags": {},
 			"type": "Starbase",
 			"mass": 0,
 			"armor": 1000,
@@ -7886,7 +7846,6 @@
 			},
 			"ranking": 50,
 			"category": "StarbaseHull",
-			"tags": {},
 			"type": "Starbase",
 			"mass": 0,
 			"armor": 1500,
