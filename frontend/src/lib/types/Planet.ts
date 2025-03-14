@@ -1,5 +1,4 @@
 import { roundTo100 } from '$lib/services/Math';
-import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
 import type { AnyPlanet, DesignFinder } from '$lib/services/Universe';
 import type { CS } from '$lib/wasm';
 import { cloneDeep, sortBy, startCase } from 'lodash-es';
@@ -9,7 +8,6 @@ import type {
 	Planet,
 	PlanetSpec,
 	ProductionQueueItem,
-	Rules,
 	ShipDesign,
 	Tags,
 	Vector
@@ -43,13 +41,8 @@ import {
 	type Cargo,
 	type Hab,
 	type Mineral,
-	type QueueItemType,
-	type Race,
-	type TechStore
-} from './cs';
-import { absSum } from './Hab';
+	type QueueItemType} from './cs';
 import { totalMinerals } from './Mineral';
-import type { CommandedPlayer } from './Player';
 
 /**
  * A planet that can be commanded and updated by the player
@@ -129,124 +122,19 @@ export class CommandedPlanet implements Planet {
 		this.cargo.colonists = Math.trunc(value / 100);
 	}
 
-	// get the max popluation this planet will support for a player
-	public getMaxPopulation(rules: Rules, player: CommandedPlayer, habitability: number): number {
-		const maxPopulationFactor = 1 + (player.race.spec?.maxPopulationOffset ?? 0);
-		let maxPossiblePop = rules.maxPopulation ?? 1_000_000;
-		const minMaxPop = (maxPossiblePop * maxPopulationFactor * (rules.minHabFloor ?? 5)) / 100.0;
-
-		if (player.race.spec?.livesOnStarbases && this.playerNum === player.num) {
-			maxPossiblePop = this.starbase?.spec?.maxPopulation ?? 0;
-		}
-
-		return roundTo100(
-			Math.max(minMaxPop, (maxPossiblePop * maxPopulationFactor * habitability) / 100.0)
-		);
-	}
-
-	public getInnateMines(race: Race, population: number): number {
-		if (race.spec?.innateMining) {
-			return Math.floor(Math.sqrt(population) * (race.spec.innateScannerFactor ?? 0));
-		}
-		return 0;
-	}
-
-	public getMaxMines(race: Race, maxPopulation: number): number {
-		if (!race.spec?.innateMining) {
-			return Math.floor((maxPopulation * race.numMines) / 10000);
-		}
-		return 0;
-	}
-
-	public getMaxFactories(race: Race, maxPopulation: number): number {
-		if (!race.spec?.innateResources) {
-			return Math.floor((maxPopulation * race.numFactories) / 10000);
-		}
-		return 0;
-	}
-
 	/**
 	 * Get the amount of a given item in a planet's production queue
 	 * @param type the {@linkcode QueueItemType} of the item being checked
-	 * @param designNum the design number of the item being checked, or `undefined` if none are provided
-	 * @param queueItems an array of queue items to check, or this
-	 * @returns
+	 * @param queueItems an array of queue items to check
+	 * @returns the number of items in the queue
 	 */
 	public getAmountInQueue(
 		type: QueueItemType,
-		designNum: number | undefined = undefined,
 		queueItems: ProductionQueueItem[] = this.productionQueue
 	): number {
 		return queueItems.reduce(
-			(count, i) => count + (i.type === type && i.designNum === designNum ? i.quantity : 0),
-			0
+			(count, i) => count + (i.type === type ? i.quantity : 0), 0
 		);
-	}
-
-	public getMaxBuildable(
-		productivePop: number,
-		techStore: TechStore,
-		player: CommandedPlayer,
-		maxPopulation: number,
-		type: QueueItemType,
-		amountInQueue = 0
-	): number {
-		const race = player.race;
-
-		switch (type) {
-			case QueueItemTypeAutoDefenses:
-			case QueueItemTypeDefenses:
-				return Math.max(0, 100 - (this.defenses + amountInQueue));
-			case QueueItemTypeAutoMines:
-				return Math.max(
-					0,
-					this.getMaxMines(race, productivePop ?? 0) - (this.mines + amountInQueue)
-				);
-			case QueueItemTypeMine:
-				return Math.max(
-					0,
-					this.getMaxMines(race, maxPopulation ?? 0) - (this.mines + amountInQueue)
-				);
-			case QueueItemTypeAutoFactories:
-				return Math.max(
-					0,
-					this.getMaxFactories(race, productivePop ?? 0) - (this.factories + amountInQueue)
-				);
-			case QueueItemTypeFactory:
-				return Math.max(
-					0,
-					this.getMaxFactories(race, maxPopulation) - (this.factories + amountInQueue)
-				);
-			case QueueItemTypeAutoMinTerraform:
-				return (
-					absSum(getMinTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
-				);
-			case QueueItemTypeAutoMaxTerraform:
-			case QueueItemTypeTerraformEnvironment:
-				return (
-					absSum(getTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
-				);
-			case QueueItemTypeAutoMineralAlchemy: // TODO: Make this cap 1 after auto alchemy rework
-			case QueueItemTypeAutoMineralPacket:
-			case QueueItemTypeIroniumMineralPacket:
-			case QueueItemTypeBoraniumMineralPacket:
-			case QueueItemTypeGermaniumMineralPacket:
-			case QueueItemTypeMixedMineralPacket:
-			case QueueItemTypeMineralAlchemy:
-				return Number.MAX_SAFE_INTEGER - amountInQueue;
-			case QueueItemTypePlanetaryScanner:
-				// only one scanner per planet, assuming the race can build them
-				return Math.max(0, (this.scanner || race.spec?.innateScanner ? 0 : 1) - amountInQueue);
-			case QueueItemTypeGenesisDevice:
-				return 1;
-			case QueueItemTypeShipToken:
-				return Number.MAX_SAFE_INTEGER - amountInQueue;
-			case QueueItemTypeStarbase:
-				return Math.max(0, 1 - amountInQueue);
-			default:
-				console.error(`unknown QueueItemType ${type}`);
-				return 0;
-		}
 	}
 
 	// update the production queue estimates for the planet's production queue

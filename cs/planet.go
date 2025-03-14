@@ -224,13 +224,6 @@ func ProductivePopulation(pop, maxPop int, overcrowdPenalty, overcrowdResourceMa
 		float64(maxPop)*(1+overcrowdResourceMax), popOverCap), math.Floor)
 }
 
-// Return the amount of population that will operate installations on a planet
-// (it just caps at max pop)
-// TODO: remove this abhorrent reskin of min
-func productiveInstallationPopulation(pop, maxPop int) int {
-	return min(pop, maxPop)
-}
-
 // return true if this planet is able to build a ship with the given mass;
 // cost of ship not considered
 func (p *Planet) CanBuild(mass int) bool {
@@ -469,13 +462,11 @@ func (p *Planet) setStarbase(starbase *Fleet) {
 	p.PacketSpeed = starbase.Spec.SafePacketSpeed
 }
 
-// return the amount of population this planet will have next year
-func (p *Planet) PopNextYear(floorTo100 bool) int {
-	pop := p.GetPopulation() + p.Spec.GrowthAmount
-	if floorTo100 {
-		return roundTo100(pop, math.Floor)
-	}
-	return pop
+// return the amount of population this planet will have next year,
+// truncated to the nearest multiple of 100.
+func (p *Planet) PopNextYear() int {
+	pop := p.exactPopulation() + p.Spec.GrowthAmount
+	return roundTo100(pop, math.Floor)
 }
 
 // Get the number of innate mines a player would have with the given amount of population
@@ -580,7 +571,7 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	// population will generate resources up to 3x max pop, but they can only
 	// operate structures up to max pop
 	productivePop := ProductivePopulation(planet.GetPopulation(), spec.MaxPopulation, rules.PopulationOvercrowdResourcePenalty, rules.PopulationOvercrowdResourceMax)
-	installationPop := productiveInstallationPopulation(planet.GetPopulation(), spec.MaxPopulation)
+	installationPop := min(planet.GetPopulation(), spec.MaxPopulation)
 
 	if !race.Spec.InnateMining {
 		spec.MaxMines = getMaxInstallations(player.Race.NumMines, installationPop)
@@ -718,17 +709,17 @@ func getMaxInstallations(installationsPer10K, population int) int {
 	return population * installationsPer10K / 10000
 }
 
-func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
-	switch t {
+func (planet *Planet) MaxBuildable(player *Player, itemType QueueItemType) int {
+	switch itemType {
 	case QueueItemTypeAutoMines:
 		// for autobuild purposes, the maxFactories is next year's pop
-		// no need to floor inside popNextYear
-		futurePop := productiveInstallationPopulation(planet.PopNextYear(false), planet.Spec.MaxPopulation)
+		// don't want to floor to 100
+		futurePop := min(planet.PopNextYear(), planet.Spec.MaxPopulation)
 		maxMines := getMaxInstallations(player.Race.NumMines, futurePop)
 		return max(0, maxMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
 		// for autobuild purposes, the maxFactories is next year's pop
-		futurePop := productiveInstallationPopulation(planet.PopNextYear(false), planet.Spec.MaxPopulation)
+		futurePop := min(planet.PopNextYear(), planet.Spec.MaxPopulation)
 		maxFactories := getMaxInstallations(player.Race.NumFactories, futurePop)
 		return max(0, maxFactories-planet.Factories)
 	case QueueItemTypeMine:
@@ -741,14 +732,12 @@ func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
 		return planet.Spec.TerraformAmount.absSum()
 	case QueueItemTypeAutoMinTerraform:
 		return planet.Spec.MinTerraformAmount.absSum()
-	case QueueItemTypeStarbase:
+	case QueueItemTypeStarbase, QueueItemTypeGenesisDevice:
 		return 1
 	case QueueItemTypePlanetaryScanner:
 		if planet.Scanner {
 			return 0
 		}
-		return 1
-	case QueueItemTypeGenesisDevice:
 		return 1
 	// TODO: Enable once auto alchemy gets fixed
 	/* case QueueItemTypeAutoMineralAlchemy:

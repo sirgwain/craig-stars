@@ -1893,7 +1893,7 @@ export interface Tech {
 	ranking: number /* int */;
 	category: TechCategory;
 	origin?: TechOrigin;
-	tags: TechTags;
+	tags?: TechTags;
 }
 export type TechOrigin = string;
 export const OriginNone: TechOrigin = '';

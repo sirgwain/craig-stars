@@ -1,4 +1,4 @@
-import type { Race } from './types/cs';
+import type { QueueItemType, Race } from './types/cs';
 import { addError } from './services/Errors';
 import type { Cost } from './types/cs';
 import { type Planet } from './types/cs';
@@ -19,7 +19,7 @@ export type CS = {
 	starbaseUpgradeCost: (design: ShipDesign, newDesign: ShipDesign) => Cost | undefined;
 	techCost: (tech: Tech) => Cost | undefined;
 	estimateProduction: (planet: Planet) => Planet | undefined;
-	productivePopulation: (planet: Planet) => number | undefined;
+	maxBuildable: (planet: Planet, itemType: QueueItemType) => number | undefined;
 	updateResourcesAvailable: (planet: Planet) => number | undefined;
 };
 
@@ -154,13 +154,14 @@ class CSWasmWrapper implements CS {
 		return result;
 	}
 
-	productivePopulation(planet: Planet): number | undefined {
-		const result = this.wasm.productivePopulation(planet);
+	maxBuildable(planet: Planet, itemType: QueueItemType): number | undefined {
+		const result = this.wasm.maxBuildable(planet, itemType);
 		if (this.checkError()) {
 			return undefined;
 		}
 		return result;
 	}
+
 	updateResourcesAvailable(planet: Planet): number | undefined {
 		const result = this.wasm.updateResourcesAvailable(planet);
 		if (this.checkError()) {

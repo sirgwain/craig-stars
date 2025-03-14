@@ -118,7 +118,7 @@ func (ai *aiPlayer) colonize() error {
 				// but only if taking these colonists doesn't reduce our pop too much
 				// take into account how much we're going to grow
 				orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
-				popNextYear := orbiting.PopNextYear(true)
+				popNextYear := orbiting.PopNextYear()
 				newDensity := float64(popNextYear-colonistsToLoad*100) / float64(orbiting.Spec.MaxPopulation)
 				if newDensity < ai.config.colonizerPopulationDensity {
 					log.Debug().

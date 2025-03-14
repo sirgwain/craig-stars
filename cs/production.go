@@ -193,7 +193,7 @@ func (p *producer) produce() (productionResult, error) {
 			return productionResult{}, err
 		}
 
-		maxBuildable := planet.maxBuildable(p.player, item.Type)
+		maxBuildable := planet.MaxBuildable(p.player, item.Type)
 		// Infinite is the constant int of -1, but for our purposes we want a very large number
 		if maxBuildable == Infinite {
 			maxBuildable = math.MaxInt

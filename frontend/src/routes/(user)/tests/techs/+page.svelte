@@ -12,6 +12,7 @@
 		TechCategoryMineLayer,
 		TechCategoryScanner,
 		TechCategoryShield,
+		TechTagEngine,
 		type TechEngine,
 		type TechHullComponent
 	} from '$lib/types/cs';
@@ -28,7 +29,8 @@
 		mass: 2,
 		idealSpeed: 6,
 		freeSpeed: 6,
-		fuelUsage: [0, 0, 0, 0, 0, 0, 0, 150, 275, 480, 576]
+		fuelUsage: [0, 0, 0, 0, 0, 0, 0, 150, 275, 480, 576],
+		tags: {TechTagEngine: true, TechTagRamscoop: true}
 	};
 
 	const moleSkin: TechHullComponent = {
