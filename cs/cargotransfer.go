@@ -428,15 +428,13 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 			fleet.Cargo = fleet.Cargo.Add(cargoToUnload.PositiveOnly())
 
 			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
-			newlyCreatedSalvage := false
 			if !ok && transfer.TargetType == MapObjectTypeNone {
 				// create a salvage
 				dest = t.game.getOrCreateSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
-				newlyCreatedSalvage = true
 			}
 
 			mo := dest.GetMapObject()
-			if mo.OwnedBy(fleet.PlayerNum) && !newlyCreatedSalvage {
+			if mo.OwnedBy(fleet.PlayerNum) && mo.Type != MapObjectTypeSalvage {
 				// this transfer already happened so reverse it and transfer it again for real this time
 				dest.SetCargo(dest.GetCargo().Subtract(cargoToUnload.PositiveOnly()))
 			}

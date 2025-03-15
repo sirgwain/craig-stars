@@ -18,7 +18,8 @@ type TestGame struct {
 }
 
 type TestPlayer struct {
-	cs.Player
+	// if nil, this will be created as a default humanoid player
+	*cs.Player
 	Designs        []cs.ShipDesign    `json:"designs,omitempty"`
 	Fleets         []cs.Fleet         `json:"fleets,omitempty"`
 	Salvages       []cs.Salvage       `json:"salvages,omitempty"`
@@ -31,10 +32,6 @@ var TestGames = []TestGame{
 		Name: "Single Unit Game",
 		Players: []TestPlayer{
 			{
-				Player: cs.Player{
-					UserID: 1,
-					Race:   *cs.NewRace(),
-				},
 				Designs: []cs.ShipDesign{{
 					Name:  "Long Range Scout",
 					Hull:  cs.Scout.Name,
@@ -59,21 +56,12 @@ var TestGames = []TestGame{
 			Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
 		}},
 	},
+
 	{
-		Name: "Cargo Transfer Test",
+		Name: "Cargo Transfer Planet Owned",
 		Players: []TestPlayer{
 			{
-				Player: cs.Player{
-					UserID:     1,
-					Race:       *cs.NewRace(),
-					TechLevels: cs.TechLevel{Energy: 10, Weapons: 10, Propulsion: 10, Construction: 10, Electronics: 10, Biotechnology: 10},
-				},
 				Designs: []cs.ShipDesign{
-					{
-						Name:  "Santa Maria",
-						Hull:  cs.ColonyShip.Name,
-						Slots: santaMariaSlots,
-					},
 					{
 						Name:  "Teamster",
 						Hull:  cs.MediumFreighter.Name,
@@ -82,47 +70,10 @@ var TestGames = []TestGame{
 				},
 				Fleets: []cs.Fleet{
 					{
-						BaseName:          "Teamster Planet loader",
-						Tokens:            []cs.ShipToken{{DesignNum: 2, Quantity: 1}},
-						Cargo:             cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10, Colonists: 10},
-						Fuel:              500,
+						BaseName:          "Teamster",
+						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Fuel:              450,
 						OrbitingPlanetNum: 1,
-					},
-					{
-						MapObject: cs.MapObject{Position: cs.Vector{X: 25, Y: 0}},
-						BaseName:  "Santa Maria & Teamster Jettisoner",
-						Tokens:    []cs.ShipToken{{DesignNum: 1, Quantity: 1}, {DesignNum: 2, Quantity: 1}},
-						Cargo:     cs.Cargo{Ironium: 50, Boranium: 50, Germanium: 50, Colonists: 50},
-						Fuel:      500,
-					},
-					{
-						MapObject: cs.MapObject{Position: cs.Vector{X: 25, Y: 25}},
-						BaseName:  "Teamster Salvager",
-						Tokens:    []cs.ShipToken{{DesignNum: 2, Quantity: 1}},
-						Cargo:     cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
-						Fuel:      500,
-					},
-					{
-						MapObject: cs.MapObject{Position: cs.Vector{X: 0, Y: 25}},
-						BaseName:  "Teamster Mineral Packeter",
-						Tokens:    []cs.ShipToken{{DesignNum: 2, Quantity: 1}},
-						Cargo:     cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10, Colonists: 10},
-						Fuel:      500,
-					},
-				},
-				Salvages: []cs.Salvage{
-					{
-						MapObject: cs.MapObject{Position: cs.Vector{X: 25, Y: 25}},
-						Cargo:     cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10, Colonists: 10},
-					},
-				},
-				MineralPackets: []cs.MineralPacket{
-					{
-						MapObject:       cs.MapObject{Position: cs.Vector{X: 0, Y: 25}},
-						Cargo:           cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10, Colonists: 10},
-						WarpSpeed:       5,
-						TargetPlanetNum: 1,
-						Heading:         cs.Vector{X: 0, Y: 1},
 					},
 				},
 			},
@@ -132,21 +83,153 @@ var TestGames = []TestGame{
 				Name:      "Planet 1",
 				PlayerNum: 1,
 			},
-			Hab:                  cs.Hab{Grav: 50, Temp: 50, Rad: 50},
-			MineralConcentration: cs.NewMineral(100, 100, 100),
-			Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
-			Scanner:              true,
+			Hab:   cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+			Cargo: cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
 		}},
+	},
+	{
+		Name: "Cargo Transfer Jettison",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName: "Teamster Jettison",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Cargo:    cs.Cargo{Ironium: 50, Boranium: 50, Germanium: 50},
+						Fuel:     500,
+					},
+				},
+			},
+		},
+	},
+	{
+		Name: "Cargo Transfer Salvage",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName: "Teamster Salvager",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Cargo:    cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
+						Fuel:     500,
+					},
+				},
+				Salvages: []cs.Salvage{
+					{
+						Cargo: cs.Cargo{Ironium: 50, Boranium: 50, Germanium: 50},
+					},
+				},
+			},
+		},
+	},
+	{
+		Name: "Cargo Transfer Fleets",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+					{
+						Name:  "Santa Maria",
+						Hull:  cs.ColonyShip.Name,
+						Slots: santaMariaSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName: "Teamster",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Cargo:    cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10, Colonists: 10},
+						Fuel:     100,
+					},
+					{
+						BaseName: "Santa Maria",
+						Tokens:   []cs.ShipToken{{DesignNum: 2, Quantity: 1}},
+						Cargo:    cs.Cargo{Ironium: 5, Boranium: 5, Germanium: 5, Colonists: 5},
+						Fuel:     10,
+					},
+				},
+			},
+		},
+	},
+	{
+		Name: "Cargo Transfer Split",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+					{
+						Name:  "Santa Maria",
+						Hull:  cs.ColonyShip.Name,
+						Slots: santaMariaSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName: "Teamster Jettison",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 1}, {DesignNum: 2, Quantity: 1}},
+						Cargo:    cs.Cargo{Ironium: 50, Boranium: 50, Germanium: 50},
+						Fuel:     500,
+					},
+				},
+			},
+		},
+	},
+	{
+		Name: "Cargo Transfer MineralPacket",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName: "Teamster Mineral Packeter",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Cargo:    cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10, Colonists: 10},
+						Fuel:     500,
+					},
+				},
+				MineralPackets: []cs.MineralPacket{
+					{
+						Cargo:           cs.Cargo{Ironium: 50, Boranium: 50, Germanium: 50},
+						WarpSpeed:       5,
+						TargetPlanetNum: 1,
+						Heading:         cs.Vector{X: 0, Y: 1},
+					},
+				},
+			},
+		},
 	},
 	{
 		Name: "Two Player Game",
 		Players: []TestPlayer{
 			{
-				Player: cs.Player{
-					UserID: 1,
-					Race:   *cs.NewRace(),
-				},
-
 				Designs: []cs.ShipDesign{
 					{
 						Name:  "Long Range Scout",
@@ -162,7 +245,7 @@ var TestGames = []TestGame{
 				},
 			},
 			{
-				Player: cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace()},
+				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace()},
 				Designs: []cs.ShipDesign{
 					{
 						Name:  "Super Scout",
@@ -269,6 +352,13 @@ func createTestGame(tg TestGame) *cs.FullGame {
 	}
 
 	for i, p := range tg.Players {
+		if p.Player == nil {
+			p.Player = &cs.Player{
+				UserID:     1,
+				Race:       *cs.NewRace(),
+				TechLevels: cs.TechLevel{Energy: 3, Weapons: 3, Propulsion: 3, Construction: 3, Electronics: 3, Biotechnology: 3},
+			}
+		}
 		player := addPlayer(game, p.WithNum(i+1))
 		if p.AIControlled {
 			player.SubmittedTurn = true

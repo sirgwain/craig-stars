@@ -36,6 +36,7 @@
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
 
 	const {
+		game,
 		settings,
 		universe,
 		player,
@@ -288,7 +289,7 @@
 </script>
 
 <!-- for small mobile displays we put the scanner on top and the command pane below it-->
-<div class="flex flex-col h-full md:flex-row">
+<div class="flex flex-col h-full md:flex-row" data-type="game-view" data-id={$game.id}>
 	<!-- for medium+ displays, command pane goes on the left -->
 	<div
 		class="hidden overflow-x-hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[30rem] overflow-y-auto md:max-h-[calc(100dvh-4rem)]"

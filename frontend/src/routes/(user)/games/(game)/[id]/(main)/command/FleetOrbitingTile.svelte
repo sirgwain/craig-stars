@@ -45,7 +45,7 @@
 			<button
 				onclick={transfer}
 				class="btn btn-outline btn-sm normal-case btn-secondary p-2"
-				title="goto"
+				title="transfer"				
 				>{planet ? 'Transfer' : 'Jettison'}
 			</button>
 		</div>
