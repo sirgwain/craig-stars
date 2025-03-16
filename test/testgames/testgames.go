@@ -56,7 +56,40 @@ var TestGames = []TestGame{
 			Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
 		}},
 	},
-
+	{
+		Name: "Cargo Transfer Invasion",
+		Players: []TestPlayer{
+			{
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName:          "Teamster",
+						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Fuel:              450,
+						Cargo:             cs.Cargo{Colonists: 210},
+						OrbitingPlanetNum: 1,
+					},
+				},
+			},
+			{
+				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace()},
+			},
+		},
+		Planets: []cs.Planet{{
+			MapObject: cs.MapObject{
+				Name:      "Planet 1",
+				PlayerNum: 2, // give player2 a planet
+			},
+			Hab:   cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+			Cargo: cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 25},
+		}},
+	},
 	{
 		Name: "Cargo Transfer Planet Owned",
 		Players: []TestPlayer{
@@ -86,6 +119,109 @@ var TestGames = []TestGame{
 			Hab:   cs.Hab{Grav: 50, Temp: 50, Rad: 50},
 			Cargo: cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
 		}},
+	},
+	{
+		Name: "Cargo Transfer Planet Steal",
+		Players: []TestPlayer{
+			{
+				Player: &cs.Player{Name: "Player 1", UserID: 1, Race: *cs.NewRace().WithPRT(cs.SS)},
+				Designs: []cs.ShipDesign{
+					{
+						Name: "Thief",
+						Hull: cs.MediumFreighter.Name,
+						Slots: []cs.ShipDesignSlot{
+							{HullComponent: cs.LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: cs.Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
+							{HullComponent: cs.RobberBaronScanner.Name, HullSlotIndex: 3, Quantity: 1},
+						},
+					},
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName:          "Thief", // can steal
+						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Fuel:              450,
+						OrbitingPlanetNum: 1,
+					},
+					{
+						BaseName:          "Teamster", // can't steal
+						Tokens:            []cs.ShipToken{{DesignNum: 2, Quantity: 1}},
+						Fuel:              450,
+						OrbitingPlanetNum: 1,
+					},
+				},
+			},
+			{
+				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace()},
+			},
+		},
+		Planets: []cs.Planet{{
+			MapObject: cs.MapObject{
+				Name:      "Planet 1",
+				PlayerNum: 2, // give player2 a planet
+			},
+			Hab:   cs.Hab{Grav: 50, Temp: 50, Rad: 50},
+			Cargo: cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
+		}},
+	},
+	{
+		Name: "Cargo Transfer Fleet Steal",
+		Players: []TestPlayer{
+			{
+				Player: &cs.Player{Name: "Player 1", UserID: 1, Race: *cs.NewRace().WithPRT(cs.SS)},
+				Designs: []cs.ShipDesign{
+					{
+						Name: "Thief",
+						Hull: cs.MediumFreighter.Name,
+						Slots: []cs.ShipDesignSlot{
+							{HullComponent: cs.LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+							{HullComponent: cs.Crobmnium.Name, HullSlotIndex: 2, Quantity: 1},
+							{HullComponent: cs.RobberBaronScanner.Name, HullSlotIndex: 3, Quantity: 1},
+						},
+					},
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName: "Thief", // can steal
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Fuel:     100,
+					},
+					{
+						BaseName: "Teamster", // can't steal
+						Tokens:   []cs.ShipToken{{DesignNum: 2, Quantity: 1}},
+						Fuel:     100,
+					},
+				},
+			},
+			{
+				Player: &cs.Player{Name: "Player 2", AIControlled: true, Race: *cs.NewRace()},
+				Designs: []cs.ShipDesign{
+					{
+						Name:  "Teamster",
+						Hull:  cs.MediumFreighter.Name,
+						Slots: teamsterSlots,
+					},
+				},
+				Fleets: []cs.Fleet{
+					{
+						BaseName: "Teamster",
+						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
+						Cargo:    cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10, Colonists: 10},
+						Fuel:     10,
+					},
+				},
+			},
+		},
 	},
 	{
 		Name: "Cargo Transfer Jettison",

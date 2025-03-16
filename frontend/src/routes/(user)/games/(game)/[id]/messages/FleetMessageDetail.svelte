@@ -1,16 +1,22 @@
 <script lang="ts">
 	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { totalCargo } from '$lib/types/Cargo';
+	import { resourceTypeToString } from '$lib/types/Cargo';
 	import { absSum } from '$lib/types/Hab';
 	import {
+		CargoTransferStatusCargo,
+		CargoTransferStatusCargoCapacity,
+		CargoTransferStatusDestCargo,
+		CargoTransferStatusDestCargoCapacity,
+		CargoTransferStatusDestStarbase,
+		CargoTransferStatusOwned,
 		None,
 		PlayerMessageFleetBombedPlanet,
 		PlayerMessageFleetBuilt,
+		PlayerMessageFleetByHandTransferIncomplete,
 		PlayerMessageFleetDieoff,
 		PlayerMessageFleetExceededSafeSpeed,
 		PlayerMessageFleetGeneratedFuel,
-		PlayerMessageFleetImmediateTransferNotComplete,
 		PlayerMessageFleetLaidMines,
 		PlayerMessageFleetMineFieldHit,
 		PlayerMessageFleetMineFieldSweptMines,
@@ -19,7 +25,6 @@
 		PlayerMessageFleetRemoteMined,
 		PlayerMessageFleetReproduce,
 		PlayerMessageFleetScrapped,
-		PlayerMessageFleetStealCargoNotAllowed,
 		PlayerMessageFleetTransferGiven,
 		PlayerMessageFleetTransferInvalidColonists,
 		PlayerMessageFleetTransferInvalidGiveRefused,
@@ -187,26 +192,36 @@
 	)}.
 {:else if message.type === PlayerMessageFleetScrapped}
 	{message.targetName} has been dismantled. The scrap was left in deep space.
-{:else if message.type === PlayerMessageFleetStealCargoNotAllowed}
-	{message.targetName} has been attempted to steal cargo from {message.spec.targetName} but does not
-	have the required technology on steal cargo.
-{:else if message.type === PlayerMessageFleetImmediateTransferNotComplete}
-	{@const cargo = {
-		ironium: message.spec.cargo?.ironium ?? 0,
-		boranium: message.spec.cargo?.boranium ?? 0,
-		germanium: message.spec.cargo?.germanium ?? 0,
-		colonists: message.spec.cargo?.colonists ?? 0
-	}}
-	{message.targetName} has been attempted to steal cargo from {message.spec.targetName} but was
-	{#if totalCargo(message.spec.cargo ?? {}) === 0}
-		unable to steal any cargo.
+{:else if message.type === PlayerMessageFleetByHandTransferIncomplete}
+	{@const transfer = message.spec.cargoTransfer}
+	{#if transfer}
+		{@const cargoType = resourceTypeToString(transfer.cargoType)}
+		{@const fromTo = transfer.wanted < 0 ? 'from' : 'to'}
+		{message.targetName} has been attempted to transfer {Math.abs(transfer.wanted)}kT of {cargoType}
+		{fromTo}
+		{message.spec.targetName} but was
+		{#if transfer.transfered === 0}
+			unable to transfer any cargo.
+		{:else}
+			only able to transfer {Math.abs(transfer.transfered)}kT.
+		{/if}
+		{#if transfer.status === CargoTransferStatusCargo}
+			{message.targetName} did not have enough {cargoType}.
+		{:else if transfer.status === CargoTransferStatusCargoCapacity}
+			{message.targetName} did not have enough space in their hold.
+		{:else if transfer.status === CargoTransferStatusDestCargo}
+			{message.spec.targetName} did not have enough {cargoType}.
+		{:else if transfer.status === CargoTransferStatusDestCargoCapacity}
+			{message.spec.targetName} did not have enough space in their hold.
+		{:else if transfer.status === CargoTransferStatusDestStarbase}
+			A starbase in orbit prevented the transfer.
+		{:else if transfer.status === CargoTransferStatusOwned}
+			{message.spec.targetName} is owned by another player and {message.targetName} does not have the
+			required technology to bypass their sensors.
+		{/if}
 	{:else}
-		only able to steal any {andCommaList([
-			cargo.ironium > 0 ? `${cargo.ironium}kT of Ironium` : '',
-			cargo.boranium > 0 ? `${cargo.boranium}kT of Boranium` : '',
-			cargo.germanium > 0 ? `${cargo.germanium}kT of Germanium` : '',
-			cargo.colonists > 0 ? `${cargo.colonists * 100} Colonists` : ''
-		])}.
+		{message.targetName} has been attempted to transfer cargo from {message.spec.targetName} but was
+		unsuccessful.
 	{/if}
 {:else if message.type === PlayerMessageFleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(

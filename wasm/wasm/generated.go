@@ -2073,7 +2073,6 @@ func GetPlanetSpec(o js.Value) cs.PlanetSpec {
 	obj.TerraformAmount = GetHab(o.Get("terraformAmount"))
 	obj.MinTerraformAmount = GetHab(o.Get("minTerraformAmount"))
 	obj.TerraformedHabitability = getInt[int](o.Get("terraformedHabitability"))
-	obj.Contested = getBool(o.Get("contested"))
 	return obj
 }
 func SetPlanetSpec(o js.Value, obj *cs.PlanetSpec) {
@@ -2106,7 +2105,6 @@ func SetPlanetSpec(o js.Value, obj *cs.PlanetSpec) {
 	o.Set("minTerraformAmount", map[string]any{})
 	SetHab(o.Get("minTerraformAmount"), &obj.MinTerraformAmount)
 	o.Set("terraformedHabitability", obj.TerraformedHabitability)
-	o.Set("contested", obj.Contested)
 }
 
 func GetPlanetStarbaseSpec(o js.Value) cs.PlanetStarbaseSpec {
@@ -2352,7 +2350,6 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.Cost = getPointer(GetCost(o.Get("cost")))
 	obj.Mineral = getPointer(GetMineral(o.Get("mineral")))
 	obj.Cargo = getPointer(GetCargo(o.Get("cargo")))
-	obj.Cargo2 = getPointer(GetCargo(o.Get("cargo2")))
 	obj.QueueItemType = GetQueueItemType(o.Get("queueItemType"))
 	obj.Field = GetTechField(o.Get("field"))
 	obj.NextField = GetTechField(o.Get("nextField"))
@@ -2365,6 +2362,7 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.MineFieldDamage = getPointer(GetMineFieldDamage(o.Get("mineFieldDamage")))
 	obj.MysteryTrader = getPointer(GetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader")))
 	obj.Invasion = getPointer(GetPlayerMessageSpecInvasion(o.Get("invasion")))
+	obj.CargoTransfer = getPointer(GetPlayerMessageSpecCargoTransfer(o.Get("cargoTransfer")))
 	obj.TerraformAmount = GetHab(o.Get("terraformAmount"))
 	return obj
 }
@@ -2382,8 +2380,6 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	SetMineral(o.Get("mineral"), obj.Mineral)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), obj.Cargo)
-	o.Set("cargo2", map[string]any{})
-	SetCargo(o.Get("cargo2"), obj.Cargo2)
 	o.Set("queueItemType", string(obj.QueueItemType))
 	o.Set("field", string(obj.Field))
 	o.Set("nextField", string(obj.NextField))
@@ -2403,8 +2399,28 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	SetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader"), obj.MysteryTrader)
 	o.Set("invasion", map[string]any{})
 	SetPlayerMessageSpecInvasion(o.Get("invasion"), obj.Invasion)
+	o.Set("cargoTransfer", map[string]any{})
+	SetPlayerMessageSpecCargoTransfer(o.Get("cargoTransfer"), obj.CargoTransfer)
 	o.Set("terraformAmount", map[string]any{})
 	SetHab(o.Get("terraformAmount"), &obj.TerraformAmount)
+}
+
+func GetPlayerMessageSpecCargoTransfer(o js.Value) cs.PlayerMessageSpecCargoTransfer {
+	var obj cs.PlayerMessageSpecCargoTransfer
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.CargoType = GetCargoType(o.Get("cargoType"))
+	obj.Transfered = getInt[int](o.Get("transfered"))
+	obj.Wanted = getInt[int](o.Get("wanted"))
+	obj.Status = GetCargoTransferStatus(o.Get("status"))
+	return obj
+}
+func SetPlayerMessageSpecCargoTransfer(o js.Value, obj *cs.PlayerMessageSpecCargoTransfer) {
+	o.Set("cargoType", int(obj.CargoType))
+	o.Set("transfered", obj.Transfered)
+	o.Set("wanted", obj.Wanted)
+	o.Set("status", int(obj.Status))
 }
 
 func GetPlayerMessageSpecComet(o js.Value) cs.PlayerMessageSpecComet {

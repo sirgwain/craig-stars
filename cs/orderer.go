@@ -197,6 +197,9 @@ func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, ord
 }
 
 // TransferByHand does a by hand transfer of cargo to/from a dest
+// Note: this will allow "illegal" orders like trying to steal cargo without tech. The client
+// is expected to prevent this where possible for by hand transfers and if not, the player will
+// get a message saying their by hand transfer was unsuccessful when it is resolved at turn generation side.
 func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest CargoHolder, transferAmount CargoTransferRequest) error {
 
 	var destName string
@@ -206,10 +209,6 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		destName = "jettison"
 	} else {
 		destName = dest.GetMapObject().Name
-	}
-
-	if transferAmount.Cargo.HasNegative() && !dest.CanLoad(fleet) {
-		return fmt.Errorf("fleet %s is not allowed to load cargo from %s", fleet.Name, dest.GetMapObject().Name)
 	}
 
 	if fleet.availableCargoSpace() < transferAmount.Total() {

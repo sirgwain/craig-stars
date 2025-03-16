@@ -44,7 +44,6 @@ type PlayerMessageSpec struct {
 	Cost                  *Cost                           `json:"cost,omitempty"`
 	Mineral               *Mineral                        `json:"mineral,omitempty"`
 	Cargo                 *Cargo                          `json:"cargo,omitempty"`
-	Cargo2                *Cargo                          `json:"cargo2,omitempty"`
 	QueueItemType         QueueItemType                   `json:"queueItemType,omitempty"`
 	Field                 TechField                       `json:"field,omitempty"`
 	NextField             TechField                       `json:"nextField,omitempty"`
@@ -57,6 +56,7 @@ type PlayerMessageSpec struct {
 	MineFieldDamage       *MineFieldDamage                `json:"mineFieldDamage,omitempty"`
 	MysteryTrader         *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
 	Invasion              *PlayerMessageSpecInvasion      `json:"invasion,omitempty"`
+	CargoTransfer         *PlayerMessageSpecCargoTransfer `json:"cargoTransfer,omitempty"`
 	TerraformAmount       Hab                             `json:"terraformAmount,omitempty"`
 }
 
@@ -80,6 +80,13 @@ type PlayerMessageSpecInvasion struct {
 	AttackersKilled   int    `json:"attackersKilled"`
 	DefendersKilled   int    `json:"defendersKilled"`
 	Successful        bool   `json:"successful"`
+}
+
+type PlayerMessageSpecCargoTransfer struct {
+	CargoType  CargoType           `json:"cargoType"`
+	Transfered int                 `json:"transfered"`
+	Wanted     int                 `json:"wanted"`
+	Status     CargoTransferStatus `json:"status"`
 }
 
 type PlayerMessageTargetType string
@@ -199,9 +206,7 @@ const (
 	PlayerMessagePlanetBuiltGenesisDevice
 	PlayerMessagePlayerAcquirablePartGainedScrapFleet
 	PlayerMessagePlayerAcquirablePartGainedBattle
-	PlayerMessageFleetImmediateTransferInvalid
-	PlayerMessageFleetImmediateTransferNotComplete
-	PlayerMessageFleetStealCargoNotAllowed
+	PlayerMessageFleetByHandTransferIncomplete
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -337,11 +342,6 @@ func (m *messageClient) fleetBombedPlanet(player *Player, fleet *Fleet, planet *
 func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet, numBuilt int) {
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetBuilt, fleet).
 		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt}.withTargetPlanet(planet)))
-}
-
-func (m *messageClient) fleetByHandCargoTransferStatus(player *Player, fleet *Fleet, reason string) {
-	text := reason
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetImmediateTransferInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
 func (m *messageClient) fleetColonizeNonPlanet(player *Player, fleet *Fleet) {
@@ -630,6 +630,13 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 		}
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransferredCargo, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
+}
+
+func (m *messageClient) fleetByHandTransferIncomplete(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int, wanted int, status CargoTransferStatus) {
+	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetByHandTransferIncomplete, fleet).
+		withSpec(PlayerMessageSpec{
+			Target:        dest.GetMapObject().ToTarget(),
+			CargoTransfer: &PlayerMessageSpecCargoTransfer{CargoType: cargoType, Transfered: transferAmount, Wanted: wanted, Status: status}}))
 }
 
 func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {

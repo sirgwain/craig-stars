@@ -79,10 +79,14 @@ func (c Cargo) HasMinerals() bool {
 	return (c.Ironium + c.Boranium + c.Germanium) > 0
 }
 
-// HasNegative returns true if any cargo is negative. This will identify
-// a load order
+// HasNegative returns true if any cargo is negative
 func (c Cargo) HasNegative() bool {
 	return c.Ironium < 0 || c.Boranium < 0 || c.Germanium < 0 || c.Colonists < 0
+}
+
+// HasPositive returns true if any cargo is positive
+func (c Cargo) HasPositive() bool {
+	return c.Ironium > 0 || c.Boranium > 0 || c.Germanium > 0 || c.Colonists > 0
 }
 
 // return this cargo with a minimum of zero for each value

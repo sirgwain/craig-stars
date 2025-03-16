@@ -655,7 +655,6 @@ export interface PlayerMessageSpec extends Target<MapObjectType> {
 	cost?: Cost;
 	mineral?: Mineral;
 	cargo?: Cargo;
-	cargo2?: Cargo;
 	queueItemType?: QueueItemType;
 	field?: TechField;
 	nextField?: TechField;
@@ -668,6 +667,7 @@ export interface PlayerMessageSpec extends Target<MapObjectType> {
 	mineFieldDamage?: MineFieldDamage;
 	mysteryTrader?: PlayerMessageSpecMysteryTrader;
 	invasion?: PlayerMessageSpecInvasion;
+	cargoTransfer?: PlayerMessageSpecCargoTransfer;
 	terraformAmount?: Hab;
 }
 export interface PlayerMessageSpecComet {
@@ -687,6 +687,12 @@ export interface PlayerMessageSpecInvasion {
 	attackersKilled: number /* int */;
 	defendersKilled: number /* int */;
 	successful: boolean;
+}
+export interface PlayerMessageSpecCargoTransfer {
+	cargoType: CargoType;
+	transfered: number /* int */;
+	wanted: number /* int */;
+	status: CargoTransferStatus;
 }
 export type PlayerMessageTargetType = string;
 export const TargetNone: PlayerMessageTargetType = '';
@@ -799,9 +805,7 @@ export const PlayerMessageMysteryTraderAlreadyRewarded: PlayerMessageType = 97;
 export const PlayerMessagePlanetBuiltGenesisDevice: PlayerMessageType = 98;
 export const PlayerMessagePlayerAcquirablePartGainedScrapFleet: PlayerMessageType = 99;
 export const PlayerMessagePlayerAcquirablePartGainedBattle: PlayerMessageType = 100;
-export const PlayerMessageFleetImmediateTransferInvalid: PlayerMessageType = 101;
-export const PlayerMessageFleetImmediateTransferNotComplete: PlayerMessageType = 102;
-export const PlayerMessageFleetStealCargoNotAllowed: PlayerMessageType = 103;
+export const PlayerMessageFleetByHandTransferIncomplete: PlayerMessageType = 101;
 
 //////////
 // source: minefield.go
@@ -1012,7 +1016,6 @@ export interface PlanetSpec extends PlanetStarbaseSpec {
 	terraformAmount?: Hab;
 	minTerraformAmount?: Hab;
 	terraformedHabitability?: number /* int */;
-	contested?: boolean;
 }
 export interface PlanetStarbaseSpec {
 	hasMassDriver?: boolean;

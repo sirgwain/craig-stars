@@ -596,6 +596,7 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 	if status := t.transferToDest(fleet, dest, cargoType, transferAmount); status != CargoTransferStatusNone {
 		return 0, status
 	}
+
 	return transferAmount, CargoTransferStatusNone
 }
 

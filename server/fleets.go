@@ -20,6 +20,12 @@ type cargoTransferRequest struct {
 	FuelTransferAmount int                     `json:"fuelTransferAmount,omitempty"`
 }
 
+type cargoTransferResponse struct {
+	Player *cs.Player     `json:"player"`
+	Fleet  *cs.Fleet      `json:"fleet"`
+	Dest   cs.CargoHolder `json:"dest"`
+}
+
 func (req *cargoTransferRequest) Bind(r *http.Request) error {
 	return nil
 }
@@ -564,7 +570,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		Msgf("%s transfered %v to/from Planet %s", fleet.Name, transferAmount, planet.Name)
 
 	// success
-	rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": dest})
+	rest.RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
 }
 
 // transfer cargo from a fleet to/from the fleet's jettison
@@ -662,7 +668,7 @@ func (s *server) transferCargoFleetSalvage(w http.ResponseWriter, r *http.Reques
 	}
 
 	// success
-	rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": dest})
+	rest.RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
 }
 
 // transfer cargo from a fleet to/from a planet
@@ -727,7 +733,7 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 		Msgf("%s transfered %v to/from MineralPacket %s", fleet.Name, transferAmount, mineralPacket.Name)
 
 	// success
-	rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": dest})
+	rest.RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
 }
 
 // transfer cargo from a fleet to/from a fleet
@@ -802,5 +808,5 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 		Msgf("%s transfered %v to/from Fleet %s", fleet.Name, transferAmount, dest.GetMapObject().Name)
 
 	// success
-	rest.RenderJSON(w, rest.JSON{"player": player, "fleet": fleet, "dest": dest})
+	rest.RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
 }

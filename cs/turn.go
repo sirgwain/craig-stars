@@ -163,11 +163,9 @@ func (t *turnGenerator) fleetInit() {
 	}
 }
 
-// byHandLoads will do any by hand cargo transfer orders
+// byHandLoads will do any by hand cargo transfer load orders
 func (t *turnGenerator) byHandLoads() {
-
 	cargoTransferer := newCargoTransferer(t.log, t.game)
-
 	for _, player := range t.game.Players {
 		if len(player.CargoTransfers) == 0 {
 			continue
@@ -181,19 +179,23 @@ func (t *turnGenerator) byHandLoads() {
 			// for by hand transfers, we only care if something went wrong
 			for _, result := range results {
 				if result.status == CargoTransferStatusNone {
+					// the player assumes all by hand transfer go through, so if it works, don't send any messages
+					if result.wanted != result.transferred {
+						// we transferred some but not all, someone else got to it first perhaps
+						messager.fleetByHandTransferIncomplete(player, result.fleet, result.dest, result.cargoType, result.transferred, result.wanted, result.status)
+					}
 					continue
 				}
-				messager.fleetTransportInvalid(player, result.fleet, result.dest, result.cargoType, result.transferred)
+				// alert the player of any issues
+				messager.fleetByHandTransferIncomplete(player, result.fleet, result.dest, result.cargoType, result.transferred, result.wanted, result.status)
 			}
 		}
 	}
-
 }
 
+// byHandUnloads will do any by hand cargo transfer unload orders
 func (t *turnGenerator) byHandUnloads() {
-
 	cargoTransferer := newCargoTransferer(t.log, t.game)
-
 	for _, player := range t.game.Players {
 		if len(player.CargoTransfers) == 0 {
 			continue
@@ -205,23 +207,23 @@ func (t *turnGenerator) byHandUnloads() {
 			results := cargoTransferer.unloadByHands(player, transfers)
 
 			for _, result := range results {
-
-				if result.status != CargoTransferStatusNone {
-					player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetImmediateTransferNotComplete, result.fleet))
-					// withSpec(PlayerMessageSpec{Cargo: &cargo, Cargo2: &transferred}.withTargetPlanet(result.dest)))
+				if result.status == CargoTransferStatusNone {
+					// the player assumes all by hand transfer go through, so if it works, don't send any messages
+					if result.wanted != result.transferred {
+						// we transferred some but not all, someone else got to it first perhaps
+						messager.fleetByHandTransferIncomplete(player, result.fleet, result.dest, result.cargoType, result.transferred, result.wanted, result.status)
+					}
 					continue
 				}
 
+				// alert the player of any issues
+				messager.fleetByHandTransferIncomplete(player, result.fleet, result.dest, result.cargoType, result.transferred, result.wanted, result.status)
 			}
-
-			// send messages for results
-			_ = results
 		}
 	}
 
 	// resolve any by hand invasions
 	t.resolveInvasions(cargoTransferer.invader)
-
 }
 
 // resolveInvasions resolves all invasions for an invader helper
