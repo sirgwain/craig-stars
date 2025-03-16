@@ -379,6 +379,14 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		);
 	}
 
+	getFleetsByPosition(position: MapObject | Vector): AnyFleet[] {
+		return (
+			(this.getMapObjectsByPosition(position)?.filter(
+				(mo) => mo.type === MapObjectTypeFleet
+			) as AnyFleet[]) ?? []
+		);
+	}
+
 	// getPlanet returns either the player owned planet by a number
 	getPlanet(num: number): AnyPlanet | undefined {
 		return this.allPlanets[num - 1];

@@ -13,9 +13,12 @@ import type { CommandedPlayer } from './Player';
 import { distance, equal } from './Vector';
 import {
 	type Cargo,
+	type CargoType,
+	Colonists,
 	type Engine,
 	type Fleet,
 	type FleetSpec,
+	Fuel,
 	type MapObject,
 	MapObjectTypeFleet,
 	MapObjectTypeMineralPacket,
@@ -791,6 +794,19 @@ export function getDamagePercentForToken(
 // true if this fleet can transfer cargo
 export function canTransferCargo(fleet: Fleet): boolean {
 	return (fleet.spec?.cargoCapacity ?? 0) > 0;
+}
+
+// true if this fleet can transfer this cargo type
+// used to stop stealing colonists or fuel
+export function canTransferCargoType(fleet: Fleet, dest: CargoDest, cargoType: CargoType): boolean {
+	if (dest?.type === MapObjectTypeFleet) {
+		switch (cargoType) {
+			case Colonists:
+			case Fuel:
+				return fleet.playerNum === dest?.playerNum;
+		}
+	}
+	return true;
 }
 
 // true if this fleet can load cargo

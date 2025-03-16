@@ -10,6 +10,7 @@
 		cargoCapacity: number;
 		fuelCapacity: number;
 		allowFuelTransfers?: boolean;
+		allowColonistTransfers?: boolean;
 		onTransferFuel?: (amount: number) => number;
 		onTransferIronium?: (amount: number) => number;
 		onTransferBoranium?: (amount: number) => number;
@@ -23,6 +24,7 @@
 		cargoCapacity = 0,
 		fuelCapacity = 0,
 		allowFuelTransfers = false,
+		allowColonistTransfers = false,
 		onTransferFuel: onTransferFuel,
 		onTransferIronium: onFransferIronium,
 		onTransferBoranium: onTransferBoranium,
@@ -88,6 +90,7 @@
 			value={cargo.colonists + transferAmount.colonists}
 			capacity={cargoCapacity}
 			color="colonists-bar"
+			readonly={!allowColonistTransfers}
 			onValueChanged={(value) =>
 				onTransferColonists?.(value - (cargo.colonists + transferAmount.colonists))}
 		/>

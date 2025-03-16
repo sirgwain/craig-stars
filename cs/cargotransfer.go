@@ -620,7 +620,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 		// fuel only
 		// we set our fuel to whatever it takes to finish our waypoints and transfer the rest to the ICargoHolder target.
 		// If the target is a planet or starbase (and has infinite fuel capacity), we skip this and don't give them our fuel
-		if cargoType == Fuel && dest.GetFuelCapacity() != Unlimited {
+		if cargoType == Fuel && dest.GetFuelCapacity() != Infinite {
 			fuelRequiredForWaypoints := 0
 			for i := 1; i < len(fleet.Waypoints); i++ {
 				fuelRequiredForWaypoints += fleet.Waypoints[i].EstFuelUsage
@@ -712,7 +712,7 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 	case TransportActionUnloadAll:
 		// unload all available, based on our constraints
 		wantToTransfer = availableToUnload
-		if capacity == Unlimited {
+		if capacity == Infinite {
 			transferAmount = availableToUnload
 		} else {
 			transferAmount = Min(availableToUnload, capacity)
@@ -720,7 +720,7 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 	case TransportActionUnloadAmount:
 		// don't unload more than the task says
 		wantToTransfer = task.Amount
-		if capacity == Unlimited {
+		if capacity == Infinite {
 			transferAmount = Min(availableToUnload, task.Amount)
 		} else {
 			transferAmount = Min(Min(availableToUnload, task.Amount), capacity)
@@ -739,7 +739,7 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 		} else {
 			// only transfer the min of what we have, vs what we need, vs the capacity
 			wantToTransfer = task.Amount - currentAmount
-			if capacity == Unlimited {
+			if capacity == Infinite {
 				transferAmount = Min(availableToUnload, task.Amount-currentAmount)
 			} else {
 				transferAmount = Min(Min(availableToUnload, task.Amount-currentAmount), capacity)
@@ -797,7 +797,7 @@ func (t *cargoTransferer) transferToDest(fleet *Fleet, dest CargoHolder, cargoTy
 		return CargoTransferStatusDestCargo
 	}
 
-	if transferAmount > 0 && dest.GetCargoCapacity() != Unlimited && (dest.GetCargoCapacity()-destCargo.Total()) < transferAmount {
+	if transferAmount > 0 && dest.GetCargoCapacity() != Infinite && (dest.GetCargoCapacity()-destCargo.Total()) < transferAmount {
 		t.log.Debug().
 			Int("Player", fleet.PlayerNum).
 			Str("Fleet", fleet.Name).

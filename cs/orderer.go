@@ -215,15 +215,15 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		return fmt.Errorf("fleet %s has %d cargo space available, cannot transfer %dkT from %s", fleet.Name, fleet.availableCargoSpace(), transferAmount.Total(), destName)
 	}
 
-	if !dest.CanTransfer(transferAmount) {
-		return fmt.Errorf("fleet %s cannot transfer %v from %s, the dest does not have the required cargo", fleet.Name, transferAmount, destName)
+	if !dest.CanTransfer(fleet, transferAmount) {
+		return fmt.Errorf("fleet %s cannot transfer %v from %s, the dest does not have the required cargo or does not allow this transfer", fleet.Name, transferAmount, destName)
 	}
 
-	if !fleet.CanTransfer(transferAmount.Negative()) {
+	if !fleet.CanTransfer(fleet, transferAmount.Negative()) {
 		return fmt.Errorf("fleet %s cannot transfer %v to %s, the fleet does not have enough the required cargo", fleet.Name, transferAmount.Negative(), destName)
 	}
 
-	if dest.GetCargoCapacity() != Unlimited && Clamp(dest.GetCargoCapacity()-dest.GetCargo().Total(), 0, dest.GetCargoCapacity()) < -transferAmount.Total() {
+	if dest.GetCargoCapacity() != Infinite && Clamp(dest.GetCargoCapacity()-dest.GetCargo().Total(), 0, dest.GetCargoCapacity()) < -transferAmount.Total() {
 		return fmt.Errorf("dest %s has %d cargo space available, cannot transfer %dkT from %s", destName, dest.GetCargoCapacity(), transferAmount.Total(), destName)
 	}
 
@@ -231,7 +231,7 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		return fmt.Errorf("fleet %s has %d fuel space available, cannot transfer %dmg from %s", fleet.Name, fleet.availableFuelSpace(), transferAmount.Fuel, destName)
 	}
 
-	if dest.GetFuelCapacity() != Unlimited && Clamp(dest.GetFuelCapacity()-dest.GetFuel(), 0, dest.GetFuelCapacity()) < -transferAmount.Fuel {
+	if dest.GetFuelCapacity() != Infinite && Clamp(dest.GetFuelCapacity()-dest.GetFuel(), 0, dest.GetFuelCapacity()) < -transferAmount.Fuel {
 		return fmt.Errorf("dest %s has %d fuel space available, cannot transfer %dmg from %s", destName, dest.GetFuelCapacity(), transferAmount.Fuel, destName)
 	}
 
@@ -348,10 +348,6 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		}
 	}
 
-	if !source.CanTransfer(request.TransferAmount.Negative()) {
-		return nil, nil, fmt.Errorf("source cannot transfer %v to new fleet, the fleet does not have enough of the required cargo", request.TransferAmount.Negative())
-	}
-
 	// create a new dest fleet if dest is nil
 	if dest == nil {
 		// create a new fleet
@@ -372,6 +368,10 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		fleet.Tokens = make([]ShipToken, len(source.Tokens))
 
 		dest = fleet
+	}
+
+	if !source.CanTransfer(dest, request.TransferAmount.Negative()) {
+		return nil, nil, fmt.Errorf("source cannot transfer %v to new fleet, the fleet does not have enough of the required cargo", request.TransferAmount.Negative())
 	}
 
 	// update the tokens for each fleet

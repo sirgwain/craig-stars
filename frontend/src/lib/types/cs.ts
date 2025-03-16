@@ -119,19 +119,6 @@ export interface Cargo {
 export type CargoType = ResourceType;
 
 //////////
-// source: cargoholder.go
-
-export const Unlimited = -1;
-/**
- * The CargoHolder is an interface implemented by any map object that can hold cargo. It's used for handling
- * cargo transfers between different types of map objects.
- */
-export type CargoHolder = unknown;
-/**
- * jettison is only used in by hand transfers but never saved
- */
-
-//////////
 // source: cargotransfer.go
 
 export type CargoTransfers = { [key: string]: ByHandCargoTransfer[] };

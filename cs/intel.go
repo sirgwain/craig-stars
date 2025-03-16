@@ -496,7 +496,7 @@ func (d *discover) discoverFleetCargo(fleet *Fleet) {
 	existingIntel := player.GetFleetIntel(fleet.PlayerNum, fleet.Num)
 	if existingIntel != nil {
 		existingIntel.Cargo = fleet.Cargo
-		existingIntel.Fuel = fleet.Fuel
+		existingIntel.Spec.CargoCapacity = fleet.Spec.CargoCapacity
 		existingIntel.CargoDiscovered = true
 	}
 }

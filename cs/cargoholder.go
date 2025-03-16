@@ -1,7 +1,5 @@
 package cs
 
-const Unlimited = -1
-
 // The CargoHolder is an interface implemented by any map object that can hold cargo. It's used for handling
 // cargo transfers between different types of map objects.
 type CargoHolder interface {
@@ -12,7 +10,7 @@ type CargoHolder interface {
 	GetFuel() int
 	GetFuelCapacity() int
 	CanLoad(fleet *Fleet) bool
-	CanTransfer(transferAmount CargoTransferRequest) bool
+	CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool
 	Deleted() bool
 }
 
@@ -44,7 +42,7 @@ func (ch *jettison) SetCargo(cargo Cargo) {
 }
 
 func (ch *jettison) GetCargoCapacity() int {
-	return Unlimited
+	return Infinite
 }
 
 func (ch *jettison) GetFuel() int {
@@ -61,7 +59,7 @@ func (ch *jettison) CanLoad(fleet *Fleet) bool {
 }
 
 // planets can't transfer fuel
-func (ch *jettison) CanTransfer(transferAmount CargoTransferRequest) bool {
+func (ch *jettison) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
 	if transferAmount.Fuel > 0 {
 		return false
 	}
@@ -84,19 +82,19 @@ func (ch *Planet) SetCargo(cargo Cargo) {
 }
 
 func (ch *Planet) GetCargoCapacity() int {
-	return Unlimited
+	return Infinite
 }
 
 func (ch *Planet) GetFuel() int {
 	if ch.Spec.HasStarbase {
-		return Unlimited
+		return Infinite
 	} else {
 		return 0
 	}
 }
 
 func (ch *Planet) GetFuelCapacity() int {
-	return Unlimited
+	return Infinite
 }
 
 // players can load from unowned planets or planets they own
@@ -105,10 +103,14 @@ func (ch *Planet) CanLoad(fleet *Fleet) bool {
 }
 
 // planets can't transfer fuel
-func (ch *Planet) CanTransfer(transferAmount CargoTransferRequest) bool {
+func (ch *Planet) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
 	if transferAmount.Fuel > 0 {
 		return false
 	}
+	if transferAmount.Colonists > 0 && !ch.OwnedBy(fleet.PlayerNum) {
+		return false // no loading colonists from enemy planets
+	}
+
 	return ch.Cargo.CanTransfer(transferAmount.Cargo)
 }
 func (ch *Planet) Deleted() bool {
@@ -128,19 +130,19 @@ func (ch *PlanetIntel) SetCargo(cargo Cargo) {
 }
 
 func (ch *PlanetIntel) GetCargoCapacity() int {
-	return Unlimited
+	return Infinite
 }
 
 func (ch *PlanetIntel) GetFuel() int {
 	if ch.Spec.HasStarbase {
-		return Unlimited
+		return Infinite
 	} else {
 		return 0
 	}
 }
 
 func (ch *PlanetIntel) GetFuelCapacity() int {
-	return Unlimited
+	return Infinite
 }
 
 // players can load from unowned planets or planets they own
@@ -149,10 +151,14 @@ func (ch *PlanetIntel) CanLoad(fleet *Fleet) bool {
 }
 
 // planets can't transfer fuel
-func (ch *PlanetIntel) CanTransfer(transferAmount CargoTransferRequest) bool {
+func (ch *PlanetIntel) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
 	if transferAmount.Fuel > 0 {
 		return false
 	}
+	if transferAmount.Colonists > 0 && !ch.OwnedBy(fleet.PlayerNum) {
+		return false // no loading colonists from enemy planets
+	}
+
 	return ch.Cargo.CanTransfer(transferAmount.Cargo)
 }
 func (ch *PlanetIntel) Deleted() bool {
@@ -189,7 +195,11 @@ func (ch *Fleet) CanLoad(fleet *Fleet) bool {
 }
 
 // planets can't transfer fuel
-func (ch *Fleet) CanTransfer(transferAmount CargoTransferRequest) bool {
+func (ch *Fleet) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
+	if transferAmount.Colonists != 0 && !ch.OwnedBy(fleet.PlayerNum) {
+		return false // no loading/unloading colonists from enemy fleets
+	}
+
 	return ch.Fuel >= transferAmount.Fuel && ch.Cargo.CanTransfer(transferAmount.Cargo)
 }
 func (ch *Fleet) Deleted() bool {
@@ -226,7 +236,11 @@ func (ch *FleetIntel) CanLoad(fleet *Fleet) bool {
 }
 
 // planets can't transfer fuel
-func (ch *FleetIntel) CanTransfer(transferAmount CargoTransferRequest) bool {
+func (ch *FleetIntel) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
+	if transferAmount.Colonists != 0 && !ch.OwnedBy(fleet.PlayerNum) {
+		return false // no loading/unloading colonists from enemy fleets
+	}
+
 	return ch.Fuel >= transferAmount.Fuel && ch.Cargo.CanTransfer(transferAmount.Cargo)
 }
 func (ch *FleetIntel) Deleted() bool {
@@ -246,7 +260,7 @@ func (ch *Salvage) SetCargo(cargo Cargo) {
 }
 
 func (ch *Salvage) GetCargoCapacity() int {
-	return Unlimited
+	return Infinite
 }
 
 func (ch *Salvage) GetFuel() int {
@@ -258,7 +272,7 @@ func (ch *Salvage) GetFuelCapacity() int {
 }
 
 // salvage can't transfer fuel
-func (ch *Salvage) CanTransfer(transferAmount CargoTransferRequest) bool {
+func (ch *Salvage) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
 	if transferAmount.Fuel != 0 {
 		return false
 	}
@@ -287,7 +301,7 @@ func (ch *SalvageIntel) SetCargo(cargo Cargo) {
 }
 
 func (ch *SalvageIntel) GetCargoCapacity() int {
-	return Unlimited
+	return Infinite
 }
 
 func (ch *SalvageIntel) GetFuel() int {
@@ -299,7 +313,7 @@ func (ch *SalvageIntel) GetFuelCapacity() int {
 }
 
 // salvage can't transfer fuel
-func (ch *SalvageIntel) CanTransfer(transferAmount CargoTransferRequest) bool {
+func (ch *SalvageIntel) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
 	if transferAmount.Fuel != 0 {
 		return false
 	}
@@ -346,7 +360,7 @@ func (ch *MineralPacket) CanLoad(fleet *Fleet) bool {
 }
 
 // mineral packets can't transfer fuel
-func (ch *MineralPacket) CanTransfer(transferAmount CargoTransferRequest) bool {
+func (ch *MineralPacket) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
 	if transferAmount.Fuel != 0 || transferAmount.Colonists != 0 {
 		return false
 	}
@@ -394,7 +408,7 @@ func (ch *MineralPacketIntel) CanLoad(fleet *Fleet) bool {
 }
 
 // mineral packets can't transfer fuel
-func (ch *MineralPacketIntel) CanTransfer(transferAmount CargoTransferRequest) bool {
+func (ch *MineralPacketIntel) CanTransfer(fleet *Fleet, transferAmount CargoTransferRequest) bool {
 	if transferAmount.Fuel != 0 || transferAmount.Colonists != 0 {
 		return false
 	}
