@@ -49,7 +49,7 @@ func (ai *aiPlayer) produce() error {
 					return fmt.Errorf("unable to design ship %v: %w", ship.purpose, err)
 				}
 				if design == nil {
-					log.Debug().
+					ai.log.Debug().
 						Int64("GameID", ai.GameID).
 						Int("PlayerNum", ai.Num).
 						Msgf("unable to design ship %v", ship.purpose)
@@ -61,7 +61,7 @@ func (ai *aiPlayer) produce() error {
 				}
 
 				if !ai.isShipInQueue(planet, fleetMakeup.purpose, ship.purpose, ship.quantity) {
-					log.Debug().
+					ai.log.Debug().
 						Int64("GameID", ai.GameID).
 						Int("PlayerNum", ai.Num).
 						Str("FleetPurpose", string(fleetMakeup.purpose)).
@@ -296,7 +296,7 @@ func (ai *aiPlayer) addStarbaseToTopOfQueue(planet *cs.Planet, design *cs.ShipDe
 	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeStarbase, Quantity: 1, DesignNum: design.Num}
 	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
 
-	log.Debug().
+	ai.log.Debug().
 		Int64("GameID", ai.GameID).
 		Int("PlayerNum", ai.Num).
 		Msgf("Planet %s added %s to production queue", planet.Name, design.Name)
@@ -347,7 +347,7 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 
 	// calculate how long it take to build
 	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
-	// log.Debug().
+	// ai.log.Debug().
 	// 	Int64("GameID", ai.GameID).
 	// 	Int("PlayerNum", ai.Num).
 	// 	Msgf("Planet %s would take %d years to build %s", planet.Name, yearsToBuild, design.Name)

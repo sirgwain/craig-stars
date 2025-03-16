@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -12,6 +13,7 @@ type aiPlayer struct {
 	*cs.Player
 	cs.PlayerMapObjects
 	requests
+	log                    zerolog.Logger
 	game                   *cs.Game
 	techStore              *cs.TechStore
 	config                 playerConfig
@@ -54,10 +56,12 @@ type playerConfig struct {
 	minYearsToQueueStarbaseWarTime   int
 	minYearsToBuildScanner           int
 	minYearsToBuildFort              int
-	mineralConservationYear          int // year to start prioritizing about minerals over resources for warship building
-	startAttackingYear               int // year to start launching attacks on players
-	namesByPurpose                   map[cs.ShipDesignPurpose]string
-	researchOrder                    []cs.TechLevel
+	// year to start prioritizing about minerals over resources for warship building
+	// TODO: Make this some sort of map[TechLevel]CostFloat64 containing weights for each stage of the game
+	mineralConservationYear int
+	startAttackingYear      int // year to start launching attacks on players
+	namesByPurpose          map[cs.ShipDesignPurpose]string
+	researchOrder           []cs.TechLevel
 }
 
 type warshipCount struct {
@@ -89,12 +93,12 @@ const (
 
 // TODO: Make these cutoffs dynamic and configurable on a per-race basis
 var defaultCutoffs = aiCutoffsByStartMode{
-	startAttackingYear: map[cs.GameStartMode]int{
+	attackYear: map[cs.GameStartMode]int{
 		cs.GameStartModeNormal: 25,
 		cs.GameStartModeAccBBS: 20,
 		cs.GameStartModeMax:    0,
 	},
-	mineralConservationYear: map[cs.GameStartMode]int{
+	mineralYear: map[cs.GameStartMode]int{
 		cs.GameStartModeNormal: 55,
 		cs.GameStartModeAccBBS: 50,
 		cs.GameStartModeMax:    0,
@@ -102,32 +106,39 @@ var defaultCutoffs = aiCutoffsByStartMode{
 }
 
 type aiCutoffsByStartMode struct {
-	startAttackingYear      map[cs.GameStartMode]int // min year to start attacking
-	mineralConservationYear map[cs.GameStartMode]int // min year to care about minerals
+	attackYear  map[cs.GameStartMode]int // min year to start attacking
+	mineralYear map[cs.GameStartMode]int // min year to care about minerals
 }
 
 // Create a new AI player
 func NewAIPlayer(game *cs.Game, techStore *cs.TechStore, player *cs.Player, playerMapObjects cs.PlayerMapObjects) *aiPlayer {
 	aiPlayer := aiPlayer{
-		Player:    player,
-		game:      game,
+		Player: player,
+		game:   game,
+		log: log.With().
+			Int64("GameID", game.ID).
+			Str("Game", game.Name).
+			Int("PlayerNum", player.Num).
+			Str("Player", player.Name).
+			Int("Year", game.Year). // @sirgwain Should this be year or year+1?
+			Logger(),
 		techStore: techStore,
 		requests: requests{
 			fleetBuilds: make(map[cs.FleetPurpose]int),
 		},
 		config: playerConfig{
 			// TODO: Make below configurable with AI difficulty/aggression mode
-			colonizerPopulationDensity:       .25,                                                    // default to requiring 25% pop density before sending off colonizers
-			colonistTransportDensity:         .25,                                                    // default to requiring 25% pop density before taking colonists from a feeder to a needer
-			mineralConservationYear:          defaultCutoffs.mineralConservationYear[game.StartMode], // TODO: Make this account for the AI's current progress in game (perhaps with a tech lvl cutoff or similar)
-			minYearsToQueueStarbasePeaceTime: 2,                                                      // only build starbases if it takes <=2 years to build it
-			minYearsToQueueStarbaseWarTime:   4,                                                      // only build starbases if it takes <=4 years to build it and the planet is threatened
-			minYearsToBuildFort:              10,                                                     // only build emergency panic forts if it takes <=10 years to build it
-			minYearsToBuildScanner:           1,                                                      // only build planetary scanners if we can finish it in 1 year
-			invasionFactor:                   2,                                                      // only invade if we have 2x the colonists to drop
-			fleetProductionCutoff:            .5,                                                     // don't try and build ships until we have 50% factories/mines built first
-			bomberProductionCutoff:           .9,                                                     // don't try and build bombers until we have 90% factories/mines built first
-			startAttackingYear:               defaultCutoffs.startAttackingYear[game.StartMode],
+			colonizerPopulationDensity:       .25,                                        // default to requiring 25% pop density before sending off colonizers
+			colonistTransportDensity:         .25,                                        // default to requiring 25% pop density before taking colonists from a feeder to a needer
+			mineralConservationYear:          defaultCutoffs.mineralYear[game.StartMode], // TODO: Make this account for the AI's current progress in game (perhaps with a tech lvl cutoff or similar)
+			minYearsToQueueStarbasePeaceTime: 2,                                          // only build starbases if it takes <=2 years to build it
+			minYearsToQueueStarbaseWarTime:   4,                                          // only build starbases if it takes <=4 years to build it and the planet is threatened
+			minYearsToBuildFort:              10,                                         // only build emergency panic forts if it takes <=10 years to build it
+			minYearsToBuildScanner:           1,                                          // only build planetary scanners if we can finish it in 1 year
+			invasionFactor:                   2,                                          // only invade if we have 2x the colonists to drop
+			fleetProductionCutoff:            .5,                                         // don't try and build ships until we have 50% factories/mines built first
+			bomberProductionCutoff:           .9,                                         // don't try and build bombers until we have 90% factories/mines built first
+			startAttackingYear:               defaultCutoffs.attackYear[game.StartMode],
 			namesByPurpose: map[cs.ShipDesignPurpose]string{
 				// TODO: make this return a slice of strings/structs to allow for name variety
 				cs.ShipDesignPurposeScout:                 "Long Range Scout",
@@ -330,7 +341,7 @@ func (ai *aiPlayer) updateWarfleets() (err error) {
 	// if 1 design exists and the other doesn't, automatically use it and exit
 	if beamDesign == nil {
 		if torpDesign == nil {
-			log.Debug().Msgf("Skipping over choosing warship quantities due to nil designs")
+			ai.log.Debug().Msgf("Skipping over choosing warship quantities due to nil designs")
 		} else {
 			ai.updateWarshipAmounts(warshipCount.bombers, 0, warshipCount.warships, warshipCount.fuelTransports)
 		}

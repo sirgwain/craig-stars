@@ -35,7 +35,7 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 
 	remainingFleets = []*cs.Fleet{}
 
-	// log.Debug().
+	// ai.log.Debug().
 	// 	Int64("GameID", ai.GameID).
 	// 	Int("PlayerNum", ai.Num).
 	// 	Str("Purpose", string(f.purpose)).
@@ -70,7 +70,7 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 			fleetsToMerge = append(fleetsToMerge, fleet)
 			foundShip = true
 
-			// log.Debug().
+			// ai.log.Debug().
 			// 	Int64("GameID", ai.GameID).
 			// 	Int("PlayerNum", ai.Num).
 			// 	Str("Purpose", string(f.purpose)).
@@ -83,7 +83,7 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 		}
 		if !foundShip {
 			remainingFleets = append(remainingFleets, fleet)
-			// log.Debug().
+			// ai.log.Debug().
 			// 	Int64("GameID", ai.GameID).
 			// 	Int("PlayerNum", ai.Num).
 			// 	Str("Purpose", string(f.purpose)).
@@ -93,7 +93,7 @@ func (f *fleet) mergeFromIdleFleets(ai *aiPlayer, fleets []*cs.Fleet) (fleet *cs
 		if len(required) == 0 {
 			// add any fleets we skipped to the remaining list and break out, we're done
 			remainingFleets = append(remainingFleets, fleets[i+1:]...)
-			// log.Debug().
+			// ai.log.Debug().
 			// 	Int64("GameID", ai.GameID).
 			// 	Int("PlayerNum", ai.Num).
 			// 	Msgf("found ships for %s, %d fleets remaining", string(f.purpose), len(remainingFleets))

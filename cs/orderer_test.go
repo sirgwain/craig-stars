@@ -1109,7 +1109,7 @@ func Test_orders_TransferPlanetCargo(t *testing.T) {
 			}
 
 			if err == nil {
-				// we should transfer from the dest to the soruce
+				// we should transfer transferAmount from source to dest
 				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), tt.args.source.Cargo)
 				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), tt.args.dest.Cargo)
 			}

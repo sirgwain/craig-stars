@@ -45,7 +45,7 @@ func UpdateHost(gameID int64, userID int64) error {
 	return nil
 }
 
-// Update the host of a game.
+// Update the player of a game.
 func UpdatePlayer(gameID int64, playerNum int, userID int64) error {
 
 	cfg := config.GetConfig()
