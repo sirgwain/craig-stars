@@ -24,8 +24,8 @@
 
 	let selectedFleetKey = $state(fleetsInOrbit.length > 0 ? key(fleetsInOrbit[0]) : '');
 	$effect(() => {
-		if (fleetsInOrbit.length > 0 && selectedFleetKey === '') {
-			selectedFleetKey = key(fleetsInOrbit[0]);
+		if (fleetsInOrbit.length > 1 && selectedFleetKey === '') {
+			selectedFleetKey = key(fleetsInOrbit.find((f) => key(f) !== key(fleet)));
 		}
 	});
 
@@ -81,7 +81,7 @@
 	};
 
 	// reset the waypoint index every time the commanded mapobject changes
-	const unsubscribe = commandedMapObjectKey.subscribe(() => {		
+	const unsubscribe = commandedMapObjectKey.subscribe(() => {
 		selectedFleetKey = '';
 	});
 	onDestroy(unsubscribe);
