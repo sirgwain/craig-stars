@@ -12,7 +12,7 @@
 		"moduleResolution": "bundler",
 		"importHelpers": true
 	},
-	"exclude": ["./src/lib/wasm/wasm_exec.js"]
+	"exclude": ["src/lib/wasm/wasm_exec.js"]
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
 	//
