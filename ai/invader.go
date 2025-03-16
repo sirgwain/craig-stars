@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -29,7 +30,7 @@ func (ai *aiPlayer) invade() error {
 				fleet.Waypoints[1] = cs.NewPlanetWaypoint(closestStarbase.Position, closestStarbase.Num, closestStarbase.Name, warpSpeed).
 					WithTask(cs.WaypointTaskTransport).
 					WithTransportTasks(cs.WaypointTransportTasks{Colonists: cs.WaypointTransportTask{Action: cs.TransportActionUnloadAll}})
-				ai.log.Debug().
+				log.Debug().
 					Int64("GameID", ai.GameID).
 					Int("PlayerNum", ai.Num).
 					Int("Invaders", fleet.Cargo.Colonists*100).

@@ -4,6 +4,7 @@ import (
 	"math"
 	"slices"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -33,7 +34,7 @@ func (ai *aiPlayer) scout() error {
 
 						target := ai.getPlanetIntel(wp.TargetNum)
 						if target.ReportAge != cs.ReportAgeUnexplored {
-							ai.log.Debug().
+							log.Debug().
 								Int64("GameID", ai.GameID).
 								Int("PlayerNum", ai.Num).
 								Msgf("Scout %s no longer targeting %s, it's already explored", fleet.Name, target.Name)
@@ -50,7 +51,7 @@ func (ai *aiPlayer) scout() error {
 	}
 
 	idleFleets := len(scannerFleets)
-	ai.log.Debug().
+	log.Debug().
 		Int64("GameID", ai.GameID).
 		Int("PlayerNum", ai.Num).
 		Msgf("%d scannerFleets, %d unknown planets", idleFleets, len(unknownPlanetsByNum))
@@ -65,7 +66,7 @@ func (ai *aiPlayer) scout() error {
 			delete(unknownPlanetsByNum, closestPlanet.Num)
 			idleFleets--
 
-			ai.log.Debug().
+			log.Debug().
 				Int64("GameID", ai.GameID).
 				Int("PlayerNum", ai.Num).
 				Int("WarpSpeed", warpSpeed).
@@ -166,7 +167,7 @@ func (ai *aiPlayer) scoutPackets() error {
 					return err
 				}
 
-				ai.log.Debug().
+				log.Debug().
 					Int64("GameID", ai.GameID).
 					Int("PlayerNum", ai.Num).
 					Int("WarpSpeed", planet.PacketSpeed).

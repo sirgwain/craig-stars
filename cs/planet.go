@@ -154,16 +154,6 @@ func (p *Planet) WithScanner(scanner bool) *Planet {
 	return p
 }
 
-func (p *Planet) WithHomeworld(homeworld bool) *Planet {
-	p.Homeworld = homeworld
-	return p
-}
-
-func (p *Planet) WithContributesOnlyLeftoverToResearch(contributes bool) *Planet {
-	p.ContributesOnlyLeftoverToResearch = contributes
-	return p
-}
-
 func (p *Planet) String() string {
 	return fmt.Sprintf("Planet %v", p.MapObject)
 }

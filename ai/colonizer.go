@@ -3,6 +3,7 @@ package ai
 import (
 	"math"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -28,7 +29,7 @@ func (ai *aiPlayer) colonize() error {
 		return err
 	}
 
-	// ai.log.Debug().
+	// log.Debug().
 	// 	Int64("GameID", ai.GameID).
 	// 	Int("PlayerNum", ai.Num).
 	// 	Msgf("%d colonizer fleets assembled from idle fleets", len(colonizerFleets))
@@ -57,7 +58,7 @@ func (ai *aiPlayer) colonize() error {
 					if target.Owned() {
 						// our target is owned by someone else, see if they are an enemy and if we can invade them
 						if ai.IsEnemy(target.PlayerNum) && !target.Spec.HasStarbase && target.Spec.Population < int(float64(fleet.Cargo.Colonists*100)/ai.config.invasionFactor) {
-							ai.log.Debug().
+							log.Debug().
 								Int64("GameID", ai.GameID).
 								Int("PlayerNum", ai.Num).
 								Int("Invaders", fleet.Cargo.Colonists*100).
@@ -75,7 +76,7 @@ func (ai *aiPlayer) colonize() error {
 							// remove the target return this colonizer to the available queue
 							fleet.Waypoints = fleet.Waypoints[:1]
 							colonizerFleets = append(colonizerFleets, fleet)
-							ai.log.Debug().
+							log.Debug().
 								Int64("GameID", ai.GameID).
 								Int("PlayerNum", ai.Num).
 								Msgf("Fleet %s was targeting %s for colonizing, but it is owned by player %d", fleet.Name, target.Name, target.PlayerNum)
@@ -90,7 +91,7 @@ func (ai *aiPlayer) colonize() error {
 
 	// after colonizing, we may have idle fleets leftover
 	idleFleets := len(colonizerFleets)
-	ai.log.Debug().
+	log.Debug().
 		Int64("GameID", ai.GameID).
 		Int("PlayerNum", ai.Num).
 		Msgf("%d colonizerFleets, %d colonizable planets", idleFleets, len(colonizablePlanets))
@@ -117,7 +118,7 @@ func (ai *aiPlayer) colonize() error {
 				growth := orbiting.Spec.GrowthAmount
 				newDensity := float64(((orbiting.Cargo.Colonists-colonistsToLoad)*100)+growth) / float64(orbiting.Spec.MaxPopulation)
 				if newDensity < ai.config.colonizerPopulationDensity {
-					ai.log.Debug().
+					log.Debug().
 						Int64("GameID", ai.GameID).
 						Int("PlayerNum", ai.Num).
 						Int("ColonistsAvailable", orbiting.Cargo.Colonists*100).
@@ -128,12 +129,12 @@ func (ai *aiPlayer) colonize() error {
 					continue
 				}
 				if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}, ai.Planets); err != nil {
-					// something went wrong, skip this planet
-					ai.log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
+					// something went wrong, skipi this planet
+					log.Error().Err(err).Msg("transferring colonists from planet, skipping")
 					continue
 				}
 
-				ai.log.Debug().
+				log.Debug().
 					Int64("GameID", ai.GameID).
 					Int("PlayerNum", ai.Num).
 					Int("ColonistsAvailable", orbiting.Cargo.Colonists*100).
@@ -149,7 +150,7 @@ func (ai *aiPlayer) colonize() error {
 			delete(colonizablePlanets, bestPlanet.Num)
 			idleFleets--
 
-			ai.log.Debug().
+			log.Debug().
 				Int64("GameID", ai.GameID).
 				Int("PlayerNum", ai.Num).
 				Int("WarpSpeed", warpSpeed).

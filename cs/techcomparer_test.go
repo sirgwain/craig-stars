@@ -290,7 +290,7 @@ func TestTechComparer_compareFieldsByTag(t *testing.T) {
 			race = race.WithLRT(RS)
 		}
 		player := NewPlayer(1, race.WithSpec(&rules)).WithTechLevels(TechLevel{26, 26, 26, 26, 26, 26})
-		tc := NewTechComparer(&rules, player).(*techCompare)
+		tc := techCompare{&rules, player}
 		design := NewShipDesign(player.Num, 1).WithHull("Nubian").WithPurpose(ShipDesignPurposeTorpedoFighter).WithSpec(&rules, player)
 		if tt.args.light {
 			design.Purpose = ShipDesignPurposeFreighter
@@ -505,8 +505,7 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 		player := NewPlayer(1, NewRace())
 		player.Race.Spec.ArmorStrengthFactor = tt.args.armorMulti
 		player.Race.Spec.ShieldStrengthFactor = tt.args.shieldMulti
-		tc := NewTechComparer(&rules, player).(*techCompare)
-
+		tc := techCompare{&rules, player}
 		design := NewShipDesign(player.Num, 1).WithHull("Battleship").WithSpec(&rules, player)
 		design.Spec.Shields = tt.args.shield
 		design.Spec.Armor = tt.args.armor
@@ -515,7 +514,6 @@ func TestShipDesign_getWarshipPartBonus(t *testing.T) {
 		design.Spec.BeamBonus = tt.args.beamBonus
 		design.Spec.BeamDefense = tt.args.deflecting
 		design.Spec.Starbase = tt.args.starbase
-
 		t.Run(tt.name, func(t *testing.T) {
 			// round the result to 2 decimal places for easier testing
 			if got := roundFloat(tc.getWarshipPartBonus(design, tt.args.hc, tt.args.qty), 2); got != tt.want {

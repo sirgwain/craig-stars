@@ -1,8 +1,46 @@
 package cs
 
-import (
-	"encoding/json"
-	"slices"
+// TechTags are functional labels to categorize tech items
+// based on their function.
+// They are used by the game when determining cost discounts,
+// as well as for categorizing parts during ship designing.
+type TechTag string
+
+const (
+	TechTagNone               TechTag = "None"
+	TechTagArmor              TechTag = "Armor"
+	TechTagBeamCapacitor      TechTag = "BeamCapacitor"
+	TechTagBeamDeflector      TechTag = "BeamDeflector"
+	TechTagBeamWeapon         TechTag = "BeamWeapon"
+	TechTagBomb               TechTag = "Bomb"
+	TechTagCapitalShipMissile TechTag = "CapitalShipMissile"
+	TechTagCargoPod           TechTag = "CargoPod"
+	TechTagCloak              TechTag = "Cloak"
+	TechTagColonyModule       TechTag = "ColonyModule"
+	TechTagDefense            TechTag = "Defense"
+	TechTagEngine             TechTag = "Engine"
+	TechTagFuelTank           TechTag = "FuelTank"
+	TechTagGatlingGun         TechTag = "GatlingGun"
+	TechTagHeavyMineLayer     TechTag = "HeavyMineLayer"
+	TechTagInitiativeBonus    TechTag = "InitiativeBonus"
+	TechTagMassDriver         TechTag = "MassDriver"
+	TechTagManeuveringJet     TechTag = "ManeuveringJet"
+	TechTagMineLayer          TechTag = "MineLayer"
+	TechTagMiningRobot        TechTag = "MiningRobot"
+	TechTagPlanetaryScanner   TechTag = "PlanetaryScanner"
+	TechTagRamscoop           TechTag = "Ramscoop"
+	TechTagTerraformingRobot  TechTag = "TerraformingRobot"
+	TechTagScanner            TechTag = "Scanner"
+	TechTagShield             TechTag = "Shield"
+	TechTagShieldSapper       TechTag = "ShieldSapper"
+	TechTagSmartBomb          TechTag = "SmartBomb"
+	TechTagSpeedMineLayer     TechTag = "SpeedMineLayer"
+	TechTagStargate           TechTag = "Stargate"
+	TechTagStructureBomb      TechTag = "StructureBomb"
+	TechTagTerraforming       TechTag = "Terraforming"
+	TechTagTorpedo            TechTag = "Torpedo"
+	TechTagTorpedoJammer      TechTag = "TorpedoJammer"
+	TechTagTorpedoBonus       TechTag = "TorpedoBonus"
 )
 
 // a list of all TechTags that benefit ships in combat
@@ -24,42 +62,15 @@ var CombatTechTags = []TechTag{
 }
 
 // A collection of an object's TechTags (like on a tech part)
-type TechTags map[TechTag]struct{}
+type TechTags map[TechTag]bool
 
 // Create a new TechTags map from a list of TechTag items, or an empty map if none are specified
 func newTechTags(tags ...TechTag) TechTags {
 	newTechTags := TechTags{}
 	for _, t := range tags {
-		newTechTags[t] = struct{}{}
+		newTechTags[t] = true
 	}
 	return newTechTags
-}
-
-// MarshalJSON implements json.Marshaler to marshal TechTags as an array.
-func (tt TechTags) MarshalJSON() ([]byte, error) {
-	tags := make([]TechTag, 0, len(tt))
-	for tag := range tt {
-		tags = append(tags, tag)
-	}
-	slices.Sort(tags)
-	return json.Marshal(tags)
-}
-
-// UnmarshalJSON implements json.Unmarshaler.
-func (tt TechTags) UnmarshalJSON(data []byte) error {
-	var tags []any
-	err := json.Unmarshal(data, &tags)
-	if err != nil {
-		return err
-	}
-	for _, tag := range tags {
-		s, ok := tag.(string)
-		if !ok {
-			panic("could not convert json data back to TechTags")
-		}
-		tt[TechTag(s)] = struct{}{}
-	}
-	return nil
 }
 
 // returns true if tt has at least 1 of the specified TechTags

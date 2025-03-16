@@ -15,7 +15,7 @@ func newProducer(log zerolog.Logger, rules *Rules, planet *Planet, player *Playe
 		Int("Num", planet.Num).
 		Str("Name", planet.Name).
 		Int("PlayerNum", player.Num).
-		Str("Player", player.Name).
+		Str("PlayerName", player.Race.PluralName).
 		Logger()
 	return producer{
 		log:       producerLogger,

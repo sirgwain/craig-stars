@@ -47,7 +47,6 @@ func main() {
 
 	serializers := []generator.Serializer{}
 	typesToIgnore := map[string]bool{
-		"TechTags": true,
 		"FullGame": true,
 		"User":     true,
 	}
@@ -102,7 +101,7 @@ func main() {
 			switch t := underlying.(type) {
 			case *types.Struct:
 				fields = make([]generator.Field, t.NumFields())
-				for i := range t.NumFields() {
+				for i := 0; i < t.NumFields(); i++ {
 					field := t.Field(i)
 					fieldName := field.Name()
 					// get the json tag name, whether it is omitted

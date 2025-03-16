@@ -12,38 +12,55 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
+var Aliases = map[string]interface{}{
+	"dev":          Launch,
+	"dev_frontend": Launch_Frontend,
+	"dev_backend":  Launch_Backend,
+	"copy_wasm":    Copy_Wasm_Exec,
+}
+
 // is_CI reports whether the current process is running in CI (continuous integration)
 // by checking the "CI" environment variable.
 func is_CI() bool {
-	return os.Getenv("CI") != ""
+	CI := strings.TrimSpace(os.Getenv("CI"))
+	return CI != "" && strings.ToLower(CI) != "false"
 }
 
 // Build and launch the server for local development.
 // This calls both Build and Launch consecutively.
 func Run() error {
-	Build()
+	if err := Build(); err != nil {
+		return err
+	}
 	return Launch()
 }
 
 // Build the frontend and backend consecutively, alongside some setup work.
-func Build() {
-	// Returns no errors since mg.Deps panics
-	mg.SerialDeps(mg.F(Clean, false),
-		Tidy,
-		Copy_Wasm_Exec,
-		Generate,
-		Build_Frontend,
-		Build_Backend)
+func Build() error {
+	mg.Deps(Clean)
+	mg.Deps(Copy_Wasm_Exec)
+	mg.Deps(Tidy)
+	mg.Deps(Generate)
+	mg.Deps(Build_Frontend)
+	mg.Deps(Build_Backend)
+
+	return nil
 }
 
 // Clean up various temporary directories.
-// This runs "go clean" and removes everything in dist and frontend/build.
+// This runs go clean and removes everything in dist, tmp and frontend/build.
 func Clean() error {
 	if err := sh.RunV("go", "clean"); err != nil {
 		return err
 	}
 	if err := sh.Rm("dist"); err != nil {
 		return err
+	}
+	if err := sh.Rm("tmp"); err != nil {
+		return err
+	}
+	if err := os.MkdirAll("tmp", 0755); err != nil {
+		return mg.Fatalf(1, "error re-creating tmp dir: \n%w", err)
 	}
 
 	return sh.Rm("frontend/build")
@@ -64,12 +81,12 @@ func Copy_Wasm_Exec() error {
 	}
 	goroot = strings.ReplaceAll(goroot, "\\", "/") // replace backslashes on windows
 
-	// Check if wasm executable exists or not.
+	// check if wasm executable exists or not.
 	// Go 1.24 moved wasm_exec.js from misc/wasm to lib/wasm,
-	// but we require go 1.24 anyways to run our tool deps so it shouldn't matter.
+	// but we require go 1.24 anyways so it shouldn't matter.
 	if _, err := os.Stat(goroot + "/lib/wasm/wasm_exec.js"); errors.Is(err, os.ErrNotExist) {
 		// file doesn't exist
-		return mg.Fatalf(1, "executable was not found inside GOROOT: %v", goroot)
+		return mg.Fatalf(1, "executable was not found inside GOROOT %v", goroot)
 	} else if err != nil {
 		// some other random error
 		return mg.Fatalf(1, "error during os.Stat(): \n%w", err)
@@ -165,28 +182,37 @@ func Build_Backend() error {
 
 // Variant of Build_Backend used during release containing embedded version control info.
 // This takes arguments for the version number, commit hash and build time and passes them
-// to go build's ldflags.
+// to go build's ldflags if not empty.
 func Build_Backend_CI(version, hash, releaseTime string) error {
-	mg.SerialDeps(Tidy, Generate, Build_WASM)
-
-	// Benchmarks might say otherwise, but these string literals get concatenated during compile time
-	args := ldflags + fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'"+
-		" -X 'github.com/sirgwain/craig-stars/cmd.commit=%s'"+
-		" -X 'github.com/sirgwain/craig-stars/cmd.buildTime=%s'", version, hash, releaseTime)
+	mg.Deps(Tidy)
+	mg.Deps(Generate)
+	mg.Deps(Build_WASM)
+	// Go passes these arguments directly to build without any quoting or escaping (hence why no surrounding quotes)
+	args := ldflags
+	// TODO: Change these strings if/when mage updates to support default arguments
+	if version != "" {
+		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'", version)
+	}
+	if hash != "" {
+		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.commit=%s'", hash)
+	}
+	if releaseTime != "" {
+		args += fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.buildTime=%s'", releaseTime)
+	}
 	return build_backend(args)
 }
 
 // Internal implementation for building backend with custom go build args
 func build_backend(buildArgs ...string) error {
-	if err := os.MkdirAll("dist", 0755); err != nil { // re-create dist if folder no exist
+	if err := os.MkdirAll("dist", 0755); err != nil { // MkdirAll used due to no-oping if folder already exists
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
 
-	f := make([]string, len(buildArgs)+4)
+	f := make([]string, 1, len(buildArgs)+4)
 	f[0] = "build"
-	copy(f[1:], buildArgs)
-	copy(f[len(f)-3:], []string{"-o", "dist/" + binary_name, "main.go"})
-	if err := sh.RunV("go", f...); err != nil { // "go", "build", "-ldflags=XXX"...
+	flags := append(append(f, buildArgs...), "-o",
+		"dist/"+binary_name, "main.go")
+	if err := sh.RunV("go", flags...); err != nil {
 		return err
 	}
 

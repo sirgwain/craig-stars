@@ -3,6 +3,7 @@ package ai
 import (
 	"math"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -14,7 +15,7 @@ func (ai *aiPlayer) updateFleetWarpSpeed() error {
 			if wp1.WarpSpeed == fleet.Spec.Engine.FreeSpeed {
 				warpSpeed := ai.getWarpSpeed(fleet, wp1.Position)
 				if warpSpeed >= fleet.Spec.Engine.IdealSpeed {
-					ai.log.Debug().
+					log.Debug().
 						Int64("GameID", ai.GameID).
 						Int("PlayerNum", ai.Num).
 						Msgf("Fleet %s increasing warp from %d to %d", fleet.Name, wp1.WarpSpeed, warpSpeed)

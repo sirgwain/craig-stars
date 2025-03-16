@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -39,7 +40,7 @@ func (ai *aiPlayer) transportColonists() error {
 		return err
 	}
 
-	ai.log.Debug().
+	log.Debug().
 		Int64("GameID", ai.GameID).
 		Int("PlayerNum", ai.Num).
 		Msgf("%d colonist transport fleets assembled from idle fleets", len(fleets))
@@ -53,7 +54,7 @@ func (ai *aiPlayer) transportColonists() error {
 					fleets = append(fleets, fleet)
 
 					orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
-					ai.log.Debug().
+					log.Debug().
 						Int64("GameID", ai.GameID).
 						Int("PlayerNum", ai.Num).
 						Msgf("%s will load colonists from %s for transport to a needy world", fleet.Name, orbiting.Name)
@@ -68,7 +69,7 @@ func (ai *aiPlayer) transportColonists() error {
 						// TODO: only remove a feeder if we have too many targets?
 						delete(feedersByNum, closestFeeder.Num)
 
-						ai.log.Debug().
+						log.Debug().
 							Int64("GameID", ai.GameID).
 							Int("PlayerNum", ai.Num).
 							Msgf("%s is heading to %s to load colonists for transport to a needy world", fleet.Name, closestFeeder.Name)
@@ -87,7 +88,7 @@ func (ai *aiPlayer) transportColonists() error {
 	}
 
 	idleFleets := len(fleets)
-	ai.log.Debug().
+	log.Debug().
 		Int64("GameID", ai.GameID).
 		Int("PlayerNum", ai.Num).
 		Msgf("%d transport, %d needy planets", idleFleets, len(needersByNum))
@@ -111,7 +112,7 @@ func (ai *aiPlayer) transportColonists() error {
 					growth := orbiting.Spec.GrowthAmount
 					newDensity := float64(((orbiting.Cargo.Colonists-colonistsToLoad)*100)+growth) / float64(orbiting.Spec.MaxPopulation)
 					if newDensity < ai.config.colonistTransportDensity {
-						ai.log.Debug().
+						log.Debug().
 							Int64("GameID", ai.GameID).
 							Int("PlayerNum", ai.Num).
 							Int("ColonistsAvailable", orbiting.Cargo.Colonists*100).
@@ -122,8 +123,8 @@ func (ai *aiPlayer) transportColonists() error {
 						continue
 					}
 					if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}, ai.Planets); err != nil {
-						// something went wrong, skip this planet
-						ai.log.Error().Err(err).Msg("transferring colonists from planet, skipping")
+						// something went wrong, skipi this planet
+						log.Error().Err(err).Msg("transferring colonists from planet, skipping")
 						continue
 					}
 				}
@@ -139,7 +140,7 @@ func (ai *aiPlayer) transportColonists() error {
 			idleFleets--
 			delete(needersByNum, planet.Num)
 
-			ai.log.Debug().
+			log.Debug().
 				Int64("GameID", ai.GameID).
 				Int("PlayerNum", ai.Num).
 				Msgf("%s transporting %d colonists to %s", fleet.Name, fleet.Cargo.Colonists*100, planet.Name)

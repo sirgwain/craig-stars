@@ -3745,7 +3745,7 @@ func SetTech(o js.Value, obj *cs.Tech) {
 	o.Set("origin", string(obj.Origin))
 	tagsMap := js.ValueOf(map[string]any{})
 	for key, value := range obj.Tags {
-		// unknown map type Tags <no value> <no value>
+		tagsMap.Set(fmt.Sprintf("%v", key), value)
 	}
 	o.Set("tags", tagsMap)
 }
@@ -4146,6 +4146,15 @@ func GetTechTag(o js.Value) cs.TechTag {
 		return obj
 	}
 	obj = cs.TechTag(getString(o))
+	return obj
+}
+
+func GetTechTags(o js.Value) cs.TechTags {
+	var obj cs.TechTags
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = GetStringMap[map[cs.TechTag]bool](o, getBool)
 	return obj
 }
 
