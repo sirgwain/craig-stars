@@ -1,16 +1,23 @@
+// Package `db`  handles serializing games, players and other data types
+// to and from the MySQL database, as well as handling UI database queries.
 package db
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"testing"
 )
 
-// Package-wide initialization function to clean out
-// temp directory once before test start
+// Package-wide initialization function to move temp json files after test runs.
 func TestMain(m *testing.M) {
 	m.Run()
-	os.Rename("../tmp/got.jsonl", "../tmp/got_db.jsonl")
-	os.Rename("../tmp/want.jsonl", "../tmp/want_db.jsonl")
-	os.Rename("../tmp/diff.jsonl", "../tmp/diff_db.jsonl")
-
+	// Don't move files on CI runs if the target files already exist
+	// (since that likely indicates gotestsum rerunning failed cases)
+	if _, err := os.Stat("../tmp/got_db.jsonl"); os.Getenv("CI") == "" || errors.Is(err, os.ErrNotExist) {
+		fmt.Println("moving diff files after db package run")
+		os.Rename("../tmp/got.jsonl", "../tmp/got_db.jsonl")
+		os.Rename("../tmp/want.jsonl", "../tmp/want_db.jsonl")
+		os.Rename("../tmp/diff.jsonl", "../tmp/diff_db.jsonl")
+	}
 }
