@@ -333,7 +333,7 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 			}
 
 			mo := dest.GetMapObject()
-			if mo.OwnedBy(fleet.PlayerNum) {
+			if mo.OwnedBy(fleet.PlayerNum) && mo.Type != MapObjectTypeSalvage {
 				// this transfer already happened so reverse it and add it again for real this time
 				dest.SetCargo(dest.GetCargo().Subtract(cargoToLoad.NegativeOnly()))
 			}
