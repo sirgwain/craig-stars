@@ -88,7 +88,8 @@ func (scan *playerScanner) scan() error {
 func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scanner, starGateScanners []scanner) error {
 	for _, planet := range scan.universe.Planets {
 		if planet.OwnedBy(scan.player.Num) {
-			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true); err != nil {
+			// scan owned planets
+			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true, true); err != nil {
 				return err
 			}
 			continue
@@ -106,7 +107,7 @@ func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scann
 			}
 		}
 
-		// try and scan the planet with stargate
+		// try and scan the planet's stargate
 		if planet.Spec.PlanetStarbaseSpec.HasStargate {
 			for _, scanner := range starGateScanners {
 				if scan.fleetInScannerRange(planet.Starbase, scanner) {
@@ -153,12 +154,12 @@ func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scann
 }
 
 // scan this planet
-func (scan *playerScanner) scanPlanet(planet *Planet, scanner scanner) (bool, error) {
+func (scan *playerScanner) scanPlanet(planet *Planet, scanner scanner) (scanned bool, err error) {
 	if scanner.RangePen != NoScanner && float64(scanner.RangePenSquared(NoCloakFactor)) >= scanner.Position.DistanceSquaredTo(planet.Position) {
 		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
 		}
-		if err := scan.discoverer.discoverPlanet(scan.rules, planet, true); err != nil {
+		if err := scan.discoverer.discoverPlanet(scan.rules, planet, true, planet.OwnedBy(scan.player.Num)); err != nil {
 			return false, err
 		}
 		if scanner.DiscoverPlanetCargo {
@@ -174,7 +175,7 @@ func (scan *playerScanner) scanPlanet(planet *Planet, scanner scanner) (bool, er
 		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
 		}
-		if err := scan.discoverer.discoverPlanet(scan.rules, planet, false); err != nil {
+		if err := scan.discoverer.discoverPlanet(scan.rules, planet, false, false); err != nil {
 			return false, err
 		}
 	}
@@ -413,7 +414,7 @@ func (scan *playerScanner) discoverAllies() error {
 			if planet.PlayerNum != player.Num {
 				continue
 			}
-			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true); err != nil {
+			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true, planet.OwnedBy(scan.player.Num)); err != nil {
 				return err
 			}
 			if err := scan.discoverer.discoverPlanetCargo(planet); err != nil {

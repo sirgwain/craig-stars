@@ -283,14 +283,12 @@ func (p *Planet) emptyPlanet() {
 	p.Starbase = nil
 	// defenses & scanner disappear, other structures stay though
 	p.Scanner = false
-	// clear any production or other orders from the previous owner
 	p.Defenses = 0
+	// clear any production or other orders from the previous owner
 	p.PlanetOrders = PlanetOrders{}
-	p.Cargo.Colonists = 0 // doesn't reset partial pop to be consistent with base game
+	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
-	// reset any instaforming
-	// TODO: Review this & make sure it isn't triggering on non-CAs
-	p.Hab = p.BaseHab.Add(p.TerraformedAmount)
+	p.Hab = p.BaseHab.Add(p.TerraformedAmount) // reset any instaforming
 }
 
 // randomize a planet with new hab range, minerals, etc;

@@ -541,7 +541,7 @@ func (t *turnGenerator) fleetTransferCargo(fleet *Fleet, transferAmount int, car
 			if planet.Num != defender.Num {
 				// the planet was lost, but we should discover the owner at least
 				defender.discoverer.clearPlanetOwnerIntel(planet)
-				defender.discoverer.discoverPlanet(&t.game.Rules, planet, false)
+				defender.discoverer.discoverPlanet(&t.game.Rules, planet, false, false)
 			}
 
 		} else if transferAmount < 0 && !dest.canLoad(fleet.PlayerNum) {
@@ -2060,7 +2060,7 @@ func (t *turnGenerator) fleetBattle() {
 
 				// discover parts of this planet's starbase
 				if planet != nil {
-					player.discoverer.discoverPlanet(&t.game.Rules, planet, false)
+					player.discoverer.discoverPlanet(&t.game.Rules, planet, false, false)
 				}
 
 			}
@@ -2282,10 +2282,9 @@ func (t *turnGenerator) fleetBomb() {
 			bomber.bombPlanet(planet, planetPlayer, enemyBombers, t.game)
 
 			if planet.PlayerNum != planetPlayer.Num {
-				// the planet is lost, reset our intel
-				// the planet was lost, but we should discover the owner at least
+				// the planet was lost; discover the new (lack of an) owner and reset other intel
 				planetPlayer.discoverer.clearPlanetOwnerIntel(planet)
-				planetPlayer.discoverer.discoverPlanet(&t.game.Rules, planet, false)
+				planetPlayer.discoverer.discoverPlanet(&t.game.Rules, planet, false, false)
 			}
 		}
 	}

@@ -18,9 +18,9 @@ type Target[T PlayerMessageTargetType | MapObjectType] struct {
 type MapObjectTarget = Target[MapObjectType]
 type PlayerMessageTarget = Target[PlayerMessageTargetType]
 
-// Throughout a turn, various events will result in messages being sent to players.
-// Messages have a type and a target (focused in the UI upon clicking the "Goto" button)
-// Messages also have a Spec that is used to store specific values for the UI to display.
+// Throughout a turn various events will result in messages being sent to players.
+// Messages have a type and a target (the target is focused in the UI when you click the Goto button)
+// Messages also have a Spec that is used to store specific numbers for the UI to display on the message.
 type PlayerMessage struct {
 	Target[PlayerMessageTargetType] `tstype:",extends"`
 	Type                            PlayerMessageType `json:"type"`
@@ -29,21 +29,18 @@ type PlayerMessage struct {
 	Spec                            PlayerMessageSpec `json:"spec"`
 }
 
-// The PlayerMessageSpec contains various data specific to each message,
-// like the amount of something being built or the field of research being completed.
-// Each PlayerMessageTargetType will interpret these values differently, and many
-// will ignore it entirely.
+// The PlayerMessageSpec contains data specific to each message, like the amount of mines built
+// or the field of research leveled up in.
 type PlayerMessageSpec struct {
 	// the thing being targeted by the message target, i.e. the planet for a fleet bombed a planet message
 	Target[MapObjectType] `tstype:",extends"`
 	Amount                int                             `json:"amount,omitempty"`
 	Amount2               int                             `json:"amount2,omitempty"`
 	PrevAmount            int                             `json:"prevAmount,omitempty"`
-	Bool                  bool                            `json:"bool,omitempty"`
 	SourcePlayerNum       int                             `json:"sourcePlayerNum,omitempty"`
 	DestPlayerNum         int                             `json:"destPlayerNum,omitempty"`
 	Name                  string                          `json:"name,omitempty"`
-	Cost                  Cost                            `json:"cost,omitempty"`
+	Cost                  *Cost                           `json:"cost,omitempty"`
 	Mineral               *Mineral                        `json:"mineral,omitempty"`
 	Cargo                 *Cargo                          `json:"cargo,omitempty"`
 	QueueItemType         QueueItemType                   `json:"queueItemType,omitempty"`
@@ -276,7 +273,8 @@ func (spec PlayerMessageSpec) withTargetMinefield(mineField *MineField) PlayerMe
 	return spec
 }
 
-type messageClient struct{}
+type messageClient struct {
+}
 
 var messager = messageClient{}
 
@@ -313,7 +311,7 @@ func (mc *messageClient) battleReports(player *Player) {
 }
 
 /*
-* Fleet Messages
+ * Fleet Messages
  */
 
 func (m *messageClient) fleetBombedPlanet(player *Player, fleet *Fleet, planet *Planet, bombing BombingResult) {
@@ -478,7 +476,7 @@ func (m *messageClient) fleetRouted(player *Player, fleet *Fleet, planet *Planet
 func (m *messageClient) fleetScrapped(player *Player, fleet *Fleet, cost Cost, planet *Planet) {
 	if planet != nil {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessageFleetScrapped, planet).
-			withSpec(PlayerMessageSpec{Cost: cost, Cargo: &fleet.Cargo}.withTargetFleet(fleet)))
+			withSpec(PlayerMessageSpec{Cost: &cost, Cargo: &fleet.Cargo}.withTargetFleet(fleet)))
 	} else {
 		player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetScrapped, fleet))
 	}
@@ -630,7 +628,7 @@ func (m *messageClient) fleetTargetLost(player *Player, fleet *Fleet, targetName
 }
 
 /*
-* MineralPacket Messages
+ * MineralPacket Messages
  */
 
 func (m *messageClient) planetBuiltMineralPacket(player *Player, planet *Planet, packet *MineralPacket) {
@@ -647,7 +645,7 @@ func (m *messageClient) mineralPacketDiscoveredTargettingPlayer(player *Player, 
 }
 
 /*
-* Planet Messages
+ * Planet Messages
  */
 
 func (m *messageClient) planetHomeworld(player *Player, planet *Planet) {
@@ -700,10 +698,7 @@ func (m *messageClient) planetBuiltStarbase(player *Player, planet *Planet, flee
 
 func (m *messageClient) planetColonized(player *Player, planet *Planet) {
 	text := fmt.Sprintf("Your colonists are now in control of %s.", planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{
-		Type:   PlayerMessagePlanetColonized,
-		Text:   text,
-		Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetColonized, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
 func (m *messageClient) planetComet(player *Player, planet *Planet, size CometSize, mineralsAdded Mineral, mineralConcentrationIncreased Mineral, habChanged Hab, colonistsKilled int) {
@@ -719,15 +714,15 @@ func (m *messageClient) planetComet(player *Player, planet *Planet, size CometSi
 				},
 			},
 		))
-		return
-	}
-	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetCometStrike, planet).withSpec(
-		PlayerMessageSpec{
-			Comet: &PlayerMessageSpecComet{
-				Size: size,
+	} else {
+		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetCometStrike, planet).withSpec(
+			PlayerMessageSpec{
+				Comet: &PlayerMessageSpecComet{
+					Size: size,
+				},
 			},
-		},
-	))
+		))
+	}
 }
 
 func (m *messageClient) planetDiedOff(player *Player, planet *Planet) {
@@ -786,7 +781,7 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fle
 			// we were invaded, and lost
 			text = p.Sprintf("%s %s has successfully invaded %s and wrested it from your control. Your colonists managed to defeat %d of their invaders before being overrun.", fleetOwner, fleet.Name, planet.Name, attackersKilled)
 		} else {
-			// we were invaded, and lost
+			// we were invaded, and won
 			text = p.Sprintf("%s %s tried to invade %s, but your troops were able to fend them off. You lost %d colonists in the process.", fleetOwner, fleet.Name, planet.Name, defendersKilled)
 		}
 		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInvaded, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
@@ -818,7 +813,7 @@ func (m *messageClient) planetPacketDamage(player *Player, planet *Planet, packe
 		if defensesDestroyed == 0 {
 			text = fmt.Sprintf("Your mass accelerator at %s was partially successful at capturing a %dkT mineral packet. Unable to completely slow the packet, %d of your colonists were killed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled)
 		} else {
-			text = fmt.Sprintf("Your mass accelerator at %s was partially successful at capturing a %dkT mineral packet. Unable to completely slow the packet, %d of your colonists and %d of your defenses were destroyed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled, defensesDestroyed)
+			text = fmt.Sprintf("Your mass accelerator at %s was partially successful at capturing a %dkT mineral packet. Unfortunately, %d of your colonists and %d of your defenses were destroyed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled, defensesDestroyed)
 		}
 	} else {
 		if planet.GetPopulation() == 0 {
@@ -927,7 +922,7 @@ func (m *messageClient) planetTerraform(player *Player, planet *Planet, habType 
 }
 
 /*
-* Player Messages
+ * Player Messages
  */
 
 func (m *messageClient) playerDiscovered(player *Player, otherPlayer *Player) {

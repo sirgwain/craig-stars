@@ -43,7 +43,7 @@ func invadePlanet(log zerolog.Logger, rules *Rules, planet *Planet, fleet *Fleet
 
 		// make sure the defender knows about this new planet
 		// the last dying colonist sends a report to their compatriots
-		defender.discoverer.discoverPlanet(rules, planet, true)
+		defender.discoverer.discoverPlanet(rules, planet, true, attacker.IsSharingMap(defender.Num)) // no need to check for player num since that is always false
 
 		// apply default production plan
 		if len(attacker.ProductionPlans) > 0 {

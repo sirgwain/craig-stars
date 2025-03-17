@@ -296,7 +296,7 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 
 		// Loop through the mineral amount and perform terraform checks repeatedly
 		// to figure out how much to terraform
-		// We do the actual terraforming once per hab type to save time
+		// We do the actual terraforming once per hab type to save time and avoid spam pings
 	tLoop:
 		for mineral := int(float64(packet.Cargo.GetAmount(minType)) * uncaught); mineral > 0; mineral -= player.Race.Spec.PacketPermaTerraformSizeUnit {
 
@@ -360,8 +360,7 @@ func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet
 		direction := 0
 
 		// Loop through the mineral amount and perform checks repeatedly
-		for mineral := int(float64(packet.Cargo.GetAmount(minType)) *
-			uncaught); mineral > 0; mineral -= player.Race.Spec.PacketPermaTerraformSizeUnit {
+		for mineral := int(float64(packet.Cargo.GetAmount(minType)) * uncaught); mineral > 0; mineral -= player.Race.Spec.PacketPermaTerraformSizeUnit {
 
 			permaformChance := player.Race.Spec.PacketPermaformChance
 			if mineral < player.Race.Spec.PacketPermaTerraformSizeUnit {
@@ -380,12 +379,12 @@ func (packet *MineralPacket) checkPermaform(rules *Rules, player *Player, planet
 			result := terraformer.PermaformOneStep(planet, player, habType)
 			direction += result.Direction
 			if !result.Terraformed() {
-				// BaseHab already perfect for this hab type; move on
+				// BaseHab already perfect for this hab type; stop permaforming
 				break
 			}
 		}
 
-		// tell player about the terraforming for this type
+		// tell player about the permaforming for this hab type
 		if direction != 0 {
 			messager.planetPacketPermaform(player, planet, habType, direction)
 		}
