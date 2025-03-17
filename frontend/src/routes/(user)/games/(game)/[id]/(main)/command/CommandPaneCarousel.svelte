@@ -291,7 +291,7 @@
 		<div id="fleet-other-fleets-here-tile" class="carousel-item w-full">
 			<FleetOtherFleetsHereTile
 				fleet={$commandedFleet}
-				fleetsInOrbit={$universe.getFleetsByPosition($commandedFleet)}
+				cargoDestsInOrbit={$universe.getCargoDestsByPosition($commandedFleet)}
 				{onShowCargoTransferDialog}
 				{onShowSplitFleetDialog}
 			/>

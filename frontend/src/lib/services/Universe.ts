@@ -1,4 +1,5 @@
 import { battlesSortBy, getBattleRecordDetails, type BattleRecordDetails } from '$lib/types/Battle';
+import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 import type {
 	Cost,
 	FleetIntel,
@@ -352,6 +353,20 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	getMapObjectsByPosition(position: MapObject | Vector) {
 		return this.mapObjectsByPosition[positionKey(position)];
+	}
+
+	getCargoDestsByPosition(position: MapObject | Vector): CargoDest[] {
+		return this.mapObjectsByPosition[positionKey(position)]
+			.filter(
+				(mo) =>
+					[
+						MapObjectTypeFleet,
+						MapObjectTypeMineralPacket,
+						MapObjectTypeSalvage,
+						MapObjectTypePlanet
+					].indexOf(mo.type) != -1
+			)
+			.map((mo) => mo as CargoDest);
 	}
 
 	getSalvageAtPosition(position: MapObject | Vector): SalvageIntel | undefined {

@@ -73,7 +73,7 @@ test('Cargo Transfer Fleets', async ({ authenticatedPage }) => {
 	apiErrorsFailTest(page, gameId);
 
 	const otherFleetsHereTile = await page
-		.locator('[data-type="command-tile"][data-id="Other Fleets Here"]')
+		.locator('[data-type="command-tile"][data-id="Other Entities Here"]')
 		.first();
 
 	await otherFleetsHereTile.getByRole('button', { name: 'Transfer' }).first().click();

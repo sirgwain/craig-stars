@@ -806,6 +806,14 @@ export function canTransferCargoType(fleet: Fleet, dest: CargoDest, cargoType: C
 				return fleet.playerNum === dest?.playerNum;
 		}
 	}
+	if (dest?.type === MapObjectTypeSalvage || dest?.type == MapObjectTypeMineralPacket) {
+		switch (cargoType) {
+			case Colonists:
+			case Fuel:
+				return false;
+		}
+	}
+
 	return true;
 }
 

@@ -1,7 +1,7 @@
-import type { MapObject, MapObjectTarget, Vector } from './cs';
-import { None } from './cs';
-import { getTokenCount, hasDestination } from './Fleet';
 import { type AnyFleet } from '$lib/services/Universe';
+import type { MapObject, MapObjectTarget, Vector } from './cs';
+import { MapObjectTypeFleet, MapObjectTypePlanet, None } from './cs';
+import { getTokenCount, hasDestination } from './Fleet';
 
 export type MovingMapObject = {
 	heading: Vector;
@@ -49,6 +49,13 @@ export function ownedBy(mo: MapObject, playerNum: number): boolean {
  */
 export function owned(mo: MapObject): boolean {
 	return mo.playerNum != None;
+}
+
+export function commandable(playerNum: number, mo: MapObject): boolean {
+	return (
+		(mo.type === MapObjectTypeFleet || mo.type === MapObjectTypePlanet) &&
+		mo.playerNum === playerNum
+	);
 }
 
 export const positionKey = (pos: MapObject | Vector): string => {

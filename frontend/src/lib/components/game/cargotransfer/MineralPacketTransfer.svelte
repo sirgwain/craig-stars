@@ -28,8 +28,4 @@
 		{(cargo?.germanium ?? 0) + (transferAmount.germanium ?? 0)}kT
 	</div>
 
-	<div class="text-right mr-1 h-8 select-none">Colonists</div>
-	<div class="text-right">
-		{(cargo?.colonists ?? 0) + (transferAmount.colonists ?? 0)}kT
-	</div>
 </div>

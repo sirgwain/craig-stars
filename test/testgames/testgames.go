@@ -260,7 +260,7 @@ var TestGames = []TestGame{
 					{
 						BaseName: "Teamster Salvager",
 						Tokens:   []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
-						Cargo:    cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10},
+						Cargo:    cs.Cargo{Ironium: 10, Boranium: 10, Germanium: 10, Colonists: 10},
 						Fuel:     500,
 					},
 				},
@@ -356,11 +356,17 @@ var TestGames = []TestGame{
 						Cargo:           cs.Cargo{Ironium: 50, Boranium: 50, Germanium: 50},
 						WarpSpeed:       5,
 						TargetPlanetNum: 1,
-						Heading:         cs.Vector{X: 0, Y: 1},
+						Heading:         cs.Vector{X: 1},
 					},
 				},
 			},
 		},
+		Planets: []cs.Planet{{
+			MapObject: cs.MapObject{
+				Position: cs.Vector{X: 50},
+				Name:     "Planet 1",
+			},
+		}},
 	},
 	{
 		Name: "Two Player Game",

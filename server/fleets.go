@@ -681,11 +681,12 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 	var dest cs.CargoHolder
 
 	if playerNum == player.Num {
-		dest, err = readWriteClient.GetMineralPacketByNum(game.ID, playerNum, num)
+		mineralPacket, err = readWriteClient.GetMineralPacketByNum(game.ID, playerNum, num)
 		if err != nil {
 			log.Error().Err(err).Msg("get mineralPacket from database")
 			render.Render(w, r, ErrInternalServerError(err))
 		}
+		dest = mineralPacket
 	} else {
 		dest = player.GetMineralPacketIntel(playerNum, num)
 	}
@@ -728,9 +729,9 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 		Int64("GameID", fleet.GameID).
 		Int("Player", fleet.PlayerNum).
 		Str("Fleet", fleet.Name).
-		Str("MineralPacket", mineralPacket.Name).
+		Str("MineralPacket", dest.GetMapObject().Name).
 		Str("TransferAmount", fmt.Sprintf("%v", transferAmount)).
-		Msgf("%s transfered %v to/from MineralPacket %s", fleet.Name, transferAmount, mineralPacket.Name)
+		Msgf("%s transfered %v to/from MineralPacket %s", fleet.Name, transferAmount, dest.GetMapObject().Name)
 
 	// success
 	rest.RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
