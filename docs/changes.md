@@ -12,10 +12,11 @@ Here is a non-exhaustive list of differences between `craig-stars` and the origi
 
 <!-- TODO: Check and fix more bugs -->
 
-## Bugs and other known jank
+## Bugs fixed
 
 - [0.2% min damage bug](https://wiki.starsautohost.org/wiki/Known_Bugs#0.2%_Minimum_Damage)
 - [Colonization Module Check](https://wiki.starsautohost.org/wiki/Known_Bugs#Colonization_Module_Check)
+- [Cheap Starbase](https://wiki.starsautohost.org/wiki/Known_Bugs#Cheap_Starbase)
 
 ## Minor changes
 
