@@ -63,7 +63,7 @@ func Test_Golang(goTestArgs string) error {
 	fmt.Println("Running backend tests...")
 	mg.Deps(cleanTmpDir)
 
-	// read gotestsum config args from text file
+	// read gotestsum config args from text file;
 	// use CI config if on CI; else regular config
 	var filePath string
 	if is_CI() {
@@ -87,43 +87,44 @@ func Test_Golang(goTestArgs string) error {
 
 	// If the user forgot to add a package mark for non-CI runs,
 	// do them a favor rather than outright failing.
-	// CI runs are exempt from this as they're supposed to make sure *everything* works
-	// (not to mention rerun-fails)
+	// CI runs are exempt from this due to rerun-fails requiring an explicit package argument
+	// (not to mention their entire *job* is to test everything)
 	args := strings.Fields(goTestArgs)
 	if !is_CI() && slices.IndexFunc(args, func(s string) bool {
 		return strings.HasPrefix(s, "./")
 	}) == -1 {
-		fmt.Println("No package identifier identified; defaulting to running everything")
+		fmt.Println("No package identifier found; defaulting to running everything")
 		args = append([]string{"./..."}, args...)
 	}
 
 	// tack on whatever config vals were passed by the user.
 	configVals = append(configVals, args...)
 
-	// if $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
+	// If $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
 	// Otherwise, check for $GH_REPO (from github CLI) before falling back to a default string.
-	var pkgName string = "craig-stars"
+	pkgName := "craig-stars"
 	if r := strings.TrimSpace(os.Getenv("GITHUB_REPOSITORY")); r != "" {
 		pkgName = r
 	} else if r = strings.TrimSpace(os.Getenv("GH_REPO")); r != "" {
 		pkgName = r
 	}
 
-	// merge together any produced json files together once we're done testing
-	// we only do this now to save time (if the prior steps fail, we probably aren't)
+	// merge together any temporary json files together once we're done testing.
+	// We do this now to save time - if the prior steps fail,
+	// there won't be any KSON files to merge)
 	defer func() {
 		if err := Merge_Temp_JSON(); err != nil {
 			fmt.Printf("error merging temp JSON diffs after test run:\n%v\n", err)
 		}
 	}()
 
-	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": pkgName},
+	return sh.RunWithV(map[string]string{"PKGNAME": pkgName},
 		configVals[0], configVals[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
 }
 
-// Remove all temp json files inside tmp and merge them into 1 large file.
-// This takes all files matching the format "XXX_**.jsonl"
-// and merges them together into 1 large file for easy parsing & CI uploading.
+// Remove all temp json files produced during tests and merge them together.
+// This takes all files matching the format "XXX_**.jsonl",
+// and merges them together into a single file named "XXX.jsonl".
 // Comments are added between failing tests from different packages.
 func Merge_Temp_JSON() error {
 	tmp, err := os.Open("tmp")
@@ -144,7 +145,7 @@ func Merge_Temp_JSON() error {
 	for _, fileName := range fileNames {
 		fullName := filepath.Join("tmp", fileName)
 		if !strings.HasSuffix(fileName, ".jsonl") {
-			// file doesn't start with correct suffix
+			// file isn't a JSON Lines file; skip
 			continue
 		}
 
@@ -154,7 +155,7 @@ func Merge_Temp_JSON() error {
 			continue
 		}
 
-		// extract name of package from chunk after file extension
+		// cut out file extension to extract package name
 		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
 
 		// grab file data
@@ -162,14 +163,14 @@ func Merge_Temp_JSON() error {
 		if err != nil {
 			return mg.Fatalf(1, "error during os.ReadFile: \n%w", err)
 		}
-		path := filepath.Join("tmp", prefix+".jsonl") // target file path w/o package name
+		path := filepath.Join("tmp", prefix+".jsonl") // got.jsonl, want.jsonl, etc.
 
 		// Add a header mentioning which package we're in to the start of the file
 		contents := "//* " +
 			strings.ToUpper(pkgName) + "\n" +
 			string(fileBytes)
 		if count == 0 {
-			// truncate file if it already exists; otherwise add a newline
+			// truncate file if it already exists; otherwise add a newline delimiter
 			if err := os.WriteFile(path, []byte(contents), 0644); err != nil {
 				return mg.Fatalf(1, "error during os.WriteFile: \n%w", err)
 			}
@@ -178,7 +179,7 @@ func Merge_Temp_JSON() error {
 		}
 
 		count++
-		// remove test file after being merged
+		// remove test file after merging
 		if err := sh.Rm(fullName); err != nil {
 			return err
 		}

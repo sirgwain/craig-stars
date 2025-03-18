@@ -4,7 +4,7 @@ go, tool, gotest.tools/gotestsum,
 --format-icons=text,
 --junitfile=tmp/test-results/go-test-report.xml,
 --junitfile-hide-empty-pkg,
---junitfile-project-name=$GITHUB_REPOSITORY,
+--junitfile-project-name=$PKGNAME,
 --junitfile-testcase-classname=short,
 --junitfile-testsuite-name=short,
 --
