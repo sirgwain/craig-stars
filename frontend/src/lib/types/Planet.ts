@@ -41,7 +41,8 @@ import {
 	type Cargo,
 	type Hab,
 	type Mineral,
-	type QueueItemType} from './cs';
+	type QueueItemType
+} from './cs';
 import { totalMinerals } from './Mineral';
 
 /**
@@ -132,9 +133,7 @@ export class CommandedPlanet implements Planet {
 		type: QueueItemType,
 		queueItems: ProductionQueueItem[] = this.productionQueue
 	): number {
-		return queueItems.reduce(
-			(count, i) => count + (i.type === type ? i.quantity : 0), 0
-		);
+		return queueItems.reduce((count, i) => count + (i.type === type ? i.quantity : 0), 0);
 	}
 
 	// update the production queue estimates for the planet's production queue
@@ -349,7 +348,7 @@ export const getQueueItemShortName = (
  */
 export function getGrowth(planet: AnyPlanet): number {
 	// TODO: Change once isIntel is added
-	const pPop = 'reportAge' in planet ? 0 : planet.partialPopulation
+	const pPop = 'reportAge' in planet ? 0 : planet.partialPopulation;
 	return roundTo100(planet.spec.growthAmount ?? 0 + pPop, Math.trunc);
 }
 
@@ -398,7 +397,7 @@ export function planetsSortBy(key: string): ((a: AnyPlanet, b: AnyPlanet) => num
 		case 'populationDensity':
 			return (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0);
 		case 'populationGrowth':
-			return (a, b) => (getGrowth(a) - getGrowth(b));
+			return (a, b) => getGrowth(a) - getGrowth(b);
 		case 'habitability':
 			return (a, b) => (a.spec.habitability ?? 0) - (b.spec.habitability ?? 0);
 		case 'mines':

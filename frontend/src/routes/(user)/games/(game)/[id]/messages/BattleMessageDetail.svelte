@@ -52,14 +52,16 @@
 			was annihilated by the enemy's {details.theirs}
 			{details.theirs === 1 ? 'vessel' : 'vessels'}, which suffered no casualties.
 		{:else if details.ours === details.ourDead && details.theirs === details.theirDead}
-			Your {details.ours} {details.ours === 1 ? 'ship' : 'ships'}
+			Your {details.ours}
+			{details.ours === 1 ? 'ship' : 'ships'}
 			and the enemy's {details.theirs}
 			{details.theirs === 1 ? 'ships' : 'ships'}
 			completely destroyed each other. No survivors were left on either side.
 		{:else}
 			Both you and the enemy suffered losses during the exchange.
 			{#if details.ours === details.ourDead && details.theirs > details.theirDead}
-				Your {details.ours}	{details.ours === 1 ? 'ship was' : 'ships were'}
+				Your {details.ours}
+				{details.ours === 1 ? 'ship was' : 'ships were'}
 				able to defeat {details.theirDead} out of {details.theirs}
 				{details.theirs === 1 ? 'enemy ship' : 'enemy ships'} before being wiped out.
 			{:else if details.theirs === details.theirDead && details.ours > details.ourDead}
