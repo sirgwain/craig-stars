@@ -5,7 +5,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"math"
 	"net/http"
 	"strconv"
 
@@ -428,7 +427,7 @@ func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
 	// TODO: update fleets with deleted battle plans to use default battleplan
 	nextNum := 0
 	for i := range plans.BattlePlans {
-		nextNum = int(math.Max(float64(plans.BattlePlans[i].Num+1), float64(nextNum)))
+		nextNum = int(max(float64(plans.BattlePlans[i].Num+1), float64(nextNum)))
 	}
 
 	for i := range plans.BattlePlans {

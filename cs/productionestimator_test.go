@@ -245,7 +245,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				},
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-						YearsToBuildOne: 9,
+						YearsToBuildOne: 10,
 						YearsToBuildAll: 11,
 						YearsToSkipAuto: Infinite,
 					},
@@ -310,8 +310,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			want: []ProductionQueueItem{
 				{
 					QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-						YearsToBuildOne: 14,
-						YearsToBuildAll: 23,
+						YearsToBuildOne: 13,
+						YearsToBuildAll: 24,
 						YearsToSkipAuto: 1,
 					},
 					Type:     QueueItemTypeAutoFactories,

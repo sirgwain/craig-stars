@@ -9,7 +9,7 @@ import (
 )
 
 func newTestPlayerPlanet() (player *Player, planet *Planet) {
-	player = NewPlayer(1, NewRace())
+	player = NewPlayer(1, NewRace()).WithNum(1)
 	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
 	planet = &Planet{}
 	planet.PlayerNum = player.Num
@@ -17,6 +17,7 @@ func newTestPlayerPlanet() (player *Player, planet *Planet) {
 	planet.Hab = planet.BaseHab
 
 	player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
+	planet.Spec = computePlanetSpec(&rules, player, planet)
 
 	return player, planet
 }
@@ -138,26 +139,70 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 		args   args
 		want   int
 	}{
-		{name: "empty planet", fields: fields{Hab{50, 50, 50}, 0}, args: args{NewPlayer(1, NewRace()), 1_000_000}, want: 0},
-		{name: "less than 25% cap, grows at full 10% growth rate", fields: fields{Hab{50, 50, 50}, 100_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 10_000},
-		{name: "at 50% cap, it slows down in growth", fields: fields{Hab{50, 50, 50}, 600_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 26_700},
-		{name: "we are basicallly at capacity, we only grow a tiny amount", fields: fields{Hab{50, 50, 50}, 1_180_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 100},
-		{name: "no more growth past a certain capacity", fields: fields{Hab{50, 50, 50}, 1_190_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: 0},
-		{name: "hostile planets kill off colonists", fields: fields{Hab{10, 15, 15}, 2500}, args: args{NewPlayer(1, NewRace()), 0}, want: -100},
-		{name: "super hostile planet with 100k people, should be -45% habitable, so should kill off -4.5% of the pop", fields: fields{Hab{}, 100_000}, args: args{NewPlayer(1, NewRace()), 0}, want: -4500},
-		{name: "double cap planet should kill off 4% of the pop", fields: fields{Hab{50, 50, 50}, 2_400_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: -96_000},
-		{name: "5x cap planet should kill off max of 12% of the pop", fields: fields{Hab{50, 50, 50}, 6_000_000}, args: args{NewPlayer(1, NewRace()), 1_200_000}, want: -720_000},
+		{
+			name:   "empty planet",
+			fields: fields{Hab{50, 50, 50}, 0},
+			args:   args{NewPlayer(1, NewRace()), 1_000_000},
+			want:   0,
+		},
+		{
+			name:   "low cap, full growth rate",
+			fields: fields{Hab{50, 50, 50}, 100_000},
+			args:   args{NewPlayer(1, NewRace()), 1_200_000},
+			want:   10_000,
+		},
+		{
+			name:   "fractional pop doesn't add growth",
+			fields: fields{Hab{50, 50, 50}, 111_199},
+			args:   args{NewPlayer(1, NewRace().WithGrowthRate(9)), 1_200_000},
+			want:   9999, // would be 10K had the last 100 fractional pop counted for growth
+		},
+		{
+			name:   "50% cap; growth slows down",
+			fields: fields{Hab{50, 50, 50}, 600_000},
+			args:   args{NewPlayer(1, NewRace()), 1_200_000},
+			want:   26_666, // 0.444x growth multi
+		},
+		{
+			name:   "98% capacity, next to no growth",
+			fields: fields{Hab{50, 50, 50}, 1_180_000},
+			args:   args{NewPlayer(1, NewRace()), 1_200_000}, // 98.3% cap
+			want:   58,                                       // 0.0004938x growth multi
+		},
+		{
+			name:   "slightly hostile planet; low deaths override overpop calcs",
+			fields: fields{Hab{10, 15, 15}, 2500},
+			args:   args{NewPlayer(1, NewRace()), 100},
+			want:   -13,
+		},
+		{
+			name:   "hostile planet; high deaths",
+			fields: fields{Hab{0, 0, 0}, 100_000},
+			args:   args{NewPlayer(1, NewRace()), 0},
+			want:   -4500,
+		},
+		{
+			name:   "overcap planet; lose pop",
+			fields: fields{Hab{50, 50, 50}, 2_400_000},
+			args:   args{NewPlayer(1, NewRace()), 1_200_000},
+			want:   -96_000,
+		},
+		{
+			name:   "5x cap; pop loss capped",
+			fields: fields{Hab{50, 50, 50}, 6_000_000},
+			args:   args{NewPlayer(1, NewRace()), 1_200_000},
+			want:   -720_000,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Planet{
-				Cargo: Cargo{Colonists: tt.fields.Population / 100},
-				Hab:   tt.fields.Hab,
+			p := NewPlanet().WithHab(tt.fields.Hab).WithPopulation(tt.fields.Population)
+			// If at default, set growth rate to 10% for easier math
+			if tt.args.player.Race.GrowthRate == 15 {
+				tt.args.player.Race.GrowthRate = 10
 			}
-			// 10% growth for easier math
-			tt.args.player.Race.GrowthRate = 10
 			tt.args.player.Race.Spec = computeRaceSpec(&tt.args.player.Race, &rules)
-			if got := p.getGrowthAmount(tt.args.player, tt.args.maxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax); got != tt.want {
+			if got := p.GetGrowthAmount(tt.args.player, tt.args.maxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax); got != tt.want {
 				t.Errorf("Planet.getGrowthAmount() = %v, want %v", got, tt.want)
 			}
 		})
@@ -183,34 +228,46 @@ func TestQueueItemType_IsAuto(t *testing.T) {
 }
 
 func TestPlanet_reduceMineralConcentration(t *testing.T) {
-	type args struct {
-		rules Rules
-	}
 	tests := []struct {
 		name   string
 		planet *Planet
-		args   args
-		want   Mineral
+		want   *Planet
 	}{
-		{"Redcue empty planet min conc", NewPlanet(), args{rules}, Mineral{1, 1, 1}},
 		{
-			"150 mines should reduce 100% conc by 1 if we have 151 mineyears",
-			NewPlanet().
+			name: "reduces mineral conc",
+			// 1.5M / 100 / 100 = 150 mine-years to reduce
+			planet: NewPlanet().
 				WithMineralConcentration(Mineral{100, 100, 100}).
-				WithMines(150).
 				WithMineYears(Mineral{151, 151, 151}),
-			args{rules},
-			Mineral{99, 99, 99},
+			want: NewPlanet().
+				WithMineralConcentration(Mineral{99, 99, 99}).
+				WithMineYears(Mineral{1, 1, 1}),
+		},
+		{
+			name: "Homeworld can go below 30 conc",
+			// 1.5M / 30 / 30 = 1,666 mine-years to reduce
+			planet: NewPlanet().WithHomeworld(true).
+				WithMineralConcentration(Mineral{30, 30, 30}).
+				WithMineYears(Mineral{1667, 1667, 1667}),
+			want: NewPlanet().WithHomeworld(true).
+				WithMineralConcentration(Mineral{29, 29, 29}).
+				WithMineYears(Mineral{1, 1, 1}),
+		},
+		{
+			name: "Cannot lower below 1",
+			// 1.5M / 2 / 2 = 375,000 mine-years to reduce
+			planet: NewPlanet().
+				WithMineralConcentration(Mineral{2, 2, 2}).
+				WithMineYears(Mineral{5e7, 5e7, 5e7}),
+			want: NewPlanet().
+				WithMineralConcentration(Mineral{1, 1, 1}).
+				WithMineYears(Mineral{0, 0, 0}),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.planet.reduceMineralConcentration(&tt.args.rules)
-
-			if got := tt.planet.MineralConcentration; !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Planet.reduceMineralConcentration() = %v, want %v", got, tt.want)
-			}
-
+			tt.planet.reduceMineralConcentration(&rules)
+			test.CompareAsJSON(t, tt.planet, tt.want)
 		})
 	}
 }
@@ -313,19 +370,15 @@ func TestPlanet_randomize(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.planet
-			r := &rules
+			r := NewRules()
 			r.HabDropoffRange = tt.fields.habDropoff
 			r.MinHab = tt.fields.minHab
 			r.MaxHab = tt.fields.maxHab
 			r.random = tt.rng
 
-			got.randomize(r, false)
+			got.randomize(&r, false)
 
-			if !reflect.DeepEqual(got, tt.want) {
-				// dump json, but this won't include some fields
-				test.CompareAsJSON(t, got, tt.want)
-				t.Errorf("randomize() = %#v, want %#v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 
 		})
 	}
@@ -333,37 +386,78 @@ func TestPlanet_randomize(t *testing.T) {
 
 func TestPlanet_grow(t *testing.T) {
 	type fields struct {
-		hab        Hab
-		population int
-	}
-	type args struct {
-		race *Race
+		hab         Hab
+		population  int
+		turnsToGrow int
 	}
 	tests := []struct {
-		name           string
-		fields         fields
-		args           args
-		wantPopulation int
+		name   string
+		fields fields
+		race   *Race
+		want   int
 	}{
-		{"standard humanoid starter world", fields{hab: Hab{50, 50, 50}, population: 25000}, args{NewRace().WithSpec(&rules)}, 28800},
-		{"full world", fields{hab: Hab{50, 50, 50}, population: 500_000}, args{NewRace().WithSpec(&rules)}, 545_400},
-		{"hostile world", fields{hab: Hab{1, 1, 1}, population: 25000}, args{NewRace().WithSpec(&rules)}, 23900},
-		{"hostile world, low pop", fields{hab: Hab{1, 1, 1}, population: 200}, args{NewRace().WithSpec(&rules)}, 100},
-		{"hostile world, low pop 2", fields{hab: Hab{1, 1, 1}, population: 100}, args{NewRace().WithSpec(&rules)}, 100},
+		{
+			name:   "standard humanoid starter world",
+			fields: fields{hab: Hab{50, 50, 50}, population: 25000, turnsToGrow: 1},
+			race:   NewRace().WithSpec(&rules),
+			want:   28_750,
+		},
+		{
+			name:   "partially full world; reduced growth",
+			fields: fields{hab: Hab{50, 50, 50}, population: 500_000, turnsToGrow: 1},
+			race:   NewRace().WithSpec(&rules),
+			want:   545_370, // 60.4% GR multi due to crowding
+		},
+		{
+			name:   "pas de population, pas de croissance",
+			fields: fields{hab: Hab{50, 50, 50}, population: 0, turnsToGrow: 1},
+			race:   NewRace().WithSpec(&rules),
+			want:   0,
+		},
+		// TODO: Check in OG game if 0% worlds actually grow pop or not
+		/* {
+			name:   "0% value world, don't make colonists",
+			fields: fields{hab: Hab{15, 15, 15}, population: 100, turnsToGrow: 1},
+			race:   NewRace().WithSpec(&rules),
+			want:   100,
+		}, */
+		{
+			name:   "40% value world, 20% HE, 3 years",
+			fields: fields{hab: Hab{35, 21, 45}, population: 600, turnsToGrow: 3},
+			race:   NewRace().WithPRT(HE).WithGrowthRate(20).WithSpec(&rules),
+			want:   904, // 600 --> 696 --> 792 --> 904
+		},
+		{
+			name:   "hostile world",
+			fields: fields{hab: Hab{1, 1, 1}, population: 25000, turnsToGrow: 1},
+			race:   NewRace().WithSpec(&rules),
+			want:   23_950, // -42% value = -4.2% pop per year
+		},
+		{
+			name:   "hostile world, pop rounding",
+			fields: fields{hab: Hab{1, 1, 1}, population: 200, turnsToGrow: 1},
+			race:   NewRace().WithSpec(&rules),
+			want:   192,
+		},
+		{
+			name:   "hostile world, pop floor",
+			fields: fields{hab: Hab{1, 1, 1}, population: 100, turnsToGrow: 1},
+			race:   NewRace().WithSpec(&rules),
+			want:   100,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(0, tt.args.race).WithNum(1)
-			planet := NewPlanet().WithPlayerNum(player.Num)
-			planet.Hab = tt.fields.hab
-			planet.BaseHab = tt.fields.hab
-			planet.setPopulation(tt.fields.population)
-			planet.Spec = computePlanetSpec(&rules, player, planet)
+			player := NewPlayer(0, tt.race).WithNum(1)
+			planet := NewPlanet().WithPlayerNum(player.Num).
+				WithHab(tt.fields.hab).WithPopulation(tt.fields.population)
+			for range tt.fields.turnsToGrow {
+				planet.Spec = computePlanetSpec(&rules, player, planet) // only really needed for growth amount
+				planet.grow(player)
+			}
 
-			planet.grow(player)
-
-			if planet.population() != tt.wantPopulation {
-				t.Errorf("grow() = %v, want %v", planet.population(), tt.wantPopulation)
+			if exactPop := planet.exactPopulation(); exactPop != tt.want {
+				t.Errorf("planet.grow() gave %v pop, want %v", exactPop, tt.want)
 			}
 
 		})
@@ -371,45 +465,47 @@ func TestPlanet_grow(t *testing.T) {
 }
 
 func TestPlanet_getMineralOutput(t *testing.T) {
-	type fields struct {
-		MineralConcentration Mineral
-	}
-	type args struct {
+	tests := []struct {
+		name       string
+		planet     *Planet
 		numMines   int
 		mineOutput int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   Mineral
+		want       Mineral
 	}{
+		// TODO: Change tests 2 and 4 after frac mineral output bug is fixed
 		{
-			name:   "100 conc, 10 mines, 10 output",
-			fields: fields{MineralConcentration: Mineral{100, 100, 100}},
-			args:   args{numMines: 10, mineOutput: 10},
-			want:   Mineral{10, 10, 10},
+			name:       "whole number outputs",
+			planet:     NewPlanet().WithMineralConcentration(Mineral{100, 100, 100}),
+			numMines:   10,
+			mineOutput: 10,
+			want:       Mineral{10, 10, 10},
 		},
 		{
-			name:   "100 conc, 10 mines, 8 output",
-			fields: fields{MineralConcentration: Mineral{100, 100, 100}},
-			args:   args{numMines: 10, mineOutput: 8},
-			want:   Mineral{8, 8, 8},
+			name:       "mixed conc; truncates",
+			planet:     NewPlanet().WithMineralConcentration(Mineral{25, 45, 65}),
+			numMines:   22,
+			mineOutput: 10,
+			want:       Mineral{5, 9, 14}, // I/B get truncated
 		},
 		{
-			name:   "mixed conc, 100 mines, 10 output",
-			fields: fields{MineralConcentration: Mineral{25, 45, 65}},
-			args:   args{numMines: 100, mineOutput: 10},
-			want:   Mineral{25, 45, 65},
+			name:       "Unowned homeworld; no conc floor",
+			planet:     NewPlanet().WithMineralConcentration(Mineral{1, 1, 1}).WithHomeworld(true),
+			numMines:   100,
+			mineOutput: 10,
+			want:       Mineral{1, 1, 1},
+		},
+		{
+			name:       "Owned homeworld min conc floor",
+			planet:     NewPlanet().WithMineralConcentration(Mineral{1, 1, 1}).WithHomeworld(true).WithPlayerNum(1),
+			numMines:   22, // 6.6 minerals
+			mineOutput: 10,
+			want:       Mineral{6, 6, 6},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Planet{
-				MineralConcentration: tt.fields.MineralConcentration,
-			}
-			if got := p.getMineralOutput(tt.args.numMines, tt.args.mineOutput); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Planet.getMineralOutput() = %v, want %v", got, tt.want)
+			if got := tt.planet.getMineralOutput(&rules, tt.numMines, tt.mineOutput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Planet.getMineralOutput() returned output \n%+v, want \n%+v", got, tt.want)
 			}
 		})
 	}
@@ -487,7 +583,7 @@ func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
 			},
 		},
 		{
-			name: "Crappy AR starter colony with lots of pop, En 10",
+			name: "Negative Hab AR planet",
 			args: args{
 				player: NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).
 					WithTechLevels(TechLevel{10, 0, 0, 0, 0, 0}).withSpec(&rules), // makes calcs easier
@@ -496,11 +592,11 @@ func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
 				installationPop: 1_000_000,
 			},
 			spec: PlanetSpec{
-				Habitability:  25, // min hab floor for AR
+				Habitability:  -45, // floored to 25 for AR
 				MaxPopulation: 500_000,
 			},
 			want: PlanetSpec{
-				Habitability:     25,
+				Habitability:     -45,
 				MaxPopulation:    500_000,
 				ResourcesPerYear: 250,
 			},
@@ -508,7 +604,7 @@ func TestPlanetSpec_computeResourcesPerYear(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.spec.computeResourcesPerYear(tt.args.player, tt.args.numFacts, tt.args.productivePop, tt.args.installationPop)
+			tt.spec.ComputeResourcesPerYear(tt.args.player, tt.args.numFacts, tt.args.productivePop, tt.args.installationPop)
 			test.CompareAsJSON(t, tt.spec, tt.want)
 		})
 	}

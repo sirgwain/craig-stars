@@ -135,45 +135,49 @@ func (ai *aiPlayer) scoutPackets() error {
 	}
 
 	for _, planet := range ai.Planets {
-		if planet.Spec.HasMassDriver {
-			existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.Type.IsPacket() })
-			if existingQueueItemIndex == -1 {
-
-				// find the farthest planet
-				farthest := ai.getFarthestPlanetIntel(planet.Position, unknownPlanetsByNum)
-				if farthest == nil {
-					continue
-				}
-
-				// fling a packet with the mineral we have the most of
-				cargoType := planet.Cargo.GreatestMineralType()
-				queueItemType := cs.QueueItemTypeMixedMineralPacket
-				switch cargoType {
-				case cs.Ironium:
-					queueItemType = cs.QueueItemTypeIroniumMineralPacket
-				case cs.Boranium:
-					queueItemType = cs.QueueItemTypeBoraniumMineralPacket
-				case cs.Germanium:
-					queueItemType = cs.QueueItemTypeGermaniumMineralPacket
-				}
-
-				// Build a new packet targetted towards this planet
-				planet.PacketTargetNum = farthest.Num
-				planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: queueItemType, Quantity: 1}}, planet.ProductionQueue...)
-				delete(unknownPlanetsByNum, farthest.Num)
-
-				if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders, ai.Planets); err != nil {
-					return err
-				}
-
-				ai.log.Debug().
-					Int64("GameID", ai.GameID).
-					Int("PlayerNum", ai.Num).
-					Int("WarpSpeed", planet.PacketSpeed).
-					Msgf("Planet %s is sending a scout packet to %s", planet.Name, farthest.Name)
-
-			}
+		if !planet.Spec.HasMassDriver {
+			continue
 		}
+		existingQueueItemIndex := slices.IndexFunc(planet.ProductionQueue, func(item cs.ProductionQueueItem) bool { return item.Type.IsPacket() })
+		if existingQueueItemIndex != -1 {
+			// already has packet in queue; move on to next planet
+			continue
+		}
+
+		// find the farthest planet
+		farthest := ai.getFarthestPlanetIntel(planet.Position, unknownPlanetsByNum)
+		if farthest == nil {
+			continue
+		}
+
+		// fling a packet with the mineral we have the largest amount of
+		highestType, _ := planet.Cargo.ToMineral().HighestType(1)
+		queueItemType := cs.QueueItemTypeMixedMineralPacket
+		switch highestType {
+		case cs.Ironium:
+			queueItemType = cs.QueueItemTypeIroniumMineralPacket
+		case cs.Boranium:
+			queueItemType = cs.QueueItemTypeBoraniumMineralPacket
+		case cs.Germanium:
+			queueItemType = cs.QueueItemTypeGermaniumMineralPacket
+		}
+
+		// Build a new packet targeted towards this planet
+		// TODO: Make sure it adds enough minerals to kill the planet
+		planet.PacketTargetNum = farthest.Num
+		planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: queueItemType, Quantity: 1}}, planet.ProductionQueue...)
+		delete(unknownPlanetsByNum, farthest.Num)
+
+		if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders, ai.Planets); err != nil {
+			return err
+		}
+
+		ai.log.Debug().
+			Int64("GameID", ai.GameID).
+			Int("PlayerNum", ai.Num).
+			Int("WarpSpeed", planet.PacketSpeed).
+			Msgf("Planet %s is sending a scout packet to %s", planet.Name, farthest.Name)
+
 	}
 	return nil
 }

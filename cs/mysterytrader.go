@@ -2,7 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"math"
 )
 
 // The mystery trader travels through space and gives a boon to any player that gives it a fleet full of minerals
@@ -381,7 +380,7 @@ func (mt *MysteryTrader) move() {
 	vectorTravelled := mt.Destination.Subtract(mt.Position).Normalized().Scale(dist)
 	dist = vectorTravelled.Length()
 	// don't overshoot
-	dist = math.Min(totalDist, dist)
+	dist = min(totalDist, dist)
 
 	if totalDist == dist {
 		mt.Position = mt.Destination

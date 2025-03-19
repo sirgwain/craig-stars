@@ -4,13 +4,16 @@ import (
 	"math"
 )
 
-// the rng rules all
+// The rng interface used by the rules struct, implemented as an interface to allow for custom fixed rng methods or seeds.
 type rng interface {
-	// Float64 returns, as a float64, a pseudo-random number in [0.0,1.0)
-	// from the default Source.
+	// Float64 returns, as a float64, a pseudo-random number in the half-open interval
+	// [0.0, 1.0).
+	//
+	// By convention, lower numbers signify success and higher ones denote failure.
 	Float64() float64
 
-	// Intn returns, as an int, a non-negative pseudo-random number in [0,n).
+	// Intn returns, as an int, a non-negative pseudo-random number
+	// in the half-open interval [0, n).
 	// It panics if n <= 0.
 	Intn(n int) int
 

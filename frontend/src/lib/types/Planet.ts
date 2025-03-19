@@ -1,16 +1,13 @@
-import { roundToNearest100 } from '$lib/services/Math';
-import { getMinTerraformAmount, getTerraformAmount } from '$lib/services/Terraformer';
+import { roundTo100 } from '$lib/services/Math';
 import type { AnyPlanet, DesignFinder } from '$lib/services/Universe';
 import type { CS } from '$lib/wasm';
 import { cloneDeep, sortBy, startCase } from 'lodash-es';
-import { addMineral } from './Cargo';
+import { population } from './Cargo';
 import type {
 	Fleet,
 	Planet,
-	PlanetIntel,
 	PlanetSpec,
 	ProductionQueueItem,
-	Rules,
 	ShipDesign,
 	Tags,
 	Vector
@@ -44,14 +41,9 @@ import {
 	type Cargo,
 	type Hab,
 	type Mineral,
-	type QueueItemType,
-	type Race,
-	type TechStore
+	type QueueItemType
 } from './cs';
-import { absSum, add, getHabValue, getLargest, withHabValue } from './Hab';
-import { addToAll, totalMinerals } from './Mineral';
-import type { CommandedPlayer } from './Player';
-import { getPlanetHabitability } from './Race';
+import { totalMinerals } from './Mineral';
 
 /**
  * A planet that can be commanded and updated by the player
@@ -66,6 +58,7 @@ export class CommandedPlanet implements Planet {
 	mineralConcentration: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
 	mineYears: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
 	cargo: Cargo = { ironium: 0, boranium: 0, germanium: 0, colonists: 0 };
+	partialPopulation = 0;
 	mines = 0;
 	factories = 0;
 	defenses = 0;
@@ -96,7 +89,6 @@ export class CommandedPlanet implements Planet {
 		maxPossibleFactories: 0,
 		maxDefenses: 0,
 		populationDensity: 0,
-		population: 0,
 		maxPopulation: 0,
 		growthAmount: 0,
 		miningOutput: { ironium: 0, boranium: 0, germanium: 0 },
@@ -122,157 +114,25 @@ export class CommandedPlanet implements Planet {
 		hasStargate: false
 	};
 
-	// get the population from a planet's cargo
-	public get population() {
+	public get population(): number {
 		return (this.cargo.colonists ?? 0) * 100;
 	}
 
 	public set population(value: number) {
-		this.cargo.colonists = Math.floor(value / 100);
+		this.cargo.colonists = Math.trunc(value / 100);
 	}
 
-	// get the max popluation this planet will support for a player
-	public getMaxPopulation(rules: Rules, player: CommandedPlayer, habitability: number): number {
-		const maxPopulationFactor = 1 + (player.race.spec?.maxPopulationOffset ?? 0);
-		let maxPossiblePop = rules.maxPopulation ?? 1_000_000;
-		const minMaxPop = (maxPossiblePop * maxPopulationFactor * (rules.minHabFloor ?? 5)) / 100.0;
-
-		if (player.race.spec?.livesOnStarbases && this.playerNum === player.num) {
-			maxPossiblePop = this.starbase?.spec?.maxPopulation ?? 0;
-		}
-
-		return roundToNearest100(
-			Math.max(minMaxPop, (maxPossiblePop * maxPopulationFactor * habitability) / 100.0)
-		);
-	}
-
-	public getGrowthAmount(
-		race: Race,
-		maxPopulation: number,
-		populationOvercrowdDieoffRate: number,
-		populationOvercrowdDieoffRateMax: number
-	): number {
-		const growthFactor = race.spec?.growthFactor ?? 0;
-		const capacity = this.population / maxPopulation;
-		const habValue = getPlanetHabitability(race, this.hab);
-
-		if (habValue > 0) {
-			let popGrowth =
-				((this.population * race.growthRate * growthFactor) / 100.0) * (habValue / 100.0) + 0.5;
-
-			if (capacity > 1) {
-				// Overpopulation calculations
-				const dieoffPercent = Math.max(
-					Math.min((1 - capacity) * populationOvercrowdDieoffRate, 0),
-					-populationOvercrowdDieoffRateMax
-				);
-				popGrowth = this.population * dieoffPercent;
-			} else if (capacity > 0.25) {
-				const crowdingFactor = (16 / 9) * (1 - capacity) * (1 - capacity);
-				popGrowth *= crowdingFactor;
-			}
-
-			// Round to the nearest 100 colonists
-			return roundToNearest100(popGrowth);
-		} else {
-			// Kill off (habValue / 10)% colonists every year
-			const deathAmount = this.population * (habValue / 1000);
-			return roundToNearest100(Math.max(deathAmount, -100));
-		}
-	}
-
-	public getProductivePopulation(maxPop: number): number {
-		return Math.min(this.population, 3 * maxPop);
-	}
-
-	public getInnateMines(race: Race, population: number): number {
-		if (race.spec?.innateMining) {
-			return Math.floor(Math.sqrt(population) * (race.spec.innateScannerFactor ?? 0));
-		}
-		return 0;
-	}
-
-	public getMaxMines(race: Race, maxPopulation: number): number {
-		if (!race.spec?.innateMining) {
-			return Math.floor((maxPopulation * race.numMines) / 10000);
-		}
-		return 0;
-	}
-
-	public getMaxFactories(race: Race, maxPopulation: number): number {
-		if (!race.spec?.innateResources) {
-			return Math.floor((maxPopulation * race.numFactories) / 10000);
-		}
-		return 0;
-	}
-
-	// get the amount of a given item in the queue
+	/**
+	 * Get the amount of a given item in a planet's production queue
+	 * @param type the {@linkcode QueueItemType} of the item being checked
+	 * @param queueItems an array of queue items to check
+	 * @returns the number of items in the queue
+	 */
 	public getAmountInQueue(
 		type: QueueItemType,
-		queueItems: ProductionQueueItem[] | undefined = undefined
+		queueItems: ProductionQueueItem[] = this.productionQueue
 	): number {
-		queueItems = queueItems ?? this.productionQueue;
 		return queueItems.reduce((count, i) => count + (i.type === type ? i.quantity : 0), 0);
-	}
-
-	public getMaxBuildable(
-		techStore: TechStore,
-		player: CommandedPlayer,
-		maxPopulation: number,
-		type: QueueItemType,
-		amountInQueue = 0
-	): number {
-		const productivePop = this.getProductivePopulation(maxPopulation);
-		const race = player.race;
-
-		switch (type) {
-			case QueueItemTypeAutoDefenses:
-			case QueueItemTypeDefenses:
-				return Math.max(0, 100 - (this.defenses + amountInQueue));
-			case QueueItemTypeAutoMines:
-				return Math.max(0, this.getMaxMines(race, productivePop) - (this.mines + amountInQueue));
-			case QueueItemTypeMine:
-				return Math.max(0, this.getMaxMines(race, maxPopulation) - (this.mines + amountInQueue));
-			case QueueItemTypeAutoFactories:
-				return Math.max(
-					0,
-					this.getMaxFactories(race, productivePop) - (this.factories + amountInQueue)
-				);
-			case QueueItemTypeFactory:
-				return Math.max(
-					0,
-					this.getMaxFactories(race, maxPopulation) - (this.factories + amountInQueue)
-				);
-			case QueueItemTypeAutoMinTerraform:
-				return (
-					absSum(getMinTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
-				);
-			case QueueItemTypeAutoMaxTerraform:
-			case QueueItemTypeTerraformEnvironment:
-				return (
-					absSum(getTerraformAmount(techStore, this.hab, this.baseHab, player)) - amountInQueue
-				);
-			case QueueItemTypeAutoMineralPacket:
-			case QueueItemTypeIroniumMineralPacket:
-			case QueueItemTypeBoraniumMineralPacket:
-			case QueueItemTypeGermaniumMineralPacket:
-			case QueueItemTypeMixedMineralPacket:
-			case QueueItemTypeAutoMineralAlchemy:
-			case QueueItemTypeMineralAlchemy:
-				return Number.MAX_SAFE_INTEGER - amountInQueue;
-			case QueueItemTypePlanetaryScanner:
-				// only one scanner per planet, assuming the race can build scanners...
-				return Math.max(0, (this.scanner || race.spec?.innateScanner ? 0 : 1) - amountInQueue);
-			case QueueItemTypeGenesisDevice:
-				return 1;
-			case QueueItemTypeShipToken:
-				return Number.MAX_SAFE_INTEGER - amountInQueue;
-			case QueueItemTypeStarbase:
-				return Math.max(0, 1 - amountInQueue);
-			default:
-				console.error(`unknown QueueItemType ${type}`);
-				return 0;
-		}
 	}
 
 	// update the production queue estimates for the planet's production queue
@@ -293,104 +153,6 @@ export class CommandedPlanet implements Planet {
 		return this.productionQueue;
 	}
 
-	// grow pop on this planet. This is used when estimating production queues
-	public grow(rules: Rules, player: CommandedPlayer) {
-		const habitability = getPlanetHabitability(player.race, this.hab);
-		const maxPopulation = this.getMaxPopulation(rules, player, habitability);
-		const growthAmount = this.getGrowthAmount(
-			player.race,
-			maxPopulation,
-			rules.populationOvercrowdDieoffRate ?? 0.04,
-			rules.populationOvercrowdDieoffRateMax ?? 0.12
-		);
-		this.population = this.population + growthAmount;
-
-		if (player.race.spec?.innateMining) {
-			const productivePop = this.getProductivePopulation(maxPopulation);
-			this.mines = this.getInnateMines(player.race, productivePop);
-		}
-	}
-
-	public mine(rules: Rules, race: Race) {
-		this.cargo = addMineral(this.cargo, this.getMineralOutput(this.mines, race.mineOutput));
-		this.mineYears = addToAll(this.mineYears, this.mines);
-		this.reduceMineralConcentration(rules);
-	}
-
-	reduceMineralConcentration(rules: Rules) {
-		const mineralDecayFactor = rules.mineralDecayFactor ?? 1_500_000;
-		let minMineralConcentration = rules.minMineralConcentration ?? 1;
-		if (this.homeworld) {
-			minMineralConcentration = rules.minHomeworldMineralConcentration ?? 30;
-		}
-
-		const planetMineYears = [
-			this.mineYears.ironium ?? 0,
-			this.mineYears.boranium ?? 0,
-			this.mineYears.germanium ?? 0
-		];
-		const planetMineralConcentration = [
-			this.mineralConcentration.ironium ?? 0,
-			this.mineralConcentration.boranium ?? 0,
-			this.mineralConcentration.germanium ?? 0
-		];
-
-		for (let i = 0; i < 3; i++) {
-			let conc = planetMineralConcentration[i];
-
-			if (conc < minMineralConcentration) {
-				// Ensure the concentration is at least the minimum value
-				conc = minMineralConcentration;
-				planetMineralConcentration[i] = conc;
-			}
-
-			const minesPer = Math.floor(mineralDecayFactor / conc / conc);
-			let mineYears = planetMineYears[i];
-
-			if (mineYears > minesPer) {
-				conc -= Math.floor(mineYears / minesPer);
-
-				if (conc < minMineralConcentration) {
-					conc = minMineralConcentration;
-				}
-
-				mineYears %= minesPer;
-
-				planetMineYears[i] = mineYears;
-				planetMineralConcentration[i] = conc;
-			}
-		}
-
-		this.mineYears = {
-			ironium: planetMineYears[0],
-			boranium: planetMineYears[1],
-			germanium: planetMineYears[2]
-		};
-		this.mineralConcentration = {
-			ironium: planetMineralConcentration[0],
-			boranium: planetMineralConcentration[1],
-			germanium: planetMineralConcentration[2]
-		};
-	}
-
-	// terraform this planet one step
-	public terraformOneStep(techStore: TechStore, player: CommandedPlayer) {
-		const terraformAmount = getTerraformAmount(techStore, this.hab, this.baseHab, player);
-
-		if (absSum(terraformAmount) === 0) {
-			// no need to terraform, return
-			return;
-		}
-
-		const habType = getLargest(terraformAmount);
-		const terraformPossibleAmount = getHabValue(terraformAmount, habType);
-		if (terraformPossibleAmount > 0) {
-			this.hab = add(this.hab, withHabValue(habType, 1));
-		} else {
-			this.hab = add(this.hab, withHabValue(habType, -1));
-		}
-	}
-
 	// get the mineral output of a planet based on mineOutput (10 for remote mining)
 	public getMineralOutput(numMines: number, mineOutput: number): Mineral {
 		return {
@@ -404,25 +166,6 @@ export class CommandedPlanet implements Planet {
 				((((this.mineralConcentration.germanium ?? 0) / 100) * numMines) / 10) * mineOutput
 			)
 		};
-	}
-
-	// get the resources produced by this planet each year
-	public getResourcesAvailable(player: CommandedPlayer): number {
-		const productivePop = this.getProductivePopulation(this.population);
-		const race = player.race;
-		if (race.spec?.innateMining) {
-			return Math.floor(
-				Math.sqrt((productivePop * (player.techLevels.energy ?? 0)) / race.popEfficiency)
-			);
-		} else {
-			// compute resources from population
-			const resourcesFromPop = productivePop / (race.popEfficiency * 100);
-
-			// compute resources from factories
-			const resourcesFromFactories = (this.factories * race.factoryOutput) / 10;
-
-			return Math.floor(resourcesFromPop + resourcesFromFactories);
-		}
 	}
 
 	/**
@@ -596,22 +339,29 @@ export const getQueueItemShortName = (
 	}
 };
 
+/**
+ * Return the amount this {@linkcode Planet} or {@linkcode PlanetIntel} will grow next year,
+ * truncated to the nearest multiple of 100.
+ * @param planet The planet to check
+ * @returns The planet's growth next year if `planet` is a {@linkcode Planet}, or 0 for a {@linkcode PlanetIntel}
+ */
+export function getGrowth(planet: AnyPlanet): number {
+	// TODO: Change once isIntel is added
+	const pPop = 'reportAge' in planet ? 0 : planet.partialPopulation;
+	return roundTo100(planet.spec.growthAmount ?? 0 + pPop, Math.trunc);
+}
+
 export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {
 	return {
-		ironium:
-			((((planet.mineralConcentration?.ironium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput,
-		boranium:
-			((((planet.mineralConcentration?.boranium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput,
-		germanium:
-			((((planet.mineralConcentration?.germanium ?? 0) / 100.0) * numMines) / 10.0) * mineOutput
+		ironium: (((planet.mineralConcentration?.ironium ?? 0) * numMines) / 1000.0) * mineOutput,
+		boranium: (((planet.mineralConcentration?.boranium ?? 0) * numMines) / 1000.0) * mineOutput,
+		germanium: (((planet.mineralConcentration?.germanium ?? 0) * numMines) / 1000.0) * mineOutput
 	};
 }
 
 // planetsSortBy returns a sortBy function for planets by key. This is used by the planets report page
 // and sorting when cycling through Planets
-export function planetsSortBy(
-	key: string
-): ((a: Planet | PlanetIntel, b: Planet | PlanetIntel) => number) | undefined {
+export function planetsSortBy(key: string): ((a: AnyPlanet, b: AnyPlanet) => number) | undefined {
 	switch (key) {
 		case 'name':
 			return (a, b) => a.name.localeCompare(b.name);
@@ -642,11 +392,11 @@ export function planetsSortBy(
 			return (a, b) =>
 				(a.spec.starbaseDesignName ?? '').localeCompare(b.spec.starbaseDesignName ?? '');
 		case 'population':
-			return (a, b) => (a.spec.population ?? 0) - (b.spec.population ?? 0);
+			return (a, b) => (population(a.cargo) ?? 0) - (population(b.cargo) ?? 0);
 		case 'populationDensity':
 			return (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0);
 		case 'populationGrowth':
-			return (a, b) => (a.spec.growthAmount ?? 0) - (b.spec.growthAmount ?? 0);
+			return (a, b) => getGrowth(a) - getGrowth(b);
 		case 'habitability':
 			return (a, b) => (a.spec.habitability ?? 0) - (b.spec.habitability ?? 0);
 		case 'mines':

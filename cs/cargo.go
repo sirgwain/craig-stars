@@ -6,11 +6,38 @@ import (
 )
 
 // Cargo represents minerals and colonists that are in cargo holds, salvage, mineral packets, or on planets.
+// 1 kT of Cargo respresents 1 unit of minerals or 100 colonists.
 type Cargo struct {
 	Ironium   int `json:"ironium,omitempty"`
 	Boranium  int `json:"boranium,omitempty"`
 	Germanium int `json:"germanium,omitempty"`
 	Colonists int `json:"colonists,omitempty"`
+}
+
+// Create a new Cargo struct from a Mineral struct and population amount.
+// Assumes pop is already in kT.
+func NewCargoFromMineral(mineral Mineral, pop int) Cargo {
+	return Cargo{
+		Ironium:   mineral.Ironium,
+		Boranium:  mineral.Ironium,
+		Germanium: mineral.Ironium,
+		Colonists: pop,
+	}
+}
+
+func NewCargoFromType(cargoType CargoType, amt int) Cargo {
+	c := Cargo{}
+	switch cargoType {
+	case Ironium:
+		c.Ironium = amt
+	case Boranium:
+		c.Boranium = amt
+	case Germanium:
+		c.Germanium = amt
+	case Colonists:
+		c.Colonists = amt
+	}
+	return c
 }
 
 type CargoType = ResourceType
@@ -20,15 +47,6 @@ var CargoTypes = [4]CargoType{
 	Boranium,
 	Germanium,
 	Colonists,
-}
-
-func NewCargoFromMineralsAndPop(mineral Mineral, pop int) Cargo {
-	return Cargo{
-		Ironium:   mineral.Ironium,
-		Boranium:  mineral.Boranium,
-		Germanium: mineral.Germanium,
-		Colonists: pop / 100,
-	}
 }
 
 func (c CargoType) String() string {
@@ -73,10 +91,10 @@ func (c Cargo) HasMinerals() bool {
 // return this cargo with a minimum of zero for each value
 func (c Cargo) MinZero() Cargo {
 	return Cargo{
-		Ironium:   Max(c.Ironium, 0),
-		Boranium:  Max(c.Boranium, 0),
-		Germanium: Max(c.Germanium, 0),
-		Colonists: Max(c.Colonists, 0),
+		Ironium:   max(c.Ironium, 0),
+		Boranium:  max(c.Boranium, 0),
+		Germanium: max(c.Germanium, 0),
+		Colonists: max(c.Colonists, 0),
 	}
 }
 
@@ -98,24 +116,6 @@ func (c Cargo) Add(other Cargo) Cargo {
 	}
 }
 
-func (c Cargo) Subtract(other Cargo) Cargo {
-	return Cargo{
-		Ironium:   c.Ironium - other.Ironium,
-		Boranium:  c.Boranium - other.Boranium,
-		Germanium: c.Germanium - other.Germanium,
-		Colonists: c.Colonists - other.Colonists,
-	}
-}
-
-func (c Cargo) Multiply(product float64) Cargo {
-	return Cargo{
-		int(float64(c.Ironium) * product),
-		int(float64(c.Boranium) * product),
-		int(float64(c.Germanium) * product),
-		int(float64(c.Colonists) * product),
-	}
-}
-
 func (c Cargo) AddMineral(other Mineral) Cargo {
 	return Cargo{
 		Ironium:   c.Ironium + other.Ironium,
@@ -131,6 +131,24 @@ func (c Cargo) AddCostMinerals(other Cost) Cargo {
 		Boranium:  c.Boranium + other.Boranium,
 		Germanium: c.Germanium + other.Germanium,
 		Colonists: c.Colonists,
+	}
+}
+
+func (c Cargo) Subtract(other Cargo) Cargo {
+	return Cargo{
+		Ironium:   c.Ironium - other.Ironium,
+		Boranium:  c.Boranium - other.Boranium,
+		Germanium: c.Germanium - other.Germanium,
+		Colonists: c.Colonists - other.Colonists,
+	}
+}
+
+func (c Cargo) Multiply(product float64) Cargo {
+	return Cargo{
+		int(float64(c.Ironium) * product),
+		int(float64(c.Boranium) * product),
+		int(float64(c.Germanium) * product),
+		int(float64(c.Colonists) * product),
 	}
 }
 
@@ -236,6 +254,7 @@ func (c Cargo) WithCargo(t CargoType, amount int) Cargo {
 	return c
 }
 
+// TODO: Remove this in favor of simple assignment (this just seems dumb lol)
 func (c Cargo) WithPopulation(amount int) Cargo {
 	c.Colonists = amount / 100
 	return c
@@ -256,4 +275,11 @@ func (c Cargo) GreatestMineralType() CargoType {
 	}
 
 	return None
+}
+
+// Set the mineral portion of a Cargo, leaving population unaffected.
+func (c *Cargo) SetMineral(d Mineral) {
+	c.Ironium = d.Ironium
+	c.Boranium = d.Boranium
+	c.Germanium = d.Germanium
 }

@@ -17,7 +17,7 @@ func (v Vector) String() string {
 }
 
 func (v Vector) DistanceSquaredTo(to Vector) float64 {
-	return (v.X-to.X)*(v.X-to.X) + (v.Y-to.Y)*(v.Y-to.Y)
+	return math.Pow(v.X-to.X, 2) + math.Pow(v.Y-to.Y, 2)
 }
 
 func (v Vector) DistanceTo(to Vector) float64 {

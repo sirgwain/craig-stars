@@ -46,7 +46,7 @@
 		"date-fns": "^4.1.0",
 		"eslint": "^9.16.0",
 		"eslint-config-prettier": "^9.1.0",
-		"eslint-plugin-svelte": "^2.46.0",
+		"eslint-plugin-svelte": "^3.1.0",
 		"globals": "^15.0.0",
 		"hotkeys-js": "^3.13.7",
 		"jsdom": "^25.0.1",

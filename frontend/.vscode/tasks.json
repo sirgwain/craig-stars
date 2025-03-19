@@ -10,7 +10,7 @@
 			"label": "Vitest: run tests",
 			"type": "shell",
 			"command": "mage",
-			"args": ["test_vitest, ${input:vitestArgs}"],
+			"args": ["test_vitest", "${input:vitestArgs}"],
 			"group": "test",
 			"icon": {
 				"color": "terminal.ansiGreen",

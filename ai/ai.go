@@ -26,7 +26,6 @@ type aiPlayer struct {
 	fleetsByPurpose        map[cs.FleetPurpose]fleet
 	targetedPlanets        map[int][]*cs.FleetIntel
 
-	warshipCount warshipCount
 	// @sirgwain Do we _really_ need these extra variables? We already have a designsByPurpose map
 	fuelDepotDesign       *cs.ShipDesign
 	fortDesign            *cs.ShipDesign
@@ -64,12 +63,6 @@ type playerConfig struct {
 	researchOrder           []cs.TechLevel
 }
 
-type warshipCount struct {
-	bombers        int
-	warships       int
-	fuelTransports int
-}
-
 // each AI has a personality that influences decisions; currently WIP
 type Personality string
 
@@ -91,6 +84,17 @@ const (
 	Exterminate Stage = "Exterminate"
 )
 
+type warshipCount struct {
+	bombers        int
+	warships       int
+	fuelTransports int
+}
+
+type aiCutoffsByStartMode struct {
+	attackYear  map[cs.GameStartMode]int // min year to start attacking
+	mineralYear map[cs.GameStartMode]int // min year to care about minerals
+}
+
 // TODO: Make these cutoffs dynamic and configurable on a per-race basis
 var defaultCutoffs = aiCutoffsByStartMode{
 	attackYear: map[cs.GameStartMode]int{
@@ -103,11 +107,6 @@ var defaultCutoffs = aiCutoffsByStartMode{
 		cs.GameStartModeAccBBS: 50,
 		cs.GameStartModeMax:    0,
 	},
-}
-
-type aiCutoffsByStartMode struct {
-	attackYear  map[cs.GameStartMode]int // min year to start attacking
-	mineralYear map[cs.GameStartMode]int // min year to care about minerals
 }
 
 // Create a new AI player
@@ -405,13 +404,13 @@ func (ai *aiPlayer) getWarshipCount() (warshipQty warshipCount) {
 		warshipQty.warships = 60
 	default: // 2475+ non-BBS; 2470+ acc-BBS
 		warshipQty.bombers = 40
-		warshipQty.warships = cs.Min((yearsAfterStart/5)*6, 150)
+		warshipQty.warships = min((yearsAfterStart/5)*6, 150)
 	}
 
 	// only add on fuel transports if we have them and they can repair our fleets
 	if ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter] != nil &&
 		ai.designsByPurpose[cs.ShipDesignPurposeFuelFreighter].Spec.RepairBonus > 0 {
-		warshipQty.fuelTransports = cs.Min((warshipQty.bombers+warshipQty.warships)/5, 25)
+		warshipQty.fuelTransports = min((warshipQty.bombers+warshipQty.warships)/5, 25)
 	}
 
 	return warshipQty

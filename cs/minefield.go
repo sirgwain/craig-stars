@@ -123,10 +123,10 @@ func (mineField *MineField) getDecayRate(rules *Rules, player *Player, numPlanet
 	// Space Demolition mines decay slower
 	decayFactor := player.Race.Spec.MineFieldMinDecayFactor
 	decayRate *= decayFactor
-	decayRate = math.Min(decayRate, player.Race.Spec.MineFieldMaxDecayRate)
+	decayRate = min(decayRate, player.Race.Spec.MineFieldMaxDecayRate)
 
 	// we decay at least 10 mines a year for normal and standard mines
-	decayedMines := Max(rules.MineFieldStatsByType[mineField.MineFieldType].MinDecay, int(float64(mineField.NumMines)*decayRate+0.5))
+	decayedMines := max(rules.MineFieldStatsByType[mineField.MineFieldType].MinDecay, int(float64(mineField.NumMines)*decayRate+0.5))
 	return decayedMines
 }
 
@@ -234,8 +234,8 @@ func (mineField *MineField) sweep(rules *Rules, fleetPosition Vector, mineSweep 
 	sweepableMines := mineField.NumMines - int(math.Ceil((radius-distFromEdge)*(radius-distFromEdge)))
 
 	old := mineField.NumMines
-	mineField.NumMines -= Min(sweepableMines, int(float64(mineSweep)*rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor))
-	mineField.NumMines = Max(mineField.NumMines, 0)
+	mineField.NumMines -= min(sweepableMines, int(float64(mineSweep)*rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor))
+	mineField.NumMines = max(mineField.NumMines, 0)
 
 	numSwept := old - mineField.NumMines
 	return numSwept
@@ -276,7 +276,7 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 				// figure out what that is in lightYears
 				// if we are travelling 32 light years and 3/4 of it is through the minefield, we need to check
 				// for collision 24 times
-				lightYearsInField := int(math.Min(float64(mineField.Spec.Radius), math.Ceil(float64((1-collision)*distance))))
+				lightYearsInField := int(min(float64(mineField.Spec.Radius), math.Ceil(float64((1-collision)*distance))))
 				lightYearsBeforeField := collision * distance
 
 				// Each type of minefield has a chance to hit based on how fast
@@ -308,7 +308,7 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 func (mineField *MineField) moveTowardsMineLayer(position Vector, minesLaid int) {
 	totalDist := position.DistanceTo(mineField.Position)
 
-	moveTowardsFactor := math.Min(1, float64(minesLaid)/float64(mineField.NumMines))
+	moveTowardsFactor := min(1, float64(minesLaid)/float64(mineField.NumMines))
 	heading := position.Subtract(mineField.Position).Normalized()
 
 	// move the minefield towards the fleet

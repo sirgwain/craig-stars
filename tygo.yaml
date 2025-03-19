@@ -1,6 +1,7 @@
 packages:
   - path: "github.com/sirgwain/craig-stars/cs"
     output_path: "./frontend/src/lib/types/cs.ts"
+    indent: "\t"
     type_mappings:
       time.Time: "string /* RFC3339 */"
       math.MaxInt32: "2147483647 /* math.MaxInt32 */"

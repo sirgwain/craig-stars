@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math"
 	"regexp"
 	"strconv"
 	"time"
@@ -670,7 +669,7 @@ func (gr *gameRunner) AddGuestPlayer(game *cs.GameWithPlayers) (*cs.Player, erro
 			return nil, err
 		}
 		// make sure our guestNumber is larger than the highest guestNum
-		guestNumber = int(math.Max(float64(userGuestNumber+1), float64(guestNumber)))
+		guestNumber = int(max(float64(userGuestNumber+1), float64(guestNumber)))
 	}
 
 	if err := gr.dbConn.WrapInTransaction(func(c db.Client) error {

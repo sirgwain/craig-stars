@@ -24,6 +24,7 @@ type Rules struct {
 	InvasionDefenseCoverageFactor      float64                             `json:"invasionDefenseCoverageFactor"`
 	LRTSpecs                           map[LRT]LRTSpec                     `json:"lrtSpecs"`
 	MaxPopulation                      int                                 `json:"maxPopulation"`
+	MinPopFloor                        int                                 `json:"minPopFloor"`
 	MaxTechLevel                       int                                 `json:"maxTechLevel"`
 	MineFieldCloak                     int                                 `json:"mineFieldCloak"`
 	MineFieldStatsByType               map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
@@ -87,7 +88,7 @@ type UniverseGenerationRules struct {
 	MinMineralConcentration                   int                           `json:"minMineralConcentration"`
 	MinStartingMineralConcentration           int                           `json:"minStartingMineralConcentration"`
 	MinStartingMineralSurface                 int                           `json:"minStartingMineralSurface"`
-	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem"` // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT
+	RaceLeftoverPointsPerItem                 map[SpendLeftoverPointsOn]int `json:"raceLeftoverPointsPerItem"` // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT/point
 	StartingYear                              int                           `json:"startingYear"`
 	WormholeMinPlanetDistance                 int                           `json:"wormholeMinPlanetDistance"`
 }
@@ -103,6 +104,7 @@ type CostRules struct {
 	TechBaseCost                   []int   `json:"techBaseCost"`
 }
 
+// A slightly fancier map[bool]float64 that can be serialized to JSON
 type JammerCap struct {
 	Ship     float64
 	Starbase float64
@@ -228,6 +230,9 @@ func NewRules() Rules {
 func NewRulesWithSeed(seed int64) Rules {
 	random := rand.New(rand.NewSource(seed))
 
+	// @sirgwain: We should consider moving these comments to the corresponding
+	// struct field definitions for editor syntax highlighting
+	// (also just more comments never hurts)
 	return Rules{
 		random: random,
 		CostRules: CostRules{
@@ -246,7 +251,7 @@ func NewRulesWithSeed(seed int64) Rules {
 				Resources: 100,
 			},
 			StarbaseComponentCostReduction: 0.5, // 50% discount on non-orbital components
-			StarbaseHullRefundFactor:       0.5, // 50% of the old base's cost goes towards the new base
+			StarbaseHullRefundFactor:       0.5, // 50% of the old base's hull cost goes towards the new base
 			TechBaseCost: []int{
 				0,
 				50,
@@ -284,28 +289,28 @@ func NewRulesWithSeed(seed int64) Rules {
 			},
 		},
 		BattleRules: BattleRules{
-			BeamRangeDropoff: 0.1,
-			BeamBonusCap:     2.55, // 2.55x damage max from caps
+			BeamRangeDropoff: 0.1,  // 10% pro-rated damage penalty
+			BeamBonusCap:     2.55, // 2.55x damage max from beam capacitors
 			JammerCap: JammerCap{
-				Starbase: 1,    // starbases have 100 jamming max, but an innate 0.75x jam penalty
-				Ship:     0.95, // ships have 95% jamming max
+				Starbase: 1,    // starbases have no explicit jamming hardcap, but an innate 0.75x jamming multi
+				Ship:     0.95, // ships hardcap at 95% jamming
 			},
 			JammerMulti: JammerCap{
-				Starbase: 0.75, // starbases have innate 0.75x jam penalty by default
-				Ship:     1,    // ships have no penalty
+				Starbase: 0.75, // starbases have innate 0.75x jamming multipler by default
+				Ship:     1,    // ships have no innate jamming multipler
 			},
-			MovementMin:         2,
-			MovementMax:         10,
+			MovementMin:         2,  // minimum of 2 battle board movement (1, 0, 1, 0...)
+			MovementMax:         10, // minimum of 10 battle board movement (3, 2, 3, 2...)
 			MovesToRunAway:      7,
 			NumBattleRounds:     16,
 			TorpedoSplashDamage: 0.125,
 		},
 		UniverseGenerationRules: UniverseGenerationRules{
 			// The first 9 Grav/Temp hab values from either edge (1-9 & 91-99) are linearly less likely to generate.
-			// More specifically, a hab value N clicks away from the edge with dropoff range of H
+			// More specifically, a hab value N clicks away from MinHab/MaxHab with dropoff range of H
 			// becomes (N+1/H+1)x as likely as a normal mid-value hab
-			// Ex: 6 temp is 5 clicks away from min (1) and is thus 6/10x as likely to gen;
-			// 99 temp is 0 away and is thus 1/10x as likely.
+			// Ex: 6 temp is 5 clicks away from min (1) and is thus 6/10x as likely to generate;
+			// 99 temp is 1 click away from max (100) and is thus 1/10x as likely.
 			HabDropoffRange: Hab{
 				Grav: 9,
 				Temp: 9,
@@ -329,8 +334,8 @@ func NewRulesWithSeed(seed int64) Rules {
 				SpendLeftoverPointsOnMines:                 2,
 				SpendLeftoverPointsOnFactories:             5,
 				SpendLeftoverPointsOnDefenses:              10,
-				SpendLeftoverPointsOnMineralConcentrations: 3,
-				SpendLeftoverPointsOnSurfaceMinerals:       10, // special case; denotes minerals per point
+				SpendLeftoverPointsOnMineralConcentrations: 2,  // Due to some high level source code chicanery
+				SpendLeftoverPointsOnSurfaceMinerals:       10, // special case; denotes kT/point
 			},
 			StartingYear:              2400,
 			WormholeMinPlanetDistance: 30,
@@ -338,26 +343,27 @@ func NewRulesWithSeed(seed int64) Rules {
 		// TODO: Change tachyon cloak reduction to a property of the technology itself
 		TachyonCloakReduction:              .05, // 5% diminishing cloak reduction per detector
 		TachyonMaxCloakReduction:           .81, // tachyon detectors cap at 81% cloaking reduction
-		MaxPopulation:                      1000000,
-		MinHabFloor:                        5,   // minimum of 5% max pop for new races
-		PopulationOvercrowdDieoffRate:      .04, // overcrowded pops die off at 4% per doubling
-		PopulationOvercrowdDieoffRateMax:   .12, // overcrowded pops will not die off more than 12% (3x pop) in a year
-		PopulationOvercrowdResourcePenalty: 0.5, // Overcrowded pop produce resources at 50% efficiency
-		PopulationOvercrowdResourceMax:     1,   // Maximum 100% extra resources from pop
-		PopulationScannerError:             0.2,
-		SmartDefenseCoverageFactor:         0.5,
-		InvasionDefenseCoverageFactor:      0.75,
+		MaxPopulation:                      1_000_000,
+		MinPopFloor:                        100,  // low value planets cannot fall below 100 pop from natural growth
+		MinHabFloor:                        5,    // minimum of 5% effective habitability for inhabited planet productivity/maxpop
+		PopulationOvercrowdDieoffRate:      .04,  // overcrowded pops die off at 4% per 100% over cap
+		PopulationOvercrowdDieoffRateMax:   .12,  // overcrowded pops will not die off more than 12% (400% capacity) per year
+		PopulationOvercrowdResourcePenalty: 0.5,  // overcrowded pop produce resources at 50% efficiency
+		PopulationOvercrowdResourceMax:     1,    // maximum 100% extra resources from overcrowded pop
+		PopulationScannerError:             0.2,  // opponents' scanners have ±20% error on pop readings
+		SmartDefenseCoverageFactor:         0.5,  // smart bombs penetrate 50% enemy defenses
+		InvasionDefenseCoverageFactor:      0.75, // invasions penetrate 25% enemy defenses
 		SalvageDecayRate:                   0.1,
 		SalvageDecayMin:                    10,
 		MineFieldCloak:                     75,
-		StargateMaxRangeFactor:             5,
-		StargateMaxHullMassFactor:          5,
+		StargateMaxRangeFactor:             5,  // ships can only gate up to 5x gate safe range
+		StargateMaxHullMassFactor:          5,  // ships can only gate up to 5x gate safe mass
 		TechTradeChance:                    .5, // 50% chance of tech trading per level
 		FleetSafeSpeedExplosionChance:      .1, // 10% chance of losing a ship
-		// TODO: Make this part of the TechHullComponent
-		RadiatingImmune: 85, // hab center of > 85 are immune to radating damage
+		// TODO: Make this a property of the TechHullComponent
+		RadiatingImmune: 85, // hab center of >= 85 are immune to radating damage
 		RandomEventChances: map[RandomEvent]float64{
-			RandomEventComet:           .05, // 1 in 20 chance of a planet being struck by a comet in a given turn
+			RandomEventComet:           .05, // 5% chance of a planet being struck by a comet in a given turn
 			RandomEventMineralDeposit:  .05,
 			RandomEventPlanetaryChange: .05,
 			RandomEventAncientArtifact: 1.0 / 3, // 1 in 3 planets have random artifacts

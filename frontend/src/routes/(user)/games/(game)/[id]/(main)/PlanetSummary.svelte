@@ -15,6 +15,7 @@
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
+	import { population } from '$lib/types/Cargo';
 
 	const { player, universe } = getGameContext();
 
@@ -117,8 +118,8 @@
 						: ''}</span
 				>
 			</div>
-			{#if planet?.spec.population}
-				<div>Population: {planet.spec.population.toLocaleString()}</div>
+			{#if population(planet.cargo)}
+				<div>Population: {population(planet.cargo).toLocaleString()}</div>
 			{/if}
 		</div>
 		<div class="flex justify-between">

@@ -153,7 +153,7 @@ type productionResult struct {
 	scanner           bool
 	reset             bool
 	starbase          *ShipDesign
-	alchemy           Mineral
+	alchemy           int
 	mines             int
 	factories         int
 	defenses          int
@@ -193,7 +193,7 @@ func (p *producer) produce() (productionResult, error) {
 			return productionResult{}, err
 		}
 
-		maxBuildable := planet.maxBuildable(p.player, item.Type)
+		maxBuildable := planet.MaxBuildable(p.player, item.Type)
 		// Infinite is the constant int of -1, but for our purposes we want a very large number
 		if maxBuildable == Infinite {
 			maxBuildable = math.MaxInt
@@ -242,7 +242,7 @@ func (p *producer) produce() (productionResult, error) {
 			p.updateProductionResult(item, numBuilt, cost, &result)
 
 			// if we built mineral alchemy, add it back in to our available amount
-			available = available.Add(result.alchemy.ToCost())
+			available = available.AddToAllMineral(result.alchemy)
 
 			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: numBuilt})
 
@@ -369,23 +369,23 @@ func (p *producer) getItemCost(rules *Rules, player *Player, planet *Planet, ite
 func (p *producer) allocatePartialBuild(costPerItem Cost, allocated Cost) Cost {
 	ironiumPerc := 1.0
 	if costPerItem.Ironium > 0 {
-		ironiumPerc = math.Min(1, float64(allocated.Ironium)/float64(costPerItem.Ironium))
+		ironiumPerc = min(1, float64(allocated.Ironium)/float64(costPerItem.Ironium))
 	}
 	boraniumPerc := 1.0
 	if costPerItem.Boranium > 0 {
-		boraniumPerc = math.Min(1, float64(allocated.Boranium)/float64(costPerItem.Boranium))
+		boraniumPerc = min(1, float64(allocated.Boranium)/float64(costPerItem.Boranium))
 	}
 	germaniumPerc := 1.0
 	if costPerItem.Germanium > 0 {
-		germaniumPerc = math.Min(1, float64(allocated.Germanium)/float64(costPerItem.Germanium))
+		germaniumPerc = min(1, float64(allocated.Germanium)/float64(costPerItem.Germanium))
 	}
 	resourcesPerc := 1.0
 	if costPerItem.Resources > 0 {
-		resourcesPerc = math.Min(1, float64(allocated.Resources)/float64(costPerItem.Resources))
+		resourcesPerc = min(1, float64(allocated.Resources)/float64(costPerItem.Resources))
 	}
 
 	// figure out the lowest percentage
-	minPerc := Min(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
+	minPerc := min(ironiumPerc, boraniumPerc, germaniumPerc, resourcesPerc)
 
 	// allocate the lowest percentage of each cost
 	newAllocated := Cost{
@@ -452,13 +452,13 @@ func (p *producer) getNumBuilt(item ProductionQueueItem, cost, availableToSpend 
 	item.Allocated = Cost{}
 
 	if cost == (Cost{}) {
-		return Min(item.Quantity, maxBuildable), Cost{}
+		return min(item.Quantity, maxBuildable), Cost{}
 	}
 
 	// figure out how many we can build;
 	// make sure we only build up to the quantity required
 	// and we don't build more than the planet supports
-	numBuilt = Max(0, Min(item.Quantity, maxBuildable,
+	numBuilt = max(0, min(item.Quantity, maxBuildable,
 		int(availableToSpend.DivideCost(cost))))
 	spent = MultiplyCost(cost, numBuilt)
 
@@ -469,11 +469,7 @@ func (p *producer) getNumBuilt(item ProductionQueueItem, cost, availableToSpend 
 func (p *producer) updateProductionResult(item ProductionQueueItem, numBuilt int, cost Cost, result *productionResult) {
 	switch item.Type {
 	case QueueItemTypeAutoMineralAlchemy, QueueItemTypeMineralAlchemy:
-		result.alchemy = Mineral{
-			numBuilt,
-			numBuilt,
-			numBuilt,
-		}
+		result.alchemy += numBuilt
 	case QueueItemTypeAutoMines, QueueItemTypeMine:
 		result.mines += numBuilt
 	case QueueItemTypeAutoFactories, QueueItemTypeFactory:

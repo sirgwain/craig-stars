@@ -103,18 +103,18 @@ func (ai *aiPlayer) transportColonists() error {
 				if orbiting != nil {
 					// don't load more than 25% of the target planet
 					// it will grow slower after 25%
-					colonistsToLoad := cs.Min(int(float64(planet.Spec.MaxPopulation)*ai.config.colonistTransportDensity), fleet.Spec.CargoCapacity)
+					colonistsToLoad := min(int(float64(planet.Spec.MaxPopulation)*ai.config.colonistTransportDensity), fleet.Spec.CargoCapacity)
 
-					// load colonists but only if taking  these colonists doesn't reduce our pop too much
+					// load colonists but only if taking these colonists doesn't reduce our pop too much
 					// take into account how much we're going to grow
 					orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
-					growth := orbiting.Spec.GrowthAmount
-					newDensity := float64(((orbiting.Cargo.Colonists-colonistsToLoad)*100)+growth) / float64(orbiting.Spec.MaxPopulation)
+					popNextYear := orbiting.PopNextYear()
+					newDensity := float64(popNextYear-colonistsToLoad*100) / float64(orbiting.Spec.MaxPopulation)
 					if newDensity < ai.config.colonistTransportDensity {
 						ai.log.Debug().
 							Int64("GameID", ai.GameID).
 							Int("PlayerNum", ai.Num).
-							Int("ColonistsAvailable", orbiting.Cargo.Colonists*100).
+							Int("ColonistsAvailable", popNextYear).
 							Int("ColonistsNeeded", colonistsToLoad*100).
 							Int("DensityAfterLoad", int(newDensity)).
 							Msgf("Fleet %s cannot load colonists from %s", fleet.Name, orbiting.Name)
@@ -123,7 +123,7 @@ func (ai *aiPlayer) transportColonists() error {
 					}
 					if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}, ai.Planets); err != nil {
 						// something went wrong, skip this planet
-						ai.log.Error().Err(err).Msg("transferring colonists from planet, skipping")
+						ai.log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
 						continue
 					}
 				}
@@ -142,7 +142,7 @@ func (ai *aiPlayer) transportColonists() error {
 			ai.log.Debug().
 				Int64("GameID", ai.GameID).
 				Int("PlayerNum", ai.Num).
-				Msgf("%s transporting %d colonists to %s", fleet.Name, fleet.Cargo.Colonists*100, planet.Name)
+				Msgf("fleet %s transporting %d colonists to %s", fleet.Name, fleet.Cargo.Colonists*100, planet.Name)
 
 		}
 		if len(needersByNum) == 0 {
@@ -158,6 +158,7 @@ func (ai *aiPlayer) transportColonists() error {
 	return nil
 }
 
+// TODO: implement this
 func (ai *aiPlayer) loadColonistsAndTarget(fleet *cs.Fleet, planet *cs.Planet) error {
 
 	return nil
