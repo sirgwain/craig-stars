@@ -9,7 +9,10 @@ import (
 // This is used by planetary production and estimating production queue completion
 type CostCalculator interface {
 	StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design, newDesign *ShipDesign) (Cost, error)
-	CostOfOne(player *Player, item ProductionQueueItem) (Cost, error)
+	// Get the cost of a given ProductionQueueItem for a player depending on its QueueItemType.
+	//
+	// Calls different functions depending on item's QueueItemType.
+	GetItemCost(rules *Rules, player *Player, planet *Planet, item ProductionQueueItem) (Cost, error)
 	GetDesignCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (Cost, error)
 	GetTechCost(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, tech Tech) Cost
 }
@@ -18,8 +21,7 @@ func NewCostCalculator() CostCalculator {
 	return &costCalculate{}
 }
 
-type costCalculate struct {
-}
+type costCalculate struct{}
 
 // Returns the cost efficiency ratio for 2 Cost structs as a float64
 // by dividing their respective total costs
@@ -246,16 +248,31 @@ func (c *costCalculate) StarbaseUpgradeCost(rules *Rules, techLevels TechLevel, 
 	return MultiplyCost(cost.Max(minCost), raceSpec.StarbaseCostFactor).Round(math.Ceil).ToCost().MinZero(), nil
 }
 
-// Get the cost of one item in a production queue, for a player
-func (c *costCalculate) CostOfOne(player *Player, item ProductionQueueItem) (Cost, error) {
-	cost := player.Race.Spec.Costs[item.Type]
-	if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
-		if item.design != nil {
-			cost = item.design.Spec.Cost // should never happen since it isn't called for designs
-		} else {
-			return Cost{}, fmt.Errorf("ship design #%d not populated in production queue during CostOfOne", item.DesignNum)
+// Get the cost of a given ProductionQueueItem for a player depending on its QueueItemType.
+func (costCalculator *costCalculate) GetItemCost(rules *Rules, player *Player, planet *Planet, item ProductionQueueItem) (cost Cost, err error) {
+	if item.Type != QueueItemTypeStarbase && item.Type != QueueItemTypeShipToken {
+		// not a starbase or ship; just return the cost from lookup map
+		return player.Race.Spec.Costs[item.Type], nil
+	}
+
+	if item.design == nil {
+		return Cost{}, fmt.Errorf("ship design #%d not populated in production queue during CostOfOne", item.DesignNum)
+	}
+
+	if item.Type == QueueItemTypeStarbase && planet.Spec.HasStarbase {
+		// upgrade existing starbase
+		cost, err = costCalculator.StarbaseUpgradeCost(rules, player.TechLevels, player.Race.Spec, planet.Starbase.Tokens[0].design, item.design)
+		if err != nil {
+			return Cost{}, fmt.Errorf("failed to compute starbase upgrade cost: %w", err)
+		}
+	} else {
+		// make new ship/starbase
+		cost, err = costCalculator.GetDesignCost(rules, player.TechLevels, player.Race.Spec, item.design)
+		if err != nil {
+			return Cost{}, fmt.Errorf("failed to get design cost: %w", err)
 		}
 	}
+
 	return cost, nil
 }
 

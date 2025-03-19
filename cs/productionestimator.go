@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/rs/zerolog/log"
@@ -8,146 +9,153 @@ import (
 
 // The CompletionEstimator is used for populating completion estimates in a planet's production queue
 type CompletionEstimator interface {
-	// get the estimated years to build one item with minerals on hand and some yearly mineral/resource output
-	GetYearsToBuildOne(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int
+	// Get the estimated years to build a given ProductionQueueItem given some amount of
+	// minerals on hand and yearly mineral/resource output
+	GetYearsToBuild(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int
 
-	// get a ProductionQueue with estimates filled in
+	// GetProductionWithEstimates populates a planet's production queue with estimates
+	// for how long each item will take.
+	// It simulates up to 10 years of growth, mining & production,
+	// recording the first and last time each item was completed.
+	//
+	// It returns the new updated queue, an amount of leftover resources, and any error encountered.
+	// An unsuccessful run will return nil, 0, err.
 	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) ([]ProductionQueueItem, int, error)
 }
 
-type completionEstimate struct {
-}
+type completionEstimate struct{}
 
 func NewCompletionEstimator() CompletionEstimator {
 	return &completionEstimate{}
 }
 
-// get the estimated years to build one item
-func (e *completionEstimate) GetYearsToBuildOne(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int {
-	numBuiltInAYear := yearlyAvailableToSpend.ToCostFloat64().DivideCost(
-		cost.Subtract(item.Allocated).SubtractMineral(mineralsOnHand).MinZero().ToCostFloat64())
-	if numBuiltInAYear == 0 || math.IsInf(numBuiltInAYear, 1) {
+// get the estimated years to build a ProductionQueueItem, rounded up to the nearest whole number.
+func (e *completionEstimate) GetYearsToBuild(item ProductionQueueItem, costPerItem Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int {
+	costPerItem = costPerItem.Subtract(item.Allocated).SubtractMineral(mineralsOnHand).MinZero()
+	numBuiltPerYear := yearlyAvailableToSpend.DivideCost(costPerItem)
+	if numBuiltPerYear <= 0 {
 		return Infinite
+	} else if math.IsInf(numBuiltPerYear, 0) {
+		return 0
 	}
-	return int(math.Ceil(1 / numBuiltInAYear))
+	return int(math.Ceil(float64(item.Quantity) / numBuiltPerYear))
 }
 
-// simulate up to 100 years of production to determine the time each item will take to build
-// this function will take a copy of the planet and do the following:
-// * clone the production queue
-// * add an index to each production queue item so we can track it in the produce() result
-// * default each item to never being completed
-// * simulate 100 years of growth
-//   - mine for resources
-//   - run production (including terraforming the planet, building mines and factories, etc)
-//   - grow pop on the planet
+// Simulate up to 100 years of growth (including mining & production)
+// on a planet to determine how long each production queue item will take to build.
 //
-// For each year of growth, it checks what was built. If an item was built for the first time
-// it records the year. If the item completed building, it records the last year
-// when all items are complete or 100 years have passed, iit returns
+// After each year of growth, it checks what was built and records the year of the first and
+// last completion.
+// Items not finished within 100 turns are labeled as "never completable".
 func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) (items []ProductionQueueItem, leftoverResourcesForResearch int, err error) {
 
-	// copy the queue so we can update it
-	items = make([]ProductionQueueItem, len(planet.ProductionQueue))
-	copy(items, planet.ProductionQueue)
-
-	if len(items) == 0 {
-		return items, planet.Spec.ResourcesPerYear, nil
+	if len(planet.ProductionQueue) == 0 {
+		// no queue makes our job quite easy
+		return planet.ProductionQueue, planet.Spec.ResourcesPerYear, nil
 	}
 
-	// reset any estimates
-	for i := range items {
+	// reset any prior estimates and add indices to queue items
+	for i := range planet.ProductionQueue {
 		planet.ProductionQueue[i].index = i
-		item := &items[i]
-		item.QueueItemCompletionEstimate = QueueItemCompletionEstimate{
+		planet.ProductionQueue[i].QueueItemCompletionEstimate = QueueItemCompletionEstimate{
 			YearsToBuildOne: Infinite,
 			YearsToBuildAll: Infinite,
 			YearsToSkipAuto: Infinite,
 		}
 	}
 
-	// keep track of items built so we know how many auto items are completed
-	numBuilt := make([]int, len(planet.ProductionQueue))
+	// copy the queue so we can update it
+	items = make([]ProductionQueueItem, len(planet.ProductionQueue))
+	copy(items, planet.ProductionQueue)
+
+	numBuilt := make([]int, len(planet.ProductionQueue)) // slice tracking items built for each production queue item
 	producer := newProducer(log.Logger, rules, &planet, player)
 	for year := 1; year <= 100; year++ {
 		// mine for minerals
 		planet.mine(rules, planet.Spec.MiningOutput, min(planet.Mines, planet.Spec.MaxPossibleMines))
-		// remote mine for AR
-		//remoteMine()
+		// TODO: Simulate AR remote mining (perhaps with a slice of mining rates passed down by the caller)
 
 		// build!
 		result, err := producer.produce()
 		if err != nil {
-			return nil, 0, err
+			return nil, 0, fmt.Errorf("error while producing items: %w", err)
 		}
 
 		if year == 1 {
 			leftoverResourcesForResearch = result.leftoverResources
 		}
 
+		// check everything built this turn, tacking on estimates if we haven't already done so
 		for _, itemBuilt := range result.itemsBuilt {
 			if itemBuilt.index == -1 {
-				// skip partial auto builds
+				// item is a half-built concrete version of an auto item; skip
 				continue
 			}
+
 			item := &items[itemBuilt.index]
 			maxBuildable := planet.MaxBuildable(player, item.Type)
 
-			// this will be skipped if we've hit the max allowed
-			if itemBuilt.skipped {
-				if year == 1 && maxBuildable == 0 {
-					item.Skipped = true
-					item.YearsToSkipAuto = 1
-				} else {
-					if item.YearsToSkipAuto == Infinite {
-						item.YearsToSkipAuto = year
-					}
-				}
+			// auto items will be skipped if we've hit the max allowed
+			if itemBuilt.skipped && item.YearsToSkipAuto == Infinite {
+				item.YearsToSkipAuto = year
 				continue
 			}
 
-			// this item will never complete
-			if itemBuilt.never {
+			// log any invalid items getting canceled & removed from the queue
+			if itemBuilt.canceled {
+				item.Canceled = true
 				continue
 			}
-			numBuiltSoFar := numBuilt[itemBuilt.index] + itemBuilt.numBuilt
-			numBuilt[itemBuilt.index] = numBuiltSoFar
 
-			// see if we already recorded when the first item was built
-			first := item.YearsToBuildOne
-			if first == Infinite {
-				// we built one, update the years to build one
+			numBuilt[itemBuilt.index] += itemBuilt.numBuilt
+
+			// record the year the first item was built (if not done beforehand)
+			if item.YearsToBuildOne == Infinite {
 				item.YearsToBuildOne = year
 			}
 
-			// check if we built the last one of this group
-			// if we've built the item's original quantity, or we've built some and the maxBuildable remaining is 0
-			// we're done
-			last := item.YearsToBuildAll
-			if last == Infinite {
+			// check if we've built the last item in this group
+			if item.YearsToBuildAll == Infinite {
+				var num int
 				if item.Type.IsAuto() {
-					if itemBuilt.numBuilt >= item.Quantity || (maxBuildable != Infinite && itemBuilt.numBuilt >= maxBuildable) {
-						item.YearsToBuildAll = year
-					}
+					// auto items refresh each year, so we check how many
+					// were built this current year
+					num = itemBuilt.numBuilt
 				} else {
-					if numBuiltSoFar >= item.Quantity || (maxBuildable != Infinite && itemBuilt.numBuilt >= maxBuildable) {
-						item.YearsToBuildAll = year
-					}
+					// concrete items retain quantities each year, so we check
+					// the total items built across all years
+					num = numBuilt[itemBuilt.index]
 				}
+				// if we've built up to the item's quantity or
+				// maxBuildable, mark it as done
+				if num >= item.Quantity || (maxBuildable != Infinite && num >= maxBuildable) {
+					item.YearsToBuildAll = year
+				}
+
 			}
 		}
 
 		if result.completed {
-			// we built everything in the queue, no need to loop anymore
+			// we built (or skipped) the last item in the queue; no need to loop anymore
 			break
 		}
 
-		// grow pop
+		// grow pop & compute spec
+		// TODO: Simulate building a starbase for AR players' pop growth
 		planet.grow(player)
 		planet.Spec = computePlanetSpec(rules, player, &planet)
 
-		// colonists died off, no more production
-		if planet.GetPopulation() < 0 {
+		if planet.GetPopulation() <= 0 {
+			// colonists died off completely, which should never happen under normal circumstances
+			log.Warn().
+				Int("Num", planet.Num).
+				Str("Name", planet.Name).
+				Int("PlayerNum", player.Num).
+				Str("PlayerName", player.Race.PluralName).
+				Int("Years Passed", year).
+				Int("Population", planet.exactPopulation()).
+				Msg("Planet population went negative during production estimates")
+
 			break
 		}
 	}

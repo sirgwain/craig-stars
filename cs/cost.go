@@ -107,7 +107,7 @@ func (c cost[T]) GetTypeFromAmount(amt T) CostType {
 	case c.Resources:
 		return Resources
 	}
-	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding costType was found in cost struct; Struct values:\n%#v", amt, c))
+	panic(fmt.Sprintf("GetTypeFromamt called with value %v but no corresponding costType was found in cost struct; Struct values:\n%#v", amt, c))
 }
 
 func (c cost[T]) GetAmount(costType CostType) T {
@@ -170,7 +170,7 @@ func (c cost[T]) ToSlice() [4]T {
 	}
 }
 
-// Convert an integer cost into a floating point cost.
+// convert an integer cost into a costFloat64 struct for use in calculations.
 func (c cost[T]) ToCostFloat64() CostFloat64 {
 	return CostFloat64{
 		Ironium:   float64(c.Ironium),
@@ -180,7 +180,7 @@ func (c cost[T]) ToCostFloat64() CostFloat64 {
 	}
 }
 
-// Convert a floating point cost into an integer cost by truncating its values.
+// Convert a floating point cost into an integer cost, truncating values as appropriate.
 func (c cost[T]) ToCost() Cost {
 	return Cost{
 		Ironium:   int(c.Ironium),
@@ -205,25 +205,7 @@ func (c cost[T]) Add(other cost[T]) cost[T] {
 	}
 }
 
-// Add a number to any singular component of a Cost struct.
-func (c cost[T]) AddNum(costType CostType, amount T) cost[T] {
-	switch costType {
-	case Ironium:
-		c.Ironium += amount
-	case Boranium:
-		c.Boranium += amount
-	case Germanium:
-		c.Germanium += amount
-	case Resources:
-		c.Resources += amount
-	default:
-		panic(fmt.Sprintf("AddNum called with invalid CostType %q", costType))
-	}
-	return c
-}
-
-// Add amt to all components of this Cost struct and return the result.
-// Resources are left unaffected.
+// Add amt to all components of this Cost, returning the updated struct.
 func (c cost[T]) AddToAll(amt T) cost[T] {
 	return cost[T]{
 		Ironium:   c.Ironium + amt,
@@ -231,6 +213,23 @@ func (c cost[T]) AddToAll(amt T) cost[T] {
 		Germanium: c.Germanium + amt,
 		Resources: c.Resources + amt,
 	}
+}
+
+// Add amt to a specified component of this Cost, returning the updated struct.
+func (c cost[T]) AddNum(costType CostType, amt T) cost[T] {
+	switch costType {
+	case Ironium:
+		c.Ironium += amt
+	case Boranium:
+		c.Boranium += amt
+	case Germanium:
+		c.Germanium += amt
+	case Resources:
+		c.Resources += amt
+	default:
+		panic(fmt.Sprintf("AddNum called with invalid CostType %q", costType))
+	}
+	return c
 }
 
 // Add a Mineral to a cost struct and return the result.
@@ -253,6 +252,7 @@ func (c cost[T]) AddToAllMineral(amt T) cost[T] {
 		Resources: c.Resources,
 	}
 }
+
 func (c cost[T]) Subtract(other cost[T]) cost[T] {
 	return cost[T]{
 		Ironium:   c.Ironium - other.Ironium,
@@ -295,12 +295,11 @@ func MultiplyByCost[T, F number](c cost[T], other cost[F]) (result cost[T]) {
 
 // DivideCost returns how many times divisor can go into dividend as a float64.
 func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
-	quotient := CostFloat64{}
+	quotient := CostFloat64{math.Inf(1), math.Inf(1), math.Inf(1), math.Inf(1)}
 	for _, ct := range CostTypes {
-		if divisor.GetAmount(ct) == 0 {
-			quotient.Set(ct, math.Inf(1))
-		} else {
-			quotient.Set(ct, float64(dividend.GetAmount(ct))/float64(divisor.GetAmount(ct)))
+		if divisor.GetAmount(ct) != 0 {
+			quotient.Set(ct,
+				float64(dividend.GetAmount(ct))/float64(divisor.GetAmount(ct)))
 		}
 	}
 

@@ -45,7 +45,7 @@
 	</div>
 	<div class="flex justify-between mt-1">
 		<span>Route to</span>
-		<span>{''}</span>
+		<!-- TODO: Add routing destination button support -->
 	</div>
 	<div class="flex justify-between">
 		<button

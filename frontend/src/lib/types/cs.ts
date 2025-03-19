@@ -1177,12 +1177,12 @@ export interface PlayerMapObjects {
 //////////
 // source: production.go
 
-export interface QueueItemCompletionEstimate {
-	skipped?: boolean;
-	yearsToBuildOne?: number /* int */;
-	yearsToBuildAll?: number /* int */;
-	yearsToSkipAuto?: number /* int */;
-}
+/**
+ * The producer struct performs planetary production.
+ */
+/**
+ * An item within a production queue.
+ */
 export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	type: QueueItemType;
 	designNum?: number /* int */;
@@ -1191,6 +1191,7 @@ export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	tags: Tags;
 }
 export type QueueItemType = string;
+export const QueueItemTypeNone: QueueItemType = '';
 export const QueueItemTypeIroniumMineralPacket: QueueItemType = 'IroniumMineralPacket';
 export const QueueItemTypeBoraniumMineralPacket: QueueItemType = 'BoraniumMineralPacket';
 export const QueueItemTypeGermaniumMineralPacket: QueueItemType = 'GermaniumMineralPacket';
@@ -1212,7 +1213,17 @@ export const QueueItemTypeStarbase: QueueItemType = 'Starbase';
 export const QueueItemTypePlanetaryScanner: QueueItemType = 'PlanetaryScanner';
 export const QueueItemTypeGenesisDevice: QueueItemType = 'GenesisDevice';
 /**
- * for logging and for estimating, keep track of each item built
+ * A record used by the production estimator to record unbuilt
+ * ProductionQueueItem completion times
+ */
+export interface QueueItemCompletionEstimate {
+	canceled?: boolean; // Whether an item is canceled due to an invalid order
+	yearsToBuildOne?: number /* int */; // Years to build (or skip) the first item of its type
+	yearsToBuildAll?: number /* int */; // Years to build (or skip) the last item of its type
+	yearsToSkipAuto?: number /* int */; // Years to skip the first auto item in a queue
+}
+/**
+ * A record of a built queue item, used for logging & estimating
  */
 
 //////////

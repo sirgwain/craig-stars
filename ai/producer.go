@@ -82,7 +82,7 @@ func (ai *aiPlayer) produce() error {
 	for _, planet := range ai.Planets {
 
 		if !planet.Scanner && !ai.isItemInQueue(planet, cs.QueueItemTypePlanetaryScanner) {
-			yearsToBuild, err := ai.getYearsToBuild(planet, cs.QueueItemTypePlanetaryScanner, 1)
+			yearsToBuild, err := ai.getYearsToBuildItem(planet, cs.QueueItemTypePlanetaryScanner, 1)
 			if err != nil {
 				return err
 			}
@@ -303,20 +303,20 @@ func (ai *aiPlayer) addStarbaseToTopOfQueue(planet *cs.Planet, design *cs.ShipDe
 
 }
 
-// get the years to build a certain number of items
-func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet, t cs.QueueItemType, quantity int) (int, error) {
+// get the years to build some number of new items
+func (ai *aiPlayer) getYearsToBuildItem(planet *cs.Planet, t cs.QueueItemType, quantity int) (int, error) {
 	yearlyAvailableToSpend := cs.NewCostFromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
 	costCalculator := cs.NewCostCalculator()
 	completionEstimator := cs.NewCompletionEstimator()
 
-	item := cs.ProductionQueueItem{Type: cs.QueueItemTypePlanetaryScanner, Quantity: 1}
-	cost, err := costCalculator.CostOfOne(ai.Player, item)
+	item := cs.ProductionQueueItem{Type: t, Quantity: quantity}
+	cost, err := costCalculator.GetItemCost(&ai.game.Rules, ai.Player, planet, item)
 	if err != nil {
 		return 0, err
 	}
 
 	// get the years to build one of these
-	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
+	yearsToBuild := completionEstimator.GetYearsToBuild(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
 
 	// make our conditionals easier
 	if yearsToBuild == cs.Infinite {
@@ -325,7 +325,7 @@ func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet, t cs.QueueItemType, quant
 	return yearsToBuild, nil
 }
 
-// get the years it will take to build or upgrade to this starbase
+// get the years it will take to build or upgrade this starbase
 func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDesign) (int, error) {
 	yearlyAvailableToSpend := cs.NewCostFromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
 	costCalculator := cs.NewCostCalculator()
@@ -346,7 +346,7 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	}
 
 	// calculate how long it take to build
-	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
+	yearsToBuild := completionEstimator.GetYearsToBuild(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
 	// log.Debug().
 	// 	Int64("GameID", ai.GameID).
 	// 	Int("PlayerNum", ai.Num).

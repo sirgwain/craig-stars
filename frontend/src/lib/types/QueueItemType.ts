@@ -1,6 +1,7 @@
 import type { DesignFinder } from '$lib/services/Universe';
 import { startCase } from 'lodash-es';
 import {
+	Infinite,
 	QueueItemTypeAutoDefenses,
 	QueueItemTypeAutoFactories,
 	QueueItemTypeAutoMaxTerraform,
@@ -55,7 +56,7 @@ export const stringToQueueItemType = (value: string): QueueItemType | undefined 
 /**
  * Determine if a ProductionQueueItem is an auto item
  * @param type The type to check
- * @returns
+ * @returns true if this item is auto
  */
 export const isAuto = (type: QueueItemType): boolean => {
 	switch (type) {
@@ -73,9 +74,35 @@ export const isAuto = (type: QueueItemType): boolean => {
 };
 
 /**
- * Get the concrete type for a queue item type,
- * @param type The QueueItemType
- * @returns Factory for AuotFactories, Mine for AutoMines, etc
+ * Check if a {@linkcode ProductionQueueItem} will be fully skipped and entirely unbuildable.
+ * @param item the {@linkcode ProductionQueueItem} to check; must have estimates filled in
+ * @returns `true` if item is fully skipped (nothing will be built for the next 100 years)
+ */
+export const isFullySkipped = (item: ProductionQueueItem) => {
+	return isAuto(item.type) && item.yearsToBuildOne == Infinite && item.yearsToBuildAll == Infinite;
+}
+
+/**
+ * Check if a {@linkcode ProductionQueueItem} will be skipped on the first year of production.
+ * @param item the {@linkcode ProductionQueueItem} to check; must have estimates filled in
+ * @returns `true` if item is skipped during the first year of production
+ */
+export const skippedFirstYear = (item: ProductionQueueItem) => {
+	return isAuto(item.type) && item.yearsToSkipAuto === 1
+}
+
+export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
+	type,
+	quantity: 1,
+	allocated: {},
+	tags: {}
+});
+
+/**
+ * Get the concrete type corresponding to a given {@linkcode QueueItemType}.
+ * @param type The {@linkcode QueueItemType} to check
+ * @returns The concrete version of the {@linkcode QueueItemType} -
+ * Factories for AutoFactories, Mines for AutoMines, etc.
  */
 export const concreteType = (type: QueueItemType): QueueItemType => {
 	switch (type) {
@@ -87,8 +114,7 @@ export const concreteType = (type: QueueItemType): QueueItemType => {
 			return QueueItemTypeDefenses;
 		case QueueItemTypeAutoMineralAlchemy:
 			return QueueItemTypeMineralAlchemy;
-		case QueueItemTypeAutoMinTerraform:
-		case QueueItemTypeAutoMaxTerraform:
+		case QueueItemTypeAutoMinTerraform || QueueItemTypeAutoMaxTerraform:
 			return QueueItemTypeTerraformEnvironment;
 		case QueueItemTypeAutoMineralPacket:
 			return QueueItemTypeMixedMineralPacket;
@@ -99,13 +125,12 @@ export const concreteType = (type: QueueItemType): QueueItemType => {
 
 export function getFullName(item: ProductionQueueItem, designFinder: DesignFinder): string {
 	switch (item.type) {
-		case QueueItemTypeStarbase:
-		case QueueItemTypeShipToken:
+		case QueueItemTypeStarbase || QueueItemTypeShipToken:
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
 		case QueueItemTypeAutoMineralAlchemy:
 			return 'Alchemy (Auto Build)';
 		case QueueItemTypeMineralAlchemy:
-			return 'Alchemy';
+			return 'Mineral Alchemy';
 		case QueueItemTypeAutoMines:
 			return 'Mine (Auto Build)';
 		case QueueItemTypeAutoFactories:
@@ -138,9 +163,9 @@ export function getFullName(item: ProductionQueueItem, designFinder: DesignFinde
 }
 
 export function getShortName(item: ProductionQueueItem, designFinder: DesignFinder): string {
+	console.log(item.type);
 	switch (item.type) {
-		case QueueItemTypeStarbase:
-		case QueueItemTypeShipToken:
+		case QueueItemTypeStarbase || QueueItemTypeShipToken:
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
 		case QueueItemTypeTerraformEnvironment:
 			return 'Terraform Environment';
@@ -160,3 +185,67 @@ export function getShortName(item: ProductionQueueItem, designFinder: DesignFind
 			return `${startCase(item.type)}`;
 	}
 }
+
+/**
+ * Get the proper name of a {@linkcode QueueItemType},
+ * @param type the {@linkcode QueueItemType} being checked.
+ * @returns The singular form of this {@linkcode QueueItemType}, suitable for use in messages.
+ */
+export const getName = (type: QueueItemType) => {
+	switch (type) {
+		case QueueItemTypeAutoMineralAlchemy:
+			return 'auto mineral alchemy';
+		case QueueItemTypeMineralAlchemy:
+			return 'mineral alchemy';
+		case QueueItemTypeAutoMines:
+			return 'auto mine';
+		case QueueItemTypeAutoFactories:
+			return 'auto factory';
+		case QueueItemTypeAutoMinTerraform:
+			return 'minimum terraform';
+		case QueueItemTypeAutoMaxTerraform:
+			return 'maximum terraform';
+		case QueueItemTypeAutoDefenses:
+			return 'auto defense outpost';
+		case QueueItemTypeDefenses:
+			return 'defense outpost';
+		case QueueItemTypeIroniumMineralPacket:
+		// @sirgwain: should these be capitalized if all they doing is going in messages?
+			return 'ironium mineral packet';
+		case QueueItemTypeBoraniumMineralPacket:
+			return 'boranium mineral packet';
+		case QueueItemTypeGermaniumMineralPacket:
+			return 'germanium mineral packet';
+		case QueueItemTypeMixedMineralPacket:
+			return 'mixed mineral packet';
+		case QueueItemTypeTerraformEnvironment:
+			return 'terraform environment';
+		case QueueItemTypeAutoMineralPacket:
+			return 'auto mixed mineral packet';
+		case QueueItemTypePlanetaryScanner:
+			return 'planetary scanner';
+		case QueueItemTypeGenesisDevice:
+			return 'genesis device';
+		default:
+			return `${startCase(type).toLowerCase()}`;
+	}
+};
+
+/**
+ * Get the plural name of a {@linkcode QueueItemType}.
+ * @param type the {@linkcode QueueItemType} being checked.
+ * @returns The plural form of this {@linkcode QueueItemType}, suitable for use in messages.
+ */
+export const getPluralName = (type: QueueItemType) => {
+	switch (type) {
+		case QueueItemTypeAutoMineralAlchemy:
+			// yes, the plural of "alchemy" is alchemies. FIGHT ME
+			return 'auto mineral alchemies';
+		case QueueItemTypeMineralAlchemy:
+			return 'mineral alchemies';
+		case QueueItemTypeAutoFactories:
+			return 'auto factories';
+		default:
+			return getName(type) + 's';
+	}
+};

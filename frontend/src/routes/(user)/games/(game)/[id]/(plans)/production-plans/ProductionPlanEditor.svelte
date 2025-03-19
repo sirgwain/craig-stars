@@ -11,7 +11,7 @@
 		QueueItemTypeAutoMinTerraform,
 		type ProductionPlan
 	} from '$lib/types/cs';
-	import { fromQueueItemType } from '$lib/types/Planet';
+	import { fromQueueItemType } from '$lib/types/QueueItemType';
 	import Production from './Production.svelte';
 
 	type Props = {

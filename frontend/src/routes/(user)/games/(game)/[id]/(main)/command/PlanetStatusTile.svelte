@@ -8,6 +8,7 @@
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip, techs } from '$lib/services/Stores';
+	import { population } from '$lib/types/Cargo';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import CommandTile from './CommandTile.svelte';
 
@@ -58,7 +59,7 @@
 	<CommandTile title="Status">
 		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>
 			<div class="text-tile-item-title">Population</div>
-			<div>{((planet.cargo.colonists ?? 0) * 100).toLocaleString()}</div>
+			<div>{population(planet.cargo).toLocaleString()}</div>
 		</div>
 		<div class="flex justify-between cursor-help" onpointerdown={onResourcesTooltip}>
 			<div class="text-tile-item-title">Resources/Year</div>

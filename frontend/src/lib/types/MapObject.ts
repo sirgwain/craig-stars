@@ -33,10 +33,10 @@ export function getMapObjectName(mo: MapObject | AnyFleet | undefined): string {
 }
 
 /**
- * Check if this MapObject is owned by a player
+ * Check if this MapObject is owned by a given player
  * @param mo The MapObject to check
- * @param playerNum The player
- * @returns true if this mapobject is owned by the player
+ * @param playerNum The player to check ownership
+ * @returns true if this mapobject is owned by this player
  */
 export function ownedBy(mo: MapObject, playerNum: number): boolean {
 	return mo.playerNum === playerNum;
@@ -45,7 +45,7 @@ export function ownedBy(mo: MapObject, playerNum: number): boolean {
 /**
  * Check if this MapObject is owned by any player
  * @param mo The MapObject to check
- * @returns true if this mapobject is owned
+ * @returns true if this mapobject is owned by any player
  */
 export function owned(mo: MapObject): boolean {
 	return mo.playerNum != None;

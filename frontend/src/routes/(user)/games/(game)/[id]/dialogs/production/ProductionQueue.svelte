@@ -22,7 +22,7 @@
 	import type { ProductionPlan, ProductionQueueItem } from '$lib/types/cs';
 	import { Infinite, type Cost } from '$lib/types/cs';
 	import { CommandedPlanet } from '$lib/types/Planet';
-	import { getFullName, isAuto } from '$lib/types/QueueItemType';
+	import { getFullName, isAuto, isFullySkipped } from '$lib/types/QueueItemType';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -66,7 +66,7 @@
 	let selectedQueueItemCost: Cost | undefined = $state();
 
 	// keep track of the quantity modifier
-	let quantityModifer = $state(1);
+	let quantityModifier = $state(1);
 
 	function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
@@ -173,7 +173,7 @@
 
 		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
 		const maxBuildable = cs.maxBuildable(planet, item.type) ?? 0 - amountInQueue;
-		const quantity = clamp(quantityModifer, 0, maxBuildable);
+		const quantity = clamp(quantityModifier, 0, maxBuildable);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
 			return;
@@ -242,27 +242,27 @@
 	}
 
 	function removeItem() {
-		if (queueItems && selectedQueueItem) {
-			selectedQueueItem.quantity -= quantityModifer;
-			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
-			queueItems = queueItems;
-			if (selectedQueueItem.quantity <= 0) {
-				// select the item up in the list
-				queueItems = queueItems?.filter((item) => item != selectedQueueItem);
-				selectedQueueItem =
-					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
-				selectedQueueItemCost = $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem?.quantity
-				);
-
-				selectedQueueItemIndex--;
-			}
-			updateQueueEstimates();
+		if (!queueItems || !selectedQueueItem) {
+			return;
 		}
+		selectedQueueItem.quantity -= quantityModifier;
+		selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
+		queueItems = queueItems;
+		if (selectedQueueItem.quantity <= 0) {
+			// select the item up in the list
+			queueItems = queueItems?.filter((item) => item != selectedQueueItem);
+			selectedQueueItem = queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
+			selectedQueueItemCost = $player.getItemCost(
+				cs,
+				selectedQueueItem,
+				$universe,
+				planet,
+				selectedQueueItem?.quantity
+			);
+
+			selectedQueueItemIndex--;
+		}
+		updateQueueEstimates();
 	}
 
 	function itemUp() {
@@ -337,10 +337,12 @@
 	}
 
 	function getCompletionDescription(item: ProductionQueueItem) {
-		const skipped =
-			isAuto(item.type) && item.yearsToBuildOne == Infinite && item.yearsToBuildAll == Infinite;
-		if (skipped) {
-			return 'Skipped';
+		if (item.canceled) {
+			return 'canceled';
+		}
+
+		if (isFullySkipped(item)) {
+			return 'skipped';
 		}
 
 		const yearsToBuildOne = item.yearsToBuildOne ?? 1;
@@ -444,12 +446,12 @@
 											oncontextmenu={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
+											class:strikethrough={item.canceled}
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
 											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
 											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
-											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
-									{isAuto(item.type) ? ' italic' : ''}"
+											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }"
 										>
 											{getFullName(item, $universe)}
 										</button>
@@ -470,12 +472,12 @@
 											oncontextmenu={(e) =>
 												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 											class:italic={isAuto(item.type)}
+											class:strikethrough={item.canceled}
 											class:bg-primary={item === selectedAvailableItem}
 											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
 											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
 											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
-											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
-									{isAuto(item.type) ? ' italic' : ''}"
+											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }"
 										>
 											{getFullName(item, $universe)}
 										</button>
@@ -492,9 +494,9 @@
 										onclick={() => availableItemSelected(item)}
 										ondblclick={() => addAvailableItem(item)}
 										class:italic={isAuto(item.type)}
+											class:strikethrough={item.canceled}
 										class:bg-primary={item === selectedAvailableItem}
-										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
-									{isAuto(item.type) ? ' italic' : ''}"
+										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }"
 									>
 										{getFullName(item, $universe)}
 									</button>
@@ -594,7 +596,7 @@
 							{/each}
 						</select>
 						<div class="flex flex-col sm:flex-row justify-between mt-2 gap-1 mx-1">
-							<QuantityModifierButtons bind:modifier={quantityModifer} />
+							<QuantityModifierButtons bind:modifier={quantityModifier} />
 						</div>
 					</div>
 				</div>
@@ -618,6 +620,7 @@
 											item={queueItem}
 											{index}
 											{onQueueItemClicked}
+											onQueueItemDoubleClicked={removeItem}
 											selected={queueItem === selectedQueueItem}
 										/>
 									</li>
