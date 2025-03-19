@@ -756,12 +756,11 @@ func (planet *Planet) mine(rules *Rules, miningOutput Mineral, numMines int) {
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
 	if planet.Cargo.Colonists == 0 {
-		// don't grow or reduce if at zero pop, planet is ded
+		// don't grow or reduce if already at zero pop, planet is ded
 		return
 	}
 	planet.addPopulation(planet.Spec.GrowthAmount)
 	if planet.Cargo.Colonists == 0 {
-		// floor pop at 100
 		planet.Cargo.Colonists = 1
 		planet.PartialPopulation = 0
 	}
@@ -776,20 +775,25 @@ func (planet *Planet) reduceMineralConcentration(rules *Rules) {
 	mineralDecayFactor := rules.MineralDecayFactor // 1.5M by default
 	minMineralConcentration := rules.MinMineralConcentration
 
-	// "In short, mine years are like a very funky odometer" - Matthew T.
-	for _, minType := range MineralTypes {
-		conc := max(minMineralConcentration, planet.MineralConcentration.GetAmount(minType)) // min prevents division by 0
-		mineYears := planet.MineYears.GetAmount(minType)
+	// In essence, mine years are like a weird odometer
+	// where the amount needed to roll over and decrease
+	// mineral conc increases the less minerals remain.
 
+	// Check each mineral type separately
+	for _, minType := range MineralTypes {
+		conc := max(planet.MineralConcentration.GetAmount(minType), minMineralConcentration) // prevents division by 0
+
+		mineYears := planet.MineYears.GetAmount(minType)
 		mineYearsToRollover := mineralDecayFactor / (conc * conc)
 		if mineYears <= mineYearsToRollover {
-			// mine years under cap; move on
+			// mine years below rollover amount; move on
 			continue
 		}
 
 		newConc := max(conc-(mineYears/mineYearsToRollover), minMineralConcentration)
 		planet.MineralConcentration.Set(minType, newConc)
 		if newConc == minMineralConcentration {
+			// If we're at the minimum, reset mine years to 0
 			planet.MineYears.Set(minType, 0)
 		} else {
 			planet.MineYears.Set(minType, mineYears%mineYearsToRollover)
