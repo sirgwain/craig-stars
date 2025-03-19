@@ -257,7 +257,7 @@ func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int
 			board[position.X][position.Y] += battleToken.StartingQuantity
 
 			// find the highest dampener we have
-			dampening = Max(dampening, token.design.Spec.ReduceMovement)
+			dampening = max(dampening, token.design.Spec.ReduceMovement)
 		}
 	}
 
@@ -861,7 +861,7 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 					target.Quantity--
 					target.quantityDestroyed++
 					b.board[target.Position.Y][target.Position.X] -= 1
-					target.QuantityDamaged = Max(target.QuantityDamaged-1, 0)
+					target.QuantityDamaged = max(target.QuantityDamaged-1, 0)
 
 					if target.QuantityDamaged > 0 {
 						// we destroyed a token, but we still have damaged tokens in the stack
@@ -892,12 +892,12 @@ func (b *battle) fireTorpedo(weapon *battleWeaponSlot, targets []*battleToken) {
 				misses++
 				// damage shields by 1/8th
 				// round up, do a minimum of 1 damage
-				shieldDamage := int(math.Min(1, math.Round(b.rules.TorpedoSplashDamage*float64(damage))))
+				shieldDamage := int(min(1, math.Round(b.rules.TorpedoSplashDamage*float64(damage))))
 				actualShieldDamage := shieldDamage
 				if shieldDamage > target.stackShields {
 					actualShieldDamage = target.stackShields
 				}
-				target.stackShields = int(math.Max(0, float64(target.stackShields-shieldDamage)))
+				target.stackShields = int(max(0, float64(target.stackShields-shieldDamage)))
 				b.log.Debug().Msgf("%s torpedo number %d missed %s, did %d damage to shields leaving %d shields", weapon.token, torpedoNum, target, shieldDamage, target.stackShields)
 
 				totalShieldDamage += actualShieldDamage

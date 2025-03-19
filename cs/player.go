@@ -381,7 +381,7 @@ func (p *Player) GetLatestDesign(purpose ShipDesignPurpose) *ShipDesign {
 func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 	num := 0
 	for _, design := range designs {
-		num = Max(num, design.Num)
+		num = max(num, design.Num)
 	}
 	return num + 1
 }
@@ -390,7 +390,7 @@ func (p *Player) GetNextDesignNum(designs []*ShipDesign) int {
 func (p *Player) GetNextBattlePlanNum() int {
 	num := 0
 	for _, plan := range p.BattlePlans {
-		num = Max(num, plan.Num)
+		num = max(num, plan.Num)
 	}
 	return num + 1
 }
@@ -399,7 +399,7 @@ func (p *Player) GetNextBattlePlanNum() int {
 func (p *Player) GetNextProductionPlanNum() int {
 	num := 0
 	for _, plan := range p.ProductionPlans {
-		num = Max(num, plan.Num)
+		num = max(num, plan.Num)
 	}
 	return num + 1
 }
@@ -408,7 +408,7 @@ func (p *Player) GetNextProductionPlanNum() int {
 func (p *Player) GetNextTransportPlanNum() int {
 	num := 0
 	for _, plan := range p.TransportPlans {
-		num = Max(num, plan.Num)
+		num = max(num, plan.Num)
 	}
 	return num + 1
 }
@@ -819,7 +819,7 @@ func (p *Player) IsNeutral(playerNum int) bool {
 }
 
 func (p *Player) IsSharingMap(playerNum int) bool {
-	return playerNum != p.Num && playerNum > 0 && playerNum <= len(p.Relations) && p.Relations[playerNum-1].Relation == PlayerRelationFriend && p.Relations[playerNum-1].ShareMap
+	return p.IsFriend(playerNum) && p.Relations[playerNum-1].ShareMap
 }
 
 func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
@@ -848,7 +848,7 @@ func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
 func (p *Player) getNextMineralPacketNum(packets []*MineralPacket) int {
 	num := 0
 	for _, packet := range packets {
-		num = Max(num, packet.Num)
+		num = max(num, packet.Num)
 	}
 	return num + 1
 }

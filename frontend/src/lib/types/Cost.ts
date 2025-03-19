@@ -56,6 +56,10 @@ export function multiply(cost: Cost, scalar: number): Cost {
 	};
 }
 
+export function sum(cost: Cost): number {
+	return (cost.ironium ?? 0) + (cost.boranium ?? 0) + (cost.germanium ?? 0) + (cost.resources ?? 0);
+}
+
 export function total(cost?: Cost): number {
 	return cost
 		? (cost.ironium ?? 0) + (cost.boranium ?? 0) + (cost.germanium ?? 0) + (cost.resources ?? 0)

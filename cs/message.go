@@ -781,7 +781,7 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fle
 			// we were invaded, and lost
 			text = p.Sprintf("%s %s has successfully invaded %s and wrested it from your control. Your colonists managed to defeat %d of their invaders before being overrun.", fleetOwner, fleet.Name, planet.Name, attackersKilled)
 		} else {
-			// we were invaded, and lost
+			// we were invaded, and won
 			text = p.Sprintf("%s %s tried to invade %s, but your troops were able to fend them off. You lost %d colonists in the process.", fleetOwner, fleet.Name, planet.Name, defendersKilled)
 		}
 		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInvaded, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
@@ -816,7 +816,7 @@ func (m *messageClient) planetPacketDamage(player *Player, planet *Planet, packe
 			text = fmt.Sprintf("Your mass accelerator at %s was partially successful at capturing a %dkT mineral packet. Unfortunately, %d of your colonists and %d of your defenses were destroyed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled, defensesDestroyed)
 		}
 	} else {
-		if planet.population() == 0 {
+		if planet.GetPopulation() == 0 {
 			text = fmt.Sprintf("%s was annihilated by a mineral packet. All of your colonists were killed.", planet.Name)
 		} else if defensesDestroyed == 0 {
 			text = fmt.Sprintf("%s was bombarded with a %dkT mineral packet. %d of your colonists were killed in the collision.", planet.Name, packet.Cargo.Total(), colonistsKilled)

@@ -7,9 +7,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// create a new long rang scout fleet for testing
+// create a new long range scout fleet for testing with pre-computed specs.
 func testLongRangeScout(player *Player) *Fleet {
 	return testLongRangeScoutWithQuantity(player, 1)
+}
+
+// create a new long range scout ship design for testing.
+// Does NOT come with precomputed specs; those will have to be done manually.
+func testLongRangeScoutDesign(playerNum int) *ShipDesign {
+	return NewShipDesign(playerNum, 1).
+		WithName("Long Range Scout").
+		WithHull(Scout.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+			{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
+		})
 }
 
 func testLongRangeScoutWithQuantity(player *Player, quantity int) *Fleet {
@@ -122,7 +135,7 @@ func testGalleon(player *Player) *Fleet {
 
 }
 
-// create a new small freighter (with cargo pod) fleet for testing
+// create a new mini mine layer fleet for testing
 func testMiniMineLayer(player *Player) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
@@ -406,14 +419,14 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:           MultiplyCost(Cost{12, 2, 9, 20}, 2),
-				FuelCapacity:   50 * 2,
+				Cost:           Cost{24, 4, 18, 40},
+				FuelCapacity:   100,
 				ReduceCloaking: 1,
 				ScanRange:      66,
 				ScanRangePen:   30,
 				Scanner:        true,
-				Mass:           19 * 2,
-				Armor:          20 * 2,
+				Mass:           38,
+				Armor:          40,
 				CloakUnits:     70,
 				CloakPercent:   35, // still 35%
 				Engine: Engine{
@@ -423,7 +436,7 @@ func Test_computeFleetSpec(t *testing.T) {
 				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
-			MassEmpty:        19 * 2,
+			MassEmpty:        38,
 			BaseCloakedCargo: 0,
 			TotalShips:       2,
 		}},
@@ -569,10 +582,10 @@ func Test_computeFleetSpec(t *testing.T) {
 			},
 		}}, FleetSpec{
 			ShipDesignSpec: ShipDesignSpec{
-				Cost:           MultiplyCost(Cost{22, 43, 9, 42}, 2),
-				FuelCapacity:   120 * 2,
-				Mass:           112 * 2,
-				Armor:          50 * 2,
+				Cost:           Cost{44, 86, 18, 84},
+				FuelCapacity:   240,
+				Mass:           224,
+				Armor:          100,
 				ReduceCloaking: 1,
 				Scanner:        true,
 				ScanRangePen:   NoScanner,
@@ -587,8 +600,8 @@ func Test_computeFleetSpec(t *testing.T) {
 				},
 			},
 			Purposes:         map[ShipDesignPurpose]bool{},
-			MassEmpty:        112 * 2,
-			BaseCloakedCargo: 112 * 2,
+			MassEmpty:        224,
+			BaseCloakedCargo: 224,
 			TotalShips:       2,
 		}},
 		{"2 B52 Bombers with multiple bomb types", args{&rules, starterHumanoidPlayer, &Fleet{
@@ -710,60 +723,64 @@ func TestFleet_moveFleet(t *testing.T) {
 }
 
 func TestFleet_moveFleetEngineFailure(t *testing.T) {
-
-	player := NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules))
-	playerWithoutCE := NewPlayer(1, NewRace().WithSpec(&rules))
-
-	type args struct {
-		player *Player
-		random rng
-	}
-	type want struct {
-		position Vector
-	}
 	tests := []struct {
-		name  string
-		fleet *Fleet
-		args  args
-		want  want
+		name      string
+		warpSpeed int
+		player    *Player
+		random    rng
+		wantMoved bool
 	}{
 		{
-			"move without engine failure",
-			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 6)),
-			args{player, newFloat64Random(0)},
-			want{Vector{36, 0}},
+			name:      "under failure speed",
+			player:    NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules)),
+			warpSpeed: 6,
+			random:    newFloat64Random(0),
+			wantMoved: true,
 		},
 		{
-			"move without engine failure high speed",
-			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 7)),
-			args{player, newFloat64Random(.2)}, // engine failure occurs 10% of the time, < 10/100
-			want{Vector{49, 0}},
+			name:      "high roll; still moves",
+			player:    NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules)),
+			warpSpeed: 7,
+			random:    newFloat64Random(0.11), // engine failure occurs 10% of the time, < 10/100
+			wantMoved: true,
 		},
 		{
-			"move with engine failure",
-			testLongRangeScout(player).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 7)),
-			args{player, newFloat64Random(.1)}, // engine failure at 10/100
-			want{Vector{0, 0}},
+			name:      "no CE; still moves",
+			warpSpeed: 7,
+			player:    NewPlayer(1, NewRace().WithSpec(&rules)),
+			random:    newFloat64Random(0.1),
+			wantMoved: true,
 		},
 		{
-			"move without engine failure, no CE",
-			testLongRangeScout(playerWithoutCE).withWaypoints(NewPositionWaypoint(Vector{0, 0}, 0), NewPositionWaypoint(Vector{50, 0}, 7)),
-			args{playerWithoutCE, newFloat64Random(.1)},
-			want{Vector{49, 0}},
+			name:      "low roll; failure",
+			warpSpeed: 9,
+			player:    NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules)),
+			random:    newFloat64Random(0.1), // engine failure occurs at 10/100
+			wantMoved: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player := tt.args.player
-			universe := Universe{Fleets: []*Fleet{tt.fleet}}
+			player := tt.player
+			fleet := testLongRangeScout(player).withWaypoints(
+				NewPositionWaypoint(Vector{0, 0}, 0),
+				NewPositionWaypoint(Vector{999, 0}, tt.warpSpeed),
+			)
+			universe := Universe{Fleets: []*Fleet{fleet}}
 			universe.buildMaps([]*Player{player})
 
 			rules := NewRules()
-			rules.random = tt.args.random
+			rules.random = tt.random
 
-			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
+			fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
-			assert.Equal(t, tt.want.position, tt.fleet.Position)
+			if (fleet.Position != Vector{0, 0}) != tt.wantMoved {
+				if tt.wantMoved {
+					t.Errorf("Fleet.moveFleetEngineFailure() did not move fleet when expected")
+				} else {
+					t.Errorf("Fleet.moveFleetEngineFailure() moved fleet to position %+v; expected no movement", fleet.Position)
+				}
+			}
 		})
 	}
 }
@@ -792,11 +809,6 @@ func TestFleet_gateFleet(t *testing.T) {
 		},
 	}
 
-	type args struct {
-		player  *Player
-		players []*Player
-		planets []*Planet
-	}
 	type want struct {
 		position          Vector
 		orbitingPlanetNum int
@@ -804,7 +816,6 @@ func TestFleet_gateFleet(t *testing.T) {
 	tests := []struct {
 		name        string
 		fleet       *Fleet
-		args        args
 		want        want
 		wantMessage bool
 	}{
@@ -813,7 +824,6 @@ func TestFleet_gateFleet(t *testing.T) {
 			fleet: testLongRangeScout(player).
 				withOrbitingPlanetNum(sourcePlanet.Num).
 				withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
-			args: args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
 			want: want{position: Vector{50, 0}, orbitingPlanetNum: destPlanet.Num},
 		},
 		{
@@ -821,7 +831,6 @@ func TestFleet_gateFleet(t *testing.T) {
 			fleet: testLongRangeScout(player).
 				withPosition(Vector{200, 0}).
 				withWaypoints(NewPositionWaypoint(Vector{200, 0}, 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
-			args:        args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
 			want:        want{position: Vector{200, 0}},
 			wantMessage: true,
 		},
@@ -829,7 +838,6 @@ func TestFleet_gateFleet(t *testing.T) {
 			name: "gate fail, no dest",
 			fleet: testLongRangeScout(player).
 				withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPositionWaypoint(Vector{200, 0}, StargateWarpSpeed)),
-			args:        args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
 			want:        want{position: Vector{0, 0}},
 			wantMessage: true,
 		},
@@ -839,7 +847,6 @@ func TestFleet_gateFleet(t *testing.T) {
 				withPosition(Vector{200, 0}).
 				withCargo(Cargo{10, 10, 10, 10}). // jumpgates allow cargo, sweet!
 				withWaypoints(NewPositionWaypoint(Vector{200, 0}, 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
-			args: args{player: player, players: []*Player{player}, planets: []*Planet{sourcePlanet, destPlanet}},
 			want: want{position: Vector{50, 0}, orbitingPlanetNum: destPlanet.Num},
 		},
 	}
@@ -848,8 +855,12 @@ func TestFleet_gateFleet(t *testing.T) {
 			for _, token := range tt.fleet.Tokens {
 				player.Designs = append(player.Designs, token.design)
 			}
-			universe := Universe{Fleets: []*Fleet{tt.fleet}, Planets: tt.args.planets, designsByNum: map[playerObject]*ShipDesign{}}
-			universe.buildMaps(tt.args.players)
+			universe := Universe{
+				Fleets:       []*Fleet{tt.fleet},
+				Planets:      []*Planet{sourcePlanet, destPlanet},
+				designsByNum: map[playerObject]*ShipDesign{},
+			}
+			universe.buildMaps([]*Player{player})
 
 			tt.fleet.gateFleet(&rules, &universe, newTestPlayerGetter(player))
 
@@ -870,7 +881,6 @@ func TestFleet_gateFleet(t *testing.T) {
 func TestFleet_getCargoLoadAmount(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules))
 	planet := NewPlanet().WithCargo(Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 1000})
-
 	type args struct {
 		dest      cargoHolder
 		cargoType CargoType
@@ -884,114 +894,186 @@ func TestFleet_getCargoLoadAmount(t *testing.T) {
 		wantWaitAtWaypoint bool
 	}{
 		{
-			name:               "load 1kt ironium",
-			fleet:              testSmallFreighter(player),
-			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionLoadAmount, Amount: 1}},
+			name:  "load 1kt ironium",
+			fleet: testSmallFreighter(player),
+			args: args{
+				dest:      planet,
+				cargoType: Ironium,
+				task:      WaypointTransportTask{Action: TransportActionLoadAmount, Amount: 1},
+			},
 			wantTransferAmount: 1,
 		},
 		{
-			name:               "load 1mg fuel",
-			fleet:              testLongRangeScout(player).withFuel(0),
-			args:               args{dest: testLongRangeScout(player).withFuel(10), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionLoadAmount, Amount: 1}},
+			name:  "load 1mg fuel",
+			fleet: testLongRangeScout(player).withFuel(0),
+			args: args{
+				dest:      testLongRangeScout(player).withFuel(10),
+				cargoType: Fuel,
+				task:      WaypointTransportTask{Action: TransportActionLoadAmount, Amount: 1},
+			},
 			wantTransferAmount: 1,
 		},
 		{
-			name:               "load all ironium we can fit",
-			fleet:              testSmallFreighter(player),
-			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionLoadAll}},
+			name:  "load all ironium we can fit",
+			fleet: testSmallFreighter(player),
+			args: args{
+				dest:      planet,
+				cargoType: Ironium,
+				task:      WaypointTransportTask{Action: TransportActionLoadAll},
+			},
 			wantTransferAmount: 120, // small freighter has 120kT cargo capacity
 		},
 		{
-			name:               "load all fuel we can fit",
-			fleet:              testSmallFreighter(player).withFuel(0),
-			args:               args{dest: testSmallFreighter(player), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionLoadAll}},
+			name:  "load all fuel we can fit",
+			fleet: testSmallFreighter(player).withFuel(0),
+			args: args{
+				dest:      testSmallFreighter(player),
+				cargoType: Fuel,
+				task:      WaypointTransportTask{Action: TransportActionLoadAll},
+			},
 			wantTransferAmount: 130, // small freighter has 130mg fuel capacity
 		},
 		{
-			name:               "load all ironium we can fit (we already loaded 20)",
-			fleet:              testSmallFreighter(player).withCargo(Cargo{Boranium: 20}),
-			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionLoadAll}},
+			name:  "load all ironium we can fit (we already loaded 20)",
+			fleet: testSmallFreighter(player).withCargo(Cargo{Boranium: 20}),
+			args: args{
+				dest:      planet,
+				cargoType: Ironium,
+				task:      WaypointTransportTask{Action: TransportActionLoadAll},
+			},
 			wantTransferAmount: 100,
 		},
 		{
-			name:               "load all fuel we can fit (we already loaded 20)",
-			fleet:              testSmallFreighter(player).withFuel(20),
-			args:               args{dest: testSmallFreighter(player), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionLoadAll}},
+			name:  "load all fuel we can fit (we already loaded 20)",
+			fleet: testSmallFreighter(player).withFuel(20),
+			args: args{
+				dest:      testSmallFreighter(player),
+				cargoType: Fuel,
+				task:      WaypointTransportTask{Action: TransportActionLoadAll},
+			},
 			wantTransferAmount: 110,
 		},
 		{
-			name:               "load fill percent",
-			fleet:              testSmallFreighter(player),
-			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionFillPercent, Amount: 50}},
+			name:  "load fill percent",
+			fleet: testSmallFreighter(player),
+			args: args{
+				dest:      planet,
+				cargoType: Ironium,
+				task:      WaypointTransportTask{Action: TransportActionFillPercent, Amount: 50},
+			},
 			wantTransferAmount: 60, // 50% of 120kT capacity
 		},
 		{
-			name:               "load fill percent fuel",
-			fleet:              testSmallFreighter(player).withFuel(0),
-			args:               args{dest: testSmallFreighter(player), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionFillPercent, Amount: 50}},
+			name:  "load fill percent fuel",
+			fleet: testSmallFreighter(player).withFuel(0),
+			args: args{
+				dest:      testSmallFreighter(player),
+				cargoType: Fuel,
+				task:      WaypointTransportTask{Action: TransportActionFillPercent, Amount: 50},
+			},
 			wantTransferAmount: 65, // 50% of 130mg capacity
 		},
 		{
-			name:               "load fill percent but wait",
-			fleet:              testSmallFreighter(player),
-			args:               args{dest: NewPlanet().WithCargo(Cargo{Ironium: 50}), cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 50}},
+			name:  "load fill percent but wait",
+			fleet: testSmallFreighter(player),
+			args: args{
+				dest:      NewPlanet().WithCargo(Cargo{Ironium: 50}),
+				cargoType: Ironium,
+				task:      WaypointTransportTask{Action: TransportActionWaitForPercent, Amount: 50},
+			},
 			wantTransferAmount: 50, // load all 50, wait for the additional 10
 			wantWaitAtWaypoint: true,
 		},
 		{
-			name:               "set amount to 20kT when we have 10kT already",
-			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 10}),
-			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			name:  "set amount to 20kT when we have 10kT already",
+			fleet: testSmallFreighter(player).withCargo(Cargo{Ironium: 10}),
+			args: args{
+				dest:      planet,
+				cargoType: Ironium,
+				task:      WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20},
+			},
 			wantTransferAmount: 10, // load 10kT more
 		},
 		{
-			name:               "set fuel amount to 20mg when we have 10mg already",
-			fleet:              testSmallFreighter(player).withFuel(10),
-			args:               args{dest: testSmallFreighter(player), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			name:  "set fuel amount to 20mg when we have 10mg already",
+			fleet: testSmallFreighter(player).withFuel(10),
+			args: args{
+				dest:      testSmallFreighter(player),
+				cargoType: Fuel,
+				task:      WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20},
+			},
 			wantTransferAmount: 10, // load 10mg more
 		},
 		{
-			name:               "set amount to 20kT when we have 10kT already, but planet only has 5k",
-			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 10}),
-			args:               args{dest: NewPlanet().WithCargo(Cargo{Ironium: 5}), cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			name:  "set amount to 20kT when we have 10kT already, but planet only has 5k",
+			fleet: testSmallFreighter(player).withCargo(Cargo{Ironium: 10}),
+			args: args{
+				dest:      NewPlanet().WithCargo(Cargo{Ironium: 5}),
+				cargoType: Ironium,
+				task:      WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20},
+			},
 			wantTransferAmount: 5,    // load 5kT more
 			wantWaitAtWaypoint: true, // wait for remaining 5kT we want
 		},
 		{
-			name:               "set amount to 20mg fuel when we have 10mg already, but dest fleet only has 5mg",
-			fleet:              testSmallFreighter(player).withFuel(10),
-			args:               args{dest: testSmallFreighter(player).withFuel(5), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			name:  "set amount to 20mg fuel when we have 10mg already, but dest fleet only has 5mg",
+			fleet: testSmallFreighter(player).withFuel(10),
+			args: args{
+				dest:      testSmallFreighter(player).withFuel(5),
+				cargoType: Fuel,
+				task:      WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20},
+			},
 			wantTransferAmount: 5,    // load 5mg more
 			wantWaitAtWaypoint: true, // wait for remaining 5mg we want
 		},
 		{
-			name:               "set amount to 20kT when we have 30kT already. We should do nothing as we already have > 20kT",
-			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 30}),
-			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			name:  "set amount to 20kT when we have 30kT already. We should do nothing as we already have > 20kT",
+			fleet: testSmallFreighter(player).withCargo(Cargo{Ironium: 30}),
+			args: args{
+				dest:      planet,
+				cargoType: Ironium,
+				task:      WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20},
+			},
 			wantTransferAmount: 0, // don't unload
 		},
 		{
-			name:               "set amount to 20mg fuel when we have 30mg already. We should do nothing, we already have > 20mg",
-			fleet:              testSmallFreighter(player).withFuel(30),
-			args:               args{dest: testSmallFreighter(player).withFuel(0), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20}},
+			name:  "set amount to 20mg fuel when we have 30mg already. We should do nothing, we already have > 20mg",
+			fleet: testSmallFreighter(player).withFuel(30),
+			args: args{
+				dest:      testSmallFreighter(player).withFuel(0),
+				cargoType: Fuel,
+				task:      WaypointTransportTask{Action: TransportActionSetAmountTo, Amount: 20},
+			},
 			wantTransferAmount: 0, // don't unload
 		},
 		{
-			name:               "set waypoint to 2500kT colonists",
-			fleet:              testSmallFreighter(player),
-			args:               args{dest: NewPlanet().WithCargo(Cargo{Colonists: 2600}), cargoType: Colonists, task: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			name:  "set waypoint to 2500kT colonists",
+			fleet: testSmallFreighter(player),
+			args: args{
+				dest:      NewPlanet().WithCargo(Cargo{Colonists: 2600}),
+				cargoType: Colonists,
+				task:      WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500},
+			},
 			wantTransferAmount: 100, // load 100kT
 		},
 		{
-			name:               "set waypoint to 2500kT colonists, nothing to load",
-			fleet:              testSmallFreighter(player),
-			args:               args{dest: NewPlanet().WithCargo(Cargo{Colonists: 2400}), cargoType: Colonists, task: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			name:  "set waypoint to 2500kT colonists, nothing to load",
+			fleet: testSmallFreighter(player),
+			args: args{
+				dest:      NewPlanet().WithCargo(Cargo{Colonists: 2400}),
+				cargoType: Colonists,
+				task:      WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500},
+			},
 			wantTransferAmount: 0, // no load, colonists too low
 		},
 		{
-			name:               "set waypoint to 2500kT colonists, fleet has colonists, don't unload during fleetLoad",
-			fleet:              testSmallFreighter(player).withCargo(Cargo{Colonists: 200}),
-			args:               args{dest: NewPlanet().WithCargo(Cargo{Colonists: 2400}), cargoType: Colonists, task: WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500}},
+			name:  "set waypoint to 2500kT colonists, fleet has colonists, don't unload during fleetLoad",
+			fleet: testSmallFreighter(player).withCargo(Cargo{Colonists: 200}),
+			args: args{
+				dest:      NewPlanet().WithCargo(Cargo{Colonists: 2400}),
+				cargoType: Colonists,
+				task:      WaypointTransportTask{Action: TransportActionSetWaypointTo, Amount: 2500},
+			},
 			wantTransferAmount: 0, // no load, colonists too low
 		},
 	}
@@ -1135,11 +1217,11 @@ func TestFleet_transferToDest(t *testing.T) {
 		wantErr        bool
 	}{
 		{
-			name:           "transfer 10kT to planet",
-			fleet:          testSmallFreighter(player).withCargo(Cargo{Ironium: 10}),
-			args:           args{dest: NewPlanet().WithCargo(Cargo{Ironium: 1000}), cargoType: Ironium, transferAmount: 10},
+			name:           "transfer 10kT bor to planet",
+			fleet:          testSmallFreighter(player).withCargo(Cargo{Boranium: 10}),
+			args:           args{dest: NewPlanet().WithCargo(Cargo{Boranium: 1000}), cargoType: Boranium, transferAmount: 10},
 			wantFleetCargo: Cargo{},
-			wantDestCargo:  Cargo{Ironium: 1010},
+			wantDestCargo:  Cargo{Boranium: 1010},
 		},
 		{
 			name:           "transfer 10kT to another fleet",
@@ -1393,24 +1475,140 @@ func TestFleet_repairStarbase(t *testing.T) {
 }
 
 func TestFleet_getEstimatedRange(t *testing.T) {
-	player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
-
-	type args struct {
-		fleet     *Fleet
-		player    *Player
-		warpSpeed int
+	type testfleet struct {
+		design *ShipDesign
+		qty    int
 	}
 	tests := []struct {
-		name string
-		args args
-		want int
+		name      string
+		fleets    []testfleet
+		race      *Race
+		cargoMass int
+		fuel      int
+		warpSpeed int
+		want      int
 	}{
-		{"long range scout range", args{testLongRangeScout(player), player, 5}, 2400},
-		{"mini miner", args{testMiniMineLayer(player), player, 5}, 689},
+		// examples were all cross checked against ones from base game
+		{
+			name: "long range scout",
+			fleets: []testfleet{{
+				design: testLongRangeScoutDesign(1),
+				qty:    1,
+			}},
+			race:      NewRace().WithSpec(&rules),
+			warpSpeed: 5,
+			want:      2400,
+		},
+		{
+			name: "scout with less fuel",
+			fleets: []testfleet{{
+				design: testLongRangeScoutDesign(1),
+				qty:    1,
+			}},
+			race:      NewRace().WithSpec(&rules),
+			warpSpeed: 5,
+			fuel:      100,
+			want:      800, // 1/3 the fuel = 1/3 the range
+		},
+		{
+			name: "W6 scout with IFE",
+			fleets: []testfleet{{
+				design: testLongRangeScoutDesign(1),
+				qty:    1,
+			}},
+			race:      NewRace().WithLRT(IFE).WithSpec(&rules),
+			warpSpeed: 6,
+			want:      2654, // 2673 in base game
+		},
+		{
+			name: "multiple copies, same range",
+			fleets: []testfleet{{
+				design: testLongRangeScoutDesign(1),
+				qty:    2,
+			}},
+			race:      NewRace().WithSpec(&rules),
+			warpSpeed: 5,
+			want:      2400,
+		},
+		{
+			name: "infinite range mizer scout",
+			fleets: []testfleet{{
+				design: NewShipDesign(1, 1).WithHull(Scout.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+					{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
+				}),
+				qty: 1,
+			}},
+			race:      NewRace().WithLRT(IFE).WithSpec(&rules),
+			warpSpeed: 4,
+			want:      Infinite,
+		},
+		{
+			name: "IT swashbuckler with full cargo",
+			fleets: []testfleet{{
+				design: NewShipDesign(1, 1).WithHull(Privateer.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: DaddyLongLegs7.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 2},
+					{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
+					{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 1},
+					{HullComponent: AlphaTorpedo.Name, HullSlotIndex: 5, Quantity: 1},
+				}),
+				qty: 1,
+			}},
+			race:      NewRace().WithPRT(IT).WithLRT(IFE).WithSpec(&rules),
+			warpSpeed: 7,
+			cargoMass: 250,
+			want:      295,
+		},
+		{
+			name: "mixed privateer fleet",
+			fleets: []testfleet{
+				{
+					design: NewShipDesign(1, 1).WithHull(Privateer.Name).WithSlots([]ShipDesignSlot{
+						{HullComponent: DaddyLongLegs7.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 2},
+						{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
+						{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 1},
+						{HullComponent: AlphaTorpedo.Name, HullSlotIndex: 5, Quantity: 1},
+					}),
+					qty: 1,
+				},
+				{
+					design: NewShipDesign(1, 1).WithHull(Privateer.Name).WithSlots([]ShipDesignSlot{
+						{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
+						{HullComponent: FuelTank.Name, HullSlotIndex: 4, Quantity: 1},
+						{HullComponent: FuelTank.Name, HullSlotIndex: 5, Quantity: 1},
+					}),
+					qty: 1,
+				},
+			},
+			race:      NewRace().WithPRT(IT).WithLRT(IFE).WithSpec(&rules),
+			warpSpeed: 4,
+			want:      3134,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.args.fleet.getEstimatedRange(tt.args.player, tt.args.warpSpeed, tt.args.fleet.Spec.CargoCapacity); got != tt.want {
+			player := NewPlayer(1, tt.race).withSpec(&rules)
+			fleet := newFleet(player, 1, tt.name, []Waypoint{{}})
+			for _, f := range tt.fleets {
+				fleet.Tokens = append(fleet.Tokens, ShipToken{
+					Quantity: f.qty,
+					design:   f.design.WithSpec(&rules, player),
+				})
+			}
+
+			fleet.Cargo = Cargo{Ironium: tt.cargoMass}
+			fleet.Spec = ComputeFleetSpec(&rules, player, &fleet)
+			if tt.fuel == 0 {
+				fleet.Fuel = fleet.Spec.FuelCapacity
+			} else {
+				fleet.Fuel = tt.fuel
+			}
+
+			if got := fleet.getEstimatedRange(player, tt.warpSpeed, fleet.Spec.CargoCapacity); got != tt.want {
 				t.Errorf("Fleet.getEstimatedRange() = %v, want %v", got, tt.want)
 			}
 		})

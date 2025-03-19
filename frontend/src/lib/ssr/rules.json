@@ -82,7 +82,7 @@
 	"raceLeftoverPointsPerItem": {
 		"Defenses": 10,
 		"Factories": 5,
-		"MineralConcentrations": 3,
+		"MineralConcentrations": 2,
 		"Mines": 2,
 		"SurfaceMinerals": 10
 	},
@@ -239,6 +239,7 @@
 		}
 	},
 	"maxPopulation": 1000000,
+	"minPopFloor": 100,
 	"maxTechLevel": 26,
 	"mineFieldCloak": 75,
 	"mineFieldStatsByType": {

@@ -115,7 +115,7 @@ func (v1 BattleVector) Add(v2 BattleVector) BattleVector {
 }
 
 func (v1 BattleVector) distance(v2 BattleVector) int {
-	return Max(Abs(v1.X-v2.X), Abs(v1.Y-v2.Y))
+	return max(Abs(v1.X-v2.X), Abs(v1.Y-v2.Y))
 }
 
 func (v BattleVector) scale(scale int) BattleVector {

@@ -232,7 +232,7 @@
 		<div>
 			<div class="font-bold text-2xl">Hull Components</div>
 			<ul class="w-full h-[400px] border-b sm:w-[16rem] px-1 p-1 overflow-y-auto">
-				{#each $techs.hullComponents.filter(hc => hullAllowed(hull, hc)) as hc}
+				{#each $techs.hullComponents.filter((hc) => hullAllowed(hull, hc)) as hc}
 					{#if canLearnTech($player, hc) && hasRequiredLevels($player.techLevels, hc.requirements) && (!$shipDesignerContext.selectedSlot || canFillSlot(hc.hullSlotType, $shipDesignerContext.selectedSlot.type)) && canFillSlot(hc.hullSlotType, validHullSlotTypes)}
 						<li>
 							<div

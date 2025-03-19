@@ -88,7 +88,8 @@ func (scan *playerScanner) scan() error {
 func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scanner, starGateScanners []scanner) error {
 	for _, planet := range scan.universe.Planets {
 		if planet.OwnedBy(scan.player.Num) {
-			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true); err != nil {
+			// scan owned planets
+			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true, true); err != nil {
 				return err
 			}
 			continue
@@ -106,7 +107,7 @@ func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scann
 			}
 		}
 
-		// try and scan the planet with stargate
+		// try and scan the planet's stargate
 		if planet.Spec.PlanetStarbaseSpec.HasStargate {
 			for _, scanner := range starGateScanners {
 				if scan.fleetInScannerRange(planet.Starbase, scanner) {
@@ -142,7 +143,7 @@ func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scann
 			scan.discoverer.discoverPlanetTerraformability(planet.Num)
 		}
 		// TODO: another fix for planets we don't own still being ours in intel
-		if (intel.PlayerNum == scan.player.Num && planet.PlayerNum != scan.player.Num) || (intel.PlayerNum == Unowned && intel.Spec.Population > 0) {
+		if (intel.PlayerNum == scan.player.Num && planet.PlayerNum != scan.player.Num) || (intel.PlayerNum == Unowned && intel.Cargo.Colonists > 0) {
 			// we think we own this planet, but we don't. Remove ownership info
 			scan.discoverer.clearPlanetOwnerIntel(planet)
 		}
@@ -153,12 +154,12 @@ func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scann
 }
 
 // scan this planet
-func (scan *playerScanner) scanPlanet(planet *Planet, scanner scanner) (bool, error) {
+func (scan *playerScanner) scanPlanet(planet *Planet, scanner scanner) (scanned bool, err error) {
 	if scanner.RangePen != NoScanner && float64(scanner.RangePenSquared(NoCloakFactor)) >= scanner.Position.DistanceSquaredTo(planet.Position) {
 		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
 		}
-		if err := scan.discoverer.discoverPlanet(scan.rules, planet, true); err != nil {
+		if err := scan.discoverer.discoverPlanet(scan.rules, planet, true, planet.OwnedBy(scan.player.Num)); err != nil {
 			return false, err
 		}
 		if scanner.DiscoverPlanetCargo {
@@ -174,7 +175,7 @@ func (scan *playerScanner) scanPlanet(planet *Planet, scanner scanner) (bool, er
 		if planet.Owned() {
 			scan.discoveredPlayers[planet.PlayerNum] = true
 		}
-		if err := scan.discoverer.discoverPlanet(scan.rules, planet, false); err != nil {
+		if err := scan.discoverer.discoverPlanet(scan.rules, planet, false, false); err != nil {
 			return false, err
 		}
 	}
@@ -370,7 +371,7 @@ func (scan *playerScanner) scanMineFields(scanners []scanner) {
 				cloakFactor = 1
 			}
 
-			distanceToEdge := math.Max(0, scanner.Position.DistanceTo(mineField.Position)-mineField.Spec.Radius)
+			distanceToEdge := max(0, scanner.Position.DistanceTo(mineField.Position)-mineField.Spec.Radius)
 			scannerRange := float64(scanner.Range) * cloakFactor
 			// we only care about regular scanners for wormholes
 			if scannerRange >= distanceToEdge {
@@ -413,7 +414,7 @@ func (scan *playerScanner) discoverAllies() error {
 			if planet.PlayerNum != player.Num {
 				continue
 			}
-			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true); err != nil {
+			if err := scan.discoverer.discoverPlanet(scan.rules, planet, true, planet.OwnedBy(scan.player.Num)); err != nil {
 				return err
 			}
 			if err := scan.discoverer.discoverPlanetCargo(planet); err != nil {
@@ -496,12 +497,12 @@ func (scan *playerScanner) getScanners() []scanner {
 				scanner.CloakReductionFactor = 1
 			}
 			if fleet.Spec.ScanRange != NoScanner {
-				scanner.Range = Max(scanner.Range, fleet.Spec.ScanRange)
+				scanner.Range = max(scanner.Range, fleet.Spec.ScanRange)
 			}
 			if fleet.Spec.ScanRangePen != NoScanner {
-				scanner.RangePen = Max(scanner.RangePen, fleet.Spec.ScanRangePen)
+				scanner.RangePen = max(scanner.RangePen, fleet.Spec.ScanRangePen)
 			}
-			scanner.CloakReductionFactor = math.Min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
+			scanner.CloakReductionFactor = min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
 			scanningFleetsByPosition[fleet.Position] = scanner
 		}
 	}
@@ -529,9 +530,9 @@ func (scan *playerScanner) getScanners() []scanner {
 			}
 			// use the fleet scanner if it's better
 			if fleetScanner, ok := scanningFleetsByPosition[planet.Position]; ok {
-				planetaryScanner.Range = Max(planetaryScanner.Range, fleetScanner.Range)
-				planetaryScanner.RangePen = Max(planetaryScanner.RangePen, fleetScanner.RangePen)
-				planetaryScanner.CloakReductionFactor = math.Min(planetaryScanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
+				planetaryScanner.Range = max(planetaryScanner.Range, fleetScanner.Range)
+				planetaryScanner.RangePen = max(planetaryScanner.RangePen, fleetScanner.RangePen)
+				planetaryScanner.CloakReductionFactor = min(planetaryScanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
 			}
 			scanners = append(scanners, planetaryScanner)
 		}
@@ -623,9 +624,9 @@ func (scan *playerScanner) getCargoScanners() []scanner {
 				scanner.RangePen = NoScanner
 				scanner.CloakReductionFactor = 1
 			}
-			scanner.Range = Max(scanner.Range, fleet.Spec.ScanRange)
-			scanner.RangePen = Max(scanner.RangePen, fleet.Spec.ScanRangePen)
-			scanner.CloakReductionFactor = math.Min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
+			scanner.Range = max(scanner.Range, fleet.Spec.ScanRange)
+			scanner.RangePen = max(scanner.RangePen, fleet.Spec.ScanRangePen)
+			scanner.CloakReductionFactor = min(scanner.CloakReductionFactor, fleet.Spec.ReduceCloaking)
 			scanner.DiscoverFleetCargo = fleet.Spec.CanStealFleetCargo
 			scanner.DiscoverPlanetCargo = fleet.Spec.CanStealPlanetCargo
 			scanningFleetsByPosition[fleet.Position] = scanner
@@ -647,7 +648,7 @@ func (scan *playerScanner) getStarGateScanners() []scanner {
 	}
 	for _, planet := range scan.universe.Planets {
 		if planet.PlayerNum == scan.player.Num && planet.Spec.PlanetStarbaseSpec.HasStargate {
-			penRange := Min(planet.Spec.PlanetStarbaseSpec.SafeRange, math.MaxInt16)
+			penRange := min(planet.Spec.PlanetStarbaseSpec.SafeRange, math.MaxInt16)
 			scanner := scanner{
 				Position:             planet.Position,
 				RangePen:             penRange,

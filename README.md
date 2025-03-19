@@ -8,9 +8,11 @@ An open-source, web based Stars! clone.
 
 ## About
 
-[Stars!](https://wikipedia.org/en/Stars!) is an interstellar, turn based strategy game and a member of the 4X genre (eXplore, eXpand, eXploit, eXterminate). The original Stars! game was released as shareware by Jeff Johnson and Jeff McBride with help from Jeffrey Krauss (collectively known as the Jeffs), with a retail version published in 1997. `craig-stars` attempts to remain as close to the original as possible in both UI and gameplay.
+[Stars!](https://wikipedia.org/en/Stars!) is an interstellar, turn based strategy game and a member of the 4X genre (eXplore, eXpand, eXploit, eXterminate). The original Stars! game was released as shareware in 1995 by Jeff Johnson and Jeff McBride with help from Jeffrey Krauss (collectively known as the Jeffs), with a retail version published in 1997. `craig-stars` attempts to remain as close to the original as possible in both UI and gameplay.[^1]
 
 The [Stars! wiki](https://wiki.starsautohost.org/) and [Home World Forum](https://starsautohost.org/sahforum2/) are both great places for learning about Stars! gameplay. The wiki's [strategy guide](https://wiki.starsautohost.org/wikinew/ssg/ssg.htm) is a good starting point for new players to learn the basics, and the active [Stars! discord server](https://discord.gg/t8JpDS3d) is a great place to ask questions and start/join new multiplayer games. (For developers & contributors, there is also a channel for stars clone discussion.)
+
+[^1]: A non-exhaustive list of intentional differences can be found [here](./docs/changes.md).
 
 ## Development/Contributing
 

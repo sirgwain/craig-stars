@@ -2,6 +2,7 @@ package cs
 
 import (
 	"fmt"
+	"math"
 	"slices"
 
 	"github.com/rs/zerolog"
@@ -15,7 +16,7 @@ const Unowned = 0
 type discoverer interface {
 	discoverPlayer(player *Player)
 	discoverPlayerScores(player *Player)
-	discoverPlanet(rules *Rules, planet *Planet, penScanned bool) error
+	discoverPlanet(rules *Rules, planet *Planet, penScanned, exactPop bool) error
 	clearPlanetOwnerIntel(planet *Planet) error
 	discoverPlanetStarbase(planet *Planet) error
 	discoverPlanetCargo(planet *Planet) error
@@ -89,6 +90,10 @@ type PlanetIntel struct {
 	PlanetHabitabilityTerraformed int        `json:"planetHabitabilityTerraformed,omitempty"`
 	Homeworld                     bool       `json:"homeworld,omitempty"`
 	Spec                          PlanetSpec `json:"spec"`
+}
+
+func (pi *PlanetIntel) GetPopulation() int {
+	return pi.Cargo.Colonists * 100
 }
 
 type ShipDesignIntel struct {
@@ -247,7 +252,7 @@ func (intel *PlanetIntel) Explored() bool {
 }
 
 // discover a planet and add it to the player's intel
-func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool) error {
+func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned, exactPop bool) error {
 
 	player := d.player
 	var intel *PlanetIntel
@@ -264,8 +269,8 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 	intel.Name = planet.Name
 	intel.Num = planet.Num
 
-	// scanning a planet tells you who owns it, and whether it has a starbase
-	// but you don't get hab/pop unlesss you own it
+	// basic scanning a planet tells you who owns it and whether it has a starbase
+	// but you don't get hab/pop unless you own it
 	intel.PlayerNum = planet.PlayerNum
 	intel.Spec.HasStarbase = planet.Spec.HasStarbase
 	intel.Spec.HasStargate = planet.Spec.HasStargate
@@ -274,58 +279,56 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned bool)
 
 	ownedByPlayer := planet.PlayerNum != Unowned && player.Num == planet.PlayerNum
 
-	if penScanned || ownedByPlayer {
-		if !ownedByPlayer && intel.ReportAge == ReportAgeUnexplored {
-			// let the player know we discovered a new planet
-			messager.planetDiscovered(player, planet)
-			d.log.Debug().
-				Int("Planet", planet.Num).
-				Msgf("player discovered planet")
-		}
-
-		// if we pen scanned the planet, we learn some things
-		intel.ReportAge = 0
-		intel.Hab = planet.Hab
-		intel.BaseHab = planet.BaseHab
-		intel.MineralConcentration = planet.MineralConcentration
-		intel.Homeworld = planet.Homeworld
-		intel.Spec.Habitability = player.Race.GetPlanetHabitability(intel.Hab)
-
-		// terraforming
-		terraformer := NewTerraformer()
-		intel.Spec.TerraformAmount = terraformer.GetTerraformAmount(intel.Hab, intel.BaseHab, player, player)
-		intel.Spec.MinTerraformAmount = terraformer.GetMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
-		intel.Spec.CanTerraform = intel.Spec.TerraformAmount.absSum() > 0
-		intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(planet.Hab.Add(intel.Spec.TerraformAmount))
-		intel.Spec.MaxPopulation = planet.getMaxPopulation(rules, player, intel.Spec.Habitability)
-
-		// discover starbases on scan, but don't discover designs
-		intel.Spec.HasStarbase = planet.Spec.HasStarbase
-		intel.Spec.HasMassDriver = planet.Spec.HasMassDriver
-		intel.Spec.HasStargate = planet.Spec.HasStargate
-		intel.Spec.DockCapacity = planet.Spec.DockCapacity
-
-		// discover defense coverage
-		intel.Spec.DefenseCoverage = planet.Spec.DefenseCoverage
-		intel.Spec.DefenseCoverageSmart = planet.Spec.DefenseCoverageSmart
-
-		// these should never be nil...
-		if !ownedByPlayer && planet.Spec.HasStarbase && planet.Starbase != nil && planet.Starbase.Tokens[0].design != nil {
-			design := planet.Starbase.Tokens[0].design
-			intel.Spec.StarbaseDesignName = design.Name
-			intel.Spec.StarbaseDesignNum = design.Num
-			d.discoverDesign(design, false)
-		}
-
-		// players & their allies know their exact planet pops, but foreign pop readings are slightly off
-		sharingMapWithOwner := player.IsSharingMap(planet.PlayerNum)
-		if ownedByPlayer || sharingMapWithOwner {
-			intel.Spec.Population = planet.population()
-		} else {
-			var randomPopulationError = rules.random.Float64()*(rules.PopulationScannerError*2) - rules.PopulationScannerError
-			intel.Spec.Population = Max(0, roundToNearest100(float64(planet.population())*(1-randomPopulationError)))
-		}
+	if !penScanned && !ownedByPlayer {
+		// Non-pen scanning only gives you basic info
+		return nil
 	}
+
+	if !ownedByPlayer && intel.ReportAge == ReportAgeUnexplored {
+		// let the player know we discovered a new planet
+		messager.planetDiscovered(player, planet)
+		d.log.Debug().
+			Int("Planet", planet.Num).
+			Msgf("player discovered planet")
+	}
+
+	intel.ReportAge = 0
+	intel.Hab = planet.Hab
+	intel.BaseHab = planet.BaseHab
+	intel.MineralConcentration = planet.MineralConcentration
+	intel.Homeworld = planet.Homeworld
+	intel.Spec.Habitability = player.Race.GetPlanetHabitability(intel.Hab)
+
+	// terraforming
+	terraformer := NewTerraformer()
+	intel.Spec.TerraformAmount = terraformer.GetTerraformAmount(intel.Hab, intel.BaseHab, player, player)
+	intel.Spec.MinTerraformAmount = terraformer.GetMinTerraformAmount(intel.Hab, intel.BaseHab, player, player)
+	intel.Spec.CanTerraform = intel.Spec.TerraformAmount.absSum() > 0
+	intel.Spec.TerraformedHabitability = player.Race.GetPlanetHabitability(planet.Hab.Add(intel.Spec.TerraformAmount))
+	intel.Spec.MaxPopulation = planet.getMaxPopulation(rules, player, intel.Spec.Habitability)
+
+	// discover defense coverage
+	intel.Spec.DefenseCoverage = planet.Spec.DefenseCoverage
+	intel.Spec.DefenseCoverageSmart = planet.Spec.DefenseCoverageSmart
+
+	// these should never be nil...
+	if !ownedByPlayer && planet.Spec.HasStarbase && planet.Starbase != nil && planet.Starbase.Tokens[0].design != nil {
+		design := planet.Starbase.Tokens[0].design
+		intel.Spec.StarbaseDesignName = design.Name
+		intel.Spec.StarbaseDesignNum = design.Num
+		d.discoverDesign(design, false)
+	}
+
+	// players know their exact planet pops (as well as those of other players sharing map intel),
+	// but foreign pop readings are slightly off
+	if exactPop {
+		intel.Cargo.Colonists = planet.Cargo.Colonists
+	} else {
+		// generate a random error within range [1-scanError, 1+scanError]
+		randomPopulationError := rules.random.Float64()*(rules.PopulationScannerError*2) - rules.PopulationScannerError
+		intel.Cargo.Colonists = max(0, roundTo100(float64(planet.Cargo.Colonists)*(1-randomPopulationError), math.Floor))
+	}
+
 	return nil
 }
 
@@ -345,7 +348,7 @@ func (d *discover) clearPlanetOwnerIntel(planet *Planet) error {
 	// if we've been invaded, reset our planet knowledge as if it was
 	// unowned, but we maintain knowledge of hab
 	intel.PlayerNum = Unowned
-	intel.Spec.Population = 0
+	intel.Cargo.Colonists = 0
 	intel.Spec.HasStarbase = false
 	intel.Spec.HasStargate = false
 	intel.Spec.DockCapacity = None
@@ -821,13 +824,13 @@ func (d *discovererWithAllies) discoverPlayerScores(player *Player) {
 		}
 	}
 }
-func (d *discovererWithAllies) discoverPlanet(rules *Rules, planet *Planet, penScanned bool) error {
-	if err := d.playerDiscoverer.discoverPlanet(rules, planet, penScanned); err != nil {
+func (d *discovererWithAllies) discoverPlanet(rules *Rules, planet *Planet, penScanned, mapSharing bool) error {
+	if err := d.playerDiscoverer.discoverPlanet(rules, planet, penScanned, mapSharing); err != nil {
 		return err
 	}
 	for _, allyDiscoverer := range d.allyDiscoverers {
 		if allyDiscoverer.player.Num != planet.PlayerNum {
-			if err := allyDiscoverer.discoverPlanet(rules, planet, penScanned); err != nil {
+			if err := allyDiscoverer.discoverPlanet(rules, planet, penScanned, mapSharing); err != nil {
 				return err
 			}
 		}

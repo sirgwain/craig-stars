@@ -1,0 +1,1 @@
+ALTER TABLE planets ADD partialPopulation INTEGER DEFAULT 0;

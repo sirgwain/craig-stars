@@ -38,6 +38,7 @@ type Planet struct {
 	Boranium                          int                   `json:"boranium,omitempty"`
 	Germanium                         int                   `json:"germanium,omitempty"`
 	Colonists                         int                   `json:"colonists,omitempty"`
+	PartialPopulation                 int                   `json:"partialPopulation,omitempty"`
 	Mines                             int                   `json:"mines,omitempty"`
 	Factories                         int                   `json:"factories,omitempty"`
 	Defenses                          int                   `json:"defenses,omitempty"`
@@ -179,6 +180,7 @@ func (c *client) GetPlanetByNum(gameID int64, num int) (*cs.Planet, error) {
 		p.boranium AS 'planet.boranium',
 		p.germanium AS 'planet.germanium',
 		p.colonists AS 'planet.colonists',
+		p.partialPopulation AS 'planet.partialPopulation',
 		p.mines AS 'planet.mines',
 		p.factories AS 'planet.factories',
 		p.defenses AS 'planet.defenses',
@@ -272,6 +274,7 @@ func (c *client) createPlanet(planet *cs.Planet) error {
 		boranium,
 		germanium,
 		colonists,
+		partialPopulation,
 		mines,
 		factories,
 		defenses,
@@ -316,6 +319,7 @@ func (c *client) createPlanet(planet *cs.Planet) error {
 		:boranium,
 		:germanium,
 		:colonists,
+		:partialPopulation,
 		:mines,
 		:factories,
 		:defenses,
@@ -380,6 +384,7 @@ func (c *client) UpdatePlanet(planet *cs.Planet) error {
 		boranium = :boranium,
 		germanium = :germanium,
 		colonists = :colonists,
+		partialPopulation = :partialPopulation,
 		mines = :mines,
 		factories = :factories,
 		defenses = :defenses,
