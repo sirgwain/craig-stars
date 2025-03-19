@@ -89,7 +89,7 @@ export type Bitmask = number /* uint32 */;
 export interface Bomb {
 	quantity?: number /* int */;
 	killRate?: number /* float64 */;
-	minKillRate?: number /* int */; // ? Why is MinKillRate an int but KillRate a float?
+	minKillRate?: number /* int */;
 	structureDestroyRate?: number /* float64 */;
 	unterraformRate?: number /* int */;
 }
@@ -610,9 +610,9 @@ export interface Target<T extends PlayerMessageTargetType | MapObjectType> {
 export type MapObjectTarget = Target<MapObjectType>;
 export type PlayerMessageTarget = Target<PlayerMessageTargetType>;
 /**
- * Throughout a turn, various events will result in messages being sent to players.
- * Messages have a type and a target (focused in the UI upon clicking the "Goto" button)
- * Messages also have a Spec that is used to store specific values for the UI to display.
+ * Throughout a turn various events will result in messages being sent to players.
+ * Messages have a type and a target (the target is focused in the UI when you click the Goto button)
+ * Messages also have a Spec that is used to store specific numbers for the UI to display on the message.
  */
 export interface PlayerMessage extends Target<PlayerMessageTargetType> {
 	type: PlayerMessageType;
@@ -621,16 +621,13 @@ export interface PlayerMessage extends Target<PlayerMessageTargetType> {
 	spec: PlayerMessageSpec;
 }
 /**
- * The PlayerMessageSpec contains various data specific to each message,
- * like the amount of something being built or the field of research being completed.
- * Each PlayerMessageTargetType will interpret these values differently, and many
- * will ignore it entirely.
+ * The PlayerMessageSpec contains data specific to each message, like the amount of mines built
+ * or the field of research leveled up in.
  */
 export interface PlayerMessageSpec extends Target<MapObjectType> {
 	amount?: number /* int */;
 	amount2?: number /* int */;
 	prevAmount?: number /* int */;
-	bool?: boolean;
 	sourcePlayerNum?: number /* int */;
 	destPlayerNum?: number /* int */;
 	name?: string;

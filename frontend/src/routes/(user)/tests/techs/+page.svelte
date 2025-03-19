@@ -1,18 +1,14 @@
 <script lang="ts">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import {
-		HE,
-		HullSlotTypeEngine,
 		HullSlotTypeShield,
 		IS,
 		MineFieldTypeStandard,
 		SD,
 		TechCategoryBeamWeapon,
-		TechCategoryEngine,
 		TechCategoryMineLayer,
 		TechCategoryScanner,
 		TechCategoryShield,
-		TechTagEngine,
 		type TechEngine,
 		type TechHullComponent
 	} from '$lib/types/cs';
@@ -21,16 +17,27 @@
 
 	const settlersDelight: TechEngine = {
 		name: "Settler's Delight",
-		cost: { ironium: 1, germanium: 1, resources: 2 },
-		requirements: { prtsRequired: [HE] },
-		ranking: 10,
-		category: TechCategoryEngine,
-		hullSlotType: HullSlotTypeEngine,
+		cost: {
+			ironium: 1,
+			germanium: 1,
+			resources: 2
+		},
+		requirements: {
+			prtsRequired: ['HE'],
+			hullsAllowed: ['Mini-Colony Ship']
+		},
+		ranking: 69,
+		category: 'Engine',
+		tags: {
+			Engine: true,
+			Ramscoop: true
+		},
+		hullSlotType: 2,
 		mass: 2,
 		idealSpeed: 6,
 		freeSpeed: 6,
-		fuelUsage: [0, 0, 0, 0, 0, 0, 0, 150, 275, 480, 576],
-		tags: {TechTagEngine: true, TechTagRamscoop: true}
+		maxSafeSpeed: 9,
+		fuelUsage: [0, 0, 0, 0, 0, 0, 0, 150, 275, 480, 576]
 	};
 
 	const moleSkin: TechHullComponent = {
@@ -44,7 +51,7 @@
 		shield: 25
 	};
 
-	const techs: TechHullComponent[] | TechEngine[] = [
+	const techs: (TechHullComponent | TechEngine)[] = [
 		{
 			name: 'Ferret Scanner',
 			cost: {
@@ -113,12 +120,17 @@
 				propulsion: 2,
 				lrtsRequired: 1
 			},
-			ranking: 40,
-			category: TechCategoryEngine,
-			hullSlotType: 0,
+			ranking: 65,
+			category: 'Engine',
+			tags: {
+				Engine: true,
+				Ramscoop: true
+			},
+			hullSlotType: 2,
 			mass: 6,
 			idealSpeed: 6,
 			freeSpeed: 4,
+			maxSafeSpeed: 9,
 			fuelUsage: [0, 0, 0, 0, 0, 35, 120, 175, 235, 360, 420]
 		}
 	];

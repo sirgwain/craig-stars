@@ -300,6 +300,7 @@ CREATE TABLE planets (
   boranium INTEGER,
   germanium INTEGER,
   colonists INTEGER,
+  partialPopulation INTEGER,
   mines INTEGER,
   factories INTEGER,
   defenses INTEGER,
