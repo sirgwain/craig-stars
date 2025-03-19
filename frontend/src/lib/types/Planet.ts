@@ -115,7 +115,6 @@ export class CommandedPlanet implements Planet {
 	};
 
 	public get population(): number {
-		console.log(this.cargo.colonists);
 		return (this.cargo.colonists ?? 0) * 100;
 	}
 
