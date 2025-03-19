@@ -79,7 +79,7 @@ func TestCompareAsJSON(t *testing.T) {
 
 			if m.canceled != tt.wantCanceled {
 				var s string
-				if tt.wantFailed {
+				if tt.wantCanceled {
 					s = "did not cancel test execution when expected"
 				} else {
 					s = "canceled test unexpectedly"
@@ -87,7 +87,7 @@ func TestCompareAsJSON(t *testing.T) {
 				t.Errorf("CompareAsJSON() %s; test canceled flag returned %v instead of %v", s, m.canceled, tt.wantCanceled)
 			}
 
-			if tt.wantFailed {
+			if tt.wantFailed && !tt.wantCanceled {
 				// if we wanted test to fail, check the diff file to make sure it contains the correct text
 				gotBytes, err := os.ReadFile("../tmp/diff.jsonl")
 				if errors.Is(err, os.ErrNotExist) {
@@ -106,7 +106,7 @@ func TestCompareAsJSON(t *testing.T) {
 			// check to ensure the json files *don't* exist
 			for _, path := range paths {
 				if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-					// no diff = happy test
+					// file doesn't exist, which is what we want
 					continue
 				} else if err != nil {
 					t.Fatalf("error checking JSON file existence at %s: \n%v", path, err)

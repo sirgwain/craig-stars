@@ -38,11 +38,11 @@ func CompareAsJSON(t TestingT, got, want any) {
 
 	gotJson, err := json.MarshalIndent(got, "", "\t")
 	if err != nil {
-		t.Fatalf("CompareAsJSON could not marshal got (%q) to json: \n%v", got, err)
+		t.Fatalf("CompareAsJSON could not marshal got to json: \n%v", err)
 	}
 	wantJson, err := json.MarshalIndent(want, "", "\t")
 	if err != nil {
-		t.Fatalf("CompareAsJSON could not marshal want (%q) to json: \n%v", want, err)
+		t.Fatalf("CompareAsJSON could not marshal want to json: \n%v", err)
 	}
 
 	if string(gotJson) == string(wantJson) {
@@ -54,21 +54,21 @@ func CompareAsJSON(t TestingT, got, want any) {
 		t.Fatalf("error creating JSON diffs: \n%v", err)
 	}
 
-	// Remove block comments in the stdout version since we don't care about proper syntax
+	// Remove block comments in the stdout version since we value clutter-free output over valid syntax
 	r := strings.NewReplacer("/* ", "", " */", ":")
 
 	t.Errorf("JSONs not equal; diff between got & want: \n%s", r.Replace(diff))
 }
 
 // Parsing options for jsondiff.
-// Fun fact: this is guaranteed to produce valid JSONL
-// assuming the input is also valid (which it always is).
+// Fun fact: this is guaranteed to produce valid JSONL output in the diff
+// so long as the input values are also valid (which should always be the case).
 var options = jsondiff.Options{
 	Added:            jsondiff.Tag{Begin: "/* Added */ ", End: ""},
 	Removed:          jsondiff.Tag{Begin: "/* Removed */ ", End: ""},
 	Changed:          jsondiff.Tag{Begin: "/* Changed */ [ ", End: " ]"},
 	ChangedSeparator: ", ",
-	Indent:           "\t", // tab indentation
+	Indent:           "\t",
 	SkipMatches:      true,
 }
 
