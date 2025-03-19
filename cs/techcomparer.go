@@ -6,7 +6,7 @@ import (
 
 // The TechComparer interface compares techs and techHullComponents
 // to determine the one most suitable for a particular ship's purpose.
-// TODO: Add cost benefit analysis and support
+// TODO: Migrate all old tech getters in TechStore and convert them into comparers
 type TechComparer interface {
 	GetBestComponentWithTag(design *ShipDesign, hullSlotType HullSlotType, qty int, tag TechTag) *TechHullComponent
 	CompareWeaponPowers(hc, other *TechHullComponent) bool
@@ -22,9 +22,8 @@ type techCompare struct {
 	player *Player
 }
 
-// GetBestComponentWithTag finda ans returns the best usable TechHullComponent
-// for the specified TechTag.
-//
+// get the best TechHullComponent for the specified HullSlotType(s)
+// based on the specified TechTag.
 // Used for "apples to apples" comparisons of parts when we
 // know what we are looking for ahead of time
 func (tc *techCompare) GetBestComponentWithTag(design *ShipDesign, hullSlotType HullSlotType, qty int, tag TechTag) (bestTech *TechHullComponent) {
@@ -32,14 +31,15 @@ func (tc *techCompare) GetBestComponentWithTag(design *ShipDesign, hullSlotType 
 	player := tc.player
 	store := rules.techs
 
-	// get slice of all components we can use for this slot & hull type
-	// TODO: Cache this maybe
+	// get list of all components we can use for this slot & hull type
 	comps := store.GetHullComponentsByHullSlotType(player, hullSlotType, design.Hull)
 
 	for _, hc := range comps {
+		// we set match to false and catalog the part as soon as a single tag matches our list
+		// and is better than our current item
 		hasTag := false
 		// manually cover cases for tags being subsets of other categories
-		// so we don't end up with sapper only ships or smart bomb only bombers
+		// so we don't end up with sapper only ships
 		switch tag {
 		case TechTagBomb:
 			hasTag = hc.Tags.HasTag(TechTagBomb) && !hc.Tags.HasTag(TechTagStructureBomb) && !hc.Tags.HasTag(TechTagSmartBomb)
@@ -267,15 +267,9 @@ func (tc *techCompare) GetMostNeededComponent(design *ShipDesign, hst HullSlotTy
 		// compare bonuses and part costs
 		hcBonus := tc.getWarshipPartBonus(design, hc, qty)
 
-		if !design.Spec.Starbase && tc.checkArmorBonus(hull, hc) {
-			// part gives less armor than our hull and has no tangible benefits aside from it
-			continue
-		}
-
 		if hcBonus > bestBonus || (hcBonus == bestBonus &&
 			GetCostEfficiencyRatio(getPlayerCost(bestTech.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
 				getPlayerCost(hc.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
-				// TODO: Change this once AI gets custom cost type check support
 				CostTypes[:]...) > 1) {
 			// all else being equal, use items that cost less
 			bestTech = hc
@@ -287,47 +281,40 @@ func (tc *techCompare) GetMostNeededComponent(design *ShipDesign, hst HullSlotTy
 		return nil, nil
 	}
 
-	if unitRate := (bestBonus - 1) / float64(qty); unitRate <= 0.01 && design.Spec.CloakPercent < 98 {
-		// our "best part" barely helps us; try and add a cloak for funsies
-		cloak := tc.GetBestComponentWithTag(design, hst, qty, TechTagCloak)
-		if cloak != nil {
-			return cloak, nil
+	// for defensive components, check if adding them is even efficient at all
+	// compared to using the hull's baseline stats
+	if ((bestTech.Armor > 0 && hull.Armor > 0) || (bestTech.Shield > 0 && hull.Shield > 0)) && // tech gives the same stat that our hull does (no apples to oranges)
+		!design.Spec.Starbase && design.Purpose != ShipDesignPurposeStartingFighter && // we are neither a staircase nor a scripted starter ship
+		bestTech.Tags.hasTags([]TechTag{TechTagArmor, TechTagShield}, CombatTechTags...) { // part gives no benefit aside from shield/armor bonuses
+
+		// extract armor/shield values and compute cost ratio
+		hcArmor, hcShield := getArmorShieldAmounts(float64(bestTech.Armor), float64(bestTech.Shield), 1, player.Race.Spec, bestTech.Category == TechCategoryArmor)
+		hullArmor, hullShield := getArmorShieldAmounts(float64(hull.Armor), float64(hull.Shield), 1, player.Race.Spec, false)
+		costRatio := GetCostEfficiencyRatio(getPlayerCost(hull.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
+			getPlayerCost(bestTech.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset), CostTypes[:]...)
+		var armorShieldRatio float64
+		switch {
+		case bestTech.Armor <= 0 || hull.Armor <= 0: // no armor; only consider sheld
+			armorShieldRatio = hullShield / hcShield
+		case bestTech.Shield <= 0 || hull.Shield <= 0: // no shield; only consider armor
+			armorShieldRatio = hullArmor / hcArmor
+		default: // we have both types and consider both
+			armorShieldRatio = (hullArmor + hullShield) / (hcArmor + hcShield)
+		}
+		if armorShieldRatio >= costRatio {
+			// Our baseline hull is more efficient than the hull armor; leave it off as we can always make more ships
+			return nil, nil
 		}
 	}
 
+	if (bestBonus-1)/float64(qty) <= 0.01 && design.Spec.CloakPercent < 98 {
+		// our "best part" barely helps us; add a cloak for funsies
+		cloak := tc.GetBestComponentWithTag(design, hst, qty, TechTagCloak)
+		if cloak != nil {
+			bestTech = cloak
+		}
+	}
 	return bestTech, nil
-}
-
-func (tc *techCompare) checkArmorBonus(hull *TechHull, hc *TechHullComponent) bool {
-	player := tc.player
-	// for defensive components, check if adding them is even efficient at all
-	// compared to using the hull's baseline stats
-	if (!(hc.Armor > 0 && hull.Armor > 0) && !(hc.Shield > 0 && hull.Shield > 0)) || // tech doesn't give the same stat that our hull does (apples to oranges)
-		// TODO: Remove 2nd part of conditional post starting fleet refactor
-		!hc.Tags.hasTags([]TechTag{TechTagArmor, TechTagShield}, CombatTechTags...) { // part gives some other tangible benefit aside from shield/armor bonuses
-		return true
-	}
-
-	// extract armor/shield values and compute cost ratio
-	hcArmor, hcShield := getArmorShieldAmounts(float64(hc.Armor), float64(hc.Shield), 1, player.Race.Spec, hc.Category == TechCategoryArmor)
-	hullArmor, hullShield := getArmorShieldAmounts(float64(hull.Armor), float64(hull.Shield), 1, player.Race.Spec, false)
-	costRatio := GetCostEfficiencyRatio(getPlayerCost(hull.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
-		getPlayerCost(hc.Tech, player.TechLevels, player.Race.Spec.MiniaturizationSpec, player.Race.Spec.TechCostOffset),
-		// TODO: Change this once AI gets custom cost type check support
-		CostTypes[:]...)
-	var armorShieldRatio float64
-	switch {
-	case hc.Armor <= 0 || hull.Armor <= 0: // no armor; only consider sheld
-		armorShieldRatio = hullShield / hcShield
-	case hc.Shield <= 0 || hull.Shield <= 0: // no shield; only consider armor
-		armorShieldRatio = hullArmor / hcArmor
-	default: // we have both types and consider both
-		armorShieldRatio = (hullArmor + hullShield) / (hcArmor + hcShield)
-	}
-
-	// If our baseline hull is more efficient than the hull armor;
-	// leave it off as we can always make more ships
-	return armorShieldRatio >= costRatio
 }
 
 // return the total % amount this TechHullComponent boosts our ship's performance,
@@ -401,7 +388,7 @@ tagLoop:
 		case tag == TechTagTorpedoJammer, tag == TechTagBeamDeflector:
 			relativeBoost *= design.Spec.getJamOrComputerBonus(rules, hc, qty, tag)
 		case tag == TechTagManeuveringJet && design.Spec.Movement < rules.MovementMax && !design.Spec.Starbase:
-			// add a small, staple boost to jets
+			// add a smalsl, staple boost to jets
 			oldMove := float64(design.Spec.Movement)
 			moveBoost := float64(getBattleMovement(rules.MovementMin, rules.MovementMax, design.Spec.Engine.IdealSpeed, design.Spec.MovementBonus+hc.MovementBonus*float64(qty), design.Spec.Mass+hc.Mass*qty, design.Spec.NumEngines)) - oldMove
 			multi := 0.6
