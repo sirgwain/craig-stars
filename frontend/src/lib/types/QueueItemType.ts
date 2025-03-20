@@ -99,6 +99,15 @@ export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => (
 });
 
 /**
+ * Check if a {@linkcode QueueItemType} is a concrete or auto planetary item.
+ * @param type the {@linkcode QueueItemType} to check
+ * @returns `true` if item is a concrete or auto planetary item (i.e. not a ship/starbase)
+ */
+export const isPlanetary = (type: QueueItemType) => {
+	return type !== QueueItemTypeShipToken && type !== QueueItemTypeStarbase
+}
+
+/**
  * Get the concrete type corresponding to a given {@linkcode QueueItemType}.
  * @param type The {@linkcode QueueItemType} to check
  * @returns The concrete version of the {@linkcode QueueItemType} -
@@ -114,7 +123,8 @@ export const concreteType = (type: QueueItemType): QueueItemType => {
 			return QueueItemTypeDefenses;
 		case QueueItemTypeAutoMineralAlchemy:
 			return QueueItemTypeMineralAlchemy;
-		case QueueItemTypeAutoMinTerraform || QueueItemTypeAutoMaxTerraform:
+		case QueueItemTypeAutoMinTerraform:
+		case QueueItemTypeAutoMaxTerraform:
 			return QueueItemTypeTerraformEnvironment;
 		case QueueItemTypeAutoMineralPacket:
 			return QueueItemTypeMixedMineralPacket;
@@ -125,7 +135,8 @@ export const concreteType = (type: QueueItemType): QueueItemType => {
 
 export function getFullName(item: ProductionQueueItem, designFinder: DesignFinder): string {
 	switch (item.type) {
-		case QueueItemTypeStarbase || QueueItemTypeShipToken:
+		case QueueItemTypeStarbase:
+		case QueueItemTypeShipToken:
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
 		case QueueItemTypeAutoMineralAlchemy:
 			return 'Alchemy (Auto Build)';
@@ -165,7 +176,9 @@ export function getFullName(item: ProductionQueueItem, designFinder: DesignFinde
 export function getShortName(item: ProductionQueueItem, designFinder: DesignFinder): string {
 	console.log(item.type);
 	switch (item.type) {
-		case QueueItemTypeStarbase || QueueItemTypeShipToken:
+		case QueueItemTypeStarbase:
+		case QueueItemTypeShipToken:
+			console.log("name:" + designFinder.getMyDesign(item.designNum)?.name)
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
 		case QueueItemTypeTerraformEnvironment:
 			return 'Terraform Environment';

@@ -1,10 +1,5 @@
 <script lang="ts" module>
-	export type ProductionQueueEvent = {
-		next: void;
-		prev: void;
-		ok: void;
-		cancel: void;
-	};
+	export type ProductionQueueEvent = { next: void; prev: void; ok: void; cancel: void };
 </script>
 
 <script lang="ts">
@@ -96,7 +91,7 @@
 		updatedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		const planetWithEstimates = cs.estimateProduction(updatedPlanet);
 		if (!planetWithEstimates?.productionQueue) {
-			addError(new CSError(undefined, 'unable to estimate production', 0));
+			addError(new CSError(undefined, 'unable to estimate production; no queue', 0));
 			return;
 		}
 
@@ -217,13 +212,7 @@
 			} else {
 				// prepend a new queue item
 				queueItems = [
-					{
-						type: item.type,
-						designNum: item.designNum,
-						allocated: {},
-						tags: {},
-						quantity
-					},
+					{ type: item.type, designNum: item.designNum, allocated: {}, tags: {}, quantity },
 					...queueItems
 				];
 				selectedQueueItemIndex++;
@@ -432,29 +421,22 @@
 			<div class="flex flex-row h-full w-full grid-cols-3">
 				<div class="flex-1 h-full bg-base-100 py-1 px-1">
 					<div class="flex flex-col h-full">
+						<!-- Display queue item lines for ships, starbases and structures able to be built-->
 						<ul class="grow h-20 overflow-y-auto">
 							{#if availableShipDesigns.length > 0}
 								<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
 									Ships
 								</li>
-								{#each availableShipDesigns as item}
+								{#each availableShipDesigns as item, index}
 									<li>
-										<button
-											type="button"
-											onclick={() => availableItemSelected(item)}
-											ondblclick={() => addAvailableItem(item)}
-											oncontextmenu={(e) =>
-												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
-											class:italic={isAuto(item.type)}
-											class:strikethrough={item.canceled}
-											class:bg-primary={item === selectedAvailableItem}
-											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
-											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
-											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }"
-										>
-											{getFullName(item, $universe)}
-										</button>
+										<ProductionQueueItemLine
+											{item}
+											{index}
+											selected={item === selectedQueueItem}
+											notInQueue={true}
+											{onQueueItemClicked}
+											onQueueItemDoubleClicked={removeItem}
+										/>
 									</li>
 								{/each}
 							{/if}
@@ -463,45 +445,38 @@
 								<li class="font-semibold text-secondary text-lg border-b border-b-secondary my-0.5">
 									Starbases
 								</li>
-								{#each availableStarbaseDesigns as item}
+								{#each availableStarbaseDesigns as item, index}
 									<li>
-										<button
-											type="button"
-											onclick={() => availableItemSelected(item)}
-											ondblclick={() => addAvailableItem(item)}
-											oncontextmenu={(e) =>
-												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
-											class:italic={isAuto(item.type)}
-											class:strikethrough={item.canceled}
-											class:bg-primary={item === selectedAvailableItem}
-											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
-											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
-											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }"
-										>
-											{getFullName(item, $universe)}
-										</button>
+										<ProductionQueueItemLine
+											{item}
+											{index}
+											selected={item === selectedAvailableItem}
+											notInQueue={true}
+											onQueueItemClicked={() => availableItemSelected(item)}
+											onQueueItemDoubleClicked={() => addAvailableItem(item)}
+										/>
 									</li>
 								{/each}
 							{/if}
-							<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
-								Planetary Structures
-							</li>
-							{#each availableItems as item}
-								<li>
-									<button
-										type="button"
-										onclick={() => availableItemSelected(item)}
-										ondblclick={() => addAvailableItem(item)}
-										class:italic={isAuto(item.type)}
-											class:strikethrough={item.canceled}
-										class:bg-primary={item === selectedAvailableItem}
-										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }"
-									>
-										{getFullName(item, $universe)}
-									</button>
+
+							{#if availableItems.length > 0}
+								<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
+									Planetary Structures
 								</li>
-							{/each}
+
+								{#each availableItems as item, index}
+									<li>
+										<ProductionQueueItemLine
+											{item}
+											{index}
+											selected={item === selectedAvailableItem}
+											notInQueue={true}
+											onQueueItemClicked={() => availableItemSelected(item)}
+											onQueueItemDoubleClicked={() => addAvailableItem(item)}
+										/>
+									</li>
+								{/each}
+							{/if}
 						</ul>
 						<div class="divider"></div>
 						<div class="h-32">

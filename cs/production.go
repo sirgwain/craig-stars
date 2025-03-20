@@ -243,7 +243,7 @@ func (p *producer) produce() (result productionResult, err error) {
 			}
 
 			if item.Quantity <= 0 {
-				// quantity <= 0; skip building item
+				// quantity below 0; skip building item
 				available = available.Add(item.Allocated) // refund previously allocated amount
 				result.itemsBuilt = append(result.itemsBuilt,
 					itemBuilt{index: item.index, canceled: true})

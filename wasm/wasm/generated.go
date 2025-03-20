@@ -2296,7 +2296,7 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.SourcePlayerNum = getInt[int](o.Get("sourcePlayerNum"))
 	obj.DestPlayerNum = getInt[int](o.Get("destPlayerNum"))
 	obj.Name = string(getString(o.Get("name")))
-	obj.Cost = getPointer(GetCost(o.Get("cost")))
+	obj.Cost = GetCost(o.Get("cost"))
 	obj.Mineral = getPointer(GetMineral(o.Get("mineral")))
 	obj.Cargo = getPointer(GetCargo(o.Get("cargo")))
 	obj.QueueItemType = GetQueueItemType(o.Get("queueItemType"))
@@ -2322,7 +2322,7 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	o.Set("destPlayerNum", obj.DestPlayerNum)
 	o.Set("name", obj.Name)
 	o.Set("cost", map[string]any{})
-	SetCost(o.Get("cost"), obj.Cost)
+	SetCost(o.Get("cost"), &obj.Cost)
 	o.Set("mineral", map[string]any{})
 	SetMineral(o.Get("mineral"), obj.Mineral)
 	o.Set("cargo", map[string]any{})
@@ -2685,14 +2685,14 @@ func GetQueueItemCompletionEstimate(o js.Value) cs.QueueItemCompletionEstimate {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.Skipped = getBool(o.Get("skipped"))
+	obj.Canceled = getBool(o.Get("canceled"))
 	obj.YearsToBuildOne = getInt[int](o.Get("yearsToBuildOne"))
 	obj.YearsToBuildAll = getInt[int](o.Get("yearsToBuildAll"))
 	obj.YearsToSkipAuto = getInt[int](o.Get("yearsToSkipAuto"))
 	return obj
 }
 func SetQueueItemCompletionEstimate(o js.Value, obj *cs.QueueItemCompletionEstimate) {
-	o.Set("skipped", obj.Skipped)
+	o.Set("canceled", obj.Canceled)
 	o.Set("yearsToBuildOne", obj.YearsToBuildOne)
 	o.Set("yearsToBuildAll", obj.YearsToBuildAll)
 	o.Set("yearsToSkipAuto", obj.YearsToSkipAuto)

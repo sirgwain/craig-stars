@@ -116,6 +116,15 @@
 		@apply fill-[#7F7F00];
 	}
 
+	.text-queue-item-auto {
+		font-style: italic
+	}
+
+	.text-queue-item-canceled {
+		@apply text-secondary;
+		text-decoration: line-through;
+	}
+
 	.text-queue-item-skipped {
 		@apply text-secondary;
 	}

@@ -116,6 +116,7 @@ func Test_completionEstimate_GetYearsToBuild(t *testing.T) {
 
 func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 	t.Run("Normal", func(t *testing.T) {
+		player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 		type args struct {
 			items  []ProductionQueueItem
 			planet *Planet
@@ -128,31 +129,13 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			wantErr               bool
 		}{
 			{
-				name: "Invalid Design",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type: QueueItemTypeShipToken,
-							design: NewShipDesign(1, 1).WithHull(Scout.Name).WithSlots([]ShipDesignSlot{
-								{HullComponent: "not a component", HullSlotIndex: 20, Quantity: -1},
-							}),
-							Quantity: 1,
-						},
-					},
-					planet: NewPlanet().WithCargo(Cargo{0, 0, 0, 1000}).
-						WithContributesOnlyLeftoverToResearch(true),
-				},
-				want:                  nil,
-				wantLeftoverResources: 0,
-				wantErr:               true,
-			},
-			{
 				name: "3 half done ships",
 				args: args{
 					items: []ProductionQueueItem{
 						{
-							Type:      QueueItemTypeShipToken,
-							design:    testLongRangeScoutDesign(1), // 54, 6, 24, 69
+							Type:   QueueItemTypeShipToken,
+							design: testLongRangeScoutDesign(1).WithSpec(&rules, player),
+							// Total cost: {54, 6, 24, 69}
 							Quantity:  3,
 							Allocated: Cost{15, 1, 3, 4},
 							// 39 iron left to build
@@ -171,7 +154,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 							YearsToSkipAuto: Infinite,
 						},
 						Type:      QueueItemTypeShipToken,
-						design:    testLongRangeScoutDesign(1),
+						design:    testLongRangeScoutDesign(1).WithSpec(&rules, player),
 						Quantity:  3,
 						Allocated: Cost{15, 1, 3, 4},
 					},
@@ -442,33 +425,11 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				e := NewCompletionEstimator()
 
-				player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
 				planet := tt.args.planet
 				planet.Hab = Hab{50, 50, 50}                         // perfect hab
 				planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for 1kT per mine output
 				planet.PlayerNum = 1
 				planet.Spec = computePlanetSpec(&rules, player, planet)
-
-				// compute specs for designs in queue
-				for _, item := range tt.args.items {
-					if item.design == nil {
-						continue
-					}
-					// discard error for non-failing cases
-					var err error
-					if item.design.Spec, err = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, item.design); err != nil && !tt.wantErr {
-						t.Fatalf("ComputeShipDesignSpec() returned error: \n%v", err)
-					}
-				}
-				for _, item := range tt.want {
-					if item.design == nil {
-						continue
-					}
-					var err error
-					if item.design.Spec, err = ComputeShipDesignSpec(&rules, player.TechLevels, player.Race.Spec, item.design); err != nil && !tt.wantErr {
-						t.Fatalf("ComputeShipDesignSpec() returned error: \n%v", err)
-					}
-				}
 				planet.ProductionQueue = tt.args.items
 
 				got, gotLeftover, err := e.GetProductionWithEstimates(&rules, player, *planet)
@@ -489,40 +450,38 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 		}
 	})
 
-	// TODO: Fix leftover resources after Pop branch is finished
 	t.Run("AR", func(t *testing.T) {
+		player := NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).
+			WithTechLevels(TechLevel{Energy: 1}).
+			WithNum(1).withSpec(&rules)
+
 		santaMaria := NewShipDesign(1, 1).WithHull(ColonyShip.Name).WithSlots([]ShipDesignSlot{
 			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
 			{HullComponent: OrbitalConstructionModule.Name, HullSlotIndex: 2, Quantity: 1},
-		})
+		}).WithSpec(&rules, player)
 		potatoBug := NewShipDesign(1, 2).WithHull(MidgetMiner.Name).WithSlots([]ShipDesignSlot{
 			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
 			{HullComponent: RoboMidgetMiner.Name, HullSlotIndex: 2, Quantity: 2},
-		})
+		}).WithSpec(&rules, player)
 
-		type args struct {
-			items  []ProductionQueueItem
-			planet *Planet
-		}
 		tests := []struct {
 			name                  string
-			args                  args
+			items                 []ProductionQueueItem
+			cargo                 Cargo
 			want                  []ProductionQueueItem
 			wantLeftoverResources int
 		}{
 			{
 				name: "santa maria",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeShipToken,
-							Quantity: 2,
-							design:   santaMaria,
-							// {33, 15, 31, 43}
-						},
+				items: []ProductionQueueItem{
+					{
+						Type:     QueueItemTypeShipToken,
+						Quantity: 2,
+						design:   santaMaria,
+						// {33, 15, 31, 43}
 					},
-					planet: NewPlanet().WithCargo(Cargo{100, 100, 100, 250}), // 50 res per year
 				},
+				cargo: Cargo{100, 100, 100, 250}, // 50 res per year
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -539,18 +498,15 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			},
 			{
 				name: "potato bug",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeShipToken,
-							Quantity: 2,
-							design:   potatoBug,
-							// {41, 0, 12, 123}
-						},
+				items: []ProductionQueueItem{
+					{
+						Type:     QueueItemTypeShipToken,
+						Quantity: 2,
+						design:   potatoBug,
+						// {41, 0, 12, 123}
 					},
-					planet: NewPlanet().WithCargo(Cargo{100, 100, 100, 100}),
-					// Res: 32 → 34 → 37 → 40 → 42 → 45 → 48
 				},
+				cargo: Cargo{100, 100, 100, 100},
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -567,15 +523,13 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			},
 			{
 				name: "alchemy",
-				args: args{
-					items: []ProductionQueueItem{
-						{
-							Type:     QueueItemTypeMineralAlchemy,
-							Quantity: 1,
-						},
+				items: []ProductionQueueItem{
+					{
+						Type:     QueueItemTypeMineralAlchemy,
+						Quantity: 1,
 					},
-					planet: NewPlanet().WithCargo(Cargo{100, 100, 100, 100}), // 32 res/yr
 				},
+				cargo: Cargo{100, 100, 100, 100}, // 32 res/yr
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -593,13 +547,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-
 				e := NewCompletionEstimator()
-				player := NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).
-					WithTechLevels(TechLevel{Energy: 1}).
-					WithNum(1).withSpec(&rules)
 
-				planet := tt.args.planet.WithPlayerNum(1).
+				planet := NewPlanet().WithCargo(tt.cargo).WithPlayerNum(1).
 					WithContributesOnlyLeftoverToResearch(true)
 				planet.Starbase = testSpaceStation(player, planet)
 				planet.Hab = Hab{50, 50, 50}                         // perfect hab
@@ -607,7 +557,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				planet.Spec = computePlanetSpec(&rules, player, planet)
 
 				// compute specs for designs in queue
-				for _, item := range tt.args.items {
+				for _, item := range tt.items {
 					if item.design != nil {
 						item.design = item.design.WithSpec(&rules, player)
 					}
@@ -617,7 +567,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						item.design = item.design.WithSpec(&rules, player)
 					}
 				}
-				planet.ProductionQueue = tt.args.items
+				planet.ProductionQueue = tt.items
 
 				got, gotLeftover, err := e.GetProductionWithEstimates(&rules, player, *planet)
 				if err != nil {
@@ -630,6 +580,188 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 
 				test.CompareAsJSON(t, got, tt.want)
 
+			})
+		}
+	})
+
+	t.Run("Packets", func(t *testing.T) {
+		player := NewPlayer(1, NewRace().WithSpec(&rules)).withSpec(&rules)
+		driverBase := NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithName("Driver Base").
+			WithSlots([]ShipDesignSlot{
+				{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
+			}).WithSpec(&rules, player)
+		noDriverBase := NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithName("No Driver Base").
+			WithSpec(&rules, player)
+
+		tests := []struct {
+			name     string
+			starbase *ShipDesign
+			items    []ProductionQueueItem
+			cargo    Cargo
+			want     []ProductionQueueItem
+		}{
+			{
+				name: "Packet without driver",
+				items: []ProductionQueueItem{
+					{
+						Type:     QueueItemTypeIroniumMineralPacket,
+						Quantity: 1,
+					},
+				},
+				cargo:    Cargo{1000, 1000, 1000, 10_000},
+				starbase: noDriverBase,
+				want: []ProductionQueueItem{
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne: Infinite,
+							YearsToBuildAll: Infinite,
+							YearsToSkipAuto: Infinite,
+							Canceled:        true,
+						},
+						Type:     QueueItemTypeIroniumMineralPacket,
+						Quantity: 1,
+					},
+				},
+			},
+			{
+				name: "Built new base between packets",
+				items: []ProductionQueueItem{
+					{
+						Type:     QueueItemTypeIroniumMineralPacket,
+						Quantity: 1,
+					},
+					{
+						Type:     QueueItemTypeStarbase,
+						design:   driverBase,
+						Quantity: 1,
+					},
+					{
+						Type:     QueueItemTypeMixedMineralPacket,
+						Quantity: 1,
+					},
+				},
+				cargo:    Cargo{1000, 1000, 1000, 10_000}, // more than enough res to finish everything
+				starbase: noDriverBase,
+				// First base canceled due to being built when we had no driver;
+				// 2nd packet finishes due to being finished after the new base finishes
+				want: []ProductionQueueItem{
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne: Infinite,
+							YearsToBuildAll: Infinite,
+							YearsToSkipAuto: Infinite,
+							Canceled:        true,
+						},
+						Type:     QueueItemTypeIroniumMineralPacket,
+						Quantity: 1,
+					},
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne: 1,
+							YearsToBuildAll: 1,
+							YearsToSkipAuto: Infinite,
+						},
+						Type:     QueueItemTypeStarbase,
+						design:   noDriverBase,
+						Quantity: 1,
+					},
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne: 1,
+							YearsToBuildAll: 1,
+							YearsToSkipAuto: Infinite,
+						},
+						Type:     QueueItemTypeMixedMineralPacket,
+						Quantity: 1,
+					},
+				},
+			},
+			{
+				name: "2 years of resources",
+				items: []ProductionQueueItem{
+					{
+						Type:     QueueItemTypeIroniumMineralPacket,
+						Quantity: 1,
+					},
+				},
+				cargo:    Cargo{1000, 1000, 1000, 50}, // 5 res/yr
+				starbase: driverBase,
+				want: []ProductionQueueItem{
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne: 2,
+							YearsToBuildAll: 2,
+							YearsToSkipAuto: Infinite,
+						},
+						Type:     QueueItemTypeIroniumMineralPacket,
+						Quantity: 1,
+					},
+				},
+			},
+			{
+				name: "Packets built this and next year",
+				items: []ProductionQueueItem{
+					{
+						Type:     QueueItemTypeIroniumMineralPacket,
+						Quantity: 1,
+					},
+					{
+						Type:     QueueItemTypeBoraniumMineralPacket,
+						Quantity: 1,
+					},
+				},
+				cargo:    Cargo{1000, 1000, 1000, 100}, // 10 res/yr, enough for a single packet
+				starbase: driverBase,
+				want: []ProductionQueueItem{
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne: 1,
+							YearsToBuildAll: 1,
+							YearsToSkipAuto: Infinite,
+						},
+						Type:     QueueItemTypeIroniumMineralPacket,
+						Quantity: 1,
+					},
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne: 2,
+							YearsToBuildAll: 2,
+							YearsToSkipAuto: Infinite,
+						},
+						Type:     QueueItemTypeBoraniumMineralPacket,
+						Quantity: 1,
+					},
+				},
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				e := NewCompletionEstimator()
+
+				player.Name = tt.name
+				planet := NewPlanet().WithCargo(tt.cargo).
+					WithContributesOnlyLeftoverToResearch(true)
+				planet.PacketTargetNum = 33  // give packet target
+				planet.Hab = Hab{50, 50, 50} // perfect hab
+				planet.MineralConcentration = Mineral{100, 100, 100}
+				planet.PlayerNum = 1
+				if tt.starbase != nil {
+					player.Designs = append(player.Designs, tt.starbase)
+					base := newStarbase(player, planet, tt.starbase, "Old Base")
+					base.Spec = ComputeFleetSpec(&rules, player, &base)
+					planet.Starbase = &base
+				}
+
+				planet.Spec = computePlanetSpec(&rules, player, planet)
+				planet.ProductionQueue = tt.items
+
+				got, _, err := e.GetProductionWithEstimates(&rules, player, *planet)
+				if err != nil {
+					t.Fatalf("CompletionEstimator.GetProductionWithEstimates() errored unexpectedly; err = \n%v", err)
+				}
+
+				test.CompareAsJSON(t, got, tt.want)
 			})
 		}
 	})

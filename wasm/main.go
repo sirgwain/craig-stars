@@ -221,7 +221,7 @@ func maxBuildable(args []js.Value) any {
 	maxBuild := 5000
 	if !itemType.IsAuto() /* || itemType == cs.QueueItemTypeAutoMineralAlchemy */ {
 		maxBuild = planet.MaxBuildable(&ctx.player, itemType)
-		// maxBuildable is set to infinite for most things, but we want big number
+		// maxBuildable is set to infinite for most things, but we want big number otherwise
 		if maxBuild == cs.Infinite {
 			maxBuild = 5000
 		}

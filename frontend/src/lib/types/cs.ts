@@ -1181,7 +1181,7 @@ export interface PlayerMapObjects {
  * The producer struct performs planetary production.
  */
 /**
- * An item within a production queue.
+ * An item in a production queue.
  */
 export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	type: QueueItemType;
@@ -2197,7 +2197,7 @@ export interface PRTSpec {
 	mineralsPerSingleMineralPacket?: number /* int */;
 	mineralsPerMixedMineralPacket?: number /* int */;
 	packetResourceCost?: number /* int */;
-	packetMineralCostFactor?: number /* float64 */;
+	packetMineralCostFactor?: number /* float64 */; // Overhead amount for mineral packet launches.
 	packetReceiverFactor?: number /* float64 */;
 	packetDecayFactor?: number /* float64 */;
 	packetOverSafeWarpPenalty?: number /* int */;
