@@ -95,6 +95,7 @@ func (ai *aiPlayer) colonize() error {
 		Int("PlayerNum", ai.Num).
 		Msgf("%d colonizerFleets, %d colonizable planets", idleFleets, len(colonizablePlanets))
 
+	// Check each of our idle colonizer fleets and have them load dudes
 	for _, fleet := range colonizerFleets {
 		bestPlanet := ai.getBestPlanetToColonize(fleet, colonizablePlanets)
 		if bestPlanet == nil {
@@ -116,6 +117,7 @@ func (ai *aiPlayer) colonize() error {
 		// TODO: Make this better:
 		// * _Don't_ send colonizers if we don't need them
 		// * Only load up to a preset % of cap (rather than trying to take everything and aborting if we load too much)
+		// * Also bring some minerals maybe?
 		colonistsToLoad := min(planet.Spec.MaxPopulation/100, fleet.Spec.CargoCapacity)
 
 		// only load colonists if taking them doesn't reduce our pop too much
@@ -137,7 +139,7 @@ func (ai *aiPlayer) colonize() error {
 		if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}, ai.Planets); err != nil {
 			// something went wrong, skip this planet
 			ai.log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
-			return err
+			continue
 		}
 
 		warpSpeed := ai.getWarpSpeed(fleet, bestPlanet.Position)
