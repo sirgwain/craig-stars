@@ -18,6 +18,7 @@ type Planet struct {
 	MineralConcentration Mineral    `json:"mineralConcentration"`
 	MineYears            Mineral    `json:"mineYears"`
 	Cargo                Cargo      `json:"cargo"`
+	PartialPopulation    int        `json:"partialPopulation"` // population not in a multiple of 100
 	Mines                int        `json:"mines"`
 	Factories            int        `json:"factories"`
 	Defenses             int        `json:"defenses"`
@@ -55,7 +56,6 @@ type PlanetSpec struct {
 	MaxPossibleFactories                      int     `json:"maxPossibleFactories,omitempty"`
 	MaxPossibleMines                          int     `json:"maxPossibleMines,omitempty"`
 	MiningOutput                              Mineral `json:"miningOutput,omitempty"`
-	Population                                int     `json:"population,omitempty"`
 	PopulationDensity                         float64 `json:"populationDensity,omitempty"`
 	ResourcesPerYear                          int     `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearAvailable                 int     `json:"resourcesPerYearAvailable,omitempty"`
@@ -113,6 +113,21 @@ func (p *Planet) WithNum(num int) *Planet {
 	return p
 }
 
+// Set a planet's colonists to the specified number of colonists and return the resulting struct.
+// Multiples of 100 go into its Cargo struct, while leftovers are assigned to PartialPopulation.
+func (p *Planet) WithPopulation(pop int) *Planet {
+	p.Cargo.Colonists = pop / 100
+	p.PartialPopulation = pop % 100
+	return p
+}
+
+// Set a planet's Hab and BaseHab and return the resulting struct.
+func (p *Planet) WithHab(hab Hab) *Planet {
+	p.Hab = hab
+	p.BaseHab = hab
+	return p
+}
+
 func (p *Planet) WithCargo(cargo Cargo) *Planet {
 	p.Cargo = cargo
 	return p
@@ -153,67 +168,100 @@ func (p *Planet) WithScanner(scanner bool) *Planet {
 	return p
 }
 
+func (p *Planet) WithHomeworld(homeworld bool) *Planet {
+	p.Homeworld = homeworld
+	return p
+}
+
+func (p *Planet) WithContributesOnlyLeftoverToResearch(contributes bool) *Planet {
+	p.ContributesOnlyLeftoverToResearch = contributes
+	return p
+}
+
 func (p *Planet) String() string {
 	return fmt.Sprintf("Planet %v", p.MapObject)
 }
 
-func (p *Planet) population() int {
+// return planetary population rounded to the nearest multiple of 100
+func (p *Planet) GetPopulation() (wholePop int) {
 	return p.Cargo.Colonists * 100
 }
 
-// get the amount population that is productive for producing resources.
-// This takes into account overcrowding
-func productivePopulation(pop, maxPop int, overcrowdPenalty, overcrowdResourceMax float64) int {
-	popOverCap := float64(pop) + Max(0, float64(pop-maxPop)*overcrowdPenalty)
-	// TODO: Refactor to use RoundTo100 function once it gets refactored to
-	// take function argument
-	return int(Min(
-		float64(maxPop)*(1+overcrowdResourceMax), popOverCap)/100) * 100
+func (p *Planet) exactPopulation() (exactPop int) {
+	return p.Cargo.Colonists*100 + p.PartialPopulation
 }
 
-// get the population that will operate installations
-// (it just maxes at max pop)
-func productiveInstallationPopulation(pop, maxPop int) int {
-	return Min(pop, maxPop)
-}
-
+// set pop to specified value.
+// TODO: Remove this - it risks tampering with planet partial pop
 func (p *Planet) setPopulation(pop int) {
 	p.Cargo.Colonists = pop / 100
+	p.PartialPopulation = pop % 100
 }
 
-// return true if this planet can build a ship with a given mass
+// add specified amount of population to this Planet, incrementing or
+// decrementing its Cargo and PartialPopulation values as appropriate.
+// Planet pop/partial pop is floored to a minimum of 0.
+func (p *Planet) addPopulation(pop int) {
+	p.PartialPopulation += pop
+	p.Cargo.Colonists += p.PartialPopulation / 100
+	p.PartialPopulation = p.PartialPopulation % 100
+	if p.PartialPopulation < 0 {
+		// rollover partial pop due to trunc division annoyance
+		p.Cargo.Colonists -= 1
+		p.PartialPopulation += 100
+	}
+	if p.Cargo.Colonists < 0 {
+		p.Cargo.Colonists = 0
+	}
+}
+
+// Return the amount of population considered productive for resource production,
+// taking into account overcrowding penalties.
+func ProductivePopulation(pop, maxPop int, overcrowdPenalty, overcrowdResourceMax float64) int {
+	popOverCap := float64(pop) + max(0, float64(pop-maxPop)*overcrowdPenalty)
+	return roundTo100(min(
+		float64(maxPop)*(1+overcrowdResourceMax), popOverCap), math.Floor)
+}
+
+// return true if this planet is able to build a ship with the given mass;
+// cost of ship not considered
 func (p *Planet) CanBuild(mass int) bool {
 	return p.Spec.HasStarbase && (p.Starbase.Spec.SpaceDock == UnlimitedSpaceDock || p.Starbase.Spec.SpaceDock >= mass)
 }
 
 // populate a starbase design for a planet
 func (p *Planet) PopulateStarbaseDesign(player *Player) error {
-	if p.Starbase != nil {
-		if len(p.Starbase.Tokens) != 1 {
-			return fmt.Errorf("planet %s starbase has no tokens", p.Name)
-		}
-		designNum := p.Starbase.Tokens[0].DesignNum
-		design := player.GetDesign(designNum)
-
-		if design == nil {
-			return fmt.Errorf("player %v does not have design %d", player, designNum)
-		}
-		p.Starbase.Tokens[0].design = player.GetDesign(designNum)
+	if p.Starbase == nil {
+		return nil
 	}
+
+	if len(p.Starbase.Tokens) != 1 {
+		return fmt.Errorf("planet %s' starbase has no tokens", p.Name)
+	}
+
+	designNum := p.Starbase.Tokens[0].DesignNum
+	design := player.GetDesign(designNum)
+	if design == nil {
+		return fmt.Errorf("player %v does not have design %d", player, designNum)
+	}
+
+	p.Starbase.Tokens[0].design = player.GetDesign(designNum)
 	return nil
 }
 
-// add designs to each production queue item
+// add designs to each production queue item with designs
 func (p *Planet) PopulateProductionQueueDesigns(player *Player) error {
 	for i := range p.ProductionQueue {
 		item := &p.ProductionQueue[i]
-		if item.Type == QueueItemTypeStarbase || item.Type == QueueItemTypeShipToken {
-			design := player.GetDesign(item.DesignNum)
-			if design == nil {
-				return fmt.Errorf("player %v does not have design %d", player, item.DesignNum)
-			}
-			item.design = design
+		if item.Type != QueueItemTypeStarbase && item.Type != QueueItemTypeShipToken {
+			// not ship or starbase; move on
+			continue
 		}
+		design := player.GetDesign(item.DesignNum)
+		if design == nil {
+			return fmt.Errorf("player %v does not have design %d", player, item.DesignNum)
+		}
+		item.design = design
 	}
 	return nil
 }
@@ -223,7 +271,8 @@ func (p *Planet) PopulateProductionQueueEstimates(rules *Rules, player *Player) 
 	// populate completion estimates
 	completionEstimator := NewCompletionEstimator()
 	var err error
-	p.ProductionQueue, p.Spec.ResourcesPerYearResearchEstimatedLeftover, err = completionEstimator.GetProductionWithEstimates(rules, player, *p)
+	p.ProductionQueue, p.Spec.ResourcesPerYearResearchEstimatedLeftover, err =
+		completionEstimator.GetProductionWithEstimates(rules, player, *p)
 	return err
 }
 
@@ -233,16 +282,15 @@ func (p *Planet) emptyPlanet() {
 	p.Starbase = nil
 	// defenses & scanner disappear, other structures stay though
 	p.Scanner = false
-	// clear any production or other orders from the previous owner
 	p.Defenses = 0
+	// clear any production or other orders from the previous owner
 	p.PlanetOrders = PlanetOrders{}
 	p.setPopulation(0)
 	p.Spec = PlanetSpec{}
-	// reset any instaforming
-	p.Hab = p.BaseHab.Add(p.TerraformedAmount)
+	p.Hab = p.BaseHab.Add(p.TerraformedAmount) // reset any instaforming
 }
 
-// randomize a planet with new hab range, minerals, etc
+// randomize a planet with new hab range, minerals, etc;
 // Used in universe generation as well as for genesis device resets
 func (p *Planet) randomize(rules *Rules, accBBS bool) {
 	// From @SuicideJunkie's tests and @edmundmk's previous research,
@@ -301,8 +349,7 @@ func randomizeMinerals(rules *Rules, rad int, accBBS bool) Mineral {
 	// add a small amount of minerals for accBBS
 	if accBBS {
 		for _, minType := range MineralTypes {
-			concAmount := minConc.GetAmount(minType)
-			if concAmount < 40 {
+			if concAmount := minConc.GetAmount(minType); concAmount < 40 {
 				minConc.Set(minType, concAmount+5)
 			}
 		}
@@ -336,9 +383,9 @@ func randomizeMinerals(rules *Rules, rad int, accBBS bool) Mineral {
 	// we have high rad, add some bonus minerals
 	if rad >= rules.HighRadMineralConcentrationBonusThreshold {
 		minConc = Mineral{
-			Ironium:   minConc.Ironium + rules.random.Intn(99-Min(minConc.Ironium, 98))/2,
-			Boranium:  minConc.Boranium + rules.random.Intn(99-Min(minConc.Boranium, 98))/2,
-			Germanium: minConc.Germanium + rules.random.Intn(99-Min(minConc.Germanium, 98))/2,
+			Ironium:   minConc.Ironium + rules.random.Intn(99-min(minConc.Ironium, 98))/2,
+			Boranium:  minConc.Boranium + rules.random.Intn(99-min(minConc.Boranium, 98))/2,
+			Germanium: minConc.Germanium + rules.random.Intn(99-min(minConc.Germanium, 98))/2,
 		}
 	}
 
@@ -360,31 +407,29 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	habCenter := player.Race.HabCenter()
 
 	if !player.Race.ImmuneGrav {
-		p.Hab.Grav = habCenter.Grav + int(float64((habWidth.Grav-rules.random.Intn(habWidth.Grav-1)))/2*startingPlanet.HabPenaltyFactor)
+		p.Hab.Grav = habCenter.Grav + int(float64(habWidth.Grav-rules.random.Intn(habWidth.Grav-1))/2*startingPlanet.HabPenaltyFactor)
 	}
 	if !player.Race.ImmuneTemp {
-		p.Hab.Temp = habCenter.Temp + int(float64((habWidth.Temp-rules.random.Intn(habWidth.Temp-1)))/2*startingPlanet.HabPenaltyFactor)
+		p.Hab.Temp = habCenter.Temp + int(float64(habWidth.Temp-rules.random.Intn(habWidth.Temp-1))/2*startingPlanet.HabPenaltyFactor)
 	}
 	if !player.Race.ImmuneRad {
-		p.Hab.Rad = habCenter.Rad + int(float64((habWidth.Rad-rules.random.Intn(habWidth.Rad-1)))/2*startingPlanet.HabPenaltyFactor)
+		p.Hab.Rad = habCenter.Rad + int(float64(habWidth.Rad-rules.random.Intn(habWidth.Rad-1))/2*startingPlanet.HabPenaltyFactor)
 	}
 	// BaseHab is the same as Hab
 	p.BaseHab = p.Hab
 
+	raceSpec := player.Race.Spec
+
 	p.MineralConcentration = concentration
-	p.Cargo = surface.ToCargo()
+	p.Cargo = NewCargoFromMineral(surface,
+		int(float64(startingPlanet.Population/100)*raceSpec.StartingPopulationFactor))
 
 	// empty queue, no terraform
 	p.ProductionQueue = []ProductionQueueItem{}
 	p.TerraformedAmount = Hab{}
 
-	raceSpec := player.Race.Spec
-
-	// set the homeworld pop to our starting planet pop
-	p.setPopulation(int(float64(startingPlanet.Population) * raceSpec.StartingPopulationFactor))
-
 	if raceSpec.InnateMining {
-		p.Mines = innateMines(raceSpec.InnateMinesFactor, p.population())
+		p.Mines = innateMines(raceSpec.InnateMinesFactor, p.GetPopulation())
 		p.Factories = 0
 	} else {
 		p.Mines = startingPlanet.Mines
@@ -401,6 +446,7 @@ func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet 
 	p.Scanner = true
 
 	if len(player.ProductionPlans) > 0 {
+		// apply default production plan
 		plan := player.ProductionPlans[0]
 		plan.Apply(p)
 	}
@@ -413,70 +459,93 @@ func (p *Planet) setStarbase(starbase *Fleet) {
 	p.PacketSpeed = starbase.Spec.SafePacketSpeed
 }
 
-// Get the number of innate mines this player would have on this planet
+// return the amount of population this planet will have next year,
+// truncated to the nearest multiple of 100.
+func (p *Planet) PopNextYear() int {
+	pop := p.exactPopulation() + p.Spec.GrowthAmount
+	return roundTo100(pop, math.Floor)
+}
+
+// Get the number of innate mines a player would have with the given amount of population
 func innateMines(innateMinesFactor float64, population int) int {
+	// Verified - floored to nearest integer
 	return int(math.Sqrt(float64(population)) * innateMinesFactor)
 }
 
-// Get the innate scanning distance this player would have on this planet
+// Get the innate scanning distance a player would have wih the given amount of population
 func innateScanner(innateScannerFactor float64, population int) int {
+	// Verified - floored to nearest integer
 	return int(math.Sqrt(float64(population) * innateScannerFactor))
 }
 
-func (p *Planet) shortestDistanceToPlanets(otherPlanets *[]*Planet) float64 {
+// Find the shortest distance from one planet to a list of other planets
+func (p *Planet) shortestDistanceToPlanets(otherPlanets []*Planet) float64 {
 	minDistanceSquared := math.MaxFloat64
-	for _, planet := range *otherPlanets {
+	for _, planet := range otherPlanets {
 		distSquared := p.Position.DistanceSquaredTo(planet.Position)
-		minDistanceSquared = math.Min(minDistanceSquared, distSquared)
+		minDistanceSquared = min(minDistanceSquared, distSquared)
 	}
 	return math.Sqrt(minDistanceSquared)
 }
 
-// get the mineral output of a planet based on mineOutput (10 for remote mining)
-// TODO: Add fractional mineral outputs (% chance for extra) for sub-integer amounts
-func (p *Planet) getMineralOutput(numMines int, mineOutput int) Mineral {
-	return Mineral{
-		int(float64(p.MineralConcentration.Ironium*numMines*mineOutput) / 1000),
-		int(float64(p.MineralConcentration.Boranium*numMines*mineOutput) / 1000),
-		int(float64(p.MineralConcentration.Germanium*numMines*mineOutput) / 1000),
-	}
-}
-
-// get how much a player will grow on a planet, given a max population the player can have on the planet
-func (p *Planet) getGrowthAmount(player *Player, maxPopulation int, populationOvercrowdDieoffRate, populationOvercrowdDieoffRateMax float64) int {
-	race := &player.Race
-	growthFactor := race.Spec.GrowthFactor
-	capacity := float64(p.population()) / float64(maxPopulation)
-	habValue := race.GetPlanetHabitability(p.Hab)
-	if habValue > 0 {
-		popGrowth := int(float64(p.population())*float64(race.GrowthRate)*growthFactor/100.0*float64(habValue)/100.0 + .5)
-
-		if capacity > 1 {
-			// overpopulation calcs: https://wiki.starsautohost.org/wiki/Overpopulation
-			// Population Death from overcrowding is 0.04% per % over 100% cap.
-			// Thus a 200% capacity planet is 100% over and thus has (0.04 * 100 = 4%) a 4% death rate. This maxes out at 400% capacity at 12%
-			// Credit: Thomas Harley
-			// In addition to deaths:
-			// excess population on overcrowded planets cannot work factories or mines
-			// the first 200% overpopulation (300% capacity) only produce half their normal production(for a net population production of 200%).
-			// Population over 300% produce nothing.
-
-			dieoffPercent := Clamp((1-capacity)*populationOvercrowdDieoffRate, -populationOvercrowdDieoffRateMax, 0)
-			popGrowth = int(float64(p.population()) * float64(dieoffPercent))
-		} else if capacity > .25 {
-			crowdingFactor := 16.0 / 9.0 * (1.0 - capacity) * (1.0 - capacity)
-			popGrowth = int(float64(popGrowth) * crowdingFactor)
+// getMineralOutput returns the mineral output of this Planet
+// were it to be mined with the given numMines and mineOutput.
+//
+// Takes into account HW conc flooring as appropriate.
+func (p *Planet) getMineralOutput(rules *Rules, numMines int, mineOutput int) (output Mineral) {
+	for _, minType := range MineralTypes {
+		conc := p.MineralConcentration.GetAmount(minType)
+		if p.Homeworld && p.Owned() {
+			// only apply HW conc floor if planet is owned.
+			// We don't need to worry about remote miners since only unowned
+			// or self-owned planets (for ARs) can be mined remotely.
+			conc = max(conc, rules.MinHomeworldMineralConcentration)
 		}
 
-		// round to the nearest 100 colonists
-		return roundToNearest100(popGrowth)
-	} else {
-		// kill off (habValue / 10)% colonists every year. I.e. a habValue of -4% kills off .4%
-		deathAmount := int(float64(p.population()) * (float64(habValue) / 1000.0))
-		return roundToNearest100(Clamp(deathAmount, deathAmount, -100))
+		// TODO: Check how Stars! does fractional mineral concs
+		// and make this return a fractional output if needed.
+		output.Set(minType, conc*numMines*mineOutput/1000)
 	}
+	return output
 }
 
+// Get how much a player will grow on a planet, given the max population the player can have on the planet.
+//
+// Returns exact value to nearest colonist.
+func (p *Planet) GetGrowthAmount(player *Player, maxPopulation int, populationOvercrowdDieoffRate, populationOvercrowdDieoffRateMax float64) int {
+	race := &player.Race
+	pop := p.GetPopulation()
+	habValue := race.GetPlanetHabitability(p.Hab)
+
+	// First, we deal with cases where the pop doesn't grow
+	if habValue < 0 {
+		// Red worlds kill off (habValue / 10)% colonists every year
+		// (habValue of -4% kills off 0.4%/yr)
+		return int(math.Round(float64(pop*habValue) / 1000))
+	}
+
+	capacity := float64(pop) / float64(maxPopulation)
+	if capacity > 1 {
+		// Overpopulation kills 0.04% population per 1% over cap.
+		// A 200% capacity planet is 100% over cap and thus loses
+		// (0.04 * 100 = 4%) population each year.
+		// This maxes out at 400% capacity (300% extra) at 12% deaths/yr.
+		dieoffPercent := Clamp((capacity-1)*populationOvercrowdDieoffRate, 0, populationOvercrowdDieoffRateMax)
+		return int(math.Round(float64(pop) * -dieoffPercent))
+	}
+
+	// perform normal pop growth calcs, applying penalty for partially crowded planets
+	popGrowth := math.Round(float64(pop*race.GrowthRate*habValue) * race.Spec.GrowthFactor / 10000) // divide by 10000 as growthRate and habValue are both percents
+
+	if capacity > 0.25 {
+		crowdingFactor := math.Pow(1-capacity, 2) * 16 / 9
+		popGrowth *= crowdingFactor
+	}
+
+	return int(popGrowth)
+}
+
+// compute a planet's PlanetSpec.
 func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
@@ -484,11 +553,10 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	// hab/pop
 	spec.Habitability = race.GetPlanetHabitability(planet.Hab)
 	spec.MaxPopulation = planet.getMaxPopulation(rules, player, spec.Habitability)
-	spec.Population = planet.population()
 	if spec.MaxPopulation > 0 {
-		spec.PopulationDensity = float64(planet.population()) / float64(spec.MaxPopulation)
+		spec.PopulationDensity = float64(planet.GetPopulation()) / float64(spec.MaxPopulation)
 	}
-	spec.GrowthAmount = planet.getGrowthAmount(player, spec.MaxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax)
+	spec.GrowthAmount = planet.GetGrowthAmount(player, spec.MaxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax)
 
 	// terraforming
 	terraformer := NewTerraformer()
@@ -499,8 +567,8 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 
 	// population will generate resources up to 3x max pop, but they can only
 	// operate structures up to max pop
-	productivePop := productivePopulation(spec.Population, spec.MaxPopulation, rules.PopulationOvercrowdResourcePenalty, rules.PopulationOvercrowdResourceMax)
-	installationPop := productiveInstallationPopulation(spec.Population, spec.MaxPopulation)
+	productivePop := ProductivePopulation(planet.GetPopulation(), spec.MaxPopulation, rules.PopulationOvercrowdResourcePenalty, rules.PopulationOvercrowdResourceMax)
+	installationPop := min(planet.GetPopulation(), spec.MaxPopulation)
 
 	if !race.Spec.InnateMining {
 		spec.MaxMines = getMaxInstallations(player.Race.NumMines, installationPop)
@@ -509,9 +577,9 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 		spec.MaxMines = planet.Mines
 	}
 
-	// Compute resources per year
-	spec.computeResourcesPerYear(player, planet.Factories, productivePop, installationPop)
-	spec.MiningOutput = planet.getMineralOutput(Min(spec.MaxMines, planet.Mines), race.MineOutput)
+	// Compute resources per year and mining output
+	spec.ComputeResourcesPerYear(player, planet.Factories, productivePop, installationPop)
+	spec.MiningOutput = planet.getMineralOutput(rules, min(spec.MaxMines, planet.Mines), race.MineOutput)
 	spec.computeResourcesPerYearAvailable(player, planet)
 
 	if race.Spec.CanBuildDefenses {
@@ -521,13 +589,15 @@ func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec 
 	}
 
 	if race.Spec.InnateScanner {
-		// calculate AR organic scan ranes
+		// compute AR organic scan range
+		// TODO: confirm rounding behavior with NAS
 		spec.Scanner = "Organic"
 		spec.ScanRange = int(float64(innateScanner(player.Race.Spec.InnateScannerFactor, productivePop)) * player.Race.Spec.ScanRangeFactor)
 		if !player.Race.Spec.NoAdvancedScanners && planet.Starbase != nil {
 			spec.ScanRangePen = int(float64(spec.ScanRange) * planet.Starbase.Spec.InnateScanRangePenFactor)
 		}
 	} else if planet.Scanner {
+		// normal scanner ranges
 		scanner := player.Spec.PlanetaryScanner
 		spec.Scanner = scanner.Name
 		spec.ScanRange = int(float64(scanner.ScanRange) * player.Race.Spec.ScanRangeFactor)
@@ -543,26 +613,28 @@ func computePlanetStarbaseSpec(planet *Planet) PlanetStarbaseSpec {
 	spec := PlanetStarbaseSpec{}
 
 	starbase := planet.Starbase
-	spec.HasStarbase = starbase != nil
-	if starbase != nil {
-		spec.StarbaseDesignNum = planet.Starbase.Tokens[0].DesignNum
-		spec.StarbaseDesignName = planet.Starbase.Tokens[0].design.Name
-		if starbase.Spec.HasStargate {
-			spec.HasStargate = true
-			spec.Stargate = starbase.Spec.Stargate
-			spec.SafeHullMass = starbase.Spec.SafeHullMass
-			spec.SafeRange = starbase.Spec.SafeRange
-			spec.MaxHullMass = starbase.Spec.MaxHullMass
-			spec.MaxRange = starbase.Spec.MaxRange
-		}
-		if starbase.Spec.HasMassDriver {
-			spec.HasMassDriver = true
-			spec.MassDriver = starbase.Spec.MassDriver
-			spec.BasePacketSpeed = starbase.Spec.BasePacketSpeed
-			spec.SafePacketSpeed = starbase.Spec.SafePacketSpeed
-		}
-		spec.DockCapacity = starbase.Spec.SpaceDock
+	if starbase == nil {
+		return spec
 	}
+
+	spec.HasStarbase = true
+	spec.StarbaseDesignNum = planet.Starbase.Tokens[0].DesignNum
+	spec.StarbaseDesignName = planet.Starbase.Tokens[0].design.Name
+	if starbase.Spec.HasStargate {
+		spec.HasStargate = true
+		spec.Stargate = starbase.Spec.Stargate
+		spec.SafeHullMass = starbase.Spec.SafeHullMass
+		spec.SafeRange = starbase.Spec.SafeRange
+		spec.MaxHullMass = starbase.Spec.MaxHullMass
+		spec.MaxRange = starbase.Spec.MaxRange
+	}
+	if starbase.Spec.HasMassDriver {
+		spec.HasMassDriver = true
+		spec.MassDriver = starbase.Spec.MassDriver
+		spec.BasePacketSpeed = starbase.Spec.BasePacketSpeed
+		spec.SafePacketSpeed = starbase.Spec.SafePacketSpeed
+	}
+	spec.DockCapacity = starbase.Spec.SpaceDock
 
 	return spec
 }
@@ -579,10 +651,12 @@ func (spec *PlanetSpec) computeDefenseCoverage(rules *Rules, coverage float64, n
 
 // Compute the amount of resources this planet will produce per year, as well as its
 // MaxFactories and MaxPossibleFactories fields.
-func (spec *PlanetSpec) computeResourcesPerYear(player *Player, numFacts, productivePop, installationPop int) {
+func (spec *PlanetSpec) ComputeResourcesPerYear(player *Player, numFacts, productivePop, installationPop int) {
 	if player.Race.Spec.InnateResources {
 		// Compute resources for AR
-		spec.ResourcesPerYear = int(math.Ceil(float64(spec.Habitability) / 100 * // Confirmed: AR resources round up in base game
+		habMulti := float64(max(spec.Habitability, player.Race.Spec.MinHabFloor)) / 100
+		// Confirmed: AR resources round up in base game
+		spec.ResourcesPerYear = int(math.Ceil(habMulti *
 			math.Sqrt(float64(productivePop*player.TechLevels.Energy)/float64(player.Race.PopEfficiency))))
 	} else {
 		// compute resources from population & factories
@@ -590,7 +664,7 @@ func (spec *PlanetSpec) computeResourcesPerYear(player *Player, numFacts, produc
 
 		spec.MaxFactories = getMaxInstallations(player.Race.NumFactories, installationPop)
 		spec.MaxPossibleFactories = spec.MaxPopulation * player.Race.NumFactories / 10000 // factory count rounds down
-		resourcesFromFactories := int(math.Ceil(float64(Min(numFacts, spec.MaxFactories)*player.Race.FactoryOutput) / 10))
+		resourcesFromFactories := int(math.Ceil(float64(min(numFacts, spec.MaxFactories)*player.Race.FactoryOutput) / 10))
 
 		// Add them together
 		spec.ResourcesPerYear = resourcesFromPop + resourcesFromFactories
@@ -616,17 +690,15 @@ func (p *Planet) getMaxPopulation(rules *Rules, player *Player, habitability int
 	maxPopulationFactor := 1 + player.Race.Spec.MaxPopulationOffset
 	if player.Race.Spec.LivesOnStarbases && p.PlayerNum == player.Num {
 		// AR races' max pop are independent of habitability
-		return roundToNearest100(float64(p.Starbase.Spec.MaxPopulation) * maxPopulationFactor)
+		// TODO: How does this round again?
+		return int(roundTo100(float64(p.Starbase.Spec.MaxPopulation)*maxPopulationFactor, math.Floor))
 	}
 
 	// Habitability is floored at 5% when determining max population
 	// (or 25% for AR races)
-	if habitability < player.Race.Spec.MinHabFloor {
-		habitability = player.Race.Spec.MinHabFloor
-	}
-
-	// TODO: Refactor to make this FLOOR to 100
-	return roundToNearest100(float64(rules.MaxPopulation*habitability) * maxPopulationFactor / 100.0)
+	// We divide by 100 since we store the value as an int rather than a percentage
+	habitability = max(habitability, player.Race.Spec.MinHabFloor)
+	return roundTo100(float64(rules.MaxPopulation*habitability)*maxPopulationFactor/100.0, math.Floor)
 }
 
 // return the maximum number count operable by the given population
@@ -634,92 +706,96 @@ func getMaxInstallations(installationsPer10K, population int) int {
 	return population * installationsPer10K / 10000
 }
 
-func (planet *Planet) maxBuildable(player *Player, t QueueItemType) int {
-	switch t {
+func (planet *Planet) MaxBuildable(player *Player, itemType QueueItemType) int {
+	switch itemType {
 	case QueueItemTypeAutoMines:
 		// for autobuild purposes, the maxFactories is next year's pop
-		futurePop := productiveInstallationPopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		// don't want to floor to 100
+		futurePop := min(planet.PopNextYear(), planet.Spec.MaxPopulation)
 		maxMines := getMaxInstallations(player.Race.NumMines, futurePop)
-		return Max(0, maxMines-planet.Mines)
-	case QueueItemTypeMine:
-		return Max(0, planet.Spec.MaxPossibleMines-planet.Mines)
+		return max(0, maxMines-planet.Mines)
 	case QueueItemTypeAutoFactories:
 		// for autobuild purposes, the maxFactories is next year's pop
-		futurePop := productiveInstallationPopulation(planet.population()+planet.Spec.GrowthAmount, planet.Spec.MaxPopulation)
+		futurePop := min(planet.PopNextYear(), planet.Spec.MaxPopulation)
 		maxFactories := getMaxInstallations(player.Race.NumFactories, futurePop)
-		return Max(0, maxFactories-planet.Factories)
+		return max(0, maxFactories-planet.Factories)
+	case QueueItemTypeMine:
+		return max(0, planet.Spec.MaxPossibleMines-planet.Mines)
 	case QueueItemTypeFactory:
-		return Max(0, planet.Spec.MaxPossibleFactories-planet.Factories)
+		return max(0, planet.Spec.MaxPossibleFactories-planet.Factories)
 	case QueueItemTypeAutoDefenses, QueueItemTypeDefenses:
-		return Max(0, planet.Spec.MaxDefenses-planet.Defenses)
+		return max(0, planet.Spec.MaxDefenses-planet.Defenses)
 	case QueueItemTypeTerraformEnvironment, QueueItemTypeAutoMaxTerraform:
 		return planet.Spec.TerraformAmount.absSum()
 	case QueueItemTypeAutoMinTerraform:
 		return planet.Spec.MinTerraformAmount.absSum()
-	case QueueItemTypeStarbase:
+	case QueueItemTypeStarbase, QueueItemTypeGenesisDevice:
 		return 1
 	case QueueItemTypePlanetaryScanner:
 		if planet.Scanner {
 			return 0
 		}
 		return 1
-	case QueueItemTypeGenesisDevice:
-		return 1
+	// TODO: Enable once auto alchemy gets fixed
+	/* case QueueItemTypeAutoMineralAlchemy:
+	return 1 */
+	default:
+		return Infinite
 	}
-	// default to infinite
-	return Infinite
 }
 
-// mine minerals on this planet
-func (planet *Planet) mine(rules *Rules) {
-	planet.Cargo = planet.Cargo.AddMineral(planet.Spec.MiningOutput)
-	planet.MineYears = planet.MineYears.AddToAll(planet.Mines)
+// mine this planet using the given miningOutput and numMines
+// TODO: add fractional mining support
+func (planet *Planet) mine(rules *Rules, miningOutput Mineral, numMines int) {
+	planet.Cargo = planet.Cargo.AddMineral(miningOutput)
+	planet.MineYears = planet.MineYears.AddToAll(numMines)
 	planet.reduceMineralConcentration(rules)
 }
 
 // grow pop on this planet (or starbase)
 func (planet *Planet) grow(player *Player) {
-	if planet.population() == 0 {
-		// don't grow or reduce if at zero pop, planet is gone
+	if planet.Cargo.Colonists == 0 {
+		// don't grow or reduce if already at zero pop, planet is ded
 		return
 	}
-	planet.setPopulation(Max(100, planet.population()+planet.Spec.GrowthAmount))
+	planet.addPopulation(planet.Spec.GrowthAmount)
+	if planet.Cargo.Colonists == 0 {
+		planet.Cargo.Colonists = 1
+		planet.PartialPopulation = 0
+	}
 
 	if player.Race.Spec.InnateMining {
-		planet.Mines = innateMines(player.Race.Spec.InnateMinesFactor, planet.population())
+		planet.Mines = innateMines(player.Race.Spec.InnateMinesFactor, planet.GetPopulation())
 	}
 }
 
-// reduce the mineral concentrations of a planet after mining.
+// reduce the mineral concentrations of a planet after mining based on MineYears.
 func (planet *Planet) reduceMineralConcentration(rules *Rules) {
-	mineralDecayFactor := rules.MineralDecayFactor
+	mineralDecayFactor := rules.MineralDecayFactor // 1.5M by default
 	minMineralConcentration := rules.MinMineralConcentration
-	if planet.Homeworld {
-		minMineralConcentration = rules.MinHomeworldMineralConcentration
-	}
 
-	planetMineYears := planet.MineYears.ToSlice()
-	planetMineralConcentration := planet.MineralConcentration.ToSlice()
-	for i, conc := range planetMineralConcentration {
-		if conc < minMineralConcentration {
-			// can't have less than min, make sure we have that at least
-			conc = minMineralConcentration
-			planetMineralConcentration[i] = conc
+	// In essence, mine years are like a weird odometer
+	// where the amount needed to roll over and decrease
+	// mineral conc increases the less minerals remain.
+
+	// Check each mineral type separately
+	for _, minType := range MineralTypes {
+		conc := max(planet.MineralConcentration.GetAmount(minType), minMineralConcentration) // prevents division by 0
+
+		mineYears := planet.MineYears.GetAmount(minType)
+		mineYearsToRollover := mineralDecayFactor / (conc * conc)
+		if mineYears <= mineYearsToRollover {
+			// mine years below rollover amount; move on
+			continue
 		}
 
-		minesPer := mineralDecayFactor / conc / conc
-		mineYears := planetMineYears[i]
-		if mineYears > minesPer {
-			conc -= mineYears / minesPer
-			if conc < minMineralConcentration {
-				conc = minMineralConcentration
-			}
-			mineYears %= minesPer
-
-			planetMineYears[i] = mineYears
-			planetMineralConcentration[i] = conc
+		newConc := max(conc-(mineYears/mineYearsToRollover), minMineralConcentration)
+		planet.MineralConcentration.Set(minType, newConc)
+		if newConc == minMineralConcentration {
+			// If we're at the minimum, reset mine years to 0
+			planet.MineYears.Set(minType, 0)
+		} else {
+			planet.MineYears.Set(minType, mineYears%mineYearsToRollover)
 		}
 	}
-	planet.MineYears = NewMineral(planetMineYears[0], planetMineYears[1], planetMineYears[2])
-	planet.MineralConcentration = NewMineral(planetMineralConcentration[0], planetMineralConcentration[1], planetMineralConcentration[2])
 }

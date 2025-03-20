@@ -12,10 +12,11 @@
 	import { type AnyPlanet } from '$lib/services/Universe';
 	import { ReportAgeUnexplored, type Planet } from '$lib/types/cs';
 	import { owned, ownedBy } from '$lib/types/MapObject';
-	import { planetsSortBy } from '$lib/types/Planet';
+	import { getGrowth, planetsSortBy } from '$lib/types/Planet';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
+	import { population } from '$lib/types/Cargo';
 
 	const {
 		game,
@@ -155,12 +156,12 @@
 		},
 		{
 			key: 'defense',
-			title: 'Defense',
+			title: 'Defense Coverage',
 			sortBy: planetsSortBy('defense')
 		},
 		{
 			key: 'minerals',
-			title: 'Minerals',
+			title: 'Surface Minerals',
 			sortBy: planetsSortBy('minerals')
 		},
 		{
@@ -194,7 +195,7 @@
 		},
 		{
 			key: 'routingDestination',
-			title: 'routing Destination',
+			title: 'Routing Destination',
 			hidden: $settings.showAllPlanets,
 			sortable: false
 		}
@@ -306,7 +307,7 @@
 					{row.spec.starbaseDesignName ?? ''}
 				{:else if column.key == 'population'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
-						{row.spec.population ? row.spec.population.toLocaleString() : ''}
+						{population(row.cargo) ? population(row.cargo).toLocaleString() : ''}
 					</div>
 				{:else if column.key == 'populationDensity'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
@@ -314,7 +315,7 @@
 					</div>
 				{:else if column.key == 'populationGrowth'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
-						{(row.spec.growthAmount ?? 0).toLocaleString()}
+						{getGrowth(row).toLocaleString()}
 					</div>
 				{:else if column.key == 'habitability'}
 					{#if row.spec.canTerraform}

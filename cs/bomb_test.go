@@ -7,7 +7,7 @@ import (
 	"github.com/sirgwain/craig-stars/test"
 )
 
-// create a new long rang scout fleet for testing
+// create a new mini bomber fleet for testing
 func testMiniBomber(player *Player, bomb TechHullComponent) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
@@ -32,7 +32,7 @@ func testMiniBomber(player *Player, bomb TechHullComponent) *Fleet {
 	return fleet
 }
 
-func Test_bomb_getColonistsKilledForBombs(t *testing.T) {
+func Test_bomber_getColonistsKilledForBombs(t *testing.T) {
 	type args struct {
 		population      int
 		defenseCoverage float64
@@ -122,7 +122,7 @@ func Test_bomb_getColonistsKilledForBombs(t *testing.T) {
 	}
 }
 
-func Test_bomb_getColonistsKilledWithSmartBombs(t *testing.T) {
+func Test_bomber_getColonistsKilledWithSmartBombs(t *testing.T) {
 	type args struct {
 		population           int
 		defenseCoverageSmart float64
@@ -207,7 +207,7 @@ func Test_bomb_getColonistsKilledWithSmartBombs(t *testing.T) {
 	}
 }
 
-func Test_bomb_getStructuresDestroyed(t *testing.T) {
+func Test_bomber_getStructuresDestroyed(t *testing.T) {
 	type args struct {
 		defenseCoverage float64
 		bombs           []Bomb
@@ -259,7 +259,7 @@ func Test_bomb_getStructuresDestroyed(t *testing.T) {
 	}
 }
 
-func Test_bomb_getUnterraformAmount(t *testing.T) {
+func Test_bomber_getUnterraformAmount(t *testing.T) {
 	type args struct {
 		retroBombAmount int
 		baseHab         Hab
@@ -308,9 +308,10 @@ func Test_bomb_getUnterraformAmount(t *testing.T) {
 	}
 }
 
-func Test_bomb_bombPlanet(t *testing.T) {
+func Test_bomber_bombPlanet(t *testing.T) {
 	fleetOwner := testPlayer().WithNum(1)
 	planetOwner := testPlayer().WithNum(2)
+	pg := newTestPlayerGetter(fleetOwner, planetOwner)
 
 	type want struct {
 		population int
@@ -321,9 +322,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 	}
 	type args struct {
 		planet       *Planet
-		planetOwner  *Player
 		enemyBombers []*Fleet
-		pg           playerGetter
 	}
 	tests := []struct {
 		name string
@@ -331,22 +330,26 @@ func Test_bomb_bombPlanet(t *testing.T) {
 		want want
 	}{
 		{
-			name: "Mini bomber, 10k planet, 10 defenses, 100 mines and factories, uses min kill rate",
+			name: "Mini bomber, uses min kill rate",
 			args: args{
 				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Cargo: Cargo{Colonists: 100}, Hab: Hab{50, 50, 50}},
-				planetOwner:  planetOwner,
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, LadyFingerBomb)},
-				pg:           newTestPlayerGetter(fleetOwner, planetOwner),
 			},
 			want: want{population: 9500, mines: 98, factories: 98, defenses: 9, hab: Hab{50, 50, 50}},
+		},
+		{
+			name: "Cherry bombers nuke planet; reset partial pop",
+			args: args{
+				planet:       NewPlanet().WithPopulation(255),
+				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, CherryBomb)},
+			},
+			want: want{population: 0},
 		},
 		{
 			name: "Two mini bombers, one with smart bombs",
 			args: args{
 				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Cargo: Cargo{Colonists: 100}, Hab: Hab{50, 50, 50}},
-				planetOwner:  planetOwner,
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, LadyFingerBomb), testMiniBomber(fleetOwner, SmartBomb)},
-				pg:           newTestPlayerGetter(fleetOwner, planetOwner),
 			},
 			want: want{population: 9300, mines: 98, factories: 98, defenses: 9, hab: Hab{50, 50, 50}},
 		},
@@ -354,9 +357,7 @@ func Test_bomb_bombPlanet(t *testing.T) {
 			name: "Three mini bombers, one with smart bombs, one with retro bombs",
 			args: args{
 				planet:       &Planet{MapObject: MapObject{PlayerNum: planetOwner.Num}, Mines: 100, Factories: 100, Defenses: 10, Cargo: Cargo{Colonists: 100}, Hab: Hab{50, 50, 50}, BaseHab: Hab{50, 49, 50}},
-				planetOwner:  planetOwner,
 				enemyBombers: []*Fleet{testMiniBomber(fleetOwner, LadyFingerBomb), testMiniBomber(fleetOwner, SmartBomb), testMiniBomber(fleetOwner, RetroBomb)},
-				pg:           newTestPlayerGetter(fleetOwner, planetOwner),
 			},
 			want: want{population: 9300, mines: 98, factories: 98, defenses: 9, hab: Hab{50, 49, 50}},
 		},
@@ -366,11 +367,11 @@ func Test_bomb_bombPlanet(t *testing.T) {
 			b := &bomber{
 				rules: &rules,
 			}
-			tt.args.planet.Spec = computePlanetSpec(&rules, tt.args.planetOwner, tt.args.planet)
-			b.bombPlanet(tt.args.planet, tt.args.planetOwner, tt.args.enemyBombers, tt.args.pg)
+			tt.args.planet.Spec = computePlanetSpec(&rules, planetOwner, tt.args.planet)
+			b.bombPlanet(tt.args.planet, planetOwner, tt.args.enemyBombers, pg)
 
 			got := want{
-				population: tt.args.planet.population(),
+				population: tt.args.planet.GetPopulation(),
 				mines:      tt.args.planet.Mines,
 				factories:  tt.args.planet.Factories,
 				defenses:   tt.args.planet.Defenses,

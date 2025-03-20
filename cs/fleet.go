@@ -114,6 +114,8 @@ type WaypointTransportTask struct {
 	Action WaypointTaskTransportAction `json:"action,omitempty"`
 }
 
+// TODO: Add a "set waypoint to %" command
+
 type WaypointTaskTransportAction string
 
 type transportTaskByType map[CargoType]WaypointTransportTask
@@ -140,16 +142,15 @@ const (
 	// Unload the amount specified only if the fleet is carrying that amount.
 	TransportActionUnloadAmount WaypointTaskTransportAction = "UnloadAmount"
 
-	// Loads up to the specified portion of the cargo hold subject to amount available at waypoint and room left in hold.
+	// Loads up to the specified portion of the cargo hold, subject to amount available at waypoint and room left in hold.
 	TransportActionFillPercent WaypointTaskTransportAction = "FillPercent"
 
 	// Remain at the waypoint until exactly X % of the hold is filled.
 	TransportActionWaitForPercent WaypointTaskTransportAction = "WaitForPercent"
 
 	// (minerals and colonists only) This command waits until all other loads and unloads are complete,
-	// then loads as many colonists or amount of a mineral as will fit in the remaining space. For example,
-	// setting Load All Germanium, Load Dunnage Ironium, will load all the Germanium that is available,
-	// then as much Ironium as possible. If more than one dunnage cargo is specified, they are loaded in
+	// then loads as many colonists or minerals will fit in the remaining space.
+	// If more than one dunnage cargo is specified, they are performed in
 	// the order of Ironium, Boranium, Germanium, and Colonists.
 	TransportActionLoadDunnage WaypointTaskTransportAction = "LoadDunnage"
 
@@ -158,7 +159,8 @@ const (
 	TransportActionSetAmountTo WaypointTaskTransportAction = "SetAmountTo"
 
 	// Load or unload the cargo until the amount at the waypoint is the amount specified.
-	// This order is always carried out to the best of the fleet’s ability that turn but does not prevent the fleet from moving on.
+	// This order is always carried out to the best of the fleet’s ability that turn
+	// but does not prevent the fleet from moving on.
 	TransportActionSetWaypointTo WaypointTaskTransportAction = "SetWaypointTo"
 )
 
@@ -496,7 +498,7 @@ func (f *Fleet) InjectDesigns(designs []*ShipDesign) error {
 	return nil
 }
 
-// compute all the computable values of this fleet (cargo capacity, armor, mass)
+// compute all the computable values of this fleet (cargo capacity, armor, mass, etc.)
 func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec := FleetSpec{
 		ShipDesignSpec: ShipDesignSpec{
@@ -520,20 +522,20 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		if token.design.Spec.Starbase {
 			spec.Starbase = true
 		}
-		spec.MaxPopulation = Max(spec.MaxPopulation, token.design.Spec.MaxPopulation)
-		spec.InnateScanRangePenFactor = math.Max(spec.InnateScanRangePenFactor, token.design.Spec.InnateScanRangePenFactor) // Ultra Station and Death Stars have pen scanning
+		spec.MaxPopulation = max(spec.MaxPopulation, token.design.Spec.MaxPopulation)
+		spec.InnateScanRangePenFactor = max(spec.InnateScanRangePenFactor, token.design.Spec.InnateScanRangePenFactor) // Ultra Station and Death Stars have pen scanning
 
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
-		if (token.design.Spec.Engine != Engine{}) {
+		if token.design.Spec.Engine != (Engine{}) {
 			if spec.Engine.IdealSpeed == 0 {
 				spec.Engine.IdealSpeed = token.design.Spec.Engine.IdealSpeed
 				spec.Engine.FreeSpeed = token.design.Spec.Engine.FreeSpeed
 				spec.Engine.MaxSafeSpeed = token.design.Spec.Engine.MaxSafeSpeed
 			} else {
-				spec.Engine.IdealSpeed = Min(spec.Engine.IdealSpeed, token.design.Spec.Engine.IdealSpeed)
+				spec.Engine.IdealSpeed = min(spec.Engine.IdealSpeed, token.design.Spec.Engine.IdealSpeed)
 				spec.Engine.FreeSpeed = token.design.Spec.Engine.FreeSpeed
-				spec.Engine.MaxSafeSpeed = Min(spec.Engine.MaxSafeSpeed, token.design.Spec.Engine.MaxSafeSpeed)
+				spec.Engine.MaxSafeSpeed = min(spec.Engine.MaxSafeSpeed, token.design.Spec.Engine.MaxSafeSpeed)
 			}
 		}
 		// cost
@@ -588,13 +590,13 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		}
 
 		// We should only have one ship stack with spacdock capabilities, but for this logic just go with the max
-		spec.SpaceDock = Max(spec.SpaceDock, token.design.Spec.SpaceDock)
+		spec.SpaceDock = max(spec.SpaceDock, token.design.Spec.SpaceDock)
 
 		// sadly, the fleet only gets the best repair bonus from one design
-		spec.RepairBonus = math.Max(spec.RepairBonus, token.design.Spec.RepairBonus)
+		spec.RepairBonus = max(spec.RepairBonus, token.design.Spec.RepairBonus)
 
-		spec.ScanRange = Max(spec.ScanRange, token.design.Spec.ScanRange)
-		spec.ScanRangePen = Max(spec.ScanRangePen, token.design.Spec.ScanRangePen)
+		spec.ScanRange = max(spec.ScanRange, token.design.Spec.ScanRange)
+		spec.ScanRangePen = max(spec.ScanRangePen, token.design.Spec.ScanRangePen)
 		if token.design.Spec.Scanner {
 			spec.Scanner = true
 		}
@@ -624,17 +626,15 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		}
 
 		if token.design.Spec.CloakUnits > 0 {
-			// calculate the cloak units for this token based on the design's cloak units (i.e. 70 cloak units / kT for a stealh cloak)
+			// calculate the cloak units for this token based on the design's cloak units (70 cloak units / kT for a stealth cloak)
 			spec.CloakUnits += token.design.Spec.CloakUnits
-		} else {
+		} else if !player.Race.Spec.FreeCargoCloaking {
 			// if this ship doesn't have cloaking, it counts as cargo (except for races with free cargo cloaking)
-			if !player.Race.Spec.FreeCargoCloaking {
-				spec.BaseCloakedCargo += token.design.Spec.Mass * token.Quantity
-			}
+			spec.BaseCloakedCargo += token.design.Spec.Mass * token.Quantity
 		}
 
 		// choose the best tachyon detector ship
-		spec.ReduceCloaking = math.Min(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
+		spec.ReduceCloaking = min(spec.ReduceCloaking, token.design.Spec.ReduceCloaking)
 
 		spec.CanJump = spec.CanJump || token.design.Spec.CanJump
 		spec.CanStealFleetCargo = spec.CanStealFleetCargo || token.design.Spec.CanStealFleetCargo
@@ -709,7 +709,7 @@ func computeFleetCloakPercent(spec *FleetSpec, cargoTotal int, freeCargoCloaking
 
 // make sure we don't overflow our fuel. After a battle, we might have more fuel than our fleet can hold
 func (fleet *Fleet) reduceFuelToMax() {
-	fleet.Fuel = Min(fleet.Spec.FuelCapacity, fleet.Fuel)
+	fleet.Fuel = min(fleet.Spec.FuelCapacity, fleet.Fuel)
 }
 
 // make sure we don't overflow our cargo. After a battle, we might have more cargo than our fleet can hold
@@ -730,13 +730,13 @@ func (fleet *Fleet) reduceCargoToMax() Cargo {
 
 		// save the people first!
 		if fleet.Cargo.Colonists > 0 {
-			fleet.Cargo.Colonists = Min(fleet.Cargo.Colonists, capacity)
+			fleet.Cargo.Colonists = min(fleet.Cargo.Colonists, capacity)
 		}
 
 		// if we have 110kT of space and 10kT is taken up by colonists, we have 100kT remaining capacity
 		// if we have 200kT of minerals left, we keep half of each
 		minerals := fleet.Cargo.ToMineral()
-		remainingCapacity := Max(0, capacity-fleet.Cargo.Colonists)
+		remainingCapacity := max(0, capacity-fleet.Cargo.Colonists)
 
 		// if we have no capacity left, drop all minerals and
 		if remainingCapacity == 0 {
@@ -812,7 +812,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	vectorTravelled := wp1.Position.Subtract(fleet.Position).Normalized().Scale(dist)
 	dist = vectorTravelled.Length()
 	// don't overshoot
-	dist = math.Min(totalDist, dist)
+	dist = min(totalDist, dist)
 
 	// check for CE engine failure
 	if player.Race.Spec.EngineFailureRate > 0 &&
@@ -871,7 +871,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	}
 
 	// message the player about fuel generation
-	fuelGenerated = Min(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
+	fuelGenerated = min(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
 	if fuelGenerated > 0 {
 		fleet.Fuel += fuelGenerated
 		messager.fleetGeneratedFuel(player, fleet, fuelGenerated)
@@ -983,7 +983,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 
 	// only the source gate matters for range
 	minSafeRange := sourceStargate.SafeRange
-	minSafeHullMass := Min(sourceStargate.SafeHullMass, destStargate.SafeHullMass)
+	minSafeHullMass := min(sourceStargate.SafeHullMass, destStargate.SafeHullMass)
 
 	// check if we are exceeding the max distance
 	if totalDist > float64(minSafeRange*rules.StargateMaxRangeFactor) {
@@ -1102,7 +1102,8 @@ func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64,
 	// trip is < 1 ly. Aahh, the joys of rounding! ;o)
 }
 
-// Get the Fuel cost for this fleet to travel a certain distance at a certain speed
+// Get the fuel cost for this fleet to travel a certain distance at a certain speed,
+// exported to allow for cross package usage.
 func (fleet *Fleet) GetFuelCost(player *Player, warpSpeed int, distance float64) int {
 	return fleet.getFuelCost(player, warpSpeed, distance, fleet.Spec.CargoCapacity)
 }
@@ -1122,6 +1123,7 @@ func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64,
 		stackCapacity := token.design.Spec.CargoCapacity * token.Quantity
 
 		if cargoCapacity > 0 {
+			// @sirgwain: Consider making this allocate cargo optimally for least fuel usage as QoL option
 			mass += int(float64(fleetCargo) * (float64(stackCapacity) / float64(cargoCapacity)))
 		}
 
@@ -1218,7 +1220,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 	}
 
 	if player.Race.Spec.InnateMining {
-		planet.Mines = innateMines(player.Race.Spec.InnateMinesFactor, planet.population())
+		planet.Mines = innateMines(player.Race.Spec.InnateMinesFactor, planet.GetPopulation())
 	}
 
 	if player.Race.Spec.InnateScanner {
@@ -1287,70 +1289,76 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet,
 // Repair a fleet. This changes based on where the fleet is
 func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player, orbiting *Planet) {
 	needsRepair := false
+	// Check if anything even needs repairing
 	for _, token := range fleet.Tokens {
 		if token.QuantityDamaged > 0 {
 			needsRepair = true
+			break
 		}
 	}
+
 	if !needsRepair {
 		return
 	}
 
-	rate := RepairRateMoving
-
-	if len(fleet.Waypoints) == 1 {
-		if orbiting != nil {
-			if fleet.Spec.Bomber && player.IsEnemy(orbiting.PlayerNum) {
-				// no repairs while bombing
-				rate = RepairRateNone
-			} else {
-				if orbiting.OwnedBy(player.Num) {
-					rate = RepairRateOrbitingOwnPlanet
-				} else {
-					rate = RepairRateOrbiting
-				}
-			}
-		} else {
-			rate = RepairRateStopped
-		}
+	var rate RepairRate
+	switch {
+	case len(fleet.Waypoints) > 1:
+		rate = RepairRateMoving
+	case orbiting == nil:
+		// we're standing still, but not at a planet
+		rate = RepairRateStopped
+	case fleet.Spec.Bomber && player.IsEnemy(orbiting.PlayerNum):
+		// no repairs while bombing
+		rate = RepairRateNone
+	case orbiting.OwnedBy(player.Num):
+		// Confirmed - boosted repairs only occur on _your_ planets (not allies')
+		rate = RepairRateOrbitingOwnPlanet
+	default:
+		rate = RepairRateOrbiting
 	}
 
 	repairRate := rules.RepairRates[rate]
-	if repairRate > 0 {
-		// apply any bonuses for the fleet
-		repairRate += fleet.Spec.RepairBonus
+	if repairRate <= 0 {
+		return
+	}
 
-		if rate == RepairRateOrbitingOwnPlanet && orbiting.Starbase != nil && !orbiting.Starbase.Delete {
-			// apply any bonuses for the starbase if we own this planet and it has a starbase
-			repairRate += orbiting.Starbase.Spec.RepairBonus
+	// apply any bonuses for this fleet
+	// TODO: Should this apply to _all_ fleets at the given location?
+	// We could probably pre-screen fleets at the same location for global
+	// repair bonus the first time around and recycle that value for subsequent ones
+	repairRate += fleet.Spec.RepairBonus
+
+	if rate == RepairRateOrbitingOwnPlanet && orbiting.Starbase != nil && !orbiting.Starbase.Delete {
+		// apply any bonuses from orbiting our own starbase (if present)
+		repairRate += orbiting.Starbase.Spec.RepairBonus
+	}
+
+	for i := range fleet.Tokens {
+		token := &fleet.Tokens[i]
+
+		// IS races double repair
+		// repair some percentage of armor
+		// 100dp armor@3% repair over a planet means
+		// it repairs 3dp per turn. All damaged tokens repair
+		// at the same rate
+		repairAmount := max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
+
+		// Remove damage from this fleet by its armor * repairRate
+		token.Damage = math.Floor(max(0, token.Damage-float64(repairAmount)))
+		if token.Damage == 0 {
+			token.QuantityDamaged = 0
 		}
 
-		for i := range fleet.Tokens {
-			token := &fleet.Tokens[i]
+		log.Debug().
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Str("Token", token.design.Name).
+			Int("RepairAmount", repairAmount).
+			Int("QuantityDamaged", token.QuantityDamaged).
+			Int("Damage", int(token.Damage)).
+			Msgf("fleet token repaired")
 
-			// IS races double repair
-			// repair some percentage of armor
-			// 100dp armor@3% repair over a planet means
-			// it repairs 3dp per turn. All damaged tokens repair
-			// at the same rate
-			repairAmount := Max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.RepairFactor))
-
-			// Remove damage from this fleet by its armor * repairRate
-			token.Damage = math.Floor(math.Max(0, token.Damage-float64(repairAmount)))
-			if token.Damage == 0 {
-				token.QuantityDamaged = 0
-			}
-
-			log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Str("Token", token.design.Name).
-				Int("RepairAmount", repairAmount).
-				Int("QuantityDamaged", token.QuantityDamaged).
-				Int("Damage", int(token.Damage)).
-				Msgf("fleet token repaired")
-
-		}
 	}
 }
 
@@ -1360,10 +1368,10 @@ func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Pla
 	token := &fleet.Tokens[0]
 
 	// IS races repair starbases 1.5x
-	repairAmount := Max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.StarbaseRepairFactor))
+	repairAmount := max(1, int(float64(token.design.Spec.Armor)*repairRate*player.Race.Spec.StarbaseRepairFactor))
 
 	// Remove damage from this fleet by its armor * repairRate
-	token.Damage = math.Floor(math.Max(0, fleet.Tokens[0].Damage-float64(repairAmount)))
+	token.Damage = math.Floor(max(0, fleet.Tokens[0].Damage-float64(repairAmount)))
 
 	log.Debug().
 		Int("Player", fleet.PlayerNum).

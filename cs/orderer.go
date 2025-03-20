@@ -590,7 +590,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 				sourceToken.QuantityDamaged = 0
 				sourceToken.Damage = 0
 			} else {
-				splitToken.QuantityDamaged = Min(sourceToken.QuantityDamaged, splitToken.Quantity)
+				splitToken.QuantityDamaged = min(sourceToken.QuantityDamaged, splitToken.Quantity)
 				sourceToken.QuantityDamaged -= splitToken.QuantityDamaged
 			}
 		}

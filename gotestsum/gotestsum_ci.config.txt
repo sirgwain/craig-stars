@@ -1,7 +1,7 @@
 go, tool, gotest.tools/gotestsum,
 --format=github-actions,
 --format-hide-empty-pkg,
---rerun-fails,
+--rerun-fails=2,
 --rerun-fails-run-root-test,
 --rerun-fails-report tmp/test-results/gotestsum-flake-report.txt,
 --packages ./...,

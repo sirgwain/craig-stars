@@ -321,7 +321,7 @@ type Converter interface {
 	salvageCargo(source Salvage) cs.Cargo
 
 	// goverter:ignore Colonists
-	mineralPaketCargo(source MineralPacket) cs.Cargo
+	mineralPacketCargo(source MineralPacket) cs.Cargo
 }
 
 func MapObjectTypeWormhole() cs.MapObjectType {

@@ -1675,67 +1675,67 @@ func Test_orders_TransferByHandPlanet(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"transfer 10kT Ironium from planet",
-			args{
+			name: "transfer 10kT Ironium from planet",
+			args: args{
 				fleet:          testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{Ironium: 10}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10kT Ironium from planet",
-			args{
+			name: "fail to transfer 10kT Ironium from planet",
+			args: args{
 				fleet:          testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{Ironium: 5}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 10kT Ironium to planet",
-			args{
+			name: "transfer 10kT Ironium to planet",
+			args: args{
 				fleet:          testTeamster(player).withCargo(Cargo{Ironium: 10}),
 				dest:           NewPlanet(),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10kT Ironium to planet",
-			args{
+			name: "fail to transfer 10kT Ironium to planet",
+			args: args{
 				fleet:          testTeamster(player),
 				dest:           NewPlanet(),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 210kT Mixed Minerals from planet",
-			args{
+			name: "transfer 210kT Mixed Minerals from planet",
+			args: args{
 				fleet:          testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 211kT Mixed Minerals from planet",
-			args{
+			name: "fail to transfer 211kT Mixed Minerals from planet",
+			args: args{
 				fleet:          testTeamster(player),
 				dest:           NewPlanet().WithCargo(Cargo{1000, 1000, 1000, 1000}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 4000kT Mixed Cargo from planet where planet is out of one mineral",
-			args{
+			name: "transfer 4000kT Mixed Cargo from planet where planet is out of one mineral",
+			args: args{
 				fleet:          testPrivateer(player, 10),
 				dest:           NewPlanet().WithCargo(Cargo{2726 + 366, 4763 + 414, 0, 1601 + 3027}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 366, Boranium: 414, Germanium: 193, Colonists: 3027}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -1774,112 +1774,112 @@ func Test_orders_TransferByHandFleet(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"transfer 10kT Ironium from fleet",
-			args{
+			name: "transfer 10kT Ironium from fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1),
 				dest:           testTeamster(player).withNum(2).withCargo(Cargo{Ironium: 10}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10kT Ironium from fleet",
-			args{
+			name: "fail to transfer 10kT Ironium from fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1),
 				dest:           testTeamster(player).withNum(2).withCargo(Cargo{Ironium: 5}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 10kT Ironium to fleet",
-			args{
+			name: "transfer 10kT Ironium to fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1).withCargo(Cargo{Ironium: 10}),
 				dest:           testTeamster(player).withNum(2),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10kT Ironium to fleet",
-			args{
+			name: "fail to transfer 10kT Ironium to fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1),
 				dest:           testTeamster(player).withNum(2),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 210kT Mixed Minerals from fleet",
-			args{
+			name: "transfer 210kT Mixed Minerals from fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1),
 				dest:           testTeamster(player).withNum(2).withCargo(Cargo{Ironium: 70, Boranium: 70, Germanium: 70}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 211kT Mixed Minerals from fleet",
-			args{
+			name: "fail to transfer 211kT Mixed Minerals from fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1).withCargo(Cargo{Colonists: 1}),
 				dest:           testTeamster(player).withNum(2).withCargo(Cargo{Ironium: 70, Boranium: 70, Germanium: 70}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"fail to transfer 211kT Mixed Minerals to fleet",
-			args{
+			name: "fail to transfer 211kT Mixed Minerals to fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1).withCargo(Cargo{Ironium: 70, Boranium: 70, Germanium: 70}),
 				dest:           testTeamster(player).withNum(2).withCargo(Cargo{Colonists: 1}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -70, Boranium: -70, Germanium: -70}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 10mg Fuel from fleet",
-			args{
+			name: "transfer 10mg Fuel from fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1).withFuel(0),
 				dest:           testTeamster(player).withNum(2).withFuel(10),
 				transferAmount: CargoTransferRequest{Fuel: 10},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10mg Fuel from fleet",
-			args{
+			name: "fail to transfer 10mg Fuel from fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1).withFuel(0),
 				dest:           testTeamster(player).withNum(2).withFuel(5),
 				transferAmount: CargoTransferRequest{Fuel: 10},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 10mg Fuel to fleet",
-			args{
+			name: "transfer 10mg Fuel to fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1).withFuel(10),
 				dest:           testTeamster(player).withNum(2).withFuel(0),
 				transferAmount: CargoTransferRequest{Fuel: -10},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10mg Fuel to fleet",
-			args{
+			name: "fail to transfer 10mg Fuel to fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1).withFuel(0),
 				dest:           testTeamster(player).withNum(2).withFuel(0),
 				transferAmount: CargoTransferRequest{Fuel: -10},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"fail to transfer 1mg Fuel to full fleet",
-			args{
+			name: "fail to transfer 1mg Fuel to full fleet",
+			args: args{
 				source:         testTeamster(player).withNum(1).withFuel(1),
 				dest:           testTeamster(player).withNum(2).withFuel(450),
 				transferAmount: CargoTransferRequest{Fuel: -1},
 			},
-			true,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -1924,58 +1924,58 @@ func Test_orders_TransferByHandMineralPacket(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"transfer 10kT Ironium from mineralPacket",
-			args{
+			name: "transfer 10kT Ironium from mineralPacket",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 10}, Vector{}, 1),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10kT Ironium from mineralPacket",
-			args{
+			name: "fail to transfer 10kT Ironium from mineralPacket",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 5}, Vector{}, 1),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"fail to transfer 10kT Ironium to mineralPacket",
-			args{
+			name: "fail to transfer 10kT Ironium to mineralPacket",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 5}, Vector{}, 1),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 210kT Mixed Minerals from mineralPacket",
-			args{
+			name: "transfer 210kT Mixed Minerals from mineralPacket",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newMineralPacket(player, 1, 5, 5, Cargo{1000, 1000, 1000, 1000}, Vector{}, 1),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 211kT Mixed Minerals from mineralPacket",
-			args{
+			name: "fail to transfer 211kT Mixed Minerals from mineralPacket",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newMineralPacket(player, 1, 5, 5, Cargo{1000, 1000, 1000, 1000}, Vector{}, 1),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 4000kT Mixed Cargo from mineralPacket where mineralPacket is out of one mineral",
-			args{
+			name: "transfer 4000kT Mixed Cargo from mineralPacket where mineralPacket is out of one mineral",
+			args: args{
 				source:         testPrivateer(player, 10),
 				dest:           newMineralPacket(player, 1, 5, 5, Cargo{2726 + 366, 4763 + 414, 0, 1601 + 3027}, Vector{}, 1),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 366, Boranium: 414, Germanium: 193, Colonists: 3027}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -2014,58 +2014,58 @@ func Test_orders_TransferByHandSalvage(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			"transfer 10kT Ironium from salvage",
-			args{
+			name: "transfer 10kT Ironium from salvage",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newSalvage(Vector{}, 1, 2, Cargo{Ironium: 10}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 10kT Ironium from salvage",
-			args{
+			name: "fail to transfer 10kT Ironium from salvage",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newSalvage(Vector{}, 1, 2, Cargo{Ironium: 5}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"fail to transfer 10kT Ironium to salvage",
-			args{
+			name: "fail to transfer 10kT Ironium to salvage",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newSalvage(Vector{}, 1, 2, Cargo{Ironium: 5}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: -10}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 210kT Mixed Minerals from salvage",
-			args{
+			name: "transfer 210kT Mixed Minerals from salvage",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newSalvage(Vector{}, 1, 2, Cargo{1000, 1000, 1000, 1000}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70}, 0},
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			"fail to transfer 211kT Mixed Minerals from salvage",
-			args{
+			name: "fail to transfer 211kT Mixed Minerals from salvage",
+			args: args{
 				source:         testTeamster(player),
 				dest:           newSalvage(Vector{}, 1, 2, Cargo{1000, 1000, 1000, 1000}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 70, Boranium: 70, Germanium: 70, Colonists: 1}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 		{
-			"transfer 4000kT Mixed Cargo from salvage where salvage is out of one mineral",
-			args{
+			name: "transfer 4000kT Mixed Cargo from salvage where salvage is out of one mineral",
+			args: args{
 				source:         testPrivateer(player, 10),
 				dest:           newSalvage(Vector{}, 1, 2, Cargo{2726 + 366, 4763 + 414, 0, 1601 + 3027}),
 				transferAmount: CargoTransferRequest{Cargo{Ironium: 366, Boranium: 414, Germanium: 193, Colonists: 3027}, 0},
 			},
-			true,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

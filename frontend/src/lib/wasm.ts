@@ -1,4 +1,4 @@
-import type { Race } from './types/cs';
+import type { QueueItemType, Race } from './types/cs';
 import { addError } from './services/Errors';
 import type { Cost } from './types/cs';
 import { type Planet } from './types/cs';
@@ -19,6 +19,8 @@ export type CS = {
 	starbaseUpgradeCost: (design: ShipDesign, newDesign: ShipDesign) => Cost | undefined;
 	techCost: (tech: Tech) => Cost | undefined;
 	estimateProduction: (planet: Planet) => Planet | undefined;
+	maxBuildable: (planet: Planet, itemType: QueueItemType) => number | undefined;
+	updateResourcesAvailable: (planet: Planet) => number | undefined;
 };
 
 // load a wasm module and returns a wrapper for executing functions
@@ -146,6 +148,22 @@ class CSWasmWrapper implements CS {
 
 	getResearchCost(techLevel: TechLevel): number | undefined {
 		const result = this.wasm.getResearchCost(techLevel);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+
+	maxBuildable(planet: Planet, itemType: QueueItemType): number | undefined {
+		const result = this.wasm.maxBuildable(planet, itemType);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+
+	updateResourcesAvailable(planet: Planet): number | undefined {
+		const result = this.wasm.updateResourcesAvailable(planet);
 		if (this.checkError()) {
 			return undefined;
 		}

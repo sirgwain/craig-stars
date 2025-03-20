@@ -1,5 +1,4 @@
 <script lang="ts" module>
-	import { roundToNearest100 } from '$lib/services/Math';
 	import { ReportAgeUnexplored } from '$lib/types/cs';
 	import type { CommandedPlayer } from '$lib/types/Player';
 	export type PopulationTooltipProps = {
@@ -12,20 +11,23 @@
 <script lang="ts">
 	import type { AnyPlanet, PlayerFinder } from '$lib/services/Universe';
 	import { owned, ownedBy } from '$lib/types/MapObject';
+	import { population } from '$lib/types/Cargo';
+	import { getGrowth } from '$lib/types/Planet';
 
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 
 	let reportAge = $derived('reportAge' in planet ? (planet.reportAge ?? 0) : 0);
-	let growthAmount = $derived(planet.spec.growthAmount ?? 0);
 	let habitability = $derived(planet.spec.habitability ?? 0);
+	let pop = $derived(population(planet.cargo));
+	let growthAmount = $derived(getGrowth(planet));
 </script>
 
 <div class="flex flex-col sm:w-[26rem] m-auto">
 	<div>
-		{#if ownedBy(planet, player.num) && planet.spec.population}
+		{#if ownedBy(planet, player.num) && pop}
 			<p>
 				Your population on <span class="font-semibold">{planet.name}</span> is
-				<span class="font-semibold">{planet.spec.population.toLocaleString()}</span> ({(
+				<span class="font-semibold">{pop.toLocaleString()}</span> ({(
 					(planet.spec.populationDensity ?? 0) * 100
 				).toFixed()}% of capacity).
 			</p>
@@ -48,12 +50,8 @@
 				<p>
 					Your population on <span class="font-semibold">{planet.name}</span> will grow by
 					<span class="font-semibold">{growthAmount.toLocaleString()}</span>
-					to {(planet.spec.population + growthAmount).toLocaleString()}
+					to {(pop + growthAmount).toLocaleString()}
 					next year.
-				</p>
-			{:else if planet.spec.growthAmount === 0}
-				<p>
-					Your population on <span class="font-semibold">{planet.name}</span> will not grow next year.
 				</p>
 			{:else if growthAmount < 0}
 				{#if (planet.spec.populationDensity ?? 0) > 1}
@@ -63,6 +61,10 @@
 					Approximately
 					<span class="font-semibold">{Math.abs(growthAmount).toLocaleString()}</span>
 					of your colonists will die next year.
+				</p>
+			{:else}
+				<p>
+					Your population on <span class="font-semibold">{planet.name}</span> will not grow next year.
 				</p>
 			{/if}
 		{:else if !owned(planet) && reportAge !== ReportAgeUnexplored}
@@ -86,9 +88,7 @@
 				The <span class="font-semibold">{playerFinder.getPlayerName(planet.playerNum)}</span>
 				population on
 				<span class="font-semibold">{planet.name}</span> is approximately
-				<span class="font-semibold"
-					>{roundToNearest100(planet.spec.population ?? 0).toLocaleString()}</span
-				>.
+				<span class="font-semibold">{pop.toLocaleString()}</span>. <!-- Rounded to 100 in backend -->
 			</p>
 			{#if habitability > 0}
 				<p>

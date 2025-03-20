@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_getTerraformAbility(t *testing.T) {
+func TestGetTerraformAbility(t *testing.T) {
 	type args struct {
 		player *Player
 	}
@@ -39,14 +39,14 @@ func Test_getTerraformAbility(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			terraformer := terraform{}
-			if got := terraformer.getTerraformAbility(tt.args.player); !reflect.DeepEqual(got, tt.want) {
+			if got := terraformer.GetTerraformAbility(tt.args.player); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetTerraformAbility() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func Test_getTerraformAmount(t *testing.T) {
+func TestGetTerraformAmount(t *testing.T) {
 	planet := &Planet{
 		BaseHab:           Hab{Grav: 50, Temp: 50, Rad: 50},
 		Hab:               Hab{Grav: 47, Temp: 53, Rad: 50},
@@ -126,7 +126,7 @@ func Test_getTerraformAmount(t *testing.T) {
 	}
 }
 
-func Test_getMinTerraformAmount(t *testing.T) {
+func TestGetMinTerraformAmount(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3}).withSpec(&rules)
 
 	type args struct {

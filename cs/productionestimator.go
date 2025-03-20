@@ -71,7 +71,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 	producer := newProducer(log.Logger, rules, &planet, player)
 	for year := 1; year <= 100; year++ {
 		// mine for minerals
-		planet.mine(rules)
+		planet.mine(rules, planet.Spec.MiningOutput, min(planet.Mines, planet.Spec.MaxPossibleMines))
 		// remote mine for AR
 		//remoteMine()
 
@@ -91,7 +91,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 				continue
 			}
 			item := &items[itemBuilt.index]
-			maxBuildable := planet.maxBuildable(player, item.Type)
+			maxBuildable := planet.MaxBuildable(player, item.Type)
 
 			// this will be skipped if we've hit the max allowed
 			if itemBuilt.skipped {
@@ -147,7 +147,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		planet.Spec = computePlanetSpec(rules, player, &planet)
 
 		// colonists died off, no more production
-		if planet.population() < 0 {
+		if planet.GetPopulation() < 0 {
 			break
 		}
 	}

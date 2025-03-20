@@ -287,7 +287,7 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 				amountInBucket := cargoInBucket.GetAmount(cargoType)
 				// if we are loading cargo, take it from the bucket first
 				if amount < 0 && amountInBucket > 0 {
-					loadAmount := Min(0, amount+amountInBucket)
+					loadAmount := min(0, amount+amountInBucket)
 					cargoInBucket = cargoInBucket.SetAmount(cargoType, amountInBucket+loadAmount)
 					cargoToLoad = cargoToLoad.SetAmount(cargoType, loadAmount)
 
@@ -388,7 +388,7 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				amountInBucket := cargoInBucket.GetAmount(cargoType)
 				// if we are loading cargo, take it from the bucket first
 				if amount > 0 && amountInBucket < 0 {
-					unloadAmount := Max(0, amount+amountInBucket)
+					unloadAmount := max(0, amount+amountInBucket)
 					cargoInBucket = cargoInBucket.SetAmount(cargoType, amountInBucket+unloadAmount)
 					cargoToUnload = cargoToUnload.SetAmount(cargoType, unloadAmount)
 
@@ -632,16 +632,16 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 				// transfer the lowest of how much fuel capacity they have available or how much we can give
 				// this is a bit weird because we are doing a "Load", but it's actually an unload of fuel
 				// from us to a dest fleet, so make the transferAmount negative.
-				transferAmount = Max(-leftoverFuel, -(dest.GetFuelCapacity() - dest.GetFuel()))
+				transferAmount = max(-leftoverFuel, -(dest.GetFuelCapacity() - dest.GetFuel()))
 			}
 		}
 	case TransportActionLoadAll:
 		// load all available, based on our constraints
 		wantToTransfer = availableToLoad
-		transferAmount = Min(availableToLoad, availableCapacity)
+		transferAmount = min(availableToLoad, availableCapacity)
 	case TransportActionLoadAmount:
 		wantToTransfer = task.Amount
-		transferAmount = Min(Min(availableToLoad, task.Amount), availableCapacity)
+		transferAmount = min(min(availableToLoad, task.Amount), availableCapacity)
 	case TransportActionWaitForPercent, TransportActionFillPercent:
 		// we want a percent of our hold to be filled with some amount, figure out how
 		// much that is in kT, i.e. 50% of 100kT would be 50kT of this mineral
@@ -656,15 +656,15 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 			// transfer up to our percent specified
 			// wait here if we haven't loaded the amount we want
 			// but move on if we are out of cargo space (in case the user suffers from innumeracy and said they wanted 50% 50% 50%)
-			transferAmount = Min(Min(availableToLoad, taskAmountkT-currentAmount), availableCapacity)
+			transferAmount = min(min(availableToLoad, taskAmountkT-currentAmount), availableCapacity)
 			if (transferAmount+currentAmount) < taskAmountkT && task.Action == TransportActionWaitForPercent && (availableCapacity-transferAmount) > 0 {
 				waitAtWaypoint = true
 			}
 		}
 	case TransportActionSetAmountTo:
 		// only transfer the min of what we have, vs what we need, vs the capacity
-		wantToTransfer = Max(0, task.Amount-currentAmount)
-		transferAmount = Max(0, Min(Min(availableToLoad, task.Amount-currentAmount), availableCapacity))
+		wantToTransfer = max(0, task.Amount-currentAmount)
+		transferAmount = max(0, min(min(availableToLoad, task.Amount-currentAmount), availableCapacity))
 		if transferAmount < (task.Amount - currentAmount) {
 			waitAtWaypoint = true
 		}
@@ -677,7 +677,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 		} else {
 			wantToTransfer = availableToLoad - task.Amount
 			// only transfer down to what we set
-			transferAmount = Min(Min(availableToLoad, availableToLoad-task.Amount), availableCapacity)
+			transferAmount = min(min(availableToLoad, availableToLoad-task.Amount), availableCapacity)
 		}
 
 	case TransportActionLoadDunnage:
@@ -687,7 +687,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 		// Germanium that is available, then as much Ironium as possible. If more than one dunnage cargo
 		// is specified, they are loaded in the order of Ironium, Boranium, Germanium, and Colonists.
 		wantToTransfer = availableToLoad
-		transferAmount = Min(availableToLoad, availableCapacity)
+		transferAmount = min(availableToLoad, availableCapacity)
 	}
 
 	// let the caller know how much of this cargo we load
@@ -703,7 +703,7 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 	var availableToUnload int
 	if cargoType == Fuel {
 		availableToUnload = fleet.Fuel
-		capacity = Max(0, dest.GetFuelCapacity()-dest.GetFuel())
+		capacity = max(0, dest.GetFuelCapacity()-dest.GetFuel())
 		currentAmount = fleet.Fuel
 	} else {
 		availableToUnload = fleet.Cargo.GetAmount(cargoType)
@@ -715,20 +715,20 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 		if capacity == Infinite {
 			transferAmount = availableToUnload
 		} else {
-			transferAmount = Min(availableToUnload, capacity)
+			transferAmount = min(availableToUnload, capacity)
 		}
 	case TransportActionUnloadAmount:
 		// don't unload more than the task says
 		wantToTransfer = task.Amount
 		if capacity == Infinite {
-			transferAmount = Min(availableToUnload, task.Amount)
+			transferAmount = min(availableToUnload, task.Amount)
 		} else {
-			transferAmount = Min(Min(availableToUnload, task.Amount), capacity)
+			transferAmount = min(min(availableToUnload, task.Amount), capacity)
 		}
 	case TransportActionSetAmountTo:
 		// set the amount in our hold to amount, or do nothing if we have under that amount
-		wantToTransfer = Max(0, currentAmount-task.Amount)
-		transferAmount = Max(0, Min(availableToUnload, currentAmount-task.Amount))
+		wantToTransfer = max(0, currentAmount-task.Amount)
+		transferAmount = max(0, min(availableToUnload, currentAmount-task.Amount))
 	case TransportActionSetWaypointTo:
 		// Make sure the waypoint has at least whatever we specified
 		var currentAmount = dest.GetCargo().GetAmount(cargoType)
@@ -740,9 +740,9 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 			// only transfer the min of what we have, vs what we need, vs the capacity
 			wantToTransfer = task.Amount - currentAmount
 			if capacity == Infinite {
-				transferAmount = Min(availableToUnload, task.Amount-currentAmount)
+				transferAmount = min(availableToUnload, task.Amount-currentAmount)
 			} else {
-				transferAmount = Min(Min(availableToUnload, task.Amount-currentAmount), capacity)
+				transferAmount = min(min(availableToUnload, task.Amount-currentAmount), capacity)
 			}
 		}
 	}

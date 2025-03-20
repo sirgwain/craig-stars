@@ -23,7 +23,6 @@
 	import { Infinite, type Cost } from '$lib/types/cs';
 	import { CommandedPlanet } from '$lib/types/Planet';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
-	import { getPlanetHabitability } from '$lib/types/Race';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -41,7 +40,7 @@
 	// used to load the Genesis Device tech
 	const GenesisDevice = 'Genesis Device';
 
-	const { cs, game, player, universe } = getGameContext();
+	const { cs, player, universe } = getGameContext();
 
 	type Props = {
 		planet: CommandedPlanet;
@@ -172,19 +171,9 @@
 			return;
 		}
 
-		const maxPopulation = planet.getMaxPopulation(
-			$game.rules,
-			$player,
-			getPlanetHabitability($player.race, planet.hab)
-		);
 		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
-		// get the max number of items we can build on this planet. For auto items, let them add 5k because it's ok to
-		// add more than our auto items will build. This getMaxBuildable function returns the number of usuable mines for auto, but
-		// when updating the production queue we don't care about that
-		const max = isAuto(item.type)
-			? 5000
-			: planet.getMaxBuildable($techs, $player, maxPopulation, item.type, amountInQueue);
-		const quantity = clamp(quantityModifer, 0, max);
+		const maxBuildable = cs.maxBuildable(planet, item.type) ?? 0 - amountInQueue;
+		const quantity = clamp(quantityModifer, 0, maxBuildable);
 		if (quantity == 0) {
 			// don't add something we can't build any more of
 			return;

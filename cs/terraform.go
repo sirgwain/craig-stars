@@ -4,6 +4,7 @@ import "math"
 
 // The Terraformer interface handles terraforming planets
 type Terraformer interface {
+	GetTerraformAbility(player *Player) Hab
 	GetBestTerraform(planet *Planet, player *Player, terraformer *Player) *HabType
 	TerraformHab(planet *Planet, terraformer *Player, habType HabType, amount int) TerraformResult
 	PermaformHab(planet *Planet, planetPlayer *Player, habType HabType, amount int) TerraformResult
@@ -29,8 +30,8 @@ func NewTerraformer() Terraformer {
 	return &terraform{}
 }
 
-// getTerraformAbility returns the terraform ability of a player taking into account total terraform and hab terraform
-func (t *terraform) getTerraformAbility(player *Player) Hab {
+// GetTerraformAbility returns the terraform ability of a player taking into account total terraform and hab terraform
+func (t *terraform) GetTerraformAbility(player *Player) Hab {
 	bestTotalTerraform := player.Spec.Terraform[TerraformHabTypeAll]
 	totalTerraformAbility := 0
 	if bestTotalTerraform != nil {
@@ -46,7 +47,7 @@ func (t *terraform) getTerraformAbility(player *Player) Hab {
 		// find out which terraform tech has the greater terraform ability
 		ability := totalTerraformAbility
 		if bestHabTerraform != nil {
-			ability = Max(ability, bestHabTerraform.Ability)
+			ability = max(ability, bestHabTerraform.Ability)
 			terraformAbility.Set(habType, ability)
 		}
 
@@ -71,7 +72,7 @@ func (t *terraform) GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 		terraformer = player
 	}
 
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 	enemy := terraformer.IsEnemy(player.Num)
 	habCenter := player.Race.HabCenter()
 
@@ -101,7 +102,7 @@ func (t *terraform) GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 				// we can either terrform up to our full ability, or however much
 				// we have left to terraform on this
 				alreadyTerraformed := fromIdealBase - fromIdeal
-				terraformAmount.Set(habType, Min(ability-alreadyTerraformed, fromIdeal))
+				terraformAmount.Set(habType, min(ability-alreadyTerraformed, fromIdeal))
 			}
 		} else if fromIdeal < 0 {
 			if enemy {
@@ -110,7 +111,7 @@ func (t *terraform) GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 			} else {
 				// i.e. our ideal is 50 and the planet hab is 53
 				alreadyTerraformed := fromIdeal - fromIdealBase
-				terraformAmount.Set(habType, Max(-(ability-alreadyTerraformed), fromIdeal))
+				terraformAmount.Set(habType, max(-(ability-alreadyTerraformed), fromIdeal))
 			}
 		} else if enemy {
 			// the terrformer is enemies with the player, terraform away from ideal
@@ -136,7 +137,7 @@ func (t *terraform) GetMinTerraformAmount(hab Hab, baseHab Hab, player *Player, 
 	}
 
 	// get how much this player can terraform each hab
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 
 	habCenter := player.Race.HabCenter()
 
@@ -185,11 +186,11 @@ func (t *terraform) GetMinTerraformAmount(hab Hab, baseHab Hab, player *Player, 
 			// we can either terrform up to our full ability, or however much
 			// we have left to terraform on this
 			alreadyTerraformed := fromIdealBaseDistance - fromIdealDistance
-			terraformAmountPossible := Min(ability-alreadyTerraformed, fromIdealDistance)
+			terraformAmountPossible := min(ability-alreadyTerraformed, fromIdealDistance)
 
 			// if we are in range for this hab type, we won't terraform at all, otherwise return the max possible terraforming
 			// left.
-			terraformAmount.Set(habType, Min(fromHabitableDistance, terraformAmountPossible))
+			terraformAmount.Set(habType, min(fromHabitableDistance, terraformAmountPossible))
 		}
 
 	}
@@ -215,7 +216,7 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 	}
 
 	// get how much this player can terraform each hab
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 
 	habCenter := player.Race.HabCenter()
 	for _, habType := range HabTypes {
@@ -231,8 +232,8 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 		playerHabIdeal := habCenter.Get(habType)
 
 		// figure out what our hab is without any instaforming
-		// instaforming doesn't count as "terraforming" in that the planet doesn't change, it's just more habitable
-		// for the CA populace
+		// instaforming doesn't count as "terraforming" in that the planet doesn't change
+		// it's just more habitable for the CA populace
 		habWithoutInstaforming := planet.BaseHab.Add(planet.TerraformedAmount)
 
 		// the distance from the current hab of this planet
@@ -280,12 +281,7 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 			newHab := planet.Hab
 			newHab.Set(habType, planet.Hab.Get(habType)+direction)
 			habitability := player.Race.GetPlanetHabitability(newHab)
-			if habitability > greenness {
-				greenness = habitability
-				greatest = fromIdealDist
-				newBest := habType
-				bestHabType = &newBest
-			} else if habitability == greenness && fromIdealDist > greatest {
+			if habitability > greenness || (habitability == greenness && fromIdealDist > greatest) {
 				greenness = habitability
 				greatest = fromIdealDist
 				newBest := habType
@@ -311,7 +307,7 @@ func (t *terraform) getBestUnterraform(planet *Planet, player, terraformer *Play
 	}
 
 	// get how much this player can terraform each hab
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 
 	habCenter := player.Race.HabCenter()
 
@@ -342,7 +338,7 @@ func (t *terraform) getBestUnterraform(planet *Planet, player, terraformer *Play
 // Positive amount means increase, negative amount means decrease
 func (t *terraform) TerraformHab(planet *Planet, terraformer *Player, habType HabType, amount int) TerraformResult {
 	// Get terraforming capabilities of player
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 	hab := planet.Hab.Get(habType)
 
 	// Terraform planet, limiting value to the terraformer's capabilities

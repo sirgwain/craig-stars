@@ -268,6 +268,7 @@ func (c *GameConverter) ConvertGamePlanet(source *cs.Planet) *Planet {
 		dbPlanet.Boranium = (*source).Cargo.Boranium
 		dbPlanet.Germanium = (*source).Cargo.Germanium
 		dbPlanet.Colonists = (*source).Cargo.Colonists
+		dbPlanet.PartialPopulation = (*source).PartialPopulation
 		dbPlanet.Mines = (*source).Mines
 		dbPlanet.Factories = (*source).Factories
 		dbPlanet.Defenses = (*source).Defenses
@@ -517,7 +518,7 @@ func (c *GameConverter) ConvertMineralPacket(source *MineralPacket) *cs.MineralP
 		csMineralPacket.GameDBObject = c.dbMineralPacketToCsGameDBObject((*source))
 		csMineralPacket.MapObject = ExtendMineralPacketMapObject((*source))
 		csMineralPacket.TargetPlanetNum = (*source).TargetPlanetNum
-		csMineralPacket.Cargo = c.mineralPaketCargo((*source))
+		csMineralPacket.Cargo = c.mineralPacketCargo((*source))
 		csMineralPacket.WarpSpeed = (*source).WarpSpeed
 		csMineralPacket.SafeWarpSpeed = (*source).SafeWarpSpeed
 		csMineralPacket.Heading = ExtendMineralPacketHeading((*source))
@@ -557,6 +558,7 @@ func (c *GameConverter) ConvertPlanet(source *Planet) *cs.Planet {
 		csPlanet.MineralConcentration = ExtendMineralConcentration((*source))
 		csPlanet.MineYears = ExtendMineYears((*source))
 		csPlanet.Cargo = c.dbPlanetToCsCargo((*source))
+		csPlanet.PartialPopulation = (*source).PartialPopulation
 		csPlanet.Mines = (*source).Mines
 		csPlanet.Factories = (*source).Factories
 		csPlanet.Defenses = (*source).Defenses
@@ -896,7 +898,7 @@ func (c *GameConverter) dbWormholeToCsVector(source Wormhole) cs.Vector {
 	csVector.Y = source.Y
 	return csVector
 }
-func (c *GameConverter) mineralPaketCargo(source MineralPacket) cs.Cargo {
+func (c *GameConverter) mineralPacketCargo(source MineralPacket) cs.Cargo {
 	var csCargo cs.Cargo
 	csCargo.Ironium = source.Ironium
 	csCargo.Boranium = source.Boranium

@@ -47,38 +47,57 @@ func (m Mineral) PrettyString() string {
 	return strings.Join(texts, ", ")
 }
 
-func (m *Mineral) Set(mineralType MineralType, value int) *Mineral {
-	switch mineralType {
+// Set sets the value corresponding to minType to amt.
+// Unlike all other Mineral functions, this _will_ mutate the original struct's values,
+// and is best used for more complex cases not handled by simple addition.
+func (m *Mineral) Set(minType MineralType, amt int) {
+	switch minType {
 	case Ironium:
-		m.Ironium = value
+		m.Ironium = amt
 	case Boranium:
-		m.Boranium = value
+		m.Boranium = amt
 	case Germanium:
-		m.Germanium = value
+		m.Germanium = amt
+	default:
+		panic(fmt.Sprintf("mineral.Set called with invalid MineralType %s", minType))
 	}
-	return m
 }
 
-// return higher of 2 Mineral structs for all MineralTypes separately
+// Max returns a Mineral struct containing the higher of
+// m's and other's values for each MineralType.
+//
+//	Mineral{1, 2, 3}.Max(Mineral{4, 0, 5}) = Mineral{4, 2, 5}
 func (m Mineral) Max(other Mineral) Mineral {
 	return Mineral{
-		Ironium:   Max(m.Ironium, other.Ironium),
-		Boranium:  Max(m.Boranium, other.Boranium),
-		Germanium: Max(m.Germanium, other.Germanium),
+		Ironium:   max(m.Ironium, other.Ironium),
+		Boranium:  max(m.Boranium, other.Boranium),
+		Germanium: max(m.Germanium, other.Germanium),
 	}
 }
 
-func (m Mineral) GetAmount(mineralType MineralType) int {
-	var amt int
-	switch mineralType {
-	case Ironium:
-		amt = m.Ironium
-	case Boranium:
-		amt = m.Boranium
-	case Germanium:
-		amt = m.Germanium
+// MaxNum return the higher of num and this Mineral struct's values
+// for each MineralType.
+//
+//	Mineral{1, 2, 3}.MaxNum(2) = Mineral{2, 2, 3}
+func (m Mineral) MaxNum(num int) Mineral {
+	return Mineral{
+		Ironium:   max(m.Ironium, num),
+		Boranium:  max(m.Boranium, num),
+		Germanium: max(m.Germanium, num),
 	}
-	return amt
+}
+
+func (m Mineral) GetAmount(minType MineralType) int {
+	switch minType {
+	case Ironium:
+		return m.Ironium
+	case Boranium:
+		return m.Boranium
+	case Germanium:
+		return m.Germanium
+	default:
+		panic(fmt.Sprintf("Mineral.GetAmount called with invalid MineralType %q", minType))
+	}
 }
 
 func (m Mineral) Total() int {
@@ -93,7 +112,7 @@ func (m Mineral) ToSlice() [3]int {
 	}
 }
 
-// convert a mineral to a cargo
+// Return the Cargo equivalent of a Mineral struct.
 func (m Mineral) ToCargo() Cargo {
 	return Cargo{
 		Ironium:   m.Ironium,
@@ -102,7 +121,7 @@ func (m Mineral) ToCargo() Cargo {
 	}
 }
 
-// convert a mineral to a cost
+// Return the Cost equivalent of a Mineral struct.
 func (m Mineral) ToCost() Cost {
 	return Cost{
 		Ironium:   m.Ironium,
@@ -111,7 +130,7 @@ func (m Mineral) ToCost() Cost {
 	}
 }
 
-// add two minerals
+// add two minerals and return the result.
 func (m Mineral) Add(other Mineral) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium + other.Ironium,
@@ -120,7 +139,7 @@ func (m Mineral) Add(other Mineral) Mineral {
 	}
 }
 
-// add an int to all components of a mineral and return the result
+// Add a number to all components of a Mineral and return the result.
 func (m Mineral) AddToAll(amt int) Mineral {
 	return Mineral{
 		Ironium:   m.Ironium + amt,
@@ -129,7 +148,7 @@ func (m Mineral) AddToAll(amt int) Mineral {
 	}
 }
 
-// add an int to a single component of a mineral
+// Add an int to a single component of a mineral and return the result.
 func (m Mineral) AddNum(minType MineralType, amt int) Mineral {
 	switch minType {
 	case Ironium:
@@ -139,28 +158,9 @@ func (m Mineral) AddNum(minType MineralType, amt int) Mineral {
 	case Germanium:
 		m.Germanium += amt
 	default:
-		panic(fmt.Sprintf("incorrect mineralType %q given to mineral.AddNum; \nshould be Ironium, Boranium or Germanium", minType))
+		panic(fmt.Sprintf("mineral.AddNum called with invalid MineralType %q; \nmust be Ironium, Boranium or Germanium", minType))
 	}
 	return m
-}
-
-// subtract two minerals
-func (m Mineral) Subtract(other Mineral) Mineral {
-	return Mineral{
-		Ironium:   m.Ironium - other.Ironium,
-		Boranium:  m.Boranium - other.Boranium,
-		Germanium: m.Germanium - other.Germanium,
-	}
-}
-
-// Subtract the mineral components of a Cost from this Mineral;
-// equivalent to m.Subtract(c
-func (m Mineral) SubtractCost(c Cost) Mineral {
-	return Mineral{
-		Ironium:   m.Ironium - c.Ironium,
-		Boranium:  m.Boranium - c.Boranium,
-		Germanium: m.Germanium - c.Germanium,
-	}
 }
 
 // Multiply all components of a mineral by a float64, round them using roundFunc and
@@ -181,79 +181,6 @@ func (m Mineral) Clamp(min, max int) Mineral {
 	}
 }
 
-// Attempt to equalize a Mineral's values as best as possible by repeatedly
-// adding or subtracting amtToAdd in total.
-// If amtToAdd is positive, it adds to the lowest values;
-// if negative, it subtracts from the highest ones.
-//
-// Ties among equal values will be broken in order of precedence (I>B>G).
-func (m Mineral) Equalize(amtToAdd int) Mineral {
-	if amtToAdd == 0 {
-		return m
-	}
-
-	/*
-		Example scenario:
-		19 Iron, 3 Bor & 31 Germ with 50 total.
-		First, we add 17 Boranium to make it equal to Ironium.
-		Next, we add 13 (31-19) to both Iron and Bor to equalize all 3.
-		The remaining 11 is split evenly 3 ways (4 to I/B, 3 to G).
-	*/
-
-	mArray := m.ToSlice()
-	mSlice := mArray[:]
-	var origOrder = []int{0, 1, 2} // original value order; used to "un-shuffle" slice at the end
-	// sort mineral values/types
-	slices.SortFunc(mSlice, func(a, b int) int {
-		diff := a - b
-		if amtToAdd < 0 {
-			diff = b - a // reverse sorting order for negative indices so we deduct from the highest
-		}
-		if diff < 0 {
-			// shuffle around original order slice to keep it in sync
-			// (3 values is small enough for go to use insertion sort)
-			i := slices.Index(mSlice, a)
-			origOrder[i], origOrder[i-1] = origOrder[i-1], origOrder[i]
-		}
-		return diff
-	})
-
-	addFunc := func(index, amt int) {
-		mSlice[index] += amt
-		amtToAdd -= amt
-	}
-
-	// attempt to equalize lowest 2 (highest 2 for negatives)
-	diffLowest := AbsMin(amtToAdd, mSlice[1]-mSlice[0])
-	if diffLowest != 0 {
-		addFunc(0, diffLowest)
-	}
-
-	// lowest/middle now equal; try to equalize with highest
-	diffMiddle := AbsMin(amtToAdd, (mSlice[2]-mSlice[1])*2)
-	if diffMiddle != 0 {
-		addFunc(0, diffMiddle/2)
-		addFunc(1, diffMiddle/2)
-	}
-
-	// deal with any excess
-	if third := amtToAdd / 3; third != 0 {
-		for i := range mSlice {
-			mSlice[i] += third
-		}
-		amtToAdd %= 3
-	}
-	for i := range Abs(amtToAdd) {
-		if amtToAdd < 0 {
-			// use original order so we add to iron first
-			mSlice[origOrder[i]]--
-		} else {
-			mSlice[origOrder[i]]++
-		}
-	}
-	return NewMineral(mSlice[origOrder[0]], mSlice[origOrder[1]], mSlice[origOrder[2]])
-}
-
 // HighestType returns the MineralType and numerical value of the
 // Nth highest value in a Mineral struct.
 // Negative indices count backwards from lowest value.
@@ -261,7 +188,9 @@ func (m Mineral) Equalize(amtToAdd int) Mineral {
 //
 // Ties are broken in order of precendence (I>B>G); tie order not affected by negative indices
 //
-// panics if ranking is 0 or if abs(ranking) is greater than 3
+// panics if ranking is 0 or if abs(ranking) is greater than 3/
+//
+// Also see [Cost.HighestType]
 func (m Mineral) HighestType(ranking int) (minType MineralType, value int) {
 	a := m.ToSlice()
 	if ranking == 0 || Abs(ranking) > len(a) {

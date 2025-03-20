@@ -1,5 +1,7 @@
 package cs
 
+import "math"
+
 type invasion struct {
 	planet    *Planet
 	defender  *Player
@@ -77,7 +79,7 @@ func (i invasion) resolve(rules *Rules) invasionResult {
 	attacker := i.attacker
 	defender := i.defender
 	attackersAfterDefense := int(float64(i.attackers) * (1 - i.planet.Spec.DefenseCoverage*invasionDefenseCoverageFactor))
-	defenders := i.planet.population()
+	defenders := i.planet.GetPopulation()
 
 	// determine bonuses for warmongers and inner strength
 	attackBonus := attacker.Race.Spec.InvasionAttackBonus
@@ -91,7 +93,7 @@ func (i invasion) resolve(rules *Rules) invasionResult {
 
 	if float64(attackersAfterDefense)*attackBonus > float64(defenders)*defenseBonus {
 		remainingDefenders = 0
-		remainingAttackers = roundToNearest100(float64(attackersAfterDefense) - float64(defenders)*defenseBonus/attackBonus)
+		remainingAttackers = roundTo100(float64(attackersAfterDefense)-float64(defenders)*defenseBonus/attackBonus, math.Round)
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingAttackers == 0 {
@@ -102,8 +104,9 @@ func (i invasion) resolve(rules *Rules) invasionResult {
 		defendersKilled = defenders
 		successful = true
 	} else {
+		// defenders won
 		remainingAttackers = 0
-		remainingDefenders = roundToNearest100(float64(defenders) - (float64(attackersAfterDefense)*attackBonus)/defenseBonus)
+		remainingDefenders = roundTo100(float64(defenders)-(float64(attackersAfterDefense)*attackBonus)/defenseBonus, math.Round)
 
 		// if we have a last-person-standing, they instantly repopulate. :)
 		if remainingDefenders == 0 {

@@ -28,7 +28,7 @@ var ctx = state{
 }
 var debug = false
 
-func enableDebug(args []js.Value) interface{} {
+func enableDebug(args []js.Value) any {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime, NoColor: true})
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	debug = true
@@ -38,7 +38,7 @@ func enableDebug(args []js.Value) interface{} {
 
 // set the rules used by this wasm instance
 // rules default to a standard ruleset, but are overloaded during game load
-func setRules(args []js.Value) interface{} {
+func setRules(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("setRules: number of arguments doesn't match"))
 	}
@@ -51,7 +51,7 @@ func setRules(args []js.Value) interface{} {
 }
 
 // setPlayer sets or updates the current player for this wasm instance
-func setPlayer(args []js.Value) interface{} {
+func setPlayer(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("setPlayer: number of arguments doesn't match"))
 	}
@@ -65,7 +65,7 @@ func setPlayer(args []js.Value) interface{} {
 }
 
 // setDesigns sets or updates the current player's designs for this wasm instance
-func setDesigns(args []js.Value) interface{} {
+func setDesigns(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("setDesigns: number of arguments doesn't match"))
 	}
@@ -82,7 +82,7 @@ func setDesigns(args []js.Value) interface{} {
 
 // wasm wrapper for calculating race points
 // takes one argument, the race
-func calculateRacePoints(args []js.Value) interface{} {
+func calculateRacePoints(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
 	}
@@ -96,7 +96,7 @@ func calculateRacePoints(args []js.Value) interface{} {
 
 // wasm wrapper for calculating race points
 // takes one argument, the race
-func getResearchCost(args []js.Value) interface{} {
+func getResearchCost(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
 	}
@@ -111,7 +111,7 @@ func getResearchCost(args []js.Value) interface{} {
 
 // wasm wrapper for calculating race points
 // takes one argument, the race
-func computeShipDesignSpec(args []js.Value) interface{} {
+func computeShipDesignSpec(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
 	}
@@ -119,7 +119,7 @@ func computeShipDesignSpec(args []js.Value) interface{} {
 	design := wasm.GetShipDesign(args[0])
 	spec, err := cs.ComputeShipDesignSpec(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, &design)
 	if err != nil {
-		return wasm.NewError(fmt.Errorf("invalid design %v", err))
+		return wasm.NewError(fmt.Errorf("invalid design: %v", err))
 	}
 	log.Debug().Msgf("computed spec for design %s", design.Name)
 
@@ -131,7 +131,7 @@ func computeShipDesignSpec(args []js.Value) interface{} {
 
 // wasm wrapper for calculating race points
 // takes one argument, the race
-func starbaseUpgradeCost(args []js.Value) interface{} {
+func starbaseUpgradeCost(args []js.Value) any {
 	if len(args) != 2 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
 	}
@@ -142,10 +142,10 @@ func starbaseUpgradeCost(args []js.Value) interface{} {
 	costCalculatoor := cs.NewCostCalculator()
 	cost, err := costCalculatoor.StarbaseUpgradeCost(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, &design, &newDesign)
 	if err != nil {
-		return wasm.NewError(fmt.Errorf("unable to calculate starbase upgrade cost %v", err))
+		return wasm.NewError(fmt.Errorf("unable to calculate starbase upgrade cost: %v", err))
 	}
 
-	log.Debug().Msgf("computed starbase upgrade cost for design %s -> %s %v", design.Name, newDesign.Name, cost)
+	log.Debug().Msgf("computed starbase upgrade cost for design %s -> %s: %v", design.Name, newDesign.Name, cost)
 
 	o := js.ValueOf(map[string]any{})
 	wasm.SetCost(o, &cost)
@@ -155,7 +155,7 @@ func starbaseUpgradeCost(args []js.Value) interface{} {
 
 // wasm wrapper for calculating race points
 // takes one argument, the race
-func techCost(args []js.Value) interface{} {
+func techCost(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
 	}
@@ -164,7 +164,7 @@ func techCost(args []js.Value) interface{} {
 	costCalculatoor := cs.NewCostCalculator()
 	cost := costCalculatoor.GetTechCost(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, tech)
 
-	log.Debug().Msgf("computed tech cost %s %v", tech.Name, cost)
+	log.Debug().Msgf("computed tech cost %s: %v", tech.Name, cost)
 
 	o := js.ValueOf(map[string]any{})
 	wasm.SetCost(o, &cost)
@@ -173,8 +173,8 @@ func techCost(args []js.Value) interface{} {
 }
 
 // wasm wrapper for estimating planet production
-// takes 1 arguments: planet, player (with designs)
-func estimateProduction(args []js.Value) interface{} {
+// takes 1 argument: the planet
+func estimateProduction(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
 	}
@@ -193,16 +193,59 @@ func estimateProduction(args []js.Value) interface{} {
 	// make sure if we have a starbase, it has a design so we can compute
 	// upgrade costs
 	if err := planet.PopulateStarbaseDesign(&ctx.player); err != nil {
-		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design. %v", err))
+		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design.: %v", err))
 	}
 
 	if err := planet.PopulateProductionQueueDesigns(&ctx.player); err != nil {
-		return wasm.NewError(fmt.Errorf("failed to populate production queue designs. %v", err))
+		return wasm.NewError(fmt.Errorf("failed to populate production queue designs.: %v", err))
 	}
 
 	planet.PopulateProductionQueueEstimates(&ctx.rules, &ctx.player)
 
 	log.Debug().Msgf("estimated production of %s\n", planet.Name)
+	o := js.ValueOf(map[string]any{})
+	wasm.SetPlanet(o, &planet)
+	return o
+}
+
+// wasm wrapper for calculating planet maximium buildable installations
+// takes 2 arguments: the planet and item type
+func maxBuildable(args []js.Value) any {
+	if len(args) != 2 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	planet := wasm.GetPlanet(args[0])
+	itemType := wasm.GetQueueItemType(args[1])
+
+	maxBuild := 5000
+	if !itemType.IsAuto() /* || itemType == cs.QueueItemTypeAutoMineralAlchemy */ {
+		maxBuild = planet.MaxBuildable(&ctx.player, itemType)
+		// maxBuildable is set to infinite for most things, but we want big number
+		if maxBuild == cs.Infinite {
+			maxBuild = 5000
+		}
+	}
+
+	log.Debug().Msgf("calculated planet max buildable for itemType %s: %d\n", itemType, maxBuild)
+	return js.ValueOf(maxBuild)
+}
+
+// wasm wrapper for updating planet yearly resource production
+// takes 1 argument: the planet
+func updateResourcesAvailable(args []js.Value) any {
+	if len(args) != 1 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	planet := wasm.GetPlanet(args[0])
+
+	planet.Spec.ComputeResourcesPerYear(&ctx.player, planet.Factories,
+		cs.ProductivePopulation(planet.GetPopulation(), planet.Spec.MaxPopulation,
+			ctx.rules.PopulationOvercrowdResourcePenalty, ctx.rules.PopulationOvercrowdResourceMax),
+		min(planet.GetPopulation(), planet.Spec.MaxPopulation))
+
+	log.Debug().Msgf("calculated planet resource stats.\n")
 	o := js.ValueOf(map[string]any{})
 	wasm.SetPlanet(o, &planet)
 	return o
@@ -222,6 +265,8 @@ func main() {
 	wasm.ExposeFunction("starbaseUpgradeCost", starbaseUpgradeCost)
 	wasm.ExposeFunction("techCost", techCost)
 	wasm.ExposeFunction("estimateProduction", estimateProduction)
+	wasm.ExposeFunction("maxBuildable", maxBuildable)
+	wasm.ExposeFunction("resourcesAvailable", updateResourcesAvailable)
 	wasm.Ready()
 
 	// fmt.Println("wasm initialized")

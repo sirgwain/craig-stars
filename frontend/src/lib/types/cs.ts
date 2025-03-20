@@ -109,6 +109,7 @@ export interface BombingResult {
 
 /**
  * Cargo represents minerals and colonists that are in cargo holds, salvage, mineral packets, or on planets.
+ * 1 kT of Cargo respresents 1 unit of minerals or 100 colonists.
  */
 export interface Cargo {
 	ironium?: number /* int */;
@@ -293,7 +294,7 @@ export const TransportActionLoadAmount: WaypointTaskTransportAction = 'LoadAmoun
  */
 export const TransportActionUnloadAmount: WaypointTaskTransportAction = 'UnloadAmount';
 /**
- * Loads up to the specified portion of the cargo hold subject to amount available at waypoint and room left in hold.
+ * Loads up to the specified portion of the cargo hold, subject to amount available at waypoint and room left in hold.
  */
 export const TransportActionFillPercent: WaypointTaskTransportAction = 'FillPercent';
 /**
@@ -302,9 +303,8 @@ export const TransportActionFillPercent: WaypointTaskTransportAction = 'FillPerc
 export const TransportActionWaitForPercent: WaypointTaskTransportAction = 'WaitForPercent';
 /**
  * (minerals and colonists only) This command waits until all other loads and unloads are complete,
- * then loads as many colonists or amount of a mineral as will fit in the remaining space. For example,
- * setting Load All Germanium, Load Dunnage Ironium, will load all the Germanium that is available,
- * then as much Ironium as possible. If more than one dunnage cargo is specified, they are loaded in
+ * then loads as many colonists or minerals will fit in the remaining space.
+ * If more than one dunnage cargo is specified, they are performed in
  * the order of Ironium, Boranium, Germanium, and Colonists.
  */
 export const TransportActionLoadDunnage: WaypointTaskTransportAction = 'LoadDunnage';
@@ -315,7 +315,8 @@ export const TransportActionLoadDunnage: WaypointTaskTransportAction = 'LoadDunn
 export const TransportActionSetAmountTo: WaypointTaskTransportAction = 'SetAmountTo';
 /**
  * Load or unload the cargo until the amount at the waypoint is the amount specified.
- * This order is always carried out to the best of the fleet’s ability that turn but does not prevent the fleet from moving on.
+ * This order is always carried out to the best of the fleet’s ability that turn
+ * but does not prevent the fleet from moving on.
  */
 export const TransportActionSetWaypointTo: WaypointTaskTransportAction = 'SetWaypointTo';
 /**
@@ -961,6 +962,7 @@ export interface Planet extends GameDBObject, MapObject, PlanetOrders {
 	mineralConcentration: Mineral;
 	mineYears: Mineral;
 	cargo: Cargo;
+	partialPopulation: number /* int */; // population not in a multiple of 100
 	mines: number /* int */;
 	factories: number /* int */;
 	defenses: number /* int */;
@@ -991,7 +993,6 @@ export interface PlanetSpec extends PlanetStarbaseSpec {
 	maxPossibleFactories?: number /* int */;
 	maxPossibleMines?: number /* int */;
 	miningOutput?: Mineral;
-	population?: number /* int */;
 	populationDensity?: number /* float64 */;
 	resourcesPerYear?: number /* int */;
 	resourcesPerYearAvailable?: number /* int */;
@@ -1490,7 +1491,7 @@ export const CE: LRT = 1 << (14 - 1);
 // source: random.go
 
 /**
- * the rng rules all
+ * The rng interface used by the rules struct, implemented as an interface to allow for custom fixed rng methods or seeds.
  */
 
 //////////
@@ -1574,6 +1575,7 @@ export interface Rules extends CostRules, BattleRules, UniverseGenerationRules {
 	invasionDefenseCoverageFactor: number /* float64 */;
 	lrtSpecs: { [key: LRT]: LRTSpec };
 	maxPopulation: number /* int */;
+	minPopFloor: number /* int */;
 	maxTechLevel: number /* int */;
 	mineFieldCloak: number /* int */;
 	mineFieldStatsByType: { [key: MineFieldType]: MineFieldStats };
@@ -1634,7 +1636,7 @@ export interface UniverseGenerationRules {
 	minMineralConcentration: number /* int */;
 	minStartingMineralConcentration: number /* int */;
 	minStartingMineralSurface: number /* int */;
-	raceLeftoverPointsPerItem: { [key: SpendLeftoverPointsOn]: number /* int */ }; // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT
+	raceLeftoverPointsPerItem: { [key: SpendLeftoverPointsOn]: number /* int */ }; // amount of points required for 1 starting point increase; for surface minerals this is instead the unit rate in kT/point
 	startingYear: number /* int */;
 	wormholeMinPlanetDistance: number /* int */;
 }
@@ -1648,6 +1650,9 @@ export interface CostRules {
 	terraformCost: Cost;
 	techBaseCost: number /* int */[];
 }
+/**
+ * A slightly fancier map[bool]float64 that can be serialized to JSON
+ */
 export interface JammerCap {
 	Ship: number /* float64 */;
 	Starbase: number /* float64 */;
@@ -1911,7 +1916,7 @@ export interface Tech {
 	ranking: number /* int */;
 	category: TechCategory;
 	origin?: TechOrigin;
-	tags: TechTags;
+	tags?: TechTags;
 }
 export type TechOrigin = string;
 export const OriginNone: TechOrigin = '';

@@ -246,7 +246,7 @@ func getTypeInfo(fieldType types.Type, pkg *packages.Package) *generator.FieldTy
 	// is this type defined in the package we're scanning?
 	isPackageType := strings.Contains(fullType, pkg.ID)
 
-	// get the actual go type used in  generation, like int or []cs.Planet
+	// get the actual go type used in generation, like int or []cs.Planet
 	goType := getGoType(fieldType, pkg)
 	typeName := goType
 
@@ -296,11 +296,11 @@ func getTypeInfo(fieldType types.Type, pkg *packages.Package) *generator.FieldTy
 				constraint := typeParam.Constraint()
 				if iface, ok := constraint.(*types.Interface); ok {
 					// Iterate over all embedded types
-					for i := 0; i < iface.NumEmbeddeds(); i++ {
+					for i := range iface.NumEmbeddeds() {
 
 						switch union := iface.EmbeddedType(i).Underlying().(type) {
 						case *types.Union:
-							for j := 0; j < union.Len(); j++ {
+							for j := range union.Len() {
 								embeddedType := getTypeInfo(union.Term(j).Type(), pkg)
 								genericType.Types = append(genericType.Types, embeddedType)
 							}

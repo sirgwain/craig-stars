@@ -164,7 +164,7 @@ func techTradeChance(baseChance float64, level int) float64 {
 func checkAcquirablePartChance(rules *Rules, qty int) bool {
 	for check := 0; check < qty; check += rules.AcquirablePartTradeItemMax {
 		// chance for 1 check = # of items (max 25) * 0.005
-		tradeChance := rules.AcquirablePartTradeChanceBase * float64(Min(
+		tradeChance := rules.AcquirablePartTradeChanceBase * float64(min(
 			qty-check, rules.AcquirablePartTradeItemMax))
 		if tradeChance >= rules.random.Float64() {
 			// we traded the part!

@@ -50,7 +50,7 @@ test('Cargo Transfer Planet Owned', async ({ authenticatedPage }) => {
 	// pop grows
 	// TODO: fragile test?
 	const statusTile = await page.locator('[data-type="command-tile"][data-id="Status"]').first();
-	await expect(statusTile.getByText('Population 287,400').first()).toBeVisible();
+	await expect(statusTile.getByText('Population 287,300').first()).toBeVisible();
 
 	// goto fleet
 	fleetsInOrbitTile = await page
