@@ -275,14 +275,15 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					items: []ProductionQueueItem{
 						{
 							Type:     QueueItemTypeFactory,
-							Quantity: 1,
+							Quantity: 1, // 10 res; +1 res/yr
 						},
 						{
 							Type:     QueueItemTypeMine,
-							Quantity: 2,
+							Quantity: 2, // 10 res total
 						},
 					},
-					planet: NewPlanet().WithMines(1).WithCargo(Cargo{100, 100, 100, 10}),
+					planet: NewPlanet().WithCargo(Cargo{100, 100, 100, 10}),
+					// Pop: 1000 → 1115 → 1280 → 1445 → 1655 → 1895 → 2165 → 2480 → 3260 → 3740
 				},
 				want: []ProductionQueueItem{
 					{
@@ -296,7 +297,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 9, // TODO: Change back to 9 once pop branch gets merged
+							YearsToBuildOne: 10,
 							YearsToBuildAll: 11,
 							YearsToSkipAuto: Infinite,
 						},
@@ -548,7 +549,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						},
 					},
 					planet: NewPlanet().WithCargo(Cargo{100, 100, 100, 100}),
-					// Res: 32 --> 34 --> 37 --> 40 --> 42 --> 45 --> 48
+					// Res: 32 → 34 → 37 → 40 → 42 → 45 → 48
 				},
 				want: []ProductionQueueItem{
 					{
