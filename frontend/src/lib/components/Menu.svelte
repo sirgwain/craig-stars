@@ -65,10 +65,10 @@
 					{#if user.isAdmin()}
 						<li><div class="divider"></div></li>
 						<li>
-							<a href={`/admin/games`} class="justify-between">All Games</a>
+							<a href="/admin/games" class="justify-between">All Games</a>
 						</li>
 						<li>
-							<a href={`/admin/users`} class="justify-between">Users</a>
+							<a href="/admin/users" class="justify-between">Users</a>
 						</li>
 					{/if}
 					<li><div class="divider"></div></li>

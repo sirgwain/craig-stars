@@ -16,7 +16,7 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	{...props}
 >
-	<path class="stroke-white" stroke-width={lineWidth} fill="none" d={`M0,0L0,500 L500,500`} />
+	<path class="stroke-white" stroke-width={lineWidth} fill="none" d="M0,0L0,500 L500,500" />
 
 	<rect
 		class="ironium-bar"

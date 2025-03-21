@@ -292,7 +292,7 @@ func (p *producer) produce() (result productionResult, err error) {
 
 		// After all that, we can finally try to build the dang thing.
 
-		// determine how many copies to build and dock cost
+		// determine how many copies to build and dock cost from tally
 		numBuilt, spent := p.getNumBuilt(item, itemCost, available, maxBuildable)
 		available = available.Subtract(spent)
 

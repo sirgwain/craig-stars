@@ -27,7 +27,7 @@
 
 <div class="navbar bg-base-100 flex flex-row w-full">
 	<div class="flex-1">
-		<a class="btn btn-ghost text-xl text-primary" href={`/`}>cs</a>
+		<a class="btn btn-ghost text-xl text-primary" href="/">cs</a>
 		<div class="md:block">
 			<a class="btn btn-ghost text-lg text-accent" href={`/games/${$game.id}`}
 				>{$game.name} - {$game.year}</a
@@ -148,10 +148,10 @@
 						{#if $me.isAdmin()}
 							<li><div class="divider"></div></li>
 							<li>
-								<a href={`/admin/games`} class="justify-between">All Games</a>
+								<a href="/admin/games" class="justify-between">All Games</a>
 							</li>
 							<li>
-								<a href={`/admin/users`} class="justify-between">Users</a>
+								<a href="/admin/users" class="justify-between">Users</a>
 							</li>
 						{/if}
 						<li><div class="divider"></div></li>
