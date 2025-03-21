@@ -28,12 +28,13 @@ func Run() error {
 // Build the frontend and backend consecutively, alongside some setup work.
 func Build() {
 	// Returns no errors since mg.Deps panics
-	mg.SerialDeps(mg.F(Clean, false),
+	mg.SerialDeps(Clean,
 		Tidy,
 		Copy_Wasm_Exec,
 		Generate,
 		Build_Frontend,
-		Build_Backend)
+		Build_Backend,
+	)
 }
 
 // Clean up various temporary directories.
@@ -169,7 +170,7 @@ func Build_Backend() error {
 func Build_Backend_CI(version, hash, releaseTime string) error {
 	mg.SerialDeps(Tidy, Generate, Build_WASM)
 
-	// Benchmarks might say otherwise, but these string literals get concatenated during compile time
+	// Benchmarks might suggest otherwise, but these string literals get concatenated during compile time
 	args := ldflags + fmt.Sprintf(" -X 'github.com/sirgwain/craig-stars/cmd.semver=%s'"+
 		" -X 'github.com/sirgwain/craig-stars/cmd.commit=%s'"+
 		" -X 'github.com/sirgwain/craig-stars/cmd.buildTime=%s'", version, hash, releaseTime)
@@ -182,10 +183,12 @@ func build_backend(buildArgs ...string) error {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
 
-	f := make([]string, len(buildArgs)+4)
-	f[0] = "build"
-	copy(f[1:], buildArgs)
-	copy(f[len(f)-3:], []string{"-o", "dist/" + binary_name, "main.go"})
+	// wrap buildArgs with extra stuff before & after command
+	args := make([]string, 1, len(buildArgs)+4)
+	args[0] = "build"
+	args = append(args, buildArgs...)
+	args = append(args, "-o", "dist/" + binary_name, "main.go")
+
 	if err := sh.RunV("go", f...); err != nil { // "go", "build", "-ldflags=XXX"...
 		return err
 	}
