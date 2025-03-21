@@ -425,14 +425,15 @@ func (p *producer) produce() (result productionResult, err error) {
 		}
 
 		// we still have auto items left to build and enough minerals
-		// to complete one auto item; add a concrete one to the top of the queue
-		newQueue = append([]ProductionQueueItem{
-			{
-				Type:      item.Type.concreteType(),
-				Quantity:  1,
-				Allocated: p.allocatePartialBuild(itemCost, available),
-				index:     -1, // we don't track concrete auto items, we only care about the first fully built auto item
-			}}, newQueue...)
+		// to complete one auto item; prepend a concrete item
+		q := make([]ProductionQueueItem, 1, len(newQueue)+1)
+		q[0] = ProductionQueueItem{
+			Type:      item.Type.concreteType(),
+			Quantity:  1,
+			Allocated: p.allocatePartialBuild(itemCost, available),
+			index:     -1, // don't track concrete auto items in estimates
+		}
+		newQueue = append(q, newQueue...)
 		available = available.Subtract(newQueue[0].Allocated)
 
 		if itemIndex < len(planet.ProductionQueue)-1 {
@@ -442,7 +443,7 @@ func (p *producer) produce() (result productionResult, err error) {
 		break
 	}
 
-	// ping player if we finish queue
+	// ping player if we finished the queue
 	if result.completed {
 		result.messages = append(result.messages,
 			newPlanetMessage(PlayerMessagePlanetProductionQueueComplete, planet))
@@ -467,14 +468,24 @@ func (p *producer) produce() (result productionResult, err error) {
 
 // validate a packet in the production queue
 func (p *producer) validatePacket(item ProductionQueueItem, planet *Planet, builtBase *ShipDesign) (msgType PlayerMessageType, valid bool) {
-	if item.Type.IsPacket() && !planet.Spec.HasMassDriver &&
-		(builtBase == nil || builtBase.Spec.SafePacketSpeed == 0) {
-		// We have no mass driver ATM and our current queued starbase
-		// either doesn't exist or can't fling packets
-		return PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver, false
+	if !item.Type.IsPacket() {
+		return PlayerMessageNone, true
 	}
 
-	if item.Type.IsPacket() && planet.PacketTargetNum == None {
+	//figure out if we will have a driver by the time we build this packet
+	var noDriver bool
+
+	if builtBase == nil {
+		// no prior base, so we check the planet's current base
+		noDriver = !planet.Spec.HasMassDriver
+	} else {
+		// we made a base prior during production; check it
+		noDriver = builtBase.Spec.SafePacketSpeed == 0
+	}
+
+	if noDriver {
+		return PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver, false
+	} else if planet.PacketTargetNum == None {
 		return PlayerMessagePlanetBuiltInvalidMineralPacketNoTarget, false
 	}
 
