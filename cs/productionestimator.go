@@ -9,16 +9,16 @@ import (
 
 // The CompletionEstimator is used for populating completion estimates in a planet's production queue
 type CompletionEstimator interface {
-	// Get the estimated years to build a given ProductionQueueItem given some amount of
-	// minerals on hand and yearly mineral/resource output
+	// GetYearsToBuild returns the number of years required to build a given ProductionQueueItem,
+	// given some amount of minerals on hand and yearly mineral/resource output.
 	GetYearsToBuild(item ProductionQueueItem, cost Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int
 
 	// GetProductionWithEstimates populates a planet's production queue with estimates
-	// for how long each item will take.
-	// It simulates up to 10 years of growth, mining & production,
+	// for how long each item will take to build.
+	// It simulates up to 100 years of growth, mining & production,
 	// recording the first and last time each item was completed.
 	//
-	// It returns the new updated queue, an amount of leftover resources, and any error encountered.
+	// It returns the new updated queue, the amount of resources left for research, and any error encountered.
 	// An unsuccessful run will return nil, 0, err.
 	GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) ([]ProductionQueueItem, int, error)
 }
@@ -29,7 +29,8 @@ func NewCompletionEstimator() CompletionEstimator {
 	return &completionEstimate{}
 }
 
-// get the estimated years to build a ProductionQueueItem, rounded up to the nearest whole number.
+// GetYearsToBuild returns the number of years required to build a given ProductionQueueItem,
+// given some amount of minerals on hand and yearly mineral/resource output.
 func (e *completionEstimate) GetYearsToBuild(item ProductionQueueItem, costPerItem Cost, mineralsOnHand Mineral, yearlyAvailableToSpend Cost) int {
 	costPerItem = costPerItem.Subtract(item.Allocated).SubtractMineral(mineralsOnHand).MinZero()
 	numBuiltPerYear := yearlyAvailableToSpend.DivideCost(costPerItem)
@@ -41,14 +42,14 @@ func (e *completionEstimate) GetYearsToBuild(item ProductionQueueItem, costPerIt
 	return int(math.Ceil(float64(item.Quantity) / numBuiltPerYear))
 }
 
-// Simulate up to 100 years of growth (including mining & production)
-// on a planet to determine how long each production queue item will take to build.
+// GetProductionWithEstimates populates a planet's production queue with estimates
+// for how long each item will take to build.
+// It simulates up to 100 years of growth, mining & production,
+// recording the first and last time each item was completed.
 //
-// After each year of growth, it checks what was built and records the year of the first and
-// last completion.
-// Items not finished within 100 turns are labeled as "never completable".
+// It returns the new updated queue, the amount of resources left for research, and any error encountered.
+// An unsuccessful run will return nil, 0, err.
 func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Player, planet Planet) (items []ProductionQueueItem, leftoverResourcesForResearch int, err error) {
-
 	if len(planet.ProductionQueue) == 0 {
 		// no queue makes our job quite easy
 		return planet.ProductionQueue, planet.Spec.ResourcesPerYear, nil
@@ -140,8 +141,14 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			break
 		}
 
+		// if we made a base, simulate adding it to the planet
+		if result.starbase != nil {
+			s := newStarbase(player, &planet, result.starbase, result.starbase.Name)
+			s.Spec = ComputeFleetSpec(rules, player, &s)
+			planet.Starbase = &s
+		}
+
 		// grow pop & compute spec
-		// TODO: Simulate building a starbase for AR players' pop growth
 		planet.grow(player)
 		planet.Spec = computePlanetSpec(rules, player, &planet)
 

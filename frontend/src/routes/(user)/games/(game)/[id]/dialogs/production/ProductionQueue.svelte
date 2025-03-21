@@ -100,7 +100,8 @@
 			Object.assign(queueItems[i], {
 				yearsToBuildOne: estimate.yearsToBuildOne,
 				yearsToBuildAll: estimate.yearsToBuildAll,
-				yearsToSkipAuto: estimate.yearsToSkipAuto
+				yearsToSkipAuto: estimate.yearsToSkipAuto,
+				canceled: estimate.canceled,
 			});
 		}
 
@@ -113,6 +114,7 @@
 			selectedQueueItem?.quantity
 		);
 
+		// update completion estimates for available items if not present
 		for (let i = 0; i < availableItems.length; i++) {
 			const item = availableItems[i];
 			if (!item.yearsToBuildOne) {
@@ -160,28 +162,37 @@
 		return percent;
 	}
 
-	function addAvailableItem(item?: ProductionQueueItem) {
-		item = item ?? selectedAvailableItem;
-		if (!queueItems || !item) {
-			return;
+	function maxBuild(item?: ProductionQueueItem): number {
+		if (!item) {
+			return 0;
 		}
 
 		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
-		const maxBuildable = cs.maxBuildable(planet, item.type) ?? 0 - amountInQueue;
-		const quantity = clamp(quantityModifier, 0, maxBuildable);
-		if (quantity == 0) {
-			// don't add something we can't build any more of
+		return (cs.maxBuildable(planet, item.type) ?? 0) - amountInQueue;
+	}
+
+	function addAvailableItem(item?: ProductionQueueItem) {
+		item = item ?? selectedAvailableItem;
+		if  (!item) {
 			return;
 		}
+		const amtToAdd = clamp(quantityModifier, 0, maxBuild(item));
+
+		if (amtToAdd == 0) {
+			// don't add more of this item if we can't build any more of it
+			return;
+		}
+
+		// check if we should add more copies of the currently selected item
+		// or inject a new one into the queue
 		if (selectedQueueItem) {
-			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
-				selectedQueueItem.quantity += quantity;
+			if (selectedQueueItem.type == item.type && selectedQueueItem.designNum === item?.designNum) {
+				selectedQueueItem.quantity += amtToAdd;
 			} else {
 				// insert a new item
-
 				queueItems.splice(selectedQueueItemIndex + 1, 0, {
 					type: item.type,
-					quantity,
+					quantity: amtToAdd,
 					designNum: item.designNum,
 					allocated: {},
 					tags: {}
@@ -197,9 +208,11 @@
 				);
 			}
 		} else {
+			// If we don't have anything selected, check if we should add to the first queue item
+			// or add a new one at the front
 			let nextItem = queueItems.length ? queueItems[0] : undefined;
-			if (nextItem && nextItem.type === item?.type && nextItem.designNum == item.designNum) {
-				nextItem.quantity++;
+			if (nextItem && nextItem.type === item?.type && nextItem.designNum === item.designNum) {
+				nextItem.quantity += amtToAdd;
 				selectedQueueItemIndex = 0;
 				selectedQueueItem = nextItem;
 				selectedQueueItemCost = $player.getItemCost(
@@ -212,7 +225,13 @@
 			} else {
 				// prepend a new queue item
 				queueItems = [
-					{ type: item.type, designNum: item.designNum, allocated: {}, tags: {}, quantity },
+					{
+						type: item.type,
+						designNum: item.designNum,
+						allocated: {},
+						tags: {},
+						quantity: amtToAdd
+					},
 					...queueItems
 				];
 				selectedQueueItemIndex++;
@@ -238,7 +257,7 @@
 		selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
 		queueItems = queueItems;
 		if (selectedQueueItem.quantity <= 0) {
-			// select the item up in the list
+			// select the item ncext in the list
 			queueItems = queueItems?.filter((item) => item != selectedQueueItem);
 			selectedQueueItem = queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
 			selectedQueueItemCost = $player.getItemCost(
@@ -326,7 +345,6 @@
 	}
 
 	function getCompletionDescription(item: ProductionQueueItem) {
-		console.log(item.canceled);
 		if (item.canceled) {
 			return 'canceled';
 		}
@@ -433,10 +451,11 @@
 										<ProductionQueueItemLine
 											{item}
 											{index}
-											selected={item === selectedQueueItem}
-											notInQueue={true}
+											selected={item === selectedAvailableItem}
+											availableItem={true}
+											maxBuildable={maxBuild(item)}
 											onQueueItemClicked={() => availableItemSelected(item)}
-											onQueueItemDoubleClicked={removeItem}
+											onQueueItemDoubleClicked={() => addAvailableItem(item)}
 										/>
 									</li>
 								{/each}
@@ -452,7 +471,8 @@
 											{item}
 											{index}
 											selected={item === selectedAvailableItem}
-											notInQueue={true}
+											availableItem={true}
+											maxBuildable={maxBuild(item)}
 											onQueueItemClicked={() => availableItemSelected(item)}
 											onQueueItemDoubleClicked={() => addAvailableItem(item)}
 										/>
@@ -471,7 +491,8 @@
 											{item}
 											{index}
 											selected={item === selectedAvailableItem}
-											notInQueue={true}
+											availableItem={true}
+											maxBuildable={maxBuild(item)}
 											onQueueItemClicked={() => availableItemSelected(item)}
 											onQueueItemDoubleClicked={() => addAvailableItem(item)}
 										/>
@@ -576,6 +597,7 @@
 						</div>
 					</div>
 				</div>
+				<!-- display items already in queue, with double click set to remove them-->
 				<div class="flex-1 h-full bg-base-100 py-1">
 					<div class="flex flex-col h-full">
 						<ul class="grow h-20 overflow-y-auto">

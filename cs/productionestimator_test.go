@@ -632,18 +632,18 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					{
 						Type:     QueueItemTypeStarbase,
-						design:   driverBase,
+						design:   driverBase, // 70 res to upgrade
 						Quantity: 1,
 					},
 					{
 						Type:     QueueItemTypeMixedMineralPacket,
-						Quantity: 1,
+						Quantity: 2,
 					},
 				},
-				cargo:    Cargo{1000, 1000, 1000, 10_000}, // more than enough res to finish everything
+				cargo:    Cargo{1000, 1000, 1000, 800}, // 80 resources/yr, enough for the first 2 items
 				starbase: noDriverBase,
-				// First base canceled due to being built when we had no driver;
-				// 2nd packet finishes due to being finished after the new base finishes
+				// First packet canceled due to being built when we had no driver;
+				// 2nd packet finished normally due to being built after the driver base finishes
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
@@ -668,11 +668,11 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 							YearsToBuildOne: 1,
-							YearsToBuildAll: 1,
+							YearsToBuildAll: 2,
 							YearsToSkipAuto: Infinite,
 						},
 						Type:     QueueItemTypeMixedMineralPacket,
-						Quantity: 1,
+						Quantity: 2,
 					},
 				},
 			},
@@ -707,10 +707,10 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					{
 						Type:     QueueItemTypeBoraniumMineralPacket,
-						Quantity: 1,
+						Quantity: 2,
 					},
 				},
-				cargo:    Cargo{1000, 1000, 1000, 300}, // 30 --> 34 --> 39 res/yr
+				cargo:    Cargo{1000, 1000, 1000, 320}, // 32 --> 36 --> 42 res/yr; 110 in first 3 yrs
 				starbase: driverBase,
 				want: []ProductionQueueItem{
 					{
@@ -724,12 +724,12 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 4,
+							YearsToBuildOne: 3,
 							YearsToBuildAll: 4,
 							YearsToSkipAuto: Infinite,
 						},
 						Type:     QueueItemTypeBoraniumMineralPacket,
-						Quantity: 1,
+						Quantity: 2,
 					},
 				},
 			},
@@ -738,33 +738,33 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				items: []ProductionQueueItem{
 					{
 						Type:     QueueItemTypeIroniumMineralPacket,
-						Quantity: 1,
+						Quantity: 9,
 					},
 					{
 						Type:     QueueItemTypeBoraniumMineralPacket,
-						Quantity: 1,
+						Quantity: 4,
 					},
 				},
-				cargo:    Cargo{1000, 1000, 1000, 100}, // 10 res/yr, enough for a single packet
+				cargo:    Cargo{2000, 2000, 2000, 500}, // 50 res/yr, enough for 5 packetd
 				starbase: driverBase,
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 							YearsToBuildOne: 1,
-							YearsToBuildAll: 1,
+							YearsToBuildAll: 2,
 							YearsToSkipAuto: Infinite,
 						},
 						Type:     QueueItemTypeIroniumMineralPacket,
-						Quantity: 1,
+						Quantity: 9,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 							YearsToBuildOne: 2,
-							YearsToBuildAll: 2,
+							YearsToBuildAll: 3,
 							YearsToSkipAuto: Infinite,
 						},
 						Type:     QueueItemTypeBoraniumMineralPacket,
-						Quantity: 1,
+						Quantity: 4,
 					},
 				},
 			},

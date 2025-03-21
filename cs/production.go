@@ -143,7 +143,7 @@ func (t QueueItemType) concreteType() QueueItemType {
 // A record used by the production estimator to record unbuilt
 // ProductionQueueItem completion times
 type QueueItemCompletionEstimate struct {
-	Canceled        bool `json:"canceled"`                  // Whether an item is canceled due to an invalid order
+	Canceled        bool `json:"canceled,omitempty"`        // Whether an item is canceled due to an invalid order
 	YearsToBuildOne int  `json:"yearsToBuildOne,omitempty"` // Years to build (or skip) the first item of its type
 	YearsToBuildAll int  `json:"yearsToBuildAll,omitempty"` // Years to build (or skip) the last item of its type
 	YearsToSkipAuto int  `json:"yearsToSkipAuto,omitempty"` // Years to skip the first auto item in a queue
@@ -194,7 +194,7 @@ func (p *producer) produce() (result productionResult, err error) {
 
 	// TODO: Fix auto mineral alchemy:
 	// * Only has 1 max quantity
-	// * Always blocks queue if final item;
+	// * Always blocks queue if final item,
 	// * otherwise only blocks if subsequent item is out of minerals
 
 	// TODO: Add support for multiple starbase designs in a queue
@@ -258,6 +258,12 @@ func (p *producer) produce() (result productionResult, err error) {
 				// auto mineral packets are skipped instead of canceled
 				maxBuildable = 0
 			} else {
+				p.log.Debug().
+					Int("Index", itemIndex).
+					Str("QueueItemType", string(item.Type)).
+					Int("MessageType", int(msgType)).
+					Msg("Canceling packet")
+
 				available = available.Add(item.Allocated)
 				p.updatePacketCanceledMessage(&result, item, msgType,
 					itemCost.ToMineral().MultiplyFloat64(1/p.player.Race.Spec.PacketMineralCostFactor, math.Floor).Total())

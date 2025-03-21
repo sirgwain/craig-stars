@@ -298,7 +298,6 @@
 		class="hidden overflow-x-hidden md:flex md:flex-col md:flex-none justify-between md:w-[15.5rem] lg:w-[30rem] overflow-y-auto md:max-h-[calc(100dvh-4rem)]"
 	>
 		<div class="flex flex-row flex-wrap gap-2 justify-center">
-			<!-- TODO: Add prop for onClearProductionQueue (#648)-->
 			<CommandPane
 				{onNextMapObject}
 				{onPreviousMapObject}
@@ -364,7 +363,6 @@
 
 	<!-- for phone displays, use a carousel -->
 	<div class="flex flex-col flex-0">
-		<!-- TODO: Add prop for onClearProductionQueue (#648)-->
 		<CommandPaneCarousel
 			bind:isOpen={carouselOpen}
 			{onSelectWaypoint}
