@@ -699,6 +699,41 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				},
 			},
 			{
+				name: "Alchemy blocks queue",
+				items: []ProductionQueueItem{
+					{
+						Type:     QueueItemTypeMineralAlchemy,
+						Quantity: 1,
+					},
+					{
+						Type:     QueueItemTypeBoraniumMineralPacket,
+						Quantity: 1,
+					},
+				},
+				cargo:    Cargo{1000, 1000, 1000, 300}, // 30 --> 34 --> 39 res/yr
+				starbase: driverBase,
+				want: []ProductionQueueItem{
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne: 3,
+							YearsToBuildAll: 3,
+							YearsToSkipAuto: Infinite,
+						},
+						Type:     QueueItemTypeMineralAlchemy,
+						Quantity: 1,
+					},
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne: 4,
+							YearsToBuildAll: 4,
+							YearsToSkipAuto: Infinite,
+						},
+						Type:     QueueItemTypeBoraniumMineralPacket,
+						Quantity: 1,
+					},
+				},
+			},
+			{
 				name: "Packets built this and next year",
 				items: []ProductionQueueItem{
 					{

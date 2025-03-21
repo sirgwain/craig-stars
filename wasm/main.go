@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"syscall/js"
@@ -181,6 +182,11 @@ func estimateProduction(args []js.Value) any {
 
 	planet := wasm.GetPlanet(args[0])
 
+	if len(planet.ProductionQueue) == 0 {
+		log.Debug().Msgf("Empty production queue; no estimates made")
+		return args[0]
+	}
+
 	// setup the starbase
 	if planet.Spec.HasStarbase {
 		planet.Starbase = &cs.Fleet{
@@ -190,19 +196,25 @@ func estimateProduction(args []js.Value) any {
 		}
 	}
 
-	// make sure if we have a starbase, it has a design so we can compute
-	// upgrade costs
+	// populate starbase & production queue designs to compute upgrade costs correctly
 	if err := planet.PopulateStarbaseDesign(&ctx.player); err != nil {
-		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design.: %v", err))
+		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design: %v", err))
 	}
 
 	if err := planet.PopulateProductionQueueDesigns(&ctx.player); err != nil {
-		return wasm.NewError(fmt.Errorf("failed to populate production queue designs.: %v", err))
+		return wasm.NewError(fmt.Errorf("failed to populate production queue designs: %v", err))
 	}
 
 	planet.PopulateProductionQueueEstimates(&ctx.rules, &ctx.player)
 
-	log.Debug().Msgf("estimated production of %s\n", planet.Name)
+	msg := fmt.Sprintf("estimated production of planet %s", planet.Name)
+	if debug {
+		json, _ := json.MarshalIndent(planet.ProductionQueue, "", "\t")
+		if json != nil {
+			msg += fmt.Sprintf("\nQueue Items: %s", json)
+		}
+	}
+	log.Debug().Msgf("%s\n", msg)
 	o := js.ValueOf(map[string]any{})
 	wasm.SetPlanet(o, &planet)
 	return o

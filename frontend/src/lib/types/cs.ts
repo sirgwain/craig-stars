@@ -1217,7 +1217,7 @@ export const QueueItemTypeGenesisDevice: QueueItemType = 'GenesisDevice';
  * ProductionQueueItem completion times
  */
 export interface QueueItemCompletionEstimate {
-	canceled?: boolean; // Whether an item is canceled due to an invalid order
+	canceled: boolean; // Whether an item is canceled due to an invalid order
 	yearsToBuildOne?: number /* int */; // Years to build (or skip) the first item of its type
 	yearsToBuildAll?: number /* int */; // Years to build (or skip) the last item of its type
 	yearsToSkipAuto?: number /* int */; // Years to skip the first auto item in a queue

@@ -46,6 +46,8 @@
 	}: Props = $props();
 
 	let yearsToBuildAll = $derived(isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll);
+	// trye if this is a planetary structure not in the queue; these have most formatting disabled
+	let unbuiltStructure = $derived(notInQueue && isPlanetary(item.type));
 	let skipped = $derived(
 		notInQueue ? isPlanetary(item.type) &&
 		maxBuildable == 0 // grey out option to add concrete queue items if we can't make more
@@ -53,6 +55,15 @@
 	let builtFirstYear = $derived(
 		!skippedFirstYear(item) && (item.yearsToBuildOne ?? 0) <= 1 && item.yearsToBuildOne != Infinite
 	);
+	$effect(() => {if (index == 1) {
+		console.log(`Name: ${getShortName(item, $universe	)}
+This year: ${!unbuiltStructure && builtFirstYear}
+Next Year: ${!unbuiltStructure && (builtFirstYear && (yearsToBuildAll ?? 0) > 1) || yearsToBuildAll === Infinite}
+Canceled: ${!unbuiltStructure && item.canceled}
+Never: ${!unbuiltStructure && !item.canceled && item.yearsToBuildOne == Infinite}
+Skipped: ${!notInQueue && skipped}                                                               
+`)}
+		});
 </script>
 
 <!-- Due to CSS precedence rules, later coloring rules will override prior ones-->
@@ -62,12 +73,12 @@
 	ondblclick={() => onQueueItemDoubleClicked}
 	oncontextmenu={(e) => onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 	class:text-queue-item-auto={isAuto(item.type)}
-	class:text-queue-item-this-year={builtFirstYear}
-	class:text-queue-item-next-year={(builtFirstYear && (yearsToBuildAll ?? 0) > 1) ||
+	class:text-queue-item-this-year={!unbuiltStructure && builtFirstYear}
+	class:text-queue-item-next-year={!unbuiltStructure && (builtFirstYear && (yearsToBuildAll ?? 0) > 1) ||
 		yearsToBuildAll === Infinite}
-	class:text-queue-item-canceled={!notInQueue && item.canceled}
-	class:text-queue-item-never={!notInQueue && item.yearsToBuildOne == Infinite}
-	class:text-queue-item-skipped={skipped}
+	class:text-queue-item-never={!unbuiltStructure && !item.canceled && item.yearsToBuildOne == Infinite}
+	class:text-queue-item-canceled={!unbuiltStructure && item.canceled}
+	class:text-queue-item-skipped={!notInQueue && skipped}
 	class:bg-primary={selected}
 	class="w-full text-left {notInQueue ? 'pl-0.5' : 'px-1'} select-none hover:text-secondary-focus"
 >

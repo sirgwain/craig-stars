@@ -143,7 +143,7 @@ func (t QueueItemType) concreteType() QueueItemType {
 // A record used by the production estimator to record unbuilt
 // ProductionQueueItem completion times
 type QueueItemCompletionEstimate struct {
-	Canceled        bool `json:"canceled,omitempty"`        // Whether an item is canceled due to an invalid order
+	Canceled        bool `json:"canceled"`                  // Whether an item is canceled due to an invalid order
 	YearsToBuildOne int  `json:"yearsToBuildOne,omitempty"` // Years to build (or skip) the first item of its type
 	YearsToBuildAll int  `json:"yearsToBuildAll,omitempty"` // Years to build (or skip) the last item of its type
 	YearsToSkipAuto int  `json:"yearsToSkipAuto,omitempty"` // Years to skip the first auto item in a queue
@@ -467,6 +467,7 @@ func (p *producer) validatePacket(item ProductionQueueItem, planet *Planet, buil
 		// either doesn't exist or can't fling packets
 		return PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver, false
 	}
+
 	if item.Type.IsPacket() && planet.PacketTargetNum == None {
 		return PlayerMessagePlanetBuiltInvalidMineralPacketNoTarget, false
 	}

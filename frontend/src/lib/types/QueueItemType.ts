@@ -174,11 +174,9 @@ export function getFullName(item: ProductionQueueItem, designFinder: DesignFinde
 }
 
 export function getShortName(item: ProductionQueueItem, designFinder: DesignFinder): string {
-	console.log(item.type);
 	switch (item.type) {
 		case QueueItemTypeStarbase:
 		case QueueItemTypeShipToken:
-			console.log("name:" + designFinder.getMyDesign(item.designNum)?.name)
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
 		case QueueItemTypeTerraformEnvironment:
 			return 'Terraform Environment';

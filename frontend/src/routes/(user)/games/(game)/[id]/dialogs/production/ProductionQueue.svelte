@@ -326,6 +326,7 @@
 	}
 
 	function getCompletionDescription(item: ProductionQueueItem) {
+		console.log(item.canceled);
 		if (item.canceled) {
 			return 'canceled';
 		}
@@ -434,7 +435,7 @@
 											{index}
 											selected={item === selectedQueueItem}
 											notInQueue={true}
-											{onQueueItemClicked}
+											onQueueItemClicked={() => availableItemSelected(item)}
 											onQueueItemDoubleClicked={removeItem}
 										/>
 									</li>

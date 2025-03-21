@@ -120,25 +120,25 @@
 		font-style: italic
 	}
 
-	.text-queue-item-canceled {
-		@apply text-secondary;
-		text-decoration: line-through;
-	}
-
-	.text-queue-item-skipped {
-		@apply text-secondary;
-	}
-
-	.text-queue-item-never {
-		@apply text-error;
-	}
-
 	.text-queue-item-this-year {
 		@apply text-[#08810a];
 	}
 
 	.text-queue-item-next-year {
 		@apply text-[#0960ff];
+	}
+
+	.text-queue-item-never {
+		@apply text-error;
+	}
+
+	.text-queue-item-skipped {
+		@apply text-secondary;
+	}
+
+	.text-queue-item-canceled {
+		@apply text-secondary;
+		text-decoration: line-through;
 	}
 
 	.fill-ally-selected {
