@@ -189,7 +189,8 @@ func build_backend(buildArgs ...string) error {
 	args = append(args, buildArgs...)
 	args = append(args, "-o", "dist/" + binary_name, "main.go")
 
-	if err := sh.RunV("go", f...); err != nil { // "go", "build", "-ldflags=XXX"...
+	if err := sh.RunV("go", args...); err != nil {
+		// "go", "build", buildArgs..., "-o", "dist/craig-stars", "main.go"
 		return err
 	}
 
