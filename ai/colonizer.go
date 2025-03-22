@@ -56,7 +56,9 @@ func (ai *aiPlayer) colonize() error {
 
 				target := ai.getPlanetIntel(wp.TargetNum)
 				if target.Owned() {
-					// our target is owned by someone else, see if they are an enemy and if we can invade them
+					// our target is owned by someone else, see if we can invade them
+					// TODO: add defenses to the calcs
+					// and cancel if they have a starbase
 					if ai.IsEnemy(target.PlayerNum) && !target.Spec.HasStarbase && target.GetPopulation() < int(float64(fleet.Cargo.Colonists*100)/ai.config.invasionFactor) {
 						ai.log.Debug().
 							Int64("GameID", ai.GameID).
@@ -73,7 +75,7 @@ func (ai *aiPlayer) colonize() error {
 							WithTransportTasks(cs.WaypointTransportTasks{Colonists: cs.WaypointTransportTask{Action: cs.TransportActionUnloadAll}})
 					} else {
 						// this planet is owned by someone else and we don't want to invade
-						// remove the target return this colonizer to the available queue
+						// remove the target and return this colonizer to the pool
 						fleet.Waypoints = fleet.Waypoints[:1]
 						colonizerFleets = append(colonizerFleets, fleet)
 						ai.log.Debug().
@@ -99,7 +101,9 @@ func (ai *aiPlayer) colonize() error {
 	for _, fleet := range colonizerFleets {
 		bestPlanet := ai.getBestPlanetToColonize(fleet, colonizablePlanets)
 		if bestPlanet == nil {
-			continue
+			// bestPlanet is only nil if we don't know any planets we can live on,
+			// so there's no point checking over and over for subsequent fleets
+			break
 		}
 
 		if fleet.OrbitingPlanetNum == cs.None || fleet.Cargo.Total() != 0 {
@@ -115,7 +119,7 @@ func (ai *aiPlayer) colonize() error {
 
 		// don't load more than 100% of the planet cap
 		// TODO: Make this better:
-		// * _Don't_ send colonizers if we don't need them
+		// * _Don't_ send colonizers in the first place if we don't need them
 		// * Only load up to a preset % of cap (rather than trying to take everything and aborting if we load too much)
 		// * Also bring some minerals maybe?
 		colonistsToLoad := min(planet.Spec.MaxPopulation/100, fleet.Spec.CargoCapacity)
@@ -137,11 +141,11 @@ func (ai *aiPlayer) colonize() error {
 			continue
 		}
 
-    if err := ai.client.TransferByHand(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}); err != nil {
-      // something went wrong, skip this planet
-      log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
-      continue
-    }
+		if err := ai.client.TransferByHand(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}); err != nil {
+			// something went wrong, skip this planet
+			ai.log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
+			continue
+		}
 
 		warpSpeed := ai.getWarpSpeed(fleet, bestPlanet.Position)
 		fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed).WithTask(cs.WaypointTaskColonize))
@@ -172,8 +176,7 @@ func (ai *aiPlayer) getBestPlanetToColonize(fleet *cs.Fleet, colonizablePlanets 
 	bestWeight := math.MaxFloat64
 	yearlyTravelDistance := float64(fleet.Spec.Engine.IdealSpeed * fleet.Spec.Engine.IdealSpeed)
 
-	for num := range colonizablePlanets {
-		intel := colonizablePlanets[num]
+	for _, intel := range colonizablePlanets {
 		habValue := intel.Spec.Habitability
 		terraformHabValue := intel.Spec.TerraformedHabitability
 		dist := intel.Position.DistanceTo(fleet.Position)
@@ -191,6 +194,7 @@ func (ai *aiPlayer) getBestPlanetToColonize(fleet *cs.Fleet, colonizablePlanets 
 			// only colonize terraformable planets if they're really close
 			weight = 2 * (yearsToTravel * yearsToTravel) / float64(terraformHabValue)
 		}
+
 		if weight < bestWeight {
 			bestWeight = weight
 			best = &intel
