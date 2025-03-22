@@ -564,7 +564,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		commandedMapObject.update(() => mo);
 		mostRecentMapObject.update(() => mo);
 		if (mo.type == MapObjectTypePlanet) {
-			commandedPlanet.update(() => Object.assign(new CommandedPlanet(), mo));
+			// make sure this planet's production queue estimates are up to date
+			const planet = Object.assign(new CommandedPlanet(), mo)
+			planet.updateProductionQueueEstimates(cs)
+			commandedPlanet.update(() => planet);			
 			commandedFleet.update(() => undefined);
 		} else if (mo.type == MapObjectTypeFleet) {
 			commandedFleet.update(() => Object.assign(new CommandedFleet(), mo));

@@ -18,15 +18,12 @@
 
 	let transferAmount = $state(new CargoTransferRequest());
 
-	$inspect(src);
-
 	function reset() {
 		transferAmount = new CargoTransferRequest();
 		src = src;
 	}
 
 	function ok() {
-		console.log("src", src)
 		onOk?.({ src, dest, transferAmount });
 		reset();
 	}

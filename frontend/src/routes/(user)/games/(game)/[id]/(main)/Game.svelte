@@ -179,7 +179,6 @@
 	async function onTransferCargo(e: TransferCargoEvent) {
 		// close the dialog
 		showCargoTransferDialog = false;
-		console.log('e', e);
 
 		if (e && absoluteSize(e.transferAmount) > 0) {
 			await transferCargo(e.src, e.dest, e.transferAmount);

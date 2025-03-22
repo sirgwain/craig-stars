@@ -15,8 +15,6 @@
 	};
 
 	let { show, props, onOk, onCancel }: Props = $props();
-
-	$inspect(props);
 </script>
 
 <div class="modal" class:modal-open={show}>

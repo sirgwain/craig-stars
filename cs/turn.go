@@ -532,7 +532,9 @@ func (t *turnGenerator) fleetUnload() {
 					Int("Transfered", result.transferred).
 					Str("cargoType", result.cargoType.String()).
 					Msgf("unloaded cargo")
-				messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
+				if result.transferred != 0 {
+					messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
+				}
 			}
 			if planet, ok := dest.(*Planet); ok {
 				planet.MarkDirty()
@@ -583,7 +585,9 @@ func (t *turnGenerator) fleetLoad() {
 					Int("Transfered", result.transferred).
 					Str("cargoType", result.cargoType.String()).
 					Msgf("loaded cargo")
-				messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
+				if result.transferred != 0 {
+					messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
+				}
 			}
 			if planet, ok := dest.(*Planet); ok {
 				planet.MarkDirty()

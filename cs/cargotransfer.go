@@ -8,13 +8,19 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type CargoTransfers map[string][]ByHandCargoTransfer
-
+// ByHandCargoTransfers are any cargo transfers performed by the player in the UI that need to be
+// processed when a turn is generated. It is per fleet for a target. When a fleet is split or merged
+// its by hand transfers are also split and merged.
 type ByHandCargoTransfer struct {
 	MapObjectTarget `tstype:",extends"`
 	SourceFleetNum  int   `json:"sourceFleetNum,omitempty"`
 	Cargo           Cargo `json:"cargo"`
 }
+
+// CargoTransfers are per player ByHandCargoTransfers per location on the map. This makes processing
+// easier so we can account for transfers to/from a target and then between fleets at that location
+// The ByHandCargoTransfers are stored and processed in order they are made by the player
+type CargoTransfers map[string][]ByHandCargoTransfer
 
 type cargoTransferer struct {
 	log     zerolog.Logger
@@ -22,6 +28,7 @@ type cargoTransferer struct {
 	game    *FullGame
 }
 
+// CargoTransferStatus will alert the user if a CargoTransfer didn't go through due to insufficient capacity or available cargo
 type CargoTransferStatus int
 
 const (
@@ -31,6 +38,7 @@ const (
 	CargoTransferStatusCargoCapacity
 	CargoTransferStatusDestCargo
 	CargoTransferStatusDestCargoCapacity
+	// if a starbase is present, you cannot drop invaders
 	CargoTransferStatusDestStarbase
 )
 
@@ -55,6 +63,7 @@ func (r CargoTransferStatus) String() string {
 	}
 }
 
+// cargoTransferResult is the result of a single CargoType cargo transfer to a dest
 type cargoTransferResult struct {
 	status         CargoTransferStatus // if transfer fails, this is the reason
 	fleet          *Fleet
@@ -256,6 +265,9 @@ func (o ByHandCargoTransfer) getLoadTasks() WaypointTransportTasks {
 	return tt
 }
 
+// loadByHands performs all load parts of ByHandCargoTransfers for a player at a location
+// because some loads might require a different fleet's unload to happen first, this tracks how much
+// cargo is currently unloaded at this location as it proccesses tasks, and it loads from that "bucket" first
 func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTransfer) []cargoTransferResult {
 	var results []cargoTransferResult
 
@@ -353,7 +365,8 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 }
 
 // unloadByHands processes all by hand unloads for a player for a location
-// these transfers should be recorded in the order they are performed
+// this tracks invasions to be resolved after all by hand unloads for all fleets are complete
+// this also unloads in reverse as it will not unload cargo that is going to be loaded later
 func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoTransfer) []cargoTransferResult {
 	var results []cargoTransferResult
 
@@ -532,6 +545,7 @@ func (t *cargoTransferer) load(fleet *Fleet, dest CargoHolder, transportTasks Wa
 	return results
 }
 
+// unload perfroms all unload transport tasks for a fleet and a dest
 func (t *cargoTransferer) unload(fleet *Fleet, dest CargoHolder, transportTasks WaypointTransportTasks) []cargoTransferResult {
 	results := []cargoTransferResult{}
 

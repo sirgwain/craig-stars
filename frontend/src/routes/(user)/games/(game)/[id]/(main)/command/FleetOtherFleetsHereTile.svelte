@@ -28,8 +28,6 @@
 		if (cargoDestsInOrbit.length > 1 && selectedMapObjectKey === '') {
 			selectedMapObjectKey = key(cargoDestsInOrbit.find((f) => key(f) !== key(fleet)));
 		}
-
-		console.log('fleet', fleet, 'cargoDestsInOrbit', cargoDestsInOrbit, 'cargoDestsByPlayer', cargoDestsByPlayer);
 	});
 
 	let mapObjectsInOrbitByKey = $derived(
