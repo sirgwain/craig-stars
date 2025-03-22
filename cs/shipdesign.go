@@ -622,6 +622,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.BeamBonus = min(roundFloat(spec.BeamBonus, 4), rules.BeamBonusCap)
 	}
 
+	// TODO: make BeamDefense 0 value useful and consistent (signifying no defense)
 	if len(beamDeflectorsByCount) > 0 {
 		spec.BeamDefense = 1
 		for beamDefense, count := range beamDeflectorsByCount {
@@ -774,8 +775,8 @@ func newPartCache(design *ShipDesign, tc TechComparer) *partCache {
 
 // Design a ship/starbase for the AI or as a starting fleet using the best parts available to us
 //
-// Warship design is handled by (and delegated to) [cs.DesignWarship] instead
-func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
+// Warship design is handled by (and delegated to) [designWarship] instead
+func DesignShip(rules *Rules, player *Player, hull *TechHull, name string, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
 	techStore := rules.techs
 	design := NewShipDesign(player.Num, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
@@ -792,7 +793,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 		purpose == ShipDesignPurposeStarbaseHalf ||
 		purpose == ShipDesignPurposeStarbaseQuarter {
 		// warships & bases get their own separate function for reasons
-		design, err := designWarship(rules, hull, name, player, num, hullSetNumber, purpose)
+		design, err := designWarship(rules, player, hull, name, num, hullSetNumber, purpose)
 		if err != nil {
 			return &ShipDesign{}, err
 		} else {
@@ -1006,7 +1007,7 @@ func DesignShip(rules *Rules, hull *TechHull, name string, player *Player, num i
 }
 
 // Design a warship or starbase based on available parts to fit a specified goal
-func designWarship(rules *Rules, hull *TechHull, name string, player *Player, num int, hullSetNumber int, purpose ShipDesignPurpose) (*ShipDesign, error) {
+func designWarship(rules *Rules, player *Player, hull *TechHull, name string, num int, hullSetNumber int, purpose ShipDesignPurpose) (*ShipDesign, error) {
 
 	//* DISCLAIMER FOR CODE (RE)VIEWERS: THIS IS A *VERY LONG FUNCTION*. Use the hashtags (#) to jump between sections.
 	techStore := rules.techs
@@ -1342,6 +1343,9 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 	slices.SortFunc(design.Slots, func(m, n ShipDesignSlot) int {
 		return m.HullSlotIndex - n.HullSlotIndex
 	})
+	if len(design.Slots) > len(hull.Slots) {
+		return nil, fmt.Errorf("design contained more slots than hull could contain (%d vs %d)", len(design.Slots), len(hull.Slots))
+	}
 
 	if len(design.Spec.WeaponSlots) == 0 {
 		// our "completed" warship has no actual weapons; we assume the build process failed somehow
@@ -1357,10 +1361,12 @@ func designWarship(rules *Rules, hull *TechHull, name string, player *Player, nu
 
 // return relative factor by which a jammer/computer/deflector boosts our relative torpedo defense/offense
 //
-// Formula: 1+oldJamming / 1+newJamming (https://www.desmos.com/calculator/cpcyiloqeg)
+// Formula: [1+oldJamming / 1+newJamming]
 //
 // fieldToCheck determines which stat is being calculated for (jamming, computing or deflecting);
 // panics if incorrect tag is given
+//
+// [1+oldJamming / 1+newJamming]: https://www.desmos.com/calculator/vhtgvz5xrn
 func (spec *ShipDesignSpec) getJamOrComputerBonus(rules *Rules, hc *TechHullComponent, qty int, fieldToCheck TechTag) float64 {
 	var oldBonus, hcBonus, cap, jamMulti float64
 	switch fieldToCheck {

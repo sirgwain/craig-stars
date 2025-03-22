@@ -143,12 +143,12 @@ func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
 // this aggregates player objects (full planets/fleets/mineralPackets) and intel objects
 type playerUniverseResponse struct {
 	cs.PlayerIntels
-	Planets        []*cs.Planet        `json:"planets,omitempty"`
-	Fleets         []*cs.Fleet         `json:"fleets,omitempty"`
-	Starbases      []*cs.Fleet         `json:"starbases,omitempty"`
-	MineFields     []*cs.MineField     `json:"mineFields,omitempty"`
-	MineralPackets []*cs.MineralPacket `json:"mineralPackets,omitempty"`
-	Designs        []*cs.ShipDesign    `json:"designs,omitempty"`
+	Planets        []*cs.Planet        `json:"planets"`
+	Fleets         []*cs.Fleet         `json:"fleets"`
+	Starbases      []*cs.Fleet         `json:"starbases"`
+	MineFields     []*cs.MineField     `json:"mineFields"`
+	MineralPackets []*cs.MineralPacket `json:"mineralPackets"`
+	Designs        []*cs.ShipDesign    `json:"designs"`
 }
 
 // get mapObjects for a player

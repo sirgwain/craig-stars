@@ -13,6 +13,9 @@
 		"[json][jsonc][jsonl][js][ts][css][html][svelte]": {
 			"editor.defaultFormatter": "esbenp.prettier-vscode"
 		},
+		"files.associations": {
+			"*.css": "tailwindcss"
+		},
 		"testing.automaticallyOpenPeekView": "never",
 		"typescript.tsdk": "frontend/node_modules/typescript/lib",
 		"goStructTagAutogen.generation": {

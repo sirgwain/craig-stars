@@ -1,5 +1,7 @@
 //go:build !wasi && !wasm
 
+// The `server` package configures webserver routes to access the database.
+// It is the "glue" that ties the [cs] and [db] packages together.
 package server
 
 import (

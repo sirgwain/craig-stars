@@ -24,19 +24,33 @@ Icons are either hand crafted, taken from the original Stars! files or from the 
 
 ## File Structure
 
-The repository file structure is broken down as follows:
+<!-- TODO: Add separate section for WASM folder and how it works-->
 
-| path        | description                                                                                                                                                                                                                      |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`         | The root folder contains the `main.go` entrypoint into the application, as well as various config and formatting files.                                                                                                          |
-| `/cs`       | The `cs` package houses all internal game logic, data types and models, comprising the majority of the backend code. It serves as the backbone upon which all the other packages rely on. More details in the [cs](#cs) section. |
-| `/db`       | The `db` package handles serializing games to and from the database, as well as any UI database queries. More details in the [db](#db) section.                                                                                  |
-| `/server`   | The `server` package is where the webserver routes are configured. It is the "glue" that ties the game logic together with database serialization. More details in the [server](#server) section.                                |
-| `/cmd`      | The `cmd` package is where command line parsing is handled, as well as the entrypoint for serving the application.                                                                                                               |
-| `/config`   | The `config` package is craig-stars configuration code lives. This config is loaded from `data/config/config.yaml` and is shared by the database and the server. The config defaults to settings for local development.          |
-| `/ai`       | The `ai` package is where the logic for ai players resides. The AI strives to be "just another player" with no special insight or privileges compared to a human player.                                                         |
-| `/test`     | The `test` package contains various common testing utilities. Highlights include `CompareAsJSON` and `CheckUnexpectedErrors`; see their doc comments for usage info.                                                             |
-| `/frontend` | The `frontend` folder contains all the SvelteKit\TypeScript frontend code (as well as formatting files for said frontend code). More details in the [frontend](#frontend) section.                                               |
+This is a brief overview of the most critical folders inside the `craig-stars` repo, sorted in roughly decreasing order of precedence.
+
+| path        | description                                                                                                                                                                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`         | The root folder contains the `main.go` entrypoint into the application, as well as various backend config and formatting files.                                                                                                                               |
+| `/cs`       | The `cs` package houses all internal game logic and data types, comprising the majority of the backend code. It serves as the backbone upon which all the other packages rely on. More details in the [cs](#cs) section.                                      |
+| `/db`       | The `db` package handles serializing games to and from the database, as well as any UI database queries. More details in the [db](#db) section.                                                                                                               |
+| `/server`   | The `server` package is where the webserver routes are configured. It is the "glue" that ties the `cs` and `db` packages together. More details in the [server](#server) section.                                                                             |
+| `/update`   | The `update` package handles updating a game's host or player.                                                                                                                                                                                                |
+| `/config`   | The `config` package houses database & server configuration code. This config is saved to `#data/config/config.yaml` upon database creation is shared by the database and the server. The config defaults to settings for local development.                  |
+| `/cmd`      | The `cmd` package handles command line parsing for the `main.go` executable. It functions as the entrypoint for serving the application, generating files, etc etc.                                                                                           |
+| `/wasm`     | The `wasm` package contains all the logic needed to call backend functions from within the frontend via [WebAssembly](https://en.wikipedia.org/wiki/WebAssembly).                                                                                             |
+| `/ai`       | The `ai` package contains logic governing AI player (computer opponent) behavior. The AI strives to be "just another player" with no special insight or privileges compared to a human player.                                                                |
+| `/test`     | The `test` package contains common testing utilities used throughout the other backend packages. A notable contender is [`CompareAsJSON`](../test/test.go#L26), which serializes & compares 2 JSON objects before piping the diff to both stdout and `./tmp`. |
+| `/frontend` | The `frontend` folder contains all the SvelteKit\TypeScript frontend code (as well as formatting files for said frontend code). More details in the [frontend](#frontend) section.                                                                            |
+
+Other miscellaneous folders that may or may not be on the remote:
+| path | description | On Remote? |
+| ------ | ------ | ------ |
+| `/.github/workflows` | Contains the Github Actions workflows for CI integration. | ✅ |
+| `/.vscode` | Contains VS Code build tasks, debugger configurations and other assorted settings for both `root` and `frontend` separately. | ✅ |
+| `/data` | Contains the MySQL database used by the `db` and `server` packages. | ❌ |
+| `/dist` | Contains the built `craig-stars` executable (`craig-stars.exe` on windows) during local development. | ❌ |
+| `/magefiles` | Contains all the build code used by [mage](https://magefile.org) for running tasks. [`launch.go`](../magefiles/launch.go) contains all the code to build & launch the server, while [`utils.go`](../magefiles/utils.go) contains functions for testing, linting and other miscellaneous operations. | ✅ |
+| `/dist` | Contains the built `craig-stars` executable (`craig-stars.exe` on windows) built during local development. | ❌ |
 
 ## cs
 
