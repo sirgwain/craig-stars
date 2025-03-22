@@ -1,9 +1,13 @@
 import { fromHabType } from '$lib/services/Terraformer';
 import type { CostFinder, DesignFinder } from '$lib/services/Universe';
 import type { CS } from '$lib/wasm';
+import { add, emptyCargo } from './Cargo';
 import { multiply } from './Cost';
 import type {
 	BattlePlan,
+	Cargo,
+	CargoTransfers,
+	MapObjectTarget,
 	NextResearchField,
 	Player,
 	PlayerMessage,
@@ -43,10 +47,12 @@ import {
 	type TechStore
 } from './cs';
 import { HabTypes } from './Hab';
+import { targetsEqual } from './MapObject';
 import type { CommandedPlanet } from './Planet';
 import { humanoid } from './Race';
 import { getBestTerraform } from './Tech';
 import { emptyTechLevel, hasRequiredLevels } from './TechLevel';
+import { string } from './Vector';
 
 export const TechFields: TechField[] = [
 	Energy,
@@ -90,6 +96,7 @@ export class CommandedPlayer implements Player, CostFinder {
 	researching: TechField = Energy;
 	nextResearchField: NextResearchField = NextResearchFieldEnergy;
 	researchAmount = 0;
+	cargoTransfers: CargoTransfers = {};
 	battlePlans: BattlePlan[] = [];
 	productionPlans: ProductionPlan[] = [];
 	transportPlans: TransportPlan[] = [];
@@ -240,6 +247,20 @@ export class CommandedPlayer implements Player, CostFinder {
 			}
 		});
 		return terraformAbility;
+	}
+
+	public getByHandTransfer(target: MapObjectTarget): Cargo {
+		const key = string(target.targetPosition);
+		const transfers = this.cargoTransfers[key];
+		let cargo = emptyCargo();
+		if (!transfers) {
+			return cargo;
+		}
+
+		// sum up all transfers for this target
+		transfers.filter((t) => targetsEqual(target, t)).forEach((t) => (cargo = add(cargo, t.cargo)));
+
+		return cargo;
 	}
 }
 

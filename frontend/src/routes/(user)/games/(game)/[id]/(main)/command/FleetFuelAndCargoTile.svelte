@@ -41,7 +41,7 @@
 			<div class="ml-1 h-full w-full">
 				<CargoBar
 					onPointerDown={transfer}
-					canTransferCargo={canTransferCargo(fleet, $universe)}
+					canTransferCargo={canTransferCargo(fleet)}
 					value={fleet.cargo}
 					capacity={fleet.spec.cargoCapacity}
 				/>

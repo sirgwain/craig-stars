@@ -165,6 +165,19 @@ func GetStringMap[M ~map[K]V, K ~string, V any](o js.Value, valueGetter func(o j
 	return result
 }
 
+func GetSliceMap[M map[K][]V, K ~string, V any](o js.Value, valueGetter func(o js.Value) V) M {
+	result := make(M)
+	if !o.IsUndefined() {
+		resultKeys := js.Global().Get("Object").Call("keys", o)
+		for i := 0; i < resultKeys.Length(); i++ {
+			key := K(getString(resultKeys.Index(i)))
+			value := o.Get(fmt.Sprintf("%v", key))
+			result[key] = GetSlice(value, valueGetter)
+		}
+	}
+	return result
+}
+
 func GetAIDifficulty(o js.Value) cs.AIDifficulty {
 	var obj cs.AIDifficulty
 	if o.IsUndefined() || o.IsNull() {
@@ -517,6 +530,23 @@ func SetBuiltInScanner(o js.Value, obj *cs.BuiltInScanner) {
 	SetTechLevel(o.Get("penMulti"), &obj.PenMulti)
 }
 
+func GetByHandCargoTransfer(o js.Value) cs.ByHandCargoTransfer {
+	var obj cs.ByHandCargoTransfer
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.MapObjectTarget = GetMapObjectTarget(o)
+	obj.SourceFleetNum = getInt[int](o.Get("sourceFleetNum"))
+	obj.Cargo = GetCargo(o.Get("cargo"))
+	return obj
+}
+func SetByHandCargoTransfer(o js.Value, obj *cs.ByHandCargoTransfer) {
+	SetMapObjectTarget(o, &obj.MapObjectTarget)
+	o.Set("sourceFleetNum", obj.SourceFleetNum)
+	o.Set("cargo", map[string]any{})
+	SetCargo(o.Get("cargo"), &obj.Cargo)
+}
+
 func GetCargo(o js.Value) cs.Cargo {
 	var obj cs.Cargo
 	if o.IsUndefined() || o.IsNull() {
@@ -547,6 +577,24 @@ func GetCargoTransferRequest(o js.Value) cs.CargoTransferRequest {
 func SetCargoTransferRequest(o js.Value, obj *cs.CargoTransferRequest) {
 	SetCargo(o, &obj.Cargo)
 	o.Set("fuel", obj.Fuel)
+}
+
+func GetCargoTransferStatus(o js.Value) cs.CargoTransferStatus {
+	var obj cs.CargoTransferStatus
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = getInt[cs.CargoTransferStatus](o)
+	return obj
+}
+
+func GetCargoTransfers(o js.Value) cs.CargoTransfers {
+	var obj cs.CargoTransfers
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj = GetSliceMap[map[string][]cs.ByHandCargoTransfer](o, GetByHandCargoTransfer)
+	return obj
 }
 
 func GetCargoType(o js.Value) cs.CargoType {
@@ -796,6 +844,7 @@ func GetFleetIntel(o js.Value) cs.FleetIntel {
 	obj.Heading = GetVector(o.Get("heading"))
 	obj.OrbitingPlanetNum = getInt[int](o.Get("orbitingPlanetNum"))
 	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
+	obj.Fuel = getInt[int](o.Get("fuel"))
 	obj.Mass = getInt[int](o.Get("mass"))
 	obj.Cargo = GetCargo(o.Get("cargo"))
 	obj.CargoDiscovered = getBool(o.Get("cargoDiscovered"))
@@ -803,6 +852,7 @@ func GetFleetIntel(o js.Value) cs.FleetIntel {
 	obj.ScanRange = getInt[int](o.Get("scanRange"))
 	obj.ScanRangePen = getInt[int](o.Get("scanRangePen"))
 	obj.Tokens = GetSlice(o.Get("tokens"), GetShipToken)
+	obj.Spec = GetFleetSpec(o.Get("spec"))
 	return obj
 }
 func SetFleetIntel(o js.Value, obj *cs.FleetIntel) {
@@ -813,6 +863,7 @@ func SetFleetIntel(o js.Value, obj *cs.FleetIntel) {
 	SetVector(o.Get("heading"), &obj.Heading)
 	o.Set("orbitingPlanetNum", obj.OrbitingPlanetNum)
 	o.Set("warpSpeed", obj.WarpSpeed)
+	o.Set("fuel", obj.Fuel)
 	o.Set("mass", obj.Mass)
 	o.Set("cargo", map[string]any{})
 	SetCargo(o.Get("cargo"), &obj.Cargo)
@@ -822,6 +873,8 @@ func SetFleetIntel(o js.Value, obj *cs.FleetIntel) {
 	o.Set("scanRangePen", obj.ScanRangePen)
 	o.Set("tokens", []any{})
 	SetSlice(o.Get("tokens"), obj.Tokens, SetShipToken)
+	o.Set("spec", map[string]any{})
+	SetFleetSpec(o.Get("spec"), &obj.Spec)
 }
 
 func GetFleetOrders(o js.Value) cs.FleetOrders {
@@ -2021,7 +2074,6 @@ func GetPlanetSpec(o js.Value) cs.PlanetSpec {
 	obj.TerraformAmount = GetHab(o.Get("terraformAmount"))
 	obj.MinTerraformAmount = GetHab(o.Get("minTerraformAmount"))
 	obj.TerraformedHabitability = getInt[int](o.Get("terraformedHabitability"))
-	obj.Contested = getBool(o.Get("contested"))
 	return obj
 }
 func SetPlanetSpec(o js.Value, obj *cs.PlanetSpec) {
@@ -2053,7 +2105,6 @@ func SetPlanetSpec(o js.Value, obj *cs.PlanetSpec) {
 	o.Set("minTerraformAmount", map[string]any{})
 	SetHab(o.Get("minTerraformAmount"), &obj.MinTerraformAmount)
 	o.Set("terraformedHabitability", obj.TerraformedHabitability)
-	o.Set("contested", obj.Contested)
 }
 
 func GetPlanetStarbaseSpec(o js.Value) cs.PlanetStarbaseSpec {
@@ -2310,6 +2361,8 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.MineralPacketDamage = getPointer(GetMineralPacketDamage(o.Get("mineralPacketDamage")))
 	obj.MineFieldDamage = getPointer(GetMineFieldDamage(o.Get("mineFieldDamage")))
 	obj.MysteryTrader = getPointer(GetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader")))
+	obj.Invasion = getPointer(GetPlayerMessageSpecInvasion(o.Get("invasion")))
+	obj.CargoTransfer = getPointer(GetPlayerMessageSpecCargoTransfer(o.Get("cargoTransfer")))
 	obj.TerraformAmount = GetHab(o.Get("terraformAmount"))
 	return obj
 }
@@ -2344,8 +2397,30 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	SetMineFieldDamage(o.Get("mineFieldDamage"), obj.MineFieldDamage)
 	o.Set("mysteryTrader", map[string]any{})
 	SetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader"), obj.MysteryTrader)
+	o.Set("invasion", map[string]any{})
+	SetPlayerMessageSpecInvasion(o.Get("invasion"), obj.Invasion)
+	o.Set("cargoTransfer", map[string]any{})
+	SetPlayerMessageSpecCargoTransfer(o.Get("cargoTransfer"), obj.CargoTransfer)
 	o.Set("terraformAmount", map[string]any{})
 	SetHab(o.Get("terraformAmount"), &obj.TerraformAmount)
+}
+
+func GetPlayerMessageSpecCargoTransfer(o js.Value) cs.PlayerMessageSpecCargoTransfer {
+	var obj cs.PlayerMessageSpecCargoTransfer
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.CargoType = GetCargoType(o.Get("cargoType"))
+	obj.Transfered = getInt[int](o.Get("transfered"))
+	obj.Wanted = getInt[int](o.Get("wanted"))
+	obj.Status = GetCargoTransferStatus(o.Get("status"))
+	return obj
+}
+func SetPlayerMessageSpecCargoTransfer(o js.Value, obj *cs.PlayerMessageSpecCargoTransfer) {
+	o.Set("cargoType", int(obj.CargoType))
+	o.Set("transfered", obj.Transfered)
+	o.Set("wanted", obj.Wanted)
+	o.Set("status", int(obj.Status))
 }
 
 func GetPlayerMessageSpecComet(o js.Value) cs.PlayerMessageSpecComet {
@@ -2369,6 +2444,28 @@ func SetPlayerMessageSpecComet(o js.Value, obj *cs.PlayerMessageSpecComet) {
 	o.Set("habChanged", map[string]any{})
 	SetHab(o.Get("habChanged"), &obj.HabChanged)
 	o.Set("colonistsKilled", obj.ColonistsKilled)
+}
+
+func GetPlayerMessageSpecInvasion(o js.Value) cs.PlayerMessageSpecInvasion {
+	var obj cs.PlayerMessageSpecInvasion
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.FleetName = string(getString(o.Get("fleetName")))
+	obj.AttackerPlayerNum = getInt[int](o.Get("attackerPlayerNum"))
+	obj.DefenderPlayerNum = getInt[int](o.Get("defenderPlayerNum"))
+	obj.AttackersKilled = getInt[int](o.Get("attackersKilled"))
+	obj.DefendersKilled = getInt[int](o.Get("defendersKilled"))
+	obj.Successful = getBool(o.Get("successful"))
+	return obj
+}
+func SetPlayerMessageSpecInvasion(o js.Value, obj *cs.PlayerMessageSpecInvasion) {
+	o.Set("fleetName", obj.FleetName)
+	o.Set("attackerPlayerNum", obj.AttackerPlayerNum)
+	o.Set("defenderPlayerNum", obj.DefenderPlayerNum)
+	o.Set("attackersKilled", obj.AttackersKilled)
+	o.Set("defendersKilled", obj.DefendersKilled)
+	o.Set("successful", obj.Successful)
 }
 
 func GetPlayerMessageSpecMysteryTrader(o js.Value) cs.PlayerMessageSpecMysteryTrader {
@@ -2432,12 +2529,20 @@ func GetPlayerOrders(o js.Value) cs.PlayerOrders {
 	obj.Researching = GetTechField(o.Get("researching"))
 	obj.NextResearchField = GetNextResearchField(o.Get("nextResearchField"))
 	obj.ResearchAmount = getInt[int](o.Get("researchAmount"))
+	obj.CargoTransfers = GetCargoTransfers(o.Get("cargoTransfers"))
 	return obj
 }
 func SetPlayerOrders(o js.Value, obj *cs.PlayerOrders) {
 	o.Set("researching", string(obj.Researching))
 	o.Set("nextResearchField", string(obj.NextResearchField))
 	o.Set("researchAmount", obj.ResearchAmount)
+	cargoTransfersMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.CargoTransfers {
+		valueObj := js.ValueOf(map[string]any{})
+		SetSlice(valueObj, value, SetByHandCargoTransfer)
+		cargoTransfersMap.Set(fmt.Sprintf("%v", key), valueObj)
+	}
+	o.Set("cargoTransfers", cargoTransfersMap)
 }
 
 func GetPlayerPlans(o js.Value) cs.PlayerPlans {
@@ -4366,6 +4471,7 @@ func GetWaypoint(o js.Value) cs.Waypoint {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.MapObjectTarget = GetMapObjectTarget(o)
 	obj.Position = GetVector(o.Get("position"))
 	obj.WarpSpeed = getInt[int](o.Get("warpSpeed"))
 	obj.EstFuelUsage = getInt[int](o.Get("estFuelUsage"))
@@ -4375,15 +4481,12 @@ func GetWaypoint(o js.Value) cs.Waypoint {
 	obj.LayMineFieldDuration = getInt[int](o.Get("layMineFieldDuration"))
 	obj.PatrolRange = getInt[int](o.Get("patrolRange"))
 	obj.PatrolWarpSpeed = getInt[int](o.Get("patrolWarpSpeed"))
-	obj.TargetType = GetMapObjectType(o.Get("targetType"))
-	obj.TargetNum = getInt[int](o.Get("targetNum"))
-	obj.TargetPlayerNum = getInt[int](o.Get("targetPlayerNum"))
-	obj.TargetName = string(getString(o.Get("targetName")))
 	obj.TransferToPlayer = getInt[int](o.Get("transferToPlayer"))
 	obj.PartiallyComplete = getBool(o.Get("partiallyComplete"))
 	return obj
 }
 func SetWaypoint(o js.Value, obj *cs.Waypoint) {
+	SetMapObjectTarget(o, &obj.MapObjectTarget)
 	o.Set("position", map[string]any{})
 	SetVector(o.Get("position"), &obj.Position)
 	o.Set("warpSpeed", obj.WarpSpeed)
@@ -4395,10 +4498,6 @@ func SetWaypoint(o js.Value, obj *cs.Waypoint) {
 	o.Set("layMineFieldDuration", obj.LayMineFieldDuration)
 	o.Set("patrolRange", obj.PatrolRange)
 	o.Set("patrolWarpSpeed", obj.PatrolWarpSpeed)
-	o.Set("targetType", string(obj.TargetType))
-	o.Set("targetNum", obj.TargetNum)
-	o.Set("targetPlayerNum", obj.TargetPlayerNum)
-	o.Set("targetName", obj.TargetName)
 	o.Set("transferToPlayer", obj.TransferToPlayer)
 	o.Set("partiallyComplete", obj.PartiallyComplete)
 }

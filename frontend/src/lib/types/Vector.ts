@@ -36,3 +36,5 @@ export const normalized = (from: Vector): Vector => {
 export const subtract = (from: Vector, to: Vector): Vector => {
 	return { x: from.x - to.x, y: from.y - to.y };
 };
+
+export const string = (v: Vector) => `(${v.x ?? 0}, ${v.y ?? 0})`;

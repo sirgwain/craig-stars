@@ -12,6 +12,7 @@ packages:
       - "battletoken.go"
       - "battleweapon.go"
       - "cache.go"
+      - "cargoholder.go"
       - "cleanup.go"
       - "costcalculator.go"
       - "fleetmerge.go"

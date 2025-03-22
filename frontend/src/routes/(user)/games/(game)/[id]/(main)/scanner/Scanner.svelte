@@ -462,10 +462,12 @@
 			.getAllFleets()
 			.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
 		...u.mysteryTraderIntels,
+		...u.mineralPackets,
 		...u.mineralPacketIntels,
 		...u.salvageIntels,
 		...u.wormholeIntels,
 		...u.mineFields,
+		...u.mineFieldIntels,
 		...u.allPlanets
 	]);
 

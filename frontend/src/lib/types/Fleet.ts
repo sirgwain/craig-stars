@@ -13,10 +13,12 @@ import type { CommandedPlayer } from './Player';
 import { distance, equal } from './Vector';
 import {
 	type Cargo,
+	type CargoType,
+	Colonists,
 	type Engine,
 	type Fleet,
-	type FleetIntel,
 	type FleetSpec,
+	Fuel,
 	type MapObject,
 	MapObjectTypeFleet,
 	MapObjectTypeMineralPacket,
@@ -277,6 +279,7 @@ export class CommandedFleet implements Fleet {
 				targetPlayerNum: mo.playerNum,
 				targetNum: mo.num,
 				targetType: mo.type,
+				targetPosition: mo.position,
 				warpSpeed: warpSpeed,
 				task: task,
 				transportTasks: transportTasks
@@ -294,6 +297,7 @@ export class CommandedFleet implements Fleet {
 		} else {
 			this.waypoints.splice(waypointIndex + 1, 0, {
 				position: dest.position,
+				targetPosition: dest.position,
 				warpSpeed: warpSpeed,
 				task: task,
 				transportTasks: transportTasks
@@ -791,28 +795,51 @@ export function getDamagePercentForToken(
 }
 
 // true if this fleet can transfer cargo
-export function canTransferCargo(fleet: Fleet, universe: Universe): boolean {
+export function canTransferCargo(fleet: Fleet): boolean {
+	return (fleet.spec?.cargoCapacity ?? 0) > 0;
+}
+
+// true if this fleet can transfer this cargo type
+// used to stop stealing colonists or fuel
+export function canTransferCargoType(fleet: Fleet, dest: CargoDest, cargoType: CargoType): boolean {
+	if (dest?.type === MapObjectTypeFleet) {
+		switch (cargoType) {
+			case Colonists:
+			case Fuel:
+				return fleet.playerNum === dest?.playerNum;
+		}
+	}
+	if (dest?.type === MapObjectTypeSalvage || dest?.type == MapObjectTypeMineralPacket) {
+		switch (cargoType) {
+			case Colonists:
+			case Fuel:
+				return false;
+		}
+	}
+
+	return true;
+}
+
+// true if this fleet can load cargo
+export function canLoadCargo(fleet: Fleet, dest: CargoDest): boolean {
 	if (!fleet.spec?.cargoCapacity) {
 		return false;
 	}
-	if (fleet.orbitingPlanetNum) {
-		const planet = universe.getPlanet(fleet.orbitingPlanetNum);
-		if (planet && !ownedBy(planet, fleet.playerNum)) {
-			// if any of these fleets can transport, it's a contested planet
-			const orbitingForeignFreighters = universe
-				.getMapObjectsByPosition(planet)
-				.filter((mo) => mo.type === MapObjectTypeFleet)
-				.map((mo) => mo as unknown as FleetIntel)
-				.filter((f: FleetIntel) => f.freighter)
-				.filter((f) => f.playerNum !== fleet.playerNum);
-
-			// don't allow manual transfers over contested planets
-			if (orbitingForeignFreighters.length > 0) {
-				return false;
-			}
-		}
+	// can always load from our own stuff, or empty stuff
+	if (dest?.playerNum === fleet.playerNum || dest?.playerNum === None) {
+		return true;
 	}
-	return true;
+
+	if (dest?.type === MapObjectTypePlanet) {
+		// we can only load from this planet if we can steal planet cargo
+		return !!fleet.spec.canStealPlanetCargo;
+	}
+
+	if (dest?.type === MapObjectTypeFleet) {
+		// we can only load from this fleet if we can steal fleet cargo
+		return !!fleet.spec.canStealFleetCargo;
+	}
+	return false;
 }
 
 // This shows only your fleets that have no movement orders, and any active enemy ships (so you can match one with the other, if you wish).

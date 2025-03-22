@@ -106,9 +106,7 @@
 		<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		<FleetOtherFleetsHereTile
 			fleet={$commandedFleet}
-			fleetsInOrbit={$universe
-				.getMyFleetsByPosition($commandedFleet)
-				.filter((f) => f.num !== $commandedFleet?.num)}
+			cargoDestsInOrbit={$universe.getCargoDestsByPosition($commandedFleet)}
 			{onShowSplitFleetDialog}
 			{onShowCargoTransferDialog}
 		/>

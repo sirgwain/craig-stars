@@ -321,6 +321,7 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) *Player {
 		dbPlayer.ResearchSpentLastYear = (*source).ResearchSpentLastYear
 		dbPlayer.NextResearchField = cs.NextResearchField((*source).PlayerOrders.NextResearchField)
 		dbPlayer.Researching = cs.TechField((*source).PlayerOrders.Researching)
+		dbPlayer.CargoTransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
 		dbPlayer.BattlePlans = GameBattlePlansToBattlePlans((*source).PlayerPlans.BattlePlans)
 		dbPlayer.ProductionPlans = GameProductionPlansToProductionPlans((*source).PlayerPlans.ProductionPlans)
 		dbPlayer.TransportPlans = GameTransportPlansToTransportPlans((*source).PlayerPlans.TransportPlans)
@@ -843,6 +844,7 @@ func (c *GameConverter) dbPlayerToCsPlayerOrders(source Player) cs.PlayerOrders 
 	csPlayerOrders.Researching = cs.TechField(source.Researching)
 	csPlayerOrders.NextResearchField = cs.NextResearchField(source.NextResearchField)
 	csPlayerOrders.ResearchAmount = source.ResearchAmount
+	csPlayerOrders.CargoTransfers = CargoTransfersToGameCargoTransfers(source.CargoTransfers)
 	return csPlayerOrders
 }
 func (c *GameConverter) dbPlayerToCsPlayerPlans(source Player) cs.PlayerPlans {

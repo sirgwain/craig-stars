@@ -60,7 +60,7 @@ type mapObjectGetter interface {
 	getMysteryTrader(num int) *MysteryTrader
 	getWormhole(num int) *Wormhole
 	getSalvage(num int) *Salvage
-	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (cargoHolder, bool)
+	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool)
 	getMapObjectsAtPosition(position Vector) []interface{}
 	isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool
 	updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector)
@@ -337,7 +337,7 @@ func (u *Universe) getMysteryTrader(num int) *MysteryTrader {
 }
 
 // get a cargo holder by natural key (num, playerNum, etc)
-func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (cargoHolder, bool) {
+func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool) {
 	switch mapObjectType {
 	case MapObjectTypePlanet:
 		mo := u.getPlanet(num)
@@ -499,10 +499,9 @@ func (u *Universe) createWormhole(rules *Rules, position Vector, stability Wormh
 }
 
 // find the salvage at a position, or create a new one
-func (u *Universe) createSalvage(position Vector, playerNum int, cargo Cargo) *Salvage {
+func (u *Universe) getOrCreateSalvage(position Vector, playerNum int, cargo Cargo) *Salvage {
 	salvage, exists := u.salvagesByPosition[position]
-	// Check for empty salvage, because they are deleted from database, but not mapObjects
-	if exists && (salvage.Cargo != Cargo{}) {
+	if exists && !salvage.Delete {
 		salvage.Cargo = salvage.Cargo.Add(cargo)
 		return salvage
 	}
@@ -513,6 +512,7 @@ func (u *Universe) createSalvage(position Vector, playerNum int, cargo Cargo) *S
 	salvage = newSalvage(position, num, playerNum, cargo)
 	u.Salvages = append(u.Salvages, salvage)
 	u.salvagesByNum[num] = salvage
+	u.salvagesByPosition[position] = salvage
 	u.addMapObjectByPosition(salvage, salvage.Position)
 
 	return salvage

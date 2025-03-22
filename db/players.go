@@ -55,6 +55,7 @@ type Player struct {
 	ResearchSpentLastYear        int                  `json:"researchSpentLastYear,omitempty"`
 	NextResearchField            cs.NextResearchField `json:"nextResearchField,omitempty"`
 	Researching                  cs.TechField         `json:"researching,omitempty"`
+	CargoTransfers               *CargoTransfers      `json:"cargoTransfers,omitempty"`
 	BattlePlans                  *BattlePlans         `json:"battlePlans,omitempty"`
 	ProductionPlans              *ProductionPlans     `json:"productionPlans,omitempty"`
 	TransportPlans               *TransportPlans      `json:"transportPlans,omitempty"`
@@ -82,6 +83,7 @@ type Player struct {
 }
 
 // we json serialize these types with custom Scan/Value methods
+type CargoTransfers cs.CargoTransfers
 type BattlePlans []cs.BattlePlan
 type ProductionPlans []cs.ProductionPlan
 type TransportPlans []cs.TransportPlan
@@ -103,6 +105,16 @@ type WormholeIntels []cs.WormholeIntel
 type PlayerRace cs.Race
 type PlayerSpec cs.PlayerSpec
 type PlayerStats cs.PlayerStats
+
+// db serializer to serialize this to JSON
+func (item *CargoTransfers) Value() (driver.Value, error) {
+	return valueJSON(item)
+}
+
+// db deserializer to read this from JSON
+func (item *CargoTransfers) Scan(src interface{}) error {
+	return scanJSON(src, &item)
+}
 
 // db serializer to serialize this to JSON
 func (item *BattlePlans) Value() (driver.Value, error) {
@@ -412,6 +424,7 @@ func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.P
 		p.researchSpentLastYear AS 'player.researchSpentLastYear',
 		p.nextResearchField AS 'player.nextResearchField',
 		p.researching AS 'player.researching',
+		p.cargoTransfers AS 'player.cargoTransfers',
 		p.battlePlans AS 'player.battlePlans',
 		p.productionPlans AS 'player.productionPlans',
 		p.transportPlans AS 'player.transportPlans',
@@ -549,6 +562,7 @@ func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
 	researchSpentLastYear,
 	nextResearchField,
 	researching,
+	cargoTransfers,
 	battlePlans,
 	productionPlans,
 	transportPlans,
@@ -660,6 +674,7 @@ func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
 	researchAmount,
 	nextResearchField,
 	researching,
+	cargoTransfers,
 	battlePlans,
 	productionPlans,
 	transportPlans,
@@ -846,6 +861,7 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		researchSpentLastYear,
 		nextResearchField,
 		researching,
+		cargoTransfers,
 		battlePlans,
 		productionPlans,
 		transportPlans,
@@ -901,6 +917,7 @@ func (c *client) CreatePlayer(player *cs.Player) error {
 		:researchSpentLastYear,
 		:nextResearchField,
 		:researching,
+		:cargoTransfers,
 		:battlePlans,
 		:productionPlans,
 		:transportPlans,
@@ -983,11 +1000,28 @@ func (c *client) UpdatePlayerOrders(player *cs.Player) error {
 		researchAmount = :researchAmount,
 		nextResearchField = :nextResearchField,
 		researching = :researching,
+		cargoTransfers = :cargoTransfers,
 		battlePlans = :battlePlans,
 		productionPlans = :productionPlans,
 		transportPlans = :transportPlans,
 		relations = :relations,
 		spec = :spec
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// update an existing player's lightweight fields
+func (c *client) UpdatePlayerCargoTransfers(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		cargoTransfers = :cargoTransfers
 	WHERE id = :id
 	`, item); err != nil {
 		return err
@@ -1086,6 +1120,38 @@ func (c *client) UpdatePlayerSpec(player *cs.Player) error {
 	return nil
 }
 
+// update a players planet intels (used after creating a new planet)
+func (c *client) UpdatePlayerPlanetIntels(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		planetIntels = :planetIntels
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// update a players fleet intels (used after creating a new fleet)
+func (c *client) UpdatePlayerFleetIntels(player *cs.Player) error {
+	item := c.converter.ConvertGamePlayer(player)
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE players SET
+		updatedAt = CURRENT_TIMESTAMP,
+		fleetIntels = :fleetIntels
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // update a players salvage intels (used after creating a new salvage)
 func (c *client) UpdatePlayerSalvageIntels(player *cs.Player) error {
 	item := c.converter.ConvertGamePlayer(player)
@@ -1153,6 +1219,7 @@ func (c *client) UpdatePlayer(player *cs.Player) error {
 		researchSpentLastYear = :researchSpentLastYear,
 		nextResearchField = :nextResearchField,
 		researching = :researching,
+		cargoTransfers = :cargoTransfers,
 		battlePlans = :battlePlans,
 		productionPlans = :productionPlans,
 		transportPlans = :transportPlans,

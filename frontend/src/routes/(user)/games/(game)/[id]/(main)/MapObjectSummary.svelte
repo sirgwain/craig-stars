@@ -82,7 +82,11 @@
 	);
 </script>
 
-<div class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full">
+<div
+	class="card bg-base-200 shadow rounded-sm border-2 border-base-300 w-full"
+	data-type="map-object-summary"
+	data-id={getMapObjectName($selectedMapObject)}
+>
 	<div class="card-body p-2 gap-0">
 		<div class="flex flex-row items-center">
 			<div class="flex-1 text-center text-lg font-semibold text-secondary">
@@ -112,6 +116,7 @@
 				{/if}
 				<button
 					type="button"
+					data-type="cycle-selected-map-object-button"
 					onpointerdown={(e) => {
 						e.preventDefault();
 						selectNextMapObject();

@@ -260,7 +260,7 @@ func (packet *MineralPacket) estimateDamage(rules *Rules, player *Player, target
 			if mineral > 0 {
 				decayAmount := int(max(decayRate*float64(mineral),
 					float64(rules.PacketMinDecay)*player.Race.Spec.PacketDecayFactor))
-				packetCopy.Cargo.SubtractAmount(minType, decayAmount)
+				packetCopy.Cargo = packetCopy.Cargo.SubtractAmount(minType, decayAmount)
 			}
 		}
 
@@ -300,7 +300,7 @@ func (packet *MineralPacket) checkTerraform(rules *Rules, player *Player, planet
 	tLoop:
 		for mineral := int(float64(packet.Cargo.GetAmount(minType)) * uncaught); mineral > 0; mineral -= player.Race.Spec.PacketPermaTerraformSizeUnit {
 
-			if Abs(direction) >= terraformer.getTerraformAbility(player).Get(habType) {
+			if Abs(direction) >= terraformer.GetTerraformAbility(player).Get(habType) {
 				// if we can't terraform this hab type any further, skip any remaining checks for brevity
 				break tLoop
 			}

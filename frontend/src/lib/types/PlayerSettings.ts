@@ -31,7 +31,7 @@ export class PlayerSettings implements FilterOptions {
 	sortPlanetsKey = 'name';
 	sortPlanetsDescending = false;
 	showAllPlanets = false;
-	sortFleetsKey = 'name';
+	sortFleetsKey = 'num';
 	sortFleetsDescending = false;
 	sortBattlesKey = 'num';
 	sortBattlesDescending = false;

@@ -18,7 +18,12 @@
 </script>
 
 <div class="col-span-5">
-	<a class="text-primary text-2xl hover:text-accent w-full" href="/games/{game.id}">{game.name}</a>
+	<a
+		class="text-primary text-2xl hover:text-accent w-full"
+		href="/games/{game.id}"
+		data-type="game-link"
+		data-id={game.id}>{game.name}</a
+	>
 </div>
 <div class="col-span-2 text-md">
 	{game.year}

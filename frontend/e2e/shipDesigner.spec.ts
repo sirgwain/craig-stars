@@ -1,14 +1,8 @@
-import { expect, test } from './setup';
+import { apiErrorsFailTest, expect, test } from './setup';
 
 test('ship designer - create', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
-
-	page.on('response', async (response) => {
-		if (response.url().includes(`/api/games/${id}`) && !response.ok()) {
-			// fail any api requests
-			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
-		}
-	});
+	apiErrorsFailTest(page, id);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Ship Designer' }).click();

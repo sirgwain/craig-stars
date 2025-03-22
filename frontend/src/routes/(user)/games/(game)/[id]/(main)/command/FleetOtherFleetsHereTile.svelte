@@ -4,74 +4,137 @@
 		ShowSplitFleetDialogProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { type CommandedFleet } from '$lib/types/Fleet';
-	import { type Fleet } from '$lib/types/cs';
-	import { getMapObjectName } from '$lib/types/MapObject';
+	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
+	import { MapObjectTypeFleet, type Fleet } from '$lib/types/cs';
+	import { canLoadCargo, type CommandedFleet } from '$lib/types/Fleet';
+	import { commandable, getMapObjectName, key } from '$lib/types/MapObject';
 	import { onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
 
-	const { commandedFleet, commandedMapObjectKey, commandMapObject } = getGameContext();
+	const { universe, game, player, commandedFleet, commandedMapObjectKey, commandMapObject } =
+		getGameContext();
 
 	type Props = {
 		fleet: CommandedFleet;
-		fleetsInOrbit: Fleet[];
+		cargoDestsInOrbit: CargoDest[];
 	} & ShowCargoTransferDialogProps &
 		ShowSplitFleetDialogProps;
 
-	let { fleet, fleetsInOrbit, onShowCargoTransferDialog, onShowSplitFleetDialog }: Props = $props();
+	let { fleet, cargoDestsInOrbit, onShowCargoTransferDialog, onShowSplitFleetDialog }: Props =
+		$props();
 
-	let selectedFleetIndex = $state(0);
-	let selectedFleet: Fleet | undefined = $derived(
-		fleetsInOrbit.length > 0 ? fleetsInOrbit[selectedFleetIndex] : undefined
+	let selectedMapObjectKey = $state(cargoDestsInOrbit.length > 0 ? key(cargoDestsInOrbit[0]) : '');
+	$effect(() => {
+		if (cargoDestsInOrbit.length > 1 && selectedMapObjectKey === '') {
+			selectedMapObjectKey = key(cargoDestsInOrbit.find((f) => key(f) !== key(fleet)));
+		}
+	});
+
+	let mapObjectsInOrbitByKey = $derived(
+		cargoDestsInOrbit.reduce<Record<string, CargoDest>>((acc, fleet) => {
+			acc[key(fleet)] = fleet;
+			return acc;
+		}, {})
 	);
 
-	const onSelectedFleetChange = (index: number) => {
-		selectedFleetIndex = index;
+	let selectedMapObject: CargoDest | undefined = $derived(
+		selectedMapObjectKey !== '' ? mapObjectsInOrbitByKey[selectedMapObjectKey] : undefined
+	);
+
+	let cargoDestsByPlayer = $derived(
+		cargoDestsInOrbit.reduce<Record<number, CargoDest[]>>((acc, mo) => {
+			if (!mo) {
+				return acc;
+			}
+			if (!acc[mo.playerNum]) {
+				acc[mo.playerNum] = [];
+			}
+			acc[mo.playerNum].push(mo);
+			return acc;
+		}, {})
+	);
+
+	const onSelectedFleetChange = (key: string) => {
+		selectedMapObjectKey = key;
 	};
 
 	const transfer = () => {
-		if (!selectedFleet || !onShowCargoTransferDialog) {
+		if (
+			!selectedMapObject ||
+			!canLoadCargo(fleet, selectedMapObject) ||
+			!onShowCargoTransferDialog
+		) {
 			return;
 		}
-		onShowCargoTransferDialog({ src: fleet, dest: selectedFleet });
+		onShowCargoTransferDialog({ src: fleet, dest: selectedMapObject });
 	};
 
 	const gotoTarget = () => {
-		if (!selectedFleet) {
+		if (!selectedMapObject || !commandable($player.num, selectedMapObject)) {
 			return;
 		}
-		commandMapObject(selectedFleet);
+		commandMapObject(selectedMapObject);
 	};
 
 	const mergeTarget = () => {
-		if (!$commandedFleet || !selectedFleet || !onShowSplitFleetDialog) {
+		if (
+			!$commandedFleet ||
+			!selectedMapObject ||
+			selectedMapObject.type !== MapObjectTypeFleet ||
+			!onShowSplitFleetDialog ||
+			selectedMapObject.playerNum !== $player.num
+		) {
 			return;
 		}
-		onShowSplitFleetDialog({ src: $commandedFleet, dest: selectedFleet });
+		onShowSplitFleetDialog({ src: $commandedFleet, dest: selectedMapObject as Fleet });
 	};
 
 	// reset the waypoint index every time the commanded mapobject changes
-	const unsubscribe = commandedMapObjectKey.subscribe(() => (selectedFleetIndex = 0));
+	const unsubscribe = commandedMapObjectKey.subscribe(() => {
+		selectedMapObjectKey = '';
+	});
 	onDestroy(unsubscribe);
 </script>
 
 {#if fleet}
-	<CommandTile title="Other Fleets Here">
+	<CommandTile title="Other Entities Here">
 		<select
-			onchange={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
+			data-type="other-fleets-here-select"
+			onchange={(e) => onSelectedFleetChange(e.currentTarget.value)}
 			class="select select-outline select-secondary select-sm py-0 text-sm"
 		>
-			{#each fleetsInOrbit as fleet, index}
-				<option value={index}>{getMapObjectName(fleet)}</option>
+			{#each cargoDestsByPlayer[$player.num]?.filter((f) => f && key(f) !== key(fleet)) as f}
+				<option
+					style={f?.playerNum !== $player.num
+						? `color: ${$universe.getPlayerColor(f?.playerNum)};`
+						: ''}
+					value={key(f)}
+				>
+					{getMapObjectName(f)}
+				</option>
+			{/each}
+			{#each $game.players as p}
+				{#if p.num !== $player.num && p.num in cargoDestsByPlayer}
+					<optgroup
+						label={$universe.getPlayerName(p.num)}
+						style={`color: ${$universe.getPlayerColor(p.num)};`}
+					>
+						{#each cargoDestsByPlayer[p.num] as f}
+							<option value={key(f)}>
+								{getMapObjectName(f)}
+							</option>
+						{/each}
+					</optgroup>
+				{/if}
 			{/each}
 		</select>
 
-		{#if selectedFleet}
+		{#if selectedMapObject}
 			<div class="flex justify-between my-1 btn-group">
 				<div class="tooltip" data-tip="goto fleet">
 					<button
 						onclick={gotoTarget}
-						disabled={!selectedFleet}
+						disabled={!selectedMapObject || !commandable($player.num, selectedMapObject)}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto">Goto</button
 					>
@@ -79,7 +142,9 @@
 				<div class="tooltip" data-tip="merge fleet">
 					<button
 						onclick={mergeTarget}
-						disabled={!selectedFleet}
+						disabled={!selectedMapObject ||
+							selectedMapObject.type !== MapObjectTypeFleet ||
+							selectedMapObject.playerNum !== $player.num}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto"
 						>Merge
@@ -88,7 +153,7 @@
 				<div class="tooltip" data-tip="transfer cargo">
 					<button
 						onclick={transfer}
-						disabled={!selectedFleet}
+						disabled={!selectedMapObject || !canLoadCargo(fleet, selectedMapObject)}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto"
 						>Transfer

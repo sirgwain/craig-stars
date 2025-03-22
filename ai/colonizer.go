@@ -136,11 +136,12 @@ func (ai *aiPlayer) colonize() error {
 
 			continue
 		}
-		if err := ai.client.TransferPlanetCargo(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}, ai.Planets); err != nil {
-			// something went wrong, skip this planet
-			ai.log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
-			continue
-		}
+
+    if err := ai.client.TransferByHand(&ai.game.Rules, ai.Player, fleet, orbiting, cs.CargoTransferRequest{Cargo: cs.Cargo{Colonists: colonistsToLoad}}); err != nil {
+      // something went wrong, skip this planet
+      log.Error().Err(err).Msg("transferring colonists from planet returned error, skipping")
+      continue
+    }
 
 		warpSpeed := ai.getWarpSpeed(fleet, bestPlanet.Position)
 		fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed).WithTask(cs.WaypointTaskColonize))

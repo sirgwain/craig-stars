@@ -1,11 +1,19 @@
 <script lang="ts">
 	import { andCommaList } from '$lib/andCommandList';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { resourceTypeToString } from '$lib/types/Cargo';
 	import { absSum } from '$lib/types/Hab';
 	import {
+		CargoTransferStatusCargo,
+		CargoTransferStatusCargoCapacity,
+		CargoTransferStatusDestCargo,
+		CargoTransferStatusDestCargoCapacity,
+		CargoTransferStatusDestStarbase,
+		CargoTransferStatusOwned,
 		None,
 		PlayerMessageFleetBombedPlanet,
 		PlayerMessageFleetBuilt,
+		PlayerMessageFleetByHandTransferIncomplete,
 		PlayerMessageFleetDieoff,
 		PlayerMessageFleetExceededSafeSpeed,
 		PlayerMessageFleetGeneratedFuel,
@@ -184,6 +192,37 @@
 	)}.
 {:else if message.type === PlayerMessageFleetScrapped}
 	{message.targetName} has been dismantled. The scrap was left in deep space.
+{:else if message.type === PlayerMessageFleetByHandTransferIncomplete}
+	{@const transfer = message.spec.cargoTransfer}
+	{#if transfer}
+		{@const cargoType = resourceTypeToString(transfer.cargoType)}
+		{@const fromTo = transfer.wanted < 0 ? 'from' : 'to'}
+		{message.targetName} has been attempted to transfer {Math.abs(transfer.wanted)}kT of {cargoType}
+		{fromTo}
+		{message.spec.targetName} but was
+		{#if transfer.transfered === 0}
+			unable to transfer any cargo.
+		{:else}
+			only able to transfer {Math.abs(transfer.transfered)}kT.
+		{/if}
+		{#if transfer.status === CargoTransferStatusCargo}
+			{message.targetName} did not have enough {cargoType}.
+		{:else if transfer.status === CargoTransferStatusCargoCapacity}
+			{message.targetName} did not have enough space in their hold.
+		{:else if transfer.status === CargoTransferStatusDestCargo}
+			{message.spec.targetName} did not have enough {cargoType}.
+		{:else if transfer.status === CargoTransferStatusDestCargoCapacity}
+			{message.spec.targetName} did not have enough space in their hold.
+		{:else if transfer.status === CargoTransferStatusDestStarbase}
+			A starbase in orbit prevented the transfer.
+		{:else if transfer.status === CargoTransferStatusOwned}
+			{message.spec.targetName} is owned by another player and {message.targetName} does not have the
+			required technology to bypass their sensors.
+		{/if}
+	{:else}
+		{message.targetName} has been attempted to transfer cargo from {message.spec.targetName} but was
+		unsuccessful.
+	{/if}
 {:else if message.type === PlayerMessageFleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(
 		message.spec.destPlayerNum
