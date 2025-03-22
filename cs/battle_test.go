@@ -15,6 +15,7 @@ func testStalwartDefender(player *Player) *Fleet {
 func testStalwartDefenderWithQuantity(player *Player, quantity int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
 		},
 		BaseName: "Stalwart Defender",
@@ -51,6 +52,7 @@ func testStalwartDefenderWithQuantity(player *Player, quantity int) *Fleet {
 func testJihadCruiser(player *Player) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
 		},
 		BaseName: "Jihad Cruiser",
@@ -88,6 +90,7 @@ func testJihadCruiser(player *Player) *Fleet {
 func testTeamster(player *Player) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
 		},
 		BaseName: "Teamster",
@@ -123,6 +126,7 @@ func testTeamster(player *Player) *Fleet {
 func testPrivateer(player *Player, quantity int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
 		},
 		BaseName: "Privateer",

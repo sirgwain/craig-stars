@@ -56,9 +56,9 @@ func (t *turnGenerator) generateTurn() error {
 
 	// wp0 tasks
 	t.fleetInit()
-	t.byHandLoads()
-	t.byHandUnloads()
-	t.clearByHandCargoTransfers()
+	t.fleetByHandLoads()
+	t.fleetByHandUnloads()
+	t.fleetClearByHandCargoTransfers()
 	t.fleetScrap()
 	t.fleetUnload()
 	t.fleetColonize()
@@ -163,8 +163,8 @@ func (t *turnGenerator) fleetInit() {
 	}
 }
 
-// byHandLoads will do any by hand cargo transfer load orders
-func (t *turnGenerator) byHandLoads() {
+// fleetByHandLoads will do any by hand cargo transfer load orders
+func (t *turnGenerator) fleetByHandLoads() {
 	cargoTransferer := newCargoTransferer(t.log, t.game)
 	for _, player := range t.game.Players {
 		if len(player.CargoTransfers) == 0 {
@@ -193,8 +193,8 @@ func (t *turnGenerator) byHandLoads() {
 	}
 }
 
-// byHandUnloads will do any by hand cargo transfer unload orders
-func (t *turnGenerator) byHandUnloads() {
+// fleetByHandUnloads will do any by hand cargo transfer unload orders
+func (t *turnGenerator) fleetByHandUnloads() {
 	cargoTransferer := newCargoTransferer(t.log, t.game)
 	for _, player := range t.game.Players {
 		if len(player.CargoTransfers) == 0 {
@@ -306,8 +306,8 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 	}
 }
 
-// clearByHandCargoTransfers clear's out all by-hand style cargo transfers after they are processed
-func (t *turnGenerator) clearByHandCargoTransfers() {
+// fleetClearByHandCargoTransfers clear's out all by-hand style cargo transfers after they are processed
+func (t *turnGenerator) fleetClearByHandCargoTransfers() {
 	for _, p := range t.game.Players {
 		p.CargoTransfers = CargoTransfers{}
 	}

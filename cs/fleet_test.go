@@ -100,6 +100,42 @@ func testSmallFreighterWithQuantity(player *Player, quantity int) *Fleet {
 	return fleet
 }
 
+func testStealingFreighter(player *Player, quantity int) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
+			PlayerNum: player.Num,
+			Num:       1,
+		},
+		BaseName: "Stealing Freighter",
+		Tokens: []ShipToken{
+			{
+				Quantity:  quantity,
+				DesignNum: 1,
+				design: NewShipDesign(player.Num, 1).
+					WithName("Stealing Freighter").
+					WithHull(MediumFreighter.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: RobberBaronScanner.Name, HullSlotIndex: 3, Quantity: 1},
+					}).
+					WithSpec(&rules, player)},
+		},
+		battlePlan:        &player.BattlePlans[0],
+		OrbitingPlanetNum: None,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
+	}
+
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	return fleet
+}
+
 // create a new Galleon (with fuel scoop) fleet for testing
 func testGalleon(player *Player) *Fleet {
 	fleet := &Fleet{
@@ -177,6 +213,10 @@ func testMiniMineLayer(player *Player) *Fleet {
 
 func testCloakedScout(player *Player) *Fleet {
 	fleet := &Fleet{
+		MapObject: MapObject{
+			Type:      MapObjectTypeFleet,
+			PlayerNum: player.Num,
+		},
 		BaseName: "Cloaked Scout",
 		Tokens: []ShipToken{
 			{
