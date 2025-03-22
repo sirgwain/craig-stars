@@ -133,7 +133,7 @@ func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scann
 			}
 		}
 
-		intel := scan.player.getPlanetIntel(planet.Num)
+		intel := scan.player.GetPlanetIntel(planet.Num)
 		if intel.ReportAge != ReportAgeUnexplored {
 			// TODO: remove this after initial test games are done
 			// it's just here because some old games don't have basehab on intels
@@ -253,7 +253,7 @@ func (scan *playerScanner) fleetInScannerRange(fleet *Fleet, scanner scanner) bo
 // scan all fleets and discover their designs if we should
 func (scan *playerScanner) scanWormholes(scanners []scanner) {
 	for _, wormhole := range scan.universe.Wormholes {
-		intel := scan.player.getWormholeIntel(wormhole.Num)
+		intel := scan.player.GetWormholeIntel(wormhole.Num)
 
 		for _, scanner := range scanners {
 			if scanner.Range == NoScanner {
@@ -359,7 +359,7 @@ func (scan *playerScanner) scanMineFields(scanners []scanner) {
 			// The player already gets a copy of all their own mineFields
 			continue
 		}
-		intel := scan.player.getMineFieldIntel(mineField.PlayerNum, mineField.Num)
+		intel := scan.player.GetMineFieldIntel(mineField.PlayerNum, mineField.Num)
 
 		for _, scanner := range scanners {
 			if scanner.Range == NoScanner {
@@ -706,7 +706,7 @@ func (scan *playerScanner) updateFleetTargets() {
 
 			switch wp.TargetType {
 			case MapObjectTypeFleet:
-				target := scan.player.getFleetIntel(wp.TargetPlayerNum, wp.TargetNum)
+				target := scan.player.GetFleetIntel(wp.TargetPlayerNum, wp.TargetNum)
 				if target == nil {
 					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
 					wp.TargetType = MapObjectTypeNone
@@ -718,7 +718,7 @@ func (scan *playerScanner) updateFleetTargets() {
 					wp.Position = target.Position
 				}
 			case MapObjectTypeMysteryTrader:
-				target := scan.player.getMysteryTraderIntel(wp.TargetNum)
+				target := scan.player.GetMysteryTraderIntel(wp.TargetNum)
 				if target == nil {
 					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
 					wp.TargetType = MapObjectTypeNone
@@ -731,7 +731,7 @@ func (scan *playerScanner) updateFleetTargets() {
 				}
 
 			case MapObjectTypeSalvage:
-				target := scan.player.getSalvageIntel(wp.TargetNum)
+				target := scan.player.GetSalvageIntel(wp.TargetNum)
 				if target == nil {
 					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
 					wp.TargetType = MapObjectTypeNone
@@ -741,7 +741,7 @@ func (scan *playerScanner) updateFleetTargets() {
 				}
 
 			case MapObjectTypeMineralPacket:
-				target := scan.player.getMineralPacketIntel(wp.TargetPlayerNum, wp.TargetNum)
+				target := scan.player.GetMineralPacketIntel(wp.TargetPlayerNum, wp.TargetNum)
 				if target == nil {
 					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
 					wp.TargetType = MapObjectTypeNone
@@ -754,7 +754,7 @@ func (scan *playerScanner) updateFleetTargets() {
 				}
 
 			case MapObjectTypeWormhole:
-				target := scan.player.getWormholeIntel(wp.TargetNum)
+				target := scan.player.GetWormholeIntel(wp.TargetNum)
 				if target == nil {
 					messager.fleetTargetLost(scan.player, fleet, wp.TargetName, wp.TargetType)
 					wp.TargetType = MapObjectTypeNone

@@ -18,7 +18,11 @@
 	let open = carouselContext ? carouselContext.open : readable<boolean>(true);
 </script>
 
-<div class="w-screen md:w-[14rem] card bg-base-200 shadow rounded-sm border-2 border-base-300">
+<div
+	class="w-screen md:w-[14rem] card bg-base-200 shadow rounded-sm border-2 border-base-300"
+	data-type="command-tile"
+	data-id={title}
+>
 	<div class="card-body p-3 gap-0">
 		<button
 			class:cursor-default={!showDisclosure}

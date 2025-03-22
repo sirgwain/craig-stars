@@ -25,18 +25,19 @@
 		onCancel?: OnCancel;
 	};
 
-	let { src, dest = $bindable(undefined), onOk, onCancel }: Props = $props();
+	let { src, dest: destFleetProp, onOk, onCancel }: Props = $props();
 
 	let transferAmount = $state(new CargoTransferRequest());
 	let srcTokens: ShipToken[] = $state([]);
 	let destTokens: ShipToken[] = $state([]);
+	let dest = $state<Fleet>(destFleetProp ? { ...destFleetProp } : newEmptyDestFleet(src));
 	let srcFuelCapacity: number = $state(src.spec.fuelCapacity ?? 0);
-	let destFuelCapacity: number = $state(dest?.spec?.fuelCapacity ?? 0);
+	let destFuelCapacity: number = $state(destFleetProp?.spec?.fuelCapacity ?? 0);
 	let srcCargoCapacity: number = $state(src.spec.cargoCapacity ?? 0);
-	let destCargoCapacity: number = $state(dest?.spec?.cargoCapacity ?? 0);
+	let destCargoCapacity: number = $state(destFleetProp?.spec?.cargoCapacity ?? 0);
 	let quantityModifier = $state(1);
 
-	const totalFuel = src.fuel + (dest?.fuel ?? 0);
+	const totalFuel = src.fuel + (destFleetProp?.fuel ?? 0);
 
 	function split() {
 		onOk?.({ src, dest, srcTokens, destTokens, transferAmount });
@@ -122,6 +123,23 @@
 				}
 			}
 		}
+		srcTokens = srcTokens;
+		destTokens = destTokens;
+	}
+
+	function newEmptyDestFleet(src: CommandedFleet): Fleet {
+		const fleet: Fleet = { ...src };
+		fleet.num = 0;
+		fleet.spec = cloneDeep(src.spec);
+		fleet.name = `${fleet.baseName}`;
+		fleet.tokens = src.tokens.map((t) =>
+			Object.assign({}, t, { quantity: 0, quantityDamaged: 0, damage: 0 })
+		);
+		fleet.spec.fuelCapacity = 0;
+		fleet.spec.cargoCapacity = 0;
+		fleet.fuel = 0;
+		fleet.cargo = {};
+		return fleet;
 	}
 
 	onMount(() => {
@@ -131,19 +149,7 @@
 		hotkeys('Enter', scope, split);
 		hotkeys.setScope(scope);
 
-		if (!dest) {
-			dest = new CommandedFleet(src);
-			dest.num = 0;
-			dest.spec = cloneDeep(src.spec);
-			dest.name = `${dest.baseName}`;
-			dest.tokens = src.tokens.map((t) =>
-				Object.assign({}, t, { quantity: 0, quantityDamaged: 0, damage: 0 })
-			);
-			dest.spec.fuelCapacity = 0;
-			dest.spec.cargoCapacity = 0;
-			dest.fuel = 0;
-			dest.cargo = {};
-
+		if (!destFleetProp) {
 			srcTokens = cloneDeep(src.tokens);
 			destTokens = cloneDeep(dest.tokens ?? []);
 		} else {

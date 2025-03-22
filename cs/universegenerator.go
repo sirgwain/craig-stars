@@ -12,6 +12,7 @@ import (
 // The UniverseGenerator generates a new universe based on some game settings and players.
 type UniverseGenerator interface {
 	Generate() (*Universe, error)
+	GenerateWithUniverse(universe *Universe) error
 	Area() Vector
 }
 
@@ -35,6 +36,73 @@ func NewUniverseGenerator(game *Game, players []*Player) UniverseGenerator {
 
 func (ug *universeGenerator) Area() Vector {
 	return ug.area
+}
+
+// Generate a new universe using a UniverseGenerator
+func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
+	ug.log.Debug().Msgf("%s: Generating universe", ug.Size)
+
+	var err error
+	for _, player := range ug.Players {
+		player.Race.Spec = computeRaceSpec(&player.Race, &ug.Rules)
+		player.discoverer = newDiscovererWithAllies(ug.log, player, ug.Players)
+	}
+
+	ug.Universe = universe
+	area, err := ug.Rules.GetArea(ug.Size)
+	if err != nil {
+		return err
+	}
+	ug.area = area
+
+	ug.generatePlayerPlans()
+	ug.generatePlayerRelations()
+
+	if err := ug.generatePlayerPlanetReports(); err != nil {
+		return err
+	}
+
+	for _, player := range ug.Players {
+		player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+
+		// compute tech levels
+		for _, design := range player.Designs {
+			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, planet := range ug.Universe.Planets {
+		if planet.Owned() {
+			player := ug.Players[planet.PlayerNum-1]
+			planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
+			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
+				return fmt.Errorf("planet %s failed to populate queue design: %w", planet, err)
+			}
+			if err := planet.PopulateProductionQueueEstimates(&ug.Rules, player); err != nil {
+				return fmt.Errorf("planet %s failed to populate queue estimates: %w", planet.Name, err)
+			}
+		}
+	}
+
+	for _, fleet := range ug.Universe.Fleets {
+		player := ug.getPlayer(fleet.PlayerNum)
+		fleet.InjectDesigns(player.Designs)
+		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, fleet)
+	}
+
+	// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
+	for _, player := range ug.Players {
+		player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+	}
+
+	// do one scan run
+	if err := ug.generatePlayerIntel(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Generate a new universe using a UniverseGenerator

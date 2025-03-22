@@ -104,6 +104,33 @@ export const test = base.extend<{
 	}
 });
 
+export async function loadGamePage(page: Page, name: string) {
+	const gameLink = page.getByRole('link', { name: name });
+	await expect(gameLink).toBeVisible();
+
+	// fail if any api calls to this game fail
+	const gameId = await gameLink.getAttribute('data-id');
+	apiErrorsFailTest(page, gameId);
+
+	// open the game
+	await gameLink.click();
+	await expect(page.locator(`[data-type="game-view"][data-id="${gameId}"]`)).toBeVisible();
+
+	return { page, gameId };
+}
+
+export async function apiErrorsFailTest(page: Page, gameId: string | null) {
+	if (gameId === null) {
+		throw new Error(`invalid gameId for page ${page.url()}`);
+	}
+	page.on('response', async (response) => {
+		if (response.url().includes(`/api/games/${gameId}`) && !response.ok()) {
+			// fail any api requests
+			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
+		}
+	});
+}
+
 // no js errors allowed
 test.beforeEach(async ({ page }) => {
 	page.on('pageerror', (err) => {

@@ -462,7 +462,7 @@ func (g *FullGame) computeSpecs() error {
 
 	// compute the research specs after all the planet specs are computed
 	for _, player := range g.Players {
-		player.Spec.PlayerResearchSpec = computePlayerResearchSpec(player, rules, g.Planets)
+		player.Spec.PlayerResearchSpec = ComputePlayerResearchSpec(player, rules, g.Planets)
 	}
 	return nil
 

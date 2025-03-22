@@ -390,11 +390,11 @@ func Test_playerScan_fleetInScannerRange(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			scan := playerScanner{}
 			player := testPlayer()
-			fleet := newFleet(player, 1, "fleet", []Waypoint{NewPositionWaypoint(Vector{}, 0)})
+			fleet := NewFleet(player, 1, "fleet", []Waypoint{NewPositionWaypoint(Vector{}, 0)})
 			fleet.Spec.CloakPercent = tt.args.fleetCloak
 			fleet.Position = tt.args.fleetPosition
 
-			if got := scan.fleetInScannerRange(&fleet, tt.args.scanner); got != tt.want {
+			if got := scan.fleetInScannerRange(fleet, tt.args.scanner); got != tt.want {
 				t.Errorf("playerScan.fleetInScannerRange() = %v, want %v", got, tt.want)
 			}
 		})

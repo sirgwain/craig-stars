@@ -92,6 +92,7 @@ type PlayerOrders struct {
 	Researching       TechField         `json:"researching,omitempty"`
 	NextResearchField NextResearchField `json:"nextResearchField,omitempty"`
 	ResearchAmount    int               `json:"researchAmount,omitempty"`
+	CargoTransfers    CargoTransfers    `json:"cargoTransfers,omitempty"`
 }
 
 type PlayerStats struct {
@@ -253,6 +254,7 @@ func NewPlayer(userID int64, race *Race) *Player {
 			Researching:       Energy,
 			ResearchAmount:    15,
 			NextResearchField: NextResearchFieldSameField,
+			CargoTransfers:    CargoTransfers{},
 		},
 		AcquiredTechs: map[string]bool{},
 	}
@@ -439,11 +441,11 @@ func (p *Player) incrementReportAge() {
 	}
 }
 
-func (p *Player) getPlanetIntel(num int) *PlanetIntel {
+func (p *Player) GetPlanetIntel(num int) *PlanetIntel {
 	return &p.PlanetIntels[num-1]
 }
 
-func (p *Player) getWormholeIntel(num int) *WormholeIntel {
+func (p *Player) GetWormholeIntel(num int) *WormholeIntel {
 	for i := range p.WormholeIntels {
 		intel := &p.WormholeIntels[i]
 		if intel.Num == num {
@@ -453,7 +455,7 @@ func (p *Player) getWormholeIntel(num int) *WormholeIntel {
 	return nil
 }
 
-func (p *Player) getMysteryTraderIntel(num int) *MysteryTraderIntel {
+func (p *Player) GetMysteryTraderIntel(num int) *MysteryTraderIntel {
 	for i := range p.MysteryTraderIntels {
 		intel := &p.MysteryTraderIntels[i]
 		if intel.Num == num {
@@ -463,7 +465,7 @@ func (p *Player) getMysteryTraderIntel(num int) *MysteryTraderIntel {
 	return nil
 }
 
-func (p *Player) getMineFieldIntel(playerNum, num int) *MineFieldIntel {
+func (p *Player) GetMineFieldIntel(playerNum, num int) *MineFieldIntel {
 	for i := range p.MineFieldIntels {
 		intel := &p.MineFieldIntels[i]
 		if intel.PlayerNum == playerNum && intel.Num == num {
@@ -474,7 +476,7 @@ func (p *Player) getMineFieldIntel(playerNum, num int) *MineFieldIntel {
 	return nil
 }
 
-func (p *Player) getMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
+func (p *Player) GetMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
 	for i := range p.MineralPacketIntels {
 		intel := &p.MineralPacketIntels[i]
 		if intel.PlayerNum == playerNum && intel.Num == num {
@@ -485,7 +487,7 @@ func (p *Player) getMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
 	return nil
 }
 
-func (p *Player) getFleetIntel(playerNum, num int) *FleetIntel {
+func (p *Player) GetFleetIntel(playerNum, num int) *FleetIntel {
 	for i := range p.FleetIntels {
 		intel := &p.FleetIntels[i]
 		if intel.PlayerNum == playerNum && intel.Num == num {
@@ -496,7 +498,7 @@ func (p *Player) getFleetIntel(playerNum, num int) *FleetIntel {
 	return nil
 }
 
-func (p *Player) getShipDesignIntel(playerNum, num int) *ShipDesignIntel {
+func (p *Player) GetShipDesignIntel(playerNum, num int) *ShipDesignIntel {
 	for i := range p.ShipDesignIntels {
 		intel := &p.ShipDesignIntels[i]
 		if intel.PlayerNum == playerNum && intel.Num == num {
@@ -507,7 +509,7 @@ func (p *Player) getShipDesignIntel(playerNum, num int) *ShipDesignIntel {
 	return nil
 }
 
-func (p *Player) getSalvageIntel(num int) *SalvageIntel {
+func (p *Player) GetSalvageIntel(num int) *SalvageIntel {
 	for i := range p.SalvageIntels {
 		intel := &p.SalvageIntels[i]
 		if intel.Num == num {
@@ -530,11 +532,11 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 		},
 	}
 
-	spec.PlayerResearchSpec = computePlayerResearchSpec(player, rules, planets)
+	spec.PlayerResearchSpec = ComputePlayerResearchSpec(player, rules, planets)
 	return spec
 }
 
-func computePlayerResearchSpec(player *Player, rules *Rules, planets []*Planet) PlayerResearchSpec {
+func ComputePlayerResearchSpec(player *Player, rules *Rules, planets []*Planet) PlayerResearchSpec {
 	researcher := newResearcher(rules)
 	spec := PlayerResearchSpec{}
 
@@ -822,7 +824,7 @@ func (p *Player) IsSharingMap(playerNum int) bool {
 	return p.IsFriend(playerNum) && p.Relations[playerNum-1].ShareMap
 }
 
-func (p *Player) getNextFleetNum(playerFleets []*Fleet) int {
+func (p *Player) GetNextFleetNum(playerFleets []*Fleet) int {
 	num := 1
 
 	orderedFleets := make([]*Fleet, len(playerFleets))
@@ -874,6 +876,20 @@ func (p *Player) InjectDesigns(fleets []*Fleet) error {
 	}
 
 	return nil
+}
+
+// getByHandTransfer sums all by hand cargo transfers for this target to determine the total amount of cargo here
+func (p *Player) getByHandTransfer(target MapObjectTarget) Cargo {
+	return p.CargoTransfers.getByHandTransfer(target)
+}
+
+// transferByHand transfers cargo to a target
+func (p *Player) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Cargo) {
+	if p.CargoTransfers == nil {
+		p.CargoTransfers = CargoTransfers{}
+	}
+
+	p.CargoTransfers.transferByHand(fleet, target, cargo)
 }
 
 // validate this battle plan

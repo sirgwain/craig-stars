@@ -49,6 +49,24 @@ var CargoTypes = [4]CargoType{
 	Colonists,
 }
 
+func NewCargoFromMineralsAndPop(mineral Mineral, pop int) Cargo {
+	return Cargo{
+		Ironium:   mineral.Ironium,
+		Boranium:  mineral.Boranium,
+		Germanium: mineral.Germanium,
+		Colonists: pop / 100,
+	}
+}
+
+func NewCargoFromArray(values [4]int) Cargo {
+	return Cargo{
+		Ironium:   values[0],
+		Boranium:  values[1],
+		Germanium: values[2],
+		Colonists: values[3],
+	}
+}
+
 func (c CargoType) String() string {
 	switch c {
 	case Ironium:
@@ -65,16 +83,16 @@ func (c CargoType) String() string {
 
 func (c Cargo) PrettyString() string {
 	texts := make([]string, 0, 4)
-	if c.Ironium > 0 {
+	if c.Ironium != 0 {
 		texts = append(texts, fmt.Sprintf("%dkT ironium", c.Ironium))
 	}
-	if c.Boranium > 0 {
+	if c.Boranium != 0 {
 		texts = append(texts, fmt.Sprintf("%dkT boranium", c.Boranium))
 	}
-	if c.Germanium > 0 {
+	if c.Germanium != 0 {
 		texts = append(texts, fmt.Sprintf("%dkT germanium", c.Germanium))
 	}
-	if c.Colonists > 0 {
+	if c.Colonists != 0 {
 		texts = append(texts, fmt.Sprintf("%dkT colonists", c.Colonists))
 	}
 	return strings.Join(texts, ", ")
@@ -88,8 +106,40 @@ func (c Cargo) HasMinerals() bool {
 	return (c.Ironium + c.Boranium + c.Germanium) > 0
 }
 
+// HasNegative returns true if any cargo is negative
+func (c Cargo) HasNegative() bool {
+	return c.Ironium < 0 || c.Boranium < 0 || c.Germanium < 0 || c.Colonists < 0
+}
+
+// HasPositive returns true if any cargo is positive
+func (c Cargo) HasPositive() bool {
+	return c.Ironium > 0 || c.Boranium > 0 || c.Germanium > 0 || c.Colonists > 0
+}
+
 // return this cargo with a minimum of zero for each value
 func (c Cargo) MinZero() Cargo {
+	return Cargo{
+		Ironium:   max(c.Ironium, 0),
+		Boranium:  max(c.Boranium, 0),
+		Germanium: max(c.Germanium, 0),
+		Colonists: max(c.Colonists, 0),
+	}
+}
+
+// NegativeOnly returns a cargo with only negative values
+// used for identifying stealing cargo
+func (c Cargo) NegativeOnly() Cargo {
+	return Cargo{
+		Ironium:   min(c.Ironium, 0),
+		Boranium:  min(c.Boranium, 0),
+		Germanium: min(c.Germanium, 0),
+		Colonists: min(c.Colonists, 0),
+	}
+}
+
+// PositiveOnly returns a cargo with only negative values
+// used for identifying unloading cargo
+func (c Cargo) PositiveOnly() Cargo {
 	return Cargo{
 		Ironium:   max(c.Ironium, 0),
 		Boranium:  max(c.Boranium, 0),
@@ -172,6 +222,19 @@ func (c Cargo) Total() int {
 	return c.Ironium + c.Boranium + c.Germanium + c.Colonists
 }
 
+func (c Cargo) absSum() int {
+	return Abs(c.Ironium) + Abs(c.Boranium) + Abs(c.Germanium) + Abs(c.Colonists)
+}
+
+func (c Cargo) ToArray() [4]int {
+	return [4]int{
+		c.Ironium,
+		c.Boranium,
+		c.Germanium,
+		c.Colonists,
+	}
+}
+
 // return true if this cargo can have transferAmount taken from it
 func (c Cargo) CanTransfer(transferAmount Cargo) bool {
 	return (c.Ironium >= transferAmount.Ironium &&
@@ -196,7 +259,7 @@ func (c Cargo) CanTransferAmount(cargoType CargoType, transferAmount int) bool {
 
 }
 
-func (c *Cargo) SubtractAmount(cargoType CargoType, transferAmount int) *Cargo {
+func (c Cargo) SubtractAmount(cargoType CargoType, transferAmount int) Cargo {
 	switch cargoType {
 	case Ironium:
 		c.Ironium -= transferAmount
@@ -210,7 +273,7 @@ func (c *Cargo) SubtractAmount(cargoType CargoType, transferAmount int) *Cargo {
 	return c
 }
 
-func (c *Cargo) AddAmount(cargoType CargoType, transferAmount int) *Cargo {
+func (c Cargo) AddAmount(cargoType CargoType, transferAmount int) Cargo {
 	switch cargoType {
 	case Ironium:
 		c.Ironium += transferAmount
@@ -237,6 +300,20 @@ func (c Cargo) GetAmount(t CargoType) int {
 		return c.Colonists
 	}
 	return 0
+}
+
+func (c Cargo) SetAmount(t CargoType, amount int) Cargo {
+	switch t {
+	case Ironium:
+		c.Ironium = amount
+	case Boranium:
+		c.Boranium = amount
+	case Germanium:
+		c.Germanium = amount
+	case Colonists:
+		c.Colonists = amount
+	}
+	return c
 }
 
 // get the amount for a type of cargo
@@ -275,6 +352,17 @@ func (c Cargo) GreatestMineralType() CargoType {
 	}
 
 	return None
+}
+
+// split a cargo into two cargos based on capacity
+func (source Cargo) Split(sourceCapacity, capacity1, capacity2 int) (Cargo, Cargo, error) {
+	sourceArray := source.ToArray()
+	split1, split2, err := splitValues(sourceCapacity, capacity1, capacity2, (sourceArray[:])...)
+	if err != nil {
+		return Cargo{}, Cargo{}, err
+	}
+
+	return NewCargoFromArray([4]int(split1)), NewCargoFromArray([4]int(split2)), nil
 }
 
 // Set the mineral portion of a Cargo, leaving population unaffected.

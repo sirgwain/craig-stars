@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -50,6 +51,10 @@ const (
 	TagPurpose = "purpose"
 )
 
+func (mo MapObject) String() string {
+	return fmt.Sprintf("MapObject: %s", mo.Name)
+}
+
 // Owned reports whether this MapObject is owned by a player (playerNum != 0)
 func (mo *MapObject) Owned() bool {
 	return mo.PlayerNum != Unowned
@@ -69,4 +74,14 @@ func (mo *MapObject) SetTag(key, value string) {
 		mo.Tags = make(Tags)
 	}
 	mo.Tags[key] = value
+}
+
+func (mo MapObject) ToTarget() MapObjectTarget {
+	return MapObjectTarget{
+		TargetType:      mo.Type,
+		TargetNum:       mo.Num,
+		TargetPlayerNum: mo.PlayerNum,
+		TargetName:      mo.Name,
+		TargetPosition:  mo.Position,
+	}
 }

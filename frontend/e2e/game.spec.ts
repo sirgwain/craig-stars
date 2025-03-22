@@ -1,4 +1,4 @@
-import { expect, test } from './setup';
+import { apiErrorsFailTest, expect, test } from './setup';
 
 test('create a new game', async ({ newGamePage }) => {
 	const { page, name } = newGamePage;
@@ -9,13 +9,7 @@ test('create a new game', async ({ newGamePage }) => {
 
 test('submit turn', async ({ newGamePage }) => {
 	const { page, id, name } = newGamePage;
-
-	page.on('response', async (response) => {
-		if (response.url().includes(`/api/games/${id}`) && !response.ok()) {
-			// fail any api requests
-			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
-		}
-	});
+	apiErrorsFailTest(page, id);
 
 	// start with a new game, ensure we have year 2400
 	const gameLink = page.getByRole('link', { name: name });
@@ -30,13 +24,7 @@ test('submit turn', async ({ newGamePage }) => {
 
 test('research page', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
-
-	page.on('response', async (response) => {
-		if (response.url().includes(`/api/games/${id}`) && !response.ok()) {
-			// fail any api requests
-			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
-		}
-	});
+	apiErrorsFailTest(page, id);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Research' }).click();
@@ -71,13 +59,7 @@ test('research page', async ({ newGamePage }) => {
 
 test('relations page', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
-
-	page.on('response', async (response) => {
-		if (response.url().includes(`/api/games/${id}`) && !response.ok()) {
-			// fail any api requests
-			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
-		}
-	});
+	apiErrorsFailTest(page, id);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Relations' }).click();
@@ -91,13 +73,7 @@ test('relations page', async ({ newGamePage }) => {
 test('battle plans page', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
 	const name = 'Test Battle Plan';
-
-	page.on('response', async (response) => {
-		if (response.url().includes(`/api/games/${id}`) && !response.ok()) {
-			// fail any api requests
-			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
-		}
-	});
+	apiErrorsFailTest(page, id);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Battle Plans' }).click();
@@ -126,13 +102,7 @@ test('battle plans page', async ({ newGamePage }) => {
 test('production plans page', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
 	const name = 'Test Production Plan';
-
-	page.on('response', async (response) => {
-		if (response.url().includes(`/api/games/${id}`) && !response.ok()) {
-			// fail any api requests
-			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
-		}
-	});
+	apiErrorsFailTest(page, id);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Production Plans' }).click();
@@ -172,13 +142,7 @@ test('production plans page', async ({ newGamePage }) => {
 test('transport plans page', async ({ newGamePage }) => {
 	const { page, id } = newGamePage;
 	const name = 'Test Transport Plan';
-
-	page.on('response', async (response) => {
-		if (response.url().includes(`/api/games/${id}`) && !response.ok()) {
-			// fail any api requests
-			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
-		}
-	});
+	apiErrorsFailTest(page, id);
 
 	await page.locator('label').filter({ hasText: 'Commands' }).click();
 	await page.getByRole('link', { name: 'Transport Plans' }).click();
