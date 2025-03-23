@@ -226,17 +226,21 @@ func (p *producer) produce() (result productionResult, err error) {
 			maxBuildable = MaxBuildableCap
 		}
 
-		// If this is a concrete item and we haven't built anything yet,
-		// check to make sure we aren't trying to build over cap.
+		// If we haven't built anything yet, check to make sure 
+		// we aren't trying to build over cap.
 		// We do this for everything ahead of us upon building (or trying to build)
 		// an item, but this ensures we don't forget to check before that happens.
-		if !builtAnything && !item.Type.IsAuto() {
-			overCap := item.Quantity - min(item.Quantity, maxBuildable)
+		if !builtAnything {
+			m := maxBuildable
+			if item.Type.IsAuto() {
+				m = MaxBuildableCap // we cap auto quantities at 5K
+			}
+			overCap := item.Quantity - min(item.Quantity, m)
 			if overCap > 0 {
 				p.log.Debug().
 					Any("Item", item).
 					Int("Qty", item.Quantity).
-					Int("maxBuildable", maxBuildable).
+					Int("maxBuildable", m).
 					Int("New Quantity", item.Quantity-overCap).
 					Msgf("clamping queue item quantity")
 				item.Quantity -= overCap
@@ -247,7 +251,7 @@ func (p *producer) produce() (result productionResult, err error) {
 				available = available.Add(item.Allocated) // refund previously allocated amount
 				result.itemsBuilt = append(result.itemsBuilt,
 					itemBuilt{index: item.index, canceled: true})
-				p.updateCanceledMessage(&result, item, overCap, maxBuildable)
+				p.updateCanceledMessage(&result, item, overCap, m)
 				continue
 			}
 		}
@@ -328,30 +332,24 @@ func (p *producer) produce() (result productionResult, err error) {
 			available = available.MinZero()
 		}
 
-		// Remove any concrete items ahead of us inside the queue that are over cap.
+		// Remove any items ahead of us inside the queue that are over cap.
 		if itemIndex < len(planet.ProductionQueue)-1 {
 			modQueue := planet.ProductionQueue[:itemIndex+1] // everything before us can stay
 			for _, item := range planet.ProductionQueue[itemIndex+1:] {
-				if item.Type.IsAuto() {
-					// leave auto items alone
-					modQueue = append(modQueue, item)
-					continue
-				}
 
 				maxBuildable := planet.MaxBuildable(p.player, item.Type)
-				if maxBuildable == Infinite {
+				if maxBuildable == Infinite || item.Type.IsAuto() {
 					// infinite is the constant int of -1, but we want a very big number
 					maxBuildable = MaxBuildableCap
-					continue
 				}
 
 				// clamp item quantity down to maxBuildable
-				overCap := item.Quantity - maxBuildable
+				overCap := item.Quantity - m
 				if overCap > 0 {
 					p.log.Debug().
 						Any("Item", item).
 						Int("Qty", item.Quantity).
-						Int("maxBuildable", maxBuildable).
+						Int("maxBuildable", m).
 						Int("New Quantity", item.Quantity-overCap).
 						Msgf("clamping queue item quantity down to maxBuildable")
 					item.Quantity -= overCap // a-(a-b) = a-a+b = b
@@ -365,7 +363,7 @@ func (p *producer) produce() (result productionResult, err error) {
 					available = available.Add(item.Allocated) // refund previously allocated amount
 					result.itemsBuilt = append(result.itemsBuilt,
 						itemBuilt{index: item.index, queueItemType: item.Type, canceled: true})
-					p.updateCanceledMessage(&result, item, overCap, maxBuildable)
+					p.updateCanceledMessage(&result, item, overCap, m)
 				}
 			}
 
