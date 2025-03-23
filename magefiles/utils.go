@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"strings"
 
 	"github.com/magefile/mage/mg"
@@ -58,14 +57,14 @@ func cleanTmpDir() error {
 
 // Run backend tests using gotestsum, passing args to "go test".
 // CI runs will always run all tests across all packages,
-// whereas non-CI runs can specify which package(s) to run as part of goTestArgs.
-// If a package identifier is omitted on non-CI runs,
-// it will default to running everything ("./...").
+// whereas non-CI runs can optionally specify a space-separated list of
+// names or paths to one or more packages at the start of goTestArgs.
+// Having no valid paths will default to running everything (./...).
 func Test_Golang(goTestArgs string) error {
 	fmt.Println("Running backend tests...")
 	mg.Deps(cleanTmpDir)
 
-	// read gotestsum config args from text file;
+	// read gotestsum config args from text file.
 	// use CI config if on CI; else regular config
 	var filePath string
 	if is_CI() {
@@ -87,36 +86,45 @@ func Test_Golang(goTestArgs string) error {
 	})
 	fmt.Printf("Config file at %s successfully read.\n", filePath)
 
-	// If the user forgot to add a package marker for non-CI runs,
-	// do them a favor rather than outright failing.
+	args := strings.Fields(goTestArgs)
+
+	// Check non-CI runs for package names that may have been made absolute by mistake.
 	// CI runs are exempt from this due to rerun-fails requiring an explicit package argument
 	// (not to mention their entire *job* is to test everything all at once)
-	args := strings.Fields(goTestArgs)
-	if !is_CI() {
-		var msg string
-		index := slices.IndexFunc(args, func(s string) bool {
-			// grab the first path we find that vaguely matches a package identifier
-			s = filepath.ToSlash(s)
-			return fileExist(s) || fileExist("./"+s)
-		})
+	if is_CI() {
+		fmt.Println("Running all packages for CI...")
+	} else {
+		packages := []string{}
+		for i, arg := range args {
+			if strings.HasPrefix(arg, "--") {
+				// flags always go after package names, so we can break as soon as we see one
+				break
+			}
 
-		if index == -1 {
+			arg = filepath.ToSlash(arg)
+			if s, err := os.Stat(arg); err == nil && s.IsDir() {
+				// os.Stat ignores any "./" prefixes in file paths, so all we need to do is add it if not found
+				if !strings.HasPrefix(arg, "./") {
+					arg = "./" + arg
+				}
+
+				args[i] = arg
+				packages = append(packages, arg)
+			}
+		}
+
+		switch len(packages) {
+		case 0:
 			// no valid package marker given; do everything
-			msg = "No valid package identifier found; defaulting to running everything (./...)"
+			fmt.Println("No valid package identifiers found; defaulting to running everything (./...)...")
 			a := make([]string, 1, len(args)+1)
 			a[0] = "./..."
 			args = append(a, args...)
-		} else {
-			args[index] = filepath.ToSlash(args[index])
-
-			if strings.HasPrefix(args[index], "./") {
-				msg = fmt.Sprintf("Package identifier %s at position %d read successfully.", args[index], index)
-			} else {
-				msg = fmt.Sprintf("Package identifier %q at position %d matched relative file ./%[1]s; using as package", args[index], index)
-				args[index] = "./" + args[index]
-			}
+		case 1:
+			fmt.Printf("Running tests in package %q...\n", packages[0])
+		default:
+			fmt.Printf("Running tests in packages: %q...\n", packages)
 		}
-		fmt.Println(msg)
 	}
 
 	// tack on whatever config vals were passed on by the user
@@ -142,12 +150,6 @@ func Test_Golang(goTestArgs string) error {
 
 	return sh.RunWithV(map[string]string{"PKGNAME": pkgName},
 		configVals[0], configVals[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
-}
-
-// Check for existence of a file.
-func fileExist(path string) (exists bool) {
-	_, err := os.Stat(path)
-	return err == nil
 }
 
 // Remove all temp json files produced during tests and merge them together.

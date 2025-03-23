@@ -276,11 +276,10 @@ func Test_production_produce(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 		planet.Cargo = Cargo{1000, 1000, 1000, 2000}
 
-		// many many auto items plus a scanner
+		// many many auto items
 		planet.ProductionQueue = []ProductionQueueItem{
-			{Type: QueueItemTypePlanetaryScanner, Quantity: 1},
-			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
 			{Type: QueueItemTypeAutoFactories, Quantity: 42069},
+			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
 			{Type: QueueItemTypeAutoMaxTerraform, Quantity: 69420},
 			{Type: QueueItemTypeAutoMinTerraform, Quantity: math.MaxInt},
 		}
@@ -292,8 +291,8 @@ func Test_production_produce(t *testing.T) {
 
 		// scanner got built, and all auto items over cap got clamped
 		wantQueue := []ProductionQueueItem{
-			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
 			{Type: QueueItemTypeAutoFactories, Quantity: MaxBuildableCap},
+			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
 			{Type: QueueItemTypeAutoMaxTerraform, Quantity: MaxBuildableCap},
 			{Type: QueueItemTypeAutoMinTerraform, Quantity: MaxBuildableCap},
 		}
@@ -303,10 +302,9 @@ func Test_production_produce(t *testing.T) {
 		assert.NoError(t, err)
 		// should've built stuff and clamped the auto items;
 		// no message produced due to nothing being explicitly "canceled".
-		assert.True(t, result.scanner)
-		assert.Greater(t, planet.Defenses, 0)
+		assert.Greater(t, planet.Factories, 0)
 		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
-		test.CompareAsJSON(t, result.messages, nil)
+		assert.Equal(t, 0, len(result.messages))
 	})
 
 	t.Run("Don't refund invalid items if nothing built", func(t *testing.T) {

@@ -6,7 +6,6 @@
 		"clear": true
 	},
 	"type": "shell",
-	"runOptions": { "reevaluateOnRerun": false },
 	"tasks": [
 		{
 			"label": "Run all tests",
@@ -186,6 +185,9 @@
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "browser"
+			},
+			"presentation": {
+				"group": "Launch"
 			}
 		},
 		{
@@ -220,8 +222,8 @@
 		{
 			"id": "packages",
 			"type": "promptString",
-			"default": "./...",
-			"description": "Enter list of packages to run \"go test\" on (relative from workspace root). Defaults to running all tests if left empty."
+			"default": "${relativeFileDirname}",
+			"description": "Enter a space-separated list of names or paths to packages to run \"go test\" on (relative to workspace root). Having no valid paths will default to running everything (./...)."
 		},
 		{
 			"id": "goTestName",
