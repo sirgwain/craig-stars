@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"math"
 	"reflect"
 	"testing"
 
@@ -113,7 +114,7 @@ func Test_production_produce(t *testing.T) {
 		// make a bunch of packets, along with some stuff to block queue
 		planet.ProductionQueue = []ProductionQueueItem{
 			{Type: QueueItemTypeMixedMineralPacket, Quantity: 1, Allocated: Cost{1, 1, 1, 3}},
-			{Type: QueueItemTypeMixedMineralPacket, Quantity: 1},
+			{Type: QueueItemTypeMixedMineralPacket, Quantity: 2},
 			{Type: QueueItemTypeMine, Quantity: 1},
 			{Type: QueueItemTypeBoraniumMineralPacket, Quantity: 2, Allocated: Cost{2, 2, 2, 6}},
 			{Type: QueueItemTypeGermaniumMineralPacket, Quantity: 2},
@@ -152,9 +153,9 @@ func Test_production_produce(t *testing.T) {
 				Name:          planet.Name,
 				QueueItemType: QueueItemTypeMixedMineralPacket,
 				Cost:          Cost{1, 1, 1, 3},
-				Amount:        240, // weight of canceled packets
+				Amount:        360, // weight of canceled packets
 				Amount2:       2,   // no. of canceled orders
-				PrevAmount:    2,   // no. of canceled items
+				PrevAmount:    3,   // no. of canceled items
 			},
 		}}
 
@@ -196,7 +197,7 @@ func Test_production_produce(t *testing.T) {
 			Type: PlayerMessagePlanetBuiltInvalidMineralPacketNoTarget,
 			Spec: PlayerMessageSpec{
 				Name:          planet.Name,
-				QueueItemType: QueueItemTypeNone, // No QueueItemType due to mixed packet types
+				QueueItemType: QueueItemTypeNone, // No QueueItemType due to multiple packet types being canceled
 				Cost:          Cost{4, 4, 4, 12},
 				Amount:        1000, // weight of canceled packets
 				Amount2:       3,    // no. of canceled orders
@@ -211,10 +212,10 @@ func Test_production_produce(t *testing.T) {
 	t.Run("Refund invalid items", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 
-		// make defenses an even 10 in all for cost
+		// make defenses an even 10 in all for cost, 
+		// and make scanners abhorrently expensive
 		rCopy := rules
 		rCopy.DefenseCost = Cost{10, 10, 10, 10}
-		rCopy.PlanetaryScannerCost = Cost{999, 999, 999, 999}
 
 		planet.Name = t.Name()
 		// exactly enough to finish 10 defenses
@@ -227,8 +228,8 @@ func Test_production_produce(t *testing.T) {
 			{Type: QueueItemTypeAutoDefenses, Quantity: 100},
 			{Type: QueueItemTypeDefenses, Quantity: 90, Allocated: Cost{5, 5, 5, 5}},
 			{Type: QueueItemTypeDefenses, Quantity: 11, Allocated: Cost{5, 5, 5, 5}},
-			{Type: QueueItemTypeDefenses, Quantity: 10, Allocated: Cost{5, 5, 5, 5}},
-			// super expensive scanner to soak up leftover minerals
+			{Type: QueueItemTypeDefenses, Quantity: 10, Allocated: Cost{5, 5, 5, 7}},
+			// scanner to soak up leftover allocated stuff
 			{Type: QueueItemTypePlanetaryScanner, Quantity: 1},
 		}
 
@@ -238,10 +239,10 @@ func Test_production_produce(t *testing.T) {
 		player.Messages = []PlayerMessage{}
 
 		// should end up with 100 defenses, with auto defenses still in the queue;
-		// scanner should soak up allocated resources from canceled defense items
+		// scanner should soak up allocated cost of canceled items
 		wantQueue := []ProductionQueueItem{
 			{Type: QueueItemTypeAutoDefenses, Quantity: 100},
-			{Type: QueueItemTypePlanetaryScanner, Quantity: 1, Allocated: Cost{15, 15, 15, 15}},
+			{Type: QueueItemTypePlanetaryScanner, Quantity: 1, Allocated: Cost{15, 15, 15, 17}},
 		}
 
 		wantMessages := []PlayerMessage{{
@@ -253,20 +254,60 @@ func Test_production_produce(t *testing.T) {
 			Type: PlayerMessagePlanetBuiltInvalidItem,
 			Spec: PlayerMessageSpec{
 				Name:          planet.Name,
-				Cost:          Cost{15, 15, 15, 15},
+				Cost:          Cost{15, 15, 15, 17},
 				QueueItemType: QueueItemTypeDefenses,
 				Amount:        111, // amount canceled
-				Amount2:       0,   // MaxBuildable
+				Amount2:       0,   // MaxBuildable at moment of first build
 				PrevAmount:    111, // Prior amount in queue
 			},
 		}}
 
+		// build time!
 		producer := newProducer(testLogger, &rCopy, planet, player)
 		result, err := producer.produce()
 		assert.NoError(t, err)
 		assert.Equal(t, 100, planet.Defenses)
+		assert.Equal(t, Mineral{}, planet.Cargo.ToMineral()) // make sure we actually paid for it
 		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
 		test.CompareAsJSON(t, result.messages, wantMessages)
+	})
+
+	t.Run("Clamp autos over 5K", func(t *testing.T) {
+		player, planet := newTestPlayerPlanet()
+
+		// max out installation stats
+		planet.Cargo = Cargo{10_000, 10_000, 10_000, 10_000}
+		planet.Defenses = 100
+		planet.Factories = 1000
+
+		// many many auto items plus a scanner
+		planet.ProductionQueue = []ProductionQueueItem{
+			{Type: QueueItemTypePlanetaryScanner, Quantity: 1},
+			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
+			{Type: QueueItemTypeAutoFactories, Quantity: 42069},
+			{Type: QueueItemTypeAutoMaxTerraform, Quantity: 69420},
+			{Type: QueueItemTypeAutoMaxTerraform, Quantity: math.MaxInt},
+		}
+
+		player.Race = *player.Race.WithSpec(&rules)
+		planet.Spec = computePlanetSpec(&rulee, player, planet)
+		player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
+		player.Messages = []PlayerMessage{}
+
+		// scanner got built, and all auto items over cap got clamped
+		wantQueue := []ProductionQueueItem{
+			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
+			{Type: QueueItemTypeAutoFactories, Quantity: MaxBuildableCap},
+			{Type: QueueItemTypeAutoMaxTerraform, Quantity: MaxBuildableCap},
+		}
+
+		producer := newProducer(testLogger, &rCopy, planet, player)
+		result, err := producer.produce()
+		assert.NoErr(t, err)
+		// should've built stuff and clamped the auto items
+		assert.True(t, planet.Scanner, true)
+		test.CompareAsJSON(t, result.messages, []PlayerMessage{})
+		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
 	})
 
 	t.Run("Don't refund invalid items if nothing built", func(t *testing.T) {
