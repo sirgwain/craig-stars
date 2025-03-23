@@ -58,12 +58,15 @@ export function commandable(playerNum: number, mo: MapObject): boolean {
 	);
 }
 
-export const positionKey = (pos: MapObject | Vector): string => {
+export const positionKey = (pos: MapObject | Vector | undefined): string => {
+	if (!pos) {
+		return '';
+	}
 	const mo = pos as MapObject;
 	const v = pos as Vector;
-	if (mo) {
+	if (mo && 'position' in mo) {
 		return `${mo.position.x},${mo.position.y}`;
-	} else {
+	} else if (v && 'x' in v) {
 		return `${v.x},${v.y}`;
 	}
 	return '';

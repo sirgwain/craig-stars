@@ -36,6 +36,7 @@ import {
 	type Waypoint
 } from '$lib/types/cs';
 import { fleetsSortBy } from '$lib/types/Fleet';
+import { positionKey } from '$lib/types/MapObject';
 import { CommandedPlanet, planetsSortBy } from '$lib/types/Planet';
 import type { CommandedPlayer } from '$lib/types/Player';
 import type { CS } from '$lib/wasm';
@@ -85,17 +86,6 @@ function addtoDict(mo: MapObject, dict: Record<string, MapObject[]>) {
 		dict[key] = [];
 	}
 	dict[key].push(mo);
-}
-
-function positionKey(pos: MapObject | Vector): string {
-	const mo = 'position' in pos && (pos as MapObject);
-	const v = 'x' in pos && (pos as Vector);
-	if (mo) {
-		return `${mo.position.x},${mo.position.y}`;
-	} else if (v) {
-		return `${v.x},${v.y}`;
-	}
-	return '';
 }
 
 export class Universe implements PlayerUniverse, DesignFinder {
@@ -357,7 +347,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	getCargoDestsByPosition(position: MapObject | Vector): CargoDest[] {
 		return this.mapObjectsByPosition[positionKey(position)]
-			.filter(
+			?.filter(
 				(mo) =>
 					[
 						MapObjectTypeFleet,
