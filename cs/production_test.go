@@ -2,7 +2,6 @@ package cs
 
 import (
 	"math"
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -212,10 +211,11 @@ func Test_production_produce(t *testing.T) {
 	t.Run("Refund invalid items", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 
-		// make defenses an even 10 in all for cost, 
+		// make defenses an even 10 in all for cost,
 		// and make scanners abhorrently expensive
 		rCopy := rules
 		rCopy.DefenseCost = Cost{10, 10, 10, 10}
+		rCopy.PlanetaryScannerCost = Cost{999, 999, 999, 999}
 
 		planet.Name = t.Name()
 		// exactly enough to finish 10 defenses
@@ -228,7 +228,7 @@ func Test_production_produce(t *testing.T) {
 			{Type: QueueItemTypeAutoDefenses, Quantity: 100},
 			{Type: QueueItemTypeDefenses, Quantity: 90, Allocated: Cost{5, 5, 5, 5}},
 			{Type: QueueItemTypeDefenses, Quantity: 11, Allocated: Cost{5, 5, 5, 5}},
-			{Type: QueueItemTypeDefenses, Quantity: 10, Allocated: Cost{5, 5, 5, 7}},
+			{Type: QueueItemTypeDefenses, Quantity: 10, Allocated: Cost{5, 5, 5, 5}},
 			// scanner to soak up leftover allocated stuff
 			{Type: QueueItemTypePlanetaryScanner, Quantity: 1},
 		}
@@ -242,7 +242,7 @@ func Test_production_produce(t *testing.T) {
 		// scanner should soak up allocated cost of canceled items
 		wantQueue := []ProductionQueueItem{
 			{Type: QueueItemTypeAutoDefenses, Quantity: 100},
-			{Type: QueueItemTypePlanetaryScanner, Quantity: 1, Allocated: Cost{15, 15, 15, 17}},
+			{Type: QueueItemTypePlanetaryScanner, Quantity: 1, Allocated: Cost{15, 15, 15, 15}},
 		}
 
 		wantMessages := []PlayerMessage{{
@@ -254,7 +254,7 @@ func Test_production_produce(t *testing.T) {
 			Type: PlayerMessagePlanetBuiltInvalidItem,
 			Spec: PlayerMessageSpec{
 				Name:          planet.Name,
-				Cost:          Cost{15, 15, 15, 17},
+				Cost:          Cost{15, 15, 15, 15},
 				QueueItemType: QueueItemTypeDefenses,
 				Amount:        111, // amount canceled
 				Amount2:       0,   // MaxBuildable at moment of first build
@@ -274,11 +274,7 @@ func Test_production_produce(t *testing.T) {
 
 	t.Run("Clamp autos over 5K", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
-
-		// max out installation stats
-		planet.Cargo = Cargo{10_000, 10_000, 10_000, 10_000}
-		planet.Defenses = 100
-		planet.Factories = 1000
+		planet.Cargo = Cargo{1000, 1000, 1000, 2000}
 
 		// many many auto items plus a scanner
 		planet.ProductionQueue = []ProductionQueueItem{
@@ -286,11 +282,11 @@ func Test_production_produce(t *testing.T) {
 			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
 			{Type: QueueItemTypeAutoFactories, Quantity: 42069},
 			{Type: QueueItemTypeAutoMaxTerraform, Quantity: 69420},
-			{Type: QueueItemTypeAutoMaxTerraform, Quantity: math.MaxInt},
+			{Type: QueueItemTypeAutoMinTerraform, Quantity: math.MaxInt},
 		}
 
 		player.Race = *player.Race.WithSpec(&rules)
-		planet.Spec = computePlanetSpec(&rulee, player, planet)
+		planet.Spec = computePlanetSpec(&rules, player, planet)
 		player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
 		player.Messages = []PlayerMessage{}
 
@@ -299,15 +295,18 @@ func Test_production_produce(t *testing.T) {
 			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
 			{Type: QueueItemTypeAutoFactories, Quantity: MaxBuildableCap},
 			{Type: QueueItemTypeAutoMaxTerraform, Quantity: MaxBuildableCap},
+			{Type: QueueItemTypeAutoMinTerraform, Quantity: MaxBuildableCap},
 		}
 
-		producer := newProducer(testLogger, &rCopy, planet, player)
+		producer := newProducer(testLogger, &rules, planet, player)
 		result, err := producer.produce()
-		assert.NoErr(t, err)
-		// should've built stuff and clamped the auto items
-		assert.True(t, planet.Scanner, true)
-		test.CompareAsJSON(t, result.messages, []PlayerMessage{})
+		assert.NoError(t, err)
+		// should've built stuff and clamped the auto items;
+		// no message produced due to nothing being explicitly "canceled".
+		assert.True(t, result.scanner)
+		assert.Greater(t, planet.Defenses, 0)
 		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
+		test.CompareAsJSON(t, result.messages, nil)
 	})
 
 	t.Run("Don't refund invalid items if nothing built", func(t *testing.T) {
@@ -629,27 +628,37 @@ func Test_production_produce(t *testing.T) {
 }
 
 func Test_production_allocatePartialBuild(t *testing.T) {
-	_, planet := newTestPlayerPlanet()
+	player, planet := newTestPlayerPlanet()
+	production := newProducer(testLogger, &rules, planet, player)
 
-	type args struct {
-		costPerItem Cost
-		allocated   Cost
-	}
 	tests := []struct {
-		name string
-		args args
-		want Cost
+		name        string
+		costPerItem Cost
+		available   Cost
+		want        Cost
 	}{
-		{"Factory 2kT Germ left", args{costPerItem: Cost{0, 0, 4, 10}, allocated: Cost{100, 100, 2, 100}}, Cost{0, 0, 2, 5}},
-		{"Factory 5 resources left", args{costPerItem: Cost{0, 0, 4, 10}, allocated: Cost{100, 100, 100, 5}}, Cost{0, 0, 2, 5}},
-		{"Up to 50% due to ironium shortage", args{costPerItem: Cost{10, 20, 30, 40}, allocated: Cost{5, 100, 100, 100}}, Cost{5, 10, 15, 20}},
+		{
+			name:        "more than enough to build",
+			costPerItem: Cost{10, 10, 10, 10},
+			available:   Cost{100, 100, 100, 100},
+			want:        Cost{10, 10, 10, 10},
+		},
+		{
+			name:        "less than half a factory",
+			costPerItem: Cost{0, 0, 4, 10},
+			available:   Cost{100, 100, 2, 4},
+			want:        Cost{0, 0, 1, 4},
+		},
+		{
+			name:        "Up to 50% due to ironium shortage",
+			costPerItem: Cost{10, 20, 30, 40},
+			available:   Cost{5, 100, 100, 100},
+			want:        Cost{5, 10, 15, 20},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			production := producer{planet: planet}
-
-			if got := production.allocatePartialBuild(tt.args.costPerItem, tt.args.allocated); !reflect.DeepEqual(got, tt.want) {
+			if got := production.allocatePartialBuild(tt.costPerItem, tt.available); got != tt.want {
 				t.Errorf("Planet.allocatePartialBuild() = %v, want %v", got, tt.want)
 			}
 		})

@@ -76,7 +76,7 @@ func Copy_Wasm_Exec() error {
 		return mg.Fatalf(1, "error during os.Stat(): \n%w", err)
 	}
 
-	// file exists
+	// copy file contents
 	path := goroot + "/lib/wasm/wasm_exec.js"
 	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js", path); err != nil {
 		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)

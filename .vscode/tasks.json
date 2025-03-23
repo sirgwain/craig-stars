@@ -227,7 +227,7 @@
 			"id": "goTestName",
 			"type": "promptString",
 			"default": ".*",
-			"description": "Enter regex of test file names to run. Subtests are separated by slashes (/) and spaces are replaced by underscores (_)."
+			"description": "Enter a regular expression matching test functions to run. Subtests are separated by slashes (/) and spaces are replaced by underscores (_)."
 		},
 		{
 			"id": "benchTime",

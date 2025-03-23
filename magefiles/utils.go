@@ -2,7 +2,6 @@ package main
 
 import (
 	"archive/zip"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -94,32 +93,28 @@ func Test_Golang(goTestArgs string) error {
 	// (not to mention their entire *job* is to test everything all at once)
 	args := strings.Fields(goTestArgs)
 	if !is_CI() {
-		hasSlash := false
 		var msg string
 		index := slices.IndexFunc(args, func(s string) bool {
-			// grab the first path we find that matches a package identifier
+			// grab the first path we find that vaguely matches a package identifier
 			s = filepath.ToSlash(s)
-			if strings.HasPrefix(s, "./") {
-				return true
-			}
-
-			if !hasSlash && fileExist("./"+s) {
-				hasSlash = true
-			}
-			return fileExist("./" + s)
+			return fileExist(s) || fileExist("./"+s)
 		})
 
-		switch {
-		case index == -1:
-			msg = "No valid package identifier found; defaulting to running everything (./...)."
+		if index == -1 {
+			// no valid package marker given; do everything
+			msg = "No valid package identifier found; defaulting to running everything (./...)"
 			a := make([]string, 1, len(args)+1)
 			a[0] = "./..."
 			args = append(a, args...)
-		case hasSlash:
-			msg = fmt.Sprintf("Package identifier %s at position %d matched relative file .%s%[1]s; using as package.", args[index], index, string(filepath.Separator))
-			args[index] = filepath.Join("./", args[index])
-		default:
-			msg = fmt.Sprintf("Package identifier %s at position %d read successfully.", args[index], index)
+		} else {
+			args[index] = filepath.ToSlash(args[index])
+
+			if strings.HasPrefix(args[index], "./") {
+				msg = fmt.Sprintf("Package identifier %s at position %d read successfully.", args[index], index)
+			} else {
+				msg = fmt.Sprintf("Package identifier %q at position %d matched relative file ./%[1]s; using as package", args[index], index)
+				args[index] = "./" + args[index]
+			}
 		}
 		fmt.Println(msg)
 	}
@@ -138,7 +133,7 @@ func Test_Golang(goTestArgs string) error {
 
 	// merge together any temporary json files together once we're done testing.
 	// We do this now to save time - if the prior steps fail,
-	// there won't be any KSON files to merge)
+	// there won't be anything new to merge
 	defer func() {
 		if err := Merge_Temp_JSON(); err != nil {
 			fmt.Printf("error merging temp JSON diffs after test run:\n%v\n", err)
@@ -149,9 +144,10 @@ func Test_Golang(goTestArgs string) error {
 		configVals[0], configVals[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
 }
 
-func fileExist(path string) bool {
+// Check for existence of a file.
+func fileExist(path string) (exists bool) {
 	_, err := os.Stat(path)
-	return !errors.Is(err, os.ErrNotExist)
+	return err == nil
 }
 
 // Remove all temp json files produced during tests and merge them together.

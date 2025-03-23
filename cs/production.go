@@ -226,7 +226,7 @@ func (p *producer) produce() (result productionResult, err error) {
 			maxBuildable = MaxBuildableCap
 		}
 
-		// If we haven't built anything yet, check to make sure 
+		// If we haven't built anything yet, check to make sure
 		// we aren't trying to build over cap.
 		// We do this for everything ahead of us upon building (or trying to build)
 		// an item, but this ensures we don't forget to check before that happens.
@@ -297,7 +297,7 @@ func (p *producer) produce() (result productionResult, err error) {
 		// After all that, we can finally try to build the dang thing.
 
 		// determine how many copies to build and dock cost from tally
-		numBuilt, spent := p.getNumBuilt(item, itemCost, available, maxBuildable)
+		numBuilt, spent := p.getNumBuilt(item, itemCost, available, maxBuildable) // numBuilt is strictly elss than item.Quantity
 		available = available.Subtract(spent)
 
 		// if we can't build anything, go directly to cleanup.
@@ -334,24 +334,24 @@ func (p *producer) produce() (result productionResult, err error) {
 
 		// Remove any items ahead of us inside the queue that are over cap.
 		if itemIndex < len(planet.ProductionQueue)-1 {
-			modQueue := planet.ProductionQueue[:itemIndex+1] // everything before us can stay
+			modQueue := planet.ProductionQueue[:itemIndex+1] // uses same backing array
 			for _, item := range planet.ProductionQueue[itemIndex+1:] {
 
-				maxBuildable := planet.MaxBuildable(p.player, item.Type)
-				if maxBuildable == Infinite || item.Type.IsAuto() {
+				cap := planet.MaxBuildable(p.player, item.Type)
+				if cap == Infinite || item.Type.IsAuto() {
 					// infinite is the constant int of -1, but we want a very big number
-					maxBuildable = MaxBuildableCap
+					cap = MaxBuildableCap
 				}
 
 				// clamp item quantity down to maxBuildable
-				overCap := item.Quantity - m
+				overCap := item.Quantity - cap
 				if overCap > 0 {
 					p.log.Debug().
 						Any("Item", item).
-						Int("Qty", item.Quantity).
-						Int("maxBuildable", m).
+						Int("Old Quantity", item.Quantity).
+						Int("Max Buildable", cap).
 						Int("New Quantity", item.Quantity-overCap).
-						Msgf("clamping queue item quantity down to maxBuildable")
+						Msgf("clamping queue item quantity down to MaxBuildable")
 					item.Quantity -= overCap // a-(a-b) = a-a+b = b
 				}
 
@@ -359,11 +359,11 @@ func (p *producer) produce() (result productionResult, err error) {
 					// still have copies to build; keep in queue
 					modQueue = append(modQueue, item)
 				} else {
-					// quantity <= 0; remove from new queue
-					available = available.Add(item.Allocated) // refund previously allocated amount
+					// can't build any more; exclude from new queue
+					available = available.Add(item.Allocated) // refund previously allocated cost
 					result.itemsBuilt = append(result.itemsBuilt,
 						itemBuilt{index: item.index, queueItemType: item.Type, canceled: true})
-					p.updateCanceledMessage(&result, item, overCap, m)
+					p.updateCanceledMessage(&result, item, overCap, cap)
 				}
 			}
 
@@ -384,16 +384,7 @@ func (p *producer) produce() (result productionResult, err error) {
 		if !item.Type.IsAuto() {
 			// concrete items never reset, so dock amount built from remaining quantity
 			item.Quantity -= numBuilt
-			if item.Quantity < 0 {
-				// should never happen, but covering our bases
-				p.log.Warn().
-					Any("Item", item).
-					Int("Qty", item.Quantity).
-					Int("PrevQty", item.Quantity+numBuilt).
-					Int("NumBuilt", numBuilt).
-					Msgf("concrete item quantity went negative after building")
-				continue
-			} else if item.Quantity == 0 {
+			if item.Quantity == 0 {
 				// fully built item; move on
 				continue
 			} else {
@@ -424,11 +415,11 @@ func (p *producer) produce() (result productionResult, err error) {
 
 		if numBuilt >= item.Quantity || numBuilt >= maxBuildable ||
 			available.DivideMineral(itemCost.ToMineral()) < 1 {
-			// We've built all that we can for this auto item; move on
+			// We either can't build any more
 			continue
 		}
 
-		// we still have auto items left to build and enough minerals
+		// we still have copies of this auto items left to build and enough minerals
 		// to complete one auto item; prepend a concrete item
 		q := make([]ProductionQueueItem, 1, len(newQueue)+1)
 		q[0] = ProductionQueueItem{
@@ -470,15 +461,15 @@ func (p *producer) produce() (result productionResult, err error) {
 	return result, nil
 }
 
-// validate a packet in the production queue
+// validatePacket checks for invalid packets lacking valid starbases or targets.
+// A valid packet or non-packet item returns PlayerMessageNone, true.
 func (p *producer) validatePacket(item ProductionQueueItem, planet *Planet, builtBase *ShipDesign) (msgType PlayerMessageType, valid bool) {
 	if !item.Type.IsPacket() {
 		return PlayerMessageNone, true
 	}
 
-	//figure out if we will have a driver by the time we build this packet
+	// figure out if we will have a driver by the time we build this packet
 	var noDriver bool
-
 	if builtBase == nil {
 		// no prior base, so we check the planet's current base
 		noDriver = !planet.Spec.HasMassDriver
@@ -498,17 +489,16 @@ func (p *producer) validatePacket(item ProductionQueueItem, planet *Planet, buil
 
 // getNumBuilt returns how many of a given production queue item we can build
 // and how how much to spend on it.
-func (p *producer) getNumBuilt(item ProductionQueueItem, cost, availableToSpend Cost, maxBuildable int) (numBuilt int, spent Cost) {
-	if cost == (Cost{}) {
+func (p *producer) getNumBuilt(item ProductionQueueItem, itemCost, availableToSpend Cost, maxBuildable int) (numBuilt int, spent Cost) {
+	if itemCost == (Cost{}) {
 		return min(item.Quantity, maxBuildable), Cost{}
 	}
 
-	// figure out how many we can build;
-	// make sure we only build up to the quantity required
-	// and we don't build more than the planet supports
+	// The amount we end up building is the lowest among quantity able to be built,
+	//
 	numBuilt = max(0, min(item.Quantity, maxBuildable,
-		int(availableToSpend.DivideCost(cost))))
-	spent = MultiplyCost(cost, numBuilt)
+		int(availableToSpend.DivideCost(itemCost))))
+	spent = MultiplyCost(itemCost, numBuilt)
 
 	return numBuilt, spent
 }
@@ -575,9 +565,9 @@ func (p *producer) terraformPlanet(numSteps int) []TerraformResult {
 // to a partially built production queue item, based on its cost and available
 // minerals/resources.
 func (p *producer) allocatePartialBuild(costPerItem Cost, available Cost) (allocated Cost) {
-	// Costs are allocated by lowest percentage (except resources), i.e. if we require
+	// Costs are allocated by lowest percentage; if we require
 	// Cost(10, 10, 10, 100) and we only have Cost(1, 10, 10, 100)
-	// we allocate Cost(1, 1, 1, 100).
+	// we allocate Cost(1, 1, 1, 10).
 	// The min amount we have is 10% for ironium, so we
 	// apply 10% to each cost amount
 	ironiumPerc := 1.0
