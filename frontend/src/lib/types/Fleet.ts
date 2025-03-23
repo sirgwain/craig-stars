@@ -821,10 +821,7 @@ export function canTransferCargoType(fleet: Fleet, dest: CargoDest, cargoType: C
 }
 
 // true if this fleet can load cargo
-export function canLoadCargo(fleet: Fleet, dest: CargoDest): boolean {
-	if (!fleet.spec?.cargoCapacity) {
-		return false;
-	}
+export function canLoadFuelOrCargo(fleet: Fleet, dest: CargoDest): boolean {
 	// can always load from our own stuff, or empty stuff
 	if (dest?.playerNum === fleet.playerNum || dest?.playerNum === None) {
 		return true;

@@ -8,6 +8,7 @@
 	};
 
 	let { cargo = emptyCargo(), transferAmount = emptyCargo() }: Props = $props();
+	let colonists = $derived((cargo?.colonists ?? 0) + (transferAmount?.colonists ?? 0))
 </script>
 
 <div class="grid grid-cols-2">
@@ -30,6 +31,14 @@
 
 	<div class="text-right mr-1 h-8 select-none">Colonists</div>
 	<div class="text-right">
-		{(cargo?.colonists ?? 0) + (transferAmount.colonists ?? 0)}kT
+		{colonists}kT
 	</div>
+
+	{#if colonists}
+		<div class="my-auto col-span-2 ml-auto pr-1">
+			<span class="italic text-sm"
+				>{(colonists * 100).toLocaleString()} colonists</span
+			>
+		</div>
+	{/if}
 </div>

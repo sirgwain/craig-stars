@@ -6,7 +6,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 	import { MapObjectTypeFleet, type Fleet } from '$lib/types/cs';
-	import { canLoadCargo, type CommandedFleet } from '$lib/types/Fleet';
+	import { canLoadFuelOrCargo, type CommandedFleet } from '$lib/types/Fleet';
 	import { commandable, getMapObjectName, key } from '$lib/types/MapObject';
 	import { onDestroy } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
@@ -29,6 +29,9 @@
 			selectedMapObjectKey = key(cargoDestsInOrbit.find((f) => key(f) !== key(fleet)));
 		}
 	});
+
+	$inspect('selectedMapObjectKey', selectedMapObjectKey);
+	$inspect('cargoDestsInOrbit', cargoDestsInOrbit);
 
 	let mapObjectsInOrbitByKey = $derived(
 		cargoDestsInOrbit.reduce<Record<string, CargoDest>>((acc, fleet) => {
@@ -61,7 +64,7 @@
 	const transfer = () => {
 		if (
 			!selectedMapObject ||
-			!canLoadCargo(fleet, selectedMapObject) ||
+			!canLoadFuelOrCargo(fleet, selectedMapObject) ||
 			!onShowCargoTransferDialog
 		) {
 			return;
@@ -103,6 +106,18 @@
 			onchange={(e) => onSelectedFleetChange(e.currentTarget.value)}
 			class="select select-outline select-secondary select-sm py-0 text-sm"
 		>
+			{#if cargoDestsByPlayer[0]}
+				{#each cargoDestsByPlayer[0] as mo}
+					<option
+						style={mo?.playerNum !== $player.num
+							? `color: ${$universe.getPlayerColor(mo?.playerNum)};`
+							: ''}
+						value={key(mo)}
+					>
+						{getMapObjectName(mo)}
+					</option>
+				{/each}
+			{/if}
 			{#each cargoDestsByPlayer[$player.num]?.filter((f) => f && key(f) !== key(fleet)) as f}
 				<option
 					style={f?.playerNum !== $player.num
@@ -153,7 +168,7 @@
 				<div class="tooltip" data-tip="transfer cargo">
 					<button
 						onclick={transfer}
-						disabled={!selectedMapObject || !canLoadCargo(fleet, selectedMapObject)}
+						disabled={!selectedMapObject || !canLoadFuelOrCargo(fleet, selectedMapObject)}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto"
 						>Transfer
