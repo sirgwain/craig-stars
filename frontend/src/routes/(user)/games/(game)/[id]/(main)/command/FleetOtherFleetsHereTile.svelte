@@ -30,9 +30,6 @@
 		}
 	});
 
-	$inspect('selectedMapObjectKey', selectedMapObjectKey);
-	$inspect('cargoDestsInOrbit', cargoDestsInOrbit);
-
 	let mapObjectsInOrbitByKey = $derived(
 		cargoDestsInOrbit.reduce<Record<string, CargoDest>>((acc, fleet) => {
 			acc[key(fleet)] = fleet;
@@ -103,6 +100,7 @@
 	<CommandTile title="Other Entities Here">
 		<select
 			data-type="other-fleets-here-select"
+			value={selectedMapObjectKey}
 			onchange={(e) => onSelectedFleetChange(e.currentTarget.value)}
 			class="select select-outline select-secondary select-sm py-0 text-sm"
 		>
