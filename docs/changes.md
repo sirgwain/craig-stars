@@ -4,20 +4,36 @@
 
 Here is a non-exhaustive list of differences between `craig-stars` and the original game. Features yet to be implemented are not included.
 
+<!-- TODO: Do we want to make this into a table???-->
+
 ## Medium-ish changes
 
-- Upgrading a starbase now checks all slots in _both_ designs when calculating refunds, rather than only the corresponding slot in the new design[^1]. Additionally, part refund/transfer checks still occur when swapping hulls (so adding a component and swapping hulls on consecutive turns costs the same regardless of order).
+These changes, while none are explicitly "game-breaking", are still good to keep in mind while playing.
 
-[^1]: For refernce, Stars! charges extra for merely moving components to a different slot.
+- Upgrading a starbase now checks all slots in _both_ designs when calculating refunds, rather than only the corresponding slot in the new design[^1]. Additionally, part refund/transfer checks still occur when swapping hulls (so adding a component and swapping hulls on consecutive turns costs the same regardless of the order of the 2 builds).
 
-<!-- TODO: Check and fix more bugs -->
+- Items that would have been canceled during planetary production (invalid mineral packets, installations, etc.) will be automatically removed during turn generation and refund any previously spent minerals/resources. The production queue estimator also explicitly highlights such items as being canceled.
+
+- [Tech trades by scrapping](https://wiki.starsautohost.org/wiki/Tech_Trade_by_Scrapping) (both for techs and MT parts) now tally up chances for each _token_ in the fleet, not each individual fleet being scrapped. This has virtually no impact on most forms of gameplay, simply removing the need to split one's trading ships before scrapping.
+
+<!--
+- Fleets hitting minefields will reduce mine counts on a per-token basis instead of a per-fleet basis. This (again) has little to no actual bearing on most forms of gameplay, other than making (collision/chaff sweeping)[https://wiki.starsautohost.org/wiki/Collision_sweeping] slightly less annoying to perform.
+-->
+
+[^1]: For reference, Stars! charges extra for merely moving a component to a different slot on the same hull.
 
 ## Bugs fixed
+
+This is a list of confirmed "bugs" from the base game fixed by `craig-stars`. More will be added as fixes for them are confirmed.
+
+<!-- TODO: Check and fix more bugs -->
 
 - [0.2% min damage bug](https://wiki.starsautohost.org/wiki/Known_Bugs#0.2%_Minimum_Damage)
 - [Colonization Module Check](https://wiki.starsautohost.org/wiki/Known_Bugs#Colonization_Module_Check)
 - [Cheap Starbase](https://wiki.starsautohost.org/wiki/Known_Bugs#Cheap_Starbase)
 
-## Minor changes
+## Extremely minor changes
 
-- The `DeltaPopulation` variable responsible for tracking pop growths below multiples of 100 did not reset when abandoning or invading a planet. This is fixed in `craig-stars`.
+These changes have next to no tangible impact on gameplay, only being mentioned out of a sence of completeness.
+
+- The `DeltaPopulation` variable responsible for tracking pop growths below multiples of 100 would not reset when abandoning or invading a planet. This is fixed in `craig-stars`.
