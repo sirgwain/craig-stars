@@ -20,7 +20,7 @@ type Universe struct {
 	MysteryTraders       []*MysteryTrader `json:"mysteryTraders,omitempty"`
 	Salvages             []*Salvage       `json:"salvage,omitempty"`
 	battlePlansByNum     map[playerBattlePlanNum]*BattlePlan
-	mapObjectsByPosition map[Vector][]interface{}
+	mapObjectsByPosition map[Vector][]any
 	fleetsByNum          map[playerObject]*Fleet
 	designsByNum         map[playerObject]*ShipDesign
 	mineFieldsByNum      map[playerObject]*MineField
@@ -526,7 +526,7 @@ func (u *Universe) deleteSalvage(salvage *Salvage) {
 	u.removeMapObjectAtPosition(salvage, salvage.Position)
 }
 
-// delete a salvage from the universe
+// delete a packet from the universe
 func (u *Universe) deletePacket(packet *MineralPacket) {
 	packet.Delete = true
 
@@ -600,25 +600,26 @@ func (u *Universe) getMineralPackets(playerNum int) []*MineralPacket {
 }
 
 // get a slice of mapobjects at a position, or nil if none
-func (u *Universe) getMapObjectsAtPosition(position Vector) []interface{} {
+func (u *Universe) getMapObjectsAtPosition(position Vector) []any {
 	return u.mapObjectsByPosition[position]
 }
 
 // get a slice of mapobjects at a position, or nil if none
-func (u *Universe) updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector) {
+func (u *Universe) updateMapObjectAtPosition(mo any, originalPosition, newPosition Vector) {
 	mos := u.mapObjectsByPosition[originalPosition]
-	if mos != nil {
-		updatedMos := make([]interface{}, 0, len(mos)-1)
-		for _, existingMo := range mos {
-			if existingMo == mo {
-				continue
-			}
-			updatedMos = append(updatedMos, existingMo)
-		}
-		u.mapObjectsByPosition[originalPosition] = updatedMos
-	} else {
-		u.log.Warn().Msgf("tried to update position of %s from %v to %v, no mapobjects were found at %v", mo, originalPosition, newPosition, originalPosition)
+	if mos == nil {
+		u.log.Warn().Msgf("tried to update position of %s from %v to %v, but no mapobjects were found there", mo, originalPosition, newPosition)
+		return
 	}
+
+	updatedMos := make([]any, 0, len(mos)-1)
+	for _, existingMo := range mos {
+		if existingMo == mo {
+			continue
+		}
+		updatedMos = append(updatedMos, existingMo)
+	}
+	u.mapObjectsByPosition[originalPosition] = updatedMos
 
 	// add the new object to the list
 	u.addMapObjectByPosition(mo, newPosition)

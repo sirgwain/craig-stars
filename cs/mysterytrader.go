@@ -377,7 +377,7 @@ func (mt *MysteryTrader) move() {
 	dist := float64(mt.WarpSpeed * mt.WarpSpeed)
 
 	// make sure we end up at a whole number
-	vectorTravelled := mt.Destination.Subtract(mt.Position).Normalized().Scale(dist)
+	vectorTravelled := mt.Destination.Subtract(mt.Position).Normalized().Multiply(dist)
 	dist = vectorTravelled.Length()
 	// don't overshoot
 	dist = min(totalDist, dist)
@@ -387,7 +387,7 @@ func (mt *MysteryTrader) move() {
 	} else {
 		// move along the heading...
 		mt.Heading = (mt.Destination.Subtract(mt.Position)).Normalized()
-		mt.Position = mt.Position.Add(mt.Heading.Scale(dist))
+		mt.Position = mt.Position.Add(mt.Heading.Multiply(dist))
 		mt.Position = mt.Position.Round()
 	}
 }

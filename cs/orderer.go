@@ -147,7 +147,7 @@ func (o *orders) updatePlanetSpec(rules *Rules, player *Player, planet *Planet) 
 
 // update the orders to a fleet
 func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders) {
-	// copy user modifiable things to the fleet fleet
+	// copy user modifiable things to the fleet
 	fleet.RepeatOrders = orders.RepeatOrders
 	fleet.BattlePlanNum = orders.BattlePlanNum
 

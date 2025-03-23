@@ -43,25 +43,26 @@ func TestMineField_getDecayRate(t *testing.T) {
 
 func TestMineField_reduceMineFieldOnImpact(t *testing.T) {
 	tests := []struct {
-		name     string
-		numMines int
-		want     int
+		name      string
+		numMines  int
+		numTokens int
+		want      int
 	}{
-		{"remove all", 10, 0},
-		{"remove min", 20, 10},
-		{"remove 5% from small field", 500, 475},
-		{"remove 50 from medium field", 5000, 4950},
-		{"remove 5% from big field", 10_000, 9500},
+		{"10 mines, field cleared", 10, 1, 0},
+		{"1000 mines, 9.75% clear", 1000, 2, 902},
+		{"5K mines, 50 tokens", 5000, 50, 2500},
+		{"reduces down tfo 5K", 20000, 30, 4656},
+		// 28 hits reduce field down to 4756 (2000*0.95^28); last 2 knock off extra 100
+		{"163 hits clear field", 20000, 163, 0},
+		// 28 hits reduce field down to 4756; 76 hits reduce down to 956
+		// 31 hits reduce down to 195 mines; last 20 clear the field
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mineField := &MineField{
-				NumMines: tt.numMines,
-			}
-
-			mineField.reduceMineFieldOnImpact()
+			mineField := &MineField{NumMines: tt.numMines}
+			mineField.reduceMineFieldOnImpact(tt.numTokens)
 			if mineField.NumMines != tt.want {
-				t.Errorf("MineField.reduceMineFieldOnImpact() = %v, want %v", mineField.NumMines, tt.want)
+				t.Errorf("MineField.reduceMineFieldOnImpact() produced mine count %v, want %v", mineField.NumMines, tt.want)
 			}
 		})
 	}
@@ -233,33 +234,52 @@ func TestMineField_damageFleet(t *testing.T) {
 }
 
 func TestMineField_sweep(t *testing.T) {
-	type fields struct {
-		mineFieldPosition Vector
-		numMines          int
-	}
-	type args struct {
+	tests := []struct {
+		name          string
+		numMines      int
 		fleetPosition Vector
 		mineSweep     int
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   int
+		fieldType     MineFieldType
+		want          int
 	}{
-		{"sweep mines in center", fields{mineFieldPosition: Vector{}, numMines: 100}, args{fleetPosition: Vector{}, mineSweep: 10}, 10},
-		{"sweep all mines", fields{mineFieldPosition: Vector{}, numMines: 100}, args{fleetPosition: Vector{}, mineSweep: 1000}, 100},
 		{
-			"radius 10 minefield, we are 9 away so we can sweep it down to a 9ly mf (81 mines)",
-			fields{mineFieldPosition: Vector{}, numMines: 100},
-			args{fleetPosition: Vector{9, 0}, mineSweep: 1000},
-			100 - 81, // sweep from 10 radius to 9 radius so we are just on the edge
+			name:          "sweep mines in center",
+			numMines:      100,
+			fleetPosition: Vector{},
+			mineSweep:     10,
+			fieldType:     MineFieldTypeStandard,
+			want:          10,
+		},
+		{
+			name:          "sweep all mines",
+			numMines:      100,
+			fleetPosition: Vector{},
+			mineSweep:     1000,
+			fieldType:     MineFieldTypeStandard,
+			want:          100,
+		},
+		{
+			name:          "sweep to current position",
+			numMines:      100,
+			fleetPosition: Vector{9, 0},
+			mineSweep:     1000,
+			fieldType:     MineFieldTypeStandard,
+			want:          19, // 100-81
+		},
+		{
+			name:          "speed bump harder to sweep",
+			numMines:      10000,
+			fleetPosition: Vector{},
+			mineSweep:     3000,
+			fieldType:     MineFieldTypeSpeedBump,
+			want:          1000, // speed bumps take 3x longer to sweep
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mineField := newMineField(testPlayer(), MineFieldTypeStandard, tt.fields.numMines, 1, tt.fields.mineFieldPosition)
-			if got := mineField.sweep(&rules, tt.args.fleetPosition, tt.args.mineSweep); got != tt.want {
+			mineField := newMineField(testPlayer(), tt.fieldType, tt.numMines, 1, Vector{})
+			if got := mineField.sweep(tt.fleetPosition, tt.mineSweep,
+				rules.MineFieldStatsByType[tt.fieldType].SweepFactor); got != tt.want {
 				t.Errorf("MineField.sweep() = %v, want %v", got, tt.want)
 			}
 		})

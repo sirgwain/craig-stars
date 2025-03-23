@@ -42,9 +42,9 @@ func (ai *aiPlayer) getMaxWarp(dist float64, fleet *cs.Fleet) int {
 	// start at freespeed+1 and move up until we run out of fuel
 	var speed int
 	for speed = freeSpeed + 1; speed < fleet.Spec.Engine.MaxSafeSpeed; speed++ {
-		fuelUsed := fleet.GetFuelCost(ai.Player, speed, dist)
+		fuelUsed := fleet.GetFuelUsed(ai.Player, speed, dist)
 
-		// we are using too much fuel, go to the previous speed
+		// if we run out of fuel, use the previous speed
 		if fuelUsed > fleet.Fuel {
 			speed--
 			break

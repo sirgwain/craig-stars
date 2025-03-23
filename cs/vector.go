@@ -5,8 +5,11 @@ import (
 	"math"
 )
 
-// A simple 2D vector with handy functions for moving things in space, calculating distance, etc
-// Many of these functions were taken from Godot source, thanks Godot folks.
+const doesNotIntersect = -1
+
+// A 2D vector (direction or point), containing
+// handy functions for moving things in space, calculating distance, etc.
+// Many of these functions were taken from Godot source, thanks Godot folks!
 type Vector struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
@@ -20,44 +23,46 @@ func (v Vector) DistanceSquaredTo(to Vector) float64 {
 	return math.Pow(v.X-to.X, 2) + math.Pow(v.Y-to.Y, 2)
 }
 
+// Return the distance from one vector to another using the Pythagorean theorem.
 func (v Vector) DistanceTo(to Vector) float64 {
-	return math.Sqrt((v.X-to.X)*(v.X-to.X) + (v.Y-to.Y)*(v.Y-to.Y))
+	return math.Sqrt(v.DistanceSquaredTo(to))
 }
 
+func (addend Vector) Add(augend Vector) Vector {
+	return Vector{addend.X + augend.X, addend.Y + augend.Y}
+}
+
+// Subtract 2 vectors and return the result.
+//
+// Oftentimes used to generate a direction vector from 2 point vectors.
 func (minuend Vector) Subtract(subtrahend Vector) Vector {
 	return Vector{minuend.X - subtrahend.X, minuend.Y - subtrahend.Y}
 }
 
-func (v1 Vector) Add(v2 Vector) Vector {
-	return Vector{v1.X + v2.X, v1.Y + v2.Y}
-}
-
-func (v Vector) Scale(scale float64) Vector {
+// Multiply (or scale) a vector by the given factor.
+func (v Vector) Multiply(scale float64) Vector {
 	return Vector{v.X * scale, v.Y * scale}
 }
 
 func (v Vector) LengthSquared() float64 {
-	return (v.X * v.X) + (v.Y * v.Y)
+	return math.Pow(v.X, 2) + math.Pow(v.Y, 2)
 }
 
 func (v Vector) Length() float64 {
-	return math.Sqrt((v.X * v.X) + (v.Y * v.Y))
+	return math.Sqrt(v.LengthSquared())
 }
 
+// return this vector with length normalized to equal 1.
 func (v Vector) Normalized() Vector {
-	lengthsq := v.LengthSquared()
-
-	if lengthsq == 0 {
-		v.X = 0
-		v.Y = 0
-	} else {
-		length := math.Sqrt(lengthsq)
-		v.X /= length
-		v.Y /= length
+	return Vector{
+		X: v.X / v.Length(),
+		Y: v.Y / v.Length(),
 	}
-	return v
 }
 
+// Return the dot product of 2 vectors.
+//
+//	a.Dot(b) = a.x*b.x + a.y*b.y
 func (v Vector) Dot(other Vector) float64 {
 	return v.X*other.X + v.Y*other.Y
 }
@@ -91,12 +96,12 @@ func segmentIntersectsCircle(segmentFrom, segmentTo, circlePosition Vector, circ
 	// A discriminant below 0 implies a non-real value,
 	// so it definitely won't be in the range of 0 to 1.
 	if discriminant < 0 {
-		return -1
+		return doesNotIntersect
 	}
 
 	// If we can assume that the line segment starts outside the circle
 	// (e.g. for continuous time collision detection), the following can be
-	// skipped and we can just return the equivalent of res1.
+	// skipped and we can just return the equivalent of root1.
 	discriminant = math.Sqrt(discriminant)
 	root1 := (-b - discriminant) / (2 * a)
 	root2 := (-b + discriminant) / (2 * a)
@@ -107,7 +112,7 @@ func segmentIntersectsCircle(segmentFrom, segmentTo, circlePosition Vector, circ
 	if root2 >= 0 && root2 <= 1 {
 		return root2
 	}
-	return -1
+	return doesNotIntersect
 }
 
 // Returns true if this point is in a circle

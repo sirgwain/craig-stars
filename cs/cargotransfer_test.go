@@ -74,7 +74,7 @@ func TestCargoTransfers_splitFleetCargoTransfers(t *testing.T) {
 
 			got := tt.cargoTransfers.getTransfers(tt.args.source.Position)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CargoTransfers.mergeFleetCargoTransfers() \ngot: \n%v\nwant: \n%v", got, tt.want)
+				t.Errorf("CargoTransfers.mergeFleetCargoTransfers() = got: \n%v; want: \n%v", got, tt.want)
 			}
 		})
 	}
@@ -196,7 +196,7 @@ func TestCargoTransfers_mergeFleetCargoTransfers(t *testing.T) {
 			tt.cargoTransfers.mergeByHandTransfers(tt.args.fleet, tt.args.mergingFleets)
 			got := tt.cargoTransfers.getTransfers(tt.args.fleet.Position)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CargoTransfers.mergeFleetCargoTransfers() \ngot: \n%v\nwant: \n%v", got, tt.want)
+				t.Errorf("CargoTransfers.mergeFleetCargoTransfers() = got: \n%v; want: \n%v", got, tt.want)
 			}
 		})
 	}

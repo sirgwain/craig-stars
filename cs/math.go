@@ -130,3 +130,18 @@ func Abs[T constraints.Integer | constraints.Float](num T) T {
 	}
 	return num
 }
+
+// Divide 2 integers and round the result up to the nearest whole number.
+func divideRoundUp[I constraints.Integer](dividend, divisor I) I {
+	return (dividend + divisor - 1) / divisor
+}
+
+// LogBase computes the logarithm of a number with the given base.
+// Returns NaN if base <= 0 or base == 1, or if x <= 0.
+func LogBase[F constraints.Float](base, x F) F {
+	if base <= 0 || base == 1 || x <= 0 {
+		return F(math.NaN())
+	}
+	// logB(x) = logA(x) / logA(B) for any A, B > 0 and != 1
+	return F(math.Log2(float64(x)) / math.Log2(float64(base)))
+}

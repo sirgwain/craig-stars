@@ -92,7 +92,7 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 		dist = math.Ceil(totalDist)
 	}
 
-	vectorTravelled := target.Position.Subtract(packet.Position).Normalized().Scale(dist)
+	vectorTravelled := target.Position.Subtract(packet.Position).Normalized().Multiply(dist)
 	dist = vectorTravelled.Length()
 
 	// don't overshoot
@@ -104,7 +104,7 @@ func (packet *MineralPacket) movePacket(rules *Rules, player *Player, target *Pl
 		// move this packet closer to the next planet
 		packet.distanceTravelled = dist
 		packet.Heading = target.Position.Subtract(packet.Position).Normalized()
-		packet.Position = packet.Position.Add(packet.Heading.Scale(dist))
+		packet.Position = packet.Position.Add(packet.Heading.Multiply(dist))
 		packet.Position = packet.Position.Round()
 	}
 }

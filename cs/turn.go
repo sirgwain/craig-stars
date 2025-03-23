@@ -87,7 +87,7 @@ func (t *turnGenerator) generateTurn() error {
 	t.planetGrow()
 	t.packetMove(true)   // move packets built this turn
 	t.decayPackets(true) // decay packets built this turn
-	t.fleetRefuel()      // refuel after production so fleets will refuel at planets that just built a starbase this turn
+	t.fleetRefuel()      // refuel after production so fleets will refuel at planets that just built starbases
 	t.randomCometStrike()
 	t.randomMineralDeposit()
 	t.randomPlanetaryChange()
@@ -553,57 +553,60 @@ func (t *turnGenerator) fleetLoad() {
 			continue
 		}
 
-		player := t.game.getPlayer(fleet.PlayerNum)
 		wp := &fleet.Waypoints[0]
+		if wp.processed || wp.Task != WaypointTaskTransport {
+			continue
+		}
 
-		if !wp.processed && wp.Task == WaypointTaskTransport {
-			dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
-			if !ok || dest.Deleted() {
-				// can't load from space
-				continue
-			}
+		dest, ok := t.game.getCargoHolder(wp.TargetType, wp.TargetNum, wp.TargetPlayerNum)
+		if !ok {
+			continue
+		}
 
-			results := cargoTransferer.load(fleet, dest, wp.TransportTasks)
-			for _, result := range results {
-				if result.status != CargoTransferStatusNone {
-					t.log.Debug().
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("Dest", dest.GetMapObject().Name).
-						Int("Transfered", result.transferred).
-						Str("cargoType", result.cargoType.String()).
-						Msgf("load cargo failed %v", result.status)
-					messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred)
-
-					continue
-				}
-				wp.WaitAtWaypoint = wp.WaitAtWaypoint || result.waitAtWaypoint
+		// perform cargo transfers
+		results := cargoTransferer.load(fleet, dest, wp.TransportTasks)
+		player := t.game.getPlayer(fleet.PlayerNum)
+		for _, result := range results {
+			if result.status != CargoTransferStatusNone {
 				t.log.Debug().
 					Int("Player", fleet.PlayerNum).
 					Str("Fleet", fleet.Name).
 					Str("Dest", dest.GetMapObject().Name).
 					Int("Transfered", result.transferred).
 					Str("cargoType", result.cargoType.String()).
-					Msgf("loaded cargo")
-				if result.transferred != 0 {
-					messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
-				}
-			}
-			if planet, ok := dest.(*Planet); ok {
-				planet.MarkDirty()
+					Msgf("load cargo failed %v", result.status)
+				messager.fleetTransportInvalid(player, fleet, dest, result.cargoType, result.transferred)
+
+				continue
 			}
 
-			// after load, remove the transport task if this isn't a repeating order
-			if !fleet.RepeatOrders && !wp.WaitAtWaypoint {
-				wp.Task = WaypointTaskNone
-				wp.TransportTasks = WaypointTransportTasks{}
+			// if we need to wait for any task, wait here
+			wp.WaitAtWaypoint = wp.WaitAtWaypoint || result.waitAtWaypoint
+			t.log.Debug().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("Dest", dest.GetMapObject().Name).
+				Int("Transfered", result.transferred).
+				Str("cargoType", result.cargoType.String()).
+				Msgf("loaded cargo")
+			if result.transferred != 0 {
+				messager.fleetTransportedCargo(player, fleet, dest, result.cargoType, result.transferred)
 			}
+		}
+
+		if planet, ok := dest.(*Planet); ok {
+			planet.MarkDirty()
+		}
+
+		// after load, remove the transport task if this isn't a repeating order
+		if !fleet.RepeatOrders && !wp.WaitAtWaypoint {
+			wp.Task = WaypointTaskNone
+			wp.TransportTasks = WaypointTransportTasks{}
 		}
 	}
 
-	// after load delete any empty salvages or packets
+	// after loading, delete any empty salvages or packets
 	for _, salvage := range t.game.Salvages {
-		// delete this salvage if we emptied it
 		salvage.Cargo.Colonists = 0 // make sure we kill off any colonists dumped into deep space
 		if salvage.Cargo == (Cargo{}) {
 			t.game.deleteSalvage(salvage)
@@ -616,7 +619,6 @@ func (t *turnGenerator) fleetLoad() {
 		}
 	}
 	for _, packet := range t.game.MineralPackets {
-		// delete this packet if we emptied it
 		if packet.Cargo == (Cargo{}) {
 			t.game.deletePacket(packet)
 
@@ -687,59 +689,66 @@ func (t *turnGenerator) fleetRoute() {
 		}
 
 		wp := &fleet.Waypoints[0]
+		if wp.processed || wp.Task != WaypointTaskRoute {
+			// we're not routing
+			continue
+		}
 
-		if !wp.processed && wp.Task == WaypointTaskRoute {
-			player := t.game.Players[fleet.PlayerNum-1]
-			planet := t.game.getOrbitingPlanet(fleet)
-			if planet == nil {
-				messager.fleetInvalidRouteNotPlanet(player, fleet)
+		player := t.game.Players[fleet.PlayerNum-1]
+		planet := t.game.getOrbitingPlanet(fleet)
+
+		switch {
+		case planet == nil:
+			// fleet isn't orbiting a planet
+			messager.fleetInvalidRouteNotPlanet(player, fleet)
+			continue
+		case !player.IsFriend(planet.PlayerNum):
+			// planet not owned by ally
+			messager.fleetInvalidRouteNotFriendlyPlanet(player, fleet, planet)
+			continue
+		case planet.RouteTargetType == MapObjectTypeNone || planet.RouteTargetNum == 0:
+			// planet lacks proper routing destination
+			messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
+			continue
+		default:
+			mo := t.game.getMapObject(planet.RouteTargetType, planet.RouteTargetNum, planet.RouteTargetPlayerNum)
+			if mo == nil {
+				messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
+				continue
+			}
+
+			// insert a new waypoint after this one and route to our destination
+			if len(fleet.Waypoints) <= 1 {
+				fleet.Waypoints = append(fleet.Waypoints, Waypoint{})
 			} else {
-				if !player.IsFriend(planet.PlayerNum) {
-					messager.fleetInvalidRouteNotFriendlyPlanet(player, fleet, planet)
-				} else if planet.RouteTargetType == MapObjectTypeNone || planet.RouteTargetNum == 0 {
-					messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
-				} else {
-					mo := t.game.getMapObject(planet.RouteTargetType, planet.RouteTargetNum, planet.RouteTargetPlayerNum)
-					if mo == nil {
-						messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
-						continue
-					}
+				fleet.Waypoints = append(fleet.Waypoints[:1], fleet.Waypoints[1:]...)
+			}
+			fleet.Waypoints[1] = Waypoint{
+				Position: mo.Position,
+				MapObjectTarget: MapObjectTarget{
+					TargetType:      planet.RouteTargetType,
+					TargetNum:       planet.RouteTargetNum,
+					TargetPlayerNum: planet.RouteTargetPlayerNum,
+				},
+				WarpSpeed: wp.WarpSpeed,
+			}
 
-					// insert a new waypoint after this one and route to it
-					if len(fleet.Waypoints) > 1 {
-						fleet.Waypoints = append(fleet.Waypoints[:1], fleet.Waypoints[1:]...)
-					} else {
-						fleet.Waypoints = append(fleet.Waypoints, Waypoint{})
-					}
-					fleet.Waypoints[1] = Waypoint{
-						Position: mo.Position,
-						MapObjectTarget: MapObjectTarget{
-							TargetType:      planet.RouteTargetType,
-							TargetNum:       planet.RouteTargetNum,
-							TargetPlayerNum: planet.RouteTargetPlayerNum,
-						},
-						WarpSpeed: wp.WarpSpeed,
-					}
-
-					// if the new target is a planet and it has a target, keep routing
-					if mo.Type == MapObjectTypePlanet {
-						targetPlanet := t.game.getPlanet(mo.Num)
-						if targetPlanet.RouteTargetNum != 0 && targetPlanet.RouteTargetType != MapObjectTypeNone {
-							fleet.Waypoints[1].Task = WaypointTaskRoute
-						}
-					}
-
-					messager.fleetRouted(player, fleet, planet, mo.Name)
-
-					t.log.Debug().
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("Planet", planet.Name).
-						Str("Target", mo.Name).
-						Msgf("fleet routed to target")
-
+			// if the new target is a planet and it has a target, keep routing
+			if mo.Type == MapObjectTypePlanet {
+				targetPlanet := t.game.getPlanet(mo.Num)
+				if targetPlanet.RouteTargetNum != 0 && targetPlanet.RouteTargetType != MapObjectTypeNone {
+					fleet.Waypoints[1].Task = WaypointTaskRoute
 				}
 			}
+
+			messager.fleetRouted(player, fleet, planet, mo.Name)
+
+			t.log.Debug().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("Planet", planet.Name).
+				Str("Target", mo.Name).
+				Msgf("fleet routed to target")
 		}
 	}
 }
@@ -909,17 +918,18 @@ func (t *turnGenerator) mysteryTraderMove() {
 			Msgf("moved mysteryTrader")
 
 		if mt.Position == mt.Destination {
+			// trader has reached its destination; check for repeat visits or delete
 			if mt.again(&t.game.Rules, t.game.Game, t.game.GetNumHumanPlayers()) {
 				for _, player := range t.game.Players {
 					player.Messages = append(player.Messages, newMysteryTraderMessage(PlayerMessageMysteryTraderAgain, mt))
 				}
 				t.log.Debug().
 					Int("MysteryTrader", mt.Num).
-					Msgf("mysteryTrader going again")
+					Msgf("mystery trader looping again")
 			} else {
 				t.log.Debug().
 					Int("MysteryTrader", mt.Num).
-					Msgf("mysteryTrader finished")
+					Msgf("mysteryTrader finished looping")
 
 				// all done, bye bye trader
 				t.game.deleteMysteryTrader(mt)
@@ -928,61 +938,74 @@ func (t *turnGenerator) mysteryTraderMove() {
 	}
 }
 
+// move all fleets through space
 func (t *turnGenerator) fleetMove() {
-
 	fleetsTargetingFleets := []*Fleet{}
 
 	for _, fleet := range t.game.Fleets {
-		if fleet.Delete {
-			continue
-		}
-		if fleet.Starbase {
+		if fleet.Delete || fleet.Starbase {
+			// deleted fleets or starbases don't move
 			continue
 		}
 
-		if len(fleet.Waypoints) > 1 {
+		switch len(fleet.Waypoints) {
+		case 0:
+			// fleets should always have at least 1 waypoint (their current position in space),
+			// so having none means something is really really weird
+			t.log.Warn().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("Position", fleet.Position.String()).
+				Msgf("fleet has no waypoints; adding one at current position")
+			fleet.Waypoints = []Waypoint{NewPositionWaypoint(fleet.Position, 0)}
+			fallthrough
+		case 1:
+			// only 1 waypoint means we ain't going anywhere
+			fleet.WarpSpeed = 0
+			fleet.Heading = Vector{}
+		default:
 			wp0 := fleet.Waypoints[0]
 			wp1 := fleet.Waypoints[1]
 
-			// no move this turn, we wait
 			if wp0.WaitAtWaypoint {
+				// no move this turn, we wait
 				continue
 			}
 
 			if wp1.TargetType == MapObjectTypeFleet {
-				// move this after all the fleets not targeting fleets move
+				// fleets targeting other fleets move after all others finish
 				fleetsTargetingFleets = append(fleetsTargetingFleets, fleet)
 				continue
 			}
 
 			t.moveFleet(fleet)
-		} else {
-			fleet.WarpSpeed = 0
-			fleet.Heading = Vector{}
 		}
 	}
 
-	// move all the fleets targeting other fleets
+	// move all fleets targeting other fleets
 	// TODO: build a directed graph and detect cycles and all that jazz
 	for _, fleet := range fleetsTargetingFleets {
 		t.moveFleet(fleet)
 	}
 }
 
-// move the actual fleet in the universe from a to b handling minefield destruction, engine strain, stargates, etc
+// move a fleet across the universe, handling any events that occur along the way.
 func (t *turnGenerator) moveFleet(fleet *Fleet) {
 	player := t.game.getPlayer(fleet.PlayerNum)
 	originalPosition := fleet.Position
 	wp0 := fleet.Waypoints[0]
 	wp1 := &fleet.Waypoints[1]
+
 	if wp1.TargetNum != None {
+		// we're targeting something here
 		target := t.game.getMapObject(wp1.TargetType, wp1.TargetNum, wp1.TargetPlayerNum)
 		if target == nil || target.Delete {
-			// target went away
+			// target went away; change waypoint dest to its prior position
 			wp1.TargetName = ""
 			wp1.TargetNum = None
 			wp1.TargetType = MapObjectTypeNone
 			wp1.TargetPlayerNum = None
+
 			t.log.Debug().
 				Int("Player", fleet.PlayerNum).
 				Str("Fleet", fleet.Name).
@@ -997,30 +1020,30 @@ func (t *turnGenerator) moveFleet(fleet *Fleet) {
 		}
 	}
 
+	// try to gate if possible; otherwise move through space and check if we hit something
 	if wp1.WarpSpeed == StargateWarpSpeed {
-		// yeah, gate!
 		fleet.gateFleet(&t.game.Rules, t.game.Universe, t.game)
 	} else {
 		interrupted := fleet.moveFleet(&t.game.Rules, t.game.Universe, t.game)
 		if interrupted != nil {
 			switch interrupted.reason {
 			case fleetMoveInterruptedHitMineField:
-				// damage the fleet in the minefield
+				// we hit a minefield; damage fleet and reduce mine count
 				mineField := interrupted.mineField
+				mineField.reduceMineFieldOnImpact(fleet.Spec.TotalShips)
 				mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
 				stats := t.game.Rules.MineFieldStatsByType[mineField.MineFieldType]
 
 				damage := mineField.damageFleet(fleet, player, stats)
-				mineField.reduceMineFieldOnImpact()
 				if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
-					// SD races discover the exact fleet makeup
+					// SD races discover the exact fleet makeup of fleets in their fields
 					for _, token := range fleet.Tokens {
-						// SD races discover the exact fleet makeup
 						mineFieldPlayer.discoverer.discoverDesign(token.design, true)
 					}
 				}
 
 				// tell the fleet owner and the mineField owner the fleet was hit
+				// if they blew up themselves, only send 1 message
 				messager.fleetMineFieldHit(player, fleet, mineField, damage)
 				if mineField.PlayerNum != player.Num {
 					messager.fleetMineFieldHit(mineFieldPlayer, fleet, mineField, damage)
@@ -1066,7 +1089,7 @@ func (t *turnGenerator) moveFleet(fleet *Fleet) {
 	// update the game dictionaries with this fleet's new position
 	t.game.moveFleet(fleet, originalPosition)
 
-	// make sure we have tokens left after move
+	// make sure we have tokens left after moving
 	fleet.removeEmptyTokens()
 	if len(fleet.Tokens) == 0 {
 		t.log.Debug().
@@ -1081,12 +1104,12 @@ func (t *turnGenerator) moveFleet(fleet *Fleet) {
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, fleet)
 	fleet.reduceFuelToMax()
 
+	// if we are supposed to repeat orders
 	// remove the previous waypoint, it's been processed already
+	// TODO: Make this work at WP1
 	if fleet.RepeatOrders && !wp0.PartiallyComplete {
-		// if we are supposed to repeat orders,
 		wp0.processed = false
 		wp0.WaitAtWaypoint = false
-		wp0.PartiallyComplete = false
 		fleet.Waypoints = append(fleet.Waypoints, wp0)
 
 		t.log.Debug().
@@ -1305,7 +1328,7 @@ func (t *turnGenerator) wormholeJiggle() {
 	}
 }
 
-// SD races can detonate a minefield
+// detonate all SD detonating minefields and damage ships within them
 func (t *turnGenerator) detonateMines() {
 	for _, mineField := range t.game.MineFields {
 		if !mineField.Detonate {
@@ -1420,7 +1443,7 @@ func (t *turnGenerator) fleetRemoteMineAR() {
 	}
 }
 
-// remote mine planets
+// remote mine all planets being remote mined
 func (t *turnGenerator) fleetRemoteMine() {
 	for _, fleet := range t.game.Fleets {
 		if fleet.Delete {
@@ -1608,7 +1631,6 @@ func (t *turnGenerator) planetProduction() error {
 }
 
 // build a fleet with some number of tokens
-// TODO: Add routing support
 func (t *turnGenerator) buildFleet(player *Player, planet *Planet, token ShipToken, tags Tags) (*Fleet, error) {
 	fleet, err := t.addFleet(player, planet.Position, token, tags)
 	if err != nil {
@@ -1634,7 +1656,7 @@ func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToke
 	fleet.Position = position
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
-	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 	fleet.Tags = tags
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
@@ -1864,7 +1886,7 @@ func (t *turnGenerator) playerResearch() error {
 	return nil
 }
 
-// for each planet, randomly check if the owner permaforms it
+// randomly permaform owned planets
 func (t *turnGenerator) permaform() {
 
 	terraformer := NewTerraformer()
@@ -1956,17 +1978,6 @@ func (t *turnGenerator) fleetRefuel() {
 			continue
 		}
 
-		player := t.game.getPlayer(fleet.PlayerNum)
-
-		if fleet.Spec.FuelGeneration > 0 {
-			fleet.Fuel = Clamp(fleet.Fuel+fleet.Spec.FuelGeneration, 0, fleet.Spec.FuelCapacity)
-			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
-			t.log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Msgf("fleet generated fuel")
-		}
-
 		planet := t.game.getOrbitingPlanet(fleet)
 		if planet == nil {
 			continue
@@ -1979,8 +1990,9 @@ func (t *turnGenerator) fleetRefuel() {
 
 		planetPlayer := t.game.getPlayer(planet.PlayerNum)
 		if planetPlayer.IsFriend(fleet.PlayerNum) {
+			player := t.game.getPlayer(fleet.PlayerNum)
 			fleet.Fuel = fleet.Spec.FuelCapacity
-			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 
 			t.log.Debug().
 				Int("Player", fleet.PlayerNum).
@@ -1994,7 +2006,7 @@ func (t *turnGenerator) fleetRefuel() {
 	}
 }
 
-// strike a random planet with a comet
+// strike random planets with comets
 func (t *turnGenerator) randomCometStrike() {
 	if t.game.Year < t.game.Rules.StartingYear+t.game.Rules.RandomCometMinYear {
 		// no comets in the first 10 years
@@ -2043,7 +2055,7 @@ func (t *turnGenerator) randomCometStrike() {
 		}
 	}
 
-	// shuffle the amounts so comets don't always hit the same things
+	// shuffle amounts around so comets don't always hit the same things
 	random.Shuffle(len(minerals), func(i, j int) {
 		minerals[i], minerals[j] = minerals[j], minerals[i]
 		mineralConcentration[i], mineralConcentration[j] = mineralConcentration[j], mineralConcentration[i]
@@ -2724,53 +2736,62 @@ func (t *turnGenerator) instaform() {
 	}
 }
 
+// Perform minesweeping for all fleets and starbases inside enemy minefields
 func (t *turnGenerator) fleetSweepMines() {
-
-	// fleets and starbases sweep
 	for _, fleet := range append(t.game.Fleets, t.game.Starbases...) {
-		if !fleet.Delete && fleet.Spec.MineSweep > 0 {
-			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
-			for _, mineField := range t.game.MineFields {
-				// don't sweep dead fields
-				if mineField.Delete {
-					continue
-				}
+		if fleet.Delete || fleet.Spec.MineSweep <= 0 {
+			continue
+		}
 
-				// sweep mines
-				if fleet.willAttack(fleetPlayer, mineField.PlayerNum) && isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
-					mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
-					numSwept := mineField.sweep(&t.game.Rules, fleet.Position, fleet.Spec.MineSweep)
-
-					if numSwept == 0 {
-						t.log.Debug().
-							Int("Player", fleet.PlayerNum).
-							Str("Fleet", fleet.Name).
-							Str("MineField", mineField.Name).
-							Int("MineFieldPlayer", mineField.PlayerNum).
-							Int("NumMines", mineField.NumMines).
-							Msgf("no mines swept")
-						continue
-					}
-
-					messager.fleetMineFieldSwept(fleetPlayer, fleet, mineField, numSwept)
-					messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
-
-					t.log.Debug().
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("MineField", mineField.Name).
-						Int("MineFieldPlayer", mineField.PlayerNum).
-						Int("NumMines", mineField.NumMines).
-						Msgf("fleet swept mines")
-
-					if mineField.NumMines <= 10 {
-						t.game.deleteMineField(mineField)
-						continue
-					}
-
-					mineField.Spec.Radius = mineField.Radius()
-				}
+		fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
+		for _, mineField := range t.game.MineFields {
+			// don't sweep dead fields
+			if mineField.Delete {
+				continue
 			}
+
+			if !isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
+				// outside of this minefield's radius
+				continue
+			}
+
+			if !fleet.willAttack(fleetPlayer, mineField.PlayerNum) {
+				// we only sweep fields belonging to players whom we will attack
+				continue
+			}
+
+			mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
+			numSwept := mineField.sweep(fleet.Position, fleet.Spec.MineSweep,
+				t.game.Rules.MineFieldStatsByType[mineField.MineFieldType].SweepFactor)
+
+			if numSwept == 0 {
+				t.log.Debug().
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("MineField", mineField.Name).
+					Int("MineFieldPlayer", mineField.PlayerNum).
+					Int("NumMines", mineField.NumMines).
+					Msgf("no mines swept")
+				continue
+			}
+
+			messager.fleetMineFieldSwept(fleetPlayer, fleet, mineField, numSwept)
+			messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
+
+			t.log.Debug().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("MineField", mineField.Name).
+				Int("MineFieldPlayer", mineField.PlayerNum).
+				Int("NumMines", mineField.NumMines).
+				Msgf("fleet swept mines")
+
+			if mineField.NumMines <= 10 {
+				t.game.deleteMineField(mineField)
+				continue
+			}
+
+			mineField.Spec.Radius = mineField.Radius()
 		}
 	}
 
@@ -2864,71 +2885,82 @@ func (t *turnGenerator) fleetPatrol(player *Player) {
 		}
 
 		if len(fleet.Waypoints) != 1 {
+			// probably already doing something else
 			continue
 		}
 
 		wp := &fleet.Waypoints[0]
 		if wp.Task != WaypointTaskPatrol {
+			// can't patrol if we ain't patroling...
 			continue
 		}
 
 		rangeDistanceSquared := float64(wp.PatrolRange * wp.PatrolRange)
 		if wp.PatrolRange == PatrolRangeInfinite {
+			// infinite is set to 0 as a zero value, but we want a big number
 			rangeDistanceSquared = math.MaxFloat64
 		}
 
 		closestDistance := float64(math.MaxFloat32)
 		var closest *FleetIntel
 
+		// check each enemy fleet we have intel on and grab the closest one we can attack
 		for i := range player.FleetIntels {
 			enemyFleet := &player.FleetIntels[i]
-			if fleet.willAttack(player, enemyFleet.PlayerNum) {
-				distSquaredToFleet := fleet.Position.DistanceSquaredTo(enemyFleet.Position)
-				if distSquaredToFleet <= rangeDistanceSquared {
-					if distSquaredToFleet < closestDistance {
-						closestDistance = distSquaredToFleet
-						closest = enemyFleet
-					}
-				}
+			if !fleet.willAttack(player, enemyFleet.PlayerNum) {
+				// don't attack allies - gotta keep them peace accords!
+				continue
+			}
+
+			distSquaredToFleet := fleet.Position.DistanceSquaredTo(enemyFleet.Position)
+			if distSquaredToFleet > rangeDistanceSquared {
+				// enemy fleet outside of patrol range
+				continue
+			}
+
+			if distSquaredToFleet < closestDistance {
+				closestDistance = distSquaredToFleet
+				closest = enemyFleet
 			}
 		}
 
-		if closest != nil {
-
-			if wp.PatrolWarpSpeed == PatrolWarpSpeedAutomatic {
-				wp.PatrolWarpSpeed = fleet.Spec.Engine.IdealSpeed
-			}
-
-			// add a waypoint to the fleet
-			wpTarget := NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed)
-			// this is an ephemeral waypoint that isn't ever "completed" and so shouldn't be repeated. This should probably be
-			// named differently...
-			wpTarget.PartiallyComplete = true
-
-			// for fleets that do Patrol + repeat orders, we let them intercept the fleet
-			// and head back to base to patrol again
-			// if they aren't repeating orders, we assume they just want to keep patroling
-			// and auto intercepting the closest fleet they will attack. Roaming the universe
-			// for all time.
-			if !fleet.RepeatOrders {
-				wpTarget.Task = WaypointTaskPatrol
-				wpTarget.PatrolRange = wp.PatrolRange
-				wpTarget.PatrolWarpSpeed = wp.PatrolWarpSpeed
-				wpTarget.PartiallyComplete = false
-			}
-
-			fleet.Waypoints = append(fleet.Waypoints, wpTarget)
-
-			messager.fleetPatrolTargeted(player, fleet, closest)
-
-			t.log.Debug().
-				Int("Player", fleet.PlayerNum).
-				Str("Fleet", fleet.Name).
-				Str("Target", closest.Name).
-				Int("TargetPlayer", closest.PlayerNum).
-				Msgf("fleet patrol targeted enemy")
-
+		if closest == nil {
+			// no fleets in range to patrol means we just sit here and wait
+			return
 		}
+
+		if wp.PatrolWarpSpeed == PatrolWarpSpeedAutomatic {
+			wp.PatrolWarpSpeed = fleet.Spec.Engine.IdealSpeed
+		}
+
+		// add a waypoint tracking our prey
+		wpTarget := NewFleetWaypoint(closest.Position, closest.Num, closest.PlayerNum, closest.Name, wp.PatrolWarpSpeed)
+		// this is an ephemeral waypoint that isn't ever "completed" and so shouldn't be repeated.
+		// This should probably be named differently...
+		wpTarget.PartiallyComplete = true
+
+		// for fleets with Patrol + repeat orders, we let them intercept the fleet
+		// and head back to base to patrol again.
+		// if they aren't repeating orders, we assume they just want to keep patroling
+		// and auto intercepting the closest fleet they will attack, roaming the universe
+		// for all time.
+		if !fleet.RepeatOrders {
+			wpTarget.Task = WaypointTaskPatrol
+			wpTarget.PatrolRange = wp.PatrolRange
+			wpTarget.PatrolWarpSpeed = wp.PatrolWarpSpeed
+			wpTarget.PartiallyComplete = false
+		}
+
+		fleet.Waypoints = append(fleet.Waypoints, wpTarget)
+		messager.fleetPatrolTargeted(player, fleet, closest)
+
+		t.log.Debug().
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Str("Target", closest.Name).
+			Int("TargetPlayer", closest.PlayerNum).
+			Msgf("patrolling fleet targeted enemy")
+
 	}
 }
 

@@ -600,7 +600,7 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 		fleet.OrbitingPlanetNum = planet.Num
 		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
-		fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
+		fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 		purpose := FleetPurposeFromShipDesignPurpose(design.Purpose)
 		fleet.SetTag(TagPurpose, string(purpose))
 		ug.Universe.Fleets = append(ug.Universe.Fleets, &fleet)

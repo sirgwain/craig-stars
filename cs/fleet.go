@@ -670,7 +670,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 	spec.CloakPercent = computeFleetCloakPercent(&spec, fleet.Cargo.Total()+spec.BaseCloakedCargo, player.Race.Spec.FreeCargoCloaking)
 
 	if !spec.Starbase {
-		spec.EstimatedRange = fleet.getEstimatedRange(player, spec.Engine.IdealSpeed, spec.CargoCapacity)
+		spec.EstimatedRange = fleet.getEstimatedRange(player, spec.Engine.IdealSpeed)
 	}
 
 	return spec
@@ -682,7 +682,7 @@ func (f *Fleet) computeFuelUsage(player *Player) {
 		wp := &f.Waypoints[i]
 		if i > 0 && wp.WarpSpeed < StargateWarpSpeed {
 			wpPrevious := f.Waypoints[i-1]
-			fuelUsage := f.GetFuelCost(player, wp.WarpSpeed, wp.Position.DistanceTo(wpPrevious.Position))
+			fuelUsage := f.GetFuelUsed(player, wp.WarpSpeed, wp.Position.DistanceTo(wpPrevious.Position))
 			wp.EstFuelUsage = fuelUsage
 		} else {
 			wp.EstFuelUsage = 0
@@ -794,25 +794,11 @@ func (fleet *Fleet) removeEmptyTokens() {
 	fleet.Tokens = updatedTokens
 }
 
-// move a fleet through space, check for minefields, use fuel, etc
+// move a fleet through space, consuming fuel and checking for collisions as appropriate
 func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) (interrupted *fleetMoveInterrupted) {
 	player := playerGetter.getPlayer(fleet.PlayerNum)
 	wp0 := fleet.Waypoints[0]
 	wp1 := fleet.Waypoints[1]
-	totalDist := fleet.Position.DistanceTo(wp1.Position)
-	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
-
-	dist := float64(wp1.WarpSpeed * wp1.WarpSpeed)
-	// round up, if we are <1 away, i.e. the target is 81.9 ly away, warp 9 (81 ly travel) should be able to make it there
-	if dist < totalDist && totalDist-dist < 1 {
-		dist = math.Ceil(totalDist)
-	}
-
-	// make sure we end up at a whole number
-	vectorTravelled := wp1.Position.Subtract(fleet.Position).Normalized().Scale(dist)
-	dist = vectorTravelled.Length()
-	// don't overshoot
-	dist = min(totalDist, dist)
 
 	// check for CE engine failure
 	if player.Race.Spec.EngineFailureRate > 0 &&
@@ -822,62 +808,71 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		return &fleetMoveInterrupted{reason: fleetMoveInterruptedEngineFailure}
 	}
 
-	// get the cost for the fleet
-	fuelCost := fleet.GetFuelCost(player, wp1.WarpSpeed, dist)
-	var fuelGenerated int = 0
-	if fuelCost > fleet.Fuel {
-		// we will run out of fuel
-		// if this distance would have cost us 10 fuel but we have 6 left, only travel 60% of the distance.
-		distanceFactor := float64(fleet.Fuel) / float64(fuelCost)
-		dist = dist * distanceFactor
-		fuelCost = fleet.Fuel
+	totalDist := fleet.Position.DistanceTo(wp1.Position)
+	fleet.PreviousPosition = &Vector{fleet.Position.X, fleet.Position.Y}
 
-		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		hitMineField, actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
-		if hitMineField != nil {
-			interrupted = &fleetMoveInterrupted{reason: fleetMoveInterruptedHitMineField, mineField: hitMineField}
+	dist := math.Pow(float64(wp1.WarpSpeed), 2) // TODO: Check if this is faster than float64(PowInt(speed, 2))
+	// round up position if we're within 0.9 LY of the target
+	if dist < totalDist && totalDist-dist < 1 {
+		dist = math.Ceil(totalDist)
+	}
+
+	// make sure we end up at a whole number without overshooting
+	vectorTravelled := wp1.Position.Subtract(fleet.Position).Normalized().Multiply(dist)
+	dist = min(vectorTravelled.Length(), totalDist)
+
+	// perform fuel usage calcs & minefield checks
+
+	var (
+		netFuelUsed = fleet.GetFuelUsed(player, wp1.WarpSpeed, dist) // net fuel used by fleet
+		// wrapper function so I don't have to write the same thing twice.
+		//
+		// checks for mine collisions and updates interrupted, dist, fleet.Fuel & netFuelUsed as applicable.
+		checkMovement = func(d float64) (collided bool) {
+			if d <= 0 {
+				// if we don't move, we obviously can't hit a minefield
+				return false
+			}
+
+			hitMineField, actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, d)
+			if hitMineField != nil {
+				// stopped by minefield; recompute fuel cost based on distance pre-collision
+				interrupted = &fleetMoveInterrupted{reason: fleetMoveInterruptedHitMineField, mineField: hitMineField}
+				dist = actualDist
+				netFuelUsed = fleet.GetFuelUsed(player, wp1.WarpSpeed, dist)
+			}
+			fleet.Fuel -= netFuelUsed
+
+			return hitMineField != nil
 		}
+		distUntraveled float64 // this is 0 if we don't run out of fuel
+	)
 
-		// we hit a minefield before we ran out of fuel
-		if actualDist != dist {
-			dist = actualDist
-			fuelCost = fleet.GetFuelCost(player, wp1.WarpSpeed, dist)
-		} else {
-			wp1.WarpSpeed = fleet.Spec.Engine.FreeSpeed
-			fleet.Waypoints[1] = wp1
-			messager.fleetOutOfFuel(player, fleet, wp1.WarpSpeed)
-			// if we ran out of fuel 60% of the way to our normal distance, the remaining 40% of our time
-			// was spent travelling at fuel generation speeds:
-			remainingDistanceTravelled := (1 - distanceFactor) * float64(wp1.WarpSpeed*wp1.WarpSpeed)
-			dist += remainingDistanceTravelled
-			fuelGenerated = fleet.getFuelGeneration(wp1.WarpSpeed, remainingDistanceTravelled)
-		}
+	if netFuelUsed > fleet.Fuel {
+		// we will run out of fuel before reaching the destination; only travel partway
+		// 60% fuel = 60% distance traveled
+		distanceFactor := float64(fleet.Fuel) / float64(netFuelUsed)
+		distUntraveled = 1 - distanceFactor
+		dist *= distanceFactor
+	}
 
-		fleet.Fuel -= fuelCost
-	} else {
-		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		hitMineField, actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
-		if hitMineField != nil {
-			interrupted = &fleetMoveInterrupted{reason: fleetMoveInterruptedHitMineField, mineField: hitMineField}
-		}
-
-		if actualDist != dist {
-			dist = actualDist
-			fuelCost = fleet.GetFuelCost(player, wp1.WarpSpeed, dist)
-		}
-
-		fleet.Fuel -= fuelCost
-		fuelGenerated = fleet.getFuelGeneration(wp1.WarpSpeed, dist)
+	if hitMine := checkMovement(dist); !hitMine && distUntraveled > 0 {
+		// we didn't hit a mine en route to poverty;
+		// attempt to travel the remainder of the year at our engine's free speed
+		wp1.WarpSpeed = fleet.Spec.Engine.FreeSpeed
+		fleet.Waypoints[1] = wp1
+		messager.fleetOutOfFuel(player, fleet, wp1.WarpSpeed)
+		freeDist := distUntraveled * math.Pow(float64(wp1.WarpSpeed), 2) // TODO: check efficiency
+		checkMovement(freeDist)
 	}
 
 	// message the player about fuel generation
-	fuelGenerated = min(fuelGenerated, fleet.Spec.FuelCapacity-fleet.Fuel)
+	fuelGenerated := min(-netFuelUsed, fleet.Spec.FuelCapacity-fleet.Fuel)
 	if fuelGenerated > 0 {
-		fleet.Fuel += fuelGenerated
 		messager.fleetGeneratedFuel(player, fleet, fuelGenerated)
 	}
 
-	// assuming we move at all, make sure we are no longer orbiting any planets
+	// assuming we moved at all, make sure we are no longer orbiting any planets
 	if dist > 0 && fleet.Orbiting() {
 		fleet.OrbitingPlanetNum = None
 	}
@@ -896,7 +891,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		wp0.TargetName = ""
 		wp0.PartiallyComplete = true
 
-		fleet.Position = fleet.Position.Add(fleet.Heading.Scale(dist))
+		fleet.Position = fleet.Position.Add(fleet.Heading.Multiply(dist))
 		fleet.Position = fleet.Position.Round()
 		wp0.Position = fleet.Position
 
@@ -922,10 +917,11 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 			}
 		}
 	}
+
 	return interrupted
 }
 
-// GateFleet moves the fleet the cool way, with stargates!
+// gateFleet moves the fleet the cool way, with stargates!
 func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, playerGetter playerGetter) {
 	player := playerGetter.getPlayer(fleet.PlayerNum)
 	wp0 := fleet.Waypoints[0]
@@ -1078,7 +1074,7 @@ func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64,
 	// 1 mg of fuel will move 200kT of weight 1 LY at a Fuel Usage Number of 100.
 	// Number of engines doesn't matter, nor number of ships with the same engine.
 
-	distanceCeiling := math.Ceil(dist) // rounding to next integer gives best graph fit
+	dist = math.Ceil(dist) // rounding to next integer gives best graph fit
 
 	// IFE is applied to drive specifications, just as the helpfile hints.
 	// Stars! probably does it outside here once per turn per engine to save time.
@@ -1088,7 +1084,7 @@ func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64,
 	// Safe bet is Stars! does all this with integer math tricks.
 	// Subtracting 2000 in a loop would be a way to also get the rounding.
 	// Or even bitshift for the 2 and adjust "decimal point" for the 1000
-	teorFuel := (math.Floor(float64(mass)*engineEfficiency*distanceCeiling/2000) / 10)
+	teorFuel := (math.Floor(float64(mass)*engineEfficiency*dist/2000) / 10)
 	// using only one decimal introduces another artifact: .0999 gets rounded down to .0
 
 	// The heavier ships will benefit the most from the accuracy
@@ -1102,10 +1098,11 @@ func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64,
 	// trip is < 1 ly. Aahh, the joys of rounding! ;o)
 }
 
-// Get the fuel cost for this fleet to travel a certain distance at a certain speed,
-// exported to allow for cross package usage.
-func (fleet *Fleet) GetFuelCost(player *Player, warpSpeed int, distance float64) int {
-	return fleet.getFuelCost(player, warpSpeed, distance, fleet.Spec.CargoCapacity)
+// GetFuelUsed returns the net amount of fuel consumed or produced by this fleet traveling
+// the specified distance at the specified warp speed.
+func (fleet *Fleet) GetFuelUsed(player *Player, warpSpeed int, distance float64) (netFuelCost int) {
+	return fleet.getFuelCost(player, warpSpeed, distance, fleet.Spec.CargoCapacity) -
+		fleet.getFuelGeneration(warpSpeed, distance)
 }
 
 func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64, cargoCapacity int) int {
@@ -1134,36 +1131,38 @@ func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64,
 	return fuelCost
 }
 
-func (fleet *Fleet) getEstimatedRange(player *Player, warpSpeed int, cargoCapacity int) int {
-	fuelCost := fleet.getFuelCost(player, warpSpeed, 1000, cargoCapacity)
-	if fuelCost == 0 {
+func (fleet *Fleet) getEstimatedRange(player *Player, warpSpeed int) int {
+	fuelCost := fleet.GetFuelUsed(player, warpSpeed, 1000)
+	if fuelCost <= 0 {
 		return Infinite
 	}
 	return int(float64(fleet.Fuel) / float64(fuelCost) * 1000)
 }
 
-// Get the amount of fuel this ship will generate at a given warp
-// F = 0 if the engine is running above the highest warp at which it travels for free (i.e. it is using fuel)
-// F = D if the engine is running at the highest warp at which it travels for free
-// F = 3D if the engine is running 1 warp factor below the highest warp at which it travels for free
-// F = 6D if the engine is running 2 warp factors below the highest warp at which it travels for free
-// F = 10D if the engine is running 3 or more warp factors below the highest warp at which it travels for free
-// Note that the fuel generated is per engine, not per ship; i.e.; a ship with 2, 3, or 4 engines
-// produces (or uses) 2, 3, or 4 times as much fuel as a single engine ship.
+// getFuelGeneration returns the amount of fuel this ship will generate while traveling at a given warp (if any)
 func (fleet *Fleet) getFuelGeneration(warpSpeed int, distance float64) int {
-	fuelGenerated := 0.0
+	fuelGenerated := float64(fleet.Spec.FuelGeneration)
+
+	// check each token in turn
 	for _, token := range fleet.Tokens {
 		freeSpeed := token.design.Spec.Engine.FreeSpeed
-		numEngines := token.design.Spec.NumEngines * token.Quantity
-		speedDifference := freeSpeed - warpSpeed
-		if speedDifference == 0 {
-			fuelGenerated += distance * float64(numEngines)
-		} else if speedDifference == 1 {
-			fuelGenerated += (3 * distance) * float64(numEngines)
-		} else if speedDifference == 2 {
-			fuelGenerated += (6 * distance) * float64(numEngines)
-		} else if speedDifference >= 3 {
-			fuelGenerated += (10 * distance) * float64(numEngines)
+		numEngines := float64(token.design.Spec.NumEngines * token.Quantity)
+		warpsBelowFree := freeSpeed - warpSpeed
+		if warpsBelowFree < 0 {
+			// fleet is traveling above its free speed (ie using fuel); no fuel gen
+			continue
+		}
+
+		// going 0/1/2/3+ warps above free speed produces 1/3/6/10x as much fuel
+		switch warpsBelowFree {
+		case 0:
+			fuelGenerated += distance * numEngines
+		case 1:
+			fuelGenerated += 3 * distance * numEngines
+		case 2:
+			fuelGenerated += 6 * distance * numEngines
+		default:
+			fuelGenerated += 10 * distance * numEngines
 		}
 	}
 
@@ -1192,6 +1191,8 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 	// if we wait at a waypoint while unloading, we "complete" our move but don't actually move
 	// TODO: this is weird, can we just not complete a move if we are waiting at a waypoint?
 	if !wp0.WaitAtWaypoint {
+		// cut out the first waypoint and shift everything forwards
+		// TODO: Look into how this plays into repeat orders jank
 		fleet.Waypoints = fleet.Waypoints[1:]
 	}
 

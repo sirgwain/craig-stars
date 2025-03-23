@@ -7,8 +7,10 @@ import (
 )
 
 // The Rules struct contains all the various constants and configuration values that determine
-// how the game mechanics work. These are designed to be unique per game, if desired. Currently for testing, all
-// games just use the default rule set.
+// how various game mechanics work. These are copied within a [Game] struct and are
+// designed to be user-modifiable.
+//
+// Currently, all games just use the default rule set.
 type Rules struct {
 	CostRules                          `tstype:",extends"`
 	BattleRules                        `tstype:",extends"`
@@ -64,7 +66,6 @@ type Rules struct {
 	TachyonMaxCloakReduction           float64                             `json:"tachyonMaxCloakReduction"`
 	TechsID                            int64                               `json:"techsId"`
 	TechTradeChance                    float64                             `json:"techTradeChance"`
-	TorpedoSplashDamage                float64                             `json:"torpedoSplashDamage"`
 	WormholeCloak                      int                                 `json:"wormholeCloak"`
 	WormholePairsForSize               map[Size]int                        `json:"wormholePairsForSize"`
 	WormholeStatsByStability           map[WormholeStability]WormholeStats `json:"wormholeStatsByStability"`
@@ -209,7 +210,7 @@ type MysteryTraderTechBoonMineralsReward struct {
 
 var StandardRules = NewRules()
 
-// Seed the random number generator with the rules Seed value
+// Seed the random number generator with the provided Seed value.
 // This should be called after deserializing
 // This can be used to generate the same world repeatedly (hopefully)
 func (r *Rules) ResetSeed(seed int64) {
