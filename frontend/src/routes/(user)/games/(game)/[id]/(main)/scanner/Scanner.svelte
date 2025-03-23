@@ -4,6 +4,7 @@
 	import type { SelectWaypointProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
+	import { type AnyFleet } from '$lib/services/Universe';
 	import {
 		MapObjectTypeFleet,
 		None,
@@ -13,7 +14,6 @@
 	} from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
 	import { type WaypointDest } from '$lib/types/Fleet';
-	import { type AnyFleet } from '$lib/services/Universe';
 	import { emptyVector, equal } from '$lib/types/Vector';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
@@ -484,7 +484,7 @@
 	class:cursor-cell={shouldAddWaypoint ||
 		(!!$commandedFleet && $settings.addWaypoint) ||
 		$settings.setPacketDest}
-	class={`grow bg-black overflow-hidden p-[${padding}px] select-none`}
+	class={`grow bg-black overflow-hidden p-[${padding}px] select-none touch-none overscroll-contain`}
 	bind:this={rect}
 	use:clickOutside={disableAddWaypointMode}
 >

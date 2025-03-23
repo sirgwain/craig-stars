@@ -5,6 +5,7 @@
 		ChangeMassDriverSpeedEvent,
 		ChangeWaypointEvent,
 		ChangeWaypointTransportTasksEvent,
+		ClearProductionQueueEvent,
 		MergeFleetsDialogEvent,
 		MergeFleetsEvent,
 		RenameFleetEvent,
@@ -169,6 +170,10 @@
 		updatePlanetOrders(e.planet);
 	}
 
+	async function onClearProductionQueue(e: ClearProductionQueueEvent) {
+		updatePlanetOrders(e.planet);
+	}
+
 	async function onSplitAll() {
 		if (!$commandedFleet) {
 			return;
@@ -305,6 +310,7 @@
 				{onSplitAll}
 				{onBattlePlanChanged}
 				{onChangeMassDriverSpeed}
+				{onClearProductionQueue}
 				onShowProductionQueueDialog={() => (showProductionQueueDialog = true)}
 				onShowCargoTransferDialog={(e) => {
 					showCargoTransferDialog = true;
@@ -368,6 +374,7 @@
 			{onSplitAll}
 			{onBattlePlanChanged}
 			{onChangeMassDriverSpeed}
+			{onClearProductionQueue}
 			onShowProductionQueueDialog={() => (showProductionQueueDialog = true)}
 			onShowCargoTransferDialog={(e) => {
 				showCargoTransferDialog = true;

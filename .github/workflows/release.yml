@@ -28,6 +28,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: "patch"
+          BRANCH_HISTORY: "last"
     outputs:
       version: ${{ steps.bump.outputs.new_tag }}
 
