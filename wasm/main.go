@@ -226,12 +226,12 @@ func maxBuildable(args []js.Value) any {
 	itemType := wasm.GetQueueItemType(args[1])
 
 	// auto items and ships have infinite cap
-	maxBuild := 5000
+	maxBuild := cs.MaxBuildableCap
 	if !itemType.IsAuto() /* || itemType == cs.QueueItemTypeAutoMineralAlchemy */ {
 		maxBuild = planet.MaxBuildable(&ctx.player, itemType)
 		// Infinite is the constant integer of -1, but we want very big number
 		if maxBuild == cs.Infinite {
-			maxBuild = 5000
+			maxBuild = cs.MaxBuildableCap
 		}
 	}
 

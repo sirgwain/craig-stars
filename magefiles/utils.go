@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,9 +19,11 @@ import (
 
 // Run all frontend/backend tests and lint checks.
 func Test() error {
+	/* disabling this until I fix esilint to not be a false positive mess
 	if err := Lint(); err != nil {
 		return err
 	}
+	*/
 
 	mg.Deps(cleanTmpDir)
 	if err := Test_Golang("./..."); err != nil {
@@ -85,19 +88,43 @@ func Test_Golang(goTestArgs string) error {
 	})
 	fmt.Printf("Config file at %s successfully read.\n", filePath)
 
-	// If the user forgot to add a package mark for non-CI runs,
+	// If the user forgot to add a package marker for non-CI runs,
 	// do them a favor rather than outright failing.
 	// CI runs are exempt from this due to rerun-fails requiring an explicit package argument
-	// (not to mention their entire *job* is to test everything)
+	// (not to mention their entire *job* is to test everything all at once)
 	args := strings.Fields(goTestArgs)
-	if !is_CI() && slices.IndexFunc(args, func(s string) bool {
-		return strings.HasPrefix(s, "./")
-	}) == -1 {
-		fmt.Println("No package identifier found; defaulting to running everything")
-		args = append([]string{"./..."}, args...)
+	if !is_CI() {
+		hasSlash := false
+		var msg string
+		index := slices.IndexFunc(args, func(s string) bool {
+			// grab the first path we find that matches a package identifier
+			s = filepath.ToSlash(s)
+			if strings.HasPrefix(s, "./") {
+				return true
+			}
+
+			if !hasSlash && fileExist("./"+s) {
+				hasSlash = true
+			}
+			return fileExist("./" + s)
+		})
+
+		switch {
+		case index == -1:
+			msg = "No valid package identifier found; defaulting to running everything (./...)."
+			a := make([]string, 1, len(args)+1)
+			a[0] = "./..."
+			args = append(a, args...)
+		case hasSlash:
+			msg = fmt.Sprintf("Package identifier %s at position %d matched relative file .%s%[1]s; using as package.", args[index], index, string(filepath.Separator))
+			args[index] = filepath.Join("./", args[index])
+		default:
+			msg = fmt.Sprintf("Package identifier %s at position %d read successfully.", args[index], index)
+		}
+		fmt.Println(msg)
 	}
 
-	// tack on whatever config vals were passed by the user.
+	// tack on whatever config vals were passed on by the user
 	configVals = append(configVals, args...)
 
 	// If $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
@@ -120,6 +147,11 @@ func Test_Golang(goTestArgs string) error {
 
 	return sh.RunWithV(map[string]string{"PKGNAME": pkgName},
 		configVals[0], configVals[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
+}
+
+func fileExist(path string) bool {
+	_, err := os.Stat(path)
+	return !errors.Is(err, os.ErrNotExist)
 }
 
 // Remove all temp json files produced during tests and merge them together.
@@ -229,7 +261,7 @@ func Test_Playwright(playwrightArgs string) error {
 
 // Download frontend image files, replacing existent ones if present.
 func Images() error {
-	// switch dir
+	// switch dir and keep track of original
 	originalDir, err := os.Getwd()
 	if err != nil {
 		return mg.Fatalf(1, "error during os.Getwd: \n%w", err)
@@ -254,7 +286,7 @@ func Images() error {
 		if err := sh.Rm(tmpName); err != nil {
 			panic(err)
 		}
-		fmt.Println("removed temp file at", tmpName)
+		fmt.Println("removed temp image zip at", tmpName)
 	}()
 
 	if err := unzipTempFile(tmpName); err != nil {

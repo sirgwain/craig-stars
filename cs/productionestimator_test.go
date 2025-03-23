@@ -291,7 +291,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				wantErr: false,
 			},
 			{
-				name: "5 auto factories, then 5 auto mines",
+				name: "5 auto factories, then 10 auto mines",
 				args: args{
 					items: []ProductionQueueItem{
 						{
@@ -317,8 +317,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1, // we build some mines in the first year
-							YearsToBuildAll: 9, // we finish them the next year
+							YearsToBuildOne: 1, // we build some mines in the first year due to lack of germ
+							YearsToBuildAll: 9, // we finish them some time later
 							YearsToSkipAuto: Infinite,
 						},
 						Type:     QueueItemTypeAutoMines,
@@ -336,6 +336,10 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 							Quantity: 1,
 						},
 						{
+							Type:     QueueItemTypeTerraformEnvironment,
+							Quantity: 1,
+						},
+						{
 							Type:     QueueItemTypeAutoFactories,
 							Quantity: 100,
 						},
@@ -348,7 +352,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						WithMines(700).WithFactories(700),
 				},
 				want: []ProductionQueueItem{
-					// we skip the terraforming and easily finish everything else
+					// we skip/cancel the terraforming and easily finish everything else
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 							YearsToBuildOne: Infinite,
@@ -356,6 +360,16 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 							YearsToSkipAuto: 1,
 						},
 						Type:     QueueItemTypeAutoMinTerraform,
+						Quantity: 1,
+					},
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							Canceled:        true,
+							YearsToBuildOne: Infinite,
+							YearsToBuildAll: Infinite,
+							YearsToSkipAuto: Infinite,
+						},
+						Type:     QueueItemTypeTerraformEnvironment,
 						Quantity: 1,
 					},
 					{

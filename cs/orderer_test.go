@@ -1584,7 +1584,7 @@ func Test_orders_Merge(t *testing.T) {
 			}
 
 			if err == nil {
-        test.CompareAsJSON(t, got, tt.want)
+				test.CompareAsJSON(t, got, tt.want)
 			}
 		})
 	}

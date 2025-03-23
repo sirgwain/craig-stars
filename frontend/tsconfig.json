@@ -6,13 +6,14 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
-		"target": "ES6",
-		"useDefineForClassFields": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
 		"moduleResolution": "bundler",
-		"importHelpers": true
+		"importHelpers": true,
+		"excludes": [
+			"src/lib/wasm/wasm_exec.js" // ignore wasm file copied from GOROOT
+		]
 	}
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files

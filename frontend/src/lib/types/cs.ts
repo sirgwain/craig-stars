@@ -86,6 +86,9 @@ export type Bitmask = number /* uint32 */;
 //////////
 // source: bomb.go
 
+/**
+ * Bombers orbiting enemy planets will Bomb planets, killing population and destroying installations.
+ */
 export interface Bomb {
 	quantity?: number /* int */;
 	killRate?: number /* float64 */;
@@ -122,11 +125,24 @@ export type CargoType = ResourceType;
 //////////
 // source: cargotransfer.go
 
-export type CargoTransfers = { [key: string]: ByHandCargoTransfer[] };
+/**
+ * ByHandCargoTransfers are any cargo transfers performed by the player in the UI that need to be
+ * processed when a turn is generated. It is per fleet for a target. When a fleet is split or merged
+ * its by hand transfers are also split and merged.
+ */
 export interface ByHandCargoTransfer extends MapObjectTarget {
 	sourceFleetNum?: number /* int */;
 	cargo: Cargo;
 }
+/**
+ * CargoTransfers are per player ByHandCargoTransfers per location on the map. This makes processing
+ * easier so we can account for transfers to/from a target and then between fleets at that location
+ * The ByHandCargoTransfers are stored and processed in order they are made by the player
+ */
+export type CargoTransfers = { [key: string]: ByHandCargoTransfer[] };
+/**
+ * CargoTransferStatus will alert the user if a CargoTransfer didn't go through due to insufficient capacity or available cargo
+ */
 export type CargoTransferStatus = number /* int */;
 export const CargoTransferStatusNone: CargoTransferStatus = 0;
 export const CargoTransferStatusOwned: CargoTransferStatus = 1;
@@ -134,7 +150,13 @@ export const CargoTransferStatusCargo: CargoTransferStatus = 2;
 export const CargoTransferStatusCargoCapacity: CargoTransferStatus = 3;
 export const CargoTransferStatusDestCargo: CargoTransferStatus = 4;
 export const CargoTransferStatusDestCargoCapacity: CargoTransferStatus = 5;
+/**
+ * if a starbase is present, you cannot drop invaders
+ */
 export const CargoTransferStatusDestStarbase: CargoTransferStatus = 6;
+/**
+ * cargoTransferResult is the result of a single CargoType cargo transfer to a dest
+ */
 /**
  * dunnage tasks are done after regular tasks
  */
@@ -1203,6 +1225,7 @@ export interface PlayerMapObjects {
 //////////
 // source: production.go
 
+export const MaxBuildableCap = 5000;
 /**
  * The producer struct performs planetary production.
  */
@@ -1240,12 +1263,12 @@ export const QueueItemTypePlanetaryScanner: QueueItemType = 'PlanetaryScanner';
 export const QueueItemTypeGenesisDevice: QueueItemType = 'GenesisDevice';
 /**
  * A record used by the production estimator to record unbuilt
- * ProductionQueueItem completion times
+ * ProductionQueueItem completion times and outcomes.
  */
 export interface QueueItemCompletionEstimate {
 	canceled?: boolean; // Whether an item is canceled due to an invalid order
-	yearsToBuildOne?: number /* int */; // Years to build (or skip) the first item of its type
-	yearsToBuildAll?: number /* int */; // Years to build (or skip) the last item of its type
+	yearsToBuildOne?: number /* int */; // Years to build (or skip) the first item of this type in the queue
+	yearsToBuildAll?: number /* int */; // Years to build (or skip) the last item of this type in the queue
 	yearsToSkipAuto?: number /* int */; // Years to skip the first auto item in a queue
 }
 /**

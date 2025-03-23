@@ -114,8 +114,8 @@ type WaypointTransportTask struct {
 	Action WaypointTaskTransportAction `json:"action,omitempty"`
 }
 
+// A transport task performed by a fleet to load or unload cargo.
 // TODO: Add a "set waypoint to %" command
-
 type WaypointTaskTransportAction string
 
 type transportTaskByType map[CargoType]WaypointTransportTask

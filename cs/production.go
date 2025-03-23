@@ -8,6 +8,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
+const MaxBuildableCap = 5000
+
 // The producer struct performs planetary production.
 type producer struct {
 	log       zerolog.Logger
@@ -128,9 +130,7 @@ func (t QueueItemType) concreteType() QueueItemType {
 		return QueueItemTypeFactory
 	case QueueItemTypeAutoDefenses:
 		return QueueItemTypeDefenses
-	case QueueItemTypeAutoMaxTerraform:
-		return QueueItemTypeTerraformEnvironment
-	case QueueItemTypeAutoMinTerraform:
+	case QueueItemTypeAutoMaxTerraform, QueueItemTypeAutoMinTerraform:
 		return QueueItemTypeTerraformEnvironment
 	case QueueItemTypeAutoMineralAlchemy:
 		return QueueItemTypeMineralAlchemy
@@ -141,11 +141,11 @@ func (t QueueItemType) concreteType() QueueItemType {
 }
 
 // A record used by the production estimator to record unbuilt
-// ProductionQueueItem completion times
+// ProductionQueueItem completion times and outcomes.
 type QueueItemCompletionEstimate struct {
 	Canceled        bool `json:"canceled,omitempty"`        // Whether an item is canceled due to an invalid order
-	YearsToBuildOne int  `json:"yearsToBuildOne,omitempty"` // Years to build (or skip) the first item of its type
-	YearsToBuildAll int  `json:"yearsToBuildAll,omitempty"` // Years to build (or skip) the last item of its type
+	YearsToBuildOne int  `json:"yearsToBuildOne,omitempty"` // Years to build (or skip) the first item of this type in the queue
+	YearsToBuildAll int  `json:"yearsToBuildAll,omitempty"` // Years to build (or skip) the last item of this type in the queue
 	YearsToSkipAuto int  `json:"yearsToSkipAuto,omitempty"` // Years to skip the first auto item in a queue
 }
 
@@ -223,7 +223,7 @@ func (p *producer) produce() (result productionResult, err error) {
 		maxBuildable := planet.MaxBuildable(p.player, item.Type)
 		if maxBuildable == Infinite {
 			// Infinite is the constant int of -1, but for our purposes we want a very large number
-			maxBuildable = math.MaxInt
+			maxBuildable = MaxBuildableCap
 		}
 
 		// If this is a concrete item and we haven't built anything yet,
@@ -311,7 +311,12 @@ func (p *producer) produce() (result productionResult, err error) {
 		// if we built mineral alchemy, add it back into our pot to use later
 		available = available.AddToAllMineral(result.alchemy)
 
-		result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, queueItemType: item.Type, designNum: item.DesignNum, numBuilt: numBuilt})
+		result.itemsBuilt = append(result.itemsBuilt, itemBuilt{
+			index:         item.index,
+			queueItemType: item.Type,
+			designNum:     item.DesignNum,
+			numBuilt:      numBuilt,
+		})
 
 		// planets are ending up with negative minerals. Trying to figure out why...
 		if available.MinZero() != available {
@@ -323,7 +328,7 @@ func (p *producer) produce() (result productionResult, err error) {
 			available = available.MinZero()
 		}
 
-		// Elide any concrete items ahead of us inside the queue that are over cap.
+		// Remove any concrete items ahead of us inside the queue that are over cap.
 		if itemIndex < len(planet.ProductionQueue)-1 {
 			modQueue := planet.ProductionQueue[:itemIndex+1] // everything before us can stay
 			for _, item := range planet.ProductionQueue[itemIndex+1:] {
@@ -335,8 +340,8 @@ func (p *producer) produce() (result productionResult, err error) {
 
 				maxBuildable := planet.MaxBuildable(p.player, item.Type)
 				if maxBuildable == Infinite {
-					// infinite maxBuildable
-					modQueue = append(modQueue, item)
+					// infinite is the constant int of -1, but we want a very big number
+					maxBuildable = MaxBuildableCap
 					continue
 				}
 
@@ -353,6 +358,7 @@ func (p *producer) produce() (result productionResult, err error) {
 				}
 
 				if item.Quantity > 0 {
+					// still have copies to build; keep in queue
 					modQueue = append(modQueue, item)
 				} else {
 					// quantity <= 0; remove from new queue

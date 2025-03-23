@@ -25,17 +25,17 @@ func NewCargoFromMineral(mineral Mineral, pop int) Cargo {
 	}
 }
 
-func NewCargoFromType(cargoType CargoType, amt int) Cargo {
+func NewCargoFromType(cargoType CargoType, amount int) Cargo {
 	c := Cargo{}
 	switch cargoType {
 	case Ironium:
-		c.Ironium = amt
+		c.Ironium = amount
 	case Boranium:
-		c.Boranium = amt
+		c.Boranium = amount
 	case Germanium:
-		c.Germanium = amt
+		c.Germanium = amount
 	case Colonists:
-		c.Colonists = amt
+		c.Colonists = amount
 	}
 	return c
 }

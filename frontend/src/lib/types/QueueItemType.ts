@@ -53,12 +53,19 @@ export const stringToQueueItemType = (value: string): QueueItemType | undefined 
 	return validQueueItemTypes.has(value) ? value : undefined;
 };
 
+export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
+	type,
+	quantity: 1,
+	allocated: {},
+	tags: {}
+});
+
 /**
- * Determine if a ProductionQueueItem is an auto item
- * @param type The type to check
- * @returns true if this item is auto
+ * Determine if a {@linkcode QueueItemType} is an auto item
+ * @param type The {@linkcode QueueItemType} to check
+ * @returns `true` if type denotes an auto item
  */
-export const isAuto = (type: QueueItemType): boolean => {
+export function isAuto(type: QueueItemType): boolean {
 	switch (type) {
 		case QueueItemTypeAutoMines:
 		case QueueItemTypeAutoFactories:
@@ -71,15 +78,17 @@ export const isAuto = (type: QueueItemType): boolean => {
 		default:
 			return false;
 	}
-};
+}
 
 /**
  * Check if a {@linkcode ProductionQueueItem} will be fully skipped and entirely unbuildable.
  * @param item the {@linkcode ProductionQueueItem} to check; must have estimates filled in
  * @returns `true` if item is fully skipped (nothing will be built for the next 100 years)
  */
-export const isFullySkipped = (item: ProductionQueueItem) => {
-	return isAuto(item.type) && item.yearsToBuildOne == Infinite && item.yearsToBuildAll == Infinite;
+export function isFullySkipped(item: ProductionQueueItem): boolean {
+	return (
+		isAuto(item.type) && item.yearsToBuildOne === Infinite && item.yearsToBuildAll === Infinite
+	);
 }
 
 /**
@@ -87,24 +96,17 @@ export const isFullySkipped = (item: ProductionQueueItem) => {
  * @param item the {@linkcode ProductionQueueItem} to check; must have estimates filled in
  * @returns `true` if item is skipped during the first year of production
  */
-export const skippedFirstYear = (item: ProductionQueueItem) => {
-	return isAuto(item.type) && item.yearsToSkipAuto === 1
+export function skippedFirstYear(item: ProductionQueueItem): boolean {
+	return isAuto(item.type) && item.yearsToSkipAuto === 1;
 }
-
-export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
-	type,
-	quantity: 1,
-	allocated: {},
-	tags: {}
-});
 
 /**
  * Check if a {@linkcode QueueItemType} is a concrete or auto planetary item.
  * @param type the {@linkcode QueueItemType} to check
  * @returns `true` if item is a concrete or auto planetary item (i.e. not a ship/starbase)
  */
-export const isPlanetary = (type: QueueItemType) => {
-	return type !== QueueItemTypeShipToken && type !== QueueItemTypeStarbase
+export function isPlanetary(type: QueueItemType): boolean {
+	return type !== QueueItemTypeShipToken && type !== QueueItemTypeStarbase;
 }
 
 /**
@@ -198,11 +200,11 @@ export function getShortName(item: ProductionQueueItem, designFinder: DesignFind
 }
 
 /**
- * Get the proper name of a {@linkcode QueueItemType},
+ * Get the singular name of a {@linkcode QueueItemType} in proper English.
  * @param type the {@linkcode QueueItemType} being checked.
  * @returns The singular form of this {@linkcode QueueItemType}, suitable for use in messages.
  */
-export const getName = (type: QueueItemType) => {
+export function getSingularName(type: QueueItemType): string {
 	switch (type) {
 		case QueueItemTypeAutoMineralAlchemy:
 			return 'auto mineral alchemy';
@@ -221,7 +223,6 @@ export const getName = (type: QueueItemType) => {
 		case QueueItemTypeDefenses:
 			return 'defense outpost';
 		case QueueItemTypeIroniumMineralPacket:
-		// @sirgwain: should these be capitalized if all they doing is going in messages?
 			return 'ironium mineral packet';
 		case QueueItemTypeBoraniumMineralPacket:
 			return 'boranium mineral packet';
@@ -232,7 +233,7 @@ export const getName = (type: QueueItemType) => {
 		case QueueItemTypeTerraformEnvironment:
 			return 'terraform environment';
 		case QueueItemTypeAutoMineralPacket:
-			return 'auto mixed mineral packet';
+			return 'auto mineral packet';
 		case QueueItemTypePlanetaryScanner:
 			return 'planetary scanner';
 		case QueueItemTypeGenesisDevice:
@@ -240,14 +241,14 @@ export const getName = (type: QueueItemType) => {
 		default:
 			return `${startCase(type).toLowerCase()}`;
 	}
-};
+}
 
 /**
- * Get the plural name of a {@linkcode QueueItemType}.
+ * Get the plural name of a {@linkcode QueueItemType} in proper English.
  * @param type the {@linkcode QueueItemType} being checked.
  * @returns The plural form of this {@linkcode QueueItemType}, suitable for use in messages.
  */
-export const getPluralName = (type: QueueItemType) => {
+export function getPluralName(type: QueueItemType): string {
 	switch (type) {
 		case QueueItemTypeAutoMineralAlchemy:
 			// yes, the plural of "alchemy" is alchemies. FIGHT ME
@@ -257,6 +258,6 @@ export const getPluralName = (type: QueueItemType) => {
 		case QueueItemTypeAutoFactories:
 			return 'auto factories';
 		default:
-			return getName(type) + 's';
+			return getSingularName(type) + 's';
 	}
-};
+}

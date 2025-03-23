@@ -10,7 +10,7 @@
 		}
 	],
 	"settings": {
-		"[json][jsonc][jsonl][js][ts][css][html][svelte]": {
+		"[json][jsonc][jsonl][javascript][typescript][css][html][svelte]": {
 			"editor.defaultFormatter": "esbenp.prettier-vscode"
 		},
 		"files.associations": {

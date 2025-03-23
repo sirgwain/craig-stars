@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
+	"path/filepath"
 	"sync"
 
 	"github.com/magefile/mage/mg"
@@ -63,7 +63,7 @@ func Copy_Wasm_Exec() error {
 	if err != nil {
 		return err
 	}
-	goroot = strings.ReplaceAll(goroot, "\\", "/") // replace backslashes on windows
+	goroot = filepath.ToSlash(goroot) // replace backslashes on windows
 
 	// Check if wasm executable exists or not.
 	// Go 1.24 moved wasm_exec.js from misc/wasm to lib/wasm,
@@ -187,7 +187,7 @@ func build_backend(buildArgs ...string) error {
 	args := make([]string, 1, len(buildArgs)+4)
 	args[0] = "build"
 	args = append(args, buildArgs...)
-	args = append(args, "-o", "dist/" + binary_name, "main.go")
+	args = append(args, "-o", "dist/"+binary_name, "main.go")
 
 	if err := sh.RunV("go", args...); err != nil {
 		// "go", "build", buildArgs..., "-o", "dist/craig-stars", "main.go"

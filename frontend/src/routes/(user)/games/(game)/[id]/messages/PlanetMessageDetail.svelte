@@ -3,7 +3,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { totalMinerals } from '$lib/types/Cost';
 	import { absSum } from '$lib/types/Hab';
-	import { getName, getPluralName } from '$lib/types/QueueItemType';
+	import { getSingularName, getPluralName } from '$lib/types/QueueItemType';
 	import type { PlanetIntel, PlayerIntel } from '$lib/types/cs';
 	import {
 		CometHuge,
@@ -143,7 +143,7 @@
 {:else if message.type === PlayerMessagePlanetBuiltInvalidItem}
 	{@const itemName =
 		message.spec.prevAmount === 1
-			? getName(message.spec.queueItemType!)
+			? getSingularName(message.spec.queueItemType!)
 			: getPluralName(message.spec.queueItemType!)}
 
 	{@const qty =
@@ -163,7 +163,7 @@
 {:else if message.type === PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver}
 	{@const itemName = message.spec.queueItemType
 		? message.spec.prevAmount === 1
-			? getName(message.spec.queueItemType)
+			? getSingularName(message.spec.queueItemType)
 			: getPluralName(message.spec.queueItemType)
 		: (message.spec.prevAmount ?? 0) > 1
 			? 'mineral packets'
@@ -187,7 +187,7 @@
 {:else if message.type === PlayerMessagePlanetBuiltInvalidMineralPacketNoTarget}
 	{@const itemName = message.spec.queueItemType
 		? message.spec.prevAmount === 1
-			? getName(message.spec.queueItemType)
+			? getSingularName(message.spec.queueItemType)
 			: getPluralName(message.spec.queueItemType)
 		: (message.spec.prevAmount ?? 0) > 1
 			? 'mineral packets'

@@ -96,8 +96,8 @@ func (c cost[T]) HighestType(ranking int) (costType CostType, value T) {
 
 // Return the first valid CostType in a Cost struct with the given numerical value;
 // panics if no CostType with the corresponding value exists
-func (c cost[T]) GetTypeFromAmount(amt T) CostType {
-	switch amt {
+func (c cost[T]) GetTypeFromAmount(amount T) CostType {
+	switch amount {
 	case c.Ironium:
 		return Ironium
 	case c.Germanium:
@@ -107,7 +107,7 @@ func (c cost[T]) GetTypeFromAmount(amt T) CostType {
 	case c.Resources:
 		return Resources
 	}
-	panic(fmt.Sprintf("GetTypeFromamt called with value %v but no corresponding costType was found in cost struct; Struct values:\n%#v", amt, c))
+	panic(fmt.Sprintf("GetTypeFromamount called with value %v, but no corresponding costType was found in cost struct: \n%#v", amount, c))
 }
 
 func (c cost[T]) GetAmount(costType CostType) T {
@@ -125,19 +125,19 @@ func (c cost[T]) GetAmount(costType CostType) T {
 	}
 }
 
-// Set sets the value corresponding to costType to amt.
+// Set sets the value corresponding to costType to amount.
 // Unlike all the other Cost functions, this _will_ mutate the original struct's values,
 // and is best used for more complex cases not handled by other functions.
-func (c *cost[T]) Set(costType CostType, amt T) {
+func (c *cost[T]) Set(costType CostType, amount T) {
 	switch costType {
 	case Ironium:
-		c.Ironium = amt
+		c.Ironium = amount
 	case Boranium:
-		c.Boranium = amt
+		c.Boranium = amount
 	case Germanium:
-		c.Germanium = amt
+		c.Germanium = amount
 	case Resources:
-		c.Resources = amt
+		c.Resources = amount
 	default:
 		panic(fmt.Sprintf("cost.Set called with invalid CostType %s", costType))
 	}
@@ -205,27 +205,27 @@ func (c cost[T]) Add(other cost[T]) cost[T] {
 	}
 }
 
-// Add amt to all components of this Cost, returning the updated struct.
-func (c cost[T]) AddToAll(amt T) cost[T] {
+// Add amount to all components of this Cost, returning the updated struct.
+func (c cost[T]) AddToAll(amount T) cost[T] {
 	return cost[T]{
-		Ironium:   c.Ironium + amt,
-		Boranium:  c.Boranium + amt,
-		Germanium: c.Germanium + amt,
-		Resources: c.Resources + amt,
+		Ironium:   c.Ironium + amount,
+		Boranium:  c.Boranium + amount,
+		Germanium: c.Germanium + amount,
+		Resources: c.Resources + amount,
 	}
 }
 
-// Add amt to a specified component of this Cost, returning the updated struct.
-func (c cost[T]) AddNum(costType CostType, amt T) cost[T] {
+// Add amount to a specified component of this Cost, returning the updated struct.
+func (c cost[T]) AddNum(costType CostType, amount T) cost[T] {
 	switch costType {
 	case Ironium:
-		c.Ironium += amt
+		c.Ironium += amount
 	case Boranium:
-		c.Boranium += amt
+		c.Boranium += amount
 	case Germanium:
-		c.Germanium += amt
+		c.Germanium += amount
 	case Resources:
-		c.Resources += amt
+		c.Resources += amount
 	default:
 		panic(fmt.Sprintf("AddNum called with invalid CostType %q", costType))
 	}
@@ -242,13 +242,13 @@ func (c cost[T]) AddMineral(other Mineral) cost[T] {
 	}
 }
 
-// Add amt to all mineral components of this Cost struct and return the result.
+// Add amount to all mineral components of this Cost struct and return the result.
 // Resources are left unaffected.
-func (c cost[T]) AddToAllMineral(amt T) cost[T] {
+func (c cost[T]) AddToAllMineral(amount T) cost[T] {
 	return cost[T]{
-		Ironium:   c.Ironium + amt,
-		Boranium:  c.Boranium + amt,
-		Germanium: c.Germanium + amt,
+		Ironium:   c.Ironium + amount,
+		Boranium:  c.Boranium + amount,
+		Germanium: c.Germanium + amount,
 		Resources: c.Resources,
 	}
 }

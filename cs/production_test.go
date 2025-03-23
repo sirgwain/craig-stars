@@ -200,7 +200,7 @@ func Test_production_produce(t *testing.T) {
 				Cost:          Cost{4, 4, 4, 12},
 				Amount:        1000, // weight of canceled packets
 				Amount2:       3,    // no. of canceled orders
-				PrevAmount:    9,    // amt of canceled items
+				PrevAmount:    9,    // amount of canceled items
 			},
 		}}
 
