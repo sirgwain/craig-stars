@@ -2,7 +2,7 @@
 
 `craig-stars`, as a clone of the original 1995 Stars! game, strives to be as close to the original as possible in terms of base game mechanics. However, certain elements either do not translate well to a modern web game or are simply not worth keeping.
 
-Here is a non-exhaustive list of differences between `craig-stars` and the original game. Features yet to be implemented are not included.
+This is a non-exhaustive list of differences between `craig-stars` and the original game. Features yet to be implemented are not included.
 
 <!-- TODO: Do we want to make this into a table???-->
 
