@@ -12,7 +12,7 @@ An open-source, web based Stars! clone.
 
 The [Stars! wiki](https://wiki.starsautohost.org/) and [Home World Forum](https://starsautohost.org/sahforum2/) are both great places for learning about Stars! gameplay. The wiki's [strategy guide](https://wiki.starsautohost.org/wikinew/ssg/ssg.htm) is a good starting point for new players to learn the basics, and the active [Stars! discord server](https://discord.gg/t8JpDS3d) is a great place to ask questions and start/join new multiplayer games. (For developers & contributors, there is also a channel for stars clone discussion.)
 
-[^1]: A non-exhaustive list of intentional differences can be found [here](./docs/changes.md).
+[^1]: A non-exhaustive list of intentional differences can be found [here](docs/changes.md).
 
 ## Development/Contributing
 
