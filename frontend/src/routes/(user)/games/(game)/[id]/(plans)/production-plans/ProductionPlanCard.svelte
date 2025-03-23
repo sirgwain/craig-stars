@@ -39,7 +39,10 @@
 				<!-- TODO: Add concrete items to queue estimates-->
 				{#each plan.items as queueItem}
 					<li class="pl-1">
-						<div class="flex flex-row justify-between" class:queue-item-type-auto={isAuto(queueItem.type)}>
+						<div
+							class="flex flex-row justify-between"
+							class:queue-item-type-auto={isAuto(queueItem.type)}
+						>
 							<div>
 								{getShortName(queueItem as ProductionQueueItem, designFinder)}
 							</div>

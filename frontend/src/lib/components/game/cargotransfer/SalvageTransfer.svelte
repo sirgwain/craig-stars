@@ -27,5 +27,4 @@
 	<div class="text-right">
 		{(cargo?.germanium ?? 0) + (transferAmount.germanium ?? 0)}kT
 	</div>
-
 </div>

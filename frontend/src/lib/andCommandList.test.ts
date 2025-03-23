@@ -15,9 +15,9 @@ describe('andCommandList', () => {
 	});
 	it('supports custom operators', () => {
 		expect(andCommaList([], 'this is an empty string')).toBe('this is an empty string');
-		expect(andCommaList(['granny smith', 'honeycrisp', 'fuji', 'gala', 'pink lady'], '', 'or')).toBe(
-			'granny smith, honeycrisp, fuji, gala or pink lady'
-		);
+		expect(
+			andCommaList(['granny smith', 'honeycrisp', 'fuji', 'gala', 'pink lady'], '', 'or')
+		).toBe('granny smith, honeycrisp, fuji, gala or pink lady');
 		expect(andCommaList(['aeeee', '', 'apple yay'], '', 'and/or maaaaybe')).toBe(
 			'aeeee and/or maaaaybe apple yay'
 		);

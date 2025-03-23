@@ -101,7 +101,7 @@
 				yearsToBuildOne: estimate.yearsToBuildOne,
 				yearsToBuildAll: estimate.yearsToBuildAll,
 				yearsToSkipAuto: estimate.yearsToSkipAuto,
-				canceled: estimate.canceled,
+				canceled: estimate.canceled
 			});
 		}
 
@@ -173,7 +173,7 @@
 
 	function addAvailableItem(item?: ProductionQueueItem) {
 		item = item ?? selectedAvailableItem;
-		if  (!item) {
+		if (!item) {
 			return;
 		}
 		const amtToAdd = clamp(quantityModifier, 0, maxBuild(item));
