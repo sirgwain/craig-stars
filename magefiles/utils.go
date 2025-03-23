@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/magefile/mage/mg"
@@ -21,8 +22,8 @@ func Test() error {
 		return err
 	}
 
-	err := Test_Golang("")
-	if err != nil {
+	mg.Deps(cleanTmpDir)
+	if err := Test_Golang("./..."); err != nil {
 		return err
 	}
 
@@ -43,13 +44,26 @@ func Lint() error {
 	return cmd.Run()
 }
 
-// Run backend golang tests using gotestsum with passing args to "go test".
-// This runs all tests across all packages.
-// Gotestsum args are dependent on the value of $CI and $GITHUB_REPOSITORY/$GH_REPO.
+func cleanTmpDir() error {
+	if err := os.RemoveAll("tmp"); err != nil {
+		return mg.Fatalf(1, "error cleaning out tmp dir: \n%w", err)
+	}
+	if err := os.Mkdir("tmp", 0755); err != nil {
+		return mg.Fatalf(1, "error recreating tmp dir: \n%w", err)
+	}
+	return nil
+}
+
+// Run backend tests using gotestsum, passing args to "go test".
+// CI runs will always run all tests across all packages,
+// whereas non-CI runs can specify which package(s) to run as part of goTestArgs.
+// If a package identifier is omitted on non-CI runs,
+// it will default to running everything ("./...").
 func Test_Golang(goTestArgs string) error {
 	fmt.Println("Running backend tests...")
+	mg.Deps(cleanTmpDir)
 
-	// read gotestsum config args from text file
+	// read gotestsum config args from text file;
 	// use CI config if on CI; else regular config
 	var filePath string
 	if is_CI() {
@@ -59,6 +73,7 @@ func Test_Golang(goTestArgs string) error {
 		fmt.Println("Non-CI run detected; using default config")
 		filePath = "gotestsum/gotestsum.config.txt"
 	}
+
 	configBytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return mg.Fatalf(1, "error reading gotestsum config file: \n%w", err)
@@ -66,34 +81,50 @@ func Test_Golang(goTestArgs string) error {
 
 	// extract config values delimited by commas and whitespace
 	configVals := strings.FieldsFunc(string(configBytes), func(r rune) bool {
-		return (r == ',' || r == ' ' || r == '\n' || r == '\r')
+		return (r == ',' || r == ' ' || r == '\r' || r == '\n')
 	})
 	fmt.Printf("Config file at %s successfully read.\n", filePath)
 
-	// if $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
+	// If the user forgot to add a package mark for non-CI runs,
+	// do them a favor rather than outright failing.
+	// CI runs are exempt from this due to rerun-fails requiring an explicit package argument
+	// (not to mention their entire *job* is to test everything)
+	args := strings.Fields(goTestArgs)
+	if !is_CI() && slices.IndexFunc(args, func(s string) bool {
+		return strings.HasPrefix(s, "./")
+	}) == -1 {
+		fmt.Println("No package identifier found; defaulting to running everything")
+		args = append([]string{"./..."}, args...)
+	}
+
+	// tack on whatever config vals were passed by the user.
+	configVals = append(configVals, args...)
+
+	// If $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
 	// Otherwise, check for $GH_REPO (from github CLI) before falling back to a default string.
-	var pkgName string = "craig-stars"
+	pkgName := "craig-stars"
 	if r := strings.TrimSpace(os.Getenv("GITHUB_REPOSITORY")); r != "" {
 		pkgName = r
 	} else if r = strings.TrimSpace(os.Getenv("GH_REPO")); r != "" {
 		pkgName = r
 	}
 
-	// merge any produced json files together once we're done testing
-	// we only do this after all the setup to save time
+	// merge together any temporary json files together once we're done testing.
+	// We do this now to save time - if the prior steps fail,
+	// there won't be any KSON files to merge)
 	defer func() {
 		if err := Merge_Temp_JSON(); err != nil {
 			fmt.Printf("error merging temp JSON diffs after test run:\n%v\n", err)
 		}
 	}()
 
-	return sh.RunWithV(map[string]string{"GITHUB_REPOSITORY": pkgName},
+	return sh.RunWithV(map[string]string{"PKGNAME": pkgName},
 		configVals[0], configVals[1:]...) // "go", "tool", "gotest.tools/gotestsum"...
 }
 
-// Remove all temp json files inside tmp and merge them into 1 large file.
-// This takes all files matching the format "diff_**.jsonl"
-// and merges them together into 1 large file for easy parsing & CI uploading.
+// Remove all temp json files produced during tests and merge them together.
+// This takes all files matching the format "XXX_**.jsonl",
+// and merges them together into a single file named "XXX.jsonl".
 // Comments are added between failing tests from different packages.
 func Merge_Temp_JSON() error {
 	tmp, err := os.Open("tmp")
@@ -106,53 +137,57 @@ func Merge_Temp_JSON() error {
 	}
 
 	if len(fileNames) == 0 {
-		fmt.Println("No JSON diffs were found inside tmp to merge; exiting")
+		fmt.Println("No files were found inside ./tmp, exiting")
 		return nil
 	}
 
 	count := 0
 	for _, fileName := range fileNames {
-		if !strings.HasPrefix(fileName, "diff_") ||
-			!strings.HasSuffix(fileName, ".jsonl") {
-			// file doesn't start with correct prefix; probably not a json file
+		fullName := filepath.Join("tmp", fileName)
+		if !strings.HasSuffix(fileName, ".jsonl") {
+			// file isn't a JSON Lines file; skip
 			continue
 		}
 
-		// extract name of package from file name
-		pkgName, _ := strings.CutPrefix(fileName, "diff_")
+		prefix, pkgName, found := strings.Cut(fileName, "_")
+		if !found {
+			// file name has no underscores, so it 100% isn't a preformatted JSON file
+			continue
+		}
+
+		// cut out file extension to extract package name
 		pkgName, _ = strings.CutSuffix(pkgName, ".jsonl")
 
 		// grab file data
-		fileBytes, err := os.ReadFile("tmp/" + fileName)
+		fileBytes, err := os.ReadFile(fullName)
 		if err != nil {
 			return mg.Fatalf(1, "error during os.ReadFile: \n%w", err)
 		}
+		path := filepath.Join("tmp", prefix+".jsonl") // got.jsonl, want.jsonl, etc.
 
 		// Add a header mentioning which package we're in to the start of the file
-		contents := "//*" +
+		contents := "//* " +
 			strings.ToUpper(pkgName) + "\n" +
 			string(fileBytes)
 		if count == 0 {
-			// truncate file if it already exists
-			if err := os.WriteFile("tmp/diff.jsonl", []byte(contents), 0644); err != nil {
+			// truncate file if it already exists; otherwise add a newline delimiter
+			if err := os.WriteFile(path, []byte(contents), 0644); err != nil {
 				return mg.Fatalf(1, "error during os.WriteFile: \n%w", err)
 			}
-		} else {
-			if err := test.AppendFile("tmp/diff.jsonl", "\n"+contents); err != nil {
-				return mg.Fatalf(1, "error during test.AppendFile: \n%w", err)
-			}
+		} else if err := test.AppendFile(path, "\n"+contents); err != nil {
+			return mg.Fatalf(1, "error during test.AppendFile: \n%w", err)
 		}
 
 		count++
-		// remove test file after being merged
-		if err := sh.Rm(fileName); err != nil {
+		// remove test file after merging
+		if err := sh.Rm(fullName); err != nil {
 			return err
 		}
 	}
 
 	var message string
 	if count > 0 {
-		message = fmt.Sprintf("Successfully merged %d temp json files into tmp/diff.jsonl.", count)
+		message = fmt.Sprintf("Successfully merged a total of %d temp json files together.", count)
 	} else {
 		message = "No JSON files to merge were found."
 	}
@@ -163,9 +198,12 @@ func Merge_Temp_JSON() error {
 // Run frontend tests using Vitest with the given args.
 func Test_Vitest(vitestArgs string) error {
 	fmt.Println("Running vitest tests...")
+	mg.Deps(cleanTmpDir)
+
 	if vitestArgs == "" {
 		vitestArgs = "."
 	}
+
 	cmd := exec.Command("npm", "run-script", "test:unit", "--", vitestArgs)
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
@@ -176,9 +214,12 @@ func Test_Vitest(vitestArgs string) error {
 // Run end-to-end tests using Playwright with the given args.
 func Test_Playwright(playwrightArgs string) error {
 	fmt.Println("Running playwright tests...")
+	mg.Deps(cleanTmpDir)
+
 	if playwrightArgs == "" {
 		playwrightArgs = "."
 	}
+
 	cmd := exec.Command("npm", "run-script", "test:e2e", "--", playwrightArgs)
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
@@ -198,7 +239,7 @@ func Images() error {
 		return mg.Fatalf(1, "error during os.Chdir: \n%w", err)
 	}
 
-	// revert the current dir after this call
+	// revert working dir afterwards
 	defer func() {
 		if err := os.Chdir(originalDir); err != nil {
 			panic(fmt.Errorf("error reverting to original directory: \n%v", err))

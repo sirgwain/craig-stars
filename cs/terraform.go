@@ -4,7 +4,7 @@ import "math"
 
 // The Terraformer interface handles terraforming planets
 type Terraformer interface {
-	getTerraformAbility(player *Player) Hab
+	GetTerraformAbility(player *Player) Hab
 	GetBestTerraform(planet *Planet, player *Player, terraformer *Player) *HabType
 	TerraformHab(planet *Planet, terraformer *Player, habType HabType, amount int) TerraformResult
 	PermaformHab(planet *Planet, planetPlayer *Player, habType HabType, amount int) TerraformResult
@@ -30,8 +30,8 @@ func NewTerraformer() Terraformer {
 	return &terraform{}
 }
 
-// getTerraformAbility returns the terraform ability of a player taking into account total terraform and hab terraform
-func (t *terraform) getTerraformAbility(player *Player) Hab {
+// GetTerraformAbility returns the terraform ability of a player taking into account total terraform and hab terraform
+func (t *terraform) GetTerraformAbility(player *Player) Hab {
 	bestTotalTerraform := player.Spec.Terraform[TerraformHabTypeAll]
 	totalTerraformAbility := 0
 	if bestTotalTerraform != nil {
@@ -72,7 +72,7 @@ func (t *terraform) GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 		terraformer = player
 	}
 
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 	enemy := terraformer.IsEnemy(player.Num)
 	habCenter := player.Race.HabCenter()
 
@@ -137,7 +137,7 @@ func (t *terraform) GetMinTerraformAmount(hab Hab, baseHab Hab, player *Player, 
 	}
 
 	// get how much this player can terraform each hab
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 
 	habCenter := player.Race.HabCenter()
 
@@ -216,7 +216,7 @@ func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer
 	}
 
 	// get how much this player can terraform each hab
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 
 	habCenter := player.Race.HabCenter()
 	for _, habType := range HabTypes {
@@ -307,7 +307,7 @@ func (t *terraform) getBestUnterraform(planet *Planet, player, terraformer *Play
 	}
 
 	// get how much this player can terraform each hab
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 
 	habCenter := player.Race.HabCenter()
 
@@ -338,7 +338,7 @@ func (t *terraform) getBestUnterraform(planet *Planet, player, terraformer *Play
 // Positive amount means increase, negative amount means decrease
 func (t *terraform) TerraformHab(planet *Planet, terraformer *Player, habType HabType, amount int) TerraformResult {
 	// Get terraforming capabilities of player
-	terraformAbility := t.getTerraformAbility(terraformer)
+	terraformAbility := t.GetTerraformAbility(terraformer)
 	hab := planet.Hab.Get(habType)
 
 	// Terraform planet, limiting value to the terraformer's capabilities

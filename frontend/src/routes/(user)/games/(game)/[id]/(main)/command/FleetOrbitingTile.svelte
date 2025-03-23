@@ -2,7 +2,7 @@
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { None } from '$lib/types/cs';
-	import type { CommandedFleet } from '$lib/types/Fleet';
+	import { canTransferCargo, type CommandedFleet } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
 	import CommandTile from './CommandTile.svelte';
 
@@ -45,7 +45,8 @@
 			<button
 				onclick={transfer}
 				class="btn btn-outline btn-sm normal-case btn-secondary p-2"
-				title="goto"
+				title="transfer"
+				disabled={!canTransferCargo(fleet)}
 				>{planet ? 'Transfer' : 'Jettison'}
 			</button>
 		</div>

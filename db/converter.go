@@ -28,6 +28,8 @@ var c Converter
 // goverter:extend GameRaceSpecToRaceSpec
 // goverter:extend ProductionPlansToGameProductionPlans
 // goverter:extend GameProductionPlansToProductionPlans
+// goverter:extend CargoTransfersToGameCargoTransfers
+// goverter:extend GameCargoTransfersToCargoTransfers
 // goverter:extend BattlePlansToGameBattlePlans
 // goverter:extend GameBattlePlansToBattlePlans
 // goverter:extend TransportPlansToGameTransportPlans
@@ -383,6 +385,19 @@ func TagsToGameTags(source *Tags) cs.Tags {
 
 func GameTagsToTags(source cs.Tags) *Tags {
 	return (*Tags)(&source)
+}
+
+func CargoTransfersToGameCargoTransfers(source *CargoTransfers) cs.CargoTransfers {
+	// return an empty slice for nil
+	if source == nil {
+		return cs.CargoTransfers{}
+	}
+
+	return (cs.CargoTransfers)(*source)
+}
+
+func GameCargoTransfersToCargoTransfers(source cs.CargoTransfers) *CargoTransfers {
+	return (*CargoTransfers)(&source)
 }
 
 func BattlePlansToGameBattlePlans(source *BattlePlans) []cs.BattlePlan {

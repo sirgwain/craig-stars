@@ -11,6 +11,7 @@
 		CometMedium,
 		CometSmall,
 		PlayerMessageFleetBuilt,
+		PlayerMessageFleetInvadedPlanet,
 		PlayerMessageFleetScrapped,
 		PlayerMessagePlanetBombed,
 		PlayerMessagePlanetBonusResearchArtifact,
@@ -32,6 +33,7 @@
 		PlayerMessagePlanetDiscoveryTerraformable,
 		PlayerMessagePlanetDiscoveryUninhabitable,
 		PlayerMessagePlanetHomeworld,
+		PlayerMessagePlanetInvaded,
 		PlayerMessagePlanetPopulationDecreased,
 		PlayerMessagePlanetPopulationDecreasedOvercrowding,
 		PlayerMessagePlayerAcquirablePartGainedBattle,
@@ -296,6 +298,38 @@
 		The population on {planet.name} has decreased from {(
 			message.spec.prevAmount ?? 0
 		).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
+	{/if}
+{:else if message.type === PlayerMessageFleetInvadedPlanet}
+	{@const invasion = message.spec.invasion}
+	{#if invasion}
+		{#if invasion.successful}
+			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} have successfully wrested
+			{planet.name}
+			from {$universe.getPlayerName(invasion.defenderPlayerNum)} control, killing off all their colonists
+			with only {invasion.attackersKilled} causalties.
+		{:else}
+			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} tried to invade {planet.name},
+			but all of them were massacred by the {$universe.getPlayerName(invasion.defenderPlayerNum)}.
+			Your valiant fighters managed to kill {invasion.defendersKilled} of their colonists in return.
+		{/if}
+	{:else}
+		{planet.name} was invaded, but your spies no nothing of the outcome.
+	{/if}
+{:else if message.type === PlayerMessagePlanetInvaded}
+	{@const invasion = message.spec.invasion}
+	{#if invasion}
+		{#if invasion.successful}
+			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ??
+				'multiple fleets'} have successfully invaded {planet.name} and wrested it from your control.
+			Your colonists managed to defeat {invasion.attackersKilled} of their invaders before being overrun.
+			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} have successfully wrested
+		{:else}
+			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ??
+				'multiple fleets'} tried to invade {planet.name}, but your troops were able to fend them
+			off. You lost {invasion.defendersKilled} colonists in the process.
+		{/if}
+	{:else}
+		{planet.name} was invaded, but your spies no nothing of the outcome.
 	{/if}
 {:else if message.type === PlayerMessagePlanetPopulationDecreasedOvercrowding}
 	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} colonists

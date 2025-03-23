@@ -2,13 +2,10 @@ package cs
 
 import (
 	"fmt"
-
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
 type Target[T PlayerMessageTargetType | MapObjectType] struct {
-	TargetPosition  Vector `json:"targetPosition,omitempty"`
+	TargetPosition  Vector `json:"targetPosition"`
 	TargetType      T      `json:"targetType,omitempty"`
 	TargetName      string `json:"targetName,omitempty"`
 	TargetNum       int    `json:"targetNum,omitempty"`
@@ -17,6 +14,10 @@ type Target[T PlayerMessageTargetType | MapObjectType] struct {
 
 type MapObjectTarget = Target[MapObjectType]
 type PlayerMessageTarget = Target[PlayerMessageTargetType]
+
+func (t Target[T]) String() string {
+	return fmt.Sprintf("Target: %s Type: %s Player: %d Num: %d", t.TargetName, t.TargetType, t.TargetPlayerNum, t.TargetNum)
+}
 
 // Throughout a turn various events will result in messages being sent to players.
 // Messages have a type and a target (the target is focused in the UI when you click the Goto button)
@@ -54,6 +55,8 @@ type PlayerMessageSpec struct {
 	MineralPacketDamage   *MineralPacketDamage            `json:"mineralPacketDamage,omitempty"`
 	MineFieldDamage       *MineFieldDamage                `json:"mineFieldDamage,omitempty"`
 	MysteryTrader         *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
+	Invasion              *PlayerMessageSpecInvasion      `json:"invasion,omitempty"`
+	CargoTransfer         *PlayerMessageSpecCargoTransfer `json:"cargoTransfer,omitempty"`
 	TerraformAmount       Hab                             `json:"terraformAmount,omitempty"`
 }
 
@@ -68,6 +71,22 @@ type PlayerMessageSpecComet struct {
 type PlayerMessageSpecMysteryTrader struct {
 	MysteryTraderReward `tstype:",extends"`
 	FleetNum            int `json:"fleetNum" bson:"fleet_num"`
+}
+
+type PlayerMessageSpecInvasion struct {
+	FleetName         string `json:"fleetName,omitempty"`
+	AttackerPlayerNum int    `json:"attackerPlayerNum"`
+	DefenderPlayerNum int    `json:"defenderPlayerNum"`
+	AttackersKilled   int    `json:"attackersKilled"`
+	DefendersKilled   int    `json:"defendersKilled"`
+	Successful        bool   `json:"successful"`
+}
+
+type PlayerMessageSpecCargoTransfer struct {
+	CargoType  CargoType           `json:"cargoType"`
+	Transfered int                 `json:"transfered"`
+	Wanted     int                 `json:"wanted"`
+	Status     CargoTransferStatus `json:"status"`
 }
 
 type PlayerMessageTargetType string
@@ -187,6 +206,7 @@ const (
 	PlayerMessagePlanetBuiltGenesisDevice
 	PlayerMessagePlayerAcquirablePartGainedScrapFleet
 	PlayerMessagePlayerAcquirablePartGainedBattle
+	PlayerMessageFleetByHandTransferIncomplete
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {
@@ -590,13 +610,13 @@ func (m *messageClient) fleetTransferReceived(player *Player, fleet *Fleet, givi
 		withSpec(PlayerMessageSpec{SourcePlayerNum: givingPlayer.Num, DestPlayerNum: player.Num, Name: fleet.BaseName}))
 }
 
-func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) {
+func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
 	text := ""
 	if cargoType == Colonists {
 		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has beamed %d colonists from %s.", fleet.Name, -transferAmount*100, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has beamed %d colonists from %s.", fleet.Name, -transferAmount*100, dest.GetMapObject().Name)
 		} else {
-			text = fmt.Sprintf("%s has beamed %d colonists to %s.", fleet.Name, transferAmount*100, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has beamed %d colonists to %s.", fleet.Name, transferAmount*100, dest.GetMapObject().Name)
 		}
 	} else {
 		units := "kT"
@@ -604,16 +624,23 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 			units = "mg"
 		}
 		if transferAmount < 0 {
-			text = fmt.Sprintf("%s has loaded %d%s of %v from %s.", fleet.Name, -transferAmount, units, cargoType, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has loaded %d%s of %v from %s.", fleet.Name, -transferAmount, units, cargoType, dest.GetMapObject().Name)
 		} else {
-			text = fmt.Sprintf("%s has unloaded %d%s of %v to %s.", fleet.Name, transferAmount, units, cargoType, dest.getMapObject().Name)
+			text = fmt.Sprintf("%s has unloaded %d%s of %v to %s.", fleet.Name, transferAmount, units, cargoType, dest.GetMapObject().Name)
 		}
 	}
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransferredCargo, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
-func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest cargoHolder, cargoType CargoType, transferAmount int) {
-	text := fmt.Sprintf("%s attempted to load %dkT of %v from %s, but you do not own %s. The order has been canceled.", fleet.Name, -transferAmount, cargoType, dest.getMapObject().Name, dest.getMapObject().Name)
+func (m *messageClient) fleetByHandTransferIncomplete(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int, wanted int, status CargoTransferStatus) {
+	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetByHandTransferIncomplete, fleet).
+		withSpec(PlayerMessageSpec{
+			Target:        dest.GetMapObject().ToTarget(),
+			CargoTransfer: &PlayerMessageSpecCargoTransfer{CargoType: cargoType, Transfered: transferAmount, Wanted: wanted, Status: status}}))
+}
+
+func (m *messageClient) fleetTransportInvalid(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
+	text := fmt.Sprintf("%s attempted to load %dkT of %v from %s, but you do not own %s. The order has been canceled.", fleet.Name, -transferAmount, cargoType, dest.GetMapObject().Name, dest.GetMapObject().Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransportInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
@@ -762,29 +789,23 @@ func (m *messageClient) planetInstaform(player *Player, planet *Planet, terrafor
 	})
 }
 
-func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleet *Fleet, planetOwner string, fleetOwner string, attackersKilled int, defendersKilled int, successful bool) {
-	var text string
-
-	// use this formatter to get commas on the text
-	p := message.NewPrinter(language.English)
-	if player.Num == fleet.PlayerNum {
-		if successful {
-			// we invaded and won
-			text = p.Sprintf("Your troops beaming down from %s have successfully wrested %s from %s control, killing off all their colonists with only %d causalties.", fleet.Name, planet.Name, planetOwner, attackersKilled)
-		} else {
-			// we invaded and lost
-			text = p.Sprintf("Your troops beaming down from %s tried to invade %s, but all of them were massacred by the %s. Your valiant fighters managed to kill %d of their colonists in return.", fleet.Name, planet.Name, planetOwner, defendersKilled)
-		}
-		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvadedPlanet, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackersKilled int, defendersKilled int, successful bool) {
+	invasion := PlayerMessageSpecInvasion{
+		FleetName:         fleetName,
+		AttackerPlayerNum: attacker.Num,
+		DefenderPlayerNum: defender.Num,
+		AttackersKilled:   attackersKilled,
+		DefendersKilled:   defendersKilled,
+		Successful:        successful,
+	}
+	if player.Num == attacker.Num {
+		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvadedPlanet, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
+			Spec: PlayerMessageSpec{Invasion: &invasion},
+		})
 	} else {
-		if successful {
-			// we were invaded, and lost
-			text = p.Sprintf("%s %s has successfully invaded %s and wrested it from your control. Your colonists managed to defeat %d of their invaders before being overrun.", fleetOwner, fleet.Name, planet.Name, attackersKilled)
-		} else {
-			// we were invaded, and won
-			text = p.Sprintf("%s %s tried to invade %s, but your troops were able to fend them off. You lost %d colonists in the process.", fleetOwner, fleet.Name, planet.Name, defendersKilled)
-		}
-		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInvaded, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
+		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInvaded, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
+			Spec: PlayerMessageSpec{Invasion: &invasion},
+		})
 	}
 }
 

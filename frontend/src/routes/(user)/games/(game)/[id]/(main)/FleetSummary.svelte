@@ -41,10 +41,10 @@
 	}
 
 	function getMass(fleet: AnyFleet): number {
-		if ('spec' in fleet) {
-			return fleet.spec?.mass ?? 0;
+		if ('mass' in fleet) {
+			return fleet.mass ?? 0;
 		}
-		return fleet.mass ?? 0;
+		return fleet.spec?.mass ?? 0;
 	}
 
 	function transfer() {
@@ -104,7 +104,7 @@
 				<div class="grow">
 					<CargoBar
 						onPointerDown={() => transfer()}
-						canTransferCargo={canTransferCargo(playerFleet, $universe)}
+						canTransferCargo={canTransferCargo(playerFleet)}
 						value={playerFleet.cargo}
 						capacity={playerFleet.spec?.cargoCapacity}
 					/>

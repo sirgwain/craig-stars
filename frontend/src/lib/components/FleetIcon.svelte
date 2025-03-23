@@ -17,9 +17,9 @@
 	let { fleet, tokens = fleet.tokens ?? [] }: Props = $props();
 
 	const design: AnyShipDesign | undefined = $derived.by(() => {
-		if (fleet.tokens && fleet.tokens.length > 0) {
-			const designNum = fleet.tokens[0].designNum;
-			return $universe.getDesign(fleet.playerNum, designNum);
+		const token = tokens.find((t) => t.quantity > 0);
+		if (token) {
+			return $universe.getDesign(fleet.playerNum, token.designNum);
 		}
 	});
 </script>

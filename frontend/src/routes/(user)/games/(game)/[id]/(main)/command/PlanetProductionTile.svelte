@@ -4,12 +4,9 @@
 		ClearProductionQueueProps,
 		ShowProductionQueueDialogProps
 	} from '$lib/services/Events';
-	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionQueueItem } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
-
-	const { cs } = getGameContext();
 
 	type Props = {
 		planet: CommandedPlanet;
@@ -17,9 +14,7 @@
 		ShowProductionQueueDialogProps;
 
 	let { planet, onShowProductionQueueDialog, onClearProductionQueue }: Props = $props();
-	let queueItems: ProductionQueueItem[] | undefined = $derived(
-		planet.updateProductionQueueEstimates(cs)
-	);
+	let queueItems: ProductionQueueItem[] | undefined = $derived(planet.productionQueue);
 
 	const clear = async () => {
 		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {

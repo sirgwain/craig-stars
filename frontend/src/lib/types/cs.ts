@@ -120,12 +120,23 @@ export interface Cargo {
 export type CargoType = ResourceType;
 
 //////////
-// source: cargoholder.go
+// source: cargotransfer.go
 
-export const Unlimited = -1;
+export type CargoTransfers = { [key: string]: ByHandCargoTransfer[] };
+export interface ByHandCargoTransfer extends MapObjectTarget {
+	sourceFleetNum?: number /* int */;
+	cargo: Cargo;
+}
+export type CargoTransferStatus = number /* int */;
+export const CargoTransferStatusNone: CargoTransferStatus = 0;
+export const CargoTransferStatusOwned: CargoTransferStatus = 1;
+export const CargoTransferStatusCargo: CargoTransferStatus = 2;
+export const CargoTransferStatusCargoCapacity: CargoTransferStatus = 3;
+export const CargoTransferStatusDestCargo: CargoTransferStatus = 4;
+export const CargoTransferStatusDestCargoCapacity: CargoTransferStatus = 5;
+export const CargoTransferStatusDestStarbase: CargoTransferStatus = 6;
 /**
- * The cargoHolder is an interface implemented by any map object that can hold cargo. It's used for handling
- * cargo transfers between different types of map objects.
+ * dunnage tasks are done after regular tasks
  */
 
 //////////
@@ -219,7 +230,7 @@ export interface FleetSpec extends ShipDesignSpec {
 	stargate?: string;
 	totalShips?: number /* int */;
 }
-export interface Waypoint {
+export interface Waypoint extends MapObjectTarget {
 	position: Vector;
 	warpSpeed: number /* int */;
 	estFuelUsage?: number /* int */;
@@ -229,10 +240,6 @@ export interface Waypoint {
 	layMineFieldDuration?: number /* int */;
 	patrolRange?: number /* int */;
 	patrolWarpSpeed?: number /* int */;
-	targetType?: MapObjectType;
-	targetNum?: number /* int */;
-	targetPlayerNum?: number /* int */;
-	targetName?: string;
 	transferToPlayer?: number /* int */;
 	partiallyComplete?: boolean;
 }
@@ -507,6 +514,7 @@ export interface FleetIntel extends Intel, MapObject {
 	heading: Vector;
 	orbitingPlanetNum?: number /* int */;
 	warpSpeed: number /* int */;
+	fuel: number /* int */;
 	mass: number /* int */;
 	cargo?: Cargo;
 	cargoDiscovered?: boolean;
@@ -514,6 +522,7 @@ export interface FleetIntel extends Intel, MapObject {
 	scanRange?: number /* int */;
 	scanRangePen?: number /* int */;
 	tokens: ShipToken[];
+	spec: FleetSpec;
 }
 export interface MineralPacketIntel extends Intel, MapObject {
 	warpSpeed: number /* int */;
@@ -601,7 +610,7 @@ export const TagPurpose = 'purpose';
 // source: message.go
 
 export interface Target<T extends PlayerMessageTargetType | MapObjectType> {
-	targetPosition?: Vector;
+	targetPosition: Vector;
 	targetType?: T;
 	targetName?: string;
 	targetNum?: number /* int */;
@@ -645,6 +654,8 @@ export interface PlayerMessageSpec extends Target<MapObjectType> {
 	mineralPacketDamage?: MineralPacketDamage;
 	mineFieldDamage?: MineFieldDamage;
 	mysteryTrader?: PlayerMessageSpecMysteryTrader;
+	invasion?: PlayerMessageSpecInvasion;
+	cargoTransfer?: PlayerMessageSpecCargoTransfer;
 	terraformAmount?: Hab;
 }
 export interface PlayerMessageSpecComet {
@@ -656,6 +667,20 @@ export interface PlayerMessageSpecComet {
 }
 export interface PlayerMessageSpecMysteryTrader extends MysteryTraderReward {
 	fleetNum: number /* int */;
+}
+export interface PlayerMessageSpecInvasion {
+	fleetName?: string;
+	attackerPlayerNum: number /* int */;
+	defenderPlayerNum: number /* int */;
+	attackersKilled: number /* int */;
+	defendersKilled: number /* int */;
+	successful: boolean;
+}
+export interface PlayerMessageSpecCargoTransfer {
+	cargoType: CargoType;
+	transfered: number /* int */;
+	wanted: number /* int */;
+	status: CargoTransferStatus;
 }
 export type PlayerMessageTargetType = string;
 export const TargetNone: PlayerMessageTargetType = '';
@@ -768,6 +793,7 @@ export const PlayerMessageMysteryTraderAlreadyRewarded: PlayerMessageType = 97;
 export const PlayerMessagePlanetBuiltGenesisDevice: PlayerMessageType = 98;
 export const PlayerMessagePlayerAcquirablePartGainedScrapFleet: PlayerMessageType = 99;
 export const PlayerMessagePlayerAcquirablePartGainedBattle: PlayerMessageType = 100;
+export const PlayerMessageFleetByHandTransferIncomplete: PlayerMessageType = 101;
 
 //////////
 // source: minefield.go
@@ -978,7 +1004,6 @@ export interface PlanetSpec extends PlanetStarbaseSpec {
 	terraformAmount?: Hab;
 	minTerraformAmount?: Hab;
 	terraformedHabitability?: number /* int */;
-	contested?: boolean;
 }
 export interface PlanetStarbaseSpec {
 	hasMassDriver?: boolean;
@@ -1070,6 +1095,7 @@ export interface PlayerOrders {
 	researching?: TechField;
 	nextResearchField?: NextResearchField;
 	researchAmount?: number /* int */;
+	cargoTransfers?: CargoTransfers;
 }
 export interface PlayerStats {
 	fleetsBuilt?: number /* int */;

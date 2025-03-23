@@ -3,10 +3,12 @@ import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 import { type CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 import type {
+	CargoTransfers,
 	Game,
 	GameSettings,
 	MineField,
 	PlayerMessageTargetType,
+	SalvageIntel,
 	ShipDesign
 } from '$lib/types/cs';
 import {
@@ -562,7 +564,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		commandedMapObject.update(() => mo);
 		mostRecentMapObject.update(() => mo);
 		if (mo.type == MapObjectTypePlanet) {
-			commandedPlanet.update(() => Object.assign(new CommandedPlanet(), mo));
+			// make sure this planet's production queue estimates are up to date
+			const planet = Object.assign(new CommandedPlanet(), mo)
+			planet.updateProductionQueueEstimates(cs)
+			commandedPlanet.update(() => planet);			
 			commandedFleet.update(() => undefined);
 		} else if (mo.type == MapObjectTypeFleet) {
 			commandedFleet.update(() => Object.assign(new CommandedFleet(), mo));
@@ -1045,10 +1050,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		} else if (result.dest?.type == MapObjectTypeMineralPacket) {
 			const destMineralPacket = result.dest as AnyMineralPacket;
 			u.updateMineralPacket(destMineralPacket);
-		}
-
-		if (result.salvages) {
-			u.updateSalvages(result.salvages);
+		} else if (result.dest?.type == MapObjectTypeSalvage) {
+			const destSalvage = result.dest as SalvageIntel;
+			u.updateSalvage(destSalvage);
 		}
 
 		const smo = get(selectedMapObject);
@@ -1075,7 +1079,11 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		destTokens: ShipToken[],
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
-		const response = await FleetService.split(src, dest, srcTokens, destTokens, transferAmount);
+		const {
+			source: updatedSource,
+			dest: updatedDest,
+			cargoTransfers
+		} = await FleetService.split(src, dest, srcTokens, destTokens, transferAmount);
 
 		const u = get(universe);
 
@@ -1083,24 +1091,24 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		// and we have no response.dest, this means the original source was deleted
 		// and has become the source, i.e. we moved all tokens from source to dest, creating
 		// a new fleet. Weird edge case.
-		if (src.num != response.source.num) {
+		if (src.num != updatedSource.num) {
 			u.removeFleets([src.num]);
 		}
 
 		// update the commanded fleet
-		const source = Object.assign(new CommandedFleet(), response.source);
-		u.updateFleet(response.source);
-		commandMapObject(source);
-		if (equal(get(selectedMapObject), source)) {
-			selectMapObject(source);
+		const commandedFleet = Object.assign(new CommandedFleet(), updatedSource);
+		u.updateFleet(updatedSource);
+		commandMapObject(commandedFleet);
+		if (equal(get(selectedMapObject), commandedFleet)) {
+			selectMapObject(commandedFleet);
 		}
 
 		// update or add the new fleets to the universe
-		if (response.dest) {
+		if (updatedDest) {
 			if (dest?.num == 0) {
-				u.addFleets([response.dest]);
+				u.addFleets([updatedDest]);
 			} else {
-				u.updateFleet(response.dest);
+				u.updateFleet(updatedDest);
 			}
 		} else {
 			// if we had a dest and it was deleted, remove it
@@ -1110,14 +1118,16 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 
 		const index = get(currentSelectedWaypointIndex);
-		if (index > -1 && source.waypoints && source.waypoints.length > index) {
-			selectWaypoint(source.waypoints[index]);
+		if (index > -1 && commandedFleet.waypoints && commandedFleet.waypoints.length > index) {
+			selectWaypoint(commandedFleet.waypoints[index]);
 		}
+		updateCargoTransfers(cargoTransfers);
 	}
 
 	async function splitAll(fleet: CommandedFleet): Promise<void> {
-		const updatedFleets = await FleetService.splitAll(fleet.gameId, fleet);
-		const sourceFleet = updatedFleets.find((f) => f.num == fleet.num);
+		const { fleets, cargoTransfers } = await FleetService.splitAll(fleet.gameId, fleet);
+
+		const sourceFleet = fleets.find((f) => f.num == fleet.num);
 		if (sourceFleet) {
 			fleet = Object.assign(fleet, sourceFleet);
 			commandMapObject(fleet);
@@ -1127,19 +1137,28 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 		// update and add the new fleets to the universe
 		u.updateFleet(fleet);
-		u.addFleets(updatedFleets.filter((f) => f.num != fleet.num));
+		u.addFleets(fleets.filter((f) => f.num != fleet.num));
 
 		const index = get(currentSelectedWaypointIndex);
 		if (index > -1 && fleet.waypoints && fleet.waypoints.length > index) {
 			selectWaypoint(fleet.waypoints[index]);
 		}
+
+		updateCargoTransfers(cargoTransfers);
 	}
 
 	async function merge(fleet: CommandedFleet, fleetNums: number[]): Promise<void> {
-		const updatedFleet = await FleetService.merge(fleet, fleetNums);
+		const { fleet: updatedFleet, cargoTransfers } = await FleetService.merge(fleet, fleetNums);
 
 		get(universe).removeFleets(fleetNums);
 		updateFleet(fleet, updatedFleet);
+		updateCargoTransfers(cargoTransfers);
+	}
+
+	function updateCargoTransfers(cargoTransfers: CargoTransfers) {
+		const p = get(player);
+		p.cargoTransfers = cargoTransfers;
+		updatePlayer(p);
 	}
 
 	return {

@@ -68,41 +68,44 @@ func (v Vector) Round() Vector {
 
 // SegmentIntersectsCircle checks whether a segment intersects a circle or not.
 // This returns what percent of the segment is NOT in the circle, or -1 if it doesn't
-// intersect
-// Who would have thought the godot developers would write a perfect function for determining if we collide with a minefield
+// intersect.
+// Who would have thought the godot developers would write a perfect function for determining
+// if we collide with a minefield
 // while moving through space?
 // https://github.com/godotengine/godot/blob/4.1.2-stable/core/math/geometry_2d.h#L217
-func segmentIntersectsCircle(segmentFrom, segmentTo, circlePosition Vector, circleRadius float64) float64 {
+func segmentIntersectsCircle(segmentFrom, segmentTo, circlePosition Vector, circleRadius float64) (percentOutside float64) {
 	lineVec := segmentTo.Subtract(segmentFrom)
 	vecToLine := segmentFrom.Subtract(circlePosition)
 
 	// Create a quadratic formula of the form ax^2 + bx + c = 0
+	// Hope you remembered your high school algebra!
 	var a, b, c float64
 
 	a = lineVec.Dot(lineVec)
 	b = 2 * vecToLine.Dot(lineVec)
 	c = vecToLine.Dot(vecToLine) - circleRadius*circleRadius
 
-	// Solve for t.
-	sqrtterm := b*b - 4*a*c
+	// Calculate the discriminant - b^2 - 4ac
+	var discriminant = b*b - 4*a*c
 
-	// If the term we intend to square root is less than 0 then the answer won't be real,
-	// so it definitely won't be in the range 0 to 1.
-	if sqrtterm < 0 {
+	// A discriminant below 0 implies a non-real value,
+	// so it definitely won't be in the range of 0 to 1.
+	if discriminant < 0 {
 		return -1
 	}
 
-	// If we can assume that the line segment starts outside the circle (e.g. for continuous time collision detection)
-	// then the following can be skipped and we can just return the equivalent of res1.
-	sqrtterm = math.Sqrt(sqrtterm)
-	res1 := (-b - sqrtterm) / (2 * a)
-	res2 := (-b + sqrtterm) / (2 * a)
+	// If we can assume that the line segment starts outside the circle
+	// (e.g. for continuous time collision detection), the following can be
+	// skipped and we can just return the equivalent of res1.
+	discriminant = math.Sqrt(discriminant)
+	root1 := (-b - discriminant) / (2 * a)
+	root2 := (-b + discriminant) / (2 * a)
 
-	if res1 >= 0 && res1 <= 1 {
-		return res1
+	if root1 >= 0 && root1 <= 1 {
+		return root1
 	}
-	if res2 >= 0 && res2 <= 1 {
-		return res2
+	if root2 >= 0 && root2 <= 1 {
+		return root2
 	}
 	return -1
 }

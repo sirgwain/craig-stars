@@ -1,4 +1,5 @@
 import { battlesSortBy, getBattleRecordDetails, type BattleRecordDetails } from '$lib/types/Battle';
+import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 import type {
 	Cost,
 	FleetIntel,
@@ -354,6 +355,20 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		return this.mapObjectsByPosition[positionKey(position)];
 	}
 
+	getCargoDestsByPosition(position: MapObject | Vector): CargoDest[] {
+		return this.mapObjectsByPosition[positionKey(position)]
+			.filter(
+				(mo) =>
+					[
+						MapObjectTypeFleet,
+						MapObjectTypeMineralPacket,
+						MapObjectTypeSalvage,
+						MapObjectTypePlanet
+					].indexOf(mo.type) != -1
+			)
+			.map((mo) => mo as CargoDest);
+	}
+
 	getSalvageAtPosition(position: MapObject | Vector): SalvageIntel | undefined {
 		const mo = this.getMapObjectsByPosition(position)?.find(
 			(mo) => mo.type === MapObjectTypeSalvage
@@ -376,6 +391,14 @@ export class Universe implements PlayerUniverse, DesignFinder {
 			(this.getMyMapObjectsByPosition(position)?.filter(
 				(mo) => mo.type === MapObjectTypeFleet
 			) as Fleet[]) ?? []
+		);
+	}
+
+	getFleetsByPosition(position: MapObject | Vector): AnyFleet[] {
+		return (
+			(this.getMapObjectsByPosition(position)?.filter(
+				(mo) => mo.type === MapObjectTypeFleet
+			) as AnyFleet[]) ?? []
 		);
 	}
 
@@ -488,6 +511,20 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		}
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
+	}
+
+	updateSalvage(salvage: SalvageIntel) {
+		const index = this.salvageIntels.findIndex(
+			(mf) => mf.playerNum === salvage.playerNum && mf.num === salvage.num
+		);
+		if (index != -1) {
+			this.salvageIntels = [
+				...this.salvageIntels.slice(0, index),
+				salvage as SalvageIntel,
+				...this.salvageIntels.slice(index + 1)
+			];
+		}
+		this.resetMapObjectsByPosition();
 	}
 
 	updateSalvages(salvages: SalvageIntel[]) {
