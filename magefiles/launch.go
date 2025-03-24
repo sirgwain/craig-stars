@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
-	"syscall"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -21,9 +19,8 @@ func is_CI() bool {
 
 // Build and launch the server for local development.
 // This calls both Build and Launch consecutively.
-func Run() error {
-	Build()
-	return Launch()
+func Run() {
+	mg.SerialDeps(Build, Launch)
 }
 
 // Build the frontend and backend consecutively, alongside some setup work.
@@ -209,27 +206,17 @@ func Build_WASM() error {
 }
 
 // Launch both backend and frontend servers simultaneously.
+// This launches both the backend and frontend servers simultaneously,
+// blocking until one returns or is canceled.
 func Launch() error {
-	// make a channel to wait for interrupts
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-
 	var done chan error
 	go func() {
 		done <- Launch_Backend(false)
 	}()
 	go func() {
 		done <- Launch_Frontend()
-		fmt.Println() // add newline for formatting reasons
 	}()
 
-	// Block until we get interrupted or a goroutine errors
-	select {
-	case signal := <-sig:
-		fmt.Printf("%s recieved; terminating local dev\n", signal)
-	case err := <-done:
-		return err
-	}
 	return <-done
 }
 
@@ -244,11 +231,15 @@ func Launch_Backend(testMode bool) error {
 	return sh.RunV("go", args...)
 }
 
-// Launch the frontend svelte server.
+// Launch the frontend svelte server, shutting it down on system interrupt.
 func Launch_Frontend() error {
+	// create command with stdin and stdout piped to both their usual files
+	// and variables which we can monitor
 	cmd := exec.Command("npm", "run-script", "dev")
 	cmd.Dir = "./frontend"
+	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }

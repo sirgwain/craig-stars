@@ -16,10 +16,7 @@
 				"color": "terminal.ansiGreen",
 				"id": "beaker"
 			},
-			"detail": "Run all backend/frontend tests and linting checks.",
-			"presentation": {
-				"group": "Tests"
-			}
+			"detail": "Run all backend/frontend tests and linting checks."
 		},
 		{
 			"label": "Go: run tests",
@@ -36,10 +33,7 @@
 				"color": "terminal.ansiGreen",
 				"id": "run-below"
 			},
-			"detail": "Run backend tests using gotestsum.",
-			"presentation": {
-				"group": "Tests"
-			}
+			"detail": "Run backend tests using gotestsum."
 		},
 		{
 			"label": "Go: run benchmarks",
@@ -59,10 +53,7 @@
 				"color": "terminal.ansiYellow",
 				"id": "clock"
 			},
-			"detail": "Run Go benchmarks and save the results to JSON.",
-			"presentation": {
-				"group": "Tests"
-			}
+			"detail": "Run Go benchmarks and save the results to JSON."
 		},
 		{
 			"label": "Go: generate files",
@@ -73,10 +64,7 @@
 				"id": "table"
 			},
 			"command": "mage generate",
-			"detail": "Generate various backend and frontend files.",
-			"presentation": {
-				"group": "Build"
-			}
+			"detail": "Generate various backend and frontend files."
 		},
 		{
 			"label": "Build & launch server",
@@ -90,10 +78,7 @@
 				"color": "terminal.ansiCyan",
 				"id": "browser"
 			},
-			"detail": "Build and start up the local server for debugging.",
-			"presentation": {
-				"group": "Build"
-			}
+			"detail": "Build and start up the local server for debugging."
 		},
 		{
 			"label": "Build server",
@@ -104,90 +89,47 @@
 				"color": "terminal.ansiCyan",
 				"id": "symbol-constructor"
 			},
-			"detail": "Build server without launching it.",
-			"presentation": {
-				"group": "Build"
-			}
+			"detail": "Build server without launching it."
 		},
 		{
 			"label": "Launch server",
-			"dependsOn": ["Launch backend", "middle task"],
+			"dependsOn": ["Launch backend", "Launch frontend"],
 			"detail": "Launch frontend/backend servers and open localhost without building anything.",
 			"group": "build",
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "rocket"
-			},
-			"presentation": {
-				"group": "Launch"
 			}
 		},
 		{
 			"hide": true,
 			"label": "Launch backend",
+			"isBackground": true,
 			"command": "mage",
 			"args": ["launch_backend", "${input:testMode}"],
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "radio-tower"
 			},
-			"presentation": {
-				"group": "Launch"
-			}
-		},
-		{
-			// needed to run tasks in sequence so we only open localhost after we finish.
-			"hide": true,
-			"label": "middle task",
-			"dependsOn": ["Launch frontend", "open localhost"],
-			"dependsOrder": "sequence",
-			"presentation": {
-				"panel": "shared",
-				"group": "Launch"
-			}
+			// problem matcher needed to signify task end so we know when to boot up the frontend
+			"problemMatcher": [
+				{
+					"pattern": [{ "regexp": ".", "file": 1, "line": 1, "column": 1, "message": 1 }],
+					"background": {
+						"beginsPattern": { "regexp": "building..." },
+						"endsPattern": { "regexp": "^.*INF starting http server" }
+					}
+				}
+			]
 		},
 		{
 			"hide": true,
 			"label": "Launch frontend",
-			"isBackground": true,
 			"command": "mage",
 			"args": ["launch_frontend"],
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "broadcast"
-			},
-			// problem matcher needed to signify task end so we know when to boot up the browser
-			"problemMatcher": [
-				{
-					"pattern": [{ "regexp": ".", "file": 1, "line": 1, "column": 1, "message": 1 }],
-					"background": {
-						"activeOnStart": true,
-						"beginsPattern": { "regexp": "." },
-						"endsPattern": { "regexp": "VITE .* ready in .*$" }
-					}
-				}
-			],
-			"presentation": {
-				"group": "Launch"
-			}
-		},
-		{
-			"hide": true,
-			"label": "open localhost",
-			"command": "xdg-open",
-			"osx": {
-				"command": "open"
-			},
-			"windows": {
-				"command": "explorer.exe"
-			},
-			"args": ["http://localhost:5173"],
-			"icon": {
-				"color": "terminal.ansiCyan",
-				"id": "browser"
-			},
-			"presentation": {
-				"group": "Launch"
 			}
 		},
 		{
@@ -200,8 +142,7 @@
 				"id": "debug-console"
 			},
 			"presentation": {
-				"panel": "shared",
-				"group": "Debug"
+				"panel": "shared"
 			}
 		},
 		{
@@ -213,8 +154,7 @@
 				"id": "trash"
 			},
 			"presentation": {
-				"panel": "shared",
-				"group": "Debug"
+				"panel": "shared"
 			}
 		}
 	],
