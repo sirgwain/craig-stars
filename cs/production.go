@@ -8,7 +8,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-const MaxBuildableCap = 50_000
+// max items buildable for items without an explicit max
+const MaxBuildableCap = 100_000
 
 // The producer struct performs planetary production.
 type producer struct {

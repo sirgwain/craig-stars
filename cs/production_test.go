@@ -272,16 +272,16 @@ func Test_production_produce(t *testing.T) {
 		test.CompareAsJSON(t, result.messages, wantMessages)
 	})
 
-	t.Run("Clamp autos over 5K", func(t *testing.T) {
+	t.Run("Clamp autos over cap", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 		planet.Cargo = Cargo{1000, 1000, 1000, 2000}
 
 		// many many auto items
 		planet.ProductionQueue = []ProductionQueueItem{
-			{Type: QueueItemTypeAutoFactories, Quantity: 42069},
+			{Type: QueueItemTypeAutoFactories, Quantity: 420690},
 			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
-			{Type: QueueItemTypeAutoMaxTerraform, Quantity: 69420},
-			{Type: QueueItemTypeAutoMinTerraform, Quantity: math.MaxInt},
+			{Type: QueueItemTypeAutoMaxTerraform, Quantity: 6942069420},
+			{Type: QueueItemTypeAutoMaxTerraform, Quantity: math.MaxInt},
 		}
 
 		player.Race = *player.Race.WithSpec(&rules)
@@ -294,7 +294,7 @@ func Test_production_produce(t *testing.T) {
 			{Type: QueueItemTypeAutoFactories, Quantity: MaxBuildableCap},
 			{Type: QueueItemTypeAutoDefenses, Quantity: 1337},
 			{Type: QueueItemTypeAutoMaxTerraform, Quantity: MaxBuildableCap},
-			{Type: QueueItemTypeAutoMinTerraform, Quantity: MaxBuildableCap},
+			{Type: QueueItemTypeAutoMaxTerraform, Quantity: MaxBuildableCap},
 		}
 
 		producer := newProducer(testLogger, &rules, planet, player)

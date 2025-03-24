@@ -55,9 +55,9 @@ If successful, you should get a localhost link from vite (http://localhost:5173/
 
 <!--! remember to remove this if/when the issue is fixed -->
 
-[^2]: **NOTE**: Due to a [long-standing bug in VS Code](https://github.com/microsoft/vscode/issues/70283) involving dependencies and background tasks, the "open localhost" task will still be run even if the frontend launch command fails partway through. (Seen as the alternative is opening the window _before_ the server even starts, this is still the lesser of the 2 evils.)
+[^2]: **NOTE**: Due to a [fairly long-standing bug in VS Code](https://github.com/microsoft/vscode/issues/70283) involving dependencies and background tasks, the "open localhost" task will still be run even if the frontend or backend launch commands fail partway through. (Seen as the alternative is opening the window _before_ the server even starts, this is still the lesser of the 2 evils.)
 
-[^3]: If Mage happens to complain about cleanup deadlines when you shut the server down, feel free to ignore it.
+[^3]: Mage has been known to complain about cleanup deadlines uopn shutting the server down. I have truthfully no idea how to fix it
 
 # Visual Studio Code
 

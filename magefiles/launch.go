@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
-	"sync"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -209,33 +209,38 @@ func Build_WASM() error {
 
 // Launch both backend and frontend servers simultaneously.
 func Launch() error {
-	// use a WaitGroup to wait until a single goroutine finishes
-	wg := sync.WaitGroup{}
-	wg.Add(1)
+	// make a channel to wait for interrupts
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-	// run both commands in separate goroutines, using a channel to recieve any errors
-	var c chan error
+	var done chan error
 	go func() {
-		err := Launch_Backend()
-		c <- err
-		wg.Done()
-		close(c)
+		done <- Launch_Backend(false)
 	}()
 	go func() {
-		err := Launch_Frontend()
-		c <- err
-		wg.Done()
-		close(c)
+		done <- Launch_Frontend()
+		fmt.Println() // add newline for formatting reasons
 	}()
 
-	// Block until either goroutine finishes and then return the error.
-	wg.Wait()
-	return <-c
+	// Block until we get interrupted or a goroutine errors
+	select {
+	case signal := <-sig:
+		fmt.Printf("%s recieved; terminating local dev\n", signal)
+	case err := <-done:
+		return err
+	}
+	return <-done
 }
 
-// Launch the backend go server using air for hot reloads.
-func Launch_Backend() error {
-	return sh.RunV("go", "tool", "github.com/air-verse/air")
+// Launch the backend go server using air for hot reloads, optionally enabling test mode to create a pre-populated test database.
+func Launch_Backend(testMode bool) error {
+	args := []string{"tool", "github.com/air-verse/air"}
+	if testMode {
+		args = append(args, "", "--test-mode") // empty string required to prevent air from gobbilng up the flag itself
+	}
+
+	// Server has its own graceful shutdown procedure, so we can just run it directly
+	return sh.RunV("go", args...)
 }
 
 // Launch the frontend svelte server.

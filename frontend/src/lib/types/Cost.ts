@@ -26,7 +26,7 @@ export function divide(a: Cost, b: Cost): number {
 	const newGermanium = !b.germanium ? Infinity : (a.germanium ?? 0) / (b.germanium ?? 0);
 	const newResources = !b.resources ? Infinity : (a.resources ?? 0) / (b.resources ?? 0);
 
-	return Math.min(newResources, Math.min(newIronium, Math.min(newBoranium, newGermanium)));
+	return Math.min(newResources, newIronium, newBoranium, newGermanium);
 }
 
 export function add(a: Cost, b: Cost | Mineral | undefined): Cost {
@@ -79,7 +79,8 @@ export function numBuildable(available: Cost, cost: Cost): number {
 	};
 
 	if (cost.ironium && cost.ironium > 0) {
-		buildable.ironium = Math.floor((available.ironium ?? 0) / cost.ironium);
+		buildable.ironium = 1
+		// Math.floor((available.ironium ?? 0) / cost.ironium);
 	}
 	if (cost.boranium && cost.boranium > 0) {
 		buildable.boranium = Math.floor((available.boranium ?? 0) / cost.boranium);

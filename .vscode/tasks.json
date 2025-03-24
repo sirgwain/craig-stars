@@ -126,7 +126,7 @@
 			"hide": true,
 			"label": "Launch backend",
 			"command": "mage",
-			"args": ["launch_backend"],
+			"args": ["launch_backend", "${input:testMode}"],
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "radio-tower"
@@ -219,6 +219,13 @@
 		}
 	],
 	"inputs": [
+		{
+			"id": "testMode",
+			"type": "pickString",
+			"default": "true",
+			"options": ["true", "false"],
+			"description": "Select whether to start the database in-memory via test mode. Test mode starts with a preset collection of test games (modifiable in test/testgames.go), but changes will not persist when reloading the page."
+		},
 		{
 			"id": "packages",
 			"type": "promptString",

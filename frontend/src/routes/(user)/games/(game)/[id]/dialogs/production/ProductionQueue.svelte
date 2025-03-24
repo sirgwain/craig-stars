@@ -15,9 +15,9 @@
 	import { techs } from '$lib/services/Stores';
 	import { divide, multiply } from '$lib/types/Cost';
 	import type { ProductionPlan, ProductionQueueItem } from '$lib/types/cs';
-	import { Infinite, type Cost } from '$lib/types/cs';
+	import { Infinite, MaxBuildableCap, type Cost } from '$lib/types/cs';
 	import { CommandedPlanet } from '$lib/types/Planet';
-	import { getFullName, isAuto } from '$lib/types/QueueItemType';
+	import { getFullName, isAuto, isPlanetary } from '$lib/types/QueueItemType';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -100,7 +100,7 @@
 			Object.assign(queueItems[i], {
 				yearsToBuildOne: estimate.yearsToBuildOne,
 				yearsToBuildAll: estimate.yearsToBuildAll,
-				yearsToSkipOrCancel: estimate.yearsToSkipOrCancel,
+				yearsToSkipOrCancel: estimate.yearsToSkipOrCancel
 			});
 		}
 
@@ -161,13 +161,20 @@
 		return percent;
 	}
 
-	function maxBuild(item?: ProductionQueueItem): number {
+	function maxBuild(item?: ProductionQueueItem, index: number): number {
 		if (!item) {
 			return 0;
 		}
 
-		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
-		return (cs.maxBuildable(planet, item.type) ?? 0) - amountInQueue;
+		const m = cs.maxBuildable(planet, item.type) ?? MaxBuildableCap;
+		// don't check for items capped IF this is auto 
+		const amountInQueue =
+			!isAuto(item.type) && isPlanetary(item.type)
+				? planet.getAmountInQueue(item.type, queueItems)
+				: selectedQueueItemIndex == index
+					? (selectedQueueItem?.quantity ?? 0)
+					: 0;
+		return m - amountInQueue;
 	}
 
 	function addAvailableItem(item?: ProductionQueueItem) {
@@ -175,7 +182,7 @@
 		if (!item) {
 			return;
 		}
-		const amtToAdd = clamp(quantityModifier, 0, maxBuild(item));
+		const amtToAdd = clamp(quantityModifier, 0, maxBuild(item, index));
 
 		if (amtToAdd == 0) {
 			// don't add more of this item if we can't build any more of it
@@ -280,7 +287,6 @@
 			selectedQueueItemIndex--;
 			queueItems = queueItems;
 			updateQueueEstimates();
-			updateQueueEstimates();
 		}
 	}
 
@@ -291,7 +297,6 @@
 			queueItems[selectedQueueItemIndex] = swap;
 			selectedQueueItemIndex++;
 			queueItems = queueItems;
-			updateQueueEstimates();
 			updateQueueEstimates();
 		}
 	}
@@ -316,8 +321,6 @@
 			];
 			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
 			updateQueueEstimates();
-			updateQueueEstimates();
-
 		}
 	}
 
