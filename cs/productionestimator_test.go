@@ -149,9 +149,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 4,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     1,
+							YearsToBuildAll:     4,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:      QueueItemTypeShipToken,
 						design:    testLongRangeScoutDesign(1).WithSpec(&rules, player),
@@ -176,9 +176,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     Infinite,
+							YearsToBuildAll:     Infinite,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeFactory,
 						Quantity: 1,
@@ -202,9 +202,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 2,
-							YearsToBuildAll: 2,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     2,
+							YearsToBuildAll:     2,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:      QueueItemTypeFactory,
 						Quantity:  1,
@@ -233,18 +233,18 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 1,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     1,
+							YearsToBuildAll:     1,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeMine,
 						Quantity: 1,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 3,
-							YearsToBuildAll: 5,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     3,
+							YearsToBuildAll:     5,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeFactory,
 						Quantity: 2,
@@ -271,18 +271,18 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 8,
-							YearsToBuildAll: 8,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     8,
+							YearsToBuildAll:     8,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeFactory,
 						Quantity: 1,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 10,
-							YearsToBuildAll: 11,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     10,
+							YearsToBuildAll:     11,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeMine,
 						Quantity: 2,
@@ -308,18 +308,18 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 6,
-							YearsToSkipAuto: 2,
+							YearsToBuildOne:     1,
+							YearsToBuildAll:     6,
+							YearsToSkipOrCancel: 2,
 						},
 						Type:     QueueItemTypeAutoFactories,
 						Quantity: 5,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1, // we build some mines in the first year due to lack of germ
-							YearsToBuildAll: 9, // we finish them some time later
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     1, // we build some mines in the first year due to lack of germ
+							YearsToBuildAll:     9, // we finish them some time later
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeAutoMines,
 						Quantity: 10,
@@ -355,37 +355,36 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					// we skip/cancel the terraforming and easily finish everything else
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: 1,
+							YearsToBuildOne:     Infinite,
+							YearsToBuildAll:     Infinite,
+							YearsToSkipOrCancel: 1, // not canceled due to auto
 						},
 						Type:     QueueItemTypeAutoMinTerraform,
 						Quantity: 1,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							Canceled:        true,
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     Infinite,
+							YearsToBuildAll:     Infinite,
+							YearsToSkipOrCancel: 1,
 						},
 						Type:     QueueItemTypeTerraformEnvironment,
 						Quantity: 1,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 1,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     1,
+							YearsToBuildAll:     1,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeAutoFactories,
 						Quantity: 100,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 1,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     1,
+							YearsToBuildAll:     1,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeAutoMines,
 						Quantity: 100,
@@ -413,18 +412,18 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: 1,
+							YearsToBuildOne:     Infinite,
+							YearsToBuildAll:     Infinite,
+							YearsToSkipOrCancel: 1,
 						},
 						Type:     QueueItemTypeAutoFactories,
 						Quantity: 100,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: 1,
+							YearsToBuildOne:     Infinite,
+							YearsToBuildAll:     Infinite,
+							YearsToSkipOrCancel: 1,
 						},
 						Type:     QueueItemTypeAutoMines,
 						Quantity: 100,
@@ -499,9 +498,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 2,
-							YearsToSkipAuto: -1,
+							YearsToBuildOne:     1,
+							YearsToBuildAll:     2,
+							YearsToSkipOrCancel: -1,
 						},
 						Type:     QueueItemTypeShipToken,
 						Quantity: 2,
@@ -524,9 +523,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 4,
-							YearsToBuildAll: 7,
-							YearsToSkipAuto: -1,
+							YearsToBuildOne:     4,
+							YearsToBuildAll:     7,
+							YearsToSkipOrCancel: -1,
 						},
 						Type:     QueueItemTypeShipToken,
 						Quantity: 2,
@@ -547,9 +546,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 3,
-							YearsToBuildAll: 3,
-							YearsToSkipAuto: -1,
+							YearsToBuildOne:     3,
+							YearsToBuildAll:     3,
+							YearsToSkipOrCancel: -1,
 						},
 						Type:     QueueItemTypeMineralAlchemy,
 						Quantity: 1,
@@ -627,10 +626,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: Infinite,
-							Canceled:        true,
+							YearsToBuildOne:     Infinite,
+							YearsToBuildAll:     Infinite,
+							YearsToSkipOrCancel: 1,
 						},
 						Type:     QueueItemTypeIroniumMineralPacket,
 						Quantity: 1,
@@ -661,19 +659,18 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: Infinite,
-							YearsToBuildAll: Infinite,
-							YearsToSkipAuto: Infinite,
-							Canceled:        true,
+							YearsToBuildOne:     Infinite,
+							YearsToBuildAll:     Infinite,
+							YearsToSkipOrCancel: 1,
 						},
 						Type:     QueueItemTypeIroniumMineralPacket,
 						Quantity: 1,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 1,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     1,
+							YearsToBuildAll:     1,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeStarbase,
 						design:   noDriverBase,
@@ -681,9 +678,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 2,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     1,
+							YearsToBuildAll:     2,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeMixedMineralPacket,
 						Quantity: 2,
@@ -703,9 +700,9 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 2,
-							YearsToBuildAll: 2,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     2,
+							YearsToBuildAll:     2,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeIroniumMineralPacket,
 						Quantity: 1,
@@ -729,18 +726,18 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 3,
-							YearsToBuildAll: 3,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     3,
+							YearsToBuildAll:     3,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeMineralAlchemy,
 						Quantity: 1,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 3,
-							YearsToBuildAll: 4,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     3,
+							YearsToBuildAll:     4,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeBoraniumMineralPacket,
 						Quantity: 2,
@@ -764,18 +761,18 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				want: []ProductionQueueItem{
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 1,
-							YearsToBuildAll: 2,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     1,
+							YearsToBuildAll:     2,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeIroniumMineralPacket,
 						Quantity: 9,
 					},
 					{
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-							YearsToBuildOne: 2,
-							YearsToBuildAll: 3,
-							YearsToSkipAuto: Infinite,
+							YearsToBuildOne:     2,
+							YearsToBuildAll:     3,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeBoraniumMineralPacket,
 						Quantity: 4,

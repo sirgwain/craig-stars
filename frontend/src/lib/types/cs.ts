@@ -127,21 +127,24 @@ export type CargoType = ResourceType;
 
 /**
  * ByHandCargoTransfers are any cargo transfers performed by the player in the UI that need to be
- * processed when a turn is generated. It is per fleet for a target. When a fleet is split or merged
- * its by hand transfers are also split and merged.
+ * processed when a turn is generated.
+ * They are stored on a per-fleet, per-target basis. Splitting or merging a fleet
+ * will split any by hand transfers belonging to it likewise.
  */
 export interface ByHandCargoTransfer extends MapObjectTarget {
 	sourceFleetNum?: number /* int */;
 	cargo: Cargo;
 }
 /**
- * CargoTransfers are per player ByHandCargoTransfers per location on the map. This makes processing
- * easier so we can account for transfers to/from a target and then between fleets at that location
- * The ByHandCargoTransfers are stored and processed in order they are made by the player
+ * CargoTransfers is a record of ByHandCargoTransfers for a given player per location on the map.
+ * This aids in processing as we can check simultaneously check transfers to/from a target
+ * and between fleets at each location.
+ * All ByHandCargoTransfers are stored and processed in the order they are made by the player.
  */
 export type CargoTransfers = { [key: string]: ByHandCargoTransfer[] };
 /**
- * CargoTransferStatus will alert the user if a CargoTransfer didn't go through due to insufficient capacity or available cargo
+ * CargoTransferStatus records the reason for a CargoTransfer failing to execute.
+ * These are collated and sent to the user in the event of failure.
  */
 export type CargoTransferStatus = number /* int */;
 export const CargoTransferStatusNone: CargoTransferStatus = 0;
@@ -155,7 +158,7 @@ export const CargoTransferStatusDestCargoCapacity: CargoTransferStatus = 5;
  */
 export const CargoTransferStatusDestStarbase: CargoTransferStatus = 6;
 /**
- * cargoTransferResult is the result of a single CargoType cargo transfer to a dest
+ * cargoTransferResult is the result of a single CargoType cargo transfer to a destination
  */
 /**
  * dunnage tasks are done after regular tasks
@@ -287,6 +290,10 @@ export interface WaypointTransportTask {
 	amount?: number /* int */;
 	action?: WaypointTaskTransportAction;
 }
+/**
+ * A transport task performed by a fleet to load or unload cargo.
+ * TODO: Add a "set waypoint to %" command
+ */
 export type WaypointTaskTransportAction = string;
 /**
  * No transport task for the specified cargo.
@@ -1225,7 +1232,7 @@ export interface PlayerMapObjects {
 //////////
 // source: production.go
 
-export const MaxBuildableCap = 5000;
+export const MaxBuildableCap = 50_000;
 /**
  * The producer struct performs planetary production.
  */
@@ -1266,10 +1273,9 @@ export const QueueItemTypeGenesisDevice: QueueItemType = 'GenesisDevice';
  * ProductionQueueItem completion times and outcomes.
  */
 export interface QueueItemCompletionEstimate {
-	canceled?: boolean; // Whether an item is canceled due to an invalid order
-	yearsToBuildOne?: number /* int */; // Years to build (or skip) the first item of this type in the queue
-	yearsToBuildAll?: number /* int */; // Years to build (or skip) the last item of this type in the queue
-	yearsToSkipAuto?: number /* int */; // Years to skip the first auto item in a queue
+	yearsToBuildOne?: number /* int */; // Years to (try to) build the first item of this type in the queue
+	yearsToBuildAll?: number /* int */; // Years to (try to) build the last item of this type in the queue
+	yearsToSkipOrCancel?: number /* int */; // Years to skip or cancel the first item in a queue
 }
 /**
  * A record of a built queue item, used for logging & estimating

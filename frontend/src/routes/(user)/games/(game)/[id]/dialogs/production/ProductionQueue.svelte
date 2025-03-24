@@ -17,7 +17,7 @@
 	import type { ProductionPlan, ProductionQueueItem } from '$lib/types/cs';
 	import { Infinite, type Cost } from '$lib/types/cs';
 	import { CommandedPlanet } from '$lib/types/Planet';
-	import { getFullName, isAuto, isFullySkipped } from '$lib/types/QueueItemType';
+	import { getFullName, isAuto } from '$lib/types/QueueItemType';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -100,8 +100,7 @@
 			Object.assign(queueItems[i], {
 				yearsToBuildOne: estimate.yearsToBuildOne,
 				yearsToBuildAll: estimate.yearsToBuildAll,
-				yearsToSkipAuto: estimate.yearsToSkipAuto,
-				canceled: estimate.canceled
+				yearsToSkipOrCancel: estimate.yearsToSkipOrCancel,
 			});
 		}
 
@@ -281,6 +280,7 @@
 			selectedQueueItemIndex--;
 			queueItems = queueItems;
 			updateQueueEstimates();
+			updateQueueEstimates();
 		}
 	}
 
@@ -291,6 +291,7 @@
 			queueItems[selectedQueueItemIndex] = swap;
 			selectedQueueItemIndex++;
 			queueItems = queueItems;
+			updateQueueEstimates();
 			updateQueueEstimates();
 		}
 	}
@@ -315,6 +316,8 @@
 			];
 			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;
 			updateQueueEstimates();
+			updateQueueEstimates();
+
 		}
 	}
 
@@ -345,39 +348,32 @@
 	}
 
 	function getCompletionDescription(item: ProductionQueueItem) {
-		if (item.canceled) {
-			return 'canceled';
+		if (!isAuto(item.type) && (item.yearsToSkipOrCancel ?? 0) > 0) {
+			return `canceled in ${item.yearsToSkipOrCancel} years`;
 		}
 
-		if (isFullySkipped(item)) {
+		if (item.yearsToBuildOne == Infinite) {
 			return 'skipped';
 		}
 
-		const yearsToBuildOne = item.yearsToBuildOne ?? 1;
-		const yearsToBuildAll = isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll;
-		if (yearsToBuildOne === yearsToBuildAll) {
-			if (yearsToBuildAll == 1) {
-				return '1 year';
-			}
-			if (yearsToBuildAll === Infinite) {
-				return 'never';
-			}
-			return `${yearsToBuildAll} years`;
+		const yearsToStart = item.yearsToBuildOne ?? 1;
+		const yearsToFinish =
+			item.yearsToSkipOrCancel !== Infinite ? item.yearsToSkipOrCancel : item.yearsToBuildAll;
+		if (yearsToStart === yearsToFinish) {
+			return yearsToFinish === Infinite
+				? 'never'
+				: `${yearsToFinish} ${yearsToFinish == 1 ? 'year' : 'years'}`;
 		}
-		if (yearsToBuildAll && yearsToBuildOne != yearsToBuildAll) {
-			if (yearsToBuildAll === Infinite) {
-				return `${yearsToBuildOne} to ???`;
+		if (yearsToFinish && yearsToStart != yearsToFinish) {
+			if (yearsToFinish === Infinite) {
+				return `${yearsToStart} to ???`;
 			}
-			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
+			return `${yearsToStart} to ${yearsToFinish} years`;
 		}
 
-		if (yearsToBuildOne == 1) {
-			return '1 year';
-		}
-		if (yearsToBuildOne === Infinite) {
-			return 'never';
-		}
-		return `${yearsToBuildOne} years`;
+		return yearsToStart === Infinite
+			? 'never'
+			: `${yearsToStart} ${yearsToStart == 1 ? 'year' : 'years'}`;
 	}
 
 	onMount(() => {

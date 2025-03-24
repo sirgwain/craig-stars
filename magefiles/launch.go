@@ -228,7 +228,7 @@ func Launch() error {
 		close(c)
 	}()
 
-	// Block until either goroutine finishes and then return the error
+	// Block until either goroutine finishes and then return the error.
 	wg.Wait()
 	return <-c
 }

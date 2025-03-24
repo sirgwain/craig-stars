@@ -81,26 +81,6 @@ export function isAuto(type: QueueItemType): boolean {
 }
 
 /**
- * Check if a {@linkcode ProductionQueueItem} will be fully skipped and entirely unbuildable.
- * @param item the {@linkcode ProductionQueueItem} to check; must have estimates filled in
- * @returns `true` if item is fully skipped (nothing will be built for the next 100 years)
- */
-export function isFullySkipped(item: ProductionQueueItem): boolean {
-	return (
-		isAuto(item.type) && item.yearsToBuildOne === Infinite && item.yearsToBuildAll === Infinite
-	);
-}
-
-/**
- * Check if a {@linkcode ProductionQueueItem} will be skipped on the first year of production.
- * @param item the {@linkcode ProductionQueueItem} to check; must have estimates filled in
- * @returns `true` if item is skipped during the first year of production
- */
-export function skippedFirstYear(item: ProductionQueueItem): boolean {
-	return isAuto(item.type) && item.yearsToSkipAuto === 1;
-}
-
-/**
  * Check if a {@linkcode QueueItemType} is a concrete or auto planetary item.
  * @param type the {@linkcode QueueItemType} to check
  * @returns `true` if item is a concrete or auto planetary item (i.e. not a ship/starbase)

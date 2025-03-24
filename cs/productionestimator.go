@@ -59,9 +59,9 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 	for i := range planet.ProductionQueue {
 		planet.ProductionQueue[i].index = i
 		planet.ProductionQueue[i].QueueItemCompletionEstimate = QueueItemCompletionEstimate{
-			YearsToBuildOne: Infinite,
-			YearsToBuildAll: Infinite,
-			YearsToSkipAuto: Infinite,
+			YearsToBuildOne:     Infinite,
+			YearsToBuildAll:     Infinite,
+			YearsToSkipOrCancel: Infinite,
 		}
 	}
 
@@ -96,15 +96,9 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			item := &items[itemBuilt.index]
 			maxBuildable := planet.MaxBuildable(player, item.Type)
 
-			// auto items will be skipped if we've hit the max allowed
-			if itemBuilt.skipped && item.YearsToSkipAuto == Infinite {
-				item.YearsToSkipAuto = year
-				continue
-			}
-
-			// log any invalid items getting canceled & removed from the queue
-			if itemBuilt.canceled {
-				item.Canceled = true
+			// log auto items being skipped or concrete items being canceled
+			if itemBuilt.skipped && item.YearsToSkipOrCancel == Infinite {
+				item.YearsToSkipOrCancel = year
 				continue
 			}
 

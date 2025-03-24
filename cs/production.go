@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-const MaxBuildableCap = 5000
+const MaxBuildableCap = 50_000
 
 // The producer struct performs planetary production.
 type producer struct {
@@ -143,10 +143,9 @@ func (t QueueItemType) concreteType() QueueItemType {
 // A record used by the production estimator to record unbuilt
 // ProductionQueueItem completion times and outcomes.
 type QueueItemCompletionEstimate struct {
-	Canceled        bool `json:"canceled,omitempty"`        // Whether an item is canceled due to an invalid order
-	YearsToBuildOne int  `json:"yearsToBuildOne,omitempty"` // Years to build (or skip) the first item of this type in the queue
-	YearsToBuildAll int  `json:"yearsToBuildAll,omitempty"` // Years to build (or skip) the last item of this type in the queue
-	YearsToSkipAuto int  `json:"yearsToSkipAuto,omitempty"` // Years to skip the first auto item in a queue
+	YearsToBuildOne     int `json:"yearsToBuildOne,omitempty"`     // Years to (try to) build the first item of this type in the queue
+	YearsToBuildAll     int `json:"yearsToBuildAll,omitempty"`     // Years to (try to) build the last item of this type in the queue
+	YearsToSkipOrCancel int `json:"yearsToSkipOrCancel,omitempty"` // Years to skip or cancel the first item in a queue
 }
 
 type productionResult struct {
@@ -172,8 +171,7 @@ type itemBuilt struct {
 	designNum     int
 	index         int
 	numBuilt      int
-	skipped       bool // whether an auto item is skipped
-	canceled      bool // whether an invalid concrete item is canceled
+	skipped       bool // whether an auto item is skipped or invalid concrete item is canceled
 }
 
 type builtShip struct {
@@ -250,7 +248,7 @@ func (p *producer) produce() (result productionResult, err error) {
 				// quantity below 0; skip building item
 				available = available.Add(item.Allocated) // refund previously allocated amount
 				result.itemsBuilt = append(result.itemsBuilt,
-					itemBuilt{index: item.index, canceled: true})
+					itemBuilt{index: item.index, skipped: true})
 				p.updateCanceledMessage(&result, item, overCap, m)
 				continue
 			}
@@ -271,7 +269,7 @@ func (p *producer) produce() (result productionResult, err error) {
 				available = available.Add(item.Allocated)
 				p.updatePacketCanceledMessage(&result, item, msgType,
 					itemCost.ToMineral().MultiplyFloat64(1/p.player.Race.Spec.PacketMineralCostFactor, math.Floor).Total())
-				result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, canceled: true})
+				result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, skipped: true})
 				continue
 			}
 		}
@@ -362,7 +360,7 @@ func (p *producer) produce() (result productionResult, err error) {
 					// can't build any more; exclude from new queue
 					available = available.Add(item.Allocated) // refund previously allocated cost
 					result.itemsBuilt = append(result.itemsBuilt,
-						itemBuilt{index: item.index, queueItemType: item.Type, canceled: true})
+						itemBuilt{index: item.index, queueItemType: item.Type, skipped: true})
 					p.updateCanceledMessage(&result, item, overCap, cap)
 				}
 			}

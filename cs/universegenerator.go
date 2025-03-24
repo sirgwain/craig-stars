@@ -38,9 +38,10 @@ func (ug *universeGenerator) Area() Vector {
 	return ug.area
 }
 
-// Generate a new universe using a UniverseGenerator
+// Generate a new universe from a preset template.
+// Used for unit tests with custom universes
 func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
-	ug.log.Debug().Msgf("%s: Generating universe", ug.Size)
+	ug.log.Debug().Msgf("%s: Generating universe from template", ug.Size)
 
 	var err error
 	for _, player := range ug.Players {
@@ -105,7 +106,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 	return nil
 }
 
-// Generate a new universe using a UniverseGenerator
+// Generate a new universe from scratch.
 func (ug *universeGenerator) Generate() (*Universe, error) {
 	ug.log.Debug().Msgf("%s: Generating universe", ug.Size)
 

@@ -2790,17 +2790,15 @@ func GetQueueItemCompletionEstimate(o js.Value) cs.QueueItemCompletionEstimate {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.Canceled = getBool(o.Get("canceled"))
 	obj.YearsToBuildOne = getInt[int](o.Get("yearsToBuildOne"))
 	obj.YearsToBuildAll = getInt[int](o.Get("yearsToBuildAll"))
-	obj.YearsToSkipAuto = getInt[int](o.Get("yearsToSkipAuto"))
+	obj.YearsToSkipOrCancel = getInt[int](o.Get("yearsToSkipOrCancel"))
 	return obj
 }
 func SetQueueItemCompletionEstimate(o js.Value, obj *cs.QueueItemCompletionEstimate) {
-	o.Set("canceled", obj.Canceled)
 	o.Set("yearsToBuildOne", obj.YearsToBuildOne)
 	o.Set("yearsToBuildAll", obj.YearsToBuildAll)
-	o.Set("yearsToSkipAuto", obj.YearsToSkipAuto)
+	o.Set("yearsToSkipOrCancel", obj.YearsToSkipOrCancel)
 }
 
 func GetQueueItemType(o js.Value) cs.QueueItemType {

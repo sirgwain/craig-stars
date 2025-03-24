@@ -138,8 +138,8 @@ export class CommandedPlanet implements Planet {
 	// update the production queue estimates for the planet's production queue
 	public updateProductionQueueEstimates(cs: CS): ProductionQueueItem[] {
 		const planetWithEstimates = cs.estimateProduction(this);
-		if (planetWithEstimates?.productionQueue?.length !== this.productionQueue.length) {
-			throw Error("failed to estimate production queue. items don't match up");
+		if (!planetWithEstimates?.productionQueue) {
+			throw Error("failed to estimate production queue; no queue");
 		}
 
 		for (let i = 0; i < this.productionQueue.length; i++) {
@@ -147,7 +147,7 @@ export class CommandedPlanet implements Planet {
 			Object.assign(this.productionQueue[i], {
 				yearsToBuildOne: estimate.yearsToBuildOne,
 				yearsToBuildAll: estimate.yearsToBuildAll,
-				yearsToSkipAuto: estimate.yearsToSkipAuto
+				yearsToSkipOrCancel: estimate.yearsToSkipOrCancel
 			});
 		}
 		return this.productionQueue;
