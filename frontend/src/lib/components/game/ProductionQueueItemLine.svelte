@@ -24,7 +24,7 @@
 		availableItem?: boolean;
 		maxBuildable?: number;
 		onQueueItemClicked?: (index: number, queueItem: ProductionQueueItem) => void;
-		onQueueItemDoubleClicked?: () => void;
+		onQueueItemDoubleClicked?: (index: number, queueItem: ProductionQueueItem) => void;
 	};
 
 	let {
@@ -60,7 +60,7 @@
 <button
 	type="button"
 	onclick={() => onQueueItemClicked?.(index, item)}
-	ondblclick={onQueueItemDoubleClicked}
+	ondblclick={() => onQueueItemDoubleClicked?.(index, item)}
 	oncontextmenu={(e) => onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 	class:text-queue-item-auto={isAuto(item.type)}
 	class:text-queue-item-this-year={!unbuiltStructure && builtFirstYear}

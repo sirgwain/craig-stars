@@ -1,7 +1,6 @@
 import type { DesignFinder } from '$lib/services/Universe';
 import { startCase } from 'lodash-es';
 import {
-	Infinite,
 	QueueItemTypeAutoDefenses,
 	QueueItemTypeAutoFactories,
 	QueueItemTypeAutoMaxTerraform,
@@ -134,14 +133,14 @@ export function getFullName(item: ProductionQueueItem, designFinder: DesignFinde
 			return 'Minimum Terraform';
 		case QueueItemTypeAutoMaxTerraform:
 			return 'Maximum Terraform';
+		case QueueItemTypeTerraformEnvironment:
+			return 'Terraform Environment';
 		case QueueItemTypeIroniumMineralPacket:
 			return 'Mineral Packet (Ironium)';
 		case QueueItemTypeBoraniumMineralPacket:
 			return 'Mineral Packet (Boranium)';
 		case QueueItemTypeGermaniumMineralPacket:
 			return 'Mineral Packet (Germanium)';
-		case QueueItemTypeTerraformEnvironment:
-			return 'Terraform Environment';
 		case QueueItemTypeMixedMineralPacket:
 			return 'Mixed Mineral Packet';
 		case QueueItemTypeAutoMineralPacket:

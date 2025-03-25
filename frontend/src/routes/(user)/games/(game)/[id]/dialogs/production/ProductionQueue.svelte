@@ -17,7 +17,7 @@
 	import type { ProductionPlan, ProductionQueueItem } from '$lib/types/cs';
 	import { Infinite, MaxBuildableCap, type Cost } from '$lib/types/cs';
 	import { CommandedPlanet } from '$lib/types/Planet';
-	import { getFullName, isAuto, isPlanetary } from '$lib/types/QueueItemType';
+	import { getFullName, isAuto } from '$lib/types/QueueItemType';
 	import {
 		ArrowLongDown,
 		ArrowLongLeft,
@@ -60,12 +60,20 @@
 	let selectedQueueItem: ProductionQueueItem | undefined = $state();
 	let selectedQueueItemCost: Cost | undefined = $state();
 
+	// the selected queue item, or the first item in the queue if none are selected.
+	// Used for maxBuildable calcs
+	let queueItem: ProductionQueueItem | undefined = $derived(selectedQueueItem ?? queueItems[0]);
+
 	// keep track of the quantity modifier
 	let quantityModifier = $state(1);
 
 	function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
 		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
+	}
+
+	function isSame(item1: ProductionQueueItem | undefined, item2: ProductionQueueItem | undefined) {
+		return item1?.type === item2?.type && item1?.designNum === item2?.designNum;
 	}
 
 	function onQueueItemClicked(index: number, item?: ProductionQueueItem) {
@@ -161,109 +169,73 @@
 		return percent;
 	}
 
-	function maxBuild(item?: ProductionQueueItem, index: number): number {
-		if (!item) {
-			return 0;
-		}
-
+	function maxBuild(item: ProductionQueueItem): number {
 		const m = cs.maxBuildable(planet, item.type) ?? MaxBuildableCap;
-		// don't check for items capped IF this is auto 
+		// m is set to MaxBuildableCap for items without a quantized "max buildable"
+		// (packets, ships and autos), so we only check the quantity of the currently selected item.
+		// Other items (like factories or mines) have definite set-in-stone caps,
+		// so we need to check everything to ensure we don't go overboard.
 		const amountInQueue =
-			!isAuto(item.type) && isPlanetary(item.type)
-				? planet.getAmountInQueue(item.type, queueItems)
-				: selectedQueueItemIndex == index
-					? (selectedQueueItem?.quantity ?? 0)
-					: 0;
-		return m - amountInQueue;
+			m === MaxBuildableCap
+				? isSame(item, queueItem)
+					? (queueItem?.quantity ?? 0)
+					: 0
+				: planet.getAmountInQueue(item.type, queueItems);
+		return Math.max(0, m - amountInQueue);
 	}
 
-	function addAvailableItem(item?: ProductionQueueItem) {
-		item = item ?? selectedAvailableItem;
-		if (!item) {
+	function addAvailableItem(itemToAdd: ProductionQueueItem | undefined) {
+		if (!itemToAdd) {
 			return;
 		}
-		const amtToAdd = clamp(quantityModifier, 0, maxBuild(item, index));
 
+		const amtToAdd = clamp(quantityModifier, 0, maxBuild(itemToAdd));
 		if (amtToAdd == 0) {
 			// don't add more of this item if we can't build any more of it
 			return;
 		}
 
-		// check if we should add more copies of the currently selected item
-		// or inject a new one into the queue
-		if (selectedQueueItem) {
-			if (selectedQueueItem.type == item.type && selectedQueueItem.designNum === item?.designNum) {
-				selectedQueueItem.quantity += amtToAdd;
-			} else {
-				// insert a new item
-				queueItems.splice(selectedQueueItemIndex + 1, 0, {
-					type: item.type,
-					quantity: amtToAdd,
-					designNum: item.designNum,
-					allocated: {},
-					tags: {}
-				});
-				selectedQueueItemIndex++;
-				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem?.quantity
-				);
-			}
-		} else {
-			// If we don't have anything selected, check if we should add to the first queue item
-			// or add a new one at the front
-			let nextItem = queueItems.length ? queueItems[0] : undefined;
-			if (nextItem && nextItem.type === item?.type && nextItem.designNum === item.designNum) {
-				nextItem.quantity += amtToAdd;
+		if (queueItem && isSame(itemToAdd, queueItem)) {
+			// add to existing item quantity, selecting the first queue item if none are selected
+			queueItem.quantity += amtToAdd;
+			if (selectedQueueItemIndex == -1) {
 				selectedQueueItemIndex = 0;
-				selectedQueueItem = nextItem;
-				selectedQueueItemCost = $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem?.quantity
-				);
-			} else {
-				// prepend a new queue item
-				queueItems = [
-					{
-						type: item.type,
-						designNum: item.designNum,
-						allocated: {},
-						tags: {},
-						quantity: amtToAdd
-					},
-					...queueItems
-				];
-				selectedQueueItemIndex++;
-				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem?.quantity
-				);
 			}
+			selectedQueueItem = queueItem;
+		} else {
+			// insert a new item at the specified offset and select it.
+			// selectedQueueItemIndex starts at -1 if nothing is selected, so
+			// index+1 will default to the start of the queue
+			queueItems.splice(selectedQueueItemIndex + 1, 0, {
+				type: itemToAdd.type,
+				quantity: amtToAdd,
+				designNum: itemToAdd.designNum,
+				allocated: {},
+				tags: {}
+			});
+			selectedQueueItemIndex++;
+			selectedQueueItem = queueItems[selectedQueueItemIndex];
 		}
 
+		selectedQueueItemCost = $player.getItemCost(
+			cs,
+			selectedQueueItem,
+			$universe,
+			planet,
+			selectedQueueItem?.quantity
+		);
 		updateQueueEstimates();
 	}
 
 	function removeItem() {
-		if (!queueItems || !selectedQueueItem) {
+		if (!queueItems.length || !selectedQueueItem) {
 			return;
 		}
-		selectedQueueItem.quantity -= quantityModifier;
-		selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
+
+		selectedQueueItem.quantity -= Math.min(selectedQueueItem.quantity, quantityModifier);
 		queueItems = queueItems;
-		if (selectedQueueItem.quantity <= 0) {
-			// select the item ncext in the list
+		if (selectedQueueItem.quantity == 0) {
+			// select the item next in the list
 			queueItems = queueItems?.filter((item) => item != selectedQueueItem);
 			selectedQueueItem = queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
 			selectedQueueItemCost = $player.getItemCost(
@@ -315,7 +287,7 @@
 				...concreteItems,
 				...plan.items.map((item) => ({
 					...item,
-					allocated: {}, // add some empties for type safety
+					allocated: {},
 					tags: {}
 				}))
 			];
@@ -343,6 +315,7 @@
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		onOk?.(planet);
 	}
+
 	function cancel() {
 		if (planet) {
 			resetQueue();
@@ -414,13 +387,8 @@
 		);
 		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns($universe.designs);
 		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns($universe.designs);
-		if (availableShipDesigns.length > 0) {
-			selectedAvailableItem = availableShipDesigns[0];
-		} else if (availableStarbaseDesigns.length > 0) {
-			selectedAvailableItem = availableStarbaseDesigns[0];
-		} else if (availableItems.length > 0) {
-			selectedAvailableItem = availableItems[0];
-		}
+		selectedAvailableItem =
+			availableShipDesigns[0] ?? availableStarbaseDesigns[0] ?? availableItems[0];
 		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 		updateQueueEstimates();
@@ -532,7 +500,7 @@
 				<div class="flex-none h-full mx-0.5 md:w-34 px-1">
 					<div class="flex-row flex-none gap-y-2">
 						<button
-							onclick={() => addAvailableItem()}
+							onclick={() => addAvailableItem(selectedAvailableItem)}
 							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 							><span class="hidden sm:inline">Add </span><Icon
 								src={ArrowLongRight}
@@ -596,7 +564,8 @@
 						</div>
 					</div>
 				</div>
-				<!-- display items already in queue, with double click set to remove them-->
+				<!-- display items already in queue, with single click set to select them
+				and double click set to remove -->
 				<div class="flex-1 h-full bg-base-100 py-1">
 					<div class="flex flex-col h-full">
 						<ul class="grow h-20 overflow-y-auto">
@@ -616,7 +585,7 @@
 										<ProductionQueueItemLine
 											item={queueItem}
 											{index}
-											{onQueueItemClicked}
+											onQueueItemClicked={onQueueItemClicked}
 											onQueueItemDoubleClicked={removeItem}
 											selected={queueItem === selectedQueueItem}
 										/>

@@ -17,6 +17,7 @@ var TestGames = []TestGame{
 						BaseName:          "Long Range Scout",
 						Tokens:            []cs.ShipToken{{DesignNum: 1, Quantity: 1}},
 						OrbitingPlanetNum: 1,
+						Fuel:              300,
 					},
 				},
 			},
@@ -402,4 +403,5 @@ var TestGames = []TestGame{
 				Cargo:                cs.Cargo{Ironium: 1000, Boranium: 1000, Germanium: 1000, Colonists: 2500},
 			}},
 	},
+	// TODO: Make a 12 player AI controlled game
 }

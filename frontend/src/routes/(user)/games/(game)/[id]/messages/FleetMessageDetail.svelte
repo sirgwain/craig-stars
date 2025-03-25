@@ -148,17 +148,22 @@
 	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y || 0})`}
 	{#if message.targetPlayerNum === $player.num}
 		<!-- our fleet swept -->
-		{message.targetName} has has swept {message.spec.amount ?? 0} mines from a mine field at {mineFieldPosition}
+		{message.targetName} has swept {(message.spec.amount ?? 0).toLocaleString()} mines from a mine field
+		at {mineFieldPosition}.
 	{:else}
 		<!-- our minefield was swept by fleet -->
-		{message.targetName} has has swept {message.spec.amount ?? 0} mines from your mine field at {mineFieldPosition}
+		{message.targetName} has swept {(message.spec.amount ?? 0).toLocaleString()} mines from your mine
+		field at {mineFieldPosition}.
 	{/if}
 {:else if message.type === PlayerMessageFleetLaidMines}
 	{@const mineField = $universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum)}
 	{#if mineField?.numMines === message.spec.amount}
-		{message.targetName} has has dispensed {message.spec.amount} mines.
+		{message.targetName} has dispensed {(message.spec.amount ?? 0).toLocaleString()} mines to form a
+		new minefield.
 	{:else}
-		{message.targetName} has increased {message.spec.targetName} by {message.spec.amount} mines.
+		{message.targetName} has increased {message.spec.targetName} by {(
+			message.spec.amount ?? 0
+		).toLocaleString()} mines.
 	{/if}
 {:else if message.type === PlayerMessageFleetPatrolTargeted}
 	Your patrolling {message.targetName} has targeted {message.spec.targetName} to intercept.
@@ -166,17 +171,20 @@
 	<!-- Colonist dieoff from engine radiation -->
 	Engine radiation has killed {(message.spec.amount ?? 0).toLocaleString()} colonists traveling in {message.targetName}.
 {:else if message.type === PlayerMessageFleetReproduce}
-	{#if !message.spec.amount2 || !message.spec.targetNum}
+	{#if message.spec.amount}
 		Your colonists in {message.targetName} have made good use of their time increasing their on-board
-		number by {message.spec.amount} colonists.
-	{:else}
-		<!-- TODO: actually fix bug non jankily by multiplying message.amount2 by 100 during assignment-->
-		Breeding activities on {message.targetName} have overflowed living space. {message.spec
-			.amount2 * 100}
+		number by {message.spec.amount.toLocaleString()}.
+		{#if message.spec.targetName && message.spec.amount2}
+			{message.spec.amount2.toLocaleString()} colonists overflowed living space and were beamed down
+			to
+			{message.spec.targetName}.
+		{/if}
+	{:else if message.spec.targetName && message.spec.amount2}
+		Breeding activities on {message.targetName} have overflowed living space. {message.spec.amount2.toLocaleString()}
 		colonists have been beamed down to {message.spec.targetName}.
 	{/if}
-	<!-- Remote Mining messages -->
 {:else if message.type === PlayerMessageFleetRemoteMined}
+	<!-- Remote Mining messages -->
 	{@const minerals = {
 		ironium: message.spec.mineral?.ironium ?? 0,
 		boranium: message.spec.mineral?.boranium ?? 0,
@@ -197,7 +205,7 @@
 	{#if transfer}
 		{@const cargoType = resourceTypeToString(transfer.cargoType)}
 		{@const fromTo = transfer.wanted < 0 ? 'from' : 'to'}
-		{message.targetName} has been attempted to transfer {Math.abs(transfer.wanted)}kT of {cargoType}
+		{message.targetName} has attempted to transfer {Math.abs(transfer.wanted)}kT of {cargoType}
 		{fromTo}
 		{message.spec.targetName} but was
 		{#if transfer.transfered === 0}
@@ -220,8 +228,7 @@
 			required technology to bypass their sensors.
 		{/if}
 	{:else}
-		{message.targetName} has been attempted to transfer cargo from {message.spec.targetName} but was
-		unsuccessful.
+		{message.targetName} has attempted to transfer cargo from {message.spec.targetName} but was unsuccessful.
 	{/if}
 {:else if message.type === PlayerMessageFleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(

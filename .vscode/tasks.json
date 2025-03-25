@@ -94,7 +94,6 @@
 		{
 			"label": "Launch server",
 			"dependsOn": ["Launch backend", "Launch frontend"],
-			"dependsOrder": "sequence",
 			"detail": "Launch frontend/backend servers in separate terminals without building anything.",
 			"group": "build",
 			"icon": {
@@ -103,20 +102,22 @@
 			}
 		},
 		{
-			"hide": true,
 			"label": "Launch backend",
 			"command": "mage",
 			"args": ["launch_backend", "${input:testMode}"],
+			"detail": "Launch backend golang server in its own terminal.",
+			"group": "build",
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "radio-tower"
 			}
 		},
 		{
-			"hide": true,
 			"label": "Launch frontend",
 			"command": "mage",
 			"args": ["launch_frontend"],
+			"detail": "Launch frontend vite server in its own terminal.",
+			"group": "build",
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "broadcast"

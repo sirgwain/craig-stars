@@ -18,8 +18,7 @@ type TestGame struct {
 }
 
 type TestPlayer struct {
-	// if nil, this will be created as a default humanoid player
-	*cs.Player
+	*cs.Player                        // if nil, this will be created as a default humanoid player
 	Designs        []cs.ShipDesign    `json:"designs,omitempty"`
 	Fleets         []cs.Fleet         `json:"fleets,omitempty"`
 	Salvages       []cs.Salvage       `json:"salvages,omitempty"`
@@ -115,6 +114,7 @@ func createTestGame(tg TestGame) *cs.FullGame {
 		for i, f := range p.Fleets {
 			addFleet(game, player, &f, i+1)
 		}
+		// TODO: generate player starting designs if design/fleet slices are nil
 
 		for i, mp := range p.MineralPackets {
 			addMineralPacket(game, player, &mp, i+1)

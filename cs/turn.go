@@ -1163,7 +1163,7 @@ func (t *turnGenerator) fleetReproduce() {
 			// Calculate relative pop growth based on growth rate
 			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists*player.Race.GrowthRate) / 100)
 		}
-		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
+		fleet.Cargo.Colonists += growth
 		over := max(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
 
 		planet := t.game.getOrbitingPlanet(fleet)
@@ -1177,8 +1177,8 @@ func (t *turnGenerator) fleetReproduce() {
 		}
 
 		// Send the appropriate message to the player
-		if growth > 0 {
-			messager.fleetReproduce(player, fleet, growth*100, planet, over)
+		if growth >= 0 {
+			messager.fleetReproduce(player, fleet, (growth-over)*100, planet, over*100)
 
 			t.log.Debug().
 				Int("Player", fleet.PlayerNum).

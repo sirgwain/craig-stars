@@ -1232,7 +1232,10 @@ export interface PlayerMapObjects {
 //////////
 // source: production.go
 
-export const MaxBuildableCap = 50_000;
+/**
+ * max items buildable for items without an explicit max
+ */
+export const MaxBuildableCap = 100_000;
 /**
  * The producer struct performs planetary production.
  */

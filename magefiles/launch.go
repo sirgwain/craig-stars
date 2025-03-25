@@ -87,7 +87,7 @@ func Tidy() error {
 	return sh.RunV("go", "mod", "tidy", "-v")
 }
 
-// Generate varucode and static JSON files.
+// Generate various VS Code and static JSON files.
 func Generate() error {
 	fmt.Println("running go generate ./...")
 	if err := sh.RunV("go", "generate", "./..."); err != nil {
@@ -148,11 +148,7 @@ func Build_Frontend() error {
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return cmd.Run()
 }
 
 // Build the backend Golang executable for local dev, as well as the WASM binary.
@@ -196,7 +192,7 @@ func build_backend(buildArgs ...string) error {
 	return nil
 }
 
-// Build the Web-Assembly binary into frontend, required to allow for WASM calls between th
+// Build the Web-Assembly binary into frontend, required to allow the frontend to access backend calculations and method calls.
 func Build_WASM() error {
 	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
@@ -206,7 +202,7 @@ func Build_WASM() error {
 }
 
 // Launch both backend and frontend servers simultaneously in 1 terminal.
-// This launches both the backend and frontend servers, piping their stdouts to the
+// This launches both the backend and frontend servers, piping both to the
 // same terminal and blocking until one returns early or is canceled.
 func Launch() error {
 	var done chan error
@@ -224,7 +220,7 @@ func Launch() error {
 func Launch_Backend(testMode bool) error {
 	args := []string{"tool", "github.com/air-verse/air"}
 	if testMode {
-		args = append(args, "", "--test-mode") // empty string required to prevent air from gobbilng up the flag itself
+		args = append(args, "", "--test-mode") // empty string required to prevent air from gobbilng up the flag for itself
 	}
 
 	// Server has its own graceful shutdown procedure, so we can just run it directly
