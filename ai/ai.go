@@ -100,7 +100,7 @@ var defaultCutoffs = aiCutoffsByStartMode{
 	attackYear: map[cs.GameStartMode]int{
 		cs.GameStartModeNormal: 25,
 		cs.GameStartModeAccBBS: 20,
-		cs.GameStartModeMax:    -100,
+		cs.GameStartModeMax:    -50, // starts game with 40 bombers and 60 nubians/fleet
 	},
 	mineralYear: map[cs.GameStartMode]int{
 		cs.GameStartModeNormal: 55,
