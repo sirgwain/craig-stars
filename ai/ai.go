@@ -100,7 +100,7 @@ var defaultCutoffs = aiCutoffsByStartMode{
 	attackYear: map[cs.GameStartMode]int{
 		cs.GameStartModeNormal: 25,
 		cs.GameStartModeAccBBS: 20,
-		cs.GameStartModeMax:    -1000,
+		cs.GameStartModeMax:    -100,
 	},
 	mineralYear: map[cs.GameStartMode]int{
 		cs.GameStartModeNormal: 55,
@@ -381,7 +381,7 @@ func (ai *aiPlayer) getWarshipCount() (warshipQty warshipCount) {
 
 	// determine ship counts by year
 	// TODO: Make these values configurable per AI type
-	// and allow creation of larger warfleets and armadas
+	// and allow creation of larger warfleets and armadas from multiple planets
 	switch {
 	case yearsAfterStart < 5: // <2429 non-BBS; <2424 accBBS
 		warshipQty.bombers = 5
