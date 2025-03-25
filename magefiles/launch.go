@@ -87,7 +87,7 @@ func Tidy() error {
 	return sh.RunV("go", "mod", "tidy", "-v")
 }
 
-// Generate go code and techs.JSON files.
+// Generate varucode and static JSON files.
 func Generate() error {
 	fmt.Println("running go generate ./...")
 	if err := sh.RunV("go", "generate", "./..."); err != nil {
@@ -196,7 +196,7 @@ func build_backend(buildArgs ...string) error {
 	return nil
 }
 
-// Build Web-Assembly binary into frontend.
+// Build the Web-Assembly binary into frontend, required to allow for WASM calls between th
 func Build_WASM() error {
 	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
@@ -205,9 +205,9 @@ func Build_WASM() error {
 		"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
 }
 
-// Launch both backend and frontend servers simultaneously.
-// This launches both the backend and frontend servers simultaneously,
-// blocking until one returns or is canceled.
+// Launch both backend and frontend servers simultaneously in 1 terminal.
+// This launches both the backend and frontend servers, piping their stdouts to the
+// same terminal and blocking until one returns early or is canceled.
 func Launch() error {
 	var done chan error
 	go func() {
@@ -231,10 +231,8 @@ func Launch_Backend(testMode bool) error {
 	return sh.RunV("go", args...)
 }
 
-// Launch the frontend svelte server, shutting it down on system interrupt.
+// Launch the frontend svelte server.
 func Launch_Frontend() error {
-	// create command with stdin and stdout piped to both their usual files
-	// and variables which we can monitor
 	cmd := exec.Command("npm", "run-script", "dev")
 	cmd.Dir = "./frontend"
 	cmd.Stdin = os.Stdin

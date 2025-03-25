@@ -94,7 +94,8 @@
 		{
 			"label": "Launch server",
 			"dependsOn": ["Launch backend", "Launch frontend"],
-			"detail": "Launch frontend/backend servers and open localhost without building anything.",
+			"dependsOrder": "sequence",
+			"detail": "Launch frontend/backend servers in separate terminals without building anything.",
 			"group": "build",
 			"icon": {
 				"color": "terminal.ansiCyan",
@@ -104,23 +105,12 @@
 		{
 			"hide": true,
 			"label": "Launch backend",
-			"isBackground": true,
 			"command": "mage",
 			"args": ["launch_backend", "${input:testMode}"],
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "radio-tower"
-			},
-			// problem matcher needed to signify task end so we know when to boot up the frontend
-			"problemMatcher": [
-				{
-					"pattern": [{ "regexp": ".", "file": 1, "line": 1, "column": 1, "message": 1 }],
-					"background": {
-						"beginsPattern": { "regexp": "building..." },
-						"endsPattern": { "regexp": "^.*INF starting http server" }
-					}
-				}
-			]
+			}
 		},
 		{
 			"hide": true,
