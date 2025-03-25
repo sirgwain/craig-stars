@@ -44,10 +44,10 @@
 	let yearsToBuildAll = $derived(
 		isAuto(item.type) ? item.yearsToSkipOrCancel : item.yearsToBuildAll
 	);
-	let skipOrCancel = $derived((item.yearsToSkipOrCancel ?? 0) > 0)
+	let skipOrCancel = $derived((item.yearsToSkipOrCancel ?? 0) > 0);
 	// true if this is a planetary structure not in the queue; these have most formatting disabled
 	let unbuiltStructure = $derived(availableItem && isPlanetary(item.type));
-	let builtFirstYear = $derived(skipOrCancel && item.yearsToBuildOne == 1);
+	let builtFirstYear = $derived(!skipOrCancel && item.yearsToBuildOne == 1);
 	let skipped = $derived(
 		// grey out option to add queue items if we can't add any more
 		// This mostly applies to concrete installations (but also other stuff if we happen to have 5K of them queued up)
@@ -64,13 +64,12 @@
 	oncontextmenu={(e) => onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 	class:text-queue-item-auto={isAuto(item.type)}
 	class:text-queue-item-this-year={!unbuiltStructure && builtFirstYear}
-	class:text-queue-item-next-year={!unbuiltStructure && // started this year but not finished yet
+	class:text-queue-item-next-year={(!unbuiltStructure &&
+		// will be started this year, but not finished just yet
 		builtFirstYear &&
-		(yearsToBuildAll ?? 0) > 1 ||
+		(yearsToBuildAll ?? 0) > 1) ||
 		yearsToBuildAll === Infinite}
-	class:text-queue-item-never={!unbuiltStructure &&
-		!canceled &&
-		item.yearsToBuildOne == Infinite}
+	class:text-queue-item-never={!unbuiltStructure && !canceled && item.yearsToBuildOne == Infinite}
 	class:text-queue-item-canceled={canceled}
 	class:text-queue-item-skipped={skipped}
 	class:bg-primary={selected}

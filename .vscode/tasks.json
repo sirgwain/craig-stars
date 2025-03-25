@@ -153,9 +153,9 @@
 		{
 			"id": "testMode",
 			"type": "pickString",
-			"default": "true",
+			"default": "false",
 			"options": ["true", "false"],
-			"description": "Select whether to start the database in-memory via test mode. Test mode starts with a preset collection of test games (modifiable in test/testgames.go), but changes will not persist when reloading the page."
+			"description": "Select whether to start the database in-memory via test mode. Test mode starts with a preset collection of test games (modifiable in test/testgames.go), but changes will not persist upon reloading the database."
 		},
 		{
 			"id": "packages",
