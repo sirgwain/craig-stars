@@ -513,7 +513,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 				tt.wantNewFleet.Spec = ComputeFleetSpec(&rules, player, tt.wantNewFleet)
 
 				test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet)
-
 				test.CompareAsJSON(t, gotNewFleet, tt.wantNewFleet)
 			}
 		})
@@ -1584,7 +1583,7 @@ func Test_orders_Merge(t *testing.T) {
 			}
 
 			if err == nil {
-        test.CompareAsJSON(t, got, tt.want)
+				test.CompareAsJSON(t, got, tt.want)
 			}
 		})
 	}

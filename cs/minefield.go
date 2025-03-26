@@ -216,7 +216,7 @@ func (mineField *MineField) reduceMineFieldOnImpact(numTokens int) {
 		switch {
 		case numMines <= 200:
 			// Reduce by 10 mines per hit, clearing the field if mines drops below 0
-			numReductions = min(numTokens, divideRoundUp(numMines, 10))
+			numReductions = min(numTokens, divideRoundAway0(numMines, 10))
 			numMines -= 10 * numReductions
 		case numMines <= 1000:
 			// Apply a 5% reduction per hit until reaching 200
@@ -225,7 +225,7 @@ func (mineField *MineField) reduceMineFieldOnImpact(numTokens int) {
 			numMines = int(float64(numMines) * math.Pow(0.95, float64(numReductions)))
 		case numMines <= 5000:
 			// Reduce by 50 mines per hit until reaching 1K
-			numReductions = min(numTokens, divideRoundUp(numMines-1000, 10))
+			numReductions = min(numTokens, divideRoundAway0(numMines-1000, 10))
 			numMines -= 50 * numReductions
 		default:
 			// Apply a 5% reduction per hit until reaching 5000

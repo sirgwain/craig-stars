@@ -131,9 +131,12 @@ func Abs[T constraints.Integer | constraints.Float](num T) T {
 	return num
 }
 
-// Divide 2 integers and round the result up to the nearest whole number.
-func divideRoundUp[I constraints.Integer](dividend, divisor I) I {
-	return (dividend + divisor - 1) / divisor
+// Divide 2 integers and round the result away from 0.
+func divideRoundAway0[I constraints.Integer](dividend, divisor I) I {
+	if (dividend > 0) == (divisor > 0) { // Same sign
+		return (dividend + divisor - 1) / divisor
+	}
+	return (dividend - divisor + 1) / divisor
 }
 
 // LogBase computes the logarithm of a number with the given base.

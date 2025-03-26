@@ -210,13 +210,13 @@ func Test_divideRoundUp(t *testing.T) {
 		{"1 ÷ 2", 1, 2, 1},
 		{"0 ÷ 55", 0, 55, 0},
 		{"100 ÷ 7", 100, 7, 15},
-		{"negative dividend", -10, 3, -3},
-		{"negative divisor", 10, -3, -3},
+		{"negative dividend", -10, 3, -4},
+		{"negative divisor", 10, -3, -4},
 		{"both negative", -10, -3, 4},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := divideRoundUp(tt.dividend, tt.divisor); got != tt.want {
+			if got := divideRoundAway0(tt.dividend, tt.divisor); got != tt.want {
 				t.Errorf("divideRoundUp() = %v, want %v", got, tt.want)
 			}
 		})

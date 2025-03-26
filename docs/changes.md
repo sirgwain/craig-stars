@@ -4,11 +4,16 @@
 
 Here is a non-exhaustive list of differences between `craig-stars` and the original game. Features yet to be implemented are not included.
 
+## Major changes
+
+- The AI's ship design algorithm has been effectively redesigned from the ground up, creating much more varied and effective ships closer to those from a human player.
+  -# For the record, filling a ship with half beams & torpedoes is not a good design.
+
 ## Medium-ish changes
 
-- Upgrading a starbase now checks all slots in _both_ designs when calculating refunds, rather than only the corresponding slot in the new design[^1]. Additionally, part refund/transfer checks still occur when swapping hulls (so adding a component and swapping hulls on consecutive turns costs the same regardless of order).
+- Upgrading a starbase now checks all slots in _both_ designs when calculating refunds, rather than only the corresponding slot in the new design. Part refund/transfer checks also occur when swapping hulls[^1]. (This has the overall effect of making starbase upgrades slightly cheaper.)
 
-[^1]: For refernce, Stars! charges extra for merely moving components to a different slot.
+[^1]: For reference, Stars! charges extra for merely moving components to a different slot, and forgoes normal refund/transfer logic for a flat 50% refund when swapping hulls.
 
 <!-- TODO: Check and fix more bugs -->
 
