@@ -95,4 +95,11 @@
 				onTransferColonists?.(value - (cargo.colonists + transferAmount.colonists))}
 		/>
 	</div>
+	{#if cargo.colonists + transferAmount.colonists}
+		<div class="my-auto col-span-2 ml-auto pr-1">
+			<span class="italic text-sm"
+				>{((cargo.colonists + transferAmount.colonists) * 100).toLocaleString()} colonists</span
+			>
+		</div>
+	{/if}
 </div>
