@@ -30,8 +30,7 @@
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
 	import SearchDialog from '../search/SearchDialog.svelte';
 	import CommandPane from './command/CommandPane.svelte';
-	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
-	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
+	import CommandPaneDrawer from './command/CommandPaneDrawer.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
@@ -63,7 +62,6 @@
 		merge
 	} = getGameContext();
 
-	let carouselOpen = $state(true);
 	let showProductionQueueDialog = $state(false);
 	let showCargoTransferDialog = $state(false);
 	let showMergeFleetsDialog = $state(false);
@@ -342,7 +340,11 @@
 
 	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
-			<ScannerToolbar onShowSearch={() => (showSearchDialog = true)} />
+			<ScannerToolbar
+				onShowSearch={() => (showSearchDialog = true)}
+				{onNextMapObject}
+				{onPreviousMapObject}
+			/>
 			<Scanner
 				{onSelectWaypoint}
 				{onAddWaypoint}
@@ -350,9 +352,6 @@
 				{onSelectMapObject}
 				{onSetPacketDest}
 			/>
-		</div>
-		<div class:hidden={!carouselOpen}>
-			<MapObjectStatsBar />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
 			<MapObjectSummary
@@ -364,10 +363,12 @@
 		</div>
 	</div>
 
-	<!-- for phone displays, use a carousel -->
-	<div class="flex flex-col flex-0">
-		<CommandPaneCarousel
-			bind:isOpen={carouselOpen}
+	<!-- for phone displays, use a drawer -->
+	<div class="flex flex-col">
+		<CommandPaneDrawer
+			{onNextMapObject}
+			{onPreviousMapObject}
+			{onRenameFleet}
 			{onSelectWaypoint}
 			{onChangeWaypoint}
 			{onDeleteWaypoint}

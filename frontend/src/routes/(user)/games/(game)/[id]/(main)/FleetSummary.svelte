@@ -138,7 +138,7 @@
 				Fleet Composition:
 				<div class="bg-base-100 h-16 overflow-y-auto mt-1 w-full md:w-60 font-normal">
 					<ul class="w-full h-full">
-						{#each fleet.tokens as token}
+						{#each fleet.tokens as token, index (index)}
 							<li class="pl-1">
 								<button
 									type="button"

@@ -81,10 +81,10 @@ type Intel struct {
 type PlanetIntel struct {
 	Intel                         `tstype:",extends"`
 	MapObject                     `tstype:",extends"`
-	Hab                           Hab        `json:"hab,omitempty"`
-	BaseHab                       Hab        `json:"baseHab,omitempty"`
-	MineralConcentration          Mineral    `json:"mineralConcentration,omitempty"`
-	Cargo                         Cargo      `json:"cargo,omitempty"`
+	Hab                           Hab        `json:"hab"`
+	BaseHab                       Hab        `json:"baseHab"`
+	MineralConcentration          Mineral    `json:"mineralConcentration"`
+	Cargo                         Cargo      `json:"cargo"`
 	CargoDiscovered               bool       `json:"cargoDiscovered,omitempty"`
 	PlanetHabitability            int        `json:"planetHabitability,omitempty"`
 	PlanetHabitabilityTerraformed int        `json:"planetHabitabilityTerraformed,omitempty"`

@@ -2,7 +2,6 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import Cycle from '$lib/components/icons/Cycle.svelte';
 	import Starbase from '$lib/components/icons/Starbase.svelte';
-	import { getCarouselContext } from '$lib/services/CarouselContext';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { AnyFleet, AnyMineField, AnyMineralPacket } from '$lib/services/Universe';
@@ -17,9 +16,6 @@
 		MapObjectTypeWormhole
 	} from '$lib/types/cs';
 	import { getMapObjectName } from '$lib/types/MapObject';
-	import { ChevronDown, ChevronUp } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
-	import { readable } from 'svelte/store';
 	import FleetSummary from './FleetSummary.svelte';
 	import MineFieldSummary from './MineFieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
@@ -32,11 +28,6 @@
 	const { universe, selectNextMapObject, selectedMapObject } = getGameContext();
 
 	let { onShowCargoTransferDialog }: ShowCargoTransferDialogProps = $props();
-
-	// if we are in a CommandPaneCarousel, show the disclosure chevrons and hide/show the command pane on click
-	let carouselContext = getCarouselContext();
-	let showDisclosure = carouselContext != undefined;
-	let open = carouselContext ? carouselContext.open : readable<boolean>(true);
 
 	function showStarbaseDesign(e: MouseEvent) {
 		if (selectedPlanet?.spec.starbaseDesignNum) {
@@ -90,17 +81,7 @@
 	<div class="card-body p-2 gap-0">
 		<div class="flex flex-row items-center">
 			<div class="flex-1 text-center text-lg font-semibold text-secondary">
-				{#if carouselContext}
-					<button
-						class:cursor-default={!showDisclosure}
-						class="w-full"
-						onclick={() => carouselContext?.onDisclosureClicked}
-					>
-						{getMapObjectName($selectedMapObject)}
-					</button>
-				{:else}
-					{getMapObjectName($selectedMapObject)}
-				{/if}
+				{getMapObjectName($selectedMapObject)}
 			</div>
 			<div>
 				{#if selectedPlanet && selectedPlanet.spec.hasStarbase}
@@ -124,15 +105,6 @@
 				>
 					<Cycle class="w-4 h-4 fill-base-content hover:stroke-accent" /></button
 				>
-				{#if carouselContext}
-					<button type="button" onclick={(_) => carouselContext.onDisclosureClicked()}>
-						{#if $open}
-							<Icon src={ChevronUp} size="16" class="hover:stroke-accent" />
-						{:else}
-							<Icon src={ChevronDown} size="16" class="hover:stroke-accent" />
-						{/if}
-					</button>
-				{/if}
 			</div>
 		</div>
 		{#if selectedPlanet}

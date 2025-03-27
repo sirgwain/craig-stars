@@ -34,7 +34,7 @@
 	<label class="label"
 		><span class={titleClass}>{title}</span>
 		<select class="select input-bordered ml-2 flex-grow" {name} bind:value {...rest}>
-			{#each options as type}
+			{#each options as type (type)}
 				{#if showEmpty || `${type}` !== ''}
 					<option value={type}>{typeTitle(type)}</option>
 				{/if}

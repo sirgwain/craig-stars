@@ -1,6 +1,20 @@
-import { type AnyFleet } from '$lib/services/Universe';
-import type { MapObject, MapObjectTarget, Vector } from './cs';
-import { MapObjectTypeFleet, MapObjectTypePlanet, None } from './cs';
+import {
+	type AnyFleet,
+	type AnyMineField,
+	type AnyMineralPacket,
+	type AnyPlanet
+} from '$lib/services/Universe';
+import type { MapObject, MapObjectTarget, MysteryTrader, Salvage, Vector, Wormhole } from './cs';
+import {
+	MapObjectTypeFleet,
+	MapObjectTypeMineField,
+	MapObjectTypeMineralPacket,
+	MapObjectTypeMysteryTrader,
+	MapObjectTypePlanet,
+	MapObjectTypeSalvage,
+	MapObjectTypeWormhole,
+	None
+} from './cs';
 import { getTokenCount, hasDestination } from './Fleet';
 
 export type MovingMapObject = {
@@ -30,6 +44,19 @@ export function getMapObjectName(mo: MapObject | AnyFleet | undefined): string {
 		return `${name}${numShips > 1 ? ` (${numShips})` : ''}${hasDestination(mo) ? '*' : ''}`;
 	}
 	return mo.name;
+}
+
+// get the underlying map object as a destructurable item
+export function getUnderlyingMapObject(mo: MapObject | undefined) {
+	return {
+		planet: mo?.type === MapObjectTypePlanet ? (mo as AnyPlanet) : undefined,
+		fleet: mo?.type === MapObjectTypeFleet ? (mo as AnyFleet) : undefined,
+		wormhole: mo?.type === MapObjectTypeWormhole ? (mo as Wormhole) : undefined,
+		mineField: mo?.type === MapObjectTypeMineField ? (mo as AnyMineField) : undefined,
+		mysteryTrader: mo?.type === MapObjectTypeMysteryTrader ? (mo as MysteryTrader) : undefined,
+		salvage: mo?.type === MapObjectTypeSalvage ? (mo as Salvage) : undefined,
+		mineralPacket: mo?.type === MapObjectTypeMineralPacket ? (mo as AnyMineralPacket) : undefined
+	};
 }
 
 /**
