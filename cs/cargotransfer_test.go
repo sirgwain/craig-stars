@@ -190,6 +190,30 @@ func TestCargoTransfers_mergeFleetCargoTransfers(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "merge with fleet to fleet transfer",
+			cargoTransfers: CargoTransfers{
+				Vector{}.String(): []ByHandCargoTransfer{
+					{
+						SourceFleetNum: 1,
+						Cargo:          Cargo{Ironium: 1},
+						// transfer to fleet 2
+						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 2, TargetPlayerNum: 1},
+					},
+					{
+						SourceFleetNum: 2,
+						Cargo:          Cargo{Ironium: 1},
+						// transfer to fleet 1
+						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetNum: 1, TargetPlayerNum: 1},
+					},
+				},
+			},
+			args: args{
+				fleet:         &Fleet{MapObject: MapObject{Type: MapObjectTypeFleet, PlayerNum: 1, Num: 1}},
+				mergingFleets: []*Fleet{{MapObject: MapObject{Type: MapObjectTypeFleet, PlayerNum: 1, Num: 2}}},
+			},
+			want: []ByHandCargoTransfer{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
