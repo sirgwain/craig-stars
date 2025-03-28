@@ -21,7 +21,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	case cs.ShipDesignPurposeScout:
 		hull = ai.getBestHull(highestRanked, cs.TechHullTypeScout)
 	case cs.ShipDesignPurposeColonizer:
-		hull = ai.getBestHull(highestRanked, cs.TechHullTypeColonizer)
+		hull = ai.getBestHull(ai.cheapest, cs.TechHullTypeColonizer)
 	case cs.ShipDesignPurposeFuelFreighter:
 		hull = ai.getBestHull(highestRanked, cs.TechHullTypeFuelTransport)
 		if hull != nil {
@@ -43,7 +43,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	case cs.ShipDesignPurposeBomber:
 		hull = ai.getBestHull(highestRanked, cs.TechHullTypeBomber)
 	case cs.ShipDesignPurposeFuelDepot:
-		hull = ai.getBestHull(highestRanked, cs.TechHullTypeStarbase)
+		hull = ai.getBestHull(ai.cheapest, cs.TechHullTypeStarbase)
 	case cs.ShipDesignPurposeStarterColony, cs.ShipDesignPurposeStarbase, cs.ShipDesignPurposeStarbaseQuarter,
 		cs.ShipDesignPurposeStarbaseHalf, cs.ShipDesignPurposeStarbaseUnarmed:
 		hull = ai.getBestHull(highestRanked, cs.TechHullTypeStarbase)
@@ -213,12 +213,12 @@ func (ai *aiPlayer) getBestHull(cmpFunc func(a, b *cs.TechHull) bool, hullTypes 
 }
 
 // returns true if b is cheaper than a
-// TODO: add cost type checking and maybe some caching?
+// TODO: add cost type weighting
 func (ai *aiPlayer) cheapest(a, b *cs.TechHull) bool {
 	costCalculator := cs.NewCostCalculator()
 	aCost := costCalculator.GetTechCost(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, a.Tech)
 	bCost := costCalculator.GetTechCost(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, b.Tech)
-	return cs.GetCostEfficiencyRatio(aCost, bCost, cs.CostTypes[:]...) < 1
+	return cs.GetCostEfficiencyRatio(aCost, bCost, cs.CostTypes[:]...) > 1
 }
 
 // returns true if b is higher ranked than a

@@ -57,15 +57,12 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 
 	ug.generatePlayerPlans()
 	ug.generatePlayerRelations()
+	ug.generatePlayerPlanetReports()
 
-	if err := ug.generatePlayerPlanetReports(); err != nil {
-		return err
-	}
-
+	// compute specs
 	for _, player := range ug.Players {
 		player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
 
-		// compute tech levels
 		for _, design := range player.Designs {
 			design.Spec, err = ComputeShipDesignSpec(&ug.Rules, player.TechLevels, player.Race.Spec, design)
 			if err != nil {

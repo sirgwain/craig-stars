@@ -1304,7 +1304,7 @@ func Test_designWarship(t *testing.T) {
 			if err != nil {
 				t.Errorf("designWarship() errored unexpectedly; err = \n%v", err)
 			}
-			Z
+
 			var tallyMap map[string]int
 			if got != nil {
 				tallyMap = make(map[string]int)
@@ -1312,7 +1312,6 @@ func Test_designWarship(t *testing.T) {
 					tallyMap[slot.HullComponent] += slot.Quantity
 				}
 			}
-
 
 			test.CompareAsJSON(t, tallyMap, tt.want)
 		})

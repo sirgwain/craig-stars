@@ -783,7 +783,7 @@ func (p *Player) defaultPlayerIntels(players []*Player) []PlayerIntel {
 }
 
 // get the default intels for a player for other players
-func (player *Player) initDefaultPlanetIntels(planets []*Planet) error {
+func (player *Player) initDefaultPlanetIntels(planets []*Planet) {
 	player.PlanetIntels = make([]PlanetIntel, len(planets))
 	for j := range planets {
 		// start with some defaults
@@ -799,7 +799,6 @@ func (player *Player) initDefaultPlanetIntels(planets []*Planet) error {
 		intel.Num = planet.Num
 	}
 
-	return nil
 }
 
 func (p *Player) IsFriend(playerNum int) bool {
