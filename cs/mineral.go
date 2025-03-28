@@ -47,59 +47,6 @@ func (m Mineral) PrettyString() string {
 	return strings.Join(texts, ", ")
 }
 
-// Set sets the value corresponding to minType to amt.
-// Unlike all other Mineral functions, this _will_ mutate the original struct's values,
-// and is best used for more complex cases not handled by simple addition.
-func (m *Mineral) Set(minType MineralType, amt int) {
-	switch minType {
-	case Ironium:
-		m.Ironium = amt
-	case Boranium:
-		m.Boranium = amt
-	case Germanium:
-		m.Germanium = amt
-	default:
-		panic(fmt.Sprintf("mineral.Set called with invalid MineralType %s", minType))
-	}
-}
-
-// Max returns a Mineral struct containing the higher of
-// m's and other's values for each MineralType.
-//
-//	Mineral{1, 2, 3}.Max(Mineral{4, 0, 5}) = Mineral{4, 2, 5}
-func (m Mineral) Max(other Mineral) Mineral {
-	return Mineral{
-		Ironium:   max(m.Ironium, other.Ironium),
-		Boranium:  max(m.Boranium, other.Boranium),
-		Germanium: max(m.Germanium, other.Germanium),
-	}
-}
-
-// MaxNum return the higher of num and this Mineral struct's values
-// for each MineralType.
-//
-//	Mineral{1, 2, 3}.MaxNum(2) = Mineral{2, 2, 3}
-func (m Mineral) MaxNum(num int) Mineral {
-	return Mineral{
-		Ironium:   max(m.Ironium, num),
-		Boranium:  max(m.Boranium, num),
-		Germanium: max(m.Germanium, num),
-	}
-}
-
-func (m Mineral) GetAmount(minType MineralType) int {
-	switch minType {
-	case Ironium:
-		return m.Ironium
-	case Boranium:
-		return m.Boranium
-	case Germanium:
-		return m.Germanium
-	default:
-		panic(fmt.Sprintf("Mineral.GetAmount called with invalid MineralType %q", minType))
-	}
-}
-
 func (m Mineral) Total() int {
 	return m.Ironium + m.Boranium + m.Germanium
 }
@@ -163,13 +110,57 @@ func (m Mineral) AddNum(minType MineralType, amt int) Mineral {
 	return m
 }
 
-// Multiply all components of a mineral by a float64, round them using roundFunc and
-// return the result truncated to an integer.
+// Multiply all components of a Mineral struct by factor and return the updated struct.
+func (m Mineral) Multiply(factor int) Mineral {
+	return Mineral{
+		Ironium:   m.Ironium * factor,
+		Boranium:  m.Boranium * factor,
+		Germanium: m.Germanium * factor,
+	}
+}
+
+// Multiply all components of a Mineral struct by factor,
+// rounding them using roundFunc before truncating back to an integer.
+//
+// Return the updated struct truncated to an integer.
 func (m Mineral) MultiplyFloat64(factor float64, roundFunc func(float64) float64) Mineral {
 	return Mineral{
 		Ironium:   int(roundFunc(float64(m.Ironium) * factor)),
 		Boranium:  int(roundFunc(float64(m.Boranium) * factor)),
 		Germanium: int(roundFunc(float64(m.Germanium) * factor)),
+	}
+}
+
+// Round a Mineral struct's values by calling roundFunc on each of its values in turn.
+func (m Mineral) Round(roundFunc func(int) int) Mineral {
+	return Mineral{
+		Ironium:   roundFunc(m.Ironium),
+		Boranium:  roundFunc(m.Boranium),
+		Germanium: roundFunc(m.Germanium),
+	}
+}
+
+// Max returns a Mineral struct containing the higher of
+// m's and other's values for each MineralType.
+//
+//	Mineral{1, 2, 3}.Max(Mineral{4, 0, 5}) = Mineral{4, 2, 5}
+func (m Mineral) Max(other Mineral) Mineral {
+	return Mineral{
+		Ironium:   max(m.Ironium, other.Ironium),
+		Boranium:  max(m.Boranium, other.Boranium),
+		Germanium: max(m.Germanium, other.Germanium),
+	}
+}
+
+// MaxNum return the higher of num and this Mineral struct's values
+// for each MineralType.
+//
+//	Mineral{1, 2, 3}.MaxNum(2) = Mineral{2, 2, 3}
+func (m Mineral) MaxNum(num int) Mineral {
+	return Mineral{
+		Ironium:   max(m.Ironium, num),
+		Boranium:  max(m.Boranium, num),
+		Germanium: max(m.Germanium, num),
 	}
 }
 
@@ -188,7 +179,7 @@ func (m Mineral) Clamp(min, max int) Mineral {
 //
 // Ties are broken in order of precendence (I>B>G); tie order not affected by negative indices
 //
-// panics if ranking is 0 or if abs(ranking) is greater than 3/
+// panics if ranking is 0 or if abs(ranking) is greater than 3.
 //
 // Also see [Cost.HighestType]
 func (m Mineral) HighestType(ranking int) (minType MineralType, value int) {
@@ -219,4 +210,33 @@ func (m Mineral) GetTypeFromAmount(amt int) MineralType {
 		return Germanium
 	}
 	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding MineralType was found in mineral struct; Struct values: \n%#v", amt, m))
+}
+
+func (m Mineral) GetAmount(minType MineralType) int {
+	switch minType {
+	case Ironium:
+		return m.Ironium
+	case Boranium:
+		return m.Boranium
+	case Germanium:
+		return m.Germanium
+	default:
+		panic(fmt.Sprintf("Mineral.GetAmount called with invalid MineralType %q", minType))
+	}
+}
+
+// Set sets the value corresponding to minType to amt.
+// Unlike all other Mineral functions, this _will_ mutate the original struct's values,
+// and is best used for more complex cases not handled by simple addition.
+func (m *Mineral) Set(minType MineralType, amt int) {
+	switch minType {
+	case Ironium:
+		m.Ironium = amt
+	case Boranium:
+		m.Boranium = amt
+	case Germanium:
+		m.Germanium = amt
+	default:
+		panic(fmt.Sprintf("mineral.Set called with invalid MineralType %s", minType))
+	}
 }

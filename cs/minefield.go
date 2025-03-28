@@ -299,8 +299,8 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 		}
 
 		// check collisions for each light year of travel through the minefield
-		lightYearsInField := min(int(mineField.Spec.Radius),
-			int(math.Ceil((1-percentNotInField)*distTraveled)))
+		lightYearsInField := int(min(mineField.Spec.Radius,
+			math.Ceil((1-percentNotInField)*distTraveled)))
 		lightYearsBeforeField := percentNotInField * distTraveled
 
 		// Each type of minefield has their hit rate multiplied by how many warp speeds
@@ -312,7 +312,7 @@ func checkForMineFieldCollision(rules *Rules, playerGetter playerGetter, mapObje
 		for i := range lightYearsInField {
 			if chanceToHit >= rules.random.Float64() {
 				// ouch, we hit a mine!
-				// We stop moving immediately, so our distance traveled
+				// Stop moving immediately and return
 				fleet.struckMineField = true
 				actualDist = lightYearsBeforeField + float64(i)
 				return mineField, actualDist

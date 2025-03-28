@@ -11,6 +11,8 @@ Here is a non-exhaustive list of differences between `craig-stars` and the origi
 
 ## Medium-ish changes
 
+- Fleets running out of fuel will spend the remainder of their travel time for that year at their free warp speed (rather than halting completely).
+
 - Upgrading a starbase now checks all slots in _both_ designs when calculating refunds, rather than only the corresponding slot in the new design. Part refund/transfer checks also occur when swapping hulls[^1]. (This has the overall effect of making starbase upgrades slightly cheaper.)
 
 [^1]: For reference, Stars! charges extra for merely moving components to a different slot, and forgoes normal refund/transfer logic for a flat 50% refund when swapping hulls.

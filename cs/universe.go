@@ -84,11 +84,14 @@ func (u *Universe) setLogger(log zerolog.Logger) {
 	u.log = log
 }
 
-// build the maps used for the Get functions
+// build the maps used for the Get functions.
+//
+// Warning: This WILL RESET fleet token designs to nil
+// if the correspondingly numbered player does not have the design in their Designs slice.
 func (u *Universe) buildMaps(players []*Player) error {
 
 	// make a big map to hold all of our universe objects by position
-	u.mapObjectsByPosition = make(map[Vector][]interface{}, len(u.Planets))
+	u.mapObjectsByPosition = make(map[Vector][]any, len(u.Planets))
 
 	// build a map of designs by num
 	// so we can inject the design into each token
@@ -425,7 +428,7 @@ func (u *Universe) addFleet(fleet *Fleet) error {
 		fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, 0}]
 	}
 
-	// inject the design into this
+	// inject designs into tokens
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]
 		token.design = u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]

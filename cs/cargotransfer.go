@@ -642,6 +642,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 		}
 
 		fuelRequiredForWaypoints := 0
+		// TODO: Rework to call function once fuel calcs moved to backend
 		for i := 1; i < len(fleet.Waypoints); i++ {
 			fuelRequiredForWaypoints += fleet.Waypoints[i].EstFuelUsage
 		}

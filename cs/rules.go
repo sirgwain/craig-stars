@@ -290,7 +290,7 @@ func NewRulesWithSeed(seed int64) Rules {
 			},
 		},
 		BattleRules: BattleRules{
-			BeamRangeDropoff: 0.1,  // 10% pro-rated damage penalty
+			BeamRangeDropoff: 0.1,  // 10% pro-rated damage penalty at maximum range
 			BeamBonusCap:     2.55, // 2.55x damage max from beam capacitors
 			JammerCap: JammerCap{
 				Starbase: 1,    // starbases have no explicit jamming hardcap, but an innate 0.75x jamming multi

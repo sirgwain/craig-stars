@@ -14,6 +14,10 @@ func testLongRangeScout(player *Player) *Fleet {
 
 // create a new long range scout ship design for testing.
 // Does NOT come with precomputed specs; those will have to be done manually.
+//
+// Note: If putting this inside a ShipToken in a fleet in the universe,
+// make sure to set the player's Num field to the same as this
+// (otherwise the token design will be nil)
 func testLongRangeScoutDesign(playerNum int) *ShipDesign {
 	return NewShipDesign(playerNum, 1).
 		WithName("Long Range Scout").
@@ -758,8 +762,6 @@ func Test_computeFleetSpec(t *testing.T) {
 }
 
 func TestFleet_moveFleet(t *testing.T) {
-	player := NewPlayer(1, NewRace().WithSpec(&rules))
-
 	type want struct {
 		position          Vector
 		fuelUsed          int
@@ -770,74 +772,80 @@ func TestFleet_moveFleet(t *testing.T) {
 		design      *ShipDesign
 		destination Vector
 		warpSpeed   int
-		fuel        int
+		initialFuel int
 		planet      *Planet
 		want        want
 	}{
 		{
 			name:        "move 25ly at warp5",
-			design:      testLongRangeScoutDesign(player.Num).WithSpec(&rules, player),
+			design:      testLongRangeScoutDesign(1),
 			destination: Vector{50, 0},
 			warpSpeed:   5,
+			initialFuel: 300,
 			want:        want{position: Vector{25, 0}, fuelUsed: 4, orbitingPlanetNum: None},
 		},
 		{
 			name:        "move 1ly at warp 1",
-			design:      testLongRangeScoutDesign(player.Num).WithSpec(&rules, player),
+			design:      testLongRangeScoutDesign(1),
 			destination: Vector{1, 1},
 			warpSpeed:   1,
-			fuel:        1,
+			initialFuel: 1,
 			want:        want{position: Vector{1, 1}, fuelUsed: -1, orbitingPlanetNum: None},
 		},
 		{
 			name:        "overshoot waypoint at warp 5",
-			design:      testLongRangeScoutDesign(player.Num).WithSpec(&rules, player),
+			design:      testLongRangeScoutDesign(1),
 			destination: Vector{5, 5},
 			warpSpeed:   5,
+			initialFuel: 300,
 			want:        want{position: Vector{5, 5}, fuelUsed: 1, orbitingPlanetNum: None},
 		},
 		{
 			name:        "end up at planet",
-			design:      testLongRangeScoutDesign(player.Num).WithSpec(&rules, player),
+			design:      testLongRangeScoutDesign(1),
 			destination: Vector{5, 5},
 			warpSpeed:   5,
+			initialFuel: 300,
 			planet:      NewPlanet().WithNum(1).withPosition(Vector{5, 5}),
 			want:        want{position: Vector{5, 5}, fuelUsed: 1, orbitingPlanetNum: 1},
 		},
 		{
-			name:        "W10 out of fuel",
-			design:      testFuelNubianDesign(player.Num, &Interspace10).WithSpec(&rules, player),
+			name:        "W10 run out of fuel",
+			design:      testFuelNubianDesign(1, &Interspace10),
 			destination: Vector{0, 100},
 			warpSpeed:   10,
-			fuel:        50,
+			initialFuel: 50,
 			planet:      NewPlanet().WithNum(1).withPosition(Vector{0, 100}),
-			want:        want{position: Vector{0, 50}, fuelUsed: 50, orbitingPlanetNum: None},
+			// 50 LY at W10, then 0.5 LY at W1
+			// Generates 1.5 --> 1 mg
+			want: want{position: Vector{0, 51}, fuelUsed: 49, orbitingPlanetNum: None},
+		},
+		{
+			name: "Refueler out of fuel",
+			design: NewShipDesign(1, 1).WithHull(SuperFuelXport.Name).WithSlots([]ShipDesignSlot{
+				{HullComponent: TransGalacticDrive.Name, HullSlotIndex: 1, Quantity: 2},
+			}),
+			destination: Vector{0, 81},
+			warpSpeed:   9,
+			initialFuel: 0,
+			planet:      NewPlanet().WithNum(1).withPosition(Vector{0, 81}),
+			want:        want{position: Vector{0, 81}, fuelUsed: -134, orbitingPlanetNum: 1},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fleet := &Fleet{
-				MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-				BaseName:  tt.name,
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{
-						NewPositionWaypoint(Vector{0, 0}, 0),
-						NewPositionWaypoint(tt.destination, tt.warpSpeed),
-					},
-				},
-				Tokens: []ShipToken{
-					{
-						Quantity:  1,
-						DesignNum: 1,
-						design:    tt.design,
-					},
-				},
-			}
-
+			player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+			tt.design = tt.design.WithSpec(&rules, player)
+			player.Designs = append(player.Designs, tt.design)
+			f := newFleetForDesign(player, tt.design, 1, 1, tt.name, []Waypoint{
+				NewPositionWaypoint(Vector{0, 0}, 0),
+				NewPositionWaypoint(tt.destination, tt.warpSpeed),
+			})
+			fleet := &f
 			fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-			if tt.fuel == 0 {
-				fleet.Fuel = fleet.Spec.FuelCapacity
-			}
+			fleet.Fuel = tt.initialFuel
+
 			universe := Universe{Fleets: []*Fleet{fleet}}
 			if tt.planet != nil {
 				universe.Planets = []*Planet{tt.planet}
@@ -848,7 +856,7 @@ func TestFleet_moveFleet(t *testing.T) {
 
 			assert.Equal(t, tt.want.position, fleet.Position)
 			assert.Equal(t, tt.want.position, fleet.Waypoints[0].Position)
-			assert.Equal(t, tt.want.fuelUsed, fleet.Spec.FuelCapacity-fleet.Fuel)
+			assert.Equal(t, tt.want.fuelUsed, tt.initialFuel-fleet.Fuel)
 		})
 	}
 }
@@ -1224,6 +1232,17 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 			want:      2400,
 		},
 		{
+			name: "W6 scout with IFE",
+			fleets: []testfleet{{
+				design: testLongRangeScoutDesign(1),
+				qty:    1,
+			}},
+			race:      NewRace().WithLRT(IFE).WithSpec(&rules),
+			warpSpeed: 6,
+			want:      2654, // 2673 in base game
+		},
+
+		{
 			name: "scout with less fuel",
 			fleets: []testfleet{{
 				design: testLongRangeScoutDesign(1),
@@ -1259,16 +1278,6 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 			fuel:      300,
 			warpSpeed: 4,
 			want:      Infinite,
-		},
-		{
-			name: "W6 scout with IFE",
-			fleets: []testfleet{{
-				design: testLongRangeScoutDesign(1),
-				qty:    1,
-			}},
-			race:      NewRace().WithLRT(IFE).WithSpec(&rules),
-			warpSpeed: 6,
-			want:      2654, // 2673 in base game
 		},
 		{
 			name: "IT swashbuckler with full cargo",
@@ -1336,6 +1345,19 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 			warpSpeed: 10,
 			fuel:      5000,
 			want:      5000, // 1 mg/ly
+		},
+		{
+			name: "Net Positive Refueler",
+			fleets: []testfleet{{
+				design: NewShipDesign(1, 1).WithHull(SuperFuelXport.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 2},
+				}),
+				qty: 1,
+			}},
+			race:      NewRace().WithSpec(&rules),
+			warpSpeed: 9,
+			fuel:      0,
+			want:      Infinite, // Mizer consumes 180 mg/yr; refueler makes 200
 		},
 	}
 	for _, tt := range tests {
@@ -1444,19 +1466,19 @@ func TestFleet_getFuelGeneration(t *testing.T) {
 			name: "Super Fuel Xport + Ramscoop",
 			fleets: []testfleet{{
 				design: NewShipDesign(1, 1).WithHull(SuperFuelXport.Name).WithSlots([]ShipDesignSlot{
-					{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 2},
 				}).WithSpec(&rules, player),
 				qty: 1,
 			}},
 			warpSpeed: 5,
 			distance:  25,
-			want:      275, // 25*3 + 200
+			want:      350, // 25*3*2 + 200
 		},
 		{
 			name: "Distance doesn't affect flat gen",
 			fleets: []testfleet{{
 				design: NewShipDesign(1, 1).WithHull(SuperFuelXport.Name).WithSlots([]ShipDesignSlot{
-					{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 2},
 				}).WithSpec(&rules, player),
 				qty: 1,
 			}},
@@ -1495,16 +1517,60 @@ func TestFleet_reduceCargoToMax(t *testing.T) {
 		wantCargo      Cargo
 		wantJettisoned Cargo
 	}{
-		{name: "empty", fields: fields{cargo: Cargo{}, cargoCapacity: 0}, wantCargo: Cargo{}, wantJettisoned: Cargo{}},
-		{name: "no reduce", fields: fields{cargo: Cargo{Ironium: 10}, cargoCapacity: 10}, wantCargo: Cargo{Ironium: 10}, wantJettisoned: Cargo{}},
-		{name: "no room left", fields: fields{cargo: Cargo{Ironium: 10}, cargoCapacity: 0}, wantCargo: Cargo{}, wantJettisoned: Cargo{Ironium: 10}},
-		{name: "save the people!", fields: fields{cargo: Cargo{Ironium: 10, Colonists: 10}, cargoCapacity: 5}, wantCargo: Cargo{Colonists: 5}, wantJettisoned: Cargo{Ironium: 10, Colonists: 5}},
-		{name: "save 50% of each", fields: fields{cargo: Cargo{10, 8, 6, 0}, cargoCapacity: 12}, wantCargo: Cargo{5, 4, 3, 0}, wantJettisoned: Cargo{5, 4, 3, 0}},
+		{
+			name: "empty",
+			fields: fields{
+				cargo:         Cargo{},
+				cargoCapacity: 0,
+			},
+			wantCargo: Cargo{}, wantJettisoned: Cargo{},
+		},
+		{
+			name: "no reduce",
+			fields: fields{
+				cargo:         Cargo{Ironium: 10},
+				cargoCapacity: 10,
+			},
+			wantCargo: Cargo{Ironium: 10}, wantJettisoned: Cargo{},
+		},
+		{
+			name: "no room left",
+			fields: fields{
+				cargo:         Cargo{Ironium: 10},
+				cargoCapacity: 0,
+			},
+			wantCargo: Cargo{}, wantJettisoned: Cargo{Ironium: 10},
+		},
+		{
+			name: "save the people!",
+			fields: fields{
+				cargo:         Cargo{Ironium: 10, Colonists: 10},
+				cargoCapacity: 5,
+			},
+			wantCargo: Cargo{Colonists: 5}, wantJettisoned: Cargo{Ironium: 10, Colonists: 5},
+		},
+		{
+			name: "half of each",
+			fields: fields{
+				cargo:         Cargo{10, 8, 6, 0},
+				cargoCapacity: 12,
+			},
+			wantCargo: Cargo{5, 4, 3, 0}, wantJettisoned: Cargo{5, 4, 3, 0},
+		},
+		{
+			name: "low mins",
+			fields: fields{
+				cargo:         Cargo{1, 1, 1, 2},
+				cargoCapacity: 4,
+			},
+			wantCargo: Cargo{1, 1, 0, 2}, wantJettisoned: Cargo{0, 0, 1, 0},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fleet := &Fleet{
-				Cargo: tt.fields.cargo,
+				BaseName: tt.name,
+				Cargo:    tt.fields.cargo,
 				Spec: FleetSpec{
 					ShipDesignSpec: ShipDesignSpec{
 						CargoCapacity: tt.fields.cargoCapacity,
@@ -1512,11 +1578,12 @@ func TestFleet_reduceCargoToMax(t *testing.T) {
 				},
 			}
 
-			if got := fleet.reduceCargoToMax(); got != tt.wantJettisoned {
-				t.Errorf("Fleet.reduceCargoToMax() = %v, wantJettisoned %v", got, tt.wantJettisoned)
+			gotJettisoned := fleet.reduceCargoToMax()
+			if gotCargo := fleet.Cargo; gotCargo != tt.wantCargo {
+				t.Errorf("Fleet.reduceCargoToMax() returned fleet cargo %v, wantCargo %v", gotCargo, tt.wantCargo)
 			}
-			if got := fleet.Cargo; got != tt.wantCargo {
-				t.Errorf("Fleet.reduceCargoToMax() cargo = %v, wantCargo %v", got, tt.wantCargo)
+			if gotJettisoned != tt.wantJettisoned {
+				t.Errorf("Fleet.reduceCargoToMax() returned jettisonned cargo %v, wantJettisoned %v", gotJettisoned, tt.wantJettisoned)
 			}
 		})
 	}

@@ -34,12 +34,12 @@ func (addend Vector) Add(augend Vector) Vector {
 
 // Subtract 2 vectors and return the result.
 //
-// Oftentimes used to generate a direction vector from 2 point vectors.
+// Typically used to generate a direction vector from 2 point vectors.
 func (minuend Vector) Subtract(subtrahend Vector) Vector {
 	return Vector{minuend.X - subtrahend.X, minuend.Y - subtrahend.Y}
 }
 
-// Multiply (or scale) a vector by the given factor.
+// Multiply a vector by the given scale factor and return the result.
 func (v Vector) Multiply(scale float64) Vector {
 	return Vector{v.X * scale, v.Y * scale}
 }
@@ -54,6 +54,9 @@ func (v Vector) Length() float64 {
 
 // return this vector with length normalized to equal 1.
 func (v Vector) Normalized() Vector {
+	if v == (Vector{}) {
+		return v
+	}
 	return Vector{
 		X: v.X / v.Length(),
 		Y: v.Y / v.Length(),

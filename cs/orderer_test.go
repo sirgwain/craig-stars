@@ -11,15 +11,7 @@ import (
 
 func Test_orders_SplitFleetTokens(t *testing.T) {
 	player := testPlayer().WithNum(1)
-	scoutDesign := NewShipDesign(player.Num, 1).
-		WithName("Long Range Scout").
-		WithHull(Scout.Name).
-		WithSlots([]ShipDesignSlot{
-			{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
-			{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
-			{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
-		}).
-		WithSpec(&rules, player)
+	scoutDesign := testLongRangeScoutDesign(1).WithSpec(&rules, player)
 
 	freighterDesign := NewShipDesign(player.Num, 2).
 		WithName("Teamster").
@@ -32,7 +24,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		WithSpec(&rules, player)
 
 	type args struct {
-		player *Player
 		source *Fleet
 		tokens []ShipToken
 	}
@@ -63,7 +54,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		{
 			name: "split a scoutx2 into two fleets",
 			args: args{
-				player: player,
 				source: &Fleet{
 					MapObject: MapObject{
 						Type:      MapObjectTypeFleet,
@@ -121,7 +111,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		{
 			name: "split a scoutx2 into two fleets with low fuel",
 			args: args{
-				player: player,
 				source: &Fleet{
 					MapObject: MapObject{
 						Type:      MapObjectTypeFleet,
@@ -179,7 +168,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		{
 			name: "split a scoutx2 and freighterx2 into two fleets",
 			args: args{
-				player: player,
 				source: &Fleet{
 					MapObject: MapObject{
 						Type:      MapObjectTypeFleet,
@@ -219,7 +207,7 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
 				},
 				Fuel:  scoutDesign.Spec.FuelCapacity + freighterDesign.Spec.FuelCapacity,
-				Cargo: Cargo{5, 10, 15, 20}, // half the cargo moves over
+				Cargo: Cargo{5, 10, 15, 20}, // half the cargo/fuel moves over
 			},
 			wantNewFleet: &Fleet{
 				MapObject: MapObject{
@@ -236,15 +224,14 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
 					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
 				},
-				Fuel:  scoutDesign.Spec.FuelCapacity + freighterDesign.Spec.FuelCapacity, // half the fuel moves over
-				Cargo: Cargo{5, 10, 15, 20},                                              // half the cargo moves over
+				Fuel:  scoutDesign.Spec.FuelCapacity + freighterDesign.Spec.FuelCapacity,
+				Cargo: Cargo{5, 10, 15, 20},
 			},
 			wantErr: false,
 		},
 		{
 			name: "split a single freighter out of 3",
 			args: args{
-				player: player,
 				source: &Fleet{
 					MapObject: MapObject{
 						Type:      MapObjectTypeFleet,
@@ -305,7 +292,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		{
 			name: "split a single freighter out of 3, uneven cargo and fuel",
 			args: args{
-				player: player,
 				source: &Fleet{
 					MapObject: MapObject{
 						Type:      MapObjectTypeFleet,
@@ -366,7 +352,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		{
 			name: "split a scoutx2 with 1 damaged and freighterx3 with 3 damaged into two fleets",
 			args: args{
-				player: player,
 				source: &Fleet{
 					MapObject: MapObject{
 						Type:      MapObjectTypeFleet,
@@ -426,7 +411,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		{
 			name: "split a scoutx3 damaged with floats",
 			args: args{
-				player: player,
 				source: &Fleet{
 					MapObject: MapObject{
 						Type:      MapObjectTypeFleet,
@@ -485,21 +469,20 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player.Designs = append(player.Designs, scoutDesign, freighterDesign)
-
+			// make copy of player with different name (makes debugging easier)
+			p := *player
+			p.Name = tt.name
 			o := &orders{}
 
-			// we assume the player knows about the source fleet
-			// and the fleets have specs computed
 			playerFleets := []*Fleet{}
 
+			// compute fleet specs
 			if tt.args.source != nil {
+				tt.args.source.Spec = ComputeFleetSpec(&rules, &p, tt.args.source)
 				playerFleets = append(playerFleets, tt.args.source)
 			}
-			for _, fleet := range playerFleets {
-				fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-			}
-			gotNewFleet, err := o.splitFleetTokens(&rules, tt.args.player, playerFleets, tt.args.source, tt.args.tokens)
+
+			gotNewFleet, err := o.splitFleetTokens(&rules, &p, playerFleets, tt.args.source, tt.args.tokens)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("orders.SplitFleetTokens() did not return error when expected")
@@ -507,10 +490,12 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 					t.Fatalf("orders.SplitFleetTokens() errored unexpectedly; err = \n%v", err)
 				}
 			}
+
 			if err == nil {
-				// compute the spec for our wantSourceFleet. No need to pass this one in
-				tt.wantSourceFleet.Spec = ComputeFleetSpec(&rules, player, tt.wantSourceFleet)
-				tt.wantNewFleet.Spec = ComputeFleetSpec(&rules, player, tt.wantNewFleet)
+				// compute the spec for our desired fleets.
+				// o.splitFleetTokens computes the recieved fleets' specs for us already
+				tt.wantSourceFleet.Spec = ComputeFleetSpec(&rules, &p, tt.wantSourceFleet)
+				tt.wantNewFleet.Spec = ComputeFleetSpec(&rules, &p, tt.wantNewFleet)
 
 				test.CompareAsJSON(t, tt.args.source, tt.wantSourceFleet)
 				test.CompareAsJSON(t, gotNewFleet, tt.wantNewFleet)
@@ -540,6 +525,8 @@ func Test_orders_SplitFleet(t *testing.T) {
 			{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
 		}).
 		WithSpec(&rules, player)
+
+	player.Designs = append(player.Designs, scoutDesign, freighterDesign)
 
 	type args struct {
 		source         *Fleet
@@ -1254,8 +1241,8 @@ func Test_orders_SplitAll(t *testing.T) {
 }
 
 func Test_orders_Merge(t *testing.T) {
-
 	player := testPlayer().WithNum(1)
+
 	scoutDesign := NewShipDesign(player.Num, 1).
 		WithName("Long Range Scout").
 		WithHull(Scout.Name).

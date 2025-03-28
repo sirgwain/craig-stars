@@ -403,10 +403,10 @@ export class CommandedFleet implements Fleet {
 
 	/**
 	 * Get the fuel allocated up to a waypoint index accounting for refueling
-	 * @param player
-	 * @param universe
-	 * @param waypointIndex
-	 * @returns
+	 * @param player the player commanding the fleet
+	 * @param universe the universe
+	 * @param waypointIndex the index of the waypoint to check
+	 * @returns the amount of fuel used up to and including this waypoint
 	 */
 	getFuelAllocated(player: CommandedPlayer, universe: Universe, waypointIndex: number): number {
 		let fuelAlreadyAllocated = 0;
@@ -424,11 +424,11 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
-	 * Get the fuel allocated up to a waypoint index accounting for refueling
-	 * @param player
-	 * @param universe
-	 * @param waypointIndex
-	 * @returns
+	 * Get the fuel left over after traveling to a waypoint accounting for refueling
+	 * @param player the player commanding the fleet
+	 * @param universe the universe
+	 * @param waypointIndex the index of the waypoint to check
+	 * @returns the amount of fuel left after traveling to this waypoint
 	 */
 	getFuelLeftover(player: CommandedPlayer, universe: Universe, waypointIndex: number): number {
 		let fuel = this.fuel;
@@ -446,26 +446,28 @@ export class CommandedFleet implements Fleet {
 	}
 
 	/**
-	 * Get the fuel allocated up to a waypoint index accounting for refueling
-	 * @param player
-	 * @param universe
-	 * @param waypointIndex
-	 * @returns
+	 * Check whether a fleet will run out of fuel before reaching the selected waypoint.
+	 * @param player the player commanding the fleet
+	 * @param universe the universe
+	 * @param waypointIndex the destination waypoint to check up to
+	 * @returns whether the fleet will reach said destination
 	 */
-	willRunOutOfFuel(player: CommandedPlayer, universe: Universe): boolean {
+	willRunOutOfFuel(player: CommandedPlayer, universe: Universe, waypointIndex: number): boolean {
 		let fuel = this.fuel;
-		for (let i = 0; i < this.waypoints.length; i++) {
-			if (i > 0) {
-				const wp1 = this.waypoints[i];
-				const fuelUsed = this.getFuelCost(
-					universe,
-					player.race.spec?.fuelEfficiencyOffset ?? 0,
-					wp1.warpSpeed ?? 0,
-					distance(this.waypoints[i - 1].position, wp1.position),
-					this.spec.cargoCapacity ?? 0
-				);
-				fuel -= fuelUsed;
-			}
+		if (this.waypoints.length < 2) {
+			return false
+		}
+
+		for (let i = 1; i <= waypointIndex; i++) {
+			const wp1 = this.waypoints[i];
+			const fuelUsed = this.getFuelCost(
+				universe,
+				player.race.spec?.fuelEfficiencyOffset ?? 0,
+				wp1.warpSpeed,
+				distance(this.waypoints[i - 1].position, wp1.position),
+				this.spec.cargoCapacity ?? 0
+			);
+			fuel -= fuelUsed;
 
 			if (fuel < 0) {
 				return true;
@@ -483,13 +485,6 @@ export class CommandedFleet implements Fleet {
 
 	/**
 	 * Get the warpSpeed of a waypoint to a destination. Also return whether we can colonize or remote mine the dest
-	 * @param player
-	 * @param designFinder
-	 * @param dest
-	 * @param orbiting
-	 * @param highestShipMass
-	 * @param fastestWaypoint
-	 * @returns
 	 */
 	getWarpSpeed(
 		player: CommandedPlayer,
