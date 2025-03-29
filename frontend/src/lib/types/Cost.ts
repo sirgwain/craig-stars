@@ -79,8 +79,7 @@ export function numBuildable(available: Cost, cost: Cost): number {
 	};
 
 	if (cost.ironium && cost.ironium > 0) {
-		buildable.ironium = 1
-		// Math.floor((available.ironium ?? 0) / cost.ironium);
+		buildable.ironium = Math.floor((available.ironium ?? 0) / cost.ironium);
 	}
 	if (cost.boranium && cost.boranium > 0) {
 		buildable.boranium = Math.floor((available.boranium ?? 0) / cost.boranium);
