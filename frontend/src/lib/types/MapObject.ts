@@ -116,9 +116,22 @@ export function equal(mo1: MapObject | undefined, mo2: MapObject | undefined): b
 	return !!(
 		mo1 &&
 		mo2 &&
-		mo1?.num === mo2?.num &&
-		mo1?.type === mo2?.type &&
-		mo1?.playerNum === mo2?.playerNum
+		mo1.num === mo2.num &&
+		mo1.type === mo2.type &&
+		mo1.playerNum === mo2.playerNum
+	);
+}
+
+export function equalsTarget(
+	mo1: MapObject | undefined,
+	target: MapObjectTarget | undefined
+): boolean {
+	return !!(
+		mo1 &&
+		target &&
+		mo1.num === (target.targetNum ?? 0) &&
+		mo1.type === (target.targetType ?? '') &&
+		mo1.playerNum === (target.targetPlayerNum ?? 0)
 	);
 }
 

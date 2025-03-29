@@ -19,7 +19,7 @@
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { MapObjectTypeFleet } from '$lib/types/cs';
-	import { commandable, getMapObjectName } from '$lib/types/MapObject';
+	import { commandable, equalsTarget, getMapObjectName } from '$lib/types/MapObject';
 	import { distance, equal as equalPosition } from '$lib/types/Vector';
 	import { slide } from 'svelte/transition';
 	import MapObjectSummary from '../MapObjectSummary.svelte';
@@ -96,6 +96,7 @@
 			return $commandedMapObject;
 		}
 
+		// if we select a fleet, put it in the summary
 		if (
 			$commandedMapObject &&
 			$selectedMapObject &&
@@ -104,6 +105,8 @@
 			return $selectedMapObject;
 		}
 
+		// if we are cycilng through our commandable fleets on a planet we own
+		// make sure we select the commandable fleet (because the planet will be selected, due to the way the desktop ui works)
 		if (
 			$commandedMapObject &&
 			equalPosition($selectedMapObject.position, $commandedMapObject.position)
@@ -254,7 +257,8 @@
 			>
 				<DisclosureHeader
 					{open}
-					openable={commandable($player.num, summaryMapObject)}
+					openable={commandable($player.num, summaryMapObject) ||
+						equalsTarget(summaryMapObject, $selectedWaypoint)}
 					onToggle={toggleDrawer}
 				>
 					<div class="flex flex-row w-full">
