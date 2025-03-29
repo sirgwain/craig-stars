@@ -27,7 +27,12 @@
 
 	const { universe, selectNextMapObject, selectedMapObject } = getGameContext();
 
-	let { onShowCargoTransferDialog }: ShowCargoTransferDialogProps = $props();
+	type Props = {
+		hideCycleButton?: boolean;
+		hideTitle?: boolean;
+	} & ShowCargoTransferDialogProps;
+
+	let { onShowCargoTransferDialog, hideTitle, hideCycleButton }: Props = $props();
 
 	function showStarbaseDesign(e: MouseEvent) {
 		if (selectedPlanet?.spec.starbaseDesignNum) {
@@ -80,9 +85,11 @@
 >
 	<div class="card-body p-2 gap-0">
 		<div class="flex flex-row items-center">
-			<div class="flex-1 text-center text-lg font-semibold text-secondary">
-				{getMapObjectName($selectedMapObject)}
-			</div>
+			{#if !hideTitle}
+				<div class="flex-1 text-center text-lg font-semibold text-secondary">
+					{getMapObjectName($selectedMapObject)}
+				</div>
+			{/if}
 			<div>
 				{#if selectedPlanet && selectedPlanet.spec.hasStarbase}
 					<button
@@ -95,16 +102,18 @@
 						<Starbase class="w-4 h-4 starbase" /></button
 					>
 				{/if}
-				<button
-					type="button"
-					data-type="cycle-selected-map-object-button"
-					onpointerdown={(e) => {
-						e.preventDefault();
-						selectNextMapObject();
-					}}
-				>
-					<Cycle class="w-4 h-4 fill-base-content hover:stroke-accent" /></button
-				>
+				{#if !hideCycleButton}
+					<button
+						type="button"
+						data-type="cycle-selected-map-object-button"
+						onpointerdown={(e) => {
+							e.preventDefault();
+							selectNextMapObject();
+						}}
+					>
+						<Cycle class="w-4 h-4 fill-base-content hover:stroke-accent" /></button
+					>
+				{/if}
 			</div>
 		</div>
 		{#if selectedPlanet}

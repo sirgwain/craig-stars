@@ -5,27 +5,32 @@
 
 	type Props = {
 		open: boolean;
+		openable?: boolean;
 		children?: Snippet;
 		onToggle: () => void;
 	};
 
-	let { open, children, onToggle }: Props = $props();
+	let { open, openable = true, children, onToggle }: Props = $props();
 </script>
 
-<!-- Use a whole button so the entire header is clickable -->
-<button
-	type="button"
-	class="cursor-pointer w-full"
-	aria-label="show command pane button"
-	onclick={onToggle}
->
-	<div class="flex flex-row justify-between">
-		{@render children?.()}
+{#if !openable}
+	{@render children?.()}
+{:else}
+	<!-- Use a whole button so the entire header is clickable -->
+	<button
+		type="button"
+		class="cursor-pointer w-full"
+		aria-label="show command pane button"
+		onclick={onToggle}
+	>
+		<div class="flex flex-row justify-between">
+			{@render children?.()}
 
-		{#if open}
-			<Icon src={ChevronUp} size="16" class="hover:stroke-accent" />
-		{:else}
-			<Icon src={ChevronDown} size="16" class="hover:stroke-accent" />
-		{/if}
-	</div>
-</button>
+			{#if open}
+				<Icon src={ChevronUp} size="16" class="hover:stroke-accent" />
+			{:else}
+				<Icon src={ChevronDown} size="16" class="hover:stroke-accent" />
+			{/if}
+		</div>
+	</button>
+{/if}

@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  args_bin = ["--log", "tmp/logfile.log", "serve", "--test-mode"]
+  args_bin = ["--log", "tmp/logfile.log", "serve"]
   bin = "./dist/craig-stars"
   cmd = "mage build_backend"
   delay = 1000

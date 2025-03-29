@@ -18,7 +18,9 @@
 		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { equal as equalPosition } from '$lib/types/Vector';
+	import { MapObjectTypeFleet } from '$lib/types/cs';
+	import { commandable, getMapObjectName } from '$lib/types/MapObject';
+	import { distance, equal as equalPosition } from '$lib/types/Vector';
 	import { slide } from 'svelte/transition';
 	import MapObjectSummary from '../MapObjectSummary.svelte';
 	import MapObjectSummaryCollapsed from '../MapObjectSummaryMini.svelte';
@@ -37,13 +39,16 @@
 	import PlanetSummaryTile from './PlanetSummaryTile.svelte';
 
 	const {
+		player,
+		settings,
 		universe,
 		commandedFleet,
 		commandedMapObject,
 		commandedPlanet,
 		selectedMapObject,
 		selectedWaypoint,
-		currentSelectedWaypointIndex
+		currentSelectedWaypointIndex,
+		commandMapObject
 	} = getGameContext();
 
 	type Props = {} & NextPrevMapObjectProps &
@@ -86,8 +91,19 @@
 			return $commandedMapObject;
 		}
 
-		// select the commanded map object if it exists and is in the same location as the selected map object
-		// this occurs when commanding fleets orbiting a planet
+		// don't update the summaryMapObject  when adding waypoints
+		if ($settings.addWaypoint) {
+			return $commandedMapObject;
+		}
+
+		if (
+			$commandedMapObject &&
+			$selectedMapObject &&
+			$selectedMapObject.type === MapObjectTypeFleet
+		) {
+			return $selectedMapObject;
+		}
+
 		if (
 			$commandedMapObject &&
 			equalPosition($selectedMapObject.position, $commandedMapObject.position)
@@ -98,6 +114,19 @@
 		// the selectedMapObject is different than the commanded map object, show it in the summary
 		return $selectedMapObject;
 	});
+
+	let dist = $derived(
+		$commandedMapObject && $selectedMapObject
+			? distance($commandedMapObject.position, $selectedMapObject.position)
+			: 0
+	);
+
+	function toggleDrawer() {
+		open = !open;
+		if (summaryMapObject && commandable($player.num, summaryMapObject)) {
+			commandMapObject(summaryMapObject);
+		}
+	}
 </script>
 
 <div class="w-full md:hidden select-none z-10">
@@ -111,7 +140,7 @@
 				use:clickOutside={() => (open = false)}
 				class="bg-base-200 border-t border-base-300 rounded-t-2xl h-[80vh] shadow-lg relative z-5 p-4"
 			>
-				<DisclosureHeader {open} onToggle={() => (open = false)}>
+				<DisclosureHeader {open} onToggle={toggleDrawer}>
 					<div class="flex flex-row justify-center w-full pb-1">
 						{$commandedMapObject?.name}
 					</div>
@@ -122,12 +151,17 @@
 							<div id="planet-summary-tile">
 								<PlanetSummaryTile
 									planet={$commandedPlanet}
+									hideTitle={true}
 									{onNextMapObject}
 									{onPreviousMapObject}
 								/>
 							</div>
 							<div id="summary">
-								<MapObjectSummary {onShowCargoTransferDialog} />
+								<MapObjectSummary
+									{onShowCargoTransferDialog}
+									hideTitle={true}
+									hideCycleButton={true}
+								/>
 							</div>
 							<div id="planet-status-tile">
 								<PlanetStatusTile planet={$commandedPlanet} />
@@ -162,6 +196,7 @@
 							<div id="planet-summary-tile">
 								<FleetSummaryTile
 									fleet={$commandedFleet}
+									hideTitle={true}
 									{onNextMapObject}
 									{onPreviousMapObject}
 									{onRenameFleet}
@@ -217,9 +252,32 @@
 				transition:slide={{ duration: 250 }}
 				class="bg-base-200 border-t border-base-300 rounded-t2xl relative p-4"
 			>
-				<DisclosureHeader {open} onToggle={() => (open = true)}>
-					<div class="flex flex-row justify-center w-full">
-						{summaryMapObject?.name ?? 'unknown'}
+				<DisclosureHeader
+					{open}
+					openable={commandable($player.num, summaryMapObject)}
+					onToggle={toggleDrawer}
+				>
+					<div class="flex flex-row w-full">
+						<div class="text-sm text-left flex flex-col w-20">
+							<div>
+								{#if summaryMapObject?.num}
+									ID: {summaryMapObject?.num}
+								{/if}
+							</div>
+							<div>
+								X: {summaryMapObject?.position.x}, Y: {summaryMapObject?.position.y}
+							</div>
+						</div>
+						<div class="grow text-center">
+							{summaryMapObject && summaryMapObject.name !== ''
+								? summaryMapObject.name
+								: 'Deep Space'}
+						</div>
+						<div class="text-sm my-auto w-20 text-right">
+							{#if $commandedMapObject && dist}
+								{dist.toFixed(1)} ly from {getMapObjectName($commandedMapObject)}
+							{/if}
+						</div>
 					</div>
 				</DisclosureHeader>
 

@@ -34,6 +34,7 @@
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
+	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
 
 	const {
 		game,
@@ -50,6 +51,7 @@
 		previousMapObject,
 		selectWaypoint,
 		selectMapObject,
+		selectNextMapObject,
 		addWaypoint,
 		updateWaypoint,
 		deleteWaypoint,
@@ -342,6 +344,7 @@
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
 			<ScannerToolbar
 				onShowSearch={() => (showSearchDialog = true)}
+				onCycleMapObject={() => selectNextMapObject()}
 				{onNextMapObject}
 				{onPreviousMapObject}
 			/>
@@ -352,6 +355,9 @@
 				{onSelectMapObject}
 				{onSetPacketDest}
 			/>
+		</div>
+		<div class="hidden md:block">
+			<MapObjectStatsBar />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
 			<MapObjectSummary

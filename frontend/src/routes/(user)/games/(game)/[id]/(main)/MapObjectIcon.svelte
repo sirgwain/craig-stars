@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyFleet, AnyPlanet } from '$lib/services/Universe';
+	import type { AnyPlanet } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
-	import { MapObjectTypeFleet, MapObjectTypePlanet, type MapObject } from '$lib/types/cs';
+	import {
+		MineFieldTypeHeavy,
+		MineFieldTypeSpeedBump,
+		MineFieldTypeStandard,
+		type MapObject
+	} from '$lib/types/cs';
+	import { getUnderlyingMapObject } from '$lib/types/MapObject';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 
@@ -15,12 +21,10 @@
 
 	let { mapObject }: Props = $props();
 
-	let planet = $derived(
-		mapObject?.type === MapObjectTypePlanet ? (mapObject as AnyPlanet) : undefined
+	let { planet, fleet, wormhole, mineField, mysteryTrader, salvage, mineralPacket } = $derived(
+		getUnderlyingMapObject(mapObject)
 	);
-	let fleet = $derived(
-		mapObject?.type === MapObjectTypeFleet ? (mapObject as AnyFleet) : undefined
-	);
+
 	let design = $derived.by(() => {
 		if (fleet?.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
@@ -33,7 +37,7 @@
 
 {#if planet}
 	<div class="avatar">
-		<div class="border-2 border-neutral mr-2 p-2 bg-black">
+		<div class="mapobject-avatar-wrapper">
 			<div class="planet-avatar {icon(planet)} bg-black"></div>
 		</div>
 	</div>
@@ -55,6 +59,41 @@
 					onpointerdown={(e) => onShipDesignTooltip(e, design)}
 				></button>
 			</div>
+		</div>
+	</div>
+{:else if mineralPacket}
+	<div class="avatar">
+		<div class="mapobject-avatar-wrapper">
+			<div class="mapobject-avatar mineral-packet"></div>
+		</div>
+	</div>
+{:else if salvage}
+	<div class="avatar">
+		<div class="mapobject-avatar-wrapper">
+			<div class="mapobject-avatar salvage"></div>
+		</div>
+	</div>
+{:else if mineField}
+	<div class="avatar">
+		<div class="mapobject-avatar-wrapper">
+			<div
+				class:standard-mine-field={mineField.mineFieldType === MineFieldTypeStandard}
+				class:heavy-mine-field={mineField.mineFieldType === MineFieldTypeHeavy}
+				class:speed-bump-mine-field={mineField.mineFieldType === MineFieldTypeSpeedBump}
+				class="mapobject-avatar"
+			></div>
+		</div>
+	</div>
+{:else if wormhole}
+	<div class="avatar">
+		<div class="mapobject-avatar-wrapper">
+			<div class="mapobject-avatar wormhole"></div>
+		</div>
+	</div>
+{:else if mysteryTrader}
+	<div class="avatar">
+		<div class="mapobject-avatar-wrapper">
+			<div class="mapobject-avatar mystery-trader"></div>
 		</div>
 	</div>
 {:else}

@@ -144,7 +144,7 @@ export type SelectWaypointProps = {
 // properties for a components that trigger a Dialog events
 
 export type ShowCargoTransferDialogProps = {
-	onShowCargoTransferDialog: OnShowDialog<CargoTransferDialogEvent> | undefined;
+	onShowCargoTransferDialog?: OnShowDialog<CargoTransferDialogEvent> | undefined;
 };
 
 export type ShowSplitFleetDialogProps = {

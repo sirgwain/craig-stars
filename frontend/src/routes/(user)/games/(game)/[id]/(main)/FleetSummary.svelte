@@ -56,7 +56,7 @@
 	}
 </script>
 
-<div class="flex flex-row min-h-[11rem]">
+<div class="flex flex-row md:min-h-[11rem] w-full">
 	<div class="flex flex-col">
 		<div class="avatar mr-2">
 			<div

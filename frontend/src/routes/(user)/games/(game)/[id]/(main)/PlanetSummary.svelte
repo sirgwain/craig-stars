@@ -8,16 +8,16 @@
 	} from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
+	import type { AnyPlanet } from '$lib/services/Universe';
 	import { population } from '$lib/types/Cargo';
-	import { Grav, None, Rad, ReportAgeUnexplored, Temp, type PlanetIntel } from '$lib/types/cs';
-	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
+	import { Grav, None, Rad, ReportAgeUnexplored, Temp } from '$lib/types/cs';
+	import MapObjectIcon from './MapObjectIcon.svelte';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
 
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: AnyPlanet;
 	};
 
 	let { planet }: Props = $props();
@@ -59,10 +59,11 @@
 	}
 </script>
 
-<div class="flex flex-col min-h-[11rem] select-none">
+<div class="flex flex-col md:min-h-[11rem] select-none w-full">
 	{#if 'reportAge' in planet && planet.reportAge === ReportAgeUnexplored}
-		<div class="m-auto">
-			<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent" />
+		<div class="flex flex-row">
+			<MapObjectIcon mapObject={planet} />
+			<div>unexplored</div>
 		</div>
 	{:else}
 		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>

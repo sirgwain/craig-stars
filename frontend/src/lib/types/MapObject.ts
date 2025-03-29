@@ -4,7 +4,14 @@ import {
 	type AnyMineralPacket,
 	type AnyPlanet
 } from '$lib/services/Universe';
-import type { MapObject, MapObjectTarget, MysteryTrader, Salvage, Vector, Wormhole } from './cs';
+import type {
+	MapObject,
+	MapObjectTarget,
+	MysteryTraderIntel,
+	SalvageIntel,
+	Vector,
+	WormholeIntel
+} from './cs';
 import {
 	MapObjectTypeFleet,
 	MapObjectTypeMineField,
@@ -51,10 +58,10 @@ export function getUnderlyingMapObject(mo: MapObject | undefined) {
 	return {
 		planet: mo?.type === MapObjectTypePlanet ? (mo as AnyPlanet) : undefined,
 		fleet: mo?.type === MapObjectTypeFleet ? (mo as AnyFleet) : undefined,
-		wormhole: mo?.type === MapObjectTypeWormhole ? (mo as Wormhole) : undefined,
+		wormhole: mo?.type === MapObjectTypeWormhole ? (mo as WormholeIntel) : undefined,
 		mineField: mo?.type === MapObjectTypeMineField ? (mo as AnyMineField) : undefined,
-		mysteryTrader: mo?.type === MapObjectTypeMysteryTrader ? (mo as MysteryTrader) : undefined,
-		salvage: mo?.type === MapObjectTypeSalvage ? (mo as Salvage) : undefined,
+		mysteryTrader: mo?.type === MapObjectTypeMysteryTrader ? (mo as MysteryTraderIntel) : undefined,
+		salvage: mo?.type === MapObjectTypeSalvage ? (mo as SalvageIntel) : undefined,
 		mineralPacket: mo?.type === MapObjectTypeMineralPacket ? (mo as AnyMineralPacket) : undefined
 	};
 }
@@ -78,7 +85,8 @@ export function owned(mo: MapObject): boolean {
 	return mo.playerNum != None;
 }
 
-export function commandable(playerNum: number, mo: MapObject): boolean {
+export function commandable(playerNum: number, mo: MapObject | undefined): boolean {
+	if (!mo) return false;
 	return (
 		(mo.type === MapObjectTypeFleet || mo.type === MapObjectTypePlanet) &&
 		mo.playerNum === playerNum
