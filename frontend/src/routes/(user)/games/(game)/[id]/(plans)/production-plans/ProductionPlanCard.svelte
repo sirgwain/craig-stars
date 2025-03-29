@@ -36,7 +36,7 @@
 				<div>{plan.name}</div>
 			</div>
 			<ul class="w-full h-full">
-				<!-- TODO: Add concrete items to queue estimates-->
+				<!-- TODO: Add concrete items to production plans -->
 				{#each plan.items as queueItem}
 					<li class="pl-1">
 						<div
