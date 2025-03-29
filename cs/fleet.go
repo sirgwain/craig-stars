@@ -1142,8 +1142,7 @@ func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64,
 	// compute each ship stack separately
 	for _, token := range fleet.Tokens {
 		// figure out this ship stack's mass as well as its proportion of the cargo
-		d := token.design
-		mass := d.Spec.Mass * token.Quantity
+		mass := token.design.Spec.Mass * token.Quantity
 		stackCapacity := token.design.Spec.CargoCapacity * token.Quantity
 
 		if cargoCapacity > 0 {
@@ -1158,14 +1157,25 @@ func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64,
 	return fuelCost
 }
 
+const estimatedRangePrecision = 1e10
+
+// getEstimatedRange calculates the estimated distance a fleet can travel at the given warpSpeed
+// based on its current fuel reserves and yearly fuel consumption.
+//
+// Estimates are valid to 10 significant digits.
 func (fleet *Fleet) getEstimatedRange(player *Player, warpSpeed int) int {
-	// we only check the distance traveled for 1 yr at this spd to accout for flat gen
-	spd := math.Pow(float64(warpSpeed), 2)
-	fuelCost := fleet.NetFuelUsed(player, warpSpeed, spd)
-	if fuelCost <= 0 {
+	spd := PowInt(warpSpeed, 2)
+	fuelUsedFor1MYrs := fleet.NetFuelUsed(player, warpSpeed, float64(estimatedRangePrecision*spd))
+	// We already count fuel gen once in getFuelGeneration, so we just need to
+	// dock another 999K times from our fuel used.
+	// We have to do
+	fuelUsedFor1MYrs -= (estimatedRangePrecision - 1) * fleet.Spec.FuelGeneration
+
+	if fuelUsedFor1MYrs <= 0 {
 		return Infinite
 	}
-	return int(float64(fleet.Fuel) / float64(fuelCost) * spd)
+	// range = distance per year * number of years
+	return int(float64(fleet.Fuel*estimatedRangePrecision*spd) / float64(fuelUsedFor1MYrs))
 }
 
 // getFuelGeneration returns the amount of fuel this ship will generate while traveling at a given warp (if any).

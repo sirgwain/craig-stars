@@ -628,7 +628,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 
 	// split any immediate cargo transfers as well
 	if err := player.CargoTransfers.splitByHandTransfers(source, &fleet); err != nil {
-		return nil, fmt.Errorf("unable to split immediate cargo transfers %w", err)
+		return nil, fmt.Errorf("unable to split immediate cargo transfers: %w", err)
 	}
 
 	return &fleet, nil

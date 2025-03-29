@@ -1222,14 +1222,32 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 	}{
 		// examples are (mostly) cross checked against ones from base game
 		{
-			name: "long range scout",
+			name: "QJ5 scout",
+			fleets: []testfleet{{
+				design: NewShipDesign(1, 1).WithHull(Scout.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+					{HullComponent: BatScanner.Name, HullSlotIndex: 2, Quantity: 1},
+					{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
+				}),
+				qty: 1,
+			}},
+			race:      NewRace().WithSpec(&rules),
+			warpSpeed: 5,
+			fuel:      300,
+			want:      3529,
+		},
+		{
+			name: "LH6 scout",
 			fleets: []testfleet{{
 				design: testLongRangeScoutDesign(1),
 				qty:    1,
 			}},
 			race:      NewRace().WithSpec(&rules),
-			warpSpeed: 5,
-			want:      2400,
+			warpSpeed: 6,
+			fuel:      300,
+			// 2290 in base game, probably due to rounding jank
+			// My calculator gives ~2286 (so pretty damn good!)
+			want: 2285,
 		},
 		{
 			name: "W6 scout with IFE",
@@ -1239,7 +1257,8 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 			}},
 			race:      NewRace().WithLRT(IFE).WithSpec(&rules),
 			warpSpeed: 6,
-			want:      2654, // 2673 in base game
+			fuel:      300,
+			want:      2666, // 2673 in base game
 		},
 
 		{
@@ -1320,7 +1339,7 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 				// +840 mg/ly at warp 6
 			}},
 			race:      NewRace().WithPRT(HE).WithSpec(&rules),
-			fuel:      1,
+			fuel:      0,
 			warpSpeed: 6,
 			want:      Infinite, // minicol fuel production exactly offsets galleon fuel consumption (net zero)
 		},
@@ -1347,6 +1366,17 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 			want:      5000, // 1 mg/ly
 		},
 		{
+			name: "Out of fuel low warp",
+			fleets: []testfleet{{
+				design: testFuelNubianDesign(1, &Interspace10),
+				qty:    1,
+			}},
+			race:      NewRace().WithSpec(&rules),
+			warpSpeed: 10,
+			fuel:      0,
+			want:      0,
+		},
+		{
 			name: "Net Positive Refueler",
 			fleets: []testfleet{{
 				design: NewShipDesign(1, 1).WithHull(SuperFuelXport.Name).WithSlots([]ShipDesignSlot{
@@ -1363,6 +1393,7 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := NewPlayer(1, tt.race).withSpec(&rules)
+			player.Name = tt.name
 			fleet := NewFleet(player, 1, tt.name, []Waypoint{{}})
 			for _, f := range tt.fleets {
 				fleet.Tokens = append(fleet.Tokens, ShipToken{
@@ -1372,12 +1403,9 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 			}
 
 			fleet.Cargo = Cargo{Ironium: tt.cargoMass}
+			fleet.Fuel = tt.fuel
 			fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-			if tt.fuel == 0 {
-				fleet.Fuel = fleet.Spec.FuelCapacity
-			} else {
-				fleet.Fuel = max(tt.fuel, 0)
-			}
+			t.Log(fleet.Spec.Mass)
 
 			if got := fleet.getEstimatedRange(player, tt.warpSpeed); got != tt.want {
 				t.Errorf("Fleet.getEstimatedRange() = %v, want %v", got, tt.want)

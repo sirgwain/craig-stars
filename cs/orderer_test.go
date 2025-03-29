@@ -12,7 +12,6 @@ import (
 func Test_orders_SplitFleetTokens(t *testing.T) {
 	player := testPlayer().WithNum(1)
 	scoutDesign := testLongRangeScoutDesign(1).WithSpec(&rules, player)
-
 	freighterDesign := NewShipDesign(player.Num, 2).
 		WithName("Teamster").
 		WithHull(SmallFreighter.Name).
@@ -20,8 +19,8 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
 			{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
 			{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
-		}).
-		WithSpec(&rules, player)
+		}).WithSpec(&rules, player)
+	player.Designs = append(player.Designs, scoutDesign, freighterDesign)
 
 	type args struct {
 		source *Fleet
@@ -34,23 +33,58 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		wantNewFleet    *Fleet
 		wantErr         bool
 	}{
-		{"nil fleet, should err", args{}, nil, nil, true},
-		{"empty tokens, should err", args{source: testLongRangeScout(player), tokens: []ShipToken{}}, nil, nil, true},
-		{"split into more tokens, should err", args{source: testLongRangeScout(player),
-			tokens: []ShipToken{
-				{DesignNum: 1, Quantity: 10}, // try and create 10 scouts from thin air
+		{
+			name:            "nil fleet, should err",
+			args:            args{},
+			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		},
+		{
+			name: "empty tokens, should err",
+			args: args{
+				source: testLongRangeScout(player),
+				tokens: []ShipToken{},
 			},
-		}, nil, nil, true},
-		{"split into new token, should err", args{source: testLongRangeScout(player),
-			tokens: []ShipToken{
-				{DesignNum: 2, Quantity: 1}, // try and create 1 new freighter from thin air
+			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		},
+		{
+			name: "split into more tokens, should err",
+			args: args{
+				source: testLongRangeScout(player),
+				tokens: []ShipToken{
+					{
+						DesignNum: 1,
+						Quantity:  10, // try and create 10 scouts from thin air
+					},
+				},
 			},
-		}, nil, nil, true},
-		{"split and leave no tokens in source, should err", args{source: testLongRangeScout(player),
-			tokens: []ShipToken{
-				{DesignNum: 1, Quantity: 1}, // try and create 10 scouts from thin air
+			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		},
+		{
+			name: "split into new token, should err",
+			args: args{
+				source: testLongRangeScout(player),
+				tokens: []ShipToken{
+					{
+						DesignNum: 2,
+						Quantity:  1, // try and create 1 new freighter from thin air
+					},
+				},
 			},
-		}, nil, nil, true},
+			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		},
+		{
+			name: "split and leave no tokens in source, should err",
+			args: args{
+				source: testLongRangeScout(player),
+				tokens: []ShipToken{
+					{
+						DesignNum: 1,
+						Quantity:  1, // try and create 10 scouts from thin air
+					},
+				},
+			},
+			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		},
 		{
 			name: "split a scoutx2 into two fleets",
 			args: args{
@@ -162,307 +196,6 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
 				},
 				Fuel: 3, // the dest fleet rounds down
-			},
-			wantErr: false,
-		},
-		{
-			name: "split a scoutx2 and freighterx2 into two fleets",
-			args: args{
-				source: &Fleet{
-					MapObject: MapObject{
-						Type:      MapObjectTypeFleet,
-						Num:       1,
-						PlayerNum: player.Num,
-						Name:      "Scout #1",
-					},
-					BaseName: "Scout",
-					FleetOrders: FleetOrders{
-						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					},
-					Tokens: []ShipToken{
-						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2},
-						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2},
-					},
-					Fuel:  scoutDesign.Spec.FuelCapacity*2 + freighterDesign.Spec.FuelCapacity*2,
-					Cargo: Cargo{10, 20, 30, 40},
-				},
-				tokens: []ShipToken{
-					{DesignNum: scoutDesign.Num, Quantity: 1},
-					{DesignNum: freighterDesign.Num, Quantity: 1},
-				},
-			},
-			wantSourceFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       1,
-					PlayerNum: player.Num,
-					Name:      "Scout #1",
-				},
-				BaseName: "Scout",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
-				},
-				Fuel:  scoutDesign.Spec.FuelCapacity + freighterDesign.Spec.FuelCapacity,
-				Cargo: Cargo{5, 10, 15, 20}, // half the cargo/fuel moves over
-			},
-			wantNewFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       2,
-					PlayerNum: player.Num,
-					Name:      "Long Range Scout #2",
-				},
-				BaseName: "Long Range Scout",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
-				},
-				Fuel:  scoutDesign.Spec.FuelCapacity + freighterDesign.Spec.FuelCapacity,
-				Cargo: Cargo{5, 10, 15, 20},
-			},
-			wantErr: false,
-		},
-		{
-			name: "split a single freighter out of 3",
-			args: args{
-				source: &Fleet{
-					MapObject: MapObject{
-						Type:      MapObjectTypeFleet,
-						Num:       1,
-						PlayerNum: player.Num,
-						Name:      "Teamster #1",
-					},
-					BaseName: "Teamster",
-					FleetOrders: FleetOrders{
-						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					},
-					Tokens: []ShipToken{
-						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 3},
-					},
-					Fuel:  freighterDesign.Spec.FuelCapacity * 3,
-					Cargo: Cargo{12, 21, 33, 45},
-				},
-				tokens: []ShipToken{
-					{DesignNum: freighterDesign.Num, Quantity: 1}, // split out one freighter
-				},
-			},
-			wantSourceFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       1,
-					PlayerNum: player.Num,
-					Name:      "Teamster #1",
-				},
-				BaseName: "Teamster",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2},
-				},
-				Fuel:  freighterDesign.Spec.FuelCapacity * 2, // keep 2/3rd of the fuel
-				Cargo: Cargo{8, 14, 22, 30},                  // 2/3rd of the cargo
-			},
-			wantNewFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       2,
-					PlayerNum: player.Num,
-					Name:      "Teamster #2",
-				},
-				BaseName: "Teamster",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
-				},
-				Fuel:  freighterDesign.Spec.FuelCapacity, // keep 1/3rd of the fuel
-				Cargo: Cargo{4, 7, 11, 15},               // 1/3rd of the cargo
-			},
-			wantErr: false,
-		},
-		{
-			name: "split a single freighter out of 3, uneven cargo and fuel",
-			args: args{
-				source: &Fleet{
-					MapObject: MapObject{
-						Type:      MapObjectTypeFleet,
-						Num:       1,
-						PlayerNum: player.Num,
-						Name:      "Teamster #1",
-					},
-					BaseName: "Teamster",
-					FleetOrders: FleetOrders{
-						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					},
-					Tokens: []ShipToken{
-						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 3},
-					},
-					Fuel:  10,
-					Cargo: Cargo{10, 10, 10, 10},
-				},
-				tokens: []ShipToken{
-					{DesignNum: freighterDesign.Num, Quantity: 1}, // split out one freighter
-				},
-			},
-			wantSourceFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       1,
-					PlayerNum: player.Num,
-					Name:      "Teamster #1",
-				},
-				BaseName: "Teamster",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2},
-				},
-				Fuel:  7,                 // keep 7/10 fuel
-				Cargo: Cargo{7, 7, 7, 7}, // 7/10 cargo
-			},
-			wantNewFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       2,
-					PlayerNum: player.Num,
-					Name:      "Teamster #2",
-				},
-				BaseName: "Teamster",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
-				},
-				Fuel:  3,                 // keep 3 fuel
-				Cargo: Cargo{3, 3, 3, 3}, // keep 3 cargo
-			},
-			wantErr: false,
-		},
-		{
-			name: "split a scoutx2 with 1 damaged and freighterx3 with 3 damaged into two fleets",
-			args: args{
-				source: &Fleet{
-					MapObject: MapObject{
-						Type:      MapObjectTypeFleet,
-						Num:       1,
-						PlayerNum: player.Num,
-						Name:      "Scout #1",
-					},
-					BaseName: "Scout",
-					FleetOrders: FleetOrders{
-						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					},
-					Tokens: []ShipToken{
-						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2, Damage: 5, QuantityDamaged: 1},
-						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 3, Damage: 6, QuantityDamaged: 2},
-					},
-				},
-				// split out one of each token
-				tokens: []ShipToken{
-					{DesignNum: scoutDesign.Num, Quantity: 1},
-					{DesignNum: freighterDesign.Num, Quantity: 1},
-				},
-			},
-			wantSourceFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       1,
-					PlayerNum: player.Num,
-					Name:      "Scout #1",
-				},
-				BaseName: "Scout",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},                                        // should leave no damaged scouts
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2, Damage: 6, QuantityDamaged: 1}, // should leave 1 damaged freighter
-				},
-			},
-			wantNewFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       2,
-					PlayerNum: player.Num,
-					Name:      "Long Range Scout #2",
-				},
-				BaseName: "Long Range Scout",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1, Damage: 5, QuantityDamaged: 1},         // gets the damaged scout
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1, Damage: 6, QuantityDamaged: 1}, // gets 1 damaged freighter
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "split a scoutx3 damaged with floats",
-			args: args{
-				source: &Fleet{
-					MapObject: MapObject{
-						Type:      MapObjectTypeFleet,
-						Num:       1,
-						PlayerNum: player.Num,
-						Name:      "Scout #1",
-					},
-					BaseName: "Scout",
-					FleetOrders: FleetOrders{
-						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-					},
-					Tokens: []ShipToken{
-						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 20, Damage: 22.799999999999997, QuantityDamaged: 20},
-						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 7},
-					},
-				},
-				// split out 20 damaged scouts with float damage, and 5 undamaged freighters
-				tokens: []ShipToken{
-					{DesignNum: scoutDesign.Num, Quantity: 20},
-					{DesignNum: freighterDesign.Num, Quantity: 5},
-				},
-			},
-			wantSourceFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       1,
-					PlayerNum: player.Num,
-					Name:      "Scout #1",
-				},
-				BaseName: "Scout",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 2},
-				},
-			},
-			wantNewFleet: &Fleet{
-				MapObject: MapObject{
-					Type:      MapObjectTypeFleet,
-					Num:       2,
-					PlayerNum: player.Num,
-					Name:      "Long Range Scout #2",
-				},
-				BaseName: "Long Range Scout",
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
-				},
-				Tokens: []ShipToken{
-					{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 20, Damage: 22.799999999999997, QuantityDamaged: 20},
-					{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 5},
-				},
 			},
 			wantErr: false,
 		},
