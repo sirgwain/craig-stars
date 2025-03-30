@@ -14,14 +14,14 @@ Use camelCase for variable names and prefer function literals over const declara
 
 When writing constant numerals over 10000, use underscores to separate every 3 orders of magnitude.
 
-When writing new functions or moving existing ones, attempt to place them in order of first appearance in the file (or in their parent file for test functions).
+When writing new functions, attempt to place them in order of first appearance in the file (or in their parent file for test functions). If the function already exists, don't move it unless explicitly told to.
 
-Unless explicitly told otherwise, preserve comments when rewriting source material.
+Preserve comments when rewriting source material.
 
 ## Testing Guidelines
 
-Golang tests use a mixture of assertion-based testing and table-driven tests. Vitest relies near exclusively on asserio
+Golang tests use a mixture of assertion-based testing and table-driven tests. Vitest relies near exclusively on assertions.
 
-For table-driven tests with more than 2 parameters (other than name and want) have them conventionally wrapped in args and fields structs. Args holds any arguments directly passed to the function being tested, while fields holds values used for instantizing each test case. (Either can be ommitted if they would hold only 1 value.)
+Table-driven tests with more than 2 parameters (excluding test name and expected values) conventionally wrap their parameters in local args and fields structs. Args holds any arguments directly passed to the function being tested, while fields holds values used for instantizing each test case. (Either can be omitted if they would hold only 1 value.)
 
-In table driven tests, if the object being tested has a Name field, set it to the name of the test case before running to help during debugging.
+In table driven tests, if a method reciever or function argument has a Name field not explicitly checked in the function, set it to the name of the test case before running to help during debugging.

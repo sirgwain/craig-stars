@@ -161,9 +161,10 @@ const (
 	StartingFleetHullScout           StartingFleetHull = "Scout"
 )
 
-// clone this PRTSpec so we can combine it with an LRTSpec without modifying the original
+// clone this PRTSpec so we can combine it with an LRTSpec without modifying the original.
 func (spec PRTSpec) clone() PRTSpec {
 	clone := spec
+	// copy over starting planets manually
 	clone.StartingPlanets = make([]StartingPlanet, len(spec.StartingPlanets))
 	for i, startingPlanet := range spec.StartingPlanets {
 		clone.StartingPlanets[i] = startingPlanet

@@ -19,7 +19,7 @@ type Rules struct {
 	CreatedAt                          time.Time                           `json:"createdAt"`
 	UpdatedAt                          time.Time                           `json:"updatedAt"`
 	GameID                             int64                               `json:"gameId"`
-	AcquirablePartTradeChanceBase      float64                             `json:"acquirablePartTradeChanceBase"`
+	AcquirablePartTradeChanceBase      float64                             `json:"acquirablePartTradeChanceBase"` // Base chance of trading an acquirable part per copy on ship (default 0.5%)
 	AcquirablePartTradeItemMax         int                                 `json:"acquirablePartTradeItemMax"`
 	CometStatsBySize                   map[CometSize]CometStats            `json:"cometStatsBySize"`
 	FleetSafeSpeedExplosionChance      float64                             `json:"fleetSafeSpeedExplosionChance"`

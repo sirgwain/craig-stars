@@ -329,10 +329,12 @@ func getNewBeamBonus(prevBonus, componentBonus float64, qty int) float64 {
 }
 
 // Compute a ship design's Spec
+//
+// @sirgwain: Should this take a pointer to RaceSpec instead of a value?
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
-		return ShipDesignSpec{}, fmt.Errorf("failed to find hull %s in techstore", design.Hull)
+		return ShipDesignSpec{}, fmt.Errorf("failed to find hull %q in techstore", design.Hull)
 	}
 	c := NewCostCalculator()
 	spec := ShipDesignSpec{
@@ -639,43 +641,34 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.BeamDefense = roundFloat(spec.BeamDefense, 4)
 	}
 
-	if spec.NumEngines > 0 {
+	if spec.NumEngines > 0 && spec.Engine != (Engine{}) {
+		// Calculate move bonus and engine estimated range
 		// Movement = (IdealEngineSpeed - 2) - (Mass / (70 * NumEngines)) + Move Bonus
 		// move bonus is rounded up before evaluation
 		spec.Movement = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass, spec.NumEngines)
 		spec.MovementFull = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass+spec.CargoCapacity, spec.NumEngines)
-	} else {
-		spec.Movement = 0
-		spec.MovementFull = 0
+		// For design estimated range, we assume the fleet has full fuel and either 0 or max cargo
+		// TODO: Add toggle to show max spd estimated range instead of merely estimated range
+		spec.EstimatedRange = getEstimatedRange(spec.Engine.IdealSpeed, []ShipToken{{design: design, Quantity: 1}},
+			spec.FuelCapacity, spec.FuelGeneration, 0, spec.CargoCapacity, raceSpec.FuelEfficiencyOffset)
+		spec.EstimatedRangeFull = getEstimatedRange(spec.Engine.IdealSpeed, []ShipToken{{design: design, Quantity: 1}},
+			spec.FuelCapacity, spec.FuelGeneration, spec.CargoCapacity, spec.CargoCapacity, raceSpec.FuelEfficiencyOffset)
 	}
+	// Ships without engines have 0 move by default due to zero values
 
-	beamPower = int(float64(beamPower) * (spec.BeamBonus))
+	beamPower = int(float64(beamPower) * spec.BeamBonus)
 	if beamPower > 0 {
-		// starbases don't move, but for the beam power calcs
+		// starbases don't move, but beam power calcs
 		// assume they have a movement of "2" which is the lowest possible
 		movement := Clamp(spec.Movement, rules.MovementMin, rules.MovementMax)
 
-		// a movement of 1 1/2 in the UI (halfwar between max & min) doesn't impact your beam
-		// power rating. Anything less reduces it, anything higher increases it
+		// a movement of 1 1/2 in the UI (halfway between max & min) doesn't impact your beam power rating.
+		// Anything less reduces it, anything higher increases it
 		beamPower += (beamPower * (movement - (rules.MovementMin+rules.MovementMax)/2)) / rules.MovementMax
 	}
 	spec.PowerRating = beamPower + torpedoPower + bombsPower
 
 	spec.computeScanRanges(rules, raceSpec.ScannerSpec, techLevels, design, hull)
-
-	// compute the estimated range for this design
-	if spec.NumEngines > 0 {
-		fuelCostFor1kly := spec.Engine.getFuelCostForEngine(spec.Engine.IdealSpeed, spec.Mass, 1000, 1+raceSpec.FuelEfficiencyOffset)
-		fuelCostFor1klyFull := spec.Engine.getFuelCostForEngine(spec.Engine.IdealSpeed, spec.Mass+spec.CargoCapacity, 1000, 1+raceSpec.FuelEfficiencyOffset)
-
-		if fuelCostFor1kly == 0 {
-			spec.EstimatedRange = Infinite
-			spec.EstimatedRangeFull = Infinite
-		} else {
-			spec.EstimatedRange = int(float64(spec.FuelCapacity) / float64(fuelCostFor1kly) * 1000)
-			spec.EstimatedRangeFull = int(float64(spec.FuelCapacity) / float64(fuelCostFor1klyFull) * 1000)
-		}
-	}
 
 	return spec, nil
 }

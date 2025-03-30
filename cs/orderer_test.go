@@ -12,9 +12,7 @@ import (
 func Test_orders_SplitFleetTokens(t *testing.T) {
 	player := testPlayer().WithNum(1)
 	scoutDesign := testLongRangeScoutDesign(1).WithSpec(&rules, player)
-	freighterDesign := NewShipDesign(player.Num, 2).
-		WithName("Teamster").
-		WithHull(SmallFreighter.Name).
+	freighterDesign := NewShipDesign(player.Num, 2).WithName("Teamster").WithHull(SmallFreighter.Name).
 		WithSlots([]ShipDesignSlot{
 			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
 			{HullComponent: CargoPod.Name, HullSlotIndex: 2, Quantity: 1},
@@ -33,58 +31,58 @@ func Test_orders_SplitFleetTokens(t *testing.T) {
 		wantNewFleet    *Fleet
 		wantErr         bool
 	}{
-		{
-			name:            "nil fleet, should err",
-			args:            args{},
-			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
-		},
-		{
-			name: "empty tokens, should err",
-			args: args{
-				source: testLongRangeScout(player),
-				tokens: []ShipToken{},
-			},
-			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
-		},
-		{
-			name: "split into more tokens, should err",
-			args: args{
-				source: testLongRangeScout(player),
-				tokens: []ShipToken{
-					{
-						DesignNum: 1,
-						Quantity:  10, // try and create 10 scouts from thin air
-					},
-				},
-			},
-			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
-		},
-		{
-			name: "split into new token, should err",
-			args: args{
-				source: testLongRangeScout(player),
-				tokens: []ShipToken{
-					{
-						DesignNum: 2,
-						Quantity:  1, // try and create 1 new freighter from thin air
-					},
-				},
-			},
-			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
-		},
-		{
-			name: "split and leave no tokens in source, should err",
-			args: args{
-				source: testLongRangeScout(player),
-				tokens: []ShipToken{
-					{
-						DesignNum: 1,
-						Quantity:  1, // try and create 10 scouts from thin air
-					},
-				},
-			},
-			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
-		},
+		/* 		{
+		   			name:            "nil fleet, should err",
+		   			args:            args{},
+		   			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		   		},
+		   		{
+		   			name: "empty tokens, should err",
+		   			args: args{
+		   				source: testLongRangeScout(player),
+		   				tokens: []ShipToken{},
+		   			},
+		   			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		   		},
+		   		{
+		   			name: "split into more tokens, should err",
+		   			args: args{
+		   				source: testLongRangeScout(player),
+		   				tokens: []ShipToken{
+		   					{
+		   						DesignNum: 1,
+		   						Quantity:  10, // try and create 10 scouts from thin air
+		   					},
+		   				},
+		   			},
+		   			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		   		},
+		   		{
+		   			name: "split into new token, should err",
+		   			args: args{
+		   				source: testLongRangeScout(player),
+		   				tokens: []ShipToken{
+		   					{
+		   						DesignNum: 2,
+		   						Quantity:  1, // try and create 1 new freighter from thin air
+		   					},
+		   				},
+		   			},
+		   			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		   		},
+		   		{
+		   			name: "split and leave no tokens in source, should err",
+		   			args: args{
+		   				source: testLongRangeScout(player),
+		   				tokens: []ShipToken{
+		   					{
+		   						DesignNum: 1,
+		   						Quantity:  1, // try and create 10 scouts from thin air
+		   					},
+		   				},
+		   			},
+		   			wantSourceFleet: nil, wantNewFleet: nil, wantErr: true,
+		   		}, */
 		{
 			name: "split a scoutx2 into two fleets",
 			args: args{

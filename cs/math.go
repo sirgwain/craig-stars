@@ -16,15 +16,15 @@ func roundTo100[T int | float64](value T, roundFunc func(float64) float64) int {
 	return int(roundFunc(float64(value)/100) * 100)
 }
 
-// Round a float to the given precision value using math.Round()
+// Round a float to the given precision value using math.Round().
 func roundFloat(val float64, precision uint) float64 {
-	ratio := math.Pow(10, float64(precision))
+	ratio := float64(PowInt(10, precision))
 	return math.Round(val*ratio) / ratio
 }
 
 // Round a float to the nearest whole number, rounding halves towards 0.
 //
-// This is distinct from math.Round() which rounds numbers *away* from 0.
+// This is distinct from [math.Round] which rounds numbers *away* from 0.
 func roundHalfTowards0(x float64) float64 {
 	// Implementation taken from a comment found in Golang's math.Round() source code.
 	// Thanks, golang devs!
@@ -131,8 +131,10 @@ func Abs[T constraints.Integer | constraints.Float](num T) T {
 	return num
 }
 
-// Divide 2 integers and round the result away from 0.
-func divideRoundAway0[I constraints.Integer](dividend, divisor I) I {
+// Divide dividend by divisor and round the result away from 0.
+//
+// Effectively the opposite of truncation (which rounds towards 0 by chopping off decimals)
+func divideRoundAway0[I constraints.Integer](dividend, divisor I) (quotient I) {
 	if (dividend > 0) == (divisor > 0) { // Same sign
 		return (dividend + divisor - 1) / divisor
 	}

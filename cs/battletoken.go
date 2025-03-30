@@ -45,6 +45,8 @@ type battleToken struct {
 }
 
 // newBattleToken creates a new battle token from a shipToken.
+//
+// TODO: Add weight randomization
 func newBattleToken(rules *Rules, num int, position BattleVector, cargoMass int, token *ShipToken, battlePlan BattlePlan, player *Player) *battleToken {
 	battleToken := battleToken{
 		BattleRecordToken: BattleRecordToken{
@@ -78,36 +80,40 @@ func newBattleToken(rules *Rules, num int, position BattleVector, cargoMass int,
 		attributes:        getBattleTokenAttributes(token.design.Spec.HullType, token.design.Spec.HasWeapons),
 	}
 
+	if len(token.design.Spec.WeaponSlots) == 0 {
+		// no weapons means we don't care
+		return &battleToken
+	}
+
 	// get the weapon slots for a token
 	weaponSlots := make([]*battleWeaponSlot, 0)
 	techFinder := rules.techs
 	hull := techFinder.GetHull(token.design.Hull)
-	if len(token.design.Spec.WeaponSlots) > 0 {
-		minRange := math.MaxInt
-		maxRange := 0
-		for _, slot := range token.design.Spec.WeaponSlots {
-			weapon := techFinder.GetHullComponent(slot.HullComponent)
-			bws := newBattleWeaponSlot(&battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.TorpedoBonus, token.design.Spec.BeamBonus)
-			weaponSlots = append(weaponSlots, bws)
-			minRange = min(minRange, bws.weaponRange)
-			maxRange = max(maxRange, bws.weaponRange)
-			if bws.weaponType == battleWeaponTypeBeam {
-				battleToken.attributes |= battleTokenAttributeHasBeams
-			} else if bws.weaponType == battleWeaponTypeTorpedo {
-				battleToken.attributes |= battleTokenAttributeHasTorpedoes
-			}
-		}
-		battleToken.weaponSlots = weaponSlots
-		battleToken.minRange = minRange
-		battleToken.maxRange = maxRange
 
-		// to maximize our damage, we either close in all the way
-		// or get close enough so all our weapons can fire
-		if battleToken.hasBeamWeapons() {
-			battleToken.maxDamageRange = 0
-		} else {
-			battleToken.minRange = 0
+	minRange := math.MaxInt
+	maxRange := 0
+	for _, slot := range token.design.Spec.WeaponSlots {
+		weapon := techFinder.GetHullComponent(slot.HullComponent)
+		bws := newBattleWeaponSlot(&battleToken, slot, weapon, hull.RangeBonus, token.design.Spec.TorpedoBonus, token.design.Spec.BeamBonus)
+		weaponSlots = append(weaponSlots, bws)
+		minRange = min(minRange, bws.weaponRange)
+		maxRange = max(maxRange, bws.weaponRange)
+		if bws.weaponType == battleWeaponTypeBeam {
+			battleToken.attributes |= battleTokenAttributeHasBeams
+		} else if bws.weaponType == battleWeaponTypeTorpedo {
+			battleToken.attributes |= battleTokenAttributeHasTorpedoes
 		}
+	}
+	battleToken.weaponSlots = weaponSlots
+	battleToken.minRange = minRange
+	battleToken.maxRange = maxRange
+
+	// to maximize our damage, we either close in all the way
+	// or get close enough so all our weapons can fire
+	if battleToken.hasBeamWeapons() {
+		battleToken.maxDamageRange = 0
+	} else {
+		battleToken.minRange = 0
 	}
 
 	return &battleToken

@@ -762,166 +762,170 @@ func Test_computeFleetSpec(t *testing.T) {
 }
 
 func TestFleet_moveFleet(t *testing.T) {
-	type want struct {
-		position          Vector
-		fuelUsed          int
-		orbitingPlanetNum int
-	}
-	tests := []struct {
-		name        string
-		design      *ShipDesign
-		destination Vector
-		warpSpeed   int
-		initialFuel int
-		planet      *Planet
-		want        want
-	}{
-		{
-			name:        "move 25ly at warp5",
-			design:      testLongRangeScoutDesign(1),
-			destination: Vector{50, 0},
-			warpSpeed:   5,
-			initialFuel: 300,
-			want:        want{position: Vector{25, 0}, fuelUsed: 4, orbitingPlanetNum: None},
-		},
-		{
-			name:        "move 1ly at warp 1",
-			design:      testLongRangeScoutDesign(1),
-			destination: Vector{1, 1},
-			warpSpeed:   1,
-			initialFuel: 1,
-			want:        want{position: Vector{1, 1}, fuelUsed: -1, orbitingPlanetNum: None},
-		},
-		{
-			name:        "overshoot waypoint at warp 5",
-			design:      testLongRangeScoutDesign(1),
-			destination: Vector{5, 5},
-			warpSpeed:   5,
-			initialFuel: 300,
-			want:        want{position: Vector{5, 5}, fuelUsed: 1, orbitingPlanetNum: None},
-		},
-		{
-			name:        "end up at planet",
-			design:      testLongRangeScoutDesign(1),
-			destination: Vector{5, 5},
-			warpSpeed:   5,
-			initialFuel: 300,
-			planet:      NewPlanet().WithNum(1).withPosition(Vector{5, 5}),
-			want:        want{position: Vector{5, 5}, fuelUsed: 1, orbitingPlanetNum: 1},
-		},
-		{
-			name:        "W10 run out of fuel",
-			design:      testFuelNubianDesign(1, &Interspace10),
-			destination: Vector{0, 100},
-			warpSpeed:   10,
-			initialFuel: 50,
-			planet:      NewPlanet().WithNum(1).withPosition(Vector{0, 100}),
-			// 50 LY at W10, then 0.5 LY at W1
-			// Generates 1.5 --> 1 mg
-			want: want{position: Vector{0, 51}, fuelUsed: 49, orbitingPlanetNum: None},
-		},
-		{
-			name: "Refueler out of fuel",
-			design: NewShipDesign(1, 1).WithHull(SuperFuelXport.Name).WithSlots([]ShipDesignSlot{
-				{HullComponent: TransGalacticDrive.Name, HullSlotIndex: 1, Quantity: 2},
-			}),
-			destination: Vector{0, 81},
-			warpSpeed:   9,
-			initialFuel: 0,
-			planet:      NewPlanet().WithNum(1).withPosition(Vector{0, 81}),
-			want:        want{position: Vector{0, 81}, fuelUsed: -134, orbitingPlanetNum: 1},
-		},
-	}
+	t.Run("Normal", func(t *testing.T) {
+		type want struct {
+			position          Vector
+			fuelUsed          int
+			orbitingPlanetNum int
+		}
+		tests := []struct {
+			name        string
+			design      *ShipDesign
+			destination Vector
+			warpSpeed   int
+			initialFuel int
+			planet      *Planet
+			want        want
+		}{
+			{
+				name:        "move 25ly at warp5",
+				design:      testLongRangeScoutDesign(1),
+				destination: Vector{50, 0},
+				warpSpeed:   5,
+				initialFuel: 300,
+				want:        want{position: Vector{25, 0}, fuelUsed: 4, orbitingPlanetNum: None},
+			},
+			{
+				name:        "move 1ly at warp 1",
+				design:      testLongRangeScoutDesign(1),
+				destination: Vector{1, 1},
+				warpSpeed:   1,
+				initialFuel: 1,
+				want:        want{position: Vector{1, 1}, fuelUsed: -1, orbitingPlanetNum: None},
+			},
+			{
+				name:        "overshoot waypoint at warp 5",
+				design:      testLongRangeScoutDesign(1),
+				destination: Vector{5, 5},
+				warpSpeed:   5,
+				initialFuel: 300,
+				want:        want{position: Vector{5, 5}, fuelUsed: 1, orbitingPlanetNum: None},
+			},
+			{
+				name:        "end up at planet",
+				design:      testLongRangeScoutDesign(1),
+				destination: Vector{5, 5},
+				warpSpeed:   5,
+				initialFuel: 300,
+				planet:      NewPlanet().WithNum(1).withPosition(Vector{5, 5}),
+				want:        want{position: Vector{5, 5}, fuelUsed: 1, orbitingPlanetNum: 1},
+			},
+			{
+				name:        "W10 run out of fuel",
+				design:      testFuelNubianDesign(1, &Interspace10),
+				destination: Vector{0, 100},
+				warpSpeed:   10,
+				initialFuel: 50,
+				planet:      NewPlanet().WithNum(1).withPosition(Vector{0, 100}),
+				// 50 LY at W10, then 0.5 LY at W1
+				// Generates 1.5 --> 1 mg
+				want: want{position: Vector{0, 51}, fuelUsed: 49, orbitingPlanetNum: None},
+			},
+			{
+				name: "Refueler makes fuel",
+				design: NewShipDesign(1, 1).WithHull(SuperFuelXport.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: TransGalacticDrive.Name, HullSlotIndex: 1, Quantity: 2},
+				}),
+				destination: Vector{0, 81},
+				warpSpeed:   9,
+				initialFuel: 0,
+				planet:      NewPlanet().WithNum(1).withPosition(Vector{0, 81}),
+				// consumes 65 (81*161/200), produces 200
+				want: want{position: Vector{0, 81}, fuelUsed: -134, orbitingPlanetNum: 1},
+			},
+		}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
-			tt.design = tt.design.WithSpec(&rules, player)
-			player.Designs = append(player.Designs, tt.design)
-			f := newFleetForDesign(player, tt.design, 1, 1, tt.name, []Waypoint{
-				NewPositionWaypoint(Vector{0, 0}, 0),
-				NewPositionWaypoint(tt.destination, tt.warpSpeed),
-			})
-			fleet := &f
-			fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-			fleet.Fuel = tt.initialFuel
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
+				tt.design = tt.design.WithSpec(&rules, player)
+				player.Designs = append(player.Designs, tt.design)
+				f := newFleetForDesign(player, tt.design, 1, 1, tt.name, []Waypoint{
+					NewPositionWaypoint(Vector{0, 0}, 0),
+					NewPositionWaypoint(tt.destination, tt.warpSpeed),
+				})
+				fleet := &f
+				fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+				fleet.Fuel = tt.initialFuel
 
-			universe := Universe{Fleets: []*Fleet{fleet}}
-			if tt.planet != nil {
-				universe.Planets = []*Planet{tt.planet}
-			}
-			universe.buildMaps([]*Player{player})
-
-			fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
-
-			assert.Equal(t, tt.want.position, fleet.Position)
-			assert.Equal(t, tt.want.position, fleet.Waypoints[0].Position)
-			assert.Equal(t, tt.want.fuelUsed, tt.initialFuel-fleet.Fuel)
-		})
-	}
-}
-
-func TestFleet_moveFleetEngineFailure(t *testing.T) {
-	tests := []struct {
-		name      string
-		warpSpeed int
-		player    *Player
-		random    rng
-		wantMoved bool
-	}{
-		{
-			name:      "under failure speed",
-			player:    NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules)),
-			warpSpeed: 6,
-			random:    newFloat64Random(0),
-			wantMoved: true,
-		},
-		{
-			name:      "high roll; still moves",
-			player:    NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules)),
-			warpSpeed: 7,
-			random:    newFloat64Random(0.11), // engine failure occurs 10% of the time, < 10/100
-			wantMoved: true,
-		},
-		{
-			name:      "no CE; still moves",
-			warpSpeed: 7,
-			player:    NewPlayer(1, NewRace().WithSpec(&rules)),
-			random:    newFloat64Random(0.1),
-			wantMoved: true,
-		},
-		{
-			name:      "low roll; failure",
-			warpSpeed: 9,
-			player:    NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules)),
-			random:    newFloat64Random(0.1), // engine failure occurs at 10/100
-			wantMoved: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			player := tt.player
-			fleet := testLongRangeScout(player).withWaypoints(
-				NewPositionWaypoint(Vector{0, 0}, 0),
-				NewPositionWaypoint(Vector{999, 0}, tt.warpSpeed),
-			)
-			universe := Universe{Fleets: []*Fleet{fleet}}
-			universe.buildMaps([]*Player{player})
-
-			rules := NewRules()
-			rules.random = tt.random
-
-			fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
-
-			if (fleet.Position != Vector{0, 0}) != tt.wantMoved {
-				if tt.wantMoved {
-					t.Errorf("Fleet.moveFleetEngineFailure() did not move fleet when expected")
-				} else {
-					t.Errorf("Fleet.moveFleetEngineFailure() moved fleet to position %+v; expected no movement", fleet.Position)
+				universe := Universe{Fleets: []*Fleet{fleet}}
+				if tt.planet != nil {
+					universe.Planets = []*Planet{tt.planet}
 				}
-			}
-		})
-	}
+				universe.buildMaps([]*Player{player})
+
+				fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
+
+				assert.Equal(t, tt.want.position, fleet.Position)
+				assert.Equal(t, tt.want.position, fleet.Waypoints[0].Position)
+				assert.Equal(t, tt.want.fuelUsed, tt.initialFuel-fleet.Fuel)
+			})
+		}
+	})
+
+	t.Run("Stargate", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			warpSpeed int
+			player    *Player
+			random    rng
+			wantMoved bool
+		}{
+			{
+				name:      "under failure speed; still moves",
+				player:    NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules)),
+				warpSpeed: 6,
+				random:    newFloat64Random(0),
+				wantMoved: true,
+			},
+			{
+				name:      "high roll; still moves",
+				player:    NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules)),
+				warpSpeed: 7,
+				random:    newFloat64Random(0.11), // engine failure occurs 10% of the time, < 10/100
+				wantMoved: true,
+			},
+			{
+				name:      "no CE; still moves",
+				warpSpeed: 7,
+				player:    NewPlayer(1, NewRace().WithSpec(&rules)),
+				random:    newFloat64Random(0),
+				wantMoved: true,
+			},
+			{
+				name:      "low roll; failure",
+				warpSpeed: 9,
+				player:    NewPlayer(1, NewRace().WithLRT(CE).WithSpec(&rules)),
+				random:    newFloat64Random(0.1), // engine failure occurs at 10/100 or under
+				wantMoved: false,
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				player := tt.player
+				player.Name = tt.name
+				fleet := testLongRangeScout(player).withWaypoints(
+					NewPositionWaypoint(Vector{0, 0}, 0),
+					NewPositionWaypoint(Vector{999, 0}, tt.warpSpeed),
+				)
+				universe := Universe{Fleets: []*Fleet{fleet}}
+				universe.buildMaps([]*Player{player})
+
+				rCopy := NewRules()
+				rCopy.random = tt.random
+
+				fleet.moveFleet(&rCopy, &universe, newTestPlayerGetter(player))
+
+				if (fleet.Position != Vector{0, 0}) != tt.wantMoved {
+					if tt.wantMoved {
+						t.Errorf("Fleet.moveFleetEngineFailure() did not move fleet when expected")
+					} else {
+						t.Errorf("Fleet.moveFleetEngineFailure() moved fleet to position %+v; expected no movement", fleet.Position)
+					}
+				}
+			})
+		}
+	})
 }
 
 func TestFleet_gateFleet(t *testing.T) {
@@ -1206,101 +1210,97 @@ func TestFleet_repairStarbase(t *testing.T) {
 	}
 }
 
-func TestFleet_getEstimatedRange(t *testing.T) {
-	type testfleet struct {
-		design *ShipDesign
-		qty    int
-	}
+func TestFleetGetEstimatedRange(t *testing.T) {
 	tests := []struct {
-		name      string
-		fleets    []testfleet
-		race      *Race
-		cargoMass int
-		fuel      int
-		warpSpeed int
-		want      int
+		name            string
+		tokens          []ShipToken
+		fuelUsageOffset float64
+		cargoMass       int
+		fuel            int
+		warpSpeed       int
+		want            int
 	}{
 		// examples are (mostly) cross checked against ones from base game
 		{
 			name: "QJ5 scout",
-			fleets: []testfleet{{
+			tokens: []ShipToken{{
 				design: NewShipDesign(1, 1).WithHull(Scout.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
 					{HullComponent: BatScanner.Name, HullSlotIndex: 2, Quantity: 1},
 					{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
 				}),
-				qty: 1,
+				Quantity: 1,
 			}},
-			race:      NewRace().WithSpec(&rules),
-			warpSpeed: 5,
-			fuel:      300,
-			want:      3529,
+			fuelUsageOffset: 0,
+			warpSpeed:       5,
+			fuel:            300,
+			want:            3529,
 		},
 		{
 			name: "LH6 scout",
-			fleets: []testfleet{{
-				design: testLongRangeScoutDesign(1),
-				qty:    1,
+			tokens: []ShipToken{{
+				design:   testLongRangeScoutDesign(1),
+				Quantity: 1,
 			}},
-			race:      NewRace().WithSpec(&rules),
-			warpSpeed: 6,
-			fuel:      300,
+			fuelUsageOffset: 0,
+			warpSpeed:       6,
+			fuel:            300,
 			// 2290 in base game, probably due to rounding jank
 			// My calculator gives ~2286 (so pretty damn good!)
 			want: 2285,
 		},
 		{
 			name: "W6 scout with IFE",
-			fleets: []testfleet{{
-				design: testLongRangeScoutDesign(1),
-				qty:    1,
+			tokens: []ShipToken{{
+				design:   testLongRangeScoutDesign(1),
+				Quantity: 1,
 			}},
-			race:      NewRace().WithLRT(IFE).WithSpec(&rules),
-			warpSpeed: 6,
-			fuel:      300,
-			want:      2666, // 2673 in base game
+			fuelUsageOffset: -0.15,
+			warpSpeed:       6,
+			fuel:            300,
+			want:            2666, // 2673 in base game
 		},
 
 		{
 			name: "scout with less fuel",
-			fleets: []testfleet{{
-				design: testLongRangeScoutDesign(1),
-				qty:    1,
+			tokens: []ShipToken{{
+				design:   testLongRangeScoutDesign(1),
+				Quantity: 1,
 			}},
-			race:      NewRace().WithSpec(&rules),
-			warpSpeed: 5,
-			fuel:      100,
-			want:      800, // 1/3 the fuel = 1/3 the range
+			fuelUsageOffset: 0,
+			warpSpeed:       5,
+			fuel:            100,
+			want:            800, // 1/3 the fuel = 1/3 the range
 		},
 		{
 			name: "multiple copies, same range",
-			fleets: []testfleet{{
-				design: testLongRangeScoutDesign(1),
-				qty:    2,
+			tokens: []ShipToken{{
+				design:   testLongRangeScoutDesign(1),
+				Quantity: 2,
 			}},
-			race:      NewRace().WithSpec(&rules),
-			fuel:      600,
-			warpSpeed: 5,
-			want:      2400,
+			fuelUsageOffset: 0,
+			fuel:            600,
+			warpSpeed:       5,
+			want:            2400,
 		},
 		{
 			name: "infinite range mizer scout",
-			fleets: []testfleet{{
+			tokens: []ShipToken{{
 				design: NewShipDesign(1, 1).WithHull(Scout.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
 					{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
 					{HullComponent: FuelTank.Name, HullSlotIndex: 3, Quantity: 1},
 				}),
-				qty: 1,
+				Quantity: 1,
 			}},
-			race:      NewRace().WithLRT(IFE).WithSpec(&rules),
-			fuel:      300,
-			warpSpeed: 4,
-			want:      Infinite,
+			fuelUsageOffset: -0.15,
+			fuel:            300,
+			warpSpeed:       4,
+			want:            Infinite,
 		},
 		{
 			name: "IT swashbuckler with full cargo",
-			fleets: []testfleet{{
+			tokens: []ShipToken{{
 				design: NewShipDesign(1, 1).WithHull(Privateer.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: DaddyLongLegs7.Name, HullSlotIndex: 1, Quantity: 1},
 					{HullComponent: Crobmnium.Name, HullSlotIndex: 2, Quantity: 2},
@@ -1308,17 +1308,17 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 					{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 1},
 					{HullComponent: AlphaTorpedo.Name, HullSlotIndex: 5, Quantity: 1},
 				}),
-				qty: 1,
+				Quantity: 1,
 			}},
-			race:      NewRace().WithPRT(IT).WithLRT(IFE).WithSpec(&rules),
-			warpSpeed: 7,
-			fuel:      650,
-			cargoMass: 250,
-			want:      295,
+			fuelUsageOffset: -0.15,
+			warpSpeed:       7,
+			fuel:            650,
+			cargoMass:       250,
+			want:            295,
 		},
 		{
 			name: "Galleon with minicols, no fuel",
-			fleets: []testfleet{{
+			tokens: []ShipToken{{
 				design: NewShipDesign(1, 1).WithHull(Galleon.Name).WithSlots([]ShipDesignSlot{ // 125kT
 					{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 4},       // 36kT
 					{HullComponent: Tritanium.Name, HullSlotIndex: 2, Quantity: 2},       // 120kT
@@ -1329,86 +1329,85 @@ func TestFleet_getEstimatedRange(t *testing.T) {
 					{HullComponent: MineDispenser50.Name, HullSlotIndex: 7, Quantity: 1}, // 30kT
 					{HullComponent: PossumScanner.Name, HullSlotIndex: 8, Quantity: 1},   // 3kT
 				}),
-				qty: 200,
+				Quantity: 200,
 				// 800kT * 1.05 = -840 mg/ly at warp 6
 			}, {
 				design: NewShipDesign(1, 2).WithHull(MiniColonyShip.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: SettlersDelight.Name, HullSlotIndex: 1, Quantity: 1},
 				}),
-				qty: 840,
+				Quantity: 840,
 				// +840 mg/ly at warp 6
 			}},
-			race:      NewRace().WithPRT(HE).WithSpec(&rules),
-			fuel:      0,
-			warpSpeed: 6,
-			want:      Infinite, // minicol fuel production exactly offsets galleon fuel consumption (net zero)
+			fuelUsageOffset: 0,
+			fuel:            0,
+			warpSpeed:       6,
+			want:            Infinite, // minicol fuel production exactly offsets galleon fuel consumption (net zero)
 		},
 		{
 			name: "200kT nubian with QJ5",
-			fleets: []testfleet{{
-				design: testFuelNubianDesign(1, &QuickJump5),
-				qty:    1,
+			tokens: []ShipToken{{
+				design:   testFuelNubianDesign(1, &QuickJump5),
+				Quantity: 1,
 			}},
-			race:      NewRace().WithSpec(&rules),
-			warpSpeed: 5,
-			fuel:      5000,
-			want:      5000, // 1 mg/ly
+			fuelUsageOffset: 0,
+			warpSpeed:       5,
+			fuel:            5000,
+			want:            5000, // 1 mg/ly
 		},
 		{
 			name: "200kT nubian with IS-10",
-			fleets: []testfleet{{
-				design: testFuelNubianDesign(1, &Interspace10),
-				qty:    1,
+			tokens: []ShipToken{{
+				design:   testFuelNubianDesign(1, &Interspace10),
+				Quantity: 1,
 			}},
-			race:      NewRace().WithSpec(&rules),
-			warpSpeed: 10,
-			fuel:      5000,
-			want:      5000, // 1 mg/ly
+			fuelUsageOffset: 0,
+			warpSpeed:       10,
+			fuel:            5000,
+			want:            5000, // 1 mg/ly
 		},
 		{
 			name: "Out of fuel low warp",
-			fleets: []testfleet{{
-				design: testFuelNubianDesign(1, &Interspace10),
-				qty:    1,
+			tokens: []ShipToken{{
+				design:   testFuelNubianDesign(1, &Interspace10),
+				Quantity: 1,
 			}},
-			race:      NewRace().WithSpec(&rules),
-			warpSpeed: 10,
-			fuel:      0,
-			want:      0,
+			fuelUsageOffset: 0,
+			warpSpeed:       10,
+			fuel:            0,
+			want:            0,
 		},
 		{
 			name: "Net Positive Refueler",
-			fleets: []testfleet{{
+			tokens: []ShipToken{{
 				design: NewShipDesign(1, 1).WithHull(SuperFuelXport.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 2},
 				}),
-				qty: 1,
+				Quantity: 1,
 			}},
-			race:      NewRace().WithSpec(&rules),
-			warpSpeed: 9,
-			fuel:      0,
-			want:      Infinite, // Mizer consumes 180 mg/yr; refueler makes 200
+			fuelUsageOffset: 0,
+			warpSpeed:       9,
+			fuel:            0,
+			want:            Infinite, // Mizer consumes 180 mg/yr; refueler makes 200
 		},
+		// TODO: Add test for fuel splitting
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1, tt.race).withSpec(&rules)
-			player.Name = tt.name
-			fleet := NewFleet(player, 1, tt.name, []Waypoint{{}})
-			for _, f := range tt.fleets {
-				fleet.Tokens = append(fleet.Tokens, ShipToken{
-					Quantity: f.qty,
-					design:   f.design.WithSpec(&rules, player),
-				})
+			player := NewPlayer(1, NewRace()).withSpec(&rules)
+
+			// compute token designs
+			for i := range tt.tokens {
+				tt.tokens[i].design = tt.tokens[i].design.WithSpec(&rules, player)
 			}
 
-			fleet.Cargo = Cargo{Ironium: tt.cargoMass}
+			// make fleet & set params
+			fleet := NewFleet(player, 1, tt.name, []Waypoint{NewPositionWaypoint(Vector{}, 0)})
+			fleet.Tokens = tt.tokens
 			fleet.Fuel = tt.fuel
+			fleet.Cargo = Cargo{Ironium: tt.cargoMass}
 			fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
-			t.Log(fleet.Spec.Mass)
-
-			if got := fleet.getEstimatedRange(player, tt.warpSpeed); got != tt.want {
-				t.Errorf("Fleet.getEstimatedRange() = %v, want %v", got, tt.want)
+			if got := fleet.GetEstimatedRange(tt.warpSpeed, tt.fuelUsageOffset); got != tt.want {
+				t.Errorf("getEstimatedRange() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -1527,8 +1526,8 @@ func TestFleet_getFuelGeneration(t *testing.T) {
 
 			fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
 
-			if got := fleet.getFuelGeneration(tt.warpSpeed, tt.distance); got != tt.want {
-				t.Errorf("Fleet.getFuelGeneration() = %v, want %v", got, tt.want)
+			if got := getFuelGeneration(tt.warpSpeed, tt.distance, fleet.Tokens, fleet.Spec.FuelGeneration); got != tt.want {
+				t.Errorf("getFuelGeneration() = %v, want %v", got, tt.want)
 			}
 		})
 	}

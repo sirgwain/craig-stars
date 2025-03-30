@@ -173,7 +173,7 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 		fleet.Heading = (fleet.Waypoints[1].Position.Subtract(fleet.Position)).Normalized()
 	}
 
-	fleet.computeFuelUsage(player)
+	fleet.computeFuelUsage(player.Race.Spec.FuelEfficiencyOffset)
 
 	log.Info().
 		Int64("GameID", player.GameID).
@@ -341,9 +341,12 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 		}
 
 		// we might lose a point of damage in a split/merge, that's ok
+		// TODO: Fix this eventually maybe ish?
 		stackDamage := stackDamageByDesign[token.DesignNum]
 		splitStackDamage := splitStackDamageByDesign[token.DesignNum]
-		if splitToken.Quantity != token.Quantity || splitToken.QuantityDamaged != token.QuantityDamaged || Abs(stackDamage-splitStackDamage) > 1 {
+		if splitToken.Quantity != token.Quantity ||
+			splitToken.QuantityDamaged != token.QuantityDamaged ||
+			Abs(stackDamage-splitStackDamage) > 1 {
 			return nil, nil, fmt.Errorf("token in original fleet has different quantity/damage that token in split request")
 		}
 	}

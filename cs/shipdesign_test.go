@@ -267,7 +267,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 		want    ShipDesignSpec
 		wantErr bool
 	}{
-		{name: "Humanoid Starter Long Range Scout",
+		{
+			name: "Humanoid Starter Long Range Scout",
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   humanoids.Spec,
@@ -300,7 +301,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				EstimatedRangeFull: 2272,
 			}, wantErr: false,
 		},
-		{name: "Humanoid Starter Armed Probe",
+		{
+			name: "Humanoid Starter Armed Probe",
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   humanoids.Spec,
@@ -343,7 +345,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 			}, wantErr: false,
 		},
-		{name: "Humanoid Starter Teamster",
+		{
+			name: "Humanoid Starter Teamster",
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   humanoids.Spec,
@@ -377,7 +380,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				EstimatedRangeFull: 394,
 			}, wantErr: false,
 		},
-		{name: "RS Shielded Destroyer",
+		{
+			name: "RS Shielded Destroyer",
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   NewRace().WithLRT(RS).WithSpec(&rules).Spec,
@@ -422,7 +426,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				EstimatedRangeFull: 419,
 			}, wantErr: false,
 		},
-		{name: "Battleship with multiple battle computers",
+		{
+			name: "Battleship with multiple battle computers",
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithSpec(&rules).Spec,
@@ -462,7 +467,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				EstimatedRangeFull: 1497,
 			}, wantErr: false,
 		},
-		{name: "IS Battleship with multiple jammers",
+		{
+			name: "IS Battleship with multiple jammers",
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithPRT(IS).WithSpec(&rules).Spec,
@@ -502,7 +508,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				EstimatedRangeFull: 1497,
 			}, wantErr: false,
 		},
-		{name: "Battleship with multiple deflectors",
+		{
+			name: "Battleship with multiple deflectors",
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithSpec(&rules).Spec,
@@ -542,7 +549,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				EstimatedRangeFull: 1497,
 			}, wantErr: false,
 		},
-		{name: "Battleship with multiple capacitors",
+		{
+			name: "Battleship with multiple capacitors",
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithSpec(&rules).Spec,
@@ -581,7 +589,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				EstimatedRangeFull: 1505,
 			}, wantErr: false,
 		},
-		{name: "Battleship with max capacitors",
+		{
+			name: "Battleship with max capacitors",
 			args: args{
 				techLevels: TechLevel{26, 26, 26, 26, 26, 26},
 				raceSpec:   NewRace().WithSpec(&rules).Spec,
@@ -620,7 +629,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				EstimatedRangeFull: 1497,
 			}, wantErr: false,
 		},
-		{name: "Mini Bomber",
+		{
+			name: "Mini Bomber",
 			args: args{
 				techLevels: TechLevel{3, 3, 3, 3, 3, 3},
 				raceSpec:   humanoids.Spec,
@@ -660,7 +670,8 @@ func TestComputeShipDesignSpec(t *testing.T) {
 				},
 			}, wantErr: false,
 		},
-		{name: "PP Starbase",
+		{
+			name: "PP Starbase",
 			args: args{
 				techLevels: TechLevel{4, 0, 0, 0, 0, 0},
 				raceSpec:   pps.Spec,
@@ -1472,7 +1483,7 @@ func BenchmarkDesignShip(b *testing.B) {
 			player.AcquiredTechs[tech.Name] = true
 		}
 		b.ResetTimer()
-		for range b.N {
+		for b.Loop() {
 			b.StopTimer()
 			purpose := purposes[rules.random.Intn(6)]
 			num := rules.random.Intn(6)

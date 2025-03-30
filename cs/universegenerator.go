@@ -593,14 +593,14 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 	for _, startingFleet := range startingFleets {
 		design := player.GetDesignByName(startingFleet.Name)
 		if design == nil {
-			// design got ommitted (likely due to a missing hull or similar); just smile and wave
+			// design got omitted (likely due to a missing hull or similar); just smile and wave
 			continue
 		}
 		fleet := newFleetForDesign(player, design, 1, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.Engine.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
 		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, &fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
-		fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
+		fleet.Spec.EstimatedRange = fleet.GetEstimatedRange(fleet.Spec.Engine.IdealSpeed, player.Race.Spec.FuelEfficiencyOffset)
 		purpose := FleetPurposeFromShipDesignPurpose(design.Purpose)
 		fleet.SetTag(TagPurpose, string(purpose))
 		ug.Universe.Fleets = append(ug.Universe.Fleets, &fleet)

@@ -1120,6 +1120,34 @@ func (t *turnGenerator) moveFleet(fleet *Fleet) {
 	}
 }
 
+// Randomly destroy ships traveling over the safe warp speed.
+func (fleet *Fleet) applyOverwarpPenalty(rules *Rules) (explodedShips int) {
+	if len(fleet.Waypoints) <= 1 {
+		return 0
+	}
+
+	wp1 := &fleet.Waypoints[1]
+	// check for exploded ships
+	for tokenIndex := range fleet.Tokens {
+		token := &fleet.Tokens[tokenIndex]
+		if wp1.WarpSpeed <= token.design.Spec.Engine.MaxSafeSpeed ||
+			wp1.WarpSpeed == StargateWarpSpeed {
+			// fleet is either in safe range or taking the high road
+			continue
+		}
+
+		// blow up tokens if you go too fast
+		for range token.Quantity {
+			if rules.FleetSafeSpeedExplosionChance >= rules.random.Float64() {
+				explodedShips++
+				token.Quantity--
+			}
+		}
+	}
+
+	return explodedShips
+}
+
 // kill off colonists on fleets from radiation poisoning.
 // TODO: Make this part of the TechHullComponent
 func (t *turnGenerator) fleetRadiatingEngineDieoff() {
@@ -1656,7 +1684,6 @@ func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToke
 	fleet.Position = position
 	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
-	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
 	fleet.Tags = tags
 
 	t.game.Fleets = append(t.game.Fleets, &fleet)
@@ -1990,9 +2017,10 @@ func (t *turnGenerator) fleetRefuel() {
 
 		planetPlayer := t.game.getPlayer(planet.PlayerNum)
 		if planetPlayer.IsFriend(fleet.PlayerNum) {
+			// reset fuel to max and re-compute estimated range
 			player := t.game.getPlayer(fleet.PlayerNum)
 			fleet.Fuel = fleet.Spec.FuelCapacity
-			fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed)
+			fleet.Spec.EstimatedRange = fleet.GetEstimatedRange(fleet.Spec.Engine.IdealSpeed, player.Race.Spec.FuelEfficiencyOffset)
 
 			t.log.Debug().
 				Int("Player", fleet.PlayerNum).
