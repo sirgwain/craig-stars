@@ -11,6 +11,8 @@
 	import type { AnyPlanet } from '$lib/services/Universe';
 	import { population } from '$lib/types/Cargo';
 	import { Grav, None, Rad, ReportAgeUnexplored, Temp } from '$lib/types/cs';
+	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
+	import { Icon } from '@steeze-ui/svelte-icon';
 	import MapObjectIcon from './MapObjectIcon.svelte';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
 
@@ -61,9 +63,17 @@
 
 <div class="flex flex-col md:min-h-[11rem] select-none w-full">
 	{#if 'reportAge' in planet && planet.reportAge === ReportAgeUnexplored}
-		<div class="flex flex-row">
-			<MapObjectIcon mapObject={planet} />
-			<div>unexplored</div>
+		<div class="relative w-full m-auto">
+			<!-- Icon on the left -->
+			<div class="absolute top-1/2 -translate-y-1/2">
+				<!-- Your icon here -->
+				<MapObjectIcon mapObject={planet} />
+			</div>
+
+			<!-- Centered content -->
+			<div>
+				<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent m-auto" />
+			</div>
 		</div>
 	{:else}
 		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>

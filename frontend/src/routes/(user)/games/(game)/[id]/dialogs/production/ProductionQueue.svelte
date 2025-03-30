@@ -675,18 +675,18 @@
 					</label>
 				</div>
 				<div class="w-1/2 flex flex-row flex-wrap justify-between sm:justify-end">
-					<div class="w-1/2 md:grow">
+					<div class="w-1/2 md:w-auto md:grow">
 						<button class="btn btn-sm btn-outline btn-secondary w-full" onclick={prev}>Prev</button>
 					</div>
-					<div class="w-1/2 md:grow">
+					<div class="w-1/2 md:w-auto md:grow">
 						<button class="btn btn-sm btn-outline btn-secondary w-full" onclick={next}>Next</button>
 					</div>
-					<div class="w-1/2 md:grow">
+					<div class="w-1/2 md:w-auto md:grow">
 						<button onclick={cancel} class="btn btn-sm btn-outline btn-secondary w-full"
 							>Cancel</button
 						>
 					</div>
-					<div class="w-1/2 md:grow">
+					<div class="w-1/2 md:w-auto md:grow">
 						<button onclick={ok} class="btn btn-sm btn-primary w-full">Ok</button>
 					</div>
 				</div>
