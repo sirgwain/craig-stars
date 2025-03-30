@@ -227,9 +227,9 @@ func Launch_Backend(testMode bool) error {
 	return sh.RunV("go", args...)
 }
 
-// Launch the frontend svelte server.
+// Launch the frontend svelte server and open it in a new browser instance.
 func Launch_Frontend() error {
-	cmd := exec.Command("npm", "run-script", "dev")
+	cmd := exec.Command("npm", "run-script", "dev", "--", "--open")
 	cmd.Dir = "./frontend"
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

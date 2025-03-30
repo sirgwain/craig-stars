@@ -76,7 +76,7 @@
 		return item1?.type === item2?.type && item1?.designNum === item2?.designNum;
 	}
 
-	function onQueueItemClicked(index: number, item?: ProductionQueueItem) {
+	function changeSelectedItem(index: number, item?: ProductionQueueItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
 		selectedQueueItemCost = $player.getItemCost(
@@ -572,7 +572,7 @@
 							<li>
 								<button
 									type="button"
-									onclick={() => onQueueItemClicked(-1)}
+									onclick={() => changeSelectedItem(-1)}
 									class:bg-primary={selectedQueueItemIndex === -1}
 									class="w-full pl-1 select-none cursor-default hover:text-secondary-focus"
 								>
@@ -585,7 +585,7 @@
 										<ProductionQueueItemLine
 											item={queueItem}
 											{index}
-											onQueueItemClicked={onQueueItemClicked}
+											onQueueItemClicked={changeSelectedItem}
 											onQueueItemDoubleClicked={removeItem}
 											selected={queueItem === selectedQueueItem}
 										/>
