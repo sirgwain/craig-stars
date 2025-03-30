@@ -371,51 +371,30 @@ itemLoop:
 		}
 
 	checkDone:
+		if item.Type.IsAuto() {
+			// auto items stay in the queue after being built, unlike concrete items
+			newQueue = append(newQueue, item)
+		}
+
 		if itemIndex == len(planet.ProductionQueue)-1 && (numBuilt >= item.Quantity || numBuilt >= maxBuildable) {
 			// we built (or tried to build) the last item in the queue; we're all done
 			result.completed = true
-			if item.Type.IsAuto() {
-				// tack on the auto item to the end of the queue
-				newQueue = append(newQueue, item)
-			}
 			break
 		}
 
-		// figure out what to add to the updated queue post-production
+		// figure out what to do after production
 		switch {
-		case !item.Type.IsAuto() && item.Quantity <= numBuilt:
-			// we finished this concrete item, so leave it off our new queue.
-			// (Concrete items are removed once built)
-			continue itemLoop
-		case !item.Type.IsAuto():
-			// couldn't finish entire concrete item; allocate remaining resources
-			// and stop building (concrete items block queue if not finished)
-			item.Allocated = p.allocatePartialBuild(itemCost, available)
-			available = available.Subtract(item.Allocated)
-			planet.ProductionQueue[itemIndex] = item
-
-			// keep it alongside everything in front and break out
-			newQueue = append(newQueue, planet.ProductionQueue[itemIndex:]...)
-			break itemLoop
-
-		// Auto items
-		case available.Resources <= 0:
+		case item.Type.IsAuto() && available.Resources <= 0:
 			// We spent all our resources on this auto item; stop building
-			newQueue = append(newQueue, item) // auto items stay in the queue after being built
 			if itemIndex < len(planet.ProductionQueue)-1 {
 				// if this isn't the last item, tack the rest of the queue back on
 				newQueue = append(newQueue, planet.ProductionQueue[itemIndex+1:]...)
 			}
 			break itemLoop
-		case numBuilt >= item.Quantity || numBuilt >= maxBuildable ||
-			available.DivideMineral(itemCost.ToMineral()) < 1:
-			// We either lack enough room or can't afford to build any more of this;
-			// move on to the next item
-			newQueue = append(newQueue, item) // auto items stay in the queue after being built
-			continue
-		default:
+		case item.Type.IsAuto() && numBuilt < item.Quantity && numBuilt < maxBuildable &&
+			available.DivideMineral(itemCost.ToMineral()) >= 1:
 			// we still have copies of this auto item left to build and enough minerals
-			// to complete one auto item; prepend a partial concrete item to our new queue
+			// to complete one auto item; prepend a partial concrete version to our new queue
 			q := make([]ProductionQueueItem, 1, len(newQueue)+1)
 			q[0] = ProductionQueueItem{
 				Type:      item.Type.concreteType(),
@@ -431,6 +410,19 @@ itemLoop:
 				newQueue = append(newQueue, planet.ProductionQueue[itemIndex+1:]...)
 			}
 			break itemLoop
+		case !item.Type.IsAuto() && item.Quantity > numBuilt:
+			// couldn't finish entire concrete item; allocate remaining resources
+			// and stop building (concrete items block queue if not finished)
+			item.Allocated = p.allocatePartialBuild(itemCost, available)
+			available = available.Subtract(item.Allocated)
+			planet.ProductionQueue[itemIndex] = item
+
+			// keep it alongside everything in front and break out
+			newQueue = append(newQueue, planet.ProductionQueue[itemIndex:]...)
+			break itemLoop
+		default:
+			// we finished this item, so leave it off our new queue and move on
+			continue
 		}
 	}
 
