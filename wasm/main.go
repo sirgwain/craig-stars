@@ -200,7 +200,9 @@ func estimateProduction(args []js.Value) any {
 		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design: %v", err))
 	}
 
-	planet.Starbase.Spec = cs.ComputeFleetSpec(&ctx.rules, &ctx.player, planet.Starbase)
+	if planet.Starbase != nil {
+		planet.Starbase.Spec = cs.ComputeFleetSpec(&ctx.rules, &ctx.player, planet.Starbase)
+	}
 	if err := planet.PopulateProductionQueueDesigns(&ctx.player); err != nil {
 		return wasm.NewError(fmt.Errorf("failed to populate production queue designs: %v", err))
 	}
