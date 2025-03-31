@@ -315,6 +315,7 @@ itemLoop:
 		// if we built mineral alchemy, add it back into our pot to use later
 		available = available.AddToAllMineral(result.alchemy)
 
+		// record item being built
 		result.itemsBuilt = append(result.itemsBuilt, itemBuilt{
 			index:         item.index,
 			queueItemType: item.Type,
@@ -411,8 +412,9 @@ itemLoop:
 			}
 			break itemLoop
 		case !item.Type.IsAuto() && item.Quantity > numBuilt:
-			// couldn't finish entire concrete item; allocate remaining resources
-			// and stop building (concrete items block queue if not finished)
+			// couldn't finish entire concrete item; dock quantity built,
+			// allocate remaining resources and stop building
+			item.Quantity -= numBuilt
 			item.Allocated = p.allocatePartialBuild(itemCost, available)
 			available = available.Subtract(item.Allocated)
 			planet.ProductionQueue[itemIndex] = item
