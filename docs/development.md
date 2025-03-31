@@ -1,6 +1,6 @@
 # Local Development
 
-craig-stars is a web based game. The backend logic and server is written in [Go](https://go.dev), while the frontend client is written in [TypeScript](https://www.typescriptlang.org) and powered by [SvelteKit](https://kit.svelte.dev).
+craig-stars is a web based game. The backend logic and server are both written in [Go](https://go.dev), while the frontend client is written in [TypeScript](https://www.typescriptlang.org) and powered by [SvelteKit](https://kit.svelte.dev).
 
 ## Prerequisites:
 
@@ -43,19 +43,18 @@ After performing all that setup, you should be good to go!
 You have 2 methods to launch the server:
 
 1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This starts up the default build task to:
-   - Build both backend and frontend files
+   - Build backend and frontend binaries and files
    - Launch both backend and frontend servers in separate task terminals
-   - Open the localhost link in your default web browser once the frontend finishes[^2].\
-     The browser launch tends to produce false positives, so don't worry if it shows up as having failed.
-2. Run `mage run` from your terminal inside the root folder. This does essentially the same series of steps as the VS Code task, but launches both backend and frontend servers inside the same terminal before stalling. You'll have to open the browser link yourself in a new tab (difficult, I know)[^3].
+   - Open the localhost link in your default web browser once the frontend finishes launching[^2]
+2. Run `mage run` from your terminal inside the root folder. This does essentially the same series of steps as the VS Code task, but pipes both servers' outputs to the same terminal[^3].
+3. Manually type in all the commands one by one. Not terribly efficient, but who am I to judge?
+   - Notably, this will _not_ open the localhost browser by default.
 
 Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch.
 
-If successful, you should get a localhost link from vite (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically using air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
+Eventually, vite should display a localhost link (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically using air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
 
-<!--! remember to remove this if/when the issue is fixed -->
-
-[^2]: **NOTE**: Due to a [fairly long-standing bug in VS Code](https://github.com/microsoft/vscode/issues/70283) involving dependencies and background tasks, the "open localhost" task will still be run even if the frontend or backend launch commands fail partway through. (Seen as the alternative is opening the window _before_ the server even starts, this is still the lesser of the 2 evils.)
+[^2]: This opens the link in your default browser by default, but can be changed with the [`BROWSER`](https://vite.dev/config/server-options.html#server-open) environment variable.
 
 [^3]: Mage has been known to complain about cleanup deadlines upon shutting the server down. This is normal and can be completely ignored.
 
