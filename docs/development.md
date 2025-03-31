@@ -12,9 +12,11 @@ craig-stars is a web based game. The backend logic and server are both written i
     **_Cygwin will not work_** as it is missing several instructions needed for `cgo` to function (see [this issue](https://github.com/golang/go/issues/59490) for more info).
   - Linux/mac users can follow the [normal install instructions](https://gcc.gnu.org/install/index.html).
 
-### Go Deps
+### Installing Mage
 
 After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make/rake-like build tool & command executer written in Go[^1].
+While not strictly required  _per se_, this avoids needing to type out each command individually.
+
 Run the following command in your terminal of choice:
 
 ```bash
@@ -40,7 +42,7 @@ This will clear out the previous images folder before downloading the zip file a
 ## Building and Launching
 
 After performing all that setup, you should be good to go!
-Unless you want to type out each command manually, there are 2 main methods to boot up a local server:
+There are 2 main methods to boot up a local server:
 
 1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). \
 This starts up a pair of tasks to:
