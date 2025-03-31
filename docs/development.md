@@ -40,13 +40,12 @@ This will clear out the previous images folder before downloading the zip file a
 ## Building and Launching
 
 After performing all that setup, you should be good to go!
-Unless you want to type out the commands manually, there are 2 main methods to boot up a local server:
+Unless you want to type out each command manually, there are 2 main methods to boot up a local server:
 
 1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). \
 This starts up a pair of tasks to:
    - Build backend and frontend binaries and files.
    - Launch both backend and frontend servers in separate task terminals.
-  - Each of these can be run individually as needed.
 2. Run `mage run` from your terminal inside the root folder. This does essentially the same series of steps as the VS Code task, but pipes both servers' outputs to the same terminal[^3].
 
 Whatever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch.
