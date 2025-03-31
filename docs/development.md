@@ -14,10 +14,10 @@ craig-stars is a web based game. The backend logic and server are both written i
 
 ### Installing Mage
 
-After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make/rake-like build tool & command executer written in Go[^1].
+After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make/rake-like build tool & command executer written in Go.
 While not strictly required  _per se_, installing it avoids needing to type out individual commands during builds & launches.
 
-To install it, run the following command in your terminal of choice:
+To install it, run the following command in your terminal of choice[^1]:
 
 ```bash
 go install github.com/magefile/mage@latest
