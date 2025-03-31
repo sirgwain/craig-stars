@@ -15,19 +15,19 @@ craig-stars is a web based game. The backend logic and server are both written i
 ### Installing Mage
 
 After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make/rake-like build tool & command executer written in Go[^1].
-While not strictly required  _per se_, this avoids needing to type out each command individually.
+While not strictly required  _per se_, installing it avoids needing to type out individual commands during builds & launches.
 
-Run the following command in your terminal of choice:
+To install it, run the following command in your terminal of choice:
 
 ```bash
 go install github.com/magefile/mage@latest
 ```
 
-Once it finishes installing, check by running `mage` - if all went well, you should get a list of available targets defined in the repo's [magefiles](../magefiles) directory. (Don't worry about the wonky capitalization - magefile commands are always _case-insensitive_.)
+Once it finishes installing, check by running `mage` - if all went well, you should get a list of available targets as defined in the repo's [magefiles](../magefiles) directory. (Don't worry about capitalization - magefile commands are always _case-insensitive_.)
 
 **Disclaimer**: Magefile targets must always be run from inside the _repository root_. This does not apply to the equivalent VS Code tasks, however (which always launch from root).
 
-[^1]: Techincally mage is already in the project's `go.mod` files, but you need it installed to call it via the command line.
+[^1]: While mage is already in the project's `go.mod` files, you need it installed via `go install` to call it via the command line.
 
 ## Assets
 
@@ -48,7 +48,7 @@ There are 2 main methods to boot up a local server:
 This starts up a pair of tasks to:
    - Build backend and frontend binaries and files.
    - Launch both backend and frontend servers in separate task terminals.
-2. Run `mage run` from your terminal inside the root folder. This does essentially the same series of steps as the VS Code task, but pipes both servers' outputs to the same terminal[^3].
+2. Run `mage run` from your terminal. This does virtually the same thing as above, but pipes both servers' outputs to the same terminal[^3].
 
 Whatever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch.
 
@@ -56,7 +56,7 @@ Eventually, your browser should display a localhost link (http://localhost:5173/
 
 [^2]: Vite automatically opens the link in your default browser, though this can be changed with the [`BROWSER`](https://vite.dev/config/server-options.html#server-open) environment variable.
 
-[^3]: Mage has been known to complain about cleanup deadlines upon shutting the server down. This is normal and can be completely ignored.
+[^3]: Note: Mage has been known to complain about cleanup deadlines upon shutting the server down. This is normal and can be mostly ignored.
 
 # Visual Studio Code
 
