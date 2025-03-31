@@ -40,21 +40,20 @@ This will clear out the previous images folder before downloading the zip file a
 ## Building and Launching
 
 After performing all that setup, you should be good to go!
-You have 2 methods to launch the server:
+Unless you want to type out the commands manually, there are 2 main methods to boot up a local server:
 
-1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This starts up the default build task to:
-   - Build backend and frontend binaries and files
-   - Launch both backend and frontend servers in separate task terminals
-   - Open the localhost link in your default web browser once the frontend finishes launching[^2]
+1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). \
+This starts up a pair of tasks to:
+   - Build backend and frontend binaries and files.
+   - Launch both backend and frontend servers in separate task terminals.
+Each of these can be run individually as needed
 2. Run `mage run` from your terminal inside the root folder. This does essentially the same series of steps as the VS Code task, but pipes both servers' outputs to the same terminal[^3].
-3. Manually type in all the commands one by one. Not terribly efficient, but who am I to judge?
-   - Notably, this will _not_ open the localhost browser by default.
 
-Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch.
+Whatever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch.
 
-Eventually, vite should display a localhost link (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically using air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
+Eventually, your browser should display a localhost link (http://localhost:5173/) representing the application being hosted on your machine[^2]. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically using air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
 
-[^2]: This opens the link in your default browser by default, but can be changed with the [`BROWSER`](https://vite.dev/config/server-options.html#server-open) environment variable.
+[^2]: Vite automatically opens the link in your default browser, though this can be changed with the [`BROWSER`](https://vite.dev/config/server-options.html#server-open) environment variable.
 
 [^3]: Mage has been known to complain about cleanup deadlines upon shutting the server down. This is normal and can be completely ignored.
 
