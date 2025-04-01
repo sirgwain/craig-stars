@@ -432,6 +432,46 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				wantLeftoverResources: 170,
 				wantErr:               false,
 			},
+			{
+				name: "new planet 2500 cols",
+				args: args{
+					items: []ProductionQueueItem{
+						{
+							Type:     QueueItemTypeAutoFactories,
+							Quantity: 250,
+						},
+						{
+							Type:     QueueItemTypeAutoMines,
+							Quantity: 250,
+						},
+					},
+					// planet from OG game
+					planet: NewPlanet().WithCargo(Cargo{18, 6, 17, 25}).
+						WithMineralConcentration(Mineral{95, 75, 79}).WithHab(Hab{51, 45, 46}),
+				},
+				want: []ProductionQueueItem{
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne:     13,
+							YearsToBuildAll:     45,
+							YearsToSkipOrCancel: 9,
+						},
+						Type:     QueueItemTypeAutoFactories,
+						Quantity: 250,
+					},
+					{
+						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+							YearsToBuildOne:     10,
+							YearsToBuildAll:     47,
+							YearsToSkipOrCancel: Infinite,
+						},
+						Type:     QueueItemTypeAutoMines,
+						Quantity: 250,
+					},
+				},
+				wantLeftoverResources: 0,
+				wantErr:               false,
+			},
 		}
 
 		for _, tt := range tests {

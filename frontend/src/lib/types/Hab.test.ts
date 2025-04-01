@@ -10,6 +10,7 @@ describe('hab test', () => {
 		expect(getGravString(0)).toBe('0.12g');
 		expect(getGravString(25)).toBe('0.51g');
 		expect(getGravString(50)).toBe('1.00g');
+		expect(getGravString(51)).toBe('1.04g');
 		expect(getGravString(75)).toBe('2.00g');
 		expect(getGravString(100)).toBe('8.00g');
 	});
