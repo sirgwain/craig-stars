@@ -317,7 +317,9 @@ func Test_scanWormholes(t *testing.T) {
 
 			universe := NewUniverse(testLogger, &rules)
 			universe.Wormholes = tt.fields.wormholes
-			universe.buildMaps(players)
+			if err := universe.buildMaps(players); err != nil {
+				t.Fatal(err)
+			}
 
 			// make a new scanner
 			discoverer := newDiscoverer(testLogger, player)
@@ -461,7 +463,9 @@ func Test_scanMineFields(t *testing.T) {
 			}
 			universe := NewUniverse(testLogger, &rules)
 			universe.MineFields = tt.fields.mineFields
-			universe.buildMaps(players)
+			if err := universe.buildMaps(players); err != nil {
+				t.Fatal(err)
+			}
 
 			// make a new scanner
 			discoverer := newDiscoverer(testLogger, player)

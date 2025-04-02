@@ -40,7 +40,7 @@ type PlayerMessageSpec struct {
 	PrevAmount            int                             `json:"prevAmount,omitempty"`
 	SourcePlayerNum       int                             `json:"sourcePlayerNum,omitempty"`
 	DestPlayerNum         int                             `json:"destPlayerNum,omitempty"`
-	Name                  string                          `json:"name,omitempty"`
+	Name                  string                          `json:"name,omitempty"` // The name of the object or target of this message.
 	Cost                  Cost                            `json:"cost,omitempty"`
 	Mineral               *Mineral                        `json:"mineral,omitempty"`
 	Cargo                 *Cargo                          `json:"cargo,omitempty"`
@@ -245,13 +245,16 @@ func newBattleMessage(messageType PlayerMessageType, planet *Planet, battle *Bat
 	return PlayerMessage{Type: messageType, Target: PlayerMessageTarget{TargetType: targetType, TargetNum: planetNum}, BattleNum: battle.Num}
 }
 
-// use a spec in this message. spec.Name must be specified because the message details
-// depend on it. Set it to the name of the PlayerMessage target
+// Set this PlayerMessage's spec to the specified value and return it.
 func (m PlayerMessage) withSpec(spec PlayerMessageSpec) PlayerMessage {
 	m.Spec = spec
 	return m
 }
 
+// Create a PlayerMessage with custom text.
+//
+// Deprecated: Message creation is now handled by the frontend Svelte server.
+// All existing uses of this should be phased out over time in lieu of [PlayerMessage.withSpec]
 func (m PlayerMessage) withText(text string) PlayerMessage {
 	m.Text = text
 	return m
@@ -531,12 +534,12 @@ func (m *messageClient) fleetStargateInvalidMass(player *Player, fleet *Fleet, w
 		withText(fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but your ships are far too massive for the gate's limits.", fleet.Name, wp0.TargetName, wp1.TargetName)))
 }
 
-func (m *messageClient) fleetStargateInvalidColonists(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint) {
+func (m *messageClient) fleetStargateInvalidColonists(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageInvalid, fleet).
 		withText(fmt.Sprintf("%s attempted to use a stargate at %s to reach %s, but you are carrying colonists and can't drop them off as you don't own the planet.", fleet.Name, wp0.TargetName, wp1.TargetName)))
 }
 
-func (m *messageClient) fleetStargateDumpedCargo(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint, cargo Cargo) {
+func (m *messageClient) fleetStargateDumpedCargo(player *Player, fleet *Fleet, wp0, wp1 Waypoint, cargo Cargo) {
 	var text string
 	if cargo.HasColonists() && cargo.HasMinerals() {
 		text = fmt.Sprintf("%s has unloaded %d colonists and %dkt of minerals in preparation for jumping through the stargate at %s to reach %s.", fleet.Name, cargo.Colonists*100, cargo.Total()-cargo.Colonists, wp0.TargetName, wp1.TargetName)
@@ -550,30 +553,34 @@ func (m *messageClient) fleetStargateDumpedCargo(player *Player, fleet *Fleet, w
 		withText(text))
 }
 
-func (m *messageClient) fleetStargateDestroyed(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint) {
+func (m *messageClient) fleetStargateDestroyed(player *Player, fleet *Fleet, wp0, wp1 Waypoint) {
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetStargateDamaged, fleet).
 		withText(fmt.Sprintf("Heedless to the danger, %s attempted to use the stargate at %s to reach %s. The fleet never arrived. The distance or mass must have been too great.", fleet.Name, wp0.TargetName, wp1.TargetName)))
 }
 
-func (m *messageClient) fleetStargateDamaged(player *Player, fleet *Fleet, wp0 Waypoint, wp1 Waypoint, damage int, shipsLostToDamage int, shipsLostToTheVoid int) {
-	totalShipsLost := shipsLostToDamage + shipsLostToTheVoid
+func (m *messageClient) fleetStargateDamaged(player *Player, fleet *Fleet, wp0, wp1 Waypoint, damage int) {
+	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetStargateDamaged, fleet).
+		withText(fmt.Sprintf("%s used the stargate at %s to reach %s losing no ships but suffering %d dp of damage. They exceeded the capability of the gates.",
+			fleet.Name, wp0.TargetName, wp1.TargetName, damage)))
+}
+
+func (m *messageClient) fleetStargateShipsLost(player *Player, fleet *Fleet, wp0, wp1 Waypoint, shipsLost int) {
 	var text string
-	if totalShipsLost == 0 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing no ships but suffering %d dp of damage. They exceeded the capability of the gates.", fleet.Name, wp0.TargetName, wp1.TargetName, damage)
-	} else if totalShipsLost < 5 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing only %d ship%s to the treacherous void. They were fortunate. They exceeded the capability of the gates.", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost, func() string {
-			if totalShipsLost == 1 {
+	switch {
+	case shipsLost < 5:
+		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing only %d ship%s to the treacherous void. They were fortunate. They exceeded the capability of the gates.", fleet.Name, wp0.TargetName, wp1.TargetName, shipsLost, func() string {
+			if shipsLost == 1 {
 				return ""
 			} else {
 				return "s"
 			}
 		}())
-	} else if totalShipsLost >= 5 && totalShipsLost <= 10 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing %d ships to the unforgiving void. Exceeding the capability of your stargates can be dangerous...", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost)
-	} else if totalShipsLost >= 10 && totalShipsLost <= 50 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing %d ships to the great unknown. Such disregard for stargates' capabilities is not recommended...", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost)
-	} else if totalShipsLost >= 50 {
-		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing an unbelievable %d ships to the cosmic ocean. The jump was far in excess of the capabilities of stargates involved...", fleet.Name, wp0.TargetName, wp1.TargetName, totalShipsLost)
+	case shipsLost >= 5:
+		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing %d ships to the unforgiving void. Exceeding the capability of your stargates can be dangerous...", fleet.Name, wp0.TargetName, wp1.TargetName, shipsLost)
+	case shipsLost >= 10:
+		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing %d ships to the great unknown. Such disregard for stargates' capabilities is not recommended...", fleet.Name, wp0.TargetName, wp1.TargetName, shipsLost)
+	default:
+		text = fmt.Sprintf("%s used the stargate at %s to reach %s losing an unbelievable %d ships to the cosmic ocean. The jump was far in excess of the capabilities of stargates involved...", fleet.Name, wp0.TargetName, wp1.TargetName, shipsLost)
 	}
 
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetStargateDamaged, fleet).

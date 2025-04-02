@@ -61,16 +61,18 @@ type mapObjectGetter interface {
 	getWormhole(num int) *Wormhole
 	getSalvage(num int) *Salvage
 	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool)
-	getMapObjectsAtPosition(position Vector) []interface{}
+	getMapObjectsAtPosition(position Vector) []any
 	isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool
-	updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector)
+	updateMapObjectAtPosition(mo any, originalPosition, newPosition Vector)
 }
 
+// A struct used as a key for universe maps containing numbered player objects.
 type playerObject struct {
 	PlayerNum int
 	Num       int
 }
 
+// Create a new playerObject keyed with playerNum and num.
 func playerObjectKey(playerNum int, num int) playerObject { return playerObject{playerNum, num} }
 
 type playerBattlePlanNum struct {
@@ -421,7 +423,8 @@ func (u *Universe) addFleet(fleet *Fleet) error {
 		// use the default battle plan if we couldn't find one for some reason, but log a warning
 		u.log.Warn().
 			Int("Player", fleet.PlayerNum).
-			Msgf("Unable to find battle plan %d for fleet %v", fleet.BattlePlanNum, fleet)
+			Any("Fleet", fleet).
+			Msgf("Unable to find battle plan #%d for fleet", fleet.BattlePlanNum)
 		fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, 0}]
 	}
 
@@ -430,7 +433,7 @@ func (u *Universe) addFleet(fleet *Fleet) error {
 		token := &fleet.Tokens[i]
 		token.design = u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
 		if token.design == nil {
-			return fmt.Errorf("unable to find design %d for fleet %s", token.DesignNum, fleet.Name)
+			return fmt.Errorf("unable to find design #%d for player %d inside fleet %q", token.DesignNum, fleet.PlayerNum, fleet.Name)
 		}
 	}
 	return nil

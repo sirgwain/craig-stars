@@ -66,7 +66,9 @@ func createSingleUnitGame() *FullGame {
 	universe.Planets = append(universe.Planets, planet)
 	universe.Fleets = append(universe.Fleets, fleet)
 
-	universe.buildMaps(players)
+	if err := universe.buildMaps(players); err != nil {
+		panic(err)
+	}
 
 	return &FullGame{
 		Game:      game,
@@ -141,7 +143,9 @@ func createTwoPlayerGame() *FullGame {
 	universe.Planets = append(universe.Planets, planet1, planet2)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2)
 
-	universe.buildMaps(players)
+	if err := universe.buildMaps(players); err != nil {
+		panic(err)
+	}
 
 	return &FullGame{
 		Game:      game,
@@ -830,11 +834,11 @@ func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
 		"Starbase",
 	)
 	player2.Designs = append(player2.Designs, starbaseDesign)
-	starbase.Spec = ComputeFleetSpec(&rules, player2, &starbase)
+	starbase.Spec = ComputeFleetSpec(&rules, player2, starbase)
 	starbase.Tokens[0].QuantityDamaged = 1
 	starbase.Tokens[0].Damage = 100
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
+	game.Starbases = append(game.Starbases, starbase)
+	planet.Starbase = starbase
 
 	player1.Race.Name = "Attacker"
 	player1.Race.PluralName = "Attackers"
@@ -1632,11 +1636,11 @@ func Test_turn_fleetRepair(t *testing.T) {
 		"Starbase",
 	)
 	player.Designs = append(player.Designs, starbaseDesign)
-	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
+	starbase.Spec = ComputeFleetSpec(&rules, player, starbase)
 	starbase.Tokens[0].QuantityDamaged = 1
 	starbase.Tokens[0].Damage = 400
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
+	game.Starbases = append(game.Starbases, starbase)
+	planet.Starbase = starbase
 
 	turn := turnGenerator{
 		game: game,
@@ -1927,8 +1931,8 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 		"Starbase",
 	)
 	player.Designs = append(player.Designs, starbaseDesign)
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
+	game.Starbases = append(game.Starbases, starbase)
+	planet.Starbase = starbase
 
 	turn := turnGenerator{
 		game: game,
@@ -2121,11 +2125,11 @@ func Test_turn_fleetRefuel(t *testing.T) {
 		"Starbase",
 	)
 	player.Designs = append(player.Designs, starbaseDesign)
-	starbase.Spec = ComputeFleetSpec(&rules, player, &starbase)
+	starbase.Spec = ComputeFleetSpec(&rules, player, starbase)
 	starbase.Tokens[0].QuantityDamaged = 1
 	starbase.Tokens[0].Damage = 100
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
+	game.Starbases = append(game.Starbases, starbase)
+	planet.Starbase = starbase
 
 	turn := turnGenerator{
 		game: game,
@@ -2432,7 +2436,9 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 	universe := NewUniverse(testLogger, &game.Rules)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2, fleet3)
 
-	universe.buildMaps(players)
+	if err := universe.buildMaps(players); err != nil {
+		t.Fatal(err)
+	}
 
 	fg := &FullGame{
 		Game:      game,
@@ -2499,9 +2505,9 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 		"Starbase",
 	)
 	player1.Designs = append(player1.Designs, starbaseDesign)
-	starbase.Spec = ComputeFleetSpec(&rules, player1, &starbase)
-	game.Starbases = append(game.Starbases, &starbase)
-	planet.Starbase = &starbase
+	starbase.Spec = ComputeFleetSpec(&rules, player1, starbase)
+	game.Starbases = append(game.Starbases, starbase)
+	planet.Starbase = starbase
 
 	// replace player1's fleet with a destroyer and set it to patrol
 	fleet1 := testJihadCruiser(player1)

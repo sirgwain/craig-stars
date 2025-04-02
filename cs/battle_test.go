@@ -50,6 +50,10 @@ func testStalwartDefenderWithQuantity(player *Player, quantity int) *Fleet {
 }
 
 func testJihadCruiser(player *Player) *Fleet {
+	return testJihadCruiserWithQuantity(player, 1)
+}
+
+func testJihadCruiserWithQuantity(player *Player, qty int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
@@ -59,7 +63,7 @@ func testJihadCruiser(player *Player) *Fleet {
 		Tokens: []ShipToken{
 			{
 				DesignNum: 1,
-				Quantity:  1,
+				Quantity:  qty,
 				design: NewShipDesign(player.Num, 1).
 					WithHull(Cruiser.Name).
 					WithSlots([]ShipDesignSlot{

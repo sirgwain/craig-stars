@@ -155,6 +155,9 @@
 			}
 		}
 		availableStarbaseDesigns = [...availableStarbaseDesigns];
+
+		// Enable to log production queue items on estimating
+		// JSON.stringify(queueItems, null, "\t")
 	}
 
 	function getPercentComplete(item: ProductionQueueItem): number {

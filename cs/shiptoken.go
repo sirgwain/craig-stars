@@ -47,28 +47,31 @@ func (st *ShipToken) applyMineDamage(damage int) tokenDamage {
 }
 
 // Apply overgate damage (if any) to each token that overgated
-func (st *ShipToken) applyOvergateDamage(dist float64, safeRange int, safeSourceMass int, safeDestMass int, maxMassFactor int) tokenDamage {
+func (st *ShipToken) applyOvergateDamage(dist float64, safeRange, safeSourceMass, safeDestMass, maxMassFactor, maxRangeFactor int) (damage tokenDamage) {
 	if st.Quantity == 0 {
 		// no ships means nothing to damage
-		return tokenDamage{damage: 0, shipsDestroyed: 0}
+		return tokenDamage{}
 	}
 
 	// testing with overgating 12 scouts 479.5 ly with a 250ly gate
 	// 1st run damaged all 12 by 20% (4 damage each);
 	// subsequent runs went 40%, 60%, 80%, then 100% (destroying all ships).
 
-	rangeDamageFactor := st.getStargateRangeDamageFactor(dist, safeRange)
+	rangeDamageFactor := st.getStargateRangeDamageFactor(dist, safeRange, maxRangeFactor)
 	massDamageFactor := st.getStargateMassDamageFactor(safeSourceMass, safeDestMass, maxMassFactor)
 
-	// damage capped at 98% for a single overgate
-	totalDamageFactor := min(0.98, massDamageFactor+(1-massDamageFactor)*rangeDamageFactor)
+	// range and mass damage stack multiplicatively, capping at 98% per instance
+	totalDamageFactor := min(0.98, 1-(1-massDamageFactor)*(1-rangeDamageFactor))
 
 	// apply damage as a percentage of armor to all tokens
 	armor := st.design.Spec.Armor
 	existingDamage := st.Damage
 
-	var tokensDestroyed int
 	damagePerShip := int(math.Round(totalDamageFactor * float64(armor)))
+
+	if damagePerShip <= 0 {
+		return tokenDamage{}
+	}
 
 	// ships are never destroyed by overgating if they aren't already damaged
 	if existingDamage == 0 && damagePerShip >= armor {
@@ -77,56 +80,58 @@ func (st *ShipToken) applyOvergateDamage(dist float64, safeRange int, safeSource
 
 	st.Damage += float64(damagePerShip)
 
+	var tokensDestroyed int
 	if st.Damage >= float64(armor) {
-		// our damage exceeds our armor, destroy any previous damaged ships
+		// our damage exceeds our armor, destroy all previously damaged tokens.
+		// We don't need to update damagePerShip for the return since damage is ignored
+		// in messages involving dead ships
 		tokensDestroyed = st.QuantityDamaged
 		st.Quantity -= st.QuantityDamaged
-	}
-
-	// apply overgate damage to any leftover tokens
-	if damagePerShip > 0 {
 		st.Damage = float64(damagePerShip)
-		st.QuantityDamaged = st.Quantity
-
-		if st.Quantity == 0 {
-			// can't damage something that isn't there
-			st.Damage = 0
-		}
 	}
 
-	return tokenDamage{damagePerShip, tokensDestroyed}
+	// update token damaged quantity, resetting damage to 0 if entirely wiped out
+	st.QuantityDamaged = st.Quantity
+	if st.Quantity == 0 {
+		st.Damage = 0
+	}
+
+	return tokenDamage{damagePerShip * st.Quantity, tokensDestroyed}
 }
 
-func (t *ShipToken) getStargateRangeDamageFactor(dist float64, safeRange int) (rangeDamageFactor float64) {
+func (t *ShipToken) getStargateRangeDamageFactor(dist float64, safeRange, maxSafeRange int) (rangeDamageFactor float64) {
 	if safeRange == InfiniteGate || safeRange >= int(dist) {
 		return 0
 	}
 
 	// Formula: (dist-safeRange)/(4*safeRange)
-	return (dist - float64(safeRange)) / (4.0 * float64(safeRange))
+	return (dist - float64(safeRange)) / float64((maxSafeRange-1)*safeRange)
 }
 
-func (t *ShipToken) getStargateMassDamageFactor(safeSourceMass int, safeDestMass int, maxMassFactor int) float64 {
+func (t *ShipToken) getStargateMassDamageFactor(safeSourceMass int, safeDestMass int, maxSafeMass int) float64 {
 	mass := t.design.Spec.Mass
 	sourceMassDamageFactor := 1.0
 	destMassDamageFactor := 1.0
-	if safeSourceMass != InfiniteGate && safeSourceMass < mass {
-		sourceMassDamageFactor = (float64(maxMassFactor)*float64(safeSourceMass) - float64(mass)) / (4.0 * float64(safeSourceMass))
+	// dmg% = 1 - (5*safeMass-shipMass) / (4*safeMass)
+	// This occurs invididually for both source and dest gates
+	// reaching 100% once either source or dest gates' capacities are exceeded by 5x.
+	if safeSourceMass < mass {
+		sourceMassDamageFactor = float64(maxSafeMass*safeSourceMass-mass) / float64((maxSafeMass-1)*safeSourceMass)
 	}
-	if safeDestMass != InfiniteGate && safeDestMass < mass {
-		destMassDamageFactor *= (float64(maxMassFactor)*float64(safeDestMass) - float64(mass)) / (4.0 * float64(safeDestMass))
+	if safeDestMass < mass {
+		destMassDamageFactor = float64(maxSafeMass*safeDestMass-mass) / float64((maxSafeMass-1)*safeDestMass)
 	}
 
-	return 1 - (sourceMassDamageFactor * destMassDamageFactor)
+	return 1 - sourceMassDamageFactor*destMassDamageFactor
 }
 
 // applyOvergateVanishing vanishes overgating ship tokens exceeding safe limits,
 // reducing token quanitity as appropriate.
 // It returns the total number of tokens vanished (origQty - newQty).
 func (token *ShipToken) applyOvergateVanishing(rules *Rules, distance float64, sourceRange, sourceMass int) (shipsLost int) {
-	rangeVanishChance := max(0, token.getOvergateRangeVanishingChance(distance, sourceRange))
-	massVanishChance := max(0, token.getOvergateMassVanishingChance(sourceMass, rules.StargateMaxHullMassFactor))
-	if rangeVanishChance == 0 && massVanishChance == 0 {
+	rangeVanishChance := token.getOvergateRangeVanishingChance(distance, sourceRange, rules.StargateMaxRangeFactor)
+	massVanishChance := token.getOvergateMassVanishingChance(sourceMass, rules.StargateMaxHullMassFactor)
+	if rangeVanishChance <= 0 && massVanishChance <= 0 {
 		// neither range nor mass can harm us; return
 		return
 	}
@@ -165,6 +170,7 @@ func (t *ShipToken) getOvergateMassVanishingChance(safeSourceMass int, maxMassFa
 	}
 	// Mass Vanishing % = 100/3*[1-(5*maxMass-mass)^2/(4*maxMass)^2], rounded down to nearest 1%.
 	// where maxMass is the maximum safe mass for the sending gate.
+	// This caps out at 33% at 5x max mass
 	vanishingChance := 100.0 / 3 * (1 -
 		float64(PowInt(maxMassFactor*safeSourceMass-t.design.Spec.Mass, 2))/
 			float64(PowInt(4*safeSourceMass, 2)))
@@ -175,10 +181,10 @@ func (t *ShipToken) getOvergateMassVanishingChance(safeSourceMass int, maxMassFa
 
 // getOvergateRangeVanishingChance returns the range-based portion of this ShipToken's
 // overgate vanishing chance.
-func (t *ShipToken) getOvergateRangeVanishingChance(dist float64, safeRange int) (rangeChance float64) {
+func (t *ShipToken) getOvergateRangeVanishingChance(dist float64, safeRange, maxSafeRange int) (rangeChance float64) {
 	// Range vanishing chance is roughly equal to 1/3 damage dealt -
 	// 60% range damage factor = 20% loss chance.
-	chance := 100 * t.getStargateRangeDamageFactor(dist, safeRange) / 3
+	chance := 100 * t.getStargateRangeDamageFactor(dist, safeRange, maxSafeRange) / 3
 
 	// return chance rounded down to nearest %
 	return math.Floor(chance) / 100

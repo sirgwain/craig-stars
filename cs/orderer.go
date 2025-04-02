@@ -623,15 +623,15 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	source.Tokens = updatedTokens
 
 	// update fleet specs
-	fleet.Spec = ComputeFleetSpec(rules, player, &fleet)
+	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// split any immediate cargo transfers as well
-	if err := player.CargoTransfers.splitByHandTransfers(source, &fleet); err != nil {
+	if err := player.CargoTransfers.splitByHandTransfers(source, fleet); err != nil {
 		return nil, fmt.Errorf("unable to split immediate cargo transfers %w", err)
 	}
 
-	return &fleet, nil
+	return fleet, nil
 }
 
 // merge fleets into a single fleet

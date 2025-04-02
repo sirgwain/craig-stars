@@ -167,8 +167,8 @@ func Test_production_produce(t *testing.T) {
 				{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
 			}).WithSpec(&rules, player)
 		starbaseFleet := newStarbase(player, planet, starbaseDesign, t.Name())
-		starbaseFleet.Spec = ComputeFleetSpec(&rules, player, &starbaseFleet)
-		planet.Starbase = &starbaseFleet
+		starbaseFleet.Spec = ComputeFleetSpec(&rules, player, starbaseFleet)
+		planet.Starbase = starbaseFleet
 		planet.Spec.PlanetStarbaseSpec = computePlanetStarbaseSpec(planet)
 
 		planet.PacketTargetNum = None // Oops, no target!
@@ -537,8 +537,8 @@ func Test_production_produce(t *testing.T) {
 			}).WithSpec(&rules, player)
 
 		player.Designs = append(player.Designs, starbaseDesign1, starbaseDesign2)
-		starbaseFleet.Spec = ComputeFleetSpec(&rules, player, &starbaseFleet)
-		planet.Starbase = &starbaseFleet
+		starbaseFleet.Spec = ComputeFleetSpec(&rules, player, starbaseFleet)
+		planet.Starbase = starbaseFleet
 
 		planet.ProductionQueue = []ProductionQueueItem{
 			{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 3, design: starbaseDesign2},

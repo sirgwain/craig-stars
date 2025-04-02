@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/test"
@@ -752,7 +753,9 @@ func TestFleet_moveFleet(t *testing.T) {
 			if tt.args.planet != nil {
 				universe.Planets = []*Planet{tt.args.planet}
 			}
-			universe.buildMaps([]*Player{player})
+			if err := universe.buildMaps([]*Player{player}); err != nil {
+				t.Fatal(err)
+			}
 
 			tt.fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
@@ -808,18 +811,20 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 				NewPositionWaypoint(Vector{999, 0}, tt.warpSpeed),
 			)
 			universe := Universe{Fleets: []*Fleet{fleet}}
-			universe.buildMaps([]*Player{player})
+			if err := universe.buildMaps([]*Player{player}); err != nil {
+				t.Fatal(err)
+			}
 
 			rules := NewRules()
 			rules.random = tt.random
 
 			fleet.moveFleet(&rules, &universe, newTestPlayerGetter(player))
 
-			if (fleet.Position != Vector{0, 0}) != tt.wantMoved {
+			if (fleet.Position != Vector{}) != tt.wantMoved {
 				if tt.wantMoved {
-					t.Errorf("Fleet.moveFleetEngineFailure() did not move fleet when expected")
+					t.Error("Fleet.moveFleet() did not move fleet when expected")
 				} else {
-					t.Errorf("Fleet.moveFleetEngineFailure() moved fleet to position %+v; expected no movement", fleet.Position)
+					t.Errorf("Fleet.moveFleet() moved fleet to position %+v; expected engine failure", fleet.Position)
 				}
 			}
 		})
@@ -827,92 +832,214 @@ func TestFleet_moveFleetEngineFailure(t *testing.T) {
 }
 
 func TestFleet_gateFleet(t *testing.T) {
+	// TODO: Add IT test cases
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1)
-	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}}
-	sourcePlanet := NewPlanet().WithNum(1).WithPlayerNum(1)
-	sourcePlanet.Spec = PlanetSpec{
-		PlanetStarbaseSpec: PlanetStarbaseSpec{
-			HasStargate:  true,
-			SafeRange:    100,
-			SafeHullMass: 100,
-			MaxRange:     500,
-			MaxHullMass:  500,
-		},
-	}
-	destPlanet := NewPlanet().WithNum(2).WithPlayerNum(1)
-	destPlanet.Spec = PlanetSpec{
-		PlanetStarbaseSpec: PlanetStarbaseSpec{
-			HasStargate:  true,
-			SafeRange:    100,
-			SafeHullMass: 100,
-			MaxRange:     500,
-			MaxHullMass:  500,
-		},
-	}
+	destPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2)
+	// friends with ourselves and the target planet's owner
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
+	destPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationFriend}}
+
+	var middleOfNowhere = Vector{200, 0}
+
+	// make 2 planets with 100/250 gates
+	sourcePlanet := NewPlanet().WithNum(1).WithPlayerNum(player.Num).WithName("Source Planet")
+	sourcePlanet.Starbase = newStarbase(player, sourcePlanet, NewShipDesign(player.Num, 1).
+		WithHull(SpaceStation.Name).
+		WithSlots([]ShipDesignSlot{{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1}}).
+		WithSpec(&rules, player), "Source Base").withSpec(&rules, player)
+	destPlanet := NewPlanet().WithNum(2).WithPlayerNum(destPlayer.Num).withPosition(Vector{50, 0}).WithName("Dest Planet")
+	destPlanet.Starbase = newStarbase(destPlayer, destPlanet, NewShipDesign(destPlayer.Num, 1).
+		WithHull(SpaceStation.Name).
+		WithSlots([]ShipDesignSlot{{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1}}).
+		WithSpec(&rules, destPlayer), "Dest Base").withSpec(&rules, player)
+	sourcePlanet.Spec = computePlanetSpec(&rules, player, sourcePlanet)
+	destPlanet.Spec = computePlanetSpec(&rules, player, destPlanet)
+
+	heavyNubianDesign := NewShipDesign(player.Num, 2).WithHull(Nubian.Name).WithSlots([]ShipDesignSlot{
+		{HullComponent: Interspace10.Name, HullSlotIndex: 1, Quantity: 3},    // 175kT with hull
+		{HullComponent: JihadMissile.Name, HullSlotIndex: 2, Quantity: 3},    // 305kT
+		{HullComponent: JihadMissile.Name, HullSlotIndex: 3, Quantity: 3},    // 410kT
+		{HullComponent: MineDispenser50.Name, HullSlotIndex: 4, Quantity: 3}, // 495kT
+	}).WithSpec(&rules, player)
 
 	type want struct {
-		position          Vector
-		orbitingPlanetNum int
+		position Vector
+		exploded int
+		message  bool
+		cargo    Cargo
 	}
 	tests := []struct {
-		name        string
-		fleet       *Fleet
-		want        want
-		wantMessage bool
+		name      string
+		fleet     *Fleet
+		waypoints []Waypoint
+		rng       rng
+		want      want
 	}{
 		{
-			name: "gate between planets",
-			fleet: testLongRangeScout(player).
+			name:  "no source planet",
+			fleet: testLongRangeScout(player).withPosition(middleOfNowhere),
+			waypoints: []Waypoint{
+				NewPositionWaypoint(middleOfNowhere, 5),
+				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, StargateWarpSpeed),
+			},
+			want: want{position: middleOfNowhere, message: true},
+		},
+		{
+			name:  "no dest planet",
+			fleet: testLongRangeScout(player),
+			waypoints: []Waypoint{
+				NewPlanetWaypoint(sourcePlanet.Position, sourcePlanet.Num, sourcePlanet.Name, 5),
+				NewPositionWaypoint(middleOfNowhere, StargateWarpSpeed),
+			},
+			want: want{position: sourcePlanet.Position, message: true},
+		},
+		{
+			name: "ship explodes",
+			fleet: newFleetForTokens(player, 1, "this gets overridden", []ShipToken{
+				{design: heavyNubianDesign, Quantity: 1, Damage: 1000, QuantityDamaged: 1}}, nil),
+			waypoints: []Waypoint{
+				NewPlanetWaypoint(sourcePlanet.Position, sourcePlanet.Num, sourcePlanet.Name, 5),
+				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, StargateWarpSpeed),
+			},
+			rng:  newFloat64Random(1), // doesn't vanish, but explodes regardless
+			want: want{position: sourcePlanet.Position, exploded: 1, message: true},
+		},
+		{
+			name: "can't dump colonists on others' worlds",
+			fleet: testSmallFreighter(player).
+				withCargo(Cargo{100, 100, 100, 100}),
+			// start at other player's starbase and trying to return home
+			waypoints: []Waypoint{
+				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, 5),
+				NewPlanetWaypoint(sourcePlanet.Position, sourcePlanet.Num, sourcePlanet.Name, StargateWarpSpeed),
+			},
+			want: want{position: destPlanet.Position, cargo: Cargo{100, 100, 100, 100}, message: true},
+		},
+		{
+			name: "can't gate; ships too heavy",
+			fleet: newFleetForTokens(player, 69420, "this gets overridden", []ShipToken{
+				{design: NewShipDesign(player.Num, 2).WithHull(Nubian.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: Interspace10.Name, HullSlotIndex: 1, Quantity: 3}, // 175kT with hull
+					{HullComponent: Carbonic.Name, HullSlotIndex: 3, Quantity: 3},     // 275kT
+					{HullComponent: Tritanium.Name, HullSlotIndex: 3, Quantity: 3},    // 455kT
+					{HullComponent: JihadMissile.Name, HullSlotIndex: 4, Quantity: 3}, // 560kT
+				}).WithSpec(&rules, player), Quantity: 10},
+				{design: testLongRangeScoutDesign(player.Num).WithSpec(&rules, player), Quantity: 10}}, nil),
+			waypoints: []Waypoint{
+				NewPlanetWaypoint(sourcePlanet.Position, sourcePlanet.Num, sourcePlanet.Name, 5),
+				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, StargateWarpSpeed),
+			},
+			want: want{position: sourcePlanet.Position, message: true},
+		},
+		{
+			name:  "gate succeeds",
+			fleet: testLongRangeScout(player),
+			waypoints: []Waypoint{
+				NewPlanetWaypoint(sourcePlanet.Position, sourcePlanet.Num, sourcePlanet.Name, 5),
+				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, StargateWarpSpeed),
+			},
+			want: want{position: destPlanet.Position},
+		},
+		{
+			name: "gate succeeds, dump cargo",
+			fleet: testSmallFreighter(player).
 				withOrbitingPlanetNum(sourcePlanet.Num).
-				withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
-			want: want{position: Vector{50, 0}, orbitingPlanetNum: destPlanet.Num},
+				withCargo(Cargo{100, 100, 100, 20}),
+			waypoints: []Waypoint{
+				NewPlanetWaypoint(sourcePlanet.Position, sourcePlanet.Num, sourcePlanet.Name, 5),
+				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, StargateWarpSpeed),
+			},
+			want: want{position: destPlanet.Position, cargo: Cargo{}, message: true},
 		},
 		{
-			name: "gate fail, no source",
-			fleet: testLongRangeScout(player).
-				withPosition(Vector{200, 0}).
-				withWaypoints(NewPositionWaypoint(Vector{200, 0}, 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
-			want:        want{position: Vector{200, 0}},
-			wantMessage: true,
+			name: "mixed fleet gates with losses",
+			fleet: newFleetForTokens(player, 69420, "this gets overridden", []ShipToken{
+				{design: heavyNubianDesign, Quantity: 10},
+				{design: testLongRangeScoutDesign(player.Num).WithSpec(&rules, player), Quantity: 10}}, nil),
+			waypoints: []Waypoint{
+				NewPlanetWaypoint(sourcePlanet.Position, sourcePlanet.Num, sourcePlanet.Name, 5),
+				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, StargateWarpSpeed),
+			},
+			// 1/3 mass vanish chance on nubians means the first 4 rolls pass.
+			// Rest of them default to 0, but the scouts won't vanish anyways
+			rng:  newFloat64Random(0.30, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39, 0.4),
+			want: want{position: destPlanet.Position, exploded: 6, message: true},
 		},
 		{
-			name: "gate fail, no dest",
-			fleet: testLongRangeScout(player).
-				withWaypoints(NewPlanetWaypoint(Vector{0, 0}, 1, "planet 1", 5), NewPositionWaypoint(Vector{200, 0}, StargateWarpSpeed)),
-			want:        want{position: Vector{0, 0}},
-			wantMessage: true,
+			name: "vanish prioritizes damaged tokens",
+			fleet: newFleetForTokens(player, 1, "this gets overridden", []ShipToken{
+				// Exactly enough damage to kill an overgated nubian (2% of 5000)
+				{design: heavyNubianDesign, Quantity: 6, Damage: 100, QuantityDamaged: 56}}, nil),
+			waypoints: []Waypoint{
+				NewPlanetWaypoint(sourcePlanet.Position, sourcePlanet.Num, sourcePlanet.Name, 5),
+				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, StargateWarpSpeed),
+			},
+			// first damaged ship vanishes, leaving only 1 ship surviving
+			rng:  newFloat64Random(0, 1, 1, 1, 1, 1),
+			want: want{position: destPlanet.Position, exploded: 5, message: true},
 		},
 		{
-			name: "jump gate",
+			name: "jump gate from middle of space",
 			fleet: testGatePrivateer(player, 1).
-				withPosition(Vector{200, 0}).
-				withCargo(Cargo{10, 10, 10, 10}). // jumpgates allow cargo, sweet!
-				withWaypoints(NewPositionWaypoint(Vector{200, 0}, 5), NewPlanetWaypoint(Vector{50, 0}, 2, "planet 2", StargateWarpSpeed)),
-			want: want{position: Vector{50, 0}, orbitingPlanetNum: destPlanet.Num},
+				withPosition(middleOfNowhere).
+				withCargo(Cargo{10, 10, 10, 10}),
+			waypoints: []Waypoint{
+				NewPositionWaypoint(middleOfNowhere, 5),
+				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, StargateWarpSpeed),
+			},
+			rng:  newFloat64Random(1), // make sure we get a highroll and don't explode
+			want: want{position: destPlanet.Position, cargo: Cargo{10, 10, 10, 10}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			rCopy := NewRules()
+			player.Messages = []PlayerMessage{} // reset any messages from prior turns
+			if tt.rng != nil {
+				rCopy.random = tt.rng
+			}
+
+			// reset player designs & add them back, all while tracking original quantities for a headcount later
+			player.Designs = []*ShipDesign{}
+			initQty := 0
 			for _, token := range tt.fleet.Tokens {
 				player.Designs = append(player.Designs, token.design)
+				initQty += token.Quantity
 			}
+			tt.fleet.Waypoints = tt.waypoints
+			tt.fleet.OrbitingPlanetNum = tt.waypoints[0].TargetNum
+			tt.fleet.Name = tt.name // for debugging test cases
+			tt.fleet.Spec = ComputeFleetSpec(&rCopy, player, tt.fleet)
 			universe := Universe{
-				Fleets:       []*Fleet{tt.fleet},
-				Planets:      []*Planet{sourcePlanet, destPlanet},
-				designsByNum: map[playerObject]*ShipDesign{},
+				Fleets:  []*Fleet{tt.fleet},
+				Planets: []*Planet{sourcePlanet, destPlanet},
 			}
-			universe.buildMaps([]*Player{player})
+			if err := universe.buildMaps([]*Player{player, destPlayer}); err != nil {
+				t.Fatal(err)
+			}
 
-			tt.fleet.gateFleet(&rules, &universe, newTestPlayerGetter(player))
+			tt.fleet.gateFleet(&rCopy, &universe, newTestPlayerGetter(player, destPlayer))
 
 			if tt.fleet.Position != tt.want.position {
 				t.Errorf("Fleet.gateFleet() position = %v, want %v", tt.fleet.Position, tt.want.position)
 			}
-			if tt.fleet.OrbitingPlanetNum != tt.want.orbitingPlanetNum {
-				t.Errorf("Fleet.gateFleet() OrbitingPlanetNum = %v, want %v", tt.fleet.OrbitingPlanetNum, tt.want.orbitingPlanetNum)
+
+			if tt.fleet.Cargo != tt.want.cargo {
+				t.Errorf("Fleet.gateFleet() produced fleet cargo \n%+v, want \n%+v", tt.fleet.Cargo, tt.want.cargo)
 			}
-			if tt.wantMessage && len(player.Messages) == 0 {
-				t.Errorf("Fleet.gateFleet() wantMessages, got none")
+			if exploded := initQty - tt.fleet.Spec.TotalShips; exploded != tt.want.exploded {
+				t.Errorf("Fleet.gateFleet() destroyed %d tokens, want %d", exploded, tt.want.exploded)
+			}
+			if tt.want.message != (len(player.Messages) > 0) {
+				if tt.want.message {
+					t.Errorf("Fleet.gateFleet() expected to produce messages, got none")
+				} else {
+					messages, err := json.MarshalIndent(player.Messages, "", "\t")
+					if err != nil {
+						t.Fatalf("Error marshaling unexpected messages to JSON: \n%v", err)
+					}
+					t.Errorf("Fleet.gateFleet() produced messages unexpectedly; messages: \n%s", string(messages))
+				}
 			}
 
 		})
@@ -921,156 +1048,144 @@ func TestFleet_gateFleet(t *testing.T) {
 
 func TestFleet_repairFleet(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
+	var midgetMiner = NewShipDesign(player.Num, 1).
+		WithHull(MidgetMiner.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+		})
+
 	type args struct {
 		prt    PRT
-		fleet  *Fleet
+		tokens []ShipToken
 		planet *Planet
 	}
+	type want struct {
+		Damage          float64
+		QuantityDamaged int
+	}
 	tests := []struct {
-		name string
-		args args
-		want []ShipToken
+		name   string
+		args   args
+		moving bool // TODO: Add moving fleet test cases
+		want   []want
 	}{
-		{"no damage", args{JoaT, testLongRangeScout(player), nil}, []ShipToken{{QuantityDamaged: 0, Damage: 0}}},
-		{"repair min 1dp", args{JoaT,
-			&Fleet{
-				MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-				BaseName:  "Long Range Scout",
-				Tokens: []ShipToken{
-					{
-						Quantity:        1,
-						QuantityDamaged: 1,
-						Damage:          10,
-						DesignNum:       1,
-						design: NewShipDesign(player.Num, 1).
-							WithHull(Scout.Name).
-							WithSlots([]ShipDesignSlot{
-								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-							}).
-							WithSpec(&rules, player)},
-				},
-				OrbitingPlanetNum: None,
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{
-						NewPositionWaypoint(Vector{}, 5),
-					},
-				},
+		// TODO: Add super fuel xport tests
+		{
+			name: "no damage",
+			args: args{
+				prt: JoaT,
+				tokens: []ShipToken{{
+					Quantity:        1,
+					QuantityDamaged: 0,
+					Damage:          0,
+					design:          testLongRangeScoutDesign(1),
+				}},
+				planet: nil,
 			},
-			nil,
+			want: []want{{
+				QuantityDamaged: 0, // these are zero values but just for clarity
+				Damage:          0,
+			}},
 		},
-			// should repair 2% (min 1dp)
-			[]ShipToken{{QuantityDamaged: 1, Damage: 9}},
-		},
-		{"repair 5% when orbiting our planet", args{JoaT,
-			&Fleet{
-				MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-				BaseName:  "100dp Fleet",
-				Tokens: []ShipToken{
-					{
-						Quantity:        3,
-						QuantityDamaged: 2,
-						Damage:          10,
-						DesignNum:       1,
-						design: NewShipDesign(player.Num, 1).
-							WithHull(MidgetMiner.Name). // has 100dp armor
-							WithSlots([]ShipDesignSlot{
-								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-							}).
-							WithSpec(&rules, player)},
-				},
-				OrbitingPlanetNum: 1,
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{
-						NewPositionWaypoint(Vector{}, 5),
-					},
-				},
+		{
+			name: "repair min 1dp",
+			args: args{
+				prt: JoaT,
+				tokens: []ShipToken{{
+					Quantity:        1,
+					QuantityDamaged: 1,
+					Damage:          10,
+					design:          testLongRangeScoutDesign(1),
+				}},
+				planet: nil,
 			},
-			NewPlanet().WithNum(1).WithPlayerNum(player.Num),
+			want: []want{{
+				QuantityDamaged: 1,
+				Damage:          9,
+			}},
 		},
-			// should repair 5% of 100, or 5 dp (on both damaged tokens)
-			[]ShipToken{{QuantityDamaged: 2, Damage: 5}},
-		},
-		{"IS repair double (10%) when orbiting our planet", args{IS,
-			&Fleet{
-				MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-				BaseName:  "100dp Fleet",
-				Tokens: []ShipToken{
-					{
-						Quantity:        1,
-						QuantityDamaged: 1,
-						Damage:          20,
-						DesignNum:       1,
-						design: NewShipDesign(player.Num, 1).
-							WithHull(MidgetMiner.Name). // has 100dp armor
-							WithSlots([]ShipDesignSlot{
-								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-							}).
-							WithSpec(&rules, player)},
-				},
-				OrbitingPlanetNum: 1,
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{
-						NewPositionWaypoint(Vector{}, 5),
-					},
-				},
+		{
+			name: "repair 5% when orbiting our planet",
+			args: args{
+				prt: JoaT,
+				tokens: []ShipToken{{
+					Quantity:        3,
+					QuantityDamaged: 2,
+					Damage:          10,
+					design:          midgetMiner,
+				}},
+				planet: NewPlanet().WithNum(1).WithPlayerNum(player.Num),
 			},
-			NewPlanet().WithNum(1).WithPlayerNum(player.Num),
+			want: []want{{
+				QuantityDamaged: 2,
+				Damage:          5,
+			}},
 		},
-			// should repair 5% of 100, or 5 dp (on both damaged tokens)
-			[]ShipToken{{QuantityDamaged: 1, Damage: 10}},
-		},
-		{"repair fully", args{JoaT,
-			&Fleet{
-				MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-				BaseName:  "100dp Fleet",
-				Tokens: []ShipToken{
-					{
-						Quantity:        3,
-						QuantityDamaged: 2,
-						Damage:          5,
-						DesignNum:       1,
-						design: NewShipDesign(player.Num, 1).
-							WithHull(MidgetMiner.Name). // has 100dp armor
-							WithSlots([]ShipDesignSlot{
-								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-							}).
-							WithSpec(&rules, player)},
-				},
-				OrbitingPlanetNum: 1,
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{
-						NewPositionWaypoint(Vector{}, 5),
-					},
-				},
+		{
+			name: "IS repair double",
+			args: args{
+				prt: IS,
+				tokens: []ShipToken{{
+					Quantity:        1,
+					QuantityDamaged: 1,
+					Damage:          20,
+					design:          midgetMiner,
+				}},
+				planet: NewPlanet().WithNum(1).WithPlayerNum(player.Num),
 			},
-			NewPlanet().WithNum(1).WithPlayerNum(player.Num),
+			want: []want{{
+				QuantityDamaged: 1,
+				Damage:          10,
+			}},
 		},
-			// should repair 5% of 100, or 5 dp (on both damaged tokens)
-			[]ShipToken{{QuantityDamaged: 0, Damage: 0}},
+		{
+			name: "repair fully",
+			args: args{
+				prt: JoaT,
+				tokens: []ShipToken{{
+					Quantity:        3,
+					QuantityDamaged: 2,
+					Damage:          5,
+					design:          midgetMiner,
+				}},
+				planet: NewPlanet().WithNum(1).WithPlayerNum(player.Num),
+			},
+			want: []want{{
+				QuantityDamaged: 0,
+				Damage:          0,
+			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if len(tt.args.tokens) != len(tt.want) {
+				t.Fatalf("Incorrect test setup for test %q; tt.want and tt.args.tokens must be same length", tt.name)
+			}
+
 			p := *player
 			p.Race.PRT = tt.args.prt
 			p.Race.Spec = computeRaceSpec(&p.Race, &rules)
 
-			tt.args.fleet.Spec = ComputeFleetSpec(&rules, player, tt.args.fleet)
-
-			// if a planet is passed in, orbit it
-			if tt.args.planet != nil {
-				tt.args.fleet.OrbitingPlanetNum = tt.args.planet.Num
+			for i := range tt.args.tokens {
+				tt.args.tokens[i].design = tt.args.tokens[i].design.WithSpec(&rules, player)
+			}
+			fleet := newFleetForTokens(&p, 1, tt.name, tt.args.tokens, []Waypoint{{Position: Vector{}}})
+			if tt.moving {
+				// add extra waypoint if we're supposed to move
+				fleet.Waypoints = append(fleet.Waypoints, Waypoint{Position: Vector{1, 1}})
 			}
 
-			tt.args.fleet.repairFleet(testLogger, &rules, &p, tt.args.planet)
+			fleet.Spec = ComputeFleetSpec(&rules, &p, fleet)
 
-			for i := range tt.args.fleet.Tokens {
-				token := tt.args.fleet.Tokens[i]
-				if token.Damage != tt.want[i].Damage {
-					t.Errorf("Fleet.repairFleet() token %d gotDamage = %v, wantDamage %v", i, token.Damage, tt.want[i].Damage)
+			fleet.repairFleet(testLogger, &rules, &p, tt.args.planet)
+
+			for i, token := range fleet.Tokens {
+				want := tt.want[i]
+				if token.Damage != want.Damage {
+					t.Errorf("Fleet.repairFleet() gotDamage for token #%d = %v, wantDamage %v", i, token.Damage, want.Damage)
 				}
-				if token.QuantityDamaged != tt.want[i].QuantityDamaged {
-					t.Errorf("Fleet.repairFleet() token %d gotQuantityDamaged = %v, wantQuantityDamaged %v", i, token.QuantityDamaged, tt.want[i].QuantityDamaged)
+				if token.QuantityDamaged != want.QuantityDamaged {
+					t.Errorf("Fleet.repairFleet() gotQuantityDamaged for token #%d = %v, wantQuantityDamaged %v", i, token.QuantityDamaged, want.QuantityDamaged)
 				}
 			}
 		})

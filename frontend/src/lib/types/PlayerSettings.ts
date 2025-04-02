@@ -20,7 +20,7 @@ export class PlayerSettings implements FilterOptions {
 	addWaypoint = false;
 	fastestWaypoint = false;
 	setPacketDest = false;
-	setRoutingDest = false;
+	setRoutingDest = false; // TODO: Implement this
 	showPlanetNames = false;
 	showFleetTokenCounts = false;
 	showScanners = true;

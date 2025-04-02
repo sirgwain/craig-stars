@@ -138,8 +138,8 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		// if we made a base, simulate adding it to the planet
 		if result.starbase != nil {
 			s := newStarbase(player, &planet, result.starbase, result.starbase.Name)
-			s.Spec = ComputeFleetSpec(rules, player, &s)
-			planet.Starbase = &s
+			s.Spec = ComputeFleetSpec(rules, player, s)
+			planet.Starbase = s
 		}
 
 		// grow pop & compute spec

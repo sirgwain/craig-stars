@@ -1165,7 +1165,7 @@ func (t *turnGenerator) fleetReproduce() {
 		}
 
 		if growth == 0 {
-		// no growth, skip
+			// no growth, skip
 			continue
 		}
 
@@ -1633,21 +1633,22 @@ func (t *turnGenerator) buildFleet(player *Player, planet *Planet, token ShipTok
 }
 
 // add a new fleet to the universe
+// TODO: Add option to merge with idle fleets of same type
 func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToken, tags Tags) (*Fleet, error) {
 	playerFleets := t.game.getFleets(player.Num)
 	fleetNum := player.GetNextFleetNum(playerFleets)
 	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPositionWaypoint(position, token.design.Spec.Engine.IdealSpeed)})
 	fleet.Position = position
-	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
+	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 	fleet.Tags = tags
 
-	t.game.Fleets = append(t.game.Fleets, &fleet)
-	if err := t.game.Universe.addFleet(&fleet); err != nil {
+	t.game.Fleets = append(t.game.Fleets, fleet)
+	if err := t.game.Universe.addFleet(fleet); err != nil {
 		return nil, err
 	}
-	return &fleet, nil
+	return fleet, nil
 }
 
 // build a starbase on a planet
@@ -1669,26 +1670,26 @@ func (t *turnGenerator) buildStarbase(player *Player, planet *Planet, design *Sh
 	}
 
 	starbase := newStarbase(player, planet, design, design.Name)
-	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, &starbase)
+	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, starbase)
 
-	// if the prior starbase was damaged, set the new base's damage proportional to the old base's dmg%
+	// if the prior starbase was damaged, damage the new base proportionally to the old base's dmg %
 	if prevDamage > 0 && prevArmor > 0 {
 		starbase.Tokens[0].QuantityDamaged = 1
 		starbase.Tokens[0].Damage = (prevDamage / float64(prevArmor)) * float64(starbase.Tokens[0].design.Spec.Armor)
 	}
 
-	planet.setStarbase(&starbase)
+	planet.setStarbase(starbase)
 	t.log.Debug().
 		Int("Player", starbase.PlayerNum).
 		Str("Planet", planet.Name).
 		Str("Starbase", starbase.Name).
 		Msgf("built starbase")
 
-	t.game.Starbases = append(t.game.Starbases, &starbase)
-	if err := t.game.addStarbase(&starbase); err != nil {
+	t.game.Starbases = append(t.game.Starbases, starbase)
+	if err := t.game.addStarbase(starbase); err != nil {
 		return nil, err
 	}
-	return &starbase, nil
+	return starbase, nil
 }
 
 // build a mineral packet with cargo

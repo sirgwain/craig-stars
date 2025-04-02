@@ -582,10 +582,10 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	design.Spec.NumBuilt++
 	design.Spec.NumInstances++
 	starbase := newStarbase(player, planet, design, design.Name)
-	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, &starbase)
-	planet.setStarbase(&starbase)
+	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, starbase)
+	planet.setStarbase(starbase)
 
-	ug.Universe.Starbases = append(ug.Universe.Starbases, &starbase)
+	ug.Universe.Starbases = append(ug.Universe.Starbases, starbase)
 
 	return nil
 }
@@ -599,12 +599,12 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 		}
 		fleet := newFleetForDesign(player, design, 1, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.Engine.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
-		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, &fleet)
+		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
 		fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 		purpose := FleetPurposeFromShipDesignPurpose(design.Purpose)
 		fleet.SetTag(TagPurpose, string(purpose))
-		ug.Universe.Fleets = append(ug.Universe.Fleets, &fleet)
+		ug.Universe.Fleets = append(ug.Universe.Fleets, fleet)
 		design.Spec.NumInstances++
 		design.Spec.NumBuilt++
 		(*fleetNum)++ // increment fleet num

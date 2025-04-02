@@ -835,8 +835,8 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				if tt.starbase != nil {
 					player.Designs = append(player.Designs, tt.starbase)
 					base := newStarbase(player, planet, tt.starbase, "Old Base")
-					base.Spec = ComputeFleetSpec(&rules, player, &base)
-					planet.Starbase = &base
+					base.Spec = ComputeFleetSpec(&rules, player, base)
+					planet.Starbase = base
 				}
 
 				planet.Spec = computePlanetSpec(&rules, player, planet)

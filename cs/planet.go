@@ -113,6 +113,11 @@ func (p *Planet) WithNum(num int) *Planet {
 	return p
 }
 
+func (p *Planet) WithName(name string) *Planet {
+	p.Name = name
+	return p
+}
+
 // Set a planet's colonists to the specified number of colonists and return the resulting struct.
 // Multiples of 100 go into its Cargo struct, while leftovers are assigned to PartialPopulation.
 func (p *Planet) WithPopulation(pop int) *Planet {
