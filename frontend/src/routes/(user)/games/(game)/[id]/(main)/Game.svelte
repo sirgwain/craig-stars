@@ -19,7 +19,7 @@
 	import { absoluteSize } from '$lib/types/CargoTransferRequest.svelte';
 	import { MapObjectTypePlanet, None, type MapObject } from '$lib/types/cs';
 	import { type WaypointDest } from '$lib/types/Fleet';
-	import { equal as mapObjectEqual, ownedBy } from '$lib/types/MapObject';
+	import { commandable, equal as mapObjectEqual, ownedBy } from '$lib/types/MapObject';
 	import { equal } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
@@ -31,10 +31,10 @@
 	import SearchDialog from '../search/SearchDialog.svelte';
 	import CommandPane from './command/CommandPane.svelte';
 	import CommandPaneDrawer from './command/CommandPaneDrawer.svelte';
+	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import Scanner from './scanner/Scanner.svelte';
 	import ScannerToolbar from './scanner/ScannerToolbar.svelte';
-	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
 
 	const {
 		game,
@@ -236,37 +236,65 @@
 		showSearchDialog = false;
 	}
 
+	// onSelectMapObject cycles through commanding MapObjects at a location, and then
+	// selecting non-commandable mapobjects
 	function onSelectMapObject(mo: MapObject) {
-		if ($selectedMapObject !== mo) {
-			// we selected a different object, so just select it
+		// nothing selected, select this
+		if (!$selectedMapObject) {
+			console.log('nothing selected, selecting ', mo.name);
 			selectMapObject(mo);
+			return;
+		}
 
-			// if we selected a mapobject that is a waypoint, select the waypoint as well
-			if ($commandedFleet?.waypoints) {
-				const fleetWaypoint = $commandedFleet.waypoints.find((wp) =>
-					equal(wp.position, mo.position)
+		// selected something at a new location, select it
+		if (!equal($selectedMapObject.position, mo.position)) {
+			console.log('new location selected, selecting ', mo.name);
+			selectMapObject(mo);
+			return;
+		}
+
+		// get all the mapobjects here we want to cycle, starting with commandable map objects
+		const commandableObjects = $universe.getCommandableMapObjectsByPosition(mo.position);
+		const selectableObjects = $universe
+			.getMapObjectsByPosition(mo.position)
+			.filter((mo) => !commandable($player.num, mo));
+		let commandedIndex = commandableObjects.findIndex((mo) =>
+			mapObjectEqual(mo, $commandedMapObject)
+		);
+		let selectedIndex = selectableObjects.findIndex((mo) => mapObjectEqual(mo, $selectedMapObject));
+
+		if (commandedIndex === -1 && commandableObjects.length > 0) {
+			// we haven't commanded anything here yet, command the first one
+			console.log('nothing commanded, commanding ', commandableObjects[0].name);
+			commandMapObject(commandableObjects[0]);
+		} else if (commandedIndex !== -1 && commandedIndex < commandableObjects.length - 1) {
+			// command the next map object in the cycle
+			console.log('commanding next ', commandableObjects[commandedIndex + 1].name);
+			commandMapObject(commandableObjects[commandedIndex + 1]);
+		} else if (selectedIndex === -1) {
+			if (selectableObjects.length > 0) {
+				console.log('nothing selected, selecting first ', selectableObjects[0].name);
+				selectMapObject(selectableObjects[0]);
+			} else {
+				console.log(
+					'nothing selected, nothing selectable selecting first commandable ',
+					commandableObjects[0].name
 				);
-				if (fleetWaypoint) {
-					selectWaypoint(fleetWaypoint);
-				}
+				selectMapObject(commandableObjects[0]);
+				commandMapObject(commandableObjects[0]);
 			}
-		} else {
-			// we selected the same mapobject twice
-			const myMapObjectsAtPosition = $universe.getMyMapObjectsByPosition(mo);
-			if (myMapObjectsAtPosition?.length > 0) {
-				let index = myMapObjectsAtPosition.findIndex((mo) =>
-					mapObjectEqual(mo, $commandedMapObject)
-				);
-				// if our currently commanded map object is not at this location, reset the index
-				if (index == -1) {
-					index = 0;
-				} else {
-					// command the next one
-					index = index >= myMapObjectsAtPosition.length - 1 ? 0 : index + 1;
-				}
-				const nextMapObject = myMapObjectsAtPosition[index];
-
-				commandMapObject(nextMapObject);
+		} else if (selectedIndex !== -1 && selectedIndex < selectableObjects.length - 1) {
+			// Cycle to the next selectable object
+			console.log('cycling selection to ', selectableObjects[selectedIndex + 1].name);
+			selectMapObject(selectableObjects[selectedIndex + 1]);
+		} else if (selectableObjects.length > 0) {
+			// If at the end, wrap around to the first selectable object
+			console.log('looping back to first selectable ', selectableObjects[0].name);
+			if (commandableObjects.length > 0) {
+				selectMapObject(commandableObjects[0]);
+				commandMapObject(commandableObjects[0]);
+			} else {
+				selectMapObject(selectableObjects[0]);
 			}
 		}
 	}

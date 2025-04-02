@@ -18,7 +18,7 @@
 		SplitAllProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MapObjectTypeFleet } from '$lib/types/cs';
+	import { MapObjectTypeFleet, MapObjectTypePlanet } from '$lib/types/cs';
 	import { commandable, equalsTarget, getMapObjectName } from '$lib/types/MapObject';
 	import { distance, equal as equalPosition } from '$lib/types/Vector';
 	import { slide } from 'svelte/transition';
@@ -109,7 +109,9 @@
 		// make sure we select the commandable fleet (because the planet will be selected, due to the way the desktop ui works)
 		if (
 			$commandedMapObject &&
-			equalPosition($selectedMapObject.position, $commandedMapObject.position)
+			equalPosition($selectedMapObject.position, $commandedMapObject.position) &&
+			$commandedMapObject.type === MapObjectTypeFleet &&
+			$selectedMapObject.type === MapObjectTypePlanet
 		) {
 			return $commandedMapObject;
 		}
@@ -166,18 +168,18 @@
 									hideCycleButton={true}
 								/>
 							</div>
-							<div id="planet-status-tile">
-								<PlanetStatusTile planet={$commandedPlanet} />
-							</div>
-							<div id="planet-minerals-on-hand-tile">
-								<PlanetMineralsOnHandTile planet={$commandedPlanet} />
-							</div>
 							<div id="planet-production-tile">
 								<PlanetProductionTile
 									planet={$commandedPlanet}
 									{onShowProductionQueueDialog}
 									{onClearProductionQueue}
 								/>
+							</div>
+							<div id="planet-status-tile">
+								<PlanetStatusTile planet={$commandedPlanet} />
+							</div>
+							<div id="planet-minerals-on-hand-tile">
+								<PlanetMineralsOnHandTile planet={$commandedPlanet} />
 							</div>
 							{#if $commandedPlanet.spec.hasStarbase}
 								<div id="planet-starbase-tile">
