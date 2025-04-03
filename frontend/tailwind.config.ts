@@ -61,6 +61,6 @@ export default {
 		{ pattern: /ironium/ },
 		{ pattern: /germanium/ },
 		{ pattern: /boranium/ },
-		{ pattern: /colonists/ },
+		{ pattern: /colonists/ }
 	]
 } as Config;
