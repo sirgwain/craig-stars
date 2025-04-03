@@ -207,6 +207,12 @@
 									{onRenameFleet}
 								/>
 							</div>
+							<div id="fleet-fuel-and-cargo-tile">
+								<FleetFuelAndCargoTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
+							</div>
+							<div id="fleet-orbiting-tile">
+								<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
+							</div>
 							<div id="fleet-composition-tile">
 								<FleetCompositionTile
 									fleet={$commandedFleet}
@@ -216,12 +222,6 @@
 									{onSplitAll}
 									{onBattlePlanChanged}
 								/>
-							</div>
-							<div id="fleet-orbiting-tile">
-								<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
-							</div>
-							<div id="fleet-fuel-and-cargo-tile">
-								<FleetFuelAndCargoTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 							</div>
 							<div id="fleet-waypoints-tile">
 								<FleetWaypointsTile

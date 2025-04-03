@@ -239,62 +239,43 @@
 	// onSelectMapObject cycles through commanding MapObjects at a location, and then
 	// selecting non-commandable mapobjects
 	function onSelectMapObject(mo: MapObject) {
-		// nothing selected, select this
-		if (!$selectedMapObject) {
-			console.log('nothing selected, selecting ', mo.name);
-			selectMapObject(mo);
-			return;
-		}
-
-		// selected something at a new location, select it
-		if (!equal($selectedMapObject.position, mo.position)) {
-			console.log('new location selected, selecting ', mo.name);
+		if (!$selectedMapObject || !equal($selectedMapObject.position, mo.position)) {
+			// nothing selected, or nothing selected at this location yet, select this object
 			selectMapObject(mo);
 			return;
 		}
 
 		// get all the mapobjects here we want to cycle, starting with commandable map objects
-		const commandableObjects = $universe.getCommandableMapObjectsByPosition(mo.position);
-		const selectableObjects = $universe
+		const commandables = $universe.getCommandableMapObjectsByPosition(mo.position);
+		const selectables = $universe
 			.getMapObjectsByPosition(mo.position)
 			.filter((mo) => !commandable($player.num, mo));
-		let commandedIndex = commandableObjects.findIndex((mo) =>
-			mapObjectEqual(mo, $commandedMapObject)
-		);
-		let selectedIndex = selectableObjects.findIndex((mo) => mapObjectEqual(mo, $selectedMapObject));
+		let commandedIndex = commandables.findIndex((mo) => mapObjectEqual(mo, $commandedMapObject));
+		let selectedIndex = selectables.findIndex((mo) => mapObjectEqual(mo, $selectedMapObject));
 
-		if (commandedIndex === -1 && commandableObjects.length > 0) {
-			// we haven't commanded anything here yet, command the first one
-			console.log('nothing commanded, commanding ', commandableObjects[0].name);
-			commandMapObject(commandableObjects[0]);
-		} else if (commandedIndex !== -1 && commandedIndex < commandableObjects.length - 1) {
-			// command the next map object in the cycle
-			console.log('commanding next ', commandableObjects[commandedIndex + 1].name);
-			commandMapObject(commandableObjects[commandedIndex + 1]);
+		if (commandedIndex < commandables.length - 1) {
+			// we either havne't commanded anything yet (commandedIndex=-1) or there is a commandable object to cycle to
+			// if we are at the end of the commanded list, this will skip
+			commandMapObject(commandables[commandedIndex + 1]);
 		} else if (selectedIndex === -1) {
-			if (selectableObjects.length > 0) {
-				console.log('nothing selected, selecting first ', selectableObjects[0].name);
-				selectMapObject(selectableObjects[0]);
+			if (selectables.length > 0) {
+				// nothing selected, selecting first selectable
+				selectMapObject(selectables[0]);
 			} else {
-				console.log(
-					'nothing selected, nothing selectable selecting first commandable ',
-					commandableObjects[0].name
-				);
-				selectMapObject(commandableObjects[0]);
-				commandMapObject(commandableObjects[0]);
+				// nothing selected, nothing selectable, selecting first commandable
+				selectMapObject(commandables[0]);
+				commandMapObject(commandables[0]);
 			}
-		} else if (selectedIndex !== -1 && selectedIndex < selectableObjects.length - 1) {
+		} else if (selectedIndex !== -1 && selectedIndex < selectables.length - 1) {
 			// Cycle to the next selectable object
-			console.log('cycling selection to ', selectableObjects[selectedIndex + 1].name);
-			selectMapObject(selectableObjects[selectedIndex + 1]);
-		} else if (selectableObjects.length > 0) {
+			selectMapObject(selectables[selectedIndex + 1]);
+		} else if (selectables.length > 0) {
 			// If at the end, wrap around to the first selectable object
-			console.log('looping back to first selectable ', selectableObjects[0].name);
-			if (commandableObjects.length > 0) {
-				selectMapObject(commandableObjects[0]);
-				commandMapObject(commandableObjects[0]);
+			if (commandables.length > 0) {
+				selectMapObject(commandables[0]);
+				commandMapObject(commandables[0]);
 			} else {
-				selectMapObject(selectableObjects[0]);
+				selectMapObject(selectables[0]);
 			}
 		}
 	}
