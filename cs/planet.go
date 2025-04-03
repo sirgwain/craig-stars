@@ -55,7 +55,7 @@ type PlanetSpec struct {
 	MaxPopulation                             int     `json:"maxPopulation,omitempty"`
 	MaxPossibleFactories                      int     `json:"maxPossibleFactories,omitempty"`
 	MaxPossibleMines                          int     `json:"maxPossibleMines,omitempty"`
-	MiningOutput                              Mineral `json:"miningOutput,omitempty"`
+	MiningOutput                              Mineral `json:"miningOutput"`
 	PopulationDensity                         float64 `json:"populationDensity,omitempty"`
 	ResourcesPerYear                          int     `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearAvailable                 int     `json:"resourcesPerYearAvailable,omitempty"`
@@ -64,8 +64,8 @@ type PlanetSpec struct {
 	Scanner                                   string  `json:"scanner,omitempty"`
 	ScanRange                                 int     `json:"scanRange,omitempty"`
 	ScanRangePen                              int     `json:"scanRangePen,omitempty"`
-	TerraformAmount                           Hab     `json:"terraformAmount,omitempty"`
-	MinTerraformAmount                        Hab     `json:"minTerraformAmount,omitempty"`
+	TerraformAmount                           Hab     `json:"terraformAmount"`
+	MinTerraformAmount                        Hab     `json:"minTerraformAmount"`
 	TerraformedHabitability                   int     `json:"terraformedHabitability,omitempty"`
 }
 

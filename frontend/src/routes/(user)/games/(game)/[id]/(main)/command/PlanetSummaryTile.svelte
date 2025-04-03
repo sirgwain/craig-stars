@@ -5,13 +5,14 @@
 
 	type Props = {
 		planet: CommandedPlanet;
+		hideTitle?: boolean;
 	} & NextPrevMapObjectProps;
 
-	let { planet, onNextMapObject, onPreviousMapObject }: Props = $props();
+	let { planet, hideTitle, onNextMapObject, onPreviousMapObject }: Props = $props();
 	const icon = (planet: CommandedPlanet) => (planet ? `planet-${(planet.num - 1) % 26}` : '');
 </script>
 
-<CommandTile title={planet.name}>
+<CommandTile title={hideTitle ? '' : planet.name}>
 	<div class="grid grid-cols-2">
 		<div class="avatar">
 			<div class="border-2 border-neutral mr-2 p-2 bg-black">

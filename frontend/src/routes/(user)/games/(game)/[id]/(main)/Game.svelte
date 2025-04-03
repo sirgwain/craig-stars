@@ -19,7 +19,7 @@
 	import { absoluteSize } from '$lib/types/CargoTransferRequest.svelte';
 	import { MapObjectTypePlanet, None, type MapObject } from '$lib/types/cs';
 	import { type WaypointDest } from '$lib/types/Fleet';
-	import { equal as mapObjectEqual, ownedBy } from '$lib/types/MapObject';
+	import { commandable, equal as mapObjectEqual, ownedBy } from '$lib/types/MapObject';
 	import { equal } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
@@ -30,7 +30,7 @@
 	import TransportTasksDialog from '../dialogs/transport/TransportTasksDialog.svelte';
 	import SearchDialog from '../search/SearchDialog.svelte';
 	import CommandPane from './command/CommandPane.svelte';
-	import CommandPaneCarousel from './command/CommandPaneCarousel.svelte';
+	import CommandPaneDrawer from './command/CommandPaneDrawer.svelte';
 	import MapObjectStatsBar from './MapObjectStatsBar.svelte';
 	import MapObjectSummary from './MapObjectSummary.svelte';
 	import Scanner from './scanner/Scanner.svelte';
@@ -51,6 +51,7 @@
 		previousMapObject,
 		selectWaypoint,
 		selectMapObject,
+		selectNextMapObject,
 		addWaypoint,
 		updateWaypoint,
 		deleteWaypoint,
@@ -63,7 +64,6 @@
 		merge
 	} = getGameContext();
 
-	let carouselOpen = $state(true);
 	let showProductionQueueDialog = $state(false);
 	let showCargoTransferDialog = $state(false);
 	let showMergeFleetsDialog = $state(false);
@@ -236,37 +236,46 @@
 		showSearchDialog = false;
 	}
 
+	// onSelectMapObject cycles through commanding MapObjects at a location, and then
+	// selecting non-commandable mapobjects
 	function onSelectMapObject(mo: MapObject) {
-		if ($selectedMapObject !== mo) {
-			// we selected a different object, so just select it
+		if (!$selectedMapObject || !equal($selectedMapObject.position, mo.position)) {
+			// nothing selected, or nothing selected at this location yet, select this object
 			selectMapObject(mo);
+			return;
+		}
 
-			// if we selected a mapobject that is a waypoint, select the waypoint as well
-			if ($commandedFleet?.waypoints) {
-				const fleetWaypoint = $commandedFleet.waypoints.find((wp) =>
-					equal(wp.position, mo.position)
-				);
-				if (fleetWaypoint) {
-					selectWaypoint(fleetWaypoint);
-				}
+		// get all the mapobjects here we want to cycle, starting with commandable map objects
+		const commandables = $universe.getCommandableMapObjectsByPosition(mo.position);
+		const selectables = $universe
+			.getMapObjectsByPosition(mo.position)
+			.filter((mo) => !commandable($player.num, mo));
+		let commandedIndex = commandables.findIndex((mo) => mapObjectEqual(mo, $commandedMapObject));
+		let selectedIndex = selectables.findIndex((mo) => mapObjectEqual(mo, $selectedMapObject));
+
+		if (commandedIndex < commandables.length - 1) {
+			// we either havne't commanded anything yet (commandedIndex=-1) or there is a commandable object to cycle to
+			// if we are at the end of the commanded list, this will skip
+			commandMapObject(commandables[commandedIndex + 1]);
+		} else if (selectedIndex === -1) {
+			if (selectables.length > 0) {
+				// nothing selected, selecting first selectable
+				selectMapObject(selectables[0]);
+			} else {
+				// nothing selected, nothing selectable, selecting first commandable
+				selectMapObject(commandables[0]);
+				commandMapObject(commandables[0]);
 			}
-		} else {
-			// we selected the same mapobject twice
-			const myMapObjectsAtPosition = $universe.getMyMapObjectsByPosition(mo);
-			if (myMapObjectsAtPosition?.length > 0) {
-				let index = myMapObjectsAtPosition.findIndex((mo) =>
-					mapObjectEqual(mo, $commandedMapObject)
-				);
-				// if our currently commanded map object is not at this location, reset the index
-				if (index == -1) {
-					index = 0;
-				} else {
-					// command the next one
-					index = index >= myMapObjectsAtPosition.length - 1 ? 0 : index + 1;
-				}
-				const nextMapObject = myMapObjectsAtPosition[index];
-
-				commandMapObject(nextMapObject);
+		} else if (selectedIndex !== -1 && selectedIndex < selectables.length - 1) {
+			// Cycle to the next selectable object
+			selectMapObject(selectables[selectedIndex + 1]);
+		} else if (selectables.length > 0) {
+			// If at the end, wrap around to the first selectable object
+			if (commandables.length > 0) {
+				selectMapObject(commandables[0]);
+				commandMapObject(commandables[0]);
+			} else {
+				selectMapObject(selectables[0]);
 			}
 		}
 	}
@@ -342,7 +351,12 @@
 
 	<div class="flex flex-col grow">
 		<div class="flex flex-col grow border-gray-700 border-2 shadow-sm">
-			<ScannerToolbar onShowSearch={() => (showSearchDialog = true)} />
+			<ScannerToolbar
+				onShowSearch={() => (showSearchDialog = true)}
+				onCycleMapObject={() => selectNextMapObject()}
+				{onNextMapObject}
+				{onPreviousMapObject}
+			/>
 			<Scanner
 				{onSelectWaypoint}
 				{onAddWaypoint}
@@ -351,7 +365,7 @@
 				{onSetPacketDest}
 			/>
 		</div>
-		<div class:hidden={!carouselOpen}>
+		<div class="hidden md:block">
 			<MapObjectStatsBar />
 		</div>
 		<div class="hidden md:block md:w-full lg:hidden mb-2">
@@ -364,10 +378,12 @@
 		</div>
 	</div>
 
-	<!-- for phone displays, use a carousel -->
-	<div class="flex flex-col flex-0">
-		<CommandPaneCarousel
-			bind:isOpen={carouselOpen}
+	<!-- for phone displays, use a drawer -->
+	<div class="flex flex-col">
+		<CommandPaneDrawer
+			{onNextMapObject}
+			{onPreviousMapObject}
+			{onRenameFleet}
 			{onSelectWaypoint}
 			{onChangeWaypoint}
 			{onDeleteWaypoint}

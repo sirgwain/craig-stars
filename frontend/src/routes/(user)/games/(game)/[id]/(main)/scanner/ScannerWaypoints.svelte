@@ -14,7 +14,7 @@
 	);
 </script>
 
-{#each fleets as fleet}
+{#each fleets as fleet (fleet.num)}
 	{#if fleet.waypoints && fleet.waypoints.length > 1 && fleet.num !== $commandedFleet?.num}
 		<ScannerWaypointLine {fleet} selectedWaypoint={$selectedWaypoint} />
 	{/if}

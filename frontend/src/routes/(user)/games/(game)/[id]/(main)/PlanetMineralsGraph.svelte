@@ -6,12 +6,13 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
-	import type { Mineral, PlanetIntel } from '$lib/types/cs';
+	import type { AnyPlanet } from '$lib/services/Universe';
+	import type { Mineral } from '$lib/types/cs';
 
 	const { settings } = getGameContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: AnyPlanet;
 	};
 
 	let { planet }: Props = $props();
@@ -135,7 +136,7 @@
 <div class="flex flex-row">
 	<div class="text-right flex flex-col justify-evenly w-[5.5rem] pr-1">kT</div>
 	<div class="grow flex flex-row justify-between">
-		{#each divisions as division}
+		{#each divisions as division, index (index)}
 			<div>{division}</div>
 		{/each}
 		<!-- spacer -->

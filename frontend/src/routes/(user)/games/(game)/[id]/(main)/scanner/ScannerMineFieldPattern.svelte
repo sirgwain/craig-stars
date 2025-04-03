@@ -26,7 +26,7 @@
 		</pattern>
 
 		<mask id="mask-minefield" x="0" y="0" width="1" height="1">
-			<rect x="0" y="0" width="10000" height="10000" fill="url(#pattern-minefield)" />
+			<rect x="-100" y="-1000" width="10000" height="10000" fill="url(#pattern-minefield)" />
 		</mask>
 	</defs>
 </svg>

@@ -46,7 +46,6 @@
 	</div>
 	{#if showAdmin}
 		<div class="text-left mx-auto">
-			<!-- content here -->
 			<form
 				onsubmit={(e) => {
 					e.preventDefault();

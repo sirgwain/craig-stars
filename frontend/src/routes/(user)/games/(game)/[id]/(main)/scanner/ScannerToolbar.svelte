@@ -7,23 +7,30 @@
 	import PlanetWithStarbase from '$lib/components/icons/PlanetWithStarbase.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
 	import SurfaceMinerals from '$lib/components/icons/SurfaceMinerals.svelte';
+	import type { NextPrevMapObjectProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
-	import { ArrowLongLeft, ArrowLongRight, Envelope, MagnifyingGlass } from '@steeze-ui/heroicons';
+	import {
+		ArrowLongLeft,
+		ArrowLongRight,
+		ArrowPath,
+		Envelope,
+		MagnifyingGlass
+	} from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import MessagesPane from '../MessagesPane.svelte';
 	import MobileViewSettings from './toolbar/MobileViewSettings.svelte';
 	import PlanetViewStates from './toolbar/PlanetViewStates.svelte';
 	import ScannerToolbarFilter from './toolbar/ScannerToolbarFilter.svelte';
-	import type { NextPrevMapObjectProps } from '$lib/services/Events';
 
 	const { player, settings } = getGameContext();
 
 	type Props = {
 		onShowSearch: () => void;
+		onCycleMapObject: () => void;
 	} & NextPrevMapObjectProps;
-	let { onShowSearch, onNextMapObject, onPreviousMapObject }: Props = $props();
+	let { onShowSearch, onNextMapObject, onPreviousMapObject, onCycleMapObject }: Props = $props();
 
 	let planetsViewMenuDropdown: HTMLDetailsElement | undefined = $state();
 
@@ -161,6 +168,11 @@
 			class="btn btn-outline btn-sm normal-case btn-secondary"
 			title="search"
 			><Icon src={MagnifyingGlass} size="16" class="hover:stroke-accent inline" /></button
+		>
+		<button
+			onclick={onCycleMapObject}
+			class="md:hidden btn btn-outline btn-sm normal-case btn-secondary"
+			title="cycle"><Icon src={ArrowPath} size="16" class="hover:stroke-accent inline" /></button
 		>
 
 		<div class="tooltip" data-tip="previous">

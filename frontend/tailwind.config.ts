@@ -52,5 +52,15 @@ export default {
 			}
 		],
 		darkTheme: 'business'
-	}
+	},
+
+	safelist: [
+		{ pattern: /grav/ },
+		{ pattern: /temp/ },
+		{ pattern: /rad/ },
+		{ pattern: /ironium/ },
+		{ pattern: /germanium/ },
+		{ pattern: /boranium/ },
+		{ pattern: /colonists/ }
+	]
 } as Config;

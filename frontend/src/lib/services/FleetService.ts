@@ -1,11 +1,6 @@
 import type { CargoDest, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 import { CommandedFleet } from '$lib/types/Fleet';
-import type {
-	Cargo,
-	CargoTransfers,
-	MapObject,
-	Player
-} from '$lib/types/cs';
+import type { Cargo, CargoTransfers, MapObject, Player } from '$lib/types/cs';
 import { type Fleet, type FleetOrders, type ShipToken, type Waypoint } from '$lib/types/cs';
 import { Service } from './Service';
 
