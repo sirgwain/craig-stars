@@ -1523,13 +1523,9 @@ func (t *turnGenerator) planetProduction() error {
 		if result.defenses > 0 {
 			messager.planetBuiltDefenses(player, planet, result.defenses)
 		}
-
-		// message about mineral alchemy
 		if result.alchemy > 0 {
 			messager.planetBuiltMineralAlchemy(player, planet, result.alchemy)
 		}
-
-		// message about each terraform step
 		if len(result.terraformResults) > 0 {
 			for _, terraformResult := range result.terraformResults {
 				messager.planetTerraform(player, planet, terraformResult.Type, terraformResult.Direction)

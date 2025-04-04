@@ -162,7 +162,7 @@ func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *F
 			dest.Spec.CargoCapacity,
 			sourceCargo[:]...)
 		if err != nil {
-			return err
+			return fmt.Errorf("error transferring cargo: %w", err)
 		}
 		// copy this transfer into two transfers
 		transfer1 := transfer
