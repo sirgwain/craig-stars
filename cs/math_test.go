@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"math"
 	"reflect"
 	"testing"
 )
@@ -192,6 +193,57 @@ func Test_splitValues(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got2, tt.want2) {
 				t.Errorf("splitValues() got2 = %v, want %v", got2, tt.want2)
+			}
+		})
+	}
+}
+
+func Test_divideRoundUp(t *testing.T) {
+	tests := []struct {
+		name     string
+		dividend int
+		divisor  int
+		want     int
+	}{
+		{"10 ÷ 3", 10, 3, 4},
+		{"9 ÷ 3", 9, 3, 3},
+		{"1 ÷ 2", 1, 2, 1},
+		{"0 ÷ 55", 0, 55, 0},
+		{"100 ÷ 7", 100, 7, 15},
+		{"negative dividend", -10, 3, -4},
+		{"negative divisor", 10, -3, -4},
+		{"both negative", -10, -3, 4},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := divideRoundAway0(tt.dividend, tt.divisor); got != tt.want {
+				t.Errorf("divideRoundUp() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestLogBase(t *testing.T) {
+	tests := []struct {
+		name string
+		base float64
+		x    float64
+		want float64
+	}{
+		{"log2(8)", 2, 8, 3},
+		{"log10(1000)", 10, 1000, 3},
+		{"log3(27)", 3, 27, 3},
+		{"log5(125)", 5, 125, 3},
+		{"log10(0.1)", 10, 0.1, -1},
+		{"invalid base <= 0", -2, 8, math.NaN()},
+		{"invalid base == 1", 1, 8, math.NaN()},
+		{"invalid x <= 0", 2, -8, math.NaN()},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := LogBase(tt.base, tt.x)
+			if (math.IsNaN(got) && !math.IsNaN(tt.want)) || (!math.IsNaN(got) && math.Abs(got-tt.want) > 1e-9) {
+				t.Errorf("LogBase() = %v, want %v", got, tt.want)
 			}
 		})
 	}

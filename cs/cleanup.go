@@ -5,9 +5,9 @@ import "github.com/rs/zerolog/log"
 /*
 Because the game is actively running, bugs are introduced and we need to fix them as
 we go. For example, a bug was introduced to "discover" player starbase designs leading
-to duplciate designs on the UI.
+to duplicate designs on the UI.
 
-This file will hold cleanup functions for cleaning up this sort of data on the game
+This file will hold cleanup functions for cleaning up this sort of data in the running server.
 */
 
 type Cleaner interface {
@@ -76,7 +76,7 @@ func (c *cleanup) AddRandomArtifactsToPlanets(game *FullGame) {
 		}
 
 		// check if this planet should have a random artifact
-		if game.Rules.RandomEventChances[RandomEventAncientArtifact] > game.Rules.random.Float64() {
+		if game.Rules.RandomEventChances[RandomEventAncientArtifact] >= game.Rules.random.Float64() {
 			planet.RandomArtifact = true
 			planet.MarkDirty()
 
@@ -118,7 +118,6 @@ func (c *cleanup) FixMineralConc(game *FullGame) {
 			continue
 		}
 
-		// this planet
 		if planet.MineralConcentration.Ironium < minMinConc ||
 			planet.MineralConcentration.Boranium < minMinConc ||
 			planet.MineralConcentration.Germanium < minMinConc {

@@ -327,6 +327,7 @@ var Races []cs.Race = []cs.Race{
 	},
 }
 
+// TODO: Add a cheater race per PRT
 var CheaterRaces []cs.Race = []cs.Race{
 	{
 		Name:       "Waaagh!",
@@ -391,6 +392,10 @@ var CheaterRaces []cs.Race = []cs.Race{
 
 // Get a list of random races with minimal repeats from either the Cheater races or regular races
 func GetRandomRaces(numRaces int, cheater bool) []cs.Race {
+	if numRaces <= 0 {
+		return []cs.Race{}
+	}
+
 	if cheater {
 		return getRandomRaces(numRaces, CheaterRaces)
 	}

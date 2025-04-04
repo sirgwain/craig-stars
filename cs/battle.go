@@ -167,6 +167,7 @@ type battle struct {
 	log      zerolog.Logger
 }
 
+// TODO: Add function to generate equally spaced positions on a square perimeter
 var positionsByPlayer = []BattleVector{
 	{1, 4},
 	{8, 5},
@@ -178,6 +179,7 @@ var positionsByPlayer = []BattleVector{
 	{1, 8},
 }
 
+// TODO: Rework this to be generic and support more than 10 max movement (or 2 min)
 var movementByRound = [9][4]int{
 	{1, 0, 1, 0},
 	{1, 1, 0, 1},
@@ -199,7 +201,8 @@ func getBattleMovement(movementMin, movementMax, idealEngineSpeed int, movementB
 	return Clamp(idealEngineSpeed-2-(mass/(numEngines*70))+mb, movementMin, movementMax)
 }
 
-// BuildBattle builds a battle recording with all the battle tokens for a list of fleets that contains more than one player.
+// newBattler creates a new battler object to handle running battles.
+// battle recording with all the battle tokens for a list of fleets that contains more than one player.
 // We'll use this to determine if a battle should take place at this location.
 // Also, any players that have a potential battle will discover each other's designs.
 func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int]*Player, fleets []*Fleet, planet *Planet) battler {
@@ -209,7 +212,7 @@ func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int
 		return nil
 	}
 
-	// track
+	// track player numbers
 	sortedPlayerNums := make([]int, 0, len(players))
 	for _, player := range players {
 		sortedPlayerNums = append(sortedPlayerNums, player.Num)
@@ -225,11 +228,12 @@ func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int
 	}
 
 	board := [battleWidth][battleHeight]int{}
-	// add each fleet's token to the battle
 	tokens := []*battleToken{}
 	tokenRecords := []BattleRecordToken{}
 	num := 0
 	dampening := 0
+
+	// add each fleet's tokens to the battle
 	for _, fleet := range fleets {
 		totalCargo := fleet.Cargo.Total()
 		totalCargoCapacity := fleet.Spec.CargoCapacity
@@ -243,7 +247,7 @@ func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int
 			// add cargo from the fleet to each token
 			cargoMass := 0
 			if totalCargo > 0 && token.design.Spec.CargoCapacity > 0 {
-				// see how much this ship's cargo capacity is compared to the fleet total
+				// Allocate cargo proportional to this token's capacity
 				shipCargoPercent := float64(token.design.Spec.CargoCapacity) / float64(totalCargoCapacity)
 				cargoMass = int(float64(totalCargo) * shipCargoPercent)
 			}
@@ -265,9 +269,8 @@ func newBattler(log zerolog.Logger, rules *Rules, battleNum int, players map[int
 	if dampening > 0 {
 		for _, token := range tokens {
 			// we only dampen movement of ships that move, not starbases (obviously)
-			// and we can't go below 2
 			if token.Movement > 0 {
-				token.Movement = Clamp(token.Movement-dampening, 2, 10)
+				token.Movement = Clamp(token.Movement-dampening, rules.MovementMin, rules.MovementMax)
 			}
 		}
 	}
@@ -382,17 +385,17 @@ func (b *battle) buildMovementOrder(tokens []*battleToken) (moveOrder [4][]*batt
 			tokensByMass = append(tokensByMass, token)
 		}
 	}
+
 	sort.Slice(tokensByMass, func(i, j int) bool {
 		return tokensByMass[i].Mass > tokensByMass[j].Mass
 	})
 
 	// each token can move up to 3 times in a round
-	// ships that can move 3 times go first, so we loop through the moveNum backwards
+	// ships that can move 3 times go first, so we loop through moveNum backwards
 	// so that our Movers list has ships that move 3 times first
-	for moveNum := 2; moveNum >= 0; moveNum-- {
+	for moveNum := divideRoundAway0(b.rules.MovementMax, 4); moveNum >= 0; moveNum-- {
 		// for each block of 4 rounds, add each ship to the movement list if it's supposed to move that round
-		for roundBlock := 0; roundBlock < 4; roundBlock++ {
-			// add each battle token to the movement for this roundBlock
+		for roundBlock := range 4 {
 			for _, token := range tokensByMass {
 				// movement is between 2 and 10, so we offset it to fit in our MovementByRound table
 				movement := token.Movement
@@ -480,7 +483,7 @@ func (b *battle) getEstimatedDamageForWeapons(weapons []*battleWeaponSlot, targe
 			// this weapon wouldn't target the attacker, so don't add its damage
 			continue
 		}
-		distanceToWeapon := position.distance(weapon.token.Position)
+		distanceToWeapon := position.distanceTo(weapon.token.Position)
 		damageDone += b.getEstimatedDamageForWeapon(weapon, target, distanceToWeapon)
 	}
 
@@ -523,8 +526,8 @@ func updateMovesWithCenterPreference(better bool, newPosition BattleVector, best
 	}
 
 	// center of battle board is at (4.5, 4.5) so scale to 100x100 for 45,45 scaled center
-	newDistanceFromCenter := newPosition.scale(10).distance(BattleVector{45, 45})
-	oldDistanceFromCenter := bestMoves[0].scale(10).distance(BattleVector{45, 45})
+	newDistanceFromCenter := newPosition.multiply(10).distanceTo(BattleVector{45, 45})
+	oldDistanceFromCenter := bestMoves[0].multiply(10).distanceTo(BattleVector{45, 45})
 
 	if oldDistanceFromCenter == newDistanceFromCenter {
 		// move is equivalent in damage and closeness to center, add new move
@@ -565,7 +568,7 @@ func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponS
 			}
 
 			// see if this move puts us closer to the target
-			distanceToTarget := newPosition.distance(target.Position)
+			distanceToTarget := newPosition.distanceTo(target.Position)
 			if distanceToTarget == bestDistanceToTarget {
 				bestMoveCloserMoves = append(bestMoveCloserMoves, newPosition)
 			} else if distanceToTarget < bestDistanceToTarget {
@@ -578,7 +581,7 @@ func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponS
 			for _, weapon := range token.weaponSlots {
 				// each weapon will fire a volley at the most attractive target
 				for _, target := range weapon.targets {
-					distance := newPosition.distance(target.Position)
+					distance := newPosition.distanceTo(target.Position)
 					weaponDamage := b.getEstimatedDamageForWeapon(weapon, target, distance)
 					if weaponDamage > 0 {
 						// targets are sorted by attractiveness and
@@ -655,22 +658,31 @@ func (b *battle) getBestAttackMoves(token *battleToken, weapons []*battleWeaponS
 	return bestDamageMoves
 }
 
-// get the best move this token should fleet to based on weapons on the board
+// Determine the best direction for token to move in based on estimated damage dealt and recieved
 func (b *battle) getBestFleeMoves(token *battleToken, weapons []*battleWeaponSlot) []BattleVector {
-	// find the best move for running away
-	lowestDamageMoves := make([]BattleVector, 0, 9)
+	lowestDamageMoves := make([]BattleVector, 0, 9) // slice containing all moves resulting in lowest damage
 
-	// if we stayed still, figure out our damage
+	// Figure out damage for standing still
 	damageTaken := b.getEstimatedDamageForWeapons(weapons, token, token.Position)
 	lowestDamage := damageTaken
 
+	// Check each of the 9 movement directions (8 adjacent tiles + not moving)
+	// to see which would profit us the most
 	for dx := -1; dx <= 1; dx++ {
+		newX := token.Position.X + dx
+		if newX < 0 || newX >= battleWidth {
+			// no clipping out of bounds!
+			continue
+		}
+
 		for dy := -1; dy <= 1; dy++ {
-			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
-			if newPosition.X < 0 || newPosition.X >= battleWidth || newPosition.Y < 0 || newPosition.Y >= battleHeight {
-				// skip invalid squares
+			newY := token.Position.Y + dy
+			if newY < 0 || newY >= battleWidth {
+				// no clipping out of bounds!
 				continue
 			}
+
+			newPosition := BattleVector{token.Position.X + dx, token.Position.Y + dy}
 
 			// figure out damage taken from all weapons targeting us if we moved to this square
 			damageTaken := b.getEstimatedDamageForWeapons(weapons, token, newPosition)

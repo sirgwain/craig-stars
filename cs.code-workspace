@@ -29,6 +29,19 @@
 		"task.autoDetect": "off",
 		"task.problemMatchers.neverPrompt": true,
 		"typescript.format.semicolons": "insert",
-		"typescript.preferences.preferTypeOnlyAutoImports": true
+		"typescript.preferences.preferTypeOnlyAutoImports": true,
+		"github.copilot.chat.codeGeneration.instructions": [
+			{
+				"file": ".github/copilot-instructions.md"
+			}
+		],
+		"github.copilot.chat.testGeneration.instructions": [
+			{
+				"file": ".github/copilot-instructions.md"
+			},
+			{
+				"text": "Attempt to match the formatting of prior test functions in the same file."
+			}
+		]
 	}
 }

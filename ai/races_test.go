@@ -1,27 +1,30 @@
 package ai
 
 import (
+	"encoding/json"
 	"testing"
 )
 
 func TestGetRandomRaces(t *testing.T) {
-	type args struct {
-		numRaces int
-	}
 	tests := []struct {
-		name string
-		args args
+		name     string
+		numRaces int
+		cheater  bool
 	}{
-		{"don't crash for lots of races", args{1000}},
-		{"don't crash for one race", args{1}},
-		{"don't crash for a few races", args{3}},
-		{"don't crash for all ai races", args{len(Races)}},
-		{"don't crash for 0 ai races", args{0}},
+		{"0 races", 0, false},
+		{"1 race", 1, false},
+		{"3 races", 3, false},
+		{"all normal races", len(Races), false},
+		{"1000 races", 1000, false},
+		{"all cheater races", len(CheaterRaces), true},
+		{"1000 cheater races", 1000, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetRandomRaces(tt.args.numRaces, false); len(got) != tt.args.numRaces {
-				t.Errorf("GetRandomRaces() = %d races, want %d races", len(got), tt.args.numRaces)
+			if got := GetRandomRaces(tt.numRaces, tt.cheater); len(got) != tt.numRaces {
+				t.Errorf("GetRandomRaces() returned total of %d races, want %d races", len(got), tt.numRaces)
+				races, _ := json.MarshalIndent(got, "", "\t")
+				t.Logf("Races: \n%s", string(races))
 			}
 		})
 	}

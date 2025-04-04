@@ -329,10 +329,12 @@ func getNewBeamBonus(prevBonus, componentBonus float64, qty int) float64 {
 }
 
 // Compute a ship design's Spec
+//
+// @sirgwain: Should this take a pointer to RaceSpec instead of a value?
 func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
-		return ShipDesignSpec{}, fmt.Errorf("failed to find hull %s in techstore", design.Hull)
+		return ShipDesignSpec{}, fmt.Errorf("failed to find hull %q in techstore", design.Hull)
 	}
 	c := NewCostCalculator()
 	spec := ShipDesignSpec{
@@ -380,160 +382,162 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	bombsPower := 0
 
 	for i, slot := range design.Slots {
-		if slot.Quantity > 0 {
-			component := rules.techs.GetHullComponent(slot.HullComponent)
-			if component == nil || component.Name == "" {
-				// assume slot is empty; cut it out and carry on
-				design.Slots = append(design.Slots[:i], design.Slots[i+1:]...)
-				continue
-			}
-			hullSlot := hull.Slots[slot.HullSlotIndex-1]
+		if slot.Quantity <= 0 {
+			continue
+		}
 
-			// record engine details
-			// TODO: Add support for multiple engine "slots"
-			// (all would have to share the same engine type)
-			if hullSlot.Type == HullSlotTypeEngine {
-				engine := rules.techs.GetEngine(slot.HullComponent)
-				spec.Engine = engine.Engine
-				spec.NumEngines = slot.Quantity
+		component := rules.techs.GetHullComponent(slot.HullComponent)
+		if component == nil || component.Name == "" {
+			// assume slot is empty; cut it out and carry on
+			design.Slots = append(design.Slots[:i], design.Slots[i+1:]...)
+			continue
+		}
+		hullSlot := hull.Slots[slot.HullSlotIndex-1]
+
+		// record engine details
+		// TODO: Add support for multiple engine "slots"
+		// (all would have to share the same engine type)
+		if hullSlot.Type == HullSlotTypeEngine {
+			engine := rules.techs.GetEngine(slot.HullComponent)
+			spec.Engine = engine.Engine
+			spec.NumEngines = slot.Quantity
+		}
+
+		if component.Category == TechCategoryBeamWeapon && component.Power > 0 && (component.Range+hull.RangeBonus) > 0 {
+			// mines swept/yr = power * (range)^2
+			gatlingMultiplier := 1
+			if component.Gatling {
+				// gattlings are 4x more mine-sweepery (all gatlings have range of 2; 2^2=4)
+				gatlingMultiplier = component.Range * component.Range
+			}
+			spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gatlingMultiplier
+		}
+
+		spec.TechLevel = spec.TechLevel.Max(component.Requirements.TechLevel)
+
+		spec.Mass += component.Mass * slot.Quantity
+		a, s := getArmorShieldAmounts(float64(component.Armor), float64(component.Shield), slot.Quantity, raceSpec, component.Category == TechCategoryArmor)
+		armor += a
+		shield += s
+		spec.CargoCapacity += component.CargoBonus * slot.Quantity
+		spec.FuelCapacity += component.FuelBonus * slot.Quantity
+		spec.FuelGeneration += component.FuelGeneration * slot.Quantity
+		spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
+		spec.Initiative += component.InitiativeBonus * slot.Quantity
+		spec.MovementBonus += component.MovementBonus * float64(slot.Quantity)
+		spec.ReduceMovement = max(spec.ReduceMovement, component.ReduceMovement) // these don't stack
+		spec.MiningRate += component.MiningRate * slot.Quantity
+		spec.TerraformRate += component.TerraformRate * slot.Quantity
+		spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || component.OrbitalConstructionModule
+		spec.CanStealFleetCargo = spec.CanStealFleetCargo || component.CanStealFleetCargo
+		spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || component.CanStealPlanetCargo
+		spec.CanJump = spec.CanJump || component.CanJump
+		spec.Radiating = spec.Radiating || component.Radiating
+
+		// Add this mine type to the layers this design has
+		if component.MineLayingRate > 0 {
+			spec.CanLayMines = true
+			if spec.MineLayingRateByMineType == nil {
+				spec.MineLayingRateByMineType = make(map[MineFieldType]int)
+			}
+			if _, ok := spec.MineLayingRateByMineType[component.MineFieldType]; !ok {
+				spec.MineLayingRateByMineType[component.MineFieldType] = 0
+			}
+			spec.MineLayingRateByMineType[component.MineFieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
+		}
+
+		// count battle computers, jammers, capacitors & deflectors
+		if component.TorpedoBonus > 0 {
+			torpedoBonusesByCount[component.TorpedoBonus] += slot.Quantity
+		}
+		if component.TorpedoJamming > 0 {
+			torpedoJammersByCount[component.TorpedoJamming] += slot.Quantity
+		}
+		if component.BeamBonus > 0 {
+			beamBoostersByCount[component.BeamBonus] += slot.Quantity
+		}
+		if component.BeamDefense > 0 {
+			beamDeflectorsByCount[component.BeamDefense] += slot.Quantity
+		}
+
+		// if this slot has a bomb, this design is a bomber
+		if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 || component.KillRate > 0 || component.StructureDestroyRate > 0 || component.UnterraformRate > 0 {
+			spec.Bomber = true
+			bomb := Bomb{
+				Quantity:             slot.Quantity,
+				KillRate:             component.KillRate,
+				MinKillRate:          component.MinKillRate,
+				StructureDestroyRate: component.StructureDestroyRate,
+				UnterraformRate:      component.UnterraformRate,
+			}
+			if component.UnterraformRate > 0 {
+				spec.RetroBombs = append(spec.RetroBombs, bomb)
+			} else if component.Smart {
+				spec.SmartBombs = append(spec.SmartBombs, bomb)
+			} else {
+				spec.Bombs = append(spec.Bombs, bomb)
 			}
 
-			if component.Category == TechCategoryBeamWeapon && component.Power > 0 && (component.Range+hull.RangeBonus) > 0 {
-				// mines swept/yr = power * (range)^2
-				gatlingMultiplier := 1
-				if component.Gatling {
-					// gattlings are 4x more mine-sweepery (all gatlings have range of 2; 2^2=4)
-					gatlingMultiplier = component.Range * component.Range
+			// bombs add to rating
+			bombsPower += int((bomb.KillRate*10 + bomb.StructureDestroyRate)) * slot.Quantity * 2
+		}
+
+		if component.Power > 0 {
+			spec.HasWeapons = true
+			spec.WeaponSlots = append(spec.WeaponSlots, slot)
+			switch component.Category {
+			case TechCategoryBeamWeapon:
+				// beams contribute to the rating based on range, but sappers
+				// are 1/3rd rated to compensate for high power
+				rating := component.Power * slot.Quantity * (component.Range + 3) / 4
+				if component.DamageShieldsOnly {
+					rating /= 3
 				}
-				spec.MineSweep += slot.Quantity * component.Power * ((component.Range + hull.RangeBonus) * component.Range) * gatlingMultiplier
+				beamPower += rating
+			case TechCategoryTorpedo:
+				torpedoPower += component.Power * slot.Quantity * (component.Range - 2) / 2
 			}
+		}
 
-			spec.TechLevel = spec.TechLevel.Max(component.Requirements.TechLevel)
+		// cloaking
+		if component.CloakUnits > 0 {
+			spec.CloakUnits += component.CloakUnits * slot.Quantity
+		}
+		if component.ReduceCloaking {
+			numTachyonDetectors++
+		}
+		// cargo and space dock that are built into the hull
+		// the space dock assumes that there is only one slot like that
+		// it won't add them up
 
-			spec.Mass += component.Mass * slot.Quantity
-			a, s := getArmorShieldAmounts(float64(component.Armor), float64(component.Shield), slot.Quantity, raceSpec, component.Category == TechCategoryArmor)
-			armor += a
-			shield += s
-			spec.CargoCapacity += component.CargoBonus * slot.Quantity
-			spec.FuelCapacity += component.FuelBonus * slot.Quantity
-			spec.FuelGeneration += component.FuelGeneration * slot.Quantity
-			spec.Colonizer = spec.Colonizer || component.ColonizationModule || component.OrbitalConstructionModule
-			spec.Initiative += component.InitiativeBonus * slot.Quantity
-			spec.MovementBonus += component.MovementBonus * float64(slot.Quantity)
-			spec.ReduceMovement = max(spec.ReduceMovement, component.ReduceMovement) // these don't stack
-			spec.MiningRate += component.MiningRate * slot.Quantity
-			spec.TerraformRate += component.TerraformRate * slot.Quantity
-			spec.OrbitalConstructionModule = spec.OrbitalConstructionModule || component.OrbitalConstructionModule
-			spec.CanStealFleetCargo = spec.CanStealFleetCargo || component.CanStealFleetCargo
-			spec.CanStealPlanetCargo = spec.CanStealPlanetCargo || component.CanStealPlanetCargo
-			spec.CanJump = spec.CanJump || component.CanJump
-			spec.Radiating = spec.Radiating || component.Radiating
+		if hullSlot.Type&HullSlotTypeSpaceDock > 0 {
+			spec.SpaceDock = hullSlot.Capacity
+		}
 
-			// Add this mine type to the layers this design has
-			if component.MineLayingRate > 0 {
-				spec.CanLayMines = true
-				if spec.MineLayingRateByMineType == nil {
-					spec.MineLayingRateByMineType = make(map[MineFieldType]int)
-				}
-				if _, ok := spec.MineLayingRateByMineType[component.MineFieldType]; !ok {
-					spec.MineLayingRateByMineType[component.MineFieldType] = 0
-				}
-				spec.MineLayingRateByMineType[component.MineFieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
+		// mass drivers
+		if component.PacketSpeed > 0 {
+			// if we already have a mass driver at this speed, add an additional mass driver to up
+			// our speed
+			if spec.BasePacketSpeed == component.PacketSpeed {
+				spec.AdditionalMassDrivers++
 			}
+			spec.BasePacketSpeed = max(spec.BasePacketSpeed, component.PacketSpeed)
+			spec.MassDriver = component.Name
+		}
 
-			// count battle computers, jammers, capacitors & deflectors
-			if component.TorpedoBonus > 0 {
-				torpedoBonusesByCount[component.TorpedoBonus] += slot.Quantity
-			}
-			if component.TorpedoJamming > 0 {
-				torpedoJammersByCount[component.TorpedoJamming] += slot.Quantity
-			}
-			if component.BeamBonus > 0 {
-				beamBoostersByCount[component.BeamBonus] += slot.Quantity
-			}
-			if component.BeamDefense > 0 {
-				beamDeflectorsByCount[component.BeamDefense] += slot.Quantity
-			}
-
-			// if this slot has a bomb, this design is a bomber
-			if component.HullSlotType == HullSlotTypeBomb || component.MinKillRate > 0 || component.KillRate > 0 || component.StructureDestroyRate > 0 || component.UnterraformRate > 0 {
-				spec.Bomber = true
-				bomb := Bomb{
-					Quantity:             slot.Quantity,
-					KillRate:             component.KillRate,
-					MinKillRate:          component.MinKillRate,
-					StructureDestroyRate: component.StructureDestroyRate,
-					UnterraformRate:      component.UnterraformRate,
-				}
-				if component.UnterraformRate > 0 {
-					spec.RetroBombs = append(spec.RetroBombs, bomb)
-				} else if component.Smart {
-					spec.SmartBombs = append(spec.SmartBombs, bomb)
-				} else {
-					spec.Bombs = append(spec.Bombs, bomb)
-				}
-
-				// bombs add to rating
-				bombsPower += int((bomb.KillRate*10 + bomb.StructureDestroyRate)) * slot.Quantity * 2
-			}
-
-			if component.Power > 0 {
-				spec.HasWeapons = true
-				spec.WeaponSlots = append(spec.WeaponSlots, slot)
-				switch component.Category {
-				case TechCategoryBeamWeapon:
-					// beams contribute to the rating based on range, but sappers
-					// are 1/3rd rated to compensate for high power
-					rating := component.Power * slot.Quantity * (component.Range + 3) / 4
-					if component.DamageShieldsOnly {
-						rating /= 3
-					}
-					beamPower += rating
-				case TechCategoryTorpedo:
-					torpedoPower += component.Power * slot.Quantity * (component.Range - 2) / 2
-				}
-			}
-
-			// cloaking
-			if component.CloakUnits > 0 {
-				spec.CloakUnits += component.CloakUnits * slot.Quantity
-			}
-			if component.ReduceCloaking {
-				numTachyonDetectors++
-			}
-			// cargo and space dock that are built into the hull
-			// the space dock assumes that there is only one slot like that
-			// it won't add them up
-
-			if hullSlot.Type&HullSlotTypeSpaceDock > 0 {
-				spec.SpaceDock = hullSlot.Capacity
-			}
-
-			// mass drivers
-			if component.PacketSpeed > 0 {
-				// if we already have a mass driver at this speed, add an additional mass driver to up
-				// our speed
-				if spec.BasePacketSpeed == component.PacketSpeed {
-					spec.AdditionalMassDrivers++
-				}
-				spec.BasePacketSpeed = max(spec.BasePacketSpeed, component.PacketSpeed)
-				spec.MassDriver = component.Name
-			}
-
-			// stargate fields
-			if component.SafeHullMass != 0 {
-				spec.Stargate = component.Name
-				spec.SafeHullMass = component.SafeHullMass
-			}
-			if component.MaxHullMass != 0 {
-				spec.MaxHullMass = component.MaxHullMass
-			}
-			if component.SafeRange != 0 {
-				spec.SafeRange = component.SafeRange
-			}
-			if component.MaxRange != 0 {
-				spec.MaxRange = component.MaxRange
-			}
+		// stargate fields
+		if component.SafeHullMass != 0 {
+			spec.Stargate = component.Name
+			spec.SafeHullMass = component.SafeHullMass
+		}
+		if component.MaxHullMass != 0 {
+			spec.MaxHullMass = component.MaxHullMass
+		}
+		if component.SafeRange != 0 {
+			spec.SafeRange = component.SafeRange
+		}
+		if component.MaxRange != 0 {
+			spec.MaxRange = component.MaxRange
 		}
 	}
 
@@ -555,7 +559,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 
 	if numTachyonDetectors > 0 {
 		// 95% ^ (SQRT(#_of_detectors) = reduction factor for other players' cloaks (capped at 81% or 17TDs)
-		spec.ReduceCloaking = min(math.Pow((1-rules.TachyonCloakReduction), math.Sqrt(float64(numTachyonDetectors))), rules.TachyonMaxCloakReduction)
+		spec.ReduceCloaking = min(math.Pow(1-rules.TachyonCloakReduction, math.Sqrt(float64(numTachyonDetectors))), rules.TachyonMaxCloakReduction)
 	} else {
 		spec.ReduceCloaking = 1
 	}
@@ -606,13 +610,13 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 	spec.BeamBonus = 1
 	if len(beamBoostersByCount) > 0 {
 		for beamBonus, count := range beamBoostersByCount {
-			// for 3 flux caps, this calc is 1-(1.2^3) for 1.728x beam damage
+			// for 3 flux caps, this calc is (1.2^3) for 1.728x beam damage
 			bonus := math.Pow(1+beamBonus, float64(count))
 
 			// multiple beam boosters stack multiplicatively
 			spec.BeamBonus *= bonus
 
-			if spec.BeamBonus > rules.BeamBonusCap {
+			if spec.BeamBonus >= rules.BeamBonusCap {
 				// save a bit of computing power by breaking early if over cap
 				break
 			}
@@ -637,43 +641,34 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		spec.BeamDefense = roundFloat(spec.BeamDefense, 4)
 	}
 
-	if spec.NumEngines > 0 {
+	if spec.NumEngines > 0 && spec.Engine != (Engine{}) {
+		// Calculate move bonus and engine estimated range
 		// Movement = (IdealEngineSpeed - 2) - (Mass / (70 * NumEngines)) + Move Bonus
 		// move bonus is rounded up before evaluation
 		spec.Movement = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass, spec.NumEngines)
 		spec.MovementFull = getBattleMovement(rules.MovementMin, rules.MovementMax, spec.Engine.IdealSpeed, spec.MovementBonus, spec.Mass+spec.CargoCapacity, spec.NumEngines)
-	} else {
-		spec.Movement = 0
-		spec.MovementFull = 0
+		// For design estimated range, we assume the fleet has full fuel and either 0 or max cargo
+		// TODO: Add toggle to show max spd estimated range instead of merely estimated range
+		spec.EstimatedRange = getEstimatedRange(spec.Engine.IdealSpeed, []ShipToken{{design: design, Quantity: 1}},
+			spec.FuelCapacity, spec.FuelGeneration, 0, spec.CargoCapacity, raceSpec.FuelEfficiencyOffset)
+		spec.EstimatedRangeFull = getEstimatedRange(spec.Engine.IdealSpeed, []ShipToken{{design: design, Quantity: 1}},
+			spec.FuelCapacity, spec.FuelGeneration, spec.CargoCapacity, spec.CargoCapacity, raceSpec.FuelEfficiencyOffset)
 	}
+	// Ships without engines have 0 move by default due to zero values
 
-	beamPower = int(float64(beamPower) * (spec.BeamBonus))
+	beamPower = int(float64(beamPower) * spec.BeamBonus)
 	if beamPower > 0 {
-		// starbases don't move, but for the beam power calcs
+		// starbases don't move, but beam power calcs
 		// assume they have a movement of "2" which is the lowest possible
 		movement := Clamp(spec.Movement, rules.MovementMin, rules.MovementMax)
 
-		// a movement of 1 1/2 in the UI (halfwar between max & min) doesn't impact your beam
-		// power rating. Anything less reduces it, anything higher increases it
+		// a movement of 1 1/2 in the UI (halfway between max & min) doesn't impact your beam power rating.
+		// Anything less reduces it, anything higher increases it
 		beamPower += (beamPower * (movement - (rules.MovementMin+rules.MovementMax)/2)) / rules.MovementMax
 	}
 	spec.PowerRating = beamPower + torpedoPower + bombsPower
 
 	spec.computeScanRanges(rules, raceSpec.ScannerSpec, techLevels, design, hull)
-
-	// compute the estimated range for this design
-	if spec.NumEngines > 0 {
-		fuelCostFor1kly := spec.Engine.getFuelCostForEngine(spec.Engine.IdealSpeed, spec.Mass, 1000, 1+raceSpec.FuelEfficiencyOffset)
-		fuelCostFor1klyFull := spec.Engine.getFuelCostForEngine(spec.Engine.IdealSpeed, spec.Mass+spec.CargoCapacity, 1000, 1+raceSpec.FuelEfficiencyOffset)
-
-		if fuelCostFor1kly == 0 {
-			spec.EstimatedRange = Infinite
-			spec.EstimatedRangeFull = Infinite
-		} else {
-			spec.EstimatedRange = int(float64(spec.FuelCapacity) / float64(fuelCostFor1kly) * 1000)
-			spec.EstimatedRangeFull = int(float64(spec.FuelCapacity) / float64(fuelCostFor1klyFull) * 1000)
-		}
-	}
 
 	return spec, nil
 }

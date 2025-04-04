@@ -29,7 +29,7 @@ const (
 )
 
 // The Game itself tracks some settings, the Rules, the Host and the current state (year/victory declared)
-// All other parts of a Game are stored in the Universe
+// All other parts of a Game are stored in the [Universe].
 type Game struct {
 	DBObject                     `tstype:",extends"`
 	HostID                       int64             `json:"hostId"`

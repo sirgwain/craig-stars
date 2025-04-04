@@ -472,7 +472,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 		args args
 		want []want
 	}{
-		{name: "Single weapon, do 10 damage, no kills",
+		{
+			name: "Single weapon, do 10 damage, no kills",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -494,7 +495,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			},
 			want: []want{{damage: 10, quantityDamaged: 1, quantityRemaining: 1}},
 		},
-		{name: "Single weapon, do 30 damage, to a ship stack with two ships, one damaged",
+		{
+			name: "Single weapon, do 30 damage, to a ship stack with two ships, one damaged",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -518,7 +520,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			},
 			want: []want{{damage: 15, quantityDamaged: 1, quantityRemaining: 1}},
 		},
-		{name: "Single weapon, do 10 damage reduced to 9 for range",
+		{
+			name: "Single weapon, do 10 damage reduced to 9 for range",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -544,7 +547,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			},
 			want: []want{{damage: 9, quantityDamaged: 1, quantityRemaining: 1}},
 		},
-		{name: "two weapons, do 30 damage total, one (over)kill",
+		{
+			name: "two weapons, do 30 damage total, one (over)kill",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -566,7 +570,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 0}},
 		},
-		{name: "two weapons, two ships, do 40 damage total, one kill, one damaged",
+		{
+			name: "two weapons, two ships, do 40 damage total, one kill, one damaged",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -587,7 +592,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			},
 			want: []want{{damage: 10, quantityDamaged: 1, quantityRemaining: 1}},
 		},
-		{name: "two weapons, two stacks, do 20 damage total, kill both",
+		{
+			name: "two weapons, two stacks, do 20 damage total, kill both",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -619,7 +625,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 				{damage: 0, quantityDamaged: 0, quantityRemaining: 0},
 			},
 		},
-		{name: "two weapons, two stacks, do 20 damage total, don't get through shield of the first stack",
+		{
+			name: "two weapons, two stacks, do 20 damage total, don't get through shield of the first stack",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -655,7 +662,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 				{damage: 0, quantityDamaged: 0, quantityRemaining: 3, stackShields: 30},
 			},
 		},
-		{name: "one weapon, do 10 damage to shields, no damage",
+		{
+			name: "one weapon, do 10 damage to shields, no damage",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -678,7 +686,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 1, stackShields: 10}},
 		},
-		{name: "one super beam, do 100 damage destroy one stack and damage another",
+		{
+			name: "one super beam, do 100 damage destroy one stack and damage another",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -709,7 +718,8 @@ func Test_battle_fireBeamWeapon(t *testing.T) {
 				{damage: 90, quantityDamaged: 1, quantityRemaining: 1},
 			},
 		},
-		{name: "one minigun, do 10 damage to all targets",
+		{
+			name: "one minigun, do 10 damage to all targets",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -804,7 +814,8 @@ func Test_battle_fireTorpedo(t *testing.T) {
 		args args
 		want []want
 	}{
-		{name: "Single torpedo, do 10 damage, no kills",
+		{
+			name: "Single torpedo, do 10 damage, no kills",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -826,7 +837,8 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 10, quantityDamaged: 1, quantityRemaining: 1}},
 		},
-		{name: "Single torpedo, do 10 damage to a 2 ship stack with 1@5 damage",
+		{
+			name: "Single torpedo, do 10 damage to a 2 ship stack with 1@5 damage",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -851,7 +863,8 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			// TODO: not sure about this. It doesn't make sense for a torpedo to splash damage at the end...
 			want: []want{{damage: 15 / 2., quantityDamaged: 2, quantityRemaining: 2}},
 		},
-		{name: "Single torpedo, do 30 damage to a stack with two ships, destroy one, other undamaged",
+		{
+			name: "Single torpedo, do 30 damage to a stack with two ships, destroy one, other undamaged",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -873,7 +886,8 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 1}},
 		},
-		{name: "two torpedoes, do 15 damage each, kill ship with first hit",
+		{
+			name: "two torpedoes, do 15 damage each, kill ship with first hit",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -895,7 +909,8 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 0, quantityDamaged: 0, quantityRemaining: 0}},
 		},
-		{name: "1 ship with 2 jihads hitting unarmored target",
+		{
+			name: "1 ship with 2 jihads hitting unarmored target",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -918,7 +933,8 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 340, quantityDamaged: 1, quantityRemaining: 1}},
 		},
-		{name: "two capital missiles, do 10 damage each, take down shields with first hit, double damage with second",
+		{
+			name: "two capital missiles, do 10 damage each, take down shields with first hit, double damage with second",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -942,7 +958,8 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 30, quantityDamaged: 1, quantityRemaining: 1}},
 		},
-		{name: "two torpedoes, two attacker ships, 4x torpedoes do 40 damage total, one kill, one damaged",
+		{
+			name: "two torpedoes, two attacker ships, 4x torpedoes do 40 damage total, one kill, one damaged",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -964,7 +981,8 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			},
 			want: []want{{damage: 10, quantityDamaged: 1, quantityRemaining: 1}},
 		},
-		{name: "from testbed, two omega torps w 300 power, 2 1700dp1300 damage",
+		{
+			name: "from testbed, two omega torps w 300 power, 2 1700dp1300 damage",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{
@@ -989,7 +1007,8 @@ func Test_battle_fireTorpedo(t *testing.T) {
 			// 600 damage total, first ship takes 400, 200 split between remaining ships
 			want: []want{{damage: 1400, quantityDamaged: 2, quantityRemaining: 2}},
 		},
-		{name: "one torpedo, do 5 damage to shields, 5 damage to hull",
+		{
+			name: "one torpedo, do 5 damage to shields, 5 damage to hull",
 			args: args{
 				weapon: weapon{
 					weaponSlot: &battleWeaponSlot{

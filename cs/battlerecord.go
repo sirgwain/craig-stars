@@ -96,29 +96,23 @@ func (t BattleRecordTokenActionType) String() string {
 	}
 }
 
+// A vector in the battle grid, used to represent movements inside battle.
+//
+// TODO: Make this an integer correspondant of Vector
 type BattleVector struct {
 	X int `json:"x"`
 	Y int `json:"y"`
 }
 
-var BattleVectorRight BattleVector = BattleVector{1, 0}
-var BattleVectorLeft BattleVector = BattleVector{-1, 0}
-var BattleVectorUp BattleVector = BattleVector{0, 1}
-var BattleVectorDown BattleVector = BattleVector{0, -1}
-var BattleVectorUpRight BattleVector = BattleVector{1, 1}
-var BattleVectorUpLeft BattleVector = BattleVector{-1, 1}
-var BattleVectorDownRight BattleVector = BattleVector{1, -1}
-var BattleVectorDownLeft BattleVector = BattleVector{-1, -1}
-
-func (v1 BattleVector) Add(v2 BattleVector) BattleVector {
-	return BattleVector{v1.X + v2.X, v1.Y + v2.Y}
+func (addend BattleVector) Add(augend BattleVector) BattleVector {
+	return BattleVector{addend.X + augend.X, addend.Y + augend.Y}
 }
 
-func (v1 BattleVector) distance(v2 BattleVector) int {
+func (v1 BattleVector) distanceTo(v2 BattleVector) int {
 	return max(Abs(v1.X-v2.X), Abs(v1.Y-v2.Y))
 }
 
-func (v BattleVector) scale(scale int) BattleVector {
+func (v BattleVector) multiply(scale int) BattleVector {
 	return BattleVector{v.X * scale, v.Y * scale}
 }
 
