@@ -11,10 +11,11 @@
 
 	type Props = {
 		fleet: CommandedFleet;
+		hideTitle?: boolean;
 	} & NextPrevMapObjectProps &
 		RenameFleetProps;
 
-	let { fleet, onRenameFleet, onNextMapObject, onPreviousMapObject }: Props = $props();
+	let { fleet, hideTitle, onRenameFleet, onNextMapObject, onPreviousMapObject }: Props = $props();
 
 	const design: AnyShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
@@ -34,7 +35,7 @@
 	}
 </script>
 
-<CommandTile title={fleet.name}>
+<CommandTile title={hideTitle ? '' : fleet.name}>
 	<div class="grid grid-cols-2">
 		<div class="avatar border border-secondary p-2 bg-black m-auto relative">
 			{#if fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}

@@ -19,6 +19,10 @@ func (t Target[T]) String() string {
 	return fmt.Sprintf("Target: %s Type: %s Player: %d Num: %d", t.TargetName, t.TargetType, t.TargetPlayerNum, t.TargetNum)
 }
 
+func (t Target[T]) Targeting(mo MapObject) bool {
+	return string(mo.Type) == string(t.TargetType) && mo.PlayerNum == t.TargetPlayerNum && mo.Num == t.TargetNum
+}
+
 // Throughout a turn various events will result in messages being sent to players.
 // Messages have a type and a target (the target is focused in the UI when you click the Goto button)
 // Messages also have a Spec that is used to store specific numbers for the UI to display on the message.

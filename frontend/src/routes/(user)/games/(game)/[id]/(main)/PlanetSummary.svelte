@@ -1,66 +1,28 @@
 <script lang="ts">
-	import PlanetBaseHabPoint from '$lib/components/game/PlanetBaseHabPoint.svelte';
-	import PlanetHabPoint from '$lib/components/game/PlanetHabPoint.svelte';
-	import PlanetHabTerraformLine from '$lib/components/game/PlanetHabTerraformLine.svelte';
+	import PlanetHabBars from '$lib/components/game/PlanetHabBars.svelte';
+	import PlanetHabValue from '$lib/components/game/PlanetHabValue.svelte';
 	import type { HabTooltipProps } from '$lib/components/game/tooltips/HabTooltip.svelte';
 	import HabTooltip from '$lib/components/game/tooltips/HabTooltip.svelte';
 	import PopulationTooltip, {
 		type PopulationTooltipProps
 	} from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
-	import { Grav, None, Rad, ReportAgeUnexplored, Temp, type PlanetIntel } from '$lib/types/cs';
-	import { add, getGravString, getRadString, getTempString } from '$lib/types/Hab';
+	import type { AnyPlanet } from '$lib/services/Universe';
+	import { population } from '$lib/types/Cargo';
+	import { Grav, None, Rad, ReportAgeUnexplored, Temp } from '$lib/types/cs';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
+	import MapObjectIcon from './MapObjectIcon.svelte';
 	import PlanetMineralsGraph from './PlanetMineralsGraph.svelte';
-	import { population } from '$lib/types/Cargo';
 
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: AnyPlanet;
 	};
 
 	let { planet }: Props = $props();
-
-	let habLow = $derived($player.race.habLow);
-	let habHigh = $derived($player.race.habHigh);
-	let habPoint = $derived(planet.hab ?? {});
-	let baseHab = $derived(planet.baseHab ?? {});
-	let terraformHabPoint = $derived(add(habPoint, planet.spec.terraformAmount ?? {}));
-	let habWidth = $derived({
-		grav: (habHigh.grav ?? 0) - (habLow.grav ?? 0),
-		temp: (habHigh.temp ?? 0) - (habLow.temp ?? 0),
-		rad: (habHigh.rad ?? 0) - (habLow.rad ?? 0)
-	});
-
-	let habPointPercent = $derived({
-		grav: clamp(habPoint.grav ? (habPoint.grav / 100) * 100 : 0, 0, 100),
-		temp: clamp(habPoint.temp ? (habPoint.temp / 100) * 100 : 0, 0, 100),
-		rad: clamp(habPoint.rad ? (habPoint.rad / 100) * 100 : 0, 0, 100)
-	});
-	let baseHabPercent = $derived({
-		grav: clamp(baseHab.grav ? (baseHab.grav / 100) * 100 : 0, 0, 100),
-		temp: clamp(baseHab.temp ? (baseHab.temp / 100) * 100 : 0, 0, 100),
-		rad: clamp(baseHab.rad ? (baseHab.rad / 100) * 100 : 0, 0, 100)
-	});
-	let terraformHabPointPercent = $derived({
-		grav: clamp(terraformHabPoint.grav ? (terraformHabPoint.grav / 100) * 100 : 0, 0, 100),
-		temp: clamp(terraformHabPoint.temp ? (terraformHabPoint.temp / 100) * 100 : 0, 0, 100),
-		rad: clamp(terraformHabPoint.rad ? (terraformHabPoint.rad / 100) * 100 : 0, 0, 100)
-	});
-	let habLowPercent = $derived({
-		grav: clamp(habLow.grav ? (habLow.grav / 100) * 100 : 0, 0, 100),
-		temp: clamp(habLow.temp ? (habLow.temp / 100) * 100 : 0, 0, 100),
-		rad: clamp(habLow.rad ? (habLow.rad / 100) * 100 : 0, 0, 100)
-	});
-	let habWidthPercent = $derived({
-		grav: clamp(habWidth.grav ? (habWidth.grav / 100) * 100 : 0, 0, 100),
-		temp: clamp(habWidth.temp ? (habWidth.temp / 100) * 100 : 0, 0, 100),
-		rad: clamp(habWidth.rad ? (habWidth.rad / 100) * 100 : 0, 0, 100)
-	});
 
 	function onPopulationTooltip(e: PointerEvent) {
 		e.preventDefault();
@@ -99,24 +61,24 @@
 	}
 </script>
 
-<div class="flex flex-col min-h-[11rem] select-none">
+<div class="flex flex-col md:min-h-[11rem] select-none w-full">
 	{#if 'reportAge' in planet && planet.reportAge === ReportAgeUnexplored}
-		<div class="m-auto">
-			<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent" />
+		<div class="relative w-full m-auto">
+			<!-- Icon on the left -->
+			<div class="absolute top-1/2 -translate-y-1/2">
+				<!-- Your icon here -->
+				<MapObjectIcon mapObject={planet} />
+			</div>
+
+			<!-- Centered content -->
+			<div>
+				<Icon src={QuestionMarkCircle} size="64" class="hover:stroke-accent m-auto" />
+			</div>
 		</div>
 	{:else}
 		<div class="flex justify-between cursor-help" onpointerdown={onPopulationTooltip}>
 			<div class="ml-[5.5rem]">
-				Value: <span
-					class:text-habitable={(planet.spec.habitability ?? 0) > 0}
-					class:text-uninhabitable={(planet.spec.habitability ?? 0) < 0}
-					class:text-terraformable={(planet.spec.habitability ?? 0) < 0 &&
-						(planet.spec.terraformedHabitability ?? 0) > 0}
-					>{planet.spec.habitability ?? 0}%{planet.spec.terraformedHabitability &&
-					planet.spec.terraformedHabitability !== planet.spec.habitability
-						? ` (${planet.spec.terraformedHabitability}%)`
-						: ''}</span
-				>
+				Value: <PlanetHabValue {planet} />
 			</div>
 			{#if population(planet.cargo)}
 				<div>Population: {population(planet.cargo).toLocaleString()}</div>
@@ -147,98 +109,13 @@
 			</div>
 		</div>
 
-		<div class="flex flex-row cursor-help" onpointerdown={onGravityTooltip}>
-			<div class="text-right w-[5.5rem] text-tile-item-title">Gravity</div>
-			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
-				<div class="h-full relative">
-					{#if !$player.race.immuneGrav}
-						<div
-							style={`left: ${habLowPercent.grav.toFixed()}%; width: ${habWidthPercent.grav?.toFixed()}%`}
-							class="absolute grav-bar h-full"
-						></div>
-					{/if}
-					<PlanetHabPoint
-						style={`left: ${habPointPercent.grav.toFixed()}%;`}
-						class="absolute grav-point h-full -translate-x-1/2"
-					/>
-					<PlanetBaseHabPoint
-						style={`left: ${baseHabPercent.grav.toFixed()}%;`}
-						class="absolute grav-point h-full -translate-x-1/2"
-					/>
-					<!-- Terraform line -->
-					<div class="absolute h-full w-full">
-						<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-							<line
-								x1={habPointPercent.grav}
-								y1="50"
-								x2={terraformHabPointPercent.grav}
-								y2="50"
-								vector-effect="non-scaling-stroke"
-								stroke-width="1"
-								class="grav-point"
-							/>
-						</svg>
-					</div>
-				</div>
-			</div>
-			<div class="w-[3rem]">{getGravString(planet.hab?.grav ?? 0)}</div>
-		</div>
-		<div class="flex flex-row cursor-help" onpointerdown={onTemperatureTooltip}>
-			<div class="text-right w-[5.5rem] text-tile-item-title">Temperature</div>
-			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden">
-				<div class="h-full relative">
-					{#if !$player.race.immuneTemp}
-						<div
-							style={`left: ${habLowPercent.temp.toFixed()}%; width: ${habWidthPercent.temp?.toFixed()}%`}
-							class="absolute temp-bar h-full"
-						></div>
-					{/if}
-					<PlanetHabPoint
-						style={`left: ${habPointPercent.temp.toFixed()}%;`}
-						class="absolute temp-point h-full -translate-x-1/2"
-					/>
-					<PlanetBaseHabPoint
-						style={`left: ${baseHabPercent.temp.toFixed()}%;`}
-						class="absolute temp-point h-full -translate-x-1/2"
-					/>
-					<!-- Terraform line -->
-					<PlanetHabTerraformLine
-						x1={habPointPercent.temp}
-						x2={terraformHabPointPercent.temp}
-						class="temp-point"
-					/>
-				</div>
-			</div>
-			<div class="w-[3rem]">{getTempString(planet.hab?.temp ?? 0)}</div>
-		</div>
-		<div class="flex flex-row cursor-help" onpointerdown={onRadiationTooltip}>
-			<div class="text-right w-[5.5rem] text-tile-item-title">Radiation</div>
-			<div class="grow bg-black mx-1 overflow-hidden">
-				<div class="h-full relative">
-					{#if !$player.race.immuneRad}
-						<div
-							style={`left: ${habLowPercent.rad.toFixed()}%; width: ${habWidthPercent.rad?.toFixed()}%`}
-							class="absolute rad-bar h-full"
-						></div>
-					{/if}
-					<PlanetHabPoint
-						style={`left: ${habPointPercent.rad.toFixed()}%;`}
-						class="absolute rad-point h-full -translate-x-1/2"
-					/>
-					<PlanetBaseHabPoint
-						style={`left: ${baseHabPercent.rad.toFixed()}%;`}
-						class="absolute rad-point h-full -translate-x-1/2"
-					/>
-					<!-- Terraform line -->
-					<PlanetHabTerraformLine
-						x1={habPointPercent.rad}
-						x2={terraformHabPointPercent.rad}
-						class="rad-point"
-					/>
-				</div>
-			</div>
-			<div class="w-[3rem]">{getRadString(planet.hab?.rad ?? 0)}</div>
-		</div>
+		<PlanetHabBars
+			{planet}
+			player={$player}
+			{onGravityTooltip}
+			{onTemperatureTooltip}
+			{onRadiationTooltip}
+		/>
 
 		<div class="mb-1"></div>
 

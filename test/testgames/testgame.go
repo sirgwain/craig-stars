@@ -114,7 +114,6 @@ func createTestGame(tg TestGame) *cs.FullGame {
 		for i, f := range p.Fleets {
 			addFleet(game, player, &f, i+1)
 		}
-		// TODO: generate player starting designs if design/fleet slices are nil
 
 		for i, mp := range p.MineralPackets {
 			addMineralPacket(game, player, &mp, i+1)
@@ -202,6 +201,7 @@ func addMineralPacket(game *cs.FullGame, player *cs.Player, mineralPacket *cs.Mi
 	mineralPacket.PlayerNum = player.Num
 	mineralPacket.Num = num
 	mineralPacket.Name = fmt.Sprintf("%s Mineral Packet #%d", player.Race.PluralName, mineralPacket.Num)
+	mineralPacket.Heading = game.Planets[mineralPacket.TargetPlanetNum-1].Position.Subtract(mineralPacket.Position).Normalized()
 	game.MineralPackets = append(game.MineralPackets, mineralPacket)
 	return mineralPacket
 }
@@ -235,6 +235,7 @@ func addMysteryTrader(game *cs.FullGame, mysteryTrader *cs.MysteryTrader) *cs.My
 	mysteryTrader.Type = cs.MapObjectTypePlanet
 	mysteryTrader.Num = len(game.MysteryTraders) + 1
 	mysteryTrader.Name = fmt.Sprintf("Mystery Trader #%d", mysteryTrader.Num)
+	mysteryTrader.Heading = mysteryTrader.Destination.Subtract(mysteryTrader.Position).Normalized()
 	game.MysteryTraders = append(game.MysteryTraders, mysteryTrader)
 	return mysteryTrader
 }

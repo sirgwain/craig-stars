@@ -195,6 +195,14 @@
 	.fill-fleet-ally {
 		@apply fill-[#FFFF00];
 	}
+
+	.mapobject-avatar-wrapper {
+		@apply border-2 border-neutral mr-2 p-2 bg-black w-[85px] h-[85px];
+	}
+
+	.mapobject-avatar {
+		@apply bg-black h-[65px] w-[65px];
+	}
 }
 
 .scanner-wormhole {

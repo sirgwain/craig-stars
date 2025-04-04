@@ -1,6 +1,27 @@
-import { type AnyFleet } from '$lib/services/Universe';
-import type { MapObject, MapObjectTarget, Vector } from './cs';
-import { MapObjectTypeFleet, MapObjectTypePlanet, None } from './cs';
+import {
+	type AnyFleet,
+	type AnyMineField,
+	type AnyMineralPacket,
+	type AnyPlanet
+} from '$lib/services/Universe';
+import type {
+	MapObject,
+	MapObjectTarget,
+	MysteryTraderIntel,
+	SalvageIntel,
+	Vector,
+	WormholeIntel
+} from './cs';
+import {
+	MapObjectTypeFleet,
+	MapObjectTypeMineField,
+	MapObjectTypeMineralPacket,
+	MapObjectTypeMysteryTrader,
+	MapObjectTypePlanet,
+	MapObjectTypeSalvage,
+	MapObjectTypeWormhole,
+	None
+} from './cs';
 import { getTokenCount, hasDestination } from './Fleet';
 
 export type MovingMapObject = {
@@ -32,6 +53,19 @@ export function getMapObjectName(mo: MapObject | AnyFleet | undefined): string {
 	return mo.name;
 }
 
+// get the underlying map object as a destructurable item
+export function getUnderlyingMapObject(mo: MapObject | undefined) {
+	return {
+		planet: mo?.type === MapObjectTypePlanet ? (mo as AnyPlanet) : undefined,
+		fleet: mo?.type === MapObjectTypeFleet ? (mo as AnyFleet) : undefined,
+		wormhole: mo?.type === MapObjectTypeWormhole ? (mo as WormholeIntel) : undefined,
+		mineField: mo?.type === MapObjectTypeMineField ? (mo as AnyMineField) : undefined,
+		mysteryTrader: mo?.type === MapObjectTypeMysteryTrader ? (mo as MysteryTraderIntel) : undefined,
+		salvage: mo?.type === MapObjectTypeSalvage ? (mo as SalvageIntel) : undefined,
+		mineralPacket: mo?.type === MapObjectTypeMineralPacket ? (mo as AnyMineralPacket) : undefined
+	};
+}
+
 /**
  * Check if this MapObject is owned by a given player
  * @param mo The MapObject to check
@@ -51,7 +85,8 @@ export function owned(mo: MapObject): boolean {
 	return mo.playerNum != None;
 }
 
-export function commandable(playerNum: number, mo: MapObject): boolean {
+export function commandable(playerNum: number, mo: MapObject | undefined): boolean {
+	if (!mo) return false;
 	return (
 		(mo.type === MapObjectTypeFleet || mo.type === MapObjectTypePlanet) &&
 		mo.playerNum === playerNum
@@ -81,9 +116,22 @@ export function equal(mo1: MapObject | undefined, mo2: MapObject | undefined): b
 	return !!(
 		mo1 &&
 		mo2 &&
-		mo1?.num === mo2?.num &&
-		mo1?.type === mo2?.type &&
-		mo1?.playerNum === mo2?.playerNum
+		mo1.num === mo2.num &&
+		mo1.type === mo2.type &&
+		mo1.playerNum === mo2.playerNum
+	);
+}
+
+export function equalsTarget(
+	mo1: MapObject | undefined,
+	target: MapObjectTarget | undefined
+): boolean {
+	return !!(
+		mo1 &&
+		target &&
+		mo1.num === (target.targetNum ?? 0) &&
+		mo1.type === (target.targetType ?? '') &&
+		mo1.playerNum === (target.targetPlayerNum ?? 0)
 	);
 }
 

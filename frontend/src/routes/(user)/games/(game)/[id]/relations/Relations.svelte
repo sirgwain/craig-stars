@@ -32,9 +32,8 @@
 <ItemTitle>Relations</ItemTitle>
 
 <div class="flex flex-col justify-between gap-1">
-	{#each relations as relation, index}
+	{#each relations as relation, index (index)}
 		{#if player.num != index + 1}
-			<!-- content here -->
 			<SectionHeader>{$universe.getPlayerPluralName(index + 1)}</SectionHeader>
 			<div class="form-control">
 				<label class="label cursor-pointer">

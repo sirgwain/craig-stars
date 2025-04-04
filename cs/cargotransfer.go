@@ -193,11 +193,26 @@ func (cargoTransfers CargoTransfers) mergeByHandTransfers(fleet *Fleet, mergingF
 		return
 	}
 
+	// merge any by hand transfers these merging fleets are part of
 	updatedTransfers := make([]ByHandCargoTransfer, 0, len(transfers))
 	for i, transfer := range transfers {
+
+		if transfer.SourceFleetNum == fleet.Num &&
+			slices.ContainsFunc(mergingFleets, func(f *Fleet) bool { return transfer.Targeting(f.MapObject) }) {
+			// this transfer is the source fleet transfering to one of the merged fleets
+			// drop this order as it's "completed" by the merge
+			continue
+		}
+
 		if !slices.ContainsFunc(mergingFleets, func(f *Fleet) bool { return transfer.SourceFleetNum == f.Num }) {
 			// this transfer isn't about a merging fleet, continue
 			updatedTransfers = append(updatedTransfers, transfer)
+			continue
+		}
+
+		if transfer.MapObjectTarget.Targeting(fleet.MapObject) {
+			// the fleet we are merging in is transfering to the source fleet
+			// we can drop this order as it's "completed" by the merge
 			continue
 		}
 
@@ -343,6 +358,12 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
 			if !ok || dest.Deleted() {
 				// can't load from space
+				// TODO: send the user a message
+				t.log.Error().
+					Int("Player", player.Num).
+					Int("Fleet", transfer.SourceFleetNum).
+					Str("Target", transfer.MapObjectTarget.String()).
+					Msgf("target not found for ByHandCargoTransfer load")
 				continue
 			}
 
@@ -446,6 +467,15 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 			if !ok && transfer.TargetType == MapObjectTypeNone {
 				// create a salvage
 				dest = t.game.getOrCreateSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
+			}
+			if dest == nil {
+				// uh oh, our dest went away. Log an error, it's a bug
+				t.log.Error().
+					Int("Player", player.Num).
+					Int("Fleet", transfer.SourceFleetNum).
+					Str("Target", transfer.MapObjectTarget.String()).
+					Msgf("target not found for ByHandCargoTransfer unload")
+				continue
 			}
 
 			mo := dest.GetMapObject()

@@ -38,15 +38,15 @@
 	};
 </script>
 
-<div class="flex flex-row min-h-[11rem]">
+<div class="flex flex-row md:min-h-[11rem]">
 	<div class="flex flex-col">
 		<div class="avatar">
-			<div class="border-2 border-neutral mr-2 p-2 bg-black">
+			<div class="mapobject-avatar-wrapper">
 				<div
 					class:standard-mine-field={mineField.mineFieldType === MineFieldTypeStandard}
 					class:heavy-mine-field={mineField.mineFieldType === MineFieldTypeHeavy}
 					class:speed-bump-mine-field={mineField.mineFieldType === MineFieldTypeSpeedBump}
-					class="mapobject-avatar bg-black"
+					class="mapobject-avatar"
 				></div>
 			</div>
 		</div>

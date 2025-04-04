@@ -36,7 +36,7 @@ import {
 	type Waypoint
 } from '$lib/types/cs';
 import { fleetsSortBy } from '$lib/types/Fleet';
-import { positionKey } from '$lib/types/MapObject';
+import { commandable, positionKey } from '$lib/types/MapObject';
 import { CommandedPlanet, planetsSortBy } from '$lib/types/Planet';
 import type { CommandedPlayer } from '$lib/types/Player';
 import type { CS } from '$lib/wasm';
@@ -374,6 +374,14 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	getMyMapObjectsByPosition(position: MapObject | Vector) {
 		return this.myMapObjectsByPosition[positionKey(position)];
+	}
+
+	getCommandableMapObjectsByPosition(position: MapObject | Vector) {
+		return (
+			this.myMapObjectsByPosition[positionKey(position)]?.filter((mo) =>
+				commandable(this.playerNum, mo)
+			) ?? []
+		);
 	}
 
 	getMyFleetsByPosition(position: MapObject | Vector): Fleet[] {
