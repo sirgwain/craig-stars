@@ -36,7 +36,7 @@ func Ready() {
 }
 
 // jsFunctionWrapper wraps a wasm function to capture panics and dump them to the console, but not crash the wasm
-func jsFunctionWrapper(wrappedFunc func(args []js.Value) interface{}) js.Func {
+func jsFunctionWrapper(wrappedFunc func(args []js.Value) any) js.Func {
 	return js.FuncOf(func(this js.Value, args []js.Value) any {
 		defer func() {
 			// if we panic, update the game state to fail
@@ -54,6 +54,6 @@ func jsFunctionWrapper(wrappedFunc func(args []js.Value) interface{}) js.Func {
 }
 
 // Expose exposes a copy of the provided value in JS.
-func ExposeFunction(property string, wrappedFunc func(args []js.Value) interface{}) {
+func ExposeFunction(property string, wrappedFunc func(args []js.Value) any) {
 	bridge.Set(property, jsFunctionWrapper(wrappedFunc))
 }

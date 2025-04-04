@@ -125,13 +125,6 @@ type StartingPlanet struct {
 	Homeworld          bool            `json:"homeworld,omitempty"`
 }
 
-type StartingFleet struct {
-	Name          string            `json:"name,omitempty"`
-	HullName      StartingFleetHull `json:"hullName,omitempty"`
-	HullSetNumber uint              `json:"hullSetNumber,omitempty"`
-	Purpose       ShipDesignPurpose `json:"purpose,omitempty"`
-}
-
 type StealsResearch struct {
 	Energy        float64 `json:"energy,omitempty"`
 	Weapons       float64 `json:"weapons,omitempty"`
@@ -145,21 +138,6 @@ type FreighterGrowth struct {
 	Absolute     bool    `json:"absolute,omitempty"` // Whether the freighter growth is absolute (flat % of pop in fleet) or relative based on growth rate
 	GrowthFactor float64 `json:"rate,omitempty"`
 }
-
-type StartingFleetHull string
-
-const (
-	StartingFleetHullColonyShip      StartingFleetHull = "Colony Ship"
-	StartingFleetHullDestroyer       StartingFleetHull = "Destroyer"
-	StartingFleetHullMediumFreighter StartingFleetHull = "Medium Freighter"
-	StartingFleetHullMiniBomber      StartingFleetHull = "Mini Bomber"
-	StartingFleetHullMiniColonyShip  StartingFleetHull = "Mini-Colony Ship"
-	StartingFleetHullMiniMineLayer   StartingFleetHull = "Mini Mine Layer"
-	StartingFleetHullMiniMiner       StartingFleetHull = "Mini-Miner"
-	StartingFleetHullMidgetMiner     StartingFleetHull = "Midget-Miner"
-	StartingFleetHullPrivateer       StartingFleetHull = "Privateer"
-	StartingFleetHullScout           StartingFleetHull = "Scout"
-)
 
 // clone this PRTSpec so we can combine it with an LRTSpec without modifying the original
 func (spec PRTSpec) clone() PRTSpec {
@@ -242,10 +220,10 @@ func heSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
-		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
-		{"Spore Cloud", StartingFleetHullMiniColonyShip, 0, ShipDesignPurposeColonizer},
+		{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},                                 // Long Range Scout
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer, UsesCheapestHull: true}, // Spore Cloud
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer, UsesCheapestHull: true}, // Spore Cloud
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer, UsesCheapestHull: true}, // Spore Cloud
 	}
 
 	spec.GrowthFactor = 2
@@ -261,8 +239,9 @@ func ssSpec() PRTSpec {
 	}
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+		{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},                // Long Range Scout/Shadow Sleuth
+		{HullType: TechHullTypeFreighter, Type: StartingFleetTypeCloakedFreighter}, // Shadow Transport
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer},        // Santa Maria
 	}
 
 	spec.BuiltInCloakUnits = 300
@@ -290,9 +269,9 @@ func wmSpec() PRTSpec {
 	}
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
-		{"Gadfly", StartingFleetHullMiniBomber, 1, ShipDesignPurposeBomber},
+		{HullType: TechHullTypeScout, Type: StartingFleetTypeFighter},       // Armed Probe
+		{HullType: TechHullTypeBomber, Type: StartingFleetTypeBomber},       // Gadfly
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer}, // Santa Maria
 	}
 
 	spec.TechCostOffset = TechCostOffset{
@@ -319,13 +298,13 @@ func caSpec() PRTSpec {
 	}
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-		{"Change of Heart", StartingFleetHullMiniMiner, 1, ShipDesignPurposeTerraformer},
+		{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},         // Long Range Scout
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer}, // Santa Maria
+		{HullType: TechHullTypeMiner, Type: StartingFleetTypeTerraformer},   // Change of Heart
 	}
 
 	spec.Instaforming = true
-	spec.PermaformChance = .1 // chance is 10% if pop is over 100k
+	spec.PermaformChance = .1 // 10% permaform chance/yr at 100k pop, scaling linearly when below that
 	spec.PermaformPopulation = 100_000
 
 	return spec
@@ -335,8 +314,8 @@ func isSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+		{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},         // Long Range Scout
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer}, // Santa Maria
 	}
 
 	spec.TechCostOffset = TechCostOffset{
@@ -346,7 +325,7 @@ func isSpec() PRTSpec {
 		TechTagBomb:       .25, // weapons/bombs cost 25% more
 	}
 
-	spec.FreighterGrowth = FreighterGrowth{Absolute: false, GrowthFactor: 0.5}
+	spec.FreighterGrowth = FreighterGrowth{Absolute: false, GrowthFactor: 0.5} // 50% growth rate on freighters
 	spec.InvasionDefendBonus = 2
 	spec.RepairFactor = 2 // double repairs!
 	spec.StarbaseRepairFactor = 1.5
@@ -363,10 +342,10 @@ func sdSpec() PRTSpec {
 	}
 
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-		{"Little Hen", StartingFleetHullMiniMineLayer, 0, ShipDesignPurposeDamageMineLayer},
-		{"Speed Turtle", StartingFleetHullMiniMineLayer, 0, ShipDesignPurposeSpeedMineLayer},
+		{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},              // Long Range Scout
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer},      // Santa Maria
+		{HullType: TechHullTypeMineLayer, Type: StartingFleetTypeMineLayer},      // Little Hen
+		{HullType: TechHullTypeMineLayer, Type: StartingFleetTypeSpeedMineLayer}, // Speed Turtle
 	}
 
 	spec.MineFieldsAreScanners = true
@@ -395,8 +374,8 @@ func ppSpec() PRTSpec {
 			StarbaseHull:       SpaceStation.Name,
 			StarbaseDesignName: "Starbase",
 			StartingFleets: []StartingFleet{
-				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+				{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},         // Long Range Scout
+				{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer}, // Santa Maria
 			}, Homeworld: true,
 		},
 		// extra world where hab varies by 1/2 of the range
@@ -410,7 +389,7 @@ func ppSpec() PRTSpec {
 			StarbaseHull:       OrbitalFort.Name,
 			StarbaseDesignName: "Accelerator Platform",
 			StartingFleets: []StartingFleet{
-				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+				{HullType: TechHullTypeScout, Type: StartingFleetTypeScout}, // Long Range Scout
 			}, Homeworld: false,
 		},
 	}
@@ -448,10 +427,10 @@ func itSpec() PRTSpec {
 			StarbaseHull:       SpaceStation.Name,
 			StarbaseDesignName: "Starbase",
 			StartingFleets: []StartingFleet{
-				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-				{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-				{"Swashbuckler", StartingFleetHullPrivateer, 0, ShipDesignPurposeStartingFighter},
-				{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
+				{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},         // Long Range Scout
+				{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer}, // Mayflower
+				{HullType: TechHullTypeFighter, Type: StartingFleetTypeFighter},     // Stalwart Defender
+				{HullType: TechHullTypeFreighter, Type: StartingFleetTypeFighter},   // Swashbuckler
 			}, Homeworld: true,
 		},
 		// extra world where hab varies by 1/2 of the range
@@ -465,7 +444,7 @@ func itSpec() PRTSpec {
 			StarbaseHull:       OrbitalFort.Name,
 			StarbaseDesignName: "Porthole to Beyond",
 			StartingFleets: []StartingFleet{
-				{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
+				{HullType: TechHullTypeScout, Type: StartingFleetTypeScout}, // Long Range Scout
 			}, Homeworld: false,
 		},
 	}
@@ -486,13 +465,9 @@ func itSpec() PRTSpec {
 func arSpec() PRTSpec {
 	spec := defaultPRTSpec()
 
-	spec.StartingTechLevels = TechLevel{
-		Energy: 1,
-	}
-
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
+		{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},         // Long Range Scout
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer}, // Pinta
 	}
 
 	spec.CanRemoteMineOwnPlanets = true
@@ -522,12 +497,12 @@ func joatSpec() PRTSpec {
 		Biotechnology: 3,
 	}
 	spec.StartingPlanets[0].StartingFleets = []StartingFleet{
-		{"Long Range Scout", StartingFleetHullScout, 0, ShipDesignPurposeScout},
-		{"Santa Maria", StartingFleetHullColonyShip, 0, ShipDesignPurposeColonizer},
-		{"Teamster", StartingFleetHullMediumFreighter, 0, ShipDesignPurposeStartingFighter},
-		{"Cotton Picker", StartingFleetHullMiniMiner, 0, ShipDesignPurposeMiner},
-		{"Armed Probe", StartingFleetHullScout, 1, ShipDesignPurposeFighterScout},
-		{"Stalwart Defender", StartingFleetHullDestroyer, 0, ShipDesignPurposeStartingFighter},
+		{HullType: TechHullTypeScout, Type: StartingFleetTypeFighter},       // Armed Probe
+		{HullType: TechHullTypeScout, Type: StartingFleetTypeScout},         // Long Range Scout
+		{HullType: TechHullTypeColonizer, Type: StartingFleetTypeColonizer}, // Santa Maria
+		{HullType: TechHullTypeFreighter, Type: StartingFleetTypeFighter},   // Teamster/Swashbuckler
+		{HullType: TechHullTypeFighter, Type: StartingFleetTypeFighter},     // Stalwart Defender
+		{HullType: TechHullTypeMiner, Type: StartingFleetTypeMiner},         // Cotton Picker
 	}
 
 	spec.MaxPopulationOffset = .2
@@ -557,8 +532,8 @@ func ttSpec() LRTSpec {
 func armSpec() LRTSpec {
 	spec := LRTSpec{}
 	spec.StartingFleets = []StartingFleet{
-		{"Potato Bug", StartingFleetHullMidgetMiner, 0, ShipDesignPurposeMiner},
-		{"Potato Bug", StartingFleetHullMidgetMiner, 0, ShipDesignPurposeMiner},
+		{HullType: TechHullTypeMiner, Type: StartingFleetTypeMiner, UsesCheapestHull: true}, // Potato Bug
+		{HullType: TechHullTypeMiner, Type: StartingFleetTypeMiner, UsesCheapestHull: true}, // Potato Bug
 	}
 
 	return spec

@@ -37,7 +37,7 @@ func (item *ShipDesignSlots) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *ShipDesignSlots) Scan(src interface{}) error {
+func (item *ShipDesignSlots) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -47,7 +47,7 @@ func (item *ShipDesignSpec) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *ShipDesignSpec) Scan(src interface{}) error {
+func (item *ShipDesignSpec) Scan(src any) error {
 	return scanJSON(src, item)
 }
 

@@ -247,7 +247,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 
 	// only allow one CheckAndGenerate to run at a time
 	// TODO: handle this differently if you ever scale out beyond one instance. :)
-	result, err, _ := s.sf.Do(strconv.FormatInt(game.ID, 10), func() (interface{}, error) {
+	result, err, _ := s.sf.Do(strconv.FormatInt(game.ID, 10), func() (any, error) {
 		gr := s.newGameRunner()
 		result, err := gr.CheckAndGenerateTurn(player.GameID)
 		if err != nil {

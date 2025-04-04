@@ -66,7 +66,7 @@ func (item *ProductionQueueItems) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *ProductionQueueItems) Scan(src interface{}) error {
+func (item *ProductionQueueItems) Scan(src any) error {
 	return scanJSON(src, &item)
 
 }
@@ -77,7 +77,7 @@ func (item *PlanetSpec) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *PlanetSpec) Scan(src interface{}) error {
+func (item *PlanetSpec) Scan(src any) error {
 	return scanJSON(src, &item)
 }
 
@@ -87,7 +87,7 @@ func (item *Tags) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *Tags) Scan(src interface{}) error {
+func (item *Tags) Scan(src any) error {
 	return scanJSON(src, item)
 }
 

@@ -46,7 +46,6 @@ type Client interface {
 	commit() error
 
 	// private method used during DBConn Connect to upgrade a client
-	// this is
 	ensureUpgrade() error
 
 	GetUsers() ([]cs.User, error)
@@ -174,13 +173,13 @@ type client struct {
 }
 
 type sqlReader interface {
-	Select(dest interface{}, query string, args ...interface{}) error
-	Get(dest interface{}, query string, args ...interface{}) error
+	Select(dest any, query string, args ...any) error
+	Get(dest any, query string, args ...any) error
 	Rebind(query string) string
 }
 
 type sqlWriter interface {
-	NamedExec(query string, arg interface{}) (sql.Result, error)
+	NamedExec(query string, arg any) (sql.Result, error)
 	Exec(query string, args ...any) (sql.Result, error)
 }
 

@@ -106,7 +106,8 @@ func TestGenerateUniverse(t *testing.T) {
 			c := NewCostCalculator()
 			design := fleet.Tokens[0].design
 			hull := rules.techs.GetHull(design.Hull)
-			design.Spec.computeScanRanges(&rules, player.Race.Spec.ScannerSpec, player.TechLevels, design, hull) // updates design scanrange but not fleet scan range
+			// updates design scanrange but not fleet scan range
+			design.Spec.computeScanRanges(&rules, player.Race.Spec.ScannerSpec, player.TechLevels, design, hull)
 			assert.Equal(t, design.Spec.ScanRange, fleet.Spec.ScanRange)
 			assert.Equal(t, design.Spec.ScanRangePen, fleet.Spec.ScanRangePen)
 			calcCost, err := c.GetDesignCost(&rules, player.TechLevels, player.Race.Spec, design)

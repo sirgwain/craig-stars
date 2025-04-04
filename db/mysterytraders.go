@@ -40,7 +40,7 @@ func (item *MysteryTraderSpec) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *MysteryTraderSpec) Scan(src interface{}) error {
+func (item *MysteryTraderSpec) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -50,7 +50,7 @@ func (item *MysteryTraderPlayersRewarded) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *MysteryTraderPlayersRewarded) Scan(src interface{}) error {
+func (item *MysteryTraderPlayersRewarded) Scan(src any) error {
 	return scanJSON(src, item)
 }
 

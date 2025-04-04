@@ -122,7 +122,7 @@ func (item *BattlePlans) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *BattlePlans) Scan(src interface{}) error {
+func (item *BattlePlans) Scan(src any) error {
 	return scanJSON(src, &item)
 }
 
@@ -132,7 +132,7 @@ func (item *ProductionPlans) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *ProductionPlans) Scan(src interface{}) error {
+func (item *ProductionPlans) Scan(src any) error {
 	return scanJSON(src, &item)
 }
 
@@ -142,7 +142,7 @@ func (item *TransportPlans) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *TransportPlans) Scan(src interface{}) error {
+func (item *TransportPlans) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -152,7 +152,7 @@ func (item *PlayerRace) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *PlayerRace) Scan(src interface{}) error {
+func (item *PlayerRace) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -162,7 +162,7 @@ func (item *PlayerSpec) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *PlayerSpec) Scan(src interface{}) error {
+func (item *PlayerSpec) Scan(src any) error {
 	return scanJSON(src, item)
 
 }
@@ -173,7 +173,7 @@ func (item *PlayerStats) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *PlayerStats) Scan(src interface{}) error {
+func (item *PlayerStats) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -181,7 +181,7 @@ func (item *PlayerRelationships) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *PlayerRelationships) Scan(src interface{}) error {
+func (item *PlayerRelationships) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -189,7 +189,7 @@ func (item *PlayerMessages) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *PlayerMessages) Scan(src interface{}) error {
+func (item *PlayerMessages) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -197,7 +197,7 @@ func (item *PlayerScores) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *PlayerScores) Scan(src interface{}) error {
+func (item *PlayerScores) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -205,7 +205,7 @@ func (item *AcquiredTechs) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *AcquiredTechs) Scan(src interface{}) error {
+func (item *AcquiredTechs) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -213,7 +213,7 @@ func (item *BattleRecords) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *BattleRecords) Scan(src interface{}) error {
+func (item *BattleRecords) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -221,7 +221,7 @@ func (item *PlayerIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *PlayerIntels) Scan(src interface{}) error {
+func (item *PlayerIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -229,7 +229,7 @@ func (item *ScoreIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *ScoreIntels) Scan(src interface{}) error {
+func (item *ScoreIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -237,7 +237,7 @@ func (item *PlanetIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *PlanetIntels) Scan(src interface{}) error {
+func (item *PlanetIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -245,7 +245,7 @@ func (item *FleetIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *FleetIntels) Scan(src interface{}) error {
+func (item *FleetIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -253,7 +253,7 @@ func (item *ShipDesignIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *ShipDesignIntels) Scan(src interface{}) error {
+func (item *ShipDesignIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -261,7 +261,7 @@ func (item *MineralPacketIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *MineralPacketIntels) Scan(src interface{}) error {
+func (item *MineralPacketIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -269,7 +269,7 @@ func (item *SalvageIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *SalvageIntels) Scan(src interface{}) error {
+func (item *SalvageIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -277,7 +277,7 @@ func (item *MineFieldIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *MineFieldIntels) Scan(src interface{}) error {
+func (item *MineFieldIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -285,7 +285,7 @@ func (item *MysteryTraderIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *MysteryTraderIntels) Scan(src interface{}) error {
+func (item *MysteryTraderIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -293,7 +293,7 @@ func (item *WormholeIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *WormholeIntels) Scan(src interface{}) error {
+func (item *WormholeIntels) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -384,7 +384,7 @@ func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
 	return players, nil
 }
 
-func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.Player, error) {
+func (c *client) getPlayerWithDesigns(where string, args ...any) ([]cs.Player, error) {
 	type playerDesignsJoin struct {
 		Player     `json:"player,omitempty"`
 		ShipDesign `json:"shipDesign,omitempty"`

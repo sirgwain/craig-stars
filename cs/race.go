@@ -80,7 +80,7 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 
 	// this is crashing some games. not sure what's up
 	return ResearchCostStandard
-	//panic(fmt.Sprintf("invalid field %s to get ResearchCost", field))
+	//panic(fmt.Sprintf("invalid field %s to getResearchCost", field))
 }
 
 type RaceSpec struct {
@@ -388,6 +388,11 @@ func (r *Race) withImmuneRad(immune bool) *Race {
 
 func (r *Race) withResearchCost(researchCost ResearchCost) *Race {
 	r.ResearchCost = researchCost
+	return r
+}
+
+func (r *Race) withTechsStartHigh(techsStartHigh bool) *Race {
+	r.TechsStartHigh = techsStartHigh
 	return r
 }
 

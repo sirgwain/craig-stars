@@ -2,7 +2,7 @@ package cs
 
 import "math"
 
-// Represents a TechLevel a player has or a tech requires, or the amount of research spent on a tech level
+// a TechLevel represents a techlevel a player has or a tech requires, or the amount of research spent on a tech level
 type TechLevel struct {
 	Energy        int `json:"energy,omitempty"`
 	Weapons       int `json:"weapons,omitempty"`

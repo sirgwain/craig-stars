@@ -20,7 +20,7 @@ type Universe struct {
 	MysteryTraders       []*MysteryTrader `json:"mysteryTraders,omitempty"`
 	Salvages             []*Salvage       `json:"salvage,omitempty"`
 	battlePlansByNum     map[playerBattlePlanNum]*BattlePlan
-	mapObjectsByPosition map[Vector][]interface{}
+	mapObjectsByPosition map[Vector][]any
 	fleetsByNum          map[playerObject]*Fleet
 	designsByNum         map[playerObject]*ShipDesign
 	mineFieldsByNum      map[playerObject]*MineField
@@ -36,7 +36,7 @@ func NewUniverse(log zerolog.Logger, rules *Rules) Universe {
 
 	return Universe{
 		battlePlansByNum:     make(map[playerBattlePlanNum]*BattlePlan),
-		mapObjectsByPosition: make(map[Vector][]interface{}),
+		mapObjectsByPosition: make(map[Vector][]any),
 		designsByNum:         make(map[playerObject]*ShipDesign),
 		fleetsByNum:          make(map[playerObject]*Fleet),
 		mineFieldsByNum:      make(map[playerObject]*MineField),
@@ -61,9 +61,9 @@ type mapObjectGetter interface {
 	getWormhole(num int) *Wormhole
 	getSalvage(num int) *Salvage
 	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool)
-	getMapObjectsAtPosition(position Vector) []interface{}
+	getMapObjectsAtPosition(position Vector) []any
 	isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool
-	updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector)
+	updateMapObjectAtPosition(mo any, originalPosition, newPosition Vector)
 }
 
 type playerObject struct {
@@ -88,7 +88,7 @@ func (u *Universe) setLogger(log zerolog.Logger) {
 func (u *Universe) buildMaps(players []*Player) error {
 
 	// make a big map to hold all of our universe objects by position
-	u.mapObjectsByPosition = make(map[Vector][]interface{}, len(u.Planets))
+	u.mapObjectsByPosition = make(map[Vector][]any, len(u.Planets))
 
 	// build a map of designs by num
 	// so we can inject the design into each token
@@ -197,10 +197,10 @@ func (u *Universe) buildMaps(players []*Player) error {
 	return nil
 }
 
-func (u *Universe) addMapObjectByPosition(mo interface{}, position Vector) {
+func (u *Universe) addMapObjectByPosition(mo any, position Vector) {
 	mos, found := u.mapObjectsByPosition[position]
 	if !found {
-		mos = []interface{}{}
+		mos = []any{}
 		u.mapObjectsByPosition[position] = mos
 	}
 	mos = append(mos, mo)
@@ -600,15 +600,15 @@ func (u *Universe) getMineralPackets(playerNum int) []*MineralPacket {
 }
 
 // get a slice of mapobjects at a position, or nil if none
-func (u *Universe) getMapObjectsAtPosition(position Vector) []interface{} {
+func (u *Universe) getMapObjectsAtPosition(position Vector) []any {
 	return u.mapObjectsByPosition[position]
 }
 
 // get a slice of mapobjects at a position, or nil if none
-func (u *Universe) updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector) {
+func (u *Universe) updateMapObjectAtPosition(mo any, originalPosition, newPosition Vector) {
 	mos := u.mapObjectsByPosition[originalPosition]
 	if mos != nil {
-		updatedMos := make([]interface{}, 0, len(mos)-1)
+		updatedMos := make([]any, 0, len(mos)-1)
 		for _, existingMo := range mos {
 			if existingMo == mo {
 				continue
@@ -625,10 +625,10 @@ func (u *Universe) updateMapObjectAtPosition(mo interface{}, originalPosition, n
 }
 
 // get a slice of mapobjects at a position, or nil if none
-func (u *Universe) removeMapObjectAtPosition(mo interface{}, position Vector) {
+func (u *Universe) removeMapObjectAtPosition(mo any, position Vector) {
 	mos := u.mapObjectsByPosition[position]
 	if mos != nil {
-		index := slices.IndexFunc(mos, func(item interface{}) bool { return item == mo })
+		index := slices.IndexFunc(mos, func(item any) bool { return item == mo })
 		if index >= 0 && index < len(mos) {
 			u.mapObjectsByPosition[position] = slices.Delete(mos, index, index+1)
 		} else {

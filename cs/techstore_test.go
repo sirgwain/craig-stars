@@ -59,24 +59,22 @@ func TestTechStore_GetBestBattleEngine(t *testing.T) {
 }
 
 func TestTechStore_GetHullComponentsByCategory(t *testing.T) {
-	type args struct {
-		category TechCategory
-	}
 	tests := []struct {
-		name string
-		args args
-		want TechHullComponent
+		name     string
+		category TechCategory
+		want     *TechHullComponent
 	}{
-		{"first shield", args{TechCategoryShield}, MoleSkinShield},
-		{"first armor", args{TechCategoryArmor}, Tritanium},
-		{"first beam", args{TechCategoryBeamWeapon}, Laser},
-		{"first torpedo", args{TechCategoryTorpedo}, AlphaTorpedo},
+		// TODO: Change this to check all components in each category
+		{"first shield", TechCategoryShield, &MoleSkinShield},
+		{"first armor", TechCategoryArmor, &Tritanium},
+		{"first beam", TechCategoryBeamWeapon, &Laser},
+		{"first torpedo", TechCategoryTorpedo, &AlphaTorpedo},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store := NewTechStore()
-			if got := store.GetHullComponentsByCategory(tt.args.category)[0]; !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("TechStore.GetHullComponentsByCategory() = %v, want %v", got, tt.want)
+			if got := store.GetHullComponentsByCategory(tt.category)[0]; !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TechStore.GetHullComponentsByCategory() = \n%s, want \n%s", got.Name, tt.want.Name)
 			}
 		})
 	}

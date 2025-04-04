@@ -65,7 +65,7 @@ func (item *ShipTokens) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *ShipTokens) Scan(src interface{}) error {
+func (item *ShipTokens) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -83,7 +83,7 @@ func (item *Waypoints) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *Waypoints) Scan(src interface{}) error {
+func (item *Waypoints) Scan(src any) error {
 	return scanJSON(src, item)
 }
 
@@ -101,7 +101,7 @@ func (item *FleetSpec) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *FleetSpec) Scan(src interface{}) error {
+func (item *FleetSpec) Scan(src any) error {
 	return scanJSON(src, item)
 }
 

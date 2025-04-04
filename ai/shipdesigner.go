@@ -16,43 +16,43 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	}
 
 	var hull *cs.TechHull
+	// TODO: Add actual support for custom efficiency rankings
 	switch purpose {
 	case cs.ShipDesignPurposeScout:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeScout))
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeScout)
 	case cs.ShipDesignPurposeColonizer:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeColonizer))
+		hull = ai.getBestHull(ai.cheapest, cs.TechHullTypeColonizer)
 	case cs.ShipDesignPurposeFuelFreighter:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFuelTransport))
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeFuelTransport)
 		if hull != nil {
 			break
 		}
 		fallthrough
 	case cs.ShipDesignPurposeColonistFreighter, cs.ShipDesignPurposeFreighter:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFreighter))
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeFreighter)
 	case cs.ShipDesignPurposeArmedFreighter:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeMultiPurposeFreighter))
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeMultiPurposeFreighter)
 	case cs.ShipDesignPurposeBeamFighter, cs.ShipDesignPurposeTorpedoFighter:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeCapitalShip))
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeCapitalShip)
 		if hull != nil {
 			break
 		}
 		fallthrough
 	case cs.ShipDesignPurposeFighterScout, cs.ShipDesignPurposeStartingFighter:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeFighter))
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeFighter)
 	case cs.ShipDesignPurposeBomber:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeBomber))
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeBomber)
 	case cs.ShipDesignPurposeFuelDepot:
-		// TODO: Add support for searching for cheap fuel docks
-		fallthrough
+		hull = ai.getBestHull(ai.cheapest, cs.TechHullTypeStarbase)
 	case cs.ShipDesignPurposeStarterColony, cs.ShipDesignPurposeStarbase, cs.ShipDesignPurposeStarbaseQuarter,
 		cs.ShipDesignPurposeStarbaseHalf, cs.ShipDesignPurposeStarbaseUnarmed:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeStarbase))
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeStarbase)
 		if hull != nil {
 			break
 		}
 		fallthrough
 	case cs.ShipDesignPurposePacketThrower, cs.ShipDesignPurposeStargater, cs.ShipDesignPurposeFort:
-		hull = ai.getBestHull(ai.techStore.GetHullsByType(cs.TechHullTypeOrbitalFort))
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeOrbitalFort, cs.TechHullTypeOrbitalFort)
 	}
 
 	if hull == nil {
@@ -189,16 +189,39 @@ func (ai *aiPlayer) assignPurpose() {
 	}
 }
 
-// get the best hull we can build by iterating through the list backwards
-// TODO: Add ability to use different search criteria (cheapness, rating, etc.) & not be dependent
-// on the best techs being at the back of the list
-func (ai *aiPlayer) getBestHull(hulls []*cs.TechHull) *cs.TechHull {
-	// iterate over hulls backwards. better hulls are later so start there
-	for i := len(hulls) - 1; i >= 0; i-- {
-		hull := hulls[i]
-		if ai.HasTech(&hull.Tech) {
-			return hull
+// Get the best hull we can build given one or more TechHullTypes to check against
+// and a comparison function to determine superiority.
+// Defaults to checking all hulls if hullTypes is empty.
+//
+// cmpFunc should be a strict weak ordering that returns true if the 2nd hull is better.
+func (ai *aiPlayer) getBestHull(cmpFunc func(a, b *cs.TechHull) bool, hullTypes ...cs.TechHullType) (bestHull *cs.TechHull) {
+	if len(hullTypes) == 0 {
+		hullTypes = cs.TechHullTypes
+	}
+
+	// check each hullType successively
+	for _, hullType := range hullTypes {
+		hulls := ai.techStore.GetHullsByType(hullType)
+		for _, hull := range hulls {
+			if ai.HasTech(&hull.Tech) && (bestHull == nil || cmpFunc(bestHull, hull)) {
+				bestHull = hull
+			}
 		}
 	}
-	return nil
+
+	return bestHull
+}
+
+// returns true if b is cheaper than a
+// TODO: add cost type weighting
+func (ai *aiPlayer) cheapest(a, b *cs.TechHull) bool {
+	costCalculator := cs.NewCostCalculator()
+	aCost := costCalculator.GetTechCost(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, a.Tech)
+	bCost := costCalculator.GetTechCost(&ai.game.Rules, ai.TechLevels, ai.Race.Spec, b.Tech)
+	return cs.GetCostEfficiencyRatio(aCost, bCost, cs.CostTypes[:]...) > 1
+}
+
+// returns true if b is higher ranked than a
+func highestRanked(a, b *cs.TechHull) bool {
+	return b.Ranking > a.Ranking
 }

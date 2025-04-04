@@ -83,7 +83,7 @@ func Start(config config.Config) error {
 	}
 	_ = server
 
-	var authLogger = logger.Func(func(format string, args ...interface{}) { log.Info().Msgf(format, args...) })
+	var authLogger = logger.Func(func(format string, args ...any) { log.Info().Msgf(format, args...) })
 
 	cookieDuration := time.Hour * 24
 	if config.Discord.CookieDuration != "" {
@@ -188,7 +188,7 @@ func Start(config config.Config) error {
 		return user.ComparePassword(password)
 	}))
 
-	AddGuestProvider(service, issuer, authLogger, "guest", HashCheckerFunc(func(hash string) (username string, attributes map[string]interface{}, err error) {
+	AddGuestProvider(service, issuer, authLogger, "guest", HashCheckerFunc(func(hash string) (username string, attributes map[string]any, err error) {
 		client := server.db.NewReadClient()
 		user, err := client.GetGuestUser(hash)
 		if err != nil {
@@ -202,7 +202,7 @@ func Start(config config.Config) error {
 		}
 
 		// Check for username and password match
-		return user.Username, map[string]interface{}{attrGameID: user.GameID}, nil
+		return user.Username, map[string]any{attrGameID: user.GameID}, nil
 	}))
 
 	if server.config.Discord.Enabled {
@@ -549,7 +549,7 @@ func requestLogger(logger *zerolog.Logger) func(next http.Handler) http.Handler 
 					event = log.Info()
 				}
 
-				fields := map[string]interface{}{
+				fields := map[string]any{
 					"ip":             r.RemoteAddr,
 					"url":            r.URL.Path,
 					"method":         r.Method,
