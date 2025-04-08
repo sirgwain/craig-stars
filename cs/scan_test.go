@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -53,7 +54,7 @@ func Test_getScanners(t *testing.T) {
 				Fleets:         tt.args.fleets,
 				MineralPackets: tt.args.mineralPackets,
 				MineFields:     tt.args.mineFields,
-			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(testLogger, player)}
+			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(log.Logger, player)}
 			if got := scan.getScanners(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getScanners() = \n%v, want \n%v", got, tt.want)
 			}
@@ -100,7 +101,7 @@ func Test_getStargateScanners(t *testing.T) {
 
 			scan := playerScanner{&Universe{
 				Planets: []*Planet{planet},
-			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(testLogger, player)}
+			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(log.Logger, player)}
 			if got := scan.getStarGateScanners(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getScanners() = \n%v, want \n%v", got, tt.want)
 			}
@@ -243,7 +244,7 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 	planet2.Starbase = starbase1
 	planet2.Spec = computePlanetSpec(&rules, player2, planet2)
 
-	scan := playerScanner{game.Universe, &rules, player1, game.Players, make(map[int]bool), newDiscoverer(testLogger, player1)}
+	scan := playerScanner{game.Universe, &rules, player1, game.Players, make(map[int]bool), newDiscoverer(log.Logger, player1)}
 
 	// first test a faraway planet
 	planet2.Position = Vector{500, 500}
@@ -315,14 +316,14 @@ func Test_scanWormholes(t *testing.T) {
 
 			players := []*Player{player}
 
-			universe := NewUniverse(testLogger, &rules)
+			universe := NewUniverse(log.Logger, &rules)
 			universe.Wormholes = tt.fields.wormholes
 			if err := universe.buildMaps(players); err != nil {
 				t.Fatal(err)
 			}
 
 			// make a new scanner
-			discoverer := newDiscoverer(testLogger, player)
+			discoverer := newDiscoverer(log.Logger, player)
 			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
 			scan.scanWormholes(tt.args.scanners)
 
@@ -461,14 +462,14 @@ func Test_scanMineFields(t *testing.T) {
 			for _, mf := range tt.fields.mineFields {
 				mf.Spec.Radius = mf.Radius()
 			}
-			universe := NewUniverse(testLogger, &rules)
+			universe := NewUniverse(log.Logger, &rules)
 			universe.MineFields = tt.fields.mineFields
 			if err := universe.buildMaps(players); err != nil {
 				t.Fatal(err)
 			}
 
 			// make a new scanner
-			discoverer := newDiscoverer(testLogger, player)
+			discoverer := newDiscoverer(log.Logger, player)
 			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
 			scan.scanMineFields(tt.args.scanners)
 

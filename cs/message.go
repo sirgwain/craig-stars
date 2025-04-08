@@ -44,7 +44,8 @@ type PlayerMessageSpec struct {
 	PrevAmount            int                             `json:"prevAmount,omitempty"`
 	SourcePlayerNum       int                             `json:"sourcePlayerNum,omitempty"`
 	DestPlayerNum         int                             `json:"destPlayerNum,omitempty"`
-	Name                  string                          `json:"name,omitempty"` // The name of the object or target of this message.
+	Name                  string                          `json:"name,omitempty"`
+	PrevName              string                          `json:"prevName,omitempty"`
 	Cost                  Cost                            `json:"cost,omitempty"`
 	Mineral               *Mineral                        `json:"mineral,omitempty"`
 	Cargo                 *Cargo                          `json:"cargo,omitempty"`
@@ -211,6 +212,7 @@ const (
 	PlayerMessagePlayerAcquirablePartGainedScrapFleet
 	PlayerMessagePlayerAcquirablePartGainedBattle
 	PlayerMessageFleetByHandTransferIncomplete
+	PlayerMessagePlanetBuiltStarbaseRefunded
 )
 
 func newMessage(messageType PlayerMessageType) PlayerMessage {

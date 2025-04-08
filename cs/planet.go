@@ -254,7 +254,7 @@ func (p *Planet) PopulateStarbaseDesign(player *Player) error {
 	return nil
 }
 
-// add designs to each production queue item with designs
+// add designs to all production queue items based on its designNum.
 func (p *Planet) PopulateProductionQueueDesigns(player *Player) error {
 	for i := range p.ProductionQueue {
 		item := &p.ProductionQueue[i]
@@ -264,7 +264,7 @@ func (p *Planet) PopulateProductionQueueDesigns(player *Player) error {
 		}
 		design := player.GetDesign(item.DesignNum)
 		if design == nil {
-			return fmt.Errorf("player %v does not have design %d", player, item.DesignNum)
+			return fmt.Errorf("player %s does not have design %d", player.Name, item.DesignNum)
 		}
 		item.design = design
 	}
@@ -711,6 +711,11 @@ func getMaxInstallations(installationsPer10K, population int) int {
 	return population * installationsPer10K / 10000
 }
 
+// Return the maximum number of the given item that can be built on this planet,
+// subject to amount already built.
+//
+// For auto items, this is instead the maximum number of items that can be
+// automatically built this year.
 func (planet *Planet) MaxBuildable(player *Player, itemType QueueItemType) int {
 	switch itemType {
 	case QueueItemTypeAutoMines:

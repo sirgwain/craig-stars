@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { andCommaList } from '$lib/andCommandList';
+	import { andCommaList } from '$lib/andCommaList';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { totalMinerals } from '$lib/types/Cost';
 	import { absSum } from '$lib/types/Hab';
@@ -25,6 +25,7 @@
 		PlayerMessagePlanetBuiltMineralAlchemy,
 		PlayerMessagePlanetBuiltScanner,
 		PlayerMessagePlanetBuiltStarbase,
+		PlayerMessagePlanetBuiltStarbaseCanceled,
 		PlayerMessagePlanetCometStrike,
 		PlayerMessagePlanetCometStrikeMyPlanet,
 		PlayerMessagePlanetDiedOff,
@@ -168,10 +169,9 @@
 		: (message.spec.prevAmount ?? 0) > 1
 			? 'mineral packets'
 			: 'NEGATIVE PACKET QUANTITY AAAAAAAAAAAAAA'}
-	<!-- QueueItemType is set if and only if exactly 1 packet type was canceled, so it
-		being false necessitates having at least 2 invalid packets in the queue.
-		message.spec.prevAmount tracks initial item quantity, so it being below 1
-		means we tried to build 0 or less packets. -->
+	<!-- QueueItemType is unset if 2 or more different packet types are canceled in the same year.
+		message.spec.prevAmount tracks initial item quantity, so it being below 1 without a
+		QueueItemType means we just tried to build 0 or less packets. -->
 	{@const qty = message.spec.queueItemType
 		? 'a ' + (message.spec.amount ?? 0) + 'kT'
 		: (message.spec.amount ?? 0) + 'kT worth of'}
@@ -191,9 +191,9 @@
 			: getPluralName(message.spec.queueItemType)
 		: (message.spec.prevAmount ?? 0) > 1
 			? 'mineral packets'
-			: 'NEGATIVE PACKET QUANTITY AAAAAAAAAAAAAA'}
-	<!-- QueueItemType is set if and only if exactly 1 packet type was canceled, so it
-		being false necessitates having at least 2 invalid packets in the queue.
+			: 'NEGATIVE PACKET QTY WARNING - REPORT THIS'}
+	<!-- QueueItemType is null if 2 or more different types of packets were canceled,
+	  which requires at least 2 invalid packets to be in the queue to begin with.
 		message.spec.prevAmount tracks initial item quantity, so it being below 1
 		means we tried to build 0 or less packets. -->
 	{@const qty = message.spec.queueItemType
@@ -201,12 +201,20 @@
 		: (message.spec.amount ?? 0) + 'kT worth of'}
 	You have attempted to build {qty}
 	{itemName} on {planet.name}, but you have failed to specify a planet to target.
-	{#if message.spec.queueItemType || message.spec.amount2 === 1}
+	{#if message.spec.amount2 === 1}
 		The order has been canceled
 	{:else}
 		All {message.spec.amount2 ?? 0} orders have been canceled
 	{/if}
 	{canceledMessage}.
+{:else if message.type === PlayerMessagePlanetBuiltStarbaseCanceled}
+	<!-- Similar to the packet canceled messages, prevName is null if 2 or more bases are canceled -->
+	{@const baseName = message.spec.prevName
+		? `a new ${message.spec.prevName}`
+		: `${message.spec.amount?.toLocaleString()} new starbases`}
+	Your engineers on {planet.name} were ordered to build ${baseName}, but realized they already had
+	another ${message.spec.name} later on in the queue. The
+	{message.spec.prevName ? 'order has' : 'orders have'} been canceled{canceledMessage}.
 {:else if message.type === PlayerMessagePlanetBuiltScanner}
 	{planet.name} has built a new {message.spec.name} planetary scanner.
 {:else if message.type === PlayerMessagePlanetBuiltStarbase}
@@ -214,7 +222,7 @@
 	{#if planet.spec.dockCapacity == UnlimitedSpaceDock}
 		Ships of any size can now be built at this facility.
 	{:else if (planet.spec.dockCapacity ?? 0) > 0}
-		Ships of up to {planet.spec.dockCapacity}kT in mass can now be built at this facility.
+		Ships up to {planet.spec.dockCapacity}kT in mass can now be built at this facility.
 	{/if}
 {:else if message.type === PlayerMessagePlanetCometStrike}
 	{#if message.spec.comet?.size == CometSmall}

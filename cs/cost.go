@@ -58,6 +58,7 @@ func NewCost[T number](ironium, boranium, germanium, resources T) cost[T] {
 }
 
 // Create a Cost struct from a Mineral struct and a resources value.
+// Always returns an integer Cost struct.
 func NewCostFromMineralAndResources(m Mineral, resources int) Cost {
 	return Cost{
 		Ironium:   m.Ironium,
@@ -298,8 +299,7 @@ func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
 	quotient := CostFloat64{math.Inf(1), math.Inf(1), math.Inf(1), math.Inf(1)}
 	for _, ct := range CostTypes {
 		if divisor.GetAmount(ct) != 0 {
-			quotient.Set(ct,
-				float64(dividend.GetAmount(ct))/float64(divisor.GetAmount(ct)))
+			quotient.Set(ct, float64(dividend.GetAmount(ct))/float64(divisor.GetAmount(ct)))
 		}
 	}
 

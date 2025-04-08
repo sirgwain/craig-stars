@@ -35,7 +35,7 @@ func (e *completionEstimate) GetYearsToBuild(item ProductionQueueItem, costPerIt
 	costPerItem = costPerItem.Subtract(item.Allocated).SubtractMineral(mineralsOnHand).MinZero()
 	numBuiltPerYear := yearlyAvailableToSpend.DivideCost(costPerItem)
 	if numBuiltPerYear <= 0 {
-		return Infinite
+		return math.MaxInt
 	} else if math.IsInf(numBuiltPerYear, 0) {
 		return 0
 	}

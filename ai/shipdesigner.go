@@ -95,42 +95,21 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 
 // design various types of starbases we may build on planets
 func (ai *aiPlayer) designStarbases() error {
-	var err error
-
-	purpose := cs.ShipDesignPurposeFuelDepot
-	ai.fuelDepotDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
-	if err != nil {
-		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
+	starbasePurposes := []cs.ShipDesignPurpose{
+		cs.ShipDesignPurposeFuelDepot,
+		cs.ShipDesignPurposeFort,
+		cs.ShipDesignPurposeStarbaseUnarmed,
+		cs.ShipDesignPurposeStarbaseQuarter,
+		cs.ShipDesignPurposeStarbaseHalf,
+		cs.ShipDesignPurposeStarbase,
 	}
 
-	purpose = cs.ShipDesignPurposeFort
-	ai.fortDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
-	if err != nil {
-		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
-	}
-
-	purpose = cs.ShipDesignPurposeStarbaseUnarmed
-	ai.starbaseUnarmedDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
-	if err != nil {
-		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
-	}
-
-	purpose = cs.ShipDesignPurposeStarbaseQuarter
-	ai.starbaseQuarterDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
-	if err != nil {
-		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
-	}
-
-	purpose = cs.ShipDesignPurposeStarbaseHalf
-	ai.starbaseHalfDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
-	if err != nil {
-		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
-	}
-
-	purpose = cs.ShipDesignPurposeStarbase
-	ai.starbaseDesign, err = ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
-	if err != nil {
-		return fmt.Errorf("unable to design ship %v: %w", purpose, err)
+	for _, purpose := range starbasePurposes {
+		design, err := ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
+		if err != nil {
+			return fmt.Errorf("unable to design ship %v: %w", purpose, err)
+		}
+		ai.designsByPurpose[purpose] = design
 	}
 
 	return nil

@@ -16,8 +16,32 @@ import (
 // many functions require a copy of the current game's rules.
 // for testing, create a standard rules var every test can use
 var rules = NewRules()
-var writer = zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime}
-var testLogger = log.With().Bool("TestMode", true).Logger().Output(writer)
+
+func init() {
+	// override default logger to pipe logs to logfile during testing
+	if testing.Testing() {
+		var err error
+		if err = os.MkdirAll("tmp", 0755); err != nil {
+			log.Error().Err(err).
+				Msg("Error changing test logger")
+			return
+		}
+
+		logFile, err := os.Create("tmp/logfile.log")
+		if err != nil {
+			log.Error().Err(err).
+				Msg("Error changing test logger")
+			return
+		}
+
+		// Color output disabled for now because VS Code output panel can't handle it
+		writer := zerolog.MultiLevelWriter(
+			zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime, NoColor: true},
+			zerolog.ConsoleWriter{Out: logFile, TimeFormat: time.DateTime, NoColor: true},
+		)
+		log.Logger = log.With().Bool("TestMode", true).Logger().Output(writer)
+	}
+}
 
 type MockRand struct {
 	int63Result int64
@@ -62,7 +86,7 @@ func createSingleUnitGame() *FullGame {
 
 	players := []*Player{player}
 
-	universe := NewUniverse(testLogger, &game.Rules)
+	universe := NewUniverse(log.Logger, &game.Rules)
 	universe.Planets = append(universe.Planets, planet)
 	universe.Fleets = append(universe.Fleets, fleet)
 
@@ -139,7 +163,7 @@ func createTwoPlayerGame() *FullGame {
 
 	players := []*Player{player1, player2}
 
-	universe := NewUniverse(testLogger, &game.Rules)
+	universe := NewUniverse(log.Logger, &game.Rules)
 	universe.Planets = append(universe.Planets, planet1, planet2)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2)
 
@@ -307,7 +331,7 @@ func Test_turn_grow(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
 
 	turn.computeSpecs()
@@ -344,7 +368,9 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -378,7 +404,9 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -412,7 +440,9 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -443,7 +473,9 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -488,7 +520,9 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -524,7 +558,9 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -555,7 +591,9 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -571,7 +609,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		planet := game.Planets[0]
 		mineralPacket := newMineralPacket(player2, 1, 5, 5, Cargo{Ironium: 100}, Vector{50, 0}, planet.Num)
 		game.MineralPackets = append(game.MineralPackets, mineralPacket)
-		discoverer := newDiscoverer(testLogger, player1)
+		discoverer := newDiscoverer(log.Logger, player1)
 		discoverer.discoverMineralPacket(&rules, mineralPacket, player2, planet)
 
 		// make the player's fleet a cargo ship
@@ -590,7 +628,9 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -604,7 +644,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		player := game.Players[0]
 		salvage := newSalvage(Vector{50, 0}, 1, player.Num, Cargo{Ironium: 100})
 		game.Salvages = append(game.Salvages, salvage)
-		discoverer := newDiscoverer(testLogger, player)
+		discoverer := newDiscoverer(log.Logger, player)
 		discoverer.discoverSalvage(salvage)
 
 		// make the player's fleet a cargo ship
@@ -623,7 +663,9 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -660,7 +702,9 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -697,7 +741,9 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -730,7 +776,9 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -766,7 +814,9 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 		turn := turnGenerator{
 			game: game,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		turn.generateTurn()
 
@@ -797,9 +847,11 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// transfer
 	turn.generateTurn()
@@ -855,9 +907,11 @@ func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// transfer
 	turn.generateTurn()
@@ -893,9 +947,11 @@ func Test_turn_fleetRoute(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// route to planet 2
 	// move
@@ -919,9 +975,11 @@ func Test_turn_fleetMove(t *testing.T) {
 
 		turn := turnGenerator{
 			game: game,
-			log:  testLogger,
+			log:  log.Logger,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		// move to place
 		turn.fleetMove()
@@ -960,9 +1018,11 @@ func Test_turn_fleetMove(t *testing.T) {
 
 		turn := turnGenerator{
 			game: game,
-			log:  testLogger,
+			log:  log.Logger,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		// move one year
 		turn.generateTurn()
@@ -1041,9 +1101,11 @@ func Test_turn_fleetMove(t *testing.T) {
 
 		turn := turnGenerator{
 			game: game,
-			log:  testLogger,
+			log:  log.Logger,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		// move one year
 		turn.generateTurn()
@@ -1148,9 +1210,11 @@ func Test_turn_fleetMove(t *testing.T) {
 
 		turn := turnGenerator{
 			game: game,
-			log:  testLogger,
+			log:  log.Logger,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		// load and grow and wait
 		turn.generateTurn()
@@ -1216,9 +1280,11 @@ func Test_turn_fleetMove(t *testing.T) {
 
 		turn := turnGenerator{
 			game: game,
-			log:  testLogger,
+			log:  log.Logger,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		// let's go!!
 		turn.generateTurn()
@@ -1268,9 +1334,11 @@ func Test_turn_fleetMove(t *testing.T) {
 
 		turn := turnGenerator{
 			game: game,
-			log:  testLogger,
+			log:  log.Logger,
 		}
-		turn.game.Universe.buildMaps(game.Players)
+		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+			t.Fatal(err)
+		}
 
 		// let's go!!
 		turn.generateTurn()
@@ -1295,9 +1363,11 @@ func Test_turn_permaform(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// 10% chance to permaform
 	player.Race.Spec.PermaformChance = .1
@@ -1325,9 +1395,11 @@ func Test_turn_permaformNone(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// 10% chance to permaform
 	player.Race.Spec.PermaformChance = .1
@@ -1391,7 +1463,9 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 			game.Planets = append(game.Planets, planet)
 
 			turn := turnGenerator{game: game}
-			turn.game.Universe.buildMaps(game.Players)
+			if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+				t.Fatal(err)
+			}
 
 			// try and remote the planet
 			turn.fleetRemoteMine()
@@ -1455,9 +1529,11 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 
 			turn := turnGenerator{
 				game: game,
-				log:  testLogger,
+				log:  log.Logger,
 			}
-			turn.game.Universe.buildMaps(game.Players)
+			if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+				t.Fatal(err)
+			}
 
 			// try and remote the planet
 			turn.fleetRemoteMineAR()
@@ -1490,9 +1566,11 @@ func Test_turn_fleetLayMines(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// run for one year; should have created newminefield
 	turn.generateTurn()
@@ -1541,9 +1619,11 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// sweep mines
 	turn.generateTurn()
@@ -1580,9 +1660,11 @@ func Test_turn_instaform(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// instaform
 	turn.generateTurn()
@@ -1611,9 +1693,11 @@ func Test_turn_instaformTakenPlanet(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// instaform
 	turn.generateTurn()
@@ -1644,9 +1728,11 @@ func Test_turn_fleetRepair(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// in space with 10 damage
 	fleet.OrbitingPlanetNum = None
@@ -1693,7 +1779,9 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	isFleet.OrbitingPlanetNum = isPlanet.Num
 
 	turn := turnGenerator{game: game}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// don't generate a full turn, the planet will grow
 	turn.fleetReproduce()
@@ -1742,9 +1830,11 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// generate turn to simulate die off; should not lose pop
 	turn.generateTurn()
@@ -1827,7 +1917,7 @@ func Test_turn_detonateMines(t *testing.T) {
 				player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
 			}
 
-			universe := NewUniverse(testLogger, &game.Rules)
+			universe := NewUniverse(log.Logger, &game.Rules)
 			universe.Fleets = []*Fleet{tt.args.fleet}
 			universe.MineFields = []*MineField{tt.args.mineField}
 
@@ -1846,9 +1936,11 @@ func Test_turn_detonateMines(t *testing.T) {
 
 			turn := turnGenerator{
 				game: &fg,
-				log:  testLogger,
+				log:  log.Logger,
 			}
-			turn.game.Universe.buildMaps(fg.Players)
+			if err := turn.game.Universe.buildMaps(fg.Players); err != nil {
+				t.Fatal(err)
+			}
 
 			// try and remote the planet
 			turn.generateTurn()
@@ -1892,9 +1984,11 @@ func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// move packet, wipe out planet
 	turn.generateTurn()
@@ -1936,9 +2030,11 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// move packet, wipe out planet
 	turn.generateTurn()
@@ -1965,9 +2061,11 @@ func Test_turn_decayPackets(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// move and decay
 	turn.packetMove(false)
@@ -2008,9 +2106,11 @@ func Test_turn_fleetPatrol(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// no patrol target
 	err := turn.generateTurn()
@@ -2095,9 +2195,11 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	err := turn.generateTurn()
 	if err != nil {
@@ -2133,9 +2235,11 @@ func Test_turn_fleetRefuel(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// orbit and need fuel
 	fleet.Fuel = 0
@@ -2166,9 +2270,11 @@ func Test_turn_playerResearch(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// let's go!!
 	turn.generateTurn()
@@ -2207,9 +2313,11 @@ func Test_turn_buildStarbase(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// should have no starbase
 	assert.Nil(t, planet.Starbase)
@@ -2292,9 +2400,11 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	fleet.Waypoints[0].Task = WaypointTaskTransferFleet
 	fleet.Waypoints[0].TransferToPlayer = player2.Num
@@ -2343,9 +2453,11 @@ func Test_turn_fleetBattle(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// make sure our battle is always uses the same random seed
 	turn.fleetBattle()
@@ -2433,7 +2545,7 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 
 	players := []*Player{player1, player2, player3}
 
-	universe := NewUniverse(testLogger, &game.Rules)
+	universe := NewUniverse(log.Logger, &game.Rules)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2, fleet3)
 
 	if err := universe.buildMaps(players); err != nil {
@@ -2449,9 +2561,11 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 
 	turn := turnGenerator{
 		game: fg,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(fg.Players)
+	if err := turn.game.Universe.buildMaps(fg.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// make sure our battle is always uses the same random seed
 	turn.fleetBattle()
@@ -2533,9 +2647,11 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// generate a turn to setup the patrol target
 	turn.generateTurn()
@@ -2614,9 +2730,11 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// generate a turn to setup the patrol target
 	turn.generateTurn()
@@ -2654,9 +2772,11 @@ func Test_turn_mysteryTraderSpawn(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// move to place
 	turn.mysteryTraderSpawn()
@@ -2676,9 +2796,11 @@ func Test_turn_mysteryTraderMove(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// move to place
 	turn.mysteryTraderMove()
@@ -2697,9 +2819,11 @@ func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// move to place
 	turn.mysteryTraderMove()
@@ -2720,9 +2844,11 @@ func Test_turn_mysteryTraderFinished(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// move to place
 	turn.mysteryTraderMove()
@@ -2741,9 +2867,11 @@ func Test_turn_mysteryTraderAgain(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// move to place
 	turn.mysteryTraderMove()
@@ -2773,9 +2901,11 @@ func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// meet mystery trader
 	turn.mysteryTraderMeet()
@@ -2804,9 +2934,11 @@ func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// meet mystery trader
 	turn.mysteryTraderMeet()
@@ -2834,9 +2966,11 @@ func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// meet mystery trader
 	turn.mysteryTraderMeet()
@@ -2867,9 +3001,11 @@ func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// meet mystery trader
 	turn.mysteryTraderMeet()
@@ -2898,10 +3034,12 @@ func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
 
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// meet mystery trader
 	turn.mysteryTraderMeet()
@@ -2943,9 +3081,11 @@ func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// meet mystery trader
 	turn.mysteryTraderMeet()
@@ -2971,9 +3111,11 @@ func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
 
 	turn := turnGenerator{
 		game: game,
-		log:  testLogger,
+		log:  log.Logger,
 	}
-	turn.game.Universe.buildMaps(game.Players)
+	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
+		t.Fatal(err)
+	}
 
 	// generate a turn to build a starbase
 	turn.generateTurn()

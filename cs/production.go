@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// max items buildable for items without an explicit max
+// max items buildable for items without an explicit cap; used by both backend and frontend
 const MaxBuildableCap = 100_000
 
 // The producer struct performs planetary production.
@@ -53,8 +53,16 @@ func (item *ProductionQueueItem) SetDesign(design *ShipDesign) {
 	item.design = design
 }
 
-func NewProductionQueueItemShip(quantity int, design *ShipDesign) *ProductionQueueItem {
-	return &ProductionQueueItem{Type: QueueItemTypeShipToken, Quantity: quantity, DesignNum: design.Num}
+func NewProductionQueueItem(itemType QueueItemType, quantity int) *ProductionQueueItem {
+	return &ProductionQueueItem{Type: itemType, Quantity: quantity}
+}
+
+func NewProductionQueueItemShip(design *ShipDesign, quantity int) *ProductionQueueItem {
+	t := QueueItemTypeShipToken
+	if design.Spec.Starbase {
+		t = QueueItemTypeStarbase
+	}
+	return &ProductionQueueItem{Type: t, Quantity: quantity, DesignNum: design.Num}
 }
 
 func (item *ProductionQueueItem) WithTag(key, value string) *ProductionQueueItem {
@@ -196,27 +204,33 @@ func (p *producer) produce() (result productionResult, err error) {
 	// * Always blocks queue if final item,
 	// * otherwise only blocks if subsequent item is out of minerals
 
-	// TODO: Add support for multiple starbase designs in a queue
-
 	var (
-		// tracker of resources/minerals available to spend
-		available = Cost{Resources: planet.Spec.ResourcesPerYearAvailable}.AddMineral(planet.Cargo.ToMineral())
+		// tracker of minerals/ resources available to spend
+		available = NewCostFromMineralAndResources(planet.Cargo.ToMineral(), planet.Spec.ResourcesPerYearAvailable)
 		// new queue of production items, used to recreate an updated queue
-		newQueue      = []ProductionQueueItem{}
-		builtAnything bool
+		newQueue               = []ProductionQueueItem{}
+		builtAnything          bool
+		priorStarbaseCost      Cost // used for starbase refunds
+		priorStarbaseAllocated Cost // used for starbase refund messages
 	)
 
-	c := NewCostCalculator()
+	c := NewCostCalculator(p.rules, p.player.TechLevels, &p.player.Race.Spec)
 
 	// check each item in the queue in order
 itemLoop:
 	for itemIndex, item := range planet.ProductionQueue {
-		itemCost, err := c.GetItemCost(p.rules, p.player, planet, item)
+		var oldBase *ShipDesign
+		if result.starbase != nil {
+			oldBase = result.starbase
+		} else if planet.Spec.HasStarbase {
+			oldBase = planet.Starbase.Tokens[0].design
+		}
+		itemCost, err := c.GetItemCost(item, oldBase)
 		if err != nil {
 			p.log.Error().
 				Err(err).
 				Any("item", item).
-				Msgf("produce() obtained error when calculating item costs: %v", err)
+				Msg("error while calculating item costs")
 			return productionResult{}, err
 		}
 
@@ -233,7 +247,7 @@ itemLoop:
 		if !builtAnything {
 			m := maxBuildable
 			if item.Type.IsAuto() {
-				m = MaxBuildableCap // we cap auto quantities at 5K
+				m = MaxBuildableCap // maxBuildable tracks auto-build amt for autos, but this is for amount actually present in queue
 			}
 			overCap := item.Quantity - min(item.Quantity, m)
 			if overCap > 0 {
@@ -278,6 +292,10 @@ itemLoop:
 
 		// Dump in any previously allocated resources for this item into our pot.
 		available = available.Add(item.Allocated)
+		if item.Type == QueueItemTypeStarbase {
+			// track allocated resources for starbases in case we cancel them later
+			priorStarbaseAllocated = item.Allocated
+		}
 		item.Allocated = Cost{}
 
 		// check for auto items we should skip due to not being buildable or lacking minerals.
@@ -308,6 +326,24 @@ itemLoop:
 
 		// woot woot, we built a thing!
 		builtAnything = true
+
+		if item.Type == QueueItemTypeStarbase {
+			// if we already built a starbase prior to this in the same year and want to build another,
+			// cancel and refund the previous base.
+			if result.starbase != nil {
+				available = available.Add(priorStarbaseCost)
+				err = p.updateStarbaseMessage(&result, item, priorStarbaseAllocated)
+				if err != nil {
+					return productionResult{}, err
+				}
+				p.log.Debug().
+					Any("Old Base", result.starbase.Name).
+					Any("Amount Refunded", priorStarbaseCost).
+					Any("New Base", item.design.Name).
+					Msgf("Refunded old base cost")
+			}
+			priorStarbaseCost = itemCost
+		}
 
 		// spend money, record info and add installations/terraforming
 		p.updateProductionResult(&result, item, numBuilt, itemCost)
@@ -483,11 +519,12 @@ func (p *producer) validatePacket(item ProductionQueueItem, planet *Planet, buil
 // and how how much to spend on it.
 func (p *producer) getNumBuilt(item ProductionQueueItem, itemCost, availableToSpend Cost, maxBuildable int) (numBuilt int, spent Cost) {
 	if itemCost == (Cost{}) {
+		// no cost means we build as many items as we can
 		return min(item.Quantity, maxBuildable), Cost{}
 	}
 
-	// The amount we end up building is the lowest among quantity able to be built,
-	//
+	// The amount we end up building is the lowest among item quantity,
+	// maxBuildable (ie max we can build), and the amount we can afford.
 	numBuilt = max(0, min(item.Quantity, maxBuildable,
 		int(availableToSpend.DivideCost(itemCost))))
 	spent = MultiplyCost(itemCost, numBuilt)
@@ -625,8 +662,8 @@ func (p *producer) updatePacketCanceledMessage(result *productionResult, item Pr
 		result.messages = append(result.messages, newPlanetMessage(msgType, p.planet).
 			withSpec(PlayerMessageSpec{
 				Name:          p.planet.Name,
-				QueueItemType: item.Type, // Keep track of item type if this is the _only_ packet in the queue
-				Cost:          item.Allocated,
+				QueueItemType: item.Type,              // item type (or empty if 2+ types in queue)
+				Cost:          item.Allocated,         // refunded minerals/resources
 				Amount:        weight * item.Quantity, // total kT of packet cargo
 				Amount2:       1,                      // number of orders canceled
 				PrevAmount:    item.Quantity,          // Items built (equal to items canceled)
@@ -644,4 +681,45 @@ func (p *producer) updatePacketCanceledMessage(result *productionResult, item Pr
 		result.messages[index].Spec.Amount2++
 		result.messages[index].Spec.Cost = result.messages[index].Spec.Cost.Add(item.Allocated)
 	}
+}
+
+func (p *producer) updateStarbaseMessage(result *productionResult, newItem ProductionQueueItem, oldAllocated Cost) error {
+	if itemBuiltIndex := slices.IndexFunc(result.itemsBuilt, func(item itemBuilt) bool {
+		return item.designNum == result.starbase.Num
+	}); itemBuiltIndex == -1 {
+		// built record for prior starbase doesn't exist.
+		// Should never happen since we only cancel bases that we already made earlier this year
+		p.log.Error().
+			Any("ProductionQueue", p.planet.ProductionQueue).
+			Any("ItemsBuilt", result.itemsBuilt).
+			Int("DesignNum", result.starbase.Num).
+			Str("Design Name", result.starbase.Name).
+			Msgf("starbase refund lacked prior records in itemsBuilt")
+		return fmt.Errorf("refunding base %s lacked prior records in itemsBuilt", result.starbase.Name)
+	} else {
+		// Amend the prior itemBuilt record to say we canceled it
+		result.itemsBuilt[itemBuiltIndex].skipped = true
+	}
+
+	// handle messages
+	if index := slices.IndexFunc(result.messages, func(message PlayerMessage) bool {
+		return message.Type == PlayerMessagePlanetBuiltStarbaseRefunded
+	}); index == -1 {
+		// no existing message; tack on a cnew one
+		result.messages = append(result.messages, newPlanetMessage(PlayerMessagePlanetBuiltStarbaseRefunded, p.planet).
+			withSpec(PlayerMessageSpec{
+				Name:     newItem.design.Name,  // name of base actually being built
+				PrevName: result.starbase.Name, // names of bases being canceled/refunded
+				Cost:     oldAllocated,         // minerals/resources "refunded" from canceling prior bases
+				Amount:   1,
+			}))
+	} else {
+		// modify existing msg to show updated base name/stats;
+		// reset previous name to empty string and increment prevAmount
+		result.messages[index].Spec.Name = newItem.design.Name
+		result.messages[index].Spec.PrevName = ""
+		result.messages[index].Spec.Cost = result.messages[index].Spec.Cost.Add(oldAllocated)
+		result.messages[index].Spec.Amount++
+	}
+	return nil
 }

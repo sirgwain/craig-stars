@@ -90,10 +90,9 @@ func (u *Universe) setLogger(log zerolog.Logger) {
 func (u *Universe) buildMaps(players []*Player) error {
 
 	// make a big map to hold all of our universe objects by position
-	u.mapObjectsByPosition = make(map[Vector][]interface{}, len(u.Planets))
+	u.mapObjectsByPosition = make(map[Vector][]any, len(u.Planets))
 
-	// build a map of designs by num
-	// so we can inject the design into each token
+	// build a map of designs by num for token design injection
 	numDesigns := 0
 	numBattlePlans := 0
 	for _, p := range players {
@@ -104,6 +103,7 @@ func (u *Universe) buildMaps(players []*Player) error {
 	u.battlePlansByNum = make(map[playerBattlePlanNum]*BattlePlan, numBattlePlans)
 
 	for _, p := range players {
+
 		for _, design := range p.Designs {
 			u.addDesign(design)
 		}

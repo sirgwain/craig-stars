@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -994,18 +995,20 @@ func TestFleet_gateFleet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rCopy := NewRules()
-			player.Messages = []PlayerMessage{} // reset any messages from prior turns
 			if tt.rng != nil {
 				rCopy.random = tt.rng
 			}
 
-			// reset player designs & add them back, all while tracking original quantities for a headcount later
+			// reset player designs & messages from prior tests
+			player.Messages = []PlayerMessage{}
 			player.Designs = []*ShipDesign{}
-			initQty := 0
-			for _, token := range tt.fleet.Tokens {
+			initQty := 0 // used for token headcount later
+			for i, token := range tt.fleet.Tokens {
+				tt.fleet.Tokens[i].DesignNum = token.design.Num // needed to prevent crash inside buildMaps
 				player.Designs = append(player.Designs, token.design)
 				initQty += token.Quantity
 			}
+
 			tt.fleet.Waypoints = tt.waypoints
 			tt.fleet.OrbitingPlanetNum = tt.waypoints[0].TargetNum
 			tt.fleet.Name = tt.name // for debugging test cases
@@ -1023,7 +1026,6 @@ func TestFleet_gateFleet(t *testing.T) {
 			if tt.fleet.Position != tt.want.position {
 				t.Errorf("Fleet.gateFleet() position = %v, want %v", tt.fleet.Position, tt.want.position)
 			}
-
 			if tt.fleet.Cargo != tt.want.cargo {
 				t.Errorf("Fleet.gateFleet() produced fleet cargo \n%+v, want \n%+v", tt.fleet.Cargo, tt.want.cargo)
 			}
@@ -1177,7 +1179,7 @@ func TestFleet_repairFleet(t *testing.T) {
 
 			fleet.Spec = ComputeFleetSpec(&rules, &p, fleet)
 
-			fleet.repairFleet(testLogger, &rules, &p, tt.args.planet)
+			fleet.repairFleet(log.Logger, &rules, &p, tt.args.planet)
 
 			for i, token := range fleet.Tokens {
 				want := tt.want[i]
@@ -1215,7 +1217,7 @@ func TestFleet_repairStarbase(t *testing.T) {
 			starbase.Tokens[0].Damage = tt.args.damage
 			starbase.Tokens[0].design.Spec.Armor = tt.args.armor
 
-			starbase.repairStarbase(testLogger, &rules, player)
+			starbase.repairStarbase(log.Logger, &rules, player)
 
 			if starbase.Tokens[0].Damage != tt.want {
 				t.Errorf("Fleet.repairStarbase() got = %v, want %v", starbase.Tokens[0].Damage, tt.want)

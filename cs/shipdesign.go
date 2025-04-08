@@ -167,7 +167,9 @@ func (sd *ShipDesign) WithCannotDelete(cannotDelete bool) *ShipDesign {
 	return sd
 }
 
-// Compute the spec for this ShipDesign. This function is mostly for universe generation and tests.
+// Compute the spec for this ShipDesign and return it.
+// This function should be used exclusively for testing due to panicking
+// if the spec cannot be computed.
 //
 // See [ComputeShipDesignSpec] for more info.
 func (sd *ShipDesign) WithSpec(rules *Rules, player *Player) *ShipDesign {
@@ -328,20 +330,19 @@ func getNewBeamBonus(prevBonus, componentBonus float64, qty int) float64 {
 	return prevBonus * math.Pow(1+componentBonus, float64(qty))
 }
 
-// Compute a ship design's Spec
-func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (ShipDesignSpec, error) {
+// Compute a ship design's Spec.
+func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec, design *ShipDesign) (spec ShipDesignSpec, err error) {
 	hull := rules.techs.GetHull(design.Hull)
 	if hull == nil {
 		return ShipDesignSpec{}, fmt.Errorf("failed to find hull %s in techstore", design.Hull)
 	}
-	c := NewCostCalculator()
-	spec := ShipDesignSpec{
+	c := NewCostCalculator(rules, techLevels, &raceSpec)
+	spec = ShipDesignSpec{
 		Mass:                     hull.Mass,
 		Armor:                    hull.Armor,
 		Shields:                  hull.Shield,
 		FuelCapacity:             hull.FuelCapacity,
 		FuelGeneration:           hull.FuelGeneration,
-		Cost:                     Cost{}, // will assign cost later with error handling
 		TechLevel:                hull.Requirements.TechLevel,
 		CargoCapacity:            hull.CargoCapacity,
 		CloakUnits:               raceSpec.BuiltInCloakUnits,
@@ -358,8 +359,7 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 		InnateScanRangePenFactor: hull.InnateScanRangePenFactor,
 	}
 
-	var err error
-	spec.Cost, err = c.GetDesignCost(rules, techLevels, raceSpec, design)
+	spec.Cost, err = c.GetDesignCost(design)
 	if err != nil {
 		return ShipDesignSpec{}, fmt.Errorf("failed to get design cost: %w", err)
 	}

@@ -18,7 +18,7 @@ type turnGenerator struct {
 	log  zerolog.Logger
 }
 
-func newTurnGenerator(game *FullGame) turnGenerator {
+func newTurnGenerator(game *FullGame) (turnGenerator, error) {
 	turnLogger := log.With().
 		Int64("GameID", game.ID).
 		Str("GameName", game.Name).
@@ -27,9 +27,11 @@ func newTurnGenerator(game *FullGame) turnGenerator {
 	t := turnGenerator{game, turnLogger}
 
 	t.game.Universe.setLogger(turnLogger)
-	t.game.Universe.buildMaps(game.Players)
+	if err := t.game.Universe.buildMaps(game.Players); err != nil {
+		return turnGenerator{}, err
+	}
 
-	return t
+	return t, nil
 }
 
 // generate a new turn
@@ -51,7 +53,9 @@ func (t *turnGenerator) generateTurn() error {
 		player.Spec.TechsJustGained = []*Tech{}
 	}
 
-	t.computeSpecs()
+	if err := t.computeSpecs(); err != nil {
+		return err
+	}
 	t.packetInit()
 
 	// wp0 tasks
@@ -117,10 +121,10 @@ func (t *turnGenerator) generateTurn() error {
 	t.fleetRepair()
 	t.fleetRemoteTerraform()
 
-	// reset all players
-	// and do player specific things like scanning
-	// and patrol orders
-	t.computeSpecs()           // make sure our specs are up to date
+	// re-compute all specs prior to performing scanning
+	if err := t.computeSpecs(); err != nil {
+		return err
+	}
 	t.game.updateTokenCounts() // update token counts
 	if err := t.scan(); err != nil {
 		return err
@@ -139,10 +143,10 @@ func (t *turnGenerator) generateTurn() error {
 	return nil
 }
 
-// update all planet specs with the latest info
-// useful before turn generation and after building
-func (t *turnGenerator) computeSpecs() {
-	t.game.computeSpecs()
+// update all entity specs with the latest info
+// called before and after turn generation
+func (t *turnGenerator) computeSpecs() error {
+	return t.game.computeSpecs()
 }
 
 // fleetInit will reset any fleet data before processing
@@ -791,17 +795,17 @@ func (t *turnGenerator) fleetMarkWaypointsProcessed() {
 	}
 }
 
-// packetInit will reset any packet data before processing
+// reset any packet data before processing
 func (t *turnGenerator) packetInit() {
 	for _, packet := range t.game.MineralPackets {
 		packet.builtThisTurn = false
 
 		if packet.Cargo.Total() == 0 {
-			// this packet was probably snatched away by a player
+			// this packet was probably snatched away by a player; delete it
 			t.log.Debug().
 				Int("Player", packet.PlayerNum).
 				Str("Packet", packet.Name).
-				Msgf("packet empty")
+				Msgf("deleting empty packet")
 			t.game.deletePacket(packet)
 		}
 	}
@@ -810,14 +814,15 @@ func (t *turnGenerator) packetInit() {
 // move packets through space
 // if builtThisTurn is true, this will only move packets that were built this turn (i.e. just launched)
 func (t *turnGenerator) packetMove(builtThisTurn bool) {
-
 	for _, packet := range t.game.MineralPackets {
 		if packet.Delete {
 			continue
 		}
+
 		if packet.builtThisTurn != builtThisTurn {
 			continue
 		}
+
 		player := t.game.getPlayer(packet.PlayerNum)
 		planet := t.game.getPlanet(int(packet.TargetPlanetNum))
 		var planetPlayer *Player
@@ -836,7 +841,7 @@ func (t *turnGenerator) packetMove(builtThisTurn bool) {
 			Msgf("moved packet")
 
 		if planetPlayer != nil && planet.GetPopulation() == 0 {
-			// this planet just got killed by a packet
+			// this planet just got killed by a packet; delete starbase
 			if starbase != nil {
 				t.game.deleteStarbase(starbase)
 				planet.Spec.PlanetStarbaseSpec = PlanetStarbaseSpec{}

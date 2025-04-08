@@ -734,7 +734,7 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 				return
 			}
 
-			tr := newCargoTransferer(testLogger, game)
+			tr := newCargoTransferer(log.Logger, game)
 			got := tr.loadByHands(player, tt.transfers)
 			// these are passed in as args, don't compare them
 			for i := range got {
@@ -906,7 +906,7 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 				return
 			}
 
-			tr := newCargoTransferer(testLogger, game)
+			tr := newCargoTransferer(log.Logger, game)
 			got := tr.unloadByHands(player, tt.transfers)
 			// these are passed in as args, don't compare them
 			for i := range got {

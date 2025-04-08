@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { andCommaList } from '$lib/andCommandList';
+	import { andCommaList } from '$lib/andCommaList';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { resourceTypeToString } from '$lib/types/Cargo';
 	import { absSum } from '$lib/types/Hab';
