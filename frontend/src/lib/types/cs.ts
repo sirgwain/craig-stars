@@ -700,6 +700,7 @@ export interface PlayerMessageSpecMysteryTrader extends MysteryTraderReward {
 }
 export interface PlayerMessageSpecInvasion {
 	fleetName?: string;
+	numFleets?: number /* int */;
 	attackerPlayerNum: number /* int */;
 	defenderPlayerNum: number /* int */;
 	attackersKilled: number /* int */;

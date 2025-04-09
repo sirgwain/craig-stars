@@ -196,8 +196,11 @@ func (p *Planet) exactPopulation() (exactPop int) {
 	return p.Cargo.Colonists*100 + p.PartialPopulation
 }
 
-// set pop to specified value.
-// TODO: Remove this - it risks tampering with planet partial pop
+// set planet population to specified value, split between
+// Cargo and PartialPopulation as appropriate.
+//
+// Should not be used outside of universe generation & tests as
+// it may accidentally reset partial pop.
 func (p *Planet) setPopulation(pop int) {
 	p.Cargo.Colonists = pop / 100
 	p.PartialPopulation = pop % 100

@@ -13,8 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// many functions require a copy of the current game's rules.
-// for testing, create a standard rules var every test can use
+// A standardized copy of the rules for use in unit tests.
 var rules = NewRules()
 
 func init() {

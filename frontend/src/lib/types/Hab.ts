@@ -101,6 +101,6 @@ export function getLargest(hab: Hab): HabType {
 	}
 }
 
-export function absSum(hab: Hab): number {
-	return Math.abs(hab.grav ?? 0) + Math.abs(hab.temp ?? 0) + Math.abs(hab.rad ?? 0);
+export function absSum(hab: Hab | undefined): number {
+	return Math.abs(hab?.grav ?? 0) + Math.abs(hab?.temp ?? 0) + Math.abs(hab?.rad ?? 0);
 }

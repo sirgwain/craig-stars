@@ -60,6 +60,7 @@ func (b *bomber) bombPlanet(planet *Planet, planetOwner *Player, enemyBombers []
 	// get a list of all players orbiting the planet
 	orbitingPlayerNums := map[int]bool{}
 	resultsByPlayer := map[int]BombingResult{}
+	// TODO: Collate bombing messages into 1 message per planet per player
 	for _, fleet := range enemyBombers {
 		orbitingPlayerNums[fleet.PlayerNum] = true
 		resultsByPlayer[fleet.PlayerNum] = BombingResult{}

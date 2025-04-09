@@ -237,11 +237,12 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 		planet := invasion.planet
 		attacker := invasion.attacker
 		defender := invasion.defender
+		desc := invasion.fleetDescription()
 
 		t.log.Debug().
 			Int("Defender", defender.Num).
 			Int("Attacker", attacker.Num).
-			Str("Fleet", invasion.fleetDescription()).
+			Str("Fleet", desc).
 			Str("Planet", planet.Name).
 			Int("Attackers", invasion.attackers).
 			Int("Defenders", invasion.defenders).
@@ -252,7 +253,6 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 
 		// during invasion, even if the player loses the planet, they discover the invader
 		for _, fleet := range invasion.fleets {
-
 			for _, token := range fleet.Tokens {
 				defender.discoverer.discoverDesign(token.design, defender.Race.Spec.DiscoverDesignOnScan)
 			}
@@ -260,23 +260,22 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 		}
 
 		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
-		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
+		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, len(invasion.fleets), invasion.successful)
+		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, len(invasion.fleets), invasion.successful)
 
 		if !invasion.successful {
-			// reduce the population to however many colonists remain and move on
+			// reduce the population down to however many colonists remain and move on
+			// TODO: Check how invasions handle partial pop
 			planet.setPopulation(invasion.remainingDefenders)
 			continue
 		}
 
-		// empty this planet
+		// empty the planet and take over
 		planet.emptyPlanet()
-
-		// take over the planet.
 		planet.PlayerNum = invasion.attacker.Num
 		planet.setPopulation(invasion.remainingAttackers)
 
-		// apply a production plan
+		// apply the player's default production plan, if any exist
 		if len(attacker.ProductionPlans) > 0 {
 			plan := attacker.ProductionPlans[0]
 			plan.Apply(planet)

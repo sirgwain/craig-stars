@@ -80,6 +80,7 @@ type PlayerMessageSpecMysteryTrader struct {
 
 type PlayerMessageSpecInvasion struct {
 	FleetName         string `json:"fleetName,omitempty"`
+	NumFleets         int    `json:"numFleets,omitempty"`
 	AttackerPlayerNum int    `json:"attackerPlayerNum"`
 	DefenderPlayerNum int    `json:"defenderPlayerNum"`
 	AttackersKilled   int    `json:"attackersKilled"`
@@ -802,9 +803,10 @@ func (m *messageClient) planetInstaform(player *Player, planet *Planet, terrafor
 	})
 }
 
-func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackersKilled int, defendersKilled int, successful bool) {
+func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName string, attacker, defender *Player, attackersKilled, defendersKilled, numFleets int, successful bool) {
 	invasion := PlayerMessageSpecInvasion{
 		FleetName:         fleetName,
+		NumFleets:         numFleets,
 		AttackerPlayerNum: attacker.Num,
 		DefenderPlayerNum: defender.Num,
 		AttackersKilled:   attackersKilled,
@@ -812,23 +814,18 @@ func (m *messageClient) planetInvaded(player *Player, planet *Planet, fleetName 
 		Successful:        successful,
 	}
 	if player.Num == attacker.Num {
-		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetInvadedPlanet, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
-			Spec: PlayerMessageSpec{Invasion: &invasion},
+		player.Messages = append(player.Messages, PlayerMessage{
+			Type:   PlayerMessageFleetInvadedPlanet,
+			Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
+			Spec:   PlayerMessageSpec{Invasion: &invasion},
 		})
 	} else {
-		player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetInvaded, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
-			Spec: PlayerMessageSpec{Invasion: &invasion},
+		player.Messages = append(player.Messages, PlayerMessage{
+			Type:   PlayerMessagePlanetInvaded,
+			Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num},
+			Spec:   PlayerMessageSpec{Invasion: &invasion},
 		})
 	}
-}
-
-func (m *messageClient) planetInvadeEmpty(player *Player, planet *Planet, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to beam colonists to %s, but the planet is uninhabited. The order has been canceled.", fleet.Name, planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
-}
-func (m *messageClient) planetInvadeStarbase(player *Player, planet *Planet, fleet *Fleet) {
-	text := fmt.Sprintf("%s has orders to invade %s, but the planet is protected by a starbase. The order has been canceled.", fleet.Name, planet.Name)
-	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
 func (m *messageClient) planetPacketArrived(player *Player, planet *Planet, packet *MineralPacket) {

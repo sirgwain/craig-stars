@@ -84,8 +84,8 @@
 {:else if message.type === PlayerMessagePlanetBombed}
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
-		{$universe.getPlayerPluralName(message.spec.targetPlayerNum)}
-		{message.spec.targetName} has bombed your planet {planet.name}
+		{$universe.getPlayerName(message.spec.targetPlayerNum)}
+		{message.spec.targetName} has bombed {planet.name},
 		{#if message.spec.bombing?.planetEmptied}
 			killing off all its colonists.
 		{:else}
@@ -97,16 +97,10 @@
 				{bombing.factoriesDestroyed ?? 0} factories and {bombing.defensesDestroyed ?? 0} defenses.
 			{/if}
 
-			{#if absSum(bombing.unterraformAmount ?? {}) > 0}
-				{#if bombing.numBombers ?? 0 > 1}
-					The bombers have also retro-bombed the planet, undoing {absSum(
-						bombing.unterraformAmount ?? {}
-					)}% of its terraforming.
-				{:else}
-					The bomber has also retro-bombed the planet, undoing {absSum(
-						bombing.unterraformAmount ?? {}
-					)}% of its terraforming.
-				{/if}
+			{#if absSum(bombing.unterraformAmount) > 0}
+				{bombing.numBombers === 1 ? 'The bomber has ' : 'The bombers have '}
+				also retro-bombed the planet, undoing{absSum(bombing.unterraformAmount)}% of its
+				terraforming.
 			{/if}
 		{/if}
 	{:else}
@@ -273,7 +267,7 @@
 	{:else}
 		All of your colonists on {planet.name} have died off. You no longer control the planet.
 	{/if}
-{:else if [PlayerMessagePlanetDiscovery, PlayerMessagePlanetDiscoveryHabitable, PlayerMessagePlanetDiscoveryTerraformable, PlayerMessagePlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
+{:else if [PlayerMessagePlanetDiscovery, PlayerMessagePlanetDiscoveryHabitable, PlayerMessagePlanetDiscoveryTerraformable, PlayerMessagePlanetDiscoveryUninhabitable].includes(message.type)}
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}.
 	{:else if $player.race.spec?.instaforming && ((planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0) || (planet.spec.habitability && planet.spec.habitability > 0))}
@@ -326,18 +320,20 @@
 {:else if message.type === PlayerMessagePlanetInvaded}
 	{@const invasion = message.spec.invasion}
 	{#if invasion}
+		{@const fleetName =
+			!invasion.numFleets || invasion.numFleets > 1
+				? (!invasion.numFleets ? 'Some number of ' : `A total of ${invasion.numFleets} `) +
+					`${$universe.getPlayerName(invasion.attackerPlayerNum)} fleets`
+				: $universe.getPlayerName(invasion.attackerPlayerNum) + invasion.fleetName}
 		{#if invasion.successful}
-			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ??
-				'multiple fleets'} have successfully invaded {planet.name} and wrested it from your control.
-			Your colonists managed to defeat {invasion.attackersKilled} of their invaders before being overrun.
-			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} have successfully wrested
+			{fleetName} successfully invaded {planet.name} and wrested it from your control. Your colonists
+			managed to defeat {invasion.attackersKilled.toLocaleString()} of their invaders before being overrun.
 		{:else}
-			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ??
-				'multiple fleets'} tried to invade {planet.name}, but your troops were able to fend them
-			off. You lost {invasion.defendersKilled} colonists in the process.
+			{fleetName} tried to invade {planet.name}, but your troops were able to fend them off. You
+			lost {invasion.defendersKilled.toLocaleString()} colonists in the process.
 		{/if}
 	{:else}
-		{planet.name} was invaded, but your spies no nothing of the outcome.
+		{planet.name} was invaded, but your spies know nothing of the outcome.
 	{/if}
 {:else if message.type === PlayerMessagePlanetPopulationDecreasedOvercrowding}
 	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} colonists
