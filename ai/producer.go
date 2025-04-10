@@ -159,24 +159,26 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 		timeToWait = ai.config.minYearsToQueueStarbaseWarTime
 	}
 
-	return ai.addStarbaseToQueue(planet, timeToWait, threatened)
+	if err := ai.addStarbaseToQueue(planet, timeToWait, threatened); err != nil {
+		return fmt.Errorf("error adding starbase to queue: %w", err)
+	}
+
+	return nil
 }
 
 // upgrade an existing starbase to a better or newer model, or build a new one if none are present
 func (ai *aiPlayer) addStarbaseToQueue(planet *cs.Planet, timeToWait int, threatened bool) error {
 	existingDesign := ai.GetDesign(planet.Spec.StarbaseDesignNum)
-	if (existingDesign == nil) != planet.Spec.HasStarbase {
+	if (existingDesign != nil) != planet.Spec.HasStarbase {
 		// we either got a starbase design despite not expecting one or vice versa; funky stuff happened
-		var err error
 		var msg string
 		if planet.Spec.HasStarbase {
-			err = fmt.Errorf("no existing base design found despite planet.Spec.HasStarbase being true")
-			msg = "design not found despite expecting one"
+			msg = "no existing base design found despite planet.Spec.HasStarbase being true"
 		} else {
-			err = fmt.Errorf("existing base design found despite planet.Spec.HasStarbase being false")
-			msg = "design found despite not expecting one"
+			msg = "existing base design found despite planet.Spec.HasStarbase being false"
 		}
 
+		err := fmt.Errorf("%s", msg)
 		ai.log.Err(err).
 			Int64("GameID", ai.GameID).
 			Int("PlayerNum", ai.Num).
@@ -185,7 +187,7 @@ func (ai *aiPlayer) addStarbaseToQueue(planet *cs.Planet, timeToWait int, threat
 			Int("DesignNum", planet.Spec.StarbaseDesignNum).
 			Str("DesignName", planet.Spec.StarbaseDesignName).
 			Bool("HasStarbase", planet.Spec.HasStarbase).
-			Msg(msg)
+			Msg("planetSpec HasStarbase did not match existing design")
 
 		return err
 	}
@@ -193,14 +195,15 @@ func (ai *aiPlayer) addStarbaseToQueue(planet *cs.Planet, timeToWait int, threat
 	var purpose cs.ShipDesignPurpose
 	if existingDesign == nil {
 		if threatened {
-			// we don't have a starbase, but we need one (invaded, bombed, etc)
+			// build a fort if we're being invaded, bombed, etc
 			purpose = cs.ShipDesignPurposeFort
 		} else {
 			// we don't need an armed starbase yet, so build a fuel depot
+			// TODO: make it actually build
 			purpose = cs.ShipDesignPurposeFuelDepot
 		}
 	} else {
-		// we have a starbase, so we need to upgrade it
+		// we have a starbase already; upgrade it based on its current purpose
 		switch existingDesign.Purpose {
 		case cs.ShipDesignPurposeFort, cs.ShipDesignPurposeFuelDepot, cs.ShipDesignPurposeStarbaseUnarmed:
 			// forts & fuel depots --> 1/4 starbase

@@ -73,7 +73,7 @@ type playerObject struct {
 }
 
 // Create a new playerObject keyed with playerNum and num.
-func playerObjectKey(playerNum int, num int) playerObject { return playerObject{playerNum, num} }
+func playerObjectKey(playerNum, num int) playerObject { return playerObject{playerNum, num} }
 
 type playerBattlePlanNum struct {
 	PlayerNum int
@@ -234,7 +234,7 @@ func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
 	return pmo
 }
 
-func (u *Universe) getMapObject(mapObjectType MapObjectType, num int, playerNum int) *MapObject {
+func (u *Universe) getMapObject(mapObjectType MapObjectType, num, playerNum int) *MapObject {
 	switch mapObjectType {
 	case MapObjectTypePlanet:
 		planet := u.getPlanet(num)
@@ -276,7 +276,7 @@ func (u *Universe) getMapObject(mapObjectType MapObjectType, num int, playerNum 
 }
 
 // get a ship design by num
-func (u *Universe) getShipDesign(playerNum int, num int) *ShipDesign {
+func (u *Universe) getShipDesign(playerNum, num int) *ShipDesign {
 	return u.designsByNum[playerObjectKey(playerNum, num)]
 }
 
@@ -297,7 +297,7 @@ func (u *Universe) getOrbitingPlanet(fleet *Fleet) *Planet {
 }
 
 // Get a fleet by player num and fleet num
-func (u *Universe) getFleet(playerNum int, num int) *Fleet {
+func (u *Universe) getFleet(playerNum, num int) *Fleet {
 	return u.fleetsByNum[playerObjectKey(playerNum, num)]
 }
 
@@ -311,7 +311,7 @@ func (u *Universe) getSalvage(num int) *Salvage {
 	return u.salvagesByNum[num]
 }
 
-func (u *Universe) getMineField(playerNum int, num int) *MineField {
+func (u *Universe) getMineField(playerNum, num int) *MineField {
 	return u.mineFieldsByNum[playerObjectKey(playerNum, num)]
 }
 
@@ -330,7 +330,7 @@ func (u *Universe) getMineFieldNearPosition(playerNum int, position Vector, mine
 	return nil
 }
 
-func (u *Universe) getMineralPacket(playerNum int, num int) *MineralPacket {
+func (u *Universe) getMineralPacket(playerNum, num int) *MineralPacket {
 	return u.mineralPacketsByNum[playerObjectKey(playerNum, num)]
 }
 
@@ -339,7 +339,7 @@ func (u *Universe) getMysteryTrader(num int) *MysteryTrader {
 }
 
 // get a cargo holder by natural key (num, playerNum, etc)
-func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool) {
+func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num, playerNum int) (CargoHolder, bool) {
 	switch mapObjectType {
 	case MapObjectTypePlanet:
 		mo := u.getPlanet(num)

@@ -332,7 +332,7 @@ itemLoop:
 			// cancel and refund the previous base.
 			if result.starbase != nil {
 				available = available.Add(priorStarbaseCost)
-				err = p.updateStarbaseMessage(&result, item, priorStarbaseAllocated)
+				err = p.updateStarbaseCanceledMessage(&result, item, priorStarbaseAllocated)
 				if err != nil {
 					return productionResult{}, err
 				}
@@ -593,7 +593,7 @@ func (p *producer) terraformPlanet(numSteps int) []TerraformResult {
 // allocatePartialBuild returns the amount of minerals and resources to allocate
 // to a partially built production queue item, based on its cost and available
 // minerals/resources.
-func (p *producer) allocatePartialBuild(costPerItem Cost, available Cost) (allocated Cost) {
+func (p *producer) allocatePartialBuild(costPerItem, available Cost) (allocated Cost) {
 	// Costs are allocated by lowest percentage; if we require
 	// Cost(10, 10, 10, 100) and we only have Cost(1, 10, 10, 100)
 	// we allocate Cost(1, 1, 1, 10).
@@ -630,6 +630,7 @@ func (p *producer) allocatePartialBuild(costPerItem Cost, available Cost) (alloc
 	return allocated
 }
 
+// Create or update "item canceled" message for installations.
 func (p *producer) updateCanceledMessage(result *productionResult, item ProductionQueueItem, numCanceled, maxBuildable int) {
 	// For normal items being removed, we record removals for each item type separately
 	if index := slices.IndexFunc(result.messages, func(message PlayerMessage) bool {
@@ -653,6 +654,7 @@ func (p *producer) updateCanceledMessage(result *productionResult, item Producti
 	}
 }
 
+// Create or update "item canceled" messages for packets.
 func (p *producer) updatePacketCanceledMessage(result *productionResult, item ProductionQueueItem, msgType PlayerMessageType, weight int) {
 	// For packets, we don't care what *type* of packet got canceled, only that *a* packet was canceled with this message.
 	if index := slices.IndexFunc(result.messages, func(message PlayerMessage) bool {
@@ -683,7 +685,8 @@ func (p *producer) updatePacketCanceledMessage(result *productionResult, item Pr
 	}
 }
 
-func (p *producer) updateStarbaseMessage(result *productionResult, newItem ProductionQueueItem, oldAllocated Cost) error {
+// Create or update "item canceled" message for starbases.
+func (p *producer) updateStarbaseCanceledMessage(result *productionResult, newItem ProductionQueueItem, oldAllocated Cost) error {
 	if itemBuiltIndex := slices.IndexFunc(result.itemsBuilt, func(item itemBuilt) bool {
 		return item.designNum == result.starbase.Num
 	}); itemBuiltIndex == -1 {

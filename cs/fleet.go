@@ -361,7 +361,7 @@ func (f *Fleet) withSpec(rules *Rules, player *Player) *Fleet {
 	return f
 }
 
-// get a pointer to a ShipToken a design, or nil if it's not present
+// get a pointer to a ShipToken design, or nil if it's not present
 func (f *Fleet) getTokenByDesign(designNum int) *ShipToken {
 	for i, token := range f.Tokens {
 		if token.DesignNum == designNum {
@@ -397,7 +397,7 @@ func NewPlanetWaypoint(position Vector, num int, name string, warpSpeed int) Way
 	}
 }
 
-func NewFleetWaypoint(position Vector, num int, playerNum int, name string, warpSpeed int) Waypoint {
+func NewFleetWaypoint(position Vector, num, playerNum int, name string, warpSpeed int) Waypoint {
 	return Waypoint{
 		Position: position,
 		MapObjectTarget: MapObjectTarget{
@@ -977,10 +977,10 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		sourceStargate = sourcePlanet.Spec.PlanetStarbaseSpec
 	}
 
-	// can't gate colonists unless we're IT
+	// can't gate colonists unless we're IT or have a jump gate
 	// can't dump colonists into space or on a world we don't own
-	// ships with jump gates can gate cargo (amazing)
-	if !fleet.Spec.CanJump && !player.Race.Spec.CanGateCargo && fleet.Cargo.Colonists > 0 && (sourcePlanet == nil || !sourcePlanet.OwnedBy(player.Num)) {
+	if !fleet.Spec.CanJump && !player.Race.Spec.CanGateCargo && fleet.Cargo.Colonists > 0 &&
+		(sourcePlanet == nil || !sourcePlanet.OwnedBy(player.Num)) {
 		messager.fleetStargateInvalidColonists(player, fleet, wp0, wp1)
 		return
 	}
@@ -1054,7 +1054,7 @@ func (fleet *Fleet) applyOvergatePenalty(rules *Rules, player *Player, distance 
 }
 
 // Engine fuel usage calculation courtesy of m.a@stars
-func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64, ifeFactor float64) int {
+func (engine Engine) getFuelCostForEngine(warpSpeed, mass int, dist, ifeFactor float64) int {
 	if warpSpeed == 0 {
 		return 0
 	}
@@ -1117,7 +1117,7 @@ func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64,
 	return fuelCost
 }
 
-func (fleet *Fleet) getEstimatedRange(player *Player, warpSpeed int, cargoCapacity int) int {
+func (fleet *Fleet) getEstimatedRange(player *Player, warpSpeed, cargoCapacity int) int {
 	fuelCost := fleet.getFuelCost(player, warpSpeed, 1000, cargoCapacity)
 	if fuelCost == 0 {
 		return Infinite
@@ -1154,7 +1154,7 @@ func (fleet *Fleet) getFuelGeneration(warpSpeed int, distance float64) int {
 }
 
 // Complete a move from one waypoint to another
-func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player, wp0 Waypoint, wp1 Waypoint) {
+func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player, wp0, wp1 Waypoint) {
 	fleet.Position = wp1.Position
 
 	// find out if we arrived at a planet, either by reaching our target fleet

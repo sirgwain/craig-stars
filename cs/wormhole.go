@@ -71,7 +71,7 @@ func computeWormholeSpec(w *Wormhole, rules *Rules) WormholeSpec {
 	}
 }
 
-func generateWormhole(mapObjectGetter mapObjectGetter, area Vector, random rng, planetPositions []Vector, wormholePositions []Vector, minDistanceFromPlanets int) (position Vector, stability WormholeStability, err error) {
+func generateWormhole(mapObjectGetter mapObjectGetter, area Vector, random rng, planetPositions, wormholePositions []Vector, minDistanceFromPlanets int) (position Vector, stability WormholeStability, err error) {
 	width, height := int(area.X), int(area.Y)
 
 	position = Vector{X: float64(random.Intn(width)), Y: float64(random.Intn(height))}

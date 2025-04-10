@@ -85,7 +85,7 @@ func (scan *playerScanner) scan() error {
 }
 
 // scan all planets with this player's scanners
-func (scan *playerScanner) scanPlanets(scanners []scanner, cargoScanners []scanner, starGateScanners []scanner) error {
+func (scan *playerScanner) scanPlanets(scanners, cargoScanners, starGateScanners []scanner) error {
 	for _, planet := range scan.universe.Planets {
 		if planet.OwnedBy(scan.player.Num) {
 			// scan owned planets
@@ -183,7 +183,7 @@ func (scan *playerScanner) scanPlanet(planet *Planet, scanner scanner) (scanned 
 }
 
 // scan all fleets and discover their designs if we should
-func (scan *playerScanner) scanFleets(scanners []scanner, cargoScanners []scanner) {
+func (scan *playerScanner) scanFleets(scanners, cargoScanners []scanner) {
 	// scan fleets
 	fleetsToScan := []*Fleet{}
 	fleetsToCargoScan := []*Fleet{}

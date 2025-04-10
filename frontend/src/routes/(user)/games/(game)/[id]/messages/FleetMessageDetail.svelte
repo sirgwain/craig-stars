@@ -235,11 +235,15 @@
 		message.spec.destPlayerNum
 	)}.
 {:else if message.type === PlayerMessageFleetTransferInvalidPlayer}
-	<!-- Fleet Transfers -->
-	{#if message.spec.destPlayerNum == undefined || message.spec.destPlayerNum == None || message.spec.destPlayerNum < 0 || message.spec.destPlayerNum >= $game.players.length}
-		You cannot give {message.targetName} away. No player to transfer to was specified.
+	<!-- Fleet Transfer failures -->
+	{#if !message.spec.destPlayerNum || message.spec.destPlayerNum <= None || message.spec.destPlayerNum >= $game.players.length}
+		You couldn't give {message.targetName} away as no player to transfer to was specified.
+	{:else if message.spec.destPlayerNum === message.spec.sourcePlayerNum}
+		<!-- Donate fleet to yourself -->
+		You couldn't give {message.targetName} away to yourself.
 	{:else}
-		You cannot give {message.targetName} to {$universe.getPlayerPluralName(
+		<!-- generic fallback message -->
+		You couldn't give {message.targetName} to {$universe.getPlayerPluralName(
 			message.spec.destPlayerNum
 		)}.
 	{/if}
@@ -248,7 +252,8 @@
 {:else if message.type === PlayerMessageFleetTransferInvalidGiveRefused}
 	{$universe.getPlayerPluralName(message.spec.destPlayerNum)} snubbed your attempted gift and refused
 	your offer of
-	{message.targetName}. Are you sure they're still your allies?
+	{message.targetName}. If you wish to give gifts to this player in the future,
+	make sure they have you set as allies.
 {:else if message.type === PlayerMessageFleetTransferInvalidReceiveRefused}
 	{$universe.getPlayerPluralName(message.spec.sourcePlayerNum)} has attempted to gift you {message.targetName},
 	but you have refused their offer. If you wish to receive gifts from this player in the future,

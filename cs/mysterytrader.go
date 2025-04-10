@@ -178,7 +178,7 @@ type MysteryTraderReward struct {
 }
 
 // create a new mysterytrader object
-func newMysteryTrader(position Vector, num int, warpSpeed int, destination Vector, requestedBoon int, reward MysteryTraderRewardType) *MysteryTrader {
+func newMysteryTrader(position Vector, num, warpSpeed int, destination Vector, requestedBoon int, reward MysteryTraderRewardType) *MysteryTrader {
 	return &MysteryTrader{
 		MapObject: MapObject{
 			Type:     MapObjectTypeMysteryTrader,
@@ -311,7 +311,7 @@ func generateRandomMysteryTraderDestination(rules *Rules, game *Game, position V
 
 // generate a random mystery trader reward based on the year of the game and speed of the MT
 // early game is more likely to be research (or 1/6th chance of a ship)
-func generateMysteryTraderReward(rules *Rules, year int, warpSpeed int) MysteryTraderRewardType {
+func generateMysteryTraderReward(rules *Rules, year, warpSpeed int) MysteryTraderRewardType {
 	turn := year - rules.StartingYear
 
 	var chance int

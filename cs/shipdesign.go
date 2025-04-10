@@ -776,7 +776,7 @@ func newPartCache(design *ShipDesign, tc TechComparer) *partCache {
 // Design a ship/starbase for the AI or as a starting fleet using the best parts available to us
 //
 // Warship design is handled by (and delegated to) [designWarship] instead
-func DesignShip(rules *Rules, player *Player, hull *TechHull, name string, num int, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
+func DesignShip(rules *Rules, player *Player, hull *TechHull, name string, num, hullSetNumber int, purpose ShipDesignPurpose, fleetPurpose FleetPurpose) (*ShipDesign, error) {
 
 	techStore := rules.techs
 	design := NewShipDesign(player.Num, num).WithName(name).WithHull(hull.Name).WithHullSetNumber(hullSetNumber).WithPurpose(purpose)
@@ -1007,7 +1007,7 @@ func DesignShip(rules *Rules, player *Player, hull *TechHull, name string, num i
 }
 
 // Design a warship or starbase based on available parts to fit a specified goal
-func designWarship(rules *Rules, player *Player, hull *TechHull, name string, num int, hullSetNumber int, purpose ShipDesignPurpose) (*ShipDesign, error) {
+func designWarship(rules *Rules, player *Player, hull *TechHull, name string, num, hullSetNumber int, purpose ShipDesignPurpose) (*ShipDesign, error) {
 
 	//* DISCLAIMER FOR CODE (RE)VIEWERS: THIS IS A *VERY LONG FUNCTION*. Use the hashtags (#) to jump between sections.
 	techStore := rules.techs

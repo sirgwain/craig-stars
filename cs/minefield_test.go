@@ -8,7 +8,6 @@ import (
 )
 
 func TestMineField_getDecayRate(t *testing.T) {
-
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
 
 	type fields struct {

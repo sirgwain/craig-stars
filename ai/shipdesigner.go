@@ -97,6 +97,8 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 func (ai *aiPlayer) designStarbases() error {
 	starbasePurposes := []cs.ShipDesignPurpose{
 		cs.ShipDesignPurposeFuelDepot,
+		cs.ShipDesignPurposePacketThrower,
+		cs.ShipDesignPurposeStargater,
 		cs.ShipDesignPurposeFort,
 		cs.ShipDesignPurposeStarbaseUnarmed,
 		cs.ShipDesignPurposeStarbaseQuarter,
@@ -107,7 +109,7 @@ func (ai *aiPlayer) designStarbases() error {
 	for _, purpose := range starbasePurposes {
 		design, err := ai.designShip(ai.config.namesByPurpose[purpose], purpose, cs.FleetPurposeFromShipDesignPurpose(purpose))
 		if err != nil {
-			return fmt.Errorf("unable to design ship %v: %w", purpose, err)
+			return fmt.Errorf("unable to design starbase %v: %w", purpose, err)
 		}
 		ai.designsByPurpose[purpose] = design
 	}

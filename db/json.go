@@ -21,7 +21,7 @@ func valueJSON(item interface{}) (driver.Value, error) {
 }
 
 // helper to scan a text JSON column back into a struct
-func scanJSON(src interface{}, dest interface{}) error {
+func scanJSON(src, dest interface{}) error {
 	if src == nil {
 		// leave empty
 		return nil

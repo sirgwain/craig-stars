@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -954,7 +953,7 @@ func TestFleet_gateFleet(t *testing.T) {
 		},
 		{
 			name: "mixed fleet gates with losses",
-			fleet: newFleetForTokens(player, 69420, "this gets overridden", []ShipToken{
+			fleet: newFleetForTokens(player, 1, "this gets overridden", []ShipToken{
 				{design: heavyNubianDesign, Quantity: 10},
 				{design: testLongRangeScoutDesign(player.Num).WithSpec(&rules, player), Quantity: 10}}, nil),
 			waypoints: []Waypoint{
@@ -964,13 +963,13 @@ func TestFleet_gateFleet(t *testing.T) {
 			// 1/3 mass vanish chance on nubians means the first 4 rolls pass.
 			// Rest of them default to 0, but the scouts won't vanish anyways
 			rng:  newFloat64Random(0.30, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39, 0.4),
-			want: want{position: destPlanet.Position, exploded: 6, message: true},
+			want: want{position: destPlanet.Position, exploded: 4, message: true},
 		},
 		{
 			name: "vanish prioritizes damaged tokens",
 			fleet: newFleetForTokens(player, 1, "this gets overridden", []ShipToken{
 				// Exactly enough damage to kill an overgated nubian (2% of 5000)
-				{design: heavyNubianDesign, Quantity: 6, Damage: 100, QuantityDamaged: 56}}, nil),
+				{design: heavyNubianDesign, Quantity: 6, Damage: 100, QuantityDamaged: 5}}, nil),
 			waypoints: []Waypoint{
 				NewPlanetWaypoint(sourcePlanet.Position, sourcePlanet.Num, sourcePlanet.Name, 5),
 				NewPlanetWaypoint(destPlanet.Position, destPlanet.Num, destPlanet.Name, StargateWarpSpeed),
@@ -1010,6 +1009,7 @@ func TestFleet_gateFleet(t *testing.T) {
 			}
 
 			tt.fleet.Waypoints = tt.waypoints
+			tt.fleet.Position = tt.fleet.Waypoints[0].Position
 			tt.fleet.OrbitingPlanetNum = tt.waypoints[0].TargetNum
 			tt.fleet.Name = tt.name // for debugging test cases
 			tt.fleet.Spec = ComputeFleetSpec(&rCopy, player, tt.fleet)
@@ -1179,7 +1179,7 @@ func TestFleet_repairFleet(t *testing.T) {
 
 			fleet.Spec = ComputeFleetSpec(&rules, &p, fleet)
 
-			fleet.repairFleet(log.Logger, &rules, &p, tt.args.planet)
+			fleet.repairFleet(testLogger(t), &rules, &p, tt.args.planet)
 
 			for i, token := range fleet.Tokens {
 				want := tt.want[i]
@@ -1217,7 +1217,7 @@ func TestFleet_repairStarbase(t *testing.T) {
 			starbase.Tokens[0].Damage = tt.args.damage
 			starbase.Tokens[0].design.Spec.Armor = tt.args.armor
 
-			starbase.repairStarbase(log.Logger, &rules, player)
+			starbase.repairStarbase(testLogger(t), &rules, player)
 
 			if starbase.Tokens[0].Damage != tt.want {
 				t.Errorf("Fleet.repairStarbase() got = %v, want %v", starbase.Tokens[0].Damage, tt.want)

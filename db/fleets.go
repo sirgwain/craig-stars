@@ -175,7 +175,7 @@ func (c *client) GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, e
 	return results, nil
 }
 
-func (c *client) GetFleetByNum(gameID int64, playerNum int, num int) (*cs.Fleet, error) {
+func (c *client) GetFleetByNum(gameID int64, playerNum, num int) (*cs.Fleet, error) {
 
 	item := Fleet{}
 	if err := c.reader.Get(&item, `SELECT * FROM fleets WHERE gameId = ? AND playerNum = ? AND num = ?`, gameID, playerNum, num); err != nil {

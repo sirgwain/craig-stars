@@ -129,7 +129,7 @@ func (b *bomber) getBombersForPlayer(fleets []*Fleet, playerNum int) []*Fleet {
 }
 
 // bomb this planet with a slice of fleets.
-func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
+func (b *bomber) normalBombPlanet(planet *Planet, defender, attacker *Player, bombers []*Fleet) BombingResult {
 
 	// do all normal bombs
 	bombs := []Bomb{}
@@ -205,7 +205,7 @@ func (b *bomber) normalBombPlanet(planet *Planet, defender *Player, attacker *Pl
 }
 
 // smartbomb the planet for each fleet
-func (b *bomber) smartBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
+func (b *bomber) smartBombPlanet(planet *Planet, defender, attacker *Player, bombers []*Fleet) BombingResult {
 	smartDefenseCoverage := planet.Spec.DefenseCoverageSmart
 
 	// get all smart bombs from these fleets
@@ -252,7 +252,7 @@ func (b *bomber) smartBombPlanet(planet *Planet, defender *Player, attacker *Pla
 }
 
 // retroBombPlanet a planet for each fleet
-func (b *bomber) retroBombPlanet(planet *Planet, defender *Player, attacker *Player, bombers []*Fleet) BombingResult {
+func (b *bomber) retroBombPlanet(planet *Planet, defender, attacker *Player, bombers []*Fleet) BombingResult {
 	// do all retro bombs
 	bombs := []Bomb{}
 	fleets := []*Fleet{}

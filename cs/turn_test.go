@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"slices"
@@ -16,43 +17,42 @@ import (
 // A standardized copy of the rules for use in unit tests.
 var rules = NewRules()
 
-func init() {
-	// override default logger to pipe logs to logfile during testing
-	if testing.Testing() {
-		var err error
-		if err = os.MkdirAll("tmp", 0755); err != nil {
-			log.Error().Err(err).
-				Msg("Error changing test logger")
-			return
-		}
+// prior logger stored for subsequent runs
+var tLog *zerolog.Logger
 
-		logFile, err := os.Create("tmp/logfile.log")
-		if err != nil {
-			log.Error().Err(err).
-				Msg("Error changing test logger")
-			return
-		}
-
-		// Color output disabled for now because VS Code output panel can't handle it
-		writer := zerolog.MultiLevelWriter(
-			zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime, NoColor: true},
-			zerolog.ConsoleWriter{Out: logFile, TimeFormat: time.DateTime, NoColor: true},
-		)
-		log.Logger = log.With().Bool("TestMode", true).Logger().Output(writer)
+// override default logger to pipe logs to logfile during testing
+func testLogger(t testing.TB) zerolog.Logger {
+	if !testing.Testing() {
+		panic("testLogger() called during build")
 	}
+
+	if tLog != nil {
+		// prior test logger was set; return that instead of making a new one
+		return *tLog
+	}
+
+	var err error
+	if err = os.MkdirAll("../tmp", 0755); err != nil {
+		panic(fmt.Errorf("error changing test logger: %w", err))
+	}
+
+	logFile, err := os.Create("../tmp/logfile.log")
+	if err != nil {
+		panic(fmt.Errorf("error changing test logger: %w", err))
+	}
+
+	writer := zerolog.MultiLevelWriter(
+		zerolog.NewTestWriter(t),
+		// Color output disabled for files
+		zerolog.ConsoleWriter{Out: logFile, TimeFormat: time.DateTime, NoColor: true},
+	)
+	testLog := log.With().Bool("testMode", true).Logger().Output(writer)
+	tLog = &testLog
+	log.Logger = testLog // TODO: Remove this once top level uses of log.Logger is removed
+	return testLog
 }
 
-type MockRand struct {
-	int63Result int64
-}
-
-func (m MockRand) Seed(seed int64) {}
-
-func (m MockRand) Int63() int64 {
-	return m.int63Result
-}
-
-func createSingleUnitGame() *FullGame {
+func createSingleUnitGame(log zerolog.Logger) *FullGame {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
 	game.RandomEvents = false // don't allow random events in tests unless configured
@@ -85,7 +85,7 @@ func createSingleUnitGame() *FullGame {
 
 	players := []*Player{player}
 
-	universe := NewUniverse(log.Logger, &game.Rules)
+	universe := NewUniverse(log, &game.Rules)
 	universe.Planets = append(universe.Planets, planet)
 	universe.Fleets = append(universe.Fleets, fleet)
 
@@ -102,7 +102,7 @@ func createSingleUnitGame() *FullGame {
 
 }
 
-func createTwoPlayerGame() *FullGame {
+func createTwoPlayerGame(log zerolog.Logger) *FullGame {
 	client := NewGamer()
 	game := client.CreateGame(1, *NewGameSettings())
 	game.RandomEvents = false // don't allow random events in tests unless configured
@@ -162,7 +162,7 @@ func createTwoPlayerGame() *FullGame {
 
 	players := []*Player{player1, player2}
 
-	universe := NewUniverse(log.Logger, &game.Rules)
+	universe := NewUniverse(log, &game.Rules)
 	universe.Planets = append(universe.Planets, planet1, planet2)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2)
 
@@ -294,7 +294,7 @@ func Test_generateTurns(t *testing.T) {
 }
 
 func Test_turn_grow(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 
 	player := game.Players[0]
 
@@ -328,10 +328,7 @@ func Test_turn_grow(t *testing.T) {
 	planet3.setPopulation(100)       // planets never die, hold strong little guys!
 	planet4.setPopulation(2_400_000) // should lose 4%
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 
 	turn.computeSpecs()
 	turn.planetGrow()
@@ -346,7 +343,7 @@ func Test_turn_grow(t *testing.T) {
 func Test_turn_fleetByHandUnloads(t *testing.T) {
 
 	t.Run("jettison", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 
 		// make the player's fleet a cargo ship
@@ -364,9 +361,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -380,7 +375,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 	})
 
 	t.Run("unload on our planet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 		planet := game.Planets[0]
 
@@ -400,9 +395,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -414,7 +407,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 	})
 
 	t.Run("unload on unowned planet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 		planet2 := NewPlanet().WithNum(2).withPosition(Vector{10, 10})
 		game.Planets = append(game.Planets, planet2)
@@ -436,9 +429,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -449,7 +440,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 		assert.Equal(t, Cargo{}, game.Fleets[0].Cargo)
 	})
 	t.Run("invade enemy planet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := createTwoPlayerGame(testLogger(t))
 		player := game.Players[0]
 		planet2 := game.Planets[1]
 
@@ -469,9 +460,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -488,7 +477,7 @@ func Test_turn_fleetByHandUnloads(t *testing.T) {
 func Test_turn_fleetByHandLoads(t *testing.T) {
 
 	t.Run("jettison load from another fleet's jettison", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 
 		// give the player two cargo fleets
@@ -516,9 +505,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -534,7 +521,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from our planet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 		planet := game.Planets[0]
 
@@ -554,9 +541,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -568,7 +553,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from owned mineral packet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 		planet := game.Planets[0]
 		mineralPacket := newMineralPacket(player, 1, 5, 5, Cargo{Ironium: 100}, Vector{50, 0}, planet.Num)
@@ -587,9 +572,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -602,13 +585,13 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from enemy mineral packet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := createTwoPlayerGame(testLogger(t))
 		player1 := game.Players[0]
 		player2 := game.Players[1]
 		planet := game.Planets[0]
 		mineralPacket := newMineralPacket(player2, 1, 5, 5, Cargo{Ironium: 100}, Vector{50, 0}, planet.Num)
 		game.MineralPackets = append(game.MineralPackets, mineralPacket)
-		discoverer := newDiscoverer(log.Logger, player1)
+		discoverer := newDiscoverer(testLogger(t), player1)
 		discoverer.discoverMineralPacket(&rules, mineralPacket, player2, planet)
 
 		// make the player's fleet a cargo ship
@@ -624,9 +607,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -639,11 +620,11 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from salvage", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 		salvage := newSalvage(Vector{50, 0}, 1, player.Num, Cargo{Ironium: 100})
 		game.Salvages = append(game.Salvages, salvage)
-		discoverer := newDiscoverer(log.Logger, player)
+		discoverer := newDiscoverer(testLogger(t), player)
 		discoverer.discoverSalvage(salvage)
 
 		// make the player's fleet a cargo ship
@@ -659,9 +640,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -674,7 +653,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("steal from enemy planet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := createTwoPlayerGame(testLogger(t))
 		player := game.Players[0]
 		planet := game.Planets[1]
 
@@ -698,9 +677,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -713,7 +690,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("fail load from enemy planet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := createTwoPlayerGame(testLogger(t))
 		player := game.Players[0]
 		planet := game.Planets[1]
 
@@ -737,9 +714,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -753,7 +728,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("load from our fleet", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 
 		// make the player's fleets cargo ships
@@ -772,9 +747,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -786,7 +759,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 	})
 
 	t.Run("steal from enemy fleet", func(t *testing.T) {
-		game := createTwoPlayerGame()
+		game := createTwoPlayerGame(testLogger(t))
 		player := game.Players[0]
 		planet := game.Planets[1]
 
@@ -810,9 +783,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		turn := turnGenerator{
-			game: game,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -826,7 +797,7 @@ func Test_turn_fleetByHandLoads(t *testing.T) {
 }
 
 func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := createTwoPlayerGame(testLogger(t))
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	fleet := game.Fleets[0]
@@ -844,10 +815,7 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 	fleet.Waypoints[0].TransportTasks.Colonists.Action = TransportActionUnloadAll
 	fleet.Cargo.Colonists = planet.Cargo.Colonists * 2 // double attackers
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -872,7 +840,7 @@ func Test_turn_fleetTransferCargoInvade1(t *testing.T) {
 }
 
 func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := createTwoPlayerGame(testLogger(t))
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	fleet := game.Fleets[0]
@@ -904,10 +872,7 @@ func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
 	numInvaders := planet.Cargo.Colonists * 2 // double attackers
 	fleet.Cargo.Colonists = numInvaders
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -927,7 +892,7 @@ func Test_turn_fleetTransferCargoInvadeStarbase(t *testing.T) {
 }
 
 func Test_turn_fleetRoute(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 
 	// add a second planet target
 	game.Planets = append(game.Planets, &Planet{
@@ -944,10 +909,7 @@ func Test_turn_fleetRoute(t *testing.T) {
 
 	fleet.Waypoints[0].Task = WaypointTaskRoute
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -965,17 +927,14 @@ func Test_turn_fleetRoute(t *testing.T) {
 
 func Test_turn_fleetMove(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 
 		planet := game.Planets[0]
 		fleet := game.Fleets[0]
 
 		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{10, 10}, 5))
 
-		turn := turnGenerator{
-			game: game,
-			log:  log.Logger,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -991,7 +950,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Repeat Orders", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 
 		planet := game.Planets[0]
@@ -1015,10 +974,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		fleet.Waypoints[1].Task = WaypointTaskTransport
 		fleet.Waypoints[1].TransportTasks.Ironium.Action = TransportActionUnloadAll
 
-		turn := turnGenerator{
-			game: game,
-			log:  log.Logger,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -1061,7 +1017,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("TransportRepeat", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 
 		planet1 := game.Planets[0]
@@ -1098,10 +1054,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		fleet.Waypoints[1].TransportTasks.Colonists.Action = TransportActionSetWaypointTo
 		fleet.Waypoints[1].TransportTasks.Colonists.Amount = 2500
 
-		turn := turnGenerator{
-			game: game,
-			log:  log.Logger,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -1163,7 +1116,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Wait for %", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		player := game.Players[0]
 
 		planet1 := game.Planets[0]
@@ -1207,10 +1160,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		fleet.Waypoints[1].TransportTasks.Boranium.Action = TransportActionUnloadAll
 		fleet.Waypoints[1].TransportTasks.Germanium.Action = TransportActionUnloadAll
 
-		turn := turnGenerator{
-			game: game,
-			log:  log.Logger,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -1245,7 +1195,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Stopped by minefield", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		rules := &game.Rules
 
 		// change the rules so going 4 warp over the limit guarantee's a hit
@@ -1277,10 +1227,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		fleet := game.Fleets[0]
 		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{36, 0}, 6))
 
-		turn := turnGenerator{
-			game: game,
-			log:  log.Logger,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -1299,7 +1246,7 @@ func Test_turn_fleetMove(t *testing.T) {
 	})
 
 	t.Run("Destroyed by minefield", func(t *testing.T) {
-		game := createSingleUnitGame()
+		game := createSingleUnitGame(testLogger(t))
 		rules := &game.Rules
 
 		// change the rules so going 4 warp over the limit guarantee's a hit
@@ -1331,10 +1278,7 @@ func Test_turn_fleetMove(t *testing.T) {
 		fleet := game.Fleets[0]
 		fleet.Waypoints = append(fleet.Waypoints, NewPositionWaypoint(Vector{81, 0}, 9))
 
-		turn := turnGenerator{
-			game: game,
-			log:  log.Logger,
-		}
+		turn := newTurnGenerator(game, testLogger(t))
 		if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 			t.Fatal(err)
 		}
@@ -1353,17 +1297,14 @@ func Test_turn_fleetMove(t *testing.T) {
 }
 
 func Test_turn_permaform(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 
 	player := game.Players[0]
 	planet := game.Planets[0]
 	planet.Hab = Hab{49, 49, 49}
 	planet.BaseHab = Hab{49, 49, 49}
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -1385,17 +1326,14 @@ func Test_turn_permaform(t *testing.T) {
 }
 
 func Test_turn_permaformNone(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 
 	player := game.Players[0]
 	planet := game.Planets[0]
 	planet.Hab = Hab{49, 49, 49}
 	planet.BaseHab = Hab{49, 49, 49}
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -1443,7 +1381,7 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// create a new test game
-			game := createSingleUnitGame()
+			game := createSingleUnitGame(testLogger(t))
 			player := game.Players[0]
 			fleet := game.Fleets[0]
 
@@ -1508,7 +1446,7 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// create a new test game
-			game := createSingleUnitGame()
+			game := createSingleUnitGame(testLogger(t))
 			player := game.Players[0]
 			fleet := game.Fleets[0]
 
@@ -1526,10 +1464,7 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 			planet.Spec = computePlanetSpec(&game.Rules, player, planet)
 			game.Planets = append(game.Planets, planet)
 
-			turn := turnGenerator{
-				game: game,
-				log:  log.Logger,
-			}
+			turn := newTurnGenerator(game, testLogger(t))
 			if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 				t.Fatal(err)
 			}
@@ -1552,7 +1487,7 @@ func Test_turn_fleetRemoteMineAR(t *testing.T) {
 }
 
 func Test_turn_fleetLayMines(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	player := game.Players[0]
 
 	// make a test minelayer for
@@ -1563,10 +1498,7 @@ func Test_turn_fleetLayMines(t *testing.T) {
 	// lay mines at current position
 	fleet.Waypoints[0].Task = WaypointTaskLayMineField
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -1583,7 +1515,7 @@ func Test_turn_fleetLayMines(t *testing.T) {
 }
 
 func Test_turn_fleetSweepMines(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	rules := &game.Rules
 
 	// change the rules so we don't decay
@@ -1616,10 +1548,7 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 	mineFieldPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -1645,7 +1574,7 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 }
 
 func Test_turn_instaform(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	player := game.Players[0]
 	planet := game.Planets[0]
 
@@ -1657,10 +1586,7 @@ func Test_turn_instaform(t *testing.T) {
 	planet.BaseHab = Hab{45, 50, 50}
 	planet.TerraformedAmount = Hab{}
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -1674,7 +1600,7 @@ func Test_turn_instaform(t *testing.T) {
 }
 
 func Test_turn_instaformTakenPlanet(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	player := game.Players[0]
 	planet := game.Planets[0]
 
@@ -1690,10 +1616,7 @@ func Test_turn_instaformTakenPlanet(t *testing.T) {
 	planet.BaseHab = Hab{45, 50, 50}
 	planet.TerraformedAmount = Hab{}
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -1707,7 +1630,7 @@ func Test_turn_instaformTakenPlanet(t *testing.T) {
 }
 
 func Test_turn_fleetRepair(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	player := game.Players[0]
 	fleet := game.Fleets[0]
 	planet := game.Planets[0]
@@ -1725,10 +1648,7 @@ func Test_turn_fleetRepair(t *testing.T) {
 	game.Starbases = append(game.Starbases, starbase)
 	planet.Starbase = starbase
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -1750,7 +1670,7 @@ func Test_turn_fleetRepair(t *testing.T) {
 }
 
 func Test_turn_fleetReproduce(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := createTwoPlayerGame(testLogger(t))
 
 	// make an IS race for reproducing and an AR race for dieoff
 	isPlayer := game.Players[0]
@@ -1815,7 +1735,7 @@ func Test_turn_fleetReproduce(t *testing.T) {
 }
 
 func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 
 	// make an IS race for reproducing
 	player := game.Players[0]
@@ -1827,10 +1747,7 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 	player.Designs[0] = design
 	game.Fleets[0] = fleet
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -1916,7 +1833,7 @@ func Test_turn_detonateMines(t *testing.T) {
 				player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(tt.args.players)
 			}
 
-			universe := NewUniverse(log.Logger, &game.Rules)
+			universe := NewUniverse(testLogger(t), &game.Rules)
 			universe.Fleets = []*Fleet{tt.args.fleet}
 			universe.MineFields = []*MineField{tt.args.mineField}
 
@@ -1933,10 +1850,7 @@ func Test_turn_detonateMines(t *testing.T) {
 				fleetPlayer.Designs = append(fleetPlayer.Designs, token.design)
 			}
 
-			turn := turnGenerator{
-				game: &fg,
-				log:  log.Logger,
-			}
+			turn := newTurnGenerator(&fg, testLogger(t))
 			if err := turn.game.Universe.buildMaps(fg.Players); err != nil {
 				t.Fatal(err)
 			}
@@ -1963,7 +1877,7 @@ func Test_turn_detonateMines(t *testing.T) {
 }
 
 func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 
 	player := game.Players[0]
 	planet := game.Planets[0]
@@ -1981,10 +1895,7 @@ func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 	packetPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -1999,7 +1910,7 @@ func Test_turn_testPacketMoveHitPlanet(t *testing.T) {
 }
 
 func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 
 	player := game.Players[0]
 	planet := game.Planets[0]
@@ -2027,10 +1938,7 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 	game.Starbases = append(game.Starbases, starbase)
 	planet.Starbase = starbase
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2047,7 +1955,7 @@ func Test_turn_testPacketMoveDeleteStarbase(t *testing.T) {
 }
 
 func Test_turn_decayPackets(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	player := game.Players[0]
 
 	// create some Packets with 100kT of each mineral
@@ -2058,10 +1966,7 @@ func Test_turn_decayPackets(t *testing.T) {
 
 	game.MineralPackets = append(game.MineralPackets, packetSafe, packetTooFast, packetNewlyBuilt)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2079,7 +1984,7 @@ func Test_turn_decayPackets(t *testing.T) {
 }
 
 func Test_turn_fleetPatrol(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	rules := &game.Rules
 
 	// make a new destroyer to patrol within 50ly
@@ -2103,10 +2008,7 @@ func Test_turn_fleetPatrol(t *testing.T) {
 	// setup initial planet intels so turn generation works
 	enemyPlayer.initDefaultPlanetIntels(game.Planets)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2141,7 +2043,7 @@ func Test_turn_fleetPatrol(t *testing.T) {
 }
 
 func Test_turn_fleetRemoteTerraform(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	rules := &game.Rules
 
 	// give player TT so it can terraform these other worlds
@@ -2192,10 +2094,7 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 	enemyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 	friendlyPlayer.initDefaultPlanetIntels([]*Planet{planet1, planet2})
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2214,7 +2113,7 @@ func Test_turn_fleetRemoteTerraform(t *testing.T) {
 }
 
 func Test_turn_fleetRefuel(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	player := game.Players[0]
 	fleet := game.Fleets[0]
 	planet := game.Planets[0]
@@ -2232,10 +2131,7 @@ func Test_turn_fleetRefuel(t *testing.T) {
 	game.Starbases = append(game.Starbases, starbase)
 	planet.Starbase = starbase
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2252,7 +2148,7 @@ func Test_turn_fleetRefuel(t *testing.T) {
 }
 
 func Test_turn_playerResearch(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	planet := game.Planets[0]
 	player := game.Players[0]
 
@@ -2267,10 +2163,7 @@ func Test_turn_playerResearch(t *testing.T) {
 	planet.setPopulation(500_000)
 	planet.Factories = 500
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2295,7 +2188,7 @@ func Test_turn_playerResearch(t *testing.T) {
 }
 
 func Test_turn_buildStarbase(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	player := game.Players[0]
 	planet := game.Planets[0]
 	rCopy := rules
@@ -2310,10 +2203,7 @@ func Test_turn_buildStarbase(t *testing.T) {
 	planet.Cargo = Cargo{1000, 1000, 1000, 10_000}
 	planet.Factories = 1000
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2386,7 +2276,7 @@ func Test_turn_buildStarbase(t *testing.T) {
 }
 
 func Test_turn_fleetTransferOwner(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := createTwoPlayerGame(testLogger(t))
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	fleet := game.Fleets[0]
@@ -2397,10 +2287,7 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 	// make player2 like player1
 	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2413,9 +2300,9 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 
 	// should have transferred the fleet, updated the name and the design
 	assert.Equal(t, player2.Num, fleet.PlayerNum)
-	assert.Equal(t, "Rabbitoids Long Range Scout #2", fleet.Name)
+	assert.Equal(t, "Rabbitoid Long Range Scout #2", fleet.Name)
 	assert.Equal(t, player1.Num, fleet.Tokens[0].design.OriginalPlayerNum)
-	assert.Equal(t, "Rabbitoids Long Range Scout", fleet.Tokens[0].design.Name)
+	assert.Equal(t, "Rabbitoid Long Range Scout", fleet.Tokens[0].design.Name)
 	assert.Equal(t, 2, len(player2.Designs))
 	assert.Equal(t, 1, len(fleet.Waypoints))
 	assert.Equal(t, None, fleet.Waypoints[0].TransferToPlayer)
@@ -2424,7 +2311,7 @@ func Test_turn_fleetTransferOwner(t *testing.T) {
 }
 
 func Test_turn_fleetBattle(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := createTwoPlayerGame(testLogger(t))
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 
@@ -2450,10 +2337,7 @@ func Test_turn_fleetBattle(t *testing.T) {
 	design1 := fleet1.Tokens[0].design
 	design2 := fleet2.Tokens[0].design
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2544,7 +2428,7 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 
 	players := []*Player{player1, player2, player3}
 
-	universe := NewUniverse(log.Logger, &game.Rules)
+	universe := NewUniverse(testLogger(t), &game.Rules)
 	universe.Fleets = append(universe.Fleets, fleet1, fleet2, fleet3)
 
 	if err := universe.buildMaps(players); err != nil {
@@ -2558,10 +2442,7 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 		Players:   players,
 	}
 
-	turn := turnGenerator{
-		game: fg,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(fg, testLogger(t))
 	if err := turn.game.Universe.buildMaps(fg.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2602,7 +2483,7 @@ func Test_turn_fleetBattle3Players(t *testing.T) {
 // it should intercept and kill one fleet, then
 // return to base and target another
 func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := createTwoPlayerGame(testLogger(t))
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	planet := game.Planets[0]
@@ -2644,10 +2525,7 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 	fleet3.Waypoints[0] = NewPositionWaypoint(fleet3.Position, 5)
 	game.Fleets = append(game.Fleets, fleet3)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2696,7 +2574,7 @@ func Test_turn_fleetPatrolBattleRepeat(t *testing.T) {
 // it should intercept and kill one fleet, then target
 // another
 func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
-	game := createTwoPlayerGame()
+	game := createTwoPlayerGame(testLogger(t))
 	player1 := game.Players[0]
 	player2 := game.Players[1]
 	planet := game.Planets[0]
@@ -2727,10 +2605,7 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 	fleet3.Waypoints[0] = NewPositionWaypoint(fleet3.Position, 5)
 	game.Fleets = append(game.Fleets, fleet3)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2764,15 +2639,12 @@ func Test_turn_fleetPatrolKillPatrolAgain(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderSpawn(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom() // test random always rolls 0 by default
 	game.Year = game.Year + game.Rules.MysteryTraderRules.MinYear
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2787,16 +2659,13 @@ func Test_turn_mysteryTraderSpawn(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMove(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom(1) // test random that returns 1 so we don't change course
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
 	mt := game.MysteryTraders[0]
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2810,16 +2679,13 @@ func Test_turn_mysteryTraderMove(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom(0) // test random that returns 0 so we change course
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
 	mt := game.MysteryTraders[0]
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2835,16 +2701,13 @@ func Test_turn_mysteryTraderMoveChangeCourse(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderFinished(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom(1, 1) // test random that returns 1 so we don't change course or go again
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
 	mt := game.MysteryTraders[0]
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2858,16 +2721,13 @@ func Test_turn_mysteryTraderFinished(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderAgain(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom(1, 0) // test random that returns 1 so we don't change course or go again
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{49, 0}, 5000, MysteryTraderRewardResearch))
 	mt := game.MysteryTraders[0]
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2884,7 +2744,7 @@ func Test_turn_mysteryTraderAgain(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
@@ -2898,10 +2758,7 @@ func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 	fleet.Position = mt.Position
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2916,7 +2773,7 @@ func Test_turn_mysteryTraderMeetNoReward(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetReward(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardResearch))
@@ -2931,10 +2788,7 @@ func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 	fleet.Cargo = Cargo{5000, 0, 0, 0}
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2949,7 +2803,7 @@ func Test_turn_mysteryTraderMeetReward(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
@@ -2963,10 +2817,7 @@ func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
 	fleet.Cargo = Cargo{5000, 0, 0, 0}
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -2981,7 +2832,7 @@ func Test_turn_mysteryTraderMeetRewardTech(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
@@ -2998,10 +2849,7 @@ func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
 	fleet.Cargo = Cargo{5000, 0, 0, 0}
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -3016,7 +2864,7 @@ func Test_turn_mysteryTraderMeetRewardTechAlreadyAcquired(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = newIntRandom()
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardLifeboat))
@@ -3031,10 +2879,7 @@ func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
 	fleet.Cargo = Cargo{5000, 0, 0, 0}
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
@@ -3061,7 +2906,7 @@ func Test_turn_mysteryTraderMeetRewardShip(t *testing.T) {
 }
 
 func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.RandomEvents = true
 	game.Rules.random = &testRandom{} // test random always rolls 0 by default
 	game.MysteryTraders = append(game.MysteryTraders, newMysteryTrader(Vector{}, 1, 7, Vector{100, 0}, 5000, MysteryTraderRewardTorpedo))
@@ -3078,10 +2923,7 @@ func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
 	fleet.Cargo = Cargo{5000, 0, 0, 0}
 	fleet.Waypoints[0] = NewMysteryTraderWaypoint(mt, 5)
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
@@ -3096,7 +2938,7 @@ func Test_turn_mysteryTraderMeetAlreadyRewarded(t *testing.T) {
 }
 
 func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	planet := game.Planets[0]
 	game.Rules.MysteryTraderRules.GenesisDeviceCost = Cost{0, 0, 0, 100}
 
@@ -3108,10 +2950,7 @@ func Test_turn_buildMysteryTraderGenesisDevice(t *testing.T) {
 	planet.Mines = 1000
 	planet.Factories = 1000
 
-	turn := turnGenerator{
-		game: game,
-		log:  log.Logger,
-	}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}

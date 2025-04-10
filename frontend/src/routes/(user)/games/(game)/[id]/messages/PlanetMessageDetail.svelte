@@ -74,6 +74,18 @@
 			])
 		);
 	});
+
+	let multiFleetName = $derived.by(() => {
+		const invasion = message.spec.invasion;
+		if (!invasion || invasion.fleetName) {
+			return '';
+		}
+
+		return (
+			(!invasion.numFleets ? 'Some number of ' : `A total of ${invasion.numFleets} `) +
+			`${$universe.getPlayerName(invasion.attackerPlayerNum)} fleets`
+		);
+	});
 </script>
 
 {#if message.text}
@@ -305,14 +317,15 @@
 	{@const invasion = message.spec.invasion}
 	{#if invasion}
 		{#if invasion.successful}
-			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} have successfully wrested
+			Your troops beaming down from {invasion.fleetName ?? multiFleetName} have successfully wrested
 			{planet.name}
 			from {$universe.getPlayerName(invasion.defenderPlayerNum)} control, killing off all their colonists
-			with only {invasion.attackersKilled} causalties.
+			with only {invasion.attackersKilled.toLocaleString()} causalties.
 		{:else}
-			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} tried to invade {planet.name},
-			but all of them were massacred by the {$universe.getPlayerName(invasion.defenderPlayerNum)}.
-			Your valiant fighters managed to kill {invasion.defendersKilled} of their colonists in return.
+			Your troops beaming down from {invasion.fleetName ?? multiFleetName} tried to invade {planet.name},
+			but were massacred by the {$universe.getPlayerPluralName(invasion.defenderPlayerNum)}. Your
+			valiant fighters managed to kill {invasion.defendersKilled.toLocaleString()} of their colonists
+			before being wiped out.
 		{/if}
 	{:else}
 		{planet.name} was invaded, but your spies no nothing of the outcome.
@@ -321,10 +334,7 @@
 	{@const invasion = message.spec.invasion}
 	{#if invasion}
 		{@const fleetName =
-			!invasion.numFleets || invasion.numFleets > 1
-				? (!invasion.numFleets ? 'Some number of ' : `A total of ${invasion.numFleets} `) +
-					`${$universe.getPlayerName(invasion.attackerPlayerNum)} fleets`
-				: $universe.getPlayerName(invasion.attackerPlayerNum) + invasion.fleetName}
+			$universe.getPlayerName(invasion.attackerPlayerNum) + (invasion.fleetName ?? multiFleetName)}
 		{#if invasion.successful}
 			{fleetName} successfully invaded {planet.name} and wrested it from your control. Your colonists
 			managed to defeat {invasion.attackersKilled.toLocaleString()} of their invaders before being overrun.

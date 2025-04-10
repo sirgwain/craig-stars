@@ -129,7 +129,7 @@ func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObje
 
 // splitByHandTransfers splits the ByHandCargoTransfers for a source fleet into two
 // ByHandCargoTransfers, based on capacity of each fleet
-func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *Fleet) error {
+func (cargoTransfers CargoTransfers) splitByHandTransfers(source, dest *Fleet) error {
 	key := source.Position.String()
 	transfers, ok := cargoTransfers[key]
 	if !ok {
@@ -647,7 +647,7 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 }
 
 // getTransferAmount gets the amount of cargo to transfer for loading a cargo type from a cargoholder
-func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
+func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount, wantToTransfer int, waitAtWaypoint bool) {
 	availableCapacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
 	availableToLoad := dest.GetCargo().GetAmount(cargoType)
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
@@ -745,7 +745,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 }
 
 // getCargoUnloadAmount gets the amount of cargo to transfer for unloading a cargo type from a cargoholder
-func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
+func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount, wantToTransfer int, waitAtWaypoint bool) {
 
 	capacity := dest.GetCargoCapacity()
 	currentAmount := fleet.Cargo.GetAmount(cargoType)

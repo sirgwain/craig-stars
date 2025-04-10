@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -1078,7 +1077,7 @@ func Test_battle_runBattle1(t *testing.T) {
 		}
 	}
 
-	battle := newBattler(log.Logger, &rules, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
+	battle := newBattler(testLogger(t), &rules, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
 
 	record := battle.runBattle()
 

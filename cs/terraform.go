@@ -60,7 +60,7 @@ func (t *terraform) GetTerraformAbility(player *Player) Hab {
 }
 
 // GetTerraformAmount returns the total amount we can terraform this planet
-func (t *terraform) GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer *Player) Hab {
+func (t *terraform) GetTerraformAmount(hab, baseHab Hab, player, terraformer *Player) Hab {
 	terraformAmount := Hab{}
 	if player == nil {
 		// can't terraform, return an empty Hab
@@ -124,7 +124,7 @@ func (t *terraform) GetTerraformAmount(hab Hab, baseHab Hab, player, terraformer
 }
 
 // GetMinTerraformAmount gets the minimum amount we need to terraform this planet to make it habitable (if we can terraform it at all)
-func (t *terraform) GetMinTerraformAmount(hab Hab, baseHab Hab, player *Player, terraformer *Player) Hab {
+func (t *terraform) GetMinTerraformAmount(hab, baseHab Hab, player, terraformer *Player) Hab {
 	terraformAmount := Hab{}
 	if player == nil {
 		// can't terraform, return an empty Hab
@@ -198,7 +198,7 @@ func (t *terraform) GetMinTerraformAmount(hab Hab, baseHab Hab, player *Player, 
 }
 
 // Get the best hab to terraform (the one with the most distance away from ideal that we can still terraform)
-func (t *terraform) GetBestTerraform(planet *Planet, player *Player, terraformer *Player) *HabType {
+func (t *terraform) GetBestTerraform(planet *Planet, player, terraformer *Player) *HabType {
 	if player == nil || planet == nil {
 		return nil
 	}
@@ -370,7 +370,7 @@ func (t *terraform) PermaformHab(planet *Planet, planetPlayer *Player, habType H
 // Terraforms the planet one step in whatever the best option is
 //
 // If reverse is true, this will terraform in the opposite direction making the planet less habitable
-func (t *terraform) TerraformOneStep(planet *Planet, player *Player, terraformer *Player, reverse bool) TerraformResult {
+func (t *terraform) TerraformOneStep(planet *Planet, player, terraformer *Player, reverse bool) TerraformResult {
 	var bestHab *HabType
 	if !reverse || terraformer == nil {
 		bestHab = t.GetBestTerraform(planet, player, terraformer)

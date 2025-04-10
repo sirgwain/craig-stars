@@ -7,7 +7,6 @@ import (
 	"slices"
 
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"golang.org/x/exp/maps"
 )
 
@@ -18,20 +17,16 @@ type turnGenerator struct {
 	log  zerolog.Logger
 }
 
-func newTurnGenerator(game *FullGame) (turnGenerator, error) {
+func newTurnGenerator(game *FullGame, log zerolog.Logger) turnGenerator {
 	turnLogger := log.With().
 		Int64("GameID", game.ID).
 		Str("GameName", game.Name).
 		Int("Year", game.Year+1). // log for next turn
 		Logger()
 	t := turnGenerator{game, turnLogger}
-
 	t.game.Universe.setLogger(turnLogger)
-	if err := t.game.Universe.buildMaps(game.Players); err != nil {
-		return turnGenerator{}, err
-	}
 
-	return t, nil
+	return t
 }
 
 // generate a new turn
@@ -40,6 +35,10 @@ func newTurnGenerator(game *FullGame) (turnGenerator, error) {
 func (t *turnGenerator) generateTurn() error {
 	t.log.Debug().Msgf("begin generating turn")
 	t.game.Year++
+
+	if err := t.game.Universe.buildMaps(t.game.Players); err != nil {
+		return err
+	}
 
 	// reset players for start of the turn
 	for _, player := range t.game.Players {
@@ -2575,128 +2574,129 @@ func (t *turnGenerator) fleetTransferOwner() {
 		}
 
 		wp0 := &fleet.Waypoints[0]
-		if wp0.Task == WaypointTaskTransferFleet {
-			player := t.game.getPlayer(fleet.PlayerNum)
-			targetPlayer := t.game.getPlayer(wp0.TransferToPlayer)
+		if wp0.Task != WaypointTaskTransferFleet {
+			continue
+		}
 
-			if targetPlayer == nil {
-				// can't find target player
-				messager.fleetTransferInvalidPlayer(player, fleet)
-				t.log.Error().
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Msgf("tried to transfer fleet player %d, but target player doesn't exist.", wp0.TargetPlayerNum)
-				wp0.Task = WaypointTaskNone
-				wp0.TransferToPlayer = None
-				continue
-			}
+		// reset current waypoint task.
+		// either we succeed at giving it away (and reset its waypoints)
+		// or fail and cancel the transfer task.
+		wp0.Task = WaypointTaskNone
+		wp0.TransferToPlayer = None
 
-			if fleet.Cargo.Colonists > 0 {
-				// can't give colonists
-				messager.fleetTransferInvalidColonists(player, fleet, targetPlayer)
-				t.log.Debug().
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Msgf("transferring fleet %s failed, fleet has colonists", fleet.Name)
+		donor := t.game.getPlayer(fleet.PlayerNum)
+		reciever := t.game.getPlayer(wp0.TransferToPlayer)
 
-				wp0.Task = WaypointTaskNone
-				wp0.TransferToPlayer = None
-				continue
-			}
+		if reciever == nil {
+			// can't find target player
+			messager.fleetTransferInvalidPlayer(donor, fleet)
+			t.log.Error().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Msgf("fleet %s tried to transfer to nil player %d", fleet.Name, wp0.TargetPlayerNum)
+			continue
+		}
 
-			if targetPlayer == player {
-				t.log.Error().
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Msgf("tried to transfer fleet to self")
-				wp0.Task = WaypointTaskNone
-				wp0.TransferToPlayer = None
-				continue
-			}
+		if reciever.Num == donor.Num {
+			// tried to transfer to ourself
+			messager.fleetTransferInvalidPlayer(donor, fleet)
+			t.log.Error().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Int("TargetPlayer", reciever.Num).
+				Msgf("tried to transfer fleet to self")
+			continue
+		}
 
-			if !targetPlayer.IsFriend(player.Num) {
-				// they are not allies, they will refuse the offer
-				messager.fleetTransferInvalidGiveRefused(player, fleet, targetPlayer)
-				messager.fleetTransferInvalidReceiveRefused(targetPlayer, fleet, player)
-				t.log.Debug().
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Int("TargetPlayer", targetPlayer.Num).
-					Msgf("transferring fleet %s to player %d, target player refused", fleet.Name, targetPlayer.Num)
-
-				wp0.Task = WaypointTaskNone
-				wp0.TransferToPlayer = None
-
-				continue
-			}
-
-			// give the gift of this fleet!
+		if fleet.Cargo.Colonists > 0 {
+			// can't give colonists away
+			messager.fleetTransferInvalidColonists(donor, fleet, reciever)
 			t.log.Debug().
 				Int("Player", fleet.PlayerNum).
 				Str("Fleet", fleet.Name).
-				Int("TargetPlayer", targetPlayer.Num).
-				Msgf("transferring fleet %s to player %d", fleet.Name, targetPlayer.Num)
+				Int("TargetPlayer", reciever.Num).
+				Msgf("transferring fleet %s failed, fleet has colonists", fleet.Name)
+			continue
+		}
 
-			for i := range fleet.Tokens {
-				token := &fleet.Tokens[i]
-				design := token.design
+		if !reciever.IsFriend(donor.Num) {
+			// cannot donate to enemies
+			messager.fleetTransferInvalidGiveRefused(donor, fleet, reciever)
+			messager.fleetTransferInvalidReceiveRefused(reciever, fleet, donor)
+			t.log.Debug().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Int("TargetPlayer", reciever.Num).
+				Msgf("transferring fleet %s to player %d, target player refused", fleet.Name, reciever.Num)
 
-				// give the player a copy of this design
-				newName := fmt.Sprintf("%s %s", player.Race.PluralName, design.Name)
-				targetPlayerDesign := targetPlayer.GetDesignByName(newName)
-				if targetPlayerDesign != nil {
-					if !targetPlayerDesign.SlotsEqual(design.Slots) {
-						// uh oh, design has been updated since the last time it was transferred to us...
-						// create a new design for the target player
-						num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)
-						newDesign := *design
-						newDesign.GameDBObject = GameDBObject{}
-						newDesign.OriginalPlayerNum = player.Num
-						newDesign.PlayerNum = targetPlayer.Num
-						newDesign.Num = num
-						// rev the version and append it to the name
-						newDesign.Version++
-						newDesign.Name = fmt.Sprintf("%s v%d", newName, newDesign.Version)
-						targetPlayerDesign = &newDesign
-						targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
-					}
-				} else {
-					// create a new design for the target player
-					num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)
-					newDesign := *design
-					newDesign.GameDBObject = GameDBObject{}
-					newDesign.Name = newName
-					newDesign.OriginalPlayerNum = player.Num
-					newDesign.PlayerNum = targetPlayer.Num
-					newDesign.Num = num
-					targetPlayerDesign = &newDesign
-					targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
-				}
-
-				// make sure we don't update this spec
-				targetPlayerDesign.Spec.NumBuilt = 0
-				targetPlayerDesign.Spec.NumInstances = 0
-
-				token.design = targetPlayerDesign
-				token.DesignNum = targetPlayerDesign.Num
-			}
-
-			playerFleets := t.game.getFleets(targetPlayer.Num)
-			fleet.Num = targetPlayer.GetNextFleetNum(playerFleets)
-			fleet.PlayerNum = targetPlayer.Num
-
-			// clear out the waypoints
 			wp0.Task = WaypointTaskNone
 			wp0.TransferToPlayer = None
-			fleet.Waypoints = fleet.Waypoints[:1]
 
-			// notify the player here (before we give it away and change the name)
-			messager.fleetTransferGiven(player, fleet, targetPlayer)
-			messager.fleetTransferReceived(targetPlayer, fleet, player)
-
-			fleet.Rename(fmt.Sprintf("%s %s", player.Race.PluralName, fleet.BaseName))
-
+			continue
 		}
+
+		// give the gift of this fleet!
+		t.log.Debug().
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Int("TargetPlayer", reciever.Num).
+			Msgf("transferring fleet %s to player %d", fleet.Name, reciever.Num)
+
+		for i := range fleet.Tokens {
+			token := &fleet.Tokens[i]
+			design := token.design
+
+			// give the player a copy of this design
+			newName := fmt.Sprintf("%s %s", donor.Race.Name, design.Name)
+			targetPlayerDesign := reciever.GetDesignByName(newName)
+			if targetPlayerDesign == nil {
+				// create a new design for the target player
+				num := reciever.GetNextDesignNum(reciever.Designs)
+				newDesign := *design
+				newDesign.GameDBObject = GameDBObject{}
+				newDesign.Name = newName
+				newDesign.OriginalPlayerNum = donor.Num
+				newDesign.PlayerNum = reciever.Num
+				newDesign.Num = num
+				targetPlayerDesign = &newDesign
+				reciever.Designs = append(reciever.Designs, targetPlayerDesign)
+			} else if !targetPlayerDesign.SlotsEqual(design.Slots) {
+				// uh oh, design has been updated since the last time it was transferred to us...
+				// create a new design for the target player
+				num := reciever.GetNextDesignNum(reciever.Designs)
+				newDesign := *design
+				newDesign.GameDBObject = GameDBObject{}
+				newDesign.OriginalPlayerNum = donor.Num
+				newDesign.PlayerNum = reciever.Num
+				newDesign.Num = num
+				// revise the version and append it to the name
+				newDesign.Version++
+				newDesign.Name = fmt.Sprintf("%s v%d", newName, newDesign.Version)
+				targetPlayerDesign = &newDesign
+				reciever.Designs = append(reciever.Designs, targetPlayerDesign)
+			}
+
+			// make sure we don't update this spec
+			targetPlayerDesign.Spec.NumBuilt = 0
+			targetPlayerDesign.Spec.NumInstances = 0
+
+			token.design = targetPlayerDesign
+			token.DesignNum = targetPlayerDesign.Num
+		}
+
+		playerFleets := t.game.getFleets(reciever.Num)
+		fleet.Num = reciever.GetNextFleetNum(playerFleets)
+		fleet.PlayerNum = reciever.Num
+
+		// clear out the waypoints
+		fleet.Waypoints = fleet.Waypoints[:1]
+
+		// notify the player here (before we give it away and change the name)
+		messager.fleetTransferGiven(donor, fleet, reciever)
+		messager.fleetTransferReceived(reciever, fleet, donor)
+
+		fleet.Rename(fmt.Sprintf("%s %s", donor.Race.Name, fleet.BaseName))
+
 	}
 }
 

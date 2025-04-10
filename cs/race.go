@@ -1213,11 +1213,8 @@ func (race *Race) getHabRangePoints() int64 {
 					terraformOffsetSum := terraformOffset[0] + terraformOffset[1] + terraformOffset[2]
 					if terraformOffsetSum > ttCorrectionFactor {
 						// bring the planet desirability down by the difference between the terraformOffsetSum and the TTCorrectionFactor
-						planetDesirability -= int64(terraformOffsetSum - ttCorrectionFactor)
 						// make sure the planet isn't negative in desirability
-						if planetDesirability < 0 {
-							planetDesirability = 0
-						}
+						planetDesirability = max(0, planetDesirability-int64(terraformOffsetSum-ttCorrectionFactor))
 					}
 					planetDesirability *= planetDesirability
 
@@ -1270,7 +1267,7 @@ func (race *Race) getHabRangePoints() int64 {
 }
 
 // used by race point calculator to get points for a single iteration of a hab loop
-func (race *Race) getPlanetHabForHabIndex(iterIndex int, habType HabType, loopIndex int, numIterations int, testHabStart int, testHabWidth int, ttCorrectionFactor int) (planetHab int, terraformOffset int) {
+func (race *Race) getPlanetHabForHabIndex(iterIndex int, habType HabType, loopIndex, numIterations, testHabStart, testHabWidth, ttCorrectionFactor int) (planetHab, terraformOffset int) {
 	// on the first iteration just use the testHabStart we already defined
 	// if we're on a subsequent loop move the hab value along the habitable range of this race
 	if iterIndex == 0 || numIterations <= 1 {

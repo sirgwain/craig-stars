@@ -121,7 +121,11 @@ func Test_Golang(goTestArgs string) error {
 			a[0] = "./..."
 			args = append(a, args...)
 		case 1:
-			fmt.Printf("Running tests in package %q...\n", packages[0])
+			if packages[0] == "./..." {
+				fmt.Printf("Running tests in all packages...\n")
+			} else {
+				fmt.Printf("Running tests in package %q...\n", packages[0])
+			}
 		default:
 			fmt.Printf("Running tests in packages: %q...\n", packages)
 		}

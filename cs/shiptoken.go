@@ -108,7 +108,7 @@ func (t *ShipToken) getStargateRangeDamageFactor(dist float64, safeRange, maxSaf
 	return (dist - float64(safeRange)) / float64((maxSafeRange-1)*safeRange)
 }
 
-func (t *ShipToken) getStargateMassDamageFactor(safeSourceMass int, safeDestMass int, maxSafeMass int) float64 {
+func (t *ShipToken) getStargateMassDamageFactor(safeSourceMass, safeDestMass, maxSafeMass int) float64 {
 	mass := t.design.Spec.Mass
 	sourceMassDamageFactor := 1.0
 	destMassDamageFactor := 1.0
@@ -164,7 +164,7 @@ func (token *ShipToken) applyOvergateVanishing(rules *Rules, distance float64, s
 // getOvergateMassVanishingChance returns the mass-based portion of this ShipToken's
 // overgate vanishing chance.
 // Graph: https://www.desmos.com/calculator/ftqvsbkmj5
-func (t *ShipToken) getOvergateMassVanishingChance(safeSourceMass int, maxMassFactor int) (massChance float64) {
+func (t *ShipToken) getOvergateMassVanishingChance(safeSourceMass, maxMassFactor int) (massChance float64) {
 	if safeSourceMass == InfiniteGate {
 		return 0
 	}

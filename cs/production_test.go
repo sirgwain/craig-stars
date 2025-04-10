@@ -4,7 +4,6 @@ import (
 	"math"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +20,7 @@ func Test_production_produce(t *testing.T) {
 		planet.Mines = 0
 
 		// should build 1 mine, leaving empty queue
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		producer.produce()
 		assert.Equal(t, 1, planet.Mines)
 		assert.Equal(t, 0, len(planet.ProductionQueue))
@@ -39,7 +38,7 @@ func Test_production_produce(t *testing.T) {
 			player.Messages = []PlayerMessage{}
 
 			// should leave the auto build in the queue
-			producer := newProducer(log.Logger, &rules, planet, player)
+			producer := newProducer(testLogger(t), &rules, planet, player)
 			result, err := producer.produce()
 			assert.Nil(t, err)
 
@@ -61,7 +60,7 @@ func Test_production_produce(t *testing.T) {
 			player.Messages = []PlayerMessage{}
 
 			// should build 5 mines, leaving the auto build in the queue
-			producer := newProducer(log.Logger, &rules, planet, player)
+			producer := newProducer(testLogger(t), &rules, planet, player)
 			producer.produce()
 			assert.Equal(t, 5, planet.Mines)
 			assert.Equal(t, 1, len(planet.ProductionQueue))
@@ -88,7 +87,7 @@ func Test_production_produce(t *testing.T) {
 		player.Messages = []PlayerMessage{}
 
 		// should build 2 factories and 5 mines, leaving the auto builds in the queue
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		producer.produce()
 		assert.Equal(t, 2, planet.Factories)
 		assert.Equal(t, 5, planet.Mines)
@@ -126,7 +125,7 @@ func Test_production_produce(t *testing.T) {
 
 		// build once
 		player.Messages = []PlayerMessage{}
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		result, err := producer.produce()
 		assert.NoError(t, err)
 
@@ -176,7 +175,7 @@ func Test_production_produce(t *testing.T) {
 
 		// Reset messages and produce again
 		player.Messages = []PlayerMessage{}
-		producer = newProducer(log.Logger, &rules, planet, player)
+		producer = newProducer(testLogger(t), &rules, planet, player)
 		result, err = producer.produce()
 		assert.NoError(t, err)
 
@@ -264,7 +263,7 @@ func Test_production_produce(t *testing.T) {
 		}}
 
 		// build time!
-		producer := newProducer(log.Logger, &rCopy, planet, player)
+		producer := newProducer(testLogger(t), &rCopy, planet, player)
 		result, err := producer.produce()
 		assert.NoError(t, err)
 		assert.Equal(t, 100, planet.Defenses)
@@ -298,7 +297,7 @@ func Test_production_produce(t *testing.T) {
 			{Type: QueueItemTypeAutoMaxTerraform, Quantity: MaxBuildableCap},
 		}
 
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		result, err := producer.produce()
 		assert.NoError(t, err)
 		// should've built stuff and clamped the auto items;
@@ -336,7 +335,7 @@ func Test_production_produce(t *testing.T) {
 			{Type: QueueItemTypeDefenses, Quantity: 10, Allocated: Cost{5, 5, 5, 5}},
 		}
 
-		producer := newProducer(log.Logger, &rCopy, planet, player)
+		producer := newProducer(testLogger(t), &rCopy, planet, player)
 		producer.produce()
 		assert.Equal(t, 100, planet.Defenses)
 		test.CompareAsJSON(t, planet.ProductionQueue, wantQueue)
@@ -357,7 +356,7 @@ func Test_production_produce(t *testing.T) {
 		player.Messages = []PlayerMessage{}
 
 		// should build 1 factories, 10 mines and have leftover for research
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		result, err := producer.produce()
 		assert.Nil(t, err)
 		assert.Equal(t, 10, planet.Factories)
@@ -386,7 +385,7 @@ func Test_production_produce(t *testing.T) {
 		planet.Factories = 16
 		planet.Spec = computePlanetSpec(&rules, player, planet)
 
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		producer.produce()
 
 		// build partial factory, then more factories until out of resources
@@ -433,7 +432,7 @@ func Test_production_produce(t *testing.T) {
 			{Type: QueueItemTypeAutoMines, Quantity: 100},
 		}
 
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		result, err := producer.produce()
 		assert.NoError(t, err)
 
@@ -466,7 +465,7 @@ func Test_production_produce(t *testing.T) {
 		planet.Mines = planet.Spec.MaxMines
 		planet.Factories = planet.Spec.MaxFactories
 
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		producer.produce()
 
 		// should've built mines/factories up to the amount we can operate for next yr
@@ -514,7 +513,7 @@ func Test_production_produce(t *testing.T) {
 		planet.Spec = computePlanetSpec(&rules, player, planet)
 
 		// should build nothing, but queue up a mine partially done
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		result, err := producer.produce()
 
 		assert.Nil(t, err)
@@ -547,7 +546,7 @@ func Test_production_produce(t *testing.T) {
 		planet.Cargo = Cargo{1000, 1000, 1000, 10000}
 		planet.Spec = computePlanetSpec(&rules, player, planet)
 
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		result, err := producer.produce()
 
 		// should have built a starbase to replace old one
@@ -560,9 +559,11 @@ func Test_production_produce(t *testing.T) {
 	t.Run("Starbase Refund", func(t *testing.T) {
 		player, planet := newTestPlayerPlanet()
 
-		// create 4 designs in increasing levels of complexity
 		startingBase := NewShipDesign(player.Num, 1).WithHull(SpaceStation.Name).WithSpec(&rules, player)
 		starbaseFleet := newStarbase(player, planet, startingBase, "Old Base")
+		planet.setStarbase(starbaseFleet)
+
+		// create 4 designs in increasing-ish levels of complexity
 		base1 := NewShipDesign(player.Num, 2).WithHull(SpaceStation.Name).
 			WithSlots([]ShipDesignSlot{
 				// 50, 20, 20, 200
@@ -573,37 +574,39 @@ func Test_production_produce(t *testing.T) {
 				// 0, 60, 0, 50
 				{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1},
 				{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 10},
+				{HullComponent: Laser.Name, HullSlotIndex: 3, Quantity: 10},
 			}).WithSpec(&rules, player)
 		base3 := NewShipDesign(player.Num, 4).WithHull(SpaceStation.Name).
 			WithSlots([]ShipDesignSlot{
-				// 90, 9, 30, 15
+				// 77, 13, 34, 29
 				{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
 				{HullComponent: AlphaTorpedo.Name, HullSlotIndex: 2, Quantity: 10},
+				{HullComponent: AlphaTorpedo.Name, HullSlotIndex: 3, Quantity: 10},
 			}).WithSpec(&rules, player)
 		base4 := NewShipDesign(player.Num, 5).WithHull(SpaceStation.Name).
 			WithSlots([]ShipDesignSlot{
-				// costs nothing as we remove slots
+				// costs nothing as we only remove slots
 				{HullComponent: MassDriver5.Name, HullSlotIndex: 1, Quantity: 1},
 			}).WithSpec(&rules, player)
 
 		player.Designs = append(player.Designs, startingBase, base1, base2, base3, base4)
 		starbaseFleet.Spec = ComputeFleetSpec(&rules, player, starbaseFleet)
-		planet.Starbase = starbaseFleet
 
-		// make 4 bases in the queue,
+		// make 4 bases in the queue, with allocated amounts summing to 100
 		planet.ProductionQueue = []ProductionQueueItem{
 			{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 2, design: base1},
 			{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 3, design: base2, Allocated: Cost{1, 47, 69, 1}},
-			{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 4, design: base3, Allocated: Cost{0, 53, 11, 54}},
-			{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 5, design: base4, Allocated: Cost{99, 25, 30, 45}},
+			{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 4, design: base3, Allocated: Cost{0, 28, 11, 54}},
+			{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 5, design: base4, Allocated: Cost{99, 25, 20, 45}},
 		}
-		planet.Cargo = Cargo{1000, 1000, 1000, 10000}
+		initCargo := Cargo{1000, 1000, 1000, 10_000}
+		planet.Cargo = initCargo
 		if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 			t.Fatal(err)
 		}
 		planet.Spec = computePlanetSpec(&rules, player, planet)
 
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		result, err := producer.produce()
 		assert.NoError(t, err)
 
@@ -617,7 +620,7 @@ func Test_production_produce(t *testing.T) {
 			Spec: PlayerMessageSpec{
 				Name:   planet.Name,
 				Cost:   Cost{100, 100, 100, 100},
-				Amount: 3, // canceled 4 bases
+				Amount: 3, // canceled 3 bases
 			},
 		}}
 
@@ -630,6 +633,12 @@ func Test_production_produce(t *testing.T) {
 		assert.True(t, result.itemsBuilt[2].skipped)
 		assert.False(t, result.itemsBuilt[3].skipped)
 		assert.Equal(t, result.starbase, base4)
+		// Since the first 3 bases were canceled & refunded, we effectively only
+		// spend minerals/resources on the last base
+		assert.Equal(t, initCargo.Subtract(planet.Cargo).ToMineral(),
+			base4.Spec.Cost.ToMineral())
+		assert.Equal(t, result.leftoverResources,
+			initCargo.Colonists/10-base4.Spec.Cost.Resources)
 	})
 
 	t.Run("Terraform", func(t *testing.T) {
@@ -648,7 +657,7 @@ func Test_production_produce(t *testing.T) {
 		player.Messages = []PlayerMessage{}
 
 		// build 5 terraform steps, make planet better, log some messages
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		producer.produce()
 		assert.Equal(t, Hab{42, 42, 41}, planet.Hab)
 		assert.Equal(t, 0, len(planet.ProductionQueue))
@@ -675,7 +684,7 @@ func Test_production_produce(t *testing.T) {
 
 		// should build starbase, then packet
 		planet.PopulateProductionQueueDesigns(player)
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		result, err := producer.produce()
 		assert.Nil(t, err)
 		assert.NotNil(t, result.starbase)
@@ -693,7 +702,7 @@ func Test_production_produce(t *testing.T) {
 		planet.Scanner = false
 
 		// planet should have scanner and an empty queue
-		producer := newProducer(log.Logger, &rules, planet, player)
+		producer := newProducer(testLogger(t), &rules, planet, player)
 		producer.produce()
 		assert.True(t, planet.Scanner)
 		assert.Equal(t, 0, len(planet.ProductionQueue))
@@ -703,7 +712,7 @@ func Test_production_produce(t *testing.T) {
 
 func Test_production_allocatePartialBuild(t *testing.T) {
 	player, planet := newTestPlayerPlanet()
-	production := newProducer(log.Logger, &rules, planet, player)
+	production := newProducer(testLogger(t), &rules, planet, player)
 
 	tests := []struct {
 		name        string

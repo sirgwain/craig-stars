@@ -184,7 +184,7 @@ func (p *Planet) WithContributesOnlyLeftoverToResearch(contributes bool) *Planet
 }
 
 func (p *Planet) String() string {
-	return fmt.Sprintf("Planet %v", p.MapObject)
+	return p.Name
 }
 
 // return planetary population rounded to the nearest multiple of 100
@@ -405,7 +405,7 @@ func randomizeMinerals(rules *Rules, rad int, accBBS bool) Mineral {
 }
 
 // Initialize a planet to be a homeworld for a player with ideal hab, starting mineral concentration, etc
-func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) {
+func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration, surface Mineral) {
 	p.Homeworld = startingPlanet.Homeworld
 
 	p.RandomArtifact = false // no random artifacts on the homeworld
@@ -500,7 +500,7 @@ func (p *Planet) shortestDistanceToPlanets(otherPlanets []*Planet) float64 {
 // were it to be mined with the given numMines and mineOutput.
 //
 // Takes into account HW conc flooring as appropriate.
-func (p *Planet) getMineralOutput(rules *Rules, numMines int, mineOutput int) (output Mineral) {
+func (p *Planet) getMineralOutput(rules *Rules, numMines, mineOutput int) (output Mineral) {
 	for _, minType := range MineralTypes {
 		conc := p.MineralConcentration.GetAmount(minType)
 		if p.Homeworld && p.Owned() {

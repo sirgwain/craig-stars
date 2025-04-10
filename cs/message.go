@@ -404,7 +404,7 @@ func (m *messageClient) fleetGeneratedFuel(player *Player, fleet *Fleet, fuelGen
 	))
 }
 
-func (m *messageClient) fleetMerged(player *Player, fleet *Fleet, mergedInto *Fleet) {
+func (m *messageClient) fleetMerged(player *Player, fleet, mergedInto *Fleet) {
 	text := fmt.Sprintf("%s has been merged into %s.", fleet.Name, mergedInto.Name)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMerged, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: mergedInto.Num, TargetPlayerNum: mergedInto.PlayerNum}})
 }
@@ -604,24 +604,24 @@ func (m *messageClient) fleetTransferInvalidColonists(player *Player, fleet *Fle
 		withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num}))
 }
 
-func (m *messageClient) fleetTransferInvalidGiveRefused(player *Player, fleet *Fleet, targetPlayer *Player) {
-	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferInvalidGiveRefused, fleet).
-		withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: targetPlayer.Num, Name: fleet.Name}))
-}
-
 func (m *messageClient) fleetTransferInvalidPlayer(player *Player, fleet *Fleet) {
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferInvalidPlayer, fleet).
-		withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num}))
+		withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: fleet.Waypoints[0].TargetPlayerNum}))
 }
 
-func (m *messageClient) fleetTransferInvalidReceiveRefused(player *Player, fleet *Fleet, givingPlayer *Player) {
+func (m *messageClient) fleetTransferInvalidGiveRefused(player *Player, fleet *Fleet, reciever *Player) {
+	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferInvalidGiveRefused, fleet).
+		withSpec(PlayerMessageSpec{SourcePlayerNum: player.Num, DestPlayerNum: reciever.Num, Name: fleet.Name}))
+}
+
+func (m *messageClient) fleetTransferInvalidReceiveRefused(player *Player, fleet *Fleet, donor *Player) {
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferInvalidReceiveRefused, fleet).
-		withSpec(PlayerMessageSpec{SourcePlayerNum: givingPlayer.Num, DestPlayerNum: player.Num, Name: fleet.Name}))
+		withSpec(PlayerMessageSpec{SourcePlayerNum: donor.Num, DestPlayerNum: player.Num, Name: fleet.Name}))
 }
 
-func (m *messageClient) fleetTransferReceived(player *Player, fleet *Fleet, givingPlayer *Player) {
+func (m *messageClient) fleetTransferReceived(player *Player, fleet *Fleet, donor *Player) {
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetTransferReceived, fleet).
-		withSpec(PlayerMessageSpec{SourcePlayerNum: givingPlayer.Num, DestPlayerNum: player.Num, Name: fleet.BaseName}))
+		withSpec(PlayerMessageSpec{SourcePlayerNum: donor.Num, DestPlayerNum: player.Num, Name: fleet.BaseName}))
 }
 
 func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int) {
@@ -646,7 +646,7 @@ func (m *messageClient) fleetTransportedCargo(player *Player, fleet *Fleet, dest
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetTransferredCargo, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
-func (m *messageClient) fleetByHandTransferIncomplete(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount int, wanted int, status CargoTransferStatus) {
+func (m *messageClient) fleetByHandTransferIncomplete(player *Player, fleet *Fleet, dest CargoHolder, cargoType CargoType, transferAmount, wanted int, status CargoTransferStatus) {
 	player.Messages = append(player.Messages, newFleetMessage(PlayerMessageFleetByHandTransferIncomplete, fleet).
 		withSpec(PlayerMessageSpec{
 			Target:        dest.GetMapObject().ToTarget(),
@@ -742,7 +742,7 @@ func (m *messageClient) planetColonized(player *Player, planet *Planet) {
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetColonized, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
-func (m *messageClient) planetComet(player *Player, planet *Planet, size CometSize, mineralsAdded Mineral, mineralConcentrationIncreased Mineral, habChanged Hab, colonistsKilled int) {
+func (m *messageClient) planetComet(player *Player, planet *Planet, size CometSize, mineralsAdded, mineralConcentrationIncreased Mineral, habChanged Hab, colonistsKilled int) {
 	if planet.PlayerNum == player.Num {
 		player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetCometStrikeMyPlanet, planet).withSpec(
 			PlayerMessageSpec{
@@ -921,7 +921,7 @@ func (m *messageClient) planetPermaform(player *Player, planet *Planet, habType 
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlanetPermaform, Text: text, Target: PlayerMessageTarget{TargetType: TargetPlanet, TargetNum: planet.Num}})
 }
 
-func (m *messageClient) planetPopulationDecreased(player *Player, planet *Planet, prevAmount int, amount int) {
+func (m *messageClient) planetPopulationDecreased(player *Player, planet *Planet, prevAmount, amount int) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlanetPopulationDecreased, planet).
 		withSpec(PlayerMessageSpec{PrevAmount: prevAmount, Amount: amount}))
 }
@@ -956,7 +956,7 @@ func (m *messageClient) planetTerraform(player *Player, planet *Planet, habType 
  * Player Messages
  */
 
-func (m *messageClient) playerDiscovered(player *Player, otherPlayer *Player) {
+func (m *messageClient) playerDiscovered(player, otherPlayer *Player) {
 	text := fmt.Sprintf("You have discovered a new species, the %s. You are not alone in this universe!", otherPlayer.Race.PluralName)
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessagePlayerDiscovery, Text: text})
 }
@@ -1003,7 +1003,7 @@ func (m *messageClient) playerAcquirablePartGainedBattle(player *Player, planet 
 		withSpec(PlayerMessageSpec{TechGained: tech}))
 }
 
-func (m *messageClient) playerAcquirablePartGainedScrappedFleet(player *Player, planet *Planet, fleetName string, tech string) {
+func (m *messageClient) playerAcquirablePartGainedScrappedFleet(player *Player, planet *Planet, fleetName, tech string) {
 	player.Messages = append(player.Messages, newPlanetMessage(PlayerMessagePlayerAcquirablePartGainedScrapFleet, planet).
 		withSpec(PlayerMessageSpec{TechGained: tech, Name: fleetName}))
 }
@@ -1018,7 +1018,7 @@ func (mc *messageClient) playerNoPlanets(player *Player, numColonists int) {
 	player.Messages = append([]PlayerMessage{newMessage(PlayerMessagePlayerNoPlanets).withSpec(PlayerMessageSpec{Amount: numColonists})}, player.Messages...)
 }
 
-func (mc *messageClient) playerVictory(player *Player, victor *Player) {
+func (mc *messageClient) playerVictory(player, victor *Player) {
 	var text string
 	if player.Num == victor.Num {
 		text = "You have been declared the winner of this grand game. You may continue to play though, if you wish to really rub your nose in everyone else's faces."

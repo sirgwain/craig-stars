@@ -1,6 +1,7 @@
 package cs
 
 import (
+	"math"
 	"reflect"
 	"testing"
 
@@ -29,7 +30,7 @@ func Test_completionEstimate_GetYearsToBuild(t *testing.T) {
 				costPerItem:            Cost{Resources: 1},
 				yearlyAvailableToSpend: Cost{Germanium: 99},
 			},
-			want: Infinite,
+			want: math.MaxInt,
 		},
 		{
 			name: "2 items, 1 year each",

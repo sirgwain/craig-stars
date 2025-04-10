@@ -45,7 +45,7 @@ func (c *client) GetMineralPacket(id int64) (*cs.MineralPacket, error) {
 	return mineralPacket, nil
 }
 
-func (c *client) GetMineralPacketByNum(gameID int64, playerNum int, num int) (*cs.MineralPacket, error) {
+func (c *client) GetMineralPacketByNum(gameID int64, playerNum, num int) (*cs.MineralPacket, error) {
 
 	item := MineralPacket{}
 	if err := c.reader.Get(&item, `SELECT * FROM mineralPackets WHERE gameId = ? AND playerNum = ? AND num = ?`, gameID, playerNum, num); err != nil {

@@ -3,8 +3,6 @@ package cs
 import (
 	"reflect"
 	"testing"
-
-	"github.com/rs/zerolog/log"
 )
 
 func TestCargoTransfers_splitFleetCargoTransfers(t *testing.T) {
@@ -375,7 +373,7 @@ func TestCargoTransferer_getCargoLoadAmount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cargoTransferer := newCargoTransferer(log.Logger, &FullGame{})
+			cargoTransferer := newCargoTransferer(testLogger(t), &FullGame{})
 			gotTransferAmount, gotWantToTransfer, gotWaitAtWaypoint := cargoTransferer.getCargoLoadAmount(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.task)
 			if gotTransferAmount != tt.wantTransferAmount {
 				t.Errorf("cargoTransfer.getCargoLoadAmount() gotTransferAmount = %v, want %v", gotTransferAmount, tt.wantTransferAmount)
@@ -503,7 +501,7 @@ func TestCargoTransferer_getCargoUnloadAmount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			cargoTransferer := newCargoTransferer(log.Logger, &FullGame{})
+			cargoTransferer := newCargoTransferer(testLogger(t), &FullGame{})
 			gotTransferAmount, gotWantToTransfer, gotWaitAtWaypoint := cargoTransferer.getCargoUnloadAmount(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.task)
 			if gotTransferAmount != tt.wantTransferAmount {
 				t.Errorf("cargoTransfer.getCargoUnloadAmount() gotTransferAmount = %v, want %v", gotTransferAmount, tt.wantTransferAmount)
@@ -583,7 +581,7 @@ func TestCargoTransferer_transferToDest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			cargoTransferer := newCargoTransferer(log.Logger, &FullGame{})
+			cargoTransferer := newCargoTransferer(testLogger(t), &FullGame{})
 			invalid := cargoTransferer.transferToDest(tt.fleet, tt.args.dest, tt.args.cargoType, tt.args.transferAmount)
 			if invalid != tt.wantInvalid {
 				t.Errorf("cargoTransferer.transferToDest() got %v, want %v", invalid, tt.wantInvalid)
@@ -734,7 +732,7 @@ func Test_cargoTransferer_loadByHands(t *testing.T) {
 				return
 			}
 
-			tr := newCargoTransferer(log.Logger, game)
+			tr := newCargoTransferer(testLogger(t), game)
 			got := tr.loadByHands(player, tt.transfers)
 			// these are passed in as args, don't compare them
 			for i := range got {
@@ -906,7 +904,7 @@ func Test_cargoTransferer_unloadByHands(t *testing.T) {
 				return
 			}
 
-			tr := newCargoTransferer(log.Logger, game)
+			tr := newCargoTransferer(testLogger(t), game)
 			got := tr.unloadByHands(player, tt.transfers)
 			// these are passed in as args, don't compare them
 			for i := range got {

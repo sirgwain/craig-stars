@@ -247,7 +247,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 }
 
 // add a player to an existing game
-func (gr *gameRunner) JoinGame(gameID int64, userID int64, name string, race cs.Race) error {
+func (gr *gameRunner) JoinGame(gameID, userID int64, name string, race cs.Race) error {
 	readClient := gr.dbConn.NewReadClient()
 	user, err := readClient.GetUser(userID)
 	if err != nil {
@@ -785,7 +785,7 @@ func (gr *gameRunner) StartGame(game *cs.Game) error {
 }
 
 // load a player and the light version of the player game
-func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPlayers, *cs.FullPlayer, error) {
+func (gr *gameRunner) LoadPlayerGame(gameID, userID int64) (*cs.GameWithPlayers, *cs.FullPlayer, error) {
 
 	readClient := gr.dbConn.NewReadClient()
 	game, err := readClient.GetGame(gameID)
@@ -814,7 +814,7 @@ func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPl
 }
 
 // submit a turn for a player
-func (gr *gameRunner) SubmitTurn(gameID int64, userID int64) error {
+func (gr *gameRunner) SubmitTurn(gameID, userID int64) error {
 	client := gr.dbConn.NewReadWriteClient()
 	player, err := client.GetLightPlayerForGame(gameID, userID)
 	if err != nil {

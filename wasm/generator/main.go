@@ -395,7 +395,7 @@ func getGoType(t types.Type, pkg *packages.Package) string {
 }
 
 // get a jsonName and omitEmpty from a tag
-func getJsonTag(tag string) (name string, omitEmpty bool, ignore bool) {
+func getJsonTag(tag string) (name string, omitEmpty, ignore bool) {
 	if !strings.Contains(tag, "json:") || strings.Contains(tag, "json:\"-\"") {
 		return "", false, true
 	}
