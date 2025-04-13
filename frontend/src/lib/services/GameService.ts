@@ -8,7 +8,7 @@ import {
 	type PlayerStatus
 } from '$lib/types/cs';
 import { CommandedPlayer } from '$lib/types/Player';
-import type { SessionUser } from '$lib/types/User';
+import type { UserSession } from '$lib/types/User';
 import { FullGame } from './FullGame';
 import { Service } from './Service';
 import type { PlayerUniverse } from './Universe';
@@ -89,7 +89,7 @@ export class GameService {
 		return (await response.json()) as GameWithPlayers;
 	}
 
-	static async loadGuest(gameId: number | string, playerNum: number): Promise<SessionUser> {
+	static async loadGuest(gameId: number | string, playerNum: number): Promise<UserSession> {
 		const response = await fetch(`/api/games/${gameId}/guest/${playerNum}`, {
 			method: 'GET',
 			headers: {

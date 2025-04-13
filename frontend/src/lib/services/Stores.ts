@@ -1,5 +1,5 @@
 import { type MapObject } from '$lib/types/cs';
-import { User, emptyUser } from '$lib/types/User';
+import { UserSession, emptyUser } from '$lib/types/User';
 import type { Vector } from '$lib/types/cs';
 import type { Component } from 'svelte';
 import { writable } from 'svelte/store';
@@ -9,7 +9,7 @@ export type MapObjectsByPosition = {
 	[k: string]: MapObject[];
 };
 
-export const me = writable<User>(emptyUser);
+export const me = writable<UserSession>(emptyUser);
 export const techs = writable<TechService>(new TechService());
 export const loadingModalText = writable<string | undefined>(undefined);
 

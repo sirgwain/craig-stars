@@ -15,21 +15,19 @@ import (
 	"github.com/sirgwain/craig-stars/db"
 )
 
-type sessionUser struct {
+type userSession struct {
 	ID            int64  `json:"id"`
 	Role          string `json:"role"`
-	GameID        int64  `json:"gameID,omitempty"`
-	PlayerNum     int    `json:"playerNum,omitempty"`
 	Username      string `json:"username,omitempty"`
 	DiscordID     string `json:"discordId,omitempty"`
 	DiscordAvatar string `json:"discordAvatar,omitempty"`
 }
 
-func (u *sessionUser) isGuest() bool {
+func (u *userSession) isGuest() bool {
 	return u.Role == string(cs.RoleGuest)
 }
 
-func (u *sessionUser) isAdmin() bool {
+func (u *userSession) isAdmin() bool {
 	return u.Role == string(cs.RoleAdmin)
 }
 
@@ -37,8 +35,6 @@ const (
 	attrDatabaseID    string = "database_id"
 	attrDiscordID     string = "discord_id"
 	attrDiscordAvatar string = "discord_avatar"
-	attrGameID        string = "game_id"
-	attrPlayerNum     string = "player_num"
 )
 
 type tokenUser struct {
@@ -78,46 +74,21 @@ func (u *tokenUser) discordAvatar() string {
 	return u.StrAttr(attrDiscordAvatar)
 }
 
-func (u *tokenUser) setGameID(val int64) {
-	u.SetStrAttr(attrGameID, strconv.FormatInt(val, 10))
-}
-
-func (u *tokenUser) gameID() int64 {
-	if val := u.StrAttr(attrGameID); val != "" {
-		i, _ := strconv.ParseInt(val, 10, 64)
-		return i
-	}
-
-	return 0
-}
-
-func (u *tokenUser) setPlayerNum(val int) {
-	u.SetStrAttr(attrPlayerNum, strconv.Itoa(val))
-}
-
-func (u *tokenUser) playerNum() int {
-	if val := u.StrAttr(attrPlayerNum); val != "" {
-		i, _ := strconv.Atoi(val)
-		return i
-	}
-
-	return 0
-}
-
-func (u *tokenUser) setRole(role cs.UserRole) {
-	u.User.SetRole(string(role))
-}
-
-func (u *tokenUser) getRole() cs.UserRole {
-	return cs.UserRoleFromString(u.User.GetRole())
-}
-
 // get the user from the context
-func (s *server) contextUser(r *http.Request) sessionUser {
-	return r.Context().Value(keyUser).(sessionUser)
+func (s *server) contextUserSession(r *http.Request) userSession {
+	return r.Context().Value(keyUserSession).(userSession)
 }
 
-func (s *server) mustGetUser(w http.ResponseWriter, r *http.Request) sessionUser {
+func (s *server) userSessionCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := s.mustGetUserSession(w, r)
+
+		ctx := context.WithValue(r.Context(), keyUserSession, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (s *server) mustGetUserSession(_ http.ResponseWriter, r *http.Request) userSession {
 	userInfo, err := token.GetUserInfo(r)
 	if err != nil {
 		panic("failed to load user")
@@ -128,17 +99,13 @@ func (s *server) mustGetUser(w http.ResponseWriter, r *http.Request) sessionUser
 	userID := tokenUser.databaseID()
 	discordID := tokenUser.discordID()
 	discordAvatar := tokenUser.discordAvatar()
-	gameID := tokenUser.gameID()
-	playerNum := tokenUser.playerNum()
 
-	return sessionUser{
+	return userSession{
 		ID:            userID,
 		Username:      userInfo.Name,
 		Role:          userInfo.Role,
 		DiscordID:     discordID,
 		DiscordAvatar: discordAvatar,
-		GameID:        gameID,
-		PlayerNum:     playerNum,
 	}
 }
 
@@ -167,7 +134,7 @@ func me(w http.ResponseWriter, r *http.Request) {
 		discordAvatar = val.(string)
 	}
 
-	res := sessionUser{
+	res := userSession{
 		ID:            userID,
 		Username:      userInfo.Name,
 		Role:          userInfo.Role,
@@ -176,15 +143,6 @@ func me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rest.RenderJSON(w, res)
-}
-
-func (s *server) userCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := s.mustGetUser(w, r)
-
-		ctx := context.WithValue(r.Context(), keyUser, user)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
 }
 
 // create a new user from a token

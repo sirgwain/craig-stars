@@ -58,6 +58,7 @@ type Client interface {
 	CreateUser(user *cs.User) error
 	UpdateUser(user *cs.User) error
 	DeleteUser(id int64) error
+	UpdateUserSettings(user *cs.User) error
 	DeleteGameUsers(gameID int64) error
 	GetUsersForGame(gameID int64) ([]cs.User, error)
 

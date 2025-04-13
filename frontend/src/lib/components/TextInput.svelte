@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { startCase } from 'lodash-es';
+	import type { HTMLInputAttributes } from 'svelte/elements';
 
 	type Props = {
 		name: string;
@@ -8,7 +9,7 @@
 		titleClass?: string;
 		required?: boolean;
 		disabled?: boolean;
-	};
+	} & HTMLInputAttributes;
 
 	let {
 		name,
@@ -16,7 +17,8 @@
 		title = startCase(name),
 		titleClass = 'label-text w-32 text-right',
 		required = false,
-		disabled = false
+		disabled = false,
+		...rest
 	}: Props = $props();
 </script>
 
@@ -31,6 +33,7 @@
 				{required}
 				{disabled}
 				bind:value
+				{...rest}
 			/>
 		</label>
 	</div>

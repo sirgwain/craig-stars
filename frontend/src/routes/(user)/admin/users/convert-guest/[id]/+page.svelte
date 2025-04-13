@@ -7,13 +7,13 @@
 	import { AdminService } from '$lib/services/AdminService';
 	import { Service } from '$lib/services/Service';
 	import type { GameWithPlayers } from '$lib/types/cs';
-	import type { User } from '$lib/types/User';
+	import type { UserSession } from '$lib/types/User';
 	import { onMount } from 'svelte';
 
-	let users: User[] = $state([]);
+	let users: UserSession[] = $state([]);
 	let games: GameWithPlayers[] = $state([]);
 	let id = $page.params.id;
-	let guestUser: User | undefined = $state();
+	let guestUser: UserSession | undefined = $state();
 	let targetUserId: number | undefined = $state();
 
 	onMount(async () => {
@@ -76,7 +76,7 @@
 			{#if games}
 				<SectionHeader>Guest User Games</SectionHeader>
 				<ul>
-					{#each games as game}
+					{#each games as game (game.id)}
 						<li>{game.name} - {game.players?.length ?? 0} players</li>
 					{/each}
 				</ul>

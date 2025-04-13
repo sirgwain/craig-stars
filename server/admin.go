@@ -23,7 +23,7 @@ func (req *convertGuestUserRequest) Bind(r *http.Request) error {
 // only allow admin requests through
 func (s *server) adminRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := s.contextUser(r)
+		user := s.contextUserSession(r)
 
 		if !user.isAdmin() {
 			log.Error().Str("User", user.Username).Msg("only admins can view all games")
@@ -46,20 +46,6 @@ func (s *server) allGames(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rest.RenderJSON(w, games)
-}
-
-func (s *server) users(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
-	db := s.contextDb(r)
-
-	users, err := db.GetUsers()
-	if err != nil {
-		log.Error().Err(err).Int64("UserID", user.ID).Msg("get users from database")
-		render.Render(w, r, ErrBadRequest(err))
-		return
-	}
-
-	rest.RenderJSON(w, users)
 }
 
 func (s *server) userGames(w http.ResponseWriter, r *http.Request) {

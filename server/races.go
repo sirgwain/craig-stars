@@ -25,7 +25,7 @@ func (req *raceRequest) Bind(r *http.Request) error {
 func (s *server) raceCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		db := s.contextDb(r)
-		user := s.contextUser(r)
+		user := s.contextUserSession(r)
 
 		// load the race by id from the database
 		id, err := s.int64URLParam(r, "id")
@@ -61,7 +61,7 @@ func (s *server) contextRace(r *http.Request) *cs.Race {
 
 func (s *server) races(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 
 	races, err := db.GetRacesForUser(user.ID)
 	if err != nil {
@@ -81,7 +81,7 @@ func (s *server) race(w http.ResponseWriter, r *http.Request) {
 // create a new race for a user
 func (s *server) createRace(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 
 	race := raceRequest{}
 	if err := render.Bind(r, &race); err != nil {

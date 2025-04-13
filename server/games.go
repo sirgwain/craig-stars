@@ -60,7 +60,7 @@ func (req *playerRequest) Bind(r *http.Request) error {
 // context for /api/games/{id} calls
 func (s *server) gameCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := s.contextUser(r)
+		user := s.contextUserSession(r)
 		db := s.contextDb(r)
 		// load the game by id from the database
 		id, err := s.int64URLParam(r, "id")
@@ -113,7 +113,7 @@ func (s *server) contextGame(r *http.Request) *cs.GameWithPlayers {
 }
 
 func (s *server) games(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	db := s.contextDb(r)
 
 	games, err := db.GetGamesForUser(user.ID)
@@ -127,7 +127,7 @@ func (s *server) games(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) hostedGames(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	db := s.contextDb(r)
 
 	games, err := db.GetGamesForHost(user.ID)
@@ -184,7 +184,7 @@ func (s *server) game(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) getGuestUser(w http.ResponseWriter, r *http.Request) {
 	game := s.contextGame(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	db := s.contextDb(r)
 	if user.ID != game.HostID {
 		log.Error().Int64("GameID", game.ID).Str("User", user.Username).Msg("only host can load guests")
@@ -211,7 +211,7 @@ func (s *server) getGuestUser(w http.ResponseWriter, r *http.Request) {
 
 // Host a new game
 func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 
 	settings := hostGameRequest{}
 	if err := render.Bind(r, &settings); err != nil {
@@ -238,7 +238,7 @@ func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	db := s.contextDb(r)
 
@@ -284,7 +284,7 @@ func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
 
 // Join an open game
 func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	gr := s.newGameRunner()
 
@@ -318,7 +318,7 @@ func (s *server) joinGame(w http.ResponseWriter, r *http.Request) {
 
 // Join an open game
 func (s *server) leaveGame(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	gr := s.newGameRunner()
 
@@ -340,7 +340,7 @@ func (s *server) leaveGame(w http.ResponseWriter, r *http.Request) {
 // Join an open game
 func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	gr := s.newGameRunner()
 
@@ -381,7 +381,7 @@ func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	gr := s.newGameRunner()
 
@@ -423,7 +423,7 @@ func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) addGuestPlayer(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	gr := s.newGameRunner()
 
@@ -465,7 +465,7 @@ func (s *server) addGuestPlayer(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	gr := s.newGameRunner()
 
@@ -501,7 +501,7 @@ func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	gr := s.newGameRunner()
 
@@ -543,7 +543,7 @@ func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
 	if game.State != cs.GameStateSetup {
@@ -613,7 +613,7 @@ func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
 
 // Generate a universe for a host
 func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	gr := s.newGameRunner()
 
@@ -636,13 +636,13 @@ func (s *server) startGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// send the full game to the host
-	s.sendNewTurnNotification(r, game.ID)
+	s.sendNewTurnNotification(game.ID)
 	s.renderFullPlayerGame(w, r, game.ID, user.ID)
 }
 
 func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
 	// validate
@@ -691,7 +691,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 
 	// return the new game
 	if result == TurnGenerated {
-		s.sendNewTurnNotification(r, game.ID)
+		s.sendNewTurnNotification(game.ID)
 		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}
@@ -701,7 +701,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 	readWriteClient := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
 	// validate
@@ -736,7 +736,7 @@ func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) archiveGame(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
@@ -762,7 +762,7 @@ func (s *server) archiveGame(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) unArchiveGame(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
@@ -785,7 +785,7 @@ func (s *server) unArchiveGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
 	if game.HostID != user.ID {

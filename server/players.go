@@ -51,7 +51,7 @@ func (req *playerRelationsRequest) Bind(r *http.Request) error {
 func (s *server) playerCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		db := s.contextDb(r)
-		user := s.contextUser(r)
+		user := s.contextUserSession(r)
 		game := s.contextGame(r)
 
 		player, err := db.GetLightPlayerForGame(game.ID, user.ID)
@@ -82,7 +82,7 @@ func (s *server) player(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) playerIntels(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 	intels, err := db.GetPlayerIntelsForGame(game.ID, user.ID)
 
@@ -96,7 +96,7 @@ func (s *server) playerIntels(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
 	player, err := db.GetPlayerForGame(game.ID, user.ID)
@@ -116,7 +116,7 @@ func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
 // get mapObjects for a player
 func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 
 	gameID, err := s.int64URLParam(r, "id")
 	if gameID == nil || err != nil {
@@ -154,7 +154,7 @@ type playerUniverseResponse struct {
 // get mapObjects for a player
 func (s *server) universe(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
 	player, err := db.GetPlayerForGame(game.ID, user.ID)
@@ -263,7 +263,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result == TurnGenerated {
-		s.sendNewTurnNotification(r, game.ID)
+		s.sendNewTurnNotification(game.ID)
 		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}

@@ -462,6 +462,7 @@ func (c *GameConverter) ConvertGameUser(source *cs.User) *User {
 			xstring2 := *(*source).DiscordAvatar
 			dbUser.DiscordAvatar = &xstring2
 		}
+		dbUser.DiscordWebhookURL = (*source).UserSettings.DiscordWebhookURL
 		pDbUser = &dbUser
 	}
 	return pDbUser
@@ -684,6 +685,7 @@ func (c *GameConverter) ConvertShipDesign(source *ShipDesign) *cs.ShipDesign {
 func (c *GameConverter) ConvertUser(source User) cs.User {
 	var csUser cs.User
 	csUser.DBObject = c.dbUserToCsDBObject(source)
+	csUser.UserSettings = c.dbUserToCsUserSettings(source)
 	csUser.Username = source.Username
 	csUser.Password = source.Password
 	csUser.Email = source.Email
@@ -883,6 +885,11 @@ func (c *GameConverter) dbUserToCsDBObject(source User) cs.DBObject {
 	csDBObject.CreatedAt = TimeToTime(source.CreatedAt)
 	csDBObject.UpdatedAt = TimeToTime(source.UpdatedAt)
 	return csDBObject
+}
+func (c *GameConverter) dbUserToCsUserSettings(source User) cs.UserSettings {
+	var csUserSettings cs.UserSettings
+	csUserSettings.DiscordWebhookURL = source.DiscordWebhookURL
+	return csUserSettings
 }
 func (c *GameConverter) dbWormholeToCsGameDBObject(source Wormhole) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject

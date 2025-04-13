@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 )
 
 func (s *server) pingDiscordForGameUpdate(w http.ResponseWriter, r *http.Request) {
-	user := s.contextUser(r)
+	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
 	if user.ID != game.HostID {
@@ -28,18 +29,23 @@ func (s *server) pingDiscordForGameUpdate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	s.sendNewTurnNotification(r, game.ID)
+	s.sendNewTurnNotification(game.ID)
 }
 
 // send a notification about a new turn
 // this will not send for single players games or games with the admin (my tests)
-func (s *server) sendNewTurnNotification(r *http.Request, gameID int64) {
+func (s *server) sendNewTurnNotification(gameID int64) {
 	if !s.config.Discord.WebhookNotify {
 		// no webhook notifications for this server
 		return
 	}
 
 	readClient := s.db.NewReadClient()
+
+	type discordWebhook struct {
+		id    string
+		token string
+	}
 
 	go func() {
 		game, err := readClient.GetGame(gameID)
@@ -62,7 +68,13 @@ func (s *server) sendNewTurnNotification(r *http.Request, gameID int64) {
 			}
 		}
 
-		log.Debug().Msgf("notifying players of game %d of new turn", gameID)
+		webhooks := []discordWebhook{}
+
+		host, err := readClient.GetUser(game.HostID)
+		if err != nil {
+			log.Error().Err(err).Msg("get host user for game for discord notification")
+			return
+		}
 
 		users, err := readClient.GetUsersForGame(gameID)
 		if err != nil {
@@ -70,36 +82,126 @@ func (s *server) sendNewTurnNotification(r *http.Request, gameID int64) {
 			return
 		}
 
+		// if the host has their own webhook url, they probably have their own server. Don't notify the main server
+		if host.DiscordWebhookURL == "" && s.config.Discord.WebhookID != "" && s.config.Discord.WebhookToken != "" {
+			// no host webhook, so setup the main game webhook
+			webhooks = append(webhooks, discordWebhook{
+				id:    s.config.Discord.WebhookID,
+				token: s.config.Discord.WebhookToken,
+			})
+		}
+
 		userAts := make([]string, 0, len(users))
 		for _, user := range users {
 			if user.DiscordID != nil && *user.DiscordID != "" {
 				userAts = append(userAts, fmt.Sprintf("<@%s>", *user.DiscordID))
 			}
+
+			// if this user has their own webhook, notify them of a new game
+			if user.DiscordWebhookURL != "" {
+				// this user has their own webhook, add it to the list of webhooks to call
+				id, token, err := parseDiscordWebhookUrl(user.DiscordWebhookURL)
+				if err != nil {
+					// don't fail on bad user data, just log it and move on
+					log.Error().
+						Err(err).
+						Msgf("unable to parse user %s webhook url: %s", user.Username, user.DiscordWebhookURL)
+					continue
+				}
+				webhooks = append(webhooks, discordWebhook{id: id, token: token})
+			}
 		}
+
+		log.Debug().Msgf("notifying players of game %d of new turn at %d webhooks", gameID, len(webhooks))
+		for _, hook := range webhooks {
+
+			// construct new webhook client
+			// https://discord.com/api/webhooks/<id>/<token>
+			id, err := snowflake.Parse(hook.id)
+			if err != nil {
+				log.Error().Err(err).Msg("parse discord webhook id")
+				continue
+			}
+			client := webhook.New(id, hook.token)
+
+			defer client.Close(context.TODO())
+
+			if _, err := client.CreateMessage(discord.NewWebhookMessageCreateBuilder().
+				SetContentf("**%s** has a new turn. \n%s", game.Name, strings.Join(userAts, ", ")).
+				SetEmbeds(discord.NewEmbedBuilder().
+					SetTitlef("%s - %d", game.Name, game.Year).
+					SetURLf("%s/games/%d", s.config.Auth.URL, game.ID).
+					Build()).
+				Build(),
+				// delay each request by 2 seconds
+				rest.WithDelay(2*time.Second),
+			); err != nil {
+				log.Error().Err(err).Msgf("sending discord message")
+			}
+		}
+
+	}()
+}
+
+var discordWebhookRegex = regexp.MustCompile(`^https://discord\.com/api/webhooks/([^/\s]+)/([^/\s]+)$`)
+
+// parseDiscordWebhookUrl parses a url for a webhook id and token
+func parseDiscordWebhookUrl(url string) (id, token string, err error) {
+	matches := discordWebhookRegex.FindStringSubmatch(url)
+	if matches == nil || len(matches) != 3 {
+		return "", "", fmt.Errorf("webhook is unsupported format")
+	}
+
+	id = matches[1]
+	token = matches[2]
+	return id, token, nil
+}
+
+// testDiscordWebhook test a user's webhook
+func (s *server) testDiscordWebhook(w http.ResponseWriter, r *http.Request) {
+	user := s.contextUser(r)
+
+	if user.DiscordWebhookURL == "" {
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("no webhook url for user")))
+		return
+	}
+
+	webhookID, token, err := parseDiscordWebhookUrl(user.DiscordWebhookURL)
+	if err != nil {
+		render.Render(w, r, ErrBadRequest(err))
+		return
+	}
+
+	userAt := ""
+	if user.DiscordID != nil {
+		userAt = *user.DiscordID
+	}
+
+	log.Info().Msgf("sending test discord message for %s", user.Username)
+	go func() {
 
 		// construct new webhook client
 		// https://discord.com/api/webhooks/<id>/<token>
-		id, err := snowflake.Parse(s.config.Discord.WebhookID)
+		id, err := snowflake.Parse(webhookID)
 		if err != nil {
 			log.Error().Err(err).Msg("parse discord webhook id")
 			return
 		}
-		client := webhook.New(id, s.config.Discord.WebhookToken)
+		client := webhook.New(id, token)
 
 		defer client.Close(context.TODO())
 
 		if _, err := client.CreateMessage(discord.NewWebhookMessageCreateBuilder().
-			SetContentf("**%s** has a new turn. \n%s", game.Name, strings.Join(userAts, ", ")).
+			SetContentf("This is a test of your discord webhook.\n<@%s>", userAt).
 			SetEmbeds(discord.NewEmbedBuilder().
-				SetTitlef("%s - %d", game.Name, game.Year).
-				SetURLf("%s/games/%d", s.config.Auth.URL, game.ID).
+				SetTitlef("craig-stars").
+				SetURLf("%s", s.config.Auth.URL).
 				Build()).
 			Build(),
 			// delay each request by 2 seconds
 			rest.WithDelay(2*time.Second),
 		); err != nil {
-			log.Error().Err(err).Msgf("sending discord message")
+			log.Error().Err(err).Msgf("sending test discord message")
 		}
 	}()
-
 }
