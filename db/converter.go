@@ -96,11 +96,13 @@ var c Converter
 // goverter:enum no
 type Converter interface {
 	// goverter:map . DBObject
+	// goverter:map . UserSettings
 	ConvertUser(source User) cs.User
 
 	ConvertUsers(source []User) []cs.User
 
 	// goverter:autoMap DBObject
+	// goverter:autoMap UserSettings
 	ConvertGameUser(source *cs.User) *User
 
 	// goverter:map . DBObject

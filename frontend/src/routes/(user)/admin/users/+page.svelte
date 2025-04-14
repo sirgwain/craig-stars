@@ -4,11 +4,11 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { AdminService } from '$lib/services/AdminService';
 	import { addError, CSError } from '$lib/services/Errors';
-	import type { User } from '$lib/types/User';
+	import type { UserSession } from '$lib/types/User';
 	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
 
-	type UserWithNum = User & { num: number };
+	type UserWithNum = UserSession & { num: number };
 
 	const columns: TableColumn<UserWithNum>[] = [
 		{
@@ -34,11 +34,11 @@
 	];
 
 	// filterable users
-	let users: User[] = $state([]);
+	let users: UserSession[] = $state([]);
 	let search = $state('');
 	let sortKey: keyof UserWithNum = $state(
 		localStorage.getItem('usersSortKey') ?? 'num'
-	) as keyof User;
+	) as keyof UserSession;
 	let sortDescending: boolean = $state(localStorage.getItem('usersSortDescending') === 'true');
 
 	let filteredUsers: UserWithNum[] = $derived(

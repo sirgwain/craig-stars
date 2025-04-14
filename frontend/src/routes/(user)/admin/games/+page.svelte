@@ -5,7 +5,7 @@
 	import { AdminService } from '$lib/services/AdminService';
 	import { addError, CSError } from '$lib/services/Errors';
 	import type { GameWithPlayers } from '$lib/types/cs';
-	import type { User } from '$lib/types/User';
+	import type { UserSession } from '$lib/types/User';
 	import { format, parseJSON } from 'date-fns';
 	import { onMount } from 'svelte';
 
@@ -47,7 +47,7 @@
 
 	// filterable games
 	let games: GameWithPlayers[] = $state([]);
-	let usersById: Map<number, User> = $state(new Map<number, User>());
+	let usersById: Map<number, UserSession> = $state(new Map<number, UserSession>());
 	let sortKey = $state(
 		localStorage.getItem('allGamesSortKey') ?? 'updatedAt'
 	) as keyof GameWithPlayers;
@@ -110,9 +110,9 @@
 				{#if column.key == 'name'}
 					<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
 				{:else if column.key == 'createdAt'}
-					{format(parseJSON(row.createdAt), 'E, MMM do yyyy hh:mm aaa')}
+					{format(parseJSON(row.createdAt ?? ''), 'E, MMM do yyyy hh:mm aaa')}
 				{:else if column.key == 'updatedAt'}
-					{format(parseJSON(row.updatedAt), 'E, MMM do yyyy hh:mm aaa')}
+					{format(parseJSON(row.updatedAt ?? ''), 'E, MMM do yyyy hh:mm aaa')}
 				{:else if column.key == 'hostId'}
 					{usersById.get(row.hostId)?.username ?? 'unknown'}
 				{:else if column.key == 'players'}
