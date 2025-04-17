@@ -171,12 +171,24 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 	// if we are being targeted for bombing though, we want to try and build a starbase regardless
 	// TODO: Add ability to build fuel depots and infrastructure based on a (lower) cutoff
 	// This will be useful for IT/PP and desperately necessary for AR
-	planetaryStructuresBuilt := min(float64(planet.Mines)/float64(planet.Spec.MaxMines), float64(planet.Factories)/float64(planet.Spec.MaxFactories))
-	if !(targeted || attackShipsInOrbit) && planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
-		// this will need to be changed for -f/AR races to work as
-		// they don't build mines & such regardless
-		// AR in particular will require entirely separate logic
-		return nil
+	if !(targeted || attackShipsInOrbit) {
+		if ai.Player.Race.Spec.InnateResources {
+			if !planet.Spec.CanTerraform { // Terraforming is economic development for AR planets
+				existingDesign := ai.GetDesign(planet.Spec.StarbaseDesignNum)
+				if len(existingDesign.Slots) == 0 && existingDesign != ai.fuelDepotDesign {
+					// Bigger starbase allows bigger population
+					ai.addStarbaseToTopOfQueue(planet, ai.fuelDepotDesign)
+				} else {
+					ai.upgradeStarbase(planet, ai.config.minYearsToQueueStarbasePeaceTime)
+				}
+			}
+			return nil
+		} else {
+			planetaryStructuresBuilt := min(float64(planet.Mines)/float64(planet.Spec.MaxMines), float64(planet.Factories)/float64(planet.Spec.MaxFactories))
+			if planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
+				return nil
+			}
+		}
 	}
 
 	timeToWait := ai.config.minYearsToQueueStarbasePeaceTime
