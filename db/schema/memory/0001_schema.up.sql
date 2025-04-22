@@ -11,6 +11,7 @@ CREATE TABLE users (
   lastLogin TIMESTAMP,
   discordId TEXT,
   discordAvatar TEXT,
+  discordWebhookUrl TEXT DEFAULT '',
   gameId INTEGER NOT NULL DEFAULT 0,
   playerNum INTEGER NOT NULL DEFAULT 0
 );

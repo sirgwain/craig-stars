@@ -2347,6 +2347,7 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.SourcePlayerNum = getInt[int](o.Get("sourcePlayerNum"))
 	obj.DestPlayerNum = getInt[int](o.Get("destPlayerNum"))
 	obj.Name = string(getString(o.Get("name")))
+	obj.PrevName = string(getString(o.Get("prevName")))
 	obj.Cost = GetCost(o.Get("cost"))
 	obj.Mineral = getPointer(GetMineral(o.Get("mineral")))
 	obj.Cargo = getPointer(GetCargo(o.Get("cargo")))
@@ -2374,6 +2375,7 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	o.Set("sourcePlayerNum", obj.SourcePlayerNum)
 	o.Set("destPlayerNum", obj.DestPlayerNum)
 	o.Set("name", obj.Name)
+	o.Set("prevName", obj.PrevName)
 	o.Set("cost", map[string]any{})
 	SetCost(o.Get("cost"), &obj.Cost)
 	o.Set("mineral", map[string]any{})
@@ -2452,6 +2454,7 @@ func GetPlayerMessageSpecInvasion(o js.Value) cs.PlayerMessageSpecInvasion {
 		return obj
 	}
 	obj.FleetName = string(getString(o.Get("fleetName")))
+	obj.NumFleets = getInt[int](o.Get("numFleets"))
 	obj.AttackerPlayerNum = getInt[int](o.Get("attackerPlayerNum"))
 	obj.DefenderPlayerNum = getInt[int](o.Get("defenderPlayerNum"))
 	obj.AttackersKilled = getInt[int](o.Get("attackersKilled"))
@@ -2461,6 +2464,7 @@ func GetPlayerMessageSpecInvasion(o js.Value) cs.PlayerMessageSpecInvasion {
 }
 func SetPlayerMessageSpecInvasion(o js.Value, obj *cs.PlayerMessageSpecInvasion) {
 	o.Set("fleetName", obj.FleetName)
+	o.Set("numFleets", obj.NumFleets)
 	o.Set("attackerPlayerNum", obj.AttackerPlayerNum)
 	o.Set("defenderPlayerNum", obj.DefenderPlayerNum)
 	o.Set("attackersKilled", obj.AttackersKilled)
@@ -4407,6 +4411,18 @@ func GetUserRole(o js.Value) cs.UserRole {
 	}
 	obj = cs.UserRole(getString(o))
 	return obj
+}
+
+func GetUserSettings(o js.Value) cs.UserSettings {
+	var obj cs.UserSettings
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.DiscordWebhookURL = string(getString(o.Get("discordWebhookUrl")))
+	return obj
+}
+func SetUserSettings(o js.Value, obj *cs.UserSettings) {
+	o.Set("discordWebhookUrl", obj.DiscordWebhookURL)
 }
 
 func GetVector(o js.Value) cs.Vector {

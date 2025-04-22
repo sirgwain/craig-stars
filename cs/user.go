@@ -18,6 +18,7 @@ import (
 // in the cs package, but I didn't feel like breaking it out into a new package.
 type User struct {
 	DBObject      `tstype:",extends"`
+	UserSettings  `tstype:",extends"`
 	Username      string     `json:"username" header:"Username"`
 	Password      string     `json:"password"`
 	Email         string     `json:"email"`
@@ -29,6 +30,10 @@ type User struct {
 	LastLogin     *time.Time `json:"lastLogin,omitempty"`
 	DiscordID     *string    `json:"discordId,omitempty"`
 	DiscordAvatar *string    `json:"discordAvatar,omitempty"`
+}
+
+type UserSettings struct {
+	DiscordWebhookURL string `json:"discordWebhookUrl,omitempty"`
 }
 
 type UserRole string

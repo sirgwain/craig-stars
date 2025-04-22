@@ -11,17 +11,7 @@ export const UserStatuses = {
 	NotFound: 'NotFound'
 } as const;
 
-export type SessionUser = {
-	id?: number;
-	username: string;
-	password?: string; // guest users have a hash for the password
-	role: UserRole;
-	status: UserStatus;
-	discordId?: string;
-	discordAvatar?: string;
-};
-
-export class User implements SessionUser {
+export class UserSession {
 	id = 0;
 	createdAt = '';
 	updatedAt = '';
@@ -42,13 +32,13 @@ export class User implements SessionUser {
 	}
 }
 
-export const emptyUser = Object.assign(new User(), {
+export const emptyUser = Object.assign(new UserSession(), {
 	username: '',
 	role: RoleUser,
 	status: UserStatuses.Unknown
 });
 
-export const userNotFound = Object.assign(new User(), {
+export const userNotFound = Object.assign(new UserSession(), {
 	username: '',
 	role: RoleUser,
 	status: UserStatuses.NotFound

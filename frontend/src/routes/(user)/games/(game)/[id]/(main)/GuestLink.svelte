@@ -3,7 +3,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { GameService } from '$lib/services/GameService';
 	import type { PlayerStatus } from '$lib/types/cs';
-	import type { SessionUser } from '$lib/types/User';
+	import type { UserSession } from '$lib/types/User';
 	import { Square2Stack } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
@@ -17,7 +17,7 @@
 
 	let { player, hideText = false }: Props = $props();
 
-	let guest: SessionUser | undefined = $state();
+	let guest: UserSession | undefined = $state();
 	let copiedText = $state('');
 
 	onMount(async () => {

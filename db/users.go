@@ -8,20 +8,21 @@ import (
 )
 
 type User struct {
-	ID            int64       `json:"id" header:"ID"`
-	CreatedAt     time.Time   `json:"createdAt"`
-	UpdatedAt     time.Time   `json:"updatedAt"`
-	GameID        int64       `json:"gameId,omitempty"`
-	PlayerNum     int         `json:"playerNum,omitempty"`
-	Username      string      `json:"username" header:"Username"`
-	Password      string      `json:"password"`
-	Email         string      `json:"email"`
-	Role          cs.UserRole `json:"role"`
-	Banned        bool        `json:"banned"`
-	Verified      bool        `json:"verified"`
-	LastLogin     *time.Time  `json:"lastLogin,omitempty"`
-	DiscordID     *string     `json:"discordId,omitempty"`
-	DiscordAvatar *string     `json:"discordAvatar,omitempty"`
+	ID                int64       `json:"id" header:"ID"`
+	CreatedAt         time.Time   `json:"createdAt"`
+	UpdatedAt         time.Time   `json:"updatedAt"`
+	GameID            int64       `json:"gameId,omitempty"`
+	PlayerNum         int         `json:"playerNum,omitempty"`
+	Username          string      `json:"username" header:"Username"`
+	Password          string      `json:"password"`
+	Email             string      `json:"email"`
+	Role              cs.UserRole `json:"role"`
+	Banned            bool        `json:"banned"`
+	Verified          bool        `json:"verified"`
+	LastLogin         *time.Time  `json:"lastLogin,omitempty"`
+	DiscordID         *string     `json:"discordId,omitempty"`
+	DiscordAvatar     *string     `json:"discordAvatar,omitempty"`
+	DiscordWebhookURL string      `json:"discordWebhookUrl,omitempty"`
 }
 
 func (c *client) GetUsers() ([]cs.User, error) {
@@ -42,7 +43,8 @@ func (c *client) GetUsers() ([]cs.User, error) {
 		verified,
 		lastLogin,
 		discordId,
-		discordAvatar
+		discordAvatar,
+		discordWebhookUrl
 	FROM Users
 	`); err != nil {
 		if err == sql.ErrNoRows {
@@ -132,6 +134,7 @@ func (c *client) GetUsersForGame(gameID int64) ([]cs.User, error) {
 	SELECT
 		createdAt,
 		updatedAt,
+		id,
 		username,
 		gameId,
 		playerNum,
@@ -141,7 +144,8 @@ func (c *client) GetUsersForGame(gameID int64) ([]cs.User, error) {
 		verified,
 		lastLogin,
 		discordId,
-		discordAvatar
+		discordAvatar,
+		discordWebhookUrl
 	FROM users WHERE id IN (SELECT userId FROM players p WHERE p.gameId = ?)
 	`, gameID); err != nil {
 		if err == sql.ErrNoRows {
@@ -171,7 +175,8 @@ func (c *client) CreateUser(user *cs.User) error {
 		verified,
 		lastLogin,
 		discordId,
-		discordAvatar
+		discordAvatar,
+		discordWebhookUrl
 	)
 	VALUES (
 		CURRENT_TIMESTAMP,
@@ -186,7 +191,8 @@ func (c *client) CreateUser(user *cs.User) error {
 		:verified,
 		:lastLogin,
 		:discordId,
-		:discordAvatar
+		:discordAvatar,
+		:discordWebhookUrl
 	)
 	`, item)
 
@@ -223,7 +229,25 @@ func (c *client) UpdateUser(user *cs.User) error {
 		verified = :verified,
 		lastLogin = :lastLogin,
 		discordId = :discordId,
-		discordAvatar = :discordAvatar
+		discordAvatar = :discordAvatar,
+		discordWebhookUrl = :discordWebhookUrl
+	WHERE id = :id
+	`, item); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateUserSettings updates a user's webhook url
+func (c *client) UpdateUserSettings(user *cs.User) error {
+
+	item := c.converter.ConvertGameUser(user)
+
+	if _, err := c.writer.NamedExec(`
+	UPDATE users SET
+		updatedAt = CURRENT_TIMESTAMP,
+		discordWebhookUrl = :discordWebhookUrl
 	WHERE id = :id
 	`, item); err != nil {
 		return err

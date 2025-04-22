@@ -258,7 +258,7 @@ export interface FleetSpec extends ShipDesignSpec {
 export interface Waypoint extends MapObjectTarget {
 	position: Vector;
 	warpSpeed: number /* int */;
-	estFuelUsage?: number /* int */;
+	estFuelUsage?: number /* int */; // TODO: Rework this into a fuel usage estimator struct similar to production queues
 	task?: WaypointTask;
 	transportTasks: WaypointTransportTasks;
 	waitAtWaypoint?: boolean;
@@ -825,7 +825,7 @@ export const PlayerMessagePlanetBuiltGenesisDevice: PlayerMessageType = 98;
 export const PlayerMessagePlayerAcquirablePartGainedScrapFleet: PlayerMessageType = 99;
 export const PlayerMessagePlayerAcquirablePartGainedBattle: PlayerMessageType = 100;
 export const PlayerMessageFleetByHandTransferIncomplete: PlayerMessageType = 101;
-export const PlayerMessagePlanetBuiltStarbaseCanceled: PlayerMessageType = 102;
+export const PlayerMessagePlanetBuiltStarbaseRefunded: PlayerMessageType = 102;
 
 //////////
 // source: minefield.go
@@ -1236,7 +1236,7 @@ export interface PlayerMapObjects {
 // source: production.go
 
 /**
- * max items buildable for items without an explicit max
+ * max items buildable for items without an explicit cap; used by both backend and frontend
  */
 export const MaxBuildableCap = 100_000;
 /**
@@ -1691,7 +1691,7 @@ export interface CostRules {
 	factoryCostGermanium: number /* int */;
 	mineralAlchemyCost: number /* int */;
 	planetaryScannerCost: Cost;
-	starbaseComponentCostReduction: number /* float64 */;
+	starbaseComponentCostReduction: number /* float64 */; // Cost multiplier for non-orbital components placed on starbases; default 0.5
 	starbaseHullRefundFactor: number /* float64 */;
 	terraformCost: Cost;
 	techBaseCost: number /* int */[];
@@ -2398,6 +2398,9 @@ export interface Universe {
 	mysteryTraders?: (MysteryTrader | undefined)[];
 	salvage?: (Salvage | undefined)[];
 }
+/**
+ * A struct used as a key for universe maps containing numbered player objects.
+ */
 
 //////////
 // source: universegenerator.go
@@ -2417,7 +2420,7 @@ export type UniverseGenerator = unknown;
  * A User corresponds to a human logged into craig-stars. This might not actually belong
  * in the cs package, but I didn't feel like breaking it out into a new package.
  */
-export interface User extends DBObject {
+export interface User extends DBObject, UserSettings {
 	username: string;
 	password: string;
 	email: string;
@@ -2429,6 +2432,9 @@ export interface User extends DBObject {
 	lastLogin?: string /* RFC3339 */;
 	discordId?: string;
 	discordAvatar?: string;
+}
+export interface UserSettings {
+	discordWebhookUrl?: string;
 }
 export type UserRole = string;
 export const RoleNone: UserRole = '';

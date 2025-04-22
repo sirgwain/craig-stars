@@ -41,7 +41,7 @@ type contextKey int
 
 const (
 	keyDb contextKey = iota
-	keyUser
+	keyUserSession
 	keyRace
 	keyGame
 	keyPlayer
@@ -52,6 +52,7 @@ const (
 	keyPlanet
 	keyFleet
 	keyMineField
+	keyUser
 )
 
 type server struct {
@@ -136,8 +137,6 @@ func Start(config config.Config) error {
 				} else {
 					// make sure the claim knows about the database id
 					tokenUser.setDatabaseID(user.ID)
-					tokenUser.setGameID(user.GameID)
-					tokenUser.setPlayerNum(user.PlayerNum)
 					tokenUser.SetRole(string(user.Role))
 
 					// if we're admin, set the admin claim
@@ -202,7 +201,7 @@ func Start(config config.Config) error {
 		}
 
 		// Check for username and password match
-		return user.Username, map[string]interface{}{attrGameID: user.GameID}, nil
+		return user.Username, nil, nil
 	}))
 
 	if server.config.Discord.Enabled {
@@ -267,8 +266,18 @@ func Start(config config.Config) error {
 	r.Group(func(r chi.Router) {
 		r.Use(m.Auth)
 		r.Use(render.SetContentType(render.ContentTypeJSON))
-		r.Use(server.userCtx)
+		r.Use(server.userSessionCtx)
 		r.Get("/api/me", me)
+
+		// user api calls
+		r.Route("/api/users", func(r chi.Router) {
+			r.Route("/{id:[0-9]+}", func(r chi.Router) {
+				r.Use(server.userCtx)
+				r.Get("/", server.user)
+				r.Put("/", server.updateUserSettings)
+				r.Post("/test-discord-webhook", server.testDiscordWebhook)
+			})
+		})
 
 		// race CRUD
 		r.Route("/api/races", func(r chi.Router) {
@@ -455,7 +464,8 @@ func Start(config config.Config) error {
 		log.Info().Msg("shutdown signal received")
 
 		// Shutdown signal with grace period of 30 seconds
-		shutdownCtx, _ := context.WithTimeout(serverCtx, 30*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(serverCtx, 30*time.Second)
+		defer cancel()
 
 		go func() {
 			<-shutdownCtx.Done()

@@ -145,6 +145,9 @@
 						<li>
 							<a href={`/games/${$game.id}/techs`} class="justify-between">Techs</a>
 						</li>
+						<li>
+							<a href="/settings" class="justify-between">Settings</a>
+						</li>
 						{#if $me.isAdmin()}
 							<li><div class="divider"></div></li>
 							<li>

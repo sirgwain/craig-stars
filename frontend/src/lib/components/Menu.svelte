@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { User } from '$lib/types/User';
+	import type { UserSession } from '$lib/types/User';
 	import { Bars3 } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import DarkModeToggler from './DarkModeToggler.svelte';
@@ -8,7 +8,7 @@
 	import GitHub from './icons/GitHub.svelte';
 
 	type Props = {
-		user: User | undefined;
+		user: UserSession | undefined;
 	};
 
 	let { user }: Props = $props();
@@ -61,6 +61,7 @@
 					<li class="md:hidden"><a href="/games">Games</a></li>
 					<li><a href="/games/archived">Archived Games</a></li>
 					<li class="md:hidden"><a href="/races">Races</a></li>
+					<li><a href="/settings">Settings</a></li>
 					<li class="md:hidden"><a href="/techs">Techs</a></li>
 					{#if user.isAdmin()}
 						<li><div class="divider"></div></li>
