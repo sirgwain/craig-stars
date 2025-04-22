@@ -852,4 +852,76 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			})
 		}
 	})
+
+	// TODO: Fix this to be consistent with base game...?
+	t.Run("HE 6%", func(t *testing.T) {
+		race := NewRace().WithPRT(HE).WithLRT(OBRM).
+			withImmuneGrav(true).
+			withImmuneRad(true).
+			withImmuneTemp(true).
+			WithGrowthRate(6)
+		// 12/9/22/3 10/3/19
+		race.MineCost = 3
+		race.NumMines = 19
+		race.FactoryOutput = 12
+		race.FactoryCost = 9
+		race.NumFactories = 22
+		race.FactoriesCostLess = true
+		race = race.WithSpec(&rules)
+
+		player := NewPlayer(1, race).withSpec(&rules)
+		planet := NewPlanet().WithCargo(Cargo{44, 24, 33, 30}).WithContributesOnlyLeftoverToResearch(true)
+		planet.Spec = computePlanetSpec(&rules, player, planet)
+		t.Log(planet.Spec.ResourcesPerYearAvailable)
+		planet.ProductionQueue = []ProductionQueueItem{
+			{
+				Type:     QueueItemTypeAutoFactories,
+				Quantity: 250,
+			},
+			{
+				Type:     QueueItemTypeAutoMines,
+				Quantity: 250,
+			},
+			{
+				Type:     QueueItemTypeAutoDefenses,
+				Quantity: 10,
+			},
+		}
+
+		wantQueue := []ProductionQueueItem{
+			{
+				QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+					YearsToBuildOne: 10,
+					YearsToBuildAll: 32,
+				},
+				Type:     QueueItemTypeAutoFactories,
+				Quantity: 250,
+			},
+			{
+				QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+					YearsToBuildOne: 12,
+					YearsToBuildAll: 34,
+				},
+				Type:     QueueItemTypeAutoMines,
+				Quantity: 250,
+			},
+			{
+				QueueItemCompletionEstimate: QueueItemCompletionEstimate{
+					YearsToBuildOne: 34,
+					YearsToBuildAll: 37,
+				},
+				Type:     QueueItemTypeAutoDefenses,
+				Quantity: 10,
+			},
+		}
+
+		e := NewCompletionEstimator()
+
+		result, _, err := e.GetProductionWithEstimates(&rules, player, *planet)
+		if err != nil {
+			t.Fatalf("CompletionEstimator.GetProductionWithEstimates() errored unexpectedly; err = \n%v", err)
+		}
+
+		test.CompareAsJSON(t, result, wantQueue)
+	})
 }

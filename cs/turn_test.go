@@ -20,8 +20,9 @@ var rules = NewRules()
 // prior logger stored for subsequent runs
 var tLog *zerolog.Logger
 
-// override default logger to pipe logs to logfile during testing
+// Create a new test logger to handle logging during test runs
 func testLogger(t testing.TB) zerolog.Logger {
+	t.Helper()
 	if !testing.Testing() {
 		panic("testLogger() called during build")
 	}
@@ -1381,7 +1382,7 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// create a new test game
-			game := createSingleUnitGame(testLogger(t))
+			game := createTwoPlayerGame(testLogger(t))
 			player := game.Players[0]
 			fleet := game.Fleets[0]
 
@@ -1399,7 +1400,7 @@ func Test_turn_fleetRemoteMine(t *testing.T) {
 			planet.Spec = computePlanetSpec(&game.Rules, player, planet)
 			game.Planets = append(game.Planets, planet)
 
-			turn := turnGenerator{game: game}
+			turn := newTurnGenerator(game, testLogger(t))
 			if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 				t.Fatal(err)
 			}
@@ -1697,7 +1698,7 @@ func Test_turn_fleetReproduce(t *testing.T) {
 	isFleet.Waypoints[0] = NewPlanetWaypoint(isPlanet.Position, isPlanet.Num, isPlanet.Name, 5)
 	isFleet.OrbitingPlanetNum = isPlanet.Num
 
-	turn := turnGenerator{game: game}
+	turn := newTurnGenerator(game, testLogger(t))
 	if err := turn.game.Universe.buildMaps(game.Players); err != nil {
 		t.Fatal(err)
 	}
