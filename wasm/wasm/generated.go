@@ -2347,7 +2347,8 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.SourcePlayerNum = getInt[int](o.Get("sourcePlayerNum"))
 	obj.DestPlayerNum = getInt[int](o.Get("destPlayerNum"))
 	obj.Name = string(getString(o.Get("name")))
-	obj.Cost = getPointer(GetCost(o.Get("cost")))
+	obj.PrevName = string(getString(o.Get("prevName")))
+	obj.Cost = GetCost(o.Get("cost"))
 	obj.Mineral = getPointer(GetMineral(o.Get("mineral")))
 	obj.Cargo = getPointer(GetCargo(o.Get("cargo")))
 	obj.QueueItemType = GetQueueItemType(o.Get("queueItemType"))
@@ -2374,8 +2375,9 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	o.Set("sourcePlayerNum", obj.SourcePlayerNum)
 	o.Set("destPlayerNum", obj.DestPlayerNum)
 	o.Set("name", obj.Name)
+	o.Set("prevName", obj.PrevName)
 	o.Set("cost", map[string]any{})
-	SetCost(o.Get("cost"), obj.Cost)
+	SetCost(o.Get("cost"), &obj.Cost)
 	o.Set("mineral", map[string]any{})
 	SetMineral(o.Get("mineral"), obj.Mineral)
 	o.Set("cargo", map[string]any{})
@@ -2452,6 +2454,7 @@ func GetPlayerMessageSpecInvasion(o js.Value) cs.PlayerMessageSpecInvasion {
 		return obj
 	}
 	obj.FleetName = string(getString(o.Get("fleetName")))
+	obj.NumFleets = getInt[int](o.Get("numFleets"))
 	obj.AttackerPlayerNum = getInt[int](o.Get("attackerPlayerNum"))
 	obj.DefenderPlayerNum = getInt[int](o.Get("defenderPlayerNum"))
 	obj.AttackersKilled = getInt[int](o.Get("attackersKilled"))
@@ -2461,6 +2464,7 @@ func GetPlayerMessageSpecInvasion(o js.Value) cs.PlayerMessageSpecInvasion {
 }
 func SetPlayerMessageSpecInvasion(o js.Value, obj *cs.PlayerMessageSpecInvasion) {
 	o.Set("fleetName", obj.FleetName)
+	o.Set("numFleets", obj.NumFleets)
 	o.Set("attackerPlayerNum", obj.AttackerPlayerNum)
 	o.Set("defenderPlayerNum", obj.DefenderPlayerNum)
 	o.Set("attackersKilled", obj.AttackersKilled)
@@ -2790,17 +2794,15 @@ func GetQueueItemCompletionEstimate(o js.Value) cs.QueueItemCompletionEstimate {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj.Skipped = getBool(o.Get("skipped"))
 	obj.YearsToBuildOne = getInt[int](o.Get("yearsToBuildOne"))
 	obj.YearsToBuildAll = getInt[int](o.Get("yearsToBuildAll"))
-	obj.YearsToSkipAuto = getInt[int](o.Get("yearsToSkipAuto"))
+	obj.YearsToSkipOrCancel = getInt[int](o.Get("yearsToSkipOrCancel"))
 	return obj
 }
 func SetQueueItemCompletionEstimate(o js.Value, obj *cs.QueueItemCompletionEstimate) {
-	o.Set("skipped", obj.Skipped)
 	o.Set("yearsToBuildOne", obj.YearsToBuildOne)
 	o.Set("yearsToBuildAll", obj.YearsToBuildAll)
-	o.Set("yearsToSkipAuto", obj.YearsToSkipAuto)
+	o.Set("yearsToSkipOrCancel", obj.YearsToSkipOrCancel)
 }
 
 func GetQueueItemType(o js.Value) cs.QueueItemType {

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { DesignFinder } from '$lib/services/Universe';
-	import { getQueueItemShortName } from '$lib/types/Planet';
+	import { getShortName } from '$lib/types/QueueItemType';
 	import type { ProductionPlan, ProductionQueueItem } from '$lib/types/cs';
 	import { isAuto } from '$lib/types/QueueItemType';
 	import { Trash } from '@steeze-ui/heroicons';
@@ -36,11 +36,15 @@
 				<div>{plan.name}</div>
 			</div>
 			<ul class="w-full h-full">
+				<!-- TODO: Add concrete items to production plans -->
 				{#each plan.items as queueItem}
 					<li class="pl-1">
-						<div class="flex flex-row justify-between" class:italic={isAuto(queueItem.type)}>
+						<div
+							class="flex flex-row justify-between"
+							class:queue-item-type-auto={isAuto(queueItem.type)}
+						>
 							<div>
-								{getQueueItemShortName(queueItem as ProductionQueueItem, designFinder)}
+								{getShortName(queueItem as ProductionQueueItem, designFinder)}
 							</div>
 							<div>
 								{queueItem.quantity}

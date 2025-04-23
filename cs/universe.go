@@ -61,17 +61,19 @@ type mapObjectGetter interface {
 	getWormhole(num int) *Wormhole
 	getSalvage(num int) *Salvage
 	getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool)
-	getMapObjectsAtPosition(position Vector) []interface{}
+	getMapObjectsAtPosition(position Vector) []any
 	isPositionValid(pos Vector, occupiedLocations *[]Vector, minDistance float64) bool
-	updateMapObjectAtPosition(mo interface{}, originalPosition, newPosition Vector)
+	updateMapObjectAtPosition(mo any, originalPosition, newPosition Vector)
 }
 
+// A struct used as a key for universe maps containing numbered player objects.
 type playerObject struct {
 	PlayerNum int
 	Num       int
 }
 
-func playerObjectKey(playerNum int, num int) playerObject { return playerObject{playerNum, num} }
+// Create a new playerObject keyed with playerNum and num.
+func playerObjectKey(playerNum, num int) playerObject { return playerObject{playerNum, num} }
 
 type playerBattlePlanNum struct {
 	PlayerNum int
@@ -88,10 +90,9 @@ func (u *Universe) setLogger(log zerolog.Logger) {
 func (u *Universe) buildMaps(players []*Player) error {
 
 	// make a big map to hold all of our universe objects by position
-	u.mapObjectsByPosition = make(map[Vector][]interface{}, len(u.Planets))
+	u.mapObjectsByPosition = make(map[Vector][]any, len(u.Planets))
 
-	// build a map of designs by num
-	// so we can inject the design into each token
+	// build a map of designs by num for token design injection
 	numDesigns := 0
 	numBattlePlans := 0
 	for _, p := range players {
@@ -102,6 +103,7 @@ func (u *Universe) buildMaps(players []*Player) error {
 	u.battlePlansByNum = make(map[playerBattlePlanNum]*BattlePlan, numBattlePlans)
 
 	for _, p := range players {
+
 		for _, design := range p.Designs {
 			u.addDesign(design)
 		}
@@ -232,7 +234,7 @@ func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
 	return pmo
 }
 
-func (u *Universe) getMapObject(mapObjectType MapObjectType, num int, playerNum int) *MapObject {
+func (u *Universe) getMapObject(mapObjectType MapObjectType, num, playerNum int) *MapObject {
 	switch mapObjectType {
 	case MapObjectTypePlanet:
 		planet := u.getPlanet(num)
@@ -274,7 +276,7 @@ func (u *Universe) getMapObject(mapObjectType MapObjectType, num int, playerNum 
 }
 
 // get a ship design by num
-func (u *Universe) getShipDesign(playerNum int, num int) *ShipDesign {
+func (u *Universe) getShipDesign(playerNum, num int) *ShipDesign {
 	return u.designsByNum[playerObjectKey(playerNum, num)]
 }
 
@@ -295,7 +297,7 @@ func (u *Universe) getOrbitingPlanet(fleet *Fleet) *Planet {
 }
 
 // Get a fleet by player num and fleet num
-func (u *Universe) getFleet(playerNum int, num int) *Fleet {
+func (u *Universe) getFleet(playerNum, num int) *Fleet {
 	return u.fleetsByNum[playerObjectKey(playerNum, num)]
 }
 
@@ -309,7 +311,7 @@ func (u *Universe) getSalvage(num int) *Salvage {
 	return u.salvagesByNum[num]
 }
 
-func (u *Universe) getMineField(playerNum int, num int) *MineField {
+func (u *Universe) getMineField(playerNum, num int) *MineField {
 	return u.mineFieldsByNum[playerObjectKey(playerNum, num)]
 }
 
@@ -328,7 +330,7 @@ func (u *Universe) getMineFieldNearPosition(playerNum int, position Vector, mine
 	return nil
 }
 
-func (u *Universe) getMineralPacket(playerNum int, num int) *MineralPacket {
+func (u *Universe) getMineralPacket(playerNum, num int) *MineralPacket {
 	return u.mineralPacketsByNum[playerObjectKey(playerNum, num)]
 }
 
@@ -337,7 +339,7 @@ func (u *Universe) getMysteryTrader(num int) *MysteryTrader {
 }
 
 // get a cargo holder by natural key (num, playerNum, etc)
-func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num int, playerNum int) (CargoHolder, bool) {
+func (u *Universe) getCargoHolder(mapObjectType MapObjectType, num, playerNum int) (CargoHolder, bool) {
 	switch mapObjectType {
 	case MapObjectTypePlanet:
 		mo := u.getPlanet(num)
@@ -421,7 +423,8 @@ func (u *Universe) addFleet(fleet *Fleet) error {
 		// use the default battle plan if we couldn't find one for some reason, but log a warning
 		u.log.Warn().
 			Int("Player", fleet.PlayerNum).
-			Msgf("Unable to find battle plan %d for fleet %v", fleet.BattlePlanNum, fleet)
+			Any("Fleet", fleet).
+			Msgf("Unable to find battle plan #%d for fleet", fleet.BattlePlanNum)
 		fleet.battlePlan = u.battlePlansByNum[playerBattlePlanNum{fleet.PlayerNum, 0}]
 	}
 
@@ -430,7 +433,7 @@ func (u *Universe) addFleet(fleet *Fleet) error {
 		token := &fleet.Tokens[i]
 		token.design = u.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
 		if token.design == nil {
-			return fmt.Errorf("unable to find design %d for fleet %s", token.DesignNum, fleet.Name)
+			return fmt.Errorf("unable to find design #%d for player %d inside fleet %q", token.DesignNum, fleet.PlayerNum, fleet.Name)
 		}
 	}
 	return nil

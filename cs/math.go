@@ -29,7 +29,7 @@ func roundHalfTowards0(x float64) float64 {
 	// Implementation taken from a comment found in Golang's math.Round() source code.
 	// Thanks, golang devs!
 	t := math.Trunc(x)
-	if Abs(x-t) > 0.5 {
+	if math.Abs(x-t) > 0.5 { // minor optimization since we're only using floats here
 		return t + math.Copysign(1, x)
 	}
 	return t

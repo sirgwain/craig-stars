@@ -202,7 +202,7 @@ export const orbitalFort2Design: ShipDesign = {
 	}
 };
 
-const techStore = techjson as TechStore;
+const techStore = techjson as unknown as TechStore;
 
 describe('player test', () => {
 	it('checks tech requirements', () => {

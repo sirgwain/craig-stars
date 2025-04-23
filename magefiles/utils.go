@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"strings"
 
 	"github.com/magefile/mage/mg"
@@ -18,9 +17,11 @@ import (
 
 // Run all frontend/backend tests and lint checks.
 func Test() error {
+	/* disabling this until I fix esilint to not be a false positive mess
 	if err := Lint(); err != nil {
 		return err
 	}
+	*/
 
 	mg.Deps(cleanTmpDir)
 	if err := Test_Golang("./..."); err != nil {
@@ -56,14 +57,14 @@ func cleanTmpDir() error {
 
 // Run backend tests using gotestsum, passing args to "go test".
 // CI runs will always run all tests across all packages,
-// whereas non-CI runs can specify which package(s) to run as part of goTestArgs.
-// If a package identifier is omitted on non-CI runs,
-// it will default to running everything ("./...").
+// whereas non-CI runs can optionally specify a space-separated list of
+// names or paths to one or more packages at the start of goTestArgs.
+// Having no valid paths will default to running everything (./...).
 func Test_Golang(goTestArgs string) error {
 	fmt.Println("Running backend tests...")
 	mg.Deps(cleanTmpDir)
 
-	// read gotestsum config args from text file;
+	// read gotestsum config args from text file.
 	// use CI config if on CI; else regular config
 	var filePath string
 	if is_CI() {
@@ -85,19 +86,52 @@ func Test_Golang(goTestArgs string) error {
 	})
 	fmt.Printf("Config file at %s successfully read.\n", filePath)
 
-	// If the user forgot to add a package mark for non-CI runs,
-	// do them a favor rather than outright failing.
-	// CI runs are exempt from this due to rerun-fails requiring an explicit package argument
-	// (not to mention their entire *job* is to test everything)
 	args := strings.Fields(goTestArgs)
-	if !is_CI() && slices.IndexFunc(args, func(s string) bool {
-		return strings.HasPrefix(s, "./")
-	}) == -1 {
-		fmt.Println("No package identifier found; defaulting to running everything")
-		args = append([]string{"./..."}, args...)
+
+	// Check non-CI runs for package names that may have been made absolute by mistake.
+	// CI runs are exempt from this due to rerun-fails requiring an explicit package argument
+	// (not to mention their entire *job* is to test everything all at once)
+	if is_CI() {
+		fmt.Println("Running all packages for CI...")
+	} else {
+		packages := []string{}
+		for i, arg := range args {
+			if strings.HasPrefix(arg, "--") {
+				// flags always go after package names, so we can break as soon as we see one
+				break
+			}
+
+			arg = filepath.ToSlash(arg)
+			if s, err := os.Stat(arg); err == nil && s.IsDir() {
+				// os.Stat ignores any "./" prefixes in file paths, so all we need to do is add it if not found
+				if !strings.HasPrefix(arg, "./") {
+					arg = "./" + arg
+				}
+
+				args[i] = arg
+				packages = append(packages, arg)
+			}
+		}
+
+		switch len(packages) {
+		case 0:
+			// no valid package marker given; do everything
+			fmt.Println("No valid package identifiers found; defaulting to running everything (./...)...")
+			a := make([]string, 1, len(args)+1)
+			a[0] = "./..."
+			args = append(a, args...)
+		case 1:
+			if packages[0] == "./..." {
+				fmt.Printf("Running tests in all packages...\n")
+			} else {
+				fmt.Printf("Running tests in package %q...\n", packages[0])
+			}
+		default:
+			fmt.Printf("Running tests in packages: %q...\n", packages)
+		}
 	}
 
-	// tack on whatever config vals were passed by the user.
+	// tack on whatever config vals were passed on by the user
 	configVals = append(configVals, args...)
 
 	// If $GITHUB_REPOSITORY is set from a CI run, use that as package name for the JUnit report.
@@ -111,7 +145,7 @@ func Test_Golang(goTestArgs string) error {
 
 	// merge together any temporary json files together once we're done testing.
 	// We do this now to save time - if the prior steps fail,
-	// there won't be any KSON files to merge)
+	// there won't be anything new to merge
 	defer func() {
 		if err := Merge_Temp_JSON(); err != nil {
 			fmt.Printf("error merging temp JSON diffs after test run:\n%v\n", err)
@@ -229,7 +263,7 @@ func Test_Playwright(playwrightArgs string) error {
 
 // Download frontend image files, replacing existent ones if present.
 func Images() error {
-	// switch dir
+	// switch dir and keep track of original
 	originalDir, err := os.Getwd()
 	if err != nil {
 		return mg.Fatalf(1, "error during os.Getwd: \n%w", err)
@@ -254,7 +288,7 @@ func Images() error {
 		if err := sh.Rm(tmpName); err != nil {
 			panic(err)
 		}
-		fmt.Println("removed temp file at", tmpName)
+		fmt.Println("removed temp image zip at", tmpName)
 	}()
 
 	if err := unzipTempFile(tmpName); err != nil {

@@ -6,7 +6,6 @@
 		"clear": true
 	},
 	"type": "shell",
-	"runOptions": { "reevaluateOnRerun": false },
 	"tasks": [
 		{
 			"label": "Run all tests",
@@ -17,10 +16,7 @@
 				"color": "terminal.ansiGreen",
 				"id": "beaker"
 			},
-			"detail": "Run all backend/frontend tests and linting checks.",
-			"presentation": {
-				"group": "Tests"
-			}
+			"detail": "Run all backend/frontend tests and linting checks."
 		},
 		{
 			"label": "Go: run tests",
@@ -37,10 +33,7 @@
 				"color": "terminal.ansiGreen",
 				"id": "run-below"
 			},
-			"detail": "Run backend tests using gotestsum.",
-			"presentation": {
-				"group": "Tests"
-			}
+			"detail": "Run backend tests using gotestsum."
 		},
 		{
 			"label": "Go: run benchmarks",
@@ -60,10 +53,7 @@
 				"color": "terminal.ansiYellow",
 				"id": "clock"
 			},
-			"detail": "Run Go benchmarks and save the results to JSON.",
-			"presentation": {
-				"group": "Tests"
-			}
+			"detail": "Run Go benchmarks and save the results to JSON."
 		},
 		{
 			"label": "Go: generate files",
@@ -74,10 +64,7 @@
 				"id": "table"
 			},
 			"command": "mage generate",
-			"detail": "Generate various backend and frontend files.",
-			"presentation": {
-				"group": "Build"
-			}
+			"detail": "Generate various backend and frontend files."
 		},
 		{
 			"label": "Build & launch server",
@@ -91,10 +78,7 @@
 				"color": "terminal.ansiCyan",
 				"id": "browser"
 			},
-			"detail": "Build and start up the local server for debugging.",
-			"presentation": {
-				"group": "Build"
-			}
+			"detail": "Build and start up the local server for debugging."
 		},
 		{
 			"label": "Build server",
@@ -105,87 +89,38 @@
 				"color": "terminal.ansiCyan",
 				"id": "symbol-constructor"
 			},
-			"detail": "Build server without launching it.",
-			"presentation": {
-				"group": "Build"
-			}
+			"detail": "Build server without launching it."
 		},
 		{
 			"label": "Launch server",
-			"dependsOn": ["Launch backend", "middle task"],
-			"detail": "Launch frontend/backend servers and open localhost without building anything.",
+			"dependsOn": ["Launch backend", "Launch frontend"],
+			"detail": "Launch frontend/backend servers in separate terminals without building anything.",
 			"group": "build",
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "rocket"
-			},
-			"presentation": {
-				"group": "Launch"
 			}
 		},
 		{
-			"hide": true,
 			"label": "Launch backend",
 			"command": "mage",
-			"args": ["launch_backend"],
+			"args": ["launch_backend", "${input:testMode}"],
+			"detail": "Launch backend golang server in its own terminal.",
+			"group": "build",
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "radio-tower"
-			},
-			"presentation": {
-				"group": "Launch"
 			}
 		},
 		{
-			// needed to run tasks in sequence so we only open localhost after we finish.
-			"hide": true,
-			"label": "middle task",
-			"dependsOn": ["Launch frontend", "open localhost"],
-			"dependsOrder": "sequence",
-			"presentation": {
-				"panel": "shared",
-				"group": "Launch"
-			}
-		},
-		{
-			"hide": true,
 			"label": "Launch frontend",
-			"isBackground": true,
 			"command": "mage",
 			"args": ["launch_frontend"],
+			"detail": "Launch frontend vite server in its own terminal.",
+			"group": "build",
 			"icon": {
 				"color": "terminal.ansiCyan",
 				"id": "broadcast"
-			},
-			// problem matcher needed to signify task end so we know when to boot up the browser
-			"problemMatcher": [
-				{
-					"pattern": [{ "regexp": ".", "file": 1, "line": 1, "column": 1, "message": 1 }],
-					"background": {
-						"activeOnStart": true,
-						"beginsPattern": { "regexp": "." },
-						"endsPattern": { "regexp": "VITE .* ready in .*$" }
-					}
-				}
-			],
-			"presentation": {
-				"group": "Launch"
-			}
-		},
-		{
-			"hide": true,
-			"label": "open localhost",
-			"command": "xdg-open",
-			"osx": {
-				"command": "open"
-			},
-			"windows": {
-				"command": "explorer.exe"
-			},
-			"args": ["http://localhost:5173"],
-			"icon": {
-				"color": "terminal.ansiCyan",
-				"id": "browser"
 			}
 		},
 		{
@@ -198,8 +133,7 @@
 				"id": "debug-console"
 			},
 			"presentation": {
-				"panel": "shared",
-				"group": "Debug"
+				"panel": "shared"
 			}
 		},
 		{
@@ -211,23 +145,29 @@
 				"id": "trash"
 			},
 			"presentation": {
-				"panel": "shared",
-				"group": "Debug"
+				"panel": "shared"
 			}
 		}
 	],
 	"inputs": [
 		{
+			"id": "testMode",
+			"type": "pickString",
+			"default": "false",
+			"options": ["true", "false"],
+			"description": "Select whether to start the database in-memory via test mode. Test mode starts with a preset collection of test games (modifiable in test/testgames.go), but changes will not persist upon reloading the database."
+		},
+		{
 			"id": "packages",
 			"type": "promptString",
-			"default": "./...",
-			"description": "Enter list of packages to run \"go test\" on (relative from workspace root). Defaults to running all tests if left empty."
+			"default": "${relativeFileDirname}",
+			"description": "Enter a space-separated list of names or paths to packages to run \"go test\" on (relative to workspace root). Having no valid paths will default to running everything (./...)."
 		},
 		{
 			"id": "goTestName",
 			"type": "promptString",
 			"default": ".*",
-			"description": "Enter regex of test file names to run. Subtests are separated by slashes (/) and spaces are replaced by underscores (_)."
+			"description": "Enter a regular expression matching test functions to run. Subtests are separated by slashes (/) and spaces are replaced by underscores (_)."
 		},
 		{
 			"id": "benchTime",

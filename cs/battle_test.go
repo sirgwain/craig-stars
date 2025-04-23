@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,6 +49,10 @@ func testStalwartDefenderWithQuantity(player *Player, quantity int) *Fleet {
 }
 
 func testJihadCruiser(player *Player) *Fleet {
+	return testJihadCruiserWithQuantity(player, 1)
+}
+
+func testJihadCruiserWithQuantity(player *Player, qty int) *Fleet {
 	fleet := &Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
@@ -59,7 +62,7 @@ func testJihadCruiser(player *Player) *Fleet {
 		Tokens: []ShipToken{
 			{
 				DesignNum: 1,
-				Quantity:  1,
+				Quantity:  qty,
 				design: NewShipDesign(player.Num, 1).
 					WithHull(Cruiser.Name).
 					WithSlots([]ShipDesignSlot{
@@ -1074,7 +1077,7 @@ func Test_battle_runBattle1(t *testing.T) {
 		}
 	}
 
-	battle := newBattler(log.Logger, &rules, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
+	battle := newBattler(testLogger(t), &rules, 1, map[int]*Player{1: player1, 2: player2}, fleets, nil)
 
 	record := battle.runBattle()
 

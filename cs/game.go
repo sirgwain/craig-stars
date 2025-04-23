@@ -394,7 +394,9 @@ func (fg *FullGame) GetNumHumanPlayers() int {
 
 // compute all the various "specs" in the game. Called before and after turn generation
 func (g *FullGame) computeSpecs() error {
-	g.buildMaps(g.Players)
+	if err := g.buildMaps(g.Players); err != nil {
+		return err
+	}
 
 	rules := &g.Rules
 	for _, player := range g.Players {

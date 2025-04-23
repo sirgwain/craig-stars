@@ -74,7 +74,7 @@ type Waypoint struct {
 	MapObjectTarget      `tstype:",extends"`
 	Position             Vector                 `json:"position"`
 	WarpSpeed            int                    `json:"warpSpeed"`
-	EstFuelUsage         int                    `json:"estFuelUsage,omitempty"`
+	EstFuelUsage         int                    `json:"estFuelUsage,omitempty"` // TODO: Rework this into a fuel usage estimator struct similar to production queues
 	Task                 WaypointTask           `json:"task,omitempty"`
 	TransportTasks       WaypointTransportTasks `json:"transportTasks"`
 	WaitAtWaypoint       bool                   `json:"waitAtWaypoint,omitempty"`
@@ -114,8 +114,8 @@ type WaypointTransportTask struct {
 	Action WaypointTaskTransportAction `json:"action,omitempty"`
 }
 
+// A transport task performed by a fleet to load or unload cargo.
 // TODO: Add a "set waypoint to %" command
-
 type WaypointTaskTransportAction string
 
 type transportTaskByType map[CargoType]WaypointTransportTask
@@ -269,39 +269,35 @@ func NewFleet(player *Player, num int, name string, waypoints []Waypoint) *Fleet
 	}
 }
 
-// create a new fleet with a design
-func newFleetForDesign(player *Player, design *ShipDesign, quantity, num int, name string, waypoints []Waypoint) Fleet {
-	return Fleet{
+// create a new fleet with a design.
+//
+// Deprecated: This now just calls [newFleetForTokens].
+func newFleetForDesign(player *Player, design *ShipDesign, quantity, num int, name string, waypoints []Waypoint) *Fleet {
+	return newFleetForTokens(player, num, name,
+		[]ShipToken{{design: design, DesignNum: design.Num, Quantity: quantity}}, waypoints)
+}
+
+// Deprecated: This now just calls [newFleetForTokens].
+func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Waypoint) *Fleet {
+	return newFleetForTokens(player, num, token.design.Name, []ShipToken{token}, waypoints)
+}
+
+// Create a new fleet with a given array of ShipTokens.
+func newFleetForTokens(player *Player, num int, name string, tokens []ShipToken, waypoints []Waypoint) *Fleet {
+	var pos Vector
+	if len(waypoints) > 0 {
+		pos = waypoints[0].Position
+	}
+	return &Fleet{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
 			PlayerNum: player.Num,
 			Num:       num,
 			Name:      fmt.Sprintf("%s #%d", name, num),
-			Position:  waypoints[0].Position,
+			Position:  pos,
 		},
 		BaseName: name,
-		Tokens: []ShipToken{
-			{design: design, DesignNum: design.Num, Quantity: quantity},
-		},
-		FleetOrders: FleetOrders{
-			Waypoints: waypoints,
-		},
-		OrbitingPlanetNum: None,
-		battlePlan:        &player.BattlePlans[0],
-	}
-}
-
-func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Waypoint) Fleet {
-	return Fleet{
-		MapObject: MapObject{
-			Type:      MapObjectTypeFleet,
-			PlayerNum: player.Num,
-			Num:       num,
-			Name:      fmt.Sprintf("%s #%d", token.design.Name, num),
-			Position:  waypoints[0].Position,
-		},
-		BaseName: token.design.Name,
-		Tokens:   []ShipToken{token},
+		Tokens:   tokens,
 		FleetOrders: FleetOrders{
 			Waypoints: waypoints,
 		},
@@ -310,7 +306,7 @@ func newFleetForToken(player *Player, num int, token ShipToken, waypoints []Wayp
 }
 
 // create a new fleet that is a starbase
-func newStarbase(player *Player, planet *Planet, design *ShipDesign, name string) Fleet {
+func newStarbase(player *Player, planet *Planet, design *ShipDesign, name string) *Fleet {
 	fleet := newFleetForDesign(player, design, 1, 0, name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, 1)})
 	fleet.PlanetNum = planet.Num
 	fleet.Starbase = true
@@ -360,7 +356,12 @@ func (f *Fleet) withOrbitingPlanetNum(num int) *Fleet {
 	return f
 }
 
-// get a pointer to a ShipToken a design, or nil if it's not present
+func (f *Fleet) withSpec(rules *Rules, player *Player) *Fleet {
+	f.Spec = ComputeFleetSpec(rules, player, f)
+	return f
+}
+
+// get a pointer to a ShipToken design, or nil if it's not present
 func (f *Fleet) getTokenByDesign(designNum int) *ShipToken {
 	for i, token := range f.Tokens {
 		if token.DesignNum == designNum {
@@ -396,7 +397,7 @@ func NewPlanetWaypoint(position Vector, num int, name string, warpSpeed int) Way
 	}
 }
 
-func NewFleetWaypoint(position Vector, num int, playerNum int, name string, warpSpeed int) Waypoint {
+func NewFleetWaypoint(position Vector, num, playerNum int, name string, warpSpeed int) Waypoint {
 	return Waypoint{
 		Position: position,
 		MapObjectTarget: MapObjectTarget{
@@ -782,12 +783,15 @@ func (f *Fleet) availableFuelSpace() int {
 	return Clamp(f.Spec.FuelCapacity-f.Fuel, 0, f.Spec.FuelCapacity)
 }
 
-// remove any empty tokens that were destroyed (by minefields, overgating, battle... it's a dangerous universe)
+// remove any empty tokens that were destroyed by minefields, overgating, battle or other means,
+// updating the spec's TotalShips variable at the same time.
 func (fleet *Fleet) removeEmptyTokens() {
 	updatedTokens := make([]ShipToken, 0, len(fleet.Tokens))
+	fleet.Spec.TotalShips = 0
 	for _, token := range fleet.Tokens {
-		// keep this token
 		if token.Quantity > 0 {
+			// keep this token
+			fleet.Spec.TotalShips += token.Quantity
 			updatedTokens = append(updatedTokens, token)
 		}
 	}
@@ -973,10 +977,10 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		sourceStargate = sourcePlanet.Spec.PlanetStarbaseSpec
 	}
 
-	// can't gate colonists unless we're IT
+	// can't gate colonists unless we're IT or have a jump gate
 	// can't dump colonists into space or on a world we don't own
-	// ships with jump gates can gate cargo (amazing)
-	if !fleet.Spec.CanJump && !player.Race.Spec.CanGateCargo && fleet.Cargo.Colonists > 0 && (sourcePlanet == nil || !sourcePlanet.OwnedBy(player.Num)) {
+	if !fleet.Spec.CanJump && !player.Race.Spec.CanGateCargo && fleet.Cargo.Colonists > 0 &&
+		(sourcePlanet == nil || !sourcePlanet.OwnedBy(player.Num)) {
 		messager.fleetStargateInvalidColonists(player, fleet, wp0, wp1)
 		return
 	}
@@ -1010,7 +1014,7 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	// also vanish tokens for non IT races
 	fleet.applyOvergatePenalty(rules, player, totalDist, wp0, wp1, sourceStargate, destStargate)
 
-	// if the fleet is gone, we're done
+	// if the fleet explodes, we're all done (as morbid as that sounds)
 	if len(fleet.Tokens) == 0 {
 		return
 	}
@@ -1019,59 +1023,38 @@ func (fleet *Fleet) gateFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 	fleet.completeMove(mapObjectGetter, player, wp0, wp1)
 }
 
-// if the fleet went over safe warp, explode some ships
-func (fleet *Fleet) applyOverwarpPenalty(rules *Rules) int {
-	if len(fleet.Waypoints) <= 1 {
-		return 0
-	}
-	wp1 := &fleet.Waypoints[1]
-	// check for exploded ships
-	explodedShips := 0
-	for tokenIndex := range fleet.Tokens {
-		token := &fleet.Tokens[tokenIndex]
-		if wp1.WarpSpeed > token.design.Spec.Engine.MaxSafeSpeed && wp1.WarpSpeed != StargateWarpSpeed {
-			// explode some fleets if you go too fast
-			for shipIndex := 0; shipIndex < token.Quantity; shipIndex++ {
-				if rules.FleetSafeSpeedExplosionChance >= rules.random.Float64() {
-					explodedShips++
-					token.Quantity--
-				}
-			}
-		}
-	}
-
-	return explodedShips
-}
-
 // applyOvergatePenalty damages and/or vanishes ShipTokens inside overgating fleets based on distance.
 func (fleet *Fleet) applyOvergatePenalty(rules *Rules, player *Player, distance float64, wp0, wp1 Waypoint, sourceStargate, destStargate PlanetStarbaseSpec) {
-	var totalDamage, shipsLostToDamage, shipsLostToTheVoid, startingShips int
+	var totalDamage, shipsLost, startingShips int
 	for i := range fleet.Tokens {
 		token := &fleet.Tokens[i]
 		startingShips += token.Quantity
 		// IT players never lose ships to the void, but everyone else does
 		if player.Race.Spec.ShipsVanishInVoid {
-			shipsLostToTheVoid += token.applyOvergateVanishing(rules, distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass)
+			shipsLost += token.applyOvergateVanishing(rules, distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass)
 		}
 
 		// damage any remaining tokens if we have any left
-		tokenDamage := token.applyOvergateDamage(distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass, destStargate.SafeHullMass, rules.StargateMaxHullMassFactor)
+		tokenDamage := token.applyOvergateDamage(distance, sourceStargate.SafeRange, sourceStargate.SafeHullMass, destStargate.SafeHullMass, rules.StargateMaxHullMassFactor, rules.StargateMaxRangeFactor)
 		totalDamage += tokenDamage.damage
-		shipsLostToDamage += tokenDamage.shipsDestroyed
+		shipsLost += tokenDamage.shipsDestroyed
 	}
 
 	// remove any tokens that were lost completely
 	fleet.removeEmptyTokens()
 
-	if len(fleet.Tokens) == 0 {
+	switch {
+	case len(fleet.Tokens) == 0:
 		messager.fleetStargateDestroyed(player, fleet, wp0, wp1)
-	} else if totalDamage > 0 || shipsLostToTheVoid > 0 {
-		messager.fleetStargateDamaged(player, fleet, wp0, wp1, totalDamage, shipsLostToDamage, shipsLostToTheVoid)
+	case shipsLost > 0:
+		messager.fleetStargateShipsLost(player, fleet, wp0, wp1, shipsLost)
+	case totalDamage > 0:
+		messager.fleetStargateDamaged(player, fleet, wp0, wp1, totalDamage)
 	}
 }
 
 // Engine fuel usage calculation courtesy of m.a@stars
-func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64, ifeFactor float64) int {
+func (engine Engine) getFuelCostForEngine(warpSpeed, mass int, dist, ifeFactor float64) int {
 	if warpSpeed == 0 {
 		return 0
 	}
@@ -1134,7 +1117,7 @@ func (fleet *Fleet) getFuelCost(player *Player, warpSpeed int, distance float64,
 	return fuelCost
 }
 
-func (fleet *Fleet) getEstimatedRange(player *Player, warpSpeed int, cargoCapacity int) int {
+func (fleet *Fleet) getEstimatedRange(player *Player, warpSpeed, cargoCapacity int) int {
 	fuelCost := fleet.getFuelCost(player, warpSpeed, 1000, cargoCapacity)
 	if fuelCost == 0 {
 		return Infinite
@@ -1171,7 +1154,7 @@ func (fleet *Fleet) getFuelGeneration(warpSpeed int, distance float64) int {
 }
 
 // Complete a move from one waypoint to another
-func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player, wp0 Waypoint, wp1 Waypoint) {
+func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player, wp0, wp1 Waypoint) {
 	fleet.Position = wp1.Position
 
 	// find out if we arrived at a planet, either by reaching our target fleet
@@ -1206,8 +1189,32 @@ func (fleet *Fleet) completeMove(mapObjectGetter mapObjectGetter, player *Player
 	}
 }
 
+// Randomly destroy tokens traveling over their engines' safe warp speed
+func (fleet *Fleet) applyOverwarpPenalty(rules *Rules) (explodedShips int) {
+	if len(fleet.Waypoints) <= 1 {
+		return 0
+	}
+	wp1 := &fleet.Waypoints[1]
+	// check for exploded ships in each token going over warp
+	for tokenIndex := range fleet.Tokens {
+		token := &fleet.Tokens[tokenIndex]
+		if wp1.WarpSpeed <= token.design.Spec.Engine.MaxSafeSpeed || wp1.WarpSpeed == StargateWarpSpeed {
+			continue
+		}
+
+		// going too fast; explode some fleets
+		for range token.Quantity {
+			if rules.FleetSafeSpeedExplosionChance >= rules.random.Float64() {
+				explodedShips++
+				token.Quantity--
+			}
+		}
+	}
+
+	return explodedShips
+}
+
 // colonize a planet
-// TODO: return an error and stop colonization
 func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet) {
 	planet.PlayerNum = player.Num
 	planet.ProductionQueue = []ProductionQueueItem{}
@@ -1286,7 +1293,7 @@ func (fleet *Fleet) getScrapAmount(rules *Rules, player *Player, planet *Planet,
 	return scrappedCost
 }
 
-// Repair a fleet. This changes based on where the fleet is
+// Repair a fleet based on its current position and repair rates
 func (fleet *Fleet) repairFleet(log zerolog.Logger, rules *Rules, player *Player, orbiting *Planet) {
 	needsRepair := false
 	// Check if anything even needs repairing

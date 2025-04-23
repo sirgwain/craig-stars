@@ -738,7 +738,7 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 }
 
 // transfer cargo from a fleet to/from a fleet
-func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, playerNum int, num int, transferAmount cs.CargoTransferRequest, fuelTransferAmount int) {
+func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request, game *cs.Game, player *cs.Player, fleet *cs.Fleet, playerNum, num int, transferAmount cs.CargoTransferRequest, fuelTransferAmount int) {
 	readWriteClient := s.contextDb(r)
 
 	var err error

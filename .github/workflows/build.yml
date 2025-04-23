@@ -43,7 +43,6 @@ jobs:
           install-only: true
 
       - name: Test Go Files
-        id: go-tests
         run: mage test_golang ""
 
       - name: Upload gotestsum reports
@@ -51,8 +50,9 @@ jobs:
         with:
           name: gotestsum-report
           path: |
-            tmp/diff.jsonl
-            tmp/test-results/*
+            tmp/**
+            !tmp/*_*.jsonl
+          # exclude unmerged jsonl files
           overwrite: true
           retention-days: 7
         if: always()
@@ -123,7 +123,6 @@ jobs:
           overwrite: true
           retention-days: 7
         if: always()
-
 
       - name: Run Vitest tests
         run: npx vitest --run

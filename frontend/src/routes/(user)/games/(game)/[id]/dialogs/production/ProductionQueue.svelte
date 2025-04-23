@@ -1,10 +1,5 @@
 <script lang="ts" module>
-	export type ProductionQueueEvent = {
-		next: void;
-		prev: void;
-		ok: void;
-		cancel: void;
-	};
+	export type ProductionQueueEvent = { next: void; prev: void; ok: void; cancel: void };
 </script>
 
 <script lang="ts">
@@ -20,7 +15,7 @@
 	import { techs } from '$lib/services/Stores';
 	import { divide, multiply } from '$lib/types/Cost';
 	import type { ProductionPlan, ProductionQueueItem } from '$lib/types/cs';
-	import { Infinite, type Cost } from '$lib/types/cs';
+	import { Infinite, MaxBuildableCap, type Cost } from '$lib/types/cs';
 	import { CommandedPlanet } from '$lib/types/Planet';
 	import { getFullName, isAuto } from '$lib/types/QueueItemType';
 	import {
@@ -65,15 +60,23 @@
 	let selectedQueueItem: ProductionQueueItem | undefined = $state();
 	let selectedQueueItemCost: Cost | undefined = $state();
 
+	// the selected queue item, or the first item in the queue if none are selected.
+	// Used for maxBuildable calcs
+	let queueItem: ProductionQueueItem | undefined = $derived(selectedQueueItem ?? queueItems[0]);
+
 	// keep track of the quantity modifier
-	let quantityModifer = $state(1);
+	let quantityModifier = $state(1);
 
 	function availableItemSelected(type: ProductionQueueItem) {
 		selectedAvailableItem = type;
 		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
 	}
 
-	function onQueueItemClicked(index: number, item?: ProductionQueueItem) {
+	function isSame(item1: ProductionQueueItem | undefined, item2: ProductionQueueItem | undefined) {
+		return item1?.type === item2?.type && item1?.designNum === item2?.designNum;
+	}
+
+	function changeSelectedItem(index: number, item?: ProductionQueueItem) {
 		selectedQueueItemIndex = index;
 		selectedQueueItem = item;
 		selectedQueueItemCost = $player.getItemCost(
@@ -96,7 +99,7 @@
 		updatedPlanet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		const planetWithEstimates = cs.estimateProduction(updatedPlanet);
 		if (!planetWithEstimates?.productionQueue) {
-			addError(new CSError(undefined, 'unable to estimate production', 0));
+			addError(new CSError(undefined, 'unable to estimate production; no queue', 0));
 			return;
 		}
 
@@ -105,7 +108,7 @@
 			Object.assign(queueItems[i], {
 				yearsToBuildOne: estimate.yearsToBuildOne,
 				yearsToBuildAll: estimate.yearsToBuildAll,
-				yearsToSkipAuto: estimate.yearsToSkipAuto
+				yearsToSkipOrCancel: estimate.yearsToSkipOrCancel
 			});
 		}
 
@@ -118,6 +121,7 @@
 			selectedQueueItem?.quantity
 		);
 
+		// update completion estimates for available items if not present
 		for (let i = 0; i < availableItems.length; i++) {
 			const item = availableItems[i];
 			if (!item.yearsToBuildOne) {
@@ -151,6 +155,9 @@
 			}
 		}
 		availableStarbaseDesigns = [...availableStarbaseDesigns];
+
+		// Enable to log production queue items on estimating
+		// JSON.stringify(queueItems, null, "\t")
 	}
 
 	function getPercentComplete(item: ProductionQueueItem): number {
@@ -165,104 +172,86 @@
 		return percent;
 	}
 
-	function addAvailableItem(item?: ProductionQueueItem) {
-		item = item ?? selectedAvailableItem;
-		if (!queueItems || !item) {
+	function maxBuild(item: ProductionQueueItem): number {
+		const m = cs.maxBuildable(planet, item.type) ?? MaxBuildableCap;
+		// m is set to MaxBuildableCap for items without a quantized "max buildable"
+		// (packets, ships and autos), so we only check the quantity of the currently selected item.
+		// Other items (like factories or mines) have definite set-in-stone caps,
+		// so we need to check everything to ensure we don't go overboard.
+		const amountInQueue =
+			m === MaxBuildableCap
+				? isSame(item, queueItem)
+					? (queueItem?.quantity ?? 0)
+					: 0
+				: planet.getAmountInQueue(item.type, queueItems);
+		return Math.max(0, m - amountInQueue);
+	}
+
+	function addAvailableItem(itemToAdd: ProductionQueueItem | undefined) {
+		if (!itemToAdd) {
 			return;
 		}
 
-		const amountInQueue = planet.getAmountInQueue(item.type, queueItems);
-		const maxBuildable = cs.maxBuildable(planet, item.type) ?? 0 - amountInQueue;
-		const quantity = clamp(quantityModifer, 0, maxBuildable);
-		if (quantity == 0) {
-			// don't add something we can't build any more of
+		const amtToAdd = clamp(quantityModifier, 0, maxBuild(itemToAdd));
+		if (amtToAdd == 0) {
+			// don't add more of this item if we can't build any more of it
 			return;
 		}
-		if (selectedQueueItem) {
-			if (selectedQueueItem.type == item?.type && selectedQueueItem.designNum == item?.designNum) {
-				selectedQueueItem.quantity += quantity;
-			} else {
-				// insert a new item
 
-				queueItems.splice(selectedQueueItemIndex + 1, 0, {
-					type: item.type,
-					quantity,
-					designNum: item.designNum,
-					allocated: {},
-					tags: {}
-				});
-				selectedQueueItemIndex++;
-				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem?.quantity
-				);
-			}
-		} else {
-			let nextItem = queueItems.length ? queueItems[0] : undefined;
-			if (nextItem && nextItem.type === item?.type && nextItem.designNum == item.designNum) {
-				nextItem.quantity++;
+		if (queueItem && isSame(itemToAdd, queueItem)) {
+			// add to existing item quantity, selecting the first queue item if none are selected
+			queueItem.quantity += amtToAdd;
+			if (selectedQueueItemIndex == -1) {
 				selectedQueueItemIndex = 0;
-				selectedQueueItem = nextItem;
-				selectedQueueItemCost = $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem?.quantity
-				);
-			} else {
-				// prepend a new queue item
-				queueItems = [
-					{
-						type: item.type,
-						designNum: item.designNum,
-						allocated: {},
-						tags: {},
-						quantity
-					},
-					...queueItems
-				];
-				selectedQueueItemIndex++;
-				selectedQueueItem = queueItems[selectedQueueItemIndex];
-				selectedQueueItemCost = $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem?.quantity
-				);
 			}
+			selectedQueueItem = queueItem;
+		} else {
+			// insert a new item at the specified offset and select it.
+			// selectedQueueItemIndex starts at -1 if nothing is selected, so
+			// index+1 will default to the start of the queue
+			queueItems.splice(selectedQueueItemIndex + 1, 0, {
+				type: itemToAdd.type,
+				quantity: amtToAdd,
+				designNum: itemToAdd.designNum,
+				allocated: {},
+				tags: {}
+			});
+			selectedQueueItemIndex++;
+			selectedQueueItem = queueItems[selectedQueueItemIndex];
 		}
 
+		selectedQueueItemCost = $player.getItemCost(
+			cs,
+			selectedQueueItem,
+			$universe,
+			planet,
+			selectedQueueItem?.quantity
+		);
 		updateQueueEstimates();
 	}
 
 	function removeItem() {
-		if (queueItems && selectedQueueItem) {
-			selectedQueueItem.quantity -= quantityModifer;
-			selectedQueueItem.quantity = Math.max(0, selectedQueueItem.quantity);
-			queueItems = queueItems;
-			if (selectedQueueItem.quantity <= 0) {
-				// select the item up in the list
-				queueItems = queueItems?.filter((item) => item != selectedQueueItem);
-				selectedQueueItem =
-					queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
-				selectedQueueItemCost = $player.getItemCost(
-					cs,
-					selectedQueueItem,
-					$universe,
-					planet,
-					selectedQueueItem?.quantity
-				);
-
-				selectedQueueItemIndex--;
-			}
-			updateQueueEstimates();
+		if (!queueItems.length || !selectedQueueItem) {
+			return;
 		}
+
+		selectedQueueItem.quantity -= Math.min(selectedQueueItem.quantity, quantityModifier);
+		queueItems = queueItems;
+		if (selectedQueueItem.quantity == 0) {
+			// select the item next in the list
+			queueItems = queueItems?.filter((item) => item != selectedQueueItem);
+			selectedQueueItem = queueItems[selectedQueueItemIndex > -1 ? selectedQueueItemIndex - 1 : 0];
+			selectedQueueItemCost = $player.getItemCost(
+				cs,
+				selectedQueueItem,
+				$universe,
+				planet,
+				selectedQueueItem?.quantity
+			);
+
+			selectedQueueItemIndex--;
+		}
+		updateQueueEstimates();
 	}
 
 	function itemUp() {
@@ -301,7 +290,7 @@
 				...concreteItems,
 				...plan.items.map((item) => ({
 					...item,
-					allocated: {}, // add some empties for type safety
+					allocated: {},
 					tags: {}
 				}))
 			];
@@ -329,6 +318,7 @@
 		planet.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
 		onOk?.(planet);
 	}
+
 	function cancel() {
 		if (planet) {
 			resetQueue();
@@ -337,37 +327,32 @@
 	}
 
 	function getCompletionDescription(item: ProductionQueueItem) {
-		const skipped =
-			isAuto(item.type) && item.yearsToBuildOne == Infinite && item.yearsToBuildAll == Infinite;
-		if (skipped) {
-			return 'Skipped';
+		if (!isAuto(item.type) && (item.yearsToSkipOrCancel ?? 0) > 0) {
+			return `canceled in ${item.yearsToSkipOrCancel} years`;
 		}
 
-		const yearsToBuildOne = item.yearsToBuildOne ?? 1;
-		const yearsToBuildAll = isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll;
-		if (yearsToBuildOne === yearsToBuildAll) {
-			if (yearsToBuildAll == 1) {
-				return '1 year';
-			}
-			if (yearsToBuildAll === Infinite) {
-				return 'never';
-			}
-			return `${yearsToBuildAll} years`;
-		}
-		if (yearsToBuildAll && yearsToBuildOne != yearsToBuildAll) {
-			if (yearsToBuildAll === Infinite) {
-				return `${yearsToBuildOne} to ???`;
-			}
-			return `${yearsToBuildOne} to ${yearsToBuildAll} years`;
+		if (item.yearsToBuildOne == Infinite) {
+			return 'skipped';
 		}
 
-		if (yearsToBuildOne == 1) {
-			return '1 year';
+		const yearsToStart = item.yearsToBuildOne ?? 1;
+		const yearsToFinish =
+			item.yearsToSkipOrCancel !== Infinite ? item.yearsToSkipOrCancel : item.yearsToBuildAll;
+		if (yearsToStart === yearsToFinish) {
+			return yearsToFinish === Infinite
+				? 'never'
+				: `${yearsToFinish} ${yearsToFinish == 1 ? 'year' : 'years'}`;
 		}
-		if (yearsToBuildOne === Infinite) {
-			return 'never';
+		if (yearsToFinish && yearsToStart != yearsToFinish) {
+			if (yearsToFinish === Infinite) {
+				return `${yearsToStart} to ???`;
+			}
+			return `${yearsToStart} to ${yearsToFinish} years`;
 		}
-		return `${yearsToBuildOne} years`;
+
+		return yearsToStart === Infinite
+			? 'never'
+			: `${yearsToStart} ${yearsToStart == 1 ? 'year' : 'years'}`;
 	}
 
 	onMount(() => {
@@ -405,13 +390,8 @@
 		);
 		availableShipDesigns = planet.getAvailableProductionQueueShipDesigns($universe.designs);
 		availableStarbaseDesigns = planet.getAvailableProductionQueueStarbaseDesigns($universe.designs);
-		if (availableShipDesigns.length > 0) {
-			selectedAvailableItem = availableShipDesigns[0];
-		} else if (availableStarbaseDesigns.length > 0) {
-			selectedAvailableItem = availableStarbaseDesigns[0];
-		} else if (availableItems.length > 0) {
-			selectedAvailableItem = availableItems[0];
-		}
+		selectedAvailableItem =
+			availableShipDesigns[0] ?? availableStarbaseDesigns[0] ?? availableItems[0];
 		selectedAvailableItemCost = $player.getItemCost(cs, selectedAvailableItem, $universe, planet);
 		contributesOnlyLeftoverToResearch = planet.contributesOnlyLeftoverToResearch ?? false;
 		updateQueueEstimates();
@@ -430,29 +410,23 @@
 			<div class="flex flex-row h-full w-full grid-cols-3">
 				<div class="flex-1 h-full bg-base-100 py-1 px-1">
 					<div class="flex flex-col h-full">
+						<!-- Display queue item lines for ships, starbases and structures able to be built-->
 						<ul class="grow h-20 overflow-y-auto">
 							{#if availableShipDesigns.length > 0}
 								<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
 									Ships
 								</li>
-								{#each availableShipDesigns as item}
+								{#each availableShipDesigns as item, index}
 									<li>
-										<button
-											type="button"
-											onclick={() => availableItemSelected(item)}
-											ondblclick={() => addAvailableItem(item)}
-											oncontextmenu={(e) =>
-												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
-											class:italic={isAuto(item.type)}
-											class:bg-primary={item === selectedAvailableItem}
-											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
-											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
-											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
-									{isAuto(item.type) ? ' italic' : ''}"
-										>
-											{getFullName(item, $universe)}
-										</button>
+										<ProductionQueueItemLine
+											{item}
+											{index}
+											selected={item === selectedAvailableItem}
+											availableItem={true}
+											maxBuildable={maxBuild(item)}
+											onQueueItemClicked={() => availableItemSelected(item)}
+											onQueueItemDoubleClicked={() => addAvailableItem(item)}
+										/>
 									</li>
 								{/each}
 							{/if}
@@ -461,45 +435,40 @@
 								<li class="font-semibold text-secondary text-lg border-b border-b-secondary my-0.5">
 									Starbases
 								</li>
-								{#each availableStarbaseDesigns as item}
+								{#each availableStarbaseDesigns as item, index}
 									<li>
-										<button
-											type="button"
-											onclick={() => availableItemSelected(item)}
-											ondblclick={() => addAvailableItem(item)}
-											oncontextmenu={(e) =>
-												onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
-											class:italic={isAuto(item.type)}
-											class:bg-primary={item === selectedAvailableItem}
-											class:text-queue-item-this-year={(item.yearsToBuildOne ?? 0) == 1}
-											class:text-queue-item-next-year={(item.yearsToBuildOne ?? 0) == 2}
-											class:text-queue-item-never={(item.yearsToBuildOne ?? 0) == Infinite}
-											class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
-									{isAuto(item.type) ? ' italic' : ''}"
-										>
-											{getFullName(item, $universe)}
-										</button>
+										<ProductionQueueItemLine
+											{item}
+											{index}
+											selected={item === selectedAvailableItem}
+											availableItem={true}
+											maxBuildable={maxBuild(item)}
+											onQueueItemClicked={() => availableItemSelected(item)}
+											onQueueItemDoubleClicked={() => addAvailableItem(item)}
+										/>
 									</li>
 								{/each}
 							{/if}
-							<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
-								Planetary Structures
-							</li>
-							{#each availableItems as item}
-								<li>
-									<button
-										type="button"
-										onclick={() => availableItemSelected(item)}
-										ondblclick={() => addAvailableItem(item)}
-										class:italic={isAuto(item.type)}
-										class:bg-primary={item === selectedAvailableItem}
-										class="w-full pl-0.5 text-left cursor-default select-none hover:text-secondary-focus }
-									{isAuto(item.type) ? ' italic' : ''}"
-									>
-										{getFullName(item, $universe)}
-									</button>
+
+							{#if availableItems.length > 0}
+								<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
+									Planetary Structures
 								</li>
-							{/each}
+
+								{#each availableItems as item, index}
+									<li>
+										<ProductionQueueItemLine
+											{item}
+											{index}
+											selected={item === selectedAvailableItem}
+											availableItem={true}
+											maxBuildable={maxBuild(item)}
+											onQueueItemClicked={() => availableItemSelected(item)}
+											onQueueItemDoubleClicked={() => addAvailableItem(item)}
+										/>
+									</li>
+								{/each}
+							{/if}
 						</ul>
 						<div class="divider"></div>
 						<div class="h-32">
@@ -534,7 +503,7 @@
 				<div class="flex-none h-full mx-0.5 md:w-34 px-1">
 					<div class="flex-row flex-none gap-y-2">
 						<button
-							onclick={() => addAvailableItem()}
+							onclick={() => addAvailableItem(selectedAvailableItem)}
 							class="btn btn-outline btn-sm normal-case btn-secondary block w-full"
 							><span class="hidden sm:inline">Add </span><Icon
 								src={ArrowLongRight}
@@ -594,17 +563,19 @@
 							{/each}
 						</select>
 						<div class="flex flex-col sm:flex-row justify-between mt-2 gap-1 mx-1">
-							<QuantityModifierButtons bind:modifier={quantityModifer} />
+							<QuantityModifierButtons bind:modifier={quantityModifier} />
 						</div>
 					</div>
 				</div>
+				<!-- display items already in queue, with single click set to select them
+				and double click set to remove -->
 				<div class="flex-1 h-full bg-base-100 py-1">
 					<div class="flex flex-col h-full">
 						<ul class="grow h-20 overflow-y-auto">
 							<li>
 								<button
 									type="button"
-									onclick={() => onQueueItemClicked(-1)}
+									onclick={() => changeSelectedItem(-1)}
 									class:bg-primary={selectedQueueItemIndex === -1}
 									class="w-full pl-1 select-none cursor-default hover:text-secondary-focus"
 								>
@@ -617,7 +588,8 @@
 										<ProductionQueueItemLine
 											item={queueItem}
 											{index}
-											{onQueueItemClicked}
+											onQueueItemClicked={changeSelectedItem}
+											onQueueItemDoubleClicked={removeItem}
 											selected={queueItem === selectedQueueItem}
 										/>
 									</li>

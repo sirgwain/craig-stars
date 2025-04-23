@@ -5,7 +5,7 @@ import type { TechStore } from '$lib/types/cs';
 import techjson from '$lib/ssr/techs.json';
 
 describe('Terraformer test', () => {
-	const techStore = techjson as TechStore;
+	const techStore = techjson as unknown as TechStore;
 
 	it('getTerraformAmount - no ability', () => {
 		const player = new CommandedPlayer();

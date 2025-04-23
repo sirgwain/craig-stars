@@ -101,15 +101,15 @@ func TestGenerateUniverse(t *testing.T) {
 		assert.Equal(t, homeworld.Mines, homeworld.Spec.MaxPossibleMines)
 
 		// make sure all the fleet specs are ok - costs/scanner ranges are all as they should be
+		c := NewCostCalculator(&rules, player.TechLevels, &player.Race.Spec)
 		for _, fleet := range pmo.Fleets {
 			assert.NotNil(t, fleet)
-			c := NewCostCalculator()
 			design := fleet.Tokens[0].design
 			hull := rules.techs.GetHull(design.Hull)
 			design.Spec.computeScanRanges(&rules, player.Race.Spec.ScannerSpec, player.TechLevels, design, hull) // updates design scanrange but not fleet scan range
 			assert.Equal(t, design.Spec.ScanRange, fleet.Spec.ScanRange)
 			assert.Equal(t, design.Spec.ScanRangePen, fleet.Spec.ScanRangePen)
-			calcCost, err := c.GetDesignCost(&rules, player.TechLevels, player.Race.Spec, design)
+			calcCost, err := c.GetDesignCost(design)
 			assert.NoError(t, err)
 			assert.Equal(t, calcCost, design.Spec.Cost)
 		}

@@ -38,9 +38,10 @@ func (ug *universeGenerator) Area() Vector {
 	return ug.area
 }
 
-// Generate a new universe using a UniverseGenerator
+// Generate a new universe from a preset template.
+// Used for unit tests with custom universes
 func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
-	ug.log.Debug().Msgf("%s: Generating universe", ug.Size)
+	ug.log.Debug().Msgf("%s: Generating universe from template", ug.Size)
 
 	var err error
 	for _, player := range ug.Players {
@@ -105,7 +106,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 	return nil
 }
 
-// Generate a new universe using a UniverseGenerator
+// Generate a new universe from scratch.
 func (ug *universeGenerator) Generate() (*Universe, error) {
 	ug.log.Debug().Msgf("%s: Generating universe", ug.Size)
 
@@ -581,10 +582,10 @@ func (ug *universeGenerator) buildStarbase(player *Player, planet *Planet, desig
 	design.Spec.NumBuilt++
 	design.Spec.NumInstances++
 	starbase := newStarbase(player, planet, design, design.Name)
-	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, &starbase)
-	planet.setStarbase(&starbase)
+	starbase.Spec = ComputeFleetSpec(&ug.Rules, player, starbase)
+	planet.setStarbase(starbase)
 
-	ug.Universe.Starbases = append(ug.Universe.Starbases, &starbase)
+	ug.Universe.Starbases = append(ug.Universe.Starbases, starbase)
 
 	return nil
 }
@@ -598,12 +599,12 @@ func (ug *universeGenerator) generatePlayerFleets(player *Player, planet *Planet
 		}
 		fleet := newFleetForDesign(player, design, 1, *fleetNum, startingFleet.Name, []Waypoint{NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, design.Spec.Engine.IdealSpeed)})
 		fleet.OrbitingPlanetNum = planet.Num
-		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, &fleet)
+		fleet.Spec = ComputeFleetSpec(&ug.Rules, player, fleet)
 		fleet.Fuel = fleet.Spec.FuelCapacity
 		fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 		purpose := FleetPurposeFromShipDesignPurpose(design.Purpose)
 		fleet.SetTag(TagPurpose, string(purpose))
-		ug.Universe.Fleets = append(ug.Universe.Fleets, &fleet)
+		ug.Universe.Fleets = append(ug.Universe.Fleets, fleet)
 		design.Spec.NumInstances++
 		design.Spec.NumBuilt++
 		(*fleetNum)++ // increment fleet num

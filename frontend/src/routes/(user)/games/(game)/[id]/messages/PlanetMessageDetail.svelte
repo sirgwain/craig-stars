@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { andCommaList } from '$lib/andCommaList';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { totalMinerals } from '$lib/types/Cost';
 	import { absSum } from '$lib/types/Hab';
+	import { getSingularName, getPluralName } from '$lib/types/QueueItemType';
 	import type { PlanetIntel, PlayerIntel } from '$lib/types/cs';
 	import {
 		CometHuge,
@@ -23,6 +25,7 @@
 		PlayerMessagePlanetBuiltMineralAlchemy,
 		PlayerMessagePlanetBuiltScanner,
 		PlayerMessagePlanetBuiltStarbase,
+		PlayerMessagePlanetBuiltStarbaseCanceled,
 		PlayerMessagePlanetCometStrike,
 		PlayerMessagePlanetCometStrikeMyPlanet,
 		PlayerMessagePlanetDiedOff,
@@ -54,7 +57,35 @@
 
 	let { message, planet, owner }: Props = $props();
 
-	let growthRate = $derived($player.race.growthRate * ($player.race.spec?.growthFactor ?? 0));
+	let growthRate = $derived($player.race.growthRate * ($player.race.spec?.growthFactor ?? 1));
+	let canceledMessage = $derived.by(() => {
+		if (!message.spec.cost) {
+			return '';
+		}
+		return (
+			' and you have been refunded' +
+			andCommaList([
+				(message.spec.cost.ironium ?? 0) > 0 ? `${message.spec.cost.ironium}kT pf Ironium` : '',
+				(message.spec.cost.boranium ?? 0) > 0 ? `${message.spec.cost.boranium}kT of Boranium` : '',
+				(message.spec.cost.germanium ?? 0) > 0
+					? `${message.spec.cost.germanium}kT of Germanium`
+					: '',
+				(message.spec.cost.resources ?? 0) > 0 ? `${message.spec.cost.resources} resources` : ''
+			])
+		);
+	});
+
+	let multiFleetName = $derived.by(() => {
+		const invasion = message.spec.invasion;
+		if (!invasion || invasion.fleetName) {
+			return '';
+		}
+
+		return (
+			(!invasion.numFleets ? 'Some number of ' : `A total of ${invasion.numFleets} `) +
+			`${$universe.getPlayerName(invasion.attackerPlayerNum)} fleets`
+		);
+	});
 </script>
 
 {#if message.text}
@@ -65,8 +96,8 @@
 {:else if message.type === PlayerMessagePlanetBombed}
 	{@const bombing = message.spec.bombing}
 	{#if bombing}
-		{$universe.getPlayerPluralName(message.spec.targetPlayerNum)}
-		{message.spec.targetName} has bombed your planet {planet.name}
+		{$universe.getPlayerName(message.spec.targetPlayerNum)}
+		{message.spec.targetName} has bombed {planet.name},
 		{#if message.spec.bombing?.planetEmptied}
 			killing off all its colonists.
 		{:else}
@@ -78,16 +109,10 @@
 				{bombing.factoriesDestroyed ?? 0} factories and {bombing.defensesDestroyed ?? 0} defenses.
 			{/if}
 
-			{#if absSum(bombing.unterraformAmount ?? {}) > 0}
-				{#if bombing.numBombers ?? 0 > 1}
-					The bombers have also retro-bombed the planet, undoing {absSum(
-						bombing.unterraformAmount ?? {}
-					)}% of its terraforming.
-				{:else}
-					The bomber has also retro-bombed the planet, undoing {absSum(
-						bombing.unterraformAmount ?? {}
-					)}% of its terraforming.
-				{/if}
+			{#if absSum(bombing.unterraformAmount) > 0}
+				{bombing.numBombers === 1 ? 'The bomber has ' : 'The bombers have '}
+				also retro-bombed the planet, undoing{absSum(bombing.unterraformAmount)}% of its
+				terraforming.
 			{/if}
 		{/if}
 	{:else}
@@ -123,20 +148,85 @@
 		You have built {message.spec.amount ?? 0} mines on {planet.name}.
 	{/if}
 {:else if message.type === PlayerMessagePlanetBuiltInvalidItem}
-	You have attempted to build a {message.spec.queueItemType?.toLowerCase()} on {planet.name}, but {planet.name}
-	is unable to build any of these. The order has been canceled.
+	{@const itemName =
+		message.spec.prevAmount === 1
+			? getSingularName(message.spec.queueItemType!)
+			: getPluralName(message.spec.queueItemType!)}
+
+	{@const qty =
+		message.spec.prevAmount === 1
+			? ['a', 'e', 'i', 'o', 'u'].includes(itemName.charAt(0))
+				? 'an'
+				: 'a'
+			: (message.spec.prevAmount ?? 0).toLocaleString()}
+	You have attempted to build {qty}
+	{itemName} on {planet.name}, but {planet.name}
+	{#if message.spec.amount2 === 0}
+		is unable to build any more of them. All
+	{:else}
+		can only build {(message.spec.amount2 ?? 0).toLocaleString()} more of them. The remaining
+	{/if}
+	{(message.spec.amount ?? 0).toLocaleString()} items have been canceled{canceledMessage}.
 {:else if message.type === PlayerMessagePlanetBuiltInvalidMineralPacketNoMassDriver}
-	You have attempted to build a mineral packet on {planet.name}, but you have no starbase equipped
-	with a mass driver on this planet. The order has been canceled.
+	{@const itemName = message.spec.queueItemType
+		? message.spec.prevAmount === 1
+			? getSingularName(message.spec.queueItemType)
+			: getPluralName(message.spec.queueItemType)
+		: (message.spec.prevAmount ?? 0) > 1
+			? 'mineral packets'
+			: 'NEGATIVE PACKET QUANTITY AAAAAAAAAAAAAA'}
+	<!-- QueueItemType is unset if 2 or more different packet types are canceled in the same year.
+		message.spec.prevAmount tracks initial item quantity, so it being below 1 without a
+		QueueItemType means we just tried to build 0 or less packets. -->
+	{@const qty = message.spec.queueItemType
+		? 'a ' + (message.spec.amount ?? 0) + 'kT'
+		: (message.spec.amount ?? 0) + 'kT worth of'}
+	You have attempted to build {qty}
+	{itemName} on {planet.name}, but you have no starbase equipped with a mass driver on this planet
+	to fling it with.
+	{#if message.spec.queueItemType || message.spec.amount2 === 1}
+		The order has been canceled
+	{:else}
+		All {message.spec.amount2 ?? 0} orders have been canceled
+	{/if}
+	{canceledMessage}.
 {:else if message.type === PlayerMessagePlanetBuiltInvalidMineralPacketNoTarget}
-	You have attempted to build a mineral packet on {planet.name}, but you have failed to specify a
-	planet to target. The order has been canceled.
+	{@const itemName = message.spec.queueItemType
+		? message.spec.prevAmount === 1
+			? getSingularName(message.spec.queueItemType)
+			: getPluralName(message.spec.queueItemType)
+		: (message.spec.prevAmount ?? 0) > 1
+			? 'mineral packets'
+			: 'NEGATIVE PACKET QTY WARNING - REPORT THIS'}
+	<!-- QueueItemType is null if 2 or more different types of packets were canceled,
+	  which requires at least 2 invalid packets to be in the queue to begin with.
+		message.spec.prevAmount tracks initial item quantity, so it being below 1
+		means we tried to build 0 or less packets. -->
+	{@const qty = message.spec.queueItemType
+		? 'a ' + (message.spec.amount ?? 0) + 'kT'
+		: (message.spec.amount ?? 0) + 'kT worth of'}
+	You have attempted to build {qty}
+	{itemName} on {planet.name}, but you have failed to specify a planet to target.
+	{#if message.spec.amount2 === 1}
+		The order has been canceled
+	{:else}
+		All {message.spec.amount2 ?? 0} orders have been canceled
+	{/if}
+	{canceledMessage}.
+{:else if message.type === PlayerMessagePlanetBuiltStarbaseCanceled}
+	<!-- Similar to the packet canceled messages, prevName is null if 2 or more bases are canceled -->
+	{@const baseName = message.spec.prevName
+		? `a new ${message.spec.prevName}`
+		: `${message.spec.amount?.toLocaleString()} new starbases`}
+	Your engineers on {planet.name} were ordered to build ${baseName}, but realized they already had
+	another ${message.spec.name} later on in the queue. The
+	{message.spec.prevName ? 'order has' : 'orders have'} been canceled{canceledMessage}.
 {:else if message.type === PlayerMessagePlanetBuiltScanner}
 	{planet.name} has built a new {message.spec.name} planetary scanner.
 {:else if message.type === PlayerMessagePlanetBuiltStarbase}
 	{planet.name} has built a new {message.spec.name}.
 	{#if planet.spec.dockCapacity == UnlimitedSpaceDock}
-		Ships of any size can now be built here.
+		Ships of any size can now be built at this facility.
 	{:else if (planet.spec.dockCapacity ?? 0) > 0}
 		Ships up to {planet.spec.dockCapacity}kT in mass can now be built at this facility.
 	{/if}
@@ -160,7 +250,7 @@
 		A small comet has crashed into your planet {planet.name}, killing {(
 			message.spec.comet?.colonistsKilled ?? 0
 		).toLocaleString()} of your colonists. The comet brought additional minerals and has slightly altered
-		the planet's habitat.
+		the planet's environment.
 	{:else if message.spec.comet?.size == CometMedium}
 		A medium-sized comet has crashed into your planet {planet.name}, killing {(
 			message.spec.comet?.colonistsKilled ?? 0
@@ -177,7 +267,10 @@
 		).toLocaleString()} of your colonists. The comet has embedded vast stores of minerals and drastically
 		altered the planet's environment.
 	{:else}
-		A comet has crashed into {planet.name} bringing new minerals and altering the planet's environment.
+		A comet has crashed into your planet {planet.name}, killing {(
+			message.spec.comet?.colonistsKilled ?? 0
+		).toLocaleString()} of your colonists. The comet brought additional minerals and has altered the
+		planet's environment.
 	{/if}
 {:else if message.type === PlayerMessagePlanetDiedOff}
 	{#if $player.race.spec?.livesOnStarbases}
@@ -186,7 +279,7 @@
 	{:else}
 		All of your colonists on {planet.name} have died off. You no longer control the planet.
 	{/if}
-{:else if [PlayerMessagePlanetDiscovery, PlayerMessagePlanetDiscoveryHabitable, PlayerMessagePlanetDiscoveryTerraformable, PlayerMessagePlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
+{:else if [PlayerMessagePlanetDiscovery, PlayerMessagePlanetDiscoveryHabitable, PlayerMessagePlanetDiscoveryTerraformable, PlayerMessagePlanetDiscoveryUninhabitable].includes(message.type)}
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}.
 	{:else if $player.race.spec?.instaforming && ((planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0) || (planet.spec.habitability && planet.spec.habitability > 0))}
@@ -224,14 +317,15 @@
 	{@const invasion = message.spec.invasion}
 	{#if invasion}
 		{#if invasion.successful}
-			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} have successfully wrested
+			Your troops beaming down from {invasion.fleetName ?? multiFleetName} have successfully wrested
 			{planet.name}
 			from {$universe.getPlayerName(invasion.defenderPlayerNum)} control, killing off all their colonists
-			with only {invasion.attackersKilled} causalties.
+			with only {invasion.attackersKilled.toLocaleString()} causalties.
 		{:else}
-			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} tried to invade {planet.name},
-			but all of them were massacred by the {$universe.getPlayerName(invasion.defenderPlayerNum)}.
-			Your valiant fighters managed to kill {invasion.defendersKilled} of their colonists in return.
+			Your troops beaming down from {invasion.fleetName ?? multiFleetName} tried to invade {planet.name},
+			but were massacred by the {$universe.getPlayerPluralName(invasion.defenderPlayerNum)}. Your
+			valiant fighters managed to kill {invasion.defendersKilled.toLocaleString()} of their colonists
+			before being wiped out.
 		{/if}
 	{:else}
 		{planet.name} was invaded, but your spies no nothing of the outcome.
@@ -239,18 +333,17 @@
 {:else if message.type === PlayerMessagePlanetInvaded}
 	{@const invasion = message.spec.invasion}
 	{#if invasion}
+		{@const fleetName =
+			$universe.getPlayerName(invasion.attackerPlayerNum) + (invasion.fleetName ?? multiFleetName)}
 		{#if invasion.successful}
-			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ??
-				'multiple fleets'} have successfully invaded {planet.name} and wrested it from your control.
-			Your colonists managed to defeat {invasion.attackersKilled} of their invaders before being overrun.
-			Your troops beaming down from {invasion.fleetName ?? 'multiple fleets'} have successfully wrested
+			{fleetName} successfully invaded {planet.name} and wrested it from your control. Your colonists
+			managed to defeat {invasion.attackersKilled.toLocaleString()} of their invaders before being overrun.
 		{:else}
-			{$universe.getPlayerName(invasion.attackerPlayerNum)}'s {invasion.fleetName ??
-				'multiple fleets'} tried to invade {planet.name}, but your troops were able to fend them
-			off. You lost {invasion.defendersKilled} colonists in the process.
+			{fleetName} tried to invade {planet.name}, but your troops were able to fend them off. You
+			lost {invasion.defendersKilled.toLocaleString()} colonists in the process.
 		{/if}
 	{:else}
-		{planet.name} was invaded, but your spies no nothing of the outcome.
+		{planet.name} was invaded, but your spies know nothing of the outcome.
 	{/if}
 {:else if message.type === PlayerMessagePlanetPopulationDecreasedOvercrowding}
 	The population on {planet.name} has decreased by {(-(message.spec.amount ?? 0)).toLocaleString()} colonists
@@ -277,7 +370,7 @@
 	In the process of {message.spec.name} being scrapped above {planet.name}, you have gained a level
 	in {message.spec.field}.
 {:else if message.type === PlayerMessagePlayerAcquirablePartGainedScrapFleet}
-	In the process of {message.spec.name} being scrapped above {planet.name}, you have learned to
+	In the process of {message.spec.name} being scrapped above {planet.name}, you have learned how to
 	build {message.spec.techGained}.
 {:else if message.type === PlayerMessagePlayerTechLevelGainedBattle}
 	Wreckage from the battle that occurred in orbit of {planet.name} has boosted your research in {message

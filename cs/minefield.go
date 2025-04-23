@@ -82,7 +82,7 @@ func computeMinefieldSpec(rules *Rules, player *Player, mineField *MineField, nu
 	return spec
 }
 
-func newMineField(player *Player, mineFieldType MineFieldType, numMines int, num int, position Vector) *MineField {
+func newMineField(player *Player, mineFieldType MineFieldType, numMines, num int, position Vector) *MineField {
 	return &MineField{
 		MapObject: MapObject{
 			Type:      MapObjectTypeMineField,

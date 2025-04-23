@@ -3,6 +3,8 @@ package cs
 import (
 	"log"
 	"time"
+
+	zlog "github.com/rs/zerolog/log"
 )
 
 type gamer struct {
@@ -83,7 +85,12 @@ func (c *gamer) CheckAllPlayersSubmitted(players []*Player) bool {
 // generate a new turn for this game
 func (c *gamer) GenerateTurn(game *Game, universe *Universe, players []*Player) error {
 	defer timeTrack(time.Now(), "GenerateTurn")
-	turnGenerator := newTurnGenerator(&FullGame{game, universe, game.Rules.techs, players})
+	turnGenerator := newTurnGenerator(&FullGame{
+		Game:      game,
+		Universe:  universe,
+		TechStore: game.Rules.techs,
+		Players:   players,
+	}, zlog.Logger)
 	return turnGenerator.generateTurn()
 }
 

@@ -9,17 +9,19 @@ import (
 )
 
 // ByHandCargoTransfers are any cargo transfers performed by the player in the UI that need to be
-// processed when a turn is generated. It is per fleet for a target. When a fleet is split or merged
-// its by hand transfers are also split and merged.
+// processed when a turn is generated.
+// They are stored on a per-fleet, per-target basis. Splitting or merging a fleet
+// will split any by hand transfers belonging to it likewise.
 type ByHandCargoTransfer struct {
 	MapObjectTarget `tstype:",extends"`
 	SourceFleetNum  int   `json:"sourceFleetNum,omitempty"`
 	Cargo           Cargo `json:"cargo"`
 }
 
-// CargoTransfers are per player ByHandCargoTransfers per location on the map. This makes processing
-// easier so we can account for transfers to/from a target and then between fleets at that location
-// The ByHandCargoTransfers are stored and processed in order they are made by the player
+// CargoTransfers is a record of ByHandCargoTransfers for a given player per location on the map.
+// This aids in processing as we can check simultaneously check transfers to/from a target
+// and between fleets at each location.
+// All ByHandCargoTransfers are stored and processed in the order they are made by the player.
 type CargoTransfers map[string][]ByHandCargoTransfer
 
 type cargoTransferer struct {
@@ -28,7 +30,8 @@ type cargoTransferer struct {
 	game    *FullGame
 }
 
-// CargoTransferStatus will alert the user if a CargoTransfer didn't go through due to insufficient capacity or available cargo
+// CargoTransferStatus records the reason for a CargoTransfer failing to execute.
+// These are collated and sent to the user in the event of failure.
 type CargoTransferStatus int
 
 const (
@@ -42,8 +45,8 @@ const (
 	CargoTransferStatusDestStarbase
 )
 
-func (r CargoTransferStatus) String() string {
-	switch r {
+func (status CargoTransferStatus) String() string {
+	switch status {
 	case CargoTransferStatusNone:
 		return "None"
 	case CargoTransferStatusOwned:
@@ -59,13 +62,13 @@ func (r CargoTransferStatus) String() string {
 	case CargoTransferStatusDestStarbase:
 		return "Destination Has Starbase"
 	default:
-		return fmt.Sprintf("Unknown %d", r)
+		return fmt.Sprintf("Unknown %d", status)
 	}
 }
 
-// cargoTransferResult is the result of a single CargoType cargo transfer to a dest
+// cargoTransferResult is the result of a single CargoType cargo transfer to a destination
 type cargoTransferResult struct {
-	status         CargoTransferStatus // if transfer fails, this is the reason
+	status         CargoTransferStatus // reason for transfer failure, if any
 	fleet          *Fleet
 	dest           CargoHolder
 	cargoType      CargoType
@@ -82,14 +85,13 @@ func (cargoTransfers CargoTransfers) getTransfers(position Vector) []ByHandCargo
 	return cargoTransfers[position.String()]
 }
 
-// getByHandTransfer sums all cargo load/unloads for this position to determine the total amount of by hand cargo here
-func (cargoTransfers CargoTransfers) getByHandTransfer(target MapObjectTarget) Cargo {
-	cargo := Cargo{}
+// getByHandTransfer sums all cargo load/unloads for this position to determine the total amount of by hand cargos
+func (cargoTransfers CargoTransfers) getByHandTransfer(target MapObjectTarget) (cargo Cargo) {
 	if cargoTransfers == nil {
 		return cargo
 	}
-	key := target.TargetPosition.String()
 
+	key := target.TargetPosition.String()
 	for _, transfer := range cargoTransfers[key] {
 		if transfer.MapObjectTarget != target {
 			continue
@@ -127,7 +129,7 @@ func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObje
 
 // splitByHandTransfers splits the ByHandCargoTransfers for a source fleet into two
 // ByHandCargoTransfers, based on capacity of each fleet
-func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *Fleet) error {
+func (cargoTransfers CargoTransfers) splitByHandTransfers(source, dest *Fleet) error {
 	key := source.Position.String()
 	transfers, ok := cargoTransfers[key]
 	if !ok {
@@ -160,7 +162,7 @@ func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *F
 			dest.Spec.CargoCapacity,
 			sourceCargo[:]...)
 		if err != nil {
-			return err
+			return fmt.Errorf("error transferring cargo: %w", err)
 		}
 		// copy this transfer into two transfers
 		transfer1 := transfer
@@ -645,7 +647,7 @@ func (t *cargoTransferer) transferCargo(fleet *Fleet, transferAmount int, cargoT
 }
 
 // getTransferAmount gets the amount of cargo to transfer for loading a cargo type from a cargoholder
-func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
+func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount, wantToTransfer int, waitAtWaypoint bool) {
 	availableCapacity := fleet.Spec.CargoCapacity - fleet.Cargo.Total()
 	availableToLoad := dest.GetCargo().GetAmount(cargoType)
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
@@ -661,31 +663,35 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 
 	switch task.Action {
 	case TransportActionLoadOptimal:
-		// fuel only
-		// we set our fuel to whatever it takes to finish our waypoints and transfer the rest to the ICargoHolder target.
-		// If the target is a planet or starbase (and has infinite fuel capacity), we skip this and don't give them our fuel
-		if cargoType == Fuel && dest.GetFuelCapacity() != Infinite {
-			fuelRequiredForWaypoints := 0
-			for i := 1; i < len(fleet.Waypoints); i++ {
-				fuelRequiredForWaypoints += fleet.Waypoints[i].EstFuelUsage
-			}
-			leftoverFuel := fleet.Fuel - fuelRequiredForWaypoints
-			wantToTransfer = leftoverFuel
-			fuelCapacityAvailable := dest.GetFuelCapacity() - dest.GetFuel()
-			if leftoverFuel > 0 && fuelCapacityAvailable > 0 {
-				// transfer the lowest of how much fuel capacity they have available or how much we can give
-				// this is a bit weird because we are doing a "Load", but it's actually an unload of fuel
-				// from us to a dest fleet, so make the transferAmount negative.
-				transferAmount = max(-leftoverFuel, -(dest.GetFuelCapacity() - dest.GetFuel()))
-			}
+		// fuel only; we set our fuel to whatever it takes to finish our waypoints,
+		// loading or unloading the difference to/from our target.
+		if cargoType != Fuel || dest.GetFuelCapacity() == Infinite {
+			// If the target is a planet or starbase (and has infinite fuel capacity),
+			// don't give them our fuel (since we refuel there later on anyways)
+			break
 		}
+
+		fuelRequiredForWaypoints := 0
+		for i := 1; i < len(fleet.Waypoints); i++ {
+			fuelRequiredForWaypoints += fleet.Waypoints[i].EstFuelUsage
+		}
+		leftoverFuel := fleet.Fuel - fuelRequiredForWaypoints
+		wantToTransfer = leftoverFuel
+		fuelCapacityAvailable := dest.GetFuelCapacity() - dest.GetFuel()
+		if leftoverFuel > 0 && fuelCapacityAvailable > 0 {
+			// transfer however much we can give, up to the amount they can carry
+			// this is a bit weird because we are doing a "Load", but it's actually an unload of fuel
+			// from us to a dest fleet, so make the transferAmount negative.
+			transferAmount = max(-leftoverFuel, -(dest.GetFuelCapacity() - dest.GetFuel()))
+		}
+
 	case TransportActionLoadAll:
 		// load all available, based on our constraints
 		wantToTransfer = availableToLoad
 		transferAmount = min(availableToLoad, availableCapacity)
 	case TransportActionLoadAmount:
 		wantToTransfer = task.Amount
-		transferAmount = min(min(availableToLoad, task.Amount), availableCapacity)
+		transferAmount = min(availableToLoad, task.Amount, availableCapacity)
 	case TransportActionWaitForPercent, TransportActionFillPercent:
 		// we want a percent of our hold to be filled with some amount, figure out how
 		// much that is in kT, i.e. 50% of 100kT would be 50kT of this mineral
@@ -700,7 +706,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 			// transfer up to our percent specified
 			// wait here if we haven't loaded the amount we want
 			// but move on if we are out of cargo space (in case the user suffers from innumeracy and said they wanted 50% 50% 50%)
-			transferAmount = min(min(availableToLoad, taskAmountkT-currentAmount), availableCapacity)
+			transferAmount = min(availableToLoad, taskAmountkT-currentAmount, availableCapacity)
 			if (transferAmount+currentAmount) < taskAmountkT && task.Action == TransportActionWaitForPercent && (availableCapacity-transferAmount) > 0 {
 				waitAtWaypoint = true
 			}
@@ -708,7 +714,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 	case TransportActionSetAmountTo:
 		// only transfer the min of what we have, vs what we need, vs the capacity
 		wantToTransfer = max(0, task.Amount-currentAmount)
-		transferAmount = max(0, min(min(availableToLoad, task.Amount-currentAmount), availableCapacity))
+		transferAmount = max(0, min(availableToLoad, task.Amount-currentAmount, availableCapacity))
 		if transferAmount < (task.Amount - currentAmount) {
 			waitAtWaypoint = true
 		}
@@ -721,7 +727,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 		} else {
 			wantToTransfer = availableToLoad - task.Amount
 			// only transfer down to what we set
-			transferAmount = min(min(availableToLoad, availableToLoad-task.Amount), availableCapacity)
+			transferAmount = min(availableToLoad, availableToLoad-task.Amount, availableCapacity)
 		}
 
 	case TransportActionLoadDunnage:
@@ -739,7 +745,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 }
 
 // getCargoUnloadAmount gets the amount of cargo to transfer for unloading a cargo type from a cargoholder
-func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
+func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount, wantToTransfer int, waitAtWaypoint bool) {
 
 	capacity := dest.GetCargoCapacity()
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
@@ -767,7 +773,7 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 		if capacity == Infinite {
 			transferAmount = min(availableToUnload, task.Amount)
 		} else {
-			transferAmount = min(min(availableToUnload, task.Amount), capacity)
+			transferAmount = min(availableToUnload, task.Amount, capacity)
 		}
 	case TransportActionSetAmountTo:
 		// set the amount in our hold to amount, or do nothing if we have under that amount
@@ -781,12 +787,12 @@ func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, c
 			// no need to transfer any, move on
 			break
 		} else {
-			// only transfer the min of what we have, vs what we need, vs the capacity
+			// only transfer the min of what we have vs what we need vs the capacity
 			wantToTransfer = task.Amount - currentAmount
 			if capacity == Infinite {
 				transferAmount = min(availableToUnload, task.Amount-currentAmount)
 			} else {
-				transferAmount = min(min(availableToUnload, task.Amount-currentAmount), capacity)
+				transferAmount = min(availableToUnload, task.Amount-currentAmount, capacity)
 			}
 		}
 	}

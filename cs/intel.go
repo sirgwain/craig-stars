@@ -180,7 +180,7 @@ type ScoreIntel struct {
 }
 
 // create a new FleetIntel object by key
-func newFleetIntel(playerNum int, num int) *FleetIntel {
+func newFleetIntel(playerNum, num int) *FleetIntel {
 	return &FleetIntel{
 		MapObject: MapObject{
 			Type:      MapObjectTypeFleet,
@@ -201,7 +201,7 @@ func newWormholeIntel(num int) *WormholeIntel {
 }
 
 // create a new SalvageIntel object by key
-func newSalvageIntel(playerNum int, num int) *SalvageIntel {
+func newSalvageIntel(playerNum, num int) *SalvageIntel {
 	return &SalvageIntel{
 		MapObject: MapObject{
 			Type:      MapObjectTypeSalvage,
@@ -212,7 +212,7 @@ func newSalvageIntel(playerNum int, num int) *SalvageIntel {
 }
 
 // create a new MineFieldIntel object by key
-func newMineFieldIntel(playerNum int, num int) *MineFieldIntel {
+func newMineFieldIntel(playerNum, num int) *MineFieldIntel {
 	return &MineFieldIntel{
 		MapObject: MapObject{
 			Type:      MapObjectTypeMineField,
@@ -223,7 +223,7 @@ func newMineFieldIntel(playerNum int, num int) *MineFieldIntel {
 }
 
 // create a new MineralPacketIntel object by key
-func newMineralPacketIntel(playerNum int, num int) *MineralPacketIntel {
+func newMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
 	return &MineralPacketIntel{
 		MapObject: MapObject{
 			Type:      MapObjectTypeMineralPacket,

@@ -123,7 +123,7 @@ func (v BattleVector) scale(scale int) BattleVector {
 }
 
 // SetupRecord populates a lookup table of items by guid.
-func newBattleRecord(num int, planetNum int, position Vector, tokens []BattleRecordToken) *BattleRecord {
+func newBattleRecord(num, planetNum int, position Vector, tokens []BattleRecordToken) *BattleRecord {
 	numShipsByPlayer := make(map[int]int, 2)
 	tokensByNum := make(map[int]*BattleRecordToken)
 	playerNums := make(map[int]bool, 2)
@@ -197,7 +197,7 @@ func (b *BattleRecord) recordRunAway(round int, token *battleToken) BattleRecord
 }
 
 // Record a token firing a beam weapon
-func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from BattleVector, to BattleVector, slot int, target battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int) {
+func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from, to BattleVector, slot int, target battleToken, damageDoneShields, damageDoneArmor int, tokensDestroyed int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken
 
@@ -212,7 +212,7 @@ func (b *BattleRecord) recordBeamFire(round int, token *battleToken, from Battle
 }
 
 // Record a token firing a salvo of torpedoes
-func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from BattleVector, to BattleVector, slot int, target *battleToken, damageDoneShields int, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
+func (b *BattleRecord) recordTorpedoFire(round int, token *battleToken, from, to BattleVector, slot int, target *battleToken, damageDoneShields, damageDoneArmor int, tokensDestroyed int, hits int, misses int) {
 	// copy the ship token into the record
 	shipToken := *target.ShipToken
 	action := BattleRecordTokenAction{

@@ -4,9 +4,13 @@
 		ClearProductionQueueProps,
 		ShowProductionQueueDialogProps
 	} from '$lib/services/Events';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import type { ProductionQueueItem } from '$lib/types/cs';
+	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
+
+	const { universe } = getGameContext();
 
 	type Props = {
 		planet: CommandedPlanet;
@@ -39,8 +43,12 @@
 		{/if}
 	</div>
 	<div class="flex justify-between mt-1">
-		<span>Route to</span>
-		<span>{''}</span>
+		<!-- TODO: Make this a button that updates routing dest stuff-->
+		<span
+			>{$universe.getPlanet(planet.routeTargetNum)?.name
+				? 'Routing to ' + ($universe.getPlanet(planet.routeTargetNum)?.name ?? 'somewhere??')
+				: 'Not routing'}</span
+		>
 	</div>
 	<div class="flex justify-between">
 		<button
@@ -48,6 +56,7 @@
 			class="btn btn-outline btn-sm normal-case btn-secondary">Change</button
 		>
 		<button onclick={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>
+
 		<button class="btn btn-outline btn-sm normal-case btn-secondary">Route</button>
 	</div>
 </CommandTile>

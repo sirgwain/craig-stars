@@ -94,8 +94,8 @@ func calculateRacePoints(args []js.Value) any {
 	return js.ValueOf(points)
 }
 
-// wasm wrapper for calculating race points
-// takes one argument, the race
+// wasm wrapper for calculating resources required to reach a given tech level
+// takes one argument, the tech level
 func getResearchCost(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
@@ -109,8 +109,8 @@ func getResearchCost(args []js.Value) any {
 	return js.ValueOf(resources)
 }
 
-// wasm wrapper for calculating race points
-// takes one argument, the race
+// wasm wrapper for computing a ship's ShipDesignSpec
+// takes one argument, the design
 func computeShipDesignSpec(args []js.Value) any {
 	if len(args) != 1 {
 		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
@@ -119,7 +119,7 @@ func computeShipDesignSpec(args []js.Value) any {
 	design := wasm.GetShipDesign(args[0])
 	spec, err := cs.ComputeShipDesignSpec(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, &design)
 	if err != nil {
-		return wasm.NewError(fmt.Errorf("invalid design: %v", err))
+		return wasm.NewError(fmt.Errorf("failed to compute spec for design %s: %v", design.Name, err))
 	}
 	log.Debug().Msgf("computed spec for design %s", design.Name)
 
@@ -139,13 +139,13 @@ func starbaseUpgradeCost(args []js.Value) any {
 	design := wasm.GetShipDesign(args[0])
 	newDesign := wasm.GetShipDesign(args[1])
 
-	costCalculatoor := cs.NewCostCalculator()
-	cost, err := costCalculatoor.StarbaseUpgradeCost(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, &design, &newDesign)
+	costCalculator := cs.NewCostCalculator()
+	cost, err := costCalculator.StarbaseUpgradeCost(&ctx.rules, ctx.player.TechLevels, ctx.player.Race.Spec, &design, &newDesign)
 	if err != nil {
-		return wasm.NewError(fmt.Errorf("unable to calculate starbase upgrade cost: %v", err))
+		return wasm.NewError(fmt.Errorf("failed to calculate starbase upgrade cost: %v", err))
 	}
 
-	log.Debug().Msgf("computed starbase upgrade cost for design %s -> %s: %v", design.Name, newDesign.Name, cost)
+	log.Debug().Msgf("computed starbase upgrade cost for design %q -> %q: %v", design.Name, newDesign.Name, cost)
 
 	o := js.ValueOf(map[string]any{})
 	wasm.SetCost(o, &cost)
@@ -181,6 +181,11 @@ func estimateProduction(args []js.Value) any {
 
 	planet := wasm.GetPlanet(args[0])
 
+	if len(planet.ProductionQueue) == 0 {
+		log.Debug().Msgf("Empty production queue; no estimates made")
+		return args[0]
+	}
+
 	// setup the starbase
 	if planet.Spec.HasStarbase {
 		planet.Starbase = &cs.Fleet{
@@ -190,19 +195,23 @@ func estimateProduction(args []js.Value) any {
 		}
 	}
 
-	// make sure if we have a starbase, it has a design so we can compute
-	// upgrade costs
+	// populate starbase & production queue designs for starbase upgrades and packet cancels
 	if err := planet.PopulateStarbaseDesign(&ctx.player); err != nil {
-		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design.: %v", err))
+		return wasm.NewError(fmt.Errorf("failed to populate starbase with player design: %v", err))
 	}
 
+	if planet.Starbase != nil {
+		planet.Starbase.Spec = cs.ComputeFleetSpec(&ctx.rules, &ctx.player, planet.Starbase)
+	}
 	if err := planet.PopulateProductionQueueDesigns(&ctx.player); err != nil {
-		return wasm.NewError(fmt.Errorf("failed to populate production queue designs.: %v", err))
+		return wasm.NewError(fmt.Errorf("failed to populate production queue designs: %v", err))
 	}
 
-	planet.PopulateProductionQueueEstimates(&ctx.rules, &ctx.player)
+	if err := planet.PopulateProductionQueueEstimates(&ctx.rules, &ctx.player); err != nil {
+		return wasm.NewError(fmt.Errorf("failed to compute production queue estimates: %v", err))
+	}
 
-	log.Debug().Msgf("estimated production of %s\n", planet.Name)
+	log.Debug().Msgf("estimated production of planet %s\n", planet.Name)
 	o := js.ValueOf(map[string]any{})
 	wasm.SetPlanet(o, &planet)
 	return o
@@ -218,12 +227,13 @@ func maxBuildable(args []js.Value) any {
 	planet := wasm.GetPlanet(args[0])
 	itemType := wasm.GetQueueItemType(args[1])
 
-	maxBuild := 5000
+	// auto items and ships have infinite cap
+	maxBuild := cs.MaxBuildableCap
 	if !itemType.IsAuto() /* || itemType == cs.QueueItemTypeAutoMineralAlchemy */ {
 		maxBuild = planet.MaxBuildable(&ctx.player, itemType)
-		// maxBuildable is set to infinite for most things, but we want big number
+		// Infinite is the constant integer of -1, but we want very big number
 		if maxBuild == cs.Infinite {
-			maxBuild = 5000
+			maxBuild = cs.MaxBuildableCap
 		}
 	}
 
@@ -245,7 +255,7 @@ func updateResourcesAvailable(args []js.Value) any {
 			ctx.rules.PopulationOvercrowdResourcePenalty, ctx.rules.PopulationOvercrowdResourceMax),
 		min(planet.GetPopulation(), planet.Spec.MaxPopulation))
 
-	log.Debug().Msgf("calculated planet resource stats.\n")
+	log.Debug().Msgf("calculated resource stats for planet %s\n", planet.Name)
 	o := js.ValueOf(map[string]any{})
 	wasm.SetPlanet(o, &planet)
 	return o

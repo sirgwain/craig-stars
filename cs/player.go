@@ -316,7 +316,7 @@ func (p *Player) updateTechsJustGained(store *TechStore, field TechField) {
 }
 
 func (p *Player) String() string {
-	return fmt.Sprintf("Player %d (%d) %s", p.Num, p.ID, p.Race.PluralName)
+	return fmt.Sprintf("Player %d (%d) - %s", p.Num, p.ID, p.Race.PluralName)
 }
 
 // return the most recent PlayerScore or an empty score if there is no score history
@@ -338,7 +338,7 @@ func (p *Player) GetDesign(num int) *ShipDesign {
 }
 
 // Get a ShipDesignIntel, or nil if no design found
-func (p *Player) GetForeignDesign(playerNum int, num int) *ShipDesignIntel {
+func (p *Player) GetForeignDesign(playerNum, num int) *ShipDesignIntel {
 	for i := range p.ShipDesignIntels {
 		design := &p.ShipDesignIntels[i]
 		if design.PlayerNum == playerNum && design.Num == num {

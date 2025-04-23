@@ -690,7 +690,7 @@ func (c *client) updateFullPlayer(player *cs.Player) error {
 	return nil
 }
 
-func (c *client) UpdateGameHost(gameID int64, hostId int64) error {
+func (c *client) UpdateGameHost(gameID, hostId int64) error {
 	if _, err := c.writer.Exec(`
 		UPDATE games SET
 			updatedAt = CURRENT_TIMESTAMP,

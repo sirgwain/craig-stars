@@ -25,17 +25,17 @@ func NewCargoFromMineral(mineral Mineral, pop int) Cargo {
 	}
 }
 
-func NewCargoFromType(cargoType CargoType, amt int) Cargo {
+func NewCargoFromType(cargoType CargoType, amount int) Cargo {
 	c := Cargo{}
 	switch cargoType {
 	case Ironium:
-		c.Ironium = amt
+		c.Ironium = amount
 	case Boranium:
-		c.Boranium = amt
+		c.Boranium = amount
 	case Germanium:
-		c.Germanium = amt
+		c.Germanium = amount
 	case Colonists:
-		c.Colonists = amt
+		c.Colonists = amount
 	}
 	return c
 }
@@ -365,9 +365,9 @@ func (source Cargo) Split(sourceCapacity, capacity1, capacity2 int) (Cargo, Carg
 	return NewCargoFromArray([4]int(split1)), NewCargoFromArray([4]int(split2)), nil
 }
 
-// Set the mineral portion of a Cargo, leaving population unaffected.
-func (c *Cargo) SetMineral(d Mineral) {
-	c.Ironium = d.Ironium
-	c.Boranium = d.Boranium
-	c.Germanium = d.Germanium
+// Set the mineral portions of this Cargo, leaving resources unaffected.
+func (c *Cargo) SetMineral(mineral Mineral) {
+	c.Ironium = mineral.Ironium
+	c.Boranium = mineral.Boranium
+	c.Germanium = mineral.Germanium
 }

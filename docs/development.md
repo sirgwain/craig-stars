@@ -1,6 +1,6 @@
 # Local Development
 
-craig-stars is a web based game. The backend logic and server is written in [Go](https://go.dev), while the frontend client is written in [TypeScript](https://www.typescriptlang.org) and powered by [SvelteKit](https://kit.svelte.dev).
+craig-stars is a web based game. The backend logic and server are both written in [Go](https://go.dev), while the frontend client is written in [TypeScript](https://www.typescriptlang.org) and powered by [SvelteKit](https://kit.svelte.dev).
 
 ## Prerequisites:
 
@@ -12,20 +12,22 @@ craig-stars is a web based game. The backend logic and server is written in [Go]
     **_Cygwin will not work_** as it is missing several instructions needed for `cgo` to function (see [this issue](https://github.com/golang/go/issues/59490) for more info).
   - Linux/mac users can follow the [normal install instructions](https://gcc.gnu.org/install/index.html).
 
-### Go Deps
+### Installing Mage
 
-After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make/rake-like build tool & command executer written in Go[^1].
-Run the following command in your terminal of choice:
+After all that, you'll also need to install [Mage](https://github.com/magefile/mage), a make/rake-like build tool & command executer written in Go.
+While not strictly required  _per se_, installing it avoids needing to type out individual commands during builds & launches.
+
+To install it, run the following command in your terminal of choice[^1]:
 
 ```bash
 go install github.com/magefile/mage@latest
 ```
 
-Once it finishes installing, check by running `mage` - if all went well, you should get a list of available targets defined in the repo's [magefiles](../magefiles) directory. (Don't worry about the wonky capitalization - magefile commands are always _case-insensitive_.)
+Once it finishes installing, check by running `mage` - if all went well, you should get a list of available targets as defined in the repo's [magefiles](../magefiles) directory. (Don't worry about capitalization - magefile commands are always _case-insensitive_.)
 
 **Disclaimer**: Magefile targets must always be run from inside the _repository root_. This does not apply to the equivalent VS Code tasks, however (which always launch from root).
 
-[^1]: Techincally mage is already in the project's `go.mod` files, but you need it installed to call it via the command line.
+[^1]: While mage is already in the project's `go.mod` files, you need it installed via `go install` to call it via the command line.
 
 ## Assets
 
@@ -40,24 +42,21 @@ This will clear out the previous images folder before downloading the zip file a
 ## Building and Launching
 
 After performing all that setup, you should be good to go!
-You have 2 methods to launch the server:
+There are 2 main methods to boot up a local server:
 
-1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). This starts up the default build task to:
-   - Build both backend and frontend files
-   - Launch both backend and frontend servers in separate task terminals
-   - Open the localhost link in your default web browser once the frontend finishes[^2].\
-     The browser launch tends to produce false positives, so don't worry if it shows up as having failed.
-2. Run `mage run` from your terminal inside the root folder. This does essentially the same series of steps as the VS Code task, but launches both backend and frontend servers inside the same terminal before stalling. You'll have to open the browser link yourself in a new tab (difficult, I know)[^3].
+1. (Recommended) In VS Code, run the "Run Build Task" command (default keybinding `Ctrl+Shift+B`). \
+This starts up a pair of tasks to:
+   - Build backend and frontend binaries and files.
+   - Launch both backend and frontend servers in separate task terminals.
+2. Run `mage run` from your terminal. This does virtually the same thing as above, but pipes both servers' outputs to the same terminal[^3].
 
-Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch.
+Whatever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch.
 
-If successful, you should get a localhost link from vite (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically using air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
+Eventually, your browser should display a localhost link (http://localhost:5173/) representing the application being hosted on your machine[^2]. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically using air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
 
-<!--! remember to remove this if/when the issue is fixed -->
+[^2]: Vite automatically opens the link in your default browser, though this can be changed with the [`BROWSER`](https://vite.dev/config/server-options.html#server-open) environment variable.
 
-[^2]: **NOTE**: Due to a [long-standing bug in VS Code](https://github.com/microsoft/vscode/issues/70283) involving dependencies and background tasks, the "open localhost" task will still be run even if the frontend launch command fails partway through. (Seen as the alternative is opening the window _before_ the server even starts, this is still the lesser of the 2 evils.)
-
-[^3]: If Mage happens to complain about cleanup deadlines when you shut the server down, feel free to ignore it.
+[^3]: Note: Mage has been known to complain about cleanup deadlines upon shutting the server down. This is normal and can be mostly ignored.
 
 # Visual Studio Code
 

@@ -16,7 +16,7 @@ type aiPlayer struct {
 	log                    zerolog.Logger
 	game                   *cs.Game
 	techStore              *cs.TechStore
-	config                 playerConfig
+	config                 playerConfig // TODO: Make config vary with race
 	client                 cs.Orderer
 	planetsByNum           map[int]*cs.Planet
 	fleetsByNum            map[int]*cs.Fleet
@@ -25,14 +25,6 @@ type aiPlayer struct {
 	designsByPurpose       map[cs.ShipDesignPurpose]*cs.ShipDesign
 	fleetsByPurpose        map[cs.FleetPurpose]fleet
 	targetedPlanets        map[int][]*cs.FleetIntel
-
-	// @sirgwain Do we _really_ need these extra variables? We already have a designsByPurpose map
-	fuelDepotDesign       *cs.ShipDesign
-	fortDesign            *cs.ShipDesign
-	starbaseQuarterDesign *cs.ShipDesign
-	starbaseHalfDesign    *cs.ShipDesign
-	starbaseDesign        *cs.ShipDesign
-	starbaseUnarmedDesign *cs.ShipDesign
 }
 
 type requests struct {
@@ -46,9 +38,10 @@ type fleetBuildRequest struct {
 }
 
 type playerConfig struct {
-	colonizerPopulationDensity       float64
-	colonistTransportDensity         float64
-	invasionFactor                   float64
+	colonizerPopulationDensity float64
+	colonistTransportDensity   float64
+	invasionFactor             float64
+	// TODO: Make these a map of cutoffs per fleet type - colonizers are less of an expense than scouts
 	fleetProductionCutoff            float64
 	bomberProductionCutoff           float64
 	minYearsToQueueStarbasePeaceTime int
@@ -620,39 +613,6 @@ func (ai *aiPlayer) getClosestStarbasePlanet(fleet *cs.Fleet) *cs.Planet {
 	}
 
 	return closest
-}
-
-// check if a starbase is already in the queue
-func (ai *aiPlayer) isStarbaseInQueue(planet *cs.Planet) bool {
-	for _, item := range planet.ProductionQueue {
-		if item.Type == cs.QueueItemTypeStarbase {
-			return true
-		}
-	}
-	return false
-}
-
-// check if a the queue contains any ships with this fleet purpose
-func (ai *aiPlayer) isFleetInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpose) bool {
-	for _, item := range planet.ProductionQueue {
-		if item.GetTag(cs.TagPurpose) == string(fleetPurpose) {
-			return true
-		}
-	}
-	return false
-}
-
-// check if a shipdesign with the given purpose is in the queue
-func (ai *aiPlayer) isShipInQueue(planet *cs.Planet, fleetPurpose cs.FleetPurpose, purpose cs.ShipDesignPurpose, quantity int) bool {
-	for _, item := range planet.ProductionQueue {
-		if item.Type == cs.QueueItemTypeShipToken && item.GetTag(cs.TagPurpose) == string(fleetPurpose) {
-			design := ai.GetDesign(item.DesignNum)
-			if design != nil && design.Purpose == purpose && item.Quantity >= quantity {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 // get the number of idle ships above a planet, matching a fleet and ship purpose

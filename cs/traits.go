@@ -11,7 +11,7 @@ type PRTSpec struct {
 	MineralsPerSingleMineralPacket   int              `json:"mineralsPerSingleMineralPacket,omitempty"`
 	MineralsPerMixedMineralPacket    int              `json:"mineralsPerMixedMineralPacket,omitempty"`
 	PacketResourceCost               int              `json:"packetResourceCost,omitempty"`
-	PacketMineralCostFactor          float64          `json:"packetMineralCostFactor,omitempty"`
+	PacketMineralCostFactor          float64          `json:"packetMineralCostFactor,omitempty"` // Overhead amount for mineral packet launches.
 	PacketReceiverFactor             float64          `json:"packetReceiverFactor,omitempty"`
 	PacketDecayFactor                float64          `json:"packetDecayFactor,omitempty"`
 	PacketOverSafeWarpPenalty        int              `json:"packetOverSafeWarpPenalty,omitempty"`
@@ -417,7 +417,7 @@ func ppSpec() PRTSpec {
 	spec.MineralsPerSingleMineralPacket = 70
 	spec.MineralsPerMixedMineralPacket = 25
 	spec.PacketResourceCost = 5
-	spec.PacketMineralCostFactor = 1
+	spec.PacketMineralCostFactor = 1 // No overhead on mineral packets
 	spec.PacketDecayFactor = .5
 	spec.PacketBuiltInScanner = true
 	spec.DetectPacketDestinationStarbases = true

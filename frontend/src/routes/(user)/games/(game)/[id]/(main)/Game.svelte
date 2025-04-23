@@ -23,7 +23,7 @@
 	import { equal } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
-	import CargoTranfserDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
+	import CargoTransferDialog from '../dialogs/cargo/CargoTransferDialog.svelte';
 	import MergeFleetsDialog from '../dialogs/merge/MergeFleetsDialog.svelte';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
 	import SplitFleetDialog from '../dialogs/split/SplitFleetDialog.svelte';
@@ -423,7 +423,7 @@
 	}}
 	onCancel={() => (showProductionQueueDialog = false)}
 />
-<CargoTranfserDialog
+<CargoTransferDialog
 	show={showCargoTransferDialog}
 	props={cargoTransferDialogEvent}
 	onOk={onTransferCargo}

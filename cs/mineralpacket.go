@@ -29,7 +29,7 @@ type MineralPacketDamage struct {
 // this mineral packet will decay to nothing before reaching its target
 const MineralPacketDecayToNothing = -1
 
-func newMineralPacket(player *Player, num int, warpSpeed int, safeWarpSpeed int, cargo Cargo, position Vector, targetPlanetNum int) *MineralPacket {
+func newMineralPacket(player *Player, num, warpSpeed, safeWarpSpeed int, cargo Cargo, position Vector, targetPlanetNum int) *MineralPacket {
 	packet := MineralPacket{
 		MapObject: MapObject{
 			Type:      MapObjectTypeMineralPacket,

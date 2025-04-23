@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
-	"sync"
+	"path/filepath"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -20,9 +19,8 @@ func is_CI() bool {
 
 // Build and launch the server for local development.
 // This calls both Build and Launch consecutively.
-func Run() error {
-	Build()
-	return Launch()
+func Run() {
+	mg.SerialDeps(Build, Launch)
 }
 
 // Build the frontend and backend consecutively, alongside some setup work.
@@ -63,7 +61,7 @@ func Copy_Wasm_Exec() error {
 	if err != nil {
 		return err
 	}
-	goroot = strings.ReplaceAll(goroot, "\\", "/") // replace backslashes on windows
+	goroot = filepath.ToSlash(goroot) // replace backslashes on windows
 
 	// Check if wasm executable exists or not.
 	// Go 1.24 moved wasm_exec.js from misc/wasm to lib/wasm,
@@ -76,7 +74,7 @@ func Copy_Wasm_Exec() error {
 		return mg.Fatalf(1, "error during os.Stat(): \n%w", err)
 	}
 
-	// file exists
+	// copy file contents
 	path := goroot + "/lib/wasm/wasm_exec.js"
 	if err := sh.Copy("frontend/src/lib/wasm/wasm_exec.js", path); err != nil {
 		return mg.Fatalf(1, "error while copying wasm exec: \n%w", err)
@@ -89,7 +87,7 @@ func Tidy() error {
 	return sh.RunV("go", "mod", "tidy", "-v")
 }
 
-// Generate go code and techs.JSON files.
+// Generate various VS Code and static JSON files.
 func Generate() error {
 	fmt.Println("running go generate ./...")
 	if err := sh.RunV("go", "generate", "./..."); err != nil {
@@ -150,11 +148,7 @@ func Build_Frontend() error {
 	cmd.Dir = "./frontend"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	return nil
+	return cmd.Run()
 }
 
 // Build the backend Golang executable for local dev, as well as the WASM binary.
@@ -187,7 +181,7 @@ func build_backend(buildArgs ...string) error {
 	args := make([]string, 1, len(buildArgs)+4)
 	args[0] = "build"
 	args = append(args, buildArgs...)
-	args = append(args, "-o", "dist/" + binary_name, "main.go")
+	args = append(args, "-o", "dist/"+binary_name, "main.go")
 
 	if err := sh.RunV("go", args...); err != nil {
 		// "go", "build", buildArgs..., "-o", "dist/craig-stars", "main.go"
@@ -198,7 +192,7 @@ func build_backend(buildArgs ...string) error {
 	return nil
 }
 
-// Build Web-Assembly binary into frontend.
+// Build the Web-Assembly binary into frontend, required to allow the frontend to access backend calculations and method calls.
 func Build_WASM() error {
 	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
@@ -207,42 +201,39 @@ func Build_WASM() error {
 		"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
 }
 
-// Launch both backend and frontend servers simultaneously.
+// Launch both backend and frontend servers simultaneously in 1 terminal.
+// This launches both the backend and frontend servers, piping both to the
+// same terminal and blocking until one returns early or is canceled.
 func Launch() error {
-	// use a WaitGroup to wait until a single goroutine finishes
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-
-	// run both commands in separate goroutines, using a channel to recieve any errors
-	var c chan error
+	var done chan error
 	go func() {
-		err := Launch_Backend()
-		c <- err
-		wg.Done()
-		close(c)
+		done <- Launch_Backend(false)
 	}()
 	go func() {
-		err := Launch_Frontend()
-		c <- err
-		wg.Done()
-		close(c)
+		done <- Launch_Frontend()
 	}()
 
-	// Block until either goroutine finishes and then return the error
-	wg.Wait()
-	return <-c
+	return <-done
 }
 
-// Launch the backend go server using air for hot reloads.
-func Launch_Backend() error {
-	return sh.RunV("go", "tool", "github.com/air-verse/air")
+// Launch the backend go server using air for hot reloads, optionally enabling test mode to create a pre-populated test database.
+func Launch_Backend(testMode bool) error {
+	args := []string{"tool", "github.com/air-verse/air"}
+	if testMode {
+		args = append(args, "", "--test-mode") // empty string required to prevent air from gobbilng up the flag for itself
+	}
+
+	// Server has its own graceful shutdown procedure, so we can just run it directly
+	return sh.RunV("go", args...)
 }
 
-// Launch the frontend svelte server.
+// Launch the frontend svelte server and open it in a new browser instance.
 func Launch_Frontend() error {
-	cmd := exec.Command("npm", "run-script", "dev")
+	cmd := exec.Command("npm", "run-script", "dev", "--", "--open")
 	cmd.Dir = "./frontend"
+	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }

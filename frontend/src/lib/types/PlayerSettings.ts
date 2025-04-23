@@ -13,11 +13,14 @@ export enum PlanetViewState {
 	None
 }
 
+// Various persistent and non-persistent game settings.
+// TODO: Add a way to change the vast majority of these
 export class PlayerSettings implements FilterOptions {
 	planetViewState = PlanetViewState.Normal;
 	addWaypoint = false;
 	fastestWaypoint = false;
 	setPacketDest = false;
+	setRoutingDest = false; // TODO: Implement this
 	showPlanetNames = false;
 	showFleetTokenCounts = false;
 	showScanners = true;

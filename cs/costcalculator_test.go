@@ -67,177 +67,97 @@ func Test_getPlayerCost(t *testing.T) {
 }
 
 func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
-	p := NewCostCalculator()
-	type args struct {
+	type fields struct {
 		techLevels          TechLevel
 		miniaturizationSpec MiniaturizationSpec
 		techCostOffset      TechCostOffset
-		oldDesignHull       string
-		newDesignHull       string
-		oldDesignSlots      []ShipDesignSlot
-		newDesignSlots      []ShipDesignSlot
 		starbaseCostFactor  float64
+	}
+	type args struct {
+		oldDesign *ShipDesign
+		newDesign *ShipDesign
 	}
 	tests := []struct {
 		name    string
+		fields  fields
 		args    args
 		want    Cost
 		wantErr bool
 	}{
 		{
-			name: "Min Price Floor - same category",
-			args: args{
-				techLevels:          TechLevel{0, 22, 0, 0, 0, 0},
-				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 16},
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 4, Quantity: 16},
-					// Lotsa G, much much resources
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
-					// 150B, 165R
-					// Boranium should stay same since not being reduced;
-					// Resources should drop down to 33 due to 20% minimum
-				},
-				starbaseCostFactor: 1,
-			},
-			want: Cost{
-				Ironium:   0,
-				Boranium:  150,
-				Germanium: 0,
-				Resources: 33,
-			}, wantErr: false,
-		},
-		{
-			name: "Min Price Floor - different categories",
-			args: args{
-				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
-				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 5, Quantity: 12},
-					// 36G, 102R
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: AntiMatterTorpedo.Name, HullSlotIndex: 2, Quantity: 4},
-					// 4I, 12B, 2G, 80R
-				},
-				starbaseCostFactor: 1,
-			},
-			want: Cost{
-				Ironium:   4,
-				Boranium:  12,
-				Germanium: 1,
-				Resources: 24,
-			}, wantErr: false,
-		},
-		{
-			name: "Both min price floors at once",
-			args: args{
-				techLevels:          TechLevel{22, 22, 22, 22, 21, 22},
-				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
-					// 48G, 120R
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
-					// 150B, 165R
-					{HullComponent: BattleNexus.Name, HullSlotIndex: 1, Quantity: 2},
-					// 28G, 14R
-				},
-				starbaseCostFactor: 1,
-			},
-			want: Cost{
-				Ironium:   0,
-				Boranium:  150,
-				Germanium: 9, // technically 8.4 but gets rounded up to 9
-				Resources: 83,
-			}, wantErr: false,
-		},
-		{
 			name: "Invalid station",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       "NotAStation",
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots:      []ShipDesignSlot{},
-				newDesignSlots:      []ShipDesignSlot{},
 				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull("this is a station guys trust"),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name),
 			},
 			want: Cost{}, wantErr: true,
 		},
 		{
 			name: "Invalid parts",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
+				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: "pew pew laser gun", HullSlotIndex: 2, Quantity: 1},
-				},
-				newDesignSlots:     []ShipDesignSlot{},
-				starbaseCostFactor: 1,
+				}),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name),
 			},
 			want: Cost{}, wantErr: true,
 		},
 		{
 			name: "Identical Bases",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots:      []ShipDesignSlot{},
-				newDesignSlots:      []ShipDesignSlot{},
 				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(SpaceStation.Name),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name),
 			},
 			want: Cost{}, wantErr: false,
 		},
 		{
 			name: "Items on former base not on latter",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 13, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
+				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: Bludgeon.Name, HullSlotIndex: 2, Quantity: 1},
-				},
-				newDesignSlots:     []ShipDesignSlot{},
-				starbaseCostFactor: 1,
+				}),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name),
 			},
 			want: Cost{}, wantErr: false,
 		},
 		{
 			name: "Adding weapons",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 20, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots:      []ShipDesignSlot{},
-				newDesignSlots: []ShipDesignSlot{
+				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(SpaceStation.Name),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: Disruptor.Name, HullSlotIndex: 2, Quantity: 1},
 					{HullComponent: Disruptor.Name, HullSlotIndex: 4, Quantity: 1},
-				},
-				starbaseCostFactor: 1,
+				}),
 			},
 			want: Cost{
 				Ironium:   0,
@@ -248,17 +168,17 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 		},
 		{
 			name: "Adding single orbital",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 0, 5, 5, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots:      []ShipDesignSlot{},
-				newDesignSlots: []ShipDesignSlot{
+				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(SpaceStation.Name),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: Stargate100_250.Name, HullSlotIndex: 1, Quantity: 1},
-				},
-				starbaseCostFactor: 1,
+				}),
 			},
 			want: Cost{
 				Ironium:   50,
@@ -269,15 +189,15 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 		},
 		{
 			name: "Hull swap",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 20, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       OrbitalFort.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots:      []ShipDesignSlot{},
-				newDesignSlots:      []ShipDesignSlot{},
 				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(OrbitalFort.Name),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name),
 			},
 			want: Cost{
 				Ironium:   114,
@@ -288,18 +208,18 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 		},
 		{
 			name: "Hull Swap + added components",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 20, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       OrbitalFort.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots:      []ShipDesignSlot{},
-				newDesignSlots: []ShipDesignSlot{
+				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(OrbitalFort.Name),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: Disruptor.Name, HullSlotIndex: 2, Quantity: 10},
 					// 80B, 100R
-				},
-				starbaseCostFactor: 1,
+				}),
 			},
 			want: Cost{
 				Ironium:   114,
@@ -309,49 +229,78 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "Component Swap (different categories)",
-			args: args{
-				techLevels:          TechLevel{22, 22, 22, 10, 0, 0},
+			name: "Min Price Floor - same category",
+			fields: fields{
+				techLevels:          TechLevel{0, 22, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
-					{HullComponent: UpsilonTorpedo.Name, HullSlotIndex: 2, Quantity: 16},
-					// 320I, 112B, 72G, 120R
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
-					// 48G, 120R
-				},
-				starbaseCostFactor: 1,
+				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 16},
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 4, Quantity: 16},
+					// Lotsa G, much much resources
+				}),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
+					// 150B, 165R
+					// B stays same due to not being reduced;
+					// R should drop down to 20% minimum (33)
+				}),
 			},
 			want: Cost{
 				Ironium:   0,
-				Boranium:  0,
-				Germanium: 15,
-				Resources: 36,
+				Boranium:  150,
+				Germanium: 0,
+				Resources: 33,
 			}, wantErr: false,
 		},
 		{
-			name: "Component Swap (same categories)",
+			name: "Min Price Floor - different categories",
+			fields: fields{
+				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
+				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{},
+				starbaseCostFactor:  1,
+			},
 			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: SyncroSapper.Name, HullSlotIndex: 5, Quantity: 12},
+					// 36G, 102R
+				}),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: AntiMatterTorpedo.Name, HullSlotIndex: 2, Quantity: 4},
+					// 4I, 12B, 2G, 80R;
+					// sappers costing more than torps means we use 30% min cost floor for G/R
+				}),
+			},
+			want: Cost{
+				Ironium:   4,
+				Boranium:  12,
+				Germanium: 1, // 30% of 2 is 0.6, rounded up to 1
+				Resources: 24,
+			}, wantErr: false,
+		},
+		{
+			name: "Both min price floors at once",
+			fields: fields{
 				techLevels:          TechLevel{22, 22, 22, 22, 21, 22},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
+				starbaseCostFactor:  1,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
 					// 48G, 120R
-				},
-				newDesignSlots: []ShipDesignSlot{
+				}),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
 					// 150B, 165R
 					{HullComponent: BattleNexus.Name, HullSlotIndex: 1, Quantity: 2},
 					// 28G, 14R
-				},
-				starbaseCostFactor: 1,
+				}),
 			},
 			want: Cost{
 				Ironium:   0,
@@ -361,47 +310,40 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 			}, wantErr: false,
 		},
 		{
-			name: "ISB Component Swap",
-			args: args{
-				techLevels:          TechLevel{22, 22, 22, 22, 21, 22},
+			name: "Min price floor - ISB",
+			fields: fields{
+				techLevels:          TechLevel{22, 22, 22, 10, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				oldDesignHull:       SpaceStation.Name,
-				newDesignHull:       SpaceStation.Name,
-				oldDesignSlots: []ShipDesignSlot{
+				starbaseCostFactor:  0.8,
+			},
+			args: args{
+				oldDesign: NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
+					{HullComponent: UpsilonTorpedo.Name, HullSlotIndex: 2, Quantity: 16},
+					// 320I, 112B, 72G, 120R
+				}),
+				newDesign: NewShipDesign(1, 2).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
 					{HullComponent: SyncroSapper.Name, HullSlotIndex: 2, Quantity: 12},
 					// 48G, 120R
-				},
-				newDesignSlots: []ShipDesignSlot{
-					{HullComponent: MegaDisruptor.Name, HullSlotIndex: 2, Quantity: 10},
-					// 150B, 165R
-					{HullComponent: BattleNexus.Name, HullSlotIndex: 1, Quantity: 2},
-					// 28G, 14R
-				},
-				starbaseCostFactor: 0.8,
+				}),
 			},
 			want: Cost{
 				Ironium:   0,
-				Boranium:  120,
-				Germanium: 7,
-				Resources: 67,
+				Boranium:  0,
+				Germanium: 12,
+				Resources: 29, // ceil(120 * 0.3 * 0.8)
 			}, wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1, NewRace().WithSpec(&rules))
-			player.TechLevels = tt.args.techLevels
-			player.Race.Spec.MiniaturizationSpec = tt.args.miniaturizationSpec
-			player.Race.Spec.StarbaseCostFactor = tt.args.starbaseCostFactor
-			player.Race.Spec.TechCostOffset = tt.args.techCostOffset
-			design := NewShipDesign(player.Num, 1).
-				WithHull(tt.args.oldDesignHull).
-				WithSlots(tt.args.oldDesignSlots)
-			newDesign := NewShipDesign(player.Num, 1).
-				WithHull(tt.args.newDesignHull).
-				WithSlots(tt.args.newDesignSlots)
-			got, err := p.StarbaseUpgradeCost(&rules, tt.args.techLevels, player.Race.Spec, design, newDesign)
+			raceSpec := NewRace().WithSpec(&rules).Spec
+			raceSpec.MiniaturizationSpec = tt.fields.miniaturizationSpec
+			raceSpec.StarbaseCostFactor = tt.fields.starbaseCostFactor
+			raceSpec.TechCostOffset = tt.fields.techCostOffset
+			c := NewCostCalculator(&rules, tt.fields.techLevels, &raceSpec)
+
+			got, err := c.StarbaseUpgradeCost(tt.args.oldDesign, tt.args.newDesign)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("costCalculate.StarbaseUpgradeCost() did not return error when expected")
@@ -409,6 +351,7 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 					t.Fatalf("costCalculate.StarbaseUpgradeCost() errored unexpectedly; err = \n%v", err)
 				}
 			}
+
 			if got != tt.want {
 				t.Errorf("costCalculate.StarbaseUpgradeCost() returned incorrect cost %v, want %v", got, tt.want)
 			}
@@ -417,34 +360,46 @@ func Test_costCalculate_StarbaseUpgradeCost(t *testing.T) {
 }
 
 func Test_costCalculate_GetDesignCost(t *testing.T) {
-	type args struct {
+	type fields struct {
 		techLevels          TechLevel
 		miniaturizationSpec MiniaturizationSpec
 		techCostOffset      TechCostOffset
-		slots               []ShipDesignSlot
-		hull                string
 		starbaseCostFactor  float64
 	}
 	tests := []struct {
 		name    string
-		args    args
+		fields  fields
+		design  *ShipDesign
 		want    Cost
 		wantErr bool
 	}{
 		{
+			name: "invalid components",
+			fields: fields{
+				techLevels:          TechLevel{0, 20, 0, 13, 0, 0},
+				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
+				techCostOffset:      TechCostOffset{},
+				starbaseCostFactor:  1,
+			},
+			design: NewShipDesign(1, 1).WithHull("BANANA BOAT").WithSlots([]ShipDesignSlot{
+				{HullComponent: "SUNDAE", HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: "MARASCHINO CHERRY", HullSlotIndex: 4, Quantity: 1},
+			}),
+			want: Cost{}, wantErr: true,
+		},
+		{
 			name: "Starter Scout",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				slots: []ShipDesignSlot{
-					{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-					{HullComponent: FuelTank.Name, HullSlotIndex: 2, Quantity: 1},
-					{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
-				},
-				hull:               Scout.Name,
-				starbaseCostFactor: 1,
+				starbaseCostFactor:  1,
 			},
+			design: NewShipDesign(1, 1).WithHull(Scout.Name).WithSlots([]ShipDesignSlot{
+				{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: FuelTank.Name, HullSlotIndex: 2, Quantity: 1},
+				{HullComponent: BatScanner.Name, HullSlotIndex: 3, Quantity: 1},
+			}),
 			want: Cost{
 				Ironium:   14,
 				Boranium:  2,
@@ -454,20 +409,16 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 		},
 		{
 			name: "Orbital Fort with torpedoes",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 9, 5, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				slots: []ShipDesignSlot{
-					{HullComponent: BattleComputer.Name, HullSlotIndex: 1, Quantity: 1},
-					// 7.5G, 3R
-					{HullComponent: BetaTorpedo.Name, HullSlotIndex: 2, Quantity: 10},
-					// 75I, 25B, 15G, 25R
-				},
-				hull: OrbitalFort.Name,
-				// 12I, 17G, 40R
-				starbaseCostFactor: 1,
+				starbaseCostFactor:  1,
 			},
+			design: NewShipDesign(1, 1).WithHull(OrbitalFort.Name).WithSlots([]ShipDesignSlot{
+				{HullComponent: BattleComputer.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: BetaTorpedo.Name, HullSlotIndex: 2, Quantity: 10},
+			}),
 			want: Cost{
 				Ironium:   87,
 				Boranium:  25,
@@ -477,16 +428,15 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 		},
 		{
 			name: "IT/ISB Gate Dock Rounding Check",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 0, 5, 5, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{TechTagStargate: -0.25},
-				slots: []ShipDesignSlot{
-					{HullComponent: Stargate100_250.Name, HullSlotIndex: 3, Quantity: 1},
-				},
-				hull:               SpaceDock.Name,
-				starbaseCostFactor: 0.8,
+				starbaseCostFactor:  0.8,
 			},
+			design: NewShipDesign(1, 1).WithHull(SpaceDock.Name).WithSlots([]ShipDesignSlot{
+				{HullComponent: Stargate100_250.Name, HullSlotIndex: 3, Quantity: 1},
+			}),
 			want: Cost{
 				Ironium:   46, // costs EXACTLY 46 ironium, not a hair more
 				Boranium:  16,
@@ -496,23 +446,22 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 		},
 		{
 			name: "Default Starbase",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 0, 0, 0, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				slots: []ShipDesignSlot{
-					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
-					{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 5, Quantity: 8},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
-					{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
-					{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 12, Quantity: 8},
-				},
-				hull:               SpaceStation.Name,
-				starbaseCostFactor: 1,
+				starbaseCostFactor:  1,
 			},
+			design: NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
+				{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+				{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
+				{HullComponent: MoleSkinShield.Name, HullSlotIndex: 5, Quantity: 8},
+				{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
+				{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
+				{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
+				{HullComponent: MoleSkinShield.Name, HullSlotIndex: 12, Quantity: 8},
+			}),
 			want: Cost{
 				Ironium:   136,
 				Boranium:  176,
@@ -522,23 +471,22 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 		},
 		{
 			name: "Default Starbase with ISB",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{2, 2, 2, 2, 2, 2},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				slots: []ShipDesignSlot{
-					{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
-					{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 5, Quantity: 8},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
-					{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
-					{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 12, Quantity: 8},
-				},
-				hull:               SpaceStation.Name,
-				starbaseCostFactor: 0.8,
+				starbaseCostFactor:  0.8,
 			},
+			design: NewShipDesign(1, 1).WithHull(SpaceStation.Name).WithSlots([]ShipDesignSlot{
+				{HullComponent: Laser.Name, HullSlotIndex: 2, Quantity: 8},
+				{HullComponent: MoleSkinShield.Name, HullSlotIndex: 3, Quantity: 8},
+				{HullComponent: Laser.Name, HullSlotIndex: 4, Quantity: 8},
+				{HullComponent: MoleSkinShield.Name, HullSlotIndex: 5, Quantity: 8},
+				{HullComponent: MoleSkinShield.Name, HullSlotIndex: 6, Quantity: 8},
+				{HullComponent: Laser.Name, HullSlotIndex: 8, Quantity: 8},
+				{HullComponent: Laser.Name, HullSlotIndex: 10, Quantity: 8},
+				{HullComponent: MoleSkinShield.Name, HullSlotIndex: 12, Quantity: 8},
+			}),
 			want: Cost{
 				Ironium:   101,
 				Boranium:  136,
@@ -548,14 +496,13 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 		},
 		{
 			name: "Empty Dock with ISB, 20% miniaturization",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 0, 0, 9, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{},
-				slots:               []ShipDesignSlot{},
-				hull:                SpaceDock.Name,
 				starbaseCostFactor:  0.8,
 			},
+			design: NewShipDesign(1, 1).WithHull(SpaceDock.Name).WithSlots([]ShipDesignSlot{}),
 			want: Cost{
 				Ironium:   13,
 				Boranium:  4,
@@ -565,14 +512,13 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 		},
 		{
 			name: "Empty Dock with BET, ISB",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{0, 0, 0, 4, 0, 0},
 				miniaturizationSpec: MiniaturizationSpec{2.0, 0.8, 0.05},
 				techCostOffset:      TechCostOffset{},
-				slots:               []ShipDesignSlot{},
-				hull:                SpaceDock.Name,
 				starbaseCostFactor:  0.8,
 			},
+			design: NewShipDesign(1, 1).WithHull(SpaceDock.Name).WithSlots([]ShipDesignSlot{}),
 			want: Cost{
 				Ironium:   32,
 				Boranium:  8,
@@ -582,19 +528,18 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 		},
 		{
 			name: "Max Techs Cost Floor Check",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{TechTagBeamWeapon: -0.25},
-				slots: []ShipDesignSlot{
-					{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
-					{HullComponent: MoleSkinShield.Name, HullSlotIndex: 2, Quantity: 2},
-					{HullComponent: XRayLaser.Name, HullSlotIndex: 3, Quantity: 3},
-					{HullComponent: BatScanner.Name, HullSlotIndex: 4, Quantity: 2},
-				},
-				hull:               Frigate.Name,
-				starbaseCostFactor: 1,
+				starbaseCostFactor:  1,
 			},
+			design: NewShipDesign(1, 1).WithHull(Frigate.Name).WithSlots([]ShipDesignSlot{
+				{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+				{HullComponent: MoleSkinShield.Name, HullSlotIndex: 2, Quantity: 2},
+				{HullComponent: XRayLaser.Name, HullSlotIndex: 3, Quantity: 3},
+				{HullComponent: BatScanner.Name, HullSlotIndex: 4, Quantity: 2},
+			}),
 			want: Cost{
 				Ironium:   7,
 				Boranium:  4,
@@ -604,19 +549,18 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 		},
 		{
 			name: "Jammed IS Battleship",
-			args: args{
+			fields: fields{
 				techLevels:          TechLevel{26, 26, 26, 26, 26, 26},
 				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
 				techCostOffset:      TechCostOffset{TechTagBeamWeapon: 0.25, TechTagTorpedo: 0.25},
-				slots: []ShipDesignSlot{
-					{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
-					{HullComponent: JihadMissile.Name, HullSlotIndex: 2, Quantity: 2},
-					{HullComponent: Jammer10.Name, HullSlotIndex: 10, Quantity: 3},
-					{HullComponent: Jammer20.Name, HullSlotIndex: 11, Quantity: 3},
-				},
-				hull:               Battleship.Name,
-				starbaseCostFactor: 1,
+				starbaseCostFactor:  1,
 			},
+			design: NewShipDesign(1, 1).WithHull(Battleship.Name).WithSlots([]ShipDesignSlot{
+				{HullComponent: TransGalacticFuelScoop.Name, HullSlotIndex: 1, Quantity: 4},
+				{HullComponent: JihadMissile.Name, HullSlotIndex: 2, Quantity: 2},
+				{HullComponent: Jammer10.Name, HullSlotIndex: 10, Quantity: 3},
+				{HullComponent: Jammer20.Name, HullSlotIndex: 11, Quantity: 3},
+			}),
 			want: Cost{
 				Ironium:   109,
 				Boranium:  30,
@@ -624,35 +568,16 @@ func Test_costCalculate_GetDesignCost(t *testing.T) {
 				Resources: 170,
 			}, wantErr: false,
 		},
-		{
-			name: "BANANA BOAT (invalid components)",
-			args: args{
-				techLevels:          TechLevel{0, 20, 0, 13, 0, 0},
-				miniaturizationSpec: MiniaturizationSpec{1, 0.75, 0.04},
-				techCostOffset:      TechCostOffset{},
-				slots: []ShipDesignSlot{
-					{HullComponent: "SUNDAE", HullSlotIndex: 2, Quantity: 1},
-					{HullComponent: "MARASCHINO CHERRY", HullSlotIndex: 4, Quantity: 1},
-				},
-				hull:               "BANANA BOAT",
-				starbaseCostFactor: 1,
-			},
-			want:    Cost{}, // return value ignored due to error
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
-		c := NewCostCalculator()
 		t.Run(tt.name, func(t *testing.T) {
-			player := NewPlayer(1, NewRace().WithSpec(&rules))
-			player.TechLevels = tt.args.techLevels
-			player.Race.Spec.MiniaturizationSpec = tt.args.miniaturizationSpec
-			player.Race.Spec.StarbaseCostFactor = tt.args.starbaseCostFactor
-			player.Race.Spec.TechCostOffset = tt.args.techCostOffset
-			design := NewShipDesign(player.Num, 1).WithName(tt.name).
-				WithHull(tt.args.hull).
-				WithSlots(tt.args.slots)
-			got, err := c.GetDesignCost(&rules, player.TechLevels, player.Race.Spec, design)
+			raceSpec := NewRace().WithSpec(&rules).Spec
+			raceSpec.MiniaturizationSpec = tt.fields.miniaturizationSpec
+			raceSpec.StarbaseCostFactor = tt.fields.starbaseCostFactor
+			raceSpec.TechCostOffset = tt.fields.techCostOffset
+			c := NewCostCalculator(&rules, tt.fields.techLevels, &raceSpec)
+
+			got, err := c.GetDesignCost(tt.design)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("costCalculate.GetDesignCost() did not return error when expected")

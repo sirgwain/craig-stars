@@ -2,9 +2,7 @@ package ai
 
 import (
 	"fmt"
-	"math"
 
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -25,16 +23,9 @@ func (ai *aiPlayer) produce() error {
 			}
 
 			for shipIndex, ship := range fleetMakeup.ships {
-
 				idleShips := ai.getIdleShipCount(planet, fleetPurpose, ship.purpose)
 				if idleShips > 0 {
-					quantityNeeded := ship.quantity - idleShips
-					if quantityNeeded > 0 {
-						// queue it on this planet
-						fleetMakeup.ships[shipIndex].quantity = quantityNeeded
-					} else {
-						fleetMakeup.ships[shipIndex].quantity = 0
-					}
+					fleetMakeup.ships[shipIndex].quantity = max(0, ship.quantity-idleShips)
 				}
 			}
 
@@ -69,7 +60,8 @@ func (ai *aiPlayer) produce() error {
 						Int("PlayerNum", ai.Num).
 						Msgf("adding %d %s to %s queue", ship.quantity, design.Name, planet.Name)
 
-					ai.addShipToTopOfQueue(planet, fleetMakeup.purpose, design, ship.quantity)
+					item := cs.NewProductionQueueItemShip(design, ship.quantity).WithTag(cs.TagPurpose, string(fleetMakeup.purpose))
+					ai.prependToQueue(planet, *item)
 					if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders, ai.Planets); err != nil {
 						return err
 					}
@@ -78,16 +70,12 @@ func (ai *aiPlayer) produce() error {
 		}
 	}
 
-	// build scanners and starbases on each planet, where applicable
+	// build scanners and starbases on each planet where applicable
 	for _, planet := range ai.Planets {
-
 		if !planet.Scanner && !ai.isItemInQueue(planet, cs.QueueItemTypePlanetaryScanner) {
-			yearsToBuild, err := ai.getYearsToBuild(planet, cs.QueueItemTypePlanetaryScanner, 1)
-			if err != nil {
+			item := cs.ProductionQueueItem{Type: cs.QueueItemTypePlanetaryScanner, Quantity: 1}
+			if err := ai.checkAndBuildItem(planet, item, ai.config.minYearsToBuildScanner); err != nil {
 				return err
-			}
-			if yearsToBuild <= ai.config.minYearsToBuildScanner {
-				ai.addItemToTopOfQueue(planet, cs.QueueItemTypePlanetaryScanner, 1)
 			}
 		}
 
@@ -98,22 +86,6 @@ func (ai *aiPlayer) produce() error {
 
 	}
 	return nil
-}
-
-// add a new ship build request
-func (ai *aiPlayer) addFleetBuildRequest(purpose cs.FleetPurpose, count int) {
-	current := ai.requests.fleetBuilds[purpose]
-	ai.requests.fleetBuilds[purpose] = current + count
-}
-
-// check if an item type is in the queue
-func (ai *aiPlayer) isItemInQueue(planet *cs.Planet, t cs.QueueItemType) bool {
-	for _, item := range planet.ProductionQueue {
-		if item.Type == t {
-			return true
-		}
-	}
-	return false
 }
 
 // check if a planet is in a state where it will build a fleet
@@ -137,25 +109,30 @@ func (ai *aiPlayer) isPlanetReadyToBuildFleet(planet *cs.Planet, purpose cs.Flee
 		return true
 	}
 
-	// don't build certain things unless we meet some requirements
-	planetaryStructuresBuilt := min(float64(planet.Mines)/float64(planet.Spec.MaxMines), float64(planet.Factories)/float64(planet.Spec.MaxFactories))
+	// don't build certain fleets or bombers unless we have enough installations
+	// TODO: Change this for -f races and stuff
+	planetaryStructuresBuilt := min(float64(planet.Mines)/float64(planet.Spec.MaxMines),
+		float64(planet.Factories)/float64(planet.Spec.MaxFactories))
 
-	// bombers require the planet to be very mature
+	cutoff := ai.config.fleetProductionCutoff
 	if purpose == cs.FleetPurposeBomber {
-		if planetaryStructuresBuilt < ai.config.bomberProductionCutoff {
-			return false
-		}
+		cutoff = ai.config.bomberProductionCutoff
 	}
 
-	// make sure our planetary productivity is still in line to build fleets
-	if planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
+	if planetaryStructuresBuilt < cutoff {
 		return false
 	}
 
 	return true
 }
 
-// check the existing starbase and build or upgrade it
+// add a new ship build request
+func (ai *aiPlayer) addFleetBuildRequest(purpose cs.FleetPurpose, count int) {
+	current := ai.requests.fleetBuilds[purpose]
+	ai.requests.fleetBuilds[purpose] = current + count
+}
+
+// Build a new or upgrade an existing starbase on this planet.
 func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 	// if we're already building a starbase, don't do anything
 	if ai.isStarbaseInQueue(planet) {
@@ -167,15 +144,13 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 	attackShipsInOrbit := ai.hasAttackShips(enemyOrbitingFleets)
 	_, targeted := ai.targetedPlanets[planet.Num]
 
+	threatened := targeted || attackShipsInOrbit
+
 	// don't build starbases if this planet has not moved forward enough economically
-	// if we are being targeted for bombing though, we want to try and build a starbase regardless
-	// TODO: Add ability to build fuel depots and infrastructure based on a (lower) cutoff
-	// This will be useful for IT/PP and desperately necessary for AR
-	planetaryStructuresBuilt := min(float64(planet.Mines)/float64(planet.Spec.MaxMines), float64(planet.Factories)/float64(planet.Spec.MaxFactories))
-	if !(targeted || attackShipsInOrbit) && planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
-		// this will need to be changed for -f/AR races to work as
-		// they don't build mines & such regardless
-		// AR in particular will require entirely separate logic
+	// and we don't need them (ie not being attacked)
+	planetaryStructuresBuilt := min(float64(planet.Mines)/float64(planet.Spec.MaxMines),
+		float64(planet.Factories)/float64(planet.Spec.MaxFactories))
+	if !threatened && planetaryStructuresBuilt < ai.config.fleetProductionCutoff {
 		return nil
 	}
 
@@ -184,178 +159,108 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 		timeToWait = ai.config.minYearsToQueueStarbaseWarTime
 	}
 
-	if targeted || attackShipsInOrbit {
-		// this planet is being threatened
-		if planet.Spec.HasStarbase {
-			ai.upgradeStarbase(planet, timeToWait)
-		} else {
-			yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.fortDesign)
-			if err != nil {
-				return err
-			}
-
-			if yearsToBuild <= ai.config.minYearsToBuildFort {
-				ai.addStarbaseToTopOfQueue(planet, ai.fortDesign)
-			}
-		}
-	} else {
-		if planet.Spec.HasStarbase {
-			ai.upgradeStarbase(planet, timeToWait)
-		} else {
-			yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.fuelDepotDesign)
-			if err != nil {
-				return err
-			}
-			if yearsToBuild <= timeToWait {
-				ai.addStarbaseToTopOfQueue(planet, ai.fuelDepotDesign)
-			}
-		}
+	if err := ai.addStarbaseToQueue(planet, timeToWait, threatened); err != nil {
+		return fmt.Errorf("error adding starbase to queue: %w", err)
 	}
 
 	return nil
 }
 
-// upgrade an existing starbase to a better or newer model
-func (ai *aiPlayer) upgradeStarbase(planet *cs.Planet, timeToWait int) error {
+// upgrade an existing starbase to a better or newer model, or build a new one if none are present
+func (ai *aiPlayer) addStarbaseToQueue(planet *cs.Planet, timeToWait int, threatened bool) error {
 	existingDesign := ai.GetDesign(planet.Spec.StarbaseDesignNum)
-	if existingDesign == nil {
-		err := fmt.Errorf("failed to find existing starbase design")
-		log.Err(err).
+	if (existingDesign != nil) != planet.Spec.HasStarbase {
+		// we either got a starbase design despite not expecting one or vice versa; funky stuff happened
+		var msg string
+		if planet.Spec.HasStarbase {
+			msg = "no existing base design found despite planet.Spec.HasStarbase being true"
+		} else {
+			msg = "existing base design found despite planet.Spec.HasStarbase being false"
+		}
+
+		err := fmt.Errorf("%s", msg)
+		ai.log.Err(err).
 			Int64("GameID", ai.GameID).
 			Int("PlayerNum", ai.Num).
 			Int("PlanetNum", planet.Num).
 			Str("PlanetName", planet.Name).
 			Int("DesignNum", planet.Spec.StarbaseDesignNum).
 			Str("DesignName", planet.Spec.StarbaseDesignName).
-			Msgf("design not found")
+			Bool("HasStarbase", planet.Spec.HasStarbase).
+			Msg("planetSpec HasStarbase did not match existing design")
 
 		return err
 	}
-	if existingDesign.Purpose == cs.ShipDesignPurposeFort || existingDesign.Purpose == cs.ShipDesignPurposeFuelDepot || existingDesign.Purpose == cs.ShipDesignPurposeStarbaseUnarmed {
-		// try and upgrade our fort/fuel depot to a quarter filled out starbase
-		yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.starbaseQuarterDesign)
-		if err != nil {
-			return err
-		}
-		if yearsToBuild <= timeToWait {
-			ai.addStarbaseToTopOfQueue(planet, ai.starbaseQuarterDesign)
+
+	var purpose cs.ShipDesignPurpose
+	if existingDesign == nil {
+		if threatened {
+			// build a fort if we're being invaded, bombed, etc
+			purpose = cs.ShipDesignPurposeFort
+		} else {
+			// we don't need an armed starbase yet, so build a fuel depot
+			// TODO: make it actually build
+			purpose = cs.ShipDesignPurposeFuelDepot
 		}
 	} else {
+		// we have a starbase already; upgrade it based on its current purpose
 		switch existingDesign.Purpose {
+		case cs.ShipDesignPurposeFort, cs.ShipDesignPurposeFuelDepot, cs.ShipDesignPurposeStarbaseUnarmed:
+			// forts & fuel depots --> 1/4 starbase
+			purpose = cs.ShipDesignPurposeStarbaseQuarter
 		case cs.ShipDesignPurposeStarbaseQuarter:
-			// upgrade 1/4 -> 1/2
-			yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.starbaseHalfDesign)
-			if err != nil {
-				return err
-			}
-			if yearsToBuild <= timeToWait {
-				ai.addStarbaseToTopOfQueue(planet, ai.starbaseHalfDesign)
-			}
-		case cs.ShipDesignPurposeStarbaseHalf:
-			// upgrade 1/2 -> full
-			yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.starbaseDesign)
-			if err != nil {
-				return err
-			}
-			if yearsToBuild <= timeToWait {
-				ai.addStarbaseToTopOfQueue(planet, ai.starbaseDesign)
-			}
-
-		case cs.ShipDesignPurposeStarbase:
-			if existingDesign.Num != ai.starbaseDesign.Num {
-				// we have a new full design, check for upgrade
-				yearsToBuild, err := ai.getYearsToBuildStarbase(planet, ai.starbaseDesign)
-				if err != nil {
-					return err
-				}
-				if yearsToBuild <= timeToWait {
-					ai.addStarbaseToTopOfQueue(planet, ai.starbaseDesign)
-				}
-			}
+			// 1/4 starbase --> 1/2 starbase
+			purpose = cs.ShipDesignPurposeStarbaseHalf
+		case cs.ShipDesignPurposeStarbaseHalf, cs.ShipDesignPurposeStarbase:
+			// 1/2 starbase --> full (or update existing ones)
+			purpose = cs.ShipDesignPurposeStarbase
 		}
 	}
 
+	design := ai.designsByPurpose[purpose]
+	if design == nil || (existingDesign != nil && design.Num == existingDesign.Num) {
+		// we either lack a new design to upgrade to or want to upgrade to the
+		// exact same base as before; skip
+		return nil
+	}
+
+	item := cs.ProductionQueueItem{
+		Type:      cs.QueueItemTypeStarbase,
+		DesignNum: design.Num,
+		Quantity:  1,
+	}
+
+	return ai.checkAndBuildItem(planet, item, timeToWait)
+}
+
+// Compute years to build a given ProductionQueueItem, prepending it to the queue if time allows.
+func (ai *aiPlayer) checkAndBuildItem(planet *cs.Planet, item cs.ProductionQueueItem, yearsCutoff int) error {
+	yearsToBuild, err := ai.getYearsToBuild(planet, item)
+	if err != nil {
+		return err
+	}
+
+	if yearsToBuild != cs.Infinite && yearsToBuild <= yearsCutoff {
+		ai.prependToQueue(planet, item)
+	}
 	return nil
 }
 
-// add a normal production queue item to the top of the planet queue
-func (ai *aiPlayer) addItemToTopOfQueue(planet *cs.Planet, t cs.QueueItemType, quantity int) {
-	item := cs.ProductionQueueItem{Type: cs.QueueItemTypePlanetaryScanner, Quantity: quantity}
-	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
-}
-
-// add one or more ships to the top of a planet's production queue
-func (ai *aiPlayer) addShipToTopOfQueue(planet *cs.Planet, purpose cs.FleetPurpose, design *cs.ShipDesign, quantity int) {
-	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeShipToken, Quantity: quantity, DesignNum: design.Num}
-	item.WithTag(cs.TagPurpose, string(purpose))
-	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
-}
-
-// add a starbase to the top of a planet's production queue
-func (ai *aiPlayer) addStarbaseToTopOfQueue(planet *cs.Planet, design *cs.ShipDesign) {
-	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeStarbase, Quantity: 1, DesignNum: design.Num}
-	planet.ProductionQueue = append([]cs.ProductionQueueItem{item}, planet.ProductionQueue...)
-
-	ai.log.Debug().
-		Int64("GameID", ai.GameID).
-		Int("PlayerNum", ai.Num).
-		Msgf("Planet %s added %s to production queue", planet.Name, design.Name)
-
-}
-
-// get the years to build a certain number of items
-func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet, t cs.QueueItemType, quantity int) (int, error) {
+func (ai *aiPlayer) getYearsToBuild(planet *cs.Planet, item cs.ProductionQueueItem) (yearsToBuild int, err error) {
 	yearlyAvailableToSpend := cs.NewCostFromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
-	costCalculator := cs.NewCostCalculator()
+	costCalculator := cs.NewCostCalculator(&ai.game.Rules, ai.TechLevels, &ai.Race.Spec)
 	completionEstimator := cs.NewCompletionEstimator()
 
-	item := cs.ProductionQueueItem{Type: cs.QueueItemTypePlanetaryScanner, Quantity: 1}
-	cost, err := costCalculator.CostOfOne(ai.Player, item)
+	var oldStarbase *cs.ShipDesign
+	if planet.Spec.HasStarbase {
+		// leave design nil if planet lacks a starbase (since GetItemCost)
+		oldStarbase = ai.GetDesign(planet.Starbase.Tokens[0].DesignNum)
+	}
+	cost, err := costCalculator.GetItemCost(item, oldStarbase)
 	if err != nil {
 		return 0, err
 	}
 
-	// get the years to build one of these
-	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
-
-	// make our conditionals easier
-	if yearsToBuild == cs.Infinite {
-		yearsToBuild = math.MaxInt
-	}
-	return yearsToBuild, nil
-}
-
-// get the years it will take to build or upgrade to this starbase
-func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDesign) (int, error) {
-	yearlyAvailableToSpend := cs.NewCostFromMineralAndResources(planet.Spec.MiningOutput, planet.Spec.ResourcesPerYearAvailable)
-	costCalculator := cs.NewCostCalculator()
-	completionEstimator := cs.NewCompletionEstimator()
-	item := cs.ProductionQueueItem{Type: cs.QueueItemTypeStarbase, Quantity: 1, DesignNum: design.Num}
-	item.SetDesign(design)
-
-	var err error
-	var cost cs.Cost
-	if planet.Spec.HasStarbase {
-		existingStarbase := ai.GetDesign(planet.Starbase.Tokens[0].DesignNum)
-		cost, err = costCalculator.StarbaseUpgradeCost(&ai.game.Rules, ai.Player.TechLevels, ai.Player.Race.Spec, existingStarbase, design)
-	} else {
-		cost, err = costCalculator.GetDesignCost(&ai.game.Rules, ai.Player.TechLevels, ai.Player.Race.Spec, design)
-	}
-	if err != nil {
-		return math.MaxInt, fmt.Errorf("calculate starbase cost: %w", err)
-	}
-
-	// calculate how long it take to build
-	yearsToBuild := completionEstimator.GetYearsToBuildOne(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
-	// ai.log.Debug().
-	// 	Int64("GameID", ai.GameID).
-	// 	Int("PlayerNum", ai.Num).
-	// 	Msgf("Planet %s would take %d years to build %s", planet.Name, yearsToBuild, design.Name)
-
-	// make our conditionals easier
-	if yearsToBuild == cs.Infinite {
-		yearsToBuild = math.MaxInt
-	}
-
+	yearsToBuild = completionEstimator.GetYearsToBuild(item, cost, planet.Spec.MiningOutput, yearlyAvailableToSpend)
 	return yearsToBuild, nil
 }

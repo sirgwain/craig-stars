@@ -28,7 +28,8 @@ func newInvader() invader {
 	return invader{invasionsByPlanet: make(map[int][]invasion)}
 }
 
-// fleetDescription gets the fleet name or an empty string if there were many fleets involved
+// fleetDescription gets the name of a fleet involved in an invasion,
+// or an empty string if multiple fleets were involved.
 func (i *invasion) fleetDescription() string {
 	if len(i.fleets) == 1 {
 		return i.fleets[0].Name
@@ -73,12 +74,10 @@ func (i *invader) resolveInvasions(rules *Rules) []invasionResult {
 
 // invade a planet with a colonist drop
 func (i invasion) resolve(rules *Rules) invasionResult {
-	invasionDefenseCoverageFactor := rules.InvasionDefenseCoverageFactor
-
 	// figure out how many attackers are stopped by defenses
 	attacker := i.attacker
 	defender := i.defender
-	attackersAfterDefense := int(float64(i.attackers) * (1 - i.planet.Spec.DefenseCoverage*invasionDefenseCoverageFactor))
+	attackers := int(float64(i.attackers) * (1 - i.planet.Spec.DefenseCoverage*rules.InvasionDefenseCoverageFactor))
 	defenders := i.planet.GetPopulation()
 
 	// determine bonuses for warmongers and inner strength
@@ -91,14 +90,14 @@ func (i invasion) resolve(rules *Rules) invasionResult {
 	defendersKilled := 0
 	successful := false
 
-	if float64(attackersAfterDefense)*attackBonus > float64(defenders)*defenseBonus {
-		remainingDefenders = 0
-		remainingAttackers = roundTo100(float64(attackersAfterDefense)-float64(defenders)*defenseBonus/attackBonus, math.Round)
+	// TODO: Check how invasion pop loss interacts with partial pop once I have enough sanity
+	if float64(attackers)*attackBonus > float64(defenders)*defenseBonus {
+		// attackers won
 
+		remainingDefenders = 0
 		// if we have a last-person-standing, they instantly repopulate. :)
-		if remainingAttackers == 0 {
-			remainingAttackers = 100
-		}
+		remainingAttackers = max(100,
+			roundTo100(float64(attackers)-float64(defenders)*defenseBonus/attackBonus, math.Round))
 
 		attackersKilled = i.attackers - remainingAttackers
 		defendersKilled = defenders
@@ -106,12 +105,9 @@ func (i invasion) resolve(rules *Rules) invasionResult {
 	} else {
 		// defenders won
 		remainingAttackers = 0
-		remainingDefenders = roundTo100(float64(defenders)-(float64(attackersAfterDefense)*attackBonus)/defenseBonus, math.Round)
-
 		// if we have a last-person-standing, they instantly repopulate. :)
-		if remainingDefenders == 0 {
-			remainingDefenders = 100
-		}
+		remainingDefenders = max(100,
+			roundTo100(float64(defenders)-(float64(attackers)*attackBonus)/defenseBonus, math.Round))
 		attackersKilled = i.attackers
 		defendersKilled = defenders - remainingDefenders
 	}

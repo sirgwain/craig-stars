@@ -45,7 +45,7 @@ const (
 	RoleGuest UserRole = "guest"
 )
 
-func NewUser(username string, password string, email string, role UserRole) (*User, error) {
+func NewUser(username, password, email string, role UserRole) (*User, error) {
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func NewUser(username string, password string, email string, role UserRole) (*Us
 	return &User{Username: username, Password: hashedPassword, Email: email, Role: role}, nil
 }
 
-func NewDiscordUser(username string, discordID string, discordAvatar string) (*User, error) {
+func NewDiscordUser(username, discordID, discordAvatar string) (*User, error) {
 	return &User{
 		Username:      username,
 		Role:          RoleUser,

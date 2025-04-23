@@ -208,7 +208,7 @@
 					{hull}
 					cargoCapacity={designSpec.cargoCapacity}
 					{highlightedSlots}
-					highlightedClass={'border-accent'}
+					highlightedClass="border-accent"
 					showTooltips={false}
 					onSlotClicked={slotClicked}
 				/>

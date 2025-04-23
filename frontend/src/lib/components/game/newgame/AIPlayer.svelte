@@ -15,7 +15,7 @@
 		name="type"
 		bind:value={player.aiDifficulty}
 		options={AIDifficulties}
-		title={`Difficulty`}
+		title="Difficulty"
 	/>
 </div>
 

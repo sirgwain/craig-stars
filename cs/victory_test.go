@@ -8,7 +8,7 @@ import (
 
 func Test_victory_checkForVictor(t *testing.T) {
 	// create a game with 2 planets
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	game.Planets = append(game.Planets, NewPlanet().WithNum(2))
 
 	// we own one planet and one fleet
@@ -41,7 +41,7 @@ func Test_victory_checkForVictor(t *testing.T) {
 
 func Test_victory_checkForVictorExceedsSecondPlaceScore(t *testing.T) {
 	// create a game with 2 planets
-	game := createSingleUnitGame()
+	game := createSingleUnitGame(testLogger(t))
 	player1 := game.Players[0]
 
 	// create a new player with a lower score

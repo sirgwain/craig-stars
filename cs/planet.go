@@ -113,6 +113,11 @@ func (p *Planet) WithNum(num int) *Planet {
 	return p
 }
 
+func (p *Planet) WithName(name string) *Planet {
+	p.Name = name
+	return p
+}
+
 // Set a planet's colonists to the specified number of colonists and return the resulting struct.
 // Multiples of 100 go into its Cargo struct, while leftovers are assigned to PartialPopulation.
 func (p *Planet) WithPopulation(pop int) *Planet {
@@ -179,7 +184,7 @@ func (p *Planet) WithContributesOnlyLeftoverToResearch(contributes bool) *Planet
 }
 
 func (p *Planet) String() string {
-	return fmt.Sprintf("Planet %v", p.MapObject)
+	return p.Name
 }
 
 // return planetary population rounded to the nearest multiple of 100
@@ -191,8 +196,11 @@ func (p *Planet) exactPopulation() (exactPop int) {
 	return p.Cargo.Colonists*100 + p.PartialPopulation
 }
 
-// set pop to specified value.
-// TODO: Remove this - it risks tampering with planet partial pop
+// set planet population to specified value, split between
+// Cargo and PartialPopulation as appropriate.
+//
+// Should not be used outside of universe generation & tests as
+// it may accidentally reset partial pop.
 func (p *Planet) setPopulation(pop int) {
 	p.Cargo.Colonists = pop / 100
 	p.PartialPopulation = pop % 100
@@ -249,7 +257,7 @@ func (p *Planet) PopulateStarbaseDesign(player *Player) error {
 	return nil
 }
 
-// add designs to each production queue item with designs
+// add designs to all production queue items based on its designNum.
 func (p *Planet) PopulateProductionQueueDesigns(player *Player) error {
 	for i := range p.ProductionQueue {
 		item := &p.ProductionQueue[i]
@@ -259,7 +267,7 @@ func (p *Planet) PopulateProductionQueueDesigns(player *Player) error {
 		}
 		design := player.GetDesign(item.DesignNum)
 		if design == nil {
-			return fmt.Errorf("player %v does not have design %d", player, item.DesignNum)
+			return fmt.Errorf("player %s does not have design %d", player.Name, item.DesignNum)
 		}
 		item.design = design
 	}
@@ -397,7 +405,7 @@ func randomizeMinerals(rules *Rules, rad int, accBBS bool) Mineral {
 }
 
 // Initialize a planet to be a homeworld for a player with ideal hab, starting mineral concentration, etc
-func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration Mineral, surface Mineral) {
+func (p *Planet) initStartingWorld(player *Player, rules *Rules, startingPlanet StartingPlanet, concentration, surface Mineral) {
 	p.Homeworld = startingPlanet.Homeworld
 
 	p.RandomArtifact = false // no random artifacts on the homeworld
@@ -492,7 +500,7 @@ func (p *Planet) shortestDistanceToPlanets(otherPlanets []*Planet) float64 {
 // were it to be mined with the given numMines and mineOutput.
 //
 // Takes into account HW conc flooring as appropriate.
-func (p *Planet) getMineralOutput(rules *Rules, numMines int, mineOutput int) (output Mineral) {
+func (p *Planet) getMineralOutput(rules *Rules, numMines, mineOutput int) (output Mineral) {
 	for _, minType := range MineralTypes {
 		conc := p.MineralConcentration.GetAmount(minType)
 		if p.Homeworld && p.Owned() {
@@ -706,6 +714,11 @@ func getMaxInstallations(installationsPer10K, population int) int {
 	return population * installationsPer10K / 10000
 }
 
+// Return the maximum number of the given item that can be built on this planet,
+// subject to amount already built.
+//
+// For auto items, this is instead the maximum number of items that can be
+// automatically built this year.
 func (planet *Planet) MaxBuildable(player *Player, itemType QueueItemType) int {
 	switch itemType {
 	case QueueItemTypeAutoMines:

@@ -9,7 +9,7 @@ import (
 )
 
 // Update the host of a game.
-func UpdateHost(gameID int64, userID int64) error {
+func UpdateHost(gameID, userID int64) error {
 
 	cfg := config.GetConfig()
 

@@ -5,13 +5,25 @@
 		"checkJs": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitAny": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
 		"moduleResolution": "bundler",
 		"importHelpers": true
-	}
+	},
+	"exclude": [
+		"../node_modules/**",
+		"../src/service-worker.js",
+		"../src/service-worker/**/*.js",
+		"../src/service-worker.ts",
+		"../src/service-worker/**/*.ts",
+		"../src/service-worker.d.ts",
+		"../src/service-worker/**/*.d.ts",
+		"src/lib/wasm/wasm_exec.js" // ignore wasm file copied from GOROOT
+	]
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
 	//

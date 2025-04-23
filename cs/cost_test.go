@@ -9,35 +9,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCost_Divide(t *testing.T) {
+func TestCost_DivideCost(t *testing.T) {
 	tests := []struct {
 		name     string
 		dividend Cost
 		divisor  Cost
 		want     float64
 	}{
-		{"0/0 All", Cost{0, 0, 0, 0}, Cost{0, 0, 0, 0}, math.Inf(1)},
-		{"1/1 I", Cost{1, 0, 0, 0}, Cost{1, 0, 0, 0}, 1},
-		{"1/1 B", Cost{0, 1, 0, 0}, Cost{0, 1, 0, 0}, 1},
-		{"1/1 G", Cost{0, 0, 1, 0}, Cost{0, 0, 1, 0}, 1},
-		{"1/1 R", Cost{0, 0, 0, 1}, Cost{0, 0, 0, 1}, 1},
-		{"2/1 I", Cost{2, 0, 0, 0}, Cost{1, 0, 0, 0}, 2},
-		{"2/1 B", Cost{0, 2, 0, 0}, Cost{0, 1, 0, 0}, 2},
-		{"2/1 G", Cost{0, 0, 2, 0}, Cost{0, 0, 1, 0}, 2},
-		{"2/1 R", Cost{0, 0, 0, 2}, Cost{0, 0, 0, 1}, 2},
-		{"2/1 All", Cost{2, 2, 2, 2}, Cost{1, 1, 1, 1}, 2},
-		{"1/2 I", Cost{1, 0, 0, 0}, Cost{2, 0, 0, 0}, .5},
-		{"1/2 B", Cost{0, 1, 0, 0}, Cost{0, 2, 0, 0}, .5},
-		{"1/2 G", Cost{0, 0, 1, 0}, Cost{0, 0, 2, 0}, .5},
-		{"1/2 R", Cost{0, 0, 0, 1}, Cost{0, 0, 0, 2}, .5},
-		{"1/2 All", Cost{1, 1, 1, 1}, Cost{2, 2, 2, 2}, .5},
-		{"841 / 5887", Cost{199, 1555, 841, 92}, Cost{71, 5, 5887, 17}, .142857},
-		{"2000 / 500", Cost{999, 2000, 841, 10000}, Cost{99, 500, 1, 356}, 4},
+		{"0 ÷ 0 All", Cost{0, 0, 5, 5}, Cost{0, 0, 0, 0}, math.Inf(1)},
+		{"0 ÷ 1 All", Cost{0, 0, 0, 0}, Cost{1, 1, 1, 1}, 0},
+		{"0 ÷ 1 All", Cost{0, 0, 0, 0}, Cost{1, 1, 1, 1}, 0},
+		{"1 ÷ 1 I", Cost{1, 0, 0, 0}, Cost{1, 0, 0, 0}, 1},
+		{"2 ÷ 1 R", Cost{0, 0, 0, 2}, Cost{0, 0, 0, 1}, 2},
+		{"2 ÷ 1 All", Cost{2, 2, 2, 2}, Cost{1, 1, 1, 1}, 2},
+		{"1 ÷ 2 B", Cost{0, 1, 0, 0}, Cost{0, 2, 0, 0}, 0.5},
+		{"3 ÷ 1 G", Cost{0, 3, 0, 1}, Cost{0, 1, 0, 0}, 3},
+		{"mixed", Cost{6, 6, 6, 6}, Cost{3, 3, 4, 3}, 1.5},
+		{"841 ÷ 5887", Cost{199, 1555, 841, 92}, Cost{71, 5, 5887, 17}, 0.142857},
+		{"2000 ÷ 500", Cost{999, 2000, 841, 10000}, Cost{99, 500, 1, 356}, 4},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.dividend.DivideCost(tt.divisor)
-			assert.InDeltaf(t, got, tt.want, 0.01, fmt.Sprintf("Cost.Divide() = %v, want %v", got, tt.want))
+			assert.InDeltaf(t, tt.want, got, 0.01,
+				fmt.Sprintf("Cost.DivideCost() = %v, want %v", got, tt.want))
 		})
 	}
 }

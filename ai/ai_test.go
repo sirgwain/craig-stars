@@ -28,11 +28,12 @@ func Test_aiPlayer_ProcessTurn(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			race := cs.NewRace().WithPRT(tt.prt)
+			race.Name = tt.name
 			gamer := cs.NewGamer()
 			game := gamer.CreateGame(0, *cs.NewGameSettings().WithAIPlayer(cs.AIDifficultyEasy, 0))
 			player := gamer.NewPlayer(0, *race, &game.Rules)
 			player.Num = 1
-			player.Name = cs.AINames[0][0]
+			player.Name = tt.name
 			universe, err := gamer.GenerateUniverse(game, []*cs.Player{player})
 			if err != nil {
 				t.Fatalf("gamer.generateUniverse() failed: \n%v", err)
@@ -46,7 +47,9 @@ func Test_aiPlayer_ProcessTurn(t *testing.T) {
 			ai.SubmittedTurn = true
 
 			// generate a new turn, make sure no errors
-			gamer.GenerateTurn(game, universe, []*cs.Player{player})
+			if err := gamer.GenerateTurn(game, universe, []*cs.Player{player}); err != nil {
+				t.Errorf("turn generation failed: \n%v", err)
+			}
 		})
 	}
 }

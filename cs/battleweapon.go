@@ -70,7 +70,7 @@ type battleWeaponDamage struct {
 }
 
 // newBattleWeaponSlot creates a new BattleWeaponSlot object
-func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoBonus float64, beamBonus float64) *battleWeaponSlot {
+func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullComponent, rangeBonus int, torpedoBonus, beamBonus float64) *battleWeaponSlot {
 	weaponSlot := &battleWeaponSlot{
 		token:              token,
 		slot:               slot,
@@ -96,7 +96,7 @@ func newBattleWeaponSlot(token *battleToken, slot ShipDesignSlot, hc *TechHullCo
 }
 
 // get beam damage with dropoff and defense included
-func getBeamDamageAtDistance(damage, weaponRange, dist int, beamDefense float64, beamRangeDropoff float64) int {
+func getBeamDamageAtDistance(damage, weaponRange, dist int, beamDefense, beamRangeDropoff float64) int {
 	// set beam defense to 1 for uninitialized ships
 	// TODO: fix this stuff after beam defense refactor
 	if beamDefense == 0 {

@@ -7,7 +7,6 @@ import (
 	"slices"
 
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"golang.org/x/exp/maps"
 )
 
@@ -18,16 +17,14 @@ type turnGenerator struct {
 	log  zerolog.Logger
 }
 
-func newTurnGenerator(game *FullGame) turnGenerator {
+func newTurnGenerator(game *FullGame, log zerolog.Logger) turnGenerator {
 	turnLogger := log.With().
 		Int64("GameID", game.ID).
 		Str("GameName", game.Name).
 		Int("Year", game.Year+1). // log for next turn
 		Logger()
 	t := turnGenerator{game, turnLogger}
-
 	t.game.Universe.setLogger(turnLogger)
-	t.game.Universe.buildMaps(game.Players)
 
 	return t
 }
@@ -38,6 +35,10 @@ func newTurnGenerator(game *FullGame) turnGenerator {
 func (t *turnGenerator) generateTurn() error {
 	t.log.Debug().Msgf("begin generating turn")
 	t.game.Year++
+
+	if err := t.game.Universe.buildMaps(t.game.Players); err != nil {
+		return err
+	}
 
 	// reset players for start of the turn
 	for _, player := range t.game.Players {
@@ -51,7 +52,9 @@ func (t *turnGenerator) generateTurn() error {
 		player.Spec.TechsJustGained = []*Tech{}
 	}
 
-	t.computeSpecs()
+	if err := t.computeSpecs(); err != nil {
+		return err
+	}
 	t.packetInit()
 
 	// wp0 tasks
@@ -117,10 +120,10 @@ func (t *turnGenerator) generateTurn() error {
 	t.fleetRepair()
 	t.fleetRemoteTerraform()
 
-	// reset all players
-	// and do player specific things like scanning
-	// and patrol orders
-	t.computeSpecs()           // make sure our specs are up to date
+	// re-compute all specs prior to performing scanning
+	if err := t.computeSpecs(); err != nil {
+		return err
+	}
 	t.game.updateTokenCounts() // update token counts
 	if err := t.scan(); err != nil {
 		return err
@@ -139,10 +142,10 @@ func (t *turnGenerator) generateTurn() error {
 	return nil
 }
 
-// update all planet specs with the latest info
-// useful before turn generation and after building
-func (t *turnGenerator) computeSpecs() {
-	t.game.computeSpecs()
+// update all entity specs with the latest info
+// called before and after turn generation
+func (t *turnGenerator) computeSpecs() error {
+	return t.game.computeSpecs()
 }
 
 // fleetInit will reset any fleet data before processing
@@ -233,11 +236,12 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 		planet := invasion.planet
 		attacker := invasion.attacker
 		defender := invasion.defender
+		desc := invasion.fleetDescription()
 
 		t.log.Debug().
 			Int("Defender", defender.Num).
 			Int("Attacker", attacker.Num).
-			Str("Fleet", invasion.fleetDescription()).
+			Str("Fleet", desc).
 			Str("Planet", planet.Name).
 			Int("Attackers", invasion.attackers).
 			Int("Defenders", invasion.defenders).
@@ -248,7 +252,6 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 
 		// during invasion, even if the player loses the planet, they discover the invader
 		for _, fleet := range invasion.fleets {
-
 			for _, token := range fleet.Tokens {
 				defender.discoverer.discoverDesign(token.design, defender.Race.Spec.DiscoverDesignOnScan)
 			}
@@ -256,23 +259,22 @@ func (t *turnGenerator) resolveInvasions(invader invader) {
 		}
 
 		// notify each player of the invasion
-		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
-		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, invasion.successful)
+		messager.planetInvaded(defender, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, len(invasion.fleets), invasion.successful)
+		messager.planetInvaded(attacker, planet, invasion.fleetDescription(), attacker, defender, invasion.attackersKilled, invasion.defendersKilled, len(invasion.fleets), invasion.successful)
 
 		if !invasion.successful {
-			// reduce the population to however many colonists remain and move on
+			// reduce the population down to however many colonists remain and move on
+			// TODO: Check how invasions handle partial pop
 			planet.setPopulation(invasion.remainingDefenders)
 			continue
 		}
 
-		// empty this planet
+		// empty the planet and take over
 		planet.emptyPlanet()
-
-		// take over the planet.
 		planet.PlayerNum = invasion.attacker.Num
 		planet.setPopulation(invasion.remainingAttackers)
 
-		// apply a production plan
+		// apply the player's default production plan, if any exist
 		if len(attacker.ProductionPlans) > 0 {
 			plan := attacker.ProductionPlans[0]
 			plan.Apply(planet)
@@ -791,17 +793,17 @@ func (t *turnGenerator) fleetMarkWaypointsProcessed() {
 	}
 }
 
-// packetInit will reset any packet data before processing
+// reset any packet data before processing
 func (t *turnGenerator) packetInit() {
 	for _, packet := range t.game.MineralPackets {
 		packet.builtThisTurn = false
 
 		if packet.Cargo.Total() == 0 {
-			// this packet was probably snatched away by a player
+			// this packet was probably snatched away by a player; delete it
 			t.log.Debug().
 				Int("Player", packet.PlayerNum).
 				Str("Packet", packet.Name).
-				Msgf("packet empty")
+				Msgf("deleting empty packet")
 			t.game.deletePacket(packet)
 		}
 	}
@@ -810,14 +812,15 @@ func (t *turnGenerator) packetInit() {
 // move packets through space
 // if builtThisTurn is true, this will only move packets that were built this turn (i.e. just launched)
 func (t *turnGenerator) packetMove(builtThisTurn bool) {
-
 	for _, packet := range t.game.MineralPackets {
 		if packet.Delete {
 			continue
 		}
+
 		if packet.builtThisTurn != builtThisTurn {
 			continue
 		}
+
 		player := t.game.getPlayer(packet.PlayerNum)
 		planet := t.game.getPlanet(int(packet.TargetPlanetNum))
 		var planetPlayer *Player
@@ -836,7 +839,7 @@ func (t *turnGenerator) packetMove(builtThisTurn bool) {
 			Msgf("moved packet")
 
 		if planetPlayer != nil && planet.GetPopulation() == 0 {
-			// this planet just got killed by a packet
+			// this planet just got killed by a packet; delete starbase
 			if starbase != nil {
 				t.game.deleteStarbase(starbase)
 				planet.Spec.PlanetStarbaseSpec = PlanetStarbaseSpec{}
@@ -1163,7 +1166,13 @@ func (t *turnGenerator) fleetReproduce() {
 			// Calculate relative pop growth based on growth rate
 			growth = int(fg.GrowthFactor * float64(fleet.Cargo.Colonists*player.Race.GrowthRate) / 100)
 		}
-		fleet.Cargo.Colonists = fleet.Cargo.Colonists + growth
+
+		if growth == 0 {
+			// no growth, skip
+			continue
+		}
+
+		fleet.Cargo.Colonists += growth
 		over := max(0, fleet.Cargo.Total()-fleet.Spec.CargoCapacity)
 
 		planet := t.game.getOrbitingPlanet(fleet)
@@ -1178,7 +1187,7 @@ func (t *turnGenerator) fleetReproduce() {
 
 		// Send the appropriate message to the player
 		if growth > 0 {
-			messager.fleetReproduce(player, fleet, growth*100, planet, over)
+			messager.fleetReproduce(player, fleet, (growth-over)*100, planet, over*100)
 
 			t.log.Debug().
 				Int("Player", fleet.PlayerNum).
@@ -1517,13 +1526,9 @@ func (t *turnGenerator) planetProduction() error {
 		if result.defenses > 0 {
 			messager.planetBuiltDefenses(player, planet, result.defenses)
 		}
-
-		// message about mineral alchemy
 		if result.alchemy > 0 {
 			messager.planetBuiltMineralAlchemy(player, planet, result.alchemy)
 		}
-
-		// message about each terraform step
 		if len(result.terraformResults) > 0 {
 			for _, terraformResult := range result.terraformResults {
 				messager.planetTerraform(player, planet, terraformResult.Type, terraformResult.Direction)
@@ -1627,21 +1632,22 @@ func (t *turnGenerator) buildFleet(player *Player, planet *Planet, token ShipTok
 }
 
 // add a new fleet to the universe
+// TODO: Add option to merge with idle fleets of same type
 func (t *turnGenerator) addFleet(player *Player, position Vector, token ShipToken, tags Tags) (*Fleet, error) {
 	playerFleets := t.game.getFleets(player.Num)
 	fleetNum := player.GetNextFleetNum(playerFleets)
 	fleet := newFleetForToken(player, fleetNum, token, []Waypoint{NewPositionWaypoint(position, token.design.Spec.Engine.IdealSpeed)})
 	fleet.Position = position
-	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, &fleet)
+	fleet.Spec = ComputeFleetSpec(&t.game.Rules, player, fleet)
 	fleet.Fuel = fleet.Spec.FuelCapacity
 	fleet.Spec.EstimatedRange = fleet.getEstimatedRange(player, fleet.Spec.Engine.IdealSpeed, fleet.Spec.CargoCapacity)
 	fleet.Tags = tags
 
-	t.game.Fleets = append(t.game.Fleets, &fleet)
-	if err := t.game.Universe.addFleet(&fleet); err != nil {
+	t.game.Fleets = append(t.game.Fleets, fleet)
+	if err := t.game.Universe.addFleet(fleet); err != nil {
 		return nil, err
 	}
-	return &fleet, nil
+	return fleet, nil
 }
 
 // build a starbase on a planet
@@ -1663,26 +1669,26 @@ func (t *turnGenerator) buildStarbase(player *Player, planet *Planet, design *Sh
 	}
 
 	starbase := newStarbase(player, planet, design, design.Name)
-	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, &starbase)
+	starbase.Spec = ComputeFleetSpec(&t.game.Rules, player, starbase)
 
-	// if the prior starbase was damaged, set the new base's damage proportional to the old base's dmg%
+	// if the prior starbase was damaged, damage the new base proportionally to the old base's dmg %
 	if prevDamage > 0 && prevArmor > 0 {
 		starbase.Tokens[0].QuantityDamaged = 1
 		starbase.Tokens[0].Damage = (prevDamage / float64(prevArmor)) * float64(starbase.Tokens[0].design.Spec.Armor)
 	}
 
-	planet.setStarbase(&starbase)
+	planet.setStarbase(starbase)
 	t.log.Debug().
 		Int("Player", starbase.PlayerNum).
 		Str("Planet", planet.Name).
 		Str("Starbase", starbase.Name).
 		Msgf("built starbase")
 
-	t.game.Starbases = append(t.game.Starbases, &starbase)
-	if err := t.game.addStarbase(&starbase); err != nil {
+	t.game.Starbases = append(t.game.Starbases, starbase)
+	if err := t.game.addStarbase(starbase); err != nil {
 		return nil, err
 	}
-	return &starbase, nil
+	return starbase, nil
 }
 
 // build a mineral packet with cargo
@@ -2568,128 +2574,129 @@ func (t *turnGenerator) fleetTransferOwner() {
 		}
 
 		wp0 := &fleet.Waypoints[0]
-		if wp0.Task == WaypointTaskTransferFleet {
-			player := t.game.getPlayer(fleet.PlayerNum)
-			targetPlayer := t.game.getPlayer(wp0.TransferToPlayer)
+		if wp0.Task != WaypointTaskTransferFleet {
+			continue
+		}
 
-			if targetPlayer == nil {
-				// can't find target player
-				messager.fleetTransferInvalidPlayer(player, fleet)
-				t.log.Error().
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Msgf("tried to transfer fleet player %d, but target player doesn't exist.", wp0.TargetPlayerNum)
-				wp0.Task = WaypointTaskNone
-				wp0.TransferToPlayer = None
-				continue
-			}
+		// reset current waypoint task.
+		// either we succeed at giving it away (and reset its waypoints)
+		// or fail and cancel the transfer task.
+		wp0.Task = WaypointTaskNone
+		wp0.TransferToPlayer = None
 
-			if fleet.Cargo.Colonists > 0 {
-				// can't give colonists
-				messager.fleetTransferInvalidColonists(player, fleet, targetPlayer)
-				t.log.Debug().
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Msgf("transferring fleet %s failed, fleet has colonists", fleet.Name)
+		donor := t.game.getPlayer(fleet.PlayerNum)
+		reciever := t.game.getPlayer(wp0.TransferToPlayer)
 
-				wp0.Task = WaypointTaskNone
-				wp0.TransferToPlayer = None
-				continue
-			}
+		if reciever == nil {
+			// can't find target player
+			messager.fleetTransferInvalidPlayer(donor, fleet)
+			t.log.Error().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Msgf("fleet %s tried to transfer to nil player %d", fleet.Name, wp0.TargetPlayerNum)
+			continue
+		}
 
-			if targetPlayer == player {
-				t.log.Error().
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Msgf("tried to transfer fleet to self")
-				wp0.Task = WaypointTaskNone
-				wp0.TransferToPlayer = None
-				continue
-			}
+		if reciever.Num == donor.Num {
+			// tried to transfer to ourself
+			messager.fleetTransferInvalidPlayer(donor, fleet)
+			t.log.Error().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Int("TargetPlayer", reciever.Num).
+				Msgf("tried to transfer fleet to self")
+			continue
+		}
 
-			if !targetPlayer.IsFriend(player.Num) {
-				// they are not allies, they will refuse the offer
-				messager.fleetTransferInvalidGiveRefused(player, fleet, targetPlayer)
-				messager.fleetTransferInvalidReceiveRefused(targetPlayer, fleet, player)
-				t.log.Debug().
-					Int("Player", fleet.PlayerNum).
-					Str("Fleet", fleet.Name).
-					Int("TargetPlayer", targetPlayer.Num).
-					Msgf("transferring fleet %s to player %d, target player refused", fleet.Name, targetPlayer.Num)
-
-				wp0.Task = WaypointTaskNone
-				wp0.TransferToPlayer = None
-
-				continue
-			}
-
-			// give the gift of this fleet!
+		if fleet.Cargo.Colonists > 0 {
+			// can't give colonists away
+			messager.fleetTransferInvalidColonists(donor, fleet, reciever)
 			t.log.Debug().
 				Int("Player", fleet.PlayerNum).
 				Str("Fleet", fleet.Name).
-				Int("TargetPlayer", targetPlayer.Num).
-				Msgf("transferring fleet %s to player %d", fleet.Name, targetPlayer.Num)
+				Int("TargetPlayer", reciever.Num).
+				Msgf("transferring fleet %s failed, fleet has colonists", fleet.Name)
+			continue
+		}
 
-			for i := range fleet.Tokens {
-				token := &fleet.Tokens[i]
-				design := token.design
+		if !reciever.IsFriend(donor.Num) {
+			// cannot donate to enemies
+			messager.fleetTransferInvalidGiveRefused(donor, fleet, reciever)
+			messager.fleetTransferInvalidReceiveRefused(reciever, fleet, donor)
+			t.log.Debug().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Int("TargetPlayer", reciever.Num).
+				Msgf("transferring fleet %s to player %d, target player refused", fleet.Name, reciever.Num)
 
-				// give the player a copy of this design
-				newName := fmt.Sprintf("%s %s", player.Race.PluralName, design.Name)
-				targetPlayerDesign := targetPlayer.GetDesignByName(newName)
-				if targetPlayerDesign != nil {
-					if !targetPlayerDesign.SlotsEqual(design.Slots) {
-						// uh oh, design has been updated since the last time it was transferred to us...
-						// create a new design for the target player
-						num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)
-						newDesign := *design
-						newDesign.GameDBObject = GameDBObject{}
-						newDesign.OriginalPlayerNum = player.Num
-						newDesign.PlayerNum = targetPlayer.Num
-						newDesign.Num = num
-						// rev the version and append it to the name
-						newDesign.Version++
-						newDesign.Name = fmt.Sprintf("%s v%d", newName, newDesign.Version)
-						targetPlayerDesign = &newDesign
-						targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
-					}
-				} else {
-					// create a new design for the target player
-					num := targetPlayer.GetNextDesignNum(targetPlayer.Designs)
-					newDesign := *design
-					newDesign.GameDBObject = GameDBObject{}
-					newDesign.Name = newName
-					newDesign.OriginalPlayerNum = player.Num
-					newDesign.PlayerNum = targetPlayer.Num
-					newDesign.Num = num
-					targetPlayerDesign = &newDesign
-					targetPlayer.Designs = append(targetPlayer.Designs, targetPlayerDesign)
-				}
-
-				// make sure we don't update this spec
-				targetPlayerDesign.Spec.NumBuilt = 0
-				targetPlayerDesign.Spec.NumInstances = 0
-
-				token.design = targetPlayerDesign
-				token.DesignNum = targetPlayerDesign.Num
-			}
-
-			playerFleets := t.game.getFleets(targetPlayer.Num)
-			fleet.Num = targetPlayer.GetNextFleetNum(playerFleets)
-			fleet.PlayerNum = targetPlayer.Num
-
-			// clear out the waypoints
 			wp0.Task = WaypointTaskNone
 			wp0.TransferToPlayer = None
-			fleet.Waypoints = fleet.Waypoints[:1]
 
-			// notify the player here (before we give it away and change the name)
-			messager.fleetTransferGiven(player, fleet, targetPlayer)
-			messager.fleetTransferReceived(targetPlayer, fleet, player)
-
-			fleet.Rename(fmt.Sprintf("%s %s", player.Race.PluralName, fleet.BaseName))
-
+			continue
 		}
+
+		// give the gift of this fleet!
+		t.log.Debug().
+			Int("Player", fleet.PlayerNum).
+			Str("Fleet", fleet.Name).
+			Int("TargetPlayer", reciever.Num).
+			Msgf("transferring fleet %s to player %d", fleet.Name, reciever.Num)
+
+		for i := range fleet.Tokens {
+			token := &fleet.Tokens[i]
+			design := token.design
+
+			// give the player a copy of this design
+			newName := fmt.Sprintf("%s %s", donor.Race.Name, design.Name)
+			targetPlayerDesign := reciever.GetDesignByName(newName)
+			if targetPlayerDesign == nil {
+				// create a new design for the target player
+				num := reciever.GetNextDesignNum(reciever.Designs)
+				newDesign := *design
+				newDesign.GameDBObject = GameDBObject{}
+				newDesign.Name = newName
+				newDesign.OriginalPlayerNum = donor.Num
+				newDesign.PlayerNum = reciever.Num
+				newDesign.Num = num
+				targetPlayerDesign = &newDesign
+				reciever.Designs = append(reciever.Designs, targetPlayerDesign)
+			} else if !targetPlayerDesign.SlotsEqual(design.Slots) {
+				// uh oh, design has been updated since the last time it was transferred to us...
+				// create a new design for the target player
+				num := reciever.GetNextDesignNum(reciever.Designs)
+				newDesign := *design
+				newDesign.GameDBObject = GameDBObject{}
+				newDesign.OriginalPlayerNum = donor.Num
+				newDesign.PlayerNum = reciever.Num
+				newDesign.Num = num
+				// revise the version and append it to the name
+				newDesign.Version++
+				newDesign.Name = fmt.Sprintf("%s v%d", newName, newDesign.Version)
+				targetPlayerDesign = &newDesign
+				reciever.Designs = append(reciever.Designs, targetPlayerDesign)
+			}
+
+			// make sure we don't update this spec
+			targetPlayerDesign.Spec.NumBuilt = 0
+			targetPlayerDesign.Spec.NumInstances = 0
+
+			token.design = targetPlayerDesign
+			token.DesignNum = targetPlayerDesign.Num
+		}
+
+		playerFleets := t.game.getFleets(reciever.Num)
+		fleet.Num = reciever.GetNextFleetNum(playerFleets)
+		fleet.PlayerNum = reciever.Num
+
+		// clear out the waypoints
+		fleet.Waypoints = fleet.Waypoints[:1]
+
+		// notify the player here (before we give it away and change the name)
+		messager.fleetTransferGiven(donor, fleet, reciever)
+		messager.fleetTransferReceived(reciever, fleet, donor)
+
+		fleet.Rename(fmt.Sprintf("%s %s", donor.Race.Name, fleet.BaseName))
+
 	}
 }
 

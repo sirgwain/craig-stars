@@ -16,13 +16,13 @@ import (
 // If the comparison fails, this marks the test as a failure and
 // writes 3 JSONL files to ./tmp, containing serialized versions of got and want
 // and a pretty-printed difference between the two (courtesy of [github.com/nsf/jsondiff]).
-// This json difference is passed to [testing.T.Errorf] as well for ease of use.
+// This json difference is also passed to [testing.T.Errorf] if they are different.
 //
 // These files are continuously appended to during a test run (sectioned off by test name),
-// and must be moved or removed after the package finishes testing (such as [TestMain]).
+// and should be moved or removed after the package finishes testing (such as via [TestMain]).
 // Invocation from parallel tests is untested and not recommended.
 //
-// Failures to parse JSON will halt test execution and fail immediately.
+// A failure to parse JSON will halt test execution and fail immediately.
 //
 // [TestMain]: https://pkg.go.dev/testing#hdr-Main
 func CompareAsJSON(t TestingT, got, want any) {

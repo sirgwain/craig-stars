@@ -1,6 +1,10 @@
 <!--
   @component
-  Generates HTML text labels for a nested data structure. It places the label near the y-value of the highest x-valued data point. This is useful for labeling the final point in a multi-series line chart, for example. It expects your data to be an array of objects where each has `values` field that is an array of data objects. It uses the `z` field accessor to pull the text label.
+  Generates HTML text labels for a nested data structure.
+  It places the label near the y-value of the highest x-valued data point.
+  This is useful for labeling the final point in a multi-series line chart, for example.
+  It expects your data to be an array of objects where each has `values` field that is an array of data objects.
+  It uses the `z` field accessor to pull the text label.
  -->
 <script>
 	import { getContext } from 'svelte';

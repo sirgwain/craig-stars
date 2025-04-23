@@ -127,21 +127,24 @@ export type CargoType = ResourceType;
 
 /**
  * ByHandCargoTransfers are any cargo transfers performed by the player in the UI that need to be
- * processed when a turn is generated. It is per fleet for a target. When a fleet is split or merged
- * its by hand transfers are also split and merged.
+ * processed when a turn is generated.
+ * They are stored on a per-fleet, per-target basis. Splitting or merging a fleet
+ * will split any by hand transfers belonging to it likewise.
  */
 export interface ByHandCargoTransfer extends MapObjectTarget {
 	sourceFleetNum?: number /* int */;
 	cargo: Cargo;
 }
 /**
- * CargoTransfers are per player ByHandCargoTransfers per location on the map. This makes processing
- * easier so we can account for transfers to/from a target and then between fleets at that location
- * The ByHandCargoTransfers are stored and processed in order they are made by the player
+ * CargoTransfers is a record of ByHandCargoTransfers for a given player per location on the map.
+ * This aids in processing as we can check simultaneously check transfers to/from a target
+ * and between fleets at each location.
+ * All ByHandCargoTransfers are stored and processed in the order they are made by the player.
  */
 export type CargoTransfers = { [key: string]: ByHandCargoTransfer[] };
 /**
- * CargoTransferStatus will alert the user if a CargoTransfer didn't go through due to insufficient capacity or available cargo
+ * CargoTransferStatus records the reason for a CargoTransfer failing to execute.
+ * These are collated and sent to the user in the event of failure.
  */
 export type CargoTransferStatus = number /* int */;
 export const CargoTransferStatusNone: CargoTransferStatus = 0;
@@ -155,7 +158,7 @@ export const CargoTransferStatusDestCargoCapacity: CargoTransferStatus = 5;
  */
 export const CargoTransferStatusDestStarbase: CargoTransferStatus = 6;
 /**
- * cargoTransferResult is the result of a single CargoType cargo transfer to a dest
+ * cargoTransferResult is the result of a single CargoType cargo transfer to a destination
  */
 /**
  * dunnage tasks are done after regular tasks
@@ -255,7 +258,7 @@ export interface FleetSpec extends ShipDesignSpec {
 export interface Waypoint extends MapObjectTarget {
 	position: Vector;
 	warpSpeed: number /* int */;
-	estFuelUsage?: number /* int */;
+	estFuelUsage?: number /* int */; // TODO: Rework this into a fuel usage estimator struct similar to production queues
 	task?: WaypointTask;
 	transportTasks: WaypointTransportTasks;
 	waitAtWaypoint?: boolean;
@@ -287,6 +290,10 @@ export interface WaypointTransportTask {
 	amount?: number /* int */;
 	action?: WaypointTaskTransportAction;
 }
+/**
+ * A transport task performed by a fleet to load or unload cargo.
+ * TODO: Add a "set waypoint to %" command
+ */
 export type WaypointTaskTransportAction = string;
 /**
  * No transport task for the specified cargo.
@@ -662,6 +669,7 @@ export interface PlayerMessageSpec extends Target<MapObjectType> {
 	sourcePlayerNum?: number /* int */;
 	destPlayerNum?: number /* int */;
 	name?: string;
+	prevName?: string;
 	cost?: Cost;
 	mineral?: Mineral;
 	cargo?: Cargo;
@@ -692,6 +700,7 @@ export interface PlayerMessageSpecMysteryTrader extends MysteryTraderReward {
 }
 export interface PlayerMessageSpecInvasion {
 	fleetName?: string;
+	numFleets?: number /* int */;
 	attackerPlayerNum: number /* int */;
 	defenderPlayerNum: number /* int */;
 	attackersKilled: number /* int */;
@@ -816,6 +825,7 @@ export const PlayerMessagePlanetBuiltGenesisDevice: PlayerMessageType = 98;
 export const PlayerMessagePlayerAcquirablePartGainedScrapFleet: PlayerMessageType = 99;
 export const PlayerMessagePlayerAcquirablePartGainedBattle: PlayerMessageType = 100;
 export const PlayerMessageFleetByHandTransferIncomplete: PlayerMessageType = 101;
+export const PlayerMessagePlanetBuiltStarbaseRefunded: PlayerMessageType = 102;
 
 //////////
 // source: minefield.go
@@ -1225,12 +1235,16 @@ export interface PlayerMapObjects {
 //////////
 // source: production.go
 
-export interface QueueItemCompletionEstimate {
-	skipped?: boolean;
-	yearsToBuildOne?: number /* int */;
-	yearsToBuildAll?: number /* int */;
-	yearsToSkipAuto?: number /* int */;
-}
+/**
+ * max items buildable for items without an explicit cap; used by both backend and frontend
+ */
+export const MaxBuildableCap = 100_000;
+/**
+ * The producer struct performs planetary production.
+ */
+/**
+ * An item in a production queue.
+ */
 export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	type: QueueItemType;
 	designNum?: number /* int */;
@@ -1239,6 +1253,7 @@ export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	tags: Tags;
 }
 export type QueueItemType = string;
+export const QueueItemTypeNone: QueueItemType = '';
 export const QueueItemTypeIroniumMineralPacket: QueueItemType = 'IroniumMineralPacket';
 export const QueueItemTypeBoraniumMineralPacket: QueueItemType = 'BoraniumMineralPacket';
 export const QueueItemTypeGermaniumMineralPacket: QueueItemType = 'GermaniumMineralPacket';
@@ -1260,7 +1275,16 @@ export const QueueItemTypeStarbase: QueueItemType = 'Starbase';
 export const QueueItemTypePlanetaryScanner: QueueItemType = 'PlanetaryScanner';
 export const QueueItemTypeGenesisDevice: QueueItemType = 'GenesisDevice';
 /**
- * for logging and for estimating, keep track of each item built
+ * A record used by the production estimator to record unbuilt
+ * ProductionQueueItem completion times and outcomes.
+ */
+export interface QueueItemCompletionEstimate {
+	yearsToBuildOne?: number /* int */; // Years to (try to) build the first item of this type in the queue
+	yearsToBuildAll?: number /* int */; // Years to (try to) build the last item of this type in the queue
+	yearsToSkipOrCancel?: number /* int */; // Years to skip or cancel the first item in a queue
+}
+/**
+ * A record of a built queue item, used for logging & estimating
  */
 
 //////////
@@ -1667,7 +1691,7 @@ export interface CostRules {
 	factoryCostGermanium: number /* int */;
 	mineralAlchemyCost: number /* int */;
 	planetaryScannerCost: Cost;
-	starbaseComponentCostReduction: number /* float64 */;
+	starbaseComponentCostReduction: number /* float64 */; // Cost multiplier for non-orbital components placed on starbases; default 0.5
 	starbaseHullRefundFactor: number /* float64 */;
 	terraformCost: Cost;
 	techBaseCost: number /* int */[];
@@ -2234,7 +2258,7 @@ export interface PRTSpec {
 	mineralsPerSingleMineralPacket?: number /* int */;
 	mineralsPerMixedMineralPacket?: number /* int */;
 	packetResourceCost?: number /* int */;
-	packetMineralCostFactor?: number /* float64 */;
+	packetMineralCostFactor?: number /* float64 */; // Overhead amount for mineral packet launches.
 	packetReceiverFactor?: number /* float64 */;
 	packetDecayFactor?: number /* float64 */;
 	packetOverSafeWarpPenalty?: number /* int */;
@@ -2374,6 +2398,9 @@ export interface Universe {
 	mysteryTraders?: (MysteryTrader | undefined)[];
 	salvage?: (Salvage | undefined)[];
 }
+/**
+ * A struct used as a key for universe maps containing numbered player objects.
+ */
 
 //////////
 // source: universegenerator.go

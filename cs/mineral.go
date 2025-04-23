@@ -47,17 +47,17 @@ func (m Mineral) PrettyString() string {
 	return strings.Join(texts, ", ")
 }
 
-// Set sets the value corresponding to minType to amt.
+// Set sets the value corresponding to minType to amount.
 // Unlike all other Mineral functions, this _will_ mutate the original struct's values,
 // and is best used for more complex cases not handled by simple addition.
-func (m *Mineral) Set(minType MineralType, amt int) {
+func (m *Mineral) Set(minType MineralType, amount int) {
 	switch minType {
 	case Ironium:
-		m.Ironium = amt
+		m.Ironium = amount
 	case Boranium:
-		m.Boranium = amt
+		m.Boranium = amount
 	case Germanium:
-		m.Germanium = amt
+		m.Germanium = amount
 	default:
 		panic(fmt.Sprintf("mineral.Set called with invalid MineralType %s", minType))
 	}
@@ -140,23 +140,23 @@ func (m Mineral) Add(other Mineral) Mineral {
 }
 
 // Add a number to all components of a Mineral and return the result.
-func (m Mineral) AddToAll(amt int) Mineral {
+func (m Mineral) AddToAll(amount int) Mineral {
 	return Mineral{
-		Ironium:   m.Ironium + amt,
-		Boranium:  m.Boranium + amt,
-		Germanium: m.Germanium + amt,
+		Ironium:   m.Ironium + amount,
+		Boranium:  m.Boranium + amount,
+		Germanium: m.Germanium + amount,
 	}
 }
 
 // Add an int to a single component of a mineral and return the result.
-func (m Mineral) AddNum(minType MineralType, amt int) Mineral {
+func (m Mineral) AddNum(minType MineralType, amount int) Mineral {
 	switch minType {
 	case Ironium:
-		m.Ironium += amt
+		m.Ironium += amount
 	case Boranium:
-		m.Boranium += amt
+		m.Boranium += amount
 	case Germanium:
-		m.Germanium += amt
+		m.Germanium += amount
 	default:
 		panic(fmt.Sprintf("mineral.AddNum called with invalid MineralType %q; \nmust be Ironium, Boranium or Germanium", minType))
 	}
@@ -209,8 +209,8 @@ func (m Mineral) HighestType(ranking int) (minType MineralType, value int) {
 
 // return the first valid MineralType in a Mineral struct with the given numerical value;
 // panics if no MineralType with the corresponding value exists
-func (m Mineral) GetTypeFromAmount(amt int) MineralType {
-	switch amt {
+func (m Mineral) GetTypeFromAmount(amount int) MineralType {
+	switch amount {
 	case m.Ironium:
 		return Ironium
 	case m.Boranium:
@@ -218,5 +218,5 @@ func (m Mineral) GetTypeFromAmount(amt int) MineralType {
 	case m.Germanium:
 		return Germanium
 	}
-	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding MineralType was found in mineral struct; Struct values: \n%#v", amt, m))
+	panic(fmt.Sprintf("GetTypeFromAmount called with value %v, but no corresponding MineralType was found in mineral struct: \n%#v", amount, m))
 }

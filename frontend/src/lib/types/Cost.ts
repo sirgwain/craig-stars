@@ -26,7 +26,7 @@ export function divide(a: Cost, b: Cost): number {
 	const newGermanium = !b.germanium ? Infinity : (a.germanium ?? 0) / (b.germanium ?? 0);
 	const newResources = !b.resources ? Infinity : (a.resources ?? 0) / (b.resources ?? 0);
 
-	return Math.min(newResources, Math.min(newIronium, Math.min(newBoranium, newGermanium)));
+	return Math.min(newResources, newIronium, newBoranium, newGermanium);
 }
 
 export function add(a: Cost, b: Cost | Mineral | undefined): Cost {

@@ -98,7 +98,7 @@ type CostRules struct {
 	FactoryCostGermanium           int     `json:"factoryCostGermanium"`
 	MineralAlchemyCost             int     `json:"mineralAlchemyCost"`
 	PlanetaryScannerCost           Cost    `json:"planetaryScannerCost"`
-	StarbaseComponentCostReduction float64 `json:"starbaseComponentCostReduction"`
+	StarbaseComponentCostReduction float64 `json:"starbaseComponentCostReduction"` // Cost multiplier for non-orbital components placed on starbases; default 0.5
 	StarbaseHullRefundFactor       float64 `json:"starbaseHullRefundFactor"`
 	TerraformCost                  Cost    `json:"terraformCost"`
 	TechBaseCost                   []int   `json:"techBaseCost"`
