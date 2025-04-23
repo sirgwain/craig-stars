@@ -152,13 +152,19 @@ func (t QueueItemType) concreteType() QueueItemType {
 // A record used by the production estimator to record unbuilt
 // ProductionQueueItem completion times and outcomes.
 type QueueItemCompletionEstimate struct {
-	YearsToBuildOne     int `json:"yearsToBuildOne,omitempty"`     // Years to (try to) build the first item of this type in the queue
-	YearsToBuildAll     int `json:"yearsToBuildAll,omitempty"`     // Years to (try to) build the last item of this type in the queue
-	YearsToSkipOrCancel int `json:"yearsToSkipOrCancel,omitempty"` // Years to skip or cancel the first item in a queue
+	/* The first year a single copy of this item is built. */
+	YearsToBuildOne int `json:"yearsToBuildOne,omitempty"`
+	/* The first year this item is completely finished. */
+	YearsToBuildAll int `json:"yearsToBuildAll,omitempty"`
+	/*
+		The first year this item is *stopped* being built due to being skipped (auto) or canceled (concrete).
+		Always displayed for concrete queue items, while autos only display it if the relevant setting is enabled.
+	*/
+	YearsToSkipOrCancel int `json:"yearsToSkipOrCancel,omitempty"`
 }
 
 type productionResult struct {
-	itemsBuilt        []itemBuilt
+	itemsBuilt        map[int]*itemBuilt
 	leftoverResources int
 	tokens            []builtShip
 	packets           Cargo
@@ -174,11 +180,14 @@ type productionResult struct {
 	completed         bool
 }
 
+func (r *productionResult) addItemBuilt(index int, itemBuilt itemBuilt) {
+	r.itemsBuilt[index] = &itemBuilt
+}
+
 // A record of a built queue item, used for logging & estimating
 type itemBuilt struct {
 	queueItemType QueueItemType
 	designNum     int
-	index         int
 	numBuilt      int
 	skipped       bool // whether an auto item is skipped or invalid concrete item is canceled
 }
@@ -198,6 +207,8 @@ func (p *producer) produce() (result productionResult, err error) {
 			newPlanetMessage(PlayerMessagePlanetProductionQueueEmpty, planet))
 		return productionResult{leftoverResources: planet.Spec.ResourcesPerYearAvailable, completed: true}, nil
 	}
+
+	result.itemsBuilt = make(map[int]*itemBuilt, len(planet.ProductionQueue))
 
 	// TODO: Fix auto mineral alchemy:
 	// * Only has 1 max quantity
@@ -263,8 +274,7 @@ itemLoop:
 			if item.Quantity <= 0 {
 				// quantity below 0; skip building item
 				available = available.Add(item.Allocated) // refund previously allocated amount
-				result.itemsBuilt = append(result.itemsBuilt,
-					itemBuilt{index: item.index, skipped: true})
+				result.addItemBuilt(item.index, itemBuilt{queueItemType: item.Type, skipped: true})
 				p.updateCanceledMessage(&result, item, overCap, m)
 				continue
 			}
@@ -285,7 +295,7 @@ itemLoop:
 				available = available.Add(item.Allocated)
 				p.updatePacketCanceledMessage(&result, item, msgType,
 					itemCost.ToMineral().MultiplyFloat64(1/p.player.Race.Spec.PacketMineralCostFactor, math.Floor).Total())
-				result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, skipped: true})
+				result.addItemBuilt(item.index, itemBuilt{queueItemType: item.Type, skipped: true})
 				continue
 			}
 		}
@@ -302,7 +312,10 @@ itemLoop:
 		// Stars! doesn't bother starting auto items unless we have enough minerals for 1 full batch
 		// (likely to prevent accidental queue blockages)
 		if item.Type.IsAuto() && (maxBuildable <= 0 || available.DivideMineral(itemCost.ToMineral()) < 1) {
-			result.itemsBuilt = append(result.itemsBuilt, itemBuilt{index: item.index, skipped: true})
+			if maxBuildable <= 0 {
+				// Don't message for lack of affordabilityu
+				result.addItemBuilt(item.index, itemBuilt{queueItemType: item.Type, skipped: true})
+			}
 			newQueue = append(newQueue, item) // auto items stick around
 
 			// if we skipped the last item in the queue, mark result as done
@@ -352,8 +365,7 @@ itemLoop:
 		available = available.AddToAllMineral(result.alchemy)
 
 		// record item being built
-		result.itemsBuilt = append(result.itemsBuilt, itemBuilt{
-			index:         item.index,
+		result.addItemBuilt(item.index, itemBuilt{
 			queueItemType: item.Type,
 			designNum:     item.DesignNum,
 			numBuilt:      numBuilt,
@@ -398,8 +410,7 @@ itemLoop:
 				} else {
 					// can't build any more; exclude from new queue
 					available = available.Add(item.Allocated) // refund previously allocated cost
-					result.itemsBuilt = append(result.itemsBuilt,
-						itemBuilt{index: item.index, queueItemType: item.Type, skipped: true})
+					result.addItemBuilt(item.index, itemBuilt{queueItemType: item.Type, skipped: true})
 					p.updateCanceledMessage(&result, item, overCap, cap)
 				}
 			}
@@ -687,11 +698,19 @@ func (p *producer) updatePacketCanceledMessage(result *productionResult, item Pr
 
 // Create or update "item canceled" message for starbases.
 func (p *producer) updateStarbaseCanceledMessage(result *productionResult, newItem ProductionQueueItem, oldAllocated Cost) error {
-	if itemBuiltIndex := slices.IndexFunc(result.itemsBuilt, func(item itemBuilt) bool {
-		return item.designNum == result.starbase.Num
-	}); itemBuiltIndex == -1 {
-		// built record for prior starbase doesn't exist.
-		// Should never happen since we only cancel bases that we already made earlier this year
+	// find the prior itemBuilt record and amend it
+	found := false
+	for _, item := range result.itemsBuilt {
+		if item.designNum == result.starbase.Num {
+			item.skipped = true
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		// built record not existing likely indicates a massive screw up
+		// since we should only cancel bases that we already made earlier this year
 		p.log.Error().
 			Any("ProductionQueue", p.planet.ProductionQueue).
 			Any("ItemsBuilt", result.itemsBuilt).
@@ -699,9 +718,6 @@ func (p *producer) updateStarbaseCanceledMessage(result *productionResult, newIt
 			Str("Design Name", result.starbase.Name).
 			Msgf("starbase refund lacked prior records in itemsBuilt")
 		return fmt.Errorf("refunding base %s lacked prior records in itemsBuilt", result.starbase.Name)
-	} else {
-		// Amend the prior itemBuilt record to say we canceled it
-		result.itemsBuilt[itemBuiltIndex].skipped = true
 	}
 
 	// handle messages

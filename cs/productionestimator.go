@@ -87,22 +87,19 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 		}
 
 		// check everything built this turn, tacking on estimates if we haven't already done so
-		for _, itemBuilt := range result.itemsBuilt {
-			if itemBuilt.index == -1 {
+		for index, itemBuilt := range result.itemsBuilt {
+			if index == -1 {
 				// item is a half-built concrete version of an auto item; skip
 				continue
 			}
 
-			item := &items[itemBuilt.index]
-			maxBuildable := planet.MaxBuildable(player, item.Type)
+			item := &items[index]
 
 			// log auto items being skipped or concrete items being canceled
 			if itemBuilt.skipped && item.YearsToSkipOrCancel == Infinite {
 				item.YearsToSkipOrCancel = year
 				continue
 			}
-
-			numBuilt[itemBuilt.index] += itemBuilt.numBuilt
 
 			// record the year the first item was built (if not done beforehand)
 			if item.YearsToBuildOne == Infinite {
@@ -119,11 +116,12 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 				} else {
 					// concrete items retain quantities each year, so we check
 					// the total items built across all years
-					num = numBuilt[itemBuilt.index]
+					numBuilt[index] += itemBuilt.numBuilt
+					num = numBuilt[index]
 				}
-				// if we've built up to the item's quantity or
-				// maxBuildable, mark it as done
-				if num >= item.Quantity || (maxBuildable != Infinite && num >= maxBuildable) {
+				// if we've built up to the item's quantity or maxBuildable, mark it as done
+				if maxBuildable := planet.MaxBuildable(player, item.Type); num >= item.Quantity ||
+					(maxBuildable != Infinite && num >= maxBuildable) {
 					item.YearsToBuildAll = year
 				}
 

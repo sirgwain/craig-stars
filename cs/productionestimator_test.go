@@ -872,15 +872,14 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 		player := NewPlayer(1, race).withSpec(&rules)
 		planet := NewPlanet().WithCargo(Cargo{44, 24, 33, 30}).WithContributesOnlyLeftoverToResearch(true)
 		planet.Spec = computePlanetSpec(&rules, player, planet)
-		t.Log(planet.Spec.ResourcesPerYearAvailable)
 		planet.ProductionQueue = []ProductionQueueItem{
 			{
 				Type:     QueueItemTypeAutoFactories,
-				Quantity: 250,
+				Quantity: 100,
 			},
 			{
 				Type:     QueueItemTypeAutoMines,
-				Quantity: 250,
+				Quantity: 100,
 			},
 			{
 				Type:     QueueItemTypeAutoDefenses,
@@ -891,24 +890,27 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 		wantQueue := []ProductionQueueItem{
 			{
 				QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-					YearsToBuildOne: 10,
-					YearsToBuildAll: 32,
+					YearsToBuildOne:     10,
+					YearsToBuildAll:     32,
+					YearsToSkipOrCancel: Infinite,
 				},
 				Type:     QueueItemTypeAutoFactories,
-				Quantity: 250,
+				Quantity: 100,
 			},
 			{
 				QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-					YearsToBuildOne: 12,
-					YearsToBuildAll: 34,
+					YearsToBuildOne:     12,
+					YearsToBuildAll:     34,
+					YearsToSkipOrCancel: Infinite,
 				},
 				Type:     QueueItemTypeAutoMines,
-				Quantity: 250,
+				Quantity: 100,
 			},
 			{
 				QueueItemCompletionEstimate: QueueItemCompletionEstimate{
-					YearsToBuildOne: 34,
-					YearsToBuildAll: 37,
+					YearsToBuildOne:     34,
+					YearsToBuildAll:     37,
+					YearsToSkipOrCancel: Infinite,
 				},
 				Type:     QueueItemTypeAutoDefenses,
 				Quantity: 10,
