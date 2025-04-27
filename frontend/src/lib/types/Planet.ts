@@ -139,7 +139,10 @@ export class CommandedPlanet implements Planet {
 	public updateProductionQueueEstimates(cs: CS): ProductionQueueItem[] {
 		const planetWithEstimates = cs.estimateProduction(this);
 		if (planetWithEstimates?.productionQueue?.length !== this.productionQueue.length) {
-			throw Error("failed to estimate production queue. items don't match up");
+			// something went wrong
+			// flag everything as never
+			console.error("failed to estimate production queue. items don't match up");
+			return this.productionQueue;
 		}
 
 		for (let i = 0; i < this.productionQueue.length; i++) {
