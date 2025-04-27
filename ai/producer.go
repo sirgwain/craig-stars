@@ -173,14 +173,16 @@ func (ai *aiPlayer) buildOrUpgradeStarbase(planet *cs.Planet) error {
 	// This will be useful for IT/PP and desperately necessary for AR
 	if !(targeted || attackShipsInOrbit) {
 		if ai.Player.Race.Spec.InnateResources {
-			if !planet.Spec.CanTerraform { // Terraforming is economic development for AR planets
-				existingDesign := ai.GetDesign(planet.Spec.StarbaseDesignNum)
-				if len(existingDesign.Slots) == 0 && existingDesign != ai.fuelDepotDesign {
-					// Bigger starbase allows bigger population
-					ai.addStarbaseToTopOfQueue(planet, ai.fuelDepotDesign)
-				} else {
-					ai.upgradeStarbase(planet, ai.config.minYearsToQueueStarbasePeaceTime)
-				}
+			if planet.Spec.CanTerraform {
+				// Terraforming is economic development for AR planets
+				return nil
+			}
+			existingDesign := ai.GetDesign(planet.Spec.StarbaseDesignNum)
+			if len(existingDesign.Slots) == 0 && existingDesign != ai.fuelDepotDesign {
+				// Bigger starbase allows bigger population
+				ai.addStarbaseToTopOfQueue(planet, ai.fuelDepotDesign)
+			} else {
+				ai.upgradeStarbase(planet, ai.config.minYearsToQueueStarbasePeaceTime)
 			}
 			return nil
 		} else {
