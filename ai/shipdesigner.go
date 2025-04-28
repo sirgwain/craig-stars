@@ -52,7 +52,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 		}
 		fallthrough
 	case cs.ShipDesignPurposePacketThrower, cs.ShipDesignPurposeStargater, cs.ShipDesignPurposeFort:
-		hull = ai.getBestHull(highestRanked, cs.TechHullTypeOrbitalFort, cs.TechHullTypeOrbitalFort)
+		hull = ai.getBestHull(highestRanked, cs.TechHullTypeOrbitalFort)
 	}
 
 	if hull == nil {
@@ -75,6 +75,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	} else {
 		updated.Version = 1
 	}
+// TODO: Come up with better names than this
 	updated.Name = fmt.Sprintf("%s v%d", name, updated.Version+1)
 
 	// if our existing design is equivalent or higher rated, return it
@@ -82,6 +83,7 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 		return existing, nil
 	}
 
+	// otherwise, make sure it's valid before confirming and returning it
 	if err := updated.Validate(&ai.game.Rules, ai.Player); err != nil {
 		return nil, fmt.Errorf("invalid updated design: %w", err)
 	}
@@ -89,7 +91,6 @@ func (ai *aiPlayer) designShip(name string, purpose cs.ShipDesignPurpose, fleetP
 	ai.Designs = append(ai.Designs, updated)
 	ai.designsByPurpose[updated.Purpose] = updated
 
-	// otherwise return the new design
 	return updated, nil
 }
 
@@ -142,10 +143,11 @@ func (ai *aiPlayer) removeUnusedDesigns() {
 	// find any designs with no instances
 	for _, design := range ai.Designs {
 		if design.Spec.NumInstances == 0 && !design.CannotDelete {
-			// ai.log.Debug().
-			// 	Int64("GameID", ai.GameID).
-			// 	Int("PlayerNum", ai.Num).
-			// 	Msgf("marking %s for deletion, unused", design.Name)
+			/* ai.log.Debug().
+				Int64("GameID", ai.GameID).
+				Int("PlayerNum", ai.Num).
+				Msgf("marking %s for deletion, unused", design.Name)
+			*/
 
 			unusedDesigns[design.Num] = true
 		}
@@ -155,24 +157,19 @@ func (ai *aiPlayer) removeUnusedDesigns() {
 	for _, planet := range ai.Planets {
 		for _, item := range planet.ProductionQueue {
 			if item.DesignNum != 0 {
-				delete(unusedDesigns, item.DesignNum)
-
-				// ai.log.Debug().
-				// 	Int64("GameID", ai.GameID).
-				// 	Int("PlayerNum", ai.Num).
-				// 	Msgf("design %d still used, not marking for deletion", item.DesignNum)
+				unusedDesigns[item.DesignNum] = false
 			}
 		}
 	}
 
 	for _, design := range ai.Designs {
-		if found, found2 := unusedDesigns[design.Num]; found && found2 {
+		if unused := unusedDesigns[design.Num]; unused {
 			// log a message if we're deleting an existing design
 			if design.ID != 0 {
 				ai.log.Debug().
 					Int64("GameID", ai.GameID).
 					Int("PlayerNum", ai.Num).
-					Msgf("marking %s, design %d for deletion, unused", design.Name, design.Num)
+					Msgf("marking %s (design %d) for deletion; unused", design.Name, design.Num)
 			}
 			design.Delete = true
 		}
@@ -189,23 +186,16 @@ func (ai *aiPlayer) assignPurpose() {
 	}
 }
 
-// Get the best hull we can build given one or more TechHullTypes to check against
+// Get the best hull we can build given a TechHullType to check against
 // and a comparison function to determine superiority.
-// Defaults to checking all hulls if hullTypes is empty.
 //
 // cmpFunc should be a strict weak ordering that returns true if the 2nd hull is better.
-func (ai *aiPlayer) getBestHull(cmpFunc func(a, b *cs.TechHull) bool, hullTypes ...cs.TechHullType) (bestHull *cs.TechHull) {
-	if len(hullTypes) == 0 {
-		hullTypes = cs.TechHullTypes
-	}
+func (ai *aiPlayer) getBestHull(cmpFunc func(a, b *cs.TechHull) bool, hullType cs.TechHullType) (bestHull *cs.TechHull) {
+	hulls := ai.techStore.GetHullsByType(hullType)
 
-	// check each hullType successively
-	for _, hullType := range hullTypes {
-		hulls := ai.techStore.GetHullsByType(hullType)
-		for _, hull := range hulls {
-			if ai.HasTech(&hull.Tech) && (bestHull == nil || cmpFunc(bestHull, hull)) {
-				bestHull = hull
-			}
+	for _, hull := range hulls {
+		if ai.HasTech(&hull.Tech) && (bestHull == nil || cmpFunc(bestHull, hull)) {
+			bestHull = hull
 		}
 	}
 
