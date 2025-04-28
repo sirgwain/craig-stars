@@ -3,6 +3,7 @@ package cs
 import (
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -1023,156 +1024,235 @@ func TestFleet_gateFleet(t *testing.T) {
 
 func TestFleet_repairFleet(t *testing.T) {
 	player := NewPlayer(1, NewRace().WithSpec(&rules)).WithNum(1).withSpec(&rules)
-	type args struct {
-		prt    PRT
-		fleet  *Fleet
-		planet *Planet
+	// allies with ourselves, enemy with player 2
+	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
+	ownedPlanet := NewPlanet().WithNum(1).WithPlayerNum(1)
+	enemyPlanet := NewPlanet().WithNum(1).WithPlayerNum(2)
+
+	// used for more precise repair calcs (exactly 100 dp)
+	var midgetMiner = NewShipDesign(player.Num, 1).
+		WithHull(MidgetMiner.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+		})
+	var miniBomber = NewShipDesign(player.Num, 2).
+		WithHull(MiniBomber.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: LadyFingerBomb.Name, HullSlotIndex: 2, Quantity: 1},
+		})
+	var fuelXport = NewShipDesign(player.Num, 3).
+		WithHull(SuperFuelXport.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+		})
+
+	type fields struct {
+		repairFactor float64
+		tokens       []ShipToken
+	}
+	type want struct {
+		QuantityDamaged int
+		Damage          float64
 	}
 	tests := []struct {
-		name string
-		args args
-		want []ShipToken
+		name         string
+		fields       fields
+		planet       *Planet
+		starbaseHull string
+		moving       bool
+		want         []want
 	}{
-		{"no damage", args{JoaT, testLongRangeScout(player), nil}, []ShipToken{{QuantityDamaged: 0, Damage: 0}}},
-		{"repair min 1dp", args{JoaT,
-			&Fleet{
-				MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-				BaseName:  "Long Range Scout",
-				Tokens: []ShipToken{
-					{
-						Quantity:        1,
-						QuantityDamaged: 1,
-						Damage:          10,
-						DesignNum:       1,
-						design: NewShipDesign(player.Num, 1).
-							WithHull(Scout.Name).
-							WithSlots([]ShipDesignSlot{
-								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-							}).
-							WithSpec(&rules, player)},
-				},
-				OrbitingPlanetNum: None,
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{
-						NewPositionWaypoint(Vector{}, 5),
-					},
-				},
+		{
+			name: "no damage",
+			fields: fields{
+				repairFactor: 1,
+				tokens: []ShipToken{{
+					Quantity:        1,
+					QuantityDamaged: 0,
+					Damage:          0,
+					design:          testLongRangeScoutDesign(1),
+				}},
 			},
-			nil,
+			want: []want{{
+				QuantityDamaged: 0,
+				Damage:          0,
+			}},
 		},
-			// should repair 2% (min 1dp)
-			[]ShipToken{{QuantityDamaged: 1, Damage: 9}},
-		},
-		{"repair 5% when orbiting our planet", args{JoaT,
-			&Fleet{
-				MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-				BaseName:  "100dp Fleet",
-				Tokens: []ShipToken{
-					{
-						Quantity:        3,
-						QuantityDamaged: 2,
-						Damage:          10,
-						DesignNum:       1,
-						design: NewShipDesign(player.Num, 1).
-							WithHull(MidgetMiner.Name). // has 100dp armor
-							WithSlots([]ShipDesignSlot{
-								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-							}).
-							WithSpec(&rules, player)},
-				},
-				OrbitingPlanetNum: 1,
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{
-						NewPositionWaypoint(Vector{}, 5),
-					},
-				},
+		{
+			name: "repair min 1dp",
+			fields: fields{
+				repairFactor: 1,
+				tokens: []ShipToken{{
+					Quantity:        1,
+					QuantityDamaged: 1,
+					Damage:          10,
+					design:          testLongRangeScoutDesign(1),
+				}},
 			},
-			NewPlanet().WithNum(1).WithPlayerNum(player.Num),
+			want: []want{{
+				QuantityDamaged: 1,
+				Damage:          9,
+			}},
 		},
-			// should repair 5% of 100, or 5 dp (on both damaged tokens)
-			[]ShipToken{{QuantityDamaged: 2, Damage: 5}},
+		{
+			name: "orbiting own planet",
+			fields: fields{
+				repairFactor: 1,
+				tokens: []ShipToken{{
+					Quantity:        3,
+					QuantityDamaged: 2,
+					Damage:          10,
+					design:          midgetMiner,
+				}},
+			},
+			planet: ownedPlanet,
+			want: []want{{
+				QuantityDamaged: 2,
+				Damage:          5,
+			}},
 		},
-		{"IS repair double (10%) when orbiting our planet", args{IS,
-			&Fleet{
-				MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-				BaseName:  "100dp Fleet",
-				Tokens: []ShipToken{
+		{
+			name: "orbiting own starbase",
+			fields: fields{
+				repairFactor: 1,
+				tokens: []ShipToken{{
+					Quantity:        1,
+					QuantityDamaged: 1,
+					Damage:          50,
+					design:          midgetMiner,
+				}},
+			},
+			planet:       ownedPlanet,
+			starbaseHull: SpaceDock.Name,
+			want: []want{{
+				QuantityDamaged: 1,
+				Damage:          30,
+			}},
+		},
+		{
+			name: "orbiting own starbase",
+			fields: fields{
+				repairFactor: 1,
+				tokens: []ShipToken{{
+					Quantity:        1,
+					QuantityDamaged: 1,
+					Damage:          50,
+					design:          midgetMiner,
+				}},
+			},
+			planet:       ownedPlanet,
+			starbaseHull: SpaceDock.Name,
+			want: []want{{
+				QuantityDamaged: 1,
+				Damage:          30,
+			}},
+		},
+		{
+			name: "IS repair double",
+			fields: fields{
+				repairFactor: 2,
+				tokens: []ShipToken{{
+					Quantity:        1,
+					QuantityDamaged: 1,
+					Damage:          20,
+					design:          midgetMiner,
+				}},
+			},
+			planet: ownedPlanet,
+			want: []want{{
+				QuantityDamaged: 1,
+				Damage:          10,
+			}},
+		},
+		{
+			name: "bombers don't repair",
+			fields: fields{
+				repairFactor: 0,
+				tokens: []ShipToken{
 					{
 						Quantity:        1,
 						QuantityDamaged: 1,
 						Damage:          20,
-						DesignNum:       1,
-						design: NewShipDesign(player.Num, 1).
-							WithHull(MidgetMiner.Name). // has 100dp armor
-							WithSlots([]ShipDesignSlot{
-								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-							}).
-							WithSpec(&rules, player)},
-				},
-				OrbitingPlanetNum: 1,
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{
-						NewPositionWaypoint(Vector{}, 5),
+						design:          miniBomber,
 					},
-				},
-			},
-			NewPlanet().WithNum(1).WithPlayerNum(player.Num),
-		},
-			// should repair 5% of 100, or 5 dp (on both damaged tokens)
-			[]ShipToken{{QuantityDamaged: 1, Damage: 10}},
-		},
-		{"repair fully", args{JoaT,
-			&Fleet{
-				MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
-				BaseName:  "100dp Fleet",
-				Tokens: []ShipToken{
 					{
-						Quantity:        3,
-						QuantityDamaged: 2,
-						Damage:          5,
-						DesignNum:       1,
-						design: NewShipDesign(player.Num, 1).
-							WithHull(MidgetMiner.Name). // has 100dp armor
-							WithSlots([]ShipDesignSlot{
-								{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
-							}).
-							WithSpec(&rules, player)},
-				},
-				OrbitingPlanetNum: 1,
-				FleetOrders: FleetOrders{
-					Waypoints: []Waypoint{
-						NewPositionWaypoint(Vector{}, 5),
+						Quantity:        1,
+						QuantityDamaged: 1,
+						Damage:          10,
+						design:          fuelXport,
 					},
 				},
 			},
-			NewPlanet().WithNum(1).WithPlayerNum(player.Num),
+			planet: enemyPlanet,
+			want: []want{
+				{
+					QuantityDamaged: 1,
+					Damage:          20,
+				},
+				{
+					QuantityDamaged: 1,
+					Damage:          10,
+				},
+			},
 		},
-			// should repair 5% of 100, or 5 dp (on both damaged tokens)
-			[]ShipToken{{QuantityDamaged: 0, Damage: 0}},
+		{
+			name: "can't repair below max",
+			fields: fields{
+				repairFactor: 1,
+				tokens: []ShipToken{{
+					Quantity:        3,
+					QuantityDamaged: 2,
+					Damage:          5,
+					design:          midgetMiner,
+				}},
+			},
+			planet: ownedPlanet,
+			want: []want{{
+				QuantityDamaged: 0,
+				Damage:          0,
+			}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := *player
-			p.Race.PRT = tt.args.prt
-			p.Race.Spec = computeRaceSpec(&p.Race, &rules)
-
-			tt.args.fleet.Spec = ComputeFleetSpec(&rules, player, tt.args.fleet)
-
-			// if a planet is passed in, orbit it
-			if tt.args.planet != nil {
-				tt.args.fleet.OrbitingPlanetNum = tt.args.planet.Num
+			if len(tt.fields.tokens) != len(tt.want) {
+				t.Fatalf("Incorrect test setup for test %q; tt.args.tokens and tt.want must be same length", tt.name)
 			}
 
-			tt.args.fleet.repairFleet(testLogger, &rules, &p, tt.args.planet)
+			p := *player
+			p.Race.Spec = computeRaceSpec(&p.Race, &rules)
+			p.Race.Spec.RepairFactor = tt.fields.repairFactor
 
-			for i, token := range tt.args.fleet.Tokens {
-				if token.Damage != tt.want[i].Damage {
-					t.Errorf("Fleet.repairFleet() token %d gotDamage = %v, wantDamage %v", i, token.Damage, tt.want[i].Damage)
+			origQty := make([]int, len(tt.fields.tokens))
+			for i := range tt.fields.tokens {
+				origQty[i] = tt.fields.tokens[i].Quantity
+				tt.fields.tokens[i].design = tt.fields.tokens[i].design.WithSpec(&rules, &p)
+			}
+
+			fleet := newFleetForTokens(&p, 1, tt.name, tt.fields.tokens, []Waypoint{{Position: Vector{}}})
+			if tt.moving {
+				// add extra waypoint if we're supposed to move
+				fleet.Waypoints = append(fleet.Waypoints, Waypoint{Position: Vector{1, 1}})
+			}
+
+			repairRate := fleet.getRepairRate(&rules, &p, tt.planet)
+
+			fleet.repairFleet(log.Logger, &p, repairRate)
+			// TODO: Add message checks
+
+			for i, token := range fleet.Tokens {
+				want := tt.want[i]
+				if token.Damage != want.Damage {
+					t.Errorf("Fleet.repairFleet() gotDamage for token #%d = %v, wantDamage %v", i, token.Damage, want.Damage)
 				}
-				if token.QuantityDamaged != tt.want[i].QuantityDamaged {
-					t.Errorf("Fleet.repairFleet() token %d gotQuantityDamaged = %v, wantQuantityDamaged %v", i, token.QuantityDamaged, tt.want[i].QuantityDamaged)
+				if lost := origQty[i] - token.Quantity; lost > 0 {
+					t.Errorf("Fleet.repairFleet() removed %d tokens for token #%d;\nQuantity: %v, origQty: %v", lost, i, token.Quantity, origQty[i])
 				}
+				if token.QuantityDamaged != want.QuantityDamaged {
+					t.Errorf("Fleet.repairFleet() gotQuantityDamaged for token #%d = %v, wantQuantityDamaged %v", i, token.QuantityDamaged, want.QuantityDamaged)
+				}
+
 			}
 		})
 	}

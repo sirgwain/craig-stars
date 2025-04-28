@@ -80,20 +80,20 @@ func Clamp[T constraints.Ordered](value, minVal, maxVal T) T {
 	return max(minVal, min(value, maxVal))
 }
 
-// AbsMin returns the absolutely lowest (closest to 0)
+// AbsMax returns the absolutely highest (furthest from 0)
 // among a collection of similarly typed signed values.
 // Panics if given no arguments.
 //
 // In the event one or more arguments have the same absolute value,
 // the last one passed will take precedence.
-func AbsMin[S constraints.Signed | constraints.Float](nums ...S) S {
+func AbsMax[S constraints.Signed | constraints.Float](nums ...S) S {
 	if len(nums) == 0 {
 		panic("AbsMin called with no arguments")
 	}
 
 	result := nums[0]
 	for _, value := range nums[1:] {
-		if Abs(value) <= Abs(result) {
+		if Abs(value) >= Abs(result) {
 			result = value
 		}
 	}

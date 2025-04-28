@@ -2842,7 +2842,7 @@ func (t *turnGenerator) fleetRepair() {
 
 		player := t.game.getPlayer(fleet.PlayerNum)
 		orbiting := t.game.getOrbitingPlanet(fleet)
-		fleet.repairFleet(t.log, &t.game.Rules, player, orbiting)
+		fleet.repairFleet(t.log, player, fleet.getRepairRate(&t.game.Rules, player, orbiting))
 	}
 
 	for _, starbase := range t.game.Starbases {

@@ -33,22 +33,22 @@ func TestClamp(t *testing.T) {
 	}
 }
 
-func TestAbsMin(t *testing.T) {
+func TestAbsMax(t *testing.T) {
 	tests := []struct {
 		name string
 		nums []float64
 		want float64
 	}{
-		{"grabs closest to 0", []float64{1, 2, 3, 0}, 0},
-		{"all negative", []float64{-1, -1.2, -0.31, -4}, -0.31},
-		{"mix; lowest positive", []float64{1, -222, 3, -10.3333}, 1},
-		{"mix; lowest negative", []float64{2025, -1997, 2001, -3}, -3},
+		{"grabs furthest from 0", []float64{1, 2, 3, 0}, 3},
+		{"all negative", []float64{-1, -1.2, -0.31, -4}, -4},
+		{"mix; highest negative", []float64{1, -222, 3, -10.3333}, -222},
+		{"mix; highest positive", []float64{2025, -1997, 2001, -3}, 2025},
 		{"takes last of absolute equals", []float64{1, 1, 1, 1, -1}, -1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := AbsMin(tt.nums...); got != tt.want {
-				t.Errorf("AbsMin() returned value %v, want %v", got, tt.want)
+			if got := AbsMax(tt.nums...); got != tt.want {
+				t.Errorf("AbsMax() returned value %v, want %v", got, tt.want)
 			}
 		})
 	}
