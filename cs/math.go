@@ -48,27 +48,36 @@ func splitValues(sourceCapacity, destCapacity1, destCapacity2 int, values ...int
 
 	for i, count := range values {
 		// Distribute proportionally
-		split1 := (count*destCapacity1 + sourceCapacity/2) / sourceCapacity // Round to nearest
-		split2 := count - split1
+		absCount := Abs(count)
+		sign := signBit(count)
+		split1 := (absCount*destCapacity1 + sourceCapacity/2) / sourceCapacity // Round to nearest
+		split2 := absCount - split1
 
 		// Ensure we do not exceed the remaining capacity
 		if split2 > remaining2 {
 			split2 = remaining2
-			split1 = count - split2
+			split1 = absCount - split2
 		}
 		if split1 > remaining1 {
 			split1 = remaining1
-			split2 = count - split1
+			split2 = absCount - split1
 		}
 
-		bucket1[i] = split1
-		bucket2[i] = split2
+		bucket1[i] = split1 * sign
+		bucket2[i] = split2 * sign
 
-		remaining1 -= split1
-		remaining2 -= split2
+		remaining1 -= split1 * sign
+		remaining2 -= split2 * sign
 	}
 
 	return bucket1, bucket2, nil
+}
+
+func signBit[T constraints.Signed](value T) T {
+	if value < 0 {
+		return -1
+	}
+	return 1
 }
 
 // Clamps value between minVal and maxVal and returns the result.

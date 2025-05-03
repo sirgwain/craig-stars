@@ -179,6 +179,20 @@ func Test_splitValues(t *testing.T) {
 			want1: []int{67, 0, 0, 0},
 			want2: []int{33, 0, 0, 0},
 		},
+		{
+			name: "split 100-100 into 90-90 10-10",
+
+			args:  args{sourceCapacity: 100, destCapacity1: 90, destCapacity2: 10, values: []int{0, 0, 0, 100}},
+			want1: []int{0, 0, 0, 90},
+			want2: []int{0, 0, 0, 10},
+		},
+		{
+			name: "split negative 100-100 into 90-90 10-10",
+
+			args:  args{sourceCapacity: 100, destCapacity1: 90, destCapacity2: 10, values: []int{0, 0, 0, -100}},
+			want1: []int{0, 0, 0, -90},
+			want2: []int{0, 0, 0, -10},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

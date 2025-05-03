@@ -1061,18 +1061,29 @@ func Test_orders_SplitAll(t *testing.T) {
 		}).
 		WithSpec(&rules, player)
 
-	player.Designs = append(player.Designs, scoutDesign, freighterDesign, freighter2Design)
+	sporeCloud := NewShipDesign(player.Num, 4).
+		WithName("Spore Cloud").
+		WithHull(MiniColonyShip.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: SettlersDelight.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
+		}).
+		WithSpec(&rules, player)
+
+	player.Designs = append(player.Designs, scoutDesign, freighterDesign, freighter2Design, sporeCloud)
 
 	type args struct {
-		player *Player
-		source *Fleet
+		player         *Player
+		source         *Fleet
+		cargoTransfers CargoTransfers
 	}
 	tests := []struct {
-		name            string
-		args            args
-		wantSourceFleet *Fleet
-		wantNewFleets   []*Fleet
-		wantErr         bool
+		name               string
+		args               args
+		wantSourceFleet    *Fleet
+		wantNewFleets      []*Fleet
+		wantCargoTransfers CargoTransfers
+		wantErr            bool
 	}{
 		{
 			name: "split a scoutx3 into three fleets",
@@ -1214,10 +1225,135 @@ func Test_orders_SplitAll(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "split a bunch of spore clouds",
+			args: args{
+				player: player,
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Spore Cloud #1",
+					},
+					BaseName: "Spore Cloud",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 10},
+					},
+					Cargo: Cargo{Colonists: 100},
+				},
+				cargoTransfers: CargoTransfers{
+					// load 100kT colonists to main fleet
+					"(0, 0)": []ByHandCargoTransfer{{SourceFleetNum: 1, Cargo: Cargo{Colonists: -100}}},
+				},
+			},
+			wantSourceFleet: &Fleet{
+				MapObject: MapObject{
+					Type:      MapObjectTypeFleet,
+					Num:       1,
+					PlayerNum: player.Num,
+					Name:      "Spore Cloud #1",
+				},
+				BaseName: "Spore Cloud",
+				FleetOrders: FleetOrders{
+					Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+				},
+				Tokens: []ShipToken{
+					{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1},
+				},
+				Cargo: Cargo{Colonists: 10},
+			},
+			wantNewFleets: []*Fleet{
+				{
+					MapObject:   MapObject{Type: MapObjectTypeFleet, Num: 2, PlayerNum: player.Num, Name: "Spore Cloud #2"},
+					BaseName:    "Spore Cloud",
+					FleetOrders: FleetOrders{Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)}},
+					Tokens:      []ShipToken{{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1}},
+					Cargo:       Cargo{Colonists: 10},
+				},
+				{
+					MapObject:   MapObject{Type: MapObjectTypeFleet, Num: 3, PlayerNum: player.Num, Name: "Spore Cloud #3"},
+					BaseName:    "Spore Cloud",
+					FleetOrders: FleetOrders{Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)}},
+					Tokens:      []ShipToken{{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1}},
+					Cargo:       Cargo{Colonists: 10},
+				},
+				{
+					MapObject:   MapObject{Type: MapObjectTypeFleet, Num: 4, PlayerNum: player.Num, Name: "Spore Cloud #4"},
+					BaseName:    "Spore Cloud",
+					FleetOrders: FleetOrders{Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)}},
+					Tokens:      []ShipToken{{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1}},
+					Cargo:       Cargo{Colonists: 10},
+				},
+				{
+					MapObject:   MapObject{Type: MapObjectTypeFleet, Num: 5, PlayerNum: player.Num, Name: "Spore Cloud #5"},
+					BaseName:    "Spore Cloud",
+					FleetOrders: FleetOrders{Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)}},
+					Tokens:      []ShipToken{{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1}},
+					Cargo:       Cargo{Colonists: 10},
+				},
+				{
+					MapObject:   MapObject{Type: MapObjectTypeFleet, Num: 6, PlayerNum: player.Num, Name: "Spore Cloud #6"},
+					BaseName:    "Spore Cloud",
+					FleetOrders: FleetOrders{Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)}},
+					Tokens:      []ShipToken{{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1}},
+					Cargo:       Cargo{Colonists: 10},
+				},
+				{
+					MapObject:   MapObject{Type: MapObjectTypeFleet, Num: 7, PlayerNum: player.Num, Name: "Spore Cloud #7"},
+					BaseName:    "Spore Cloud",
+					FleetOrders: FleetOrders{Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)}},
+					Tokens:      []ShipToken{{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1}},
+					Cargo:       Cargo{Colonists: 10},
+				},
+				{
+					MapObject:   MapObject{Type: MapObjectTypeFleet, Num: 8, PlayerNum: player.Num, Name: "Spore Cloud #8"},
+					BaseName:    "Spore Cloud",
+					FleetOrders: FleetOrders{Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)}},
+					Tokens:      []ShipToken{{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1}},
+					Cargo:       Cargo{Colonists: 10},
+				},
+				{
+					MapObject:   MapObject{Type: MapObjectTypeFleet, Num: 9, PlayerNum: player.Num, Name: "Spore Cloud #9"},
+					BaseName:    "Spore Cloud",
+					FleetOrders: FleetOrders{Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)}},
+					Tokens:      []ShipToken{{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1}},
+					Cargo:       Cargo{Colonists: 10},
+				},
+				{
+					MapObject:   MapObject{Type: MapObjectTypeFleet, Num: 10, PlayerNum: player.Num, Name: "Spore Cloud #10"},
+					BaseName:    "Spore Cloud",
+					FleetOrders: FleetOrders{Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)}},
+					Tokens:      []ShipToken{{design: sporeCloud, DesignNum: sporeCloud.Num, Quantity: 1}},
+					Cargo:       Cargo{Colonists: 10},
+				},
+			},
+			wantErr: false,
+			wantCargoTransfers: CargoTransfers{
+				// should split by hands into 10 separate loads
+				"(0, 0)": []ByHandCargoTransfer{
+					{SourceFleetNum: 1, Cargo: Cargo{Colonists: -10}},
+					{SourceFleetNum: 10, Cargo: Cargo{Colonists: -10}},
+					{SourceFleetNum: 9, Cargo: Cargo{Colonists: -10}},
+					{SourceFleetNum: 8, Cargo: Cargo{Colonists: -10}},
+					{SourceFleetNum: 7, Cargo: Cargo{Colonists: -10}},
+					{SourceFleetNum: 6, Cargo: Cargo{Colonists: -10}},
+					{SourceFleetNum: 5, Cargo: Cargo{Colonists: -10}},
+					{SourceFleetNum: 4, Cargo: Cargo{Colonists: -10}},
+					{SourceFleetNum: 3, Cargo: Cargo{Colonists: -10}},
+					{SourceFleetNum: 2, Cargo: Cargo{Colonists: -10}},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			o := &orders{}
+
+			tt.args.player.CargoTransfers = tt.args.cargoTransfers
 
 			// we assume the player knows about the source fleet
 			// and the fleets have specs computed
@@ -1249,6 +1385,9 @@ func Test_orders_SplitAll(t *testing.T) {
 
 					test.CompareAsJSON(t, gotNewFleets[i], fleet)
 				}
+
+				// compare by hand cargo transfers
+				test.CompareAsJSON(t, tt.args.player.CargoTransfers, tt.wantCargoTransfers)
 			}
 		})
 	}
@@ -1584,7 +1723,7 @@ func Test_orders_Merge(t *testing.T) {
 			}
 
 			if err == nil {
-        test.CompareAsJSON(t, got, tt.want)
+				test.CompareAsJSON(t, got, tt.want)
 			}
 		})
 	}
