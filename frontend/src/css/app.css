@@ -91,15 +91,29 @@
 	.warp-packet-bar {
 		@apply bg-[#8F0087];
 	}
+
 	.grav-bar {
-		@apply bg-[#020085];
+		@apply fill-[#500fff];
 	}
 	.temp-bar {
-		@apply bg-[#8B0000];
+		@apply fill-[#D60000];
 	}
 	.rad-bar {
-		@apply bg-[#008100];
+		@apply fill-[#00C200];
 	}
+
+	.dark {
+		.grav-bar {
+			@apply fill-[#020085];
+		}
+		.temp-bar {
+			@apply fill-[#8B0000];
+		}
+		.rad-bar {
+			@apply fill-[#008100];
+		}
+	}
+
 	.grav-point {
 		@apply stroke-[#0900FF] fill-none;
 	}

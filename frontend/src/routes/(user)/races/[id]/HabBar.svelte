@@ -1,15 +1,6 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
 	import { type HabType, Grav, Temp, Rad } from '$lib/types/cs';
-	import { getHabValueString, HabTypeShortString, habTypeString } from '$lib/types/Hab';
-	import { draggable, type DragEventData } from '@neodrag/svelte';
-	import {
-		ChevronDoubleLeft,
-		ChevronDoubleRight,
-		ChevronLeft,
-		ChevronRight
-	} from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
+	import { clamp } from '$lib/services/Math';
 
 	type Props = {
 		habType: HabType;
@@ -25,118 +16,137 @@
 		immune = $bindable()
 	}: Props = $props();
 
-	let habTypeShortString = $derived(HabTypeShortString[habType]);
+	// immune can be undefined by default
+	let isImmune = $derived(!!immune);
 
-	let barContainerRef: HTMLDivElement | undefined = $state();
-	let containerWidth = $derived(barContainerRef?.parentElement?.clientWidth ?? 0);
+	let container: HTMLDivElement | undefined = $state();
+	let width: number | undefined = $state();
+	let height: number | undefined = $state();
 
-	let habWidth = $derived((habHigh ?? 0) - (habLow ?? 0));
-	let position = $derived(
-		barContainerRef
-			? {
-					x: Math.floor(((habLow ?? 0) / 100) * containerWidth),
-					y: 0
-				}
-			: undefined
+	let insetHeight = $derived(height != null ? height - 4 : undefined);
+	let insetWidth = $derived(width != null ? width - 4 : undefined);
+
+	let low = $derived(
+		insetWidth != null && habLow != null ? Math.trunc(insetWidth * (habLow / 100)) : undefined
+	);
+	let high = $derived(
+		insetWidth != null && habHigh != null ? Math.trunc(insetWidth * (habHigh / 100)) : undefined
+	);
+	let actualWidth = $derived(
+		insetWidth != null && low != null && high != null ? high - low : undefined
 	);
 
-	const onLeft = () => {
-		const width = habWidth;
-		habLow = clamp((habLow ?? 0) - 1, 0, 100 - width);
-		habHigh = clamp((habHigh ?? 0) - 1, width, 100);
+	let mouseDrag = false;
+	let mouseStart: number;
+	let mouseDelta: number = $state(0);
+	let habLowDrag: number | undefined;
+	let habHighDrag: number | undefined;
+
+	$effect(() => {
+		if (!insetWidth) {
+			return;
+		}
+
+		// delta in percentage
+		const delta = Math.trunc((mouseDelta / insetWidth) * 100);
+
+		console.log('mouse delta', mouseDelta, delta);
+
+		if (mouseDrag && habLowDrag != null && habHighDrag != null && !isImmune) {
+			if (habHigh != null && habLow != null) {
+				const w = habHigh - habLow;
+				if (habLowDrag + delta < 0) {
+					habLow = 0;
+					habHigh = w;
+					return;
+				} else if (habHighDrag + delta > 100) {
+					habLow = 100 - w;
+					habHigh = 100;
+					return;
+				}
+			}
+
+			habLow = clamp(habLowDrag + delta, 0, 100);
+			habHigh = clamp(habHighDrag + delta, 0, 100);
+
+			console.log('habLow', habLow);
+		}
+	});
+
+	const onmousedown = (mouseEvent: MouseEvent) => {
+		console.log('mouseDown', mouseEvent);
+		mouseDrag = true;
+		mouseStart = mouseEvent.clientX;
+		mouseDelta = 0;
+		habLowDrag = habLow;
+		habHighDrag = habHigh;
+
+		mouseEvent.preventDefault();
 	};
 
-	const onRight = () => {
-		const width = habWidth;
-		habLow = clamp((habLow ?? 0) + 1, 0, 100 - width);
-		habHigh = clamp((habHigh ?? 0) + 1, width, 100);
+	const onmouseup = (mouseEvent: MouseEvent) => {
+		console.log('mouseUp', mouseEvent);
+		mouseDrag = false;
 	};
 
-	const onGrow = () => {
-		const width = clamp(habWidth + 2, 20, 100);
-		habLow = clamp((habLow ?? 0) - 1, 0, 100 - width);
-		habHigh = clamp((habHigh ?? 0) + 1, width, 100);
-	};
-
-	const onShrink = () => {
-		const width = clamp(habWidth - 2, 20, 100);
-		habLow = clamp((habLow ?? 0) + 1, 0, (habHigh ?? 0) - width);
-		habHigh = clamp((habHigh ?? 0) - 1, habLow + width, 100);
-	};
-
-	const onDrag = (data: DragEventData) => {
-		const width = habWidth;
-		if (containerWidth && habLow) {
-			const pixelOffsetInPercent = Math.floor((data.offsetX / containerWidth) * 100);
-			habLow = clamp(pixelOffsetInPercent, 0, 100 - width);
-			habHigh = clamp(habLow + width, width, 100);
+	const onmousemove = (mouseEvent: MouseEvent) => {
+		if (mouseDrag) {
+			console.log('mouseMove', mouseEvent);
+			mouseDelta = mouseEvent.clientX - mouseStart;
+			console.log(mouseDelta);
 		}
 	};
+
+	const resizeObserver = new ResizeObserver((entries) => {
+		width = entries[0].contentRect.width;
+		height = entries[0].contentRect.height;
+	});
+
+	$effect(() => {
+		if (container) {
+			resizeObserver.disconnect();
+			resizeObserver.observe(container);
+		}
+	});
+
+	// $effect(() => {
+	// 	console.log('actualWidth', actualWidth);
+	// 	console.log('low', low);
+	// 	console.log('high', high);
+	// 	console.log('insetWidth', insetWidth);
+	// 	console.log('insetHeight', insetHeight);
+	// 	console.log('width', width);
+	// 	console.log('height', height);
+	// 	console.log('habLow', habLow);
+	// 	console.log('habHigh', habHigh);
+	// 	console.log('immune', immune);
+	// 	console.log('habType', habType);
+	// 	console.log('----------');
+	// });
 </script>
 
-<div class="flex flex-col md:flex-row">
-	<div class="text-center md:text-right md:w-[5.5rem] h-full my-auto mr-2">
-		{habTypeString(habType)}
-	</div>
-	<div class="grow flex flex-col">
-		<div class="flex flex-row h-8">
-			<button type="button" onclick={onLeft} class="btn btn-outline btn-sm"
-				><Icon src={ChevronLeft} size="20" />
-			</button>
+<svelte:document {onmouseup} {onmousemove} />
 
-			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden h-full">
-				<div class="h-full" class:hidden={immune} bind:this={barContainerRef}>
-					{#if position}
-						<div
-							use:draggable={{ bounds: 'parent', position, onDrag }}
-							style={`width: ${habWidth.toFixed()}%`}
-							class="h-full"
-							class:grav-bar={habType === Grav}
-							class:temp-bar={habType === Temp}
-							class:rad-bar={habType === Rad}
-						></div>
-					{/if}
-				</div>
-			</div>
-			<button
-				type="button"
-				onclick={onRight}
-				class="btn btn-outline btn-sm"
-				data-type={`${habTypeShortString}-right-button`}
-				><Icon src={ChevronRight} size="20" />
-			</button>
-		</div>
-		<div class="flex flex-row grow mt-2">
-			<div>
-				<button
-					type="button"
-					onclick={onGrow}
-					class="btn btn-outline btn-sm"
-					data-type={`${habTypeShortString}-grow-button`}
-					><Icon src={ChevronDoubleLeft} size="20" />
-					<Icon src={ChevronDoubleRight} size="20" /></button
-				>
-			</div>
-			<div class="grow ml-2">
-				<label
-					><input type="checkbox" bind:checked={immune} /> Immune to {habTypeString(habType)}</label
-				>
-			</div>
-			<div>
-				<button
-					type="button"
-					onclick={onShrink}
-					class="btn btn-outline btn-sm"
-					data-type={`${habTypeShortString}-left-button`}
-					><Icon src={ChevronDoubleRight} size="20" />
-					<Icon src={ChevronDoubleLeft} size="20" /></button
-				>
-			</div>
-		</div>
-	</div>
-	<div class="flex flex-row gap-1 justify-center md:flex-col md:text-center md:ml-2 md:w-[5rem]">
-		<div class:hidden={immune}>{getHabValueString(habType, habLow ?? 0)}</div>
-		<div class:hidden={immune}>to</div>
-		<div class:hidden={immune}>{getHabValueString(habType, habHigh ?? 0)}</div>
-	</div>
+<div bind:this={container} class="grow px-1 overflow-hidden h-full">
+	<svg {width} {height} viewBox={`0 0 ${width} ${height}`}>
+		<rect x="0" y="0" {width} {height} fill="black"></rect>
+		{#if actualWidth != null && low != null && !isImmune}
+			<rect
+				class="cursor-pointer"
+				x={low + 2}
+				y="2"
+				width={actualWidth}
+				height={insetHeight}
+				fill="white"
+				{onmousedown}
+				{onmouseup}
+				{onmousemove}
+				role="menu"
+				tabindex="-1"
+				class:grav-bar={habType === Grav}
+				class:temp-bar={habType === Temp}
+				class:rad-bar={habType === Rad}
+			/>
+		{/if}
+	</svg>
 </div>
