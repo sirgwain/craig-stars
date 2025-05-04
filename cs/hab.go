@@ -116,8 +116,7 @@ func gravString(grav int) string {
 		result = 10000 / result
 	}
 
-	value := result + result%100/100.0
-	return fmt.Sprintf("%.2fg", float64(value)/100)
+	return fmt.Sprintf("%.2fg", float64(result)/100)
 }
 
 func tempString(temp int) string {

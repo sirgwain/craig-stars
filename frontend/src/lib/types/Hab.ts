@@ -50,16 +50,25 @@ export function add(h1: Hab, h2: Hab) {
 	};
 }
 
+const gravFormatter = new Intl.NumberFormat(undefined, {
+	style: 'decimal',
+	minimumFractionDigits: 2,
+	maximumFractionDigits: 2,
+	roundingMode: 'trunc'
+});
+
 export function getGravString(grav: number): string {
-	let result = 0;
 	const tmp = Math.abs(grav - 50);
-	if (tmp <= 25) result = (tmp + 25) * 4;
-	else result = tmp * 24 - 400;
-	if (grav < 50) result = Math.floor(10000 / result);
 
-	const value = result + (result % 100) / 100.0;
+	let result = tmp <= 25 ? (tmp + 25) * 4 : tmp * 24 - 400;
 
-	return `${(value / 100).toFixed(2)}g`;
+	if (grav < 50) {
+		result = Math.floor(10000 / result);
+	}
+
+	const formatted = gravFormatter.format(result / 100.0);
+
+	return `${formatted}g`;
 }
 
 export function getTempString(temp: number): string {
