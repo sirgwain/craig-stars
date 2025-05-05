@@ -7,14 +7,10 @@
 		habLow: number | undefined;
 		habHigh: number | undefined;
 		immune: boolean | undefined;
+		onValueChanged?: (low: number, high: number) => void | undefined;
 	};
 
-	let {
-		habType,
-		habLow = $bindable(),
-		habHigh = $bindable(),
-		immune = $bindable()
-	}: Props = $props();
+	let { habType, habLow, habHigh, immune, onValueChanged: onValueChanged }: Props = $props();
 
 	// immune can be undefined by default
 	let isImmune = $derived(!!immune);
@@ -23,8 +19,11 @@
 	let width: number | undefined = $state();
 	let height: number | undefined = $state();
 
-	let insetHeight = $derived(height != null ? height - 4 : undefined);
-	let insetWidth = $derived(width != null ? width - 4 : undefined);
+	// insetMargin specifies how much space to leave around the inset rectangle.
+	const insetMargin = 2;
+
+	let insetHeight = $derived(height != null ? height - insetMargin * 2 : undefined);
+	let insetWidth = $derived(width != null ? width - insetMargin * 2 : undefined);
 
 	let low = $derived(
 		insetWidth != null && habLow != null ? Math.trunc(insetWidth * (habLow / 100)) : undefined
@@ -36,66 +35,85 @@
 		insetWidth != null && low != null && high != null ? high - low : undefined
 	);
 
-	let mouseDrag = false;
-	let mouseStart: number;
-	let mouseDelta: number = $state(0);
-	let habLowDrag: number | undefined;
-	let habHighDrag: number | undefined;
+	let pointerDown = false;
+	let ref: SVGRectElement | undefined = $state();
+	let startValue: number | undefined;
+	let habLowStart: number | undefined;
+	let habHighStart: number | undefined;
 
-	$effect(() => {
-		if (!insetWidth) {
-			return;
+	function onPointerDown(e: PointerEvent) {
+		if (e.cancelable) {
+			e.preventDefault();
 		}
 
-		// delta in percentage
-		const delta = Math.trunc((mouseDelta / insetWidth) * 100);
+		if (!ref || !container) return;
 
-		console.log('mouse delta', mouseDelta, delta);
+		pointerDown = true;
 
-		if (mouseDrag && habLowDrag != null && habHighDrag != null && !isImmune) {
-			if (habHigh != null && habLow != null) {
-				const w = habHigh - habLow;
-				if (habLowDrag + delta < 0) {
-					habLow = 0;
-					habHigh = w;
-					return;
-				} else if (habHighDrag + delta > 100) {
-					habLow = 100 - w;
-					habHigh = 100;
-					return;
-				}
-			}
+		startValue = getPercentFromPointerEvent(e, container);
+		habLowStart = habLow;
+		habHighStart = habHigh;
 
-			habLow = clamp(habLowDrag + delta, 0, 100);
-			habHigh = clamp(habHighDrag + delta, 0, 100);
+		updateValue(getPercentFromPointerEvent(e, container));
 
-			console.log('habLow', habLow);
+		document.body.classList.add('select-none', 'touch-none');
+		document.body.classList.remove('touch-manipulation');
+
+		ref.setPointerCapture(e.pointerId);
+	}
+
+	function onPointerUp(e: PointerEvent) {
+		if (!ref) return;
+
+		document.body.classList.remove('select-none', 'touch-none');
+		document.body.classList.add('touch-manipulation');
+		pointerDown = false;
+		ref.releasePointerCapture(e.pointerId);
+	}
+
+	function onPointerMove(e: PointerEvent) {
+		if (e.cancelable) {
+			e.preventDefault();
 		}
-	});
 
-	const onmousedown = (mouseEvent: MouseEvent) => {
-		console.log('mouseDown', mouseEvent);
-		mouseDrag = true;
-		mouseStart = mouseEvent.clientX;
-		mouseDelta = 0;
-		habLowDrag = habLow;
-		habHighDrag = habHigh;
-
-		mouseEvent.preventDefault();
-	};
-
-	const onmouseup = (mouseEvent: MouseEvent) => {
-		console.log('mouseUp', mouseEvent);
-		mouseDrag = false;
-	};
-
-	const onmousemove = (mouseEvent: MouseEvent) => {
-		if (mouseDrag) {
-			console.log('mouseMove', mouseEvent);
-			mouseDelta = mouseEvent.clientX - mouseStart;
-			console.log(mouseDelta);
+		if (pointerDown && container) {
+			updateValue(getPercentFromPointerEvent(e, container));
 		}
-	};
+	}
+
+	// This is invoked when the pointer cannot give any more events,
+	// such as a touch event where scrolling has started to engage
+	function onPointerCancel(e: PointerEvent) {
+		if (!ref) return;
+
+		document.body.classList.remove('select-none', 'touch-none');
+		document.body.classList.add('touch-manipulation');
+		pointerDown = false;
+		ref.releasePointerCapture(e.pointerId);
+	}
+
+	function getPercentFromPointerEvent(e: PointerEvent, container: HTMLElement): number {
+		const boundingRect = container.getBoundingClientRect();
+
+		const x = e.clientX - boundingRect.left + insetMargin;
+		const w = boundingRect.width - insetMargin * 2;
+		const p = (x / w) * 100;
+
+		return clamp(p, 0, 100);
+	}
+
+	function updateValue(x: number) {
+		if (startValue != null && habLowStart != null && habHighStart != null) {
+			const delta = x - startValue;
+
+			const habWidth = habHighStart - habLowStart;
+
+			let newHabLow = clamp(Math.trunc(habLowStart + delta), 0, 100 - habWidth);
+			let newHabHigh = clamp(Math.trunc(newHabLow + habWidth), habWidth, 100);
+
+			onValueChanged?.(newHabLow, newHabHigh);
+		}
+	}
 
 	const resizeObserver = new ResizeObserver((entries) => {
 		width = entries[0].contentRect.width;
@@ -108,21 +126,6 @@
 			resizeObserver.observe(container);
 		}
 	});
-
-	// $effect(() => {
-	// 	console.log('actualWidth', actualWidth);
-	// 	console.log('low', low);
-	// 	console.log('high', high);
-	// 	console.log('insetWidth', insetWidth);
-	// 	console.log('insetHeight', insetHeight);
-	// 	console.log('width', width);
-	// 	console.log('height', height);
-	// 	console.log('habLow', habLow);
-	// 	console.log('habHigh', habHigh);
-	// 	console.log('immune', immune);
-	// 	console.log('habType', habType);
-	// 	console.log('----------');
-	// });
 </script>
 
 <svelte:document {onmouseup} {onmousemove} />
@@ -132,15 +135,17 @@
 		<rect x="0" y="0" {width} {height} fill="black"></rect>
 		{#if actualWidth != null && low != null && !isImmune}
 			<rect
-				class="cursor-pointer"
+				bind:this={ref}
+				class="cursor-pointer focus:outline-none"
 				x={low + 2}
 				y="2"
 				width={actualWidth}
 				height={insetHeight}
 				fill="white"
-				{onmousedown}
-				{onmouseup}
-				{onmousemove}
+				onpointerdown={onPointerDown}
+				onpointerup={onPointerUp}
+				onpointermove={onPointerMove}
+				onpointercancel={onPointerCancel}
 				role="menu"
 				tabindex="-1"
 				class:grav-bar={habType === Grav}

@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import { type HabType, Grav, Temp, Rad } from '$lib/types/cs';
+	import { type HabType } from '$lib/types/cs';
 	import { getHabValueString, HabTypeShortString, habTypeString } from '$lib/types/Hab';
-	import { draggable, type DragEventData } from '@neodrag/svelte';
 	import {
 		ChevronDoubleLeft,
 		ChevronDoubleRight,
@@ -28,18 +27,7 @@
 
 	let habTypeShortString = $derived(HabTypeShortString[habType]);
 
-	let barContainerRef: HTMLDivElement | undefined = $state();
-	let containerWidth = $derived(barContainerRef?.parentElement?.clientWidth ?? 0);
-
 	let habWidth = $derived((habHigh ?? 0) - (habLow ?? 0));
-	let position = $derived(
-		barContainerRef
-			? {
-					x: Math.floor(((habLow ?? 0) / 100) * containerWidth),
-					y: 0
-				}
-			: undefined
-	);
 
 	const onLeft = () => {
 		const width = habWidth;
@@ -65,19 +53,10 @@
 		habHigh = clamp((habHigh ?? 0) - 1, habLow + width, 100);
 	};
 
-	const onDrag = ({ offsetX }: DragEventData) => {
-		const width = habWidth;
-		if (containerWidth && habLow) {
-			const pixelOffsetInPercent = Math.floor((offsetX / containerWidth) * 100);
-			habLow = clamp(pixelOffsetInPercent, 0, 100 - width);
-			habHigh = clamp(habLow + width, width, 100);
-		}
-	};
-
-	$effect(() => {
-		console.log('habWidth', habWidth, habWidth.toFixed());
-		console.log('position', position);
-	});
+	function onValueChanged(low: number, high: number) {
+		habLow = low;
+		habHigh = high;
+	}
 </script>
 
 <div class="flex flex-col md:flex-row">
@@ -90,7 +69,7 @@
 				><Icon src={ChevronLeft} size="20" />
 			</button>
 
-			<HabBar {habType} bind:habLow bind:habHigh bind:immune />
+			<HabBar {habType} {habLow} {habHigh} {immune} {onValueChanged} />
 
 			<button
 				type="button"
@@ -128,7 +107,9 @@
 			</div>
 		</div>
 	</div>
-	<div class="flex flex-row gap-1 justify-center md:flex-col md:text-center md:ml-2 md:w-[5rem]">
+	<div
+		class="flex flex-row gap-1 leading-5 justify-center md:flex-col md:text-center md:ml-2 md:w-[5rem]"
+	>
 		<div class:hidden={immune}>{getHabValueString(habType, habLow ?? 0)}</div>
 		<div class:hidden={immune}>to</div>
 		<div class:hidden={immune}>{getHabValueString(habType, habHigh ?? 0)}</div>
