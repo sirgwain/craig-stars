@@ -177,7 +177,7 @@
 		// m is set to MaxBuildableCap for items without a quantized "max buildable"
 		// (packets, ships and autos), so we only check the quantity of the currently selected item.
 		// Other items (like factories or mines) have definite set-in-stone caps,
-		// so we need to check everything to ensure we don't go overboard.
+		// so we need to check everything ahead to ensure we don't go overboard.
 		const amountInQueue =
 			m === MaxBuildableCap
 				? isSame(item, queueItem)

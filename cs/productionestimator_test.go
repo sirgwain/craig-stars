@@ -311,7 +311,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 							YearsToBuildOne:     1,
 							YearsToBuildAll:     6,
-							YearsToSkipOrCancel: 2,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeAutoFactories,
 						Quantity: 5,
@@ -455,7 +455,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 						QueueItemCompletionEstimate: QueueItemCompletionEstimate{
 							YearsToBuildOne:     13,
 							YearsToBuildAll:     45,
-							YearsToSkipOrCancel: 9,
+							YearsToSkipOrCancel: Infinite,
 						},
 						Type:     QueueItemTypeAutoFactories,
 						Quantity: 250,
@@ -480,8 +480,13 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 				e := NewCompletionEstimator()
 
 				planet := tt.args.planet
-				planet.Hab = Hab{50, 50, 50}                         // perfect hab
-				planet.MineralConcentration = Mineral{100, 100, 100} // perfect concentration for 1kT per mine output
+				// Give planet perfect hab/minconcs if not already specified
+				if planet.Hab == (Hab{}) {
+					planet.Hab = Hab{50, 50, 50}
+				}
+				if planet.MineralConcentration == (Mineral{}) {
+					planet.MineralConcentration = Mineral{100, 100, 100}
+				}
 				planet.PlayerNum = 1
 				planet.Spec = computePlanetSpec(&rules, player, planet)
 				planet.ProductionQueue = tt.args.items
@@ -504,6 +509,7 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 		}
 	})
 
+	// TODO: Simulate AR remote mining
 	t.Run("AR", func(t *testing.T) {
 		player := NewPlayer(1, NewRace().WithPRT(AR).WithSpec(&rules)).
 			WithTechLevels(TechLevel{Energy: 1}).
@@ -853,7 +859,6 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 		}
 	})
 
-	// TODO: Fix this to be consistent with base game...?
 	t.Run("HE 6%", func(t *testing.T) {
 		race := NewRace().WithPRT(HE).WithLRT(OBRM).
 			withImmuneGrav(true).
@@ -861,12 +866,12 @@ func Test_completionEstimate_GetProductionWithEstimates(t *testing.T) {
 			withImmuneTemp(true).
 			WithGrowthRate(6)
 		// 12/9/22/3 10/3/19
-		race.MineCost = 3
-		race.NumMines = 19
 		race.FactoryOutput = 12
 		race.FactoryCost = 9
 		race.NumFactories = 22
 		race.FactoriesCostLess = true
+		race.MineCost = 3
+		race.NumMines = 19
 		race = race.WithSpec(&rules)
 
 		player := NewPlayer(1, race).withSpec(&rules)

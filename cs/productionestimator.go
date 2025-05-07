@@ -107,29 +107,26 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			}
 
 			// check if we've built the last item in this group
-			if item.YearsToBuildAll == Infinite {
-				var num int
-				if item.Type.IsAuto() {
-					// auto items refresh each year, so we check how many
-					// were built this current year
-					num = itemBuilt.numBuilt
-				} else {
-					// concrete items retain quantities each year, so we check
-					// the total items built across all years
-					numBuilt[index] += itemBuilt.numBuilt
-					num = numBuilt[index]
-				}
-				// if we've built up to the item's quantity or maxBuildable, mark it as done
-				if maxBuildable := planet.MaxBuildable(player, item.Type); num >= item.Quantity ||
-					(maxBuildable != Infinite && num >= maxBuildable) {
-					item.YearsToBuildAll = year
-				}
-
+			var num int
+			if item.Type.IsAuto() {
+				// auto items refresh each year, so we check how many
+				// were built this current year
+				num = itemBuilt.numBuilt
+			} else {
+				// concrete items retain quantities each year, so we check
+				// the total items built across all years
+				numBuilt[index] += itemBuilt.numBuilt
+				num = numBuilt[index]
+			}
+			// if we've built up to the item's quantity or maxBuildable, mark it as done
+			if maxBuildable := planet.MaxBuildable(player, item.Type); num >= item.Quantity ||
+				(maxBuildable != Infinite && num >= maxBuildable) {
+				item.YearsToBuildAll = year
 			}
 		}
 
 		if result.completed {
-			// we built (or skipped) the last item in the queue; no need to loop anymore
+			// we've built (or skipped) the last item in the queue; no need to loop anymore
 			break
 		}
 
@@ -140,7 +137,7 @@ func (e *completionEstimate) GetProductionWithEstimates(rules *Rules, player *Pl
 			planet.Starbase = s
 		}
 
-		// grow pop & compute spec
+		// grow pop & recompute spec
 		planet.grow(player)
 		planet.Spec = computePlanetSpec(rules, player, &planet)
 

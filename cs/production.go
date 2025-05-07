@@ -154,12 +154,9 @@ func (t QueueItemType) concreteType() QueueItemType {
 type QueueItemCompletionEstimate struct {
 	/* The first year a single copy of this item is built. */
 	YearsToBuildOne int `json:"yearsToBuildOne,omitempty"`
-	/* The first year this item is completely finished. */
+	/* The final year this item is completely finished. */
 	YearsToBuildAll int `json:"yearsToBuildAll,omitempty"`
-	/*
-		The first year this item is *stopped* being built due to being skipped (auto) or canceled (concrete).
-		Always displayed for concrete queue items, while autos only display it if the relevant setting is enabled.
-	*/
+	/* The first year this item is *stopped* being built due to being no longer buildable (auto) or canceled (concrete). */
 	YearsToSkipOrCancel int `json:"yearsToSkipOrCancel,omitempty"`
 }
 
@@ -189,7 +186,9 @@ type itemBuilt struct {
 	queueItemType QueueItemType
 	designNum     int
 	numBuilt      int
-	skipped       bool // whether an auto item is skipped or invalid concrete item is canceled
+	// Whether an auto item is skipped or invalid concrete item is canceled.
+	// Does not count running out of minerals.
+	skipped bool
 }
 
 type builtShip struct {
@@ -312,10 +311,8 @@ itemLoop:
 		// Stars! doesn't bother starting auto items unless we have enough minerals for 1 full batch
 		// (likely to prevent accidental queue blockages)
 		if item.Type.IsAuto() && (maxBuildable <= 0 || available.DivideMineral(itemCost.ToMineral()) < 1) {
-			if maxBuildable <= 0 {
-				// Don't message for lack of affordabilityu
-				result.addItemBuilt(item.index, itemBuilt{queueItemType: item.Type, skipped: true})
-			}
+			// Don't message for lack of affordability
+			result.addItemBuilt(item.index, itemBuilt{queueItemType: item.Type, skipped: maxBuildable <= 0})
 			newQueue = append(newQueue, item) // auto items stick around
 
 			// if we skipped the last item in the queue, mark result as done
@@ -385,7 +382,6 @@ itemLoop:
 		if itemIndex < len(planet.ProductionQueue)-1 {
 			modQueue := planet.ProductionQueue[:itemIndex+1] // uses same backing array
 			for _, item := range planet.ProductionQueue[itemIndex+1:] {
-
 				cap := planet.MaxBuildable(p.player, item.Type)
 				if cap == Infinite || item.Type.IsAuto() {
 					// infinite is the constant int of -1, but we want a very big number
