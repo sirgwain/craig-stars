@@ -547,6 +547,12 @@ func (scan *playerScanner) getScanners() []scanner {
 					Range:                int(mineField.Spec.Radius),
 					CloakReductionFactor: 1,
 				}
+				// use the fleet scanner if it's better
+				if fleetScanner, ok := scanningFleetsByPosition[mineField.Position]; ok {
+					scanner.Range = max(scanner.Range, fleetScanner.Range)
+					scanner.RangePen = max(scanner.RangePen, fleetScanner.RangePen)
+					scanner.CloakReductionFactor = min(scanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
+				}
 				scanners = append(scanners, scanner)
 			}
 		}
@@ -560,6 +566,12 @@ func (scan *playerScanner) getScanners() []scanner {
 				Range:                packet.ScanRange,
 				RangePen:             packet.ScanRangePen,
 				CloakReductionFactor: 1,
+			}
+			// use the fleet scanner if it's better
+			if fleetScanner, ok := scanningFleetsByPosition[packet.Position]; ok {
+				scanner.Range = max(scanner.Range, fleetScanner.Range)
+				scanner.RangePen = max(scanner.RangePen, fleetScanner.RangePen)
+				scanner.CloakReductionFactor = min(scanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)
 			}
 			scanners = append(scanners, scanner)
 		}
