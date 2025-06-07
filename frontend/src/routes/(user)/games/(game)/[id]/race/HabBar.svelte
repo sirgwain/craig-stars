@@ -15,12 +15,12 @@
 </script>
 
 <div class="flex flex-col md:flex-row">
-	<div class="text-center md:text-right md:w-[5.5rem] h-full my-auto mr-2">
+	<div class="text-center md:text-right md:w-[8rem] h-full my-auto mr-2">
 		{habTypeString(habType)}
 	</div>
 	<div class="grow flex flex-col">
 		<div class="flex flex-row h-8 my-auto">
-			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden h-full">
+			<div class="grow bg-black mx-1 overflow-hidden h-full p-0.5">
 				{#if !immune}
 					<div
 						style={`width: ${habWidth.toFixed()}%; left: ${habLow}%;`}
@@ -33,13 +33,13 @@
 			</div>
 		</div>
 	</div>
-	<div class="flex flex-row gap-1 justify-center md:flex-col md:text-center md:ml-2 md:w-[5rem]">
+	<div class="flex flex-row gap-1 justify-center md:flex-col md:text-center md:ml-2 md:w-[8rem]">
 		{#if immune}
 			Immune
 		{:else}
-			<div>{getHabValueString(habType, habLow ?? 0)}</div>
-			<div>to</div>
-			<div>{getHabValueString(habType, habHigh ?? 0)}</div>
+			{getHabValueString(habType, habLow ?? 0)}
+			to
+			{getHabValueString(habType, habHigh ?? 0)}
 		{/if}
 	</div>
 </div>

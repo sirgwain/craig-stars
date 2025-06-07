@@ -93,24 +93,24 @@
 	}
 
 	.grav-bar {
-		@apply fill-[#500fff];
+		@apply fill-[#500fff] bg-[#500fff];
 	}
 	.temp-bar {
-		@apply fill-[#D60000];
+		@apply fill-[#D60000] bg-[#D60000];
 	}
 	.rad-bar {
-		@apply fill-[#00C200];
+		@apply fill-[#00C200] bg-[#00C200];
 	}
 
 	.dark {
 		.grav-bar {
-			@apply fill-[#020085];
+			@apply fill-[#020085] bg-[#020085];
 		}
 		.temp-bar {
-			@apply fill-[#8B0000];
+			@apply fill-[#8B0000] bg-[#8B0000];
 		}
 		.rad-bar {
-			@apply fill-[#008100];
+			@apply fill-[#008100] bg-[#008100];
 		}
 	}
 
