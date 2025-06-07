@@ -1,142 +1,157 @@
 <script lang="ts">
-	import { clamp } from '$lib/services/Math';
 	import { type HabType, Grav, Temp, Rad } from '$lib/types/cs';
-	import { getHabValueString, HabTypeShortString, habTypeString } from '$lib/types/Hab';
-	import { draggable, type DragEventData } from '@neodrag/svelte';
-	import {
-		ChevronDoubleLeft,
-		ChevronDoubleRight,
-		ChevronLeft,
-		ChevronRight
-	} from '@steeze-ui/heroicons';
-	import { Icon } from '@steeze-ui/svelte-icon';
+	import { clamp } from '$lib/services/Math';
 
 	type Props = {
 		habType: HabType;
 		habLow: number | undefined;
 		habHigh: number | undefined;
 		immune: boolean | undefined;
+		onValueChanged?: (low: number, high: number) => void | undefined;
 	};
 
-	let {
-		habType,
-		habLow = $bindable(),
-		habHigh = $bindable(),
-		immune = $bindable()
-	}: Props = $props();
+	let { habType, habLow, habHigh, immune, onValueChanged: onValueChanged }: Props = $props();
 
-	let habTypeShortString = $derived(HabTypeShortString[habType]);
+	// immune can be undefined by default
+	let isImmune = $derived(!!immune);
 
-	let barContainerRef: HTMLDivElement | undefined = $state();
-	let containerWidth = $derived(barContainerRef?.parentElement?.clientWidth ?? 0);
+	let container: HTMLDivElement | undefined = $state();
+	let width: number | undefined = $state();
+	let height: number | undefined = $state();
 
-	let habWidth = $derived((habHigh ?? 0) - (habLow ?? 0));
-	let position = $derived(
-		barContainerRef
-			? {
-					x: Math.floor(((habLow ?? 0) / 100) * containerWidth),
-					y: 0
-				}
-			: undefined
+	// insetMargin specifies how much space to leave around the inset rectangle.
+	const insetMargin = 2;
+
+	let insetHeight = $derived(height != null ? height - insetMargin * 2 : undefined);
+	let insetWidth = $derived(width != null ? width - insetMargin * 2 : undefined);
+
+	let low = $derived(
+		insetWidth != null && habLow != null ? Math.trunc(insetWidth * (habLow / 100)) : undefined
+	);
+	let high = $derived(
+		insetWidth != null && habHigh != null ? Math.trunc(insetWidth * (habHigh / 100)) : undefined
+	);
+	let actualWidth = $derived(
+		insetWidth != null && low != null && high != null ? high - low : undefined
 	);
 
-	const onLeft = () => {
-		const width = habWidth;
-		habLow = clamp((habLow ?? 0) - 1, 0, 100 - width);
-		habHigh = clamp((habHigh ?? 0) - 1, width, 100);
-	};
+	let pointerDown = false;
+	let ref: SVGRectElement | undefined = $state();
+	let startValue: number | undefined;
+	let habLowStart: number | undefined;
+	let habHighStart: number | undefined;
 
-	const onRight = () => {
-		const width = habWidth;
-		habLow = clamp((habLow ?? 0) + 1, 0, 100 - width);
-		habHigh = clamp((habHigh ?? 0) + 1, width, 100);
-	};
-
-	const onGrow = () => {
-		const width = clamp(habWidth + 2, 20, 100);
-		habLow = clamp((habLow ?? 0) - 1, 0, 100 - width);
-		habHigh = clamp((habHigh ?? 0) + 1, width, 100);
-	};
-
-	const onShrink = () => {
-		const width = clamp(habWidth - 2, 20, 100);
-		habLow = clamp((habLow ?? 0) + 1, 0, (habHigh ?? 0) - width);
-		habHigh = clamp((habHigh ?? 0) - 1, habLow + width, 100);
-	};
-
-	const onDrag = (data: DragEventData) => {
-		const width = habWidth;
-		if (containerWidth && habLow) {
-			const pixelOffsetInPercent = Math.floor((data.offsetX / containerWidth) * 100);
-			habLow = clamp(pixelOffsetInPercent, 0, 100 - width);
-			habHigh = clamp(habLow + width, width, 100);
+	function onPointerDown(e: PointerEvent) {
+		if (e.cancelable) {
+			e.preventDefault();
 		}
-	};
+
+		if (!ref || !container) return;
+
+		pointerDown = true;
+
+		startValue = getPercentFromPointerEvent(e, container);
+		habLowStart = habLow;
+		habHighStart = habHigh;
+
+		updateValue(getPercentFromPointerEvent(e, container));
+
+		document.body.classList.add('select-none', 'touch-none');
+		document.body.classList.remove('touch-manipulation');
+
+		ref.setPointerCapture(e.pointerId);
+	}
+
+	function onPointerUp(e: PointerEvent) {
+		if (!ref) return;
+
+		document.body.classList.remove('select-none', 'touch-none');
+		document.body.classList.add('touch-manipulation');
+		pointerDown = false;
+		ref.releasePointerCapture(e.pointerId);
+	}
+
+	function onPointerMove(e: PointerEvent) {
+		if (e.cancelable) {
+			e.preventDefault();
+		}
+
+		if (pointerDown && container) {
+			updateValue(getPercentFromPointerEvent(e, container));
+		}
+	}
+
+	// This is invoked when the pointer cannot give any more events,
+	// such as a touch event where scrolling has started to engage
+	function onPointerCancel(e: PointerEvent) {
+		if (!ref) return;
+
+		document.body.classList.remove('select-none', 'touch-none');
+		document.body.classList.add('touch-manipulation');
+		pointerDown = false;
+		ref.releasePointerCapture(e.pointerId);
+	}
+
+	function getPercentFromPointerEvent(e: PointerEvent, container: HTMLElement): number {
+		const boundingRect = container.getBoundingClientRect();
+
+		const x = e.clientX - boundingRect.left + insetMargin;
+		const w = boundingRect.width - insetMargin * 2;
+		const p = (x / w) * 100;
+
+		return clamp(p, 0, 100);
+	}
+
+	function updateValue(x: number) {
+		if (startValue != null && habLowStart != null && habHighStart != null) {
+			const delta = x - startValue;
+
+			const habWidth = habHighStart - habLowStart;
+
+			let newHabLow = clamp(Math.trunc(habLowStart + delta), 0, 100 - habWidth);
+			let newHabHigh = clamp(Math.trunc(newHabLow + habWidth), habWidth, 100);
+
+			onValueChanged?.(newHabLow, newHabHigh);
+		}
+	}
+
+	const resizeObserver = new ResizeObserver((entries) => {
+		width = entries[0].contentRect.width;
+		height = entries[0].contentRect.height;
+	});
+
+	$effect(() => {
+		if (container) {
+			resizeObserver.disconnect();
+			resizeObserver.observe(container);
+		}
+	});
 </script>
 
-<div class="flex flex-col md:flex-row">
-	<div class="text-center md:text-right md:w-[5.5rem] h-full my-auto mr-2">
-		{habTypeString(habType)}
-	</div>
-	<div class="grow flex flex-col">
-		<div class="flex flex-row h-8">
-			<button type="button" onclick={onLeft} class="btn btn-outline btn-sm"
-				><Icon src={ChevronLeft} size="20" />
-			</button>
+<svelte:document {onmouseup} {onmousemove} />
 
-			<div class="grow border-b border-base-300 bg-black mx-1 overflow-hidden h-full">
-				<div class="h-full" class:hidden={immune} bind:this={barContainerRef}>
-					{#if position}
-						<div
-							use:draggable={{ bounds: 'parent', position, onDrag }}
-							style={`width: ${habWidth.toFixed()}%`}
-							class="h-full"
-							class:grav-bar={habType === Grav}
-							class:temp-bar={habType === Temp}
-							class:rad-bar={habType === Rad}
-						></div>
-					{/if}
-				</div>
-			</div>
-			<button
-				type="button"
-				onclick={onRight}
-				class="btn btn-outline btn-sm"
-				data-type={`${habTypeShortString}-right-button`}
-				><Icon src={ChevronRight} size="20" />
-			</button>
-		</div>
-		<div class="flex flex-row grow mt-2">
-			<div>
-				<button
-					type="button"
-					onclick={onGrow}
-					class="btn btn-outline btn-sm"
-					data-type={`${habTypeShortString}-grow-button`}
-					><Icon src={ChevronDoubleLeft} size="20" />
-					<Icon src={ChevronDoubleRight} size="20" /></button
-				>
-			</div>
-			<div class="grow ml-2">
-				<label
-					><input type="checkbox" bind:checked={immune} /> Immune to {habTypeString(habType)}</label
-				>
-			</div>
-			<div>
-				<button
-					type="button"
-					onclick={onShrink}
-					class="btn btn-outline btn-sm"
-					data-type={`${habTypeShortString}-left-button`}
-					><Icon src={ChevronDoubleRight} size="20" />
-					<Icon src={ChevronDoubleLeft} size="20" /></button
-				>
-			</div>
-		</div>
-	</div>
-	<div class="flex flex-row gap-1 justify-center md:flex-col md:text-center md:ml-2 md:w-[5rem]">
-		<div class:hidden={immune}>{getHabValueString(habType, habLow ?? 0)}</div>
-		<div class:hidden={immune}>to</div>
-		<div class:hidden={immune}>{getHabValueString(habType, habHigh ?? 0)}</div>
-	</div>
+<div bind:this={container} class="grow px-1 overflow-hidden h-full">
+	<svg {width} {height} viewBox={`0 0 ${width} ${height}`}>
+		<rect x="0" y="0" {width} {height} fill="black"></rect>
+		{#if actualWidth != null && low != null && !isImmune}
+			<rect
+				bind:this={ref}
+				class="cursor-pointer focus:outline-none"
+				x={low + 2}
+				y="2"
+				width={actualWidth}
+				height={insetHeight}
+				fill="white"
+				onpointerdown={onPointerDown}
+				onpointerup={onPointerUp}
+				onpointermove={onPointerMove}
+				onpointercancel={onPointerCancel}
+				role="menu"
+				tabindex="-1"
+				class:grav-bar={habType === Grav}
+				class:temp-bar={habType === Temp}
+				class:rad-bar={habType === Rad}
+			/>
+		{/if}
+	</svg>
 </div>

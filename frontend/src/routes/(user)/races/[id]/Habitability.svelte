@@ -2,7 +2,7 @@
 	import HabChance from '$lib/components/game/race/HabChance.svelte';
 	import { Grav, Rad, Temp, type Race } from '$lib/types/cs';
 	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
-	import HabBar from './HabBar.svelte';
+	import Habitation from './Habitation.svelte';
 
 	type Props = {
 		race: Race;
@@ -12,19 +12,19 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	<HabBar
+	<Habitation
 		habType={Grav}
 		bind:habLow={race.habLow.grav}
 		bind:habHigh={race.habHigh.grav}
 		bind:immune={race.immuneGrav}
 	/>
-	<HabBar
+	<Habitation
 		habType={Temp}
 		bind:habLow={race.habLow.temp}
 		bind:habHigh={race.habHigh.temp}
 		bind:immune={race.immuneTemp}
 	/>
-	<HabBar
+	<Habitation
 		habType={Rad}
 		bind:habLow={race.habLow.rad}
 		bind:habHigh={race.habHigh.rad}
