@@ -330,7 +330,7 @@ func (weapon *battleWeaponSlot) getBeamDamageToTarget(damage int, target *battle
 func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, target *battleToken, dist int, beamRangeDropoff float64) battleWeaponDamage {
 	if weapon.hitsAllTargets {
 		// no range penalty for gattlings
-		dist := 0
+		dist = 0
 	}
 	
 	// get beam damage after applying deflectors, etc.
@@ -339,7 +339,7 @@ func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, targ
 	// sappers only damage shields and not more than the target has
 	if weapon.damagesShieldsOnly {
 		shieldDmg := min(target.stackShields, damage)
-		return battleWeaponDamage{shieldDamage: shieldDamage, leftover: min(damage - shieldDamage, 0)}
+		return battleWeaponDamage{shieldDamage: shieldDmg, leftover: max(damage - shieldDmg, 0)}
 	}
 
 	armor := target.armor
