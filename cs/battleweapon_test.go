@@ -367,6 +367,28 @@ func Test_battleWeaponSlot_getBeamDamageToTarget(t *testing.T) {
 			},
 			want: battleWeaponDamage{shieldDamage: 0, armorDamage: 75, numDestroyed: 1, leftover: 0, damage: 75, quantityDamaged: 1},
 		},
+		{
+			name: "Shield sapper breaks shields with leftover",
+			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
+			args: args{
+				damage:        100,
+				tokenQuantity: 1,
+				armor:         100,
+				shields:       50,
+			},
+			want: battleWeaponDamage{shieldDamage: 50, leftover: 50},
+		},
+		{
+			name: "Sappper no break shields",
+			fields: fields{shipQuantity: 1, slotQuantity: 1, weaponRange: 1},
+			args: args{
+				damage:        100,
+				tokenQuantity: 1,
+				armor:         100,
+				shields:       500,
+			},
+			want: battleWeaponDamage{shieldDamage: 100},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
