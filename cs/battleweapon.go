@@ -330,55 +330,56 @@ func (weapon *battleWeaponSlot) getBeamDamageToTarget(damage int, target *battle
 func (weapon *battleWeaponSlot) getBeamDamageToTargetAtDistance(damage int, target *battleToken, dist int, beamRangeDropoff float64) battleWeaponDamage {
 	if weapon.hitsAllTargets {
 		// no range penalty for gattlings
-		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, 0, target.beamDefense, beamRangeDropoff)
-	} else {
-		// apply any range/deflector penalties to beam damage
-		damage = getBeamDamageAtDistance(damage, weapon.weaponRange, dist, target.beamDefense, beamRangeDropoff)
+		dist := 0
 	}
+	
+	// get beam damage after applying deflectors, etc.
+	damage = getBeamDamageAtDistance(damage, weapon.weaponRange, dist, target.beamDefense, beamRangeDropoff)
 
-	// sappers only damage shields, can't damage more shields than we have
+	// sappers only damage shields and not more than the target has
 	if weapon.damagesShieldsOnly {
-		return battleWeaponDamage{shieldDamage: min(target.stackShields, damage)}
+		shieldDmg := min(target.stackShields, damage)
+		return battleWeaponDamage{shieldDamage: shieldDamage, leftover: min(damage - shieldDamage, 0)}
 	}
 
 	armor := target.armor
 	shields := target.stackShields
-	if damage >= shields {
-		bwd := battleWeaponDamage{}
-		bwd.shieldDamage = shields
-		bwd.armorDamage = damage - shields
-
-		// if this stack is damaged froma previous hit, account for that
-		existingDamage := target.Damage * float64(target.QuantityDamaged)
-		newDamage := float64(bwd.armorDamage) + existingDamage
-
-		// see how many ships were destroyed
-		bwd.numDestroyed = int(newDamage / float64(armor))
-		newDamage -= float64(bwd.numDestroyed) * float64(armor)
-		if newDamage > 0 {
-			bwd.quantityDamaged = target.Quantity - bwd.numDestroyed
-			if bwd.quantityDamaged > 0 {
-				bwd.damage = newDamage / float64(bwd.quantityDamaged)
-			}
-		}
-
-		if bwd.numDestroyed >= target.Quantity {
-			// we killed the whole stack, make sure our damage numbers reflect that
-			bwd.numDestroyed = target.Quantity
-
-			// we destroyed all armor remaining and have some possible leftover damage
-			// at this point our armor damage and damage are the same
-			bwd.armorDamage = (armor * bwd.numDestroyed) - int(existingDamage)
-			bwd.leftover = damage - bwd.armorDamage - bwd.shieldDamage
-			bwd.quantityDamaged = 0
-			bwd.damage = 0
-		}
-
-		return bwd
+	if damage <= shields {
+		// didn't get through shields
+	    return battleWeaponDamage{shieldDamage: damage}
 	}
 
-	// we didn't get through the shields
-	return battleWeaponDamage{shieldDamage: damage}
+	// Damage armor and destroy ships
+	bwd := battleWeaponDamage{}
+	bwd.shieldDamage = shields
+	bwd.armorDamage = damage - shields
+
+	// account for prior token damage
+	existingDamage := target.Damage * float64(target.QuantityDamaged)
+	newDamage := float64(bwd.armorDamage) + existingDamage
+
+	bwd.numDestroyed = int(newDamage / float64(armor))
+	newDamage -= float64(bwd.numDestroyed * armor)
+	if newDamage > 0 {
+		bwd.quantityDamaged = target.Quantity - bwd.numDestroyed
+		if bwd.quantityDamaged > 0 {
+			bwd.damage = newDamage / float64(bwd.quantityDamaged)
+		}
+	}
+
+	if bwd.numDestroyed >= target.Quantity {
+		// we killed the whole stack, make sure our damage numbers reflect that
+		bwd.numDestroyed = target.Quantity
+
+		// we destroyed all armor remaining and have some possible leftover damage
+		// at this point our armor damage and damage are the same
+		bwd.armorDamage = (armor * bwd.numDestroyed) - int(existingDamage)
+		bwd.leftover = damage - bwd.armorDamage - bwd.shieldDamage
+		bwd.quantityDamaged = 0
+		bwd.damage = 0
+	}
+
+	return bwd
 }
 
 // get the accuracy of a torpedo against a target
