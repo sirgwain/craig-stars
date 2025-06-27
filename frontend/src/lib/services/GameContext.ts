@@ -348,8 +348,15 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		if (message.spec.targetType === MapObjectTypeMineField) {
 			const fleet = universe.getFleet(message.targetPlayerNum, message.targetNum);
 			const mf = universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum);
-			if (fleet && ownedBy(fleet, playerNum)) {
-				commandMapObject(fleet);
+			if (fleet) {
+				if (ownedBy(fleet, playerNum)) {
+					commandMapObject(fleet);
+				} else {
+					selectMapObject(fleet);
+					zoomToMapObject(fleet);
+				}
+				goto(`/games/${gameId}`);
+				return;
 			}
 			if (mf) {
 				selectMapObject(mf);
@@ -575,7 +582,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			selectedWaypoint.update(() => {
 				const fleet = mo as Fleet;
 				if (fleet?.waypoints && fleet.waypoints.length) {
-					return fleet.waypoints[0];
+					return fleet.waypoints[fleet.waypoints.length-1];
 				}
 				return undefined;
 			});

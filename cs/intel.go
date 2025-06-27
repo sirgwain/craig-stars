@@ -2,7 +2,6 @@ package cs
 
 import (
 	"fmt"
-	"math"
 	"slices"
 
 	"github.com/rs/zerolog"
@@ -328,7 +327,7 @@ func (d *discover) discoverPlanet(rules *Rules, planet *Planet, penScanned, exac
 	} else {
 		// generate a random error within range [1-scanError, 1+scanError]
 		randomPopulationError := rules.random.Float64()*(rules.PopulationScannerError*2) - rules.PopulationScannerError
-		intel.Cargo.Colonists = max(0, roundTo100(float64(planet.Cargo.Colonists)*(1-randomPopulationError), math.Floor))
+		intel.Cargo.Colonists = int(max(0, float64(planet.Cargo.Colonists)*(1-randomPopulationError)))
 	}
 
 	return nil
