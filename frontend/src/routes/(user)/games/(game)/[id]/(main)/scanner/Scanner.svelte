@@ -310,7 +310,17 @@
 			if ((shouldAddWaypoint || $settings.addWaypoint) && (await addWaypoint(found, position))) {
 				// ignore
 			} else {
-				mapObjectSelected(found);
+				// check if we are clicked the commanded fleet's waypoint
+				const fleetWaypoint =
+					found &&
+					$commandedFleet &&
+					$commandedFleet.waypoints.slice(1).find((wp) => equal(wp.position, found.position));
+
+				if (fleetWaypoint) {
+					onSelectWaypoint?.({ fleet: $commandedFleet, waypoint: fleetWaypoint });
+				} else {
+					mapObjectSelected(found);
+				}
 			}
 		} else {
 			if (shouldAddWaypoint || $settings.addWaypoint) {
