@@ -582,7 +582,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			selectedWaypoint.update(() => {
 				const fleet = mo as Fleet;
 				if (fleet?.waypoints && fleet.waypoints.length) {
-					return fleet.waypoints[0];
+					return fleet.waypoints[fleet.waypoints.length-1];
 				}
 				return undefined;
 			});
