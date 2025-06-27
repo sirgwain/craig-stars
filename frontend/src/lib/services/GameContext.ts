@@ -348,8 +348,15 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		if (message.spec.targetType === MapObjectTypeMineField) {
 			const fleet = universe.getFleet(message.targetPlayerNum, message.targetNum);
 			const mf = universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum);
-			if (fleet && ownedBy(fleet, playerNum)) {
-				commandMapObject(fleet);
+			if (fleet) {
+				if (ownedBy(fleet, playerNum)) {
+					commandMapObject(fleet);
+				} else {
+					selectMapObject(fleet);
+					zoomToMapObject(fleet);
+				}
+				goto(`/games/${gameId}`);
+				return;
 			}
 			if (mf) {
 				selectMapObject(mf);
