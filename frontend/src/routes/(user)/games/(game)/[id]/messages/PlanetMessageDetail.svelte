@@ -39,6 +39,7 @@
 		PlayerMessagePlayerTechLevelGainedBattle,
 		PlayerMessagePlayerTechLevelGainedInvasion,
 		PlayerMessagePlayerTechLevelGainedScrapFleet,
+		PlayerMessagePlanetInstaform,
 		UnlimitedSpaceDock,
 		type PlayerMessage
 	} from '$lib/types/cs';
@@ -220,6 +221,9 @@
 			message.spec.prevAmount ?? 0
 		).toLocaleString()} to {(message.spec.amount ?? 0).toLocaleString()}.
 	{/if}
+{:else if message.type === PlayerMessagePlanetInstaform}
+	Your race has instantly terraformed {planet.name} up to optimal conditions. Its value is now {planet
+		.spec.habitability ?? 0}%.
 {:else if message.type === PlayerMessageFleetInvadedPlanet}
 	{@const invasion = message.spec.invasion}
 	{#if invasion}
