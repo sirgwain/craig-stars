@@ -31,7 +31,7 @@ func (ai *aiPlayer) scout() error {
 					if wp.TargetNum != cs.None {
 						delete(unknownPlanetsByNum, wp.TargetNum)
 
-						target := ai.getPlanetIntel(wp.TargetNum)
+						target := ai.GetPlanetIntel(wp.TargetNum)
 						if target.ReportAge != cs.ReportAgeUnexplored {
 							ai.log.Debug().
 								Int64("GameID", ai.GameID).
@@ -58,9 +58,15 @@ func (ai *aiPlayer) scout() error {
 	for _, fleet := range scannerFleets {
 		closestPlanet := ai.getClosestPlanetIntel(fleet.Position, unknownPlanetsByNum)
 		if closestPlanet != nil {
-			warpSpeed := ai.getScoutWarpSpeed(fleet, closestPlanet.Position)
 
-			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, warpSpeed))
+			fastest := float64(fleet.Fuel)/float64(fleet.Spec.FuelCapacity) > .5
+			newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: closestPlanet.MapObject}, len(fleet.Waypoints)-1, fastest)
+			if newWpIndex == 0 {
+				ai.log.Warn().
+					Msgf("Fleet %s tried to target %s for scouting but did not add the waypoint", fleet.Name, closestPlanet.Name)
+				continue
+			}
+
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(unknownPlanetsByNum, closestPlanet.Num)
 			idleFleets--
@@ -68,7 +74,7 @@ func (ai *aiPlayer) scout() error {
 			ai.log.Debug().
 				Int64("GameID", ai.GameID).
 				Int("PlayerNum", ai.Num).
-				Int("WarpSpeed", warpSpeed).
+				Int("WarpSpeed", fleet.Waypoints[newWpIndex].WarpSpeed).
 				Msgf("Scout %s targeting %s", fleet.Name, closestPlanet.Name)
 		}
 	}
@@ -79,15 +85,6 @@ func (ai *aiPlayer) scout() error {
 	}
 
 	return nil
-}
-
-func (ai *aiPlayer) getScoutWarpSpeed(fleet *cs.Fleet, position cs.Vector) int {
-	dist := fleet.Position.DistanceTo(position)
-	if float64(fleet.Fuel)/float64(fleet.Spec.FuelCapacity) > .5 {
-		return ai.getMaxWarp(dist, fleet)
-	}
-	// slow down when we run low on fuel
-	return ai.getMinimalWarp(dist, fleet.Spec.Engine.IdealSpeed, fleet)
 }
 
 // fling packets at planets to scout
@@ -110,7 +107,7 @@ func (ai *aiPlayer) scoutPackets() error {
 		// build a rectangle in the shape of the scan path
 		//
 		angle := math.Atan2(packet.Heading.Y, packet.Heading.X)
-		target := ai.getPlanetIntel(packet.TargetPlanetNum)
+		target := ai.GetPlanetIntel(packet.TargetPlanetNum)
 		dist := packet.Position.DistanceTo(target.Position)
 
 		// the rectangle is the height of the scan range and the width of the distance

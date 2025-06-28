@@ -40,8 +40,6 @@ func (ai *aiPlayer) transportColonists() error {
 	}
 
 	ai.log.Debug().
-		Int64("GameID", ai.GameID).
-		Int("PlayerNum", ai.Num).
 		Msgf("%d colonist transport fleets assembled from idle fleets", len(fleets))
 
 	for _, fleet := range fleetMakeup.getFleetsMatchingMakeup(ai, ai.Fleets) {
@@ -54,23 +52,23 @@ func (ai *aiPlayer) transportColonists() error {
 
 					orbiting := ai.getPlanet(fleet.OrbitingPlanetNum)
 					ai.log.Debug().
-						Int64("GameID", ai.GameID).
-						Int("PlayerNum", ai.Num).
 						Msgf("%s will load colonists from %s for transport to a needy world", fleet.Name, orbiting.Name)
 
 				} else {
 					// find the nearest feeder and head that way
 					closestFeeder := ai.getClosestPlanet(fleet, feedersByNum)
 					if closestFeeder != nil {
-						warpSpeed := ai.getWarpSpeed(fleet, closestFeeder.Position)
-						fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestFeeder.Position, closestFeeder.Num, closestFeeder.Name, warpSpeed))
+						newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: closestFeeder.MapObject}, len(fleet.Waypoints)-1, false)
+						if newWpIndex == 0 {
+							ai.log.Warn().
+								Msgf("Fleet %s tried to target %s for feeding but did not add the waypoint", fleet.Name, closestFeeder.Name)
+							continue
+						}
 
 						// TODO: only remove a feeder if we have too many targets?
 						delete(feedersByNum, closestFeeder.Num)
 
 						ai.log.Debug().
-							Int64("GameID", ai.GameID).
-							Int("PlayerNum", ai.Num).
 							Msgf("%s is heading to %s to load colonists for transport to a needy world", fleet.Name, closestFeeder.Name)
 					}
 				}
@@ -88,8 +86,6 @@ func (ai *aiPlayer) transportColonists() error {
 
 	idleFleets := len(fleets)
 	ai.log.Debug().
-		Int64("GameID", ai.GameID).
-		Int("PlayerNum", ai.Num).
 		Msgf("%d transport, %d needy planets", idleFleets, len(needersByNum))
 
 	for _, fleet := range fleets {
@@ -130,10 +126,15 @@ func (ai *aiPlayer) transportColonists() error {
 			}
 
 			// unload on this planet
-			warpSpeed := ai.getWarpSpeed(fleet, planet.Position)
-			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, warpSpeed).
-				WithTask(cs.WaypointTaskTransport).
-				WithTransportTasks(cs.WaypointTransportTasks{Colonists: cs.WaypointTransportTask{Action: cs.TransportActionUnloadAll}}))
+			newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: planet.MapObject}, len(fleet.Waypoints)-1, false)
+			if newWpIndex == 0 {
+				ai.log.Warn().
+					Msgf("Fleet %s tried to target %s for unloading but did not add the waypoint", fleet.Name, planet.Name)
+				continue
+			}
+
+			fleet.Waypoints[newWpIndex].Task = cs.WaypointTaskTransport
+			fleet.Waypoints[newWpIndex].TransportTasks = cs.WaypointTransportTasks{Colonists: cs.WaypointTransportTask{Action: cs.TransportActionUnloadAll}}
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 
 			idleFleets--

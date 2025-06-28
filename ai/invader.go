@@ -16,7 +16,7 @@ func (ai *aiPlayer) invade() error {
 			continue
 		}
 
-		target := ai.getPlanetIntel(fleet.Waypoints[1].TargetNum)
+		target := ai.GetPlanetIntel(fleet.Waypoints[1].TargetNum)
 
 		// if this planet is no longer owned by a player, or it suddenly has a starbase, or its pop has grown out
 		// of the threshold where we would invade, return to the nearest starbase
@@ -24,14 +24,12 @@ func (ai *aiPlayer) invade() error {
 			fleet.Purpose = cs.FleetPurposeNone
 			closestStarbase := ai.getClosestStarbasePlanet(fleet)
 			if closestStarbase != nil {
-				warpSpeed := ai.getWarpSpeed(fleet, closestStarbase.Position)
+				warpSpeed := ai.getWarpSpeed(fleet, closestStarbase.ToTarget(), true)
 
 				fleet.Waypoints[1] = cs.NewPlanetWaypoint(closestStarbase.Position, closestStarbase.Num, closestStarbase.Name, warpSpeed).
 					WithTask(cs.WaypointTaskTransport).
 					WithTransportTasks(cs.WaypointTransportTasks{Colonists: cs.WaypointTransportTask{Action: cs.TransportActionUnloadAll}})
 				ai.log.Debug().
-					Int64("GameID", ai.GameID).
-					Int("PlayerNum", ai.Num).
 					Int("Invaders", fleet.Cargo.Colonists*100).
 					Int("Defenders", target.GetPopulation()).
 					Bool("HasStarbase", target.Spec.HasStarbase).

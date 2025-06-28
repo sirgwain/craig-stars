@@ -33,12 +33,10 @@ func (ai *aiPlayer) bomb() error {
 					if _, found := bombablePlanets[wp.TargetNum]; !found {
 						// this fleet is targeting a planet that is no longer bombable, clear its waypoints so it can be used
 						// to bomb something else
-						target := ai.getPlanetIntel(wp.TargetNum)
+						target := ai.GetPlanetIntel(wp.TargetNum)
 						fleet.Waypoints = fleet.Waypoints[:1]
 						bomberFleets = append(bomberFleets, fleet)
 						ai.log.Debug().
-							Int64("GameID", ai.GameID).
-							Int("PlayerNum", ai.Num).
 							Msgf("Fleet %s was going to bomb %s, but it's no longer a bombable target", fleet.Name, target.Name)
 
 					} else {
@@ -60,23 +58,24 @@ func (ai *aiPlayer) bomb() error {
 	// after colonizing, we may have idle fleets leftover
 	idleFleets := len(bomberFleets)
 	ai.log.Debug().
-		Int64("GameID", ai.GameID).
-		Int("PlayerNum", ai.Num).
 		Msgf("%d bomber, %d bombable planets", idleFleets, len(bombablePlanets))
 
 	for _, fleet := range bomberFleets {
 		bestPlanet := ai.getBestPlanetToBomb(fleet, bombablePlanets)
 		if bestPlanet != nil {
-			warpSpeed := ai.getMaxWarp(fleet.Position.DistanceTo(bestPlanet.Position), fleet)
-			fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed))
+			newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: bestPlanet.MapObject}, len(fleet.Waypoints)-1, true)
+			if newWpIndex == 0 {
+				ai.log.Warn().
+					Msgf("Fleet %s tried to target %s for bombing but did not add the waypoint", fleet.Name, bestPlanet.Name)
+				continue
+			}
+
 			ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 			delete(bombablePlanets, bestPlanet.Num)
 			idleFleets--
 
 			ai.log.Debug().
-				Int64("GameID", ai.GameID).
-				Int("PlayerNum", ai.Num).
-				Int("WarpSpeed", warpSpeed).
+				Int("WarpSpeed", fleet.Waypoints[newWpIndex].WarpSpeed).
 				Int("Population", bestPlanet.GetPopulation()).
 				Bool("HasStarbase", bestPlanet.Spec.HasStarbase).
 				Msgf("Fleet %s targeting %s for bombing", fleet.Name, bestPlanet.Name)
@@ -118,8 +117,6 @@ func (ai *aiPlayer) getBestPlanetToBomb(fleet *cs.Fleet, planets map[int]cs.Plan
 		weight := (1 / float64(pop)) / (2 * yearsToTravel) / starbaseFactor
 
 		// ai.log.Debug().
-		// 	Int64("GameID", ai.GameID).
-		// 	Int("PlayerNum", ai.Num).
 		// 	Float64("dist", dist).
 		// 	Int("pop", pop).
 		// 	Float64("yearsToTravel", yearsToTravel).

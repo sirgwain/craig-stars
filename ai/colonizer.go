@@ -27,8 +27,6 @@ func (ai *aiPlayer) colonize() error {
 	}
 
 	// ai.log.Debug().
-	// 	Int64("GameID", ai.GameID).
-	// 	Int("PlayerNum", ai.Num).
 	// 	Msgf("%d colonizer fleets assembled from idle fleets", len(colonizerFleets))
 
 	// TODO: Refactor this for readability's sake
@@ -54,15 +52,13 @@ func (ai *aiPlayer) colonize() error {
 					delete(colonizablePlanets, wp.TargetNum)
 				}
 
-				target := ai.getPlanetIntel(wp.TargetNum)
+				target := ai.GetPlanetIntel(wp.TargetNum)
 				if target.Owned() {
 					// our target is owned by someone else, see if we can invade them
 					// TODO: add defenses to the calcs
 					// and cancel if they have a starbase
 					if ai.IsEnemy(target.PlayerNum) && !target.Spec.HasStarbase && target.GetPopulation() < int(float64(fleet.Cargo.Colonists*100)/ai.config.invasionFactor) {
 						ai.log.Debug().
-							Int64("GameID", ai.GameID).
-							Int("PlayerNum", ai.Num).
 							Int("Invaders", fleet.Cargo.Colonists*100).
 							Int("Defenders", target.GetPopulation()).
 							Bool("HasStarbase", target.Spec.HasStarbase).
@@ -79,8 +75,6 @@ func (ai *aiPlayer) colonize() error {
 						fleet.Waypoints = fleet.Waypoints[:1]
 						colonizerFleets = append(colonizerFleets, fleet)
 						ai.log.Debug().
-							Int64("GameID", ai.GameID).
-							Int("PlayerNum", ai.Num).
 							Msgf("Fleet %s was targeting %s for colonizing, but it is owned by player %d", fleet.Name, target.Name, target.PlayerNum)
 
 					}
@@ -93,8 +87,6 @@ func (ai *aiPlayer) colonize() error {
 	// after colonizing, we may have idle fleets leftover
 	idleFleets := len(colonizerFleets)
 	ai.log.Debug().
-		Int64("GameID", ai.GameID).
-		Int("PlayerNum", ai.Num).
 		Msgf("%d colonizerFleets, %d colonizable planets", idleFleets, len(colonizablePlanets))
 
 	// Check each of our idle colonizer fleets and have them load dudes
@@ -112,7 +104,7 @@ func (ai *aiPlayer) colonize() error {
 		}
 
 		// make sure we aren't orbiting another player's planet
-		planet := ai.getPlanetIntel(fleet.OrbitingPlanetNum)
+		planet := ai.GetPlanetIntel(fleet.OrbitingPlanetNum)
 		if planet.PlayerNum != ai.Num {
 			continue
 		}
@@ -131,8 +123,6 @@ func (ai *aiPlayer) colonize() error {
 		newDensity := float64(popNextYear-colonistsToLoad*100) / float64(orbiting.Spec.MaxPopulation)
 		if newDensity < ai.config.colonizerPopulationDensity {
 			ai.log.Debug().
-				Int64("GameID", ai.GameID).
-				Int("PlayerNum", ai.Num).
 				Int("ColonistsAvailable", popNextYear).
 				Int("ColonistsNeeded", colonistsToLoad*100).
 				Float64("DensityAfterLoad", newDensity).
@@ -147,16 +137,21 @@ func (ai *aiPlayer) colonize() error {
 			continue
 		}
 
-		warpSpeed := ai.getWarpSpeed(fleet, bestPlanet.Position)
-		fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(bestPlanet.Position, bestPlanet.Num, bestPlanet.Name, warpSpeed).WithTask(cs.WaypointTaskColonize))
+		newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: bestPlanet.MapObject}, 0, true)
+		if newWpIndex == 0 {
+			ai.log.Warn().
+				Str("Cargo", fleet.Cargo.PrettyString()).
+				Bool("Colonizer", fleet.Spec.Colonizer).
+				Bool("CanColonize", fleet.CanColonize(bestPlanet)).
+				Msgf("Fleet %s tried to target %s for colonizing but did not add the waypoint", fleet.Name, bestPlanet.Name)
+			continue
+		}
 		ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 		delete(colonizablePlanets, bestPlanet.Num)
 		idleFleets--
 
 		ai.log.Debug().
-			Int64("GameID", ai.GameID).
-			Int("PlayerNum", ai.Num).
-			Int("WarpSpeed", warpSpeed).
+			Int("WarpSpeed", fleet.Waypoints[1].WarpSpeed).
 			Msgf("Fleet %s targeting %s for colonizing", fleet.Name, bestPlanet.Name)
 
 	}

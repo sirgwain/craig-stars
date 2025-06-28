@@ -536,22 +536,6 @@ func (p *aiPlayer) getPlanet(num int) *cs.Planet {
 	return p.planetsByNum[num]
 }
 
-// get a player owned planet by num, or nil if it doesn't exist
-func (p *aiPlayer) getPlanetIntel(num int) cs.PlanetIntel {
-	return p.Player.PlanetIntels[num-1]
-}
-
-// get all planets we own with space docks
-func (p *aiPlayer) getPlanetsWithDocks() []*cs.Planet {
-	planets := []*cs.Planet{}
-	for _, planet := range p.Planets {
-		if planet.Spec.HasStarbase && planet.Spec.DockCapacity != 0 {
-			planets = append(planets, planet)
-		}
-	}
-	return planets
-}
-
 // get the closest planet to this fleet from a list of unknown planets
 func (ai *aiPlayer) getClosestPlanetIntel(position cs.Vector, planetIntelsByNum map[int]cs.PlanetIntel) *cs.PlanetIntel {
 	shortestDist := math.MaxFloat64
@@ -602,13 +586,13 @@ func (ai *aiPlayer) getClosestPlanet(fleet *cs.Fleet, planetsByNum map[int]*cs.P
 	return closest
 }
 
-// get the closest planet to this fleet from a list of unknown planets
+// get the closest planet we own with a starbase
 func (ai *aiPlayer) getClosestStarbasePlanet(fleet *cs.Fleet) *cs.Planet {
 	shortestDist := math.MaxFloat64
 	var closest *cs.Planet = nil
 
 	for _, planet := range ai.Planets {
-		if !planet.Spec.HasStarbase {
+		if !planet.Spec.HasStarbase && planet.Spec.DockCapacity > 0 {
 			continue
 		}
 
