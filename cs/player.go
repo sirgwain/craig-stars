@@ -300,8 +300,18 @@ func (p *Player) WithAcquiredTech(techName string) *Player {
 	return p
 }
 
+func (p *Player) WithRelations(relations []PlayerRelationship) *Player {
+	p.Relations = relations
+	return p
+}
+
 func (p *Player) withSpec(rules *Rules) *Player {
 	p.Spec = computePlayerSpec(p, rules, []*Planet{})
+	return p
+}
+
+func (p *Player) withPlanetIntels(planets []PlanetIntel) *Player {
+	p.PlanetIntels = planets
 	return p
 }
 

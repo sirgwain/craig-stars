@@ -306,6 +306,68 @@ func testGatePrivateer(player *Player, quantity int) *Fleet {
 	return fleet
 }
 
+func testPotatoBug(player *Player) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
+		BaseName:  "Potato Bug",
+		Tokens: []ShipToken{
+			{
+				Quantity:  1,
+				DesignNum: 1,
+				design: NewShipDesign(player.Num, 1).
+					WithName("Potato Bug").
+					WithHull(MidgetMiner.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: RoboMidgetMiner.Name, HullSlotIndex: 2, Quantity: 1},
+					}).
+					WithSpec(&rules, player)},
+		},
+		battlePlan:        &player.BattlePlans[0],
+		OrbitingPlanetNum: None,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
+	}
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	return fleet
+}
+
+func testSantaMaria(player *Player) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
+		BaseName:  "Santa Maria",
+		Tokens: []ShipToken{
+			{
+				Quantity:  1,
+				DesignNum: 1,
+				design: NewShipDesign(player.Num, 1).
+					WithName("Santa Maria").
+					WithHull(ColonyShip.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
+					}).
+					WithSpec(&rules, player),
+			},
+		},
+		battlePlan:        &player.BattlePlans[0],
+		OrbitingPlanetNum: None,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
+	}
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	player.Designs = append(player.Designs, fleet.Tokens[0].design)
+	return fleet
+}
+
 func Test_computeFleetSpec(t *testing.T) {
 	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
 	starterHumanoidPlayer.Race.Spec = computeRaceSpec(&starterHumanoidPlayer.Race, &rules)
@@ -1320,6 +1382,1128 @@ func TestFleet_reduceCargoToMax(t *testing.T) {
 			}
 			if got := fleet.Cargo; got != tt.wantCargo {
 				t.Errorf("Fleet.reduceCargoToMax() cargo = %v, wantCargo %v", got, tt.wantCargo)
+			}
+		})
+	}
+}
+
+func TestFleet_CanColonize(t *testing.T) {
+	type fields struct {
+		cargo     Cargo
+		colonizer bool
+	}
+	type args struct {
+		planet *PlanetIntel
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		{
+			name:   "can colonize",
+			fields: fields{cargo: Cargo{Colonists: 1}, colonizer: true},
+			args:   args{planet: &PlanetIntel{Spec: PlanetSpec{TerraformedHabitability: 1}}},
+			want:   true,
+		},
+		{
+			name:   "cannot colonize no colonists",
+			fields: fields{cargo: Cargo{Colonists: 0}, colonizer: true},
+			args:   args{planet: &PlanetIntel{Spec: PlanetSpec{TerraformedHabitability: 1}}},
+			want:   false,
+		},
+		{
+			name:   "cannot colonize no colonizer",
+			fields: fields{cargo: Cargo{Colonists: 1}, colonizer: false},
+			args:   args{planet: &PlanetIntel{Spec: PlanetSpec{TerraformedHabitability: 1}}},
+			want:   false,
+		},
+		{
+			name:   "cannot colonize not habitable",
+			fields: fields{cargo: Cargo{Colonists: 1}, colonizer: true},
+			args:   args{planet: &PlanetIntel{Spec: PlanetSpec{TerraformedHabitability: -1}}},
+			want:   false,
+		},
+		{
+			name:   "cannot colonize planet owned",
+			fields: fields{cargo: Cargo{Colonists: 1}, colonizer: true},
+			args:   args{planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}, Spec: PlanetSpec{TerraformedHabitability: 1}}},
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := &Fleet{
+				Cargo: tt.fields.cargo,
+				Spec: FleetSpec{
+					ShipDesignSpec: ShipDesignSpec{
+						Colonizer: tt.fields.colonizer,
+					},
+				},
+			}
+			if got := f.CanColonize(tt.args.planet); got != tt.want {
+				t.Errorf("Fleet.CanColonize() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_CanFuel(t *testing.T) {
+	type args struct {
+		player *Player
+		planet *PlanetIntel
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "can fuel",
+			args: args{
+				player: testPlayer(),
+				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}, Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{DockCapacity: 1}}},
+			},
+			want: true,
+		},
+		{
+			name: "cannot fuel no planet",
+			args: args{
+				player: testPlayer(),
+			},
+			want: false,
+		},
+		{
+			name: "cannot fuel no dock",
+			args: args{
+				player: testPlayer(),
+				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}, Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{DockCapacity: 0}}},
+			},
+			want: false,
+		},
+		{
+			name: "cannot fuel not friends",
+			args: args{
+				player: testPlayer(),
+				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 2}, Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{DockCapacity: 0}}},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := NewFleet(tt.args.player, 1, "fleet", []Waypoint{NewPositionWaypoint(Vector{}, 5)})
+			if got := f.CanFuel(tt.args.player, tt.args.planet); got != tt.want {
+				t.Errorf("Fleet.CanFuel() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_CanRemoteMine(t *testing.T) {
+	type fields struct {
+		miningRate int
+	}
+	type args struct {
+		player *Player
+		planet *PlanetIntel
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		{
+			name:   "can remote mine",
+			fields: fields{miningRate: 1},
+			args: args{
+				player: NewPlayer(0, NewRace()).WithNum(1),
+				planet: &PlanetIntel{},
+			},
+			want: true,
+		},
+		{
+			name: "cannot remote mine no planet",
+			args: args{
+				player: NewPlayer(0, NewRace()).WithNum(1),
+			},
+			want: false,
+		},
+		{
+			name: "cannot remote mine planet owned",
+			args: args{
+				player: NewPlayer(0, NewRace()).WithNum(1),
+				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}},
+			},
+			want: false,
+		},
+		{
+			name: "can remote mine own planets",
+			args: args{
+				player: NewPlayer(0, NewRace().WithPRT(AR).WithSpec(&rules)).WithNum(1),
+				planet: &PlanetIntel{MapObject: MapObject{PlayerNum: 1}},
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := NewFleet(tt.args.player, 1, "fleet", []Waypoint{NewPositionWaypoint(Vector{}, 5)})
+			f.Spec.MiningRate = tt.fields.miningRate
+			if got := f.CanRemoteMine(tt.args.player, tt.args.planet); got != tt.want {
+				t.Errorf("Fleet.CanRemoteMine() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_CanJump(t *testing.T) {
+	type fields struct {
+		cargo  Cargo
+		tokens []ShipToken
+	}
+	type args struct {
+		player   *Player
+		orbiting *PlanetIntel
+		target   *PlanetIntel
+		dist     float64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		{
+			name: "can jump",
+			fields: fields{
+				tokens: []ShipToken{{Quantity: 1, design: testLongRangeScoutDesign(1)}},
+			},
+			args: args{
+				player: testPlayer(),
+				orbiting: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				target: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				dist: 1,
+			},
+			want: true,
+		},
+		{
+			name: "can jump with gate",
+			fields: fields{
+				tokens: []ShipToken{{Quantity: 1, design: testLongRangeScoutDesign(1).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: RhinoScanner.Name, HullSlotIndex: 2, Quantity: 1},
+						{HullComponent: JumpGate.Name, HullSlotIndex: 3, Quantity: 1},
+					}),
+				}},
+			},
+			args: args{
+				player: testPlayer(),
+				target: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				dist: 1,
+			},
+			want: true,
+		},
+		{
+			name: "can jump with cargo",
+			fields: fields{
+				cargo: Cargo{Ironium: 1},
+				tokens: []ShipToken{{Quantity: 1, design: NewShipDesign(1, 1).
+					WithName("Colony Ship").
+					WithHull(ColonyShip.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
+					})}},
+			},
+			args: args{
+				player: NewPlayer(0, NewRace().WithPRT(IT).WithSpec(&rules)).WithNum(1).WithRelations([]PlayerRelationship{{Relation: PlayerRelationFriend}}),
+				orbiting: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				target: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				dist: 1,
+			},
+			want: true,
+		},
+		{
+			name: "cannot jump with cargo",
+			fields: fields{
+				cargo: Cargo{Ironium: 1},
+				tokens: []ShipToken{{Quantity: 1, design: NewShipDesign(1, 1).
+					WithName("Colony Ship").
+					WithHull(ColonyShip.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: LongHump6.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
+					})}},
+			},
+			args: args{
+				player: testPlayer(),
+				orbiting: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				target: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				dist: 1,
+			},
+			want: false,
+		},
+		{
+			name: "cannot jump no orbiting",
+			fields: fields{
+				tokens: []ShipToken{{Quantity: 1, design: testLongRangeScoutDesign(1)}},
+			},
+			args: args{
+				player: testPlayer(),
+				target: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				dist: 1,
+			},
+			want: false,
+		},
+		{
+			name: "cannot jump no target",
+			fields: fields{
+				tokens: []ShipToken{{Quantity: 1, design: testLongRangeScoutDesign(1)}},
+			},
+			args: args{
+				player: testPlayer(),
+				orbiting: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				dist: 1,
+			},
+			want: false,
+		},
+		{
+			name: "cannot jump too heavy",
+			fields: fields{
+				tokens: []ShipToken{{Quantity: 1, design: testLongRangeScoutDesign(1)}},
+			},
+			args: args{
+				player: testPlayer(),
+				orbiting: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 1,
+					}}},
+				target: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 1,
+					}}},
+				dist: 1,
+			},
+			want: false,
+		},
+		{
+			name: "cannot jump too far",
+			fields: fields{
+				tokens: []ShipToken{{Quantity: 1, design: testLongRangeScoutDesign(1)}},
+			},
+			args: args{
+				player: testPlayer(),
+				orbiting: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    1,
+						SafeHullMass: 100,
+					}}},
+				target: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    1,
+						SafeHullMass: 100,
+					}}},
+				dist: 10,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := NewFleet(tt.args.player, 1, "fleet", []Waypoint{NewPositionWaypoint(Vector{}, 5)})
+			f.Cargo = tt.fields.cargo
+			f.Tokens = tt.fields.tokens
+			for i := range f.Tokens {
+				f.Tokens[i].design.WithSpec(&rules, tt.args.player)
+			}
+			f.Spec = ComputeFleetSpec(&rules, tt.args.player, f)
+			if got := f.CanJump(tt.args.player, tt.args.dist, tt.args.orbiting, tt.args.target); got != tt.want {
+				t.Errorf("Fleet.CanJump() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_GetMinimalWarp(t *testing.T) {
+	player := testPlayer()
+	type args struct {
+		player               *Player
+		fuelAlreadyAllocated int
+		dist                 float64
+		startSpeed           int
+		freeSpeed            int
+		maxSafeSpeed         int
+	}
+	tests := []struct {
+		name  string
+		fleet *Fleet
+		args  args
+		want  int
+	}{
+		{
+			name:  "49ly warp 7", // one year to go 49 ly
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 49,
+				startSpeed:           7,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 7,
+		},
+		{
+			name:  "50ly warp 5", // two years at warps 7, 6 or 5; pick warp 5
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 50,
+				startSpeed:           7,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 5,
+		},
+		{
+			name:  "73ly warp 7", // two years at warp 7, 3 at warp6
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 73,
+				startSpeed:           7,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 7,
+		},
+		{
+			name:  "36ly warp 6",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 36,
+				startSpeed:           7,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 6,
+		},
+		{
+			name:  "25ly warp 6",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 25,
+				startSpeed:           7,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 5,
+		},
+		{
+			name:  "slow own if run out of fuel",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 200,
+				dist:                 200,
+				startSpeed:           7,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 6,
+		},
+		{
+			name:  "do not exceed safe warp",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 100,
+				startSpeed:           10,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 9,
+		},
+		{
+			name:  "go w10 if w10 is safe",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 100,
+				startSpeed:           10,
+				freeSpeed:            1,
+				maxSafeSpeed:         10,
+			},
+			want: 10,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.fleet.GetMinimalWarp(tt.args.player, tt.args.fuelAlreadyAllocated, tt.args.dist, tt.args.startSpeed, tt.args.freeSpeed, tt.args.maxSafeSpeed); got != tt.want {
+				t.Errorf("Fleet.GetMinimalWarp() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_GetMaxWarp(t *testing.T) {
+	player := testPlayer()
+	type args struct {
+		player               *Player
+		fuelAlreadyAllocated int
+		dist                 float64
+		freeSpeed            int
+		maxSafeSpeed         int
+	}
+	tests := []struct {
+		name  string
+		fleet *Fleet
+		args  args
+		want  int
+	}{
+		{
+			name:  "91ly warp 9", // one year to go 81 ly, plenty of fuel
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 81,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 9,
+		},
+		{
+			name:  "64ly warp 8", // one year to go 64 ly, plenty of fuel
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 64,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 8,
+		},
+		{
+			name:  "25ly warp 9", // don't go faster than we need, go warp 5 for 25ly
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 25,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 5,
+		},
+		{
+			// make sure we don't run out of fuel over long distances
+			// 300 ly at warp 9 would take 338mg of fuel, so go warp 8 (using 282mg fuel)
+			name:  "300ly warp 8",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 0,
+				dist:                 300,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 8,
+		},
+		{
+			// go even slower if we've already allocated fuel to previous waypoints
+			name:  "300ly warp 8",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:               player,
+				fuelAlreadyAllocated: 100,
+				dist:                 300,
+				freeSpeed:            1,
+				maxSafeSpeed:         9,
+			},
+			want: 7,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.fleet.GetMaxWarp(tt.args.player, tt.args.fuelAlreadyAllocated, tt.args.dist, tt.args.freeSpeed, tt.args.maxSafeSpeed); got != tt.want {
+				t.Errorf("Fleet.GetMaxWarp() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_GetWarpSpeed(t *testing.T) {
+	player := testPlayer()
+	type args struct {
+		player               *Player
+		dist                 float64
+		orbiting             *PlanetIntel
+		target               *PlanetIntel
+		fuelAlreadyAllocated int
+		fastestWaypoint      bool
+	}
+	tests := []struct {
+		name  string
+		fleet *Fleet
+		args  args
+		want  int
+	}{
+		{
+			name:  "in space",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player: player,
+				dist:   25,
+			},
+			want: 5,
+		},
+		{
+			name: "can jump",
+			args: args{
+				player: player,
+				orbiting: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				target: &PlanetIntel{
+					MapObject: MapObject{PlayerNum: 1},
+					Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+						HasStargate:  true,
+						SafeRange:    100,
+						SafeHullMass: 100,
+					}}},
+				dist: 1,
+			},
+			want: StargateWarpSpeed,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.fleet.GetWarpSpeed(tt.args.player, tt.args.dist, tt.args.orbiting, tt.args.target, tt.args.fuelAlreadyAllocated, tt.args.fastestWaypoint); got != tt.want {
+				t.Errorf("Fleet.GetWarpSpeed() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_GetFuelAllocated(t *testing.T) {
+	player := testPlayer()
+	type args struct {
+		player        *Player
+		waypointIndex int
+	}
+	tests := []struct {
+		name  string
+		fleet *Fleet
+		args  args
+		want  int
+	}{
+		{
+			name:  "no waypoints no fuel allocated",
+			fleet: testLongRangeScout(player),
+			args:  args{player: player, waypointIndex: 0},
+			want:  0,
+		},
+		{
+			name: "one waypoint w6 5mg fuel used",
+			fleet: testLongRangeScout(player).withWaypoints(
+				NewPositionWaypoint(Vector{0, 0}, 0),
+				NewPositionWaypoint(Vector{36, 0}, 6),
+			),
+			args: args{player: player, waypointIndex: 1},
+			want: 5,
+		},
+		{
+			name: "two waypoints w9 5mg fuel used",
+			fleet: testLongRangeScout(player).withWaypoints(
+				NewPositionWaypoint(Vector{0, 0}, 0),
+				NewPositionWaypoint(Vector{81, 0}, 9),
+				NewPositionWaypoint(Vector{162, 0}, 9),
+			),
+			args: args{player: player, waypointIndex: 2},
+			want: 184,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.fleet.computeFuelUsage(tt.args.player)
+			if got := tt.fleet.GetFuelAllocated(tt.args.player, tt.args.waypointIndex); got != tt.want {
+				t.Errorf("Fleet.GetFuelAllocated() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFleet_AddWaypoint(t *testing.T) {
+	player := testPlayer()
+	type args struct {
+		player                       *Player
+		dest                         WaypointDest
+		currentSelectedWaypointIndex int
+		fastestWaypoint              bool
+	}
+	tests := []struct {
+		name         string
+		fleet        *Fleet
+		args         args
+		want         int
+		wantWaypoint Waypoint
+	}{
+		{
+			name:  "add 36ly waypoint",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:                       player,
+				dest:                         WaypointDest{Position: Vector{36, 0}},
+				currentSelectedWaypointIndex: 0,
+			},
+			want: 1,
+			wantWaypoint: Waypoint{
+				Position: Vector{36, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetPosition: Vector{36, 0},
+				},
+				WarpSpeed:    6,
+				EstFuelUsage: 5,
+			},
+		},
+		{
+			name:  "add 81ly waypoint",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:                       player,
+				dest:                         WaypointDest{Position: Vector{81, 0}},
+				currentSelectedWaypointIndex: 0,
+				fastestWaypoint:              false,
+			},
+			want: 1,
+			wantWaypoint: Waypoint{
+				Position: Vector{81, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetPosition: Vector{81, 0},
+				},
+				WarpSpeed:    6,
+				EstFuelUsage: 11,
+			},
+		},
+		{
+			name:  "add 81ly waypoint fastest",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:                       player,
+				dest:                         WaypointDest{Position: Vector{81, 0}},
+				currentSelectedWaypointIndex: 0,
+				fastestWaypoint:              true,
+			},
+			want: 1,
+			wantWaypoint: Waypoint{
+				Position: Vector{81, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetPosition: Vector{81, 0},
+				},
+				WarpSpeed:    9,
+				EstFuelUsage: 92,
+			},
+		},
+		{
+			name: "copy transport tasks",
+			fleet: testPrivateer(player, 1).withWaypoints(
+				Waypoint{
+					Task:           WaypointTaskTransport,
+					TransportTasks: WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionUnloadAll}},
+				},
+			),
+			args: args{
+				player:                       player,
+				dest:                         WaypointDest{Position: Vector{25, 0}},
+				currentSelectedWaypointIndex: 0,
+			},
+			want: 1,
+			wantWaypoint: Waypoint{
+				Position: Vector{25, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetPosition: Vector{25, 0},
+				},
+				WarpSpeed:      5,
+				Task:           WaypointTaskTransport,
+				TransportTasks: WaypointTransportTasks{Ironium: WaypointTransportTask{Action: TransportActionUnloadAll}},
+				EstFuelUsage:   19,
+			},
+		},
+		{
+			name:  "colonize",
+			fleet: testSantaMaria(player).withCargo(Cargo{Colonists: 25}),
+			args: args{
+				player: NewPlayer(0, NewRace().WithSpec(&rules)).withPlanetIntels([]PlanetIntel{
+					{
+						MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1},
+						Spec:      PlanetSpec{TerraformedHabitability: 100},
+					},
+				}),
+				dest: WaypointDest{
+					MO: &MapObject{
+						Position: Vector{49, 0},
+						Type:     MapObjectTypePlanet,
+						Num:      1,
+					},
+				},
+				currentSelectedWaypointIndex: 0,
+			},
+			want: 1,
+			wantWaypoint: Waypoint{
+				Position: Vector{49, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetType:     MapObjectTypePlanet,
+					TargetPosition: Vector{49, 0},
+					TargetNum:      1,
+				},
+				WarpSpeed:    7,
+				Task:         WaypointTaskColonize,
+				EstFuelUsage: 95,
+			},
+		},
+		{
+			name:  "remote mine",
+			fleet: testPotatoBug(player),
+			args: args{
+				player: NewPlayer(0, NewRace().WithSpec(&rules)).withPlanetIntels([]PlanetIntel{
+					{
+						MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1},
+					},
+				}),
+				dest: WaypointDest{
+					MO: &MapObject{
+						Position: Vector{25, 0},
+						Type:     MapObjectTypePlanet,
+						Num:      1,
+					},
+				},
+				currentSelectedWaypointIndex: 0,
+			},
+			want: 1,
+			wantWaypoint: Waypoint{
+				Position: Vector{25, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetType:     MapObjectTypePlanet,
+					TargetPosition: Vector{25, 0},
+					TargetNum:      1,
+				},
+				WarpSpeed:    5,
+				EstFuelUsage: 12,
+				Task:         WaypointTaskRemoteMining,
+			},
+		},
+		{
+			name: "gate",
+			fleet: testLongRangeScout(player).withWaypoints(
+				// orbiting planet with stargate
+				Waypoint{
+					Position: Vector{},
+					MapObjectTarget: MapObjectTarget{
+						TargetType:     MapObjectTypePlanet,
+						TargetPosition: Vector{},
+						TargetNum:      1,
+					},
+				},
+			),
+			args: args{
+				// player knows of two planets
+				player: NewPlayer(0, NewRace().WithSpec(&rules)).
+					WithRelations([]PlayerRelationship{{Relation: PlayerRelationFriend}}).
+					withPlanetIntels([]PlanetIntel{
+						{
+							MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1, PlayerNum: 1},
+							Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+								HasStargate:  true,
+								SafeRange:    100,
+								SafeHullMass: 100,
+							}},
+						},
+						{
+							MapObject: MapObject{Type: MapObjectTypePlanet, Num: 2, PlayerNum: 1, Position: Vector{100, 0}},
+							Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+								HasStargate:  true,
+								SafeRange:    100,
+								SafeHullMass: 100,
+							}},
+						},
+					}),
+				dest: WaypointDest{
+					MO: &MapObject{
+						Position: Vector{100, 0},
+						Type:     MapObjectTypePlanet,
+						Num:      2,
+					},
+				},
+				currentSelectedWaypointIndex: 1,
+			},
+			want: 1,
+			wantWaypoint: Waypoint{
+				Position: Vector{100, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetType:     MapObjectTypePlanet,
+					TargetPosition: Vector{100, 0},
+					TargetNum:      2,
+				},
+				WarpSpeed:    StargateWarpSpeed,
+				EstFuelUsage: 0,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.fleet.AddWaypoint(tt.args.player, tt.args.dest, tt.args.currentSelectedWaypointIndex, tt.args.fastestWaypoint)
+			if got != tt.want {
+				t.Errorf("Fleet.AddWaypoint() = %v, want %v", got, tt.want)
+			}
+			if got != 0 {
+				test.CompareAsJSON(t, tt.fleet.Waypoints[got], tt.wantWaypoint)
+			}
+		})
+	}
+}
+
+func TestFleet_UpdateWaypoint(t *testing.T) {
+	player := testPlayer()
+	type args struct {
+		player                       *Player
+		dest                         WaypointDest
+		currentSelectedWaypointIndex int
+		fastestWaypoint              bool
+	}
+	tests := []struct {
+		name         string
+		fleet        *Fleet
+		args         args
+		want         bool
+		wantWaypoint Waypoint
+	}{
+		{
+			name:  "no update wp0",
+			fleet: testLongRangeScout(player),
+			args: args{
+				player:                       player,
+				dest:                         WaypointDest{Position: Vector{36, 0}},
+				currentSelectedWaypointIndex: 0,
+			},
+			want: false,
+		},
+		{
+			name: "no update onto prev waypoint",
+			fleet: testLongRangeScout(player).withWaypoints(
+				NewPositionWaypoint(Vector{}, 5),
+				NewPositionWaypoint(Vector{25, 0}, 5),
+			),
+			args: args{
+				player:                       player,
+				dest:                         WaypointDest{Position: Vector{}},
+				currentSelectedWaypointIndex: 1,
+			},
+			want: false,
+		},
+		{
+			name: "update 25ly w5 to 36ly w6 waypoint",
+			fleet: testLongRangeScout(player).withWaypoints(
+				NewPositionWaypoint(Vector{}, 5),
+				NewPositionWaypoint(Vector{25, 0}, 5),
+			),
+			args: args{
+				player:                       player,
+				dest:                         WaypointDest{Position: Vector{36, 0}},
+				currentSelectedWaypointIndex: 1,
+			},
+			want: true,
+			wantWaypoint: Waypoint{
+				Position: Vector{36, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetPosition: Vector{36, 0},
+				},
+				WarpSpeed:    6,
+				EstFuelUsage: 5,
+			},
+		},
+		{
+			name: "update to colonize planet",
+			fleet: testSantaMaria(player).withCargo(Cargo{Colonists: 25}).withWaypoints(
+				NewPositionWaypoint(Vector{}, 5),
+				NewPositionWaypoint(Vector{25, 0}, 5),
+			),
+			args: args{
+				player: NewPlayer(0, NewRace().WithSpec(&rules)).withPlanetIntels([]PlanetIntel{
+					{
+						MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1},
+						Spec:      PlanetSpec{TerraformedHabitability: 100},
+					},
+				}),
+				dest: WaypointDest{
+					MO: &MapObject{
+						Position: Vector{49, 0},
+						Type:     MapObjectTypePlanet,
+						Num:      1,
+					},
+				},
+				currentSelectedWaypointIndex: 1,
+			},
+			want: true,
+			wantWaypoint: Waypoint{
+				Position: Vector{49, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetType:     MapObjectTypePlanet,
+					TargetPosition: Vector{49, 0},
+					TargetNum:      1,
+				},
+				WarpSpeed:    7,
+				Task:         WaypointTaskColonize,
+				EstFuelUsage: 95,
+			},
+		},
+		{
+			name: "update to gate",
+			fleet: testLongRangeScout(player).withWaypoints(
+				// orbiting planet with stargate
+				Waypoint{
+					Position: Vector{},
+					MapObjectTarget: MapObjectTarget{
+						TargetType:     MapObjectTypePlanet,
+						TargetPosition: Vector{},
+						TargetNum:      1,
+					},
+				},
+				NewPositionWaypoint(Vector{25, 0}, 5),
+			),
+			args: args{
+				// player knows of two planets
+				player: NewPlayer(0, NewRace().WithSpec(&rules)).
+					WithRelations([]PlayerRelationship{{Relation: PlayerRelationFriend}}).
+					withPlanetIntels([]PlanetIntel{
+						{
+							MapObject: MapObject{Type: MapObjectTypePlanet, Num: 1, PlayerNum: 1},
+							Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+								HasStargate:  true,
+								SafeRange:    100,
+								SafeHullMass: 100,
+							}},
+						},
+						{
+							MapObject: MapObject{Type: MapObjectTypePlanet, Num: 2, PlayerNum: 1, Position: Vector{100, 0}},
+							Spec: PlanetSpec{PlanetStarbaseSpec: PlanetStarbaseSpec{
+								HasStargate:  true,
+								SafeRange:    100,
+								SafeHullMass: 100,
+							}},
+						},
+					}),
+				dest: WaypointDest{
+					MO: &MapObject{
+						Position: Vector{100, 0},
+						Type:     MapObjectTypePlanet,
+						Num:      2,
+					},
+				},
+				currentSelectedWaypointIndex: 1,
+			},
+			want: true,
+			wantWaypoint: Waypoint{
+				Position: Vector{100, 0},
+				MapObjectTarget: MapObjectTarget{
+					TargetType:     MapObjectTypePlanet,
+					TargetPosition: Vector{100, 0},
+					TargetNum:      2,
+				},
+				WarpSpeed:    StargateWarpSpeed,
+				EstFuelUsage: 0,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.fleet.UpdateWaypoint(tt.args.player, tt.args.dest, tt.args.currentSelectedWaypointIndex, tt.args.fastestWaypoint)
+			if got != tt.want {
+				t.Errorf("Fleet.UpdateWaypoint() = %v, want %v", got, tt.want)
+			}
+			if got {
+				test.CompareAsJSON(t, tt.fleet.Waypoints[tt.args.currentSelectedWaypointIndex], tt.wantWaypoint)
 			}
 		})
 	}

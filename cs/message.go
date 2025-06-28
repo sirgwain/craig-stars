@@ -15,7 +15,7 @@ type Target[T PlayerMessageTargetType | MapObjectType] struct {
 type MapObjectTarget = Target[MapObjectType]
 type PlayerMessageTarget = Target[PlayerMessageTargetType]
 
-func (t Target[T]) String() string {
+func (t Target[T]) PrettyString() string {
 	return fmt.Sprintf("Target: %s Type: %s Player: %d Num: %d", t.TargetName, t.TargetType, t.TargetPlayerNum, t.TargetNum)
 }
 
