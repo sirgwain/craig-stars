@@ -58,6 +58,7 @@ func setPlayer(args []js.Value) any {
 
 	player := wasm.GetPlayer(args[0])
 	player.Designs = ctx.player.Designs
+	player.PlayerIntels = ctx.player.PlayerIntels
 	ctx.player = player
 
 	log.Debug().Msgf("setting active player with %d designs", len(player.Designs))
@@ -77,6 +78,19 @@ func setDesigns(args []js.Value) any {
 	}
 
 	log.Debug().Msgf("setting %d player designs", len(designs))
+	return js.Undefined()
+}
+
+// setDesigns sets or updates the current player's designs for this wasm instance
+func setIntel(args []js.Value) any {
+	if len(args) != 1 {
+		return wasm.NewError(fmt.Errorf("setDesigns: number of arguments doesn't match"))
+	}
+
+	intel := wasm.GetPlayerIntels(args[0])
+	ctx.player.PlayerIntels = intel
+
+	log.Debug().Msgf("setting player intel")
 	return js.Undefined()
 }
 
@@ -231,6 +245,58 @@ func maxBuildable(args []js.Value) any {
 	return js.ValueOf(maxBuild)
 }
 
+// wasm wrapper for fleet.AddWaypoint
+// takes 4 arguments: the fleet and dest args
+func addWaypoint(args []js.Value) any {
+	if len(args) != 4 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	fleet := wasm.GetFleet(args[0])
+	dest := wasm.GetWaypointDest(args[1])
+	currentSelectedWaypointIndex := args[2].Int()
+	fastestWaypoint := args[3].Bool()
+
+	ctx.player.InjectDesigns([]*cs.Fleet{&fleet})
+	result := fleet.AddWaypoint(&ctx.player, dest, currentSelectedWaypointIndex, fastestWaypoint)
+
+	log.Debug().Msgf("addWaypoint %s to %#v: %d\n", fleet.Name, dest, result)
+
+	// return the fleet and the result of the AddWaypoint calls
+	oFleet := js.ValueOf(map[string]any{})
+	wasm.SetFleet(oFleet, &fleet)
+	o := js.ValueOf(map[string]any{})
+	o.Set("fleet", oFleet)
+	o.Set("result", result)
+	return o
+}
+
+// wasm wrapper for fleet.AddWaypoint
+// takes 4 arguments: the fleet and dest args
+func updateWaypoint(args []js.Value) any {
+	if len(args) != 4 {
+		return wasm.NewError(fmt.Errorf("number of arguments doesn't match"))
+	}
+
+	fleet := wasm.GetFleet(args[0])
+	dest := wasm.GetWaypointDest(args[1])
+	currentSelectedWaypointIndex := args[2].Int()
+	fastestWaypoint := args[3].Bool()
+
+	ctx.player.InjectDesigns([]*cs.Fleet{&fleet})
+	result := fleet.UpdateWaypoint(&ctx.player, dest, currentSelectedWaypointIndex, fastestWaypoint)
+
+	// log.Debug().Msgf("updateWaypoint %s to %#v: %v\n", fleet.Name, dest, result)
+
+	// return the fleet and the result of the AddWaypoint calls
+	oFleet := js.ValueOf(map[string]any{})
+	wasm.SetFleet(oFleet, &fleet)
+	o := js.ValueOf(map[string]any{})
+	o.Set("fleet", oFleet)
+	o.Set("result", result)
+	return o
+}
+
 // wasm wrapper for updating planet yearly resource production
 // takes 1 argument: the planet
 func updateResourcesAvailable(args []js.Value) any {
@@ -258,6 +324,7 @@ func main() {
 	wasm.ExposeFunction("setRules", setRules)
 	wasm.ExposeFunction("setPlayer", setPlayer)
 	wasm.ExposeFunction("setDesigns", setDesigns)
+	wasm.ExposeFunction("setIntel", setIntel)
 	wasm.ExposeFunction("enableDebug", enableDebug)
 	wasm.ExposeFunction("calculateRacePoints", calculateRacePoints)
 	wasm.ExposeFunction("getResearchCost", getResearchCost)
@@ -266,7 +333,9 @@ func main() {
 	wasm.ExposeFunction("techCost", techCost)
 	wasm.ExposeFunction("estimateProduction", estimateProduction)
 	wasm.ExposeFunction("maxBuildable", maxBuildable)
-	wasm.ExposeFunction("resourcesAvailable", updateResourcesAvailable)
+	wasm.ExposeFunction("addWaypoint", addWaypoint)
+	wasm.ExposeFunction("updateWaypoint", updateWaypoint)
+	wasm.ExposeFunction("updateResourcesAvailable", updateResourcesAvailable)
 	wasm.Ready()
 
 	// fmt.Println("wasm initialized")

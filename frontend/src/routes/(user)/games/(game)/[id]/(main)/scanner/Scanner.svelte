@@ -10,10 +10,10 @@
 		None,
 		type MapObject,
 		type Vector,
-		type Waypoint
+		type Waypoint,
+		type WaypointDest
 	} from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type WaypointDest } from '$lib/types/Fleet';
 	import { emptyVector, equal } from '$lib/types/Vector';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
@@ -40,6 +40,7 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
+	import { emptyMapObject } from '$lib/types/MapObject';
 
 	const {
 		game,
@@ -364,7 +365,7 @@
 				}
 			}
 
-			const dest = mo && !positionWaypoint ? { mo: mo } : { position: position ?? emptyVector };
+			const dest = { mo: mo ?? emptyMapObject(), position: position ?? emptyVector };
 			onUpdateWaypointDest(dest, fastestWaypoint, false);
 		}
 	}
@@ -372,7 +373,7 @@
 	async function dragWaypointDone(position: Vector, mo: MapObject | undefined) {
 		// reset waypoint dragging
 		if ($selectedWaypoint && $commandedFleet && draggingWaypoint) {
-			const dest = mo && !positionWaypoint ? { mo: mo } : { position: position ?? emptyVector };
+			const dest = { mo: mo ?? emptyMapObject(), position: position ?? emptyVector };
 			onUpdateWaypointDest(dest, fastestWaypoint, true);
 		}
 	}
@@ -400,7 +401,7 @@
 		}
 
 		// for add waypoints, we always snap to planet because the "drag" and "add waypoint button" keys (shift) are the same
-		const dest = mo ? { mo: mo } : { position: position ?? emptyVector };
+		const dest = { mo: mo ?? emptyMapObject(), position: position ?? emptyVector };
 		waypointJustAdded = await onAddWaypoint(dest, fastestWaypoint);
 		return true;
 	}

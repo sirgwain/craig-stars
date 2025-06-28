@@ -359,6 +359,10 @@ export const FleetPurposeMineLayer: FleetPurpose = 'MineLayer';
 export const FleetPurposeMiner: FleetPurpose = 'Miner';
 export const FleetPurposeTerraformer: FleetPurpose = 'Terraformer';
 export const FleetPurposeInvader: FleetPurpose = 'Invader';
+export interface WaypointDest {
+	mo: MapObject;
+	position: Vector;
+}
 
 //////////
 // source: game.go

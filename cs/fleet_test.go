@@ -368,6 +368,38 @@ func testSantaMaria(player *Player) *Fleet {
 	return fleet
 }
 
+func testSantaMariaIFE(player *Player) *Fleet {
+	fleet := &Fleet{
+		MapObject: MapObject{Type: MapObjectTypeFleet, Num: 1, PlayerNum: player.Num},
+		BaseName:  "Santa Maria",
+		Tokens: []ShipToken{
+			{
+				Quantity:  1,
+				DesignNum: 1,
+				design: NewShipDesign(player.Num, 1).
+					WithName("Santa Maria").
+					WithHull(ColonyShip.Name).
+					WithSlots([]ShipDesignSlot{
+						{HullComponent: FuelMizer.Name, HullSlotIndex: 1, Quantity: 1},
+						{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
+					}).
+					WithSpec(&rules, player),
+			},
+		},
+		battlePlan:        &player.BattlePlans[0],
+		OrbitingPlanetNum: None,
+		FleetOrders: FleetOrders{
+			Waypoints: []Waypoint{
+				NewPositionWaypoint(Vector{}, 5),
+			},
+		},
+	}
+	fleet.Spec = ComputeFleetSpec(&rules, player, fleet)
+	fleet.Fuel = fleet.Spec.FuelCapacity
+	player.Designs = append(player.Designs, fleet.Tokens[0].design)
+	return fleet
+}
+
 func Test_computeFleetSpec(t *testing.T) {
 	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
 	starterHumanoidPlayer.Race.Spec = computeRaceSpec(&starterHumanoidPlayer.Race, &rules)
@@ -2036,7 +2068,8 @@ func TestFleet_GetWarpSpeed(t *testing.T) {
 			want: 5,
 		},
 		{
-			name: "can jump",
+			name:  "can jump",
+			fleet: testLongRangeScout(player),
 			args: args{
 				player: player,
 				orbiting: &PlanetIntel{
@@ -2117,6 +2150,7 @@ func TestFleet_GetFuelAllocated(t *testing.T) {
 
 func TestFleet_AddWaypoint(t *testing.T) {
 	player := testPlayer()
+	ifePlayer := NewPlayer(0, NewRace().WithLRT(IFE).WithSpec(&rules)).WithNum(1)
 	type args struct {
 		player                       *Player
 		dest                         WaypointDest
@@ -2187,6 +2221,30 @@ func TestFleet_AddWaypoint(t *testing.T) {
 			},
 		},
 		{
+			// uses 201mg of fuel at w9 if dist is rounded up, so make sure we go w8 and don't run out of fuel
+			// TODO: change this if we update the fuel usage in game to not count rounded up dists (i.e. 81.9ly dist travelled at W9)
+			name: "add ife fastest",
+			fleet: testSantaMariaIFE(ifePlayer).
+				withPosition(Vector{174, 367}).
+				withWaypoints(NewPositionWaypoint(Vector{174, 367}, 0)).
+				withCargo(Cargo{Colonists: 25}),
+			args: args{
+				player:                       ifePlayer,
+				dest:                         WaypointDest{Position: Vector{48, 462}},
+				currentSelectedWaypointIndex: 0,
+				fastestWaypoint:              true,
+			},
+			want: 1,
+			wantWaypoint: Waypoint{
+				Position: Vector{48, 462},
+				MapObjectTarget: MapObjectTarget{
+					TargetPosition: Vector{48, 462},
+				},
+				WarpSpeed:    8,
+				EstFuelUsage: 132,
+			},
+		},
+		{
 			name: "copy transport tasks",
 			fleet: testPrivateer(player, 1).withWaypoints(
 				Waypoint{
@@ -2222,7 +2280,7 @@ func TestFleet_AddWaypoint(t *testing.T) {
 					},
 				}),
 				dest: WaypointDest{
-					MO: &MapObject{
+					MO: MapObject{
 						Position: Vector{49, 0},
 						Type:     MapObjectTypePlanet,
 						Num:      1,
@@ -2253,7 +2311,7 @@ func TestFleet_AddWaypoint(t *testing.T) {
 					},
 				}),
 				dest: WaypointDest{
-					MO: &MapObject{
+					MO: MapObject{
 						Position: Vector{25, 0},
 						Type:     MapObjectTypePlanet,
 						Num:      1,
@@ -2310,7 +2368,7 @@ func TestFleet_AddWaypoint(t *testing.T) {
 						},
 					}),
 				dest: WaypointDest{
-					MO: &MapObject{
+					MO: MapObject{
 						Position: Vector{100, 0},
 						Type:     MapObjectTypePlanet,
 						Num:      2,
@@ -2417,7 +2475,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 					},
 				}),
 				dest: WaypointDest{
-					MO: &MapObject{
+					MO: MapObject{
 						Position: Vector{49, 0},
 						Type:     MapObjectTypePlanet,
 						Num:      1,
@@ -2475,7 +2533,7 @@ func TestFleet_UpdateWaypoint(t *testing.T) {
 						},
 					}),
 				dest: WaypointDest{
-					MO: &MapObject{
+					MO: MapObject{
 						Position: Vector{100, 0},
 						Type:     MapObjectTypePlanet,
 						Num:      2,

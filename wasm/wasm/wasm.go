@@ -5,7 +5,6 @@ package wasm
 
 import (
 	"fmt"
-	"runtime/debug"
 	"syscall/js"
 
 	"github.com/rs/zerolog/log"
@@ -41,9 +40,7 @@ func jsFunctionWrapper(wrappedFunc func(args []js.Value) interface{}) js.Func {
 		defer func() {
 			// if we panic, update the game state to fail
 			if r := recover(); r != nil {
-				log.Error().
-					Interface("info", r).
-					Msgf("%s", debug.Stack())
+				log.Panic().Msgf("wasm call failed %v", r)
 
 				js.Global().Set("wasmError", NewError(fmt.Errorf("wasm module failed to run, check console")))
 			}

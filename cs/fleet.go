@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // warpspeed for using a stargate vs moving with warp drive
@@ -683,7 +684,7 @@ func (f *Fleet) computeFuelUsage(player *Player) {
 		wp := &f.Waypoints[i]
 		if i > 0 && wp.WarpSpeed < StargateWarpSpeed {
 			wpPrevious := f.Waypoints[i-1]
-			wp.EstFuelUsage = f.GetFuelCost(player, wp.WarpSpeed, wp.Position.DistanceTo(wpPrevious.Position))
+			wp.EstFuelUsage = f.GetFuelCost(player, wp.WarpSpeed, math.Ceil(wp.Position.DistanceTo(wpPrevious.Position)))
 		} else {
 			wp.EstFuelUsage = 0
 		}
@@ -1388,8 +1389,8 @@ func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Pla
 }
 
 type WaypointDest struct {
-	MO       *MapObject
-	Position Vector
+	MO       MapObject `json:"mo"`
+	Position Vector    `json:"position"`
 }
 
 // CanColonize returns true if this fleet can colonize the planet
@@ -1492,16 +1493,20 @@ func (f *Fleet) AddWaypoint(
 
 	// the position is either a position or the target's position
 	position := dest.Position
-	if position == (Vector{}) && dest.MO != nil {
+	if position == (Vector{}) && dest.MO.Type != MapObjectTypeNone {
 		position = dest.MO.Position
 	}
 
 	if position == (Vector{}) || position == selectedWaypoint.Position || (nextWaypoint != nil && position == nextWaypoint.Position) {
+		log.Debug().
+			Str("position", position.String()).
+			Str("selectedWaypoint.Position", selectedWaypoint.Position.String()).
+			Msgf("Not adding waypoint position")
 		return 0 // don't add duplicate waypoint
 	}
 
 	var targetPlanet *PlanetIntel
-	if dest.MO != nil && dest.MO.Type == MapObjectTypePlanet {
+	if dest.MO.Type == MapObjectTypePlanet {
 		targetPlanet = player.GetPlanetIntel(dest.MO.Num)
 	}
 
@@ -1515,12 +1520,12 @@ func (f *Fleet) AddWaypoint(
 		orbiting = player.GetPlanetIntel(selectedWaypoint.TargetNum)
 	}
 
-	dist := math.Floor(selectedWaypoint.Position.DistanceTo(position))
+	dist := math.Ceil(selectedWaypoint.Position.DistanceTo(position))
 
 	// determine what warp we should set for this waypoint
 	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, targetPlanet, fuelAlreadyAllocated, fastestWaypoint)
 
-	if dest.MO != nil {
+	if dest.MO.Type != MapObjectTypeNone {
 		wp := Waypoint{
 			Position: dest.MO.Position,
 			MapObjectTarget: MapObjectTarget{
@@ -1582,7 +1587,7 @@ func (f *Fleet) UpdateWaypoint(
 
 	// the position is either a position or the target's position
 	position := dest.Position
-	if position == (Vector{}) && dest.MO != nil {
+	if position == (Vector{}) && dest.MO.Type != MapObjectTypeNone {
 		position = dest.MO.Position
 	}
 
@@ -1591,7 +1596,7 @@ func (f *Fleet) UpdateWaypoint(
 		return false
 	}
 
-	dist := math.Floor(previousWaypoint.Position.DistanceTo(position))
+	dist := math.Ceil(previousWaypoint.Position.DistanceTo(position))
 
 	// get the fuel allocated up to but not including this waypoint since we're moving it around
 	fuelAlreadyAllocated := f.GetFuelAllocated(player, waypointIndex-1)
@@ -1602,7 +1607,7 @@ func (f *Fleet) UpdateWaypoint(
 	}
 
 	var targetPlanet *PlanetIntel
-	if dest.MO != nil && dest.MO.Type == MapObjectTypePlanet {
+	if dest.MO.Type == MapObjectTypePlanet {
 		targetPlanet = player.GetPlanetIntel(dest.MO.Num)
 	}
 
@@ -1613,7 +1618,7 @@ func (f *Fleet) UpdateWaypoint(
 	// determine what warp we should set for this waypoint
 	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, targetPlanet, fuelAlreadyAllocated, fastestWaypoint)
 
-	if dest.MO != nil {
+	if dest.MO.Type != MapObjectTypeNone {
 		selectedWaypoint.Position = dest.MO.Position
 		selectedWaypoint.MapObjectTarget = dest.MO.ToTarget()
 		selectedWaypoint.WarpSpeed = warpSpeed

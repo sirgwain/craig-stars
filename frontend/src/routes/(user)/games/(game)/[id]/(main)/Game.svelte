@@ -17,8 +17,7 @@
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absoluteSize } from '$lib/types/CargoTransferRequest.svelte';
-	import { MapObjectTypePlanet, None, type MapObject } from '$lib/types/cs';
-	import { type WaypointDest } from '$lib/types/Fleet';
+	import { MapObjectTypePlanet, None, type MapObject, type WaypointDest } from '$lib/types/cs';
 	import { commandable, equal as mapObjectEqual, ownedBy } from '$lib/types/MapObject';
 	import { equal } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
