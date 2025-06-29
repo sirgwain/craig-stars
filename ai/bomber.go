@@ -75,7 +75,9 @@ func (ai *aiPlayer) bomb() error {
 			idleFleets--
 
 			ai.log.Debug().
+				Int("Fuel", fleet.Fuel).
 				Int("WarpSpeed", fleet.Waypoints[newWpIndex].WarpSpeed).
+				Int("EstFuelUsage", fleet.Waypoints[newWpIndex].EstFuelUsage).
 				Int("Population", bestPlanet.GetPopulation()).
 				Bool("HasStarbase", bestPlanet.Spec.HasStarbase).
 				Msgf("Fleet %s targeting %s for bombing", fleet.Name, bestPlanet.Name)

@@ -279,6 +279,10 @@ func (ai *aiPlayer) buildMaps() error {
 			purpose: cs.FleetPurposeBomber,
 			ships: []fleetShip{
 				{
+					purpose:  cs.ShipDesignPurposeFuelFreighter,
+					quantity: 5,
+				},
+				{
 					purpose:  cs.ShipDesignPurposeBomber,
 					quantity: 5,
 				},

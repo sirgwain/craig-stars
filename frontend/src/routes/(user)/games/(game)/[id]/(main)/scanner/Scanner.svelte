@@ -317,7 +317,7 @@
 					$commandedFleet &&
 					$commandedFleet.waypoints.slice(1).find((wp) => equal(wp.position, found.position));
 
-				if (fleetWaypoint) {
+				if (fleetWaypoint && $selectedWaypoint != fleetWaypoint) {
 					onSelectWaypoint?.({ fleet: $commandedFleet, waypoint: fleetWaypoint });
 				} else {
 					mapObjectSelected(found);
