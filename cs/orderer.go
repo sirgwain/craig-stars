@@ -268,6 +268,7 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		Msg("by hand transfer")
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	fleet.computeFuelUsage(player)
 
 	// update the spec of the dest if we own it
 	switch t := dest.(type) {
@@ -278,6 +279,7 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 	case *Fleet:
 		if t.OwnedBy(player.Num) {
 			t.Spec = ComputeFleetSpec(rules, player, t)
+			t.computeFuelUsage(player)
 		}
 	}
 
@@ -631,6 +633,10 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 		return nil, fmt.Errorf("unable to split immediate cargo transfers %w", err)
 	}
 
+	// update fuel usage estimates
+	source.computeFuelUsage(player)
+	fleet.computeFuelUsage(player)
+
 	return &fleet, nil
 }
 
@@ -694,6 +700,7 @@ func (o *orders) Merge(rules *Rules, player *Player, fleets []*Fleet) (*Fleet, e
 		Msg("merged fleet")
 
 	fleet.Spec = ComputeFleetSpec(rules, player, fleet)
+	fleet.computeFuelUsage(player)
 
 	return fleet, nil
 }
