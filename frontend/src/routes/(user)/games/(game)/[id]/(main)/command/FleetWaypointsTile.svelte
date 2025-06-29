@@ -74,6 +74,7 @@
 	let fuelUsageTotal = $derived(
 		fuelUsagePerLeg.reduce(
 			(total, wpUsage, i) =>
+				fleet.waypoints.length < i + 1 &&
 				fleet.waypoints[i + 1].targetType === MapObjectTypePlanet &&
 				fleet.canFuel($player, $universe.getPlanet(fleet.waypoints[i + 1].targetNum ?? 0))
 					? 0
