@@ -50,8 +50,6 @@ func (ai *aiPlayer) produce() error {
 				}
 				if design == nil {
 					ai.log.Debug().
-						Int64("GameID", ai.GameID).
-						Int("PlayerNum", ai.Num).
 						Msgf("unable to design ship %v", ship.purpose)
 					continue
 				}
@@ -62,8 +60,6 @@ func (ai *aiPlayer) produce() error {
 
 				if !ai.isShipInQueue(planet, fleetMakeup.purpose, ship.purpose, ship.quantity) {
 					ai.log.Debug().
-						Int64("GameID", ai.GameID).
-						Int("PlayerNum", ai.Num).
 						Str("FleetPurpose", string(fleetMakeup.purpose)).
 						Str("Purpose", string(ship.purpose)).
 						Int("PlayerNum", ai.Num).

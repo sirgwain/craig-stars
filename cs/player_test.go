@@ -9,7 +9,7 @@ import (
 func testPlayer() *Player {
 	race := Humanoids()
 	race.Spec = computeRaceSpec(&race, &rules)
-	return NewPlayer(1, &race).withSpec(&rules)
+	return NewPlayer(1, &race).withSpec(&rules).WithRelations([]PlayerRelationship{{Relation: PlayerRelationFriend}})
 }
 
 func TestPlayer_HasTech(t *testing.T) {

@@ -34,9 +34,10 @@ import {
 	type ProductionPlan,
 	type ShipToken,
 	type TransportPlan,
-	type Waypoint
+	type Waypoint,
+	type WaypointDest
 } from '$lib/types/cs';
-import { CommandedFleet, type WaypointDest } from '$lib/types/Fleet';
+import { CommandedFleet } from '$lib/types/Fleet';
 import { equal, key, ownedBy } from '$lib/types/MapObject';
 import { getMapObjectTypeForMessageType } from '$lib/types/Message';
 import { CommandedPlanet } from '$lib/types/Planet';
@@ -173,6 +174,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	cs.setRules(fg.rules);
 	cs.setPlayer(fg.player);
 	cs.setDesigns(fg.universe.getMyDesigns());
+	cs.setIntel(fg.universe);
 
 	const gameId = fg.id;
 	const unsubscribers: Unsubscriber[] = [];
@@ -209,6 +211,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		cs.setRules(fg.rules);
 		cs.setPlayer(fg.player);
 		cs.setDesigns(fg.universe.getMyDesigns());
+		cs.setIntel(fg.universe);
 
 		game.set(fg);
 		player.set(fg.player);
@@ -582,7 +585,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			selectedWaypoint.update(() => {
 				const fleet = mo as Fleet;
 				if (fleet?.waypoints && fleet.waypoints.length) {
-					return fleet.waypoints[fleet.waypoints.length-1];
+					return fleet.waypoints[fleet.waypoints.length - 1];
 				}
 				return undefined;
 			});
@@ -904,35 +907,23 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		const fleet = get(commandedFleet);
 		const sw = get(selectedWaypoint);
 		const currentIndex = get(currentSelectedWaypointIndex);
-		const p = get(player);
 		const u = get(universe);
 		const fastest = get(settings).fastestWaypoint || fastestWaypoint;
 		if (!fleet) {
 			return false;
 		}
 
-		// get highest mass of the fleet ships (for stargates)
-		const highestShipMass = Math.max(
-			...fleet.tokens.map((t) => u.getMyDesign(t.designNum)?.spec.mass ?? 0)
-		);
+		const result = cs.addWaypoint(fleet, dest, currentIndex, fastest);
 
-		const newlyAddedWaypointIndex = fleet.addWaypoint(
-			p,
-			u,
-			dest,
-			currentIndex,
-			highestShipMass,
-			fastest
-		);
-
-		if (!newlyAddedWaypointIndex) {
+		if (!result || !result.result) {
 			return false;
 		}
 
+		fleet.waypoints = result.fleet.waypoints;
 		await updateFleetOrders(fleet);
 
 		// select the new waypoint
-		selectWaypoint(fleet.waypoints[newlyAddedWaypointIndex]);
+		selectWaypoint(fleet.waypoints[result.result]);
 		if (sw && sw.targetType && sw.targetNum) {
 			const mo = u.getMapObject(sw);
 
@@ -948,22 +939,22 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		const fleet = get(commandedFleet);
 		const sw = get(selectedWaypoint);
 		const currentIndex = get(currentSelectedWaypointIndex);
-		const p = get(player);
 		const u = get(universe);
 		const fastest = get(settings).fastestWaypoint || fastestWaypoint;
 
-		if (!fleet) {
+		if (!fleet || !sw) {
 			return;
 		}
 
-		// get highest mass of the fleet ships (for stargates)
-		const highestShipMass = Math.max(
-			...fleet.tokens.map((t) => u.getMyDesign(t.designNum)?.spec.mass ?? 0)
-		);
+		const result = cs.updateWaypoint(fleet, dest, currentIndex, fastest);
 
-		if (fleet.updateWaypoint(p, u, dest, currentIndex, highestShipMass, fastest)) {
+		if (result?.result) {
+			// update the selectedWaypoint while dragging
+			selectedWaypoint.update(() => Object.assign(sw, result.fleet.waypoints[currentIndex]));
 			// check if we are done updating this waypoint and should save it to the server
 			if (done) {
+				// don't dragging, update the fleet
+				fleet.waypoints = result.fleet.waypoints;
 				await updateFleetOrders(fleet);
 
 				// select the new waypoint

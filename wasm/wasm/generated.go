@@ -4514,6 +4514,22 @@ func SetWaypoint(o js.Value, obj *cs.Waypoint) {
 	o.Set("partiallyComplete", obj.PartiallyComplete)
 }
 
+func GetWaypointDest(o js.Value) cs.WaypointDest {
+	var obj cs.WaypointDest
+	if o.IsUndefined() || o.IsNull() {
+		return obj
+	}
+	obj.MO = GetMapObject(o.Get("mo"))
+	obj.Position = GetVector(o.Get("position"))
+	return obj
+}
+func SetWaypointDest(o js.Value, obj *cs.WaypointDest) {
+	o.Set("mo", map[string]any{})
+	SetMapObject(o.Get("mo"), &obj.MO)
+	o.Set("position", map[string]any{})
+	SetVector(o.Get("position"), &obj.Position)
+}
+
 func GetWaypointTask(o js.Value) cs.WaypointTask {
 	var obj cs.WaypointTask
 	if o.IsUndefined() || o.IsNull() {

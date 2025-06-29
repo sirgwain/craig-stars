@@ -3,8 +3,10 @@ package cs
 import (
 	"fmt"
 	"math"
+	"slices"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // warpspeed for using a stargate vs moving with warp drive
@@ -682,8 +684,7 @@ func (f *Fleet) computeFuelUsage(player *Player) {
 		wp := &f.Waypoints[i]
 		if i > 0 && wp.WarpSpeed < StargateWarpSpeed {
 			wpPrevious := f.Waypoints[i-1]
-			fuelUsage := f.GetFuelCost(player, wp.WarpSpeed, wp.Position.DistanceTo(wpPrevious.Position))
-			wp.EstFuelUsage = fuelUsage
+			wp.EstFuelUsage = f.GetFuelCost(player, wp.WarpSpeed, math.Ceil(wp.Position.DistanceTo(wpPrevious.Position)))
 		} else {
 			wp.EstFuelUsage = 0
 		}
@@ -1105,6 +1106,9 @@ func (engine Engine) getFuelCostForEngine(warpSpeed int, mass int, dist float64,
 // Get the fuel cost for this fleet to travel a certain distance at a certain speed,
 // exported to allow for cross package usage.
 func (fleet *Fleet) GetFuelCost(player *Player, warpSpeed int, distance float64) int {
+	if warpSpeed == StargateWarpSpeed {
+		return 0
+	}
 	return fleet.getFuelCost(player, warpSpeed, distance, fleet.Spec.CargoCapacity)
 }
 
@@ -1382,4 +1386,398 @@ func (fleet *Fleet) repairStarbase(log zerolog.Logger, rules *Rules, player *Pla
 		Int("Damage", int(token.Damage)).
 		Msgf("starbase repaired")
 
+}
+
+type WaypointDest struct {
+	MO       MapObject `json:"mo"`
+	Position Vector    `json:"position"`
+}
+
+// CanColonize returns true if this fleet can colonize the planet
+func (f *Fleet) CanColonize(planet *PlanetIntel) bool {
+	return f.Spec.Colonizer && f.Cargo.Colonists > 0 && planet != nil && !planet.Owned() && planet.Spec.TerraformedHabitability > 0
+}
+
+// CanFuel returns true if this fleet will refuel at the planet
+func (f *Fleet) CanFuel(player *Player, planet *PlanetIntel) bool {
+	return planet != nil && planet.Owned() && planet.Spec.DockCapacity != 0 && player.IsFriend(planet.PlayerNum)
+}
+
+// CanRemoteMine returns true if this fleet can remote mine the planet
+func (f *Fleet) CanRemoteMine(player *Player, planet *PlanetIntel) bool {
+	return f.Spec.MiningRate > 0 && planet != nil && !planet.Owned() || (player.Race.Spec.CanRemoteMineOwnPlanets && planet.OwnedBy(player.Num))
+}
+
+// CanRemoteMine returns true if this fleet can remote mine the planet
+func (f *Fleet) CanJump(player *Player, dist float64, orbiting *PlanetIntel, target *PlanetIntel) bool {
+	if target == nil {
+		return false
+	}
+
+	highestShipMass := 0
+	for _, token := range f.Tokens {
+		highestShipMass = max(highestShipMass, token.design.Spec.Mass)
+	}
+
+	destSafeHullMass := target.Spec.SafeHullMass
+	destSafeRange := target.Spec.SafeRange
+	destStargateSafe :=
+		target.Spec.HasStargate &&
+			target.Owned() &&
+			player.IsFriend(target.PlayerNum) &&
+			float64(destSafeRange) >= dist &&
+			highestShipMass <= destSafeHullMass
+
+	if f.Spec.CanJump {
+		// we have a jump gate installed in our ship, we only care about the destination gate
+		return destStargateSafe
+	} else {
+		if orbiting == nil || !orbiting.Spec.HasStargate {
+			return false
+		}
+		canGateCargo := player.Race.Spec.CanGateCargo
+		sourceSafeHullMass := orbiting.Spec.SafeHullMass
+		sourceSafeRange := orbiting.Spec.SafeRange
+		sourceStargateSafe :=
+			(canGateCargo || f.Cargo.Total() == 0) &&
+				orbiting.Owned() &&
+				player.IsFriend(target.PlayerNum) &&
+				float64(sourceSafeRange) >= dist &&
+				highestShipMass <= sourceSafeHullMass
+		return destStargateSafe && sourceStargateSafe
+	}
+
+}
+
+type waypointInfo struct {
+	selectedWaypoint *Waypoint
+	nextWaypoint     *Waypoint
+	previousWaypoint *Waypoint
+	waypointIndex    int
+}
+
+func (f *Fleet) getSelectedWaypointInfo(currentSelectedWaypointIndex int) waypointInfo {
+	index := currentSelectedWaypointIndex
+	if index == -1 || index >= len(f.Waypoints) {
+		index = 0
+	}
+
+	info := waypointInfo{
+		selectedWaypoint: &f.Waypoints[index],
+		waypointIndex:    index,
+	}
+
+	if index > 0 {
+		info.previousWaypoint = &f.Waypoints[index-1]
+	}
+	if index < len(f.Waypoints)-1 {
+		info.nextWaypoint = &f.Waypoints[index+1]
+	}
+
+	return info
+}
+
+// AddWaypoint adds a new waypoint at a destination after the currentSelectedWaypointIndex.
+// This function returns the index of the newly added waypoint, or 0 if no waypoint is added
+func (f *Fleet) AddWaypoint(
+	player *Player,
+	dest WaypointDest,
+	currentSelectedWaypointIndex int,
+	fastestWaypoint bool,
+) int {
+	f.computeFuelUsage(player)
+	info := f.getSelectedWaypointInfo(currentSelectedWaypointIndex)
+	selectedWaypoint := info.selectedWaypoint
+	nextWaypoint := info.nextWaypoint
+	index := info.waypointIndex
+
+	// the position is either a position or the target's position
+	position := dest.Position
+	if position == (Vector{}) && dest.MO.Type != MapObjectTypeNone {
+		position = dest.MO.Position
+	}
+
+	if position == (Vector{}) || position == selectedWaypoint.Position || (nextWaypoint != nil && position == nextWaypoint.Position) {
+		log.Debug().
+			Str("position", position.String()).
+			Str("selectedWaypoint.Position", selectedWaypoint.Position.String()).
+			Msgf("Not adding waypoint position")
+		return 0 // don't add duplicate waypoint
+	}
+
+	var targetPlanet *PlanetIntel
+	if dest.MO.Type == MapObjectTypePlanet {
+		targetPlanet = player.GetPlanetIntel(dest.MO.Num)
+	}
+
+	// if we are targeting a planet, record if we can colonize or remote mine it for later
+	canColonize := f.CanColonize(targetPlanet)
+	canRemoteMine := f.CanRemoteMine(player, targetPlanet)
+
+	fuelAlreadyAllocated := f.GetFuelAllocated(player, index)
+	var orbiting *PlanetIntel
+	if selectedWaypoint.TargetType == MapObjectTypePlanet {
+		orbiting = player.GetPlanetIntel(selectedWaypoint.TargetNum)
+	}
+
+	dist := math.Ceil(selectedWaypoint.Position.DistanceTo(position))
+
+	// determine what warp we should set for this waypoint
+	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, targetPlanet, fuelAlreadyAllocated, fastestWaypoint)
+
+	if dest.MO.Type != MapObjectTypeNone {
+		wp := Waypoint{
+			Position: dest.MO.Position,
+			MapObjectTarget: MapObjectTarget{
+				TargetName:      dest.MO.Name,
+				TargetPlayerNum: dest.MO.PlayerNum,
+				TargetNum:       dest.MO.Num,
+				TargetType:      dest.MO.Type,
+				TargetPosition:  dest.MO.Position,
+			},
+			WarpSpeed:      warpSpeed,
+			Task:           selectedWaypoint.Task,
+			TransportTasks: selectedWaypoint.TransportTasks,
+		}
+		if canColonize {
+			wp.Task = WaypointTaskColonize
+			wp.TransportTasks = WaypointTransportTasks{}
+		} else if canRemoteMine {
+			wp.Task = WaypointTaskRemoteMining
+			wp.TransportTasks = WaypointTransportTasks{}
+		}
+		wp.EstFuelUsage = f.GetFuelCost(player, wp.WarpSpeed, dist)
+		f.Waypoints = slices.Insert(f.Waypoints, index+1, wp)
+	} else {
+		wp := Waypoint{
+			Position: position,
+			MapObjectTarget: MapObjectTarget{
+				TargetPosition: position,
+			},
+			WarpSpeed:      warpSpeed,
+			Task:           selectedWaypoint.Task,
+			TransportTasks: selectedWaypoint.TransportTasks,
+		}
+		wp.EstFuelUsage = f.GetFuelCost(player, wp.WarpSpeed, dist)
+		f.Waypoints = slices.Insert(f.Waypoints, index+1, wp)
+	}
+
+	return index + 1
+}
+
+// UpdateWaypoint updates an existing waypoint from a drag/drop type operation
+func (f *Fleet) UpdateWaypoint(
+	player *Player,
+	dest WaypointDest,
+	currentSelectedWaypointIndex int,
+	fastestWaypoint bool,
+) bool {
+	info := f.getSelectedWaypointInfo(currentSelectedWaypointIndex)
+
+	selectedWaypoint := info.selectedWaypoint
+	previousWaypoint := info.previousWaypoint
+	waypointIndex := info.waypointIndex
+
+	if previousWaypoint == nil {
+		// can't update wp0
+		return false
+	}
+
+	f.computeFuelUsage(player)
+
+	// the position is either a position or the target's position
+	position := dest.Position
+	if position == (Vector{}) && dest.MO.Type != MapObjectTypeNone {
+		position = dest.MO.Position
+	}
+
+	if position == (Vector{}) || position == previousWaypoint.Position {
+		// don't update a waypoint to be the same as a previous waypoint, this should just delete it
+		return false
+	}
+
+	dist := math.Ceil(previousWaypoint.Position.DistanceTo(position))
+
+	// get the fuel allocated up to but not including this waypoint since we're moving it around
+	fuelAlreadyAllocated := f.GetFuelAllocated(player, waypointIndex-1)
+
+	var orbiting *PlanetIntel
+	if previousWaypoint.TargetType == MapObjectTypePlanet {
+		orbiting = player.GetPlanetIntel(previousWaypoint.TargetNum)
+	}
+
+	var targetPlanet *PlanetIntel
+	if dest.MO.Type == MapObjectTypePlanet {
+		targetPlanet = player.GetPlanetIntel(dest.MO.Num)
+	}
+
+	// if we are targeting a planet, record if we can colonize or remote mine it for later
+	canColonize := f.CanColonize(targetPlanet)
+	canRemoteMine := f.CanRemoteMine(player, targetPlanet)
+
+	// determine what warp we should set for this waypoint
+	warpSpeed := f.GetWarpSpeed(player, dist, orbiting, targetPlanet, fuelAlreadyAllocated, fastestWaypoint)
+
+	if dest.MO.Type != MapObjectTypeNone {
+		selectedWaypoint.Position = dest.MO.Position
+		selectedWaypoint.MapObjectTarget = dest.MO.ToTarget()
+		selectedWaypoint.WarpSpeed = warpSpeed
+
+		if canColonize {
+			selectedWaypoint.Task = WaypointTaskColonize
+			selectedWaypoint.TransportTasks = WaypointTransportTasks{}
+		} else if canRemoteMine {
+			selectedWaypoint.Task = WaypointTaskRemoteMining
+			selectedWaypoint.TransportTasks = WaypointTransportTasks{}
+		}
+	} else {
+		selectedWaypoint.Position = position
+		selectedWaypoint.MapObjectTarget = MapObjectTarget{
+			TargetPosition: position,
+		}
+		selectedWaypoint.WarpSpeed = warpSpeed
+	}
+
+	selectedWaypoint.EstFuelUsage = f.GetFuelCost(player, selectedWaypoint.WarpSpeed, dist)
+
+	return true
+}
+
+// GetFuelAllocated gets the fuel allocated up to the waypointIndex accounting for any refueling
+func (f *Fleet) GetFuelAllocated(player *Player, waypointIndex int) int {
+	fuelAllocated := 0
+	for i := 0; i <= waypointIndex && i < len(f.Waypoints); i++ {
+		wp := f.Waypoints[i]
+		fuelAllocated += wp.EstFuelUsage
+
+		var targetPlanet *PlanetIntel
+		if wp.TargetType == MapObjectTypePlanet {
+			targetPlanet = player.GetPlanetIntel(wp.TargetNum)
+			if targetPlanet != nil && f.CanFuel(player, targetPlanet) {
+				fuelAllocated = 0
+			}
+		}
+	}
+	return fuelAllocated
+}
+
+// GetWarpSpeed returns the warp speed this fleet should go given the distance, target, and orbiting planet
+// this will go max speed if we can colonize the destination
+func (f *Fleet) GetWarpSpeed(
+	player *Player,
+	dist float64,
+	orbiting *PlanetIntel,
+	targetPlanet *PlanetIntel,
+	fuelAlreadyAllocated int,
+	fastestWaypoint bool,
+) int {
+	canColonize := false
+	canJump := false
+	canFuel := false
+
+	if targetPlanet != nil {
+		canColonize = f.CanColonize(targetPlanet)
+		canJump = f.CanJump(player, dist, orbiting, targetPlanet)
+		canFuel = f.CanFuel(player, targetPlanet)
+	}
+
+	engine := f.Spec.Engine
+
+	var warpSpeed int
+	if canJump {
+		warpSpeed = StargateWarpSpeed
+	} else if canFuel || canColonize || fastestWaypoint {
+		warpSpeed = f.GetMaxWarp(
+			player,
+			fuelAlreadyAllocated,
+			dist,
+			engine.FreeSpeed,
+			engine.MaxSafeSpeed,
+		)
+	} else {
+		warpSpeed = f.GetMinimalWarp(
+			player,
+			fuelAlreadyAllocated,
+			dist,
+			engine.IdealSpeed,
+			engine.FreeSpeed,
+			engine.MaxSafeSpeed,
+		)
+	}
+
+	return warpSpeed
+}
+
+// GetMinimalWarp returns the highest useful speed less than or equal to a given warp speed
+// to reach a given destination.
+func (f *Fleet) GetMinimalWarp(
+	player *Player,
+	fuelAlreadyAllocated int,
+	dist float64,
+	startSpeed int,
+	freeSpeed int,
+	maxSafeSpeed int,
+) int {
+	idealYears := int(math.Ceil(float64(dist) / float64(startSpeed*startSpeed)))
+	speed := startSpeed
+
+	// Prefer slower speeds if they take the same time
+	for i := startSpeed; i > freeSpeed; i-- {
+		years := int(math.Ceil(float64(dist) / float64(i*i)))
+		if years == idealYears {
+			speed = i
+		}
+	}
+
+	// Decrease speed until we can afford it
+	for speed >= freeSpeed {
+		fuelUsed := f.GetFuelCost(player, speed, dist)
+		if fuelUsed+fuelAlreadyAllocated > f.Fuel {
+			speed--
+			continue
+		}
+		break
+	}
+
+	if speed > maxSafeSpeed {
+		speed = maxSafeSpeed
+	}
+
+	return speed
+}
+
+// GetMaxWarp returns the max warp we have fuel for to make it to the destination
+func (f *Fleet) GetMaxWarp(
+	player *Player,
+	fuelAlreadyAllocated int,
+	dist float64,
+	freeSpeed int,
+	maxSafeSpeed int,
+) int {
+	speed := freeSpeed
+
+	for i := speed + 1; i <= maxSafeSpeed; i++ {
+		fuelUsed := f.GetFuelCost(player, i, dist)
+		if fuelUsed+fuelAlreadyAllocated > f.Fuel {
+			break
+		}
+		speed = i
+	}
+
+	idealSpeed := f.Spec.Engine.IdealSpeed
+	idealFuelUsed := f.GetFuelCost(player, idealSpeed, dist)
+
+	if freeSpeed > 1 && speed < idealSpeed && idealFuelUsed <= f.Fuel {
+		speed = idealSpeed
+	}
+
+	// Don't go faster than needed
+	return f.GetMinimalWarp(
+		player,
+		fuelAlreadyAllocated,
+		dist,
+		speed,
+		freeSpeed,
+		maxSafeSpeed,
+	)
 }

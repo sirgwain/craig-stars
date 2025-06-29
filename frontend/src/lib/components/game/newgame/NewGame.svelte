@@ -87,22 +87,29 @@
 		}
 	});
 
+	let submitting = $state(false);
+
 	const onSubmit = async () => {
-		const data = JSON.stringify(settings);
+		submitting = true;
+		try {
+			const data = JSON.stringify(settings);
 
-		const response = await fetch(`/api/games`, {
-			method: 'post',
-			headers: {
-				accept: 'application/json'
-			},
-			body: data
-		});
+			const response = await fetch(`/api/games`, {
+				method: 'post',
+				headers: {
+					accept: 'application/json'
+				},
+				body: data
+			});
 
-		if (!response.ok) {
-			await Service.throwError(response);
+			if (!response.ok) {
+				await Service.throwError(response);
+			}
+			const game = (await response.json()) as Game;
+			goto(`/games/${game.id}`);
+		} finally {
+			submitting = false;
 		}
-		const game = (await response.json()) as Game;
-		goto(`/games/${game.id}`);
 	};
 
 	const addPlayer = () => {
@@ -131,7 +138,9 @@
 	}}
 >
 	<div class="w-full flex justify-end gap-2">
-		<button class="btn btn-success" type="submit">Create Game</button>
+		<button type="submit" disabled={submitting} class="btn btn-success"
+			>{submitting ? 'Creating...' : 'Create Game'}</button
+		>
 	</div>
 
 	<ItemTitle>New Game</ItemTitle>

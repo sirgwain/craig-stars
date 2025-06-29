@@ -23,11 +23,16 @@ import {
 	None
 } from './cs';
 import { getTokenCount, hasDestination } from './Fleet';
+import { emptyVector } from './Vector';
 
 export type MovingMapObject = {
 	heading: Vector;
 	warpSpeed: number;
 } & MapObject;
+
+export const emptyMapObject = (): MapObject => {
+	return { type: '', name: '', position: emptyVector, num: 0, playerNum: 0, tags: {} };
+};
 
 /**
  * Get default name for a mapObject or fleet

@@ -47,8 +47,13 @@ func (ai *aiPlayer) layMines() error {
 				ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 				delete(planetsToProtectByNum, closestPlanet.Num)
 			} else {
-				warpSpeed := ai.getWarpSpeed(fleet, closestPlanet.Position)
-				fleet.Waypoints = append(fleet.Waypoints, cs.NewPlanetWaypoint(closestPlanet.Position, closestPlanet.Num, closestPlanet.Name, warpSpeed))
+				newWpIndex := fleet.AddWaypoint(ai.Player, cs.WaypointDest{MO: closestPlanet.MapObject}, len(fleet.Waypoints)-1, false)
+				if newWpIndex == 0 {
+					ai.log.Warn().
+						Msgf("Fleet %s tried to target %s for mine laying but did not add the waypoint", fleet.Name, closestPlanet.Name)
+					continue
+				}
+
 				ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 				delete(planetsToProtectByNum, closestPlanet.Num)
 			}

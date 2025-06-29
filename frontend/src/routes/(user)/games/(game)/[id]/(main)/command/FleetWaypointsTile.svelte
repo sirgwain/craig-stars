@@ -68,19 +68,7 @@
 	);
 
 	// calculate the fuel used per leg of each waypoint, starting at wp1
-	let fuelUsagePerLeg = $derived(
-		fleet.waypoints.slice(1).map((wp1, index) =>
-			fleet.getFuelCost(
-				$universe,
-				$player.race.spec?.fuelEfficiencyOffset ?? 0,
-				// use the warp speed of the currently selected waypoint if we're dragging it around
-				// otherwise use the waypoint from the fleet waypoints
-				selectedWaypointIndex === index + 1 ? waypoint.warpSpeed : (wp1.warpSpeed ?? 0),
-				distance(fleet.waypoints[index].position, wp1.position),
-				fleet.spec.cargoCapacity ?? 0
-			)
-		)
-	);
+	let fuelUsagePerLeg = $derived(fleet.waypoints.slice(1).map((wp1) => wp1.estFuelUsage ?? 0));
 
 	// get the total fuel usage, but accounting for fueling stations
 	let fuelUsageTotal = $derived(
@@ -116,7 +104,7 @@
 	<CommandTile title="Fleet Waypoints">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">
-				{#each fleet.waypoints as wp, index}
+				{#each fleet.waypoints as wp, index (index)}
 					<li class="pl-1 {selectedWaypointIndex == index ? 'bg-primary-focus' : ''}">
 						<button
 							type="button"

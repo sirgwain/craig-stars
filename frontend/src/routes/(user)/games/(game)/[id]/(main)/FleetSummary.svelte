@@ -126,7 +126,7 @@
 				<div class="w-32 text-tile-item-title">Warp Speed:</div>
 				<div>{getWarpSpeed(playerFleet)}</div>
 			</div>
-		{:else if fleet.warpSpeed}
+		{:else}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Warp Speed:</div>
 				<div>{getWarpSpeed(fleet)}</div>

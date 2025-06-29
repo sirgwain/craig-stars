@@ -1,18 +1,26 @@
-import type { QueueItemType, Race } from './types/cs';
 import { addError } from './services/Errors';
-import type { Cost } from './types/cs';
+import type {
+	Cost,
+	Fleet,
+	PlayerIntels,
+	QueueItemType,
+	Race,
+	Rules,
+	ShipDesign,
+	ShipDesignSpec,
+	Tech,
+	TechLevel,
+	WaypointDest
+} from './types/cs';
 import { type Planet } from './types/cs';
 import type { CommandedPlayer } from './types/Player';
-import type { Rules } from './types/cs';
-import type { ShipDesign, ShipDesignSpec } from './types/cs';
-import type { Tech } from './types/cs';
-import type { TechLevel } from './types/cs';
 
 export type CS = {
 	enableDebug: () => void;
 	setRules: (rules: Rules) => void;
 	setPlayer: (player: CommandedPlayer) => void;
 	setDesigns: (designs: ShipDesign[]) => void;
+	setIntel: (intel: PlayerIntels) => void;
 	calculateRacePoints: (race: Race) => number | undefined;
 	getResearchCost: (techLevel: TechLevel) => number | undefined;
 	computeShipDesignSpec: (design: ShipDesign) => ShipDesignSpec | undefined;
@@ -20,6 +28,18 @@ export type CS = {
 	techCost: (tech: Tech) => Cost | undefined;
 	estimateProduction: (planet: Planet) => Planet | undefined;
 	maxBuildable: (planet: Planet, itemType: QueueItemType) => number | undefined;
+	addWaypoint: (
+		fleet: Fleet,
+		dest: WaypointDest,
+		currentSelectedWaypointIndex: number,
+		fastestWaypoint: boolean
+	) => { fleet: Fleet; result: number } | undefined;
+	updateWaypoint: (
+		fleet: Fleet,
+		dest: WaypointDest,
+		currentSelectedWaypointIndex: number,
+		fastestWaypoint: boolean
+	) => { fleet: Fleet; result: boolean } | undefined;
 	updateResourcesAvailable: (planet: Planet) => number | undefined;
 };
 
@@ -106,6 +126,11 @@ class CSWasmWrapper implements CS {
 		this.checkError();
 	}
 
+	setIntel(intel: PlayerIntels) {
+		this.wasm.setIntel(intel);
+		this.checkError();
+	}
+
 	computeShipDesignSpec(design: ShipDesign): ShipDesignSpec | undefined {
 		const result = this.wasm.computeShipDesignSpec(design);
 		if (this.checkError()) {
@@ -156,6 +181,42 @@ class CSWasmWrapper implements CS {
 
 	maxBuildable(planet: Planet, itemType: QueueItemType): number | undefined {
 		const result = this.wasm.maxBuildable(planet, itemType);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+
+	addWaypoint(
+		fleet: Fleet,
+		dest: WaypointDest,
+		currentSelectedWaypointIndex: number,
+		fastestWaypoint: boolean
+	): { fleet: Fleet; result: number } | undefined {
+		const result = this.wasm.addWaypoint(
+			fleet,
+			dest,
+			currentSelectedWaypointIndex,
+			fastestWaypoint
+		);
+		if (this.checkError()) {
+			return undefined;
+		}
+		return result;
+	}
+
+	updateWaypoint(
+		fleet: Fleet,
+		dest: WaypointDest,
+		currentSelectedWaypointIndex: number,
+		fastestWaypoint: boolean
+	): { fleet: Fleet; result: boolean } | undefined {
+		const result = this.wasm.updateWaypoint(
+			fleet,
+			dest,
+			currentSelectedWaypointIndex,
+			fastestWaypoint
+		);
 		if (this.checkError()) {
 			return undefined;
 		}

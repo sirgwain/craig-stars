@@ -321,7 +321,7 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 					log.Debug().
 						Int("Player", player.Num).
 						Int("FleetNum", transfer.SourceFleetNum).
-						Str("Target", transfer.MapObjectTarget.String()).
+						Str("Target", transfer.MapObjectTarget.PrettyString()).
 						Str("cargoInBucket", cargoInBucket.PrettyString()).
 						Str("cargoToLoad", cargoToLoad.PrettyString()).
 						Msgf("by hand load cargo")
@@ -360,7 +360,7 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 				t.log.Error().
 					Int("Player", player.Num).
 					Int("Fleet", transfer.SourceFleetNum).
-					Str("Target", transfer.MapObjectTarget.String()).
+					Str("Target", transfer.MapObjectTarget.PrettyString()).
 					Msgf("target not found for ByHandCargoTransfer load")
 				continue
 			}
@@ -429,7 +429,7 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 					log.Debug().
 						Int("Player", player.Num).
 						Int("FleetNum", transfer.SourceFleetNum).
-						Str("Target", transfer.MapObjectTarget.String()).
+						Str("Target", transfer.MapObjectTarget.PrettyString()).
 						Str("cargoInBucket", cargoInBucket.PrettyString()).
 						Str("cargoToUnload", cargoToUnload.PrettyString()).
 						Msgf("by hand unload cargo")
@@ -471,7 +471,7 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				t.log.Error().
 					Int("Player", player.Num).
 					Int("Fleet", transfer.SourceFleetNum).
-					Str("Target", transfer.MapObjectTarget.String()).
+					Str("Target", transfer.MapObjectTarget.PrettyString()).
 					Msgf("target not found for ByHandCargoTransfer unload")
 				continue
 			}
