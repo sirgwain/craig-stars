@@ -65,6 +65,7 @@ func Test_aiPlayer_updateWarfleets(t *testing.T) {
 			techLevel: cs.TechLevel{},
 			year:      25,
 			want: []fleetShip{
+				{purpose: cs.ShipDesignPurposeFuelFreighter, quantity: 5},
 				{purpose: cs.ShipDesignPurposeBomber, quantity: 5},
 				{purpose: cs.ShipDesignPurposeBeamFighter, quantity: 7},
 				{purpose: cs.ShipDesignPurposeTorpedoFighter, quantity: 7},
