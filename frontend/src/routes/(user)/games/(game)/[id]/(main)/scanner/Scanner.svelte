@@ -14,6 +14,7 @@
 		type WaypointDest
 	} from '$lib/types/cs';
 	import { filterFleet } from '$lib/types/Filter';
+	import { emptyMapObject } from '$lib/types/MapObject';
 	import { emptyVector, equal } from '$lib/types/Vector';
 	import { scaleLinear } from 'd3-scale';
 	import { select } from 'd3-selection';
@@ -33,6 +34,7 @@
 	import ScannerNames from './ScannerNames.svelte';
 	import ScannerPacketDests from './ScannerPacketDests.svelte';
 	import ScannerPlanets from './ScannerPlanets.svelte';
+	import ScannerRouteDests from './ScannerRouteDests.svelte';
 	import ScannerSalvages from './ScannerSalvages.svelte';
 	import ScannerScanners from './ScannerScanners.svelte';
 	import ScannerWarpLine from './ScannerWarpLine.svelte';
@@ -40,7 +42,6 @@
 	import ScannerWormholeLinks from './ScannerWormholeLinks.svelte';
 	import ScannerWormholes from './ScannerWormholes.svelte';
 	import SelectedMapObject from './SelectedMapObject.svelte';
-	import { emptyMapObject } from '$lib/types/MapObject';
 
 	const {
 		game,
@@ -60,6 +61,7 @@
 		onUpdateWaypointDest: (dest: WaypointDest, fastestWaypoint: boolean, done: boolean) => void;
 		onSelectMapObject: (mo: MapObject) => void;
 		onSetPacketDest: (mo: MapObject) => void;
+		onSetRouteDest: (mo: MapObject) => void;
 	} & SelectWaypointProps;
 
 	let {
@@ -67,7 +69,8 @@
 		onAddWaypoint,
 		onUpdateWaypointDest,
 		onSelectMapObject,
-		onSetPacketDest
+		onSetPacketDest,
+		onSetRouteDest
 	}: Props = $props();
 
 	const aspectRatio = $game.area.x / $game.area.y;
@@ -414,6 +417,8 @@
 	function mapObjectSelected(mo: MapObject) {
 		if ($settings.setPacketDest) {
 			onSetPacketDest(mo);
+		} else if ($settings.setRouteDest) {
+			onSetRouteDest(mo);
 		} else {
 			onSelectMapObject(mo);
 		}
@@ -494,7 +499,8 @@
 	class:cursor-grab={waypointHighlighted}
 	class:cursor-cell={shouldAddWaypoint ||
 		(!!$commandedFleet && $settings.addWaypoint) ||
-		$settings.setPacketDest}
+		$settings.setPacketDest ||
+		$settings.setRouteDest}
 	class={`grow bg-black overflow-hidden p-[${padding}px] select-none touch-none overscroll-contain`}
 	bind:this={rect}
 	use:clickOutside={disableAddWaypointMode}
@@ -516,6 +522,7 @@
 				<ScannerMineFieldPattern />
 				<ScannerMineFields />
 				<ScannerPacketDests />
+				<ScannerRouteDests />
 				<ScannerWaypoints />
 				<ScannerPlanets />
 				<ScannerMineralPackets />

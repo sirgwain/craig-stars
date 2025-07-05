@@ -783,15 +783,10 @@ func DesignShip(rules *Rules, player *Player, hull *TechHull, name string, num i
 	tc := NewTechComparer(rules, player)
 
 	// fuel depots & starter colonies are empty
-	if purpose == ShipDesignPurposeFuelDepot || purpose == ShipDesignPurposeStarterColony {
+	switch purpose {
+	case ShipDesignPurposeFuelDepot, ShipDesignPurposeStarterColony:
 		return design, nil
-	} else if purpose == ShipDesignPurposeBeamFighter ||
-		purpose == ShipDesignPurposeTorpedoFighter ||
-		purpose == ShipDesignPurposeFighterScout ||
-		purpose == ShipDesignPurposeStarbase ||
-		purpose == ShipDesignPurposeFort ||
-		purpose == ShipDesignPurposeStarbaseHalf ||
-		purpose == ShipDesignPurposeStarbaseQuarter {
+	case ShipDesignPurposeBeamFighter, ShipDesignPurposeTorpedoFighter, ShipDesignPurposeFighterScout, ShipDesignPurposeStarbase, ShipDesignPurposeFort, ShipDesignPurposeStarbaseHalf, ShipDesignPurposeStarbaseQuarter:
 		// warships & bases get their own separate function for reasons
 		design, err := designWarship(rules, player, hull, name, num, hullSetNumber, purpose)
 		if err != nil {
@@ -1198,9 +1193,10 @@ func designWarship(rules *Rules, player *Player, hull *TechHull, name string, nu
 			designSlot.HullComponent = itemToPlace.Name
 			// reduce qty for partially built starbases
 			if itemToPlace.HullSlotType&(HullSlotTypeShieldArmor|HullSlotTypeWeapon) != 0 {
-				if design.Purpose == ShipDesignPurposeStarbaseHalf {
+				switch design.Purpose {
+				case ShipDesignPurposeStarbaseHalf:
 					designSlot.Quantity /= 2
-				} else if design.Purpose == ShipDesignPurposeStarbaseQuarter {
+				case ShipDesignPurposeStarbaseQuarter:
 					designSlot.Quantity /= 4
 				}
 			}

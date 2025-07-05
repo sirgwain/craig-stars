@@ -91,9 +91,10 @@ func newBattleToken(rules *Rules, num int, position BattleVector, cargoMass int,
 			weaponSlots = append(weaponSlots, bws)
 			minRange = min(minRange, bws.weaponRange)
 			maxRange = max(maxRange, bws.weaponRange)
-			if bws.weaponType == battleWeaponTypeBeam {
+			switch bws.weaponType {
+			case battleWeaponTypeBeam:
 				battleToken.attributes |= battleTokenAttributeHasBeams
-			} else if bws.weaponType == battleWeaponTypeTorpedo {
+			case battleWeaponTypeTorpedo:
 				battleToken.attributes |= battleTokenAttributeHasTorpedoes
 			}
 		}

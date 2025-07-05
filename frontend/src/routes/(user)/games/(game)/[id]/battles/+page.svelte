@@ -91,8 +91,7 @@
 		externalSortAndFilter={true}
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full',
-			td: 'first:table-cell hidden sm:table-cell',
-			th: 'first:table-cell hidden sm:table-cell'
+			th: 'sticky top-0 bg-base-200 z-10'
 		}}
 	>
 		{#snippet head({ column })}

@@ -40,7 +40,7 @@
 		});
 	}
 
-	function onScannerPopup(e: PointerEvent) {
+	function onScannerTooltip(e: PointerEvent) {
 		e.preventDefault();
 		if ($player.race.spec?.innateScanner) {
 			showTooltip(e.x, e.y, InnateScannerTooltip);
@@ -48,7 +48,7 @@
 			onTechTooltip(e, $techs.getTech(planet.spec.scanner ?? ''));
 		}
 	}
-	function onDefensePoopup(e: PointerEvent) {
+	function onDefenseTooltip(e: PointerEvent) {
 		e.preventDefault();
 		onTechTooltip(e, $techs.getTech(planet.spec.defense ?? ''));
 	}
@@ -69,11 +69,11 @@
 
 		<div class="divider p-0 m-0"></div>
 
-		<div class="flex justify-between cursor-help" onpointerdown={onScannerPopup}>
+		<div class="flex justify-between cursor-help" onpointerdown={onScannerTooltip}>
 			<div class="text-tile-item-title">Scanner Type</div>
 			<div>{planet.spec.scanner ?? 'none'}</div>
 		</div>
-		<div class="flex justify-between cursor-help" onpointerdown={onScannerPopup}>
+		<div class="flex justify-between cursor-help" onpointerdown={onScannerTooltip}>
 			<div class="text-tile-item-title">Scanner Range</div>
 			<div>{planet.spec.scanRange ?? '--'} l.y.</div>
 		</div>
@@ -81,15 +81,15 @@
 		{#if $player.race.spec?.canBuildDefenses}
 			<div class="divider p-0 m-0"></div>
 
-			<div class="flex justify-between cursor-help" onpointerdown={onDefensePoopup}>
+			<div class="flex justify-between cursor-help" onpointerdown={onDefenseTooltip}>
 				<div class="text-tile-item-title">Defenses</div>
 				<div>{planet.defenses} of {planet.spec.maxDefenses}</div>
 			</div>
-			<div class="flex justify-between cursor-help" onpointerdown={onDefensePoopup}>
+			<div class="flex justify-between cursor-help" onpointerdown={onDefenseTooltip}>
 				<div class="text-tile-item-title">Defense Type</div>
 				<div>{planet.spec.defense}</div>
 			</div>
-			<div class="flex justify-between cursor-help" onpointerdown={onDefensePoopup}>
+			<div class="flex justify-between cursor-help" onpointerdown={onDefenseTooltip}>
 				<div class="text-tile-item-title">Defense Coverage</div>
 				<div>
 					{((planet.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%

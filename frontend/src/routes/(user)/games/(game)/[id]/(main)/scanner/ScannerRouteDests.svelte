@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { None } from '$lib/types/cs';
+	import { emptyVector } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
@@ -8,14 +9,19 @@
 	const { xGet, yGet, xScale } = getContext<LayerCake>('LayerCake');
 
 	let planets = $derived(
-		$universe.planets.filter((planet) => planet.packetTargetNum && planet.packetTargetNum != None)
+		$universe.planets.filter((planet) => planet.routeTargetNum && planet.routeTargetNum != None)
 	);
 
 	let lines = $derived(
 		planets.map((planet) => {
 			// get the target, if it's empty, just point to our planet position (which will render an empty line)
 			// it should not be empty...
-			const target = $universe.getPlanet(planet.packetTargetNum ?? None);
+			const target = $universe.getMapObject({
+				targetPosition: emptyVector,
+				targetType: planet.routeTargetType ?? '',
+				targetNum: planet.routeTargetNum ?? 0,
+				targetPlayerNum: planet.routeTargetPlayerNum ?? 0
+			});
 			const coords = [
 				{ position: planet.position },
 				{ position: target?.position ?? planet.position }
@@ -39,8 +45,8 @@
 <svg>
 	<defs>
 		<marker
-			id="packet-arrow"
-			class="packet-arrow"
+			id="route-arrow"
+			class="route-arrow"
 			viewBox="0 0 10 10"
 			refX="13"
 			refY="5"
@@ -54,5 +60,5 @@
 	</defs>
 </svg>
 {#each lines as line (line)}
-	<path d={line.path} {...line.props} class="packet-dest-line" marker-end="url(#packet-arrow)" />
+	<path d={line.path} {...line.props} class="route-line" marker-end="url(#route-arrow)" />
 {/each}

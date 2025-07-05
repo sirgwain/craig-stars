@@ -662,26 +662,27 @@ export interface PlayerMessage extends Target<PlayerMessageTargetType> {
 export interface PlayerMessageSpec extends Target<MapObjectType> {
 	amount?: number /* int */;
 	amount2?: number /* int */;
-	prevAmount?: number /* int */;
-	sourcePlayerNum?: number /* int */;
-	destPlayerNum?: number /* int */;
-	name?: string;
-	cost?: Cost;
-	mineral?: Mineral;
-	cargo?: Cargo;
-	queueItemType?: QueueItemType;
-	field?: TechField;
-	nextField?: TechField;
-	techGained?: string;
-	lostTargetType?: MapObjectType;
 	battle?: BattleRecordStats;
-	comet?: PlayerMessageSpecComet;
 	bombing?: BombingResult;
-	mineralPacketDamage?: MineralPacketDamage;
-	mineFieldDamage?: MineFieldDamage;
-	mysteryTrader?: PlayerMessageSpecMysteryTrader;
-	invasion?: PlayerMessageSpecInvasion;
+	cargo?: Cargo;
 	cargoTransfer?: PlayerMessageSpecCargoTransfer;
+	comet?: PlayerMessageSpecComet;
+	cost?: Cost;
+	destPlayerNum?: number /* int */;
+	field?: TechField;
+	invasion?: PlayerMessageSpecInvasion;
+	lostTargetType?: MapObjectType;
+	mineFieldDamage?: MineFieldDamage;
+	mineral?: Mineral;
+	mineralPacketDamage?: MineralPacketDamage;
+	mysteryTrader?: PlayerMessageSpecMysteryTrader;
+	name?: string;
+	nextField?: TechField;
+	prevAmount?: number /* int */;
+	queueItemType?: QueueItemType;
+	routeTarget?: Target<MapObjectType>;
+	sourcePlayerNum?: number /* int */;
+	techGained?: string;
 	terraformAmount?: Hab;
 }
 export interface PlayerMessageSpecComet {

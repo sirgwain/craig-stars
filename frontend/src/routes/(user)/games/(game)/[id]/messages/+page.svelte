@@ -81,7 +81,8 @@
 		{columns}
 		rows={filteredMessages}
 		classes={{
-			table: 'table table-zebra table-compact table-auto w-full'
+			table: 'table table-zebra table-compact table-auto w-full',
+			th: 'sticky top-0 bg-base-200 z-10'
 		}}
 		filterBy={search.toLowerCase()}
 	>

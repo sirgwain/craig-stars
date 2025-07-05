@@ -17,7 +17,13 @@
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { absoluteSize } from '$lib/types/CargoTransferRequest.svelte';
-	import { MapObjectTypePlanet, None, type MapObject, type WaypointDest } from '$lib/types/cs';
+	import {
+		MapObjectTypeNone,
+		MapObjectTypePlanet,
+		None,
+		type MapObject,
+		type WaypointDest
+	} from '$lib/types/cs';
 	import { commandable, equal as mapObjectEqual, ownedBy } from '$lib/types/MapObject';
 	import { equal } from '$lib/types/Vector';
 	import hotkeys from 'hotkeys-js';
@@ -299,6 +305,30 @@
 			updatePlanetOrders($commandedPlanet);
 		}
 	}
+
+	function onSetRouteDest(mo: MapObject) {
+		if (!$commandedPlanet) {
+			return;
+		}
+		if (mo.type != MapObjectTypePlanet) {
+			return;
+		} else {
+			$settings.setRouteDest = false;
+
+			if (mapObjectEqual(mo, $commandedPlanet)) {
+				// clear dest
+				$commandedPlanet.routeTargetNum = None;
+				$commandedPlanet.routeTargetPlayerNum = None;
+				$commandedPlanet.routeTargetType = MapObjectTypeNone;
+			} else {
+				$commandedPlanet.routeTargetNum = mo.num;
+				$commandedPlanet.routeTargetPlayerNum = mo.playerNum;
+				$commandedPlanet.routeTargetType = mo.type;
+			}
+
+			updatePlanetOrders($commandedPlanet);
+		}
+	}
 </script>
 
 <!-- for small mobile displays we put the scanner on top and the command pane below it-->
@@ -362,6 +392,7 @@
 				{onUpdateWaypointDest}
 				{onSelectMapObject}
 				{onSetPacketDest}
+				{onSetRouteDest}
 			/>
 		</div>
 		<div class="hidden md:block">
