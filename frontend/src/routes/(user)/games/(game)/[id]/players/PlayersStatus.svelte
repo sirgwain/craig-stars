@@ -22,7 +22,7 @@
 		<div class="font-semibold text-xl">Race</div>
 	{/if}
 	<div class="font-semibold text-xl">Status</div>
-	{#each $game.players as playerStatus}
+	{#each $game.players as playerStatus (playerStatus.num)}
 		<div class="flex flex-row">
 			<div class="w-4 my-auto">
 				{playerStatus.num}

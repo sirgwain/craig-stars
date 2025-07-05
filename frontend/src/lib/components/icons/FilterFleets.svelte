@@ -27,7 +27,7 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	{...rest}
 >
-	{#each primaryPositions as pos}
+	{#each primaryPositions as pos (pos)}
 		<polygon
 			points={`0,0 0,${size} ${size},${size}`}
 			class={`${primary}`}
@@ -35,7 +35,7 @@
 		/>
 	{/each}
 
-	{#each secondaryPositions as pos}
+	{#each secondaryPositions as pos (pos)}
 		<polygon
 			points={`0,0 0,${size} ${size},${size}`}
 			transform={`translate(${pos[0]} ${pos[1]}) translate(${-size / 2} ${-size / 2})`}

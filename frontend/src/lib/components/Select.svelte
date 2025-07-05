@@ -31,7 +31,7 @@
 	<label class="label"
 		><span class={titleClass}>{title}</span>
 		<select class="select input-bordered ml-2 flex-grow" bind:value {...rest}>
-			{#each values as value}
+			{#each values as value, index (index)}
 				<option value={value.value}>{value.title}</option>
 			{/each}
 		</select>

@@ -38,7 +38,7 @@
 		<PlayerScoresGraph {type} />
 	</div>
 	<div class="flex flex-row flex-wrap gap-1 justify-center">
-		{#each graphTypes as graphType}
+		{#each graphTypes as graphType (graphType)}
 			<div class="form-control">
 				<label class="label cursor-pointer btn w-[11rem]" class:bg-primary={type == graphType}>
 					<span class="label-text text-center w-full">{startCase(graphType)}</span>

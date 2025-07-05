@@ -5,6 +5,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { AnyMineralPacket } from '$lib/services/Universe';
+	import { key } from '$lib/types/MapObject';
 	import ScannerMineralPacket from './ScannerMineralPacket.svelte';
 
 	const { player, universe } = getGameContext();
@@ -18,6 +19,6 @@
 </script>
 
 <!-- MineralPackets -->
-{#each $universe.allMineralPackets as mineralPacket}
+{#each $universe.allMineralPackets as mineralPacket (key(mineralPacket))}
 	<ScannerMineralPacket {mineralPacket} color={getColor(mineralPacket)} />
 {/each}

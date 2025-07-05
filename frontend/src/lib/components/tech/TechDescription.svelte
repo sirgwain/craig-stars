@@ -446,7 +446,7 @@
 </script>
 
 <div class="flex flex-col p-1">
-	{#each stats as stat}
+	{#each stats as stat (stat)}
 		<div class="flex">
 			<div class="w-1/2 text-right font-semibold">{stat.label}:</div>
 			<div class="w-1/2 text-left ml-2">{stat.text}</div>
@@ -454,10 +454,10 @@
 	{/each}
 
 	<div class="mt-1"></div>
-	{#each descriptions as description}
+	{#each descriptions as description (description)}
 		<div>{description}</div>
 	{/each}
-	{#each warnings as warning}
+	{#each warnings as warning (warning)}
 		<div class="text-warning">{warning}</div>
 	{/each}
 </div>

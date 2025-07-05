@@ -56,6 +56,6 @@
 	});
 </script>
 
-{#each lines as line}
+{#each lines as line (line)}
 	<path d={line.path} {...line.props} class="wormhole-link" />
 {/each}

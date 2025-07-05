@@ -5,7 +5,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { type Fleet } from '$lib/types/cs';
 	import { canTransferCargo, CommandedFleet } from '$lib/types/Fleet';
-	import { getMapObjectName } from '$lib/types/MapObject';
+	import { getMapObjectName, key } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { ArrowTopRightOnSquare } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -59,7 +59,7 @@
 		onchange={(e) => onSelectedFleetChange(parseInt(e.currentTarget.value))}
 		class="select select-outline select-secondary select-sm py-0 text-sm"
 	>
-		{#each fleetsInOrbit as fleet, index}
+		{#each fleetsInOrbit as fleet, index (key(fleet))}
 			<option value={index}>{getMapObjectName(fleet)}</option>
 		{/each}
 	</select>

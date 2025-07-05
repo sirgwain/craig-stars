@@ -62,7 +62,7 @@
 </script>
 
 <div class="flex flex-row flex-wrap justify-between gap-1">
-	{#each lrts as lrt}
+	{#each lrts as lrt (lrt)}
 		{#if race.lrts & lrt}
 			<div class="card bg-base-200 shadow w-full">
 				<div class="card-body">

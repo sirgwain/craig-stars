@@ -66,7 +66,7 @@
 		</div>
 	{/if}
 
-	{#each lrts as lrt}
+	{#each lrts as lrt (lrt)}
 		{#if tech.requirements.lrtsRequired && (tech.requirements.lrtsRequired & lrt) > 0}
 			<div class:text-error={player && (!player.race.lrts || (player.race.lrts & lrt) == 0)}>
 				This part requires the Lesser Racial trait {getLabelForLRT(lrt)}.

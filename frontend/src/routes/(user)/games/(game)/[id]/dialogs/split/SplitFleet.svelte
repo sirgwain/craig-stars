@@ -200,7 +200,7 @@
 						<div class="h-[2rem] font-semibold text-xl">{src.name}</div>
 					</div>
 					<div class="border border-secondary p-2">
-						{#each srcTokens as token}
+						{#each srcTokens as token (token)}
 							{@const design = $universe.getMyDesign(token.designNum)}
 							<div class="flex flex-row gap-1 min-h-8">
 								<div class="grow flex flex-row">
@@ -220,7 +220,7 @@
 					<!-- Keep a 2rem empty header so the buttons line up -->
 					<div class="h-[120px]"></div>
 					<div class="grow p-2 flex flex-col justify-between">
-						{#each srcTokens as token, index}
+						{#each srcTokens as token, index (token)}
 							<div class="flex flex-row h-full">
 								<button
 									type="button"
@@ -257,7 +257,7 @@
 						<div class="h-[2rem] font-semibold text-xl">{dest.name}</div>
 					</div>
 					<div class="border border-secondary p-2">
-						{#each destTokens as token}
+						{#each destTokens as token (token)}
 							{@const design = $universe.getMyDesign(token.designNum)}
 							<div class="flex flex-row gap-1 min-h-8">
 								<div class="grow flex flex-row">

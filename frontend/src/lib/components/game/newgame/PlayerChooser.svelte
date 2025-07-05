@@ -38,7 +38,7 @@
 		class="select select-bordered"
 		onchange={(e) => raceChanged(parseInt(e.currentTarget.value))}
 	>
-		{#each races as race}
+		{#each races as race (race.id)}
 			<option value={race.id}>{race.name}</option>
 		{/each}
 	</select>

@@ -60,6 +60,6 @@
 	});
 </script>
 
-{#each segments as segment}
+{#each segments as segment (segment)}
 	<path d={segment.path} {...segment.props} />
 {/each}

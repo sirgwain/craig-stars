@@ -2,7 +2,7 @@
 	import type { MergeFleetsEvent, OnCancel, OnOk } from '$lib/services/Events';
 	import { type CommandedFleet } from '$lib/types/Fleet';
 	import { type Fleet } from '$lib/types/cs';
-	import { getMapObjectName } from '$lib/types/MapObject';
+	import { getMapObjectName, key } from '$lib/types/MapObject';
 	import hotkeys from 'hotkeys-js';
 	import { onMount } from 'svelte';
 
@@ -66,7 +66,7 @@
 		<div class="text-xl font-semibold w-full text-center">Fleets to Merge</div>
 		<div class="border border-secondary bg-base-300 min-w-fit max-h-[26rem] h-full overflow-y-auto">
 			<ul class="w-full p-1">
-				{#each otherFleetsHere as otherFleet, index}
+				{#each otherFleetsHere as otherFleet, index (key(otherFleet))}
 					{#if otherFleet.num != fleet.num}
 						<li
 							bind:this={fleetRefs[index]}
