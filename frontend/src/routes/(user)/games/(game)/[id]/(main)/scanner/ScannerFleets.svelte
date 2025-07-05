@@ -16,7 +16,7 @@
 </script>
 
 <!-- Fleets -->
-{#each fleets as fleet}
+{#each fleets as fleet (fleet)}
 	<ScannerFleet
 		{fleet}
 		color={$universe.getPlayerColor(fleet.playerNum)}

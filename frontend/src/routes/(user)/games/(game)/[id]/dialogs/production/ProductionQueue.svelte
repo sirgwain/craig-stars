@@ -435,7 +435,7 @@
 								<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
 									Ships
 								</li>
-								{#each availableShipDesigns as item}
+								{#each availableShipDesigns as item (item.designNum)}
 									<li>
 										<button
 											type="button"
@@ -461,7 +461,7 @@
 								<li class="font-semibold text-secondary text-lg border-b border-b-secondary my-0.5">
 									Starbases
 								</li>
-								{#each availableStarbaseDesigns as item}
+								{#each availableStarbaseDesigns as item (item.designNum)}
 									<li>
 										<button
 											type="button"
@@ -485,7 +485,7 @@
 							<li class="font-semibold text-secondary text-lg border-b border-b-secondary mb-0.5">
 								Planetary Structures
 							</li>
-							{#each availableItems as item}
+							{#each availableItems as item (item.type)}
 								<li>
 									<button
 										type="button"
@@ -589,7 +589,7 @@
 							}}
 						>
 							<option value={0}>Apply Plan</option>
-							{#each $player.productionPlans as plan}
+							{#each $player.productionPlans as plan (plan.num)}
 								<option value={plan.num}>{plan.name}</option>
 							{/each}
 						</select>
@@ -612,7 +612,7 @@
 								</button>
 							</li>
 							{#if queueItems}
-								{#each queueItems as queueItem, index}
+								{#each queueItems as queueItem, index (index)}
 									<li class="cursor-default">
 										<ProductionQueueItemLine
 											item={queueItem}

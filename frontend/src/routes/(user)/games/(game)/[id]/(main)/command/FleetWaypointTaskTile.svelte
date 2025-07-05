@@ -136,7 +136,7 @@
 					onSelectedWaypointTaskChange(e.currentTarget.value ?? WaypointTaskNone);
 				}}
 			>
-				{#each WaypointTasks as task}
+				{#each WaypointTasks as task (task)}
 					{#if task === WaypointTaskNone}
 						<option value={task}>None</option>
 					{:else}
@@ -176,7 +176,7 @@
 					}}
 				>
 					<option value={0}>Apply Plan</option>
-					{#each $player.transportPlans as plan}
+					{#each $player.transportPlans as plan (plan.num)}
 						<option value={plan.num}>{plan.name}</option>
 					{/each}
 				</select>
@@ -268,7 +268,7 @@
 			onchange={(e) => onTransferToPlayerChanged(parseInt(e.currentTarget.value))}
 		>
 			<option value={undefined}>None</option>
-			{#each $game.players as otherPlayer}
+			{#each $game.players as otherPlayer (otherPlayer.num)}
 				{#if otherPlayer.num !== $player.num}
 					<option value={otherPlayer.num}>{$universe.getPlayerPluralName(otherPlayer.num)}</option>
 				{/if}

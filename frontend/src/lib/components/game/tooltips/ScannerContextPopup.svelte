@@ -57,7 +57,7 @@
 		<li class="menu-title w-full">
 			Planet
 			<ul>
-				{#each otherMapObjectsHere[MapObjectTypePlanet] as mo}
+				{#each otherMapObjectsHere[MapObjectTypePlanet] as mo (mo)}
 					<li
 						style={mo.playerNum != $player.num && mo.playerNum != None
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
@@ -76,7 +76,7 @@
 		<li class="menu-title w-full">
 			Fleets
 			<ul>
-				{#each otherMapObjectsHere[MapObjectTypeFleet] as mo}
+				{#each otherMapObjectsHere[MapObjectTypeFleet] as mo (mo)}
 					<li
 						style={mo.playerNum != $player.num
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
@@ -96,7 +96,7 @@
 		<li class="menu-title w-full">
 			Mine Fields
 			<ul>
-				{#each otherMapObjectsHere[MapObjectTypeMineField] as mo}
+				{#each otherMapObjectsHere[MapObjectTypeMineField] as mo (mo)}
 					<li
 						style={mo.playerNum != $player.num
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
@@ -117,7 +117,7 @@
 		<li class="menu-title w-full">
 			Other
 			<ul>
-				{#each everythingElse as mo}
+				{#each everythingElse as mo (mo)}
 					<li
 						style={mo.playerNum != $player.num
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`

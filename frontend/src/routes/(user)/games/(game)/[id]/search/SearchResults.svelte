@@ -5,7 +5,7 @@
 	import type { MysteryTraderIntel, PlanetIntel } from '$lib/types/cs';
 	import { None, ReportAgeUnexplored, type MapObject } from '$lib/types/cs';
 	import type { AnyFleet } from '$lib/services/Universe';
-	import { getMapObjectName, owned, ownedBy } from '$lib/types/MapObject';
+	import { getMapObjectName, key, owned, ownedBy } from '$lib/types/MapObject';
 	import { onMount } from 'svelte';
 	import { population } from '$lib/types/Cargo';
 
@@ -157,7 +157,7 @@
 			{#if results.planets.length > 0}
 				<h3 class="text-2xl font-bold mb-1">Planets</h3>
 				<ul class="mx-1">
-					{#each results.planets as planet, index}
+					{#each results.planets as planet, index (planet.num)}
 						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 						<li
 							class="rounded-lg px-2"
@@ -226,7 +226,7 @@
 			{#if results.fleets.length > 0}
 				<h3 class="text-2xl font-bold mb-1">Fleets</h3>
 				<ul class="mx-1">
-					{#each results.fleets as fleet, index}
+					{#each results.fleets as fleet, index (key(fleet))}
 						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 						<li
 							class="rounded-lg px-2"
@@ -246,7 +246,7 @@
 			{#if results.mysteryTraders.length > 0}
 				<h3 class="text-2xl font-bold mb-1">Mystery Traders</h3>
 				<ul class="mx-1">
-					{#each results.mysteryTraders as mysterytrader, index}
+					{#each results.mysteryTraders as mysterytrader, index (mysterytrader.num)}
 						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 						<li
 							class="rounded-lg px-2"

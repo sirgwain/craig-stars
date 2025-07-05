@@ -20,7 +20,7 @@
 	let top = $derived((values) => $yScale(max(values, $y)) / Math.max(...$yRange));
 </script>
 
-{#each $data as group}
+{#each $data as group (group)}
 	<div
 		class="label"
 		style="

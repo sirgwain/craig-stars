@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { AnyMineField } from '$lib/services/Universe';
-	import { equal } from '$lib/types/MapObject';
+	import { equal, key } from '$lib/types/MapObject';
 	import { MapObjectTypeMineField } from '$lib/types/cs';
 	import ScannerMineField from './ScannerMineField.svelte';
 
@@ -24,7 +24,7 @@
 </script>
 
 <!-- MineFields -->
-{#each minefields as mineField}
+{#each minefields as mineField (key(mineField))}
 	{#if mineField !== selectedMineField}
 		<ScannerMineField
 			{mineField}

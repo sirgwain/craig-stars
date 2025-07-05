@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { type CommandedFleet } from '$lib/types/Fleet';
-	import { equal, getMapObjectName } from '$lib/types/MapObject';
+	import { equal, getMapObjectName, key } from '$lib/types/MapObject';
 	import type { MapObjectTarget, Vector } from '$lib/types/cs';
 	import {
 		MapObjectTypeFleet,
@@ -87,7 +87,7 @@
 
 	{#if otherMapObjectsHere[MapObjectTypePlanet]}
 		<optgroup label="Planets">
-			{#each otherMapObjectsHere[MapObjectTypePlanet] as mo, index}
+			{#each otherMapObjectsHere[MapObjectTypePlanet] as mo, index (key(mo))}
 				<option selected={isTarget(mo)} value={1 + index}>{mo.name}</option>
 			{/each}
 		</optgroup>
@@ -95,7 +95,7 @@
 
 	{#if otherMapObjectsHere[MapObjectTypeFleet]}
 		<optgroup label="Fleets">
-			{#each otherMapObjectsHere[MapObjectTypeFleet] as mo, index}
+			{#each otherMapObjectsHere[MapObjectTypeFleet] as mo, index (key(mo))}
 				{#if !equal(fleet, mo)}
 					<option
 						style={mo.playerNum != $player.num
@@ -112,7 +112,7 @@
 
 	{#if otherMapObjectsHere[MapObjectTypeMineField]}
 		<optgroup label="Mine Fields">
-			{#each otherMapObjectsHere[MapObjectTypeMineField] as mo, index}
+			{#each otherMapObjectsHere[MapObjectTypeMineField] as mo, index (key(mo))}
 				<option
 					selected={isTarget(mo)}
 					value={1 +
@@ -126,7 +126,7 @@
 
 	{#if everythingElse?.length > 0}
 		<optgroup label="Other">
-			{#each everythingElse as mo, index}
+			{#each everythingElse as mo, index (key(mo))}
 				<option
 					selected={isTarget(mo)}
 					value={1 +

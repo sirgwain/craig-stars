@@ -2,21 +2,30 @@
 	import { goto } from '$app/navigation';
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
+	import FactoriesTooltip, {
+		type FactoriesTooltipProps
+	} from '$lib/components/game/tooltips/FactoriesTooltip.svelte';
+	import MinesTooltip, {
+		type MinesTooltipProps
+	} from '$lib/components/game/tooltips/MinesTooltip.svelte';
 	import type { PopulationTooltipProps } from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import PopulationTooltip from '$lib/components/game/tooltips/PopulationTooltip.svelte';
+	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
+	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { showTooltip } from '$lib/services/Stores';
-	import { type AnyPlanet } from '$lib/services/Universe';
-	import { ReportAgeUnexplored, type Planet } from '$lib/types/cs';
+	import { showTooltip, techs } from '$lib/services/Stores';
+	import { type AnyPlanet, type AnyShipDesign } from '$lib/services/Universe';
+	import { population } from '$lib/types/Cargo';
+	import { ReportAgeUnexplored, type Fleet, type MapObject, type Planet } from '$lib/types/cs';
 	import { owned, ownedBy } from '$lib/types/MapObject';
 	import { getGrowth, planetsSortBy } from '$lib/types/Planet';
+	import { emptyVector } from '$lib/types/Vector';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
-	import { population } from '$lib/types/Cargo';
 
 	const {
 		game,
@@ -219,12 +228,49 @@
 		});
 	}
 
-	function selectPlanet(planet: AnyPlanet) {
-		if (ownedBy(planet, $player.num) && (planet as Planet)) {
-			commandMapObject(planet);
+	function onMinesTooltip(e: PointerEvent, planet: Planet) {
+		e.preventDefault();
+		showTooltip<MinesTooltipProps>(e.x, e.y, MinesTooltip, {
+			planetName: planet.name,
+			mines: planet.mines,
+			maxMines: planet.spec.maxMines ?? 0,
+			maxPossibleMines: planet.spec.maxPossibleMines ?? 0,
+			canBuildMines: $player.race.spec?.innateMining ?? false
+		});
+	}
+
+	function onFactoriesTooltip(e: PointerEvent, planet: Planet) {
+		e.preventDefault();
+		showTooltip<FactoriesTooltipProps>(e.x, e.y, FactoriesTooltip, {
+			planetName: planet.name,
+			factories: planet.factories,
+			maxFactories: planet.spec.maxFactories ?? 0,
+			maxPossibleFactories: planet.spec.maxPossibleFactories ?? 0,
+			canBuildFactories: $player.race.spec?.innateResources ?? false
+		});
+	}
+
+	function showDesign(e: PointerEvent, planet: AnyPlanet) {
+		e.preventDefault();
+		onShipDesignTooltip(
+			e,
+			$universe.getDesign(planet.playerNum, planet.spec.starbaseDesignNum ?? 0) as
+				| AnyShipDesign
+				| undefined
+		);
+	}
+
+	function onDefenseTooltip(e: PointerEvent, planet: AnyPlanet) {
+		e.preventDefault();
+		onTechTooltip(e, $techs.getTech(planet.spec.defense ?? ''));
+	}
+
+	function gotoMapObject(mo: MapObject) {
+		if (ownedBy(mo, $player.num) && ((mo as Planet) || (mo as Fleet))) {
+			commandMapObject(mo);
 		}
-		selectMapObject(planet);
-		zoomToMapObject(planet);
+		selectMapObject(mo);
+		zoomToMapObject(mo);
 		goto(`/games/${$game.id}`);
 	}
 
@@ -271,7 +317,9 @@
 		rows={filteredPlanets}
 		externalSortAndFilter={true}
 		classes={{
-			table: 'table table-zebra table-compact table-auto w-full'
+			table: 'table table-zebra table-compact table-auto w-full',
+			th: 'sticky top-0 bg-base-200 z-10'
+
 		}}
 	>
 		{#snippet head({ column })}
@@ -289,7 +337,8 @@
 			{@const planet = row as Planet}
 			<span>
 				{#if column.key == 'name'}
-					<button class="cs-link text-xl text-left" onclick={() => selectPlanet(row)}>{cell}</button
+					<button class="cs-link text-xl text-left" onclick={() => gotoMapObject(row)}
+						>{cell}</button
 					>
 				{:else if column.key == 'owner'}
 					<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
@@ -304,7 +353,11 @@
 						{row.reportAge} years old
 					{/if}
 				{:else if column.key == 'starbase'}
-					{row.spec.starbaseDesignName ?? ''}
+					{#if row.spec.starbaseDesignName}
+						<span class="cursor-help" onpointerdown={(e) => showDesign(e, row)}>
+							{row.spec.starbaseDesignName}
+						</span>
+					{/if}
 				{:else if column.key == 'population'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
 						{population(row.cargo) ? population(row.cargo).toLocaleString() : ''}
@@ -319,14 +372,18 @@
 					</div>
 				{:else if column.key == 'habitability'}
 					{#if row.spec.canTerraform}
-						<span
-							class:text-habitable={(row.spec.habitability ?? 0) > 0}
-							class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
-							>{row.spec.habitability ?? 0}%</span
-						>
-						/ <span class="text-terraformable">{row.spec.terraformedHabitability ?? 0}%</span>
+						<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
+							<span
+								class:text-habitable={(row.spec.habitability ?? 0) > 0}
+								class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
+								>{row.spec.habitability ?? 0}%</span
+							>
+							/ <span class="text-terraformable">{row.spec.terraformedHabitability ?? 0}%</span>
+						</div>
 					{:else}
 						<span
+							class="cursor-help"
+							onpointerdown={(e) => onPopulationTooltip(e, row)}
 							class:text-habitable={(row.spec.habitability ?? 0) > 0}
 							class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
 						>
@@ -349,17 +406,29 @@
 						{/if}
 					</button>
 				{:else if column.key == 'mines'}
-					{planet.mines ?? 0}
+					<span class="cursor-help" onpointerdown={(e) => onMinesTooltip(e, planet)}>
+						{planet.mines ?? 0} / {planet.spec.maxMines ?? 0}</span
+					>
 				{:else if column.key == 'factories'}
-					{planet.factories ?? 0}
+					<span class="cursor-help" onpointerdown={(e) => onFactoriesTooltip(e, planet)}>
+						{planet.factories ?? 0}/ {planet.spec.maxFactories ?? 0}
+					</span>
 				{:else if column.key == 'defense'}
-					{((row.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
+					{#if row.spec.defenseCoverage}
+						<span
+							class:cursor-help={planet.playerNum === $player.num}
+							onpointerdown={(e) => planet.playerNum === $player.num && onDefenseTooltip(e, planet)}
+							>{((row.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
+						</span>
+					{:else}
+						none
+					{/if}
 				{:else if column.key == 'minerals'}
-					<MineralMini mineral={row.cargo} />
+					<MineralMini mineral={row.cargo} {planet} />
 				{:else if column.key == 'miningRate'}
-					<MineralMini mineral={row.spec.miningOutput} />
+					<MineralMini mineral={row.spec.miningOutput} {planet} />
 				{:else if column.key == 'mineralConcentration'}
-					<MineralMini mineral={row.mineralConcentration} />
+					<MineralMini mineral={row.mineralConcentration} {planet} />
 				{:else if column.key == 'resources'}
 					{row.spec.resourcesPerYearAvailable ?? 0} / {row.spec.resourcesPerYear ?? 0}
 				{:else if column.key == 'contributesOnlyLeftoverToResearch'}
@@ -367,9 +436,34 @@
 						<Icon src={Check} size="24" class="stroke-success" />
 					{/if}
 				{:else if column.key == 'driverDest'}
-					--
+					{@const targetPlanet =
+						planet && planet.packetTargetNum
+							? $universe.getPlanet(planet.packetTargetNum)
+							: undefined}
+					{#if targetPlanet}
+						<button class="cs-link text-xl text-left" onclick={() => gotoMapObject(targetPlanet)}
+							>{targetPlanet.name}</button
+						>
+					{:else}
+						--
+					{/if}
 				{:else if column.key == 'routingDestination'}
-					--
+					{@const routeTarget =
+						planet && planet.routeTargetNum
+							? $universe.getMapObject({
+									targetPosition: emptyVector,
+									targetType: planet.routeTargetType,
+									targetNum: planet.routeTargetNum,
+									targetPlayerNum: planet.routeTargetPlayerNum
+								})
+							: undefined}
+					{#if routeTarget}
+						<button class="cs-link text-xl text-left" onclick={() => gotoMapObject(routeTarget)}
+							>{routeTarget.name}</button
+						>
+					{:else}
+						--
+					{/if}
 				{:else}
 					{cell}
 				{/if}

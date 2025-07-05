@@ -54,7 +54,7 @@
 </script>
 
 <ul class="pl-1 pt-1">
-	{#each futureTechs as futureTech}
+	{#each futureTechs as futureTech (futureTech.tech.name)}
 		<li
 			class:text-queue-item-this-year={futureTech.distance <= 1}
 			class:text-queue-item-next-year={futureTech.distance == 2}

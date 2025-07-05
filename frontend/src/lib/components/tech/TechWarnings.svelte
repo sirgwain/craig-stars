@@ -30,7 +30,7 @@
 </script>
 
 <div class="flex flex-col p-1">
-	{#each warnings as warning}
+	{#each warnings as warning (warning)}
 		<div class="text-warning text-base">{warning}</div>
 	{/each}
 </div>

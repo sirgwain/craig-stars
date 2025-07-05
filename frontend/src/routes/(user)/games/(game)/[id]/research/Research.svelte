@@ -102,7 +102,7 @@
 			<div class="text-center">
 				Current Level <div class="divider secondary w-[90%]"></div>
 			</div>
-			{#each TechFields as field}
+			{#each TechFields as field (field)}
 				<div class="form-control">
 					<label class="label cursor-pointer">
 						<span class="label-text">{startCase(field.toString())}</span>

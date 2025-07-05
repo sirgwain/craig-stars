@@ -148,7 +148,7 @@
 		<TechSummary tech={moleSkin} />
 	</div>
 
-	{#each techs as tech}
+	{#each techs as tech (tech.name)}
 		<div>
 			<TechSummary {tech} player={testPlayer} />
 		</div>

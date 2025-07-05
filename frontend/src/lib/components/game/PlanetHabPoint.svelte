@@ -10,5 +10,5 @@
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	{...props}
 >
-	<polygon points={`256,0 512,256 256,512 0,256`} stroke-width="32" />
+	<polygon points="256,0 512,256 256,512 0,256" stroke-width="32" />
 </svg>

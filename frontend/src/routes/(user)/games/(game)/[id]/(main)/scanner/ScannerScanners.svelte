@@ -132,7 +132,7 @@
 	let scannerScale = $derived($settings.scannerPercent / 100.0);
 </script>
 
-{#each scanners as scanner}
+{#each scanners as scanner (scanner)}
 	<circle
 		cx={$xGet(scanner)}
 		cy={$yGet(scanner)}
@@ -140,7 +140,7 @@
 		class="scanner"
 	/>
 {/each}
-{#each scanners as scanner}
+{#each scanners as scanner (scanner)}
 	{#if scanner.scanRangePen > 0}
 		<circle
 			cx={$xGet(scanner)}

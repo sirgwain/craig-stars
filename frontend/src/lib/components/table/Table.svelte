@@ -139,7 +139,7 @@
 <table class={assignedClasses.table} style="border-spacing: 0">
 	<thead class={assignedClasses.thead}>
 		<tr class={assignedClasses.headtr}>
-			{#each columns as column}
+			{#each columns as column (column.key)}
 				{#if !column.hidden}
 					<th
 						scope="col"
@@ -167,9 +167,9 @@
 		</tr>
 	</thead>
 	<tbody class={assignedClasses.tbody}>
-		{#each filteredRows as row}
+		{#each filteredRows as row (row)}
 			<tr class={`${assignedClasses.tr}`}>
-				{#each columns as column}
+				{#each columns as column (column.key)}
 					{#if !column.hidden}
 						<td class={assignedClasses.td}>
 							{#if cell}

@@ -23,7 +23,7 @@
 </script>
 
 <div class="toast toast-top toast-center z-50 w-full md:max-w-2xl">
-	{#each $errors as err}
+	{#each $errors as err (err)}
 		<div>
 			<div
 				class="alert alert-error"

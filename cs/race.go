@@ -1052,11 +1052,12 @@ func (race *Race) ComputeRacePoints(startingPoints int) int {
 
 	// No Advanced scanners is penalized in some races
 	if race.HasLRT(NAS) {
-		if race.PRT == PP {
+		switch race.PRT {
+		case PP:
 			points -= 280
-		} else if race.PRT == SS {
+		case SS:
 			points -= 200
-		} else if race.PRT == JoaT {
+		case JoaT:
 			points -= 40
 		}
 	}
@@ -1075,9 +1076,10 @@ func (race *Race) ComputeRacePoints(startingPoints int) int {
 	}
 	for i := 0; i < 6; i++ {
 		rc := researchCost[i]
-		if rc == ResearchCostExtra {
+		switch rc {
+		case ResearchCostExtra:
 			techcosts--
-		} else if rc == ResearchCostLess {
+		case ResearchCostLess:
 			techcosts++
 		}
 	}
@@ -1156,15 +1158,16 @@ func (race *Race) getHabRangePoints() int64 {
 
 		// each main loop gets a different TTCorrectionFactor
 		ttCorrectionFactor := 0
-		if loopIndex == 0 {
+		switch loopIndex {
+		case 0:
 			ttCorrectionFactor = 0
-		} else if loopIndex == 1 {
+		case 1:
 			if totalTerraforming {
 				ttCorrectionFactor = 8
 			} else {
 				ttCorrectionFactor = 5
 			}
-		} else {
+		default:
 			if totalTerraforming {
 				ttCorrectionFactor = 17
 			} else {

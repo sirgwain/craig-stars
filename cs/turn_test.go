@@ -882,6 +882,8 @@ func Test_turn_fleetRoute(t *testing.T) {
 	target := game.Planets[1]
 	fleet := game.Fleets[0]
 
+	player.initDefaultPlanetIntels(game.Planets)
+
 	planet.RouteTargetType = MapObjectTypePlanet
 	planet.RouteTargetNum = 2
 

@@ -27,7 +27,7 @@
 </script>
 
 <g class="line-group">
-	{#each $data as group}
+	{#each $data as group (group)}
 		<path
 			stroke={zIsColorCode ? $zGet(group) : undefined}
 			class="path-line {zIsColorCode ? undefined : $zGet(group)}"

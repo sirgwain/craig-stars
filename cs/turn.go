@@ -691,55 +691,39 @@ func (t *turnGenerator) fleetRoute() {
 		if !wp.processed && wp.Task == WaypointTaskRoute {
 			player := t.game.Players[fleet.PlayerNum-1]
 			planet := t.game.getOrbitingPlanet(fleet)
-			if planet == nil {
-				messager.fleetInvalidRouteNotPlanet(player, fleet)
-			} else {
-				if !player.IsFriend(planet.PlayerNum) {
-					messager.fleetInvalidRouteNotFriendlyPlanet(player, fleet, planet)
-				} else if planet.RouteTargetType == MapObjectTypeNone || planet.RouteTargetNum == 0 {
-					messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
-				} else {
-					mo := t.game.getMapObject(planet.RouteTargetType, planet.RouteTargetNum, planet.RouteTargetPlayerNum)
-					if mo == nil {
-						messager.fleetInvalidRouteNoRouteTarget(player, fleet, planet)
-						continue
-					}
-
-					// insert a new waypoint after this one and route to it
-					if len(fleet.Waypoints) > 1 {
-						fleet.Waypoints = append(fleet.Waypoints[:1], fleet.Waypoints[1:]...)
-					} else {
-						fleet.Waypoints = append(fleet.Waypoints, Waypoint{})
-					}
-					fleet.Waypoints[1] = Waypoint{
-						Position: mo.Position,
-						MapObjectTarget: MapObjectTarget{
-							TargetType:      planet.RouteTargetType,
-							TargetNum:       planet.RouteTargetNum,
-							TargetPlayerNum: planet.RouteTargetPlayerNum,
-						},
-						WarpSpeed: wp.WarpSpeed,
-					}
-
-					// if the new target is a planet and it has a target, keep routing
-					if mo.Type == MapObjectTypePlanet {
-						targetPlanet := t.game.getPlanet(mo.Num)
-						if targetPlanet.RouteTargetNum != 0 && targetPlanet.RouteTargetType != MapObjectTypeNone {
-							fleet.Waypoints[1].Task = WaypointTaskRoute
-						}
-					}
-
-					messager.fleetRouted(player, fleet, planet, mo.Name)
-
-					t.log.Debug().
-						Int("Player", fleet.PlayerNum).
-						Str("Fleet", fleet.Name).
-						Str("Planet", planet.Name).
-						Str("Target", mo.Name).
-						Msgf("fleet routed to target")
-
-				}
+			if planet == nil || planet.RouteTargetNum == None {
+				// no route
+				continue
 			}
+
+			mo := t.game.getMapObject(planet.RouteTargetType, planet.RouteTargetNum, planet.RouteTargetPlayerNum)
+			if mo == nil {
+				t.log.Warn().
+					Int("Player", fleet.PlayerNum).
+					Str("Fleet", fleet.Name).
+					Str("Planet", planet.Name).
+					Msgf("planet route target not found")
+
+				// wipe this planet's route since it's invalid
+				planet.RouteTargetNum = None
+				planet.RouteTargetPlayerNum = None
+				planet.RouteTargetType = MapObjectTypeNone
+				planet.MarkDirty()
+				continue
+			}
+
+			fleet.AddWaypoint(player, WaypointDest{MO: *mo}, len(fleet.Waypoints)-1, false)
+			fleet.Waypoints[len(fleet.Waypoints)-1].Task = WaypointTaskRoute
+
+			messager.fleetRouted(player, fleet, planet, mo.Name)
+
+			t.log.Debug().
+				Int("Player", fleet.PlayerNum).
+				Str("Fleet", fleet.Name).
+				Str("Planet", planet.Name).
+				Str("Target", mo.Name).
+				Msgf("fleet routed to target")
+
 		}
 	}
 }
@@ -1543,11 +1527,15 @@ func (t *turnGenerator) planetProduction() error {
 			player.Stats.FleetsBuilt++
 			player.Stats.TokensBuilt += token.Quantity
 
-			fleet, err := t.buildFleet(player, planet, token.ShipToken, token.tags)
+			var routeTarget *MapObject
+			if planet.RouteTargetNum != None {
+				routeTarget = t.game.getMapObject(planet.RouteTargetType, planet.RouteTargetNum, planet.RouteTargetPlayerNum)
+			}
+			fleet, err := t.buildFleet(player, planet, token.ShipToken, token.tags, routeTarget)
 			if err != nil {
 				return err
 			}
-			messager.fleetBuilt(player, planet, fleet, token.Quantity)
+			messager.fleetBuilt(player, planet, fleet, token.Quantity, routeTarget)
 		}
 
 		// yeet packets
@@ -1608,19 +1596,27 @@ func (t *turnGenerator) planetProduction() error {
 }
 
 // build a fleet with some number of tokens
-// TODO: Add routing support
-func (t *turnGenerator) buildFleet(player *Player, planet *Planet, token ShipToken, tags Tags) (*Fleet, error) {
+func (t *turnGenerator) buildFleet(player *Player, planet *Planet, token ShipToken, tags Tags, routeTarget *MapObject) (*Fleet, error) {
 	fleet, err := t.addFleet(player, planet.Position, token, tags)
 	if err != nil {
 		return nil, err
 	}
-	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.Engine.IdealSpeed)
 	fleet.OrbitingPlanetNum = planet.Num
+
+	fleet.Waypoints[0] = NewPlanetWaypoint(planet.Position, planet.Num, planet.Name, token.design.Spec.Engine.IdealSpeed)
+	var route string
+	if routeTarget != nil {
+		route = routeTarget.Name
+		fleet.AddWaypoint(player, WaypointDest{MO: *routeTarget}, 0, false)
+		fleet.Waypoints[len(fleet.Waypoints)-1].Task = WaypointTaskRoute // follow route by default
+
+	}
 
 	t.log.Debug().
 		Int("Player", fleet.PlayerNum).
 		Str("Planet", planet.Name).
 		Str("Fleet", fleet.Name).
+		Str("Route", route).
 		Msgf("fleet built")
 
 	return fleet, nil
@@ -2230,10 +2226,20 @@ func (t *turnGenerator) fleetBattle() {
 			for _, fleet := range fleetsToDiscover {
 				// all players discover each remaining fleet in the battle
 				for _, player := range playersAtPosition {
-					if fleet.PlayerNum == player.Num {
+					if fleet.PlayerNum == player.Num || fleet.Starbase {
 						continue
 					}
 					player.discoverer.discoverFleet(fleet, false)
+				}
+			}
+
+			// each player should discover starbase info after battle
+			if planet != nil && planet.Starbase != nil {
+				for _, player := range playersAtPosition {
+					if planet.PlayerNum == player.Num {
+						continue
+					}
+					player.discoverer.discoverPlanetStarbase(planet)
 				}
 			}
 

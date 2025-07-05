@@ -101,7 +101,8 @@
 		{columns}
 		rows={filteredDesigns}
 		classes={{
-			table: 'table table-zebra table-compact table-auto w-full'
+			table: 'table table-zebra table-compact table-auto w-full',
+			th: 'sticky top-0 bg-base-200 z-10'
 		}}
 	>
 		{#snippet head({ isSorted, sortDescending, column })}

@@ -105,7 +105,7 @@
 			class="select select-outline select-secondary select-sm py-0 text-sm"
 		>
 			{#if cargoDestsByPlayer[0]}
-				{#each cargoDestsByPlayer[0] as mo}
+				{#each cargoDestsByPlayer[0] as mo (key(mo))}
 					<option
 						style={mo?.playerNum !== $player.num
 							? `color: ${$universe.getPlayerColor(mo?.playerNum)};`
@@ -116,7 +116,7 @@
 					</option>
 				{/each}
 			{/if}
-			{#each cargoDestsByPlayer[$player.num]?.filter((f) => f && key(f) !== key(fleet)) as f}
+			{#each cargoDestsByPlayer[$player.num]?.filter((f) => f && key(f) !== key(fleet)) as f (key(f))}
 				<option
 					style={f?.playerNum !== $player.num
 						? `color: ${$universe.getPlayerColor(f?.playerNum)};`
@@ -126,13 +126,13 @@
 					{getMapObjectName(f)}
 				</option>
 			{/each}
-			{#each $game.players as p}
+			{#each $game.players as p (p.num)}
 				{#if p.num !== $player.num && p.num in cargoDestsByPlayer}
 					<optgroup
 						label={$universe.getPlayerName(p.num)}
 						style={`color: ${$universe.getPlayerColor(p.num)};`}
 					>
-						{#each cargoDestsByPlayer[p.num] as f}
+						{#each cargoDestsByPlayer[p.num] as f (key(f))}
 							<option value={key(f)}>
 								{getMapObjectName(f)}
 							</option>

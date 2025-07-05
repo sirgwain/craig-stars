@@ -115,7 +115,7 @@
 {#if player && newTechs && filter === ''}
 	<ItemTitle>Recently Learned Techs</ItemTitle>
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-		{#each newTechs as tech}
+		{#each newTechs as tech (tech.name)}
 			<div class="mx-3">
 				<TechSummary {tech} {player} />
 			</div>
@@ -123,7 +123,7 @@
 	</div>
 {/if}
 
-{#each TechCategories as category}
+{#each TechCategories as category (category)}
 	{#if techsByCategory[category]?.length > 0}
 		<a id={kebabCase(category)} href={`#${kebabCase(category)}`}
 			><SectionHeader title={startCase(category)} /></a

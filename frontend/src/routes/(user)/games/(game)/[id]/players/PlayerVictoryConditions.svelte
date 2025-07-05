@@ -21,7 +21,7 @@
 	<thead>
 		<tr>
 			<th></th>
-			{#each players as player}
+			{#each players as player (player.num)}
 				<th class="h-20 w-20"
 					><div class="py-4 -rotate-45">{$universe.getPlayerPluralName(player.num)}</div></th
 				>
@@ -36,7 +36,7 @@
 						($game.victoryConditions.ownPlanets / 100.0) * $universe.planetIntels.length
 					).toFixed()}/{$universe.planets.length} planets.</td
 				>
-				{#each players as player}
+				{#each players as player (player.num)}
 					<td>
 						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionOwnPlanets) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
@@ -50,7 +50,7 @@
 					Attains Tech {$game.victoryConditions.attainTechLevel} in {$game.victoryConditions
 						.attainTechLevelNumFields} fields.
 				</td>
-				{#each players as player}
+				{#each players as player (player.num)}
 					<td>
 						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionAttainTechLevels) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
@@ -63,7 +63,7 @@
 				<td>
 					Exceeds a score of {$game.victoryConditions.exceedsScore}.
 				</td>
-				{#each players as player}
+				{#each players as player (player.num)}
 					<td>
 						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionExceedsScore) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
@@ -76,7 +76,7 @@
 				<td>
 					Exceeds second place score by {$game.victoryConditions.exceedsSecondPlaceScore}%.
 				</td>
-				{#each players as player}
+				{#each players as player (player.num)}
 					<td>
 						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionExceedsSecondPlaceScore) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
@@ -90,7 +90,7 @@
 					Has a production capacity of {$game.victoryConditions.productionCapacity},000
 					resources/yr.
 				</td>
-				{#each players as player}
+				{#each players as player (player.num)}
 					<td>
 						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionProductionCapacity) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
@@ -103,7 +103,7 @@
 				<td>
 					Owns {$game.victoryConditions.ownCapitalShips} capital ships.
 				</td>
-				{#each players as player}
+				{#each players as player (player.num)}
 					<td>
 						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionOwnCapitalShips) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />
@@ -116,7 +116,7 @@
 				<td>
 					Has the highest score after {$game.victoryConditions.highestScoreAfterYears} years.
 				</td>
-				{#each players as player}
+				{#each players as player (player.num)}
 					<td>
 						{#if (($universe.getPlayerScore(player.num)?.achievedVictoryConditions ?? 0) & VictoryConditionHighestScoreAfterYears) > 0}
 							<Icon src={CheckBadge} size="24" class="stroke-success" />

@@ -36,7 +36,7 @@
 				<div>{plan.name}</div>
 			</div>
 			<ul class="w-full h-full">
-				{#each plan.items as queueItem}
+				{#each plan.items as queueItem, index (index)}
 					<li class="pl-1">
 						<div class="flex flex-row justify-between" class:italic={isAuto(queueItem.type)}>
 							<div>

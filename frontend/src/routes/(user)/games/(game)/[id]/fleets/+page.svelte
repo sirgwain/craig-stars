@@ -1,18 +1,45 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import CargoMini from '$lib/components/game/CargoMini.svelte';
+	import CargoBar from '$lib/components/game/CargoBar.svelte';
+	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { fleetsSortBy, getEta, getLocation } from '$lib/types/Fleet';
+	import { getMapObjectName } from '$lib/types/MapObject';
 	import { type Fleet } from '$lib/types/cs';
 
-	const { game, player, universe, settings, commandMapObject, zoomToMapObject } = getGameContext();
+	const {
+		game,
+		player,
+		universe,
+		settings,
+		commandMapObject,
+		selectMapObject,
+		zoomToMapObject,
+		selectWaypoint
+	} = getGameContext();
 
 	const selectFleet = (fleet: Fleet) => {
 		commandMapObject(fleet);
 		zoomToMapObject(fleet);
+		goto(`/games/${$game.id}`);
+	};
+
+	const selectTarget = (fleet: Fleet, waypointIndex: number) => {
+		if (waypointIndex < 0 || waypointIndex > fleet.waypoints.length - 1) {
+			return;
+		}
+		const target = $universe.getMapObject(fleet.waypoints[waypointIndex]);
+		if (target) {
+			selectMapObject(target);
+			zoomToMapObject(target);
+		}
+
+		selectWaypoint(fleet.waypoints[waypointIndex]);
+
+		commandMapObject(fleet);
 		goto(`/games/${$game.id}`);
 	};
 
@@ -27,6 +54,7 @@
 	type TableFleet = Fleet & {
 		location?: never;
 		destination?: never;
+		task?: never;
 		eta?: never;
 		composition?: never;
 		cloak?: never;
@@ -52,6 +80,11 @@
 			key: 'destination',
 			title: 'Destination',
 			sortBy: fleetsSortBy('destination', $universe)
+		},
+		{
+			key: 'task',
+			title: 'Task',
+			sortBy: fleetsSortBy('task', $universe)
 		},
 		{
 			key: 'eta',
@@ -106,7 +139,8 @@
 		rows={filteredFleets}
 		externalSortAndFilter={true}
 		classes={{
-			table: 'table table-zebra table-compact table-auto w-full'
+			table: 'table table-zebra table-compact table-auto w-full',
+			th: 'sticky top-0 bg-base-200 z-10'
 		}}
 	>
 		{#snippet head({ column })}
@@ -123,13 +157,31 @@
 		{#snippet cell({ column, row, cell })}
 			<span>
 				{#if column.key == 'name'}
-					<button class="cs-link text-xl text-left" onclick={() => selectFleet(row)}>{cell}</button>
+					<button class="cs-link text-xl text-left" onclick={() => selectFleet(row)}
+						>{getMapObjectName(row)}</button
+					>
 				{:else if column.key == 'location'}
-					{getLocation(row, $universe)}
+					{@const location = getLocation(row, $universe)}
+					<button class="cs-link text-xl text-left" onclick={() => selectTarget(row, 0)}
+						>{location}</button
+					>
 				{:else if column.key == 'destination'}
-					{row.waypoints && row.waypoints.length > 1
-						? $universe.getTargetName(row.waypoints[1])
-						: '--'}
+					{@const targetName =
+						row.waypoints && row.waypoints.length > 1
+							? $universe.getTargetName(row.waypoints[1])
+							: '--'}
+
+					{#if targetName !== '--'}
+						<button class="cs-link text-xl text-left" onclick={() => selectTarget(row, 1)}
+							>{targetName}</button
+						>
+					{:else}
+						--
+					{/if}
+				{:else if column.key == 'task'}
+					{row.waypoints && row.waypoints.length > 1 && row.waypoints[1].task
+						? row.waypoints[1].task
+						: '(no task here)'}
 				{:else if column.key == 'eta'}
 					{#if getEta(row) == -1}
 						<span class="text-error"> Never </span>
@@ -139,9 +191,13 @@
 						{getEta(row)}y
 					{/if}
 				{:else if column.key == 'fuel'}
-					{row.fuel}mg
+					<div class="w-32 leading-[1rem]">
+						<FuelBar value={row.fuel} capacity={row.spec.fuelCapacity} />
+					</div>
 				{:else if column.key == 'cargo'}
-					<CargoMini cargo={row.cargo} />
+					<div class="w-32 leading-[1rem]">
+						<CargoBar value={row.cargo} capacity={row.spec.cargoCapacity} />
+					</div>
 				{:else if column.key == 'composition'}
 					{@const design = $game
 						? $universe.getDesign(
@@ -155,10 +211,13 @@
 						</div>
 						<div>
 							{row.tokens && row.tokens.length ? row.tokens[0].quantity : 0}
+							{#if row.tokens.length > 1}
+								+
+							{/if}
 						</div>
 					</div>
 				{:else if column.key == 'cloak'}
-					{row.spec && row.spec.cloakPercent ? row.spec.cloakPercent + '%' : ''}
+					{row.spec && row.spec.cloakPercent ? row.spec.cloakPercent + '%' : '--'}
 				{:else if column.key == 'battlePlanNum'}
 					{@const battlePlan = $game ? $player.getBattlePlan(row.battlePlanNum ?? 0) : undefined}
 					{battlePlan?.name ?? ''}

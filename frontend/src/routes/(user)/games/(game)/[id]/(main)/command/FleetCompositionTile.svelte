@@ -65,7 +65,7 @@
 	<CommandTile title="Fleet Composition">
 		<div class="bg-base-100 h-20 overflow-y-auto">
 			<ul class="w-full h-full">
-				{#each fleet.tokens as token}
+				{#each fleet.tokens as token, index (index)}
 					<li class="pl-1">
 						<button
 							type="button"
@@ -104,7 +104,7 @@
 					value={fleet.battlePlanNum}
 					onchange={(e) => updateBattlePlan(parseInt(e.currentTarget.value))}
 				>
-					{#each $player.battlePlans as battlePlan}
+					{#each $player.battlePlans as battlePlan (battlePlan.num)}
 						<option value={battlePlan.num}>{battlePlan.name}</option>
 					{/each}
 				</select>

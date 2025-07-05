@@ -41,26 +41,27 @@ type PlayerMessageSpec struct {
 	Target[MapObjectType] `tstype:",extends"`
 	Amount                int                             `json:"amount,omitempty"`
 	Amount2               int                             `json:"amount2,omitempty"`
-	PrevAmount            int                             `json:"prevAmount,omitempty"`
-	SourcePlayerNum       int                             `json:"sourcePlayerNum,omitempty"`
-	DestPlayerNum         int                             `json:"destPlayerNum,omitempty"`
-	Name                  string                          `json:"name,omitempty"`
-	Cost                  *Cost                           `json:"cost,omitempty"`
-	Mineral               *Mineral                        `json:"mineral,omitempty"`
-	Cargo                 *Cargo                          `json:"cargo,omitempty"`
-	QueueItemType         QueueItemType                   `json:"queueItemType,omitempty"`
-	Field                 TechField                       `json:"field,omitempty"`
-	NextField             TechField                       `json:"nextField,omitempty"`
-	TechGained            string                          `json:"techGained,omitempty"`
-	LostTargetType        MapObjectType                   `json:"lostTargetType,omitempty"`
 	Battle                BattleRecordStats               `json:"battle,omitempty"`
-	Comet                 *PlayerMessageSpecComet         `json:"comet,omitempty"`
 	Bombing               *BombingResult                  `json:"bombing,omitempty"`
-	MineralPacketDamage   *MineralPacketDamage            `json:"mineralPacketDamage,omitempty"`
-	MineFieldDamage       *MineFieldDamage                `json:"mineFieldDamage,omitempty"`
-	MysteryTrader         *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
-	Invasion              *PlayerMessageSpecInvasion      `json:"invasion,omitempty"`
+	Cargo                 *Cargo                          `json:"cargo,omitempty"`
 	CargoTransfer         *PlayerMessageSpecCargoTransfer `json:"cargoTransfer,omitempty"`
+	Comet                 *PlayerMessageSpecComet         `json:"comet,omitempty"`
+	Cost                  *Cost                           `json:"cost,omitempty"`
+	DestPlayerNum         int                             `json:"destPlayerNum,omitempty"`
+	Field                 TechField                       `json:"field,omitempty"`
+	Invasion              *PlayerMessageSpecInvasion      `json:"invasion,omitempty"`
+	LostTargetType        MapObjectType                   `json:"lostTargetType,omitempty"`
+	MineFieldDamage       *MineFieldDamage                `json:"mineFieldDamage,omitempty"`
+	Mineral               *Mineral                        `json:"mineral,omitempty"`
+	MineralPacketDamage   *MineralPacketDamage            `json:"mineralPacketDamage,omitempty"`
+	MysteryTrader         *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
+	Name                  string                          `json:"name,omitempty"`
+	NextField             TechField                       `json:"nextField,omitempty"`
+	PrevAmount            int                             `json:"prevAmount,omitempty"`
+	QueueItemType         QueueItemType                   `json:"queueItemType,omitempty"`
+	RouteTarget           Target[MapObjectType]           `json:"routeTarget,omitempty"`
+	SourcePlayerNum       int                             `json:"sourcePlayerNum,omitempty"`
+	TechGained            string                          `json:"techGained,omitempty"`
 	TerraformAmount       Hab                             `json:"terraformAmount,omitempty"`
 }
 
@@ -348,9 +349,19 @@ func (m *messageClient) fleetBombedPlanet(player *Player, fleet *Fleet, planet *
 		withSpec(PlayerMessageSpec{Bombing: &bombing}.withTargetPlanet(planet)))
 }
 
-func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet, numBuilt int) {
+func (m *messageClient) fleetBuilt(player *Player, planet *Planet, fleet *Fleet, numBuilt int, routeTarget *MapObject) {
+	var target MapObjectTarget
+	if routeTarget != nil {
+		target = MapObjectTarget{
+			TargetPosition:  routeTarget.Position,
+			TargetType:      routeTarget.Type,
+			TargetNum:       routeTarget.Num,
+			TargetPlayerNum: routeTarget.PlayerNum,
+			TargetName:      routeTarget.Name,
+		}
+	}
 	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetBuilt, fleet).
-		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt}.withTargetPlanet(planet)))
+		withSpec(PlayerMessageSpec{Name: fleet.BaseName, Amount: numBuilt, RouteTarget: target}.withTargetPlanet(planet)))
 }
 
 func (m *messageClient) fleetColonizeNonPlanet(player *Player, fleet *Fleet) {

@@ -258,6 +258,16 @@
 	fill: #6b0065;
 }
 
+.route-line {
+	fill: none;
+	stroke-linecap: square;
+	stroke: #fdfd00;
+}
+
+.route-arrow {
+	fill: #fdfd00;
+}
+
 .warpline-arrow {
 	fill: none;
 }

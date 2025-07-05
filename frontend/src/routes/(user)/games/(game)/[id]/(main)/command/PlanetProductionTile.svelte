@@ -4,9 +4,12 @@
 		ClearProductionQueueProps,
 		ShowProductionQueueDialogProps
 	} from '$lib/services/Events';
+	import { getGameContext } from '$lib/services/GameContext';
 	import type { CommandedPlanet } from '$lib/types/Planet';
-	import type { ProductionQueueItem } from '$lib/types/cs';
+	import { type ProductionQueueItem } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
+
+	const { settings } = getGameContext();
 
 	type Props = {
 		planet: CommandedPlanet;
@@ -29,7 +32,7 @@
 		{#if planet.productionQueue}
 			<ul class="w-full h-full">
 				{#if queueItems}
-					{#each queueItems as queueItem, index}
+					{#each queueItems as queueItem, index (index)}
 						<li class="pl-1 cursor-default">
 							<ProductionQueueItemLine item={queueItem} {index} shortName={true} />
 						</li>
@@ -38,16 +41,23 @@
 			</ul>
 		{/if}
 	</div>
-	<div class="flex justify-between mt-1">
-		<span>Route to</span>
-		<span>{''}</span>
-	</div>
+	{#if planet.routeTargetNum}
+		<div class="flex justify-between mt-1">
+			<span>Route to</span>
+			<span></span>
+		</div>
+	{/if}
 	<div class="flex justify-between">
 		<button
 			onclick={() => onShowProductionQueueDialog?.({ planet })}
 			class="btn btn-outline btn-sm normal-case btn-secondary">Change</button
 		>
 		<button onclick={clear} class="btn btn-outline btn-sm normal-case btn-secondary">Clear</button>
-		<button class="btn btn-outline btn-sm normal-case btn-secondary">Route</button>
+		<button
+			class="btn btn-outline btn-sm normal-case btn-secondary"
+			onclick={() => ($settings.setRouteDest = !$settings.setRouteDest)}
+			class:btn-accent={$settings.setRouteDest}
+			type="button">Route</button
+		>
 	</div>
 </CommandTile>

@@ -38,6 +38,7 @@ export default ts.config(
 	{
 		ignores: [
 			'src/lib/wasm/wasm_exec.js',
+			'src/lib/types/CargoTransferRequest.svelte.ts',
 			'!.env.example',
 			'.DS_Store',
 			'.env.*',

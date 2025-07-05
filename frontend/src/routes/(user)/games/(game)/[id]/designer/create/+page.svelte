@@ -17,7 +17,7 @@
 	{/snippet}
 </Breadcrumb>
 <ul class="px-1">
-	{#each $techs.hulls as hull}
+	{#each $techs.hulls as hull (hull.name)}
 		{#if $player && canLearnTech($game.player, hull) && hasRequiredLevels($player.techLevels, hull.requirements)}
 			<li>
 				<a class="cs-link" href={`/games/${$game.id}/designer/create/${kebabCase(hull.name)}`}>

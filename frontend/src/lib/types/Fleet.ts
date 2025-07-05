@@ -396,6 +396,13 @@ export function fleetsSortBy(
 				'waypoints' in a && 'waypoints' in b
 					? getDestination(a, universe).localeCompare(getDestination(b, universe))
 					: 0;
+		case 'task':
+			return (a, b) =>
+				'waypoints' in a && 'waypoints' in b
+					? (a.waypoints[a.waypoints.length - 1].task ?? '').localeCompare(
+							b.waypoints[b.waypoints.length - 1].task ?? ''
+						)
+					: 0;
 		case 'eta':
 			return (a, b) => ('waypoints' in a && 'waypoints' in b ? getEta(a) - getEta(b) : 0);
 		case 'cargo':

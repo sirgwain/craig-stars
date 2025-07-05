@@ -58,13 +58,13 @@
 	}
 
 	async function deleteGame(game: GameWithPlayers) {
-		if (confirm(`Are you sure you want to delete ${game.name}?`)) {
+		if (game.id && confirm(`Are you sure you want to delete ${game.name}?`)) {
 			await GameService.deleteGame(game.id);
 			removeGame(game);
 		}
 	}
 	async function archiveGame(game: GameWithPlayers) {
-		if (confirm(`Are you sure you want to archive ${game.name}?`)) {
+		if (game.id && confirm(`Are you sure you want to archive ${game.name}?`)) {
 			await PlayerService.archiveGame(game.id);
 			removeGame(game);
 		}
@@ -94,7 +94,7 @@
 			<div class="col-span-3 text-secondary">Players</div>
 			<div class="col-span-2"></div>
 
-			{#each newTurnGames as game}
+			{#each newTurnGames as game (game.id)}
 				<ActiveGameRow
 					{game}
 					onDelete={() => deleteGame(game)}
@@ -113,7 +113,7 @@
 		<div class="col-span-2 text-secondary">Year</div>
 		<div class="col-span-3 text-secondary">Players</div>
 		<div class="col-span-2"></div>
-		{#each singlePlayerGames as game}
+		{#each singlePlayerGames as game (game.id)}
 			<ActiveGameRow
 				{game}
 				showNumSubmitted={false}
@@ -133,7 +133,7 @@
 		<div class="col-span-3 text-secondary">Players</div>
 		<div class="col-span-2"></div>
 
-		{#each submittedTurnGames as game}
+		{#each submittedTurnGames as game (game.id)}
 			<ActiveGameRow {game} onDelete={() => deleteGame(game)} onArchive={() => archiveGame(game)} />
 		{/each}
 	</div>
@@ -144,7 +144,7 @@
 		<div class="col-span-5 text-secondary">Name</div>
 		<div class="col-span-5 text-secondary">Players</div>
 		<div class="col-span-2"></div>
-		{#each gamesWaitingToStart as game}
+		{#each gamesWaitingToStart as game (game.id)}
 			<SetupGameRow {game} onDelete={() => deleteGame(game)} />
 		{/each}
 	</div>
@@ -157,7 +157,7 @@
 		<div class="col-span-5 text-secondary">Players</div>
 		<div class="col-span-2"></div>
 
-		{#each openGames as game}
+		{#each openGames as game (game.id)}
 			<SetupGameRow {game} onDelete={() => deleteGame(game)} />
 		{/each}
 	</div>

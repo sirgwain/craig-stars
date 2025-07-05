@@ -86,12 +86,17 @@
 		{message.spec.targetName}.
 	{/if}
 {:else if message.type === PlayerMessageFleetBuilt}
+	{@const routeTarget =
+		message.spec.routeTarget && $universe.getMapObject(message.spec.routeTarget)}
 	{#if message.spec.amount === 1}
 		Your starbase at {message.spec.targetName} has built a new {message.spec.name}.
 	{:else}
 		Your starbase at {message.spec.targetName} has built {message.spec.amount ?? 'a'} new {message
 			.spec.name} ships.
 	{/if}
+	{#if routeTarget}
+		It will be routed to {routeTarget.name}.
+	{/if}.
 {:else if message.type === PlayerMessageFleetDieoff}
 	Due to the rigors of warp acceleration, {message.spec.amount ?? 0} of your colonists on {message.targetName}
 	have died.
