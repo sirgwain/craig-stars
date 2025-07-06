@@ -5,11 +5,13 @@
 		ShowProductionQueueDialogProps
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
+	import { getMapObjectName } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
+	import { emptyVector } from '$lib/types/Vector';
 	import { type ProductionQueueItem } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
 
-	const { settings } = getGameContext();
+	const { settings, universe } = getGameContext();
 
 	type Props = {
 		planet: CommandedPlanet;
@@ -42,9 +44,15 @@
 		{/if}
 	</div>
 	{#if planet.routeTargetNum}
+		{@const routeDest = $universe.getMapObject({
+			targetPosition: emptyVector,
+			targetType: planet.routeTargetType ?? '',
+			targetNum: planet.routeTargetNum ?? 0,
+			targetPlayerNum: planet.routeTargetPlayerNum ?? 0
+		})}
 		<div class="flex justify-between mt-1">
 			<span>Route to</span>
-			<span></span>
+			<span>{getMapObjectName(routeDest)}</span>
 		</div>
 	{/if}
 	<div class="flex justify-between">
