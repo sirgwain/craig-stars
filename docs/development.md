@@ -86,10 +86,10 @@ After writing new or updating existing tests, there are several options as for h
 - Run tests from VS Code's UI, via either the Test Explorer panel or the small buttons displayed within test files.
   - Unfortunately, `vscode-go` doesn't currently support running alternate test tools for UI commands, so running backend tests this way will just use plain old `go test`.
  
-> [!INFO]
+> [!TIP]
 > To run only test files matching a specific file name or regex, you can use the `--run=` flag for `go test` or simply enter the test file name for vitest & playwright.
 
-> [!NOTICE]
+> [!NOTE]
 > Slower devices may have trouble running backend tests within the default timeout of 30s, especially ones inside `./server` involving repeated serialization to & from the database. If your tests are routinely timing out while succeeding on CI, consider increasing the "Go: Test Timeout" variable in your local settings.
 
 # Troubleshooting
