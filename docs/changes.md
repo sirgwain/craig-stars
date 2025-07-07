@@ -8,7 +8,7 @@ Here is a non-exhaustive list of differences between `craig-stars` and the origi
 
 - Upgrading a starbase now checks all slots in _both_ designs when calculating refunds, rather than only the corresponding slot in the new design[^1]. Additionally, part refund/transfer checks still occur when swapping hulls (so adding a component and swapping hulls on consecutive turns costs the same regardless of order).
 
-[^1]: For refernce, Stars! charges extra for merely moving components to a different slot.
+[^1]: For reference, Stars! charges extra for merely moving components to a different slot.
 
 <!-- TODO: Check and fix more bugs -->
 
