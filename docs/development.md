@@ -25,7 +25,7 @@ Once it finishes installing, check by running `mage` - if all went well, you sho
 
 **Disclaimer**: Magefile targets must always be run from inside the _repository root_. This does not apply to the equivalent VS Code tasks, however (which always launch from root).
 
-[^1]: Technically, `mage` is already includrd in the project's `go.mod` file as a tool dependency, but you still need it installed to call it via the command line with `mage XXX`.
+[^1]: Technically, `mage` is already included in the project's `go.mod` file as a tool dependency, but you still need it installed to call it via the command line with `mage XXX`.
 
 ## Assets
 
