@@ -225,7 +225,7 @@
 			required technology to bypass their sensors.
 		{/if}
 	{:else}
-		{message.targetName} has been attempted to transfer cargo from {message.spec.targetName} but was
+		{message.targetName} has attempted to transfer cargo from {message.spec.targetName} but was
 		unsuccessful.
 	{/if}
 {:else if message.type === PlayerMessageFleetTransferGiven}
