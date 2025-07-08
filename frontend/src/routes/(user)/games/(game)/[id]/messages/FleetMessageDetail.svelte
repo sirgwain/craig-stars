@@ -96,7 +96,7 @@
 	{/if}
 	{#if routeTarget}
 		It will be routed to {routeTarget.name}.
-	{/if}.
+	{/if}
 {:else if message.type === PlayerMessageFleetDieoff}
 	Due to the rigors of warp acceleration, {message.spec.amount ?? 0} of your colonists on {message.targetName}
 	have died.
