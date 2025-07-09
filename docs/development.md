@@ -25,7 +25,7 @@ Once it finishes installing, check by running `mage` - if all went well, you sho
 
 **Disclaimer**: Magefile targets must always be run from inside the _repository root_. This does not apply to the equivalent VS Code tasks, however (which always launch from root).
 
-[^1]: Techincally mage is already in the project's `go.mod` files, but you need it installed to call it via the command line.
+[^1]: Technically, `mage` is already included in the project's `go.mod` file as a tool dependency, but you still need it installed to call it via the command line with `mage XXX`.
 
 ## Assets
 
@@ -46,10 +46,10 @@ You have 2 methods to launch the server:
    - Build both backend and frontend files
    - Launch both backend and frontend servers in separate task terminals
    - Open the localhost link in your default web browser once the frontend finishes[^2].\
-     The browser launch tends to produce false positives, so don't worry if it shows up as having failed.
+     The browser launch task has been known to produce failing exit codes even when successfully starting `localhost`, so don't worry if it shows up as having failed.
 2. Run `mage run` from your terminal inside the root folder. This does essentially the same series of steps as the VS Code task, but launches both backend and frontend servers inside the same terminal before stalling. You'll have to open the browser link yourself in a new tab (difficult, I know)[^3].
 
-Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch.
+Whichever way you choose to start it, building the server for the first time should create an empty starter database in `./data` containing a single `admin` user (password `admin`). Clearing the folder will re-create the starter database from scratch on next initialization.
 
 If successful, you should get a localhost link from vite (http://localhost:5173/) representing the application being hosted locally on your machine. Go to that site to see a live-reloading frontend proxied to the go server on port `:8080`. Updating Go code (backend) will kill & restart the backend automatically using air, while updating Svelte or Typescript code (frontend) will perform a hot reload with sveltekit/vite.
 
@@ -61,7 +61,7 @@ If successful, you should get a localhost link from vite (http://localhost:5173/
 
 # Visual Studio Code
 
-[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened inside VS Code in order to use frontend and backend plugins without issue in the same repo. The repository also contains [tasks.json](/.vscode/tasks.json) and [launch.json](/.vscode/tasks.json) files containing various prebuilt commands and debug configurations.
+[Visual Studio Code](https://code.visualstudio.com) is highly recommended for development. `craig-stars` comes with a [cs.code-workspace](/cs.code-workspace) file that can be opened inside VS Code in order to use frontend and backend plugins without issue in the same repo. The repository also contains custom [tasks.json](/.vscode/tasks.json) and [launch.json](/.vscode/launch.json) files containing various prebuilt commands and debug configurations.
 
 # Testing
 
@@ -82,12 +82,15 @@ After writing new or updating existing tests, there are several options as for h
 
 - Run `mage test` to run everything at once. Great for overall checks to make sure everything works, bad for specific problem fixes.
 - Run `mage test_golang`, `mage test_vitest` and `mage test_playwright` to run tests for a given test provider at a time. Each passes their arguments directly to the test provider, so you can pass all the same arguments to them as you would to `go test` or `vitest`. (Test reports are saved to `tmp/test-results` as JUnit XML files.)
-  - Protip: To test only files matching a specific file name or regex, you can use the `--run=` flag for `go test` or simply enter the test file name for vitest & playwright.
 - Run the various test tasks inside `tasks.json` (the green ones with icons). There's 4 in total, one for each of the above mage commands.
 - Run tests from VS Code's UI, via either the Test Explorer panel or the small buttons displayed within test files.
   - Unfortunately, `vscode-go` doesn't currently support running alternate test tools for UI commands, so running backend tests this way will just use plain old `go test`.
+ 
+> [!TIP]
+> To run only test files matching a specific file name or regex, you can use the `--run=` flag for `go test` or simply enter the test file name for vitest & playwright.
 
-_NOTE_: Slower devices may have trouble running backend tests within the default timeout of 30s, especially ones inside `./server` involving repeated serialization to & from the database. If your tests are routinely timing out while succeeding on CI, consider increasing the "Go: Test Timeout" variable in your local settings.
+> [!NOTE]
+> Slower devices may have trouble running backend tests within the default timeout of 30s, especially ones inside `./server` involving repeated serialization to & from the database. If your tests are routinely timing out while succeeding on CI, consider increasing the "Go: Test Timeout" variable in your local settings.
 
 # Troubleshooting
 
