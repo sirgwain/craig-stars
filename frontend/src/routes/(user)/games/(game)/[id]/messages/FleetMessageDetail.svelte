@@ -226,7 +226,8 @@
 		{/if}
 	{:else}
   <!-- Generic failure message -->
-		The cargo transfer was unsuccessful.
+		{message.targetName} has attempted to transfer cargo from {message.spec.targetName},
+		but the cargo transfer was unsuccessful.
 	{/if}
 {:else if message.type === PlayerMessageFleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(
