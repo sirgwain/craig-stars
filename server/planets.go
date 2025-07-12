@@ -52,7 +52,7 @@ func (s *server) planetCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		planet, err := db.GetPlanetByNum(player.GameID, *num)
+		planet, err := db.GetPlanetByNum(r.Context(), player.GameID, *num)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -98,14 +98,14 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load the full player to update planet production estimates
-	player, err := dbClient.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	player, err := dbClient.GetPlayerForGame(r.Context(), game.ID, db.GetPlayerParams{PlayerNum: player.Num})
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	// load all a player's planets so we can recompute research estimates
-	planets, err := dbClient.GetPlanetsForPlayer(game.ID, player.Num)
+	planets, err := dbClient.GetPlanetsForPlayer(r.Context(), game.ID, player.Num)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -120,14 +120,14 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 
 	// update this planet and the player's spec in the database
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.UpdatePlanet(existingPlanet); err != nil {
+		if err := c.UpdatePlanet(r.Context(), existingPlanet); err != nil {
 			log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
 			return err
 		}
 
 		// update the player spec as well because changes in planet orders impact resources
 		// available for research
-		if err := c.UpdatePlayerSpec(player); err != nil {
+		if err := c.UpdatePlayerSpec(r.Context(), player); err != nil {
 			log.Error().Err(err).Int64("ID", planet.ID).Msg("update player spec in database")
 			return err
 		}

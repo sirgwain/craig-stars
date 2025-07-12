@@ -1,9 +1,7 @@
 package db
 
 import (
-	"reflect"
 	"testing"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/test"
@@ -25,14 +23,12 @@ func TestCreatePlayer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// create a test game
-			game := tt.args.c.createTestGame()
+			game := tt.args.c.createTestGame(t.Context())
 			tt.args.player.GameID = game.ID
 
 			want := *tt.args.player
-			err := tt.args.c.CreatePlayer(tt.args.player)
+			got, err := tt.args.c.CreatePlayer(t.Context(), tt.args.player)
 
-			// id is automatically added
-			want.ID = tt.args.player.ID
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("CreatePlayer() did not return error when expected")
@@ -40,9 +36,10 @@ func TestCreatePlayer(t *testing.T) {
 					t.Fatalf("CreatePlayer() errored unexpectedly; err = \n%v", err)
 				}
 			}
-			if !reflect.DeepEqual(tt.args.player, &want) {
-				t.Errorf("CreatePlayer() = \n%v, want \n%v", tt.args.player, want)
-			}
+
+			// id is automatically added
+			want.GameDBObject = got.GameDBObject
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }
@@ -51,21 +48,21 @@ func TestUpdatePlayer(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	c.createTestGame()
-	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
-	if err := c.CreatePlayer(&player); err != nil {
+	c.createTestGame(t.Context())
+	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"})
+	if err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
 
 	player.Name = "Test2"
 	player.Num = 1
-	if err := c.UpdatePlayer(&player); err != nil {
+	if err := c.UpdatePlayer(t.Context(), player); err != nil {
 		t.Errorf("update player %s", err)
 		return
 	}
 
-	updated, err := c.GetPlayer(player.ID)
+	updated, err := c.GetPlayer(t.Context(), player.ID)
 
 	if err != nil {
 		t.Errorf("get player %s", err)
@@ -74,7 +71,6 @@ func TestUpdatePlayer(t *testing.T) {
 
 	assert.Equal(t, player.Name, updated.Name)
 	assert.Equal(t, player.Num, updated.Num)
-	assert.Less(t, player.UpdatedAt, updated.UpdatedAt)
 
 }
 
@@ -83,9 +79,9 @@ func TestGetPlayer(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	c.createTestGame()
-	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
-	if err := c.CreatePlayer(&player); err != nil {
+	c.createTestGame(t.Context())
+	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)})
+	if err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
@@ -100,11 +96,11 @@ func TestGetPlayer(t *testing.T) {
 		wantErr bool
 	}{
 		// {"No results", args{id: 0}, nil, false},
-		{"Got player", args{id: player.ID}, &player, false},
+		{"Got player", args{id: player.ID}, player, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetPlayer(tt.args.id)
+			got, err := c.GetPlayer(t.Context(), tt.args.id)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("GetPlayer() did not return error when expected")
@@ -122,82 +118,79 @@ func TestGetPlayer(t *testing.T) {
 	}
 }
 
-func Test_getPlayerWithDesigns(t *testing.T) {
+func Test_GetPlayerForGame(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	game := c.createTestGame()
-	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Num: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
-	if err := c.CreatePlayer(&player); err != nil {
+	game := c.createTestGame(t.Context())
+	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)})
+	if err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
 
 	// verify it works with no designs
-	_, err := c.getPlayerWithDesigns("p.gameId = ?", game.ID)
+	_, err = c.GetPlayerForGame(t.Context(), game.ID, GetPlayerParams{UserID: player.UserID})
 	if err != nil {
-		t.Errorf("getPlayerWithDesigns %s", err)
+		t.Errorf("GetPlayerForGame %s", err)
 		return
 	}
 
 	// create a couple designs and join again
-	shipDesign1 := cs.ShipDesign{Num: 1, PlayerNum: player.Num, Name: "name"}
+	shipDesign1 := &cs.ShipDesign{Num: 1, PlayerNum: player.Num, Name: "name"}
 	shipDesign1.GameID = game.ID
-	if err := c.CreateShipDesign(&shipDesign1); err != nil {
-		t.Errorf("create shipDesign %s", err)
-		return
-	}
-
-	shipDesign2 := cs.ShipDesign{Num: 2, PlayerNum: player.Num, Name: "name2"}
-	shipDesign2.GameID = game.ID
-	if err := c.CreateShipDesign(&shipDesign2); err != nil {
-		t.Errorf("create shipDesign %s", err)
-		return
-	}
-
-	got, err := c.getPlayerWithDesigns("p.gameId = ?", game.ID)
+	shipDesign1, err = c.CreateShipDesign(t.Context(), shipDesign1)
 	if err != nil {
-		t.Errorf("getPlayerWithDesigns %s", err)
+		t.Errorf("create shipDesign %s", err)
+		return
+	}
+
+	shipDesign2 := &cs.ShipDesign{Num: 2, PlayerNum: player.Num, Name: "name2"}
+	shipDesign2.GameID = game.ID
+	shipDesign2, err = c.CreateShipDesign(t.Context(), shipDesign2)
+	if err != nil {
+		t.Errorf("create shipDesign %s", err)
+		return
+	}
+
+	got, err := c.GetPlayerForGame(t.Context(), game.ID, GetPlayerParams{UserID: player.UserID})
+	if err != nil {
+		t.Errorf("GetPlayerForGame %s", err)
 		return
 	}
 
 	// we expect to have a player with designs
-	player.Designs = append(player.Designs, &shipDesign1, &shipDesign2)
+	player.Designs = append(player.Designs, shipDesign1, shipDesign2)
 
 	// clear out the incoming updated/created timestamps, we won't have those
-	for i := range got {
-		p := &got[i]
-		p.CreatedAt = time.Time{}
-		p.UpdatedAt = time.Time{}
-		for _, design := range p.Designs {
-			design.CreatedAt = time.Time{}
-			design.UpdatedAt = time.Time{}
-		}
 
+	player.GameDBObject = got.GameDBObject
+	for i := range got.Designs {
+		player.Designs[i].GameDBObject = got.Designs[i].GameDBObject
 	}
 
-	test.CompareAsJSON(t, got, []*cs.Player{&player})
+	test.CompareAsJSON(t, got, player)
 }
 
 func TestGetPlayers(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	c.createTestGame()
+	c.createTestGame(t.Context())
 
 	// start with 1 player from connectTestDB
-	result, err := c.GetPlayers()
+	result, err := c.GetPlayers(t.Context())
 	assert.Nil(t, err)
-	assert.Equal(t, []cs.Player{}, result)
+	assert.Equal(t, 0, len(result))
 
-	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
-	if err := c.CreatePlayer(&player); err != nil {
+	_, err = c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"})
+	if err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
 
-	result, err = c.GetPlayers()
+	result, err = c.GetPlayers(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -207,30 +200,30 @@ func TestDeletePlayers(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	c.createTestGame()
+	c.createTestGame(t.Context())
 
-	result, err := c.GetPlayers()
+	result, err := c.GetPlayers(t.Context())
 	assert.Nil(t, err)
-	assert.Equal(t, []cs.Player{}, result)
+	assert.Equal(t, 0, len(result))
 
-	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
-	if err := c.CreatePlayer(&player); err != nil {
+	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"})
+	if err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
 
 	// should have our player in the db
-	result, err = c.GetPlayers()
+	result, err = c.GetPlayers(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	if err := c.DeletePlayer(player.ID); err != nil {
+	if err := c.DeletePlayer(t.Context(), player.ID); err != nil {
 		t.Errorf("delete player %s", err)
 		return
 	}
 
 	// should be no players left in db
-	result, err = c.GetPlayers()
+	result, err = c.GetPlayers(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 }
@@ -239,9 +232,9 @@ func TestUpdateFullPlayer(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	game := c.createTestGame()
-	player := cs.Player{GameDBObject: cs.GameDBObject{GameID: game.ID}, UserID: 1, Name: "Test"}
-	if err := c.CreatePlayer(&player); err != nil {
+	game := c.createTestGame(t.Context())
+	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: game.ID}, UserID: 1, Name: "Test"})
+	if err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
@@ -250,12 +243,12 @@ func TestUpdateFullPlayer(t *testing.T) {
 	player.Num = 1
 	player.Messages = append(player.Messages, cs.PlayerMessage{Type: cs.PlayerMessageInfo, Text: "message1"})
 	player.Messages = append(player.Messages, cs.PlayerMessage{Type: cs.PlayerMessageInfo, Text: "message2"})
-	if err := c.updateFullPlayer(&player); err != nil {
+	if err := c.updateFullPlayer(t.Context(), player); err != nil {
 		t.Errorf("update player %s", err)
 		return
 	}
 
-	updated, err := c.GetFullPlayerForGame(player.GameID, player.UserID)
+	updated, err := c.GetFullPlayerForGame(t.Context(), player.GameID, GetPlayerParams{UserID: player.UserID})
 
 	if err != nil {
 		t.Errorf("get player %s", err)
@@ -264,7 +257,7 @@ func TestUpdateFullPlayer(t *testing.T) {
 
 	assert.Equal(t, player.Name, updated.Name)
 	assert.Equal(t, player.Num, updated.Num)
-	assert.Less(t, player.UpdatedAt, updated.UpdatedAt)
+
 	assert.Equal(t, 2, len(updated.Messages))
 
 }

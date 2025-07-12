@@ -1,174 +1,127 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
+	generated "github.com/sirgwain/craig-stars/db/generated"
 )
 
-type Salvage struct {
-	ID        int64     `json:"id,omitempty"`
-	GameID    int64     `json:"gameId,omitempty"`
-	CreatedAt time.Time `json:"createdAt,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
-	X         float64   `json:"x,omitempty"`
-	Y         float64   `json:"y,omitempty"`
-	Name      string    `json:"name,omitempty"`
-	Num       int       `json:"num,omitempty"`
-	PlayerNum int       `json:"playerNum,omitempty"`
-	Tags      *Tags     `json:"tags,omitempty"`
-	Ironium   int       `json:"ironium,omitempty"`
-	Boranium  int       `json:"boranium,omitempty"`
-	Germanium int       `json:"germanium,omitempty"`
-}
-
 // get a salvage by id
-func (c *client) GetSalvage(id int64) (*cs.Salvage, error) {
-	item := Salvage{}
-	if err := c.reader.Get(&item, "SELECT * FROM salvages WHERE id = ?", id); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+func (c *client) GetSalvage(ctx context.Context, id int64) (*cs.Salvage, error) {
+	item, err := c.reader.GetSalvage(ctx, id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	salvage := c.converter.ConvertSalvage(&item)
-	return salvage, nil
+	return c.converter.ConvertSalvage(item), nil
 }
 
-func (c *client) GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error) {
+func (c *client) GetSalvageByNum(ctx context.Context, gameID int64, num int) (*cs.Salvage, error) {
 
-	item := Salvage{}
-	if err := c.reader.Get(&item, `SELECT * FROM salvages WHERE gameId = ? AND num = ?`, gameID, num); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+	item, err := c.reader.GetSalvageByNum(ctx, generated.GetSalvageByNumParams{
+		Gameid: gameID,
+		Num:    sql.NullInt64{Valid: true, Int64: int64(num)},
+	})
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	salvage := c.converter.ConvertSalvage(&item)
-	return salvage, nil
+	return c.converter.ConvertSalvage(item), nil
 
 }
 
-func (c *client) GetSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
-	return c.getSalvagesForGame(gameID)
-}
+func (c *client) GetSalvagesForGame(ctx context.Context, gameID int64) ([]*cs.Salvage, error) {
+	items, err := c.reader.GetSalvagesForGame(ctx, gameID)
 
-func (c *client) getSalvagesForGame(gameID int64) ([]*cs.Salvage, error) {
-
-	items := []Salvage{}
-	if err := c.reader.Select(&items, `SELECT * FROM salvages WHERE gameId = ? ORDER BY num`, gameID); err != nil {
-		if err == sql.ErrNoRows {
-			return []*cs.Salvage{}, nil
-		}
+	if err == sql.ErrNoRows {
+		return []*cs.Salvage{}, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	results := make([]*cs.Salvage, len(items))
-	for i := range items {
-		results[i] = c.converter.ConvertSalvage(&items[i])
-	}
-
-	return results, nil
+	return c.converter.ConvertSalvages(items), nil
 }
 
-func (c *client) GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvage, error) {
+func (c *client) GetSalvagesForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Salvage, error) {
+	items, err := c.reader.GetSalvagesForPlayer(ctx, generated.GetSalvagesForPlayerParams{
+		Gameid:    gameID,
+		Playernum: sql.NullInt64{Valid: true, Int64: int64(playerNum)},
+	})
 
-	items := []Salvage{}
-	if err := c.reader.Select(&items, `SELECT * FROM salvages WHERE gameId = ? AND playerNum = ?`, gameID, playerNum); err != nil {
-		if err == sql.ErrNoRows {
-			return []*cs.Salvage{}, nil
-		}
+	if err == sql.ErrNoRows {
+		return []*cs.Salvage{}, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	results := make([]*cs.Salvage, len(items))
-	for i := range items {
-		results[i] = c.converter.ConvertSalvage(&items[i])
-	}
-
-	return results, nil
+	return c.converter.ConvertSalvages(items), nil
 }
 
-// create a new salvage
-func (c *client) CreateSalvage(salvage *cs.Salvage) error {
-	item := c.converter.ConvertGameSalvage(salvage)
-	result, err := c.writer.NamedExec(`
-	INSERT INTO salvages (
-		createdAt,
-		updatedAt,
-		gameId,
-		x,
-		y,
-		name,
-		num,
-		playerNum,
-		tags,
-		ironium,
-		boranium,
-		germanium
-	)
-	VALUES (
-		CURRENT_TIMESTAMP,
-		CURRENT_TIMESTAMP,
-		:gameId,
-		:x,
-		:y,
-		:name,
-		:num,
-		:playerNum,
-		:tags,
-		:ironium,
-		:boranium,
-		:germanium
-	)
-	`, item)
+func (c *client) CreateSalvage(ctx context.Context, salvage *cs.Salvage) (*cs.Salvage, error) {
+	result, err := c.writer.CreateSalvage(ctx, c.converter.ConvertGameSalvageToCreateParams(salvage))
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// update the id of our passed in game
-	salvage.ID, err = result.LastInsertId()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	created := c.converter.ConvertSalvage(result)
+	return created, nil
 }
 
 // update an existing salvage
-func (c *client) UpdateSalvage(salvage *cs.Salvage) error {
+func (c *client) UpdateSalvage(ctx context.Context, salvage *cs.Salvage) error {
 
-	item := c.converter.ConvertGameSalvage(salvage)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE salvages SET
-		updatedAt = CURRENT_TIMESTAMP,
-		gameId = :gameId,
-		x = :x,
-		y = :y,
-		name = :name,
-		num = :num,
-		playerNum = :playerNum,
-		tags = :tags,
-		ironium = :ironium,
-		boranium = :boranium,
-		germanium = :germanium
-	WHERE id = :id
-	`, item); err != nil {
+	result, err := c.writer.UpdateSalvage(ctx, c.converter.ConvertGameSalvageToUpdateParams(salvage))
+	if err != nil {
 		return err
+	}
+
+	salvage.UpdatedAt = result.Updatedat
+	return nil
+}
+
+// This should always be wrapped in a transaction
+func (c *client) CreateUpdateOrDeleteSalvages(ctx context.Context, gameID int64, salvages []*cs.Salvage) error {
+
+	// create/update salvages
+	for i, salvage := range salvages {
+		if salvage.ID == 0 {
+			salvage.GameID = gameID
+			var err error
+			created, err := c.CreateSalvage(ctx, salvage)
+			if err != nil {
+				return fmt.Errorf("create salvage: %w", err)
+			}
+			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Created salvage %s", salvage.Name)
+			salvages[i] = created
+		} else if salvage.Delete {
+			if err := c.DeleteSalvage(ctx, salvage.ID); err != nil {
+				return fmt.Errorf("delete salvage: %w", err)
+			}
+			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Deleted salvage %s", salvage.Name)
+		} else {
+			if err := c.UpdateSalvage(ctx, salvage); err != nil {
+				return fmt.Errorf("update salvage: %w", err)
+			}
+			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Updated salvage %s", salvage.Name)
+		}
 	}
 
 	return nil
 }
 
-func (c *client) deleteSalvage(salvageID int64) error {
-	if _, err := c.writer.Exec("DELETE FROM salvages where id = ?", salvageID); err != nil {
-		return fmt.Errorf("delete salvage %d: %w", salvageID, err)
-	}
-	return nil
+// delete a salvage by id
+func (c *client) DeleteSalvage(ctx context.Context, id int64) error {
+	return c.writer.DeleteSalvage(ctx, id)
 }

@@ -1,6 +1,7 @@
 package testgames
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/rs/zerolog/log"
@@ -549,17 +550,23 @@ var TestGames = []TestGame{
 }
 
 func CreateTestGames(db db.Client) error {
+	ctx := context.Background()
 	for _, testGame := range TestGames {
+		var err error
 		game := createTestGame(testGame)
-		if err := db.CreateGame(game.Game); err != nil {
+		game.Game, err = db.CreateGame(ctx, game.Game)
+		if err != nil {
 			return err
 		}
 		for _, player := range game.Players {
 			player.GameID = game.ID
-			if err := db.CreatePlayer(player); err != nil {
+			savedPlayer, err := db.CreatePlayer(ctx, player)
+			if err != nil {
 				return err
 			}
-			for _, design := range player.Designs {
+			// save the db stuff back to the test game player object
+			player.GameDBObject = savedPlayer.GameDBObject
+			for _, design := range savedPlayer.Designs {
 				design.GameID = game.ID
 			}
 		}
@@ -571,7 +578,7 @@ func CreateTestGames(db db.Client) error {
 		}
 
 		// save to db
-		if err := db.UpdateFullGame(game); err != nil {
+		if err := db.UpdateFullGame(ctx, game); err != nil {
 			return err
 		}
 	}

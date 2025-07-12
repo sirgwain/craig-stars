@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/rs/zerolog/log"
@@ -11,6 +12,7 @@ import (
 // Update the host of a game.
 func UpdateHost(gameID int64, userID int64) error {
 
+	ctx := context.Background()
 	cfg := config.GetConfig()
 
 	// create a new connection to the database
@@ -21,7 +23,7 @@ func UpdateHost(gameID int64, userID int64) error {
 	defer func() { dbConn.Close() }()
 	db := dbConn.NewReadWriteClient()
 
-	user, err := db.GetUser(userID)
+	user, err := db.GetUser(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to load user: %d, %v", userID, err)
 	}
@@ -30,7 +32,7 @@ func UpdateHost(gameID int64, userID int64) error {
 		return fmt.Errorf("user %d not found", userID)
 	}
 
-	game, err := db.GetGame(gameID)
+	game, err := db.GetGame(ctx, gameID)
 	if err != nil {
 		return fmt.Errorf("failed to load game: %d, %v", gameID, err)
 	}
@@ -39,7 +41,7 @@ func UpdateHost(gameID int64, userID int64) error {
 		return fmt.Errorf("game %d not found", gameID)
 	}
 
-	db.UpdateGameHost(game.ID, user.ID)
+	db.UpdateGameHost(ctx, game.ID, user.ID)
 	log.Info().Msgf("updated game %d host to userID %d", game.ID, userID)
 
 	return nil
@@ -48,6 +50,7 @@ func UpdateHost(gameID int64, userID int64) error {
 // Update the player of a game.
 func UpdatePlayer(gameID int64, playerNum int, userID int64) error {
 
+	ctx := context.Background()
 	cfg := config.GetConfig()
 
 	// create a new connection to the database
@@ -56,9 +59,9 @@ func UpdatePlayer(gameID int64, playerNum int, userID int64) error {
 		return err
 	}
 	defer func() { dbConn.Close() }()
-	db := dbConn.NewReadWriteClient()
+	readWriteClient := dbConn.NewReadWriteClient()
 
-	user, err := db.GetUser(userID)
+	user, err := readWriteClient.GetUser(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to load user: %d, %v", userID, err)
 	}
@@ -67,7 +70,7 @@ func UpdatePlayer(gameID int64, playerNum int, userID int64) error {
 		return fmt.Errorf("user %d not found", userID)
 	}
 
-	player, err := db.GetPlayerByNum(gameID, playerNum)
+	player, err := readWriteClient.GetPlayerForGame(ctx, gameID, db.GetPlayerParams{PlayerNum: playerNum})
 	if err != nil {
 		return fmt.Errorf("failed to load player %d from game %d, %v", playerNum, gameID, err)
 	}
@@ -78,7 +81,7 @@ func UpdatePlayer(gameID int64, playerNum int, userID int64) error {
 
 	// update this player's userID
 	player.UserID = userID
-	db.UpdatePlayerUserId(player)
+	readWriteClient.UpdatePlayerUserId(ctx, player)
 	log.Info().Msgf("updated game %d, player %d to userID %d", player.GameID, player.Num, userID)
 
 	return nil

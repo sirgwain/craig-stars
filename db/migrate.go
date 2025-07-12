@@ -102,11 +102,12 @@ func (c *dbConn) mustMigrateDatabase(datasource string, fs embed.FS, path string
 	log.Info().Msgf("database %s is version %d", path, version)
 	backupFile := c.mustBackup(datasource, version)
 	err = m.Up()
-	if err == migrate.ErrNoChange {
+	switch err {
+	case migrate.ErrNoChange:
 		log.Info().Msgf("database %s, no migration required", path)
 		// remove the backup, we don't need it
 		os.Remove(backupFile)
-	} else if err == nil {
+	case nil:
 		log.Info().Msgf("database %s migrated", path)
 	}
 

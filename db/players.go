@@ -1,347 +1,64 @@
 package db
 
 import (
+	"context"
 	"database/sql"
-	"database/sql/driver"
 	"fmt"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db/generated"
 )
 
-type PlayerStatus struct {
-	UpdatedAt     time.Time `json:"updatedAt,omitempty"`
-	UserID        int64     `json:"userId,omitempty"`
-	Name          string    `json:"name,omitempty"`
-	Num           int       `json:"num,omitempty"`
-	Ready         bool      `json:"ready,omitempty"`
-	AIControlled  bool      `json:"aiControlled,omitempty"`
-	AIDifficulty  bool      `json:"aiDifficulty,omitempty"`
-	Guest         bool      `json:"guest,omitempty"`
-	SubmittedTurn bool      `json:"submittedTurn,omitempty"`
-	Color         string    `json:"color,omitempty"`
-	Victor        bool      `json:"victor,omitempty"`
-	Archived      bool      `json:"archived,omitempty"`
+// Params for getting players either by userId or PlayerNum
+type GetPlayerParams struct {
+	UserID    int64
+	PlayerNum int
 }
 
-type Player struct {
-	ID                           int64                `json:"id,omitempty"`
-	CreatedAt                    time.Time            `json:"createdAt,omitempty"`
-	UpdatedAt                    time.Time            `json:"updatedAt,omitempty"`
-	GameID                       int64                `json:"gameId,omitempty"`
-	UserID                       int64                `json:"userId,omitempty"`
-	Name                         string               `json:"name,omitempty"`
-	Num                          int                  `json:"num,omitempty"`
-	Ready                        bool                 `json:"ready,omitempty"`
-	AIControlled                 bool                 `json:"aiControlled,omitempty"`
-	AIDifficulty                 cs.AIDifficulty      `json:"aiDifficulty,omitempty"`
-	Guest                        bool                 `json:"guest,omitempty"`
-	SubmittedTurn                bool                 `json:"submittedTurn,omitempty"`
-	Color                        string               `json:"color,omitempty"`
-	DefaultHullSet               int                  `json:"defaultHullSet,omitempty"`
-	TechLevelsEnergy             int                  `json:"techLevelsEnergy,omitempty"`
-	TechLevelsWeapons            int                  `json:"techLevelsWeapons,omitempty"`
-	TechLevelsPropulsion         int                  `json:"techLevelsPropulsion,omitempty"`
-	TechLevelsConstruction       int                  `json:"techLevelsConstruction,omitempty"`
-	TechLevelsElectronics        int                  `json:"techLevelsElectronics,omitempty"`
-	TechLevelsBiotechnology      int                  `json:"techLevelsBiotechnology,omitempty"`
-	TechLevelsSpentEnergy        int                  `json:"techLevelsSpentEnergy,omitempty"`
-	TechLevelsSpentWeapons       int                  `json:"techLevelsSpentWeapons,omitempty"`
-	TechLevelsSpentPropulsion    int                  `json:"techLevelsSpentPropulsion,omitempty"`
-	TechLevelsSpentConstruction  int                  `json:"techLevelsSpentConstruction,omitempty"`
-	TechLevelsSpentElectronics   int                  `json:"techLevelsSpentElectronics,omitempty"`
-	TechLevelsSpentBiotechnology int                  `json:"techLevelsSpentBiotechnology,omitempty"`
-	ResearchAmount               int                  `json:"researchAmount,omitempty"`
-	ResearchSpentLastYear        int                  `json:"researchSpentLastYear,omitempty"`
-	NextResearchField            cs.NextResearchField `json:"nextResearchField,omitempty"`
-	Researching                  cs.TechField         `json:"researching,omitempty"`
-	CargoTransfers               *CargoTransfers      `json:"cargoTransfers,omitempty"`
-	BattlePlans                  *BattlePlans         `json:"battlePlans,omitempty"`
-	ProductionPlans              *ProductionPlans     `json:"productionPlans,omitempty"`
-	TransportPlans               *TransportPlans      `json:"transportPlans,omitempty"`
-	Relations                    *PlayerRelationships `json:"relations,omitempty"`
-	Messages                     *PlayerMessages      `json:"messages,omitempty"`
-	BattleRecords                *BattleRecords       `json:"battleRecords,omitempty"`
-	PlayerIntels                 *PlayerIntels        `json:"playerIntels,omitempty"`
-	ScoreIntels                  *ScoreIntels         `json:"scoreIntels,omitempty"`
-	PlanetIntels                 *PlanetIntels        `json:"planetIntels,omitempty"`
-	FleetIntels                  *FleetIntels         `json:"fleetIntels,omitempty"`
-	ShipDesignIntels             *ShipDesignIntels    `json:"shipDesignIntels,omitempty"`
-	MineralPacketIntels          *MineralPacketIntels `json:"mineralPacketIntels,omitempty"`
-	MineFieldIntels              *MineFieldIntels     `json:"mineFieldIntels,omitempty"`
-	WormholeIntels               *WormholeIntels      `json:"wormholeIntels,omitempty"`
-	MysteryTraderIntels          *MysteryTraderIntels `json:"mysteryTraderIntels,omitempty"`
-	SalvageIntels                *SalvageIntels       `json:"salvageIntels,omitempty"`
-	Race                         *PlayerRace          `json:"race,omitempty"`
-	Stats                        *PlayerStats         `json:"stats,omitempty"`
-	ScoreHistory                 *PlayerScores        `json:"scoreHistory,omitempty"`
-	AcquiredTechs                *AcquiredTechs       `json:"acquiredTechs,omitempty"`
-	AchievedVictoryConditions    cs.Bitmask           `json:"achievedVictoryConditions,omitempty"`
-	Victor                       bool                 `json:"victor,omitempty"`
-	Archived                     bool                 `json:"archived,omitempty"`
-	Spec                         *PlayerSpec          `json:"spec,omitempty"`
-}
+func (c *client) GetPlayers(ctx context.Context) ([]*cs.Player, error) {
+	items, err := c.reader.GetPlayers(ctx)
+	if err == sql.ErrNoRows {
+		return []*cs.Player{}, nil
+	}
+	if err != nil {
 
-// we json serialize these types with custom Scan/Value methods
-type CargoTransfers cs.CargoTransfers
-type BattlePlans []cs.BattlePlan
-type ProductionPlans []cs.ProductionPlan
-type TransportPlans []cs.TransportPlan
-type PlayerRelationships []cs.PlayerRelationship
-type PlayerMessages []cs.PlayerMessage
-type PlayerScores []cs.PlayerScore
-type AcquiredTechs map[string]bool
-type BattleRecords []cs.BattleRecord
-type PlayerIntels []cs.PlayerIntel
-type ScoreIntels []cs.ScoreIntel
-type PlanetIntels []cs.PlanetIntel
-type FleetIntels []cs.FleetIntel
-type ShipDesignIntels []cs.ShipDesignIntel
-type MineralPacketIntels []cs.MineralPacketIntel
-type SalvageIntels []cs.SalvageIntel
-type MineFieldIntels []cs.MineFieldIntel
-type MysteryTraderIntels []cs.MysteryTraderIntel
-type WormholeIntels []cs.WormholeIntel
-type PlayerRace cs.Race
-type PlayerSpec cs.PlayerSpec
-type PlayerStats cs.PlayerStats
-
-// db serializer to serialize this to JSON
-func (item *CargoTransfers) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *CargoTransfers) Scan(src interface{}) error {
-	return scanJSON(src, &item)
-}
-
-// db serializer to serialize this to JSON
-func (item *BattlePlans) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *BattlePlans) Scan(src interface{}) error {
-	return scanJSON(src, &item)
-}
-
-// db serializer to serialize this to JSON
-func (item *ProductionPlans) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *ProductionPlans) Scan(src interface{}) error {
-	return scanJSON(src, &item)
-}
-
-// db serializer to serialize this to JSON
-func (item *TransportPlans) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *TransportPlans) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-// db serializer to serialize this to JSON
-func (item *PlayerRace) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *PlayerRace) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-// db serializer to serialize this to JSON
-func (item *PlayerSpec) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *PlayerSpec) Scan(src interface{}) error {
-	return scanJSON(src, item)
-
-}
-
-// db serializer to serialize this to JSON
-func (item *PlayerStats) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *PlayerStats) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *PlayerRelationships) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *PlayerRelationships) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *PlayerMessages) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *PlayerMessages) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *PlayerScores) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *PlayerScores) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *AcquiredTechs) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *AcquiredTechs) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *BattleRecords) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *BattleRecords) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *PlayerIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *PlayerIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *ScoreIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *ScoreIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *PlanetIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *PlanetIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *FleetIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *FleetIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *ShipDesignIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *ShipDesignIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *MineralPacketIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *MineralPacketIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *SalvageIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *SalvageIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *MineFieldIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *MineFieldIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *MysteryTraderIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *MysteryTraderIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (item *WormholeIntels) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-func (item *WormholeIntels) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (c *client) GetPlayers() ([]cs.Player, error) {
-
-	items := []Player{}
-	if err := c.reader.Select(&items, `SELECT * FROM players`); err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Player{}, nil
-		}
 		return nil, err
 	}
 
 	return c.converter.ConvertPlayers(items), nil
 }
 
-func (c *client) GetPlayersForUser(userID int64) ([]cs.Player, error) {
+func (c *client) GetPlayersForUser(ctx context.Context, userID int64) ([]*cs.Player, error) {
+	items, err := c.reader.GetPlayersForUser(ctx, sql.NullInt64{Valid: true, Int64: userID})
+	if err == sql.ErrNoRows {
+		return []*cs.Player{}, nil
+	}
+	if err != nil {
 
-	items := []Player{}
-	if err := c.reader.Select(&items, `SELECT * FROM players WHERE userId = ?`, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Player{}, nil
-		}
 		return nil, err
 	}
 
 	return c.converter.ConvertPlayers(items), nil
+
 }
 
 // get all the players for a game, with data loaded
-func (c *client) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
+func (c *client) getPlayersForGame(ctx context.Context, gameID int64) ([]*cs.Player, error) {
 
-	items := []Player{}
-	if err := c.reader.Select(&items, `SELECT * FROM players WHERE gameId = ?`, gameID); err != nil {
-		if err == sql.ErrNoRows {
-			return []*cs.Player{}, nil
-		}
+	items, err := c.reader.GetPlayersForGame(ctx, gameID)
+	if err == sql.ErrNoRows {
+		return []*cs.Player{}, nil
+	}
+	if err != nil {
+
 		return nil, err
 	}
-
-	players := make([]*cs.Player, len(items))
-	for i := range items {
-		player := c.converter.ConvertPlayer(items[i])
-		players[i] = &player
-
-		designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
+	// // players := make([]*cs.Player, 0, len(items))
+	players := c.converter.ConvertPlayers(items)
+	for _, player := range players {
+		designs, err := c.GetShipDesignsForPlayer(ctx, gameID, player.Num)
 		if err != nil {
-			return nil, fmt.Errorf("get designs for player: %w", err)
+			return nil, fmt.Errorf("failed to get designs for player: %d %w", player.Num, err)
 		}
 		player.Designs = designs
 	}
@@ -350,176 +67,78 @@ func (c *client) getPlayersForGame(gameID int64) ([]*cs.Player, error) {
 }
 
 // get all the players for a game, with data loaded
-func (c *client) GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error) {
+func (c *client) getPlayersWithDesignsForGame(ctx context.Context, gameID int64) ([]*cs.Player, error) {
 
-	items := []Player{}
-	if err := c.reader.Select(&items, `
-	SELECT
-	id,
-	createdAt,
-	updatedAt,
-	gameId,
-	userId,
-	name,
-	num,
-	ready,
-	aiControlled,
-	aiDifficulty,
-	guest,
-	submittedTurn,
-	color
-	FROM players WHERE gameId = ? ORDER BY num`, gameID); err != nil {
-		if err == sql.ErrNoRows {
-			return []*cs.Player{}, nil
-		}
-		return nil, err
+	items, err := c.reader.GetPlayersWithDesignsForGame(ctx, gameID)
+	if err == sql.ErrNoRows {
+		return []*cs.Player{}, nil
 	}
-
-	players := make([]*cs.Player, len(items))
-	for i := range items {
-		player := c.converter.ConvertPlayer(items[i])
-		players[i] = &player
-	}
-
-	return players, nil
-}
-
-func (c *client) getPlayerWithDesigns(where string, args ...interface{}) ([]cs.Player, error) {
-	type playerDesignsJoin struct {
-		Player     `json:"player,omitempty"`
-		ShipDesign `json:"shipDesign,omitempty"`
-	}
-
-	rows := []playerDesignsJoin{}
-
-	err := c.reader.Select(&rows, fmt.Sprintf(`
-	SELECT
-		p.id AS 'player.id',
-		p.createdAt AS 'player.createdAt',
-		p.updatedAt AS 'player.updatedAt',
-		p.gameId AS 'player.gameId',
-		p.userId AS 'player.userId',
-		p.name AS 'player.name',
-		p.num AS 'player.num',
-		p.ready AS 'player.ready',
-		p.aiControlled AS 'player.aiControlled',
-		p.aiDifficulty AS 'player.aiDifficulty',
-		p.guest AS 'player.guest',
-		p.submittedTurn AS 'player.submittedTurn',
-		p.color AS 'player.color',
-		p.defaultHullSet AS 'player.defaultHullSet',
-		p.techLevelsEnergy AS 'player.techLevelsEnergy',
-		p.techLevelsWeapons AS 'player.techLevelsWeapons',
-		p.techLevelsPropulsion AS 'player.techLevelsPropulsion',
-		p.techLevelsConstruction AS 'player.techLevelsConstruction',
-		p.techLevelsElectronics AS 'player.techLevelsElectronics',
-		p.techLevelsBiotechnology AS 'player.techLevelsBiotechnology',
-		p.techLevelsSpentEnergy AS 'player.techLevelsSpentEnergy',
-		p.techLevelsSpentWeapons AS 'player.techLevelsSpentWeapons',
-		p.techLevelsSpentPropulsion AS 'player.techLevelsSpentPropulsion',
-		p.techLevelsSpentConstruction AS 'player.techLevelsSpentConstruction',
-		p.techLevelsSpentElectronics AS 'player.techLevelsSpentElectronics',
-		p.techLevelsSpentBiotechnology AS 'player.techLevelsSpentBiotechnology',
-		p.researchAmount AS 'player.researchAmount',
-		p.researchSpentLastYear AS 'player.researchSpentLastYear',
-		p.nextResearchField AS 'player.nextResearchField',
-		p.researching AS 'player.researching',
-		p.cargoTransfers AS 'player.cargoTransfers',
-		p.battlePlans AS 'player.battlePlans',
-		p.productionPlans AS 'player.productionPlans',
-		p.transportPlans AS 'player.transportPlans',
-		p.relations AS 'player.relations',
-		p.messages AS 'player.messages',
-		p.battleRecords AS 'player.battleRecords',
-		p.playerIntels AS 'player.playerIntels',
-		p.scoreIntels AS 'player.scoreIntels',
-		p.planetIntels AS 'player.planetIntels',
-		p.fleetIntels AS 'player.fleetIntels',
-		p.shipDesignIntels AS 'player.shipDesignIntels',
-		p.mineralPacketIntels AS 'player.mineralPacketIntels',
-		p.mineFieldIntels AS 'player.mineFieldIntels',
-		p.wormholeIntels AS 'player.wormholeIntels',
-		p.mysteryTraderIntels AS 'player.mysteryTraderIntels',
-		p.salvageIntels AS 'player.salvageIntels',
-		p.race AS 'player.race',
-		p.stats AS 'player.stats',
-		p.scoreHistory AS 'player.scoreHistory',
-		p.acquiredTechs AS 'player.acquiredTechs',
-		p.achievedVictoryConditions AS 'player.achievedVictoryConditions',
-		p.victor AS 'player.victor',
-		p.archived AS 'player.archived',
-		p.spec AS 'player.spec',
-
-
-		COALESCE(d.id, 0) AS 'shipDesign.id',
-		d.createdAt AS 'shipDesign.createdAt',
-		d.updatedAt AS 'shipDesign.updatedAt',
-		COALESCE(d.gameId, 0) AS 'shipDesign.gameId',
-		COALESCE(d.num, 0) AS 'shipDesign.num',
-		COALESCE(d.playerNum, 0) AS 'shipDesign.playerNum',
-		COALESCE(d.name, '') AS 'shipDesign.name',
-		COALESCE(d.version, 0) AS 'shipDesign.version',
-		COALESCE(d.hull, '') AS 'shipDesign.hull',
-		COALESCE(d.hullSetNumber, 0) AS 'shipDesign.hullSetNumber',
-		COALESCE(d.cannotDelete, 0) AS 'shipDesign.cannotDelete',
-		COALESCE(d.slots, '[]') AS 'shipDesign.slots',
-		COALESCE(d.purpose, '') AS 'shipDesign.purpose',
-		COALESCE(d.spec, '{}') AS 'shipDesign.spec'
-
-	FROM players p
-	LEFT JOIN shipDesigns d
-		ON p.gameId = d.gameId AND p.num = d.playerNum
-	WHERE %s
-`, where), args...)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Player{}, nil
-		}
+
 		return nil, err
 	}
 
-	// check if we have a game
-	if len(rows) == 0 {
-		return []cs.Player{}, nil
-	}
-
-	// join results give a row per item, so if we have 2 players
-	// one with 2 designs, one with 3, we'll end up with 5 rows
-	// row 0 - player1, design 1
-	// row 1 - player1, design 2
-	// row 2 - player2, design 1
-	// row 3 - player2, design 2
-	// row 4 - player2, design 3
-	players := []cs.Player{}
-	var item Player
+	players := []*cs.Player{}
+	var item generated.Player
 	var player *cs.Player
-	for _, row := range rows {
+	for _, row := range items {
 
 		if row.Player.ID != item.ID {
 			// convert this row into a game
 			item = row.Player
 			p := c.converter.ConvertPlayer(item)
-			p.Designs = []*cs.ShipDesign{}
-			players = append(players, p)
-			player = &players[len(players)-1]
+			players = append(players, &p)
+			player = players[len(players)-1]
 		}
 
-		if row.ShipDesign.ID != 0 {
-			design := c.converter.ConvertShipDesign(&row.ShipDesign)
-			player.Designs = append(player.Designs, design)
+		if row.DesignID.Valid {
+			player.Designs = append(player.Designs, c.converter.ConvertShipDesign(generated.Shipdesign{
+				ID:                row.DesignID.Int64,
+				Createdat:         row.DesignCreatedat.Time,
+				Updatedat:         row.DesignUpdatedat.Time,
+				Gameid:            row.DesignGameid.Int64,
+				Num:               row.DesignNum.Int64,
+				Playernum:         row.DesignPlayernum.Int64,
+				Name:              row.DesignName.String,
+				Version:           row.DesignVersion,
+				Hull:              row.DesignHull,
+				Hullsetnumber:     row.DesignHullsetnumber,
+				Candelete:         row.DesignCandelete,
+				Slots:             row.DesignSlots,
+				Purpose:           row.DesignPurpose,
+				Spec:              row.DesignSpec,
+				Cannotdelete:      row.DesignCannotdelete.Bool,
+				Originalplayernum: row.DesignOriginalplayernum,
+				Mysterytrader:     row.DesignMysterytrader,
+			}))
 		}
 	}
 
 	return players, nil
 }
 
+// get all the players for a game, with data loaded
+func (c *client) GetPlayersStatusForGame(ctx context.Context, gameID int64) ([]*cs.Player, error) {
+
+	items, err := c.reader.GetPlayersStatusForGame(ctx, gameID)
+	if err == sql.ErrNoRows {
+		return []*cs.Player{}, nil
+	}
+	if err != nil {
+
+		return nil, err
+	}
+
+	return c.converter.ConvertPlayerStatuses(items), nil
+}
+
 // get a player by id
-func (c *client) GetPlayer(id int64) (*cs.Player, error) {
-	item := Player{}
-	if err := c.reader.Get(&item, "SELECT * FROM players WHERE id = ?", id); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+func (c *client) GetPlayer(ctx context.Context, id int64) (*cs.Player, error) {
+	item, err := c.reader.GetPlayer(ctx, id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -528,216 +147,105 @@ func (c *client) GetPlayer(id int64) (*cs.Player, error) {
 }
 
 // Get all player data except universe intel
-func (c *client) GetPlayerForGame(gameID, userID int64) (*cs.Player, error) {
-	item := Player{}
-	if err := c.reader.Get(&item, `
-	SELECT
-	id,
-	createdAt,
-	updatedAt,
-	gameId,
-	userId,
-	name,
-	num,
-	ready,
-	aiControlled,
-	aiDifficulty,
-	guest,
-	submittedTurn,
-	color,
-	defaultHullSet,
-	techLevelsEnergy,
-	techLevelsWeapons,
-	techLevelsPropulsion,
-	techLevelsConstruction,
-	techLevelsElectronics,
-	techLevelsBiotechnology,
-	techLevelsSpentEnergy,
-	techLevelsSpentWeapons,
-	techLevelsSpentPropulsion,
-	techLevelsSpentConstruction,
-	techLevelsSpentElectronics,
-	techLevelsSpentBiotechnology,
-	researchAmount,
-	researchSpentLastYear,
-	nextResearchField,
-	researching,
-	cargoTransfers,
-	battlePlans,
-	productionPlans,
-	transportPlans,
-	relations,
-	messages,
-	race,
-	stats,
-	scoreHistory,
-	acquiredTechs,
-	achievedVictoryConditions,
-	victor,
-	archived,
-	spec
-	FROM players
-	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
+func (c *client) GetPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error) {
+	queryParams := generated.GetPlayerForGameParams{
+		GameId: gameID,
 	}
-
-	player := c.converter.ConvertPlayer(item)
-
-	return &player, nil
-}
-
-// Get player intel
-func (c *client) GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels, error) {
-	item := Player{}
-	if err := c.reader.Get(&item, `
-	SELECT
-	battleRecords,
-	playerIntels,
-	scoreIntels,
-	planetIntels,
-	fleetIntels,
-	shipDesignIntels,
-	mineralPacketIntels,
-	mineFieldIntels,
-	wormholeIntels,
-	mysteryTraderIntels,
-	salvageIntels
-	FROM players
-	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
+	if params.UserID != 0 {
+		queryParams.UserId = params.UserID
 	}
-
-	player := c.converter.ConvertPlayer(item)
-
-	return &player.PlayerIntels, nil
-}
-
-func (c *client) GetPlayerByNum(gameID int64, num int) (*cs.Player, error) {
-	item := Player{}
-	if err := c.reader.Get(&item, "SELECT * FROM players WHERE gameId = ? AND num = ?", gameID, num); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
+	if params.PlayerNum != 0 {
+		queryParams.PlayerNum = params.PlayerNum
 	}
-
-	player := c.converter.ConvertPlayer(item)
-
-	// get designs
-	designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
+	rows, err := c.reader.GetPlayerForGame(ctx, queryParams)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
 	if err != nil {
-		return nil, fmt.Errorf("get player designs: %w", err)
+		return nil, err
 	}
-	player.Designs = designs
+
+	player := c.converter.ConvertPlayer(rows[0].Player)
+	for _, row := range rows {
+		if row.DesignID.Valid {
+			player.Designs = append(player.Designs, c.converter.ConvertShipDesign(generated.Shipdesign{
+				ID:                row.DesignID.Int64,
+				Createdat:         row.DesignCreatedat.Time,
+				Updatedat:         row.DesignUpdatedat.Time,
+				Gameid:            row.DesignGameid.Int64,
+				Num:               row.DesignNum.Int64,
+				Playernum:         row.DesignPlayernum.Int64,
+				Name:              row.DesignName.String,
+				Version:           row.DesignVersion,
+				Hull:              row.DesignHull,
+				Hullsetnumber:     row.DesignHullsetnumber,
+				Candelete:         row.DesignCandelete,
+				Slots:             row.DesignSlots,
+				Purpose:           row.DesignPurpose,
+				Spec:              row.DesignSpec,
+				Cannotdelete:      row.DesignCannotdelete.Bool,
+				Originalplayernum: row.DesignOriginalplayernum,
+				Mysterytrader:     row.DesignMysterytrader,
+			}))
+		}
+	}
 
 	return &player, nil
 }
 
-func (c *client) GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error) {
-	item := Player{}
-	if err := c.reader.Get(&item, `
-	SELECT
-	id,
-	createdAt,
-	updatedAt,
-	gameId,
-	userId,
-	name,
-	num,
-	ready,
-	aiControlled,
-	aiDifficulty,
-	guest,
-	submittedTurn,
-	color,
-	defaultHullSet,
-	race,
-	techLevelsEnergy,
-	techLevelsWeapons,
-	techLevelsPropulsion,
-	techLevelsConstruction,
-	techLevelsElectronics,
-	techLevelsBiotechnology,
-	techLevelsSpentEnergy,
-	techLevelsSpentWeapons,
-	techLevelsSpentPropulsion,
-	techLevelsSpentConstruction,
-	techLevelsSpentElectronics,
-	techLevelsSpentBiotechnology,
-	researchSpentLastYear,
-	researchAmount,
-	nextResearchField,
-	researching,
-	cargoTransfers,
-	battlePlans,
-	productionPlans,
-	transportPlans,
-	relations,
-	stats,
-	scoreHistory,
-	acquiredTechs,
-	achievedVictoryConditions,
-	victor,
-	archived,
-	spec
-	FROM players
-	WHERE gameId = ? AND userId = ?`, gameID, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+func (c *client) GetLightPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error) {
+	queryParams := generated.GetLightPlayerForGameParams{
+		Gameid: gameID,
+	}
+	if params.UserID != 0 {
+		queryParams.UserId = params.UserID
+	}
+	if params.PlayerNum != 0 {
+		queryParams.PlayerNum = params.PlayerNum
+	}
+	item, err := c.reader.GetLightPlayerForGame(ctx, queryParams)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	player := c.converter.ConvertPlayer(item)
+	player := c.converter.ConvertLightPlayer(item)
 	return &player, nil
 }
 
 // get a full player by id with all dependencies loaded
-func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, error) {
-	player := cs.FullPlayer{}
+func (c *client) GetFullPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.FullPlayer, error) {
 
-	item := Player{}
-	if err := c.reader.Get(&item, "SELECT * FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+	p, err := c.GetPlayerForGame(ctx, gameID, params)
+	if err != nil {
 		return nil, err
 	}
 
-	// load the player component from the DB
-	player.Player = c.converter.ConvertPlayer(item)
-
-	designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
-	if err != nil {
-		return nil, fmt.Errorf("get player designs: %w", err)
+	player := cs.FullPlayer{
+		Player: *p,
 	}
-	player.Designs = designs
 
-	planets, err := c.GetPlanetsForPlayer(player.GameID, player.Num)
+	planets, err := c.GetPlanetsForPlayer(ctx, player.GameID, player.Num)
 	if err != nil {
 		return nil, fmt.Errorf("get player planets: %w", err)
 	}
 	player.Planets = planets
 
-	mineFields, err := c.GetMineFieldsForPlayer(player.GameID, player.Num)
+	mineFields, err := c.GetMineFieldsForPlayer(ctx, player.GameID, player.Num)
 	if err != nil {
 		return nil, fmt.Errorf("get player mineFields: %w", err)
 	}
 	player.MineFields = mineFields
 
-	mineralPackets, err := c.GetMineralPacketsForPlayer(player.GameID, player.Num)
+	mineralPackets, err := c.GetMineralPacketsForPlayer(ctx, player.GameID, player.Num)
 	if err != nil {
 		return nil, fmt.Errorf("get player mineralPackets: %w", err)
 	}
 	player.MineralPackets = mineralPackets
 
-	fleets, err := c.GetFleetsForPlayer(player.GameID, player.Num)
+	fleets, err := c.GetFleetsForPlayer(ctx, player.GameID, player.Num)
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets: %w", err)
 	}
@@ -757,35 +265,37 @@ func (c *client) GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, err
 	return &player, nil
 }
 
-func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects, error) {
-	mapObjects := cs.PlayerMapObjects{}
-	var num int
-	if err := c.reader.Get(&num, "SELECT num FROM players WHERE gameId = ? AND userId = ?", gameID, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+func (c *client) GetPlayerMapObjects(ctx context.Context, gameID, userID int64) (*cs.PlayerMapObjects, error) {
+	num, err := c.reader.GetPlayerNum(ctx, generated.GetPlayerNumParams{Gameid: gameID, Userid: sql.NullInt64{Valid: true, Int64: userID}})
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	planets, err := c.GetPlanetsForPlayer(gameID, num)
+	playerNum := int(num)
+	mapObjects := cs.PlayerMapObjects{}
+
+	planets, err := c.GetPlanetsForPlayer(ctx, gameID, playerNum)
 	if err != nil {
 		return nil, fmt.Errorf("get player planets: %w", err)
 	}
 	mapObjects.Planets = planets
 
-	mineFields, err := c.GetMineFieldsForPlayer(gameID, num)
+	mineFields, err := c.GetMineFieldsForPlayer(ctx, gameID, playerNum)
 	if err != nil {
 		return nil, fmt.Errorf("get player mineFields: %w", err)
 	}
 	mapObjects.MineFields = mineFields
 
-	mineralPackets, err := c.GetMineralPacketsForPlayer(gameID, num)
+	mineralPackets, err := c.GetMineralPacketsForPlayer(ctx, gameID, playerNum)
 	if err != nil {
 		return nil, fmt.Errorf("get player mineralPackets: %w", err)
 	}
 	mapObjects.MineralPackets = mineralPackets
 
-	fleets, err := c.GetFleetsForPlayer(gameID, num)
+	fleets, err := c.GetFleetsForPlayer(ctx, gameID, playerNum)
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets: %w", err)
 	}
@@ -804,184 +314,107 @@ func (c *client) GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects
 	return &mapObjects, nil
 }
 
-// get a player with designs loaded
-func (c *client) GetPlayerWithDesignsForGame(gameID int64, num int) (*cs.Player, error) {
-	player := cs.Player{}
+func (c *client) CreatePlayer(ctx context.Context, player *cs.Player) (*cs.Player, error) {
 
-	item := Player{}
-	if err := c.reader.Get(&item, "SELECT * FROM players WHERE gameId = ? AND num = ?", gameID, num); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+	result, err := c.writer.CreatePlayer(ctx, c.converter.ConvertGamePlayerToCreateParams(player))
+	if err != nil {
 		return nil, err
 	}
 
-	// load the player component from the DB
-	player = c.converter.ConvertPlayer(item)
-
-	designs, err := c.GetShipDesignsForPlayer(gameID, player.Num)
-	if err != nil {
-		return nil, fmt.Errorf("get player designs: %w", err)
-	}
-	player.Designs = designs
-
-	return &player, nil
+	created := c.converter.ConvertPlayer(result)
+	return &created, nil
 }
 
-func (c *client) CreatePlayer(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-	result, err := c.writer.NamedExec(`
-	INSERT INTO players (
-		createdAt,
-		updatedAt,
-		gameId,
-		userId,
-		name,
-		num,
-		ready,
-		aiControlled,
-		aiDifficulty,
-		guest,
-		submittedTurn,
-		color,
-		defaultHullSet,
-		techLevelsEnergy,
-		techLevelsWeapons,
-		techLevelsPropulsion,
-		techLevelsConstruction,
-		techLevelsElectronics,
-		techLevelsBiotechnology,
-		techLevelsSpentEnergy,
-		techLevelsSpentWeapons,
-		techLevelsSpentPropulsion,
-		techLevelsSpentConstruction,
-		techLevelsSpentElectronics,
-		techLevelsSpentBiotechnology,
-		researchAmount,
-		researchSpentLastYear,
-		nextResearchField,
-		researching,
-		cargoTransfers,
-		battlePlans,
-		productionPlans,
-		transportPlans,
-		relations,
-		messages,
-		battleRecords,
-		playerIntels,
-		scoreIntels,
-		planetIntels,
-		fleetIntels,
-		shipDesignIntels,
-		mineralPacketIntels,
-		mineFieldIntels,
-		wormholeIntels,
-		mysteryTraderIntels,
-		salvageIntels,
-		race,
-		stats,
-		scoreHistory,
-		acquiredTechs,
-		achievedVictoryConditions,
-		victor,
-		archived,
-		spec
-	)
-	VALUES (
-		CURRENT_TIMESTAMP,
-		CURRENT_TIMESTAMP,
-		:gameId,
-		:userId,
-		:name,
-		:num,
-		:ready,
-		:aiControlled,
-		:aiDifficulty,
-		:guest,
-		:submittedTurn,
-		:color,
-		:defaultHullSet,
-		:techLevelsEnergy,
-		:techLevelsWeapons,
-		:techLevelsPropulsion,
-		:techLevelsConstruction,
-		:techLevelsElectronics,
-		:techLevelsBiotechnology,
-		:techLevelsSpentEnergy,
-		:techLevelsSpentWeapons,
-		:techLevelsSpentPropulsion,
-		:techLevelsSpentConstruction,
-		:techLevelsSpentElectronics,
-		:techLevelsSpentBiotechnology,
-		:researchAmount,
-		:researchSpentLastYear,
-		:nextResearchField,
-		:researching,
-		:cargoTransfers,
-		:battlePlans,
-		:productionPlans,
-		:transportPlans,
-		:relations,
-		:messages,
-		:battleRecords,
-		:playerIntels,
-		:scoreIntels,
-		:planetIntels,
-		:fleetIntels,
-		:shipDesignIntels,
-		:mineralPacketIntels,
-		:mineFieldIntels,
-		:wormholeIntels,
-		:mysteryTraderIntels,
-		:salvageIntels,
-		:race,
-		:stats,
-		:scoreHistory,
-		:acquiredTechs,
-		:achievedVictoryConditions,
-		:victor,
-		:archived,
-		:spec
-	)
-	`, item)
+// update an existing player's lightweight fields
+func (c *client) UpdateLightPlayer(ctx context.Context, player *cs.Player) error {
 
+	result, err := c.writer.UpdateLightPlayer(ctx, generated.UpdateLightPlayerParams{
+		ID:                player.ID,
+		Name:              player.Name,
+		Num:               int64(player.Num),
+		Ready:             sql.NullBool{Valid: true, Bool: player.Ready},
+		Aicontrolled:      sql.NullBool{Valid: true, Bool: player.AIControlled},
+		Aidifficulty:      &player.AIDifficulty,
+		Guest:             player.Guest,
+		Submittedturn:     sql.NullBool{Valid: true, Bool: player.SubmittedTurn},
+		Color:             sql.NullString{Valid: true, String: player.Color},
+		Defaulthullset:    sql.NullInt64{Valid: true, Int64: int64(player.DefaultHullSet)},
+		Researchamount:    sql.NullInt64{Valid: true, Int64: int64(player.ResearchAmount)},
+		Nextresearchfield: player.NextResearchField,
+		Researching:       player.Researching,
+		Spec:              (*generated.PlayerSpec)(&player.Spec),
+	})
 	if err != nil {
 		return err
 	}
 
-	// update the id of our passed in game
-	id, err := result.LastInsertId()
+	player.UpdatedAt = result
+	return nil
+}
+
+// update an existing player's lightweight fields
+func (c *client) UpdatePlayerOrders(ctx context.Context, player *cs.Player) error {
+
+	result, err := c.writer.UpdatePlayerOrders(ctx, generated.UpdatePlayerOrdersParams{
+		ID:                player.ID,
+		Submittedturn:     sql.NullBool{Valid: true, Bool: player.SubmittedTurn},
+		Defaulthullset:    sql.NullInt64{Valid: true, Int64: int64(player.DefaultHullSet)},
+		Researchamount:    sql.NullInt64{Valid: true, Int64: int64(player.ResearchAmount)},
+		Nextresearchfield: player.NextResearchField,
+		Researching:       player.Researching,
+		Cargotransfers:    (*generated.CargoTransfers)(&player.CargoTransfers),
+		Battleplans:       (*generated.BattlePlans)(&player.BattlePlans),
+		Productionplans:   (*generated.ProductionPlans)(&player.ProductionPlans),
+		Transportplans:    (*generated.TransportPlans)(&player.TransportPlans),
+		Relations:         (*generated.PlayerRelationships)(&player.Relations),
+		Spec:              (*generated.PlayerSpec)(&player.Spec),
+	})
 	if err != nil {
 		return err
 	}
 
-	player.ID = id
-
+	player.UpdatedAt = result
 	return nil
 }
 
 // update an existing player's lightweight fields
-func (c *client) UpdateLightPlayer(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
+func (c *client) UpdatePlayerCargoTransfers(ctx context.Context, player *cs.Player) error {
+	result, err := c.writer.UpdatePlayerCargoTransfers(ctx, generated.UpdatePlayerCargoTransfersParams{
+		ID:             player.ID,
+		Cargotransfers: (*generated.CargoTransfers)(&player.CargoTransfers),
+	})
+	if err != nil {
+		return err
+	}
 
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		name = :name,
-		num = :num,
-		ready = :ready,
-		aiControlled = :aiControlled,
-		aiDifficulty = :aiDifficulty,
-		guest = :guest,
-		submittedTurn = :submittedTurn,
-		color = :color,
-		defaultHullSet = :defaultHullSet,
-		researchAmount = :researchAmount,
-		nextResearchField = :nextResearchField,
-		researching = :researching,
-		spec = :spec
-	WHERE id = :id
-	`, item); err != nil {
+	player.UpdatedAt = result
+	return nil
+
+}
+
+// update an existing player's lightweight fields
+func (c *client) UpdatePlayerRelations(ctx context.Context, player *cs.Player) error {
+	result, err := c.writer.UpdatePlayerRelations(ctx, generated.UpdatePlayerRelationsParams{
+		ID:        player.ID,
+		Relations: (*generated.PlayerRelationships)(&player.Relations),
+	})
+	if err != nil {
+		return err
+	}
+
+	player.UpdatedAt = result
+	return nil
+
+}
+
+// update an existing player's lightweight fields
+func (c *client) SubmitPlayerTurn(ctx context.Context, gameID int64, num int, submittedTurn bool) error {
+	_, err := c.writer.SubmitPlayerTurn(ctx, generated.SubmitPlayerTurnParams{
+		Gameid:        gameID,
+		Num:           int64(num),
+		Submittedturn: sql.NullBool{Valid: true, Bool: submittedTurn},
+	})
+	if err != nil {
 		return err
 	}
 
@@ -989,25 +422,13 @@ func (c *client) UpdateLightPlayer(player *cs.Player) error {
 }
 
 // update an existing player's lightweight fields
-func (c *client) UpdatePlayerOrders(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		submittedTurn = :submittedTurn,
-		defaultHullSet = :defaultHullSet,
-		researchAmount = :researchAmount,
-		nextResearchField = :nextResearchField,
-		researching = :researching,
-		cargoTransfers = :cargoTransfers,
-		battlePlans = :battlePlans,
-		productionPlans = :productionPlans,
-		transportPlans = :transportPlans,
-		relations = :relations,
-		spec = :spec
-	WHERE id = :id
-	`, item); err != nil {
+func (c *client) ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error {
+	_, err := c.writer.ArchivePlayer(ctx, generated.ArchivePlayerParams{
+		Gameid:   gameID,
+		Num:      int64(num),
+		Archived: archived,
+	})
+	if err != nil {
 		return err
 	}
 
@@ -1015,265 +436,113 @@ func (c *client) UpdatePlayerOrders(player *cs.Player) error {
 }
 
 // update an existing player's lightweight fields
-func (c *client) UpdatePlayerCargoTransfers(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		cargoTransfers = :cargoTransfers
-	WHERE id = :id
-	`, item); err != nil {
+func (c *client) UpdatePlayerPlans(ctx context.Context, player *cs.Player) error {
+	result, err := c.writer.UpdatePlayerPlans(ctx, generated.UpdatePlayerPlansParams{
+		ID:              player.ID,
+		Battleplans:     (*generated.BattlePlans)(&player.BattlePlans),
+		Productionplans: (*generated.ProductionPlans)(&player.ProductionPlans),
+		Transportplans:  (*generated.TransportPlans)(&player.TransportPlans),
+	})
+	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-// update an existing player's lightweight fields
-func (c *client) UpdatePlayerRelations(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		relations = :relations
-	WHERE id = :id
-	`, item); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// update an existing player's lightweight fields
-func (c *client) SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error {
-	type submitData struct {
-		GameID        int64 `json:"gameID"`
-		Num           int   `json:"num"`
-		SubmittedTurn bool  `json:"submittedTurn"`
-	}
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		submittedTurn = :submittedTurn
-	WHERE gameId = :gameID AND num = :num
-	`, submitData{GameID: gameID, Num: num, SubmittedTurn: submittedTurn}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// update an existing player's lightweight fields
-func (c *client) ArchivePlayer(gameID int64, num int, archived bool) error {
-	type submitData struct {
-		GameID   int64 `json:"gameID"`
-		Num      int   `json:"num"`
-		Archived bool  `json:"archived"`
-	}
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		archived = :archived
-	WHERE gameId = :gameID AND num = :num
-	`, submitData{GameID: gameID, Num: num, Archived: archived}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// update an existing player's lightweight fields
-func (c *client) UpdatePlayerPlans(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		battlePlans = :battlePlans,
-		productionPlans = :productionPlans,
-		transportPlans = :transportPlans
-	WHERE id = :id
-	`, item); err != nil {
-		return err
-	}
-
+	player.UpdatedAt = result
 	return nil
 }
 
 // update a player's spec in the database
-func (c *client) UpdatePlayerSpec(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		spec = :spec
-	WHERE id = :id
-	`, item); err != nil {
+func (c *client) UpdatePlayerSpec(ctx context.Context, player *cs.Player) error {
+	result, err := c.writer.UpdatePlayerSpec(ctx, generated.UpdatePlayerSpecParams{
+		ID:   player.ID,
+		Spec: (*generated.PlayerSpec)(&player.Spec),
+	})
+	if err != nil {
 		return err
 	}
 
+	player.UpdatedAt = result
 	return nil
 }
 
 // update a players planet intels (used after creating a new planet)
-func (c *client) UpdatePlayerPlanetIntels(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		planetIntels = :planetIntels
-	WHERE id = :id
-	`, item); err != nil {
+func (c *client) UpdatePlayerPlanetIntels(ctx context.Context, player *cs.Player) error {
+	result, err := c.writer.UpdatePlayerPlanetIntels(ctx, generated.UpdatePlayerPlanetIntelsParams{
+		ID:           player.ID,
+		Planetintels: (*generated.PlanetIntels)(&player.PlanetIntels),
+	})
+	if err != nil {
 		return err
 	}
 
+	player.UpdatedAt = result
 	return nil
 }
 
 // update a players fleet intels (used after creating a new fleet)
-func (c *client) UpdatePlayerFleetIntels(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		fleetIntels = :fleetIntels
-	WHERE id = :id
-	`, item); err != nil {
+func (c *client) UpdatePlayerFleetIntels(ctx context.Context, player *cs.Player) error {
+	result, err := c.writer.UpdatePlayerFleetIntels(ctx, generated.UpdatePlayerFleetIntelsParams{
+		ID:          player.ID,
+		Fleetintels: (*generated.FleetIntels)(&player.FleetIntels),
+	})
+	if err != nil {
 		return err
 	}
 
+	player.UpdatedAt = result
 	return nil
 }
 
 // update a players salvage intels (used after creating a new salvage)
-func (c *client) UpdatePlayerSalvageIntels(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		salvageIntels = :salvageIntels
-	WHERE id = :id
-	`, item); err != nil {
+func (c *client) UpdatePlayerSalvageIntels(ctx context.Context, player *cs.Player) error {
+	result, err := c.writer.UpdatePlayerSalvageIntels(ctx, generated.UpdatePlayerSalvageIntelsParams{
+		ID:            player.ID,
+		Salvageintels: (*generated.SalvageIntels)(&player.SalvageIntels),
+	})
+	if err != nil {
 		return err
 	}
 
+	player.UpdatedAt = result
 	return nil
 }
 
 // update a players mineralPacket intels (used after creating a new mineralPacket)
-func (c *client) UpdatePlayerMineralPacketIntels(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		mineralPacketIntels = :mineralPacketIntels
-	WHERE id = :id
-	`, item); err != nil {
+func (c *client) UpdatePlayerMineralPacketIntels(ctx context.Context, player *cs.Player) error {
+	result, err := c.writer.UpdatePlayerMineralPacketIntels(ctx, generated.UpdatePlayerMineralPacketIntelsParams{
+		ID:                  player.ID,
+		Mineralpacketintels: (*generated.MineralPacketIntels)(&player.MineralPacketIntels),
+	})
+	if err != nil {
 		return err
 	}
 
+	player.UpdatedAt = result
 	return nil
 }
 
 // helper to update a player using a transaction or DB
 // update an existing player
-func (c *client) UpdatePlayer(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		gameId = :gameId,
-		userId = :userId,
-		name = :name,
-		num = :num,
-		ready = :ready,
-		aiControlled = :aiControlled,
-		aiDifficulty = :aiDifficulty,
-		guest = :guest,
-		submittedTurn = :submittedTurn,
-		color = :color,
-		defaultHullSet = :defaultHullSet,
-		techLevelsEnergy = :techLevelsEnergy,
-		techLevelsWeapons = :techLevelsWeapons,
-		techLevelsPropulsion = :techLevelsPropulsion,
-		techLevelsConstruction = :techLevelsConstruction,
-		techLevelsElectronics = :techLevelsElectronics,
-		techLevelsBiotechnology = :techLevelsBiotechnology,
-		techLevelsSpentEnergy = :techLevelsSpentEnergy,
-		techLevelsSpentWeapons = :techLevelsSpentWeapons,
-		techLevelsSpentPropulsion = :techLevelsSpentPropulsion,
-		techLevelsSpentConstruction = :techLevelsSpentConstruction,
-		techLevelsSpentElectronics = :techLevelsSpentElectronics,
-		techLevelsSpentBiotechnology = :techLevelsSpentBiotechnology,
-		researchAmount = :researchAmount,
-		researchSpentLastYear = :researchSpentLastYear,
-		nextResearchField = :nextResearchField,
-		researching = :researching,
-		cargoTransfers = :cargoTransfers,
-		battlePlans = :battlePlans,
-		productionPlans = :productionPlans,
-		transportPlans = :transportPlans,
-		relations = :relations,
-		battleRecords = :battleRecords,
-		playerIntels = :playerIntels,
-		scoreIntels = :scoreIntels,
-		planetIntels = :planetIntels,
-		fleetIntels = :fleetIntels,
-		shipDesignIntels = :shipDesignIntels,
-		mineralPacketIntels = :mineralPacketIntels,
-		mineFieldIntels = :mineFieldIntels,
-		wormholeIntels = :wormholeIntels,
-		mysteryTraderIntels = :mysteryTraderIntels,
-		salvageIntels = :salvageIntels,
-		messages = :messages,
-		race = :race,
-		stats = :stats,
-		scoreHistory = :scoreHistory,
-		acquiredTechs = :acquiredTechs,
-		achievedVictoryConditions = :achievedVictoryConditions,
-		victor = :victor,
-		archived = :archived,
-		spec = :spec
-	WHERE id = :id
-	`, item); err != nil {
+func (c *client) UpdatePlayer(ctx context.Context, player *cs.Player) error {
+	result, err := c.writer.UpdatePlayer(ctx, c.converter.ConvertGamePlayerToUpdateParams(player))
+	if err != nil {
 		return err
 	}
 
+	player.UpdatedAt = result.Updatedat
 	return nil
 }
 
 // helper to update a player using a transaction or DB
 // update an existing player
-func (c *client) UpdatePlayerUserId(player *cs.Player) error {
-	item := c.converter.ConvertGamePlayer(player)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE players SET
-		updatedAt = CURRENT_TIMESTAMP,
-		userId = :userId
-	WHERE id = :id
-	`, item); err != nil {
-		return err
-	}
-
-	return nil
+func (c *client) UpdatePlayerUserId(ctx context.Context, player *cs.Player) error {
+	return c.writer.UpdatePlayerUserID(ctx, generated.UpdatePlayerUserIDParams{
+		ID:     player.ID,
+		Userid: sql.NullInt64{Valid: true, Int64: player.UserID},
+	})
 }
 
 // delete a player by id
-func (c *client) DeletePlayer(id int64) error {
-	if _, err := c.writer.Exec("DELETE FROM players WHERE id = ?", id); err != nil {
-		return err
-	}
-
-	return nil
+func (c *client) DeletePlayer(ctx context.Context, id int64) error {
+	return c.writer.DeletePlayer(ctx, id)
 }

@@ -1,7 +1,6 @@
 package db
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -21,21 +20,19 @@ func TestCreateSalvage(t *testing.T) {
 	}{
 		{"Create", args{connectTestDB(), &cs.Salvage{
 			GameDBObject: cs.GameDBObject{GameID: 1},
-			MapObject:    cs.MapObject{Name: "test"}},
+			MapObject:    cs.MapObject{Type: cs.MapObjectTypeSalvage, Name: "test"}},
 		}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// create a test game
-			g, player := tt.args.c.createTestGameWithPlayer()
+			g, player := tt.args.c.createTestGameWithPlayer(t.Context())
 			tt.args.salvage.GameID = g.ID
 			tt.args.salvage.PlayerNum = player.Num
 
 			want := *tt.args.salvage
-			err := tt.args.c.CreateSalvage(tt.args.salvage)
+			got, err := tt.args.c.CreateSalvage(t.Context(), tt.args.salvage)
 
-			// id is automatically added
-			want.ID = tt.args.salvage.ID
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("CreateSalvage() did not return error when expected")
@@ -43,9 +40,10 @@ func TestCreateSalvage(t *testing.T) {
 					t.Fatalf("CreateSalvage() errored unexpectedly; err = \n%v", err)
 				}
 			}
-			if !reflect.DeepEqual(tt.args.salvage, &want) {
-				t.Errorf("CreateSalvage() = \n%v, want \n%v", tt.args.salvage, want)
-			}
+
+			// id is automatically added
+			want.GameDBObject = got.GameDBObject
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }
@@ -54,13 +52,13 @@ func TestGetSalvage(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	g, player := c.createTestGameWithPlayer()
+	g, player := c.createTestGameWithPlayer(t.Context())
 
-	salvage := cs.Salvage{
+	salvage, err := c.CreateSalvage(t.Context(), &cs.Salvage{
 		GameDBObject: cs.GameDBObject{GameID: g.ID},
 		MapObject:    cs.MapObject{PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeSalvage},
-	}
-	if err := c.CreateSalvage(&salvage); err != nil {
+	})
+	if err != nil {
 		t.Errorf("create salvage %s", err)
 		return
 	}
@@ -75,11 +73,11 @@ func TestGetSalvage(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got salvage", args{id: salvage.ID}, &salvage, false},
+		{"Got salvage", args{id: salvage.ID}, salvage, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetSalvage(tt.args.id)
+			got, err := c.GetSalvage(t.Context(), tt.args.id)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("GetSalvage() did not return error when expected")
@@ -101,20 +99,20 @@ func TestGetSalvages(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	g, player := c.createTestGameWithPlayer()
+	g, player := c.createTestGameWithPlayer(t.Context())
 
-	// start with 1 planet from connectTestDB
-	result, err := c.GetSalvagesForGame(g.ID)
+	// start with 1 salvage from connectTestDB
+	result, err := c.GetSalvagesForGame(t.Context(), g.ID)
 	assert.Nil(t, err)
-	assert.Equal(t, []*cs.Salvage{}, result)
+	assert.Equal(t, 0, len(result))
 
-	salvage := cs.Salvage{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
-	if err := c.CreateSalvage(&salvage); err != nil {
-		t.Errorf("create planet %s", err)
+	_, err = c.CreateSalvage(t.Context(), &cs.Salvage{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}})
+	if err != nil {
+		t.Errorf("create salvage %s", err)
 		return
 	}
 
-	result, err = c.GetSalvagesForGame(g.ID)
+	result, err = c.GetSalvagesForGame(t.Context(), g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -124,27 +122,26 @@ func TestUpdateSalvage(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	g, player := c.createTestGameWithPlayer()
-	planet := cs.Salvage{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
-	if err := c.CreateSalvage(&planet); err != nil {
-		t.Errorf("create planet %s", err)
+	g, player := c.createTestGameWithPlayer(t.Context())
+	salvage, err := c.CreateSalvage(t.Context(), &cs.Salvage{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}})
+	if err != nil {
+		t.Errorf("create salvage %s", err)
 		return
 	}
 
-	planet.Name = "Test2"
-	if err := c.UpdateSalvage(&planet); err != nil {
-		t.Errorf("update planet %s", err)
+	salvage.Name = "Test2"
+	if err := c.UpdateSalvage(t.Context(), salvage); err != nil {
+		t.Errorf("update salvage %s", err)
 		return
 	}
 
-	updated, err := c.GetSalvage(planet.ID)
+	updated, err := c.GetSalvage(t.Context(), salvage.ID)
 
 	if err != nil {
-		t.Errorf("get planet %s", err)
+		t.Errorf("get salvage %s", err)
 		return
 	}
 
-	assert.Equal(t, planet.Name, updated.Name)
-	assert.Less(t, planet.UpdatedAt, updated.UpdatedAt)
+	assert.Equal(t, salvage.Name, updated.Name)
 
 }

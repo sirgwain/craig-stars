@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/sirgwain/craig-stars/config"
@@ -26,7 +27,7 @@ func connectTestDB() *client {
 	}
 
 	if err := dbConn.WrapInTransaction(func(c Client) error {
-		if err := c.CreateUser(user); err != nil {
+		if _, err := c.CreateUser(context.Background(), user); err != nil {
 			return fmt.Errorf("error creating test database user: \n%w", err)
 		}
 		return nil
@@ -50,11 +51,11 @@ func closeTestDB(c *client) {
 }
 
 // create a new game
-func (c *client) createTestGame() *cs.Game {
+func (c *client) createTestGame(ctx context.Context) *cs.Game {
 
-	game := cs.NewGame()
-	game.HostID = 1
-	if err := c.CreateGame(game); err != nil {
+	gameClient := cs.NewGamer()
+	game, err := c.CreateGame(ctx, gameClient.CreateGame(1, *cs.NewGameSettings()))
+	if err != nil {
 		panic(fmt.Errorf("error creating test database game: \n%w", err))
 	}
 
@@ -62,11 +63,11 @@ func (c *client) createTestGame() *cs.Game {
 }
 
 // create a simple game with one player
-func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
+func (c *client) createTestGameWithPlayer(ctx context.Context) (*cs.Game, *cs.Player) {
 
 	gameClient := cs.NewGamer()
-	game := gameClient.CreateGame(1, *cs.NewGameSettings())
-	if err := c.CreateGame(game); err != nil {
+	game, err := c.CreateGame(ctx, gameClient.CreateGame(1, *cs.NewGameSettings()))
+	if err != nil {
 		panic(fmt.Errorf("error creating test database game: \n%w", err))
 	}
 
@@ -74,24 +75,28 @@ func (c *client) createTestGameWithPlayer() (*cs.Game, *cs.Player) {
 	player.Num = 1
 	player.GameID = game.ID
 
-	if err := c.CreatePlayer(player); err != nil {
+	player, err = c.CreatePlayer(ctx, player)
+	if err != nil {
 		panic(fmt.Errorf("error creating test database game player: \n%w", err))
 	}
 
 	return game, player
 }
 
-func (c *client) createTestShipDesign(player *cs.Player, design *cs.ShipDesign) {
+func (c *client) createTestShipDesign(ctx context.Context, player *cs.Player, design *cs.ShipDesign) *cs.ShipDesign {
 	design.PlayerNum = player.Num
 	design.GameID = player.GameID
-	if err := c.CreateShipDesign(design); err != nil {
+	var err error
+	created, err := c.CreateShipDesign(ctx, design)
+	if err != nil {
 		panic(fmt.Errorf("error creating test design: \n%w", err))
 	}
+	return created
 }
 
-func (c *client) createTestFullGame() *cs.FullGame {
+func (c *client) createTestFullGame(ctx context.Context) *cs.FullGame {
 	gameClient := cs.NewGamer()
-	g, player := c.createTestGameWithPlayer()
+	g, player := c.createTestGameWithPlayer(ctx)
 
 	players := []*cs.Player{player}
 	universe, err := gameClient.GenerateUniverse(g, players)

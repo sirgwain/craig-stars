@@ -1,4 +1,4 @@
-package db
+package generated
 
 import (
 	"database/sql/driver"

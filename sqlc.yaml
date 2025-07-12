@@ -1,0 +1,311 @@
+version: "2"
+sql:
+  - engine: "sqlite"
+    queries: "db/queries"
+    schema: "db/schema/memory/0001_schema.up.sql"
+    gen:
+      go:
+        package: "generated"
+        out: "db/generated"
+        overrides:
+          # users
+          - column: users.discordid
+            go_type:
+              type: string
+              pointer: true
+          - column: users.discordavatar
+            go_type:
+              type: string
+              pointer: true
+          - column: users.lastlogin
+            go_type:
+              import: time
+              type: Time
+              pointer: true
+          # races
+          - column: races.spec
+            go_type:
+              type: RaceSpec
+              pointer: true
+          - column: races.spendleftoverpointson
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: SpendLeftoverPointsOn
+          - column: races.prt
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: PRT
+          - column: races.lrts
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: Bitmask
+          - column: races.researchcostenergy
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: ResearchCostLevel
+          - column: races.researchcostweapons
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: ResearchCostLevel
+          - column: races.researchcostpropulsion
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: ResearchCostLevel
+          - column: races.researchcostconstruction
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: ResearchCostLevel
+          - column: races.researchcostelectronics
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: ResearchCostLevel
+          - column: races.researchcostbiotechnology
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: ResearchCostLevel
+          # games
+          - column: games.state
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: GameState
+          - column: games.size
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: Size
+          - column: games.density
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: Density
+          - column: games.playerpositions
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: PlayerPositions
+          - column: games.startmode
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: GameStartMode
+          - column: games.victoryconditionsconditions
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: Bitmask
+          - column: games.rules
+            go_type:
+              type: Rules
+              pointer: true
+          # players
+          - column: players.aidifficulty
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: AIDifficulty
+              pointer: true
+          - column: players.nextresearchfield
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: NextResearchField
+          - column: players.researching
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: TechField
+          - column: players.achievedvictoryconditions
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: Bitmask
+              pointer: true
+          - column: players.cargotransfers
+            go_type:
+              type: CargoTransfers
+              pointer: true
+          - column: players.battleplans
+            go_type:
+              type: BattlePlans
+              pointer: true
+          - column: players.productionplans
+            go_type:
+              type: ProductionPlans
+              pointer: true
+          - column: players.transportplans
+            go_type:
+              type: TransportPlans
+              pointer: true
+          - column: players.relations
+            go_type:
+              type: PlayerRelationships
+              pointer: true
+          - column: players.messages
+            go_type:
+              type: PlayerMessages
+              pointer: true
+          - column: players.battlerecords
+            go_type:
+              type: BattleRecords
+              pointer: true
+          - column: players.playerintels
+            go_type:
+              type: PlayerIntels
+              pointer: true
+          - column: players.scoreintels
+            go_type:
+              type: ScoreIntels
+              pointer: true
+          - column: players.planetintels
+            go_type:
+              type: PlanetIntels
+              pointer: true
+          - column: players.fleetintels
+            go_type:
+              type: FleetIntels
+              pointer: true
+          - column: players.shipdesignintels
+            go_type:
+              type: ShipDesignIntels
+              pointer: true
+          - column: players.mineralpacketintels
+            go_type:
+              type: MineralPacketIntels
+              pointer: true
+          - column: players.minefieldintels
+            go_type:
+              type: MineFieldIntels
+              pointer: true
+          - column: players.wormholeintels
+            go_type:
+              type: WormholeIntels
+              pointer: true
+          - column: players.mysterytraderintels
+            go_type:
+              type: MysteryTraderIntels
+              pointer: true
+          - column: players.salvageintels
+            go_type:
+              type: SalvageIntels
+              pointer: true
+          - column: players.race
+            go_type:
+              type: PlayerRace
+              pointer: true
+          - column: players.stats
+            go_type:
+              type: PlayerStats
+              pointer: true
+          - column: players.scorehistory
+            go_type:
+              type: PlayerScores
+              pointer: true
+          - column: players.acquiredtechs
+            go_type:
+              type: AcquiredTechs
+              pointer: true
+          - column: players.spec
+            go_type:
+              type: PlayerSpec
+              pointer: true
+          # shipDesigns
+          - column: shipdesigns.purpose
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: ShipDesignPurpose
+              pointer: true
+          - column: shipdesigns.slots
+            go_type:
+              type: ShipDesignSlots
+              pointer: true
+          - column: shipdesigns.spec
+            go_type:
+              type: ShipDesignSpec
+              pointer: true
+          # planets
+          - column: planets.tags
+            go_type:
+              type: Tags
+              pointer: true
+          - column: planets.spec
+            go_type:
+              type: PlanetSpec
+              pointer: true
+          - column: planets.productionqueue
+            go_type:
+              type: ProductionQueueItems
+              pointer: true
+          - column: planets.routetargettype
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: MapObjectType
+              pointer: true
+          # fleets
+          - column: fleets.purpose
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: FleetPurpose
+              pointer: true
+          - column: fleets.tags
+            go_type:
+              type: Tags
+              pointer: true
+          - column: fleets.tokens
+            go_type:
+              type: ShipTokens
+              pointer: true
+          - column: fleets.waypoints
+            go_type:
+              type: Waypoints
+              pointer: true
+          - column: fleets.spec
+            go_type:
+              type: FleetSpec
+              pointer: true
+          # salvages
+          - column: salvages.tags
+            go_type:
+              type: Tags
+              pointer: true
+          # wormholes
+          - column: wormholes.tags
+            go_type:
+              type: Tags
+              pointer: true
+          - column: wormholes.spec
+            go_type:
+              type: WormholeSpec
+              pointer: true
+          - column: wormholes.stability
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: WormholeStability
+              pointer: true
+          # mineFields
+          - column: minefields.tags
+            go_type:
+              type: Tags
+              pointer: true
+          - column: minefields.minefieldtype
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: MineFieldType
+              pointer: true
+          - column: minefields.spec
+            go_type:
+              type: MineFieldSpec
+              pointer: true
+          # mineralPackets
+          - column: mineralpackets.tags
+            go_type:
+              type: Tags
+              pointer: true
+          # mysteryTraders
+          - column: mysterytraders.tags
+            go_type:
+              type: Tags
+              pointer: true
+          - column: mysterytraders.spec
+            go_type:
+              type: MysteryTraderSpec
+              pointer: true
+          - column: mysterytraders.playersrewarded
+            go_type:
+              type: MysteryTraderPlayersRewarded
+              pointer: true
+          - column: mysterytraders.rewardtype
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: MysteryTraderRewardType
+              pointer: true

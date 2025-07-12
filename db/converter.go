@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db/generated"
 )
 
 // will be instanciated in ./converter.init.go
@@ -13,172 +14,306 @@ var c Converter
 
 // goverter:converter
 // goverter:output:package github.com/sirgwain/craig-stars/db
-// goverter:output:file ./generated.go
+// goverter:output:file ./converter.generated.go
 // goverter:ignoreUnexported
-// goverter:extend TimeToTime
-// goverter:extend NullTimeToTime
-// goverter:extend TimeToNullTime
-// goverter:extend NullBoolToBool
-// goverter:extend BoolToNullBool
-// goverter:extend RulesToGameRules
-// goverter:extend GameRulesToRules
-// goverter:extend TagsToGameTags
-// goverter:extend GameTagsToTags
-// goverter:extend RaceSpecToGameRaceSpec
-// goverter:extend GameRaceSpecToRaceSpec
-// goverter:extend ProductionPlansToGameProductionPlans
-// goverter:extend GameProductionPlansToProductionPlans
-// goverter:extend CargoTransfersToGameCargoTransfers
-// goverter:extend GameCargoTransfersToCargoTransfers
-// goverter:extend BattlePlansToGameBattlePlans
-// goverter:extend GameBattlePlansToBattlePlans
-// goverter:extend TransportPlansToGameTransportPlans
-// goverter:extend GameTransportPlansToTransportPlans
-// goverter:extend PlayerRelationshipsToGamePlayerRelationships
-// goverter:extend GamePlayerRelationshipsToPlayerRelationships
-// goverter:extend PlayerMessagesToGamePlayerMessages
-// goverter:extend GamePlayerMessagesToPlayerMessages
-// goverter:extend PlayerScoresToGamePlayerScores
-// goverter:extend GamePlayerScoresToPlayerScores
 // goverter:extend AcquiredTechsToGameAcquiredTechs
-// goverter:extend GameAcquiredTechsToAcquiredTechs
+// goverter:extend BattlePlansToGameBattlePlans
 // goverter:extend BattleRecordsToGameBattleRecords
-// goverter:extend GameBattleRecordsToBattleRecords
-// goverter:extend PlayerIntelsToGamePlayerIntels
-// goverter:extend GamePlayerIntelsToPlayerIntels
-// goverter:extend ScoreIntelsToGameScoreIntels
-// goverter:extend GameScoreIntelsToScoreIntels
-// goverter:extend PlanetIntelsToGamePlanetIntels
-// goverter:extend GamePlanetIntelsToPlanetIntels
+// goverter:extend BoolToNullBool
+// goverter:extend CargoTransfersToGameCargoTransfers
 // goverter:extend FleetIntelsToGameFleetIntels
-// goverter:extend GameFleetIntelsToFleetIntels
-// goverter:extend ShipDesignIntelsToGameShipDesignIntels
-// goverter:extend GameShipDesignIntelsToShipDesignIntels
-// goverter:extend MineralPacketIntelsToGameMineralPacketIntels
-// goverter:extend GameMineralPacketIntelsToMineralPacketIntels
-// goverter:extend SalvageIntelsToGameSalvageIntels
-// goverter:extend GameSalvageIntelsToSalvageIntels
-// goverter:extend MineFieldIntelsToGameMineFieldIntels
-// goverter:extend GameMineFieldIntelsToMineFieldIntels
-// goverter:extend WormholeIntelsToGameWormholeIntels
-// goverter:extend GameWormholeIntelsToWormholeIntels
-// goverter:extend MysteryTraderIntelsToGameMysteryTraderIntels
-// goverter:extend GameMysteryTraderIntelsToMysteryTraderIntels
-// goverter:extend GameRaceToPlayerRace
-// goverter:extend PlayerRaceToGameRace
-// goverter:extend PlayerSpecToGamePlayerSpec
-// goverter:extend GamePlayerSpecToPlayerSpec
-// goverter:extend PlayerStatsToGamePlayerStats
-// goverter:extend GamePlayerStatsToPlayerStats
-// goverter:name GameConverter
-// goverter:extend PlanetSpecToGamePlanetSpec
-// goverter:extend GamePlanetSpecToPlanetSpec
-// goverter:extend ProductionQueueItemsToGameProductionQueueItems
-// goverter:extend GameProductionQueueItemsToProductionQueueItems
 // goverter:extend FleetSpecToGameFleetSpec
+// goverter:extend Float64ToNullFloat64
+// goverter:extend GameAcquiredTechsToAcquiredTechs
+// goverter:extend GameBattlePlansToBattlePlans
+// goverter:extend GameBattleRecordsToBattleRecords
+// goverter:extend GameCargoTransfersToCargoTransfers
+// goverter:extend GameFleetIntelsToFleetIntels
 // goverter:extend GameFleetSpecToFleetSpec
-// goverter:extend ShipTokensToGameShipTokens
-// goverter:extend GameShipTokensToShipTokens
-// goverter:extend WaypointsToGameWaypoints
-// goverter:extend GameWaypointsToWaypoints
-// goverter:extend MineFieldSpecToGameMineFieldSpec
+// goverter:extend GameMineFieldIntelsToMineFieldIntels
 // goverter:extend GameMineFieldSpecToMineFieldSpec
-// goverter:extend ShipDesignSpecToGameShipDesignSpec
-// goverter:extend GameShipDesignSpecToShipDesignSpec
-// goverter:extend ShipDesignSlotsToGameShipDesignSlots
-// goverter:extend GameShipDesignSlotsToShipDesignSlots
-// goverter:extend WormholeSpecToGameWormholeSpec
-// goverter:extend GameWormholeSpecToWormholeSpec
-// goverter:extend MysteryTraderSpecToGameMysteryTraderSpec
-// goverter:extend GameMysteryTraderSpecToMysteryTraderSpec
-// goverter:extend MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded
+// goverter:extend GameMineralPacketIntelsToMineralPacketIntels
+// goverter:extend GameMysteryTraderIntelsToMysteryTraderIntels
 // goverter:extend GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded
+// goverter:extend GameMysteryTraderSpecToMysteryTraderSpec
+// goverter:extend GamePlanetIntelsToPlanetIntels
+// goverter:extend GamePlanetSpecToPlanetSpec
+// goverter:extend GamePlayerIntelsToPlayerIntels
+// goverter:extend GamePlayerMessagesToPlayerMessages
+// goverter:extend GamePlayerRelationshipsToPlayerRelationships
+// goverter:extend GamePlayerScoresToPlayerScores
+// goverter:extend GamePlayerSpecToPlayerSpec
+// goverter:extend GamePlayerStatsToPlayerStats
+// goverter:extend GameProductionPlansToProductionPlans
+// goverter:extend GameProductionQueueItemsToProductionQueueItems
+// goverter:extend GameRaceSpecToRaceSpec
+// goverter:extend GameRaceToPlayerRace
+// goverter:extend GameRulesToRules
+// goverter:extend GameSalvageIntelsToSalvageIntels
+// goverter:extend GameScoreIntelsToScoreIntels
+// goverter:extend GameShipDesignIntelsToShipDesignIntels
+// goverter:extend GameShipDesignSlotsToShipDesignSlots
+// goverter:extend GameShipDesignSpecToShipDesignSpec
+// goverter:extend GameShipTokensToShipTokens
+// goverter:extend GameTagsToTags
+// goverter:extend GameTransportPlansToTransportPlans
+// goverter:extend GameWaypointsToWaypoints
+// goverter:extend GameWormholeIntelsToWormholeIntels
+// goverter:extend GameWormholeSpecToWormholeSpec
+// goverter:extend Int64ToInt
+// goverter:extend Int64ToNullInt64
+// goverter:extend IntToNullInt64
+// goverter:extend IntToInt64
+// goverter:extend MineFieldIntelsToGameMineFieldIntels
+// goverter:extend MineFieldSpecToGameMineFieldSpec
+// goverter:extend MineralPacketIntelsToGameMineralPacketIntels
+// goverter:extend MysteryTraderIntelsToGameMysteryTraderIntels
+// goverter:extend MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded
+// goverter:extend MysteryTraderSpecToGameMysteryTraderSpec
+// goverter:extend NullBoolToBool
+// goverter:extend NullFloat64ToFloat64
+// goverter:extend NullInt64ToInt64
+// goverter:extend NullInt64ToInt
+// goverter:extend NullStringToString
+// goverter:extend NullTimeToTime
+// goverter:extend PlanetIntelsToGamePlanetIntels
+// goverter:extend PlanetSpecToGamePlanetSpec
+// goverter:extend PlayerIntelsToGamePlayerIntels
+// goverter:extend PlayerMessagesToGamePlayerMessages
+// goverter:extend PlayerRaceToGameRace
+// goverter:extend PlayerRelationshipsToGamePlayerRelationships
+// goverter:extend PlayerScoresToGamePlayerScores
+// goverter:extend PlayerSpecToGamePlayerSpec
+// goverter:extend PlayerStatsToGamePlayerStats
+// goverter:extend ProductionPlansToGameProductionPlans
+// goverter:extend ProductionQueueItemsToGameProductionQueueItems
+// goverter:extend RaceSpecToGameRaceSpec
+// goverter:extend RulesToGameRules
+// goverter:extend SalvageIntelsToGameSalvageIntels
+// goverter:extend ScoreIntelsToGameScoreIntels
+// goverter:extend ShipDesignIntelsToGameShipDesignIntels
+// goverter:extend ShipDesignSlotsToGameShipDesignSlots
+// goverter:extend ShipDesignSpecToGameShipDesignSpec
+// goverter:extend ShipTokensToGameShipTokens
+// goverter:extend StringToNullString
+// goverter:extend TagsToGameTags
+// goverter:extend TimeToNullTime
+// goverter:extend TimeToTime
+// goverter:extend TransportPlansToGameTransportPlans
+// goverter:extend WaypointsToGameWaypoints
+// goverter:extend WormholeIntelsToGameWormholeIntels
+// goverter:extend WormholeSpecToGameWormholeSpec
+// goverter:name GameConverter
 // goverter:enum no
+// goverter:matchIgnoreCase
+// goverter:useZeroValueOnPointerInconsistency
 type Converter interface {
-	// goverter:map . DBObject
-	// goverter:map . UserSettings
-	ConvertUser(source User) cs.User
-
-	ConvertUsers(source []User) []cs.User
+	// goverter:autoMap DBObject
+	// goverter:autoMap UserSettings
+	ConvertGameUserToCreateParams(source *cs.User) generated.CreateUserParams
 
 	// goverter:autoMap DBObject
 	// goverter:autoMap UserSettings
-	ConvertGameUser(source *cs.User) *User
+	ConvertGameUserToUpdateParams(source *cs.User) generated.UpdateUserParams
+
+	// goverter:map . DBObject
+	// goverter:map . UserSettings
+	ConvertUser(source generated.User) cs.User
+
+	ConvertUsers(source []generated.User) []cs.User
 
 	// goverter:map . DBObject
 	// goverter:map . ResearchCost | ExtendResearchCost
 	// goverter:map . HabLow | ExtendHabLow
 	// goverter:map . HabHigh | ExtendHabHigh
-	ConvertRace(source Race) cs.Race
+	ConvertRace(source generated.Race) cs.Race
 
-	ConvertRaces(source []Race) []cs.Race
+	ConvertRaces(source []generated.Race) []cs.Race
 
 	// goverter:autoMap DBObject
-	// goverter:map HabHigh.Grav HabHighGrav
-	// goverter:map HabHigh.Temp HabHighTemp
-	// goverter:map HabHigh.Rad HabHighRad
-	// goverter:map HabLow.Grav HabLowGrav
-	// goverter:map HabLow.Temp HabLowTemp
-	// goverter:map HabLow.Rad HabLowRad
-	// goverter:map ResearchCost.Energy ResearchCostEnergy
-	// goverter:map ResearchCost.Weapons ResearchCostWeapons
-	// goverter:map ResearchCost.Propulsion ResearchCostPropulsion
-	// goverter:map ResearchCost.Construction ResearchCostConstruction
-	// goverter:map ResearchCost.Electronics ResearchCostElectronics
-	// goverter:map ResearchCost.Biotechnology ResearchCostBiotechnology
-	ConvertGameRace(source *cs.Race) *Race
+	// goverter:map HabHigh.Grav Habhighgrav
+	// goverter:map HabHigh.Temp Habhightemp
+	// goverter:map HabHigh.Rad Habhighrad
+	// goverter:map HabLow.Grav Hablowgrav
+	// goverter:map HabLow.Temp Hablowtemp
+	// goverter:map HabLow.Rad Hablowrad
+	// goverter:map ResearchCost.Energy Researchcostenergy
+	// goverter:map ResearchCost.Weapons Researchcostweapons
+	// goverter:map ResearchCost.Propulsion Researchcostpropulsion
+	// goverter:map ResearchCost.Construction Researchcostconstruction
+	// goverter:map ResearchCost.Electronics Researchcostelectronics
+	// goverter:map ResearchCost.Biotechnology Researchcostbiotechnology
+	ConvertGameRace(source *cs.Race) generated.Race
+
+	// goverter:autoMap DBObject
+	// goverter:map HabHigh.Grav Habhighgrav
+	// goverter:map HabHigh.Temp Habhightemp
+	// goverter:map HabHigh.Rad Habhighrad
+	// goverter:map HabLow.Grav Hablowgrav
+	// goverter:map HabLow.Temp Hablowtemp
+	// goverter:map HabLow.Rad Hablowrad
+	// goverter:map ResearchCost.Energy Researchcostenergy
+	// goverter:map ResearchCost.Weapons Researchcostweapons
+	// goverter:map ResearchCost.Propulsion Researchcostpropulsion
+	// goverter:map ResearchCost.Construction Researchcostconstruction
+	// goverter:map ResearchCost.Electronics Researchcostelectronics
+	// goverter:map ResearchCost.Biotechnology Researchcostbiotechnology
+	ConvertGameRaceToCreateParams(source *cs.Race) generated.CreateRaceParams
+
+	// goverter:autoMap DBObject
+	// goverter:map HabHigh.Grav Habhighgrav
+	// goverter:map HabHigh.Temp Habhightemp
+	// goverter:map HabHigh.Rad Habhighrad
+	// goverter:map HabLow.Grav Hablowgrav
+	// goverter:map HabLow.Temp Hablowtemp
+	// goverter:map HabLow.Rad Hablowrad
+	// goverter:map ResearchCost.Energy Researchcostenergy
+	// goverter:map ResearchCost.Weapons Researchcostweapons
+	// goverter:map ResearchCost.Propulsion Researchcostpropulsion
+	// goverter:map ResearchCost.Construction Researchcostconstruction
+	// goverter:map ResearchCost.Electronics Researchcostelectronics
+	// goverter:map ResearchCost.Biotechnology Researchcostbiotechnology
+	ConvertGameRaceToUpdateParams(source *cs.Race) generated.UpdateRaceParams
 
 	// goverter:map . DBObject
 	// goverter:map . VictoryConditions | ExtendVictoryConditions
 	// goverter:map . Area | ExtendArea
 	// goverter:map . Rules | ExtendDefaultRules
-	ConvertGame(source Game) cs.Game
+	ConvertGame(source generated.Game) cs.Game
 
-	ConvertGames(source []Game) []cs.Game
+	ConvertGames(source []generated.Game) []cs.Game
 
 	// goverter:autoMap DBObject
-	// goverter:map VictoryConditions.NumCriteriaRequired VictoryConditionsNumCriteriaRequired
-	// goverter:map VictoryConditions.YearsPassed VictoryConditionsYearsPassed
-	// goverter:map VictoryConditions.OwnPlanets VictoryConditionsOwnPlanets
-	// goverter:map VictoryConditions.AttainTechLevel VictoryConditionsAttainTechLevel
-	// goverter:map VictoryConditions.AttainTechLevelNumFields VictoryConditionsAttainTechLevelNumFields
-	// goverter:map VictoryConditions.ExceedsScore VictoryConditionsExceedsScore
-	// goverter:map VictoryConditions.ExceedsSecondPlaceScore VictoryConditionsExceedsSecondPlaceScore
-	// goverter:map VictoryConditions.ProductionCapacity VictoryConditionsProductionCapacity
-	// goverter:map VictoryConditions.OwnCapitalShips VictoryConditionsOwnCapitalShips
-	// goverter:map VictoryConditions.HighestScoreAfterYears VictoryConditionsHighestScoreAfterYears
-	// goverter:map VictoryConditions.Conditions VictoryConditionsConditions
-	// goverter:map Area.X AreaX
-	// goverter:map Area.Y AreaY
-	ConvertGameGame(source *cs.Game) *Game
+	// goverter:map VictoryConditions.NumCriteriaRequired Victoryconditionsnumcriteriarequired
+	// goverter:map VictoryConditions.YearsPassed Victoryconditionsyearspassed
+	// goverter:map VictoryConditions.OwnPlanets Victoryconditionsownplanets
+	// goverter:map VictoryConditions.AttainTechLevel Victoryconditionsattaintechlevel
+	// goverter:map VictoryConditions.AttainTechLevelNumFields Victoryconditionsattaintechlevelnumfields
+	// goverter:map VictoryConditions.ExceedsScore Victoryconditionsexceedsscore
+	// goverter:map VictoryConditions.ExceedsSecondPlaceScore Victoryconditionsexceedssecondplacescore
+	// goverter:map VictoryConditions.ProductionCapacity Victoryconditionsproductioncapacity
+	// goverter:map VictoryConditions.OwnCapitalShips Victoryconditionsowncapitalships
+	// goverter:map VictoryConditions.HighestScoreAfterYears Victoryconditionshighestscoreafteryears
+	// goverter:map VictoryConditions.Conditions Victoryconditionsconditions
+	// goverter:map Area.X Areax
+	// goverter:map Area.Y Areay
+	ConvertGameGame(source *cs.Game) generated.Game
+
+	// goverter:autoMap DBObject
+	// goverter:map VictoryConditions.NumCriteriaRequired Victoryconditionsnumcriteriarequired
+	// goverter:map VictoryConditions.YearsPassed Victoryconditionsyearspassed
+	// goverter:map VictoryConditions.OwnPlanets Victoryconditionsownplanets
+	// goverter:map VictoryConditions.AttainTechLevel Victoryconditionsattaintechlevel
+	// goverter:map VictoryConditions.AttainTechLevelNumFields Victoryconditionsattaintechlevelnumfields
+	// goverter:map VictoryConditions.ExceedsScore Victoryconditionsexceedsscore
+	// goverter:map VictoryConditions.ExceedsSecondPlaceScore Victoryconditionsexceedssecondplacescore
+	// goverter:map VictoryConditions.ProductionCapacity Victoryconditionsproductioncapacity
+	// goverter:map VictoryConditions.OwnCapitalShips Victoryconditionsowncapitalships
+	// goverter:map VictoryConditions.HighestScoreAfterYears Victoryconditionshighestscoreafteryears
+	// goverter:map VictoryConditions.Conditions Victoryconditionsconditions
+	// goverter:map Area.X Areax
+	// goverter:map Area.Y Areay
+	ConvertGameGameToCreateParams(source *cs.Game) generated.CreateGameParams
+
+	// goverter:autoMap DBObject
+	// goverter:map VictoryConditions.NumCriteriaRequired Victoryconditionsnumcriteriarequired
+	// goverter:map VictoryConditions.YearsPassed Victoryconditionsyearspassed
+	// goverter:map VictoryConditions.OwnPlanets Victoryconditionsownplanets
+	// goverter:map VictoryConditions.AttainTechLevel Victoryconditionsattaintechlevel
+	// goverter:map VictoryConditions.AttainTechLevelNumFields Victoryconditionsattaintechlevelnumfields
+	// goverter:map VictoryConditions.ExceedsScore Victoryconditionsexceedsscore
+	// goverter:map VictoryConditions.ExceedsSecondPlaceScore Victoryconditionsexceedssecondplacescore
+	// goverter:map VictoryConditions.ProductionCapacity Victoryconditionsproductioncapacity
+	// goverter:map VictoryConditions.OwnCapitalShips Victoryconditionsowncapitalships
+	// goverter:map VictoryConditions.HighestScoreAfterYears Victoryconditionshighestscoreafteryears
+	// goverter:map VictoryConditions.Conditions Victoryconditionsconditions
+	// goverter:map Area.X Areax
+	// goverter:map Area.Y Areay
+	ConvertGameGameToUpdateParams(source *cs.Game) generated.UpdateGameParams
 
 	// goverter:autoMap GameDBObject
-	// goverter:map TechLevels.Energy TechLevelsEnergy
-	// goverter:map TechLevels.Weapons TechLevelsWeapons
-	// goverter:map TechLevels.Propulsion TechLevelsPropulsion
-	// goverter:map TechLevels.Construction TechLevelsConstruction
-	// goverter:map TechLevels.Electronics TechLevelsElectronics
-	// goverter:map TechLevels.Biotechnology TechLevelsBiotechnology
-	// goverter:map TechLevelsSpent.Energy TechLevelsSpentEnergy
-	// goverter:map TechLevelsSpent.Weapons TechLevelsSpentWeapons
-	// goverter:map TechLevelsSpent.Propulsion TechLevelsSpentPropulsion
-	// goverter:map TechLevelsSpent.Construction TechLevelsSpentConstruction
-	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
-	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
+	// goverter:map TechLevels.Energy Techlevelsenergy
+	// goverter:map TechLevels.Weapons Techlevelsweapons
+	// goverter:map TechLevels.Propulsion Techlevelspropulsion
+	// goverter:map TechLevels.Construction Techlevelsconstruction
+	// goverter:map TechLevels.Electronics Techlevelselectronics
+	// goverter:map TechLevels.Biotechnology Techlevelsbiotechnology
+	// goverter:map TechLevelsSpent.Energy Techlevelsspentenergy
+	// goverter:map TechLevelsSpent.Weapons Techlevelsspentweapons
+	// goverter:map TechLevelsSpent.Propulsion Techlevelsspentpropulsion
+	// goverter:map TechLevelsSpent.Construction Techlevelsspentconstruction
+	// goverter:map TechLevelsSpent.Electronics Techlevelsspentelectronics
+	// goverter:map TechLevelsSpent.Biotechnology Techlevelsspentbiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords BattleRecords
-	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
-	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
-	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
-	// goverter:map PlayerIntels.FleetIntels FleetIntels
-	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
-	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MineFieldIntels MineFieldIntels
-	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
-	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
-	// goverter:map PlayerIntels.SalvageIntels	 SalvageIntels
+	// goverter:map PlayerIntels.BattleRecords Battlerecords
+	// goverter:map PlayerIntels.PlayerIntels Playerintels
+	// goverter:map PlayerIntels.ScoreIntels Scoreintels
+	// goverter:map PlayerIntels.PlanetIntels Planetintels
+	// goverter:map PlayerIntels.FleetIntels Fleetintels
+	// goverter:map PlayerIntels.ShipDesignIntels Shipdesignintels
+	// goverter:map PlayerIntels.MineralPacketIntels Mineralpacketintels
+	// goverter:map PlayerIntels.MineFieldIntels Minefieldintels
+	// goverter:map PlayerIntels.WormholeIntels Wormholeintels
+	// goverter:map PlayerIntels.MysteryTraderIntels Mysterytraderintels
+	// goverter:map PlayerIntels.SalvageIntels	 Salvageintels
 	// goverter:autoMap PlayerPlans
-	ConvertGamePlayer(source *cs.Player) *Player
+	ConvertGamePlayer(source *cs.Player) generated.Player
+
+	// goverter:autoMap GameDBObject
+	// goverter:map TechLevels.Energy Techlevelsenergy
+	// goverter:map TechLevels.Weapons Techlevelsweapons
+	// goverter:map TechLevels.Propulsion Techlevelspropulsion
+	// goverter:map TechLevels.Construction Techlevelsconstruction
+	// goverter:map TechLevels.Electronics Techlevelselectronics
+	// goverter:map TechLevels.Biotechnology Techlevelsbiotechnology
+	// goverter:map TechLevelsSpent.Energy Techlevelsspentenergy
+	// goverter:map TechLevelsSpent.Weapons Techlevelsspentweapons
+	// goverter:map TechLevelsSpent.Propulsion Techlevelsspentpropulsion
+	// goverter:map TechLevelsSpent.Construction Techlevelsspentconstruction
+	// goverter:map TechLevelsSpent.Electronics Techlevelsspentelectronics
+	// goverter:map TechLevelsSpent.Biotechnology Techlevelsspentbiotechnology
+	// goverter:autoMap PlayerOrders
+	// goverter:map PlayerIntels.BattleRecords Battlerecords
+	// goverter:map PlayerIntels.PlayerIntels Playerintels
+	// goverter:map PlayerIntels.ScoreIntels Scoreintels
+	// goverter:map PlayerIntels.PlanetIntels Planetintels
+	// goverter:map PlayerIntels.FleetIntels Fleetintels
+	// goverter:map PlayerIntels.ShipDesignIntels Shipdesignintels
+	// goverter:map PlayerIntels.MineralPacketIntels Mineralpacketintels
+	// goverter:map PlayerIntels.MineFieldIntels Minefieldintels
+	// goverter:map PlayerIntels.WormholeIntels Wormholeintels
+	// goverter:map PlayerIntels.MysteryTraderIntels Mysterytraderintels
+	// goverter:map PlayerIntels.SalvageIntels	 Salvageintels
+	// goverter:autoMap PlayerPlans
+	ConvertGamePlayerToCreateParams(source *cs.Player) generated.CreatePlayerParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:map TechLevels.Energy Techlevelsenergy
+	// goverter:map TechLevels.Weapons Techlevelsweapons
+	// goverter:map TechLevels.Propulsion Techlevelspropulsion
+	// goverter:map TechLevels.Construction Techlevelsconstruction
+	// goverter:map TechLevels.Electronics Techlevelselectronics
+	// goverter:map TechLevels.Biotechnology Techlevelsbiotechnology
+	// goverter:map TechLevelsSpent.Energy Techlevelsspentenergy
+	// goverter:map TechLevelsSpent.Weapons Techlevelsspentweapons
+	// goverter:map TechLevelsSpent.Propulsion Techlevelsspentpropulsion
+	// goverter:map TechLevelsSpent.Construction Techlevelsspentconstruction
+	// goverter:map TechLevelsSpent.Electronics Techlevelsspentelectronics
+	// goverter:map TechLevelsSpent.Biotechnology Techlevelsspentbiotechnology
+	// goverter:autoMap PlayerOrders
+	// goverter:map PlayerIntels.BattleRecords Battlerecords
+	// goverter:map PlayerIntels.PlayerIntels Playerintels
+	// goverter:map PlayerIntels.ScoreIntels Scoreintels
+	// goverter:map PlayerIntels.PlanetIntels Planetintels
+	// goverter:map PlayerIntels.FleetIntels Fleetintels
+	// goverter:map PlayerIntels.ShipDesignIntels Shipdesignintels
+	// goverter:map PlayerIntels.MineralPacketIntels Mineralpacketintels
+	// goverter:map PlayerIntels.MineFieldIntels Minefieldintels
+	// goverter:map PlayerIntels.WormholeIntels Wormholeintels
+	// goverter:map PlayerIntels.MysteryTraderIntels Mysterytraderintels
+	// goverter:map PlayerIntels.SalvageIntels	 Salvageintels
+	// goverter:autoMap PlayerPlans
+	ConvertGamePlayerToUpdateParams(source *cs.Player) generated.UpdatePlayerParams
 
 	// goverter:map . GameDBObject
 	// goverter:map . TechLevels | ExtendTechLevels
@@ -187,29 +322,84 @@ type Converter interface {
 	// goverter:map . PlayerIntels
 	// goverter:map . PlayerPlans
 	// goverter:ignore Designs
-	ConvertPlayer(source Player) cs.Player
+	ConvertPlayer(source generated.Player) cs.Player
 
-	ConvertPlayers(source []Player) []cs.Player
+	// goverter:map . GameDBObject
+	// goverter:map . TechLevels | ExtendTechLevelsLight
+	// goverter:map . TechLevelsSpent | ExtendTechLevelsSpentLight
+	// goverter:map . PlayerOrders
+	// goverter:map . PlayerPlans
+	// goverter:ignore Messages
+	// goverter:ignore PlayerIntels
+	// goverter:ignore Designs
+	ConvertLightPlayer(source generated.GetLightPlayerForGameRow) cs.Player
+
+	// goverter:map . GameDBObject
+	// goverter:ignoreMissing
+	ConvertPlayerStatus(source generated.GetPlayersStatusForGameRow) cs.Player
+	ConvertPlayerStatuses(source []generated.GetPlayersStatusForGameRow) []*cs.Player
+
+	ConvertPlayers(source []generated.Player) []*cs.Player
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap PlanetOrders
 	// goverter:autoMap Hab
-	// goverter:map BaseHab.Grav BaseGrav
-	// goverter:map BaseHab.Temp BaseTemp
-	// goverter:map BaseHab.Rad BaseRad
-	// goverter:map TerraformedAmount.Grav TerraformedAmountGrav
-	// goverter:map TerraformedAmount.Temp TerraformedAmountTemp
-	// goverter:map TerraformedAmount.Rad TerraformedAmountRad
-	// goverter:map MineralConcentration.Ironium MineralConcIronium
-	// goverter:map MineralConcentration.Boranium MineralConcBoranium
-	// goverter:map MineralConcentration.Germanium MineralConcGermanium
-	// goverter:map MineYears.Ironium MineYearsIronium
-	// goverter:map MineYears.Boranium MineYearsBoranium
-	// goverter:map MineYears.Germanium MineYearsGermanium
+	// goverter:map BaseHab.Grav Basegrav
+	// goverter:map BaseHab.Temp Basetemp
+	// goverter:map BaseHab.Rad Baserad
+	// goverter:map TerraformedAmount.Grav Terraformedamountgrav
+	// goverter:map TerraformedAmount.Temp Terraformedamounttemp
+	// goverter:map TerraformedAmount.Rad Terraformedamountrad
+	// goverter:map MineralConcentration.Ironium Mineralconcironium
+	// goverter:map MineralConcentration.Boranium Mineralconcboranium
+	// goverter:map MineralConcentration.Germanium Mineralconcgermanium
+	// goverter:map MineYears.Ironium Mineyearsironium
+	// goverter:map MineYears.Boranium Mineyearsboranium
+	// goverter:map MineYears.Germanium Mineyearsgermanium
 	// goverter:autoMap Cargo
-	ConvertGamePlanet(source *cs.Planet) *Planet
+	ConvertGamePlanet(source *cs.Planet) generated.Planet
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:autoMap PlanetOrders
+	// goverter:autoMap Hab
+	// goverter:map BaseHab.Grav Basegrav
+	// goverter:map BaseHab.Temp Basetemp
+	// goverter:map BaseHab.Rad Baserad
+	// goverter:map TerraformedAmount.Grav Terraformedamountgrav
+	// goverter:map TerraformedAmount.Temp Terraformedamounttemp
+	// goverter:map TerraformedAmount.Rad Terraformedamountrad
+	// goverter:map MineralConcentration.Ironium Mineralconcironium
+	// goverter:map MineralConcentration.Boranium Mineralconcboranium
+	// goverter:map MineralConcentration.Germanium Mineralconcgermanium
+	// goverter:map MineYears.Ironium Mineyearsironium
+	// goverter:map MineYears.Boranium Mineyearsboranium
+	// goverter:map MineYears.Germanium Mineyearsgermanium
+	// goverter:autoMap Cargo
+	ConvertGamePlanetToCreateParams(source *cs.Planet) generated.CreatePlanetParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:autoMap PlanetOrders
+	// goverter:autoMap Hab
+	// goverter:map BaseHab.Grav Basegrav
+	// goverter:map BaseHab.Temp Basetemp
+	// goverter:map BaseHab.Rad Baserad
+	// goverter:map TerraformedAmount.Grav Terraformedamountgrav
+	// goverter:map TerraformedAmount.Temp Terraformedamounttemp
+	// goverter:map TerraformedAmount.Rad Terraformedamountrad
+	// goverter:map MineralConcentration.Ironium Mineralconcironium
+	// goverter:map MineralConcentration.Boranium Mineralconcboranium
+	// goverter:map MineralConcentration.Germanium Mineralconcgermanium
+	// goverter:map MineYears.Ironium Mineyearsironium
+	// goverter:map MineYears.Boranium Mineyearsboranium
+	// goverter:map MineYears.Germanium Mineyearsgermanium
+	// goverter:autoMap Cargo
+	ConvertGamePlanetToUpdateParams(source *cs.Planet) generated.UpdatePlanetParams
 
 	// goverter:map . Hab
 	// goverter:map . BaseHab | ExtendBaseHab
@@ -222,18 +412,41 @@ type Converter interface {
 	// goverter:map . PlanetOrders
 	// goverter:ignore Starbase
 	// goverter:ignore Dirty
-	ConvertPlanet(source *Planet) *cs.Planet
+	ConvertPlanet(source generated.Planet) *cs.Planet
+	ConvertPlanets(source []generated.Planet) []*cs.Planet
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap FleetOrders
-	// goverter:map Heading.X HeadingX
-	// goverter:map Heading.Y HeadingY
-	// goverter:map PreviousPosition.X PreviousPositionX
-	// goverter:map PreviousPosition.Y PreviousPositionY
+	// goverter:map Heading.X Headingx
+	// goverter:map Heading.Y Headingy
+	// goverter:map PreviousPosition.X Previouspositionx
+	// goverter:map PreviousPosition.Y Previouspositiony
 	// goverter:autoMap Cargo
-	ConvertGameFleet(source *cs.Fleet) *Fleet
+	ConvertGameFleet(source *cs.Fleet) generated.Fleet
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:autoMap FleetOrders
+	// goverter:map Heading.X Headingx
+	// goverter:map Heading.Y Headingy
+	// goverter:map PreviousPosition.X Previouspositionx
+	// goverter:map PreviousPosition.Y Previouspositiony
+	// goverter:autoMap Cargo
+	ConvertGameFleetToCreateParams(source *cs.Fleet) generated.CreateFleetParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:autoMap FleetOrders
+	// goverter:map Heading.X Headingx
+	// goverter:map Heading.Y Headingy
+	// goverter:map PreviousPosition.X Previouspositionx
+	// goverter:map PreviousPosition.Y Previouspositiony
+	// goverter:autoMap Cargo
+	ConvertGameFleetToUpdateParams(source *cs.Fleet) generated.UpdateFleetParams
 
 	// goverter:map . Heading | ExtendFleetHeading
 	// goverter:map . PreviousPosition | ExtendFleetPreviousPosition
@@ -241,66 +454,135 @@ type Converter interface {
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendFleetMapObject
 	// goverter:map . FleetOrders | ExtendFleetFleetOrders
-	ConvertFleet(source *Fleet) *cs.Fleet
+	ConvertFleet(source generated.Fleet) *cs.Fleet
+
+	ConvertFleets(source []generated.Fleet) []*cs.Fleet
 
 	// goverter:autoMap GameDBObject
-	// goverter:ignore CanDelete
-	ConvertGameShipDesign(source *cs.ShipDesign) *ShipDesign
+	// goverter:ignore Candelete
+	ConvertGameShipDesign(source *cs.ShipDesign) generated.Shipdesign
+
+	// goverter:autoMap GameDBObject
+	// goverter:ignore Candelete
+	ConvertGameShipDesignToCreateParams(source *cs.ShipDesign) generated.CreateShipDesignParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:ignore Candelete
+	ConvertGameShipDesignToUpdateParams(source *cs.ShipDesign) generated.UpdateShipDesignParams
+
 	// goverter:ignore Delete
 	// goverter:map . GameDBObject
-	ConvertShipDesign(source *ShipDesign) *cs.ShipDesign
+	ConvertShipDesign(source generated.Shipdesign) *cs.ShipDesign
+
+	ConvertShipDesigns(source []generated.Shipdesign) []*cs.ShipDesign
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
-	ConvertGameWormhole(source *cs.Wormhole) *Wormhole
+	ConvertGameWormhole(source *cs.Wormhole) generated.Wormhole
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	ConvertGameWormholeToCreateParams(source *cs.Wormhole) generated.CreateWormholeParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	ConvertGameWormholeToUpdateParams(source *cs.Wormhole) generated.UpdateWormholeParams
 
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject
-	ConvertWormhole(source *Wormhole) *cs.Wormhole
+	ConvertWormhole(source generated.Wormhole) *cs.Wormhole
+	ConvertWormholes(source []generated.Wormhole) []*cs.Wormhole
 
 	// goverter:map . Position
 	// goverter:map Type | MapObjectTypeWormhole
 	// goverter:ignore Delete
 	// goverter:ignore PlayerNum
-	wormHoleMapObject(source Wormhole) cs.MapObject
+	wormHoleMapObject(source generated.Wormhole) cs.MapObject
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
-	// goverter:map Heading.X HeadingX
-	// goverter:map Heading.Y HeadingY
-	// goverter:map Destination.X DestinationX
-	// goverter:map Destination.Y DestinationY
-	ConvertGameMysteryTrader(source *cs.MysteryTrader) *MysteryTrader
+	// goverter:map Heading.X Headingx
+	// goverter:map Heading.Y Headingy
+	// goverter:map Destination.X Destinationx
+	// goverter:map Destination.Y Destinationy
+	ConvertGameMysteryTrader(source *cs.MysteryTrader) generated.Mysterytrader
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:map Heading.X Headingx
+	// goverter:map Heading.Y Headingy
+	// goverter:map Destination.X Destinationx
+	// goverter:map Destination.Y Destinationy
+	ConvertGameMysteryTraderToCreateParams(source *cs.MysteryTrader) generated.CreateMysteryTraderParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:map Heading.X Headingx
+	// goverter:map Heading.Y Headingy
+	// goverter:map Destination.X Destinationx
+	// goverter:map Destination.Y Destinationy
+	ConvertGameMysteryTraderToUpdateParams(source *cs.MysteryTrader) generated.UpdateMysteryTraderParams
 
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendMysteryTraderMapObject
 	// goverter:map . Heading | ExtendMysteryTraderHeading
 	// goverter:map . Destination | ExtendMysteryTraderDestination
-	ConvertMysteryTrader(source *MysteryTrader) *cs.MysteryTrader
+	ConvertMysteryTrader(source generated.Mysterytrader) *cs.MysteryTrader
+	ConvertMysteryTraders(source []generated.Mysterytrader) []*cs.MysteryTrader
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap Cargo
-	ConvertGameSalvage(source *cs.Salvage) *Salvage
+	ConvertGameSalvage(source *cs.Salvage) generated.Salvage
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:autoMap Cargo
+	ConvertGameSalvageToCreateParams(source *cs.Salvage) generated.CreateSalvageParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:autoMap Cargo
+	ConvertGameSalvageToUpdateParams(source *cs.Salvage) generated.UpdateSalvageParams
 
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendSalvageMapObject
 	// goverter:map . Cargo
-	ConvertSalvage(source *Salvage) *cs.Salvage
+	ConvertSalvage(source generated.Salvage) *cs.Salvage
+	ConvertSalvages(source []generated.Salvage) []*cs.Salvage
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:map MineFieldOrders.Detonate Detonate
-	ConvertGameMineField(source *cs.MineField) *MineField
+	ConvertGameMineField(source *cs.MineField) generated.Minefield
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:map MineFieldOrders.Detonate Detonate
+	ConvertGameMineFieldToCreateParams(source *cs.MineField) generated.CreateMineFieldParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:map MineFieldOrders.Detonate Detonate
+	ConvertGameMineFieldToUpdateParams(source *cs.MineField) generated.UpdateMineFieldParams
 
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendMineFieldMapObject
 	// goverter:map . MineFieldOrders
-	ConvertMineField(source *MineField) *cs.MineField
+	ConvertMineField(source generated.Minefield) *cs.MineField
+	ConvertMineFields(source []generated.Minefield) []*cs.MineField
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
@@ -309,21 +591,44 @@ type Converter interface {
 	// goverter:map Cargo.Ironium Ironium
 	// goverter:map Cargo.Boranium Boranium
 	// goverter:map Cargo.Germanium Germanium
-	// goverter:map Heading.X HeadingX
-	// goverter:map Heading.Y HeadingY
-	ConvertGameMineralPacket(source *cs.MineralPacket) *MineralPacket
+	// goverter:map Heading.X Headingx
+	// goverter:map Heading.Y Headingy
+	ConvertGameMineralPacket(source *cs.MineralPacket) generated.Mineralpacket
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:autoMap Cargo
+	// goverter:map Cargo.Ironium Ironium
+	// goverter:map Cargo.Boranium Boranium
+	// goverter:map Cargo.Germanium Germanium
+	// goverter:map Heading.X Headingx
+	// goverter:map Heading.Y Headingy
+	ConvertGameMineralPacketToCreateParams(source *cs.MineralPacket) generated.CreateMineralPacketParams
+
+	// goverter:autoMap GameDBObject
+	// goverter:autoMap MapObject.Position
+	// goverter:autoMap MapObject
+	// goverter:autoMap Cargo
+	// goverter:map Cargo.Ironium Ironium
+	// goverter:map Cargo.Boranium Boranium
+	// goverter:map Cargo.Germanium Germanium
+	// goverter:map Heading.X Headingx
+	// goverter:map Heading.Y Headingy
+	ConvertGameMineralPacketToUpdateParams(source *cs.MineralPacket) generated.UpdateMineralPacketParams
 
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendMineralPacketMapObject
 	// goverter:map . Cargo
 	// goverter:map . Heading | ExtendMineralPacketHeading
-	ConvertMineralPacket(source *MineralPacket) *cs.MineralPacket
+	ConvertMineralPacket(source generated.Mineralpacket) *cs.MineralPacket
+	ConvertMineralPackets(source []generated.Mineralpacket) []*cs.MineralPacket
 
 	// goverter:ignore Colonists
-	salvageCargo(source Salvage) cs.Cargo
+	salvageCargo(source generated.Salvage) cs.Cargo
 
 	// goverter:ignore Colonists
-	mineralPacketCargo(source MineralPacket) cs.Cargo
+	mineralPacketCargo(source generated.Mineralpacket) cs.Cargo
 }
 
 func MapObjectTypeWormhole() cs.MapObjectType {
@@ -362,34 +667,106 @@ func BoolToNullBool(source bool) sql.NullBool {
 	}
 }
 
-func RulesToGameRules(source *Rules) cs.Rules {
+func NullStringToString(source sql.NullString) string {
+	if source.Valid {
+		return source.String
+	}
+	return ""
+}
+
+func StringToNullString(source string) sql.NullString {
+	return sql.NullString{
+		Valid:  true,
+		String: source,
+	}
+}
+
+func NullFloat64ToFloat64(source sql.NullFloat64) float64 {
+	if source.Valid {
+		return source.Float64
+	}
+	return 0
+}
+
+func Float64ToNullFloat64(source float64) sql.NullFloat64 {
+	return sql.NullFloat64{
+		Valid:   true,
+		Float64: source,
+	}
+}
+
+func NullInt64ToInt64(source sql.NullInt64) int64 {
+	if source.Valid {
+		return source.Int64
+	}
+	return 0
+}
+
+func NullInt64ToInt(source sql.NullInt64) int {
+	if source.Valid {
+		return int(source.Int64)
+	}
+	return 0
+}
+
+func Int64ToNullInt64(source int64) sql.NullInt64 {
+	return sql.NullInt64{
+		Valid: true,
+		Int64: source,
+	}
+}
+
+func IntToNullInt64(source int) sql.NullInt64 {
+	return sql.NullInt64{
+		Valid: true,
+		Int64: int64(source),
+	}
+}
+
+func Int64ToInt(source int64) int {
+	return int(source)
+}
+
+func IntToInt64(source int) int64 {
+	return int64(source)
+}
+
+func RulesToGameRules(source *generated.Rules) cs.Rules {
 	return cs.Rules(*source)
 }
 
-func GameRulesToRules(source cs.Rules) *Rules {
-	return (*Rules)(&source)
+func GameRulesToRules(source cs.Rules) *generated.Rules {
+	return (*generated.Rules)(&source)
 }
 
-func RaceSpecToGameRaceSpec(source *RaceSpec) cs.RaceSpec {
+func RaceSpecToGameRaceSpec(source *generated.RaceSpec) cs.RaceSpec {
 	return (cs.RaceSpec)(*source)
 }
 
-func GameRaceSpecToRaceSpec(source cs.RaceSpec) *RaceSpec {
-	return (*RaceSpec)(&source)
+func GameRaceSpecToRaceSpec(source cs.RaceSpec) *generated.RaceSpec {
+	return (*generated.RaceSpec)(&source)
 }
 
-func TagsToGameTags(source *Tags) cs.Tags {
+func RaceGenSpecToGameRaceSpec(source *generated.RaceSpec) cs.RaceSpec {
+	return (cs.RaceSpec)(*source)
+}
+
+func GameRaceSpecToRaceGenSpec(source cs.RaceSpec) *generated.RaceSpec {
+	return (*generated.RaceSpec)(&source)
+}
+
+func TagsToGameTags(source *generated.Tags) cs.Tags {
 	if source == nil {
 		return cs.Tags{}
 	}
 	return (cs.Tags)(*source)
 }
 
-func GameTagsToTags(source cs.Tags) *Tags {
-	return (*Tags)(&source)
+func GameTagsToTags(source cs.Tags) *generated.Tags {
+	return (*generated.Tags)(&source)
 }
 
-func CargoTransfersToGameCargoTransfers(source *CargoTransfers) cs.CargoTransfers {
+func CargoTransfersToGameCargoTransfers(source *generated.CargoTransfers) cs.CargoTransfers {
 	// return an empty slice for nil
 	if source == nil {
 		return cs.CargoTransfers{}
@@ -398,11 +775,11 @@ func CargoTransfersToGameCargoTransfers(source *CargoTransfers) cs.CargoTransfer
 	return (cs.CargoTransfers)(*source)
 }
 
-func GameCargoTransfersToCargoTransfers(source cs.CargoTransfers) *CargoTransfers {
-	return (*CargoTransfers)(&source)
+func GameCargoTransfersToCargoTransfers(source cs.CargoTransfers) *generated.CargoTransfers {
+	return (*generated.CargoTransfers)(&source)
 }
 
-func BattlePlansToGameBattlePlans(source *BattlePlans) []cs.BattlePlan {
+func BattlePlansToGameBattlePlans(source *generated.BattlePlans) []cs.BattlePlan {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.BattlePlan{}
@@ -411,11 +788,11 @@ func BattlePlansToGameBattlePlans(source *BattlePlans) []cs.BattlePlan {
 	return ([]cs.BattlePlan)(*source)
 }
 
-func GameBattlePlansToBattlePlans(source []cs.BattlePlan) *BattlePlans {
-	return (*BattlePlans)(&source)
+func GameBattlePlansToBattlePlans(source []cs.BattlePlan) *generated.BattlePlans {
+	return (*generated.BattlePlans)(&source)
 }
 
-func ProductionPlansToGameProductionPlans(source *ProductionPlans) []cs.ProductionPlan {
+func ProductionPlansToGameProductionPlans(source *generated.ProductionPlans) []cs.ProductionPlan {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.ProductionPlan{}
@@ -423,11 +800,11 @@ func ProductionPlansToGameProductionPlans(source *ProductionPlans) []cs.Producti
 	return ([]cs.ProductionPlan)(*source)
 }
 
-func GameProductionPlansToProductionPlans(source []cs.ProductionPlan) *ProductionPlans {
-	return (*ProductionPlans)(&source)
+func GameProductionPlansToProductionPlans(source []cs.ProductionPlan) *generated.ProductionPlans {
+	return (*generated.ProductionPlans)(&source)
 }
 
-func TransportPlansToGameTransportPlans(source *TransportPlans) []cs.TransportPlan {
+func TransportPlansToGameTransportPlans(source *generated.TransportPlans) []cs.TransportPlan {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.TransportPlan{}
@@ -435,11 +812,11 @@ func TransportPlansToGameTransportPlans(source *TransportPlans) []cs.TransportPl
 	return ([]cs.TransportPlan)(*source)
 }
 
-func GameTransportPlansToTransportPlans(source []cs.TransportPlan) *TransportPlans {
-	return (*TransportPlans)(&source)
+func GameTransportPlansToTransportPlans(source []cs.TransportPlan) *generated.TransportPlans {
+	return (*generated.TransportPlans)(&source)
 }
 
-func PlayerRelationshipsToGamePlayerRelationships(source *PlayerRelationships) []cs.PlayerRelationship {
+func PlayerRelationshipsToGamePlayerRelationships(source *generated.PlayerRelationships) []cs.PlayerRelationship {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.PlayerRelationship{}
@@ -447,11 +824,11 @@ func PlayerRelationshipsToGamePlayerRelationships(source *PlayerRelationships) [
 	return ([]cs.PlayerRelationship)(*source)
 }
 
-func GamePlayerRelationshipsToPlayerRelationships(source []cs.PlayerRelationship) *PlayerRelationships {
-	return (*PlayerRelationships)(&source)
+func GamePlayerRelationshipsToPlayerRelationships(source []cs.PlayerRelationship) *generated.PlayerRelationships {
+	return (*generated.PlayerRelationships)(&source)
 }
 
-func PlayerMessagesToGamePlayerMessages(source *PlayerMessages) []cs.PlayerMessage {
+func PlayerMessagesToGamePlayerMessages(source *generated.PlayerMessages) []cs.PlayerMessage {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.PlayerMessage{}
@@ -459,11 +836,11 @@ func PlayerMessagesToGamePlayerMessages(source *PlayerMessages) []cs.PlayerMessa
 	return ([]cs.PlayerMessage)(*source)
 }
 
-func GamePlayerMessagesToPlayerMessages(source []cs.PlayerMessage) *PlayerMessages {
-	return (*PlayerMessages)(&source)
+func GamePlayerMessagesToPlayerMessages(source []cs.PlayerMessage) *generated.PlayerMessages {
+	return (*generated.PlayerMessages)(&source)
 }
 
-func PlayerScoresToGamePlayerScores(source *PlayerScores) []cs.PlayerScore {
+func PlayerScoresToGamePlayerScores(source *generated.PlayerScores) []cs.PlayerScore {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.PlayerScore{}
@@ -471,11 +848,11 @@ func PlayerScoresToGamePlayerScores(source *PlayerScores) []cs.PlayerScore {
 	return ([]cs.PlayerScore)(*source)
 }
 
-func GamePlayerScoresToPlayerScores(source []cs.PlayerScore) *PlayerScores {
-	return (*PlayerScores)(&source)
+func GamePlayerScoresToPlayerScores(source []cs.PlayerScore) *generated.PlayerScores {
+	return (*generated.PlayerScores)(&source)
 }
 
-func AcquiredTechsToGameAcquiredTechs(source *AcquiredTechs) map[string]bool {
+func AcquiredTechsToGameAcquiredTechs(source *generated.AcquiredTechs) map[string]bool {
 	// return an empty slice for nil
 	if source == nil {
 		return map[string]bool{}
@@ -483,11 +860,11 @@ func AcquiredTechsToGameAcquiredTechs(source *AcquiredTechs) map[string]bool {
 	return (map[string]bool)(*source)
 }
 
-func GameAcquiredTechsToAcquiredTechs(source map[string]bool) *AcquiredTechs {
-	return (*AcquiredTechs)(&source)
+func GameAcquiredTechsToAcquiredTechs(source map[string]bool) *generated.AcquiredTechs {
+	return (*generated.AcquiredTechs)(&source)
 }
 
-func BattleRecordsToGameBattleRecords(source *BattleRecords) []cs.BattleRecord {
+func BattleRecordsToGameBattleRecords(source *generated.BattleRecords) []cs.BattleRecord {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.BattleRecord{}
@@ -495,11 +872,11 @@ func BattleRecordsToGameBattleRecords(source *BattleRecords) []cs.BattleRecord {
 	return ([]cs.BattleRecord)(*source)
 }
 
-func GameBattleRecordsToBattleRecords(source []cs.BattleRecord) *BattleRecords {
-	return (*BattleRecords)(&source)
+func GameBattleRecordsToBattleRecords(source []cs.BattleRecord) *generated.BattleRecords {
+	return (*generated.BattleRecords)(&source)
 }
 
-func PlayerIntelsToGamePlayerIntels(source *PlayerIntels) []cs.PlayerIntel {
+func PlayerIntelsToGamePlayerIntels(source *generated.PlayerIntels) []cs.PlayerIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.PlayerIntel{}
@@ -507,11 +884,11 @@ func PlayerIntelsToGamePlayerIntels(source *PlayerIntels) []cs.PlayerIntel {
 	return ([]cs.PlayerIntel)(*source)
 }
 
-func GamePlayerIntelsToPlayerIntels(source []cs.PlayerIntel) *PlayerIntels {
-	return (*PlayerIntels)(&source)
+func GamePlayerIntelsToPlayerIntels(source []cs.PlayerIntel) *generated.PlayerIntels {
+	return (*generated.PlayerIntels)(&source)
 }
 
-func ScoreIntelsToGameScoreIntels(source *ScoreIntels) []cs.ScoreIntel {
+func ScoreIntelsToGameScoreIntels(source *generated.ScoreIntels) []cs.ScoreIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.ScoreIntel{}
@@ -519,11 +896,11 @@ func ScoreIntelsToGameScoreIntels(source *ScoreIntels) []cs.ScoreIntel {
 	return ([]cs.ScoreIntel)(*source)
 }
 
-func GameScoreIntelsToScoreIntels(source []cs.ScoreIntel) *ScoreIntels {
-	return (*ScoreIntels)(&source)
+func GameScoreIntelsToScoreIntels(source []cs.ScoreIntel) *generated.ScoreIntels {
+	return (*generated.ScoreIntels)(&source)
 }
 
-func PlanetIntelsToGamePlanetIntels(source *PlanetIntels) []cs.PlanetIntel {
+func PlanetIntelsToGamePlanetIntels(source *generated.PlanetIntels) []cs.PlanetIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.PlanetIntel{}
@@ -531,11 +908,11 @@ func PlanetIntelsToGamePlanetIntels(source *PlanetIntels) []cs.PlanetIntel {
 	return ([]cs.PlanetIntel)(*source)
 }
 
-func GamePlanetIntelsToPlanetIntels(source []cs.PlanetIntel) *PlanetIntels {
-	return (*PlanetIntels)(&source)
+func GamePlanetIntelsToPlanetIntels(source []cs.PlanetIntel) *generated.PlanetIntels {
+	return (*generated.PlanetIntels)(&source)
 }
 
-func FleetIntelsToGameFleetIntels(source *FleetIntels) []cs.FleetIntel {
+func FleetIntelsToGameFleetIntels(source *generated.FleetIntels) []cs.FleetIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.FleetIntel{}
@@ -543,11 +920,11 @@ func FleetIntelsToGameFleetIntels(source *FleetIntels) []cs.FleetIntel {
 	return ([]cs.FleetIntel)(*source)
 }
 
-func GameFleetIntelsToFleetIntels(source []cs.FleetIntel) *FleetIntels {
-	return (*FleetIntels)(&source)
+func GameFleetIntelsToFleetIntels(source []cs.FleetIntel) *generated.FleetIntels {
+	return (*generated.FleetIntels)(&source)
 }
 
-func ShipDesignIntelsToGameShipDesignIntels(source *ShipDesignIntels) []cs.ShipDesignIntel {
+func ShipDesignIntelsToGameShipDesignIntels(source *generated.ShipDesignIntels) []cs.ShipDesignIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.ShipDesignIntel{}
@@ -555,11 +932,11 @@ func ShipDesignIntelsToGameShipDesignIntels(source *ShipDesignIntels) []cs.ShipD
 	return ([]cs.ShipDesignIntel)(*source)
 }
 
-func GameShipDesignIntelsToShipDesignIntels(source []cs.ShipDesignIntel) *ShipDesignIntels {
-	return (*ShipDesignIntels)(&source)
+func GameShipDesignIntelsToShipDesignIntels(source []cs.ShipDesignIntel) *generated.ShipDesignIntels {
+	return (*generated.ShipDesignIntels)(&source)
 }
 
-func MineralPacketIntelsToGameMineralPacketIntels(source *MineralPacketIntels) []cs.MineralPacketIntel {
+func MineralPacketIntelsToGameMineralPacketIntels(source *generated.MineralPacketIntels) []cs.MineralPacketIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.MineralPacketIntel{}
@@ -567,11 +944,11 @@ func MineralPacketIntelsToGameMineralPacketIntels(source *MineralPacketIntels) [
 	return ([]cs.MineralPacketIntel)(*source)
 }
 
-func GameMineralPacketIntelsToMineralPacketIntels(source []cs.MineralPacketIntel) *MineralPacketIntels {
-	return (*MineralPacketIntels)(&source)
+func GameMineralPacketIntelsToMineralPacketIntels(source []cs.MineralPacketIntel) *generated.MineralPacketIntels {
+	return (*generated.MineralPacketIntels)(&source)
 }
 
-func SalvageIntelsToGameSalvageIntels(source *SalvageIntels) []cs.SalvageIntel {
+func SalvageIntelsToGameSalvageIntels(source *generated.SalvageIntels) []cs.SalvageIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.SalvageIntel{}
@@ -579,11 +956,11 @@ func SalvageIntelsToGameSalvageIntels(source *SalvageIntels) []cs.SalvageIntel {
 	return ([]cs.SalvageIntel)(*source)
 }
 
-func GameSalvageIntelsToSalvageIntels(source []cs.SalvageIntel) *SalvageIntels {
-	return (*SalvageIntels)(&source)
+func GameSalvageIntelsToSalvageIntels(source []cs.SalvageIntel) *generated.SalvageIntels {
+	return (*generated.SalvageIntels)(&source)
 }
 
-func MineFieldIntelsToGameMineFieldIntels(source *MineFieldIntels) []cs.MineFieldIntel {
+func MineFieldIntelsToGameMineFieldIntels(source *generated.MineFieldIntels) []cs.MineFieldIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.MineFieldIntel{}
@@ -591,11 +968,11 @@ func MineFieldIntelsToGameMineFieldIntels(source *MineFieldIntels) []cs.MineFiel
 	return ([]cs.MineFieldIntel)(*source)
 }
 
-func GameMineFieldIntelsToMineFieldIntels(source []cs.MineFieldIntel) *MineFieldIntels {
-	return (*MineFieldIntels)(&source)
+func GameMineFieldIntelsToMineFieldIntels(source []cs.MineFieldIntel) *generated.MineFieldIntels {
+	return (*generated.MineFieldIntels)(&source)
 }
 
-func WormholeIntelsToGameWormholeIntels(source *WormholeIntels) []cs.WormholeIntel {
+func WormholeIntelsToGameWormholeIntels(source *generated.WormholeIntels) []cs.WormholeIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.WormholeIntel{}
@@ -603,11 +980,11 @@ func WormholeIntelsToGameWormholeIntels(source *WormholeIntels) []cs.WormholeInt
 	return ([]cs.WormholeIntel)(*source)
 }
 
-func GameWormholeIntelsToWormholeIntels(source []cs.WormholeIntel) *WormholeIntels {
-	return (*WormholeIntels)(&source)
+func GameWormholeIntelsToWormholeIntels(source []cs.WormholeIntel) *generated.WormholeIntels {
+	return (*generated.WormholeIntels)(&source)
 }
 
-func MysteryTraderIntelsToGameMysteryTraderIntels(source *MysteryTraderIntels) []cs.MysteryTraderIntel {
+func MysteryTraderIntelsToGameMysteryTraderIntels(source *generated.MysteryTraderIntels) []cs.MysteryTraderIntel {
 	// return an empty slice for nil
 	if source == nil {
 		return []cs.MysteryTraderIntel{}
@@ -615,11 +992,11 @@ func MysteryTraderIntelsToGameMysteryTraderIntels(source *MysteryTraderIntels) [
 	return ([]cs.MysteryTraderIntel)(*source)
 }
 
-func GameMysteryTraderIntelsToMysteryTraderIntels(source []cs.MysteryTraderIntel) *MysteryTraderIntels {
-	return (*MysteryTraderIntels)(&source)
+func GameMysteryTraderIntelsToMysteryTraderIntels(source []cs.MysteryTraderIntel) *generated.MysteryTraderIntels {
+	return (*generated.MysteryTraderIntels)(&source)
 }
 
-func PlayerRaceToGameRace(source *PlayerRace) cs.Race {
+func PlayerRaceToGameRace(source *generated.PlayerRace) cs.Race {
 	// return an empty object for nil to support partial loads
 	if source == nil {
 		return cs.Race{}
@@ -627,11 +1004,11 @@ func PlayerRaceToGameRace(source *PlayerRace) cs.Race {
 	return cs.Race(*source)
 }
 
-func GameRaceToPlayerRace(source cs.Race) *PlayerRace {
-	return (*PlayerRace)(&source)
+func GameRaceToPlayerRace(source cs.Race) *generated.PlayerRace {
+	return (*generated.PlayerRace)(&source)
 }
 
-func PlayerSpecToGamePlayerSpec(source *PlayerSpec) cs.PlayerSpec {
+func PlayerSpecToGamePlayerSpec(source *generated.PlayerSpec) cs.PlayerSpec {
 	// return an empty object for nil to support partial loads
 	if source == nil {
 		return cs.PlayerSpec{}
@@ -640,99 +1017,99 @@ func PlayerSpecToGamePlayerSpec(source *PlayerSpec) cs.PlayerSpec {
 	return (cs.PlayerSpec)(*source)
 }
 
-func GamePlayerSpecToPlayerSpec(source cs.PlayerSpec) *PlayerSpec {
-	return (*PlayerSpec)(&source)
+func GamePlayerSpecToPlayerSpec(source cs.PlayerSpec) *generated.PlayerSpec {
+	return (*generated.PlayerSpec)(&source)
 }
 
-func PlayerStatsToGamePlayerStats(source *PlayerStats) *cs.PlayerStats {
+func PlayerStatsToGamePlayerStats(source *generated.PlayerStats) *cs.PlayerStats {
 	return (*cs.PlayerStats)(source)
 }
 
-func GamePlayerStatsToPlayerStats(source *cs.PlayerStats) *PlayerStats {
-	return (*PlayerStats)(source)
+func GamePlayerStatsToPlayerStats(source *cs.PlayerStats) *generated.PlayerStats {
+	return (*generated.PlayerStats)(source)
 }
 
-func PlanetSpecToGamePlanetSpec(source *PlanetSpec) cs.PlanetSpec {
+func PlanetSpecToGamePlanetSpec(source *generated.PlanetSpec) cs.PlanetSpec {
 	return (cs.PlanetSpec)(*source)
 }
 
-func GamePlanetSpecToPlanetSpec(source cs.PlanetSpec) *PlanetSpec {
-	return (*PlanetSpec)(&source)
+func GamePlanetSpecToPlanetSpec(source cs.PlanetSpec) *generated.PlanetSpec {
+	return (*generated.PlanetSpec)(&source)
 }
 
-func ProductionQueueItemsToGameProductionQueueItems(source *ProductionQueueItems) []cs.ProductionQueueItem {
+func ProductionQueueItemsToGameProductionQueueItems(source *generated.ProductionQueueItems) []cs.ProductionQueueItem {
 	return ([]cs.ProductionQueueItem)(*source)
 }
 
-func GameProductionQueueItemsToProductionQueueItems(source []cs.ProductionQueueItem) *ProductionQueueItems {
-	return (*ProductionQueueItems)(&source)
+func GameProductionQueueItemsToProductionQueueItems(source []cs.ProductionQueueItem) *generated.ProductionQueueItems {
+	return (*generated.ProductionQueueItems)(&source)
 }
 
-func FleetSpecToGameFleetSpec(source *FleetSpec) cs.FleetSpec {
+func FleetSpecToGameFleetSpec(source *generated.FleetSpec) cs.FleetSpec {
 	return (cs.FleetSpec)(*source)
 }
 
-func GameFleetSpecToFleetSpec(source cs.FleetSpec) *FleetSpec {
-	return (*FleetSpec)(&source)
+func GameFleetSpecToFleetSpec(source cs.FleetSpec) *generated.FleetSpec {
+	return (*generated.FleetSpec)(&source)
 }
 
-func ShipTokensToGameShipTokens(source *ShipTokens) []cs.ShipToken {
+func ShipTokensToGameShipTokens(source *generated.ShipTokens) []cs.ShipToken {
 	return ([]cs.ShipToken)(*source)
 }
 
-func GameShipTokensToShipTokens(source []cs.ShipToken) *ShipTokens {
-	return (*ShipTokens)(&source)
+func GameShipTokensToShipTokens(source []cs.ShipToken) *generated.ShipTokens {
+	return (*generated.ShipTokens)(&source)
 }
 
-func WaypointsToGameWaypoints(source *Waypoints) []cs.Waypoint {
+func WaypointsToGameWaypoints(source *generated.Waypoints) []cs.Waypoint {
 	return ([]cs.Waypoint)(*source)
 }
 
-func GameWaypointsToWaypoints(source []cs.Waypoint) *Waypoints {
-	return (*Waypoints)(&source)
+func GameWaypointsToWaypoints(source []cs.Waypoint) *generated.Waypoints {
+	return (*generated.Waypoints)(&source)
 }
 
-func MineFieldSpecToGameMineFieldSpec(source *MineFieldSpec) cs.MineFieldSpec {
+func MineFieldSpecToGameMineFieldSpec(source *generated.MineFieldSpec) cs.MineFieldSpec {
 	return (cs.MineFieldSpec)(*source)
 }
 
-func GameMineFieldSpecToMineFieldSpec(source cs.MineFieldSpec) *MineFieldSpec {
-	return (*MineFieldSpec)(&source)
+func GameMineFieldSpecToMineFieldSpec(source cs.MineFieldSpec) *generated.MineFieldSpec {
+	return (*generated.MineFieldSpec)(&source)
 }
 
-func ShipDesignSpecToGameShipDesignSpec(source *ShipDesignSpec) cs.ShipDesignSpec {
+func ShipDesignSpecToGameShipDesignSpec(source *generated.ShipDesignSpec) cs.ShipDesignSpec {
 	return (cs.ShipDesignSpec)(*source)
 }
 
-func GameShipDesignSpecToShipDesignSpec(source cs.ShipDesignSpec) *ShipDesignSpec {
-	return (*ShipDesignSpec)(&source)
+func GameShipDesignSpecToShipDesignSpec(source cs.ShipDesignSpec) *generated.ShipDesignSpec {
+	return (*generated.ShipDesignSpec)(&source)
 }
 
-func ShipDesignSlotsToGameShipDesignSlots(source *ShipDesignSlots) []cs.ShipDesignSlot {
+func ShipDesignSlotsToGameShipDesignSlots(source *generated.ShipDesignSlots) []cs.ShipDesignSlot {
 	return ([]cs.ShipDesignSlot)(*source)
 }
 
-func GameShipDesignSlotsToShipDesignSlots(source []cs.ShipDesignSlot) *ShipDesignSlots {
-	return (*ShipDesignSlots)(&source)
+func GameShipDesignSlotsToShipDesignSlots(source []cs.ShipDesignSlot) *generated.ShipDesignSlots {
+	return (*generated.ShipDesignSlots)(&source)
 }
 
-func WormholeSpecToGameWormholeSpec(source *WormholeSpec) cs.WormholeSpec {
+func WormholeSpecToGameWormholeSpec(source *generated.WormholeSpec) cs.WormholeSpec {
 	return (cs.WormholeSpec)(*source)
 }
 
-func GameWormholeSpecToWormholeSpec(source cs.WormholeSpec) *WormholeSpec {
-	return (*WormholeSpec)(&source)
+func GameWormholeSpecToWormholeSpec(source cs.WormholeSpec) *generated.WormholeSpec {
+	return (*generated.WormholeSpec)(&source)
 }
 
-func MysteryTraderSpecToGameMysteryTraderSpec(source *MysteryTraderSpec) cs.MysteryTraderSpec {
+func MysteryTraderSpecToGameMysteryTraderSpec(source *generated.MysteryTraderSpec) cs.MysteryTraderSpec {
 	return (cs.MysteryTraderSpec)(*source)
 }
 
-func GameMysteryTraderSpecToMysteryTraderSpec(source cs.MysteryTraderSpec) *MysteryTraderSpec {
-	return (*MysteryTraderSpec)(&source)
+func GameMysteryTraderSpecToMysteryTraderSpec(source cs.MysteryTraderSpec) *generated.MysteryTraderSpec {
+	return (*generated.MysteryTraderSpec)(&source)
 }
 
-func MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded(source *MysteryTraderPlayersRewarded) map[int]bool {
+func MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded(source *generated.MysteryTraderPlayersRewarded) map[int]bool {
 	// return an empty slice for nil
 	if source == nil {
 		return map[int]bool{}
@@ -740,253 +1117,274 @@ func MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded(source *Myst
 	return (map[int]bool)(*source)
 }
 
-func GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded(source map[int]bool) *MysteryTraderPlayersRewarded {
-	return (*MysteryTraderPlayersRewarded)(&source)
+func GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded(source map[int]bool) *generated.MysteryTraderPlayersRewarded {
+	return (*generated.MysteryTraderPlayersRewarded)(&source)
 }
 
-func ExtendResearchCost(source Race) cs.ResearchCost {
+func ExtendResearchCost(source generated.Race) cs.ResearchCost {
 	return cs.ResearchCost{
-		Energy:        source.ResearchCostEnergy,
-		Weapons:       source.ResearchCostWeapons,
-		Propulsion:    source.ResearchCostPropulsion,
-		Construction:  source.ResearchCostConstruction,
-		Electronics:   source.ResearchCostElectronics,
-		Biotechnology: source.ResearchCostBiotechnology,
+		Energy:        source.Researchcostenergy,
+		Weapons:       source.Researchcostweapons,
+		Propulsion:    source.Researchcostpropulsion,
+		Construction:  source.Researchcostconstruction,
+		Electronics:   source.Researchcostelectronics,
+		Biotechnology: source.Researchcostbiotechnology,
 	}
 }
 
-func ExtendHabLow(source Race) cs.Hab {
+func ExtendHabLow(source generated.Race) cs.Hab {
 	return cs.Hab{
-		Grav: source.HabLowGrav,
-		Temp: source.HabLowTemp,
-		Rad:  source.HabLowRad,
+		Grav: int(source.Hablowgrav.Int64),
+		Temp: int(source.Hablowtemp.Int64),
+		Rad:  int(source.Hablowrad.Int64),
 	}
 }
 
-func ExtendHabHigh(source Race) cs.Hab {
+func ExtendHabHigh(source generated.Race) cs.Hab {
 	return cs.Hab{
-		Grav: source.HabHighGrav,
-		Temp: source.HabHighTemp,
-		Rad:  source.HabHighRad,
+		Grav: int(source.Habhighgrav.Int64),
+		Temp: int(source.Habhightemp.Int64),
+		Rad:  int(source.Habhighrad.Int64),
 	}
 }
-
-func ExtendVictoryConditions(source Game) cs.VictoryConditions {
+func ExtendVictoryConditions(source generated.Game) cs.VictoryConditions {
 	return cs.VictoryConditions{
-		Conditions:               source.VictoryConditionsConditions,
-		NumCriteriaRequired:      source.VictoryConditionsNumCriteriaRequired,
-		YearsPassed:              source.VictoryConditionsYearsPassed,
-		OwnPlanets:               source.VictoryConditionsOwnPlanets,
-		AttainTechLevel:          source.VictoryConditionsAttainTechLevel,
-		AttainTechLevelNumFields: source.VictoryConditionsAttainTechLevelNumFields,
-		ExceedsScore:             source.VictoryConditionsExceedsScore,
-		ExceedsSecondPlaceScore:  source.VictoryConditionsExceedsSecondPlaceScore,
-		ProductionCapacity:       source.VictoryConditionsProductionCapacity,
-		OwnCapitalShips:          source.VictoryConditionsOwnCapitalShips,
-		HighestScoreAfterYears:   source.VictoryConditionsHighestScoreAfterYears,
+		Conditions:               source.Victoryconditionsconditions,
+		NumCriteriaRequired:      int(source.Victoryconditionsnumcriteriarequired.Int64),
+		YearsPassed:              int(source.Victoryconditionsyearspassed.Int64),
+		OwnPlanets:               int(source.Victoryconditionsownplanets.Int64),
+		AttainTechLevel:          int(source.Victoryconditionsattaintechlevel.Int64),
+		AttainTechLevelNumFields: int(source.Victoryconditionsattaintechlevelnumfields.Int64),
+		ExceedsScore:             int(source.Victoryconditionsexceedsscore.Int64),
+		ExceedsSecondPlaceScore:  int(source.Victoryconditionsexceedssecondplacescore.Int64),
+		ProductionCapacity:       int(source.Victoryconditionsproductioncapacity.Int64),
+		OwnCapitalShips:          int(source.Victoryconditionsowncapitalships.Int64),
+		HighestScoreAfterYears:   int(source.Victoryconditionshighestscoreafteryears.Int64),
 	}
 }
 
-func ExtendArea(source Game) cs.Vector {
+func ExtendArea(source generated.Game) cs.Vector {
 	return cs.Vector{
-		X: source.AreaX,
-		Y: source.AreaY,
+		X: source.Areax.Float64,
+		Y: source.Areay.Float64,
 	}
 }
 
-func ExtendDefaultRules(source Game) cs.Rules {
+func ExtendDefaultRules(source generated.Game) cs.Rules {
 	return cs.NewRules()
 }
 
-func ExtendTechLevels(source Player) cs.TechLevel {
+func ExtendTechLevels(source generated.Player) cs.TechLevel {
 	return cs.TechLevel{
-		Energy:        source.TechLevelsEnergy,
-		Weapons:       source.TechLevelsWeapons,
-		Propulsion:    source.TechLevelsPropulsion,
-		Construction:  source.TechLevelsConstruction,
-		Electronics:   source.TechLevelsElectronics,
-		Biotechnology: source.TechLevelsBiotechnology,
+		Energy:        int(source.Techlevelsenergy.Int64),
+		Weapons:       int(source.Techlevelsweapons.Int64),
+		Propulsion:    int(source.Techlevelspropulsion.Int64),
+		Construction:  int(source.Techlevelsconstruction.Int64),
+		Electronics:   int(source.Techlevelselectronics.Int64),
+		Biotechnology: int(source.Techlevelsbiotechnology.Int64),
 	}
 }
 
-func ExtendTechLevelsSpent(source Player) cs.TechLevel {
+func ExtendTechLevelsSpent(source generated.Player) cs.TechLevel {
 	return cs.TechLevel{
-		Energy:        source.TechLevelsSpentEnergy,
-		Weapons:       source.TechLevelsSpentWeapons,
-		Propulsion:    source.TechLevelsSpentPropulsion,
-		Construction:  source.TechLevelsSpentConstruction,
-		Electronics:   source.TechLevelsSpentElectronics,
-		Biotechnology: source.TechLevelsSpentBiotechnology,
+		Energy:        int(source.Techlevelsspentenergy.Int64),
+		Weapons:       int(source.Techlevelsspentweapons.Int64),
+		Propulsion:    int(source.Techlevelsspentpropulsion.Int64),
+		Construction:  int(source.Techlevelsspentconstruction.Int64),
+		Electronics:   int(source.Techlevelsspentelectronics.Int64),
+		Biotechnology: int(source.Techlevelsspentbiotechnology.Int64),
 	}
 }
 
-func ExtendPlanetGameDBObject(source Planet) cs.GameDBObject {
+func ExtendTechLevelsLight(source generated.GetLightPlayerForGameRow) cs.TechLevel {
+	return cs.TechLevel{
+		Energy:        int(source.Techlevelsenergy.Int64),
+		Weapons:       int(source.Techlevelsweapons.Int64),
+		Propulsion:    int(source.Techlevelspropulsion.Int64),
+		Construction:  int(source.Techlevelsconstruction.Int64),
+		Electronics:   int(source.Techlevelselectronics.Int64),
+		Biotechnology: int(source.Techlevelsbiotechnology.Int64),
+	}
+}
+
+func ExtendTechLevelsSpentLight(source generated.GetLightPlayerForGameRow) cs.TechLevel {
+	return cs.TechLevel{
+		Energy:        int(source.Techlevelsspentenergy.Int64),
+		Weapons:       int(source.Techlevelsspentweapons.Int64),
+		Propulsion:    int(source.Techlevelsspentpropulsion.Int64),
+		Construction:  int(source.Techlevelsspentconstruction.Int64),
+		Electronics:   int(source.Techlevelsspentelectronics.Int64),
+		Biotechnology: int(source.Techlevelsspentbiotechnology.Int64),
+	}
+}
+
+func ExtendPlanetGameDBObject(source generated.Planet) cs.GameDBObject {
 	return cs.GameDBObject{
 		ID:        source.ID,
-		GameID:    source.GameID,
-		CreatedAt: source.CreatedAt,
-		UpdatedAt: source.UpdatedAt,
+		GameID:    source.Gameid,
+		CreatedAt: source.Createdat,
+		UpdatedAt: source.Updatedat,
 	}
 }
 
-func ExtendPlanetMapObject(source Planet) cs.MapObject {
+func ExtendPlanetMapObject(source generated.Planet) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypePlanet,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: source.X.Float64,
+			Y: source.Y.Float64,
 		},
 		Name:      source.Name,
-		Num:       source.Num,
-		PlayerNum: source.PlayerNum,
+		Num:       int(source.Num.Int64),
+		PlayerNum: int(source.Playernum.Int64),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
-func ExtendBaseHab(source Planet) cs.Hab {
+func ExtendBaseHab(source generated.Planet) cs.Hab {
 	return cs.Hab{
-		Grav: source.BaseGrav,
-		Temp: source.BaseTemp,
-		Rad:  source.BaseRad,
+		Grav: int(source.Basegrav.Int64),
+		Temp: int(source.Basetemp.Int64),
+		Rad:  int(source.Baserad.Int64),
 	}
 }
 
-func ExtendTerraformedAmount(source Planet) cs.Hab {
+func ExtendTerraformedAmount(source generated.Planet) cs.Hab {
 	return cs.Hab{
-		Grav: source.TerraformedAmountGrav,
-		Temp: source.TerraformedAmountTemp,
-		Rad:  source.TerraformedAmountRad,
+		Grav: int(source.Terraformedamountgrav.Int64),
+		Temp: int(source.Terraformedamounttemp.Int64),
+		Rad:  int(source.Terraformedamountrad.Int64),
 	}
 }
 
-func ExtendMineralConcentration(source Planet) cs.Mineral {
+func ExtendMineralConcentration(source generated.Planet) cs.Mineral {
 	return cs.Mineral{
-		Ironium:   source.MineralConcIronium,
-		Boranium:  source.MineralConcBoranium,
-		Germanium: source.MineralConcGermanium,
+		Ironium:   int(source.Mineralconcironium.Int64),
+		Boranium:  int(source.Mineralconcboranium.Int64),
+		Germanium: int(source.Mineralconcgermanium.Int64),
 	}
 }
 
-func ExtendMineYears(source Planet) cs.Mineral {
+func ExtendMineYears(source generated.Planet) cs.Mineral {
 	return cs.Mineral{
-		Ironium:   source.MineYearsIronium,
-		Boranium:  source.MineYearsBoranium,
-		Germanium: source.MineYearsGermanium,
+		Ironium:   int(source.Mineyearsironium.Int64),
+		Boranium:  int(source.Mineyearsboranium.Int64),
+		Germanium: int(source.Mineyearsgermanium.Int64),
 	}
 }
 
-func ExtendFleetMapObject(source Fleet) cs.MapObject {
+func ExtendFleetMapObject(source generated.Fleet) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeFleet,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: source.X.Float64,
+			Y: source.Y.Float64,
 		},
 		Name:      source.Name,
-		Num:       source.Num,
-		PlayerNum: source.PlayerNum,
+		Num:       int(source.Num.Int64),
+		PlayerNum: int(source.Playernum.Int64),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
-func ExtendFleetFleetOrders(source Fleet) cs.FleetOrders {
+func ExtendFleetFleetOrders(source generated.Fleet) cs.FleetOrders {
 	return cs.FleetOrders{
-		BattlePlanNum: source.BattlePlanNum,
+		BattlePlanNum: int(source.Battleplannum),
 		Waypoints:     *source.Waypoints,
-		RepeatOrders:  source.RepeatOrders,
-		Purpose:       source.Purpose,
+		RepeatOrders:  source.Repeatorders.Bool,
+		Purpose:       *source.Purpose,
 	}
 }
 
-func ExtendFleetHeading(source Fleet) cs.Vector {
+func ExtendFleetHeading(source generated.Fleet) cs.Vector {
 	return cs.Vector{
-		X: source.HeadingX,
-		Y: source.HeadingY,
+		X: source.Headingx.Float64,
+		Y: source.Headingy.Float64,
 	}
 }
 
-func ExtendFleetPreviousPosition(source Fleet) *cs.Vector {
-	if source.PreviousPositionX == nil || source.PreviousPositionY == nil {
+func ExtendFleetPreviousPosition(source generated.Fleet) *cs.Vector {
+	if !source.Previouspositionx.Valid || !source.Previouspositiony.Valid {
 		return nil
 	}
 	return &cs.Vector{
-		X: *source.PreviousPositionX,
-		Y: *source.PreviousPositionY,
+		X: source.Previouspositionx.Float64,
+		Y: source.Previouspositiony.Float64,
 	}
 }
 
-func ExtendMysteryTraderMapObject(source MysteryTrader) cs.MapObject {
+func ExtendMysteryTraderMapObject(source generated.Mysterytrader) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeMysteryTrader,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: source.X.Float64,
+			Y: source.Y.Float64,
 		},
 		Name: source.Name,
-		Num:  source.Num,
+		Num:  int(source.Num.Int64),
 		Tags: TagsToGameTags(source.Tags),
 	}
 }
 
-func ExtendMysteryTraderHeading(source MysteryTrader) cs.Vector {
+func ExtendMysteryTraderHeading(source generated.Mysterytrader) cs.Vector {
 	return cs.Vector{
-		X: source.HeadingX,
-		Y: source.HeadingY,
+		X: source.Headingx.Float64,
+		Y: source.Headingy.Float64,
 	}
 }
 
-func ExtendMysteryTraderDestination(source MysteryTrader) cs.Vector {
+func ExtendMysteryTraderDestination(source generated.Mysterytrader) cs.Vector {
 	return cs.Vector{
-		X: source.DestinationX,
-		Y: source.DestinationY,
+		X: source.Destinationx.Float64,
+		Y: source.Destinationy.Float64,
 	}
 }
 
-func ExtendSalvageMapObject(source Salvage) cs.MapObject {
+func ExtendSalvageMapObject(source generated.Salvage) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeSalvage,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: source.X.Float64,
+			Y: source.Y.Float64,
 		},
 		Name:      source.Name,
-		Num:       source.Num,
-		PlayerNum: source.PlayerNum,
+		Num:       int(source.Num.Int64),
+		PlayerNum: int(source.Playernum.Int64),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
-func ExtendMineFieldMapObject(source MineField) cs.MapObject {
+func ExtendMineFieldMapObject(source generated.Minefield) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeMineField,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: source.X.Float64,
+			Y: source.Y.Float64,
 		},
 		Name:      source.Name,
-		Num:       source.Num,
-		PlayerNum: source.PlayerNum,
+		Num:       int(source.Num.Int64),
+		PlayerNum: int(source.Playernum.Int64),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
-func ExtendMineralPacketHeading(source MineralPacket) cs.Vector {
+func ExtendMineralPacketHeading(source generated.Mineralpacket) cs.Vector {
 	return cs.Vector{
-		X: source.HeadingX,
-		Y: source.HeadingY,
+		X: source.Headingx.Float64,
+		Y: source.Headingy.Float64,
 	}
 }
 
-func ExtendMineralPacketMapObject(source MineralPacket) cs.MapObject {
+func ExtendMineralPacketMapObject(source generated.Mineralpacket) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeMineralPacket,
 		Position: cs.Vector{
-			X: source.X,
-			Y: source.Y,
+			X: source.X.Float64,
+			Y: source.Y.Float64,
 		},
 		Name:      source.Name,
-		Num:       source.Num,
-		PlayerNum: source.PlayerNum,
+		Num:       int(source.Num.Int64),
+		PlayerNum: int(source.Playernum.Int64),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }

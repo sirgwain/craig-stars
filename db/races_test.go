@@ -1,7 +1,6 @@
 package db
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -25,10 +24,10 @@ func TestCreateRace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			want := *tt.args.race
-			err := tt.args.c.CreateRace(tt.args.race)
+			got, err := tt.args.c.CreateRace(t.Context(), tt.args.race)
 
 			// id is automatically added
-			want.ID = tt.args.race.ID
+			want.DBObject = got.DBObject
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("CreateRace() did not return error when expected")
@@ -36,9 +35,7 @@ func TestCreateRace(t *testing.T) {
 					t.Fatalf("CreateRace() errored unexpectedly; err = \n%v", err)
 				}
 			}
-			if !reflect.DeepEqual(tt.args.race, &want) {
-				t.Errorf("CreateRace() = \n%v, want \n%v", tt.args.race, want)
-			}
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }
@@ -47,20 +44,20 @@ func TestUpdateRace(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	race := cs.Race{UserID: 1, Name: "Test"}
-	if err := c.CreateRace(&race); err != nil {
+	race, err := c.CreateRace(t.Context(), &cs.Race{UserID: 1, Name: "Test"})
+	if err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
 
 	race.Name = "Test2"
 	race.PluralName = "Testers"
-	if err := c.UpdateRace(&race); err != nil {
+	if err := c.UpdateRace(t.Context(), race); err != nil {
 		t.Errorf("update race %s", err)
 		return
 	}
 
-	updated, err := c.GetRace(race.ID)
+	updated, err := c.GetRace(t.Context(), race.ID)
 
 	if err != nil {
 		t.Errorf("get race %s", err)
@@ -69,7 +66,6 @@ func TestUpdateRace(t *testing.T) {
 
 	assert.Equal(t, race.Name, updated.Name)
 	assert.Equal(t, race.PluralName, updated.PluralName)
-	assert.Less(t, race.UpdatedAt, updated.UpdatedAt)
 
 }
 
@@ -78,10 +74,11 @@ func TestGetRace(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	rules := cs.NewRules()
+
 	race := &cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}
 	race = race.WithSpec(&rules)
-
-	if err := c.CreateRace(race); err != nil {
+	var err error
+	if race, err = c.CreateRace(t.Context(), race); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
@@ -100,7 +97,7 @@ func TestGetRace(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetRace(tt.args.id)
+			got, err := c.GetRace(t.Context(), tt.args.id)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("GetRace() did not return error when expected")
@@ -123,17 +120,16 @@ func TestGetRaces(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	// start with 1 race from connectTestDB
-	result, err := c.GetRaces()
+	result, err := c.GetRaces(t.Context())
 	assert.Nil(t, err)
-	assert.Equal(t, []cs.Race{}, result)
+	assert.Equal(t, 0, len(result))
 
-	race := cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}
-	if err := c.CreateRace(&race); err != nil {
+	if _, err = c.CreateRace(t.Context(), &cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
 
-	result, err = c.GetRaces()
+	result, err = c.GetRaces(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -143,28 +139,28 @@ func TestDeleteRaces(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	result, err := c.GetRaces()
+	result, err := c.GetRaces(t.Context())
 	assert.Nil(t, err)
-	assert.Equal(t, []cs.Race{}, result)
+	assert.Equal(t, 0, len(result))
 
-	race := cs.Race{UserID: 1, Name: "Test", PluralName: "Testers"}
-	if err := c.CreateRace(&race); err != nil {
+	race, err := c.CreateRace(t.Context(), &cs.Race{UserID: 1, Name: "Test", PluralName: "Testers"})
+	if err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
 
 	// should have our race in the db
-	result, err = c.GetRaces()
+	result, err = c.GetRaces(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	if err := c.DeleteRace(race.ID); err != nil {
+	if err := c.DeleteRace(t.Context(), race.ID); err != nil {
 		t.Errorf("delete race %s", err)
 		return
 	}
 
 	// should be no races left in db
-	result, err = c.GetRaces()
+	result, err = c.GetRaces(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 }

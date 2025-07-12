@@ -1,104 +1,67 @@
 package db
 
 import (
+	"context"
 	"database/sql"
-	"database/sql/driver"
 	"fmt"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db/generated"
 )
 
-type Game struct {
-	ID                                        int64              `json:"id,omitempty"`
-	CreatedAt                                 time.Time          `json:"createdAt,omitempty"`
-	UpdatedAt                                 time.Time          `json:"updatedAt,omitempty"`
-	HostID                                    int64              `json:"hostId,omitempty"`
-	Name                                      string             `json:"name,omitempty"`
-	State                                     cs.GameState       `json:"state,omitempty"`
-	Public                                    bool               `json:"public,omitempty"`
-	Hash                                      string             `json:"hash"`
-	Size                                      cs.Size            `json:"size,omitempty"`
-	Density                                   cs.Density         `json:"density,omitempty"`
-	PlayerPositions                           cs.PlayerPositions `json:"playerPositions,omitempty"`
-	RandomEvents                              bool               `json:"randomEvents,omitempty"`
-	ComputerPlayersFormAlliances              bool               `json:"computerPlayersFormAlliances,omitempty"`
-	PublicPlayerScores                        bool               `json:"publicPlayerScores,omitempty"`
-	MaxMinerals                               bool               `json:"maxMinerals,omitempty"`
-	StartMode                                 cs.GameStartMode   `json:"startMode,omitempty"`
-	QuickStartTurns                           int                `json:"quickStartTurns,omitempty"`
-	OpenPlayerSlots                           int                `json:"openPlayerSlots,omitempty"`
-	NumPlayers                                int                `json:"numPlayers,omitempty"`
-	VictoryConditionsConditions               cs.Bitmask         `json:"victoryConditionsConditions,omitempty"`
-	VictoryConditionsNumCriteriaRequired      int                `json:"victoryConditionsNumCriteriaRequired,omitempty"`
-	VictoryConditionsYearsPassed              int                `json:"victoryConditionsYearsPassed,omitempty"`
-	VictoryConditionsOwnPlanets               int                `json:"victoryConditionsOwnPlanets,omitempty"`
-	VictoryConditionsAttainTechLevel          int                `json:"victoryConditionsAttainTechLevel,omitempty"`
-	VictoryConditionsAttainTechLevelNumFields int                `json:"victoryConditionsAttainTechLevelNumFields,omitempty"`
-	VictoryConditionsExceedsScore             int                `json:"victoryConditionsExceedsScore,omitempty"`
-	VictoryConditionsExceedsSecondPlaceScore  int                `json:"victoryConditionsExceedsSecondPlaceScore,omitempty"`
-	VictoryConditionsProductionCapacity       int                `json:"victoryConditionsProductionCapacity,omitempty"`
-	VictoryConditionsOwnCapitalShips          int                `json:"victoryConditionsOwnCapitalShips,omitempty"`
-	VictoryConditionsHighestScoreAfterYears   int                `json:"victoryConditionsHighestScoreAfterYears,omitempty"`
-	Seed                                      int64              `json:"seed,omitempty"`
-	Rules                                     *Rules             `json:"rules,omitempty"`
-	AreaX                                     float64            `json:"areaX,omitempty"`
-	AreaY                                     float64            `json:"areaY,omitempty"`
-	Year                                      int                `json:"year,omitempty"`
-	VictorDeclared                            bool               `json:"victorDeclared,omitempty"`
-	Archived                                  bool               `json:"archived,omitempty"`
-}
+func (c *client) GetGames(ctx context.Context) ([]cs.Game, error) {
 
-// we json serialize these types with custom Scan/Value methods
-type Rules cs.Rules
+	items, err := c.reader.GetGames(ctx)
+	if err == sql.ErrNoRows {
+		return []cs.Game{}, nil
+	}
+	if err != nil {
 
-// db serializer to serialize this to JSON
-func (item *Rules) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *Rules) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (c *client) GetGames() ([]cs.Game, error) {
-
-	items := []Game{}
-	if err := c.reader.Select(&items, `SELECT * FROM games`); err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Game{}, nil
-		}
 		return nil, err
 	}
 
 	return c.converter.ConvertGames(items), nil
 }
 
-func (c *client) GetGamesWithPlayers() ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus("", nil)
+func (c *client) GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{})
 }
 
-func (c *client) GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(`g.hostId = ?`, userID)
+func (c *client) GetGamesForHost(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+		HostId: userID,
+	})
 }
 
-func (c *client) GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(`g.hostId = ? OR g.id in (SELECT gameId from players p WHERE p.userId = ?)`, userID, userID)
+func (c *client) GetGamesForUser(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+		HostId: userID,
+		UserId: userID,
+	})
 }
 
-func (c *client) GetOpenGames() ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0 AND g.public = 1`, cs.GameStateSetup)
+func (c *client) GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+		State:  string(cs.GameStateSetup),
+		Open:   true,
+		Public: true,
+	})
 }
 
-func (c *client) GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(`g.state = ? AND g.openPlayerSlots > 0 AND g.hash = ?`, cs.GameStateSetup, hash)
+func (c *client) GetOpenGamesByHash(ctx context.Context, hash string) ([]cs.GameWithPlayers, error) {
+	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+		State: string(cs.GameStateSetup),
+		Open:  true,
+		Hash:  hash,
+	})
 }
 
 // get a game by id
-func (c *client) GetGame(id int64) (*cs.GameWithPlayers, error) {
-	games, err := c.getGameWithPlayersStatus("g.id = ?", id)
+func (c *client) GetGame(ctx context.Context, id int64) (*cs.GameWithPlayers, error) {
+	games, err := c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+		ID: id,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -109,113 +72,23 @@ func (c *client) GetGame(id int64) (*cs.GameWithPlayers, error) {
 	return &games[0], nil
 }
 
-func (c *client) GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, error) {
-	games, err := c.getGameWithPlayersStatus("g.id = ?", gameID)
-	if err != nil {
-		return nil, err
-	}
-	if len(games) == 0 {
-		return nil, nil
-	}
+func (c *client) getGameWithPlayersStatus(ctx context.Context, params generated.GetGamesWithPlayersParams) ([]cs.GameWithPlayers, error) {
 
-	return &games[0], nil
-}
-
-func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]cs.GameWithPlayers, error) {
-	type gamePlayersJoin struct {
-		Game            `json:"game,omitempty"`
-		cs.PlayerStatus `json:"player,omitempty"`
-	}
-
-	whereClause := ""
-	if where != "" {
-		whereClause = fmt.Sprintf("WHERE %s", where)
-	}
-
-	rows := []gamePlayersJoin{}
-
-	err := c.reader.Select(&rows, fmt.Sprintf(`
-	SELECT
-		g.id AS 'game.id',
-		g.createdAt AS 'game.createdAt',
-		g.updatedAt AS 'game.updatedAt',
-		g.hostId AS 'game.hostId',
-		g.name AS 'game.name',
-		g.state AS 'game.state',
-		g.public AS 'game.public',
-		g.hash AS 'game.hash',
-		g.size AS 'game.size',
-		g.density AS 'game.density',
-		g.playerPositions AS 'game.playerPositions',
-		g.randomEvents AS 'game.randomEvents',
-		g.computerPlayersFormAlliances AS 'game.computerPlayersFormAlliances',
-		g.publicPlayerScores AS 'game.publicPlayerScores',
-		g.maxMinerals AS 'game.maxMinerals',
-		g.startMode AS 'game.startMode',
-		g.quickStartTurns AS 'game.quickStartTurns',
-		g.openPlayerSlots AS 'game.openPlayerSlots',
-		g.numPlayers AS 'game.numPlayers',
-		g.victoryConditionsConditions AS 'game.victoryConditionsConditions',
-		g.victoryConditionsNumCriteriaRequired AS 'game.victoryConditionsNumCriteriaRequired',
-		g.victoryConditionsYearsPassed AS 'game.victoryConditionsYearsPassed',
-		g.victoryConditionsOwnPlanets AS 'game.victoryConditionsOwnPlanets',
-		g.victoryConditionsAttainTechLevel AS 'game.victoryConditionsAttainTechLevel',
-		g.victoryConditionsAttainTechLevelNumFields AS 'game.victoryConditionsAttainTechLevelNumFields',
-		g.victoryConditionsExceedsScore AS 'game.victoryConditionsExceedsScore',
-		g.victoryConditionsExceedsSecondPlaceScore AS 'game.victoryConditionsExceedsSecondPlaceScore',
-		g.victoryConditionsProductionCapacity AS 'game.victoryConditionsProductionCapacity',
-		g.victoryConditionsOwnCapitalShips AS 'game.victoryConditionsOwnCapitalShips',
-		g.victoryConditionsHighestScoreAfterYears AS 'game.victoryConditionsHighestScoreAfterYears',
-		g.seed AS 'game.seed',
-		g.rules AS 'game.rules',
-		g.areaX AS 'game.areaX',
-		g.areaY AS 'game.areaY',
-		g.year AS 'game.year',
-		g.victorDeclared AS 'game.victorDeclared',
-		g.archived AS 'game.archived',
-
-		p.updatedAt AS 'player.updatedAt',
-		COALESCE(p.userId, 0) AS 'player.userId',
-		COALESCE(p.name, '') AS 'player.name',
-		COALESCE(p.num, 0) AS 'player.num',
-		COALESCE(p.ready, 0) AS 'player.ready',
-		COALESCE(p.aiControlled, 0) AS 'player.aiControlled',
-		COALESCE(p.guest, 0) AS 'player.guest',
-		COALESCE(p.submittedTurn, 0) AS 'player.submittedTurn',
-		COALESCE(p.color, '') AS 'player.color',
-		COALESCE(p.victor, 0) AS 'player.victor',
-		COALESCE(p.archived, 0) AS 'player.archived'
-
-	FROM games g
-	LEFT JOIN players p
-		ON g.id = p.gameId
-	%s
-`, whereClause), args...)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.GameWithPlayers{}, nil
-		}
-		return nil, err
-	}
-
-	// check if we have a game
-	if len(rows) == 0 {
+	items, err := c.reader.GetGamesWithPlayers(ctx, params)
+	if err == sql.ErrNoRows {
 		return []cs.GameWithPlayers{}, nil
 	}
+	if err != nil {
+		return nil, err
+	}
 
-	// join results give a row per item, so if we have 2 games
-	// one with 2 players, one with 3, we'll end up with 5 rows
-	// row 0 - game1, player 1
-	// row 1 - game1, player 2
-	// row 2 - game2, player 1
-	// row 3 - game2, player 2
-	// row 4 - game2, player 3
 	games := []cs.GameWithPlayers{}
-	var item Game
-	var game *cs.GameWithPlayers
-	for _, row := range rows {
 
-		if row.ID != item.ID {
+	var item generated.Game
+	var game *cs.GameWithPlayers
+	for _, row := range items {
+
+		if row.Game.ID != item.ID {
 			// convert this row into a game
 			item = row.Game
 			g := c.converter.ConvertGame(item)
@@ -223,8 +96,21 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 			game = &games[len(games)-1]
 		}
 
-		if row.PlayerStatus.Num != 0 {
-			game.Players = append(game.Players, row.PlayerStatus)
+		if row.PlayerNum.Valid {
+			game.Players = append(game.Players, cs.PlayerStatus{
+				UpdatedAt:     &row.PlayerUpdatedat.Time,
+				UserID:        row.PlayerUserid.Int64,
+				Name:          row.PlayerName.String,
+				Num:           int(row.PlayerNum.Int64),
+				Ready:         row.PlayerReady.Bool,
+				AIControlled:  row.PlayerAicontrolled.Bool,
+				AIDifficulty:  *row.PlayerAidifficulty,
+				Guest:         row.PlayerGuest.Bool,
+				SubmittedTurn: row.PlayerSubmittedturn.Bool,
+				Color:         row.PlayerColor.String,
+				Victor:        row.PlayerVictor.Bool,
+				Archived:      row.PlayerArchived.Bool,
+			})
 		}
 	}
 
@@ -232,18 +118,18 @@ func (c *client) getGameWithPlayersStatus(where string, args ...interface{}) ([]
 }
 
 // get a game by id
-func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
-	item := Game{}
-	if err := c.reader.Get(&item, "SELECT * FROM games WHERE id = ?", id); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+func (c *client) GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error) {
+	item, err := c.reader.GetGame(ctx, id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
 	game := c.converter.ConvertGame(item)
 
-	players, err := c.getPlayersForGame(game.ID)
+	players, err := c.getPlayersForGame(ctx, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load players for game: %w", err)
 	}
@@ -251,14 +137,14 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 	universeLogger := log.With().Int64("GameID", game.ID).Str("GameName", game.Name).Logger()
 	universe := cs.NewUniverse(universeLogger, &game.Rules)
 
-	planets, err := c.getPlanetsForGame(game.ID)
+	planets, err := c.GetPlanetsForGame(ctx, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load planets for game: %w", err)
 	}
 	universe.Planets = planets
 
 	// load fleets and starbases
-	fleets, err := c.getFleetsForGame(game.ID)
+	fleets, err := c.GetFleetsForGame(ctx, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load fleets for game: %w", err)
 	}
@@ -274,31 +160,31 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 		}
 	}
 
-	wormholes, err := c.getWormholesForGame(game.ID)
+	wormholes, err := c.GetWormholesForGame(ctx, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load wormholes for game: %w", err)
 	}
 	universe.Wormholes = wormholes
 
-	salvages, err := c.getSalvagesForGame(game.ID)
+	salvages, err := c.GetSalvagesForGame(ctx, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load salvages for game: %w", err)
 	}
 	universe.Salvages = salvages
 
-	mineFields, err := c.getMineFieldsForGame(game.ID)
+	mineFields, err := c.getMineFieldsForGame(ctx, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load mineFields for game: %w", err)
 	}
 	universe.MineFields = mineFields
 
-	mineralPackets, err := c.getMineralPacketsForGame(game.ID)
+	mineralPackets, err := c.getMineralPacketsForGame(ctx, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load mineralPackets for game: %w", err)
 	}
 	universe.MineralPackets = mineralPackets
 
-	mysteryTraders, err := c.getMysteryTradersForGame(game.ID)
+	mysteryTraders, err := c.GetMysteryTradersForGame(ctx, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load mysteryTraders for game: %w", err)
 	}
@@ -310,7 +196,7 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 	// load a tech store if this game has a separate one
 	techStore := &cs.StaticTechStore
 	if game.Rules.TechsID != 0 {
-		techStore, err = c.GetTechStore(game.Rules.TechsID)
+		techStore, err = c.GetTechStore(ctx, game.Rules.TechsID)
 		if err != nil {
 			return nil, err
 		}
@@ -329,197 +215,74 @@ func (c *client) GetFullGame(id int64) (*cs.FullGame, error) {
 }
 
 // create a new game
-func (c *client) CreateGame(game *cs.Game) error {
+func (c *client) CreateGame(ctx context.Context, game *cs.Game) (*cs.Game, error) {
 
-	item := c.converter.ConvertGameGame(game)
-	result, err := c.writer.NamedExec(`
-	INSERT INTO games (
-		createdAt,
-		updatedAt,
-		hostId,
-		name,
-		state,
-		public,
-		hash,
-		size,
-		density,
-		playerPositions,
-		randomEvents,
-		computerPlayersFormAlliances,
-		publicPlayerScores,
-		maxMinerals,
-		startMode,
-		quickStartTurns,
-		openPlayerSlots,
-		numPlayers,
-		victoryConditionsConditions,
-		victoryConditionsNumCriteriaRequired,
-		victoryConditionsYearsPassed,
-		victoryConditionsOwnPlanets,
-		victoryConditionsAttainTechLevel,
-		victoryConditionsAttainTechLevelNumFields,
-		victoryConditionsExceedsScore,
-		victoryConditionsExceedsSecondPlaceScore,
-		victoryConditionsProductionCapacity,
-		victoryConditionsOwnCapitalShips,
-		victoryConditionsHighestScoreAfterYears,
-		seed,
-		rules,
-		areaX,
-		areaY,
-		year,
-		victorDeclared,
-		archived
-	)
-	VALUES (
-		CURRENT_TIMESTAMP,
-		CURRENT_TIMESTAMP,
-		:hostId,
-		:name,
-		:state,
-		:public,
-		:hash,
-		:size,
-		:density,
-		:playerPositions,
-		:randomEvents,
-		:computerPlayersFormAlliances,
-		:publicPlayerScores,
-		:maxMinerals,
-		:startMode,
-		:quickStartTurns,
-		:openPlayerSlots,
-		:numPlayers,
-		:victoryConditionsConditions,
-		:victoryConditionsNumCriteriaRequired,
-		:victoryConditionsYearsPassed,
-		:victoryConditionsOwnPlanets,
-		:victoryConditionsAttainTechLevel,
-		:victoryConditionsAttainTechLevelNumFields,
-		:victoryConditionsExceedsScore,
-		:victoryConditionsExceedsSecondPlaceScore,
-		:victoryConditionsProductionCapacity,
-		:victoryConditionsOwnCapitalShips,
-		:victoryConditionsHighestScoreAfterYears,
-		:seed,
-		:rules,
-		:areaX,
-		:areaY,
-		:year,
-		:victorDeclared,
-		:archived
-	)
-	`, item)
+	result, err := c.writer.CreateGame(ctx, c.converter.ConvertGameGameToCreateParams(game))
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// update the id of our passed in game
-	id, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-
-	game.ID = id
-
-	return nil
+	created := c.converter.ConvertGame(result)
+	return &created, nil
 }
 
-func (c *client) UpdateGameState(gameID int64, state cs.GameState) error {
-
-	if _, err := c.writer.Exec(`
-	UPDATE games SET
-		updatedAt = CURRENT_TIMESTAMP,
-		state = ?
-	WHERE id = ?
-	`, state, gameID); err != nil {
-		return err
-	}
-
-	return nil
+func (c *client) UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error {
+	return c.writer.UpdateGameState(ctx, generated.UpdateGameStateParams{ID: gameID, State: state})
 }
 
 // update an existing game
-func (c *client) UpdateGame(game *cs.Game) error {
-
-	item := c.converter.ConvertGameGame(game)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE games SET
-		updatedAt = CURRENT_TIMESTAMP,
-		hostId = :hostId,
-		name = :name,
-		state = :state,
-		public = :public,
-		hash = :hash,
-		size = :size,
-		density = :density,
-		playerPositions = :playerPositions,
-		randomEvents = :randomEvents,
-		computerPlayersFormAlliances = :computerPlayersFormAlliances,
-		publicPlayerScores = :publicPlayerScores,
-		maxMinerals = :maxMinerals,
-		startMode = :startMode,
-		quickStartTurns = :quickStartTurns,
-		openPlayerSlots = :openPlayerSlots,
-		numPlayers = :numPlayers,
-		victoryConditionsConditions = :victoryConditionsConditions,
-		victoryConditionsNumCriteriaRequired = :victoryConditionsNumCriteriaRequired,
-		victoryConditionsYearsPassed = :victoryConditionsYearsPassed,
-		victoryConditionsOwnPlanets = :victoryConditionsOwnPlanets,
-		victoryConditionsAttainTechLevel = :victoryConditionsAttainTechLevel,
-		victoryConditionsAttainTechLevelNumFields = :victoryConditionsAttainTechLevelNumFields,
-		victoryConditionsExceedsScore = :victoryConditionsExceedsScore,
-		victoryConditionsExceedsSecondPlaceScore = :victoryConditionsExceedsSecondPlaceScore,
-		victoryConditionsProductionCapacity = :victoryConditionsProductionCapacity,
-		victoryConditionsOwnCapitalShips = :victoryConditionsOwnCapitalShips,
-		victoryConditionsHighestScoreAfterYears = :victoryConditionsHighestScoreAfterYears,
-		seed = :seed,
-		rules = :rules,
-		areaX = :areaX,
-		areaY = :areaY,
-		year = :year,
-		victorDeclared = :victorDeclared,
-		archived = :archived
-
-	WHERE id = :id
-	`, item); err != nil {
+func (c *client) UpdateGame(ctx context.Context, game *cs.Game) error {
+	result, err := c.writer.UpdateGame(ctx, c.converter.ConvertGameGameToUpdateParams(game))
+	if err != nil {
 		return err
 	}
 
+	game.UpdatedAt = result.Updatedat
 	return nil
+
 }
 
 // Save an entire game in the database. This should always be wrapped in a transaction
 // TODO: move this into gameRunner so it's clear it should be wrapped in a transaction?
-func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
+func (c *client) UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) error {
 
-	if err := c.UpdateGame(fullGame.Game); err != nil {
+	if err := c.UpdateGame(ctx, fullGame.Game); err != nil {
 		return fmt.Errorf("update game: %w", err)
 	}
 
-	for _, player := range fullGame.Players {
+	for i, player := range fullGame.Players {
 		if player.ID == 0 {
 			player.GameID = fullGame.ID
-			if err := c.CreatePlayer(player); err != nil {
+			created, err := c.CreatePlayer(ctx, player)
+			if err != nil {
 				return fmt.Errorf("create player: %w", err)
 			}
+			// copy designs over, they are part of a different table
+			// TODO: move designs out of player
+			created.Designs = player.Designs
+			fullGame.Players[i] = created
+			player = created
 		}
-		if err := c.updateFullPlayer(player); err != nil {
+		if err := c.updateFullPlayer(ctx, player); err != nil {
 			return fmt.Errorf("update player: %w", err)
 		}
 	}
 
-	for _, planet := range fullGame.Planets {
+	for i, planet := range fullGame.Planets {
 		if planet.ID == 0 {
 			planet.GameID = fullGame.ID
-			if err := c.createPlanet(planet); err != nil {
+			created, err := c.CreatePlanet(ctx, planet)
+			if err != nil {
 				return fmt.Errorf("create planet: %w", err)
 			}
+			// copy the startbase over, it's part of a different table
+			// TODO: this is messy, what if we create the starbase below???
+			created.Starbase = planet.Starbase
+			fullGame.Planets[i] = created
 			// log.Debug().Int64("GameID", planet.GameID).Int64("ID", planet.ID).Msgf("Created planet %s", planet.Name)
 		} else if planet.Dirty {
-			if err := c.UpdatePlanet(planet); err != nil {
+			if err := c.UpdatePlanet(ctx, planet); err != nil {
 				return fmt.Errorf("update planet: %w", err)
 			}
 			// log.Debug().Int64("GameID", planet.GameID).Int64("ID", planet.ID).Msgf("Updated planet %s", planet.Name)
@@ -533,7 +296,7 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	// with an in use unique index, we'll delete the old one first
 	for _, fleet := range append(fullGame.Fleets, fullGame.Starbases...) {
 		if fleet.Delete {
-			if err := c.DeleteFleet(fleet.ID); err != nil {
+			if err := c.DeleteFleet(ctx, fleet.ID); err != nil {
 				return fmt.Errorf("delete fleet: %w", err)
 			}
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
@@ -543,13 +306,14 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	for _, fleet := range append(fullGame.Fleets, fullGame.Starbases...) {
 		if fleet.ID == 0 && !fleet.Delete {
 			fleet.GameID = fullGame.ID
-			if err := c.CreateFleet(fleet); err != nil {
+			fleet, err := c.CreateFleet(ctx, fleet)
+			if err != nil {
 				return fmt.Errorf("create fleet: %w", err)
 			}
 			remainingFleets = append(remainingFleets, fleet)
 			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
 		} else if !fleet.Delete {
-			if err := c.UpdateFleet(fleet); err != nil {
+			if err := c.UpdateFleet(ctx, fleet); err != nil {
 				return fmt.Errorf("update fleet: %w", err)
 			}
 			remainingFleets = append(remainingFleets, fleet)
@@ -557,22 +321,29 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 		}
 	}
 	fullGame.Fleets = remainingFleets
+	for _, f := range fullGame.Fleets {
+		if f.PlanetNum != cs.None {
+			fullGame.Planets[f.PlanetNum-1].Starbase = f
+		}
+	}
 
 	// save wormholes
-	for _, wormhole := range fullGame.Wormholes {
+	for i, wormhole := range fullGame.Wormholes {
 		if wormhole.ID == 0 {
 			wormhole.GameID = fullGame.ID
-			if err := c.createWormhole(wormhole); err != nil {
+			wormhole, err := c.CreateWormhole(ctx, wormhole)
+			if err != nil {
 				return fmt.Errorf("create wormhole: %w", err)
 			}
+			fullGame.Wormholes[i] = wormhole
 			// log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Created wormhole %v", wormhole)
 		} else if wormhole.Delete {
-			if err := c.deleteWormhole(wormhole.ID); err != nil {
+			if err := c.DeleteWormhole(ctx, wormhole.ID); err != nil {
 				return fmt.Errorf("delete wormhole: %w", err)
 			}
 			// log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Deleted wormhole %s", wormhole.Name)
 		} else {
-			if err := c.updateWormhole(wormhole); err != nil {
+			if err := c.UpdateWormhole(ctx, wormhole); err != nil {
 				return fmt.Errorf("update wormhole: %w", err)
 			}
 			// log.Debug().Int64("GameID", wormhole.GameID).Int64("ID", wormhole.ID).Msgf("Updated wormhole %v", wormhole)
@@ -580,20 +351,22 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	}
 
 	// save salvages
-	for _, salvage := range fullGame.Salvages {
+	for i, salvage := range fullGame.Salvages {
 		if salvage.ID == 0 {
 			salvage.GameID = fullGame.ID
-			if err := c.CreateSalvage(salvage); err != nil {
-				return fmt.Errorf("create salvage: %w", err)
+			salvage, err := c.CreateSalvage(ctx, salvage)
+			if err != nil {
+				return fmt.Errorf("create wormhole: %w", err)
 			}
+			fullGame.Salvages[i] = salvage
 			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Created salvage %s", salvage.Name)
 		} else if salvage.Delete {
-			if err := c.deleteSalvage(salvage.ID); err != nil {
+			if err := c.DeleteSalvage(ctx, salvage.ID); err != nil {
 				return fmt.Errorf("delete salvage: %w", err)
 			}
 			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Deleted salvage %s", salvage.Name)
 		} else {
-			if err := c.UpdateSalvage(salvage); err != nil {
+			if err := c.UpdateSalvage(ctx, salvage); err != nil {
 				return fmt.Errorf("update salvage: %w", err)
 			}
 			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Updated salvage %s", salvage.Name)
@@ -601,20 +374,22 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	}
 
 	// save mineFields
-	for _, mineField := range fullGame.MineFields {
+	for i, mineField := range fullGame.MineFields {
 		if mineField.ID == 0 {
 			mineField.GameID = fullGame.ID
-			if err := c.createMineField(mineField); err != nil {
+			mineField, err := c.CreateMineField(ctx, mineField)
+			if err != nil {
 				return fmt.Errorf("create mineField: %w", err)
 			}
+			fullGame.MineFields[i] = mineField
 			// log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Created mineField %s", mineField.Name)
 		} else if mineField.Delete {
-			if err := c.deleteMineField(mineField.ID); err != nil {
+			if err := c.DeleteMineField(ctx, mineField.ID); err != nil {
 				return fmt.Errorf("delete mineField: %w", err)
 			}
 			// log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Deleted mineField %s", mineField.Name)
 		} else {
-			if err := c.UpdateMineField(mineField); err != nil {
+			if err := c.UpdateMineField(ctx, mineField); err != nil {
 				return fmt.Errorf("update mineField: %w", err)
 			}
 			// log.Debug().Int64("GameID", mineField.GameID).Int64("ID", mineField.ID).Msgf("Updated mineField %s", mineField.Name)
@@ -622,20 +397,22 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	}
 
 	// save mineralPackets
-	for _, mineralPacket := range fullGame.MineralPackets {
+	for i, mineralPacket := range fullGame.MineralPackets {
 		if mineralPacket.ID == 0 {
 			mineralPacket.GameID = fullGame.ID
-			if err := c.createMineralPacket(mineralPacket); err != nil {
+			mineralPacket, err := c.CreateMineralPacket(ctx, mineralPacket)
+			if err != nil {
 				return fmt.Errorf("create mineralPacket: %w", err)
 			}
+			fullGame.MineralPackets[i] = mineralPacket
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Created mineralPacket %s", mineralPacket.Name)
 		} else if mineralPacket.Delete {
-			if err := c.deleteMineralPacket(mineralPacket.ID); err != nil {
+			if err := c.DeleteMineralPacket(ctx, mineralPacket.ID); err != nil {
 				return fmt.Errorf("delete mineralPacket: %w", err)
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Deleted mineralPacket %s", mineralPacket.Name)
 		} else {
-			if err := c.UpdateMineralPacket(mineralPacket); err != nil {
+			if err := c.UpdateMineralPacket(ctx, mineralPacket); err != nil {
 				return fmt.Errorf("update mineralPacket: %w", err)
 			}
 			// log.Debug().Int64("GameID", mineralPacket.GameID).Int64("ID", mineralPacket.ID).Msgf("Updated mineralPacket %s", mineralPacket.Name)
@@ -643,20 +420,22 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 	}
 
 	// save mysteryTraders
-	for _, mysteryTrader := range fullGame.MysteryTraders {
+	for i, mysteryTrader := range fullGame.MysteryTraders {
 		if mysteryTrader.ID == 0 {
 			mysteryTrader.GameID = fullGame.ID
-			if err := c.createMysteryTrader(mysteryTrader); err != nil {
+			mysteryTrader, err := c.CreateMysteryTrader(ctx, mysteryTrader)
+			if err != nil {
 				return fmt.Errorf("create mysteryTrader: %w", err)
 			}
+			fullGame.MysteryTraders[i] = mysteryTrader
 			// log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Created mysteryTrader %s", mysteryTrader.Name)
 		} else if mysteryTrader.Delete {
-			if err := c.deleteMysteryTrader(mysteryTrader.ID); err != nil {
+			if err := c.DeleteMysteryTrader(ctx, mysteryTrader.ID); err != nil {
 				return fmt.Errorf("delete mysteryTrader: %w", err)
 			}
 			// log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Deleted mysteryTrader %s", mysteryTrader.Name)
 		} else {
-			if err := c.updateMysteryTrader(mysteryTrader); err != nil {
+			if err := c.UpdateMysteryTrader(ctx, mysteryTrader); err != nil {
 				return fmt.Errorf("update mysteryTrader: %w", err)
 			}
 			// log.Debug().Int64("GameID", mysteryTrader.GameID).Int64("ID", mysteryTrader.ID).Msgf("Updated mysteryTrader %s", mysteryTrader.Name)
@@ -667,9 +446,9 @@ func (c *client) UpdateFullGame(fullGame *cs.FullGame) error {
 }
 
 // update a player and their designs
-func (c *client) updateFullPlayer(player *cs.Player) error {
+func (c *client) updateFullPlayer(ctx context.Context, player *cs.Player) error {
 
-	if err := c.UpdatePlayer(player); err != nil {
+	if err := c.UpdatePlayer(ctx, player); err != nil {
 		return fmt.Errorf("update player: %w", err)
 	}
 
@@ -677,11 +456,13 @@ func (c *client) updateFullPlayer(player *cs.Player) error {
 		design := player.Designs[i]
 		if design.ID == 0 && !design.Delete {
 			design.GameID = player.GameID
-			if err := c.CreateShipDesign(design); err != nil {
+			created, err := c.CreateShipDesign(ctx, design)
+			if err != nil {
 				return fmt.Errorf("create design: %w", err)
 			}
+			player.Designs[i] = created
 		} else if !design.Delete {
-			if err := c.UpdateShipDesign(design); err != nil {
+			if err := c.UpdateShipDesign(ctx, design); err != nil {
 				return fmt.Errorf("update design: %w", err)
 			}
 		}
@@ -690,33 +471,19 @@ func (c *client) updateFullPlayer(player *cs.Player) error {
 	return nil
 }
 
-func (c *client) UpdateGameHost(gameID int64, hostId int64) error {
-	if _, err := c.writer.Exec(`
-		UPDATE games SET
-			updatedAt = CURRENT_TIMESTAMP,
-			hostId = ?
-		WHERE id = ?
-		`, hostId, gameID); err != nil {
-		return err
-	}
-
-	return nil
+func (c *client) UpdateGameHost(ctx context.Context, gameID int64, hostId int64) error {
+	return c.writer.UpdateGameHost(ctx, generated.UpdateGameHostParams{
+		ID:     gameID,
+		Hostid: sql.NullInt64{Valid: true, Int64: hostId},
+	})
 }
 
 // delete a game by id
-func (c *client) DeleteGame(id int64) error {
-	if _, err := c.writer.Exec("DELETE FROM games WHERE id = ?", id); err != nil {
-		return err
-	}
-
-	return nil
+func (c *client) DeleteGame(ctx context.Context, id int64) error {
+	return c.writer.DeleteGame(ctx, id)
 }
 
-// delete a game by id
-func (c *client) DeleteUserGames(hostID int64) error {
-	if _, err := c.writer.Exec("DELETE FROM games WHERE hostId = ?", hostID); err != nil {
-		return err
-	}
-
-	return nil
+// delete all games for user
+func (c *client) DeleteUserGames(ctx context.Context, hostID int64) error {
+	return c.writer.DeleteUserGames(ctx, sql.NullInt64{Valid: true, Int64: hostID})
 }

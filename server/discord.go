@@ -29,12 +29,12 @@ func (s *server) pingDiscordForGameUpdate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	s.sendNewTurnNotification(game.ID)
+	s.sendNewTurnNotification(r.Context(), game.ID)
 }
 
 // send a notification about a new turn
 // this will not send for single players games or games with the admin (my tests)
-func (s *server) sendNewTurnNotification(gameID int64) {
+func (s *server) sendNewTurnNotification(ctx context.Context, gameID int64) {
 	if !s.config.Discord.WebhookNotify {
 		// no webhook notifications for this server
 		return
@@ -48,7 +48,7 @@ func (s *server) sendNewTurnNotification(gameID int64) {
 	}
 
 	go func() {
-		game, err := readClient.GetGame(gameID)
+		game, err := readClient.GetGame(ctx, gameID)
 		if err != nil {
 			log.Error().Err(err).Msg("get game for discord notification")
 			return
@@ -70,13 +70,13 @@ func (s *server) sendNewTurnNotification(gameID int64) {
 
 		webhooks := []discordWebhook{}
 
-		host, err := readClient.GetUser(game.HostID)
+		host, err := readClient.GetUser(ctx, game.HostID)
 		if err != nil {
 			log.Error().Err(err).Msg("get host user for game for discord notification")
 			return
 		}
 
-		users, err := readClient.GetUsersForGame(gameID)
+		users, err := readClient.GetUsersForGame(ctx, gameID)
 		if err != nil {
 			log.Error().Err(err).Msg("get users for game for discord notification")
 			return

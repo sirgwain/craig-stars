@@ -55,17 +55,18 @@ type FullPlayer struct {
 }
 
 type PlayerStatus struct {
-	UpdatedAt     *time.Time `json:"updatedAt,omitempty"`
-	UserID        int64      `json:"userId,omitempty"`
-	Name          string     `json:"name"`
-	Num           int        `json:"num"`
-	Ready         bool       `json:"ready,omitempty"`
-	AIControlled  bool       `json:"aiControlled,omitempty"`
-	Guest         bool       `json:"guest,omitempty"`
-	SubmittedTurn bool       `json:"submittedTurn,omitempty"`
-	Color         string     `json:"color,omitempty"`
-	Victor        bool       `json:"victor,omitempty"`
-	Archived      bool       `json:"archived,omitempty"`
+	UpdatedAt     *time.Time   `json:"updatedAt,omitempty"`
+	UserID        int64        `json:"userId,omitempty"`
+	Name          string       `json:"name"`
+	Num           int          `json:"num"`
+	Ready         bool         `json:"ready,omitempty"`
+	AIControlled  bool         `json:"aiControlled,omitempty"`
+	AIDifficulty  AIDifficulty `json:"aiDifficulty,omitempty"`
+	Guest         bool         `json:"guest,omitempty"`
+	SubmittedTurn bool         `json:"submittedTurn,omitempty"`
+	Color         string       `json:"color,omitempty"`
+	Victor        bool         `json:"victor,omitempty"`
+	Archived      bool         `json:"archived,omitempty"`
 }
 
 type PlayerIntels struct {

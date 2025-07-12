@@ -146,7 +146,7 @@ func me(w http.ResponseWriter, r *http.Request) {
 }
 
 // create a new user from a token
-func (s *server) createNewDiscordUser(tokenUser tokenUser) (*cs.User, error) {
+func (s *server) createNewDiscordUser(ctx context.Context, tokenUser tokenUser) (*cs.User, error) {
 
 	user, err := cs.NewDiscordUser(tokenUser.Name, tokenUser.discordID(), tokenUser.discordAvatar())
 	if err != nil {
@@ -155,7 +155,8 @@ func (s *server) createNewDiscordUser(tokenUser tokenUser) (*cs.User, error) {
 	}
 
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.CreateUser(user); err != nil {
+		user, err := c.CreateUser(ctx, user)
+		if err != nil {
 			log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
 			return err
 		}
@@ -164,7 +165,8 @@ func (s *server) createNewDiscordUser(tokenUser tokenUser) (*cs.User, error) {
 		// create a new test race
 		race := cs.Humanoids()
 		race.UserID = user.ID
-		if err = c.CreateRace(&race); err != nil {
+		_, err = c.CreateRace(ctx, &race)
+		if err != nil {
 			return err
 		}
 		log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new race for user")
@@ -176,7 +178,7 @@ func (s *server) createNewDiscordUser(tokenUser tokenUser) (*cs.User, error) {
 	return user, nil
 }
 
-func (s *server) updateUser(tokenUser tokenUser, user *cs.User) error {
+func (s *server) updateUser(ctx context.Context, tokenUser tokenUser, user *cs.User) error {
 
 	idStr := tokenUser.discordID()
 	avatarStr := tokenUser.discordAvatar()
@@ -186,7 +188,7 @@ func (s *server) updateUser(tokenUser tokenUser, user *cs.User) error {
 	user.LastLogin = &now
 
 	readWriteClient := s.db.NewReadWriteClient()
-	if err := readWriteClient.UpdateUser(user); err != nil {
+	if err := readWriteClient.UpdateUser(ctx, user); err != nil {
 		log.Error().Err(err).Str("Username", user.Username).Msg("failed to update user")
 		return err
 	}

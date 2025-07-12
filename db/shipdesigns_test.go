@@ -1,7 +1,6 @@
 package db
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -25,15 +24,11 @@ func TestCreateShipDesign(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			want := *tt.args.shipDesign
-			_, player := tt.args.c.createTestGameWithPlayer()
+			_, player := tt.args.c.createTestGameWithPlayer(t.Context())
 			tt.args.shipDesign.GameID = player.GameID
 			tt.args.shipDesign.PlayerNum = player.Num
-			err := tt.args.c.CreateShipDesign(tt.args.shipDesign)
+			got, err := tt.args.c.CreateShipDesign(t.Context(), tt.args.shipDesign)
 
-			// id is automatically added
-			want.GameID = player.GameID
-			want.PlayerNum = player.Num
-			want.ID = tt.args.shipDesign.ID
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("CreateShipDesign() did not return error when expected")
@@ -41,9 +36,11 @@ func TestCreateShipDesign(t *testing.T) {
 					t.Fatalf("CreateShipDesign() errored unexpectedly; err = \n%v", err)
 				}
 			}
-			if !reflect.DeepEqual(tt.args.shipDesign, &want) {
-				t.Errorf("CreateShipDesign() = \n%v, want \n%v", tt.args.shipDesign, want)
-			}
+
+			// id is automatically added
+			want.PlayerNum = got.PlayerNum
+			want.GameDBObject = got.GameDBObject
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }
@@ -53,10 +50,11 @@ func TestGetShipDesign(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	game, player := c.createTestGameWithPlayer()
+	game, player := c.createTestGameWithPlayer(t.Context())
 	shipDesign := cs.NewShipDesign(player.Num, 1).WithHull(cs.Scout.Name).WithSpec(&rules, player)
 	shipDesign.GameID = game.ID
-	if err := c.CreateShipDesign(shipDesign); err != nil {
+	shipDesign, err := c.CreateShipDesign(t.Context(), shipDesign)
+	if err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
@@ -75,7 +73,7 @@ func TestGetShipDesign(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetShipDesign(tt.args.id)
+			got, err := c.GetShipDesign(t.Context(), tt.args.id)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("GetShipDesign() did not return error when expected")
@@ -84,8 +82,7 @@ func TestGetShipDesign(t *testing.T) {
 				}
 			}
 			if got != nil {
-				tt.want.UpdatedAt = got.UpdatedAt
-				tt.want.CreatedAt = got.CreatedAt
+				tt.want.GameDBObject = got.GameDBObject
 			}
 
 			test.CompareAsJSON(t, got, tt.want)
@@ -97,21 +94,20 @@ func TestGetShipDesigns(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	game, player := c.createTestGameWithPlayer()
+	game, player := c.createTestGameWithPlayer(t.Context())
 
 	// start with 1 shipDesign from connectTestDB
-	result, err := c.GetShipDesignsForPlayer(player.GameID, player.Num)
+	result, err := c.GetShipDesignsForPlayer(t.Context(), player.GameID, player.Num)
 	assert.Nil(t, err)
-	assert.Equal(t, []*cs.ShipDesign{}, result)
+	assert.Equal(t, 0, len(result))
 
-	shipDesign := cs.ShipDesign{Num: 1, PlayerNum: player.Num, Name: "name"}
-	shipDesign.GameID = game.ID
-	if err := c.CreateShipDesign(&shipDesign); err != nil {
+	_, err = c.CreateShipDesign(t.Context(), &cs.ShipDesign{GameDBObject: cs.GameDBObject{GameID: game.ID}, Num: 1, PlayerNum: player.Num, Name: "name"})
+	if err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
 
-	result, err = c.GetShipDesignsForPlayer(player.GameID, player.Num)
+	result, err = c.GetShipDesignsForPlayer(t.Context(), player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -121,31 +117,30 @@ func TestDeleteShipDesigns(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	game, player := c.createTestGameWithPlayer()
+	game, player := c.createTestGameWithPlayer(t.Context())
 
-	result, err := c.GetShipDesignsForPlayer(player.GameID, player.Num)
+	result, err := c.GetShipDesignsForPlayer(t.Context(), player.GameID, player.Num)
 	assert.Nil(t, err)
-	assert.Equal(t, []*cs.ShipDesign{}, result)
+	assert.Equal(t, 0, len(result))
 
-	shipDesign := cs.ShipDesign{Num: 1, PlayerNum: player.Num, Name: "name"}
-	shipDesign.GameID = game.ID
-	if err := c.CreateShipDesign(&shipDesign); err != nil {
+	shipDesign, err := c.CreateShipDesign(t.Context(), &cs.ShipDesign{GameDBObject: cs.GameDBObject{GameID: game.ID}, Num: 1, PlayerNum: player.Num, Name: "name"})
+	if err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
 
 	// should have our shipDesign in the db
-	result, err = c.GetShipDesignsForPlayer(player.GameID, player.Num)
+	result, err = c.GetShipDesignsForPlayer(t.Context(), player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	if err := c.DeleteShipDesign(shipDesign.ID); err != nil {
+	if err := c.DeleteShipDesign(t.Context(), shipDesign.ID); err != nil {
 		t.Errorf("delete shipDesign %s", err)
 		return
 	}
 
 	// should be no shipDesigns left in db
-	result, err = c.GetShipDesignsForPlayer(player.GameID, player.Num)
+	result, err = c.GetShipDesignsForPlayer(t.Context(), player.GameID, player.Num)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 }

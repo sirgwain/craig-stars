@@ -34,7 +34,7 @@ func (s *server) raceCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		race, err := db.GetRace(*id)
+		race, err := db.GetRace(r.Context(), *id)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -63,7 +63,7 @@ func (s *server) races(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUserSession(r)
 
-	races, err := db.GetRacesForUser(user.ID)
+	races, err := db.GetRacesForUser(r.Context(), user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("get races from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -83,14 +83,15 @@ func (s *server) createRace(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUserSession(r)
 
-	race := raceRequest{}
-	if err := render.Bind(r, &race); err != nil {
+	raceReq := raceRequest{}
+	if err := render.Bind(r, &raceReq); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	race.UserID = user.ID
-	if err := db.CreateRace(race.Race); err != nil {
+	raceReq.UserID = user.ID
+	race, err := db.CreateRace(r.Context(), raceReq.Race)
+	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("create race")
 		render.Render(w, r, ErrBadRequest(err))
 		return
@@ -131,7 +132,7 @@ func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.UpdateRace(race.Race); err != nil {
+	if err := db.UpdateRace(r.Context(), race.Race); err != nil {
 		log.Error().Err(err).Int64("ID", race.ID).Msg("update race in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -144,7 +145,7 @@ func (s *server) deleteRace(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	race := s.contextRace(r)
 
-	if err := db.DeleteRace(race.ID); err != nil {
+	if err := db.DeleteRace(r.Context(), race.ID); err != nil {
 		log.Error().Err(err).Int64("ID", race.ID).Msg("delete race from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

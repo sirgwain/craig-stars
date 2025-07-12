@@ -346,7 +346,7 @@ func (ai *aiPlayer) getYearsToBuildStarbase(planet *cs.Planet, design *cs.ShipDe
 	var err error
 	var cost cs.Cost
 	if planet.Spec.HasStarbase {
-		existingStarbase := ai.GetDesign(planet.Starbase.Tokens[0].DesignNum)
+		existingStarbase := ai.GetDesign(planet.Spec.StarbaseDesignNum)
 		cost, err = costCalculator.StarbaseUpgradeCost(&ai.game.Rules, ai.Player.TechLevels, ai.Player.Race.Spec, existingStarbase, design)
 	} else {
 		cost, err = costCalculator.GetDesignCost(&ai.game.Rules, ai.Player.TechLevels, ai.Player.Race.Spec, design)

@@ -91,6 +91,11 @@ func Tidy() error {
 
 // Generate go code and techs.JSON files.
 func Generate() error {
+	fmt.Println("running sqlc generate ./...")
+	if err := sh.RunV("go", "tool", "sqlc", "generate"); err != nil {
+		return err
+	}
+
 	fmt.Println("running go generate ./...")
 	if err := sh.RunV("go", "generate", "./..."); err != nil {
 		return err
@@ -187,7 +192,7 @@ func build_backend(buildArgs ...string) error {
 	args := make([]string, 1, len(buildArgs)+4)
 	args[0] = "build"
 	args = append(args, buildArgs...)
-	args = append(args, "-o", "dist/" + binary_name, "main.go")
+	args = append(args, "-o", "dist/"+binary_name, "main.go")
 
 	if err := sh.RunV("go", args...); err != nil {
 		// "go", "build", buildArgs..., "-o", "dist/craig-stars", "main.go"

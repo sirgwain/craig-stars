@@ -1,182 +1,80 @@
 package db
 
 import (
+	"context"
 	"database/sql"
-	"database/sql/driver"
-	"fmt"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
+	generated "github.com/sirgwain/craig-stars/db/generated"
 )
 
-type MysteryTrader struct {
-	ID              int64                         `json:"id,omitempty"`
-	GameID          int64                         `json:"gameId,omitempty"`
-	CreatedAt       time.Time                     `json:"createdAt,omitempty"`
-	UpdatedAt       time.Time                     `json:"updatedAt,omitempty"`
-	X               float64                       `json:"x,omitempty"`
-	Y               float64                       `json:"y,omitempty"`
-	Name            string                        `json:"name,omitempty"`
-	Num             int                           `json:"num,omitempty"`
-	Tags            *Tags                         `json:"tags,omitempty"`
-	HeadingX        float64                       `json:"headingX,omitempty"`
-	HeadingY        float64                       `json:"headingY,omitempty"`
-	WarpSpeed       int                           `json:"warpSpeed,omitempty"`
-	RequestedBoon   int                           `json:"requestedBoon,omitempty"`
-	DestinationX    float64                       `json:"destinationX,omitempty"`
-	DestinationY    float64                       `json:"destinationY,omitempty"`
-	RewardType      cs.MysteryTraderRewardType    `json:"rewardType,omitempty"`
-	PlayersRewarded *MysteryTraderPlayersRewarded `json:"playersRewarded,omitempty"`
-	Spec            *MysteryTraderSpec            `json:"spec,omitempty"`
-}
-
-// we json serialize these types with custom Scan/Value methods
-type MysteryTraderSpec cs.MysteryTraderSpec
-type MysteryTraderPlayersRewarded map[int]bool
-
-// db serializer to serialize this to JSON
-func (item *MysteryTraderSpec) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *MysteryTraderSpec) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-// db serializer to serialize this to JSON
-func (item *MysteryTraderPlayersRewarded) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *MysteryTraderPlayersRewarded) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-// get a mysteryTrader by id
-func (c *client) GetMysteryTrader(id int64) (*cs.MysteryTrader, error) {
-	item := MysteryTrader{}
-	if err := c.reader.Get(&item, "SELECT * FROM mysteryTraders WHERE id = ?", id); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+// get a mysterytrader by id
+func (c *client) GetMysteryTrader(ctx context.Context, id int64) (*cs.MysteryTrader, error) {
+	item, err := c.reader.GetMysteryTrader(ctx, id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	mysteryTrader := c.converter.ConvertMysteryTrader(&item)
-	return mysteryTrader, nil
+	return c.converter.ConvertMysteryTrader(item), nil
 }
 
-func (c *client) getMysteryTradersForGame(gameID int64) ([]*cs.MysteryTrader, error) {
+func (c *client) GetMysteryTraderByNum(ctx context.Context, gameID int64, num int) (*cs.MysteryTrader, error) {
 
-	items := []MysteryTrader{}
-	if err := c.reader.Select(&items, `SELECT * FROM mysteryTraders WHERE gameId = ?`, gameID); err != nil {
-		if err == sql.ErrNoRows {
-			return []*cs.MysteryTrader{}, nil
-		}
+	item, err := c.reader.GetMysteryTraderByNum(ctx, generated.GetMysteryTraderByNumParams{
+		Gameid: gameID,
+		Num:    sql.NullInt64{Valid: true, Int64: int64(num)},
+	})
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	results := make([]*cs.MysteryTrader, len(items))
-	for i := range items {
-		results[i] = c.converter.ConvertMysteryTrader(&items[i])
-	}
+	return c.converter.ConvertMysteryTrader(item), nil
 
-	return results, nil
 }
 
-// create a new game
-func (c *client) createMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
-	item := c.converter.ConvertGameMysteryTrader(mysteryTrader)
-	result, err := c.writer.NamedExec(`
-	INSERT INTO mysteryTraders (
-		createdAt,
-		updatedAt,
-		gameId,
-		x,
-		y,
-		name,
-		num,
-		tags,
-		headingX,
-		headingY,
-		warpSpeed,
-		requestedBoon,
-		destinationX,
-		destinationY,
-		rewardType,
-		playersRewarded,
-		spec
-	)
-	VALUES (
-		CURRENT_TIMESTAMP,
-		CURRENT_TIMESTAMP,
-		:gameId,
-		:x,
-		:y,
-		:name,
-		:num,
-		:tags,
-		:headingX,
-		:headingY,
-		:warpSpeed,
-		:requestedBoon,
-		:destinationX,
-		:destinationY,
-		:rewardType,
-		:playersRewarded,
-		:spec
-	)
-	`, item)
+func (c *client) GetMysteryTradersForGame(ctx context.Context, gameID int64) ([]*cs.MysteryTrader, error) {
+	items, err := c.reader.GetMysteryTradersForGame(ctx, gameID)
 
+	if err == sql.ErrNoRows {
+		return []*cs.MysteryTrader{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return c.converter.ConvertMysteryTraders(items), nil
+}
+
+func (c *client) CreateMysteryTrader(ctx context.Context, mysterytrader *cs.MysteryTrader) (*cs.MysteryTrader, error) {
+	result, err := c.writer.CreateMysteryTrader(ctx, c.converter.ConvertGameMysteryTraderToCreateParams(mysterytrader))
+
+	if err != nil {
+		return nil, err
+	}
+
+	created := c.converter.ConvertMysteryTrader(result)
+	return created, nil
+}
+
+// update an existing mysterytrader
+func (c *client) UpdateMysteryTrader(ctx context.Context, mysterytrader *cs.MysteryTrader) error {
+
+	result, err := c.writer.UpdateMysteryTrader(ctx, c.converter.ConvertGameMysteryTraderToUpdateParams(mysterytrader))
 	if err != nil {
 		return err
 	}
 
-	// update the id of our passed in game
-	mysteryTrader.ID, err = result.LastInsertId()
-	if err != nil {
-		return err
-	}
-
+	mysterytrader.UpdatedAt = result.Updatedat
 	return nil
 }
 
-// update an existing mysteryTrader
-func (c *client) updateMysteryTrader(mysteryTrader *cs.MysteryTrader) error {
-
-	item := c.converter.ConvertGameMysteryTrader(mysteryTrader)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE mysteryTraders SET
-		updatedAt = CURRENT_TIMESTAMP,
-		gameId = :gameId,
-		x = :x,
-		y = :y,
-		name = :name,
-		num = :num,
-		tags = :tags,
-		headingX = :headingX,
-		headingY = :headingY,
-		warpSpeed = :warpSpeed,
-		requestedBoon = :requestedBoon,
-		destinationX = :destinationX,
-		destinationY = :destinationY,
-		rewardType = :rewardType,
-		playersRewarded = :playersRewarded,
-		spec = :spec
-	WHERE id = :id
-	`, item); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *client) deleteMysteryTrader(mysteryTraderID int64) error {
-	if _, err := c.writer.Exec("DELETE FROM mysteryTraders where id = ?", mysteryTraderID); err != nil {
-		return fmt.Errorf("delete mysteryTrader %d: %w", mysteryTraderID, err)
-	}
-	return nil
+// delete a mysterytrader by id
+func (c *client) DeleteMysteryTrader(ctx context.Context, id int64) error {
+	return c.writer.DeleteMysteryTrader(ctx, id)
 }

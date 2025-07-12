@@ -1,12 +1,12 @@
 CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   username TEXT UNIQUE NOT NULL,
   password TEXT,
   email TEXT,
-  verified NUMERIC,
-  banned NUMERIC,
+  verified BOOLEAN,
+  banned BOOLEAN,
   role TEXT NOT NULL,
   lastLogin TIMESTAMP,
   discordId TEXT,
@@ -17,8 +17,8 @@ CREATE TABLE users (
 );
 CREATE TABLE races (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   userId INTEGER NOT NULL,
   name TEXT NOT NULL,
   pluralName TEXT NOT NULL,
@@ -36,10 +36,10 @@ CREATE TABLE races (
   factoryOutput INTEGER,
   factoryCost INTEGER,
   numFactories INTEGER,
-  factoriesCostLess NUMERIC,
-  immuneGrav NUMERIC,
-  immuneTemp NUMERIC,
-  immuneRad NUMERIC,
+  factoriesCostLess BOOLEAN,
+  immuneGrav BOOLEAN,
+  immuneTemp BOOLEAN,
+  immuneRad BOOLEAN,
   mineOutput INTEGER,
   mineCost INTEGER,
   numMines INTEGER,
@@ -49,25 +49,25 @@ CREATE TABLE races (
   researchCostConstruction TEXT,
   researchCostElectronics TEXT,
   researchCostBiotechnology TEXT,
-  techsStartHigh NUMERIC,
+  techsStartHigh BOOLEAN,
   spec TEXT,
   CONSTRAINT fkUsersRaces FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE
 );
 CREATE TABLE games (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   hostId INTEGER,
   name TEXT NOT NULL,
   state TEXT,
-  public NUMERIC,
+  public BOOLEAN,
   hash TEXT,
   size TEXT,
   density TEXT,
   playerPositions TEXT,
-  randomEvents NUMERIC,
-  computerPlayersFormAlliances NUMERIC,
-  publicPlayerScores NUMERIC,
+  randomEvents BOOLEAN,
+  computerPlayersFormAlliances BOOLEAN,
+  publicPlayerScores BOOLEAN,
   startMode TEXT,
   quickStartTurns INTEGER,
   openPlayerSlots INTEGER,
@@ -88,19 +88,19 @@ CREATE TABLE games (
   areaX REAL,
   areaY REAL,
   year INTEGER,
-  victorDeclared NUMERIC,
-  maxMinerals NUMERIC DEFAULT 0,
-  archived NUMERIC NOT NULL default 0
+  victorDeclared BOOLEAN,
+  maxMinerals BOOLEAN DEFAULT 0,
+  archived BOOLEAN NOT NULL default 0
 );
 CREATE TABLE rules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gameId INTEGER NOT NULL,
   seed INTEGER,
   tachyonCloakReduction INTEGER,
   maxPopulation INTEGER,
-  fleetsScanWhileMoving NUMERIC,
+  fleetsScanWhileMoving BOOLEAN,
   populationScannerError REAL,
   smartDefenseCoverageFactor REAL,
   invasionDefenseCoverageFactor REAL,
@@ -157,15 +157,15 @@ CREATE TABLE rules (
 );
 CREATE TABLE players (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gameId INTEGER NOT NULL,
   userId INTEGER,
   name TEXT NOT NULL,
   num INTEGER NOT NULL,
-  ready NUMERIC,
-  aiControlled NUMERIC,
-  submittedTurn NUMERIC,
+  ready BOOLEAN,
+  aiControlled BOOLEAN,
+  submittedTurn BOOLEAN,
   color TEXT,
   defaultHullSet INTEGER,
   techLevelsEnergy INTEGER,
@@ -205,19 +205,19 @@ CREATE TABLE players (
   stats TEXT,
   scoreHistory TEXT,
   achievedVictoryConditions INTEGER,
-  victor NUMERIC,
+  victor BOOLEAN,
   spec TEXT,
-  guest NUMERIC NOT NULL default 0,
+  guest BOOLEAN NOT NULL default 0,
   aiDifficulty TEXT DEFAULT "",
   acquiredTechs TEXT,
-  archived NUMERIC NOT NULL default 0,
+  archived BOOLEAN NOT NULL default 0,
   UNIQUE (gameId, num),
   CONSTRAINT fkGamesPlayers FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE fleets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gameId INTEGER NOT NULL,
   battlePlanNum INTEGER NOT NULL,
   x REAL,
@@ -227,7 +227,7 @@ CREATE TABLE fleets (
   playerNum INTEGER,
   tokens TEXT,
   waypoints TEXT,
-  repeatOrders NUMERIC,
+  repeatOrders BOOLEAN,
   planetNum INTEGER,
   baseName TEXT NOT NULL,
   ironium INTEGER,
@@ -242,7 +242,7 @@ CREATE TABLE fleets (
   previousPositionX REAL,
   previousPositionY REAL,
   orbitingPlanetNum INTEGER,
-  starbase NUMERIC,
+  starbase BOOLEAN,
   spec TEXT,
   purpose TEXT NOT NULL default '',
   tags TEXT,
@@ -253,8 +253,8 @@ CREATE UNIQUE INDEX fleetNum on fleets(gameId, playerNum, num)
 WHERE starbase = 0;
 CREATE TABLE shipDesigns (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gameId INTEGER NOT NULL,
   num INTEGER NOT NULL,
   playerNum INTEGER NOT NULL,
@@ -262,13 +262,13 @@ CREATE TABLE shipDesigns (
   version INTEGER,
   hull TEXT,
   hullSetNumber INTEGER,
-  canDelete NUMERIC,
+  canDelete BOOLEAN,
   slots TEXT,
   purpose TEXT,
   spec TEXT,
-  cannotDelete NUMERIC NOT NULL default 0,
+  cannotDelete BOOLEAN NOT NULL default 0,
   originalPlayerNum INTEGER DEFAULT 0,
-  mysteryTrader NUMERIC,
+  mysteryTrader BOOLEAN,
   UNIQUE (gameId, playerNum, num),
   UNIQUE (gameId, playerNum, name),
   CONSTRAINT fkPlayersDesigns FOREIGN KEY (gameId, playerNum) REFERENCES players (gameId, num) ON DELETE CASCADE
@@ -276,8 +276,8 @@ CREATE TABLE shipDesigns (
 CREATE TABLE planets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   gameId INTEGER NOT NULL,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   x REAL,
   y REAL,
   name TEXT NOT NULL,
@@ -306,9 +306,9 @@ CREATE TABLE planets (
   mines INTEGER,
   factories INTEGER,
   defenses INTEGER,
-  homeworld NUMERIC,
-  contributesOnlyLeftoverToResearch NUMERIC,
-  scanner NUMERIC,
+  homeworld BOOLEAN,
+  contributesOnlyLeftoverToResearch BOOLEAN,
+  scanner BOOLEAN,
   routeTargetType TEXT,
   routeTargetNum INTEGER,
   routeTargetPlayerNum INTEGER,
@@ -317,14 +317,14 @@ CREATE TABLE planets (
   productionQueue TEXT,
   spec TEXT,
   tags TEXT,
-  randomArtifact NUMERIC DEFAULT 0,
+  randomArtifact BOOLEAN DEFAULT 0,
   UNIQUE (gameId, num),
   CONSTRAINT fkGamesPlanets FOREIGN KEY (gameId) REFERENCES games (id) ON DELETE CASCADE
 );
 CREATE TABLE mineralPackets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gameId INTEGER NOT NULL,
   x REAL,
   y REAL,
@@ -348,8 +348,8 @@ CREATE TABLE mineralPackets (
 );
 CREATE TABLE salvages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gameId INTEGER NOT NULL,
   x REAL,
   y REAL,
@@ -366,8 +366,8 @@ CREATE TABLE salvages (
 );
 CREATE TABLE wormholes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gameId INTEGER NOT NULL,
   x REAL,
   y REAL,
@@ -383,8 +383,8 @@ CREATE TABLE wormholes (
 );
 CREATE TABLE mysteryTraders (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gameId INTEGER NOT NULL,
   x REAL,
   y REAL,
@@ -405,8 +405,8 @@ CREATE TABLE mysteryTraders (
 );
 CREATE TABLE mineFields (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gameId INTEGER NOT NULL,
   x REAL,
   y REAL,
@@ -414,7 +414,7 @@ CREATE TABLE mineFields (
   num INTEGER,
   playerNum INTEGER,
   numMines INTEGER,
-  detonate NUMERIC,
+  detonate BOOLEAN,
   mineFieldType TEXT,
   spec TEXT,
   tags TEXT,
@@ -426,9 +426,20 @@ CREATE UNIQUE INDEX fleetStarbasePlanet on fleets(gameId, playerNum, planetNum)
 WHERE starbase = 1;
 CREATE TABLE versions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  createdAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
-  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENTTIMESTAMP,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   current NUMERIC
 );
 INSERT INTO versions (current)
 VALUES (0);
+
+CREATE INDEX idx_players_gameid ON players(gameId);
+CREATE INDEX idx_planets_gameid ON planets(gameId);
+CREATE INDEX idx_fleets_gameid ON fleets(gameId);
+CREATE INDEX idx_minefields_gameid ON mineFields(gameId);
+CREATE INDEX idx_mineral_packets_gameid ON mineralPackets(gameId);
+CREATE INDEX idx_mystery_traders_gameid ON mysteryTraders(gameId);
+CREATE INDEX idx_salvages_gameid ON salvages(gameId);
+CREATE INDEX idx_ship_designs_gameid ON shipDesigns(gameId);
+CREATE INDEX idx_ship_designs_gameid_playernum ON shipDesigns(gameId, playerNum);
+CREATE INDEX idx_fleets_gameid_player_num ON fleets(gameId, playerNum);

@@ -1094,6 +1094,7 @@ export interface PlayerStatus {
 	num: number /* int */;
 	ready?: boolean;
 	aiControlled?: boolean;
+	aiDifficulty?: AIDifficulty;
 	guest?: boolean;
 	submittedTurn?: boolean;
 	color?: string;

@@ -1,20 +1,20 @@
 package db
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
-
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	gen "github.com/sirgwain/craig-stars/db/generated"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/mattn/go-sqlite3"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	sqldblogger "github.com/simukti/sqldb-logger"
 )
 
@@ -47,118 +47,113 @@ type Client interface {
 
 	// private method used during DBConn Connect to upgrade a client
 	// this is
-	ensureUpgrade() error
+	ensureUpgrade(context.Context) error
 
-	GetUsers() ([]cs.User, error)
-	GetUser(id int64) (*cs.User, error)
-	GetUserByUsername(username string) (*cs.User, error)
-	GetGuestUser(hash string) (*cs.User, error)
-	GetGuestUserForGame(gameID int64, playerNum int) (*cs.User, error)
-	GetGuestUsersForGame(gameID int64) ([]cs.User, error)
-	CreateUser(user *cs.User) error
-	UpdateUser(user *cs.User) error
-	DeleteUser(id int64) error
-	UpdateUserSettings(user *cs.User) error
-	DeleteGameUsers(gameID int64) error
-	GetUsersForGame(gameID int64) ([]cs.User, error)
+	CreateUser(ctx context.Context, user *cs.User) (*cs.User, error)
+	DeleteGameUsers(ctx context.Context, gameID int64) error
+	DeleteUser(ctx context.Context, id int64) error
+	GetGuestUser(ctx context.Context, hash string) (*cs.User, error)
+	GetGuestUserForGame(ctx context.Context, gameID int64, playerNum int) (*cs.User, error)
+	GetGuestUsersForGame(ctx context.Context, gameID int64) ([]cs.User, error)
+	GetUser(ctx context.Context, id int64) (*cs.User, error)
+	GetUserByUsername(ctx context.Context, username string) (*cs.User, error)
+	GetUsers(ctx context.Context) ([]cs.User, error)
+	GetUsersForGame(ctx context.Context, gameID int64) ([]cs.User, error)
+	UpdateUser(ctx context.Context, user *cs.User) error
+	UpdateUserSettings(ctx context.Context, user *cs.User) error
 
-	GetRaces() ([]cs.Race, error)
-	GetRacesForUser(userID int64) ([]cs.Race, error)
-	GetRace(id int64) (*cs.Race, error)
-	CreateRace(race *cs.Race) error
-	UpdateRace(race *cs.Race) error
-	DeleteRace(id int64) error
-	DeleteUserRaces(userID int64) error
+	CreateRace(ctx context.Context, race *cs.Race) (*cs.Race, error)
+	DeleteRace(ctx context.Context, id int64) error
+	DeleteUserRaces(ctx context.Context, userID int64) error
+	GetRace(ctx context.Context, id int64) (*cs.Race, error)
+	GetRaces(ctx context.Context) ([]cs.Race, error)
+	GetRacesForUser(ctx context.Context, userID int64) ([]cs.Race, error)
+	UpdateRace(ctx context.Context, race *cs.Race) error
 
-	GetTechStores() ([]cs.TechStore, error)
-	CreateTechStore(tech *cs.TechStore) error
-	GetTechStore(id int64) (*cs.TechStore, error)
+	CreateTechStore(ctx context.Context, tech *cs.TechStore) (*cs.TechStore, error)
+	GetTechStore(ctx context.Context, id int64) (*cs.TechStore, error)
+	GetTechStores(ctx context.Context) ([]cs.TechStore, error)
 
-	GetRulesForGame(gameID int64) (*cs.Rules, error)
+	GetRulesForGame(ctx context.Context, gameID int64) (*cs.Rules, error)
 
-	GetGames() ([]cs.Game, error)
-	GetGamesWithPlayers() ([]cs.GameWithPlayers, error)
-	GetGamesForHost(userID int64) ([]cs.GameWithPlayers, error)
-	GetGamesForUser(userID int64) ([]cs.GameWithPlayers, error)
-	GetOpenGames() ([]cs.GameWithPlayers, error)
-	GetOpenGamesByHash(hash string) ([]cs.GameWithPlayers, error)
-	GetGame(id int64) (*cs.GameWithPlayers, error)
-	GetGameWithPlayersStatus(gameID int64) (*cs.GameWithPlayers, error)
-	GetFullGame(id int64) (*cs.FullGame, error)
-	CreateGame(game *cs.Game) error
-	UpdateGame(game *cs.Game) error
-	UpdateGameState(gameID int64, state cs.GameState) error
-	UpdateFullGame(fullGame *cs.FullGame) error
-	UpdateGameHost(gameID int64, hostId int64) error
-	DeleteGame(id int64) error
-	DeleteUserGames(hostID int64) error
+	CreateGame(ctx context.Context, game *cs.Game) (*cs.Game, error)
+	DeleteGame(ctx context.Context, id int64) error
+	DeleteUserGames(ctx context.Context, hostID int64) error
+	GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error)
+	GetGame(ctx context.Context, id int64) (*cs.GameWithPlayers, error)
+	GetGames(ctx context.Context) ([]cs.Game, error)
+	GetGamesForHost(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error)
+	GetGamesForUser(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error)
+	GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error)
+	GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error)
+	GetOpenGamesByHash(ctx context.Context, hash string) ([]cs.GameWithPlayers, error)
+	UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) error
+	UpdateGame(ctx context.Context, game *cs.Game) error
+	UpdateGameHost(ctx context.Context, gameID int64, hostId int64) error
+	UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error
 
-	GetPlayers() ([]cs.Player, error)
-	GetPlayersForUser(userID int64) ([]cs.Player, error)
-	GetPlayer(id int64) (*cs.Player, error)
-	GetLightPlayerForGame(gameID, userID int64) (*cs.Player, error)
-	GetPlayersStatusForGame(gameID int64) ([]*cs.Player, error)
-	GetPlayerForGame(gameID, userID int64) (*cs.Player, error)
-	GetPlayerIntelsForGame(gameID, userID int64) (*cs.PlayerIntels, error)
-	GetPlayerByNum(gameID int64, num int) (*cs.Player, error)
-	GetFullPlayerForGame(gameID, userID int64) (*cs.FullPlayer, error)
-	GetPlayerMapObjects(gameID, userID int64) (*cs.PlayerMapObjects, error)
-	GetPlayerWithDesignsForGame(gameID int64, num int) (*cs.Player, error)
-	CreatePlayer(player *cs.Player) error
-	UpdatePlayer(player *cs.Player) error
-	SubmitPlayerTurn(gameID int64, num int, submittedTurn bool) error
-	ArchivePlayer(gameID int64, num int, archived bool) error
-	UpdatePlayerOrders(player *cs.Player) error
-	UpdatePlayerCargoTransfers(player *cs.Player) error
-	UpdatePlayerRelations(player *cs.Player) error
-	UpdatePlayerSpec(player *cs.Player) error
-	UpdatePlayerPlans(player *cs.Player) error
-	UpdatePlayerPlanetIntels(player *cs.Player) error
-	UpdatePlayerFleetIntels(player *cs.Player) error
-	UpdatePlayerSalvageIntels(player *cs.Player) error
-	UpdatePlayerMineralPacketIntels(player *cs.Player) error
-	UpdateLightPlayer(player *cs.Player) error
-	UpdatePlayerUserId(player *cs.Player) error
-	DeletePlayer(id int64) error
+	ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error
+	CreatePlayer(ctx context.Context, player *cs.Player) (*cs.Player, error)
+	DeletePlayer(ctx context.Context, id int64) error
+	GetFullPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.FullPlayer, error)
+	GetLightPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error)
+	GetPlayer(ctx context.Context, id int64) (*cs.Player, error)
+	GetPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error)
+	GetPlayerMapObjects(ctx context.Context, gameID, userID int64) (*cs.PlayerMapObjects, error)
+	GetPlayers(ctx context.Context) ([]*cs.Player, error)
+	GetPlayersForUser(ctx context.Context, userID int64) ([]*cs.Player, error)
+	GetPlayersStatusForGame(ctx context.Context, gameID int64) ([]*cs.Player, error)
+	SubmitPlayerTurn(ctx context.Context, gameID int64, num int, submittedTurn bool) error
+	UpdateLightPlayer(ctx context.Context, player *cs.Player) error
+	UpdatePlayer(ctx context.Context, player *cs.Player) error
+	UpdatePlayerCargoTransfers(ctx context.Context, player *cs.Player) error
+	UpdatePlayerFleetIntels(ctx context.Context, player *cs.Player) error
+	UpdatePlayerMineralPacketIntels(ctx context.Context, player *cs.Player) error
+	UpdatePlayerOrders(ctx context.Context, player *cs.Player) error
+	UpdatePlayerPlanetIntels(ctx context.Context, player *cs.Player) error
+	UpdatePlayerPlans(ctx context.Context, player *cs.Player) error
+	UpdatePlayerRelations(ctx context.Context, player *cs.Player) error
+	UpdatePlayerSalvageIntels(ctx context.Context, player *cs.Player) error
+	UpdatePlayerSpec(ctx context.Context, player *cs.Player) error
+	UpdatePlayerUserId(ctx context.Context, player *cs.Player) error
 
-	GetShipDesignsForPlayer(gameID int64, playerNum int) ([]*cs.ShipDesign, error)
-	GetShipDesign(id int64) (*cs.ShipDesign, error)
-	GetShipDesignByNum(gameID int64, playerNum, num int) (*cs.ShipDesign, error)
-	CreateShipDesign(shipDesign *cs.ShipDesign) error
-	UpdateShipDesign(shipDesign *cs.ShipDesign) error
-	DeleteShipDesign(id int64) error
+	CreateShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) (*cs.ShipDesign, error)
+	DeleteShipDesign(ctx context.Context, id int64) error
+	GetShipDesign(ctx context.Context, id int64) (*cs.ShipDesign, error)
+	GetShipDesignByNum(ctx context.Context, gameID int64, playerNum, num int) (*cs.ShipDesign, error)
+	GetShipDesignsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.ShipDesign, error)
+	UpdateShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) error
 
-	GetPlanet(id int64) (*cs.Planet, error)
-	GetPlanetByNum(gameID int64, num int) (*cs.Planet, error)
-	GetPlanetsForPlayer(gameID int64, playerNum int) ([]*cs.Planet, error)
-	UpdatePlanet(planet *cs.Planet) error
-	UpdatePlanetSpec(planet *cs.Planet) error
+	GetPlanet(ctx context.Context, id int64) (*cs.Planet, error)
+	GetPlanetByNum(ctx context.Context, gameID int64, num int) (*cs.Planet, error)
+	GetPlanetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Planet, error)
+	UpdatePlanet(ctx context.Context, planet *cs.Planet) error
+	UpdatePlanetSpec(ctx context.Context, planet *cs.Planet) error
 
-	GetFleet(id int64) (*cs.Fleet, error)
-	GetFleetByNum(gameID int64, playerNum int, num int) (*cs.Fleet, error)
-	GetFleetsByNums(gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error)
-	CreateFleet(fleet *cs.Fleet) error
-	UpdateFleet(fleet *cs.Fleet) error
-	CreateUpdateOrDeleteFleets(gameID int64, fleets []*cs.Fleet) error
-	DeleteFleet(id int64) error
-	GetFleetsForPlayer(gameID int64, playerNum int) ([]*cs.Fleet, error)
-	GetFleetsOrbitingPlanet(gameID int64, planetNum int) ([]*cs.Fleet, error)
+	CreateFleet(ctx context.Context, fleet *cs.Fleet) (*cs.Fleet, error)
+	CreateUpdateOrDeleteFleets(ctx context.Context, gameID int64, fleets []*cs.Fleet) error
+	DeleteFleet(ctx context.Context, id int64) error
+	GetFleet(ctx context.Context, id int64) (*cs.Fleet, error)
+	GetFleetByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.Fleet, error)
+	GetFleetsByNums(ctx context.Context, gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error)
+	GetFleetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Fleet, error)
+	UpdateFleet(ctx context.Context, fleet *cs.Fleet) error
 
-	GetMineField(id int64) (*cs.MineField, error)
-	GetMineFieldByNum(gameID int64, playerNum int, num int) (*cs.MineField, error)
-	GetMineFieldsForPlayer(gameID int64, playerNum int) ([]*cs.MineField, error)
-	UpdateMineField(fleet *cs.MineField) error
+	GetMineField(ctx context.Context, id int64) (*cs.MineField, error)
+	GetMineFieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineField, error)
+	GetMineFieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineField, error)
+	UpdateMineField(ctx context.Context, fleet *cs.MineField) error
 
-	GetMineralPacket(id int64) (*cs.MineralPacket, error)
-	GetMineralPacketByNum(gameID int64, playerNum int, num int) (*cs.MineralPacket, error)
-	GetMineralPacketsForPlayer(gameID int64, playerNum int) ([]*cs.MineralPacket, error)
-	UpdateMineralPacket(mineralPacket *cs.MineralPacket) error
+	GetMineralPacket(ctx context.Context, id int64) (*cs.MineralPacket, error)
+	GetMineralPacketByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineralPacket, error)
+	GetMineralPacketsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineralPacket, error)
+	UpdateMineralPacket(ctx context.Context, mineralPacket *cs.MineralPacket) error
 
-	GetSalvagesForGame(gameID int64) ([]*cs.Salvage, error)
-	GetSalvagesForPlayer(gameID int64, playerNum int) ([]*cs.Salvage, error)
-	GetSalvageByNum(gameID int64, num int) (*cs.Salvage, error)
-	CreateSalvage(salvage *cs.Salvage) error
-	UpdateSalvage(salvage *cs.Salvage) error
+	CreateSalvage(ctx context.Context, salvage *cs.Salvage) (*cs.Salvage, error)
+	GetSalvageByNum(ctx context.Context, gameID int64, num int) (*cs.Salvage, error)
+	GetSalvagesForGame(ctx context.Context, gameID int64) ([]*cs.Salvage, error)
+	GetSalvagesForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Salvage, error)
+	UpdateSalvage(ctx context.Context, salvage *cs.Salvage) error
 }
 
 type dbConn struct {
@@ -167,22 +162,18 @@ type dbConn struct {
 	databaseInMemory bool
 }
 
-type client struct {
-	reader    sqlReader
-	writer    sqlWriter
-	tx        *sqlx.Tx
-	converter Converter
-}
-
 type sqlReader interface {
 	Select(dest interface{}, query string, args ...interface{}) error
 	Get(dest interface{}, query string, args ...interface{}) error
 	Rebind(query string) string
 }
 
-type sqlWriter interface {
-	NamedExec(query string, arg interface{}) (sql.Result, error)
-	Exec(query string, args ...any) (sql.Result, error)
+type client struct {
+	tx        *sqlx.Tx
+	readConn  sqlReader
+	reader    *gen.Queries
+	writer    *gen.Queries
+	converter Converter
 }
 
 func NewConn() DBConn {
@@ -191,15 +182,17 @@ func NewConn() DBConn {
 
 func (conn *dbConn) NewReadClient() Client {
 	return &client{
-		reader:    conn.dbRead,
+		readConn:  conn.dbRead,
+		reader:    gen.New(conn.dbRead),
 		converter: c,
 	}
 }
 
 func (conn *dbConn) NewReadWriteClient() Client {
 	return &client{
-		reader:    conn.dbRead,
-		writer:    conn.dbWrite,
+		readConn:  conn.dbRead,
+		reader:    gen.New(conn.dbRead),
+		writer:    gen.New(conn.dbWrite),
 		converter: c,
 	}
 }
@@ -207,9 +200,10 @@ func (conn *dbConn) NewReadWriteClient() Client {
 // create a new dbClient from a transaction
 func newTransactionClient(tx *sqlx.Tx) *client {
 	return &client{
-		reader:    tx,
-		writer:    tx,
 		tx:        tx,
+		readConn:  tx,
+		reader:    gen.New(tx),
+		writer:    gen.New(tx),
 		converter: c,
 	}
 }
