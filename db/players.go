@@ -149,7 +149,9 @@ func (c *client) GetPlayer(ctx context.Context, id int64) (*cs.Player, error) {
 // Get all player data except universe intel
 func (c *client) GetPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error) {
 	queryParams := generated.GetPlayerForGameParams{
-		GameId: gameID,
+		GameId:    gameID,
+		UserId:    nil,
+		PlayerNum: nil,
 	}
 	if params.UserID != 0 {
 		queryParams.UserId = params.UserID
@@ -195,7 +197,9 @@ func (c *client) GetPlayerForGame(ctx context.Context, gameID int64, params GetP
 
 func (c *client) GetLightPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error) {
 	queryParams := generated.GetLightPlayerForGameParams{
-		Gameid: gameID,
+		GameId:    gameID,
+		UserId:    nil,
+		PlayerNum: nil,
 	}
 	if params.UserID != 0 {
 		queryParams.UserId = params.UserID

@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -77,7 +76,7 @@ func (s *server) contextPlayer(r *http.Request) *cs.Player {
 
 func (s *server) player(w http.ResponseWriter, r *http.Request) {
 	player := s.contextPlayer(r)
-	rest.RenderJSON(w, player)
+	RenderJSON(w, player)
 }
 
 func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +95,7 @@ func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, player)
+	RenderJSON(w, player)
 }
 
 // get mapObjects for a player
@@ -122,7 +121,7 @@ func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, mapObjects)
+	RenderJSON(w, mapObjects)
 }
 
 // data about a universe (planets, fleets, designs, other players, etc) for a single player in the game
@@ -166,7 +165,7 @@ func (s *server) universe(w http.ResponseWriter, r *http.Request) {
 		PlayerMapObjects: *pmos,
 	})
 
-	rest.RenderJSON(w, universe)
+	RenderJSON(w, universe)
 }
 
 // build a universe response
@@ -242,7 +241,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"game": game, "player": player})
+	RenderJSON(w, JSON{"game": game, "player": player})
 }
 
 // submit a player turn and return the newly generated turn if there is one
@@ -258,7 +257,7 @@ func (s *server) unSubmitTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"player": player})
+	RenderJSON(w, JSON{"player": player})
 }
 
 func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, gameID, userID int64) {
@@ -273,7 +272,7 @@ func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, ga
 
 	universe := buildUniverse(fullPlayer)
 
-	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer.Player, "universe": universe})
+	RenderJSON(w, JSON{"game": game, "player": fullPlayer.Player, "universe": universe})
 }
 
 // Update a player's orders (research field, research amount)
@@ -337,7 +336,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update orders")
-	rest.RenderJSON(w, rest.JSON{"player": player, "planets": planets})
+	RenderJSON(w, JSON{"player": player, "planets": planets})
 }
 
 // update the player's relations with other players
@@ -365,7 +364,7 @@ func (s *server) updatePlayerRelations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update relations")
-	rest.RenderJSON(w, player.Relations)
+	RenderJSON(w, player.Relations)
 }
 
 // Update a player's plans
@@ -414,7 +413,7 @@ func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update plans")
-	rest.RenderJSON(w, player)
+	RenderJSON(w, player)
 }
 
 // get an estimate for production completion based on a planet's production queue items
@@ -429,5 +428,5 @@ func (s *server) getResearchCost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resources := player.GetResearchCost(&game.Rules, researchCost.TechLevel)
-	rest.RenderJSON(w, rest.JSON{"resources": resources})
+	RenderJSON(w, JSON{"resources": resources})
 }

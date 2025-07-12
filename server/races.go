@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -70,12 +69,12 @@ func (s *server) races(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, races)
+	RenderJSON(w, races)
 }
 
 func (s *server) race(w http.ResponseWriter, r *http.Request) {
 	race := s.contextRace(r)
-	rest.RenderJSON(w, race)
+	RenderJSON(w, race)
 }
 
 // create a new race for a user
@@ -97,7 +96,7 @@ func (s *server) createRace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, race)
+	RenderJSON(w, race)
 }
 
 // get points for a race
@@ -111,7 +110,7 @@ func (s *server) getRacePoints(w http.ResponseWriter, r *http.Request) {
 
 	// compute points
 	points := race.ComputeRacePoints(cs.NewRules().RaceStartingPoints)
-	rest.RenderJSON(w, rest.JSON{"points": points})
+	RenderJSON(w, JSON{"points": points})
 }
 
 func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +137,7 @@ func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, race)
+	RenderJSON(w, race)
 }
 
 func (s *server) deleteRace(w http.ResponseWriter, r *http.Request) {

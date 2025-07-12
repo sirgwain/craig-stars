@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/db"
 )
@@ -45,7 +44,7 @@ func (s *server) allGames(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, games)
+	RenderJSON(w, games)
 }
 
 func (s *server) userGames(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +64,7 @@ func (s *server) userGames(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, games)
+	RenderJSON(w, games)
 }
 
 // convert a guest user into a full user
@@ -212,5 +211,5 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		Int64("GuestUserID", guestUser.ID).
 		Int64("UserID", user.ID).
 		Msgf("moved guest %s games and races to %s, deleted %s", guestUser.Username, user.Username, guestUser.Username)
-	rest.RenderJSON(w, rest.JSON{})
+	RenderJSON(w, JSON{})
 }

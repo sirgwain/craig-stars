@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -81,7 +80,7 @@ func (s *server) contextPlanet(r *http.Request) *cs.Planet {
 
 func (s *server) planet(w http.ResponseWriter, r *http.Request) {
 	planet := s.contextPlanet(r)
-	rest.RenderJSON(w, planet)
+	RenderJSON(w, planet)
 }
 
 // Allow a user to update a planet's orders
@@ -137,7 +136,7 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"planet": existingPlanet, "player": player})
+	RenderJSON(w, JSON{"planet": existingPlanet, "player": player})
 }
 
 // get an estimate for production completion based on a planet's production queue items
@@ -158,7 +157,7 @@ func (s *server) getPlanetProductionEstimate(w http.ResponseWriter, r *http.Requ
 
 	// populate the production queue estimates
 	planet.PopulateProductionQueueEstimates(&rules, estimateRequest.Player)
-	rest.RenderJSON(w, planet)
+	RenderJSON(w, planet)
 }
 
 // get an estimate for production completion based on a planet's production queue items
@@ -176,5 +175,5 @@ func (s *server) getStarbaseUpgradeCost(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 	}
-	rest.RenderJSON(w, cost)
+	RenderJSON(w, cost)
 }

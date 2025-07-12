@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -66,12 +65,12 @@ func (s *server) shipDesigns(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, shipDesigns)
+	RenderJSON(w, shipDesigns)
 }
 
 func (s *server) shipDesign(w http.ResponseWriter, r *http.Request) {
 	shipDesign := s.contextShipDesign(r)
-	rest.RenderJSON(w, shipDesign)
+	RenderJSON(w, shipDesign)
 }
 
 func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
@@ -117,7 +116,7 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Int64("GameID", newDesign.GameID).Int("PlayerNum", player.Num).Str("DesignName", newDesign.Name).Msg("created player design")
 
-	rest.RenderJSON(w, newDesign)
+	RenderJSON(w, newDesign)
 }
 
 func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
@@ -188,7 +187,7 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Int64("GameID", design.GameID).Int("PlayerNum", player.Num).Str("DesignName", design.Name).Msg("updated player design")
 
-	rest.RenderJSON(w, design)
+	RenderJSON(w, design)
 }
 
 func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
@@ -317,7 +316,7 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 			fleets = append(fleets, fleet)
 		}
 	}
-	rest.RenderJSON(w, rest.JSON{"fleets": fleets, "starbases": starbases, "planets": playerPlanets})
+	RenderJSON(w, JSON{"fleets": fleets, "starbases": starbases, "planets": playerPlanets})
 }
 
 func (s *server) computeShipDesignSpec(w http.ResponseWriter, r *http.Request) {
@@ -338,5 +337,5 @@ func (s *server) computeShipDesignSpec(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, design.Spec)
+	RenderJSON(w, design.Spec)
 }

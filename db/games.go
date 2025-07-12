@@ -25,42 +25,75 @@ func (c *client) GetGames(ctx context.Context) ([]cs.Game, error) {
 }
 
 func (c *client) GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{})
+	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+		ID:     nil,
+		HostId: nil,
+		UserId: nil,
+		State:  nil,
+		Open:   nil,
+		Public: nil,
+		Hash:   nil,
+	})
 }
 
 func (c *client) GetGamesForHost(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+		ID:     nil,
 		HostId: userID,
+		UserId: nil,
+		State:  nil,
+		Open:   nil,
+		Public: nil,
+		Hash:   nil,
 	})
 }
 
 func (c *client) GetGamesForUser(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+		ID:     nil,
 		HostId: userID,
 		UserId: userID,
+		State:  nil,
+		Open:   nil,
+		Public: nil,
+		Hash:   nil,
 	})
 }
 
 func (c *client) GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+		ID:     nil,
+		HostId: nil,
+		UserId: nil,
 		State:  string(cs.GameStateSetup),
 		Open:   true,
 		Public: true,
+		Hash:   nil,
 	})
 }
 
 func (c *client) GetOpenGamesByHash(ctx context.Context, hash string) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
-		State: string(cs.GameStateSetup),
-		Open:  true,
-		Hash:  hash,
+		ID:     nil,
+		HostId: nil,
+		UserId: nil,
+		Public: nil,
+		State:  string(cs.GameStateSetup),
+		Open:   true,
+		Hash:   hash,
 	})
 }
 
 // get a game by id
 func (c *client) GetGame(ctx context.Context, id int64) (*cs.GameWithPlayers, error) {
 	games, err := c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
-		ID: id,
+		ID:     id,
+		HostId: nil,
+		UserId: nil,
+		State:  nil,
+		Open:   nil,
+		Public: nil,
+		Hash:   nil,
 	})
 	if err != nil {
 		return nil, err

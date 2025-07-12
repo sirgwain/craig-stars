@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -162,7 +161,7 @@ func (s *server) createBattlePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, battlePlan)
+	RenderJSON(w, battlePlan)
 }
 
 func (s *server) updateBattlePlan(w http.ResponseWriter, r *http.Request) {
@@ -203,7 +202,7 @@ func (s *server) updateBattlePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, battlePlan)
+	RenderJSON(w, battlePlan)
 }
 
 func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
@@ -286,7 +285,7 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 			fleets = append(fleets, fleet)
 		}
 	}
-	rest.RenderJSON(w, rest.JSON{"player": player, "fleets": fleets, "starbases": starbases})
+	RenderJSON(w, JSON{"player": player, "fleets": fleets, "starbases": starbases})
 }
 
 func (s *server) createProductionPlan(w http.ResponseWriter, r *http.Request) {
@@ -314,7 +313,7 @@ func (s *server) createProductionPlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, productionPlan)
+	RenderJSON(w, productionPlan)
 }
 
 func (s *server) updateProductionPlan(w http.ResponseWriter, r *http.Request) {
@@ -355,7 +354,7 @@ func (s *server) updateProductionPlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, productionPlan)
+	RenderJSON(w, productionPlan)
 }
 
 func (s *server) deleteProductionPlan(w http.ResponseWriter, r *http.Request) {
@@ -388,7 +387,7 @@ func (s *server) deleteProductionPlan(w http.ResponseWriter, r *http.Request) {
 	// log what we did
 	log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", productionPlan.Num).Msgf("deleted ProductionPlan %s", productionPlan.Name)
 
-	rest.RenderJSON(w, player)
+	RenderJSON(w, player)
 }
 
 func (s *server) createTransportPlan(w http.ResponseWriter, r *http.Request) {
@@ -416,7 +415,7 @@ func (s *server) createTransportPlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, transportPlan)
+	RenderJSON(w, transportPlan)
 }
 
 func (s *server) updateTransportPlan(w http.ResponseWriter, r *http.Request) {
@@ -457,7 +456,7 @@ func (s *server) updateTransportPlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, transportPlan)
+	RenderJSON(w, transportPlan)
 }
 
 func (s *server) deleteTransportPlan(w http.ResponseWriter, r *http.Request) {
@@ -490,5 +489,5 @@ func (s *server) deleteTransportPlan(w http.ResponseWriter, r *http.Request) {
 	// log what we did
 	log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", transportPlan.Num).Msgf("deleted TransportPlan %s", transportPlan.Name)
 
-	rest.RenderJSON(w, player)
+	RenderJSON(w, player)
 }

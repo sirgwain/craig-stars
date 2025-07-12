@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -62,7 +61,7 @@ func (s *server) contextMineField(r *http.Request) *cs.MineField {
 
 func (s *server) mineField(w http.ResponseWriter, r *http.Request) {
 	mineField := s.contextMineField(r)
-	rest.RenderJSON(w, mineField)
+	RenderJSON(w, mineField)
 }
 
 // Allow a user to update a mineField's orders
@@ -97,5 +96,5 @@ func (s *server) updateMineFieldOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"mineField": existingMineField, "player": player})
+	RenderJSON(w, JSON{"mineField": existingMineField, "player": player})
 }

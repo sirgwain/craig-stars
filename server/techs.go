@@ -7,12 +7,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
 func (s *server) techs(w http.ResponseWriter, r *http.Request) {
-	rest.RenderJSON(w, cs.StaticTechStore)
+	RenderJSON(w, cs.StaticTechStore)
 }
 
 func (s *server) tech(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +26,6 @@ func (s *server) tech(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrNotFound)
 		return
 	}
-	rest.RenderJSON(w, tech)
+	RenderJSON(w, tech)
 
 }

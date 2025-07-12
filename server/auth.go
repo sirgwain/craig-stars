@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/go-pkgz/auth/token"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -142,7 +141,7 @@ func me(w http.ResponseWriter, r *http.Request) {
 		DiscordAvatar: discordAvatar,
 	}
 
-	rest.RenderJSON(w, res)
+	RenderJSON(w, res)
 }
 
 // create a new user from a token

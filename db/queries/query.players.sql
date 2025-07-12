@@ -165,11 +165,11 @@ SELECT
 FROM
     players
 WHERE
-    gameId = ?
+    gameId = @gameId
     --  playerNum
     AND (
         @playerNum IS NULL
-        OR p.num = @playerNum
+        OR num = @playerNum
     )
     --  or userId
     AND (

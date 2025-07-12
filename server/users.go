@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -83,13 +82,13 @@ func (s *server) users(w http.ResponseWriter, r *http.Request) {
 		users[i].Password = ""
 	}
 
-	rest.RenderJSON(w, users)
+	RenderJSON(w, users)
 }
 
 func (s *server) user(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	user.Password = ""
-	rest.RenderJSON(w, user)
+	RenderJSON(w, user)
 }
 
 // updateUserSettings will update a user editable settings.
@@ -134,5 +133,5 @@ func (s *server) updateUserSettings(w http.ResponseWriter, r *http.Request) {
 		Int64("UserID", user.ID).
 		Msgf("updated user settings %v", request)
 
-	rest.RenderJSON(w, rest.JSON{})
+	RenderJSON(w, JSON{})
 }

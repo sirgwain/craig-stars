@@ -15,7 +15,6 @@ require (
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-chi/render v1.0.3
 	github.com/go-pkgz/auth v1.24.2
-	github.com/go-pkgz/rest v1.20.2
 	github.com/goccy/go-json v0.10.5
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/golodash/godash v1.3.0
@@ -47,6 +46,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
+	github.com/go-pkgz/rest v1.20.2 // indirect
 	github.com/go-sql-driver/mysql v1.9.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gohugoio/hugo v0.134.3 // indirect

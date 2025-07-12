@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -118,7 +117,7 @@ func (s *server) contextFleet(r *http.Request) *cs.Fleet {
 
 func (s *server) fleet(w http.ResponseWriter, r *http.Request) {
 	fleet := s.contextFleet(r)
-	rest.RenderJSON(w, fleet)
+	RenderJSON(w, fleet)
 }
 
 // Allow a user to update a fleet's orders
@@ -148,7 +147,7 @@ func (s *server) renameFleet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, fleet)
+	RenderJSON(w, fleet)
 }
 
 // Allow a user to update a fleet's orders
@@ -183,7 +182,7 @@ func (s *server) updateFleetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, existingFleet)
+	RenderJSON(w, existingFleet)
 }
 
 // split a fleet into 2 fleets
@@ -301,7 +300,7 @@ func (s *server) split(w http.ResponseWriter, r *http.Request) {
 		dest = nil
 	}
 
-	rest.RenderJSON(w, splitFleetResponse{Source: source, Dest: dest, CargoTransfers: player.CargoTransfers})
+	RenderJSON(w, splitFleetResponse{Source: source, Dest: dest, CargoTransfers: player.CargoTransfers})
 }
 
 // split all a fleet's tokens into separate fleets
@@ -352,7 +351,7 @@ func (s *server) splitAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"cargoTransfers": player.CargoTransfers, "fleets": newFleets})
+	RenderJSON(w, JSON{"cargoTransfers": player.CargoTransfers, "fleets": newFleets})
 }
 
 // merge target fleets into this one
@@ -418,7 +417,7 @@ func (s *server) merge(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"cargoTransfers": player.CargoTransfers, "fleet": updatedFleet})
+	RenderJSON(w, JSON{"cargoTransfers": player.CargoTransfers, "fleet": updatedFleet})
 }
 
 // Transfer cargo from a player's fleet to/from a fleet or planet the player controls
@@ -571,7 +570,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 		Msgf("%s transfered %v to/from Planet %s", fleet.Name, transferAmount, planet.Name)
 
 	// success
-	rest.RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
+	RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
 }
 
 // transfer cargo from a fleet to/from the fleet's jettison
@@ -619,7 +618,7 @@ func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Reque
 	}
 
 	// success
-	rest.RenderJSON(w, rest.JSON{"fleet": fleet, "player": fullPlayer})
+	RenderJSON(w, JSON{"fleet": fleet, "player": fullPlayer})
 }
 
 // transfer cargo from a fleet to/from a planet
@@ -669,7 +668,7 @@ func (s *server) transferCargoFleetSalvage(w http.ResponseWriter, r *http.Reques
 	}
 
 	// success
-	rest.RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
+	RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
 }
 
 // transfer cargo from a fleet to/from a planet
@@ -735,7 +734,7 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 		Msgf("%s transfered %v to/from MineralPacket %s", fleet.Name, transferAmount, dest.GetMapObject().Name)
 
 	// success
-	rest.RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
+	RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
 }
 
 // transfer cargo from a fleet to/from a fleet
@@ -810,5 +809,5 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 		Msgf("%s transfered %v to/from Fleet %s", fleet.Name, transferAmount, dest.GetMapObject().Name)
 
 	// success
-	rest.RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
+	RenderJSON(w, cargoTransferResponse{Player: player, Fleet: fleet, Dest: dest})
 }

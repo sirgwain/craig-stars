@@ -383,21 +383,21 @@ SELECT
 FROM
     players
 WHERE
-    gameId = ?
+    gameId = ?1
     --  playerNum
     AND (
-        ? IS NULL
-        OR p.num = ?
+        ?2 IS NULL
+        OR num = ?2
     )
     --  or userId
     AND (
-        ? IS NULL
-        OR userId = ?
+        ?3 IS NULL
+        OR userId = ?3
     )
 `
 
 type GetLightPlayerForGameParams struct {
-	Gameid    int64
+	GameId    int64
 	PlayerNum interface{}
 	UserId    interface{}
 }
@@ -449,7 +449,7 @@ type GetLightPlayerForGameRow struct {
 }
 
 func (q *Queries) GetLightPlayerForGame(ctx context.Context, arg GetLightPlayerForGameParams) (GetLightPlayerForGameRow, error) {
-	row := q.db.QueryRowContext(ctx, getLightPlayerForGame, arg.Gameid, arg.PlayerNum, arg.UserId)
+	row := q.db.QueryRowContext(ctx, getLightPlayerForGame, arg.GameId, arg.PlayerNum, arg.UserId)
 	var i GetLightPlayerForGameRow
 	err := row.Scan(
 		&i.ID,

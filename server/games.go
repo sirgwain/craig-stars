@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -123,7 +122,7 @@ func (s *server) games(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, games)
+	RenderJSON(w, games)
 }
 
 func (s *server) hostedGames(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +136,7 @@ func (s *server) hostedGames(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, games)
+	RenderJSON(w, games)
 }
 
 func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +149,7 @@ func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, games)
+	RenderJSON(w, games)
 }
 
 func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
@@ -165,7 +164,7 @@ func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
 	games, err := db.GetOpenGamesByHash(r.Context(), hash)
 	if err != nil {
 		log.Error().Err(err).Str("Hash", hash).Msg("get open games by hash from database")
-		rest.RenderJSON(w, games)
+		RenderJSON(w, games)
 	}
 
 	if len(games) == 0 {
@@ -174,12 +173,12 @@ func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// return games with this invite link
-	rest.RenderJSON(w, games)
+	RenderJSON(w, games)
 }
 
 func (s *server) game(w http.ResponseWriter, r *http.Request) {
 	game := s.contextGame(r)
-	rest.RenderJSON(w, game)
+	RenderJSON(w, game)
 }
 
 func (s *server) getGuestUser(w http.ResponseWriter, r *http.Request) {
@@ -206,7 +205,7 @@ func (s *server) getGuestUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, guest)
+	RenderJSON(w, guest)
 }
 
 // Host a new game
@@ -234,7 +233,7 @@ func (s *server) createGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, game)
+	RenderJSON(w, game)
 }
 
 func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
@@ -279,7 +278,7 @@ func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, game)
+	RenderJSON(w, game)
 }
 
 // Join an open game
@@ -376,7 +375,7 @@ func (s *server) kickPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, game)
+	RenderJSON(w, game)
 }
 
 func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
@@ -418,7 +417,7 @@ func (s *server) addOpenPlayerSlot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, game)
+	RenderJSON(w, game)
 }
 
 func (s *server) addGuestPlayer(w http.ResponseWriter, r *http.Request) {
@@ -460,7 +459,7 @@ func (s *server) addGuestPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, game)
+	RenderJSON(w, game)
 }
 
 func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
@@ -496,7 +495,7 @@ func (s *server) addAIPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, game)
+	RenderJSON(w, game)
 }
 
 func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
@@ -538,7 +537,7 @@ func (s *server) deletePlayerSlot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, game)
+	RenderJSON(w, game)
 }
 
 func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
@@ -608,7 +607,7 @@ func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, game)
+	RenderJSON(w, game)
 }
 
 // Generate a universe for a host
@@ -685,7 +684,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 
 	// if the host isn't a player, just return the game
 	if player == nil {
-		rest.RenderJSON(w, rest.JSON{"game": game})
+		RenderJSON(w, JSON{"game": game})
 		return
 	}
 
@@ -696,7 +695,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"game": game})
+	RenderJSON(w, JSON{"game": game})
 }
 
 func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
@@ -731,7 +730,7 @@ func (s *server) computeSpecs(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
-	rest.RenderJSON(w, rest.JSON{"game": fg.Game})
+	RenderJSON(w, JSON{"game": fg.Game})
 }
 
 func (s *server) archiveGame(w http.ResponseWriter, r *http.Request) {
@@ -757,7 +756,7 @@ func (s *server) archiveGame(w http.ResponseWriter, r *http.Request) {
 		log.Debug().Int64("GameID", game.ID).Int64("UserID", user.ID).Msgf("player archived game %s", game.Name)
 	}
 
-	rest.RenderJSON(w, rest.JSON{"game": game})
+	RenderJSON(w, JSON{"game": game})
 }
 
 func (s *server) unArchiveGame(w http.ResponseWriter, r *http.Request) {
@@ -781,7 +780,7 @@ func (s *server) unArchiveGame(w http.ResponseWriter, r *http.Request) {
 		log.Debug().Int64("GameID", game.ID).Int64("UserID", user.ID).Msgf("player unarchived game %s", game.Name)
 	}
 
-	rest.RenderJSON(w, rest.JSON{"game": game})
+	RenderJSON(w, JSON{"game": game})
 }
 
 func (s *server) deleteGame(w http.ResponseWriter, r *http.Request) {
