@@ -14,6 +14,10 @@ type Tags cs.Tags
 
 // db serializer to serialize this to JSON
 func (item *ShipTokens) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -24,6 +28,10 @@ func (item *ShipTokens) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *Waypoints) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -34,6 +42,10 @@ func (item *Waypoints) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *FleetSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -44,6 +56,10 @@ func (item *FleetSpec) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *Tags) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 

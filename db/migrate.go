@@ -45,7 +45,7 @@ func (c *dbConn) setupInMemoryDatabase() {
 		MigrationsTable: "my_migration_table",
 	}
 
-	driver, err := sqlite3.WithInstance(c.dbRead.DB, config)
+	driver, err := sqlite3.WithInstance(c.dbRead, config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("creating database driver")
 	}

@@ -11,6 +11,10 @@ type RaceSpec cs.RaceSpec
 
 // db serializer to serialize this to JSON
 func (item *RaceSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 

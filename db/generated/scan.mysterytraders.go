@@ -12,6 +12,10 @@ type MysteryTraderPlayersRewarded map[int]bool
 
 // db serializer to serialize this to JSON
 func (item *MysteryTraderSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -22,6 +26,10 @@ func (item *MysteryTraderSpec) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *MysteryTraderPlayersRewarded) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 

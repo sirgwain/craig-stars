@@ -2,11 +2,12 @@
 package test
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"strings"
+
+	"github.com/goccy/go-json"
 
 	"github.com/nsf/jsondiff"
 )

@@ -10,6 +10,10 @@ type MineFieldSpec cs.MineFieldSpec
 
 // db serializer to serialize this to JSON
 func (item *MineFieldSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 

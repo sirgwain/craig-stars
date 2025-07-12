@@ -12,6 +12,10 @@ type PlanetSpec cs.PlanetSpec
 
 // db serializer to serialize this to JSON
 func (item *ProductionQueueItems) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -23,6 +27,10 @@ func (item *ProductionQueueItems) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *PlanetSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 

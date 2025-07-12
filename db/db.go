@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"strings"
@@ -10,8 +11,6 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 	gen "github.com/sirgwain/craig-stars/db/generated"
 
-	"github.com/jmoiron/sqlx"
-	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -157,19 +156,17 @@ type Client interface {
 }
 
 type dbConn struct {
-	dbRead           *sqlx.DB
-	dbWrite          *sqlx.DB
+	dbRead           *sql.DB
+	dbWrite          *sql.DB
 	databaseInMemory bool
 }
 
 type sqlReader interface {
-	Select(dest interface{}, query string, args ...interface{}) error
-	Get(dest interface{}, query string, args ...interface{}) error
-	Rebind(query string) string
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
 type client struct {
-	tx        *sqlx.Tx
+	tx        *sql.Tx
 	readConn  sqlReader
 	reader    *gen.Queries
 	writer    *gen.Queries
@@ -198,7 +195,7 @@ func (conn *dbConn) NewReadWriteClient() Client {
 }
 
 // create a new dbClient from a transaction
-func newTransactionClient(tx *sqlx.Tx) *client {
+func newTransactionClient(tx *sql.Tx) *client {
 	return &client{
 		tx:        tx,
 		readConn:  tx,
@@ -209,7 +206,7 @@ func newTransactionClient(tx *sqlx.Tx) *client {
 }
 
 func (conn *dbConn) BeginTransaction() (Client, error) {
-	tx, err := conn.dbWrite.Beginx()
+	tx, err := conn.dbWrite.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -274,18 +271,14 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 	dbRead := sqldblogger.OpenDriver(dsn, &sqlite3.SQLiteDriver{ConnectHook: connectHook}, loggerAdapter)
 	dbWrite := sqldblogger.OpenDriver(dsn, &sqlite3.SQLiteDriver{ConnectHook: connectHook}, loggerAdapter)
 
-	c.dbRead = sqlx.NewDb(dbRead, "sqlite3")
+	c.dbRead = dbRead
 	if c.databaseInMemory {
 		// no separate write connetion for in memory dbs
 		c.dbWrite = c.dbRead
 	} else {
-		c.dbWrite = sqlx.NewDb(dbWrite, "sqlite3")
+		c.dbWrite = dbWrite
 		c.dbWrite.SetMaxOpenConns(1)
 	}
-
-	// Create a new mapper which will use the struct field tag "json" instead of "db"
-	c.dbRead.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
-	c.dbWrite.Mapper = reflectx.NewMapperFunc("json", strings.ToLower)
 
 	// do some special processing for in memory databases
 	if c.databaseInMemory {

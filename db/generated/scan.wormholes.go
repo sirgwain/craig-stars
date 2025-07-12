@@ -11,6 +11,10 @@ type WormholeSpec cs.WormholeSpec
 
 // db serializer to serialize this to JSON
 func (item *WormholeSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 

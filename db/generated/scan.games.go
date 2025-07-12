@@ -11,6 +11,10 @@ type Rules cs.Rules
 
 // db serializer to serialize this to JSON
 func (item *Rules) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 

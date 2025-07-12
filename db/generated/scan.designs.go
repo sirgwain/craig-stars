@@ -11,6 +11,10 @@ type ShipDesignSpec cs.ShipDesignSpec
 
 // db serializer to serialize this to JSON
 func (item *ShipDesignSlots) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -21,6 +25,10 @@ func (item *ShipDesignSlots) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *ShipDesignSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 

@@ -32,6 +32,10 @@ type PlayerStats cs.PlayerStats
 
 // db serializer to serialize this to JSON
 func (item *CargoTransfers) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -42,6 +46,10 @@ func (item *CargoTransfers) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *BattlePlans) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -52,6 +60,10 @@ func (item *BattlePlans) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *ProductionPlans) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -62,6 +74,10 @@ func (item *ProductionPlans) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *TransportPlans) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -72,6 +88,10 @@ func (item *TransportPlans) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *PlayerRace) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -82,6 +102,10 @@ func (item *PlayerRace) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *PlayerSpec) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -93,15 +117,30 @@ func (item *PlayerSpec) Scan(src interface{}) error {
 
 // db serializer to serialize this to JSON
 func (item *PlayerStats) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
 // db deserializer to read this from JSON
 func (item *PlayerStats) Scan(src interface{}) error {
+	// stats are weird. They are
+	switch v := src.(type) {
+	case []byte:
+		if len(v) == 4 && string(v) == "null" {
+			return nil
+		}
+	}
 	return scanJSON(src, item)
 }
 
 func (item *PlayerRelationships) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -110,6 +149,10 @@ func (item *PlayerRelationships) Scan(src interface{}) error {
 }
 
 func (item *PlayerMessages) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -118,6 +161,10 @@ func (item *PlayerMessages) Scan(src interface{}) error {
 }
 
 func (item *PlayerScores) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -126,6 +173,10 @@ func (item *PlayerScores) Scan(src interface{}) error {
 }
 
 func (item *AcquiredTechs) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -134,6 +185,10 @@ func (item *AcquiredTechs) Scan(src interface{}) error {
 }
 
 func (item *BattleRecords) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -142,6 +197,10 @@ func (item *BattleRecords) Scan(src interface{}) error {
 }
 
 func (item *PlayerIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -150,6 +209,10 @@ func (item *PlayerIntels) Scan(src interface{}) error {
 }
 
 func (item *ScoreIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -158,6 +221,10 @@ func (item *ScoreIntels) Scan(src interface{}) error {
 }
 
 func (item *PlanetIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -166,6 +233,10 @@ func (item *PlanetIntels) Scan(src interface{}) error {
 }
 
 func (item *FleetIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -174,6 +245,10 @@ func (item *FleetIntels) Scan(src interface{}) error {
 }
 
 func (item *ShipDesignIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -182,6 +257,10 @@ func (item *ShipDesignIntels) Scan(src interface{}) error {
 }
 
 func (item *MineralPacketIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -190,6 +269,10 @@ func (item *MineralPacketIntels) Scan(src interface{}) error {
 }
 
 func (item *SalvageIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -198,6 +281,10 @@ func (item *SalvageIntels) Scan(src interface{}) error {
 }
 
 func (item *MineFieldIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -206,6 +293,10 @@ func (item *MineFieldIntels) Scan(src interface{}) error {
 }
 
 func (item *MysteryTraderIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
@@ -214,6 +305,10 @@ func (item *MysteryTraderIntels) Scan(src interface{}) error {
 }
 
 func (item *WormholeIntels) Value() (driver.Value, error) {
+	if item == nil {
+		return nil, nil
+	}
+
 	return valueJSON(item)
 }
 
