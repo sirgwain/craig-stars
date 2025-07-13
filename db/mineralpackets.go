@@ -75,8 +75,10 @@ func (c *client) CreateMineralPacket(ctx context.Context, mineralpacket *cs.Mine
 		return nil, err
 	}
 
-	created := c.converter.ConvertMineralPacket(result)
-	return created, nil
+	mineralpacket.ID = result.ID
+	mineralpacket.CreatedAt = result.Createdat
+	mineralpacket.UpdatedAt = result.Updatedat
+	return mineralpacket, nil
 }
 
 // update an existing mineralpacket
@@ -87,7 +89,7 @@ func (c *client) UpdateMineralPacket(ctx context.Context, mineralpacket *cs.Mine
 		return err
 	}
 
-	mineralpacket.UpdatedAt = result.Updatedat
+	mineralpacket.UpdatedAt = result
 	return nil
 }
 

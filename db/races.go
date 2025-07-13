@@ -58,8 +58,10 @@ func (c *client) CreateRace(ctx context.Context, race *cs.Race) (*cs.Race, error
 		return nil, err
 	}
 
-	created := c.converter.ConvertRace(result)
-	return &created, nil
+	race.ID = result.ID
+	race.CreatedAt = result.Createdat
+	race.UpdatedAt = result.Updatedat
+	return race, nil
 }
 
 // update an existing race
@@ -70,7 +72,7 @@ func (c *client) UpdateRace(ctx context.Context, race *cs.Race) error {
 		return err
 	}
 
-	race.UpdatedAt = result.Updatedat
+	race.UpdatedAt = result
 	return nil
 }
 

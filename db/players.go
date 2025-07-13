@@ -325,8 +325,10 @@ func (c *client) CreatePlayer(ctx context.Context, player *cs.Player) (*cs.Playe
 		return nil, err
 	}
 
-	created := c.converter.ConvertPlayer(result)
-	return &created, nil
+	player.ID = result.ID
+	player.CreatedAt = result.Createdat
+	player.UpdatedAt = result.Updatedat
+	return player, nil
 }
 
 // update an existing player's lightweight fields
@@ -533,7 +535,7 @@ func (c *client) UpdatePlayer(ctx context.Context, player *cs.Player) error {
 		return err
 	}
 
-	player.UpdatedAt = result.Updatedat
+	player.UpdatedAt = result
 	return nil
 }
 

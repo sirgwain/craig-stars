@@ -256,8 +256,10 @@ func (c *client) CreateGame(ctx context.Context, game *cs.Game) (*cs.Game, error
 		return nil, err
 	}
 
-	created := c.converter.ConvertGame(result)
-	return &created, nil
+	game.ID = result.ID
+	game.CreatedAt = result.Createdat
+	game.UpdatedAt = result.Updatedat
+	return game, nil
 }
 
 func (c *client) UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error {
@@ -271,7 +273,7 @@ func (c *client) UpdateGame(ctx context.Context, game *cs.Game) error {
 		return err
 	}
 
-	game.UpdatedAt = result.Updatedat
+	game.UpdatedAt = result
 	return nil
 
 }

@@ -75,8 +75,10 @@ func (c *client) CreateSalvage(ctx context.Context, salvage *cs.Salvage) (*cs.Sa
 		return nil, err
 	}
 
-	created := c.converter.ConvertSalvage(result)
-	return created, nil
+	salvage.ID = result.ID
+	salvage.CreatedAt = result.Createdat
+	salvage.UpdatedAt = result.Updatedat
+	return salvage, nil
 }
 
 // update an existing salvage
@@ -87,7 +89,7 @@ func (c *client) UpdateSalvage(ctx context.Context, salvage *cs.Salvage) error {
 		return err
 	}
 
-	salvage.UpdatedAt = result.Updatedat
+	salvage.UpdatedAt = result
 	return nil
 }
 

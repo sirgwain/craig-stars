@@ -72,7 +72,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateMysteryTrader :one
 UPDATE mysterytraders
@@ -94,7 +94,7 @@ SET
     playersRewarded = ?,
     spec = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: DeleteMysteryTrader :exec
 DELETE FROM mysterytraders

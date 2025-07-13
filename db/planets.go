@@ -119,8 +119,10 @@ func (c *client) CreatePlanet(ctx context.Context, planet *cs.Planet) (*cs.Plane
 		return nil, err
 	}
 
-	created := c.converter.ConvertPlanet(result)
-	return created, nil
+	planet.ID = result.ID
+	planet.CreatedAt = result.Createdat
+	planet.UpdatedAt = result.Updatedat
+	return planet, nil
 }
 
 // update an existing planet
@@ -131,7 +133,7 @@ func (c *client) UpdatePlanet(ctx context.Context, planet *cs.Planet) error {
 		return err
 	}
 
-	planet.UpdatedAt = result.Updatedat
+	planet.UpdatedAt = result
 	return nil
 }
 

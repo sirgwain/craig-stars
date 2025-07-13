@@ -8,6 +8,7 @@ package generated
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -90,7 +91,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, rules, areax, areay, year, victordeclared, maxminerals, archived
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreateGameParams struct {
@@ -130,7 +131,13 @@ type CreateGameParams struct {
 	Archived                                  bool
 }
 
-func (q *Queries) CreateGame(ctx context.Context, arg CreateGameParams) (Game, error) {
+type CreateGameRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreateGame(ctx context.Context, arg CreateGameParams) (CreateGameRow, error) {
 	row := q.db.QueryRowContext(ctx, createGame,
 		arg.Hostid,
 		arg.Name,
@@ -167,46 +174,8 @@ func (q *Queries) CreateGame(ctx context.Context, arg CreateGameParams) (Game, e
 		arg.Victordeclared,
 		arg.Archived,
 	)
-	var i Game
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Hostid,
-		&i.Name,
-		&i.State,
-		&i.Public,
-		&i.Hash,
-		&i.Size,
-		&i.Density,
-		&i.Playerpositions,
-		&i.Randomevents,
-		&i.Computerplayersformalliances,
-		&i.Publicplayerscores,
-		&i.Startmode,
-		&i.Quickstartturns,
-		&i.Openplayerslots,
-		&i.Numplayers,
-		&i.Victoryconditionsconditions,
-		&i.Victoryconditionsnumcriteriarequired,
-		&i.Victoryconditionsyearspassed,
-		&i.Victoryconditionsownplanets,
-		&i.Victoryconditionsattaintechlevel,
-		&i.Victoryconditionsattaintechlevelnumfields,
-		&i.Victoryconditionsexceedsscore,
-		&i.Victoryconditionsexceedssecondplacescore,
-		&i.Victoryconditionsproductioncapacity,
-		&i.Victoryconditionsowncapitalships,
-		&i.Victoryconditionshighestscoreafteryears,
-		&i.Seed,
-		&i.Rules,
-		&i.Areax,
-		&i.Areay,
-		&i.Year,
-		&i.Victordeclared,
-		&i.Maxminerals,
-		&i.Archived,
-	)
+	var i CreateGameRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -576,7 +545,7 @@ SET
     victorDeclared = ?,
     archived = ?
 WHERE
-    id = ? RETURNING id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, rules, areax, areay, year, victordeclared, maxminerals, archived
+    id = ? RETURNING updatedAt
 `
 
 type UpdateGameParams struct {
@@ -617,7 +586,7 @@ type UpdateGameParams struct {
 	ID                                        int64
 }
 
-func (q *Queries) UpdateGame(ctx context.Context, arg UpdateGameParams) (Game, error) {
+func (q *Queries) UpdateGame(ctx context.Context, arg UpdateGameParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updateGame,
 		arg.Hostid,
 		arg.Name,
@@ -655,47 +624,9 @@ func (q *Queries) UpdateGame(ctx context.Context, arg UpdateGameParams) (Game, e
 		arg.Archived,
 		arg.ID,
 	)
-	var i Game
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Hostid,
-		&i.Name,
-		&i.State,
-		&i.Public,
-		&i.Hash,
-		&i.Size,
-		&i.Density,
-		&i.Playerpositions,
-		&i.Randomevents,
-		&i.Computerplayersformalliances,
-		&i.Publicplayerscores,
-		&i.Startmode,
-		&i.Quickstartturns,
-		&i.Openplayerslots,
-		&i.Numplayers,
-		&i.Victoryconditionsconditions,
-		&i.Victoryconditionsnumcriteriarequired,
-		&i.Victoryconditionsyearspassed,
-		&i.Victoryconditionsownplanets,
-		&i.Victoryconditionsattaintechlevel,
-		&i.Victoryconditionsattaintechlevelnumfields,
-		&i.Victoryconditionsexceedsscore,
-		&i.Victoryconditionsexceedssecondplacescore,
-		&i.Victoryconditionsproductioncapacity,
-		&i.Victoryconditionsowncapitalships,
-		&i.Victoryconditionshighestscoreafteryears,
-		&i.Seed,
-		&i.Rules,
-		&i.Areax,
-		&i.Areay,
-		&i.Year,
-		&i.Victordeclared,
-		&i.Maxminerals,
-		&i.Archived,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }
 
 const updateGameHost = `-- name: UpdateGameHost :exec

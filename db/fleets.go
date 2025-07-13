@@ -98,8 +98,10 @@ func (c *client) CreateFleet(ctx context.Context, fleet *cs.Fleet) (*cs.Fleet, e
 		return nil, err
 	}
 
-	created := c.converter.ConvertFleet(result)
-	return created, nil
+	fleet.ID = result.ID
+	fleet.CreatedAt = result.Createdat
+	fleet.UpdatedAt = result.Updatedat
+	return fleet, nil
 }
 
 // update an existing fleet
@@ -110,7 +112,7 @@ func (c *client) UpdateFleet(ctx context.Context, fleet *cs.Fleet) error {
 		return err
 	}
 
-	fleet.UpdatedAt = result.Updatedat
+	fleet.UpdatedAt = result
 	return nil
 }
 

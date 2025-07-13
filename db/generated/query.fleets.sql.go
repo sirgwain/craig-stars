@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"strings"
+	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -79,7 +80,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreateFleetParams struct {
@@ -113,7 +114,13 @@ type CreateFleetParams struct {
 	Spec              *FleetSpec
 }
 
-func (q *Queries) CreateFleet(ctx context.Context, arg CreateFleetParams) (Fleet, error) {
+type CreateFleetRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreateFleet(ctx context.Context, arg CreateFleetParams) (CreateFleetRow, error) {
 	row := q.db.QueryRowContext(ctx, createFleet,
 		arg.Gameid,
 		arg.Battleplannum,
@@ -144,40 +151,8 @@ func (q *Queries) CreateFleet(ctx context.Context, arg CreateFleetParams) (Fleet
 		arg.Purpose,
 		arg.Spec,
 	)
-	var i Fleet
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.Battleplannum,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Tokens,
-		&i.Waypoints,
-		&i.Repeatorders,
-		&i.Planetnum,
-		&i.Basename,
-		&i.Ironium,
-		&i.Boranium,
-		&i.Germanium,
-		&i.Colonists,
-		&i.Fuel,
-		&i.Age,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Warpspeed,
-		&i.Previouspositionx,
-		&i.Previouspositiony,
-		&i.Orbitingplanetnum,
-		&i.Starbase,
-		&i.Spec,
-		&i.Purpose,
-		&i.Tags,
-	)
+	var i CreateFleetRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -610,7 +585,7 @@ SET
     purpose = ?,
     spec = ?
 WHERE
-    id = ? RETURNING id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
+    id = ? RETURNING updatedAt
 `
 
 type UpdateFleetParams struct {
@@ -645,7 +620,7 @@ type UpdateFleetParams struct {
 	ID                int64
 }
 
-func (q *Queries) UpdateFleet(ctx context.Context, arg UpdateFleetParams) (Fleet, error) {
+func (q *Queries) UpdateFleet(ctx context.Context, arg UpdateFleetParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updateFleet,
 		arg.Gameid,
 		arg.Battleplannum,
@@ -677,39 +652,7 @@ func (q *Queries) UpdateFleet(ctx context.Context, arg UpdateFleetParams) (Fleet
 		arg.Spec,
 		arg.ID,
 	)
-	var i Fleet
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.Battleplannum,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Tokens,
-		&i.Waypoints,
-		&i.Repeatorders,
-		&i.Planetnum,
-		&i.Basename,
-		&i.Ironium,
-		&i.Boranium,
-		&i.Germanium,
-		&i.Colonists,
-		&i.Fuel,
-		&i.Age,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Warpspeed,
-		&i.Previouspositionx,
-		&i.Previouspositiony,
-		&i.Orbitingplanetnum,
-		&i.Starbase,
-		&i.Spec,
-		&i.Purpose,
-		&i.Tags,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }

@@ -8,6 +8,7 @@ package generated
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -50,7 +51,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, gameid, num, playernum, name, version, hull, hullsetnumber, candelete, slots, purpose, spec, cannotdelete, originalplayernum, mysterytrader
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreateShipDesignParams struct {
@@ -70,7 +71,13 @@ type CreateShipDesignParams struct {
 	Spec              *ShipDesignSpec
 }
 
-func (q *Queries) CreateShipDesign(ctx context.Context, arg CreateShipDesignParams) (Shipdesign, error) {
+type CreateShipDesignRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreateShipDesign(ctx context.Context, arg CreateShipDesignParams) (CreateShipDesignRow, error) {
 	row := q.db.QueryRowContext(ctx, createShipDesign,
 		arg.Gameid,
 		arg.Num,
@@ -87,26 +94,8 @@ func (q *Queries) CreateShipDesign(ctx context.Context, arg CreateShipDesignPara
 		arg.Mysterytrader,
 		arg.Spec,
 	)
-	var i Shipdesign
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.Num,
-		&i.Playernum,
-		&i.Name,
-		&i.Version,
-		&i.Hull,
-		&i.Hullsetnumber,
-		&i.Candelete,
-		&i.Slots,
-		&i.Purpose,
-		&i.Spec,
-		&i.Cannotdelete,
-		&i.Originalplayernum,
-		&i.Mysterytrader,
-	)
+	var i CreateShipDesignRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -321,7 +310,7 @@ SET
     mysteryTrader = ?,
     spec = ?
 WHERE
-    id = ? RETURNING id, createdat, updatedat, gameid, num, playernum, name, version, hull, hullsetnumber, candelete, slots, purpose, spec, cannotdelete, originalplayernum, mysterytrader
+    id = ? RETURNING updatedAt
 `
 
 type UpdateShipDesignParams struct {
@@ -342,7 +331,7 @@ type UpdateShipDesignParams struct {
 	ID                int64
 }
 
-func (q *Queries) UpdateShipDesign(ctx context.Context, arg UpdateShipDesignParams) (Shipdesign, error) {
+func (q *Queries) UpdateShipDesign(ctx context.Context, arg UpdateShipDesignParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updateShipDesign,
 		arg.Gameid,
 		arg.Num,
@@ -360,25 +349,7 @@ func (q *Queries) UpdateShipDesign(ctx context.Context, arg UpdateShipDesignPara
 		arg.Spec,
 		arg.ID,
 	)
-	var i Shipdesign
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.Num,
-		&i.Playernum,
-		&i.Name,
-		&i.Version,
-		&i.Hull,
-		&i.Hullsetnumber,
-		&i.Candelete,
-		&i.Slots,
-		&i.Purpose,
-		&i.Spec,
-		&i.Cannotdelete,
-		&i.Originalplayernum,
-		&i.Mysterytrader,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }

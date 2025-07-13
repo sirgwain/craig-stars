@@ -8,6 +8,7 @@ package generated
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -44,7 +45,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreateMineFieldParams struct {
@@ -61,7 +62,13 @@ type CreateMineFieldParams struct {
 	Spec          *MineFieldSpec
 }
 
-func (q *Queries) CreateMineField(ctx context.Context, arg CreateMineFieldParams) (Minefield, error) {
+type CreateMineFieldRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreateMineField(ctx context.Context, arg CreateMineFieldParams) (CreateMineFieldRow, error) {
 	row := q.db.QueryRowContext(ctx, createMineField,
 		arg.Gameid,
 		arg.X,
@@ -75,23 +82,8 @@ func (q *Queries) CreateMineField(ctx context.Context, arg CreateMineFieldParams
 		arg.Detonate,
 		arg.Spec,
 	)
-	var i Minefield
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Nummines,
-		&i.Detonate,
-		&i.Minefieldtype,
-		&i.Spec,
-		&i.Tags,
-	)
+	var i CreateMineFieldRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -338,7 +330,7 @@ SET
     detonate = ?,
     spec = ?
 WHERE
-    id = ? RETURNING id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
+    id = ? RETURNING updatedAt
 `
 
 type UpdateMineFieldParams struct {
@@ -356,7 +348,7 @@ type UpdateMineFieldParams struct {
 	ID            int64
 }
 
-func (q *Queries) UpdateMineField(ctx context.Context, arg UpdateMineFieldParams) (Minefield, error) {
+func (q *Queries) UpdateMineField(ctx context.Context, arg UpdateMineFieldParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updateMineField,
 		arg.Gameid,
 		arg.X,
@@ -371,22 +363,7 @@ func (q *Queries) UpdateMineField(ctx context.Context, arg UpdateMineFieldParams
 		arg.Spec,
 		arg.ID,
 	)
-	var i Minefield
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Nummines,
-		&i.Detonate,
-		&i.Minefieldtype,
-		&i.Spec,
-		&i.Tags,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }

@@ -71,7 +71,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateSalvage :one
 UPDATE salvages
@@ -88,7 +88,7 @@ SET
     boranium = ?,
     germanium = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: DeleteSalvage :exec
 DELETE FROM salvages

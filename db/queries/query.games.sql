@@ -165,7 +165,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateGame :one
 UPDATE games

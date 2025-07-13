@@ -58,8 +58,10 @@ func (c *client) CreateWormhole(ctx context.Context, wormhole *cs.Wormhole) (*cs
 		return nil, err
 	}
 
-	created := c.converter.ConvertWormhole(result)
-	return created, nil
+	wormhole.ID = result.ID
+	wormhole.CreatedAt = result.Createdat
+	wormhole.UpdatedAt = result.Updatedat
+	return wormhole, nil
 }
 
 // update an existing wormhole
@@ -70,7 +72,7 @@ func (c *client) UpdateWormhole(ctx context.Context, wormhole *cs.Wormhole) erro
 		return err
 	}
 
-	wormhole.UpdatedAt = result.Updatedat
+	wormhole.UpdatedAt = result
 	return nil
 }
 

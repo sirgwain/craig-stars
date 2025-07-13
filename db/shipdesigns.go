@@ -62,8 +62,10 @@ func (c *client) CreateShipDesign(ctx context.Context, shipDesign *cs.ShipDesign
 		return nil, err
 	}
 
-	created := c.converter.ConvertShipDesign(result)
-	return created, nil
+	shipDesign.ID = result.ID
+	shipDesign.CreatedAt = result.Createdat
+	shipDesign.UpdatedAt = result.Updatedat
+	return shipDesign, nil
 }
 
 // update an existing shipDesign
@@ -74,7 +76,7 @@ func (c *client) UpdateShipDesign(ctx context.Context, shipDesign *cs.ShipDesign
 		return err
 	}
 
-	shipDesign.UpdatedAt = result.Updatedat
+	shipDesign.UpdatedAt = result
 	return nil
 }
 

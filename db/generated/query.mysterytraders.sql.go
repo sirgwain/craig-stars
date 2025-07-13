@@ -8,6 +8,7 @@ package generated
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -52,7 +53,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreateMysteryTraderParams struct {
@@ -73,7 +74,13 @@ type CreateMysteryTraderParams struct {
 	Spec            *MysteryTraderSpec
 }
 
-func (q *Queries) CreateMysteryTrader(ctx context.Context, arg CreateMysteryTraderParams) (Mysterytrader, error) {
+type CreateMysteryTraderRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreateMysteryTrader(ctx context.Context, arg CreateMysteryTraderParams) (CreateMysteryTraderRow, error) {
 	row := q.db.QueryRowContext(ctx, createMysteryTrader,
 		arg.Gameid,
 		arg.X,
@@ -91,27 +98,8 @@ func (q *Queries) CreateMysteryTrader(ctx context.Context, arg CreateMysteryTrad
 		arg.Playersrewarded,
 		arg.Spec,
 	)
-	var i Mysterytrader
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Warpspeed,
-		&i.Spec,
-		&i.Tags,
-		&i.Requestedboon,
-		&i.Destinationx,
-		&i.Destinationy,
-		&i.Rewardtype,
-		&i.Playersrewarded,
-	)
+	var i CreateMysteryTraderRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -323,7 +311,7 @@ SET
     playersRewarded = ?,
     spec = ?
 WHERE
-    id = ? RETURNING id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
+    id = ? RETURNING updatedAt
 `
 
 type UpdateMysteryTraderParams struct {
@@ -345,7 +333,7 @@ type UpdateMysteryTraderParams struct {
 	ID              int64
 }
 
-func (q *Queries) UpdateMysteryTrader(ctx context.Context, arg UpdateMysteryTraderParams) (Mysterytrader, error) {
+func (q *Queries) UpdateMysteryTrader(ctx context.Context, arg UpdateMysteryTraderParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updateMysteryTrader,
 		arg.Gameid,
 		arg.X,
@@ -364,26 +352,7 @@ func (q *Queries) UpdateMysteryTrader(ctx context.Context, arg UpdateMysteryTrad
 		arg.Spec,
 		arg.ID,
 	)
-	var i Mysterytrader
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Warpspeed,
-		&i.Spec,
-		&i.Tags,
-		&i.Requestedboon,
-		&i.Destinationx,
-		&i.Destinationy,
-		&i.Rewardtype,
-		&i.Playersrewarded,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }

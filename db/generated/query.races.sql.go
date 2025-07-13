@@ -8,6 +8,7 @@ package generated
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -86,7 +87,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, userid, name, pluralname, spendleftoverpointson, prt, lrts, hablowgrav, hablowtemp, hablowrad, habhighgrav, habhightemp, habhighrad, growthrate, popefficiency, factoryoutput, factorycost, numfactories, factoriescostless, immunegrav, immunetemp, immunerad, mineoutput, minecost, nummines, researchcostenergy, researchcostweapons, researchcostpropulsion, researchcostconstruction, researchcostelectronics, researchcostbiotechnology, techsstarthigh, spec
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreateRaceParams struct {
@@ -124,7 +125,13 @@ type CreateRaceParams struct {
 	Spec                      *RaceSpec
 }
 
-func (q *Queries) CreateRace(ctx context.Context, arg CreateRaceParams) (Race, error) {
+type CreateRaceRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreateRace(ctx context.Context, arg CreateRaceParams) (CreateRaceRow, error) {
 	row := q.db.QueryRowContext(ctx, createRace,
 		arg.Userid,
 		arg.Name,
@@ -159,44 +166,8 @@ func (q *Queries) CreateRace(ctx context.Context, arg CreateRaceParams) (Race, e
 		arg.Techsstarthigh,
 		arg.Spec,
 	)
-	var i Race
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Userid,
-		&i.Name,
-		&i.Pluralname,
-		&i.Spendleftoverpointson,
-		&i.Prt,
-		&i.Lrts,
-		&i.Hablowgrav,
-		&i.Hablowtemp,
-		&i.Hablowrad,
-		&i.Habhighgrav,
-		&i.Habhightemp,
-		&i.Habhighrad,
-		&i.Growthrate,
-		&i.Popefficiency,
-		&i.Factoryoutput,
-		&i.Factorycost,
-		&i.Numfactories,
-		&i.Factoriescostless,
-		&i.Immunegrav,
-		&i.Immunetemp,
-		&i.Immunerad,
-		&i.Mineoutput,
-		&i.Minecost,
-		&i.Nummines,
-		&i.Researchcostenergy,
-		&i.Researchcostweapons,
-		&i.Researchcostpropulsion,
-		&i.Researchcostconstruction,
-		&i.Researchcostelectronics,
-		&i.Researchcostbiotechnology,
-		&i.Techsstarthigh,
-		&i.Spec,
-	)
+	var i CreateRaceRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -446,7 +417,7 @@ SET
     techsStartHigh = ?,
     spec = ?
 WHERE
-    id = ? RETURNING id, createdat, updatedat, userid, name, pluralname, spendleftoverpointson, prt, lrts, hablowgrav, hablowtemp, hablowrad, habhighgrav, habhightemp, habhighrad, growthrate, popefficiency, factoryoutput, factorycost, numfactories, factoriescostless, immunegrav, immunetemp, immunerad, mineoutput, minecost, nummines, researchcostenergy, researchcostweapons, researchcostpropulsion, researchcostconstruction, researchcostelectronics, researchcostbiotechnology, techsstarthigh, spec
+    id = ? RETURNING updatedAt
 `
 
 type UpdateRaceParams struct {
@@ -485,7 +456,7 @@ type UpdateRaceParams struct {
 	ID                        int64
 }
 
-func (q *Queries) UpdateRace(ctx context.Context, arg UpdateRaceParams) (Race, error) {
+func (q *Queries) UpdateRace(ctx context.Context, arg UpdateRaceParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updateRace,
 		arg.Userid,
 		arg.Name,
@@ -521,43 +492,7 @@ func (q *Queries) UpdateRace(ctx context.Context, arg UpdateRaceParams) (Race, e
 		arg.Spec,
 		arg.ID,
 	)
-	var i Race
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Userid,
-		&i.Name,
-		&i.Pluralname,
-		&i.Spendleftoverpointson,
-		&i.Prt,
-		&i.Lrts,
-		&i.Hablowgrav,
-		&i.Hablowtemp,
-		&i.Hablowrad,
-		&i.Habhighgrav,
-		&i.Habhightemp,
-		&i.Habhighrad,
-		&i.Growthrate,
-		&i.Popefficiency,
-		&i.Factoryoutput,
-		&i.Factorycost,
-		&i.Numfactories,
-		&i.Factoriescostless,
-		&i.Immunegrav,
-		&i.Immunetemp,
-		&i.Immunerad,
-		&i.Mineoutput,
-		&i.Minecost,
-		&i.Nummines,
-		&i.Researchcostenergy,
-		&i.Researchcostweapons,
-		&i.Researchcostpropulsion,
-		&i.Researchcostconstruction,
-		&i.Researchcostelectronics,
-		&i.Researchcostbiotechnology,
-		&i.Techsstarthigh,
-		&i.Spec,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }

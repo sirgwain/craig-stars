@@ -166,7 +166,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdatePlanet :one
 UPDATE planets
@@ -214,7 +214,7 @@ SET
     tags = ?,
     randomArtifact = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: UpdatePlanetSpec :one
 UPDATE planets

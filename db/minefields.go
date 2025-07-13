@@ -75,8 +75,10 @@ func (c *client) CreateMineField(ctx context.Context, minefield *cs.MineField) (
 		return nil, err
 	}
 
-	created := c.converter.ConvertMineField(result)
-	return created, nil
+	minefield.ID = result.ID
+	minefield.CreatedAt = result.Createdat
+	minefield.UpdatedAt = result.Updatedat
+	return minefield, nil
 }
 
 // update an existing minefield
@@ -87,7 +89,7 @@ func (c *client) UpdateMineField(ctx context.Context, minefield *cs.MineField) e
 		return err
 	}
 
-	minefield.UpdatedAt = result.Updatedat
+	minefield.UpdatedAt = result
 	return nil
 }
 

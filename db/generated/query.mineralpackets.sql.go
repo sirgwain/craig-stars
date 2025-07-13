@@ -8,6 +8,7 @@ package generated
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createMineralPacket = `-- name: CreateMineralPacket :one
@@ -54,7 +55,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreateMineralPacketParams struct {
@@ -77,7 +78,13 @@ type CreateMineralPacketParams struct {
 	Headingy        sql.NullFloat64
 }
 
-func (q *Queries) CreateMineralPacket(ctx context.Context, arg CreateMineralPacketParams) (Mineralpacket, error) {
+type CreateMineralPacketRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreateMineralPacket(ctx context.Context, arg CreateMineralPacketParams) (CreateMineralPacketRow, error) {
 	row := q.db.QueryRowContext(ctx, createMineralPacket,
 		arg.Gameid,
 		arg.X,
@@ -97,29 +104,8 @@ func (q *Queries) CreateMineralPacket(ctx context.Context, arg CreateMineralPack
 		arg.Headingx,
 		arg.Headingy,
 	)
-	var i Mineralpacket
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Targetplanetnum,
-		&i.Ironium,
-		&i.Boranium,
-		&i.Germanium,
-		&i.Safewarpspeed,
-		&i.Warpspeed,
-		&i.Scanrange,
-		&i.Scanrangepen,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Tags,
-	)
+	var i CreateMineralPacketRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -402,7 +388,7 @@ SET
     headingX = ?,
     headingY = ?
 WHERE
-    id = ? RETURNING id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
+    id = ? RETURNING updatedAt
 `
 
 type UpdateMineralPacketParams struct {
@@ -426,7 +412,7 @@ type UpdateMineralPacketParams struct {
 	ID              int64
 }
 
-func (q *Queries) UpdateMineralPacket(ctx context.Context, arg UpdateMineralPacketParams) (Mineralpacket, error) {
+func (q *Queries) UpdateMineralPacket(ctx context.Context, arg UpdateMineralPacketParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updateMineralPacket,
 		arg.Gameid,
 		arg.X,
@@ -447,28 +433,7 @@ func (q *Queries) UpdateMineralPacket(ctx context.Context, arg UpdateMineralPack
 		arg.Headingy,
 		arg.ID,
 	)
-	var i Mineralpacket
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Targetplanetnum,
-		&i.Ironium,
-		&i.Boranium,
-		&i.Germanium,
-		&i.Safewarpspeed,
-		&i.Warpspeed,
-		&i.Scanrange,
-		&i.Scanrangepen,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Tags,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }

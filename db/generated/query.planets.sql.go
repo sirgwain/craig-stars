@@ -105,7 +105,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreatePlanetParams struct {
@@ -152,7 +152,13 @@ type CreatePlanetParams struct {
 	Randomartifact                    sql.NullBool
 }
 
-func (q *Queries) CreatePlanet(ctx context.Context, arg CreatePlanetParams) (Planet, error) {
+type CreatePlanetRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreatePlanet(ctx context.Context, arg CreatePlanetParams) (CreatePlanetRow, error) {
 	row := q.db.QueryRowContext(ctx, createPlanet,
 		arg.Gameid,
 		arg.X,
@@ -196,53 +202,8 @@ func (q *Queries) CreatePlanet(ctx context.Context, arg CreatePlanetParams) (Pla
 		arg.Tags,
 		arg.Randomartifact,
 	)
-	var i Planet
-	err := row.Scan(
-		&i.ID,
-		&i.Gameid,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Grav,
-		&i.Temp,
-		&i.Rad,
-		&i.Basegrav,
-		&i.Basetemp,
-		&i.Baserad,
-		&i.Terraformedamountgrav,
-		&i.Terraformedamounttemp,
-		&i.Terraformedamountrad,
-		&i.Mineralconcironium,
-		&i.Mineralconcboranium,
-		&i.Mineralconcgermanium,
-		&i.Mineyearsironium,
-		&i.Mineyearsboranium,
-		&i.Mineyearsgermanium,
-		&i.Ironium,
-		&i.Boranium,
-		&i.Germanium,
-		&i.Colonists,
-		&i.Partialpopulation,
-		&i.Mines,
-		&i.Factories,
-		&i.Defenses,
-		&i.Homeworld,
-		&i.Contributesonlyleftovertoresearch,
-		&i.Scanner,
-		&i.Routetargettype,
-		&i.Routetargetnum,
-		&i.Routetargetplayernum,
-		&i.Packettargetnum,
-		&i.Packetspeed,
-		&i.Productionqueue,
-		&i.Spec,
-		&i.Tags,
-		&i.Randomartifact,
-	)
+	var i CreatePlanetRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -782,7 +743,7 @@ SET
     tags = ?,
     randomArtifact = ?
 WHERE
-    id = ? RETURNING id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
+    id = ? RETURNING updatedAt
 `
 
 type UpdatePlanetParams struct {
@@ -830,7 +791,7 @@ type UpdatePlanetParams struct {
 	ID                                int64
 }
 
-func (q *Queries) UpdatePlanet(ctx context.Context, arg UpdatePlanetParams) (Planet, error) {
+func (q *Queries) UpdatePlanet(ctx context.Context, arg UpdatePlanetParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updatePlanet,
 		arg.Gameid,
 		arg.X,
@@ -875,54 +836,9 @@ func (q *Queries) UpdatePlanet(ctx context.Context, arg UpdatePlanetParams) (Pla
 		arg.Randomartifact,
 		arg.ID,
 	)
-	var i Planet
-	err := row.Scan(
-		&i.ID,
-		&i.Gameid,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Grav,
-		&i.Temp,
-		&i.Rad,
-		&i.Basegrav,
-		&i.Basetemp,
-		&i.Baserad,
-		&i.Terraformedamountgrav,
-		&i.Terraformedamounttemp,
-		&i.Terraformedamountrad,
-		&i.Mineralconcironium,
-		&i.Mineralconcboranium,
-		&i.Mineralconcgermanium,
-		&i.Mineyearsironium,
-		&i.Mineyearsboranium,
-		&i.Mineyearsgermanium,
-		&i.Ironium,
-		&i.Boranium,
-		&i.Germanium,
-		&i.Colonists,
-		&i.Partialpopulation,
-		&i.Mines,
-		&i.Factories,
-		&i.Defenses,
-		&i.Homeworld,
-		&i.Contributesonlyleftovertoresearch,
-		&i.Scanner,
-		&i.Routetargettype,
-		&i.Routetargetnum,
-		&i.Routetargetplayernum,
-		&i.Packettargetnum,
-		&i.Packetspeed,
-		&i.Productionqueue,
-		&i.Spec,
-		&i.Tags,
-		&i.Randomartifact,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }
 
 const updatePlanetSpec = `-- name: UpdatePlanetSpec :one

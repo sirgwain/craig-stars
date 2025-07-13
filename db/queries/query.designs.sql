@@ -72,7 +72,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateShipDesign :one
 UPDATE shipdesigns
@@ -93,7 +93,7 @@ SET
     mysteryTrader = ?,
     spec = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: DeleteShipDesign :exec
 DELETE FROM shipdesigns

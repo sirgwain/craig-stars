@@ -62,7 +62,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateWormhole :one
 UPDATE wormholes
@@ -79,7 +79,7 @@ SET
     yearsAtStability = ?,
     spec = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: DeleteWormhole :exec
 DELETE FROM wormholes

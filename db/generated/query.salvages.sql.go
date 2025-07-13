@@ -8,6 +8,7 @@ package generated
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createSalvage = `-- name: CreateSalvage :one
@@ -40,7 +41,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, gameid, x, y, name, num, playernum, ironium, boranium, germanium, tags
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreateSalvageParams struct {
@@ -56,7 +57,13 @@ type CreateSalvageParams struct {
 	Germanium sql.NullInt64
 }
 
-func (q *Queries) CreateSalvage(ctx context.Context, arg CreateSalvageParams) (Salvage, error) {
+type CreateSalvageRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreateSalvage(ctx context.Context, arg CreateSalvageParams) (CreateSalvageRow, error) {
 	row := q.db.QueryRowContext(ctx, createSalvage,
 		arg.Gameid,
 		arg.X,
@@ -69,22 +76,8 @@ func (q *Queries) CreateSalvage(ctx context.Context, arg CreateSalvageParams) (S
 		arg.Boranium,
 		arg.Germanium,
 	)
-	var i Salvage
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Ironium,
-		&i.Boranium,
-		&i.Germanium,
-		&i.Tags,
-	)
+	var i CreateSalvageRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -323,7 +316,7 @@ SET
     boranium = ?,
     germanium = ?
 WHERE
-    id = ? RETURNING id, createdat, updatedat, gameid, x, y, name, num, playernum, ironium, boranium, germanium, tags
+    id = ? RETURNING updatedAt
 `
 
 type UpdateSalvageParams struct {
@@ -340,7 +333,7 @@ type UpdateSalvageParams struct {
 	ID        int64
 }
 
-func (q *Queries) UpdateSalvage(ctx context.Context, arg UpdateSalvageParams) (Salvage, error) {
+func (q *Queries) UpdateSalvage(ctx context.Context, arg UpdateSalvageParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updateSalvage,
 		arg.Gameid,
 		arg.X,
@@ -354,21 +347,7 @@ func (q *Queries) UpdateSalvage(ctx context.Context, arg UpdateSalvageParams) (S
 		arg.Germanium,
 		arg.ID,
 	)
-	var i Salvage
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Playernum,
-		&i.Ironium,
-		&i.Boranium,
-		&i.Germanium,
-		&i.Tags,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }

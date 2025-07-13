@@ -58,8 +58,10 @@ func (c *client) CreateMysteryTrader(ctx context.Context, mysterytrader *cs.Myst
 		return nil, err
 	}
 
-	created := c.converter.ConvertMysteryTrader(result)
-	return created, nil
+	mysterytrader.ID = result.ID
+	mysterytrader.CreatedAt = result.Createdat
+	mysterytrader.UpdatedAt = result.Updatedat
+	return mysterytrader, nil
 }
 
 // update an existing mysterytrader
@@ -70,7 +72,7 @@ func (c *client) UpdateMysteryTrader(ctx context.Context, mysterytrader *cs.Myst
 		return err
 	}
 
-	mysterytrader.UpdatedAt = result.Updatedat
+	mysterytrader.UpdatedAt = result
 	return nil
 }
 

@@ -118,7 +118,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateFleet :one
 UPDATE fleets
@@ -153,7 +153,7 @@ SET
     purpose = ?,
     spec = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: DeleteFleet :exec
 DELETE FROM fleets

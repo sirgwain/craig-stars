@@ -74,7 +74,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateMineField :one
 UPDATE minefields
@@ -92,7 +92,7 @@ SET
     detonate = ?,
     spec = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: DeleteMineField :exec
 DELETE FROM minefields

@@ -300,7 +300,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateLightPlayer :one
 UPDATE players
@@ -489,7 +489,7 @@ SET
     acquiredTechs = ?,
     archived = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: DeletePlayer :exec
 DELETE FROM players

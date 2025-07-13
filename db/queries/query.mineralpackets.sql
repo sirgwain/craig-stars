@@ -86,7 +86,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateMineralPacket :one
 UPDATE mineralpackets
@@ -110,7 +110,7 @@ SET
     headingX = ?,
     headingY = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: DeleteMineralPacket :exec
 DELETE FROM mineralpackets

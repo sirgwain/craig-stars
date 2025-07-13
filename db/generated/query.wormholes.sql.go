@@ -8,6 +8,7 @@ package generated
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -42,7 +43,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
+    ) RETURNING id, createdAt, updatedAt
 `
 
 type CreateWormholeParams struct {
@@ -58,7 +59,13 @@ type CreateWormholeParams struct {
 	Spec             *WormholeSpec
 }
 
-func (q *Queries) CreateWormhole(ctx context.Context, arg CreateWormholeParams) (Wormhole, error) {
+type CreateWormholeRow struct {
+	ID        int64
+	Createdat time.Time
+	Updatedat time.Time
+}
+
+func (q *Queries) CreateWormhole(ctx context.Context, arg CreateWormholeParams) (CreateWormholeRow, error) {
 	row := q.db.QueryRowContext(ctx, createWormhole,
 		arg.Gameid,
 		arg.X,
@@ -71,22 +78,8 @@ func (q *Queries) CreateWormhole(ctx context.Context, arg CreateWormholeParams) 
 		arg.Yearsatstability,
 		arg.Spec,
 	)
-	var i Wormhole
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Destinationnum,
-		&i.Stability,
-		&i.Yearsatstability,
-		&i.Spec,
-		&i.Tags,
-	)
+	var i CreateWormholeRow
+	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
 	return i, err
 }
 
@@ -273,7 +266,7 @@ SET
     yearsAtStability = ?,
     spec = ?
 WHERE
-    id = ? RETURNING id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
+    id = ? RETURNING updatedAt
 `
 
 type UpdateWormholeParams struct {
@@ -290,7 +283,7 @@ type UpdateWormholeParams struct {
 	ID               int64
 }
 
-func (q *Queries) UpdateWormhole(ctx context.Context, arg UpdateWormholeParams) (Wormhole, error) {
+func (q *Queries) UpdateWormhole(ctx context.Context, arg UpdateWormholeParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, updateWormhole,
 		arg.Gameid,
 		arg.X,
@@ -304,21 +297,7 @@ func (q *Queries) UpdateWormhole(ctx context.Context, arg UpdateWormholeParams) 
 		arg.Spec,
 		arg.ID,
 	)
-	var i Wormhole
-	err := row.Scan(
-		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.X,
-		&i.Y,
-		&i.Name,
-		&i.Num,
-		&i.Destinationnum,
-		&i.Stability,
-		&i.Yearsatstability,
-		&i.Spec,
-		&i.Tags,
-	)
-	return i, err
+	var updatedat time.Time
+	err := row.Scan(&updatedat)
+	return updatedat, err
 }

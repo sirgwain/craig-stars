@@ -97,7 +97,7 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING *;
+    ) RETURNING id, createdAt, updatedAt;
 
 -- name: UpdateRace :one
 UPDATE races
@@ -136,7 +136,7 @@ SET
     techsStartHigh = ?,
     spec = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: DeleteRace :exec
 DELETE FROM races
