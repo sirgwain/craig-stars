@@ -66,7 +66,7 @@ func (tx *client) ensureUpgrade(ctx context.Context) error {
 		case 0:
 			//? Maybe make the starter database version -1?
 			// That would make the switch marginally cleaner
-			if u.initStarterDB(); err != nil {
+			if u.initStarterDB(ctx); err != nil {
 				return fmt.Errorf("initializing starter database failed: %w", err)
 			}
 			err = u.upgrade1(ctx)
@@ -144,7 +144,7 @@ func (u *upgrade) upgradeGames(ctx context.Context, upgradeGame func(fg *cs.Full
 	return nil
 }
 
-func (u *upgrade) initStarterDB() error {
+func (u *upgrade) initStarterDB(ctx context.Context) error {
 	log.Info().Msg("initializing starter database with admin user, 'admin' password")
 	user, err := cs.NewUser("admin", "admin", "", cs.RoleAdmin)
 	if err != nil {
@@ -152,12 +152,13 @@ func (u *upgrade) initStarterDB() error {
 	}
 
 	// create the admin user, 'admin' password
-	if _, err := u.tx.CreateUser(context.TODO(), user); err != nil {
+	newUser, err := u.tx.CreateUser(ctx, user)
+	if err != nil {
 		return err
 	}
 
 	rules := cs.NewRules()
-	if _, err := u.tx.CreateRace(context.TODO(), cs.NewRace().WithUserID(user.ID).WithSpec(&rules)); err != nil {
+	if _, err := u.tx.CreateRace(ctx, cs.NewRace().WithUserID(newUser.ID).WithSpec(&rules)); err != nil {
 		return err
 	}
 

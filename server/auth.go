@@ -149,32 +149,33 @@ func (s *server) createNewDiscordUser(ctx context.Context, tokenUser tokenUser) 
 
 	user, err := cs.NewDiscordUser(tokenUser.Name, tokenUser.discordID(), tokenUser.discordAvatar())
 	if err != nil {
-		log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
+		log.Error().Err(err).Str("Username", tokenUser.Name).Msg("failed to create new user")
 		return nil, err
 	}
 
+	var newUser *cs.User
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		user, err := c.CreateUser(ctx, user)
+		newUser, err := c.CreateUser(ctx, user)
 		if err != nil {
 			log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
 			return err
 		}
-		log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new user from token")
+		log.Info().Str("Username", newUser.Username).Int64("ID", newUser.ID).Msg("created new user from token")
 
 		// create a new test race
 		race := cs.Humanoids()
-		race.UserID = user.ID
+		race.UserID = newUser.ID
 		_, err = c.CreateRace(ctx, &race)
 		if err != nil {
 			return err
 		}
-		log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new race for user")
+		log.Info().Str("Username", newUser.Username).Int64("ID", newUser.ID).Msg("created new race for user")
 		return nil
 	}); err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return newUser, nil
 }
 
 func (s *server) updateUser(ctx context.Context, tokenUser tokenUser, user *cs.User) error {
