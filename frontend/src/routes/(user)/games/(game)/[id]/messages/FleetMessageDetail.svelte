@@ -96,7 +96,7 @@
 	{/if}
 	{#if routeTarget}
 		It will be routed to {routeTarget.name}.
-	{/if}.
+	{/if}
 {:else if message.type === PlayerMessageFleetDieoff}
 	Due to the rigors of warp acceleration, {message.spec.amount ?? 0} of your colonists on {message.targetName}
 	have died.
@@ -104,7 +104,7 @@
 	<!-- Overwarp -->
 	<FleetEngineStrainMessageDetail {message} />
 {:else if message.type === PlayerMessageFleetGeneratedFuel}
-	{@const hasRamscoops = !!fleet?.tokens?.find(
+	{@const hasRamscoops = fleet?.tokens?.some(
 		(t) => ($universe.getDesign(fleet.playerNum, t.designNum)?.spec?.engine.freeSpeed ?? 0) > 1
 	)}
 	{#if hasRamscoops}
@@ -202,9 +202,9 @@
 	{#if transfer}
 		{@const cargoType = resourceTypeToString(transfer.cargoType)}
 		{@const fromTo = transfer.wanted < 0 ? 'from' : 'to'}
-		{message.targetName} has been attempted to transfer {Math.abs(transfer.wanted)}kT of {cargoType}
+		{message.targetName} has attempted to transfer {Math.abs(transfer.wanted)}kT of {cargoType}
 		{fromTo}
-		{message.spec.targetName} but was
+		{message.spec.targetName}, but was
 		{#if transfer.transfered === 0}
 			unable to transfer any cargo.
 		{:else}
@@ -225,8 +225,9 @@
 			required technology to bypass their sensors.
 		{/if}
 	{:else}
-		{message.targetName} has been attempted to transfer cargo from {message.spec.targetName} but was
-		unsuccessful.
+  <!-- Generic failure message -->
+		{message.targetName} has attempted to transfer cargo from {message.spec.targetName},
+		but the cargo transfer was unsuccessful.
 	{/if}
 {:else if message.type === PlayerMessageFleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(

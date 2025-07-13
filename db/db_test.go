@@ -3,7 +3,10 @@ package db
 import (
 	"context"
 	"fmt"
+	"testing"
 
+	"github.com/rs/zerolog"
+	"github.com/sirgwain/craig-stars/ai"
 	"github.com/sirgwain/craig-stars/config"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -111,4 +114,103 @@ func (c *client) createTestFullGame(ctx context.Context) *cs.FullGame {
 	}
 
 	return &fg
+}
+
+func BenchmarkUpdateFullGame(b *testing.B) {
+	dbConn := dbConn{}
+	cfg := &config.Config{}
+	// cfg.Database.Filename = "../data/sqlx.db"
+	cfg.Database.Filename = ":memory:"
+	cfg.Database.DebugLogging = false
+	cfg.Database.SkipUpgrade = true
+
+	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+
+	b.Run("Small Game one turn", func(b *testing.B) {
+		var err error
+		if err = dbConn.Connect(cfg); err != nil {
+			b.Fatalf("error while connecting to test database %v", err)
+		}
+		defer dbConn.Close()
+
+		c := dbConn.NewReadWriteClient()
+
+		gameClient := cs.NewGamer()
+
+		b.ResetTimer()
+		for range b.N {
+			b.StopTimer()
+
+			game := cs.NewGame()
+			player := gameClient.NewPlayer(0, cs.Humanoids(), &game.Rules).WithNum(1).WithAIControlled(true)
+			players := []*cs.Player{player}
+			universe, err := gameClient.GenerateUniverse(game, players)
+			if err != nil {
+				b.Fatalf("failed to generate universe")
+			}
+
+			fullGame := &cs.FullGame{
+				Game:      game,
+				Universe:  universe,
+				TechStore: &cs.StaticTechStore,
+				Players:   players,
+			}
+
+			err = c.CreateGame(fullGame.Game)
+			if err != nil {
+				b.Fatalf("failed to create game %v", err)
+			}
+
+			gameClient.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players)
+
+			b.StartTimer()
+			c.UpdateFullGame(fullGame)
+		}
+	})
+
+	b.Run("Large Game many turns and players", func(b *testing.B) {
+		var err error
+		if err = dbConn.Connect(cfg); err != nil {
+			b.Fatalf("error while connecting to test database %v", err)
+		}
+		defer dbConn.Close()
+
+		c := dbConn.NewReadWriteClient()
+		gameClient := cs.NewGamer()
+
+		settings := cs.NewGameSettings().WithSize(cs.SizeLarge).WithDensity(cs.DensityPacked)
+		game := cs.NewGame().WithSettings(*settings)
+		players := make([]*cs.Player, len(ai.Races))
+		for i := range ai.Races {
+			players[i] = gameClient.NewPlayer(0, ai.Races[i], &game.Rules).WithNum(i + 1).WithAIControlled(true)
+		}
+		universe, err := gameClient.GenerateUniverse(game, players)
+		if err != nil {
+			b.Fatalf("failed to generate universe")
+		}
+
+		fullGame := &cs.FullGame{
+			Game:      game,
+			Universe:  universe,
+			TechStore: &cs.StaticTechStore,
+			Players:   players,
+		}
+
+		err = c.CreateGame(fullGame.Game)
+		if err != nil {
+			b.Fatalf("failed to create game %v", err)
+		}
+
+		// generate some turns
+		for range 50 {
+			gameClient.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players)
+		}
+
+		b.ResetTimer()
+		for range b.N {
+			if err := c.UpdateFullGame(fullGame); err != nil {
+				b.Fatalf("failed to update game %v", err)
+			}
+		}
+	})
 }
