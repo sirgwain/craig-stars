@@ -51,8 +51,6 @@ func (c *gamer) NewPlayer(userID int64, race Race, rules *Rules) *Player {
 
 // Generate a new universe
 func (c *gamer) GenerateUniverse(game *Game, players []*Player) (*Universe, error) {
-	defer timeTrack(time.Now(), "GenerateUniverse")
-
 	ug := NewUniverseGenerator(game, players)
 	universe, err := ug.Generate()
 
@@ -82,7 +80,6 @@ func (c *gamer) CheckAllPlayersSubmitted(players []*Player) bool {
 
 // generate a new turn for this game
 func (c *gamer) GenerateTurn(game *Game, universe *Universe, players []*Player) error {
-	defer timeTrack(time.Now(), "GenerateTurn")
 	turnGenerator := newTurnGenerator(&FullGame{game, universe, game.Rules.techs, players})
 	return turnGenerator.generateTurn()
 }
