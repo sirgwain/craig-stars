@@ -156,7 +156,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 				Players:   players,
 			}
 
-			err = c.CreateGame(fullGame.Game)
+			fullGame.Game, err = c.CreateGame(b.Context(), fullGame.Game)
 			if err != nil {
 				b.Fatalf("failed to create game %v", err)
 			}
@@ -164,7 +164,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 			gameClient.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players)
 
 			b.StartTimer()
-			c.UpdateFullGame(fullGame)
+			c.UpdateFullGame(b.Context(), fullGame)
 		}
 	})
 
@@ -196,7 +196,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 			Players:   players,
 		}
 
-		err = c.CreateGame(fullGame.Game)
+		fullGame.Game, err = c.CreateGame(b.Context(), fullGame.Game)
 		if err != nil {
 			b.Fatalf("failed to create game %v", err)
 		}
@@ -208,7 +208,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 
 		b.ResetTimer()
 		for range b.N {
-			if err := c.UpdateFullGame(fullGame); err != nil {
+			if err := c.UpdateFullGame(b.Context(), fullGame); err != nil {
 				b.Fatalf("failed to update game %v", err)
 			}
 		}
