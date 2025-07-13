@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/sirgwain/craig-stars/cs"
 	generated "github.com/sirgwain/craig-stars/db/generated"
@@ -68,56 +67,21 @@ func (c *client) GetSalvagesForPlayer(ctx context.Context, gameID int64, playerN
 	return c.converter.ConvertSalvages(items), nil
 }
 
-func (c *client) CreateSalvage(ctx context.Context, salvage *cs.Salvage) (*cs.Salvage, error) {
-	result, err := c.writer.CreateSalvage(ctx, c.converter.ConvertGameSalvageToCreateParams(salvage))
-
-	if err != nil {
-		return nil, err
-	}
-
-	salvage.ID = result.ID
-	salvage.CreatedAt = result.Createdat
-	salvage.UpdatedAt = result.Updatedat
-	return salvage, nil
-}
-
-// update an existing salvage
-func (c *client) UpdateSalvage(ctx context.Context, salvage *cs.Salvage) error {
-
-	result, err := c.writer.UpdateSalvage(ctx, c.converter.ConvertGameSalvageToUpdateParams(salvage))
-	if err != nil {
-		return err
-	}
-
-	salvage.UpdatedAt = result
-	return nil
-}
-
-// This should always be wrapped in a transaction
-func (c *client) CreateUpdateOrDeleteSalvages(ctx context.Context, gameID int64, salvages []*cs.Salvage) error {
-
-	// create/update salvages
-	for i, salvage := range salvages {
-		if salvage.ID == 0 {
-			salvage.GameID = gameID
-			var err error
-			created, err := c.CreateSalvage(ctx, salvage)
-			if err != nil {
-				return fmt.Errorf("create salvage: %w", err)
-			}
-			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Created salvage %s", salvage.Name)
-			salvages[i] = created
-		} else if salvage.Delete {
-			if err := c.DeleteSalvage(ctx, salvage.ID); err != nil {
-				return fmt.Errorf("delete salvage: %w", err)
-			}
-			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Deleted salvage %s", salvage.Name)
-		} else {
-			if err := c.UpdateSalvage(ctx, salvage); err != nil {
-				return fmt.Errorf("update salvage: %w", err)
-			}
-			// log.Debug().Int64("GameID", salvage.GameID).Int64("ID", salvage.ID).Msgf("Updated salvage %s", salvage.Name)
+func (c *client) SaveSalvage(ctx context.Context, salvage *cs.Salvage) error {
+	if salvage.ID == 0 {
+		result, err := c.writer.CreateSalvage(ctx, c.converter.ConvertGameSalvageToCreateParams(salvage))
+		if err != nil {
+			return err
 		}
+		salvage.ID = result.ID
+		salvage.CreatedAt = result.Createdat
+		salvage.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.UpdateSalvage(ctx, c.converter.ConvertGameSalvageToUpdateParams(salvage))
+		if err != nil {
+			return err
+		}
+		salvage.UpdatedAt = result
 	}
 
 	return nil

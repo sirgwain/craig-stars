@@ -322,7 +322,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 		for _, planet := range planets {
 			if planet.Dirty {
 				// TODO: only update the planet spec? that's all that changes
-				if err := c.UpdatePlanet(r.Context(), planet); err != nil {
+				if err := c.SavePlanet(r.Context(), planet); err != nil {
 					log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
 					return err
 				}

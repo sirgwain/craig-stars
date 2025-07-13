@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateSalvage(t *testing.T) {
+func TestSaveSalvage(t *testing.T) {
 	type args struct {
 		c       *client
 		salvage *cs.Salvage
@@ -31,17 +31,18 @@ func TestCreateSalvage(t *testing.T) {
 			tt.args.salvage.PlayerNum = player.Num
 
 			want := *tt.args.salvage
-			got, err := tt.args.c.CreateSalvage(t.Context(), tt.args.salvage)
+			err := tt.args.c.SaveSalvage(t.Context(), tt.args.salvage)
 
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("CreateSalvage() did not return error when expected")
+					t.Fatalf("SaveSalvage() did not return error when expected")
 				} else {
-					t.Fatalf("CreateSalvage() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("SaveSalvage() errored unexpectedly; err = \n%v", err)
 				}
 			}
 
-			// id is automatically added
+			got := tt.args.salvage
+			// DBObject is returned
 			want.GameDBObject = got.GameDBObject
 			test.CompareAsJSON(t, got, want)
 		})
@@ -54,11 +55,11 @@ func TestGetSalvage(t *testing.T) {
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
-	salvage, err := c.CreateSalvage(t.Context(), &cs.Salvage{
+	salvage := &cs.Salvage{
 		GameDBObject: cs.GameDBObject{GameID: g.ID},
 		MapObject:    cs.MapObject{PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeSalvage},
-	})
-	if err != nil {
+	}
+	if err := c.SaveSalvage(t.Context(), salvage); err != nil {
 		t.Errorf("create salvage %s", err)
 		return
 	}
@@ -106,8 +107,7 @@ func TestGetSalvages(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	_, err = c.CreateSalvage(t.Context(), &cs.Salvage{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}})
-	if err != nil {
+	if err := c.SaveSalvage(t.Context(), &cs.Salvage{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}); err != nil {
 		t.Errorf("create salvage %s", err)
 		return
 	}
@@ -123,14 +123,14 @@ func TestUpdateSalvage(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
-	salvage, err := c.CreateSalvage(t.Context(), &cs.Salvage{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}})
-	if err != nil {
+	salvage := &cs.Salvage{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
+	if err := c.SaveSalvage(t.Context(), salvage); err != nil {
 		t.Errorf("create salvage %s", err)
 		return
 	}
 
 	salvage.Name = "Test2"
-	if err := c.UpdateSalvage(t.Context(), salvage); err != nil {
+	if err := c.SaveSalvage(t.Context(), salvage); err != nil {
 		t.Errorf("update salvage %s", err)
 		return
 	}

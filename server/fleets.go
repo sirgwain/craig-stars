@@ -141,7 +141,7 @@ func (s *server) renameFleet(w http.ResponseWriter, r *http.Request) {
 	// update fleet name in db
 	fleet.BaseName = rename.Name
 	fleet.Name = fmt.Sprintf("%s #%d", rename.Name, fleet.Num)
-	if err := db.UpdateFleet(r.Context(), fleet); err != nil {
+	if err := db.SaveFleet(r.Context(), fleet); err != nil {
 		log.Error().Err(err).Int64("ID", fleet.ID).Msg("update fleet in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -176,7 +176,7 @@ func (s *server) updateFleetOrders(w http.ResponseWriter, r *http.Request) {
 	orderer := cs.NewOrderer()
 	orderer.UpdateFleetOrders(player, existingFleet, fleet.FleetOrders)
 
-	if err := db.UpdateFleet(r.Context(), existingFleet); err != nil {
+	if err := db.SaveFleet(r.Context(), existingFleet); err != nil {
 		log.Error().Err(err).Int64("ID", fleet.ID).Msg("update fleet in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -250,31 +250,23 @@ func (s *server) split(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 		} else {
-			if err := c.UpdateFleet(r.Context(), source); err != nil {
+			if err := c.SaveFleet(r.Context(), source); err != nil {
 				log.Error().Err(err).Msg("update fleet in database")
 				return err
 			}
 		}
 
-		if dest.ID == 0 {
-			// it's possible the user sent a "split" request with no dest but didn't split any
-			// in this case dest will be marked for deletion but won't ever have been saved
-			// to the database, so just ignore it
-			if !dest.Delete {
-				dest.GameID = game.ID
-				dest, err = c.CreateFleet(r.Context(), dest)
-				if err != nil {
-					log.Error().Err(err).Msg("delete fleet in database")
-					return err
-				}
-			}
-		} else if dest.Delete {
+		// it's possible the user sent a "split" request with no dest but didn't split any
+		// in this case dest will be marked for deletion but won't ever have been saved
+		// to the database, so just ignore it
+		if dest.Delete && dest.ID != 0 {
 			if err := c.DeleteFleet(r.Context(), dest.ID); err != nil {
 				log.Error().Err(err).Msg("delete fleet in database")
 				return err
 			}
 		} else {
-			if err := c.UpdateFleet(r.Context(), dest); err != nil {
+			dest.GameID = game.ID
+			if err := c.SaveFleet(r.Context(), dest); err != nil {
 				log.Error().Err(err).Msg("update fleet in database")
 				return err
 			}
@@ -333,25 +325,14 @@ func (s *server) splitAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// save all the fleets
-	newFleets = append(newFleets, fleet)
-	if err := s.db.WrapInTransaction(func(c db.Client) error {
-
-		if err := c.CreateUpdateOrDeleteFleets(r.Context(), game.ID, newFleets); err != nil {
-			return err
-		}
-
-		if err := c.UpdatePlayerCargoTransfers(r.Context(), player); err != nil {
-			return err
-		}
-
-		return nil
-	}); err != nil {
+	remainingFleets, err := s.saveSplitMergeFleets(r.Context(), player, append(newFleets, fleet))
+	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("update fleets")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	RenderJSON(w, JSON{"cargoTransfers": player.CargoTransfers, "fleets": newFleets})
+	RenderJSON(w, JSON{"cargoTransfers": player.CargoTransfers, "fleets": remainingFleets})
 }
 
 // merge target fleets into this one
@@ -399,25 +380,53 @@ func (s *server) merge(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// save/delete the fleets
-	if err := s.db.WrapInTransaction(func(c db.Client) error {
-
-		if err := c.CreateUpdateOrDeleteFleets(r.Context(), game.ID, fleets); err != nil {
-			return err
-		}
-
-		if err := c.UpdatePlayerCargoTransfers(r.Context(), player); err != nil {
-			return err
-		}
-
-		return nil
-	}); err != nil {
+	if _, err := s.saveSplitMergeFleets(r.Context(), player, fleets); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("update fleets")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	RenderJSON(w, JSON{"cargoTransfers": player.CargoTransfers, "fleet": updatedFleet})
+}
+
+// saveSplitMergeFleets saves or deletes fleets from a list and updates a player's byhand cargo transfers in a single transaction
+func (s *server) saveSplitMergeFleets(ctx context.Context, player *cs.Player, fleets []*cs.Fleet) ([]*cs.Fleet, error) {
+	remainingFleets := make([]*cs.Fleet, 0, len(fleets))
+	// save/delete the fleets
+	err := s.db.WrapInTransaction(func(c db.Client) error {
+		// save fleets
+
+		// first delete fleets. This way if we end up creating a new fleet
+		// with an in use unique index, we'll delete the old one first
+		for _, fleet := range fleets {
+			if !fleet.Delete {
+				remainingFleets = append(remainingFleets, fleet)
+				continue
+			}
+			// possible a fleet was created and destroyed in one turn
+			if fleet.ID != 0 {
+				if err := c.DeleteFleet(ctx, fleet.ID); err != nil {
+					return fmt.Errorf("delete fleet: %w", err)
+				}
+			}
+		}
+
+		for _, fleet := range remainingFleets {
+			fleet.GameID = player.GameID
+			if err := c.SaveFleet(ctx, fleet); err != nil {
+				return fmt.Errorf("save fleet: %w", err)
+			}
+		}
+
+		// update by hand transfers
+		if err := c.UpdatePlayerCargoTransfers(ctx, player); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return remainingFleets, err
 }
 
 // Transfer cargo from a player's fleet to/from a fleet or planet the player controls
@@ -530,7 +539,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 
 		if planet.OwnedBy(player.Num) {
-			if err := c.UpdatePlanet(r.Context(), planet); err != nil {
+			if err := c.SavePlanet(r.Context(), planet); err != nil {
 				return err
 			}
 		} else {
@@ -539,7 +548,7 @@ func (s *server) transferCargoFleetPlanet(w http.ResponseWriter, r *http.Request
 			}
 		}
 
-		if err := c.UpdateFleet(r.Context(), fleet); err != nil {
+		if err := c.SaveFleet(r.Context(), fleet); err != nil {
 			return err
 		}
 
@@ -593,7 +602,7 @@ func (s *server) transferCargoFleetJettison(w http.ResponseWriter, r *http.Reque
 	// wrap this whole thing in a transaction so we don't run into a case where two players load the same mineral packet
 	// at the same time and update it
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.UpdateFleet(r.Context(), fleet); err != nil {
+		if err := c.SaveFleet(r.Context(), fleet); err != nil {
 			log.Error().Err(err).Msg("update fleet in database")
 			return err
 		}
@@ -638,7 +647,7 @@ func (s *server) transferCargoFleetSalvage(w http.ResponseWriter, r *http.Reques
 	// at the same time and update it
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 
-		if err := c.UpdateFleet(r.Context(), fleet); err != nil {
+		if err := c.SaveFleet(r.Context(), fleet); err != nil {
 			log.Error().Err(err).Msg("update fleet in database")
 			return err
 		}
@@ -700,7 +709,7 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 
 		if mineralPacket != nil {
-			if err := c.UpdateMineralPacket(r.Context(), mineralPacket); err != nil {
+			if err := c.SaveMineralPacket(r.Context(), mineralPacket); err != nil {
 				return err
 			}
 		} else {
@@ -709,7 +718,7 @@ func (s *server) transferCargoFleetMineralPacket(w http.ResponseWriter, r *http.
 			}
 		}
 
-		if err := c.UpdateFleet(r.Context(), fleet); err != nil {
+		if err := c.SaveFleet(r.Context(), fleet); err != nil {
 			log.Error().Err(err).Msg("update fleet in database")
 			return err
 		}
@@ -774,7 +783,7 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 		if destFleet != nil {
-			if err := c.UpdateFleet(r.Context(), destFleet); err != nil {
+			if err := c.SaveFleet(r.Context(), destFleet); err != nil {
 				log.Error().Err(err).Msg("update fleet in database")
 				return err
 			}
@@ -784,7 +793,7 @@ func (s *server) transferCargoFleetFleet(w http.ResponseWriter, r *http.Request,
 			}
 		}
 
-		if err := c.UpdateFleet(r.Context(), fleet); err != nil {
+		if err := c.SaveFleet(r.Context(), fleet); err != nil {
 			log.Error().Err(err).Msg("update fleet in database")
 			return err
 		}

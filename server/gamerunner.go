@@ -311,7 +311,7 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, name string, race cs.
 					player.Color = fmt.Sprintf("#%s", hex.EncodeToString(color))
 				}
 
-				if err := c.UpdatePlayer(gr.ctx, player); err != nil {
+				if err := c.SavePlayer(gr.ctx, player); err != nil {
 					return fmt.Errorf("update open slot player %s for game %d: %w", p, gameID, err)
 				}
 
@@ -361,7 +361,7 @@ func (gr *gameRunner) resetPlayerColors(c DBClient, game *cs.FullGame) error {
 			rand.Read(color)
 			player.Color = fmt.Sprintf("#%s", hex.EncodeToString(color))
 		}
-		if err := c.UpdatePlayer(gr.ctx, player); err != nil {
+		if err := c.SavePlayer(gr.ctx, player); err != nil {
 			return fmt.Errorf("update player %s color for game %d: %w", player, game.ID, err)
 		}
 	}
@@ -392,7 +392,7 @@ func (gr *gameRunner) LeaveGame(gameID, userID int64) error {
 			for _, player := range game.Players {
 				if player.UserID == userID {
 					player.Ready = false
-					if err := c.UpdatePlayer(gr.ctx, player); err != nil {
+					if err := c.SavePlayer(gr.ctx, player); err != nil {
 						return fmt.Errorf("update open slot player %s for game %d: %w", player, gameID, err)
 					}
 				}
@@ -417,13 +417,13 @@ func (gr *gameRunner) LeaveGame(gameID, userID int64) error {
 					player.Num = i + 1
 					player.Name = "Open Slot"
 					player.Guest = false
-					game.Players[i] = player
-					game.OpenPlayerSlots++
-					created, err := c.CreatePlayer(gr.ctx, player)
-					if err != nil {
+
+					if err := c.SavePlayer(gr.ctx, player); err != nil {
 						return fmt.Errorf("update open slot player %s for game %d: %w", player, gameID, err)
 					}
-					game.Players[i] = created
+
+					game.Players[i] = player
+					game.OpenPlayerSlots++
 				}
 			}
 
@@ -491,14 +491,15 @@ func (gr *gameRunner) KickPlayer(gameID int64, playerNum int) error {
 				player.Num = i + 1
 				player.Name = "Open Slot"
 				player.Guest = false
+
+				if err := c.SavePlayer(gr.ctx, player); err != nil {
+					return fmt.Errorf("update open slot player %s for game %d: %w", player, gameID, err)
+				}
+
 				game.Players[i] = player
 				game.OpenPlayerSlots++
 				game.NumPlayers--
-				created, err := c.CreatePlayer(gr.ctx, player)
-				if err != nil {
-					return fmt.Errorf("update open slot player %s for game %d: %w", player, gameID, err)
-				}
-				game.Players[i] = created
+
 			}
 		}
 
@@ -591,7 +592,7 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 					}
 				}
 
-				if err := c.UpdatePlayer(gr.ctx, player); err != nil {
+				if err := c.SavePlayer(gr.ctx, player); err != nil {
 					return fmt.Errorf("update player %s for game %d: %w", player.Name, gameID, err)
 				}
 			}
@@ -616,7 +617,7 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 }
 
 // AddOpenPlayerSlot adds a new player to the game that is open to joining
-func (gr *gameRunner) AddOpenPlayerSlot(game *cs.GameWithPlayers) (createdPlayer *cs.Player, err error) {
+func (gr *gameRunner) AddOpenPlayerSlot(game *cs.GameWithPlayers) (*cs.Player, error) {
 
 	race := *cs.NewRace()
 	player := gr.client.NewPlayer(0, race, &game.Rules)
@@ -628,8 +629,7 @@ func (gr *gameRunner) AddOpenPlayerSlot(game *cs.GameWithPlayers) (createdPlayer
 	}
 
 	if err := gr.dbConn.WrapInTransaction(func(c db.Client) error {
-		createdPlayer, err = c.CreatePlayer(gr.ctx, player)
-		if err != nil {
+		if err := c.SavePlayer(gr.ctx, player); err != nil {
 			return fmt.Errorf("added slot player %s for game %d: %w", player, game.ID, err)
 		}
 
@@ -645,7 +645,7 @@ func (gr *gameRunner) AddOpenPlayerSlot(game *cs.GameWithPlayers) (createdPlayer
 
 	log.Info().Int64("GameID", game.ID).Int("Num", player.Num).Msgf("added player slot %d %s", player.Num, game.Name)
 
-	return createdPlayer, nil
+	return player, nil
 }
 
 // delete an entire player slot
@@ -676,7 +676,6 @@ func (gr *gameRunner) AddGuestPlayer(game *cs.GameWithPlayers) (*cs.Player, erro
 		guestNumber = int(max(float64(userGuestNumber+1), float64(guestNumber)))
 	}
 
-	var createdPlayer *cs.Player
 	if err := gr.dbConn.WrapInTransaction(func(c db.Client) error {
 
 		// username is based on game/number
@@ -691,9 +690,7 @@ func (gr *gameRunner) AddGuestPlayer(game *cs.GameWithPlayers) (*cs.Player, erro
 		}
 
 		player.UserID = guestUser.ID
-
-		createdPlayer, err = c.CreatePlayer(gr.ctx, player)
-		if err != nil {
+		if err := c.SavePlayer(gr.ctx, player); err != nil {
 			return fmt.Errorf("added slot player %s for game %d: %w", player, game.ID, err)
 		}
 
@@ -708,7 +705,7 @@ func (gr *gameRunner) AddGuestPlayer(game *cs.GameWithPlayers) (*cs.Player, erro
 
 	log.Info().Int64("GameID", game.ID).Int("Num", player.Num).Msgf("added player slot %d %s", player.Num, game.Name)
 
-	return createdPlayer, nil
+	return player, nil
 }
 
 // delete an entire player slot
@@ -726,12 +723,8 @@ func (gr *gameRunner) AddAIPlayer(game *cs.GameWithPlayers) (*cs.Player, error) 
 	player.DefaultHullSet = player.Num % 4
 	player.Ready = true
 
-	var createdPlayer *cs.Player
 	if err := gr.dbConn.WrapInTransaction(func(c db.Client) error {
-
-		var err error
-		createdPlayer, err = c.CreatePlayer(gr.ctx, player)
-		if err != nil {
+		if err := c.SavePlayer(gr.ctx, player); err != nil {
 			return fmt.Errorf("added slot player %s for game %d: %w", player, game.ID, err)
 		}
 
@@ -745,7 +738,7 @@ func (gr *gameRunner) AddAIPlayer(game *cs.GameWithPlayers) (*cs.Player, error) 
 	}); err != nil {
 		return nil, err
 	}
-	return createdPlayer, nil
+	return player, nil
 }
 
 func (gr *gameRunner) StartGame(game *cs.Game) error {

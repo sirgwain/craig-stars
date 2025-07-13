@@ -68,28 +68,23 @@ func (c *client) GetMineFieldsForPlayer(ctx context.Context, gameID int64, playe
 	return c.converter.ConvertMineFields(items), nil
 }
 
-func (c *client) CreateMineField(ctx context.Context, minefield *cs.MineField) (*cs.MineField, error) {
-	result, err := c.writer.CreateMineField(ctx, c.converter.ConvertGameMineFieldToCreateParams(minefield))
-
-	if err != nil {
-		return nil, err
+func (c *client) SaveMineField(ctx context.Context, mineField *cs.MineField) error {
+	if mineField.ID == 0 {
+		result, err := c.writer.CreateMineField(ctx, c.converter.ConvertGameMineFieldToCreateParams(mineField))
+		if err != nil {
+			return err
+		}
+		mineField.ID = result.ID
+		mineField.CreatedAt = result.Createdat
+		mineField.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.UpdateMineField(ctx, c.converter.ConvertGameMineFieldToUpdateParams(mineField))
+		if err != nil {
+			return err
+		}
+		mineField.UpdatedAt = result
 	}
 
-	minefield.ID = result.ID
-	minefield.CreatedAt = result.Createdat
-	minefield.UpdatedAt = result.Updatedat
-	return minefield, nil
-}
-
-// update an existing minefield
-func (c *client) UpdateMineField(ctx context.Context, minefield *cs.MineField) error {
-
-	result, err := c.writer.UpdateMineField(ctx, c.converter.ConvertGameMineFieldToUpdateParams(minefield))
-	if err != nil {
-		return err
-	}
-
-	minefield.UpdatedAt = result
 	return nil
 }
 

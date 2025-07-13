@@ -27,7 +27,7 @@ func TestCreateShipDesign(t *testing.T) {
 			_, player := tt.args.c.createTestGameWithPlayer(t.Context())
 			tt.args.shipDesign.GameID = player.GameID
 			tt.args.shipDesign.PlayerNum = player.Num
-			got, err := tt.args.c.CreateShipDesign(t.Context(), tt.args.shipDesign)
+			err := tt.args.c.SaveShipDesign(t.Context(), tt.args.shipDesign)
 
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
@@ -37,7 +37,8 @@ func TestCreateShipDesign(t *testing.T) {
 				}
 			}
 
-			// id is automatically added
+			got := tt.args.shipDesign
+			// DBObject is returned
 			want.PlayerNum = got.PlayerNum
 			want.GameDBObject = got.GameDBObject
 			test.CompareAsJSON(t, got, want)
@@ -53,8 +54,7 @@ func TestGetShipDesign(t *testing.T) {
 	game, player := c.createTestGameWithPlayer(t.Context())
 	shipDesign := cs.NewShipDesign(player.Num, 1).WithHull(cs.Scout.Name).WithSpec(&rules, player)
 	shipDesign.GameID = game.ID
-	shipDesign, err := c.CreateShipDesign(t.Context(), shipDesign)
-	if err != nil {
+	if err := c.SaveShipDesign(t.Context(), shipDesign); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
@@ -101,8 +101,7 @@ func TestGetShipDesigns(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	_, err = c.CreateShipDesign(t.Context(), &cs.ShipDesign{GameDBObject: cs.GameDBObject{GameID: game.ID}, Num: 1, PlayerNum: player.Num, Name: "name"})
-	if err != nil {
+	if err := c.SaveShipDesign(t.Context(), &cs.ShipDesign{GameDBObject: cs.GameDBObject{GameID: game.ID}, Num: 1, PlayerNum: player.Num, Name: "name"}); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
@@ -123,8 +122,8 @@ func TestDeleteShipDesigns(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	shipDesign, err := c.CreateShipDesign(t.Context(), &cs.ShipDesign{GameDBObject: cs.GameDBObject{GameID: game.ID}, Num: 1, PlayerNum: player.Num, Name: "name"})
-	if err != nil {
+	design := &cs.ShipDesign{GameDBObject: cs.GameDBObject{GameID: game.ID}, Num: 1, PlayerNum: player.Num, Name: "name"}
+	if err := c.SaveShipDesign(t.Context(), design); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
@@ -134,7 +133,7 @@ func TestDeleteShipDesigns(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	if err := c.DeleteShipDesign(t.Context(), shipDesign.ID); err != nil {
+	if err := c.DeleteShipDesign(t.Context(), design.ID); err != nil {
 		t.Errorf("delete shipDesign %s", err)
 		return
 	}

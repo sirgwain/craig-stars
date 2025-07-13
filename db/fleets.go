@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/sirgwain/craig-stars/cs"
 	generated "github.com/sirgwain/craig-stars/db/generated"
@@ -91,56 +90,21 @@ func (c *client) GetFleetsByNums(ctx context.Context, gameID int64, playerNum in
 	return c.converter.ConvertFleets(items), nil
 }
 
-func (c *client) CreateFleet(ctx context.Context, fleet *cs.Fleet) (*cs.Fleet, error) {
-	result, err := c.writer.CreateFleet(ctx, c.converter.ConvertGameFleetToCreateParams(fleet))
-
-	if err != nil {
-		return nil, err
-	}
-
-	fleet.ID = result.ID
-	fleet.CreatedAt = result.Createdat
-	fleet.UpdatedAt = result.Updatedat
-	return fleet, nil
-}
-
-// update an existing fleet
-func (c *client) UpdateFleet(ctx context.Context, fleet *cs.Fleet) error {
-
-	result, err := c.writer.UpdateFleet(ctx, c.converter.ConvertGameFleetToUpdateParams(fleet))
-	if err != nil {
-		return err
-	}
-
-	fleet.UpdatedAt = result
-	return nil
-}
-
-// This should always be wrapped in a transaction
-func (c *client) CreateUpdateOrDeleteFleets(ctx context.Context, gameID int64, fleets []*cs.Fleet) error {
-
-	// create/update fleets
-	for i, fleet := range fleets {
-		if fleet.ID == 0 {
-			fleet.GameID = gameID
-			var err error
-			created, err := c.CreateFleet(ctx, fleet)
-			if err != nil {
-				return fmt.Errorf("create fleet: %w", err)
-			}
-			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Created fleet %s", fleet.Name)
-			fleets[i] = created
-		} else if fleet.Delete {
-			if err := c.DeleteFleet(ctx, fleet.ID); err != nil {
-				return fmt.Errorf("delete fleet: %w", err)
-			}
-			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Deleted fleet %s", fleet.Name)
-		} else {
-			if err := c.UpdateFleet(ctx, fleet); err != nil {
-				return fmt.Errorf("update fleet: %w", err)
-			}
-			// log.Debug().Int64("GameID", fleet.GameID).Int64("ID", fleet.ID).Msgf("Updated fleet %s", fleet.Name)
+func (c *client) SaveFleet(ctx context.Context, fleet *cs.Fleet) error {
+	if fleet.ID == 0 {
+		result, err := c.writer.CreateFleet(ctx, c.converter.ConvertGameFleetToCreateParams(fleet))
+		if err != nil {
+			return err
 		}
+		fleet.ID = result.ID
+		fleet.CreatedAt = result.Createdat
+		fleet.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.UpdateFleet(ctx, c.converter.ConvertGameFleetToUpdateParams(fleet))
+		if err != nil {
+			return err
+		}
+		fleet.UpdatedAt = result
 	}
 
 	return nil

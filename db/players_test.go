@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreatePlayer(t *testing.T) {
+func TestSavePlayer(t *testing.T) {
 	type args struct {
 		c      *client
 		player *cs.Player
@@ -27,7 +27,7 @@ func TestCreatePlayer(t *testing.T) {
 			tt.args.player.GameID = game.ID
 
 			want := *tt.args.player
-			got, err := tt.args.c.CreatePlayer(t.Context(), tt.args.player)
+			err := tt.args.c.SavePlayer(t.Context(), tt.args.player)
 
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
@@ -37,7 +37,8 @@ func TestCreatePlayer(t *testing.T) {
 				}
 			}
 
-			// id is automatically added
+			got := tt.args.player
+			// DBObject is returned
 			want.GameDBObject = got.GameDBObject
 			test.CompareAsJSON(t, got, want)
 		})
@@ -49,15 +50,17 @@ func TestUpdatePlayer(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	c.createTestGame(t.Context())
-	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"})
-	if err != nil {
+	player := &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
+	if err := c.SavePlayer(t.Context(), player); err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
 
 	player.Name = "Test2"
 	player.Num = 1
-	if err := c.UpdatePlayer(t.Context(), player); err != nil {
+	player.Messages = append(player.Messages, cs.PlayerMessage{Type: cs.PlayerMessageInfo, Text: "message1"})
+	player.Messages = append(player.Messages, cs.PlayerMessage{Type: cs.PlayerMessageInfo, Text: "message2"})
+	if err := c.SavePlayer(t.Context(), player); err != nil {
 		t.Errorf("update player %s", err)
 		return
 	}
@@ -71,6 +74,7 @@ func TestUpdatePlayer(t *testing.T) {
 
 	assert.Equal(t, player.Name, updated.Name)
 	assert.Equal(t, player.Num, updated.Num)
+	assert.Equal(t, 2, len(updated.Messages))
 
 }
 
@@ -80,8 +84,8 @@ func TestGetPlayer(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	c.createTestGame(t.Context())
-	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)})
-	if err != nil {
+	player := &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
+	if err := c.SavePlayer(t.Context(), player); err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
@@ -124,14 +128,14 @@ func Test_GetPlayerForGame(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
-	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)})
-	if err != nil {
+	player := &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
+	if err := c.SavePlayer(t.Context(), player); err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
 
 	// verify it works with no designs
-	_, err = c.GetPlayerForGame(t.Context(), game.ID, GetPlayerParams{UserID: player.UserID})
+	_, err := c.GetPlayerForGame(t.Context(), game.ID, GetPlayerParams{UserID: player.UserID})
 	if err != nil {
 		t.Errorf("GetPlayerForGame %s", err)
 		return
@@ -140,16 +144,14 @@ func Test_GetPlayerForGame(t *testing.T) {
 	// create a couple designs and join again
 	shipDesign1 := &cs.ShipDesign{Num: 1, PlayerNum: player.Num, Name: "name"}
 	shipDesign1.GameID = game.ID
-	shipDesign1, err = c.CreateShipDesign(t.Context(), shipDesign1)
-	if err != nil {
+	if err := c.SaveShipDesign(t.Context(), shipDesign1); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
 
 	shipDesign2 := &cs.ShipDesign{Num: 2, PlayerNum: player.Num, Name: "name2"}
 	shipDesign2.GameID = game.ID
-	shipDesign2, err = c.CreateShipDesign(t.Context(), shipDesign2)
-	if err != nil {
+	if err := c.SaveShipDesign(t.Context(), shipDesign2); err != nil {
 		t.Errorf("create shipDesign %s", err)
 		return
 	}
@@ -184,8 +186,8 @@ func TestGetPlayers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	_, err = c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"})
-	if err != nil {
+	player := &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
+	if err := c.SavePlayer(t.Context(), player); err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
@@ -206,8 +208,8 @@ func TestDeletePlayers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"})
-	if err != nil {
+	player := &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
+	if err := c.SavePlayer(t.Context(), player); err != nil {
 		t.Errorf("create player %s", err)
 		return
 	}
@@ -226,38 +228,4 @@ func TestDeletePlayers(t *testing.T) {
 	result, err = c.GetPlayers(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
-}
-
-func TestUpdateFullPlayer(t *testing.T) {
-	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
-
-	game := c.createTestGame(t.Context())
-	player, err := c.CreatePlayer(t.Context(), &cs.Player{GameDBObject: cs.GameDBObject{GameID: game.ID}, UserID: 1, Name: "Test"})
-	if err != nil {
-		t.Errorf("create player %s", err)
-		return
-	}
-
-	player.Name = "Test2"
-	player.Num = 1
-	player.Messages = append(player.Messages, cs.PlayerMessage{Type: cs.PlayerMessageInfo, Text: "message1"})
-	player.Messages = append(player.Messages, cs.PlayerMessage{Type: cs.PlayerMessageInfo, Text: "message2"})
-	if err := c.updateFullPlayer(t.Context(), player); err != nil {
-		t.Errorf("update player %s", err)
-		return
-	}
-
-	updated, err := c.GetFullPlayerForGame(t.Context(), player.GameID, GetPlayerParams{UserID: player.UserID})
-
-	if err != nil {
-		t.Errorf("get player %s", err)
-		return
-	}
-
-	assert.Equal(t, player.Name, updated.Name)
-	assert.Equal(t, player.Num, updated.Num)
-
-	assert.Equal(t, 2, len(updated.Messages))
-
 }

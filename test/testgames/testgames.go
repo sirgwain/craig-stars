@@ -560,13 +560,11 @@ func CreateTestGames(db db.Client) error {
 		}
 		for _, player := range game.Players {
 			player.GameID = game.ID
-			savedPlayer, err := db.CreatePlayer(ctx, player)
-			if err != nil {
+
+			if err := db.SavePlayer(ctx, player); err != nil {
 				return err
 			}
-			// save the db stuff back to the test game player object
-			player.GameDBObject = savedPlayer.GameDBObject
-			for _, design := range savedPlayer.Designs {
+			for _, design := range player.Designs {
 				design.GameID = game.ID
 			}
 		}

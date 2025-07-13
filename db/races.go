@@ -50,6 +50,26 @@ func (c *client) GetRace(ctx context.Context, id int64) (*cs.Race, error) {
 	return &race, nil
 }
 
+func (c *client) SaveRace(ctx context.Context, race *cs.Race) error {
+	if race.ID == 0 {
+		result, err := c.writer.CreateRace(ctx, c.converter.ConvertGameRaceToCreateParams(race))
+		if err != nil {
+			return err
+		}
+		race.ID = result.ID
+		race.CreatedAt = result.Createdat
+		race.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.UpdateRace(ctx, c.converter.ConvertGameRaceToUpdateParams(race))
+		if err != nil {
+			return err
+		}
+		race.UpdatedAt = result
+	}
+
+	return nil
+}
+
 // create a new race
 func (c *client) CreateRace(ctx context.Context, race *cs.Race) (*cs.Race, error) {
 

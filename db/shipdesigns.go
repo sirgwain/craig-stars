@@ -55,28 +55,23 @@ func (c *client) GetShipDesignByNum(ctx context.Context, gameID int64, playerNum
 	return c.converter.ConvertShipDesign(item), nil
 }
 
-func (c *client) CreateShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) (*cs.ShipDesign, error) {
-	result, err := c.writer.CreateShipDesign(ctx, c.converter.ConvertGameShipDesignToCreateParams(shipDesign))
-
-	if err != nil {
-		return nil, err
+func (c *client) SaveShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) error {
+	if shipDesign.ID == 0 {
+		result, err := c.writer.CreateShipDesign(ctx, c.converter.ConvertGameShipDesignToCreateParams(shipDesign))
+		if err != nil {
+			return err
+		}
+		shipDesign.ID = result.ID
+		shipDesign.CreatedAt = result.Createdat
+		shipDesign.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.UpdateShipDesign(ctx, c.converter.ConvertGameShipDesignToUpdateParams(shipDesign))
+		if err != nil {
+			return err
+		}
+		shipDesign.UpdatedAt = result
 	}
 
-	shipDesign.ID = result.ID
-	shipDesign.CreatedAt = result.Createdat
-	shipDesign.UpdatedAt = result.Updatedat
-	return shipDesign, nil
-}
-
-// update an existing shipDesign
-func (c *client) UpdateShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) error {
-
-	result, err := c.writer.UpdateShipDesign(ctx, c.converter.ConvertGameShipDesignToUpdateParams(shipDesign))
-	if err != nil {
-		return err
-	}
-
-	shipDesign.UpdatedAt = result
 	return nil
 }
 

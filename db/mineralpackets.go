@@ -68,28 +68,23 @@ func (c *client) GetMineralPacketsForPlayer(ctx context.Context, gameID int64, p
 	return c.converter.ConvertMineralPackets(items), nil
 }
 
-func (c *client) CreateMineralPacket(ctx context.Context, mineralpacket *cs.MineralPacket) (*cs.MineralPacket, error) {
-	result, err := c.writer.CreateMineralPacket(ctx, c.converter.ConvertGameMineralPacketToCreateParams(mineralpacket))
-
-	if err != nil {
-		return nil, err
+func (c *client) SaveMineralPacket(ctx context.Context, mineralPacket *cs.MineralPacket) error {
+	if mineralPacket.ID == 0 {
+		result, err := c.writer.CreateMineralPacket(ctx, c.converter.ConvertGameMineralPacketToCreateParams(mineralPacket))
+		if err != nil {
+			return err
+		}
+		mineralPacket.ID = result.ID
+		mineralPacket.CreatedAt = result.Createdat
+		mineralPacket.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.UpdateMineralPacket(ctx, c.converter.ConvertGameMineralPacketToUpdateParams(mineralPacket))
+		if err != nil {
+			return err
+		}
+		mineralPacket.UpdatedAt = result
 	}
 
-	mineralpacket.ID = result.ID
-	mineralpacket.CreatedAt = result.Createdat
-	mineralpacket.UpdatedAt = result.Updatedat
-	return mineralpacket, nil
-}
-
-// update an existing mineralpacket
-func (c *client) UpdateMineralPacket(ctx context.Context, mineralpacket *cs.MineralPacket) error {
-
-	result, err := c.writer.UpdateMineralPacket(ctx, c.converter.ConvertGameMineralPacketToUpdateParams(mineralpacket))
-	if err != nil {
-		return err
-	}
-
-	mineralpacket.UpdatedAt = result
 	return nil
 }
 

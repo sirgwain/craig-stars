@@ -85,7 +85,7 @@ func (s *server) updateMineFieldOrders(w http.ResponseWriter, r *http.Request) {
 
 	// update this mineField and the player's spec in the database
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.UpdateMineField(r.Context(), existingMineField); err != nil {
+		if err := c.SaveMineField(r.Context(), existingMineField); err != nil {
 			log.Error().Err(err).Int64("ID", mineField.ID).Msg("update mineField in database")
 			return err
 		}

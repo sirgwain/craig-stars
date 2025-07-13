@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateMineralPacket(t *testing.T) {
+func TestSaveMineralPacket(t *testing.T) {
 	type args struct {
 		c             *client
 		mineralPacket *cs.MineralPacket
@@ -31,17 +31,18 @@ func TestCreateMineralPacket(t *testing.T) {
 			tt.args.mineralPacket.PlayerNum = player.Num
 
 			want := *tt.args.mineralPacket
-			got, err := tt.args.c.CreateMineralPacket(t.Context(), tt.args.mineralPacket)
+			err := tt.args.c.SaveMineralPacket(t.Context(), tt.args.mineralPacket)
 
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("CreateMineralPacket() did not return error when expected")
+					t.Fatalf("SaveMineralPacket() did not return error when expected")
 				} else {
-					t.Fatalf("CreateMineralPacket() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("SaveMineralPacket() errored unexpectedly; err = \n%v", err)
 				}
 			}
 
-			// id is automatically added
+			got := tt.args.mineralPacket
+			// DBObject is returned
 			want.GameDBObject = got.GameDBObject
 			test.CompareAsJSON(t, got, &want)
 		})
@@ -54,11 +55,11 @@ func TestGetMineralPacket(t *testing.T) {
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
-	mineralPacket, err := c.CreateMineralPacket(t.Context(), &cs.MineralPacket{
+	mineralPacket := &cs.MineralPacket{
 		GameDBObject: cs.GameDBObject{GameID: g.ID},
 		MapObject:    cs.MapObject{PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineralPacket},
-	})
-	if err != nil {
+	}
+	if err := c.SaveMineralPacket(t.Context(), mineralPacket); err != nil {
 		t.Errorf("create mineralPacket %s", err)
 		return
 	}
@@ -106,8 +107,7 @@ func TestGetMineralPackets(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	_, err = c.CreateMineralPacket(t.Context(), &cs.MineralPacket{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}})
-	if err != nil {
+	if err := c.SaveMineralPacket(t.Context(), &cs.MineralPacket{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -123,14 +123,14 @@ func TestUpdateMineralPacket(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
-	mineralPacket, err := c.CreateMineralPacket(t.Context(), &cs.MineralPacket{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}})
-	if err != nil {
+	mineralPacket := &cs.MineralPacket{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
+	if err := c.SaveMineralPacket(t.Context(), mineralPacket); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
 	mineralPacket.Name = "Test2"
-	if err := c.UpdateMineralPacket(t.Context(), mineralPacket); err != nil {
+	if err := c.SaveMineralPacket(t.Context(), mineralPacket); err != nil {
 		t.Errorf("update planet %s", err)
 		return
 	}

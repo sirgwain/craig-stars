@@ -245,7 +245,7 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 	// save the updated fleets back to the database
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 		for _, fleet := range fleetsToUpdate {
-			if err := c.UpdateFleet(r.Context(), fleet); err != nil {
+			if err := c.SaveFleet(r.Context(), fleet); err != nil {
 				log.Error().Err(err).Msg("update fleet in database")
 				return err
 			}

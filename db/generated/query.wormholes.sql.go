@@ -251,7 +251,7 @@ func (q *Queries) GetWormholesForGame(ctx context.Context, gameid int64) ([]Worm
 	return items, nil
 }
 
-const updateWormhole = `-- name: UpdateWormhole :one
+const SaveWormhole = `-- name: SaveWormhole :one
 UPDATE wormholes
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -283,8 +283,8 @@ type UpdateWormholeParams struct {
 	ID               int64
 }
 
-func (q *Queries) UpdateWormhole(ctx context.Context, arg UpdateWormholeParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updateWormhole,
+func (q *Queries) SaveWormhole(ctx context.Context, arg UpdateWormholeParams) (time.Time, error) {
+	row := q.db.QueryRowContext(ctx, SaveWormhole,
 		arg.Gameid,
 		arg.X,
 		arg.Y,

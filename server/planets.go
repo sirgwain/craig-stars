@@ -119,7 +119,7 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 
 	// update this planet and the player's spec in the database
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.UpdatePlanet(r.Context(), existingPlanet); err != nil {
+		if err := c.SavePlanet(r.Context(), existingPlanet); err != nil {
 			log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
 			return err
 		}

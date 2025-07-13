@@ -318,17 +318,24 @@ func (c *client) GetPlayerMapObjects(ctx context.Context, gameID, userID int64) 
 	return &mapObjects, nil
 }
 
-func (c *client) CreatePlayer(ctx context.Context, player *cs.Player) (*cs.Player, error) {
-
-	result, err := c.writer.CreatePlayer(ctx, c.converter.ConvertGamePlayerToCreateParams(player))
-	if err != nil {
-		return nil, err
+func (c *client) SavePlayer(ctx context.Context, player *cs.Player) error {
+	if player.ID == 0 {
+		result, err := c.writer.CreatePlayer(ctx, c.converter.ConvertGamePlayerToCreateParams(player))
+		if err != nil {
+			return err
+		}
+		player.ID = result.ID
+		player.CreatedAt = result.Createdat
+		player.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.UpdatePlayer(ctx, c.converter.ConvertGamePlayerToUpdateParams(player))
+		if err != nil {
+			return err
+		}
+		player.UpdatedAt = result
 	}
 
-	player.ID = result.ID
-	player.CreatedAt = result.Createdat
-	player.UpdatedAt = result.Updatedat
-	return player, nil
+	return nil
 }
 
 // update an existing player's lightweight fields
@@ -519,18 +526,6 @@ func (c *client) UpdatePlayerMineralPacketIntels(ctx context.Context, player *cs
 		ID:                  player.ID,
 		Mineralpacketintels: (*generated.MineralPacketIntels)(&player.MineralPacketIntels),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
-}
-
-// helper to update a player using a transaction or DB
-// update an existing player
-func (c *client) UpdatePlayer(ctx context.Context, player *cs.Player) error {
-	result, err := c.writer.UpdatePlayer(ctx, c.converter.ConvertGamePlayerToUpdateParams(player))
 	if err != nil {
 		return err
 	}

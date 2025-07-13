@@ -51,28 +51,23 @@ func (c *client) GetMysteryTradersForGame(ctx context.Context, gameID int64) ([]
 	return c.converter.ConvertMysteryTraders(items), nil
 }
 
-func (c *client) CreateMysteryTrader(ctx context.Context, mysterytrader *cs.MysteryTrader) (*cs.MysteryTrader, error) {
-	result, err := c.writer.CreateMysteryTrader(ctx, c.converter.ConvertGameMysteryTraderToCreateParams(mysterytrader))
-
-	if err != nil {
-		return nil, err
+func (c *client) SaveMysteryTrader(ctx context.Context, mysteryTrader *cs.MysteryTrader) error {
+	if mysteryTrader.ID == 0 {
+		result, err := c.writer.CreateMysteryTrader(ctx, c.converter.ConvertGameMysteryTraderToCreateParams(mysteryTrader))
+		if err != nil {
+			return err
+		}
+		mysteryTrader.ID = result.ID
+		mysteryTrader.CreatedAt = result.Createdat
+		mysteryTrader.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.UpdateMysteryTrader(ctx, c.converter.ConvertGameMysteryTraderToUpdateParams(mysteryTrader))
+		if err != nil {
+			return err
+		}
+		mysteryTrader.UpdatedAt = result
 	}
 
-	mysterytrader.ID = result.ID
-	mysterytrader.CreatedAt = result.Createdat
-	mysterytrader.UpdatedAt = result.Updatedat
-	return mysterytrader, nil
-}
-
-// update an existing mysterytrader
-func (c *client) UpdateMysteryTrader(ctx context.Context, mysterytrader *cs.MysteryTrader) error {
-
-	result, err := c.writer.UpdateMysteryTrader(ctx, c.converter.ConvertGameMysteryTraderToUpdateParams(mysterytrader))
-	if err != nil {
-		return err
-	}
-
-	mysterytrader.UpdatedAt = result
 	return nil
 }
 

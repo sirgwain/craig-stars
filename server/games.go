@@ -594,7 +594,7 @@ func (s *server) updatePlayerSlot(w http.ResponseWriter, r *http.Request) {
 	existing.DefaultHullSet = player.DefaultHullSet
 	existing.Race = player.Race
 
-	if err := db.UpdatePlayer(r.Context(), existing); err != nil {
+	if err := db.SavePlayer(r.Context(), existing); err != nil {
 		log.Error().Int64("GameID", game.ID).Int64("PlayerID", player.ID).Msg("updating player in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateWormhole(t *testing.T) {
+func TestSaveWormhole(t *testing.T) {
 	type args struct {
 		c        *client
 		wormhole *cs.Wormhole
@@ -30,17 +30,18 @@ func TestCreateWormhole(t *testing.T) {
 			tt.args.wormhole.GameID = game.ID
 
 			want := *tt.args.wormhole
-			got, err := tt.args.c.CreateWormhole(t.Context(), tt.args.wormhole)
+			err := tt.args.c.SaveWormhole(t.Context(), tt.args.wormhole)
 
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("CreateWormhole() did not return error when expected")
+					t.Fatalf("SaveWormhole() did not return error when expected")
 				} else {
-					t.Fatalf("CreateWormhole() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("SaveWormhole() errored unexpectedly; err = \n%v", err)
 				}
 			}
 
-			// id is automatically added
+			got := tt.args.wormhole
+			// DBObject is returned
 			want.GameDBObject = got.GameDBObject
 			test.CompareAsJSON(t, got, want)
 		})
@@ -58,8 +59,7 @@ func TestGetWormholes(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	_, err = c.CreateWormhole(t.Context(), &cs.Wormhole{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}})
-	if err != nil {
+	if err := c.SaveWormhole(t.Context(), &cs.Wormhole{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}); err != nil {
 		t.Errorf("create wormhole %s", err)
 		return
 	}
@@ -75,8 +75,8 @@ func TestGetWormhole(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
-	wormhole, err := c.CreateWormhole(t.Context(), &cs.Wormhole{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}})
-	if err != nil {
+	wormhole := &cs.Wormhole{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{Type: cs.MapObjectTypeWormhole}}
+	if err := c.SaveWormhole(t.Context(), wormhole); err != nil {
 		t.Errorf("create wormhole %s", err)
 		return
 	}
@@ -118,14 +118,14 @@ func TestUpdateWormhole(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
-	wormhole, err := c.CreateWormhole(t.Context(), &cs.Wormhole{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}})
-	if err != nil {
+	wormhole := &cs.Wormhole{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}
+	if err := c.SaveWormhole(t.Context(), wormhole); err != nil {
 		t.Errorf("create wormhole %s", err)
 		return
 	}
 
 	wormhole.Name = "Test2"
-	if err := c.UpdateWormhole(t.Context(), wormhole); err != nil {
+	if err := c.SaveWormhole(t.Context(), wormhole); err != nil {
 		t.Errorf("update wormhole %s", err)
 		return
 	}

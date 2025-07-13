@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateMysteryTrader(t *testing.T) {
+func TestSaveMysteryTrader(t *testing.T) {
 	type args struct {
 		c             *client
 		mysteryTrader *cs.MysteryTrader
@@ -30,17 +30,18 @@ func TestCreateMysteryTrader(t *testing.T) {
 			tt.args.mysteryTrader.GameID = game.ID
 
 			want := *tt.args.mysteryTrader
-			got, err := tt.args.c.CreateMysteryTrader(t.Context(), tt.args.mysteryTrader)
+			err := tt.args.c.SaveMysteryTrader(t.Context(), tt.args.mysteryTrader)
 
-			// id is automatically added
-			want.GameDBObject = got.GameDBObject
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("CreateMysteryTrader() did not return error when expected")
+					t.Fatalf("SaveMysteryTrader() did not return error when expected")
 				} else {
-					t.Fatalf("CreateMysteryTrader() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("SaveMysteryTrader() errored unexpectedly; err = \n%v", err)
 				}
 			}
+			got := tt.args.mysteryTrader
+			// DBObject is returned
+			want.GameDBObject = got.GameDBObject
 			test.CompareAsJSON(t, got, want)
 		})
 	}
@@ -57,8 +58,7 @@ func TestGetMysteryTraders(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	_, err = c.CreateMysteryTrader(t.Context(), &cs.MysteryTrader{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}})
-	if err != nil {
+	if err := c.SaveMysteryTrader(t.Context(), &cs.MysteryTrader{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}); err != nil {
 		t.Errorf("create mysteryTrader %s", err)
 		return
 	}
@@ -74,8 +74,8 @@ func TestGetMysteryTrader(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
-	mysteryTrader, err := c.CreateMysteryTrader(t.Context(), &cs.MysteryTrader{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{Name: "name", Type: cs.MapObjectTypeMysteryTrader}})
-	if err != nil {
+	mysteryTrader := &cs.MysteryTrader{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{Name: "name", Type: cs.MapObjectTypeMysteryTrader}}
+	if err := c.SaveMysteryTrader(t.Context(), mysteryTrader); err != nil {
 		t.Errorf("create mysteryTrader %s", err)
 		return
 	}
@@ -117,14 +117,14 @@ func TestUpdateMysteryTrader(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
-	mysteryTrader, err := c.CreateMysteryTrader(t.Context(), &cs.MysteryTrader{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}})
-	if err != nil {
+	mysteryTrader := &cs.MysteryTrader{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}
+	if err := c.SaveMysteryTrader(t.Context(), mysteryTrader); err != nil {
 		t.Errorf("create mysteryTrader %s", err)
 		return
 	}
 
 	mysteryTrader.Name = "Test2"
-	if err := c.UpdateMysteryTrader(t.Context(), mysteryTrader); err != nil {
+	if err := c.SaveMysteryTrader(t.Context(), mysteryTrader); err != nil {
 		t.Errorf("update mysteryTrader %s", err)
 		return
 	}

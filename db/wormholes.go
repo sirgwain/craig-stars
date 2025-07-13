@@ -51,28 +51,23 @@ func (c *client) GetWormholesForGame(ctx context.Context, gameID int64) ([]*cs.W
 	return c.converter.ConvertWormholes(items), nil
 }
 
-func (c *client) CreateWormhole(ctx context.Context, wormhole *cs.Wormhole) (*cs.Wormhole, error) {
-	result, err := c.writer.CreateWormhole(ctx, c.converter.ConvertGameWormholeToCreateParams(wormhole))
-
-	if err != nil {
-		return nil, err
+func (c *client) SaveWormhole(ctx context.Context, wormhole *cs.Wormhole) error {
+	if wormhole.ID == 0 {
+		result, err := c.writer.CreateWormhole(ctx, c.converter.ConvertGameWormholeToCreateParams(wormhole))
+		if err != nil {
+			return err
+		}
+		wormhole.ID = result.ID
+		wormhole.CreatedAt = result.Createdat
+		wormhole.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.SaveWormhole(ctx, c.converter.ConvertGameWormholeToUpdateParams(wormhole))
+		if err != nil {
+			return err
+		}
+		wormhole.UpdatedAt = result
 	}
 
-	wormhole.ID = result.ID
-	wormhole.CreatedAt = result.Createdat
-	wormhole.UpdatedAt = result.Updatedat
-	return wormhole, nil
-}
-
-// update an existing wormhole
-func (c *client) UpdateWormhole(ctx context.Context, wormhole *cs.Wormhole) error {
-
-	result, err := c.writer.UpdateWormhole(ctx, c.converter.ConvertGameWormholeToUpdateParams(wormhole))
-	if err != nil {
-		return err
-	}
-
-	wormhole.UpdatedAt = result
 	return nil
 }
 

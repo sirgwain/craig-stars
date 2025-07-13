@@ -32,7 +32,7 @@ func TestCreateFleet(t *testing.T) {
 			tt.args.fleet.PlayerNum = player.Num
 
 			want := *tt.args.fleet
-			got, err := tt.args.c.CreateFleet(t.Context(), tt.args.fleet)
+			err := tt.args.c.SaveFleet(t.Context(), tt.args.fleet)
 
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
@@ -42,7 +42,8 @@ func TestCreateFleet(t *testing.T) {
 				}
 			}
 
-			// id is automatically added
+			got := tt.args.fleet
+			// DBObject is returned
 			want.GameDBObject = got.GameDBObject
 			test.CompareAsJSON(t, got, want)
 		})
@@ -57,7 +58,7 @@ func TestGetFleet(t *testing.T) {
 
 	design := c.createTestShipDesign(t.Context(), player, cs.NewShipDesign(player.Num, 1).WithHull(cs.Scout.Name))
 
-	fleet, err := c.CreateFleet(t.Context(), &cs.Fleet{
+	fleet := &cs.Fleet{
 		GameDBObject: cs.GameDBObject{GameID: g.ID},
 		MapObject:    cs.MapObject{PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeFleet},
 		Tokens: []cs.ShipToken{
@@ -68,8 +69,8 @@ func TestGetFleet(t *testing.T) {
 				cs.NewPositionWaypoint(cs.Vector{X: 2, Y: 3}, 4),
 			},
 		},
-	})
-	if err != nil {
+	}
+	if err := c.SaveFleet(t.Context(), fleet); err != nil {
 		t.Errorf("create fleet %s", err)
 		return
 	}
@@ -117,8 +118,7 @@ func TestGetFleets(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	_, err = c.CreateFleet(t.Context(), &cs.Fleet{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}})
-	if err != nil {
+	if err = c.SaveFleet(t.Context(), &cs.Fleet{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -134,14 +134,15 @@ func TestUpdateFleet(t *testing.T) {
 	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
-	fleet, err := c.CreateFleet(t.Context(), &cs.Fleet{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}})
-	if err != nil {
+	fleet := &cs.Fleet{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
+
+	if err := c.SaveFleet(t.Context(), fleet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
 	fleet.Name = "Test2"
-	if err := c.UpdateFleet(t.Context(), fleet); err != nil {
+	if err := c.SaveFleet(t.Context(), fleet); err != nil {
 		t.Errorf("update planet %s", err)
 		return
 	}

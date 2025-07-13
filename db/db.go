@@ -92,7 +92,6 @@ type Client interface {
 	UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error
 
 	ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error
-	CreatePlayer(ctx context.Context, player *cs.Player) (*cs.Player, error)
 	DeletePlayer(ctx context.Context, id int64) error
 	GetFullPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.FullPlayer, error)
 	GetLightPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error)
@@ -102,9 +101,9 @@ type Client interface {
 	GetPlayers(ctx context.Context) ([]*cs.Player, error)
 	GetPlayersForUser(ctx context.Context, userID int64) ([]*cs.Player, error)
 	GetPlayersStatusForGame(ctx context.Context, gameID int64) ([]*cs.Player, error)
+	SavePlayer(ctx context.Context, player *cs.Player) error
 	SubmitPlayerTurn(ctx context.Context, gameID int64, num int, submittedTurn bool) error
 	UpdateLightPlayer(ctx context.Context, player *cs.Player) error
-	UpdatePlayer(ctx context.Context, player *cs.Player) error
 	UpdatePlayerCargoTransfers(ctx context.Context, player *cs.Player) error
 	UpdatePlayerFleetIntels(ctx context.Context, player *cs.Player) error
 	UpdatePlayerMineralPacketIntels(ctx context.Context, player *cs.Player) error
@@ -116,43 +115,39 @@ type Client interface {
 	UpdatePlayerSpec(ctx context.Context, player *cs.Player) error
 	UpdatePlayerUserId(ctx context.Context, player *cs.Player) error
 
-	CreateShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) (*cs.ShipDesign, error)
 	DeleteShipDesign(ctx context.Context, id int64) error
 	GetShipDesign(ctx context.Context, id int64) (*cs.ShipDesign, error)
 	GetShipDesignByNum(ctx context.Context, gameID int64, playerNum, num int) (*cs.ShipDesign, error)
 	GetShipDesignsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.ShipDesign, error)
-	UpdateShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) error
+	SaveShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) error
 
 	GetPlanet(ctx context.Context, id int64) (*cs.Planet, error)
 	GetPlanetByNum(ctx context.Context, gameID int64, num int) (*cs.Planet, error)
 	GetPlanetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Planet, error)
-	UpdatePlanet(ctx context.Context, planet *cs.Planet) error
+	SavePlanet(ctx context.Context, planet *cs.Planet) error
 	UpdatePlanetSpec(ctx context.Context, planet *cs.Planet) error
 
-	CreateFleet(ctx context.Context, fleet *cs.Fleet) (*cs.Fleet, error)
-	CreateUpdateOrDeleteFleets(ctx context.Context, gameID int64, fleets []*cs.Fleet) error
 	DeleteFleet(ctx context.Context, id int64) error
 	GetFleet(ctx context.Context, id int64) (*cs.Fleet, error)
 	GetFleetByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.Fleet, error)
 	GetFleetsByNums(ctx context.Context, gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error)
 	GetFleetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Fleet, error)
-	UpdateFleet(ctx context.Context, fleet *cs.Fleet) error
+	SaveFleet(ctx context.Context, fleet *cs.Fleet) error
 
 	GetMineField(ctx context.Context, id int64) (*cs.MineField, error)
 	GetMineFieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineField, error)
 	GetMineFieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineField, error)
-	UpdateMineField(ctx context.Context, fleet *cs.MineField) error
+	SaveMineField(ctx context.Context, fleet *cs.MineField) error
 
 	GetMineralPacket(ctx context.Context, id int64) (*cs.MineralPacket, error)
 	GetMineralPacketByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineralPacket, error)
 	GetMineralPacketsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineralPacket, error)
-	UpdateMineralPacket(ctx context.Context, mineralPacket *cs.MineralPacket) error
+	SaveMineralPacket(ctx context.Context, mineralPacket *cs.MineralPacket) error
 
-	CreateSalvage(ctx context.Context, salvage *cs.Salvage) (*cs.Salvage, error)
 	GetSalvageByNum(ctx context.Context, gameID int64, num int) (*cs.Salvage, error)
 	GetSalvagesForGame(ctx context.Context, gameID int64) ([]*cs.Salvage, error)
 	GetSalvagesForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Salvage, error)
-	UpdateSalvage(ctx context.Context, salvage *cs.Salvage) error
+	SaveSalvage(ctx context.Context, salvage *cs.Salvage) error
 }
 
 type dbConn struct {

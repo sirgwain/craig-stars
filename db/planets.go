@@ -112,28 +112,23 @@ func (c *client) GetPlanetByNum(ctx context.Context, gameID int64, num int) (*cs
 
 }
 
-func (c *client) CreatePlanet(ctx context.Context, planet *cs.Planet) (*cs.Planet, error) {
-	result, err := c.writer.CreatePlanet(ctx, c.converter.ConvertGamePlanetToCreateParams(planet))
-
-	if err != nil {
-		return nil, err
+func (c *client) SavePlanet(ctx context.Context, planet *cs.Planet) error {
+	if planet.ID == 0 {
+		result, err := c.writer.CreatePlanet(ctx, c.converter.ConvertGamePlanetToCreateParams(planet))
+		if err != nil {
+			return err
+		}
+		planet.ID = result.ID
+		planet.CreatedAt = result.Createdat
+		planet.UpdatedAt = result.Updatedat
+	} else {
+		result, err := c.writer.UpdatePlanet(ctx, c.converter.ConvertGamePlanetToUpdateParams(planet))
+		if err != nil {
+			return err
+		}
+		planet.UpdatedAt = result
 	}
 
-	planet.ID = result.ID
-	planet.CreatedAt = result.Createdat
-	planet.UpdatedAt = result.Updatedat
-	return planet, nil
-}
-
-// update an existing planet
-func (c *client) UpdatePlanet(ctx context.Context, planet *cs.Planet) error {
-
-	result, err := c.writer.UpdatePlanet(ctx, c.converter.ConvertGamePlanetToUpdateParams(planet))
-	if err != nil {
-		return err
-	}
-
-	planet.UpdatedAt = result
 	return nil
 }
 

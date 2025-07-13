@@ -78,8 +78,7 @@ func (c *client) createTestGameWithPlayer(ctx context.Context) (*cs.Game, *cs.Pl
 	player.Num = 1
 	player.GameID = game.ID
 
-	player, err = c.CreatePlayer(ctx, player)
-	if err != nil {
+	if err := c.SavePlayer(ctx, player); err != nil {
 		panic(fmt.Errorf("error creating test database game player: \n%w", err))
 	}
 
@@ -89,12 +88,11 @@ func (c *client) createTestGameWithPlayer(ctx context.Context) (*cs.Game, *cs.Pl
 func (c *client) createTestShipDesign(ctx context.Context, player *cs.Player, design *cs.ShipDesign) *cs.ShipDesign {
 	design.PlayerNum = player.Num
 	design.GameID = player.GameID
-	var err error
-	created, err := c.CreateShipDesign(ctx, design)
-	if err != nil {
+
+	if err := c.SaveShipDesign(ctx, design); err != nil {
 		panic(fmt.Errorf("error creating test design: \n%w", err))
 	}
-	return created
+	return design
 }
 
 func (c *client) createTestFullGame(ctx context.Context) *cs.FullGame {
