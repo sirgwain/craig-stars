@@ -206,7 +206,7 @@ SET
     victorDeclared = ?,
     archived = ?
 WHERE
-    id = ? RETURNING *;
+    id = ? RETURNING updatedAt;
 
 -- name: UpdateGameState :exec
 UPDATE games
