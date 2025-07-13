@@ -9,7 +9,7 @@ import (
 	"mime"
 	"net/http"
 
-	"github.com/goccy/go-json"
+	json "github.com/json-iterator/go"
 
 	"github.com/go-pkgz/auth"
 	"github.com/golang-jwt/jwt"

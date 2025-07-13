@@ -3,9 +3,8 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-
-	"github.com/goccy/go-json"
 
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/spf13/cobra"
