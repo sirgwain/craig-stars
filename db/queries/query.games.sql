@@ -39,26 +39,29 @@ WHERE
         @id IS NULL
         OR g.id = @id
     )
-    --  host of game
-    AND (
-        @hostId IS NULL
-        OR hostId = @hostId
-    )
     -- host or player in game
     AND (
-        @hostId IS NULL 
-        AND @userId IS NULL
+        (
+            @hostId IS NULL
+            AND @userId IS NULL
+        )
         OR (
-            hostId = @hostId
-            OR @userId IN (
+            g.hostId = @hostId
+            OR g.id IN (
                 SELECT
-                    p.id
+                    gameId
                 FROM
                     players p
                 WHERE
-                    p.gameId = g.id
+                    p.userId = @userId
             )
         )
+    )
+    --  host of game
+    AND (
+        @hostId IS NULL
+        OR @userID IS NULL -- we handle userId above
+        OR hostId = @hostId
     )
     -- game state
     AND (

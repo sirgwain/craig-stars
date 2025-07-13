@@ -379,49 +379,52 @@ WHERE
         ?1 IS NULL
         OR g.id = ?1
     )
-    --  host of game
-    AND (
-        ?2 IS NULL
-        OR hostId = ?2
-    )
     -- host or player in game
     AND (
-        ?2 IS NULL 
-        AND ?3 IS NULL
+        (
+            ?2 IS NULL
+            AND ?3 IS NULL
+        )
         OR (
-            hostId = ?2
-            OR @userId IN (
+            g.hostId = ?2
+            OR g.id IN (
                 SELECT
-                    p.id
+                    gameId
                 FROM
                     players p
                 WHERE
-                    p.gameId = g.id
+                    p.userId = ?3
             )
         )
     )
+    --  host of game
+    AND (
+        ?2 IS NULL
+        OR ?4 IS NULL -- we handle userId above
+        OR hostId = ?2
+    )
     -- game state
     AND (
-        ?4 IS NULL
-        OR state = ?4
+        ?5 IS NULL
+        OR state = ?5
     )
     -- open games
     AND (
-        ?5 IS NULL
+        ?6 IS NULL
         OR (
-            ?5
+            ?6
             AND g.openPlayerSlots > 0
         )
     )
     -- public games
     AND (
-        ?6 IS NULL
-        OR g.public = ?6
+        ?7 IS NULL
+        OR g.public = ?7
     )
     -- game by hash
     AND (
-        ?7 IS NULL
-        OR g.hash = ?7
+        ?8 IS NULL
+        OR g.hash = ?8
     )
 `
 
@@ -429,6 +432,7 @@ type GetGamesWithPlayersParams struct {
 	ID     interface{}
 	HostId interface{}
 	UserId interface{}
+	UserID interface{}
 	State  interface{}
 	Open   interface{}
 	Public interface{}
@@ -456,6 +460,7 @@ func (q *Queries) GetGamesWithPlayers(ctx context.Context, arg GetGamesWithPlaye
 		arg.ID,
 		arg.HostId,
 		arg.UserId,
+		arg.UserID,
 		arg.State,
 		arg.Open,
 		arg.Public,
