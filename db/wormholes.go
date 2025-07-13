@@ -61,7 +61,7 @@ func (c *client) SaveWormhole(ctx context.Context, wormhole *cs.Wormhole) error 
 		wormhole.CreatedAt = result.Createdat
 		wormhole.UpdatedAt = result.Updatedat
 	} else {
-		result, err := c.writer.SaveWormhole(ctx, c.converter.ConvertGameWormholeToUpdateParams(wormhole))
+		result, err := c.writer.UpdateWormhole(ctx, c.converter.ConvertGameWormholeToUpdateParams(wormhole))
 		if err != nil {
 			return err
 		}
