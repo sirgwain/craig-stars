@@ -46,7 +46,6 @@ INSERT INTO
         victoryConditionsOwnCapitalShips,
         victoryConditionsHighestScoreAfterYears,
         seed,
-        rules,
         areaX,
         areaY,
         year,
@@ -57,7 +56,6 @@ VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
-        ?,
         ?,
         ?,
         ?,
@@ -125,7 +123,6 @@ type CreateGameParams struct {
 	Victoryconditionsowncapitalships          sql.NullInt64
 	Victoryconditionshighestscoreafteryears   sql.NullInt64
 	Seed                                      sql.NullInt64
-	Rules                                     *Rules
 	Areax                                     sql.NullFloat64
 	Areay                                     sql.NullFloat64
 	Year                                      sql.NullInt64
@@ -169,7 +166,6 @@ func (q *Queries) CreateGame(ctx context.Context, arg CreateGameParams) (CreateG
 		arg.Victoryconditionsowncapitalships,
 		arg.Victoryconditionshighestscoreafteryears,
 		arg.Seed,
-		arg.Rules,
 		arg.Areax,
 		arg.Areay,
 		arg.Year,
@@ -205,7 +201,7 @@ func (q *Queries) DeleteUserGames(ctx context.Context, hostid sql.NullInt64) err
 
 const GetGame = `-- name: GetGame :one
 SELECT
-    id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, rules, areax, areay, year, victordeclared, maxminerals, archived
+    id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, areax, areay, year, victordeclared, maxminerals, archived
 FROM
     games
 WHERE
@@ -247,7 +243,6 @@ func (q *Queries) GetGame(ctx context.Context, id int64) (Game, error) {
 		&i.Victoryconditionsowncapitalships,
 		&i.Victoryconditionshighestscoreafteryears,
 		&i.Seed,
-		&i.Rules,
 		&i.Areax,
 		&i.Areay,
 		&i.Year,
@@ -260,7 +255,7 @@ func (q *Queries) GetGame(ctx context.Context, id int64) (Game, error) {
 
 const GetGameWithPlayers = `-- name: GetGameWithPlayers :many
 SELECT
-    g.id, g.createdat, g.updatedat, g.hostid, g.name, g.state, g.public, g.hash, g.size, g.density, g.playerpositions, g.randomevents, g.computerplayersformalliances, g.publicplayerscores, g.startmode, g.quickstartturns, g.openplayerslots, g.numplayers, g.victoryconditionsconditions, g.victoryconditionsnumcriteriarequired, g.victoryconditionsyearspassed, g.victoryconditionsownplanets, g.victoryconditionsattaintechlevel, g.victoryconditionsattaintechlevelnumfields, g.victoryconditionsexceedsscore, g.victoryconditionsexceedssecondplacescore, g.victoryconditionsproductioncapacity, g.victoryconditionsowncapitalships, g.victoryconditionshighestscoreafteryears, g.seed, g.rules, g.areax, g.areay, g.year, g.victordeclared, g.maxminerals, g.archived,
+    g.id, g.createdat, g.updatedat, g.hostid, g.name, g.state, g.public, g.hash, g.size, g.density, g.playerpositions, g.randomevents, g.computerplayersformalliances, g.publicplayerscores, g.startmode, g.quickstartturns, g.openplayerslots, g.numplayers, g.victoryconditionsconditions, g.victoryconditionsnumcriteriarequired, g.victoryconditionsyearspassed, g.victoryconditionsownplanets, g.victoryconditionsattaintechlevel, g.victoryconditionsattaintechlevelnumfields, g.victoryconditionsexceedsscore, g.victoryconditionsexceedssecondplacescore, g.victoryconditionsproductioncapacity, g.victoryconditionsowncapitalships, g.victoryconditionshighestscoreafteryears, g.seed, g.areax, g.areay, g.year, g.victordeclared, g.maxminerals, g.archived,
     p.gameid, p.id, p.updatedat, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.aidifficulty, p.submittedturn, p.color, p.victor, p.archived, p.guest
 FROM
     games g
@@ -335,7 +330,6 @@ func (q *Queries) GetGameWithPlayers(ctx context.Context, arg GetGameWithPlayers
 			&i.Game.Victoryconditionsowncapitalships,
 			&i.Game.Victoryconditionshighestscoreafteryears,
 			&i.Game.Seed,
-			&i.Game.Rules,
 			&i.Game.Areax,
 			&i.Game.Areay,
 			&i.Game.Year,
@@ -372,7 +366,7 @@ func (q *Queries) GetGameWithPlayers(ctx context.Context, arg GetGameWithPlayers
 
 const GetGames = `-- name: GetGames :many
 SELECT
-    id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, rules, areax, areay, year, victordeclared, maxminerals, archived
+    id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, areax, areay, year, victordeclared, maxminerals, archived
 FROM
     games
 `
@@ -417,7 +411,6 @@ func (q *Queries) GetGames(ctx context.Context) ([]Game, error) {
 			&i.Victoryconditionsowncapitalships,
 			&i.Victoryconditionshighestscoreafteryears,
 			&i.Seed,
-			&i.Rules,
 			&i.Areax,
 			&i.Areay,
 			&i.Year,
@@ -440,7 +433,7 @@ func (q *Queries) GetGames(ctx context.Context) ([]Game, error) {
 
 const GetGamesForHost = `-- name: GetGamesForHost :many
 SELECT
-    id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, rules, areax, areay, year, victordeclared, maxminerals, archived
+    id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, areax, areay, year, victordeclared, maxminerals, archived
 FROM
     games
 WHERE
@@ -487,7 +480,6 @@ func (q *Queries) GetGamesForHost(ctx context.Context, hostid sql.NullInt64) ([]
 			&i.Victoryconditionsowncapitalships,
 			&i.Victoryconditionshighestscoreafteryears,
 			&i.Seed,
-			&i.Rules,
 			&i.Areax,
 			&i.Areay,
 			&i.Year,
@@ -510,7 +502,7 @@ func (q *Queries) GetGamesForHost(ctx context.Context, hostid sql.NullInt64) ([]
 
 const GetGamesWithPlayers = `-- name: GetGamesWithPlayers :many
 SELECT
-    g.id, g.createdat, g.updatedat, g.hostid, g.name, g.state, g.public, g.hash, g.size, g.density, g.playerpositions, g.randomevents, g.computerplayersformalliances, g.publicplayerscores, g.startmode, g.quickstartturns, g.openplayerslots, g.numplayers, g.victoryconditionsconditions, g.victoryconditionsnumcriteriarequired, g.victoryconditionsyearspassed, g.victoryconditionsownplanets, g.victoryconditionsattaintechlevel, g.victoryconditionsattaintechlevelnumfields, g.victoryconditionsexceedsscore, g.victoryconditionsexceedssecondplacescore, g.victoryconditionsproductioncapacity, g.victoryconditionsowncapitalships, g.victoryconditionshighestscoreafteryears, g.seed, g.rules, g.areax, g.areay, g.year, g.victordeclared, g.maxminerals, g.archived,
+    g.id, g.createdat, g.updatedat, g.hostid, g.name, g.state, g.public, g.hash, g.size, g.density, g.playerpositions, g.randomevents, g.computerplayersformalliances, g.publicplayerscores, g.startmode, g.quickstartturns, g.openplayerslots, g.numplayers, g.victoryconditionsconditions, g.victoryconditionsnumcriteriarequired, g.victoryconditionsyearspassed, g.victoryconditionsownplanets, g.victoryconditionsattaintechlevel, g.victoryconditionsattaintechlevelnumfields, g.victoryconditionsexceedsscore, g.victoryconditionsexceedssecondplacescore, g.victoryconditionsproductioncapacity, g.victoryconditionsowncapitalships, g.victoryconditionshighestscoreafteryears, g.seed, g.areax, g.areay, g.year, g.victordeclared, g.maxminerals, g.archived,
     p.gameid, p.id, p.updatedat, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.aidifficulty, p.submittedturn, p.color, p.victor, p.archived, p.guest
 FROM
     games g
@@ -600,7 +592,6 @@ func (q *Queries) GetGamesWithPlayers(ctx context.Context, arg GetGamesWithPlaye
 			&i.Game.Victoryconditionsowncapitalships,
 			&i.Game.Victoryconditionshighestscoreafteryears,
 			&i.Game.Seed,
-			&i.Game.Rules,
 			&i.Game.Areax,
 			&i.Game.Areay,
 			&i.Game.Year,
@@ -637,7 +628,7 @@ func (q *Queries) GetGamesWithPlayers(ctx context.Context, arg GetGamesWithPlaye
 
 const GetGamesWithPlayersForUser = `-- name: GetGamesWithPlayersForUser :many
 SELECT
-    g.id, g.createdat, g.updatedat, g.hostid, g.name, g.state, g.public, g.hash, g.size, g.density, g.playerpositions, g.randomevents, g.computerplayersformalliances, g.publicplayerscores, g.startmode, g.quickstartturns, g.openplayerslots, g.numplayers, g.victoryconditionsconditions, g.victoryconditionsnumcriteriarequired, g.victoryconditionsyearspassed, g.victoryconditionsownplanets, g.victoryconditionsattaintechlevel, g.victoryconditionsattaintechlevelnumfields, g.victoryconditionsexceedsscore, g.victoryconditionsexceedssecondplacescore, g.victoryconditionsproductioncapacity, g.victoryconditionsowncapitalships, g.victoryconditionshighestscoreafteryears, g.seed, g.rules, g.areax, g.areay, g.year, g.victordeclared, g.maxminerals, g.archived,
+    g.id, g.createdat, g.updatedat, g.hostid, g.name, g.state, g.public, g.hash, g.size, g.density, g.playerpositions, g.randomevents, g.computerplayersformalliances, g.publicplayerscores, g.startmode, g.quickstartturns, g.openplayerslots, g.numplayers, g.victoryconditionsconditions, g.victoryconditionsnumcriteriarequired, g.victoryconditionsyearspassed, g.victoryconditionsownplanets, g.victoryconditionsattaintechlevel, g.victoryconditionsattaintechlevelnumfields, g.victoryconditionsexceedsscore, g.victoryconditionsexceedssecondplacescore, g.victoryconditionsproductioncapacity, g.victoryconditionsowncapitalships, g.victoryconditionshighestscoreafteryears, g.seed, g.areax, g.areay, g.year, g.victordeclared, g.maxminerals, g.archived,
     p.gameid, p.id, p.updatedat, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.aidifficulty, p.submittedturn, p.color, p.victor, p.archived, p.guest
 FROM
     games g
@@ -713,7 +704,6 @@ func (q *Queries) GetGamesWithPlayersForUser(ctx context.Context, userid sql.Nul
 			&i.Game.Victoryconditionsowncapitalships,
 			&i.Game.Victoryconditionshighestscoreafteryears,
 			&i.Game.Seed,
-			&i.Game.Rules,
 			&i.Game.Areax,
 			&i.Game.Areay,
 			&i.Game.Year,
@@ -780,7 +770,6 @@ SET
     victoryConditionsOwnCapitalShips = ?,
     victoryConditionsHighestScoreAfterYears = ?,
     seed = ?,
-    rules = ?,
     areaX = ?,
     areaY = ?,
     year = ?,
@@ -819,7 +808,6 @@ type UpdateGameParams struct {
 	Victoryconditionsowncapitalships          sql.NullInt64
 	Victoryconditionshighestscoreafteryears   sql.NullInt64
 	Seed                                      sql.NullInt64
-	Rules                                     *Rules
 	Areax                                     sql.NullFloat64
 	Areay                                     sql.NullFloat64
 	Year                                      sql.NullInt64
@@ -858,7 +846,6 @@ func (q *Queries) UpdateGame(ctx context.Context, arg UpdateGameParams) (time.Ti
 		arg.Victoryconditionsowncapitalships,
 		arg.Victoryconditionshighestscoreafteryears,
 		arg.Seed,
-		arg.Rules,
 		arg.Areax,
 		arg.Areay,
 		arg.Year,

@@ -76,7 +76,6 @@ type Game struct {
 	Victoryconditionsowncapitalships          sql.NullInt64
 	Victoryconditionshighestscoreafteryears   sql.NullInt64
 	Seed                                      sql.NullInt64
-	Rules                                     *Rules
 	Areax                                     sql.NullFloat64
 	Areay                                     sql.NullFloat64
 	Year                                      sql.NullInt64
@@ -304,70 +303,6 @@ type Race struct {
 	Researchcostbiotechnology cs.ResearchCostLevel
 	Techsstarthigh            sql.NullBool
 	Spec                      *RaceSpec
-}
-
-type Rule struct {
-	ID                                 int64
-	Createdat                          time.Time
-	Updatedat                          time.Time
-	Gameid                             int64
-	Seed                               sql.NullInt64
-	Tachyoncloakreduction              sql.NullInt64
-	Maxpopulation                      sql.NullInt64
-	Fleetsscanwhilemoving              sql.NullBool
-	Populationscannererror             sql.NullFloat64
-	Smartdefensecoveragefactor         sql.NullFloat64
-	Invasiondefensecoveragefactor      sql.NullFloat64
-	Numbattlerounds                    sql.NullInt64
-	Movestorunaway                     sql.NullInt64
-	Beamrangedropoff                   sql.NullFloat64
-	Torpedosplashdamage                sql.NullFloat64
-	Salvagedecayrate                   sql.NullFloat64
-	Salvagedecaymin                    sql.NullInt64
-	Minefieldcloak                     sql.NullInt64
-	Stargatemaxrangefactor             sql.NullInt64
-	Stargatemaxhullmassfactor          sql.NullInt64
-	Randomeventchances                 sql.NullString
-	Randommineraldepositbonusrange     sql.NullString
-	Wormholecloak                      sql.NullInt64
-	Wormholemindistance                sql.NullInt64
-	Wormholestatsbystability           sql.NullString
-	Wormholepairsforsize               sql.NullString
-	Minefieldstatsbytype               sql.NullString
-	Repairrates                        sql.NullString
-	Maxplayers                         sql.NullInt64
-	Startingyear                       sql.NullInt64
-	Showpublicscoresafteryears         sql.NullInt64
-	Planetmindistance                  sql.NullInt64
-	Maxextraworlddistance              sql.NullInt64
-	Minextraworlddistance              sql.NullInt64
-	Minhomeworldmineralconcentration   sql.NullInt64
-	Minextraplanetmineralconcentration sql.NullInt64
-	Minmineralconcentration            sql.NullInt64
-	Minstartingmineralconcentration    sql.NullInt64
-	Maxstartingmineralconcentration    sql.NullInt64
-	Highradgermaniumbonus              sql.NullInt64
-	Highradgermaniumbonusthreshold     sql.NullInt64
-	Maxstartingmineralsurface          sql.NullInt64
-	Minstartingmineralsurface          sql.NullInt64
-	Mineraldecayfactor                 sql.NullInt64
-	Startingmines                      sql.NullInt64
-	Startingfactories                  sql.NullInt64
-	Startingdefenses                   sql.NullInt64
-	Racestartingpoints                 sql.NullInt64
-	Scrapmineralamount                 sql.NullFloat64
-	Scrapresourceamount                sql.NullFloat64
-	Factorycostgermanium               sql.NullInt64
-	Defensecost                        sql.NullString
-	Mineralalchemycost                 sql.NullInt64
-	Terraformcost                      sql.NullString
-	Starbasecomponentcostfactor        sql.NullFloat64
-	Packetdecayrate                    sql.NullString
-	Maxtechlevel                       sql.NullInt64
-	Techbasecost                       sql.NullString
-	Prtspecs                           sql.NullString
-	Lrtspecs                           sql.NullString
-	Techsid                            sql.NullInt64
 }
 
 type Salvage struct {

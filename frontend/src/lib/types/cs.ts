@@ -402,7 +402,7 @@ export interface Game extends DBObject {
 	numPlayers?: number /* int */;
 	victoryConditions: VictoryConditions;
 	seed: number /* int64 */;
-	rules: Rules;
+	rules?: Rules;
 	area?: Vector;
 	year?: number /* int */;
 	victorDeclared: boolean;

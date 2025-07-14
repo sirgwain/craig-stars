@@ -50,7 +50,7 @@ type Game struct {
 	NumPlayers                   int               `json:"numPlayers,omitempty"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Seed                         int64             `json:"seed"`
-	Rules                        Rules             `json:"rules"`
+	Rules                        Rules             `json:"rules,omitzero"`
 	Area                         Vector            `json:"area,omitempty"`
 	Year                         int               `json:"year,omitempty"`
 	VictorDeclared               bool              `json:"victorDeclared"`

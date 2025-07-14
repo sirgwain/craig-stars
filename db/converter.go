@@ -98,17 +98,16 @@ var c Converter
 // goverter:extend StringToNullString
 // goverter:extend TagsToGameTags
 // goverter:extend TimeToNullTime
-// goverter:extend TimeToTime
 // goverter:extend TransportPlansToGameTransportPlans
 // goverter:extend WaypointsToGameWaypoints
 // goverter:extend WormholeIntelsToGameWormholeIntels
 // goverter:extend WormholeSpecToGameWormholeSpec
-// goverter:extend GeneratedShipDesignSpecToPGeneratedShipDesignSpecP
-// goverter:extend GeneratedShipDesignSlotsToPGeneratedShipDesignSlotsP
-// goverter:name GameConverter
 // goverter:enum no
 // goverter:matchIgnoreCase
 // goverter:useZeroValueOnPointerInconsistency
+// goverter:useUnderlyingTypeMethods
+// goverter:skipCopySameType
+// goverter:name GameConverter
 type Converter interface {
 	// goverter:autoMap DBObject
 	// goverter:autoMap UserSettings
@@ -180,7 +179,7 @@ type Converter interface {
 	// goverter:map . DBObject
 	// goverter:map . VictoryConditions | ExtendVictoryConditions
 	// goverter:map . Area | ExtendArea
-	// goverter:map . Rules | ExtendDefaultRules
+	// goverter:ignore Rules
 	ConvertGame(source generated.Game) cs.Game
 
 	ConvertGames(source []generated.Game) []cs.Game
@@ -645,10 +644,6 @@ func MapObjectTypeWormhole() cs.MapObjectType {
 	return cs.MapObjectTypeWormhole
 }
 
-func TimeToTime(source time.Time) time.Time {
-	return source
-}
-
 func NullTimeToTime(source sql.NullTime) time.Time {
 	if source.Valid {
 		return source.Time
@@ -1095,14 +1090,6 @@ func GameShipDesignSpecToShipDesignSpec(source cs.ShipDesignSpec) *generated.Shi
 	return (*generated.ShipDesignSpec)(&source)
 }
 
-func GeneratedShipDesignSpecToPGeneratedShipDesignSpecP(source *generated.ShipDesignSpec) *generated.ShipDesignSpec {
-	return source
-}
-
-func GeneratedShipDesignSlotsToPGeneratedShipDesignSlotsP(source *generated.ShipDesignSlots) *generated.ShipDesignSlots {
-	return source
-}
-
 func ShipDesignSlotsToGameShipDesignSlots(source *generated.ShipDesignSlots) []cs.ShipDesignSlot {
 	return ([]cs.ShipDesignSlot)(*source)
 }
@@ -1186,10 +1173,6 @@ func ExtendArea(source generated.Game) cs.Vector {
 		X: source.Areax.Float64,
 		Y: source.Areay.Float64,
 	}
-}
-
-func ExtendDefaultRules(source generated.Game) cs.Rules {
-	return cs.NewRules()
 }
 
 func ExtendTechLevels(source generated.Player) cs.TechLevel {

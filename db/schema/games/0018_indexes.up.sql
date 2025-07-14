@@ -34,3 +34,13 @@ CREATE INDEX idx_wormholes_gameid ON wormholes(gameId);
 CREATE INDEX idx_minefields_gameid ON mineFields(gameId);
 CREATE INDEX idx_mineral_packets_gameid ON mineralPackets(gameId);
 CREATE INDEX idx_mystery_traders_gameid ON mysteryTraders(gameId);
+
+DROP TABLE IF EXISTS rules;
+DROP TABLE IF EXISTS techDefenses;
+DROP TABLE IF EXISTS techEngines;
+DROP TABLE IF EXISTS techHullComponents;
+DROP TABLE IF EXISTS techHulls;
+DROP TABLE IF EXISTS techPlanetaryScanners;
+DROP TABLE IF EXISTS techStores;
+
+ALTER TABLE games DROP COLUMN rules;

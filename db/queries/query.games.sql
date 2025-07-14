@@ -115,7 +115,6 @@ INSERT INTO
         victoryConditionsOwnCapitalShips,
         victoryConditionsHighestScoreAfterYears,
         seed,
-        rules,
         areaX,
         areaY,
         year,
@@ -126,7 +125,6 @@ VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
-        ?,
         ?,
         ?,
         ?,
@@ -196,7 +194,6 @@ SET
     victoryConditionsOwnCapitalShips = ?,
     victoryConditionsHighestScoreAfterYears = ?,
     seed = ?,
-    rules = ?,
     areaX = ?,
     areaY = ?,
     year = ?,

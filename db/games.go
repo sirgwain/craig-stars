@@ -39,7 +39,7 @@ func (c *client) GetGamesForHost(ctx context.Context, userID int64) ([]cs.Game, 
 }
 
 func (c *client) GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+	return c.getGamesWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
 		State:  nil,
 		Open:   nil,
 		Public: nil,
@@ -78,7 +78,7 @@ func (c *client) GetGamesForUser(ctx context.Context, userID int64) ([]cs.GameWi
 }
 
 func (c *client) GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
+	return c.getGamesWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
 		State:  string(cs.GameStateSetup),
 		Open:   true,
 		Public: true,
@@ -116,10 +116,13 @@ func (c *client) getGameWithPlayers(ctx context.Context, params generated.GetGam
 			game.Players = append(game.Players, c.converter.ConvertGetGameWithPlayersRowToPlayerStatus(row))
 		}
 	}
+
+	// TODO: eventually allow rules overrides, but for now, always use standard rules
+	game.Rules = cs.NewRules()
 	return game, nil
 }
 
-func (c *client) getGameWithPlayersStatus(ctx context.Context, params generated.GetGamesWithPlayersParams) ([]cs.GameWithPlayers, error) {
+func (c *client) getGamesWithPlayersStatus(ctx context.Context, params generated.GetGamesWithPlayersParams) ([]cs.GameWithPlayers, error) {
 
 	items, err := c.reader.GetGamesWithPlayers(ctx, params)
 	if err == sql.ErrNoRows {
@@ -234,7 +237,7 @@ func (c *client) GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error
 	}
 	universe.MysteryTraders = mysteryTraders
 
-	// TODO: allow rules overrides, but for now, always use standard rules
+	// TODO: eventually allow rules overrides, but for now, always use standard rules
 	game.Rules = cs.NewRules()
 
 	// load a tech store if this game has a separate one
