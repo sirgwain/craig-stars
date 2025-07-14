@@ -13,7 +13,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const createPlanet = `-- name: CreatePlanet :one
+const CreatePlanet = `-- name: CreatePlanet :one
 INSERT INTO
     planets (
         createdAt,
@@ -24,7 +24,7 @@ INSERT INTO
         name,
         num,
         playerNum,
-        grav,
+    grav,
         TEMP,
         rad,
         baseGrav,
@@ -159,7 +159,7 @@ type CreatePlanetRow struct {
 }
 
 func (q *Queries) CreatePlanet(ctx context.Context, arg CreatePlanetParams) (CreatePlanetRow, error) {
-	row := q.db.QueryRowContext(ctx, createPlanet,
+	row := q.db.QueryRowContext(ctx, CreatePlanet,
 		arg.Gameid,
 		arg.X,
 		arg.Y,
@@ -207,18 +207,18 @@ func (q *Queries) CreatePlanet(ctx context.Context, arg CreatePlanetParams) (Cre
 	return i, err
 }
 
-const deletePlanet = `-- name: DeletePlanet :exec
+const DeletePlanet = `-- name: DeletePlanet :exec
 DELETE FROM planets
 WHERE
     id = ?
 `
 
 func (q *Queries) DeletePlanet(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deletePlanet, id)
+	_, err := q.db.ExecContext(ctx, DeletePlanet, id)
 	return err
 }
 
-const getPlanet = `-- name: GetPlanet :one
+const GetPlanet = `-- name: GetPlanet :one
 SELECT
     id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
 FROM
@@ -229,7 +229,7 @@ WHERE
 
 // Planets
 func (q *Queries) GetPlanet(ctx context.Context, id int64) (Planet, error) {
-	row := q.db.QueryRowContext(ctx, getPlanet, id)
+	row := q.db.QueryRowContext(ctx, GetPlanet, id)
 	var i Planet
 	err := row.Scan(
 		&i.ID,
@@ -280,7 +280,7 @@ func (q *Queries) GetPlanet(ctx context.Context, id int64) (Planet, error) {
 	return i, err
 }
 
-const getPlanetByNum = `-- name: GetPlanetByNum :many
+const GetPlanetByNum = `-- name: GetPlanetByNum :many
 SELECT
     p.id, p.gameid, p.createdat, p.updatedat, p.x, p.y, p.name, p.num, p.playernum, p.grav, p."temp", p.rad, p.basegrav, p.basetemp, p.baserad, p.terraformedamountgrav, p.terraformedamounttemp, p.terraformedamountrad, p.mineralconcironium, p.mineralconcboranium, p.mineralconcgermanium, p.mineyearsironium, p.mineyearsboranium, p.mineyearsgermanium, p.ironium, p.boranium, p.germanium, p.colonists, p.partialpopulation, p.mines, p.factories, p.defenses, p.homeworld, p.contributesonlyleftovertoresearch, p.scanner, p.routetargettype, p.routetargetnum, p.routetargetplayernum, p.packettargetnum, p.packetspeed, p.productionqueue, p.spec, p.tags, p.randomartifact,
     f.id AS 'fleet.id',
@@ -364,7 +364,7 @@ type GetPlanetByNumRow struct {
 }
 
 func (q *Queries) GetPlanetByNum(ctx context.Context, arg GetPlanetByNumParams) ([]GetPlanetByNumRow, error) {
-	rows, err := q.db.QueryContext(ctx, getPlanetByNum, arg.Gameid, arg.Num)
+	rows, err := q.db.QueryContext(ctx, GetPlanetByNum, arg.Gameid, arg.Num)
 	if err != nil {
 		return nil, err
 	}
@@ -462,7 +462,7 @@ func (q *Queries) GetPlanetByNum(ctx context.Context, arg GetPlanetByNumParams) 
 	return items, nil
 }
 
-const getPlanets = `-- name: GetPlanets :many
+const GetPlanets = `-- name: GetPlanets :many
 SELECT
     id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
 FROM
@@ -470,7 +470,7 @@ FROM
 `
 
 func (q *Queries) GetPlanets(ctx context.Context) ([]Planet, error) {
-	rows, err := q.db.QueryContext(ctx, getPlanets)
+	rows, err := q.db.QueryContext(ctx, GetPlanets)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +537,7 @@ func (q *Queries) GetPlanets(ctx context.Context) ([]Planet, error) {
 	return items, nil
 }
 
-const getPlanetsForGame = `-- name: GetPlanetsForGame :many
+const GetPlanetsForGame = `-- name: GetPlanetsForGame :many
 SELECT
     id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
 FROM
@@ -547,7 +547,7 @@ WHERE
 `
 
 func (q *Queries) GetPlanetsForGame(ctx context.Context, gameid int64) ([]Planet, error) {
-	rows, err := q.db.QueryContext(ctx, getPlanetsForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetPlanetsForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -614,7 +614,7 @@ func (q *Queries) GetPlanetsForGame(ctx context.Context, gameid int64) ([]Planet
 	return items, nil
 }
 
-const getPlanetsForPlayer = `-- name: GetPlanetsForPlayer :many
+const GetPlanetsForPlayer = `-- name: GetPlanetsForPlayer :many
 SELECT
     id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
 FROM
@@ -630,7 +630,7 @@ type GetPlanetsForPlayerParams struct {
 }
 
 func (q *Queries) GetPlanetsForPlayer(ctx context.Context, arg GetPlanetsForPlayerParams) ([]Planet, error) {
-	rows, err := q.db.QueryContext(ctx, getPlanetsForPlayer, arg.Gameid, arg.Playernum)
+	rows, err := q.db.QueryContext(ctx, GetPlanetsForPlayer, arg.Gameid, arg.Playernum)
 	if err != nil {
 		return nil, err
 	}
@@ -697,7 +697,7 @@ func (q *Queries) GetPlanetsForPlayer(ctx context.Context, arg GetPlanetsForPlay
 	return items, nil
 }
 
-const updatePlanet = `-- name: UpdatePlanet :one
+const UpdatePlanet = `-- name: UpdatePlanet :one
 UPDATE planets
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -792,7 +792,7 @@ type UpdatePlanetParams struct {
 }
 
 func (q *Queries) UpdatePlanet(ctx context.Context, arg UpdatePlanetParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlanet,
+	row := q.db.QueryRowContext(ctx, UpdatePlanet,
 		arg.Gameid,
 		arg.X,
 		arg.Y,
@@ -841,7 +841,7 @@ func (q *Queries) UpdatePlanet(ctx context.Context, arg UpdatePlanetParams) (tim
 	return updatedat, err
 }
 
-const updatePlanetSpec = `-- name: UpdatePlanetSpec :one
+const UpdatePlanetSpec = `-- name: UpdatePlanetSpec :one
 UPDATE planets
 SET
     spec = ?
@@ -855,7 +855,7 @@ type UpdatePlanetSpecParams struct {
 }
 
 func (q *Queries) UpdatePlanetSpec(ctx context.Context, arg UpdatePlanetSpecParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlanetSpec, arg.Spec, arg.ID)
+	row := q.db.QueryRowContext(ctx, UpdatePlanetSpec, arg.Spec, arg.ID)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err

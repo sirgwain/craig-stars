@@ -26,23 +26,7 @@ WHERE
 -- name: GetPlayersWithDesignsForGame :many
 SELECT
     sqlc.embed(p),
-    d.id AS 'design.id',
-    d.createdAt AS 'design.createdAt',
-    d.updatedAt AS 'design.updatedAt',
-    d.gameId AS 'design.gameId',
-    d.num AS 'design.num',
-    d.playerNum AS 'design.playerNum',
-    d.name AS 'design.name',
-    d.version AS 'design.version',
-    d.hull AS 'design.hull',
-    d.hullSetNumber AS 'design.hullSetNumber',
-    d.canDelete AS 'design.canDelete',
-    d.slots AS 'design.slots',
-    d.purpose AS 'design.purpose',
-    d.spec AS 'design.spec',
-    d.cannotDelete AS 'design.cannotDelete',
-    d.originalPlayerNum AS 'design.originalPlayerNum',
-    d.mysteryTrader AS 'design.mysteryTrader'
+    d.*
 FROM
     players p
     LEFT JOIN shipDesigns d ON p.gameId = d.gameId
@@ -53,39 +37,26 @@ WHERE
 -- name: GetPlayerForGame :many
 SELECT
     sqlc.embed(p),
-    d.id AS 'design.id',
-    d.createdAt AS 'design.createdAt',
-    d.updatedAt AS 'design.updatedAt',
-    d.gameId AS 'design.gameId',
-    d.num AS 'design.num',
-    d.playerNum AS 'design.playerNum',
-    d.name AS 'design.name',
-    d.version AS 'design.version',
-    d.hull AS 'design.hull',
-    d.hullSetNumber AS 'design.hullSetNumber',
-    d.canDelete AS 'design.canDelete',
-    d.slots AS 'design.slots',
-    d.purpose AS 'design.purpose',
-    d.spec AS 'design.spec',
-    d.cannotDelete AS 'design.cannotDelete',
-    d.originalPlayerNum AS 'design.originalPlayerNum',
-    d.mysteryTrader AS 'design.mysteryTrader'
+    d.*
 FROM
     players p
     LEFT JOIN shipDesigns d ON p.gameId = d.gameId
     AND p.num = d.playerNum
 WHERE
-    p.gameId = @gameId
-    --  playerNum
-    AND (
-        @playerNum IS NULL
-        OR p.num = @playerNum
-    )
-    --  or userId
-    AND (
-        @userId IS NULL
-        OR userId = @userId
-    );
+    p.gameId = ?
+    AND p.num = ?;
+
+-- name: GetPlayerForGameAndUser :many
+SELECT
+    sqlc.embed(p),
+    d.*
+FROM
+    players p
+    LEFT JOIN shipDesigns d ON p.gameId = d.gameId
+    AND p.num = d.playerNum
+WHERE
+    p.gameId = ?
+    AND p.userId = ?;
 
 -- name: GetPlayersStatusForGame :many
 SELECT
@@ -300,7 +271,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    ) RETURNING id,
+    createdAt,
+    updatedAt;
 
 -- name: UpdateLightPlayer :one
 UPDATE players

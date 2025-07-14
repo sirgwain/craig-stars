@@ -14,7 +14,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const createFleet = `-- name: CreateFleet :one
+const CreateFleet = `-- name: CreateFleet :one
 INSERT INTO
     fleets (
         createdAt,
@@ -121,7 +121,7 @@ type CreateFleetRow struct {
 }
 
 func (q *Queries) CreateFleet(ctx context.Context, arg CreateFleetParams) (CreateFleetRow, error) {
-	row := q.db.QueryRowContext(ctx, createFleet,
+	row := q.db.QueryRowContext(ctx, CreateFleet,
 		arg.Gameid,
 		arg.Battleplannum,
 		arg.X,
@@ -156,18 +156,18 @@ func (q *Queries) CreateFleet(ctx context.Context, arg CreateFleetParams) (Creat
 	return i, err
 }
 
-const deleteFleet = `-- name: DeleteFleet :exec
+const DeleteFleet = `-- name: DeleteFleet :exec
 DELETE FROM fleets
 WHERE
     id = ?
 `
 
 func (q *Queries) DeleteFleet(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteFleet, id)
+	_, err := q.db.ExecContext(ctx, DeleteFleet, id)
 	return err
 }
 
-const getFleet = `-- name: GetFleet :one
+const GetFleet = `-- name: GetFleet :one
 SELECT
     id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
 FROM
@@ -178,7 +178,7 @@ WHERE
 
 // Fleets
 func (q *Queries) GetFleet(ctx context.Context, id int64) (Fleet, error) {
-	row := q.db.QueryRowContext(ctx, getFleet, id)
+	row := q.db.QueryRowContext(ctx, GetFleet, id)
 	var i Fleet
 	err := row.Scan(
 		&i.ID,
@@ -216,7 +216,7 @@ func (q *Queries) GetFleet(ctx context.Context, id int64) (Fleet, error) {
 	return i, err
 }
 
-const getFleetByNum = `-- name: GetFleetByNum :one
+const GetFleetByNum = `-- name: GetFleetByNum :one
 SELECT
     id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
 FROM
@@ -234,7 +234,7 @@ type GetFleetByNumParams struct {
 }
 
 func (q *Queries) GetFleetByNum(ctx context.Context, arg GetFleetByNumParams) (Fleet, error) {
-	row := q.db.QueryRowContext(ctx, getFleetByNum, arg.Gameid, arg.Playernum, arg.Num)
+	row := q.db.QueryRowContext(ctx, GetFleetByNum, arg.Gameid, arg.Playernum, arg.Num)
 	var i Fleet
 	err := row.Scan(
 		&i.ID,
@@ -272,7 +272,7 @@ func (q *Queries) GetFleetByNum(ctx context.Context, arg GetFleetByNumParams) (F
 	return i, err
 }
 
-const getFleets = `-- name: GetFleets :many
+const GetFleets = `-- name: GetFleets :many
 SELECT
     id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
 FROM
@@ -280,7 +280,7 @@ FROM
 `
 
 func (q *Queries) GetFleets(ctx context.Context) ([]Fleet, error) {
-	rows, err := q.db.QueryContext(ctx, getFleets)
+	rows, err := q.db.QueryContext(ctx, GetFleets)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +334,7 @@ func (q *Queries) GetFleets(ctx context.Context) ([]Fleet, error) {
 	return items, nil
 }
 
-const getFleetsByNums = `-- name: GetFleetsByNums :many
+const GetFleetsByNums = `-- name: GetFleetsByNums :many
 SELECT
     id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
 FROM
@@ -352,7 +352,7 @@ type GetFleetsByNumsParams struct {
 }
 
 func (q *Queries) GetFleetsByNums(ctx context.Context, arg GetFleetsByNumsParams) ([]Fleet, error) {
-	query := getFleetsByNums
+	query := GetFleetsByNums
 	var queryParams []interface{}
 	queryParams = append(queryParams, arg.Gameid)
 	queryParams = append(queryParams, arg.Playernum)
@@ -418,7 +418,7 @@ func (q *Queries) GetFleetsByNums(ctx context.Context, arg GetFleetsByNumsParams
 	return items, nil
 }
 
-const getFleetsForGame = `-- name: GetFleetsForGame :many
+const GetFleetsForGame = `-- name: GetFleetsForGame :many
 SELECT
     id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
 FROM
@@ -428,7 +428,7 @@ WHERE
 `
 
 func (q *Queries) GetFleetsForGame(ctx context.Context, gameid int64) ([]Fleet, error) {
-	rows, err := q.db.QueryContext(ctx, getFleetsForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetFleetsForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -482,7 +482,7 @@ func (q *Queries) GetFleetsForGame(ctx context.Context, gameid int64) ([]Fleet, 
 	return items, nil
 }
 
-const getFleetsForPlayer = `-- name: GetFleetsForPlayer :many
+const GetFleetsForPlayer = `-- name: GetFleetsForPlayer :many
 SELECT
     id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
 FROM
@@ -498,7 +498,7 @@ type GetFleetsForPlayerParams struct {
 }
 
 func (q *Queries) GetFleetsForPlayer(ctx context.Context, arg GetFleetsForPlayerParams) ([]Fleet, error) {
-	rows, err := q.db.QueryContext(ctx, getFleetsForPlayer, arg.Gameid, arg.Playernum)
+	rows, err := q.db.QueryContext(ctx, GetFleetsForPlayer, arg.Gameid, arg.Playernum)
 	if err != nil {
 		return nil, err
 	}
@@ -552,7 +552,7 @@ func (q *Queries) GetFleetsForPlayer(ctx context.Context, arg GetFleetsForPlayer
 	return items, nil
 }
 
-const updateFleet = `-- name: UpdateFleet :one
+const UpdateFleet = `-- name: UpdateFleet :one
 UPDATE fleets
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -621,7 +621,7 @@ type UpdateFleetParams struct {
 }
 
 func (q *Queries) UpdateFleet(ctx context.Context, arg UpdateFleetParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updateFleet,
+	row := q.db.QueryRowContext(ctx, UpdateFleet,
 		arg.Gameid,
 		arg.Battleplannum,
 		arg.X,

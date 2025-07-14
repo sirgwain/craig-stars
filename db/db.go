@@ -80,12 +80,12 @@ type Client interface {
 	DeleteUserGames(ctx context.Context, hostID int64) error
 	GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error)
 	GetGame(ctx context.Context, id int64) (*cs.GameWithPlayers, error)
+	GetGameByHash(ctx context.Context, hash string) (*cs.GameWithPlayers, error)
 	GetGames(ctx context.Context) ([]cs.Game, error)
-	GetGamesForHost(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error)
+	GetGamesForHost(ctx context.Context, userID int64) ([]cs.Game, error)
 	GetGamesForUser(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error)
 	GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error)
 	GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error)
-	GetOpenGamesByHash(ctx context.Context, hash string) ([]cs.GameWithPlayers, error)
 	UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) error
 	UpdateGame(ctx context.Context, game *cs.Game) error
 	UpdateGameHost(ctx context.Context, gameID int64, hostId int64) error
@@ -93,10 +93,11 @@ type Client interface {
 
 	ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error
 	DeletePlayer(ctx context.Context, id int64) error
-	GetFullPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.FullPlayer, error)
+	GetFullPlayerForGame(ctx context.Context, gameID, userID int64) (*cs.FullPlayer, error)
 	GetLightPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error)
 	GetPlayer(ctx context.Context, id int64) (*cs.Player, error)
-	GetPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error)
+	GetPlayerForGame(ctx context.Context, gameID int64, playerNum int) (*cs.Player, error)
+	GetPlayerForGameAndUser(ctx context.Context, gameID int64, userID int64) (*cs.Player, error)
 	GetPlayerMapObjects(ctx context.Context, gameID, userID int64) (*cs.PlayerMapObjects, error)
 	GetPlayers(ctx context.Context) ([]*cs.Player, error)
 	GetPlayersForUser(ctx context.Context, userID int64) ([]*cs.Player, error)

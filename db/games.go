@@ -24,85 +24,99 @@ func (c *client) GetGames(ctx context.Context) ([]cs.Game, error) {
 	return c.converter.ConvertGames(items), nil
 }
 
-func (c *client) GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
-		ID:     nil,
-		HostId: nil,
-		UserId: nil,
-		State:  nil,
-		Open:   nil,
-		Public: nil,
-		Hash:   nil,
-	})
+func (c *client) GetGamesForHost(ctx context.Context, userID int64) ([]cs.Game, error) {
+	items, err := c.reader.GetGamesForHost(ctx, sql.NullInt64{Valid: true, Int64: userID})
+	if err == sql.ErrNoRows {
+		return []cs.Game{}, nil
+	}
+	if err != nil {
+
+		return nil, err
+	}
+
+	return c.converter.ConvertGames(items), nil
+
 }
 
-func (c *client) GetGamesForHost(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error) {
+func (c *client) GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
-		ID:     nil,
-		HostId: userID,
-		UserId: nil,
 		State:  nil,
 		Open:   nil,
 		Public: nil,
-		Hash:   nil,
 	})
 }
 
 func (c *client) GetGamesForUser(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
-		ID:     nil,
-		HostId: userID,
-		UserId: userID,
-		State:  nil,
-		Open:   nil,
-		Public: nil,
-		Hash:   nil,
-	})
+	items, err := c.reader.GetGamesWithPlayersForUser(ctx, sql.NullInt64{Valid: true, Int64: userID})
+	if err == sql.ErrNoRows {
+		return []cs.GameWithPlayers{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	games := []cs.GameWithPlayers{}
+
+	var item generated.Game
+	var game *cs.GameWithPlayers
+	for _, row := range items {
+
+		if row.Game.ID != item.ID {
+			// convert this row into a game
+			item = row.Game
+			g := c.converter.ConvertGame(item)
+			games = append(games, cs.GameWithPlayers{Game: g, Players: []cs.PlayerStatus{}})
+			game = &games[len(games)-1]
+		}
+
+		if row.ID.Valid {
+			game.Players = append(game.Players, c.converter.ConvertGetGamesWithPlayersForUserRowToPlayerStatus(row))
+		}
+	}
+
+	return games, nil
 }
 
 func (c *client) GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error) {
 	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
-		ID:     nil,
-		HostId: nil,
-		UserId: nil,
 		State:  string(cs.GameStateSetup),
 		Open:   true,
 		Public: true,
-		Hash:   nil,
-	})
-}
-
-func (c *client) GetOpenGamesByHash(ctx context.Context, hash string) ([]cs.GameWithPlayers, error) {
-	return c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
-		ID:     nil,
-		HostId: nil,
-		UserId: nil,
-		Public: nil,
-		State:  string(cs.GameStateSetup),
-		Open:   true,
-		Hash:   hash,
 	})
 }
 
 // get a game by id
 func (c *client) GetGame(ctx context.Context, id int64) (*cs.GameWithPlayers, error) {
-	games, err := c.getGameWithPlayersStatus(ctx, generated.GetGamesWithPlayersParams{
-		ID:     id,
-		HostId: nil,
-		UserId: nil,
-		State:  nil,
-		Open:   nil,
-		Public: nil,
-		Hash:   nil,
+	return c.getGameWithPlayers(ctx, generated.GetGameWithPlayersParams{
+		ID: id,
 	})
+}
+
+func (c *client) GetGameByHash(ctx context.Context, hash string) (*cs.GameWithPlayers, error) {
+	return c.getGameWithPlayers(ctx, generated.GetGameWithPlayersParams{
+		Hash: hash,
+	})
+}
+
+func (c *client) getGameWithPlayers(ctx context.Context, params generated.GetGameWithPlayersParams) (*cs.GameWithPlayers, error) {
+	rows, err := c.reader.GetGameWithPlayers(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	if len(games) == 0 {
+	if len(rows) == 0 {
 		return nil, nil
 	}
 
-	return &games[0], nil
+	game := &cs.GameWithPlayers{
+		Game: c.converter.ConvertGame(rows[0].Game),
+	}
+
+	for _, row := range rows {
+		if row.ID.Valid {
+			game.Players = append(game.Players, c.converter.ConvertGetGameWithPlayersRowToPlayerStatus(row))
+		}
+	}
+	return game, nil
 }
 
 func (c *client) getGameWithPlayersStatus(ctx context.Context, params generated.GetGamesWithPlayersParams) ([]cs.GameWithPlayers, error) {
@@ -129,21 +143,8 @@ func (c *client) getGameWithPlayersStatus(ctx context.Context, params generated.
 			game = &games[len(games)-1]
 		}
 
-		if row.PlayerNum.Valid {
-			game.Players = append(game.Players, cs.PlayerStatus{
-				UpdatedAt:     &row.PlayerUpdatedat.Time,
-				UserID:        row.PlayerUserid.Int64,
-				Name:          row.PlayerName.String,
-				Num:           int(row.PlayerNum.Int64),
-				Ready:         row.PlayerReady.Bool,
-				AIControlled:  row.PlayerAicontrolled.Bool,
-				AIDifficulty:  *row.PlayerAidifficulty,
-				Guest:         row.PlayerGuest.Bool,
-				SubmittedTurn: row.PlayerSubmittedturn.Bool,
-				Color:         row.PlayerColor.String,
-				Victor:        row.PlayerVictor.Bool,
-				Archived:      row.PlayerArchived.Bool,
-			})
+		if row.ID.Valid {
+			game.Players = append(game.Players, c.converter.ConvertGetGamesWithPlayersRowToPlayerStatus(row))
 		}
 	}
 

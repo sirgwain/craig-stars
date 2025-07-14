@@ -13,7 +13,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const archivePlayer = `-- name: ArchivePlayer :one
+const ArchivePlayer = `-- name: ArchivePlayer :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -30,13 +30,13 @@ type ArchivePlayerParams struct {
 }
 
 func (q *Queries) ArchivePlayer(ctx context.Context, arg ArchivePlayerParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, archivePlayer, arg.Archived, arg.Gameid, arg.Num)
+	row := q.db.QueryRowContext(ctx, ArchivePlayer, arg.Archived, arg.Gameid, arg.Num)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err
 }
 
-const createPlayer = `-- name: CreatePlayer :one
+const CreatePlayer = `-- name: CreatePlayer :one
 INSERT INTO
     players (
         createdAt,
@@ -150,7 +150,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    createdAt,
+    updatedAt
 `
 
 type CreatePlayerParams struct {
@@ -215,7 +217,7 @@ type CreatePlayerRow struct {
 }
 
 func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (CreatePlayerRow, error) {
-	row := q.db.QueryRowContext(ctx, createPlayer,
+	row := q.db.QueryRowContext(ctx, CreatePlayer,
 		arg.Gameid,
 		arg.Userid,
 		arg.Name,
@@ -274,18 +276,18 @@ func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Cre
 	return i, err
 }
 
-const deletePlayer = `-- name: DeletePlayer :exec
+const DeletePlayer = `-- name: DeletePlayer :exec
 DELETE FROM players
 WHERE
     id = ?
 `
 
 func (q *Queries) DeletePlayer(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deletePlayer, id)
+	_, err := q.db.ExecContext(ctx, DeletePlayer, id)
 	return err
 }
 
-const getLightPlayerForGame = `-- name: GetLightPlayerForGame :one
+const GetLightPlayerForGame = `-- name: GetLightPlayerForGame :one
 SELECT
     id,
     createdAt,
@@ -399,7 +401,7 @@ type GetLightPlayerForGameRow struct {
 }
 
 func (q *Queries) GetLightPlayerForGame(ctx context.Context, arg GetLightPlayerForGameParams) (GetLightPlayerForGameRow, error) {
-	row := q.db.QueryRowContext(ctx, getLightPlayerForGame, arg.GameId, arg.PlayerNum, arg.UserId)
+	row := q.db.QueryRowContext(ctx, GetLightPlayerForGame, arg.GameId, arg.PlayerNum, arg.UserId)
 	var i GetLightPlayerForGameRow
 	err := row.Scan(
 		&i.ID,
@@ -449,7 +451,7 @@ func (q *Queries) GetLightPlayerForGame(ctx context.Context, arg GetLightPlayerF
 	return i, err
 }
 
-const getPlayer = `-- name: GetPlayer :one
+const GetPlayer = `-- name: GetPlayer :one
 SELECT
     id, createdat, updatedat, gameid, userid, name, num, ready, aicontrolled, submittedturn, color, defaulthullset, techlevelsenergy, techlevelsweapons, techlevelspropulsion, techlevelsconstruction, techlevelselectronics, techlevelsbiotechnology, techlevelsspentenergy, techlevelsspentweapons, techlevelsspentpropulsion, techlevelsspentconstruction, techlevelsspentelectronics, techlevelsspentbiotechnology, researchamount, researchspentlastyear, nextresearchfield, researching, battleplans, productionplans, transportplans, relations, cargotransfers, messages, battlerecords, playerintels, scoreintels, planetintels, fleetintels, shipdesignintels, mineralpacketintels, minefieldintels, wormholeintels, mysterytraderintels, salvageintels, race, stats, scorehistory, achievedvictoryconditions, victor, spec, guest, aidifficulty, acquiredtechs, archived
 FROM
@@ -459,7 +461,7 @@ WHERE
 `
 
 func (q *Queries) GetPlayer(ctx context.Context, id int64) (Player, error) {
-	row := q.db.QueryRowContext(ctx, getPlayer, id)
+	row := q.db.QueryRowContext(ctx, GetPlayer, id)
 	var i Player
 	err := row.Scan(
 		&i.ID,
@@ -521,73 +523,47 @@ func (q *Queries) GetPlayer(ctx context.Context, id int64) (Player, error) {
 	return i, err
 }
 
-const getPlayerForGame = `-- name: GetPlayerForGame :many
+const GetPlayerForGame = `-- name: GetPlayerForGame :many
 SELECT
     p.id, p.createdat, p.updatedat, p.gameid, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.submittedturn, p.color, p.defaulthullset, p.techlevelsenergy, p.techlevelsweapons, p.techlevelspropulsion, p.techlevelsconstruction, p.techlevelselectronics, p.techlevelsbiotechnology, p.techlevelsspentenergy, p.techlevelsspentweapons, p.techlevelsspentpropulsion, p.techlevelsspentconstruction, p.techlevelsspentelectronics, p.techlevelsspentbiotechnology, p.researchamount, p.researchspentlastyear, p.nextresearchfield, p.researching, p.battleplans, p.productionplans, p.transportplans, p.relations, p.cargotransfers, p.messages, p.battlerecords, p.playerintels, p.scoreintels, p.planetintels, p.fleetintels, p.shipdesignintels, p.mineralpacketintels, p.minefieldintels, p.wormholeintels, p.mysterytraderintels, p.salvageintels, p.race, p.stats, p.scorehistory, p.achievedvictoryconditions, p.victor, p.spec, p.guest, p.aidifficulty, p.acquiredtechs, p.archived,
-    d.id AS 'design.id',
-    d.createdAt AS 'design.createdAt',
-    d.updatedAt AS 'design.updatedAt',
-    d.gameId AS 'design.gameId',
-    d.num AS 'design.num',
-    d.playerNum AS 'design.playerNum',
-    d.name AS 'design.name',
-    d.version AS 'design.version',
-    d.hull AS 'design.hull',
-    d.hullSetNumber AS 'design.hullSetNumber',
-    d.canDelete AS 'design.canDelete',
-    d.slots AS 'design.slots',
-    d.purpose AS 'design.purpose',
-    d.spec AS 'design.spec',
-    d.cannotDelete AS 'design.cannotDelete',
-    d.originalPlayerNum AS 'design.originalPlayerNum',
-    d.mysteryTrader AS 'design.mysteryTrader'
+    d.id, d.createdat, d.updatedat, d.gameid, d.num, d.playernum, d.name, d.version, d.hull, d.hullsetnumber, d.candelete, d.slots, d.purpose, d.spec, d.cannotdelete, d.originalplayernum, d.mysterytrader
 FROM
     players p
     LEFT JOIN shipDesigns d ON p.gameId = d.gameId
     AND p.num = d.playerNum
 WHERE
-    p.gameId = ?1
-    --  playerNum
-    AND (
-        ?2 IS NULL
-        OR p.num = ?2
-    )
-    --  or userId
-    AND (
-        ?3 IS NULL
-        OR userId = ?3
-    )
+    p.gameId = ?
+    AND p.num = ?
 `
 
 type GetPlayerForGameParams struct {
-	GameId    int64
-	PlayerNum interface{}
-	UserId    interface{}
+	Gameid int64
+	Num    int64
 }
 
 type GetPlayerForGameRow struct {
-	Player                  Player
-	DesignID                sql.NullInt64
-	DesignCreatedat         sql.NullTime
-	DesignUpdatedat         sql.NullTime
-	DesignGameid            sql.NullInt64
-	DesignNum               sql.NullInt64
-	DesignPlayernum         sql.NullInt64
-	DesignName              sql.NullString
-	DesignVersion           sql.NullInt64
-	DesignHull              sql.NullString
-	DesignHullsetnumber     sql.NullInt64
-	DesignCandelete         sql.NullBool
-	DesignSlots             *ShipDesignSlots
-	DesignPurpose           *cs.ShipDesignPurpose
-	DesignSpec              *ShipDesignSpec
-	DesignCannotdelete      sql.NullBool
-	DesignOriginalplayernum sql.NullInt64
-	DesignMysterytrader     sql.NullBool
+	Player            Player
+	ID                sql.NullInt64
+	Createdat         sql.NullTime
+	Updatedat         sql.NullTime
+	Gameid            sql.NullInt64
+	Num               sql.NullInt64
+	Playernum         sql.NullInt64
+	Name              sql.NullString
+	Version           sql.NullInt64
+	Hull              sql.NullString
+	Hullsetnumber     sql.NullInt64
+	Candelete         sql.NullBool
+	Slots             *ShipDesignSlots
+	Purpose           *cs.ShipDesignPurpose
+	Spec              *ShipDesignSpec
+	Cannotdelete      sql.NullBool
+	Originalplayernum sql.NullInt64
+	Mysterytrader     sql.NullBool
 }
 
 func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGameParams) ([]GetPlayerForGameRow, error) {
-	rows, err := q.db.QueryContext(ctx, getPlayerForGame, arg.GameId, arg.PlayerNum, arg.UserId)
+	rows, err := q.db.QueryContext(ctx, GetPlayerForGame, arg.Gameid, arg.Num)
 	if err != nil {
 		return nil, err
 	}
@@ -651,23 +627,23 @@ func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGamePara
 			&i.Player.Aidifficulty,
 			&i.Player.Acquiredtechs,
 			&i.Player.Archived,
-			&i.DesignID,
-			&i.DesignCreatedat,
-			&i.DesignUpdatedat,
-			&i.DesignGameid,
-			&i.DesignNum,
-			&i.DesignPlayernum,
-			&i.DesignName,
-			&i.DesignVersion,
-			&i.DesignHull,
-			&i.DesignHullsetnumber,
-			&i.DesignCandelete,
-			&i.DesignSlots,
-			&i.DesignPurpose,
-			&i.DesignSpec,
-			&i.DesignCannotdelete,
-			&i.DesignOriginalplayernum,
-			&i.DesignMysterytrader,
+			&i.ID,
+			&i.Createdat,
+			&i.Updatedat,
+			&i.Gameid,
+			&i.Num,
+			&i.Playernum,
+			&i.Name,
+			&i.Version,
+			&i.Hull,
+			&i.Hullsetnumber,
+			&i.Candelete,
+			&i.Slots,
+			&i.Purpose,
+			&i.Spec,
+			&i.Cannotdelete,
+			&i.Originalplayernum,
+			&i.Mysterytrader,
 		); err != nil {
 			return nil, err
 		}
@@ -682,7 +658,142 @@ func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGamePara
 	return items, nil
 }
 
-const getPlayerNum = `-- name: GetPlayerNum :one
+const GetPlayerForGameAndUser = `-- name: GetPlayerForGameAndUser :many
+SELECT
+    p.id, p.createdat, p.updatedat, p.gameid, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.submittedturn, p.color, p.defaulthullset, p.techlevelsenergy, p.techlevelsweapons, p.techlevelspropulsion, p.techlevelsconstruction, p.techlevelselectronics, p.techlevelsbiotechnology, p.techlevelsspentenergy, p.techlevelsspentweapons, p.techlevelsspentpropulsion, p.techlevelsspentconstruction, p.techlevelsspentelectronics, p.techlevelsspentbiotechnology, p.researchamount, p.researchspentlastyear, p.nextresearchfield, p.researching, p.battleplans, p.productionplans, p.transportplans, p.relations, p.cargotransfers, p.messages, p.battlerecords, p.playerintels, p.scoreintels, p.planetintels, p.fleetintels, p.shipdesignintels, p.mineralpacketintels, p.minefieldintels, p.wormholeintels, p.mysterytraderintels, p.salvageintels, p.race, p.stats, p.scorehistory, p.achievedvictoryconditions, p.victor, p.spec, p.guest, p.aidifficulty, p.acquiredtechs, p.archived,
+    d.id, d.createdat, d.updatedat, d.gameid, d.num, d.playernum, d.name, d.version, d.hull, d.hullsetnumber, d.candelete, d.slots, d.purpose, d.spec, d.cannotdelete, d.originalplayernum, d.mysterytrader
+FROM
+    players p
+    LEFT JOIN shipDesigns d ON p.gameId = d.gameId
+    AND p.num = d.playerNum
+WHERE
+    p.gameId = ?
+    AND p.userId = ?
+`
+
+type GetPlayerForGameAndUserParams struct {
+	Gameid int64
+	Userid sql.NullInt64
+}
+
+type GetPlayerForGameAndUserRow struct {
+	Player            Player
+	ID                sql.NullInt64
+	Createdat         sql.NullTime
+	Updatedat         sql.NullTime
+	Gameid            sql.NullInt64
+	Num               sql.NullInt64
+	Playernum         sql.NullInt64
+	Name              sql.NullString
+	Version           sql.NullInt64
+	Hull              sql.NullString
+	Hullsetnumber     sql.NullInt64
+	Candelete         sql.NullBool
+	Slots             *ShipDesignSlots
+	Purpose           *cs.ShipDesignPurpose
+	Spec              *ShipDesignSpec
+	Cannotdelete      sql.NullBool
+	Originalplayernum sql.NullInt64
+	Mysterytrader     sql.NullBool
+}
+
+func (q *Queries) GetPlayerForGameAndUser(ctx context.Context, arg GetPlayerForGameAndUserParams) ([]GetPlayerForGameAndUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, GetPlayerForGameAndUser, arg.Gameid, arg.Userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPlayerForGameAndUserRow
+	for rows.Next() {
+		var i GetPlayerForGameAndUserRow
+		if err := rows.Scan(
+			&i.Player.ID,
+			&i.Player.Createdat,
+			&i.Player.Updatedat,
+			&i.Player.Gameid,
+			&i.Player.Userid,
+			&i.Player.Name,
+			&i.Player.Num,
+			&i.Player.Ready,
+			&i.Player.Aicontrolled,
+			&i.Player.Submittedturn,
+			&i.Player.Color,
+			&i.Player.Defaulthullset,
+			&i.Player.Techlevelsenergy,
+			&i.Player.Techlevelsweapons,
+			&i.Player.Techlevelspropulsion,
+			&i.Player.Techlevelsconstruction,
+			&i.Player.Techlevelselectronics,
+			&i.Player.Techlevelsbiotechnology,
+			&i.Player.Techlevelsspentenergy,
+			&i.Player.Techlevelsspentweapons,
+			&i.Player.Techlevelsspentpropulsion,
+			&i.Player.Techlevelsspentconstruction,
+			&i.Player.Techlevelsspentelectronics,
+			&i.Player.Techlevelsspentbiotechnology,
+			&i.Player.Researchamount,
+			&i.Player.Researchspentlastyear,
+			&i.Player.Nextresearchfield,
+			&i.Player.Researching,
+			&i.Player.Battleplans,
+			&i.Player.Productionplans,
+			&i.Player.Transportplans,
+			&i.Player.Relations,
+			&i.Player.Cargotransfers,
+			&i.Player.Messages,
+			&i.Player.Battlerecords,
+			&i.Player.Playerintels,
+			&i.Player.Scoreintels,
+			&i.Player.Planetintels,
+			&i.Player.Fleetintels,
+			&i.Player.Shipdesignintels,
+			&i.Player.Mineralpacketintels,
+			&i.Player.Minefieldintels,
+			&i.Player.Wormholeintels,
+			&i.Player.Mysterytraderintels,
+			&i.Player.Salvageintels,
+			&i.Player.Race,
+			&i.Player.Stats,
+			&i.Player.Scorehistory,
+			&i.Player.Achievedvictoryconditions,
+			&i.Player.Victor,
+			&i.Player.Spec,
+			&i.Player.Guest,
+			&i.Player.Aidifficulty,
+			&i.Player.Acquiredtechs,
+			&i.Player.Archived,
+			&i.ID,
+			&i.Createdat,
+			&i.Updatedat,
+			&i.Gameid,
+			&i.Num,
+			&i.Playernum,
+			&i.Name,
+			&i.Version,
+			&i.Hull,
+			&i.Hullsetnumber,
+			&i.Candelete,
+			&i.Slots,
+			&i.Purpose,
+			&i.Spec,
+			&i.Cannotdelete,
+			&i.Originalplayernum,
+			&i.Mysterytrader,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetPlayerNum = `-- name: GetPlayerNum :one
 SELECT
     num
 FROM
@@ -698,13 +809,13 @@ type GetPlayerNumParams struct {
 }
 
 func (q *Queries) GetPlayerNum(ctx context.Context, arg GetPlayerNumParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, getPlayerNum, arg.Gameid, arg.Userid)
+	row := q.db.QueryRowContext(ctx, GetPlayerNum, arg.Gameid, arg.Userid)
 	var num int64
 	err := row.Scan(&num)
 	return num, err
 }
 
-const getPlayers = `-- name: GetPlayers :many
+const GetPlayers = `-- name: GetPlayers :many
 SELECT
     id, createdat, updatedat, gameid, userid, name, num, ready, aicontrolled, submittedturn, color, defaulthullset, techlevelsenergy, techlevelsweapons, techlevelspropulsion, techlevelsconstruction, techlevelselectronics, techlevelsbiotechnology, techlevelsspentenergy, techlevelsspentweapons, techlevelsspentpropulsion, techlevelsspentconstruction, techlevelsspentelectronics, techlevelsspentbiotechnology, researchamount, researchspentlastyear, nextresearchfield, researching, battleplans, productionplans, transportplans, relations, cargotransfers, messages, battlerecords, playerintels, scoreintels, planetintels, fleetintels, shipdesignintels, mineralpacketintels, minefieldintels, wormholeintels, mysterytraderintels, salvageintels, race, stats, scorehistory, achievedvictoryconditions, victor, spec, guest, aidifficulty, acquiredtechs, archived
 FROM
@@ -713,7 +824,7 @@ FROM
 
 // Players
 func (q *Queries) GetPlayers(ctx context.Context) ([]Player, error) {
-	rows, err := q.db.QueryContext(ctx, getPlayers)
+	rows, err := q.db.QueryContext(ctx, GetPlayers)
 	if err != nil {
 		return nil, err
 	}
@@ -791,7 +902,7 @@ func (q *Queries) GetPlayers(ctx context.Context) ([]Player, error) {
 	return items, nil
 }
 
-const getPlayersForGame = `-- name: GetPlayersForGame :many
+const GetPlayersForGame = `-- name: GetPlayersForGame :many
 SELECT
     id, createdat, updatedat, gameid, userid, name, num, ready, aicontrolled, submittedturn, color, defaulthullset, techlevelsenergy, techlevelsweapons, techlevelspropulsion, techlevelsconstruction, techlevelselectronics, techlevelsbiotechnology, techlevelsspentenergy, techlevelsspentweapons, techlevelsspentpropulsion, techlevelsspentconstruction, techlevelsspentelectronics, techlevelsspentbiotechnology, researchamount, researchspentlastyear, nextresearchfield, researching, battleplans, productionplans, transportplans, relations, cargotransfers, messages, battlerecords, playerintels, scoreintels, planetintels, fleetintels, shipdesignintels, mineralpacketintels, minefieldintels, wormholeintels, mysterytraderintels, salvageintels, race, stats, scorehistory, achievedvictoryconditions, victor, spec, guest, aidifficulty, acquiredtechs, archived
 FROM
@@ -801,7 +912,7 @@ WHERE
 `
 
 func (q *Queries) GetPlayersForGame(ctx context.Context, gameid int64) ([]Player, error) {
-	rows, err := q.db.QueryContext(ctx, getPlayersForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetPlayersForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -879,7 +990,7 @@ func (q *Queries) GetPlayersForGame(ctx context.Context, gameid int64) ([]Player
 	return items, nil
 }
 
-const getPlayersForUser = `-- name: GetPlayersForUser :many
+const GetPlayersForUser = `-- name: GetPlayersForUser :many
 SELECT
     id, createdat, updatedat, gameid, userid, name, num, ready, aicontrolled, submittedturn, color, defaulthullset, techlevelsenergy, techlevelsweapons, techlevelspropulsion, techlevelsconstruction, techlevelselectronics, techlevelsbiotechnology, techlevelsspentenergy, techlevelsspentweapons, techlevelsspentpropulsion, techlevelsspentconstruction, techlevelsspentelectronics, techlevelsspentbiotechnology, researchamount, researchspentlastyear, nextresearchfield, researching, battleplans, productionplans, transportplans, relations, cargotransfers, messages, battlerecords, playerintels, scoreintels, planetintels, fleetintels, shipdesignintels, mineralpacketintels, minefieldintels, wormholeintels, mysterytraderintels, salvageintels, race, stats, scorehistory, achievedvictoryconditions, victor, spec, guest, aidifficulty, acquiredtechs, archived
 FROM
@@ -889,7 +1000,7 @@ WHERE
 `
 
 func (q *Queries) GetPlayersForUser(ctx context.Context, userid sql.NullInt64) ([]Player, error) {
-	rows, err := q.db.QueryContext(ctx, getPlayersForUser, userid)
+	rows, err := q.db.QueryContext(ctx, GetPlayersForUser, userid)
 	if err != nil {
 		return nil, err
 	}
@@ -967,7 +1078,7 @@ func (q *Queries) GetPlayersForUser(ctx context.Context, userid sql.NullInt64) (
 	return items, nil
 }
 
-const getPlayersStatusForGame = `-- name: GetPlayersStatusForGame :many
+const GetPlayersStatusForGame = `-- name: GetPlayersStatusForGame :many
 SELECT
     id,
     createdAt,
@@ -1007,7 +1118,7 @@ type GetPlayersStatusForGameRow struct {
 }
 
 func (q *Queries) GetPlayersStatusForGame(ctx context.Context, gameid int64) ([]GetPlayersStatusForGameRow, error) {
-	rows, err := q.db.QueryContext(ctx, getPlayersStatusForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetPlayersStatusForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -1043,26 +1154,10 @@ func (q *Queries) GetPlayersStatusForGame(ctx context.Context, gameid int64) ([]
 	return items, nil
 }
 
-const getPlayersWithDesignsForGame = `-- name: GetPlayersWithDesignsForGame :many
+const GetPlayersWithDesignsForGame = `-- name: GetPlayersWithDesignsForGame :many
 SELECT
     p.id, p.createdat, p.updatedat, p.gameid, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.submittedturn, p.color, p.defaulthullset, p.techlevelsenergy, p.techlevelsweapons, p.techlevelspropulsion, p.techlevelsconstruction, p.techlevelselectronics, p.techlevelsbiotechnology, p.techlevelsspentenergy, p.techlevelsspentweapons, p.techlevelsspentpropulsion, p.techlevelsspentconstruction, p.techlevelsspentelectronics, p.techlevelsspentbiotechnology, p.researchamount, p.researchspentlastyear, p.nextresearchfield, p.researching, p.battleplans, p.productionplans, p.transportplans, p.relations, p.cargotransfers, p.messages, p.battlerecords, p.playerintels, p.scoreintels, p.planetintels, p.fleetintels, p.shipdesignintels, p.mineralpacketintels, p.minefieldintels, p.wormholeintels, p.mysterytraderintels, p.salvageintels, p.race, p.stats, p.scorehistory, p.achievedvictoryconditions, p.victor, p.spec, p.guest, p.aidifficulty, p.acquiredtechs, p.archived,
-    d.id AS 'design.id',
-    d.createdAt AS 'design.createdAt',
-    d.updatedAt AS 'design.updatedAt',
-    d.gameId AS 'design.gameId',
-    d.num AS 'design.num',
-    d.playerNum AS 'design.playerNum',
-    d.name AS 'design.name',
-    d.version AS 'design.version',
-    d.hull AS 'design.hull',
-    d.hullSetNumber AS 'design.hullSetNumber',
-    d.canDelete AS 'design.canDelete',
-    d.slots AS 'design.slots',
-    d.purpose AS 'design.purpose',
-    d.spec AS 'design.spec',
-    d.cannotDelete AS 'design.cannotDelete',
-    d.originalPlayerNum AS 'design.originalPlayerNum',
-    d.mysteryTrader AS 'design.mysteryTrader'
+    d.id, d.createdat, d.updatedat, d.gameid, d.num, d.playernum, d.name, d.version, d.hull, d.hullsetnumber, d.candelete, d.slots, d.purpose, d.spec, d.cannotdelete, d.originalplayernum, d.mysterytrader
 FROM
     players p
     LEFT JOIN shipDesigns d ON p.gameId = d.gameId
@@ -1072,28 +1167,28 @@ WHERE
 `
 
 type GetPlayersWithDesignsForGameRow struct {
-	Player                  Player
-	DesignID                sql.NullInt64
-	DesignCreatedat         sql.NullTime
-	DesignUpdatedat         sql.NullTime
-	DesignGameid            sql.NullInt64
-	DesignNum               sql.NullInt64
-	DesignPlayernum         sql.NullInt64
-	DesignName              sql.NullString
-	DesignVersion           sql.NullInt64
-	DesignHull              sql.NullString
-	DesignHullsetnumber     sql.NullInt64
-	DesignCandelete         sql.NullBool
-	DesignSlots             *ShipDesignSlots
-	DesignPurpose           *cs.ShipDesignPurpose
-	DesignSpec              *ShipDesignSpec
-	DesignCannotdelete      sql.NullBool
-	DesignOriginalplayernum sql.NullInt64
-	DesignMysterytrader     sql.NullBool
+	Player            Player
+	ID                sql.NullInt64
+	Createdat         sql.NullTime
+	Updatedat         sql.NullTime
+	Gameid            sql.NullInt64
+	Num               sql.NullInt64
+	Playernum         sql.NullInt64
+	Name              sql.NullString
+	Version           sql.NullInt64
+	Hull              sql.NullString
+	Hullsetnumber     sql.NullInt64
+	Candelete         sql.NullBool
+	Slots             *ShipDesignSlots
+	Purpose           *cs.ShipDesignPurpose
+	Spec              *ShipDesignSpec
+	Cannotdelete      sql.NullBool
+	Originalplayernum sql.NullInt64
+	Mysterytrader     sql.NullBool
 }
 
 func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameid int64) ([]GetPlayersWithDesignsForGameRow, error) {
-	rows, err := q.db.QueryContext(ctx, getPlayersWithDesignsForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetPlayersWithDesignsForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -1157,23 +1252,23 @@ func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameid int64
 			&i.Player.Aidifficulty,
 			&i.Player.Acquiredtechs,
 			&i.Player.Archived,
-			&i.DesignID,
-			&i.DesignCreatedat,
-			&i.DesignUpdatedat,
-			&i.DesignGameid,
-			&i.DesignNum,
-			&i.DesignPlayernum,
-			&i.DesignName,
-			&i.DesignVersion,
-			&i.DesignHull,
-			&i.DesignHullsetnumber,
-			&i.DesignCandelete,
-			&i.DesignSlots,
-			&i.DesignPurpose,
-			&i.DesignSpec,
-			&i.DesignCannotdelete,
-			&i.DesignOriginalplayernum,
-			&i.DesignMysterytrader,
+			&i.ID,
+			&i.Createdat,
+			&i.Updatedat,
+			&i.Gameid,
+			&i.Num,
+			&i.Playernum,
+			&i.Name,
+			&i.Version,
+			&i.Hull,
+			&i.Hullsetnumber,
+			&i.Candelete,
+			&i.Slots,
+			&i.Purpose,
+			&i.Spec,
+			&i.Cannotdelete,
+			&i.Originalplayernum,
+			&i.Mysterytrader,
 		); err != nil {
 			return nil, err
 		}
@@ -1188,7 +1283,7 @@ func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameid int64
 	return items, nil
 }
 
-const submitPlayerTurn = `-- name: SubmitPlayerTurn :one
+const SubmitPlayerTurn = `-- name: SubmitPlayerTurn :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1205,13 +1300,13 @@ type SubmitPlayerTurnParams struct {
 }
 
 func (q *Queries) SubmitPlayerTurn(ctx context.Context, arg SubmitPlayerTurnParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, submitPlayerTurn, arg.Submittedturn, arg.Gameid, arg.Num)
+	row := q.db.QueryRowContext(ctx, SubmitPlayerTurn, arg.Submittedturn, arg.Gameid, arg.Num)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err
 }
 
-const updateLightPlayer = `-- name: UpdateLightPlayer :one
+const UpdateLightPlayer = `-- name: UpdateLightPlayer :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1250,7 +1345,7 @@ type UpdateLightPlayerParams struct {
 }
 
 func (q *Queries) UpdateLightPlayer(ctx context.Context, arg UpdateLightPlayerParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updateLightPlayer,
+	row := q.db.QueryRowContext(ctx, UpdateLightPlayer,
 		arg.Name,
 		arg.Num,
 		arg.Ready,
@@ -1271,7 +1366,7 @@ func (q *Queries) UpdateLightPlayer(ctx context.Context, arg UpdateLightPlayerPa
 	return updatedat, err
 }
 
-const updatePlayer = `-- name: UpdatePlayer :one
+const UpdatePlayer = `-- name: UpdatePlayer :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1388,7 +1483,7 @@ type UpdatePlayerParams struct {
 }
 
 func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayer,
+	row := q.db.QueryRowContext(ctx, UpdatePlayer,
 		arg.Gameid,
 		arg.Userid,
 		arg.Name,
@@ -1448,7 +1543,7 @@ func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (tim
 	return updatedat, err
 }
 
-const updatePlayerCargoTransfers = `-- name: UpdatePlayerCargoTransfers :one
+const UpdatePlayerCargoTransfers = `-- name: UpdatePlayerCargoTransfers :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1463,13 +1558,13 @@ type UpdatePlayerCargoTransfersParams struct {
 }
 
 func (q *Queries) UpdatePlayerCargoTransfers(ctx context.Context, arg UpdatePlayerCargoTransfersParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayerCargoTransfers, arg.Cargotransfers, arg.ID)
+	row := q.db.QueryRowContext(ctx, UpdatePlayerCargoTransfers, arg.Cargotransfers, arg.ID)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err
 }
 
-const updatePlayerFleetIntels = `-- name: UpdatePlayerFleetIntels :one
+const UpdatePlayerFleetIntels = `-- name: UpdatePlayerFleetIntels :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1484,13 +1579,13 @@ type UpdatePlayerFleetIntelsParams struct {
 }
 
 func (q *Queries) UpdatePlayerFleetIntels(ctx context.Context, arg UpdatePlayerFleetIntelsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayerFleetIntels, arg.Fleetintels, arg.ID)
+	row := q.db.QueryRowContext(ctx, UpdatePlayerFleetIntels, arg.Fleetintels, arg.ID)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err
 }
 
-const updatePlayerMineralPacketIntels = `-- name: UpdatePlayerMineralPacketIntels :one
+const UpdatePlayerMineralPacketIntels = `-- name: UpdatePlayerMineralPacketIntels :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1505,13 +1600,13 @@ type UpdatePlayerMineralPacketIntelsParams struct {
 }
 
 func (q *Queries) UpdatePlayerMineralPacketIntels(ctx context.Context, arg UpdatePlayerMineralPacketIntelsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayerMineralPacketIntels, arg.Mineralpacketintels, arg.ID)
+	row := q.db.QueryRowContext(ctx, UpdatePlayerMineralPacketIntels, arg.Mineralpacketintels, arg.ID)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err
 }
 
-const updatePlayerOrders = `-- name: UpdatePlayerOrders :one
+const UpdatePlayerOrders = `-- name: UpdatePlayerOrders :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1546,7 +1641,7 @@ type UpdatePlayerOrdersParams struct {
 }
 
 func (q *Queries) UpdatePlayerOrders(ctx context.Context, arg UpdatePlayerOrdersParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayerOrders,
+	row := q.db.QueryRowContext(ctx, UpdatePlayerOrders,
 		arg.Submittedturn,
 		arg.Defaulthullset,
 		arg.Researchamount,
@@ -1565,7 +1660,7 @@ func (q *Queries) UpdatePlayerOrders(ctx context.Context, arg UpdatePlayerOrders
 	return updatedat, err
 }
 
-const updatePlayerPlanetIntels = `-- name: UpdatePlayerPlanetIntels :one
+const UpdatePlayerPlanetIntels = `-- name: UpdatePlayerPlanetIntels :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1580,13 +1675,13 @@ type UpdatePlayerPlanetIntelsParams struct {
 }
 
 func (q *Queries) UpdatePlayerPlanetIntels(ctx context.Context, arg UpdatePlayerPlanetIntelsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayerPlanetIntels, arg.Planetintels, arg.ID)
+	row := q.db.QueryRowContext(ctx, UpdatePlayerPlanetIntels, arg.Planetintels, arg.ID)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err
 }
 
-const updatePlayerPlans = `-- name: UpdatePlayerPlans :one
+const UpdatePlayerPlans = `-- name: UpdatePlayerPlans :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1605,7 +1700,7 @@ type UpdatePlayerPlansParams struct {
 }
 
 func (q *Queries) UpdatePlayerPlans(ctx context.Context, arg UpdatePlayerPlansParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayerPlans,
+	row := q.db.QueryRowContext(ctx, UpdatePlayerPlans,
 		arg.Battleplans,
 		arg.Productionplans,
 		arg.Transportplans,
@@ -1616,7 +1711,7 @@ func (q *Queries) UpdatePlayerPlans(ctx context.Context, arg UpdatePlayerPlansPa
 	return updatedat, err
 }
 
-const updatePlayerRelations = `-- name: UpdatePlayerRelations :one
+const UpdatePlayerRelations = `-- name: UpdatePlayerRelations :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1631,13 +1726,13 @@ type UpdatePlayerRelationsParams struct {
 }
 
 func (q *Queries) UpdatePlayerRelations(ctx context.Context, arg UpdatePlayerRelationsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayerRelations, arg.Relations, arg.ID)
+	row := q.db.QueryRowContext(ctx, UpdatePlayerRelations, arg.Relations, arg.ID)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err
 }
 
-const updatePlayerSalvageIntels = `-- name: UpdatePlayerSalvageIntels :one
+const UpdatePlayerSalvageIntels = `-- name: UpdatePlayerSalvageIntels :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1652,13 +1747,13 @@ type UpdatePlayerSalvageIntelsParams struct {
 }
 
 func (q *Queries) UpdatePlayerSalvageIntels(ctx context.Context, arg UpdatePlayerSalvageIntelsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayerSalvageIntels, arg.Salvageintels, arg.ID)
+	row := q.db.QueryRowContext(ctx, UpdatePlayerSalvageIntels, arg.Salvageintels, arg.ID)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err
 }
 
-const updatePlayerSpec = `-- name: UpdatePlayerSpec :one
+const UpdatePlayerSpec = `-- name: UpdatePlayerSpec :one
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1673,13 +1768,13 @@ type UpdatePlayerSpecParams struct {
 }
 
 func (q *Queries) UpdatePlayerSpec(ctx context.Context, arg UpdatePlayerSpecParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updatePlayerSpec, arg.Spec, arg.ID)
+	row := q.db.QueryRowContext(ctx, UpdatePlayerSpec, arg.Spec, arg.ID)
 	var updatedat time.Time
 	err := row.Scan(&updatedat)
 	return updatedat, err
 }
 
-const updatePlayerUserID = `-- name: UpdatePlayerUserID :exec
+const UpdatePlayerUserID = `-- name: UpdatePlayerUserID :exec
 UPDATE players
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -1694,6 +1789,6 @@ type UpdatePlayerUserIDParams struct {
 }
 
 func (q *Queries) UpdatePlayerUserID(ctx context.Context, arg UpdatePlayerUserIDParams) error {
-	_, err := q.db.ExecContext(ctx, updatePlayerUserID, arg.Userid, arg.ID)
+	_, err := q.db.ExecContext(ctx, UpdatePlayerUserID, arg.Userid, arg.ID)
 	return err
 }

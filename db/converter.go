@@ -103,6 +103,8 @@ var c Converter
 // goverter:extend WaypointsToGameWaypoints
 // goverter:extend WormholeIntelsToGameWormholeIntels
 // goverter:extend WormholeSpecToGameWormholeSpec
+// goverter:extend GeneratedShipDesignSpecToPGeneratedShipDesignSpecP
+// goverter:extend GeneratedShipDesignSlotsToPGeneratedShipDesignSlotsP
 // goverter:name GameConverter
 // goverter:enum no
 // goverter:matchIgnoreCase
@@ -338,6 +340,14 @@ type Converter interface {
 	// goverter:ignoreMissing
 	ConvertPlayerStatus(source generated.GetPlayersStatusForGameRow) cs.Player
 	ConvertPlayerStatuses(source []generated.GetPlayersStatusForGameRow) []*cs.Player
+
+	ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.PlayerStatus
+	ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.PlayerStatus
+	ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.PlayerStatus
+
+	ConvertGetPlayerForGameRowToShipDesign(source generated.GetPlayerForGameRow) generated.Shipdesign
+	ConvertGetPlayerForGameAndUserRowToShipDesign(source generated.GetPlayerForGameAndUserRow) generated.Shipdesign
+	ConvertGetPlayersWithDesignsForGameRowToShipDesign(source generated.GetPlayersWithDesignsForGameRow) generated.Shipdesign
 
 	ConvertPlayers(source []generated.Player) []*cs.Player
 
@@ -1083,6 +1093,14 @@ func ShipDesignSpecToGameShipDesignSpec(source *generated.ShipDesignSpec) cs.Shi
 
 func GameShipDesignSpecToShipDesignSpec(source cs.ShipDesignSpec) *generated.ShipDesignSpec {
 	return (*generated.ShipDesignSpec)(&source)
+}
+
+func GeneratedShipDesignSpecToPGeneratedShipDesignSpecP(source *generated.ShipDesignSpec) *generated.ShipDesignSpec {
+	return source
+}
+
+func GeneratedShipDesignSlotsToPGeneratedShipDesignSlotsP(source *generated.ShipDesignSlots) *generated.ShipDesignSlots {
+	return source
 }
 
 func ShipDesignSlotsToGameShipDesignSlots(source *generated.ShipDesignSlots) []cs.ShipDesignSlot {

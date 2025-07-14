@@ -135,7 +135,7 @@ func Test_GetPlayerForGame(t *testing.T) {
 	}
 
 	// verify it works with no designs
-	_, err := c.GetPlayerForGame(t.Context(), game.ID, GetPlayerParams{UserID: player.UserID})
+	_, err := c.GetPlayerForGameAndUser(t.Context(), game.ID, player.UserID)
 	if err != nil {
 		t.Errorf("GetPlayerForGame %s", err)
 		return
@@ -156,7 +156,7 @@ func Test_GetPlayerForGame(t *testing.T) {
 		return
 	}
 
-	got, err := c.GetPlayerForGame(t.Context(), game.ID, GetPlayerParams{UserID: player.UserID})
+	got, err := c.GetPlayerForGameAndUser(t.Context(), game.ID, player.UserID)
 	if err != nil {
 		t.Errorf("GetPlayerForGame %s", err)
 		return

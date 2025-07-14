@@ -70,7 +70,7 @@ func UpdatePlayer(gameID int64, playerNum int, userID int64) error {
 		return fmt.Errorf("user %d not found", userID)
 	}
 
-	player, err := readWriteClient.GetPlayerForGame(ctx, gameID, db.GetPlayerParams{PlayerNum: playerNum})
+	player, err := readWriteClient.GetPlayerForGame(ctx, gameID, playerNum)
 	if err != nil {
 		return fmt.Errorf("failed to load player %d from game %d, %v", playerNum, gameID, err)
 	}

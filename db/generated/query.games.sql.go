@@ -13,7 +13,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const createGame = `-- name: CreateGame :one
+const CreateGame = `-- name: CreateGame :one
 INSERT INTO
     games (
         createdAt,
@@ -91,7 +91,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    createdAt,
+    updatedAt
 `
 
 type CreateGameParams struct {
@@ -138,7 +140,7 @@ type CreateGameRow struct {
 }
 
 func (q *Queries) CreateGame(ctx context.Context, arg CreateGameParams) (CreateGameRow, error) {
-	row := q.db.QueryRowContext(ctx, createGame,
+	row := q.db.QueryRowContext(ctx, CreateGame,
 		arg.Hostid,
 		arg.Name,
 		arg.State,
@@ -179,29 +181,29 @@ func (q *Queries) CreateGame(ctx context.Context, arg CreateGameParams) (CreateG
 	return i, err
 }
 
-const deleteGame = `-- name: DeleteGame :exec
+const DeleteGame = `-- name: DeleteGame :exec
 DELETE FROM games
 WHERE
     id = ?
 `
 
 func (q *Queries) DeleteGame(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteGame, id)
+	_, err := q.db.ExecContext(ctx, DeleteGame, id)
 	return err
 }
 
-const deleteUserGames = `-- name: DeleteUserGames :exec
+const DeleteUserGames = `-- name: DeleteUserGames :exec
 DELETE FROM games
 WHERE
     hostId = ?
 `
 
 func (q *Queries) DeleteUserGames(ctx context.Context, hostid sql.NullInt64) error {
-	_, err := q.db.ExecContext(ctx, deleteUserGames, hostid)
+	_, err := q.db.ExecContext(ctx, DeleteUserGames, hostid)
 	return err
 }
 
-const getGame = `-- name: GetGame :one
+const GetGame = `-- name: GetGame :one
 SELECT
     id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, rules, areax, areay, year, victordeclared, maxminerals, archived
 FROM
@@ -212,7 +214,7 @@ WHERE
 
 // Games
 func (q *Queries) GetGame(ctx context.Context, id int64) (Game, error) {
-	row := q.db.QueryRowContext(ctx, getGame, id)
+	row := q.db.QueryRowContext(ctx, GetGame, id)
 	var i Game
 	err := row.Scan(
 		&i.ID,
@@ -256,7 +258,119 @@ func (q *Queries) GetGame(ctx context.Context, id int64) (Game, error) {
 	return i, err
 }
 
-const getGames = `-- name: GetGames :many
+const GetGameWithPlayers = `-- name: GetGameWithPlayers :many
+SELECT
+    g.id, g.createdat, g.updatedat, g.hostid, g.name, g.state, g.public, g.hash, g.size, g.density, g.playerpositions, g.randomevents, g.computerplayersformalliances, g.publicplayerscores, g.startmode, g.quickstartturns, g.openplayerslots, g.numplayers, g.victoryconditionsconditions, g.victoryconditionsnumcriteriarequired, g.victoryconditionsyearspassed, g.victoryconditionsownplanets, g.victoryconditionsattaintechlevel, g.victoryconditionsattaintechlevelnumfields, g.victoryconditionsexceedsscore, g.victoryconditionsexceedssecondplacescore, g.victoryconditionsproductioncapacity, g.victoryconditionsowncapitalships, g.victoryconditionshighestscoreafteryears, g.seed, g.rules, g.areax, g.areay, g.year, g.victordeclared, g.maxminerals, g.archived,
+    p.gameid, p.id, p.updatedat, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.aidifficulty, p.submittedturn, p.color, p.victor, p.archived, p.guest
+FROM
+    games g
+    LEFT JOIN game_players p ON g.id = p.gameId
+WHERE
+    -- game by id
+    g.id = ?1
+    OR ?2 IS NOT NULL
+    AND g.hash = ?2
+`
+
+type GetGameWithPlayersParams struct {
+	ID   int64
+	Hash interface{}
+}
+
+type GetGameWithPlayersRow struct {
+	Game          Game
+	Gameid        sql.NullInt64
+	ID            sql.NullInt64
+	Updatedat     sql.NullTime
+	Userid        sql.NullInt64
+	Name          sql.NullString
+	Num           sql.NullInt64
+	Ready         sql.NullBool
+	Aicontrolled  sql.NullBool
+	Aidifficulty  *cs.AIDifficulty
+	Submittedturn sql.NullBool
+	Color         sql.NullString
+	Victor        sql.NullBool
+	Archived      sql.NullBool
+	Guest         sql.NullBool
+}
+
+func (q *Queries) GetGameWithPlayers(ctx context.Context, arg GetGameWithPlayersParams) ([]GetGameWithPlayersRow, error) {
+	rows, err := q.db.QueryContext(ctx, GetGameWithPlayers, arg.ID, arg.Hash)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetGameWithPlayersRow
+	for rows.Next() {
+		var i GetGameWithPlayersRow
+		if err := rows.Scan(
+			&i.Game.ID,
+			&i.Game.Createdat,
+			&i.Game.Updatedat,
+			&i.Game.Hostid,
+			&i.Game.Name,
+			&i.Game.State,
+			&i.Game.Public,
+			&i.Game.Hash,
+			&i.Game.Size,
+			&i.Game.Density,
+			&i.Game.Playerpositions,
+			&i.Game.Randomevents,
+			&i.Game.Computerplayersformalliances,
+			&i.Game.Publicplayerscores,
+			&i.Game.Startmode,
+			&i.Game.Quickstartturns,
+			&i.Game.Openplayerslots,
+			&i.Game.Numplayers,
+			&i.Game.Victoryconditionsconditions,
+			&i.Game.Victoryconditionsnumcriteriarequired,
+			&i.Game.Victoryconditionsyearspassed,
+			&i.Game.Victoryconditionsownplanets,
+			&i.Game.Victoryconditionsattaintechlevel,
+			&i.Game.Victoryconditionsattaintechlevelnumfields,
+			&i.Game.Victoryconditionsexceedsscore,
+			&i.Game.Victoryconditionsexceedssecondplacescore,
+			&i.Game.Victoryconditionsproductioncapacity,
+			&i.Game.Victoryconditionsowncapitalships,
+			&i.Game.Victoryconditionshighestscoreafteryears,
+			&i.Game.Seed,
+			&i.Game.Rules,
+			&i.Game.Areax,
+			&i.Game.Areay,
+			&i.Game.Year,
+			&i.Game.Victordeclared,
+			&i.Game.Maxminerals,
+			&i.Game.Archived,
+			&i.Gameid,
+			&i.ID,
+			&i.Updatedat,
+			&i.Userid,
+			&i.Name,
+			&i.Num,
+			&i.Ready,
+			&i.Aicontrolled,
+			&i.Aidifficulty,
+			&i.Submittedturn,
+			&i.Color,
+			&i.Victor,
+			&i.Archived,
+			&i.Guest,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetGames = `-- name: GetGames :many
 SELECT
     id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, rules, areax, areay, year, victordeclared, maxminerals, archived
 FROM
@@ -264,7 +378,7 @@ FROM
 `
 
 func (q *Queries) GetGames(ctx context.Context) ([]Game, error) {
-	rows, err := q.db.QueryContext(ctx, getGames)
+	rows, err := q.db.QueryContext(ctx, GetGames)
 	if err != nil {
 		return nil, err
 	}
@@ -324,117 +438,130 @@ func (q *Queries) GetGames(ctx context.Context) ([]Game, error) {
 	return items, nil
 }
 
-const getGamesWithPlayers = `-- name: GetGamesWithPlayers :many
+const GetGamesForHost = `-- name: GetGamesForHost :many
+SELECT
+    id, createdat, updatedat, hostid, name, state, public, hash, size, density, playerpositions, randomevents, computerplayersformalliances, publicplayerscores, startmode, quickstartturns, openplayerslots, numplayers, victoryconditionsconditions, victoryconditionsnumcriteriarequired, victoryconditionsyearspassed, victoryconditionsownplanets, victoryconditionsattaintechlevel, victoryconditionsattaintechlevelnumfields, victoryconditionsexceedsscore, victoryconditionsexceedssecondplacescore, victoryconditionsproductioncapacity, victoryconditionsowncapitalships, victoryconditionshighestscoreafteryears, seed, rules, areax, areay, year, victordeclared, maxminerals, archived
+FROM
+    games
+WHERE
+    hostId = ?
+`
+
+func (q *Queries) GetGamesForHost(ctx context.Context, hostid sql.NullInt64) ([]Game, error) {
+	rows, err := q.db.QueryContext(ctx, GetGamesForHost, hostid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Game
+	for rows.Next() {
+		var i Game
+		if err := rows.Scan(
+			&i.ID,
+			&i.Createdat,
+			&i.Updatedat,
+			&i.Hostid,
+			&i.Name,
+			&i.State,
+			&i.Public,
+			&i.Hash,
+			&i.Size,
+			&i.Density,
+			&i.Playerpositions,
+			&i.Randomevents,
+			&i.Computerplayersformalliances,
+			&i.Publicplayerscores,
+			&i.Startmode,
+			&i.Quickstartturns,
+			&i.Openplayerslots,
+			&i.Numplayers,
+			&i.Victoryconditionsconditions,
+			&i.Victoryconditionsnumcriteriarequired,
+			&i.Victoryconditionsyearspassed,
+			&i.Victoryconditionsownplanets,
+			&i.Victoryconditionsattaintechlevel,
+			&i.Victoryconditionsattaintechlevelnumfields,
+			&i.Victoryconditionsexceedsscore,
+			&i.Victoryconditionsexceedssecondplacescore,
+			&i.Victoryconditionsproductioncapacity,
+			&i.Victoryconditionsowncapitalships,
+			&i.Victoryconditionshighestscoreafteryears,
+			&i.Seed,
+			&i.Rules,
+			&i.Areax,
+			&i.Areay,
+			&i.Year,
+			&i.Victordeclared,
+			&i.Maxminerals,
+			&i.Archived,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetGamesWithPlayers = `-- name: GetGamesWithPlayers :many
 SELECT
     g.id, g.createdat, g.updatedat, g.hostid, g.name, g.state, g.public, g.hash, g.size, g.density, g.playerpositions, g.randomevents, g.computerplayersformalliances, g.publicplayerscores, g.startmode, g.quickstartturns, g.openplayerslots, g.numplayers, g.victoryconditionsconditions, g.victoryconditionsnumcriteriarequired, g.victoryconditionsyearspassed, g.victoryconditionsownplanets, g.victoryconditionsattaintechlevel, g.victoryconditionsattaintechlevelnumfields, g.victoryconditionsexceedsscore, g.victoryconditionsexceedssecondplacescore, g.victoryconditionsproductioncapacity, g.victoryconditionsowncapitalships, g.victoryconditionshighestscoreafteryears, g.seed, g.rules, g.areax, g.areay, g.year, g.victordeclared, g.maxminerals, g.archived,
-    p.updatedAt AS 'player.UpdatedAt',
-    p.userId AS 'player.UserId',
-    p.name AS 'player.Name',
-    p.num AS 'player.Num',
-    p.ready AS 'player.Ready',
-    p.aiControlled AS 'player.AIControlled',
-    p.aiDifficulty AS 'player.AIDifficulty',
-    p.submittedTurn AS 'player.SubmittedTurn',
-    p.color AS 'player.Color',
-    p.victor AS 'player.Victor',
-    p.archived AS 'player.Archived',
-    p.guest AS 'player.Guest'
+    p.gameid, p.id, p.updatedat, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.aidifficulty, p.submittedturn, p.color, p.victor, p.archived, p.guest
 FROM
     games g
-    LEFT JOIN players p ON g.id = p.gameId
+    LEFT JOIN game_players p ON g.id = p.gameId
 WHERE
-    -- game by id
+    -- game state
     (
         ?1 IS NULL
-        OR g.id = ?1
-    )
-    -- host or player in game
-    AND (
-        (
-            ?2 IS NULL
-            AND ?3 IS NULL
-        )
-        OR (
-            g.hostId = ?2
-            OR g.id IN (
-                SELECT
-                    gameId
-                FROM
-                    players p
-                WHERE
-                    p.userId = ?3
-            )
-        )
-    )
-    --  host of game
-    AND (
-        ?2 IS NULL
-        OR ?4 IS NULL -- we handle userId above
-        OR hostId = ?2
-    )
-    -- game state
-    AND (
-        ?5 IS NULL
-        OR state = ?5
+        OR state = ?1
     )
     -- open games
     AND (
-        ?6 IS NULL
+        ?2 IS NULL
         OR (
-            ?6
+            ?2
             AND g.openPlayerSlots > 0
         )
     )
     -- public games
     AND (
-        ?7 IS NULL
-        OR g.public = ?7
-    )
-    -- game by hash
-    AND (
-        ?8 IS NULL
-        OR g.hash = ?8
+        ?3 IS NULL
+        OR g.public = ?3
     )
 `
 
 type GetGamesWithPlayersParams struct {
-	ID     interface{}
-	HostId interface{}
-	UserId interface{}
-	UserID interface{}
 	State  interface{}
 	Open   interface{}
 	Public interface{}
-	Hash   interface{}
 }
 
 type GetGamesWithPlayersRow struct {
-	Game                Game
-	PlayerUpdatedat     sql.NullTime
-	PlayerUserid        sql.NullInt64
-	PlayerName          sql.NullString
-	PlayerNum           sql.NullInt64
-	PlayerReady         sql.NullBool
-	PlayerAicontrolled  sql.NullBool
-	PlayerAidifficulty  *cs.AIDifficulty
-	PlayerSubmittedturn sql.NullBool
-	PlayerColor         sql.NullString
-	PlayerVictor        sql.NullBool
-	PlayerArchived      sql.NullBool
-	PlayerGuest         sql.NullBool
+	Game          Game
+	Gameid        sql.NullInt64
+	ID            sql.NullInt64
+	Updatedat     sql.NullTime
+	Userid        sql.NullInt64
+	Name          sql.NullString
+	Num           sql.NullInt64
+	Ready         sql.NullBool
+	Aicontrolled  sql.NullBool
+	Aidifficulty  *cs.AIDifficulty
+	Submittedturn sql.NullBool
+	Color         sql.NullString
+	Victor        sql.NullBool
+	Archived      sql.NullBool
+	Guest         sql.NullBool
 }
 
 func (q *Queries) GetGamesWithPlayers(ctx context.Context, arg GetGamesWithPlayersParams) ([]GetGamesWithPlayersRow, error) {
-	rows, err := q.db.QueryContext(ctx, getGamesWithPlayers,
-		arg.ID,
-		arg.HostId,
-		arg.UserId,
-		arg.UserID,
-		arg.State,
-		arg.Open,
-		arg.Public,
-		arg.Hash,
-	)
+	rows, err := q.db.QueryContext(ctx, GetGamesWithPlayers, arg.State, arg.Open, arg.Public)
 	if err != nil {
 		return nil, err
 	}
@@ -480,18 +607,20 @@ func (q *Queries) GetGamesWithPlayers(ctx context.Context, arg GetGamesWithPlaye
 			&i.Game.Victordeclared,
 			&i.Game.Maxminerals,
 			&i.Game.Archived,
-			&i.PlayerUpdatedat,
-			&i.PlayerUserid,
-			&i.PlayerName,
-			&i.PlayerNum,
-			&i.PlayerReady,
-			&i.PlayerAicontrolled,
-			&i.PlayerAidifficulty,
-			&i.PlayerSubmittedturn,
-			&i.PlayerColor,
-			&i.PlayerVictor,
-			&i.PlayerArchived,
-			&i.PlayerGuest,
+			&i.Gameid,
+			&i.ID,
+			&i.Updatedat,
+			&i.Userid,
+			&i.Name,
+			&i.Num,
+			&i.Ready,
+			&i.Aicontrolled,
+			&i.Aidifficulty,
+			&i.Submittedturn,
+			&i.Color,
+			&i.Victor,
+			&i.Archived,
+			&i.Guest,
 		); err != nil {
 			return nil, err
 		}
@@ -506,7 +635,120 @@ func (q *Queries) GetGamesWithPlayers(ctx context.Context, arg GetGamesWithPlaye
 	return items, nil
 }
 
-const updateGame = `-- name: UpdateGame :one
+const GetGamesWithPlayersForUser = `-- name: GetGamesWithPlayersForUser :many
+SELECT
+    g.id, g.createdat, g.updatedat, g.hostid, g.name, g.state, g.public, g.hash, g.size, g.density, g.playerpositions, g.randomevents, g.computerplayersformalliances, g.publicplayerscores, g.startmode, g.quickstartturns, g.openplayerslots, g.numplayers, g.victoryconditionsconditions, g.victoryconditionsnumcriteriarequired, g.victoryconditionsyearspassed, g.victoryconditionsownplanets, g.victoryconditionsattaintechlevel, g.victoryconditionsattaintechlevelnumfields, g.victoryconditionsexceedsscore, g.victoryconditionsexceedssecondplacescore, g.victoryconditionsproductioncapacity, g.victoryconditionsowncapitalships, g.victoryconditionshighestscoreafteryears, g.seed, g.rules, g.areax, g.areay, g.year, g.victordeclared, g.maxminerals, g.archived,
+    p.gameid, p.id, p.updatedat, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.aidifficulty, p.submittedturn, p.color, p.victor, p.archived, p.guest
+FROM
+    games g
+    LEFT JOIN game_players p ON g.id = p.gameId
+WHERE
+    -- host or player in game
+    g.hostId = ?1
+    OR g.id IN (
+        SELECT
+            gameId
+        FROM
+            players p
+        WHERE
+            p.userId = ?1
+    )
+`
+
+type GetGamesWithPlayersForUserRow struct {
+	Game          Game
+	Gameid        sql.NullInt64
+	ID            sql.NullInt64
+	Updatedat     sql.NullTime
+	Userid        sql.NullInt64
+	Name          sql.NullString
+	Num           sql.NullInt64
+	Ready         sql.NullBool
+	Aicontrolled  sql.NullBool
+	Aidifficulty  *cs.AIDifficulty
+	Submittedturn sql.NullBool
+	Color         sql.NullString
+	Victor        sql.NullBool
+	Archived      sql.NullBool
+	Guest         sql.NullBool
+}
+
+func (q *Queries) GetGamesWithPlayersForUser(ctx context.Context, userid sql.NullInt64) ([]GetGamesWithPlayersForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, GetGamesWithPlayersForUser, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetGamesWithPlayersForUserRow
+	for rows.Next() {
+		var i GetGamesWithPlayersForUserRow
+		if err := rows.Scan(
+			&i.Game.ID,
+			&i.Game.Createdat,
+			&i.Game.Updatedat,
+			&i.Game.Hostid,
+			&i.Game.Name,
+			&i.Game.State,
+			&i.Game.Public,
+			&i.Game.Hash,
+			&i.Game.Size,
+			&i.Game.Density,
+			&i.Game.Playerpositions,
+			&i.Game.Randomevents,
+			&i.Game.Computerplayersformalliances,
+			&i.Game.Publicplayerscores,
+			&i.Game.Startmode,
+			&i.Game.Quickstartturns,
+			&i.Game.Openplayerslots,
+			&i.Game.Numplayers,
+			&i.Game.Victoryconditionsconditions,
+			&i.Game.Victoryconditionsnumcriteriarequired,
+			&i.Game.Victoryconditionsyearspassed,
+			&i.Game.Victoryconditionsownplanets,
+			&i.Game.Victoryconditionsattaintechlevel,
+			&i.Game.Victoryconditionsattaintechlevelnumfields,
+			&i.Game.Victoryconditionsexceedsscore,
+			&i.Game.Victoryconditionsexceedssecondplacescore,
+			&i.Game.Victoryconditionsproductioncapacity,
+			&i.Game.Victoryconditionsowncapitalships,
+			&i.Game.Victoryconditionshighestscoreafteryears,
+			&i.Game.Seed,
+			&i.Game.Rules,
+			&i.Game.Areax,
+			&i.Game.Areay,
+			&i.Game.Year,
+			&i.Game.Victordeclared,
+			&i.Game.Maxminerals,
+			&i.Game.Archived,
+			&i.Gameid,
+			&i.ID,
+			&i.Updatedat,
+			&i.Userid,
+			&i.Name,
+			&i.Num,
+			&i.Ready,
+			&i.Aicontrolled,
+			&i.Aidifficulty,
+			&i.Submittedturn,
+			&i.Color,
+			&i.Victor,
+			&i.Archived,
+			&i.Guest,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const UpdateGame = `-- name: UpdateGame :one
 UPDATE games
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -587,7 +829,7 @@ type UpdateGameParams struct {
 }
 
 func (q *Queries) UpdateGame(ctx context.Context, arg UpdateGameParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updateGame,
+	row := q.db.QueryRowContext(ctx, UpdateGame,
 		arg.Hostid,
 		arg.Name,
 		arg.State,
@@ -629,7 +871,7 @@ func (q *Queries) UpdateGame(ctx context.Context, arg UpdateGameParams) (time.Ti
 	return updatedat, err
 }
 
-const updateGameHost = `-- name: UpdateGameHost :exec
+const UpdateGameHost = `-- name: UpdateGameHost :exec
 UPDATE games
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -644,11 +886,11 @@ type UpdateGameHostParams struct {
 }
 
 func (q *Queries) UpdateGameHost(ctx context.Context, arg UpdateGameHostParams) error {
-	_, err := q.db.ExecContext(ctx, updateGameHost, arg.Hostid, arg.ID)
+	_, err := q.db.ExecContext(ctx, UpdateGameHost, arg.Hostid, arg.ID)
 	return err
 }
 
-const updateGameState = `-- name: UpdateGameState :exec
+const UpdateGameState = `-- name: UpdateGameState :exec
 UPDATE games
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -663,6 +905,6 @@ type UpdateGameStateParams struct {
 }
 
 func (q *Queries) UpdateGameState(ctx context.Context, arg UpdateGameStateParams) error {
-	_, err := q.db.ExecContext(ctx, updateGameState, arg.State, arg.ID)
+	_, err := q.db.ExecContext(ctx, UpdateGameState, arg.State, arg.ID)
 	return err
 }

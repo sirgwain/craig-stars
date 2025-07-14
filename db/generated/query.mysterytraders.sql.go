@@ -13,7 +13,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const createMysteryTrader = `-- name: CreateMysteryTrader :one
+const CreateMysteryTrader = `-- name: CreateMysteryTrader :one
 INSERT INTO
     mysterytraders (
         createdAt,
@@ -81,7 +81,7 @@ type CreateMysteryTraderRow struct {
 }
 
 func (q *Queries) CreateMysteryTrader(ctx context.Context, arg CreateMysteryTraderParams) (CreateMysteryTraderRow, error) {
-	row := q.db.QueryRowContext(ctx, createMysteryTrader,
+	row := q.db.QueryRowContext(ctx, CreateMysteryTrader,
 		arg.Gameid,
 		arg.X,
 		arg.Y,
@@ -103,18 +103,18 @@ func (q *Queries) CreateMysteryTrader(ctx context.Context, arg CreateMysteryTrad
 	return i, err
 }
 
-const deleteMysteryTrader = `-- name: DeleteMysteryTrader :exec
+const DeleteMysteryTrader = `-- name: DeleteMysteryTrader :exec
 DELETE FROM mysterytraders
 WHERE
     id = ?
 `
 
 func (q *Queries) DeleteMysteryTrader(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteMysteryTrader, id)
+	_, err := q.db.ExecContext(ctx, DeleteMysteryTrader, id)
 	return err
 }
 
-const getMysteryTrader = `-- name: GetMysteryTrader :one
+const GetMysteryTrader = `-- name: GetMysteryTrader :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
 FROM
@@ -125,7 +125,7 @@ WHERE
 
 // MysteryTraders
 func (q *Queries) GetMysteryTrader(ctx context.Context, id int64) (Mysterytrader, error) {
-	row := q.db.QueryRowContext(ctx, getMysteryTrader, id)
+	row := q.db.QueryRowContext(ctx, GetMysteryTrader, id)
 	var i Mysterytrader
 	err := row.Scan(
 		&i.ID,
@@ -150,7 +150,7 @@ func (q *Queries) GetMysteryTrader(ctx context.Context, id int64) (Mysterytrader
 	return i, err
 }
 
-const getMysteryTraderByNum = `-- name: GetMysteryTraderByNum :one
+const GetMysteryTraderByNum = `-- name: GetMysteryTraderByNum :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
 FROM
@@ -166,7 +166,7 @@ type GetMysteryTraderByNumParams struct {
 }
 
 func (q *Queries) GetMysteryTraderByNum(ctx context.Context, arg GetMysteryTraderByNumParams) (Mysterytrader, error) {
-	row := q.db.QueryRowContext(ctx, getMysteryTraderByNum, arg.Gameid, arg.Num)
+	row := q.db.QueryRowContext(ctx, GetMysteryTraderByNum, arg.Gameid, arg.Num)
 	var i Mysterytrader
 	err := row.Scan(
 		&i.ID,
@@ -191,7 +191,7 @@ func (q *Queries) GetMysteryTraderByNum(ctx context.Context, arg GetMysteryTrade
 	return i, err
 }
 
-const getMysteryTraders = `-- name: GetMysteryTraders :many
+const GetMysteryTraders = `-- name: GetMysteryTraders :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
 FROM
@@ -199,7 +199,7 @@ FROM
 `
 
 func (q *Queries) GetMysteryTraders(ctx context.Context) ([]Mysterytrader, error) {
-	rows, err := q.db.QueryContext(ctx, getMysteryTraders)
+	rows, err := q.db.QueryContext(ctx, GetMysteryTraders)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +240,7 @@ func (q *Queries) GetMysteryTraders(ctx context.Context) ([]Mysterytrader, error
 	return items, nil
 }
 
-const getMysteryTradersForGame = `-- name: GetMysteryTradersForGame :many
+const GetMysteryTradersForGame = `-- name: GetMysteryTradersForGame :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
 FROM
@@ -250,7 +250,7 @@ WHERE
 `
 
 func (q *Queries) GetMysteryTradersForGame(ctx context.Context, gameid int64) ([]Mysterytrader, error) {
-	rows, err := q.db.QueryContext(ctx, getMysteryTradersForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetMysteryTradersForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +291,7 @@ func (q *Queries) GetMysteryTradersForGame(ctx context.Context, gameid int64) ([
 	return items, nil
 }
 
-const updateMysteryTrader = `-- name: UpdateMysteryTrader :one
+const UpdateMysteryTrader = `-- name: UpdateMysteryTrader :one
 UPDATE mysterytraders
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -334,7 +334,7 @@ type UpdateMysteryTraderParams struct {
 }
 
 func (q *Queries) UpdateMysteryTrader(ctx context.Context, arg UpdateMysteryTraderParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updateMysteryTrader,
+	row := q.db.QueryRowContext(ctx, UpdateMysteryTrader,
 		arg.Gameid,
 		arg.X,
 		arg.Y,

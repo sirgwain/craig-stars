@@ -97,7 +97,7 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load the full player to update planet production estimates
-	player, err := dbClient.GetPlayerForGame(r.Context(), game.ID, db.GetPlayerParams{PlayerNum: player.Num})
+	player, err := dbClient.GetPlayerForGame(r.Context(), game.ID, player.Num)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return

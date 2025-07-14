@@ -15,56 +15,37 @@ SELECT
 FROM
     games;
 
+-- name: GetGamesForHost :many
+SELECT
+    *
+FROM
+    games
+WHERE
+    hostId = ?;
+
+-- name: GetGameWithPlayers :many
+SELECT
+    sqlc.embed(g),
+    p.*
+FROM
+    games g
+    LEFT JOIN game_players p ON g.id = p.gameId
+WHERE
+    -- game by id
+    g.id = @id
+    OR @hash IS NOT NULL
+    AND g.hash = @hash;
+
 -- name: GetGamesWithPlayers :many
 SELECT
     sqlc.embed(g),
-    p.updatedAt AS 'player.UpdatedAt',
-    p.userId AS 'player.UserId',
-    p.name AS 'player.Name',
-    p.num AS 'player.Num',
-    p.ready AS 'player.Ready',
-    p.aiControlled AS 'player.AIControlled',
-    p.aiDifficulty AS 'player.AIDifficulty',
-    p.submittedTurn AS 'player.SubmittedTurn',
-    p.color AS 'player.Color',
-    p.victor AS 'player.Victor',
-    p.archived AS 'player.Archived',
-    p.guest AS 'player.Guest'
+    p.*
 FROM
     games g
-    LEFT JOIN players p ON g.id = p.gameId
+    LEFT JOIN game_players p ON g.id = p.gameId
 WHERE
-    -- game by id
-    (
-        @id IS NULL
-        OR g.id = @id
-    )
-    -- host or player in game
-    AND (
-        (
-            @hostId IS NULL
-            AND @userId IS NULL
-        )
-        OR (
-            g.hostId = @hostId
-            OR g.id IN (
-                SELECT
-                    gameId
-                FROM
-                    players p
-                WHERE
-                    p.userId = @userId
-            )
-        )
-    )
-    --  host of game
-    AND (
-        @hostId IS NULL
-        OR @userID IS NULL -- we handle userId above
-        OR hostId = @hostId
-    )
     -- game state
-    AND (
+    (
         @state IS NULL
         OR state = @state
     )
@@ -80,11 +61,25 @@ WHERE
     AND (
         @public IS NULL
         OR g.public = @public
-    )
-    -- game by hash
-    AND (
-        @hash IS NULL
-        OR g.hash = @hash
+    );
+
+-- name: GetGamesWithPlayersForUser :many
+SELECT
+    sqlc.embed(g),
+    p.*
+FROM
+    games g
+    LEFT JOIN game_players p ON g.id = p.gameId
+WHERE
+    -- host or player in game
+    g.hostId = @userId
+    OR g.id IN (
+        SELECT
+            gameId
+        FROM
+            players p
+        WHERE
+            p.userId = @userId
     );
 
 -- name: CreateGame :one
@@ -165,7 +160,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    ) RETURNING id,
+    createdAt,
+    updatedAt;
 
 -- name: UpdateGame :one
 UPDATE games

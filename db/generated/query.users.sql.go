@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const createUser = `-- name: CreateUser :one
+const CreateUser = `-- name: CreateUser :one
 INSERT INTO
     users (
         createdAt,
@@ -64,7 +64,7 @@ type CreateUserParams struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+	row := q.db.QueryRowContext(ctx, CreateUser,
 		arg.Username,
 		arg.Gameid,
 		arg.Playernum,
@@ -99,7 +99,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const deleteGameGuestUser = `-- name: DeleteGameGuestUser :exec
+const DeleteGameGuestUser = `-- name: DeleteGameGuestUser :exec
 DELETE FROM users
 WHERE
     role = 'guest'
@@ -113,11 +113,11 @@ type DeleteGameGuestUserParams struct {
 }
 
 func (q *Queries) DeleteGameGuestUser(ctx context.Context, arg DeleteGameGuestUserParams) error {
-	_, err := q.db.ExecContext(ctx, deleteGameGuestUser, arg.Gameid, arg.Playernum)
+	_, err := q.db.ExecContext(ctx, DeleteGameGuestUser, arg.Gameid, arg.Playernum)
 	return err
 }
 
-const deleteGameGuestUsers = `-- name: DeleteGameGuestUsers :exec
+const DeleteGameGuestUsers = `-- name: DeleteGameGuestUsers :exec
 DELETE FROM users
 WHERE
     role = 'guest'
@@ -125,22 +125,22 @@ WHERE
 `
 
 func (q *Queries) DeleteGameGuestUsers(ctx context.Context, gameid int64) error {
-	_, err := q.db.ExecContext(ctx, deleteGameGuestUsers, gameid)
+	_, err := q.db.ExecContext(ctx, DeleteGameGuestUsers, gameid)
 	return err
 }
 
-const deleteUser = `-- name: DeleteUser :exec
+const DeleteUser = `-- name: DeleteUser :exec
 DELETE FROM users
 WHERE
     id = ?
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	_, err := q.db.ExecContext(ctx, DeleteUser, id)
 	return err
 }
 
-const getGetGuestUserForGame = `-- name: GetGetGuestUserForGame :one
+const GetGetGuestUserForGame = `-- name: GetGetGuestUserForGame :one
 SELECT
     id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
 FROM
@@ -157,7 +157,7 @@ type GetGetGuestUserForGameParams struct {
 }
 
 func (q *Queries) GetGetGuestUserForGame(ctx context.Context, arg GetGetGuestUserForGameParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, getGetGuestUserForGame, arg.Gameid, arg.Playernum)
+	row := q.db.QueryRowContext(ctx, GetGetGuestUserForGame, arg.Gameid, arg.Playernum)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -179,7 +179,7 @@ func (q *Queries) GetGetGuestUserForGame(ctx context.Context, arg GetGetGuestUse
 	return i, err
 }
 
-const getGuestUser = `-- name: GetGuestUser :one
+const GetGuestUser = `-- name: GetGuestUser :one
 SELECT
     id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
 FROM
@@ -190,7 +190,7 @@ WHERE
 `
 
 func (q *Queries) GetGuestUser(ctx context.Context, password sql.NullString) (User, error) {
-	row := q.db.QueryRowContext(ctx, getGuestUser, password)
+	row := q.db.QueryRowContext(ctx, GetGuestUser, password)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -212,7 +212,7 @@ func (q *Queries) GetGuestUser(ctx context.Context, password sql.NullString) (Us
 	return i, err
 }
 
-const getGuestUsersForGame = `-- name: GetGuestUsersForGame :many
+const GetGuestUsersForGame = `-- name: GetGuestUsersForGame :many
 SELECT
     id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
 FROM
@@ -223,7 +223,7 @@ WHERE
 `
 
 func (q *Queries) GetGuestUsersForGame(ctx context.Context, gameid int64) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, getGuestUsersForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetGuestUsersForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +261,7 @@ func (q *Queries) GetGuestUsersForGame(ctx context.Context, gameid int64) ([]Use
 	return items, nil
 }
 
-const getUser = `-- name: GetUser :one
+const GetUser = `-- name: GetUser :one
 SELECT
     id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
 FROM
@@ -271,7 +271,7 @@ WHERE
 `
 
 func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser, id)
+	row := q.db.QueryRowContext(ctx, GetUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -293,7 +293,7 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 	return i, err
 }
 
-const getUserByUsername = `-- name: GetUserByUsername :one
+const GetUserByUsername = `-- name: GetUserByUsername :one
 SELECT
     id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
 FROM
@@ -303,7 +303,7 @@ WHERE
 `
 
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	row := q.db.QueryRowContext(ctx, GetUserByUsername, username)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -325,7 +325,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	return i, err
 }
 
-const getUsers = `-- name: GetUsers :many
+const GetUsers = `-- name: GetUsers :many
 SELECT
     id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
 FROM
@@ -333,7 +333,7 @@ FROM
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, getUsers)
+	rows, err := q.db.QueryContext(ctx, GetUsers)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +371,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
-const getUsersForGame = `-- name: GetUsersForGame :many
+const GetUsersForGame = `-- name: GetUsersForGame :many
 SELECT
     id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
 FROM
@@ -381,7 +381,7 @@ WHERE
 `
 
 func (q *Queries) GetUsersForGame(ctx context.Context, gameid int64) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, getUsersForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetUsersForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -419,7 +419,7 @@ func (q *Queries) GetUsersForGame(ctx context.Context, gameid int64) ([]User, er
 	return items, nil
 }
 
-const updateUser = `-- name: UpdateUser :exec
+const UpdateUser = `-- name: UpdateUser :exec
 UPDATE users
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -456,7 +456,7 @@ type UpdateUserParams struct {
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.ExecContext(ctx, updateUser,
+	_, err := q.db.ExecContext(ctx, UpdateUser,
 		arg.Username,
 		arg.Gameid,
 		arg.Playernum,
@@ -474,7 +474,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 	return err
 }
 
-const updateUserSettings = `-- name: UpdateUserSettings :exec
+const UpdateUserSettings = `-- name: UpdateUserSettings :exec
 UPDATE users
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -489,6 +489,6 @@ type UpdateUserSettingsParams struct {
 }
 
 func (q *Queries) UpdateUserSettings(ctx context.Context, arg UpdateUserSettingsParams) error {
-	_, err := q.db.ExecContext(ctx, updateUserSettings, arg.Discordwebhookurl, arg.ID)
+	_, err := q.db.ExecContext(ctx, UpdateUserSettings, arg.Discordwebhookurl, arg.ID)
 	return err
 }

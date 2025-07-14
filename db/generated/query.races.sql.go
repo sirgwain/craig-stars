@@ -13,7 +13,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const createRace = `-- name: CreateRace :one
+const CreateRace = `-- name: CreateRace :one
 INSERT INTO
     races (
         createdAt,
@@ -132,7 +132,7 @@ type CreateRaceRow struct {
 }
 
 func (q *Queries) CreateRace(ctx context.Context, arg CreateRaceParams) (CreateRaceRow, error) {
-	row := q.db.QueryRowContext(ctx, createRace,
+	row := q.db.QueryRowContext(ctx, CreateRace,
 		arg.Userid,
 		arg.Name,
 		arg.Pluralname,
@@ -171,29 +171,29 @@ func (q *Queries) CreateRace(ctx context.Context, arg CreateRaceParams) (CreateR
 	return i, err
 }
 
-const deleteRace = `-- name: DeleteRace :exec
+const DeleteRace = `-- name: DeleteRace :exec
 DELETE FROM races
 WHERE
     id = ?
 `
 
 func (q *Queries) DeleteRace(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteRace, id)
+	_, err := q.db.ExecContext(ctx, DeleteRace, id)
 	return err
 }
 
-const deleteUserRaces = `-- name: DeleteUserRaces :exec
+const DeleteUserRaces = `-- name: DeleteUserRaces :exec
 DELETE FROM races
 WHERE
     userId = ?
 `
 
 func (q *Queries) DeleteUserRaces(ctx context.Context, userid int64) error {
-	_, err := q.db.ExecContext(ctx, deleteUserRaces, userid)
+	_, err := q.db.ExecContext(ctx, DeleteUserRaces, userid)
 	return err
 }
 
-const getRace = `-- name: GetRace :one
+const GetRace = `-- name: GetRace :one
 SELECT
     id, createdat, updatedat, userid, name, pluralname, spendleftoverpointson, prt, lrts, hablowgrav, hablowtemp, hablowrad, habhighgrav, habhightemp, habhighrad, growthrate, popefficiency, factoryoutput, factorycost, numfactories, factoriescostless, immunegrav, immunetemp, immunerad, mineoutput, minecost, nummines, researchcostenergy, researchcostweapons, researchcostpropulsion, researchcostconstruction, researchcostelectronics, researchcostbiotechnology, techsstarthigh, spec
 FROM
@@ -204,7 +204,7 @@ WHERE
 
 // Races
 func (q *Queries) GetRace(ctx context.Context, id int64) (Race, error) {
-	row := q.db.QueryRowContext(ctx, getRace, id)
+	row := q.db.QueryRowContext(ctx, GetRace, id)
 	var i Race
 	err := row.Scan(
 		&i.ID,
@@ -246,7 +246,7 @@ func (q *Queries) GetRace(ctx context.Context, id int64) (Race, error) {
 	return i, err
 }
 
-const getRaces = `-- name: GetRaces :many
+const GetRaces = `-- name: GetRaces :many
 SELECT
     id, createdat, updatedat, userid, name, pluralname, spendleftoverpointson, prt, lrts, hablowgrav, hablowtemp, hablowrad, habhighgrav, habhightemp, habhighrad, growthrate, popefficiency, factoryoutput, factorycost, numfactories, factoriescostless, immunegrav, immunetemp, immunerad, mineoutput, minecost, nummines, researchcostenergy, researchcostweapons, researchcostpropulsion, researchcostconstruction, researchcostelectronics, researchcostbiotechnology, techsstarthigh, spec
 FROM
@@ -254,7 +254,7 @@ FROM
 `
 
 func (q *Queries) GetRaces(ctx context.Context) ([]Race, error) {
-	rows, err := q.db.QueryContext(ctx, getRaces)
+	rows, err := q.db.QueryContext(ctx, GetRaces)
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +312,7 @@ func (q *Queries) GetRaces(ctx context.Context) ([]Race, error) {
 	return items, nil
 }
 
-const getRacesForUser = `-- name: GetRacesForUser :many
+const GetRacesForUser = `-- name: GetRacesForUser :many
 SELECT
     id, createdat, updatedat, userid, name, pluralname, spendleftoverpointson, prt, lrts, hablowgrav, hablowtemp, hablowrad, habhighgrav, habhightemp, habhighrad, growthrate, popefficiency, factoryoutput, factorycost, numfactories, factoriescostless, immunegrav, immunetemp, immunerad, mineoutput, minecost, nummines, researchcostenergy, researchcostweapons, researchcostpropulsion, researchcostconstruction, researchcostelectronics, researchcostbiotechnology, techsstarthigh, spec
 FROM
@@ -322,7 +322,7 @@ WHERE
 `
 
 func (q *Queries) GetRacesForUser(ctx context.Context, userid int64) ([]Race, error) {
-	rows, err := q.db.QueryContext(ctx, getRacesForUser, userid)
+	rows, err := q.db.QueryContext(ctx, GetRacesForUser, userid)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +380,7 @@ func (q *Queries) GetRacesForUser(ctx context.Context, userid int64) ([]Race, er
 	return items, nil
 }
 
-const updateRace = `-- name: UpdateRace :one
+const UpdateRace = `-- name: UpdateRace :one
 UPDATE races
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -457,7 +457,7 @@ type UpdateRaceParams struct {
 }
 
 func (q *Queries) UpdateRace(ctx context.Context, arg UpdateRaceParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updateRace,
+	row := q.db.QueryRowContext(ctx, UpdateRace,
 		arg.Userid,
 		arg.Name,
 		arg.Pluralname,

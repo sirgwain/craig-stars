@@ -152,7 +152,7 @@ func (s *server) openGames(w http.ResponseWriter, r *http.Request) {
 	RenderJSON(w, games)
 }
 
-func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
+func (s *server) gameByHash(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	// load open games by hash from the database
 	hash := chi.URLParam(r, "hash")
@@ -161,19 +161,19 @@ func (s *server) openGamesByHash(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	games, err := db.GetOpenGamesByHash(r.Context(), hash)
+	game, err := db.GetGameByHash(r.Context(), hash)
 	if err != nil {
 		log.Error().Err(err).Str("Hash", hash).Msg("get open games by hash from database")
-		RenderJSON(w, games)
+		RenderJSON(w, game)
 	}
 
-	if len(games) == 0 {
+	if game == nil {
 		render.Render(w, r, ErrNotFound)
 		return
 	}
 
 	// return games with this invite link
-	RenderJSON(w, games)
+	RenderJSON(w, game)
 }
 
 func (s *server) game(w http.ResponseWriter, r *http.Request) {
@@ -667,7 +667,7 @@ func (s *server) generateTurn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player, err := c.GetPlayerForGame(r.Context(), game.ID, db.GetPlayerParams{UserID: user.ID})
+	player, err := c.GetPlayerForGameAndUser(r.Context(), game.ID, user.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("loading player after turn generation")
 		render.Render(w, r, ErrInternalServerError(err))

@@ -9,12 +9,12 @@ import (
 	"context"
 )
 
-const getVersion = `-- name: GetVersion :one
+const GetVersion = `-- name: GetVersion :one
 SELECT id, createdat, updatedat, "current" FROM versions
 `
 
 func (q *Queries) GetVersion(ctx context.Context) (Version, error) {
-	row := q.db.QueryRowContext(ctx, getVersion)
+	row := q.db.QueryRowContext(ctx, GetVersion)
 	var i Version
 	err := row.Scan(
 		&i.ID,
@@ -25,7 +25,7 @@ func (q *Queries) GetVersion(ctx context.Context) (Version, error) {
 	return i, err
 }
 
-const updateVersion = `-- name: UpdateVersion :exec
+const UpdateVersion = `-- name: UpdateVersion :exec
 UPDATE versions
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -40,6 +40,6 @@ type UpdateVersionParams struct {
 }
 
 func (q *Queries) UpdateVersion(ctx context.Context, arg UpdateVersionParams) error {
-	_, err := q.db.ExecContext(ctx, updateVersion, arg.Current, arg.ID)
+	_, err := q.db.ExecContext(ctx, UpdateVersion, arg.Current, arg.ID)
 	return err
 }

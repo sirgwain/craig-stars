@@ -16,8 +16,8 @@ func connectTestDB() *client {
 	dbConn := dbConn{}
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
+	// cfg.Database.DebugLogging = true
 	cfg.Database.Filename = ":memory:"
-	cfg.Database.DebugLogging = true
 	cfg.Database.SkipUpgrade = true
 	if err := dbConn.Connect(cfg); err != nil {
 		panic(fmt.Errorf("error while connecting to test database: \n%w", err))
@@ -136,7 +136,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 		gameClient := cs.NewGamer()
 
 		b.ResetTimer()
-		for range b.N {
+		for b.Loop() {
 			b.StopTimer()
 
 			game := cs.NewGame()
@@ -205,8 +205,114 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 		}
 
 		b.ResetTimer()
-		for range b.N {
+		for b.Loop() {
 			if err := c.UpdateFullGame(b.Context(), fullGame); err != nil {
+				b.Fatalf("failed to update game %v", err)
+			}
+		}
+	})
+}
+
+func BenchmarkGetFullGame(b *testing.B) {
+	dbConn := dbConn{}
+	cfg := &config.Config{}
+	// cfg.Database.Filename = "../data/sqlx.db"
+	cfg.Database.Filename = ":memory:"
+	cfg.Database.DebugLogging = false
+	cfg.Database.SkipUpgrade = true
+
+	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+
+	b.Run("Small Game one turn", func(b *testing.B) {
+		var err error
+		if err = dbConn.Connect(cfg); err != nil {
+			b.Fatalf("error while connecting to test database %v", err)
+		}
+		defer dbConn.Close()
+
+		c := dbConn.NewReadWriteClient()
+
+		gameClient := cs.NewGamer()
+		game := cs.NewGame()
+		player := gameClient.NewPlayer(0, cs.Humanoids(), &game.Rules).WithNum(1).WithAIControlled(true)
+		players := []*cs.Player{player}
+		universe, err := gameClient.GenerateUniverse(game, players)
+		if err != nil {
+			b.Fatalf("failed to generate universe")
+		}
+
+		fullGame := &cs.FullGame{
+			Game:      game,
+			Universe:  universe,
+			TechStore: &cs.StaticTechStore,
+			Players:   players,
+		}
+
+		fullGame.Game, err = c.CreateGame(b.Context(), fullGame.Game)
+		if err != nil {
+			b.Fatalf("failed to create game %v", err)
+		}
+
+		gameClient.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players)
+		if err := c.UpdateFullGame(b.Context(), fullGame); err != nil {
+			b.Fatalf("failed to update full game %v", err)
+		}
+
+		b.ResetTimer()
+		for b.Loop() {
+
+			b.StartTimer()
+			if _, err := c.GetFullGame(b.Context(), game.ID); err != nil {
+				b.Fatalf("failed to update game %v", err)
+			}
+		}
+	})
+
+	b.Run("Large Game many turns and players", func(b *testing.B) {
+		var err error
+		if err = dbConn.Connect(cfg); err != nil {
+			b.Fatalf("error while connecting to test database %v", err)
+		}
+		defer dbConn.Close()
+
+		c := dbConn.NewReadWriteClient()
+		gameClient := cs.NewGamer()
+
+		settings := cs.NewGameSettings().WithSize(cs.SizeLarge).WithDensity(cs.DensityPacked)
+		game := cs.NewGame().WithSettings(*settings)
+		players := make([]*cs.Player, len(ai.Races))
+		for i := range ai.Races {
+			players[i] = gameClient.NewPlayer(0, ai.Races[i], &game.Rules).WithNum(i + 1).WithAIControlled(true)
+		}
+		universe, err := gameClient.GenerateUniverse(game, players)
+		if err != nil {
+			b.Fatalf("failed to generate universe")
+		}
+
+		fullGame := &cs.FullGame{
+			Game:      game,
+			Universe:  universe,
+			TechStore: &cs.StaticTechStore,
+			Players:   players,
+		}
+
+		fullGame.Game, err = c.CreateGame(b.Context(), fullGame.Game)
+		if err != nil {
+			b.Fatalf("failed to create game %v", err)
+		}
+
+		// generate some turns
+		for range 50 {
+			gameClient.GenerateTurn(fullGame.Game, fullGame.Universe, fullGame.Players)
+		}
+
+		if err := c.UpdateFullGame(b.Context(), fullGame); err != nil {
+			b.Fatalf("failed to update game %v", err)
+		}
+
+		b.ResetTimer()
+		for b.Loop() {
+			if _, err := c.GetFullGame(b.Context(), game.ID); err != nil {
 				b.Fatalf("failed to update game %v", err)
 			}
 		}

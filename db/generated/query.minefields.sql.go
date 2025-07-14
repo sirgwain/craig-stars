@@ -13,7 +13,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const createMineField = `-- name: CreateMineField :one
+const CreateMineField = `-- name: CreateMineField :one
 INSERT INTO
     minefields (
         createdAt,
@@ -69,7 +69,7 @@ type CreateMineFieldRow struct {
 }
 
 func (q *Queries) CreateMineField(ctx context.Context, arg CreateMineFieldParams) (CreateMineFieldRow, error) {
-	row := q.db.QueryRowContext(ctx, createMineField,
+	row := q.db.QueryRowContext(ctx, CreateMineField,
 		arg.Gameid,
 		arg.X,
 		arg.Y,
@@ -87,18 +87,18 @@ func (q *Queries) CreateMineField(ctx context.Context, arg CreateMineFieldParams
 	return i, err
 }
 
-const deleteMineField = `-- name: DeleteMineField :exec
+const DeleteMineField = `-- name: DeleteMineField :exec
 DELETE FROM minefields
 WHERE
     id = ?
 `
 
 func (q *Queries) DeleteMineField(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteMineField, id)
+	_, err := q.db.ExecContext(ctx, DeleteMineField, id)
 	return err
 }
 
-const getMineField = `-- name: GetMineField :one
+const GetMineField = `-- name: GetMineField :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
 FROM
@@ -109,7 +109,7 @@ WHERE
 
 // MineFields
 func (q *Queries) GetMineField(ctx context.Context, id int64) (Minefield, error) {
-	row := q.db.QueryRowContext(ctx, getMineField, id)
+	row := q.db.QueryRowContext(ctx, GetMineField, id)
 	var i Minefield
 	err := row.Scan(
 		&i.ID,
@@ -130,7 +130,7 @@ func (q *Queries) GetMineField(ctx context.Context, id int64) (Minefield, error)
 	return i, err
 }
 
-const getMineFieldByNum = `-- name: GetMineFieldByNum :one
+const GetMineFieldByNum = `-- name: GetMineFieldByNum :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
 FROM
@@ -148,7 +148,7 @@ type GetMineFieldByNumParams struct {
 }
 
 func (q *Queries) GetMineFieldByNum(ctx context.Context, arg GetMineFieldByNumParams) (Minefield, error) {
-	row := q.db.QueryRowContext(ctx, getMineFieldByNum, arg.Gameid, arg.Playernum, arg.Num)
+	row := q.db.QueryRowContext(ctx, GetMineFieldByNum, arg.Gameid, arg.Playernum, arg.Num)
 	var i Minefield
 	err := row.Scan(
 		&i.ID,
@@ -169,7 +169,7 @@ func (q *Queries) GetMineFieldByNum(ctx context.Context, arg GetMineFieldByNumPa
 	return i, err
 }
 
-const getMineFields = `-- name: GetMineFields :many
+const GetMineFields = `-- name: GetMineFields :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
 FROM
@@ -177,7 +177,7 @@ FROM
 `
 
 func (q *Queries) GetMineFields(ctx context.Context) ([]Minefield, error) {
-	rows, err := q.db.QueryContext(ctx, getMineFields)
+	rows, err := q.db.QueryContext(ctx, GetMineFields)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (q *Queries) GetMineFields(ctx context.Context) ([]Minefield, error) {
 	return items, nil
 }
 
-const getMineFieldsForGame = `-- name: GetMineFieldsForGame :many
+const GetMineFieldsForGame = `-- name: GetMineFieldsForGame :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
 FROM
@@ -224,7 +224,7 @@ WHERE
 `
 
 func (q *Queries) GetMineFieldsForGame(ctx context.Context, gameid int64) ([]Minefield, error) {
-	rows, err := q.db.QueryContext(ctx, getMineFieldsForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetMineFieldsForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +261,7 @@ func (q *Queries) GetMineFieldsForGame(ctx context.Context, gameid int64) ([]Min
 	return items, nil
 }
 
-const getMineFieldsForPlayer = `-- name: GetMineFieldsForPlayer :many
+const GetMineFieldsForPlayer = `-- name: GetMineFieldsForPlayer :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
 FROM
@@ -277,7 +277,7 @@ type GetMineFieldsForPlayerParams struct {
 }
 
 func (q *Queries) GetMineFieldsForPlayer(ctx context.Context, arg GetMineFieldsForPlayerParams) ([]Minefield, error) {
-	rows, err := q.db.QueryContext(ctx, getMineFieldsForPlayer, arg.Gameid, arg.Playernum)
+	rows, err := q.db.QueryContext(ctx, GetMineFieldsForPlayer, arg.Gameid, arg.Playernum)
 	if err != nil {
 		return nil, err
 	}
@@ -314,7 +314,7 @@ func (q *Queries) GetMineFieldsForPlayer(ctx context.Context, arg GetMineFieldsF
 	return items, nil
 }
 
-const updateMineField = `-- name: UpdateMineField :one
+const UpdateMineField = `-- name: UpdateMineField :one
 UPDATE minefields
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -349,7 +349,7 @@ type UpdateMineFieldParams struct {
 }
 
 func (q *Queries) UpdateMineField(ctx context.Context, arg UpdateMineFieldParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updateMineField,
+	row := q.db.QueryRowContext(ctx, UpdateMineField,
 		arg.Gameid,
 		arg.X,
 		arg.Y,

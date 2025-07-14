@@ -16,10 +16,7 @@
 	let name = $state($me.username);
 
 	onMount(async () => {
-		const games = await GameService.loadGameByHash($page.params.hash);
-		if (games.length == 1) {
-			game = games[0];
-		}
+		game = await GameService.loadGameByHash($page.params.hash);
 	});
 
 	const onSubmit = async () => {

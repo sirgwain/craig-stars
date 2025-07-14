@@ -98,7 +98,7 @@ func TestGetGame(t *testing.T) {
 			// GetGame returns a GameWithPlayers so we need the empty slice for comparison
 			var want *cs.GameWithPlayers
 			if tt.want != nil && got != nil {
-				want = &cs.GameWithPlayers{Game: got.Game, Players: []cs.PlayerStatus{}}
+				want = &cs.GameWithPlayers{Game: got.Game}
 				want.UpdatedAt = got.UpdatedAt
 				want.CreatedAt = got.CreatedAt
 			}

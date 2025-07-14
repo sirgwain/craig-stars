@@ -85,6 +85,23 @@ type Game struct {
 	Archived                                  bool
 }
 
+type GamePlayer struct {
+	Gameid        int64
+	ID            int64
+	Updatedat     time.Time
+	Userid        sql.NullInt64
+	Name          string
+	Num           int64
+	Ready         sql.NullBool
+	Aicontrolled  sql.NullBool
+	Aidifficulty  *cs.AIDifficulty
+	Submittedturn sql.NullBool
+	Color         sql.NullString
+	Victor        sql.NullBool
+	Archived      bool
+	Guest         bool
+}
+
 type Minefield struct {
 	ID            int64
 	Createdat     time.Time

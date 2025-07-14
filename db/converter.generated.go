@@ -1277,6 +1277,132 @@ func (c *GameConverter) ConvertGames(source []generated.Game) []cs.Game {
 	}
 	return csGameList
 }
+func (c *GameConverter) ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.PlayerStatus {
+	var csPlayerStatus cs.PlayerStatus
+	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.Updatedat)
+	csPlayerStatus.UserID = NullInt64ToInt64(source.Userid)
+	csPlayerStatus.Name = NullStringToString(source.Name)
+	csPlayerStatus.Num = NullInt64ToInt(source.Num)
+	csPlayerStatus.Ready = NullBoolToBool(source.Ready)
+	csPlayerStatus.AIControlled = NullBoolToBool(source.Aicontrolled)
+	if source.Aidifficulty != nil {
+		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.Aidifficulty)
+	}
+	csPlayerStatus.Guest = NullBoolToBool(source.Guest)
+	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.Submittedturn)
+	csPlayerStatus.Color = NullStringToString(source.Color)
+	csPlayerStatus.Victor = NullBoolToBool(source.Victor)
+	csPlayerStatus.Archived = NullBoolToBool(source.Archived)
+	return csPlayerStatus
+}
+func (c *GameConverter) ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.PlayerStatus {
+	var csPlayerStatus cs.PlayerStatus
+	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.Updatedat)
+	csPlayerStatus.UserID = NullInt64ToInt64(source.Userid)
+	csPlayerStatus.Name = NullStringToString(source.Name)
+	csPlayerStatus.Num = NullInt64ToInt(source.Num)
+	csPlayerStatus.Ready = NullBoolToBool(source.Ready)
+	csPlayerStatus.AIControlled = NullBoolToBool(source.Aicontrolled)
+	if source.Aidifficulty != nil {
+		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.Aidifficulty)
+	}
+	csPlayerStatus.Guest = NullBoolToBool(source.Guest)
+	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.Submittedturn)
+	csPlayerStatus.Color = NullStringToString(source.Color)
+	csPlayerStatus.Victor = NullBoolToBool(source.Victor)
+	csPlayerStatus.Archived = NullBoolToBool(source.Archived)
+	return csPlayerStatus
+}
+func (c *GameConverter) ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.PlayerStatus {
+	var csPlayerStatus cs.PlayerStatus
+	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.Updatedat)
+	csPlayerStatus.UserID = NullInt64ToInt64(source.Userid)
+	csPlayerStatus.Name = NullStringToString(source.Name)
+	csPlayerStatus.Num = NullInt64ToInt(source.Num)
+	csPlayerStatus.Ready = NullBoolToBool(source.Ready)
+	csPlayerStatus.AIControlled = NullBoolToBool(source.Aicontrolled)
+	if source.Aidifficulty != nil {
+		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.Aidifficulty)
+	}
+	csPlayerStatus.Guest = NullBoolToBool(source.Guest)
+	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.Submittedturn)
+	csPlayerStatus.Color = NullStringToString(source.Color)
+	csPlayerStatus.Victor = NullBoolToBool(source.Victor)
+	csPlayerStatus.Archived = NullBoolToBool(source.Archived)
+	return csPlayerStatus
+}
+func (c *GameConverter) ConvertGetPlayerForGameAndUserRowToShipDesign(source generated.GetPlayerForGameAndUserRow) generated.Shipdesign {
+	var generatedShipdesign generated.Shipdesign
+	generatedShipdesign.ID = NullInt64ToInt64(source.ID)
+	generatedShipdesign.Createdat = NullTimeToTime(source.Createdat)
+	generatedShipdesign.Updatedat = NullTimeToTime(source.Updatedat)
+	generatedShipdesign.Gameid = NullInt64ToInt64(source.Gameid)
+	generatedShipdesign.Num = NullInt64ToInt64(source.Num)
+	generatedShipdesign.Playernum = NullInt64ToInt64(source.Playernum)
+	generatedShipdesign.Name = NullStringToString(source.Name)
+	generatedShipdesign.Version = c.sqlNullInt64ToSqlNullInt64(source.Version)
+	generatedShipdesign.Hull = c.sqlNullStringToSqlNullString(source.Hull)
+	generatedShipdesign.Hullsetnumber = c.sqlNullInt64ToSqlNullInt64(source.Hullsetnumber)
+	generatedShipdesign.Candelete = c.sqlNullBoolToSqlNullBool(source.Candelete)
+	generatedShipdesign.Slots = GeneratedShipDesignSlotsToPGeneratedShipDesignSlotsP(source.Slots)
+	if source.Purpose != nil {
+		csShipDesignPurpose := c.csShipDesignPurposeToCsShipDesignPurpose(*source.Purpose)
+		generatedShipdesign.Purpose = &csShipDesignPurpose
+	}
+	generatedShipdesign.Spec = GeneratedShipDesignSpecToPGeneratedShipDesignSpecP(source.Spec)
+	generatedShipdesign.Cannotdelete = NullBoolToBool(source.Cannotdelete)
+	generatedShipdesign.Originalplayernum = c.sqlNullInt64ToSqlNullInt64(source.Originalplayernum)
+	generatedShipdesign.Mysterytrader = c.sqlNullBoolToSqlNullBool(source.Mysterytrader)
+	return generatedShipdesign
+}
+func (c *GameConverter) ConvertGetPlayerForGameRowToShipDesign(source generated.GetPlayerForGameRow) generated.Shipdesign {
+	var generatedShipdesign generated.Shipdesign
+	generatedShipdesign.ID = NullInt64ToInt64(source.ID)
+	generatedShipdesign.Createdat = NullTimeToTime(source.Createdat)
+	generatedShipdesign.Updatedat = NullTimeToTime(source.Updatedat)
+	generatedShipdesign.Gameid = NullInt64ToInt64(source.Gameid)
+	generatedShipdesign.Num = NullInt64ToInt64(source.Num)
+	generatedShipdesign.Playernum = NullInt64ToInt64(source.Playernum)
+	generatedShipdesign.Name = NullStringToString(source.Name)
+	generatedShipdesign.Version = c.sqlNullInt64ToSqlNullInt64(source.Version)
+	generatedShipdesign.Hull = c.sqlNullStringToSqlNullString(source.Hull)
+	generatedShipdesign.Hullsetnumber = c.sqlNullInt64ToSqlNullInt64(source.Hullsetnumber)
+	generatedShipdesign.Candelete = c.sqlNullBoolToSqlNullBool(source.Candelete)
+	generatedShipdesign.Slots = GeneratedShipDesignSlotsToPGeneratedShipDesignSlotsP(source.Slots)
+	if source.Purpose != nil {
+		csShipDesignPurpose := c.csShipDesignPurposeToCsShipDesignPurpose(*source.Purpose)
+		generatedShipdesign.Purpose = &csShipDesignPurpose
+	}
+	generatedShipdesign.Spec = GeneratedShipDesignSpecToPGeneratedShipDesignSpecP(source.Spec)
+	generatedShipdesign.Cannotdelete = NullBoolToBool(source.Cannotdelete)
+	generatedShipdesign.Originalplayernum = c.sqlNullInt64ToSqlNullInt64(source.Originalplayernum)
+	generatedShipdesign.Mysterytrader = c.sqlNullBoolToSqlNullBool(source.Mysterytrader)
+	return generatedShipdesign
+}
+func (c *GameConverter) ConvertGetPlayersWithDesignsForGameRowToShipDesign(source generated.GetPlayersWithDesignsForGameRow) generated.Shipdesign {
+	var generatedShipdesign generated.Shipdesign
+	generatedShipdesign.ID = NullInt64ToInt64(source.ID)
+	generatedShipdesign.Createdat = NullTimeToTime(source.Createdat)
+	generatedShipdesign.Updatedat = NullTimeToTime(source.Updatedat)
+	generatedShipdesign.Gameid = NullInt64ToInt64(source.Gameid)
+	generatedShipdesign.Num = NullInt64ToInt64(source.Num)
+	generatedShipdesign.Playernum = NullInt64ToInt64(source.Playernum)
+	generatedShipdesign.Name = NullStringToString(source.Name)
+	generatedShipdesign.Version = c.sqlNullInt64ToSqlNullInt64(source.Version)
+	generatedShipdesign.Hull = c.sqlNullStringToSqlNullString(source.Hull)
+	generatedShipdesign.Hullsetnumber = c.sqlNullInt64ToSqlNullInt64(source.Hullsetnumber)
+	generatedShipdesign.Candelete = c.sqlNullBoolToSqlNullBool(source.Candelete)
+	generatedShipdesign.Slots = GeneratedShipDesignSlotsToPGeneratedShipDesignSlotsP(source.Slots)
+	if source.Purpose != nil {
+		csShipDesignPurpose := c.csShipDesignPurposeToCsShipDesignPurpose(*source.Purpose)
+		generatedShipdesign.Purpose = &csShipDesignPurpose
+	}
+	generatedShipdesign.Spec = GeneratedShipDesignSpecToPGeneratedShipDesignSpecP(source.Spec)
+	generatedShipdesign.Cannotdelete = NullBoolToBool(source.Cannotdelete)
+	generatedShipdesign.Originalplayernum = c.sqlNullInt64ToSqlNullInt64(source.Originalplayernum)
+	generatedShipdesign.Mysterytrader = c.sqlNullBoolToSqlNullBool(source.Mysterytrader)
+	return generatedShipdesign
+}
 func (c *GameConverter) ConvertLightPlayer(source generated.GetLightPlayerForGameRow) cs.Player {
 	var csPlayer cs.Player
 	csPlayer.GameDBObject = c.generatedGetLightPlayerForGameRowToCsGameDBObject(source)
@@ -1890,6 +2016,28 @@ func (c *GameConverter) salvageCargo(source generated.Salvage) cs.Cargo {
 	csCargo.Boranium = NullInt64ToInt(source.Boranium)
 	csCargo.Germanium = NullInt64ToInt(source.Germanium)
 	return csCargo
+}
+func (c *GameConverter) sqlNullBoolToSqlNullBool(source sql.NullBool) sql.NullBool {
+	var sqlNullBool sql.NullBool
+	sqlNullBool.Bool = source.Bool
+	sqlNullBool.Valid = source.Valid
+	return sqlNullBool
+}
+func (c *GameConverter) sqlNullInt64ToSqlNullInt64(source sql.NullInt64) sql.NullInt64 {
+	var sqlNullInt64 sql.NullInt64
+	sqlNullInt64.Int64 = source.Int64
+	sqlNullInt64.Valid = source.Valid
+	return sqlNullInt64
+}
+func (c *GameConverter) sqlNullStringToSqlNullString(source sql.NullString) sql.NullString {
+	var sqlNullString sql.NullString
+	sqlNullString.String = source.String
+	sqlNullString.Valid = source.Valid
+	return sqlNullString
+}
+func (c *GameConverter) sqlNullTimeToPTimeTime(source sql.NullTime) *time.Time {
+	timeTime := NullTimeToTime(source)
+	return &timeTime
 }
 func (c *GameConverter) wormHoleMapObject(source generated.Wormhole) cs.MapObject {
 	var csMapObject cs.MapObject

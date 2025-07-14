@@ -85,7 +85,7 @@ INSERT INTO
         name,
         num,
         playerNum,
-        grav,
+    grav,
         TEMP,
         rad,
         baseGrav,

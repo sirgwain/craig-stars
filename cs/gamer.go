@@ -1,10 +1,5 @@
 package cs
 
-import (
-	"log"
-	"time"
-)
-
 type gamer struct {
 }
 
@@ -27,11 +22,6 @@ type Gamer interface {
 
 func NewGamer() Gamer {
 	return &gamer{}
-}
-
-func timeTrack(start time.Time, name string) {
-	elapsed := time.Since(start)
-	log.Printf("%s took %s", name, elapsed)
 }
 
 func (c *gamer) CreateGame(hostID int64, settings GameSettings) *Game {

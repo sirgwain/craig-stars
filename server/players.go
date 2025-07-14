@@ -84,7 +84,7 @@ func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
-	player, err := c.GetPlayerForGame(r.Context(), game.ID, db.GetPlayerParams{UserID: user.ID})
+	player, err := c.GetPlayerForGameAndUser(r.Context(), game.ID, user.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -142,7 +142,7 @@ func (s *server) universe(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
-	player, err := c.GetPlayerForGame(r.Context(), game.ID, db.GetPlayerParams{UserID: user.ID})
+	player, err := c.GetPlayerForGameAndUser(r.Context(), game.ID, user.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -300,7 +300,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load this player but with designs so the update works correctly
-	player, err = dbClient.GetPlayerForGame(r.Context(), game.ID, db.GetPlayerParams{PlayerNum: player.Num})
+	player, err = dbClient.GetPlayerForGame(r.Context(), game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player from database")
 		render.Render(w, r, ErrInternalServerError(err))

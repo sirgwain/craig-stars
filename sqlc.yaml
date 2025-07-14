@@ -7,6 +7,7 @@ sql:
       go:
         package: "generated"
         out: "db/generated"
+        emit_exported_queries: true
         overrides:
           # users
           - column: users.discordid
@@ -94,6 +95,11 @@ sql:
               pointer: true
           # players
           - column: players.aidifficulty
+            go_type:
+              import: "github.com/sirgwain/craig-stars/cs"
+              type: AIDifficulty
+              pointer: true
+          - column: game_players.aidifficulty
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: AIDifficulty

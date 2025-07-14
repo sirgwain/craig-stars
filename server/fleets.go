@@ -445,7 +445,7 @@ func (s *server) transferCargo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load this player but with designs so the update works correctly
-	player, err = readWriteClient.GetPlayerForGame(r.Context(), game.ID, db.GetPlayerParams{PlayerNum: player.Num})
+	player, err = readWriteClient.GetPlayerForGame(r.Context(), game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player from database")
 		render.Render(w, r, ErrInternalServerError(err))

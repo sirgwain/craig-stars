@@ -13,7 +13,7 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const createWormhole = `-- name: CreateWormhole :one
+const CreateWormhole = `-- name: CreateWormhole :one
 INSERT INTO
     wormholes (
         createdAt,
@@ -66,7 +66,7 @@ type CreateWormholeRow struct {
 }
 
 func (q *Queries) CreateWormhole(ctx context.Context, arg CreateWormholeParams) (CreateWormholeRow, error) {
-	row := q.db.QueryRowContext(ctx, createWormhole,
+	row := q.db.QueryRowContext(ctx, CreateWormhole,
 		arg.Gameid,
 		arg.X,
 		arg.Y,
@@ -83,18 +83,18 @@ func (q *Queries) CreateWormhole(ctx context.Context, arg CreateWormholeParams) 
 	return i, err
 }
 
-const deleteWormhole = `-- name: DeleteWormhole :exec
+const DeleteWormhole = `-- name: DeleteWormhole :exec
 DELETE FROM wormholes
 WHERE
     id = ?
 `
 
 func (q *Queries) DeleteWormhole(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteWormhole, id)
+	_, err := q.db.ExecContext(ctx, DeleteWormhole, id)
 	return err
 }
 
-const getWormhole = `-- name: GetWormhole :one
+const GetWormhole = `-- name: GetWormhole :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
 FROM
@@ -105,7 +105,7 @@ WHERE
 
 // Wormholes
 func (q *Queries) GetWormhole(ctx context.Context, id int64) (Wormhole, error) {
-	row := q.db.QueryRowContext(ctx, getWormhole, id)
+	row := q.db.QueryRowContext(ctx, GetWormhole, id)
 	var i Wormhole
 	err := row.Scan(
 		&i.ID,
@@ -125,7 +125,7 @@ func (q *Queries) GetWormhole(ctx context.Context, id int64) (Wormhole, error) {
 	return i, err
 }
 
-const getWormholeByNum = `-- name: GetWormholeByNum :one
+const GetWormholeByNum = `-- name: GetWormholeByNum :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
 FROM
@@ -141,7 +141,7 @@ type GetWormholeByNumParams struct {
 }
 
 func (q *Queries) GetWormholeByNum(ctx context.Context, arg GetWormholeByNumParams) (Wormhole, error) {
-	row := q.db.QueryRowContext(ctx, getWormholeByNum, arg.Gameid, arg.Num)
+	row := q.db.QueryRowContext(ctx, GetWormholeByNum, arg.Gameid, arg.Num)
 	var i Wormhole
 	err := row.Scan(
 		&i.ID,
@@ -161,7 +161,7 @@ func (q *Queries) GetWormholeByNum(ctx context.Context, arg GetWormholeByNumPara
 	return i, err
 }
 
-const getWormholes = `-- name: GetWormholes :many
+const GetWormholes = `-- name: GetWormholes :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
 FROM
@@ -169,7 +169,7 @@ FROM
 `
 
 func (q *Queries) GetWormholes(ctx context.Context) ([]Wormhole, error) {
-	rows, err := q.db.QueryContext(ctx, getWormholes)
+	rows, err := q.db.QueryContext(ctx, GetWormholes)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (q *Queries) GetWormholes(ctx context.Context) ([]Wormhole, error) {
 	return items, nil
 }
 
-const getWormholesForGame = `-- name: GetWormholesForGame :many
+const GetWormholesForGame = `-- name: GetWormholesForGame :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
 FROM
@@ -215,7 +215,7 @@ WHERE
 `
 
 func (q *Queries) GetWormholesForGame(ctx context.Context, gameid int64) ([]Wormhole, error) {
-	rows, err := q.db.QueryContext(ctx, getWormholesForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetWormholesForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func (q *Queries) GetWormholesForGame(ctx context.Context, gameid int64) ([]Worm
 	return items, nil
 }
 
-const SaveWormhole = `-- name: SaveWormhole :one
+const UpdateWormhole = `-- name: UpdateWormhole :one
 UPDATE wormholes
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -283,8 +283,8 @@ type UpdateWormholeParams struct {
 	ID               int64
 }
 
-func (q *Queries) SaveWormhole(ctx context.Context, arg UpdateWormholeParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, SaveWormhole,
+func (q *Queries) UpdateWormhole(ctx context.Context, arg UpdateWormholeParams) (time.Time, error) {
+	row := q.db.QueryRowContext(ctx, UpdateWormhole,
 		arg.Gameid,
 		arg.X,
 		arg.Y,

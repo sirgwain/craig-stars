@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const createSalvage = `-- name: CreateSalvage :one
+const CreateSalvage = `-- name: CreateSalvage :one
 INSERT INTO
     salvages (
         createdAt,
@@ -64,7 +64,7 @@ type CreateSalvageRow struct {
 }
 
 func (q *Queries) CreateSalvage(ctx context.Context, arg CreateSalvageParams) (CreateSalvageRow, error) {
-	row := q.db.QueryRowContext(ctx, createSalvage,
+	row := q.db.QueryRowContext(ctx, CreateSalvage,
 		arg.Gameid,
 		arg.X,
 		arg.Y,
@@ -81,18 +81,18 @@ func (q *Queries) CreateSalvage(ctx context.Context, arg CreateSalvageParams) (C
 	return i, err
 }
 
-const deleteSalvage = `-- name: DeleteSalvage :exec
+const DeleteSalvage = `-- name: DeleteSalvage :exec
 DELETE FROM salvages
 WHERE
     id = ?
 `
 
 func (q *Queries) DeleteSalvage(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteSalvage, id)
+	_, err := q.db.ExecContext(ctx, DeleteSalvage, id)
 	return err
 }
 
-const getSalvage = `-- name: GetSalvage :one
+const GetSalvage = `-- name: GetSalvage :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, ironium, boranium, germanium, tags
 FROM
@@ -103,7 +103,7 @@ WHERE
 
 // Salvages
 func (q *Queries) GetSalvage(ctx context.Context, id int64) (Salvage, error) {
-	row := q.db.QueryRowContext(ctx, getSalvage, id)
+	row := q.db.QueryRowContext(ctx, GetSalvage, id)
 	var i Salvage
 	err := row.Scan(
 		&i.ID,
@@ -123,7 +123,7 @@ func (q *Queries) GetSalvage(ctx context.Context, id int64) (Salvage, error) {
 	return i, err
 }
 
-const getSalvageByNum = `-- name: GetSalvageByNum :one
+const GetSalvageByNum = `-- name: GetSalvageByNum :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, ironium, boranium, germanium, tags
 FROM
@@ -139,7 +139,7 @@ type GetSalvageByNumParams struct {
 }
 
 func (q *Queries) GetSalvageByNum(ctx context.Context, arg GetSalvageByNumParams) (Salvage, error) {
-	row := q.db.QueryRowContext(ctx, getSalvageByNum, arg.Gameid, arg.Num)
+	row := q.db.QueryRowContext(ctx, GetSalvageByNum, arg.Gameid, arg.Num)
 	var i Salvage
 	err := row.Scan(
 		&i.ID,
@@ -159,7 +159,7 @@ func (q *Queries) GetSalvageByNum(ctx context.Context, arg GetSalvageByNumParams
 	return i, err
 }
 
-const getSalvages = `-- name: GetSalvages :many
+const GetSalvages = `-- name: GetSalvages :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, ironium, boranium, germanium, tags
 FROM
@@ -167,7 +167,7 @@ FROM
 `
 
 func (q *Queries) GetSalvages(ctx context.Context) ([]Salvage, error) {
-	rows, err := q.db.QueryContext(ctx, getSalvages)
+	rows, err := q.db.QueryContext(ctx, GetSalvages)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func (q *Queries) GetSalvages(ctx context.Context) ([]Salvage, error) {
 	return items, nil
 }
 
-const getSalvagesForGame = `-- name: GetSalvagesForGame :many
+const GetSalvagesForGame = `-- name: GetSalvagesForGame :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, ironium, boranium, germanium, tags
 FROM
@@ -213,7 +213,7 @@ WHERE
 `
 
 func (q *Queries) GetSalvagesForGame(ctx context.Context, gameid int64) ([]Salvage, error) {
-	rows, err := q.db.QueryContext(ctx, getSalvagesForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetSalvagesForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func (q *Queries) GetSalvagesForGame(ctx context.Context, gameid int64) ([]Salva
 	return items, nil
 }
 
-const getSalvagesForPlayer = `-- name: GetSalvagesForPlayer :many
+const GetSalvagesForPlayer = `-- name: GetSalvagesForPlayer :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, ironium, boranium, germanium, tags
 FROM
@@ -265,7 +265,7 @@ type GetSalvagesForPlayerParams struct {
 }
 
 func (q *Queries) GetSalvagesForPlayer(ctx context.Context, arg GetSalvagesForPlayerParams) ([]Salvage, error) {
-	rows, err := q.db.QueryContext(ctx, getSalvagesForPlayer, arg.Gameid, arg.Playernum)
+	rows, err := q.db.QueryContext(ctx, GetSalvagesForPlayer, arg.Gameid, arg.Playernum)
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +301,7 @@ func (q *Queries) GetSalvagesForPlayer(ctx context.Context, arg GetSalvagesForPl
 	return items, nil
 }
 
-const updateSalvage = `-- name: UpdateSalvage :one
+const UpdateSalvage = `-- name: UpdateSalvage :one
 UPDATE salvages
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -334,7 +334,7 @@ type UpdateSalvageParams struct {
 }
 
 func (q *Queries) UpdateSalvage(ctx context.Context, arg UpdateSalvageParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updateSalvage,
+	row := q.db.QueryRowContext(ctx, UpdateSalvage,
 		arg.Gameid,
 		arg.X,
 		arg.Y,

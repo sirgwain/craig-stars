@@ -91,26 +91,8 @@ func (c *client) getPlayersWithDesignsForGame(ctx context.Context, gameID int64)
 			player = players[len(players)-1]
 		}
 
-		if row.DesignID.Valid {
-			player.Designs = append(player.Designs, c.converter.ConvertShipDesign(generated.Shipdesign{
-				ID:                row.DesignID.Int64,
-				Createdat:         row.DesignCreatedat.Time,
-				Updatedat:         row.DesignUpdatedat.Time,
-				Gameid:            row.DesignGameid.Int64,
-				Num:               row.DesignNum.Int64,
-				Playernum:         row.DesignPlayernum.Int64,
-				Name:              row.DesignName.String,
-				Version:           row.DesignVersion,
-				Hull:              row.DesignHull,
-				Hullsetnumber:     row.DesignHullsetnumber,
-				Candelete:         row.DesignCandelete,
-				Slots:             row.DesignSlots,
-				Purpose:           row.DesignPurpose,
-				Spec:              row.DesignSpec,
-				Cannotdelete:      row.DesignCannotdelete.Bool,
-				Originalplayernum: row.DesignOriginalplayernum,
-				Mysterytrader:     row.DesignMysterytrader,
-			}))
+		if row.ID.Valid {
+			player.Designs = append(player.Designs, c.converter.ConvertShipDesign(c.converter.ConvertGetPlayersWithDesignsForGameRowToShipDesign(row)))
 		}
 	}
 
@@ -146,20 +128,11 @@ func (c *client) GetPlayer(ctx context.Context, id int64) (*cs.Player, error) {
 	return &player, nil
 }
 
-// Get all player data except universe intel
-func (c *client) GetPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error) {
-	queryParams := generated.GetPlayerForGameParams{
-		GameId:    gameID,
-		UserId:    nil,
-		PlayerNum: nil,
-	}
-	if params.UserID != 0 {
-		queryParams.UserId = params.UserID
-	}
-	if params.PlayerNum != 0 {
-		queryParams.PlayerNum = params.PlayerNum
-	}
-	rows, err := c.reader.GetPlayerForGame(ctx, queryParams)
+func (c *client) GetPlayerForGame(ctx context.Context, gameID int64, playerNum int) (*cs.Player, error) {
+	rows, err := c.reader.GetPlayerForGame(ctx, generated.GetPlayerForGameParams{
+		Gameid: gameID,
+		Num:    int64(playerNum),
+	})
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -169,26 +142,34 @@ func (c *client) GetPlayerForGame(ctx context.Context, gameID int64, params GetP
 
 	player := c.converter.ConvertPlayer(rows[0].Player)
 	for _, row := range rows {
-		if row.DesignID.Valid {
-			player.Designs = append(player.Designs, c.converter.ConvertShipDesign(generated.Shipdesign{
-				ID:                row.DesignID.Int64,
-				Createdat:         row.DesignCreatedat.Time,
-				Updatedat:         row.DesignUpdatedat.Time,
-				Gameid:            row.DesignGameid.Int64,
-				Num:               row.DesignNum.Int64,
-				Playernum:         row.DesignPlayernum.Int64,
-				Name:              row.DesignName.String,
-				Version:           row.DesignVersion,
-				Hull:              row.DesignHull,
-				Hullsetnumber:     row.DesignHullsetnumber,
-				Candelete:         row.DesignCandelete,
-				Slots:             row.DesignSlots,
-				Purpose:           row.DesignPurpose,
-				Spec:              row.DesignSpec,
-				Cannotdelete:      row.DesignCannotdelete.Bool,
-				Originalplayernum: row.DesignOriginalplayernum,
-				Mysterytrader:     row.DesignMysterytrader,
-			}))
+		if row.ID.Valid {
+			player.Designs = append(player.Designs,
+				c.converter.ConvertShipDesign(
+					c.converter.ConvertGetPlayerForGameRowToShipDesign(row)))
+		}
+	}
+
+	return &player, nil
+}
+
+func (c *client) GetPlayerForGameAndUser(ctx context.Context, gameID, userID int64) (*cs.Player, error) {
+	rows, err := c.reader.GetPlayerForGameAndUser(ctx, generated.GetPlayerForGameAndUserParams{
+		Gameid: gameID,
+		Userid: sql.NullInt64{Valid: true, Int64: userID},
+	})
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	player := c.converter.ConvertPlayer(rows[0].Player)
+	for _, row := range rows {
+		if row.ID.Valid {
+			player.Designs = append(player.Designs,
+				c.converter.ConvertShipDesign(
+					c.converter.ConvertGetPlayerForGameAndUserRowToShipDesign(row)))
 		}
 	}
 
@@ -220,9 +201,9 @@ func (c *client) GetLightPlayerForGame(ctx context.Context, gameID int64, params
 }
 
 // get a full player by id with all dependencies loaded
-func (c *client) GetFullPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.FullPlayer, error) {
+func (c *client) GetFullPlayerForGame(ctx context.Context, gameID, userID int64) (*cs.FullPlayer, error) {
 
-	p, err := c.GetPlayerForGame(ctx, gameID, params)
+	p, err := c.GetPlayerForGameAndUser(ctx, gameID, userID)
 	if err != nil {
 		return nil, err
 	}

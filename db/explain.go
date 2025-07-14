@@ -12,17 +12,9 @@ type QueryPlan struct {
 	Detail  string `json:"detail,omitempty"`
 }
 
-func (c *client) explainQuery(ctx context.Context) ([]QueryPlan, error) {
+func (c *client) explainQuery(ctx context.Context, query string, args ...any) ([]QueryPlan, error) {
 
-	rows, err := c.readConn.QueryContext(ctx, `
-	EXPLAIN QUERY PLAN
-	SELECT
-		p.id,
-		d.id
-	FROM players p
-	LEFT JOIN shipDesigns d ON p.gameId = d.gameId AND p.num = d.playerNum
-	WHERE p.gameId = ?;
-`, 1) // or any gameId
+	rows, err := c.readConn.QueryContext(ctx, "EXPLAIN QUERY PLAN\n"+query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +28,7 @@ func (c *client) explainQuery(ctx context.Context) ([]QueryPlan, error) {
 		if err := rows.Scan(&item.ID, &item.Parent, &item.Notused, &item.Detail); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
-
+		items = append(items, item)
 	}
 
 	return items, nil

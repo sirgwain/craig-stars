@@ -806,7 +806,7 @@ func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPl
 		game.Rules.SetTechStore(techs)
 	}
 
-	player, err := readClient.GetFullPlayerForGame(gr.ctx, gameID, db.GetPlayerParams{UserID: userID})
+	player, err := readClient.GetFullPlayerForGame(gr.ctx, gameID, userID)
 
 	if err != nil {
 		return nil, nil, err

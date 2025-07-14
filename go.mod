@@ -20,6 +20,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/magefile/mage v1.15.0
 	github.com/nsf/jsondiff v0.0.0-20230430225905-43f6cf3098c1
+	github.com/samber/lo v1.51.0
 	github.com/simukti/sqldb-logger v0.0.0-20230108155151-646c1a075551
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 	golang.org/x/tools v0.31.0

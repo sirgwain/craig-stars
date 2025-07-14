@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const createMineralPacket = `-- name: CreateMineralPacket :one
+const CreateMineralPacket = `-- name: CreateMineralPacket :one
 INSERT INTO
     mineralpackets (
         createdAt,
@@ -85,7 +85,7 @@ type CreateMineralPacketRow struct {
 }
 
 func (q *Queries) CreateMineralPacket(ctx context.Context, arg CreateMineralPacketParams) (CreateMineralPacketRow, error) {
-	row := q.db.QueryRowContext(ctx, createMineralPacket,
+	row := q.db.QueryRowContext(ctx, CreateMineralPacket,
 		arg.Gameid,
 		arg.X,
 		arg.Y,
@@ -109,18 +109,18 @@ func (q *Queries) CreateMineralPacket(ctx context.Context, arg CreateMineralPack
 	return i, err
 }
 
-const deleteMineralPacket = `-- name: DeleteMineralPacket :exec
+const DeleteMineralPacket = `-- name: DeleteMineralPacket :exec
 DELETE FROM mineralpackets
 WHERE
     id = ?
 `
 
 func (q *Queries) DeleteMineralPacket(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteMineralPacket, id)
+	_, err := q.db.ExecContext(ctx, DeleteMineralPacket, id)
 	return err
 }
 
-const getMineralPacket = `-- name: GetMineralPacket :one
+const GetMineralPacket = `-- name: GetMineralPacket :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
 FROM
@@ -131,7 +131,7 @@ WHERE
 
 // MineralPackets
 func (q *Queries) GetMineralPacket(ctx context.Context, id int64) (Mineralpacket, error) {
-	row := q.db.QueryRowContext(ctx, getMineralPacket, id)
+	row := q.db.QueryRowContext(ctx, GetMineralPacket, id)
 	var i Mineralpacket
 	err := row.Scan(
 		&i.ID,
@@ -158,7 +158,7 @@ func (q *Queries) GetMineralPacket(ctx context.Context, id int64) (Mineralpacket
 	return i, err
 }
 
-const getMineralPacketByNum = `-- name: GetMineralPacketByNum :one
+const GetMineralPacketByNum = `-- name: GetMineralPacketByNum :one
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
 FROM
@@ -176,7 +176,7 @@ type GetMineralPacketByNumParams struct {
 }
 
 func (q *Queries) GetMineralPacketByNum(ctx context.Context, arg GetMineralPacketByNumParams) (Mineralpacket, error) {
-	row := q.db.QueryRowContext(ctx, getMineralPacketByNum, arg.Gameid, arg.Playernum, arg.Num)
+	row := q.db.QueryRowContext(ctx, GetMineralPacketByNum, arg.Gameid, arg.Playernum, arg.Num)
 	var i Mineralpacket
 	err := row.Scan(
 		&i.ID,
@@ -203,7 +203,7 @@ func (q *Queries) GetMineralPacketByNum(ctx context.Context, arg GetMineralPacke
 	return i, err
 }
 
-const getMineralPackets = `-- name: GetMineralPackets :many
+const GetMineralPackets = `-- name: GetMineralPackets :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
 FROM
@@ -211,7 +211,7 @@ FROM
 `
 
 func (q *Queries) GetMineralPackets(ctx context.Context) ([]Mineralpacket, error) {
-	rows, err := q.db.QueryContext(ctx, getMineralPackets)
+	rows, err := q.db.QueryContext(ctx, GetMineralPackets)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func (q *Queries) GetMineralPackets(ctx context.Context) ([]Mineralpacket, error
 	return items, nil
 }
 
-const getMineralPacketsForGame = `-- name: GetMineralPacketsForGame :many
+const GetMineralPacketsForGame = `-- name: GetMineralPacketsForGame :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
 FROM
@@ -264,7 +264,7 @@ WHERE
 `
 
 func (q *Queries) GetMineralPacketsForGame(ctx context.Context, gameid int64) ([]Mineralpacket, error) {
-	rows, err := q.db.QueryContext(ctx, getMineralPacketsForGame, gameid)
+	rows, err := q.db.QueryContext(ctx, GetMineralPacketsForGame, gameid)
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +307,7 @@ func (q *Queries) GetMineralPacketsForGame(ctx context.Context, gameid int64) ([
 	return items, nil
 }
 
-const getMineralPacketsForPlayer = `-- name: GetMineralPacketsForPlayer :many
+const GetMineralPacketsForPlayer = `-- name: GetMineralPacketsForPlayer :many
 SELECT
     id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
 FROM
@@ -323,7 +323,7 @@ type GetMineralPacketsForPlayerParams struct {
 }
 
 func (q *Queries) GetMineralPacketsForPlayer(ctx context.Context, arg GetMineralPacketsForPlayerParams) ([]Mineralpacket, error) {
-	rows, err := q.db.QueryContext(ctx, getMineralPacketsForPlayer, arg.Gameid, arg.Playernum)
+	rows, err := q.db.QueryContext(ctx, GetMineralPacketsForPlayer, arg.Gameid, arg.Playernum)
 	if err != nil {
 		return nil, err
 	}
@@ -366,7 +366,7 @@ func (q *Queries) GetMineralPacketsForPlayer(ctx context.Context, arg GetMineral
 	return items, nil
 }
 
-const updateMineralPacket = `-- name: UpdateMineralPacket :one
+const UpdateMineralPacket = `-- name: UpdateMineralPacket :one
 UPDATE mineralpackets
 SET
     updatedAt = CURRENT_TIMESTAMP,
@@ -413,7 +413,7 @@ type UpdateMineralPacketParams struct {
 }
 
 func (q *Queries) UpdateMineralPacket(ctx context.Context, arg UpdateMineralPacketParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, updateMineralPacket,
+	row := q.db.QueryRowContext(ctx, UpdateMineralPacket,
 		arg.Gameid,
 		arg.X,
 		arg.Y,

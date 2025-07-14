@@ -54,10 +54,6 @@ export class GameService {
 		return Service.get<GameWithPlayers[]>('/api/games');
 	}
 
-	static async loadHostedGames(): Promise<GameWithPlayers[]> {
-		return Service.get<GameWithPlayers[]>('/api/games/hosted');
-	}
-
 	static async loadOpenGames(): Promise<GameWithPlayers[]> {
 		return Service.get<GameWithPlayers[]>('/api/games/open');
 	}
@@ -103,7 +99,7 @@ export class GameService {
 		return await response.json();
 	}
 
-	static async loadGameByHash(hash: string): Promise<GameWithPlayers[]> {
+	static async loadGameByHash(hash: string): Promise<GameWithPlayers> {
 		const response = await fetch(`/api/games/invite/${hash}`, {
 			method: 'GET',
 			headers: {
@@ -114,7 +110,7 @@ export class GameService {
 		if (!response.ok) {
 			await Service.throwError(response);
 		}
-		return (await response.json()) as GameWithPlayers[];
+		return (await response.json()) as GameWithPlayers;
 	}
 
 	static async loadLightPlayer(gameId: number): Promise<CommandedPlayer> {
