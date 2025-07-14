@@ -41,7 +41,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    createdAt,
+    updatedAt
 `
 
 type CreateSalvageParams struct {
@@ -210,6 +212,8 @@ FROM
     salvages
 WHERE
     gameId = ?
+ORDER BY
+    num
 `
 
 func (q *Queries) GetSalvagesForGame(ctx context.Context, gameid int64) ([]Salvage, error) {
@@ -257,6 +261,8 @@ FROM
 WHERE
     gameId = ?
     AND playerNum = ?
+ORDER BY
+    num
 `
 
 type GetSalvagesForPlayerParams struct {

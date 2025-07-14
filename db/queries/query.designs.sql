@@ -25,6 +25,14 @@ SELECT
 FROM
     shipdesigns;
 
+-- name: GetShipDesignsForGame :many
+SELECT
+    *
+FROM
+    shipDesigns
+WHERE
+    gameId = ?;
+
 -- name: GetShipDesignsForPlayer :many
 SELECT
     *

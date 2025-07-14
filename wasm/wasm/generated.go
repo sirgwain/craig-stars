@@ -4638,9 +4638,12 @@ func GetWormholeSpec(o js.Value) cs.WormholeSpec {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.Stats = GetWormholeStats(o.Get("stats"))
 	return obj
 }
 func SetWormholeSpec(o js.Value, obj *cs.WormholeSpec) {
+	o.Set("stats", map[string]any{})
+	SetWormholeStats(o.Get("stats"), &obj.Stats)
 }
 
 func GetWormholeStability(o js.Value) cs.WormholeStability {

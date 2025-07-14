@@ -186,7 +186,7 @@ export class CommandedFleet implements Fleet {
 			targetPlanet &&
 			owned(targetPlanet) &&
 			player.isFriend(targetPlanet.playerNum) &&
-			(targetPlanet.spec.dockCapacity ?? 0) != 0
+			(targetPlanet.spec?.dockCapacity ?? 0) != 0
 		);
 	}
 

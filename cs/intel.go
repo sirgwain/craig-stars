@@ -80,15 +80,15 @@ type Intel struct {
 type PlanetIntel struct {
 	Intel                         `tstype:",extends"`
 	MapObject                     `tstype:",extends"`
-	Hab                           Hab        `json:"hab"`
-	BaseHab                       Hab        `json:"baseHab"`
-	MineralConcentration          Mineral    `json:"mineralConcentration"`
-	Cargo                         Cargo      `json:"cargo"`
+	Hab                           Hab        `json:"hab,omitzero"`
+	BaseHab                       Hab        `json:"baseHab,omitzero"`
+	MineralConcentration          Mineral    `json:"mineralConcentration,omitzero"`
+	Cargo                         Cargo      `json:"cargo,omitzero"`
 	CargoDiscovered               bool       `json:"cargoDiscovered,omitempty"`
 	PlanetHabitability            int        `json:"planetHabitability,omitempty"`
 	PlanetHabitabilityTerraformed int        `json:"planetHabitabilityTerraformed,omitempty"`
 	Homeworld                     bool       `json:"homeworld,omitempty"`
-	Spec                          PlanetSpec `json:"spec"`
+	Spec                          PlanetSpec `json:"spec,omitzero"`
 }
 
 func (pi *PlanetIntel) GetPopulation() int {
@@ -116,13 +116,13 @@ type FleetIntel struct {
 	WarpSpeed         int         `json:"warpSpeed"`
 	Fuel              int         `json:"fuel"`
 	Mass              int         `json:"mass"`
-	Cargo             Cargo       `json:"cargo,omitempty"`
+	Cargo             Cargo       `json:"cargo,omitzero"`
 	CargoDiscovered   bool        `json:"cargoDiscovered,omitempty"`
 	Freighter         bool        `json:"freighter,omitempty"`
 	ScanRange         int         `json:"scanRange,omitempty"`
 	ScanRangePen      int         `json:"scanRangePen,omitempty"`
 	Tokens            []ShipToken `json:"tokens"`
-	Spec              FleetSpec   `json:"spec"`
+	Spec              FleetSpec   `json:"spec,omitzero"`
 }
 
 type MineralPacketIntel struct {
@@ -175,7 +175,7 @@ type PlayerIntel struct {
 }
 
 type ScoreIntel struct {
-	ScoreHistory []PlayerScore `json:"scoreHistory"`
+	ScoreHistory []PlayerScore `json:"scoreHistory,omitzero"`
 }
 
 // create a new FleetIntel object by key

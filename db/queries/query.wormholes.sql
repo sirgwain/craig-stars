@@ -30,7 +30,9 @@ SELECT
 FROM
     wormholes
 WHERE
-    gameId = ?;
+    gameId = ?
+ORDER BY
+    num;
 
 -- name: CreateWormhole :one
 INSERT INTO
@@ -62,7 +64,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    ) RETURNING id,
+    createdAt,
+    updatedAt;
 
 -- name: UpdateWormhole :one
 UPDATE wormholes

@@ -31,7 +31,7 @@ export type MovingMapObject = {
 } & MapObject;
 
 export const emptyMapObject = (): MapObject => {
-	return { type: '', name: '', position: emptyVector, num: 0, playerNum: 0, tags: {} };
+	return { type: '', name: '', position: emptyVector, num: 0, playerNum: 0 };
 };
 
 /**

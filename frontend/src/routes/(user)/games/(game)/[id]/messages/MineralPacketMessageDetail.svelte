@@ -55,7 +55,7 @@
 	<!-- for these messages, damage should never be null -->
 	{#if damage}
 		<!-- start with safe conditions, we have a catcher, we live on a starbase, etc -->
-		{#if target?.spec.hasStarbase && (target.spec.safePacketSpeed ?? 0) >= mineralPacket.warpSpeed}
+		{#if target?.spec?.hasStarbase && (target.spec.safePacketSpeed ?? 0) >= mineralPacket.warpSpeed}
 			Fortunately, your starbase's mass driver is more than capable of safely catching this packet.
 			Huzzah!
 		{:else if damage.uncaught == MineralPacketDecayToNothing}
@@ -65,7 +65,7 @@
 			by the ensuing collision.
 		{:else if (damage.killed ?? 0) > 0 || (damage.defensesDestroyed ?? 0) > 0}
 			<!-- uh oh, this packet will damage us. report how much and when -->
-			{#if target?.spec.hasStarbase}
+			{#if target?.spec?.hasStarbase}
 				{#if (damage.killed ?? 0) >= population(target?.cargo)}
 					Your starbase does not have a powerful enough mass driver to safely catch this packet. The
 					entire planet will be annihilated when it strikes in {eta} years.

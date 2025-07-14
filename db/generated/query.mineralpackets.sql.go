@@ -55,7 +55,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    createdAt,
+    updatedAt
 `
 
 type CreateMineralPacketParams struct {
@@ -261,6 +263,9 @@ FROM
     mineralpackets
 WHERE
     gameId = ?
+ORDER BY
+    playerNum,
+    num
 `
 
 func (q *Queries) GetMineralPacketsForGame(ctx context.Context, gameid int64) ([]Mineralpacket, error) {
@@ -315,6 +320,8 @@ FROM
 WHERE
     gameId = ?
     AND playerNum = ?
+ORDER BY
+    num
 `
 
 type GetMineralPacketsForPlayerParams struct {

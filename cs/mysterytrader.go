@@ -13,8 +13,8 @@ type MysteryTrader struct {
 	RequestedBoon   int                     `json:"requestedBoon,omitempty"`
 	RewardType      MysteryTraderRewardType `json:"rewardType"`
 	Heading         Vector                  `json:"heading,omitempty"`
-	PlayersRewarded map[int]bool            `json:"playersRewarded"`
-	Spec            MysteryTraderSpec       `json:"spec"`
+	PlayersRewarded map[int]bool            `json:"playersRewarded,omitzero"`
+	Spec            MysteryTraderSpec       `json:"spec,omitzero"`
 }
 
 // MysteryTraderSpec is currently empty. If we update it, remove this eslint line for the type

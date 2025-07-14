@@ -141,12 +141,12 @@
 			<div class="flex mt-1">
 				<span class="text-tile-item-title">Warp Factor</span>
 				<span class="flex-1 ml-1">
-					{#if waypointPlanet && waypointPlanetFriendly && waypointPlanet.spec.hasStargate}
+					{#if waypointPlanet && waypointPlanetFriendly && waypointPlanet.spec?.hasStargate}
 						<WarpSpeedGauge
 							onValueChanged={(value) => onWarpSpeedChanged(value)}
 							onValueDragged={(value) => onWarpSpeedDragged(value)}
 							value={waypoint.warpSpeed}
-							warnSpeed={fleet.spec.engine.maxSafeSpeed
+							warnSpeed={fleet.spec.engine?.maxSafeSpeed
 								? fleet.spec.engine.maxSafeSpeed + 1
 								: undefined}
 							max={StargateWarpSpeed}
@@ -156,7 +156,7 @@
 						<WarpSpeedGauge
 							onValueChanged={(value) => onWarpSpeedChanged(value)}
 							onValueDragged={(value) => onWarpSpeedDragged(value)}
-							warnSpeed={fleet.spec.engine.maxSafeSpeed
+							warnSpeed={fleet.spec.engine?.maxSafeSpeed
 								? fleet.spec.engine.maxSafeSpeed + 1
 								: undefined}
 							value={waypoint.warpSpeed}

@@ -254,7 +254,7 @@
 					onValueChanged={(value) => onPatrolWarpSpeedChanged(value)}
 					onValueDragged={(value) => onPatrolWarpSpeedDragged(value)}
 					value={waypoint.patrolWarpSpeed}
-					warnSpeed={fleet.spec.engine.maxSafeSpeed
+					warnSpeed={fleet.spec.engine?.maxSafeSpeed
 						? fleet.spec.engine.maxSafeSpeed + 1
 						: undefined}
 					warp0Text="Automatic"

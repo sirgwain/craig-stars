@@ -5,9 +5,9 @@ import "maps"
 type PRTSpec struct {
 	PRT                              PRT              `json:"prt,omitempty"`
 	PointCost                        int              `json:"pointCost,omitempty"`
-	StartingTechLevels               TechLevel        `json:"startingTechLevels,omitempty"`
-	StartingPlanets                  []StartingPlanet `json:"startingPlanets,omitempty"`
-	TechCostOffset                   TechCostOffset   `json:"techCostOffset,omitempty"`
+	StartingTechLevels               TechLevel        `json:"startingTechLevels,omitzero"`
+	StartingPlanets                  []StartingPlanet `json:"startingPlanets,omitzero"`
+	TechCostOffset                   TechCostOffset   `json:"techCostOffset,omitzero"`
 	MineralsPerSingleMineralPacket   int              `json:"mineralsPerSingleMineralPacket,omitempty"`
 	MineralsPerMixedMineralPacket    int              `json:"mineralsPerMixedMineralPacket,omitempty"`
 	PacketResourceCost               int              `json:"packetResourceCost,omitempty"`
@@ -24,13 +24,13 @@ type PRTSpec struct {
 	CanGateCargo                     bool             `json:"canGateCargo,omitempty"`
 	CanDetectStargatePlanets         bool             `json:"canDetectStargatePlanets,omitempty"`
 	ShipsVanishInVoid                bool             `json:"shipsVanishInVoid,omitempty"`
-	BuiltInScanner                   BuiltInScanner   `json:"builtInScanner,omitempty"`
+	BuiltInScanner                   BuiltInScanner   `json:"builtInScanner,omitzero"`
 	TechsCostExtraLevel              int              `json:"techsCostExtraLevel,omitempty"`
-	FreighterGrowth                  FreighterGrowth  `json:"freighterGrowth,omitempty"`
+	FreighterGrowth                  FreighterGrowth  `json:"freighterGrowth,omitzero"`
 	GrowthFactor                     float64          `json:"growthFactor,omitempty"`
 	MaxPopulationOffset              float64          `json:"maxPopulationOffset,omitempty"`
 	BuiltInCloakUnits                int              `json:"builtInCloakUnits,omitempty"`
-	StealsResearch                   StealsResearch   `json:"stealsResearch,omitempty"`
+	StealsResearch                   StealsResearch   `json:"stealsResearch,omitzero"`
 	FreeCargoCloaking                bool             `json:"freeCargoCloaking,omitempty"`
 	MineFieldsAreScanners            bool             `json:"mineFieldsAreScanners,omitempty"`
 	MineFieldRateMoveFactor          float64          `json:"mineFieldRateMoveFactor,omitempty"`
@@ -64,10 +64,10 @@ type PRTSpec struct {
 
 type LRTSpec struct {
 	LRT                           LRT             `json:"lrt,omitempty"`
-	StartingFleets                []StartingFleet `json:"startingFleets,omitempty"`
+	StartingFleets                []StartingFleet `json:"startingFleets,omitzero"`
 	PointCost                     int             `json:"pointCost,omitempty"`
-	StartingTechLevels            TechLevel       `json:"startingTechLevels,omitempty"`
-	TechCostOffset                TechCostOffset  `json:"techCostOffset,omitempty"`
+	StartingTechLevels            TechLevel       `json:"startingTechLevels,omitzero"`
+	TechCostOffset                TechCostOffset  `json:"techCostOffset,omitzero"`
 	NewTechCostFactorOffset       float64         `json:"newTechCostFactorOffset,omitempty"`
 	MiniaturizationMax            float64         `json:"miniaturizationMax,omitempty"`
 	MiniaturizationPerLevel       float64         `json:"miniaturizationPerLevel,omitempty"`
@@ -121,7 +121,7 @@ type StartingPlanet struct {
 	HasMassDriver      bool            `json:"hasMassDriver,omitempty"`
 	StarbaseDesignName string          `json:"starbaseDesignName,omitempty"`
 	StarbaseHull       string          `json:"starbaseHull,omitempty"`
-	StartingFleets     []StartingFleet `json:"startingFleets,omitempty"`
+	StartingFleets     []StartingFleet `json:"startingFleets,omitzero"`
 	Homeworld          bool            `json:"homeworld,omitempty"`
 }
 

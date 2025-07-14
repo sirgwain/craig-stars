@@ -23,8 +23,6 @@
 		hullSetNumber: 0,
 		slots: [],
 		spec: {
-			engine: {},
-			techLevel: {}
 		} as ShipDesignSpec
 	});
 

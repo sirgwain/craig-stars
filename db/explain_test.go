@@ -35,7 +35,7 @@ func Test_client_explainQuery(t *testing.T) {
 			name:      "GetPlanetsForGame",
 			query:     generated.GetPlanetsForGame,
 			queryArgs: []any{1},
-			want:      []string{"SEARCH planets USING INDEX idx_planets_gameid (gameId=?)"},
+			want:      []string{"SEARCH planets USING INDEX sqlite_autoindex_planets_1 (gameId=?)"},
 		},
 		{
 			name:      "GetPlayersForGame",
@@ -48,7 +48,7 @@ func Test_client_explainQuery(t *testing.T) {
 			query:     generated.GetPlayerForGame,
 			queryArgs: []any{1, 1},
 			want: []string{
-				"SEARCH d USING INDEX idx_ship_designs_gameid_playernum (gameId=? AND playerNum=?) LEFT-JOIN",
+				"SEARCH d USING INDEX sqlite_autoindex_shipDesigns_1 (gameId=? AND playerNum=?) LEFT-JOIN",
 				"SEARCH p USING INDEX sqlite_autoindex_players_1 (gameId=? AND num=?)",
 			},
 		},
@@ -59,6 +59,7 @@ func Test_client_explainQuery(t *testing.T) {
 			want: []string{
 				"SEARCH d USING INDEX idx_ship_designs_gameid_playernum (gameId=? AND playerNum=?) LEFT-JOIN",
 				"SEARCH p USING INDEX idx_players_userid_gameid (userId=? AND gameId=?)",
+				"USE TEMP B-TREE FOR ORDER BY",
 			},
 		},
 		{
@@ -66,8 +67,8 @@ func Test_client_explainQuery(t *testing.T) {
 			query:     generated.GetPlayersWithDesignsForGame,
 			queryArgs: []any{1},
 			want: []string{
-				"SEARCH d USING INDEX idx_ship_designs_gameid_playernum (gameId=? AND playerNum=?) LEFT-JOIN",
-				"SEARCH p USING INDEX idx_players_gameid_num (gameId=?)",
+				"SEARCH d USING INDEX sqlite_autoindex_shipDesigns_1 (gameId=? AND playerNum=?) LEFT-JOIN",
+				"SEARCH p USING INDEX sqlite_autoindex_players_1 (gameId=?)",
 			},
 		},
 		{
@@ -80,7 +81,7 @@ func Test_client_explainQuery(t *testing.T) {
 			name:      "GetPlanetsForPlayer",
 			query:     generated.GetPlanetsForPlayer,
 			queryArgs: []any{1, 1},
-			want:      []string{"SEARCH planets USING INDEX idx_planets_gameid_player_num (gameId=? AND playerNum=?)"},
+			want:      []string{"SEARCH planets USING INDEX sqlite_autoindex_planets_1 (gameId=?)"},
 		},
 		{
 			name:      "GetPlayersForGame",

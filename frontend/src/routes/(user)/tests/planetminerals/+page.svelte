@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { MapObjectTypePlanet, type PlanetIntel, type PlanetSpec } from '$lib/types/cs';
+	import { MapObjectTypePlanet, type PlanetIntel } from '$lib/types/cs';
 	import PlanetMineralsGraph from '../../games/(game)/[id]/(main)/PlanetMineralsGraph.svelte';
 
 	const planet1: PlanetIntel = {
@@ -11,8 +11,6 @@
 		playerNum: 0,
 		mineralConcentration: { ironium: 10, boranium: 20, germanium: 30 },
 		cargo: { ironium: 1000, boranium: 2000, germanium: 4000, colonists: 2500 },
-		tags: {},
-		spec: {} as PlanetSpec
 	};
 
 	const planet2: PlanetIntel = {
@@ -24,8 +22,6 @@
 		playerNum: 0,
 		mineralConcentration: { ironium: 130, boranium: 20, germanium: 30 },
 		cargo: { ironium: 10000, boranium: 2000, germanium: 4000, colonists: 2500 },
-		tags: {},
-		spec: {} as PlanetSpec
 	};
 </script>
 

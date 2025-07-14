@@ -47,7 +47,7 @@
 					</div>
 				</div>
 				<div class="mt-1">
-					{#if planet.spec.hasStarbase}
+					{#if planet.spec?.hasStarbase}
 						<Starbase class="w-4 h-4 starbase" />
 					{/if}
 				</div>
@@ -55,21 +55,21 @@
 					<div class="flex justify-between">
 						<div class="text-tile-item-title text-ironium">Ironium</div>
 						<div>
-							{(planet.cargo.ironium ?? 0).toLocaleString()}kT ({planet.mineralConcentration
+							{(planet.cargo?.ironium ?? 0).toLocaleString()}kT ({planet.mineralConcentration
 								?.ironium})
 						</div>
 					</div>
 					<div class="flex justify-between">
 						<div class="text-tile-item-title text-boranium">Boranium</div>
 						<div>
-							{(planet.cargo.boranium ?? 0).toLocaleString()}kT ({planet.mineralConcentration
+							{(planet.cargo?.boranium ?? 0).toLocaleString()}kT ({planet.mineralConcentration
 								?.boranium})
 						</div>
 					</div>
 					<div class="flex justify-between">
 						<div class="text-tile-item-title text-germanium">Germanium</div>
 						<div>
-							{(planet.cargo.germanium ?? 0).toLocaleString()}kT ({planet.mineralConcentration
+							{(planet.cargo?.germanium ?? 0).toLocaleString()}kT ({planet.mineralConcentration
 								?.germanium})
 						</div>
 					</div>
@@ -91,7 +91,7 @@
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Fleet Mass:</div>
 					<div>
-						{fleet.spec.mass}kT
+						{fleet.spec?.mass ?? 0}kT
 					</div>
 				</div>
 				<div class="flex flex-row">

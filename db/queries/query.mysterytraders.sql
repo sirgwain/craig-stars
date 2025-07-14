@@ -30,7 +30,9 @@ SELECT
 FROM
     mysterytraders
 WHERE
-    gameId = ?;
+    gameId = ?
+ORDER BY
+    num;
 
 -- name: CreateMysteryTrader :one
 INSERT INTO
@@ -72,7 +74,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    ) RETURNING id,
+    createdAt,
+    updatedAt;
 
 -- name: UpdateMysteryTrader :one
 UPDATE mysterytraders

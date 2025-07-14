@@ -105,7 +105,7 @@
 	<FleetEngineStrainMessageDetail {message} />
 {:else if message.type === PlayerMessageFleetGeneratedFuel}
 	{@const hasRamscoops = fleet?.tokens?.some(
-		(t) => ($universe.getDesign(fleet.playerNum, t.designNum)?.spec?.engine.freeSpeed ?? 0) > 1
+		(t) => ($universe.getDesign(fleet.playerNum, t.designNum)?.spec?.engine?.freeSpeed ?? 0) > 1
 	)}
 	{#if hasRamscoops}
 		{message.targetName}'s ramscoops have produced {message.spec.amount}mg of fuel from interstellar

@@ -53,7 +53,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    createdAt,
+    updatedAt
 `
 
 type CreateMysteryTraderParams struct {
@@ -247,6 +249,8 @@ FROM
     mysterytraders
 WHERE
     gameId = ?
+ORDER BY
+    num
 `
 
 func (q *Queries) GetMysteryTradersForGame(ctx context.Context, gameid int64) ([]Mysterytrader, error) {

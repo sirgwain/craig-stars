@@ -187,9 +187,7 @@
 				queueItems.splice(selectedQueueItemIndex + 1, 0, {
 					type: item.type,
 					quantity,
-					designNum: item.designNum,
-					allocated: {},
-					tags: {}
+					designNum: item.designNum
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
@@ -220,8 +218,6 @@
 					{
 						type: item.type,
 						designNum: item.designNum,
-						allocated: {},
-						tags: {},
 						quantity
 					},
 					...queueItems
@@ -300,9 +296,7 @@
 			queueItems = [
 				...concreteItems,
 				...plan.items.map((item) => ({
-					...item,
-					allocated: {}, // add some empties for type safety
-					tags: {}
+					...item
 				}))
 			];
 			contributesOnlyLeftoverToResearch = plan.contributesOnlyLeftoverToResearch ?? false;

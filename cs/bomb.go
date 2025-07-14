@@ -22,7 +22,7 @@ type BombingResult struct {
 	MinesDestroyed     int    `json:"minesDestroyed,omitempty"`
 	FactoriesDestroyed int    `json:"factoriesDestroyed,omitempty"`
 	DefensesDestroyed  int    `json:"defensesDestroyed,omitempty"`
-	UnterraformAmount  Hab    `json:"unterraformAmount,omitempty"`
+	UnterraformAmount  Hab    `json:"unterraformAmount,omitzero"`
 	PlanetEmptied      bool   `json:"planetEmptied,omitempty"`
 	fleet              *Fleet
 }

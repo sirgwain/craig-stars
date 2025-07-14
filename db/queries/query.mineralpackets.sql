@@ -31,7 +31,10 @@ SELECT
 FROM
     mineralpackets
 WHERE
-    gameId = ?;
+    gameId = ?
+ORDER BY
+    playerNum,
+    num;
 
 -- name: GetMineralPacketsForPlayer :many
 SELECT
@@ -40,7 +43,9 @@ FROM
     mineralpackets
 WHERE
     gameId = ?
-    AND playerNum = ?;
+    AND playerNum = ?
+ORDER BY
+    num;
 
 -- name: CreateMineralPacket :one
 INSERT INTO
@@ -86,7 +91,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    ) RETURNING id,
+    createdAt,
+    updatedAt;
 
 -- name: UpdateMineralPacket :one
 UPDATE mineralpackets

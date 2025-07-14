@@ -35,7 +35,7 @@
 	let { onShowCargoTransferDialog, hideTitle, hideCycleButton }: Props = $props();
 
 	function showStarbaseDesign(e: MouseEvent) {
-		if (selectedPlanet?.spec.starbaseDesignNum) {
+		if (selectedPlanet?.spec?.starbaseDesignNum) {
 			onShipDesignTooltip(
 				e,
 				$universe.getDesign(selectedPlanet.playerNum, selectedPlanet.spec.starbaseDesignNum)
@@ -91,7 +91,7 @@
 				</div>
 			{/if}
 			<div>
-				{#if selectedPlanet && selectedPlanet.spec.hasStarbase}
+				{#if selectedPlanet && selectedPlanet.spec?.hasStarbase}
 					<button
 						type="button"
 						onpointerdown={(e) => {

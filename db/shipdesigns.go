@@ -8,6 +8,20 @@ import (
 	"github.com/sirgwain/craig-stars/db/generated"
 )
 
+func (c *client) GetShipDesignsForGame(ctx context.Context, gameID int64) ([]*cs.ShipDesign, error) {
+
+	items, err := c.reader.GetShipDesignsForGame(ctx, gameID)
+
+	if err == sql.ErrNoRows {
+		return []*cs.ShipDesign{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return c.converter.ConvertShipDesigns(items), nil
+}
+
 func (c *client) GetShipDesignsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.ShipDesign, error) {
 
 	items, err := c.reader.GetShipDesignsForPlayer(ctx, generated.GetShipDesignsForPlayerParams{

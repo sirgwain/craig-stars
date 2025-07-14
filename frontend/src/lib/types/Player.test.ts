@@ -1,7 +1,7 @@
 import techjson from '$lib/ssr/techs.json';
 import { describe, expect, it } from 'vitest';
 import { CommandedPlayer, canLearnTech } from './Player';
-import type { ShipDesign } from './cs';
+import type { ShipDesign, ShipDesignSpec } from './cs';
 import {
 	IFE,
 	IS,
@@ -31,6 +31,7 @@ const fuelMizer: TechEngine = {
 	mass: 6,
 	idealSpeed: 6,
 	freeSpeed: 4,
+	maxSafeSpeed: 9,
 	fuelUsage: [0, 0, 0, 0, 0, 35, 120, 175, 235, 360, 420]
 };
 
@@ -109,7 +110,6 @@ export const baseStationDesign: ShipDesign = {
 	slots: [],
 	spec: {
 		hullType: 'Starbase',
-		engine: {},
 		cost: {
 			ironium: 92,
 			boranium: 61,
@@ -126,7 +126,7 @@ export const baseStationDesign: ShipDesign = {
 		spaceDock: -1,
 		cloakPercentFullCargo: -4611686018427388000,
 		maxPopulation: 1000000
-	}
+	} as ShipDesignSpec
 };
 
 export const orbitalFort2Design: ShipDesign = {
@@ -163,7 +163,6 @@ export const orbitalFort2Design: ShipDesign = {
 	],
 	spec: {
 		hullType: 'OrbitalFort',
-		engine: {},
 		cost: {
 			ironium: 463,
 			boranium: 144,
@@ -202,7 +201,7 @@ export const orbitalFort2Design: ShipDesign = {
 	}
 };
 
-const techStore = techjson as TechStore;
+const techStore = techjson as unknown as TechStore;
 
 describe('player test', () => {
 	it('checks tech requirements', () => {

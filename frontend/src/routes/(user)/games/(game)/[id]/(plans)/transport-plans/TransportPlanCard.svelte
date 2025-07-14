@@ -25,11 +25,11 @@
 	};
 
 	const isEmpty = (plan: TransportPlan) =>
-		(plan.tasks.fuel.action ?? TransportActionNone) == TransportActionNone &&
-		(plan.tasks.ironium.action ?? TransportActionNone) == TransportActionNone &&
-		(plan.tasks.boranium.action ?? TransportActionNone) == TransportActionNone &&
-		(plan.tasks.germanium.action ?? TransportActionNone) == TransportActionNone &&
-		(plan.tasks.colonists.action ?? TransportActionNone) == TransportActionNone;
+		(plan.tasks?.fuel.action ?? TransportActionNone) == TransportActionNone &&
+		(plan.tasks?.ironium.action ?? TransportActionNone) == TransportActionNone &&
+		(plan.tasks?.boranium.action ?? TransportActionNone) == TransportActionNone &&
+		(plan.tasks?.germanium.action ?? TransportActionNone) == TransportActionNone &&
+		(plan.tasks?.colonists.action ?? TransportActionNone) == TransportActionNone;
 </script>
 
 <div
@@ -51,17 +51,17 @@
 				</div>
 			{:else}
 				<TransportActionDescription
-					action={plan.tasks.fuel.action}
-					amount={plan.tasks.fuel.amount}
+					action={plan.tasks?.fuel.action}
+					amount={plan.tasks?.fuel.amount}
 					units="mg"
 					title="Fuel"
 					titleTextClass="text-fuel"
 				/>
 				<TransportActionDescription
-					action={plan.tasks.ironium.action}
-					amount={plan.tasks.ironium.amount}
+					action={plan.tasks?.ironium.action}
+					amount={plan.tasks?.ironium.amount}
 					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
-						plan.tasks.ironium.action ?? TransportActionNone
+						plan.tasks?.ironium.action ?? TransportActionNone
 					) != -1
 						? '%'
 						: 'kT'}
@@ -69,10 +69,10 @@
 					titleTextClass="text-ironium"
 				/>
 				<TransportActionDescription
-					action={plan.tasks.boranium.action}
-					amount={plan.tasks.boranium.amount}
+					action={plan.tasks?.boranium.action}
+					amount={plan.tasks?.boranium.amount}
 					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
-						plan.tasks.boranium.action ?? TransportActionNone
+						plan.tasks?.boranium.action ?? TransportActionNone
 					) != -1
 						? '%'
 						: 'kT'}
@@ -80,10 +80,10 @@
 					titleTextClass="text-boranium"
 				/>
 				<TransportActionDescription
-					action={plan.tasks.germanium.action}
-					amount={plan.tasks.germanium.amount}
+					action={plan.tasks?.germanium.action}
+					amount={plan.tasks?.germanium.amount}
 					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
-						plan.tasks.germanium.action ?? TransportActionNone
+						plan.tasks?.germanium.action ?? TransportActionNone
 					) != -1
 						? '%'
 						: 'kT'}
@@ -91,10 +91,10 @@
 					titleTextClass="text-germanium"
 				/>
 				<TransportActionDescription
-					action={plan.tasks.colonists.action}
-					amount={plan.tasks.colonists.amount}
+					action={plan.tasks?.colonists.action}
+					amount={plan.tasks?.colonists.amount}
 					units={[TransportActionWaitForPercent, TransportActionFillPercent].indexOf(
-						plan.tasks.colonists.action ?? TransportActionNone
+						plan.tasks?.colonists.action ?? TransportActionNone
 					) != -1
 						? '%'
 						: '00'}

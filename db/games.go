@@ -163,9 +163,19 @@ func (c *client) GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error
 
 	game := c.converter.ConvertGame(item)
 
-	players, err := c.getPlayersForGame(ctx, game.ID)
+	players, err := c.GetPlayersForGame(ctx, game.ID)
 	if err != nil {
 		return nil, fmt.Errorf("load players for game: %w", err)
+	}
+
+	designs, err := c.GetShipDesignsForGame(ctx, game.ID)
+	if err != nil {
+		return nil, fmt.Errorf("load designs for game: %w", err)
+	}
+
+	for _, design := range designs {
+		player := players[design.PlayerNum-1]
+		player.Designs = append(player.Designs, design)
 	}
 
 	universeLogger := log.With().Int64("GameID", game.ID).Str("GameName", game.Name).Logger()

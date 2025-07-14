@@ -51,6 +51,7 @@
 			...$universe.scoreIntels
 				.map((score) => score.scoreHistory)
 				.filter((scoreHistory) => scoreHistory && scoreHistory.length > 0)
+				.map((scoreHistory) => scoreHistory as PlayerScore[]) // make the types happy
 				.flat()
 				.map((scoreHistory) => scoreHistory[type] ?? 0)
 		)

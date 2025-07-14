@@ -534,6 +534,8 @@ FROM
 WHERE
     p.gameId = ?
     AND p.num = ?
+ORDER BY
+    d.num
 `
 
 type GetPlayerForGameParams struct {
@@ -669,6 +671,8 @@ FROM
 WHERE
     p.gameId = ?
     AND p.userId = ?
+ORDER BY
+    d.num
 `
 
 type GetPlayerForGameAndUserParams struct {
@@ -909,6 +913,8 @@ FROM
     players
 WHERE
     gameId = ?
+ORDER BY
+    num
 `
 
 func (q *Queries) GetPlayersForGame(ctx context.Context, gameid int64) ([]Player, error) {
@@ -1164,6 +1170,9 @@ FROM
     AND p.num = d.playerNum
 WHERE
     p.gameId = ?
+ORDER BY
+    p.num,
+    d.num
 `
 
 type GetPlayersWithDesignsForGameRow struct {

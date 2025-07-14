@@ -21,7 +21,9 @@ SELECT
 FROM
     players
 WHERE
-    gameId = ?;
+    gameId = ?
+ORDER BY
+    num;
 
 -- name: GetPlayersWithDesignsForGame :many
 SELECT
@@ -32,7 +34,10 @@ FROM
     LEFT JOIN shipDesigns d ON p.gameId = d.gameId
     AND p.num = d.playerNum
 WHERE
-    p.gameId = ?;
+    p.gameId = ?
+ORDER BY
+    p.num,
+    d.num;
 
 -- name: GetPlayerForGame :many
 SELECT
@@ -44,7 +49,9 @@ FROM
     AND p.num = d.playerNum
 WHERE
     p.gameId = ?
-    AND p.num = ?;
+    AND p.num = ?
+ORDER BY
+    d.num;
 
 -- name: GetPlayerForGameAndUser :many
 SELECT
@@ -56,7 +63,9 @@ FROM
     AND p.num = d.playerNum
 WHERE
     p.gameId = ?
-    AND p.userId = ?;
+    AND p.userId = ?
+ORDER BY
+    d.num;
 
 -- name: GetPlayersStatusForGame :many
 SELECT

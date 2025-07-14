@@ -5,11 +5,10 @@ package server
 import (
 	"crypto/rand"
 	"crypto/sha1" //nolint
+	"encoding/json"
 	"fmt"
 	"mime"
 	"net/http"
-
-	json "github.com/json-iterator/go"
 
 	"github.com/go-pkgz/auth"
 	"github.com/golang-jwt/jwt"

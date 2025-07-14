@@ -43,7 +43,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    createdAt,
+    updatedAt
 `
 
 type CreateWormholeParams struct {
@@ -212,6 +214,8 @@ FROM
     wormholes
 WHERE
     gameId = ?
+ORDER BY
+    num
 `
 
 func (q *Queries) GetWormholesForGame(ctx context.Context, gameid int64) ([]Wormhole, error) {

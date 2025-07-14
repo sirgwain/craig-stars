@@ -30,7 +30,9 @@ SELECT
 FROM
     salvages
 WHERE
-    gameId = ?;
+    gameId = ?
+ORDER BY
+    num;
 
 -- name: GetSalvagesForPlayer :many
 SELECT
@@ -39,7 +41,9 @@ FROM
     salvages
 WHERE
     gameId = ?
-    AND playerNum = ?;
+    AND playerNum = ?
+ORDER BY
+    num;
 
 -- name: CreateSalvage :one
 INSERT INTO
@@ -71,7 +75,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    ) RETURNING id,
+    createdAt,
+    updatedAt;
 
 -- name: UpdateSalvage :one
 UPDATE salvages

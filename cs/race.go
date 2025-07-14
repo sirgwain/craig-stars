@@ -31,7 +31,7 @@ type Race struct {
 	NumMines              int                   `json:"numMines"`
 	ResearchCost          ResearchCost          `json:"researchCost"`
 	TechsStartHigh        bool                  `json:"techsStartHigh,omitempty"`
-	Spec                  RaceSpec              `json:"spec"`
+	Spec                  RaceSpec              `json:"spec,omitzero"`
 }
 
 type ResearchCostLevel string
@@ -86,11 +86,11 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 type RaceSpec struct {
 	MiniaturizationSpec              `tstype:",extends"`
 	ScannerSpec                      `tstype:",extends"`
-	HabCenter                        Hab                    `json:"habCenter,omitempty"`
-	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
-	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`
-	StartingPlanets                  []StartingPlanet       `json:"startingPlanets,omitempty"`
-	TechCostOffset                   TechCostOffset         `json:"techCostOffset,omitempty"`
+	HabCenter                        Hab                    `json:"habCenter,omitzero"`
+	Costs                            map[QueueItemType]Cost `json:"costs,omitzero"`
+	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitzero"`
+	StartingPlanets                  []StartingPlanet       `json:"startingPlanets,omitzero"`
+	TechCostOffset                   TechCostOffset         `json:"techCostOffset,omitzero"`
 	MineralsPerSingleMineralPacket   int                    `json:"mineralsPerSingleMineralPacket,omitempty"`
 	MineralsPerMixedMineralPacket    int                    `json:"mineralsPerMixedMineralPacket,omitempty"`
 	PacketResourceCost               int                    `json:"packetResourceCost,omitempty"`
@@ -108,11 +108,11 @@ type RaceSpec struct {
 	CanDetectStargatePlanets         bool                   `json:"canDetectStargatePlanets,omitempty"`
 	ShipsVanishInVoid                bool                   `json:"shipsVanishInVoid,omitempty"`
 	TechsCostExtraLevel              int                    `json:"techsCostExtraLevel,omitempty"`
-	FreighterGrowth                  FreighterGrowth        `json:"freighterGrowth,omitempty"`
+	FreighterGrowth                  FreighterGrowth        `json:"freighterGrowth,omitzero"`
 	GrowthFactor                     float64                `json:"growthFactor,omitempty"`
 	MaxPopulationOffset              float64                `json:"maxPopulationOffset,omitempty"`
 	BuiltInCloakUnits                int                    `json:"builtInCloakUnits,omitempty"`
-	StealsResearch                   StealsResearch         `json:"stealsResearch,omitempty"`
+	StealsResearch                   StealsResearch         `json:"stealsResearch,omitzero"`
 	FreeCargoCloaking                bool                   `json:"freeCargoCloaking,omitempty"`
 	MineFieldsAreScanners            bool                   `json:"mineFieldsAreScanners,omitempty"`
 	MineFieldRateMoveFactor          float64                `json:"mineFieldRateMoveFactor,omitempty"`
@@ -166,14 +166,14 @@ type MiniaturizationSpec struct {
 }
 
 type ScannerSpec struct {
-	BuiltInScanner     BuiltInScanner `json:"builtInScanner,omitempty"`
+	BuiltInScanner     BuiltInScanner `json:"builtInScanner,omitzero"`
 	NoAdvancedScanners bool           `json:"noAdvancedScanners,omitempty"`
 	ScanRangeFactor    float64        `json:"scanRangeFactor,omitempty"`
 }
 
 type BuiltInScanner struct {
-	NormalMulti TechLevel `json:"normalMulti,omitempty"`
-	PenMulti    TechLevel `json:"penMulti,omitempty"`
+	NormalMulti TechLevel `json:"normalMulti,omitzero"`
+	PenMulti    TechLevel `json:"penMulti,omitzero"`
 }
 
 type PRT string

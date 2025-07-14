@@ -17,7 +17,6 @@ require (
 	github.com/go-pkgz/auth v1.24.2
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/golodash/godash v1.3.0
-	github.com/json-iterator/go v1.1.12
 	github.com/magefile/mage v1.15.0
 	github.com/nsf/jsondiff v0.0.0-20230430225905-43f6cf3098c1
 	github.com/samber/lo v1.51.0
@@ -54,7 +53,7 @@ require (
 	github.com/google/cel-go v0.24.1 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gzuidhof/tygo v0.2.17 // indirect
+	github.com/gzuidhof/tygo v0.2.18 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
@@ -69,8 +68,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pganalyze/pg_query_go/v6 v6.1.0 // indirect

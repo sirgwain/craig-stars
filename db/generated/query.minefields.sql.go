@@ -45,7 +45,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    createdAt,
+    updatedAt
 `
 
 type CreateMineFieldParams struct {
@@ -221,6 +223,9 @@ FROM
     minefields
 WHERE
     gameId = ?
+ORDER BY
+    playerNum,
+    num
 `
 
 func (q *Queries) GetMineFieldsForGame(ctx context.Context, gameid int64) ([]Minefield, error) {
@@ -269,6 +274,8 @@ FROM
 WHERE
     gameId = ?
     AND playerNum = ?
+ORDER BY
+    num
 `
 
 type GetMineFieldsForPlayerParams struct {

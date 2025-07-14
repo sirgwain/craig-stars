@@ -14,17 +14,17 @@ type Planet struct {
 	PlanetOrders         `tstype:",extends"`
 	Hab                  Hab        `json:"hab"`
 	BaseHab              Hab        `json:"baseHab"`
-	TerraformedAmount    Hab        `json:"terraformedAmount"`
+	TerraformedAmount    Hab        `json:"terraformedAmount,omitzero"`
 	MineralConcentration Mineral    `json:"mineralConcentration"`
-	MineYears            Mineral    `json:"mineYears"`
-	Cargo                Cargo      `json:"cargo"`
+	MineYears            Mineral    `json:"mineYears,omitzero"`
+	Cargo                Cargo      `json:"cargo,omitzero"`
 	PartialPopulation    int        `json:"partialPopulation"` // population not in a multiple of 100
 	Mines                int        `json:"mines"`
 	Factories            int        `json:"factories"`
 	Defenses             int        `json:"defenses"`
 	Homeworld            bool       `json:"homeworld,omitempty"`
 	Scanner              bool       `json:"scanner,omitempty"`
-	Spec                 PlanetSpec `json:"spec"`
+	Spec                 PlanetSpec `json:"spec,omitzero"`
 	RandomArtifact       bool       `json:"-"`
 	Starbase             *Fleet     `json:"-"`
 	Dirty                bool       `json:"-"`
@@ -55,7 +55,7 @@ type PlanetSpec struct {
 	MaxPopulation                             int     `json:"maxPopulation,omitempty"`
 	MaxPossibleFactories                      int     `json:"maxPossibleFactories,omitempty"`
 	MaxPossibleMines                          int     `json:"maxPossibleMines,omitempty"`
-	MiningOutput                              Mineral `json:"miningOutput"`
+	MiningOutput                              Mineral `json:"miningOutput,omitzero"`
 	PopulationDensity                         float64 `json:"populationDensity,omitempty"`
 	ResourcesPerYear                          int     `json:"resourcesPerYear,omitempty"`
 	ResourcesPerYearAvailable                 int     `json:"resourcesPerYearAvailable,omitempty"`
@@ -64,8 +64,8 @@ type PlanetSpec struct {
 	Scanner                                   string  `json:"scanner,omitempty"`
 	ScanRange                                 int     `json:"scanRange,omitempty"`
 	ScanRangePen                              int     `json:"scanRangePen,omitempty"`
-	TerraformAmount                           Hab     `json:"terraformAmount"`
-	MinTerraformAmount                        Hab     `json:"minTerraformAmount"`
+	TerraformAmount                           Hab     `json:"terraformAmount,omitzero"`
+	MinTerraformAmount                        Hab     `json:"minTerraformAmount,omitzero"`
 	TerraformedHabitability                   int     `json:"terraformedHabitability,omitempty"`
 }
 

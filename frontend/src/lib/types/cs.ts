@@ -257,7 +257,7 @@ export interface Waypoint extends MapObjectTarget {
 	warpSpeed: number /* int */;
 	estFuelUsage?: number /* int */;
 	task?: WaypointTask;
-	transportTasks: WaypointTransportTasks;
+	transportTasks?: WaypointTransportTasks;
 	waitAtWaypoint?: boolean;
 	layMineFieldDuration?: number /* int */;
 	patrolRange?: number /* int */;
@@ -515,15 +515,15 @@ export interface Intel {
 	reportAge: number /* int */;
 }
 export interface PlanetIntel extends Intel, MapObject {
-	hab: Hab;
-	baseHab: Hab;
-	mineralConcentration: Mineral;
-	cargo: Cargo;
+	hab?: Hab;
+	baseHab?: Hab;
+	mineralConcentration?: Mineral;
+	cargo?: Cargo;
 	cargoDiscovered?: boolean;
 	planetHabitability?: number /* int */;
 	planetHabitabilityTerraformed?: number /* int */;
 	homeworld?: boolean;
-	spec: PlanetSpec;
+	spec?: PlanetSpec;
 }
 export interface ShipDesignIntel extends Intel {
 	name: string;
@@ -548,7 +548,7 @@ export interface FleetIntel extends Intel, MapObject {
 	scanRange?: number /* int */;
 	scanRangePen?: number /* int */;
 	tokens: ShipToken[];
-	spec: FleetSpec;
+	spec?: FleetSpec;
 }
 export interface MineralPacketIntel extends Intel, MapObject {
 	warpSpeed: number /* int */;
@@ -584,7 +584,7 @@ export interface PlayerIntel {
 	racePluralName?: string;
 }
 export interface ScoreIntel {
-	scoreHistory: PlayerScore[];
+	scoreHistory?: PlayerScore[];
 }
 
 //////////
@@ -619,7 +619,7 @@ export interface MapObject {
 	num: number /* int */;
 	playerNum: number /* int */;
 	name: string;
-	tags: Tags;
+	tags?: Tags;
 }
 export type MapObjectType = string;
 export const MapObjectTypeNone: MapObjectType = '';
@@ -909,8 +909,8 @@ export interface MysteryTrader extends GameDBObject, MapObject {
 	requestedBoon?: number /* int */;
 	rewardType: MysteryTraderRewardType;
 	heading?: Vector;
-	playersRewarded: { [key: number /* int */]: boolean };
-	spec: MysteryTraderSpec;
+	playersRewarded?: { [key: number /* int */]: boolean };
+	spec?: MysteryTraderSpec;
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface MysteryTraderSpec {}
@@ -985,17 +985,17 @@ export type Orderer = unknown;
 export interface Planet extends GameDBObject, MapObject, PlanetOrders {
 	hab: Hab;
 	baseHab: Hab;
-	terraformedAmount: Hab;
+	terraformedAmount?: Hab;
 	mineralConcentration: Mineral;
-	mineYears: Mineral;
-	cargo: Cargo;
+	mineYears?: Mineral;
+	cargo?: Cargo;
 	partialPopulation: number /* int */; // population not in a multiple of 100
 	mines: number /* int */;
 	factories: number /* int */;
 	defenses: number /* int */;
 	homeworld?: boolean;
 	scanner?: boolean;
-	spec: PlanetSpec;
+	spec?: PlanetSpec;
 }
 export interface PlanetOrders {
 	contributesOnlyLeftoverToResearch?: boolean;
@@ -1019,7 +1019,7 @@ export interface PlanetSpec extends PlanetStarbaseSpec {
 	maxPopulation?: number /* int */;
 	maxPossibleFactories?: number /* int */;
 	maxPossibleMines?: number /* int */;
-	miningOutput: Mineral;
+	miningOutput?: Mineral;
 	populationDensity?: number /* float64 */;
 	resourcesPerYear?: number /* int */;
 	resourcesPerYearAvailable?: number /* int */;
@@ -1028,8 +1028,8 @@ export interface PlanetSpec extends PlanetStarbaseSpec {
 	scanner?: string;
 	scanRange?: number /* int */;
 	scanRangePen?: number /* int */;
-	terraformAmount: Hab;
-	minTerraformAmount: Hab;
+	terraformAmount?: Hab;
+	minTerraformAmount?: Hab;
 	terraformedHabitability?: number /* int */;
 }
 export interface PlanetStarbaseSpec {
@@ -1241,8 +1241,8 @@ export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	type: QueueItemType;
 	designNum?: number /* int */;
 	quantity: number /* int */;
-	allocated: Cost;
-	tags: Tags;
+	allocated?: Cost;
+	tags?: Tags;
 }
 export type QueueItemType = string;
 export const QueueItemTypeIroniumMineralPacket: QueueItemType = 'IroniumMineralPacket';
@@ -1299,7 +1299,7 @@ export interface Race extends DBObject {
 	numMines: number /* int */;
 	researchCost: ResearchCost;
 	techsStartHigh?: boolean;
-	spec: RaceSpec;
+	spec?: RaceSpec;
 }
 export type ResearchCostLevel = string;
 export const ResearchCostExtra: ResearchCostLevel = 'Extra';
@@ -1815,13 +1815,13 @@ export interface ShipDesignSpec {
 	cloakUnits?: number /* int */;
 	colonizer?: boolean;
 	cost: Cost;
-	engine: Engine;
+	engine?: Engine;
 	estimatedRange?: number /* int */;
 	estimatedRangeFull?: number /* int */;
 	fuelCapacity?: number /* int */;
 	fuelGeneration?: number /* int */;
 	hasWeapons?: boolean;
-	hullType: TechHullType;
+	hullType?: TechHullType;
 	immuneToOwnDetonation?: boolean;
 	initiative: number /* int */;
 	innateScanRangePenFactor?: number /* float64 */;
@@ -1833,11 +1833,11 @@ export interface ShipDesignSpec {
 	mineLayingRateByMineType?: { [key: MineFieldType]: number /* int */ };
 	mineSweep?: number /* int */;
 	miningRate?: number /* int */;
-	movement: number /* int */;
+	movement?: number /* int */;
 	movementBonus?: number /* float64 */;
 	movementFull?: number /* int */;
 	numBuilt?: number /* int */;
-	numEngines: number /* int */;
+	numEngines?: number /* int */;
 	numInstances?: number /* int */;
 	orbitalConstructionModule?: boolean;
 	powerRating?: number /* int */;
@@ -1857,7 +1857,7 @@ export interface ShipDesignSpec {
 	spaceDock?: number /* int */;
 	starbase?: boolean;
 	stargate?: string;
-	techLevel: TechLevel;
+	techLevel?: TechLevel;
 	terraformRate?: number /* int */;
 	torpedoBonus?: number /* float64 */;
 	torpedoJamming?: number /* float64 */;
@@ -2477,7 +2477,7 @@ export interface Wormhole extends GameDBObject, MapObject {
 	spec: WormholeSpec;
 }
 export interface WormholeSpec {
-	Stats: WormholeStats;
+	stats?: WormholeStats;
 }
 export interface WormholeStats {
 	yearsToDegrade: number /* int */;

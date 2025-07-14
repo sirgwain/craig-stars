@@ -16,7 +16,7 @@
 	let { player, planet, habType }: HabTooltipProps = $props();
 
 	const currentHab = getHabValue(planet.hab, habType);
-	const terraformedHab = getHabValue(planet.spec.terraformAmount ?? {}, habType);
+	const terraformedHab = getHabValue(planet.spec?.terraformAmount ?? {}, habType);
 	const habString = getHabValueString(habType, currentHab);
 	const terraformedHabString = getHabValueString(
 		habType,

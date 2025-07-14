@@ -3,9 +3,9 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 
-	json "github.com/json-iterator/go"
 	"github.com/rs/zerolog/log"
 )
 

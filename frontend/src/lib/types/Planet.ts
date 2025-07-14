@@ -180,15 +180,15 @@ export class CommandedPlanet implements Planet {
 	public getAvailableProductionQueueShipDesigns(designs: ShipDesign[]): ProductionQueueItem[] {
 		const items: ProductionQueueItem[] = [];
 
-		if (this.spec.dockCapacity == UnlimitedSpaceDock || (this.spec.dockCapacity ?? 0) > 0) {
+		if (this.spec?.dockCapacity == UnlimitedSpaceDock || (this.spec?.dockCapacity ?? 0) > 0) {
 			sortBy(
 				designs
 					.filter(
 						(d) =>
-							this.spec.dockCapacity == UnlimitedSpaceDock ||
-							(d.spec.mass ?? 0) <= (this.spec.dockCapacity ?? 0)
+							this.spec?.dockCapacity == UnlimitedSpaceDock ||
+							(d.spec?.mass ?? 0) <= (this.spec?.dockCapacity ?? 0)
 					)
-					.filter((d) => !d.spec.starbase)
+					.filter((d) => !d.spec?.starbase)
 					.filter((d) => d.originalPlayerNum == None),
 				(d) => d.name
 			).forEach((d) => {
@@ -196,7 +196,6 @@ export class CommandedPlanet implements Planet {
 					quantity: 1,
 					type: QueueItemTypeShipToken,
 					designNum: d.num,
-					tags: {},
 					allocated: {}
 				});
 			});
@@ -214,15 +213,13 @@ export class CommandedPlanet implements Planet {
 	public getAvailableProductionQueueStarbaseDesigns(designs: ShipDesign[]): ProductionQueueItem[] {
 		// filter starbase designs
 		const items = sortBy(
-			designs.filter((d) => d.spec.starbase && this.spec.starbaseDesignNum !== d.num),
+			designs.filter((d) => d.spec?.starbase && this.spec?.starbaseDesignNum !== d.num),
 			(d) => d.name
 		).map<ProductionQueueItem>(
 			(d: ShipDesign): ProductionQueueItem => ({
 				quantity: 1,
 				type: QueueItemTypeStarbase,
 				designNum: d.num,
-				allocated: {},
-				tags: {},
 				yearsToBuildAll: 0
 			})
 		);
@@ -260,11 +257,11 @@ export class CommandedPlanet implements Planet {
 			items.push(fromQueueItemType(QueueItemTypeGenesisDevice));
 		}
 
-		if (this.spec.canTerraform) {
+		if (this.spec?.canTerraform) {
 			items.push(fromQueueItemType(QueueItemTypeTerraformEnvironment));
 		}
 
-		if (this.spec.hasMassDriver) {
+		if (this.spec?.hasMassDriver) {
 			items.push(
 				fromQueueItemType(QueueItemTypeIroniumMineralPacket),
 				fromQueueItemType(QueueItemTypeBoraniumMineralPacket),
@@ -290,7 +287,7 @@ export class CommandedPlanet implements Planet {
 			fromQueueItemType(QueueItemTypeAutoMinTerraform)
 		);
 
-		if (this.spec.hasMassDriver) {
+		if (this.spec?.hasMassDriver) {
 			items.push(fromQueueItemType(QueueItemTypeAutoMineralPacket));
 		}
 
@@ -311,8 +308,6 @@ export class CommandedPlanet implements Planet {
 export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
 	type,
 	quantity: 1,
-	allocated: {},
-	tags: {}
 });
 
 export const getQueueItemShortName = (
@@ -351,7 +346,7 @@ export const getQueueItemShortName = (
 export function getGrowth(planet: AnyPlanet): number {
 	// TODO: Change once isIntel is added
 	const pPop = 'reportAge' in planet ? 0 : planet.partialPopulation;
-	return roundTo100(planet.spec.growthAmount ?? 0 + pPop, Math.trunc);
+	return roundTo100(planet.spec?.growthAmount ?? 0 + pPop, Math.trunc);
 }
 
 export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {
@@ -393,32 +388,32 @@ export function planetsSortBy(key: string): ((a: AnyPlanet, b: AnyPlanet) => num
 			};
 		case 'starbase':
 			return (a, b) =>
-				(a.spec.starbaseDesignName ?? '').localeCompare(b.spec.starbaseDesignName ?? '');
+				(a.spec?.starbaseDesignName ?? '').localeCompare(b.spec?.starbaseDesignName ?? '');
 		case 'population':
 			return (a, b) => (population(a.cargo) ?? 0) - (population(b.cargo) ?? 0);
 		case 'populationDensity':
-			return (a, b) => (a.spec.populationDensity ?? 0) - (b.spec.populationDensity ?? 0);
+			return (a, b) => (a.spec?.populationDensity ?? 0) - (b.spec?.populationDensity ?? 0);
 		case 'populationGrowth':
 			return (a, b) => getGrowth(a) - getGrowth(b);
 		case 'habitability':
-			return (a, b) => (a.spec.habitability ?? 0) - (b.spec.habitability ?? 0);
+			return (a, b) => (a.spec?.habitability ?? 0) - (b.spec?.habitability ?? 0);
 		case 'mines':
 			return (a, b) => ('mines' in a && 'mines' in b ? (a.mines ?? 0) - (b.mines ?? 0) : 0);
 		case 'factories':
 			return (a, b) =>
 				'factories' in a && 'factories' in b ? (a.factories ?? 0) - (b.factories ?? 0) : 0;
 		case 'defense':
-			return (a, b) => (a.spec.defenseCoverage ?? 0) - (b.spec.defenseCoverage ?? 0);
+			return (a, b) => (a.spec?.defenseCoverage ?? 0) - (b.spec?.defenseCoverage ?? 0);
 		case 'minerals':
 			return (a, b) => totalMinerals(a.cargo) - totalMinerals(b.cargo);
 		case 'miningRate':
-			return (a, b) => totalMinerals(a.spec.miningOutput) - totalMinerals(b.spec.miningOutput);
+			return (a, b) => totalMinerals(a.spec?.miningOutput) - totalMinerals(b.spec?.miningOutput);
 		case 'mineralConcentration':
 			return (a, b) =>
 				totalMinerals(a.mineralConcentration) - totalMinerals(b.mineralConcentration);
 		case 'resources':
 			return (a, b) =>
-				(a.spec.resourcesPerYearAvailable ?? 0) - (b.spec.resourcesPerYearAvailable ?? 0);
+				(a.spec?.resourcesPerYearAvailable ?? 0) - (b.spec?.resourcesPerYearAvailable ?? 0);
 		case 'contributesOnlyLeftoverToResearch':
 			return (a, b) =>
 				'contributesOnlyLeftoverToResearch' in a && 'contributesOnlyLeftoverToResearch' in b

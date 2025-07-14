@@ -80,7 +80,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    createdAt,
+    updatedAt
 `
 
 type CreateFleetParams struct {
@@ -343,6 +345,9 @@ WHERE
     gameId = ?
     AND playerNum = ?
     AND num IN (/*SLICE:nums*/?)
+ORDER BY
+    playerNum,
+    num
 `
 
 type GetFleetsByNumsParams struct {
@@ -425,6 +430,9 @@ FROM
     fleets
 WHERE
     gameId = ?
+ORDER BY
+    playerNum,
+    num
 `
 
 func (q *Queries) GetFleetsForGame(ctx context.Context, gameid int64) ([]Fleet, error) {
@@ -490,6 +498,8 @@ FROM
 WHERE
     gameId = ?
     AND playerNum = ?
+ORDER BY
+    num
 `
 
 type GetFleetsForPlayerParams struct {

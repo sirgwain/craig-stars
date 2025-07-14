@@ -235,6 +235,56 @@ func (q *Queries) GetShipDesigns(ctx context.Context) ([]Shipdesign, error) {
 	return items, nil
 }
 
+const GetShipDesignsForGame = `-- name: GetShipDesignsForGame :many
+SELECT
+    id, createdat, updatedat, gameid, num, playernum, name, version, hull, hullsetnumber, candelete, slots, purpose, spec, cannotdelete, originalplayernum, mysterytrader
+FROM
+    shipDesigns
+WHERE
+    gameId = ?
+`
+
+func (q *Queries) GetShipDesignsForGame(ctx context.Context, gameid int64) ([]Shipdesign, error) {
+	rows, err := q.db.QueryContext(ctx, GetShipDesignsForGame, gameid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Shipdesign
+	for rows.Next() {
+		var i Shipdesign
+		if err := rows.Scan(
+			&i.ID,
+			&i.Createdat,
+			&i.Updatedat,
+			&i.Gameid,
+			&i.Num,
+			&i.Playernum,
+			&i.Name,
+			&i.Version,
+			&i.Hull,
+			&i.Hullsetnumber,
+			&i.Candelete,
+			&i.Slots,
+			&i.Purpose,
+			&i.Spec,
+			&i.Cannotdelete,
+			&i.Originalplayernum,
+			&i.Mysterytrader,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetShipDesignsForPlayer = `-- name: GetShipDesignsForPlayer :many
 SELECT
     id, createdat, updatedat, gameid, num, playernum, name, version, hull, hullsetnumber, candelete, slots, purpose, spec, cannotdelete, originalplayernum, mysterytrader

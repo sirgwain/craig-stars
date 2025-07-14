@@ -33,7 +33,7 @@ type Fleet struct {
 	FleetOrders       `tstype:",extends"`
 	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
-	Cargo             Cargo       `json:"cargo,omitempty"`
+	Cargo             Cargo       `json:"cargo,omitzero"`
 	Fuel              int         `json:"fuel"`
 	Age               int         `json:"age"`
 	Tokens            []ShipToken `json:"tokens"`
@@ -65,7 +65,7 @@ type FleetSpec struct {
 	MassEmpty        int                        `json:"massEmpty,omitempty"`
 	MaxHullMass      int                        `json:"maxHullMass,omitempty"`
 	MaxRange         int                        `json:"maxRange,omitempty"`
-	Purposes         map[ShipDesignPurpose]bool `json:"purposes,omitempty"`
+	Purposes         map[ShipDesignPurpose]bool `json:"purposes,omitzero"`
 	SafeHullMass     int                        `json:"safeHullMass,omitempty"`
 	SafeRange        int                        `json:"safeRange,omitempty"`
 	Stargate         string                     `json:"stargate,omitempty"`
@@ -78,7 +78,7 @@ type Waypoint struct {
 	WarpSpeed            int                    `json:"warpSpeed"`
 	EstFuelUsage         int                    `json:"estFuelUsage,omitempty"`
 	Task                 WaypointTask           `json:"task,omitempty"`
-	TransportTasks       WaypointTransportTasks `json:"transportTasks"`
+	TransportTasks       WaypointTransportTasks `json:"transportTasks,omitzero"`
 	WaitAtWaypoint       bool                   `json:"waitAtWaypoint,omitempty"`
 	LayMineFieldDuration int                    `json:"layMineFieldDuration,omitempty"`
 	PatrolRange          int                    `json:"patrolRange,omitempty"`

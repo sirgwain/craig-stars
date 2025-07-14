@@ -158,39 +158,32 @@
 			"fuelEfficiencyOffset": -0.15
 		},
 		"1024": {
-			"startingTechLevels": {},
 			"newTechCostFactorOffset": 1,
 			"miniaturizationMax": 0.05,
 			"miniaturizationPerLevel": 0.01
 		},
 		"128": {
-			"startingTechLevels": {},
 			"maxPopulationOffset": 0.1
 		},
 		"16": {
-			"startingTechLevels": {},
 			"researchFactorOffset": -0.5,
 			"researchSplashDamage": 0.15
 		},
 		"2": {
-			"startingTechLevels": {},
 			"techCostOffset": {
 				"Terraforming": -0.3
 			}
 		},
 		"2048": {
-			"startingTechLevels": {},
 			"shieldStrengthFactorOffset": 0.4,
 			"shieldRegenerationRateOffset": 0.1,
 			"armorStrengthFactorOffset": -0.5
 		},
 		"256": {
-			"startingTechLevels": {},
 			"noAdvancedScanners": true,
 			"scanRangeFactorOffset": 1
 		},
 		"32": {
-			"startingTechLevels": {},
 			"scrapMineralOffset": 0.11666666666666667,
 			"scrapMineralOffsetStarbase": 0.1,
 			"scrapResourcesOffset": 0.35,
@@ -208,22 +201,16 @@
 					"hullName": "Midget-Miner",
 					"purpose": "Miner"
 				}
-			],
-			"startingTechLevels": {}
+			]
 		},
 		"4096": {
-			"startingTechLevels": {},
 			"mineralAlchemyCostOffset": -75
 		},
 		"512": {
-			"startingTechLevels": {},
 			"startingPopulationFactorDelta": -0.3
 		},
-		"64": {
-			"startingTechLevels": {}
-		},
+		"64": {},
 		"8": {
-			"startingTechLevels": {},
 			"starbaseBuiltInCloakUnits": 40,
 			"starbaseCostFactor": 0.8
 		},
@@ -509,17 +496,12 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {
 				"absolute": true,
 				"rate": -0.03
 			},
 			"growthFactor": 1,
-			"stealsResearch": {},
 			"mineFieldMinDecayFactor": 1,
 			"mineFieldBaseDecayRate": 0.02,
 			"mineFieldPlanetDecayRate": 0.04,
@@ -585,14 +567,8 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
 			"techsCostExtraLevel": 3,
-			"freighterGrowth": {},
 			"growthFactor": 1,
-			"stealsResearch": {},
 			"mineFieldMinDecayFactor": 1,
 			"mineFieldBaseDecayRate": 0.02,
 			"mineFieldPlanetDecayRate": 0.04,
@@ -612,7 +588,6 @@
 		},
 		"HE": {
 			"pointCost": 66,
-			"startingTechLevels": {},
 			"startingPlanets": [
 				{
 					"population": 25000,
@@ -654,15 +629,9 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
 			"techsCostExtraLevel": 3,
-			"freighterGrowth": {},
 			"growthFactor": 2,
 			"maxPopulationOffset": -0.5,
-			"stealsResearch": {},
 			"mineFieldMinDecayFactor": 1,
 			"mineFieldBaseDecayRate": 0.02,
 			"mineFieldPlanetDecayRate": 0.04,
@@ -679,7 +648,6 @@
 		},
 		"IS": {
 			"pointCost": 66,
-			"startingTechLevels": {},
 			"startingPlanets": [
 				{
 					"population": 25000,
@@ -717,16 +685,11 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
 			"techsCostExtraLevel": 3,
 			"freighterGrowth": {
 				"rate": 0.5
 			},
 			"growthFactor": 1,
-			"stealsResearch": {},
 			"mineFieldMinDecayFactor": 1,
 			"mineFieldBaseDecayRate": 0.02,
 			"mineFieldPlanetDecayRate": 0.04,
@@ -810,14 +773,8 @@
 			"packetPermaTerraformSizeUnit": 100,
 			"canGateCargo": true,
 			"canDetectStargatePlanets": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
 			"techsCostExtraLevel": 3,
-			"freighterGrowth": {},
 			"growthFactor": 1,
-			"stealsResearch": {},
 			"mineFieldMinDecayFactor": 1,
 			"mineFieldBaseDecayRate": 0.02,
 			"mineFieldPlanetDecayRate": 0.04,
@@ -903,10 +860,8 @@
 				}
 			},
 			"techsCostExtraLevel": 4,
-			"freighterGrowth": {},
 			"growthFactor": 1,
 			"maxPopulationOffset": 0.2,
-			"stealsResearch": {},
 			"mineFieldMinDecayFactor": 1,
 			"mineFieldBaseDecayRate": 0.02,
 			"mineFieldPlanetDecayRate": 0.04,
@@ -979,14 +934,8 @@
 			"packetPermaformChance": 0.001,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
 			"techsCostExtraLevel": 3,
-			"freighterGrowth": {},
 			"growthFactor": 1,
-			"stealsResearch": {},
 			"mineFieldMinDecayFactor": 1,
 			"mineFieldBaseDecayRate": 0.02,
 			"mineFieldPlanetDecayRate": 0.04,
@@ -1048,14 +997,8 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
 			"techsCostExtraLevel": 3,
-			"freighterGrowth": {},
 			"growthFactor": 1,
-			"stealsResearch": {},
 			"mineFieldsAreScanners": true,
 			"mineFieldRateMoveFactor": 0.5,
 			"mineFieldSafeWarpBonus": 2,
@@ -1110,12 +1053,7 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
 			"techsCostExtraLevel": 3,
-			"freighterGrowth": {},
 			"growthFactor": 1,
 			"builtInCloakUnits": 300,
 			"stealsResearch": {
@@ -1192,14 +1130,8 @@
 			"packetDecayFactor": 1,
 			"packetPermaTerraformSizeUnit": 100,
 			"shipsVanishInVoid": true,
-			"builtInScanner": {
-				"normalMulti": {},
-				"penMulti": {}
-			},
 			"techsCostExtraLevel": 3,
-			"freighterGrowth": {},
 			"growthFactor": 1,
-			"stealsResearch": {},
 			"mineFieldMinDecayFactor": 1,
 			"mineFieldBaseDecayRate": 0.02,
 			"mineFieldPlanetDecayRate": 0.04,

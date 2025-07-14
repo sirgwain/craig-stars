@@ -30,7 +30,7 @@ type MapObject struct {
 	Num       int           `json:"num"`
 	PlayerNum int           `json:"playerNum"`
 	Name      string        `json:"name"`
-	Tags      Tags          `json:"tags"`
+	Tags      Tags          `json:"tags,omitzero"`
 	Delete    bool          `json:"-"`
 }
 

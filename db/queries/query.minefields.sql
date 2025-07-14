@@ -31,7 +31,10 @@ SELECT
 FROM
     minefields
 WHERE
-    gameId = ?;
+    gameId = ?
+ORDER BY
+    playerNum,
+    num;
 
 -- name: GetMineFieldsForPlayer :many
 SELECT
@@ -40,7 +43,9 @@ FROM
     minefields
 WHERE
     gameId = ?
-    AND playerNum = ?;
+    AND playerNum = ?
+ORDER BY
+    num;
 
 -- name: CreateMineField :one
 INSERT INTO
@@ -74,7 +79,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    ) RETURNING id,
+    createdAt,
+    updatedAt;
 
 -- name: UpdateMineField :one
 UPDATE minefields

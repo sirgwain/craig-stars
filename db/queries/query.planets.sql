@@ -63,7 +63,9 @@ SELECT
 FROM
     planets
 WHERE
-    gameId = ?;
+    gameId = ?
+ORDER BY
+    num;
 
 -- name: GetPlanetsForPlayer :many
 SELECT
@@ -72,7 +74,9 @@ FROM
     planets
 WHERE
     gameId = ?
-    AND playerNum = ?;
+    AND playerNum = ?
+ORDER BY
+    num;
 
 -- name: CreatePlanet :one
 INSERT INTO
@@ -85,7 +89,7 @@ INSERT INTO
         name,
         num,
         playerNum,
-    grav,
+        grav,
         TEMP,
         rad,
         baseGrav,
@@ -166,7 +170,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    ) RETURNING id,
+    createdAt,
+    updatedAt;
 
 -- name: UpdatePlanet :one
 UPDATE planets

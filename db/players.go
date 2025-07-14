@@ -43,7 +43,7 @@ func (c *client) GetPlayersForUser(ctx context.Context, userID int64) ([]*cs.Pla
 }
 
 // get all the players for a game, with data loaded
-func (c *client) getPlayersForGame(ctx context.Context, gameID int64) ([]*cs.Player, error) {
+func (c *client) GetPlayersForGame(ctx context.Context, gameID int64) ([]*cs.Player, error) {
 
 	items, err := c.reader.GetPlayersForGame(ctx, gameID)
 	if err == sql.ErrNoRows {
@@ -55,13 +55,6 @@ func (c *client) getPlayersForGame(ctx context.Context, gameID int64) ([]*cs.Pla
 	}
 	// // players := make([]*cs.Player, 0, len(items))
 	players := c.converter.ConvertPlayers(items)
-	for _, player := range players {
-		designs, err := c.GetShipDesignsForPlayer(ctx, gameID, player.Num)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get designs for player: %d %w", player.Num, err)
-		}
-		player.Designs = designs
-	}
 
 	return players, nil
 }

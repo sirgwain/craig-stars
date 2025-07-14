@@ -31,7 +31,10 @@ SELECT
 FROM
     fleets
 WHERE
-    gameId = ?;
+    gameId = ?
+ORDER BY
+    playerNum,
+    num;
 
 -- name: GetFleetsForPlayer :many
 SELECT
@@ -40,7 +43,9 @@ FROM
     fleets
 WHERE
     gameId = ?
-    AND playerNum = ?;
+    AND playerNum = ?
+ORDER BY
+    num;
 
 -- name: GetFleetsByNums :many
 SELECT
@@ -50,7 +55,10 @@ FROM
 WHERE
     gameId = ?
     AND playerNum = ?
-    AND num IN (sqlc.slice ('nums'));
+    AND num IN (sqlc.slice ('nums'))
+ORDER BY
+    playerNum,
+    num;
 
 -- name: CreateFleet :one
 INSERT INTO
@@ -118,7 +126,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    ) RETURNING id,
+    createdAt,
+    updatedAt;
 
 -- name: UpdateFleet :one
 UPDATE fleets

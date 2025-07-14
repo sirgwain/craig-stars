@@ -17,7 +17,7 @@
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 
 	let reportAge = $derived('reportAge' in planet ? (planet.reportAge ?? 0) : 0);
-	let habitability = $derived(planet.spec.habitability ?? 0);
+	let habitability = $derived(planet.spec?.habitability ?? 0);
 	let pop = $derived(population(planet.cargo));
 	let growthAmount = $derived(getGrowth(planet));
 </script>
@@ -28,20 +28,20 @@
 			<p>
 				Your population on <span class="font-semibold">{planet.name}</span> is
 				<span class="font-semibold">{pop.toLocaleString()}</span> ({(
-					(planet.spec.populationDensity ?? 0) * 100
+					(planet.spec?.populationDensity ?? 0) * 100
 				).toFixed()}% of capacity).
 			</p>
-			{#if (planet.spec.habitability ?? 0) > 0 || player.race.spec?.livesOnStarbases}
+			{#if (planet.spec?.habitability ?? 0) > 0 || player.race.spec?.livesOnStarbases}
 				<p>
 					<span class="font-semibold">{planet.name}</span> will support a population of up to
-					<span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString() ?? 0}</span>
+					<span class="font-semibold">{planet.spec?.maxPopulation?.toLocaleString() ?? 0}</span>
 					of your colonists.
 				</p>
 			{:else}
 				<p>
 					<span class="font-semibold">{planet.name}</span> has a hostile environment and will only
 					support up to
-					<span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString() ?? 0}</span>
+					<span class="font-semibold">{planet.spec?.maxPopulation?.toLocaleString() ?? 0}</span>
 					of your colonists.
 				</p>
 			{/if}
@@ -54,7 +54,7 @@
 					next year.
 				</p>
 			{:else if growthAmount < 0}
-				{#if (planet.spec.populationDensity ?? 0) > 1}
+				{#if (planet.spec?.populationDensity ?? 0) > 1}
 					<p><span class="font-semibold">{planet.name}</span> is overcrowded.</p>
 				{/if}
 				<p>
@@ -73,7 +73,7 @@
 			{#if habitability > 0}
 				<p>
 					If you were to colonize <span class="font-semibold">{planet.name}</span>, it would support
-					up to <span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString()}</span>
+					up to <span class="font-semibold">{planet.spec?.maxPopulation?.toLocaleString()}</span>
 					of your colonists.
 				</p>
 			{:else}
@@ -93,7 +93,7 @@
 			{#if habitability > 0}
 				<p>
 					If you were to colonize <span class="font-semibold">{planet.name}</span>, it would support
-					up to <span class="font-semibold">{planet.spec.maxPopulation?.toLocaleString()}</span>
+					up to <span class="font-semibold">{planet.spec?.maxPopulation?.toLocaleString()}</span>
 					of your colonists.
 				</p>
 			{:else}
@@ -104,14 +104,14 @@
 				</p>
 			{/if}
 
-			{#if (planet.spec.defenseCoverage ?? 0) == 0}
+			{#if (planet.spec?.defenseCoverage ?? 0) == 0}
 				<p>
 					<span class="font-semibold">{planet.name}</span> appears to have no planetary defenses.
 				</p>
 			{:else}
 				<p>
 					<span class="font-semibold">{planet.name}</span> appears to have planetary defenses with
-					approximately {Math.round((planet.spec.defenseCoverage ?? 0) * 100)}% coverage.
+					approximately {Math.round((planet.spec?.defenseCoverage ?? 0) * 100)}% coverage.
 				</p>
 			{/if}
 		{:else}

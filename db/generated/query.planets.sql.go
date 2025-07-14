@@ -24,7 +24,7 @@ INSERT INTO
         name,
         num,
         playerNum,
-    grav,
+        grav,
         TEMP,
         rad,
         baseGrav,
@@ -105,7 +105,9 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    createdAt,
+    updatedAt
 `
 
 type CreatePlanetParams struct {
@@ -544,6 +546,8 @@ FROM
     planets
 WHERE
     gameId = ?
+ORDER BY
+    num
 `
 
 func (q *Queries) GetPlanetsForGame(ctx context.Context, gameid int64) ([]Planet, error) {
@@ -622,6 +626,8 @@ FROM
 WHERE
     gameId = ?
     AND playerNum = ?
+ORDER BY
+    num
 `
 
 type GetPlanetsForPlayerParams struct {

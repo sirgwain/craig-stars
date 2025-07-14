@@ -8,7 +8,6 @@ export function newSalvage(): SalvageIntel {
 		cargo: {},
 		num: 0,
 		playerNum: 0,
-		tags: {},
 		reportAge: 0
 	};
 }
