@@ -88,9 +88,9 @@ func (s *server) createRace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	raceReq.UserID = user.ID
-	race, err := db.CreateRace(r.Context(), raceReq.Race)
-	if err != nil {
+	race := raceReq.Race
+	race.UserID = user.ID
+	if err := db.SaveRace(r.Context(), race); err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("create race")
 		render.Render(w, r, ErrBadRequest(err))
 		return
@@ -131,7 +131,7 @@ func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.UpdateRace(r.Context(), race.Race); err != nil {
+	if err := db.SaveRace(r.Context(), race.Race); err != nil {
 		log.Error().Err(err).Int64("ID", race.ID).Msg("update race in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

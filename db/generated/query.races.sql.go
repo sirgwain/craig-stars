@@ -7,12 +7,11 @@ package generated
 
 import (
 	"context"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const CreateRace = `-- name: CreateRace :one
+const CreateRace = `-- name: CreateRace :execlastid
 INSERT INTO
     races (
         created_at,
@@ -126,14 +125,8 @@ type CreateRaceParams struct {
 	Spec                      *RaceSpec
 }
 
-type CreateRaceRow struct {
-	ID        int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-func (q *Queries) CreateRace(ctx context.Context, arg CreateRaceParams) (CreateRaceRow, error) {
-	row := q.db.QueryRowContext(ctx, CreateRace,
+func (q *Queries) CreateRace(ctx context.Context, arg CreateRaceParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreateRace,
 		arg.UserID,
 		arg.Name,
 		arg.PluralName,
@@ -167,31 +160,38 @@ func (q *Queries) CreateRace(ctx context.Context, arg CreateRaceParams) (CreateR
 		arg.TechsStartHigh,
 		arg.Spec,
 	)
-	var i CreateRaceRow
-	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-const DeleteRace = `-- name: DeleteRace :exec
+const DeleteRace = `-- name: DeleteRace :execrows
 DELETE FROM races
 WHERE
     id = ?
 `
 
-func (q *Queries) DeleteRace(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, DeleteRace, id)
-	return err
+func (q *Queries) DeleteRace(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, DeleteRace, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const DeleteUserRaces = `-- name: DeleteUserRaces :exec
+const DeleteUserRaces = `-- name: DeleteUserRaces :execrows
 DELETE FROM races
 WHERE
     user_id = ?
 `
 
-func (q *Queries) DeleteUserRaces(ctx context.Context, userID int64) error {
-	_, err := q.db.ExecContext(ctx, DeleteUserRaces, userID)
-	return err
+func (q *Queries) DeleteUserRaces(ctx context.Context, userID int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, DeleteUserRaces, userID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const GetRace = `-- name: GetRace :one
@@ -381,7 +381,7 @@ func (q *Queries) GetRacesForUser(ctx context.Context, userID int64) ([]Race, er
 	return items, nil
 }
 
-const UpdateRace = `-- name: UpdateRace :one
+const UpdateRace = `-- name: UpdateRace :execrows
 UPDATE races
 SET
     updated_at = CURRENT_TIMESTAMP,
@@ -457,8 +457,8 @@ type UpdateRaceParams struct {
 	ID                        int64
 }
 
-func (q *Queries) UpdateRace(ctx context.Context, arg UpdateRaceParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdateRace,
+func (q *Queries) UpdateRace(ctx context.Context, arg UpdateRaceParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdateRace,
 		arg.UserID,
 		arg.Name,
 		arg.PluralName,
@@ -493,7 +493,8 @@ func (q *Queries) UpdateRace(ctx context.Context, arg UpdateRaceParams) (time.Ti
 		arg.Spec,
 		arg.ID,
 	)
-	var updated_at time.Time
-	err := row.Scan(&updated_at)
-	return updated_at, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

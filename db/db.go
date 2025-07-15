@@ -61,13 +61,12 @@ type Client interface {
 	UpdateUser(ctx context.Context, user *cs.User) error
 	UpdateUserSettings(ctx context.Context, user *cs.User) error
 
-	CreateRace(ctx context.Context, race *cs.Race) (*cs.Race, error)
 	DeleteRace(ctx context.Context, id int64) error
 	DeleteUserRaces(ctx context.Context, userID int64) error
 	GetRace(ctx context.Context, id int64) (*cs.Race, error)
 	GetRaces(ctx context.Context) ([]cs.Race, error)
 	GetRacesForUser(ctx context.Context, userID int64) ([]cs.Race, error)
-	UpdateRace(ctx context.Context, race *cs.Race) error
+	SaveRace(ctx context.Context, race *cs.Race) error
 
 	CreateTechStore(ctx context.Context, tech *cs.TechStore) (*cs.TechStore, error)
 	GetTechStore(ctx context.Context, id int64) (*cs.TechStore, error)
@@ -75,7 +74,6 @@ type Client interface {
 
 	GetRulesForGame(ctx context.Context, gameID int64) (*cs.Rules, error)
 
-	CreateGame(ctx context.Context, game *cs.Game) (*cs.Game, error)
 	DeleteGame(ctx context.Context, id int64) error
 	DeleteUserGames(ctx context.Context, hostID int64) error
 	GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error)
@@ -87,7 +85,7 @@ type Client interface {
 	GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error)
 	GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error)
 	UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) error
-	UpdateGame(ctx context.Context, game *cs.Game) error
+	SaveGame(ctx context.Context, game *cs.Game) error
 	UpdateGameHost(ctx context.Context, gameID int64, hostID int64) error
 	UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error
 

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateRace(t *testing.T) {
+func TestSaveRace(t *testing.T) {
 
 	type args struct {
 		c    *client
@@ -24,17 +24,18 @@ func TestCreateRace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			want := *tt.args.race
-			got, err := tt.args.c.CreateRace(t.Context(), tt.args.race)
+			err := tt.args.c.SaveRace(t.Context(), tt.args.race)
 
-			// id is automatically added
-			want.DBObject = got.DBObject
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("CreateRace() did not return error when expected")
+					t.Fatalf("SaveRace() did not return error when expected")
 				} else {
-					t.Fatalf("CreateRace() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("SaveRace() errored unexpectedly; err = \n%v", err)
 				}
 			}
+			got := tt.args.race
+			// DBObject is returned
+			want.DBObject = got.DBObject
 			test.CompareAsJSON(t, got, want)
 		})
 	}
@@ -44,15 +45,15 @@ func TestUpdateRace(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
-	race, err := c.CreateRace(t.Context(), &cs.Race{UserID: 1, Name: "Test"})
-	if err != nil {
+	race := &cs.Race{UserID: 1, Name: "Test"}
+	if err := c.SaveRace(t.Context(), race); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
 
 	race.Name = "Test2"
 	race.PluralName = "Testers"
-	if err := c.UpdateRace(t.Context(), race); err != nil {
+	if err := c.SaveRace(t.Context(), race); err != nil {
 		t.Errorf("update race %s", err)
 		return
 	}
@@ -77,8 +78,7 @@ func TestGetRace(t *testing.T) {
 
 	race := &cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}
 	race = race.WithSpec(&rules)
-	var err error
-	if race, err = c.CreateRace(t.Context(), race); err != nil {
+	if err := c.SaveRace(t.Context(), race); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
@@ -124,7 +124,7 @@ func TestGetRaces(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	if _, err = c.CreateRace(t.Context(), &cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}); err != nil {
+	if err := c.SaveRace(t.Context(), &cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
@@ -143,8 +143,8 @@ func TestDeleteRaces(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	race, err := c.CreateRace(t.Context(), &cs.Race{UserID: 1, Name: "Test", PluralName: "Testers"})
-	if err != nil {
+	race := &cs.Race{UserID: 1, Name: "Test", PluralName: "Testers"}
+	if err := c.SaveRace(t.Context(), race); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}

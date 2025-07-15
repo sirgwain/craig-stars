@@ -109,14 +109,14 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		}
 
 		// create the game in the database
-		game, err = c.CreateGame(gr.ctx, game)
+		err = c.SaveGame(gr.ctx, game)
 		if err != nil {
 			return err
 		}
 
 		// generate an invite hash for the game
 		game.Hash = game.GenerateHash(gr.config.Game.InviteLinkSalt)
-		if err := c.UpdateGame(gr.ctx, game); err != nil {
+		if err := c.SaveGame(gr.ctx, game); err != nil {
 			return err
 		}
 
@@ -321,7 +321,7 @@ func (gr *gameRunner) JoinGame(gameID int64, userID int64, name string, race cs.
 					fullGame.OpenPlayerSlots--
 				}
 
-				if err := c.UpdateGame(gr.ctx, fullGame.Game); err != nil {
+				if err := c.SaveGame(gr.ctx, fullGame.Game); err != nil {
 					return fmt.Errorf("save game %d: %w", gameID, err)
 				}
 
@@ -430,7 +430,7 @@ func (gr *gameRunner) LeaveGame(gameID, userID int64) error {
 			if err := gr.resetPlayerColors(c, game); err != nil {
 				return fmt.Errorf("update player colors %d: %w", gameID, err)
 			}
-			if err := c.UpdateGame(gr.ctx, game.Game); err != nil {
+			if err := c.SaveGame(gr.ctx, game.Game); err != nil {
 				return fmt.Errorf("save game %d: %w", gameID, err)
 			}
 
@@ -507,7 +507,7 @@ func (gr *gameRunner) KickPlayer(gameID int64, playerNum int) error {
 			return fmt.Errorf("update player colors %d: %w", gameID, err)
 		}
 
-		if err := c.UpdateGame(gr.ctx, game.Game); err != nil {
+		if err := c.SaveGame(gr.ctx, game.Game); err != nil {
 			return fmt.Errorf("save game %d: %w", gameID, err)
 		}
 
@@ -603,7 +603,7 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 		}
 
 		game.NumPlayers--
-		if err := c.UpdateGame(gr.ctx, game.Game); err != nil {
+		if err := c.SaveGame(gr.ctx, game.Game); err != nil {
 			return fmt.Errorf("save game %d: %w", gameID, err)
 		}
 		return nil
@@ -635,7 +635,7 @@ func (gr *gameRunner) AddOpenPlayerSlot(game *cs.GameWithPlayers) (*cs.Player, e
 
 		game.OpenPlayerSlots++
 		game.NumPlayers++
-		if err := c.UpdateGame(gr.ctx, &game.Game); err != nil {
+		if err := c.SaveGame(gr.ctx, &game.Game); err != nil {
 			return fmt.Errorf("updating open player slots for game %d: %w", game.ID, err)
 		}
 		return nil
@@ -695,7 +695,7 @@ func (gr *gameRunner) AddGuestPlayer(game *cs.GameWithPlayers) (*cs.Player, erro
 		}
 
 		game.NumPlayers++
-		if err := c.UpdateGame(gr.ctx, &game.Game); err != nil {
+		if err := c.SaveGame(gr.ctx, &game.Game); err != nil {
 			return fmt.Errorf("updating open player slots for game %d: %w", game.ID, err)
 		}
 		return nil
@@ -729,7 +729,7 @@ func (gr *gameRunner) AddAIPlayer(game *cs.GameWithPlayers) (*cs.Player, error) 
 		}
 
 		game.NumPlayers++
-		if err := c.UpdateGame(gr.ctx, &game.Game); err != nil {
+		if err := c.SaveGame(gr.ctx, &game.Game); err != nil {
 			return fmt.Errorf("updating open player slots for game %d: %w", game.ID, err)
 		}
 

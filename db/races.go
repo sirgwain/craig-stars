@@ -56,52 +56,25 @@ func (c *client) SaveRace(ctx context.Context, race *cs.Race) error {
 		if err != nil {
 			return err
 		}
-		race.ID = result.ID
-		race.CreatedAt = result.CreatedAt
-		race.UpdatedAt = result.UpdatedAt
+		race.ID = result
 	} else {
-		result, err := c.writer.UpdateRace(ctx, c.converter.ConvertGameRaceToUpdateParams(race))
+		_, err := c.writer.UpdateRace(ctx, c.converter.ConvertGameRaceToUpdateParams(race))
 		if err != nil {
 			return err
 		}
-		race.UpdatedAt = result
 	}
 
-	return nil
-}
-
-// create a new race
-func (c *client) CreateRace(ctx context.Context, race *cs.Race) (*cs.Race, error) {
-
-	result, err := c.writer.CreateRace(ctx, c.converter.ConvertGameRaceToCreateParams(race))
-	if err != nil {
-		return nil, err
-	}
-
-	race.ID = result.ID
-	race.CreatedAt = result.CreatedAt
-	race.UpdatedAt = result.UpdatedAt
-	return race, nil
-}
-
-// update an existing race
-func (c *client) UpdateRace(ctx context.Context, race *cs.Race) error {
-
-	result, err := c.writer.UpdateRace(ctx, c.converter.ConvertGameRaceToUpdateParams(race))
-	if err != nil {
-		return err
-	}
-
-	race.UpdatedAt = result
 	return nil
 }
 
 // delete a race by id
 func (c *client) DeleteRace(ctx context.Context, id int64) error {
-	return c.writer.DeleteRace(ctx, id)
+	_, err := c.writer.DeleteRace(ctx, id)
+	return err
 }
 
 // delete all races belonging to a user
 func (c *client) DeleteUserRaces(ctx context.Context, userID int64) error {
-	return c.writer.DeleteUserRaces(ctx, userID)
+	_, err := c.writer.DeleteUserRaces(ctx, userID)
+	return err
 }

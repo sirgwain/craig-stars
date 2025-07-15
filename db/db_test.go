@@ -57,7 +57,8 @@ func closeTestDB(c *client) {
 func (c *client) createTestGame(ctx context.Context) *cs.Game {
 
 	gameClient := cs.NewGamer()
-	game, err := c.CreateGame(ctx, gameClient.CreateGame(1, *cs.NewGameSettings()))
+	game := gameClient.CreateGame(1, *cs.NewGameSettings())
+	err := c.SaveGame(ctx, game)
 	if err != nil {
 		panic(fmt.Errorf("error creating test database game: \n%w", err))
 	}
@@ -69,7 +70,8 @@ func (c *client) createTestGame(ctx context.Context) *cs.Game {
 func (c *client) createTestGameWithPlayer(ctx context.Context) (*cs.Game, *cs.Player) {
 
 	gameClient := cs.NewGamer()
-	game, err := c.CreateGame(ctx, gameClient.CreateGame(1, *cs.NewGameSettings()))
+	game := gameClient.CreateGame(1, *cs.NewGameSettings())
+	err := c.SaveGame(ctx, game)
 	if err != nil {
 		panic(fmt.Errorf("error creating test database game: \n%w", err))
 	}
@@ -154,7 +156,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 				Players:   players,
 			}
 
-			fullGame.Game, err = c.CreateGame(b.Context(), fullGame.Game)
+			err = c.SaveGame(b.Context(), fullGame.Game)
 			if err != nil {
 				b.Fatalf("failed to create game %v", err)
 			}
@@ -194,7 +196,7 @@ func BenchmarkUpdateFullGame(b *testing.B) {
 			Players:   players,
 		}
 
-		fullGame.Game, err = c.CreateGame(b.Context(), fullGame.Game)
+		err = c.SaveGame(b.Context(), fullGame.Game)
 		if err != nil {
 			b.Fatalf("failed to create game %v", err)
 		}
@@ -248,7 +250,7 @@ func BenchmarkGetFullGame(b *testing.B) {
 			Players:   players,
 		}
 
-		fullGame.Game, err = c.CreateGame(b.Context(), fullGame.Game)
+		err = c.SaveGame(b.Context(), fullGame.Game)
 		if err != nil {
 			b.Fatalf("failed to create game %v", err)
 		}
@@ -296,7 +298,7 @@ func BenchmarkGetFullGame(b *testing.B) {
 			Players:   players,
 		}
 
-		fullGame.Game, err = c.CreateGame(b.Context(), fullGame.Game)
+		err = c.SaveGame(b.Context(), fullGame.Game)
 		if err != nil {
 			b.Fatalf("failed to create game %v", err)
 		}

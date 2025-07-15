@@ -165,8 +165,8 @@ func (s *server) createNewDiscordUser(ctx context.Context, tokenUser tokenUser) 
 		// create a new test race
 		race := cs.Humanoids()
 		race.UserID = newUser.ID
-		_, err = c.CreateRace(ctx, &race)
-		if err != nil {
+
+		if err = c.SaveRace(ctx, &race); err != nil {
 			return err
 		}
 		log.Info().Str("Username", newUser.Username).Int64("ID", newUser.ID).Msg("created new race for user")

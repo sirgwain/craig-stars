@@ -183,7 +183,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		// update each race UserID
 		for _, race := range races {
 			race.UserID = user.ID
-			if err := c.UpdateRace(r.Context(), &race); err != nil {
+			if err := c.SaveRace(r.Context(), &race); err != nil {
 				return fmt.Errorf("update Race UserID: %w", err)
 			}
 		}

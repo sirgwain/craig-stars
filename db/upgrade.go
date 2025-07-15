@@ -152,7 +152,7 @@ func (u *upgrade) initStarterDB(ctx context.Context) error {
 	}
 
 	rules := cs.NewRules()
-	if _, err := u.tx.CreateRace(ctx, cs.NewRace().WithUserID(newUser.ID).WithSpec(&rules)); err != nil {
+	if err := u.tx.SaveRace(ctx, cs.NewRace().WithUserID(newUser.ID).WithSpec(&rules)); err != nil {
 		return err
 	}
 

@@ -272,7 +272,7 @@ func (s *server) updateGame(w http.ResponseWriter, r *http.Request) {
 	game.QuickStartTurns = update.QuickStartTurns
 	game.VictoryConditions = update.VictoryConditions
 
-	if err := db.UpdateGame(r.Context(), &game.Game); err != nil {
+	if err := db.SaveGame(r.Context(), &game.Game); err != nil {
 		log.Error().Err(err).Int64("ID", game.ID).Msg("update game in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -742,7 +742,7 @@ func (s *server) archiveGame(w http.ResponseWriter, r *http.Request) {
 	// archive the whole game if the host requests it
 	if user.ID == game.HostID {
 		game.Archived = true
-		if err := db.UpdateGame(r.Context(), &game.Game); err != nil {
+		if err := db.SaveGame(r.Context(), &game.Game); err != nil {
 			render.Render(w, r, ErrInternalServerError(fmt.Errorf("archive game in database %v", err)))
 		}
 		log.Debug().Int64("GameID", game.ID).Int64("UserID", user.ID).Msgf("host archived game %s", game.Name)
@@ -768,7 +768,7 @@ func (s *server) unArchiveGame(w http.ResponseWriter, r *http.Request) {
 	// archive the whole game if the host requests it
 	if user.ID == game.HostID {
 		game.Archived = false
-		if err := db.UpdateGame(r.Context(), &game.Game); err != nil {
+		if err := db.SaveGame(r.Context(), &game.Game); err != nil {
 			render.Render(w, r, ErrInternalServerError(fmt.Errorf("archive game in database %v", err)))
 		}
 		log.Debug().Int64("GameID", game.ID).Int64("UserID", user.ID).Msgf("host unarchived game %s", game.Name)

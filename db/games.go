@@ -261,17 +261,21 @@ func (c *client) GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error
 	return &fg, nil
 }
 
-// create a new game
-func (c *client) CreateGame(ctx context.Context, game *cs.Game) (*cs.Game, error) {
-
-	result, err := c.writer.CreateGame(ctx, c.converter.ConvertGameGameToCreateParams(game))
-
-	if err != nil {
-		return nil, err
+func (c *client) SaveGame(ctx context.Context, game *cs.Game) error {
+	if game.ID == 0 {
+		result, err := c.writer.CreateGame(ctx, c.converter.ConvertGameGameToCreateParams(game))
+		if err != nil {
+			return err
+		}
+		game.ID = result
+	} else {
+		_, err := c.writer.UpdateGame(ctx, c.converter.ConvertGameGameToUpdateParams(game))
+		if err != nil {
+			return err
+		}
 	}
 
-	game.ID = result
-	return game, nil
+	return nil
 }
 
 func (c *client) UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error {
@@ -279,22 +283,11 @@ func (c *client) UpdateGameState(ctx context.Context, gameID int64, state cs.Gam
 	return err
 }
 
-// update an existing game
-func (c *client) UpdateGame(ctx context.Context, game *cs.Game) error {
-	_, err := c.writer.UpdateGame(ctx, c.converter.ConvertGameGameToUpdateParams(game))
-	if err != nil {
-		return err
-	}
-
-	return nil
-
-}
-
 // Save an entire game in the database. This should always be wrapped in a transaction
 // TODO: move this into gameRunner so it's clear it should be wrapped in a transaction?
 func (c *client) UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) error {
 
-	if err := c.UpdateGame(ctx, fullGame.Game); err != nil {
+	if err := c.SaveGame(ctx, fullGame.Game); err != nil {
 		return fmt.Errorf("update game: %w", err)
 	}
 

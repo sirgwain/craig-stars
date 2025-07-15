@@ -23,7 +23,7 @@ FROM
 WHERE
     user_id = ?;
 
--- name: CreateRace :one
+-- name: CreateRace :execlastid
 INSERT INTO
     races (
         created_at,
@@ -101,7 +101,7 @@ VALUES
     created_at,
     updated_at;
 
--- name: UpdateRace :one
+-- name: UpdateRace :execrows
 UPDATE races
 SET
     updated_at = CURRENT_TIMESTAMP,
@@ -140,12 +140,12 @@ SET
 WHERE
     id = ? RETURNING updated_at;
 
--- name: DeleteRace :exec
+-- name: DeleteRace :execrows
 DELETE FROM races
 WHERE
     id = ?;
 
--- name: DeleteUserRaces :exec
+-- name: DeleteUserRaces :execrows
 DELETE FROM races
 WHERE
     user_id = ?;

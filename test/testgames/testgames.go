@@ -554,7 +554,7 @@ func CreateTestGames(db db.Client) error {
 	for _, testGame := range TestGames {
 		var err error
 		game := createTestGame(testGame)
-		game.Game, err = db.CreateGame(ctx, game.Game)
+		err = db.SaveGame(ctx, game.Game)
 		if err != nil {
 			return err
 		}

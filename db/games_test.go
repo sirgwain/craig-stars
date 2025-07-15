@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateGame(t *testing.T) {
+func TestSaveGame(t *testing.T) {
 
 	type args struct {
 		c    *client
@@ -24,35 +24,36 @@ func TestCreateGame(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			want := *tt.args.game
-			got, err := tt.args.c.CreateGame(t.Context(), tt.args.game)
+			err := tt.args.c.SaveGame(t.Context(), tt.args.game)
 
 			// id is automatically added
-			want.DBObject = got.DBObject
-			want.Rules = got.Rules // TODO: remove when rules are actually loaded/saved
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("CreateGame() did not return error when expected")
+					t.Fatalf("SaveGame() did not return error when expected")
 				} else {
-					t.Fatalf("CreateGame() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("SaveGame() errored unexpectedly; err = \n%v", err)
 				}
 			}
+			got := tt.args.game
+			// DBObject is returned
+			want.DBObject = got.DBObject
 			test.CompareAsJSON(t, got, want)
 		})
 	}
 }
 
-func TestUpdateGame(t *testing.T) {
+func TestSaveGame2(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
-
-	game, err := c.CreateGame(t.Context(), &cs.Game{HostID: 1, Name: "Test"})
+	game := &cs.Game{HostID: 1, Name: "Test"}
+	err := c.SaveGame(t.Context(), game)
 	if err != nil {
 		t.Errorf("create game %s", err)
 		return
 	}
 
 	game.Name = "Test2"
-	if err := c.UpdateGame(t.Context(), game); err != nil {
+	if err := c.SaveGame(t.Context(), game); err != nil {
 		t.Errorf("update game %s", err)
 		return
 	}
@@ -74,7 +75,7 @@ func TestGetGame(t *testing.T) {
 
 	game := cs.NewGame().WithSettings(*cs.NewGameSettings().WithHost(cs.Humanoids()).WithName("test"))
 	game.Area = cs.Vector{X: 1, Y: 2}
-	game, err := c.CreateGame(t.Context(), game)
+	err := c.SaveGame(t.Context(), game)
 	if err != nil {
 		t.Errorf("create game %s", err)
 		return
@@ -123,8 +124,7 @@ func TestGetGames(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	_, err = c.CreateGame(t.Context(), &cs.Game{HostID: 1, Name: "Test"})
-	if err != nil {
+	if err = c.SaveGame(t.Context(), &cs.Game{HostID: 1, Name: "Test"}); err != nil {
 		t.Errorf("create game %s", err)
 		return
 	}
@@ -144,8 +144,7 @@ func TestGetOpenGames(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	_, err = c.CreateGame(t.Context(), &cs.Game{HostID: 2, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 1, Public: true})
-	if err != nil {
+	if err := c.SaveGame(t.Context(), &cs.Game{HostID: 2, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 1, Public: true}); err != nil {
 		t.Errorf("create game %s", err)
 		return
 	}
@@ -156,8 +155,7 @@ func TestGetOpenGames(t *testing.T) {
 	assert.Equal(t, 1, len(result))
 
 	// create a second closed game
-	_, err = c.CreateGame(t.Context(), &cs.Game{HostID: 2, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 0})
-	if err != nil {
+	if err := c.SaveGame(t.Context(), &cs.Game{HostID: 2, Name: "Test", State: cs.GameStateSetup, OpenPlayerSlots: 0}); err != nil {
 		t.Errorf("create game %s", err)
 		return
 	}
@@ -190,8 +188,8 @@ func TestDeleteGames(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	game, err := c.CreateGame(t.Context(), &cs.Game{HostID: 1, Name: "Test"})
-	if err != nil {
+	game := &cs.Game{HostID: 1, Name: "Test"}
+	if err := c.SaveGame(t.Context(), game); err != nil {
 		t.Errorf("create game %s", err)
 		return
 	}
