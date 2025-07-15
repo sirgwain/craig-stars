@@ -8,57 +8,56 @@ package generated
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const CreatePlanet = `-- name: CreatePlanet :one
+const CreatePlanet = `-- name: CreatePlanet :execlastid
 INSERT INTO
     planets (
-        createdAt,
-        updatedAt,
-        gameId,
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
-        playerNum,
+        player_num,
         grav,
         TEMP,
         rad,
-        baseGrav,
-        baseTemp,
-        baseRad,
-        terraformedAmountGrav,
-        terraformedAmountTemp,
-        terraformedAmountRad,
-        mineralConcIronium,
-        mineralConcBoranium,
-        mineralConcGermanium,
-        mineYearsIronium,
-        mineYearsBoranium,
-        mineYearsGermanium,
+        base_grav,
+        base_temp,
+        base_rad,
+        terraformed_amount_grav,
+        terraformed_amount_temp,
+        terraformed_amount_rad,
+        mineral_conc_ironium,
+        mineral_conc_boranium,
+        mineral_conc_germanium,
+        mine_years_ironium,
+        mine_years_boranium,
+        mine_years_germanium,
         ironium,
         boranium,
         germanium,
         colonists,
-        partialPopulation,
+        partial_population,
         mines,
         factories,
         defenses,
         homeworld,
-        contributesOnlyLeftoverToResearch,
+        contributes_only_leftover_to_research,
         scanner,
-        routeTargetType,
-        routeTargetNum,
-        routeTargetPlayerNum,
-        packetTargetNum,
-        packetSpeed,
-        productionQueue,
+        route_target_type,
+        route_target_num,
+        route_target_player_num,
+        packet_target_num,
+        packet_speed,
+        production_queue,
         spec,
         tags,
-        randomArtifact
+        random_artifact
     )
 VALUES
     (
@@ -105,108 +104,101 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt
+    )
 `
 
 type CreatePlanetParams struct {
-	Gameid                            int64
-	X                                 sql.NullFloat64
-	Y                                 sql.NullFloat64
+	GameID                            int64
+	X                                 float64
+	Y                                 float64
 	Name                              string
-	Num                               sql.NullInt64
-	Playernum                         sql.NullInt64
-	Grav                              sql.NullInt64
-	Temp                              sql.NullInt64
-	Rad                               sql.NullInt64
-	Basegrav                          sql.NullInt64
-	Basetemp                          sql.NullInt64
-	Baserad                           sql.NullInt64
-	Terraformedamountgrav             sql.NullInt64
-	Terraformedamounttemp             sql.NullInt64
-	Terraformedamountrad              sql.NullInt64
-	Mineralconcironium                sql.NullInt64
-	Mineralconcboranium               sql.NullInt64
-	Mineralconcgermanium              sql.NullInt64
-	Mineyearsironium                  sql.NullInt64
-	Mineyearsboranium                 sql.NullInt64
-	Mineyearsgermanium                sql.NullInt64
-	Ironium                           sql.NullInt64
-	Boranium                          sql.NullInt64
-	Germanium                         sql.NullInt64
-	Colonists                         sql.NullInt64
-	Partialpopulation                 sql.NullInt64
-	Mines                             sql.NullInt64
-	Factories                         sql.NullInt64
-	Defenses                          sql.NullInt64
-	Homeworld                         sql.NullBool
-	Contributesonlyleftovertoresearch sql.NullBool
-	Scanner                           sql.NullBool
-	Routetargettype                   *cs.MapObjectType
-	Routetargetnum                    sql.NullInt64
-	Routetargetplayernum              sql.NullInt64
-	Packettargetnum                   sql.NullInt64
-	Packetspeed                       sql.NullInt64
-	Productionqueue                   *ProductionQueueItems
+	Num                               int64
+	PlayerNum                         int64
+	Grav                              int64
+	Temp                              int64
+	Rad                               int64
+	BaseGrav                          int64
+	BaseTemp                          int64
+	BaseRad                           int64
+	TerraformedAmountGrav             int64
+	TerraformedAmountTemp             int64
+	TerraformedAmountRad              int64
+	MineralConcIronium                int64
+	MineralConcBoranium               int64
+	MineralConcGermanium              int64
+	MineYearsIronium                  int64
+	MineYearsBoranium                 int64
+	MineYearsGermanium                int64
+	Ironium                           int64
+	Boranium                          int64
+	Germanium                         int64
+	Colonists                         int64
+	PartialPopulation                 int64
+	Mines                             int64
+	Factories                         int64
+	Defenses                          int64
+	Homeworld                         bool
+	ContributesOnlyLeftoverToResearch bool
+	Scanner                           bool
+	RouteTargetType                   *cs.MapObjectType
+	RouteTargetNum                    int64
+	RouteTargetPlayerNum              int64
+	PacketTargetNum                   int64
+	PacketSpeed                       int64
+	ProductionQueue                   *ProductionQueueItems
 	Spec                              *PlanetSpec
 	Tags                              *Tags
-	Randomartifact                    sql.NullBool
+	RandomArtifact                    bool
 }
 
-type CreatePlanetRow struct {
-	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-}
-
-func (q *Queries) CreatePlanet(ctx context.Context, arg CreatePlanetParams) (CreatePlanetRow, error) {
-	row := q.db.QueryRowContext(ctx, CreatePlanet,
-		arg.Gameid,
+func (q *Queries) CreatePlanet(ctx context.Context, arg CreatePlanetParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreatePlanet,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
-		arg.Playernum,
+		arg.PlayerNum,
 		arg.Grav,
 		arg.Temp,
 		arg.Rad,
-		arg.Basegrav,
-		arg.Basetemp,
-		arg.Baserad,
-		arg.Terraformedamountgrav,
-		arg.Terraformedamounttemp,
-		arg.Terraformedamountrad,
-		arg.Mineralconcironium,
-		arg.Mineralconcboranium,
-		arg.Mineralconcgermanium,
-		arg.Mineyearsironium,
-		arg.Mineyearsboranium,
-		arg.Mineyearsgermanium,
+		arg.BaseGrav,
+		arg.BaseTemp,
+		arg.BaseRad,
+		arg.TerraformedAmountGrav,
+		arg.TerraformedAmountTemp,
+		arg.TerraformedAmountRad,
+		arg.MineralConcIronium,
+		arg.MineralConcBoranium,
+		arg.MineralConcGermanium,
+		arg.MineYearsIronium,
+		arg.MineYearsBoranium,
+		arg.MineYearsGermanium,
 		arg.Ironium,
 		arg.Boranium,
 		arg.Germanium,
 		arg.Colonists,
-		arg.Partialpopulation,
+		arg.PartialPopulation,
 		arg.Mines,
 		arg.Factories,
 		arg.Defenses,
 		arg.Homeworld,
-		arg.Contributesonlyleftovertoresearch,
+		arg.ContributesOnlyLeftoverToResearch,
 		arg.Scanner,
-		arg.Routetargettype,
-		arg.Routetargetnum,
-		arg.Routetargetplayernum,
-		arg.Packettargetnum,
-		arg.Packetspeed,
-		arg.Productionqueue,
+		arg.RouteTargetType,
+		arg.RouteTargetNum,
+		arg.RouteTargetPlayerNum,
+		arg.PacketTargetNum,
+		arg.PacketSpeed,
+		arg.ProductionQueue,
 		arg.Spec,
 		arg.Tags,
-		arg.Randomartifact,
+		arg.RandomArtifact,
 	)
-	var i CreatePlanetRow
-	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
 const DeletePlanet = `-- name: DeletePlanet :exec
@@ -222,7 +214,7 @@ func (q *Queries) DeletePlanet(ctx context.Context, id int64) error {
 
 const GetPlanet = `-- name: GetPlanet :one
 SELECT
-    id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
 FROM
     planets
 WHERE
@@ -235,130 +227,130 @@ func (q *Queries) GetPlanet(ctx context.Context, id int64) (Planet, error) {
 	var i Planet
 	err := row.Scan(
 		&i.ID,
-		&i.Gameid,
-		&i.Createdat,
-		&i.Updatedat,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Playernum,
+		&i.PlayerNum,
 		&i.Grav,
 		&i.Temp,
 		&i.Rad,
-		&i.Basegrav,
-		&i.Basetemp,
-		&i.Baserad,
-		&i.Terraformedamountgrav,
-		&i.Terraformedamounttemp,
-		&i.Terraformedamountrad,
-		&i.Mineralconcironium,
-		&i.Mineralconcboranium,
-		&i.Mineralconcgermanium,
-		&i.Mineyearsironium,
-		&i.Mineyearsboranium,
-		&i.Mineyearsgermanium,
+		&i.BaseGrav,
+		&i.BaseTemp,
+		&i.BaseRad,
+		&i.TerraformedAmountGrav,
+		&i.TerraformedAmountTemp,
+		&i.TerraformedAmountRad,
+		&i.MineralConcIronium,
+		&i.MineralConcBoranium,
+		&i.MineralConcGermanium,
+		&i.MineYearsIronium,
+		&i.MineYearsBoranium,
+		&i.MineYearsGermanium,
 		&i.Ironium,
 		&i.Boranium,
 		&i.Germanium,
 		&i.Colonists,
-		&i.Partialpopulation,
+		&i.PartialPopulation,
 		&i.Mines,
 		&i.Factories,
 		&i.Defenses,
 		&i.Homeworld,
-		&i.Contributesonlyleftovertoresearch,
+		&i.ContributesOnlyLeftoverToResearch,
 		&i.Scanner,
-		&i.Routetargettype,
-		&i.Routetargetnum,
-		&i.Routetargetplayernum,
-		&i.Packettargetnum,
-		&i.Packetspeed,
-		&i.Productionqueue,
+		&i.RouteTargetType,
+		&i.RouteTargetNum,
+		&i.RouteTargetPlayerNum,
+		&i.PacketTargetNum,
+		&i.PacketSpeed,
+		&i.ProductionQueue,
 		&i.Spec,
 		&i.Tags,
-		&i.Randomartifact,
+		&i.RandomArtifact,
 	)
 	return i, err
 }
 
 const GetPlanetByNum = `-- name: GetPlanetByNum :many
 SELECT
-    p.id, p.gameid, p.createdat, p.updatedat, p.x, p.y, p.name, p.num, p.playernum, p.grav, p."temp", p.rad, p.basegrav, p.basetemp, p.baserad, p.terraformedamountgrav, p.terraformedamounttemp, p.terraformedamountrad, p.mineralconcironium, p.mineralconcboranium, p.mineralconcgermanium, p.mineyearsironium, p.mineyearsboranium, p.mineyearsgermanium, p.ironium, p.boranium, p.germanium, p.colonists, p.partialpopulation, p.mines, p.factories, p.defenses, p.homeworld, p.contributesonlyleftovertoresearch, p.scanner, p.routetargettype, p.routetargetnum, p.routetargetplayernum, p.packettargetnum, p.packetspeed, p.productionqueue, p.spec, p.tags, p.randomartifact,
+    p.id, p.created_at, p.updated_at, p.game_id, p.x, p.y, p.name, p.num, p.player_num, p.grav, p."temp", p.rad, p.base_grav, p.base_temp, p.base_rad, p.terraformed_amount_grav, p.terraformed_amount_temp, p.terraformed_amount_rad, p.mineral_conc_ironium, p.mineral_conc_boranium, p.mineral_conc_germanium, p.mine_years_ironium, p.mine_years_boranium, p.mine_years_germanium, p.ironium, p.boranium, p.germanium, p.colonists, p.partial_population, p.mines, p.factories, p.defenses, p.homeworld, p.contributes_only_leftover_to_research, p.scanner, p.route_target_type, p.route_target_num, p.route_target_player_num, p.packet_target_num, p.packet_speed, p.production_queue, p.spec, p.tags, p.random_artifact,
     f.id AS 'fleet.id',
-    f.createdAt AS 'fleet.createdAt',
-    f.updatedAt AS 'fleet.updatedAt',
-    f.gameId AS 'fleet.gameId',
-    f.battlePlanNum AS 'fleet.battlePlanNum',
+    f.created_at AS 'fleet.created_at',
+    f.updated_at AS 'fleet.updated_at',
+    f.game_id AS 'fleet.game_id',
+    COALESCE(f.battle_plan_num, 0) AS 'fleet.battle_plan_num',
     f.x AS 'fleet.x',
     f.y AS 'fleet.y',
     f.name AS 'fleet.name',
-    f.num AS 'fleet.num',
-    f.playerNum AS 'fleet.playerNum',
+    COALESCE(f.num, 0) AS 'fleet.num',
+    COALESCE(f.player_num, 0) AS 'fleet.player_num',
     f.tokens AS 'fleet.tokens',
     f.waypoints AS 'fleet.waypoints',
-    f.repeatOrders AS 'fleet.repeatOrders',
-    f.planetNum AS 'fleet.planetNum',
-    f.baseName AS 'fleet.baseName',
-    f.ironium AS 'fleet.ironium',
-    f.boranium AS 'fleet.boranium',
-    f.germanium AS 'fleet.germanium',
-    f.colonists AS 'fleet.colonists',
-    f.fuel AS 'fleet.fuel',
-    f.age AS 'fleet.age',
-    f.headingX AS 'fleet.headingX',
-    f.headingY AS 'fleet.headingY',
-    f.warpSpeed AS 'fleet.warpSpeed',
-    f.previousPositionX AS 'fleet.previousPositionX',
-    f.previousPositionY AS 'fleet.previousPositionY',
-    f.orbitingPlanetNum AS 'fleet.orbitingPlanetNum',
+    f.repeat_orders AS 'fleet.repeat_orders',
+    COALESCE(f.planet_num, 0) AS 'fleet.planet_num',
+    f.base_name AS 'fleet.base_name',
+    COALESCE(f.ironium, 0) AS 'fleet.ironium',
+    COALESCE(f.boranium, 0) AS 'fleet.boranium',
+    COALESCE(f.germanium, 0) AS 'fleet.germanium',
+    COALESCE(f.colonists, 0) AS 'fleet.colonists',
+    COALESCE(f.fuel, 0) AS 'fleet.fuel',
+    COALESCE(f.age, 0) AS 'fleet.age',
+    f.heading_x AS 'fleet.heading_x',
+    f.heading_y AS 'fleet.heading_y',
+    COALESCE(f.warp_speed, 0) AS 'fleet.warp_speed',
+    f.previous_position_x AS 'fleet.previous_position_x',
+    f.previous_position_y AS 'fleet.previous_position_y',
+    COALESCE(f.orbiting_planet_num, 0) AS 'fleet.orbiting_planet_num',
     f.starbase AS 'fleet.starbase',
     f.spec AS 'fleet.spec',
     f.purpose AS 'fleet.purpose',
     f.tags AS 'fleet.tags'
 FROM
     planets p
-    LEFT JOIN fleets f ON p.gameId = f.gameId
-    AND p.num = f.planetNum
+    LEFT JOIN fleets f ON p.game_id = f.game_id
+    AND p.num = f.planet_num
 WHERE
-    p.gameId = ?
+    p.game_id = ?
     AND p.num = ?
 `
 
 type GetPlanetByNumParams struct {
-	Gameid int64
-	Num    sql.NullInt64
+	GameID int64
+	Num    int64
 }
 
 type GetPlanetByNumRow struct {
 	Planet                 Planet
 	FleetID                sql.NullInt64
-	FleetCreatedat         sql.NullTime
-	FleetUpdatedat         sql.NullTime
-	FleetGameid            sql.NullInt64
-	FleetBattleplannum     sql.NullInt64
+	FleetCreatedAt         sql.NullTime
+	FleetUpdatedAt         sql.NullTime
+	FleetGameID            sql.NullInt64
+	FleetBattlePlanNum     int64
 	FleetX                 sql.NullFloat64
 	FleetY                 sql.NullFloat64
 	FleetName              sql.NullString
-	FleetNum               sql.NullInt64
-	FleetPlayernum         sql.NullInt64
+	FleetNum               int64
+	FleetPlayerNum         int64
 	FleetTokens            *ShipTokens
 	FleetWaypoints         *Waypoints
-	FleetRepeatorders      sql.NullBool
-	FleetPlanetnum         sql.NullInt64
-	FleetBasename          sql.NullString
-	FleetIronium           sql.NullInt64
-	FleetBoranium          sql.NullInt64
-	FleetGermanium         sql.NullInt64
-	FleetColonists         sql.NullInt64
-	FleetFuel              sql.NullInt64
-	FleetAge               sql.NullInt64
-	FleetHeadingx          sql.NullFloat64
-	FleetHeadingy          sql.NullFloat64
-	FleetWarpspeed         sql.NullInt64
-	FleetPreviouspositionx sql.NullFloat64
-	FleetPreviouspositiony sql.NullFloat64
-	FleetOrbitingplanetnum sql.NullInt64
+	FleetRepeatOrders      sql.NullBool
+	FleetPlanetNum         int64
+	FleetBaseName          sql.NullString
+	FleetIronium           int64
+	FleetBoranium          int64
+	FleetGermanium         int64
+	FleetColonists         int64
+	FleetFuel              int64
+	FleetAge               int64
+	FleetHeadingX          sql.NullFloat64
+	FleetHeadingY          sql.NullFloat64
+	FleetWarpSpeed         int64
+	FleetPreviousPositionX sql.NullFloat64
+	FleetPreviousPositionY sql.NullFloat64
+	FleetOrbitingPlanetNum int64
 	FleetStarbase          sql.NullBool
 	FleetSpec              *FleetSpec
 	FleetPurpose           *cs.FleetPurpose
@@ -366,7 +358,7 @@ type GetPlanetByNumRow struct {
 }
 
 func (q *Queries) GetPlanetByNum(ctx context.Context, arg GetPlanetByNumParams) ([]GetPlanetByNumRow, error) {
-	rows, err := q.db.QueryContext(ctx, GetPlanetByNum, arg.Gameid, arg.Num)
+	rows, err := q.db.QueryContext(ctx, GetPlanetByNum, arg.GameID, arg.Num)
 	if err != nil {
 		return nil, err
 	}
@@ -376,76 +368,76 @@ func (q *Queries) GetPlanetByNum(ctx context.Context, arg GetPlanetByNumParams) 
 		var i GetPlanetByNumRow
 		if err := rows.Scan(
 			&i.Planet.ID,
-			&i.Planet.Gameid,
-			&i.Planet.Createdat,
-			&i.Planet.Updatedat,
+			&i.Planet.CreatedAt,
+			&i.Planet.UpdatedAt,
+			&i.Planet.GameID,
 			&i.Planet.X,
 			&i.Planet.Y,
 			&i.Planet.Name,
 			&i.Planet.Num,
-			&i.Planet.Playernum,
+			&i.Planet.PlayerNum,
 			&i.Planet.Grav,
 			&i.Planet.Temp,
 			&i.Planet.Rad,
-			&i.Planet.Basegrav,
-			&i.Planet.Basetemp,
-			&i.Planet.Baserad,
-			&i.Planet.Terraformedamountgrav,
-			&i.Planet.Terraformedamounttemp,
-			&i.Planet.Terraformedamountrad,
-			&i.Planet.Mineralconcironium,
-			&i.Planet.Mineralconcboranium,
-			&i.Planet.Mineralconcgermanium,
-			&i.Planet.Mineyearsironium,
-			&i.Planet.Mineyearsboranium,
-			&i.Planet.Mineyearsgermanium,
+			&i.Planet.BaseGrav,
+			&i.Planet.BaseTemp,
+			&i.Planet.BaseRad,
+			&i.Planet.TerraformedAmountGrav,
+			&i.Planet.TerraformedAmountTemp,
+			&i.Planet.TerraformedAmountRad,
+			&i.Planet.MineralConcIronium,
+			&i.Planet.MineralConcBoranium,
+			&i.Planet.MineralConcGermanium,
+			&i.Planet.MineYearsIronium,
+			&i.Planet.MineYearsBoranium,
+			&i.Planet.MineYearsGermanium,
 			&i.Planet.Ironium,
 			&i.Planet.Boranium,
 			&i.Planet.Germanium,
 			&i.Planet.Colonists,
-			&i.Planet.Partialpopulation,
+			&i.Planet.PartialPopulation,
 			&i.Planet.Mines,
 			&i.Planet.Factories,
 			&i.Planet.Defenses,
 			&i.Planet.Homeworld,
-			&i.Planet.Contributesonlyleftovertoresearch,
+			&i.Planet.ContributesOnlyLeftoverToResearch,
 			&i.Planet.Scanner,
-			&i.Planet.Routetargettype,
-			&i.Planet.Routetargetnum,
-			&i.Planet.Routetargetplayernum,
-			&i.Planet.Packettargetnum,
-			&i.Planet.Packetspeed,
-			&i.Planet.Productionqueue,
+			&i.Planet.RouteTargetType,
+			&i.Planet.RouteTargetNum,
+			&i.Planet.RouteTargetPlayerNum,
+			&i.Planet.PacketTargetNum,
+			&i.Planet.PacketSpeed,
+			&i.Planet.ProductionQueue,
 			&i.Planet.Spec,
 			&i.Planet.Tags,
-			&i.Planet.Randomartifact,
+			&i.Planet.RandomArtifact,
 			&i.FleetID,
-			&i.FleetCreatedat,
-			&i.FleetUpdatedat,
-			&i.FleetGameid,
-			&i.FleetBattleplannum,
+			&i.FleetCreatedAt,
+			&i.FleetUpdatedAt,
+			&i.FleetGameID,
+			&i.FleetBattlePlanNum,
 			&i.FleetX,
 			&i.FleetY,
 			&i.FleetName,
 			&i.FleetNum,
-			&i.FleetPlayernum,
+			&i.FleetPlayerNum,
 			&i.FleetTokens,
 			&i.FleetWaypoints,
-			&i.FleetRepeatorders,
-			&i.FleetPlanetnum,
-			&i.FleetBasename,
+			&i.FleetRepeatOrders,
+			&i.FleetPlanetNum,
+			&i.FleetBaseName,
 			&i.FleetIronium,
 			&i.FleetBoranium,
 			&i.FleetGermanium,
 			&i.FleetColonists,
 			&i.FleetFuel,
 			&i.FleetAge,
-			&i.FleetHeadingx,
-			&i.FleetHeadingy,
-			&i.FleetWarpspeed,
-			&i.FleetPreviouspositionx,
-			&i.FleetPreviouspositiony,
-			&i.FleetOrbitingplanetnum,
+			&i.FleetHeadingX,
+			&i.FleetHeadingY,
+			&i.FleetWarpSpeed,
+			&i.FleetPreviousPositionX,
+			&i.FleetPreviousPositionY,
+			&i.FleetOrbitingPlanetNum,
 			&i.FleetStarbase,
 			&i.FleetSpec,
 			&i.FleetPurpose,
@@ -466,7 +458,7 @@ func (q *Queries) GetPlanetByNum(ctx context.Context, arg GetPlanetByNumParams) 
 
 const GetPlanets = `-- name: GetPlanets :many
 SELECT
-    id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
 FROM
     planets
 `
@@ -482,49 +474,49 @@ func (q *Queries) GetPlanets(ctx context.Context) ([]Planet, error) {
 		var i Planet
 		if err := rows.Scan(
 			&i.ID,
-			&i.Gameid,
-			&i.Createdat,
-			&i.Updatedat,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Grav,
 			&i.Temp,
 			&i.Rad,
-			&i.Basegrav,
-			&i.Basetemp,
-			&i.Baserad,
-			&i.Terraformedamountgrav,
-			&i.Terraformedamounttemp,
-			&i.Terraformedamountrad,
-			&i.Mineralconcironium,
-			&i.Mineralconcboranium,
-			&i.Mineralconcgermanium,
-			&i.Mineyearsironium,
-			&i.Mineyearsboranium,
-			&i.Mineyearsgermanium,
+			&i.BaseGrav,
+			&i.BaseTemp,
+			&i.BaseRad,
+			&i.TerraformedAmountGrav,
+			&i.TerraformedAmountTemp,
+			&i.TerraformedAmountRad,
+			&i.MineralConcIronium,
+			&i.MineralConcBoranium,
+			&i.MineralConcGermanium,
+			&i.MineYearsIronium,
+			&i.MineYearsBoranium,
+			&i.MineYearsGermanium,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
 			&i.Colonists,
-			&i.Partialpopulation,
+			&i.PartialPopulation,
 			&i.Mines,
 			&i.Factories,
 			&i.Defenses,
 			&i.Homeworld,
-			&i.Contributesonlyleftovertoresearch,
+			&i.ContributesOnlyLeftoverToResearch,
 			&i.Scanner,
-			&i.Routetargettype,
-			&i.Routetargetnum,
-			&i.Routetargetplayernum,
-			&i.Packettargetnum,
-			&i.Packetspeed,
-			&i.Productionqueue,
+			&i.RouteTargetType,
+			&i.RouteTargetNum,
+			&i.RouteTargetPlayerNum,
+			&i.PacketTargetNum,
+			&i.PacketSpeed,
+			&i.ProductionQueue,
 			&i.Spec,
 			&i.Tags,
-			&i.Randomartifact,
+			&i.RandomArtifact,
 		); err != nil {
 			return nil, err
 		}
@@ -541,17 +533,17 @@ func (q *Queries) GetPlanets(ctx context.Context) ([]Planet, error) {
 
 const GetPlanetsForGame = `-- name: GetPlanetsForGame :many
 SELECT
-    id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
 FROM
     planets
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num
 `
 
-func (q *Queries) GetPlanetsForGame(ctx context.Context, gameid int64) ([]Planet, error) {
-	rows, err := q.db.QueryContext(ctx, GetPlanetsForGame, gameid)
+func (q *Queries) GetPlanetsForGame(ctx context.Context, gameID int64) ([]Planet, error) {
+	rows, err := q.db.QueryContext(ctx, GetPlanetsForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -561,49 +553,49 @@ func (q *Queries) GetPlanetsForGame(ctx context.Context, gameid int64) ([]Planet
 		var i Planet
 		if err := rows.Scan(
 			&i.ID,
-			&i.Gameid,
-			&i.Createdat,
-			&i.Updatedat,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Grav,
 			&i.Temp,
 			&i.Rad,
-			&i.Basegrav,
-			&i.Basetemp,
-			&i.Baserad,
-			&i.Terraformedamountgrav,
-			&i.Terraformedamounttemp,
-			&i.Terraformedamountrad,
-			&i.Mineralconcironium,
-			&i.Mineralconcboranium,
-			&i.Mineralconcgermanium,
-			&i.Mineyearsironium,
-			&i.Mineyearsboranium,
-			&i.Mineyearsgermanium,
+			&i.BaseGrav,
+			&i.BaseTemp,
+			&i.BaseRad,
+			&i.TerraformedAmountGrav,
+			&i.TerraformedAmountTemp,
+			&i.TerraformedAmountRad,
+			&i.MineralConcIronium,
+			&i.MineralConcBoranium,
+			&i.MineralConcGermanium,
+			&i.MineYearsIronium,
+			&i.MineYearsBoranium,
+			&i.MineYearsGermanium,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
 			&i.Colonists,
-			&i.Partialpopulation,
+			&i.PartialPopulation,
 			&i.Mines,
 			&i.Factories,
 			&i.Defenses,
 			&i.Homeworld,
-			&i.Contributesonlyleftovertoresearch,
+			&i.ContributesOnlyLeftoverToResearch,
 			&i.Scanner,
-			&i.Routetargettype,
-			&i.Routetargetnum,
-			&i.Routetargetplayernum,
-			&i.Packettargetnum,
-			&i.Packetspeed,
-			&i.Productionqueue,
+			&i.RouteTargetType,
+			&i.RouteTargetNum,
+			&i.RouteTargetPlayerNum,
+			&i.PacketTargetNum,
+			&i.PacketSpeed,
+			&i.ProductionQueue,
 			&i.Spec,
 			&i.Tags,
-			&i.Randomartifact,
+			&i.RandomArtifact,
 		); err != nil {
 			return nil, err
 		}
@@ -620,23 +612,23 @@ func (q *Queries) GetPlanetsForGame(ctx context.Context, gameid int64) ([]Planet
 
 const GetPlanetsForPlayer = `-- name: GetPlanetsForPlayer :many
 SELECT
-    id, gameid, createdat, updatedat, x, y, name, num, playernum, grav, "temp", rad, basegrav, basetemp, baserad, terraformedamountgrav, terraformedamounttemp, terraformedamountrad, mineralconcironium, mineralconcboranium, mineralconcgermanium, mineyearsironium, mineyearsboranium, mineyearsgermanium, ironium, boranium, germanium, colonists, partialpopulation, mines, factories, defenses, homeworld, contributesonlyleftovertoresearch, scanner, routetargettype, routetargetnum, routetargetplayernum, packettargetnum, packetspeed, productionqueue, spec, tags, randomartifact
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, grav, "temp", rad, base_grav, base_temp, base_rad, terraformed_amount_grav, terraformed_amount_temp, terraformed_amount_rad, mineral_conc_ironium, mineral_conc_boranium, mineral_conc_germanium, mine_years_ironium, mine_years_boranium, mine_years_germanium, ironium, boranium, germanium, colonists, partial_population, mines, factories, defenses, homeworld, contributes_only_leftover_to_research, scanner, route_target_type, route_target_num, route_target_player_num, packet_target_num, packet_speed, production_queue, spec, tags, random_artifact
 FROM
     planets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
 ORDER BY
     num
 `
 
 type GetPlanetsForPlayerParams struct {
-	Gameid    int64
-	Playernum sql.NullInt64
+	GameID    int64
+	PlayerNum int64
 }
 
 func (q *Queries) GetPlanetsForPlayer(ctx context.Context, arg GetPlanetsForPlayerParams) ([]Planet, error) {
-	rows, err := q.db.QueryContext(ctx, GetPlanetsForPlayer, arg.Gameid, arg.Playernum)
+	rows, err := q.db.QueryContext(ctx, GetPlanetsForPlayer, arg.GameID, arg.PlayerNum)
 	if err != nil {
 		return nil, err
 	}
@@ -646,49 +638,49 @@ func (q *Queries) GetPlanetsForPlayer(ctx context.Context, arg GetPlanetsForPlay
 		var i Planet
 		if err := rows.Scan(
 			&i.ID,
-			&i.Gameid,
-			&i.Createdat,
-			&i.Updatedat,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Grav,
 			&i.Temp,
 			&i.Rad,
-			&i.Basegrav,
-			&i.Basetemp,
-			&i.Baserad,
-			&i.Terraformedamountgrav,
-			&i.Terraformedamounttemp,
-			&i.Terraformedamountrad,
-			&i.Mineralconcironium,
-			&i.Mineralconcboranium,
-			&i.Mineralconcgermanium,
-			&i.Mineyearsironium,
-			&i.Mineyearsboranium,
-			&i.Mineyearsgermanium,
+			&i.BaseGrav,
+			&i.BaseTemp,
+			&i.BaseRad,
+			&i.TerraformedAmountGrav,
+			&i.TerraformedAmountTemp,
+			&i.TerraformedAmountRad,
+			&i.MineralConcIronium,
+			&i.MineralConcBoranium,
+			&i.MineralConcGermanium,
+			&i.MineYearsIronium,
+			&i.MineYearsBoranium,
+			&i.MineYearsGermanium,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
 			&i.Colonists,
-			&i.Partialpopulation,
+			&i.PartialPopulation,
 			&i.Mines,
 			&i.Factories,
 			&i.Defenses,
 			&i.Homeworld,
-			&i.Contributesonlyleftovertoresearch,
+			&i.ContributesOnlyLeftoverToResearch,
 			&i.Scanner,
-			&i.Routetargettype,
-			&i.Routetargetnum,
-			&i.Routetargetplayernum,
-			&i.Packettargetnum,
-			&i.Packetspeed,
-			&i.Productionqueue,
+			&i.RouteTargetType,
+			&i.RouteTargetNum,
+			&i.RouteTargetPlayerNum,
+			&i.PacketTargetNum,
+			&i.PacketSpeed,
+			&i.ProductionQueue,
 			&i.Spec,
 			&i.Tags,
-			&i.Randomartifact,
+			&i.RandomArtifact,
 		); err != nil {
 			return nil, err
 		}
@@ -703,156 +695,157 @@ func (q *Queries) GetPlanetsForPlayer(ctx context.Context, arg GetPlanetsForPlay
 	return items, nil
 }
 
-const UpdatePlanet = `-- name: UpdatePlanet :one
+const UpdatePlanet = `-- name: UpdatePlanet :execrows
 UPDATE planets
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
-    playerNum = ?,
+    player_num = ?,
     grav = ?,
     TEMP = ?,
     rad = ?,
-    baseGrav = ?,
-    baseTemp = ?,
-    baseRad = ?,
-    terraformedAmountGrav = ?,
-    terraformedAmountTemp = ?,
-    terraformedAmountRad = ?,
-    mineralConcIronium = ?,
-    mineralConcBoranium = ?,
-    mineralConcGermanium = ?,
-    mineYearsIronium = ?,
-    mineYearsBoranium = ?,
-    mineYearsGermanium = ?,
+    base_grav = ?,
+    base_temp = ?,
+    base_rad = ?,
+    terraformed_amount_grav = ?,
+    terraformed_amount_temp = ?,
+    terraformed_amount_rad = ?,
+    mineral_conc_ironium = ?,
+    mineral_conc_boranium = ?,
+    mineral_conc_germanium = ?,
+    mine_years_ironium = ?,
+    mine_years_boranium = ?,
+    mine_years_germanium = ?,
     ironium = ?,
     boranium = ?,
     germanium = ?,
     colonists = ?,
-    partialPopulation = ?,
+    partial_population = ?,
     mines = ?,
     factories = ?,
     defenses = ?,
     homeworld = ?,
-    contributesOnlyLeftoverToResearch = ?,
+    contributes_only_leftover_to_research = ?,
     scanner = ?,
-    routeTargetType = ?,
-    routeTargetNum = ?,
-    routeTargetPlayerNum = ?,
-    packetTargetNum = ?,
-    packetSpeed = ?,
-    productionQueue = ?,
+    route_target_type = ?,
+    route_target_num = ?,
+    route_target_player_num = ?,
+    packet_target_num = ?,
+    packet_speed = ?,
+    production_queue = ?,
     spec = ?,
     tags = ?,
-    randomArtifact = ?
+    random_artifact = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlanetParams struct {
-	Gameid                            int64
-	X                                 sql.NullFloat64
-	Y                                 sql.NullFloat64
+	GameID                            int64
+	X                                 float64
+	Y                                 float64
 	Name                              string
-	Num                               sql.NullInt64
-	Playernum                         sql.NullInt64
-	Grav                              sql.NullInt64
-	Temp                              sql.NullInt64
-	Rad                               sql.NullInt64
-	Basegrav                          sql.NullInt64
-	Basetemp                          sql.NullInt64
-	Baserad                           sql.NullInt64
-	Terraformedamountgrav             sql.NullInt64
-	Terraformedamounttemp             sql.NullInt64
-	Terraformedamountrad              sql.NullInt64
-	Mineralconcironium                sql.NullInt64
-	Mineralconcboranium               sql.NullInt64
-	Mineralconcgermanium              sql.NullInt64
-	Mineyearsironium                  sql.NullInt64
-	Mineyearsboranium                 sql.NullInt64
-	Mineyearsgermanium                sql.NullInt64
-	Ironium                           sql.NullInt64
-	Boranium                          sql.NullInt64
-	Germanium                         sql.NullInt64
-	Colonists                         sql.NullInt64
-	Partialpopulation                 sql.NullInt64
-	Mines                             sql.NullInt64
-	Factories                         sql.NullInt64
-	Defenses                          sql.NullInt64
-	Homeworld                         sql.NullBool
-	Contributesonlyleftovertoresearch sql.NullBool
-	Scanner                           sql.NullBool
-	Routetargettype                   *cs.MapObjectType
-	Routetargetnum                    sql.NullInt64
-	Routetargetplayernum              sql.NullInt64
-	Packettargetnum                   sql.NullInt64
-	Packetspeed                       sql.NullInt64
-	Productionqueue                   *ProductionQueueItems
+	Num                               int64
+	PlayerNum                         int64
+	Grav                              int64
+	Temp                              int64
+	Rad                               int64
+	BaseGrav                          int64
+	BaseTemp                          int64
+	BaseRad                           int64
+	TerraformedAmountGrav             int64
+	TerraformedAmountTemp             int64
+	TerraformedAmountRad              int64
+	MineralConcIronium                int64
+	MineralConcBoranium               int64
+	MineralConcGermanium              int64
+	MineYearsIronium                  int64
+	MineYearsBoranium                 int64
+	MineYearsGermanium                int64
+	Ironium                           int64
+	Boranium                          int64
+	Germanium                         int64
+	Colonists                         int64
+	PartialPopulation                 int64
+	Mines                             int64
+	Factories                         int64
+	Defenses                          int64
+	Homeworld                         bool
+	ContributesOnlyLeftoverToResearch bool
+	Scanner                           bool
+	RouteTargetType                   *cs.MapObjectType
+	RouteTargetNum                    int64
+	RouteTargetPlayerNum              int64
+	PacketTargetNum                   int64
+	PacketSpeed                       int64
+	ProductionQueue                   *ProductionQueueItems
 	Spec                              *PlanetSpec
 	Tags                              *Tags
-	Randomartifact                    sql.NullBool
+	RandomArtifact                    bool
 	ID                                int64
 }
 
-func (q *Queries) UpdatePlanet(ctx context.Context, arg UpdatePlanetParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlanet,
-		arg.Gameid,
+func (q *Queries) UpdatePlanet(ctx context.Context, arg UpdatePlanetParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlanet,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
-		arg.Playernum,
+		arg.PlayerNum,
 		arg.Grav,
 		arg.Temp,
 		arg.Rad,
-		arg.Basegrav,
-		arg.Basetemp,
-		arg.Baserad,
-		arg.Terraformedamountgrav,
-		arg.Terraformedamounttemp,
-		arg.Terraformedamountrad,
-		arg.Mineralconcironium,
-		arg.Mineralconcboranium,
-		arg.Mineralconcgermanium,
-		arg.Mineyearsironium,
-		arg.Mineyearsboranium,
-		arg.Mineyearsgermanium,
+		arg.BaseGrav,
+		arg.BaseTemp,
+		arg.BaseRad,
+		arg.TerraformedAmountGrav,
+		arg.TerraformedAmountTemp,
+		arg.TerraformedAmountRad,
+		arg.MineralConcIronium,
+		arg.MineralConcBoranium,
+		arg.MineralConcGermanium,
+		arg.MineYearsIronium,
+		arg.MineYearsBoranium,
+		arg.MineYearsGermanium,
 		arg.Ironium,
 		arg.Boranium,
 		arg.Germanium,
 		arg.Colonists,
-		arg.Partialpopulation,
+		arg.PartialPopulation,
 		arg.Mines,
 		arg.Factories,
 		arg.Defenses,
 		arg.Homeworld,
-		arg.Contributesonlyleftovertoresearch,
+		arg.ContributesOnlyLeftoverToResearch,
 		arg.Scanner,
-		arg.Routetargettype,
-		arg.Routetargetnum,
-		arg.Routetargetplayernum,
-		arg.Packettargetnum,
-		arg.Packetspeed,
-		arg.Productionqueue,
+		arg.RouteTargetType,
+		arg.RouteTargetNum,
+		arg.RouteTargetPlayerNum,
+		arg.PacketTargetNum,
+		arg.PacketSpeed,
+		arg.ProductionQueue,
 		arg.Spec,
 		arg.Tags,
-		arg.Randomartifact,
+		arg.RandomArtifact,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlanetSpec = `-- name: UpdatePlanetSpec :one
+const UpdatePlanetSpec = `-- name: UpdatePlanetSpec :execrows
 UPDATE planets
 SET
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlanetSpecParams struct {
@@ -860,9 +853,10 @@ type UpdatePlanetSpecParams struct {
 	ID   int64
 }
 
-func (q *Queries) UpdatePlanetSpec(ctx context.Context, arg UpdatePlanetSpecParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlanetSpec, arg.Spec, arg.ID)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) UpdatePlanetSpec(ctx context.Context, arg UpdatePlanetSpecParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlanetSpec, arg.Spec, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

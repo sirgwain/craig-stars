@@ -7,31 +7,29 @@ package generated
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const CreateMysteryTrader = `-- name: CreateMysteryTrader :one
+const CreateMysteryTrader = `-- name: CreateMysteryTrader :execlastid
 INSERT INTO
-    mysterytraders (
-        createdAt,
-        updatedAt,
-        gameId,
+    mystery_traders (
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
         tags,
-        headingX,
-        headingY,
-        warpSpeed,
-        requestedBoon,
-        destinationX,
-        destinationY,
-        rewardType,
-        playersRewarded,
+        heading_x,
+        heading_y,
+        warp_speed,
+        requested_boon,
+        destination_x,
+        destination_y,
+        reward_type,
+        players_rewarded,
         spec
     )
 VALUES
@@ -53,181 +51,177 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt
+    )
 `
 
 type CreateMysteryTraderParams struct {
-	Gameid          int64
-	X               sql.NullFloat64
-	Y               sql.NullFloat64
+	GameID          int64
+	X               float64
+	Y               float64
 	Name            string
-	Num             sql.NullInt64
+	Num             int64
 	Tags            *Tags
-	Headingx        sql.NullFloat64
-	Headingy        sql.NullFloat64
-	Warpspeed       sql.NullInt64
-	Requestedboon   sql.NullInt64
-	Destinationx    sql.NullFloat64
-	Destinationy    sql.NullFloat64
-	Rewardtype      *cs.MysteryTraderRewardType
-	Playersrewarded *MysteryTraderPlayersRewarded
+	HeadingX        float64
+	HeadingY        float64
+	WarpSpeed       int64
+	RequestedBoon   int64
+	DestinationX    float64
+	DestinationY    float64
+	RewardType      *cs.MysteryTraderRewardType
+	PlayersRewarded *MysteryTraderPlayersRewarded
 	Spec            *MysteryTraderSpec
 }
 
-type CreateMysteryTraderRow struct {
-	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-}
-
-func (q *Queries) CreateMysteryTrader(ctx context.Context, arg CreateMysteryTraderParams) (CreateMysteryTraderRow, error) {
-	row := q.db.QueryRowContext(ctx, CreateMysteryTrader,
-		arg.Gameid,
+func (q *Queries) CreateMysteryTrader(ctx context.Context, arg CreateMysteryTraderParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreateMysteryTrader,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
 		arg.Tags,
-		arg.Headingx,
-		arg.Headingy,
-		arg.Warpspeed,
-		arg.Requestedboon,
-		arg.Destinationx,
-		arg.Destinationy,
-		arg.Rewardtype,
-		arg.Playersrewarded,
+		arg.HeadingX,
+		arg.HeadingY,
+		arg.WarpSpeed,
+		arg.RequestedBoon,
+		arg.DestinationX,
+		arg.DestinationY,
+		arg.RewardType,
+		arg.PlayersRewarded,
 		arg.Spec,
 	)
-	var i CreateMysteryTraderRow
-	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-const DeleteMysteryTrader = `-- name: DeleteMysteryTrader :exec
-DELETE FROM mysterytraders
+const DeleteMysteryTrader = `-- name: DeleteMysteryTrader :execrows
+DELETE FROM mystery_traders
 WHERE
     id = ?
 `
 
-func (q *Queries) DeleteMysteryTrader(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, DeleteMysteryTrader, id)
-	return err
+func (q *Queries) DeleteMysteryTrader(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, DeleteMysteryTrader, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const GetMysteryTrader = `-- name: GetMysteryTrader :one
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
+    id, created_at, updated_at, game_id, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
 FROM
-    mysterytraders
+    mystery_traders
 WHERE
     id = ?
 `
 
 // MysteryTraders
-func (q *Queries) GetMysteryTrader(ctx context.Context, id int64) (Mysterytrader, error) {
+func (q *Queries) GetMysteryTrader(ctx context.Context, id int64) (MysteryTrader, error) {
 	row := q.db.QueryRowContext(ctx, GetMysteryTrader, id)
-	var i Mysterytrader
+	var i MysteryTrader
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Warpspeed,
+		&i.HeadingX,
+		&i.HeadingY,
+		&i.WarpSpeed,
 		&i.Spec,
 		&i.Tags,
-		&i.Requestedboon,
-		&i.Destinationx,
-		&i.Destinationy,
-		&i.Rewardtype,
-		&i.Playersrewarded,
+		&i.RequestedBoon,
+		&i.DestinationX,
+		&i.DestinationY,
+		&i.RewardType,
+		&i.PlayersRewarded,
 	)
 	return i, err
 }
 
 const GetMysteryTraderByNum = `-- name: GetMysteryTraderByNum :one
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
+    id, created_at, updated_at, game_id, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
 FROM
-    mysterytraders
+    mystery_traders
 WHERE
-    gameId = ?
+    game_id = ?
     AND num = ?
 `
 
 type GetMysteryTraderByNumParams struct {
-	Gameid int64
-	Num    sql.NullInt64
+	GameID int64
+	Num    int64
 }
 
-func (q *Queries) GetMysteryTraderByNum(ctx context.Context, arg GetMysteryTraderByNumParams) (Mysterytrader, error) {
-	row := q.db.QueryRowContext(ctx, GetMysteryTraderByNum, arg.Gameid, arg.Num)
-	var i Mysterytrader
+func (q *Queries) GetMysteryTraderByNum(ctx context.Context, arg GetMysteryTraderByNumParams) (MysteryTrader, error) {
+	row := q.db.QueryRowContext(ctx, GetMysteryTraderByNum, arg.GameID, arg.Num)
+	var i MysteryTrader
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Warpspeed,
+		&i.HeadingX,
+		&i.HeadingY,
+		&i.WarpSpeed,
 		&i.Spec,
 		&i.Tags,
-		&i.Requestedboon,
-		&i.Destinationx,
-		&i.Destinationy,
-		&i.Rewardtype,
-		&i.Playersrewarded,
+		&i.RequestedBoon,
+		&i.DestinationX,
+		&i.DestinationY,
+		&i.RewardType,
+		&i.PlayersRewarded,
 	)
 	return i, err
 }
 
 const GetMysteryTraders = `-- name: GetMysteryTraders :many
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
+    id, created_at, updated_at, game_id, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
 FROM
-    mysterytraders
+    mystery_traders
 `
 
-func (q *Queries) GetMysteryTraders(ctx context.Context) ([]Mysterytrader, error) {
+func (q *Queries) GetMysteryTraders(ctx context.Context) ([]MysteryTrader, error) {
 	rows, err := q.db.QueryContext(ctx, GetMysteryTraders)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Mysterytrader
+	var items []MysteryTrader
 	for rows.Next() {
-		var i Mysterytrader
+		var i MysteryTrader
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Headingx,
-			&i.Headingy,
-			&i.Warpspeed,
+			&i.HeadingX,
+			&i.HeadingY,
+			&i.WarpSpeed,
 			&i.Spec,
 			&i.Tags,
-			&i.Requestedboon,
-			&i.Destinationx,
-			&i.Destinationy,
-			&i.Rewardtype,
-			&i.Playersrewarded,
+			&i.RequestedBoon,
+			&i.DestinationX,
+			&i.DestinationY,
+			&i.RewardType,
+			&i.PlayersRewarded,
 		); err != nil {
 			return nil, err
 		}
@@ -244,43 +238,43 @@ func (q *Queries) GetMysteryTraders(ctx context.Context) ([]Mysterytrader, error
 
 const GetMysteryTradersForGame = `-- name: GetMysteryTradersForGame :many
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, headingx, headingy, warpspeed, spec, tags, requestedboon, destinationx, destinationy, rewardtype, playersrewarded
+    id, created_at, updated_at, game_id, x, y, name, num, heading_x, heading_y, warp_speed, spec, tags, requested_boon, destination_x, destination_y, reward_type, players_rewarded
 FROM
-    mysterytraders
+    mystery_traders
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num
 `
 
-func (q *Queries) GetMysteryTradersForGame(ctx context.Context, gameid int64) ([]Mysterytrader, error) {
-	rows, err := q.db.QueryContext(ctx, GetMysteryTradersForGame, gameid)
+func (q *Queries) GetMysteryTradersForGame(ctx context.Context, gameID int64) ([]MysteryTrader, error) {
+	rows, err := q.db.QueryContext(ctx, GetMysteryTradersForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Mysterytrader
+	var items []MysteryTrader
 	for rows.Next() {
-		var i Mysterytrader
+		var i MysteryTrader
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Headingx,
-			&i.Headingy,
-			&i.Warpspeed,
+			&i.HeadingX,
+			&i.HeadingY,
+			&i.WarpSpeed,
 			&i.Spec,
 			&i.Tags,
-			&i.Requestedboon,
-			&i.Destinationx,
-			&i.Destinationy,
-			&i.Rewardtype,
-			&i.Playersrewarded,
+			&i.RequestedBoon,
+			&i.DestinationX,
+			&i.DestinationY,
+			&i.RewardType,
+			&i.PlayersRewarded,
 		); err != nil {
 			return nil, err
 		}
@@ -295,68 +289,69 @@ func (q *Queries) GetMysteryTradersForGame(ctx context.Context, gameid int64) ([
 	return items, nil
 }
 
-const UpdateMysteryTrader = `-- name: UpdateMysteryTrader :one
-UPDATE mysterytraders
+const UpdateMysteryTrader = `-- name: UpdateMysteryTrader :execrows
+UPDATE mystery_traders
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
     tags = ?,
-    headingX = ?,
-    headingY = ?,
-    warpSpeed = ?,
-    requestedBoon = ?,
-    destinationX = ?,
-    destinationY = ?,
-    rewardType = ?,
-    playersRewarded = ?,
+    heading_x = ?,
+    heading_y = ?,
+    warp_speed = ?,
+    requested_boon = ?,
+    destination_x = ?,
+    destination_y = ?,
+    reward_type = ?,
+    players_rewarded = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdateMysteryTraderParams struct {
-	Gameid          int64
-	X               sql.NullFloat64
-	Y               sql.NullFloat64
+	GameID          int64
+	X               float64
+	Y               float64
 	Name            string
-	Num             sql.NullInt64
+	Num             int64
 	Tags            *Tags
-	Headingx        sql.NullFloat64
-	Headingy        sql.NullFloat64
-	Warpspeed       sql.NullInt64
-	Requestedboon   sql.NullInt64
-	Destinationx    sql.NullFloat64
-	Destinationy    sql.NullFloat64
-	Rewardtype      *cs.MysteryTraderRewardType
-	Playersrewarded *MysteryTraderPlayersRewarded
+	HeadingX        float64
+	HeadingY        float64
+	WarpSpeed       int64
+	RequestedBoon   int64
+	DestinationX    float64
+	DestinationY    float64
+	RewardType      *cs.MysteryTraderRewardType
+	PlayersRewarded *MysteryTraderPlayersRewarded
 	Spec            *MysteryTraderSpec
 	ID              int64
 }
 
-func (q *Queries) UpdateMysteryTrader(ctx context.Context, arg UpdateMysteryTraderParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdateMysteryTrader,
-		arg.Gameid,
+func (q *Queries) UpdateMysteryTrader(ctx context.Context, arg UpdateMysteryTraderParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdateMysteryTrader,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
 		arg.Tags,
-		arg.Headingx,
-		arg.Headingy,
-		arg.Warpspeed,
-		arg.Requestedboon,
-		arg.Destinationx,
-		arg.Destinationy,
-		arg.Rewardtype,
-		arg.Playersrewarded,
+		arg.HeadingX,
+		arg.HeadingY,
+		arg.WarpSpeed,
+		arg.RequestedBoon,
+		arg.DestinationX,
+		arg.DestinationY,
+		arg.RewardType,
+		arg.PlayersRewarded,
 		arg.Spec,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

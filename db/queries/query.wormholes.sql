@@ -15,7 +15,7 @@ SELECT
 FROM
     wormholes
 WHERE
-    gameId = ?
+    game_id = ?
     AND num = ?;
 
 -- name: GetWormholes :many
@@ -30,24 +30,24 @@ SELECT
 FROM
     wormholes
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num;
 
--- name: CreateWormhole :one
+-- name: CreateWormhole :execlastid
 INSERT INTO
     wormholes (
-        createdAt,
-        updatedAt,
-        gameId,
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
         tags,
-        destinationNum,
+        destination_num,
         stability,
-        yearsAtStability,
+        years_at_stability,
         spec
     )
 VALUES
@@ -64,28 +64,26 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt;
+    );
 
--- name: UpdateWormhole :one
+-- name: UpdateWormhole :execrows
 UPDATE wormholes
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
     tags = ?,
-    destinationNum = ?,
+    destination_num = ?,
     stability = ?,
-    yearsAtStability = ?,
+    years_at_stability = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
--- name: DeleteWormhole :exec
+-- name: DeleteWormhole :execrows
 DELETE FROM wormholes
 WHERE
     id = ?;

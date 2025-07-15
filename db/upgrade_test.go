@@ -19,7 +19,7 @@ func TestEnsureUpgrade(t *testing.T) {
 	}
 
 	// start at 0, run an upgrade
-	assert.Equal(t, 0, version.Current)
+	assert.Equal(t, int64(0), version.Current)
 	if err := c.ensureUpgrade(t.Context()); err != nil {
 		t.Errorf("EnsureUpgrade() failed: \n%v", err)
 		return

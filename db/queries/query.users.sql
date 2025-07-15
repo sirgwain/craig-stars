@@ -36,7 +36,7 @@ FROM
     users
 WHERE
     role = 'guest'
-    AND gameId = ?;
+    AND game_id = ?;
 
 -- name: GetGetGuestUserForGame :one
 SELECT
@@ -45,8 +45,8 @@ FROM
     users
 WHERE
     role = 'guest'
-    AND gameId = ?
-    AND playerNum = ?;
+    AND game_id = ?
+    AND player_num = ?;
 
 -- name: GetUsersForGame :many
 SELECT
@@ -54,25 +54,25 @@ SELECT
 FROM
     users
 WHERE
-    gameId = ?;
+    game_id = ?;
 
 -- name: CreateUser :one
 INSERT INTO
     users (
-        createdAt,
-        updatedAt,
+        created_at,
+        updated_at,
         username,
-        gameId,
-        playerNum,
+        game_id,
+        player_num,
         password,
         email,
         role,
         banned,
         verified,
-        lastLogin,
-        discordId,
-        discordAvatar,
-        discordWebhookUrl
+        last_login,
+        discord_id,
+        discord_avatar,
+        discord_webhook_url
     )
 VALUES
     (
@@ -95,27 +95,27 @@ VALUES
 -- name: UpdateUser :exec
 UPDATE users
 SET
-    updatedAt = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
     username = ?,
-    gameId = ?,
-    playerNum = ?,
+    game_id = ?,
+    player_num = ?,
     password = ?,
     email = ?,
     role = ?,
     banned = ?,
     verified = ?,
-    lastLogin = ?,
-    discordId = ?,
-    discordAvatar = ?,
-    discordWebhookUrl = ?
+    last_login = ?,
+    discord_id = ?,
+    discord_avatar = ?,
+    discord_webhook_url = ?
 WHERE
     id = ?;
 
 -- name: UpdateUserSettings :exec
 UPDATE users
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    discordWebhookUrl = ?
+    updated_at = CURRENT_TIMESTAMP,
+    discord_webhook_url = ?
 WHERE
     id = ?;
 
@@ -128,11 +128,11 @@ WHERE
 DELETE FROM users
 WHERE
     role = 'guest'
-    AND gameId = ?
-    AND playerNum = ?;
+    AND game_id = ?
+    AND player_num = ?;
 
 -- name: DeleteGameGuestUsers :exec
 DELETE FROM users
 WHERE
     role = 'guest'
-    AND gameId = ?;
+    AND game_id = ?;

@@ -7,27 +7,26 @@ package generated
 
 import (
 	"context"
-	"database/sql"
 	"time"
 )
 
 const CreateUser = `-- name: CreateUser :one
 INSERT INTO
     users (
-        createdAt,
-        updatedAt,
+        created_at,
+        updated_at,
         username,
-        gameId,
-        playerNum,
+        game_id,
+        player_num,
         password,
         email,
         role,
         banned,
         verified,
-        lastLogin,
-        discordId,
-        discordAvatar,
-        discordWebhookUrl
+        last_login,
+        discord_id,
+        discord_avatar,
+        discord_webhook_url
     )
 VALUES
     (
@@ -45,56 +44,56 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
+    ) RETURNING id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num
 `
 
 type CreateUserParams struct {
 	Username          string
-	Gameid            int64
-	Playernum         int64
-	Password          sql.NullString
-	Email             sql.NullString
+	GameID            int64
+	PlayerNum         int64
+	Password          string
+	Email             string
 	Role              string
-	Banned            sql.NullBool
-	Verified          sql.NullBool
-	Lastlogin         *time.Time
-	Discordid         *string
-	Discordavatar     *string
-	Discordwebhookurl sql.NullString
+	Banned            bool
+	Verified          bool
+	LastLogin         *time.Time
+	DiscordID         string
+	DiscordAvatar     string
+	DiscordWebhookUrl string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, CreateUser,
 		arg.Username,
-		arg.Gameid,
-		arg.Playernum,
+		arg.GameID,
+		arg.PlayerNum,
 		arg.Password,
 		arg.Email,
 		arg.Role,
 		arg.Banned,
 		arg.Verified,
-		arg.Lastlogin,
-		arg.Discordid,
-		arg.Discordavatar,
-		arg.Discordwebhookurl,
+		arg.LastLogin,
+		arg.DiscordID,
+		arg.DiscordAvatar,
+		arg.DiscordWebhookUrl,
 	)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.Username,
 		&i.Password,
 		&i.Email,
 		&i.Verified,
 		&i.Banned,
 		&i.Role,
-		&i.Lastlogin,
-		&i.Discordid,
-		&i.Discordavatar,
-		&i.Discordwebhookurl,
-		&i.Gameid,
-		&i.Playernum,
+		&i.LastLogin,
+		&i.DiscordID,
+		&i.DiscordAvatar,
+		&i.DiscordWebhookUrl,
+		&i.GameID,
+		&i.PlayerNum,
 	)
 	return i, err
 }
@@ -103,17 +102,17 @@ const DeleteGameGuestUser = `-- name: DeleteGameGuestUser :exec
 DELETE FROM users
 WHERE
     role = 'guest'
-    AND gameId = ?
-    AND playerNum = ?
+    AND game_id = ?
+    AND player_num = ?
 `
 
 type DeleteGameGuestUserParams struct {
-	Gameid    int64
-	Playernum int64
+	GameID    int64
+	PlayerNum int64
 }
 
 func (q *Queries) DeleteGameGuestUser(ctx context.Context, arg DeleteGameGuestUserParams) error {
-	_, err := q.db.ExecContext(ctx, DeleteGameGuestUser, arg.Gameid, arg.Playernum)
+	_, err := q.db.ExecContext(ctx, DeleteGameGuestUser, arg.GameID, arg.PlayerNum)
 	return err
 }
 
@@ -121,11 +120,11 @@ const DeleteGameGuestUsers = `-- name: DeleteGameGuestUsers :exec
 DELETE FROM users
 WHERE
     role = 'guest'
-    AND gameId = ?
+    AND game_id = ?
 `
 
-func (q *Queries) DeleteGameGuestUsers(ctx context.Context, gameid int64) error {
-	_, err := q.db.ExecContext(ctx, DeleteGameGuestUsers, gameid)
+func (q *Queries) DeleteGameGuestUsers(ctx context.Context, gameID int64) error {
+	_, err := q.db.ExecContext(ctx, DeleteGameGuestUsers, gameID)
 	return err
 }
 
@@ -142,46 +141,46 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 
 const GetGetGuestUserForGame = `-- name: GetGetGuestUserForGame :one
 SELECT
-    id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
+    id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num
 FROM
     users
 WHERE
     role = 'guest'
-    AND gameId = ?
-    AND playerNum = ?
+    AND game_id = ?
+    AND player_num = ?
 `
 
 type GetGetGuestUserForGameParams struct {
-	Gameid    int64
-	Playernum int64
+	GameID    int64
+	PlayerNum int64
 }
 
 func (q *Queries) GetGetGuestUserForGame(ctx context.Context, arg GetGetGuestUserForGameParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, GetGetGuestUserForGame, arg.Gameid, arg.Playernum)
+	row := q.db.QueryRowContext(ctx, GetGetGuestUserForGame, arg.GameID, arg.PlayerNum)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.Username,
 		&i.Password,
 		&i.Email,
 		&i.Verified,
 		&i.Banned,
 		&i.Role,
-		&i.Lastlogin,
-		&i.Discordid,
-		&i.Discordavatar,
-		&i.Discordwebhookurl,
-		&i.Gameid,
-		&i.Playernum,
+		&i.LastLogin,
+		&i.DiscordID,
+		&i.DiscordAvatar,
+		&i.DiscordWebhookUrl,
+		&i.GameID,
+		&i.PlayerNum,
 	)
 	return i, err
 }
 
 const GetGuestUser = `-- name: GetGuestUser :one
 SELECT
-    id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
+    id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num
 FROM
     users
 WHERE
@@ -189,41 +188,41 @@ WHERE
     AND password = ?
 `
 
-func (q *Queries) GetGuestUser(ctx context.Context, password sql.NullString) (User, error) {
+func (q *Queries) GetGuestUser(ctx context.Context, password string) (User, error) {
 	row := q.db.QueryRowContext(ctx, GetGuestUser, password)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.Username,
 		&i.Password,
 		&i.Email,
 		&i.Verified,
 		&i.Banned,
 		&i.Role,
-		&i.Lastlogin,
-		&i.Discordid,
-		&i.Discordavatar,
-		&i.Discordwebhookurl,
-		&i.Gameid,
-		&i.Playernum,
+		&i.LastLogin,
+		&i.DiscordID,
+		&i.DiscordAvatar,
+		&i.DiscordWebhookUrl,
+		&i.GameID,
+		&i.PlayerNum,
 	)
 	return i, err
 }
 
 const GetGuestUsersForGame = `-- name: GetGuestUsersForGame :many
 SELECT
-    id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
+    id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num
 FROM
     users
 WHERE
     role = 'guest'
-    AND gameId = ?
+    AND game_id = ?
 `
 
-func (q *Queries) GetGuestUsersForGame(ctx context.Context, gameid int64) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, GetGuestUsersForGame, gameid)
+func (q *Queries) GetGuestUsersForGame(ctx context.Context, gameID int64) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, GetGuestUsersForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -233,20 +232,20 @@ func (q *Queries) GetGuestUsersForGame(ctx context.Context, gameid int64) ([]Use
 		var i User
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.Username,
 			&i.Password,
 			&i.Email,
 			&i.Verified,
 			&i.Banned,
 			&i.Role,
-			&i.Lastlogin,
-			&i.Discordid,
-			&i.Discordavatar,
-			&i.Discordwebhookurl,
-			&i.Gameid,
-			&i.Playernum,
+			&i.LastLogin,
+			&i.DiscordID,
+			&i.DiscordAvatar,
+			&i.DiscordWebhookUrl,
+			&i.GameID,
+			&i.PlayerNum,
 		); err != nil {
 			return nil, err
 		}
@@ -263,7 +262,7 @@ func (q *Queries) GetGuestUsersForGame(ctx context.Context, gameid int64) ([]Use
 
 const GetUser = `-- name: GetUser :one
 SELECT
-    id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
+    id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num
 FROM
     users
 WHERE
@@ -275,27 +274,27 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.Username,
 		&i.Password,
 		&i.Email,
 		&i.Verified,
 		&i.Banned,
 		&i.Role,
-		&i.Lastlogin,
-		&i.Discordid,
-		&i.Discordavatar,
-		&i.Discordwebhookurl,
-		&i.Gameid,
-		&i.Playernum,
+		&i.LastLogin,
+		&i.DiscordID,
+		&i.DiscordAvatar,
+		&i.DiscordWebhookUrl,
+		&i.GameID,
+		&i.PlayerNum,
 	)
 	return i, err
 }
 
 const GetUserByUsername = `-- name: GetUserByUsername :one
 SELECT
-    id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
+    id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num
 FROM
     users
 WHERE
@@ -307,27 +306,27 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.Username,
 		&i.Password,
 		&i.Email,
 		&i.Verified,
 		&i.Banned,
 		&i.Role,
-		&i.Lastlogin,
-		&i.Discordid,
-		&i.Discordavatar,
-		&i.Discordwebhookurl,
-		&i.Gameid,
-		&i.Playernum,
+		&i.LastLogin,
+		&i.DiscordID,
+		&i.DiscordAvatar,
+		&i.DiscordWebhookUrl,
+		&i.GameID,
+		&i.PlayerNum,
 	)
 	return i, err
 }
 
 const GetUsers = `-- name: GetUsers :many
 SELECT
-    id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
+    id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num
 FROM
     users
 `
@@ -343,20 +342,20 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 		var i User
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.Username,
 			&i.Password,
 			&i.Email,
 			&i.Verified,
 			&i.Banned,
 			&i.Role,
-			&i.Lastlogin,
-			&i.Discordid,
-			&i.Discordavatar,
-			&i.Discordwebhookurl,
-			&i.Gameid,
-			&i.Playernum,
+			&i.LastLogin,
+			&i.DiscordID,
+			&i.DiscordAvatar,
+			&i.DiscordWebhookUrl,
+			&i.GameID,
+			&i.PlayerNum,
 		); err != nil {
 			return nil, err
 		}
@@ -373,15 +372,15 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 
 const GetUsersForGame = `-- name: GetUsersForGame :many
 SELECT
-    id, createdat, updatedat, username, password, email, verified, banned, role, lastlogin, discordid, discordavatar, discordwebhookurl, gameid, playernum
+    id, created_at, updated_at, username, password, email, verified, banned, role, last_login, discord_id, discord_avatar, discord_webhook_url, game_id, player_num
 FROM
     users
 WHERE
-    gameId = ?
+    game_id = ?
 `
 
-func (q *Queries) GetUsersForGame(ctx context.Context, gameid int64) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, GetUsersForGame, gameid)
+func (q *Queries) GetUsersForGame(ctx context.Context, gameID int64) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, GetUsersForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -391,20 +390,20 @@ func (q *Queries) GetUsersForGame(ctx context.Context, gameid int64) ([]User, er
 		var i User
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.Username,
 			&i.Password,
 			&i.Email,
 			&i.Verified,
 			&i.Banned,
 			&i.Role,
-			&i.Lastlogin,
-			&i.Discordid,
-			&i.Discordavatar,
-			&i.Discordwebhookurl,
-			&i.Gameid,
-			&i.Playernum,
+			&i.LastLogin,
+			&i.DiscordID,
+			&i.DiscordAvatar,
+			&i.DiscordWebhookUrl,
+			&i.GameID,
+			&i.PlayerNum,
 		); err != nil {
 			return nil, err
 		}
@@ -422,53 +421,53 @@ func (q *Queries) GetUsersForGame(ctx context.Context, gameid int64) ([]User, er
 const UpdateUser = `-- name: UpdateUser :exec
 UPDATE users
 SET
-    updatedAt = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
     username = ?,
-    gameId = ?,
-    playerNum = ?,
+    game_id = ?,
+    player_num = ?,
     password = ?,
     email = ?,
     role = ?,
     banned = ?,
     verified = ?,
-    lastLogin = ?,
-    discordId = ?,
-    discordAvatar = ?,
-    discordWebhookUrl = ?
+    last_login = ?,
+    discord_id = ?,
+    discord_avatar = ?,
+    discord_webhook_url = ?
 WHERE
     id = ?
 `
 
 type UpdateUserParams struct {
 	Username          string
-	Gameid            int64
-	Playernum         int64
-	Password          sql.NullString
-	Email             sql.NullString
+	GameID            int64
+	PlayerNum         int64
+	Password          string
+	Email             string
 	Role              string
-	Banned            sql.NullBool
-	Verified          sql.NullBool
-	Lastlogin         *time.Time
-	Discordid         *string
-	Discordavatar     *string
-	Discordwebhookurl sql.NullString
+	Banned            bool
+	Verified          bool
+	LastLogin         *time.Time
+	DiscordID         string
+	DiscordAvatar     string
+	DiscordWebhookUrl string
 	ID                int64
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 	_, err := q.db.ExecContext(ctx, UpdateUser,
 		arg.Username,
-		arg.Gameid,
-		arg.Playernum,
+		arg.GameID,
+		arg.PlayerNum,
 		arg.Password,
 		arg.Email,
 		arg.Role,
 		arg.Banned,
 		arg.Verified,
-		arg.Lastlogin,
-		arg.Discordid,
-		arg.Discordavatar,
-		arg.Discordwebhookurl,
+		arg.LastLogin,
+		arg.DiscordID,
+		arg.DiscordAvatar,
+		arg.DiscordWebhookUrl,
 		arg.ID,
 	)
 	return err
@@ -477,18 +476,18 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 const UpdateUserSettings = `-- name: UpdateUserSettings :exec
 UPDATE users
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    discordWebhookUrl = ?
+    updated_at = CURRENT_TIMESTAMP,
+    discord_webhook_url = ?
 WHERE
     id = ?
 `
 
 type UpdateUserSettingsParams struct {
-	Discordwebhookurl sql.NullString
+	DiscordWebhookUrl string
 	ID                int64
 }
 
 func (q *Queries) UpdateUserSettings(ctx context.Context, arg UpdateUserSettingsParams) error {
-	_, err := q.db.ExecContext(ctx, UpdateUserSettings, arg.Discordwebhookurl, arg.ID)
+	_, err := q.db.ExecContext(ctx, UpdateUserSettings, arg.DiscordWebhookUrl, arg.ID)
 	return err
 }

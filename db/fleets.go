@@ -24,9 +24,9 @@ func (c *client) GetFleet(ctx context.Context, id int64) (*cs.Fleet, error) {
 func (c *client) GetFleetByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.Fleet, error) {
 
 	item, err := c.reader.GetFleetByNum(ctx, generated.GetFleetByNumParams{
-		Gameid:    gameID,
-		Playernum: sql.NullInt64{Valid: true, Int64: int64(playerNum)},
-		Num:       sql.NullInt64{Valid: true, Int64: int64(num)},
+		GameID:    gameID,
+		PlayerNum: int64(playerNum),
+		Num:       int64(num),
 	})
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -54,8 +54,8 @@ func (c *client) GetFleetsForGame(ctx context.Context, gameID int64) ([]*cs.Flee
 
 func (c *client) GetFleetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Fleet, error) {
 	items, err := c.reader.GetFleetsForPlayer(ctx, generated.GetFleetsForPlayerParams{
-		Gameid:    gameID,
-		Playernum: sql.NullInt64{Valid: true, Int64: int64(playerNum)},
+		GameID:    gameID,
+		PlayerNum: int64(playerNum),
 	})
 
 	if err == sql.ErrNoRows {
@@ -70,14 +70,15 @@ func (c *client) GetFleetsForPlayer(ctx context.Context, gameID int64, playerNum
 
 func (c *client) GetFleetsByNums(ctx context.Context, gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error) {
 
-	numsInt64 := make([]sql.NullInt64, len(nums))
-	for i, n := range nums {
-		numsInt64[i] = sql.NullInt64{Valid: true, Int64: int64(n)}
+	int64Nums := make([]int64, 0, len(nums))
+	for _, n := range nums {
+		int64Nums = append(int64Nums, int64(n))
 	}
+
 	items, err := c.reader.GetFleetsByNums(ctx, generated.GetFleetsByNumsParams{
-		Gameid:    gameID,
-		Playernum: sql.NullInt64{Valid: true, Int64: int64(playerNum)},
-		Nums:      numsInt64,
+		GameID:    gameID,
+		PlayerNum: int64(playerNum),
+		Nums:      int64Nums,
 	})
 
 	if err == sql.ErrNoRows {
@@ -96,15 +97,12 @@ func (c *client) SaveFleet(ctx context.Context, fleet *cs.Fleet) error {
 		if err != nil {
 			return err
 		}
-		fleet.ID = result.ID
-		fleet.CreatedAt = result.Createdat
-		fleet.UpdatedAt = result.Updatedat
+		fleet.ID = result
 	} else {
-		result, err := c.writer.UpdateFleet(ctx, c.converter.ConvertGameFleetToUpdateParams(fleet))
+		_, err := c.writer.UpdateFleet(ctx, c.converter.ConvertGameFleetToUpdateParams(fleet))
 		if err != nil {
 			return err
 		}
-		fleet.UpdatedAt = result
 	}
 
 	return nil

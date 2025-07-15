@@ -57,8 +57,8 @@ func (c *client) SaveRace(ctx context.Context, race *cs.Race) error {
 			return err
 		}
 		race.ID = result.ID
-		race.CreatedAt = result.Createdat
-		race.UpdatedAt = result.Updatedat
+		race.CreatedAt = result.CreatedAt
+		race.UpdatedAt = result.UpdatedAt
 	} else {
 		result, err := c.writer.UpdateRace(ctx, c.converter.ConvertGameRaceToUpdateParams(race))
 		if err != nil {
@@ -79,8 +79,8 @@ func (c *client) CreateRace(ctx context.Context, race *cs.Race) (*cs.Race, error
 	}
 
 	race.ID = result.ID
-	race.CreatedAt = result.Createdat
-	race.UpdatedAt = result.Updatedat
+	race.CreatedAt = result.CreatedAt
+	race.UpdatedAt = result.UpdatedAt
 	return race, nil
 }
 

@@ -7,26 +7,24 @@ package generated
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const CreateWormhole = `-- name: CreateWormhole :one
+const CreateWormhole = `-- name: CreateWormhole :execlastid
 INSERT INTO
     wormholes (
-        createdAt,
-        updatedAt,
-        gameId,
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
         tags,
-        destinationNum,
+        destination_num,
         stability,
-        yearsAtStability,
+        years_at_stability,
         spec
     )
 VALUES
@@ -43,62 +41,58 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt
+    )
 `
 
 type CreateWormholeParams struct {
-	Gameid           int64
-	X                sql.NullFloat64
-	Y                sql.NullFloat64
+	GameID           int64
+	X                float64
+	Y                float64
 	Name             string
-	Num              sql.NullInt64
+	Num              int64
 	Tags             *Tags
-	Destinationnum   sql.NullInt64
+	DestinationNum   int64
 	Stability        *cs.WormholeStability
-	Yearsatstability sql.NullInt64
+	YearsAtStability int64
 	Spec             *WormholeSpec
 }
 
-type CreateWormholeRow struct {
-	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-}
-
-func (q *Queries) CreateWormhole(ctx context.Context, arg CreateWormholeParams) (CreateWormholeRow, error) {
-	row := q.db.QueryRowContext(ctx, CreateWormhole,
-		arg.Gameid,
+func (q *Queries) CreateWormhole(ctx context.Context, arg CreateWormholeParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreateWormhole,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
 		arg.Tags,
-		arg.Destinationnum,
+		arg.DestinationNum,
 		arg.Stability,
-		arg.Yearsatstability,
+		arg.YearsAtStability,
 		arg.Spec,
 	)
-	var i CreateWormholeRow
-	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-const DeleteWormhole = `-- name: DeleteWormhole :exec
+const DeleteWormhole = `-- name: DeleteWormhole :execrows
 DELETE FROM wormholes
 WHERE
     id = ?
 `
 
-func (q *Queries) DeleteWormhole(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, DeleteWormhole, id)
-	return err
+func (q *Queries) DeleteWormhole(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, DeleteWormhole, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const GetWormhole = `-- name: GetWormhole :one
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
+    id, created_at, updated_at, game_id, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
 FROM
     wormholes
 WHERE
@@ -111,16 +105,16 @@ func (q *Queries) GetWormhole(ctx context.Context, id int64) (Wormhole, error) {
 	var i Wormhole
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Destinationnum,
+		&i.DestinationNum,
 		&i.Stability,
-		&i.Yearsatstability,
+		&i.YearsAtStability,
 		&i.Spec,
 		&i.Tags,
 	)
@@ -129,34 +123,34 @@ func (q *Queries) GetWormhole(ctx context.Context, id int64) (Wormhole, error) {
 
 const GetWormholeByNum = `-- name: GetWormholeByNum :one
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
+    id, created_at, updated_at, game_id, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
 FROM
     wormholes
 WHERE
-    gameId = ?
+    game_id = ?
     AND num = ?
 `
 
 type GetWormholeByNumParams struct {
-	Gameid int64
-	Num    sql.NullInt64
+	GameID int64
+	Num    int64
 }
 
 func (q *Queries) GetWormholeByNum(ctx context.Context, arg GetWormholeByNumParams) (Wormhole, error) {
-	row := q.db.QueryRowContext(ctx, GetWormholeByNum, arg.Gameid, arg.Num)
+	row := q.db.QueryRowContext(ctx, GetWormholeByNum, arg.GameID, arg.Num)
 	var i Wormhole
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Destinationnum,
+		&i.DestinationNum,
 		&i.Stability,
-		&i.Yearsatstability,
+		&i.YearsAtStability,
 		&i.Spec,
 		&i.Tags,
 	)
@@ -165,7 +159,7 @@ func (q *Queries) GetWormholeByNum(ctx context.Context, arg GetWormholeByNumPara
 
 const GetWormholes = `-- name: GetWormholes :many
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
+    id, created_at, updated_at, game_id, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
 FROM
     wormholes
 `
@@ -181,16 +175,16 @@ func (q *Queries) GetWormholes(ctx context.Context) ([]Wormhole, error) {
 		var i Wormhole
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Destinationnum,
+			&i.DestinationNum,
 			&i.Stability,
-			&i.Yearsatstability,
+			&i.YearsAtStability,
 			&i.Spec,
 			&i.Tags,
 		); err != nil {
@@ -209,17 +203,17 @@ func (q *Queries) GetWormholes(ctx context.Context) ([]Wormhole, error) {
 
 const GetWormholesForGame = `-- name: GetWormholesForGame :many
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, destinationnum, stability, yearsatstability, spec, tags
+    id, created_at, updated_at, game_id, x, y, name, num, destination_num, stability, years_at_stability, spec, tags
 FROM
     wormholes
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num
 `
 
-func (q *Queries) GetWormholesForGame(ctx context.Context, gameid int64) ([]Wormhole, error) {
-	rows, err := q.db.QueryContext(ctx, GetWormholesForGame, gameid)
+func (q *Queries) GetWormholesForGame(ctx context.Context, gameID int64) ([]Wormhole, error) {
+	rows, err := q.db.QueryContext(ctx, GetWormholesForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -229,16 +223,16 @@ func (q *Queries) GetWormholesForGame(ctx context.Context, gameid int64) ([]Worm
 		var i Wormhole
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Destinationnum,
+			&i.DestinationNum,
 			&i.Stability,
-			&i.Yearsatstability,
+			&i.YearsAtStability,
 			&i.Spec,
 			&i.Tags,
 		); err != nil {
@@ -255,53 +249,54 @@ func (q *Queries) GetWormholesForGame(ctx context.Context, gameid int64) ([]Worm
 	return items, nil
 }
 
-const UpdateWormhole = `-- name: UpdateWormhole :one
+const UpdateWormhole = `-- name: UpdateWormhole :execrows
 UPDATE wormholes
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
     tags = ?,
-    destinationNum = ?,
+    destination_num = ?,
     stability = ?,
-    yearsAtStability = ?,
+    years_at_stability = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdateWormholeParams struct {
-	Gameid           int64
-	X                sql.NullFloat64
-	Y                sql.NullFloat64
+	GameID           int64
+	X                float64
+	Y                float64
 	Name             string
-	Num              sql.NullInt64
+	Num              int64
 	Tags             *Tags
-	Destinationnum   sql.NullInt64
+	DestinationNum   int64
 	Stability        *cs.WormholeStability
-	Yearsatstability sql.NullInt64
+	YearsAtStability int64
 	Spec             *WormholeSpec
 	ID               int64
 }
 
-func (q *Queries) UpdateWormhole(ctx context.Context, arg UpdateWormholeParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdateWormhole,
-		arg.Gameid,
+func (q *Queries) UpdateWormhole(ctx context.Context, arg UpdateWormholeParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdateWormhole,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
 		arg.Tags,
-		arg.Destinationnum,
+		arg.DestinationNum,
 		arg.Stability,
-		arg.Yearsatstability,
+		arg.YearsAtStability,
 		arg.Spec,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

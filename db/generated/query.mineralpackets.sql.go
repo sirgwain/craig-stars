@@ -7,32 +7,30 @@ package generated
 
 import (
 	"context"
-	"database/sql"
-	"time"
 )
 
-const CreateMineralPacket = `-- name: CreateMineralPacket :one
+const CreateMineralPacket = `-- name: CreateMineralPacket :execlastid
 INSERT INTO
-    mineralpackets (
-        createdAt,
-        updatedAt,
-        gameId,
+    mineral_packets (
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
-        playerNum,
+        player_num,
         tags,
-        targetPlanetNum,
+        target_planet_num,
         ironium,
         boranium,
         germanium,
-        safeWarpSpeed,
-        warpSpeed,
-        scanRange,
-        scanRangePen,
-        headingX,
-        headingY
+        safe_warp_speed,
+        warp_speed,
+        scan_range,
+        scan_range_pen,
+        heading_x,
+        heading_y
     )
 VALUES
     (
@@ -55,106 +53,102 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt
+    )
 `
 
 type CreateMineralPacketParams struct {
-	Gameid          int64
-	X               sql.NullFloat64
-	Y               sql.NullFloat64
+	GameID          int64
+	X               float64
+	Y               float64
 	Name            string
-	Num             sql.NullInt64
-	Playernum       sql.NullInt64
+	Num             int64
+	PlayerNum       int64
 	Tags            *Tags
-	Targetplanetnum sql.NullInt64
-	Ironium         sql.NullInt64
-	Boranium        sql.NullInt64
-	Germanium       sql.NullInt64
-	Safewarpspeed   sql.NullInt64
-	Warpspeed       sql.NullInt64
-	Scanrange       sql.NullInt64
-	Scanrangepen    sql.NullInt64
-	Headingx        sql.NullFloat64
-	Headingy        sql.NullFloat64
+	TargetPlanetNum int64
+	Ironium         int64
+	Boranium        int64
+	Germanium       int64
+	SafeWarpSpeed   int64
+	WarpSpeed       int64
+	ScanRange       int64
+	ScanRangePen    int64
+	HeadingX        float64
+	HeadingY        float64
 }
 
-type CreateMineralPacketRow struct {
-	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-}
-
-func (q *Queries) CreateMineralPacket(ctx context.Context, arg CreateMineralPacketParams) (CreateMineralPacketRow, error) {
-	row := q.db.QueryRowContext(ctx, CreateMineralPacket,
-		arg.Gameid,
+func (q *Queries) CreateMineralPacket(ctx context.Context, arg CreateMineralPacketParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreateMineralPacket,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
-		arg.Playernum,
+		arg.PlayerNum,
 		arg.Tags,
-		arg.Targetplanetnum,
+		arg.TargetPlanetNum,
 		arg.Ironium,
 		arg.Boranium,
 		arg.Germanium,
-		arg.Safewarpspeed,
-		arg.Warpspeed,
-		arg.Scanrange,
-		arg.Scanrangepen,
-		arg.Headingx,
-		arg.Headingy,
+		arg.SafeWarpSpeed,
+		arg.WarpSpeed,
+		arg.ScanRange,
+		arg.ScanRangePen,
+		arg.HeadingX,
+		arg.HeadingY,
 	)
-	var i CreateMineralPacketRow
-	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-const DeleteMineralPacket = `-- name: DeleteMineralPacket :exec
-DELETE FROM mineralpackets
+const DeleteMineralPacket = `-- name: DeleteMineralPacket :execrows
+DELETE FROM mineral_packets
 WHERE
     id = ?
 `
 
-func (q *Queries) DeleteMineralPacket(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, DeleteMineralPacket, id)
-	return err
+func (q *Queries) DeleteMineralPacket(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, DeleteMineralPacket, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const GetMineralPacket = `-- name: GetMineralPacket :one
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
-    mineralpackets
+    mineral_packets
 WHERE
     id = ?
 `
 
 // MineralPackets
-func (q *Queries) GetMineralPacket(ctx context.Context, id int64) (Mineralpacket, error) {
+func (q *Queries) GetMineralPacket(ctx context.Context, id int64) (MineralPacket, error) {
 	row := q.db.QueryRowContext(ctx, GetMineralPacket, id)
-	var i Mineralpacket
+	var i MineralPacket
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Playernum,
-		&i.Targetplanetnum,
+		&i.PlayerNum,
+		&i.TargetPlanetNum,
 		&i.Ironium,
 		&i.Boranium,
 		&i.Germanium,
-		&i.Safewarpspeed,
-		&i.Warpspeed,
-		&i.Scanrange,
-		&i.Scanrangepen,
-		&i.Headingx,
-		&i.Headingy,
+		&i.SafeWarpSpeed,
+		&i.WarpSpeed,
+		&i.ScanRange,
+		&i.ScanRangePen,
+		&i.HeadingX,
+		&i.HeadingY,
 		&i.Tags,
 	)
 	return i, err
@@ -162,44 +156,44 @@ func (q *Queries) GetMineralPacket(ctx context.Context, id int64) (Mineralpacket
 
 const GetMineralPacketByNum = `-- name: GetMineralPacketByNum :one
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
-    mineralpackets
+    mineral_packets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num = ?
 `
 
 type GetMineralPacketByNumParams struct {
-	Gameid    int64
-	Playernum sql.NullInt64
-	Num       sql.NullInt64
+	GameID    int64
+	PlayerNum int64
+	Num       int64
 }
 
-func (q *Queries) GetMineralPacketByNum(ctx context.Context, arg GetMineralPacketByNumParams) (Mineralpacket, error) {
-	row := q.db.QueryRowContext(ctx, GetMineralPacketByNum, arg.Gameid, arg.Playernum, arg.Num)
-	var i Mineralpacket
+func (q *Queries) GetMineralPacketByNum(ctx context.Context, arg GetMineralPacketByNumParams) (MineralPacket, error) {
+	row := q.db.QueryRowContext(ctx, GetMineralPacketByNum, arg.GameID, arg.PlayerNum, arg.Num)
+	var i MineralPacket
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Playernum,
-		&i.Targetplanetnum,
+		&i.PlayerNum,
+		&i.TargetPlanetNum,
 		&i.Ironium,
 		&i.Boranium,
 		&i.Germanium,
-		&i.Safewarpspeed,
-		&i.Warpspeed,
-		&i.Scanrange,
-		&i.Scanrangepen,
-		&i.Headingx,
-		&i.Headingy,
+		&i.SafeWarpSpeed,
+		&i.WarpSpeed,
+		&i.ScanRange,
+		&i.ScanRangePen,
+		&i.HeadingX,
+		&i.HeadingY,
 		&i.Tags,
 	)
 	return i, err
@@ -207,40 +201,40 @@ func (q *Queries) GetMineralPacketByNum(ctx context.Context, arg GetMineralPacke
 
 const GetMineralPackets = `-- name: GetMineralPackets :many
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
-    mineralpackets
+    mineral_packets
 `
 
-func (q *Queries) GetMineralPackets(ctx context.Context) ([]Mineralpacket, error) {
+func (q *Queries) GetMineralPackets(ctx context.Context) ([]MineralPacket, error) {
 	rows, err := q.db.QueryContext(ctx, GetMineralPackets)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Mineralpacket
+	var items []MineralPacket
 	for rows.Next() {
-		var i Mineralpacket
+		var i MineralPacket
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
-			&i.Targetplanetnum,
+			&i.PlayerNum,
+			&i.TargetPlanetNum,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
-			&i.Safewarpspeed,
-			&i.Warpspeed,
-			&i.Scanrange,
-			&i.Scanrangepen,
-			&i.Headingx,
-			&i.Headingy,
+			&i.SafeWarpSpeed,
+			&i.WarpSpeed,
+			&i.ScanRange,
+			&i.ScanRangePen,
+			&i.HeadingX,
+			&i.HeadingY,
 			&i.Tags,
 		); err != nil {
 			return nil, err
@@ -258,45 +252,45 @@ func (q *Queries) GetMineralPackets(ctx context.Context) ([]Mineralpacket, error
 
 const GetMineralPacketsForGame = `-- name: GetMineralPacketsForGame :many
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
-    mineralpackets
+    mineral_packets
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
-    playerNum,
+    player_num,
     num
 `
 
-func (q *Queries) GetMineralPacketsForGame(ctx context.Context, gameid int64) ([]Mineralpacket, error) {
-	rows, err := q.db.QueryContext(ctx, GetMineralPacketsForGame, gameid)
+func (q *Queries) GetMineralPacketsForGame(ctx context.Context, gameID int64) ([]MineralPacket, error) {
+	rows, err := q.db.QueryContext(ctx, GetMineralPacketsForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Mineralpacket
+	var items []MineralPacket
 	for rows.Next() {
-		var i Mineralpacket
+		var i MineralPacket
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
-			&i.Targetplanetnum,
+			&i.PlayerNum,
+			&i.TargetPlanetNum,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
-			&i.Safewarpspeed,
-			&i.Warpspeed,
-			&i.Scanrange,
-			&i.Scanrangepen,
-			&i.Headingx,
-			&i.Headingy,
+			&i.SafeWarpSpeed,
+			&i.WarpSpeed,
+			&i.ScanRange,
+			&i.ScanRangePen,
+			&i.HeadingX,
+			&i.HeadingY,
 			&i.Tags,
 		); err != nil {
 			return nil, err
@@ -314,50 +308,50 @@ func (q *Queries) GetMineralPacketsForGame(ctx context.Context, gameid int64) ([
 
 const GetMineralPacketsForPlayer = `-- name: GetMineralPacketsForPlayer :many
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, targetplanetnum, ironium, boranium, germanium, safewarpspeed, warpspeed, scanrange, scanrangepen, headingx, headingy, tags
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, target_planet_num, ironium, boranium, germanium, safe_warp_speed, warp_speed, scan_range, scan_range_pen, heading_x, heading_y, tags
 FROM
-    mineralpackets
+    mineral_packets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
 ORDER BY
     num
 `
 
 type GetMineralPacketsForPlayerParams struct {
-	Gameid    int64
-	Playernum sql.NullInt64
+	GameID    int64
+	PlayerNum int64
 }
 
-func (q *Queries) GetMineralPacketsForPlayer(ctx context.Context, arg GetMineralPacketsForPlayerParams) ([]Mineralpacket, error) {
-	rows, err := q.db.QueryContext(ctx, GetMineralPacketsForPlayer, arg.Gameid, arg.Playernum)
+func (q *Queries) GetMineralPacketsForPlayer(ctx context.Context, arg GetMineralPacketsForPlayerParams) ([]MineralPacket, error) {
+	rows, err := q.db.QueryContext(ctx, GetMineralPacketsForPlayer, arg.GameID, arg.PlayerNum)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Mineralpacket
+	var items []MineralPacket
 	for rows.Next() {
-		var i Mineralpacket
+		var i MineralPacket
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
-			&i.Targetplanetnum,
+			&i.PlayerNum,
+			&i.TargetPlanetNum,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
-			&i.Safewarpspeed,
-			&i.Warpspeed,
-			&i.Scanrange,
-			&i.Scanrangepen,
-			&i.Headingx,
-			&i.Headingy,
+			&i.SafeWarpSpeed,
+			&i.WarpSpeed,
+			&i.ScanRange,
+			&i.ScanRangePen,
+			&i.HeadingX,
+			&i.HeadingY,
 			&i.Tags,
 		); err != nil {
 			return nil, err
@@ -373,74 +367,75 @@ func (q *Queries) GetMineralPacketsForPlayer(ctx context.Context, arg GetMineral
 	return items, nil
 }
 
-const UpdateMineralPacket = `-- name: UpdateMineralPacket :one
-UPDATE mineralpackets
+const UpdateMineralPacket = `-- name: UpdateMineralPacket :execrows
+UPDATE mineral_packets
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
-    playerNum = ?,
+    player_num = ?,
     tags = ?,
-    targetPlanetNum = ?,
+    target_planet_num = ?,
     ironium = ?,
     boranium = ?,
     germanium = ?,
-    safeWarpSpeed = ?,
-    warpSpeed = ?,
-    scanRange = ?,
-    scanRangePen = ?,
-    headingX = ?,
-    headingY = ?
+    safe_warp_speed = ?,
+    warp_speed = ?,
+    scan_range = ?,
+    scan_range_pen = ?,
+    heading_x = ?,
+    heading_y = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdateMineralPacketParams struct {
-	Gameid          int64
-	X               sql.NullFloat64
-	Y               sql.NullFloat64
+	GameID          int64
+	X               float64
+	Y               float64
 	Name            string
-	Num             sql.NullInt64
-	Playernum       sql.NullInt64
+	Num             int64
+	PlayerNum       int64
 	Tags            *Tags
-	Targetplanetnum sql.NullInt64
-	Ironium         sql.NullInt64
-	Boranium        sql.NullInt64
-	Germanium       sql.NullInt64
-	Safewarpspeed   sql.NullInt64
-	Warpspeed       sql.NullInt64
-	Scanrange       sql.NullInt64
-	Scanrangepen    sql.NullInt64
-	Headingx        sql.NullFloat64
-	Headingy        sql.NullFloat64
+	TargetPlanetNum int64
+	Ironium         int64
+	Boranium        int64
+	Germanium       int64
+	SafeWarpSpeed   int64
+	WarpSpeed       int64
+	ScanRange       int64
+	ScanRangePen    int64
+	HeadingX        float64
+	HeadingY        float64
 	ID              int64
 }
 
-func (q *Queries) UpdateMineralPacket(ctx context.Context, arg UpdateMineralPacketParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdateMineralPacket,
-		arg.Gameid,
+func (q *Queries) UpdateMineralPacket(ctx context.Context, arg UpdateMineralPacketParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdateMineralPacket,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
-		arg.Playernum,
+		arg.PlayerNum,
 		arg.Tags,
-		arg.Targetplanetnum,
+		arg.TargetPlanetNum,
 		arg.Ironium,
 		arg.Boranium,
 		arg.Germanium,
-		arg.Safewarpspeed,
-		arg.Warpspeed,
-		arg.Scanrange,
-		arg.Scanrangepen,
-		arg.Headingx,
-		arg.Headingy,
+		arg.SafeWarpSpeed,
+		arg.WarpSpeed,
+		arg.ScanRange,
+		arg.ScanRangePen,
+		arg.HeadingX,
+		arg.HeadingY,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

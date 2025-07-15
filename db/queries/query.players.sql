@@ -13,7 +13,7 @@ SELECT
 FROM
     players
 WHERE
-    userId = ?;
+    user_id = ?;
 
 -- name: GetPlayersForGame :many
 SELECT
@@ -21,7 +21,7 @@ SELECT
 FROM
     players
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num;
 
@@ -31,10 +31,10 @@ SELECT
     d.*
 FROM
     players p
-    LEFT JOIN shipDesigns d ON p.gameId = d.gameId
-    AND p.num = d.playerNum
+    LEFT JOIN ship_designs d ON p.game_id = d.game_id
+    AND p.num = d.player_num
 WHERE
-    p.gameId = ?
+    p.game_id = ?
 ORDER BY
     p.num,
     d.num;
@@ -45,10 +45,10 @@ SELECT
     d.*
 FROM
     players p
-    LEFT JOIN shipDesigns d ON p.gameId = d.gameId
-    AND p.num = d.playerNum
+    LEFT JOIN ship_designs d ON p.game_id = d.game_id
+    AND p.num = d.player_num
 WHERE
-    p.gameId = ?
+    p.game_id = ?
     AND p.num = ?
 ORDER BY
     d.num;
@@ -59,33 +59,33 @@ SELECT
     d.*
 FROM
     players p
-    LEFT JOIN shipDesigns d ON p.gameId = d.gameId
-    AND p.num = d.playerNum
+    LEFT JOIN ship_designs d ON p.game_id = d.game_id
+    AND p.num = d.player_num
 WHERE
-    p.gameId = ?
-    AND p.userId = ?
+    p.game_id = ?
+    AND p.user_id = ?
 ORDER BY
     d.num;
 
 -- name: GetPlayersStatusForGame :many
 SELECT
     id,
-    createdAt,
-    updatedAt,
-    gameId,
-    userId,
+    created_at,
+    updated_at,
+    game_id,
+    user_id,
     name,
     num,
     ready,
-    aiControlled,
-    aiDifficulty,
+    ai_controlled,
+    ai_difficulty,
     guest,
-    submittedTurn,
+    submitted_turn,
     color
 FROM
     players
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num;
 
@@ -100,61 +100,61 @@ WHERE
 -- name: GetLightPlayerForGame :one
 SELECT
     id,
-    createdAt,
-    updatedAt,
-    gameId,
-    userId,
+    created_at,
+    updated_at,
+    game_id,
+    user_id,
     name,
     num,
     ready,
-    aiControlled,
-    aiDifficulty,
+    ai_controlled,
+    ai_difficulty,
     guest,
-    submittedTurn,
+    submitted_turn,
     color,
-    defaultHullSet,
+    default_hull_set,
     race,
-    techLevelsEnergy,
-    techLevelsWeapons,
-    techLevelsPropulsion,
-    techLevelsConstruction,
-    techLevelsElectronics,
-    techLevelsBiotechnology,
-    techLevelsSpentEnergy,
-    techLevelsSpentWeapons,
-    techLevelsSpentPropulsion,
-    techLevelsSpentConstruction,
-    techLevelsSpentElectronics,
-    techLevelsSpentBiotechnology,
-    researchSpentLastYear,
-    researchAmount,
-    nextResearchField,
+    tech_levels_energy,
+    tech_levels_weapons,
+    tech_levels_propulsion,
+    tech_levels_construction,
+    tech_levels_electronics,
+    tech_levels_biotechnology,
+    tech_levels_spent_energy,
+    tech_levels_spent_weapons,
+    tech_levels_spent_propulsion,
+    tech_levels_spent_construction,
+    tech_levels_spent_electronics,
+    tech_levels_spent_biotechnology,
+    research_spent_last_year,
+    research_amount,
+    next_research_field,
     researching,
-    cargoTransfers,
-    battlePlans,
-    productionPlans,
-    transportPlans,
+    cargo_transfers,
+    battle_plans,
+    production_plans,
+    transport_plans,
     relations,
     stats,
-    scoreHistory,
-    acquiredTechs,
-    achievedVictoryConditions,
+    score_history,
+    acquired_techs,
+    achieved_victory_conditions,
     victor,
     archived,
     spec
 FROM
     players
 WHERE
-    gameId = @gameId
-    --  playerNum
+    game_id = @game_id
+    --  player_num
     AND (
-        @playerNum IS NULL
-        OR num = @playerNum
+        @player_num IS NULL
+        OR num = @player_num
     )
-    --  or userId
+    --  or user_id
     AND (
-        @userId IS NULL
-        OR userId = @userId
+        @user_id IS NULL
+        OR user_id = @user_id
     );
 
 -- name: GetPlayerNum :one
@@ -163,65 +163,65 @@ SELECT
 FROM
     players
 WHERE
-    gameId = ?
-    AND userId = ?;
+    game_id = ?
+    AND user_id = ?;
 
--- name: CreatePlayer :one
+-- name: CreatePlayer :execlastid
 INSERT INTO
     players (
-        createdAt,
-        updatedAt,
-        gameId,
-        userId,
+        created_at,
+        updated_at,
+        game_id,
+        user_id,
         name,
         num,
         ready,
-        aiControlled,
-        submittedTurn,
+        ai_controlled,
+        submitted_turn,
         color,
-        defaultHullSet,
-        techLevelsEnergy,
-        techLevelsWeapons,
-        techLevelsPropulsion,
-        techLevelsConstruction,
-        techLevelsElectronics,
-        techLevelsBiotechnology,
-        techLevelsSpentEnergy,
-        techLevelsSpentWeapons,
-        techLevelsSpentPropulsion,
-        techLevelsSpentConstruction,
-        techLevelsSpentElectronics,
-        techLevelsSpentBiotechnology,
-        researchAmount,
-        researchSpentLastYear,
-        nextResearchField,
+        default_hull_set,
+        tech_levels_energy,
+        tech_levels_weapons,
+        tech_levels_propulsion,
+        tech_levels_construction,
+        tech_levels_electronics,
+        tech_levels_biotechnology,
+        tech_levels_spent_energy,
+        tech_levels_spent_weapons,
+        tech_levels_spent_propulsion,
+        tech_levels_spent_construction,
+        tech_levels_spent_electronics,
+        tech_levels_spent_biotechnology,
+        research_amount,
+        research_spent_last_year,
+        next_research_field,
         researching,
-        battlePlans,
-        productionPlans,
-        transportPlans,
+        battle_plans,
+        production_plans,
+        transport_plans,
         relations,
-        cargoTransfers,
+        cargo_transfers,
         messages,
-        battleRecords,
-        playerIntels,
-        scoreIntels,
-        planetIntels,
-        fleetIntels,
-        shipDesignIntels,
-        mineralPacketIntels,
-        mineFieldIntels,
-        wormholeIntels,
-        mysteryTraderIntels,
-        salvageIntels,
+        battle_records,
+        player_intels,
+        score_intels,
+        planet_intels,
+        fleet_intels,
+        ship_design_intels,
+        mineral_packet_intels,
+        minefield_intels,
+        wormhole_intels,
+        mystery_trader_intels,
+        salvage_intels,
         race,
         stats,
-        scoreHistory,
-        achievedVictoryConditions,
+        score_history,
+        achieved_victory_conditions,
         victor,
         spec,
         guest,
-        aiDifficulty,
-        acquiredTechs,
+        ai_difficulty,
+        acquired_techs,
         archived
     )
 VALUES
@@ -280,200 +280,198 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt;
+    );
 
--- name: UpdateLightPlayer :one
+-- name: UpdateLightPlayer :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
     name = ?,
     num = ?,
     ready = ?,
-    aiControlled = ?,
-    aiDifficulty = ?,
+    ai_controlled = ?,
+    ai_difficulty = ?,
     guest = ?,
-    submittedTurn = ?,
+    submitted_turn = ?,
     color = ?,
-    defaultHullSet = ?,
-    researchAmount = ?,
-    nextResearchField = ?,
+    default_hull_set = ?,
+    research_amount = ?,
+    next_research_field = ?,
     researching = ?,
     spec = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: UpdatePlayerOrders :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    submittedTurn = ?,
-    defaultHullSet = ?,
-    researchAmount = ?,
-    nextResearchField = ?,
-    researching = ?,
-    cargoTransfers = ?,
-    battlePlans = ?,
-    productionPlans = ?,
-    transportPlans = ?,
-    relations = ?,
-    spec = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: UpdatePlayerCargoTransfers :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    cargoTransfers = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: UpdatePlayerRelations :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    relations = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: SubmitPlayerTurn :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    submittedTurn = ?
-WHERE
-    gameId = ?
-    AND num = ? RETURNING updatedAt;
-
--- name: ArchivePlayer :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    archived = ?
-WHERE
-    gameId = ?
-    AND num = ? RETURNING updatedAt;
-
--- name: UpdatePlayerPlans :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    battlePlans = ?,
-    productionPlans = ?,
-    transportPlans = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: UpdatePlayerSpec :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    spec = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: UpdatePlayerPlanetIntels :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    planetIntels = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: UpdatePlayerFleetIntels :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    fleetIntels = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: UpdatePlayerSalvageIntels :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    salvageIntels = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: UpdatePlayerMineralPacketIntels :one
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    mineralPacketIntels = ?
-WHERE
-    id = ? RETURNING updatedAt;
-
--- name: UpdatePlayerUserID :exec
-UPDATE players
-SET
-    updatedAt = CURRENT_TIMESTAMP,
-    userId = ?
 WHERE
     id = ?;
 
--- name: UpdatePlayer :one
+-- name: UpdatePlayerOrders :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
-    userId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    submitted_turn = ?,
+    default_hull_set = ?,
+    research_amount = ?,
+    next_research_field = ?,
+    researching = ?,
+    cargo_transfers = ?,
+    battle_plans = ?,
+    production_plans = ?,
+    transport_plans = ?,
+    relations = ?,
+    spec = ?
+WHERE
+    id = ?;
+
+-- name: UpdatePlayerCargoTransfers :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    cargo_transfers = ?
+WHERE
+    id = ?;
+
+-- name: UpdatePlayerRelations :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    relations = ?
+WHERE
+    id = ?;
+
+-- name: SubmitPlayerTurn :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    submitted_turn = ?
+WHERE
+    game_id = ?
+    AND num = ?;
+
+-- name: ArchivePlayer :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    archived = ?
+WHERE
+    game_id = ?
+    AND num = ?;
+
+-- name: UpdatePlayerPlans :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    battle_plans = ?,
+    production_plans = ?,
+    transport_plans = ?
+WHERE
+    id = ?;
+
+-- name: UpdatePlayerSpec :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    spec = ?
+WHERE
+    id = ?;
+
+-- name: UpdatePlayerPlanetIntels :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    planet_intels = ?
+WHERE
+    id = ?;
+
+-- name: UpdatePlayerFleetIntels :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    fleet_intels = ?
+WHERE
+    id = ?;
+
+-- name: UpdatePlayerSalvageIntels :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    salvage_intels = ?
+WHERE
+    id = ?;
+
+-- name: UpdatePlayerMineralPacketIntels :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    mineral_packet_intels = ?
+WHERE
+    id = ?;
+
+-- name: UpdatePlayerUserID :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    user_id = ?
+WHERE
+    id = ?;
+
+-- name: UpdatePlayer :execrows
+UPDATE players
+SET
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
+    user_id = ?,
     name = ?,
     num = ?,
     ready = ?,
-    aiControlled = ?,
-    submittedTurn = ?,
+    ai_controlled = ?,
+    submitted_turn = ?,
     color = ?,
-    defaultHullSet = ?,
-    techLevelsEnergy = ?,
-    techLevelsWeapons = ?,
-    techLevelsPropulsion = ?,
-    techLevelsConstruction = ?,
-    techLevelsElectronics = ?,
-    techLevelsBiotechnology = ?,
-    techLevelsSpentEnergy = ?,
-    techLevelsSpentWeapons = ?,
-    techLevelsSpentPropulsion = ?,
-    techLevelsSpentConstruction = ?,
-    techLevelsSpentElectronics = ?,
-    techLevelsSpentBiotechnology = ?,
-    researchAmount = ?,
-    researchSpentLastYear = ?,
-    nextResearchField = ?,
+    default_hull_set = ?,
+    tech_levels_energy = ?,
+    tech_levels_weapons = ?,
+    tech_levels_propulsion = ?,
+    tech_levels_construction = ?,
+    tech_levels_electronics = ?,
+    tech_levels_biotechnology = ?,
+    tech_levels_spent_energy = ?,
+    tech_levels_spent_weapons = ?,
+    tech_levels_spent_propulsion = ?,
+    tech_levels_spent_construction = ?,
+    tech_levels_spent_electronics = ?,
+    tech_levels_spent_biotechnology = ?,
+    research_amount = ?,
+    research_spent_last_year = ?,
+    next_research_field = ?,
     researching = ?,
-    battlePlans = ?,
-    productionPlans = ?,
-    transportPlans = ?,
+    battle_plans = ?,
+    production_plans = ?,
+    transport_plans = ?,
     relations = ?,
-    cargoTransfers = ?,
+    cargo_transfers = ?,
     messages = ?,
-    battleRecords = ?,
-    playerIntels = ?,
-    scoreIntels = ?,
-    planetIntels = ?,
-    fleetIntels = ?,
-    shipDesignIntels = ?,
-    mineralPacketIntels = ?,
-    mineFieldIntels = ?,
-    wormholeIntels = ?,
-    mysteryTraderIntels = ?,
-    salvageIntels = ?,
+    battle_records = ?,
+    player_intels = ?,
+    score_intels = ?,
+    planet_intels = ?,
+    fleet_intels = ?,
+    ship_design_intels = ?,
+    mineral_packet_intels = ?,
+    minefield_intels = ?,
+    wormhole_intels = ?,
+    mystery_trader_intels = ?,
+    salvage_intels = ?,
     race = ?,
     stats = ?,
-    scoreHistory = ?,
-    achievedVictoryConditions = ?,
+    score_history = ?,
+    achieved_victory_conditions = ?,
     victor = ?,
     spec = ?,
     guest = ?,
-    aiDifficulty = ?,
-    acquiredTechs = ?,
+    ai_difficulty = ?,
+    acquired_techs = ?,
     archived = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
--- name: DeletePlayer :exec
+-- name: DeletePlayer :execrows
 DELETE FROM players
 WHERE
     id = ?;

@@ -7,26 +7,24 @@ package generated
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const CreateMineField = `-- name: CreateMineField :one
+const CreateMinefield = `-- name: CreateMinefield :execlastid
 INSERT INTO
     minefields (
-        createdAt,
-        updatedAt,
-        gameId,
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
-        playerNum,
+        player_num,
         tags,
-        mineFieldType,
-        numMines,
+        minefield_type,
+        num_mines,
         detonate,
         spec
     )
@@ -45,141 +43,137 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt
+    )
 `
 
-type CreateMineFieldParams struct {
-	Gameid        int64
-	X             sql.NullFloat64
-	Y             sql.NullFloat64
+type CreateMinefieldParams struct {
+	GameID        int64
+	X             float64
+	Y             float64
 	Name          string
-	Num           sql.NullInt64
-	Playernum     sql.NullInt64
+	Num           int64
+	PlayerNum     int64
 	Tags          *Tags
-	Minefieldtype *cs.MineFieldType
-	Nummines      sql.NullInt64
-	Detonate      sql.NullBool
+	MinefieldType *cs.MineFieldType
+	NumMines      int64
+	Detonate      bool
 	Spec          *MineFieldSpec
 }
 
-type CreateMineFieldRow struct {
-	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-}
-
-func (q *Queries) CreateMineField(ctx context.Context, arg CreateMineFieldParams) (CreateMineFieldRow, error) {
-	row := q.db.QueryRowContext(ctx, CreateMineField,
-		arg.Gameid,
+func (q *Queries) CreateMinefield(ctx context.Context, arg CreateMinefieldParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreateMinefield,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
-		arg.Playernum,
+		arg.PlayerNum,
 		arg.Tags,
-		arg.Minefieldtype,
-		arg.Nummines,
+		arg.MinefieldType,
+		arg.NumMines,
 		arg.Detonate,
 		arg.Spec,
 	)
-	var i CreateMineFieldRow
-	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-const DeleteMineField = `-- name: DeleteMineField :exec
+const DeleteMinefield = `-- name: DeleteMinefield :execrows
 DELETE FROM minefields
 WHERE
     id = ?
 `
 
-func (q *Queries) DeleteMineField(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, DeleteMineField, id)
-	return err
+func (q *Queries) DeleteMinefield(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, DeleteMinefield, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const GetMineField = `-- name: GetMineField :one
+const GetMinefield = `-- name: GetMinefield :one
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, spec, tags
 FROM
     minefields
 WHERE
     id = ?
 `
 
-// MineFields
-func (q *Queries) GetMineField(ctx context.Context, id int64) (Minefield, error) {
-	row := q.db.QueryRowContext(ctx, GetMineField, id)
+// Minefields
+func (q *Queries) GetMinefield(ctx context.Context, id int64) (Minefield, error) {
+	row := q.db.QueryRowContext(ctx, GetMinefield, id)
 	var i Minefield
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Playernum,
-		&i.Nummines,
+		&i.PlayerNum,
+		&i.NumMines,
 		&i.Detonate,
-		&i.Minefieldtype,
+		&i.MinefieldType,
 		&i.Spec,
 		&i.Tags,
 	)
 	return i, err
 }
 
-const GetMineFieldByNum = `-- name: GetMineFieldByNum :one
+const GetMinefieldByNum = `-- name: GetMinefieldByNum :one
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, spec, tags
 FROM
     minefields
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num = ?
 `
 
-type GetMineFieldByNumParams struct {
-	Gameid    int64
-	Playernum sql.NullInt64
-	Num       sql.NullInt64
+type GetMinefieldByNumParams struct {
+	GameID    int64
+	PlayerNum int64
+	Num       int64
 }
 
-func (q *Queries) GetMineFieldByNum(ctx context.Context, arg GetMineFieldByNumParams) (Minefield, error) {
-	row := q.db.QueryRowContext(ctx, GetMineFieldByNum, arg.Gameid, arg.Playernum, arg.Num)
+func (q *Queries) GetMinefieldByNum(ctx context.Context, arg GetMinefieldByNumParams) (Minefield, error) {
+	row := q.db.QueryRowContext(ctx, GetMinefieldByNum, arg.GameID, arg.PlayerNum, arg.Num)
 	var i Minefield
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Playernum,
-		&i.Nummines,
+		&i.PlayerNum,
+		&i.NumMines,
 		&i.Detonate,
-		&i.Minefieldtype,
+		&i.MinefieldType,
 		&i.Spec,
 		&i.Tags,
 	)
 	return i, err
 }
 
-const GetMineFields = `-- name: GetMineFields :many
+const GetMinefields = `-- name: GetMinefields :many
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, spec, tags
 FROM
     minefields
 `
 
-func (q *Queries) GetMineFields(ctx context.Context) ([]Minefield, error) {
-	rows, err := q.db.QueryContext(ctx, GetMineFields)
+func (q *Queries) GetMinefields(ctx context.Context) ([]Minefield, error) {
+	rows, err := q.db.QueryContext(ctx, GetMinefields)
 	if err != nil {
 		return nil, err
 	}
@@ -189,17 +183,17 @@ func (q *Queries) GetMineFields(ctx context.Context) ([]Minefield, error) {
 		var i Minefield
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
-			&i.Nummines,
+			&i.PlayerNum,
+			&i.NumMines,
 			&i.Detonate,
-			&i.Minefieldtype,
+			&i.MinefieldType,
 			&i.Spec,
 			&i.Tags,
 		); err != nil {
@@ -216,75 +210,20 @@ func (q *Queries) GetMineFields(ctx context.Context) ([]Minefield, error) {
 	return items, nil
 }
 
-const GetMineFieldsForGame = `-- name: GetMineFieldsForGame :many
+const GetMinefieldsForGame = `-- name: GetMinefieldsForGame :many
 SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
-FROM
-    minefields
-WHERE
-    gameId = ?
-ORDER BY
-    playerNum,
-    num
-`
-
-func (q *Queries) GetMineFieldsForGame(ctx context.Context, gameid int64) ([]Minefield, error) {
-	rows, err := q.db.QueryContext(ctx, GetMineFieldsForGame, gameid)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Minefield
-	for rows.Next() {
-		var i Minefield
-		if err := rows.Scan(
-			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
-			&i.X,
-			&i.Y,
-			&i.Name,
-			&i.Num,
-			&i.Playernum,
-			&i.Nummines,
-			&i.Detonate,
-			&i.Minefieldtype,
-			&i.Spec,
-			&i.Tags,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const GetMineFieldsForPlayer = `-- name: GetMineFieldsForPlayer :many
-SELECT
-    id, createdat, updatedat, gameid, x, y, name, num, playernum, nummines, detonate, minefieldtype, spec, tags
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, spec, tags
 FROM
     minefields
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
 ORDER BY
+    player_num,
     num
 `
 
-type GetMineFieldsForPlayerParams struct {
-	Gameid    int64
-	Playernum sql.NullInt64
-}
-
-func (q *Queries) GetMineFieldsForPlayer(ctx context.Context, arg GetMineFieldsForPlayerParams) ([]Minefield, error) {
-	rows, err := q.db.QueryContext(ctx, GetMineFieldsForPlayer, arg.Gameid, arg.Playernum)
+func (q *Queries) GetMinefieldsForGame(ctx context.Context, gameID int64) ([]Minefield, error) {
+	rows, err := q.db.QueryContext(ctx, GetMinefieldsForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -294,17 +233,17 @@ func (q *Queries) GetMineFieldsForPlayer(ctx context.Context, arg GetMineFieldsF
 		var i Minefield
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
-			&i.Nummines,
+			&i.PlayerNum,
+			&i.NumMines,
 			&i.Detonate,
-			&i.Minefieldtype,
+			&i.MinefieldType,
 			&i.Spec,
 			&i.Tags,
 		); err != nil {
@@ -321,56 +260,112 @@ func (q *Queries) GetMineFieldsForPlayer(ctx context.Context, arg GetMineFieldsF
 	return items, nil
 }
 
-const UpdateMineField = `-- name: UpdateMineField :one
+const GetMinefieldsForPlayer = `-- name: GetMinefieldsForPlayer :many
+SELECT
+    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, spec, tags
+FROM
+    minefields
+WHERE
+    game_id = ?
+    AND player_num = ?
+ORDER BY
+    num
+`
+
+type GetMinefieldsForPlayerParams struct {
+	GameID    int64
+	PlayerNum int64
+}
+
+func (q *Queries) GetMinefieldsForPlayer(ctx context.Context, arg GetMinefieldsForPlayerParams) ([]Minefield, error) {
+	rows, err := q.db.QueryContext(ctx, GetMinefieldsForPlayer, arg.GameID, arg.PlayerNum)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Minefield
+	for rows.Next() {
+		var i Minefield
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
+			&i.X,
+			&i.Y,
+			&i.Name,
+			&i.Num,
+			&i.PlayerNum,
+			&i.NumMines,
+			&i.Detonate,
+			&i.MinefieldType,
+			&i.Spec,
+			&i.Tags,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const UpdateMinefield = `-- name: UpdateMinefield :execrows
 UPDATE minefields
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
-    playerNum = ?,
+    player_num = ?,
     tags = ?,
-    mineFieldType = ?,
-    numMines = ?,
+    minefield_type = ?,
+    num_mines = ?,
     detonate = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
-type UpdateMineFieldParams struct {
-	Gameid        int64
-	X             sql.NullFloat64
-	Y             sql.NullFloat64
+type UpdateMinefieldParams struct {
+	GameID        int64
+	X             float64
+	Y             float64
 	Name          string
-	Num           sql.NullInt64
-	Playernum     sql.NullInt64
+	Num           int64
+	PlayerNum     int64
 	Tags          *Tags
-	Minefieldtype *cs.MineFieldType
-	Nummines      sql.NullInt64
-	Detonate      sql.NullBool
+	MinefieldType *cs.MineFieldType
+	NumMines      int64
+	Detonate      bool
 	Spec          *MineFieldSpec
 	ID            int64
 }
 
-func (q *Queries) UpdateMineField(ctx context.Context, arg UpdateMineFieldParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdateMineField,
-		arg.Gameid,
+func (q *Queries) UpdateMinefield(ctx context.Context, arg UpdateMinefieldParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdateMinefield,
+		arg.GameID,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
-		arg.Playernum,
+		arg.PlayerNum,
 		arg.Tags,
-		arg.Minefieldtype,
-		arg.Nummines,
+		arg.MinefieldType,
+		arg.NumMines,
 		arg.Detonate,
 		arg.Spec,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

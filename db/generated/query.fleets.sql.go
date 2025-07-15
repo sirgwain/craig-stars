@@ -9,41 +9,40 @@ import (
 	"context"
 	"database/sql"
 	"strings"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const CreateFleet = `-- name: CreateFleet :one
+const CreateFleet = `-- name: CreateFleet :execlastid
 INSERT INTO
     fleets (
-        createdAt,
-        updatedAt,
-        gameId,
-        battlePlanNum,
+        created_at,
+        updated_at,
+        game_id,
+        battle_plan_num,
         x,
         y,
         name,
         num,
-        playerNum,
+        player_num,
         tags,
         tokens,
         waypoints,
-        repeatOrders,
-        planetNum,
-        baseName,
+        repeat_orders,
+        planet_num,
+        base_name,
         ironium,
         boranium,
         germanium,
         colonists,
         fuel,
         age,
-        headingX,
-        headingY,
-        warpSpeed,
-        previousPositionX,
-        previousPositionY,
-        orbitingPlanetNum,
+        heading_x,
+        heading_y,
+        warp_speed,
+        previous_position_x,
+        previous_position_y,
+        orbiting_planet_num,
         starbase,
         purpose,
         spec
@@ -80,82 +79,75 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt
+    )
 `
 
 type CreateFleetParams struct {
-	Gameid            int64
-	Battleplannum     int64
-	X                 sql.NullFloat64
-	Y                 sql.NullFloat64
+	GameID            int64
+	BattlePlanNum     int64
+	X                 float64
+	Y                 float64
 	Name              string
-	Num               sql.NullInt64
-	Playernum         sql.NullInt64
+	Num               int64
+	PlayerNum         int64
 	Tags              *Tags
 	Tokens            *ShipTokens
 	Waypoints         *Waypoints
-	Repeatorders      sql.NullBool
-	Planetnum         sql.NullInt64
-	Basename          string
-	Ironium           sql.NullInt64
-	Boranium          sql.NullInt64
-	Germanium         sql.NullInt64
-	Colonists         sql.NullInt64
-	Fuel              sql.NullInt64
-	Age               sql.NullInt64
-	Headingx          sql.NullFloat64
-	Headingy          sql.NullFloat64
-	Warpspeed         sql.NullInt64
-	Previouspositionx sql.NullFloat64
-	Previouspositiony sql.NullFloat64
-	Orbitingplanetnum sql.NullInt64
-	Starbase          sql.NullBool
+	RepeatOrders      bool
+	PlanetNum         int64
+	BaseName          string
+	Ironium           int64
+	Boranium          int64
+	Germanium         int64
+	Colonists         int64
+	Fuel              int64
+	Age               int64
+	HeadingX          float64
+	HeadingY          float64
+	WarpSpeed         int64
+	PreviousPositionX sql.NullFloat64
+	PreviousPositionY sql.NullFloat64
+	OrbitingPlanetNum int64
+	Starbase          bool
 	Purpose           *cs.FleetPurpose
 	Spec              *FleetSpec
 }
 
-type CreateFleetRow struct {
-	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-}
-
-func (q *Queries) CreateFleet(ctx context.Context, arg CreateFleetParams) (CreateFleetRow, error) {
-	row := q.db.QueryRowContext(ctx, CreateFleet,
-		arg.Gameid,
-		arg.Battleplannum,
+func (q *Queries) CreateFleet(ctx context.Context, arg CreateFleetParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreateFleet,
+		arg.GameID,
+		arg.BattlePlanNum,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
-		arg.Playernum,
+		arg.PlayerNum,
 		arg.Tags,
 		arg.Tokens,
 		arg.Waypoints,
-		arg.Repeatorders,
-		arg.Planetnum,
-		arg.Basename,
+		arg.RepeatOrders,
+		arg.PlanetNum,
+		arg.BaseName,
 		arg.Ironium,
 		arg.Boranium,
 		arg.Germanium,
 		arg.Colonists,
 		arg.Fuel,
 		arg.Age,
-		arg.Headingx,
-		arg.Headingy,
-		arg.Warpspeed,
-		arg.Previouspositionx,
-		arg.Previouspositiony,
-		arg.Orbitingplanetnum,
+		arg.HeadingX,
+		arg.HeadingY,
+		arg.WarpSpeed,
+		arg.PreviousPositionX,
+		arg.PreviousPositionY,
+		arg.OrbitingPlanetNum,
 		arg.Starbase,
 		arg.Purpose,
 		arg.Spec,
 	)
-	var i CreateFleetRow
-	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
 const DeleteFleet = `-- name: DeleteFleet :exec
@@ -171,7 +163,7 @@ func (q *Queries) DeleteFleet(ctx context.Context, id int64) error {
 
 const GetFleet = `-- name: GetFleet :one
 SELECT
-    id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
@@ -184,32 +176,32 @@ func (q *Queries) GetFleet(ctx context.Context, id int64) (Fleet, error) {
 	var i Fleet
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.Battleplannum,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
+		&i.BattlePlanNum,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Playernum,
+		&i.PlayerNum,
 		&i.Tokens,
 		&i.Waypoints,
-		&i.Repeatorders,
-		&i.Planetnum,
-		&i.Basename,
+		&i.RepeatOrders,
+		&i.PlanetNum,
+		&i.BaseName,
 		&i.Ironium,
 		&i.Boranium,
 		&i.Germanium,
 		&i.Colonists,
 		&i.Fuel,
 		&i.Age,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Warpspeed,
-		&i.Previouspositionx,
-		&i.Previouspositiony,
-		&i.Orbitingplanetnum,
+		&i.HeadingX,
+		&i.HeadingY,
+		&i.WarpSpeed,
+		&i.PreviousPositionX,
+		&i.PreviousPositionY,
+		&i.OrbitingPlanetNum,
 		&i.Starbase,
 		&i.Spec,
 		&i.Purpose,
@@ -220,52 +212,52 @@ func (q *Queries) GetFleet(ctx context.Context, id int64) (Fleet, error) {
 
 const GetFleetByNum = `-- name: GetFleetByNum :one
 SELECT
-    id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num = ?
 `
 
 type GetFleetByNumParams struct {
-	Gameid    int64
-	Playernum sql.NullInt64
-	Num       sql.NullInt64
+	GameID    int64
+	PlayerNum int64
+	Num       int64
 }
 
 func (q *Queries) GetFleetByNum(ctx context.Context, arg GetFleetByNumParams) (Fleet, error) {
-	row := q.db.QueryRowContext(ctx, GetFleetByNum, arg.Gameid, arg.Playernum, arg.Num)
+	row := q.db.QueryRowContext(ctx, GetFleetByNum, arg.GameID, arg.PlayerNum, arg.Num)
 	var i Fleet
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.Battleplannum,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
+		&i.BattlePlanNum,
 		&i.X,
 		&i.Y,
 		&i.Name,
 		&i.Num,
-		&i.Playernum,
+		&i.PlayerNum,
 		&i.Tokens,
 		&i.Waypoints,
-		&i.Repeatorders,
-		&i.Planetnum,
-		&i.Basename,
+		&i.RepeatOrders,
+		&i.PlanetNum,
+		&i.BaseName,
 		&i.Ironium,
 		&i.Boranium,
 		&i.Germanium,
 		&i.Colonists,
 		&i.Fuel,
 		&i.Age,
-		&i.Headingx,
-		&i.Headingy,
-		&i.Warpspeed,
-		&i.Previouspositionx,
-		&i.Previouspositiony,
-		&i.Orbitingplanetnum,
+		&i.HeadingX,
+		&i.HeadingY,
+		&i.WarpSpeed,
+		&i.PreviousPositionX,
+		&i.PreviousPositionY,
+		&i.OrbitingPlanetNum,
 		&i.Starbase,
 		&i.Spec,
 		&i.Purpose,
@@ -276,7 +268,7 @@ func (q *Queries) GetFleetByNum(ctx context.Context, arg GetFleetByNumParams) (F
 
 const GetFleets = `-- name: GetFleets :many
 SELECT
-    id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 `
@@ -292,32 +284,32 @@ func (q *Queries) GetFleets(ctx context.Context) ([]Fleet, error) {
 		var i Fleet
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
-			&i.Battleplannum,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
+			&i.BattlePlanNum,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Tokens,
 			&i.Waypoints,
-			&i.Repeatorders,
-			&i.Planetnum,
-			&i.Basename,
+			&i.RepeatOrders,
+			&i.PlanetNum,
+			&i.BaseName,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
 			&i.Colonists,
 			&i.Fuel,
 			&i.Age,
-			&i.Headingx,
-			&i.Headingy,
-			&i.Warpspeed,
-			&i.Previouspositionx,
-			&i.Previouspositiony,
-			&i.Orbitingplanetnum,
+			&i.HeadingX,
+			&i.HeadingY,
+			&i.WarpSpeed,
+			&i.PreviousPositionX,
+			&i.PreviousPositionY,
+			&i.OrbitingPlanetNum,
 			&i.Starbase,
 			&i.Spec,
 			&i.Purpose,
@@ -338,29 +330,29 @@ func (q *Queries) GetFleets(ctx context.Context) ([]Fleet, error) {
 
 const GetFleetsByNums = `-- name: GetFleetsByNums :many
 SELECT
-    id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num IN (/*SLICE:nums*/?)
 ORDER BY
-    playerNum,
+    player_num,
     num
 `
 
 type GetFleetsByNumsParams struct {
-	Gameid    int64
-	Playernum sql.NullInt64
-	Nums      []sql.NullInt64
+	GameID    int64
+	PlayerNum int64
+	Nums      []int64
 }
 
 func (q *Queries) GetFleetsByNums(ctx context.Context, arg GetFleetsByNumsParams) ([]Fleet, error) {
 	query := GetFleetsByNums
 	var queryParams []interface{}
-	queryParams = append(queryParams, arg.Gameid)
-	queryParams = append(queryParams, arg.Playernum)
+	queryParams = append(queryParams, arg.GameID)
+	queryParams = append(queryParams, arg.PlayerNum)
 	if len(arg.Nums) > 0 {
 		for _, v := range arg.Nums {
 			queryParams = append(queryParams, v)
@@ -379,32 +371,32 @@ func (q *Queries) GetFleetsByNums(ctx context.Context, arg GetFleetsByNumsParams
 		var i Fleet
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
-			&i.Battleplannum,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
+			&i.BattlePlanNum,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Tokens,
 			&i.Waypoints,
-			&i.Repeatorders,
-			&i.Planetnum,
-			&i.Basename,
+			&i.RepeatOrders,
+			&i.PlanetNum,
+			&i.BaseName,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
 			&i.Colonists,
 			&i.Fuel,
 			&i.Age,
-			&i.Headingx,
-			&i.Headingy,
-			&i.Warpspeed,
-			&i.Previouspositionx,
-			&i.Previouspositiony,
-			&i.Orbitingplanetnum,
+			&i.HeadingX,
+			&i.HeadingY,
+			&i.WarpSpeed,
+			&i.PreviousPositionX,
+			&i.PreviousPositionY,
+			&i.OrbitingPlanetNum,
 			&i.Starbase,
 			&i.Spec,
 			&i.Purpose,
@@ -425,18 +417,18 @@ func (q *Queries) GetFleetsByNums(ctx context.Context, arg GetFleetsByNumsParams
 
 const GetFleetsForGame = `-- name: GetFleetsForGame :many
 SELECT
-    id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
-    playerNum,
+    player_num,
     num
 `
 
-func (q *Queries) GetFleetsForGame(ctx context.Context, gameid int64) ([]Fleet, error) {
-	rows, err := q.db.QueryContext(ctx, GetFleetsForGame, gameid)
+func (q *Queries) GetFleetsForGame(ctx context.Context, gameID int64) ([]Fleet, error) {
+	rows, err := q.db.QueryContext(ctx, GetFleetsForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -446,32 +438,32 @@ func (q *Queries) GetFleetsForGame(ctx context.Context, gameid int64) ([]Fleet, 
 		var i Fleet
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
-			&i.Battleplannum,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
+			&i.BattlePlanNum,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Tokens,
 			&i.Waypoints,
-			&i.Repeatorders,
-			&i.Planetnum,
-			&i.Basename,
+			&i.RepeatOrders,
+			&i.PlanetNum,
+			&i.BaseName,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
 			&i.Colonists,
 			&i.Fuel,
 			&i.Age,
-			&i.Headingx,
-			&i.Headingy,
-			&i.Warpspeed,
-			&i.Previouspositionx,
-			&i.Previouspositiony,
-			&i.Orbitingplanetnum,
+			&i.HeadingX,
+			&i.HeadingY,
+			&i.WarpSpeed,
+			&i.PreviousPositionX,
+			&i.PreviousPositionY,
+			&i.OrbitingPlanetNum,
 			&i.Starbase,
 			&i.Spec,
 			&i.Purpose,
@@ -492,23 +484,23 @@ func (q *Queries) GetFleetsForGame(ctx context.Context, gameid int64) ([]Fleet, 
 
 const GetFleetsForPlayer = `-- name: GetFleetsForPlayer :many
 SELECT
-    id, createdat, updatedat, gameid, battleplannum, x, y, name, num, playernum, tokens, waypoints, repeatorders, planetnum, basename, ironium, boranium, germanium, colonists, fuel, age, headingx, headingy, warpspeed, previouspositionx, previouspositiony, orbitingplanetnum, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
 ORDER BY
     num
 `
 
 type GetFleetsForPlayerParams struct {
-	Gameid    int64
-	Playernum sql.NullInt64
+	GameID    int64
+	PlayerNum int64
 }
 
 func (q *Queries) GetFleetsForPlayer(ctx context.Context, arg GetFleetsForPlayerParams) ([]Fleet, error) {
-	rows, err := q.db.QueryContext(ctx, GetFleetsForPlayer, arg.Gameid, arg.Playernum)
+	rows, err := q.db.QueryContext(ctx, GetFleetsForPlayer, arg.GameID, arg.PlayerNum)
 	if err != nil {
 		return nil, err
 	}
@@ -518,32 +510,32 @@ func (q *Queries) GetFleetsForPlayer(ctx context.Context, arg GetFleetsForPlayer
 		var i Fleet
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
-			&i.Battleplannum,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
+			&i.BattlePlanNum,
 			&i.X,
 			&i.Y,
 			&i.Name,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Tokens,
 			&i.Waypoints,
-			&i.Repeatorders,
-			&i.Planetnum,
-			&i.Basename,
+			&i.RepeatOrders,
+			&i.PlanetNum,
+			&i.BaseName,
 			&i.Ironium,
 			&i.Boranium,
 			&i.Germanium,
 			&i.Colonists,
 			&i.Fuel,
 			&i.Age,
-			&i.Headingx,
-			&i.Headingy,
-			&i.Warpspeed,
-			&i.Previouspositionx,
-			&i.Previouspositiony,
-			&i.Orbitingplanetnum,
+			&i.HeadingX,
+			&i.HeadingY,
+			&i.WarpSpeed,
+			&i.PreviousPositionX,
+			&i.PreviousPositionY,
+			&i.OrbitingPlanetNum,
 			&i.Starbase,
 			&i.Spec,
 			&i.Purpose,
@@ -562,107 +554,108 @@ func (q *Queries) GetFleetsForPlayer(ctx context.Context, arg GetFleetsForPlayer
 	return items, nil
 }
 
-const UpdateFleet = `-- name: UpdateFleet :one
+const UpdateFleet = `-- name: UpdateFleet :execrows
 UPDATE fleets
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
-    battlePlanNum = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
+    battle_plan_num = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
-    playerNum = ?,
+    player_num = ?,
     tags = ?,
     tokens = ?,
     waypoints = ?,
-    repeatOrders = ?,
-    planetNum = ?,
-    baseName = ?,
+    repeat_orders = ?,
+    planet_num = ?,
+    base_name = ?,
     ironium = ?,
     boranium = ?,
     germanium = ?,
     colonists = ?,
     fuel = ?,
     age = ?,
-    headingX = ?,
-    headingY = ?,
-    warpSpeed = ?,
-    previousPositionX = ?,
-    previousPositionY = ?,
-    orbitingPlanetNum = ?,
+    heading_x = ?,
+    heading_y = ?,
+    warp_speed = ?,
+    previous_position_x = ?,
+    previous_position_y = ?,
+    orbiting_planet_num = ?,
     starbase = ?,
     purpose = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdateFleetParams struct {
-	Gameid            int64
-	Battleplannum     int64
-	X                 sql.NullFloat64
-	Y                 sql.NullFloat64
+	GameID            int64
+	BattlePlanNum     int64
+	X                 float64
+	Y                 float64
 	Name              string
-	Num               sql.NullInt64
-	Playernum         sql.NullInt64
+	Num               int64
+	PlayerNum         int64
 	Tags              *Tags
 	Tokens            *ShipTokens
 	Waypoints         *Waypoints
-	Repeatorders      sql.NullBool
-	Planetnum         sql.NullInt64
-	Basename          string
-	Ironium           sql.NullInt64
-	Boranium          sql.NullInt64
-	Germanium         sql.NullInt64
-	Colonists         sql.NullInt64
-	Fuel              sql.NullInt64
-	Age               sql.NullInt64
-	Headingx          sql.NullFloat64
-	Headingy          sql.NullFloat64
-	Warpspeed         sql.NullInt64
-	Previouspositionx sql.NullFloat64
-	Previouspositiony sql.NullFloat64
-	Orbitingplanetnum sql.NullInt64
-	Starbase          sql.NullBool
+	RepeatOrders      bool
+	PlanetNum         int64
+	BaseName          string
+	Ironium           int64
+	Boranium          int64
+	Germanium         int64
+	Colonists         int64
+	Fuel              int64
+	Age               int64
+	HeadingX          float64
+	HeadingY          float64
+	WarpSpeed         int64
+	PreviousPositionX sql.NullFloat64
+	PreviousPositionY sql.NullFloat64
+	OrbitingPlanetNum int64
+	Starbase          bool
 	Purpose           *cs.FleetPurpose
 	Spec              *FleetSpec
 	ID                int64
 }
 
-func (q *Queries) UpdateFleet(ctx context.Context, arg UpdateFleetParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdateFleet,
-		arg.Gameid,
-		arg.Battleplannum,
+func (q *Queries) UpdateFleet(ctx context.Context, arg UpdateFleetParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdateFleet,
+		arg.GameID,
+		arg.BattlePlanNum,
 		arg.X,
 		arg.Y,
 		arg.Name,
 		arg.Num,
-		arg.Playernum,
+		arg.PlayerNum,
 		arg.Tags,
 		arg.Tokens,
 		arg.Waypoints,
-		arg.Repeatorders,
-		arg.Planetnum,
-		arg.Basename,
+		arg.RepeatOrders,
+		arg.PlanetNum,
+		arg.BaseName,
 		arg.Ironium,
 		arg.Boranium,
 		arg.Germanium,
 		arg.Colonists,
 		arg.Fuel,
 		arg.Age,
-		arg.Headingx,
-		arg.Headingy,
-		arg.Warpspeed,
-		arg.Previouspositionx,
-		arg.Previouspositiony,
-		arg.Orbitingplanetnum,
+		arg.HeadingX,
+		arg.HeadingY,
+		arg.WarpSpeed,
+		arg.PreviousPositionX,
+		arg.PreviousPositionY,
+		arg.OrbitingPlanetNum,
 		arg.Starbase,
 		arg.Purpose,
 		arg.Spec,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

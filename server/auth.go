@@ -182,8 +182,8 @@ func (s *server) updateUser(ctx context.Context, tokenUser tokenUser, user *cs.U
 
 	idStr := tokenUser.discordID()
 	avatarStr := tokenUser.discordAvatar()
-	user.DiscordID = &idStr
-	user.DiscordAvatar = &avatarStr
+	user.DiscordID = idStr
+	user.DiscordAvatar = avatarStr
 	now := time.Now()
 	user.LastLogin = &now
 
@@ -192,7 +192,7 @@ func (s *server) updateUser(ctx context.Context, tokenUser tokenUser, user *cs.U
 		log.Error().Err(err).Str("Username", user.Username).Msg("failed to update user")
 		return err
 	}
-	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Str("DiscordID", *user.DiscordID).Str("DiscordAvatar", *user.DiscordAvatar).Msg("updated")
+	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Str("DiscordID", user.DiscordID).Str("DiscordAvatar", user.DiscordAvatar).Msg("updated")
 
 	return nil
 }

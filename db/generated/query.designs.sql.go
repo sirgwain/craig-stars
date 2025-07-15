@@ -8,29 +8,27 @@ package generated
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const CreateShipDesign = `-- name: CreateShipDesign :one
+const CreateShipDesign = `-- name: CreateShipDesign :execlastid
 INSERT INTO
-    shipDesigns (
-        createdAt,
-        updatedAt,
-        gameId,
+    ship_designs (
+        created_at,
+        updated_at,
+        game_id,
         num,
-        playerNum,
-        originalPlayerNum,
+        player_num,
+        original_player_num,
         name,
         version,
         hull,
-        hullSetNumber,
-        cannotDelete,
+        hull_set_number,
+        cannot_delete,
         slots,
         purpose,
-        canDelete,
-        mysteryTrader,
+        mystery_trader,
         spec
     )
 VALUES
@@ -49,178 +47,170 @@ VALUES
         ?,
         ?,
         ?,
-        ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    )
 `
 
 type CreateShipDesignParams struct {
-	Gameid            int64
+	GameID            int64
 	Num               int64
-	Playernum         int64
-	Originalplayernum sql.NullInt64
+	PlayerNum         int64
+	OriginalPlayerNum sql.NullInt64
 	Name              string
-	Version           sql.NullInt64
-	Hull              sql.NullString
-	Hullsetnumber     sql.NullInt64
-	Cannotdelete      bool
+	Version           int64
+	Hull              string
+	HullSetNumber     int64
+	CannotDelete      bool
 	Slots             *ShipDesignSlots
 	Purpose           *cs.ShipDesignPurpose
-	Candelete         sql.NullBool
-	Mysterytrader     sql.NullBool
+	MysteryTrader     bool
 	Spec              *ShipDesignSpec
 }
 
-type CreateShipDesignRow struct {
-	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-}
-
-func (q *Queries) CreateShipDesign(ctx context.Context, arg CreateShipDesignParams) (CreateShipDesignRow, error) {
-	row := q.db.QueryRowContext(ctx, CreateShipDesign,
-		arg.Gameid,
+func (q *Queries) CreateShipDesign(ctx context.Context, arg CreateShipDesignParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreateShipDesign,
+		arg.GameID,
 		arg.Num,
-		arg.Playernum,
-		arg.Originalplayernum,
+		arg.PlayerNum,
+		arg.OriginalPlayerNum,
 		arg.Name,
 		arg.Version,
 		arg.Hull,
-		arg.Hullsetnumber,
-		arg.Cannotdelete,
+		arg.HullSetNumber,
+		arg.CannotDelete,
 		arg.Slots,
 		arg.Purpose,
-		arg.Candelete,
-		arg.Mysterytrader,
+		arg.MysteryTrader,
 		arg.Spec,
 	)
-	var i CreateShipDesignRow
-	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-const DeleteShipDesign = `-- name: DeleteShipDesign :exec
-DELETE FROM shipdesigns
+const DeleteShipDesign = `-- name: DeleteShipDesign :execrows
+DELETE FROM ship_designs
 WHERE
     id = ?
 `
 
-func (q *Queries) DeleteShipDesign(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, DeleteShipDesign, id)
-	return err
+func (q *Queries) DeleteShipDesign(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, DeleteShipDesign, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const GetShipDesign = `-- name: GetShipDesign :one
 SELECT
-    id, createdat, updatedat, gameid, num, playernum, name, version, hull, hullsetnumber, candelete, slots, purpose, spec, cannotdelete, originalplayernum, mysterytrader
+    id, created_at, updated_at, game_id, num, player_num, name, version, hull, hull_set_number, slots, purpose, spec, cannot_delete, original_player_num, mystery_trader
 FROM
-    shipdesigns
+    ship_designs
 WHERE
     id = ?
 `
 
 // ShipDesigns
-func (q *Queries) GetShipDesign(ctx context.Context, id int64) (Shipdesign, error) {
+func (q *Queries) GetShipDesign(ctx context.Context, id int64) (ShipDesign, error) {
 	row := q.db.QueryRowContext(ctx, GetShipDesign, id)
-	var i Shipdesign
+	var i ShipDesign
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.Num,
-		&i.Playernum,
+		&i.PlayerNum,
 		&i.Name,
 		&i.Version,
 		&i.Hull,
-		&i.Hullsetnumber,
-		&i.Candelete,
+		&i.HullSetNumber,
 		&i.Slots,
 		&i.Purpose,
 		&i.Spec,
-		&i.Cannotdelete,
-		&i.Originalplayernum,
-		&i.Mysterytrader,
+		&i.CannotDelete,
+		&i.OriginalPlayerNum,
+		&i.MysteryTrader,
 	)
 	return i, err
 }
 
 const GetShipDesignByNum = `-- name: GetShipDesignByNum :one
 SELECT
-    id, createdat, updatedat, gameid, num, playernum, name, version, hull, hullsetnumber, candelete, slots, purpose, spec, cannotdelete, originalplayernum, mysterytrader
+    id, created_at, updated_at, game_id, num, player_num, name, version, hull, hull_set_number, slots, purpose, spec, cannot_delete, original_player_num, mystery_trader
 FROM
-    shipDesigns
+    ship_designs
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num = ?
 `
 
 type GetShipDesignByNumParams struct {
-	Gameid    int64
-	Playernum int64
+	GameID    int64
+	PlayerNum int64
 	Num       int64
 }
 
-func (q *Queries) GetShipDesignByNum(ctx context.Context, arg GetShipDesignByNumParams) (Shipdesign, error) {
-	row := q.db.QueryRowContext(ctx, GetShipDesignByNum, arg.Gameid, arg.Playernum, arg.Num)
-	var i Shipdesign
+func (q *Queries) GetShipDesignByNum(ctx context.Context, arg GetShipDesignByNumParams) (ShipDesign, error) {
+	row := q.db.QueryRowContext(ctx, GetShipDesignByNum, arg.GameID, arg.PlayerNum, arg.Num)
+	var i ShipDesign
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
 		&i.Num,
-		&i.Playernum,
+		&i.PlayerNum,
 		&i.Name,
 		&i.Version,
 		&i.Hull,
-		&i.Hullsetnumber,
-		&i.Candelete,
+		&i.HullSetNumber,
 		&i.Slots,
 		&i.Purpose,
 		&i.Spec,
-		&i.Cannotdelete,
-		&i.Originalplayernum,
-		&i.Mysterytrader,
+		&i.CannotDelete,
+		&i.OriginalPlayerNum,
+		&i.MysteryTrader,
 	)
 	return i, err
 }
 
 const GetShipDesigns = `-- name: GetShipDesigns :many
 SELECT
-    id, createdat, updatedat, gameid, num, playernum, name, version, hull, hullsetnumber, candelete, slots, purpose, spec, cannotdelete, originalplayernum, mysterytrader
+    id, created_at, updated_at, game_id, num, player_num, name, version, hull, hull_set_number, slots, purpose, spec, cannot_delete, original_player_num, mystery_trader
 FROM
-    shipdesigns
+    ship_designs
 `
 
-func (q *Queries) GetShipDesigns(ctx context.Context) ([]Shipdesign, error) {
+func (q *Queries) GetShipDesigns(ctx context.Context) ([]ShipDesign, error) {
 	rows, err := q.db.QueryContext(ctx, GetShipDesigns)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Shipdesign
+	var items []ShipDesign
 	for rows.Next() {
-		var i Shipdesign
+		var i ShipDesign
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Name,
 			&i.Version,
 			&i.Hull,
-			&i.Hullsetnumber,
-			&i.Candelete,
+			&i.HullSetNumber,
 			&i.Slots,
 			&i.Purpose,
 			&i.Spec,
-			&i.Cannotdelete,
-			&i.Originalplayernum,
-			&i.Mysterytrader,
+			&i.CannotDelete,
+			&i.OriginalPlayerNum,
+			&i.MysteryTrader,
 		); err != nil {
 			return nil, err
 		}
@@ -237,40 +227,39 @@ func (q *Queries) GetShipDesigns(ctx context.Context) ([]Shipdesign, error) {
 
 const GetShipDesignsForGame = `-- name: GetShipDesignsForGame :many
 SELECT
-    id, createdat, updatedat, gameid, num, playernum, name, version, hull, hullsetnumber, candelete, slots, purpose, spec, cannotdelete, originalplayernum, mysterytrader
+    id, created_at, updated_at, game_id, num, player_num, name, version, hull, hull_set_number, slots, purpose, spec, cannot_delete, original_player_num, mystery_trader
 FROM
-    shipDesigns
+    ship_designs
 WHERE
-    gameId = ?
+    game_id = ?
 `
 
-func (q *Queries) GetShipDesignsForGame(ctx context.Context, gameid int64) ([]Shipdesign, error) {
-	rows, err := q.db.QueryContext(ctx, GetShipDesignsForGame, gameid)
+func (q *Queries) GetShipDesignsForGame(ctx context.Context, gameID int64) ([]ShipDesign, error) {
+	rows, err := q.db.QueryContext(ctx, GetShipDesignsForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Shipdesign
+	var items []ShipDesign
 	for rows.Next() {
-		var i Shipdesign
+		var i ShipDesign
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Name,
 			&i.Version,
 			&i.Hull,
-			&i.Hullsetnumber,
-			&i.Candelete,
+			&i.HullSetNumber,
 			&i.Slots,
 			&i.Purpose,
 			&i.Spec,
-			&i.Cannotdelete,
-			&i.Originalplayernum,
-			&i.Mysterytrader,
+			&i.CannotDelete,
+			&i.OriginalPlayerNum,
+			&i.MysteryTrader,
 		); err != nil {
 			return nil, err
 		}
@@ -287,46 +276,45 @@ func (q *Queries) GetShipDesignsForGame(ctx context.Context, gameid int64) ([]Sh
 
 const GetShipDesignsForPlayer = `-- name: GetShipDesignsForPlayer :many
 SELECT
-    id, createdat, updatedat, gameid, num, playernum, name, version, hull, hullsetnumber, candelete, slots, purpose, spec, cannotdelete, originalplayernum, mysterytrader
+    id, created_at, updated_at, game_id, num, player_num, name, version, hull, hull_set_number, slots, purpose, spec, cannot_delete, original_player_num, mystery_trader
 FROM
-    shipDesigns
+    ship_designs
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
 `
 
 type GetShipDesignsForPlayerParams struct {
-	Gameid    int64
-	Playernum int64
+	GameID    int64
+	PlayerNum int64
 }
 
-func (q *Queries) GetShipDesignsForPlayer(ctx context.Context, arg GetShipDesignsForPlayerParams) ([]Shipdesign, error) {
-	rows, err := q.db.QueryContext(ctx, GetShipDesignsForPlayer, arg.Gameid, arg.Playernum)
+func (q *Queries) GetShipDesignsForPlayer(ctx context.Context, arg GetShipDesignsForPlayerParams) ([]ShipDesign, error) {
+	rows, err := q.db.QueryContext(ctx, GetShipDesignsForPlayer, arg.GameID, arg.PlayerNum)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Shipdesign
+	var items []ShipDesign
 	for rows.Next() {
-		var i Shipdesign
+		var i ShipDesign
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Name,
 			&i.Version,
 			&i.Hull,
-			&i.Hullsetnumber,
-			&i.Candelete,
+			&i.HullSetNumber,
 			&i.Slots,
 			&i.Purpose,
 			&i.Spec,
-			&i.Cannotdelete,
-			&i.Originalplayernum,
-			&i.Mysterytrader,
+			&i.CannotDelete,
+			&i.OriginalPlayerNum,
+			&i.MysteryTrader,
 		); err != nil {
 			return nil, err
 		}
@@ -341,65 +329,63 @@ func (q *Queries) GetShipDesignsForPlayer(ctx context.Context, arg GetShipDesign
 	return items, nil
 }
 
-const UpdateShipDesign = `-- name: UpdateShipDesign :one
-UPDATE shipdesigns
+const UpdateShipDesign = `-- name: UpdateShipDesign :execrows
+UPDATE ship_designs
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     num = ?,
-    playerNum = ?,
-    originalPlayerNum = ?,
+    player_num = ?,
+    original_player_num = ?,
     name = ?,
     version = ?,
     hull = ?,
-    hullSetNumber = ?,
-    cannotDelete = ?,
+    hull_set_number = ?,
+    cannot_delete = ?,
     slots = ?,
     purpose = ?,
-    canDelete = ?,
-    mysteryTrader = ?,
+    mystery_trader = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdateShipDesignParams struct {
-	Gameid            int64
+	GameID            int64
 	Num               int64
-	Playernum         int64
-	Originalplayernum sql.NullInt64
+	PlayerNum         int64
+	OriginalPlayerNum sql.NullInt64
 	Name              string
-	Version           sql.NullInt64
-	Hull              sql.NullString
-	Hullsetnumber     sql.NullInt64
-	Cannotdelete      bool
+	Version           int64
+	Hull              string
+	HullSetNumber     int64
+	CannotDelete      bool
 	Slots             *ShipDesignSlots
 	Purpose           *cs.ShipDesignPurpose
-	Candelete         sql.NullBool
-	Mysterytrader     sql.NullBool
+	MysteryTrader     bool
 	Spec              *ShipDesignSpec
 	ID                int64
 }
 
-func (q *Queries) UpdateShipDesign(ctx context.Context, arg UpdateShipDesignParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdateShipDesign,
-		arg.Gameid,
+func (q *Queries) UpdateShipDesign(ctx context.Context, arg UpdateShipDesignParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdateShipDesign,
+		arg.GameID,
 		arg.Num,
-		arg.Playernum,
-		arg.Originalplayernum,
+		arg.PlayerNum,
+		arg.OriginalPlayerNum,
 		arg.Name,
 		arg.Version,
 		arg.Hull,
-		arg.Hullsetnumber,
-		arg.Cannotdelete,
+		arg.HullSetNumber,
+		arg.CannotDelete,
 		arg.Slots,
 		arg.Purpose,
-		arg.Candelete,
-		arg.Mysterytrader,
+		arg.MysteryTrader,
 		arg.Spec,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

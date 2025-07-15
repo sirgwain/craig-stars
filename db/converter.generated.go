@@ -17,17 +17,17 @@ func (c *GameConverter) ConvertFleet(source generated.Fleet) *cs.Fleet {
 	csFleet.GameDBObject = c.generatedFleetToCsGameDBObject(source)
 	csFleet.MapObject = ExtendFleetMapObject(source)
 	csFleet.FleetOrders = ExtendFleetFleetOrders(source)
-	csFleet.PlanetNum = NullInt64ToInt(source.Planetnum)
-	csFleet.BaseName = source.Basename
+	csFleet.PlanetNum = Int64ToInt(source.PlanetNum)
+	csFleet.BaseName = source.BaseName
 	csFleet.Cargo = c.generatedFleetToCsCargo(source)
-	csFleet.Fuel = NullInt64ToInt(source.Fuel)
-	csFleet.Age = NullInt64ToInt(source.Age)
+	csFleet.Fuel = Int64ToInt(source.Fuel)
+	csFleet.Age = Int64ToInt(source.Age)
 	csFleet.Tokens = ShipTokensToGameShipTokens(source.Tokens)
 	csFleet.Heading = ExtendFleetHeading(source)
-	csFleet.WarpSpeed = NullInt64ToInt(source.Warpspeed)
+	csFleet.WarpSpeed = Int64ToInt(source.WarpSpeed)
 	csFleet.PreviousPosition = ExtendFleetPreviousPosition(source)
-	csFleet.OrbitingPlanetNum = NullInt64ToInt(source.Orbitingplanetnum)
-	csFleet.Starbase = NullBoolToBool(source.Starbase)
+	csFleet.OrbitingPlanetNum = Int64ToInt(source.OrbitingPlanetNum)
+	csFleet.Starbase = source.Starbase
 	csFleet.Spec = FleetSpecToGameFleetSpec(source.Spec)
 	return &csFleet
 }
@@ -44,27 +44,27 @@ func (c *GameConverter) ConvertFleets(source []generated.Fleet) []*cs.Fleet {
 func (c *GameConverter) ConvertGame(source generated.Game) cs.Game {
 	var csGame cs.Game
 	csGame.DBObject = c.generatedGameToCsDBObject(source)
-	csGame.HostID = NullInt64ToInt64(source.Hostid)
+	csGame.HostID = source.HostID
 	csGame.Name = source.Name
 	csGame.State = source.State
-	csGame.Public = NullBoolToBool(source.Public)
-	csGame.Hash = NullStringToString(source.Hash)
+	csGame.Public = source.Public
+	csGame.Hash = source.Hash
 	csGame.Size = source.Size
 	csGame.Density = source.Density
-	csGame.PlayerPositions = source.Playerpositions
-	csGame.RandomEvents = NullBoolToBool(source.Randomevents)
-	csGame.ComputerPlayersFormAlliances = NullBoolToBool(source.Computerplayersformalliances)
-	csGame.PublicPlayerScores = NullBoolToBool(source.Publicplayerscores)
-	csGame.MaxMinerals = NullBoolToBool(source.Maxminerals)
-	csGame.StartMode = source.Startmode
-	csGame.QuickStartTurns = NullInt64ToInt(source.Quickstartturns)
-	csGame.OpenPlayerSlots = NullInt64ToInt(source.Openplayerslots)
-	csGame.NumPlayers = NullInt64ToInt(source.Numplayers)
+	csGame.PlayerPositions = source.PlayerPositions
+	csGame.RandomEvents = source.RandomEvents
+	csGame.ComputerPlayersFormAlliances = source.ComputerPlayersFormAlliances
+	csGame.PublicPlayerScores = source.PublicPlayerScores
+	csGame.MaxMinerals = source.MaxMinerals
+	csGame.StartMode = source.StartMode
+	csGame.QuickStartTurns = Int64ToInt(source.QuickStartTurns)
+	csGame.OpenPlayerSlots = Int64ToInt(source.OpenPlayerSlots)
+	csGame.NumPlayers = Int64ToInt(source.NumPlayers)
 	csGame.VictoryConditions = ExtendVictoryConditions(source)
-	csGame.Seed = NullInt64ToInt64(source.Seed)
+	csGame.Seed = source.Seed
 	csGame.Area = ExtendArea(source)
-	csGame.Year = NullInt64ToInt(source.Year)
-	csGame.VictorDeclared = NullBoolToBool(source.Victordeclared)
+	csGame.Year = Int64ToInt(source.Year)
+	csGame.VictorDeclared = source.VictorDeclared
 	csGame.Archived = source.Archived
 	return csGame
 }
@@ -73,41 +73,41 @@ func (c *GameConverter) ConvertGameFleet(source *cs.Fleet) generated.Fleet {
 	if source != nil {
 		var generatedFleet2 generated.Fleet
 		generatedFleet2.ID = (*source).GameDBObject.ID
-		generatedFleet2.Createdat = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
-		generatedFleet2.Updatedat = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
-		generatedFleet2.Gameid = (*source).GameDBObject.GameID
-		generatedFleet2.Battleplannum = IntToInt64((*source).FleetOrders.BattlePlanNum)
-		generatedFleet2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedFleet2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedFleet2.CreatedAt = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
+		generatedFleet2.UpdatedAt = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
+		generatedFleet2.GameID = (*source).GameDBObject.GameID
+		generatedFleet2.BattlePlanNum = IntToInt64((*source).FleetOrders.BattlePlanNum)
+		generatedFleet2.X = (*source).MapObject.Position.X
+		generatedFleet2.Y = (*source).MapObject.Position.Y
 		generatedFleet2.Name = (*source).MapObject.Name
-		generatedFleet2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedFleet2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
+		generatedFleet2.Num = IntToInt64((*source).MapObject.Num)
+		generatedFleet2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedFleet2.Tokens = GameShipTokensToShipTokens((*source).Tokens)
 		generatedFleet2.Waypoints = GameWaypointsToWaypoints((*source).FleetOrders.Waypoints)
-		generatedFleet2.Repeatorders = BoolToNullBool((*source).FleetOrders.RepeatOrders)
-		generatedFleet2.Planetnum = IntToNullInt64((*source).PlanetNum)
-		generatedFleet2.Basename = (*source).BaseName
-		generatedFleet2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedFleet2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedFleet2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
-		generatedFleet2.Colonists = IntToNullInt64((*source).Cargo.Colonists)
-		generatedFleet2.Fuel = IntToNullInt64((*source).Fuel)
-		generatedFleet2.Age = IntToNullInt64((*source).Age)
-		generatedFleet2.Headingx = Float64ToNullFloat64((*source).Heading.X)
-		generatedFleet2.Headingy = Float64ToNullFloat64((*source).Heading.Y)
-		generatedFleet2.Warpspeed = IntToNullInt64((*source).WarpSpeed)
+		generatedFleet2.RepeatOrders = (*source).FleetOrders.RepeatOrders
+		generatedFleet2.PlanetNum = IntToInt64((*source).PlanetNum)
+		generatedFleet2.BaseName = (*source).BaseName
+		generatedFleet2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedFleet2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedFleet2.Germanium = IntToInt64((*source).Cargo.Germanium)
+		generatedFleet2.Colonists = IntToInt64((*source).Cargo.Colonists)
+		generatedFleet2.Fuel = IntToInt64((*source).Fuel)
+		generatedFleet2.Age = IntToInt64((*source).Age)
+		generatedFleet2.HeadingX = (*source).Heading.X
+		generatedFleet2.HeadingY = (*source).Heading.Y
+		generatedFleet2.WarpSpeed = IntToInt64((*source).WarpSpeed)
 		var pFloat64 *float64
 		if (*source).PreviousPosition != nil {
 			pFloat64 = &(*source).PreviousPosition.X
 		}
-		generatedFleet2.Previouspositionx = c.pFloat64ToSqlNullFloat64(pFloat64)
+		generatedFleet2.PreviousPositionX = c.pFloat64ToSqlNullFloat64(pFloat64)
 		var pFloat642 *float64
 		if (*source).PreviousPosition != nil {
 			pFloat642 = &(*source).PreviousPosition.Y
 		}
-		generatedFleet2.Previouspositiony = c.pFloat64ToSqlNullFloat64(pFloat642)
-		generatedFleet2.Orbitingplanetnum = IntToNullInt64((*source).OrbitingPlanetNum)
-		generatedFleet2.Starbase = BoolToNullBool((*source).Starbase)
+		generatedFleet2.PreviousPositionY = c.pFloat64ToSqlNullFloat64(pFloat642)
+		generatedFleet2.OrbitingPlanetNum = IntToInt64((*source).OrbitingPlanetNum)
+		generatedFleet2.Starbase = (*source).Starbase
 		generatedFleet2.Spec = GameFleetSpecToFleetSpec((*source).Spec)
 		pCsFleetPurpose := c.csFleetPurposeToCsFleetPurpose((*source).FleetOrders.Purpose)
 		generatedFleet2.Purpose = &pCsFleetPurpose
@@ -120,40 +120,40 @@ func (c *GameConverter) ConvertGameFleetToCreateParams(source *cs.Fleet) generat
 	var generatedCreateFleetParams generated.CreateFleetParams
 	if source != nil {
 		var generatedCreateFleetParams2 generated.CreateFleetParams
-		generatedCreateFleetParams2.Gameid = (*source).GameDBObject.GameID
-		generatedCreateFleetParams2.Battleplannum = IntToInt64((*source).FleetOrders.BattlePlanNum)
-		generatedCreateFleetParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedCreateFleetParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedCreateFleetParams2.GameID = (*source).GameDBObject.GameID
+		generatedCreateFleetParams2.BattlePlanNum = IntToInt64((*source).FleetOrders.BattlePlanNum)
+		generatedCreateFleetParams2.X = (*source).MapObject.Position.X
+		generatedCreateFleetParams2.Y = (*source).MapObject.Position.Y
 		generatedCreateFleetParams2.Name = (*source).MapObject.Name
-		generatedCreateFleetParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedCreateFleetParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
+		generatedCreateFleetParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedCreateFleetParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedCreateFleetParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
 		generatedCreateFleetParams2.Tokens = GameShipTokensToShipTokens((*source).Tokens)
 		generatedCreateFleetParams2.Waypoints = GameWaypointsToWaypoints((*source).FleetOrders.Waypoints)
-		generatedCreateFleetParams2.Repeatorders = BoolToNullBool((*source).FleetOrders.RepeatOrders)
-		generatedCreateFleetParams2.Planetnum = IntToNullInt64((*source).PlanetNum)
-		generatedCreateFleetParams2.Basename = (*source).BaseName
-		generatedCreateFleetParams2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedCreateFleetParams2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedCreateFleetParams2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
-		generatedCreateFleetParams2.Colonists = IntToNullInt64((*source).Cargo.Colonists)
-		generatedCreateFleetParams2.Fuel = IntToNullInt64((*source).Fuel)
-		generatedCreateFleetParams2.Age = IntToNullInt64((*source).Age)
-		generatedCreateFleetParams2.Headingx = Float64ToNullFloat64((*source).Heading.X)
-		generatedCreateFleetParams2.Headingy = Float64ToNullFloat64((*source).Heading.Y)
-		generatedCreateFleetParams2.Warpspeed = IntToNullInt64((*source).WarpSpeed)
+		generatedCreateFleetParams2.RepeatOrders = (*source).FleetOrders.RepeatOrders
+		generatedCreateFleetParams2.PlanetNum = IntToInt64((*source).PlanetNum)
+		generatedCreateFleetParams2.BaseName = (*source).BaseName
+		generatedCreateFleetParams2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedCreateFleetParams2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedCreateFleetParams2.Germanium = IntToInt64((*source).Cargo.Germanium)
+		generatedCreateFleetParams2.Colonists = IntToInt64((*source).Cargo.Colonists)
+		generatedCreateFleetParams2.Fuel = IntToInt64((*source).Fuel)
+		generatedCreateFleetParams2.Age = IntToInt64((*source).Age)
+		generatedCreateFleetParams2.HeadingX = (*source).Heading.X
+		generatedCreateFleetParams2.HeadingY = (*source).Heading.Y
+		generatedCreateFleetParams2.WarpSpeed = IntToInt64((*source).WarpSpeed)
 		var pFloat64 *float64
 		if (*source).PreviousPosition != nil {
 			pFloat64 = &(*source).PreviousPosition.X
 		}
-		generatedCreateFleetParams2.Previouspositionx = c.pFloat64ToSqlNullFloat64(pFloat64)
+		generatedCreateFleetParams2.PreviousPositionX = c.pFloat64ToSqlNullFloat64(pFloat64)
 		var pFloat642 *float64
 		if (*source).PreviousPosition != nil {
 			pFloat642 = &(*source).PreviousPosition.Y
 		}
-		generatedCreateFleetParams2.Previouspositiony = c.pFloat64ToSqlNullFloat64(pFloat642)
-		generatedCreateFleetParams2.Orbitingplanetnum = IntToNullInt64((*source).OrbitingPlanetNum)
-		generatedCreateFleetParams2.Starbase = BoolToNullBool((*source).Starbase)
+		generatedCreateFleetParams2.PreviousPositionY = c.pFloat64ToSqlNullFloat64(pFloat642)
+		generatedCreateFleetParams2.OrbitingPlanetNum = IntToInt64((*source).OrbitingPlanetNum)
+		generatedCreateFleetParams2.Starbase = (*source).Starbase
 		pCsFleetPurpose := c.csFleetPurposeToCsFleetPurpose((*source).FleetOrders.Purpose)
 		generatedCreateFleetParams2.Purpose = &pCsFleetPurpose
 		generatedCreateFleetParams2.Spec = GameFleetSpecToFleetSpec((*source).Spec)
@@ -165,40 +165,40 @@ func (c *GameConverter) ConvertGameFleetToUpdateParams(source *cs.Fleet) generat
 	var generatedUpdateFleetParams generated.UpdateFleetParams
 	if source != nil {
 		var generatedUpdateFleetParams2 generated.UpdateFleetParams
-		generatedUpdateFleetParams2.Gameid = (*source).GameDBObject.GameID
-		generatedUpdateFleetParams2.Battleplannum = IntToInt64((*source).FleetOrders.BattlePlanNum)
-		generatedUpdateFleetParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedUpdateFleetParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedUpdateFleetParams2.GameID = (*source).GameDBObject.GameID
+		generatedUpdateFleetParams2.BattlePlanNum = IntToInt64((*source).FleetOrders.BattlePlanNum)
+		generatedUpdateFleetParams2.X = (*source).MapObject.Position.X
+		generatedUpdateFleetParams2.Y = (*source).MapObject.Position.Y
 		generatedUpdateFleetParams2.Name = (*source).MapObject.Name
-		generatedUpdateFleetParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedUpdateFleetParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
+		generatedUpdateFleetParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedUpdateFleetParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedUpdateFleetParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
 		generatedUpdateFleetParams2.Tokens = GameShipTokensToShipTokens((*source).Tokens)
 		generatedUpdateFleetParams2.Waypoints = GameWaypointsToWaypoints((*source).FleetOrders.Waypoints)
-		generatedUpdateFleetParams2.Repeatorders = BoolToNullBool((*source).FleetOrders.RepeatOrders)
-		generatedUpdateFleetParams2.Planetnum = IntToNullInt64((*source).PlanetNum)
-		generatedUpdateFleetParams2.Basename = (*source).BaseName
-		generatedUpdateFleetParams2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedUpdateFleetParams2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedUpdateFleetParams2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
-		generatedUpdateFleetParams2.Colonists = IntToNullInt64((*source).Cargo.Colonists)
-		generatedUpdateFleetParams2.Fuel = IntToNullInt64((*source).Fuel)
-		generatedUpdateFleetParams2.Age = IntToNullInt64((*source).Age)
-		generatedUpdateFleetParams2.Headingx = Float64ToNullFloat64((*source).Heading.X)
-		generatedUpdateFleetParams2.Headingy = Float64ToNullFloat64((*source).Heading.Y)
-		generatedUpdateFleetParams2.Warpspeed = IntToNullInt64((*source).WarpSpeed)
+		generatedUpdateFleetParams2.RepeatOrders = (*source).FleetOrders.RepeatOrders
+		generatedUpdateFleetParams2.PlanetNum = IntToInt64((*source).PlanetNum)
+		generatedUpdateFleetParams2.BaseName = (*source).BaseName
+		generatedUpdateFleetParams2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedUpdateFleetParams2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedUpdateFleetParams2.Germanium = IntToInt64((*source).Cargo.Germanium)
+		generatedUpdateFleetParams2.Colonists = IntToInt64((*source).Cargo.Colonists)
+		generatedUpdateFleetParams2.Fuel = IntToInt64((*source).Fuel)
+		generatedUpdateFleetParams2.Age = IntToInt64((*source).Age)
+		generatedUpdateFleetParams2.HeadingX = (*source).Heading.X
+		generatedUpdateFleetParams2.HeadingY = (*source).Heading.Y
+		generatedUpdateFleetParams2.WarpSpeed = IntToInt64((*source).WarpSpeed)
 		var pFloat64 *float64
 		if (*source).PreviousPosition != nil {
 			pFloat64 = &(*source).PreviousPosition.X
 		}
-		generatedUpdateFleetParams2.Previouspositionx = c.pFloat64ToSqlNullFloat64(pFloat64)
+		generatedUpdateFleetParams2.PreviousPositionX = c.pFloat64ToSqlNullFloat64(pFloat64)
 		var pFloat642 *float64
 		if (*source).PreviousPosition != nil {
 			pFloat642 = &(*source).PreviousPosition.Y
 		}
-		generatedUpdateFleetParams2.Previouspositiony = c.pFloat64ToSqlNullFloat64(pFloat642)
-		generatedUpdateFleetParams2.Orbitingplanetnum = IntToNullInt64((*source).OrbitingPlanetNum)
-		generatedUpdateFleetParams2.Starbase = BoolToNullBool((*source).Starbase)
+		generatedUpdateFleetParams2.PreviousPositionY = c.pFloat64ToSqlNullFloat64(pFloat642)
+		generatedUpdateFleetParams2.OrbitingPlanetNum = IntToInt64((*source).OrbitingPlanetNum)
+		generatedUpdateFleetParams2.Starbase = (*source).Starbase
 		pCsFleetPurpose := c.csFleetPurposeToCsFleetPurpose((*source).FleetOrders.Purpose)
 		generatedUpdateFleetParams2.Purpose = &pCsFleetPurpose
 		generatedUpdateFleetParams2.Spec = GameFleetSpecToFleetSpec((*source).Spec)
@@ -212,40 +212,40 @@ func (c *GameConverter) ConvertGameGame(source *cs.Game) generated.Game {
 	if source != nil {
 		var generatedGame2 generated.Game
 		generatedGame2.ID = (*source).DBObject.ID
-		generatedGame2.Createdat = c.timeTimeToTimeTime((*source).DBObject.CreatedAt)
-		generatedGame2.Updatedat = c.timeTimeToTimeTime((*source).DBObject.UpdatedAt)
-		generatedGame2.Hostid = Int64ToNullInt64((*source).HostID)
+		generatedGame2.CreatedAt = c.timeTimeToTimeTime((*source).DBObject.CreatedAt)
+		generatedGame2.UpdatedAt = c.timeTimeToTimeTime((*source).DBObject.UpdatedAt)
+		generatedGame2.HostID = (*source).HostID
 		generatedGame2.Name = (*source).Name
 		generatedGame2.State = (*source).State
-		generatedGame2.Public = BoolToNullBool((*source).Public)
-		generatedGame2.Hash = StringToNullString((*source).Hash)
+		generatedGame2.Public = (*source).Public
+		generatedGame2.Hash = (*source).Hash
 		generatedGame2.Size = (*source).Size
 		generatedGame2.Density = (*source).Density
-		generatedGame2.Playerpositions = (*source).PlayerPositions
-		generatedGame2.Randomevents = BoolToNullBool((*source).RandomEvents)
-		generatedGame2.Computerplayersformalliances = BoolToNullBool((*source).ComputerPlayersFormAlliances)
-		generatedGame2.Publicplayerscores = BoolToNullBool((*source).PublicPlayerScores)
-		generatedGame2.Startmode = (*source).StartMode
-		generatedGame2.Quickstartturns = IntToNullInt64((*source).QuickStartTurns)
-		generatedGame2.Openplayerslots = IntToNullInt64((*source).OpenPlayerSlots)
-		generatedGame2.Numplayers = IntToNullInt64((*source).NumPlayers)
-		generatedGame2.Victoryconditionsconditions = (*source).VictoryConditions.Conditions
-		generatedGame2.Victoryconditionsnumcriteriarequired = IntToNullInt64((*source).VictoryConditions.NumCriteriaRequired)
-		generatedGame2.Victoryconditionsyearspassed = IntToNullInt64((*source).VictoryConditions.YearsPassed)
-		generatedGame2.Victoryconditionsownplanets = IntToNullInt64((*source).VictoryConditions.OwnPlanets)
-		generatedGame2.Victoryconditionsattaintechlevel = IntToNullInt64((*source).VictoryConditions.AttainTechLevel)
-		generatedGame2.Victoryconditionsattaintechlevelnumfields = IntToNullInt64((*source).VictoryConditions.AttainTechLevelNumFields)
-		generatedGame2.Victoryconditionsexceedsscore = IntToNullInt64((*source).VictoryConditions.ExceedsScore)
-		generatedGame2.Victoryconditionsexceedssecondplacescore = IntToNullInt64((*source).VictoryConditions.ExceedsSecondPlaceScore)
-		generatedGame2.Victoryconditionsproductioncapacity = IntToNullInt64((*source).VictoryConditions.ProductionCapacity)
-		generatedGame2.Victoryconditionsowncapitalships = IntToNullInt64((*source).VictoryConditions.OwnCapitalShips)
-		generatedGame2.Victoryconditionshighestscoreafteryears = IntToNullInt64((*source).VictoryConditions.HighestScoreAfterYears)
-		generatedGame2.Seed = Int64ToNullInt64((*source).Seed)
-		generatedGame2.Areax = Float64ToNullFloat64((*source).Area.X)
-		generatedGame2.Areay = Float64ToNullFloat64((*source).Area.Y)
-		generatedGame2.Year = IntToNullInt64((*source).Year)
-		generatedGame2.Victordeclared = BoolToNullBool((*source).VictorDeclared)
-		generatedGame2.Maxminerals = BoolToNullBool((*source).MaxMinerals)
+		generatedGame2.PlayerPositions = (*source).PlayerPositions
+		generatedGame2.RandomEvents = (*source).RandomEvents
+		generatedGame2.ComputerPlayersFormAlliances = (*source).ComputerPlayersFormAlliances
+		generatedGame2.PublicPlayerScores = (*source).PublicPlayerScores
+		generatedGame2.StartMode = (*source).StartMode
+		generatedGame2.QuickStartTurns = IntToInt64((*source).QuickStartTurns)
+		generatedGame2.OpenPlayerSlots = IntToInt64((*source).OpenPlayerSlots)
+		generatedGame2.NumPlayers = IntToInt64((*source).NumPlayers)
+		generatedGame2.VictoryConditionsConditions = (*source).VictoryConditions.Conditions
+		generatedGame2.VictoryConditionsNumCriteriaRequired = IntToInt64((*source).VictoryConditions.NumCriteriaRequired)
+		generatedGame2.VictoryConditionsYearsPassed = IntToInt64((*source).VictoryConditions.YearsPassed)
+		generatedGame2.VictoryConditionsOwnPlanets = IntToInt64((*source).VictoryConditions.OwnPlanets)
+		generatedGame2.VictoryConditionsAttainTechLevel = IntToInt64((*source).VictoryConditions.AttainTechLevel)
+		generatedGame2.VictoryConditionsAttainTechLevelNumFields = IntToInt64((*source).VictoryConditions.AttainTechLevelNumFields)
+		generatedGame2.VictoryConditionsExceedsScore = IntToInt64((*source).VictoryConditions.ExceedsScore)
+		generatedGame2.VictoryConditionsExceedsSecondPlaceScore = IntToInt64((*source).VictoryConditions.ExceedsSecondPlaceScore)
+		generatedGame2.VictoryConditionsProductionCapacity = IntToInt64((*source).VictoryConditions.ProductionCapacity)
+		generatedGame2.VictoryConditionsOwnCapitalShips = IntToInt64((*source).VictoryConditions.OwnCapitalShips)
+		generatedGame2.VictoryConditionsHighestScoreAfterYears = IntToInt64((*source).VictoryConditions.HighestScoreAfterYears)
+		generatedGame2.Seed = (*source).Seed
+		generatedGame2.AreaX = (*source).Area.X
+		generatedGame2.AreaY = (*source).Area.Y
+		generatedGame2.Year = IntToInt64((*source).Year)
+		generatedGame2.VictorDeclared = (*source).VictorDeclared
+		generatedGame2.MaxMinerals = (*source).MaxMinerals
 		generatedGame2.Archived = (*source).Archived
 		generatedGame = generatedGame2
 	}
@@ -255,38 +255,38 @@ func (c *GameConverter) ConvertGameGameToCreateParams(source *cs.Game) generated
 	var generatedCreateGameParams generated.CreateGameParams
 	if source != nil {
 		var generatedCreateGameParams2 generated.CreateGameParams
-		generatedCreateGameParams2.Hostid = Int64ToNullInt64((*source).HostID)
+		generatedCreateGameParams2.HostID = (*source).HostID
 		generatedCreateGameParams2.Name = (*source).Name
 		generatedCreateGameParams2.State = (*source).State
-		generatedCreateGameParams2.Public = BoolToNullBool((*source).Public)
-		generatedCreateGameParams2.Hash = StringToNullString((*source).Hash)
+		generatedCreateGameParams2.Public = (*source).Public
+		generatedCreateGameParams2.Hash = (*source).Hash
 		generatedCreateGameParams2.Size = (*source).Size
 		generatedCreateGameParams2.Density = (*source).Density
-		generatedCreateGameParams2.Playerpositions = (*source).PlayerPositions
-		generatedCreateGameParams2.Randomevents = BoolToNullBool((*source).RandomEvents)
-		generatedCreateGameParams2.Computerplayersformalliances = BoolToNullBool((*source).ComputerPlayersFormAlliances)
-		generatedCreateGameParams2.Publicplayerscores = BoolToNullBool((*source).PublicPlayerScores)
-		generatedCreateGameParams2.Maxminerals = BoolToNullBool((*source).MaxMinerals)
-		generatedCreateGameParams2.Startmode = (*source).StartMode
-		generatedCreateGameParams2.Quickstartturns = IntToNullInt64((*source).QuickStartTurns)
-		generatedCreateGameParams2.Openplayerslots = IntToNullInt64((*source).OpenPlayerSlots)
-		generatedCreateGameParams2.Numplayers = IntToNullInt64((*source).NumPlayers)
-		generatedCreateGameParams2.Victoryconditionsconditions = (*source).VictoryConditions.Conditions
-		generatedCreateGameParams2.Victoryconditionsnumcriteriarequired = IntToNullInt64((*source).VictoryConditions.NumCriteriaRequired)
-		generatedCreateGameParams2.Victoryconditionsyearspassed = IntToNullInt64((*source).VictoryConditions.YearsPassed)
-		generatedCreateGameParams2.Victoryconditionsownplanets = IntToNullInt64((*source).VictoryConditions.OwnPlanets)
-		generatedCreateGameParams2.Victoryconditionsattaintechlevel = IntToNullInt64((*source).VictoryConditions.AttainTechLevel)
-		generatedCreateGameParams2.Victoryconditionsattaintechlevelnumfields = IntToNullInt64((*source).VictoryConditions.AttainTechLevelNumFields)
-		generatedCreateGameParams2.Victoryconditionsexceedsscore = IntToNullInt64((*source).VictoryConditions.ExceedsScore)
-		generatedCreateGameParams2.Victoryconditionsexceedssecondplacescore = IntToNullInt64((*source).VictoryConditions.ExceedsSecondPlaceScore)
-		generatedCreateGameParams2.Victoryconditionsproductioncapacity = IntToNullInt64((*source).VictoryConditions.ProductionCapacity)
-		generatedCreateGameParams2.Victoryconditionsowncapitalships = IntToNullInt64((*source).VictoryConditions.OwnCapitalShips)
-		generatedCreateGameParams2.Victoryconditionshighestscoreafteryears = IntToNullInt64((*source).VictoryConditions.HighestScoreAfterYears)
-		generatedCreateGameParams2.Seed = Int64ToNullInt64((*source).Seed)
-		generatedCreateGameParams2.Areax = Float64ToNullFloat64((*source).Area.X)
-		generatedCreateGameParams2.Areay = Float64ToNullFloat64((*source).Area.Y)
-		generatedCreateGameParams2.Year = IntToNullInt64((*source).Year)
-		generatedCreateGameParams2.Victordeclared = BoolToNullBool((*source).VictorDeclared)
+		generatedCreateGameParams2.PlayerPositions = (*source).PlayerPositions
+		generatedCreateGameParams2.RandomEvents = (*source).RandomEvents
+		generatedCreateGameParams2.ComputerPlayersFormAlliances = (*source).ComputerPlayersFormAlliances
+		generatedCreateGameParams2.PublicPlayerScores = (*source).PublicPlayerScores
+		generatedCreateGameParams2.MaxMinerals = (*source).MaxMinerals
+		generatedCreateGameParams2.StartMode = (*source).StartMode
+		generatedCreateGameParams2.QuickStartTurns = IntToInt64((*source).QuickStartTurns)
+		generatedCreateGameParams2.OpenPlayerSlots = IntToInt64((*source).OpenPlayerSlots)
+		generatedCreateGameParams2.NumPlayers = IntToInt64((*source).NumPlayers)
+		generatedCreateGameParams2.VictoryConditionsConditions = (*source).VictoryConditions.Conditions
+		generatedCreateGameParams2.VictoryConditionsNumCriteriaRequired = IntToInt64((*source).VictoryConditions.NumCriteriaRequired)
+		generatedCreateGameParams2.VictoryConditionsYearsPassed = IntToInt64((*source).VictoryConditions.YearsPassed)
+		generatedCreateGameParams2.VictoryConditionsOwnPlanets = IntToInt64((*source).VictoryConditions.OwnPlanets)
+		generatedCreateGameParams2.VictoryConditionsAttainTechLevel = IntToInt64((*source).VictoryConditions.AttainTechLevel)
+		generatedCreateGameParams2.VictoryConditionsAttainTechLevelNumFields = IntToInt64((*source).VictoryConditions.AttainTechLevelNumFields)
+		generatedCreateGameParams2.VictoryConditionsExceedsScore = IntToInt64((*source).VictoryConditions.ExceedsScore)
+		generatedCreateGameParams2.VictoryConditionsExceedsSecondPlaceScore = IntToInt64((*source).VictoryConditions.ExceedsSecondPlaceScore)
+		generatedCreateGameParams2.VictoryConditionsProductionCapacity = IntToInt64((*source).VictoryConditions.ProductionCapacity)
+		generatedCreateGameParams2.VictoryConditionsOwnCapitalShips = IntToInt64((*source).VictoryConditions.OwnCapitalShips)
+		generatedCreateGameParams2.VictoryConditionsHighestScoreAfterYears = IntToInt64((*source).VictoryConditions.HighestScoreAfterYears)
+		generatedCreateGameParams2.Seed = (*source).Seed
+		generatedCreateGameParams2.AreaX = (*source).Area.X
+		generatedCreateGameParams2.AreaY = (*source).Area.Y
+		generatedCreateGameParams2.Year = IntToInt64((*source).Year)
+		generatedCreateGameParams2.VictorDeclared = (*source).VictorDeclared
 		generatedCreateGameParams2.Archived = (*source).Archived
 		generatedCreateGameParams = generatedCreateGameParams2
 	}
@@ -296,38 +296,38 @@ func (c *GameConverter) ConvertGameGameToUpdateParams(source *cs.Game) generated
 	var generatedUpdateGameParams generated.UpdateGameParams
 	if source != nil {
 		var generatedUpdateGameParams2 generated.UpdateGameParams
-		generatedUpdateGameParams2.Hostid = Int64ToNullInt64((*source).HostID)
+		generatedUpdateGameParams2.HostID = (*source).HostID
 		generatedUpdateGameParams2.Name = (*source).Name
 		generatedUpdateGameParams2.State = (*source).State
-		generatedUpdateGameParams2.Public = BoolToNullBool((*source).Public)
-		generatedUpdateGameParams2.Hash = StringToNullString((*source).Hash)
+		generatedUpdateGameParams2.Public = (*source).Public
+		generatedUpdateGameParams2.Hash = (*source).Hash
 		generatedUpdateGameParams2.Size = (*source).Size
 		generatedUpdateGameParams2.Density = (*source).Density
-		generatedUpdateGameParams2.Playerpositions = (*source).PlayerPositions
-		generatedUpdateGameParams2.Randomevents = BoolToNullBool((*source).RandomEvents)
-		generatedUpdateGameParams2.Computerplayersformalliances = BoolToNullBool((*source).ComputerPlayersFormAlliances)
-		generatedUpdateGameParams2.Publicplayerscores = BoolToNullBool((*source).PublicPlayerScores)
-		generatedUpdateGameParams2.Maxminerals = BoolToNullBool((*source).MaxMinerals)
-		generatedUpdateGameParams2.Startmode = (*source).StartMode
-		generatedUpdateGameParams2.Quickstartturns = IntToNullInt64((*source).QuickStartTurns)
-		generatedUpdateGameParams2.Openplayerslots = IntToNullInt64((*source).OpenPlayerSlots)
-		generatedUpdateGameParams2.Numplayers = IntToNullInt64((*source).NumPlayers)
-		generatedUpdateGameParams2.Victoryconditionsconditions = (*source).VictoryConditions.Conditions
-		generatedUpdateGameParams2.Victoryconditionsnumcriteriarequired = IntToNullInt64((*source).VictoryConditions.NumCriteriaRequired)
-		generatedUpdateGameParams2.Victoryconditionsyearspassed = IntToNullInt64((*source).VictoryConditions.YearsPassed)
-		generatedUpdateGameParams2.Victoryconditionsownplanets = IntToNullInt64((*source).VictoryConditions.OwnPlanets)
-		generatedUpdateGameParams2.Victoryconditionsattaintechlevel = IntToNullInt64((*source).VictoryConditions.AttainTechLevel)
-		generatedUpdateGameParams2.Victoryconditionsattaintechlevelnumfields = IntToNullInt64((*source).VictoryConditions.AttainTechLevelNumFields)
-		generatedUpdateGameParams2.Victoryconditionsexceedsscore = IntToNullInt64((*source).VictoryConditions.ExceedsScore)
-		generatedUpdateGameParams2.Victoryconditionsexceedssecondplacescore = IntToNullInt64((*source).VictoryConditions.ExceedsSecondPlaceScore)
-		generatedUpdateGameParams2.Victoryconditionsproductioncapacity = IntToNullInt64((*source).VictoryConditions.ProductionCapacity)
-		generatedUpdateGameParams2.Victoryconditionsowncapitalships = IntToNullInt64((*source).VictoryConditions.OwnCapitalShips)
-		generatedUpdateGameParams2.Victoryconditionshighestscoreafteryears = IntToNullInt64((*source).VictoryConditions.HighestScoreAfterYears)
-		generatedUpdateGameParams2.Seed = Int64ToNullInt64((*source).Seed)
-		generatedUpdateGameParams2.Areax = Float64ToNullFloat64((*source).Area.X)
-		generatedUpdateGameParams2.Areay = Float64ToNullFloat64((*source).Area.Y)
-		generatedUpdateGameParams2.Year = IntToNullInt64((*source).Year)
-		generatedUpdateGameParams2.Victordeclared = BoolToNullBool((*source).VictorDeclared)
+		generatedUpdateGameParams2.PlayerPositions = (*source).PlayerPositions
+		generatedUpdateGameParams2.RandomEvents = (*source).RandomEvents
+		generatedUpdateGameParams2.ComputerPlayersFormAlliances = (*source).ComputerPlayersFormAlliances
+		generatedUpdateGameParams2.PublicPlayerScores = (*source).PublicPlayerScores
+		generatedUpdateGameParams2.MaxMinerals = (*source).MaxMinerals
+		generatedUpdateGameParams2.StartMode = (*source).StartMode
+		generatedUpdateGameParams2.QuickStartTurns = IntToInt64((*source).QuickStartTurns)
+		generatedUpdateGameParams2.OpenPlayerSlots = IntToInt64((*source).OpenPlayerSlots)
+		generatedUpdateGameParams2.NumPlayers = IntToInt64((*source).NumPlayers)
+		generatedUpdateGameParams2.VictoryConditionsConditions = (*source).VictoryConditions.Conditions
+		generatedUpdateGameParams2.VictoryConditionsNumCriteriaRequired = IntToInt64((*source).VictoryConditions.NumCriteriaRequired)
+		generatedUpdateGameParams2.VictoryConditionsYearsPassed = IntToInt64((*source).VictoryConditions.YearsPassed)
+		generatedUpdateGameParams2.VictoryConditionsOwnPlanets = IntToInt64((*source).VictoryConditions.OwnPlanets)
+		generatedUpdateGameParams2.VictoryConditionsAttainTechLevel = IntToInt64((*source).VictoryConditions.AttainTechLevel)
+		generatedUpdateGameParams2.VictoryConditionsAttainTechLevelNumFields = IntToInt64((*source).VictoryConditions.AttainTechLevelNumFields)
+		generatedUpdateGameParams2.VictoryConditionsExceedsScore = IntToInt64((*source).VictoryConditions.ExceedsScore)
+		generatedUpdateGameParams2.VictoryConditionsExceedsSecondPlaceScore = IntToInt64((*source).VictoryConditions.ExceedsSecondPlaceScore)
+		generatedUpdateGameParams2.VictoryConditionsProductionCapacity = IntToInt64((*source).VictoryConditions.ProductionCapacity)
+		generatedUpdateGameParams2.VictoryConditionsOwnCapitalShips = IntToInt64((*source).VictoryConditions.OwnCapitalShips)
+		generatedUpdateGameParams2.VictoryConditionsHighestScoreAfterYears = IntToInt64((*source).VictoryConditions.HighestScoreAfterYears)
+		generatedUpdateGameParams2.Seed = (*source).Seed
+		generatedUpdateGameParams2.AreaX = (*source).Area.X
+		generatedUpdateGameParams2.AreaY = (*source).Area.Y
+		generatedUpdateGameParams2.Year = IntToInt64((*source).Year)
+		generatedUpdateGameParams2.VictorDeclared = (*source).VictorDeclared
 		generatedUpdateGameParams2.Archived = (*source).Archived
 		generatedUpdateGameParams2.ID = (*source).DBObject.ID
 		generatedUpdateGameParams = generatedUpdateGameParams2
@@ -339,114 +339,114 @@ func (c *GameConverter) ConvertGameMineField(source *cs.MineField) generated.Min
 	if source != nil {
 		var generatedMinefield2 generated.Minefield
 		generatedMinefield2.ID = (*source).GameDBObject.ID
-		generatedMinefield2.Createdat = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
-		generatedMinefield2.Updatedat = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
-		generatedMinefield2.Gameid = (*source).GameDBObject.GameID
-		generatedMinefield2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedMinefield2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedMinefield2.CreatedAt = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
+		generatedMinefield2.UpdatedAt = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
+		generatedMinefield2.GameID = (*source).GameDBObject.GameID
+		generatedMinefield2.X = (*source).MapObject.Position.X
+		generatedMinefield2.Y = (*source).MapObject.Position.Y
 		generatedMinefield2.Name = (*source).MapObject.Name
-		generatedMinefield2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedMinefield2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
-		generatedMinefield2.Nummines = IntToNullInt64((*source).NumMines)
-		generatedMinefield2.Detonate = BoolToNullBool((*source).MineFieldOrders.Detonate)
+		generatedMinefield2.Num = IntToInt64((*source).MapObject.Num)
+		generatedMinefield2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
+		generatedMinefield2.NumMines = IntToInt64((*source).NumMines)
+		generatedMinefield2.Detonate = (*source).MineFieldOrders.Detonate
 		pCsMineFieldType := c.csMineFieldTypeToCsMineFieldType((*source).MineFieldType)
-		generatedMinefield2.Minefieldtype = &pCsMineFieldType
+		generatedMinefield2.MinefieldType = &pCsMineFieldType
 		generatedMinefield2.Spec = GameMineFieldSpecToMineFieldSpec((*source).Spec)
 		generatedMinefield2.Tags = GameTagsToTags((*source).MapObject.Tags)
 		generatedMinefield = generatedMinefield2
 	}
 	return generatedMinefield
 }
-func (c *GameConverter) ConvertGameMineFieldToCreateParams(source *cs.MineField) generated.CreateMineFieldParams {
-	var generatedCreateMineFieldParams generated.CreateMineFieldParams
+func (c *GameConverter) ConvertGameMineFieldToCreateParams(source *cs.MineField) generated.CreateMinefieldParams {
+	var generatedCreateMinefieldParams generated.CreateMinefieldParams
 	if source != nil {
-		var generatedCreateMineFieldParams2 generated.CreateMineFieldParams
-		generatedCreateMineFieldParams2.Gameid = (*source).GameDBObject.GameID
-		generatedCreateMineFieldParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedCreateMineFieldParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
-		generatedCreateMineFieldParams2.Name = (*source).MapObject.Name
-		generatedCreateMineFieldParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedCreateMineFieldParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
-		generatedCreateMineFieldParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
+		var generatedCreateMinefieldParams2 generated.CreateMinefieldParams
+		generatedCreateMinefieldParams2.GameID = (*source).GameDBObject.GameID
+		generatedCreateMinefieldParams2.X = (*source).MapObject.Position.X
+		generatedCreateMinefieldParams2.Y = (*source).MapObject.Position.Y
+		generatedCreateMinefieldParams2.Name = (*source).MapObject.Name
+		generatedCreateMinefieldParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedCreateMinefieldParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
+		generatedCreateMinefieldParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
 		pCsMineFieldType := c.csMineFieldTypeToCsMineFieldType((*source).MineFieldType)
-		generatedCreateMineFieldParams2.Minefieldtype = &pCsMineFieldType
-		generatedCreateMineFieldParams2.Nummines = IntToNullInt64((*source).NumMines)
-		generatedCreateMineFieldParams2.Detonate = BoolToNullBool((*source).MineFieldOrders.Detonate)
-		generatedCreateMineFieldParams2.Spec = GameMineFieldSpecToMineFieldSpec((*source).Spec)
-		generatedCreateMineFieldParams = generatedCreateMineFieldParams2
+		generatedCreateMinefieldParams2.MinefieldType = &pCsMineFieldType
+		generatedCreateMinefieldParams2.NumMines = IntToInt64((*source).NumMines)
+		generatedCreateMinefieldParams2.Detonate = (*source).MineFieldOrders.Detonate
+		generatedCreateMinefieldParams2.Spec = GameMineFieldSpecToMineFieldSpec((*source).Spec)
+		generatedCreateMinefieldParams = generatedCreateMinefieldParams2
 	}
-	return generatedCreateMineFieldParams
+	return generatedCreateMinefieldParams
 }
-func (c *GameConverter) ConvertGameMineFieldToUpdateParams(source *cs.MineField) generated.UpdateMineFieldParams {
-	var generatedUpdateMineFieldParams generated.UpdateMineFieldParams
+func (c *GameConverter) ConvertGameMineFieldToUpdateParams(source *cs.MineField) generated.UpdateMinefieldParams {
+	var generatedUpdateMinefieldParams generated.UpdateMinefieldParams
 	if source != nil {
-		var generatedUpdateMineFieldParams2 generated.UpdateMineFieldParams
-		generatedUpdateMineFieldParams2.Gameid = (*source).GameDBObject.GameID
-		generatedUpdateMineFieldParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedUpdateMineFieldParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
-		generatedUpdateMineFieldParams2.Name = (*source).MapObject.Name
-		generatedUpdateMineFieldParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedUpdateMineFieldParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
-		generatedUpdateMineFieldParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
+		var generatedUpdateMinefieldParams2 generated.UpdateMinefieldParams
+		generatedUpdateMinefieldParams2.GameID = (*source).GameDBObject.GameID
+		generatedUpdateMinefieldParams2.X = (*source).MapObject.Position.X
+		generatedUpdateMinefieldParams2.Y = (*source).MapObject.Position.Y
+		generatedUpdateMinefieldParams2.Name = (*source).MapObject.Name
+		generatedUpdateMinefieldParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedUpdateMinefieldParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
+		generatedUpdateMinefieldParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
 		pCsMineFieldType := c.csMineFieldTypeToCsMineFieldType((*source).MineFieldType)
-		generatedUpdateMineFieldParams2.Minefieldtype = &pCsMineFieldType
-		generatedUpdateMineFieldParams2.Nummines = IntToNullInt64((*source).NumMines)
-		generatedUpdateMineFieldParams2.Detonate = BoolToNullBool((*source).MineFieldOrders.Detonate)
-		generatedUpdateMineFieldParams2.Spec = GameMineFieldSpecToMineFieldSpec((*source).Spec)
-		generatedUpdateMineFieldParams2.ID = (*source).GameDBObject.ID
-		generatedUpdateMineFieldParams = generatedUpdateMineFieldParams2
+		generatedUpdateMinefieldParams2.MinefieldType = &pCsMineFieldType
+		generatedUpdateMinefieldParams2.NumMines = IntToInt64((*source).NumMines)
+		generatedUpdateMinefieldParams2.Detonate = (*source).MineFieldOrders.Detonate
+		generatedUpdateMinefieldParams2.Spec = GameMineFieldSpecToMineFieldSpec((*source).Spec)
+		generatedUpdateMinefieldParams2.ID = (*source).GameDBObject.ID
+		generatedUpdateMinefieldParams = generatedUpdateMinefieldParams2
 	}
-	return generatedUpdateMineFieldParams
+	return generatedUpdateMinefieldParams
 }
-func (c *GameConverter) ConvertGameMineralPacket(source *cs.MineralPacket) generated.Mineralpacket {
-	var generatedMineralpacket generated.Mineralpacket
+func (c *GameConverter) ConvertGameMineralPacket(source *cs.MineralPacket) generated.MineralPacket {
+	var generatedMineralPacket generated.MineralPacket
 	if source != nil {
-		var generatedMineralpacket2 generated.Mineralpacket
-		generatedMineralpacket2.ID = (*source).GameDBObject.ID
-		generatedMineralpacket2.Createdat = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
-		generatedMineralpacket2.Updatedat = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
-		generatedMineralpacket2.Gameid = (*source).GameDBObject.GameID
-		generatedMineralpacket2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedMineralpacket2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
-		generatedMineralpacket2.Name = (*source).MapObject.Name
-		generatedMineralpacket2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedMineralpacket2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
-		generatedMineralpacket2.Targetplanetnum = IntToNullInt64((*source).TargetPlanetNum)
-		generatedMineralpacket2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedMineralpacket2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedMineralpacket2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
-		generatedMineralpacket2.Safewarpspeed = IntToNullInt64((*source).SafeWarpSpeed)
-		generatedMineralpacket2.Warpspeed = IntToNullInt64((*source).WarpSpeed)
-		generatedMineralpacket2.Scanrange = IntToNullInt64((*source).ScanRange)
-		generatedMineralpacket2.Scanrangepen = IntToNullInt64((*source).ScanRangePen)
-		generatedMineralpacket2.Headingx = Float64ToNullFloat64((*source).Heading.X)
-		generatedMineralpacket2.Headingy = Float64ToNullFloat64((*source).Heading.Y)
-		generatedMineralpacket2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedMineralpacket = generatedMineralpacket2
+		var generatedMineralPacket2 generated.MineralPacket
+		generatedMineralPacket2.ID = (*source).GameDBObject.ID
+		generatedMineralPacket2.CreatedAt = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
+		generatedMineralPacket2.UpdatedAt = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
+		generatedMineralPacket2.GameID = (*source).GameDBObject.GameID
+		generatedMineralPacket2.X = (*source).MapObject.Position.X
+		generatedMineralPacket2.Y = (*source).MapObject.Position.Y
+		generatedMineralPacket2.Name = (*source).MapObject.Name
+		generatedMineralPacket2.Num = IntToInt64((*source).MapObject.Num)
+		generatedMineralPacket2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
+		generatedMineralPacket2.TargetPlanetNum = IntToInt64((*source).TargetPlanetNum)
+		generatedMineralPacket2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedMineralPacket2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedMineralPacket2.Germanium = IntToInt64((*source).Cargo.Germanium)
+		generatedMineralPacket2.SafeWarpSpeed = IntToInt64((*source).SafeWarpSpeed)
+		generatedMineralPacket2.WarpSpeed = IntToInt64((*source).WarpSpeed)
+		generatedMineralPacket2.ScanRange = IntToInt64((*source).ScanRange)
+		generatedMineralPacket2.ScanRangePen = IntToInt64((*source).ScanRangePen)
+		generatedMineralPacket2.HeadingX = (*source).Heading.X
+		generatedMineralPacket2.HeadingY = (*source).Heading.Y
+		generatedMineralPacket2.Tags = GameTagsToTags((*source).MapObject.Tags)
+		generatedMineralPacket = generatedMineralPacket2
 	}
-	return generatedMineralpacket
+	return generatedMineralPacket
 }
 func (c *GameConverter) ConvertGameMineralPacketToCreateParams(source *cs.MineralPacket) generated.CreateMineralPacketParams {
 	var generatedCreateMineralPacketParams generated.CreateMineralPacketParams
 	if source != nil {
 		var generatedCreateMineralPacketParams2 generated.CreateMineralPacketParams
-		generatedCreateMineralPacketParams2.Gameid = (*source).GameDBObject.GameID
-		generatedCreateMineralPacketParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedCreateMineralPacketParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedCreateMineralPacketParams2.GameID = (*source).GameDBObject.GameID
+		generatedCreateMineralPacketParams2.X = (*source).MapObject.Position.X
+		generatedCreateMineralPacketParams2.Y = (*source).MapObject.Position.Y
 		generatedCreateMineralPacketParams2.Name = (*source).MapObject.Name
-		generatedCreateMineralPacketParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedCreateMineralPacketParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
+		generatedCreateMineralPacketParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedCreateMineralPacketParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedCreateMineralPacketParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedCreateMineralPacketParams2.Targetplanetnum = IntToNullInt64((*source).TargetPlanetNum)
-		generatedCreateMineralPacketParams2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedCreateMineralPacketParams2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedCreateMineralPacketParams2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
-		generatedCreateMineralPacketParams2.Safewarpspeed = IntToNullInt64((*source).SafeWarpSpeed)
-		generatedCreateMineralPacketParams2.Warpspeed = IntToNullInt64((*source).WarpSpeed)
-		generatedCreateMineralPacketParams2.Scanrange = IntToNullInt64((*source).ScanRange)
-		generatedCreateMineralPacketParams2.Scanrangepen = IntToNullInt64((*source).ScanRangePen)
-		generatedCreateMineralPacketParams2.Headingx = Float64ToNullFloat64((*source).Heading.X)
-		generatedCreateMineralPacketParams2.Headingy = Float64ToNullFloat64((*source).Heading.Y)
+		generatedCreateMineralPacketParams2.TargetPlanetNum = IntToInt64((*source).TargetPlanetNum)
+		generatedCreateMineralPacketParams2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedCreateMineralPacketParams2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedCreateMineralPacketParams2.Germanium = IntToInt64((*source).Cargo.Germanium)
+		generatedCreateMineralPacketParams2.SafeWarpSpeed = IntToInt64((*source).SafeWarpSpeed)
+		generatedCreateMineralPacketParams2.WarpSpeed = IntToInt64((*source).WarpSpeed)
+		generatedCreateMineralPacketParams2.ScanRange = IntToInt64((*source).ScanRange)
+		generatedCreateMineralPacketParams2.ScanRangePen = IntToInt64((*source).ScanRangePen)
+		generatedCreateMineralPacketParams2.HeadingX = (*source).Heading.X
+		generatedCreateMineralPacketParams2.HeadingY = (*source).Heading.Y
 		generatedCreateMineralPacketParams = generatedCreateMineralPacketParams2
 	}
 	return generatedCreateMineralPacketParams
@@ -455,74 +455,74 @@ func (c *GameConverter) ConvertGameMineralPacketToUpdateParams(source *cs.Minera
 	var generatedUpdateMineralPacketParams generated.UpdateMineralPacketParams
 	if source != nil {
 		var generatedUpdateMineralPacketParams2 generated.UpdateMineralPacketParams
-		generatedUpdateMineralPacketParams2.Gameid = (*source).GameDBObject.GameID
-		generatedUpdateMineralPacketParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedUpdateMineralPacketParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedUpdateMineralPacketParams2.GameID = (*source).GameDBObject.GameID
+		generatedUpdateMineralPacketParams2.X = (*source).MapObject.Position.X
+		generatedUpdateMineralPacketParams2.Y = (*source).MapObject.Position.Y
 		generatedUpdateMineralPacketParams2.Name = (*source).MapObject.Name
-		generatedUpdateMineralPacketParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedUpdateMineralPacketParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
+		generatedUpdateMineralPacketParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedUpdateMineralPacketParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedUpdateMineralPacketParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedUpdateMineralPacketParams2.Targetplanetnum = IntToNullInt64((*source).TargetPlanetNum)
-		generatedUpdateMineralPacketParams2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedUpdateMineralPacketParams2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedUpdateMineralPacketParams2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
-		generatedUpdateMineralPacketParams2.Safewarpspeed = IntToNullInt64((*source).SafeWarpSpeed)
-		generatedUpdateMineralPacketParams2.Warpspeed = IntToNullInt64((*source).WarpSpeed)
-		generatedUpdateMineralPacketParams2.Scanrange = IntToNullInt64((*source).ScanRange)
-		generatedUpdateMineralPacketParams2.Scanrangepen = IntToNullInt64((*source).ScanRangePen)
-		generatedUpdateMineralPacketParams2.Headingx = Float64ToNullFloat64((*source).Heading.X)
-		generatedUpdateMineralPacketParams2.Headingy = Float64ToNullFloat64((*source).Heading.Y)
+		generatedUpdateMineralPacketParams2.TargetPlanetNum = IntToInt64((*source).TargetPlanetNum)
+		generatedUpdateMineralPacketParams2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedUpdateMineralPacketParams2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedUpdateMineralPacketParams2.Germanium = IntToInt64((*source).Cargo.Germanium)
+		generatedUpdateMineralPacketParams2.SafeWarpSpeed = IntToInt64((*source).SafeWarpSpeed)
+		generatedUpdateMineralPacketParams2.WarpSpeed = IntToInt64((*source).WarpSpeed)
+		generatedUpdateMineralPacketParams2.ScanRange = IntToInt64((*source).ScanRange)
+		generatedUpdateMineralPacketParams2.ScanRangePen = IntToInt64((*source).ScanRangePen)
+		generatedUpdateMineralPacketParams2.HeadingX = (*source).Heading.X
+		generatedUpdateMineralPacketParams2.HeadingY = (*source).Heading.Y
 		generatedUpdateMineralPacketParams2.ID = (*source).GameDBObject.ID
 		generatedUpdateMineralPacketParams = generatedUpdateMineralPacketParams2
 	}
 	return generatedUpdateMineralPacketParams
 }
-func (c *GameConverter) ConvertGameMysteryTrader(source *cs.MysteryTrader) generated.Mysterytrader {
-	var generatedMysterytrader generated.Mysterytrader
+func (c *GameConverter) ConvertGameMysteryTrader(source *cs.MysteryTrader) generated.MysteryTrader {
+	var generatedMysteryTrader generated.MysteryTrader
 	if source != nil {
-		var generatedMysterytrader2 generated.Mysterytrader
-		generatedMysterytrader2.ID = (*source).GameDBObject.ID
-		generatedMysterytrader2.Createdat = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
-		generatedMysterytrader2.Updatedat = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
-		generatedMysterytrader2.Gameid = (*source).GameDBObject.GameID
-		generatedMysterytrader2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedMysterytrader2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
-		generatedMysterytrader2.Name = (*source).MapObject.Name
-		generatedMysterytrader2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedMysterytrader2.Headingx = Float64ToNullFloat64((*source).Heading.X)
-		generatedMysterytrader2.Headingy = Float64ToNullFloat64((*source).Heading.Y)
-		generatedMysterytrader2.Warpspeed = IntToNullInt64((*source).WarpSpeed)
-		generatedMysterytrader2.Spec = GameMysteryTraderSpecToMysteryTraderSpec((*source).Spec)
-		generatedMysterytrader2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedMysterytrader2.Requestedboon = IntToNullInt64((*source).RequestedBoon)
-		generatedMysterytrader2.Destinationx = Float64ToNullFloat64((*source).Destination.X)
-		generatedMysterytrader2.Destinationy = Float64ToNullFloat64((*source).Destination.Y)
+		var generatedMysteryTrader2 generated.MysteryTrader
+		generatedMysteryTrader2.ID = (*source).GameDBObject.ID
+		generatedMysteryTrader2.CreatedAt = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
+		generatedMysteryTrader2.UpdatedAt = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
+		generatedMysteryTrader2.GameID = (*source).GameDBObject.GameID
+		generatedMysteryTrader2.X = (*source).MapObject.Position.X
+		generatedMysteryTrader2.Y = (*source).MapObject.Position.Y
+		generatedMysteryTrader2.Name = (*source).MapObject.Name
+		generatedMysteryTrader2.Num = IntToInt64((*source).MapObject.Num)
+		generatedMysteryTrader2.HeadingX = (*source).Heading.X
+		generatedMysteryTrader2.HeadingY = (*source).Heading.Y
+		generatedMysteryTrader2.WarpSpeed = IntToInt64((*source).WarpSpeed)
+		generatedMysteryTrader2.Spec = GameMysteryTraderSpecToMysteryTraderSpec((*source).Spec)
+		generatedMysteryTrader2.Tags = GameTagsToTags((*source).MapObject.Tags)
+		generatedMysteryTrader2.RequestedBoon = IntToInt64((*source).RequestedBoon)
+		generatedMysteryTrader2.DestinationX = (*source).Destination.X
+		generatedMysteryTrader2.DestinationY = (*source).Destination.Y
 		pCsMysteryTraderRewardType := c.csMysteryTraderRewardTypeToCsMysteryTraderRewardType((*source).RewardType)
-		generatedMysterytrader2.Rewardtype = &pCsMysteryTraderRewardType
-		generatedMysterytrader2.Playersrewarded = GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded((*source).PlayersRewarded)
-		generatedMysterytrader = generatedMysterytrader2
+		generatedMysteryTrader2.RewardType = &pCsMysteryTraderRewardType
+		generatedMysteryTrader2.PlayersRewarded = GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded((*source).PlayersRewarded)
+		generatedMysteryTrader = generatedMysteryTrader2
 	}
-	return generatedMysterytrader
+	return generatedMysteryTrader
 }
 func (c *GameConverter) ConvertGameMysteryTraderToCreateParams(source *cs.MysteryTrader) generated.CreateMysteryTraderParams {
 	var generatedCreateMysteryTraderParams generated.CreateMysteryTraderParams
 	if source != nil {
 		var generatedCreateMysteryTraderParams2 generated.CreateMysteryTraderParams
-		generatedCreateMysteryTraderParams2.Gameid = (*source).GameDBObject.GameID
-		generatedCreateMysteryTraderParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedCreateMysteryTraderParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedCreateMysteryTraderParams2.GameID = (*source).GameDBObject.GameID
+		generatedCreateMysteryTraderParams2.X = (*source).MapObject.Position.X
+		generatedCreateMysteryTraderParams2.Y = (*source).MapObject.Position.Y
 		generatedCreateMysteryTraderParams2.Name = (*source).MapObject.Name
-		generatedCreateMysteryTraderParams2.Num = IntToNullInt64((*source).MapObject.Num)
+		generatedCreateMysteryTraderParams2.Num = IntToInt64((*source).MapObject.Num)
 		generatedCreateMysteryTraderParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedCreateMysteryTraderParams2.Headingx = Float64ToNullFloat64((*source).Heading.X)
-		generatedCreateMysteryTraderParams2.Headingy = Float64ToNullFloat64((*source).Heading.Y)
-		generatedCreateMysteryTraderParams2.Warpspeed = IntToNullInt64((*source).WarpSpeed)
-		generatedCreateMysteryTraderParams2.Requestedboon = IntToNullInt64((*source).RequestedBoon)
-		generatedCreateMysteryTraderParams2.Destinationx = Float64ToNullFloat64((*source).Destination.X)
-		generatedCreateMysteryTraderParams2.Destinationy = Float64ToNullFloat64((*source).Destination.Y)
+		generatedCreateMysteryTraderParams2.HeadingX = (*source).Heading.X
+		generatedCreateMysteryTraderParams2.HeadingY = (*source).Heading.Y
+		generatedCreateMysteryTraderParams2.WarpSpeed = IntToInt64((*source).WarpSpeed)
+		generatedCreateMysteryTraderParams2.RequestedBoon = IntToInt64((*source).RequestedBoon)
+		generatedCreateMysteryTraderParams2.DestinationX = (*source).Destination.X
+		generatedCreateMysteryTraderParams2.DestinationY = (*source).Destination.Y
 		pCsMysteryTraderRewardType := c.csMysteryTraderRewardTypeToCsMysteryTraderRewardType((*source).RewardType)
-		generatedCreateMysteryTraderParams2.Rewardtype = &pCsMysteryTraderRewardType
-		generatedCreateMysteryTraderParams2.Playersrewarded = GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded((*source).PlayersRewarded)
+		generatedCreateMysteryTraderParams2.RewardType = &pCsMysteryTraderRewardType
+		generatedCreateMysteryTraderParams2.PlayersRewarded = GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded((*source).PlayersRewarded)
 		generatedCreateMysteryTraderParams2.Spec = GameMysteryTraderSpecToMysteryTraderSpec((*source).Spec)
 		generatedCreateMysteryTraderParams = generatedCreateMysteryTraderParams2
 	}
@@ -532,21 +532,21 @@ func (c *GameConverter) ConvertGameMysteryTraderToUpdateParams(source *cs.Myster
 	var generatedUpdateMysteryTraderParams generated.UpdateMysteryTraderParams
 	if source != nil {
 		var generatedUpdateMysteryTraderParams2 generated.UpdateMysteryTraderParams
-		generatedUpdateMysteryTraderParams2.Gameid = (*source).GameDBObject.GameID
-		generatedUpdateMysteryTraderParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedUpdateMysteryTraderParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedUpdateMysteryTraderParams2.GameID = (*source).GameDBObject.GameID
+		generatedUpdateMysteryTraderParams2.X = (*source).MapObject.Position.X
+		generatedUpdateMysteryTraderParams2.Y = (*source).MapObject.Position.Y
 		generatedUpdateMysteryTraderParams2.Name = (*source).MapObject.Name
-		generatedUpdateMysteryTraderParams2.Num = IntToNullInt64((*source).MapObject.Num)
+		generatedUpdateMysteryTraderParams2.Num = IntToInt64((*source).MapObject.Num)
 		generatedUpdateMysteryTraderParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedUpdateMysteryTraderParams2.Headingx = Float64ToNullFloat64((*source).Heading.X)
-		generatedUpdateMysteryTraderParams2.Headingy = Float64ToNullFloat64((*source).Heading.Y)
-		generatedUpdateMysteryTraderParams2.Warpspeed = IntToNullInt64((*source).WarpSpeed)
-		generatedUpdateMysteryTraderParams2.Requestedboon = IntToNullInt64((*source).RequestedBoon)
-		generatedUpdateMysteryTraderParams2.Destinationx = Float64ToNullFloat64((*source).Destination.X)
-		generatedUpdateMysteryTraderParams2.Destinationy = Float64ToNullFloat64((*source).Destination.Y)
+		generatedUpdateMysteryTraderParams2.HeadingX = (*source).Heading.X
+		generatedUpdateMysteryTraderParams2.HeadingY = (*source).Heading.Y
+		generatedUpdateMysteryTraderParams2.WarpSpeed = IntToInt64((*source).WarpSpeed)
+		generatedUpdateMysteryTraderParams2.RequestedBoon = IntToInt64((*source).RequestedBoon)
+		generatedUpdateMysteryTraderParams2.DestinationX = (*source).Destination.X
+		generatedUpdateMysteryTraderParams2.DestinationY = (*source).Destination.Y
 		pCsMysteryTraderRewardType := c.csMysteryTraderRewardTypeToCsMysteryTraderRewardType((*source).RewardType)
-		generatedUpdateMysteryTraderParams2.Rewardtype = &pCsMysteryTraderRewardType
-		generatedUpdateMysteryTraderParams2.Playersrewarded = GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded((*source).PlayersRewarded)
+		generatedUpdateMysteryTraderParams2.RewardType = &pCsMysteryTraderRewardType
+		generatedUpdateMysteryTraderParams2.PlayersRewarded = GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded((*source).PlayersRewarded)
 		generatedUpdateMysteryTraderParams2.Spec = GameMysteryTraderSpecToMysteryTraderSpec((*source).Spec)
 		generatedUpdateMysteryTraderParams2.ID = (*source).GameDBObject.ID
 		generatedUpdateMysteryTraderParams = generatedUpdateMysteryTraderParams2
@@ -558,50 +558,50 @@ func (c *GameConverter) ConvertGamePlanet(source *cs.Planet) generated.Planet {
 	if source != nil {
 		var generatedPlanet2 generated.Planet
 		generatedPlanet2.ID = (*source).GameDBObject.ID
-		generatedPlanet2.Gameid = (*source).GameDBObject.GameID
-		generatedPlanet2.Createdat = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
-		generatedPlanet2.Updatedat = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
-		generatedPlanet2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedPlanet2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedPlanet2.CreatedAt = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
+		generatedPlanet2.UpdatedAt = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
+		generatedPlanet2.GameID = (*source).GameDBObject.GameID
+		generatedPlanet2.X = (*source).MapObject.Position.X
+		generatedPlanet2.Y = (*source).MapObject.Position.Y
 		generatedPlanet2.Name = (*source).MapObject.Name
-		generatedPlanet2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedPlanet2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
-		generatedPlanet2.Grav = IntToNullInt64((*source).Hab.Grav)
-		generatedPlanet2.Temp = IntToNullInt64((*source).Hab.Temp)
-		generatedPlanet2.Rad = IntToNullInt64((*source).Hab.Rad)
-		generatedPlanet2.Basegrav = IntToNullInt64((*source).BaseHab.Grav)
-		generatedPlanet2.Basetemp = IntToNullInt64((*source).BaseHab.Temp)
-		generatedPlanet2.Baserad = IntToNullInt64((*source).BaseHab.Rad)
-		generatedPlanet2.Terraformedamountgrav = IntToNullInt64((*source).TerraformedAmount.Grav)
-		generatedPlanet2.Terraformedamounttemp = IntToNullInt64((*source).TerraformedAmount.Temp)
-		generatedPlanet2.Terraformedamountrad = IntToNullInt64((*source).TerraformedAmount.Rad)
-		generatedPlanet2.Mineralconcironium = IntToNullInt64((*source).MineralConcentration.Ironium)
-		generatedPlanet2.Mineralconcboranium = IntToNullInt64((*source).MineralConcentration.Boranium)
-		generatedPlanet2.Mineralconcgermanium = IntToNullInt64((*source).MineralConcentration.Germanium)
-		generatedPlanet2.Mineyearsironium = IntToNullInt64((*source).MineYears.Ironium)
-		generatedPlanet2.Mineyearsboranium = IntToNullInt64((*source).MineYears.Boranium)
-		generatedPlanet2.Mineyearsgermanium = IntToNullInt64((*source).MineYears.Germanium)
-		generatedPlanet2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedPlanet2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedPlanet2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
-		generatedPlanet2.Colonists = IntToNullInt64((*source).Cargo.Colonists)
-		generatedPlanet2.Partialpopulation = IntToNullInt64((*source).PartialPopulation)
-		generatedPlanet2.Mines = IntToNullInt64((*source).Mines)
-		generatedPlanet2.Factories = IntToNullInt64((*source).Factories)
-		generatedPlanet2.Defenses = IntToNullInt64((*source).Defenses)
-		generatedPlanet2.Homeworld = BoolToNullBool((*source).Homeworld)
-		generatedPlanet2.Contributesonlyleftovertoresearch = BoolToNullBool((*source).PlanetOrders.ContributesOnlyLeftoverToResearch)
-		generatedPlanet2.Scanner = BoolToNullBool((*source).Scanner)
+		generatedPlanet2.Num = IntToInt64((*source).MapObject.Num)
+		generatedPlanet2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
+		generatedPlanet2.Grav = IntToInt64((*source).Hab.Grav)
+		generatedPlanet2.Temp = IntToInt64((*source).Hab.Temp)
+		generatedPlanet2.Rad = IntToInt64((*source).Hab.Rad)
+		generatedPlanet2.BaseGrav = IntToInt64((*source).BaseHab.Grav)
+		generatedPlanet2.BaseTemp = IntToInt64((*source).BaseHab.Temp)
+		generatedPlanet2.BaseRad = IntToInt64((*source).BaseHab.Rad)
+		generatedPlanet2.TerraformedAmountGrav = IntToInt64((*source).TerraformedAmount.Grav)
+		generatedPlanet2.TerraformedAmountTemp = IntToInt64((*source).TerraformedAmount.Temp)
+		generatedPlanet2.TerraformedAmountRad = IntToInt64((*source).TerraformedAmount.Rad)
+		generatedPlanet2.MineralConcIronium = IntToInt64((*source).MineralConcentration.Ironium)
+		generatedPlanet2.MineralConcBoranium = IntToInt64((*source).MineralConcentration.Boranium)
+		generatedPlanet2.MineralConcGermanium = IntToInt64((*source).MineralConcentration.Germanium)
+		generatedPlanet2.MineYearsIronium = IntToInt64((*source).MineYears.Ironium)
+		generatedPlanet2.MineYearsBoranium = IntToInt64((*source).MineYears.Boranium)
+		generatedPlanet2.MineYearsGermanium = IntToInt64((*source).MineYears.Germanium)
+		generatedPlanet2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedPlanet2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedPlanet2.Germanium = IntToInt64((*source).Cargo.Germanium)
+		generatedPlanet2.Colonists = IntToInt64((*source).Cargo.Colonists)
+		generatedPlanet2.PartialPopulation = IntToInt64((*source).PartialPopulation)
+		generatedPlanet2.Mines = IntToInt64((*source).Mines)
+		generatedPlanet2.Factories = IntToInt64((*source).Factories)
+		generatedPlanet2.Defenses = IntToInt64((*source).Defenses)
+		generatedPlanet2.Homeworld = (*source).Homeworld
+		generatedPlanet2.ContributesOnlyLeftoverToResearch = (*source).PlanetOrders.ContributesOnlyLeftoverToResearch
+		generatedPlanet2.Scanner = (*source).Scanner
 		pCsMapObjectType := c.csMapObjectTypeToCsMapObjectType((*source).PlanetOrders.RouteTargetType)
-		generatedPlanet2.Routetargettype = &pCsMapObjectType
-		generatedPlanet2.Routetargetnum = IntToNullInt64((*source).PlanetOrders.RouteTargetNum)
-		generatedPlanet2.Routetargetplayernum = IntToNullInt64((*source).PlanetOrders.RouteTargetPlayerNum)
-		generatedPlanet2.Packettargetnum = IntToNullInt64((*source).PlanetOrders.PacketTargetNum)
-		generatedPlanet2.Packetspeed = IntToNullInt64((*source).PlanetOrders.PacketSpeed)
-		generatedPlanet2.Productionqueue = GameProductionQueueItemsToProductionQueueItems((*source).PlanetOrders.ProductionQueue)
+		generatedPlanet2.RouteTargetType = &pCsMapObjectType
+		generatedPlanet2.RouteTargetNum = IntToInt64((*source).PlanetOrders.RouteTargetNum)
+		generatedPlanet2.RouteTargetPlayerNum = IntToInt64((*source).PlanetOrders.RouteTargetPlayerNum)
+		generatedPlanet2.PacketTargetNum = IntToInt64((*source).PlanetOrders.PacketTargetNum)
+		generatedPlanet2.PacketSpeed = IntToInt64((*source).PlanetOrders.PacketSpeed)
+		generatedPlanet2.ProductionQueue = GameProductionQueueItemsToProductionQueueItems((*source).PlanetOrders.ProductionQueue)
 		generatedPlanet2.Spec = GamePlanetSpecToPlanetSpec((*source).Spec)
 		generatedPlanet2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedPlanet2.Randomartifact = BoolToNullBool((*source).RandomArtifact)
+		generatedPlanet2.RandomArtifact = (*source).RandomArtifact
 		generatedPlanet = generatedPlanet2
 	}
 	return generatedPlanet
@@ -610,48 +610,48 @@ func (c *GameConverter) ConvertGamePlanetToCreateParams(source *cs.Planet) gener
 	var generatedCreatePlanetParams generated.CreatePlanetParams
 	if source != nil {
 		var generatedCreatePlanetParams2 generated.CreatePlanetParams
-		generatedCreatePlanetParams2.Gameid = (*source).GameDBObject.GameID
-		generatedCreatePlanetParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedCreatePlanetParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedCreatePlanetParams2.GameID = (*source).GameDBObject.GameID
+		generatedCreatePlanetParams2.X = (*source).MapObject.Position.X
+		generatedCreatePlanetParams2.Y = (*source).MapObject.Position.Y
 		generatedCreatePlanetParams2.Name = (*source).MapObject.Name
-		generatedCreatePlanetParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedCreatePlanetParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
-		generatedCreatePlanetParams2.Grav = IntToNullInt64((*source).Hab.Grav)
-		generatedCreatePlanetParams2.Temp = IntToNullInt64((*source).Hab.Temp)
-		generatedCreatePlanetParams2.Rad = IntToNullInt64((*source).Hab.Rad)
-		generatedCreatePlanetParams2.Basegrav = IntToNullInt64((*source).BaseHab.Grav)
-		generatedCreatePlanetParams2.Basetemp = IntToNullInt64((*source).BaseHab.Temp)
-		generatedCreatePlanetParams2.Baserad = IntToNullInt64((*source).BaseHab.Rad)
-		generatedCreatePlanetParams2.Terraformedamountgrav = IntToNullInt64((*source).TerraformedAmount.Grav)
-		generatedCreatePlanetParams2.Terraformedamounttemp = IntToNullInt64((*source).TerraformedAmount.Temp)
-		generatedCreatePlanetParams2.Terraformedamountrad = IntToNullInt64((*source).TerraformedAmount.Rad)
-		generatedCreatePlanetParams2.Mineralconcironium = IntToNullInt64((*source).MineralConcentration.Ironium)
-		generatedCreatePlanetParams2.Mineralconcboranium = IntToNullInt64((*source).MineralConcentration.Boranium)
-		generatedCreatePlanetParams2.Mineralconcgermanium = IntToNullInt64((*source).MineralConcentration.Germanium)
-		generatedCreatePlanetParams2.Mineyearsironium = IntToNullInt64((*source).MineYears.Ironium)
-		generatedCreatePlanetParams2.Mineyearsboranium = IntToNullInt64((*source).MineYears.Boranium)
-		generatedCreatePlanetParams2.Mineyearsgermanium = IntToNullInt64((*source).MineYears.Germanium)
-		generatedCreatePlanetParams2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedCreatePlanetParams2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedCreatePlanetParams2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
-		generatedCreatePlanetParams2.Colonists = IntToNullInt64((*source).Cargo.Colonists)
-		generatedCreatePlanetParams2.Partialpopulation = IntToNullInt64((*source).PartialPopulation)
-		generatedCreatePlanetParams2.Mines = IntToNullInt64((*source).Mines)
-		generatedCreatePlanetParams2.Factories = IntToNullInt64((*source).Factories)
-		generatedCreatePlanetParams2.Defenses = IntToNullInt64((*source).Defenses)
-		generatedCreatePlanetParams2.Homeworld = BoolToNullBool((*source).Homeworld)
-		generatedCreatePlanetParams2.Contributesonlyleftovertoresearch = BoolToNullBool((*source).PlanetOrders.ContributesOnlyLeftoverToResearch)
-		generatedCreatePlanetParams2.Scanner = BoolToNullBool((*source).Scanner)
+		generatedCreatePlanetParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedCreatePlanetParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
+		generatedCreatePlanetParams2.Grav = IntToInt64((*source).Hab.Grav)
+		generatedCreatePlanetParams2.Temp = IntToInt64((*source).Hab.Temp)
+		generatedCreatePlanetParams2.Rad = IntToInt64((*source).Hab.Rad)
+		generatedCreatePlanetParams2.BaseGrav = IntToInt64((*source).BaseHab.Grav)
+		generatedCreatePlanetParams2.BaseTemp = IntToInt64((*source).BaseHab.Temp)
+		generatedCreatePlanetParams2.BaseRad = IntToInt64((*source).BaseHab.Rad)
+		generatedCreatePlanetParams2.TerraformedAmountGrav = IntToInt64((*source).TerraformedAmount.Grav)
+		generatedCreatePlanetParams2.TerraformedAmountTemp = IntToInt64((*source).TerraformedAmount.Temp)
+		generatedCreatePlanetParams2.TerraformedAmountRad = IntToInt64((*source).TerraformedAmount.Rad)
+		generatedCreatePlanetParams2.MineralConcIronium = IntToInt64((*source).MineralConcentration.Ironium)
+		generatedCreatePlanetParams2.MineralConcBoranium = IntToInt64((*source).MineralConcentration.Boranium)
+		generatedCreatePlanetParams2.MineralConcGermanium = IntToInt64((*source).MineralConcentration.Germanium)
+		generatedCreatePlanetParams2.MineYearsIronium = IntToInt64((*source).MineYears.Ironium)
+		generatedCreatePlanetParams2.MineYearsBoranium = IntToInt64((*source).MineYears.Boranium)
+		generatedCreatePlanetParams2.MineYearsGermanium = IntToInt64((*source).MineYears.Germanium)
+		generatedCreatePlanetParams2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedCreatePlanetParams2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedCreatePlanetParams2.Germanium = IntToInt64((*source).Cargo.Germanium)
+		generatedCreatePlanetParams2.Colonists = IntToInt64((*source).Cargo.Colonists)
+		generatedCreatePlanetParams2.PartialPopulation = IntToInt64((*source).PartialPopulation)
+		generatedCreatePlanetParams2.Mines = IntToInt64((*source).Mines)
+		generatedCreatePlanetParams2.Factories = IntToInt64((*source).Factories)
+		generatedCreatePlanetParams2.Defenses = IntToInt64((*source).Defenses)
+		generatedCreatePlanetParams2.Homeworld = (*source).Homeworld
+		generatedCreatePlanetParams2.ContributesOnlyLeftoverToResearch = (*source).PlanetOrders.ContributesOnlyLeftoverToResearch
+		generatedCreatePlanetParams2.Scanner = (*source).Scanner
 		pCsMapObjectType := c.csMapObjectTypeToCsMapObjectType((*source).PlanetOrders.RouteTargetType)
-		generatedCreatePlanetParams2.Routetargettype = &pCsMapObjectType
-		generatedCreatePlanetParams2.Routetargetnum = IntToNullInt64((*source).PlanetOrders.RouteTargetNum)
-		generatedCreatePlanetParams2.Routetargetplayernum = IntToNullInt64((*source).PlanetOrders.RouteTargetPlayerNum)
-		generatedCreatePlanetParams2.Packettargetnum = IntToNullInt64((*source).PlanetOrders.PacketTargetNum)
-		generatedCreatePlanetParams2.Packetspeed = IntToNullInt64((*source).PlanetOrders.PacketSpeed)
-		generatedCreatePlanetParams2.Productionqueue = GameProductionQueueItemsToProductionQueueItems((*source).PlanetOrders.ProductionQueue)
+		generatedCreatePlanetParams2.RouteTargetType = &pCsMapObjectType
+		generatedCreatePlanetParams2.RouteTargetNum = IntToInt64((*source).PlanetOrders.RouteTargetNum)
+		generatedCreatePlanetParams2.RouteTargetPlayerNum = IntToInt64((*source).PlanetOrders.RouteTargetPlayerNum)
+		generatedCreatePlanetParams2.PacketTargetNum = IntToInt64((*source).PlanetOrders.PacketTargetNum)
+		generatedCreatePlanetParams2.PacketSpeed = IntToInt64((*source).PlanetOrders.PacketSpeed)
+		generatedCreatePlanetParams2.ProductionQueue = GameProductionQueueItemsToProductionQueueItems((*source).PlanetOrders.ProductionQueue)
 		generatedCreatePlanetParams2.Spec = GamePlanetSpecToPlanetSpec((*source).Spec)
 		generatedCreatePlanetParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedCreatePlanetParams2.Randomartifact = BoolToNullBool((*source).RandomArtifact)
+		generatedCreatePlanetParams2.RandomArtifact = (*source).RandomArtifact
 		generatedCreatePlanetParams = generatedCreatePlanetParams2
 	}
 	return generatedCreatePlanetParams
@@ -660,48 +660,48 @@ func (c *GameConverter) ConvertGamePlanetToUpdateParams(source *cs.Planet) gener
 	var generatedUpdatePlanetParams generated.UpdatePlanetParams
 	if source != nil {
 		var generatedUpdatePlanetParams2 generated.UpdatePlanetParams
-		generatedUpdatePlanetParams2.Gameid = (*source).GameDBObject.GameID
-		generatedUpdatePlanetParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedUpdatePlanetParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedUpdatePlanetParams2.GameID = (*source).GameDBObject.GameID
+		generatedUpdatePlanetParams2.X = (*source).MapObject.Position.X
+		generatedUpdatePlanetParams2.Y = (*source).MapObject.Position.Y
 		generatedUpdatePlanetParams2.Name = (*source).MapObject.Name
-		generatedUpdatePlanetParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedUpdatePlanetParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
-		generatedUpdatePlanetParams2.Grav = IntToNullInt64((*source).Hab.Grav)
-		generatedUpdatePlanetParams2.Temp = IntToNullInt64((*source).Hab.Temp)
-		generatedUpdatePlanetParams2.Rad = IntToNullInt64((*source).Hab.Rad)
-		generatedUpdatePlanetParams2.Basegrav = IntToNullInt64((*source).BaseHab.Grav)
-		generatedUpdatePlanetParams2.Basetemp = IntToNullInt64((*source).BaseHab.Temp)
-		generatedUpdatePlanetParams2.Baserad = IntToNullInt64((*source).BaseHab.Rad)
-		generatedUpdatePlanetParams2.Terraformedamountgrav = IntToNullInt64((*source).TerraformedAmount.Grav)
-		generatedUpdatePlanetParams2.Terraformedamounttemp = IntToNullInt64((*source).TerraformedAmount.Temp)
-		generatedUpdatePlanetParams2.Terraformedamountrad = IntToNullInt64((*source).TerraformedAmount.Rad)
-		generatedUpdatePlanetParams2.Mineralconcironium = IntToNullInt64((*source).MineralConcentration.Ironium)
-		generatedUpdatePlanetParams2.Mineralconcboranium = IntToNullInt64((*source).MineralConcentration.Boranium)
-		generatedUpdatePlanetParams2.Mineralconcgermanium = IntToNullInt64((*source).MineralConcentration.Germanium)
-		generatedUpdatePlanetParams2.Mineyearsironium = IntToNullInt64((*source).MineYears.Ironium)
-		generatedUpdatePlanetParams2.Mineyearsboranium = IntToNullInt64((*source).MineYears.Boranium)
-		generatedUpdatePlanetParams2.Mineyearsgermanium = IntToNullInt64((*source).MineYears.Germanium)
-		generatedUpdatePlanetParams2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedUpdatePlanetParams2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedUpdatePlanetParams2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
-		generatedUpdatePlanetParams2.Colonists = IntToNullInt64((*source).Cargo.Colonists)
-		generatedUpdatePlanetParams2.Partialpopulation = IntToNullInt64((*source).PartialPopulation)
-		generatedUpdatePlanetParams2.Mines = IntToNullInt64((*source).Mines)
-		generatedUpdatePlanetParams2.Factories = IntToNullInt64((*source).Factories)
-		generatedUpdatePlanetParams2.Defenses = IntToNullInt64((*source).Defenses)
-		generatedUpdatePlanetParams2.Homeworld = BoolToNullBool((*source).Homeworld)
-		generatedUpdatePlanetParams2.Contributesonlyleftovertoresearch = BoolToNullBool((*source).PlanetOrders.ContributesOnlyLeftoverToResearch)
-		generatedUpdatePlanetParams2.Scanner = BoolToNullBool((*source).Scanner)
+		generatedUpdatePlanetParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedUpdatePlanetParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
+		generatedUpdatePlanetParams2.Grav = IntToInt64((*source).Hab.Grav)
+		generatedUpdatePlanetParams2.Temp = IntToInt64((*source).Hab.Temp)
+		generatedUpdatePlanetParams2.Rad = IntToInt64((*source).Hab.Rad)
+		generatedUpdatePlanetParams2.BaseGrav = IntToInt64((*source).BaseHab.Grav)
+		generatedUpdatePlanetParams2.BaseTemp = IntToInt64((*source).BaseHab.Temp)
+		generatedUpdatePlanetParams2.BaseRad = IntToInt64((*source).BaseHab.Rad)
+		generatedUpdatePlanetParams2.TerraformedAmountGrav = IntToInt64((*source).TerraformedAmount.Grav)
+		generatedUpdatePlanetParams2.TerraformedAmountTemp = IntToInt64((*source).TerraformedAmount.Temp)
+		generatedUpdatePlanetParams2.TerraformedAmountRad = IntToInt64((*source).TerraformedAmount.Rad)
+		generatedUpdatePlanetParams2.MineralConcIronium = IntToInt64((*source).MineralConcentration.Ironium)
+		generatedUpdatePlanetParams2.MineralConcBoranium = IntToInt64((*source).MineralConcentration.Boranium)
+		generatedUpdatePlanetParams2.MineralConcGermanium = IntToInt64((*source).MineralConcentration.Germanium)
+		generatedUpdatePlanetParams2.MineYearsIronium = IntToInt64((*source).MineYears.Ironium)
+		generatedUpdatePlanetParams2.MineYearsBoranium = IntToInt64((*source).MineYears.Boranium)
+		generatedUpdatePlanetParams2.MineYearsGermanium = IntToInt64((*source).MineYears.Germanium)
+		generatedUpdatePlanetParams2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedUpdatePlanetParams2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedUpdatePlanetParams2.Germanium = IntToInt64((*source).Cargo.Germanium)
+		generatedUpdatePlanetParams2.Colonists = IntToInt64((*source).Cargo.Colonists)
+		generatedUpdatePlanetParams2.PartialPopulation = IntToInt64((*source).PartialPopulation)
+		generatedUpdatePlanetParams2.Mines = IntToInt64((*source).Mines)
+		generatedUpdatePlanetParams2.Factories = IntToInt64((*source).Factories)
+		generatedUpdatePlanetParams2.Defenses = IntToInt64((*source).Defenses)
+		generatedUpdatePlanetParams2.Homeworld = (*source).Homeworld
+		generatedUpdatePlanetParams2.ContributesOnlyLeftoverToResearch = (*source).PlanetOrders.ContributesOnlyLeftoverToResearch
+		generatedUpdatePlanetParams2.Scanner = (*source).Scanner
 		pCsMapObjectType := c.csMapObjectTypeToCsMapObjectType((*source).PlanetOrders.RouteTargetType)
-		generatedUpdatePlanetParams2.Routetargettype = &pCsMapObjectType
-		generatedUpdatePlanetParams2.Routetargetnum = IntToNullInt64((*source).PlanetOrders.RouteTargetNum)
-		generatedUpdatePlanetParams2.Routetargetplayernum = IntToNullInt64((*source).PlanetOrders.RouteTargetPlayerNum)
-		generatedUpdatePlanetParams2.Packettargetnum = IntToNullInt64((*source).PlanetOrders.PacketTargetNum)
-		generatedUpdatePlanetParams2.Packetspeed = IntToNullInt64((*source).PlanetOrders.PacketSpeed)
-		generatedUpdatePlanetParams2.Productionqueue = GameProductionQueueItemsToProductionQueueItems((*source).PlanetOrders.ProductionQueue)
+		generatedUpdatePlanetParams2.RouteTargetType = &pCsMapObjectType
+		generatedUpdatePlanetParams2.RouteTargetNum = IntToInt64((*source).PlanetOrders.RouteTargetNum)
+		generatedUpdatePlanetParams2.RouteTargetPlayerNum = IntToInt64((*source).PlanetOrders.RouteTargetPlayerNum)
+		generatedUpdatePlanetParams2.PacketTargetNum = IntToInt64((*source).PlanetOrders.PacketTargetNum)
+		generatedUpdatePlanetParams2.PacketSpeed = IntToInt64((*source).PlanetOrders.PacketSpeed)
+		generatedUpdatePlanetParams2.ProductionQueue = GameProductionQueueItemsToProductionQueueItems((*source).PlanetOrders.ProductionQueue)
 		generatedUpdatePlanetParams2.Spec = GamePlanetSpecToPlanetSpec((*source).Spec)
 		generatedUpdatePlanetParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedUpdatePlanetParams2.Randomartifact = BoolToNullBool((*source).RandomArtifact)
+		generatedUpdatePlanetParams2.RandomArtifact = (*source).RandomArtifact
 		generatedUpdatePlanetParams2.ID = (*source).GameDBObject.ID
 		generatedUpdatePlanetParams = generatedUpdatePlanetParams2
 	}
@@ -712,61 +712,61 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) generated.Player {
 	if source != nil {
 		var generatedPlayer2 generated.Player
 		generatedPlayer2.ID = (*source).GameDBObject.ID
-		generatedPlayer2.Createdat = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
-		generatedPlayer2.Updatedat = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
-		generatedPlayer2.Gameid = (*source).GameDBObject.GameID
-		generatedPlayer2.Userid = Int64ToNullInt64((*source).UserID)
+		generatedPlayer2.CreatedAt = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
+		generatedPlayer2.UpdatedAt = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
+		generatedPlayer2.GameID = (*source).GameDBObject.GameID
+		generatedPlayer2.UserID = (*source).UserID
 		generatedPlayer2.Name = (*source).Name
 		generatedPlayer2.Num = IntToInt64((*source).Num)
-		generatedPlayer2.Ready = BoolToNullBool((*source).Ready)
-		generatedPlayer2.Aicontrolled = BoolToNullBool((*source).AIControlled)
-		generatedPlayer2.Submittedturn = BoolToNullBool((*source).SubmittedTurn)
-		generatedPlayer2.Color = StringToNullString((*source).Color)
-		generatedPlayer2.Defaulthullset = IntToNullInt64((*source).DefaultHullSet)
-		generatedPlayer2.Techlevelsenergy = IntToNullInt64((*source).TechLevels.Energy)
-		generatedPlayer2.Techlevelsweapons = IntToNullInt64((*source).TechLevels.Weapons)
-		generatedPlayer2.Techlevelspropulsion = IntToNullInt64((*source).TechLevels.Propulsion)
-		generatedPlayer2.Techlevelsconstruction = IntToNullInt64((*source).TechLevels.Construction)
-		generatedPlayer2.Techlevelselectronics = IntToNullInt64((*source).TechLevels.Electronics)
-		generatedPlayer2.Techlevelsbiotechnology = IntToNullInt64((*source).TechLevels.Biotechnology)
-		generatedPlayer2.Techlevelsspentenergy = IntToNullInt64((*source).TechLevelsSpent.Energy)
-		generatedPlayer2.Techlevelsspentweapons = IntToNullInt64((*source).TechLevelsSpent.Weapons)
-		generatedPlayer2.Techlevelsspentpropulsion = IntToNullInt64((*source).TechLevelsSpent.Propulsion)
-		generatedPlayer2.Techlevelsspentconstruction = IntToNullInt64((*source).TechLevelsSpent.Construction)
-		generatedPlayer2.Techlevelsspentelectronics = IntToNullInt64((*source).TechLevelsSpent.Electronics)
-		generatedPlayer2.Techlevelsspentbiotechnology = IntToNullInt64((*source).TechLevelsSpent.Biotechnology)
-		generatedPlayer2.Researchamount = IntToNullInt64((*source).PlayerOrders.ResearchAmount)
-		generatedPlayer2.Researchspentlastyear = IntToNullInt64((*source).ResearchSpentLastYear)
-		generatedPlayer2.Nextresearchfield = (*source).PlayerOrders.NextResearchField
+		generatedPlayer2.Ready = (*source).Ready
+		generatedPlayer2.AiControlled = (*source).AIControlled
+		generatedPlayer2.SubmittedTurn = (*source).SubmittedTurn
+		generatedPlayer2.Color = (*source).Color
+		generatedPlayer2.DefaultHullSet = IntToInt64((*source).DefaultHullSet)
+		generatedPlayer2.TechLevelsEnergy = IntToInt64((*source).TechLevels.Energy)
+		generatedPlayer2.TechLevelsWeapons = IntToInt64((*source).TechLevels.Weapons)
+		generatedPlayer2.TechLevelsPropulsion = IntToInt64((*source).TechLevels.Propulsion)
+		generatedPlayer2.TechLevelsConstruction = IntToInt64((*source).TechLevels.Construction)
+		generatedPlayer2.TechLevelsElectronics = IntToInt64((*source).TechLevels.Electronics)
+		generatedPlayer2.TechLevelsBiotechnology = IntToInt64((*source).TechLevels.Biotechnology)
+		generatedPlayer2.TechLevelsSpentEnergy = IntToInt64((*source).TechLevelsSpent.Energy)
+		generatedPlayer2.TechLevelsSpentWeapons = IntToInt64((*source).TechLevelsSpent.Weapons)
+		generatedPlayer2.TechLevelsSpentPropulsion = IntToInt64((*source).TechLevelsSpent.Propulsion)
+		generatedPlayer2.TechLevelsSpentConstruction = IntToInt64((*source).TechLevelsSpent.Construction)
+		generatedPlayer2.TechLevelsSpentElectronics = IntToInt64((*source).TechLevelsSpent.Electronics)
+		generatedPlayer2.TechLevelsSpentBiotechnology = IntToInt64((*source).TechLevelsSpent.Biotechnology)
+		generatedPlayer2.ResearchAmount = IntToInt64((*source).PlayerOrders.ResearchAmount)
+		generatedPlayer2.ResearchSpentLastYear = IntToInt64((*source).ResearchSpentLastYear)
+		generatedPlayer2.NextResearchField = (*source).PlayerOrders.NextResearchField
 		generatedPlayer2.Researching = (*source).PlayerOrders.Researching
-		generatedPlayer2.Battleplans = GameBattlePlansToBattlePlans((*source).PlayerPlans.BattlePlans)
-		generatedPlayer2.Productionplans = GameProductionPlansToProductionPlans((*source).PlayerPlans.ProductionPlans)
-		generatedPlayer2.Transportplans = GameTransportPlansToTransportPlans((*source).PlayerPlans.TransportPlans)
+		generatedPlayer2.BattlePlans = GameBattlePlansToBattlePlans((*source).PlayerPlans.BattlePlans)
+		generatedPlayer2.ProductionPlans = GameProductionPlansToProductionPlans((*source).PlayerPlans.ProductionPlans)
+		generatedPlayer2.TransportPlans = GameTransportPlansToTransportPlans((*source).PlayerPlans.TransportPlans)
 		generatedPlayer2.Relations = GamePlayerRelationshipsToPlayerRelationships((*source).Relations)
-		generatedPlayer2.Cargotransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
+		generatedPlayer2.CargoTransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
 		generatedPlayer2.Messages = GamePlayerMessagesToPlayerMessages((*source).Messages)
-		generatedPlayer2.Battlerecords = GameBattleRecordsToBattleRecords((*source).PlayerIntels.BattleRecords)
-		generatedPlayer2.Playerintels = GamePlayerIntelsToPlayerIntels((*source).PlayerIntels.PlayerIntels)
-		generatedPlayer2.Scoreintels = GameScoreIntelsToScoreIntels((*source).PlayerIntels.ScoreIntels)
-		generatedPlayer2.Planetintels = GamePlanetIntelsToPlanetIntels((*source).PlayerIntels.PlanetIntels)
-		generatedPlayer2.Fleetintels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
-		generatedPlayer2.Shipdesignintels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
-		generatedPlayer2.Mineralpacketintels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
-		generatedPlayer2.Minefieldintels = GameMineFieldIntelsToMineFieldIntels((*source).PlayerIntels.MineFieldIntels)
-		generatedPlayer2.Wormholeintels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
-		generatedPlayer2.Mysterytraderintels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
-		generatedPlayer2.Salvageintels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
+		generatedPlayer2.BattleRecords = GameBattleRecordsToBattleRecords((*source).PlayerIntels.BattleRecords)
+		generatedPlayer2.PlayerIntels = GamePlayerIntelsToPlayerIntels((*source).PlayerIntels.PlayerIntels)
+		generatedPlayer2.ScoreIntels = GameScoreIntelsToScoreIntels((*source).PlayerIntels.ScoreIntels)
+		generatedPlayer2.PlanetIntels = GamePlanetIntelsToPlanetIntels((*source).PlayerIntels.PlanetIntels)
+		generatedPlayer2.FleetIntels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
+		generatedPlayer2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
+		generatedPlayer2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
+		generatedPlayer2.MinefieldIntels = GameMineFieldIntelsToMineFieldIntels((*source).PlayerIntels.MineFieldIntels)
+		generatedPlayer2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
+		generatedPlayer2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
+		generatedPlayer2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
 		generatedPlayer2.Race = GameRaceToPlayerRace((*source).Race)
 		generatedPlayer2.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
-		generatedPlayer2.Scorehistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
+		generatedPlayer2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
 		pCsBitmask := c.csBitmaskToCsBitmask((*source).AchievedVictoryConditions)
-		generatedPlayer2.Achievedvictoryconditions = &pCsBitmask
-		generatedPlayer2.Victor = BoolToNullBool((*source).Victor)
+		generatedPlayer2.AchievedVictoryConditions = &pCsBitmask
+		generatedPlayer2.Victor = (*source).Victor
 		generatedPlayer2.Spec = GamePlayerSpecToPlayerSpec((*source).Spec)
 		generatedPlayer2.Guest = (*source).Guest
 		pCsAIDifficulty := c.csAIDifficultyToCsAIDifficulty((*source).AIDifficulty)
-		generatedPlayer2.Aidifficulty = &pCsAIDifficulty
-		generatedPlayer2.Acquiredtechs = GameAcquiredTechsToAcquiredTechs((*source).AcquiredTechs)
+		generatedPlayer2.AiDifficulty = &pCsAIDifficulty
+		generatedPlayer2.AcquiredTechs = GameAcquiredTechsToAcquiredTechs((*source).AcquiredTechs)
 		generatedPlayer2.Archived = (*source).Archived
 		generatedPlayer = generatedPlayer2
 	}
@@ -776,59 +776,59 @@ func (c *GameConverter) ConvertGamePlayerToCreateParams(source *cs.Player) gener
 	var generatedCreatePlayerParams generated.CreatePlayerParams
 	if source != nil {
 		var generatedCreatePlayerParams2 generated.CreatePlayerParams
-		generatedCreatePlayerParams2.Gameid = (*source).GameDBObject.GameID
-		generatedCreatePlayerParams2.Userid = Int64ToNullInt64((*source).UserID)
+		generatedCreatePlayerParams2.GameID = (*source).GameDBObject.GameID
+		generatedCreatePlayerParams2.UserID = (*source).UserID
 		generatedCreatePlayerParams2.Name = (*source).Name
 		generatedCreatePlayerParams2.Num = IntToInt64((*source).Num)
-		generatedCreatePlayerParams2.Ready = BoolToNullBool((*source).Ready)
-		generatedCreatePlayerParams2.Aicontrolled = BoolToNullBool((*source).AIControlled)
-		generatedCreatePlayerParams2.Submittedturn = BoolToNullBool((*source).SubmittedTurn)
-		generatedCreatePlayerParams2.Color = StringToNullString((*source).Color)
-		generatedCreatePlayerParams2.Defaulthullset = IntToNullInt64((*source).DefaultHullSet)
-		generatedCreatePlayerParams2.Techlevelsenergy = IntToNullInt64((*source).TechLevels.Energy)
-		generatedCreatePlayerParams2.Techlevelsweapons = IntToNullInt64((*source).TechLevels.Weapons)
-		generatedCreatePlayerParams2.Techlevelspropulsion = IntToNullInt64((*source).TechLevels.Propulsion)
-		generatedCreatePlayerParams2.Techlevelsconstruction = IntToNullInt64((*source).TechLevels.Construction)
-		generatedCreatePlayerParams2.Techlevelselectronics = IntToNullInt64((*source).TechLevels.Electronics)
-		generatedCreatePlayerParams2.Techlevelsbiotechnology = IntToNullInt64((*source).TechLevels.Biotechnology)
-		generatedCreatePlayerParams2.Techlevelsspentenergy = IntToNullInt64((*source).TechLevelsSpent.Energy)
-		generatedCreatePlayerParams2.Techlevelsspentweapons = IntToNullInt64((*source).TechLevelsSpent.Weapons)
-		generatedCreatePlayerParams2.Techlevelsspentpropulsion = IntToNullInt64((*source).TechLevelsSpent.Propulsion)
-		generatedCreatePlayerParams2.Techlevelsspentconstruction = IntToNullInt64((*source).TechLevelsSpent.Construction)
-		generatedCreatePlayerParams2.Techlevelsspentelectronics = IntToNullInt64((*source).TechLevelsSpent.Electronics)
-		generatedCreatePlayerParams2.Techlevelsspentbiotechnology = IntToNullInt64((*source).TechLevelsSpent.Biotechnology)
-		generatedCreatePlayerParams2.Researchamount = IntToNullInt64((*source).PlayerOrders.ResearchAmount)
-		generatedCreatePlayerParams2.Researchspentlastyear = IntToNullInt64((*source).ResearchSpentLastYear)
-		generatedCreatePlayerParams2.Nextresearchfield = (*source).PlayerOrders.NextResearchField
+		generatedCreatePlayerParams2.Ready = (*source).Ready
+		generatedCreatePlayerParams2.AiControlled = (*source).AIControlled
+		generatedCreatePlayerParams2.SubmittedTurn = (*source).SubmittedTurn
+		generatedCreatePlayerParams2.Color = (*source).Color
+		generatedCreatePlayerParams2.DefaultHullSet = IntToInt64((*source).DefaultHullSet)
+		generatedCreatePlayerParams2.TechLevelsEnergy = IntToInt64((*source).TechLevels.Energy)
+		generatedCreatePlayerParams2.TechLevelsWeapons = IntToInt64((*source).TechLevels.Weapons)
+		generatedCreatePlayerParams2.TechLevelsPropulsion = IntToInt64((*source).TechLevels.Propulsion)
+		generatedCreatePlayerParams2.TechLevelsConstruction = IntToInt64((*source).TechLevels.Construction)
+		generatedCreatePlayerParams2.TechLevelsElectronics = IntToInt64((*source).TechLevels.Electronics)
+		generatedCreatePlayerParams2.TechLevelsBiotechnology = IntToInt64((*source).TechLevels.Biotechnology)
+		generatedCreatePlayerParams2.TechLevelsSpentEnergy = IntToInt64((*source).TechLevelsSpent.Energy)
+		generatedCreatePlayerParams2.TechLevelsSpentWeapons = IntToInt64((*source).TechLevelsSpent.Weapons)
+		generatedCreatePlayerParams2.TechLevelsSpentPropulsion = IntToInt64((*source).TechLevelsSpent.Propulsion)
+		generatedCreatePlayerParams2.TechLevelsSpentConstruction = IntToInt64((*source).TechLevelsSpent.Construction)
+		generatedCreatePlayerParams2.TechLevelsSpentElectronics = IntToInt64((*source).TechLevelsSpent.Electronics)
+		generatedCreatePlayerParams2.TechLevelsSpentBiotechnology = IntToInt64((*source).TechLevelsSpent.Biotechnology)
+		generatedCreatePlayerParams2.ResearchAmount = IntToInt64((*source).PlayerOrders.ResearchAmount)
+		generatedCreatePlayerParams2.ResearchSpentLastYear = IntToInt64((*source).ResearchSpentLastYear)
+		generatedCreatePlayerParams2.NextResearchField = (*source).PlayerOrders.NextResearchField
 		generatedCreatePlayerParams2.Researching = (*source).PlayerOrders.Researching
-		generatedCreatePlayerParams2.Battleplans = GameBattlePlansToBattlePlans((*source).PlayerPlans.BattlePlans)
-		generatedCreatePlayerParams2.Productionplans = GameProductionPlansToProductionPlans((*source).PlayerPlans.ProductionPlans)
-		generatedCreatePlayerParams2.Transportplans = GameTransportPlansToTransportPlans((*source).PlayerPlans.TransportPlans)
+		generatedCreatePlayerParams2.BattlePlans = GameBattlePlansToBattlePlans((*source).PlayerPlans.BattlePlans)
+		generatedCreatePlayerParams2.ProductionPlans = GameProductionPlansToProductionPlans((*source).PlayerPlans.ProductionPlans)
+		generatedCreatePlayerParams2.TransportPlans = GameTransportPlansToTransportPlans((*source).PlayerPlans.TransportPlans)
 		generatedCreatePlayerParams2.Relations = GamePlayerRelationshipsToPlayerRelationships((*source).Relations)
-		generatedCreatePlayerParams2.Cargotransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
+		generatedCreatePlayerParams2.CargoTransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
 		generatedCreatePlayerParams2.Messages = GamePlayerMessagesToPlayerMessages((*source).Messages)
-		generatedCreatePlayerParams2.Battlerecords = GameBattleRecordsToBattleRecords((*source).PlayerIntels.BattleRecords)
-		generatedCreatePlayerParams2.Playerintels = GamePlayerIntelsToPlayerIntels((*source).PlayerIntels.PlayerIntels)
-		generatedCreatePlayerParams2.Scoreintels = GameScoreIntelsToScoreIntels((*source).PlayerIntels.ScoreIntels)
-		generatedCreatePlayerParams2.Planetintels = GamePlanetIntelsToPlanetIntels((*source).PlayerIntels.PlanetIntels)
-		generatedCreatePlayerParams2.Fleetintels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
-		generatedCreatePlayerParams2.Shipdesignintels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
-		generatedCreatePlayerParams2.Mineralpacketintels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
-		generatedCreatePlayerParams2.Minefieldintels = GameMineFieldIntelsToMineFieldIntels((*source).PlayerIntels.MineFieldIntels)
-		generatedCreatePlayerParams2.Wormholeintels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
-		generatedCreatePlayerParams2.Mysterytraderintels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
-		generatedCreatePlayerParams2.Salvageintels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
+		generatedCreatePlayerParams2.BattleRecords = GameBattleRecordsToBattleRecords((*source).PlayerIntels.BattleRecords)
+		generatedCreatePlayerParams2.PlayerIntels = GamePlayerIntelsToPlayerIntels((*source).PlayerIntels.PlayerIntels)
+		generatedCreatePlayerParams2.ScoreIntels = GameScoreIntelsToScoreIntels((*source).PlayerIntels.ScoreIntels)
+		generatedCreatePlayerParams2.PlanetIntels = GamePlanetIntelsToPlanetIntels((*source).PlayerIntels.PlanetIntels)
+		generatedCreatePlayerParams2.FleetIntels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
+		generatedCreatePlayerParams2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
+		generatedCreatePlayerParams2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
+		generatedCreatePlayerParams2.MinefieldIntels = GameMineFieldIntelsToMineFieldIntels((*source).PlayerIntels.MineFieldIntels)
+		generatedCreatePlayerParams2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
+		generatedCreatePlayerParams2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
+		generatedCreatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
 		generatedCreatePlayerParams2.Race = GameRaceToPlayerRace((*source).Race)
 		generatedCreatePlayerParams2.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
-		generatedCreatePlayerParams2.Scorehistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
+		generatedCreatePlayerParams2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
 		pCsBitmask := c.csBitmaskToCsBitmask((*source).AchievedVictoryConditions)
-		generatedCreatePlayerParams2.Achievedvictoryconditions = &pCsBitmask
-		generatedCreatePlayerParams2.Victor = BoolToNullBool((*source).Victor)
+		generatedCreatePlayerParams2.AchievedVictoryConditions = &pCsBitmask
+		generatedCreatePlayerParams2.Victor = (*source).Victor
 		generatedCreatePlayerParams2.Spec = GamePlayerSpecToPlayerSpec((*source).Spec)
 		generatedCreatePlayerParams2.Guest = (*source).Guest
 		pCsAIDifficulty := c.csAIDifficultyToCsAIDifficulty((*source).AIDifficulty)
-		generatedCreatePlayerParams2.Aidifficulty = &pCsAIDifficulty
-		generatedCreatePlayerParams2.Acquiredtechs = GameAcquiredTechsToAcquiredTechs((*source).AcquiredTechs)
+		generatedCreatePlayerParams2.AiDifficulty = &pCsAIDifficulty
+		generatedCreatePlayerParams2.AcquiredTechs = GameAcquiredTechsToAcquiredTechs((*source).AcquiredTechs)
 		generatedCreatePlayerParams2.Archived = (*source).Archived
 		generatedCreatePlayerParams = generatedCreatePlayerParams2
 	}
@@ -838,59 +838,59 @@ func (c *GameConverter) ConvertGamePlayerToUpdateParams(source *cs.Player) gener
 	var generatedUpdatePlayerParams generated.UpdatePlayerParams
 	if source != nil {
 		var generatedUpdatePlayerParams2 generated.UpdatePlayerParams
-		generatedUpdatePlayerParams2.Gameid = (*source).GameDBObject.GameID
-		generatedUpdatePlayerParams2.Userid = Int64ToNullInt64((*source).UserID)
+		generatedUpdatePlayerParams2.GameID = (*source).GameDBObject.GameID
+		generatedUpdatePlayerParams2.UserID = (*source).UserID
 		generatedUpdatePlayerParams2.Name = (*source).Name
 		generatedUpdatePlayerParams2.Num = IntToInt64((*source).Num)
-		generatedUpdatePlayerParams2.Ready = BoolToNullBool((*source).Ready)
-		generatedUpdatePlayerParams2.Aicontrolled = BoolToNullBool((*source).AIControlled)
-		generatedUpdatePlayerParams2.Submittedturn = BoolToNullBool((*source).SubmittedTurn)
-		generatedUpdatePlayerParams2.Color = StringToNullString((*source).Color)
-		generatedUpdatePlayerParams2.Defaulthullset = IntToNullInt64((*source).DefaultHullSet)
-		generatedUpdatePlayerParams2.Techlevelsenergy = IntToNullInt64((*source).TechLevels.Energy)
-		generatedUpdatePlayerParams2.Techlevelsweapons = IntToNullInt64((*source).TechLevels.Weapons)
-		generatedUpdatePlayerParams2.Techlevelspropulsion = IntToNullInt64((*source).TechLevels.Propulsion)
-		generatedUpdatePlayerParams2.Techlevelsconstruction = IntToNullInt64((*source).TechLevels.Construction)
-		generatedUpdatePlayerParams2.Techlevelselectronics = IntToNullInt64((*source).TechLevels.Electronics)
-		generatedUpdatePlayerParams2.Techlevelsbiotechnology = IntToNullInt64((*source).TechLevels.Biotechnology)
-		generatedUpdatePlayerParams2.Techlevelsspentenergy = IntToNullInt64((*source).TechLevelsSpent.Energy)
-		generatedUpdatePlayerParams2.Techlevelsspentweapons = IntToNullInt64((*source).TechLevelsSpent.Weapons)
-		generatedUpdatePlayerParams2.Techlevelsspentpropulsion = IntToNullInt64((*source).TechLevelsSpent.Propulsion)
-		generatedUpdatePlayerParams2.Techlevelsspentconstruction = IntToNullInt64((*source).TechLevelsSpent.Construction)
-		generatedUpdatePlayerParams2.Techlevelsspentelectronics = IntToNullInt64((*source).TechLevelsSpent.Electronics)
-		generatedUpdatePlayerParams2.Techlevelsspentbiotechnology = IntToNullInt64((*source).TechLevelsSpent.Biotechnology)
-		generatedUpdatePlayerParams2.Researchamount = IntToNullInt64((*source).PlayerOrders.ResearchAmount)
-		generatedUpdatePlayerParams2.Researchspentlastyear = IntToNullInt64((*source).ResearchSpentLastYear)
-		generatedUpdatePlayerParams2.Nextresearchfield = (*source).PlayerOrders.NextResearchField
+		generatedUpdatePlayerParams2.Ready = (*source).Ready
+		generatedUpdatePlayerParams2.AiControlled = (*source).AIControlled
+		generatedUpdatePlayerParams2.SubmittedTurn = (*source).SubmittedTurn
+		generatedUpdatePlayerParams2.Color = (*source).Color
+		generatedUpdatePlayerParams2.DefaultHullSet = IntToInt64((*source).DefaultHullSet)
+		generatedUpdatePlayerParams2.TechLevelsEnergy = IntToInt64((*source).TechLevels.Energy)
+		generatedUpdatePlayerParams2.TechLevelsWeapons = IntToInt64((*source).TechLevels.Weapons)
+		generatedUpdatePlayerParams2.TechLevelsPropulsion = IntToInt64((*source).TechLevels.Propulsion)
+		generatedUpdatePlayerParams2.TechLevelsConstruction = IntToInt64((*source).TechLevels.Construction)
+		generatedUpdatePlayerParams2.TechLevelsElectronics = IntToInt64((*source).TechLevels.Electronics)
+		generatedUpdatePlayerParams2.TechLevelsBiotechnology = IntToInt64((*source).TechLevels.Biotechnology)
+		generatedUpdatePlayerParams2.TechLevelsSpentEnergy = IntToInt64((*source).TechLevelsSpent.Energy)
+		generatedUpdatePlayerParams2.TechLevelsSpentWeapons = IntToInt64((*source).TechLevelsSpent.Weapons)
+		generatedUpdatePlayerParams2.TechLevelsSpentPropulsion = IntToInt64((*source).TechLevelsSpent.Propulsion)
+		generatedUpdatePlayerParams2.TechLevelsSpentConstruction = IntToInt64((*source).TechLevelsSpent.Construction)
+		generatedUpdatePlayerParams2.TechLevelsSpentElectronics = IntToInt64((*source).TechLevelsSpent.Electronics)
+		generatedUpdatePlayerParams2.TechLevelsSpentBiotechnology = IntToInt64((*source).TechLevelsSpent.Biotechnology)
+		generatedUpdatePlayerParams2.ResearchAmount = IntToInt64((*source).PlayerOrders.ResearchAmount)
+		generatedUpdatePlayerParams2.ResearchSpentLastYear = IntToInt64((*source).ResearchSpentLastYear)
+		generatedUpdatePlayerParams2.NextResearchField = (*source).PlayerOrders.NextResearchField
 		generatedUpdatePlayerParams2.Researching = (*source).PlayerOrders.Researching
-		generatedUpdatePlayerParams2.Battleplans = GameBattlePlansToBattlePlans((*source).PlayerPlans.BattlePlans)
-		generatedUpdatePlayerParams2.Productionplans = GameProductionPlansToProductionPlans((*source).PlayerPlans.ProductionPlans)
-		generatedUpdatePlayerParams2.Transportplans = GameTransportPlansToTransportPlans((*source).PlayerPlans.TransportPlans)
+		generatedUpdatePlayerParams2.BattlePlans = GameBattlePlansToBattlePlans((*source).PlayerPlans.BattlePlans)
+		generatedUpdatePlayerParams2.ProductionPlans = GameProductionPlansToProductionPlans((*source).PlayerPlans.ProductionPlans)
+		generatedUpdatePlayerParams2.TransportPlans = GameTransportPlansToTransportPlans((*source).PlayerPlans.TransportPlans)
 		generatedUpdatePlayerParams2.Relations = GamePlayerRelationshipsToPlayerRelationships((*source).Relations)
-		generatedUpdatePlayerParams2.Cargotransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
+		generatedUpdatePlayerParams2.CargoTransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
 		generatedUpdatePlayerParams2.Messages = GamePlayerMessagesToPlayerMessages((*source).Messages)
-		generatedUpdatePlayerParams2.Battlerecords = GameBattleRecordsToBattleRecords((*source).PlayerIntels.BattleRecords)
-		generatedUpdatePlayerParams2.Playerintels = GamePlayerIntelsToPlayerIntels((*source).PlayerIntels.PlayerIntels)
-		generatedUpdatePlayerParams2.Scoreintels = GameScoreIntelsToScoreIntels((*source).PlayerIntels.ScoreIntels)
-		generatedUpdatePlayerParams2.Planetintels = GamePlanetIntelsToPlanetIntels((*source).PlayerIntels.PlanetIntels)
-		generatedUpdatePlayerParams2.Fleetintels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
-		generatedUpdatePlayerParams2.Shipdesignintels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
-		generatedUpdatePlayerParams2.Mineralpacketintels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
-		generatedUpdatePlayerParams2.Minefieldintels = GameMineFieldIntelsToMineFieldIntels((*source).PlayerIntels.MineFieldIntels)
-		generatedUpdatePlayerParams2.Wormholeintels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
-		generatedUpdatePlayerParams2.Mysterytraderintels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
-		generatedUpdatePlayerParams2.Salvageintels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
+		generatedUpdatePlayerParams2.BattleRecords = GameBattleRecordsToBattleRecords((*source).PlayerIntels.BattleRecords)
+		generatedUpdatePlayerParams2.PlayerIntels = GamePlayerIntelsToPlayerIntels((*source).PlayerIntels.PlayerIntels)
+		generatedUpdatePlayerParams2.ScoreIntels = GameScoreIntelsToScoreIntels((*source).PlayerIntels.ScoreIntels)
+		generatedUpdatePlayerParams2.PlanetIntels = GamePlanetIntelsToPlanetIntels((*source).PlayerIntels.PlanetIntels)
+		generatedUpdatePlayerParams2.FleetIntels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
+		generatedUpdatePlayerParams2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
+		generatedUpdatePlayerParams2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
+		generatedUpdatePlayerParams2.MinefieldIntels = GameMineFieldIntelsToMineFieldIntels((*source).PlayerIntels.MineFieldIntels)
+		generatedUpdatePlayerParams2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
+		generatedUpdatePlayerParams2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
+		generatedUpdatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
 		generatedUpdatePlayerParams2.Race = GameRaceToPlayerRace((*source).Race)
 		generatedUpdatePlayerParams2.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
-		generatedUpdatePlayerParams2.Scorehistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
+		generatedUpdatePlayerParams2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
 		pCsBitmask := c.csBitmaskToCsBitmask((*source).AchievedVictoryConditions)
-		generatedUpdatePlayerParams2.Achievedvictoryconditions = &pCsBitmask
-		generatedUpdatePlayerParams2.Victor = BoolToNullBool((*source).Victor)
+		generatedUpdatePlayerParams2.AchievedVictoryConditions = &pCsBitmask
+		generatedUpdatePlayerParams2.Victor = (*source).Victor
 		generatedUpdatePlayerParams2.Spec = GamePlayerSpecToPlayerSpec((*source).Spec)
 		generatedUpdatePlayerParams2.Guest = (*source).Guest
 		pCsAIDifficulty := c.csAIDifficultyToCsAIDifficulty((*source).AIDifficulty)
-		generatedUpdatePlayerParams2.Aidifficulty = &pCsAIDifficulty
-		generatedUpdatePlayerParams2.Acquiredtechs = GameAcquiredTechsToAcquiredTechs((*source).AcquiredTechs)
+		generatedUpdatePlayerParams2.AiDifficulty = &pCsAIDifficulty
+		generatedUpdatePlayerParams2.AcquiredTechs = GameAcquiredTechsToAcquiredTechs((*source).AcquiredTechs)
 		generatedUpdatePlayerParams2.Archived = (*source).Archived
 		generatedUpdatePlayerParams2.ID = (*source).GameDBObject.ID
 		generatedUpdatePlayerParams = generatedUpdatePlayerParams2
@@ -902,39 +902,39 @@ func (c *GameConverter) ConvertGameRace(source *cs.Race) generated.Race {
 	if source != nil {
 		var generatedRace2 generated.Race
 		generatedRace2.ID = (*source).DBObject.ID
-		generatedRace2.Createdat = c.timeTimeToTimeTime((*source).DBObject.CreatedAt)
-		generatedRace2.Updatedat = c.timeTimeToTimeTime((*source).DBObject.UpdatedAt)
-		generatedRace2.Userid = (*source).UserID
+		generatedRace2.CreatedAt = c.timeTimeToTimeTime((*source).DBObject.CreatedAt)
+		generatedRace2.UpdatedAt = c.timeTimeToTimeTime((*source).DBObject.UpdatedAt)
+		generatedRace2.UserID = (*source).UserID
 		generatedRace2.Name = (*source).Name
-		generatedRace2.Pluralname = (*source).PluralName
-		generatedRace2.Spendleftoverpointson = (*source).SpendLeftoverPointsOn
+		generatedRace2.PluralName = (*source).PluralName
+		generatedRace2.SpendLeftoverPointsOn = (*source).SpendLeftoverPointsOn
 		generatedRace2.Prt = (*source).PRT
 		generatedRace2.Lrts = c.csBitmaskToCsBitmask((*source).LRTs)
-		generatedRace2.Hablowgrav = IntToNullInt64((*source).HabLow.Grav)
-		generatedRace2.Hablowtemp = IntToNullInt64((*source).HabLow.Temp)
-		generatedRace2.Hablowrad = IntToNullInt64((*source).HabLow.Rad)
-		generatedRace2.Habhighgrav = IntToNullInt64((*source).HabHigh.Grav)
-		generatedRace2.Habhightemp = IntToNullInt64((*source).HabHigh.Temp)
-		generatedRace2.Habhighrad = IntToNullInt64((*source).HabHigh.Rad)
-		generatedRace2.Growthrate = IntToNullInt64((*source).GrowthRate)
-		generatedRace2.Popefficiency = IntToNullInt64((*source).PopEfficiency)
-		generatedRace2.Factoryoutput = IntToNullInt64((*source).FactoryOutput)
-		generatedRace2.Factorycost = IntToNullInt64((*source).FactoryCost)
-		generatedRace2.Numfactories = IntToNullInt64((*source).NumFactories)
-		generatedRace2.Factoriescostless = BoolToNullBool((*source).FactoriesCostLess)
-		generatedRace2.Immunegrav = BoolToNullBool((*source).ImmuneGrav)
-		generatedRace2.Immunetemp = BoolToNullBool((*source).ImmuneTemp)
-		generatedRace2.Immunerad = BoolToNullBool((*source).ImmuneRad)
-		generatedRace2.Mineoutput = IntToNullInt64((*source).MineOutput)
-		generatedRace2.Minecost = IntToNullInt64((*source).MineCost)
-		generatedRace2.Nummines = IntToNullInt64((*source).NumMines)
-		generatedRace2.Researchcostenergy = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Energy)
-		generatedRace2.Researchcostweapons = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Weapons)
-		generatedRace2.Researchcostpropulsion = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Propulsion)
-		generatedRace2.Researchcostconstruction = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Construction)
-		generatedRace2.Researchcostelectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
-		generatedRace2.Researchcostbiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
-		generatedRace2.Techsstarthigh = BoolToNullBool((*source).TechsStartHigh)
+		generatedRace2.HabLowGrav = IntToInt64((*source).HabLow.Grav)
+		generatedRace2.HabLowTemp = IntToInt64((*source).HabLow.Temp)
+		generatedRace2.HabLowRad = IntToInt64((*source).HabLow.Rad)
+		generatedRace2.HabHighGrav = IntToInt64((*source).HabHigh.Grav)
+		generatedRace2.HabHighTemp = IntToInt64((*source).HabHigh.Temp)
+		generatedRace2.HabHighRad = IntToInt64((*source).HabHigh.Rad)
+		generatedRace2.GrowthRate = IntToInt64((*source).GrowthRate)
+		generatedRace2.PopEfficiency = IntToInt64((*source).PopEfficiency)
+		generatedRace2.FactoryOutput = IntToInt64((*source).FactoryOutput)
+		generatedRace2.FactoryCost = IntToInt64((*source).FactoryCost)
+		generatedRace2.NumFactories = IntToInt64((*source).NumFactories)
+		generatedRace2.FactoriesCostLess = (*source).FactoriesCostLess
+		generatedRace2.ImmuneGrav = (*source).ImmuneGrav
+		generatedRace2.ImmuneTemp = (*source).ImmuneTemp
+		generatedRace2.ImmuneRad = (*source).ImmuneRad
+		generatedRace2.MineOutput = IntToInt64((*source).MineOutput)
+		generatedRace2.MineCost = IntToInt64((*source).MineCost)
+		generatedRace2.NumMines = IntToInt64((*source).NumMines)
+		generatedRace2.ResearchCostEnergy = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Energy)
+		generatedRace2.ResearchCostWeapons = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Weapons)
+		generatedRace2.ResearchCostPropulsion = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Propulsion)
+		generatedRace2.ResearchCostConstruction = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Construction)
+		generatedRace2.ResearchCostElectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
+		generatedRace2.ResearchCostBiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
+		generatedRace2.TechsStartHigh = (*source).TechsStartHigh
 		generatedRace2.Spec = GameRaceSpecToRaceSpec((*source).Spec)
 		generatedRace = generatedRace2
 	}
@@ -944,37 +944,37 @@ func (c *GameConverter) ConvertGameRaceToCreateParams(source *cs.Race) generated
 	var generatedCreateRaceParams generated.CreateRaceParams
 	if source != nil {
 		var generatedCreateRaceParams2 generated.CreateRaceParams
-		generatedCreateRaceParams2.Userid = (*source).UserID
+		generatedCreateRaceParams2.UserID = (*source).UserID
 		generatedCreateRaceParams2.Name = (*source).Name
-		generatedCreateRaceParams2.Pluralname = (*source).PluralName
-		generatedCreateRaceParams2.Spendleftoverpointson = (*source).SpendLeftoverPointsOn
+		generatedCreateRaceParams2.PluralName = (*source).PluralName
+		generatedCreateRaceParams2.SpendLeftoverPointsOn = (*source).SpendLeftoverPointsOn
 		generatedCreateRaceParams2.Prt = (*source).PRT
 		generatedCreateRaceParams2.Lrts = c.csBitmaskToCsBitmask((*source).LRTs)
-		generatedCreateRaceParams2.Hablowgrav = IntToNullInt64((*source).HabLow.Grav)
-		generatedCreateRaceParams2.Hablowtemp = IntToNullInt64((*source).HabLow.Temp)
-		generatedCreateRaceParams2.Hablowrad = IntToNullInt64((*source).HabLow.Rad)
-		generatedCreateRaceParams2.Habhighgrav = IntToNullInt64((*source).HabHigh.Grav)
-		generatedCreateRaceParams2.Habhightemp = IntToNullInt64((*source).HabHigh.Temp)
-		generatedCreateRaceParams2.Habhighrad = IntToNullInt64((*source).HabHigh.Rad)
-		generatedCreateRaceParams2.Growthrate = IntToNullInt64((*source).GrowthRate)
-		generatedCreateRaceParams2.Popefficiency = IntToNullInt64((*source).PopEfficiency)
-		generatedCreateRaceParams2.Factoryoutput = IntToNullInt64((*source).FactoryOutput)
-		generatedCreateRaceParams2.Factorycost = IntToNullInt64((*source).FactoryCost)
-		generatedCreateRaceParams2.Numfactories = IntToNullInt64((*source).NumFactories)
-		generatedCreateRaceParams2.Factoriescostless = BoolToNullBool((*source).FactoriesCostLess)
-		generatedCreateRaceParams2.Immunegrav = BoolToNullBool((*source).ImmuneGrav)
-		generatedCreateRaceParams2.Immunetemp = BoolToNullBool((*source).ImmuneTemp)
-		generatedCreateRaceParams2.Immunerad = BoolToNullBool((*source).ImmuneRad)
-		generatedCreateRaceParams2.Mineoutput = IntToNullInt64((*source).MineOutput)
-		generatedCreateRaceParams2.Minecost = IntToNullInt64((*source).MineCost)
-		generatedCreateRaceParams2.Nummines = IntToNullInt64((*source).NumMines)
-		generatedCreateRaceParams2.Researchcostenergy = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Energy)
-		generatedCreateRaceParams2.Researchcostweapons = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Weapons)
-		generatedCreateRaceParams2.Researchcostpropulsion = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Propulsion)
-		generatedCreateRaceParams2.Researchcostconstruction = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Construction)
-		generatedCreateRaceParams2.Researchcostelectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
-		generatedCreateRaceParams2.Researchcostbiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
-		generatedCreateRaceParams2.Techsstarthigh = BoolToNullBool((*source).TechsStartHigh)
+		generatedCreateRaceParams2.HabLowGrav = IntToInt64((*source).HabLow.Grav)
+		generatedCreateRaceParams2.HabLowTemp = IntToInt64((*source).HabLow.Temp)
+		generatedCreateRaceParams2.HabLowRad = IntToInt64((*source).HabLow.Rad)
+		generatedCreateRaceParams2.HabHighGrav = IntToInt64((*source).HabHigh.Grav)
+		generatedCreateRaceParams2.HabHighTemp = IntToInt64((*source).HabHigh.Temp)
+		generatedCreateRaceParams2.HabHighRad = IntToInt64((*source).HabHigh.Rad)
+		generatedCreateRaceParams2.GrowthRate = IntToInt64((*source).GrowthRate)
+		generatedCreateRaceParams2.PopEfficiency = IntToInt64((*source).PopEfficiency)
+		generatedCreateRaceParams2.FactoryOutput = IntToInt64((*source).FactoryOutput)
+		generatedCreateRaceParams2.FactoryCost = IntToInt64((*source).FactoryCost)
+		generatedCreateRaceParams2.NumFactories = IntToInt64((*source).NumFactories)
+		generatedCreateRaceParams2.FactoriesCostLess = (*source).FactoriesCostLess
+		generatedCreateRaceParams2.ImmuneGrav = (*source).ImmuneGrav
+		generatedCreateRaceParams2.ImmuneTemp = (*source).ImmuneTemp
+		generatedCreateRaceParams2.ImmuneRad = (*source).ImmuneRad
+		generatedCreateRaceParams2.MineOutput = IntToInt64((*source).MineOutput)
+		generatedCreateRaceParams2.MineCost = IntToInt64((*source).MineCost)
+		generatedCreateRaceParams2.NumMines = IntToInt64((*source).NumMines)
+		generatedCreateRaceParams2.ResearchCostEnergy = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Energy)
+		generatedCreateRaceParams2.ResearchCostWeapons = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Weapons)
+		generatedCreateRaceParams2.ResearchCostPropulsion = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Propulsion)
+		generatedCreateRaceParams2.ResearchCostConstruction = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Construction)
+		generatedCreateRaceParams2.ResearchCostElectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
+		generatedCreateRaceParams2.ResearchCostBiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
+		generatedCreateRaceParams2.TechsStartHigh = (*source).TechsStartHigh
 		generatedCreateRaceParams2.Spec = GameRaceSpecToRaceSpec((*source).Spec)
 		generatedCreateRaceParams = generatedCreateRaceParams2
 	}
@@ -984,37 +984,37 @@ func (c *GameConverter) ConvertGameRaceToUpdateParams(source *cs.Race) generated
 	var generatedUpdateRaceParams generated.UpdateRaceParams
 	if source != nil {
 		var generatedUpdateRaceParams2 generated.UpdateRaceParams
-		generatedUpdateRaceParams2.Userid = (*source).UserID
+		generatedUpdateRaceParams2.UserID = (*source).UserID
 		generatedUpdateRaceParams2.Name = (*source).Name
-		generatedUpdateRaceParams2.Pluralname = (*source).PluralName
-		generatedUpdateRaceParams2.Spendleftoverpointson = (*source).SpendLeftoverPointsOn
+		generatedUpdateRaceParams2.PluralName = (*source).PluralName
+		generatedUpdateRaceParams2.SpendLeftoverPointsOn = (*source).SpendLeftoverPointsOn
 		generatedUpdateRaceParams2.Prt = (*source).PRT
 		generatedUpdateRaceParams2.Lrts = c.csBitmaskToCsBitmask((*source).LRTs)
-		generatedUpdateRaceParams2.Hablowgrav = IntToNullInt64((*source).HabLow.Grav)
-		generatedUpdateRaceParams2.Hablowtemp = IntToNullInt64((*source).HabLow.Temp)
-		generatedUpdateRaceParams2.Hablowrad = IntToNullInt64((*source).HabLow.Rad)
-		generatedUpdateRaceParams2.Habhighgrav = IntToNullInt64((*source).HabHigh.Grav)
-		generatedUpdateRaceParams2.Habhightemp = IntToNullInt64((*source).HabHigh.Temp)
-		generatedUpdateRaceParams2.Habhighrad = IntToNullInt64((*source).HabHigh.Rad)
-		generatedUpdateRaceParams2.Growthrate = IntToNullInt64((*source).GrowthRate)
-		generatedUpdateRaceParams2.Popefficiency = IntToNullInt64((*source).PopEfficiency)
-		generatedUpdateRaceParams2.Factoryoutput = IntToNullInt64((*source).FactoryOutput)
-		generatedUpdateRaceParams2.Factorycost = IntToNullInt64((*source).FactoryCost)
-		generatedUpdateRaceParams2.Numfactories = IntToNullInt64((*source).NumFactories)
-		generatedUpdateRaceParams2.Factoriescostless = BoolToNullBool((*source).FactoriesCostLess)
-		generatedUpdateRaceParams2.Immunegrav = BoolToNullBool((*source).ImmuneGrav)
-		generatedUpdateRaceParams2.Immunetemp = BoolToNullBool((*source).ImmuneTemp)
-		generatedUpdateRaceParams2.Immunerad = BoolToNullBool((*source).ImmuneRad)
-		generatedUpdateRaceParams2.Mineoutput = IntToNullInt64((*source).MineOutput)
-		generatedUpdateRaceParams2.Minecost = IntToNullInt64((*source).MineCost)
-		generatedUpdateRaceParams2.Nummines = IntToNullInt64((*source).NumMines)
-		generatedUpdateRaceParams2.Researchcostenergy = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Energy)
-		generatedUpdateRaceParams2.Researchcostweapons = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Weapons)
-		generatedUpdateRaceParams2.Researchcostpropulsion = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Propulsion)
-		generatedUpdateRaceParams2.Researchcostconstruction = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Construction)
-		generatedUpdateRaceParams2.Researchcostelectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
-		generatedUpdateRaceParams2.Researchcostbiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
-		generatedUpdateRaceParams2.Techsstarthigh = BoolToNullBool((*source).TechsStartHigh)
+		generatedUpdateRaceParams2.HabLowGrav = IntToInt64((*source).HabLow.Grav)
+		generatedUpdateRaceParams2.HabLowTemp = IntToInt64((*source).HabLow.Temp)
+		generatedUpdateRaceParams2.HabLowRad = IntToInt64((*source).HabLow.Rad)
+		generatedUpdateRaceParams2.HabHighGrav = IntToInt64((*source).HabHigh.Grav)
+		generatedUpdateRaceParams2.HabHighTemp = IntToInt64((*source).HabHigh.Temp)
+		generatedUpdateRaceParams2.HabHighRad = IntToInt64((*source).HabHigh.Rad)
+		generatedUpdateRaceParams2.GrowthRate = IntToInt64((*source).GrowthRate)
+		generatedUpdateRaceParams2.PopEfficiency = IntToInt64((*source).PopEfficiency)
+		generatedUpdateRaceParams2.FactoryOutput = IntToInt64((*source).FactoryOutput)
+		generatedUpdateRaceParams2.FactoryCost = IntToInt64((*source).FactoryCost)
+		generatedUpdateRaceParams2.NumFactories = IntToInt64((*source).NumFactories)
+		generatedUpdateRaceParams2.FactoriesCostLess = (*source).FactoriesCostLess
+		generatedUpdateRaceParams2.ImmuneGrav = (*source).ImmuneGrav
+		generatedUpdateRaceParams2.ImmuneTemp = (*source).ImmuneTemp
+		generatedUpdateRaceParams2.ImmuneRad = (*source).ImmuneRad
+		generatedUpdateRaceParams2.MineOutput = IntToInt64((*source).MineOutput)
+		generatedUpdateRaceParams2.MineCost = IntToInt64((*source).MineCost)
+		generatedUpdateRaceParams2.NumMines = IntToInt64((*source).NumMines)
+		generatedUpdateRaceParams2.ResearchCostEnergy = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Energy)
+		generatedUpdateRaceParams2.ResearchCostWeapons = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Weapons)
+		generatedUpdateRaceParams2.ResearchCostPropulsion = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Propulsion)
+		generatedUpdateRaceParams2.ResearchCostConstruction = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Construction)
+		generatedUpdateRaceParams2.ResearchCostElectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
+		generatedUpdateRaceParams2.ResearchCostBiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
+		generatedUpdateRaceParams2.TechsStartHigh = (*source).TechsStartHigh
 		generatedUpdateRaceParams2.Spec = GameRaceSpecToRaceSpec((*source).Spec)
 		generatedUpdateRaceParams2.ID = (*source).DBObject.ID
 		generatedUpdateRaceParams = generatedUpdateRaceParams2
@@ -1026,17 +1026,17 @@ func (c *GameConverter) ConvertGameSalvage(source *cs.Salvage) generated.Salvage
 	if source != nil {
 		var generatedSalvage2 generated.Salvage
 		generatedSalvage2.ID = (*source).GameDBObject.ID
-		generatedSalvage2.Createdat = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
-		generatedSalvage2.Updatedat = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
-		generatedSalvage2.Gameid = (*source).GameDBObject.GameID
-		generatedSalvage2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedSalvage2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedSalvage2.CreatedAt = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
+		generatedSalvage2.UpdatedAt = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
+		generatedSalvage2.GameID = (*source).GameDBObject.GameID
+		generatedSalvage2.X = (*source).MapObject.Position.X
+		generatedSalvage2.Y = (*source).MapObject.Position.Y
 		generatedSalvage2.Name = (*source).MapObject.Name
-		generatedSalvage2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedSalvage2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
-		generatedSalvage2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedSalvage2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedSalvage2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
+		generatedSalvage2.Num = IntToInt64((*source).MapObject.Num)
+		generatedSalvage2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
+		generatedSalvage2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedSalvage2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedSalvage2.Germanium = IntToInt64((*source).Cargo.Germanium)
 		generatedSalvage2.Tags = GameTagsToTags((*source).MapObject.Tags)
 		generatedSalvage = generatedSalvage2
 	}
@@ -1046,16 +1046,16 @@ func (c *GameConverter) ConvertGameSalvageToCreateParams(source *cs.Salvage) gen
 	var generatedCreateSalvageParams generated.CreateSalvageParams
 	if source != nil {
 		var generatedCreateSalvageParams2 generated.CreateSalvageParams
-		generatedCreateSalvageParams2.Gameid = (*source).GameDBObject.GameID
-		generatedCreateSalvageParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedCreateSalvageParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedCreateSalvageParams2.GameID = (*source).GameDBObject.GameID
+		generatedCreateSalvageParams2.X = (*source).MapObject.Position.X
+		generatedCreateSalvageParams2.Y = (*source).MapObject.Position.Y
 		generatedCreateSalvageParams2.Name = (*source).MapObject.Name
-		generatedCreateSalvageParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedCreateSalvageParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
+		generatedCreateSalvageParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedCreateSalvageParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedCreateSalvageParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedCreateSalvageParams2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedCreateSalvageParams2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedCreateSalvageParams2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
+		generatedCreateSalvageParams2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedCreateSalvageParams2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedCreateSalvageParams2.Germanium = IntToInt64((*source).Cargo.Germanium)
 		generatedCreateSalvageParams = generatedCreateSalvageParams2
 	}
 	return generatedCreateSalvageParams
@@ -1064,63 +1064,63 @@ func (c *GameConverter) ConvertGameSalvageToUpdateParams(source *cs.Salvage) gen
 	var generatedUpdateSalvageParams generated.UpdateSalvageParams
 	if source != nil {
 		var generatedUpdateSalvageParams2 generated.UpdateSalvageParams
-		generatedUpdateSalvageParams2.Gameid = (*source).GameDBObject.GameID
-		generatedUpdateSalvageParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedUpdateSalvageParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedUpdateSalvageParams2.GameID = (*source).GameDBObject.GameID
+		generatedUpdateSalvageParams2.X = (*source).MapObject.Position.X
+		generatedUpdateSalvageParams2.Y = (*source).MapObject.Position.Y
 		generatedUpdateSalvageParams2.Name = (*source).MapObject.Name
-		generatedUpdateSalvageParams2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedUpdateSalvageParams2.Playernum = IntToNullInt64((*source).MapObject.PlayerNum)
+		generatedUpdateSalvageParams2.Num = IntToInt64((*source).MapObject.Num)
+		generatedUpdateSalvageParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedUpdateSalvageParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedUpdateSalvageParams2.Ironium = IntToNullInt64((*source).Cargo.Ironium)
-		generatedUpdateSalvageParams2.Boranium = IntToNullInt64((*source).Cargo.Boranium)
-		generatedUpdateSalvageParams2.Germanium = IntToNullInt64((*source).Cargo.Germanium)
+		generatedUpdateSalvageParams2.Ironium = IntToInt64((*source).Cargo.Ironium)
+		generatedUpdateSalvageParams2.Boranium = IntToInt64((*source).Cargo.Boranium)
+		generatedUpdateSalvageParams2.Germanium = IntToInt64((*source).Cargo.Germanium)
 		generatedUpdateSalvageParams2.ID = (*source).GameDBObject.ID
 		generatedUpdateSalvageParams = generatedUpdateSalvageParams2
 	}
 	return generatedUpdateSalvageParams
 }
-func (c *GameConverter) ConvertGameShipDesign(source *cs.ShipDesign) generated.Shipdesign {
-	var generatedShipdesign generated.Shipdesign
+func (c *GameConverter) ConvertGameShipDesign(source *cs.ShipDesign) generated.ShipDesign {
+	var generatedShipDesign generated.ShipDesign
 	if source != nil {
-		var generatedShipdesign2 generated.Shipdesign
-		generatedShipdesign2.ID = (*source).GameDBObject.ID
-		generatedShipdesign2.Createdat = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
-		generatedShipdesign2.Updatedat = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
-		generatedShipdesign2.Gameid = (*source).GameDBObject.GameID
-		generatedShipdesign2.Num = IntToInt64((*source).Num)
-		generatedShipdesign2.Playernum = IntToInt64((*source).PlayerNum)
-		generatedShipdesign2.Name = (*source).Name
-		generatedShipdesign2.Version = IntToNullInt64((*source).Version)
-		generatedShipdesign2.Hull = StringToNullString((*source).Hull)
-		generatedShipdesign2.Hullsetnumber = IntToNullInt64((*source).HullSetNumber)
-		generatedShipdesign2.Slots = GameShipDesignSlotsToShipDesignSlots((*source).Slots)
+		var generatedShipDesign2 generated.ShipDesign
+		generatedShipDesign2.ID = (*source).GameDBObject.ID
+		generatedShipDesign2.CreatedAt = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
+		generatedShipDesign2.UpdatedAt = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
+		generatedShipDesign2.GameID = (*source).GameDBObject.GameID
+		generatedShipDesign2.Num = IntToInt64((*source).Num)
+		generatedShipDesign2.PlayerNum = IntToInt64((*source).PlayerNum)
+		generatedShipDesign2.Name = (*source).Name
+		generatedShipDesign2.Version = IntToInt64((*source).Version)
+		generatedShipDesign2.Hull = (*source).Hull
+		generatedShipDesign2.HullSetNumber = IntToInt64((*source).HullSetNumber)
+		generatedShipDesign2.Slots = GameShipDesignSlotsToShipDesignSlots((*source).Slots)
 		pCsShipDesignPurpose := c.csShipDesignPurposeToCsShipDesignPurpose((*source).Purpose)
-		generatedShipdesign2.Purpose = &pCsShipDesignPurpose
-		generatedShipdesign2.Spec = GameShipDesignSpecToShipDesignSpec((*source).Spec)
-		generatedShipdesign2.Cannotdelete = (*source).CannotDelete
-		generatedShipdesign2.Originalplayernum = IntToNullInt64((*source).OriginalPlayerNum)
-		generatedShipdesign2.Mysterytrader = BoolToNullBool((*source).MysteryTrader)
-		generatedShipdesign = generatedShipdesign2
+		generatedShipDesign2.Purpose = &pCsShipDesignPurpose
+		generatedShipDesign2.Spec = GameShipDesignSpecToShipDesignSpec((*source).Spec)
+		generatedShipDesign2.CannotDelete = (*source).CannotDelete
+		generatedShipDesign2.OriginalPlayerNum = IntToNullInt64((*source).OriginalPlayerNum)
+		generatedShipDesign2.MysteryTrader = (*source).MysteryTrader
+		generatedShipDesign = generatedShipDesign2
 	}
-	return generatedShipdesign
+	return generatedShipDesign
 }
 func (c *GameConverter) ConvertGameShipDesignToCreateParams(source *cs.ShipDesign) generated.CreateShipDesignParams {
 	var generatedCreateShipDesignParams generated.CreateShipDesignParams
 	if source != nil {
 		var generatedCreateShipDesignParams2 generated.CreateShipDesignParams
-		generatedCreateShipDesignParams2.Gameid = (*source).GameDBObject.GameID
+		generatedCreateShipDesignParams2.GameID = (*source).GameDBObject.GameID
 		generatedCreateShipDesignParams2.Num = IntToInt64((*source).Num)
-		generatedCreateShipDesignParams2.Playernum = IntToInt64((*source).PlayerNum)
-		generatedCreateShipDesignParams2.Originalplayernum = IntToNullInt64((*source).OriginalPlayerNum)
+		generatedCreateShipDesignParams2.PlayerNum = IntToInt64((*source).PlayerNum)
+		generatedCreateShipDesignParams2.OriginalPlayerNum = IntToNullInt64((*source).OriginalPlayerNum)
 		generatedCreateShipDesignParams2.Name = (*source).Name
-		generatedCreateShipDesignParams2.Version = IntToNullInt64((*source).Version)
-		generatedCreateShipDesignParams2.Hull = StringToNullString((*source).Hull)
-		generatedCreateShipDesignParams2.Hullsetnumber = IntToNullInt64((*source).HullSetNumber)
-		generatedCreateShipDesignParams2.Cannotdelete = (*source).CannotDelete
+		generatedCreateShipDesignParams2.Version = IntToInt64((*source).Version)
+		generatedCreateShipDesignParams2.Hull = (*source).Hull
+		generatedCreateShipDesignParams2.HullSetNumber = IntToInt64((*source).HullSetNumber)
+		generatedCreateShipDesignParams2.CannotDelete = (*source).CannotDelete
 		generatedCreateShipDesignParams2.Slots = GameShipDesignSlotsToShipDesignSlots((*source).Slots)
 		pCsShipDesignPurpose := c.csShipDesignPurposeToCsShipDesignPurpose((*source).Purpose)
 		generatedCreateShipDesignParams2.Purpose = &pCsShipDesignPurpose
-		generatedCreateShipDesignParams2.Mysterytrader = BoolToNullBool((*source).MysteryTrader)
+		generatedCreateShipDesignParams2.MysteryTrader = (*source).MysteryTrader
 		generatedCreateShipDesignParams2.Spec = GameShipDesignSpecToShipDesignSpec((*source).Spec)
 		generatedCreateShipDesignParams = generatedCreateShipDesignParams2
 	}
@@ -1130,19 +1130,19 @@ func (c *GameConverter) ConvertGameShipDesignToUpdateParams(source *cs.ShipDesig
 	var generatedUpdateShipDesignParams generated.UpdateShipDesignParams
 	if source != nil {
 		var generatedUpdateShipDesignParams2 generated.UpdateShipDesignParams
-		generatedUpdateShipDesignParams2.Gameid = (*source).GameDBObject.GameID
+		generatedUpdateShipDesignParams2.GameID = (*source).GameDBObject.GameID
 		generatedUpdateShipDesignParams2.Num = IntToInt64((*source).Num)
-		generatedUpdateShipDesignParams2.Playernum = IntToInt64((*source).PlayerNum)
-		generatedUpdateShipDesignParams2.Originalplayernum = IntToNullInt64((*source).OriginalPlayerNum)
+		generatedUpdateShipDesignParams2.PlayerNum = IntToInt64((*source).PlayerNum)
+		generatedUpdateShipDesignParams2.OriginalPlayerNum = IntToNullInt64((*source).OriginalPlayerNum)
 		generatedUpdateShipDesignParams2.Name = (*source).Name
-		generatedUpdateShipDesignParams2.Version = IntToNullInt64((*source).Version)
-		generatedUpdateShipDesignParams2.Hull = StringToNullString((*source).Hull)
-		generatedUpdateShipDesignParams2.Hullsetnumber = IntToNullInt64((*source).HullSetNumber)
-		generatedUpdateShipDesignParams2.Cannotdelete = (*source).CannotDelete
+		generatedUpdateShipDesignParams2.Version = IntToInt64((*source).Version)
+		generatedUpdateShipDesignParams2.Hull = (*source).Hull
+		generatedUpdateShipDesignParams2.HullSetNumber = IntToInt64((*source).HullSetNumber)
+		generatedUpdateShipDesignParams2.CannotDelete = (*source).CannotDelete
 		generatedUpdateShipDesignParams2.Slots = GameShipDesignSlotsToShipDesignSlots((*source).Slots)
 		pCsShipDesignPurpose := c.csShipDesignPurposeToCsShipDesignPurpose((*source).Purpose)
 		generatedUpdateShipDesignParams2.Purpose = &pCsShipDesignPurpose
-		generatedUpdateShipDesignParams2.Mysterytrader = BoolToNullBool((*source).MysteryTrader)
+		generatedUpdateShipDesignParams2.MysteryTrader = (*source).MysteryTrader
 		generatedUpdateShipDesignParams2.Spec = GameShipDesignSpecToShipDesignSpec((*source).Spec)
 		generatedUpdateShipDesignParams2.ID = (*source).GameDBObject.ID
 		generatedUpdateShipDesignParams = generatedUpdateShipDesignParams2
@@ -1154,17 +1154,17 @@ func (c *GameConverter) ConvertGameUserToCreateParams(source *cs.User) generated
 	if source != nil {
 		var generatedCreateUserParams2 generated.CreateUserParams
 		generatedCreateUserParams2.Username = (*source).Username
-		generatedCreateUserParams2.Gameid = (*source).GameID
-		generatedCreateUserParams2.Playernum = IntToInt64((*source).PlayerNum)
-		generatedCreateUserParams2.Password = StringToNullString((*source).Password)
-		generatedCreateUserParams2.Email = StringToNullString((*source).Email)
+		generatedCreateUserParams2.GameID = (*source).GameID
+		generatedCreateUserParams2.PlayerNum = IntToInt64((*source).PlayerNum)
+		generatedCreateUserParams2.Password = (*source).Password
+		generatedCreateUserParams2.Email = (*source).Email
 		generatedCreateUserParams2.Role = string((*source).Role)
-		generatedCreateUserParams2.Banned = BoolToNullBool((*source).Banned)
-		generatedCreateUserParams2.Verified = BoolToNullBool((*source).Verified)
-		generatedCreateUserParams2.Lastlogin = (*source).LastLogin
-		generatedCreateUserParams2.Discordid = (*source).DiscordID
-		generatedCreateUserParams2.Discordavatar = (*source).DiscordAvatar
-		generatedCreateUserParams2.Discordwebhookurl = StringToNullString((*source).UserSettings.DiscordWebhookURL)
+		generatedCreateUserParams2.Banned = (*source).Banned
+		generatedCreateUserParams2.Verified = (*source).Verified
+		generatedCreateUserParams2.LastLogin = (*source).LastLogin
+		generatedCreateUserParams2.DiscordID = (*source).DiscordID
+		generatedCreateUserParams2.DiscordAvatar = (*source).DiscordAvatar
+		generatedCreateUserParams2.DiscordWebhookUrl = (*source).UserSettings.DiscordWebhookURL
 		generatedCreateUserParams = generatedCreateUserParams2
 	}
 	return generatedCreateUserParams
@@ -1174,17 +1174,17 @@ func (c *GameConverter) ConvertGameUserToUpdateParams(source *cs.User) generated
 	if source != nil {
 		var generatedUpdateUserParams2 generated.UpdateUserParams
 		generatedUpdateUserParams2.Username = (*source).Username
-		generatedUpdateUserParams2.Gameid = (*source).GameID
-		generatedUpdateUserParams2.Playernum = IntToInt64((*source).PlayerNum)
-		generatedUpdateUserParams2.Password = StringToNullString((*source).Password)
-		generatedUpdateUserParams2.Email = StringToNullString((*source).Email)
+		generatedUpdateUserParams2.GameID = (*source).GameID
+		generatedUpdateUserParams2.PlayerNum = IntToInt64((*source).PlayerNum)
+		generatedUpdateUserParams2.Password = (*source).Password
+		generatedUpdateUserParams2.Email = (*source).Email
 		generatedUpdateUserParams2.Role = string((*source).Role)
-		generatedUpdateUserParams2.Banned = BoolToNullBool((*source).Banned)
-		generatedUpdateUserParams2.Verified = BoolToNullBool((*source).Verified)
-		generatedUpdateUserParams2.Lastlogin = (*source).LastLogin
-		generatedUpdateUserParams2.Discordid = (*source).DiscordID
-		generatedUpdateUserParams2.Discordavatar = (*source).DiscordAvatar
-		generatedUpdateUserParams2.Discordwebhookurl = StringToNullString((*source).UserSettings.DiscordWebhookURL)
+		generatedUpdateUserParams2.Banned = (*source).Banned
+		generatedUpdateUserParams2.Verified = (*source).Verified
+		generatedUpdateUserParams2.LastLogin = (*source).LastLogin
+		generatedUpdateUserParams2.DiscordID = (*source).DiscordID
+		generatedUpdateUserParams2.DiscordAvatar = (*source).DiscordAvatar
+		generatedUpdateUserParams2.DiscordWebhookUrl = (*source).UserSettings.DiscordWebhookURL
 		generatedUpdateUserParams2.ID = (*source).DBObject.ID
 		generatedUpdateUserParams = generatedUpdateUserParams2
 	}
@@ -1195,17 +1195,17 @@ func (c *GameConverter) ConvertGameWormhole(source *cs.Wormhole) generated.Wormh
 	if source != nil {
 		var generatedWormhole2 generated.Wormhole
 		generatedWormhole2.ID = (*source).GameDBObject.ID
-		generatedWormhole2.Createdat = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
-		generatedWormhole2.Updatedat = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
-		generatedWormhole2.Gameid = (*source).GameDBObject.GameID
-		generatedWormhole2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedWormhole2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedWormhole2.CreatedAt = c.timeTimeToTimeTime((*source).GameDBObject.CreatedAt)
+		generatedWormhole2.UpdatedAt = c.timeTimeToTimeTime((*source).GameDBObject.UpdatedAt)
+		generatedWormhole2.GameID = (*source).GameDBObject.GameID
+		generatedWormhole2.X = (*source).MapObject.Position.X
+		generatedWormhole2.Y = (*source).MapObject.Position.Y
 		generatedWormhole2.Name = (*source).MapObject.Name
-		generatedWormhole2.Num = IntToNullInt64((*source).MapObject.Num)
-		generatedWormhole2.Destinationnum = IntToNullInt64((*source).DestinationNum)
+		generatedWormhole2.Num = IntToInt64((*source).MapObject.Num)
+		generatedWormhole2.DestinationNum = IntToInt64((*source).DestinationNum)
 		pCsWormholeStability := c.csWormholeStabilityToCsWormholeStability((*source).Stability)
 		generatedWormhole2.Stability = &pCsWormholeStability
-		generatedWormhole2.Yearsatstability = IntToNullInt64((*source).YearsAtStability)
+		generatedWormhole2.YearsAtStability = IntToInt64((*source).YearsAtStability)
 		generatedWormhole2.Spec = GameWormholeSpecToWormholeSpec((*source).Spec)
 		generatedWormhole2.Tags = GameTagsToTags((*source).MapObject.Tags)
 		generatedWormhole = generatedWormhole2
@@ -1216,16 +1216,16 @@ func (c *GameConverter) ConvertGameWormholeToCreateParams(source *cs.Wormhole) g
 	var generatedCreateWormholeParams generated.CreateWormholeParams
 	if source != nil {
 		var generatedCreateWormholeParams2 generated.CreateWormholeParams
-		generatedCreateWormholeParams2.Gameid = (*source).GameDBObject.GameID
-		generatedCreateWormholeParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedCreateWormholeParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedCreateWormholeParams2.GameID = (*source).GameDBObject.GameID
+		generatedCreateWormholeParams2.X = (*source).MapObject.Position.X
+		generatedCreateWormholeParams2.Y = (*source).MapObject.Position.Y
 		generatedCreateWormholeParams2.Name = (*source).MapObject.Name
-		generatedCreateWormholeParams2.Num = IntToNullInt64((*source).MapObject.Num)
+		generatedCreateWormholeParams2.Num = IntToInt64((*source).MapObject.Num)
 		generatedCreateWormholeParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedCreateWormholeParams2.Destinationnum = IntToNullInt64((*source).DestinationNum)
+		generatedCreateWormholeParams2.DestinationNum = IntToInt64((*source).DestinationNum)
 		pCsWormholeStability := c.csWormholeStabilityToCsWormholeStability((*source).Stability)
 		generatedCreateWormholeParams2.Stability = &pCsWormholeStability
-		generatedCreateWormholeParams2.Yearsatstability = IntToNullInt64((*source).YearsAtStability)
+		generatedCreateWormholeParams2.YearsAtStability = IntToInt64((*source).YearsAtStability)
 		generatedCreateWormholeParams2.Spec = GameWormholeSpecToWormholeSpec((*source).Spec)
 		generatedCreateWormholeParams = generatedCreateWormholeParams2
 	}
@@ -1235,16 +1235,16 @@ func (c *GameConverter) ConvertGameWormholeToUpdateParams(source *cs.Wormhole) g
 	var generatedUpdateWormholeParams generated.UpdateWormholeParams
 	if source != nil {
 		var generatedUpdateWormholeParams2 generated.UpdateWormholeParams
-		generatedUpdateWormholeParams2.Gameid = (*source).GameDBObject.GameID
-		generatedUpdateWormholeParams2.X = Float64ToNullFloat64((*source).MapObject.Position.X)
-		generatedUpdateWormholeParams2.Y = Float64ToNullFloat64((*source).MapObject.Position.Y)
+		generatedUpdateWormholeParams2.GameID = (*source).GameDBObject.GameID
+		generatedUpdateWormholeParams2.X = (*source).MapObject.Position.X
+		generatedUpdateWormholeParams2.Y = (*source).MapObject.Position.Y
 		generatedUpdateWormholeParams2.Name = (*source).MapObject.Name
-		generatedUpdateWormholeParams2.Num = IntToNullInt64((*source).MapObject.Num)
+		generatedUpdateWormholeParams2.Num = IntToInt64((*source).MapObject.Num)
 		generatedUpdateWormholeParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		generatedUpdateWormholeParams2.Destinationnum = IntToNullInt64((*source).DestinationNum)
+		generatedUpdateWormholeParams2.DestinationNum = IntToInt64((*source).DestinationNum)
 		pCsWormholeStability := c.csWormholeStabilityToCsWormholeStability((*source).Stability)
 		generatedUpdateWormholeParams2.Stability = &pCsWormholeStability
-		generatedUpdateWormholeParams2.Yearsatstability = IntToNullInt64((*source).YearsAtStability)
+		generatedUpdateWormholeParams2.YearsAtStability = IntToInt64((*source).YearsAtStability)
 		generatedUpdateWormholeParams2.Spec = GameWormholeSpecToWormholeSpec((*source).Spec)
 		generatedUpdateWormholeParams2.ID = (*source).GameDBObject.ID
 		generatedUpdateWormholeParams = generatedUpdateWormholeParams2
@@ -1263,17 +1263,17 @@ func (c *GameConverter) ConvertGames(source []generated.Game) []cs.Game {
 }
 func (c *GameConverter) ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.PlayerStatus {
 	var csPlayerStatus cs.PlayerStatus
-	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.Updatedat)
-	csPlayerStatus.UserID = NullInt64ToInt64(source.Userid)
+	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
+	csPlayerStatus.UserID = NullInt64ToInt64(source.UserID)
 	csPlayerStatus.Name = NullStringToString(source.Name)
 	csPlayerStatus.Num = NullInt64ToInt(source.Num)
 	csPlayerStatus.Ready = NullBoolToBool(source.Ready)
-	csPlayerStatus.AIControlled = NullBoolToBool(source.Aicontrolled)
-	if source.Aidifficulty != nil {
-		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.Aidifficulty)
+	csPlayerStatus.AIControlled = NullBoolToBool(source.AiControlled)
+	if source.AiDifficulty != nil {
+		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
 	}
 	csPlayerStatus.Guest = NullBoolToBool(source.Guest)
-	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.Submittedturn)
+	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.SubmittedTurn)
 	csPlayerStatus.Color = NullStringToString(source.Color)
 	csPlayerStatus.Victor = NullBoolToBool(source.Victor)
 	csPlayerStatus.Archived = NullBoolToBool(source.Archived)
@@ -1281,17 +1281,17 @@ func (c *GameConverter) ConvertGetGameWithPlayersRowToPlayerStatus(source genera
 }
 func (c *GameConverter) ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.PlayerStatus {
 	var csPlayerStatus cs.PlayerStatus
-	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.Updatedat)
-	csPlayerStatus.UserID = NullInt64ToInt64(source.Userid)
+	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
+	csPlayerStatus.UserID = NullInt64ToInt64(source.UserID)
 	csPlayerStatus.Name = NullStringToString(source.Name)
 	csPlayerStatus.Num = NullInt64ToInt(source.Num)
 	csPlayerStatus.Ready = NullBoolToBool(source.Ready)
-	csPlayerStatus.AIControlled = NullBoolToBool(source.Aicontrolled)
-	if source.Aidifficulty != nil {
-		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.Aidifficulty)
+	csPlayerStatus.AIControlled = NullBoolToBool(source.AiControlled)
+	if source.AiDifficulty != nil {
+		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
 	}
 	csPlayerStatus.Guest = NullBoolToBool(source.Guest)
-	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.Submittedturn)
+	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.SubmittedTurn)
 	csPlayerStatus.Color = NullStringToString(source.Color)
 	csPlayerStatus.Victor = NullBoolToBool(source.Victor)
 	csPlayerStatus.Archived = NullBoolToBool(source.Archived)
@@ -1299,113 +1299,110 @@ func (c *GameConverter) ConvertGetGamesWithPlayersForUserRowToPlayerStatus(sourc
 }
 func (c *GameConverter) ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.PlayerStatus {
 	var csPlayerStatus cs.PlayerStatus
-	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.Updatedat)
-	csPlayerStatus.UserID = NullInt64ToInt64(source.Userid)
+	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
+	csPlayerStatus.UserID = NullInt64ToInt64(source.UserID)
 	csPlayerStatus.Name = NullStringToString(source.Name)
 	csPlayerStatus.Num = NullInt64ToInt(source.Num)
 	csPlayerStatus.Ready = NullBoolToBool(source.Ready)
-	csPlayerStatus.AIControlled = NullBoolToBool(source.Aicontrolled)
-	if source.Aidifficulty != nil {
-		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.Aidifficulty)
+	csPlayerStatus.AIControlled = NullBoolToBool(source.AiControlled)
+	if source.AiDifficulty != nil {
+		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
 	}
 	csPlayerStatus.Guest = NullBoolToBool(source.Guest)
-	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.Submittedturn)
+	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.SubmittedTurn)
 	csPlayerStatus.Color = NullStringToString(source.Color)
 	csPlayerStatus.Victor = NullBoolToBool(source.Victor)
 	csPlayerStatus.Archived = NullBoolToBool(source.Archived)
 	return csPlayerStatus
 }
-func (c *GameConverter) ConvertGetPlayerForGameAndUserRowToShipDesign(source generated.GetPlayerForGameAndUserRow) generated.Shipdesign {
-	var generatedShipdesign generated.Shipdesign
-	generatedShipdesign.ID = NullInt64ToInt64(source.ID)
-	generatedShipdesign.Createdat = NullTimeToTime(source.Createdat)
-	generatedShipdesign.Updatedat = NullTimeToTime(source.Updatedat)
-	generatedShipdesign.Gameid = NullInt64ToInt64(source.Gameid)
-	generatedShipdesign.Num = NullInt64ToInt64(source.Num)
-	generatedShipdesign.Playernum = NullInt64ToInt64(source.Playernum)
-	generatedShipdesign.Name = NullStringToString(source.Name)
-	generatedShipdesign.Version = c.sqlNullInt64ToSqlNullInt64(source.Version)
-	generatedShipdesign.Hull = source.Hull
-	generatedShipdesign.Hullsetnumber = c.sqlNullInt64ToSqlNullInt64(source.Hullsetnumber)
-	generatedShipdesign.Candelete = c.sqlNullBoolToSqlNullBool(source.Candelete)
-	generatedShipdesign.Slots = source.Slots
-	generatedShipdesign.Purpose = source.Purpose
-	generatedShipdesign.Spec = source.Spec
-	generatedShipdesign.Cannotdelete = NullBoolToBool(source.Cannotdelete)
-	generatedShipdesign.Originalplayernum = c.sqlNullInt64ToSqlNullInt64(source.Originalplayernum)
-	generatedShipdesign.Mysterytrader = c.sqlNullBoolToSqlNullBool(source.Mysterytrader)
-	return generatedShipdesign
+func (c *GameConverter) ConvertGetPlayerForGameAndUserRowToShipDesign(source generated.GetPlayerForGameAndUserRow) generated.ShipDesign {
+	var generatedShipDesign generated.ShipDesign
+	generatedShipDesign.ID = NullInt64ToInt64(source.ID)
+	generatedShipDesign.CreatedAt = NullTimeToTime(source.CreatedAt)
+	generatedShipDesign.UpdatedAt = NullTimeToTime(source.UpdatedAt)
+	generatedShipDesign.GameID = NullInt64ToInt64(source.GameID)
+	generatedShipDesign.Num = NullInt64ToInt64(source.Num)
+	generatedShipDesign.PlayerNum = NullInt64ToInt64(source.PlayerNum)
+	generatedShipDesign.Name = NullStringToString(source.Name)
+	generatedShipDesign.Version = NullInt64ToInt64(source.Version)
+	generatedShipDesign.Hull = NullStringToString(source.Hull)
+	generatedShipDesign.HullSetNumber = NullInt64ToInt64(source.HullSetNumber)
+	generatedShipDesign.Slots = source.Slots
+	generatedShipDesign.Purpose = source.Purpose
+	generatedShipDesign.Spec = source.Spec
+	generatedShipDesign.CannotDelete = NullBoolToBool(source.CannotDelete)
+	generatedShipDesign.OriginalPlayerNum = source.OriginalPlayerNum
+	generatedShipDesign.MysteryTrader = NullBoolToBool(source.MysteryTrader)
+	return generatedShipDesign
 }
-func (c *GameConverter) ConvertGetPlayerForGameRowToShipDesign(source generated.GetPlayerForGameRow) generated.Shipdesign {
-	var generatedShipdesign generated.Shipdesign
-	generatedShipdesign.ID = NullInt64ToInt64(source.ID)
-	generatedShipdesign.Createdat = NullTimeToTime(source.Createdat)
-	generatedShipdesign.Updatedat = NullTimeToTime(source.Updatedat)
-	generatedShipdesign.Gameid = NullInt64ToInt64(source.Gameid)
-	generatedShipdesign.Num = NullInt64ToInt64(source.Num)
-	generatedShipdesign.Playernum = NullInt64ToInt64(source.Playernum)
-	generatedShipdesign.Name = NullStringToString(source.Name)
-	generatedShipdesign.Version = c.sqlNullInt64ToSqlNullInt64(source.Version)
-	generatedShipdesign.Hull = source.Hull
-	generatedShipdesign.Hullsetnumber = c.sqlNullInt64ToSqlNullInt64(source.Hullsetnumber)
-	generatedShipdesign.Candelete = c.sqlNullBoolToSqlNullBool(source.Candelete)
-	generatedShipdesign.Slots = source.Slots
-	generatedShipdesign.Purpose = source.Purpose
-	generatedShipdesign.Spec = source.Spec
-	generatedShipdesign.Cannotdelete = NullBoolToBool(source.Cannotdelete)
-	generatedShipdesign.Originalplayernum = c.sqlNullInt64ToSqlNullInt64(source.Originalplayernum)
-	generatedShipdesign.Mysterytrader = c.sqlNullBoolToSqlNullBool(source.Mysterytrader)
-	return generatedShipdesign
+func (c *GameConverter) ConvertGetPlayerForGameRowToShipDesign(source generated.GetPlayerForGameRow) generated.ShipDesign {
+	var generatedShipDesign generated.ShipDesign
+	generatedShipDesign.ID = NullInt64ToInt64(source.ID)
+	generatedShipDesign.CreatedAt = NullTimeToTime(source.CreatedAt)
+	generatedShipDesign.UpdatedAt = NullTimeToTime(source.UpdatedAt)
+	generatedShipDesign.GameID = NullInt64ToInt64(source.GameID)
+	generatedShipDesign.Num = NullInt64ToInt64(source.Num)
+	generatedShipDesign.PlayerNum = NullInt64ToInt64(source.PlayerNum)
+	generatedShipDesign.Name = NullStringToString(source.Name)
+	generatedShipDesign.Version = NullInt64ToInt64(source.Version)
+	generatedShipDesign.Hull = NullStringToString(source.Hull)
+	generatedShipDesign.HullSetNumber = NullInt64ToInt64(source.HullSetNumber)
+	generatedShipDesign.Slots = source.Slots
+	generatedShipDesign.Purpose = source.Purpose
+	generatedShipDesign.Spec = source.Spec
+	generatedShipDesign.CannotDelete = NullBoolToBool(source.CannotDelete)
+	generatedShipDesign.OriginalPlayerNum = source.OriginalPlayerNum
+	generatedShipDesign.MysteryTrader = NullBoolToBool(source.MysteryTrader)
+	return generatedShipDesign
 }
-func (c *GameConverter) ConvertGetPlayersWithDesignsForGameRowToShipDesign(source generated.GetPlayersWithDesignsForGameRow) generated.Shipdesign {
-	var generatedShipdesign generated.Shipdesign
-	generatedShipdesign.ID = NullInt64ToInt64(source.ID)
-	generatedShipdesign.Createdat = NullTimeToTime(source.Createdat)
-	generatedShipdesign.Updatedat = NullTimeToTime(source.Updatedat)
-	generatedShipdesign.Gameid = NullInt64ToInt64(source.Gameid)
-	generatedShipdesign.Num = NullInt64ToInt64(source.Num)
-	generatedShipdesign.Playernum = NullInt64ToInt64(source.Playernum)
-	generatedShipdesign.Name = NullStringToString(source.Name)
-	generatedShipdesign.Version = c.sqlNullInt64ToSqlNullInt64(source.Version)
-	generatedShipdesign.Hull = source.Hull
-	generatedShipdesign.Hullsetnumber = c.sqlNullInt64ToSqlNullInt64(source.Hullsetnumber)
-	generatedShipdesign.Candelete = c.sqlNullBoolToSqlNullBool(source.Candelete)
-	generatedShipdesign.Slots = source.Slots
-	generatedShipdesign.Purpose = source.Purpose
-	generatedShipdesign.Spec = source.Spec
-	generatedShipdesign.Cannotdelete = NullBoolToBool(source.Cannotdelete)
-	generatedShipdesign.Originalplayernum = c.sqlNullInt64ToSqlNullInt64(source.Originalplayernum)
-	generatedShipdesign.Mysterytrader = c.sqlNullBoolToSqlNullBool(source.Mysterytrader)
-	return generatedShipdesign
+func (c *GameConverter) ConvertGetPlayersWithDesignsForGameRowToShipDesign(source generated.GetPlayersWithDesignsForGameRow) generated.ShipDesign {
+	var generatedShipDesign generated.ShipDesign
+	generatedShipDesign.ID = NullInt64ToInt64(source.ID)
+	generatedShipDesign.CreatedAt = NullTimeToTime(source.CreatedAt)
+	generatedShipDesign.UpdatedAt = NullTimeToTime(source.UpdatedAt)
+	generatedShipDesign.GameID = NullInt64ToInt64(source.GameID)
+	generatedShipDesign.Num = NullInt64ToInt64(source.Num)
+	generatedShipDesign.PlayerNum = NullInt64ToInt64(source.PlayerNum)
+	generatedShipDesign.Name = NullStringToString(source.Name)
+	generatedShipDesign.Version = NullInt64ToInt64(source.Version)
+	generatedShipDesign.Hull = NullStringToString(source.Hull)
+	generatedShipDesign.HullSetNumber = NullInt64ToInt64(source.HullSetNumber)
+	generatedShipDesign.Slots = source.Slots
+	generatedShipDesign.Purpose = source.Purpose
+	generatedShipDesign.Spec = source.Spec
+	generatedShipDesign.CannotDelete = NullBoolToBool(source.CannotDelete)
+	generatedShipDesign.OriginalPlayerNum = source.OriginalPlayerNum
+	generatedShipDesign.MysteryTrader = NullBoolToBool(source.MysteryTrader)
+	return generatedShipDesign
 }
 func (c *GameConverter) ConvertLightPlayer(source generated.GetLightPlayerForGameRow) cs.Player {
 	var csPlayer cs.Player
 	csPlayer.GameDBObject = c.generatedGetLightPlayerForGameRowToCsGameDBObject(source)
 	csPlayer.PlayerOrders = c.generatedGetLightPlayerForGameRowToCsPlayerOrders(source)
 	csPlayer.PlayerPlans = c.generatedGetLightPlayerForGameRowToCsPlayerPlans(source)
-	csPlayer.UserID = NullInt64ToInt64(source.Userid)
+	csPlayer.UserID = source.UserID
 	csPlayer.Name = source.Name
 	csPlayer.Num = Int64ToInt(source.Num)
-	csPlayer.Ready = NullBoolToBool(source.Ready)
-	csPlayer.AIControlled = NullBoolToBool(source.Aicontrolled)
-	if source.Aidifficulty != nil {
-		csPlayer.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.Aidifficulty)
+	csPlayer.Ready = source.Ready
+	csPlayer.AIControlled = source.AiControlled
+	if source.AiDifficulty != nil {
+		csPlayer.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
 	}
 	csPlayer.Guest = source.Guest
-	csPlayer.SubmittedTurn = NullBoolToBool(source.Submittedturn)
-	csPlayer.Color = NullStringToString(source.Color)
-	csPlayer.DefaultHullSet = NullInt64ToInt(source.Defaulthullset)
+	csPlayer.SubmittedTurn = source.SubmittedTurn
+	csPlayer.Color = source.Color
+	csPlayer.DefaultHullSet = Int64ToInt(source.DefaultHullSet)
 	csPlayer.Race = PlayerRaceToGameRace(source.Race)
 	csPlayer.TechLevels = ExtendTechLevelsLight(source)
 	csPlayer.TechLevelsSpent = ExtendTechLevelsSpentLight(source)
-	csPlayer.ResearchSpentLastYear = NullInt64ToInt(source.Researchspentlastyear)
+	csPlayer.ResearchSpentLastYear = Int64ToInt(source.ResearchSpentLastYear)
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
-	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.Scorehistory)
-	csPlayer.AcquiredTechs = AcquiredTechsToGameAcquiredTechs(source.Acquiredtechs)
-	if source.Achievedvictoryconditions != nil {
-		csPlayer.AchievedVictoryConditions = c.csBitmaskToCsBitmask(*source.Achievedvictoryconditions)
+	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
+	csPlayer.AcquiredTechs = AcquiredTechsToGameAcquiredTechs(source.AcquiredTechs)
+	if source.AchievedVictoryConditions != nil {
+		csPlayer.AchievedVictoryConditions = c.csBitmaskToCsBitmask(*source.AchievedVictoryConditions)
 	}
-	csPlayer.Victor = NullBoolToBool(source.Victor)
+	csPlayer.Victor = source.Victor
 	csPlayer.Archived = source.Archived
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
@@ -1416,10 +1413,10 @@ func (c *GameConverter) ConvertMineField(source generated.Minefield) *cs.MineFie
 	csMineField.GameDBObject = c.generatedMinefieldToCsGameDBObject(source)
 	csMineField.MapObject = ExtendMineFieldMapObject(source)
 	csMineField.MineFieldOrders = c.generatedMinefieldToCsMineFieldOrders(source)
-	if source.Minefieldtype != nil {
-		csMineField.MineFieldType = c.csMineFieldTypeToCsMineFieldType(*source.Minefieldtype)
+	if source.MinefieldType != nil {
+		csMineField.MineFieldType = c.csMineFieldTypeToCsMineFieldType(*source.MinefieldType)
 	}
-	csMineField.NumMines = NullInt64ToInt(source.Nummines)
+	csMineField.NumMines = Int64ToInt(source.NumMines)
 	csMineField.Spec = MineFieldSpecToGameMineFieldSpec(source.Spec)
 	return &csMineField
 }
@@ -1433,20 +1430,20 @@ func (c *GameConverter) ConvertMineFields(source []generated.Minefield) []*cs.Mi
 	}
 	return pCsMineFieldList
 }
-func (c *GameConverter) ConvertMineralPacket(source generated.Mineralpacket) *cs.MineralPacket {
+func (c *GameConverter) ConvertMineralPacket(source generated.MineralPacket) *cs.MineralPacket {
 	var csMineralPacket cs.MineralPacket
-	csMineralPacket.GameDBObject = c.generatedMineralpacketToCsGameDBObject(source)
+	csMineralPacket.GameDBObject = c.generatedMineralPacketToCsGameDBObject(source)
 	csMineralPacket.MapObject = ExtendMineralPacketMapObject(source)
-	csMineralPacket.TargetPlanetNum = NullInt64ToInt(source.Targetplanetnum)
+	csMineralPacket.TargetPlanetNum = Int64ToInt(source.TargetPlanetNum)
 	csMineralPacket.Cargo = c.mineralPacketCargo(source)
-	csMineralPacket.WarpSpeed = NullInt64ToInt(source.Warpspeed)
-	csMineralPacket.SafeWarpSpeed = NullInt64ToInt(source.Safewarpspeed)
+	csMineralPacket.WarpSpeed = Int64ToInt(source.WarpSpeed)
+	csMineralPacket.SafeWarpSpeed = Int64ToInt(source.SafeWarpSpeed)
 	csMineralPacket.Heading = ExtendMineralPacketHeading(source)
-	csMineralPacket.ScanRange = NullInt64ToInt(source.Scanrange)
-	csMineralPacket.ScanRangePen = NullInt64ToInt(source.Scanrangepen)
+	csMineralPacket.ScanRange = Int64ToInt(source.ScanRange)
+	csMineralPacket.ScanRangePen = Int64ToInt(source.ScanRangePen)
 	return &csMineralPacket
 }
-func (c *GameConverter) ConvertMineralPackets(source []generated.Mineralpacket) []*cs.MineralPacket {
+func (c *GameConverter) ConvertMineralPackets(source []generated.MineralPacket) []*cs.MineralPacket {
 	var pCsMineralPacketList []*cs.MineralPacket
 	if source != nil {
 		pCsMineralPacketList = make([]*cs.MineralPacket, len(source))
@@ -1456,22 +1453,22 @@ func (c *GameConverter) ConvertMineralPackets(source []generated.Mineralpacket) 
 	}
 	return pCsMineralPacketList
 }
-func (c *GameConverter) ConvertMysteryTrader(source generated.Mysterytrader) *cs.MysteryTrader {
+func (c *GameConverter) ConvertMysteryTrader(source generated.MysteryTrader) *cs.MysteryTrader {
 	var csMysteryTrader cs.MysteryTrader
-	csMysteryTrader.GameDBObject = c.generatedMysterytraderToCsGameDBObject(source)
+	csMysteryTrader.GameDBObject = c.generatedMysteryTraderToCsGameDBObject(source)
 	csMysteryTrader.MapObject = ExtendMysteryTraderMapObject(source)
-	csMysteryTrader.WarpSpeed = NullInt64ToInt(source.Warpspeed)
+	csMysteryTrader.WarpSpeed = Int64ToInt(source.WarpSpeed)
 	csMysteryTrader.Destination = ExtendMysteryTraderDestination(source)
-	csMysteryTrader.RequestedBoon = NullInt64ToInt(source.Requestedboon)
-	if source.Rewardtype != nil {
-		csMysteryTrader.RewardType = c.csMysteryTraderRewardTypeToCsMysteryTraderRewardType(*source.Rewardtype)
+	csMysteryTrader.RequestedBoon = Int64ToInt(source.RequestedBoon)
+	if source.RewardType != nil {
+		csMysteryTrader.RewardType = c.csMysteryTraderRewardTypeToCsMysteryTraderRewardType(*source.RewardType)
 	}
 	csMysteryTrader.Heading = ExtendMysteryTraderHeading(source)
-	csMysteryTrader.PlayersRewarded = MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded(source.Playersrewarded)
+	csMysteryTrader.PlayersRewarded = MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded(source.PlayersRewarded)
 	csMysteryTrader.Spec = MysteryTraderSpecToGameMysteryTraderSpec(source.Spec)
 	return &csMysteryTrader
 }
-func (c *GameConverter) ConvertMysteryTraders(source []generated.Mysterytrader) []*cs.MysteryTrader {
+func (c *GameConverter) ConvertMysteryTraders(source []generated.MysteryTrader) []*cs.MysteryTrader {
 	var pCsMysteryTraderList []*cs.MysteryTrader
 	if source != nil {
 		pCsMysteryTraderList = make([]*cs.MysteryTrader, len(source))
@@ -1492,14 +1489,14 @@ func (c *GameConverter) ConvertPlanet(source generated.Planet) *cs.Planet {
 	csPlanet.MineralConcentration = ExtendMineralConcentration(source)
 	csPlanet.MineYears = ExtendMineYears(source)
 	csPlanet.Cargo = c.generatedPlanetToCsCargo(source)
-	csPlanet.PartialPopulation = NullInt64ToInt(source.Partialpopulation)
-	csPlanet.Mines = NullInt64ToInt(source.Mines)
-	csPlanet.Factories = NullInt64ToInt(source.Factories)
-	csPlanet.Defenses = NullInt64ToInt(source.Defenses)
-	csPlanet.Homeworld = NullBoolToBool(source.Homeworld)
-	csPlanet.Scanner = NullBoolToBool(source.Scanner)
+	csPlanet.PartialPopulation = Int64ToInt(source.PartialPopulation)
+	csPlanet.Mines = Int64ToInt(source.Mines)
+	csPlanet.Factories = Int64ToInt(source.Factories)
+	csPlanet.Defenses = Int64ToInt(source.Defenses)
+	csPlanet.Homeworld = source.Homeworld
+	csPlanet.Scanner = source.Scanner
 	csPlanet.Spec = PlanetSpecToGamePlanetSpec(source.Spec)
-	csPlanet.RandomArtifact = NullBoolToBool(source.Randomartifact)
+	csPlanet.RandomArtifact = source.RandomArtifact
 	return &csPlanet
 }
 func (c *GameConverter) ConvertPlanets(source []generated.Planet) []*cs.Planet {
@@ -1518,30 +1515,30 @@ func (c *GameConverter) ConvertPlayer(source generated.Player) cs.Player {
 	csPlayer.PlayerOrders = c.generatedPlayerToCsPlayerOrders(source)
 	csPlayer.PlayerIntels = c.generatedPlayerToCsPlayerIntels(source)
 	csPlayer.PlayerPlans = c.generatedPlayerToCsPlayerPlans(source)
-	csPlayer.UserID = NullInt64ToInt64(source.Userid)
+	csPlayer.UserID = source.UserID
 	csPlayer.Name = source.Name
 	csPlayer.Num = Int64ToInt(source.Num)
-	csPlayer.Ready = NullBoolToBool(source.Ready)
-	csPlayer.AIControlled = NullBoolToBool(source.Aicontrolled)
-	if source.Aidifficulty != nil {
-		csPlayer.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.Aidifficulty)
+	csPlayer.Ready = source.Ready
+	csPlayer.AIControlled = source.AiControlled
+	if source.AiDifficulty != nil {
+		csPlayer.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
 	}
 	csPlayer.Guest = source.Guest
-	csPlayer.SubmittedTurn = NullBoolToBool(source.Submittedturn)
-	csPlayer.Color = NullStringToString(source.Color)
-	csPlayer.DefaultHullSet = NullInt64ToInt(source.Defaulthullset)
+	csPlayer.SubmittedTurn = source.SubmittedTurn
+	csPlayer.Color = source.Color
+	csPlayer.DefaultHullSet = Int64ToInt(source.DefaultHullSet)
 	csPlayer.Race = PlayerRaceToGameRace(source.Race)
 	csPlayer.TechLevels = ExtendTechLevels(source)
 	csPlayer.TechLevelsSpent = ExtendTechLevelsSpent(source)
-	csPlayer.ResearchSpentLastYear = NullInt64ToInt(source.Researchspentlastyear)
+	csPlayer.ResearchSpentLastYear = Int64ToInt(source.ResearchSpentLastYear)
 	csPlayer.Relations = PlayerRelationshipsToGamePlayerRelationships(source.Relations)
 	csPlayer.Messages = PlayerMessagesToGamePlayerMessages(source.Messages)
-	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.Scorehistory)
-	csPlayer.AcquiredTechs = AcquiredTechsToGameAcquiredTechs(source.Acquiredtechs)
-	if source.Achievedvictoryconditions != nil {
-		csPlayer.AchievedVictoryConditions = c.csBitmaskToCsBitmask(*source.Achievedvictoryconditions)
+	csPlayer.ScoreHistory = PlayerScoresToGamePlayerScores(source.ScoreHistory)
+	csPlayer.AcquiredTechs = AcquiredTechsToGameAcquiredTechs(source.AcquiredTechs)
+	if source.AchievedVictoryConditions != nil {
+		csPlayer.AchievedVictoryConditions = c.csBitmaskToCsBitmask(*source.AchievedVictoryConditions)
 	}
-	csPlayer.Victor = NullBoolToBool(source.Victor)
+	csPlayer.Victor = source.Victor
 	csPlayer.Archived = source.Archived
 	csPlayer.Stats = PlayerStatsToGamePlayerStats(source.Stats)
 	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
@@ -1550,17 +1547,17 @@ func (c *GameConverter) ConvertPlayer(source generated.Player) cs.Player {
 func (c *GameConverter) ConvertPlayerStatus(source generated.GetPlayersStatusForGameRow) cs.Player {
 	var csPlayer cs.Player
 	csPlayer.GameDBObject = c.generatedGetPlayersStatusForGameRowToCsGameDBObject(source)
-	csPlayer.UserID = NullInt64ToInt64(source.Userid)
+	csPlayer.UserID = source.UserID
 	csPlayer.Name = source.Name
 	csPlayer.Num = Int64ToInt(source.Num)
-	csPlayer.Ready = NullBoolToBool(source.Ready)
-	csPlayer.AIControlled = NullBoolToBool(source.Aicontrolled)
-	if source.Aidifficulty != nil {
-		csPlayer.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.Aidifficulty)
+	csPlayer.Ready = source.Ready
+	csPlayer.AIControlled = source.AiControlled
+	if source.AiDifficulty != nil {
+		csPlayer.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
 	}
 	csPlayer.Guest = source.Guest
-	csPlayer.SubmittedTurn = NullBoolToBool(source.Submittedturn)
-	csPlayer.Color = NullStringToString(source.Color)
+	csPlayer.SubmittedTurn = source.SubmittedTurn
+	csPlayer.Color = source.Color
 	return csPlayer
 }
 func (c *GameConverter) ConvertPlayerStatuses(source []generated.GetPlayersStatusForGameRow) []*cs.Player {
@@ -1586,28 +1583,28 @@ func (c *GameConverter) ConvertPlayers(source []generated.Player) []*cs.Player {
 func (c *GameConverter) ConvertRace(source generated.Race) cs.Race {
 	var csRace cs.Race
 	csRace.DBObject = c.generatedRaceToCsDBObject(source)
-	csRace.UserID = source.Userid
+	csRace.UserID = source.UserID
 	csRace.Name = source.Name
-	csRace.PluralName = source.Pluralname
-	csRace.SpendLeftoverPointsOn = source.Spendleftoverpointson
+	csRace.PluralName = source.PluralName
+	csRace.SpendLeftoverPointsOn = source.SpendLeftoverPointsOn
 	csRace.PRT = source.Prt
 	csRace.LRTs = c.csBitmaskToCsBitmask(source.Lrts)
 	csRace.HabLow = ExtendHabLow(source)
 	csRace.HabHigh = ExtendHabHigh(source)
-	csRace.GrowthRate = NullInt64ToInt(source.Growthrate)
-	csRace.PopEfficiency = NullInt64ToInt(source.Popefficiency)
-	csRace.FactoryOutput = NullInt64ToInt(source.Factoryoutput)
-	csRace.FactoryCost = NullInt64ToInt(source.Factorycost)
-	csRace.NumFactories = NullInt64ToInt(source.Numfactories)
-	csRace.FactoriesCostLess = NullBoolToBool(source.Factoriescostless)
-	csRace.ImmuneGrav = NullBoolToBool(source.Immunegrav)
-	csRace.ImmuneTemp = NullBoolToBool(source.Immunetemp)
-	csRace.ImmuneRad = NullBoolToBool(source.Immunerad)
-	csRace.MineOutput = NullInt64ToInt(source.Mineoutput)
-	csRace.MineCost = NullInt64ToInt(source.Minecost)
-	csRace.NumMines = NullInt64ToInt(source.Nummines)
+	csRace.GrowthRate = Int64ToInt(source.GrowthRate)
+	csRace.PopEfficiency = Int64ToInt(source.PopEfficiency)
+	csRace.FactoryOutput = Int64ToInt(source.FactoryOutput)
+	csRace.FactoryCost = Int64ToInt(source.FactoryCost)
+	csRace.NumFactories = Int64ToInt(source.NumFactories)
+	csRace.FactoriesCostLess = source.FactoriesCostLess
+	csRace.ImmuneGrav = source.ImmuneGrav
+	csRace.ImmuneTemp = source.ImmuneTemp
+	csRace.ImmuneRad = source.ImmuneRad
+	csRace.MineOutput = Int64ToInt(source.MineOutput)
+	csRace.MineCost = Int64ToInt(source.MineCost)
+	csRace.NumMines = Int64ToInt(source.NumMines)
 	csRace.ResearchCost = ExtendResearchCost(source)
-	csRace.TechsStartHigh = NullBoolToBool(source.Techsstarthigh)
+	csRace.TechsStartHigh = source.TechsStartHigh
 	csRace.Spec = RaceSpecToGameRaceSpec(source.Spec)
 	return csRace
 }
@@ -1638,18 +1635,18 @@ func (c *GameConverter) ConvertSalvages(source []generated.Salvage) []*cs.Salvag
 	}
 	return pCsSalvageList
 }
-func (c *GameConverter) ConvertShipDesign(source generated.Shipdesign) *cs.ShipDesign {
+func (c *GameConverter) ConvertShipDesign(source generated.ShipDesign) *cs.ShipDesign {
 	var csShipDesign cs.ShipDesign
-	csShipDesign.GameDBObject = c.generatedShipdesignToCsGameDBObject(source)
+	csShipDesign.GameDBObject = c.generatedShipDesignToCsGameDBObject(source)
 	csShipDesign.Num = Int64ToInt(source.Num)
-	csShipDesign.PlayerNum = Int64ToInt(source.Playernum)
-	csShipDesign.OriginalPlayerNum = NullInt64ToInt(source.Originalplayernum)
+	csShipDesign.PlayerNum = Int64ToInt(source.PlayerNum)
+	csShipDesign.OriginalPlayerNum = NullInt64ToInt(source.OriginalPlayerNum)
 	csShipDesign.Name = source.Name
-	csShipDesign.Version = NullInt64ToInt(source.Version)
-	csShipDesign.Hull = NullStringToString(source.Hull)
-	csShipDesign.HullSetNumber = NullInt64ToInt(source.Hullsetnumber)
-	csShipDesign.CannotDelete = source.Cannotdelete
-	csShipDesign.MysteryTrader = NullBoolToBool(source.Mysterytrader)
+	csShipDesign.Version = Int64ToInt(source.Version)
+	csShipDesign.Hull = source.Hull
+	csShipDesign.HullSetNumber = Int64ToInt(source.HullSetNumber)
+	csShipDesign.CannotDelete = source.CannotDelete
+	csShipDesign.MysteryTrader = source.MysteryTrader
 	csShipDesign.Slots = ShipDesignSlotsToGameShipDesignSlots(source.Slots)
 	if source.Purpose != nil {
 		csShipDesign.Purpose = c.csShipDesignPurposeToCsShipDesignPurpose(*source.Purpose)
@@ -1657,7 +1654,7 @@ func (c *GameConverter) ConvertShipDesign(source generated.Shipdesign) *cs.ShipD
 	csShipDesign.Spec = ShipDesignSpecToGameShipDesignSpec(source.Spec)
 	return &csShipDesign
 }
-func (c *GameConverter) ConvertShipDesigns(source []generated.Shipdesign) []*cs.ShipDesign {
+func (c *GameConverter) ConvertShipDesigns(source []generated.ShipDesign) []*cs.ShipDesign {
 	var pCsShipDesignList []*cs.ShipDesign
 	if source != nil {
 		pCsShipDesignList = make([]*cs.ShipDesign, len(source))
@@ -1672,16 +1669,16 @@ func (c *GameConverter) ConvertUser(source generated.User) cs.User {
 	csUser.DBObject = c.generatedUserToCsDBObject(source)
 	csUser.UserSettings = c.generatedUserToCsUserSettings(source)
 	csUser.Username = source.Username
-	csUser.Password = NullStringToString(source.Password)
-	csUser.Email = NullStringToString(source.Email)
+	csUser.Password = source.Password
+	csUser.Email = source.Email
 	csUser.Role = cs.UserRole(source.Role)
-	csUser.Banned = NullBoolToBool(source.Banned)
-	csUser.Verified = NullBoolToBool(source.Verified)
-	csUser.GameID = source.Gameid
-	csUser.PlayerNum = Int64ToInt(source.Playernum)
-	csUser.LastLogin = source.Lastlogin
-	csUser.DiscordID = source.Discordid
-	csUser.DiscordAvatar = source.Discordavatar
+	csUser.Banned = source.Banned
+	csUser.Verified = source.Verified
+	csUser.GameID = source.GameID
+	csUser.PlayerNum = Int64ToInt(source.PlayerNum)
+	csUser.LastLogin = source.LastLogin
+	csUser.DiscordID = source.DiscordID
+	csUser.DiscordAvatar = source.DiscordAvatar
 	return csUser
 }
 func (c *GameConverter) ConvertUsers(source []generated.User) []cs.User {
@@ -1698,11 +1695,11 @@ func (c *GameConverter) ConvertWormhole(source generated.Wormhole) *cs.Wormhole 
 	var csWormhole cs.Wormhole
 	csWormhole.GameDBObject = c.generatedWormholeToCsGameDBObject(source)
 	csWormhole.MapObject = c.wormHoleMapObject(source)
-	csWormhole.DestinationNum = NullInt64ToInt(source.Destinationnum)
+	csWormhole.DestinationNum = Int64ToInt(source.DestinationNum)
 	if source.Stability != nil {
 		csWormhole.Stability = c.csWormholeStabilityToCsWormholeStability(*source.Stability)
 	}
-	csWormhole.YearsAtStability = NullInt64ToInt(source.Yearsatstability)
+	csWormhole.YearsAtStability = Int64ToInt(source.YearsAtStability)
 	csWormhole.Spec = WormholeSpecToGameWormholeSpec(source.Spec)
 	return &csWormhole
 }
@@ -1745,56 +1742,56 @@ func (c *GameConverter) csWormholeStabilityToCsWormholeStability(source cs.Wormh
 }
 func (c *GameConverter) generatedFleetToCsCargo(source generated.Fleet) cs.Cargo {
 	var csCargo cs.Cargo
-	csCargo.Ironium = NullInt64ToInt(source.Ironium)
-	csCargo.Boranium = NullInt64ToInt(source.Boranium)
-	csCargo.Germanium = NullInt64ToInt(source.Germanium)
-	csCargo.Colonists = NullInt64ToInt(source.Colonists)
+	csCargo.Ironium = Int64ToInt(source.Ironium)
+	csCargo.Boranium = Int64ToInt(source.Boranium)
+	csCargo.Germanium = Int64ToInt(source.Germanium)
+	csCargo.Colonists = Int64ToInt(source.Colonists)
 	return csCargo
 }
 func (c *GameConverter) generatedFleetToCsGameDBObject(source generated.Fleet) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
 func (c *GameConverter) generatedGameToCsDBObject(source generated.Game) cs.DBObject {
 	var csDBObject cs.DBObject
 	csDBObject.ID = source.ID
-	csDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csDBObject
 }
 func (c *GameConverter) generatedGetLightPlayerForGameRowToCsGameDBObject(source generated.GetLightPlayerForGameRow) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
 func (c *GameConverter) generatedGetLightPlayerForGameRowToCsPlayerOrders(source generated.GetLightPlayerForGameRow) cs.PlayerOrders {
 	var csPlayerOrders cs.PlayerOrders
 	csPlayerOrders.Researching = source.Researching
-	csPlayerOrders.NextResearchField = source.Nextresearchfield
-	csPlayerOrders.ResearchAmount = NullInt64ToInt(source.Researchamount)
-	csPlayerOrders.CargoTransfers = CargoTransfersToGameCargoTransfers(source.Cargotransfers)
+	csPlayerOrders.NextResearchField = source.NextResearchField
+	csPlayerOrders.ResearchAmount = Int64ToInt(source.ResearchAmount)
+	csPlayerOrders.CargoTransfers = CargoTransfersToGameCargoTransfers(source.CargoTransfers)
 	return csPlayerOrders
 }
 func (c *GameConverter) generatedGetLightPlayerForGameRowToCsPlayerPlans(source generated.GetLightPlayerForGameRow) cs.PlayerPlans {
 	var csPlayerPlans cs.PlayerPlans
-	csPlayerPlans.ProductionPlans = ProductionPlansToGameProductionPlans(source.Productionplans)
-	csPlayerPlans.BattlePlans = BattlePlansToGameBattlePlans(source.Battleplans)
-	csPlayerPlans.TransportPlans = TransportPlansToGameTransportPlans(source.Transportplans)
+	csPlayerPlans.ProductionPlans = ProductionPlansToGameProductionPlans(source.ProductionPlans)
+	csPlayerPlans.BattlePlans = BattlePlansToGameBattlePlans(source.BattlePlans)
+	csPlayerPlans.TransportPlans = TransportPlansToGameTransportPlans(source.TransportPlans)
 	return csPlayerPlans
 }
 func (c *GameConverter) generatedGetPlayersStatusForGameRowToCsGameDBObject(source generated.GetPlayersStatusForGameRow) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
 func (c *GameConverter) generatedGetPlayersStatusForGameRowToPCsPlayer(source generated.GetPlayersStatusForGameRow) *cs.Player {
@@ -1804,104 +1801,104 @@ func (c *GameConverter) generatedGetPlayersStatusForGameRowToPCsPlayer(source ge
 func (c *GameConverter) generatedMinefieldToCsGameDBObject(source generated.Minefield) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
 func (c *GameConverter) generatedMinefieldToCsMineFieldOrders(source generated.Minefield) cs.MineFieldOrders {
 	var csMineFieldOrders cs.MineFieldOrders
-	csMineFieldOrders.Detonate = NullBoolToBool(source.Detonate)
+	csMineFieldOrders.Detonate = source.Detonate
 	return csMineFieldOrders
 }
-func (c *GameConverter) generatedMineralpacketToCsGameDBObject(source generated.Mineralpacket) cs.GameDBObject {
+func (c *GameConverter) generatedMineralPacketToCsGameDBObject(source generated.MineralPacket) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
-func (c *GameConverter) generatedMysterytraderToCsGameDBObject(source generated.Mysterytrader) cs.GameDBObject {
+func (c *GameConverter) generatedMysteryTraderToCsGameDBObject(source generated.MysteryTrader) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
 func (c *GameConverter) generatedPlanetToCsCargo(source generated.Planet) cs.Cargo {
 	var csCargo cs.Cargo
-	csCargo.Ironium = NullInt64ToInt(source.Ironium)
-	csCargo.Boranium = NullInt64ToInt(source.Boranium)
-	csCargo.Germanium = NullInt64ToInt(source.Germanium)
-	csCargo.Colonists = NullInt64ToInt(source.Colonists)
+	csCargo.Ironium = Int64ToInt(source.Ironium)
+	csCargo.Boranium = Int64ToInt(source.Boranium)
+	csCargo.Germanium = Int64ToInt(source.Germanium)
+	csCargo.Colonists = Int64ToInt(source.Colonists)
 	return csCargo
 }
 func (c *GameConverter) generatedPlanetToCsGameDBObject(source generated.Planet) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
 func (c *GameConverter) generatedPlanetToCsHab(source generated.Planet) cs.Hab {
 	var csHab cs.Hab
-	csHab.Grav = NullInt64ToInt(source.Grav)
-	csHab.Temp = NullInt64ToInt(source.Temp)
-	csHab.Rad = NullInt64ToInt(source.Rad)
+	csHab.Grav = Int64ToInt(source.Grav)
+	csHab.Temp = Int64ToInt(source.Temp)
+	csHab.Rad = Int64ToInt(source.Rad)
 	return csHab
 }
 func (c *GameConverter) generatedPlanetToCsPlanetOrders(source generated.Planet) cs.PlanetOrders {
 	var csPlanetOrders cs.PlanetOrders
-	csPlanetOrders.ContributesOnlyLeftoverToResearch = NullBoolToBool(source.Contributesonlyleftovertoresearch)
-	csPlanetOrders.ProductionQueue = ProductionQueueItemsToGameProductionQueueItems(source.Productionqueue)
-	if source.Routetargettype != nil {
-		csPlanetOrders.RouteTargetType = c.csMapObjectTypeToCsMapObjectType(*source.Routetargettype)
+	csPlanetOrders.ContributesOnlyLeftoverToResearch = source.ContributesOnlyLeftoverToResearch
+	csPlanetOrders.ProductionQueue = ProductionQueueItemsToGameProductionQueueItems(source.ProductionQueue)
+	if source.RouteTargetType != nil {
+		csPlanetOrders.RouteTargetType = c.csMapObjectTypeToCsMapObjectType(*source.RouteTargetType)
 	}
-	csPlanetOrders.RouteTargetNum = NullInt64ToInt(source.Routetargetnum)
-	csPlanetOrders.RouteTargetPlayerNum = NullInt64ToInt(source.Routetargetplayernum)
-	csPlanetOrders.PacketTargetNum = NullInt64ToInt(source.Packettargetnum)
-	csPlanetOrders.PacketSpeed = NullInt64ToInt(source.Packetspeed)
+	csPlanetOrders.RouteTargetNum = Int64ToInt(source.RouteTargetNum)
+	csPlanetOrders.RouteTargetPlayerNum = Int64ToInt(source.RouteTargetPlayerNum)
+	csPlanetOrders.PacketTargetNum = Int64ToInt(source.PacketTargetNum)
+	csPlanetOrders.PacketSpeed = Int64ToInt(source.PacketSpeed)
 	return csPlanetOrders
 }
 func (c *GameConverter) generatedPlayerToCsGameDBObject(source generated.Player) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
 func (c *GameConverter) generatedPlayerToCsPlayerIntels(source generated.Player) cs.PlayerIntels {
 	var csPlayerIntels cs.PlayerIntels
-	csPlayerIntels.BattleRecords = BattleRecordsToGameBattleRecords(source.Battlerecords)
-	csPlayerIntels.PlayerIntels = PlayerIntelsToGamePlayerIntels(source.Playerintels)
-	csPlayerIntels.ScoreIntels = ScoreIntelsToGameScoreIntels(source.Scoreintels)
-	csPlayerIntels.PlanetIntels = PlanetIntelsToGamePlanetIntels(source.Planetintels)
-	csPlayerIntels.FleetIntels = FleetIntelsToGameFleetIntels(source.Fleetintels)
-	csPlayerIntels.ShipDesignIntels = ShipDesignIntelsToGameShipDesignIntels(source.Shipdesignintels)
-	csPlayerIntels.MineralPacketIntels = MineralPacketIntelsToGameMineralPacketIntels(source.Mineralpacketintels)
-	csPlayerIntels.MineFieldIntels = MineFieldIntelsToGameMineFieldIntels(source.Minefieldintels)
-	csPlayerIntels.WormholeIntels = WormholeIntelsToGameWormholeIntels(source.Wormholeintels)
-	csPlayerIntels.MysteryTraderIntels = MysteryTraderIntelsToGameMysteryTraderIntels(source.Mysterytraderintels)
-	csPlayerIntels.SalvageIntels = SalvageIntelsToGameSalvageIntels(source.Salvageintels)
+	csPlayerIntels.BattleRecords = BattleRecordsToGameBattleRecords(source.BattleRecords)
+	csPlayerIntels.PlayerIntels = PlayerIntelsToGamePlayerIntels(source.PlayerIntels)
+	csPlayerIntels.ScoreIntels = ScoreIntelsToGameScoreIntels(source.ScoreIntels)
+	csPlayerIntels.PlanetIntels = PlanetIntelsToGamePlanetIntels(source.PlanetIntels)
+	csPlayerIntels.FleetIntels = FleetIntelsToGameFleetIntels(source.FleetIntels)
+	csPlayerIntels.ShipDesignIntels = ShipDesignIntelsToGameShipDesignIntels(source.ShipDesignIntels)
+	csPlayerIntels.MineralPacketIntels = MineralPacketIntelsToGameMineralPacketIntels(source.MineralPacketIntels)
+	csPlayerIntels.MineFieldIntels = MineFieldIntelsToGameMineFieldIntels(source.MinefieldIntels)
+	csPlayerIntels.WormholeIntels = WormholeIntelsToGameWormholeIntels(source.WormholeIntels)
+	csPlayerIntels.MysteryTraderIntels = MysteryTraderIntelsToGameMysteryTraderIntels(source.MysteryTraderIntels)
+	csPlayerIntels.SalvageIntels = SalvageIntelsToGameSalvageIntels(source.SalvageIntels)
 	return csPlayerIntels
 }
 func (c *GameConverter) generatedPlayerToCsPlayerOrders(source generated.Player) cs.PlayerOrders {
 	var csPlayerOrders cs.PlayerOrders
 	csPlayerOrders.Researching = source.Researching
-	csPlayerOrders.NextResearchField = source.Nextresearchfield
-	csPlayerOrders.ResearchAmount = NullInt64ToInt(source.Researchamount)
-	csPlayerOrders.CargoTransfers = CargoTransfersToGameCargoTransfers(source.Cargotransfers)
+	csPlayerOrders.NextResearchField = source.NextResearchField
+	csPlayerOrders.ResearchAmount = Int64ToInt(source.ResearchAmount)
+	csPlayerOrders.CargoTransfers = CargoTransfersToGameCargoTransfers(source.CargoTransfers)
 	return csPlayerOrders
 }
 func (c *GameConverter) generatedPlayerToCsPlayerPlans(source generated.Player) cs.PlayerPlans {
 	var csPlayerPlans cs.PlayerPlans
-	csPlayerPlans.ProductionPlans = ProductionPlansToGameProductionPlans(source.Productionplans)
-	csPlayerPlans.BattlePlans = BattlePlansToGameBattlePlans(source.Battleplans)
-	csPlayerPlans.TransportPlans = TransportPlansToGameTransportPlans(source.Transportplans)
+	csPlayerPlans.ProductionPlans = ProductionPlansToGameProductionPlans(source.ProductionPlans)
+	csPlayerPlans.BattlePlans = BattlePlansToGameBattlePlans(source.BattlePlans)
+	csPlayerPlans.TransportPlans = TransportPlansToGameTransportPlans(source.TransportPlans)
 	return csPlayerPlans
 }
 func (c *GameConverter) generatedPlayerToPCsPlayer(source generated.Player) *cs.Player {
@@ -1911,57 +1908,57 @@ func (c *GameConverter) generatedPlayerToPCsPlayer(source generated.Player) *cs.
 func (c *GameConverter) generatedRaceToCsDBObject(source generated.Race) cs.DBObject {
 	var csDBObject cs.DBObject
 	csDBObject.ID = source.ID
-	csDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csDBObject
 }
 func (c *GameConverter) generatedSalvageToCsGameDBObject(source generated.Salvage) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
-func (c *GameConverter) generatedShipdesignToCsGameDBObject(source generated.Shipdesign) cs.GameDBObject {
+func (c *GameConverter) generatedShipDesignToCsGameDBObject(source generated.ShipDesign) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
 func (c *GameConverter) generatedUserToCsDBObject(source generated.User) cs.DBObject {
 	var csDBObject cs.DBObject
 	csDBObject.ID = source.ID
-	csDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csDBObject
 }
 func (c *GameConverter) generatedUserToCsUserSettings(source generated.User) cs.UserSettings {
 	var csUserSettings cs.UserSettings
-	csUserSettings.DiscordWebhookURL = NullStringToString(source.Discordwebhookurl)
+	csUserSettings.DiscordWebhookURL = source.DiscordWebhookUrl
 	return csUserSettings
 }
 func (c *GameConverter) generatedWormholeToCsGameDBObject(source generated.Wormhole) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
 	csGameDBObject.ID = source.ID
-	csGameDBObject.GameID = source.Gameid
-	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.Createdat)
-	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.Updatedat)
+	csGameDBObject.GameID = source.GameID
+	csGameDBObject.CreatedAt = c.timeTimeToTimeTime(source.CreatedAt)
+	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
 func (c *GameConverter) generatedWormholeToCsVector(source generated.Wormhole) cs.Vector {
 	var csVector cs.Vector
-	csVector.X = NullFloat64ToFloat64(source.X)
-	csVector.Y = NullFloat64ToFloat64(source.Y)
+	csVector.X = source.X
+	csVector.Y = source.Y
 	return csVector
 }
-func (c *GameConverter) mineralPacketCargo(source generated.Mineralpacket) cs.Cargo {
+func (c *GameConverter) mineralPacketCargo(source generated.MineralPacket) cs.Cargo {
 	var csCargo cs.Cargo
-	csCargo.Ironium = NullInt64ToInt(source.Ironium)
-	csCargo.Boranium = NullInt64ToInt(source.Boranium)
-	csCargo.Germanium = NullInt64ToInt(source.Germanium)
+	csCargo.Ironium = Int64ToInt(source.Ironium)
+	csCargo.Boranium = Int64ToInt(source.Boranium)
+	csCargo.Germanium = Int64ToInt(source.Germanium)
 	return csCargo
 }
 func (c *GameConverter) pFloat64ToSqlNullFloat64(source *float64) sql.NullFloat64 {
@@ -1973,16 +1970,10 @@ func (c *GameConverter) pFloat64ToSqlNullFloat64(source *float64) sql.NullFloat6
 }
 func (c *GameConverter) salvageCargo(source generated.Salvage) cs.Cargo {
 	var csCargo cs.Cargo
-	csCargo.Ironium = NullInt64ToInt(source.Ironium)
-	csCargo.Boranium = NullInt64ToInt(source.Boranium)
-	csCargo.Germanium = NullInt64ToInt(source.Germanium)
+	csCargo.Ironium = Int64ToInt(source.Ironium)
+	csCargo.Boranium = Int64ToInt(source.Boranium)
+	csCargo.Germanium = Int64ToInt(source.Germanium)
 	return csCargo
-}
-func (c *GameConverter) sqlNullBoolToSqlNullBool(source sql.NullBool) sql.NullBool {
-	return source
-}
-func (c *GameConverter) sqlNullInt64ToSqlNullInt64(source sql.NullInt64) sql.NullInt64 {
-	return source
 }
 func (c *GameConverter) sqlNullTimeToPTimeTime(source sql.NullTime) *time.Time {
 	timeTime := NullTimeToTime(source)
@@ -1995,7 +1986,7 @@ func (c *GameConverter) wormHoleMapObject(source generated.Wormhole) cs.MapObjec
 	var csMapObject cs.MapObject
 	csMapObject.Type = MapObjectTypeWormhole()
 	csMapObject.Position = c.generatedWormholeToCsVector(source)
-	csMapObject.Num = NullInt64ToInt(source.Num)
+	csMapObject.Num = Int64ToInt(source.Num)
 	csMapObject.Name = source.Name
 	csMapObject.Tags = TagsToGameTags(source.Tags)
 	return csMapObject

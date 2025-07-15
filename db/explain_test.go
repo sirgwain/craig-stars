@@ -27,29 +27,29 @@ func Test_client_explainQuery(t *testing.T) {
 			query:     generated.GetPlanetByNum,
 			queryArgs: []any{1, 1},
 			want: []string{
-				"SEARCH f USING INDEX idx_fleets_planet_num (gameId=? AND planetNum=?) LEFT-JOIN",
-				"SEARCH p USING INDEX sqlite_autoindex_planets_1 (gameId=? AND num=?)",
+				"SEARCH f USING INDEX idx_fleets_gameid (game_id=?) LEFT-JOIN",
+				"SEARCH p USING INDEX sqlite_autoindex_planets_1 (game_id=? AND num=?)",
 			},
 		},
 		{
 			name:      "GetPlanetsForGame",
 			query:     generated.GetPlanetsForGame,
 			queryArgs: []any{1},
-			want:      []string{"SEARCH planets USING INDEX sqlite_autoindex_planets_1 (gameId=?)"},
+			want:      []string{"SEARCH planets USING INDEX sqlite_autoindex_planets_1 (game_id=?)"},
 		},
 		{
 			name:      "GetPlayersForGame",
 			query:     generated.GetPlayersForGame,
 			queryArgs: []any{1},
-			want:      []string{"SEARCH players USING INDEX idx_players_gameid_num (gameId=?)"},
+			want:      []string{"SEARCH players USING INDEX idx_players_gameid_num (game_id=?)"},
 		},
 		{
 			name:      "GetPlayerForGame",
 			query:     generated.GetPlayerForGame,
 			queryArgs: []any{1, 1},
 			want: []string{
-				"SEARCH d USING INDEX sqlite_autoindex_shipDesigns_1 (gameId=? AND playerNum=?) LEFT-JOIN",
-				"SEARCH p USING INDEX sqlite_autoindex_players_1 (gameId=? AND num=?)",
+				"SEARCH d USING INDEX sqlite_autoindex_ship_designs_1 (game_id=? AND player_num=?) LEFT-JOIN",
+				"SEARCH p USING INDEX sqlite_autoindex_players_1 (game_id=? AND num=?)",
 			},
 		},
 		{
@@ -57,8 +57,8 @@ func Test_client_explainQuery(t *testing.T) {
 			query:     generated.GetPlayerForGameAndUser,
 			queryArgs: []any{1, 1, 1},
 			want: []string{
-				"SEARCH d USING INDEX idx_ship_designs_gameid_playernum (gameId=? AND playerNum=?) LEFT-JOIN",
-				"SEARCH p USING INDEX idx_players_userid_gameid (userId=? AND gameId=?)",
+				"SEARCH d USING INDEX idx_ship_designs_gameid_playernum (game_id=? AND player_num=?) LEFT-JOIN",
+				"SEARCH p USING INDEX idx_players_userid_gameid (user_id=? AND game_id=?)",
 				"USE TEMP B-TREE FOR ORDER BY",
 			},
 		},
@@ -67,27 +67,27 @@ func Test_client_explainQuery(t *testing.T) {
 			query:     generated.GetPlayersWithDesignsForGame,
 			queryArgs: []any{1},
 			want: []string{
-				"SEARCH d USING INDEX sqlite_autoindex_shipDesigns_1 (gameId=? AND playerNum=?) LEFT-JOIN",
-				"SEARCH p USING INDEX sqlite_autoindex_players_1 (gameId=?)",
+				"SEARCH d USING INDEX sqlite_autoindex_ship_designs_1 (game_id=? AND player_num=?) LEFT-JOIN",
+				"SEARCH p USING INDEX sqlite_autoindex_players_1 (game_id=?)",
 			},
 		},
 		{
 			name:      "GetLightPlayerForGame",
 			query:     generated.GetLightPlayerForGame,
 			queryArgs: []any{1, 1, 1},
-			want:      []string{"SEARCH players USING INDEX idx_players_gameid_num (gameId=?)"},
+			want:      []string{"SEARCH players USING INDEX idx_players_gameid_num (game_id=?)"},
 		},
 		{
 			name:      "GetPlanetsForPlayer",
 			query:     generated.GetPlanetsForPlayer,
 			queryArgs: []any{1, 1},
-			want:      []string{"SEARCH planets USING INDEX sqlite_autoindex_planets_1 (gameId=?)"},
+			want:      []string{"SEARCH planets USING INDEX sqlite_autoindex_planets_1 (game_id=?)"},
 		},
 		{
 			name:      "GetPlayersForGame",
 			query:     generated.GetPlayersForGame,
 			queryArgs: []any{1},
-			want:      []string{"SEARCH players USING INDEX idx_players_gameid_num (gameId=?)"},
+			want:      []string{"SEARCH players USING INDEX idx_players_gameid_num (game_id=?)"},
 		},
 		{
 			name:      "GetGamesWithPlayers",
@@ -96,7 +96,7 @@ func Test_client_explainQuery(t *testing.T) {
 			want: []string{
 				// TODO: use index
 				"SCAN g",
-				"SEARCH players USING INDEX idx_players_gameid_num (gameId=?) LEFT-JOIN",
+				"SEARCH players USING INDEX idx_players_gameid_num (game_id=?) LEFT-JOIN",
 			},
 		},
 		{
@@ -108,10 +108,10 @@ func Test_client_explainQuery(t *testing.T) {
 				"INDEX 2",
 				"LIST SUBQUERY 1",
 				"MULTI-INDEX OR",
-				"SEARCH g USING INDEX idx_games_hostid_gameid (hostId=?)",
+				"SEARCH g USING INDEX idx_games_hostid_gameid (host_id=?)",
 				"SEARCH g USING INTEGER PRIMARY KEY (rowid=?)",
-				"SEARCH p USING COVERING INDEX idx_players_userid_gameid (userId=?)",
-				"SEARCH players USING INDEX idx_players_gameid_num (gameId=?) LEFT-JOIN",
+				"SEARCH p USING COVERING INDEX idx_players_userid_gameid (user_id=?)",
+				"SEARCH players USING INDEX idx_players_gameid_num (game_id=?) LEFT-JOIN",
 			},
 		},
 	}

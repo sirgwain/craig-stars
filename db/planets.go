@@ -38,8 +38,8 @@ func (c *client) GetPlanetsForGame(ctx context.Context, gameID int64) ([]*cs.Pla
 func (c *client) GetPlanetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Planet, error) {
 
 	items, err := c.reader.GetPlanetsForPlayer(ctx, generated.GetPlanetsForPlayerParams{
-		Gameid:    gameID,
-		Playernum: sql.NullInt64{Valid: true, Int64: int64(playerNum)},
+		GameID:    gameID,
+		PlayerNum: int64(playerNum),
 	})
 
 	if err == sql.ErrNoRows {
@@ -55,8 +55,8 @@ func (c *client) GetPlanetsForPlayer(ctx context.Context, gameID int64, playerNu
 func (c *client) GetPlanetByNum(ctx context.Context, gameID int64, num int) (*cs.Planet, error) {
 
 	rows, err := c.reader.GetPlanetByNum(ctx, generated.GetPlanetByNumParams{
-		Gameid: gameID,
-		Num:    sql.NullInt64{Valid: true, Int64: int64(num)},
+		GameID: gameID,
+		Num:    int64(num),
 	})
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -73,33 +73,33 @@ func (c *client) GetPlanetByNum(ctx context.Context, gameID int64, num int) (*cs
 		if row.FleetID.Valid {
 			fleet := generated.Fleet{
 				ID:                row.FleetID.Int64,
-				Createdat:         row.FleetCreatedat.Time,
-				Updatedat:         row.FleetUpdatedat.Time,
-				Gameid:            row.FleetGameid.Int64,
-				Battleplannum:     row.FleetBattleplannum.Int64,
-				X:                 row.FleetX,
-				Y:                 row.FleetY,
+				CreatedAt:         row.FleetCreatedAt.Time,
+				UpdatedAt:         row.FleetUpdatedAt.Time,
+				GameID:            row.FleetGameID.Int64,
+				BattlePlanNum:     row.FleetBattlePlanNum,
+				X:                 row.FleetX.Float64,
+				Y:                 row.FleetY.Float64,
 				Name:              row.FleetName.String,
 				Num:               row.FleetNum,
-				Playernum:         row.FleetPlayernum,
+				PlayerNum:         row.FleetPlayerNum,
 				Tokens:            row.FleetTokens,
 				Waypoints:         row.FleetWaypoints,
-				Repeatorders:      row.FleetRepeatorders,
-				Planetnum:         row.FleetPlanetnum,
-				Basename:          row.FleetBasename.String,
+				RepeatOrders:      row.FleetRepeatOrders.Bool,
+				PlanetNum:         row.FleetPlanetNum,
+				BaseName:          row.FleetBaseName.String,
 				Ironium:           row.FleetIronium,
 				Boranium:          row.FleetBoranium,
 				Germanium:         row.FleetGermanium,
 				Colonists:         row.FleetColonists,
 				Fuel:              row.FleetFuel,
 				Age:               row.FleetAge,
-				Headingx:          row.FleetHeadingx,
-				Headingy:          row.FleetHeadingy,
-				Warpspeed:         row.FleetWarpspeed,
-				Previouspositionx: row.FleetPreviouspositionx,
-				Previouspositiony: row.FleetPreviouspositiony,
-				Orbitingplanetnum: row.FleetOrbitingplanetnum,
-				Starbase:          row.FleetStarbase,
+				HeadingX:          row.FleetHeadingX.Float64,
+				HeadingY:          row.FleetHeadingY.Float64,
+				WarpSpeed:         row.FleetWarpSpeed,
+				PreviousPositionX: row.FleetPreviousPositionX,
+				PreviousPositionY: row.FleetPreviousPositionY,
+				OrbitingPlanetNum: row.FleetOrbitingPlanetNum,
+				Starbase:          row.FleetStarbase.Bool,
 				Spec:              row.FleetSpec,
 				Purpose:           row.FleetPurpose,
 				Tags:              row.FleetTags,
@@ -118,15 +118,12 @@ func (c *client) SavePlanet(ctx context.Context, planet *cs.Planet) error {
 		if err != nil {
 			return err
 		}
-		planet.ID = result.ID
-		planet.CreatedAt = result.Createdat
-		planet.UpdatedAt = result.Updatedat
+		planet.ID = result
 	} else {
-		result, err := c.writer.UpdatePlanet(ctx, c.converter.ConvertGamePlanetToUpdateParams(planet))
+		_, err := c.writer.UpdatePlanet(ctx, c.converter.ConvertGamePlanetToUpdateParams(planet))
 		if err != nil {
 			return err
 		}
-		planet.UpdatedAt = result
 	}
 
 	return nil
@@ -134,7 +131,7 @@ func (c *client) SavePlanet(ctx context.Context, planet *cs.Planet) error {
 
 // UpdatePlanetSpec updates only a planets spec field
 func (c *client) UpdatePlanetSpec(ctx context.Context, planet *cs.Planet) error {
-	result, err := c.writer.UpdatePlanetSpec(ctx, generated.UpdatePlanetSpecParams{
+	_, err := c.writer.UpdatePlanetSpec(ctx, generated.UpdatePlanetSpecParams{
 		ID:   planet.ID,
 		Spec: (*generated.PlanetSpec)(&planet.Spec),
 	})
@@ -142,6 +139,5 @@ func (c *client) UpdatePlanetSpec(ctx context.Context, planet *cs.Planet) error 
 		return err
 	}
 
-	planet.UpdatedAt = result
 	return nil
 }

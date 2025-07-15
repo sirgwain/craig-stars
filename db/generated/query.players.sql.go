@@ -13,85 +13,86 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-const ArchivePlayer = `-- name: ArchivePlayer :one
+const ArchivePlayer = `-- name: ArchivePlayer :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
     archived = ?
 WHERE
-    gameId = ?
-    AND num = ? RETURNING updatedAt
+    game_id = ?
+    AND num = ?
 `
 
 type ArchivePlayerParams struct {
 	Archived bool
-	Gameid   int64
+	GameID   int64
 	Num      int64
 }
 
-func (q *Queries) ArchivePlayer(ctx context.Context, arg ArchivePlayerParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, ArchivePlayer, arg.Archived, arg.Gameid, arg.Num)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) ArchivePlayer(ctx context.Context, arg ArchivePlayerParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, ArchivePlayer, arg.Archived, arg.GameID, arg.Num)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const CreatePlayer = `-- name: CreatePlayer :one
+const CreatePlayer = `-- name: CreatePlayer :execlastid
 INSERT INTO
     players (
-        createdAt,
-        updatedAt,
-        gameId,
-        userId,
+        created_at,
+        updated_at,
+        game_id,
+        user_id,
         name,
         num,
         ready,
-        aiControlled,
-        submittedTurn,
+        ai_controlled,
+        submitted_turn,
         color,
-        defaultHullSet,
-        techLevelsEnergy,
-        techLevelsWeapons,
-        techLevelsPropulsion,
-        techLevelsConstruction,
-        techLevelsElectronics,
-        techLevelsBiotechnology,
-        techLevelsSpentEnergy,
-        techLevelsSpentWeapons,
-        techLevelsSpentPropulsion,
-        techLevelsSpentConstruction,
-        techLevelsSpentElectronics,
-        techLevelsSpentBiotechnology,
-        researchAmount,
-        researchSpentLastYear,
-        nextResearchField,
+        default_hull_set,
+        tech_levels_energy,
+        tech_levels_weapons,
+        tech_levels_propulsion,
+        tech_levels_construction,
+        tech_levels_electronics,
+        tech_levels_biotechnology,
+        tech_levels_spent_energy,
+        tech_levels_spent_weapons,
+        tech_levels_spent_propulsion,
+        tech_levels_spent_construction,
+        tech_levels_spent_electronics,
+        tech_levels_spent_biotechnology,
+        research_amount,
+        research_spent_last_year,
+        next_research_field,
         researching,
-        battlePlans,
-        productionPlans,
-        transportPlans,
+        battle_plans,
+        production_plans,
+        transport_plans,
         relations,
-        cargoTransfers,
+        cargo_transfers,
         messages,
-        battleRecords,
-        playerIntels,
-        scoreIntels,
-        planetIntels,
-        fleetIntels,
-        shipDesignIntels,
-        mineralPacketIntels,
-        mineFieldIntels,
-        wormholeIntels,
-        mysteryTraderIntels,
-        salvageIntels,
+        battle_records,
+        player_intels,
+        score_intels,
+        planet_intels,
+        fleet_intels,
+        ship_design_intels,
+        mineral_packet_intels,
+        minefield_intels,
+        wormhole_intels,
+        mystery_trader_intels,
+        salvage_intels,
         race,
         stats,
-        scoreHistory,
-        achievedVictoryConditions,
+        score_history,
+        achieved_victory_conditions,
         victor,
         spec,
         guest,
-        aiDifficulty,
-        acquiredTechs,
+        ai_difficulty,
+        acquired_techs,
         archived
     )
 VALUES
@@ -150,300 +151,296 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt
+    )
 `
 
 type CreatePlayerParams struct {
-	Gameid                       int64
-	Userid                       sql.NullInt64
+	GameID                       int64
+	UserID                       int64
 	Name                         string
 	Num                          int64
-	Ready                        sql.NullBool
-	Aicontrolled                 sql.NullBool
-	Submittedturn                sql.NullBool
-	Color                        sql.NullString
-	Defaulthullset               sql.NullInt64
-	Techlevelsenergy             sql.NullInt64
-	Techlevelsweapons            sql.NullInt64
-	Techlevelspropulsion         sql.NullInt64
-	Techlevelsconstruction       sql.NullInt64
-	Techlevelselectronics        sql.NullInt64
-	Techlevelsbiotechnology      sql.NullInt64
-	Techlevelsspentenergy        sql.NullInt64
-	Techlevelsspentweapons       sql.NullInt64
-	Techlevelsspentpropulsion    sql.NullInt64
-	Techlevelsspentconstruction  sql.NullInt64
-	Techlevelsspentelectronics   sql.NullInt64
-	Techlevelsspentbiotechnology sql.NullInt64
-	Researchamount               sql.NullInt64
-	Researchspentlastyear        sql.NullInt64
-	Nextresearchfield            cs.NextResearchField
+	Ready                        bool
+	AiControlled                 bool
+	SubmittedTurn                bool
+	Color                        string
+	DefaultHullSet               int64
+	TechLevelsEnergy             int64
+	TechLevelsWeapons            int64
+	TechLevelsPropulsion         int64
+	TechLevelsConstruction       int64
+	TechLevelsElectronics        int64
+	TechLevelsBiotechnology      int64
+	TechLevelsSpentEnergy        int64
+	TechLevelsSpentWeapons       int64
+	TechLevelsSpentPropulsion    int64
+	TechLevelsSpentConstruction  int64
+	TechLevelsSpentElectronics   int64
+	TechLevelsSpentBiotechnology int64
+	ResearchAmount               int64
+	ResearchSpentLastYear        int64
+	NextResearchField            cs.NextResearchField
 	Researching                  cs.TechField
-	Battleplans                  *BattlePlans
-	Productionplans              *ProductionPlans
-	Transportplans               *TransportPlans
+	BattlePlans                  *BattlePlans
+	ProductionPlans              *ProductionPlans
+	TransportPlans               *TransportPlans
 	Relations                    *PlayerRelationships
-	Cargotransfers               *CargoTransfers
+	CargoTransfers               *CargoTransfers
 	Messages                     *PlayerMessages
-	Battlerecords                *BattleRecords
-	Playerintels                 *PlayerIntels
-	Scoreintels                  *ScoreIntels
-	Planetintels                 *PlanetIntels
-	Fleetintels                  *FleetIntels
-	Shipdesignintels             *ShipDesignIntels
-	Mineralpacketintels          *MineralPacketIntels
-	Minefieldintels              *MineFieldIntels
-	Wormholeintels               *WormholeIntels
-	Mysterytraderintels          *MysteryTraderIntels
-	Salvageintels                *SalvageIntels
+	BattleRecords                *BattleRecords
+	PlayerIntels                 *PlayerIntels
+	ScoreIntels                  *ScoreIntels
+	PlanetIntels                 *PlanetIntels
+	FleetIntels                  *FleetIntels
+	ShipDesignIntels             *ShipDesignIntels
+	MineralPacketIntels          *MineralPacketIntels
+	MinefieldIntels              *MineFieldIntels
+	WormholeIntels               *WormholeIntels
+	MysteryTraderIntels          *MysteryTraderIntels
+	SalvageIntels                *SalvageIntels
 	Race                         *PlayerRace
 	Stats                        *PlayerStats
-	Scorehistory                 *PlayerScores
-	Achievedvictoryconditions    *cs.Bitmask
-	Victor                       sql.NullBool
+	ScoreHistory                 *PlayerScores
+	AchievedVictoryConditions    *cs.Bitmask
+	Victor                       bool
 	Spec                         *PlayerSpec
 	Guest                        bool
-	Aidifficulty                 *cs.AIDifficulty
-	Acquiredtechs                *AcquiredTechs
+	AiDifficulty                 *cs.AIDifficulty
+	AcquiredTechs                *AcquiredTechs
 	Archived                     bool
 }
 
-type CreatePlayerRow struct {
-	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-}
-
-func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (CreatePlayerRow, error) {
-	row := q.db.QueryRowContext(ctx, CreatePlayer,
-		arg.Gameid,
-		arg.Userid,
+func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, CreatePlayer,
+		arg.GameID,
+		arg.UserID,
 		arg.Name,
 		arg.Num,
 		arg.Ready,
-		arg.Aicontrolled,
-		arg.Submittedturn,
+		arg.AiControlled,
+		arg.SubmittedTurn,
 		arg.Color,
-		arg.Defaulthullset,
-		arg.Techlevelsenergy,
-		arg.Techlevelsweapons,
-		arg.Techlevelspropulsion,
-		arg.Techlevelsconstruction,
-		arg.Techlevelselectronics,
-		arg.Techlevelsbiotechnology,
-		arg.Techlevelsspentenergy,
-		arg.Techlevelsspentweapons,
-		arg.Techlevelsspentpropulsion,
-		arg.Techlevelsspentconstruction,
-		arg.Techlevelsspentelectronics,
-		arg.Techlevelsspentbiotechnology,
-		arg.Researchamount,
-		arg.Researchspentlastyear,
-		arg.Nextresearchfield,
+		arg.DefaultHullSet,
+		arg.TechLevelsEnergy,
+		arg.TechLevelsWeapons,
+		arg.TechLevelsPropulsion,
+		arg.TechLevelsConstruction,
+		arg.TechLevelsElectronics,
+		arg.TechLevelsBiotechnology,
+		arg.TechLevelsSpentEnergy,
+		arg.TechLevelsSpentWeapons,
+		arg.TechLevelsSpentPropulsion,
+		arg.TechLevelsSpentConstruction,
+		arg.TechLevelsSpentElectronics,
+		arg.TechLevelsSpentBiotechnology,
+		arg.ResearchAmount,
+		arg.ResearchSpentLastYear,
+		arg.NextResearchField,
 		arg.Researching,
-		arg.Battleplans,
-		arg.Productionplans,
-		arg.Transportplans,
+		arg.BattlePlans,
+		arg.ProductionPlans,
+		arg.TransportPlans,
 		arg.Relations,
-		arg.Cargotransfers,
+		arg.CargoTransfers,
 		arg.Messages,
-		arg.Battlerecords,
-		arg.Playerintels,
-		arg.Scoreintels,
-		arg.Planetintels,
-		arg.Fleetintels,
-		arg.Shipdesignintels,
-		arg.Mineralpacketintels,
-		arg.Minefieldintels,
-		arg.Wormholeintels,
-		arg.Mysterytraderintels,
-		arg.Salvageintels,
+		arg.BattleRecords,
+		arg.PlayerIntels,
+		arg.ScoreIntels,
+		arg.PlanetIntels,
+		arg.FleetIntels,
+		arg.ShipDesignIntels,
+		arg.MineralPacketIntels,
+		arg.MinefieldIntels,
+		arg.WormholeIntels,
+		arg.MysteryTraderIntels,
+		arg.SalvageIntels,
 		arg.Race,
 		arg.Stats,
-		arg.Scorehistory,
-		arg.Achievedvictoryconditions,
+		arg.ScoreHistory,
+		arg.AchievedVictoryConditions,
 		arg.Victor,
 		arg.Spec,
 		arg.Guest,
-		arg.Aidifficulty,
-		arg.Acquiredtechs,
+		arg.AiDifficulty,
+		arg.AcquiredTechs,
 		arg.Archived,
 	)
-	var i CreatePlayerRow
-	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
-	return i, err
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
 }
 
-const DeletePlayer = `-- name: DeletePlayer :exec
+const DeletePlayer = `-- name: DeletePlayer :execrows
 DELETE FROM players
 WHERE
     id = ?
 `
 
-func (q *Queries) DeletePlayer(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, DeletePlayer, id)
-	return err
+func (q *Queries) DeletePlayer(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, DeletePlayer, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const GetLightPlayerForGame = `-- name: GetLightPlayerForGame :one
 SELECT
     id,
-    createdAt,
-    updatedAt,
-    gameId,
-    userId,
+    created_at,
+    updated_at,
+    game_id,
+    user_id,
     name,
     num,
     ready,
-    aiControlled,
-    aiDifficulty,
+    ai_controlled,
+    ai_difficulty,
     guest,
-    submittedTurn,
+    submitted_turn,
     color,
-    defaultHullSet,
+    default_hull_set,
     race,
-    techLevelsEnergy,
-    techLevelsWeapons,
-    techLevelsPropulsion,
-    techLevelsConstruction,
-    techLevelsElectronics,
-    techLevelsBiotechnology,
-    techLevelsSpentEnergy,
-    techLevelsSpentWeapons,
-    techLevelsSpentPropulsion,
-    techLevelsSpentConstruction,
-    techLevelsSpentElectronics,
-    techLevelsSpentBiotechnology,
-    researchSpentLastYear,
-    researchAmount,
-    nextResearchField,
+    tech_levels_energy,
+    tech_levels_weapons,
+    tech_levels_propulsion,
+    tech_levels_construction,
+    tech_levels_electronics,
+    tech_levels_biotechnology,
+    tech_levels_spent_energy,
+    tech_levels_spent_weapons,
+    tech_levels_spent_propulsion,
+    tech_levels_spent_construction,
+    tech_levels_spent_electronics,
+    tech_levels_spent_biotechnology,
+    research_spent_last_year,
+    research_amount,
+    next_research_field,
     researching,
-    cargoTransfers,
-    battlePlans,
-    productionPlans,
-    transportPlans,
+    cargo_transfers,
+    battle_plans,
+    production_plans,
+    transport_plans,
     relations,
     stats,
-    scoreHistory,
-    acquiredTechs,
-    achievedVictoryConditions,
+    score_history,
+    acquired_techs,
+    achieved_victory_conditions,
     victor,
     archived,
     spec
 FROM
     players
 WHERE
-    gameId = ?1
-    --  playerNum
+    game_id = ?1
+    --  player_num
     AND (
         ?2 IS NULL
         OR num = ?2
     )
-    --  or userId
+    --  or user_id
     AND (
         ?3 IS NULL
-        OR userId = ?3
+        OR user_id = ?3
     )
 `
 
 type GetLightPlayerForGameParams struct {
-	GameId    int64
+	GameID    int64
 	PlayerNum interface{}
-	UserId    interface{}
+	UserID    interface{}
 }
 
 type GetLightPlayerForGameRow struct {
 	ID                           int64
-	Createdat                    time.Time
-	Updatedat                    time.Time
-	Gameid                       int64
-	Userid                       sql.NullInt64
+	CreatedAt                    time.Time
+	UpdatedAt                    time.Time
+	GameID                       int64
+	UserID                       int64
 	Name                         string
 	Num                          int64
-	Ready                        sql.NullBool
-	Aicontrolled                 sql.NullBool
-	Aidifficulty                 *cs.AIDifficulty
+	Ready                        bool
+	AiControlled                 bool
+	AiDifficulty                 *cs.AIDifficulty
 	Guest                        bool
-	Submittedturn                sql.NullBool
-	Color                        sql.NullString
-	Defaulthullset               sql.NullInt64
+	SubmittedTurn                bool
+	Color                        string
+	DefaultHullSet               int64
 	Race                         *PlayerRace
-	Techlevelsenergy             sql.NullInt64
-	Techlevelsweapons            sql.NullInt64
-	Techlevelspropulsion         sql.NullInt64
-	Techlevelsconstruction       sql.NullInt64
-	Techlevelselectronics        sql.NullInt64
-	Techlevelsbiotechnology      sql.NullInt64
-	Techlevelsspentenergy        sql.NullInt64
-	Techlevelsspentweapons       sql.NullInt64
-	Techlevelsspentpropulsion    sql.NullInt64
-	Techlevelsspentconstruction  sql.NullInt64
-	Techlevelsspentelectronics   sql.NullInt64
-	Techlevelsspentbiotechnology sql.NullInt64
-	Researchspentlastyear        sql.NullInt64
-	Researchamount               sql.NullInt64
-	Nextresearchfield            cs.NextResearchField
+	TechLevelsEnergy             int64
+	TechLevelsWeapons            int64
+	TechLevelsPropulsion         int64
+	TechLevelsConstruction       int64
+	TechLevelsElectronics        int64
+	TechLevelsBiotechnology      int64
+	TechLevelsSpentEnergy        int64
+	TechLevelsSpentWeapons       int64
+	TechLevelsSpentPropulsion    int64
+	TechLevelsSpentConstruction  int64
+	TechLevelsSpentElectronics   int64
+	TechLevelsSpentBiotechnology int64
+	ResearchSpentLastYear        int64
+	ResearchAmount               int64
+	NextResearchField            cs.NextResearchField
 	Researching                  cs.TechField
-	Cargotransfers               *CargoTransfers
-	Battleplans                  *BattlePlans
-	Productionplans              *ProductionPlans
-	Transportplans               *TransportPlans
+	CargoTransfers               *CargoTransfers
+	BattlePlans                  *BattlePlans
+	ProductionPlans              *ProductionPlans
+	TransportPlans               *TransportPlans
 	Relations                    *PlayerRelationships
 	Stats                        *PlayerStats
-	Scorehistory                 *PlayerScores
-	Acquiredtechs                *AcquiredTechs
-	Achievedvictoryconditions    *cs.Bitmask
-	Victor                       sql.NullBool
+	ScoreHistory                 *PlayerScores
+	AcquiredTechs                *AcquiredTechs
+	AchievedVictoryConditions    *cs.Bitmask
+	Victor                       bool
 	Archived                     bool
 	Spec                         *PlayerSpec
 }
 
 func (q *Queries) GetLightPlayerForGame(ctx context.Context, arg GetLightPlayerForGameParams) (GetLightPlayerForGameRow, error) {
-	row := q.db.QueryRowContext(ctx, GetLightPlayerForGame, arg.GameId, arg.PlayerNum, arg.UserId)
+	row := q.db.QueryRowContext(ctx, GetLightPlayerForGame, arg.GameID, arg.PlayerNum, arg.UserID)
 	var i GetLightPlayerForGameRow
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.Userid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
+		&i.UserID,
 		&i.Name,
 		&i.Num,
 		&i.Ready,
-		&i.Aicontrolled,
-		&i.Aidifficulty,
+		&i.AiControlled,
+		&i.AiDifficulty,
 		&i.Guest,
-		&i.Submittedturn,
+		&i.SubmittedTurn,
 		&i.Color,
-		&i.Defaulthullset,
+		&i.DefaultHullSet,
 		&i.Race,
-		&i.Techlevelsenergy,
-		&i.Techlevelsweapons,
-		&i.Techlevelspropulsion,
-		&i.Techlevelsconstruction,
-		&i.Techlevelselectronics,
-		&i.Techlevelsbiotechnology,
-		&i.Techlevelsspentenergy,
-		&i.Techlevelsspentweapons,
-		&i.Techlevelsspentpropulsion,
-		&i.Techlevelsspentconstruction,
-		&i.Techlevelsspentelectronics,
-		&i.Techlevelsspentbiotechnology,
-		&i.Researchspentlastyear,
-		&i.Researchamount,
-		&i.Nextresearchfield,
+		&i.TechLevelsEnergy,
+		&i.TechLevelsWeapons,
+		&i.TechLevelsPropulsion,
+		&i.TechLevelsConstruction,
+		&i.TechLevelsElectronics,
+		&i.TechLevelsBiotechnology,
+		&i.TechLevelsSpentEnergy,
+		&i.TechLevelsSpentWeapons,
+		&i.TechLevelsSpentPropulsion,
+		&i.TechLevelsSpentConstruction,
+		&i.TechLevelsSpentElectronics,
+		&i.TechLevelsSpentBiotechnology,
+		&i.ResearchSpentLastYear,
+		&i.ResearchAmount,
+		&i.NextResearchField,
 		&i.Researching,
-		&i.Cargotransfers,
-		&i.Battleplans,
-		&i.Productionplans,
-		&i.Transportplans,
+		&i.CargoTransfers,
+		&i.BattlePlans,
+		&i.ProductionPlans,
+		&i.TransportPlans,
 		&i.Relations,
 		&i.Stats,
-		&i.Scorehistory,
-		&i.Acquiredtechs,
-		&i.Achievedvictoryconditions,
+		&i.ScoreHistory,
+		&i.AcquiredTechs,
+		&i.AchievedVictoryConditions,
 		&i.Victor,
 		&i.Archived,
 		&i.Spec,
@@ -453,7 +450,7 @@ func (q *Queries) GetLightPlayerForGame(ctx context.Context, arg GetLightPlayerF
 
 const GetPlayer = `-- name: GetPlayer :one
 SELECT
-    id, createdat, updatedat, gameid, userid, name, num, ready, aicontrolled, submittedturn, color, defaulthullset, techlevelsenergy, techlevelsweapons, techlevelspropulsion, techlevelsconstruction, techlevelselectronics, techlevelsbiotechnology, techlevelsspentenergy, techlevelsspentweapons, techlevelsspentpropulsion, techlevelsspentconstruction, techlevelsspentelectronics, techlevelsspentbiotechnology, researchamount, researchspentlastyear, nextresearchfield, researching, battleplans, productionplans, transportplans, relations, cargotransfers, messages, battlerecords, playerintels, scoreintels, planetintels, fleetintels, shipdesignintels, mineralpacketintels, minefieldintels, wormholeintels, mysterytraderintels, salvageintels, race, stats, scorehistory, achievedvictoryconditions, victor, spec, guest, aidifficulty, acquiredtechs, archived
+    id, created_at, updated_at, game_id, user_id, name, num, ready, ai_controlled, submitted_turn, color, default_hull_set, tech_levels_energy, tech_levels_weapons, tech_levels_propulsion, tech_levels_construction, tech_levels_electronics, tech_levels_biotechnology, tech_levels_spent_energy, tech_levels_spent_weapons, tech_levels_spent_propulsion, tech_levels_spent_construction, tech_levels_spent_electronics, tech_levels_spent_biotechnology, research_amount, research_spent_last_year, next_research_field, researching, battle_plans, production_plans, transport_plans, relations, cargo_transfers, messages, battle_records, player_intels, score_intels, planet_intels, fleet_intels, ship_design_intels, mineral_packet_intels, minefield_intels, wormhole_intels, mystery_trader_intels, salvage_intels, race, stats, score_history, achieved_victory_conditions, victor, spec, guest, ai_difficulty, acquired_techs, archived
 FROM
     players
 WHERE
@@ -465,59 +462,59 @@ func (q *Queries) GetPlayer(ctx context.Context, id int64) (Player, error) {
 	var i Player
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Gameid,
-		&i.Userid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GameID,
+		&i.UserID,
 		&i.Name,
 		&i.Num,
 		&i.Ready,
-		&i.Aicontrolled,
-		&i.Submittedturn,
+		&i.AiControlled,
+		&i.SubmittedTurn,
 		&i.Color,
-		&i.Defaulthullset,
-		&i.Techlevelsenergy,
-		&i.Techlevelsweapons,
-		&i.Techlevelspropulsion,
-		&i.Techlevelsconstruction,
-		&i.Techlevelselectronics,
-		&i.Techlevelsbiotechnology,
-		&i.Techlevelsspentenergy,
-		&i.Techlevelsspentweapons,
-		&i.Techlevelsspentpropulsion,
-		&i.Techlevelsspentconstruction,
-		&i.Techlevelsspentelectronics,
-		&i.Techlevelsspentbiotechnology,
-		&i.Researchamount,
-		&i.Researchspentlastyear,
-		&i.Nextresearchfield,
+		&i.DefaultHullSet,
+		&i.TechLevelsEnergy,
+		&i.TechLevelsWeapons,
+		&i.TechLevelsPropulsion,
+		&i.TechLevelsConstruction,
+		&i.TechLevelsElectronics,
+		&i.TechLevelsBiotechnology,
+		&i.TechLevelsSpentEnergy,
+		&i.TechLevelsSpentWeapons,
+		&i.TechLevelsSpentPropulsion,
+		&i.TechLevelsSpentConstruction,
+		&i.TechLevelsSpentElectronics,
+		&i.TechLevelsSpentBiotechnology,
+		&i.ResearchAmount,
+		&i.ResearchSpentLastYear,
+		&i.NextResearchField,
 		&i.Researching,
-		&i.Battleplans,
-		&i.Productionplans,
-		&i.Transportplans,
+		&i.BattlePlans,
+		&i.ProductionPlans,
+		&i.TransportPlans,
 		&i.Relations,
-		&i.Cargotransfers,
+		&i.CargoTransfers,
 		&i.Messages,
-		&i.Battlerecords,
-		&i.Playerintels,
-		&i.Scoreintels,
-		&i.Planetintels,
-		&i.Fleetintels,
-		&i.Shipdesignintels,
-		&i.Mineralpacketintels,
-		&i.Minefieldintels,
-		&i.Wormholeintels,
-		&i.Mysterytraderintels,
-		&i.Salvageintels,
+		&i.BattleRecords,
+		&i.PlayerIntels,
+		&i.ScoreIntels,
+		&i.PlanetIntels,
+		&i.FleetIntels,
+		&i.ShipDesignIntels,
+		&i.MineralPacketIntels,
+		&i.MinefieldIntels,
+		&i.WormholeIntels,
+		&i.MysteryTraderIntels,
+		&i.SalvageIntels,
 		&i.Race,
 		&i.Stats,
-		&i.Scorehistory,
-		&i.Achievedvictoryconditions,
+		&i.ScoreHistory,
+		&i.AchievedVictoryConditions,
 		&i.Victor,
 		&i.Spec,
 		&i.Guest,
-		&i.Aidifficulty,
-		&i.Acquiredtechs,
+		&i.AiDifficulty,
+		&i.AcquiredTechs,
 		&i.Archived,
 	)
 	return i, err
@@ -525,47 +522,46 @@ func (q *Queries) GetPlayer(ctx context.Context, id int64) (Player, error) {
 
 const GetPlayerForGame = `-- name: GetPlayerForGame :many
 SELECT
-    p.id, p.createdat, p.updatedat, p.gameid, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.submittedturn, p.color, p.defaulthullset, p.techlevelsenergy, p.techlevelsweapons, p.techlevelspropulsion, p.techlevelsconstruction, p.techlevelselectronics, p.techlevelsbiotechnology, p.techlevelsspentenergy, p.techlevelsspentweapons, p.techlevelsspentpropulsion, p.techlevelsspentconstruction, p.techlevelsspentelectronics, p.techlevelsspentbiotechnology, p.researchamount, p.researchspentlastyear, p.nextresearchfield, p.researching, p.battleplans, p.productionplans, p.transportplans, p.relations, p.cargotransfers, p.messages, p.battlerecords, p.playerintels, p.scoreintels, p.planetintels, p.fleetintels, p.shipdesignintels, p.mineralpacketintels, p.minefieldintels, p.wormholeintels, p.mysterytraderintels, p.salvageintels, p.race, p.stats, p.scorehistory, p.achievedvictoryconditions, p.victor, p.spec, p.guest, p.aidifficulty, p.acquiredtechs, p.archived,
-    d.id, d.createdat, d.updatedat, d.gameid, d.num, d.playernum, d.name, d.version, d.hull, d.hullsetnumber, d.candelete, d.slots, d.purpose, d.spec, d.cannotdelete, d.originalplayernum, d.mysterytrader
+    p.id, p.created_at, p.updated_at, p.game_id, p.user_id, p.name, p.num, p.ready, p.ai_controlled, p.submitted_turn, p.color, p.default_hull_set, p.tech_levels_energy, p.tech_levels_weapons, p.tech_levels_propulsion, p.tech_levels_construction, p.tech_levels_electronics, p.tech_levels_biotechnology, p.tech_levels_spent_energy, p.tech_levels_spent_weapons, p.tech_levels_spent_propulsion, p.tech_levels_spent_construction, p.tech_levels_spent_electronics, p.tech_levels_spent_biotechnology, p.research_amount, p.research_spent_last_year, p.next_research_field, p.researching, p.battle_plans, p.production_plans, p.transport_plans, p.relations, p.cargo_transfers, p.messages, p.battle_records, p.player_intels, p.score_intels, p.planet_intels, p.fleet_intels, p.ship_design_intels, p.mineral_packet_intels, p.minefield_intels, p.wormhole_intels, p.mystery_trader_intels, p.salvage_intels, p.race, p.stats, p.score_history, p.achieved_victory_conditions, p.victor, p.spec, p.guest, p.ai_difficulty, p.acquired_techs, p.archived,
+    d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
 FROM
     players p
-    LEFT JOIN shipDesigns d ON p.gameId = d.gameId
-    AND p.num = d.playerNum
+    LEFT JOIN ship_designs d ON p.game_id = d.game_id
+    AND p.num = d.player_num
 WHERE
-    p.gameId = ?
+    p.game_id = ?
     AND p.num = ?
 ORDER BY
     d.num
 `
 
 type GetPlayerForGameParams struct {
-	Gameid int64
+	GameID int64
 	Num    int64
 }
 
 type GetPlayerForGameRow struct {
 	Player            Player
 	ID                sql.NullInt64
-	Createdat         sql.NullTime
-	Updatedat         sql.NullTime
-	Gameid            sql.NullInt64
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+	GameID            sql.NullInt64
 	Num               sql.NullInt64
-	Playernum         sql.NullInt64
+	PlayerNum         sql.NullInt64
 	Name              sql.NullString
 	Version           sql.NullInt64
 	Hull              sql.NullString
-	Hullsetnumber     sql.NullInt64
-	Candelete         sql.NullBool
+	HullSetNumber     sql.NullInt64
 	Slots             *ShipDesignSlots
 	Purpose           *cs.ShipDesignPurpose
 	Spec              *ShipDesignSpec
-	Cannotdelete      sql.NullBool
-	Originalplayernum sql.NullInt64
-	Mysterytrader     sql.NullBool
+	CannotDelete      sql.NullBool
+	OriginalPlayerNum sql.NullInt64
+	MysteryTrader     sql.NullBool
 }
 
 func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGameParams) ([]GetPlayerForGameRow, error) {
-	rows, err := q.db.QueryContext(ctx, GetPlayerForGame, arg.Gameid, arg.Num)
+	rows, err := q.db.QueryContext(ctx, GetPlayerForGame, arg.GameID, arg.Num)
 	if err != nil {
 		return nil, err
 	}
@@ -575,77 +571,76 @@ func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGamePara
 		var i GetPlayerForGameRow
 		if err := rows.Scan(
 			&i.Player.ID,
-			&i.Player.Createdat,
-			&i.Player.Updatedat,
-			&i.Player.Gameid,
-			&i.Player.Userid,
+			&i.Player.CreatedAt,
+			&i.Player.UpdatedAt,
+			&i.Player.GameID,
+			&i.Player.UserID,
 			&i.Player.Name,
 			&i.Player.Num,
 			&i.Player.Ready,
-			&i.Player.Aicontrolled,
-			&i.Player.Submittedturn,
+			&i.Player.AiControlled,
+			&i.Player.SubmittedTurn,
 			&i.Player.Color,
-			&i.Player.Defaulthullset,
-			&i.Player.Techlevelsenergy,
-			&i.Player.Techlevelsweapons,
-			&i.Player.Techlevelspropulsion,
-			&i.Player.Techlevelsconstruction,
-			&i.Player.Techlevelselectronics,
-			&i.Player.Techlevelsbiotechnology,
-			&i.Player.Techlevelsspentenergy,
-			&i.Player.Techlevelsspentweapons,
-			&i.Player.Techlevelsspentpropulsion,
-			&i.Player.Techlevelsspentconstruction,
-			&i.Player.Techlevelsspentelectronics,
-			&i.Player.Techlevelsspentbiotechnology,
-			&i.Player.Researchamount,
-			&i.Player.Researchspentlastyear,
-			&i.Player.Nextresearchfield,
+			&i.Player.DefaultHullSet,
+			&i.Player.TechLevelsEnergy,
+			&i.Player.TechLevelsWeapons,
+			&i.Player.TechLevelsPropulsion,
+			&i.Player.TechLevelsConstruction,
+			&i.Player.TechLevelsElectronics,
+			&i.Player.TechLevelsBiotechnology,
+			&i.Player.TechLevelsSpentEnergy,
+			&i.Player.TechLevelsSpentWeapons,
+			&i.Player.TechLevelsSpentPropulsion,
+			&i.Player.TechLevelsSpentConstruction,
+			&i.Player.TechLevelsSpentElectronics,
+			&i.Player.TechLevelsSpentBiotechnology,
+			&i.Player.ResearchAmount,
+			&i.Player.ResearchSpentLastYear,
+			&i.Player.NextResearchField,
 			&i.Player.Researching,
-			&i.Player.Battleplans,
-			&i.Player.Productionplans,
-			&i.Player.Transportplans,
+			&i.Player.BattlePlans,
+			&i.Player.ProductionPlans,
+			&i.Player.TransportPlans,
 			&i.Player.Relations,
-			&i.Player.Cargotransfers,
+			&i.Player.CargoTransfers,
 			&i.Player.Messages,
-			&i.Player.Battlerecords,
-			&i.Player.Playerintels,
-			&i.Player.Scoreintels,
-			&i.Player.Planetintels,
-			&i.Player.Fleetintels,
-			&i.Player.Shipdesignintels,
-			&i.Player.Mineralpacketintels,
-			&i.Player.Minefieldintels,
-			&i.Player.Wormholeintels,
-			&i.Player.Mysterytraderintels,
-			&i.Player.Salvageintels,
+			&i.Player.BattleRecords,
+			&i.Player.PlayerIntels,
+			&i.Player.ScoreIntels,
+			&i.Player.PlanetIntels,
+			&i.Player.FleetIntels,
+			&i.Player.ShipDesignIntels,
+			&i.Player.MineralPacketIntels,
+			&i.Player.MinefieldIntels,
+			&i.Player.WormholeIntels,
+			&i.Player.MysteryTraderIntels,
+			&i.Player.SalvageIntels,
 			&i.Player.Race,
 			&i.Player.Stats,
-			&i.Player.Scorehistory,
-			&i.Player.Achievedvictoryconditions,
+			&i.Player.ScoreHistory,
+			&i.Player.AchievedVictoryConditions,
 			&i.Player.Victor,
 			&i.Player.Spec,
 			&i.Player.Guest,
-			&i.Player.Aidifficulty,
-			&i.Player.Acquiredtechs,
+			&i.Player.AiDifficulty,
+			&i.Player.AcquiredTechs,
 			&i.Player.Archived,
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Name,
 			&i.Version,
 			&i.Hull,
-			&i.Hullsetnumber,
-			&i.Candelete,
+			&i.HullSetNumber,
 			&i.Slots,
 			&i.Purpose,
 			&i.Spec,
-			&i.Cannotdelete,
-			&i.Originalplayernum,
-			&i.Mysterytrader,
+			&i.CannotDelete,
+			&i.OriginalPlayerNum,
+			&i.MysteryTrader,
 		); err != nil {
 			return nil, err
 		}
@@ -662,47 +657,46 @@ func (q *Queries) GetPlayerForGame(ctx context.Context, arg GetPlayerForGamePara
 
 const GetPlayerForGameAndUser = `-- name: GetPlayerForGameAndUser :many
 SELECT
-    p.id, p.createdat, p.updatedat, p.gameid, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.submittedturn, p.color, p.defaulthullset, p.techlevelsenergy, p.techlevelsweapons, p.techlevelspropulsion, p.techlevelsconstruction, p.techlevelselectronics, p.techlevelsbiotechnology, p.techlevelsspentenergy, p.techlevelsspentweapons, p.techlevelsspentpropulsion, p.techlevelsspentconstruction, p.techlevelsspentelectronics, p.techlevelsspentbiotechnology, p.researchamount, p.researchspentlastyear, p.nextresearchfield, p.researching, p.battleplans, p.productionplans, p.transportplans, p.relations, p.cargotransfers, p.messages, p.battlerecords, p.playerintels, p.scoreintels, p.planetintels, p.fleetintels, p.shipdesignintels, p.mineralpacketintels, p.minefieldintels, p.wormholeintels, p.mysterytraderintels, p.salvageintels, p.race, p.stats, p.scorehistory, p.achievedvictoryconditions, p.victor, p.spec, p.guest, p.aidifficulty, p.acquiredtechs, p.archived,
-    d.id, d.createdat, d.updatedat, d.gameid, d.num, d.playernum, d.name, d.version, d.hull, d.hullsetnumber, d.candelete, d.slots, d.purpose, d.spec, d.cannotdelete, d.originalplayernum, d.mysterytrader
+    p.id, p.created_at, p.updated_at, p.game_id, p.user_id, p.name, p.num, p.ready, p.ai_controlled, p.submitted_turn, p.color, p.default_hull_set, p.tech_levels_energy, p.tech_levels_weapons, p.tech_levels_propulsion, p.tech_levels_construction, p.tech_levels_electronics, p.tech_levels_biotechnology, p.tech_levels_spent_energy, p.tech_levels_spent_weapons, p.tech_levels_spent_propulsion, p.tech_levels_spent_construction, p.tech_levels_spent_electronics, p.tech_levels_spent_biotechnology, p.research_amount, p.research_spent_last_year, p.next_research_field, p.researching, p.battle_plans, p.production_plans, p.transport_plans, p.relations, p.cargo_transfers, p.messages, p.battle_records, p.player_intels, p.score_intels, p.planet_intels, p.fleet_intels, p.ship_design_intels, p.mineral_packet_intels, p.minefield_intels, p.wormhole_intels, p.mystery_trader_intels, p.salvage_intels, p.race, p.stats, p.score_history, p.achieved_victory_conditions, p.victor, p.spec, p.guest, p.ai_difficulty, p.acquired_techs, p.archived,
+    d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
 FROM
     players p
-    LEFT JOIN shipDesigns d ON p.gameId = d.gameId
-    AND p.num = d.playerNum
+    LEFT JOIN ship_designs d ON p.game_id = d.game_id
+    AND p.num = d.player_num
 WHERE
-    p.gameId = ?
-    AND p.userId = ?
+    p.game_id = ?
+    AND p.user_id = ?
 ORDER BY
     d.num
 `
 
 type GetPlayerForGameAndUserParams struct {
-	Gameid int64
-	Userid sql.NullInt64
+	GameID int64
+	UserID int64
 }
 
 type GetPlayerForGameAndUserRow struct {
 	Player            Player
 	ID                sql.NullInt64
-	Createdat         sql.NullTime
-	Updatedat         sql.NullTime
-	Gameid            sql.NullInt64
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+	GameID            sql.NullInt64
 	Num               sql.NullInt64
-	Playernum         sql.NullInt64
+	PlayerNum         sql.NullInt64
 	Name              sql.NullString
 	Version           sql.NullInt64
 	Hull              sql.NullString
-	Hullsetnumber     sql.NullInt64
-	Candelete         sql.NullBool
+	HullSetNumber     sql.NullInt64
 	Slots             *ShipDesignSlots
 	Purpose           *cs.ShipDesignPurpose
 	Spec              *ShipDesignSpec
-	Cannotdelete      sql.NullBool
-	Originalplayernum sql.NullInt64
-	Mysterytrader     sql.NullBool
+	CannotDelete      sql.NullBool
+	OriginalPlayerNum sql.NullInt64
+	MysteryTrader     sql.NullBool
 }
 
 func (q *Queries) GetPlayerForGameAndUser(ctx context.Context, arg GetPlayerForGameAndUserParams) ([]GetPlayerForGameAndUserRow, error) {
-	rows, err := q.db.QueryContext(ctx, GetPlayerForGameAndUser, arg.Gameid, arg.Userid)
+	rows, err := q.db.QueryContext(ctx, GetPlayerForGameAndUser, arg.GameID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -712,77 +706,76 @@ func (q *Queries) GetPlayerForGameAndUser(ctx context.Context, arg GetPlayerForG
 		var i GetPlayerForGameAndUserRow
 		if err := rows.Scan(
 			&i.Player.ID,
-			&i.Player.Createdat,
-			&i.Player.Updatedat,
-			&i.Player.Gameid,
-			&i.Player.Userid,
+			&i.Player.CreatedAt,
+			&i.Player.UpdatedAt,
+			&i.Player.GameID,
+			&i.Player.UserID,
 			&i.Player.Name,
 			&i.Player.Num,
 			&i.Player.Ready,
-			&i.Player.Aicontrolled,
-			&i.Player.Submittedturn,
+			&i.Player.AiControlled,
+			&i.Player.SubmittedTurn,
 			&i.Player.Color,
-			&i.Player.Defaulthullset,
-			&i.Player.Techlevelsenergy,
-			&i.Player.Techlevelsweapons,
-			&i.Player.Techlevelspropulsion,
-			&i.Player.Techlevelsconstruction,
-			&i.Player.Techlevelselectronics,
-			&i.Player.Techlevelsbiotechnology,
-			&i.Player.Techlevelsspentenergy,
-			&i.Player.Techlevelsspentweapons,
-			&i.Player.Techlevelsspentpropulsion,
-			&i.Player.Techlevelsspentconstruction,
-			&i.Player.Techlevelsspentelectronics,
-			&i.Player.Techlevelsspentbiotechnology,
-			&i.Player.Researchamount,
-			&i.Player.Researchspentlastyear,
-			&i.Player.Nextresearchfield,
+			&i.Player.DefaultHullSet,
+			&i.Player.TechLevelsEnergy,
+			&i.Player.TechLevelsWeapons,
+			&i.Player.TechLevelsPropulsion,
+			&i.Player.TechLevelsConstruction,
+			&i.Player.TechLevelsElectronics,
+			&i.Player.TechLevelsBiotechnology,
+			&i.Player.TechLevelsSpentEnergy,
+			&i.Player.TechLevelsSpentWeapons,
+			&i.Player.TechLevelsSpentPropulsion,
+			&i.Player.TechLevelsSpentConstruction,
+			&i.Player.TechLevelsSpentElectronics,
+			&i.Player.TechLevelsSpentBiotechnology,
+			&i.Player.ResearchAmount,
+			&i.Player.ResearchSpentLastYear,
+			&i.Player.NextResearchField,
 			&i.Player.Researching,
-			&i.Player.Battleplans,
-			&i.Player.Productionplans,
-			&i.Player.Transportplans,
+			&i.Player.BattlePlans,
+			&i.Player.ProductionPlans,
+			&i.Player.TransportPlans,
 			&i.Player.Relations,
-			&i.Player.Cargotransfers,
+			&i.Player.CargoTransfers,
 			&i.Player.Messages,
-			&i.Player.Battlerecords,
-			&i.Player.Playerintels,
-			&i.Player.Scoreintels,
-			&i.Player.Planetintels,
-			&i.Player.Fleetintels,
-			&i.Player.Shipdesignintels,
-			&i.Player.Mineralpacketintels,
-			&i.Player.Minefieldintels,
-			&i.Player.Wormholeintels,
-			&i.Player.Mysterytraderintels,
-			&i.Player.Salvageintels,
+			&i.Player.BattleRecords,
+			&i.Player.PlayerIntels,
+			&i.Player.ScoreIntels,
+			&i.Player.PlanetIntels,
+			&i.Player.FleetIntels,
+			&i.Player.ShipDesignIntels,
+			&i.Player.MineralPacketIntels,
+			&i.Player.MinefieldIntels,
+			&i.Player.WormholeIntels,
+			&i.Player.MysteryTraderIntels,
+			&i.Player.SalvageIntels,
 			&i.Player.Race,
 			&i.Player.Stats,
-			&i.Player.Scorehistory,
-			&i.Player.Achievedvictoryconditions,
+			&i.Player.ScoreHistory,
+			&i.Player.AchievedVictoryConditions,
 			&i.Player.Victor,
 			&i.Player.Spec,
 			&i.Player.Guest,
-			&i.Player.Aidifficulty,
-			&i.Player.Acquiredtechs,
+			&i.Player.AiDifficulty,
+			&i.Player.AcquiredTechs,
 			&i.Player.Archived,
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Name,
 			&i.Version,
 			&i.Hull,
-			&i.Hullsetnumber,
-			&i.Candelete,
+			&i.HullSetNumber,
 			&i.Slots,
 			&i.Purpose,
 			&i.Spec,
-			&i.Cannotdelete,
-			&i.Originalplayernum,
-			&i.Mysterytrader,
+			&i.CannotDelete,
+			&i.OriginalPlayerNum,
+			&i.MysteryTrader,
 		); err != nil {
 			return nil, err
 		}
@@ -803,17 +796,17 @@ SELECT
 FROM
     players
 WHERE
-    gameId = ?
-    AND userId = ?
+    game_id = ?
+    AND user_id = ?
 `
 
 type GetPlayerNumParams struct {
-	Gameid int64
-	Userid sql.NullInt64
+	GameID int64
+	UserID int64
 }
 
 func (q *Queries) GetPlayerNum(ctx context.Context, arg GetPlayerNumParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, GetPlayerNum, arg.Gameid, arg.Userid)
+	row := q.db.QueryRowContext(ctx, GetPlayerNum, arg.GameID, arg.UserID)
 	var num int64
 	err := row.Scan(&num)
 	return num, err
@@ -821,7 +814,7 @@ func (q *Queries) GetPlayerNum(ctx context.Context, arg GetPlayerNumParams) (int
 
 const GetPlayers = `-- name: GetPlayers :many
 SELECT
-    id, createdat, updatedat, gameid, userid, name, num, ready, aicontrolled, submittedturn, color, defaulthullset, techlevelsenergy, techlevelsweapons, techlevelspropulsion, techlevelsconstruction, techlevelselectronics, techlevelsbiotechnology, techlevelsspentenergy, techlevelsspentweapons, techlevelsspentpropulsion, techlevelsspentconstruction, techlevelsspentelectronics, techlevelsspentbiotechnology, researchamount, researchspentlastyear, nextresearchfield, researching, battleplans, productionplans, transportplans, relations, cargotransfers, messages, battlerecords, playerintels, scoreintels, planetintels, fleetintels, shipdesignintels, mineralpacketintels, minefieldintels, wormholeintels, mysterytraderintels, salvageintels, race, stats, scorehistory, achievedvictoryconditions, victor, spec, guest, aidifficulty, acquiredtechs, archived
+    id, created_at, updated_at, game_id, user_id, name, num, ready, ai_controlled, submitted_turn, color, default_hull_set, tech_levels_energy, tech_levels_weapons, tech_levels_propulsion, tech_levels_construction, tech_levels_electronics, tech_levels_biotechnology, tech_levels_spent_energy, tech_levels_spent_weapons, tech_levels_spent_propulsion, tech_levels_spent_construction, tech_levels_spent_electronics, tech_levels_spent_biotechnology, research_amount, research_spent_last_year, next_research_field, researching, battle_plans, production_plans, transport_plans, relations, cargo_transfers, messages, battle_records, player_intels, score_intels, planet_intels, fleet_intels, ship_design_intels, mineral_packet_intels, minefield_intels, wormhole_intels, mystery_trader_intels, salvage_intels, race, stats, score_history, achieved_victory_conditions, victor, spec, guest, ai_difficulty, acquired_techs, archived
 FROM
     players
 `
@@ -838,59 +831,59 @@ func (q *Queries) GetPlayers(ctx context.Context) ([]Player, error) {
 		var i Player
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
-			&i.Userid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
+			&i.UserID,
 			&i.Name,
 			&i.Num,
 			&i.Ready,
-			&i.Aicontrolled,
-			&i.Submittedturn,
+			&i.AiControlled,
+			&i.SubmittedTurn,
 			&i.Color,
-			&i.Defaulthullset,
-			&i.Techlevelsenergy,
-			&i.Techlevelsweapons,
-			&i.Techlevelspropulsion,
-			&i.Techlevelsconstruction,
-			&i.Techlevelselectronics,
-			&i.Techlevelsbiotechnology,
-			&i.Techlevelsspentenergy,
-			&i.Techlevelsspentweapons,
-			&i.Techlevelsspentpropulsion,
-			&i.Techlevelsspentconstruction,
-			&i.Techlevelsspentelectronics,
-			&i.Techlevelsspentbiotechnology,
-			&i.Researchamount,
-			&i.Researchspentlastyear,
-			&i.Nextresearchfield,
+			&i.DefaultHullSet,
+			&i.TechLevelsEnergy,
+			&i.TechLevelsWeapons,
+			&i.TechLevelsPropulsion,
+			&i.TechLevelsConstruction,
+			&i.TechLevelsElectronics,
+			&i.TechLevelsBiotechnology,
+			&i.TechLevelsSpentEnergy,
+			&i.TechLevelsSpentWeapons,
+			&i.TechLevelsSpentPropulsion,
+			&i.TechLevelsSpentConstruction,
+			&i.TechLevelsSpentElectronics,
+			&i.TechLevelsSpentBiotechnology,
+			&i.ResearchAmount,
+			&i.ResearchSpentLastYear,
+			&i.NextResearchField,
 			&i.Researching,
-			&i.Battleplans,
-			&i.Productionplans,
-			&i.Transportplans,
+			&i.BattlePlans,
+			&i.ProductionPlans,
+			&i.TransportPlans,
 			&i.Relations,
-			&i.Cargotransfers,
+			&i.CargoTransfers,
 			&i.Messages,
-			&i.Battlerecords,
-			&i.Playerintels,
-			&i.Scoreintels,
-			&i.Planetintels,
-			&i.Fleetintels,
-			&i.Shipdesignintels,
-			&i.Mineralpacketintels,
-			&i.Minefieldintels,
-			&i.Wormholeintels,
-			&i.Mysterytraderintels,
-			&i.Salvageintels,
+			&i.BattleRecords,
+			&i.PlayerIntels,
+			&i.ScoreIntels,
+			&i.PlanetIntels,
+			&i.FleetIntels,
+			&i.ShipDesignIntels,
+			&i.MineralPacketIntels,
+			&i.MinefieldIntels,
+			&i.WormholeIntels,
+			&i.MysteryTraderIntels,
+			&i.SalvageIntels,
 			&i.Race,
 			&i.Stats,
-			&i.Scorehistory,
-			&i.Achievedvictoryconditions,
+			&i.ScoreHistory,
+			&i.AchievedVictoryConditions,
 			&i.Victor,
 			&i.Spec,
 			&i.Guest,
-			&i.Aidifficulty,
-			&i.Acquiredtechs,
+			&i.AiDifficulty,
+			&i.AcquiredTechs,
 			&i.Archived,
 		); err != nil {
 			return nil, err
@@ -908,17 +901,17 @@ func (q *Queries) GetPlayers(ctx context.Context) ([]Player, error) {
 
 const GetPlayersForGame = `-- name: GetPlayersForGame :many
 SELECT
-    id, createdat, updatedat, gameid, userid, name, num, ready, aicontrolled, submittedturn, color, defaulthullset, techlevelsenergy, techlevelsweapons, techlevelspropulsion, techlevelsconstruction, techlevelselectronics, techlevelsbiotechnology, techlevelsspentenergy, techlevelsspentweapons, techlevelsspentpropulsion, techlevelsspentconstruction, techlevelsspentelectronics, techlevelsspentbiotechnology, researchamount, researchspentlastyear, nextresearchfield, researching, battleplans, productionplans, transportplans, relations, cargotransfers, messages, battlerecords, playerintels, scoreintels, planetintels, fleetintels, shipdesignintels, mineralpacketintels, minefieldintels, wormholeintels, mysterytraderintels, salvageintels, race, stats, scorehistory, achievedvictoryconditions, victor, spec, guest, aidifficulty, acquiredtechs, archived
+    id, created_at, updated_at, game_id, user_id, name, num, ready, ai_controlled, submitted_turn, color, default_hull_set, tech_levels_energy, tech_levels_weapons, tech_levels_propulsion, tech_levels_construction, tech_levels_electronics, tech_levels_biotechnology, tech_levels_spent_energy, tech_levels_spent_weapons, tech_levels_spent_propulsion, tech_levels_spent_construction, tech_levels_spent_electronics, tech_levels_spent_biotechnology, research_amount, research_spent_last_year, next_research_field, researching, battle_plans, production_plans, transport_plans, relations, cargo_transfers, messages, battle_records, player_intels, score_intels, planet_intels, fleet_intels, ship_design_intels, mineral_packet_intels, minefield_intels, wormhole_intels, mystery_trader_intels, salvage_intels, race, stats, score_history, achieved_victory_conditions, victor, spec, guest, ai_difficulty, acquired_techs, archived
 FROM
     players
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num
 `
 
-func (q *Queries) GetPlayersForGame(ctx context.Context, gameid int64) ([]Player, error) {
-	rows, err := q.db.QueryContext(ctx, GetPlayersForGame, gameid)
+func (q *Queries) GetPlayersForGame(ctx context.Context, gameID int64) ([]Player, error) {
+	rows, err := q.db.QueryContext(ctx, GetPlayersForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -928,59 +921,59 @@ func (q *Queries) GetPlayersForGame(ctx context.Context, gameid int64) ([]Player
 		var i Player
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
-			&i.Userid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
+			&i.UserID,
 			&i.Name,
 			&i.Num,
 			&i.Ready,
-			&i.Aicontrolled,
-			&i.Submittedturn,
+			&i.AiControlled,
+			&i.SubmittedTurn,
 			&i.Color,
-			&i.Defaulthullset,
-			&i.Techlevelsenergy,
-			&i.Techlevelsweapons,
-			&i.Techlevelspropulsion,
-			&i.Techlevelsconstruction,
-			&i.Techlevelselectronics,
-			&i.Techlevelsbiotechnology,
-			&i.Techlevelsspentenergy,
-			&i.Techlevelsspentweapons,
-			&i.Techlevelsspentpropulsion,
-			&i.Techlevelsspentconstruction,
-			&i.Techlevelsspentelectronics,
-			&i.Techlevelsspentbiotechnology,
-			&i.Researchamount,
-			&i.Researchspentlastyear,
-			&i.Nextresearchfield,
+			&i.DefaultHullSet,
+			&i.TechLevelsEnergy,
+			&i.TechLevelsWeapons,
+			&i.TechLevelsPropulsion,
+			&i.TechLevelsConstruction,
+			&i.TechLevelsElectronics,
+			&i.TechLevelsBiotechnology,
+			&i.TechLevelsSpentEnergy,
+			&i.TechLevelsSpentWeapons,
+			&i.TechLevelsSpentPropulsion,
+			&i.TechLevelsSpentConstruction,
+			&i.TechLevelsSpentElectronics,
+			&i.TechLevelsSpentBiotechnology,
+			&i.ResearchAmount,
+			&i.ResearchSpentLastYear,
+			&i.NextResearchField,
 			&i.Researching,
-			&i.Battleplans,
-			&i.Productionplans,
-			&i.Transportplans,
+			&i.BattlePlans,
+			&i.ProductionPlans,
+			&i.TransportPlans,
 			&i.Relations,
-			&i.Cargotransfers,
+			&i.CargoTransfers,
 			&i.Messages,
-			&i.Battlerecords,
-			&i.Playerintels,
-			&i.Scoreintels,
-			&i.Planetintels,
-			&i.Fleetintels,
-			&i.Shipdesignintels,
-			&i.Mineralpacketintels,
-			&i.Minefieldintels,
-			&i.Wormholeintels,
-			&i.Mysterytraderintels,
-			&i.Salvageintels,
+			&i.BattleRecords,
+			&i.PlayerIntels,
+			&i.ScoreIntels,
+			&i.PlanetIntels,
+			&i.FleetIntels,
+			&i.ShipDesignIntels,
+			&i.MineralPacketIntels,
+			&i.MinefieldIntels,
+			&i.WormholeIntels,
+			&i.MysteryTraderIntels,
+			&i.SalvageIntels,
 			&i.Race,
 			&i.Stats,
-			&i.Scorehistory,
-			&i.Achievedvictoryconditions,
+			&i.ScoreHistory,
+			&i.AchievedVictoryConditions,
 			&i.Victor,
 			&i.Spec,
 			&i.Guest,
-			&i.Aidifficulty,
-			&i.Acquiredtechs,
+			&i.AiDifficulty,
+			&i.AcquiredTechs,
 			&i.Archived,
 		); err != nil {
 			return nil, err
@@ -998,15 +991,15 @@ func (q *Queries) GetPlayersForGame(ctx context.Context, gameid int64) ([]Player
 
 const GetPlayersForUser = `-- name: GetPlayersForUser :many
 SELECT
-    id, createdat, updatedat, gameid, userid, name, num, ready, aicontrolled, submittedturn, color, defaulthullset, techlevelsenergy, techlevelsweapons, techlevelspropulsion, techlevelsconstruction, techlevelselectronics, techlevelsbiotechnology, techlevelsspentenergy, techlevelsspentweapons, techlevelsspentpropulsion, techlevelsspentconstruction, techlevelsspentelectronics, techlevelsspentbiotechnology, researchamount, researchspentlastyear, nextresearchfield, researching, battleplans, productionplans, transportplans, relations, cargotransfers, messages, battlerecords, playerintels, scoreintels, planetintels, fleetintels, shipdesignintels, mineralpacketintels, minefieldintels, wormholeintels, mysterytraderintels, salvageintels, race, stats, scorehistory, achievedvictoryconditions, victor, spec, guest, aidifficulty, acquiredtechs, archived
+    id, created_at, updated_at, game_id, user_id, name, num, ready, ai_controlled, submitted_turn, color, default_hull_set, tech_levels_energy, tech_levels_weapons, tech_levels_propulsion, tech_levels_construction, tech_levels_electronics, tech_levels_biotechnology, tech_levels_spent_energy, tech_levels_spent_weapons, tech_levels_spent_propulsion, tech_levels_spent_construction, tech_levels_spent_electronics, tech_levels_spent_biotechnology, research_amount, research_spent_last_year, next_research_field, researching, battle_plans, production_plans, transport_plans, relations, cargo_transfers, messages, battle_records, player_intels, score_intels, planet_intels, fleet_intels, ship_design_intels, mineral_packet_intels, minefield_intels, wormhole_intels, mystery_trader_intels, salvage_intels, race, stats, score_history, achieved_victory_conditions, victor, spec, guest, ai_difficulty, acquired_techs, archived
 FROM
     players
 WHERE
-    userId = ?
+    user_id = ?
 `
 
-func (q *Queries) GetPlayersForUser(ctx context.Context, userid sql.NullInt64) ([]Player, error) {
-	rows, err := q.db.QueryContext(ctx, GetPlayersForUser, userid)
+func (q *Queries) GetPlayersForUser(ctx context.Context, userID int64) ([]Player, error) {
+	rows, err := q.db.QueryContext(ctx, GetPlayersForUser, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1016,59 +1009,59 @@ func (q *Queries) GetPlayersForUser(ctx context.Context, userid sql.NullInt64) (
 		var i Player
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
-			&i.Userid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
+			&i.UserID,
 			&i.Name,
 			&i.Num,
 			&i.Ready,
-			&i.Aicontrolled,
-			&i.Submittedturn,
+			&i.AiControlled,
+			&i.SubmittedTurn,
 			&i.Color,
-			&i.Defaulthullset,
-			&i.Techlevelsenergy,
-			&i.Techlevelsweapons,
-			&i.Techlevelspropulsion,
-			&i.Techlevelsconstruction,
-			&i.Techlevelselectronics,
-			&i.Techlevelsbiotechnology,
-			&i.Techlevelsspentenergy,
-			&i.Techlevelsspentweapons,
-			&i.Techlevelsspentpropulsion,
-			&i.Techlevelsspentconstruction,
-			&i.Techlevelsspentelectronics,
-			&i.Techlevelsspentbiotechnology,
-			&i.Researchamount,
-			&i.Researchspentlastyear,
-			&i.Nextresearchfield,
+			&i.DefaultHullSet,
+			&i.TechLevelsEnergy,
+			&i.TechLevelsWeapons,
+			&i.TechLevelsPropulsion,
+			&i.TechLevelsConstruction,
+			&i.TechLevelsElectronics,
+			&i.TechLevelsBiotechnology,
+			&i.TechLevelsSpentEnergy,
+			&i.TechLevelsSpentWeapons,
+			&i.TechLevelsSpentPropulsion,
+			&i.TechLevelsSpentConstruction,
+			&i.TechLevelsSpentElectronics,
+			&i.TechLevelsSpentBiotechnology,
+			&i.ResearchAmount,
+			&i.ResearchSpentLastYear,
+			&i.NextResearchField,
 			&i.Researching,
-			&i.Battleplans,
-			&i.Productionplans,
-			&i.Transportplans,
+			&i.BattlePlans,
+			&i.ProductionPlans,
+			&i.TransportPlans,
 			&i.Relations,
-			&i.Cargotransfers,
+			&i.CargoTransfers,
 			&i.Messages,
-			&i.Battlerecords,
-			&i.Playerintels,
-			&i.Scoreintels,
-			&i.Planetintels,
-			&i.Fleetintels,
-			&i.Shipdesignintels,
-			&i.Mineralpacketintels,
-			&i.Minefieldintels,
-			&i.Wormholeintels,
-			&i.Mysterytraderintels,
-			&i.Salvageintels,
+			&i.BattleRecords,
+			&i.PlayerIntels,
+			&i.ScoreIntels,
+			&i.PlanetIntels,
+			&i.FleetIntels,
+			&i.ShipDesignIntels,
+			&i.MineralPacketIntels,
+			&i.MinefieldIntels,
+			&i.WormholeIntels,
+			&i.MysteryTraderIntels,
+			&i.SalvageIntels,
 			&i.Race,
 			&i.Stats,
-			&i.Scorehistory,
-			&i.Achievedvictoryconditions,
+			&i.ScoreHistory,
+			&i.AchievedVictoryConditions,
 			&i.Victor,
 			&i.Spec,
 			&i.Guest,
-			&i.Aidifficulty,
-			&i.Acquiredtechs,
+			&i.AiDifficulty,
+			&i.AcquiredTechs,
 			&i.Archived,
 		); err != nil {
 			return nil, err
@@ -1087,44 +1080,44 @@ func (q *Queries) GetPlayersForUser(ctx context.Context, userid sql.NullInt64) (
 const GetPlayersStatusForGame = `-- name: GetPlayersStatusForGame :many
 SELECT
     id,
-    createdAt,
-    updatedAt,
-    gameId,
-    userId,
+    created_at,
+    updated_at,
+    game_id,
+    user_id,
     name,
     num,
     ready,
-    aiControlled,
-    aiDifficulty,
+    ai_controlled,
+    ai_difficulty,
     guest,
-    submittedTurn,
+    submitted_turn,
     color
 FROM
     players
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num
 `
 
 type GetPlayersStatusForGameRow struct {
 	ID            int64
-	Createdat     time.Time
-	Updatedat     time.Time
-	Gameid        int64
-	Userid        sql.NullInt64
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	GameID        int64
+	UserID        int64
 	Name          string
 	Num           int64
-	Ready         sql.NullBool
-	Aicontrolled  sql.NullBool
-	Aidifficulty  *cs.AIDifficulty
+	Ready         bool
+	AiControlled  bool
+	AiDifficulty  *cs.AIDifficulty
 	Guest         bool
-	Submittedturn sql.NullBool
-	Color         sql.NullString
+	SubmittedTurn bool
+	Color         string
 }
 
-func (q *Queries) GetPlayersStatusForGame(ctx context.Context, gameid int64) ([]GetPlayersStatusForGameRow, error) {
-	rows, err := q.db.QueryContext(ctx, GetPlayersStatusForGame, gameid)
+func (q *Queries) GetPlayersStatusForGame(ctx context.Context, gameID int64) ([]GetPlayersStatusForGameRow, error) {
+	rows, err := q.db.QueryContext(ctx, GetPlayersStatusForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -1134,17 +1127,17 @@ func (q *Queries) GetPlayersStatusForGame(ctx context.Context, gameid int64) ([]
 		var i GetPlayersStatusForGameRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
-			&i.Userid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
+			&i.UserID,
 			&i.Name,
 			&i.Num,
 			&i.Ready,
-			&i.Aicontrolled,
-			&i.Aidifficulty,
+			&i.AiControlled,
+			&i.AiDifficulty,
 			&i.Guest,
-			&i.Submittedturn,
+			&i.SubmittedTurn,
 			&i.Color,
 		); err != nil {
 			return nil, err
@@ -1162,14 +1155,14 @@ func (q *Queries) GetPlayersStatusForGame(ctx context.Context, gameid int64) ([]
 
 const GetPlayersWithDesignsForGame = `-- name: GetPlayersWithDesignsForGame :many
 SELECT
-    p.id, p.createdat, p.updatedat, p.gameid, p.userid, p.name, p.num, p.ready, p.aicontrolled, p.submittedturn, p.color, p.defaulthullset, p.techlevelsenergy, p.techlevelsweapons, p.techlevelspropulsion, p.techlevelsconstruction, p.techlevelselectronics, p.techlevelsbiotechnology, p.techlevelsspentenergy, p.techlevelsspentweapons, p.techlevelsspentpropulsion, p.techlevelsspentconstruction, p.techlevelsspentelectronics, p.techlevelsspentbiotechnology, p.researchamount, p.researchspentlastyear, p.nextresearchfield, p.researching, p.battleplans, p.productionplans, p.transportplans, p.relations, p.cargotransfers, p.messages, p.battlerecords, p.playerintels, p.scoreintels, p.planetintels, p.fleetintels, p.shipdesignintels, p.mineralpacketintels, p.minefieldintels, p.wormholeintels, p.mysterytraderintels, p.salvageintels, p.race, p.stats, p.scorehistory, p.achievedvictoryconditions, p.victor, p.spec, p.guest, p.aidifficulty, p.acquiredtechs, p.archived,
-    d.id, d.createdat, d.updatedat, d.gameid, d.num, d.playernum, d.name, d.version, d.hull, d.hullsetnumber, d.candelete, d.slots, d.purpose, d.spec, d.cannotdelete, d.originalplayernum, d.mysterytrader
+    p.id, p.created_at, p.updated_at, p.game_id, p.user_id, p.name, p.num, p.ready, p.ai_controlled, p.submitted_turn, p.color, p.default_hull_set, p.tech_levels_energy, p.tech_levels_weapons, p.tech_levels_propulsion, p.tech_levels_construction, p.tech_levels_electronics, p.tech_levels_biotechnology, p.tech_levels_spent_energy, p.tech_levels_spent_weapons, p.tech_levels_spent_propulsion, p.tech_levels_spent_construction, p.tech_levels_spent_electronics, p.tech_levels_spent_biotechnology, p.research_amount, p.research_spent_last_year, p.next_research_field, p.researching, p.battle_plans, p.production_plans, p.transport_plans, p.relations, p.cargo_transfers, p.messages, p.battle_records, p.player_intels, p.score_intels, p.planet_intels, p.fleet_intels, p.ship_design_intels, p.mineral_packet_intels, p.minefield_intels, p.wormhole_intels, p.mystery_trader_intels, p.salvage_intels, p.race, p.stats, p.score_history, p.achieved_victory_conditions, p.victor, p.spec, p.guest, p.ai_difficulty, p.acquired_techs, p.archived,
+    d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
 FROM
     players p
-    LEFT JOIN shipDesigns d ON p.gameId = d.gameId
-    AND p.num = d.playerNum
+    LEFT JOIN ship_designs d ON p.game_id = d.game_id
+    AND p.num = d.player_num
 WHERE
-    p.gameId = ?
+    p.game_id = ?
 ORDER BY
     p.num,
     d.num
@@ -1178,26 +1171,25 @@ ORDER BY
 type GetPlayersWithDesignsForGameRow struct {
 	Player            Player
 	ID                sql.NullInt64
-	Createdat         sql.NullTime
-	Updatedat         sql.NullTime
-	Gameid            sql.NullInt64
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+	GameID            sql.NullInt64
 	Num               sql.NullInt64
-	Playernum         sql.NullInt64
+	PlayerNum         sql.NullInt64
 	Name              sql.NullString
 	Version           sql.NullInt64
 	Hull              sql.NullString
-	Hullsetnumber     sql.NullInt64
-	Candelete         sql.NullBool
+	HullSetNumber     sql.NullInt64
 	Slots             *ShipDesignSlots
 	Purpose           *cs.ShipDesignPurpose
 	Spec              *ShipDesignSpec
-	Cannotdelete      sql.NullBool
-	Originalplayernum sql.NullInt64
-	Mysterytrader     sql.NullBool
+	CannotDelete      sql.NullBool
+	OriginalPlayerNum sql.NullInt64
+	MysteryTrader     sql.NullBool
 }
 
-func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameid int64) ([]GetPlayersWithDesignsForGameRow, error) {
-	rows, err := q.db.QueryContext(ctx, GetPlayersWithDesignsForGame, gameid)
+func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameID int64) ([]GetPlayersWithDesignsForGameRow, error) {
+	rows, err := q.db.QueryContext(ctx, GetPlayersWithDesignsForGame, gameID)
 	if err != nil {
 		return nil, err
 	}
@@ -1207,77 +1199,76 @@ func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameid int64
 		var i GetPlayersWithDesignsForGameRow
 		if err := rows.Scan(
 			&i.Player.ID,
-			&i.Player.Createdat,
-			&i.Player.Updatedat,
-			&i.Player.Gameid,
-			&i.Player.Userid,
+			&i.Player.CreatedAt,
+			&i.Player.UpdatedAt,
+			&i.Player.GameID,
+			&i.Player.UserID,
 			&i.Player.Name,
 			&i.Player.Num,
 			&i.Player.Ready,
-			&i.Player.Aicontrolled,
-			&i.Player.Submittedturn,
+			&i.Player.AiControlled,
+			&i.Player.SubmittedTurn,
 			&i.Player.Color,
-			&i.Player.Defaulthullset,
-			&i.Player.Techlevelsenergy,
-			&i.Player.Techlevelsweapons,
-			&i.Player.Techlevelspropulsion,
-			&i.Player.Techlevelsconstruction,
-			&i.Player.Techlevelselectronics,
-			&i.Player.Techlevelsbiotechnology,
-			&i.Player.Techlevelsspentenergy,
-			&i.Player.Techlevelsspentweapons,
-			&i.Player.Techlevelsspentpropulsion,
-			&i.Player.Techlevelsspentconstruction,
-			&i.Player.Techlevelsspentelectronics,
-			&i.Player.Techlevelsspentbiotechnology,
-			&i.Player.Researchamount,
-			&i.Player.Researchspentlastyear,
-			&i.Player.Nextresearchfield,
+			&i.Player.DefaultHullSet,
+			&i.Player.TechLevelsEnergy,
+			&i.Player.TechLevelsWeapons,
+			&i.Player.TechLevelsPropulsion,
+			&i.Player.TechLevelsConstruction,
+			&i.Player.TechLevelsElectronics,
+			&i.Player.TechLevelsBiotechnology,
+			&i.Player.TechLevelsSpentEnergy,
+			&i.Player.TechLevelsSpentWeapons,
+			&i.Player.TechLevelsSpentPropulsion,
+			&i.Player.TechLevelsSpentConstruction,
+			&i.Player.TechLevelsSpentElectronics,
+			&i.Player.TechLevelsSpentBiotechnology,
+			&i.Player.ResearchAmount,
+			&i.Player.ResearchSpentLastYear,
+			&i.Player.NextResearchField,
 			&i.Player.Researching,
-			&i.Player.Battleplans,
-			&i.Player.Productionplans,
-			&i.Player.Transportplans,
+			&i.Player.BattlePlans,
+			&i.Player.ProductionPlans,
+			&i.Player.TransportPlans,
 			&i.Player.Relations,
-			&i.Player.Cargotransfers,
+			&i.Player.CargoTransfers,
 			&i.Player.Messages,
-			&i.Player.Battlerecords,
-			&i.Player.Playerintels,
-			&i.Player.Scoreintels,
-			&i.Player.Planetintels,
-			&i.Player.Fleetintels,
-			&i.Player.Shipdesignintels,
-			&i.Player.Mineralpacketintels,
-			&i.Player.Minefieldintels,
-			&i.Player.Wormholeintels,
-			&i.Player.Mysterytraderintels,
-			&i.Player.Salvageintels,
+			&i.Player.BattleRecords,
+			&i.Player.PlayerIntels,
+			&i.Player.ScoreIntels,
+			&i.Player.PlanetIntels,
+			&i.Player.FleetIntels,
+			&i.Player.ShipDesignIntels,
+			&i.Player.MineralPacketIntels,
+			&i.Player.MinefieldIntels,
+			&i.Player.WormholeIntels,
+			&i.Player.MysteryTraderIntels,
+			&i.Player.SalvageIntels,
 			&i.Player.Race,
 			&i.Player.Stats,
-			&i.Player.Scorehistory,
-			&i.Player.Achievedvictoryconditions,
+			&i.Player.ScoreHistory,
+			&i.Player.AchievedVictoryConditions,
 			&i.Player.Victor,
 			&i.Player.Spec,
 			&i.Player.Guest,
-			&i.Player.Aidifficulty,
-			&i.Player.Acquiredtechs,
+			&i.Player.AiDifficulty,
+			&i.Player.AcquiredTechs,
 			&i.Player.Archived,
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Gameid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GameID,
 			&i.Num,
-			&i.Playernum,
+			&i.PlayerNum,
 			&i.Name,
 			&i.Version,
 			&i.Hull,
-			&i.Hullsetnumber,
-			&i.Candelete,
+			&i.HullSetNumber,
 			&i.Slots,
 			&i.Purpose,
 			&i.Spec,
-			&i.Cannotdelete,
-			&i.Originalplayernum,
-			&i.Mysterytrader,
+			&i.CannotDelete,
+			&i.OriginalPlayerNum,
+			&i.MysteryTrader,
 		); err != nil {
 			return nil, err
 		}
@@ -1292,441 +1283,450 @@ func (q *Queries) GetPlayersWithDesignsForGame(ctx context.Context, gameid int64
 	return items, nil
 }
 
-const SubmitPlayerTurn = `-- name: SubmitPlayerTurn :one
+const SubmitPlayerTurn = `-- name: SubmitPlayerTurn :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    submittedTurn = ?
+    updated_at = CURRENT_TIMESTAMP,
+    submitted_turn = ?
 WHERE
-    gameId = ?
-    AND num = ? RETURNING updatedAt
+    game_id = ?
+    AND num = ?
 `
 
 type SubmitPlayerTurnParams struct {
-	Submittedturn sql.NullBool
-	Gameid        int64
+	SubmittedTurn bool
+	GameID        int64
 	Num           int64
 }
 
-func (q *Queries) SubmitPlayerTurn(ctx context.Context, arg SubmitPlayerTurnParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, SubmitPlayerTurn, arg.Submittedturn, arg.Gameid, arg.Num)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) SubmitPlayerTurn(ctx context.Context, arg SubmitPlayerTurnParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, SubmitPlayerTurn, arg.SubmittedTurn, arg.GameID, arg.Num)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdateLightPlayer = `-- name: UpdateLightPlayer :one
+const UpdateLightPlayer = `-- name: UpdateLightPlayer :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
     name = ?,
     num = ?,
     ready = ?,
-    aiControlled = ?,
-    aiDifficulty = ?,
+    ai_controlled = ?,
+    ai_difficulty = ?,
     guest = ?,
-    submittedTurn = ?,
+    submitted_turn = ?,
     color = ?,
-    defaultHullSet = ?,
-    researchAmount = ?,
-    nextResearchField = ?,
+    default_hull_set = ?,
+    research_amount = ?,
+    next_research_field = ?,
     researching = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdateLightPlayerParams struct {
 	Name              string
 	Num               int64
-	Ready             sql.NullBool
-	Aicontrolled      sql.NullBool
-	Aidifficulty      *cs.AIDifficulty
+	Ready             bool
+	AiControlled      bool
+	AiDifficulty      *cs.AIDifficulty
 	Guest             bool
-	Submittedturn     sql.NullBool
-	Color             sql.NullString
-	Defaulthullset    sql.NullInt64
-	Researchamount    sql.NullInt64
-	Nextresearchfield cs.NextResearchField
+	SubmittedTurn     bool
+	Color             string
+	DefaultHullSet    int64
+	ResearchAmount    int64
+	NextResearchField cs.NextResearchField
 	Researching       cs.TechField
 	Spec              *PlayerSpec
 	ID                int64
 }
 
-func (q *Queries) UpdateLightPlayer(ctx context.Context, arg UpdateLightPlayerParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdateLightPlayer,
+func (q *Queries) UpdateLightPlayer(ctx context.Context, arg UpdateLightPlayerParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdateLightPlayer,
 		arg.Name,
 		arg.Num,
 		arg.Ready,
-		arg.Aicontrolled,
-		arg.Aidifficulty,
+		arg.AiControlled,
+		arg.AiDifficulty,
 		arg.Guest,
-		arg.Submittedturn,
+		arg.SubmittedTurn,
 		arg.Color,
-		arg.Defaulthullset,
-		arg.Researchamount,
-		arg.Nextresearchfield,
+		arg.DefaultHullSet,
+		arg.ResearchAmount,
+		arg.NextResearchField,
 		arg.Researching,
 		arg.Spec,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayer = `-- name: UpdatePlayer :one
+const UpdatePlayer = `-- name: UpdatePlayer :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
-    userId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
+    user_id = ?,
     name = ?,
     num = ?,
     ready = ?,
-    aiControlled = ?,
-    submittedTurn = ?,
+    ai_controlled = ?,
+    submitted_turn = ?,
     color = ?,
-    defaultHullSet = ?,
-    techLevelsEnergy = ?,
-    techLevelsWeapons = ?,
-    techLevelsPropulsion = ?,
-    techLevelsConstruction = ?,
-    techLevelsElectronics = ?,
-    techLevelsBiotechnology = ?,
-    techLevelsSpentEnergy = ?,
-    techLevelsSpentWeapons = ?,
-    techLevelsSpentPropulsion = ?,
-    techLevelsSpentConstruction = ?,
-    techLevelsSpentElectronics = ?,
-    techLevelsSpentBiotechnology = ?,
-    researchAmount = ?,
-    researchSpentLastYear = ?,
-    nextResearchField = ?,
+    default_hull_set = ?,
+    tech_levels_energy = ?,
+    tech_levels_weapons = ?,
+    tech_levels_propulsion = ?,
+    tech_levels_construction = ?,
+    tech_levels_electronics = ?,
+    tech_levels_biotechnology = ?,
+    tech_levels_spent_energy = ?,
+    tech_levels_spent_weapons = ?,
+    tech_levels_spent_propulsion = ?,
+    tech_levels_spent_construction = ?,
+    tech_levels_spent_electronics = ?,
+    tech_levels_spent_biotechnology = ?,
+    research_amount = ?,
+    research_spent_last_year = ?,
+    next_research_field = ?,
     researching = ?,
-    battlePlans = ?,
-    productionPlans = ?,
-    transportPlans = ?,
+    battle_plans = ?,
+    production_plans = ?,
+    transport_plans = ?,
     relations = ?,
-    cargoTransfers = ?,
+    cargo_transfers = ?,
     messages = ?,
-    battleRecords = ?,
-    playerIntels = ?,
-    scoreIntels = ?,
-    planetIntels = ?,
-    fleetIntels = ?,
-    shipDesignIntels = ?,
-    mineralPacketIntels = ?,
-    mineFieldIntels = ?,
-    wormholeIntels = ?,
-    mysteryTraderIntels = ?,
-    salvageIntels = ?,
+    battle_records = ?,
+    player_intels = ?,
+    score_intels = ?,
+    planet_intels = ?,
+    fleet_intels = ?,
+    ship_design_intels = ?,
+    mineral_packet_intels = ?,
+    minefield_intels = ?,
+    wormhole_intels = ?,
+    mystery_trader_intels = ?,
+    salvage_intels = ?,
     race = ?,
     stats = ?,
-    scoreHistory = ?,
-    achievedVictoryConditions = ?,
+    score_history = ?,
+    achieved_victory_conditions = ?,
     victor = ?,
     spec = ?,
     guest = ?,
-    aiDifficulty = ?,
-    acquiredTechs = ?,
+    ai_difficulty = ?,
+    acquired_techs = ?,
     archived = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerParams struct {
-	Gameid                       int64
-	Userid                       sql.NullInt64
+	GameID                       int64
+	UserID                       int64
 	Name                         string
 	Num                          int64
-	Ready                        sql.NullBool
-	Aicontrolled                 sql.NullBool
-	Submittedturn                sql.NullBool
-	Color                        sql.NullString
-	Defaulthullset               sql.NullInt64
-	Techlevelsenergy             sql.NullInt64
-	Techlevelsweapons            sql.NullInt64
-	Techlevelspropulsion         sql.NullInt64
-	Techlevelsconstruction       sql.NullInt64
-	Techlevelselectronics        sql.NullInt64
-	Techlevelsbiotechnology      sql.NullInt64
-	Techlevelsspentenergy        sql.NullInt64
-	Techlevelsspentweapons       sql.NullInt64
-	Techlevelsspentpropulsion    sql.NullInt64
-	Techlevelsspentconstruction  sql.NullInt64
-	Techlevelsspentelectronics   sql.NullInt64
-	Techlevelsspentbiotechnology sql.NullInt64
-	Researchamount               sql.NullInt64
-	Researchspentlastyear        sql.NullInt64
-	Nextresearchfield            cs.NextResearchField
+	Ready                        bool
+	AiControlled                 bool
+	SubmittedTurn                bool
+	Color                        string
+	DefaultHullSet               int64
+	TechLevelsEnergy             int64
+	TechLevelsWeapons            int64
+	TechLevelsPropulsion         int64
+	TechLevelsConstruction       int64
+	TechLevelsElectronics        int64
+	TechLevelsBiotechnology      int64
+	TechLevelsSpentEnergy        int64
+	TechLevelsSpentWeapons       int64
+	TechLevelsSpentPropulsion    int64
+	TechLevelsSpentConstruction  int64
+	TechLevelsSpentElectronics   int64
+	TechLevelsSpentBiotechnology int64
+	ResearchAmount               int64
+	ResearchSpentLastYear        int64
+	NextResearchField            cs.NextResearchField
 	Researching                  cs.TechField
-	Battleplans                  *BattlePlans
-	Productionplans              *ProductionPlans
-	Transportplans               *TransportPlans
+	BattlePlans                  *BattlePlans
+	ProductionPlans              *ProductionPlans
+	TransportPlans               *TransportPlans
 	Relations                    *PlayerRelationships
-	Cargotransfers               *CargoTransfers
+	CargoTransfers               *CargoTransfers
 	Messages                     *PlayerMessages
-	Battlerecords                *BattleRecords
-	Playerintels                 *PlayerIntels
-	Scoreintels                  *ScoreIntels
-	Planetintels                 *PlanetIntels
-	Fleetintels                  *FleetIntels
-	Shipdesignintels             *ShipDesignIntels
-	Mineralpacketintels          *MineralPacketIntels
-	Minefieldintels              *MineFieldIntels
-	Wormholeintels               *WormholeIntels
-	Mysterytraderintels          *MysteryTraderIntels
-	Salvageintels                *SalvageIntels
+	BattleRecords                *BattleRecords
+	PlayerIntels                 *PlayerIntels
+	ScoreIntels                  *ScoreIntels
+	PlanetIntels                 *PlanetIntels
+	FleetIntels                  *FleetIntels
+	ShipDesignIntels             *ShipDesignIntels
+	MineralPacketIntels          *MineralPacketIntels
+	MinefieldIntels              *MineFieldIntels
+	WormholeIntels               *WormholeIntels
+	MysteryTraderIntels          *MysteryTraderIntels
+	SalvageIntels                *SalvageIntels
 	Race                         *PlayerRace
 	Stats                        *PlayerStats
-	Scorehistory                 *PlayerScores
-	Achievedvictoryconditions    *cs.Bitmask
-	Victor                       sql.NullBool
+	ScoreHistory                 *PlayerScores
+	AchievedVictoryConditions    *cs.Bitmask
+	Victor                       bool
 	Spec                         *PlayerSpec
 	Guest                        bool
-	Aidifficulty                 *cs.AIDifficulty
-	Acquiredtechs                *AcquiredTechs
+	AiDifficulty                 *cs.AIDifficulty
+	AcquiredTechs                *AcquiredTechs
 	Archived                     bool
 	ID                           int64
 }
 
-func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayer,
-		arg.Gameid,
-		arg.Userid,
+func (q *Queries) UpdatePlayer(ctx context.Context, arg UpdatePlayerParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayer,
+		arg.GameID,
+		arg.UserID,
 		arg.Name,
 		arg.Num,
 		arg.Ready,
-		arg.Aicontrolled,
-		arg.Submittedturn,
+		arg.AiControlled,
+		arg.SubmittedTurn,
 		arg.Color,
-		arg.Defaulthullset,
-		arg.Techlevelsenergy,
-		arg.Techlevelsweapons,
-		arg.Techlevelspropulsion,
-		arg.Techlevelsconstruction,
-		arg.Techlevelselectronics,
-		arg.Techlevelsbiotechnology,
-		arg.Techlevelsspentenergy,
-		arg.Techlevelsspentweapons,
-		arg.Techlevelsspentpropulsion,
-		arg.Techlevelsspentconstruction,
-		arg.Techlevelsspentelectronics,
-		arg.Techlevelsspentbiotechnology,
-		arg.Researchamount,
-		arg.Researchspentlastyear,
-		arg.Nextresearchfield,
+		arg.DefaultHullSet,
+		arg.TechLevelsEnergy,
+		arg.TechLevelsWeapons,
+		arg.TechLevelsPropulsion,
+		arg.TechLevelsConstruction,
+		arg.TechLevelsElectronics,
+		arg.TechLevelsBiotechnology,
+		arg.TechLevelsSpentEnergy,
+		arg.TechLevelsSpentWeapons,
+		arg.TechLevelsSpentPropulsion,
+		arg.TechLevelsSpentConstruction,
+		arg.TechLevelsSpentElectronics,
+		arg.TechLevelsSpentBiotechnology,
+		arg.ResearchAmount,
+		arg.ResearchSpentLastYear,
+		arg.NextResearchField,
 		arg.Researching,
-		arg.Battleplans,
-		arg.Productionplans,
-		arg.Transportplans,
+		arg.BattlePlans,
+		arg.ProductionPlans,
+		arg.TransportPlans,
 		arg.Relations,
-		arg.Cargotransfers,
+		arg.CargoTransfers,
 		arg.Messages,
-		arg.Battlerecords,
-		arg.Playerintels,
-		arg.Scoreintels,
-		arg.Planetintels,
-		arg.Fleetintels,
-		arg.Shipdesignintels,
-		arg.Mineralpacketintels,
-		arg.Minefieldintels,
-		arg.Wormholeintels,
-		arg.Mysterytraderintels,
-		arg.Salvageintels,
+		arg.BattleRecords,
+		arg.PlayerIntels,
+		arg.ScoreIntels,
+		arg.PlanetIntels,
+		arg.FleetIntels,
+		arg.ShipDesignIntels,
+		arg.MineralPacketIntels,
+		arg.MinefieldIntels,
+		arg.WormholeIntels,
+		arg.MysteryTraderIntels,
+		arg.SalvageIntels,
 		arg.Race,
 		arg.Stats,
-		arg.Scorehistory,
-		arg.Achievedvictoryconditions,
+		arg.ScoreHistory,
+		arg.AchievedVictoryConditions,
 		arg.Victor,
 		arg.Spec,
 		arg.Guest,
-		arg.Aidifficulty,
-		arg.Acquiredtechs,
+		arg.AiDifficulty,
+		arg.AcquiredTechs,
 		arg.Archived,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerCargoTransfers = `-- name: UpdatePlayerCargoTransfers :one
+const UpdatePlayerCargoTransfers = `-- name: UpdatePlayerCargoTransfers :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    cargoTransfers = ?
+    updated_at = CURRENT_TIMESTAMP,
+    cargo_transfers = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerCargoTransfersParams struct {
-	Cargotransfers *CargoTransfers
+	CargoTransfers *CargoTransfers
 	ID             int64
 }
 
-func (q *Queries) UpdatePlayerCargoTransfers(ctx context.Context, arg UpdatePlayerCargoTransfersParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayerCargoTransfers, arg.Cargotransfers, arg.ID)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) UpdatePlayerCargoTransfers(ctx context.Context, arg UpdatePlayerCargoTransfersParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerCargoTransfers, arg.CargoTransfers, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerFleetIntels = `-- name: UpdatePlayerFleetIntels :one
+const UpdatePlayerFleetIntels = `-- name: UpdatePlayerFleetIntels :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    fleetIntels = ?
+    updated_at = CURRENT_TIMESTAMP,
+    fleet_intels = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerFleetIntelsParams struct {
-	Fleetintels *FleetIntels
+	FleetIntels *FleetIntels
 	ID          int64
 }
 
-func (q *Queries) UpdatePlayerFleetIntels(ctx context.Context, arg UpdatePlayerFleetIntelsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayerFleetIntels, arg.Fleetintels, arg.ID)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) UpdatePlayerFleetIntels(ctx context.Context, arg UpdatePlayerFleetIntelsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerFleetIntels, arg.FleetIntels, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerMineralPacketIntels = `-- name: UpdatePlayerMineralPacketIntels :one
+const UpdatePlayerMineralPacketIntels = `-- name: UpdatePlayerMineralPacketIntels :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    mineralPacketIntels = ?
+    updated_at = CURRENT_TIMESTAMP,
+    mineral_packet_intels = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerMineralPacketIntelsParams struct {
-	Mineralpacketintels *MineralPacketIntels
+	MineralPacketIntels *MineralPacketIntels
 	ID                  int64
 }
 
-func (q *Queries) UpdatePlayerMineralPacketIntels(ctx context.Context, arg UpdatePlayerMineralPacketIntelsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayerMineralPacketIntels, arg.Mineralpacketintels, arg.ID)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) UpdatePlayerMineralPacketIntels(ctx context.Context, arg UpdatePlayerMineralPacketIntelsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerMineralPacketIntels, arg.MineralPacketIntels, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerOrders = `-- name: UpdatePlayerOrders :one
+const UpdatePlayerOrders = `-- name: UpdatePlayerOrders :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    submittedTurn = ?,
-    defaultHullSet = ?,
-    researchAmount = ?,
-    nextResearchField = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    submitted_turn = ?,
+    default_hull_set = ?,
+    research_amount = ?,
+    next_research_field = ?,
     researching = ?,
-    cargoTransfers = ?,
-    battlePlans = ?,
-    productionPlans = ?,
-    transportPlans = ?,
+    cargo_transfers = ?,
+    battle_plans = ?,
+    production_plans = ?,
+    transport_plans = ?,
     relations = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerOrdersParams struct {
-	Submittedturn     sql.NullBool
-	Defaulthullset    sql.NullInt64
-	Researchamount    sql.NullInt64
-	Nextresearchfield cs.NextResearchField
+	SubmittedTurn     bool
+	DefaultHullSet    int64
+	ResearchAmount    int64
+	NextResearchField cs.NextResearchField
 	Researching       cs.TechField
-	Cargotransfers    *CargoTransfers
-	Battleplans       *BattlePlans
-	Productionplans   *ProductionPlans
-	Transportplans    *TransportPlans
+	CargoTransfers    *CargoTransfers
+	BattlePlans       *BattlePlans
+	ProductionPlans   *ProductionPlans
+	TransportPlans    *TransportPlans
 	Relations         *PlayerRelationships
 	Spec              *PlayerSpec
 	ID                int64
 }
 
-func (q *Queries) UpdatePlayerOrders(ctx context.Context, arg UpdatePlayerOrdersParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayerOrders,
-		arg.Submittedturn,
-		arg.Defaulthullset,
-		arg.Researchamount,
-		arg.Nextresearchfield,
+func (q *Queries) UpdatePlayerOrders(ctx context.Context, arg UpdatePlayerOrdersParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerOrders,
+		arg.SubmittedTurn,
+		arg.DefaultHullSet,
+		arg.ResearchAmount,
+		arg.NextResearchField,
 		arg.Researching,
-		arg.Cargotransfers,
-		arg.Battleplans,
-		arg.Productionplans,
-		arg.Transportplans,
+		arg.CargoTransfers,
+		arg.BattlePlans,
+		arg.ProductionPlans,
+		arg.TransportPlans,
 		arg.Relations,
 		arg.Spec,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerPlanetIntels = `-- name: UpdatePlayerPlanetIntels :one
+const UpdatePlayerPlanetIntels = `-- name: UpdatePlayerPlanetIntels :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    planetIntels = ?
+    updated_at = CURRENT_TIMESTAMP,
+    planet_intels = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerPlanetIntelsParams struct {
-	Planetintels *PlanetIntels
+	PlanetIntels *PlanetIntels
 	ID           int64
 }
 
-func (q *Queries) UpdatePlayerPlanetIntels(ctx context.Context, arg UpdatePlayerPlanetIntelsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayerPlanetIntels, arg.Planetintels, arg.ID)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) UpdatePlayerPlanetIntels(ctx context.Context, arg UpdatePlayerPlanetIntelsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerPlanetIntels, arg.PlanetIntels, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerPlans = `-- name: UpdatePlayerPlans :one
+const UpdatePlayerPlans = `-- name: UpdatePlayerPlans :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    battlePlans = ?,
-    productionPlans = ?,
-    transportPlans = ?
+    updated_at = CURRENT_TIMESTAMP,
+    battle_plans = ?,
+    production_plans = ?,
+    transport_plans = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerPlansParams struct {
-	Battleplans     *BattlePlans
-	Productionplans *ProductionPlans
-	Transportplans  *TransportPlans
+	BattlePlans     *BattlePlans
+	ProductionPlans *ProductionPlans
+	TransportPlans  *TransportPlans
 	ID              int64
 }
 
-func (q *Queries) UpdatePlayerPlans(ctx context.Context, arg UpdatePlayerPlansParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayerPlans,
-		arg.Battleplans,
-		arg.Productionplans,
-		arg.Transportplans,
+func (q *Queries) UpdatePlayerPlans(ctx context.Context, arg UpdatePlayerPlansParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerPlans,
+		arg.BattlePlans,
+		arg.ProductionPlans,
+		arg.TransportPlans,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerRelations = `-- name: UpdatePlayerRelations :one
+const UpdatePlayerRelations = `-- name: UpdatePlayerRelations :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
     relations = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerRelationsParams struct {
@@ -1734,41 +1734,43 @@ type UpdatePlayerRelationsParams struct {
 	ID        int64
 }
 
-func (q *Queries) UpdatePlayerRelations(ctx context.Context, arg UpdatePlayerRelationsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayerRelations, arg.Relations, arg.ID)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) UpdatePlayerRelations(ctx context.Context, arg UpdatePlayerRelationsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerRelations, arg.Relations, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerSalvageIntels = `-- name: UpdatePlayerSalvageIntels :one
+const UpdatePlayerSalvageIntels = `-- name: UpdatePlayerSalvageIntels :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    salvageIntels = ?
+    updated_at = CURRENT_TIMESTAMP,
+    salvage_intels = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerSalvageIntelsParams struct {
-	Salvageintels *SalvageIntels
+	SalvageIntels *SalvageIntels
 	ID            int64
 }
 
-func (q *Queries) UpdatePlayerSalvageIntels(ctx context.Context, arg UpdatePlayerSalvageIntelsParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayerSalvageIntels, arg.Salvageintels, arg.ID)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) UpdatePlayerSalvageIntels(ctx context.Context, arg UpdatePlayerSalvageIntelsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerSalvageIntels, arg.SalvageIntels, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerSpec = `-- name: UpdatePlayerSpec :one
+const UpdatePlayerSpec = `-- name: UpdatePlayerSpec :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ?
 `
 
 type UpdatePlayerSpecParams struct {
@@ -1776,28 +1778,32 @@ type UpdatePlayerSpecParams struct {
 	ID   int64
 }
 
-func (q *Queries) UpdatePlayerSpec(ctx context.Context, arg UpdatePlayerSpecParams) (time.Time, error) {
-	row := q.db.QueryRowContext(ctx, UpdatePlayerSpec, arg.Spec, arg.ID)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+func (q *Queries) UpdatePlayerSpec(ctx context.Context, arg UpdatePlayerSpecParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerSpec, arg.Spec, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
-const UpdatePlayerUserID = `-- name: UpdatePlayerUserID :exec
+const UpdatePlayerUserID = `-- name: UpdatePlayerUserID :execrows
 UPDATE players
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    userId = ?
+    updated_at = CURRENT_TIMESTAMP,
+    user_id = ?
 WHERE
     id = ?
 `
 
 type UpdatePlayerUserIDParams struct {
-	Userid sql.NullInt64
+	UserID int64
 	ID     int64
 }
 
-func (q *Queries) UpdatePlayerUserID(ctx context.Context, arg UpdatePlayerUserIDParams) error {
-	_, err := q.db.ExecContext(ctx, UpdatePlayerUserID, arg.Userid, arg.ID)
-	return err
+func (q *Queries) UpdatePlayerUserID(ctx context.Context, arg UpdatePlayerUserIDParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, UpdatePlayerUserID, arg.UserID, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

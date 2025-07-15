@@ -25,7 +25,7 @@ func (c *client) GetGames(ctx context.Context) ([]cs.Game, error) {
 }
 
 func (c *client) GetGamesForHost(ctx context.Context, userID int64) ([]cs.Game, error) {
-	items, err := c.reader.GetGamesForHost(ctx, sql.NullInt64{Valid: true, Int64: userID})
+	items, err := c.reader.GetGamesForHost(ctx, userID)
 	if err == sql.ErrNoRows {
 		return []cs.Game{}, nil
 	}
@@ -47,7 +47,7 @@ func (c *client) GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers,
 }
 
 func (c *client) GetGamesForUser(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error) {
-	items, err := c.reader.GetGamesWithPlayersForUser(ctx, sql.NullInt64{Valid: true, Int64: userID})
+	items, err := c.reader.GetGamesWithPlayersForUser(ctx, userID)
 	if err == sql.ErrNoRows {
 		return []cs.GameWithPlayers{}, nil
 	}
@@ -270,24 +270,22 @@ func (c *client) CreateGame(ctx context.Context, game *cs.Game) (*cs.Game, error
 		return nil, err
 	}
 
-	game.ID = result.ID
-	game.CreatedAt = result.Createdat
-	game.UpdatedAt = result.Updatedat
+	game.ID = result
 	return game, nil
 }
 
 func (c *client) UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error {
-	return c.writer.UpdateGameState(ctx, generated.UpdateGameStateParams{ID: gameID, State: state})
+	_, err := c.writer.UpdateGameState(ctx, generated.UpdateGameStateParams{ID: gameID, State: state})
+	return err
 }
 
 // update an existing game
 func (c *client) UpdateGame(ctx context.Context, game *cs.Game) error {
-	result, err := c.writer.UpdateGame(ctx, c.converter.ConvertGameGameToUpdateParams(game))
+	_, err := c.writer.UpdateGame(ctx, c.converter.ConvertGameGameToUpdateParams(game))
 	if err != nil {
 		return err
 	}
 
-	game.UpdatedAt = result
 	return nil
 
 }
@@ -464,7 +462,7 @@ func (c *client) UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) erro
 	fullGame.MineFields = remainingMineFields
 	for _, mineField := range fullGame.MineFields {
 		mineField.GameID = fullGame.ID
-		if err := c.SaveMineField(ctx, mineField); err != nil {
+		if err := c.SaveMinefield(ctx, mineField); err != nil {
 			return fmt.Errorf("update minefield: %w", err)
 		}
 	}
@@ -518,19 +516,22 @@ func (c *client) UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) erro
 
 }
 
-func (c *client) UpdateGameHost(ctx context.Context, gameID int64, hostId int64) error {
-	return c.writer.UpdateGameHost(ctx, generated.UpdateGameHostParams{
+func (c *client) UpdateGameHost(ctx context.Context, gameID, hostID int64) error {
+	_, err := c.writer.UpdateGameHost(ctx, generated.UpdateGameHostParams{
 		ID:     gameID,
-		Hostid: sql.NullInt64{Valid: true, Int64: hostId},
+		HostID: hostID,
 	})
+	return err
 }
 
 // delete a game by id
 func (c *client) DeleteGame(ctx context.Context, id int64) error {
-	return c.writer.DeleteGame(ctx, id)
+	_, err := c.writer.DeleteGame(ctx, id)
+	return err
 }
 
 // delete all games for user
 func (c *client) DeleteUserGames(ctx context.Context, hostID int64) error {
-	return c.writer.DeleteUserGames(ctx, sql.NullInt64{Valid: true, Int64: hostID})
+	_, err := c.writer.DeleteUserGames(ctx, hostID)
+	return err
 }

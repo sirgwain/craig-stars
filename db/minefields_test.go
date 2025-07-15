@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSaveMineField(t *testing.T) {
+func TestSaveMinefield(t *testing.T) {
 	type args struct {
 		c         *client
 		mineField *cs.MineField
@@ -32,13 +32,13 @@ func TestSaveMineField(t *testing.T) {
 			tt.args.mineField.PlayerNum = player.Num
 
 			want := *tt.args.mineField
-			err := tt.args.c.SaveMineField(t.Context(), tt.args.mineField)
+			err := tt.args.c.SaveMinefield(t.Context(), tt.args.mineField)
 
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("SaveMineField() did not return error when expected")
+					t.Fatalf("SaveMinefield() did not return error when expected")
 				} else {
-					t.Fatalf("SaveMineField() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("SaveMinefield() errored unexpectedly; err = \n%v", err)
 				}
 			}
 
@@ -50,7 +50,7 @@ func TestSaveMineField(t *testing.T) {
 	}
 }
 
-func TestGetMineField(t *testing.T) {
+func TestGetMinefield(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
@@ -62,7 +62,7 @@ func TestGetMineField(t *testing.T) {
 		MineFieldType: cs.MineFieldTypeStandard,
 	}
 
-	if err := c.SaveMineField(t.Context(), mineField); err != nil {
+	if err := c.SaveMinefield(t.Context(), mineField); err != nil {
 		t.Errorf("create mineField %s", err)
 		return
 	}
@@ -81,12 +81,12 @@ func TestGetMineField(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetMineField(t.Context(), tt.args.id)
+			got, err := c.GetMinefield(t.Context(), tt.args.id)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("GetMineField() did not return error when expected")
+					t.Fatalf("GetMinefield() did not return error when expected")
 				} else {
-					t.Fatalf("GetMineField() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("GetMinefield() errored unexpectedly; err = \n%v", err)
 				}
 			}
 			if got != nil {
@@ -110,7 +110,7 @@ func TestGetMineFields(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	if err := c.SaveMineField(t.Context(), &cs.MineField{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}); err != nil {
+	if err := c.SaveMinefield(t.Context(), &cs.MineField{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -121,24 +121,24 @@ func TestGetMineFields(t *testing.T) {
 
 }
 
-func TestUpdateMineField(t *testing.T) {
+func TestUpdateMinefield(t *testing.T) {
 	c := connectTestDB()
 	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 	mineField := &cs.MineField{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
-	if err := c.SaveMineField(t.Context(), mineField); err != nil {
+	if err := c.SaveMinefield(t.Context(), mineField); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
 	mineField.Name = "Test2"
-	if err := c.SaveMineField(t.Context(), mineField); err != nil {
+	if err := c.SaveMinefield(t.Context(), mineField); err != nil {
 		t.Errorf("update planet %s", err)
 		return
 	}
 
-	updated, err := c.GetMineField(t.Context(), mineField.ID)
+	updated, err := c.GetMinefield(t.Context(), mineField.ID)
 
 	if err != nil {
 		t.Errorf("get planet %s", err)

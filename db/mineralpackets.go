@@ -24,9 +24,9 @@ func (c *client) GetMineralPacket(ctx context.Context, id int64) (*cs.MineralPac
 func (c *client) GetMineralPacketByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineralPacket, error) {
 
 	item, err := c.reader.GetMineralPacketByNum(ctx, generated.GetMineralPacketByNumParams{
-		Gameid:    gameID,
-		Playernum: sql.NullInt64{Valid: true, Int64: int64(playerNum)},
-		Num:       sql.NullInt64{Valid: true, Int64: int64(num)},
+		GameID:    gameID,
+		PlayerNum: int64(playerNum),
+		Num:       int64(num),
 	})
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -54,8 +54,8 @@ func (c *client) getMineralPacketsForGame(ctx context.Context, gameID int64) ([]
 
 func (c *client) GetMineralPacketsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineralPacket, error) {
 	items, err := c.reader.GetMineralPacketsForPlayer(ctx, generated.GetMineralPacketsForPlayerParams{
-		Gameid:    gameID,
-		Playernum: sql.NullInt64{Valid: true, Int64: int64(playerNum)},
+		GameID:    gameID,
+		PlayerNum: int64(playerNum),
 	})
 
 	if err == sql.ErrNoRows {
@@ -74,15 +74,12 @@ func (c *client) SaveMineralPacket(ctx context.Context, mineralPacket *cs.Minera
 		if err != nil {
 			return err
 		}
-		mineralPacket.ID = result.ID
-		mineralPacket.CreatedAt = result.Createdat
-		mineralPacket.UpdatedAt = result.Updatedat
+		mineralPacket.ID = result
 	} else {
-		result, err := c.writer.UpdateMineralPacket(ctx, c.converter.ConvertGameMineralPacketToUpdateParams(mineralPacket))
+		_, err := c.writer.UpdateMineralPacket(ctx, c.converter.ConvertGameMineralPacketToUpdateParams(mineralPacket))
 		if err != nil {
 			return err
 		}
-		mineralPacket.UpdatedAt = result
 	}
 
 	return nil
@@ -90,5 +87,6 @@ func (c *client) SaveMineralPacket(ctx context.Context, mineralPacket *cs.Minera
 
 // delete a mineralpacket by id
 func (c *client) DeleteMineralPacket(ctx context.Context, id int64) error {
-	return c.writer.DeleteMineralPacket(ctx, id)
+	_, err := c.writer.DeleteMineralPacket(ctx, id)
+	return err
 }

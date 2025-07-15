@@ -5,7 +5,7 @@
 SELECT
     *
 FROM
-    mysterytraders
+    mystery_traders
 WHERE
     id = ?;
 
@@ -13,46 +13,46 @@ WHERE
 SELECT
     *
 FROM
-    mysterytraders
+    mystery_traders
 WHERE
-    gameId = ?
+    game_id = ?
     AND num = ?;
 
 -- name: GetMysteryTraders :many
 SELECT
     *
 FROM
-    mysterytraders;
+    mystery_traders;
 
 -- name: GetMysteryTradersForGame :many
 SELECT
     *
 FROM
-    mysterytraders
+    mystery_traders
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num;
 
--- name: CreateMysteryTrader :one
+-- name: CreateMysteryTrader :execlastid
 INSERT INTO
-    mysterytraders (
-        createdAt,
-        updatedAt,
-        gameId,
+    mystery_traders (
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
         tags,
-        headingX,
-        headingY,
-        warpSpeed,
-        requestedBoon,
-        destinationX,
-        destinationY,
-        rewardType,
-        playersRewarded,
+        heading_x,
+        heading_y,
+        warp_speed,
+        requested_boon,
+        destination_x,
+        destination_y,
+        reward_type,
+        players_rewarded,
         spec
     )
 VALUES
@@ -74,33 +74,31 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt;
+    );
 
--- name: UpdateMysteryTrader :one
-UPDATE mysterytraders
+-- name: UpdateMysteryTrader :execrows
+UPDATE mystery_traders
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
     tags = ?,
-    headingX = ?,
-    headingY = ?,
-    warpSpeed = ?,
-    requestedBoon = ?,
-    destinationX = ?,
-    destinationY = ?,
-    rewardType = ?,
-    playersRewarded = ?,
+    heading_x = ?,
+    heading_y = ?,
+    warp_speed = ?,
+    requested_boon = ?,
+    destination_x = ?,
+    destination_y = ?,
+    reward_type = ?,
+    players_rewarded = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
--- name: DeleteMysteryTrader :exec
-DELETE FROM mysterytraders
+-- name: DeleteMysteryTrader :execrows
+DELETE FROM mystery_traders
 WHERE
     id = ?;

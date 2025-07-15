@@ -81,7 +81,7 @@ func UpdatePlayer(gameID int64, playerNum int, userID int64) error {
 
 	// update this player's userID
 	player.UserID = userID
-	readWriteClient.UpdatePlayerUserId(ctx, player)
+	readWriteClient.UpdatePlayerUserID(ctx, player)
 	log.Info().Msgf("updated game %d, player %d to userID %d", player.GameID, player.Num, userID)
 
 	return nil

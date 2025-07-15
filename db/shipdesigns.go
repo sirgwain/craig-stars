@@ -25,8 +25,8 @@ func (c *client) GetShipDesignsForGame(ctx context.Context, gameID int64) ([]*cs
 func (c *client) GetShipDesignsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.ShipDesign, error) {
 
 	items, err := c.reader.GetShipDesignsForPlayer(ctx, generated.GetShipDesignsForPlayerParams{
-		Gameid:    gameID,
-		Playernum: int64(playerNum),
+		GameID:    gameID,
+		PlayerNum: int64(playerNum),
 	})
 
 	if err == sql.ErrNoRows {
@@ -55,8 +55,8 @@ func (c *client) GetShipDesign(ctx context.Context, id int64) (*cs.ShipDesign, e
 // get a shipDesign by id
 func (c *client) GetShipDesignByNum(ctx context.Context, gameID int64, playerNum, num int) (*cs.ShipDesign, error) {
 	item, err := c.reader.GetShipDesignByNum(ctx, generated.GetShipDesignByNumParams{
-		Gameid:    gameID,
-		Playernum: int64(playerNum),
+		GameID:    gameID,
+		PlayerNum: int64(playerNum),
 		Num:       int64(num),
 	})
 	if err == sql.ErrNoRows {
@@ -75,15 +75,12 @@ func (c *client) SaveShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) 
 		if err != nil {
 			return err
 		}
-		shipDesign.ID = result.ID
-		shipDesign.CreatedAt = result.Createdat
-		shipDesign.UpdatedAt = result.Updatedat
+		shipDesign.ID = result
 	} else {
-		result, err := c.writer.UpdateShipDesign(ctx, c.converter.ConvertGameShipDesignToUpdateParams(shipDesign))
+		_, err := c.writer.UpdateShipDesign(ctx, c.converter.ConvertGameShipDesignToUpdateParams(shipDesign))
 		if err != nil {
 			return err
 		}
-		shipDesign.UpdatedAt = result
 	}
 
 	return nil
@@ -91,5 +88,6 @@ func (c *client) SaveShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) 
 
 // delete a shipDesign by id
 func (c *client) DeleteShipDesign(ctx context.Context, id int64) error {
-	return c.writer.DeleteShipDesign(ctx, id)
+	_, err := c.writer.DeleteShipDesign(ctx, id)
+	return err
 }

@@ -13,33 +13,33 @@ import (
 
 type Fleet struct {
 	ID                int64
-	Createdat         time.Time
-	Updatedat         time.Time
-	Gameid            int64
-	Battleplannum     int64
-	X                 sql.NullFloat64
-	Y                 sql.NullFloat64
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	GameID            int64
+	BattlePlanNum     int64
+	X                 float64
+	Y                 float64
 	Name              string
-	Num               sql.NullInt64
-	Playernum         sql.NullInt64
+	Num               int64
+	PlayerNum         int64
 	Tokens            *ShipTokens
 	Waypoints         *Waypoints
-	Repeatorders      sql.NullBool
-	Planetnum         sql.NullInt64
-	Basename          string
-	Ironium           sql.NullInt64
-	Boranium          sql.NullInt64
-	Germanium         sql.NullInt64
-	Colonists         sql.NullInt64
-	Fuel              sql.NullInt64
-	Age               sql.NullInt64
-	Headingx          sql.NullFloat64
-	Headingy          sql.NullFloat64
-	Warpspeed         sql.NullInt64
-	Previouspositionx sql.NullFloat64
-	Previouspositiony sql.NullFloat64
-	Orbitingplanetnum sql.NullInt64
-	Starbase          sql.NullBool
+	RepeatOrders      bool
+	PlanetNum         int64
+	BaseName          string
+	Ironium           int64
+	Boranium          int64
+	Germanium         int64
+	Colonists         int64
+	Fuel              int64
+	Age               int64
+	HeadingX          float64
+	HeadingY          float64
+	WarpSpeed         int64
+	PreviousPositionX sql.NullFloat64
+	PreviousPositionY sql.NullFloat64
+	OrbitingPlanetNum int64
+	Starbase          bool
 	Spec              *FleetSpec
 	Purpose           *cs.FleetPurpose
 	Tags              *Tags
@@ -47,337 +47,336 @@ type Fleet struct {
 
 type Game struct {
 	ID                                        int64
-	Createdat                                 time.Time
-	Updatedat                                 time.Time
-	Hostid                                    sql.NullInt64
+	CreatedAt                                 time.Time
+	UpdatedAt                                 time.Time
+	HostID                                    int64
 	Name                                      string
 	State                                     cs.GameState
-	Public                                    sql.NullBool
-	Hash                                      sql.NullString
+	Public                                    bool
+	Hash                                      string
 	Size                                      cs.Size
 	Density                                   cs.Density
-	Playerpositions                           cs.PlayerPositions
-	Randomevents                              sql.NullBool
-	Computerplayersformalliances              sql.NullBool
-	Publicplayerscores                        sql.NullBool
-	Startmode                                 cs.GameStartMode
-	Quickstartturns                           sql.NullInt64
-	Openplayerslots                           sql.NullInt64
-	Numplayers                                sql.NullInt64
-	Victoryconditionsconditions               cs.Bitmask
-	Victoryconditionsnumcriteriarequired      sql.NullInt64
-	Victoryconditionsyearspassed              sql.NullInt64
-	Victoryconditionsownplanets               sql.NullInt64
-	Victoryconditionsattaintechlevel          sql.NullInt64
-	Victoryconditionsattaintechlevelnumfields sql.NullInt64
-	Victoryconditionsexceedsscore             sql.NullInt64
-	Victoryconditionsexceedssecondplacescore  sql.NullInt64
-	Victoryconditionsproductioncapacity       sql.NullInt64
-	Victoryconditionsowncapitalships          sql.NullInt64
-	Victoryconditionshighestscoreafteryears   sql.NullInt64
-	Seed                                      sql.NullInt64
-	Areax                                     sql.NullFloat64
-	Areay                                     sql.NullFloat64
-	Year                                      sql.NullInt64
-	Victordeclared                            sql.NullBool
-	Maxminerals                               sql.NullBool
+	PlayerPositions                           cs.PlayerPositions
+	RandomEvents                              bool
+	ComputerPlayersFormAlliances              bool
+	PublicPlayerScores                        bool
+	StartMode                                 cs.GameStartMode
+	QuickStartTurns                           int64
+	OpenPlayerSlots                           int64
+	NumPlayers                                int64
+	VictoryConditionsConditions               cs.Bitmask
+	VictoryConditionsNumCriteriaRequired      int64
+	VictoryConditionsYearsPassed              int64
+	VictoryConditionsOwnPlanets               int64
+	VictoryConditionsAttainTechLevel          int64
+	VictoryConditionsAttainTechLevelNumFields int64
+	VictoryConditionsExceedsScore             int64
+	VictoryConditionsExceedsSecondPlaceScore  int64
+	VictoryConditionsProductionCapacity       int64
+	VictoryConditionsOwnCapitalShips          int64
+	VictoryConditionsHighestScoreAfterYears   int64
+	Seed                                      int64
+	AreaX                                     float64
+	AreaY                                     float64
+	Year                                      int64
+	VictorDeclared                            bool
+	MaxMinerals                               bool
 	Archived                                  bool
 }
 
 type GamePlayer struct {
-	Gameid        int64
+	GameID        int64
 	ID            int64
-	Updatedat     time.Time
-	Userid        sql.NullInt64
+	UpdatedAt     time.Time
+	UserID        int64
 	Name          string
 	Num           int64
-	Ready         sql.NullBool
-	Aicontrolled  sql.NullBool
-	Aidifficulty  *cs.AIDifficulty
-	Submittedturn sql.NullBool
-	Color         sql.NullString
-	Victor        sql.NullBool
+	Ready         bool
+	AiControlled  bool
+	AiDifficulty  *cs.AIDifficulty
+	SubmittedTurn bool
+	Color         string
+	Victor        bool
 	Archived      bool
 	Guest         bool
 }
 
 type Minefield struct {
 	ID            int64
-	Createdat     time.Time
-	Updatedat     time.Time
-	Gameid        int64
-	X             sql.NullFloat64
-	Y             sql.NullFloat64
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	GameID        int64
+	X             float64
+	Y             float64
 	Name          string
-	Num           sql.NullInt64
-	Playernum     sql.NullInt64
-	Nummines      sql.NullInt64
-	Detonate      sql.NullBool
-	Minefieldtype *cs.MineFieldType
+	Num           int64
+	PlayerNum     int64
+	NumMines      int64
+	Detonate      bool
+	MinefieldType *cs.MineFieldType
 	Spec          *MineFieldSpec
 	Tags          *Tags
 }
 
-type Mineralpacket struct {
+type MineralPacket struct {
 	ID              int64
-	Createdat       time.Time
-	Updatedat       time.Time
-	Gameid          int64
-	X               sql.NullFloat64
-	Y               sql.NullFloat64
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	GameID          int64
+	X               float64
+	Y               float64
 	Name            string
-	Num             sql.NullInt64
-	Playernum       sql.NullInt64
-	Targetplanetnum sql.NullInt64
-	Ironium         sql.NullInt64
-	Boranium        sql.NullInt64
-	Germanium       sql.NullInt64
-	Safewarpspeed   sql.NullInt64
-	Warpspeed       sql.NullInt64
-	Scanrange       sql.NullInt64
-	Scanrangepen    sql.NullInt64
-	Headingx        sql.NullFloat64
-	Headingy        sql.NullFloat64
+	Num             int64
+	PlayerNum       int64
+	TargetPlanetNum int64
+	Ironium         int64
+	Boranium        int64
+	Germanium       int64
+	SafeWarpSpeed   int64
+	WarpSpeed       int64
+	ScanRange       int64
+	ScanRangePen    int64
+	HeadingX        float64
+	HeadingY        float64
 	Tags            *Tags
 }
 
-type Mysterytrader struct {
+type MysteryTrader struct {
 	ID              int64
-	Createdat       time.Time
-	Updatedat       time.Time
-	Gameid          int64
-	X               sql.NullFloat64
-	Y               sql.NullFloat64
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	GameID          int64
+	X               float64
+	Y               float64
 	Name            string
-	Num             sql.NullInt64
-	Headingx        sql.NullFloat64
-	Headingy        sql.NullFloat64
-	Warpspeed       sql.NullInt64
+	Num             int64
+	HeadingX        float64
+	HeadingY        float64
+	WarpSpeed       int64
 	Spec            *MysteryTraderSpec
 	Tags            *Tags
-	Requestedboon   sql.NullInt64
-	Destinationx    sql.NullFloat64
-	Destinationy    sql.NullFloat64
-	Rewardtype      *cs.MysteryTraderRewardType
-	Playersrewarded *MysteryTraderPlayersRewarded
+	RequestedBoon   int64
+	DestinationX    float64
+	DestinationY    float64
+	RewardType      *cs.MysteryTraderRewardType
+	PlayersRewarded *MysteryTraderPlayersRewarded
 }
 
 type Planet struct {
 	ID                                int64
-	Gameid                            int64
-	Createdat                         time.Time
-	Updatedat                         time.Time
-	X                                 sql.NullFloat64
-	Y                                 sql.NullFloat64
+	CreatedAt                         time.Time
+	UpdatedAt                         time.Time
+	GameID                            int64
+	X                                 float64
+	Y                                 float64
 	Name                              string
-	Num                               sql.NullInt64
-	Playernum                         sql.NullInt64
-	Grav                              sql.NullInt64
-	Temp                              sql.NullInt64
-	Rad                               sql.NullInt64
-	Basegrav                          sql.NullInt64
-	Basetemp                          sql.NullInt64
-	Baserad                           sql.NullInt64
-	Terraformedamountgrav             sql.NullInt64
-	Terraformedamounttemp             sql.NullInt64
-	Terraformedamountrad              sql.NullInt64
-	Mineralconcironium                sql.NullInt64
-	Mineralconcboranium               sql.NullInt64
-	Mineralconcgermanium              sql.NullInt64
-	Mineyearsironium                  sql.NullInt64
-	Mineyearsboranium                 sql.NullInt64
-	Mineyearsgermanium                sql.NullInt64
-	Ironium                           sql.NullInt64
-	Boranium                          sql.NullInt64
-	Germanium                         sql.NullInt64
-	Colonists                         sql.NullInt64
-	Partialpopulation                 sql.NullInt64
-	Mines                             sql.NullInt64
-	Factories                         sql.NullInt64
-	Defenses                          sql.NullInt64
-	Homeworld                         sql.NullBool
-	Contributesonlyleftovertoresearch sql.NullBool
-	Scanner                           sql.NullBool
-	Routetargettype                   *cs.MapObjectType
-	Routetargetnum                    sql.NullInt64
-	Routetargetplayernum              sql.NullInt64
-	Packettargetnum                   sql.NullInt64
-	Packetspeed                       sql.NullInt64
-	Productionqueue                   *ProductionQueueItems
+	Num                               int64
+	PlayerNum                         int64
+	Grav                              int64
+	Temp                              int64
+	Rad                               int64
+	BaseGrav                          int64
+	BaseTemp                          int64
+	BaseRad                           int64
+	TerraformedAmountGrav             int64
+	TerraformedAmountTemp             int64
+	TerraformedAmountRad              int64
+	MineralConcIronium                int64
+	MineralConcBoranium               int64
+	MineralConcGermanium              int64
+	MineYearsIronium                  int64
+	MineYearsBoranium                 int64
+	MineYearsGermanium                int64
+	Ironium                           int64
+	Boranium                          int64
+	Germanium                         int64
+	Colonists                         int64
+	PartialPopulation                 int64
+	Mines                             int64
+	Factories                         int64
+	Defenses                          int64
+	Homeworld                         bool
+	ContributesOnlyLeftoverToResearch bool
+	Scanner                           bool
+	RouteTargetType                   *cs.MapObjectType
+	RouteTargetNum                    int64
+	RouteTargetPlayerNum              int64
+	PacketTargetNum                   int64
+	PacketSpeed                       int64
+	ProductionQueue                   *ProductionQueueItems
 	Spec                              *PlanetSpec
 	Tags                              *Tags
-	Randomartifact                    sql.NullBool
+	RandomArtifact                    bool
 }
 
 type Player struct {
 	ID                           int64
-	Createdat                    time.Time
-	Updatedat                    time.Time
-	Gameid                       int64
-	Userid                       sql.NullInt64
+	CreatedAt                    time.Time
+	UpdatedAt                    time.Time
+	GameID                       int64
+	UserID                       int64
 	Name                         string
 	Num                          int64
-	Ready                        sql.NullBool
-	Aicontrolled                 sql.NullBool
-	Submittedturn                sql.NullBool
-	Color                        sql.NullString
-	Defaulthullset               sql.NullInt64
-	Techlevelsenergy             sql.NullInt64
-	Techlevelsweapons            sql.NullInt64
-	Techlevelspropulsion         sql.NullInt64
-	Techlevelsconstruction       sql.NullInt64
-	Techlevelselectronics        sql.NullInt64
-	Techlevelsbiotechnology      sql.NullInt64
-	Techlevelsspentenergy        sql.NullInt64
-	Techlevelsspentweapons       sql.NullInt64
-	Techlevelsspentpropulsion    sql.NullInt64
-	Techlevelsspentconstruction  sql.NullInt64
-	Techlevelsspentelectronics   sql.NullInt64
-	Techlevelsspentbiotechnology sql.NullInt64
-	Researchamount               sql.NullInt64
-	Researchspentlastyear        sql.NullInt64
-	Nextresearchfield            cs.NextResearchField
+	Ready                        bool
+	AiControlled                 bool
+	SubmittedTurn                bool
+	Color                        string
+	DefaultHullSet               int64
+	TechLevelsEnergy             int64
+	TechLevelsWeapons            int64
+	TechLevelsPropulsion         int64
+	TechLevelsConstruction       int64
+	TechLevelsElectronics        int64
+	TechLevelsBiotechnology      int64
+	TechLevelsSpentEnergy        int64
+	TechLevelsSpentWeapons       int64
+	TechLevelsSpentPropulsion    int64
+	TechLevelsSpentConstruction  int64
+	TechLevelsSpentElectronics   int64
+	TechLevelsSpentBiotechnology int64
+	ResearchAmount               int64
+	ResearchSpentLastYear        int64
+	NextResearchField            cs.NextResearchField
 	Researching                  cs.TechField
-	Battleplans                  *BattlePlans
-	Productionplans              *ProductionPlans
-	Transportplans               *TransportPlans
+	BattlePlans                  *BattlePlans
+	ProductionPlans              *ProductionPlans
+	TransportPlans               *TransportPlans
 	Relations                    *PlayerRelationships
-	Cargotransfers               *CargoTransfers
+	CargoTransfers               *CargoTransfers
 	Messages                     *PlayerMessages
-	Battlerecords                *BattleRecords
-	Playerintels                 *PlayerIntels
-	Scoreintels                  *ScoreIntels
-	Planetintels                 *PlanetIntels
-	Fleetintels                  *FleetIntels
-	Shipdesignintels             *ShipDesignIntels
-	Mineralpacketintels          *MineralPacketIntels
-	Minefieldintels              *MineFieldIntels
-	Wormholeintels               *WormholeIntels
-	Mysterytraderintels          *MysteryTraderIntels
-	Salvageintels                *SalvageIntels
+	BattleRecords                *BattleRecords
+	PlayerIntels                 *PlayerIntels
+	ScoreIntels                  *ScoreIntels
+	PlanetIntels                 *PlanetIntels
+	FleetIntels                  *FleetIntels
+	ShipDesignIntels             *ShipDesignIntels
+	MineralPacketIntels          *MineralPacketIntels
+	MinefieldIntels              *MineFieldIntels
+	WormholeIntels               *WormholeIntels
+	MysteryTraderIntels          *MysteryTraderIntels
+	SalvageIntels                *SalvageIntels
 	Race                         *PlayerRace
 	Stats                        *PlayerStats
-	Scorehistory                 *PlayerScores
-	Achievedvictoryconditions    *cs.Bitmask
-	Victor                       sql.NullBool
+	ScoreHistory                 *PlayerScores
+	AchievedVictoryConditions    *cs.Bitmask
+	Victor                       bool
 	Spec                         *PlayerSpec
 	Guest                        bool
-	Aidifficulty                 *cs.AIDifficulty
-	Acquiredtechs                *AcquiredTechs
+	AiDifficulty                 *cs.AIDifficulty
+	AcquiredTechs                *AcquiredTechs
 	Archived                     bool
 }
 
 type Race struct {
 	ID                        int64
-	Createdat                 time.Time
-	Updatedat                 time.Time
-	Userid                    int64
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
+	UserID                    int64
 	Name                      string
-	Pluralname                string
-	Spendleftoverpointson     cs.SpendLeftoverPointsOn
+	PluralName                string
+	SpendLeftoverPointsOn     cs.SpendLeftoverPointsOn
 	Prt                       cs.PRT
 	Lrts                      cs.Bitmask
-	Hablowgrav                sql.NullInt64
-	Hablowtemp                sql.NullInt64
-	Hablowrad                 sql.NullInt64
-	Habhighgrav               sql.NullInt64
-	Habhightemp               sql.NullInt64
-	Habhighrad                sql.NullInt64
-	Growthrate                sql.NullInt64
-	Popefficiency             sql.NullInt64
-	Factoryoutput             sql.NullInt64
-	Factorycost               sql.NullInt64
-	Numfactories              sql.NullInt64
-	Factoriescostless         sql.NullBool
-	Immunegrav                sql.NullBool
-	Immunetemp                sql.NullBool
-	Immunerad                 sql.NullBool
-	Mineoutput                sql.NullInt64
-	Minecost                  sql.NullInt64
-	Nummines                  sql.NullInt64
-	Researchcostenergy        cs.ResearchCostLevel
-	Researchcostweapons       cs.ResearchCostLevel
-	Researchcostpropulsion    cs.ResearchCostLevel
-	Researchcostconstruction  cs.ResearchCostLevel
-	Researchcostelectronics   cs.ResearchCostLevel
-	Researchcostbiotechnology cs.ResearchCostLevel
-	Techsstarthigh            sql.NullBool
+	HabLowGrav                int64
+	HabLowTemp                int64
+	HabLowRad                 int64
+	HabHighGrav               int64
+	HabHighTemp               int64
+	HabHighRad                int64
+	GrowthRate                int64
+	PopEfficiency             int64
+	FactoryOutput             int64
+	FactoryCost               int64
+	NumFactories              int64
+	FactoriesCostLess         bool
+	ImmuneGrav                bool
+	ImmuneTemp                bool
+	ImmuneRad                 bool
+	MineOutput                int64
+	MineCost                  int64
+	NumMines                  int64
+	ResearchCostEnergy        cs.ResearchCostLevel
+	ResearchCostWeapons       cs.ResearchCostLevel
+	ResearchCostPropulsion    cs.ResearchCostLevel
+	ResearchCostConstruction  cs.ResearchCostLevel
+	ResearchCostElectronics   cs.ResearchCostLevel
+	ResearchCostBiotechnology cs.ResearchCostLevel
+	TechsStartHigh            bool
 	Spec                      *RaceSpec
 }
 
 type Salvage struct {
 	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-	Gameid    int64
-	X         sql.NullFloat64
-	Y         sql.NullFloat64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	GameID    int64
+	X         float64
+	Y         float64
 	Name      string
-	Num       sql.NullInt64
-	Playernum sql.NullInt64
-	Ironium   sql.NullInt64
-	Boranium  sql.NullInt64
-	Germanium sql.NullInt64
+	Num       int64
+	PlayerNum int64
+	Ironium   int64
+	Boranium  int64
+	Germanium int64
 	Tags      *Tags
 }
 
-type Shipdesign struct {
+type ShipDesign struct {
 	ID                int64
-	Createdat         time.Time
-	Updatedat         time.Time
-	Gameid            int64
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	GameID            int64
 	Num               int64
-	Playernum         int64
+	PlayerNum         int64
 	Name              string
-	Version           sql.NullInt64
-	Hull              sql.NullString
-	Hullsetnumber     sql.NullInt64
-	Candelete         sql.NullBool
+	Version           int64
+	Hull              string
+	HullSetNumber     int64
 	Slots             *ShipDesignSlots
 	Purpose           *cs.ShipDesignPurpose
 	Spec              *ShipDesignSpec
-	Cannotdelete      bool
-	Originalplayernum sql.NullInt64
-	Mysterytrader     sql.NullBool
+	CannotDelete      bool
+	OriginalPlayerNum sql.NullInt64
+	MysteryTrader     bool
 }
 
 type User struct {
 	ID                int64
-	Createdat         time.Time
-	Updatedat         time.Time
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 	Username          string
-	Password          sql.NullString
-	Email             sql.NullString
-	Verified          sql.NullBool
-	Banned            sql.NullBool
+	Password          string
+	Email             string
+	Verified          bool
+	Banned            bool
 	Role              string
-	Lastlogin         *time.Time
-	Discordid         *string
-	Discordavatar     *string
-	Discordwebhookurl sql.NullString
-	Gameid            int64
-	Playernum         int64
+	LastLogin         *time.Time
+	DiscordID         string
+	DiscordAvatar     string
+	DiscordWebhookUrl string
+	GameID            int64
+	PlayerNum         int64
 }
 
 type Version struct {
 	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
-	Current   sql.NullFloat64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Current   int64
 }
 
 type Wormhole struct {
 	ID               int64
-	Createdat        time.Time
-	Updatedat        time.Time
-	Gameid           int64
-	X                sql.NullFloat64
-	Y                sql.NullFloat64
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	GameID           int64
+	X                float64
+	Y                float64
 	Name             string
-	Num              sql.NullInt64
-	Destinationnum   sql.NullInt64
+	Num              int64
+	DestinationNum   int64
 	Stability        *cs.WormholeStability
-	Yearsatstability sql.NullInt64
+	YearsAtStability int64
 	Spec             *WormholeSpec
 	Tags             *Tags
 }

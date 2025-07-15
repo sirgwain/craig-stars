@@ -29,7 +29,7 @@ func (c *client) GetPlayers(ctx context.Context) ([]*cs.Player, error) {
 }
 
 func (c *client) GetPlayersForUser(ctx context.Context, userID int64) ([]*cs.Player, error) {
-	items, err := c.reader.GetPlayersForUser(ctx, sql.NullInt64{Valid: true, Int64: userID})
+	items, err := c.reader.GetPlayersForUser(ctx, userID)
 	if err == sql.ErrNoRows {
 		return []*cs.Player{}, nil
 	}
@@ -123,7 +123,7 @@ func (c *client) GetPlayer(ctx context.Context, id int64) (*cs.Player, error) {
 
 func (c *client) GetPlayerForGame(ctx context.Context, gameID int64, playerNum int) (*cs.Player, error) {
 	rows, err := c.reader.GetPlayerForGame(ctx, generated.GetPlayerForGameParams{
-		Gameid: gameID,
+		GameID: gameID,
 		Num:    int64(playerNum),
 	})
 	if err == sql.ErrNoRows {
@@ -147,8 +147,8 @@ func (c *client) GetPlayerForGame(ctx context.Context, gameID int64, playerNum i
 
 func (c *client) GetPlayerForGameAndUser(ctx context.Context, gameID, userID int64) (*cs.Player, error) {
 	rows, err := c.reader.GetPlayerForGameAndUser(ctx, generated.GetPlayerForGameAndUserParams{
-		Gameid: gameID,
-		Userid: sql.NullInt64{Valid: true, Int64: userID},
+		GameID: gameID,
+		UserID: userID,
 	})
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -171,12 +171,12 @@ func (c *client) GetPlayerForGameAndUser(ctx context.Context, gameID, userID int
 
 func (c *client) GetLightPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error) {
 	queryParams := generated.GetLightPlayerForGameParams{
-		GameId:    gameID,
-		UserId:    nil,
+		GameID:    gameID,
+		UserID:    nil,
 		PlayerNum: nil,
 	}
 	if params.UserID != 0 {
-		queryParams.UserId = params.UserID
+		queryParams.UserID = params.UserID
 	}
 	if params.PlayerNum != 0 {
 		queryParams.PlayerNum = params.PlayerNum
@@ -211,7 +211,7 @@ func (c *client) GetFullPlayerForGame(ctx context.Context, gameID, userID int64)
 	}
 	player.Planets = planets
 
-	mineFields, err := c.GetMineFieldsForPlayer(ctx, player.GameID, player.Num)
+	mineFields, err := c.GetMinefieldsForPlayer(ctx, player.GameID, player.Num)
 	if err != nil {
 		return nil, fmt.Errorf("get player mineFields: %w", err)
 	}
@@ -244,7 +244,7 @@ func (c *client) GetFullPlayerForGame(ctx context.Context, gameID, userID int64)
 }
 
 func (c *client) GetPlayerMapObjects(ctx context.Context, gameID, userID int64) (*cs.PlayerMapObjects, error) {
-	num, err := c.reader.GetPlayerNum(ctx, generated.GetPlayerNumParams{Gameid: gameID, Userid: sql.NullInt64{Valid: true, Int64: userID}})
+	num, err := c.reader.GetPlayerNum(ctx, generated.GetPlayerNumParams{GameID: gameID, UserID: userID})
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -261,7 +261,7 @@ func (c *client) GetPlayerMapObjects(ctx context.Context, gameID, userID int64) 
 	}
 	mapObjects.Planets = planets
 
-	mineFields, err := c.GetMineFieldsForPlayer(ctx, gameID, playerNum)
+	mineFields, err := c.GetMinefieldsForPlayer(ctx, gameID, playerNum)
 	if err != nil {
 		return nil, fmt.Errorf("get player mineFields: %w", err)
 	}
@@ -298,15 +298,12 @@ func (c *client) SavePlayer(ctx context.Context, player *cs.Player) error {
 		if err != nil {
 			return err
 		}
-		player.ID = result.ID
-		player.CreatedAt = result.Createdat
-		player.UpdatedAt = result.Updatedat
+		player.ID = result
 	} else {
-		result, err := c.writer.UpdatePlayer(ctx, c.converter.ConvertGamePlayerToUpdateParams(player))
+		_, err := c.writer.UpdatePlayer(ctx, c.converter.ConvertGamePlayerToUpdateParams(player))
 		if err != nil {
 			return err
 		}
-		player.UpdatedAt = result
 	}
 
 	return nil
@@ -315,209 +312,153 @@ func (c *client) SavePlayer(ctx context.Context, player *cs.Player) error {
 // update an existing player's lightweight fields
 func (c *client) UpdateLightPlayer(ctx context.Context, player *cs.Player) error {
 
-	result, err := c.writer.UpdateLightPlayer(ctx, generated.UpdateLightPlayerParams{
+	_, err := c.writer.UpdateLightPlayer(ctx, generated.UpdateLightPlayerParams{
 		ID:                player.ID,
 		Name:              player.Name,
 		Num:               int64(player.Num),
-		Ready:             sql.NullBool{Valid: true, Bool: player.Ready},
-		Aicontrolled:      sql.NullBool{Valid: true, Bool: player.AIControlled},
-		Aidifficulty:      &player.AIDifficulty,
+		Ready:             player.Ready,
+		AiControlled:      player.AIControlled,
+		AiDifficulty:      &player.AIDifficulty,
 		Guest:             player.Guest,
-		Submittedturn:     sql.NullBool{Valid: true, Bool: player.SubmittedTurn},
-		Color:             sql.NullString{Valid: true, String: player.Color},
-		Defaulthullset:    sql.NullInt64{Valid: true, Int64: int64(player.DefaultHullSet)},
-		Researchamount:    sql.NullInt64{Valid: true, Int64: int64(player.ResearchAmount)},
-		Nextresearchfield: player.NextResearchField,
+		SubmittedTurn:     player.SubmittedTurn,
+		Color:             player.Color,
+		DefaultHullSet:    int64(player.DefaultHullSet),
+		ResearchAmount:    int64(player.ResearchAmount),
+		NextResearchField: player.NextResearchField,
 		Researching:       player.Researching,
 		Spec:              (*generated.PlayerSpec)(&player.Spec),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 }
 
 // update an existing player's lightweight fields
 func (c *client) UpdatePlayerOrders(ctx context.Context, player *cs.Player) error {
 
-	result, err := c.writer.UpdatePlayerOrders(ctx, generated.UpdatePlayerOrdersParams{
+	_, err := c.writer.UpdatePlayerOrders(ctx, generated.UpdatePlayerOrdersParams{
 		ID:                player.ID,
-		Submittedturn:     sql.NullBool{Valid: true, Bool: player.SubmittedTurn},
-		Defaulthullset:    sql.NullInt64{Valid: true, Int64: int64(player.DefaultHullSet)},
-		Researchamount:    sql.NullInt64{Valid: true, Int64: int64(player.ResearchAmount)},
-		Nextresearchfield: player.NextResearchField,
+		SubmittedTurn:     player.SubmittedTurn,
+		DefaultHullSet:    int64(player.DefaultHullSet),
+		ResearchAmount:    int64(player.ResearchAmount),
+		NextResearchField: player.NextResearchField,
 		Researching:       player.Researching,
-		Cargotransfers:    (*generated.CargoTransfers)(&player.CargoTransfers),
-		Battleplans:       (*generated.BattlePlans)(&player.BattlePlans),
-		Productionplans:   (*generated.ProductionPlans)(&player.ProductionPlans),
-		Transportplans:    (*generated.TransportPlans)(&player.TransportPlans),
+		CargoTransfers:    (*generated.CargoTransfers)(&player.CargoTransfers),
+		BattlePlans:       (*generated.BattlePlans)(&player.BattlePlans),
+		ProductionPlans:   (*generated.ProductionPlans)(&player.ProductionPlans),
+		TransportPlans:    (*generated.TransportPlans)(&player.TransportPlans),
 		Relations:         (*generated.PlayerRelationships)(&player.Relations),
 		Spec:              (*generated.PlayerSpec)(&player.Spec),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 }
 
 // update an existing player's lightweight fields
 func (c *client) UpdatePlayerCargoTransfers(ctx context.Context, player *cs.Player) error {
-	result, err := c.writer.UpdatePlayerCargoTransfers(ctx, generated.UpdatePlayerCargoTransfersParams{
+	_, err := c.writer.UpdatePlayerCargoTransfers(ctx, generated.UpdatePlayerCargoTransfersParams{
 		ID:             player.ID,
-		Cargotransfers: (*generated.CargoTransfers)(&player.CargoTransfers),
+		CargoTransfers: (*generated.CargoTransfers)(&player.CargoTransfers),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 
 }
 
 // update an existing player's lightweight fields
 func (c *client) UpdatePlayerRelations(ctx context.Context, player *cs.Player) error {
-	result, err := c.writer.UpdatePlayerRelations(ctx, generated.UpdatePlayerRelationsParams{
+	_, err := c.writer.UpdatePlayerRelations(ctx, generated.UpdatePlayerRelationsParams{
 		ID:        player.ID,
 		Relations: (*generated.PlayerRelationships)(&player.Relations),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 
 }
 
 // update an existing player's lightweight fields
 func (c *client) SubmitPlayerTurn(ctx context.Context, gameID int64, num int, submittedTurn bool) error {
 	_, err := c.writer.SubmitPlayerTurn(ctx, generated.SubmitPlayerTurnParams{
-		Gameid:        gameID,
+		GameID:        gameID,
 		Num:           int64(num),
-		Submittedturn: sql.NullBool{Valid: true, Bool: submittedTurn},
+		SubmittedTurn: submittedTurn,
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // update an existing player's lightweight fields
 func (c *client) ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error {
 	_, err := c.writer.ArchivePlayer(ctx, generated.ArchivePlayerParams{
-		Gameid:   gameID,
+		GameID:   gameID,
 		Num:      int64(num),
 		Archived: archived,
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // update an existing player's lightweight fields
 func (c *client) UpdatePlayerPlans(ctx context.Context, player *cs.Player) error {
-	result, err := c.writer.UpdatePlayerPlans(ctx, generated.UpdatePlayerPlansParams{
+	_, err := c.writer.UpdatePlayerPlans(ctx, generated.UpdatePlayerPlansParams{
 		ID:              player.ID,
-		Battleplans:     (*generated.BattlePlans)(&player.BattlePlans),
-		Productionplans: (*generated.ProductionPlans)(&player.ProductionPlans),
-		Transportplans:  (*generated.TransportPlans)(&player.TransportPlans),
+		BattlePlans:     (*generated.BattlePlans)(&player.BattlePlans),
+		ProductionPlans: (*generated.ProductionPlans)(&player.ProductionPlans),
+		TransportPlans:  (*generated.TransportPlans)(&player.TransportPlans),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 }
 
 // update a player's spec in the database
 func (c *client) UpdatePlayerSpec(ctx context.Context, player *cs.Player) error {
-	result, err := c.writer.UpdatePlayerSpec(ctx, generated.UpdatePlayerSpecParams{
+	_, err := c.writer.UpdatePlayerSpec(ctx, generated.UpdatePlayerSpecParams{
 		ID:   player.ID,
 		Spec: (*generated.PlayerSpec)(&player.Spec),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 }
 
 // update a players planet intels (used after creating a new planet)
 func (c *client) UpdatePlayerPlanetIntels(ctx context.Context, player *cs.Player) error {
-	result, err := c.writer.UpdatePlayerPlanetIntels(ctx, generated.UpdatePlayerPlanetIntelsParams{
+	_, err := c.writer.UpdatePlayerPlanetIntels(ctx, generated.UpdatePlayerPlanetIntelsParams{
 		ID:           player.ID,
-		Planetintels: (*generated.PlanetIntels)(&player.PlanetIntels),
+		PlanetIntels: (*generated.PlanetIntels)(&player.PlanetIntels),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 }
 
 // update a players fleet intels (used after creating a new fleet)
 func (c *client) UpdatePlayerFleetIntels(ctx context.Context, player *cs.Player) error {
-	result, err := c.writer.UpdatePlayerFleetIntels(ctx, generated.UpdatePlayerFleetIntelsParams{
+	_, err := c.writer.UpdatePlayerFleetIntels(ctx, generated.UpdatePlayerFleetIntelsParams{
 		ID:          player.ID,
-		Fleetintels: (*generated.FleetIntels)(&player.FleetIntels),
+		FleetIntels: (*generated.FleetIntels)(&player.FleetIntels),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 }
 
 // update a players salvage intels (used after creating a new salvage)
 func (c *client) UpdatePlayerSalvageIntels(ctx context.Context, player *cs.Player) error {
-	result, err := c.writer.UpdatePlayerSalvageIntels(ctx, generated.UpdatePlayerSalvageIntelsParams{
+	_, err := c.writer.UpdatePlayerSalvageIntels(ctx, generated.UpdatePlayerSalvageIntelsParams{
 		ID:            player.ID,
-		Salvageintels: (*generated.SalvageIntels)(&player.SalvageIntels),
+		SalvageIntels: (*generated.SalvageIntels)(&player.SalvageIntels),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 }
 
 // update a players mineralPacket intels (used after creating a new mineralPacket)
 func (c *client) UpdatePlayerMineralPacketIntels(ctx context.Context, player *cs.Player) error {
-	result, err := c.writer.UpdatePlayerMineralPacketIntels(ctx, generated.UpdatePlayerMineralPacketIntelsParams{
+	_, err := c.writer.UpdatePlayerMineralPacketIntels(ctx, generated.UpdatePlayerMineralPacketIntelsParams{
 		ID:                  player.ID,
-		Mineralpacketintels: (*generated.MineralPacketIntels)(&player.MineralPacketIntels),
+		MineralPacketIntels: (*generated.MineralPacketIntels)(&player.MineralPacketIntels),
 	})
-	if err != nil {
-		return err
-	}
-
-	player.UpdatedAt = result
-	return nil
+	return err
 }
 
 // helper to update a player using a transaction or DB
 // update an existing player
-func (c *client) UpdatePlayerUserId(ctx context.Context, player *cs.Player) error {
-	return c.writer.UpdatePlayerUserID(ctx, generated.UpdatePlayerUserIDParams{
+func (c *client) UpdatePlayerUserID(ctx context.Context, player *cs.Player) error {
+	_, err := c.writer.UpdatePlayerUserID(ctx, generated.UpdatePlayerUserIDParams{
 		ID:     player.ID,
-		Userid: sql.NullInt64{Valid: true, Int64: player.UserID},
+		UserID: player.UserID,
 	})
+	return err
 }
 
 // delete a player by id
 func (c *client) DeletePlayer(ctx context.Context, id int64) error {
-	return c.writer.DeletePlayer(ctx, id)
+	_, err := c.writer.DeletePlayer(ctx, id)
+	return err
 }

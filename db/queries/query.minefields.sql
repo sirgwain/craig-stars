@@ -1,7 +1,7 @@
 --
--- MineFields
+-- Minefields
 --
--- name: GetMineField :one
+-- name: GetMinefield :one
 SELECT
     *
 FROM
@@ -9,58 +9,58 @@ FROM
 WHERE
     id = ?;
 
--- name: GetMineFieldByNum :one
+-- name: GetMinefieldByNum :one
 SELECT
     *
 FROM
     minefields
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num = ?;
 
--- name: GetMineFields :many
+-- name: GetMinefields :many
 SELECT
     *
 FROM
     minefields;
 
--- name: GetMineFieldsForGame :many
+-- name: GetMinefieldsForGame :many
 SELECT
     *
 FROM
     minefields
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
-    playerNum,
+    player_num,
     num;
 
--- name: GetMineFieldsForPlayer :many
+-- name: GetMinefieldsForPlayer :many
 SELECT
     *
 FROM
     minefields
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
 ORDER BY
     num;
 
--- name: CreateMineField :one
+-- name: CreateMinefield :execlastid
 INSERT INTO
     minefields (
-        createdAt,
-        updatedAt,
-        gameId,
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
-        playerNum,
+        player_num,
         tags,
-        mineFieldType,
-        numMines,
+        minefield_type,
+        num_mines,
         detonate,
         spec
     )
@@ -79,29 +79,27 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt;
+    );
 
--- name: UpdateMineField :one
+-- name: UpdateMinefield :execrows
 UPDATE minefields
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
-    playerNum = ?,
+    player_num = ?,
     tags = ?,
-    mineFieldType = ?,
-    numMines = ?,
+    minefield_type = ?,
+    num_mines = ?,
     detonate = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
--- name: DeleteMineField :exec
+-- name: DeleteMinefield :execrows
 DELETE FROM minefields
 WHERE
     id = ?;

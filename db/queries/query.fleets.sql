@@ -15,8 +15,8 @@ SELECT
 FROM
     fleets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num = ?;
 
 -- name: GetFleets :many
@@ -31,9 +31,9 @@ SELECT
 FROM
     fleets
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
-    playerNum,
+    player_num,
     num;
 
 -- name: GetFleetsForPlayer :many
@@ -42,8 +42,8 @@ SELECT
 FROM
     fleets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
 ORDER BY
     num;
 
@@ -53,43 +53,43 @@ SELECT
 FROM
     fleets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num IN (sqlc.slice ('nums'))
 ORDER BY
-    playerNum,
+    player_num,
     num;
 
--- name: CreateFleet :one
+-- name: CreateFleet :execlastid
 INSERT INTO
     fleets (
-        createdAt,
-        updatedAt,
-        gameId,
-        battlePlanNum,
+        created_at,
+        updated_at,
+        game_id,
+        battle_plan_num,
         x,
         y,
         name,
         num,
-        playerNum,
+        player_num,
         tags,
         tokens,
         waypoints,
-        repeatOrders,
-        planetNum,
-        baseName,
+        repeat_orders,
+        planet_num,
+        base_name,
         ironium,
         boranium,
         germanium,
         colonists,
         fuel,
         age,
-        headingX,
-        headingY,
-        warpSpeed,
-        previousPositionX,
-        previousPositionY,
-        orbitingPlanetNum,
+        heading_x,
+        heading_y,
+        warp_speed,
+        previous_position_x,
+        previous_position_y,
+        orbiting_planet_num,
         starbase,
         purpose,
         spec
@@ -126,44 +126,42 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt;
+    );
 
--- name: UpdateFleet :one
+-- name: UpdateFleet :execrows
 UPDATE fleets
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
-    battlePlanNum = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
+    battle_plan_num = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
-    playerNum = ?,
+    player_num = ?,
     tags = ?,
     tokens = ?,
     waypoints = ?,
-    repeatOrders = ?,
-    planetNum = ?,
-    baseName = ?,
+    repeat_orders = ?,
+    planet_num = ?,
+    base_name = ?,
     ironium = ?,
     boranium = ?,
     germanium = ?,
     colonists = ?,
     fuel = ?,
     age = ?,
-    headingX = ?,
-    headingY = ?,
-    warpSpeed = ?,
-    previousPositionX = ?,
-    previousPositionY = ?,
-    orbitingPlanetNum = ?,
+    heading_x = ?,
+    heading_y = ?,
+    warp_speed = ?,
+    previous_position_x = ?,
+    previous_position_y = ?,
+    orbiting_planet_num = ?,
     starbase = ?,
     purpose = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
 -- name: DeleteFleet :exec
 DELETE FROM fleets

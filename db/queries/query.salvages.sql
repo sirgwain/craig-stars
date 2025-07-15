@@ -15,7 +15,7 @@ SELECT
 FROM
     salvages
 WHERE
-    gameId = ?
+    game_id = ?
     AND num = ?;
 
 -- name: GetSalvages :many
@@ -30,7 +30,7 @@ SELECT
 FROM
     salvages
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num;
 
@@ -40,22 +40,22 @@ SELECT
 FROM
     salvages
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
 ORDER BY
     num;
 
--- name: CreateSalvage :one
+-- name: CreateSalvage :execlastid
 INSERT INTO
     salvages (
-        createdAt,
-        updatedAt,
-        gameId,
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
-        playerNum,
+        player_num,
         tags,
         ironium,
         boranium,
@@ -75,28 +75,26 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt;
+    );
 
--- name: UpdateSalvage :one
+-- name: UpdateSalvage :execrows
 UPDATE salvages
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
-    playerNum = ?,
+    player_num = ?,
     tags = ?,
     ironium = ?,
     boranium = ?,
     germanium = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
--- name: DeleteSalvage :exec
+-- name: DeleteSalvage :execrows
 DELETE FROM salvages
 WHERE
     id = ?;

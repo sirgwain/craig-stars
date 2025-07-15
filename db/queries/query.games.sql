@@ -21,7 +21,7 @@ SELECT
 FROM
     games
 WHERE
-    hostId = ?;
+    host_id = ?;
 
 -- name: GetGameWithPlayers :many
 SELECT
@@ -29,7 +29,7 @@ SELECT
     p.*
 FROM
     games g
-    LEFT JOIN game_players p ON g.id = p.gameId
+    LEFT JOIN game_players p ON g.id = p.game_id
 WHERE
     -- game by id
     g.id = @id
@@ -42,7 +42,7 @@ SELECT
     p.*
 FROM
     games g
-    LEFT JOIN game_players p ON g.id = p.gameId
+    LEFT JOIN game_players p ON g.id = p.game_id
 WHERE
     -- game state
     (
@@ -54,7 +54,7 @@ WHERE
         @open IS NULL
         OR (
             @open
-            AND g.openPlayerSlots > 0
+            AND g.open_player_slots > 0
         )
     )
     -- public games
@@ -69,56 +69,56 @@ SELECT
     p.*
 FROM
     games g
-    LEFT JOIN game_players p ON g.id = p.gameId
+    LEFT JOIN game_players p ON g.id = p.game_id
 WHERE
     -- host or player in game
-    g.hostId = @userId
+    g.host_id = @user_id
     OR g.id IN (
         SELECT
-            gameId
+            game_id
         FROM
             players p
         WHERE
-            p.userId = @userId
+            p.user_id = @user_id
     );
 
--- name: CreateGame :one
+-- name: CreateGame :execlastid
 INSERT INTO
     games (
-        createdAt,
-        updatedAt,
-        hostId,
+        created_at,
+        updated_at,
+        host_id,
         name,
         state,
         public,
         hash,
         size,
         density,
-        playerPositions,
-        randomEvents,
-        computerPlayersFormAlliances,
-        publicPlayerScores,
-        maxMinerals,
-        startMode,
-        quickStartTurns,
-        openPlayerSlots,
-        numPlayers,
-        victoryConditionsConditions,
-        victoryConditionsNumCriteriaRequired,
-        victoryConditionsYearsPassed,
-        victoryConditionsOwnPlanets,
-        victoryConditionsAttainTechLevel,
-        victoryConditionsAttainTechLevelNumFields,
-        victoryConditionsExceedsScore,
-        victoryConditionsExceedsSecondPlaceScore,
-        victoryConditionsProductionCapacity,
-        victoryConditionsOwnCapitalShips,
-        victoryConditionsHighestScoreAfterYears,
+        player_positions,
+        random_events,
+        computer_players_form_alliances,
+        public_player_scores,
+        max_minerals,
+        start_mode,
+        quick_start_turns,
+        open_player_slots,
+        num_players,
+        victory_conditions_conditions,
+        victory_conditions_num_criteria_required,
+        victory_conditions_years_passed,
+        victory_conditions_own_planets,
+        victory_conditions_attain_tech_level,
+        victory_conditions_attain_tech_level_num_fields,
+        victory_conditions_exceeds_score,
+        victory_conditions_exceeds_second_place_score,
+        victory_conditions_production_capacity,
+        victory_conditions_own_capital_ships,
+        victory_conditions_highest_score_after_years,
         seed,
-        areaX,
-        areaY,
+        area_x,
+        area_y,
         year,
-        victorDeclared,
+        victor_declared,
         archived
     )
 VALUES
@@ -158,72 +158,70 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt;
+    );
 
--- name: UpdateGame :one
+-- name: UpdateGame :execrows
 UPDATE games
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    hostId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    host_id = ?,
     name = ?,
     state = ?,
     public = ?,
     hash = ?,
     size = ?,
     density = ?,
-    playerPositions = ?,
-    randomEvents = ?,
-    computerPlayersFormAlliances = ?,
-    publicPlayerScores = ?,
-    maxMinerals = ?,
-    startMode = ?,
-    quickStartTurns = ?,
-    openPlayerSlots = ?,
-    numPlayers = ?,
-    victoryConditionsConditions = ?,
-    victoryConditionsNumCriteriaRequired = ?,
-    victoryConditionsYearsPassed = ?,
-    victoryConditionsOwnPlanets = ?,
-    victoryConditionsAttainTechLevel = ?,
-    victoryConditionsAttainTechLevelNumFields = ?,
-    victoryConditionsExceedsScore = ?,
-    victoryConditionsExceedsSecondPlaceScore = ?,
-    victoryConditionsProductionCapacity = ?,
-    victoryConditionsOwnCapitalShips = ?,
-    victoryConditionsHighestScoreAfterYears = ?,
+    player_positions = ?,
+    random_events = ?,
+    computer_players_form_alliances = ?,
+    public_player_scores = ?,
+    max_minerals = ?,
+    start_mode = ?,
+    quick_start_turns = ?,
+    open_player_slots = ?,
+    num_players = ?,
+    victory_conditions_conditions = ?,
+    victory_conditions_num_criteria_required = ?,
+    victory_conditions_years_passed = ?,
+    victory_conditions_own_planets = ?,
+    victory_conditions_attain_tech_level = ?,
+    victory_conditions_attain_tech_level_num_fields = ?,
+    victory_conditions_exceeds_score = ?,
+    victory_conditions_exceeds_second_place_score = ?,
+    victory_conditions_production_capacity = ?,
+    victory_conditions_own_capital_ships = ?,
+    victory_conditions_highest_score_after_years = ?,
     seed = ?,
-    areaX = ?,
-    areaY = ?,
+    area_x = ?,
+    area_y = ?,
     year = ?,
-    victorDeclared = ?,
+    victor_declared = ?,
     archived = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
--- name: UpdateGameState :exec
+-- name: UpdateGameState :execrows
 UPDATE games
 SET
-    updatedAt = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
     state = ?
 WHERE
     id = ?;
 
--- name: UpdateGameHost :exec
+-- name: UpdateGameHost :execrows
 UPDATE games
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    hostId = ?
+    updated_at = CURRENT_TIMESTAMP,
+    host_id = ?
 WHERE
     id = ?;
 
--- name: DeleteGame :exec
+-- name: DeleteGame :execrows
 DELETE FROM games
 WHERE
     id = ?;
 
--- name: DeleteUserGames :exec
+-- name: DeleteUserGames :execrows
 DELETE FROM games
 WHERE
-    hostId = ?;
+    host_id = ?;

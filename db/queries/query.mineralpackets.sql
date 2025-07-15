@@ -5,7 +5,7 @@
 SELECT
     *
 FROM
-    mineralpackets
+    mineral_packets
 WHERE
     id = ?;
 
@@ -13,62 +13,62 @@ WHERE
 SELECT
     *
 FROM
-    mineralpackets
+    mineral_packets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num = ?;
 
 -- name: GetMineralPackets :many
 SELECT
     *
 FROM
-    mineralpackets;
+    mineral_packets;
 
 -- name: GetMineralPacketsForGame :many
 SELECT
     *
 FROM
-    mineralpackets
+    mineral_packets
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
-    playerNum,
+    player_num,
     num;
 
 -- name: GetMineralPacketsForPlayer :many
 SELECT
     *
 FROM
-    mineralpackets
+    mineral_packets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
 ORDER BY
     num;
 
--- name: CreateMineralPacket :one
+-- name: CreateMineralPacket :execlastid
 INSERT INTO
-    mineralpackets (
-        createdAt,
-        updatedAt,
-        gameId,
+    mineral_packets (
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
-        playerNum,
+        player_num,
         tags,
-        targetPlanetNum,
+        target_planet_num,
         ironium,
         boranium,
         germanium,
-        safeWarpSpeed,
-        warpSpeed,
-        scanRange,
-        scanRangePen,
-        headingX,
-        headingY
+        safe_warp_speed,
+        warp_speed,
+        scan_range,
+        scan_range_pen,
+        heading_x,
+        heading_y
     )
 VALUES
     (
@@ -91,35 +91,33 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt;
+    );
 
--- name: UpdateMineralPacket :one
-UPDATE mineralpackets
+-- name: UpdateMineralPacket :execrows
+UPDATE mineral_packets
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
-    playerNum = ?,
+    player_num = ?,
     tags = ?,
-    targetPlanetNum = ?,
+    target_planet_num = ?,
     ironium = ?,
     boranium = ?,
     germanium = ?,
-    safeWarpSpeed = ?,
-    warpSpeed = ?,
-    scanRange = ?,
-    scanRangePen = ?,
-    headingX = ?,
-    headingY = ?
+    safe_warp_speed = ?,
+    warp_speed = ?,
+    scan_range = ?,
+    scan_range_pen = ?,
+    heading_x = ?,
+    heading_y = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
--- name: DeleteMineralPacket :exec
-DELETE FROM mineralpackets
+-- name: DeleteMineralPacket :execrows
+DELETE FROM mineral_packets
 WHERE
     id = ?;

@@ -132,48 +132,48 @@ type Converter interface {
 	ConvertRaces(source []generated.Race) []cs.Race
 
 	// goverter:autoMap DBObject
-	// goverter:map HabHigh.Grav Habhighgrav
-	// goverter:map HabHigh.Temp Habhightemp
-	// goverter:map HabHigh.Rad Habhighrad
-	// goverter:map HabLow.Grav Hablowgrav
-	// goverter:map HabLow.Temp Hablowtemp
-	// goverter:map HabLow.Rad Hablowrad
-	// goverter:map ResearchCost.Energy Researchcostenergy
-	// goverter:map ResearchCost.Weapons Researchcostweapons
-	// goverter:map ResearchCost.Propulsion Researchcostpropulsion
-	// goverter:map ResearchCost.Construction Researchcostconstruction
-	// goverter:map ResearchCost.Electronics Researchcostelectronics
-	// goverter:map ResearchCost.Biotechnology Researchcostbiotechnology
+	// goverter:map HabHigh.Grav HabHighGrav
+	// goverter:map HabHigh.Temp HabHighTemp
+	// goverter:map HabHigh.Rad HabHighRad
+	// goverter:map HabLow.Grav HabLowGrav
+	// goverter:map HabLow.Temp HabLowTemp
+	// goverter:map HabLow.Rad HabLowRad
+	// goverter:map ResearchCost.Energy ResearchCostEnergy
+	// goverter:map ResearchCost.Weapons ResearchCostWeapons
+	// goverter:map ResearchCost.Propulsion ResearchCostPropulsion
+	// goverter:map ResearchCost.Construction ResearchCostConstruction
+	// goverter:map ResearchCost.Electronics ResearchCostElectronics
+	// goverter:map ResearchCost.Biotechnology ResearchCostBiotechnology
 	ConvertGameRace(source *cs.Race) generated.Race
 
 	// goverter:autoMap DBObject
-	// goverter:map HabHigh.Grav Habhighgrav
-	// goverter:map HabHigh.Temp Habhightemp
-	// goverter:map HabHigh.Rad Habhighrad
-	// goverter:map HabLow.Grav Hablowgrav
-	// goverter:map HabLow.Temp Hablowtemp
-	// goverter:map HabLow.Rad Hablowrad
-	// goverter:map ResearchCost.Energy Researchcostenergy
-	// goverter:map ResearchCost.Weapons Researchcostweapons
-	// goverter:map ResearchCost.Propulsion Researchcostpropulsion
-	// goverter:map ResearchCost.Construction Researchcostconstruction
-	// goverter:map ResearchCost.Electronics Researchcostelectronics
-	// goverter:map ResearchCost.Biotechnology Researchcostbiotechnology
+	// goverter:map HabHigh.Grav HabHighGrav
+	// goverter:map HabHigh.Temp HabHighTemp
+	// goverter:map HabHigh.Rad HabHighRad
+	// goverter:map HabLow.Grav HabLowGrav
+	// goverter:map HabLow.Temp HabLowTemp
+	// goverter:map HabLow.Rad HabLowRad
+	// goverter:map ResearchCost.Energy ResearchCostEnergy
+	// goverter:map ResearchCost.Weapons ResearchCostWeapons
+	// goverter:map ResearchCost.Propulsion ResearchCostPropulsion
+	// goverter:map ResearchCost.Construction ResearchCostConstruction
+	// goverter:map ResearchCost.Electronics ResearchCostElectronics
+	// goverter:map ResearchCost.Biotechnology ResearchCostBiotechnology
 	ConvertGameRaceToCreateParams(source *cs.Race) generated.CreateRaceParams
 
 	// goverter:autoMap DBObject
-	// goverter:map HabHigh.Grav Habhighgrav
-	// goverter:map HabHigh.Temp Habhightemp
-	// goverter:map HabHigh.Rad Habhighrad
-	// goverter:map HabLow.Grav Hablowgrav
-	// goverter:map HabLow.Temp Hablowtemp
-	// goverter:map HabLow.Rad Hablowrad
-	// goverter:map ResearchCost.Energy Researchcostenergy
-	// goverter:map ResearchCost.Weapons Researchcostweapons
-	// goverter:map ResearchCost.Propulsion Researchcostpropulsion
-	// goverter:map ResearchCost.Construction Researchcostconstruction
-	// goverter:map ResearchCost.Electronics Researchcostelectronics
-	// goverter:map ResearchCost.Biotechnology Researchcostbiotechnology
+	// goverter:map HabHigh.Grav HabHighGrav
+	// goverter:map HabHigh.Temp HabHighTemp
+	// goverter:map HabHigh.Rad HabHighRad
+	// goverter:map HabLow.Grav HabLowGrav
+	// goverter:map HabLow.Temp HabLowTemp
+	// goverter:map HabLow.Rad HabLowRad
+	// goverter:map ResearchCost.Energy ResearchCostEnergy
+	// goverter:map ResearchCost.Weapons ResearchCostWeapons
+	// goverter:map ResearchCost.Propulsion ResearchCostPropulsion
+	// goverter:map ResearchCost.Construction ResearchCostConstruction
+	// goverter:map ResearchCost.Electronics ResearchCostElectronics
+	// goverter:map ResearchCost.Biotechnology ResearchCostBiotechnology
 	ConvertGameRaceToUpdateParams(source *cs.Race) generated.UpdateRaceParams
 
 	// goverter:map . DBObject
@@ -185,134 +185,134 @@ type Converter interface {
 	ConvertGames(source []generated.Game) []cs.Game
 
 	// goverter:autoMap DBObject
-	// goverter:map VictoryConditions.NumCriteriaRequired Victoryconditionsnumcriteriarequired
-	// goverter:map VictoryConditions.YearsPassed Victoryconditionsyearspassed
-	// goverter:map VictoryConditions.OwnPlanets Victoryconditionsownplanets
-	// goverter:map VictoryConditions.AttainTechLevel Victoryconditionsattaintechlevel
-	// goverter:map VictoryConditions.AttainTechLevelNumFields Victoryconditionsattaintechlevelnumfields
-	// goverter:map VictoryConditions.ExceedsScore Victoryconditionsexceedsscore
-	// goverter:map VictoryConditions.ExceedsSecondPlaceScore Victoryconditionsexceedssecondplacescore
-	// goverter:map VictoryConditions.ProductionCapacity Victoryconditionsproductioncapacity
-	// goverter:map VictoryConditions.OwnCapitalShips Victoryconditionsowncapitalships
-	// goverter:map VictoryConditions.HighestScoreAfterYears Victoryconditionshighestscoreafteryears
-	// goverter:map VictoryConditions.Conditions Victoryconditionsconditions
-	// goverter:map Area.X Areax
-	// goverter:map Area.Y Areay
+	// goverter:map VictoryConditions.NumCriteriaRequired VictoryConditionsNumCriteriaRequired
+	// goverter:map VictoryConditions.YearsPassed VictoryConditionsYearsPassed
+	// goverter:map VictoryConditions.OwnPlanets VictoryConditionsOwnPlanets
+	// goverter:map VictoryConditions.AttainTechLevel VictoryConditionsAttainTechLevel
+	// goverter:map VictoryConditions.AttainTechLevelNumFields VictoryConditionsAttainTechLevelNumFields
+	// goverter:map VictoryConditions.ExceedsScore VictoryConditionsExceedsScore
+	// goverter:map VictoryConditions.ExceedsSecondPlaceScore VictoryConditionsExceedsSecondPlaceScore
+	// goverter:map VictoryConditions.ProductionCapacity VictoryConditionsProductionCapacity
+	// goverter:map VictoryConditions.OwnCapitalShips VictoryConditionsOwnCapitalShips
+	// goverter:map VictoryConditions.HighestScoreAfterYears VictoryConditionsHighestScoreAfterYears
+	// goverter:map VictoryConditions.Conditions VictoryConditionsConditions
+	// goverter:map Area.X AreaX
+	// goverter:map Area.Y AreaY
 	ConvertGameGame(source *cs.Game) generated.Game
 
 	// goverter:autoMap DBObject
-	// goverter:map VictoryConditions.NumCriteriaRequired Victoryconditionsnumcriteriarequired
-	// goverter:map VictoryConditions.YearsPassed Victoryconditionsyearspassed
-	// goverter:map VictoryConditions.OwnPlanets Victoryconditionsownplanets
-	// goverter:map VictoryConditions.AttainTechLevel Victoryconditionsattaintechlevel
-	// goverter:map VictoryConditions.AttainTechLevelNumFields Victoryconditionsattaintechlevelnumfields
-	// goverter:map VictoryConditions.ExceedsScore Victoryconditionsexceedsscore
-	// goverter:map VictoryConditions.ExceedsSecondPlaceScore Victoryconditionsexceedssecondplacescore
-	// goverter:map VictoryConditions.ProductionCapacity Victoryconditionsproductioncapacity
-	// goverter:map VictoryConditions.OwnCapitalShips Victoryconditionsowncapitalships
-	// goverter:map VictoryConditions.HighestScoreAfterYears Victoryconditionshighestscoreafteryears
-	// goverter:map VictoryConditions.Conditions Victoryconditionsconditions
-	// goverter:map Area.X Areax
-	// goverter:map Area.Y Areay
+	// goverter:map VictoryConditions.NumCriteriaRequired VictoryConditionsNumCriteriaRequired
+	// goverter:map VictoryConditions.YearsPassed VictoryConditionsYearsPassed
+	// goverter:map VictoryConditions.OwnPlanets VictoryConditionsOwnPlanets
+	// goverter:map VictoryConditions.AttainTechLevel VictoryConditionsAttainTechLevel
+	// goverter:map VictoryConditions.AttainTechLevelNumFields VictoryConditionsAttainTechLevelNumFields
+	// goverter:map VictoryConditions.ExceedsScore VictoryConditionsExceedsScore
+	// goverter:map VictoryConditions.ExceedsSecondPlaceScore VictoryConditionsExceedsSecondPlaceScore
+	// goverter:map VictoryConditions.ProductionCapacity VictoryConditionsProductionCapacity
+	// goverter:map VictoryConditions.OwnCapitalShips VictoryConditionsOwnCapitalShips
+	// goverter:map VictoryConditions.HighestScoreAfterYears VictoryConditionsHighestScoreAfterYears
+	// goverter:map VictoryConditions.Conditions VictoryConditionsConditions
+	// goverter:map Area.X AreaX
+	// goverter:map Area.Y AreaY
 	ConvertGameGameToCreateParams(source *cs.Game) generated.CreateGameParams
 
 	// goverter:autoMap DBObject
-	// goverter:map VictoryConditions.NumCriteriaRequired Victoryconditionsnumcriteriarequired
-	// goverter:map VictoryConditions.YearsPassed Victoryconditionsyearspassed
-	// goverter:map VictoryConditions.OwnPlanets Victoryconditionsownplanets
-	// goverter:map VictoryConditions.AttainTechLevel Victoryconditionsattaintechlevel
-	// goverter:map VictoryConditions.AttainTechLevelNumFields Victoryconditionsattaintechlevelnumfields
-	// goverter:map VictoryConditions.ExceedsScore Victoryconditionsexceedsscore
-	// goverter:map VictoryConditions.ExceedsSecondPlaceScore Victoryconditionsexceedssecondplacescore
-	// goverter:map VictoryConditions.ProductionCapacity Victoryconditionsproductioncapacity
-	// goverter:map VictoryConditions.OwnCapitalShips Victoryconditionsowncapitalships
-	// goverter:map VictoryConditions.HighestScoreAfterYears Victoryconditionshighestscoreafteryears
-	// goverter:map VictoryConditions.Conditions Victoryconditionsconditions
-	// goverter:map Area.X Areax
-	// goverter:map Area.Y Areay
+	// goverter:map VictoryConditions.NumCriteriaRequired VictoryConditionsNumCriteriaRequired
+	// goverter:map VictoryConditions.YearsPassed VictoryConditionsYearsPassed
+	// goverter:map VictoryConditions.OwnPlanets VictoryConditionsOwnPlanets
+	// goverter:map VictoryConditions.AttainTechLevel VictoryConditionsAttainTechLevel
+	// goverter:map VictoryConditions.AttainTechLevelNumFields VictoryConditionsAttainTechLevelNumFields
+	// goverter:map VictoryConditions.ExceedsScore VictoryConditionsExceedsScore
+	// goverter:map VictoryConditions.ExceedsSecondPlaceScore VictoryConditionsExceedsSecondPlaceScore
+	// goverter:map VictoryConditions.ProductionCapacity VictoryConditionsProductionCapacity
+	// goverter:map VictoryConditions.OwnCapitalShips VictoryConditionsOwnCapitalShips
+	// goverter:map VictoryConditions.HighestScoreAfterYears VictoryConditionsHighestScoreAfterYears
+	// goverter:map VictoryConditions.Conditions VictoryConditionsConditions
+	// goverter:map Area.X AreaX
+	// goverter:map Area.Y AreaY
 	ConvertGameGameToUpdateParams(source *cs.Game) generated.UpdateGameParams
 
 	// goverter:autoMap GameDBObject
-	// goverter:map TechLevels.Energy Techlevelsenergy
-	// goverter:map TechLevels.Weapons Techlevelsweapons
-	// goverter:map TechLevels.Propulsion Techlevelspropulsion
-	// goverter:map TechLevels.Construction Techlevelsconstruction
-	// goverter:map TechLevels.Electronics Techlevelselectronics
-	// goverter:map TechLevels.Biotechnology Techlevelsbiotechnology
-	// goverter:map TechLevelsSpent.Energy Techlevelsspentenergy
-	// goverter:map TechLevelsSpent.Weapons Techlevelsspentweapons
-	// goverter:map TechLevelsSpent.Propulsion Techlevelsspentpropulsion
-	// goverter:map TechLevelsSpent.Construction Techlevelsspentconstruction
-	// goverter:map TechLevelsSpent.Electronics Techlevelsspentelectronics
-	// goverter:map TechLevelsSpent.Biotechnology Techlevelsspentbiotechnology
+	// goverter:map TechLevels.Energy TechLevelsEnergy
+	// goverter:map TechLevels.Weapons TechLevelsWeapons
+	// goverter:map TechLevels.Propulsion TechLevelsPropulsion
+	// goverter:map TechLevels.Construction TechLevelsConstruction
+	// goverter:map TechLevels.Electronics TechLevelsElectronics
+	// goverter:map TechLevels.Biotechnology TechLevelsBiotechnology
+	// goverter:map TechLevelsSpent.Energy TechLevelsSpentEnergy
+	// goverter:map TechLevelsSpent.Weapons TechLevelsSpentWeapons
+	// goverter:map TechLevelsSpent.Propulsion TechLevelsSpentPropulsion
+	// goverter:map TechLevelsSpent.Construction TechLevelsSpentConstruction
+	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
+	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords Battlerecords
-	// goverter:map PlayerIntels.PlayerIntels Playerintels
-	// goverter:map PlayerIntels.ScoreIntels Scoreintels
-	// goverter:map PlayerIntels.PlanetIntels Planetintels
-	// goverter:map PlayerIntels.FleetIntels Fleetintels
-	// goverter:map PlayerIntels.ShipDesignIntels Shipdesignintels
-	// goverter:map PlayerIntels.MineralPacketIntels Mineralpacketintels
-	// goverter:map PlayerIntels.MineFieldIntels Minefieldintels
-	// goverter:map PlayerIntels.WormholeIntels Wormholeintels
-	// goverter:map PlayerIntels.MysteryTraderIntels Mysterytraderintels
-	// goverter:map PlayerIntels.SalvageIntels	 Salvageintels
+	// goverter:map PlayerIntels.BattleRecords BattleRecords
+	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
+	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
+	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
+	// goverter:map PlayerIntels.FleetIntels FleetIntels
+	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
+	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
+	// goverter:map PlayerIntels.MineFieldIntels MinefieldIntels
+	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
+	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
+	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayer(source *cs.Player) generated.Player
 
 	// goverter:autoMap GameDBObject
-	// goverter:map TechLevels.Energy Techlevelsenergy
-	// goverter:map TechLevels.Weapons Techlevelsweapons
-	// goverter:map TechLevels.Propulsion Techlevelspropulsion
-	// goverter:map TechLevels.Construction Techlevelsconstruction
-	// goverter:map TechLevels.Electronics Techlevelselectronics
-	// goverter:map TechLevels.Biotechnology Techlevelsbiotechnology
-	// goverter:map TechLevelsSpent.Energy Techlevelsspentenergy
-	// goverter:map TechLevelsSpent.Weapons Techlevelsspentweapons
-	// goverter:map TechLevelsSpent.Propulsion Techlevelsspentpropulsion
-	// goverter:map TechLevelsSpent.Construction Techlevelsspentconstruction
-	// goverter:map TechLevelsSpent.Electronics Techlevelsspentelectronics
-	// goverter:map TechLevelsSpent.Biotechnology Techlevelsspentbiotechnology
+	// goverter:map TechLevels.Energy TechLevelsEnergy
+	// goverter:map TechLevels.Weapons TechLevelsWeapons
+	// goverter:map TechLevels.Propulsion TechLevelsPropulsion
+	// goverter:map TechLevels.Construction TechLevelsConstruction
+	// goverter:map TechLevels.Electronics TechLevelsElectronics
+	// goverter:map TechLevels.Biotechnology TechLevelsBiotechnology
+	// goverter:map TechLevelsSpent.Energy TechLevelsSpentEnergy
+	// goverter:map TechLevelsSpent.Weapons TechLevelsSpentWeapons
+	// goverter:map TechLevelsSpent.Propulsion TechLevelsSpentPropulsion
+	// goverter:map TechLevelsSpent.Construction TechLevelsSpentConstruction
+	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
+	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords Battlerecords
-	// goverter:map PlayerIntels.PlayerIntels Playerintels
-	// goverter:map PlayerIntels.ScoreIntels Scoreintels
-	// goverter:map PlayerIntels.PlanetIntels Planetintels
-	// goverter:map PlayerIntels.FleetIntels Fleetintels
-	// goverter:map PlayerIntels.ShipDesignIntels Shipdesignintels
-	// goverter:map PlayerIntels.MineralPacketIntels Mineralpacketintels
-	// goverter:map PlayerIntels.MineFieldIntels Minefieldintels
-	// goverter:map PlayerIntels.WormholeIntels Wormholeintels
-	// goverter:map PlayerIntels.MysteryTraderIntels Mysterytraderintels
-	// goverter:map PlayerIntels.SalvageIntels	 Salvageintels
+	// goverter:map PlayerIntels.BattleRecords BattleRecords
+	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
+	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
+	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
+	// goverter:map PlayerIntels.FleetIntels FleetIntels
+	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
+	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
+	// goverter:map PlayerIntels.MineFieldIntels MinefieldIntels
+	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
+	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
+	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayerToCreateParams(source *cs.Player) generated.CreatePlayerParams
 
 	// goverter:autoMap GameDBObject
-	// goverter:map TechLevels.Energy Techlevelsenergy
-	// goverter:map TechLevels.Weapons Techlevelsweapons
-	// goverter:map TechLevels.Propulsion Techlevelspropulsion
-	// goverter:map TechLevels.Construction Techlevelsconstruction
-	// goverter:map TechLevels.Electronics Techlevelselectronics
-	// goverter:map TechLevels.Biotechnology Techlevelsbiotechnology
-	// goverter:map TechLevelsSpent.Energy Techlevelsspentenergy
-	// goverter:map TechLevelsSpent.Weapons Techlevelsspentweapons
-	// goverter:map TechLevelsSpent.Propulsion Techlevelsspentpropulsion
-	// goverter:map TechLevelsSpent.Construction Techlevelsspentconstruction
-	// goverter:map TechLevelsSpent.Electronics Techlevelsspentelectronics
-	// goverter:map TechLevelsSpent.Biotechnology Techlevelsspentbiotechnology
+	// goverter:map TechLevels.Energy TechLevelsEnergy
+	// goverter:map TechLevels.Weapons TechLevelsWeapons
+	// goverter:map TechLevels.Propulsion TechLevelsPropulsion
+	// goverter:map TechLevels.Construction TechLevelsConstruction
+	// goverter:map TechLevels.Electronics TechLevelsElectronics
+	// goverter:map TechLevels.Biotechnology TechLevelsBiotechnology
+	// goverter:map TechLevelsSpent.Energy TechLevelsSpentEnergy
+	// goverter:map TechLevelsSpent.Weapons TechLevelsSpentWeapons
+	// goverter:map TechLevelsSpent.Propulsion TechLevelsSpentPropulsion
+	// goverter:map TechLevelsSpent.Construction TechLevelsSpentConstruction
+	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
+	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords Battlerecords
-	// goverter:map PlayerIntels.PlayerIntels Playerintels
-	// goverter:map PlayerIntels.ScoreIntels Scoreintels
-	// goverter:map PlayerIntels.PlanetIntels Planetintels
-	// goverter:map PlayerIntels.FleetIntels Fleetintels
-	// goverter:map PlayerIntels.ShipDesignIntels Shipdesignintels
-	// goverter:map PlayerIntels.MineralPacketIntels Mineralpacketintels
-	// goverter:map PlayerIntels.MineFieldIntels Minefieldintels
-	// goverter:map PlayerIntels.WormholeIntels Wormholeintels
-	// goverter:map PlayerIntels.MysteryTraderIntels Mysterytraderintels
-	// goverter:map PlayerIntels.SalvageIntels	 Salvageintels
+	// goverter:map PlayerIntels.BattleRecords BattleRecords
+	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
+	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
+	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
+	// goverter:map PlayerIntels.FleetIntels FleetIntels
+	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
+	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
+	// goverter:map PlayerIntels.MineFieldIntels MinefieldIntels
+	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
+	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
+	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayerToUpdateParams(source *cs.Player) generated.UpdatePlayerParams
 
@@ -344,9 +344,9 @@ type Converter interface {
 	ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.PlayerStatus
 	ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.PlayerStatus
 
-	ConvertGetPlayerForGameRowToShipDesign(source generated.GetPlayerForGameRow) generated.Shipdesign
-	ConvertGetPlayerForGameAndUserRowToShipDesign(source generated.GetPlayerForGameAndUserRow) generated.Shipdesign
-	ConvertGetPlayersWithDesignsForGameRowToShipDesign(source generated.GetPlayersWithDesignsForGameRow) generated.Shipdesign
+	ConvertGetPlayerForGameRowToShipDesign(source generated.GetPlayerForGameRow) generated.ShipDesign
+	ConvertGetPlayerForGameAndUserRowToShipDesign(source generated.GetPlayerForGameAndUserRow) generated.ShipDesign
+	ConvertGetPlayersWithDesignsForGameRowToShipDesign(source generated.GetPlayersWithDesignsForGameRow) generated.ShipDesign
 
 	ConvertPlayers(source []generated.Player) []*cs.Player
 
@@ -355,18 +355,18 @@ type Converter interface {
 	// goverter:autoMap MapObject
 	// goverter:autoMap PlanetOrders
 	// goverter:autoMap Hab
-	// goverter:map BaseHab.Grav Basegrav
-	// goverter:map BaseHab.Temp Basetemp
-	// goverter:map BaseHab.Rad Baserad
-	// goverter:map TerraformedAmount.Grav Terraformedamountgrav
-	// goverter:map TerraformedAmount.Temp Terraformedamounttemp
-	// goverter:map TerraformedAmount.Rad Terraformedamountrad
-	// goverter:map MineralConcentration.Ironium Mineralconcironium
-	// goverter:map MineralConcentration.Boranium Mineralconcboranium
-	// goverter:map MineralConcentration.Germanium Mineralconcgermanium
-	// goverter:map MineYears.Ironium Mineyearsironium
-	// goverter:map MineYears.Boranium Mineyearsboranium
-	// goverter:map MineYears.Germanium Mineyearsgermanium
+	// goverter:map BaseHab.Grav BaseGrav
+	// goverter:map BaseHab.Temp BaseTemp
+	// goverter:map BaseHab.Rad BaseRad
+	// goverter:map TerraformedAmount.Grav TerraformedAmountGrav
+	// goverter:map TerraformedAmount.Temp TerraformedAmountTemp
+	// goverter:map TerraformedAmount.Rad TerraformedAmountRad
+	// goverter:map MineralConcentration.Ironium MineralConcIronium
+	// goverter:map MineralConcentration.Boranium MineralConcBoranium
+	// goverter:map MineralConcentration.Germanium MineralConcGermanium
+	// goverter:map MineYears.Ironium MineYearsIronium
+	// goverter:map MineYears.Boranium MineYearsBoranium
+	// goverter:map MineYears.Germanium MineYearsGermanium
 	// goverter:autoMap Cargo
 	ConvertGamePlanet(source *cs.Planet) generated.Planet
 
@@ -375,18 +375,18 @@ type Converter interface {
 	// goverter:autoMap MapObject
 	// goverter:autoMap PlanetOrders
 	// goverter:autoMap Hab
-	// goverter:map BaseHab.Grav Basegrav
-	// goverter:map BaseHab.Temp Basetemp
-	// goverter:map BaseHab.Rad Baserad
-	// goverter:map TerraformedAmount.Grav Terraformedamountgrav
-	// goverter:map TerraformedAmount.Temp Terraformedamounttemp
-	// goverter:map TerraformedAmount.Rad Terraformedamountrad
-	// goverter:map MineralConcentration.Ironium Mineralconcironium
-	// goverter:map MineralConcentration.Boranium Mineralconcboranium
-	// goverter:map MineralConcentration.Germanium Mineralconcgermanium
-	// goverter:map MineYears.Ironium Mineyearsironium
-	// goverter:map MineYears.Boranium Mineyearsboranium
-	// goverter:map MineYears.Germanium Mineyearsgermanium
+	// goverter:map BaseHab.Grav BaseGrav
+	// goverter:map BaseHab.Temp BaseTemp
+	// goverter:map BaseHab.Rad BaseRad
+	// goverter:map TerraformedAmount.Grav TerraformedAmountGrav
+	// goverter:map TerraformedAmount.Temp TerraformedAmountTemp
+	// goverter:map TerraformedAmount.Rad TerraformedAmountRad
+	// goverter:map MineralConcentration.Ironium MineralConcIronium
+	// goverter:map MineralConcentration.Boranium MineralConcBoranium
+	// goverter:map MineralConcentration.Germanium MineralConcGermanium
+	// goverter:map MineYears.Ironium MineYearsIronium
+	// goverter:map MineYears.Boranium MineYearsBoranium
+	// goverter:map MineYears.Germanium MineYearsGermanium
 	// goverter:autoMap Cargo
 	ConvertGamePlanetToCreateParams(source *cs.Planet) generated.CreatePlanetParams
 
@@ -395,18 +395,18 @@ type Converter interface {
 	// goverter:autoMap MapObject
 	// goverter:autoMap PlanetOrders
 	// goverter:autoMap Hab
-	// goverter:map BaseHab.Grav Basegrav
-	// goverter:map BaseHab.Temp Basetemp
-	// goverter:map BaseHab.Rad Baserad
-	// goverter:map TerraformedAmount.Grav Terraformedamountgrav
-	// goverter:map TerraformedAmount.Temp Terraformedamounttemp
-	// goverter:map TerraformedAmount.Rad Terraformedamountrad
-	// goverter:map MineralConcentration.Ironium Mineralconcironium
-	// goverter:map MineralConcentration.Boranium Mineralconcboranium
-	// goverter:map MineralConcentration.Germanium Mineralconcgermanium
-	// goverter:map MineYears.Ironium Mineyearsironium
-	// goverter:map MineYears.Boranium Mineyearsboranium
-	// goverter:map MineYears.Germanium Mineyearsgermanium
+	// goverter:map BaseHab.Grav BaseGrav
+	// goverter:map BaseHab.Temp BaseTemp
+	// goverter:map BaseHab.Rad BaseRad
+	// goverter:map TerraformedAmount.Grav TerraformedAmountGrav
+	// goverter:map TerraformedAmount.Temp TerraformedAmountTemp
+	// goverter:map TerraformedAmount.Rad TerraformedAmountRad
+	// goverter:map MineralConcentration.Ironium MineralConcIronium
+	// goverter:map MineralConcentration.Boranium MineralConcBoranium
+	// goverter:map MineralConcentration.Germanium MineralConcGermanium
+	// goverter:map MineYears.Ironium MineYearsIronium
+	// goverter:map MineYears.Boranium MineYearsBoranium
+	// goverter:map MineYears.Germanium MineYearsGermanium
 	// goverter:autoMap Cargo
 	ConvertGamePlanetToUpdateParams(source *cs.Planet) generated.UpdatePlanetParams
 
@@ -428,10 +428,10 @@ type Converter interface {
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap FleetOrders
-	// goverter:map Heading.X Headingx
-	// goverter:map Heading.Y Headingy
-	// goverter:map PreviousPosition.X Previouspositionx
-	// goverter:map PreviousPosition.Y Previouspositiony
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
+	// goverter:map PreviousPosition.X PreviousPositionX
+	// goverter:map PreviousPosition.Y PreviousPositionY
 	// goverter:autoMap Cargo
 	ConvertGameFleet(source *cs.Fleet) generated.Fleet
 
@@ -439,10 +439,10 @@ type Converter interface {
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap FleetOrders
-	// goverter:map Heading.X Headingx
-	// goverter:map Heading.Y Headingy
-	// goverter:map PreviousPosition.X Previouspositionx
-	// goverter:map PreviousPosition.Y Previouspositiony
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
+	// goverter:map PreviousPosition.X PreviousPositionX
+	// goverter:map PreviousPosition.Y PreviousPositionY
 	// goverter:autoMap Cargo
 	ConvertGameFleetToCreateParams(source *cs.Fleet) generated.CreateFleetParams
 
@@ -450,10 +450,10 @@ type Converter interface {
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:autoMap FleetOrders
-	// goverter:map Heading.X Headingx
-	// goverter:map Heading.Y Headingy
-	// goverter:map PreviousPosition.X Previouspositionx
-	// goverter:map PreviousPosition.Y Previouspositiony
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
+	// goverter:map PreviousPosition.X PreviousPositionX
+	// goverter:map PreviousPosition.Y PreviousPositionY
 	// goverter:autoMap Cargo
 	ConvertGameFleetToUpdateParams(source *cs.Fleet) generated.UpdateFleetParams
 
@@ -468,22 +468,19 @@ type Converter interface {
 	ConvertFleets(source []generated.Fleet) []*cs.Fleet
 
 	// goverter:autoMap GameDBObject
-	// goverter:ignore Candelete
-	ConvertGameShipDesign(source *cs.ShipDesign) generated.Shipdesign
+	ConvertGameShipDesign(source *cs.ShipDesign) generated.ShipDesign
 
 	// goverter:autoMap GameDBObject
-	// goverter:ignore Candelete
 	ConvertGameShipDesignToCreateParams(source *cs.ShipDesign) generated.CreateShipDesignParams
 
 	// goverter:autoMap GameDBObject
-	// goverter:ignore Candelete
 	ConvertGameShipDesignToUpdateParams(source *cs.ShipDesign) generated.UpdateShipDesignParams
 
 	// goverter:ignore Delete
 	// goverter:map . GameDBObject
-	ConvertShipDesign(source generated.Shipdesign) *cs.ShipDesign
+	ConvertShipDesign(source generated.ShipDesign) *cs.ShipDesign
 
-	ConvertShipDesigns(source []generated.Shipdesign) []*cs.ShipDesign
+	ConvertShipDesigns(source []generated.ShipDesign) []*cs.ShipDesign
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
@@ -514,36 +511,36 @@ type Converter interface {
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
-	// goverter:map Heading.X Headingx
-	// goverter:map Heading.Y Headingy
-	// goverter:map Destination.X Destinationx
-	// goverter:map Destination.Y Destinationy
-	ConvertGameMysteryTrader(source *cs.MysteryTrader) generated.Mysterytrader
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
+	// goverter:map Destination.X DestinationX
+	// goverter:map Destination.Y DestinationY
+	ConvertGameMysteryTrader(source *cs.MysteryTrader) generated.MysteryTrader
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
-	// goverter:map Heading.X Headingx
-	// goverter:map Heading.Y Headingy
-	// goverter:map Destination.X Destinationx
-	// goverter:map Destination.Y Destinationy
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
+	// goverter:map Destination.X DestinationX
+	// goverter:map Destination.Y DestinationY
 	ConvertGameMysteryTraderToCreateParams(source *cs.MysteryTrader) generated.CreateMysteryTraderParams
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
-	// goverter:map Heading.X Headingx
-	// goverter:map Heading.Y Headingy
-	// goverter:map Destination.X Destinationx
-	// goverter:map Destination.Y Destinationy
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
+	// goverter:map Destination.X DestinationX
+	// goverter:map Destination.Y DestinationY
 	ConvertGameMysteryTraderToUpdateParams(source *cs.MysteryTrader) generated.UpdateMysteryTraderParams
 
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendMysteryTraderMapObject
 	// goverter:map . Heading | ExtendMysteryTraderHeading
 	// goverter:map . Destination | ExtendMysteryTraderDestination
-	ConvertMysteryTrader(source generated.Mysterytrader) *cs.MysteryTrader
-	ConvertMysteryTraders(source []generated.Mysterytrader) []*cs.MysteryTrader
+	ConvertMysteryTrader(source generated.MysteryTrader) *cs.MysteryTrader
+	ConvertMysteryTraders(source []generated.MysteryTrader) []*cs.MysteryTrader
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
@@ -579,13 +576,13 @@ type Converter interface {
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:map MineFieldOrders.Detonate Detonate
-	ConvertGameMineFieldToCreateParams(source *cs.MineField) generated.CreateMineFieldParams
+	ConvertGameMineFieldToCreateParams(source *cs.MineField) generated.CreateMinefieldParams
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
 	// goverter:map MineFieldOrders.Detonate Detonate
-	ConvertGameMineFieldToUpdateParams(source *cs.MineField) generated.UpdateMineFieldParams
+	ConvertGameMineFieldToUpdateParams(source *cs.MineField) generated.UpdateMinefieldParams
 
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendMineFieldMapObject
@@ -600,9 +597,9 @@ type Converter interface {
 	// goverter:map Cargo.Ironium Ironium
 	// goverter:map Cargo.Boranium Boranium
 	// goverter:map Cargo.Germanium Germanium
-	// goverter:map Heading.X Headingx
-	// goverter:map Heading.Y Headingy
-	ConvertGameMineralPacket(source *cs.MineralPacket) generated.Mineralpacket
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
+	ConvertGameMineralPacket(source *cs.MineralPacket) generated.MineralPacket
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
@@ -611,8 +608,8 @@ type Converter interface {
 	// goverter:map Cargo.Ironium Ironium
 	// goverter:map Cargo.Boranium Boranium
 	// goverter:map Cargo.Germanium Germanium
-	// goverter:map Heading.X Headingx
-	// goverter:map Heading.Y Headingy
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
 	ConvertGameMineralPacketToCreateParams(source *cs.MineralPacket) generated.CreateMineralPacketParams
 
 	// goverter:autoMap GameDBObject
@@ -622,22 +619,22 @@ type Converter interface {
 	// goverter:map Cargo.Ironium Ironium
 	// goverter:map Cargo.Boranium Boranium
 	// goverter:map Cargo.Germanium Germanium
-	// goverter:map Heading.X Headingx
-	// goverter:map Heading.Y Headingy
+	// goverter:map Heading.X HeadingX
+	// goverter:map Heading.Y HeadingY
 	ConvertGameMineralPacketToUpdateParams(source *cs.MineralPacket) generated.UpdateMineralPacketParams
 
 	// goverter:map . GameDBObject
 	// goverter:map . MapObject | ExtendMineralPacketMapObject
 	// goverter:map . Cargo
 	// goverter:map . Heading | ExtendMineralPacketHeading
-	ConvertMineralPacket(source generated.Mineralpacket) *cs.MineralPacket
-	ConvertMineralPackets(source []generated.Mineralpacket) []*cs.MineralPacket
+	ConvertMineralPacket(source generated.MineralPacket) *cs.MineralPacket
+	ConvertMineralPackets(source []generated.MineralPacket) []*cs.MineralPacket
 
 	// goverter:ignore Colonists
 	salvageCargo(source generated.Salvage) cs.Cargo
 
 	// goverter:ignore Colonists
-	mineralPacketCargo(source generated.Mineralpacket) cs.Cargo
+	mineralPacketCargo(source generated.MineralPacket) cs.Cargo
 }
 
 func MapObjectTypeWormhole() cs.MapObjectType {
@@ -1059,6 +1056,9 @@ func GameFleetSpecToFleetSpec(source cs.FleetSpec) *generated.FleetSpec {
 }
 
 func ShipTokensToGameShipTokens(source *generated.ShipTokens) []cs.ShipToken {
+	if source == nil {
+		return nil
+	}
 	return ([]cs.ShipToken)(*source)
 }
 
@@ -1128,103 +1128,103 @@ func GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded(source map[i
 
 func ExtendResearchCost(source generated.Race) cs.ResearchCost {
 	return cs.ResearchCost{
-		Energy:        source.Researchcostenergy,
-		Weapons:       source.Researchcostweapons,
-		Propulsion:    source.Researchcostpropulsion,
-		Construction:  source.Researchcostconstruction,
-		Electronics:   source.Researchcostelectronics,
-		Biotechnology: source.Researchcostbiotechnology,
+		Energy:        cs.ResearchCostLevel(source.ResearchCostEnergy),
+		Weapons:       cs.ResearchCostLevel(source.ResearchCostWeapons),
+		Propulsion:    cs.ResearchCostLevel(source.ResearchCostPropulsion),
+		Construction:  cs.ResearchCostLevel(source.ResearchCostConstruction),
+		Electronics:   cs.ResearchCostLevel(source.ResearchCostElectronics),
+		Biotechnology: cs.ResearchCostLevel(source.ResearchCostBiotechnology),
 	}
 }
 
 func ExtendHabLow(source generated.Race) cs.Hab {
 	return cs.Hab{
-		Grav: int(source.Hablowgrav.Int64),
-		Temp: int(source.Hablowtemp.Int64),
-		Rad:  int(source.Hablowrad.Int64),
+		Grav: int(source.HabLowGrav),
+		Temp: int(source.HabLowTemp),
+		Rad:  int(source.HabLowRad),
 	}
 }
 
 func ExtendHabHigh(source generated.Race) cs.Hab {
 	return cs.Hab{
-		Grav: int(source.Habhighgrav.Int64),
-		Temp: int(source.Habhightemp.Int64),
-		Rad:  int(source.Habhighrad.Int64),
+		Grav: int(source.HabHighGrav),
+		Temp: int(source.HabHighTemp),
+		Rad:  int(source.HabHighRad),
 	}
 }
 func ExtendVictoryConditions(source generated.Game) cs.VictoryConditions {
 	return cs.VictoryConditions{
-		Conditions:               source.Victoryconditionsconditions,
-		NumCriteriaRequired:      int(source.Victoryconditionsnumcriteriarequired.Int64),
-		YearsPassed:              int(source.Victoryconditionsyearspassed.Int64),
-		OwnPlanets:               int(source.Victoryconditionsownplanets.Int64),
-		AttainTechLevel:          int(source.Victoryconditionsattaintechlevel.Int64),
-		AttainTechLevelNumFields: int(source.Victoryconditionsattaintechlevelnumfields.Int64),
-		ExceedsScore:             int(source.Victoryconditionsexceedsscore.Int64),
-		ExceedsSecondPlaceScore:  int(source.Victoryconditionsexceedssecondplacescore.Int64),
-		ProductionCapacity:       int(source.Victoryconditionsproductioncapacity.Int64),
-		OwnCapitalShips:          int(source.Victoryconditionsowncapitalships.Int64),
-		HighestScoreAfterYears:   int(source.Victoryconditionshighestscoreafteryears.Int64),
+		Conditions:               source.VictoryConditionsConditions,
+		NumCriteriaRequired:      int(source.VictoryConditionsNumCriteriaRequired),
+		YearsPassed:              int(source.VictoryConditionsYearsPassed),
+		OwnPlanets:               int(source.VictoryConditionsOwnPlanets),
+		AttainTechLevel:          int(source.VictoryConditionsAttainTechLevel),
+		AttainTechLevelNumFields: int(source.VictoryConditionsAttainTechLevelNumFields),
+		ExceedsScore:             int(source.VictoryConditionsExceedsScore),
+		ExceedsSecondPlaceScore:  int(source.VictoryConditionsExceedsSecondPlaceScore),
+		ProductionCapacity:       int(source.VictoryConditionsProductionCapacity),
+		OwnCapitalShips:          int(source.VictoryConditionsOwnCapitalShips),
+		HighestScoreAfterYears:   int(source.VictoryConditionsHighestScoreAfterYears),
 	}
 }
 
 func ExtendArea(source generated.Game) cs.Vector {
 	return cs.Vector{
-		X: source.Areax.Float64,
-		Y: source.Areay.Float64,
+		X: source.AreaX,
+		Y: source.AreaY,
 	}
 }
 
 func ExtendTechLevels(source generated.Player) cs.TechLevel {
 	return cs.TechLevel{
-		Energy:        int(source.Techlevelsenergy.Int64),
-		Weapons:       int(source.Techlevelsweapons.Int64),
-		Propulsion:    int(source.Techlevelspropulsion.Int64),
-		Construction:  int(source.Techlevelsconstruction.Int64),
-		Electronics:   int(source.Techlevelselectronics.Int64),
-		Biotechnology: int(source.Techlevelsbiotechnology.Int64),
+		Energy:        int(source.TechLevelsEnergy),
+		Weapons:       int(source.TechLevelsWeapons),
+		Propulsion:    int(source.TechLevelsPropulsion),
+		Construction:  int(source.TechLevelsConstruction),
+		Electronics:   int(source.TechLevelsElectronics),
+		Biotechnology: int(source.TechLevelsBiotechnology),
 	}
 }
 
 func ExtendTechLevelsSpent(source generated.Player) cs.TechLevel {
 	return cs.TechLevel{
-		Energy:        int(source.Techlevelsspentenergy.Int64),
-		Weapons:       int(source.Techlevelsspentweapons.Int64),
-		Propulsion:    int(source.Techlevelsspentpropulsion.Int64),
-		Construction:  int(source.Techlevelsspentconstruction.Int64),
-		Electronics:   int(source.Techlevelsspentelectronics.Int64),
-		Biotechnology: int(source.Techlevelsspentbiotechnology.Int64),
+		Energy:        int(source.TechLevelsSpentEnergy),
+		Weapons:       int(source.TechLevelsSpentWeapons),
+		Propulsion:    int(source.TechLevelsSpentPropulsion),
+		Construction:  int(source.TechLevelsSpentConstruction),
+		Electronics:   int(source.TechLevelsSpentElectronics),
+		Biotechnology: int(source.TechLevelsSpentBiotechnology),
 	}
 }
 
 func ExtendTechLevelsLight(source generated.GetLightPlayerForGameRow) cs.TechLevel {
 	return cs.TechLevel{
-		Energy:        int(source.Techlevelsenergy.Int64),
-		Weapons:       int(source.Techlevelsweapons.Int64),
-		Propulsion:    int(source.Techlevelspropulsion.Int64),
-		Construction:  int(source.Techlevelsconstruction.Int64),
-		Electronics:   int(source.Techlevelselectronics.Int64),
-		Biotechnology: int(source.Techlevelsbiotechnology.Int64),
+		Energy:        int(source.TechLevelsEnergy),
+		Weapons:       int(source.TechLevelsWeapons),
+		Propulsion:    int(source.TechLevelsPropulsion),
+		Construction:  int(source.TechLevelsConstruction),
+		Electronics:   int(source.TechLevelsElectronics),
+		Biotechnology: int(source.TechLevelsBiotechnology),
 	}
 }
 
 func ExtendTechLevelsSpentLight(source generated.GetLightPlayerForGameRow) cs.TechLevel {
 	return cs.TechLevel{
-		Energy:        int(source.Techlevelsspentenergy.Int64),
-		Weapons:       int(source.Techlevelsspentweapons.Int64),
-		Propulsion:    int(source.Techlevelsspentpropulsion.Int64),
-		Construction:  int(source.Techlevelsspentconstruction.Int64),
-		Electronics:   int(source.Techlevelsspentelectronics.Int64),
-		Biotechnology: int(source.Techlevelsspentbiotechnology.Int64),
+		Energy:        int(source.TechLevelsSpentEnergy),
+		Weapons:       int(source.TechLevelsSpentWeapons),
+		Propulsion:    int(source.TechLevelsSpentPropulsion),
+		Construction:  int(source.TechLevelsSpentConstruction),
+		Electronics:   int(source.TechLevelsSpentElectronics),
+		Biotechnology: int(source.TechLevelsSpentBiotechnology),
 	}
 }
 
 func ExtendPlanetGameDBObject(source generated.Planet) cs.GameDBObject {
 	return cs.GameDBObject{
 		ID:        source.ID,
-		GameID:    source.Gameid,
-		CreatedAt: source.Createdat,
-		UpdatedAt: source.Updatedat,
+		GameID:    source.GameID,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
 	}
 }
 
@@ -1232,45 +1232,45 @@ func ExtendPlanetMapObject(source generated.Planet) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypePlanet,
 		Position: cs.Vector{
-			X: source.X.Float64,
-			Y: source.Y.Float64,
+			X: source.X,
+			Y: source.Y,
 		},
 		Name:      source.Name,
-		Num:       int(source.Num.Int64),
-		PlayerNum: int(source.Playernum.Int64),
+		Num:       int(source.Num),
+		PlayerNum: int(source.PlayerNum),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
 func ExtendBaseHab(source generated.Planet) cs.Hab {
 	return cs.Hab{
-		Grav: int(source.Basegrav.Int64),
-		Temp: int(source.Basetemp.Int64),
-		Rad:  int(source.Baserad.Int64),
+		Grav: int(source.BaseGrav),
+		Temp: int(source.BaseTemp),
+		Rad:  int(source.BaseRad),
 	}
 }
 
 func ExtendTerraformedAmount(source generated.Planet) cs.Hab {
 	return cs.Hab{
-		Grav: int(source.Terraformedamountgrav.Int64),
-		Temp: int(source.Terraformedamounttemp.Int64),
-		Rad:  int(source.Terraformedamountrad.Int64),
+		Grav: int(source.TerraformedAmountGrav),
+		Temp: int(source.TerraformedAmountTemp),
+		Rad:  int(source.TerraformedAmountRad),
 	}
 }
 
 func ExtendMineralConcentration(source generated.Planet) cs.Mineral {
 	return cs.Mineral{
-		Ironium:   int(source.Mineralconcironium.Int64),
-		Boranium:  int(source.Mineralconcboranium.Int64),
-		Germanium: int(source.Mineralconcgermanium.Int64),
+		Ironium:   int(source.MineralConcIronium),
+		Boranium:  int(source.MineralConcBoranium),
+		Germanium: int(source.MineralConcGermanium),
 	}
 }
 
 func ExtendMineYears(source generated.Planet) cs.Mineral {
 	return cs.Mineral{
-		Ironium:   int(source.Mineyearsironium.Int64),
-		Boranium:  int(source.Mineyearsboranium.Int64),
-		Germanium: int(source.Mineyearsgermanium.Int64),
+		Ironium:   int(source.MineYearsIronium),
+		Boranium:  int(source.MineYearsBoranium),
+		Germanium: int(source.MineYearsGermanium),
 	}
 }
 
@@ -1278,66 +1278,66 @@ func ExtendFleetMapObject(source generated.Fleet) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeFleet,
 		Position: cs.Vector{
-			X: source.X.Float64,
-			Y: source.Y.Float64,
+			X: source.X,
+			Y: source.Y,
 		},
 		Name:      source.Name,
-		Num:       int(source.Num.Int64),
-		PlayerNum: int(source.Playernum.Int64),
+		Num:       int(source.Num),
+		PlayerNum: int(source.PlayerNum),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
 func ExtendFleetFleetOrders(source generated.Fleet) cs.FleetOrders {
 	return cs.FleetOrders{
-		BattlePlanNum: int(source.Battleplannum),
+		BattlePlanNum: int(source.BattlePlanNum),
 		Waypoints:     *source.Waypoints,
-		RepeatOrders:  source.Repeatorders.Bool,
+		RepeatOrders:  source.RepeatOrders,
 		Purpose:       *source.Purpose,
 	}
 }
 
 func ExtendFleetHeading(source generated.Fleet) cs.Vector {
 	return cs.Vector{
-		X: source.Headingx.Float64,
-		Y: source.Headingy.Float64,
+		X: source.HeadingX,
+		Y: source.HeadingY,
 	}
 }
 
 func ExtendFleetPreviousPosition(source generated.Fleet) *cs.Vector {
-	if !source.Previouspositionx.Valid || !source.Previouspositiony.Valid {
+	if !source.PreviousPositionX.Valid || !source.PreviousPositionY.Valid {
 		return nil
 	}
 	return &cs.Vector{
-		X: source.Previouspositionx.Float64,
-		Y: source.Previouspositiony.Float64,
+		X: source.PreviousPositionX.Float64,
+		Y: source.PreviousPositionY.Float64,
 	}
 }
 
-func ExtendMysteryTraderMapObject(source generated.Mysterytrader) cs.MapObject {
+func ExtendMysteryTraderMapObject(source generated.MysteryTrader) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeMysteryTrader,
 		Position: cs.Vector{
-			X: source.X.Float64,
-			Y: source.Y.Float64,
+			X: source.X,
+			Y: source.Y,
 		},
 		Name: source.Name,
-		Num:  int(source.Num.Int64),
+		Num:  int(source.Num),
 		Tags: TagsToGameTags(source.Tags),
 	}
 }
 
-func ExtendMysteryTraderHeading(source generated.Mysterytrader) cs.Vector {
+func ExtendMysteryTraderHeading(source generated.MysteryTrader) cs.Vector {
 	return cs.Vector{
-		X: source.Headingx.Float64,
-		Y: source.Headingy.Float64,
+		X: source.HeadingX,
+		Y: source.HeadingY,
 	}
 }
 
-func ExtendMysteryTraderDestination(source generated.Mysterytrader) cs.Vector {
+func ExtendMysteryTraderDestination(source generated.MysteryTrader) cs.Vector {
 	return cs.Vector{
-		X: source.Destinationx.Float64,
-		Y: source.Destinationy.Float64,
+		X: source.DestinationX,
+		Y: source.DestinationY,
 	}
 }
 
@@ -1345,12 +1345,12 @@ func ExtendSalvageMapObject(source generated.Salvage) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeSalvage,
 		Position: cs.Vector{
-			X: source.X.Float64,
-			Y: source.Y.Float64,
+			X: source.X,
+			Y: source.Y,
 		},
 		Name:      source.Name,
-		Num:       int(source.Num.Int64),
-		PlayerNum: int(source.Playernum.Int64),
+		Num:       int(source.Num),
+		PlayerNum: int(source.PlayerNum),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }
@@ -1359,33 +1359,33 @@ func ExtendMineFieldMapObject(source generated.Minefield) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeMineField,
 		Position: cs.Vector{
-			X: source.X.Float64,
-			Y: source.Y.Float64,
+			X: source.X,
+			Y: source.Y,
 		},
 		Name:      source.Name,
-		Num:       int(source.Num.Int64),
-		PlayerNum: int(source.Playernum.Int64),
+		Num:       int(source.Num),
+		PlayerNum: int(source.PlayerNum),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }
 
-func ExtendMineralPacketHeading(source generated.Mineralpacket) cs.Vector {
+func ExtendMineralPacketHeading(source generated.MineralPacket) cs.Vector {
 	return cs.Vector{
-		X: source.Headingx.Float64,
-		Y: source.Headingy.Float64,
+		X: source.HeadingX,
+		Y: source.HeadingY,
 	}
 }
 
-func ExtendMineralPacketMapObject(source generated.Mineralpacket) cs.MapObject {
+func ExtendMineralPacketMapObject(source generated.MineralPacket) cs.MapObject {
 	return cs.MapObject{
 		Type: cs.MapObjectTypeMineralPacket,
 		Position: cs.Vector{
-			X: source.X.Float64,
-			Y: source.Y.Float64,
+			X: source.X,
+			Y: source.Y,
 		},
 		Name:      source.Name,
-		Num:       int(source.Num.Int64),
-		PlayerNum: int(source.Playernum.Int64),
+		Num:       int(source.Num),
+		PlayerNum: int(source.PlayerNum),
 		Tags:      TagsToGameTags(source.Tags),
 	}
 }

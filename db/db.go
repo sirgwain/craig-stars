@@ -88,7 +88,7 @@ type Client interface {
 	GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error)
 	UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) error
 	UpdateGame(ctx context.Context, game *cs.Game) error
-	UpdateGameHost(ctx context.Context, gameID int64, hostId int64) error
+	UpdateGameHost(ctx context.Context, gameID int64, hostID int64) error
 	UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error
 
 	ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error
@@ -114,7 +114,7 @@ type Client interface {
 	UpdatePlayerRelations(ctx context.Context, player *cs.Player) error
 	UpdatePlayerSalvageIntels(ctx context.Context, player *cs.Player) error
 	UpdatePlayerSpec(ctx context.Context, player *cs.Player) error
-	UpdatePlayerUserId(ctx context.Context, player *cs.Player) error
+	UpdatePlayerUserID(ctx context.Context, player *cs.Player) error
 
 	DeleteShipDesign(ctx context.Context, id int64) error
 	GetShipDesign(ctx context.Context, id int64) (*cs.ShipDesign, error)
@@ -135,10 +135,10 @@ type Client interface {
 	GetFleetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Fleet, error)
 	SaveFleet(ctx context.Context, fleet *cs.Fleet) error
 
-	GetMineField(ctx context.Context, id int64) (*cs.MineField, error)
-	GetMineFieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineField, error)
-	GetMineFieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineField, error)
-	SaveMineField(ctx context.Context, fleet *cs.MineField) error
+	GetMinefield(ctx context.Context, id int64) (*cs.MineField, error)
+	GetMinefieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineField, error)
+	GetMinefieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineField, error)
+	SaveMinefield(ctx context.Context, minefield *cs.MineField) error
 
 	GetMineralPacket(ctx context.Context, id int64) (*cs.MineralPacket, error)
 	GetMineralPacketByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineralPacket, error)

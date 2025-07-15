@@ -24,8 +24,8 @@ func (c *client) GetMysteryTrader(ctx context.Context, id int64) (*cs.MysteryTra
 func (c *client) GetMysteryTraderByNum(ctx context.Context, gameID int64, num int) (*cs.MysteryTrader, error) {
 
 	item, err := c.reader.GetMysteryTraderByNum(ctx, generated.GetMysteryTraderByNumParams{
-		Gameid: gameID,
-		Num:    sql.NullInt64{Valid: true, Int64: int64(num)},
+		GameID: gameID,
+		Num:    int64(num),
 	})
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -57,15 +57,12 @@ func (c *client) SaveMysteryTrader(ctx context.Context, mysteryTrader *cs.Myster
 		if err != nil {
 			return err
 		}
-		mysteryTrader.ID = result.ID
-		mysteryTrader.CreatedAt = result.Createdat
-		mysteryTrader.UpdatedAt = result.Updatedat
+		mysteryTrader.ID = result
 	} else {
-		result, err := c.writer.UpdateMysteryTrader(ctx, c.converter.ConvertGameMysteryTraderToUpdateParams(mysteryTrader))
+		_, err := c.writer.UpdateMysteryTrader(ctx, c.converter.ConvertGameMysteryTraderToUpdateParams(mysteryTrader))
 		if err != nil {
 			return err
 		}
-		mysteryTrader.UpdatedAt = result
 	}
 
 	return nil
@@ -73,5 +70,6 @@ func (c *client) SaveMysteryTrader(ctx context.Context, mysteryTrader *cs.Myster
 
 // delete a mysterytrader by id
 func (c *client) DeleteMysteryTrader(ctx context.Context, id int64) error {
-	return c.writer.DeleteMysteryTrader(ctx, id)
+	_, err := c.writer.DeleteMysteryTrader(ctx, id)
+	return err
 }

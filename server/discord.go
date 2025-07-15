@@ -93,8 +93,8 @@ func (s *server) sendNewTurnNotification(ctx context.Context, gameID int64) {
 
 		userAts := make([]string, 0, len(users))
 		for _, user := range users {
-			if user.DiscordID != nil && *user.DiscordID != "" {
-				userAts = append(userAts, fmt.Sprintf("<@%s>", *user.DiscordID))
+			if user.DiscordID != "" {
+				userAts = append(userAts, fmt.Sprintf("<@%s>", user.DiscordID))
 			}
 
 			// if this user has their own webhook, notify them of a new game
@@ -166,17 +166,18 @@ func (s *server) testDiscordWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.DiscordID == "" {
+		render.Render(w, r, ErrBadRequest(fmt.Errorf("no discord id user")))
+		return
+	}
+
 	webhookID, token, err := parseDiscordWebhookUrl(user.DiscordWebhookURL)
 	if err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	userAt := ""
-	if user.DiscordID != nil {
-		userAt = *user.DiscordID
-	}
-
+	userAt := user.DiscordID
 	log.Info().Msgf("sending test discord message for %s", user.Username)
 	go func() {
 

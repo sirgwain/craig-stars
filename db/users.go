@@ -53,7 +53,7 @@ func (c *client) GetUserByUsername(ctx context.Context, username string) (*cs.Us
 }
 
 func (c *client) GetGuestUser(ctx context.Context, hash string) (*cs.User, error) {
-	item, err := c.reader.GetGuestUser(ctx, sql.NullString{Valid: true, String: hash})
+	item, err := c.reader.GetGuestUser(ctx, hash)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -85,7 +85,7 @@ func (c *client) GetGuestUsersForGame(ctx context.Context, gameID int64) ([]cs.U
 
 func (c *client) GetGuestUserForGame(ctx context.Context, gameID int64, playerNum int) (*cs.User, error) {
 
-	item, err := c.reader.GetGetGuestUserForGame(ctx, generated.GetGetGuestUserForGameParams{Gameid: gameID, Playernum: int64(playerNum)})
+	item, err := c.reader.GetGetGuestUserForGame(ctx, generated.GetGetGuestUserForGameParams{GameID: gameID, PlayerNum: int64(playerNum)})
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -140,7 +140,7 @@ func (c *client) UpdateUserSettings(ctx context.Context, user *cs.User) error {
 	return c.writer.UpdateUserSettings(ctx,
 		generated.UpdateUserSettingsParams{
 			ID:                user.ID,
-			Discordwebhookurl: sql.NullString{Valid: true, String: user.DiscordWebhookURL},
+			DiscordWebhookUrl: user.DiscordWebhookURL,
 		},
 	)
 }
@@ -152,7 +152,7 @@ func (c *client) DeleteUser(ctx context.Context, id int64) error {
 
 // delete a guest user for a game
 func (c *client) DeleteGameUser(ctx context.Context, gameID int64, playerNum int) error {
-	return c.writer.DeleteGameGuestUser(ctx, generated.DeleteGameGuestUserParams{Gameid: gameID, Playernum: int64(playerNum)})
+	return c.writer.DeleteGameGuestUser(ctx, generated.DeleteGameGuestUserParams{GameID: gameID, PlayerNum: int64(playerNum)})
 }
 
 // delete guest users for a game

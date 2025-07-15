@@ -10,7 +10,7 @@ import (
 )
 
 const GetVersion = `-- name: GetVersion :one
-SELECT id, createdat, updatedat, "current" FROM versions
+SELECT id, created_at, updated_at, "current" FROM versions
 `
 
 func (q *Queries) GetVersion(ctx context.Context) (Version, error) {
@@ -18,8 +18,8 @@ func (q *Queries) GetVersion(ctx context.Context) (Version, error) {
 	var i Version
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.Current,
 	)
 	return i, err
@@ -28,8 +28,8 @@ func (q *Queries) GetVersion(ctx context.Context) (Version, error) {
 const UpdateVersion = `-- name: UpdateVersion :exec
 UPDATE versions
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    current = CAST(? AS INTEGER)
+    updated_at = CURRENT_TIMESTAMP,
+    current = ?
 WHERE
     id = ?
 `

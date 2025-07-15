@@ -5,7 +5,7 @@
 SELECT
     *
 FROM
-    shipdesigns
+    ship_designs
 WHERE
     id = ?;
 
@@ -13,53 +13,52 @@ WHERE
 SELECT
     *
 FROM
-    shipDesigns
+    ship_designs
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
     AND num = ?;
 
 -- name: GetShipDesigns :many
 SELECT
     *
 FROM
-    shipdesigns;
+    ship_designs;
 
 -- name: GetShipDesignsForGame :many
 SELECT
     *
 FROM
-    shipDesigns
+    ship_designs
 WHERE
-    gameId = ?;
+    game_id = ?;
 
 -- name: GetShipDesignsForPlayer :many
 SELECT
     *
 FROM
-    shipDesigns
+    ship_designs
 WHERE
-    gameId = ?
-    AND playerNum = ?;
+    game_id = ?
+    AND player_num = ?;
 
--- name: CreateShipDesign :one
+-- name: CreateShipDesign :execlastid
 INSERT INTO
-    shipDesigns (
-        createdAt,
-        updatedAt,
-        gameId,
+    ship_designs (
+        created_at,
+        updated_at,
+        game_id,
         num,
-        playerNum,
-        originalPlayerNum,
+        player_num,
+        original_player_num,
         name,
         version,
         hull,
-        hullSetNumber,
-        cannotDelete,
+        hull_set_number,
+        cannot_delete,
         slots,
         purpose,
-        canDelete,
-        mysteryTrader,
+        mystery_trader,
         spec
     )
 VALUES
@@ -78,32 +77,30 @@ VALUES
         ?,
         ?,
         ?,
-        ?,
         ?
-    ) RETURNING id, createdAt, updatedAt;
+    );
 
--- name: UpdateShipDesign :one
-UPDATE shipdesigns
+-- name: UpdateShipDesign :execrows
+UPDATE ship_designs
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     num = ?,
-    playerNum = ?,
-    originalPlayerNum = ?,
+    player_num = ?,
+    original_player_num = ?,
     name = ?,
     version = ?,
     hull = ?,
-    hullSetNumber = ?,
-    cannotDelete = ?,
+    hull_set_number = ?,
+    cannot_delete = ?,
     slots = ?,
     purpose = ?,
-    canDelete = ?,
-    mysteryTrader = ?,
+    mystery_trader = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
--- name: DeleteShipDesign :exec
-DELETE FROM shipdesigns
+-- name: DeleteShipDesign :execrows
+DELETE FROM ship_designs
 WHERE
     id = ?;

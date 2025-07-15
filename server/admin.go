@@ -175,7 +175,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		// update each player UserID
 		for _, player := range players {
 			player.UserID = user.ID
-			if err := c.UpdatePlayerUserId(r.Context(), player); err != nil {
+			if err := c.UpdatePlayerUserID(r.Context(), player); err != nil {
 				return fmt.Errorf("update Player UserID: %w", err)
 			}
 		}

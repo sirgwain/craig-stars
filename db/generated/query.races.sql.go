@@ -7,7 +7,6 @@ package generated
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -16,39 +15,39 @@ import (
 const CreateRace = `-- name: CreateRace :one
 INSERT INTO
     races (
-        createdAt,
-        updatedAt,
-        userId,
+        created_at,
+        updated_at,
+        user_id,
         name,
-        pluralName,
-        spendLeftoverPointsOn,
+        plural_name,
+        spend_leftover_points_on,
         prt,
         lrts,
-        habLowGrav,
-        habLowTemp,
-        habLowRad,
-        habHighGrav,
-        habHighTemp,
-        habHighRad,
-        growthRate,
-        popEfficiency,
-        factoryOutput,
-        factoryCost,
-        numFactories,
-        factoriesCostLess,
-        immuneGrav,
-        immuneTemp,
-        immuneRad,
-        mineOutput,
-        mineCost,
-        numMines,
-        researchCostEnergy,
-        researchCostWeapons,
-        researchCostPropulsion,
-        researchCostConstruction,
-        researchCostElectronics,
-        researchCostBiotechnology,
-        techsStartHigh,
+        hab_low_grav,
+        hab_low_temp,
+        hab_low_rad,
+        hab_high_grav,
+        hab_high_temp,
+        hab_high_rad,
+        growth_rate,
+        pop_efficiency,
+        factory_output,
+        factory_cost,
+        num_factories,
+        factories_cost_less,
+        immune_grav,
+        immune_temp,
+        immune_rad,
+        mine_output,
+        mine_cost,
+        num_mines,
+        research_cost_energy,
+        research_cost_weapons,
+        research_cost_propulsion,
+        research_cost_construction,
+        research_cost_electronics,
+        research_cost_biotechnology,
+        techs_start_high,
         spec
     )
 VALUES
@@ -87,87 +86,89 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id, createdAt, updatedAt
+    ) RETURNING id,
+    created_at,
+    updated_at
 `
 
 type CreateRaceParams struct {
-	Userid                    int64
+	UserID                    int64
 	Name                      string
-	Pluralname                string
-	Spendleftoverpointson     cs.SpendLeftoverPointsOn
+	PluralName                string
+	SpendLeftoverPointsOn     cs.SpendLeftoverPointsOn
 	Prt                       cs.PRT
 	Lrts                      cs.Bitmask
-	Hablowgrav                sql.NullInt64
-	Hablowtemp                sql.NullInt64
-	Hablowrad                 sql.NullInt64
-	Habhighgrav               sql.NullInt64
-	Habhightemp               sql.NullInt64
-	Habhighrad                sql.NullInt64
-	Growthrate                sql.NullInt64
-	Popefficiency             sql.NullInt64
-	Factoryoutput             sql.NullInt64
-	Factorycost               sql.NullInt64
-	Numfactories              sql.NullInt64
-	Factoriescostless         sql.NullBool
-	Immunegrav                sql.NullBool
-	Immunetemp                sql.NullBool
-	Immunerad                 sql.NullBool
-	Mineoutput                sql.NullInt64
-	Minecost                  sql.NullInt64
-	Nummines                  sql.NullInt64
-	Researchcostenergy        cs.ResearchCostLevel
-	Researchcostweapons       cs.ResearchCostLevel
-	Researchcostpropulsion    cs.ResearchCostLevel
-	Researchcostconstruction  cs.ResearchCostLevel
-	Researchcostelectronics   cs.ResearchCostLevel
-	Researchcostbiotechnology cs.ResearchCostLevel
-	Techsstarthigh            sql.NullBool
+	HabLowGrav                int64
+	HabLowTemp                int64
+	HabLowRad                 int64
+	HabHighGrav               int64
+	HabHighTemp               int64
+	HabHighRad                int64
+	GrowthRate                int64
+	PopEfficiency             int64
+	FactoryOutput             int64
+	FactoryCost               int64
+	NumFactories              int64
+	FactoriesCostLess         bool
+	ImmuneGrav                bool
+	ImmuneTemp                bool
+	ImmuneRad                 bool
+	MineOutput                int64
+	MineCost                  int64
+	NumMines                  int64
+	ResearchCostEnergy        cs.ResearchCostLevel
+	ResearchCostWeapons       cs.ResearchCostLevel
+	ResearchCostPropulsion    cs.ResearchCostLevel
+	ResearchCostConstruction  cs.ResearchCostLevel
+	ResearchCostElectronics   cs.ResearchCostLevel
+	ResearchCostBiotechnology cs.ResearchCostLevel
+	TechsStartHigh            bool
 	Spec                      *RaceSpec
 }
 
 type CreateRaceRow struct {
 	ID        int64
-	Createdat time.Time
-	Updatedat time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (q *Queries) CreateRace(ctx context.Context, arg CreateRaceParams) (CreateRaceRow, error) {
 	row := q.db.QueryRowContext(ctx, CreateRace,
-		arg.Userid,
+		arg.UserID,
 		arg.Name,
-		arg.Pluralname,
-		arg.Spendleftoverpointson,
+		arg.PluralName,
+		arg.SpendLeftoverPointsOn,
 		arg.Prt,
 		arg.Lrts,
-		arg.Hablowgrav,
-		arg.Hablowtemp,
-		arg.Hablowrad,
-		arg.Habhighgrav,
-		arg.Habhightemp,
-		arg.Habhighrad,
-		arg.Growthrate,
-		arg.Popefficiency,
-		arg.Factoryoutput,
-		arg.Factorycost,
-		arg.Numfactories,
-		arg.Factoriescostless,
-		arg.Immunegrav,
-		arg.Immunetemp,
-		arg.Immunerad,
-		arg.Mineoutput,
-		arg.Minecost,
-		arg.Nummines,
-		arg.Researchcostenergy,
-		arg.Researchcostweapons,
-		arg.Researchcostpropulsion,
-		arg.Researchcostconstruction,
-		arg.Researchcostelectronics,
-		arg.Researchcostbiotechnology,
-		arg.Techsstarthigh,
+		arg.HabLowGrav,
+		arg.HabLowTemp,
+		arg.HabLowRad,
+		arg.HabHighGrav,
+		arg.HabHighTemp,
+		arg.HabHighRad,
+		arg.GrowthRate,
+		arg.PopEfficiency,
+		arg.FactoryOutput,
+		arg.FactoryCost,
+		arg.NumFactories,
+		arg.FactoriesCostLess,
+		arg.ImmuneGrav,
+		arg.ImmuneTemp,
+		arg.ImmuneRad,
+		arg.MineOutput,
+		arg.MineCost,
+		arg.NumMines,
+		arg.ResearchCostEnergy,
+		arg.ResearchCostWeapons,
+		arg.ResearchCostPropulsion,
+		arg.ResearchCostConstruction,
+		arg.ResearchCostElectronics,
+		arg.ResearchCostBiotechnology,
+		arg.TechsStartHigh,
 		arg.Spec,
 	)
 	var i CreateRaceRow
-	err := row.Scan(&i.ID, &i.Createdat, &i.Updatedat)
+	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
 	return i, err
 }
 
@@ -185,17 +186,17 @@ func (q *Queries) DeleteRace(ctx context.Context, id int64) error {
 const DeleteUserRaces = `-- name: DeleteUserRaces :exec
 DELETE FROM races
 WHERE
-    userId = ?
+    user_id = ?
 `
 
-func (q *Queries) DeleteUserRaces(ctx context.Context, userid int64) error {
-	_, err := q.db.ExecContext(ctx, DeleteUserRaces, userid)
+func (q *Queries) DeleteUserRaces(ctx context.Context, userID int64) error {
+	_, err := q.db.ExecContext(ctx, DeleteUserRaces, userID)
 	return err
 }
 
 const GetRace = `-- name: GetRace :one
 SELECT
-    id, createdat, updatedat, userid, name, pluralname, spendleftoverpointson, prt, lrts, hablowgrav, hablowtemp, hablowrad, habhighgrav, habhightemp, habhighrad, growthrate, popefficiency, factoryoutput, factorycost, numfactories, factoriescostless, immunegrav, immunetemp, immunerad, mineoutput, minecost, nummines, researchcostenergy, researchcostweapons, researchcostpropulsion, researchcostconstruction, researchcostelectronics, researchcostbiotechnology, techsstarthigh, spec
+    id, created_at, updated_at, user_id, name, plural_name, spend_leftover_points_on, prt, lrts, hab_low_grav, hab_low_temp, hab_low_rad, hab_high_grav, hab_high_temp, hab_high_rad, growth_rate, pop_efficiency, factory_output, factory_cost, num_factories, factories_cost_less, immune_grav, immune_temp, immune_rad, mine_output, mine_cost, num_mines, research_cost_energy, research_cost_weapons, research_cost_propulsion, research_cost_construction, research_cost_electronics, research_cost_biotechnology, techs_start_high, spec
 FROM
     races
 WHERE
@@ -208,39 +209,39 @@ func (q *Queries) GetRace(ctx context.Context, id int64) (Race, error) {
 	var i Race
 	err := row.Scan(
 		&i.ID,
-		&i.Createdat,
-		&i.Updatedat,
-		&i.Userid,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
 		&i.Name,
-		&i.Pluralname,
-		&i.Spendleftoverpointson,
+		&i.PluralName,
+		&i.SpendLeftoverPointsOn,
 		&i.Prt,
 		&i.Lrts,
-		&i.Hablowgrav,
-		&i.Hablowtemp,
-		&i.Hablowrad,
-		&i.Habhighgrav,
-		&i.Habhightemp,
-		&i.Habhighrad,
-		&i.Growthrate,
-		&i.Popefficiency,
-		&i.Factoryoutput,
-		&i.Factorycost,
-		&i.Numfactories,
-		&i.Factoriescostless,
-		&i.Immunegrav,
-		&i.Immunetemp,
-		&i.Immunerad,
-		&i.Mineoutput,
-		&i.Minecost,
-		&i.Nummines,
-		&i.Researchcostenergy,
-		&i.Researchcostweapons,
-		&i.Researchcostpropulsion,
-		&i.Researchcostconstruction,
-		&i.Researchcostelectronics,
-		&i.Researchcostbiotechnology,
-		&i.Techsstarthigh,
+		&i.HabLowGrav,
+		&i.HabLowTemp,
+		&i.HabLowRad,
+		&i.HabHighGrav,
+		&i.HabHighTemp,
+		&i.HabHighRad,
+		&i.GrowthRate,
+		&i.PopEfficiency,
+		&i.FactoryOutput,
+		&i.FactoryCost,
+		&i.NumFactories,
+		&i.FactoriesCostLess,
+		&i.ImmuneGrav,
+		&i.ImmuneTemp,
+		&i.ImmuneRad,
+		&i.MineOutput,
+		&i.MineCost,
+		&i.NumMines,
+		&i.ResearchCostEnergy,
+		&i.ResearchCostWeapons,
+		&i.ResearchCostPropulsion,
+		&i.ResearchCostConstruction,
+		&i.ResearchCostElectronics,
+		&i.ResearchCostBiotechnology,
+		&i.TechsStartHigh,
 		&i.Spec,
 	)
 	return i, err
@@ -248,7 +249,7 @@ func (q *Queries) GetRace(ctx context.Context, id int64) (Race, error) {
 
 const GetRaces = `-- name: GetRaces :many
 SELECT
-    id, createdat, updatedat, userid, name, pluralname, spendleftoverpointson, prt, lrts, hablowgrav, hablowtemp, hablowrad, habhighgrav, habhightemp, habhighrad, growthrate, popefficiency, factoryoutput, factorycost, numfactories, factoriescostless, immunegrav, immunetemp, immunerad, mineoutput, minecost, nummines, researchcostenergy, researchcostweapons, researchcostpropulsion, researchcostconstruction, researchcostelectronics, researchcostbiotechnology, techsstarthigh, spec
+    id, created_at, updated_at, user_id, name, plural_name, spend_leftover_points_on, prt, lrts, hab_low_grav, hab_low_temp, hab_low_rad, hab_high_grav, hab_high_temp, hab_high_rad, growth_rate, pop_efficiency, factory_output, factory_cost, num_factories, factories_cost_less, immune_grav, immune_temp, immune_rad, mine_output, mine_cost, num_mines, research_cost_energy, research_cost_weapons, research_cost_propulsion, research_cost_construction, research_cost_electronics, research_cost_biotechnology, techs_start_high, spec
 FROM
     races
 `
@@ -264,39 +265,39 @@ func (q *Queries) GetRaces(ctx context.Context) ([]Race, error) {
 		var i Race
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Userid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
 			&i.Name,
-			&i.Pluralname,
-			&i.Spendleftoverpointson,
+			&i.PluralName,
+			&i.SpendLeftoverPointsOn,
 			&i.Prt,
 			&i.Lrts,
-			&i.Hablowgrav,
-			&i.Hablowtemp,
-			&i.Hablowrad,
-			&i.Habhighgrav,
-			&i.Habhightemp,
-			&i.Habhighrad,
-			&i.Growthrate,
-			&i.Popefficiency,
-			&i.Factoryoutput,
-			&i.Factorycost,
-			&i.Numfactories,
-			&i.Factoriescostless,
-			&i.Immunegrav,
-			&i.Immunetemp,
-			&i.Immunerad,
-			&i.Mineoutput,
-			&i.Minecost,
-			&i.Nummines,
-			&i.Researchcostenergy,
-			&i.Researchcostweapons,
-			&i.Researchcostpropulsion,
-			&i.Researchcostconstruction,
-			&i.Researchcostelectronics,
-			&i.Researchcostbiotechnology,
-			&i.Techsstarthigh,
+			&i.HabLowGrav,
+			&i.HabLowTemp,
+			&i.HabLowRad,
+			&i.HabHighGrav,
+			&i.HabHighTemp,
+			&i.HabHighRad,
+			&i.GrowthRate,
+			&i.PopEfficiency,
+			&i.FactoryOutput,
+			&i.FactoryCost,
+			&i.NumFactories,
+			&i.FactoriesCostLess,
+			&i.ImmuneGrav,
+			&i.ImmuneTemp,
+			&i.ImmuneRad,
+			&i.MineOutput,
+			&i.MineCost,
+			&i.NumMines,
+			&i.ResearchCostEnergy,
+			&i.ResearchCostWeapons,
+			&i.ResearchCostPropulsion,
+			&i.ResearchCostConstruction,
+			&i.ResearchCostElectronics,
+			&i.ResearchCostBiotechnology,
+			&i.TechsStartHigh,
 			&i.Spec,
 		); err != nil {
 			return nil, err
@@ -314,15 +315,15 @@ func (q *Queries) GetRaces(ctx context.Context) ([]Race, error) {
 
 const GetRacesForUser = `-- name: GetRacesForUser :many
 SELECT
-    id, createdat, updatedat, userid, name, pluralname, spendleftoverpointson, prt, lrts, hablowgrav, hablowtemp, hablowrad, habhighgrav, habhightemp, habhighrad, growthrate, popefficiency, factoryoutput, factorycost, numfactories, factoriescostless, immunegrav, immunetemp, immunerad, mineoutput, minecost, nummines, researchcostenergy, researchcostweapons, researchcostpropulsion, researchcostconstruction, researchcostelectronics, researchcostbiotechnology, techsstarthigh, spec
+    id, created_at, updated_at, user_id, name, plural_name, spend_leftover_points_on, prt, lrts, hab_low_grav, hab_low_temp, hab_low_rad, hab_high_grav, hab_high_temp, hab_high_rad, growth_rate, pop_efficiency, factory_output, factory_cost, num_factories, factories_cost_less, immune_grav, immune_temp, immune_rad, mine_output, mine_cost, num_mines, research_cost_energy, research_cost_weapons, research_cost_propulsion, research_cost_construction, research_cost_electronics, research_cost_biotechnology, techs_start_high, spec
 FROM
     races
 WHERE
-    userId = ?
+    user_id = ?
 `
 
-func (q *Queries) GetRacesForUser(ctx context.Context, userid int64) ([]Race, error) {
-	rows, err := q.db.QueryContext(ctx, GetRacesForUser, userid)
+func (q *Queries) GetRacesForUser(ctx context.Context, userID int64) ([]Race, error) {
+	rows, err := q.db.QueryContext(ctx, GetRacesForUser, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -332,39 +333,39 @@ func (q *Queries) GetRacesForUser(ctx context.Context, userid int64) ([]Race, er
 		var i Race
 		if err := rows.Scan(
 			&i.ID,
-			&i.Createdat,
-			&i.Updatedat,
-			&i.Userid,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
 			&i.Name,
-			&i.Pluralname,
-			&i.Spendleftoverpointson,
+			&i.PluralName,
+			&i.SpendLeftoverPointsOn,
 			&i.Prt,
 			&i.Lrts,
-			&i.Hablowgrav,
-			&i.Hablowtemp,
-			&i.Hablowrad,
-			&i.Habhighgrav,
-			&i.Habhightemp,
-			&i.Habhighrad,
-			&i.Growthrate,
-			&i.Popefficiency,
-			&i.Factoryoutput,
-			&i.Factorycost,
-			&i.Numfactories,
-			&i.Factoriescostless,
-			&i.Immunegrav,
-			&i.Immunetemp,
-			&i.Immunerad,
-			&i.Mineoutput,
-			&i.Minecost,
-			&i.Nummines,
-			&i.Researchcostenergy,
-			&i.Researchcostweapons,
-			&i.Researchcostpropulsion,
-			&i.Researchcostconstruction,
-			&i.Researchcostelectronics,
-			&i.Researchcostbiotechnology,
-			&i.Techsstarthigh,
+			&i.HabLowGrav,
+			&i.HabLowTemp,
+			&i.HabLowRad,
+			&i.HabHighGrav,
+			&i.HabHighTemp,
+			&i.HabHighRad,
+			&i.GrowthRate,
+			&i.PopEfficiency,
+			&i.FactoryOutput,
+			&i.FactoryCost,
+			&i.NumFactories,
+			&i.FactoriesCostLess,
+			&i.ImmuneGrav,
+			&i.ImmuneTemp,
+			&i.ImmuneRad,
+			&i.MineOutput,
+			&i.MineCost,
+			&i.NumMines,
+			&i.ResearchCostEnergy,
+			&i.ResearchCostWeapons,
+			&i.ResearchCostPropulsion,
+			&i.ResearchCostConstruction,
+			&i.ResearchCostElectronics,
+			&i.ResearchCostBiotechnology,
+			&i.TechsStartHigh,
 			&i.Spec,
 		); err != nil {
 			return nil, err
@@ -383,116 +384,116 @@ func (q *Queries) GetRacesForUser(ctx context.Context, userid int64) ([]Race, er
 const UpdateRace = `-- name: UpdateRace :one
 UPDATE races
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    userId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    user_id = ?,
     name = ?,
-    pluralName = ?,
-    spendLeftoverPointsOn = ?,
+    plural_name = ?,
+    spend_leftover_points_on = ?,
     prt = ?,
     lrts = ?,
-    habLowGrav = ?,
-    habLowTemp = ?,
-    habLowRad = ?,
-    habHighGrav = ?,
-    habHighTemp = ?,
-    habHighRad = ?,
-    growthRate = ?,
-    popEfficiency = ?,
-    factoryOutput = ?,
-    factoryCost = ?,
-    numFactories = ?,
-    factoriesCostLess = ?,
-    immuneGrav = ?,
-    immuneTemp = ?,
-    immuneRad = ?,
-    mineOutput = ?,
-    mineCost = ?,
-    numMines = ?,
-    researchCostEnergy = ?,
-    researchCostWeapons = ?,
-    researchCostPropulsion = ?,
-    researchCostConstruction = ?,
-    researchCostElectronics = ?,
-    researchCostBiotechnology = ?,
-    techsStartHigh = ?,
+    hab_low_grav = ?,
+    hab_low_temp = ?,
+    hab_low_rad = ?,
+    hab_high_grav = ?,
+    hab_high_temp = ?,
+    hab_high_rad = ?,
+    growth_rate = ?,
+    pop_efficiency = ?,
+    factory_output = ?,
+    factory_cost = ?,
+    num_factories = ?,
+    factories_cost_less = ?,
+    immune_grav = ?,
+    immune_temp = ?,
+    immune_rad = ?,
+    mine_output = ?,
+    mine_cost = ?,
+    num_mines = ?,
+    research_cost_energy = ?,
+    research_cost_weapons = ?,
+    research_cost_propulsion = ?,
+    research_cost_construction = ?,
+    research_cost_electronics = ?,
+    research_cost_biotechnology = ?,
+    techs_start_high = ?,
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt
+    id = ? RETURNING updated_at
 `
 
 type UpdateRaceParams struct {
-	Userid                    int64
+	UserID                    int64
 	Name                      string
-	Pluralname                string
-	Spendleftoverpointson     cs.SpendLeftoverPointsOn
+	PluralName                string
+	SpendLeftoverPointsOn     cs.SpendLeftoverPointsOn
 	Prt                       cs.PRT
 	Lrts                      cs.Bitmask
-	Hablowgrav                sql.NullInt64
-	Hablowtemp                sql.NullInt64
-	Hablowrad                 sql.NullInt64
-	Habhighgrav               sql.NullInt64
-	Habhightemp               sql.NullInt64
-	Habhighrad                sql.NullInt64
-	Growthrate                sql.NullInt64
-	Popefficiency             sql.NullInt64
-	Factoryoutput             sql.NullInt64
-	Factorycost               sql.NullInt64
-	Numfactories              sql.NullInt64
-	Factoriescostless         sql.NullBool
-	Immunegrav                sql.NullBool
-	Immunetemp                sql.NullBool
-	Immunerad                 sql.NullBool
-	Mineoutput                sql.NullInt64
-	Minecost                  sql.NullInt64
-	Nummines                  sql.NullInt64
-	Researchcostenergy        cs.ResearchCostLevel
-	Researchcostweapons       cs.ResearchCostLevel
-	Researchcostpropulsion    cs.ResearchCostLevel
-	Researchcostconstruction  cs.ResearchCostLevel
-	Researchcostelectronics   cs.ResearchCostLevel
-	Researchcostbiotechnology cs.ResearchCostLevel
-	Techsstarthigh            sql.NullBool
+	HabLowGrav                int64
+	HabLowTemp                int64
+	HabLowRad                 int64
+	HabHighGrav               int64
+	HabHighTemp               int64
+	HabHighRad                int64
+	GrowthRate                int64
+	PopEfficiency             int64
+	FactoryOutput             int64
+	FactoryCost               int64
+	NumFactories              int64
+	FactoriesCostLess         bool
+	ImmuneGrav                bool
+	ImmuneTemp                bool
+	ImmuneRad                 bool
+	MineOutput                int64
+	MineCost                  int64
+	NumMines                  int64
+	ResearchCostEnergy        cs.ResearchCostLevel
+	ResearchCostWeapons       cs.ResearchCostLevel
+	ResearchCostPropulsion    cs.ResearchCostLevel
+	ResearchCostConstruction  cs.ResearchCostLevel
+	ResearchCostElectronics   cs.ResearchCostLevel
+	ResearchCostBiotechnology cs.ResearchCostLevel
+	TechsStartHigh            bool
 	Spec                      *RaceSpec
 	ID                        int64
 }
 
 func (q *Queries) UpdateRace(ctx context.Context, arg UpdateRaceParams) (time.Time, error) {
 	row := q.db.QueryRowContext(ctx, UpdateRace,
-		arg.Userid,
+		arg.UserID,
 		arg.Name,
-		arg.Pluralname,
-		arg.Spendleftoverpointson,
+		arg.PluralName,
+		arg.SpendLeftoverPointsOn,
 		arg.Prt,
 		arg.Lrts,
-		arg.Hablowgrav,
-		arg.Hablowtemp,
-		arg.Hablowrad,
-		arg.Habhighgrav,
-		arg.Habhightemp,
-		arg.Habhighrad,
-		arg.Growthrate,
-		arg.Popefficiency,
-		arg.Factoryoutput,
-		arg.Factorycost,
-		arg.Numfactories,
-		arg.Factoriescostless,
-		arg.Immunegrav,
-		arg.Immunetemp,
-		arg.Immunerad,
-		arg.Mineoutput,
-		arg.Minecost,
-		arg.Nummines,
-		arg.Researchcostenergy,
-		arg.Researchcostweapons,
-		arg.Researchcostpropulsion,
-		arg.Researchcostconstruction,
-		arg.Researchcostelectronics,
-		arg.Researchcostbiotechnology,
-		arg.Techsstarthigh,
+		arg.HabLowGrav,
+		arg.HabLowTemp,
+		arg.HabLowRad,
+		arg.HabHighGrav,
+		arg.HabHighTemp,
+		arg.HabHighRad,
+		arg.GrowthRate,
+		arg.PopEfficiency,
+		arg.FactoryOutput,
+		arg.FactoryCost,
+		arg.NumFactories,
+		arg.FactoriesCostLess,
+		arg.ImmuneGrav,
+		arg.ImmuneTemp,
+		arg.ImmuneRad,
+		arg.MineOutput,
+		arg.MineCost,
+		arg.NumMines,
+		arg.ResearchCostEnergy,
+		arg.ResearchCostWeapons,
+		arg.ResearchCostPropulsion,
+		arg.ResearchCostConstruction,
+		arg.ResearchCostElectronics,
+		arg.ResearchCostBiotechnology,
+		arg.TechsStartHigh,
 		arg.Spec,
 		arg.ID,
 	)
-	var updatedat time.Time
-	err := row.Scan(&updatedat)
-	return updatedat, err
+	var updated_at time.Time
+	err := row.Scan(&updated_at)
+	return updated_at, err
 }

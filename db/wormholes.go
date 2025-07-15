@@ -24,8 +24,8 @@ func (c *client) GetWormhole(ctx context.Context, id int64) (*cs.Wormhole, error
 func (c *client) GetWormholeByNum(ctx context.Context, gameID int64, num int) (*cs.Wormhole, error) {
 
 	item, err := c.reader.GetWormholeByNum(ctx, generated.GetWormholeByNumParams{
-		Gameid: gameID,
-		Num:    sql.NullInt64{Valid: true, Int64: int64(num)},
+		GameID: gameID,
+		Num:    int64(num),
 	})
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -57,15 +57,12 @@ func (c *client) SaveWormhole(ctx context.Context, wormhole *cs.Wormhole) error 
 		if err != nil {
 			return err
 		}
-		wormhole.ID = result.ID
-		wormhole.CreatedAt = result.Createdat
-		wormhole.UpdatedAt = result.Updatedat
+		wormhole.ID = result
 	} else {
-		result, err := c.writer.UpdateWormhole(ctx, c.converter.ConvertGameWormholeToUpdateParams(wormhole))
+		_, err := c.writer.UpdateWormhole(ctx, c.converter.ConvertGameWormholeToUpdateParams(wormhole))
 		if err != nil {
 			return err
 		}
-		wormhole.UpdatedAt = result
 	}
 
 	return nil
@@ -73,5 +70,6 @@ func (c *client) SaveWormhole(ctx context.Context, wormhole *cs.Wormhole) error 
 
 // delete a wormhole by id
 func (c *client) DeleteWormhole(ctx context.Context, id int64) error {
-	return c.writer.DeleteWormhole(ctx, id)
+	_, err := c.writer.DeleteWormhole(ctx, id)
+	return err
 }

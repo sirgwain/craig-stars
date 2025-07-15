@@ -37,6 +37,7 @@ type Race struct {
 type ResearchCostLevel string
 
 const (
+	ResearchCostNone     ResearchCostLevel = ""
 	ResearchCostExtra    ResearchCostLevel = "Extra"
 	ResearchCostStandard ResearchCostLevel = "Standard"
 	ResearchCostLess     ResearchCostLevel = "Less"

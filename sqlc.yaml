@@ -10,15 +10,7 @@ sql:
         emit_exported_queries: true
         overrides:
           # users
-          - column: users.discordid
-            go_type:
-              type: string
-              pointer: true
-          - column: users.discordavatar
-            go_type:
-              type: string
-              pointer: true
-          - column: users.lastlogin
+          - column: users.last_login
             go_type:
               import: time
               type: Time
@@ -28,7 +20,7 @@ sql:
             go_type:
               type: RaceSpec
               pointer: true
-          - column: races.spendleftoverpointson
+          - column: races.spend_leftover_points_on
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: SpendLeftoverPointsOn
@@ -40,27 +32,27 @@ sql:
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: Bitmask
-          - column: races.researchcostenergy
+          - column: races.research_cost_energy
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: ResearchCostLevel
-          - column: races.researchcostweapons
+          - column: races.research_cost_weapons
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: ResearchCostLevel
-          - column: races.researchcostpropulsion
+          - column: races.research_cost_propulsion
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: ResearchCostLevel
-          - column: races.researchcostconstruction
+          - column: races.research_cost_construction
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: ResearchCostLevel
-          - column: races.researchcostelectronics
+          - column: races.research_cost_electronics
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: ResearchCostLevel
-          - column: races.researchcostbiotechnology
+          - column: races.research_cost_biotechnology
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: ResearchCostLevel
@@ -77,34 +69,30 @@ sql:
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: Density
-          - column: games.playerpositions
+          - column: games.player_positions
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: PlayerPositions
-          - column: games.startmode
+          - column: games.start_mode
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: GameStartMode
-          - column: games.victoryconditionsconditions
+          - column: games.victory_conditions_conditions
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: Bitmask
-          - column: games.rules
-            go_type:
-              type: Rules
-              pointer: true
           # players
-          - column: players.aidifficulty
+          - column: players.ai_difficulty
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: AIDifficulty
               pointer: true
-          - column: game_players.aidifficulty
+          - column: game_players.ai_difficulty
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: AIDifficulty
               pointer: true
-          - column: players.nextresearchfield
+          - column: players.next_research_field
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: NextResearchField
@@ -112,24 +100,24 @@ sql:
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: TechField
-          - column: players.achievedvictoryconditions
+          - column: players.achieved_victory_conditions
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: Bitmask
               pointer: true
-          - column: players.cargotransfers
+          - column: players.cargo_transfers
             go_type:
               type: CargoTransfers
               pointer: true
-          - column: players.battleplans
+          - column: players.battle_plans
             go_type:
               type: BattlePlans
               pointer: true
-          - column: players.productionplans
+          - column: players.production_plans
             go_type:
               type: ProductionPlans
               pointer: true
-          - column: players.transportplans
+          - column: players.transport_plans
             go_type:
               type: TransportPlans
               pointer: true
@@ -141,47 +129,47 @@ sql:
             go_type:
               type: PlayerMessages
               pointer: true
-          - column: players.battlerecords
+          - column: players.battle_records
             go_type:
               type: BattleRecords
               pointer: true
-          - column: players.playerintels
+          - column: players.player_intels
             go_type:
               type: PlayerIntels
               pointer: true
-          - column: players.scoreintels
+          - column: players.score_intels
             go_type:
               type: ScoreIntels
               pointer: true
-          - column: players.planetintels
+          - column: players.planet_intels
             go_type:
               type: PlanetIntels
               pointer: true
-          - column: players.fleetintels
+          - column: players.fleet_intels
             go_type:
               type: FleetIntels
               pointer: true
-          - column: players.shipdesignintels
+          - column: players.ship_design_intels
             go_type:
               type: ShipDesignIntels
               pointer: true
-          - column: players.mineralpacketintels
+          - column: players.mineral_packet_intels
             go_type:
               type: MineralPacketIntels
               pointer: true
-          - column: players.minefieldintels
+          - column: players.minefield_intels
             go_type:
               type: MineFieldIntels
               pointer: true
-          - column: players.wormholeintels
+          - column: players.wormhole_intels
             go_type:
               type: WormholeIntels
               pointer: true
-          - column: players.mysterytraderintels
+          - column: players.mystery_trader_intels
             go_type:
               type: MysteryTraderIntels
               pointer: true
-          - column: players.salvageintels
+          - column: players.salvage_intels
             go_type:
               type: SalvageIntels
               pointer: true
@@ -193,11 +181,11 @@ sql:
             go_type:
               type: PlayerStats
               pointer: true
-          - column: players.scorehistory
+          - column: players.score_history
             go_type:
               type: PlayerScores
               pointer: true
-          - column: players.acquiredtechs
+          - column: players.acquired_techs
             go_type:
               type: AcquiredTechs
               pointer: true
@@ -205,17 +193,17 @@ sql:
             go_type:
               type: PlayerSpec
               pointer: true
-          # shipDesigns
-          - column: shipdesigns.purpose
+          # ship_esigns
+          - column: ship_designs.purpose
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: ShipDesignPurpose
               pointer: true
-          - column: shipdesigns.slots
+          - column: ship_designs.slots
             go_type:
               type: ShipDesignSlots
               pointer: true
-          - column: shipdesigns.spec
+          - column: ship_designs.spec
             go_type:
               type: ShipDesignSpec
               pointer: true
@@ -228,11 +216,11 @@ sql:
             go_type:
               type: PlanetSpec
               pointer: true
-          - column: planets.productionqueue
+          - column: planets.production_queue
             go_type:
               type: ProductionQueueItems
               pointer: true
-          - column: planets.routetargettype
+          - column: planets.route_target_type
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: MapObjectType
@@ -278,12 +266,12 @@ sql:
               import: "github.com/sirgwain/craig-stars/cs"
               type: WormholeStability
               pointer: true
-          # mineFields
+          # minefields
           - column: minefields.tags
             go_type:
               type: Tags
               pointer: true
-          - column: minefields.minefieldtype
+          - column: minefields.minefield_type
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: MineFieldType
@@ -292,25 +280,25 @@ sql:
             go_type:
               type: MineFieldSpec
               pointer: true
-          # mineralPackets
-          - column: mineralpackets.tags
+          # mineral_ackets
+          - column: mineral_packets.tags
             go_type:
               type: Tags
               pointer: true
           # mysteryTraders
-          - column: mysterytraders.tags
+          - column: mystery_traders.tags
             go_type:
               type: Tags
               pointer: true
-          - column: mysterytraders.spec
+          - column: mystery_traders.spec
             go_type:
               type: MysteryTraderSpec
               pointer: true
-          - column: mysterytraders.playersrewarded
+          - column: mystery_traders.players_rewarded
             go_type:
               type: MysteryTraderPlayersRewarded
               pointer: true
-          - column: mysterytraders.rewardtype
+          - column: mystery_traders.reward_type
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: MysteryTraderRewardType

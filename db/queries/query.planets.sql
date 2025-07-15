@@ -13,42 +13,42 @@ WHERE
 SELECT
     sqlc.embed(p),
     f.id AS 'fleet.id',
-    f.createdAt AS 'fleet.createdAt',
-    f.updatedAt AS 'fleet.updatedAt',
-    f.gameId AS 'fleet.gameId',
-    f.battlePlanNum AS 'fleet.battlePlanNum',
+    f.created_at AS 'fleet.created_at',
+    f.updated_at AS 'fleet.updated_at',
+    f.game_id AS 'fleet.game_id',
+    COALESCE(f.battle_plan_num, 0) AS 'fleet.battle_plan_num',
     f.x AS 'fleet.x',
     f.y AS 'fleet.y',
     f.name AS 'fleet.name',
-    f.num AS 'fleet.num',
-    f.playerNum AS 'fleet.playerNum',
+    COALESCE(f.num, 0) AS 'fleet.num',
+    COALESCE(f.player_num, 0) AS 'fleet.player_num',
     f.tokens AS 'fleet.tokens',
     f.waypoints AS 'fleet.waypoints',
-    f.repeatOrders AS 'fleet.repeatOrders',
-    f.planetNum AS 'fleet.planetNum',
-    f.baseName AS 'fleet.baseName',
-    f.ironium AS 'fleet.ironium',
-    f.boranium AS 'fleet.boranium',
-    f.germanium AS 'fleet.germanium',
-    f.colonists AS 'fleet.colonists',
-    f.fuel AS 'fleet.fuel',
-    f.age AS 'fleet.age',
-    f.headingX AS 'fleet.headingX',
-    f.headingY AS 'fleet.headingY',
-    f.warpSpeed AS 'fleet.warpSpeed',
-    f.previousPositionX AS 'fleet.previousPositionX',
-    f.previousPositionY AS 'fleet.previousPositionY',
-    f.orbitingPlanetNum AS 'fleet.orbitingPlanetNum',
+    f.repeat_orders AS 'fleet.repeat_orders',
+    COALESCE(f.planet_num, 0) AS 'fleet.planet_num',
+    f.base_name AS 'fleet.base_name',
+    COALESCE(f.ironium, 0) AS 'fleet.ironium',
+    COALESCE(f.boranium, 0) AS 'fleet.boranium',
+    COALESCE(f.germanium, 0) AS 'fleet.germanium',
+    COALESCE(f.colonists, 0) AS 'fleet.colonists',
+    COALESCE(f.fuel, 0) AS 'fleet.fuel',
+    COALESCE(f.age, 0) AS 'fleet.age',
+    f.heading_x AS 'fleet.heading_x',
+    f.heading_y AS 'fleet.heading_y',
+    COALESCE(f.warp_speed, 0) AS 'fleet.warp_speed',
+    f.previous_position_x AS 'fleet.previous_position_x',
+    f.previous_position_y AS 'fleet.previous_position_y',
+    COALESCE(f.orbiting_planet_num, 0) AS 'fleet.orbiting_planet_num',
     f.starbase AS 'fleet.starbase',
     f.spec AS 'fleet.spec',
     f.purpose AS 'fleet.purpose',
     f.tags AS 'fleet.tags'
 FROM
     planets p
-    LEFT JOIN fleets f ON p.gameId = f.gameId
-    AND p.num = f.planetNum
+    LEFT JOIN fleets f ON p.game_id = f.game_id
+    AND p.num = f.planet_num
 WHERE
-    p.gameId = ?
+    p.game_id = ?
     AND p.num = ?;
 
 -- name: GetPlanets :many
@@ -63,7 +63,7 @@ SELECT
 FROM
     planets
 WHERE
-    gameId = ?
+    game_id = ?
 ORDER BY
     num;
 
@@ -73,57 +73,57 @@ SELECT
 FROM
     planets
 WHERE
-    gameId = ?
-    AND playerNum = ?
+    game_id = ?
+    AND player_num = ?
 ORDER BY
     num;
 
--- name: CreatePlanet :one
+-- name: CreatePlanet :execlastid
 INSERT INTO
     planets (
-        createdAt,
-        updatedAt,
-        gameId,
+        created_at,
+        updated_at,
+        game_id,
         x,
         y,
         name,
         num,
-        playerNum,
+        player_num,
         grav,
         TEMP,
         rad,
-        baseGrav,
-        baseTemp,
-        baseRad,
-        terraformedAmountGrav,
-        terraformedAmountTemp,
-        terraformedAmountRad,
-        mineralConcIronium,
-        mineralConcBoranium,
-        mineralConcGermanium,
-        mineYearsIronium,
-        mineYearsBoranium,
-        mineYearsGermanium,
+        base_grav,
+        base_temp,
+        base_rad,
+        terraformed_amount_grav,
+        terraformed_amount_temp,
+        terraformed_amount_rad,
+        mineral_conc_ironium,
+        mineral_conc_boranium,
+        mineral_conc_germanium,
+        mine_years_ironium,
+        mine_years_boranium,
+        mine_years_germanium,
         ironium,
         boranium,
         germanium,
         colonists,
-        partialPopulation,
+        partial_population,
         mines,
         factories,
         defenses,
         homeworld,
-        contributesOnlyLeftoverToResearch,
+        contributes_only_leftover_to_research,
         scanner,
-        routeTargetType,
-        routeTargetNum,
-        routeTargetPlayerNum,
-        packetTargetNum,
-        packetSpeed,
-        productionQueue,
+        route_target_type,
+        route_target_num,
+        route_target_player_num,
+        packet_target_num,
+        packet_speed,
+        production_queue,
         spec,
         tags,
-        randomArtifact
+        random_artifact
     )
 VALUES
     (
@@ -170,64 +170,62 @@ VALUES
         ?,
         ?,
         ?
-    ) RETURNING id,
-    createdAt,
-    updatedAt;
+    );
 
--- name: UpdatePlanet :one
+-- name: UpdatePlanet :execrows
 UPDATE planets
 SET
-    updatedAt = CURRENT_TIMESTAMP,
-    gameId = ?,
+    updated_at = CURRENT_TIMESTAMP,
+    game_id = ?,
     x = ?,
     y = ?,
     name = ?,
     num = ?,
-    playerNum = ?,
+    player_num = ?,
     grav = ?,
     TEMP = ?,
     rad = ?,
-    baseGrav = ?,
-    baseTemp = ?,
-    baseRad = ?,
-    terraformedAmountGrav = ?,
-    terraformedAmountTemp = ?,
-    terraformedAmountRad = ?,
-    mineralConcIronium = ?,
-    mineralConcBoranium = ?,
-    mineralConcGermanium = ?,
-    mineYearsIronium = ?,
-    mineYearsBoranium = ?,
-    mineYearsGermanium = ?,
+    base_grav = ?,
+    base_temp = ?,
+    base_rad = ?,
+    terraformed_amount_grav = ?,
+    terraformed_amount_temp = ?,
+    terraformed_amount_rad = ?,
+    mineral_conc_ironium = ?,
+    mineral_conc_boranium = ?,
+    mineral_conc_germanium = ?,
+    mine_years_ironium = ?,
+    mine_years_boranium = ?,
+    mine_years_germanium = ?,
     ironium = ?,
     boranium = ?,
     germanium = ?,
     colonists = ?,
-    partialPopulation = ?,
+    partial_population = ?,
     mines = ?,
     factories = ?,
     defenses = ?,
     homeworld = ?,
-    contributesOnlyLeftoverToResearch = ?,
+    contributes_only_leftover_to_research = ?,
     scanner = ?,
-    routeTargetType = ?,
-    routeTargetNum = ?,
-    routeTargetPlayerNum = ?,
-    packetTargetNum = ?,
-    packetSpeed = ?,
-    productionQueue = ?,
+    route_target_type = ?,
+    route_target_num = ?,
+    route_target_player_num = ?,
+    packet_target_num = ?,
+    packet_speed = ?,
+    production_queue = ?,
     spec = ?,
     tags = ?,
-    randomArtifact = ?
+    random_artifact = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
--- name: UpdatePlanetSpec :one
+-- name: UpdatePlanetSpec :execrows
 UPDATE planets
 SET
     spec = ?
 WHERE
-    id = ? RETURNING updatedAt;
+    id = ?;
 
 -- name: DeletePlanet :exec
 DELETE FROM planets

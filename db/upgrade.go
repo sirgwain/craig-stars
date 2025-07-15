@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
@@ -24,19 +23,14 @@ Version Info:
 
 */
 
-type Version struct {
-	ID        int64     `json:"id,omitempty"`
-	CreatedAt time.Time `json:"createdAt,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
-	Current   int       `json:"current,omitempty"`
-}
+type Version = generated.Version
 
 // game upgrader
 type upgrade struct {
 	tx *client
 }
 
-const LATEST_VERSION = 5
+const LATEST_VERSION = int64(5)
 
 func (conn *dbConn) mustUpgrade() {
 
@@ -105,7 +99,7 @@ func (c *client) getVersion(ctx context.Context) (Version, error) {
 		return Version{}, nil
 	}
 
-	return Version{ID: item.ID, CreatedAt: item.Createdat, UpdatedAt: item.Updatedat, Current: int(item.Current.Float64)}, nil
+	return item, nil
 }
 
 func (c *client) updateVersion(ctx context.Context, version Version) error {

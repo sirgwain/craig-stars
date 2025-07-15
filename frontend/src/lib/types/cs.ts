@@ -1302,6 +1302,7 @@ export interface Race extends DBObject {
 	spec?: RaceSpec;
 }
 export type ResearchCostLevel = string;
+export const ResearchCostNone: ResearchCostLevel = '';
 export const ResearchCostExtra: ResearchCostLevel = 'Extra';
 export const ResearchCostStandard: ResearchCostLevel = 'Standard';
 export const ResearchCostLess: ResearchCostLevel = 'Less';
