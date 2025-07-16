@@ -73,7 +73,13 @@
 			<PlayerChooser
 				raceUpdated={(updated, raceValid) => {
 					race = updated;
-					valid = raceValid && !!(game && (game.openPlayerSlots ?? 0) > 0);
+					valid =
+						raceValid &&
+						!!(
+							(game && (game.openPlayerSlots ?? 0) > 0) ||
+							// guests are already joined, just need to pick their race
+							($me.isGuest() && game?.players.some((p) => p.userId === $me.id))
+						);
 				}}
 			/>
 		</fieldset>

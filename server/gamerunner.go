@@ -569,7 +569,6 @@ func (gr *gameRunner) DeletePlayerSlot(gameID int64, playerNum int) error {
 			// if we delete player 2 (i = 1), make player 3 player 2
 			if deleted {
 				player.Num = i
-				player.UserID = 0
 				// if the player was using a default color, use the previous one
 				if len(colors) > i+1 && player.Color == colors[i+1] {
 					player.Color = colors[i]
