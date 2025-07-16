@@ -109,12 +109,13 @@ func (c *dbConn) mustMigrateDatabase(datasource string, fs embed.FS, path string
 		os.Remove(backupFile)
 	case nil:
 		log.Info().Msgf("database %s migrated", path)
+		db.Exec("VACUUM;")
+		log.Info().Msgf("database %s vacuumed", path)
 	}
 
 	if err != nil && err != migrate.ErrNoChange {
 		log.Fatal().Err(err).Msg("migrating database")
 	}
-
 }
 
 func (c *dbConn) mustBackup(filename string, version uint) string {
