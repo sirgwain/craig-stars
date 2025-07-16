@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	// json "github.com/json-iterator/go"
 )
 
 // helper to convert an item into JSON
