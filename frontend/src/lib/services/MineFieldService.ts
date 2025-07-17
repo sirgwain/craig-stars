@@ -10,7 +10,7 @@ export class MinefieldService {
 	static async updateMinefieldOrders(minefield: Minefield): Promise<Minefield> {
 		const minefieldOrders = new MinefieldOrdersRequest(minefield.detonate ?? false);
 
-		const response = await fetch(`/api/games/${minefield.gameId}/mine-fields/${minefield.num}`, {
+		const response = await fetch(`/api/games/${minefield.gameId}/minefields/${minefield.num}`, {
 			method: 'PUT',
 			headers: {
 				accept: 'application/json'

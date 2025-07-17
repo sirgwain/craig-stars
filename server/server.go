@@ -425,7 +425,7 @@ func Start(config config.Config) error {
 					})
 
 					// minefield order updates
-					r.Route("/mine-fields", func(r chi.Router) {
+					r.Route("/minefields", func(r chi.Router) {
 						r.Route("/{num:[0-9]+}", func(r chi.Router) {
 							r.Use(server.minefieldCtx)
 							r.Get("/", server.minefield)

@@ -77,9 +77,9 @@
 	<div class="avatar">
 		<div class="mapobject-avatar-wrapper">
 			<div
-				class:standard-mine-field={minefield.minefieldType === MinefieldTypeStandard}
-				class:heavy-mine-field={minefield.minefieldType === MinefieldTypeHeavy}
-				class:speed-bump-mine-field={minefield.minefieldType === MinefieldTypeSpeedBump}
+				class:standard-minefield={minefield.minefieldType === MinefieldTypeStandard}
+				class:heavy-minefield={minefield.minefieldType === MinefieldTypeHeavy}
+				class:speed-bump-minefield={minefield.minefieldType === MinefieldTypeSpeedBump}
 				class="mapobject-avatar"
 			></div>
 		</div>
