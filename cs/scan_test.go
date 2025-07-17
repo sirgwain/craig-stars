@@ -16,7 +16,7 @@ func Test_getScanners(t *testing.T) {
 	type args struct {
 		planets        []*Planet
 		fleets         []*Fleet
-		mineFields     []*MineField
+		minefields     []*Minefield
 		mineralPackets []*MineralPacket
 	}
 	tests := []struct {
@@ -52,7 +52,7 @@ func Test_getScanners(t *testing.T) {
 				Planets:        tt.args.planets,
 				Fleets:         tt.args.fleets,
 				MineralPackets: tt.args.mineralPackets,
-				MineFields:     tt.args.mineFields,
+				Minefields:     tt.args.minefields,
 			}, &rules, player, []*Player{player}, make(map[int]bool), newDiscoverer(testLogger, player)}
 			if got := scan.getScanners(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getScanners() = \n%v, want \n%v", got, tt.want)
@@ -401,10 +401,10 @@ func Test_playerScan_fleetInScannerRange(t *testing.T) {
 	}
 }
 
-func Test_scanMineFields(t *testing.T) {
+func Test_scanMinefields(t *testing.T) {
 	type fields struct {
-		mineFields []*MineField
-		intel      []MineFieldIntel
+		minefields []*Minefield
+		intel      []MinefieldIntel
 	}
 	type args struct {
 		scanners []scanner
@@ -413,63 +413,63 @@ func Test_scanMineFields(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   []MineFieldIntel
+		want   []MinefieldIntel
 	}{
 		{
-			name:   "scan mineField, 1 mine, 1ly radius",
-			fields: fields{mineFields: []*MineField{newMineField(testPlayer().WithNum(2), MineFieldTypeStandard, 1, 1, Vector{})}},
+			name:   "scan minefield, 1 mine, 1ly radius",
+			fields: fields{minefields: []*Minefield{newMinefield(testPlayer().WithNum(2), MinefieldTypeStandard, 1, 1, Vector{})}},
 			args:   args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
-			want: []MineFieldIntel{{
+			want: []MinefieldIntel{{
 				MapObject: MapObject{
-					Type:      MapObjectTypeMineField,
-					PlayerNum: 2, Num: 1, Name: "Humanoids Standard Mine Field #1"},
-				MineFieldType: MineFieldTypeStandard, NumMines: 1, Spec: MineFieldSpec{Radius: 1}},
+					Type:      MapObjectTypeMinefield,
+					PlayerNum: 2, Num: 1, Name: "Humanoids Standard Minefield #1"},
+				MinefieldType: MinefieldTypeStandard, NumMines: 1, Spec: MinefieldSpec{Radius: 1}},
 			},
 		},
 		{
-			name: "mineField 75% cloaked, out of range",
+			name: "minefield 75% cloaked, out of range",
 			// minefield is 13 away, but has a 10ly radius so the edge is only 3 away
 			// it is not spotted with 75% cloaking (scanner range is 2.5 instead of 10)
-			fields: fields{mineFields: []*MineField{newMineField(testPlayer().WithNum(2), MineFieldTypeStandard, 100, 1, Vector{13, 0})}},
+			fields: fields{minefields: []*Minefield{newMinefield(testPlayer().WithNum(2), MinefieldTypeStandard, 100, 1, Vector{13, 0})}},
 			args:   args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
 			want:   nil,
 		},
 		{
-			name: "mineField 75% cloaked, edge is in range",
+			name: "minefield 75% cloaked, edge is in range",
 			// minefield is 12 away, but has a 10ly radius so the edge is only 2 away
 			// it is spotted even with 75% cloaking (scanner range is 2.5 instead of 10)
-			fields: fields{mineFields: []*MineField{newMineField(testPlayer().WithNum(2), MineFieldTypeStandard, 100, 1, Vector{12, 0})}},
+			fields: fields{minefields: []*Minefield{newMinefield(testPlayer().WithNum(2), MinefieldTypeStandard, 100, 1, Vector{12, 0})}},
 			args:   args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
-			want: []MineFieldIntel{{
+			want: []MinefieldIntel{{
 				MapObject: MapObject{
-					Type:      MapObjectTypeMineField,
+					Type:      MapObjectTypeMinefield,
 					Position:  Vector{12, 0},
-					PlayerNum: 2, Num: 1, Name: "Humanoids Standard Mine Field #1"},
-				MineFieldType: MineFieldTypeStandard, NumMines: 100, Spec: MineFieldSpec{Radius: 10}},
+					PlayerNum: 2, Num: 1, Name: "Humanoids Standard Minefield #1"},
+				MinefieldType: MinefieldTypeStandard, NumMines: 100, Spec: MinefieldSpec{Radius: 10}},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			player := NewPlayer(1, NewRace().WithSpec(&rules))
-			player.MineFieldIntels = tt.fields.intel
+			player.MinefieldIntels = tt.fields.intel
 
 			players := []*Player{player}
 
-			for _, mf := range tt.fields.mineFields {
+			for _, mf := range tt.fields.minefields {
 				mf.Spec.Radius = mf.Radius()
 			}
 			universe := NewUniverse(testLogger, &rules)
-			universe.MineFields = tt.fields.mineFields
+			universe.Minefields = tt.fields.minefields
 			universe.buildMaps(players)
 
 			// make a new scanner
 			discoverer := newDiscoverer(testLogger, player)
 			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
-			scan.scanMineFields(tt.args.scanners)
+			scan.scanMinefields(tt.args.scanners)
 
 			// check the waypoints returned vs what we want
-			got := player.MineFieldIntels
+			got := player.MinefieldIntels
 			test.CompareAsJSON(t, got, tt.want)
 
 		})

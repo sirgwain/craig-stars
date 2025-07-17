@@ -49,7 +49,6 @@ func TestCreateShipDesign(t *testing.T) {
 func TestGetShipDesign(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game, player := c.createTestGameWithPlayer(t.Context())
 	shipDesign := cs.NewShipDesign(player.Num, 1).WithHull(cs.Scout.Name).WithSpec(&rules, player)
@@ -92,7 +91,6 @@ func TestGetShipDesign(t *testing.T) {
 
 func TestGetShipDesigns(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game, player := c.createTestGameWithPlayer(t.Context())
 
@@ -114,7 +112,6 @@ func TestGetShipDesigns(t *testing.T) {
 
 func TestDeleteShipDesigns(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game, player := c.createTestGameWithPlayer(t.Context())
 

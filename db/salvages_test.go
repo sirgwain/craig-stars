@@ -51,7 +51,6 @@ func TestSaveSalvage(t *testing.T) {
 
 func TestGetSalvage(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
@@ -98,7 +97,6 @@ func TestGetSalvage(t *testing.T) {
 
 func TestGetSalvages(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
@@ -120,7 +118,6 @@ func TestGetSalvages(t *testing.T) {
 
 func TestUpdateSalvage(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 	salvage := &cs.Salvage{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}

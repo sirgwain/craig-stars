@@ -54,7 +54,7 @@ Other miscellaneous folders that may or may not be on the remote:
 
 ## cs
 
-The [cs](/cs) package contains the models and game logic. It contains no serialization logic. There are two main interfaces into the game logic. The [Gamer](/cs/gamer.go) and the [Orderer](/cs/orderer.go). The `Gamer` is used to create games, generate universes and generate new turns. The `Orderer` is used to update player `Research`, `Planet`, `Fleet`, and `MineField` orders, as well as to handle in turn cargo transfers. The `server` makes uses of these interfaces to update game data and save changes back to the database.
+The [cs](/cs) package contains the models and game logic. It contains no serialization logic. There are two main interfaces into the game logic. The [Gamer](/cs/gamer.go) and the [Orderer](/cs/orderer.go). The `Gamer` is used to create games, generate universes and generate new turns. The `Orderer` is used to update player `Research`, `Planet`, `Fleet`, and `Minefield` orders, as well as to handle in turn cargo transfers. The `server` makes uses of these interfaces to update game data and save changes back to the database.
 
 ### Game Makeup
 
@@ -106,10 +106,10 @@ erDiagram
     FleetSpec Spec
   }
 
-  MineField {
+  Minefield {
     int PlayerNum
     int Num
-    MineFieldSpec Spec
+    MinefieldSpec Spec
   }
 
   MineralPacket {
@@ -133,7 +133,7 @@ erDiagram
 
   Universe ||--o{ Planet : has
   Universe ||--o{ Fleet : has
-  Universe ||--o{ MineField : has
+  Universe ||--o{ Minefield : has
   Universe ||--o{ MineralPacket : has
   Universe ||--o{ Salvage : has
   Universe ||--o{ MysteryTrader : has
@@ -143,7 +143,7 @@ erDiagram
 
   Player ||--o{ Planet : owns
   Player ||--o{ Fleet : owns
-  Player ||--o{ MineField : owns
+  Player ||--o{ Minefield : owns
   Player ||--o{ MineralPacket : owns
   Player ||--o{ Salvage : owns
   Player ||--o{ ShipDesign : owns
@@ -191,7 +191,7 @@ graph TD;
 
 ## frontend
 
-The [frontend](/frontend) is a static SvelteKit site that loads game information from the backend `/api` endpoint and displays it to the user. The `frontend` also handles updating changes to player research, planet, fleet, and mine field orders by calling endpoints on the `/api`.
+The [frontend](/frontend) is a static SvelteKit site that loads game information from the backend `/api` endpoint and displays it to the user. The `frontend` also handles updating changes to player research, planet, fleet, and minefield orders by calling endpoints on the `/api`.
 
 ### Game View
 

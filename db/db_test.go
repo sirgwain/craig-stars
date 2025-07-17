@@ -38,19 +38,7 @@ func connectTestDB() *client {
 		panic(fmt.Errorf("error creating test user in db: \n%w", err))
 	}
 
-	// create a new c from a transaction
-	c, err := dbConn.BeginTransaction()
-	if err != nil {
-		panic(fmt.Errorf("error beginning test transaction: \n%w", err))
-	}
-
-	return c.(*client)
-}
-
-func closeTestDB(c *client) {
-	if err := c.commit(); err != nil {
-		panic(fmt.Errorf("error commiting test transaction: \n%w", err))
-	}
+	return dbConn.NewReadWriteClient().(*client)
 }
 
 // create a new game

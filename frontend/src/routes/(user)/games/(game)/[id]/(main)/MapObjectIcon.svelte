@@ -4,9 +4,9 @@
 	import type { AnyPlanet } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
 	import {
-		MineFieldTypeHeavy,
-		MineFieldTypeSpeedBump,
-		MineFieldTypeStandard,
+		MinefieldTypeHeavy,
+		MinefieldTypeSpeedBump,
+		MinefieldTypeStandard,
 		type MapObject
 	} from '$lib/types/cs';
 	import { getUnderlyingMapObject } from '$lib/types/MapObject';
@@ -21,7 +21,7 @@
 
 	let { mapObject }: Props = $props();
 
-	let { planet, fleet, wormhole, mineField, mysteryTrader, salvage, mineralPacket } = $derived(
+	let { planet, fleet, wormhole, minefield, mysteryTrader, salvage, mineralPacket } = $derived(
 		getUnderlyingMapObject(mapObject)
 	);
 
@@ -73,13 +73,13 @@
 			<div class="mapobject-avatar salvage"></div>
 		</div>
 	</div>
-{:else if mineField}
+{:else if minefield}
 	<div class="avatar">
 		<div class="mapobject-avatar-wrapper">
 			<div
-				class:standard-mine-field={mineField.mineFieldType === MineFieldTypeStandard}
-				class:heavy-mine-field={mineField.mineFieldType === MineFieldTypeHeavy}
-				class:speed-bump-mine-field={mineField.mineFieldType === MineFieldTypeSpeedBump}
+				class:standard-mine-field={minefield.minefieldType === MinefieldTypeStandard}
+				class:heavy-mine-field={minefield.minefieldType === MinefieldTypeHeavy}
+				class:speed-bump-mine-field={minefield.minefieldType === MinefieldTypeSpeedBump}
 				class="mapobject-avatar"
 			></div>
 		</div>

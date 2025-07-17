@@ -8,7 +8,6 @@ import (
 
 func TestEnsureUpgrade(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	c.createTestFullGame(t.Context())
 

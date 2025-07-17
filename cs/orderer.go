@@ -35,7 +35,7 @@ type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
 	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
-	UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error
+	UpdateMinefieldOrders(player *Player, minefield *Minefield, orders MinefieldOrders) error
 	TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest CargoHolder, transferAmount CargoTransferRequest) error
 	SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet, request SplitFleetRequest) (source, dest *Fleet, err error)
 	SplitAll(rules *Rules, player *Player, playerFleets []*Fleet, source *Fleet) ([]*Fleet, error)
@@ -158,7 +158,7 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 	wp0.WarpSpeed = newWP0.WarpSpeed
 	wp0.Task = newWP0.Task
 	wp0.TransportTasks = newWP0.TransportTasks
-	wp0.LayMineFieldDuration = newWP0.LayMineFieldDuration
+	wp0.LayMinefieldDuration = newWP0.LayMinefieldDuration
 	wp0.PatrolRange = newWP0.PatrolRange
 	wp0.PatrolWarpSpeed = newWP0.PatrolWarpSpeed
 	wp0.WaitAtWaypoint = newWP0.WaitAtWaypoint
@@ -184,15 +184,15 @@ func (o *orders) UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrd
 
 }
 
-func (o *orders) UpdateMineFieldOrders(player *Player, minefield *MineField, orders MineFieldOrders) error {
-	if !player.Race.Spec.CanDetonateMineFields {
+func (o *orders) UpdateMinefieldOrders(player *Player, minefield *Minefield, orders MinefieldOrders) error {
+	if !player.Race.Spec.CanDetonateMinefields {
 		return fmt.Errorf("%s cannot detonate minefields", player.Race.PluralName)
 	}
-	if !minefield.MineFieldType.CanDetonate() {
-		return fmt.Errorf("%s minefields cannot detonate", minefield.MineFieldType)
+	if !minefield.MinefieldType.CanDetonate() {
+		return fmt.Errorf("%s minefields cannot detonate", minefield.MinefieldType)
 	}
 
-	minefield.MineFieldOrders = orders
+	minefield.MinefieldOrders = orders
 	return nil
 }
 

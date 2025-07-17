@@ -131,7 +131,7 @@ type playerUniverseResponse struct {
 	Planets        []*cs.Planet        `json:"planets"`
 	Fleets         []*cs.Fleet         `json:"fleets"`
 	Starbases      []*cs.Fleet         `json:"starbases"`
-	MineFields     []*cs.MineField     `json:"mineFields"`
+	Minefields     []*cs.Minefield     `json:"minefields"`
 	MineralPackets []*cs.MineralPacket `json:"mineralPackets"`
 	Designs        []*cs.ShipDesign    `json:"designs"`
 }
@@ -176,7 +176,7 @@ func buildUniverse(player *cs.FullPlayer) playerUniverseResponse {
 		Planets:        make([]*cs.Planet, len(player.Planets)),
 		Fleets:         make([]*cs.Fleet, len(player.Fleets)),
 		Starbases:      make([]*cs.Fleet, len(player.Starbases)),
-		MineFields:     make([]*cs.MineField, len(player.MineFields)),
+		Minefields:     make([]*cs.Minefield, len(player.Minefields)),
 		MineralPackets: make([]*cs.MineralPacket, len(player.MineralPackets)),
 		Designs:        make([]*cs.ShipDesign, len(player.Designs)),
 	}
@@ -185,7 +185,7 @@ func buildUniverse(player *cs.FullPlayer) playerUniverseResponse {
 	copy(universe.Planets, player.Planets)
 	copy(universe.Fleets, player.Fleets)
 	copy(universe.Starbases, player.Starbases)
-	copy(universe.MineFields, player.MineFields)
+	copy(universe.Minefields, player.Minefields)
 	copy(universe.MineralPackets, player.MineralPackets)
 	copy(universe.Designs, player.Designs)
 

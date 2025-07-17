@@ -8,7 +8,6 @@ import (
 
 func Test_updateVersion(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	version, err := c.getVersion(t.Context())
 	if err != nil {

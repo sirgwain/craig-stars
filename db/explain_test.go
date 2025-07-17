@@ -14,7 +14,6 @@ import (
 // ensure we are using indexes for our complex queries
 func Test_client_explainQuery(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	tests := []struct {
 		name      string

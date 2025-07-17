@@ -51,7 +51,7 @@ const (
 	keyTransportPlan
 	keyPlanet
 	keyFleet
-	keyMineField
+	keyMinefield
 	keyUser
 )
 
@@ -427,9 +427,9 @@ func Start(config config.Config) error {
 					// minefield order updates
 					r.Route("/mine-fields", func(r chi.Router) {
 						r.Route("/{num:[0-9]+}", func(r chi.Router) {
-							r.Use(server.mineFieldCtx)
-							r.Get("/", server.mineField)
-							r.Put("/", server.updateMineFieldOrders)
+							r.Use(server.minefieldCtx)
+							r.Get("/", server.minefield)
+							r.Put("/", server.updateMinefieldOrders)
 						})
 					})
 				})

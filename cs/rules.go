@@ -26,8 +26,8 @@ type Rules struct {
 	MaxPopulation                      int                                 `json:"maxPopulation"`
 	MinPopFloor                        int                                 `json:"minPopFloor"`
 	MaxTechLevel                       int                                 `json:"maxTechLevel"`
-	MineFieldCloak                     int                                 `json:"mineFieldCloak"`
-	MineFieldStatsByType               map[MineFieldType]MineFieldStats    `json:"mineFieldStatsByType"`
+	MinefieldCloak                     int                                 `json:"minefieldCloak"`
+	MinefieldStatsByType               map[MinefieldType]MinefieldStats    `json:"minefieldStatsByType"`
 	MineralDecayFactor                 int                                 `json:"mineralDecayFactor"`
 	MinHabFloor                        int                                 `json:"minHabFloor"` //@sirgwain: Do we need this? It's only used as a default value for race generation
 	MysteryTraderRules                 MysteryTraderRules                  `json:"mysteryTraderRules"`
@@ -355,7 +355,7 @@ func NewRulesWithSeed(seed int64) Rules {
 		InvasionDefenseCoverageFactor:      0.75, // invasions penetrate 25% enemy defenses
 		SalvageDecayRate:                   0.1,
 		SalvageDecayMin:                    10,
-		MineFieldCloak:                     75,
+		MinefieldCloak:                     75,
 		StargateMaxRangeFactor:             5,  // ships can only gate up to 5x gate safe range
 		StargateMaxHullMassFactor:          5,  // ships can only gate up to 5x gate safe mass
 		TechTradeChance:                    .5, // 50% chance of tech trading per level
@@ -555,8 +555,8 @@ func NewRulesWithSeed(seed int64) Rules {
 			SizeHuge:       6,
 			SizeHugeWide:   6,
 		},
-		MineFieldStatsByType: map[MineFieldType]MineFieldStats{
-			MineFieldTypeStandard: {
+		MinefieldStatsByType: map[MinefieldType]MinefieldStats{
+			MinefieldTypeStandard: {
 				MinDamagePerFleetRS: 600,
 				DamagePerEngineRS:   125,
 				MaxSpeed:            4,
@@ -567,7 +567,7 @@ func NewRulesWithSeed(seed int64) Rules {
 				MinDecay:            10,
 				CanDetonate:         true,
 			},
-			MineFieldTypeHeavy: {
+			MinefieldTypeHeavy: {
 				MinDamagePerFleetRS: 2500,
 				DamagePerEngineRS:   600,
 				MaxSpeed:            6,
@@ -578,7 +578,7 @@ func NewRulesWithSeed(seed int64) Rules {
 				MinDecay:            10,
 				CanDetonate:         false,
 			},
-			MineFieldTypeSpeedBump: {
+			MinefieldTypeSpeedBump: {
 				MinDamagePerFleetRS: 0,
 				DamagePerEngineRS:   0,
 				MaxSpeed:            5,

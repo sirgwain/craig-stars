@@ -43,7 +43,6 @@ func TestSaveRace(t *testing.T) {
 
 func TestUpdateRace(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	race := &cs.Race{UserID: 1, Name: "Test"}
 	if err := c.SaveRace(t.Context(), race); err != nil {
@@ -72,7 +71,6 @@ func TestUpdateRace(t *testing.T) {
 
 func TestGetRace(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	rules := cs.NewRules()
 
@@ -117,7 +115,6 @@ func TestGetRace(t *testing.T) {
 
 func TestGetRaces(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	// start with 1 race from connectTestDB
 	result, err := c.GetRaces(t.Context())
@@ -137,7 +134,6 @@ func TestGetRaces(t *testing.T) {
 
 func TestDeleteRaces(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	result, err := c.GetRaces(t.Context())
 	assert.Nil(t, err)

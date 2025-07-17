@@ -52,7 +52,6 @@ func TestCreateFleet(t *testing.T) {
 
 func TestGetFleet(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
@@ -109,7 +108,6 @@ func TestGetFleet(t *testing.T) {
 
 func TestGetFleets(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
@@ -131,7 +129,6 @@ func TestGetFleets(t *testing.T) {
 
 func TestUpdateFleet(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 	fleet := &cs.Fleet{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}

@@ -4,7 +4,7 @@
 	const { scale } = getScannerContext();
 </script>
 
-<!-- ScannerMineFieldPattern -->
+<!-- ScannerMinefieldPattern -->
 <!-- This is a pattern for the background of minefields -->
 <svg>
 	<defs>

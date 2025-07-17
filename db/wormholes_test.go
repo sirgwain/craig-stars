@@ -50,7 +50,6 @@ func TestSaveWormhole(t *testing.T) {
 
 func TestGetWormholes(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 
@@ -72,7 +71,6 @@ func TestGetWormholes(t *testing.T) {
 
 func TestGetWormhole(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 	wormhole := &cs.Wormhole{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{Type: cs.MapObjectTypeWormhole}}
@@ -115,7 +113,6 @@ func TestGetWormhole(t *testing.T) {
 
 func TestUpdateWormhole(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 	wormhole := &cs.Wormhole{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}

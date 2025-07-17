@@ -9,7 +9,7 @@
 	import { getUnderlyingMapObject, ownedBy } from '$lib/types/MapObject';
 	import FleetSummary from './FleetSummary.svelte';
 	import MapObjectIcon from './MapObjectIcon.svelte';
-	import MineFieldSummary from './MineFieldSummary.svelte';
+	import MinefieldSummary from './MinefieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
 	import MysteryTraderSummary from './MysteryTraderSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
@@ -24,7 +24,7 @@
 
 	let { mapObject }: Props = $props();
 
-	let { planet, fleet, wormhole, mineField, mysteryTrader, salvage, mineralPacket } = $derived(
+	let { planet, fleet, wormhole, minefield, mysteryTrader, salvage, mineralPacket } = $derived(
 		getUnderlyingMapObject(mapObject)
 	);
 
@@ -112,8 +112,8 @@
 		{/if}
 	{:else if mineralPacket}
 		<MineralPacketSummary {mineralPacket} />
-	{:else if mineField}
-		<MineFieldSummary {mineField} />
+	{:else if minefield}
+		<MinefieldSummary {minefield} />
 	{:else if salvage}
 		<SalvageSummary {salvage} />
 	{:else if wormhole}

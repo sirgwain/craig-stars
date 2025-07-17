@@ -4,39 +4,39 @@
  -->
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyMineField } from '$lib/services/Universe';
+	import type { AnyMinefield } from '$lib/services/Universe';
 	import { equal, key } from '$lib/types/MapObject';
-	import { MapObjectTypeMineField } from '$lib/types/cs';
-	import ScannerMineField from './ScannerMineField.svelte';
+	import { MapObjectTypeMinefield } from '$lib/types/cs';
+	import ScannerMinefield from './ScannerMinefield.svelte';
 
 	const { universe, selectedMapObject } = getGameContext();
 
-	function getColor(mineField: AnyMineField) {
-		return $universe.getPlayerColor(mineField.playerNum);
+	function getColor(minefield: AnyMinefield) {
+		return $universe.getPlayerColor(minefield.playerNum);
 	}
 
-	let minefields = $derived($universe.allMineFields);
-	let selectedMineField = $derived(
-		$selectedMapObject && $selectedMapObject.type === MapObjectTypeMineField
-			? ($selectedMapObject as AnyMineField)
+	let minefields = $derived($universe.allMinefields);
+	let selectedMinefield = $derived(
+		$selectedMapObject && $selectedMapObject.type === MapObjectTypeMinefield
+			? ($selectedMapObject as AnyMinefield)
 			: undefined
 	);
 </script>
 
-<!-- MineFields -->
-{#each minefields as mineField (key(mineField))}
-	{#if mineField !== selectedMineField}
-		<ScannerMineField
-			{mineField}
-			color={getColor(mineField)}
-			selected={equal($selectedMapObject, mineField)}
+<!-- Minefields -->
+{#each minefields as minefield (key(minefield))}
+	{#if minefield !== selectedMinefield}
+		<ScannerMinefield
+			{minefield}
+			color={getColor(minefield)}
+			selected={equal($selectedMapObject, minefield)}
 		/>
 	{/if}
 {/each}
-{#if selectedMineField}
-	<ScannerMineField
-		mineField={selectedMineField}
-		color={getColor(selectedMineField)}
+{#if selectedMinefield}
+	<ScannerMinefield
+		minefield={selectedMinefield}
+		color={getColor(selectedMinefield)}
 		selected={true}
 	/>
 {/if}

@@ -1,28 +1,28 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import {
-		MapObjectTypeMineField,
-		MineFieldTypeStandard,
+		MapObjectTypeMinefield,
+		MinefieldTypeStandard,
 		type MapObject,
-		type MineField
+		type Minefield
 	} from '$lib/types/cs';
 	import { LayerCake, Svg } from 'layercake';
-	import ScannerMineField from '../../../games/(game)/[id]/(main)/scanner/ScannerMineField.svelte';
-	import ScannerMineFieldPattern from '../../../games/(game)/[id]/(main)/scanner/ScannerMineFieldPattern.svelte';
+	import ScannerMinefield from '../../../games/(game)/[id]/(main)/scanner/ScannerMinefield.svelte';
+	import ScannerMinefieldPattern from '../../../games/(game)/[id]/(main)/scanner/ScannerMinefieldPattern.svelte';
 
 	const { selectMapObject } = getGameContext();
 
-	const mineFields: MineField[] = [
+	const minefields: Minefield[] = [
 		{
-			type: MapObjectTypeMineField,
+			type: MapObjectTypeMinefield,
 			position: {
 				x: 50,
 				y: 50
 			},
-			name: `Humanoid MineField #1`,
+			name: `Humanoid Minefield #1`,
 			num: 1,
 			playerNum: 1,
-			mineFieldType: MineFieldTypeStandard,
+			minefieldType: MinefieldTypeStandard,
 			numMines: 100,
 			spec: {
 				decayRate: 100,
@@ -30,15 +30,15 @@
 			}
 		},
 		{
-			type: MapObjectTypeMineField,
+			type: MapObjectTypeMinefield,
 			position: {
 				x: 0,
 				y: 50
 			},
-			name: `Humanoid MineField #2`,
+			name: `Humanoid Minefield #2`,
 			num: 2,
 			playerNum: 1,
-			mineFieldType: MineFieldTypeStandard,
+			minefieldType: MinefieldTypeStandard,
 			numMines: 200,
 			spec: {
 				decayRate: 100,
@@ -50,12 +50,12 @@
 	const xGetter = (mo: MapObject) => mo?.position?.x;
 	const yGetter = (mo: MapObject) => mo?.position?.y;
 
-	selectMapObject(mineFields[0]);
+	selectMapObject(minefields[0]);
 </script>
 
 <div class="w-[300px] h-[300px] bg-black">
 	<LayerCake
-		data={mineFields}
+		data={minefields}
 		x={xGetter}
 		y={yGetter}
 		xDomain={[0, 100]}
@@ -65,9 +65,9 @@
 	>
 		<Svg>
 			<g>
-				<ScannerMineFieldPattern />
-				<ScannerMineField mineField={mineFields[0]} color="#FF0000" />
-				<ScannerMineField mineField={mineFields[1]} color="#00FF00" />
+				<ScannerMinefieldPattern />
+				<ScannerMinefield minefield={minefields[0]} color="#FF0000" />
+				<ScannerMinefield minefield={minefields[1]} color="#00FF00" />
 			</g>
 		</Svg>
 	</LayerCake>

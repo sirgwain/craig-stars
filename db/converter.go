@@ -13,13 +13,12 @@ import (
 var c Converter
 
 // goverter:converter
+// goverter:name GameConverter
 // goverter:output:package github.com/sirgwain/craig-stars/db
 // goverter:output:file ./converter.generated.go
-// goverter:ignoreUnexported
 // goverter:extend AcquiredTechsToGameAcquiredTechs
 // goverter:extend BattlePlansToGameBattlePlans
 // goverter:extend BattleRecordsToGameBattleRecords
-// goverter:extend BoolToNullBool
 // goverter:extend CargoTransfersToGameCargoTransfers
 // goverter:extend FleetIntelsToGameFleetIntels
 // goverter:extend FleetSpecToGameFleetSpec
@@ -30,8 +29,8 @@ var c Converter
 // goverter:extend GameCargoTransfersToCargoTransfers
 // goverter:extend GameFleetIntelsToFleetIntels
 // goverter:extend GameFleetSpecToFleetSpec
-// goverter:extend GameMineFieldIntelsToMineFieldIntels
-// goverter:extend GameMineFieldSpecToMineFieldSpec
+// goverter:extend GameMinefieldIntelsToMinefieldIntels
+// goverter:extend GameMinefieldSpecToMinefieldSpec
 // goverter:extend GameMineralPacketIntelsToMineralPacketIntels
 // goverter:extend GameMysteryTraderIntelsToMysteryTraderIntels
 // goverter:extend GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded
@@ -48,7 +47,6 @@ var c Converter
 // goverter:extend GameProductionQueueItemsToProductionQueueItems
 // goverter:extend GameRaceSpecToRaceSpec
 // goverter:extend GameRaceToPlayerRace
-// goverter:extend GameRulesToRules
 // goverter:extend GameSalvageIntelsToSalvageIntels
 // goverter:extend GameScoreIntelsToScoreIntels
 // goverter:extend GameShipDesignIntelsToShipDesignIntels
@@ -61,19 +59,17 @@ var c Converter
 // goverter:extend GameWormholeIntelsToWormholeIntels
 // goverter:extend GameWormholeSpecToWormholeSpec
 // goverter:extend Int64ToInt
-// goverter:extend Int64ToNullInt64
-// goverter:extend IntToNullInt64
 // goverter:extend IntToInt64
-// goverter:extend MineFieldIntelsToGameMineFieldIntels
-// goverter:extend MineFieldSpecToGameMineFieldSpec
+// goverter:extend IntToNullInt64
+// goverter:extend MinefieldIntelsToGameMinefieldIntels
+// goverter:extend MinefieldSpecToGameMinefieldSpec
 // goverter:extend MineralPacketIntelsToGameMineralPacketIntels
 // goverter:extend MysteryTraderIntelsToGameMysteryTraderIntels
 // goverter:extend MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded
 // goverter:extend MysteryTraderSpecToGameMysteryTraderSpec
 // goverter:extend NullBoolToBool
-// goverter:extend NullFloat64ToFloat64
-// goverter:extend NullInt64ToInt64
 // goverter:extend NullInt64ToInt
+// goverter:extend NullInt64ToInt64
 // goverter:extend NullStringToString
 // goverter:extend NullTimeToTime
 // goverter:extend PlanetIntelsToGamePlanetIntels
@@ -88,26 +84,22 @@ var c Converter
 // goverter:extend ProductionPlansToGameProductionPlans
 // goverter:extend ProductionQueueItemsToGameProductionQueueItems
 // goverter:extend RaceSpecToGameRaceSpec
-// goverter:extend RulesToGameRules
 // goverter:extend SalvageIntelsToGameSalvageIntels
 // goverter:extend ScoreIntelsToGameScoreIntels
 // goverter:extend ShipDesignIntelsToGameShipDesignIntels
 // goverter:extend ShipDesignSlotsToGameShipDesignSlots
 // goverter:extend ShipDesignSpecToGameShipDesignSpec
 // goverter:extend ShipTokensToGameShipTokens
-// goverter:extend StringToNullString
 // goverter:extend TagsToGameTags
-// goverter:extend TimeToNullTime
 // goverter:extend TransportPlansToGameTransportPlans
 // goverter:extend WaypointsToGameWaypoints
 // goverter:extend WormholeIntelsToGameWormholeIntels
 // goverter:extend WormholeSpecToGameWormholeSpec
 // goverter:enum no
+// goverter:ignoreUnexported
 // goverter:matchIgnoreCase
-// goverter:useZeroValueOnPointerInconsistency
-// goverter:useUnderlyingTypeMethods
 // goverter:skipCopySameType
-// goverter:name GameConverter
+// goverter:useZeroValueOnPointerInconsistency
 type Converter interface {
 	// goverter:autoMap DBObject
 	// goverter:autoMap UserSettings
@@ -253,7 +245,7 @@ type Converter interface {
 	// goverter:map PlayerIntels.FleetIntels FleetIntels
 	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
 	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MineFieldIntels MinefieldIntels
+	// goverter:map PlayerIntels.MinefieldIntels MinefieldIntels
 	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
 	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
 	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
@@ -281,7 +273,7 @@ type Converter interface {
 	// goverter:map PlayerIntels.FleetIntels FleetIntels
 	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
 	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MineFieldIntels MinefieldIntels
+	// goverter:map PlayerIntels.MinefieldIntels MinefieldIntels
 	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
 	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
 	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
@@ -309,7 +301,7 @@ type Converter interface {
 	// goverter:map PlayerIntels.FleetIntels FleetIntels
 	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
 	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MineFieldIntels MinefieldIntels
+	// goverter:map PlayerIntels.MinefieldIntels MinefieldIntels
 	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
 	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
 	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
@@ -569,26 +561,26 @@ type Converter interface {
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
-	// goverter:map MineFieldOrders.Detonate Detonate
-	ConvertGameMineField(source *cs.MineField) generated.Minefield
+	// goverter:map MinefieldOrders.Detonate Detonate
+	ConvertGameMinefield(source *cs.Minefield) generated.Minefield
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
-	// goverter:map MineFieldOrders.Detonate Detonate
-	ConvertGameMineFieldToCreateParams(source *cs.MineField) generated.CreateMinefieldParams
+	// goverter:map MinefieldOrders.Detonate Detonate
+	ConvertGameMinefieldToCreateParams(source *cs.Minefield) generated.CreateMinefieldParams
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
 	// goverter:autoMap MapObject
-	// goverter:map MineFieldOrders.Detonate Detonate
-	ConvertGameMineFieldToUpdateParams(source *cs.MineField) generated.UpdateMinefieldParams
+	// goverter:map MinefieldOrders.Detonate Detonate
+	ConvertGameMinefieldToUpdateParams(source *cs.Minefield) generated.UpdateMinefieldParams
 
 	// goverter:map . GameDBObject
-	// goverter:map . MapObject | ExtendMineFieldMapObject
-	// goverter:map . MineFieldOrders
-	ConvertMineField(source generated.Minefield) *cs.MineField
-	ConvertMineFields(source []generated.Minefield) []*cs.MineField
+	// goverter:map . MapObject | ExtendMinefieldMapObject
+	// goverter:map . MinefieldOrders
+	ConvertMinefield(source generated.Minefield) *cs.Minefield
+	ConvertMinefields(source []generated.Minefield) []*cs.Minefield
 
 	// goverter:autoMap GameDBObject
 	// goverter:autoMap MapObject.Position
@@ -648,13 +640,6 @@ func NullTimeToTime(source sql.NullTime) time.Time {
 	return time.Time{}
 }
 
-func TimeToNullTime(source time.Time) sql.NullTime {
-	return sql.NullTime{
-		Valid: true,
-		Time:  source,
-	}
-}
-
 func NullBoolToBool(source sql.NullBool) bool {
 	if source.Valid {
 		return source.Bool
@@ -662,32 +647,11 @@ func NullBoolToBool(source sql.NullBool) bool {
 	return false
 }
 
-func BoolToNullBool(source bool) sql.NullBool {
-	return sql.NullBool{
-		Valid: true,
-		Bool:  source,
-	}
-}
-
 func NullStringToString(source sql.NullString) string {
 	if source.Valid {
 		return source.String
 	}
 	return ""
-}
-
-func StringToNullString(source string) sql.NullString {
-	return sql.NullString{
-		Valid:  true,
-		String: source,
-	}
-}
-
-func NullFloat64ToFloat64(source sql.NullFloat64) float64 {
-	if source.Valid {
-		return source.Float64
-	}
-	return 0
 }
 
 func Float64ToNullFloat64(source float64) sql.NullFloat64 {
@@ -711,13 +675,6 @@ func NullInt64ToInt(source sql.NullInt64) int {
 	return 0
 }
 
-func Int64ToNullInt64(source int64) sql.NullInt64 {
-	return sql.NullInt64{
-		Valid: true,
-		Int64: source,
-	}
-}
-
 func IntToNullInt64(source int) sql.NullInt64 {
 	return sql.NullInt64{
 		Valid: true,
@@ -733,14 +690,6 @@ func IntToInt64(source int) int64 {
 	return int64(source)
 }
 
-func RulesToGameRules(source *generated.Rules) cs.Rules {
-	return cs.Rules(*source)
-}
-
-func GameRulesToRules(source cs.Rules) *generated.Rules {
-	return (*generated.Rules)(&source)
-}
-
 func RaceSpecToGameRaceSpec(source *generated.RaceSpec) cs.RaceSpec {
 	return (cs.RaceSpec)(*source)
 }
@@ -751,10 +700,6 @@ func GameRaceSpecToRaceSpec(source cs.RaceSpec) *generated.RaceSpec {
 
 func RaceGenSpecToGameRaceSpec(source *generated.RaceSpec) cs.RaceSpec {
 	return (cs.RaceSpec)(*source)
-}
-
-func GameRaceSpecToRaceGenSpec(source cs.RaceSpec) *generated.RaceSpec {
-	return (*generated.RaceSpec)(&source)
 }
 
 func TagsToGameTags(source *generated.Tags) cs.Tags {
@@ -962,16 +907,16 @@ func GameSalvageIntelsToSalvageIntels(source []cs.SalvageIntel) *generated.Salva
 	return (*generated.SalvageIntels)(&source)
 }
 
-func MineFieldIntelsToGameMineFieldIntels(source *generated.MineFieldIntels) []cs.MineFieldIntel {
+func MinefieldIntelsToGameMinefieldIntels(source *generated.MinefieldIntels) []cs.MinefieldIntel {
 	// return an empty slice for nil
 	if source == nil {
-		return []cs.MineFieldIntel{}
+		return []cs.MinefieldIntel{}
 	}
-	return ([]cs.MineFieldIntel)(*source)
+	return ([]cs.MinefieldIntel)(*source)
 }
 
-func GameMineFieldIntelsToMineFieldIntels(source []cs.MineFieldIntel) *generated.MineFieldIntels {
-	return (*generated.MineFieldIntels)(&source)
+func GameMinefieldIntelsToMinefieldIntels(source []cs.MinefieldIntel) *generated.MinefieldIntels {
+	return (*generated.MinefieldIntels)(&source)
 }
 
 func WormholeIntelsToGameWormholeIntels(source *generated.WormholeIntels) []cs.WormholeIntel {
@@ -1074,12 +1019,12 @@ func GameWaypointsToWaypoints(source []cs.Waypoint) *generated.Waypoints {
 	return (*generated.Waypoints)(&source)
 }
 
-func MineFieldSpecToGameMineFieldSpec(source *generated.MineFieldSpec) cs.MineFieldSpec {
-	return (cs.MineFieldSpec)(*source)
+func MinefieldSpecToGameMinefieldSpec(source *generated.MinefieldSpec) cs.MinefieldSpec {
+	return (cs.MinefieldSpec)(*source)
 }
 
-func GameMineFieldSpecToMineFieldSpec(source cs.MineFieldSpec) *generated.MineFieldSpec {
-	return (*generated.MineFieldSpec)(&source)
+func GameMinefieldSpecToMinefieldSpec(source cs.MinefieldSpec) *generated.MinefieldSpec {
+	return (*generated.MinefieldSpec)(&source)
 }
 
 func ShipDesignSpecToGameShipDesignSpec(source *generated.ShipDesignSpec) cs.ShipDesignSpec {
@@ -1355,9 +1300,9 @@ func ExtendSalvageMapObject(source generated.Salvage) cs.MapObject {
 	}
 }
 
-func ExtendMineFieldMapObject(source generated.Minefield) cs.MapObject {
+func ExtendMinefieldMapObject(source generated.Minefield) cs.MapObject {
 	return cs.MapObject{
-		Type: cs.MapObjectTypeMineField,
+		Type: cs.MapObjectTypeMinefield,
 		Position: cs.Vector{
 			X: source.X,
 			Y: source.Y,

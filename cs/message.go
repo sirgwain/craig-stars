@@ -51,7 +51,7 @@ type PlayerMessageSpec struct {
 	Field                 TechField                       `json:"field,omitempty"`
 	Invasion              *PlayerMessageSpecInvasion      `json:"invasion,omitempty"`
 	LostTargetType        MapObjectType                   `json:"lostTargetType,omitempty"`
-	MineFieldDamage       *MineFieldDamage                `json:"mineFieldDamage,omitempty"`
+	MinefieldDamage       *MinefieldDamage                `json:"minefieldDamage,omitempty"`
 	Mineral               *Mineral                        `json:"mineral,omitempty"`
 	MineralPacketDamage   *MineralPacketDamage            `json:"mineralPacketDamage,omitempty"`
 	MysteryTrader         *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
@@ -101,7 +101,7 @@ const (
 	TargetPlanet        PlayerMessageTargetType = "Planet"
 	TargetFleet         PlayerMessageTargetType = "Fleet"
 	TargetWormhole      PlayerMessageTargetType = "Wormhole"
-	TargetMineField     PlayerMessageTargetType = "MineField"
+	TargetMinefield     PlayerMessageTargetType = "Minefield"
 	TargetMysteryTrader PlayerMessageTargetType = "MysteryTrader"
 	TargetMineralPacket PlayerMessageTargetType = "MineralPacket"
 	TargetBattle        PlayerMessageTargetType = "Battle"
@@ -152,9 +152,9 @@ const (
 	PlayerMessageFleetInvadedPlanet
 	PlayerMessageBattle
 	PlayerMessageFleetTransferredCargo
-	PlayerMessageFleetMineFieldSweptMines
+	PlayerMessageFleetMinefieldSweptMines
 	PlayerMessageFleetLaidMines
-	PlayerMessageFleetMineFieldHit
+	PlayerMessageFleetMinefieldHit
 	PlayerMessageFleetDumpedCargo
 	PlayerMessageFleetStargateDamaged
 	PlayerMessagePlanetPacketCaught
@@ -292,13 +292,13 @@ func (spec PlayerMessageSpec) withTargetPlanet(planet *Planet) PlayerMessageSpec
 	return spec
 }
 
-func (spec PlayerMessageSpec) withTargetMinefield(mineField *MineField) PlayerMessageSpec {
+func (spec PlayerMessageSpec) withTargetMinefield(minefield *Minefield) PlayerMessageSpec {
 	spec.Target = MapObjectTarget{
-		TargetType:      MapObjectTypeMineField,
-		TargetPlayerNum: mineField.PlayerNum,
-		TargetNum:       mineField.Num,
-		TargetName:      mineField.Name,
-		TargetPosition:  mineField.Position,
+		TargetType:      MapObjectTypeMinefield,
+		TargetPlayerNum: minefield.PlayerNum,
+		TargetNum:       minefield.Num,
+		TargetName:      minefield.Name,
+		TargetPosition:  minefield.Position,
 	}
 	return spec
 }
@@ -419,14 +419,14 @@ func (m *messageClient) fleetMerged(player *Player, fleet *Fleet, mergedInto *Fl
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetMerged, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: mergedInto.Num, TargetPlayerNum: mergedInto.PlayerNum}})
 }
 
-func (m *messageClient) fleetMineFieldHit(player *Player, fleet *Fleet, mineField *MineField, mineFieldDamage MineFieldDamage) {
+func (m *messageClient) fleetMinefieldHit(player *Player, fleet *Fleet, minefield *Minefield, minefieldDamage MinefieldDamage) {
 	player.Messages = append(player.Messages, newFleetMessage(player,
-		PlayerMessageFleetMineFieldHit, fleet).withSpec(PlayerMessageSpec{MineFieldDamage: &mineFieldDamage}.withTargetMinefield(mineField)))
+		PlayerMessageFleetMinefieldHit, fleet).withSpec(PlayerMessageSpec{MinefieldDamage: &minefieldDamage}.withTargetMinefield(minefield)))
 }
 
-func (m *messageClient) fleetMineFieldSwept(player *Player, fleet *Fleet, mineField *MineField, numMinesSwept int) {
+func (m *messageClient) fleetMinefieldSwept(player *Player, fleet *Fleet, minefield *Minefield, numMinesSwept int) {
 	player.Messages = append(player.Messages, newFleetMessage(player,
-		PlayerMessageFleetMineFieldSweptMines, fleet).withSpec(PlayerMessageSpec{Amount: numMinesSwept}.withTargetMinefield(mineField)))
+		PlayerMessageFleetMinefieldSweptMines, fleet).withSpec(PlayerMessageSpec{Amount: numMinesSwept}.withTargetMinefield(minefield)))
 }
 
 func (m *messageClient) fleetMinesLaidFailed(player *Player, fleet *Fleet) {
@@ -434,9 +434,9 @@ func (m *messageClient) fleetMinesLaidFailed(player *Player, fleet *Fleet) {
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageInvalid, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: player.Num}})
 }
 
-func (m *messageClient) fleetMinesLaid(player *Player, fleet *Fleet, mineField *MineField, numMinesLaid int) {
+func (m *messageClient) fleetMinesLaid(player *Player, fleet *Fleet, minefield *Minefield, numMinesLaid int) {
 	player.Messages = append(player.Messages, newFleetMessage(player,
-		PlayerMessageFleetLaidMines, fleet).withSpec(PlayerMessageSpec{Amount: numMinesLaid}.withTargetMinefield(mineField)))
+		PlayerMessageFleetLaidMines, fleet).withSpec(PlayerMessageSpec{Amount: numMinesLaid}.withTargetMinefield(minefield)))
 }
 
 func (m *messageClient) fleetOutOfFuel(player *Player, fleet *Fleet, warpSpeed int) {

@@ -6,14 +6,14 @@ import type {
 	CargoTransfers,
 	Game,
 	GameSettings,
-	MineField,
+	Minefield,
 	PlayerMessageTargetType,
 	SalvageIntel,
 	ShipDesign
 } from '$lib/types/cs';
 import {
 	MapObjectTypeFleet,
-	MapObjectTypeMineField,
+	MapObjectTypeMinefield,
 	MapObjectTypeMineralPacket,
 	MapObjectTypeNone,
 	MapObjectTypePlanet,
@@ -60,7 +60,7 @@ import { FleetService } from './FleetService';
 import { FullGame } from './FullGame';
 import { GameService } from './GameService';
 import { rollover } from './Math';
-import { MineFieldService } from './MineFieldService';
+import { MinefieldService } from './MinefieldService';
 import { PlanetService } from './PlanetService';
 import { PlayerService } from './PlayerService';
 import { ProductionPlanService } from './ProductionPlanService';
@@ -146,7 +146,7 @@ export type GameContext = {
 	renameFleet: (fleet: CommandedFleet, name: string) => Promise<void>;
 
 	updatePlanetOrders: (planet: CommandedPlanet) => Promise<void>;
-	updateMineFieldOrders: (mineField: MineField) => Promise<void>;
+	updateMinefieldOrders: (minefield: Minefield) => Promise<void>;
 	transferCargo: (
 		fleet: CommandedFleet,
 		dest: CargoDest,
@@ -348,9 +348,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			}
 		}
 
-		if (message.spec.targetType === MapObjectTypeMineField) {
+		if (message.spec.targetType === MapObjectTypeMinefield) {
 			const fleet = universe.getFleet(message.targetPlayerNum, message.targetNum);
-			const mf = universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum);
+			const mf = universe.getMinefield(message.spec.targetPlayerNum, message.spec.targetNum);
 			if (fleet) {
 				if (ownedBy(fleet, playerNum)) {
 					commandMapObject(fleet);
@@ -692,16 +692,16 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		universe.set(u);
 	}
 
-	// after a mineField is updated from the server, update the mineField in the universe, reset any commanded/selected
+	// after a minefield is updated from the server, update the minefield in the universe, reset any commanded/selected
 	// state and trigger reactivity
-	function updateMineField(mineField: MineField, updatedMineField: MineField) {
-		mineField = Object.assign(mineField, updatedMineField);
+	function updateMinefield(minefield: Minefield, updatedMinefield: Minefield) {
+		minefield = Object.assign(minefield, updatedMinefield);
 		const u = get(universe);
-		u.updateMineField(mineField);
+		u.updateMinefield(minefield);
 
-		// if we were selecting this mineField, reselect it to trigger reactivity
-		if (equal(get(selectedMapObject), mineField)) {
-			selectMapObject(mineField);
+		// if we were selecting this minefield, reselect it to trigger reactivity
+		if (equal(get(selectedMapObject), minefield)) {
+			selectMapObject(minefield);
 		}
 
 		// trigger reactivity
@@ -1021,9 +1021,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		updatePlanet(planet, resp.planet);
 	}
 
-	async function updateMineFieldOrders(mineField: MineField): Promise<void> {
-		const updatedMineField = await MineFieldService.updateMineFieldOrders(mineField);
-		updateMineField(mineField, updatedMineField);
+	async function updateMinefieldOrders(minefield: Minefield): Promise<void> {
+		const updatedMinefield = await MinefieldService.updateMinefieldOrders(minefield);
+		updateMinefield(minefield, updatedMinefield);
 	}
 
 	async function transferCargo(
@@ -1221,7 +1221,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		renameFleet,
 
 		updatePlanetOrders,
-		updateMineFieldOrders,
+		updateMinefieldOrders,
 		transferCargo,
 		split,
 		splitAll,

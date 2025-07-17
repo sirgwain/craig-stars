@@ -11,7 +11,7 @@
 	import {
 		MapObjectTypePlanet,
 		ReportAgeUnexplored,
-		WaypointTaskLayMineField,
+		WaypointTaskLayMinefield,
 		WaypointTaskNone,
 		WaypointTaskPatrol,
 		WaypointTaskRemoteMining,
@@ -86,8 +86,8 @@
 		waypoint.patrolWarpSpeed = warpSpeed;
 	}
 
-	function onLayMineFieldDurationChanged(value: number | undefined) {
-		waypoint.layMineFieldDuration = value;
+	function onLayMinefieldDurationChanged(value: number | undefined) {
+		waypoint.layMinefieldDuration = value;
 		onChangeWaypoint?.({ fleet, waypoint, waypointIndex: selectedWaypointIndex });
 	}
 
@@ -209,11 +209,11 @@
 		{:else}
 			<span class="text-error">Warning: Can only remote mine planets.</span>
 		{/if}
-	{:else if waypoint.task === WaypointTaskLayMineField}
+	{:else if waypoint.task === WaypointTaskLayMinefield}
 		<select
 			class="select select-outline select-secondary select-sm py-0 text-sm mt-1"
-			value={waypoint.layMineFieldDuration}
-			onchange={(e) => onLayMineFieldDurationChanged(parseInt(e.currentTarget.value))}
+			value={waypoint.layMinefieldDuration}
+			onchange={(e) => onLayMinefieldDurationChanged(parseInt(e.currentTarget.value))}
 		>
 			<option value={undefined}>Indefinitely</option>
 			<option value={1}>for 1 year</option>

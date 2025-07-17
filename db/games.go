@@ -219,11 +219,11 @@ func (c *client) GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error
 	}
 	universe.Salvages = salvages
 
-	mineFields, err := c.getMineFieldsForGame(ctx, game.ID)
+	minefields, err := c.getMinefieldsForGame(ctx, game.ID)
 	if err != nil {
-		return nil, fmt.Errorf("load mineFields for game: %w", err)
+		return nil, fmt.Errorf("load minefields for game: %w", err)
 	}
-	universe.MineFields = mineFields
+	universe.Minefields = minefields
 
 	mineralPackets, err := c.getMineralPacketsForGame(ctx, game.ID)
 	if err != nil {
@@ -437,25 +437,25 @@ func (c *client) UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) erro
 		}
 	}
 
-	// save mineFields
-	remainingMineFields := make([]*cs.MineField, 0, len(fullGame.MineFields))
-	for _, mineField := range fullGame.MineFields {
-		if !mineField.Delete {
-			remainingMineFields = append(remainingMineFields, mineField)
+	// save minefields
+	remainingMinefields := make([]*cs.Minefield, 0, len(fullGame.Minefields))
+	for _, minefield := range fullGame.Minefields {
+		if !minefield.Delete {
+			remainingMinefields = append(remainingMinefields, minefield)
 			continue
 		}
 		// possible a minefield was created and destroyed in one turn
-		if mineField.ID != 0 {
-			if err := c.DeleteMineField(ctx, mineField.ID); err != nil {
+		if minefield.ID != 0 {
+			if err := c.DeleteMinefield(ctx, minefield.ID); err != nil {
 				return fmt.Errorf("delete minefield: %w", err)
 			}
 		}
 	}
 
-	fullGame.MineFields = remainingMineFields
-	for _, mineField := range fullGame.MineFields {
-		mineField.GameID = fullGame.ID
-		if err := c.SaveMinefield(ctx, mineField); err != nil {
+	fullGame.Minefields = remainingMinefields
+	for _, minefield := range fullGame.Minefields {
+		minefield.GameID = fullGame.ID
+		if err := c.SaveMinefield(ctx, minefield); err != nil {
 			return fmt.Errorf("update minefield: %w", err)
 		}
 	}

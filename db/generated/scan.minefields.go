@@ -6,10 +6,10 @@ import (
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-type MineFieldSpec cs.MineFieldSpec
+type MinefieldSpec cs.MinefieldSpec
 
 // db serializer to serialize this to JSON
-func (item *MineFieldSpec) Value() (driver.Value, error) {
+func (item *MinefieldSpec) Value() (driver.Value, error) {
 	if item == nil {
 		return nil, nil
 	}
@@ -18,6 +18,6 @@ func (item *MineFieldSpec) Value() (driver.Value, error) {
 }
 
 // db deserializer to read this from JSON
-func (item *MineFieldSpec) Scan(src interface{}) error {
+func (item *MinefieldSpec) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }

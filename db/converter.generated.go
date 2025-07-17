@@ -334,7 +334,7 @@ func (c *GameConverter) ConvertGameGameToUpdateParams(source *cs.Game) generated
 	}
 	return generatedUpdateGameParams
 }
-func (c *GameConverter) ConvertGameMineField(source *cs.MineField) generated.Minefield {
+func (c *GameConverter) ConvertGameMinefield(source *cs.Minefield) generated.Minefield {
 	var generatedMinefield generated.Minefield
 	if source != nil {
 		var generatedMinefield2 generated.Minefield
@@ -348,16 +348,16 @@ func (c *GameConverter) ConvertGameMineField(source *cs.MineField) generated.Min
 		generatedMinefield2.Num = IntToInt64((*source).MapObject.Num)
 		generatedMinefield2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedMinefield2.NumMines = IntToInt64((*source).NumMines)
-		generatedMinefield2.Detonate = (*source).MineFieldOrders.Detonate
-		pCsMineFieldType := c.csMineFieldTypeToCsMineFieldType((*source).MineFieldType)
-		generatedMinefield2.MinefieldType = &pCsMineFieldType
-		generatedMinefield2.Spec = GameMineFieldSpecToMineFieldSpec((*source).Spec)
+		generatedMinefield2.Detonate = (*source).MinefieldOrders.Detonate
+		pCsMinefieldType := c.csMinefieldTypeToCsMinefieldType((*source).MinefieldType)
+		generatedMinefield2.MinefieldType = &pCsMinefieldType
+		generatedMinefield2.Spec = GameMinefieldSpecToMinefieldSpec((*source).Spec)
 		generatedMinefield2.Tags = GameTagsToTags((*source).MapObject.Tags)
 		generatedMinefield = generatedMinefield2
 	}
 	return generatedMinefield
 }
-func (c *GameConverter) ConvertGameMineFieldToCreateParams(source *cs.MineField) generated.CreateMinefieldParams {
+func (c *GameConverter) ConvertGameMinefieldToCreateParams(source *cs.Minefield) generated.CreateMinefieldParams {
 	var generatedCreateMinefieldParams generated.CreateMinefieldParams
 	if source != nil {
 		var generatedCreateMinefieldParams2 generated.CreateMinefieldParams
@@ -368,16 +368,16 @@ func (c *GameConverter) ConvertGameMineFieldToCreateParams(source *cs.MineField)
 		generatedCreateMinefieldParams2.Num = IntToInt64((*source).MapObject.Num)
 		generatedCreateMinefieldParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedCreateMinefieldParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		pCsMineFieldType := c.csMineFieldTypeToCsMineFieldType((*source).MineFieldType)
-		generatedCreateMinefieldParams2.MinefieldType = &pCsMineFieldType
+		pCsMinefieldType := c.csMinefieldTypeToCsMinefieldType((*source).MinefieldType)
+		generatedCreateMinefieldParams2.MinefieldType = &pCsMinefieldType
 		generatedCreateMinefieldParams2.NumMines = IntToInt64((*source).NumMines)
-		generatedCreateMinefieldParams2.Detonate = (*source).MineFieldOrders.Detonate
-		generatedCreateMinefieldParams2.Spec = GameMineFieldSpecToMineFieldSpec((*source).Spec)
+		generatedCreateMinefieldParams2.Detonate = (*source).MinefieldOrders.Detonate
+		generatedCreateMinefieldParams2.Spec = GameMinefieldSpecToMinefieldSpec((*source).Spec)
 		generatedCreateMinefieldParams = generatedCreateMinefieldParams2
 	}
 	return generatedCreateMinefieldParams
 }
-func (c *GameConverter) ConvertGameMineFieldToUpdateParams(source *cs.MineField) generated.UpdateMinefieldParams {
+func (c *GameConverter) ConvertGameMinefieldToUpdateParams(source *cs.Minefield) generated.UpdateMinefieldParams {
 	var generatedUpdateMinefieldParams generated.UpdateMinefieldParams
 	if source != nil {
 		var generatedUpdateMinefieldParams2 generated.UpdateMinefieldParams
@@ -388,11 +388,11 @@ func (c *GameConverter) ConvertGameMineFieldToUpdateParams(source *cs.MineField)
 		generatedUpdateMinefieldParams2.Num = IntToInt64((*source).MapObject.Num)
 		generatedUpdateMinefieldParams2.PlayerNum = IntToInt64((*source).MapObject.PlayerNum)
 		generatedUpdateMinefieldParams2.Tags = GameTagsToTags((*source).MapObject.Tags)
-		pCsMineFieldType := c.csMineFieldTypeToCsMineFieldType((*source).MineFieldType)
-		generatedUpdateMinefieldParams2.MinefieldType = &pCsMineFieldType
+		pCsMinefieldType := c.csMinefieldTypeToCsMinefieldType((*source).MinefieldType)
+		generatedUpdateMinefieldParams2.MinefieldType = &pCsMinefieldType
 		generatedUpdateMinefieldParams2.NumMines = IntToInt64((*source).NumMines)
-		generatedUpdateMinefieldParams2.Detonate = (*source).MineFieldOrders.Detonate
-		generatedUpdateMinefieldParams2.Spec = GameMineFieldSpecToMineFieldSpec((*source).Spec)
+		generatedUpdateMinefieldParams2.Detonate = (*source).MinefieldOrders.Detonate
+		generatedUpdateMinefieldParams2.Spec = GameMinefieldSpecToMinefieldSpec((*source).Spec)
 		generatedUpdateMinefieldParams2.ID = (*source).GameDBObject.ID
 		generatedUpdateMinefieldParams = generatedUpdateMinefieldParams2
 	}
@@ -752,7 +752,7 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) generated.Player {
 		generatedPlayer2.FleetIntels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
 		generatedPlayer2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
 		generatedPlayer2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
-		generatedPlayer2.MinefieldIntels = GameMineFieldIntelsToMineFieldIntels((*source).PlayerIntels.MineFieldIntels)
+		generatedPlayer2.MinefieldIntels = GameMinefieldIntelsToMinefieldIntels((*source).PlayerIntels.MinefieldIntels)
 		generatedPlayer2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
 		generatedPlayer2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
 		generatedPlayer2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
@@ -814,7 +814,7 @@ func (c *GameConverter) ConvertGamePlayerToCreateParams(source *cs.Player) gener
 		generatedCreatePlayerParams2.FleetIntels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
 		generatedCreatePlayerParams2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
 		generatedCreatePlayerParams2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
-		generatedCreatePlayerParams2.MinefieldIntels = GameMineFieldIntelsToMineFieldIntels((*source).PlayerIntels.MineFieldIntels)
+		generatedCreatePlayerParams2.MinefieldIntels = GameMinefieldIntelsToMinefieldIntels((*source).PlayerIntels.MinefieldIntels)
 		generatedCreatePlayerParams2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
 		generatedCreatePlayerParams2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
 		generatedCreatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
@@ -876,7 +876,7 @@ func (c *GameConverter) ConvertGamePlayerToUpdateParams(source *cs.Player) gener
 		generatedUpdatePlayerParams2.FleetIntels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
 		generatedUpdatePlayerParams2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
 		generatedUpdatePlayerParams2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
-		generatedUpdatePlayerParams2.MinefieldIntels = GameMineFieldIntelsToMineFieldIntels((*source).PlayerIntels.MineFieldIntels)
+		generatedUpdatePlayerParams2.MinefieldIntels = GameMinefieldIntelsToMinefieldIntels((*source).PlayerIntels.MinefieldIntels)
 		generatedUpdatePlayerParams2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
 		generatedUpdatePlayerParams2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
 		generatedUpdatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
@@ -1408,27 +1408,27 @@ func (c *GameConverter) ConvertLightPlayer(source generated.GetLightPlayerForGam
 	csPlayer.Spec = PlayerSpecToGamePlayerSpec(source.Spec)
 	return csPlayer
 }
-func (c *GameConverter) ConvertMineField(source generated.Minefield) *cs.MineField {
-	var csMineField cs.MineField
-	csMineField.GameDBObject = c.generatedMinefieldToCsGameDBObject(source)
-	csMineField.MapObject = ExtendMineFieldMapObject(source)
-	csMineField.MineFieldOrders = c.generatedMinefieldToCsMineFieldOrders(source)
+func (c *GameConverter) ConvertMinefield(source generated.Minefield) *cs.Minefield {
+	var csMinefield cs.Minefield
+	csMinefield.GameDBObject = c.generatedMinefieldToCsGameDBObject(source)
+	csMinefield.MapObject = ExtendMinefieldMapObject(source)
+	csMinefield.MinefieldOrders = c.generatedMinefieldToCsMinefieldOrders(source)
 	if source.MinefieldType != nil {
-		csMineField.MineFieldType = c.csMineFieldTypeToCsMineFieldType(*source.MinefieldType)
+		csMinefield.MinefieldType = c.csMinefieldTypeToCsMinefieldType(*source.MinefieldType)
 	}
-	csMineField.NumMines = Int64ToInt(source.NumMines)
-	csMineField.Spec = MineFieldSpecToGameMineFieldSpec(source.Spec)
-	return &csMineField
+	csMinefield.NumMines = Int64ToInt(source.NumMines)
+	csMinefield.Spec = MinefieldSpecToGameMinefieldSpec(source.Spec)
+	return &csMinefield
 }
-func (c *GameConverter) ConvertMineFields(source []generated.Minefield) []*cs.MineField {
-	var pCsMineFieldList []*cs.MineField
+func (c *GameConverter) ConvertMinefields(source []generated.Minefield) []*cs.Minefield {
+	var pCsMinefieldList []*cs.Minefield
 	if source != nil {
-		pCsMineFieldList = make([]*cs.MineField, len(source))
+		pCsMinefieldList = make([]*cs.Minefield, len(source))
 		for i := 0; i < len(source); i++ {
-			pCsMineFieldList[i] = c.ConvertMineField(source[i])
+			pCsMinefieldList[i] = c.ConvertMinefield(source[i])
 		}
 	}
-	return pCsMineFieldList
+	return pCsMinefieldList
 }
 func (c *GameConverter) ConvertMineralPacket(source generated.MineralPacket) *cs.MineralPacket {
 	var csMineralPacket cs.MineralPacket
@@ -1725,7 +1725,7 @@ func (c *GameConverter) csFleetPurposeToCsFleetPurpose(source cs.FleetPurpose) c
 func (c *GameConverter) csMapObjectTypeToCsMapObjectType(source cs.MapObjectType) cs.MapObjectType {
 	return source
 }
-func (c *GameConverter) csMineFieldTypeToCsMineFieldType(source cs.MineFieldType) cs.MineFieldType {
+func (c *GameConverter) csMinefieldTypeToCsMinefieldType(source cs.MinefieldType) cs.MinefieldType {
 	return source
 }
 func (c *GameConverter) csMysteryTraderRewardTypeToCsMysteryTraderRewardType(source cs.MysteryTraderRewardType) cs.MysteryTraderRewardType {
@@ -1806,10 +1806,10 @@ func (c *GameConverter) generatedMinefieldToCsGameDBObject(source generated.Mine
 	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
-func (c *GameConverter) generatedMinefieldToCsMineFieldOrders(source generated.Minefield) cs.MineFieldOrders {
-	var csMineFieldOrders cs.MineFieldOrders
-	csMineFieldOrders.Detonate = source.Detonate
-	return csMineFieldOrders
+func (c *GameConverter) generatedMinefieldToCsMinefieldOrders(source generated.Minefield) cs.MinefieldOrders {
+	var csMinefieldOrders cs.MinefieldOrders
+	csMinefieldOrders.Detonate = source.Detonate
+	return csMinefieldOrders
 }
 func (c *GameConverter) generatedMineralPacketToCsGameDBObject(source generated.MineralPacket) cs.GameDBObject {
 	var csGameDBObject cs.GameDBObject
@@ -1880,7 +1880,7 @@ func (c *GameConverter) generatedPlayerToCsPlayerIntels(source generated.Player)
 	csPlayerIntels.FleetIntels = FleetIntelsToGameFleetIntels(source.FleetIntels)
 	csPlayerIntels.ShipDesignIntels = ShipDesignIntelsToGameShipDesignIntels(source.ShipDesignIntels)
 	csPlayerIntels.MineralPacketIntels = MineralPacketIntelsToGameMineralPacketIntels(source.MineralPacketIntels)
-	csPlayerIntels.MineFieldIntels = MineFieldIntelsToGameMineFieldIntels(source.MinefieldIntels)
+	csPlayerIntels.MinefieldIntels = MinefieldIntelsToGameMinefieldIntels(source.MinefieldIntels)
 	csPlayerIntels.WormholeIntels = WormholeIntelsToGameWormholeIntels(source.WormholeIntels)
 	csPlayerIntels.MysteryTraderIntels = MysteryTraderIntelsToGameMysteryTraderIntels(source.MysteryTraderIntels)
 	csPlayerIntels.SalvageIntels = SalvageIntelsToGameSalvageIntels(source.SalvageIntels)

@@ -193,7 +193,7 @@ type CreatePlayerParams struct {
 	FleetIntels                  *FleetIntels
 	ShipDesignIntels             *ShipDesignIntels
 	MineralPacketIntels          *MineralPacketIntels
-	MinefieldIntels              *MineFieldIntels
+	MinefieldIntels              *MinefieldIntels
 	WormholeIntels               *WormholeIntels
 	MysteryTraderIntels          *MysteryTraderIntels
 	SalvageIntels                *SalvageIntels
@@ -1467,7 +1467,7 @@ type UpdatePlayerParams struct {
 	FleetIntels                  *FleetIntels
 	ShipDesignIntels             *ShipDesignIntels
 	MineralPacketIntels          *MineralPacketIntels
-	MinefieldIntels              *MineFieldIntels
+	MinefieldIntels              *MinefieldIntels
 	WormholeIntels               *WormholeIntels
 	MysteryTraderIntels          *MysteryTraderIntels
 	SalvageIntels                *SalvageIntels

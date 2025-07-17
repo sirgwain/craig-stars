@@ -9,7 +9,7 @@ import (
 )
 
 // get a minefield by id
-func (c *client) GetMinefield(ctx context.Context, id int64) (*cs.MineField, error) {
+func (c *client) GetMinefield(ctx context.Context, id int64) (*cs.Minefield, error) {
 	item, err := c.reader.GetMinefield(ctx, id)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -18,10 +18,10 @@ func (c *client) GetMinefield(ctx context.Context, id int64) (*cs.MineField, err
 		return nil, err
 	}
 
-	return c.converter.ConvertMineField(item), nil
+	return c.converter.ConvertMinefield(item), nil
 }
 
-func (c *client) GetMinefieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineField, error) {
+func (c *client) GetMinefieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.Minefield, error) {
 
 	item, err := c.reader.GetMinefieldByNum(ctx, generated.GetMinefieldByNumParams{
 		GameID:    gameID,
@@ -35,48 +35,48 @@ func (c *client) GetMinefieldByNum(ctx context.Context, gameID int64, playerNum 
 		return nil, err
 	}
 
-	return c.converter.ConvertMineField(item), nil
+	return c.converter.ConvertMinefield(item), nil
 
 }
 
-func (c *client) getMineFieldsForGame(ctx context.Context, gameID int64) ([]*cs.MineField, error) {
+func (c *client) getMinefieldsForGame(ctx context.Context, gameID int64) ([]*cs.Minefield, error) {
 	items, err := c.reader.GetMinefieldsForGame(ctx, gameID)
 
 	if err == sql.ErrNoRows {
-		return []*cs.MineField{}, nil
+		return []*cs.Minefield{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return c.converter.ConvertMineFields(items), nil
+	return c.converter.ConvertMinefields(items), nil
 }
 
-func (c *client) GetMinefieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineField, error) {
+func (c *client) GetMinefieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Minefield, error) {
 	items, err := c.reader.GetMinefieldsForPlayer(ctx, generated.GetMinefieldsForPlayerParams{
 		GameID:    gameID,
 		PlayerNum: int64(playerNum),
 	})
 
 	if err == sql.ErrNoRows {
-		return []*cs.MineField{}, nil
+		return []*cs.Minefield{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return c.converter.ConvertMineFields(items), nil
+	return c.converter.ConvertMinefields(items), nil
 }
 
-func (c *client) SaveMinefield(ctx context.Context, mineField *cs.MineField) error {
-	if mineField.ID == 0 {
-		result, err := c.writer.CreateMinefield(ctx, c.converter.ConvertGameMineFieldToCreateParams(mineField))
+func (c *client) SaveMinefield(ctx context.Context, minefield *cs.Minefield) error {
+	if minefield.ID == 0 {
+		result, err := c.writer.CreateMinefield(ctx, c.converter.ConvertGameMinefieldToCreateParams(minefield))
 		if err != nil {
 			return err
 		}
-		mineField.ID = result
+		minefield.ID = result
 	} else {
-		_, err := c.writer.UpdateMinefield(ctx, c.converter.ConvertGameMineFieldToUpdateParams(mineField))
+		_, err := c.writer.UpdateMinefield(ctx, c.converter.ConvertGameMinefieldToUpdateParams(minefield))
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func (c *client) SaveMinefield(ctx context.Context, mineField *cs.MineField) err
 }
 
 // delete a minefield by id
-func (c *client) DeleteMineField(ctx context.Context, id int64) error {
+func (c *client) DeleteMinefield(ctx context.Context, id int64) error {
 	_, err := c.writer.DeleteMinefield(ctx, id)
 	return err
 }

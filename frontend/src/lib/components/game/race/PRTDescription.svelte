@@ -19,7 +19,7 @@
 	to top-drawer cloaks and all your ships have 75% cloaking built in. Cargo does not decrease your
 	cloaking abilities. The Stealth Bomber and Rogue hulls are at your disposal, as are a trifecta of
 	components with stealthy properties and a pair of scanners which allow you to steal minerals from
-	enemy fleets and planets. You may safely travel through enemy mine fields one warp speed faster
+	enemy fleets and planets. You may safely travel through enemy minefields one warp speed faster
 	than the stated limits, and passively gain research by covertly spying on others' accomplishments.
 {:else if prt == WM}
 	You rule the battle field. Your colonists attack better, your ships are faster in battle, and you
@@ -35,15 +35,15 @@
 	random environment variable by 1% each year.
 {:else if prt == IS}
 	You are strong and hard to defeat. Your colonists repel attacks better, your ships heal faster,
-	you have special battle devices that protect your ships, and can lay Speed Trap mine fields to
-	slow attackers. You have a pair of devices that act as both shield and armor. Planetary defenses
-	cost you 40% less, though weapons cost you 25% more. Your colonists are able to reproduce while
-	being transported by your fleets at 50% speed, beaming down excess colonists when orbiting planets
-	you control. However, your peace-loving citizens refuse to build Smart Bombs of any kind.
+	you have special battle devices that protect your ships, and can lay Speed Trap minefields to slow
+	attackers. You have a pair of devices that act as both shield and armor. Planetary defenses cost
+	you 40% less, though weapons cost you 25% more. Your colonists are able to reproduce while being
+	transported by your fleets at 50% speed, beaming down excess colonists when orbiting planets you
+	control. However, your peace-loving citizens refuse to build Smart Bombs of any kind.
 {:else if prt == SD}
-	You are an expert in laying mine fields. You start the game with 2 mine laying ships and Tech 2 in
+	You are an expert in laying minefields. You start the game with 2 mine laying ships and Tech 2 in
 	Propulsion and Biotechnology. You have access to a vast array of mine layers, alongside two unique
-	hull designs specializing in mine dispersal. Your mine fields decay slower, detect enemy ships and
+	hull designs specializing in mine dispersal. Your minefields decay slower, detect enemy ships and
 	can be laid while moving, and you have the ability to remotely detonate your own Standard mine
 	fields. You may safely travel two warp speeds faster than the stated limits through enemy mine
 	fields.

@@ -29,21 +29,12 @@ type DBConn interface {
 	NewReadClient() Client
 	NewReadWriteClient() Client
 
-	// for write clients we use transactions
-	BeginTransaction() (Client, error)
-	Rollback(c Client) error
-	Commit(c Client) error
-
 	// wrap a function call inside a transaction
 	WrapInTransaction(wrap func(c Client) error) error
 }
 
 // A database Client interface is used to make all calls that modify the database
 type Client interface {
-	// private transaction management methods used by DBConn RollBack, Commit
-	rollback() error
-	commit() error
-
 	// private method used during DBConn Connect to upgrade a client
 	// this is
 	ensureUpgrade(context.Context) error
@@ -133,10 +124,10 @@ type Client interface {
 	GetFleetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Fleet, error)
 	SaveFleet(ctx context.Context, fleet *cs.Fleet) error
 
-	GetMinefield(ctx context.Context, id int64) (*cs.MineField, error)
-	GetMinefieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineField, error)
-	GetMinefieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineField, error)
-	SaveMinefield(ctx context.Context, minefield *cs.MineField) error
+	GetMinefield(ctx context.Context, id int64) (*cs.Minefield, error)
+	GetMinefieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.Minefield, error)
+	GetMinefieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Minefield, error)
+	SaveMinefield(ctx context.Context, minefield *cs.Minefield) error
 
 	GetMineralPacket(ctx context.Context, id int64) (*cs.MineralPacket, error)
 	GetMineralPacketByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineralPacket, error)
@@ -199,34 +190,19 @@ func newTransactionClient(tx *sql.Tx) *client {
 	}
 }
 
-func (conn *dbConn) BeginTransaction() (Client, error) {
-	tx, err := conn.dbWrite.Begin()
-	if err != nil {
-		return nil, err
-	}
-	return newTransactionClient(tx), nil
-}
-
-func (conn *dbConn) Rollback(c Client) error {
-	return c.rollback()
-}
-func (conn *dbConn) Commit(c Client) error {
-	return c.commit()
-}
-
 // helper function to wrap a series of db calls in a transaction
 func (conn *dbConn) WrapInTransaction(wrap func(c Client) error) error {
-	c, err := conn.BeginTransaction()
+	tx, err := conn.dbWrite.Begin()
 	if err != nil {
 		return err
 	}
-	defer func() { conn.Rollback(c) }()
+	defer func() { tx.Rollback() }()
 
-	if err := wrap(c); err != nil {
+	if err := wrap(newTransactionClient(tx)); err != nil {
 		return err
 	}
 
-	return conn.Commit(c)
+	return tx.Commit()
 }
 
 func (c *dbConn) Connect(cfg *config.Config) error {
@@ -246,7 +222,7 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 
 	// dsn is like file::memory:?cache=shared, or file:data.db?_journal=WAL
 	dsn := fmt.Sprintf("file:%s%s", cfg.Database.Filename, cfg.Database.ReadConnectionParams)
-	log.Debug().Msgf("Connecting to database %s", dsn)
+	zlogger.Debug().Msgf("Connecting to database %s", dsn)
 	connectHook := func(conn *sqlite3.SQLiteConn) error {
 		if c.databaseInMemory {
 			// no need to attach
@@ -284,8 +260,6 @@ func (c *dbConn) Connect(cfg *config.Config) error {
 		c.mustUpgrade()
 	}
 
-	log.Info().Msg("connect() complete")
-
 	return nil
 }
 
@@ -297,12 +271,4 @@ func (c *dbConn) Close() error {
 		return err
 	}
 	return nil
-}
-
-func (c *client) rollback() error {
-	return c.tx.Rollback()
-}
-
-func (c *client) commit() error {
-	return c.tx.Commit()
 }

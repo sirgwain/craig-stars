@@ -5,7 +5,7 @@
 	import type { MapObjectTarget, Vector } from '$lib/types/cs';
 	import {
 		MapObjectTypeFleet,
-		MapObjectTypeMineField,
+		MapObjectTypeMinefield,
 		MapObjectTypeMineralPacket,
 		MapObjectTypeNone,
 		MapObjectTypePlanet,
@@ -34,7 +34,7 @@
 	function isTarget(mo: MapObject) {
 		if (
 			target.targetType === MapObjectTypeFleet ||
-			target.targetType === MapObjectTypeMineField ||
+			target.targetType === MapObjectTypeMinefield ||
 			target.targetType === MapObjectTypeMineralPacket
 		) {
 			// fleets, minefields, and mineral packets are keyed off of player num as well as type/num
@@ -56,7 +56,7 @@
 	let everythingElse = $derived(
 		flatten(
 			keys(otherMapObjectsHere).map((k) =>
-				k !== MapObjectTypePlanet && k !== MapObjectTypeFleet && k !== MapObjectTypeMineField
+				k !== MapObjectTypePlanet && k !== MapObjectTypeFleet && k !== MapObjectTypeMinefield
 					? otherMapObjectsHere[k]
 					: []
 			)
@@ -66,7 +66,7 @@
 		{ type: MapObjectTypeNone, position: position },
 		...(otherMapObjectsHere[MapObjectTypePlanet] ?? []),
 		...(otherMapObjectsHere[MapObjectTypeFleet] ?? []),
-		...(otherMapObjectsHere[MapObjectTypeMineField] ?? []),
+		...(otherMapObjectsHere[MapObjectTypeMinefield] ?? []),
 		...everythingElse
 	]);
 </script>
@@ -110,9 +110,9 @@
 		</optgroup>
 	{/if}
 
-	{#if otherMapObjectsHere[MapObjectTypeMineField]}
-		<optgroup label="Mine Fields">
-			{#each otherMapObjectsHere[MapObjectTypeMineField] as mo, index (key(mo))}
+	{#if otherMapObjectsHere[MapObjectTypeMinefield]}
+		<optgroup label="Minefields">
+			{#each otherMapObjectsHere[MapObjectTypeMinefield] as mo, index (key(mo))}
 				<option
 					selected={isTarget(mo)}
 					value={1 +
@@ -133,7 +133,7 @@
 						index +
 						(otherMapObjectsHere[MapObjectTypePlanet]?.length ?? 0) +
 						(otherMapObjectsHere[MapObjectTypeFleet]?.length ?? 0) +
-						(otherMapObjectsHere[MapObjectTypeMineField]?.length ?? 0)}>{mo.name}</option
+						(otherMapObjectsHere[MapObjectTypeMinefield]?.length ?? 0)}>{mo.name}</option
 				>
 			{/each}
 		</optgroup>

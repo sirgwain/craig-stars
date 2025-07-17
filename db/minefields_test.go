@@ -11,16 +11,16 @@ import (
 func TestSaveMinefield(t *testing.T) {
 	type args struct {
 		c         *client
-		mineField *cs.MineField
+		minefield *cs.Minefield
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"Create", args{connectTestDB(), &cs.MineField{
+		{"Create", args{connectTestDB(), &cs.Minefield{
 			GameDBObject: cs.GameDBObject{GameID: 1},
-			MapObject:    cs.MapObject{Type: cs.MapObjectTypeMineField, Name: "test"},
+			MapObject:    cs.MapObject{Type: cs.MapObjectTypeMinefield, Name: "test"},
 		},
 		}, false},
 	}
@@ -28,11 +28,11 @@ func TestSaveMinefield(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// create a test game
 			g, player := tt.args.c.createTestGameWithPlayer(t.Context())
-			tt.args.mineField.GameID = g.ID
-			tt.args.mineField.PlayerNum = player.Num
+			tt.args.minefield.GameID = g.ID
+			tt.args.minefield.PlayerNum = player.Num
 
-			want := *tt.args.mineField
-			err := tt.args.c.SaveMinefield(t.Context(), tt.args.mineField)
+			want := *tt.args.minefield
+			err := tt.args.c.SaveMinefield(t.Context(), tt.args.minefield)
 
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
@@ -42,7 +42,7 @@ func TestSaveMinefield(t *testing.T) {
 				}
 			}
 
-			got := tt.args.mineField
+			got := tt.args.minefield
 			// DBObject is returned
 			want.GameDBObject = got.GameDBObject
 			test.CompareAsJSON(t, got, &want)
@@ -52,18 +52,17 @@ func TestSaveMinefield(t *testing.T) {
 
 func TestGetMinefield(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
-	mineField := &cs.MineField{
+	minefield := &cs.Minefield{
 		GameDBObject:  cs.GameDBObject{GameID: g.ID},
-		MapObject:     cs.MapObject{PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMineField},
-		MineFieldType: cs.MineFieldTypeStandard,
+		MapObject:     cs.MapObject{PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeMinefield},
+		MinefieldType: cs.MinefieldTypeStandard,
 	}
 
-	if err := c.SaveMinefield(t.Context(), mineField); err != nil {
-		t.Errorf("create mineField %s", err)
+	if err := c.SaveMinefield(t.Context(), minefield); err != nil {
+		t.Errorf("create minefield %s", err)
 		return
 	}
 
@@ -73,11 +72,11 @@ func TestGetMinefield(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *cs.MineField
+		want    *cs.Minefield
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got mineField", args{id: mineField.ID}, mineField, false},
+		{"Got minefield", args{id: minefield.ID}, minefield, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -99,23 +98,22 @@ func TestGetMinefield(t *testing.T) {
 	}
 }
 
-func TestGetMineFields(t *testing.T) {
+func TestGetMinefields(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getMineFieldsForGame(t.Context(), g.ID)
+	result, err := c.getMinefieldsForGame(t.Context(), g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 
-	if err := c.SaveMinefield(t.Context(), &cs.MineField{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}); err != nil {
+	if err := c.SaveMinefield(t.Context(), &cs.Minefield{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	result, err = c.getMineFieldsForGame(t.Context(), g.ID)
+	result, err = c.getMinefieldsForGame(t.Context(), g.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -123,28 +121,27 @@ func TestGetMineFields(t *testing.T) {
 
 func TestUpdateMinefield(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
-	mineField := &cs.MineField{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
-	if err := c.SaveMinefield(t.Context(), mineField); err != nil {
+	minefield := &cs.Minefield{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}
+	if err := c.SaveMinefield(t.Context(), minefield); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	mineField.Name = "Test2"
-	if err := c.SaveMinefield(t.Context(), mineField); err != nil {
+	minefield.Name = "Test2"
+	if err := c.SaveMinefield(t.Context(), minefield); err != nil {
 		t.Errorf("update planet %s", err)
 		return
 	}
 
-	updated, err := c.GetMinefield(t.Context(), mineField.ID)
+	updated, err := c.GetMinefield(t.Context(), minefield.ID)
 
 	if err != nil {
 		t.Errorf("get planet %s", err)
 		return
 	}
 
-	assert.Equal(t, mineField.Name, updated.Name)
+	assert.Equal(t, minefield.Name, updated.Name)
 
 }

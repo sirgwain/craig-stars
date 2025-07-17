@@ -43,7 +43,6 @@ func TestCreateUser(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	var user *cs.User
 	var err error
@@ -76,7 +75,6 @@ func TestUpdateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	var user *cs.User
 	var err error
@@ -119,7 +117,6 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUsers(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	// start with 1 user from connectTestDB
 	result, err := c.GetUsers(t.Context())
@@ -140,7 +137,6 @@ func TestGetUsers(t *testing.T) {
 
 func TestDeleteUsers(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	_, err := c.GetUsers(t.Context())
 	assert.Nil(t, err)

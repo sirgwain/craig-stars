@@ -109,23 +109,23 @@
 			if (hullComponent) {
 				if (
 					hullComponent.category == TechCategoryMineLayer &&
-					hullComponent.mineFieldType &&
-					rules.mineFieldStatsByType
+					hullComponent.minefieldType &&
+					rules.minefieldStatsByType
 				) {
-					const mineFieldStats = rules.mineFieldStatsByType[hullComponent.mineFieldType];
+					const minefieldStats = rules.minefieldStatsByType[hullComponent.minefieldType];
 					stats.push({ label: 'Mines laid per year', text: `${hullComponent.mineLayingRate}` });
-					stats.push({ label: 'Maximum safe speed', text: `${mineFieldStats.maxSpeed}` });
+					stats.push({ label: 'Maximum safe speed', text: `${minefieldStats.maxSpeed}` });
 					stats.push({
 						label: 'Chance/l.y. of a hit',
-						text: `${(mineFieldStats.chanceOfHit * 100).toFixed(1)}%`
+						text: `${(minefieldStats.chanceOfHit * 100).toFixed(1)}%`
 					});
 					stats.push({
 						label: 'Dmg done to each ship',
-						text: `${mineFieldStats.damagePerEngine} (${mineFieldStats.damagePerEngineRS}) / engine`
+						text: `${minefieldStats.damagePerEngine} (${minefieldStats.damagePerEngineRS}) / engine`
 					});
 					stats.push({
 						label: 'Min damage done to fleet',
-						text: `${mineFieldStats.minDamagePerFleet} (${mineFieldStats.minDamagePerFleetRS})`
+						text: `${minefieldStats.minDamagePerFleet} (${minefieldStats.minDamagePerFleetRS})`
 					});
 					descriptions.push(
 						'Numbers in parentheses are for fleets containing a ship with ram scoop engines. Note that the chance of hitting a mine goes up the % listed for EACH warp you exceed the safe speed.'

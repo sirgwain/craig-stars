@@ -51,7 +51,7 @@ const speedTrap20: TechHullComponent = {
 	category: TechCategoryMineLayer,
 	hullSlotType: 8192,
 	mass: 100,
-	mineFieldType: 'SpeedBump',
+	minefieldType: 'SpeedBump',
 	mineLayingRate: 20
 };
 

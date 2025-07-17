@@ -49,7 +49,6 @@ func TestSaveMysteryTrader(t *testing.T) {
 
 func TestGetMysteryTraders(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 
@@ -71,7 +70,6 @@ func TestGetMysteryTraders(t *testing.T) {
 
 func TestGetMysteryTrader(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 	mysteryTrader := &cs.MysteryTrader{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{Name: "name", Type: cs.MapObjectTypeMysteryTrader}}
@@ -114,7 +112,6 @@ func TestGetMysteryTrader(t *testing.T) {
 
 func TestUpdateMysteryTrader(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 	mysteryTrader := &cs.MysteryTrader{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}

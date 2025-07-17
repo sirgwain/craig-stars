@@ -1,21 +1,21 @@
-import { type MineField, type MineFieldOrders } from '$lib/types/cs';
+import { type Minefield, type MinefieldOrders } from '$lib/types/cs';
 import { Service } from './Service';
 
 // orders sent to the server
-export class MineFieldOrdersRequest implements MineFieldOrders {
+export class MinefieldOrdersRequest implements MinefieldOrders {
 	constructor(public detonate: boolean) {}
 }
 
-export class MineFieldService {
-	static async updateMineFieldOrders(mineField: MineField): Promise<MineField> {
-		const mineFieldOrders = new MineFieldOrdersRequest(mineField.detonate ?? false);
+export class MinefieldService {
+	static async updateMinefieldOrders(minefield: Minefield): Promise<Minefield> {
+		const minefieldOrders = new MinefieldOrdersRequest(minefield.detonate ?? false);
 
-		const response = await fetch(`/api/games/${mineField.gameId}/mine-fields/${mineField.num}`, {
+		const response = await fetch(`/api/games/${minefield.gameId}/mine-fields/${minefield.num}`, {
 			method: 'PUT',
 			headers: {
 				accept: 'application/json'
 			},
-			body: JSON.stringify(mineFieldOrders)
+			body: JSON.stringify(minefieldOrders)
 		});
 
 		if (!response.ok) {

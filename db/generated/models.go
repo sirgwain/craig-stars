@@ -113,8 +113,8 @@ type Minefield struct {
 	PlayerNum     int64
 	NumMines      int64
 	Detonate      bool
-	MinefieldType *cs.MineFieldType
-	Spec          *MineFieldSpec
+	MinefieldType *cs.MinefieldType
+	Spec          *MinefieldSpec
 	Tags          *Tags
 }
 
@@ -251,7 +251,7 @@ type Player struct {
 	FleetIntels                  *FleetIntels
 	ShipDesignIntels             *ShipDesignIntels
 	MineralPacketIntels          *MineralPacketIntels
-	MinefieldIntels              *MineFieldIntels
+	MinefieldIntels              *MinefieldIntels
 	WormholeIntels               *WormholeIntels
 	MysteryTraderIntels          *MysteryTraderIntels
 	SalvageIntels                *SalvageIntels

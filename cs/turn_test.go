@@ -215,13 +215,13 @@ func Test_generateTurns(t *testing.T) {
 		}
 		universe.Salvages = salvages
 
-		mineFields := make([]*MineField, 0, len(universe.MineFields))
-		for _, mineField := range universe.MineFields {
-			if !mineField.Delete {
-				mineFields = append(mineFields, mineField)
+		minefields := make([]*Minefield, 0, len(universe.Minefields))
+		for _, minefield := range universe.Minefields {
+			if !minefield.Delete {
+				minefields = append(minefields, minefield)
 			}
 		}
-		universe.MineFields = mineFields
+		universe.Minefields = minefields
 
 		mineralPackets := make([]*MineralPacket, 0, len(universe.MineralPackets))
 		for _, mineralPacket := range universe.MineralPackets {
@@ -1184,29 +1184,29 @@ func Test_turn_fleetMove(t *testing.T) {
 		rules := &game.Rules
 
 		// change the rules so going 4 warp over the limit guarantee's a hit
-		stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
+		stats := rules.MinefieldStatsByType[MinefieldTypeStandard]
 		stats.MaxSpeed = 5
 		stats.ChanceOfHit = 1
 		stats.MinDecay = 0 // turn off decay
-		rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
+		rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
 
-		// create a new MineField 20ly away with 10ly radius
+		// create a new Minefield 20ly away with 10ly radius
 		radius := 10
-		mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-		mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
-		mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
-		mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
-		mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
-		mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+		minefieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+		minefieldPlayer.Race.Spec.MinefieldBaseDecayRate = 0
+		minefieldPlayer.Race.Spec.MinefieldMinDecayFactor = 0
+		minefieldPlayer.Race.Spec.MinefieldMaxDecayRate = 0
+		minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{20, 0})
+		minefield.Spec = computeMinefieldSpec(rules, minefieldPlayer, minefield, 0)
 		// setup initial planet intels so turn generation works
-		mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
+		minefieldPlayer.initDefaultPlanetIntels(game.Planets)
 
 		// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
 		player := game.Players[0]
 		player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
 
-		game.Players = append(game.Players, mineFieldPlayer)
-		game.MineFields = append(game.MineFields, mineField)
+		game.Players = append(game.Players, minefieldPlayer)
+		game.Minefields = append(game.Minefields, minefield)
 
 		// move us straight through a minefield
 		fleet := game.Fleets[0]
@@ -1226,8 +1226,8 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, 2, len(game.Players[0].Messages))
 		assert.Equal(t, 2, len(game.Players[1].Messages))
 
-		// the MineField should have lost some mines in the collision
-		assert.Equal(t, 88, mineField.NumMines)
+		// the Minefield should have lost some mines in the collision
+		assert.Equal(t, 88, minefield.NumMines)
 		assert.Equal(t, Vector{10, 0}, fleet.Position)
 	})
 
@@ -1236,29 +1236,29 @@ func Test_turn_fleetMove(t *testing.T) {
 		rules := &game.Rules
 
 		// change the rules so going 4 warp over the limit guarantee's a hit
-		stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
+		stats := rules.MinefieldStatsByType[MinefieldTypeStandard]
 		stats.MaxSpeed = 5
 		stats.ChanceOfHit = .25
 		stats.MinDecay = 0 // turn off decay
-		rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
+		rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
 
-		// create a new MineField 20ly away with 10ly radius
+		// create a new Minefield 20ly away with 10ly radius
 		radius := 10
-		mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-		mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
-		mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
-		mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
-		mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{20, 0})
-		mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+		minefieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+		minefieldPlayer.Race.Spec.MinefieldBaseDecayRate = 0
+		minefieldPlayer.Race.Spec.MinefieldMinDecayFactor = 0
+		minefieldPlayer.Race.Spec.MinefieldMaxDecayRate = 0
+		minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{20, 0})
+		minefield.Spec = computeMinefieldSpec(rules, minefieldPlayer, minefield, 0)
 		// setup initial planet intels so turn generation works
-		mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
+		minefieldPlayer.initDefaultPlanetIntels(game.Planets)
 
 		// make sure our player doesn't gain any tech levels since we're checking messages after turn generation
 		player := game.Players[0]
 		player.TechLevels = TechLevel{26, 26, 26, 26, 26, 26}
 
-		game.Players = append(game.Players, mineFieldPlayer)
-		game.MineFields = append(game.MineFields, mineField)
+		game.Players = append(game.Players, minefieldPlayer)
+		game.Minefields = append(game.Minefields, minefield)
 
 		// move us straight through a minefield
 		fleet := game.Fleets[0]
@@ -1278,8 +1278,8 @@ func Test_turn_fleetMove(t *testing.T) {
 		assert.Equal(t, 2, len(game.Players[0].Messages))
 		assert.Equal(t, 2, len(game.Players[1].Messages))
 
-		// the MineField should have lost some mines in the collision
-		assert.Equal(t, 88, mineField.NumMines)
+		// the Minefield should have lost some mines in the collision
+		assert.Equal(t, 88, minefield.NumMines)
 	})
 }
 
@@ -1484,7 +1484,7 @@ func Test_turn_fleetLayMines(t *testing.T) {
 	game.Fleets[0] = fleet
 
 	// lay mines at current position
-	fleet.Waypoints[0].Task = WaypointTaskLayMineField
+	fleet.Waypoints[0].Task = WaypointTaskLayMinefield
 
 	turn := turnGenerator{
 		game: game,
@@ -1495,11 +1495,11 @@ func Test_turn_fleetLayMines(t *testing.T) {
 	// run for one year; should have created newminefield
 	turn.generateTurn()
 
-	assert.Equal(t, 1, len(game.MineFields))
-	mineField := game.MineFields[0]
-	assert.Equal(t, 320, mineField.NumMines)
-	assert.Equal(t, math.Sqrt(320), mineField.Spec.Radius)
-	assert.Equal(t, Vector{0, 0}, mineField.Position)
+	assert.Equal(t, 1, len(game.Minefields))
+	minefield := game.Minefields[0]
+	assert.Equal(t, 320, minefield.NumMines)
+	assert.Equal(t, math.Sqrt(320), minefield.Spec.Radius)
+	assert.Equal(t, Vector{0, 0}, minefield.Position)
 
 }
 
@@ -1508,9 +1508,9 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	rules := &game.Rules
 
 	// change the rules so we don't decay
-	stats := rules.MineFieldStatsByType[MineFieldTypeStandard]
+	stats := rules.MinefieldStatsByType[MinefieldTypeStandard]
 	stats.MinDecay = 0 // turn off decay
-	rules.MineFieldStatsByType[MineFieldTypeStandard] = stats
+	rules.MinefieldStatsByType[MinefieldTypeStandard] = stats
 
 	player := game.Players[0]
 
@@ -1519,23 +1519,23 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	player.Designs[0] = fleet.Tokens[0].design
 	game.Fleets[0] = fleet
 
-	// create a new MineField with 100 mines
+	// create a new Minefield with 100 mines
 	// and make it not decay
 	radius := 10
-	mineFieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
-	mineFieldPlayer.Race.Spec.MineFieldBaseDecayRate = 0
-	mineFieldPlayer.Race.Spec.MineFieldMinDecayFactor = 0
-	mineFieldPlayer.Race.Spec.MineFieldMaxDecayRate = 0
-	mineField := newMineField(mineFieldPlayer, MineFieldTypeStandard, radius*radius, 1, Vector{0, 0})
-	mineField.Spec = computeMinefieldSpec(rules, mineFieldPlayer, mineField, 0)
+	minefieldPlayer := NewPlayer(2, NewRace().WithSpec(rules)).WithNum(2).withSpec(rules)
+	minefieldPlayer.Race.Spec.MinefieldBaseDecayRate = 0
+	minefieldPlayer.Race.Spec.MinefieldMinDecayFactor = 0
+	minefieldPlayer.Race.Spec.MinefieldMaxDecayRate = 0
+	minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{0, 0})
+	minefield.Spec = computeMinefieldSpec(rules, minefieldPlayer, minefield, 0)
 	// setup initial planet intels so turn generation works
-	mineFieldPlayer.initDefaultPlanetIntels(game.Planets)
+	minefieldPlayer.initDefaultPlanetIntels(game.Planets)
 
-	game.Players = append(game.Players, mineFieldPlayer)
-	game.MineFields = append(game.MineFields, mineField)
+	game.Players = append(game.Players, minefieldPlayer)
+	game.Minefields = append(game.Minefields, minefield)
 
 	player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
-	mineFieldPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
+	minefieldPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
 
 	turn := turnGenerator{
 		game: game,
@@ -1547,8 +1547,8 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	turn.generateTurn()
 
 	// we should clear out some mines
-	assert.Equal(t, 78, mineField.NumMines)
-	assert.False(t, mineField.Delete)
+	assert.Equal(t, 78, minefield.NumMines)
+	assert.False(t, minefield.Delete)
 
 	// upgrade a mine sweeper weapon
 	fleet.Tokens[0].design.Slots[1].HullComponent = GatlingNeutrinoCannon.Name
@@ -1559,8 +1559,8 @@ func Test_turn_fleetSweepMines(t *testing.T) {
 	turn.generateTurn()
 
 	// we should clear out some mines
-	assert.Equal(t, 0, mineField.NumMines)
-	assert.True(t, mineField.Delete)
+	assert.Equal(t, 0, minefield.NumMines)
+	assert.True(t, minefield.Delete)
 }
 
 func Test_turn_instaform(t *testing.T) {
@@ -1769,11 +1769,11 @@ func Test_turn_fleetRadiatingEngineDieoff(t *testing.T) {
 
 func Test_turn_detonateMines(t *testing.T) {
 
-	mineFieldPlayer := NewPlayer(1, NewRace().WithPRT(SD).WithSpec(&rules)).WithNum(1).withSpec(&rules)
+	minefieldPlayer := NewPlayer(1, NewRace().WithPRT(SD).WithSpec(&rules)).WithNum(1).withSpec(&rules)
 	otherPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
 
 	type args struct {
-		mineField *MineField
+		minefield *Minefield
 		fleet     *Fleet
 		players   []*Player
 	}
@@ -1786,29 +1786,29 @@ func Test_turn_detonateMines(t *testing.T) {
 		{
 			name: "no op",
 			args: args{
-				mineField: newMineField(mineFieldPlayer, MineFieldTypeStandard, 10*10, 1, Vector{}),
+				minefield: newMinefield(minefieldPlayer, MinefieldTypeStandard, 10*10, 1, Vector{}),
 				fleet:     testLongRangeScout(otherPlayer),
-				players:   []*Player{mineFieldPlayer, otherPlayer},
+				players:   []*Player{minefieldPlayer, otherPlayer},
 			},
 			want: []ShipToken{{Quantity: 1, QuantityDamaged: 0, Damage: 0}},
 		},
 		{
 			name: "detonate, destroy ship",
 			args: args{
-				mineField: newMineField(mineFieldPlayer, MineFieldTypeStandard, 10*10, 1, Vector{}).
-					withOrders(MineFieldOrders{Detonate: true}),
+				minefield: newMinefield(minefieldPlayer, MinefieldTypeStandard, 10*10, 1, Vector{}).
+					withOrders(MinefieldOrders{Detonate: true}),
 				fleet:   testLongRangeScout(otherPlayer),
-				players: []*Player{mineFieldPlayer, otherPlayer},
+				players: []*Player{minefieldPlayer, otherPlayer},
 			},
 			want: []ShipToken{{Quantity: 0, QuantityDamaged: 0, Damage: 500}},
 		},
 		{
 			name: "detonate, don't destroy mini mine layers",
 			args: args{
-				mineField: newMineField(mineFieldPlayer, MineFieldTypeStandard, 10*10, 1, Vector{}).
-					withOrders(MineFieldOrders{Detonate: true}),
-				fleet:   testMiniMineLayer(mineFieldPlayer),
-				players: []*Player{mineFieldPlayer},
+				minefield: newMinefield(minefieldPlayer, MinefieldTypeStandard, 10*10, 1, Vector{}).
+					withOrders(MinefieldOrders{Detonate: true}),
+				fleet:   testMiniMineLayer(minefieldPlayer),
+				players: []*Player{minefieldPlayer},
 			},
 			want: []ShipToken{{Quantity: 1, QuantityDamaged: 0, Damage: 0}},
 		},
@@ -1827,7 +1827,7 @@ func Test_turn_detonateMines(t *testing.T) {
 
 			universe := NewUniverse(testLogger, &game.Rules)
 			universe.Fleets = []*Fleet{tt.args.fleet}
-			universe.MineFields = []*MineField{tt.args.mineField}
+			universe.Minefields = []*Minefield{tt.args.minefield}
 
 			fg := FullGame{
 				Game:      game,

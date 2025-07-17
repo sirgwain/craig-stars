@@ -159,7 +159,7 @@ sql:
               pointer: true
           - column: players.minefield_intels
             go_type:
-              type: MineFieldIntels
+              type: MinefieldIntels
               pointer: true
           - column: players.wormhole_intels
             go_type:
@@ -274,11 +274,11 @@ sql:
           - column: minefields.minefield_type
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
-              type: MineFieldType
+              type: MinefieldType
               pointer: true
           - column: minefields.spec
             go_type:
-              type: MineFieldSpec
+              type: MinefieldSpec
               pointer: true
           # mineral_ackets
           - column: mineral_packets.tags

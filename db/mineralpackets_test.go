@@ -51,7 +51,6 @@ func TestSaveMineralPacket(t *testing.T) {
 
 func TestGetMineralPacket(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
@@ -98,7 +97,6 @@ func TestGetMineralPacket(t *testing.T) {
 
 func TestGetMineralPackets(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 
@@ -120,7 +118,6 @@ func TestGetMineralPackets(t *testing.T) {
 
 func TestUpdateMineralPacket(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 	mineralPacket := &cs.MineralPacket{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{PlayerNum: player.Num}}

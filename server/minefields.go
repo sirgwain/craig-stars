@@ -12,16 +12,16 @@ import (
 	"github.com/sirgwain/craig-stars/db"
 )
 
-type mineFieldRequest struct {
-	*cs.MineField
+type minefieldRequest struct {
+	*cs.Minefield
 }
 
-func (req *mineFieldRequest) Bind(r *http.Request) error {
+func (req *minefieldRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-// context for /api/games/{id}/mineFields/{num} calls that require a shipDesign
-func (s *server) mineFieldCtx(next http.Handler) http.Handler {
+// context for /api/games/{id}/minefields/{num} calls that require a shipDesign
+func (s *server) minefieldCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		db := s.contextDb(r)
 		player := s.contextPlayer(r)
@@ -32,61 +32,61 @@ func (s *server) mineFieldCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		mineField, err := db.GetMinefieldByNum(r.Context(), player.GameID, player.Num, *num)
+		minefield, err := db.GetMinefieldByNum(r.Context(), player.GameID, player.Num, *num)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
 		}
 
-		if mineField == nil {
-			log.Error().Int64("GameID", player.GameID).Msgf("unable to find mineField %d", num)
+		if minefield == nil {
+			log.Error().Int64("GameID", player.GameID).Msgf("unable to find minefield %d", num)
 			render.Render(w, r, ErrNotFound)
 			return
 		}
 
-		// only mineField owners can load this mineField
-		if mineField.PlayerNum != player.Num {
+		// only minefield owners can load this minefield
+		if minefield.PlayerNum != player.Num {
 			render.Render(w, r, ErrForbidden)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), keyMineField, mineField)
+		ctx := context.WithValue(r.Context(), keyMinefield, minefield)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (s *server) contextMineField(r *http.Request) *cs.MineField {
-	return r.Context().Value(keyMineField).(*cs.MineField)
+func (s *server) contextMinefield(r *http.Request) *cs.Minefield {
+	return r.Context().Value(keyMinefield).(*cs.Minefield)
 }
 
-func (s *server) mineField(w http.ResponseWriter, r *http.Request) {
-	mineField := s.contextMineField(r)
-	RenderJSON(w, mineField)
+func (s *server) minefield(w http.ResponseWriter, r *http.Request) {
+	minefield := s.contextMinefield(r)
+	RenderJSON(w, minefield)
 }
 
-// Allow a user to update a mineField's orders
-func (s *server) updateMineFieldOrders(w http.ResponseWriter, r *http.Request) {
-	existingMineField := s.contextMineField(r)
+// Allow a user to update a minefield's orders
+func (s *server) updateMinefieldOrders(w http.ResponseWriter, r *http.Request) {
+	existingMinefield := s.contextMinefield(r)
 	player := s.contextPlayer(r)
 	game := s.contextGame(r)
 
-	mineField := mineFieldRequest{}
-	if err := render.Bind(r, &mineField); err != nil {
+	minefield := minefieldRequest{}
+	if err := render.Bind(r, &minefield); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
 	orderer := cs.NewOrderer()
-	if err := orderer.UpdateMineFieldOrders(player, existingMineField, mineField.MineFieldOrders); err != nil {
-		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Str("MineField", existingMineField.Name).Msg("update mineField orders")
+	if err := orderer.UpdateMinefieldOrders(player, existingMinefield, minefield.MinefieldOrders); err != nil {
+		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Str("Minefield", existingMinefield.Name).Msg("update minefield orders")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	// update this mineField and the player's spec in the database
+	// update this minefield and the player's spec in the database
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.SaveMinefield(r.Context(), existingMineField); err != nil {
-			log.Error().Err(err).Int64("ID", mineField.ID).Msg("update mineField in database")
+		if err := c.SaveMinefield(r.Context(), existingMinefield); err != nil {
+			log.Error().Err(err).Int64("ID", minefield.ID).Msg("update minefield in database")
 			return err
 		}
 
@@ -96,5 +96,5 @@ func (s *server) updateMineFieldOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	RenderJSON(w, JSON{"mineField": existingMineField, "player": player})
+	RenderJSON(w, JSON{"minefield": existingMinefield, "player": player})
 }

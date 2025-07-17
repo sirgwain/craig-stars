@@ -115,15 +115,15 @@ type RaceSpec struct {
 	BuiltInCloakUnits                int                    `json:"builtInCloakUnits,omitempty"`
 	StealsResearch                   StealsResearch         `json:"stealsResearch,omitzero"`
 	FreeCargoCloaking                bool                   `json:"freeCargoCloaking,omitempty"`
-	MineFieldsAreScanners            bool                   `json:"mineFieldsAreScanners,omitempty"`
-	MineFieldRateMoveFactor          float64                `json:"mineFieldRateMoveFactor,omitempty"`
-	MineFieldSafeWarpBonus           int                    `json:"mineFieldSafeWarpBonus,omitempty"`
-	MineFieldMinDecayFactor          float64                `json:"mineFieldMinDecayFactor,omitempty"`
-	MineFieldBaseDecayRate           float64                `json:"mineFieldBaseDecayRate,omitempty"`
-	MineFieldPlanetDecayRate         float64                `json:"mineFieldPlanetDecayRate,omitempty"`
-	MineFieldMaxDecayRate            float64                `json:"mineFieldMaxDecayRate,omitempty"`
-	CanDetonateMineFields            bool                   `json:"canDetonateMineFields,omitempty"`
-	MineFieldDetonateDecayRate       float64                `json:"mineFieldDetonateDecayRate,omitempty"`
+	MinefieldsAreScanners            bool                   `json:"minefieldsAreScanners,omitempty"`
+	MinefieldRateMoveFactor          float64                `json:"minefieldRateMoveFactor,omitempty"`
+	MinefieldSafeWarpBonus           int                    `json:"minefieldSafeWarpBonus,omitempty"`
+	MinefieldMinDecayFactor          float64                `json:"minefieldMinDecayFactor,omitempty"`
+	MinefieldBaseDecayRate           float64                `json:"minefieldBaseDecayRate,omitempty"`
+	MinefieldPlanetDecayRate         float64                `json:"minefieldPlanetDecayRate,omitempty"`
+	MinefieldMaxDecayRate            float64                `json:"minefieldMaxDecayRate,omitempty"`
+	CanDetonateMinefields            bool                   `json:"canDetonateMinefields,omitempty"`
+	MinefieldDetonateDecayRate       float64                `json:"minefieldDetonateDecayRate,omitempty"`
 	DiscoverDesignOnScan             bool                   `json:"discoverDesignOnScan,omitempty"`
 	CanRemoteMineOwnPlanets          bool                   `json:"canRemoteMineOwnPlanets,omitempty"`
 	InvasionAttackBonus              float64                `json:"invasionAttackBonus,omitempty"`
@@ -655,15 +655,15 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		FreeCargoCloaking: prtSpec.FreeCargoCloaking,
 
 		// SD
-		MineFieldsAreScanners:      prtSpec.MineFieldsAreScanners,
-		MineFieldRateMoveFactor:    prtSpec.MineFieldRateMoveFactor,
-		MineFieldSafeWarpBonus:     prtSpec.MineFieldSafeWarpBonus,
-		MineFieldMinDecayFactor:    prtSpec.MineFieldMinDecayFactor,
-		MineFieldBaseDecayRate:     prtSpec.MineFieldBaseDecayRate,
-		MineFieldPlanetDecayRate:   prtSpec.MineFieldPlanetDecayRate,
-		MineFieldMaxDecayRate:      prtSpec.MineFieldMaxDecayRate,
-		CanDetonateMineFields:      prtSpec.CanDetonateMineFields,
-		MineFieldDetonateDecayRate: prtSpec.MineFieldDetonateDecayRate,
+		MinefieldsAreScanners:      prtSpec.MinefieldsAreScanners,
+		MinefieldRateMoveFactor:    prtSpec.MinefieldRateMoveFactor,
+		MinefieldSafeWarpBonus:     prtSpec.MinefieldSafeWarpBonus,
+		MinefieldMinDecayFactor:    prtSpec.MinefieldMinDecayFactor,
+		MinefieldBaseDecayRate:     prtSpec.MinefieldBaseDecayRate,
+		MinefieldPlanetDecayRate:   prtSpec.MinefieldPlanetDecayRate,
+		MinefieldMaxDecayRate:      prtSpec.MinefieldMaxDecayRate,
+		CanDetonateMinefields:      prtSpec.CanDetonateMinefields,
+		MinefieldDetonateDecayRate: prtSpec.MinefieldDetonateDecayRate,
 
 		// WM
 		DiscoverDesignOnScan: prtSpec.DiscoverDesignOnScan,

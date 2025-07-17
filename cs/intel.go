@@ -24,7 +24,7 @@ type discoverer interface {
 	discoverFleet(fleet *Fleet, discoverName bool)
 	discoverFleetCargo(fleet *Fleet)
 	discoverFleetScanner(fleet *Fleet)
-	discoverMineField(mineField *MineField)
+	discoverMinefield(minefield *Minefield)
 	discoverMineralPacket(rules *Rules, mineralPacket *MineralPacket, packetPlayer *Player, target *Planet)
 	discoverMineralPacketScanner(mineralPacket *MineralPacket)
 	discoverMineralPacketCargo(mineralPacket *MineralPacket)
@@ -32,7 +32,7 @@ type discoverer interface {
 	discoverWormhole(wormhole *Wormhole)
 	discoverWormholeLink(wormhole1, wormhole2 *Wormhole)
 	forgetWormhole(num int)
-	discoverMysteryTrader(mineField *MysteryTrader)
+	discoverMysteryTrader(minefield *MysteryTrader)
 	discoverDesign(design *ShipDesign, discoverSlots bool)
 }
 
@@ -142,12 +142,12 @@ type SalvageIntel struct {
 	Cargo     Cargo `json:"cargo"`
 }
 
-type MineFieldIntel struct {
+type MinefieldIntel struct {
 	Intel         `tstype:",extends"`
 	MapObject     `tstype:",extends"`
 	NumMines      int           `json:"numMines"`
-	MineFieldType MineFieldType `json:"mineFieldType"`
-	Spec          MineFieldSpec `json:"spec"`
+	MinefieldType MinefieldType `json:"minefieldType"`
+	Spec          MinefieldSpec `json:"spec"`
 }
 
 type WormholeIntel struct {
@@ -210,11 +210,11 @@ func newSalvageIntel(playerNum int, num int) *SalvageIntel {
 	}
 }
 
-// create a new MineFieldIntel object by key
-func newMineFieldIntel(playerNum int, num int) *MineFieldIntel {
-	return &MineFieldIntel{
+// create a new MinefieldIntel object by key
+func newMinefieldIntel(playerNum int, num int) *MinefieldIntel {
+	return &MinefieldIntel{
 		MapObject: MapObject{
-			Type:      MapObjectTypeMineField,
+			Type:      MapObjectTypeMinefield,
 			PlayerNum: playerNum,
 			Num:       num,
 		},
@@ -456,7 +456,7 @@ func (d *discover) discoverFleet(fleet *Fleet, discoverName bool) {
 	player := d.player
 	intel := player.GetFleetIntel(fleet.PlayerNum, fleet.Num)
 	if intel == nil {
-		// discover this new mineField
+		// discover this new minefield
 		intel = newFleetIntel(fleet.PlayerNum, fleet.Num)
 		player.FleetIntels = append(player.FleetIntels, *intel)
 		intel = &player.FleetIntels[len(player.FleetIntels)-1]
@@ -534,26 +534,26 @@ func (d *discover) discoverSalvage(salvage *Salvage) {
 
 }
 
-// discover a mineField and add it to the player's mineField intel
-func (d *discover) discoverMineField(mineField *MineField) {
+// discover a minefield and add it to the player's minefield intel
+func (d *discover) discoverMinefield(minefield *Minefield) {
 	player := d.player
-	intel := player.GetMineFieldIntel(mineField.PlayerNum, mineField.Num)
+	intel := player.GetMinefieldIntel(minefield.PlayerNum, minefield.Num)
 	if intel == nil {
-		// discover this new mineField
-		intel = newMineFieldIntel(mineField.PlayerNum, mineField.Num)
-		player.MineFieldIntels = append(player.MineFieldIntels, *intel)
-		intel = &player.MineFieldIntels[len(player.MineFieldIntels)-1]
+		// discover this new minefield
+		intel = newMinefieldIntel(minefield.PlayerNum, minefield.Num)
+		player.MinefieldIntels = append(player.MinefieldIntels, *intel)
+		intel = &player.MinefieldIntels[len(player.MinefieldIntels)-1]
 		d.log.Debug().
-			Int("MineFieldPlayer", mineField.PlayerNum).
-			Int("MineField", mineField.Num).
+			Int("MinefieldPlayer", minefield.PlayerNum).
+			Int("Minefield", minefield.Num).
 			Msgf("player discovered minefield")
 	}
 
-	intel.Name = mineField.Name
-	intel.Position = mineField.Position
-	intel.MineFieldType = mineField.MineFieldType
-	intel.NumMines = mineField.NumMines
-	intel.Spec.Radius = mineField.Spec.Radius
+	intel.Name = minefield.Name
+	intel.Position = minefield.Position
+	intel.MinefieldType = minefield.MinefieldType
+	intel.NumMines = minefield.NumMines
+	intel.Spec.Radius = minefield.Spec.Radius
 }
 
 // discover a mineralPacket and add it to the player's mineralPacket intel
@@ -936,11 +936,11 @@ func (d *discovererWithAllies) discoverFleetScanner(fleet *Fleet) {
 	}
 }
 
-func (d *discovererWithAllies) discoverMineField(mineField *MineField) {
-	d.playerDiscoverer.discoverMineField(mineField)
+func (d *discovererWithAllies) discoverMinefield(minefield *Minefield) {
+	d.playerDiscoverer.discoverMinefield(minefield)
 	for _, allyDiscoverer := range d.allyDiscoverers {
-		if allyDiscoverer.player.Num != mineField.PlayerNum {
-			allyDiscoverer.discoverMineField(mineField)
+		if allyDiscoverer.player.Num != minefield.PlayerNum {
+			allyDiscoverer.discoverMinefield(minefield)
 		}
 	}
 }

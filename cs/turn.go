@@ -988,31 +988,31 @@ func (t *turnGenerator) moveFleet(fleet *Fleet) {
 		interrupted := fleet.moveFleet(&t.game.Rules, t.game.Universe, t.game)
 		if interrupted != nil {
 			switch interrupted.reason {
-			case fleetMoveInterruptedHitMineField:
+			case fleetMoveInterruptedHitMinefield:
 				// damage the fleet in the minefield
-				mineField := interrupted.mineField
-				mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
-				stats := t.game.Rules.MineFieldStatsByType[mineField.MineFieldType]
+				minefield := interrupted.minefield
+				minefieldPlayer := t.game.getPlayer(minefield.PlayerNum)
+				stats := t.game.Rules.MinefieldStatsByType[minefield.MinefieldType]
 
-				damage := mineField.damageFleet(fleet, player, stats)
-				mineField.reduceMineFieldOnImpact()
-				if mineFieldPlayer.Race.Spec.MineFieldsAreScanners {
+				damage := minefield.damageFleet(fleet, player, stats)
+				minefield.reduceMinefieldOnImpact()
+				if minefieldPlayer.Race.Spec.MinefieldsAreScanners {
 					// SD races discover the exact fleet makeup
 					for _, token := range fleet.Tokens {
 						// SD races discover the exact fleet makeup
-						mineFieldPlayer.discoverer.discoverDesign(token.design, true)
+						minefieldPlayer.discoverer.discoverDesign(token.design, true)
 					}
 				}
 
-				// tell the fleet owner and the mineField owner the fleet was hit
-				messager.fleetMineFieldHit(player, fleet, mineField, damage)
-				if mineField.PlayerNum != player.Num {
-					messager.fleetMineFieldHit(mineFieldPlayer, fleet, mineField, damage)
+				// tell the fleet owner and the minefield owner the fleet was hit
+				messager.fleetMinefieldHit(player, fleet, minefield, damage)
+				if minefield.PlayerNum != player.Num {
+					messager.fleetMinefieldHit(minefieldPlayer, fleet, minefield, damage)
 				}
 
 				t.log.Debug().
-					Int("Player", mineField.PlayerNum).
-					Str("MineField", mineField.Name).
+					Int("Player", minefield.PlayerNum).
+					Str("Minefield", minefield.Name).
 					Str("Fleet", fleet.Name).
 					Int("FleetPlayer", fleet.PlayerNum).
 					Int("TotalDamage", damage.Damage).
@@ -1291,46 +1291,46 @@ func (t *turnGenerator) wormholeJiggle() {
 
 // SD races can detonate a minefield
 func (t *turnGenerator) detonateMines() {
-	for _, mineField := range t.game.MineFields {
-		if !mineField.Detonate {
+	for _, minefield := range t.game.Minefields {
+		if !minefield.Detonate {
 			continue
 		}
 
-		stats := t.game.Rules.MineFieldStatsByType[mineField.MineFieldType]
+		stats := t.game.Rules.MinefieldStatsByType[minefield.MinefieldType]
 		if !stats.CanDetonate {
 			continue
 		}
 
-		mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
-		fleetsWithin := t.game.fleetsWithin(mineField.Position, mineField.Spec.Radius)
+		minefieldPlayer := t.game.getPlayer(minefield.PlayerNum)
+		fleetsWithin := t.game.fleetsWithin(minefield.Position, minefield.Spec.Radius)
 		for _, fleet := range fleetsWithin {
 			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
-			damage := mineField.damageFleet(fleet, fleetPlayer, stats)
+			damage := minefield.damageFleet(fleet, fleetPlayer, stats)
 
-			if damage == (MineFieldDamage{}) {
+			if damage == (MinefieldDamage{}) {
 				// no damage, probably immune
 				continue
 			}
 
-			if mineFieldPlayer.Race.Spec.MineFieldsAreScanners && mineFieldPlayer.Num != fleet.PlayerNum {
+			if minefieldPlayer.Race.Spec.MinefieldsAreScanners && minefieldPlayer.Num != fleet.PlayerNum {
 				// SD races discover the exact fleet makeup
 				for _, token := range fleet.Tokens {
 					// SD races discover the exact fleet makeup
-					mineFieldPlayer.discoverer.discoverDesign(token.design, true)
+					minefieldPlayer.discoverer.discoverDesign(token.design, true)
 				}
 			}
 
-			messager.fleetMineFieldHit(fleetPlayer, fleet, mineField, damage)
-			if mineField.PlayerNum != fleetPlayer.Num {
-				messager.fleetMineFieldHit(mineFieldPlayer, fleet, mineField, damage)
+			messager.fleetMinefieldHit(fleetPlayer, fleet, minefield, damage)
+			if minefield.PlayerNum != fleetPlayer.Num {
+				messager.fleetMinefieldHit(minefieldPlayer, fleet, minefield, damage)
 			}
 
 			// clear out any destroyed tokens
 			fleet.removeEmptyTokens()
 
 			t.log.Debug().
-				Int("Player", mineField.PlayerNum).
-				Str("MineField", mineField.Name).
+				Int("Player", minefield.PlayerNum).
+				Str("Minefield", minefield.Name).
 				Str("Fleet", fleet.Name).
 				Int("FleetPlayer", fleet.PlayerNum).
 				Int("TotalDamage", damage.Damage).
@@ -1344,13 +1344,13 @@ func (t *turnGenerator) detonateMines() {
 		}
 
 		// reduce minefield after detonation
-		mineField.NumMines -= mineField.NumMines / 4
+		minefield.NumMines -= minefield.NumMines / 4
 
 		t.log.Debug().
-			Int("Player", mineField.PlayerNum).
-			Str("MineField", mineField.Name).
-			Int("NumMines", mineField.NumMines).
-			Msgf("detonated mineField")
+			Int("Player", minefield.PlayerNum).
+			Str("Minefield", minefield.Name).
+			Int("NumMines", minefield.NumMines).
+			Msgf("detonated minefield")
 
 	}
 }
@@ -2486,22 +2486,22 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 	return nil
 }
 
-// decay MineFields and remove any minefields that are too small
+// decay Minefields and remove any minefields that are too small
 func (t *turnGenerator) decayMines() {
-	for _, mineField := range t.game.MineFields {
-		player := t.game.getPlayer(mineField.PlayerNum)
-		mineField.NumMines -= mineField.Spec.DecayRate
-		if mineField.NumMines <= 10 {
-			t.game.deleteMineField(mineField)
+	for _, minefield := range t.game.Minefields {
+		player := t.game.getPlayer(minefield.PlayerNum)
+		minefield.NumMines -= minefield.Spec.DecayRate
+		if minefield.NumMines <= 10 {
+			t.game.deleteMinefield(minefield)
 			continue
 		}
-		mineField.Spec = computeMinefieldSpec(&t.game.Rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
+		minefield.Spec = computeMinefieldSpec(&t.game.Rules, player, minefield, t.game.Universe.numPlanetsWithin(minefield.Position, minefield.Radius()))
 
 		t.log.Debug().
-			Int("Player", mineField.PlayerNum).
-			Str("MineField", mineField.Name).
-			Int("NumMines", mineField.NumMines).
-			Msgf("decayed mineField")
+			Int("Player", minefield.PlayerNum).
+			Str("Minefield", minefield.Name).
+			Int("NumMines", minefield.NumMines).
+			Msgf("decayed minefield")
 
 	}
 }
@@ -2513,7 +2513,7 @@ func (t *turnGenerator) fleetLayMines() {
 		}
 
 		wp0 := fleet.Waypoints[0]
-		if wp0.Task == WaypointTaskLayMineField {
+		if wp0.Task == WaypointTaskLayMinefield {
 			player := t.game.getPlayer(fleet.PlayerNum)
 
 			if !fleet.Spec.CanLayMines {
@@ -2523,7 +2523,7 @@ func (t *turnGenerator) fleetLayMines() {
 
 			for mineType, minesLaid := range fleet.Spec.MineLayingRateByMineType {
 				if len(fleet.Waypoints) > 1 {
-					minesLaid = int(float64(minesLaid) * player.Race.Spec.MineFieldRateMoveFactor)
+					minesLaid = int(float64(minesLaid) * player.Race.Spec.MinefieldRateMoveFactor)
 				}
 
 				// We aren't laying mines (probably because we're moving, skip it)
@@ -2532,32 +2532,32 @@ func (t *turnGenerator) fleetLayMines() {
 				}
 
 				// See if we are adding to an existing minefield
-				mineField := t.game.getMineFieldNearPosition(player.Num, fleet.Position, mineType)
-				if mineField == nil {
-					mineField = newMineField(player, mineType, minesLaid, t.game.getNextMineFieldNum(), fleet.Position)
-					t.game.addMineField(mineField)
+				minefield := t.game.getMinefieldNearPosition(player.Num, fleet.Position, mineType)
+				if minefield == nil {
+					minefield = newMinefield(player, mineType, minesLaid, t.game.getNextMinefieldNum(), fleet.Position)
+					t.game.addMinefield(minefield)
 				} else {
 					// Add to it!
-					mineField.NumMines += minesLaid
+					minefield.NumMines += minesLaid
 				}
 
-				messager.fleetMinesLaid(player, fleet, mineField, minesLaid)
+				messager.fleetMinesLaid(player, fleet, minefield, minesLaid)
 
-				if mineField.Position != fleet.Position {
+				if minefield.Position != fleet.Position {
 					// Move this minefield closer to us (in case it's not in our location)
 					// This was taken from the FreeStars codebase (like many other things)
-					mineField.moveTowardsMineLayer(fleet.Position, minesLaid)
+					minefield.moveTowardsMineLayer(fleet.Position, minesLaid)
 				}
 
 				// TODO (performance): the radius will be computed in the spec as well. hmmmm
-				mineField.Spec = computeMinefieldSpec(&t.game.Rules, player, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
+				minefield.Spec = computeMinefieldSpec(&t.game.Rules, player, minefield, t.game.Universe.numPlanetsWithin(minefield.Position, minefield.Radius()))
 
 				t.log.Debug().
 					Int("Player", fleet.PlayerNum).
 					Str("Fleet", fleet.Name).
 					Int("MinesLaid", minesLaid).
-					Str("MineField", mineField.Name).
-					Int("NumMines", mineField.NumMines).
+					Str("Minefield", minefield.Name).
+					Int("NumMines", minefield.NumMines).
 					Msgf("laid mines")
 
 			}
@@ -2736,45 +2736,45 @@ func (t *turnGenerator) fleetSweepMines() {
 	for _, fleet := range append(t.game.Fleets, t.game.Starbases...) {
 		if !fleet.Delete && fleet.Spec.MineSweep > 0 {
 			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
-			for _, mineField := range t.game.MineFields {
+			for _, minefield := range t.game.Minefields {
 				// don't sweep dead fields
-				if mineField.Delete {
+				if minefield.Delete {
 					continue
 				}
 
 				// sweep mines
-				if fleet.willAttack(fleetPlayer, mineField.PlayerNum) && isPointInCircle(fleet.Position, mineField.Position, mineField.Radius()) {
-					mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
-					numSwept := mineField.sweep(&t.game.Rules, fleet.Position, fleet.Spec.MineSweep)
+				if fleet.willAttack(fleetPlayer, minefield.PlayerNum) && isPointInCircle(fleet.Position, minefield.Position, minefield.Radius()) {
+					minefieldPlayer := t.game.getPlayer(minefield.PlayerNum)
+					numSwept := minefield.sweep(&t.game.Rules, fleet.Position, fleet.Spec.MineSweep)
 
 					if numSwept == 0 {
 						t.log.Debug().
 							Int("Player", fleet.PlayerNum).
 							Str("Fleet", fleet.Name).
-							Str("MineField", mineField.Name).
-							Int("MineFieldPlayer", mineField.PlayerNum).
-							Int("NumMines", mineField.NumMines).
+							Str("Minefield", minefield.Name).
+							Int("MinefieldPlayer", minefield.PlayerNum).
+							Int("NumMines", minefield.NumMines).
 							Msgf("no mines swept")
 						continue
 					}
 
-					messager.fleetMineFieldSwept(fleetPlayer, fleet, mineField, numSwept)
-					messager.fleetMineFieldSwept(mineFieldPlayer, fleet, mineField, numSwept)
+					messager.fleetMinefieldSwept(fleetPlayer, fleet, minefield, numSwept)
+					messager.fleetMinefieldSwept(minefieldPlayer, fleet, minefield, numSwept)
 
 					t.log.Debug().
 						Int("Player", fleet.PlayerNum).
 						Str("Fleet", fleet.Name).
-						Str("MineField", mineField.Name).
-						Int("MineFieldPlayer", mineField.PlayerNum).
-						Int("NumMines", mineField.NumMines).
+						Str("Minefield", minefield.Name).
+						Int("MinefieldPlayer", minefield.PlayerNum).
+						Int("NumMines", minefield.NumMines).
 						Msgf("fleet swept mines")
 
-					if mineField.NumMines <= 10 {
-						t.game.deleteMineField(mineField)
+					if minefield.NumMines <= 10 {
+						t.game.deleteMinefield(minefield)
 						continue
 					}
 
-					mineField.Spec.Radius = mineField.Radius()
+					minefield.Spec.Radius = minefield.Radius()
 				}
 			}
 		}
@@ -2782,10 +2782,10 @@ func (t *turnGenerator) fleetSweepMines() {
 
 	// TOOD: performance
 	// computing minefield specs is intensive because we have to count planets within the minefield
-	for _, mineField := range t.game.MineFields {
-		if !mineField.Delete {
-			mineFieldPlayer := t.game.getPlayer(mineField.PlayerNum)
-			mineField.Spec = computeMinefieldSpec(&t.game.Rules, mineFieldPlayer, mineField, t.game.Universe.numPlanetsWithin(mineField.Position, mineField.Radius()))
+	for _, minefield := range t.game.Minefields {
+		if !minefield.Delete {
+			minefieldPlayer := t.game.getPlayer(minefield.PlayerNum)
+			minefield.Spec = computeMinefieldSpec(&t.game.Rules, minefieldPlayer, minefield, t.game.Universe.numPlanetsWithin(minefield.Position, minefield.Radius()))
 		}
 	}
 }

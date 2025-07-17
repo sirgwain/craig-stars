@@ -174,7 +174,7 @@ SELECT
   COALESCE(researchCostElectronics, ''),
   COALESCE(researchCostBiotechnology, ''),
   COALESCE(techsStartHigh, 0),
-  COALESCE(spec, '{}')
+  REPLACE(COALESCE(spec, '{}'), "ineField", "inefield")
 FROM
   races;
 

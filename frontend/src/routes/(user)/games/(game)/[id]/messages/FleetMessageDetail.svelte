@@ -18,8 +18,8 @@
 		PlayerMessageFleetExceededSafeSpeed,
 		PlayerMessageFleetGeneratedFuel,
 		PlayerMessageFleetLaidMines,
-		PlayerMessageFleetMineFieldHit,
-		PlayerMessageFleetMineFieldSweptMines,
+		PlayerMessageFleetMinefieldHit,
+		PlayerMessageFleetMinefieldSweptMines,
 		PlayerMessageFleetPatrolTargeted,
 		PlayerMessageFleetRadiatingEngineDieoff,
 		PlayerMessageFleetRemoteMined,
@@ -113,17 +113,17 @@
 	{:else}
 		{message.targetName} has generated {message.spec.amount}mg of fuel.
 	{/if}
-{:else if message.type === PlayerMessageFleetMineFieldHit}
-	{@const damage = message.spec.mineFieldDamage}
-	{@const mineFieldOwner = $universe.getPlayerPluralName(message.spec.targetPlayerNum)}
-	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y ?? 0})`}
+{:else if message.type === PlayerMessageFleetMinefieldHit}
+	{@const damage = message.spec.minefieldDamage}
+	{@const minefieldOwner = $universe.getPlayerPluralName(message.spec.targetPlayerNum)}
+	{@const minefieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y ?? 0})`}
 	{#if damage}
 		{#if message.targetPlayerNum === $player.num}
 			<!-- our fleet was hit -->
 			{#if damage.fleetDestroyed}
-				{message.targetName} has been annihilated in a {mineFieldOwner} mine field at {mineFieldPosition}.
+				{message.targetName} has been annihilated in a {minefieldOwner} minefield at {minefieldPosition}.
 			{:else}
-				{message.targetName} has been stopped in a {mineFieldOwner} mine field at {mineFieldPosition}.
+				{message.targetName} has been stopped in a {minefieldOwner} minefield at {minefieldPosition}.
 				{#if (damage.shipsDestroyed ?? 0) > 0}
 					Your fleet has taken {damage.damage ?? 0} damage points and {damage.shipsDestroyed} ships were
 					destroyed.
@@ -134,9 +134,9 @@
 		{:else}
 			<!-- our minefield hit someone else's fleet -->
 			{#if damage.fleetDestroyed}
-				{message.targetName} has been annihilated in your mine field at {mineFieldPosition}.
+				{message.targetName} has been annihilated in your minefield at {minefieldPosition}.
 			{:else}
-				{message.targetName} has been stopped in your mine field at {mineFieldPosition}.
+				{message.targetName} has been stopped in your minefield at {minefieldPosition}.
 				{#if (damage.shipsDestroyed ?? 0) > 0}
 					Your mines have inflicted {damage.damage ?? 0} damage points and destroyed {damage.shipsDestroyed}
 					ships.
@@ -149,18 +149,18 @@
 	{:else}
 		Unknown damage was done.
 	{/if}
-{:else if message.type === PlayerMessageFleetMineFieldSweptMines}
-	{@const mineFieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y || 0})`}
+{:else if message.type === PlayerMessageFleetMinefieldSweptMines}
+	{@const minefieldPosition = `(${message.spec.targetPosition?.x ?? 0}, ${message.spec.targetPosition?.y || 0})`}
 	{#if message.targetPlayerNum === $player.num}
 		<!-- our fleet swept -->
-		{message.targetName} has has swept {message.spec.amount ?? 0} mines from a mine field at {mineFieldPosition}
+		{message.targetName} has has swept {message.spec.amount ?? 0} mines from a minefield at {minefieldPosition}
 	{:else}
 		<!-- our minefield was swept by fleet -->
-		{message.targetName} has has swept {message.spec.amount ?? 0} mines from your mine field at {mineFieldPosition}
+		{message.targetName} has has swept {message.spec.amount ?? 0} mines from your minefield at {minefieldPosition}
 	{/if}
 {:else if message.type === PlayerMessageFleetLaidMines}
-	{@const mineField = $universe.getMineField(message.spec.targetPlayerNum, message.spec.targetNum)}
-	{#if mineField?.numMines === message.spec.amount}
+	{@const minefield = $universe.getMinefield(message.spec.targetPlayerNum, message.spec.targetNum)}
+	{#if minefield?.numMines === message.spec.amount}
 		{message.targetName} has has dispensed {message.spec.amount} mines.
 	{:else}
 		{message.targetName} has increased {message.spec.targetName} by {message.spec.amount} mines.
@@ -225,9 +225,9 @@
 			required technology to bypass their sensors.
 		{/if}
 	{:else}
-  <!-- Generic failure message -->
-		{message.targetName} has attempted to transfer cargo from {message.spec.targetName},
-		but the cargo transfer was unsuccessful.
+		<!-- Generic failure message -->
+		{message.targetName} has attempted to transfer cargo from {message.spec.targetName}, but the
+		cargo transfer was unsuccessful.
 	{/if}
 {:else if message.type === PlayerMessageFleetTransferGiven}
 	{message.targetName} has successfully been given to {$universe.getPlayerPluralName(

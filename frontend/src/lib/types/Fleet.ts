@@ -35,7 +35,7 @@ import {
 	type Waypoint,
 	type WaypointTask,
 	WaypointTaskColonize,
-	WaypointTaskLayMineField,
+	WaypointTaskLayMinefield,
 	WaypointTaskMergeWithFleet,
 	WaypointTaskNone,
 	WaypointTaskPatrol,
@@ -55,7 +55,7 @@ export const WaypointTasks: WaypointTask[] = [
 	WaypointTaskRemoteMining,
 	WaypointTaskMergeWithFleet,
 	WaypointTaskScrapFleet,
-	WaypointTaskLayMineField,
+	WaypointTaskLayMinefield,
 	WaypointTaskPatrol,
 	WaypointTaskRoute,
 	WaypointTaskTransferFleet

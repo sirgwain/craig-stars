@@ -211,11 +211,11 @@ func (c *client) GetFullPlayerForGame(ctx context.Context, gameID, userID int64)
 	}
 	player.Planets = planets
 
-	mineFields, err := c.GetMinefieldsForPlayer(ctx, player.GameID, player.Num)
+	minefields, err := c.GetMinefieldsForPlayer(ctx, player.GameID, player.Num)
 	if err != nil {
-		return nil, fmt.Errorf("get player mineFields: %w", err)
+		return nil, fmt.Errorf("get player minefields: %w", err)
 	}
-	player.MineFields = mineFields
+	player.Minefields = minefields
 
 	mineralPackets, err := c.GetMineralPacketsForPlayer(ctx, player.GameID, player.Num)
 	if err != nil {
@@ -261,11 +261,11 @@ func (c *client) GetPlayerMapObjects(ctx context.Context, gameID, userID int64) 
 	}
 	mapObjects.Planets = planets
 
-	mineFields, err := c.GetMinefieldsForPlayer(ctx, gameID, playerNum)
+	minefields, err := c.GetMinefieldsForPlayer(ctx, gameID, playerNum)
 	if err != nil {
-		return nil, fmt.Errorf("get player mineFields: %w", err)
+		return nil, fmt.Errorf("get player minefields: %w", err)
 	}
-	mapObjects.MineFields = mineFields
+	mapObjects.Minefields = minefields
 
 	mineralPackets, err := c.GetMineralPacketsForPlayer(ctx, gameID, playerNum)
 	if err != nil {

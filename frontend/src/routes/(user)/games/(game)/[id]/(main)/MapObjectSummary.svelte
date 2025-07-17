@@ -4,11 +4,11 @@
 	import Starbase from '$lib/components/icons/Starbase.svelte';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyFleet, AnyMineField, AnyMineralPacket } from '$lib/services/Universe';
+	import type { AnyFleet, AnyMinefield, AnyMineralPacket } from '$lib/services/Universe';
 	import type { MysteryTraderIntel, PlanetIntel, SalvageIntel, WormholeIntel } from '$lib/types/cs';
 	import {
 		MapObjectTypeFleet,
-		MapObjectTypeMineField,
+		MapObjectTypeMinefield,
 		MapObjectTypeMineralPacket,
 		MapObjectTypeMysteryTrader,
 		MapObjectTypePlanet,
@@ -17,7 +17,7 @@
 	} from '$lib/types/cs';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import FleetSummary from './FleetSummary.svelte';
-	import MineFieldSummary from './MineFieldSummary.svelte';
+	import MinefieldSummary from './MinefieldSummary.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
 	import MysteryTraderSummary from './MysteryTraderSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';
@@ -51,9 +51,9 @@
 	let selectedFleet = $derived(
 		$selectedMapObject?.type == MapObjectTypeFleet ? ($selectedMapObject as AnyFleet) : undefined
 	);
-	let selectedMineField = $derived(
-		$selectedMapObject?.type == MapObjectTypeMineField
-			? ($selectedMapObject as AnyMineField)
+	let selectedMinefield = $derived(
+		$selectedMapObject?.type == MapObjectTypeMinefield
+			? ($selectedMapObject as AnyMinefield)
 			: undefined
 	);
 	let selectedMineralPacket = $derived(
@@ -120,8 +120,8 @@
 			<PlanetSummary planet={selectedPlanet} />
 		{:else if selectedFleet}
 			<FleetSummary fleet={selectedFleet} {onShowCargoTransferDialog} />
-		{:else if selectedMineField}
-			<MineFieldSummary mineField={selectedMineField} />
+		{:else if selectedMinefield}
+			<MinefieldSummary minefield={selectedMinefield} />
 		{:else if selectedMineralPacket}
 			<MineralPacketSummary mineralPacket={selectedMineralPacket} />
 		{:else if selectedSalvage}

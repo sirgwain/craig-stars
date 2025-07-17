@@ -50,7 +50,6 @@ func TestSavePlanet(t *testing.T) {
 
 func TestGetPlanets(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 
@@ -72,7 +71,6 @@ func TestGetPlanets(t *testing.T) {
 
 func TestGetPlanet(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 	planet := &cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{Name: "name", Type: cs.MapObjectTypePlanet}}
@@ -115,7 +113,6 @@ func TestGetPlanet(t *testing.T) {
 
 func TestUpdatePlanet(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 	planet := &cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}
@@ -143,7 +140,6 @@ func TestUpdatePlanet(t *testing.T) {
 
 func TestGetPlanetByNum(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	g, player := c.createTestGameWithPlayer(t.Context())
 	planet1 := &cs.Planet{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{Name: "name", Num: 1, Type: cs.MapObjectTypePlanet}}

@@ -77,7 +77,7 @@ type PlayerIntels struct {
 	FleetIntels         []FleetIntel         `json:"fleetIntels,omitempty"`
 	ShipDesignIntels    []ShipDesignIntel    `json:"shipDesignIntels,omitempty"`
 	MineralPacketIntels []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
-	MineFieldIntels     []MineFieldIntel     `json:"mineFieldIntels,omitempty"`
+	MinefieldIntels     []MinefieldIntel     `json:"minefieldIntels,omitempty"`
 	WormholeIntels      []WormholeIntel      `json:"wormholeIntels,omitempty"`
 	MysteryTraderIntels []MysteryTraderIntel `json:"mysteryTraderIntels,omitempty"`
 	SalvageIntels       []SalvageIntel       `json:"salvageIntels,omitempty"`
@@ -232,7 +232,7 @@ type PlayerMapObjects struct {
 	Planets        []*Planet        `json:"planets"`
 	Fleets         []*Fleet         `json:"fleets"`
 	Starbases      []*Fleet         `json:"starbases"`
-	MineFields     []*MineField     `json:"mineFields"`
+	Minefields     []*Minefield     `json:"minefields"`
 	MineralPackets []*MineralPacket `json:"mineralPackets"`
 }
 
@@ -429,7 +429,7 @@ func (p *Player) GetNextTransportPlanNum() int {
 // clear this player's transient intel
 func (p *Player) clearTransientIntel() {
 	p.FleetIntels = []FleetIntel{}
-	p.MineFieldIntels = []MineFieldIntel{}
+	p.MinefieldIntels = []MinefieldIntel{}
 	p.SalvageIntels = []SalvageIntel{}
 	p.MineralPacketIntels = []MineralPacketIntel{}
 	p.MysteryTraderIntels = []MysteryTraderIntel{}
@@ -476,9 +476,9 @@ func (p *Player) GetMysteryTraderIntel(num int) *MysteryTraderIntel {
 	return nil
 }
 
-func (p *Player) GetMineFieldIntel(playerNum, num int) *MineFieldIntel {
-	for i := range p.MineFieldIntels {
-		intel := &p.MineFieldIntels[i]
+func (p *Player) GetMinefieldIntel(playerNum, num int) *MinefieldIntel {
+	for i := range p.MinefieldIntels {
+		intel := &p.MinefieldIntels[i]
 		if intel.PlayerNum == playerNum && intel.Num == num {
 			return intel
 		}

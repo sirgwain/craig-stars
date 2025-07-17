@@ -41,7 +41,7 @@ const (
 	MapObjectTypePlanet        MapObjectType = "Planet"
 	MapObjectTypeFleet         MapObjectType = "Fleet"
 	MapObjectTypeWormhole      MapObjectType = "Wormhole"
-	MapObjectTypeMineField     MapObjectType = "MineField"
+	MapObjectTypeMinefield     MapObjectType = "Minefield"
 	MapObjectTypeMysteryTrader MapObjectType = "MysteryTrader"
 	MapObjectTypeSalvage       MapObjectType = "Salvage"
 	MapObjectTypeMineralPacket MapObjectType = "MineralPacket"

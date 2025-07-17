@@ -23,7 +23,7 @@ type FleetIntels []cs.FleetIntel
 type ShipDesignIntels []cs.ShipDesignIntel
 type MineralPacketIntels []cs.MineralPacketIntel
 type SalvageIntels []cs.SalvageIntel
-type MineFieldIntels []cs.MineFieldIntel
+type MinefieldIntels []cs.MinefieldIntel
 type MysteryTraderIntels []cs.MysteryTraderIntel
 type WormholeIntels []cs.WormholeIntel
 type PlayerRace cs.Race
@@ -280,7 +280,7 @@ func (item *SalvageIntels) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 
-func (item *MineFieldIntels) Value() (driver.Value, error) {
+func (item *MinefieldIntels) Value() (driver.Value, error) {
 	if item == nil {
 		return nil, nil
 	}
@@ -288,7 +288,7 @@ func (item *MineFieldIntels) Value() (driver.Value, error) {
 	return valueJSON(item)
 }
 
-func (item *MineFieldIntels) Scan(src interface{}) error {
+func (item *MinefieldIntels) Scan(src interface{}) error {
 	return scanJSON(src, item)
 }
 

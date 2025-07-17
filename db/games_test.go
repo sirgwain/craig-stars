@@ -44,7 +44,7 @@ func TestSaveGame(t *testing.T) {
 
 func TestSaveGame2(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
+
 	game := &cs.Game{HostID: 1, Name: "Test"}
 	err := c.SaveGame(t.Context(), game)
 	if err != nil {
@@ -71,7 +71,6 @@ func TestSaveGame2(t *testing.T) {
 
 func TestGetGame(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := cs.NewGame().WithSettings(*cs.NewGameSettings().WithHost(cs.Humanoids()).WithName("test"))
 	game.Area = cs.Vector{X: 1, Y: 2}
@@ -137,7 +136,6 @@ func TestGetGames(t *testing.T) {
 
 func TestGetOpenGames(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	// start with 1 game from connectTestDB
 	result, err := c.GetOpenGames(t.Context())
@@ -168,7 +166,6 @@ func TestGetOpenGames(t *testing.T) {
 
 func TestGetGameWithPlayersStatus(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	fg := c.createTestFullGame(t.Context())
 
@@ -182,7 +179,6 @@ func TestGetGameWithPlayersStatus(t *testing.T) {
 
 func TestDeleteGames(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	result, err := c.GetGames(t.Context())
 	assert.Nil(t, err)
@@ -212,7 +208,6 @@ func TestDeleteGames(t *testing.T) {
 
 func TestUpdateFullGame(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	fg := c.createTestFullGame(t.Context())
 

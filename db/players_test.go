@@ -47,7 +47,6 @@ func TestSavePlayer(t *testing.T) {
 
 func TestUpdatePlayer(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	c.createTestGame(t.Context())
 	player := &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test"}
@@ -81,7 +80,6 @@ func TestUpdatePlayer(t *testing.T) {
 func TestGetPlayer(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	c.createTestGame(t.Context())
 	player := &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
@@ -125,7 +123,6 @@ func TestGetPlayer(t *testing.T) {
 func Test_GetPlayerForGame(t *testing.T) {
 	rules := cs.NewRules()
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	game := c.createTestGame(t.Context())
 	player := &cs.Player{GameDBObject: cs.GameDBObject{GameID: 1}, UserID: 1, Name: "Test", Race: *cs.NewRace().WithSpec(&rules)}
@@ -177,7 +174,6 @@ func Test_GetPlayerForGame(t *testing.T) {
 
 func TestGetPlayers(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	c.createTestGame(t.Context())
 
@@ -200,7 +196,6 @@ func TestGetPlayers(t *testing.T) {
 
 func TestDeletePlayers(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	c.createTestGame(t.Context())
 

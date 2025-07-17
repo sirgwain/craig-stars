@@ -32,15 +32,15 @@ type PRTSpec struct {
 	BuiltInCloakUnits                int              `json:"builtInCloakUnits,omitempty"`
 	StealsResearch                   StealsResearch   `json:"stealsResearch,omitzero"`
 	FreeCargoCloaking                bool             `json:"freeCargoCloaking,omitempty"`
-	MineFieldsAreScanners            bool             `json:"mineFieldsAreScanners,omitempty"`
-	MineFieldRateMoveFactor          float64          `json:"mineFieldRateMoveFactor,omitempty"`
-	MineFieldSafeWarpBonus           int              `json:"mineFieldSafeWarpBonus,omitempty"`
-	MineFieldMinDecayFactor          float64          `json:"mineFieldMinDecayFactor,omitempty"`
-	MineFieldBaseDecayRate           float64          `json:"mineFieldBaseDecayRate,omitempty"`
-	MineFieldPlanetDecayRate         float64          `json:"mineFieldPlanetDecayRate,omitempty"`
-	MineFieldMaxDecayRate            float64          `json:"mineFieldMaxDecayRate,omitempty"`
-	CanDetonateMineFields            bool             `json:"canDetonateMineFields,omitempty"`
-	MineFieldDetonateDecayRate       float64          `json:"mineFieldDetonateDecayRate,omitempty"`
+	MinefieldsAreScanners            bool             `json:"minefieldsAreScanners,omitempty"`
+	MinefieldRateMoveFactor          float64          `json:"minefieldRateMoveFactor,omitempty"`
+	MinefieldSafeWarpBonus           int              `json:"minefieldSafeWarpBonus,omitempty"`
+	MinefieldMinDecayFactor          float64          `json:"minefieldMinDecayFactor,omitempty"`
+	MinefieldBaseDecayRate           float64          `json:"minefieldBaseDecayRate,omitempty"`
+	MinefieldPlanetDecayRate         float64          `json:"minefieldPlanetDecayRate,omitempty"`
+	MinefieldMaxDecayRate            float64          `json:"minefieldMaxDecayRate,omitempty"`
+	CanDetonateMinefields            bool             `json:"canDetonateMinefields,omitempty"`
+	MinefieldDetonateDecayRate       float64          `json:"minefieldDetonateDecayRate,omitempty"`
 	DiscoverDesignOnScan             bool             `json:"discoverDesignOnScan,omitempty"`
 	CanRemoteMineOwnPlanets          bool             `json:"canRemoteMineOwnPlanets,omitempty"`
 	InvasionAttackBonus              float64          `json:"invasionAttackBonus,omitempty"`
@@ -208,15 +208,15 @@ func defaultPRTSpec() PRTSpec {
 		MaxPopulationOffset:              0,
 		BuiltInCloakUnits:                0,
 		FreeCargoCloaking:                false,
-		MineFieldsAreScanners:            false,
-		MineFieldRateMoveFactor:          0,
-		MineFieldSafeWarpBonus:           0,
-		MineFieldMinDecayFactor:          1,
-		MineFieldBaseDecayRate:           .02,
-		MineFieldPlanetDecayRate:         .04,
-		MineFieldMaxDecayRate:            .5,
-		CanDetonateMineFields:            false,
-		MineFieldDetonateDecayRate:       .25,
+		MinefieldsAreScanners:            false,
+		MinefieldRateMoveFactor:          0,
+		MinefieldSafeWarpBonus:           0,
+		MinefieldMinDecayFactor:          1,
+		MinefieldBaseDecayRate:           .02,
+		MinefieldPlanetDecayRate:         .04,
+		MinefieldMaxDecayRate:            .5,
+		CanDetonateMinefields:            false,
+		MinefieldDetonateDecayRate:       .25,
 		DiscoverDesignOnScan:             false,
 		CanRemoteMineOwnPlanets:          false,
 		InvasionAttackBonus:              1.1,
@@ -267,7 +267,7 @@ func ssSpec() PRTSpec {
 
 	spec.BuiltInCloakUnits = 300
 	spec.FreeCargoCloaking = true
-	spec.MineFieldSafeWarpBonus = 1
+	spec.MinefieldSafeWarpBonus = 1
 	spec.StealsResearch = StealsResearch{
 		Energy:        .5,
 		Weapons:       .5,
@@ -369,11 +369,11 @@ func sdSpec() PRTSpec {
 		{"Speed Turtle", StartingFleetHullMiniMineLayer, 0, ShipDesignPurposeSpeedMineLayer},
 	}
 
-	spec.MineFieldsAreScanners = true
-	spec.CanDetonateMineFields = true
-	spec.MineFieldRateMoveFactor = .5
-	spec.MineFieldMinDecayFactor = .25
-	spec.MineFieldSafeWarpBonus = 2
+	spec.MinefieldsAreScanners = true
+	spec.CanDetonateMinefields = true
+	spec.MinefieldRateMoveFactor = .5
+	spec.MinefieldMinDecayFactor = .25
+	spec.MinefieldSafeWarpBonus = 2
 
 	return spec
 }

@@ -24,7 +24,7 @@ func (ai *aiPlayer) layMines() error {
 	mineLayerFleets := []*cs.Fleet{}
 	for _, fleet := range ai.Fleets {
 		if _, contains := fleet.Spec.Purposes[cs.ShipDesignPurposeDamageMineLayer]; contains && fleet.Spec.MineLayingRateByMineType != nil {
-			if len(fleet.Waypoints) <= 1 && fleet.Waypoints[0].Task != cs.WaypointTaskLayMineField {
+			if len(fleet.Waypoints) <= 1 && fleet.Waypoints[0].Task != cs.WaypointTaskLayMinefield {
 				// this fleet can be sent to scan a planet
 				mineLayerFleets = append(mineLayerFleets, fleet)
 			} else {
@@ -42,8 +42,8 @@ func (ai *aiPlayer) layMines() error {
 		closestPlanet := ai.getClosestPlanet(fleet, planetsToProtectByNum)
 		if closestPlanet != nil {
 			if fleet.Position == closestPlanet.Position {
-				fleet.Waypoints[0].Task = cs.WaypointTaskLayMineField
-				fleet.Waypoints[0].LayMineFieldDuration = cs.Indefinite
+				fleet.Waypoints[0].Task = cs.WaypointTaskLayMinefield
+				fleet.Waypoints[0].LayMinefieldDuration = cs.Indefinite
 				ai.client.UpdateFleetOrders(ai.Player, fleet, fleet.FleetOrders)
 				delete(planetsToProtectByNum, closestPlanet.Num)
 			} else {

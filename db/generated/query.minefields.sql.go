@@ -54,10 +54,10 @@ type CreateMinefieldParams struct {
 	Num           int64
 	PlayerNum     int64
 	Tags          *Tags
-	MinefieldType *cs.MineFieldType
+	MinefieldType *cs.MinefieldType
 	NumMines      int64
 	Detonate      bool
-	Spec          *MineFieldSpec
+	Spec          *MinefieldSpec
 }
 
 func (q *Queries) CreateMinefield(ctx context.Context, arg CreateMinefieldParams) (int64, error) {
@@ -342,10 +342,10 @@ type UpdateMinefieldParams struct {
 	Num           int64
 	PlayerNum     int64
 	Tags          *Tags
-	MinefieldType *cs.MineFieldType
+	MinefieldType *cs.MinefieldType
 	NumMines      int64
 	Detonate      bool
-	Spec          *MineFieldSpec
+	Spec          *MinefieldSpec
 	ID            int64
 }
 
