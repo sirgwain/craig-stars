@@ -7,8 +7,7 @@
 	import { GameService } from '$lib/services/GameService';
 	import { Service } from '$lib/services/Service';
 	import { me } from '$lib/services/Stores';
-	import type { GameSettings } from '$lib/types/cs';
-	import type { Player } from '$lib/types/cs';
+	import type { GameSettings, Player } from '$lib/types/cs';
 	import { CheckBadge, XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onDestroy, onMount } from 'svelte';
@@ -31,7 +30,8 @@
 		maxMinerals: $game.maxMinerals,
 		startMode: $game.startMode,
 		year: $game.year,
-		victoryConditions: $game.victoryConditions
+		victoryConditions: $game.victoryConditions,
+		players: []
 	});
 
 	async function onLeave() {

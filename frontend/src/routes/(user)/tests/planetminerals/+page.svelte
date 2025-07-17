@@ -10,7 +10,7 @@
 		num: 0,
 		playerNum: 0,
 		mineralConcentration: { ironium: 10, boranium: 20, germanium: 30 },
-		cargo: { ironium: 1000, boranium: 2000, germanium: 4000, colonists: 2500 },
+		cargo: { ironium: 1000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	};
 
 	const planet2: PlanetIntel = {
@@ -21,7 +21,7 @@
 		num: 0,
 		playerNum: 0,
 		mineralConcentration: { ironium: 130, boranium: 20, germanium: 30 },
-		cargo: { ironium: 10000, boranium: 2000, germanium: 4000, colonists: 2500 },
+		cargo: { ironium: 10000, boranium: 2000, germanium: 4000, colonists: 2500 }
 	};
 </script>
 

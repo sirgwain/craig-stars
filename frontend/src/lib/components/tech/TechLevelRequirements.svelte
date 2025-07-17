@@ -1,8 +1,5 @@
 <script lang="ts">
-	import type { Player } from '$lib/types/Player';
-
-	import type { TechRequirements } from '$lib/types/cs';
-	import type { Tech } from '$lib/types/cs';
+	import type { Player, Tech, TechRequirements } from '$lib/types/cs';
 
 	type Props = {
 		tech: Tech;

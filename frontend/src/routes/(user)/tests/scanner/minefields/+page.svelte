@@ -26,7 +26,8 @@
 			numMines: 100,
 			spec: {
 				decayRate: 100,
-				radius: Math.sqrt(100)
+				radius: Math.sqrt(100),
+				canDetonate: false
 			}
 		},
 		{
@@ -42,7 +43,8 @@
 			numMines: 200,
 			spec: {
 				decayRate: 100,
-				radius: Math.sqrt(200)
+				radius: Math.sqrt(200),
+				canDetonate: false
 			}
 		}
 	];

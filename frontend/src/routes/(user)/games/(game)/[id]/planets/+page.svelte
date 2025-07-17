@@ -58,7 +58,7 @@
 								mines: 0,
 								factories: 0,
 								mineYears: 0,
-								defenses: 0,
+								defenses: 0
 							}) as TablePlanet
 					)
 					.filter(
@@ -317,7 +317,6 @@
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full',
 			th: 'sticky top-0 bg-base-200 z-10'
-
 		}}
 	>
 		{#snippet head({ column })}

@@ -195,7 +195,7 @@ CREATE TABLE
     num INTEGER NOT NULL DEFAULT 0,
     player_num INTEGER NOT NULL DEFAULT 0,
     grav INTEGER NOT NULL DEFAULT 0,
-    TEMP INTEGER NOT NULL DEFAULT 0,
+    temp INTEGER NOT NULL DEFAULT 0,
     rad INTEGER NOT NULL DEFAULT 0,
     base_grav INTEGER NOT NULL DEFAULT 0,
     base_temp INTEGER NOT NULL DEFAULT 0,
@@ -536,7 +536,15 @@ SELECT
   COALESCE(relations, ''),
   COALESCE(cargoTransfers, ''),
   -- fix MineField -> Minefield rename
-  REPLACE(REPLACE(REPLACE(COALESCE(messages, ''), "ineField", "inefield"), "Mine Field", "Minefield"), "mine field", "minefield"),
+  REPLACE(
+    REPLACE(
+      REPLACE(COALESCE(messages, ''), "ineField", "inefield"),
+      "Mine Field",
+      "Minefield"
+    ),
+    "mine field",
+    "minefield"
+  ),
   COALESCE(battleRecords, ''),
   COALESCE(playerIntels, ''),
   COALESCE(scoreIntels, ''),
@@ -544,7 +552,15 @@ SELECT
   COALESCE(fleetIntels, ''),
   COALESCE(shipDesignIntels, ''),
   COALESCE(mineralPacketIntels, ''),
-  REPLACE(REPLACE(COALESCE(mineFieldIntels, ''), "ineField", "inefield"), "Mine Field", "Minefield"),
+  REPLACE(
+    REPLACE(
+      COALESCE(mineFieldIntels, ''),
+      "ineField",
+      "inefield"
+    ),
+    "Mine Field",
+    "Minefield"
+  ),
   COALESCE(wormholeIntels, ''),
   COALESCE(mysteryTraderIntels, ''),
   COALESCE(salvageIntels, ''),
@@ -615,7 +631,11 @@ SELECT
   COALESCE(num, 0),
   COALESCE(playerNum, 0),
   COALESCE(tokens, ''),
-  REPLACE(REPLACE(COALESCE(waypoints, ''), "ineField", "inefield"), "Mine Field", "Minefield"),
+  REPLACE(
+    REPLACE(COALESCE(waypoints, ''), "ineField", "inefield"),
+    "Mine Field",
+    "Minefield"
+  ),
   COALESCE(repeatOrders, 0),
   COALESCE(planetNum, 0),
   COALESCE(baseName, ''),
@@ -705,7 +725,7 @@ INSERT INTO
     num,
     player_num,
     grav,
-    TEMP,
+    temp,
     rad,
     base_grav,
     base_temp,
@@ -751,7 +771,7 @@ SELECT
   COALESCE(num, 0),
   COALESCE(playerNum, 0),
   COALESCE(grav, 0),
-  COALESCE(TEMP, 0),
+  COALESCE(temp, 0),
   COALESCE(rad, 0),
   COALESCE(baseGrav, 0),
   COALESCE(baseTemp, 0),

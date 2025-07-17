@@ -52,6 +52,7 @@ export class CommandedPlanet implements Planet {
 	readonly type = MapObjectTypePlanet;
 	tags: Tags = {};
 
+	gameId = 0;
 	hab: Hab = { grav: 0, temp: 0, rad: 0 };
 	baseHab: Hab = { grav: 0, temp: 0, rad: 0 };
 	terraformedAmount = { grav: 0, temp: 0, rad: 0 };
@@ -307,7 +308,7 @@ export class CommandedPlanet implements Planet {
 
 export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
 	type,
-	quantity: 1,
+	quantity: 1
 });
 
 export const getQueueItemShortName = (

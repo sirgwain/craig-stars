@@ -22,10 +22,10 @@ CREATE TABLE
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    user_id INTEGER NOT NULL DEFAULT 0,
-    name TEXT NOT NULL DEFAULT '',
-    plural_name TEXT NOT NULL DEFAULT '',
-    spend_leftover_points_on TEXT NOT NULL DEFAULT '',
+    user_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    plural_name TEXT NOT NULL,
+    spend_leftover_points_on TEXT NOT NULL,
     prt TEXT NOT NULL DEFAULT '',
     lrts INTEGER NOT NULL DEFAULT 0,
     hab_low_grav INTEGER NOT NULL DEFAULT 0,
@@ -194,15 +194,6 @@ CREATE TABLE
     CONSTRAINT fk_players_fleets FOREIGN KEY (game_id, player_num) REFERENCES players (game_id, num) ON DELETE CASCADE,
     CONSTRAINT fk_games_fleets FOREIGN KEY (game_id) REFERENCES games (id) ON DELETE CASCADE
   );
-
-CREATE UNIQUE INDEX idx_fleets_game_id_player_num_num ON fleets (game_id, player_num, num)
-WHERE
-  starbase = 0;
-
-CREATE UNIQUE INDEX idx_starbase_game_id_player_num_planet_num ON fleets (game_id, player_num, planet_num)
-WHERE
-  starbase = 1;
-
 
 CREATE TABLE
   ship_designs (
@@ -393,33 +384,16 @@ CREATE TABLE
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    current INTEGER NOT NULL DEFAULT 0
+    CURRENT INTEGER NOT NULL DEFAULT 0
   );
 
-INSERT INTO
-  versions (current)
-VALUES
-  (0);
+CREATE UNIQUE INDEX idx_fleets_game_id_player_num_num ON fleets (game_id, player_num, num)
+WHERE
+  starbase = 0;
 
-CREATE VIEW
-  game_players AS
-SELECT
-  players.game_id,
-  players.id,
-  players.updated_at,
-  players.user_id,
-  players.name,
-  players.num,
-  players.ready,
-  players.ai_controlled,
-  players.ai_difficulty,
-  players.submitted_turn,
-  players.color,
-  players.victor,
-  players.archived,
-  players.guest
-FROM
-  players;
+CREATE UNIQUE INDEX idx_starbase_game_id_player_num_planet_num ON fleets (game_id, player_num, planet_num)
+WHERE
+  starbase = 1;
 
 CREATE INDEX idx_games_hostid_gameid ON games (host_id);
 
@@ -452,3 +426,28 @@ CREATE INDEX idx_minefields_gameid ON minefields (game_id);
 CREATE INDEX idx_mineral_packets_gameid ON mineral_packets (game_id);
 
 CREATE INDEX idx_mystery_traders_gameid ON mystery_traders (game_id);
+
+CREATE VIEW
+  game_players AS
+SELECT
+  players.game_id,
+  players.id,
+  players.updated_at,
+  players.user_id,
+  players.name,
+  players.num,
+  players.ready,
+  players.ai_controlled,
+  players.ai_difficulty,
+  players.submitted_turn,
+  players.color,
+  players.victor,
+  players.archived,
+  players.guest
+FROM
+  players;
+
+INSERT INTO
+  versions (CURRENT)
+VALUES
+  (0);
