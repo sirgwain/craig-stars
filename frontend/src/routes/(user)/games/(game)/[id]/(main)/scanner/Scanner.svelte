@@ -27,8 +27,8 @@
 	import { setScannerContext } from './Scanner';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerMapObjectLocation from './ScannerMapObjectLocation.svelte';
-	import ScannerMinefieldPattern from './ScannerMinefieldPattern.svelte';
-	import ScannerMinefields from './ScannerMinefields.svelte';
+	import ScannerMinefieldPattern from './ScannerMinefieldPattern2.svelte';
+	import ScannerMinefields from './ScannerMinefields2.svelte';
 	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
 	import ScannerMysteryTraders from './ScannerMysteryTraders.svelte';
 	import ScannerNames from './ScannerNames.svelte';

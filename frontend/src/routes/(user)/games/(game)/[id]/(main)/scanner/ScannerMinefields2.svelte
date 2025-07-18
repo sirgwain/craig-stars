@@ -7,7 +7,7 @@
 	import type { AnyMinefield } from '$lib/services/Universe';
 	import { equal, key } from '$lib/types/MapObject';
 	import { MapObjectTypeMinefield } from '$lib/types/cs';
-	import ScannerMinefield from './ScannerMinefield.svelte';
+	import ScannerMinefield from './ScannerMinefield2.svelte';
 
 	const { universe, selectedMapObject } = getGameContext();
 

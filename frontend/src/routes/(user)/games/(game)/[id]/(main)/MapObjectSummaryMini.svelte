@@ -9,7 +9,7 @@
 	import { getUnderlyingMapObject, ownedBy } from '$lib/types/MapObject';
 	import FleetSummary from './FleetSummary.svelte';
 	import MapObjectIcon from './MapObjectIcon.svelte';
-	import MinefieldSummary from './MinefieldSummary.svelte';
+	import MinefieldSummary from './MinefieldSummary2.svelte';
 	import MineralPacketSummary from './MineralPacketSummary.svelte';
 	import MysteryTraderSummary from './MysteryTraderSummary.svelte';
 	import PlanetSummary from './PlanetSummary.svelte';

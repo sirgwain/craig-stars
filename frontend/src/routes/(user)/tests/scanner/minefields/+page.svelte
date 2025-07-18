@@ -7,8 +7,8 @@
 		type Minefield
 	} from '$lib/types/cs';
 	import { LayerCake, Svg } from 'layercake';
-	import ScannerMinefield from '../../../games/(game)/[id]/(main)/scanner/ScannerMinefield.svelte';
-	import ScannerMinefieldPattern from '../../../games/(game)/[id]/(main)/scanner/ScannerMinefieldPattern.svelte';
+	import ScannerMinefield from '../../../games/(game)/[id]/(main)/scanner/ScannerMinefield2.svelte';
+	import ScannerMinefieldPattern from '../../../games/(game)/[id]/(main)/scanner/ScannerMinefieldPattern2.svelte';
 
 	const { selectMapObject } = getGameContext();
 
