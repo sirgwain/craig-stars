@@ -13,30 +13,26 @@
 	import SectionHeader from './SectionHeader.svelte';
 
 	type Props = {
-		// for ssr, we start with techs from a json file
-		techStore?: TechStore;
-		techs?: Tech[];
 		player?: CommandedPlayer | undefined;
 		cs?: CS | undefined;
 	};
 
-	let {
-		techStore = techjson as unknown as TechStore,
-		techs = [
-			...techStore.engines,
-			...techStore.planetaryScanners,
-			...techStore.defenses,
-			...techStore.planetaries,
-			...techStore.hullComponents,
-			...techStore.hulls,
-			...techStore.terraforms
-		],
-		player,
-		cs
-	}: Props = $props();
+	let { player, cs }: Props = $props();
 
 	let filter = $state('');
 	let showAll = $state(player === undefined);
+
+	// for ssr, we start with techs from a json file
+	let techStore = $state(techjson as unknown as TechStore);
+	let techs = $derived([
+		...techStore.engines,
+		...techStore.planetaryScanners,
+		...techStore.defenses,
+		...techStore.planetaries,
+		...techStore.hullComponents,
+		...techStore.hulls,
+		...techStore.terraforms
+	]);
 
 	let filteredTechs = $derived(
 		techs.filter(
@@ -83,14 +79,6 @@
 
 		if (response.ok) {
 			techStore = (await response.json()) as TechStore;
-			techs = [];
-			techs = techs.concat(techStore.engines);
-			techs = techs.concat(techStore.planetaryScanners);
-			techs = techs.concat(techStore.defenses);
-			techs = techs.concat(techStore.planetaries);
-			techs = techs.concat(techStore.hullComponents);
-			techs = techs.concat(techStore.hulls);
-			techs = techs.concat(techStore.terraforms);
 		} else {
 			console.error(response);
 		}
@@ -100,6 +88,7 @@
 		player &&
 			techs.filter((t) => player?.hasTech(t) && levelsAbove(t.requirements, player.techLevels) == 0)
 	);
+
 </script>
 
 <div class="flex justify-between">

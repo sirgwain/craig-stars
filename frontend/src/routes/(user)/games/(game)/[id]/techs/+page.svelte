@@ -13,4 +13,4 @@
 	{/snippet}
 </Breadcrumb>
 
-<Techs techStore={$techs} player={$player} {cs} />
+<Techs player={$player} {cs} />
