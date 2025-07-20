@@ -302,6 +302,16 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 		// in the above scenario, Fleet 2 loads 50kT from the bucket, and 10kT from the dest
 		cargoInBucket := Cargo{}
 		for _, transfer := range transfers {
+			fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
+			if fleet == nil {
+				// don't kill turn processing for this because it's unclear how to fix it to unblock players
+				t.log.Error().
+					Int("Player", player.Num).
+					Int("Fleet", transfer.SourceFleetNum).
+					Msgf("fleet not found for ByHandCargoTransfer")
+				continue
+			}
+
 			// add any by hand unloads to the bucket
 			cargoInBucket = cargoInBucket.Add(transfer.Cargo.PositiveOnly())
 
@@ -320,7 +330,7 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 
 					log.Debug().
 						Int("Player", player.Num).
-						Int("FleetNum", transfer.SourceFleetNum).
+						Str("Fleet", fleet.Name).
 						Str("Target", transfer.MapObjectTarget.PrettyString()).
 						Str("cargoInBucket", cargoInBucket.PrettyString()).
 						Str("cargoToLoad", cargoToLoad.PrettyString()).
@@ -333,16 +343,6 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 
 			if cargoToLoad == (Cargo{}) {
 				// skip any empty requests
-				continue
-			}
-
-			fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
-			if fleet == nil {
-				// don't kill turn processing for this because it's unclear how to fix it to unblock players
-				t.log.Error().
-					Int("Player", player.Num).
-					Int("Fleet", transfer.SourceFleetNum).
-					Msgf("fleet not found for ByHandCargoTransfer")
 				continue
 			}
 
@@ -359,7 +359,7 @@ func (t *cargoTransferer) loadByHands(player *Player, transfers []ByHandCargoTra
 				// TODO: send the user a message
 				t.log.Error().
 					Int("Player", player.Num).
-					Int("Fleet", transfer.SourceFleetNum).
+					Str("Fleet", fleet.Name).
 					Str("Target", transfer.MapObjectTarget.PrettyString()).
 					Msgf("target not found for ByHandCargoTransfer load")
 				continue
@@ -410,6 +410,15 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 		cargoInBucket := Cargo{}
 		for i := len(transfers) - 1; i >= 0; i-- {
 			transfer := transfers[i]
+			fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
+			if fleet == nil {
+				// don't kill turn processing for this because it's unclear how to fix it to unblock players
+				t.log.Error().
+					Int("Player", player.Num).
+					Int("Fleet", transfer.SourceFleetNum).
+					Msgf("fleet not found for ByHandCargoTransfer")
+				continue
+			}
 
 			// add any by hand loads to the bucket (these would be negative)
 			cargoInBucket = cargoInBucket.Add(transfer.Cargo.NegativeOnly())
@@ -428,7 +437,7 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 
 					log.Debug().
 						Int("Player", player.Num).
-						Int("FleetNum", transfer.SourceFleetNum).
+						Str("Fleet", fleet.Name).
 						Str("Target", transfer.MapObjectTarget.PrettyString()).
 						Str("cargoInBucket", cargoInBucket.PrettyString()).
 						Str("cargoToUnload", cargoToUnload.PrettyString()).
@@ -444,21 +453,11 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				continue
 			}
 
-			fleet := t.game.Universe.getFleet(player.Num, transfer.SourceFleetNum)
-			if fleet == nil {
-				// don't kill turn processing for this because it's unclear how to fix it to unblock players
-				t.log.Error().
-					Int("Player", player.Num).
-					Int("Fleet", transfer.SourceFleetNum).
-					Msgf("fleet not found for ByHandCargoTransfer")
-				continue
-			}
-
 			if transfer.Targeting(fleet.MapObject) {
 				// uh oh, we can't transfer to ourselves
 				t.log.Warn().
 					Int("Player", player.Num).
-					Int("Fleet", transfer.SourceFleetNum).
+					Str("Fleet", fleet.Name).
 					Msgf("fleet tried to transfer by hand to itself")
 				continue
 			}
@@ -479,7 +478,7 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				// uh oh, our dest went away. Log an error, it's a bug
 				t.log.Error().
 					Int("Player", player.Num).
-					Int("Fleet", transfer.SourceFleetNum).
+					Str("Fleet", fleet.Name).
 					Str("Target", transfer.MapObjectTarget.PrettyString()).
 					Msgf("target not found for ByHandCargoTransfer unload")
 				continue
