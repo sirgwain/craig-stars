@@ -403,12 +403,15 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	dest.Spec = ComputeFleetSpec(rules, player, dest)
 
 	// transfer the cargo as per the player's request
-	if err = o.TransferByHand(rules, player, source, dest, request.TransferAmount); err != nil {
-		return nil, nil, err
+	if request.TransferAmount != (CargoTransferRequest{}) {
+		if err = o.TransferByHand(rules, player, source, dest, request.TransferAmount); err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// split any immediate cargo transfers we did before based on capacity
-	if err := player.CargoTransfers.splitByHandTransfers(source, dest); err != nil {
+	// exclude the one we just made
+	if err := player.CargoTransfers.splitByHandTransfers(source, dest, true); err != nil {
 		return nil, nil, err
 	}
 
@@ -629,7 +632,7 @@ func (o *orders) splitFleetTokens(rules *Rules, player *Player, playerFleets []*
 	source.Spec = ComputeFleetSpec(rules, player, source)
 
 	// split any immediate cargo transfers as well
-	if err := player.CargoTransfers.splitByHandTransfers(source, &fleet); err != nil {
+	if err := player.CargoTransfers.splitByHandTransfers(source, &fleet, false); err != nil {
 		return nil, fmt.Errorf("unable to split immediate cargo transfers %w", err)
 	}
 

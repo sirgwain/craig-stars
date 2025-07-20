@@ -127,12 +127,16 @@ func (cargoTransfers CargoTransfers) transferByHand(fleet *Fleet, target MapObje
 
 // splitByHandTransfers splits the ByHandCargoTransfers for a source fleet into two
 // ByHandCargoTransfers, based on capacity of each fleet
-func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *Fleet) error {
+func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *Fleet, excludeLatest bool) error {
 	key := source.Position.String()
 	transfers, ok := cargoTransfers[key]
-	if !ok {
+	if !ok || len(transfers) == 1 && excludeLatest {
 		// no transfers
 		return nil
+	}
+	latest := transfers[len(transfers)-1]
+	if excludeLatest {
+		transfers = transfers[:len(transfers)-1]
 	}
 
 	updatedTransfers := make([]ByHandCargoTransfer, 0, len(transfers))
@@ -178,6 +182,9 @@ func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *F
 		}
 	}
 
+	if excludeLatest {
+		updatedTransfers = append(updatedTransfers, latest)
+	}
 	cargoTransfers[key] = updatedTransfers
 	return nil
 }
