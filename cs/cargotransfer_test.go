@@ -444,6 +444,13 @@ func TestCargoTransferer_getCargoUnloadAmount(t *testing.T) {
 			wantWantToTransfer: 20,
 		},
 		{
+			name:               "unload all ironium the dest can fit (20kT remaining space)",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 120}),
+			args:               args{dest: testSmallFreighter(player).withCargo(Cargo{Colonists: 100}), cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionUnloadAll}},
+			wantTransferAmount: 20, // small freighter has 130mg fuel capacity
+			wantWantToTransfer: 120,
+		},
+		{
 			name:               "unload all fuel dest can fit (they already have 20)",
 			fleet:              testSmallFreighter(player),
 			args:               args{dest: testSmallFreighter(player).withFuel(20), cargoType: Fuel, task: WaypointTransportTask{Action: TransportActionUnloadAll}},

@@ -781,7 +781,10 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 // getCargoUnloadAmount gets the amount of cargo to transfer for unloading a cargo type from a cargoholder
 func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
 
-	capacity := dest.GetCargoCapacity() - dest.GetCargo().Total()
+	capacity := dest.GetCargoCapacity()
+	if capacity != Infinite {
+		capacity = capacity - dest.GetCargo().Total()
+	}
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
 
 	var availableToUnload int
