@@ -454,12 +454,21 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				continue
 			}
 
-			// convert all by hand unload transfers into "Unload Amount" style WaypointTransportTasks
-			transportTasks := transfer.getUnloadTasks()
+			if transfer.Targeting(fleet.MapObject) {
+				// uh oh, we can't transfer to ourselves
+				t.log.Warn().
+					Int("Player", player.Num).
+					Int("Fleet", transfer.SourceFleetNum).
+					Msgf("fleet tried to transfer by hand to itself")
+				continue
+			}
 
 			// for by hand transfers, the fleet already thinks it unloaded this cargo, so add back the cargo and make the
 			// fleet unload it for real
 			fleet.Cargo = fleet.Cargo.Add(cargoToUnload.PositiveOnly())
+
+			// convert all by hand unload transfers into "Unload Amount" style WaypointTransportTasks
+			transportTasks := transfer.getUnloadTasks()
 
 			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
 			if !ok && transfer.TargetType == MapObjectTypeNone {
@@ -491,7 +500,38 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 				Str("CargoToUnload", cargoToUnload.PrettyString()).
 				Msgf("by hand unload cargo")
 
-			results = append(results, t.unload(fleet, dest, transportTasks)...)
+			transferResults := t.unload(fleet, dest, transportTasks)
+			for _, result := range transferResults {
+				if result.status != CargoTransferStatusNone {
+					// something went wrong, reset the fleet to what it was before
+					// if we don't do this, we end up with
+					fleet.Cargo = fleet.Cargo.SubtractAmount(result.cargoType, cargoToUnload.GetAmount(result.cargoType))
+					dest.SetCargo(dest.GetCargo().AddAmount(result.cargoType, cargoToUnload.GetAmount(result.cargoType)))
+					t.log.Error().
+						Int("Player", player.Num).
+						Int("Fleet", transfer.SourceFleetNum).
+						Str("CargoType", result.cargoType.String()).
+						Int("Amount", cargoToUnload.GetAmount(result.cargoType)).
+						Msgf("fleet tried to transfer by hand, but failed")
+
+					continue
+				}
+				// i.e. we wanted to unload 100, but only unloaded 20
+				if result.wanted != result.transferred {
+					// we didn't fully unload, reset the source and dest to account for this
+					fleet.Cargo = fleet.Cargo.SubtractAmount(result.cargoType, result.wanted-result.transferred)
+					dest.SetCargo(dest.GetCargo().AddAmount(result.cargoType, result.wanted-result.transferred))
+
+					t.log.Warn().
+						Int("Player", player.Num).
+						Int("Fleet", transfer.SourceFleetNum).
+						Str("CargoType", result.cargoType.String()).
+						Int("Amount", cargoToUnload.GetAmount(result.cargoType)).
+						Msgf("fleet tried to transfer %d by hand, but only transferred %d", result.wanted, result.transferred)
+				}
+			}
+
+			results = append(results, transferResults...)
 		}
 	}
 	return results
@@ -741,7 +781,7 @@ func (t *cargoTransferer) getCargoLoadAmount(fleet *Fleet, dest CargoHolder, car
 // getCargoUnloadAmount gets the amount of cargo to transfer for unloading a cargo type from a cargoholder
 func (t *cargoTransferer) getCargoUnloadAmount(fleet *Fleet, dest CargoHolder, cargoType CargoType, task WaypointTransportTask) (transferAmount int, wantToTransfer int, waitAtWaypoint bool) {
 
-	capacity := dest.GetCargoCapacity()
+	capacity := dest.GetCargoCapacity() - dest.GetCargo().Total()
 	currentAmount := fleet.Cargo.GetAmount(cargoType)
 
 	var availableToUnload int

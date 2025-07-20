@@ -16,7 +16,7 @@
 	let top = $derived((values: number[]) => $yScale(max(values, $y)) / Math.max(...$yRange));
 </script>
 
-{#each $data as group (group.playerName)}
+{#each $data as group (group.playerNum)}
 	<div
 		class="label"
 		style="

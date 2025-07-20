@@ -71,8 +71,10 @@ type gameRunner struct {
 	config config.Config
 }
 
-func NewGameRunner(ctx context.Context, dbConn DBConnection, config config.Config) GameRunner {
-	return &gameRunner{ctx, dbConn, cs.NewGamer(), config}
+func NewGameRunner(dbConn DBConnection, config config.Config) GameRunner {
+	// game runner runs in its own context. we don't want client request cancellations
+	// to stop db calls from executing when setting error states
+	return &gameRunner{context.Background(), dbConn, cs.NewGamer(), config}
 }
 
 func timeTrack(start time.Time, name string) {

@@ -24,8 +24,14 @@ func scanJSON(src interface{}, dest interface{}) error {
 
 	switch v := src.(type) {
 	case []byte:
+		if len(v) == 0 {
+			return nil
+		}
 		return json.Unmarshal(v, dest)
 	case string:
+		if len(v) == 0 {
+			return nil
+		}
 		return json.Unmarshal([]byte(v), dest)
 	}
 	return errors.New("type assertion failed")

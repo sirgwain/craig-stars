@@ -84,32 +84,32 @@ CREATE TABLE
     research_spent_last_year INTEGER NOT NULL DEFAULT 0,
     next_research_field TEXT NOT NULL DEFAULT '',
     researching TEXT NOT NULL DEFAULT '',
-    battle_plans TEXT NOT NULL DEFAULT '',
-    production_plans TEXT NOT NULL DEFAULT '',
-    transport_plans TEXT NOT NULL DEFAULT '',
-    relations TEXT NOT NULL DEFAULT '',
-    cargo_transfers TEXT NOT NULL DEFAULT '',
-    messages TEXT NOT NULL DEFAULT '',
-    battle_records TEXT NOT NULL DEFAULT '',
-    player_intels TEXT NOT NULL DEFAULT '',
-    score_intels TEXT NOT NULL DEFAULT '',
-    planet_intels TEXT NOT NULL DEFAULT '',
-    fleet_intels TEXT NOT NULL DEFAULT '',
-    ship_design_intels TEXT NOT NULL DEFAULT '',
-    mineral_packet_intels TEXT NOT NULL DEFAULT '',
-    minefield_intels TEXT NOT NULL DEFAULT '',
-    wormhole_intels TEXT NOT NULL DEFAULT '',
-    mystery_trader_intels TEXT NOT NULL DEFAULT '',
-    salvage_intels TEXT NOT NULL DEFAULT '',
-    race TEXT NOT NULL DEFAULT '',
+    battle_plans TEXT NOT NULL DEFAULT '{}',
+    production_plans TEXT NOT NULL DEFAULT '{}',
+    transport_plans TEXT NOT NULL DEFAULT '{}',
+    relations TEXT NOT NULL DEFAULT '{}',
+    cargo_transfers TEXT NOT NULL DEFAULT '{}',
+    messages TEXT NOT NULL DEFAULT '{}',
+    battle_records TEXT NOT NULL DEFAULT '{}',
+    player_intels TEXT NOT NULL DEFAULT '{}',
+    score_intels TEXT NOT NULL DEFAULT '{}',
+    planet_intels TEXT NOT NULL DEFAULT '{}',
+    fleet_intels TEXT NOT NULL DEFAULT '{}',
+    ship_design_intels TEXT NOT NULL DEFAULT '{}',
+    mineral_packet_intels TEXT NOT NULL DEFAULT '{}',
+    minefield_intels TEXT NOT NULL DEFAULT '{}',
+    wormhole_intels TEXT NOT NULL DEFAULT '{}',
+    mystery_trader_intels TEXT NOT NULL DEFAULT '{}',
+    salvage_intels TEXT NOT NULL DEFAULT '{}',
+    race TEXT NOT NULL DEFAULT '{}',
     stats TEXT,
-    score_history TEXT NOT NULL DEFAULT '',
+    score_history TEXT NOT NULL DEFAULT '{}',
     achieved_victory_conditions INTEGER NOT NULL DEFAULT 0,
     victor BOOLEAN NOT NULL DEFAULT 0,
-    spec TEXT NOT NULL DEFAULT '',
+    spec TEXT NOT NULL DEFAULT '{}',
     guest BOOLEAN NOT NULL DEFAULT 0,
-    ai_difficulty TEXT DEFAULT "",
-    acquired_techs TEXT NOT NULL DEFAULT '',
+    ai_difficulty TEXT DEFAULT '',
+    acquired_techs TEXT NOT NULL DEFAULT '{}',
     archived BOOLEAN NOT NULL DEFAULT 0,
     UNIQUE (game_id, num),
     CONSTRAINT fk_games_players FOREIGN KEY (game_id) REFERENCES games_new (id) ON DELETE CASCADE
@@ -127,8 +127,8 @@ CREATE TABLE
     name TEXT NOT NULL DEFAULT '',
     num INTEGER NOT NULL DEFAULT 0,
     player_num INTEGER NOT NULL DEFAULT 0,
-    tokens TEXT NOT NULL DEFAULT '',
-    waypoints TEXT NOT NULL DEFAULT '',
+    tokens TEXT NOT NULL DEFAULT '{}',
+    waypoints TEXT NOT NULL DEFAULT '{}',
     repeat_orders BOOLEAN NOT NULL DEFAULT 0,
     planet_num INTEGER NOT NULL DEFAULT 0,
     base_name TEXT NOT NULL DEFAULT '',
@@ -145,20 +145,12 @@ CREATE TABLE
     previous_position_y REAL,
     orbiting_planet_num INTEGER NOT NULL DEFAULT 0,
     starbase BOOLEAN NOT NULL DEFAULT 0,
-    spec TEXT NOT NULL DEFAULT '',
+    spec TEXT NOT NULL DEFAULT '{}',
     purpose TEXT NOT NULL DEFAULT '',
-    tags TEXT NOT NULL DEFAULT '',
+    tags TEXT NOT NULL DEFAULT '{}',
     CONSTRAINT fk_players_fleets FOREIGN KEY (game_id, player_num) REFERENCES players_new (game_id, num) ON DELETE CASCADE,
     CONSTRAINT fk_games_fleets FOREIGN KEY (game_id) REFERENCES games_new (id) ON DELETE CASCADE
   );
-
-CREATE UNIQUE INDEX idx_fleets_game_id_player_num_num ON fleets_new (game_id, player_num, num)
-WHERE
-  starbase = 0;
-
-CREATE UNIQUE INDEX idx_starbase_game_id_player_num_planet_num ON fleets_new (game_id, player_num, planet_num)
-WHERE
-  starbase = 1;
 
 CREATE TABLE
   ship_designs_new (
@@ -172,9 +164,9 @@ CREATE TABLE
     version INTEGER NOT NULL DEFAULT 0,
     hull TEXT NOT NULL DEFAULT '',
     hull_set_number INTEGER NOT NULL DEFAULT 0,
-    slots TEXT NOT NULL DEFAULT '',
+    slots TEXT NOT NULL DEFAULT '{}',
     purpose TEXT NOT NULL DEFAULT '',
-    spec TEXT NOT NULL DEFAULT '',
+    spec TEXT NOT NULL DEFAULT '{}',
     cannot_delete BOOLEAN NOT NULL DEFAULT 0,
     original_player_num INTEGER DEFAULT 0,
     mystery_trader BOOLEAN NOT NULL DEFAULT 0,
@@ -226,8 +218,8 @@ CREATE TABLE
     packet_target_num INTEGER NOT NULL DEFAULT 0,
     packet_speed INTEGER NOT NULL DEFAULT 0,
     production_queue TEXT NOT NULL DEFAULT '',
-    spec TEXT NOT NULL DEFAULT '',
-    tags TEXT NOT NULL DEFAULT '',
+    spec TEXT NOT NULL DEFAULT '{}',
+    tags TEXT NOT NULL DEFAULT '{}',
     random_artifact boolean NOT NULL DEFAULT 0,
     UNIQUE (game_id, num),
     CONSTRAINT fk_games_planets FOREIGN KEY (game_id) REFERENCES games_new (id) ON DELETE CASCADE
@@ -254,7 +246,7 @@ CREATE TABLE
     scan_range_pen INTEGER NOT NULL DEFAULT 0,
     heading_x REAL NOT NULL DEFAULT 0,
     heading_y REAL NOT NULL DEFAULT 0,
-    tags TEXT NOT NULL DEFAULT '',
+    tags TEXT NOT NULL DEFAULT '{}',
     UNIQUE (game_id, player_num, num),
     CONSTRAINT fk_players_mineral_packets FOREIGN KEY (game_id, player_num) REFERENCES players_new (game_id, num),
     CONSTRAINT fk_games_mineral_packets FOREIGN KEY (game_id) REFERENCES games_new (id) ON DELETE CASCADE
@@ -274,7 +266,7 @@ CREATE TABLE
     ironium INTEGER NOT NULL DEFAULT 0,
     boranium INTEGER NOT NULL DEFAULT 0,
     germanium INTEGER NOT NULL DEFAULT 0,
-    tags TEXT NOT NULL DEFAULT '',
+    tags TEXT NOT NULL DEFAULT '{}',
     UNIQUE (game_id, num),
     CONSTRAINT fk_players_salvages FOREIGN KEY (game_id, player_num) REFERENCES players_new (game_id, num),
     CONSTRAINT fk_games_salvages FOREIGN KEY (game_id) REFERENCES games_new (id) ON DELETE CASCADE
@@ -293,8 +285,8 @@ CREATE TABLE
     destination_num INTEGER NOT NULL DEFAULT 0,
     stability TEXT NOT NULL DEFAULT '',
     years_at_stability INTEGER NOT NULL DEFAULT 0,
-    spec TEXT NOT NULL DEFAULT '',
-    tags TEXT NOT NULL DEFAULT '',
+    spec TEXT NOT NULL DEFAULT '{}',
+    tags TEXT NOT NULL DEFAULT '{}',
     UNIQUE (game_id, num),
     CONSTRAINT fk_games_wormholes FOREIGN KEY (game_id) REFERENCES games_new (id) ON DELETE CASCADE
   );
@@ -312,13 +304,13 @@ CREATE TABLE
     heading_x REAL NOT NULL DEFAULT 0,
     heading_y REAL NOT NULL DEFAULT 0,
     warp_speed INTEGER NOT NULL DEFAULT 0,
-    spec TEXT NOT NULL DEFAULT '',
-    tags TEXT NOT NULL DEFAULT '',
+    spec TEXT NOT NULL DEFAULT '{}',
+    tags TEXT NOT NULL DEFAULT '{}',
     requested_boon INTEGER NOT NULL DEFAULT 0,
     destination_x REAL NOT NULL DEFAULT 0,
     destination_y REAL NOT NULL DEFAULT 0,
     reward_type TEXT NOT NULL DEFAULT '',
-    players_rewarded TEXT NOT NULL DEFAULT '',
+    players_rewarded TEXT NOT NULL DEFAULT '{}',
     UNIQUE (game_id, num),
     CONSTRAINT fk_games_mystery_traders FOREIGN KEY (game_id) REFERENCES games_new (id) ON DELETE CASCADE
   );
@@ -337,8 +329,8 @@ CREATE TABLE
     num_mines INTEGER NOT NULL DEFAULT 0,
     detonate BOOLEAN NOT NULL DEFAULT 0,
     minefield_type TEXT NOT NULL DEFAULT '',
-    spec TEXT NOT NULL DEFAULT '',
-    tags TEXT NOT NULL DEFAULT '',
+    spec TEXT NOT NULL DEFAULT '{}',
+    tags TEXT NOT NULL DEFAULT '{}',
     UNIQUE (game_id, player_num, num),
     CONSTRAINT fk_players_minefields FOREIGN KEY (game_id, player_num) REFERENCES players_new (game_id, num),
     CONSTRAINT fk_games_minefields FOREIGN KEY (game_id) REFERENCES games_new (id) ON DELETE CASCADE
@@ -530,49 +522,49 @@ SELECT
   COALESCE(researchSpentLastYear, 0),
   COALESCE(nextResearchField, ''),
   COALESCE(researching, ''),
-  COALESCE(battlePlans, ''),
-  COALESCE(productionPlans, ''),
-  COALESCE(transportPlans, ''),
-  COALESCE(relations, ''),
-  COALESCE(cargoTransfers, ''),
+  COALESCE(battlePlans, '{}'),
+  COALESCE(productionPlans, '{}'),
+  COALESCE(transportPlans, '{}'),
+  COALESCE(relations, '{}'),
+  COALESCE(cargoTransfers, '{}'),
   -- fix MineField -> Minefield rename
   REPLACE(
     REPLACE(
-      REPLACE(COALESCE(messages, ''), "ineField", "inefield"),
+      REPLACE(COALESCE(messages, '{}'), "ineField", "inefield"),
       "Mine Field",
       "Minefield"
     ),
     "mine field",
     "minefield"
   ),
-  COALESCE(battleRecords, ''),
-  COALESCE(playerIntels, ''),
-  COALESCE(scoreIntels, ''),
-  COALESCE(planetIntels, ''),
-  COALESCE(fleetIntels, ''),
-  COALESCE(shipDesignIntels, ''),
-  COALESCE(mineralPacketIntels, ''),
+  COALESCE(battleRecords, '{}'),
+  COALESCE(playerIntels, '{}'),
+  COALESCE(scoreIntels, '{}'),
+  COALESCE(planetIntels, '{}'),
+  COALESCE(fleetIntels, '{}'),
+  COALESCE(shipDesignIntels, '{}'),
+  COALESCE(mineralPacketIntels, '{}'),
   REPLACE(
     REPLACE(
-      COALESCE(mineFieldIntels, ''),
+      COALESCE(mineFieldIntels, '{}'),
       "ineField",
       "inefield"
     ),
     "Mine Field",
     "Minefield"
   ),
-  COALESCE(wormholeIntels, ''),
-  COALESCE(mysteryTraderIntels, ''),
-  COALESCE(salvageIntels, ''),
-  REPLACE(COALESCE(race, ''), "ineField", "inefield"),
+  COALESCE(wormholeIntels, '{}'),
+  COALESCE(mysteryTraderIntels, '{}'),
+  COALESCE(salvageIntels, '{}'),
+  REPLACE(COALESCE(race, '{}'), "ineField", "inefield"),
   stats,
-  COALESCE(scoreHistory, ''),
+  COALESCE(scoreHistory, '{}'),
   COALESCE(achievedVictoryConditions, 0),
   COALESCE(victor, 0),
   COALESCE(spec, 0),
   COALESCE(guest, 0),
   COALESCE(aiDifficulty, ''),
-  COALESCE(acquiredTechs, ''),
+  COALESCE(acquiredTechs, '{}'),
   COALESCE(archived, 0)
 FROM
   players;
@@ -630,9 +622,9 @@ SELECT
   COALESCE(name, ''),
   COALESCE(num, 0),
   COALESCE(playerNum, 0),
-  COALESCE(tokens, ''),
+  COALESCE(tokens, '{}'),
   REPLACE(
-    REPLACE(COALESCE(waypoints, ''), "ineField", "inefield"),
+    REPLACE(COALESCE(waypoints, '{}'), "ineField", "inefield"),
     "Mine Field",
     "Minefield"
   ),
@@ -652,9 +644,9 @@ SELECT
   previousPositionY,
   COALESCE(orbitingPlanetNum, 0),
   COALESCE(starbase, 0),
-  COALESCE(spec, ''),
+  COALESCE(spec, '{}'),
   COALESCE(purpose, ''),
-  COALESCE(tags, '')
+  COALESCE(tags, '{}')
 FROM
   fleets;
 
@@ -696,9 +688,9 @@ SELECT
   COALESCE(version, ''),
   COALESCE(hull, ''),
   COALESCE(hullSetNumber, 0),
-  COALESCE(slots, ''),
+  COALESCE(slots, '{}'),
   COALESCE(purpose, ''),
-  COALESCE(spec, ''),
+  COALESCE(spec, '{}'),
   COALESCE(cannotDelete, 0),
   COALESCE(originalPlayerNum, 0),
   COALESCE(mysteryTrader, 0)
@@ -774,10 +766,10 @@ SELECT
   COALESCE(temp, 0),
   COALESCE(rad, 0),
   COALESCE(baseGrav, 0),
-  COALESCE(baseTemp, 0),
+  COALESCE(basetemp, 0),
   COALESCE(baseRad, 0),
   COALESCE(terraformedAmountGrav, 0),
-  COALESCE(terraformedAmountTemp, 0),
+  COALESCE(terraformedAmounttemp, 0),
   COALESCE(terraformedAmountRad, 0),
   COALESCE(mineralConcIronium, 0),
   COALESCE(mineralConcBoranium, 0),
@@ -802,8 +794,8 @@ SELECT
   COALESCE(packetTargetNum, 0),
   COALESCE(packetSpeed, 0),
   COALESCE(productionQueue, ''),
-  COALESCE(spec, ''),
-  COALESCE(tags, ''),
+  COALESCE(spec, '{}'),
+  COALESCE(tags, '{}'),
   COALESCE(randomArtifact, 0)
 FROM
   planets;
@@ -859,7 +851,7 @@ SELECT
   COALESCE(scanRangePen, 0),
   COALESCE(headingX, 0),
   COALESCE(headingY, 0),
-  COALESCE(tags, '')
+  COALESCE(tags, '{}')
 FROM
   mineralPackets;
 
@@ -900,7 +892,7 @@ SELECT
   COALESCE(ironium, 0),
   COALESCE(boranium, 0),
   COALESCE(germanium, 0),
-  COALESCE(tags, '')
+  COALESCE(tags, '{}')
 FROM
   salvages;
 
@@ -940,8 +932,8 @@ SELECT
   COALESCE(destinationNum, 0),
   COALESCE(stability, ''),
   COALESCE(yearsAtStability, 0),
-  COALESCE(spec, ''),
-  COALESCE(tags, '')
+  COALESCE(spec, '{}'),
+  COALESCE(tags, '{}')
 FROM
   wormholes;
 
@@ -986,13 +978,13 @@ SELECT
   COALESCE(headingX, 0),
   COALESCE(headingY, 0),
   COALESCE(warpSpeed, 0),
-  COALESCE(spec, ''),
-  COALESCE(tags, ''),
+  COALESCE(spec, '{}'),
+  COALESCE(tags, '{}'),
   COALESCE(requestedBoon, 0),
   COALESCE(destinationX, 0),
   COALESCE(destinationY, 0),
   COALESCE(rewardType, ''),
-  COALESCE(playersRewarded, '')
+  COALESCE(playersRewarded, '{}')
 FROM
   mysteryTraders;
 
@@ -1034,8 +1026,8 @@ SELECT
   COALESCE(numMines, 0),
   COALESCE(detonate, 0),
   COALESCE(minefieldType, ''),
-  COALESCE(spec, ''),
-  COALESCE(tags, '')
+  COALESCE(spec, '{}'),
+  COALESCE(tags, '{}')
 FROM
   mineFields;
 
@@ -1082,6 +1074,14 @@ SELECT
   players.guest
 FROM
   players;
+
+CREATE UNIQUE INDEX idx_fleets_game_id_player_num_num ON fleets (game_id, player_num, num)
+WHERE
+  starbase = 0;
+
+CREATE UNIQUE INDEX idx_starbase_game_id_player_num_planet_num ON fleets (game_id, player_num, planet_num)
+WHERE
+  starbase = 1;
 
 CREATE INDEX idx_games_hostid_gameid ON games (host_id);
 

@@ -525,7 +525,7 @@ func (s *server) contextDb(r *http.Request) DBClient {
 
 // create a new gameRunner for this request
 func (s *server) newGameRunner(ctx context.Context) GameRunner {
-	return NewGameRunner(ctx, s.db, s.config)
+	return NewGameRunner(s.db, s.config)
 }
 
 // create a new request logger with zerolog. Inspired by https://github.com/ironstar-io/chizerolog

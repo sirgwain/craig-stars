@@ -9,21 +9,21 @@ import (
 
 var gameID int64
 
-func newUpdateGameCmd() *cobra.Command {
+func newGamesUpdateCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "game",
+		Use:   "update",
 		Short: "Update a game",
 		Long:  `Update a game.`,
 	}
 	cmd.PersistentFlags().Int64Var(&gameID, "game-id", 0, "The game to update")
 	cmd.MarkFlagRequired("game-id")
 
-	cmd.AddCommand(newUpdateGameHostCmd())
-	cmd.AddCommand(newUpdateGamePlayerCmd())
+	cmd.AddCommand(newGamesUpdateHostCmd())
+	cmd.AddCommand(newGamesUpdatePlayerCmd())
 	return cmd
 }
 
-func newUpdateGameHostCmd() *cobra.Command {
+func newGamesUpdateHostCmd() *cobra.Command {
 	var userID int64
 	cmd := &cobra.Command{
 		Use:   "host",
@@ -39,7 +39,7 @@ func newUpdateGameHostCmd() *cobra.Command {
 	return cmd
 }
 
-func newUpdateGamePlayerCmd() *cobra.Command {
+func newGamesUpdatePlayerCmd() *cobra.Command {
 	var userID int64
 	var playerNum int
 	cmd := &cobra.Command{

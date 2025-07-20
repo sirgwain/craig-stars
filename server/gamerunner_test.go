@@ -22,7 +22,7 @@ func createTestGameRunner(ctx context.Context) GameRunner {
 		panic(fmt.Errorf("error connecting to test database: \n%w", err))
 	}
 
-	return NewGameRunner(ctx, dbConn, *cfg)
+	return NewGameRunner(dbConn, *cfg)
 }
 
 func Test_gameRunner_HostGame(t *testing.T) {
@@ -58,7 +58,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 		race.PluralName = fmt.Sprintf("%vs", prt)
 	}
 
-	gr := NewGameRunner(t.Context(), dbConn, *cfg)
+	gr := NewGameRunner(dbConn, *cfg)
 
 	// create a game with AI players for each PRT
 	fullGame, err := gr.HostGame(1, cs.NewGameSettings().
@@ -81,7 +81,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 
 	// generate 100 turns
 	for i := 0; i < 100; i++ {
-		gr := NewGameRunner(t.Context(), dbConn, *cfg)
+		gr := NewGameRunner(dbConn, *cfg)
 
 		if _, err := gr.GenerateTurn(fullGame.ID); err != nil {
 			t.Errorf("GenerateTurn failed on year %d: \n%v", fullGame.Game.Year, err)
