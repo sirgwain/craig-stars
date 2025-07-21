@@ -1,9 +1,9 @@
 <script lang="ts">
 	import {
 		Infinite,
-		MineFieldTypeHeavy,
-		MineFieldTypeSpeedBump,
-		MineFieldTypeStandard,
+		MinefieldTypeHeavy,
+		MinefieldTypeSpeedBump,
+		MinefieldTypeStandard,
 		NoScanner,
 		type ShipDesignSpec
 	} from '$lib/types/cs';
@@ -116,22 +116,22 @@
 		</div>
 	{/if}
 
-	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MineFieldTypeStandard]}
+	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MinefieldTypeStandard]}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Mine Laying</div>
-			<div>{spec.mineLayingRateByMineType[MineFieldTypeStandard]} std/yr</div>
+			<div>{spec.mineLayingRateByMineType[MinefieldTypeStandard]} std/yr</div>
 		</div>
 	{/if}
-	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MineFieldTypeHeavy]}
+	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MinefieldTypeHeavy]}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Mine Laying</div>
-			<div>{spec.mineLayingRateByMineType[MineFieldTypeHeavy]} hvy/yr</div>
+			<div>{spec.mineLayingRateByMineType[MinefieldTypeHeavy]} hvy/yr</div>
 		</div>
 	{/if}
-	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MineFieldTypeSpeedBump]}
+	{#if spec.mineLayingRateByMineType && spec.mineLayingRateByMineType[MinefieldTypeSpeedBump]}
 		<div class="flex justify-between">
 			<div class="font-semibold mr-5">Mine Laying</div>
-			<div>{spec.mineLayingRateByMineType[MineFieldTypeSpeedBump]} spd/yr</div>
+			<div>{spec.mineLayingRateByMineType[MinefieldTypeSpeedBump]} spd/yr</div>
 		</div>
 	{/if}
 	{#if spec.miningRate}

@@ -31,12 +31,13 @@ type Race struct {
 	NumMines              int                   `json:"numMines"`
 	ResearchCost          ResearchCost          `json:"researchCost"`
 	TechsStartHigh        bool                  `json:"techsStartHigh,omitempty"`
-	Spec                  RaceSpec              `json:"spec"`
+	Spec                  RaceSpec              `json:"spec,omitzero"`
 }
 
 type ResearchCostLevel string
 
 const (
+	ResearchCostNone     ResearchCostLevel = ""
 	ResearchCostExtra    ResearchCostLevel = "Extra"
 	ResearchCostStandard ResearchCostLevel = "Standard"
 	ResearchCostLess     ResearchCostLevel = "Less"
@@ -86,11 +87,11 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 type RaceSpec struct {
 	MiniaturizationSpec              `tstype:",extends"`
 	ScannerSpec                      `tstype:",extends"`
-	HabCenter                        Hab                    `json:"habCenter,omitempty"`
-	Costs                            map[QueueItemType]Cost `json:"costs,omitempty"`
-	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitempty"`
-	StartingPlanets                  []StartingPlanet       `json:"startingPlanets,omitempty"`
-	TechCostOffset                   TechCostOffset         `json:"techCostOffset,omitempty"`
+	HabCenter                        Hab                    `json:"habCenter,omitzero"`
+	Costs                            map[QueueItemType]Cost `json:"costs,omitzero"`
+	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitzero"`
+	StartingPlanets                  []StartingPlanet       `json:"startingPlanets,omitzero"`
+	TechCostOffset                   TechCostOffset         `json:"techCostOffset,omitzero"`
 	MineralsPerSingleMineralPacket   int                    `json:"mineralsPerSingleMineralPacket,omitempty"`
 	MineralsPerMixedMineralPacket    int                    `json:"mineralsPerMixedMineralPacket,omitempty"`
 	PacketResourceCost               int                    `json:"packetResourceCost,omitempty"`
@@ -108,21 +109,21 @@ type RaceSpec struct {
 	CanDetectStargatePlanets         bool                   `json:"canDetectStargatePlanets,omitempty"`
 	ShipsVanishInVoid                bool                   `json:"shipsVanishInVoid,omitempty"`
 	TechsCostExtraLevel              int                    `json:"techsCostExtraLevel,omitempty"`
-	FreighterGrowth                  FreighterGrowth        `json:"freighterGrowth,omitempty"`
+	FreighterGrowth                  FreighterGrowth        `json:"freighterGrowth,omitzero"`
 	GrowthFactor                     float64                `json:"growthFactor,omitempty"`
 	MaxPopulationOffset              float64                `json:"maxPopulationOffset,omitempty"`
 	BuiltInCloakUnits                int                    `json:"builtInCloakUnits,omitempty"`
-	StealsResearch                   StealsResearch         `json:"stealsResearch,omitempty"`
+	StealsResearch                   StealsResearch         `json:"stealsResearch,omitzero"`
 	FreeCargoCloaking                bool                   `json:"freeCargoCloaking,omitempty"`
-	MineFieldsAreScanners            bool                   `json:"mineFieldsAreScanners,omitempty"`
-	MineFieldRateMoveFactor          float64                `json:"mineFieldRateMoveFactor,omitempty"`
-	MineFieldSafeWarpBonus           int                    `json:"mineFieldSafeWarpBonus,omitempty"`
-	MineFieldMinDecayFactor          float64                `json:"mineFieldMinDecayFactor,omitempty"`
-	MineFieldBaseDecayRate           float64                `json:"mineFieldBaseDecayRate,omitempty"`
-	MineFieldPlanetDecayRate         float64                `json:"mineFieldPlanetDecayRate,omitempty"`
-	MineFieldMaxDecayRate            float64                `json:"mineFieldMaxDecayRate,omitempty"`
-	CanDetonateMineFields            bool                   `json:"canDetonateMineFields,omitempty"`
-	MineFieldDetonateDecayRate       float64                `json:"mineFieldDetonateDecayRate,omitempty"`
+	MinefieldsAreScanners            bool                   `json:"minefieldsAreScanners,omitempty"`
+	MinefieldRateMoveFactor          float64                `json:"minefieldRateMoveFactor,omitempty"`
+	MinefieldSafeWarpBonus           int                    `json:"minefieldSafeWarpBonus,omitempty"`
+	MinefieldMinDecayFactor          float64                `json:"minefieldMinDecayFactor,omitempty"`
+	MinefieldBaseDecayRate           float64                `json:"minefieldBaseDecayRate,omitempty"`
+	MinefieldPlanetDecayRate         float64                `json:"minefieldPlanetDecayRate,omitempty"`
+	MinefieldMaxDecayRate            float64                `json:"minefieldMaxDecayRate,omitempty"`
+	CanDetonateMinefields            bool                   `json:"canDetonateMinefields,omitempty"`
+	MinefieldDetonateDecayRate       float64                `json:"minefieldDetonateDecayRate,omitempty"`
 	DiscoverDesignOnScan             bool                   `json:"discoverDesignOnScan,omitempty"`
 	CanRemoteMineOwnPlanets          bool                   `json:"canRemoteMineOwnPlanets,omitempty"`
 	InvasionAttackBonus              float64                `json:"invasionAttackBonus,omitempty"`
@@ -166,14 +167,14 @@ type MiniaturizationSpec struct {
 }
 
 type ScannerSpec struct {
-	BuiltInScanner     BuiltInScanner `json:"builtInScanner,omitempty"`
+	BuiltInScanner     BuiltInScanner `json:"builtInScanner,omitzero"`
 	NoAdvancedScanners bool           `json:"noAdvancedScanners,omitempty"`
 	ScanRangeFactor    float64        `json:"scanRangeFactor,omitempty"`
 }
 
 type BuiltInScanner struct {
-	NormalMulti TechLevel `json:"normalMulti,omitempty"`
-	PenMulti    TechLevel `json:"penMulti,omitempty"`
+	NormalMulti TechLevel `json:"normalMulti,omitzero"`
+	PenMulti    TechLevel `json:"penMulti,omitzero"`
 }
 
 type PRT string
@@ -654,15 +655,15 @@ func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
 		FreeCargoCloaking: prtSpec.FreeCargoCloaking,
 
 		// SD
-		MineFieldsAreScanners:      prtSpec.MineFieldsAreScanners,
-		MineFieldRateMoveFactor:    prtSpec.MineFieldRateMoveFactor,
-		MineFieldSafeWarpBonus:     prtSpec.MineFieldSafeWarpBonus,
-		MineFieldMinDecayFactor:    prtSpec.MineFieldMinDecayFactor,
-		MineFieldBaseDecayRate:     prtSpec.MineFieldBaseDecayRate,
-		MineFieldPlanetDecayRate:   prtSpec.MineFieldPlanetDecayRate,
-		MineFieldMaxDecayRate:      prtSpec.MineFieldMaxDecayRate,
-		CanDetonateMineFields:      prtSpec.CanDetonateMineFields,
-		MineFieldDetonateDecayRate: prtSpec.MineFieldDetonateDecayRate,
+		MinefieldsAreScanners:      prtSpec.MinefieldsAreScanners,
+		MinefieldRateMoveFactor:    prtSpec.MinefieldRateMoveFactor,
+		MinefieldSafeWarpBonus:     prtSpec.MinefieldSafeWarpBonus,
+		MinefieldMinDecayFactor:    prtSpec.MinefieldMinDecayFactor,
+		MinefieldBaseDecayRate:     prtSpec.MinefieldBaseDecayRate,
+		MinefieldPlanetDecayRate:   prtSpec.MinefieldPlanetDecayRate,
+		MinefieldMaxDecayRate:      prtSpec.MinefieldMaxDecayRate,
+		CanDetonateMinefields:      prtSpec.CanDetonateMinefields,
+		MinefieldDetonateDecayRate: prtSpec.MinefieldDetonateDecayRate,
 
 		// WM
 		DiscoverDesignOnScan: prtSpec.DiscoverDesignOnScan,

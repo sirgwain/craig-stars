@@ -33,7 +33,7 @@ type Fleet struct {
 	FleetOrders       `tstype:",extends"`
 	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
-	Cargo             Cargo       `json:"cargo,omitempty"`
+	Cargo             Cargo       `json:"cargo,omitzero"`
 	Fuel              int         `json:"fuel"`
 	Age               int         `json:"age"`
 	Tokens            []ShipToken `json:"tokens"`
@@ -44,7 +44,7 @@ type Fleet struct {
 	Starbase          bool        `json:"starbase,omitempty"`
 	Spec              FleetSpec   `json:"spec"`
 	battlePlan        *BattlePlan
-	struckMineField   bool
+	struckMinefield   bool
 	remoteMined       bool
 }
 
@@ -65,7 +65,7 @@ type FleetSpec struct {
 	MassEmpty        int                        `json:"massEmpty,omitempty"`
 	MaxHullMass      int                        `json:"maxHullMass,omitempty"`
 	MaxRange         int                        `json:"maxRange,omitempty"`
-	Purposes         map[ShipDesignPurpose]bool `json:"purposes,omitempty"`
+	Purposes         map[ShipDesignPurpose]bool `json:"purposes,omitzero"`
 	SafeHullMass     int                        `json:"safeHullMass,omitempty"`
 	SafeRange        int                        `json:"safeRange,omitempty"`
 	Stargate         string                     `json:"stargate,omitempty"`
@@ -78,9 +78,9 @@ type Waypoint struct {
 	WarpSpeed            int                    `json:"warpSpeed"`
 	EstFuelUsage         int                    `json:"estFuelUsage,omitempty"`
 	Task                 WaypointTask           `json:"task,omitempty"`
-	TransportTasks       WaypointTransportTasks `json:"transportTasks"`
+	TransportTasks       WaypointTransportTasks `json:"transportTasks,omitzero"`
 	WaitAtWaypoint       bool                   `json:"waitAtWaypoint,omitempty"`
-	LayMineFieldDuration int                    `json:"layMineFieldDuration,omitempty"`
+	LayMinefieldDuration int                    `json:"layMinefieldDuration,omitempty"`
 	PatrolRange          int                    `json:"patrolRange,omitempty"`
 	PatrolWarpSpeed      int                    `json:"patrolWarpSpeed,omitempty"`
 	TransferToPlayer     int                    `json:"transferToPlayer,omitempty"`
@@ -97,7 +97,7 @@ const (
 	WaypointTaskRemoteMining   = "RemoteMining"
 	WaypointTaskMergeWithFleet = "MergeWithFleet"
 	WaypointTaskScrapFleet     = "ScrapFleet"
-	WaypointTaskLayMineField   = "LayMineField"
+	WaypointTaskLayMinefield   = "LayMinefield"
 	WaypointTaskPatrol         = "Patrol"
 	WaypointTaskRoute          = "Route"
 	WaypointTaskTransferFleet  = "TransferFleet"
@@ -244,12 +244,12 @@ type fleetMoveInterruptedReason int
 
 const (
 	fleetMoveInterruptedEngineFailure = iota
-	fleetMoveInterruptedHitMineField
+	fleetMoveInterruptedHitMinefield
 )
 
 type fleetMoveInterrupted struct {
 	reason    fleetMoveInterruptedReason
-	mineField *MineField
+	minefield *Minefield
 }
 
 func NewFleet(player *Player, num int, name string, waypoints []Waypoint) *Fleet {
@@ -581,7 +581,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 		if token.design.Spec.CanLayMines {
 			spec.CanLayMines = true
 			if spec.MineLayingRateByMineType == nil {
-				spec.MineLayingRateByMineType = make(map[MineFieldType]int)
+				spec.MineLayingRateByMineType = make(map[MinefieldType]int)
 			}
 			for key := range token.design.Spec.MineLayingRateByMineType {
 				if _, ok := spec.MineLayingRateByMineType[key]; ok {
@@ -834,9 +834,9 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		fuelCost = fleet.Fuel
 
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		hitMineField, actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
-		if hitMineField != nil {
-			interrupted = &fleetMoveInterrupted{reason: fleetMoveInterruptedHitMineField, mineField: hitMineField}
+		hitMinefield, actualDist := checkForMinefieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
+		if hitMinefield != nil {
+			interrupted = &fleetMoveInterrupted{reason: fleetMoveInterruptedHitMinefield, minefield: hitMinefield}
 		}
 
 		// we hit a minefield before we ran out of fuel
@@ -857,9 +857,9 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		fleet.Fuel -= fuelCost
 	} else {
 		// collide with minefields on route, but don't hit a minefield if we run out of fuel beforehand
-		hitMineField, actualDist := checkForMineFieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
-		if hitMineField != nil {
-			interrupted = &fleetMoveInterrupted{reason: fleetMoveInterruptedHitMineField, mineField: hitMineField}
+		hitMinefield, actualDist := checkForMinefieldCollision(rules, playerGetter, mapObjectGetter, fleet, wp1, dist)
+		if hitMinefield != nil {
+			interrupted = &fleetMoveInterrupted{reason: fleetMoveInterruptedHitMinefield, minefield: hitMinefield}
 		}
 
 		if actualDist != dist {
@@ -901,7 +901,7 @@ func (fleet *Fleet) moveFleet(rules *Rules, mapObjectGetter mapObjectGetter, pla
 		fleet.Position = fleet.Position.Round()
 		wp0.Position = fleet.Position
 
-		if fleet.struckMineField {
+		if fleet.struckMinefield {
 			fleet.WarpSpeed = 0
 			fleet.Heading = Vector{}
 		}

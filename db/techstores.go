@@ -1,18 +1,22 @@
 package db
 
-import "github.com/sirgwain/craig-stars/cs"
+import (
+	"context"
 
-func (c *client) GetTechStores() ([]cs.TechStore, error) {
+	"github.com/sirgwain/craig-stars/cs"
+)
+
+func (c *client) GetTechStores(ctx context.Context) ([]cs.TechStore, error) {
 	// TODO: implement
 	return []cs.TechStore{cs.StaticTechStore}, nil
 }
 
-func (c *client) CreateTechStore(tech *cs.TechStore) error {
+func (c *client) CreateTechStore(ctx context.Context, tech *cs.TechStore) (*cs.TechStore, error) {
 	// TODO: implement
-	return nil
+	return nil, nil
 }
 
-func (c *client) GetTechStore(id int64) (*cs.TechStore, error) {
+func (c *client) GetTechStore(ctx context.Context, id int64) (*cs.TechStore, error) {
 	// TODO: implement
 	return nil, nil
 }

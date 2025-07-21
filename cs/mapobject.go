@@ -30,7 +30,7 @@ type MapObject struct {
 	Num       int           `json:"num"`
 	PlayerNum int           `json:"playerNum"`
 	Name      string        `json:"name"`
-	Tags      Tags          `json:"tags"`
+	Tags      Tags          `json:"tags,omitzero"`
 	Delete    bool          `json:"-"`
 }
 
@@ -41,7 +41,7 @@ const (
 	MapObjectTypePlanet        MapObjectType = "Planet"
 	MapObjectTypeFleet         MapObjectType = "Fleet"
 	MapObjectTypeWormhole      MapObjectType = "Wormhole"
-	MapObjectTypeMineField     MapObjectType = "MineField"
+	MapObjectTypeMinefield     MapObjectType = "Minefield"
 	MapObjectTypeMysteryTrader MapObjectType = "MysteryTrader"
 	MapObjectTypeSalvage       MapObjectType = "Salvage"
 	MapObjectTypeMineralPacket MapObjectType = "MineralPacket"

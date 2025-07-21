@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/sirgwain/craig-stars/cs"
 )
 
@@ -248,5 +247,5 @@ func (s *server) testBattle(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
-	rest.RenderJSON(w, rest.JSON{"player": player1, "battle": record, "fleets": fleets})
+	RenderJSON(w, JSON{"player": player1, "battle": record, "fleets": fleets})
 }

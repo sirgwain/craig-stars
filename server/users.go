@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -34,7 +33,7 @@ func (s *server) userCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := db.GetUser(*id)
+		user, err := db.GetUser(r.Context(), *id)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -71,7 +70,7 @@ func (s *server) users(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := db.GetUsers()
+	users, err := db.GetUsers(r.Context())
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("get users from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -83,13 +82,13 @@ func (s *server) users(w http.ResponseWriter, r *http.Request) {
 		users[i].Password = ""
 	}
 
-	rest.RenderJSON(w, users)
+	RenderJSON(w, users)
 }
 
 func (s *server) user(w http.ResponseWriter, r *http.Request) {
 	user := s.contextUser(r)
 	user.Password = ""
-	rest.RenderJSON(w, user)
+	RenderJSON(w, user)
 }
 
 // updateUserSettings will update a user editable settings.
@@ -109,7 +108,7 @@ func (s *server) updateUserSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser, err := readWriteClient.GetUser(user.ID)
+	dbUser, err := readWriteClient.GetUser(r.Context(), user.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get user from database")
 		render.Render(w, r, ErrBadRequest(err))
@@ -124,7 +123,7 @@ func (s *server) updateUserSettings(w http.ResponseWriter, r *http.Request) {
 
 	dbUser.UserSettings = *request.UserSettings
 
-	if err := readWriteClient.UpdateUserSettings(dbUser); err != nil {
+	if err := readWriteClient.UpdateUserSettings(r.Context(), dbUser); err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("failed to update webhook")
 		render.Render(w, r, ErrNotFound)
 		return
@@ -134,5 +133,5 @@ func (s *server) updateUserSettings(w http.ResponseWriter, r *http.Request) {
 		Int64("UserID", user.ID).
 		Msgf("updated user settings %v", request)
 
-	rest.RenderJSON(w, rest.JSON{})
+	RenderJSON(w, JSON{})
 }

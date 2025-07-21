@@ -1,97 +1,48 @@
 package db
 
 import (
+	"context"
 	"database/sql"
-	"database/sql/driver"
-	"time"
 
 	"github.com/sirgwain/craig-stars/cs"
 )
 
-type Race struct {
-	ID                        int64                    `json:"id,omitempty"`
-	CreatedAt                 time.Time                `json:"createdAt,omitempty"`
-	UpdatedAt                 time.Time                `json:"updatedAt,omitempty"`
-	UserID                    int64                    `json:"userId,omitempty"`
-	Name                      string                   `json:"name,omitempty"`
-	PluralName                string                   `json:"pluralName,omitempty"`
-	SpendLeftoverPointsOn     cs.SpendLeftoverPointsOn `json:"spendLeftoverPointsOn,omitempty"`
-	PRT                       cs.PRT                   `json:"prt,omitempty"`
-	LRTs                      cs.Bitmask               `json:"lrts,omitempty"`
-	HabLowGrav                int                      `json:"habLowGrav,omitempty"`
-	HabLowTemp                int                      `json:"habLowTemp,omitempty"`
-	HabLowRad                 int                      `json:"habLowRad,omitempty"`
-	HabHighGrav               int                      `json:"habHighGrav,omitempty"`
-	HabHighTemp               int                      `json:"habHighTemp,omitempty"`
-	HabHighRad                int                      `json:"habHighRad,omitempty"`
-	GrowthRate                int                      `json:"growthRate,omitempty"`
-	PopEfficiency             int                      `json:"popEfficiency,omitempty"`
-	FactoryOutput             int                      `json:"factoryOutput,omitempty"`
-	FactoryCost               int                      `json:"factoryCost,omitempty"`
-	NumFactories              int                      `json:"numFactories,omitempty"`
-	FactoriesCostLess         bool                     `json:"factoriesCostLess,omitempty"`
-	ImmuneGrav                bool                     `json:"immuneGrav,omitempty"`
-	ImmuneTemp                bool                     `json:"immuneTemp,omitempty"`
-	ImmuneRad                 bool                     `json:"immuneRad,omitempty"`
-	MineOutput                int                      `json:"mineOutput,omitempty"`
-	MineCost                  int                      `json:"mineCost,omitempty"`
-	NumMines                  int                      `json:"numMines,omitempty"`
-	ResearchCostEnergy        cs.ResearchCostLevel     `json:"researchCostEnergy,omitempty"`
-	ResearchCostWeapons       cs.ResearchCostLevel     `json:"researchCostWeapons,omitempty"`
-	ResearchCostPropulsion    cs.ResearchCostLevel     `json:"researchCostPropulsion,omitempty"`
-	ResearchCostConstruction  cs.ResearchCostLevel     `json:"researchCostConstruction,omitempty"`
-	ResearchCostElectronics   cs.ResearchCostLevel     `json:"researchCostElectronics,omitempty"`
-	ResearchCostBiotechnology cs.ResearchCostLevel     `json:"researchCostBiotechnology,omitempty"`
-	TechsStartHigh            bool                     `json:"techsStartHigh,omitempty"`
-	Spec                      *RaceSpec                `json:"spec,omitempty"`
-}
+func (c *client) GetRaces(ctx context.Context) ([]cs.Race, error) {
 
-// we json serialize these types with custom Scan/Value methods
-type RaceSpec cs.RaceSpec
+	items, err := c.reader.GetRaces(ctx)
 
-// db serializer to serialize this to JSON
-func (item *RaceSpec) Value() (driver.Value, error) {
-	return valueJSON(item)
-}
-
-// db deserializer to read this from JSON
-func (item *RaceSpec) Scan(src interface{}) error {
-	return scanJSON(src, item)
-}
-
-func (c *client) GetRaces() ([]cs.Race, error) {
-
-	items := []Race{}
-	if err := c.reader.Select(&items, `SELECT * FROM races`); err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Race{}, nil
-		}
+	if err == sql.ErrNoRows {
+		return []cs.Race{}, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
 	return c.converter.ConvertRaces(items), nil
 }
 
-func (c *client) GetRacesForUser(userID int64) ([]cs.Race, error) {
+func (c *client) GetRacesForUser(ctx context.Context, userID int64) ([]cs.Race, error) {
 
-	items := []Race{}
-	if err := c.reader.Select(&items, `SELECT * FROM races WHERE userId = ?`, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return []cs.Race{}, nil
-		}
+	items, err := c.reader.GetRacesForUser(ctx, userID)
+
+	if err == sql.ErrNoRows {
+		return []cs.Race{}, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
 	return c.converter.ConvertRaces(items), nil
+
 }
 
 // get a race by id
-func (c *client) GetRace(id int64) (*cs.Race, error) {
-	item := Race{}
-	if err := c.reader.Get(&item, "SELECT * FROM races WHERE id = ?", id); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+func (c *client) GetRace(ctx context.Context, id int64) (*cs.Race, error) {
+	item, err := c.reader.GetRace(ctx, id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -99,162 +50,31 @@ func (c *client) GetRace(id int64) (*cs.Race, error) {
 	return &race, nil
 }
 
-// create a new race
-func (c *client) CreateRace(race *cs.Race) error {
-
-	item := c.converter.ConvertGameRace(race)
-	result, err := c.writer.NamedExec(`
-	INSERT INTO races (
-		createdAt,
-		updatedAt,
-		userId,
-		name,
-		pluralName,
-		spendLeftoverPointsOn,
-		prt,
-		lrts,
-		habLowGrav,
-		habLowTemp,
-		habLowRad,
-		habHighGrav,
-		habHighTemp,
-		habHighRad,
-		growthRate,
-		popEfficiency,
-		factoryOutput,
-		factoryCost,
-		numFactories,
-		factoriesCostLess,
-		immuneGrav,
-		immuneTemp,
-		immuneRad,
-		mineOutput,
-		mineCost,
-		numMines,
-		researchCostEnergy,
-		researchCostWeapons,
-		researchCostPropulsion,
-		researchCostConstruction,
-		researchCostElectronics,
-		researchCostBiotechnology,
-		techsStartHigh,
-		spec
-	)
-	VALUES (
-		CURRENT_TIMESTAMP,
-		CURRENT_TIMESTAMP,
-		:userId,
-		:name,
-		:pluralName,
-		:spendLeftoverPointsOn,
-		:prt,
-		:lrts,
-		:habLowGrav,
-		:habLowTemp,
-		:habLowRad,
-		:habHighGrav,
-		:habHighTemp,
-		:habHighRad,
-		:growthRate,
-		:popEfficiency,
-		:factoryOutput,
-		:factoryCost,
-		:numFactories,
-		:factoriesCostLess,
-		:immuneGrav,
-		:immuneTemp,
-		:immuneRad,
-		:mineOutput,
-		:mineCost,
-		:numMines,
-		:researchCostEnergy,
-		:researchCostWeapons,
-		:researchCostPropulsion,
-		:researchCostConstruction,
-		:researchCostElectronics,
-		:researchCostBiotechnology,
-		:techsStartHigh,
-		:spec
-	)
-	`, item)
-
-	if err != nil {
-		return err
-	}
-
-	// update the id of our passed in race
-	id, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-
-	race.ID = id
-
-	return nil
-}
-
-// update an existing race
-func (c *client) UpdateRace(race *cs.Race) error {
-
-	item := c.converter.ConvertGameRace(race)
-
-	if _, err := c.writer.NamedExec(`
-	UPDATE races SET
-		updatedAt = CURRENT_TIMESTAMP,
-		userId = :userId,
-		name = :name,
-		pluralName = :pluralName,
-		spendLeftoverPointsOn = :spendLeftoverPointsOn,
-		prt = :prt,
-		lrts = :lrts,
-		habLowGrav = :habLowGrav,
-		habLowTemp = :habLowTemp,
-		habLowRad = :habLowRad,
-		habHighGrav = :habHighGrav,
-		habHighTemp = :habHighTemp,
-		habHighRad = :habHighRad,
-		growthRate = :growthRate,
-		popEfficiency = :popEfficiency,
-		factoryOutput = :factoryOutput,
-		factoryCost = :factoryCost,
-		numFactories = :numFactories,
-		factoriesCostLess = :factoriesCostLess,
-		immuneGrav = :immuneGrav,
-		immuneTemp = :immuneTemp,
-		immuneRad = :immuneRad,
-		mineOutput = :mineOutput,
-		mineCost = :mineCost,
-		numMines = :numMines,
-		researchCostEnergy = :researchCostEnergy,
-		researchCostWeapons = :researchCostWeapons,
-		researchCostPropulsion = :researchCostPropulsion,
-		researchCostConstruction = :researchCostConstruction,
-		researchCostElectronics = :researchCostElectronics,
-		researchCostBiotechnology = :researchCostBiotechnology,
-		techsStartHigh = :techsStartHigh,
-		spec = :spec
-	WHERE id = :id
-	`, item); err != nil {
-		return err
+func (c *client) SaveRace(ctx context.Context, race *cs.Race) error {
+	if race.ID == 0 {
+		result, err := c.writer.CreateRace(ctx, c.converter.ConvertGameRaceToCreateParams(race))
+		if err != nil {
+			return err
+		}
+		race.ID = result
+	} else {
+		_, err := c.writer.UpdateRace(ctx, c.converter.ConvertGameRaceToUpdateParams(race))
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 // delete a race by id
-func (c *client) DeleteRace(id int64) error {
-	if _, err := c.writer.Exec("DELETE FROM races WHERE id = ?", id); err != nil {
-		return err
-	}
-
-	return nil
+func (c *client) DeleteRace(ctx context.Context, id int64) error {
+	_, err := c.writer.DeleteRace(ctx, id)
+	return err
 }
 
 // delete all races belonging to a user
-func (c *client) DeleteUserRaces(userID int64) error {
-	if _, err := c.writer.Exec("DELETE FROM races WHERE userId = ?", userID); err != nil {
-		return err
-	}
-
-	return nil
+func (c *client) DeleteUserRaces(ctx context.Context, userID int64) error {
+	_, err := c.writer.DeleteUserRaces(ctx, userID)
+	return err
 }

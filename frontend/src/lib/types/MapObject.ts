@@ -1,6 +1,6 @@
 import {
 	type AnyFleet,
-	type AnyMineField,
+	type AnyMinefield,
 	type AnyMineralPacket,
 	type AnyPlanet
 } from '$lib/services/Universe';
@@ -14,7 +14,7 @@ import type {
 } from './cs';
 import {
 	MapObjectTypeFleet,
-	MapObjectTypeMineField,
+	MapObjectTypeMinefield,
 	MapObjectTypeMineralPacket,
 	MapObjectTypeMysteryTrader,
 	MapObjectTypePlanet,
@@ -31,7 +31,7 @@ export type MovingMapObject = {
 } & MapObject;
 
 export const emptyMapObject = (): MapObject => {
-	return { type: '', name: '', position: emptyVector, num: 0, playerNum: 0, tags: {} };
+	return { type: '', name: '', position: emptyVector, num: 0, playerNum: 0 };
 };
 
 /**
@@ -64,7 +64,7 @@ export function getUnderlyingMapObject(mo: MapObject | undefined) {
 		planet: mo?.type === MapObjectTypePlanet ? (mo as AnyPlanet) : undefined,
 		fleet: mo?.type === MapObjectTypeFleet ? (mo as AnyFleet) : undefined,
 		wormhole: mo?.type === MapObjectTypeWormhole ? (mo as WormholeIntel) : undefined,
-		mineField: mo?.type === MapObjectTypeMineField ? (mo as AnyMineField) : undefined,
+		minefield: mo?.type === MapObjectTypeMinefield ? (mo as AnyMinefield) : undefined,
 		mysteryTrader: mo?.type === MapObjectTypeMysteryTrader ? (mo as MysteryTraderIntel) : undefined,
 		salvage: mo?.type === MapObjectTypeSalvage ? (mo as SalvageIntel) : undefined,
 		mineralPacket: mo?.type === MapObjectTypeMineralPacket ? (mo as AnyMineralPacket) : undefined

@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -52,7 +51,7 @@ func (s *server) planetCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		planet, err := db.GetPlanetByNum(player.GameID, *num)
+		planet, err := db.GetPlanetByNum(r.Context(), player.GameID, *num)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -81,7 +80,7 @@ func (s *server) contextPlanet(r *http.Request) *cs.Planet {
 
 func (s *server) planet(w http.ResponseWriter, r *http.Request) {
 	planet := s.contextPlanet(r)
-	rest.RenderJSON(w, planet)
+	RenderJSON(w, planet)
 }
 
 // Allow a user to update a planet's orders
@@ -98,14 +97,14 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load the full player to update planet production estimates
-	player, err := dbClient.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	player, err := dbClient.GetPlayerForGame(r.Context(), game.ID, player.Num)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	// load all a player's planets so we can recompute research estimates
-	planets, err := dbClient.GetPlanetsForPlayer(game.ID, player.Num)
+	planets, err := dbClient.GetPlanetsForPlayer(r.Context(), game.ID, player.Num)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -120,14 +119,14 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 
 	// update this planet and the player's spec in the database
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.UpdatePlanet(existingPlanet); err != nil {
+		if err := c.SavePlanet(r.Context(), existingPlanet); err != nil {
 			log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
 			return err
 		}
 
 		// update the player spec as well because changes in planet orders impact resources
 		// available for research
-		if err := c.UpdatePlayerSpec(player); err != nil {
+		if err := c.UpdatePlayerSpec(r.Context(), player); err != nil {
 			log.Error().Err(err).Int64("ID", planet.ID).Msg("update player spec in database")
 			return err
 		}
@@ -137,7 +136,7 @@ func (s *server) updatePlanetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"planet": existingPlanet, "player": player})
+	RenderJSON(w, JSON{"planet": existingPlanet, "player": player})
 }
 
 // get an estimate for production completion based on a planet's production queue items
@@ -158,7 +157,7 @@ func (s *server) getPlanetProductionEstimate(w http.ResponseWriter, r *http.Requ
 
 	// populate the production queue estimates
 	planet.PopulateProductionQueueEstimates(&rules, estimateRequest.Player)
-	rest.RenderJSON(w, planet)
+	RenderJSON(w, planet)
 }
 
 // get an estimate for production completion based on a planet's production queue items
@@ -176,5 +175,5 @@ func (s *server) getStarbaseUpgradeCost(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 	}
-	rest.RenderJSON(w, cost)
+	RenderJSON(w, cost)
 }

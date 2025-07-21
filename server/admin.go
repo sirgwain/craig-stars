@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/db"
 )
@@ -38,14 +37,14 @@ func (s *server) adminRequired(next http.Handler) http.Handler {
 func (s *server) allGames(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 
-	games, err := db.GetGamesWithPlayers()
+	games, err := db.GetGamesWithPlayers(r.Context())
 	if err != nil {
 		log.Error().Err(err).Msg("get games from database")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	rest.RenderJSON(w, games)
+	RenderJSON(w, games)
 }
 
 func (s *server) userGames(w http.ResponseWriter, r *http.Request) {
@@ -58,14 +57,14 @@ func (s *server) userGames(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	games, err := db.GetGamesForUser(*id)
+	games, err := db.GetGamesForUser(r.Context(), *id)
 	if err != nil {
 		log.Error().Err(err).Msg("get games from database")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	rest.RenderJSON(w, games)
+	RenderJSON(w, games)
 }
 
 // convert a guest user into a full user
@@ -86,7 +85,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guestUser, err := readWriteClient.GetUser(*id)
+	guestUser, err := readWriteClient.GetUser(r.Context(), *id)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", *id).Msg("load guest user")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -107,7 +106,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := readWriteClient.GetUser(request.UserID)
+	user, err := readWriteClient.GetUser(r.Context(), request.UserID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", request.UserID).Msg("load user")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -129,14 +128,14 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load players
-	players, err := readWriteClient.GetPlayersForUser(guestUser.ID)
+	players, err := readWriteClient.GetPlayersForUser(r.Context(), guestUser.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", request.UserID).Msg("load players")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 	// load single player games
-	playerGames, err := readWriteClient.GetGamesForUser(guestUser.ID)
+	playerGames, err := readWriteClient.GetGamesForUser(r.Context(), guestUser.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", request.UserID).Msg("load player games")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -156,7 +155,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load races
-	races, err := readWriteClient.GetRacesForUser(guestUser.ID)
+	races, err := readWriteClient.GetRacesForUser(r.Context(), guestUser.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", request.UserID).Msg("load races")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -164,7 +163,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load single player games
-	games, err := readWriteClient.GetGamesForHost(guestUser.ID)
+	games, err := readWriteClient.GetGamesForHost(r.Context(), guestUser.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", request.UserID).Msg("load games")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -176,7 +175,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		// update each player UserID
 		for _, player := range players {
 			player.UserID = user.ID
-			if err := c.UpdatePlayerUserId(&player); err != nil {
+			if err := c.UpdatePlayerUserID(r.Context(), player); err != nil {
 				return fmt.Errorf("update Player UserID: %w", err)
 			}
 		}
@@ -184,7 +183,7 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		// update each race UserID
 		for _, race := range races {
 			race.UserID = user.ID
-			if err := c.UpdateRace(&race); err != nil {
+			if err := c.SaveRace(r.Context(), &race); err != nil {
 				return fmt.Errorf("update Race UserID: %w", err)
 			}
 		}
@@ -192,12 +191,12 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		// update each game UserID
 		for _, game := range games {
 			game.HostID = user.ID
-			if err := c.UpdateGameHost(game.ID, game.HostID); err != nil {
+			if err := c.UpdateGameHost(r.Context(), game.ID, game.HostID); err != nil {
 				return fmt.Errorf("update Game HostID: %w", err)
 			}
 		}
 
-		if err := c.DeleteUser(guestUser.ID); err != nil {
+		if err := c.DeleteUser(r.Context(), guestUser.ID); err != nil {
 			return fmt.Errorf("delete guest user: %w", err)
 		}
 
@@ -212,5 +211,5 @@ func (s *server) convertGuestUser(w http.ResponseWriter, r *http.Request) {
 		Int64("GuestUserID", guestUser.ID).
 		Int64("UserID", user.ID).
 		Msgf("moved guest %s games and races to %s, deleted %s", guestUser.Username, user.Username, guestUser.Username)
-	rest.RenderJSON(w, rest.JSON{})
+	RenderJSON(w, JSON{})
 }

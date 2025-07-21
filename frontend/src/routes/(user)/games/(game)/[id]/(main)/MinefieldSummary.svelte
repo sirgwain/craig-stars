@@ -4,22 +4,22 @@
 	} from '$lib/components/game/tooltips/TextTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
-	import type { AnyMineField } from '$lib/services/Universe';
+	import type { AnyMinefield } from '$lib/services/Universe';
 	import { ownedBy } from '$lib/types/MapObject';
-	import { MineFieldTypeHeavy, MineFieldTypeSpeedBump, MineFieldTypeStandard } from '$lib/types/cs';
+	import { MinefieldTypeHeavy, MinefieldTypeSpeedBump, MinefieldTypeStandard } from '$lib/types/cs';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import type { ChangeEventHandler } from 'svelte/elements';
 
-	const { game, player, universe, updateMineFieldOrders } = getGameContext();
+	const { game, player, universe, updateMinefieldOrders } = getGameContext();
 
 	type Props = {
-		mineField: AnyMineField;
+		minefield: AnyMinefield;
 	};
 
-	let { mineField = $bindable() }: Props = $props();
+	let { minefield = $bindable() }: Props = $props();
 
-	let stats = $derived($game.rules.mineFieldStatsByType[mineField.mineFieldType]);
+	let stats = $derived($game.rules.minefieldStatsByType[minefield.minefieldType]);
 
 	function onTooltip(e: PointerEvent) {
 		showTooltip<TextTooltipProps>(e.x, e.y, TextTooltip, {
@@ -28,10 +28,10 @@
 	}
 
 	// update the minefield to detonate on the server
-	const mineFieldDetonateChecked: ChangeEventHandler<HTMLInputElement> = async (e) => {
-		if ('detonate' in mineField) {
-			mineField.detonate = e.currentTarget.checked;
-			await updateMineFieldOrders(mineField);
+	const minefieldDetonateChecked: ChangeEventHandler<HTMLInputElement> = async (e) => {
+		if ('detonate' in minefield) {
+			minefield.detonate = e.currentTarget.checked;
+			await updateMinefieldOrders(minefield);
 		} else {
 			console.error("can't detonate minefield not owned by player");
 		}
@@ -43,33 +43,33 @@
 		<div class="avatar">
 			<div class="mapobject-avatar-wrapper">
 				<div
-					class:standard-mine-field={mineField.mineFieldType === MineFieldTypeStandard}
-					class:heavy-mine-field={mineField.mineFieldType === MineFieldTypeHeavy}
-					class:speed-bump-mine-field={mineField.mineFieldType === MineFieldTypeSpeedBump}
+					class:standard-minefield={minefield.minefieldType === MinefieldTypeStandard}
+					class:heavy-minefield={minefield.minefieldType === MinefieldTypeHeavy}
+					class:speed-bump-minefield={minefield.minefieldType === MinefieldTypeSpeedBump}
 					class="mapobject-avatar"
 				></div>
 			</div>
 		</div>
-		<div class="text-center">{$universe.getPlayerPluralName(mineField.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerPluralName(minefield.playerNum)}</div>
 	</div>
 
 	<div class="flex flex-col grow">
 		<div class="flex flex-row">
 			<div class="w-40">Location:</div>
 			<div>
-				({mineField.position.x}, {mineField.position.y})
+				({minefield.position.x}, {minefield.position.y})
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-40">Field Type:</div>
 			<div>
-				{mineField.mineFieldType}
+				{minefield.minefieldType}
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-40">Field Radius:</div>
 			<div>
-				{mineField.spec.radius.toFixed()} l.y. ({mineField.numMines} mines)
+				{minefield.spec.radius.toFixed()} l.y. ({minefield.numMines} mines)
 			</div>
 		</div>
 		<div class="flex flex-row">
@@ -102,19 +102,19 @@
 				</span>
 			</div>
 		</div>
-		{#if ownedBy(mineField, $player.num)}
+		{#if ownedBy(minefield, $player.num)}
 			<div class="flex flex-row">
 				<div class="w-40">Decay Rate:</div>
 				<div>
-					{mineField.spec.decayRate} / year
+					{minefield.spec.decayRate} / year
 				</div>
 			</div>
-			{#if 'detonate' in mineField && mineField.spec.canDetonate}
+			{#if 'detonate' in minefield && minefield.spec.canDetonate}
 				<div class="flex flex-row mt-2">
 					<label>
 						<input
-							checked={mineField.detonate}
-							onchange={mineFieldDetonateChecked}
+							checked={minefield.detonate}
+							onchange={minefieldDetonateChecked}
 							class="checkbox checkbox-xs"
 							type="checkbox"
 						/> Detonate

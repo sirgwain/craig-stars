@@ -51,13 +51,13 @@ type ShipDesignSpec struct {
 	CloakUnits                int                   `json:"cloakUnits,omitempty"`
 	Colonizer                 bool                  `json:"colonizer,omitempty"`
 	Cost                      Cost                  `json:"cost"`
-	Engine                    Engine                `json:"engine"`
+	Engine                    Engine                `json:"engine,omitzero"`
 	EstimatedRange            int                   `json:"estimatedRange,omitempty"`
 	EstimatedRangeFull        int                   `json:"estimatedRangeFull,omitempty"`
 	FuelCapacity              int                   `json:"fuelCapacity,omitempty"`
 	FuelGeneration            int                   `json:"fuelGeneration,omitempty"`
 	HasWeapons                bool                  `json:"hasWeapons,omitempty"`
-	HullType                  TechHullType          `json:"hullType"`
+	HullType                  TechHullType          `json:"hullType,omitempty"`
 	ImmuneToOwnDetonation     bool                  `json:"immuneToOwnDetonation,omitempty"`
 	Initiative                int                   `json:"initiative"`
 	InnateScanRangePenFactor  float64               `json:"innateScanRangePenFactor,omitempty"`
@@ -66,14 +66,14 @@ type ShipDesignSpec struct {
 	MaxHullMass               int                   `json:"maxHullMass,omitempty"`
 	MaxPopulation             int                   `json:"maxPopulation,omitempty"`
 	MaxRange                  int                   `json:"maxRange,omitempty"`
-	MineLayingRateByMineType  map[MineFieldType]int `json:"mineLayingRateByMineType,omitempty"`
+	MineLayingRateByMineType  map[MinefieldType]int `json:"mineLayingRateByMineType,omitempty"`
 	MineSweep                 int                   `json:"mineSweep,omitempty"`
 	MiningRate                int                   `json:"miningRate,omitempty"`
-	Movement                  int                   `json:"movement"`
+	Movement                  int                   `json:"movement,omitempty"`
 	MovementBonus             float64               `json:"movementBonus,omitempty"`
 	MovementFull              int                   `json:"movementFull,omitempty"`
 	NumBuilt                  int                   `json:"numBuilt,omitempty"`
-	NumEngines                int                   `json:"numEngines"`
+	NumEngines                int                   `json:"numEngines,omitempty"`
 	NumInstances              int                   `json:"numInstances,omitempty"`
 	OrbitalConstructionModule bool                  `json:"orbitalConstructionModule,omitempty"`
 	PowerRating               int                   `json:"powerRating,omitempty"`
@@ -93,7 +93,7 @@ type ShipDesignSpec struct {
 	SpaceDock                 int                   `json:"spaceDock,omitempty"`
 	Starbase                  bool                  `json:"starbase,omitempty"`
 	Stargate                  string                `json:"stargate,omitempty"`
-	TechLevel                 TechLevel             `json:"techLevel"`
+	TechLevel                 TechLevel             `json:"techLevel,omitzero"`
 	TerraformRate             int                   `json:"terraformRate,omitempty"`
 	TorpedoBonus              float64               `json:"torpedoBonus,omitempty"`
 	TorpedoJamming            float64               `json:"torpedoJamming,omitempty"`
@@ -433,12 +433,12 @@ func ComputeShipDesignSpec(rules *Rules, techLevels TechLevel, raceSpec RaceSpec
 			if component.MineLayingRate > 0 {
 				spec.CanLayMines = true
 				if spec.MineLayingRateByMineType == nil {
-					spec.MineLayingRateByMineType = make(map[MineFieldType]int)
+					spec.MineLayingRateByMineType = make(map[MinefieldType]int)
 				}
-				if _, ok := spec.MineLayingRateByMineType[component.MineFieldType]; !ok {
-					spec.MineLayingRateByMineType[component.MineFieldType] = 0
+				if _, ok := spec.MineLayingRateByMineType[component.MinefieldType]; !ok {
+					spec.MineLayingRateByMineType[component.MinefieldType] = 0
 				}
-				spec.MineLayingRateByMineType[component.MineFieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
+				spec.MineLayingRateByMineType[component.MinefieldType] += int(float64(component.MineLayingRate) * float64(slot.Quantity) * (1 + hull.MineLayingBonus))
 			}
 
 			// count battle computers, jammers, capacitors & deflectors

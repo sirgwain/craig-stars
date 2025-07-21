@@ -18,7 +18,7 @@
 
 	onMount(async () => {
 		const userRaces = await RaceService.load();
-		if (userRaces.length > 0) {
+		if (userRaces?.length > 0) {
 			races = userRaces;
 			raceUpdated?.(races[0], true);
 		}

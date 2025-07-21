@@ -18,7 +18,7 @@ type Wormhole struct {
 }
 
 type WormholeSpec struct {
-	Stats WormholeStats
+	Stats WormholeStats `json:"stats,omitempty"`
 }
 
 type WormholeStats struct {

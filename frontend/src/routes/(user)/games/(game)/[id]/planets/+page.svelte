@@ -58,9 +58,7 @@
 								mines: 0,
 								factories: 0,
 								mineYears: 0,
-								defenses: 0,
-								terraformedAmount: {},
-								tags: {}
+								defenses: 0
 							}) as TablePlanet
 					)
 					.filter(
@@ -233,8 +231,8 @@
 		showTooltip<MinesTooltipProps>(e.x, e.y, MinesTooltip, {
 			planetName: planet.name,
 			mines: planet.mines,
-			maxMines: planet.spec.maxMines ?? 0,
-			maxPossibleMines: planet.spec.maxPossibleMines ?? 0,
+			maxMines: planet.spec?.maxMines ?? 0,
+			maxPossibleMines: planet.spec?.maxPossibleMines ?? 0,
 			canBuildMines: $player.race.spec?.innateMining ?? false
 		});
 	}
@@ -244,8 +242,8 @@
 		showTooltip<FactoriesTooltipProps>(e.x, e.y, FactoriesTooltip, {
 			planetName: planet.name,
 			factories: planet.factories,
-			maxFactories: planet.spec.maxFactories ?? 0,
-			maxPossibleFactories: planet.spec.maxPossibleFactories ?? 0,
+			maxFactories: planet.spec?.maxFactories ?? 0,
+			maxPossibleFactories: planet.spec?.maxPossibleFactories ?? 0,
 			canBuildFactories: $player.race.spec?.innateResources ?? false
 		});
 	}
@@ -254,7 +252,7 @@
 		e.preventDefault();
 		onShipDesignTooltip(
 			e,
-			$universe.getDesign(planet.playerNum, planet.spec.starbaseDesignNum ?? 0) as
+			$universe.getDesign(planet.playerNum, planet.spec?.starbaseDesignNum ?? 0) as
 				| AnyShipDesign
 				| undefined
 		);
@@ -262,7 +260,7 @@
 
 	function onDefenseTooltip(e: PointerEvent, planet: AnyPlanet) {
 		e.preventDefault();
-		onTechTooltip(e, $techs.getTech(planet.spec.defense ?? ''));
+		onTechTooltip(e, $techs.getTech(planet.spec?.defense ?? ''));
 	}
 
 	function gotoMapObject(mo: MapObject) {
@@ -319,7 +317,6 @@
 		classes={{
 			table: 'table table-zebra table-compact table-auto w-full',
 			th: 'sticky top-0 bg-base-200 z-10'
-
 		}}
 	>
 		{#snippet head({ column })}
@@ -353,9 +350,9 @@
 						{row.reportAge} years old
 					{/if}
 				{:else if column.key == 'starbase'}
-					{#if row.spec.starbaseDesignName}
+					{#if row.spec?.starbaseDesignName}
 						<span class="cursor-help" onpointerdown={(e) => showDesign(e, row)}>
-							{row.spec.starbaseDesignName}
+							{row.spec?.starbaseDesignName}
 						</span>
 					{/if}
 				{:else if column.key == 'population'}
@@ -364,30 +361,30 @@
 					</div>
 				{:else if column.key == 'populationDensity'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
-						{((row.spec.populationDensity ?? 0) * 100).toFixed(1)}%
+						{((row.spec?.populationDensity ?? 0) * 100).toFixed(1)}%
 					</div>
 				{:else if column.key == 'populationGrowth'}
 					<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
 						{getGrowth(row).toLocaleString()}
 					</div>
 				{:else if column.key == 'habitability'}
-					{#if row.spec.canTerraform}
+					{#if row.spec?.canTerraform}
 						<div class="cursor-help" onpointerdown={(e) => onPopulationTooltip(e, row)}>
 							<span
-								class:text-habitable={(row.spec.habitability ?? 0) > 0}
-								class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
-								>{row.spec.habitability ?? 0}%</span
+								class:text-habitable={(row.spec?.habitability ?? 0) > 0}
+								class:text-uninhabitable={(row.spec?.habitability ?? 0) < 0}
+								>{row.spec?.habitability ?? 0}%</span
 							>
-							/ <span class="text-terraformable">{row.spec.terraformedHabitability ?? 0}%</span>
+							/ <span class="text-terraformable">{row.spec?.terraformedHabitability ?? 0}%</span>
 						</div>
 					{:else}
 						<span
 							class="cursor-help"
 							onpointerdown={(e) => onPopulationTooltip(e, row)}
-							class:text-habitable={(row.spec.habitability ?? 0) > 0}
-							class:text-uninhabitable={(row.spec.habitability ?? 0) < 0}
+							class:text-habitable={(row.spec?.habitability ?? 0) > 0}
+							class:text-uninhabitable={(row.spec?.habitability ?? 0) < 0}
 						>
-							{row.spec.habitability ?? 0}%</span
+							{row.spec?.habitability ?? 0}%</span
 						>
 					{/if}
 				{:else if column.key == 'production'}
@@ -407,18 +404,18 @@
 					</button>
 				{:else if column.key == 'mines'}
 					<span class="cursor-help" onpointerdown={(e) => onMinesTooltip(e, planet)}>
-						{planet.mines ?? 0} / {planet.spec.maxMines ?? 0}</span
+						{planet.mines ?? 0} / {planet.spec?.maxMines ?? 0}</span
 					>
 				{:else if column.key == 'factories'}
 					<span class="cursor-help" onpointerdown={(e) => onFactoriesTooltip(e, planet)}>
-						{planet.factories ?? 0}/ {planet.spec.maxFactories ?? 0}
+						{planet.factories ?? 0}/ {planet.spec?.maxFactories ?? 0}
 					</span>
 				{:else if column.key == 'defense'}
-					{#if row.spec.defenseCoverage}
+					{#if row.spec?.defenseCoverage}
 						<span
 							class:cursor-help={planet.playerNum === $player.num}
 							onpointerdown={(e) => planet.playerNum === $player.num && onDefenseTooltip(e, planet)}
-							>{((row.spec.defenseCoverage ?? 0) * 100).toFixed(1)}%
+							>{((row.spec?.defenseCoverage ?? 0) * 100).toFixed(1)}%
 						</span>
 					{:else}
 						none
@@ -426,11 +423,11 @@
 				{:else if column.key == 'minerals'}
 					<MineralMini mineral={row.cargo} {planet} />
 				{:else if column.key == 'miningRate'}
-					<MineralMini mineral={row.spec.miningOutput} {planet} />
+					<MineralMini mineral={row.spec?.miningOutput} {planet} />
 				{:else if column.key == 'mineralConcentration'}
 					<MineralMini mineral={row.mineralConcentration} {planet} />
 				{:else if column.key == 'resources'}
-					{row.spec.resourcesPerYearAvailable ?? 0} / {row.spec.resourcesPerYear ?? 0}
+					{row.spec?.resourcesPerYearAvailable ?? 0} / {row.spec?.resourcesPerYear ?? 0}
 				{:else if column.key == 'contributesOnlyLeftoverToResearch'}
 					{#if planet.contributesOnlyLeftoverToResearch}
 						<Icon src={Check} size="24" class="stroke-success" />

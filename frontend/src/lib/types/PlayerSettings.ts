@@ -23,7 +23,7 @@ export class PlayerSettings implements FilterOptions {
 	showFleetTokenCounts = false;
 	showScanners = true;
 	showAllyScanners = true;
-	showMineFields = true;
+	showMinefields = true;
 	showMessagePane = false;
 	scannerPercent = 100;
 	mineralScale = 5000;

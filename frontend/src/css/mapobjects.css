@@ -1,12 +1,12 @@
-.standard-mine-field {
+.standard-minefield {
 	background: url(/images/misc-mapobjects.png) 0px 0px;
 }
 
-.heavy-mine-field {
+.heavy-minefield {
 	background: url(/images/misc-mapobjects.png) -64px 0px;
 }
 
-.speed-bump-mine-field {
+.speed-bump-minefield {
 	background: url(/images/misc-mapobjects.png) -128px 0px;
 }
 

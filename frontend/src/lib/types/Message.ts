@@ -1,13 +1,13 @@
 import {
 	MapObjectTypeFleet,
-	MapObjectTypeMineField,
+	MapObjectTypeMinefield,
 	MapObjectTypeMineralPacket,
 	MapObjectTypeMysteryTrader,
 	MapObjectTypeNone,
 	MapObjectTypePlanet,
 	MapObjectTypeWormhole,
 	TargetFleet,
-	TargetMineField,
+	TargetMinefield,
 	TargetMineralPacket,
 	TargetMysteryTrader,
 	TargetPlanet,
@@ -28,8 +28,8 @@ export function getMapObjectTypeForMessageType(
 			return MapObjectTypeFleet;
 		case TargetWormhole:
 			return MapObjectTypeWormhole;
-		case TargetMineField:
-			return MapObjectTypeMineField;
+		case TargetMinefield:
+			return MapObjectTypeMinefield;
 		case TargetMysteryTrader:
 			return MapObjectTypeMysteryTrader;
 		case TargetMineralPacket:

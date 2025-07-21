@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -156,13 +155,13 @@ func (s *server) createBattlePlan(w http.ResponseWriter, r *http.Request) {
 	battlePlan.Num = player.GetNextBattlePlanNum()
 	player.BattlePlans = append(player.BattlePlans, *battlePlan.BattlePlan)
 
-	if err := db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", battlePlan.Name).Msg("save new player BattlePlan")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, battlePlan)
+	RenderJSON(w, battlePlan)
 }
 
 func (s *server) updateBattlePlan(w http.ResponseWriter, r *http.Request) {
@@ -197,13 +196,13 @@ func (s *server) updateBattlePlan(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", battlePlan.Name).Msg("save new player BattlePlan")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, battlePlan)
+	RenderJSON(w, battlePlan)
 }
 
 func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
@@ -220,7 +219,7 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 
 	// delete the battle plan
 	// set all fleets using this battle plan to use the default one
-	playerFleets, err := readWriteClient.GetFleetsForPlayer(game.ID, player.Num)
+	playerFleets, err := readWriteClient.GetFleetsForPlayer(r.Context(), game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -246,7 +245,7 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 	// save the updated fleets back to the database
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 		for _, fleet := range fleetsToUpdate {
-			if err := c.UpdateFleet(fleet); err != nil {
+			if err := c.SaveFleet(r.Context(), fleet); err != nil {
 				log.Error().Err(err).Msg("update fleet in database")
 				return err
 			}
@@ -254,7 +253,7 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// update fleets in one transaction
-		if err := c.UpdatePlayerPlans(player); err != nil {
+		if err := c.UpdatePlayerPlans(r.Context(), player); err != nil {
 			log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("update player plans in database")
 			return err
 		}
@@ -268,7 +267,7 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load all the fleets again and return them to the user
-	allFleets, err := readWriteClient.GetFleetsForPlayer(game.ID, player.Num)
+	allFleets, err := readWriteClient.GetFleetsForPlayer(r.Context(), game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", battlePlan.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -286,7 +285,7 @@ func (s *server) deleteBattlePlan(w http.ResponseWriter, r *http.Request) {
 			fleets = append(fleets, fleet)
 		}
 	}
-	rest.RenderJSON(w, rest.JSON{"player": player, "fleets": fleets, "starbases": starbases})
+	RenderJSON(w, JSON{"player": player, "fleets": fleets, "starbases": starbases})
 }
 
 func (s *server) createProductionPlan(w http.ResponseWriter, r *http.Request) {
@@ -308,13 +307,13 @@ func (s *server) createProductionPlan(w http.ResponseWriter, r *http.Request) {
 	productionPlan.Num = player.GetNextProductionPlanNum()
 	player.ProductionPlans = append(player.ProductionPlans, *productionPlan.ProductionPlan)
 
-	if err := db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", productionPlan.Name).Msg("save new player ProductionPlan")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, productionPlan)
+	RenderJSON(w, productionPlan)
 }
 
 func (s *server) updateProductionPlan(w http.ResponseWriter, r *http.Request) {
@@ -349,13 +348,13 @@ func (s *server) updateProductionPlan(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", productionPlan.Name).Msg("save new player ProductionPlan")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, productionPlan)
+	RenderJSON(w, productionPlan)
 }
 
 func (s *server) deleteProductionPlan(w http.ResponseWriter, r *http.Request) {
@@ -379,7 +378,7 @@ func (s *server) deleteProductionPlan(w http.ResponseWriter, r *http.Request) {
 	player.ProductionPlans = productionPlans
 
 	// update fleets in one transaction
-	if err := db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("update player plans in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -388,7 +387,7 @@ func (s *server) deleteProductionPlan(w http.ResponseWriter, r *http.Request) {
 	// log what we did
 	log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", productionPlan.Num).Msgf("deleted ProductionPlan %s", productionPlan.Name)
 
-	rest.RenderJSON(w, player)
+	RenderJSON(w, player)
 }
 
 func (s *server) createTransportPlan(w http.ResponseWriter, r *http.Request) {
@@ -410,13 +409,13 @@ func (s *server) createTransportPlan(w http.ResponseWriter, r *http.Request) {
 	transportPlan.Num = player.GetNextTransportPlanNum()
 	player.TransportPlans = append(player.TransportPlans, *transportPlan.TransportPlan)
 
-	if err := db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", transportPlan.Name).Msg("save new player TransportPlan")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, transportPlan)
+	RenderJSON(w, transportPlan)
 }
 
 func (s *server) updateTransportPlan(w http.ResponseWriter, r *http.Request) {
@@ -451,13 +450,13 @@ func (s *server) updateTransportPlan(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("PlayerID", player.ID).Str("PlanName", transportPlan.Name).Msg("save new player TransportPlan")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, transportPlan)
+	RenderJSON(w, transportPlan)
 }
 
 func (s *server) deleteTransportPlan(w http.ResponseWriter, r *http.Request) {
@@ -481,7 +480,7 @@ func (s *server) deleteTransportPlan(w http.ResponseWriter, r *http.Request) {
 	player.TransportPlans = transportPlans
 
 	// update fleets in one transaction
-	if err := db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("update player plans in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -490,5 +489,5 @@ func (s *server) deleteTransportPlan(w http.ResponseWriter, r *http.Request) {
 	// log what we did
 	log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", transportPlan.Num).Msgf("deleted TransportPlan %s", transportPlan.Name)
 
-	rest.RenderJSON(w, player)
+	RenderJSON(w, player)
 }

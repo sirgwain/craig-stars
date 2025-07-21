@@ -78,9 +78,7 @@
 				queueItems.splice(selectedQueueItemIndex + 1, 0, {
 					type: item.type,
 					quantity,
-					designNum: item.designNum,
-					allocated: {},
-					tags: {}
+					designNum: item.designNum
 				});
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
@@ -93,10 +91,7 @@
 				selectedQueueItem = nextItem;
 			} else {
 				// prepend a new queue item
-				queueItems = [
-					{ type: item.type, designNum: item.designNum, quantity, allocated: {}, tags: {} },
-					...queueItems
-				];
+				queueItems = [{ type: item.type, designNum: item.designNum, quantity }, ...queueItems];
 				selectedQueueItemIndex++;
 				selectedQueueItem = queueItems[selectedQueueItemIndex];
 			}

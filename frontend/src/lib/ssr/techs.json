@@ -3194,7 +3194,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 25,
-			"mineFieldType": "Standard",
+			"minefieldType": "Standard",
 			"mineLayingRate": 40
 		},
 		{
@@ -3216,7 +3216,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 30,
-			"mineFieldType": "Standard",
+			"minefieldType": "Standard",
 			"mineLayingRate": 50
 		},
 		{
@@ -3241,7 +3241,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 30,
-			"mineFieldType": "Standard",
+			"minefieldType": "Standard",
 			"mineLayingRate": 80
 		},
 		{
@@ -3266,7 +3266,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 30,
-			"mineFieldType": "Standard",
+			"minefieldType": "Standard",
 			"mineLayingRate": 130
 		},
 		{
@@ -3291,7 +3291,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 10,
-			"mineFieldType": "Heavy",
+			"minefieldType": "Heavy",
 			"mineLayingRate": 50
 		},
 		{
@@ -3316,7 +3316,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 15,
-			"mineFieldType": "Heavy",
+			"minefieldType": "Heavy",
 			"mineLayingRate": 110
 		},
 		{
@@ -3341,7 +3341,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 20,
-			"mineFieldType": "Heavy",
+			"minefieldType": "Heavy",
 			"mineLayingRate": 200
 		},
 		{
@@ -3366,7 +3366,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 100,
-			"mineFieldType": "SpeedBump",
+			"minefieldType": "SpeedBump",
 			"mineLayingRate": 20
 		},
 		{
@@ -3390,7 +3390,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 135,
-			"mineFieldType": "SpeedBump",
+			"minefieldType": "SpeedBump",
 			"mineLayingRate": 30
 		},
 		{
@@ -3414,7 +3414,7 @@
 			},
 			"hullSlotType": 8192,
 			"mass": 140,
-			"mineFieldType": "SpeedBump",
+			"minefieldType": "SpeedBump",
 			"mineLayingRate": 50
 		},
 		{

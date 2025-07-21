@@ -28,8 +28,8 @@ type User struct {
 	GameID        int64      `json:"gameId,omitempty"`
 	PlayerNum     int        `json:"playerNum,omitempty"`
 	LastLogin     *time.Time `json:"lastLogin,omitempty"`
-	DiscordID     *string    `json:"discordId,omitempty"`
-	DiscordAvatar *string    `json:"discordAvatar,omitempty"`
+	DiscordID     string     `json:"discordId,omitempty"`
+	DiscordAvatar string     `json:"discordAvatar,omitempty"`
 }
 
 type UserSettings struct {
@@ -57,8 +57,8 @@ func NewDiscordUser(username string, discordID string, discordAvatar string) (*U
 	return &User{
 		Username:      username,
 		Role:          RoleUser,
-		DiscordID:     &discordID,
-		DiscordAvatar: &discordAvatar,
+		DiscordID:     discordID,
+		DiscordAvatar: discordAvatar,
 	}, nil
 }
 
@@ -79,7 +79,7 @@ func (u *User) GenerateHash(salt string) {
 }
 
 func (u *User) IsDiscordUser() bool {
-	return u.DiscordID != nil && len(*u.DiscordID) > 0
+	return u.DiscordID != ""
 }
 
 func (u *User) IsGuest() bool {

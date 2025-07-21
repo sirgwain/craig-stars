@@ -3,7 +3,7 @@
 	import {
 		HullSlotTypeShield,
 		IS,
-		MineFieldTypeStandard,
+		MinefieldTypeStandard,
 		SD,
 		TechCategoryBeamWeapon,
 		TechCategoryMineLayer,
@@ -107,7 +107,7 @@
 			category: TechCategoryMineLayer,
 			hullSlotType: 8192,
 			mass: 25,
-			mineFieldType: MineFieldTypeStandard,
+			minefieldType: MinefieldTypeStandard,
 			mineLayingRate: 40
 		},
 		{

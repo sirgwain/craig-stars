@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 )
@@ -34,7 +33,7 @@ func (s *server) raceCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		race, err := db.GetRace(*id)
+		race, err := db.GetRace(r.Context(), *id)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -63,19 +62,19 @@ func (s *server) races(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUserSession(r)
 
-	races, err := db.GetRacesForUser(user.ID)
+	races, err := db.GetRacesForUser(r.Context(), user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("get races from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, races)
+	RenderJSON(w, races)
 }
 
 func (s *server) race(w http.ResponseWriter, r *http.Request) {
 	race := s.contextRace(r)
-	rest.RenderJSON(w, race)
+	RenderJSON(w, race)
 }
 
 // create a new race for a user
@@ -83,20 +82,21 @@ func (s *server) createRace(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	user := s.contextUserSession(r)
 
-	race := raceRequest{}
-	if err := render.Bind(r, &race); err != nil {
+	raceReq := raceRequest{}
+	if err := render.Bind(r, &raceReq); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
+	race := raceReq.Race
 	race.UserID = user.ID
-	if err := db.CreateRace(race.Race); err != nil {
+	if err := db.SaveRace(r.Context(), race); err != nil {
 		log.Error().Err(err).Int64("UserID", user.ID).Msg("create race")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	rest.RenderJSON(w, race)
+	RenderJSON(w, race)
 }
 
 // get points for a race
@@ -110,7 +110,7 @@ func (s *server) getRacePoints(w http.ResponseWriter, r *http.Request) {
 
 	// compute points
 	points := race.ComputeRacePoints(cs.NewRules().RaceStartingPoints)
-	rest.RenderJSON(w, rest.JSON{"points": points})
+	RenderJSON(w, JSON{"points": points})
 }
 
 func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
@@ -131,20 +131,20 @@ func (s *server) updateRace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.UpdateRace(race.Race); err != nil {
+	if err := db.SaveRace(r.Context(), race.Race); err != nil {
 		log.Error().Err(err).Int64("ID", race.ID).Msg("update race in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, race)
+	RenderJSON(w, race)
 }
 
 func (s *server) deleteRace(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	race := s.contextRace(r)
 
-	if err := db.DeleteRace(race.ID); err != nil {
+	if err := db.DeleteRace(r.Context(), race.ID); err != nil {
 		log.Error().Err(err).Int64("ID", race.ID).Msg("delete race from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return

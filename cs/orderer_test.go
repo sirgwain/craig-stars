@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_orders_SplitFleetTokens(t *testing.T) {
+func Test_orders_splitFleetTokens(t *testing.T) {
 	player := testPlayer().WithNum(1)
 	scoutDesign := NewShipDesign(player.Num, 1).
 		WithName("Long Range Scout").
@@ -542,6 +542,15 @@ func Test_orders_SplitFleet(t *testing.T) {
 		}).
 		WithSpec(&rules, player)
 
+	colonyShipDesign := NewShipDesign(player.Num, 3).
+		WithName("Santa Maria").
+		WithHull(ColonyShip.Name).
+		WithSlots([]ShipDesignSlot{
+			{HullComponent: QuickJump5.Name, HullSlotIndex: 1, Quantity: 1},
+			{HullComponent: ColonizationModule.Name, HullSlotIndex: 2, Quantity: 1},
+		}).
+		WithSpec(&rules, player)
+
 	type args struct {
 		source         *Fleet
 		dest           *Fleet
@@ -551,10 +560,11 @@ func Test_orders_SplitFleet(t *testing.T) {
 	}
 
 	type want struct {
-		err          bool
-		errContains  string
-		deleteSource bool
-		deleteDest   bool
+		err            bool
+		errContains    string
+		deleteSource   bool
+		deleteDest     bool
+		cargoTransfers []ByHandCargoTransfer
 	}
 
 	tests := []struct {
@@ -864,6 +874,15 @@ func Test_orders_SplitFleet(t *testing.T) {
 				},
 				transferAmount: CargoTransferRequest{Cargo: Cargo{-5, -5, -5, -5}, Fuel: -130},
 			},
+			want: want{
+				cargoTransfers: []ByHandCargoTransfer{
+					{
+						SourceFleetNum:  1,
+						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Small Freighter #2", TargetNum: 2, TargetPlayerNum: 1},
+						Cargo:           Cargo{5, 5, 5, 5},
+					},
+				},
+			},
 		},
 		{
 			name: "split mixed fleet of 2 scouts <-> 2 freighters into one of each",
@@ -882,7 +901,8 @@ func Test_orders_SplitFleet(t *testing.T) {
 					Tokens: []ShipToken{
 						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 2},
 					},
-					Fuel: scoutDesign.Spec.FuelCapacity * 2, // fully fueled
+					Fuel:  scoutDesign.Spec.FuelCapacity * 2, // fully fueled
+					Cargo: Cargo{Ironium: 10},                // will split into 5 each
 				},
 				dest: &Fleet{
 					MapObject: MapObject{
@@ -921,7 +941,73 @@ func Test_orders_SplitFleet(t *testing.T) {
 					},
 				},
 				// give one freighter's worth of fuel but take one scout's worth of fuel
-				transferAmount: CargoTransferRequest{Fuel: freighterDesign.Spec.FuelCapacity - scoutDesign.Spec.FuelCapacity},
+				transferAmount: CargoTransferRequest{
+					Fuel:  freighterDesign.Spec.FuelCapacity - scoutDesign.Spec.FuelCapacity,
+					Cargo: Cargo{Ironium: -5},
+				},
+			},
+			want: want{
+				cargoTransfers: []ByHandCargoTransfer{
+					{
+						SourceFleetNum:  1,
+						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Fleet #2", TargetNum: 2, TargetPlayerNum: 1},
+						Cargo:           Cargo{Ironium: 5},
+					},
+				},
+			},
+		},
+		{
+			name: "split colony ship off of full fleet",
+			args: args{
+				source: &Fleet{
+					MapObject: MapObject{
+						Type:      MapObjectTypeFleet,
+						Num:       1,
+						PlayerNum: player.Num,
+						Name:      "Fleet #1",
+					},
+					BaseName: "Fleet",
+					FleetOrders: FleetOrders{
+						Waypoints: []Waypoint{NewPositionWaypoint(Vector{}, 5)},
+					},
+					Tokens: []ShipToken{
+						{design: scoutDesign, DesignNum: scoutDesign.Num, Quantity: 1},
+						{design: freighterDesign, DesignNum: freighterDesign.Num, Quantity: 1},
+						{design: colonyShipDesign, DesignNum: colonyShipDesign.Num, Quantity: 1},
+					},
+					Fuel:  scoutDesign.Spec.FuelCapacity + freighterDesign.Spec.FuelCapacity + colonyShipDesign.Spec.FuelCapacity, // fully fueled
+					Cargo: Cargo{Colonists: 25, Ironium: 120},                                                                     // full up
+				},
+				sourceTokens: []ShipToken{
+					{
+						Quantity:  1,
+						DesignNum: scoutDesign.Num,
+					},
+					{
+						Quantity:  1,
+						DesignNum: freighterDesign.Num,
+					},
+				},
+				destTokens: []ShipToken{
+					{
+						Quantity:  1,
+						DesignNum: colonyShipDesign.Num,
+					},
+				},
+				// give full fuel and 25kT of colonists to the colony ship
+				transferAmount: CargoTransferRequest{
+					Fuel:  -colonyShipDesign.Spec.FuelCapacity,
+					Cargo: Cargo{Colonists: -25},
+				},
+			},
+			want: want{
+				cargoTransfers: []ByHandCargoTransfer{
+					{
+						SourceFleetNum:  1,
+						MapObjectTarget: MapObjectTarget{TargetType: MapObjectTypeFleet, TargetName: "Fleet #2", TargetNum: 2, TargetPlayerNum: 1},
+						Cargo:           Cargo{Colonists: 25},
+					},
+				},
 			},
 		},
 		{
@@ -935,6 +1021,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						DesignNum: 1,
 					},
 				},
+				transferAmount: CargoTransferRequest{Fuel: -300},
 			},
 			want: want{deleteSource: true},
 		},
@@ -1011,18 +1098,27 @@ func Test_orders_SplitFleet(t *testing.T) {
 				assert.Equal(t, len(source.Tokens), len(tt.args.sourceTokens))
 				assert.Equal(t, len(dest.Tokens), len(tt.args.destTokens))
 
-				// we should transfer from the dest to the soruce
-				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), source.Cargo)
-				assert.Equal(t, sourceFuel+tt.args.transferAmount.Fuel, source.Fuel)
-				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), dest.Cargo)
-				assert.Equal(t, destFuel-tt.args.transferAmount.Fuel, dest.Fuel)
+				if len(source.Tokens) > 0 && len(dest.Tokens) > 0 {
+					// we should transfer from the dest to the source
+					assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), source.Cargo)
+					assert.Equal(t, sourceFuel+tt.args.transferAmount.Fuel, source.Fuel)
+					assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), dest.Cargo)
+					assert.Equal(t, destFuel-tt.args.transferAmount.Fuel, dest.Fuel)
+				}
 
 				if tt.want.deleteSource {
 					assert.True(t, source.Delete)
+					assert.Equal(t, destCargo.Add(sourceCargo), dest.Cargo)
+					assert.Equal(t, destFuel+sourceFuel, dest.Fuel)
 				}
 				if tt.want.deleteDest {
 					assert.True(t, dest.Delete)
+					assert.Equal(t, sourceCargo.Add(destCargo), source.Cargo)
+					assert.Equal(t, sourceFuel+destFuel, source.Fuel)
 				}
+
+				// make sure our cargo transfers match up
+				test.CompareAsJSON(t, player.CargoTransfers[source.Position.String()], tt.want.cargoTransfers)
 			}
 
 		})

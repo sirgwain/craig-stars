@@ -68,14 +68,17 @@
 	let descending = $state(true);
 
 	async function archiveGame(game: Game) {
-		if (confirm(`Are you sure you want to unarchive ${game.name}?`)) {
+		if (game.id && confirm(`Are you sure you want to unarchive ${game.name}?`)) {
 			await PlayerService.unArchiveGame(game.id);
 			games = games.filter((g) => g.id !== game.id);
 		}
 	}
 
 	async function deleteGame(game: Game) {
-		if (confirm(`Are you sure you want to delete ${game.name}? This operation cannot be undone.`)) {
+		if (
+			game.id &&
+			confirm(`Are you sure you want to delete ${game.name}? This operation cannot be undone.`)
+		) {
 			await GameService.deleteGame(game.id);
 			games = games.filter((g) => g.id !== game.id);
 		}
@@ -124,9 +127,9 @@
 				{#if column.key == 'name'}
 					<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
 				{:else if column.key == 'createdAt'}
-					{format(parseJSON(row.createdAt), 'E, MMM do yyyy hh:mm aaa')}
+					{format(parseJSON(row.createdAt ?? ''), 'E, MMM do yyyy hh:mm aaa')}
 				{:else if column.key == 'updatedAt'}
-					{format(parseJSON(row.updatedAt), 'E, MMM do yyyy hh:mm aaa')}
+					{format(parseJSON(row.updatedAt ?? ''), 'E, MMM do yyyy hh:mm aaa')}
 				{:else if column.key == 'hostId'}
 					{row.players.find((p) => p.userId === row.hostId)?.name}
 				{:else if column.key == 'players'}

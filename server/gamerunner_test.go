@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func createTestGameRunner() GameRunner {
+func createTestGameRunner(ctx context.Context) GameRunner {
 	dbConn := db.NewConn()
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"
@@ -21,15 +22,12 @@ func createTestGameRunner() GameRunner {
 		panic(fmt.Errorf("error connecting to test database: \n%w", err))
 	}
 
-	return &gameRunner{
-		dbConn: dbConn,
-		client: cs.NewGamer(),
-	}
+	return NewGameRunner(dbConn, *cfg)
 }
 
 func Test_gameRunner_HostGame(t *testing.T) {
 
-	gr := createTestGameRunner()
+	gr := createTestGameRunner(t.Context())
 
 	fullGame, err := gr.HostGame(1, cs.NewGameSettings().WithHost(cs.Humanoids()).WithAIPlayer(cs.AIDifficultyNormal, 0))
 
@@ -60,10 +58,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 		race.PluralName = fmt.Sprintf("%vs", prt)
 	}
 
-	gr := gameRunner{
-		dbConn: dbConn,
-		client: cs.NewGamer(),
-	}
+	gr := NewGameRunner(dbConn, *cfg)
 
 	// create a game with AI players for each PRT
 	fullGame, err := gr.HostGame(1, cs.NewGameSettings().
@@ -86,10 +81,7 @@ func Test_gameRunner_GenerateTurns(t *testing.T) {
 
 	// generate 100 turns
 	for i := 0; i < 100; i++ {
-		gr := gameRunner{
-			dbConn: dbConn,
-			client: cs.NewGamer(),
-		}
+		gr := NewGameRunner(dbConn, *cfg)
 
 		if _, err := gr.GenerateTurn(fullGame.ID); err != nil {
 			t.Errorf("GenerateTurn failed on year %d: \n%v", fullGame.Game.Year, err)

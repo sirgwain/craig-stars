@@ -65,7 +65,7 @@ func (scan *playerScanner) scan() error {
 
 	// scan universe
 	scan.scanFleets(scanners, cargoScanners)
-	scan.scanMineFields(scanners)
+	scan.scanMinefields(scanners)
 	scan.scanMineralPackets(scanners)
 	scan.scanSalvages(scanners)
 	scan.scanWormholes(scanners)
@@ -349,33 +349,33 @@ func (scan *playerScanner) scanMineralPackets(scanners []scanner) {
 }
 
 // scan all fleets and discover their designs if we should
-func (scan *playerScanner) scanMineFields(scanners []scanner) {
-	for _, mineField := range scan.universe.MineFields {
-		if mineField.Delete {
+func (scan *playerScanner) scanMinefields(scanners []scanner) {
+	for _, minefield := range scan.universe.Minefields {
+		if minefield.Delete {
 			continue
 		}
 
-		if mineField.OwnedBy(scan.player.Num) {
-			// The player already gets a copy of all their own mineFields
+		if minefield.OwnedBy(scan.player.Num) {
+			// The player already gets a copy of all their own minefields
 			continue
 		}
-		intel := scan.player.GetMineFieldIntel(mineField.PlayerNum, mineField.Num)
+		intel := scan.player.GetMinefieldIntel(minefield.PlayerNum, minefield.Num)
 
 		for _, scanner := range scanners {
 			if scanner.Range == NoScanner {
 				continue
 			}
 
-			cloakFactor := getCloakFactor(scan.rules.MineFieldCloak, scanner.CloakReductionFactor)
+			cloakFactor := getCloakFactor(scan.rules.MinefieldCloak, scanner.CloakReductionFactor)
 			if intel != nil {
 				cloakFactor = 1
 			}
 
-			distanceToEdge := max(0, scanner.Position.DistanceTo(mineField.Position)-mineField.Spec.Radius)
+			distanceToEdge := max(0, scanner.Position.DistanceTo(minefield.Position)-minefield.Spec.Radius)
 			scannerRange := float64(scanner.Range) * cloakFactor
 			// we only care about regular scanners for wormholes
 			if scannerRange >= distanceToEdge {
-				scan.discoverer.discoverMineField(mineField)
+				scan.discoverer.discoverMinefield(minefield)
 				break
 			}
 		}
@@ -442,11 +442,11 @@ func (scan *playerScanner) discoverAllies() error {
 			scan.discoverer.discoverFleetScanner(fleet)
 		}
 
-		for _, mf := range scan.universe.MineFields {
+		for _, mf := range scan.universe.Minefields {
 			if mf.PlayerNum != player.Num {
 				continue
 			}
-			scan.discoverer.discoverMineField(mf)
+			scan.discoverer.discoverMinefield(mf)
 		}
 
 		for _, mp := range scan.universe.MineralPackets {
@@ -539,16 +539,16 @@ func (scan *playerScanner) getScanners() []scanner {
 	}
 
 	// Space demolition minefields act as scanners
-	if scan.player.Race.Spec.MineFieldsAreScanners {
-		for _, mineField := range scan.universe.MineFields {
-			if mineField.PlayerNum == scan.player.Num {
+	if scan.player.Race.Spec.MinefieldsAreScanners {
+		for _, minefield := range scan.universe.Minefields {
+			if minefield.PlayerNum == scan.player.Num {
 				scanner := scanner{
-					Position:             mineField.Position,
-					Range:                int(mineField.Spec.Radius),
+					Position:             minefield.Position,
+					Range:                int(minefield.Spec.Radius),
 					CloakReductionFactor: 1,
 				}
 				// use the fleet scanner if it's better
-				if fleetScanner, ok := scanningFleetsByPosition[mineField.Position]; ok {
+				if fleetScanner, ok := scanningFleetsByPosition[minefield.Position]; ok {
 					scanner.Range = max(scanner.Range, fleetScanner.Range)
 					scanner.RangePen = max(scanner.RangePen, fleetScanner.RangePen)
 					scanner.CloakReductionFactor = min(scanner.CloakReductionFactor, fleetScanner.CloakReductionFactor)

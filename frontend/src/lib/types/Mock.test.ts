@@ -1,6 +1,6 @@
 import type { AnyShipDesign, DesignFinder } from '$lib/services/Universe';
 import { describe, it } from 'vitest';
-import type { ShipDesign } from './cs';
+import type { ShipDesign, Waypoint } from './cs';
 import { MapObjectTypeFleet, MapObjectTypeNone, WaypointTaskNone, type Fleet } from './cs';
 
 // test designfinder that just returns a Long Range Scout
@@ -211,6 +211,7 @@ export const cottonPickerDesign: ShipDesign = {
 export const longRangeScout: Fleet = {
 	id: 0,
 	gameId: 0,
+	age: 0,
 	type: MapObjectTypeFleet,
 	position: { x: 0, y: 0 },
 	num: 1,
@@ -233,7 +234,7 @@ export const longRangeScout: Fleet = {
 				colonists: {}
 			},
 			targetType: MapObjectTypeNone
-		}
+		} as Waypoint
 	],
 	planetNum: 0,
 	baseName: 'Long Range Scout',
@@ -257,6 +258,7 @@ export const longRangeScout: Fleet = {
 		},
 		estimatedRange: 2272,
 		fuelCapacity: 300,
+		initiative: 0,
 		mass: 25,
 		reduceCloaking: 1,
 		scanner: true,
@@ -273,6 +275,7 @@ export const longRangeScout: Fleet = {
 export const santaMaria: Fleet = {
 	id: 0,
 	gameId: 0,
+	age: 0,
 	type: MapObjectTypeFleet,
 	position: { x: 0, y: 0 },
 	num: 2,
@@ -291,7 +294,7 @@ export const santaMaria: Fleet = {
 				colonists: {}
 			},
 			targetType: MapObjectTypeNone
-		}
+		} as Waypoint
 	],
 	planetNum: 0,
 	baseName: 'Santa Maria',
@@ -319,6 +322,7 @@ export const santaMaria: Fleet = {
 		},
 		estimatedRange: 623,
 		fuelCapacity: 200,
+		initiative: 0,
 		mass: 61,
 		reduceCloaking: 1,
 		scanner: true,
@@ -334,6 +338,7 @@ export const santaMaria: Fleet = {
 export const cottonPicker: Fleet = {
 	id: 0,
 	gameId: 0,
+	age: 0,
 	type: MapObjectTypeFleet,
 	position: { x: 0, y: 0 },
 	num: 4,
@@ -352,7 +357,7 @@ export const cottonPicker: Fleet = {
 				colonists: {}
 			},
 			targetType: MapObjectTypeNone
-		}
+		} as Waypoint
 	],
 	planetNum: 0,
 	baseName: 'Cotton Picker',
@@ -377,6 +382,7 @@ export const cottonPicker: Fleet = {
 		},
 		estimatedRange: 69,
 		fuelCapacity: 210,
+		initiative: 0,
 		mass: 574,
 		miningRate: 8,
 		reduceCloaking: 1,

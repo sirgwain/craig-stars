@@ -18,7 +18,7 @@
 			mineralType: 'Ironium',
 			surfaceAmount: planet.cargo?.ironium ?? 0,
 			concentration: planet.mineralConcentration?.ironium ?? 0,
-			miningRate: planet.spec.miningOutput?.ironium ?? 0,
+			miningRate: planet.spec?.miningOutput?.ironium ?? 0,
 			homeworld: !!planet.homeworld
 		});
 	}
@@ -28,7 +28,7 @@
 			mineralType: 'Boranium',
 			surfaceAmount: planet.cargo?.boranium ?? 0,
 			concentration: planet.mineralConcentration?.boranium ?? 0,
-			miningRate: planet.spec.miningOutput?.boranium ?? 0,
+			miningRate: planet.spec?.miningOutput?.boranium ?? 0,
 			homeworld: !!planet.homeworld
 		});
 	}
@@ -38,7 +38,7 @@
 			mineralType: 'Germanium',
 			surfaceAmount: planet.cargo?.germanium ?? 0,
 			concentration: planet.mineralConcentration?.germanium ?? 0,
-			miningRate: planet.spec.miningOutput?.germanium ?? 0,
+			miningRate: planet.spec?.miningOutput?.germanium ?? 0,
 			homeworld: !!planet.homeworld
 		});
 	}

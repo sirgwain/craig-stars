@@ -22,7 +22,12 @@
 	let { type = 'score' }: Props = $props();
 
 	type DataLongTurnValueType = { player: string; turn: number; value: number };
-	type DataLongTypeItem = { player: string; playerName: string; values: DataLongTurnValueType[] };
+	type DataLongTypeItem = {
+		player: string;
+		playerName: string;
+		playerNum: number;
+		values: DataLongTurnValueType[];
+	};
 
 	const xKey = 'turn';
 	const yKey = 'value';
@@ -51,6 +56,7 @@
 			...$universe.scoreIntels
 				.map((score) => score.scoreHistory)
 				.filter((scoreHistory) => scoreHistory && scoreHistory.length > 0)
+				.map((scoreHistory) => scoreHistory as PlayerScore[]) // make the types happy
 				.flat()
 				.map((scoreHistory) => scoreHistory[type] ?? 0)
 		)
@@ -64,11 +70,13 @@
 	let dataLong: DataLongTypeItem[] = $derived(
 		$universe.playerIntels.map((playerIntel, i) => {
 			const name = playerIntel.racePluralName ?? playerIntel.name;
+			const num = playerIntel.num;
 			const playerScores = $universe.scoreIntels[i].scoreHistory;
 
 			return {
 				[zKey]: String(playerIntel.num),
 				playerName: name,
+				playerNum: num,
 				values: [...Array(turnsPassed).keys()].map((turn) => ({
 					[yKey]: playerScores && playerScores[turn] ? (playerScores[turn][type] ?? 0) : 0,
 					[xKey]: turn,

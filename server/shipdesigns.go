@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -34,7 +33,7 @@ func (s *server) shipdDesignCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		design, err := db.GetShipDesignByNum(player.GameID, player.Num, *num)
+		design, err := db.GetShipDesignByNum(r.Context(), player.GameID, player.Num, *num)
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -59,19 +58,19 @@ func (s *server) shipDesigns(w http.ResponseWriter, r *http.Request) {
 	db := s.contextDb(r)
 	player := s.contextPlayer(r)
 
-	shipDesigns, err := db.GetShipDesignsForPlayer(player.GameID, player.Num)
+	shipDesigns, err := db.GetShipDesignsForPlayer(r.Context(), player.GameID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("get shipDesigns from database")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	rest.RenderJSON(w, shipDesigns)
+	RenderJSON(w, shipDesigns)
 }
 
 func (s *server) shipDesign(w http.ResponseWriter, r *http.Request) {
 	shipDesign := s.contextShipDesign(r)
-	rest.RenderJSON(w, shipDesign)
+	RenderJSON(w, shipDesign)
 }
 
 func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
@@ -79,19 +78,20 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
-	design := shipDesignRequest{}
-	if err := render.Bind(r, &design); err != nil {
+	designReq := shipDesignRequest{}
+	if err := render.Bind(r, &designReq); err != nil {
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
+	design := designReq.ShipDesign
 	if err := design.Validate(&game.Rules, player); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("validate new player design")
 		render.Render(w, r, ErrBadRequest(err))
 		return
 	}
 
-	designs, err := db.GetShipDesignsForPlayer(game.ID, player.Num)
+	designs, err := db.GetShipDesignsForPlayer(r.Context(), game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("load designs for player")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -101,14 +101,14 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 	design.PlayerNum = player.Num
 	design.GameID = player.GameID
 	design.Num = player.GetNextDesignNum(designs)
-	design.Spec, err = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design.ShipDesign)
+	design.Spec, err = cs.ComputeShipDesignSpec(&game.Rules, player.TechLevels, player.Race.Spec, design)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("Compute ship design spec")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	if err := db.CreateShipDesign(design.ShipDesign); err != nil {
+	if err := db.SaveShipDesign(r.Context(), design); err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Str("DesignName", design.Name).Msg("save new player design")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -116,7 +116,7 @@ func (s *server) createShipDesign(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Int64("GameID", design.GameID).Int("PlayerNum", player.Num).Str("DesignName", design.Name).Msg("created player design")
 
-	rest.RenderJSON(w, design)
+	RenderJSON(w, design)
 }
 
 func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
@@ -179,7 +179,7 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := db.UpdateShipDesign(design.ShipDesign); err != nil {
+	if err := db.SaveShipDesign(r.Context(), design.ShipDesign); err != nil {
 		log.Error().Err(err).Int64("ID", design.ID).Msg("update shipDesign in database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -187,7 +187,7 @@ func (s *server) updateShipDesign(w http.ResponseWriter, r *http.Request) {
 
 	log.Info().Int64("GameID", design.GameID).Int("PlayerNum", player.Num).Str("DesignName", design.Name).Msg("updated player design")
 
-	rest.RenderJSON(w, design)
+	RenderJSON(w, design)
 }
 
 func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
@@ -205,21 +205,21 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// to delete ship designs we have to remove any tokens using the design from fleets
-	playerFleets, err := readWriteClient.GetFleetsForPlayer(game.ID, player.Num)
+	playerFleets, err := readWriteClient.GetFleetsForPlayer(r.Context(), game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load fleets from database")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	playerDesigns, err := readWriteClient.GetShipDesignsForPlayer(game.ID, player.Num)
+	playerDesigns, err := readWriteClient.GetShipDesignsForPlayer(r.Context(), game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("get designs for player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	playerPlanets, err := readWriteClient.GetPlanetsForPlayer(game.ID, player.Num)
+	playerPlanets, err := readWriteClient.GetPlanetsForPlayer(r.Context(), game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Msg("load planets from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -272,28 +272,28 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 
 		for _, fleet := range fleetsToUpdate {
-			if err := c.UpdateFleet(fleet); err != nil {
+			if err := c.SaveFleet(r.Context(), fleet); err != nil {
 				return fmt.Errorf("update fleet in database: %w", err)
 			}
 			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated fleet %s after deleting design", fleet.Name)
 		}
 
 		for _, fleet := range fleetsToDelete {
-			if err := c.DeleteFleet(fleet.ID); err != nil {
+			if err := c.DeleteFleet(r.Context(), fleet.ID); err != nil {
 				return fmt.Errorf("delete fleet from database: %w", err)
 			}
 			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted fleet %s after deleting design", fleet.Name)
 		}
 
 		for _, planet := range planetsToUpdate {
-			if err := c.UpdatePlanet(planet); err != nil {
+			if err := c.SavePlanet(r.Context(), planet); err != nil {
 				return fmt.Errorf("update planet in database: %w", err)
 			}
 			log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("updated planet %s after deleting design", planet.Name)
 
 		}
 
-		if err := c.DeleteShipDesign(design.ID); err != nil {
+		if err := c.DeleteShipDesign(r.Context(), design.ID); err != nil {
 			return fmt.Errorf("delete design from database: %w", err)
 		}
 		log.Info().Int64("GameID", game.ID).Int("PlayerNum", player.Num).Int("Num", design.Num).Msgf("deleted design %s", design.Name)
@@ -316,7 +316,7 @@ func (s *server) deleteShipDesign(w http.ResponseWriter, r *http.Request) {
 			fleets = append(fleets, fleet)
 		}
 	}
-	rest.RenderJSON(w, rest.JSON{"fleets": fleets, "starbases": starbases, "planets": playerPlanets})
+	RenderJSON(w, JSON{"fleets": fleets, "starbases": starbases, "planets": playerPlanets})
 }
 
 func (s *server) computeShipDesignSpec(w http.ResponseWriter, r *http.Request) {
@@ -337,5 +337,5 @@ func (s *server) computeShipDesignSpec(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, design.Spec)
+	RenderJSON(w, design.Spec)
 }

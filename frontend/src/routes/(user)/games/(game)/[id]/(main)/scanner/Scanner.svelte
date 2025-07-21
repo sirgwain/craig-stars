@@ -27,8 +27,8 @@
 	import { setScannerContext } from './Scanner';
 	import ScannerFleets from './ScannerFleets.svelte';
 	import ScannerMapObjectLocation from './ScannerMapObjectLocation.svelte';
-	import ScannerMineFieldPattern from './ScannerMineFieldPattern.svelte';
-	import ScannerMineFields from './ScannerMineFields.svelte';
+	import ScannerMinefieldPattern from './ScannerMinefieldPattern.svelte';
+	import ScannerMinefields from './ScannerMinefields.svelte';
 	import ScannerMineralPackets from './ScannerMineralPackets.svelte';
 	import ScannerMysteryTraders from './ScannerMysteryTraders.svelte';
 	import ScannerNames from './ScannerNames.svelte';
@@ -404,7 +404,7 @@
 		}
 
 		// for add waypoints, we always snap to planet because the "drag" and "add waypoint button" keys (shift) are the same
-		const dest = { mo: mo ?? emptyMapObject(), position: position ?? emptyVector };
+		const dest = { mo: mo ?? emptyMapObject(), position: mo ? emptyVector : position };
 		waypointJustAdded = await onAddWaypoint(dest, fastestWaypoint);
 		return true;
 	}
@@ -482,8 +482,8 @@
 		...u.mineralPacketIntels,
 		...u.salvageIntels,
 		...u.wormholeIntels,
-		...u.mineFields,
-		...u.mineFieldIntels,
+		...u.minefields,
+		...u.minefieldIntels,
 		...u.allPlanets
 	]);
 
@@ -519,8 +519,8 @@
 		<Svg>
 			<g transform={transform?.toString()}>
 				<ScannerScanners />
-				<ScannerMineFieldPattern />
-				<ScannerMineFields />
+				<ScannerMinefieldPattern />
+				<ScannerMinefields />
 				<ScannerPacketDests />
 				<ScannerRouteDests />
 				<ScannerWaypoints />

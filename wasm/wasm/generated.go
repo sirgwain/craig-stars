@@ -1345,31 +1345,31 @@ func SetMergeFleetOrder(o js.Value, obj *cs.MergeFleetOrder) {
 	SetSlice(o.Get("destTokens"), obj.DestTokens, SetShipToken)
 }
 
-func GetMineField(o js.Value) cs.MineField {
-	var obj cs.MineField
+func GetMinefield(o js.Value) cs.Minefield {
+	var obj cs.Minefield
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
 	obj.GameDBObject = GetGameDBObject(o)
 	obj.MapObject = GetMapObject(o)
-	obj.MineFieldOrders = GetMineFieldOrders(o)
-	obj.MineFieldType = GetMineFieldType(o.Get("mineFieldType"))
+	obj.MinefieldOrders = GetMinefieldOrders(o)
+	obj.MinefieldType = GetMinefieldType(o.Get("minefieldType"))
 	obj.NumMines = getInt[int](o.Get("numMines"))
-	obj.Spec = GetMineFieldSpec(o.Get("spec"))
+	obj.Spec = GetMinefieldSpec(o.Get("spec"))
 	return obj
 }
-func SetMineField(o js.Value, obj *cs.MineField) {
+func SetMinefield(o js.Value, obj *cs.Minefield) {
 	SetGameDBObject(o, &obj.GameDBObject)
 	SetMapObject(o, &obj.MapObject)
-	SetMineFieldOrders(o, &obj.MineFieldOrders)
-	o.Set("mineFieldType", string(obj.MineFieldType))
+	SetMinefieldOrders(o, &obj.MinefieldOrders)
+	o.Set("minefieldType", string(obj.MinefieldType))
 	o.Set("numMines", obj.NumMines)
 	o.Set("spec", map[string]any{})
-	SetMineFieldSpec(o.Get("spec"), &obj.Spec)
+	SetMinefieldSpec(o.Get("spec"), &obj.Spec)
 }
 
-func GetMineFieldDamage(o js.Value) cs.MineFieldDamage {
-	var obj cs.MineFieldDamage
+func GetMinefieldDamage(o js.Value) cs.MinefieldDamage {
+	var obj cs.MinefieldDamage
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
@@ -1378,47 +1378,47 @@ func GetMineFieldDamage(o js.Value) cs.MineFieldDamage {
 	obj.FleetDestroyed = getBool(o.Get("fleetDestroyed"))
 	return obj
 }
-func SetMineFieldDamage(o js.Value, obj *cs.MineFieldDamage) {
+func SetMinefieldDamage(o js.Value, obj *cs.MinefieldDamage) {
 	o.Set("damage", obj.Damage)
 	o.Set("shipsDestroyed", obj.ShipsDestroyed)
 	o.Set("fleetDestroyed", obj.FleetDestroyed)
 }
 
-func GetMineFieldIntel(o js.Value) cs.MineFieldIntel {
-	var obj cs.MineFieldIntel
+func GetMinefieldIntel(o js.Value) cs.MinefieldIntel {
+	var obj cs.MinefieldIntel
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
 	obj.Intel = GetIntel(o)
 	obj.MapObject = GetMapObject(o)
 	obj.NumMines = getInt[int](o.Get("numMines"))
-	obj.MineFieldType = GetMineFieldType(o.Get("mineFieldType"))
-	obj.Spec = GetMineFieldSpec(o.Get("spec"))
+	obj.MinefieldType = GetMinefieldType(o.Get("minefieldType"))
+	obj.Spec = GetMinefieldSpec(o.Get("spec"))
 	return obj
 }
-func SetMineFieldIntel(o js.Value, obj *cs.MineFieldIntel) {
+func SetMinefieldIntel(o js.Value, obj *cs.MinefieldIntel) {
 	SetIntel(o, &obj.Intel)
 	SetMapObject(o, &obj.MapObject)
 	o.Set("numMines", obj.NumMines)
-	o.Set("mineFieldType", string(obj.MineFieldType))
+	o.Set("minefieldType", string(obj.MinefieldType))
 	o.Set("spec", map[string]any{})
-	SetMineFieldSpec(o.Get("spec"), &obj.Spec)
+	SetMinefieldSpec(o.Get("spec"), &obj.Spec)
 }
 
-func GetMineFieldOrders(o js.Value) cs.MineFieldOrders {
-	var obj cs.MineFieldOrders
+func GetMinefieldOrders(o js.Value) cs.MinefieldOrders {
+	var obj cs.MinefieldOrders
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
 	obj.Detonate = getBool(o.Get("detonate"))
 	return obj
 }
-func SetMineFieldOrders(o js.Value, obj *cs.MineFieldOrders) {
+func SetMinefieldOrders(o js.Value, obj *cs.MinefieldOrders) {
 	o.Set("detonate", obj.Detonate)
 }
 
-func GetMineFieldSpec(o js.Value) cs.MineFieldSpec {
-	var obj cs.MineFieldSpec
+func GetMinefieldSpec(o js.Value) cs.MinefieldSpec {
+	var obj cs.MinefieldSpec
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
@@ -1427,14 +1427,14 @@ func GetMineFieldSpec(o js.Value) cs.MineFieldSpec {
 	obj.CanDetonate = getBool(o.Get("canDetonate"))
 	return obj
 }
-func SetMineFieldSpec(o js.Value, obj *cs.MineFieldSpec) {
+func SetMinefieldSpec(o js.Value, obj *cs.MinefieldSpec) {
 	o.Set("radius", obj.Radius)
 	o.Set("decayRate", obj.DecayRate)
 	o.Set("canDetonate", obj.CanDetonate)
 }
 
-func GetMineFieldStats(o js.Value) cs.MineFieldStats {
-	var obj cs.MineFieldStats
+func GetMinefieldStats(o js.Value) cs.MinefieldStats {
+	var obj cs.MinefieldStats
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
@@ -1449,7 +1449,7 @@ func GetMineFieldStats(o js.Value) cs.MineFieldStats {
 	obj.CanDetonate = getBool(o.Get("canDetonate"))
 	return obj
 }
-func SetMineFieldStats(o js.Value, obj *cs.MineFieldStats) {
+func SetMinefieldStats(o js.Value, obj *cs.MinefieldStats) {
 	o.Set("minDamagePerFleetRS", obj.MinDamagePerFleetRS)
 	o.Set("damagePerEngineRS", obj.DamagePerEngineRS)
 	o.Set("maxSpeed", obj.MaxSpeed)
@@ -1461,12 +1461,12 @@ func SetMineFieldStats(o js.Value, obj *cs.MineFieldStats) {
 	o.Set("canDetonate", obj.CanDetonate)
 }
 
-func GetMineFieldType(o js.Value) cs.MineFieldType {
-	var obj cs.MineFieldType
+func GetMinefieldType(o js.Value) cs.MinefieldType {
+	var obj cs.MinefieldType
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
-	obj = cs.MineFieldType(getString(o))
+	obj = cs.MinefieldType(getString(o))
 	return obj
 }
 
@@ -1834,15 +1834,15 @@ func GetPRTSpec(o js.Value) cs.PRTSpec {
 	obj.BuiltInCloakUnits = getInt[int](o.Get("builtInCloakUnits"))
 	obj.StealsResearch = GetStealsResearch(o.Get("stealsResearch"))
 	obj.FreeCargoCloaking = getBool(o.Get("freeCargoCloaking"))
-	obj.MineFieldsAreScanners = getBool(o.Get("mineFieldsAreScanners"))
-	obj.MineFieldRateMoveFactor = getFloat[float64](o.Get("mineFieldRateMoveFactor"))
-	obj.MineFieldSafeWarpBonus = getInt[int](o.Get("mineFieldSafeWarpBonus"))
-	obj.MineFieldMinDecayFactor = getFloat[float64](o.Get("mineFieldMinDecayFactor"))
-	obj.MineFieldBaseDecayRate = getFloat[float64](o.Get("mineFieldBaseDecayRate"))
-	obj.MineFieldPlanetDecayRate = getFloat[float64](o.Get("mineFieldPlanetDecayRate"))
-	obj.MineFieldMaxDecayRate = getFloat[float64](o.Get("mineFieldMaxDecayRate"))
-	obj.CanDetonateMineFields = getBool(o.Get("canDetonateMineFields"))
-	obj.MineFieldDetonateDecayRate = getFloat[float64](o.Get("mineFieldDetonateDecayRate"))
+	obj.MinefieldsAreScanners = getBool(o.Get("minefieldsAreScanners"))
+	obj.MinefieldRateMoveFactor = getFloat[float64](o.Get("minefieldRateMoveFactor"))
+	obj.MinefieldSafeWarpBonus = getInt[int](o.Get("minefieldSafeWarpBonus"))
+	obj.MinefieldMinDecayFactor = getFloat[float64](o.Get("minefieldMinDecayFactor"))
+	obj.MinefieldBaseDecayRate = getFloat[float64](o.Get("minefieldBaseDecayRate"))
+	obj.MinefieldPlanetDecayRate = getFloat[float64](o.Get("minefieldPlanetDecayRate"))
+	obj.MinefieldMaxDecayRate = getFloat[float64](o.Get("minefieldMaxDecayRate"))
+	obj.CanDetonateMinefields = getBool(o.Get("canDetonateMinefields"))
+	obj.MinefieldDetonateDecayRate = getFloat[float64](o.Get("minefieldDetonateDecayRate"))
 	obj.DiscoverDesignOnScan = getBool(o.Get("discoverDesignOnScan"))
 	obj.CanRemoteMineOwnPlanets = getBool(o.Get("canRemoteMineOwnPlanets"))
 	obj.InvasionAttackBonus = getFloat[float64](o.Get("invasionAttackBonus"))
@@ -1903,15 +1903,15 @@ func SetPRTSpec(o js.Value, obj *cs.PRTSpec) {
 	o.Set("stealsResearch", map[string]any{})
 	SetStealsResearch(o.Get("stealsResearch"), &obj.StealsResearch)
 	o.Set("freeCargoCloaking", obj.FreeCargoCloaking)
-	o.Set("mineFieldsAreScanners", obj.MineFieldsAreScanners)
-	o.Set("mineFieldRateMoveFactor", obj.MineFieldRateMoveFactor)
-	o.Set("mineFieldSafeWarpBonus", obj.MineFieldSafeWarpBonus)
-	o.Set("mineFieldMinDecayFactor", obj.MineFieldMinDecayFactor)
-	o.Set("mineFieldBaseDecayRate", obj.MineFieldBaseDecayRate)
-	o.Set("mineFieldPlanetDecayRate", obj.MineFieldPlanetDecayRate)
-	o.Set("mineFieldMaxDecayRate", obj.MineFieldMaxDecayRate)
-	o.Set("canDetonateMineFields", obj.CanDetonateMineFields)
-	o.Set("mineFieldDetonateDecayRate", obj.MineFieldDetonateDecayRate)
+	o.Set("minefieldsAreScanners", obj.MinefieldsAreScanners)
+	o.Set("minefieldRateMoveFactor", obj.MinefieldRateMoveFactor)
+	o.Set("minefieldSafeWarpBonus", obj.MinefieldSafeWarpBonus)
+	o.Set("minefieldMinDecayFactor", obj.MinefieldMinDecayFactor)
+	o.Set("minefieldBaseDecayRate", obj.MinefieldBaseDecayRate)
+	o.Set("minefieldPlanetDecayRate", obj.MinefieldPlanetDecayRate)
+	o.Set("minefieldMaxDecayRate", obj.MinefieldMaxDecayRate)
+	o.Set("canDetonateMinefields", obj.CanDetonateMinefields)
+	o.Set("minefieldDetonateDecayRate", obj.MinefieldDetonateDecayRate)
 	o.Set("discoverDesignOnScan", obj.DiscoverDesignOnScan)
 	o.Set("canRemoteMineOwnPlanets", obj.CanRemoteMineOwnPlanets)
 	o.Set("invasionAttackBonus", obj.InvasionAttackBonus)
@@ -2258,7 +2258,7 @@ func GetPlayerIntels(o js.Value) cs.PlayerIntels {
 	obj.FleetIntels = GetSlice(o.Get("fleetIntels"), GetFleetIntel)
 	obj.ShipDesignIntels = GetSlice(o.Get("shipDesignIntels"), GetShipDesignIntel)
 	obj.MineralPacketIntels = GetSlice(o.Get("mineralPacketIntels"), GetMineralPacketIntel)
-	obj.MineFieldIntels = GetSlice(o.Get("mineFieldIntels"), GetMineFieldIntel)
+	obj.MinefieldIntels = GetSlice(o.Get("minefieldIntels"), GetMinefieldIntel)
 	obj.WormholeIntels = GetSlice(o.Get("wormholeIntels"), GetWormholeIntel)
 	obj.MysteryTraderIntels = GetSlice(o.Get("mysteryTraderIntels"), GetMysteryTraderIntel)
 	obj.SalvageIntels = GetSlice(o.Get("salvageIntels"), GetSalvageIntel)
@@ -2279,8 +2279,8 @@ func SetPlayerIntels(o js.Value, obj *cs.PlayerIntels) {
 	SetSlice(o.Get("shipDesignIntels"), obj.ShipDesignIntels, SetShipDesignIntel)
 	o.Set("mineralPacketIntels", []any{})
 	SetSlice(o.Get("mineralPacketIntels"), obj.MineralPacketIntels, SetMineralPacketIntel)
-	o.Set("mineFieldIntels", []any{})
-	SetSlice(o.Get("mineFieldIntels"), obj.MineFieldIntels, SetMineFieldIntel)
+	o.Set("minefieldIntels", []any{})
+	SetSlice(o.Get("minefieldIntels"), obj.MinefieldIntels, SetMinefieldIntel)
 	o.Set("wormholeIntels", []any{})
 	SetSlice(o.Get("wormholeIntels"), obj.WormholeIntels, SetWormholeIntel)
 	o.Set("mysteryTraderIntels", []any{})
@@ -2297,7 +2297,7 @@ func GetPlayerMapObjects(o js.Value) cs.PlayerMapObjects {
 	obj.Planets = GetPointerSlice(o.Get("planets"), GetPlanet)
 	obj.Fleets = GetPointerSlice(o.Get("fleets"), GetFleet)
 	obj.Starbases = GetPointerSlice(o.Get("starbases"), GetFleet)
-	obj.MineFields = GetPointerSlice(o.Get("mineFields"), GetMineField)
+	obj.Minefields = GetPointerSlice(o.Get("minefields"), GetMinefield)
 	obj.MineralPackets = GetPointerSlice(o.Get("mineralPackets"), GetMineralPacket)
 	return obj
 }
@@ -2308,8 +2308,8 @@ func SetPlayerMapObjects(o js.Value, obj *cs.PlayerMapObjects) {
 	SetPointerSlice(o.Get("fleets"), obj.Fleets, SetFleet)
 	o.Set("starbases", []any{})
 	SetPointerSlice(o.Get("starbases"), obj.Starbases, SetFleet)
-	o.Set("mineFields", []any{})
-	SetPointerSlice(o.Get("mineFields"), obj.MineFields, SetMineField)
+	o.Set("minefields", []any{})
+	SetPointerSlice(o.Get("minefields"), obj.Minefields, SetMinefield)
 	o.Set("mineralPackets", []any{})
 	SetPointerSlice(o.Get("mineralPackets"), obj.MineralPackets, SetMineralPacket)
 }
@@ -2353,7 +2353,7 @@ func GetPlayerMessageSpec(o js.Value) cs.PlayerMessageSpec {
 	obj.Field = GetTechField(o.Get("field"))
 	obj.Invasion = getPointer(GetPlayerMessageSpecInvasion(o.Get("invasion")))
 	obj.LostTargetType = GetMapObjectType(o.Get("lostTargetType"))
-	obj.MineFieldDamage = getPointer(GetMineFieldDamage(o.Get("mineFieldDamage")))
+	obj.MinefieldDamage = getPointer(GetMinefieldDamage(o.Get("minefieldDamage")))
 	obj.Mineral = getPointer(GetMineral(o.Get("mineral")))
 	obj.MineralPacketDamage = getPointer(GetMineralPacketDamage(o.Get("mineralPacketDamage")))
 	obj.MysteryTrader = getPointer(GetPlayerMessageSpecMysteryTrader(o.Get("mysteryTrader")))
@@ -2388,8 +2388,8 @@ func SetPlayerMessageSpec(o js.Value, obj *cs.PlayerMessageSpec) {
 	o.Set("invasion", map[string]any{})
 	SetPlayerMessageSpecInvasion(o.Get("invasion"), obj.Invasion)
 	o.Set("lostTargetType", string(obj.LostTargetType))
-	o.Set("mineFieldDamage", map[string]any{})
-	SetMineFieldDamage(o.Get("mineFieldDamage"), obj.MineFieldDamage)
+	o.Set("minefieldDamage", map[string]any{})
+	SetMinefieldDamage(o.Get("minefieldDamage"), obj.MinefieldDamage)
 	o.Set("mineral", map[string]any{})
 	SetMineral(o.Get("mineral"), obj.Mineral)
 	o.Set("mineralPacketDamage", map[string]any{})
@@ -2705,6 +2705,7 @@ func GetPlayerStatus(o js.Value) cs.PlayerStatus {
 	obj.Num = getInt[int](o.Get("num"))
 	obj.Ready = getBool(o.Get("ready"))
 	obj.AIControlled = getBool(o.Get("aiControlled"))
+	obj.AIDifficulty = GetAIDifficulty(o.Get("aiDifficulty"))
 	obj.Guest = getBool(o.Get("guest"))
 	obj.SubmittedTurn = getBool(o.Get("submittedTurn"))
 	obj.Color = string(getString(o.Get("color")))
@@ -2719,6 +2720,7 @@ func SetPlayerStatus(o js.Value, obj *cs.PlayerStatus) {
 	o.Set("num", obj.Num)
 	o.Set("ready", obj.Ready)
 	o.Set("aiControlled", obj.AIControlled)
+	o.Set("aiDifficulty", string(obj.AIDifficulty))
 	o.Set("guest", obj.Guest)
 	o.Set("submittedTurn", obj.SubmittedTurn)
 	o.Set("color", obj.Color)
@@ -2912,15 +2914,15 @@ func GetRaceSpec(o js.Value) cs.RaceSpec {
 	obj.BuiltInCloakUnits = getInt[int](o.Get("builtInCloakUnits"))
 	obj.StealsResearch = GetStealsResearch(o.Get("stealsResearch"))
 	obj.FreeCargoCloaking = getBool(o.Get("freeCargoCloaking"))
-	obj.MineFieldsAreScanners = getBool(o.Get("mineFieldsAreScanners"))
-	obj.MineFieldRateMoveFactor = getFloat[float64](o.Get("mineFieldRateMoveFactor"))
-	obj.MineFieldSafeWarpBonus = getInt[int](o.Get("mineFieldSafeWarpBonus"))
-	obj.MineFieldMinDecayFactor = getFloat[float64](o.Get("mineFieldMinDecayFactor"))
-	obj.MineFieldBaseDecayRate = getFloat[float64](o.Get("mineFieldBaseDecayRate"))
-	obj.MineFieldPlanetDecayRate = getFloat[float64](o.Get("mineFieldPlanetDecayRate"))
-	obj.MineFieldMaxDecayRate = getFloat[float64](o.Get("mineFieldMaxDecayRate"))
-	obj.CanDetonateMineFields = getBool(o.Get("canDetonateMineFields"))
-	obj.MineFieldDetonateDecayRate = getFloat[float64](o.Get("mineFieldDetonateDecayRate"))
+	obj.MinefieldsAreScanners = getBool(o.Get("minefieldsAreScanners"))
+	obj.MinefieldRateMoveFactor = getFloat[float64](o.Get("minefieldRateMoveFactor"))
+	obj.MinefieldSafeWarpBonus = getInt[int](o.Get("minefieldSafeWarpBonus"))
+	obj.MinefieldMinDecayFactor = getFloat[float64](o.Get("minefieldMinDecayFactor"))
+	obj.MinefieldBaseDecayRate = getFloat[float64](o.Get("minefieldBaseDecayRate"))
+	obj.MinefieldPlanetDecayRate = getFloat[float64](o.Get("minefieldPlanetDecayRate"))
+	obj.MinefieldMaxDecayRate = getFloat[float64](o.Get("minefieldMaxDecayRate"))
+	obj.CanDetonateMinefields = getBool(o.Get("canDetonateMinefields"))
+	obj.MinefieldDetonateDecayRate = getFloat[float64](o.Get("minefieldDetonateDecayRate"))
 	obj.DiscoverDesignOnScan = getBool(o.Get("discoverDesignOnScan"))
 	obj.CanRemoteMineOwnPlanets = getBool(o.Get("canRemoteMineOwnPlanets"))
 	obj.InvasionAttackBonus = getFloat[float64](o.Get("invasionAttackBonus"))
@@ -3003,15 +3005,15 @@ func SetRaceSpec(o js.Value, obj *cs.RaceSpec) {
 	o.Set("stealsResearch", map[string]any{})
 	SetStealsResearch(o.Get("stealsResearch"), &obj.StealsResearch)
 	o.Set("freeCargoCloaking", obj.FreeCargoCloaking)
-	o.Set("mineFieldsAreScanners", obj.MineFieldsAreScanners)
-	o.Set("mineFieldRateMoveFactor", obj.MineFieldRateMoveFactor)
-	o.Set("mineFieldSafeWarpBonus", obj.MineFieldSafeWarpBonus)
-	o.Set("mineFieldMinDecayFactor", obj.MineFieldMinDecayFactor)
-	o.Set("mineFieldBaseDecayRate", obj.MineFieldBaseDecayRate)
-	o.Set("mineFieldPlanetDecayRate", obj.MineFieldPlanetDecayRate)
-	o.Set("mineFieldMaxDecayRate", obj.MineFieldMaxDecayRate)
-	o.Set("canDetonateMineFields", obj.CanDetonateMineFields)
-	o.Set("mineFieldDetonateDecayRate", obj.MineFieldDetonateDecayRate)
+	o.Set("minefieldsAreScanners", obj.MinefieldsAreScanners)
+	o.Set("minefieldRateMoveFactor", obj.MinefieldRateMoveFactor)
+	o.Set("minefieldSafeWarpBonus", obj.MinefieldSafeWarpBonus)
+	o.Set("minefieldMinDecayFactor", obj.MinefieldMinDecayFactor)
+	o.Set("minefieldBaseDecayRate", obj.MinefieldBaseDecayRate)
+	o.Set("minefieldPlanetDecayRate", obj.MinefieldPlanetDecayRate)
+	o.Set("minefieldMaxDecayRate", obj.MinefieldMaxDecayRate)
+	o.Set("canDetonateMinefields", obj.CanDetonateMinefields)
+	o.Set("minefieldDetonateDecayRate", obj.MinefieldDetonateDecayRate)
 	o.Set("discoverDesignOnScan", obj.DiscoverDesignOnScan)
 	o.Set("canRemoteMineOwnPlanets", obj.CanRemoteMineOwnPlanets)
 	o.Set("invasionAttackBonus", obj.InvasionAttackBonus)
@@ -3163,8 +3165,8 @@ func GetRules(o js.Value) cs.Rules {
 	obj.MaxPopulation = getInt[int](o.Get("maxPopulation"))
 	obj.MinPopFloor = getInt[int](o.Get("minPopFloor"))
 	obj.MaxTechLevel = getInt[int](o.Get("maxTechLevel"))
-	obj.MineFieldCloak = getInt[int](o.Get("mineFieldCloak"))
-	obj.MineFieldStatsByType = GetStringMap[map[cs.MineFieldType]cs.MineFieldStats](o.Get("mineFieldStatsByType"), GetMineFieldStats)
+	obj.MinefieldCloak = getInt[int](o.Get("minefieldCloak"))
+	obj.MinefieldStatsByType = GetStringMap[map[cs.MinefieldType]cs.MinefieldStats](o.Get("minefieldStatsByType"), GetMinefieldStats)
 	obj.MineralDecayFactor = getInt[int](o.Get("mineralDecayFactor"))
 	obj.MinHabFloor = getInt[int](o.Get("minHabFloor"))
 	obj.MysteryTraderRules = GetMysteryTraderRules(o.Get("mysteryTraderRules"))
@@ -3242,14 +3244,14 @@ func SetRules(o js.Value, obj *cs.Rules) {
 	o.Set("maxPopulation", obj.MaxPopulation)
 	o.Set("minPopFloor", obj.MinPopFloor)
 	o.Set("maxTechLevel", obj.MaxTechLevel)
-	o.Set("mineFieldCloak", obj.MineFieldCloak)
-	mineFieldStatsByTypeMap := js.ValueOf(map[string]any{})
-	for key, value := range obj.MineFieldStatsByType {
+	o.Set("minefieldCloak", obj.MinefieldCloak)
+	minefieldStatsByTypeMap := js.ValueOf(map[string]any{})
+	for key, value := range obj.MinefieldStatsByType {
 		valueObj := js.ValueOf(map[string]any{})
-		SetMineFieldStats(valueObj, &value)
-		mineFieldStatsByTypeMap.Set(fmt.Sprintf("%v", key), valueObj)
+		SetMinefieldStats(valueObj, &value)
+		minefieldStatsByTypeMap.Set(fmt.Sprintf("%v", key), valueObj)
 	}
-	o.Set("mineFieldStatsByType", mineFieldStatsByTypeMap)
+	o.Set("minefieldStatsByType", minefieldStatsByTypeMap)
 	o.Set("mineralDecayFactor", obj.MineralDecayFactor)
 	o.Set("minHabFloor", obj.MinHabFloor)
 	o.Set("mysteryTraderRules", map[string]any{})
@@ -3527,7 +3529,7 @@ func GetShipDesignSpec(o js.Value) cs.ShipDesignSpec {
 	obj.MaxHullMass = getInt[int](o.Get("maxHullMass"))
 	obj.MaxPopulation = getInt[int](o.Get("maxPopulation"))
 	obj.MaxRange = getInt[int](o.Get("maxRange"))
-	obj.MineLayingRateByMineType = GetStringMap[map[cs.MineFieldType]int](o.Get("mineLayingRateByMineType"), getInt)
+	obj.MineLayingRateByMineType = GetStringMap[map[cs.MinefieldType]int](o.Get("mineLayingRateByMineType"), getInt)
 	obj.MineSweep = getInt[int](o.Get("mineSweep"))
 	obj.MiningRate = getInt[int](o.Get("miningRate"))
 	obj.Movement = getInt[int](o.Get("movement"))
@@ -4020,7 +4022,7 @@ func GetTechHullComponent(o js.Value) cs.TechHullComponent {
 	obj.TorpedoJamming = getFloat[float64](o.Get("torpedoJamming"))
 	obj.ReduceCloaking = getBool(o.Get("reduceCloaking"))
 	obj.CloakUnarmedOnly = getBool(o.Get("cloakUnarmedOnly"))
-	obj.MineFieldType = GetMineFieldType(o.Get("mineFieldType"))
+	obj.MinefieldType = GetMinefieldType(o.Get("minefieldType"))
 	obj.MineLayingRate = getInt[int](o.Get("mineLayingRate"))
 	obj.BeamDefense = getFloat[float64](o.Get("beamDefense"))
 	obj.CargoBonus = getInt[int](o.Get("cargoBonus"))
@@ -4072,7 +4074,7 @@ func SetTechHullComponent(o js.Value, obj *cs.TechHullComponent) {
 	o.Set("torpedoJamming", obj.TorpedoJamming)
 	o.Set("reduceCloaking", obj.ReduceCloaking)
 	o.Set("cloakUnarmedOnly", obj.CloakUnarmedOnly)
-	o.Set("mineFieldType", string(obj.MineFieldType))
+	o.Set("minefieldType", string(obj.MinefieldType))
 	o.Set("mineLayingRate", obj.MineLayingRate)
 	o.Set("beamDefense", obj.BeamDefense)
 	o.Set("cargoBonus", obj.CargoBonus)
@@ -4330,7 +4332,7 @@ func GetUniverse(o js.Value) cs.Universe {
 	obj.Starbases = GetPointerSlice(o.Get("starbases"), GetFleet)
 	obj.Wormholes = GetPointerSlice(o.Get("wormholes"), GetWormhole)
 	obj.MineralPackets = GetPointerSlice(o.Get("mineralPackets"), GetMineralPacket)
-	obj.MineFields = GetPointerSlice(o.Get("mineFields"), GetMineField)
+	obj.Minefields = GetPointerSlice(o.Get("minefields"), GetMinefield)
 	obj.MysteryTraders = GetPointerSlice(o.Get("mysteryTraders"), GetMysteryTrader)
 	obj.Salvages = GetPointerSlice(o.Get("salvage"), GetSalvage)
 	return obj
@@ -4346,8 +4348,8 @@ func SetUniverse(o js.Value, obj *cs.Universe) {
 	SetPointerSlice(o.Get("wormholes"), obj.Wormholes, SetWormhole)
 	o.Set("mineralPackets", []any{})
 	SetPointerSlice(o.Get("mineralPackets"), obj.MineralPackets, SetMineralPacket)
-	o.Set("mineFields", []any{})
-	SetPointerSlice(o.Get("mineFields"), obj.MineFields, SetMineField)
+	o.Set("minefields", []any{})
+	SetPointerSlice(o.Get("minefields"), obj.Minefields, SetMinefield)
 	o.Set("mysteryTraders", []any{})
 	SetPointerSlice(o.Get("mysteryTraders"), obj.MysteryTraders, SetMysteryTrader)
 	o.Set("salvage", []any{})
@@ -4493,7 +4495,7 @@ func GetWaypoint(o js.Value) cs.Waypoint {
 	obj.Task = GetWaypointTask(o.Get("task"))
 	obj.TransportTasks = GetWaypointTransportTasks(o.Get("transportTasks"))
 	obj.WaitAtWaypoint = getBool(o.Get("waitAtWaypoint"))
-	obj.LayMineFieldDuration = getInt[int](o.Get("layMineFieldDuration"))
+	obj.LayMinefieldDuration = getInt[int](o.Get("layMinefieldDuration"))
 	obj.PatrolRange = getInt[int](o.Get("patrolRange"))
 	obj.PatrolWarpSpeed = getInt[int](o.Get("patrolWarpSpeed"))
 	obj.TransferToPlayer = getInt[int](o.Get("transferToPlayer"))
@@ -4510,7 +4512,7 @@ func SetWaypoint(o js.Value, obj *cs.Waypoint) {
 	o.Set("transportTasks", map[string]any{})
 	SetWaypointTransportTasks(o.Get("transportTasks"), &obj.TransportTasks)
 	o.Set("waitAtWaypoint", obj.WaitAtWaypoint)
-	o.Set("layMineFieldDuration", obj.LayMineFieldDuration)
+	o.Set("layMinefieldDuration", obj.LayMinefieldDuration)
 	o.Set("patrolRange", obj.PatrolRange)
 	o.Set("patrolWarpSpeed", obj.PatrolWarpSpeed)
 	o.Set("transferToPlayer", obj.TransferToPlayer)
@@ -4636,9 +4638,12 @@ func GetWormholeSpec(o js.Value) cs.WormholeSpec {
 	if o.IsUndefined() || o.IsNull() {
 		return obj
 	}
+	obj.Stats = GetWormholeStats(o.Get("stats"))
 	return obj
 }
 func SetWormholeSpec(o js.Value, obj *cs.WormholeSpec) {
+	o.Set("stats", map[string]any{})
+	SetWormholeStats(o.Get("stats"), &obj.Stats)
 }
 
 func GetWormholeStability(o js.Value) cs.WormholeStability {

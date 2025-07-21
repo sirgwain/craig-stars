@@ -185,30 +185,30 @@
 										{/if}
 										<div>-</div>
 										<div class="text-base my-auto">
-											{#if planet.spec.canTerraform}
+											{#if planet.spec?.canTerraform}
 												<span
-													class:text-habitable={(planet.spec.habitability ?? 0) > 0}
-													class:text-uninhabitable={(planet.spec.habitability ?? 0) < 0}
-													>{planet.spec.habitability ?? 0}%</span
+													class:text-habitable={(planet.spec?.habitability ?? 0) > 0}
+													class:text-uninhabitable={(planet.spec?.habitability ?? 0) < 0}
+													>{planet.spec?.habitability ?? 0}%</span
 												>
 												/
 												<span class="text-terraformable"
-													>{planet.spec.terraformedHabitability ?? 0}%</span
+													>{planet.spec?.terraformedHabitability ?? 0}%</span
 												>
 											{:else}
 												<span
-													class:text-habitable={(planet.spec.habitability ?? 0) > 0}
-													class:text-uninhabitable={(planet.spec.habitability ?? 0) < 0}
+													class:text-habitable={(planet.spec?.habitability ?? 0) > 0}
+													class:text-uninhabitable={(planet.spec?.habitability ?? 0) < 0}
 												>
-													{planet.spec.habitability ?? 0}%</span
+													{planet.spec?.habitability ?? 0}%</span
 												>
 											{/if}
 										</div>
 										{#if ownedBy(planet, $player.num)}
 											<div>-</div>
 											<div class="text-base my-auto">
-												{planet.spec.resourcesPerYear
-													? planet.spec.resourcesPerYear.toLocaleString() + ' res'
+												{planet.spec?.resourcesPerYear
+													? planet.spec?.resourcesPerYear.toLocaleString() + ' res'
 													: ''}
 											</div>
 											<div>-</div>

@@ -5,12 +5,14 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
+	"github.com/sirgwain/craig-stars/test"
 )
 
 func TestCargoTransfers_splitFleetCargoTransfers(t *testing.T) {
 	type args struct {
-		source *Fleet
-		dest   *Fleet
+		source        *Fleet
+		dest          *Fleet
+		excludeLatest bool
 	}
 	tests := []struct {
 		name           string
@@ -45,6 +47,40 @@ func TestCargoTransfers_splitFleetCargoTransfers(t *testing.T) {
 			},
 		},
 		{
+			name: "split exclude latest",
+			cargoTransfers: CargoTransfers{
+				Vector{}.String(): []ByHandCargoTransfer{
+					{
+						SourceFleetNum: 1,
+						Cargo:          Cargo{Ironium: 2},
+					},
+					{
+						SourceFleetNum: 1,
+						Cargo:          Cargo{Boranium: 2},
+					},
+				},
+			},
+			args: args{
+				source:        &Fleet{MapObject: MapObject{Num: 1}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 1}}},
+				dest:          &Fleet{MapObject: MapObject{Num: 2}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 1}}},
+				excludeLatest: true,
+			},
+			want: []ByHandCargoTransfer{
+				{
+					SourceFleetNum: 1,
+					Cargo:          Cargo{Ironium: 1},
+				},
+				{
+					SourceFleetNum: 2,
+					Cargo:          Cargo{Ironium: 1},
+				},
+				{
+					SourceFleetNum: 1,
+					Cargo:          Cargo{Boranium: 2},
+				},
+			},
+		},
+		{
 			name: "split no cargo in dest",
 			cargoTransfers: CargoTransfers{
 				Vector{}.String(): []ByHandCargoTransfer{
@@ -65,17 +101,57 @@ func TestCargoTransfers_splitFleetCargoTransfers(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "delete source",
+			cargoTransfers: CargoTransfers{
+				Vector{}.String(): []ByHandCargoTransfer{
+					{
+						SourceFleetNum: 1,
+						Cargo:          Cargo{Ironium: 2},
+					},
+				},
+			},
+			args: args{
+				source: &Fleet{MapObject: MapObject{Num: 1, Delete: true}},
+				dest:   &Fleet{MapObject: MapObject{Num: 2}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 2}}},
+			},
+			want: []ByHandCargoTransfer{
+				{
+					SourceFleetNum: 2,
+					Cargo:          Cargo{Ironium: 2},
+				},
+			},
+		},
+		{
+			name: "delete dest",
+			cargoTransfers: CargoTransfers{
+				Vector{}.String(): []ByHandCargoTransfer{
+					{
+						SourceFleetNum: 1,
+						Cargo:          Cargo{Ironium: 2},
+					},
+				},
+			},
+			args: args{
+				source: &Fleet{MapObject: MapObject{Num: 1}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 2}}},
+				dest:   &Fleet{MapObject: MapObject{Num: 2, Delete: true}},
+			},
+			want: []ByHandCargoTransfer{
+				{
+					SourceFleetNum: 1,
+					Cargo:          Cargo{Ironium: 2},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cargoTransfers.splitByHandTransfers(tt.args.source, tt.args.dest); (err != nil) != tt.wantErr {
+			if err := tt.cargoTransfers.splitByHandTransfers(tt.args.source, tt.args.dest, tt.args.excludeLatest); (err != nil) != tt.wantErr {
 				t.Errorf("CargoTransfers.splitFleetCargoTransfers() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			got := tt.cargoTransfers.getTransfers(tt.args.source.Position)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CargoTransfers.mergeFleetCargoTransfers() \ngot: \n%v\nwant: \n%v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
@@ -442,6 +518,13 @@ func TestCargoTransferer_getCargoUnloadAmount(t *testing.T) {
 			args:               args{dest: planet, cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionUnloadAll}},
 			wantTransferAmount: 20,
 			wantWantToTransfer: 20,
+		},
+		{
+			name:               "unload all ironium the dest can fit (20kT remaining space)",
+			fleet:              testSmallFreighter(player).withCargo(Cargo{Ironium: 120}),
+			args:               args{dest: testSmallFreighter(player).withCargo(Cargo{Colonists: 100}), cargoType: Ironium, task: WaypointTransportTask{Action: TransportActionUnloadAll}},
+			wantTransferAmount: 20, // small freighter has 130mg fuel capacity
+			wantWantToTransfer: 120,
 		},
 		{
 			name:               "unload all fuel dest can fit (they already have 20)",

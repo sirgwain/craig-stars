@@ -257,9 +257,9 @@ export interface Waypoint extends MapObjectTarget {
 	warpSpeed: number /* int */;
 	estFuelUsage?: number /* int */;
 	task?: WaypointTask;
-	transportTasks: WaypointTransportTasks;
+	transportTasks?: WaypointTransportTasks;
 	waitAtWaypoint?: boolean;
-	layMineFieldDuration?: number /* int */;
+	layMinefieldDuration?: number /* int */;
 	patrolRange?: number /* int */;
 	patrolWarpSpeed?: number /* int */;
 	transferToPlayer?: number /* int */;
@@ -272,7 +272,7 @@ export const WaypointTaskColonize = 'Colonize';
 export const WaypointTaskRemoteMining = 'RemoteMining';
 export const WaypointTaskMergeWithFleet = 'MergeWithFleet';
 export const WaypointTaskScrapFleet = 'ScrapFleet';
-export const WaypointTaskLayMineField = 'LayMineField';
+export const WaypointTaskLayMinefield = 'LayMinefield';
 export const WaypointTaskPatrol = 'Patrol';
 export const WaypointTaskRoute = 'Route';
 export const WaypointTaskTransferFleet = 'TransferFleet';
@@ -402,7 +402,7 @@ export interface Game extends DBObject {
 	numPlayers?: number /* int */;
 	victoryConditions: VictoryConditions;
 	seed: number /* int64 */;
-	rules: Rules;
+	rules?: Rules;
 	area?: Vector;
 	year?: number /* int */;
 	victorDeclared: boolean;
@@ -515,15 +515,15 @@ export interface Intel {
 	reportAge: number /* int */;
 }
 export interface PlanetIntel extends Intel, MapObject {
-	hab: Hab;
-	baseHab: Hab;
-	mineralConcentration: Mineral;
-	cargo: Cargo;
+	hab?: Hab;
+	baseHab?: Hab;
+	mineralConcentration?: Mineral;
+	cargo?: Cargo;
 	cargoDiscovered?: boolean;
 	planetHabitability?: number /* int */;
 	planetHabitabilityTerraformed?: number /* int */;
 	homeworld?: boolean;
-	spec: PlanetSpec;
+	spec?: PlanetSpec;
 }
 export interface ShipDesignIntel extends Intel {
 	name: string;
@@ -548,7 +548,7 @@ export interface FleetIntel extends Intel, MapObject {
 	scanRange?: number /* int */;
 	scanRangePen?: number /* int */;
 	tokens: ShipToken[];
-	spec: FleetSpec;
+	spec?: FleetSpec;
 }
 export interface MineralPacketIntel extends Intel, MapObject {
 	warpSpeed: number /* int */;
@@ -561,10 +561,10 @@ export interface MineralPacketIntel extends Intel, MapObject {
 export interface SalvageIntel extends Intel, MapObject {
 	cargo: Cargo;
 }
-export interface MineFieldIntel extends Intel, MapObject {
+export interface MinefieldIntel extends Intel, MapObject {
 	numMines: number /* int */;
-	mineFieldType: MineFieldType;
-	spec: MineFieldSpec;
+	minefieldType: MinefieldType;
+	spec: MinefieldSpec;
 }
 export interface WormholeIntel extends Intel, MapObject {
 	destinationNum?: number /* int */;
@@ -584,7 +584,7 @@ export interface PlayerIntel {
 	racePluralName?: string;
 }
 export interface ScoreIntel {
-	scoreHistory: PlayerScore[];
+	scoreHistory?: PlayerScore[];
 }
 
 //////////
@@ -619,14 +619,14 @@ export interface MapObject {
 	num: number /* int */;
 	playerNum: number /* int */;
 	name: string;
-	tags: Tags;
+	tags?: Tags;
 }
 export type MapObjectType = string;
 export const MapObjectTypeNone: MapObjectType = '';
 export const MapObjectTypePlanet: MapObjectType = 'Planet';
 export const MapObjectTypeFleet: MapObjectType = 'Fleet';
 export const MapObjectTypeWormhole: MapObjectType = 'Wormhole';
-export const MapObjectTypeMineField: MapObjectType = 'MineField';
+export const MapObjectTypeMinefield: MapObjectType = 'Minefield';
 export const MapObjectTypeMysteryTrader: MapObjectType = 'MysteryTrader';
 export const MapObjectTypeSalvage: MapObjectType = 'Salvage';
 export const MapObjectTypeMineralPacket: MapObjectType = 'MineralPacket';
@@ -672,7 +672,7 @@ export interface PlayerMessageSpec extends Target<MapObjectType> {
 	field?: TechField;
 	invasion?: PlayerMessageSpecInvasion;
 	lostTargetType?: MapObjectType;
-	mineFieldDamage?: MineFieldDamage;
+	minefieldDamage?: MinefieldDamage;
 	mineral?: Mineral;
 	mineralPacketDamage?: MineralPacketDamage;
 	mysteryTrader?: PlayerMessageSpecMysteryTrader;
@@ -714,7 +714,7 @@ export const TargetNone: PlayerMessageTargetType = '';
 export const TargetPlanet: PlayerMessageTargetType = 'Planet';
 export const TargetFleet: PlayerMessageTargetType = 'Fleet';
 export const TargetWormhole: PlayerMessageTargetType = 'Wormhole';
-export const TargetMineField: PlayerMessageTargetType = 'MineField';
+export const TargetMinefield: PlayerMessageTargetType = 'Minefield';
 export const TargetMysteryTrader: PlayerMessageTargetType = 'MysteryTrader';
 export const TargetMineralPacket: PlayerMessageTargetType = 'MineralPacket';
 export const TargetBattle: PlayerMessageTargetType = 'Battle';
@@ -761,9 +761,9 @@ export const PlayerMessagePlanetInvaded: PlayerMessageType = 38;
 export const PlayerMessageFleetInvadedPlanet: PlayerMessageType = 39;
 export const PlayerMessageBattle: PlayerMessageType = 40;
 export const PlayerMessageFleetTransferredCargo: PlayerMessageType = 41;
-export const PlayerMessageFleetMineFieldSweptMines: PlayerMessageType = 42;
+export const PlayerMessageFleetMinefieldSweptMines: PlayerMessageType = 42;
 export const PlayerMessageFleetLaidMines: PlayerMessageType = 43;
-export const PlayerMessageFleetMineFieldHit: PlayerMessageType = 44;
+export const PlayerMessageFleetMinefieldHit: PlayerMessageType = 44;
 export const PlayerMessageFleetDumpedCargo: PlayerMessageType = 45;
 export const PlayerMessageFleetStargateDamaged: PlayerMessageType = 46;
 export const PlayerMessagePlanetPacketCaught: PlayerMessageType = 47;
@@ -825,24 +825,24 @@ export const PlayerMessageFleetByHandTransferIncomplete: PlayerMessageType = 101
 //////////
 // source: minefield.go
 
-export type MineFieldType = string;
-export const MineFieldTypeStandard: MineFieldType = 'Standard';
-export const MineFieldTypeHeavy: MineFieldType = 'Heavy';
-export const MineFieldTypeSpeedBump: MineFieldType = 'SpeedBump';
-export interface MineField extends GameDBObject, MapObject, MineFieldOrders {
-	mineFieldType: MineFieldType;
+export type MinefieldType = string;
+export const MinefieldTypeStandard: MinefieldType = 'Standard';
+export const MinefieldTypeHeavy: MinefieldType = 'Heavy';
+export const MinefieldTypeSpeedBump: MinefieldType = 'SpeedBump';
+export interface Minefield extends GameDBObject, MapObject, MinefieldOrders {
+	minefieldType: MinefieldType;
 	numMines: number /* int */;
-	spec: MineFieldSpec;
+	spec: MinefieldSpec;
 }
-export interface MineFieldOrders {
+export interface MinefieldOrders {
 	detonate?: boolean;
 }
-export interface MineFieldSpec {
+export interface MinefieldSpec {
 	radius: number /* float64 */;
 	decayRate: number /* int */;
 	canDetonate: boolean;
 }
-export interface MineFieldStats {
+export interface MinefieldStats {
 	minDamagePerFleetRS: number /* int */;
 	damagePerEngineRS: number /* int */;
 	maxSpeed: number /* int */;
@@ -853,7 +853,7 @@ export interface MineFieldStats {
 	minDecay: number /* int */;
 	canDetonate: boolean;
 }
-export interface MineFieldDamage {
+export interface MinefieldDamage {
 	damage?: number /* int */;
 	shipsDestroyed?: number /* int */;
 	fleetDestroyed?: boolean;
@@ -909,8 +909,8 @@ export interface MysteryTrader extends GameDBObject, MapObject {
 	requestedBoon?: number /* int */;
 	rewardType: MysteryTraderRewardType;
 	heading?: Vector;
-	playersRewarded: { [key: number /* int */]: boolean };
-	spec: MysteryTraderSpec;
+	playersRewarded?: { [key: number /* int */]: boolean };
+	spec?: MysteryTraderSpec;
 }
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface MysteryTraderSpec {}
@@ -985,17 +985,17 @@ export type Orderer = unknown;
 export interface Planet extends GameDBObject, MapObject, PlanetOrders {
 	hab: Hab;
 	baseHab: Hab;
-	terraformedAmount: Hab;
+	terraformedAmount?: Hab;
 	mineralConcentration: Mineral;
-	mineYears: Mineral;
-	cargo: Cargo;
+	mineYears?: Mineral;
+	cargo?: Cargo;
 	partialPopulation: number /* int */; // population not in a multiple of 100
 	mines: number /* int */;
 	factories: number /* int */;
 	defenses: number /* int */;
 	homeworld?: boolean;
 	scanner?: boolean;
-	spec: PlanetSpec;
+	spec?: PlanetSpec;
 }
 export interface PlanetOrders {
 	contributesOnlyLeftoverToResearch?: boolean;
@@ -1019,7 +1019,7 @@ export interface PlanetSpec extends PlanetStarbaseSpec {
 	maxPopulation?: number /* int */;
 	maxPossibleFactories?: number /* int */;
 	maxPossibleMines?: number /* int */;
-	miningOutput: Mineral;
+	miningOutput?: Mineral;
 	populationDensity?: number /* float64 */;
 	resourcesPerYear?: number /* int */;
 	resourcesPerYearAvailable?: number /* int */;
@@ -1028,8 +1028,8 @@ export interface PlanetSpec extends PlanetStarbaseSpec {
 	scanner?: string;
 	scanRange?: number /* int */;
 	scanRangePen?: number /* int */;
-	terraformAmount: Hab;
-	minTerraformAmount: Hab;
+	terraformAmount?: Hab;
+	minTerraformAmount?: Hab;
 	terraformedHabitability?: number /* int */;
 }
 export interface PlanetStarbaseSpec {
@@ -1094,6 +1094,7 @@ export interface PlayerStatus {
 	num: number /* int */;
 	ready?: boolean;
 	aiControlled?: boolean;
+	aiDifficulty?: AIDifficulty;
 	guest?: boolean;
 	submittedTurn?: boolean;
 	color?: string;
@@ -1108,7 +1109,7 @@ export interface PlayerIntels {
 	fleetIntels?: FleetIntel[];
 	shipDesignIntels?: ShipDesignIntel[];
 	mineralPacketIntels?: MineralPacketIntel[];
-	mineFieldIntels?: MineFieldIntel[];
+	minefieldIntels?: MinefieldIntel[];
 	wormholeIntels?: WormholeIntel[];
 	mysteryTraderIntels?: MysteryTraderIntel[];
 	salvageIntels?: SalvageIntel[];
@@ -1223,7 +1224,7 @@ export interface PlayerMapObjects {
 	planets: (Planet | undefined)[];
 	fleets: (Fleet | undefined)[];
 	starbases: (Fleet | undefined)[];
-	mineFields: (MineField | undefined)[];
+	minefields: (Minefield | undefined)[];
 	mineralPackets: (MineralPacket | undefined)[];
 }
 
@@ -1240,8 +1241,8 @@ export interface ProductionQueueItem extends QueueItemCompletionEstimate {
 	type: QueueItemType;
 	designNum?: number /* int */;
 	quantity: number /* int */;
-	allocated: Cost;
-	tags: Tags;
+	allocated?: Cost;
+	tags?: Tags;
 }
 export type QueueItemType = string;
 export const QueueItemTypeIroniumMineralPacket: QueueItemType = 'IroniumMineralPacket';
@@ -1298,9 +1299,10 @@ export interface Race extends DBObject {
 	numMines: number /* int */;
 	researchCost: ResearchCost;
 	techsStartHigh?: boolean;
-	spec: RaceSpec;
+	spec?: RaceSpec;
 }
 export type ResearchCostLevel = string;
+export const ResearchCostNone: ResearchCostLevel = '';
 export const ResearchCostExtra: ResearchCostLevel = 'Extra';
 export const ResearchCostStandard: ResearchCostLevel = 'Standard';
 export const ResearchCostLess: ResearchCostLevel = 'Less';
@@ -1349,15 +1351,15 @@ export interface RaceSpec extends MiniaturizationSpec, ScannerSpec {
 	builtInCloakUnits?: number /* int */;
 	stealsResearch?: StealsResearch;
 	freeCargoCloaking?: boolean;
-	mineFieldsAreScanners?: boolean;
-	mineFieldRateMoveFactor?: number /* float64 */;
-	mineFieldSafeWarpBonus?: number /* int */;
-	mineFieldMinDecayFactor?: number /* float64 */;
-	mineFieldBaseDecayRate?: number /* float64 */;
-	mineFieldPlanetDecayRate?: number /* float64 */;
-	mineFieldMaxDecayRate?: number /* float64 */;
-	canDetonateMineFields?: boolean;
-	mineFieldDetonateDecayRate?: number /* float64 */;
+	minefieldsAreScanners?: boolean;
+	minefieldRateMoveFactor?: number /* float64 */;
+	minefieldSafeWarpBonus?: number /* int */;
+	minefieldMinDecayFactor?: number /* float64 */;
+	minefieldBaseDecayRate?: number /* float64 */;
+	minefieldPlanetDecayRate?: number /* float64 */;
+	minefieldMaxDecayRate?: number /* float64 */;
+	canDetonateMinefields?: boolean;
+	minefieldDetonateDecayRate?: number /* float64 */;
 	discoverDesignOnScan?: boolean;
 	canRemoteMineOwnPlanets?: boolean;
 	invasionAttackBonus?: number /* float64 */;
@@ -1604,8 +1606,8 @@ export interface Rules extends CostRules, BattleRules, UniverseGenerationRules {
 	maxPopulation: number /* int */;
 	minPopFloor: number /* int */;
 	maxTechLevel: number /* int */;
-	mineFieldCloak: number /* int */;
-	mineFieldStatsByType: { [key: MineFieldType]: MineFieldStats };
+	minefieldCloak: number /* int */;
+	minefieldStatsByType: { [key: MinefieldType]: MinefieldStats };
 	mineralDecayFactor: number /* int */;
 	minHabFloor: number /* int */; // @sirgwain: Do we need this? It's only used as a default value for race generation
 	mysteryTraderRules: MysteryTraderRules;
@@ -1814,13 +1816,13 @@ export interface ShipDesignSpec {
 	cloakUnits?: number /* int */;
 	colonizer?: boolean;
 	cost: Cost;
-	engine: Engine;
+	engine?: Engine;
 	estimatedRange?: number /* int */;
 	estimatedRangeFull?: number /* int */;
 	fuelCapacity?: number /* int */;
 	fuelGeneration?: number /* int */;
 	hasWeapons?: boolean;
-	hullType: TechHullType;
+	hullType?: TechHullType;
 	immuneToOwnDetonation?: boolean;
 	initiative: number /* int */;
 	innateScanRangePenFactor?: number /* float64 */;
@@ -1829,14 +1831,14 @@ export interface ShipDesignSpec {
 	maxHullMass?: number /* int */;
 	maxPopulation?: number /* int */;
 	maxRange?: number /* int */;
-	mineLayingRateByMineType?: { [key: MineFieldType]: number /* int */ };
+	mineLayingRateByMineType?: { [key: MinefieldType]: number /* int */ };
 	mineSweep?: number /* int */;
 	miningRate?: number /* int */;
-	movement: number /* int */;
+	movement?: number /* int */;
 	movementBonus?: number /* float64 */;
 	movementFull?: number /* int */;
 	numBuilt?: number /* int */;
-	numEngines: number /* int */;
+	numEngines?: number /* int */;
 	numInstances?: number /* int */;
 	orbitalConstructionModule?: boolean;
 	powerRating?: number /* int */;
@@ -1856,7 +1858,7 @@ export interface ShipDesignSpec {
 	spaceDock?: number /* int */;
 	starbase?: boolean;
 	stargate?: string;
-	techLevel: TechLevel;
+	techLevel?: TechLevel;
 	terraformRate?: number /* int */;
 	torpedoBonus?: number /* float64 */;
 	torpedoJamming?: number /* float64 */;
@@ -1988,7 +1990,7 @@ export interface TechHullComponent extends Tech {
 	torpedoJamming?: number /* float64 */;
 	reduceCloaking?: boolean;
 	cloakUnarmedOnly?: boolean;
-	mineFieldType?: MineFieldType;
+	minefieldType?: MinefieldType;
 	mineLayingRate?: number /* int */;
 	beamDefense?: number /* float64 */;
 	cargoBonus?: number /* int */;
@@ -2260,15 +2262,15 @@ export interface PRTSpec {
 	builtInCloakUnits?: number /* int */;
 	stealsResearch?: StealsResearch;
 	freeCargoCloaking?: boolean;
-	mineFieldsAreScanners?: boolean;
-	mineFieldRateMoveFactor?: number /* float64 */;
-	mineFieldSafeWarpBonus?: number /* int */;
-	mineFieldMinDecayFactor?: number /* float64 */;
-	mineFieldBaseDecayRate?: number /* float64 */;
-	mineFieldPlanetDecayRate?: number /* float64 */;
-	mineFieldMaxDecayRate?: number /* float64 */;
-	canDetonateMineFields?: boolean;
-	mineFieldDetonateDecayRate?: number /* float64 */;
+	minefieldsAreScanners?: boolean;
+	minefieldRateMoveFactor?: number /* float64 */;
+	minefieldSafeWarpBonus?: number /* int */;
+	minefieldMinDecayFactor?: number /* float64 */;
+	minefieldBaseDecayRate?: number /* float64 */;
+	minefieldPlanetDecayRate?: number /* float64 */;
+	minefieldMaxDecayRate?: number /* float64 */;
+	canDetonateMinefields?: boolean;
+	minefieldDetonateDecayRate?: number /* float64 */;
 	discoverDesignOnScan?: boolean;
 	canRemoteMineOwnPlanets?: boolean;
 	invasionAttackBonus?: number /* float64 */;
@@ -2375,7 +2377,7 @@ export interface Universe {
 	starbases?: (Fleet | undefined)[];
 	wormholes?: (Wormhole | undefined)[];
 	mineralPackets?: (MineralPacket | undefined)[];
-	mineFields?: (MineField | undefined)[];
+	minefields?: (Minefield | undefined)[];
 	mysteryTraders?: (MysteryTrader | undefined)[];
 	salvage?: (Salvage | undefined)[];
 }
@@ -2476,7 +2478,7 @@ export interface Wormhole extends GameDBObject, MapObject {
 	spec: WormholeSpec;
 }
 export interface WormholeSpec {
-	Stats: WormholeStats;
+	stats?: WormholeStats;
 }
 export interface WormholeStats {
 	yearsToDegrade: number /* int */;

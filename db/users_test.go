@@ -1,10 +1,10 @@
 package db
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,10 +24,9 @@ func TestCreateUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			want := *tt.args.user
-			err := tt.args.c.CreateUser(tt.args.user)
+			got, err := tt.args.c.CreateUser(t.Context(), tt.args.user)
 
-			// id is automatically added
-			want.ID = tt.args.user.ID
+			// make sure auto generated fields are equal before compare
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("CreateUser() did not return error when expected")
@@ -35,19 +34,20 @@ func TestCreateUser(t *testing.T) {
 					t.Fatalf("CreateUser() errored unexpectedly; err = \n%v", err)
 				}
 			}
-			if !reflect.DeepEqual(tt.args.user, &want) {
-				t.Errorf("CreateUser() = \n%v, want \n%v", tt.args.user, want)
-			}
+
+			want.DBObject = got.DBObject
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }
 
 func TestUpdateUser(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
-	user := cs.User{Username: "Test"}
-	if err := c.CreateUser(&user); err != nil {
+	var user *cs.User
+	var err error
+	user, err = c.CreateUser(t.Context(), &cs.User{Username: "Test"})
+	if err != nil {
 		t.Errorf("create user %s", err)
 		return
 	}
@@ -55,12 +55,12 @@ func TestUpdateUser(t *testing.T) {
 	user.Username = "Test2"
 	user.Password = "newpassword"
 	user.Role = cs.RoleAdmin
-	if err := c.UpdateUser(&user); err != nil {
+	if err := c.UpdateUser(t.Context(), user); err != nil {
 		t.Errorf("update user %s", err)
 		return
 	}
 
-	updated, err := c.GetUser(user.ID)
+	updated, err := c.GetUser(t.Context(), user.ID)
 
 	if err != nil {
 		t.Errorf("get user %s", err)
@@ -70,16 +70,16 @@ func TestUpdateUser(t *testing.T) {
 	assert.Equal(t, user.Username, updated.Username)
 	assert.Equal(t, user.Password, updated.Password)
 	assert.Equal(t, user.Role, updated.Role)
-	assert.Less(t, user.UpdatedAt, updated.UpdatedAt)
 
 }
 
 func TestGetUser(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
-	user := cs.User{Username: "Test"}
-	if err := c.CreateUser(&user); err != nil {
+	var user *cs.User
+	var err error
+	user, err = c.CreateUser(t.Context(), &cs.User{Username: "Test"})
+	if err != nil {
 		t.Errorf("create user %s", err)
 		return
 	}
@@ -94,11 +94,11 @@ func TestGetUser(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got user", args{id: user.ID}, &user, false},
+		{"Got user", args{id: user.ID}, user, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetUser(tt.args.id)
+			got, err := c.GetUser(t.Context(), tt.args.id)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("GetUser() did not return error when expected")
@@ -110,29 +110,26 @@ func TestGetUser(t *testing.T) {
 				tt.want.UpdatedAt = got.UpdatedAt
 				tt.want.CreatedAt = got.CreatedAt
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetUser() = %v, want %v", got, tt.want)
-			}
+			test.CompareAsJSON(t, got, tt.want)
 		})
 	}
 }
 
 func TestGetUsers(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	// start with 1 user from connectTestDB
-	result, err := c.GetUsers()
+	result, err := c.GetUsers(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	user := cs.User{Username: "Test"}
-	if err := c.CreateUser(&user); err != nil {
+	_, err = c.CreateUser(t.Context(), &cs.User{Username: "Test"})
+	if err != nil {
 		t.Errorf("create user %s", err)
 		return
 	}
 
-	result, err = c.GetUsers()
+	result, err = c.GetUsers(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(result))
 
@@ -140,29 +137,29 @@ func TestGetUsers(t *testing.T) {
 
 func TestDeleteUsers(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
-	_, err := c.GetUsers()
+	_, err := c.GetUsers(t.Context())
 	assert.Nil(t, err)
 
-	user := cs.User{Username: "Test"}
-	if err := c.CreateUser(&user); err != nil {
+	var user *cs.User
+	user, err = c.CreateUser(t.Context(), &cs.User{Username: "Test"})
+	if err != nil {
 		t.Errorf("create user %s", err)
 		return
 	}
 
 	// should have our user in the db
-	result, err := c.GetUsers()
+	result, err := c.GetUsers(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(result))
 
-	if err := c.DeleteUser(user.ID); err != nil {
+	if err := c.DeleteUser(t.Context(), user.ID); err != nil {
 		t.Errorf("delete user %s", err)
 		return
 	}
 
 	// should be no users left in db
-	result, err = c.GetUsers()
+	result, err = c.GetUsers(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 }

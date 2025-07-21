@@ -22,10 +22,7 @@
 		hull: hullName ?? '',
 		hullSetNumber: 0,
 		slots: [],
-		spec: {
-			engine: {},
-			techLevel: {}
-		} as ShipDesignSpec
+		spec: {} as ShipDesignSpec
 	});
 
 	let error = $state('');

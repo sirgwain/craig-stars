@@ -1,18 +1,13 @@
-package db
+package generated
 
 import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"reflect"
 )
 
 // helper to convert an item into JSON
 func valueJSON(item interface{}) (driver.Value, error) {
-	if isNil(item) {
-		return nil, nil
-	}
-
 	data, err := json.Marshal(item)
 	if err != nil {
 		return nil, err
@@ -29,21 +24,15 @@ func scanJSON(src interface{}, dest interface{}) error {
 
 	switch v := src.(type) {
 	case []byte:
+		if len(v) == 0 {
+			return nil
+		}
 		return json.Unmarshal(v, dest)
 	case string:
+		if len(v) == 0 {
+			return nil
+		}
 		return json.Unmarshal([]byte(v), dest)
 	}
 	return errors.New("type assertion failed")
-}
-
-func isNil(i interface{}) bool {
-	if i == nil {
-		return true
-	}
-	switch reflect.TypeOf(i).Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
-		//use of IsNil method
-		return reflect.ValueOf(i).IsNil()
-	}
-	return false
 }

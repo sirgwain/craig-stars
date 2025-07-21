@@ -136,10 +136,10 @@
 	{planet.name} has built a new {message.spec.name} planetary scanner.
 {:else if message.type === PlayerMessagePlanetBuiltStarbase}
 	{planet.name} has built a new {message.spec.name}.
-	{#if planet.spec.dockCapacity == UnlimitedSpaceDock}
+	{#if planet.spec?.dockCapacity == UnlimitedSpaceDock}
 		Ships of any size can now be built here.
-	{:else if (planet.spec.dockCapacity ?? 0) > 0}
-		Ships up to {planet.spec.dockCapacity}kT in mass can now be built at this facility.
+	{:else if (planet.spec?.dockCapacity ?? 0) > 0}
+		Ships up to {planet.spec?.dockCapacity}kT in mass can now be built at this facility.
 	{/if}
 {:else if message.type === PlayerMessagePlanetCometStrike}
 	{#if message.spec.comet?.size == CometSmall}
@@ -190,26 +190,26 @@
 {:else if [PlayerMessagePlanetDiscovery, PlayerMessagePlanetDiscoveryHabitable, PlayerMessagePlanetDiscoveryTerraformable, PlayerMessagePlanetDiscoveryUninhabitable].indexOf(message.type) != -1}
 	{#if owner}
 		You have found a planet occupied by someone else. {planet.name} is currently owned by the {owner.racePluralName}.
-	{:else if $player.race.spec?.instaforming && ((planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0) || (planet.spec.habitability && planet.spec.habitability > 0))}
+	{:else if $player.race.spec?.instaforming && ((planet.spec?.terraformedHabitability && planet.spec?.terraformedHabitability > 0) || (planet.spec?.habitability && planet.spec?.habitability > 0))}
 		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
 			1,
-			((planet.spec.terraformedHabitability ?? planet.spec.habitability ?? 0) * growthRate) / 100
+			((planet.spec?.terraformedHabitability ?? planet.spec?.habitability ?? 0) * growthRate) / 100
 		).toFixed(2)}% per year if you colonize {planet.name}.
-	{:else if planet.spec.habitability && planet.spec.habitability > 0}
+	{:else if planet.spec?.habitability && planet.spec?.habitability > 0}
 		You have found a new habitable planet. Your colonists will grow by up to {Math.max(
 			1,
-			(planet.spec.habitability * growthRate) / 100
+			(planet.spec?.habitability * growthRate) / 100
 		).toFixed(2)}% per year if you colonize {planet.name}.
-	{:else if planet.spec.terraformedHabitability && planet.spec.terraformedHabitability > 0}
+	{:else if planet.spec?.terraformedHabitability && planet.spec?.terraformedHabitability > 0}
 		You have found a new planet which you have the ability to make habitable. With terraforming,
 		your colonists will grow by up to {Math.max(
 			1,
-			(planet.spec.terraformedHabitability * growthRate) / 100
+			(planet.spec?.terraformedHabitability * growthRate) / 100
 		).toFixed(2)}% per year if you colonize {planet.name}.
 	{:else}
 		You have found a new planet which unfortunately is not habitable by you. {Math.max(
 			1,
-			-(planet.spec.habitability ?? 0) / 10
+			-(planet.spec?.habitability ?? 0) / 10
 		).toFixed(2)}% of your colonists will die per year if you colonize {planet.name}.
 	{/if}
 {:else if message.type === PlayerMessagePlanetPopulationDecreased}
@@ -223,7 +223,7 @@
 	{/if}
 {:else if message.type === PlayerMessagePlanetInstaform}
 	Your race has instantly terraformed {planet.name} up to optimal conditions. Its value is now {planet
-		.spec.habitability ?? 0}%.
+		.spec?.habitability ?? 0}%.
 {:else if message.type === PlayerMessageFleetInvadedPlanet}
 	{@const invasion = message.spec.invasion}
 	{#if invasion}
@@ -266,7 +266,7 @@
 	Your people have picked through the wreckage from the battle at {planet.name} and have learned how
 	to build {message.spec.techGained}.
 {:else if message.type === PlayerMessageFleetScrapped}
-	{#if planet.spec.hasStarbase}
+	{#if planet.spec?.hasStarbase}
 		{message.spec.targetName} has been dismantled for {totalMinerals(message.spec.cost)}kT of
 		minerals at the starbase orbiting {planet.name}.
 	{:else}

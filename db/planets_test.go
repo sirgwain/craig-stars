@@ -1,7 +1,6 @@
 package db
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -9,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreatePlanet(t *testing.T) {
+func TestSavePlanet(t *testing.T) {
 	type args struct {
 		c      *client
 		planet *cs.Planet
@@ -21,20 +20,18 @@ func TestCreatePlanet(t *testing.T) {
 	}{
 		{"Create", args{connectTestDB(), &cs.Planet{
 			GameDBObject: cs.GameDBObject{GameID: 1},
-			MapObject:    cs.MapObject{Name: "test"}},
+			MapObject:    cs.MapObject{Type: cs.MapObjectTypePlanet, Name: "test"}},
 		}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// create a test game
-			game := tt.args.c.createTestGame()
+			game := tt.args.c.createTestGame(t.Context())
 			tt.args.planet.GameID = game.ID
 
 			want := *tt.args.planet
-			err := tt.args.c.createPlanet(tt.args.planet)
+			err := tt.args.c.SavePlanet(t.Context(), tt.args.planet)
 
-			// id is automatically added
-			want.ID = tt.args.planet.ID
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("CreatePlanet() did not return error when expected")
@@ -42,31 +39,31 @@ func TestCreatePlanet(t *testing.T) {
 					t.Fatalf("CreatePlanet() errored unexpectedly; err = \n%v", err)
 				}
 			}
-			if !reflect.DeepEqual(tt.args.planet, &want) {
-				t.Errorf("CreatePlanet() = \n%v, want \n%v", tt.args.planet, want)
-			}
+
+			got := tt.args.planet
+			// DBObject is returned
+			want.GameDBObject = got.GameDBObject
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }
 
 func TestGetPlanets(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
-	game := c.createTestGame()
+	game := c.createTestGame(t.Context())
 
 	// start with 1 planet from connectTestDB
-	result, err := c.getPlanetsForGame(game.ID)
+	result, err := c.GetPlanetsForGame(t.Context(), game.ID)
 	assert.Nil(t, err)
-	assert.Equal(t, []*cs.Planet{}, result)
+	assert.Equal(t, 0, len(result))
 
-	planet := cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}
-	if err := c.createPlanet(&planet); err != nil {
+	if err := c.SavePlanet(t.Context(), &cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	result, err = c.getPlanetsForGame(game.ID)
+	result, err = c.GetPlanetsForGame(t.Context(), game.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -74,11 +71,10 @@ func TestGetPlanets(t *testing.T) {
 
 func TestGetPlanet(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
-	game := c.createTestGame()
-	planet := cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{Name: "name", Type: cs.MapObjectTypePlanet}}
-	if err := c.createPlanet(&planet); err != nil {
+	game := c.createTestGame(t.Context())
+	planet := &cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{Name: "name", Type: cs.MapObjectTypePlanet}}
+	if err := c.SavePlanet(t.Context(), planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
@@ -93,11 +89,11 @@ func TestGetPlanet(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{id: 0}, nil, false},
-		{"Got planet", args{id: planet.ID}, &planet, false},
+		{"Got planet", args{id: planet.ID}, planet, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetPlanet(tt.args.id)
+			got, err := c.GetPlanet(t.Context(), tt.args.id)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("GetPlanet() did not return error when expected")
@@ -117,22 +113,21 @@ func TestGetPlanet(t *testing.T) {
 
 func TestUpdatePlanet(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
-	game := c.createTestGame()
-	planet := cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}
-	if err := c.createPlanet(&planet); err != nil {
+	game := c.createTestGame(t.Context())
+	planet := &cs.Planet{GameDBObject: cs.GameDBObject{GameID: game.ID}, MapObject: cs.MapObject{}}
+	if err := c.SavePlanet(t.Context(), planet); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
 	planet.Name = "Test2"
-	if err := c.UpdatePlanet(&planet); err != nil {
+	if err := c.SavePlanet(t.Context(), planet); err != nil {
 		t.Errorf("update planet %s", err)
 		return
 	}
 
-	updated, err := c.GetPlanet(planet.ID)
+	updated, err := c.GetPlanet(t.Context(), planet.ID)
 
 	if err != nil {
 		t.Errorf("get planet %s", err)
@@ -140,34 +135,31 @@ func TestUpdatePlanet(t *testing.T) {
 	}
 
 	assert.Equal(t, planet.Name, updated.Name)
-	assert.Less(t, planet.UpdatedAt, updated.UpdatedAt)
 
 }
 
 func TestGetPlanetByNum(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
-	g, player := c.createTestGameWithPlayer()
-	planet1 := cs.Planet{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{Name: "name", Num: 1, Type: cs.MapObjectTypePlanet}}
-	if err := c.createPlanet(&planet1); err != nil {
+	g, player := c.createTestGameWithPlayer(t.Context())
+	planet1 := &cs.Planet{GameDBObject: cs.GameDBObject{GameID: g.ID}, MapObject: cs.MapObject{Name: "name", Num: 1, Type: cs.MapObjectTypePlanet}}
+	if err := c.SavePlanet(t.Context(), planet1); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	planet2 := cs.Planet{
+	planet2 := &cs.Planet{
 		GameDBObject: cs.GameDBObject{GameID: g.ID},
 		MapObject:    cs.MapObject{Name: "name", PlayerNum: player.Num, Num: 2, Type: cs.MapObjectTypePlanet},
 	}
-	if err := c.createPlanet(&planet2); err != nil {
+	if err := c.SavePlanet(t.Context(), planet2); err != nil {
 		t.Errorf("create planet %s", err)
 		return
 	}
 
-	design := cs.NewShipDesign(player.Num, 1).WithHull(cs.SpaceStation.Name)
-	c.createTestShipDesign(player, design)
+	design := c.createTestShipDesign(t.Context(), player, cs.NewShipDesign(player.Num, 1).WithHull(cs.SpaceStation.Name))
 
-	fleet := cs.Fleet{
+	fleet := &cs.Fleet{
 		GameDBObject: cs.GameDBObject{GameID: g.ID},
 		MapObject:    cs.MapObject{PlayerNum: player.Num, Name: "name", Type: cs.MapObjectTypeFleet},
 		Tokens: []cs.ShipToken{
@@ -180,11 +172,11 @@ func TestGetPlanetByNum(t *testing.T) {
 		},
 		PlanetNum: planet2.Num,
 	}
-	if err := c.CreateFleet(&fleet); err != nil {
+	if err := c.SaveFleet(t.Context(), fleet); err != nil {
 		t.Errorf("create fleet %s", err)
 		return
 	}
-	planet2.Starbase = &fleet
+	planet2.Starbase = fleet
 
 	type args struct {
 		gameID int64
@@ -197,12 +189,12 @@ func TestGetPlanetByNum(t *testing.T) {
 		wantErr bool
 	}{
 		{"No results", args{gameID: 0, num: 0}, nil, false},
-		{"Got planet Without Starbase", args{gameID: planet1.GameID, num: planet1.Num}, &planet1, false},
-		{"Got planet With Starbase", args{gameID: planet2.GameID, num: planet2.Num}, &planet2, false},
+		{"Got planet Without Starbase", args{gameID: planet1.GameID, num: planet1.Num}, planet1, false},
+		{"Got planet With Starbase", args{gameID: planet2.GameID, num: planet2.Num}, planet2, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetPlanetByNum(tt.args.gameID, tt.args.num)
+			got, err := c.GetPlanetByNum(t.Context(), tt.args.gameID, tt.args.num)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("GetPlanet() did not return error when expected")

@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/go-chi/render"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -50,11 +49,11 @@ func (req *playerRelationsRequest) Bind(r *http.Request) error {
 // context for /api/games/{id} calls that require a player
 func (s *server) playerCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		db := s.contextDb(r)
+		c := s.contextDb(r)
 		user := s.contextUserSession(r)
 		game := s.contextGame(r)
 
-		player, err := db.GetLightPlayerForGame(game.ID, user.ID)
+		player, err := c.GetLightPlayerForGame(r.Context(), game.ID, db.GetPlayerParams{UserID: user.ID})
 		if err != nil {
 			render.Render(w, r, ErrInternalServerError(err))
 			return
@@ -77,29 +76,15 @@ func (s *server) contextPlayer(r *http.Request) *cs.Player {
 
 func (s *server) player(w http.ResponseWriter, r *http.Request) {
 	player := s.contextPlayer(r)
-	rest.RenderJSON(w, player)
-}
-
-func (s *server) playerIntels(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
-	user := s.contextUserSession(r)
-	game := s.contextGame(r)
-	intels, err := db.GetPlayerIntelsForGame(game.ID, user.ID)
-
-	if err != nil {
-		render.Render(w, r, ErrInternalServerError(err))
-		return
-	}
-
-	rest.RenderJSON(w, intels)
+	RenderJSON(w, player)
 }
 
 func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
+	c := s.contextDb(r)
 	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
-	player, err := db.GetPlayerForGame(game.ID, user.ID)
+	player, err := c.GetPlayerForGameAndUser(r.Context(), game.ID, user.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -110,7 +95,7 @@ func (s *server) fullPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, player)
+	RenderJSON(w, player)
 }
 
 // get mapObjects for a player
@@ -124,7 +109,7 @@ func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapObjects, err := db.GetPlayerMapObjects(*gameID, user.ID)
+	mapObjects, err := db.GetPlayerMapObjects(r.Context(), *gameID, user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", *gameID).Int64("UserID", user.ID).Msg("load player map objects database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -136,7 +121,7 @@ func (s *server) mapObjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rest.RenderJSON(w, mapObjects)
+	RenderJSON(w, mapObjects)
 }
 
 // data about a universe (planets, fleets, designs, other players, etc) for a single player in the game
@@ -146,24 +131,24 @@ type playerUniverseResponse struct {
 	Planets        []*cs.Planet        `json:"planets"`
 	Fleets         []*cs.Fleet         `json:"fleets"`
 	Starbases      []*cs.Fleet         `json:"starbases"`
-	MineFields     []*cs.MineField     `json:"mineFields"`
+	Minefields     []*cs.Minefield     `json:"minefields"`
 	MineralPackets []*cs.MineralPacket `json:"mineralPackets"`
 	Designs        []*cs.ShipDesign    `json:"designs"`
 }
 
 // get mapObjects for a player
 func (s *server) universe(w http.ResponseWriter, r *http.Request) {
-	db := s.contextDb(r)
+	c := s.contextDb(r)
 	user := s.contextUserSession(r)
 	game := s.contextGame(r)
 
-	player, err := db.GetPlayerForGame(game.ID, user.ID)
+	player, err := c.GetPlayerForGameAndUser(r.Context(), game.ID, user.ID)
 	if err != nil {
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	pmos, err := db.GetPlayerMapObjects(game.ID, user.ID)
+	pmos, err := c.GetPlayerMapObjects(r.Context(), game.ID, user.ID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int64("UserID", user.ID).Msg("load player map objects database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -175,32 +160,12 @@ func (s *server) universe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	intels, err := db.GetPlayerIntelsForGame(game.ID, user.ID)
-	if err != nil {
-		render.Render(w, r, ErrInternalServerError(err))
-		return
-	}
-
-	if intels == nil {
-		render.Render(w, r, ErrNotFound)
-		return
-	}
-
-	designs, err := db.GetShipDesignsForPlayer(game.ID, player.Num)
-	if err != nil {
-		render.Render(w, r, ErrInternalServerError(err))
-		return
-	}
-
-	player.PlayerIntels = *intels
-	player.Designs = designs
-
 	universe := buildUniverse(&cs.FullPlayer{
 		Player:           *player,
 		PlayerMapObjects: *pmos,
 	})
 
-	rest.RenderJSON(w, universe)
+	RenderJSON(w, universe)
 }
 
 // build a universe response
@@ -211,7 +176,7 @@ func buildUniverse(player *cs.FullPlayer) playerUniverseResponse {
 		Planets:        make([]*cs.Planet, len(player.Planets)),
 		Fleets:         make([]*cs.Fleet, len(player.Fleets)),
 		Starbases:      make([]*cs.Fleet, len(player.Starbases)),
-		MineFields:     make([]*cs.MineField, len(player.MineFields)),
+		Minefields:     make([]*cs.Minefield, len(player.Minefields)),
 		MineralPackets: make([]*cs.MineralPacket, len(player.MineralPackets)),
 		Designs:        make([]*cs.ShipDesign, len(player.Designs)),
 	}
@@ -220,7 +185,7 @@ func buildUniverse(player *cs.FullPlayer) playerUniverseResponse {
 	copy(universe.Planets, player.Planets)
 	copy(universe.Fleets, player.Fleets)
 	copy(universe.Starbases, player.Starbases)
-	copy(universe.MineFields, player.MineFields)
+	copy(universe.Minefields, player.Minefields)
 	copy(universe.MineralPackets, player.MineralPackets)
 	copy(universe.Designs, player.Designs)
 
@@ -239,7 +204,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 
 	// submit the turn
 	player.SubmittedTurn = true
-	if err := db.SubmitPlayerTurn(player.GameID, player.Num, true); err != nil {
+	if err := db.SubmitPlayerTurn(r.Context(), player.GameID, player.Num, true); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
@@ -248,7 +213,7 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	// only allow one CheckAndGenerate to run at a time
 	// TODO: handle this differently if you ever scale out beyond one instance. :)
 	result, err, _ := s.sf.Do(strconv.FormatInt(game.ID, 10), func() (interface{}, error) {
-		gr := s.newGameRunner()
+		gr := s.newGameRunner(r.Context())
 		result, err := gr.CheckAndGenerateTurn(player.GameID)
 		if err != nil {
 			return nil, err
@@ -263,20 +228,20 @@ func (s *server) submitTurn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result == TurnGenerated {
-		s.sendNewTurnNotification(game.ID)
+		s.sendNewTurnNotification(r.Context(), game.ID)
 		s.renderFullPlayerGame(w, r, player.GameID, player.UserID)
 		return
 	}
 
 	// return the game status
-	game, err = db.GetGame(player.GameID)
+	game, err = db.GetGame(r.Context(), player.GameID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Msg("load game")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"game": game, "player": player})
+	RenderJSON(w, JSON{"game": game, "player": player})
 }
 
 // submit a player turn and return the newly generated turn if there is one
@@ -286,18 +251,18 @@ func (s *server) unSubmitTurn(w http.ResponseWriter, r *http.Request) {
 
 	// submit the turn
 	player.SubmittedTurn = false
-	if err := db.SubmitPlayerTurn(player.GameID, player.Num, false); err != nil {
+	if err := db.SubmitPlayerTurn(r.Context(), player.GameID, player.Num, false); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
-	rest.RenderJSON(w, rest.JSON{"player": player})
+	RenderJSON(w, JSON{"player": player})
 }
 
 func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, gameID, userID int64) {
 	// return a new turn
-	gr := s.newGameRunner()
+	gr := s.newGameRunner(r.Context())
 	game, fullPlayer, err := gr.LoadPlayerGame(gameID, userID)
 	if err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Msg("load full game from database")
@@ -307,12 +272,12 @@ func (s *server) renderFullPlayerGame(w http.ResponseWriter, r *http.Request, ga
 
 	universe := buildUniverse(fullPlayer)
 
-	rest.RenderJSON(w, rest.JSON{"game": game, "player": fullPlayer.Player, "universe": universe})
+	RenderJSON(w, JSON{"game": game, "player": fullPlayer.Player, "universe": universe})
 }
 
 // Update a player's orders (research field, research amount)
 func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
-	readWriteClient := s.contextDb(r)
+	dbClient := s.contextDb(r)
 	game := s.contextGame(r)
 	player := s.contextPlayer(r)
 
@@ -327,7 +292,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	planets, err := readWriteClient.GetPlanetsForPlayer(player.GameID, player.Num)
+	planets, err := dbClient.GetPlanetsForPlayer(r.Context(), player.GameID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player planets from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -335,7 +300,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load this player but with designs so the update works correctly
-	player, err = readWriteClient.GetPlayerWithDesignsForGame(game.ID, player.Num)
+	player, err = dbClient.GetPlayerForGame(r.Context(), game.ID, player.Num)
 	if err != nil {
 		log.Error().Err(err).Int64("ID", player.ID).Msg("loading player from database")
 		render.Render(w, r, ErrInternalServerError(err))
@@ -349,7 +314,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	// save the updated fleets back to the database
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
 		// save the player to the database
-		if err := c.UpdatePlayerOrders(player); err != nil {
+		if err := c.UpdatePlayerOrders(r.Context(), player); err != nil {
 			log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 			return err
 		}
@@ -357,7 +322,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 		for _, planet := range planets {
 			if planet.Dirty {
 				// TODO: only update the planet spec? that's all that changes
-				if err := c.UpdatePlanet(planet); err != nil {
+				if err := c.SavePlanet(r.Context(), planet); err != nil {
 					log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
 					return err
 				}
@@ -371,7 +336,7 @@ func (s *server) updatePlayerOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update orders")
-	rest.RenderJSON(w, rest.JSON{"player": player, "planets": planets})
+	RenderJSON(w, JSON{"player": player, "planets": planets})
 }
 
 // update the player's relations with other players
@@ -392,14 +357,14 @@ func (s *server) updatePlayerRelations(w http.ResponseWriter, r *http.Request) {
 
 	// save the player to the database
 	player.Relations = relationsRequest.Relations
-	if err := db.UpdatePlayerRelations(player); err != nil {
+	if err := db.UpdatePlayerRelations(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player relations")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update relations")
-	rest.RenderJSON(w, player.Relations)
+	RenderJSON(w, player.Relations)
 }
 
 // Update a player's plans
@@ -441,14 +406,14 @@ func (s *server) updatePlayerPlans(w http.ResponseWriter, r *http.Request) {
 	player.PlayerPlans = *plans.PlayerPlans
 
 	// save the player to the database
-	if err := db.UpdatePlayerPlans(player); err != nil {
+	if err := db.UpdatePlayerPlans(r.Context(), player); err != nil {
 		log.Error().Err(err).Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update player")
 		render.Render(w, r, ErrInternalServerError(err))
 		return
 	}
 
 	log.Info().Int64("GameID", player.GameID).Int("PlayerNum", player.Num).Msg("update plans")
-	rest.RenderJSON(w, player)
+	RenderJSON(w, player)
 }
 
 // get an estimate for production completion based on a planet's production queue items
@@ -463,5 +428,5 @@ func (s *server) getResearchCost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resources := player.GetResearchCost(&game.Rules, researchCost.TechLevel)
-	rest.RenderJSON(w, rest.JSON{"resources": resources})
+	RenderJSON(w, JSON{"resources": resources})
 }

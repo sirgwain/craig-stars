@@ -45,7 +45,7 @@ func (c *dbConn) setupInMemoryDatabase() {
 		MigrationsTable: "my_migration_table",
 	}
 
-	driver, err := sqlite3.WithInstance(c.dbRead.DB, config)
+	driver, err := sqlite3.WithInstance(c.dbRead, config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("creating database driver")
 	}
@@ -102,18 +102,20 @@ func (c *dbConn) mustMigrateDatabase(datasource string, fs embed.FS, path string
 	log.Info().Msgf("database %s is version %d", path, version)
 	backupFile := c.mustBackup(datasource, version)
 	err = m.Up()
-	if err == migrate.ErrNoChange {
+	switch err {
+	case migrate.ErrNoChange:
 		log.Info().Msgf("database %s, no migration required", path)
 		// remove the backup, we don't need it
 		os.Remove(backupFile)
-	} else if err == nil {
+	case nil:
 		log.Info().Msgf("database %s migrated", path)
+		db.Exec("VACUUM;")
+		log.Info().Msgf("database %s vacuumed", path)
 	}
 
 	if err != nil && err != migrate.ErrNoChange {
 		log.Fatal().Err(err).Msg("migrating database")
 	}
-
 }
 
 func (c *dbConn) mustBackup(filename string, version uint) string {

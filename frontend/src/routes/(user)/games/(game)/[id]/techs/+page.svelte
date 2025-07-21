@@ -3,7 +3,7 @@
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
-	const { game, player, cs } = getGameContext();
+	const { player, cs } = getGameContext();
 </script>
 
 <Breadcrumb>
@@ -12,4 +12,4 @@
 	{/snippet}
 </Breadcrumb>
 
-<Techs techStore={$game.rules.techs} player={$player} {cs} />
+<Techs player={$player} {cs} />

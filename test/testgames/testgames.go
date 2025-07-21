@@ -1,6 +1,7 @@
 package testgames
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/rs/zerolog/log"
@@ -24,7 +25,7 @@ type TestPlayer struct {
 	Fleets         []cs.Fleet         `json:"fleets,omitempty"`
 	Salvages       []cs.Salvage       `json:"salvages,omitempty"`
 	MineralPackets []cs.MineralPacket `json:"mineralPackets,omitempty"`
-	MineFields     []cs.MineField     `json:"mineFields,omitempty"`
+	Minefields     []cs.Minefield     `json:"minefields,omitempty"`
 }
 
 var TestGames = []TestGame{
@@ -92,9 +93,9 @@ var TestGames = []TestGame{
 						TargetPlanetNum: 1,
 					},
 				},
-				MineFields: []cs.MineField{
+				Minefields: []cs.Minefield{
 					{
-						MineFieldType: cs.MineFieldTypeStandard,
+						MinefieldType: cs.MinefieldTypeStandard,
 						NumMines:      1000,
 					},
 				},
@@ -549,14 +550,18 @@ var TestGames = []TestGame{
 }
 
 func CreateTestGames(db db.Client) error {
+	ctx := context.Background()
 	for _, testGame := range TestGames {
+		var err error
 		game := createTestGame(testGame)
-		if err := db.CreateGame(game.Game); err != nil {
+		err = db.SaveGame(ctx, game.Game)
+		if err != nil {
 			return err
 		}
 		for _, player := range game.Players {
 			player.GameID = game.ID
-			if err := db.CreatePlayer(player); err != nil {
+
+			if err := db.SavePlayer(ctx, player); err != nil {
 				return err
 			}
 			for _, design := range player.Designs {
@@ -571,7 +576,7 @@ func CreateTestGames(db db.Client) error {
 		}
 
 		// save to db
-		if err := db.UpdateFullGame(game); err != nil {
+		if err := db.UpdateFullGame(ctx, game); err != nil {
 			return err
 		}
 	}
@@ -641,8 +646,8 @@ func createTestGame(tg TestGame) *cs.FullGame {
 			addMineralPacket(game, player, &mp, i+1)
 		}
 
-		for i, mf := range p.MineFields {
-			addMineField(game, player, &mf, i+1)
+		for i, mf := range p.Minefields {
+			addMinefield(game, player, &mf, i+1)
 		}
 
 		for _, s := range p.Salvages {
@@ -729,13 +734,13 @@ func addMineralPacket(game *cs.FullGame, player *cs.Player, mineralPacket *cs.Mi
 	return mineralPacket
 }
 
-func addMineField(game *cs.FullGame, player *cs.Player, mineField *cs.MineField, num int) *cs.MineField {
-	mineField.Type = cs.MapObjectTypeMineField
-	mineField.PlayerNum = player.Num
-	mineField.Num = len(game.MineFields) + 1
-	mineField.Name = fmt.Sprintf("%s %s Mine Field #%d", player.Race.PluralName, mineField.MineFieldType.String(), num)
-	game.MineFields = append(game.MineFields, mineField)
-	return mineField
+func addMinefield(game *cs.FullGame, player *cs.Player, minefield *cs.Minefield, num int) *cs.Minefield {
+	minefield.Type = cs.MapObjectTypeMinefield
+	minefield.PlayerNum = player.Num
+	minefield.Num = len(game.Minefields) + 1
+	minefield.Name = fmt.Sprintf("%s %s Minefield #%d", player.Race.PluralName, minefield.MinefieldType.String(), num)
+	game.Minefields = append(game.Minefields, minefield)
+	return minefield
 }
 
 func addSalvage(game *cs.FullGame, player *cs.Player, salvage *cs.Salvage) *cs.Salvage {

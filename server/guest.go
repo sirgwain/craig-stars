@@ -11,7 +11,6 @@ import (
 	"net/http"
 
 	"github.com/go-pkgz/auth"
-	"github.com/go-pkgz/rest"
 	"github.com/golang-jwt/jwt"
 
 	"github.com/go-pkgz/auth/logger"
@@ -86,22 +85,22 @@ func (p GuestHandler) Name() string { return p.ProviderName }
 func (p GuestHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	creds, err := p.getCredentials(w, r)
 	if err != nil {
-		rest.SendErrorJSON(w, r, p.L, http.StatusBadRequest, err, "failed to parse credentials")
+		SendErrorJSON(w, r, http.StatusBadRequest, err, "failed to parse credentials")
 		return
 	}
 	sessOnly := r.URL.Query().Get("sess") == "1"
 	if p.HashChecker == nil {
-		rest.SendErrorJSON(w, r, p.L, http.StatusInternalServerError,
+		SendErrorJSON(w, r, http.StatusInternalServerError,
 			fmt.Errorf("no credential checker"), "no credential checker")
 		return
 	}
 	username, attrs, err := p.HashChecker.Check(creds.Hash)
 	if err != nil {
-		rest.SendErrorJSON(w, r, p.L, http.StatusInternalServerError, err, "failed to check user credentials")
+		SendErrorJSON(w, r, http.StatusInternalServerError, err, "failed to check user credentials")
 		return
 	}
 	if username == "" {
-		rest.SendErrorJSON(w, r, p.L, http.StatusForbidden, nil, "incorrect user or password")
+		SendErrorJSON(w, r, http.StatusForbidden, nil, "incorrect user or password")
 		return
 	}
 
@@ -116,7 +115,7 @@ func (p GuestHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	cid, err := randToken()
 	if err != nil {
-		rest.SendErrorJSON(w, r, p.L, http.StatusInternalServerError, err, "can't make token id")
+		SendErrorJSON(w, r, http.StatusInternalServerError, err, "can't make token id")
 		return
 	}
 
@@ -131,10 +130,10 @@ func (p GuestHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err = p.TokenService.Set(w, claims); err != nil {
-		rest.SendErrorJSON(w, r, p.L, http.StatusInternalServerError, err, "failed to set token")
+		SendErrorJSON(w, r, http.StatusInternalServerError, err, "failed to set token")
 		return
 	}
-	rest.RenderJSON(w, claims.User)
+	RenderJSON(w, claims.User)
 }
 
 // getCredentials extracts user and password from request

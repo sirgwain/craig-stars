@@ -50,7 +50,7 @@ type Game struct {
 	NumPlayers                   int               `json:"numPlayers,omitempty"`
 	VictoryConditions            VictoryConditions `json:"victoryConditions"`
 	Seed                         int64             `json:"seed"`
-	Rules                        Rules             `json:"rules"`
+	Rules                        Rules             `json:"rules,omitzero"`
 	Area                         Vector            `json:"area,omitempty"`
 	Year                         int               `json:"year,omitempty"`
 	VictorDeclared               bool              `json:"victorDeclared"`
@@ -452,9 +452,9 @@ func (g *FullGame) computeSpecs() error {
 		}
 	}
 
-	for _, mineField := range g.MineFields {
-		player := g.getPlayer(mineField.PlayerNum)
-		mineField.Spec = computeMinefieldSpec(rules, player, mineField, g.numPlanetsWithin(mineField.Position, mineField.Radius()))
+	for _, minefield := range g.Minefields {
+		player := g.getPlayer(minefield.PlayerNum)
+		minefield.Spec = computeMinefieldSpec(rules, player, minefield, g.numPlanetsWithin(minefield.Position, minefield.Radius()))
 	}
 
 	for _, wormhole := range g.Wormholes {

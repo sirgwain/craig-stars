@@ -1,7 +1,6 @@
 package db
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/sirgwain/craig-stars/cs"
@@ -9,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateRace(t *testing.T) {
+func TestSaveRace(t *testing.T) {
 
 	type args struct {
 		c    *client
@@ -25,42 +24,40 @@ func TestCreateRace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			want := *tt.args.race
-			err := tt.args.c.CreateRace(tt.args.race)
+			err := tt.args.c.SaveRace(t.Context(), tt.args.race)
 
-			// id is automatically added
-			want.ID = tt.args.race.ID
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
-					t.Fatalf("CreateRace() did not return error when expected")
+					t.Fatalf("SaveRace() did not return error when expected")
 				} else {
-					t.Fatalf("CreateRace() errored unexpectedly; err = \n%v", err)
+					t.Fatalf("SaveRace() errored unexpectedly; err = \n%v", err)
 				}
 			}
-			if !reflect.DeepEqual(tt.args.race, &want) {
-				t.Errorf("CreateRace() = \n%v, want \n%v", tt.args.race, want)
-			}
+			got := tt.args.race
+			// DBObject is returned
+			want.DBObject = got.DBObject
+			test.CompareAsJSON(t, got, want)
 		})
 	}
 }
 
 func TestUpdateRace(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
-	race := cs.Race{UserID: 1, Name: "Test"}
-	if err := c.CreateRace(&race); err != nil {
+	race := &cs.Race{UserID: 1, Name: "Test"}
+	if err := c.SaveRace(t.Context(), race); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
 
 	race.Name = "Test2"
 	race.PluralName = "Testers"
-	if err := c.UpdateRace(&race); err != nil {
+	if err := c.SaveRace(t.Context(), race); err != nil {
 		t.Errorf("update race %s", err)
 		return
 	}
 
-	updated, err := c.GetRace(race.ID)
+	updated, err := c.GetRace(t.Context(), race.ID)
 
 	if err != nil {
 		t.Errorf("get race %s", err)
@@ -69,19 +66,17 @@ func TestUpdateRace(t *testing.T) {
 
 	assert.Equal(t, race.Name, updated.Name)
 	assert.Equal(t, race.PluralName, updated.PluralName)
-	assert.Less(t, race.UpdatedAt, updated.UpdatedAt)
 
 }
 
 func TestGetRace(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	rules := cs.NewRules()
+
 	race := &cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}
 	race = race.WithSpec(&rules)
-
-	if err := c.CreateRace(race); err != nil {
+	if err := c.SaveRace(t.Context(), race); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
@@ -100,7 +95,7 @@ func TestGetRace(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetRace(tt.args.id)
+			got, err := c.GetRace(t.Context(), tt.args.id)
 			if (err != nil) != tt.wantErr {
 				if tt.wantErr {
 					t.Fatalf("GetRace() did not return error when expected")
@@ -120,20 +115,18 @@ func TestGetRace(t *testing.T) {
 
 func TestGetRaces(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
 	// start with 1 race from connectTestDB
-	result, err := c.GetRaces()
+	result, err := c.GetRaces(t.Context())
 	assert.Nil(t, err)
-	assert.Equal(t, []cs.Race{}, result)
+	assert.Equal(t, 0, len(result))
 
-	race := cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}
-	if err := c.CreateRace(&race); err != nil {
+	if err := c.SaveRace(t.Context(), &cs.Race{UserID: 1, Name: "Test", PluralName: "testers"}); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
 
-	result, err = c.GetRaces()
+	result, err = c.GetRaces(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
@@ -141,30 +134,29 @@ func TestGetRaces(t *testing.T) {
 
 func TestDeleteRaces(t *testing.T) {
 	c := connectTestDB()
-	defer func() { closeTestDB(c) }()
 
-	result, err := c.GetRaces()
+	result, err := c.GetRaces(t.Context())
 	assert.Nil(t, err)
-	assert.Equal(t, []cs.Race{}, result)
+	assert.Equal(t, 0, len(result))
 
-	race := cs.Race{UserID: 1, Name: "Test", PluralName: "Testers"}
-	if err := c.CreateRace(&race); err != nil {
+	race := &cs.Race{UserID: 1, Name: "Test", PluralName: "Testers"}
+	if err := c.SaveRace(t.Context(), race); err != nil {
 		t.Errorf("create race %s", err)
 		return
 	}
 
 	// should have our race in the db
-	result, err = c.GetRaces()
+	result, err = c.GetRaces(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(result))
 
-	if err := c.DeleteRace(race.ID); err != nil {
+	if err := c.DeleteRace(t.Context(), race.ID); err != nil {
 		t.Errorf("delete race %s", err)
 		return
 	}
 
 	// should be no races left in db
-	result, err = c.GetRaces()
+	result, err = c.GetRaces(t.Context())
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(result))
 }

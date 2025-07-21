@@ -4,8 +4,8 @@ import type {
 	Cost,
 	FleetIntel,
 	MapObjectTarget,
-	MineField,
-	MineFieldIntel,
+	Minefield,
+	MinefieldIntel,
 	MineralPacket,
 	MineralPacketIntel,
 	MysteryTraderIntel,
@@ -23,7 +23,7 @@ import type {
 } from '$lib/types/cs';
 import {
 	MapObjectTypeFleet,
-	MapObjectTypeMineField,
+	MapObjectTypeMinefield,
 	MapObjectTypeMineralPacket,
 	MapObjectTypeMysteryTrader,
 	MapObjectTypePlanet,
@@ -44,7 +44,7 @@ import { groupBy, startCase } from 'lodash-es';
 
 export type AnyPlanet = Planet | PlanetIntel;
 export type AnyFleet = Fleet | FleetIntel;
-export type AnyMineField = MineField | MineFieldIntel;
+export type AnyMinefield = Minefield | MinefieldIntel;
 export type AnyMineralPacket = MineralPacket | MineralPacketIntel;
 export type AnyShipDesign = ShipDesign | ShipDesignIntel;
 
@@ -52,7 +52,7 @@ export type PlayerUniverse = {
 	planets: Planet[];
 	fleets: Fleet[];
 	starbases: Fleet[];
-	mineFields: MineField[];
+	minefields: Minefield[];
 	mineralPackets: MineralPacket[];
 	designs: ShipDesign[];
 } & PlayerIntels;
@@ -93,7 +93,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	planets: Planet[] = [];
 	fleets: Fleet[] = [];
 	starbases: Fleet[] = [];
-	mineFields: MineField[] = [];
+	minefields: Minefield[] = [];
 	mineralPackets: MineralPacket[] = [];
 	designs: ShipDesign[] = [];
 
@@ -104,7 +104,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	fleetIntels: FleetIntel[] = [];
 	shipDesignIntels: ShipDesignIntel[] = [];
 	mineralPacketIntels: MineralPacketIntel[] = [];
-	mineFieldIntels: MineFieldIntel[] = [];
+	minefieldIntels: MinefieldIntel[] = [];
 	wormholeIntels: WormholeIntel[] = [];
 	mysteryTraderIntels: MysteryTraderIntel[] = [];
 	salvageIntels: SalvageIntel[] = [];
@@ -117,8 +117,8 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		return [...this.fleets, ...this.fleetIntels];
 	}
 
-	public get allMineFields(): AnyMineField[] {
-		return [...this.mineFields, ...this.mineFieldIntels];
+	public get allMinefields(): AnyMinefield[] {
+		return [...this.minefields, ...this.minefieldIntels];
 	}
 
 	public get allMineralPackets(): AnyMineralPacket[] {
@@ -133,7 +133,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.planets = data.planets ?? [];
 		this.fleets = data.fleets ?? [];
 		this.starbases = data.starbases ?? [];
-		this.mineFields = data.mineFields ?? [];
+		this.minefields = data.minefields ?? [];
 		this.mineralPackets = data.mineralPackets ?? [];
 		this.designs = data.designs ?? [];
 
@@ -144,7 +144,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.fleetIntels = data.fleetIntels ?? [];
 		this.shipDesignIntels = data.shipDesignIntels ?? [];
 		this.mineralPacketIntels = data.mineralPacketIntels ?? [];
-		this.mineFieldIntels = data.mineFieldIntels ?? [];
+		this.minefieldIntels = data.minefieldIntels ?? [];
 		this.wormholeIntels = data.wormholeIntels ?? [];
 		this.mysteryTraderIntels = data.mysteryTraderIntels ?? [];
 		this.salvageIntels = data.salvageIntels ?? [];
@@ -177,12 +177,12 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 		// add all owned mapobjects
 		this.fleets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
-		this.mineFields.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.minefields.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.mineralPackets.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 
 		// add all intel
 		this.fleetIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
-		this.mineFieldIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
+		this.minefieldIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.mineralPacketIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.salvageIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
 		this.wormholeIntels.forEach((mo) => addtoDict(mo, this.mapObjectsByPosition));
@@ -194,7 +194,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.myMapObjectsByPosition = {};
 		this.planets.sort(sortByNum).forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
 		this.fleets.sort(sortByNum).forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
-		this.mineFields.sort(sortByNum).forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
+		this.minefields.sort(sortByNum).forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
 		this.mineralPackets.sort(sortByNum).forEach((mo) => addtoDict(mo, this.myMapObjectsByPosition));
 	}
 
@@ -425,8 +425,8 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		return this.mysteryTraderIntels.find((mt) => mt.num === num);
 	}
 
-	getMineField(playerNum: number | undefined, num: number | undefined) {
-		return this.mineFields.find((f) => f.playerNum === playerNum && f.num === num);
+	getMinefield(playerNum: number | undefined, num: number | undefined) {
+		return this.minefields.find((f) => f.playerNum === playerNum && f.num === num);
 	}
 
 	getMineralPacket(playerNum: number | undefined, num: number | undefined) {
@@ -468,15 +468,15 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.resetMyMapObjectsByPosition();
 	}
 
-	updateMineField(mineField: MineField) {
-		const index = this.mineFields.findIndex(
-			(mf) => mf.playerNum === mineField.playerNum && mf.num === mineField.num
+	updateMinefield(minefield: Minefield) {
+		const index = this.minefields.findIndex(
+			(mf) => mf.playerNum === minefield.playerNum && mf.num === minefield.num
 		);
 		if (index != -1) {
-			this.mineFields = [
-				...this.mineFields.slice(0, index),
-				mineField,
-				...this.mineFields.slice(index + 1)
+			this.minefields = [
+				...this.minefields.slice(0, index),
+				minefield,
+				...this.minefields.slice(index + 1)
 			];
 		}
 		this.resetMapObjectsByPosition();
@@ -565,8 +565,8 @@ export class Universe implements PlayerUniverse, DesignFinder {
 				return this.allFleets.find(
 					(f) => f.num === target.targetNum && f.playerNum === target.targetPlayerNum
 				);
-			case MapObjectTypeMineField:
-				return this.allMineFields.find(
+			case MapObjectTypeMinefield:
+				return this.allMinefields.find(
 					(mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum
 				);
 			case MapObjectTypeMineralPacket:

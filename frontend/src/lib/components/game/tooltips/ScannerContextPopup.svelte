@@ -17,7 +17,7 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import {
 		MapObjectTypeFleet,
-		MapObjectTypeMineField,
+		MapObjectTypeMinefield,
 		MapObjectTypePlanet,
 		None,
 		type MapObject
@@ -34,7 +34,7 @@
 	let everythingElse = $derived(
 		flatten(
 			keys(otherMapObjectsHere).map((k) =>
-				k !== MapObjectTypePlanet && k !== MapObjectTypeFleet && k !== MapObjectTypeMineField
+				k !== MapObjectTypePlanet && k !== MapObjectTypeFleet && k !== MapObjectTypeMinefield
 					? otherMapObjectsHere[k]
 					: []
 			)
@@ -92,11 +92,11 @@
 		</li>
 	{/if}
 
-	{#if otherMapObjectsHere[MapObjectTypeMineField]}
+	{#if otherMapObjectsHere[MapObjectTypeMinefield]}
 		<li class="menu-title w-full">
-			Mine Fields
+			Minefields
 			<ul>
-				{#each otherMapObjectsHere[MapObjectTypeMineField] as mo (mo)}
+				{#each otherMapObjectsHere[MapObjectTypeMinefield] as mo (mo)}
 					<li
 						style={mo.playerNum != $player.num
 							? `color: ${$universe.getPlayerColor(mo.playerNum)};`

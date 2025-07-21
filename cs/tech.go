@@ -110,7 +110,7 @@ type TechHullComponent struct {
 	TorpedoJamming            float64       `json:"torpedoJamming,omitempty"`
 	ReduceCloaking            bool          `json:"reduceCloaking,omitempty"`
 	CloakUnarmedOnly          bool          `json:"cloakUnarmedOnly,omitempty"`
-	MineFieldType             MineFieldType `json:"mineFieldType,omitempty"`
+	MinefieldType             MinefieldType `json:"minefieldType,omitempty"`
 	MineLayingRate            int           `json:"mineLayingRate,omitempty"`
 	BeamDefense               float64       `json:"beamDefense,omitempty"`
 	CargoBonus                int           `json:"cargoBonus,omitempty"`

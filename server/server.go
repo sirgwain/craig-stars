@@ -51,7 +51,7 @@ const (
 	keyTransportPlan
 	keyPlanet
 	keyFleet
-	keyMineField
+	keyMinefield
 	keyUser
 )
 
@@ -116,7 +116,7 @@ func Start(config config.Config) error {
 				client := server.db.NewReadClient()
 				var user *cs.User
 				var err error
-				user, err = client.GetUserByUsername(claims.User.Name)
+				user, err = client.GetUserByUsername(context.Background(), claims.User.Name)
 				if err != nil {
 					log.Error().Err(err).Msgf("failed to load %s from database during claims update", claims.User.Name)
 					claims.User.SetBoolAttr(userRejected, true)
@@ -125,7 +125,7 @@ func Start(config config.Config) error {
 				// create a new user for this oauth user if it's discord
 				if user == nil {
 					if tokenUser.discordID() != "" {
-						if _, err = server.createNewDiscordUser(tokenUser); err != nil {
+						if _, err = server.createNewDiscordUser(context.Background(), tokenUser); err != nil {
 							log.Error().Err(err).Msgf("failed to load %s from database during claims update", claims.User.Name)
 							claims.User.SetBoolAttr(userRejected, true)
 						}
@@ -146,7 +146,7 @@ func Start(config config.Config) error {
 						claims.User.SetRole("guest")
 					} else if user.IsDiscordUser() {
 						// update the discord user on auth
-						if err := server.updateUser(tokenUser, user); err != nil {
+						if err := server.updateUser(context.Background(), tokenUser, user); err != nil {
 							log.Error().Err(err).Msgf("failed to load %s from database during claims update", claims.User.Name)
 							claims.User.SetBoolAttr("blocked", true)
 						}
@@ -172,7 +172,7 @@ func Start(config config.Config) error {
 	service.AddDirectProvider("local", provider.CredCheckerFunc(func(username, password string) (ok bool, err error) {
 
 		client := server.db.NewReadClient()
-		user, err := client.GetUserByUsername(username)
+		user, err := client.GetUserByUsername(context.Background(), username)
 		if err != nil {
 			log.Error().Err(err).Str("Username", username).Msg("get user from database")
 			return false, err
@@ -189,7 +189,7 @@ func Start(config config.Config) error {
 
 	AddGuestProvider(service, issuer, authLogger, "guest", HashCheckerFunc(func(hash string) (username string, attributes map[string]interface{}, err error) {
 		client := server.db.NewReadClient()
-		user, err := client.GetGuestUser(hash)
+		user, err := client.GetGuestUser(context.Background(), hash)
 		if err != nil {
 			log.Error().Err(err).Str("Hash", hash).Msg("get user from database")
 			return "", nil, err
@@ -314,7 +314,7 @@ func Start(config config.Config) error {
 			r.Get("/", server.games)
 			r.Get("/hosted", server.hostedGames)
 			r.Get("/open", server.openGames)
-			r.Get("/invite/{hash:[a-zA-Z0-9]+}", server.openGamesByHash)
+			r.Get("/invite/{hash:[a-zA-Z0-9]+}", server.gameByHash)
 
 			// game by id operations
 			r.Route("/{id:[0-9]+}", func(r chi.Router) {
@@ -341,7 +341,6 @@ func Start(config config.Config) error {
 				r.Group(func(r chi.Router) {
 					r.Use(server.playerCtx)
 					r.Get("/player", server.player)
-					r.Get("/player/intels", server.playerIntels)
 					r.Put("/player", server.updatePlayerOrders)
 					r.Put("/player/plans", server.updatePlayerPlans)
 					r.Put("/player/relations", server.updatePlayerRelations)
@@ -426,11 +425,11 @@ func Start(config config.Config) error {
 					})
 
 					// minefield order updates
-					r.Route("/mine-fields", func(r chi.Router) {
+					r.Route("/minefields", func(r chi.Router) {
 						r.Route("/{num:[0-9]+}", func(r chi.Router) {
-							r.Use(server.mineFieldCtx)
-							r.Get("/", server.mineField)
-							r.Put("/", server.updateMineFieldOrders)
+							r.Use(server.minefieldCtx)
+							r.Get("/", server.minefield)
+							r.Put("/", server.updateMinefieldOrders)
 						})
 					})
 				})
@@ -525,7 +524,7 @@ func (s *server) contextDb(r *http.Request) DBClient {
 }
 
 // create a new gameRunner for this request
-func (s *server) newGameRunner() GameRunner {
+func (s *server) newGameRunner(ctx context.Context) GameRunner {
 	return NewGameRunner(s.db, s.config)
 }
 

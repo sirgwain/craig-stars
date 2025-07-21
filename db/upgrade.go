@@ -1,12 +1,13 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
+	"github.com/sirgwain/craig-stars/db/generated"
 )
 
 /*
@@ -22,31 +23,26 @@ Version Info:
 
 */
 
-type Version struct {
-	ID        int64     `json:"id,omitempty"`
-	CreatedAt time.Time `json:"createdAt,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
-	Current   int       `json:"current,omitempty"`
-}
+type Version = generated.Version
 
 // game upgrader
 type upgrade struct {
 	tx *client
 }
 
-const LATEST_VERSION = 5
+const LATEST_VERSION = int64(5)
 
 func (conn *dbConn) mustUpgrade() {
 
 	if err := conn.WrapInTransaction(func(c Client) error {
-		return c.ensureUpgrade()
+		return c.ensureUpgrade(context.Background())
 	}); err != nil {
 		panic(fmt.Sprintf("failed to upgrade database %v", err))
 	}
 }
 
-func (tx *client) ensureUpgrade() error {
-	version, err := tx.getVersion()
+func (tx *client) ensureUpgrade(ctx context.Context) error {
+	version, err := tx.getVersion(ctx)
 	if err != nil {
 		return err
 	}
@@ -64,18 +60,18 @@ func (tx *client) ensureUpgrade() error {
 		case 0:
 			//? Maybe make the starter database version -1?
 			// That would make the switch marginally cleaner
-			if u.initStarterDB(); err != nil {
+			if u.initStarterDB(ctx); err != nil {
 				return fmt.Errorf("initializing starter database failed: %w", err)
 			}
-			err = u.upgrade1()
+			err = u.upgrade1(ctx)
 		case 1:
-			err = u.upgrade2()
+			err = u.upgrade2(ctx)
 		case 2:
-			err = u.upgrade3()
+			err = u.upgrade3(ctx)
 		case 3:
-			err = u.upgrade4()
+			err = u.upgrade4(ctx)
 		case 4:
-			err = u.upgrade5()
+			err = u.upgrade5(ctx)
 		}
 
 		// check for any issues upgrading
@@ -86,7 +82,7 @@ func (tx *client) ensureUpgrade() error {
 
 	// update the version to the latest so our one time upgrade only runs once
 	version.Current = LATEST_VERSION
-	if err = tx.updateVersion(version); err != nil {
+	if err = tx.updateVersion(ctx, version); err != nil {
 		return fmt.Errorf("updating to latest version failed: %w", err)
 	}
 
@@ -94,41 +90,36 @@ func (tx *client) ensureUpgrade() error {
 }
 
 // get the version of the database
-func (c *client) getVersion() (Version, error) {
-	item := Version{}
-	if err := c.reader.Get(&item, "SELECT * FROM versions"); err != nil {
-		if err == sql.ErrNoRows {
-			return Version{}, nil
-		}
-		return Version{}, err
+func (c *client) getVersion(ctx context.Context) (Version, error) {
+	item, err := c.reader.GetVersion(ctx)
+	if err == sql.ErrNoRows {
+		return Version{}, nil
+	}
+	if err != nil {
+		return Version{}, nil
 	}
 
 	return item, nil
 }
 
-func (c *client) updateVersion(version Version) error {
-	if _, err := c.writer.NamedExec(`
-	UPDATE versions SET
-		updatedAt = CURRENT_TIMESTAMP,
-		current = :current
-	WHERE id = :id`, version); err != nil {
-		return err
-	}
-
-	return nil
+func (c *client) updateVersion(ctx context.Context, version Version) error {
+	return c.writer.UpdateVersion(ctx, generated.UpdateVersionParams{
+		ID:      version.ID,
+		Current: int64(version.Current),
+	})
 }
 
 // helper function to get all games in the db and call an upgrade function on each game
 // then save the game back to the db
-func (u *upgrade) upgradeGames(upgradeGame func(fg *cs.FullGame) error) error {
+func (u *upgrade) upgradeGames(ctx context.Context, upgradeGame func(fg *cs.FullGame) error) error {
 
-	games, err := u.tx.GetGames()
+	games, err := u.tx.GetGames(ctx)
 	if err != nil {
 		return fmt.Errorf("error while getting all games: %w", err)
 	}
 
 	for _, game := range games {
-		fg, err := u.tx.GetFullGame(game.ID)
+		fg, err := u.tx.GetFullGame(ctx, game.ID)
 		if err != nil {
 			return fmt.Errorf("retrieving fullGame with ID %d failed: %w", game.ID, err)
 		}
@@ -139,7 +130,7 @@ func (u *upgrade) upgradeGames(upgradeGame func(fg *cs.FullGame) error) error {
 		}
 
 		// save changes to the DB
-		if err := u.tx.UpdateFullGame(fg); err != nil {
+		if err := u.tx.UpdateFullGame(ctx, fg); err != nil {
 			return fmt.Errorf("updating fullGame with ID %d failed: %w", game.ID, err)
 
 		}
@@ -147,7 +138,7 @@ func (u *upgrade) upgradeGames(upgradeGame func(fg *cs.FullGame) error) error {
 	return nil
 }
 
-func (u *upgrade) initStarterDB() error {
+func (u *upgrade) initStarterDB(ctx context.Context) error {
 	log.Info().Msg("initializing starter database with admin user, 'admin' password")
 	user, err := cs.NewUser("admin", "admin", "", cs.RoleAdmin)
 	if err != nil {
@@ -155,52 +146,53 @@ func (u *upgrade) initStarterDB() error {
 	}
 
 	// create the admin user, 'admin' password
-	if err := u.tx.CreateUser(user); err != nil {
+	newUser, err := u.tx.CreateUser(ctx, user)
+	if err != nil {
 		return err
 	}
 
 	rules := cs.NewRules()
-	if err := u.tx.CreateRace(cs.NewRace().WithUserID(user.ID).WithSpec(&rules)); err != nil {
+	if err := u.tx.SaveRace(ctx, cs.NewRace().WithUserID(newUser.ID).WithSpec(&rules)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (u *upgrade) upgrade1() error {
-	return u.upgradeGames(func(fg *cs.FullGame) error {
+func (u *upgrade) upgrade1(ctx context.Context) error {
+	return u.upgradeGames(ctx, func(fg *cs.FullGame) error {
 		cleaner := cs.NewCleaner()
 		cleaner.RemovePlayerDesignIntels(fg)
 		return nil
 	})
 }
 
-func (u *upgrade) upgrade2() error {
-	return u.upgradeGames(func(fg *cs.FullGame) error {
+func (u *upgrade) upgrade2(ctx context.Context) error {
+	return u.upgradeGames(ctx, func(fg *cs.FullGame) error {
 		cleaner := cs.NewCleaner()
 		cleaner.AddScannerToInnateScannerPlanets(fg)
 		return nil
 	})
 }
 
-func (u *upgrade) upgrade3() error {
-	return u.upgradeGames(func(fg *cs.FullGame) error {
+func (u *upgrade) upgrade3(ctx context.Context) error {
+	return u.upgradeGames(ctx, func(fg *cs.FullGame) error {
 		cleaner := cs.NewCleaner()
 		cleaner.AddRandomArtifactsToPlanets(fg)
 		return nil
 	})
 }
 
-func (u *upgrade) upgrade4() error {
-	return u.upgradeGames(func(fg *cs.FullGame) error {
+func (u *upgrade) upgrade4(ctx context.Context) error {
+	return u.upgradeGames(ctx, func(fg *cs.FullGame) error {
 		cleaner := cs.NewCleaner()
 		cleaner.ResetHomeworldBaseHab(fg)
 		return nil
 	})
 }
 
-func (u *upgrade) upgrade5() error {
-	return u.upgradeGames(func(fg *cs.FullGame) error {
+func (u *upgrade) upgrade5(ctx context.Context) error {
+	return u.upgradeGames(ctx, func(fg *cs.FullGame) error {
 		cleaner := cs.NewCleaner()
 		cleaner.FixMineralConc(fg)
 		return nil

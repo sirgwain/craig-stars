@@ -29,6 +29,9 @@
 		"task.autoDetect": "off",
 		"task.problemMatchers.neverPrompt": true,
 		"typescript.format.semicolons": "insert",
-		"typescript.preferences.preferTypeOnlyAutoImports": true
+		"typescript.preferences.preferTypeOnlyAutoImports": true,
+		"Prettier-SQL.keywordCase": "upper",
+		"Prettier-SQL.SQLFlavourOverride": "sqlite",
+		"Prettier-SQL.denseOperators": false
 	}
 }

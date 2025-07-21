@@ -16,14 +16,14 @@ type Universe struct {
 	Starbases            []*Fleet         `json:"starbases,omitempty"`
 	Wormholes            []*Wormhole      `json:"wormholes,omitempty"`
 	MineralPackets       []*MineralPacket `json:"mineralPackets,omitempty"`
-	MineFields           []*MineField     `json:"mineFields,omitempty"`
+	Minefields           []*Minefield     `json:"minefields,omitempty"`
 	MysteryTraders       []*MysteryTrader `json:"mysteryTraders,omitempty"`
 	Salvages             []*Salvage       `json:"salvage,omitempty"`
 	battlePlansByNum     map[playerBattlePlanNum]*BattlePlan
 	mapObjectsByPosition map[Vector][]interface{}
 	fleetsByNum          map[playerObject]*Fleet
 	designsByNum         map[playerObject]*ShipDesign
-	mineFieldsByNum      map[playerObject]*MineField
+	minefieldsByNum      map[playerObject]*Minefield
 	mineralPacketsByNum  map[playerObject]*MineralPacket
 	salvagesByNum        map[int]*Salvage
 	salvagesByPosition   map[Vector]*Salvage
@@ -39,7 +39,7 @@ func NewUniverse(log zerolog.Logger, rules *Rules) Universe {
 		mapObjectsByPosition: make(map[Vector][]interface{}),
 		designsByNum:         make(map[playerObject]*ShipDesign),
 		fleetsByNum:          make(map[playerObject]*Fleet),
-		mineFieldsByNum:      make(map[playerObject]*MineField),
+		minefieldsByNum:      make(map[playerObject]*Minefield),
 		mineralPacketsByNum:  make(map[playerObject]*MineralPacket),
 		salvagesByNum:        make(map[int]*Salvage),
 		salvagesByPosition:   make(map[Vector]*Salvage),
@@ -55,8 +55,8 @@ type mapObjectGetter interface {
 	getPlanet(num int) *Planet
 	getOrbitingPlanet(fleet *Fleet) *Planet
 	getFleet(playerNum int, num int) *Fleet
-	getMineField(playerNum int, num int) *MineField
-	getAllMineFields() []*MineField
+	getMinefield(playerNum int, num int) *Minefield
+	getAllMinefields() []*Minefield
 	getMysteryTrader(num int) *MysteryTrader
 	getWormhole(num int) *Wormhole
 	getSalvage(num int) *Salvage
@@ -157,12 +157,12 @@ func (u *Universe) buildMaps(players []*Player) error {
 		u.mineralPacketsByNum[playerObjectKey(mineralPacket.PlayerNum, mineralPacket.Num)] = mineralPacket
 		u.addMapObjectByPosition(mineralPacket, mineralPacket.Position)
 	}
-	for _, mineField := range u.MineFields {
-		if mineField.Delete {
+	for _, minefield := range u.Minefields {
+		if minefield.Delete {
 			continue
 		}
-		u.mineFieldsByNum[playerObjectKey(mineField.PlayerNum, mineField.Num)] = mineField
-		u.addMapObjectByPosition(mineField, mineField.Position)
+		u.minefieldsByNum[playerObjectKey(minefield.PlayerNum, minefield.Num)] = minefield
+		u.addMapObjectByPosition(minefield, minefield.Position)
 	}
 
 	u.salvagesByPosition = make(map[Vector]*Salvage, len(u.Salvages))
@@ -226,7 +226,7 @@ func (u *Universe) GetPlayerMapObjects(playerNum int) PlayerMapObjects {
 	pmo.Planets = u.getPlanets(playerNum)
 	pmo.Fleets = u.getFleets(playerNum)
 	pmo.Starbases = u.getStarbases(playerNum)
-	pmo.MineFields = u.getMineFields(playerNum)
+	pmo.Minefields = u.getMinefields(playerNum)
 	pmo.MineralPackets = u.getMineralPackets(playerNum)
 
 	return pmo
@@ -249,10 +249,10 @@ func (u *Universe) getMapObject(mapObjectType MapObjectType, num int, playerNum 
 		if wormhole != nil {
 			return &wormhole.MapObject
 		}
-	case MapObjectTypeMineField:
-		mineField := u.getMineField(playerNum, num)
-		if mineField != nil {
-			return &mineField.MapObject
+	case MapObjectTypeMinefield:
+		minefield := u.getMinefield(playerNum, num)
+		if minefield != nil {
+			return &minefield.MapObject
 		}
 	case MapObjectTypeMysteryTrader:
 		mysteryTrader := u.getMysteryTrader(num)
@@ -309,19 +309,19 @@ func (u *Universe) getSalvage(num int) *Salvage {
 	return u.salvagesByNum[num]
 }
 
-func (u *Universe) getMineField(playerNum int, num int) *MineField {
-	return u.mineFieldsByNum[playerObjectKey(playerNum, num)]
+func (u *Universe) getMinefield(playerNum int, num int) *Minefield {
+	return u.minefieldsByNum[playerObjectKey(playerNum, num)]
 }
 
-func (u *Universe) getAllMineFields() []*MineField {
-	return u.MineFields
+func (u *Universe) getAllMinefields() []*Minefield {
+	return u.Minefields
 }
 
 // get a minefield that is close to a position
-func (u *Universe) getMineFieldNearPosition(playerNum int, position Vector, mineFieldType MineFieldType) *MineField {
-	for _, mineField := range u.MineFields {
-		if mineField.PlayerNum == playerNum && mineField.MineFieldType == mineFieldType && isPointInCircle(position, mineField.Position, mineField.Spec.Radius) {
-			return mineField
+func (u *Universe) getMinefieldNearPosition(playerNum int, position Vector, minefieldType MinefieldType) *Minefield {
+	for _, minefield := range u.Minefields {
+		if minefield.PlayerNum == playerNum && minefield.MinefieldType == minefieldType && isPointInCircle(position, minefield.Position, minefield.Spec.Radius) {
+			return minefield
 		}
 	}
 
@@ -571,18 +571,18 @@ func (u *Universe) getStarbases(playerNum int) []*Fleet {
 	return starbases
 }
 
-func (u *Universe) getMineFields(playerNum int) []*MineField {
-	mineFields := []*MineField{}
-	for _, mineField := range u.MineFields {
-		if mineField.Delete {
+func (u *Universe) getMinefields(playerNum int) []*Minefield {
+	minefields := []*Minefield{}
+	for _, minefield := range u.Minefields {
+		if minefield.Delete {
 			continue
 		}
 
-		if mineField.PlayerNum == playerNum {
-			mineFields = append(mineFields, mineField)
+		if minefield.PlayerNum == playerNum {
+			minefields = append(minefields, minefield)
 		}
 	}
-	return mineFields
+	return minefields
 }
 
 func (u *Universe) getMineralPackets(playerNum int) []*MineralPacket {
@@ -639,32 +639,32 @@ func (u *Universe) removeMapObjectAtPosition(mo interface{}, position Vector) {
 	}
 }
 
-// get the next mineField number to use
-func (u *Universe) getNextMineFieldNum() int {
+// get the next minefield number to use
+func (u *Universe) getNextMinefieldNum() int {
 	num := 0
-	for _, mineField := range u.MineFields {
-		num = max(num, mineField.Num)
+	for _, minefield := range u.Minefields {
+		num = max(num, minefield.Num)
 	}
 	return num + 1
 }
 
-func (u *Universe) addMineField(mineField *MineField) {
-	u.MineFields = append(u.MineFields, mineField)
-	u.mineFieldsByNum[playerObjectKey(mineField.PlayerNum, mineField.Num)] = mineField
-	u.addMapObjectByPosition(mineField, mineField.Position)
+func (u *Universe) addMinefield(minefield *Minefield) {
+	u.Minefields = append(u.Minefields, minefield)
+	u.minefieldsByNum[playerObjectKey(minefield.PlayerNum, minefield.Num)] = minefield
+	u.addMapObjectByPosition(minefield, minefield.Position)
 }
 
-// mark a mineField as deleted and remove it from the universe
-func (u *Universe) deleteMineField(mineField *MineField) {
-	mineField.Delete = true
+// mark a minefield as deleted and remove it from the universe
+func (u *Universe) deleteMinefield(minefield *Minefield) {
+	minefield.Delete = true
 
-	delete(u.mineFieldsByNum, playerObjectKey(mineField.PlayerNum, mineField.Num))
-	u.removeMapObjectAtPosition(mineField, mineField.Position)
+	delete(u.minefieldsByNum, playerObjectKey(minefield.PlayerNum, minefield.Num))
+	u.removeMapObjectAtPosition(minefield, minefield.Position)
 
 	u.log.Debug().
-		Int("Player", mineField.PlayerNum).
-		Str("MineField", mineField.Name).
-		Msgf("deleted mineField")
+		Int("Player", minefield.PlayerNum).
+		Str("Minefield", minefield.Name).
+		Msgf("deleted minefield")
 
 }
 

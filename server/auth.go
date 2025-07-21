@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/go-pkgz/auth/token"
-	"github.com/go-pkgz/rest"
 	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/db"
@@ -142,55 +141,58 @@ func me(w http.ResponseWriter, r *http.Request) {
 		DiscordAvatar: discordAvatar,
 	}
 
-	rest.RenderJSON(w, res)
+	RenderJSON(w, res)
 }
 
 // create a new user from a token
-func (s *server) createNewDiscordUser(tokenUser tokenUser) (*cs.User, error) {
+func (s *server) createNewDiscordUser(ctx context.Context, tokenUser tokenUser) (*cs.User, error) {
 
 	user, err := cs.NewDiscordUser(tokenUser.Name, tokenUser.discordID(), tokenUser.discordAvatar())
 	if err != nil {
-		log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
+		log.Error().Err(err).Str("Username", tokenUser.Name).Msg("failed to create new user")
 		return nil, err
 	}
 
+	var newUser *cs.User
 	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.CreateUser(user); err != nil {
+		newUser, err := c.CreateUser(ctx, user)
+		if err != nil {
 			log.Error().Err(err).Str("Username", user.Username).Msg("failed to create new user")
 			return err
 		}
-		log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new user from token")
+		log.Info().Str("Username", newUser.Username).Int64("ID", newUser.ID).Msg("created new user from token")
 
 		// create a new test race
 		race := cs.Humanoids()
-		race.UserID = user.ID
-		if err = c.CreateRace(&race); err != nil {
+		race.UserID = newUser.ID
+
+		if err = c.SaveRace(ctx, &race); err != nil {
 			return err
 		}
-		log.Info().Str("Username", user.Username).Int64("ID", user.ID).Msg("created new race for user")
+		log.Info().Str("Username", newUser.Username).Int64("ID", newUser.ID).Msg("created new race for user")
 		return nil
 	}); err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return newUser, nil
 }
 
-func (s *server) updateUser(tokenUser tokenUser, user *cs.User) error {
+func (s *server) updateUser(ctx context.Context, tokenUser tokenUser, user *cs.User) error {
 
 	idStr := tokenUser.discordID()
 	avatarStr := tokenUser.discordAvatar()
-	user.DiscordID = &idStr
-	user.DiscordAvatar = &avatarStr
+	user.DiscordID = idStr
+	user.DiscordAvatar = avatarStr
 	now := time.Now()
 	user.LastLogin = &now
 
 	readWriteClient := s.db.NewReadWriteClient()
-	if err := readWriteClient.UpdateUser(user); err != nil {
+	if err := readWriteClient.UpdateUser(ctx, user); err != nil {
 		log.Error().Err(err).Str("Username", user.Username).Msg("failed to update user")
 		return err
 	}
-	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Str("DiscordID", *user.DiscordID).Str("DiscordAvatar", *user.DiscordAvatar).Msg("updated")
+	log.Info().Str("Username", user.Username).Int64("ID", user.ID).Str("DiscordID", user.DiscordID).Str("DiscordAvatar", user.DiscordAvatar).Msg("updated")
 
 	return nil
 }

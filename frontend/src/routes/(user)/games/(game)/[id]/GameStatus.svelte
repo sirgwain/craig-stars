@@ -1,12 +1,12 @@
 <script lang="ts">
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
-	import type { Game } from '$lib/types/cs';
+	import type { GameWithPlayers } from '$lib/types/cs';
 	import type { Snippet } from 'svelte';
 	import PlayersStatus from './players/PlayersStatus.svelte';
 
 	type Props = {
-		game: Game;
+		game: GameWithPlayers;
 		title: string;
 		children?: Snippet;
 	};
