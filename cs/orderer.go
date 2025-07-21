@@ -201,6 +201,10 @@ func (o *orders) UpdateMinefieldOrders(player *Player, minefield *Minefield, ord
 // is expected to prevent this where possible for by hand transfers and if not, the player will
 // get a message saying their by hand transfer was unsuccessful when it is resolved at turn generation side.
 func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest CargoHolder, transferAmount CargoTransferRequest) error {
+	if transferAmount == (CargoTransferRequest{}) {
+		// nothing to do, return
+		return nil
+	}
 
 	var destName string
 	if dest == nil {
@@ -288,6 +292,17 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 
 // split a fleet into two fleets based on a request
 func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet, request SplitFleetRequest) (source, dest *Fleet, err error) {
+	defer func() {
+		if err != nil {
+			return
+		}
+		log.Info().
+			Int64("GameID", player.GameID).
+			Int("PlayerNum", player.Num).
+			Str("Source", source.Name).
+			Str("Dest", dest.Name).
+			Msg("split fleet")
+	}()
 	source = request.Source
 	dest = request.Dest
 
@@ -402,11 +417,29 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	source.Spec = ComputeFleetSpec(rules, player, source)
 	dest.Spec = ComputeFleetSpec(rules, player, dest)
 
+	if len(source.Tokens) == 0 {
+		// source is gone, no cargo transfer needed, just make sure the dest has all cargo and we're done
+		source.Delete = true
+		dest.Cargo = dest.Cargo.Add(source.Cargo)
+		dest.Fuel += source.Fuel
+		player.CargoTransfers.moveByHandTransfers(source, dest)
+
+		return source, dest, nil
+	}
+
+	if len(dest.Tokens) == 0 {
+		// dest is gone, no cargo transfer needed, just make sure the source has all cargo and we're done
+		dest.Delete = true
+		source.Cargo = source.Cargo.Add(dest.Cargo)
+		source.Fuel += dest.Fuel
+		player.CargoTransfers.moveByHandTransfers(dest, source)
+
+		return source, dest, nil
+	}
+
 	// transfer the cargo as per the player's request
-	if request.TransferAmount != (CargoTransferRequest{}) {
-		if err = o.TransferByHand(rules, player, source, dest, request.TransferAmount); err != nil {
-			return nil, nil, err
-		}
+	if err = o.TransferByHand(rules, player, source, dest, request.TransferAmount); err != nil {
+		return nil, nil, err
 	}
 
 	// split any immediate cargo transfers we did before based on capacity
@@ -414,20 +447,6 @@ func (o *orders) SplitFleet(rules *Rules, player *Player, playerFleets []*Fleet,
 	if err := player.CargoTransfers.splitByHandTransfers(source, dest, true); err != nil {
 		return nil, nil, err
 	}
-
-	if len(source.Tokens) == 0 {
-		source.Delete = true
-	}
-	if len(dest.Tokens) == 0 {
-		dest.Delete = true
-	}
-
-	log.Info().
-		Int64("GameID", player.GameID).
-		Int("PlayerNum", player.Num).
-		Str("Source", source.Name).
-		Str("Dest", dest.Name).
-		Msg("split fleet")
 
 	return source, dest, nil
 }

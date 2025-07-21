@@ -1021,6 +1021,7 @@ func Test_orders_SplitFleet(t *testing.T) {
 						DesignNum: 1,
 					},
 				},
+				transferAmount: CargoTransferRequest{Fuel: -300},
 			},
 			want: want{deleteSource: true},
 		},
@@ -1097,17 +1098,23 @@ func Test_orders_SplitFleet(t *testing.T) {
 				assert.Equal(t, len(source.Tokens), len(tt.args.sourceTokens))
 				assert.Equal(t, len(dest.Tokens), len(tt.args.destTokens))
 
-				// we should transfer from the dest to the soruce
-				assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), source.Cargo)
-				assert.Equal(t, sourceFuel+tt.args.transferAmount.Fuel, source.Fuel)
-				assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), dest.Cargo)
-				assert.Equal(t, destFuel-tt.args.transferAmount.Fuel, dest.Fuel)
+				if len(source.Tokens) > 0 && len(dest.Tokens) > 0 {
+					// we should transfer from the dest to the source
+					assert.Equal(t, sourceCargo.Add(tt.args.transferAmount.Cargo), source.Cargo)
+					assert.Equal(t, sourceFuel+tt.args.transferAmount.Fuel, source.Fuel)
+					assert.Equal(t, destCargo.Subtract(tt.args.transferAmount.Cargo), dest.Cargo)
+					assert.Equal(t, destFuel-tt.args.transferAmount.Fuel, dest.Fuel)
+				}
 
 				if tt.want.deleteSource {
 					assert.True(t, source.Delete)
+					assert.Equal(t, destCargo.Add(sourceCargo), dest.Cargo)
+					assert.Equal(t, destFuel+sourceFuel, dest.Fuel)
 				}
 				if tt.want.deleteDest {
 					assert.True(t, dest.Delete)
+					assert.Equal(t, sourceCargo.Add(destCargo), source.Cargo)
+					assert.Equal(t, sourceFuel+destFuel, source.Fuel)
 				}
 
 				// make sure our cargo transfers match up

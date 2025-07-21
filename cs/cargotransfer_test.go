@@ -101,6 +101,48 @@ func TestCargoTransfers_splitFleetCargoTransfers(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "delete source",
+			cargoTransfers: CargoTransfers{
+				Vector{}.String(): []ByHandCargoTransfer{
+					{
+						SourceFleetNum: 1,
+						Cargo:          Cargo{Ironium: 2},
+					},
+				},
+			},
+			args: args{
+				source: &Fleet{MapObject: MapObject{Num: 1, Delete: true}},
+				dest:   &Fleet{MapObject: MapObject{Num: 2}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 2}}},
+			},
+			want: []ByHandCargoTransfer{
+				{
+					SourceFleetNum: 2,
+					Cargo:          Cargo{Ironium: 2},
+				},
+			},
+		},
+		{
+			name: "delete dest",
+			cargoTransfers: CargoTransfers{
+				Vector{}.String(): []ByHandCargoTransfer{
+					{
+						SourceFleetNum: 1,
+						Cargo:          Cargo{Ironium: 2},
+					},
+				},
+			},
+			args: args{
+				source: &Fleet{MapObject: MapObject{Num: 1}, Spec: FleetSpec{ShipDesignSpec: ShipDesignSpec{CargoCapacity: 2}}},
+				dest:   &Fleet{MapObject: MapObject{Num: 2, Delete: true}},
+			},
+			want: []ByHandCargoTransfer{
+				{
+					SourceFleetNum: 1,
+					Cargo:          Cargo{Ironium: 2},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -189,6 +189,27 @@ func (cargoTransfers CargoTransfers) splitByHandTransfers(source *Fleet, dest *F
 	return nil
 }
 
+// move all byHand transfers from one fleet to another (in case a fleet is deleted)
+func (cargoTransfers CargoTransfers) moveByHandTransfers(source *Fleet, dest *Fleet) {
+	key := source.Position.String()
+	transfers, ok := cargoTransfers[key]
+	if !ok {
+		// no transfers
+		return
+	}
+
+	for i := range transfers {
+		transfer := &transfers[i]
+		if transfer.SourceFleetNum == source.Num {
+			transfer.SourceFleetNum = dest.Num
+		}
+		if transfer.Targeting(source.MapObject) {
+			transfer.TargetNum = dest.Num
+		}
+	}
+
+}
+
 // mergeByHandTransfers merges cargo transfers from merging fleets into a source fleet
 func (cargoTransfers CargoTransfers) mergeByHandTransfers(fleet *Fleet, mergingFleets []*Fleet) {
 	key := fleet.Position.String()
@@ -477,18 +498,19 @@ func (t *cargoTransferer) unloadByHands(player *Player, transfers []ByHandCargoT
 			transportTasks := transfer.getUnloadTasks()
 
 			dest, ok := t.game.getCargoHolder(transfer.TargetType, transfer.TargetNum, transfer.TargetPlayerNum)
-			if !ok && transfer.TargetType == MapObjectTypeNone {
-				// create a salvage
+			if !ok {
+				if transfer.TargetType != MapObjectTypeNone {
+					// uh oh, our dest went away. Log an error, it's a bug
+					t.log.Error().
+						Int("Player", player.Num).
+						Str("Fleet", fleet.Name).
+						Str("Target", transfer.MapObjectTarget.PrettyString()).
+						Msgf("target not found for ByHandCargoTransfer unload")
+					continue
+				}
+
+				// we are transferring to the void, create a salvage
 				dest = t.game.getOrCreateSalvage(fleet.Position, fleet.PlayerNum, Cargo{})
-			}
-			if dest == nil {
-				// uh oh, our dest went away. Log an error, it's a bug
-				t.log.Error().
-					Int("Player", player.Num).
-					Str("Fleet", fleet.Name).
-					Str("Target", transfer.MapObjectTarget.PrettyString()).
-					Msgf("target not found for ByHandCargoTransfer unload")
-				continue
 			}
 
 			mo := dest.GetMapObject()
