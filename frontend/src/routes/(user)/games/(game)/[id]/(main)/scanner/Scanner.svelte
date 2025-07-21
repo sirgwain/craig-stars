@@ -404,7 +404,7 @@
 		}
 
 		// for add waypoints, we always snap to planet because the "drag" and "add waypoint button" keys (shift) are the same
-		const dest = { mo: mo ?? emptyMapObject(), position: position ?? emptyVector };
+		const dest = { mo: mo ?? emptyMapObject(), position: mo ? emptyVector : position };
 		waypointJustAdded = await onAddWaypoint(dest, fastestWaypoint);
 		return true;
 	}

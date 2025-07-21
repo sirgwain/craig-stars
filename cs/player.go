@@ -896,6 +896,10 @@ func (p *Player) getByHandTransfer(target MapObjectTarget) Cargo {
 
 // transferByHand transfers cargo to a target
 func (p *Player) transferByHand(fleet *Fleet, target MapObjectTarget, cargo Cargo) {
+	if cargo == (Cargo{}) {
+		// don't create empty by hand transfers
+		return
+	}
 	if p.CargoTransfers == nil {
 		p.CargoTransfers = CargoTransfers{}
 	}
