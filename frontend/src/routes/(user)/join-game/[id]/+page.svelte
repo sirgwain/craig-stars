@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import PlayerChooser from '$lib/components/game/newgame/PlayerChooser.svelte';
@@ -19,7 +19,7 @@
 
 	onMount(async () => {
 		try {
-			let id = parseInt($page.params.id);
+			let id = parseInt(page.params.id);
 			game = await GameService.loadGame(id);
 		} catch {
 			error = 'No open game found for the invite';

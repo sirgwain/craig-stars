@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { GameService } from '$lib/services/GameService';
 	import { GameStateSetup } from '$lib/types/cs';
 	import { onMount } from 'svelte';
 
-	let hash = $page.params.hash;
+	let hash = page.params.hash;
 	let loginError = $state('');
 
 	onMount(async () => {

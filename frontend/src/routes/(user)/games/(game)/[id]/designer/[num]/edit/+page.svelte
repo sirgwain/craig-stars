@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
@@ -8,7 +8,7 @@
 	import type { ShipDesign } from '$lib/types/cs';
 
 	const { game, universe, updateDesign } = getGameContext();
-	let num = parseInt($page.params.num);
+	let num = parseInt(page.params.num);
 
 	let design: ShipDesign | undefined = $state($universe.getMyDesign(num));
 	let hull = $derived(design && $techs.getHull(design.hull));

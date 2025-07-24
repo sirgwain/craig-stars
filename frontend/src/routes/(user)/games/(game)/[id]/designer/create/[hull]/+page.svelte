@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
@@ -9,7 +9,7 @@
 	import { onMount } from 'svelte';
 
 	const { game, player, createDesign } = getGameContext();
-	let hullName = $page.params.hull;
+	let hullName = page.params.hull;
 
 	let hull = $derived($techs.getHull(hullName));
 
@@ -28,7 +28,7 @@
 	let error = $state('');
 
 	onMount(() => {
-		const copyParam = $page.url.searchParams.get('copy');
+		const copyParam = page.url.searchParams.get('copy');
 		if (copyParam) {
 			const copyDesign = $game.universe.getMyDesign(parseInt(copyParam));
 			if (copyDesign) {

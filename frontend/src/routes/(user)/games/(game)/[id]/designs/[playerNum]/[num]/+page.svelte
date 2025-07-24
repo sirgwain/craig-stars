@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import Design from '$lib/components/game/design/Design.svelte';
 	import NotFound from '$lib/components/NotFound.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
 	const { game, universe } = getGameContext();
-	let playerNum = parseInt($page.params.playerNum);
-	let num = parseInt($page.params.num);
+	let playerNum = parseInt(page.params.playerNum);
+	let num = parseInt(page.params.num);
 
 	let design = $derived($universe.getDesign(playerNum, num));
 </script>

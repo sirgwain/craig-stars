@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import TechHullSummary from '$lib/components/game/design/Hull.svelte';
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
@@ -9,7 +9,7 @@
 
 	const { game, player } = getGameContext();
 
-	let nameSlug = $page.params.name;
+	let nameSlug = page.params.name;
 	let tech = $derived($game.techs.getTech(nameSlug));
 
 	let hull = $derived(tech as TechHull);
