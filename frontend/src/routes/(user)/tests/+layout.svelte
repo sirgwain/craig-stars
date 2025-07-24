@@ -8,7 +8,7 @@
 
 	let { children }: Props = $props();
 
-	let title = $state(getContext<string>('title'));
+	let title = $derived(getContext<string>('title'));
 
 	$effect(() => {
 		title = getContext('title') ?? $page.route.id?.replace('tests/', '') ?? '';

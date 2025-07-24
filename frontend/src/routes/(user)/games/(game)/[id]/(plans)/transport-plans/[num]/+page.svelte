@@ -11,10 +11,7 @@
 	const { game, player, updateTransportPlan } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	let plan: TransportPlan | undefined = $state();
-	$effect(() => {
-		plan = $player.transportPlans.find((p) => p.num == num);
-	});
+	let plan: TransportPlan | undefined = $derived($player.transportPlans.find((p) => p.num == num));
 
 	let error = $state('');
 

@@ -17,36 +17,38 @@
 	let player: TestBattlePlayerResponse | undefined = $state();
 	let battle: BattleRecord | undefined = $state();
 
-	class TestPlayerFinder implements PlayerFinder {
-		constructor(private player: TestBattlePlayerResponse) {}
-		getPlayerIntel(num: number): PlayerIntel | undefined {
-			return this.player.playerIntels?.find((p) => p.num == num);
-		}
-		getPlayerPluralName(playerNum: number | undefined): string {
-			return (
-				this.player.playerIntels?.find((p) => p.num == playerNum)?.name ?? 'Player ' + playerNum
-			);
-		}
-		getPlayerColor(playerNum: number | undefined): string {
-			return this.player.playerIntels?.find((p) => p.num == playerNum)?.color ?? '#FFFFFF';
-		}
-		getPlayerName(playerNum: number | undefined): string {
-			return this.player.playerIntels?.find((p) => p.num == playerNum)?.name ?? '';
-		}
+	export function createTestPlayerFinder(player: TestBattlePlayerResponse): PlayerFinder {
+		const find = (num: number | undefined) => player.playerIntels?.find((p) => p.num === num);
+
+		return {
+			getPlayerIntel(num: number): PlayerIntel | undefined {
+				return find(num);
+			},
+			getPlayerName(playerNum: number | undefined): string {
+				return find(playerNum)?.name ?? '';
+			},
+			getPlayerPluralName(playerNum: number | undefined): string {
+				return find(playerNum)?.name ?? 'Player ' + playerNum;
+			},
+			getPlayerColor(playerNum: number | undefined): string {
+				return find(playerNum)?.color ?? '#FFFFFF';
+			}
+		};
 	}
 
-	class TestDesignFinder implements DesignFinder {
-		constructor(private player: TestBattlePlayerResponse) {}
+	export function createTestDesignFinder(player: TestBattlePlayerResponse): DesignFinder {
+		return {
+			getDesign(playerNum: number, num: number): AnyShipDesign | undefined {
+				return (
+					player.designs.find((d) => d && d.playerNum === playerNum && d.num === num) ??
+					player.shipDesignIntels?.find((d) => d.playerNum === playerNum && d.num === num)
+				);
+			},
 
-		getDesign(playerNum: number, num: number): AnyShipDesign | undefined {
-			return (
-				this.player.designs.find((d) => d && d.playerNum === playerNum && d.num === num) ??
-				this.player.shipDesignIntels?.find((d) => d.playerNum === playerNum && d.num === num)
-			);
-		}
-		getMyDesign(num: number | undefined): ShipDesign | undefined {
-			return this.player.designs.find((d) => d && d.playerNum === this.player.num && d.num === num);
-		}
+			getMyDesign(num: number | undefined): ShipDesign | undefined {
+				return player.designs.find((d) => d && d.playerNum === player.num && d.num === num);
+			}
+		};
 	}
 
 	let playerFinder: PlayerFinder | undefined = $state();
@@ -68,8 +70,8 @@
 			json.player as TestBattlePlayerResponse
 		) as unknown as TestBattlePlayerResponse;
 		battle = json.battle;
-		playerFinder = new TestPlayerFinder(player);
-		designFinder = new TestDesignFinder(player);
+		playerFinder = createTestPlayerFinder(player);
+		designFinder = createTestDesignFinder(player);
 	});
 </script>
 

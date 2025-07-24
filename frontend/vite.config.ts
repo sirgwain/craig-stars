@@ -1,26 +1,45 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
-import { svelteTesting } from '@testing-library/svelte/vite';
 
 const file = fileURLToPath(new URL('package.json', import.meta.url));
 const json = readFileSync(file, 'utf8');
 const pkg = JSON.parse(json);
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
+	plugins: [sveltekit()],
 	test: {
 		reporters: ['junit', process.env.CI ? 'github-actions' : 'default'],
-		include: ['src/**/*.{test,spec}.{js,ts}'],
-		environment: 'jsdom',
-		outputFile: '../tmp/test-results/vitest-report.xml'
-	},
-	resolve: {
-		conditions: mode === 'test' ? ['browser'] : []
-	},
-	plugins: [sveltekit(), svelteTesting()],
+		outputFile: '../tmp/test-results/vitest-report.xml',
 
+		projects: [
+			{
+				extends: './vite.config.ts',
+				test: {
+					name: 'client',
+					environment: 'browser',
+					browser: {
+						enabled: true,
+						provider: 'playwright',
+						instances: [{ browser: 'chromium' }]
+					},
+					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+					exclude: ['src/lib/server/**'],
+					setupFiles: ['./vitest-setup-client.ts']
+				}
+			},
+			{
+				extends: './vite.config.ts',
+				test: {
+					name: 'server',
+					environment: 'node',
+					include: ['src/**/*.{test,spec}.{js,ts}'],
+					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+				}
+			}
+		]
+	},
 	define: {
 		PKG: pkg
 	},
@@ -33,8 +52,5 @@ export default defineConfig(({ mode }) => ({
 			}
 		}
 	},
-	optimizeDeps: {
-		include: ['fuzzy']
-	},
 	assetsInclude: ['**/*.wasm']
-}));
+});

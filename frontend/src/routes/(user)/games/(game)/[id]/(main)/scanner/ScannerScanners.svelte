@@ -6,6 +6,7 @@
 	import type { Vector } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	const { player, universe, settings } = getGameContext();
 	const { xGet, yGet, xScale } = getContext<LayerCake>('LayerCake');
@@ -17,7 +18,7 @@
 	};
 
 	let scanners = $derived.by(() => {
-		const scannersByPosition = new Map<string, Scanner>();
+		const scannersByPosition = new SvelteMap<string, Scanner>();
 
 		if ($settings.showScanners) {
 			$universe.planets

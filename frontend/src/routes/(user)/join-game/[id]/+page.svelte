@@ -14,7 +14,7 @@
 	let game: GameWithPlayers | undefined = $state();
 	let race = $state(humanoid());
 	let name = $state($me.username);
-	let valid: boolean = $state(false);
+	let valid: boolean = $derived(!!(game && (game.openPlayerSlots ?? 0) > 0));
 	let error = $state('');
 
 	onMount(async () => {
@@ -45,10 +45,6 @@
 			await goto(`/games/${game.id}`);
 		}
 	};
-
-	$effect(() => {
-		valid = !!(game && (game.openPlayerSlots ?? 0) > 0);
-	});
 </script>
 
 <ItemTitle>Join Public Game</ItemTitle>

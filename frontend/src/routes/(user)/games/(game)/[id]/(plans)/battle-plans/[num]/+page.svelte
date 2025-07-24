@@ -11,12 +11,7 @@
 	const { game, player, updateBattlePlan } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	let plan: BattlePlan | undefined = $state();
-
-	$effect(() => {
-		plan = $player.battlePlans.find((p) => p.num == num);
-	});
-
+	let plan: BattlePlan | undefined = $derived($player.battlePlans.find((p) => p.num == num));
 	let error = $state('');
 
 	const onSubmit = async () => {

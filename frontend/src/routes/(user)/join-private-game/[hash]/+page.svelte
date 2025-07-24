@@ -38,11 +38,7 @@
 		}
 	};
 
-	let valid = $state(false);
-
-	$effect(() => {
-		valid = !!(game && (game.openPlayerSlots ?? 0) > 0);
-	});
+	let valid = $derived(!!(game && (game.openPlayerSlots ?? 0) > 0));
 </script>
 
 <ItemTitle>Join Private Game</ItemTitle>

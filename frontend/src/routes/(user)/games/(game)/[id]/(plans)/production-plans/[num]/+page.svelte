@@ -11,10 +11,9 @@
 	const { game, player, universe, updateProductionPlan } = getGameContext();
 	let num = parseInt($page.params.num);
 
-	let plan: ProductionPlan | undefined = $state();
-	$effect(() => {
-		plan = $player.productionPlans.find((p) => p.num == num);
-	});
+	let plan: ProductionPlan | undefined = $derived(
+		$player.productionPlans.find((p) => p.num == num)
+	);
 
 	let error = $state('');
 
