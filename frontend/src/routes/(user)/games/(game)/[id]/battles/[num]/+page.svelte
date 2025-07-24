@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import BattleView from '$lib/components/game/battle/BattleView.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
 	const { game, universe, gotoBattle } = getGameContext();
-	let num = parseInt($page.params.num);
+	let num = parseInt(page.params.num);
 
 	let battle = $derived($universe.getBattle(num));
 

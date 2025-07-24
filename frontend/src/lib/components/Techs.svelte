@@ -88,7 +88,6 @@
 		player &&
 			techs.filter((t) => player?.hasTech(t) && levelsAbove(t.requirements, player.techLevels) == 0)
 	);
-
 </script>
 
 <div class="flex justify-between">

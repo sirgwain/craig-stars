@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import { GameService } from '$lib/services/GameService';
@@ -16,7 +16,7 @@
 	let name = $state($me.username);
 
 	onMount(async () => {
-		game = await GameService.loadGameByHash($page.params.hash);
+		game = await GameService.loadGameByHash(page.params.hash);
 	});
 
 	const onSubmit = async () => {
@@ -38,11 +38,7 @@
 		}
 	};
 
-	let valid = $state(false);
-
-	$effect(() => {
-		valid = !!(game && (game.openPlayerSlots ?? 0) > 0);
-	});
+	let valid = $derived(!!(game && (game.openPlayerSlots ?? 0) > 0));
 </script>
 
 <ItemTitle>Join Private Game</ItemTitle>

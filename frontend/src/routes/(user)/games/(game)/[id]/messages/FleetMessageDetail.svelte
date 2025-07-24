@@ -134,9 +134,11 @@
 		{:else}
 			<!-- our minefield hit someone else's fleet -->
 			{#if damage.fleetDestroyed}
-				{$universe.getPlayerName(message.targetPlayerNum)} {message.targetName} has been annihilated in your minefield at {minefieldPosition}.
+				{$universe.getPlayerName(message.targetPlayerNum)}
+				{message.targetName} has been annihilated in your minefield at {minefieldPosition}.
 			{:else}
-				{$universe.getPlayerName(message.targetPlayerNum)} {message.targetName} has been stopped in your minefield at {minefieldPosition}.
+				{$universe.getPlayerName(message.targetPlayerNum)}
+				{message.targetName} has been stopped in your minefield at {minefieldPosition}.
 				{#if (damage.shipsDestroyed ?? 0) > 0}
 					Your mines have inflicted {damage.damage ?? 0} damage points and destroyed {damage.shipsDestroyed}
 					ships.
@@ -156,7 +158,8 @@
 		{message.targetName} has has swept {message.spec.amount ?? 0} mines from a minefield at {minefieldPosition}
 	{:else}
 		<!-- our minefield was swept by fleet -->
-		{$universe.getPlayerName(message.targetPlayerNum)} {message.targetName} has has swept {message.spec.amount ?? 0} mines from your minefield at {minefieldPosition}
+		{$universe.getPlayerName(message.targetPlayerNum)}
+		{message.targetName} has has swept {message.spec.amount ?? 0} mines from your minefield at {minefieldPosition}
 	{/if}
 {:else if message.type === PlayerMessageFleetLaidMines}
 	{@const minefield = $universe.getMinefield(message.spec.targetPlayerNum, message.spec.targetNum)}

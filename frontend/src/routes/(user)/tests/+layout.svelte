@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { getContext, type Snippet } from 'svelte';
 	import TestBreadcrumb from './TestBreadcrumb.svelte';
 	type Props = {
@@ -8,10 +8,10 @@
 
 	let { children }: Props = $props();
 
-	let title = $state(getContext<string>('title'));
+	let title = $derived(getContext<string>('title'));
 
 	$effect(() => {
-		title = getContext('title') ?? $page.route.id?.replace('tests/', '') ?? '';
+		title = getContext('title') ?? page.route.id?.replace('tests/', '') ?? '';
 	});
 </script>
 

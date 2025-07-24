@@ -18,11 +18,7 @@
 	};
 	let { player, onUpdatePlayerRelationships: onUpdatePlayerRelationship }: Props = $props();
 
-	let relations: PlayerRelationship[] = $state([]);
-
-	$effect(() => {
-		relations = $state.snapshot(player.relations);
-	});
+	let relations: PlayerRelationship[] = $derived($state.snapshot(player.relations));
 
 	function updateRelationship() {
 		onUpdatePlayerRelationship?.(relations);

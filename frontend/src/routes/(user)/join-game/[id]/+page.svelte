@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import GameCard from '$lib/components/game/GameCard.svelte';
 	import PlayerChooser from '$lib/components/game/newgame/PlayerChooser.svelte';
@@ -14,12 +14,12 @@
 	let game: GameWithPlayers | undefined = $state();
 	let race = $state(humanoid());
 	let name = $state($me.username);
-	let valid: boolean = $state(false);
+	let valid: boolean = $derived(!!(game && (game.openPlayerSlots ?? 0) > 0));
 	let error = $state('');
 
 	onMount(async () => {
 		try {
-			let id = parseInt($page.params.id);
+			let id = parseInt(page.params.id);
 			game = await GameService.loadGame(id);
 		} catch {
 			error = 'No open game found for the invite';
@@ -45,10 +45,6 @@
 			await goto(`/games/${game.id}`);
 		}
 	};
-
-	$effect(() => {
-		valid = !!(game && (game.openPlayerSlots ?? 0) > 0);
-	});
 </script>
 
 <ItemTitle>Join Public Game</ItemTitle>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import { CSError, addError } from '$lib/services/Errors';
@@ -9,14 +9,9 @@
 	import type { BattlePlan } from '$lib/types/cs';
 
 	const { game, player, updateBattlePlan } = getGameContext();
-	let num = parseInt($page.params.num);
+	let num = parseInt(page.params.num);
 
-	let plan: BattlePlan | undefined = $state();
-
-	$effect(() => {
-		plan = $player.battlePlans.find((p) => p.num == num);
-	});
-
+	let plan: BattlePlan | undefined = $derived($player.battlePlans.find((p) => p.num == num));
 	let error = $state('');
 
 	const onSubmit = async () => {

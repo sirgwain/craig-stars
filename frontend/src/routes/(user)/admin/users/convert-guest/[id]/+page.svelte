@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
 	import Select from '$lib/components/Select.svelte';
@@ -12,7 +12,7 @@
 
 	let users: UserSession[] = $state([]);
 	let games: GameWithPlayers[] = $state([]);
-	let id = $page.params.id;
+	let id = page.params.id;
 	let guestUser: UserSession | undefined = $state();
 	let targetUserId: number | undefined = $state();
 

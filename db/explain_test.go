@@ -103,10 +103,12 @@ func Test_client_explainQuery(t *testing.T) {
 			query:     generated.GetGamesWithPlayersForUser,
 			queryArgs: []any{1},
 			want: []string{
+				"CREATE BLOOM FILTER",
 				"INDEX 1",
 				"INDEX 2",
 				"LIST SUBQUERY 1",
 				"MULTI-INDEX OR",
+				"REUSE LIST SUBQUERY 1",
 				"SEARCH g USING INDEX idx_games_hostid_gameid (host_id=?)",
 				"SEARCH g USING INTEGER PRIMARY KEY (rowid=?)",
 				"SEARCH p USING COVERING INDEX idx_players_userid_gameid (user_id=?)",

@@ -9,8 +9,7 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
-		"moduleResolution": "bundler",
-		"importHelpers": true
+		"moduleResolution": "bundler"
 	},
 	"exclude": [
 		"node_modules/**",

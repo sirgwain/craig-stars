@@ -4,6 +4,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import type { SVGAttributes } from 'svelte/elements';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	type Line = {
 		path: string;
@@ -17,7 +18,7 @@
 
 	let lines: Line[] = $derived.by(() => {
 		let wormholes = $universe.wormholeIntels.filter((w) => w.destinationNum);
-		const numsUsed = new Set<number>();
+		const numsUsed = new SvelteSet<number>();
 		return wormholes
 			.filter((wormhole) => {
 				const used = numsUsed.has(wormhole.num) || numsUsed.has(wormhole.destinationNum ?? 0);
