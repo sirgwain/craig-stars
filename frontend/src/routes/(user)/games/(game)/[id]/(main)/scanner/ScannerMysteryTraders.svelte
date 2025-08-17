@@ -6,6 +6,6 @@
 </script>
 
 <!-- MysteryTraders -->
-{#each $universe.mysteryTraderIntels as mysteryTrader (mysteryTrader.num)}
+{#each $universe.mysteryTraderIntels as mysteryTrader (mysteryTrader.mapObject?.num)}
 	<ScannerMysteryTrader {mysteryTrader} />
 {/each}

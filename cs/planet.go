@@ -9,9 +9,9 @@ import (
 // Players also start the game knowing all planet names and locations.
 // I suppose these should have been named Stars, since they represent a star system, ah well..
 type Planet struct {
-	GameDBObject         `tstype:",extends"`
-	MapObject            `tstype:",extends"`
-	PlanetOrders         `tstype:",extends"`
+	GameDBObject
+	MapObject
+	PlanetOrders
 	Hab                  Hab        `json:"hab"`
 	BaseHab              Hab        `json:"baseHab"`
 	TerraformedAmount    Hab        `json:"terraformedAmount,omitzero"`
@@ -42,7 +42,7 @@ type PlanetOrders struct {
 }
 
 type PlanetSpec struct {
-	PlanetStarbaseSpec                        `tstype:",extends"`
+	PlanetStarbaseSpec
 	CanTerraform                              bool    `json:"canTerraform,omitempty"`
 	Defense                                   string  `json:"defense,omitempty"`
 	DefenseCoverage                           float64 `json:"defenseCoverage,omitempty"`

@@ -78,6 +78,19 @@ type playerBattlePlanNum struct {
 	Num       int
 }
 
+type HasPosition interface {
+	GetPosition() Vector
+}
+
+func NumMapObjectsWithin[T HasPosition](items []T, position Vector, radius float64) (count int) {
+	for _, item := range items {
+		if isPointInCircle(item.GetPosition(), position, radius) {
+			count++
+		}
+	}
+	return count
+}
+
 // override the universe logger
 // useful for logging turn specific logs
 func (u *Universe) setLogger(log zerolog.Logger) {
@@ -320,7 +333,7 @@ func (u *Universe) getAllMinefields() []*Minefield {
 // get a minefield that is close to a position
 func (u *Universe) getMinefieldNearPosition(playerNum int, position Vector, minefieldType MinefieldType) *Minefield {
 	for _, minefield := range u.Minefields {
-		if minefield.PlayerNum == playerNum && minefield.MinefieldType == minefieldType && isPointInCircle(position, minefield.Position, minefield.Spec.Radius) {
+		if minefield.PlayerNum == playerNum && minefield.MinefieldType == minefieldType && isPointInCircle(position, minefield.Position, minefield.Radius()) {
 			return minefield
 		}
 	}
@@ -666,16 +679,6 @@ func (u *Universe) deleteMinefield(minefield *Minefield) {
 		Str("Minefield", minefield.Name).
 		Msgf("deleted minefield")
 
-}
-
-// get the number of planets within a circle
-func (u *Universe) numPlanetsWithin(position Vector, radius float64) (numPlanets int) {
-	for _, planet := range u.Planets {
-		if isPointInCircle(planet.Position, position, radius) {
-			numPlanets++
-		}
-	}
-	return numPlanets
 }
 
 // get fleets within a circle

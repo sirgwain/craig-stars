@@ -20,7 +20,7 @@
 	const design: AnyShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
-			return $universe.getDesign(fleet.playerNum, designNum);
+			return $universe.getDesign(fleet.mapObject.playerNum, designNum);
 		}
 	});
 
@@ -35,7 +35,7 @@
 	}
 </script>
 
-<CommandTile title={hideTitle ? '' : fleet.name}>
+<CommandTile title={hideTitle ? '' : fleet.mapObject.name}>
 	<div class="grid grid-cols-2">
 		<div class="avatar border border-secondary p-2 bg-black m-auto relative">
 			{#if fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}

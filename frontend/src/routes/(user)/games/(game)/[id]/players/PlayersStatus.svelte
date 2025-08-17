@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { GameStateSetup } from '$lib/types/cs';
+	import { GameState } from '$lib/types/cs-proto';
 	import { onDestroy, onMount } from 'svelte';
 	import PlayerStatus from './PlayerStatus.svelte';
 
 	const { game, universe, loadStatus, startPollingStatus, stopPollingStatus } = getGameContext();
 
-	let settingUp = $derived($game.state === GameStateSetup);
+	let settingUp = $derived($game.state === GameState.SETUP);
 
 	onMount(async () => {
 		await loadStatus();

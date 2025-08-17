@@ -1,6 +1,15 @@
-import { Grav, Rad, Temp, type Hab, type HabType } from './cs';
+import { HabSchema, type Hab, type HabJson } from '$lib/types/cs-proto';
+import { create } from '@bufbuild/protobuf';
 
-export const HabTypes: HabType[] = [Grav, Temp, Rad] as const;
+export type HabType = number /* int */;
+export const Grav: HabType = 0;
+export const Temp: HabType = 1;
+export const Rad: HabType = 2;
+
+export function emptyHab(): Hab {
+	return create(HabSchema, {});
+}
+
 export const HabTypeShortString: string[] = ['grav', 'temp', 'rad'] as const;
 
 export function habTypeString(type: HabType): string {
@@ -16,7 +25,7 @@ export function habTypeString(type: HabType): string {
 	}
 }
 
-export function getHabValue(hab: Hab | undefined, type: HabType): number {
+export function getHabValue(hab: HabJson | undefined, type: HabType): number {
 	switch (type) {
 		case Grav:
 			return hab?.grav ?? 0;
@@ -32,22 +41,22 @@ export function getHabValue(hab: Hab | undefined, type: HabType): number {
 export function withHabValue(type: HabType, value: number): Hab {
 	switch (type) {
 		case Grav:
-			return { grav: value };
+			return create(HabSchema, { grav: value });
 		case Temp:
-			return { temp: value };
+			return create(HabSchema, { temp: value });
 		case Rad:
-			return { rad: value };
+			return create(HabSchema, { rad: value });
 		default:
 			throw new Error(`Invalid habType: ${type}`);
 	}
 }
 
-export function add(h1: Hab, h2: Hab) {
-	return {
+export function add(h1: Hab, h2: Hab): Hab {
+	return create(HabSchema, {
 		grav: (h1.grav ?? 0) + (h2.grav ?? 0),
 		temp: (h1.temp ?? 0) + (h2.temp ?? 0),
 		rad: (h1.rad ?? 0) + (h2.rad ?? 0)
-	};
+	});
 }
 
 const gravFormatter = new Intl.NumberFormat(undefined, {
@@ -91,25 +100,7 @@ export function getHabValueString(habType: HabType, value: number): string {
 	return `${value}`;
 }
 
-export function getLargest(hab: Hab): HabType {
-	hab.grav = hab.grav ?? 0;
-	hab.temp = hab.temp ?? 0;
-	hab.rad = hab.rad ?? 0;
-	if (hab.grav >= hab.temp) {
-		if (hab.grav >= hab.rad) {
-			return Grav;
-		} else {
-			return Rad;
-		}
-	} else {
-		if (hab.temp >= hab.rad) {
-			return Temp;
-		} else {
-			return Rad;
-		}
-	}
-}
-
-export function absSum(hab: Hab): number {
+export function absSum(hab: Hab | undefined): number {
+	if (!hab) return 0;
 	return Math.abs(hab.grav ?? 0) + Math.abs(hab.temp ?? 0) + Math.abs(hab.rad ?? 0);
 }

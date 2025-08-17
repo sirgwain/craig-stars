@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { filterFleet } from '$lib/types/Filter';
-	import { type Fleet } from '$lib/types/cs';
+	import type { Fleet } from '$lib/types/cs-proto';
 	import { equal } from '$lib/types/MapObject';
 	import ScannerWaypointLine from './ScannerWaypointLine.svelte';
 
@@ -14,12 +14,12 @@
 	);
 </script>
 
-{#each fleets as fleet (fleet.num)}
-	{#if fleet.waypoints && fleet.waypoints.length > 1 && fleet.num !== $commandedFleet?.num}
+{#each fleets as fleet (fleet.mapObject?.num)}
+	{#if fleet.fleetOrders?.waypoints && fleet.fleetOrders?.waypoints.length > 1 && fleet.mapObject?.num !== $commandedFleet?.mapObject?.num}
 		<ScannerWaypointLine {fleet} selectedWaypoint={$selectedWaypoint} />
 	{/if}
 {/each}
-{#if $commandedFleet && $commandedFleet.waypoints && $commandedFleet.waypoints.length > 1}
+{#if $commandedFleet && $commandedFleet.fleetOrders?.waypoints && $commandedFleet.fleetOrders?.waypoints.length > 1}
 	<ScannerWaypointLine
 		fleet={$commandedFleet}
 		selectedWaypoint={$selectedWaypoint}

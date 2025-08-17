@@ -26,22 +26,14 @@ type DBConn interface {
 	Close() error
 
 	// create a new read client
-	NewReadClient() Client
+	NewReadClient() ReadClient
 	NewReadWriteClient() Client
 
 	// wrap a function call inside a transaction
 	WrapInTransaction(wrap func(c Client) error) error
 }
 
-// A database Client interface is used to make all calls that modify the database
-type Client interface {
-	// private method used during DBConn Connect to upgrade a client
-	// this is
-	ensureUpgrade(context.Context) error
-
-	CreateUser(ctx context.Context, user *cs.User) (*cs.User, error)
-	DeleteGameUsers(ctx context.Context, gameID int64) error
-	DeleteUser(ctx context.Context, id int64) error
+type ReadClient interface {
 	GetGuestUser(ctx context.Context, hash string) (*cs.User, error)
 	GetGuestUserForGame(ctx context.Context, gameID int64, playerNum int) (*cs.User, error)
 	GetGuestUsersForGame(ctx context.Context, gameID int64) ([]cs.User, error)
@@ -49,24 +41,16 @@ type Client interface {
 	GetUserByUsername(ctx context.Context, username string) (*cs.User, error)
 	GetUsers(ctx context.Context) ([]cs.User, error)
 	GetUsersForGame(ctx context.Context, gameID int64) ([]cs.User, error)
-	UpdateUser(ctx context.Context, user *cs.User) error
-	UpdateUserSettings(ctx context.Context, user *cs.User) error
 
-	DeleteRace(ctx context.Context, id int64) error
-	DeleteUserRaces(ctx context.Context, userID int64) error
 	GetRace(ctx context.Context, id int64) (*cs.Race, error)
 	GetRaces(ctx context.Context) ([]cs.Race, error)
 	GetRacesForUser(ctx context.Context, userID int64) ([]cs.Race, error)
-	SaveRace(ctx context.Context, race *cs.Race) error
 
-	CreateTechStore(ctx context.Context, tech *cs.TechStore) (*cs.TechStore, error)
 	GetTechStore(ctx context.Context, id int64) (*cs.TechStore, error)
 	GetTechStores(ctx context.Context) ([]cs.TechStore, error)
 
 	GetRulesForGame(ctx context.Context, gameID int64) (*cs.Rules, error)
 
-	DeleteGame(ctx context.Context, id int64) error
-	DeleteUserGames(ctx context.Context, hostID int64) error
 	GetFullGame(ctx context.Context, id int64) (*cs.FullGame, error)
 	GetGame(ctx context.Context, id int64) (*cs.GameWithPlayers, error)
 	GetGameByHash(ctx context.Context, hash string) (*cs.GameWithPlayers, error)
@@ -75,15 +59,10 @@ type Client interface {
 	GetGamesForUser(ctx context.Context, userID int64) ([]cs.GameWithPlayers, error)
 	GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error)
 	GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error)
-	UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) error
-	SaveGame(ctx context.Context, game *cs.Game) error
-	UpdateGameHost(ctx context.Context, gameID int64, hostID int64) error
-	UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error
 
-	ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error
-	DeletePlayer(ctx context.Context, id int64) error
 	GetFullPlayerForGame(ctx context.Context, gameID, userID int64) (*cs.FullPlayer, error)
 	GetLightPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error)
+	GetLightPlayerForGameWithDesigns(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error)
 	GetPlayer(ctx context.Context, id int64) (*cs.Player, error)
 	GetPlayerForGame(ctx context.Context, gameID int64, playerNum int) (*cs.Player, error)
 	GetPlayerForGameAndUser(ctx context.Context, gameID int64, userID int64) (*cs.Player, error)
@@ -91,6 +70,58 @@ type Client interface {
 	GetPlayers(ctx context.Context) ([]*cs.Player, error)
 	GetPlayersForUser(ctx context.Context, userID int64) ([]*cs.Player, error)
 	GetPlayersStatusForGame(ctx context.Context, gameID int64) ([]*cs.Player, error)
+
+	GetShipDesign(ctx context.Context, id int64) (*cs.ShipDesign, error)
+	GetShipDesignByNum(ctx context.Context, gameID int64, playerNum, num int) (*cs.ShipDesign, error)
+	GetShipDesignsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.ShipDesign, error)
+
+	GetPlanet(ctx context.Context, id int64) (*cs.Planet, error)
+	GetPlanetByNum(ctx context.Context, gameID int64, num int) (*cs.Planet, error)
+	GetPlanetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Planet, error)
+
+	GetFleet(ctx context.Context, id int64) (*cs.Fleet, error)
+	GetFleetByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.Fleet, error)
+	GetFleetsByNums(ctx context.Context, gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error)
+	GetFleetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Fleet, error)
+
+	GetMinefield(ctx context.Context, id int64) (*cs.Minefield, error)
+	GetMinefieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.Minefield, error)
+	GetMinefieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Minefield, error)
+
+	GetMineralPacket(ctx context.Context, id int64) (*cs.MineralPacket, error)
+	GetMineralPacketByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineralPacket, error)
+	GetMineralPacketsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineralPacket, error)
+
+	GetSalvageByNum(ctx context.Context, gameID int64, num int) (*cs.Salvage, error)
+	GetSalvagesForGame(ctx context.Context, gameID int64) ([]*cs.Salvage, error)
+	GetSalvagesForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Salvage, error)
+}
+
+type WriteClient interface {
+	// private method used during DBConn Connect to upgrade a client
+	ensureUpgrade(context.Context) error
+
+	CreateUser(ctx context.Context, user *cs.User) (*cs.User, error)
+	DeleteGameGuestUsers(ctx context.Context, gameID int64) error
+	DeleteUser(ctx context.Context, id int64) error
+	UpdateUser(ctx context.Context, user *cs.User) error
+	UpdateUserSettings(ctx context.Context, user *cs.User) error
+
+	DeleteRace(ctx context.Context, id int64) error
+	DeleteUserRaces(ctx context.Context, userID int64) error
+	SaveRace(ctx context.Context, race *cs.Race) error
+
+	CreateTechStore(ctx context.Context, tech *cs.TechStore) (*cs.TechStore, error)
+
+	DeleteGame(ctx context.Context, id int64) error
+	DeleteUserGames(ctx context.Context, hostID int64) error
+	UpdateFullGame(ctx context.Context, fullGame *cs.FullGame) error
+	SaveGame(ctx context.Context, game *cs.Game) error
+	UpdateGameHost(ctx context.Context, gameID int64, hostID int64) error
+	UpdateGameState(ctx context.Context, gameID int64, state cs.GameState) error
+
+	ArchivePlayer(ctx context.Context, gameID int64, num int, archived bool) error
+	DeletePlayer(ctx context.Context, id int64) error
 	SavePlayer(ctx context.Context, player *cs.Player) error
 	SubmitPlayerTurn(ctx context.Context, gameID int64, num int, submittedTurn bool) error
 	UpdateLightPlayer(ctx context.Context, player *cs.Player) error
@@ -106,38 +137,25 @@ type Client interface {
 	UpdatePlayerUserID(ctx context.Context, player *cs.Player) error
 
 	DeleteShipDesign(ctx context.Context, id int64) error
-	GetShipDesign(ctx context.Context, id int64) (*cs.ShipDesign, error)
-	GetShipDesignByNum(ctx context.Context, gameID int64, playerNum, num int) (*cs.ShipDesign, error)
-	GetShipDesignsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.ShipDesign, error)
 	SaveShipDesign(ctx context.Context, shipDesign *cs.ShipDesign) error
 
-	GetPlanet(ctx context.Context, id int64) (*cs.Planet, error)
-	GetPlanetByNum(ctx context.Context, gameID int64, num int) (*cs.Planet, error)
-	GetPlanetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Planet, error)
 	SavePlanet(ctx context.Context, planet *cs.Planet) error
 	UpdatePlanetSpec(ctx context.Context, planet *cs.Planet) error
 
 	DeleteFleet(ctx context.Context, id int64) error
-	GetFleet(ctx context.Context, id int64) (*cs.Fleet, error)
-	GetFleetByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.Fleet, error)
-	GetFleetsByNums(ctx context.Context, gameID int64, playerNum int, nums []int) ([]*cs.Fleet, error)
-	GetFleetsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Fleet, error)
 	SaveFleet(ctx context.Context, fleet *cs.Fleet) error
 
-	GetMinefield(ctx context.Context, id int64) (*cs.Minefield, error)
-	GetMinefieldByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.Minefield, error)
-	GetMinefieldsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Minefield, error)
 	SaveMinefield(ctx context.Context, minefield *cs.Minefield) error
 
-	GetMineralPacket(ctx context.Context, id int64) (*cs.MineralPacket, error)
-	GetMineralPacketByNum(ctx context.Context, gameID int64, playerNum int, num int) (*cs.MineralPacket, error)
-	GetMineralPacketsForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.MineralPacket, error)
 	SaveMineralPacket(ctx context.Context, mineralPacket *cs.MineralPacket) error
 
-	GetSalvageByNum(ctx context.Context, gameID int64, num int) (*cs.Salvage, error)
-	GetSalvagesForGame(ctx context.Context, gameID int64) ([]*cs.Salvage, error)
-	GetSalvagesForPlayer(ctx context.Context, gameID int64, playerNum int) ([]*cs.Salvage, error)
 	SaveSalvage(ctx context.Context, salvage *cs.Salvage) error
+}
+
+// A database Client interface is used to make all calls that modify the database
+type Client interface {
+	ReadClient
+	WriteClient
 }
 
 type dbConn struct {
@@ -162,7 +180,7 @@ func NewConn() DBConn {
 	return &dbConn{}
 }
 
-func (conn *dbConn) NewReadClient() Client {
+func (conn *dbConn) NewReadClient() ReadClient {
 	return &client{
 		readConn:  conn.dbRead,
 		reader:    gen.New(conn.dbRead),

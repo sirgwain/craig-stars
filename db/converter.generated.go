@@ -351,7 +351,6 @@ func (c *GameConverter) ConvertGameMinefield(source *cs.Minefield) generated.Min
 		generatedMinefield2.Detonate = (*source).MinefieldOrders.Detonate
 		pCsMinefieldType := c.csMinefieldTypeToCsMinefieldType((*source).MinefieldType)
 		generatedMinefield2.MinefieldType = &pCsMinefieldType
-		generatedMinefield2.Spec = GameMinefieldSpecToMinefieldSpec((*source).Spec)
 		generatedMinefield2.Tags = GameTagsToTags((*source).MapObject.Tags)
 		generatedMinefield = generatedMinefield2
 	}
@@ -372,7 +371,6 @@ func (c *GameConverter) ConvertGameMinefieldToCreateParams(source *cs.Minefield)
 		generatedCreateMinefieldParams2.MinefieldType = &pCsMinefieldType
 		generatedCreateMinefieldParams2.NumMines = IntToInt64((*source).NumMines)
 		generatedCreateMinefieldParams2.Detonate = (*source).MinefieldOrders.Detonate
-		generatedCreateMinefieldParams2.Spec = GameMinefieldSpecToMinefieldSpec((*source).Spec)
 		generatedCreateMinefieldParams = generatedCreateMinefieldParams2
 	}
 	return generatedCreateMinefieldParams
@@ -392,7 +390,6 @@ func (c *GameConverter) ConvertGameMinefieldToUpdateParams(source *cs.Minefield)
 		generatedUpdateMinefieldParams2.MinefieldType = &pCsMinefieldType
 		generatedUpdateMinefieldParams2.NumMines = IntToInt64((*source).NumMines)
 		generatedUpdateMinefieldParams2.Detonate = (*source).MinefieldOrders.Detonate
-		generatedUpdateMinefieldParams2.Spec = GameMinefieldSpecToMinefieldSpec((*source).Spec)
 		generatedUpdateMinefieldParams2.ID = (*source).GameDBObject.ID
 		generatedUpdateMinefieldParams = generatedUpdateMinefieldParams2
 	}
@@ -745,17 +742,17 @@ func (c *GameConverter) ConvertGamePlayer(source *cs.Player) generated.Player {
 		generatedPlayer2.Relations = GamePlayerRelationshipsToPlayerRelationships((*source).Relations)
 		generatedPlayer2.CargoTransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
 		generatedPlayer2.Messages = GamePlayerMessagesToPlayerMessages((*source).Messages)
-		generatedPlayer2.BattleRecords = GameBattleRecordsToBattleRecords((*source).PlayerIntels.BattleRecords)
-		generatedPlayer2.PlayerIntels = GamePlayerIntelsToPlayerIntels((*source).PlayerIntels.PlayerIntels)
-		generatedPlayer2.ScoreIntels = GameScoreIntelsToScoreIntels((*source).PlayerIntels.ScoreIntels)
-		generatedPlayer2.PlanetIntels = GamePlanetIntelsToPlanetIntels((*source).PlayerIntels.PlanetIntels)
-		generatedPlayer2.FleetIntels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
-		generatedPlayer2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
-		generatedPlayer2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
-		generatedPlayer2.MinefieldIntels = GameMinefieldIntelsToMinefieldIntels((*source).PlayerIntels.MinefieldIntels)
-		generatedPlayer2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
-		generatedPlayer2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
-		generatedPlayer2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
+		generatedPlayer2.BattleRecords = GameBattleRecordsToBattleRecords((*source).Intels.BattleRecords)
+		generatedPlayer2.PlayerIntels = GamePlayerIntelsToPlayerIntels((*source).Intels.PlayerIntels)
+		generatedPlayer2.ScoreIntels = GameScoreIntelsToScoreIntels((*source).Intels.ScoreIntels)
+		generatedPlayer2.PlanetIntels = GamePlanetIntelsToPlanetIntels((*source).Intels.PlanetIntels)
+		generatedPlayer2.FleetIntels = GameFleetIntelsToFleetIntels((*source).Intels.FleetIntels)
+		generatedPlayer2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).Intels.ShipDesignIntels)
+		generatedPlayer2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).Intels.MineralPacketIntels)
+		generatedPlayer2.MinefieldIntels = GameMinefieldIntelsToMinefieldIntels((*source).Intels.MinefieldIntels)
+		generatedPlayer2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).Intels.WormholeIntels)
+		generatedPlayer2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).Intels.MysteryTraderIntels)
+		generatedPlayer2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).Intels.SalvageIntels)
 		generatedPlayer2.Race = GameRaceToPlayerRace((*source).Race)
 		generatedPlayer2.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
 		generatedPlayer2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
@@ -807,17 +804,17 @@ func (c *GameConverter) ConvertGamePlayerToCreateParams(source *cs.Player) gener
 		generatedCreatePlayerParams2.Relations = GamePlayerRelationshipsToPlayerRelationships((*source).Relations)
 		generatedCreatePlayerParams2.CargoTransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
 		generatedCreatePlayerParams2.Messages = GamePlayerMessagesToPlayerMessages((*source).Messages)
-		generatedCreatePlayerParams2.BattleRecords = GameBattleRecordsToBattleRecords((*source).PlayerIntels.BattleRecords)
-		generatedCreatePlayerParams2.PlayerIntels = GamePlayerIntelsToPlayerIntels((*source).PlayerIntels.PlayerIntels)
-		generatedCreatePlayerParams2.ScoreIntels = GameScoreIntelsToScoreIntels((*source).PlayerIntels.ScoreIntels)
-		generatedCreatePlayerParams2.PlanetIntels = GamePlanetIntelsToPlanetIntels((*source).PlayerIntels.PlanetIntels)
-		generatedCreatePlayerParams2.FleetIntels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
-		generatedCreatePlayerParams2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
-		generatedCreatePlayerParams2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
-		generatedCreatePlayerParams2.MinefieldIntels = GameMinefieldIntelsToMinefieldIntels((*source).PlayerIntels.MinefieldIntels)
-		generatedCreatePlayerParams2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
-		generatedCreatePlayerParams2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
-		generatedCreatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
+		generatedCreatePlayerParams2.BattleRecords = GameBattleRecordsToBattleRecords((*source).Intels.BattleRecords)
+		generatedCreatePlayerParams2.PlayerIntels = GamePlayerIntelsToPlayerIntels((*source).Intels.PlayerIntels)
+		generatedCreatePlayerParams2.ScoreIntels = GameScoreIntelsToScoreIntels((*source).Intels.ScoreIntels)
+		generatedCreatePlayerParams2.PlanetIntels = GamePlanetIntelsToPlanetIntels((*source).Intels.PlanetIntels)
+		generatedCreatePlayerParams2.FleetIntels = GameFleetIntelsToFleetIntels((*source).Intels.FleetIntels)
+		generatedCreatePlayerParams2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).Intels.ShipDesignIntels)
+		generatedCreatePlayerParams2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).Intels.MineralPacketIntels)
+		generatedCreatePlayerParams2.MinefieldIntels = GameMinefieldIntelsToMinefieldIntels((*source).Intels.MinefieldIntels)
+		generatedCreatePlayerParams2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).Intels.WormholeIntels)
+		generatedCreatePlayerParams2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).Intels.MysteryTraderIntels)
+		generatedCreatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).Intels.SalvageIntels)
 		generatedCreatePlayerParams2.Race = GameRaceToPlayerRace((*source).Race)
 		generatedCreatePlayerParams2.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
 		generatedCreatePlayerParams2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
@@ -869,17 +866,17 @@ func (c *GameConverter) ConvertGamePlayerToUpdateParams(source *cs.Player) gener
 		generatedUpdatePlayerParams2.Relations = GamePlayerRelationshipsToPlayerRelationships((*source).Relations)
 		generatedUpdatePlayerParams2.CargoTransfers = GameCargoTransfersToCargoTransfers((*source).PlayerOrders.CargoTransfers)
 		generatedUpdatePlayerParams2.Messages = GamePlayerMessagesToPlayerMessages((*source).Messages)
-		generatedUpdatePlayerParams2.BattleRecords = GameBattleRecordsToBattleRecords((*source).PlayerIntels.BattleRecords)
-		generatedUpdatePlayerParams2.PlayerIntels = GamePlayerIntelsToPlayerIntels((*source).PlayerIntels.PlayerIntels)
-		generatedUpdatePlayerParams2.ScoreIntels = GameScoreIntelsToScoreIntels((*source).PlayerIntels.ScoreIntels)
-		generatedUpdatePlayerParams2.PlanetIntels = GamePlanetIntelsToPlanetIntels((*source).PlayerIntels.PlanetIntels)
-		generatedUpdatePlayerParams2.FleetIntels = GameFleetIntelsToFleetIntels((*source).PlayerIntels.FleetIntels)
-		generatedUpdatePlayerParams2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).PlayerIntels.ShipDesignIntels)
-		generatedUpdatePlayerParams2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).PlayerIntels.MineralPacketIntels)
-		generatedUpdatePlayerParams2.MinefieldIntels = GameMinefieldIntelsToMinefieldIntels((*source).PlayerIntels.MinefieldIntels)
-		generatedUpdatePlayerParams2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).PlayerIntels.WormholeIntels)
-		generatedUpdatePlayerParams2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).PlayerIntels.MysteryTraderIntels)
-		generatedUpdatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).PlayerIntels.SalvageIntels)
+		generatedUpdatePlayerParams2.BattleRecords = GameBattleRecordsToBattleRecords((*source).Intels.BattleRecords)
+		generatedUpdatePlayerParams2.PlayerIntels = GamePlayerIntelsToPlayerIntels((*source).Intels.PlayerIntels)
+		generatedUpdatePlayerParams2.ScoreIntels = GameScoreIntelsToScoreIntels((*source).Intels.ScoreIntels)
+		generatedUpdatePlayerParams2.PlanetIntels = GamePlanetIntelsToPlanetIntels((*source).Intels.PlanetIntels)
+		generatedUpdatePlayerParams2.FleetIntels = GameFleetIntelsToFleetIntels((*source).Intels.FleetIntels)
+		generatedUpdatePlayerParams2.ShipDesignIntels = GameShipDesignIntelsToShipDesignIntels((*source).Intels.ShipDesignIntels)
+		generatedUpdatePlayerParams2.MineralPacketIntels = GameMineralPacketIntelsToMineralPacketIntels((*source).Intels.MineralPacketIntels)
+		generatedUpdatePlayerParams2.MinefieldIntels = GameMinefieldIntelsToMinefieldIntels((*source).Intels.MinefieldIntels)
+		generatedUpdatePlayerParams2.WormholeIntels = GameWormholeIntelsToWormholeIntels((*source).Intels.WormholeIntels)
+		generatedUpdatePlayerParams2.MysteryTraderIntels = GameMysteryTraderIntelsToMysteryTraderIntels((*source).Intels.MysteryTraderIntels)
+		generatedUpdatePlayerParams2.SalvageIntels = GameSalvageIntelsToSalvageIntels((*source).Intels.SalvageIntels)
 		generatedUpdatePlayerParams2.Race = GameRaceToPlayerRace((*source).Race)
 		generatedUpdatePlayerParams2.Stats = GamePlayerStatsToPlayerStats((*source).Stats)
 		generatedUpdatePlayerParams2.ScoreHistory = GamePlayerScoresToPlayerScores((*source).ScoreHistory)
@@ -935,7 +932,6 @@ func (c *GameConverter) ConvertGameRace(source *cs.Race) generated.Race {
 		generatedRace2.ResearchCostElectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
 		generatedRace2.ResearchCostBiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
 		generatedRace2.TechsStartHigh = (*source).TechsStartHigh
-		generatedRace2.Spec = GameRaceSpecToRaceSpec((*source).Spec)
 		generatedRace = generatedRace2
 	}
 	return generatedRace
@@ -975,7 +971,6 @@ func (c *GameConverter) ConvertGameRaceToCreateParams(source *cs.Race) generated
 		generatedCreateRaceParams2.ResearchCostElectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
 		generatedCreateRaceParams2.ResearchCostBiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
 		generatedCreateRaceParams2.TechsStartHigh = (*source).TechsStartHigh
-		generatedCreateRaceParams2.Spec = GameRaceSpecToRaceSpec((*source).Spec)
 		generatedCreateRaceParams = generatedCreateRaceParams2
 	}
 	return generatedCreateRaceParams
@@ -1015,7 +1010,6 @@ func (c *GameConverter) ConvertGameRaceToUpdateParams(source *cs.Race) generated
 		generatedUpdateRaceParams2.ResearchCostElectronics = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Electronics)
 		generatedUpdateRaceParams2.ResearchCostBiotechnology = c.csResearchCostLevelToCsResearchCostLevel((*source).ResearchCost.Biotechnology)
 		generatedUpdateRaceParams2.TechsStartHigh = (*source).TechsStartHigh
-		generatedUpdateRaceParams2.Spec = GameRaceSpecToRaceSpec((*source).Spec)
 		generatedUpdateRaceParams2.ID = (*source).DBObject.ID
 		generatedUpdateRaceParams = generatedUpdateRaceParams2
 	}
@@ -1261,59 +1255,62 @@ func (c *GameConverter) ConvertGames(source []generated.Game) []cs.Game {
 	}
 	return csGameList
 }
-func (c *GameConverter) ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.PlayerStatus {
-	var csPlayerStatus cs.PlayerStatus
-	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
-	csPlayerStatus.UserID = NullInt64ToInt64(source.UserID)
-	csPlayerStatus.Name = NullStringToString(source.Name)
-	csPlayerStatus.Num = NullInt64ToInt(source.Num)
-	csPlayerStatus.Ready = NullBoolToBool(source.Ready)
-	csPlayerStatus.AIControlled = NullBoolToBool(source.AiControlled)
+func (c *GameConverter) ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.GamePlayer {
+	var csGamePlayer cs.GamePlayer
+	csGamePlayer.ID = NullInt64ToInt64(source.ID)
+	csGamePlayer.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
+	csGamePlayer.UserID = NullInt64ToInt64(source.UserID)
+	csGamePlayer.Name = NullStringToString(source.Name)
+	csGamePlayer.Num = NullInt64ToInt(source.Num)
+	csGamePlayer.Ready = NullBoolToBool(source.Ready)
+	csGamePlayer.AIControlled = NullBoolToBool(source.AiControlled)
 	if source.AiDifficulty != nil {
-		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
+		csGamePlayer.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
 	}
-	csPlayerStatus.Guest = NullBoolToBool(source.Guest)
-	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.SubmittedTurn)
-	csPlayerStatus.Color = NullStringToString(source.Color)
-	csPlayerStatus.Victor = NullBoolToBool(source.Victor)
-	csPlayerStatus.Archived = NullBoolToBool(source.Archived)
-	return csPlayerStatus
+	csGamePlayer.Guest = NullBoolToBool(source.Guest)
+	csGamePlayer.SubmittedTurn = NullBoolToBool(source.SubmittedTurn)
+	csGamePlayer.Color = NullStringToString(source.Color)
+	csGamePlayer.Victor = NullBoolToBool(source.Victor)
+	csGamePlayer.Archived = NullBoolToBool(source.Archived)
+	return csGamePlayer
 }
-func (c *GameConverter) ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.PlayerStatus {
-	var csPlayerStatus cs.PlayerStatus
-	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
-	csPlayerStatus.UserID = NullInt64ToInt64(source.UserID)
-	csPlayerStatus.Name = NullStringToString(source.Name)
-	csPlayerStatus.Num = NullInt64ToInt(source.Num)
-	csPlayerStatus.Ready = NullBoolToBool(source.Ready)
-	csPlayerStatus.AIControlled = NullBoolToBool(source.AiControlled)
+func (c *GameConverter) ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.GamePlayer {
+	var csGamePlayer cs.GamePlayer
+	csGamePlayer.ID = NullInt64ToInt64(source.ID)
+	csGamePlayer.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
+	csGamePlayer.UserID = NullInt64ToInt64(source.UserID)
+	csGamePlayer.Name = NullStringToString(source.Name)
+	csGamePlayer.Num = NullInt64ToInt(source.Num)
+	csGamePlayer.Ready = NullBoolToBool(source.Ready)
+	csGamePlayer.AIControlled = NullBoolToBool(source.AiControlled)
 	if source.AiDifficulty != nil {
-		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
+		csGamePlayer.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
 	}
-	csPlayerStatus.Guest = NullBoolToBool(source.Guest)
-	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.SubmittedTurn)
-	csPlayerStatus.Color = NullStringToString(source.Color)
-	csPlayerStatus.Victor = NullBoolToBool(source.Victor)
-	csPlayerStatus.Archived = NullBoolToBool(source.Archived)
-	return csPlayerStatus
+	csGamePlayer.Guest = NullBoolToBool(source.Guest)
+	csGamePlayer.SubmittedTurn = NullBoolToBool(source.SubmittedTurn)
+	csGamePlayer.Color = NullStringToString(source.Color)
+	csGamePlayer.Victor = NullBoolToBool(source.Victor)
+	csGamePlayer.Archived = NullBoolToBool(source.Archived)
+	return csGamePlayer
 }
-func (c *GameConverter) ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.PlayerStatus {
-	var csPlayerStatus cs.PlayerStatus
-	csPlayerStatus.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
-	csPlayerStatus.UserID = NullInt64ToInt64(source.UserID)
-	csPlayerStatus.Name = NullStringToString(source.Name)
-	csPlayerStatus.Num = NullInt64ToInt(source.Num)
-	csPlayerStatus.Ready = NullBoolToBool(source.Ready)
-	csPlayerStatus.AIControlled = NullBoolToBool(source.AiControlled)
+func (c *GameConverter) ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.GamePlayer {
+	var csGamePlayer cs.GamePlayer
+	csGamePlayer.ID = NullInt64ToInt64(source.ID)
+	csGamePlayer.UpdatedAt = c.sqlNullTimeToPTimeTime(source.UpdatedAt)
+	csGamePlayer.UserID = NullInt64ToInt64(source.UserID)
+	csGamePlayer.Name = NullStringToString(source.Name)
+	csGamePlayer.Num = NullInt64ToInt(source.Num)
+	csGamePlayer.Ready = NullBoolToBool(source.Ready)
+	csGamePlayer.AIControlled = NullBoolToBool(source.AiControlled)
 	if source.AiDifficulty != nil {
-		csPlayerStatus.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
+		csGamePlayer.AIDifficulty = c.csAIDifficultyToCsAIDifficulty(*source.AiDifficulty)
 	}
-	csPlayerStatus.Guest = NullBoolToBool(source.Guest)
-	csPlayerStatus.SubmittedTurn = NullBoolToBool(source.SubmittedTurn)
-	csPlayerStatus.Color = NullStringToString(source.Color)
-	csPlayerStatus.Victor = NullBoolToBool(source.Victor)
-	csPlayerStatus.Archived = NullBoolToBool(source.Archived)
-	return csPlayerStatus
+	csGamePlayer.Guest = NullBoolToBool(source.Guest)
+	csGamePlayer.SubmittedTurn = NullBoolToBool(source.SubmittedTurn)
+	csGamePlayer.Color = NullStringToString(source.Color)
+	csGamePlayer.Victor = NullBoolToBool(source.Victor)
+	csGamePlayer.Archived = NullBoolToBool(source.Archived)
+	return csGamePlayer
 }
 func (c *GameConverter) ConvertGetPlayerForGameAndUserRowToShipDesign(source generated.GetPlayerForGameAndUserRow) generated.ShipDesign {
 	var generatedShipDesign generated.ShipDesign
@@ -1417,7 +1414,6 @@ func (c *GameConverter) ConvertMinefield(source generated.Minefield) *cs.Minefie
 		csMinefield.MinefieldType = c.csMinefieldTypeToCsMinefieldType(*source.MinefieldType)
 	}
 	csMinefield.NumMines = Int64ToInt(source.NumMines)
-	csMinefield.Spec = MinefieldSpecToGameMinefieldSpec(source.Spec)
 	return &csMinefield
 }
 func (c *GameConverter) ConvertMinefields(source []generated.Minefield) []*cs.Minefield {
@@ -1513,7 +1509,7 @@ func (c *GameConverter) ConvertPlayer(source generated.Player) cs.Player {
 	var csPlayer cs.Player
 	csPlayer.GameDBObject = c.generatedPlayerToCsGameDBObject(source)
 	csPlayer.PlayerOrders = c.generatedPlayerToCsPlayerOrders(source)
-	csPlayer.PlayerIntels = c.generatedPlayerToCsPlayerIntels(source)
+	csPlayer.Intels = c.generatedPlayerToCsIntels(source)
 	csPlayer.PlayerPlans = c.generatedPlayerToCsPlayerPlans(source)
 	csPlayer.UserID = source.UserID
 	csPlayer.Name = source.Name
@@ -1605,7 +1601,6 @@ func (c *GameConverter) ConvertRace(source generated.Race) cs.Race {
 	csRace.NumMines = Int64ToInt(source.NumMines)
 	csRace.ResearchCost = ExtendResearchCost(source)
 	csRace.TechsStartHigh = source.TechsStartHigh
-	csRace.Spec = RaceSpecToGameRaceSpec(source.Spec)
 	return csRace
 }
 func (c *GameConverter) ConvertRaces(source []generated.Race) []cs.Race {
@@ -1871,20 +1866,20 @@ func (c *GameConverter) generatedPlayerToCsGameDBObject(source generated.Player)
 	csGameDBObject.UpdatedAt = c.timeTimeToTimeTime(source.UpdatedAt)
 	return csGameDBObject
 }
-func (c *GameConverter) generatedPlayerToCsPlayerIntels(source generated.Player) cs.PlayerIntels {
-	var csPlayerIntels cs.PlayerIntels
-	csPlayerIntels.BattleRecords = BattleRecordsToGameBattleRecords(source.BattleRecords)
-	csPlayerIntels.PlayerIntels = PlayerIntelsToGamePlayerIntels(source.PlayerIntels)
-	csPlayerIntels.ScoreIntels = ScoreIntelsToGameScoreIntels(source.ScoreIntels)
-	csPlayerIntels.PlanetIntels = PlanetIntelsToGamePlanetIntels(source.PlanetIntels)
-	csPlayerIntels.FleetIntels = FleetIntelsToGameFleetIntels(source.FleetIntels)
-	csPlayerIntels.ShipDesignIntels = ShipDesignIntelsToGameShipDesignIntels(source.ShipDesignIntels)
-	csPlayerIntels.MineralPacketIntels = MineralPacketIntelsToGameMineralPacketIntels(source.MineralPacketIntels)
-	csPlayerIntels.MinefieldIntels = MinefieldIntelsToGameMinefieldIntels(source.MinefieldIntels)
-	csPlayerIntels.WormholeIntels = WormholeIntelsToGameWormholeIntels(source.WormholeIntels)
-	csPlayerIntels.MysteryTraderIntels = MysteryTraderIntelsToGameMysteryTraderIntels(source.MysteryTraderIntels)
-	csPlayerIntels.SalvageIntels = SalvageIntelsToGameSalvageIntels(source.SalvageIntels)
-	return csPlayerIntels
+func (c *GameConverter) generatedPlayerToCsIntels(source generated.Player) cs.Intels {
+	var csIntels cs.Intels
+	csIntels.BattleRecords = BattleRecordsToGameBattleRecords(source.BattleRecords)
+	csIntels.PlayerIntels = PlayerIntelsToGamePlayerIntels(source.PlayerIntels)
+	csIntels.ScoreIntels = ScoreIntelsToGameScoreIntels(source.ScoreIntels)
+	csIntels.PlanetIntels = PlanetIntelsToGamePlanetIntels(source.PlanetIntels)
+	csIntels.FleetIntels = FleetIntelsToGameFleetIntels(source.FleetIntels)
+	csIntels.ShipDesignIntels = ShipDesignIntelsToGameShipDesignIntels(source.ShipDesignIntels)
+	csIntels.MineralPacketIntels = MineralPacketIntelsToGameMineralPacketIntels(source.MineralPacketIntels)
+	csIntels.MinefieldIntels = MinefieldIntelsToGameMinefieldIntels(source.MinefieldIntels)
+	csIntels.WormholeIntels = WormholeIntelsToGameWormholeIntels(source.WormholeIntels)
+	csIntels.MysteryTraderIntels = MysteryTraderIntelsToGameMysteryTraderIntels(source.MysteryTraderIntels)
+	csIntels.SalvageIntels = SalvageIntelsToGameSalvageIntels(source.SalvageIntels)
+	return csIntels
 }
 func (c *GameConverter) generatedPlayerToCsPlayerOrders(source generated.Player) cs.PlayerOrders {
 	var csPlayerOrders cs.PlayerOrders

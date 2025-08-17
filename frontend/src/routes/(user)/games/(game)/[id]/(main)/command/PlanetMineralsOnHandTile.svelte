@@ -54,22 +54,22 @@
 	function onMinesTooltip(e: PointerEvent) {
 		e.preventDefault();
 		showTooltip<MinesTooltipProps>(e.x, e.y, MinesTooltip, {
-			planetName: planet.name,
+			planetName: planet.mapObject.name,
 			mines: planet.mines,
 			maxMines: planet.spec.maxMines ?? 0,
 			maxPossibleMines: planet.spec.maxPossibleMines ?? 0,
-			canBuildMines: $player.race.spec?.innateMining ?? false
+			canBuildMines: $player.race.spec.innateMining ?? false
 		});
 	}
 
 	function onFactoriesTooltip(e: PointerEvent) {
 		e.preventDefault();
 		showTooltip<FactoriesTooltipProps>(e.x, e.y, FactoriesTooltip, {
-			planetName: planet.name,
+			planetName: planet.mapObject.name,
 			factories: planet.factories,
 			maxFactories: planet.spec.maxFactories ?? 0,
 			maxPossibleFactories: planet.spec.maxPossibleFactories ?? 0,
-			canBuildFactories: $player.race.spec?.innateResources ?? false
+			canBuildFactories: $player.race.spec.innateResources ?? false
 		});
 	}
 </script>
@@ -94,7 +94,7 @@
 		<div class="flex justify-between cursor-help" onpointerdown={onMinesTooltip}>
 			<div class="text-tile-item-title">Mines</div>
 			<div>
-				{#if $player.race.spec?.innateMining}
+				{#if $player.race.spec.innateMining}
 					{planet.mines}*
 				{:else}
 					{planet.mines} of {planet.spec.maxMines ?? 0}
@@ -104,7 +104,7 @@
 		<div class="flex justify-between cursor-help" onpointerdown={onFactoriesTooltip}>
 			<div class="text-tile-item-title">Factories</div>
 			<div>
-				{#if $player.race.spec?.innateResources}
+				{#if $player.race.spec.innateResources}
 					n/a
 				{:else}
 					{planet.factories} of {planet.spec.maxFactories ?? 0}

@@ -188,8 +188,8 @@ func Test_updateFleetTargets(t *testing.T) {
 
 		player.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationNeutral}}
 		enemyPlayer.Relations = []PlayerRelationship{{Relation: PlayerRelationNeutral}, {Relation: PlayerRelationFriend}}
-		player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
-		enemyPlayer.PlayerIntels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
+		player.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
+		enemyPlayer.Intels.PlayerIntels = player.defaultPlayerIntels([]*Player{player, enemyPlayer})
 		// setup initial planet intels so turn generation works
 		enemyPlayer.initDefaultPlanetIntels(game.Planets)
 
@@ -218,7 +218,7 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 
 	// make player1 an IT
 	player1.Race.PRT = IT
-	player1.Race.Spec = computeRaceSpec(&player1.Race, &rules)
+	player1.Race.Spec = ComputeRaceSpec(&player1.Race, &rules)
 
 	// add a stargate to the space station
 	starbase1 := testSpaceStation(player1, planet1)
@@ -321,7 +321,7 @@ func Test_scanWormholes(t *testing.T) {
 
 			// make a new scanner
 			discoverer := newDiscoverer(testLogger, player)
-			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
+			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.Intels.PlayerIntels)), discoverer}
 			scan.scanWormholes(tt.args.scanners)
 
 			// check the waypoints returned vs what we want
@@ -423,7 +423,7 @@ func Test_scanMinefields(t *testing.T) {
 				MapObject: MapObject{
 					Type:      MapObjectTypeMinefield,
 					PlayerNum: 2, Num: 1, Name: "Humanoids Standard Minefield #1"},
-				MinefieldType: MinefieldTypeStandard, NumMines: 1, Spec: MinefieldSpec{Radius: 1}},
+				MinefieldType: MinefieldTypeStandard, NumMines: 1},
 			},
 		},
 		{
@@ -445,7 +445,7 @@ func Test_scanMinefields(t *testing.T) {
 					Type:      MapObjectTypeMinefield,
 					Position:  Vector{12, 0},
 					PlayerNum: 2, Num: 1, Name: "Humanoids Standard Minefield #1"},
-				MinefieldType: MinefieldTypeStandard, NumMines: 100, Spec: MinefieldSpec{Radius: 10}},
+				MinefieldType: MinefieldTypeStandard, NumMines: 100},
 			},
 		},
 	}
@@ -456,16 +456,13 @@ func Test_scanMinefields(t *testing.T) {
 
 			players := []*Player{player}
 
-			for _, mf := range tt.fields.minefields {
-				mf.Spec.Radius = mf.Radius()
-			}
 			universe := NewUniverse(testLogger, &rules)
 			universe.Minefields = tt.fields.minefields
 			universe.buildMaps(players)
 
 			// make a new scanner
 			discoverer := newDiscoverer(testLogger, player)
-			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.PlayerIntels.PlayerIntels)), discoverer}
+			scan := playerScanner{&universe, &rules, player, players, make(map[int]bool, len(player.Intels.PlayerIntels)), discoverer}
 			scan.scanMinefields(tt.args.scanners)
 
 			// check the waypoints returned vs what we want

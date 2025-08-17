@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ProductionQueueItemLine from '$lib/components/game/ProductionQueueItemLine.svelte';
+	import { MapObjectTargetSchema, type ProductionQueueItem } from '$lib/types/cs-proto';
 	import type {
 		ClearProductionQueueProps,
 		ShowProductionQueueDialogProps
@@ -8,8 +9,8 @@
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { emptyVector } from '$lib/types/Vector';
-	import { type ProductionQueueItem } from '$lib/types/cs';
 	import CommandTile from './CommandTile.svelte';
+	import { create } from '@bufbuild/protobuf';
 
 	const { settings, universe } = getGameContext();
 
@@ -19,11 +20,11 @@
 		ShowProductionQueueDialogProps;
 
 	let { planet, onShowProductionQueueDialog, onClearProductionQueue }: Props = $props();
-	let queueItems: ProductionQueueItem[] | undefined = $derived(planet.productionQueue);
+	let queueItems: ProductionQueueItem[] | undefined = $derived(planet.planetOrders.productionQueue);
 
 	const clear = async () => {
 		if (planet && confirm('Are you sure you want to clear the planet production queue?')) {
-			planet.productionQueue = [];
+			planet.planetOrders.productionQueue = [];
 			onClearProductionQueue?.({ planet });
 		}
 	};
@@ -31,7 +32,7 @@
 
 <CommandTile title="Production">
 	<div class="bg-base-100 h-20 overflow-y-auto">
-		{#if planet.productionQueue}
+		{#if planet.planetOrders.productionQueue}
 			<ul class="w-full h-full">
 				{#if queueItems}
 					{#each queueItems as queueItem, index (index)}
@@ -43,13 +44,15 @@
 			</ul>
 		{/if}
 	</div>
-	{#if planet.routeTargetNum}
-		{@const routeDest = $universe.getMapObject({
-			targetPosition: emptyVector,
-			targetType: planet.routeTargetType ?? '',
-			targetNum: planet.routeTargetNum ?? 0,
-			targetPlayerNum: planet.routeTargetPlayerNum ?? 0
-		})}
+	{#if planet.planetOrders.routeTargetNum}
+		{@const routeDest = $universe.getMapObject(
+			create(MapObjectTargetSchema, {
+				targetPosition: emptyVector(),
+				targetType: planet.planetOrders.routeTargetType ?? '',
+				targetNum: planet.planetOrders.routeTargetNum ?? 0,
+				targetPlayerNum: planet.planetOrders.routeTargetPlayerNum ?? 0
+			})
+		)}
 		<div class="flex justify-between mt-1">
 			<span>Route to</span>
 			<span>{getMapObjectName(routeDest)}</span>

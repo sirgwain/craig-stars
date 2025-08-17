@@ -1,8 +1,6 @@
 <script lang="ts">
 	import TorpedoHit from '$lib/components/icons/TorpedoHit.svelte';
 	import { Battle } from '$lib/types/Battle';
-	import { TokenActionBeamFire, TokenActionTorpedoFire } from '$lib/types/cs';
-	import { subtract } from '$lib/types/Vector';
 
 	type Props = {
 		battle: Battle;
@@ -14,8 +12,11 @@
 	let actionToken = $derived(battle.getActionToken(phase ?? 0));
 	let action = $derived(battle.getActionForPhase(phase ?? 0));
 	let targetVector = $derived.by(() => {
-		if (action && actionToken) {
-			const target = subtract(action.to, actionToken);
+		if (action?.to && actionToken) {
+			const target = {
+				x: (action.to.x ?? 0) - actionToken.x,
+				y: (action.to.y ?? 0) - actionToken.y
+			};
 
 			if (target.x === 0 && target.y === 0) {
 				target.x = 0.5;
@@ -27,10 +28,11 @@
 
 		return undefined;
 	});
+
 </script>
 
 <div class="absolute w-full h-full z-30 pointer-events-none">
-	{#if actionToken?.action?.type === TokenActionBeamFire && targetVector}
+	{#if actionToken?.action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_BEAM_FIRE' && targetVector}
 		<div class="relative left-0 top-0 w-full h-full">
 			<svg class="w-full h-full">
 				<path
@@ -41,12 +43,12 @@
 				/>
 			</svg>
 		</div>
-	{:else if action?.type === TokenActionTorpedoFire}
+	{:else if action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_TORPEDO_FIRE' && action?.to}
 		<div class="relative left-0 top-0 w-full h-full">
 			<TorpedoHit
 				class="w-8 h-8 fill-transparent"
 				fill="#FF0000"
-				style={`transform: translate(${action.to.x * 66 + 32 - 16}px, ${action.to.y * 68 + 32 - 16}px)`}
+				style={`transform: translate(${(action.to?.x ?? 0) * 66 + 32 - 16}px, ${(action.to?.y ?? 0) * 68 + 32 - 16}px)`}
 			/>
 		</div>
 	{/if}

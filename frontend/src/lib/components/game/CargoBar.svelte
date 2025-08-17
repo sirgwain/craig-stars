@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cargoPercent, totalCargo } from '$lib/types/Cargo';
-	import { type Cargo } from '$lib/types/cs';
+	import { cargoPercent, emptyCargo, totalCargo } from '$lib/types/Cargo';
+	import type { Cargo } from '$lib/types/cs-proto';
 
 	type Props = {
 		value?: Cargo;
@@ -10,12 +10,7 @@
 	};
 
 	let {
-		value = {
-			ironium: 0,
-			boranium: 0,
-			germanium: 0,
-			colonists: 0
-		},
+		value = emptyCargo(),
 		capacity = 0,
 		canTransferCargo = false,
 		onPointerDown: onPointerDown

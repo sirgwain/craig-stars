@@ -34,7 +34,7 @@ func (c *gamer) CreateGame(hostID int64, settings GameSettings) *Game {
 // create a new player
 func (c *gamer) NewPlayer(userID int64, race Race, rules *Rules) *Player {
 	player := NewPlayer(userID, &race)
-	player.Race.Spec = computeRaceSpec(&player.Race, rules)
+	player.Race.Spec = ComputeRaceSpec(&player.Race, rules)
 
 	return player
 }

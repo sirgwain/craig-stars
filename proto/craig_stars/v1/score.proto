@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+message PlayerScore {
+  int32 planets = 1;
+  int32 starbases = 2;
+  int32 unarmed_ships = 3;
+  int32 escort_ships = 4;
+  int32 capital_ships = 5;
+  int32 tech_levels = 6;
+  int32 resources = 7;
+  int32 score = 8;
+  int32 rank = 9;
+  uint32 achieved_victory_conditions = 10;
+}

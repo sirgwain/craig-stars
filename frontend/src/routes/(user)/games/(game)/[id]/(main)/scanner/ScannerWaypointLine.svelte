@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { StargateWarpSpeed } from '$lib/types/cs';
-	import type { Fleet } from '$lib/types/cs';
-	import type { Waypoint } from '$lib/types/cs';
+	import type { Fleet, Waypoint } from '$lib/types/cs-proto';
+	import { StargateWarpSpeed } from '$lib/types/Consts';
 	import { distance } from '$lib/types/Vector';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
-	import { getScannerContext } from './Scanner';
 	import type { SVGAttributes } from 'svelte/elements';
+	import { getScannerContext } from './Scanner';
 
 	const { scale } = getScannerContext();
 	const { xGet, yGet, xScale } = getContext<LayerCake>('LayerCake');
@@ -27,12 +26,12 @@
 	let segments: WaypointLineSegment[] = $derived.by(() => {
 		const result = [];
 
-		if (fleet.waypoints) {
+		if (fleet.fleetOrders?.waypoints) {
 			const heading = fleet.heading ?? { x: 0, y: 0 };
-			for (let i = 1; i < fleet.waypoints.length; i++) {
-				const wp0 = fleet.waypoints[i - 1];
-				const wp1 = fleet.waypoints[i];
-				const distancePerYear = wp1.warpSpeed * wp1.warpSpeed;
+			for (let i = 1; i < fleet.fleetOrders?.waypoints.length; i++) {
+				const wp0 = fleet.fleetOrders.waypoints[i - 1]!;
+				const wp1 = fleet.fleetOrders.waypoints[i]!;
+				const distancePerYear = (wp1.warpSpeed ?? 0) * (wp1.warpSpeed ?? 0);
 				const dist = Math.floor(distance(wp0.position, wp1.position));
 				let [x1, y1, x2, y2] = [$xGet(wp0), $yGet(wp0), $xGet(wp1), $yGet(wp1)];
 

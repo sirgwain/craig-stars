@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AR, type Race } from '$lib/types/cs';
+	import { Prt, type Race } from '$lib/types/cs-proto';
 	import SpinnerNumberText from '../../../../lib/components/SpinnerNumberText.svelte';
 
 	type Props = {
@@ -13,7 +13,7 @@
 	}
 </script>
 
-{#if race.prt === AR}
+{#if race.prt === Prt.AR}
 	<p>
 		<SpinnerNumberText bind:value={race.popEfficiency} step={1} min={7} max={25}>
 			{#snippet begin()}

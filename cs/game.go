@@ -31,7 +31,7 @@ const (
 // The Game itself tracks some settings, the Rules, the Host and the current state (year/victory declared)
 // All other parts of a Game are stored in the Universe
 type Game struct {
-	DBObject                     `tstype:",extends"`
+	DBObject
 	HostID                       int64             `json:"hostId"`
 	Name                         string            `json:"name" header:"Name"`
 	State                        GameState         `json:"state"`
@@ -87,8 +87,8 @@ type GameSettings struct {
 
 // A game with a list of player statuses
 type GameWithPlayers struct {
-	Game    `tstype:",extends"`
-	Players []PlayerStatus `json:"players"`
+	Game
+	Players []GamePlayer `json:"players"`
 }
 
 // return true if this is a single player game
@@ -165,6 +165,7 @@ const (
 type GameState string
 
 const (
+	GameStateNone                GameState = ""
 	GameStateSetup               GameState = "Setup"
 	GameStateGeneratingUniverse  GameState = "GeneratingUniverse"
 	GameStateWaitingForPlayers   GameState = "WaitingForPlayers"
@@ -398,7 +399,7 @@ func (g *FullGame) computeSpecs() error {
 
 	rules := &g.Rules
 	for _, player := range g.Players {
-		player.Race.Spec = computeRaceSpec(&player.Race, rules)
+		player.Race.Spec = ComputeRaceSpec(&player.Race, rules)
 		player.Spec = computePlayerSpec(player, rules, g.Planets)
 
 		for _, design := range player.Designs {
@@ -450,11 +451,6 @@ func (g *FullGame) computeSpecs() error {
 			design := g.designsByNum[playerObjectKey(fleet.PlayerNum, token.DesignNum)]
 			design.Spec.NumInstances += token.Quantity
 		}
-	}
-
-	for _, minefield := range g.Minefields {
-		player := g.getPlayer(minefield.PlayerNum)
-		minefield.Spec = computeMinefieldSpec(rules, player, minefield, g.numPlanetsWithin(minefield.Position, minefield.Radius()))
 	}
 
 	for _, wormhole := range g.Wormholes {

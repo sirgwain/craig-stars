@@ -19,13 +19,16 @@
 	import { showTooltip, techs } from '$lib/services/Stores';
 	import { type AnyPlanet, type AnyShipDesign } from '$lib/services/Universe';
 	import { population } from '$lib/types/Cargo';
-	import { ReportAgeUnexplored, type Fleet, type MapObject, type Planet } from '$lib/types/cs';
-	import { owned, ownedBy } from '$lib/types/MapObject';
+	import { ReportAgeUnexplored } from '$lib/types/Consts';
+	import { owned, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
 	import { getGrowth, planetsSortBy } from '$lib/types/Planet';
 	import { emptyVector } from '$lib/types/Vector';
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
+	import { MapObjectTargetSchema, type Fleet } from '$lib/types/cs-proto';
+	import type { Planet } from '$lib/types/cs-proto';
+	import { create } from '@bufbuild/protobuf';
 
 	const {
 		game,
@@ -63,20 +66,22 @@
 					)
 					.filter(
 						(i) =>
-							i.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+							i.mapObject?.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
 							$universe
-								.getPlayerPluralName(i.playerNum)
+								.getPlayerPluralName(i.mapObject?.playerNum)
 								?.toLowerCase()
 								.indexOf(search.toLowerCase()) != -1
 					) ?? [])
 			: ($universe
 					.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
 					.map<TablePlanet>((r) => r as TablePlanet)
-					.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? [])
+					.filter((i) => i.mapObject?.name?.toLowerCase().indexOf(search.toLowerCase()) != -1) ??
+					[])
 	);
 
 	// columns change based on whether we are showing all planets or just the player planets
 	type TablePlanet = AnyPlanet & {
+		name?: never;
 		owner?: never;
 		population?: never;
 		populationDensity?: never;
@@ -107,8 +112,8 @@
 			hidden: !$settings.showAllPlanets,
 			sortBy: (a, b) =>
 				$universe
-					.getPlayerPluralName(a.playerNum)
-					?.localeCompare($universe.getPlayerPluralName(b.playerNum))
+					.getPlayerPluralName(a.mapObject?.playerNum)
+					?.localeCompare($universe.getPlayerPluralName(b.mapObject?.playerNum))
 		},
 		{
 			key: 'reportAge',
@@ -229,22 +234,22 @@
 	function onMinesTooltip(e: PointerEvent, planet: Planet) {
 		e.preventDefault();
 		showTooltip<MinesTooltipProps>(e.x, e.y, MinesTooltip, {
-			planetName: planet.name,
+			planetName: planet.mapObject?.name ?? '',
 			mines: planet.mines,
 			maxMines: planet.spec?.maxMines ?? 0,
 			maxPossibleMines: planet.spec?.maxPossibleMines ?? 0,
-			canBuildMines: $player.race.spec?.innateMining ?? false
+			canBuildMines: $player.race.spec.innateMining ?? false
 		});
 	}
 
 	function onFactoriesTooltip(e: PointerEvent, planet: Planet) {
 		e.preventDefault();
 		showTooltip<FactoriesTooltipProps>(e.x, e.y, FactoriesTooltip, {
-			planetName: planet.name,
+			planetName: planet.mapObject?.name ?? '',
 			factories: planet.factories,
 			maxFactories: planet.spec?.maxFactories ?? 0,
 			maxPossibleFactories: planet.spec?.maxPossibleFactories ?? 0,
-			canBuildFactories: $player.race.spec?.innateResources ?? false
+			canBuildFactories: $player.race.spec.innateResources ?? false
 		});
 	}
 
@@ -252,9 +257,10 @@
 		e.preventDefault();
 		onShipDesignTooltip(
 			e,
-			$universe.getDesign(planet.playerNum, planet.spec?.starbaseDesignNum ?? 0) as
-				| AnyShipDesign
-				| undefined
+			$universe.getDesign(
+				planet.mapObject?.playerNum ?? 0,
+				planet.spec?.planetStarbaseSpec?.starbaseDesignNum ?? 0
+			) as AnyShipDesign | undefined
 		);
 	}
 
@@ -263,7 +269,7 @@
 		onTechTooltip(e, $techs.getTech(planet.spec?.defense ?? ''));
 	}
 
-	function gotoMapObject(mo: MapObject) {
+	function gotoMapObject(mo: MapObjectLike) {
 		if (ownedBy(mo, $player.num) && ((mo as Planet) || (mo as Fleet))) {
 			commandMapObject(mo);
 		}
@@ -335,11 +341,11 @@
 			<span>
 				{#if column.key == 'name'}
 					<button class="cs-link text-xl text-left" onclick={() => gotoMapObject(row)}
-						>{cell}</button
+						>{row.mapObject?.name}</button
 					>
 				{:else if column.key == 'owner'}
-					<span style={`color: ${$universe.getPlayerColor(row.playerNum)};`}>
-						{owned(row) ? ($universe.getPlayerPluralName(row.playerNum) ?? '') : ''}
+					<span style={`color: ${$universe.getPlayerColor(row.mapObject?.playerNum)};`}>
+						{owned(row) ? ($universe.getPlayerPluralName(row.mapObject?.playerNum) ?? '') : ''}
 					</span>
 				{:else if column.key == 'reportAge' && 'reportAge' in row}
 					{#if row.reportAge == 0 || row.reportAge === undefined}
@@ -350,9 +356,9 @@
 						{row.reportAge} years old
 					{/if}
 				{:else if column.key == 'starbase'}
-					{#if row.spec?.starbaseDesignName}
+					{#if row.spec?.planetStarbaseSpec?.starbaseDesignName}
 						<span class="cursor-help" onpointerdown={(e) => showDesign(e, row)}>
-							{row.spec?.starbaseDesignName}
+							{row.spec.planetStarbaseSpec.starbaseDesignName}
 						</span>
 					{/if}
 				{:else if column.key == 'population'}
@@ -392,9 +398,9 @@
 						onclick={() => onProductionQueueDialog(planet)}
 						class="text-base w-32 flex justify-between text-left cursor-pointer"
 					>
-						{#if planet.productionQueue?.length}
+						{#if planet.planetOrders?.productionQueue?.length}
 							<ProductionQueueItemLine
-								item={planet.productionQueue[0]}
+								item={planet.planetOrders?.productionQueue[0]}
 								index={0}
 								shortName={true}
 							/>
@@ -413,8 +419,9 @@
 				{:else if column.key == 'defense'}
 					{#if row.spec?.defenseCoverage}
 						<span
-							class:cursor-help={planet.playerNum === $player.num}
-							onpointerdown={(e) => planet.playerNum === $player.num && onDefenseTooltip(e, planet)}
+							class:cursor-help={planet.mapObject?.playerNum ?? 0 === $player.num}
+							onpointerdown={(e) =>
+								planet.mapObject?.playerNum === $player.num && onDefenseTooltip(e, planet)}
 							>{((row.spec?.defenseCoverage ?? 0) * 100).toFixed(1)}%
 						</span>
 					{:else}
@@ -429,34 +436,36 @@
 				{:else if column.key == 'resources'}
 					{row.spec?.resourcesPerYearAvailable ?? 0} / {row.spec?.resourcesPerYear ?? 0}
 				{:else if column.key == 'contributesOnlyLeftoverToResearch'}
-					{#if planet.contributesOnlyLeftoverToResearch}
+					{#if planet.planetOrders?.contributesOnlyLeftoverToResearch}
 						<Icon src={Check} size="24" class="stroke-success" />
 					{/if}
 				{:else if column.key == 'driverDest'}
 					{@const targetPlanet =
-						planet && planet.packetTargetNum
-							? $universe.getPlanet(planet.packetTargetNum)
+						planet && planet.planetOrders?.packetTargetNum
+							? $universe.getPlanet(planet.planetOrders?.packetTargetNum)
 							: undefined}
 					{#if targetPlanet}
 						<button class="cs-link text-xl text-left" onclick={() => gotoMapObject(targetPlanet)}
-							>{targetPlanet.name}</button
+							>{targetPlanet.mapObject?.name ?? ''}</button
 						>
 					{:else}
 						--
 					{/if}
 				{:else if column.key == 'routingDestination'}
 					{@const routeTarget =
-						planet && planet.routeTargetNum
-							? $universe.getMapObject({
-									targetPosition: emptyVector,
-									targetType: planet.routeTargetType,
-									targetNum: planet.routeTargetNum,
-									targetPlayerNum: planet.routeTargetPlayerNum
-								})
+						planet && planet.planetOrders?.routeTargetNum
+							? $universe.getMapObject(
+									create(MapObjectTargetSchema, {
+										targetPosition: emptyVector(),
+										targetType: planet.planetOrders?.routeTargetType,
+										targetNum: planet.planetOrders?.routeTargetNum,
+										targetPlayerNum: planet.planetOrders?.routeTargetPlayerNum
+									})
+								)
 							: undefined}
 					{#if routeTarget}
 						<button class="cs-link text-xl text-left" onclick={() => gotoMapObject(routeTarget)}
-							>{routeTarget.name}</button
+							>{routeTarget.mapObject?.name}</button
 						>
 					{:else}
 						--

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getBattleRecordDetails } from '$lib/types/Battle';
-	import { PlayerMessageBattle, PlayerMessageBattleAlly, type PlayerMessage } from '$lib/types/cs';
+	import { PlayerMessageType, type PlayerMessage } from '$lib/types/cs-proto';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
 	const { player, universe } = getGameContext();
@@ -36,7 +36,7 @@
 {#if message.text}
 	{message.text}
 {:else if details}
-	{#if message.type === PlayerMessageBattle}
+	{#if message.type === PlayerMessageType.BATTLE}
 		A battle took place at {details.location}.
 		{#if details.ourDead === 0 && details.theirDead === 0}
 			No ships were lost by either side.
@@ -76,7 +76,7 @@
 				ships.
 			{/if}
 		{/if}
-	{:else if message.type === PlayerMessageBattleAlly}
+	{:else if message.type === PlayerMessageType.BATTLE_ALLY}
 		Your ally was involved in a battle at {details.location}.
 		{#if details.ourDead === 0 && details.theirDead === 0}
 			No ships were lost by either side.

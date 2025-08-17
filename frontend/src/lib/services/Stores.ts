@@ -1,12 +1,11 @@
-import { type MapObject } from '$lib/types/cs';
 import { UserSession, emptyUser } from '$lib/types/User';
-import type { Vector } from '$lib/types/cs';
 import type { Component } from 'svelte';
 import { writable } from 'svelte/store';
 import { TechService } from './TechService';
+import type { MapObjectLike } from '$lib/types/MapObject';
 
 export type MapObjectsByPosition = {
-	[k: string]: MapObject[];
+	[k: string]: MapObjectLike[];
 };
 
 export const me = writable<UserSession>(emptyUser);
@@ -25,7 +24,7 @@ export const tooltipComponent = writable<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	{ component: Component<any>; props: any } | undefined
 >();
-export const tooltipLocation = writable<Vector>({ x: 0, y: 0 });
+export const tooltipLocation = writable<{ x: number; y: number }>({ x: 0, y: 0 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const showTooltip = <T extends Partial<Record<string, any>>>(

@@ -13,10 +13,10 @@ import (
 // A Player contains all intel, messages, tech levels, and research orders for a single empire in the game.
 // It is tied to a single User (or no user, for AI)
 type Player struct {
-	GameDBObject              `tstype:",extends"`
-	PlayerOrders              `tstype:",extends"`
-	PlayerIntels              `tstype:",extends"`
-	PlayerPlans               `tstype:",extends"`
+	GameDBObject
+	PlayerOrders
+	Intels
+	PlayerPlans
 	UserID                    int64                `json:"userId,omitempty"`
 	Name                      string               `json:"name"`
 	Num                       int                  `json:"num"`
@@ -50,11 +50,13 @@ type Player struct {
 // a player and all mapobjects the player owns
 // this is used by the UI when loading a player's game
 type FullPlayer struct {
-	Player           `tstype:",extends"`
-	PlayerMapObjects `tstype:",extends"`
+	Player
+	PlayerMapObjects
 }
 
-type PlayerStatus struct {
+// small struct containing public information about a player in a game
+type GamePlayer struct {
+	ID            int64        `json:"id,omitempty"`
 	UpdatedAt     *time.Time   `json:"updatedAt,omitempty"`
 	UserID        int64        `json:"userId,omitempty"`
 	Name          string       `json:"name"`
@@ -69,7 +71,7 @@ type PlayerStatus struct {
 	Archived      bool         `json:"archived,omitempty"`
 }
 
-type PlayerIntels struct {
+type Intels struct {
 	BattleRecords       []BattleRecord       `json:"battleRecords,omitempty"`
 	PlayerIntels        []PlayerIntel        `json:"playerIntels,omitempty"`
 	ScoreIntels         []ScoreIntel         `json:"scoreIntels,omitempty"`
@@ -117,10 +119,10 @@ const (
 )
 
 type PlayerSpec struct {
-	PlayerResearchSpec `tstype:",extends"`
-	PlanetaryScanner   TechPlanetaryScanner                `json:"planetaryScanner"`
-	Defense            TechDefense                         `json:"defense"`
-	Terraform          map[TerraformHabType]*TechTerraform `json:"terraform"`
+	PlayerResearchSpec
+	PlanetaryScanner TechPlanetaryScanner                `json:"planetaryScanner"`
+	Defense          TechDefense                         `json:"defense"`
+	Terraform        map[TerraformHabType]*TechTerraform `json:"terraform"`
 }
 
 type PlayerResearchSpec struct {

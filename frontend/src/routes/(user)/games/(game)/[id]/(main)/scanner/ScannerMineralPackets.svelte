@@ -11,10 +11,10 @@
 	const { player, universe } = getGameContext();
 
 	function getColor(mineralPacket: AnyMineralPacket) {
-		if (mineralPacket.playerNum === $player.num) {
+		if (mineralPacket.mapObject?.playerNum === $player.num) {
 			return '#0900FF';
 		}
-		return $universe.getPlayerColor(mineralPacket.playerNum);
+		return $universe.getPlayerColor(mineralPacket.mapObject?.playerNum);
 	}
 </script>
 

@@ -3,8 +3,8 @@
 	import DesignCard from '$lib/components/game/DesignCard.svelte';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
+	import type { ShipDesign } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { ShipDesign } from '$lib/types/cs';
 
 	const { game, player, universe, deleteDesign } = getGameContext();
 
@@ -44,7 +44,7 @@
 </Breadcrumb>
 
 <div class="flex flex-wrap justify-evenly gap-2">
-	{#each filteredDesigns.filter((d) => d.playerNum === $player.num && !d.spec.starbase) as design (design.num)}
+	{#each filteredDesigns.filter((d) => d.playerNum === $player.num && !d.spec?.starbase) as design (design.num)}
 		<DesignCard
 			{design}
 			href={`/games/${$game.id}/designer/${design.num}`}
@@ -58,7 +58,7 @@
 
 <ItemTitle>Starbases</ItemTitle>
 <div class="flex flex-wrap justify-evenly gap-2">
-	{#each filteredDesigns.filter((d) => d.playerNum === $player.num && d.spec.starbase) as design (design.num)}
+	{#each filteredDesigns.filter((d) => d.playerNum === $player.num && d.spec?.starbase) as design (design.num)}
 		<DesignCard
 			{design}
 			href={`/games/${$game.id}/designer/${design.num}`}

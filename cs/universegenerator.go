@@ -44,7 +44,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 
 	var err error
 	for _, player := range ug.Players {
-		player.Race.Spec = computeRaceSpec(&player.Race, &ug.Rules)
+		player.Race.Spec = ComputeRaceSpec(&player.Race, &ug.Rules)
 		player.discoverer = newDiscovererWithAllies(ug.log, player, ug.Players)
 	}
 
@@ -110,7 +110,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 	ug.log.Debug().Msgf("%s: Generating universe", ug.Size)
 
 	for _, player := range ug.Players {
-		player.Race.Spec = computeRaceSpec(&player.Race, &ug.Rules)
+		player.Race.Spec = ComputeRaceSpec(&player.Race, &ug.Rules)
 		player.discoverer = newDiscovererWithAllies(ug.log, player, ug.Players)
 	}
 
@@ -783,8 +783,8 @@ func (ug *universeGenerator) generatePlayerIntel() error {
 	for _, player := range ug.Players {
 
 		// discover other players
-		player.PlayerIntels.PlayerIntels = player.defaultPlayerIntels(ug.Players)
-		player.PlayerIntels.ScoreIntels = make([]ScoreIntel, len(ug.Players))
+		player.Intels.PlayerIntels = player.defaultPlayerIntels(ug.Players)
+		player.Intels.ScoreIntels = make([]ScoreIntel, len(ug.Players))
 
 		// do initial scans
 		scanner := newPlayerScanner(ug.Universe, ug.Players, &ug.Rules, player)

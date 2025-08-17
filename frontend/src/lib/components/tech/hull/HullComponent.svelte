@@ -25,9 +25,9 @@
 		HullSlotTypeSpaceDock,
 		HullSlotTypeWeapon,
 		HullSlotTypeWeaponShield,
-		type HullSlotType,
-		type ShipDesignSlot
-	} from '$lib/types/cs';
+		type HullSlotType
+	} from '$lib/types/Consts';
+	import type { ShipDesignSlot } from '$lib/types/cs-proto';
 	import { Minus, Plus, Trash } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { kebabCase } from 'lodash-es';

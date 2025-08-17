@@ -3,11 +3,12 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import { canLearnTech } from '$lib/types/Player';
-	import type { Tech, TechField } from '$lib/types/cs';
+	import type { TechLike } from '$lib/types/Tech';
 	import { get, hasRequiredLevels, subtract, sum } from '$lib/types/TechLevel';
+	import { type TechField } from '$lib/types/cs-proto';
 
 	type FutureTech = {
-		tech: Tech;
+		tech: TechLike;
 		distance: number;
 	};
 
@@ -25,12 +26,12 @@
 		$techs.techs
 			.filter(
 				(tech) =>
-					get(tech.requirements, field) > currentLevel &&
+					get(tech.tech?.requirements?.techLevel, field) > currentLevel &&
 					canLearnTech($player, tech) &&
-					!hasRequiredLevels($player.techLevels, tech.requirements)
+					!hasRequiredLevels($player.techLevels, tech.tech?.requirements?.techLevel)
 			)
 			.map((tech) => {
-				const distanceToLearn = subtract(tech.requirements, $player.techLevels);
+				const distanceToLearn = subtract(tech.tech?.requirements?.techLevel, $player.techLevels);
 				// zero out any level differences we have already achieved
 				// i.e. if we are at level 5 for energy and this tech requires 3, distanceToLearn.Energy will equal -2
 				// this makes it zero
@@ -54,7 +55,7 @@
 </script>
 
 <ul class="pl-1 pt-1">
-	{#each futureTechs as futureTech (futureTech.tech.name)}
+	{#each futureTechs as futureTech (futureTech.tech.tech?.name)}
 		<li
 			class:text-queue-item-this-year={futureTech.distance <= 1}
 			class:text-queue-item-next-year={futureTech.distance == 2}
@@ -64,7 +65,7 @@
 				type="button"
 				class="w-full h-full text-left"
 				onpointerdown={(e) => onTechTooltip(e, futureTech.tech, true)}
-				>{futureTech.tech.name}</button
+				>{futureTech.tech.tech?.name}</button
 			>
 		</li>
 	{:else}

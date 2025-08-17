@@ -156,6 +156,6 @@ func (c *client) DeleteGameUser(ctx context.Context, gameID int64, playerNum int
 }
 
 // delete guest users for a game
-func (c *client) DeleteGameUsers(ctx context.Context, gameID int64) error {
+func (c *client) DeleteGameGuestUsers(ctx context.Context, gameID int64) error {
 	return c.writer.DeleteGameGuestUsers(ctx, gameID)
 }

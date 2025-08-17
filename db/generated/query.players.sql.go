@@ -661,8 +661,8 @@ SELECT
     d.id, d.created_at, d.updated_at, d.game_id, d.num, d.player_num, d.name, d.version, d.hull, d.hull_set_number, d.slots, d.purpose, d.spec, d.cannot_delete, d.original_player_num, d.mystery_trader
 FROM
     players p
-    LEFT JOIN ship_designs d ON p.game_id = d.game_id
-    AND p.num = d.player_num
+    LEFT JOIN ship_designs d ON d.game_id = p.game_id
+    AND d.player_num = p.num
 WHERE
     p.game_id = ?
     AND p.user_id = ?

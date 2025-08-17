@@ -61,14 +61,12 @@ INSERT INTO
         tags,
         minefield_type,
         num_mines,
-        detonate,
-        spec
+        detonate
     )
 VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
-        ?,
         ?,
         ?,
         ?,
@@ -94,8 +92,7 @@ SET
     tags = ?,
     minefield_type = ?,
     num_mines = ?,
-    detonate = ?,
-    spec = ?
+    detonate = ?
 WHERE
     id = ?;
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
 	import { type Battle } from '$lib/types/Battle';
-	import { TokenActionBeamFire, TokenActionTorpedoFire } from '$lib/types/cs';
+	import { BattleRecordTokenActionType } from '$lib/types/cs-proto';
 	import {
 		ArrowLongLeft,
 		ArrowLongRight,
@@ -28,7 +28,9 @@
 	const nextAttack = () => {
 		const nextPhase = battle.actions.findIndex(
 			(a, index) =>
-				index > phase - 1 && (a.type == TokenActionBeamFire || a.type == TokenActionTorpedoFire)
+				index > phase - 1 &&
+				(a.type === BattleRecordTokenActionType.BEAM_FIRE ||
+					a.type === BattleRecordTokenActionType.TORPEDO_FIRE)
 		);
 		if (nextPhase != -1) {
 			phase = nextPhase + 1;

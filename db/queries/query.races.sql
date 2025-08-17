@@ -58,14 +58,12 @@ INSERT INTO
         research_cost_construction,
         research_cost_electronics,
         research_cost_biotechnology,
-        techs_start_high,
-        spec
+        techs_start_high
     )
 VALUES
     (
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP,
-        ?,
         ?,
         ?,
         ?,
@@ -135,8 +133,7 @@ SET
     research_cost_construction = ?,
     research_cost_electronics = ?,
     research_cost_biotechnology = ?,
-    techs_start_high = ?,
-    spec = ?
+    techs_start_high = ?
 WHERE
     id = ? RETURNING updated_at;
 

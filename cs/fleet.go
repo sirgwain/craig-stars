@@ -28,9 +28,9 @@ const None = 0
 // in the fleet. Fleets also have orders that can be updated by the player, in the form of waypoints and the battle plan.
 // Fleets are one of the commandable MapObjects in the game.
 type Fleet struct {
-	GameDBObject      `tstype:",extends"`
-	MapObject         `tstype:",extends"`
-	FleetOrders       `tstype:",extends"`
+	GameDBObject
+	MapObject
+	FleetOrders
 	PlanetNum         int         `json:"planetNum"` // for starbase fleets that are owned by a planet
 	BaseName          string      `json:"baseName"`
 	Cargo             Cargo       `json:"cargo,omitzero"`
@@ -56,24 +56,17 @@ type FleetOrders struct {
 }
 
 type FleetSpec struct {
-	ShipDesignSpec   `tstype:",extends"`
+	ShipDesignSpec
 	BaseCloakedCargo int                        `json:"baseCloakedCargo,omitempty"`
-	BasePacketSpeed  int                        `json:"basePacketSpeed,omitempty"`
 	HasMassDriver    bool                       `json:"hasMassDriver,omitempty"`
 	HasStargate      bool                       `json:"hasStargate,omitempty"`
-	MassDriver       string                     `json:"massDriver,omitempty"`
 	MassEmpty        int                        `json:"massEmpty,omitempty"`
-	MaxHullMass      int                        `json:"maxHullMass,omitempty"`
-	MaxRange         int                        `json:"maxRange,omitempty"`
 	Purposes         map[ShipDesignPurpose]bool `json:"purposes,omitzero"`
-	SafeHullMass     int                        `json:"safeHullMass,omitempty"`
-	SafeRange        int                        `json:"safeRange,omitempty"`
-	Stargate         string                     `json:"stargate,omitempty"`
 	TotalShips       int                        `json:"totalShips,omitempty"`
 }
 
 type Waypoint struct {
-	MapObjectTarget      `tstype:",extends"`
+	MapObjectTarget
 	Position             Vector                 `json:"position"`
 	WarpSpeed            int                    `json:"warpSpeed"`
 	EstFuelUsage         int                    `json:"estFuelUsage,omitempty"`
@@ -91,16 +84,16 @@ type Waypoint struct {
 type WaypointTask string
 
 const (
-	WaypointTaskNone           = ""
-	WaypointTaskTransport      = "Transport"
-	WaypointTaskColonize       = "Colonize"
-	WaypointTaskRemoteMining   = "RemoteMining"
-	WaypointTaskMergeWithFleet = "MergeWithFleet"
-	WaypointTaskScrapFleet     = "ScrapFleet"
-	WaypointTaskLayMinefield   = "LayMinefield"
-	WaypointTaskPatrol         = "Patrol"
-	WaypointTaskRoute          = "Route"
-	WaypointTaskTransferFleet  = "TransferFleet"
+	WaypointTaskNone           WaypointTask = ""
+	WaypointTaskTransport      WaypointTask = "Transport"
+	WaypointTaskColonize       WaypointTask = "Colonize"
+	WaypointTaskRemoteMining   WaypointTask = "RemoteMining"
+	WaypointTaskMergeWithFleet WaypointTask = "MergeWithFleet"
+	WaypointTaskScrapFleet     WaypointTask = "ScrapFleet"
+	WaypointTaskLayMinefield   WaypointTask = "LayMinefield"
+	WaypointTaskPatrol         WaypointTask = "Patrol"
+	WaypointTaskRoute          WaypointTask = "Route"
+	WaypointTaskTransferFleet  WaypointTask = "TransferFleet"
 )
 
 type WaypointTransportTasks struct {
@@ -529,7 +522,7 @@ func ComputeFleetSpec(rules *Rules, player *Player, fleet *Fleet) FleetSpec {
 
 		// use the lowest ideal speed for this fleet
 		// if we have multiple engines
-		if token.design.Spec.Engine != (Engine{}) {
+		if len(token.design.Spec.Engine.FuelUsage) > 0 {
 			if spec.Engine.IdealSpeed == 0 {
 				spec.Engine.IdealSpeed = token.design.Spec.Engine.IdealSpeed
 				spec.Engine.FreeSpeed = token.design.Spec.Engine.FreeSpeed
@@ -1497,7 +1490,9 @@ func (f *Fleet) AddWaypoint(
 		position = dest.MO.Position
 	}
 
-	if position == (Vector{}) || position == selectedWaypoint.Position || (nextWaypoint != nil && position == nextWaypoint.Position) {
+	if position == (Vector{}) ||
+		position == selectedWaypoint.Position ||
+		(nextWaypoint != nil && position == nextWaypoint.Position) {
 		log.Debug().
 			Str("position", position.String()).
 			Str("selectedWaypoint.Position", selectedWaypoint.Position.String()).

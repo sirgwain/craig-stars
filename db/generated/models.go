@@ -114,7 +114,6 @@ type Minefield struct {
 	NumMines      int64
 	Detonate      bool
 	MinefieldType *cs.MinefieldType
-	Spec          *MinefieldSpec
 	Tags          *Tags
 }
 
@@ -302,7 +301,6 @@ type Race struct {
 	ResearchCostElectronics   cs.ResearchCostLevel
 	ResearchCostBiotechnology cs.ResearchCostLevel
 	TechsStartHigh            bool
-	Spec                      *RaceSpec
 }
 
 type Salvage struct {

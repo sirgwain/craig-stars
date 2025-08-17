@@ -1,14 +1,19 @@
 <script lang="ts">
 	import {
+		VictoryConditionsSchema,
+		type GameSettings,
+		type VictoryConditions
+	} from '$lib/types/cs-proto';
+	import {
 		VictoryConditionAttainTechLevels,
 		VictoryConditionExceedsScore,
 		VictoryConditionExceedsSecondPlaceScore,
 		VictoryConditionHighestScoreAfterYears,
 		VictoryConditionOwnCapitalShips,
 		VictoryConditionOwnPlanets,
-		VictoryConditionProductionCapacity,
-		type GameSettings
-	} from '$lib/types/cs';
+		VictoryConditionProductionCapacity
+	} from '$lib/types/Consts';
+	import { create } from '@bufbuild/protobuf';
 	import VictoryConditionCheckbox from './VictoryConditionCheckbox.svelte';
 	import VictoryConditionInput from './VictoryConditionInput.svelte';
 
@@ -17,18 +22,27 @@
 	};
 
 	let { settings = $bindable() }: Props = $props();
+
+	// Local runes state for reactive bindings
+	let victoryConditions: VictoryConditions = $state(
+		settings.victoryConditions ?? create(VictoryConditionsSchema)
+	);
+
+	$effect(() => {
+		settings.victoryConditions = victoryConditions;
+	});
 </script>
 
 <div>
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
-			bind:conditions={settings.victoryConditions.conditions}
+			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionOwnPlanets}
 		/>
 		<span class="label-text mr-1">
 			Owns
 			<VictoryConditionInput
-				bind:value={settings.victoryConditions.ownPlanets}
+				bind:value={victoryConditions.ownPlanets}
 				min={20}
 				max={100}
 				unit="%"
@@ -38,19 +52,15 @@
 	</label>
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
-			bind:conditions={settings.victoryConditions.conditions}
+			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionAttainTechLevels}
 		/>
 		<span class="label-text mr-1">
 			Attains Tech
-			<VictoryConditionInput
-				bind:value={settings.victoryConditions.attainTechLevel}
-				min={8}
-				max={26}
-			/>
+			<VictoryConditionInput bind:value={victoryConditions.attainTechLevel} min={8} max={26} />
 			in
 			<VictoryConditionInput
-				bind:value={settings.victoryConditions.attainTechLevelNumFields}
+				bind:value={victoryConditions.attainTechLevelNumFields}
 				min={2}
 				max={6}
 			/>
@@ -59,28 +69,24 @@
 	</label>
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
-			bind:conditions={settings.victoryConditions.conditions}
+			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionExceedsScore}
 		/>
 		<span class="label-text mr-1">
 			Exceeds a score of
-			<VictoryConditionInput
-				bind:value={settings.victoryConditions.exceedsScore}
-				min={1000}
-				max={20000}
-			/>
+			<VictoryConditionInput bind:value={victoryConditions.exceedsScore} min={1000} max={20000} />
 			.
 		</span>
 	</label>
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
-			bind:conditions={settings.victoryConditions.conditions}
+			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionExceedsSecondPlaceScore}
 		/>
 		<span class="label-text mr-1">
 			Exceeds second place score by
 			<VictoryConditionInput
-				bind:value={settings.victoryConditions.exceedsSecondPlaceScore}
+				bind:value={victoryConditions.exceedsSecondPlaceScore}
 				min={20}
 				max={300}
 				unit="%"
@@ -90,13 +96,13 @@
 	</label>
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
-			bind:conditions={settings.victoryConditions.conditions}
+			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionProductionCapacity}
 		/>
 		<span class="label-text mr-1">
 			Has a production capacity of
 			<VictoryConditionInput
-				bind:value={settings.victoryConditions.productionCapacity}
+				bind:value={victoryConditions.productionCapacity}
 				min={10}
 				max={500}
 				step={10}
@@ -105,13 +111,13 @@
 	</label>
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
-			bind:conditions={settings.victoryConditions.conditions}
+			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionOwnCapitalShips}
 		/>
 		<span class="label-text mr-1">
 			Owns
 			<VictoryConditionInput
-				bind:value={settings.victoryConditions.ownCapitalShips}
+				bind:value={victoryConditions.ownCapitalShips}
 				min={10}
 				max={300}
 				step={10}
@@ -121,13 +127,13 @@
 	</label>
 	<label class="label justify-start">
 		<VictoryConditionCheckbox
-			bind:conditions={settings.victoryConditions.conditions}
+			bind:conditions={victoryConditions.conditions}
 			condition={VictoryConditionHighestScoreAfterYears}
 		/>
 		<span class="label-text mr-1">
 			Has the highest score after
 			<VictoryConditionInput
-				bind:value={settings.victoryConditions.highestScoreAfterYears}
+				bind:value={victoryConditions.highestScoreAfterYears}
 				min={30}
 				max={900}
 				step={10}
@@ -138,11 +144,7 @@
 	<label class="label justify-start">
 		<span class="label-text mr-1">
 			Winner must meet
-			<VictoryConditionInput
-				bind:value={settings.victoryConditions.numCriteriaRequired}
-				min={1}
-				max={7}
-			/>
+			<VictoryConditionInput bind:value={victoryConditions.numCriteriaRequired} min={1} max={7} />
 			of the above selected criteria.
 		</span>
 	</label>
@@ -150,7 +152,7 @@
 		<span class="label-text mr-1">
 			At least
 			<VictoryConditionInput
-				bind:value={settings.victoryConditions.yearsPassed}
+				bind:value={victoryConditions.yearsPassed}
 				min={30}
 				max={500}
 				step={10}

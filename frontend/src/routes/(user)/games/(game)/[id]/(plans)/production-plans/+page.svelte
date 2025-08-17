@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { addError, type CSError } from '$lib/services/Errors';
+	import { addError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { ProductionPlan } from '$lib/types/cs';
+	import type { ProductionPlan } from '$lib/types/cs-proto';
+	import type { ConnectError } from '@connectrpc/connect';
 	import ProductionPlanCard from './ProductionPlanCard.svelte';
 
 	const { game, player, universe, deleteProductionPlan } = getGameContext();
@@ -12,9 +13,9 @@
 			try {
 				await deleteProductionPlan(plan.num);
 				// trigger reactivity
-				$player.productionPlans = $player.productionPlans;
+				$player.playerPlans.productionPlans = $player.playerPlans.productionPlans;
 			} catch (e) {
-				addError(e as CSError);
+				addError(e as ConnectError);
 			}
 		}
 	}
@@ -32,9 +33,9 @@
 	{/snippet}
 </Breadcrumb>
 
-{#if $player.productionPlans.length}
+{#if $player.playerPlans.productionPlans.length}
 	<div class="flex flex-wrap justify-center gap-2">
-		{#each $player.productionPlans as plan (plan.num)}
+		{#each $player.playerPlans.productionPlans as plan (plan.num)}
 			<ProductionPlanCard
 				designFinder={$universe}
 				{plan}

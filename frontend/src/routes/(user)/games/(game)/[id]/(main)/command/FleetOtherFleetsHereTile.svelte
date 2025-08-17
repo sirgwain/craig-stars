@@ -5,7 +5,7 @@
 	} from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
-	import { MapObjectTypeFleet, type Fleet } from '$lib/types/cs';
+	import { MapObjectType, type Fleet } from '$lib/types/cs-proto';
 	import { canLoadFuelOrCargo, type CommandedFleet } from '$lib/types/Fleet';
 	import { commandable, getMapObjectName, key } from '$lib/types/MapObject';
 	import { onDestroy } from 'svelte';
@@ -31,8 +31,8 @@
 	});
 
 	let mapObjectsInOrbitByKey = $derived(
-		cargoDestsInOrbit.reduce<Record<string, CargoDest>>((acc, fleet) => {
-			acc[key(fleet)] = fleet;
+		cargoDestsInOrbit.reduce<Record<string, CargoDest>>((acc, mo) => {
+			acc[key(mo)] = mo;
 			return acc;
 		}, {})
 	);
@@ -43,13 +43,11 @@
 
 	let cargoDestsByPlayer = $derived(
 		cargoDestsInOrbit.reduce<Record<number, CargoDest[]>>((acc, mo) => {
-			if (!mo) {
-				return acc;
+			const playerNum = mo?.mapObject?.playerNum ?? 0;
+			if (!acc[playerNum]) {
+				acc[playerNum] = [];
 			}
-			if (!acc[mo.playerNum]) {
-				acc[mo.playerNum] = [];
-			}
-			acc[mo.playerNum].push(mo);
+			acc[playerNum].push(mo);
 			return acc;
 		}, {})
 	);
@@ -80,12 +78,13 @@
 		if (
 			!$commandedFleet ||
 			!selectedMapObject ||
-			selectedMapObject.type !== MapObjectTypeFleet ||
+			selectedMapObject.mapObject?.type !== MapObjectType.FLEET ||
 			!onShowSplitFleetDialog ||
-			selectedMapObject.playerNum !== $player.num
+			selectedMapObject.mapObject?.playerNum !== $player.num
 		) {
 			return;
 		}
+		// Only player-owned real Fleets can be merge targets; intel objects are excluded above.
 		onShowSplitFleetDialog({ src: $commandedFleet, dest: selectedMapObject as Fleet });
 	};
 
@@ -107,8 +106,8 @@
 			{#if cargoDestsByPlayer[0]}
 				{#each cargoDestsByPlayer[0] as mo (key(mo))}
 					<option
-						style={mo?.playerNum !== $player.num
-							? `color: ${$universe.getPlayerColor(mo?.playerNum)};`
+						style={mo?.mapObject?.playerNum !== $player.num
+							? `color: ${$universe.getPlayerColor(mo?.mapObject?.playerNum)};`
 							: ''}
 						value={key(mo)}
 					>
@@ -116,14 +115,14 @@
 					</option>
 				{/each}
 			{/if}
-			{#each cargoDestsByPlayer[$player.num]?.filter((f) => f && key(f) !== key(fleet)) as f (key(f))}
+			{#each cargoDestsByPlayer[$player.num]?.filter((m) => m && key(m) !== key(fleet)) as m (key(m))}
 				<option
-					style={f?.playerNum !== $player.num
-						? `color: ${$universe.getPlayerColor(f?.playerNum)};`
+					style={m?.mapObject?.playerNum !== $player.num
+						? `color: ${$universe.getPlayerColor(m?.mapObject?.playerNum)};`
 						: ''}
-					value={key(f)}
+					value={key(m)}
 				>
-					{getMapObjectName(f)}
+					{getMapObjectName(m)}
 				</option>
 			{/each}
 			{#each $game.players as p (p.num)}
@@ -132,9 +131,9 @@
 						label={$universe.getPlayerName(p.num)}
 						style={`color: ${$universe.getPlayerColor(p.num)};`}
 					>
-						{#each cargoDestsByPlayer[p.num] as f (key(f))}
-							<option value={key(f)}>
-								{getMapObjectName(f)}
+						{#each cargoDestsByPlayer[p.num] as m (key(m))}
+							<option value={key(m)}>
+								{getMapObjectName(m)}
 							</option>
 						{/each}
 					</optgroup>
@@ -156,8 +155,8 @@
 					<button
 						onclick={mergeTarget}
 						disabled={!selectedMapObject ||
-							selectedMapObject.type !== MapObjectTypeFleet ||
-							selectedMapObject.playerNum !== $player.num}
+							selectedMapObject.mapObject?.type !== MapObjectType.FLEET ||
+							selectedMapObject.mapObject?.playerNum !== $player.num}
 						class="btn btn-outline btn-sm normal-case btn-secondary p-2"
 						title="goto"
 						>Merge

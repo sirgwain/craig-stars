@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+
+message MineralPacket {
+  GameDBObject game_db_object = 1;
+  MapObject map_object = 2;
+
+  int32 target_planet_num = 3;
+  Cargo cargo = 4;
+  int32 warp_speed = 5;
+  int32 safe_warp_speed = 6;
+  Vector heading = 7;
+  int32 scan_range = 8;
+  int32 scan_range_pen = 9;
+}
+
+message MineralPacketDamage {
+  int32 killed = 1;
+  int32 defenses_destroyed = 2;
+  int32 uncaught = 3;
+}

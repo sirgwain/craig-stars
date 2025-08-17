@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/battle.proto";
+import "craig_stars/v1/fleet.proto";
+import "craig_stars/v1/player.proto";
+import "craig_stars/v1/shipdesign.proto";
+
+service BattleService {
+  rpc GetTestBattle(GetTestBattleRequest) returns (GetTestBattleResponse);
+}
+
+message GetTestBattleRequest {}
+
+message GetTestBattleResponse {
+  Player player = 1;
+  Intels intels = 2;
+  repeated ShipDesign designs = 3;
+  repeated Fleet fleets = 4;
+  BattleRecord battle = 5;
+}

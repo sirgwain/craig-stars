@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import {
-		MapObjectTypeMinefield,
-		MinefieldTypeStandard,
-		type MapObject,
+		MapObjectType,
+		MinefieldSchema,
+		MinefieldType,
 		type Minefield
-	} from '$lib/types/cs';
+	} from '$lib/types/cs-proto';
+	import type { MapObjectLike } from '$lib/types/MapObject';
+	import { create } from '@bufbuild/protobuf';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerMinefield from '../../../games/(game)/[id]/(main)/scanner/ScannerMinefield.svelte';
 	import ScannerMinefieldPattern from '../../../games/(game)/[id]/(main)/scanner/ScannerMinefieldPattern.svelte';
@@ -13,44 +15,38 @@
 	const { selectMapObject } = getGameContext();
 
 	const minefields: Minefield[] = [
-		{
-			type: MapObjectTypeMinefield,
-			position: {
-				x: 50,
-				y: 50
+		create(MinefieldSchema, {
+			mapObject: {
+				type: MapObjectType.MINEFIELD,
+				position: {
+					x: 50,
+					y: 50
+				},
+				name: `Humanoid Minefield #1`,
+				num: 1,
+				playerNum: 1
 			},
-			name: `Humanoid Minefield #1`,
-			num: 1,
-			playerNum: 1,
-			minefieldType: MinefieldTypeStandard,
-			numMines: 100,
-			spec: {
-				decayRate: 100,
-				radius: Math.sqrt(100),
-				canDetonate: false
-			}
-		},
-		{
-			type: MapObjectTypeMinefield,
-			position: {
-				x: 0,
-				y: 50
+			minefieldType: MinefieldType.STANDARD,
+			numMines: 100
+		}),
+		create(MinefieldSchema, {
+			mapObject: {
+				type: MapObjectType.MINEFIELD,
+				position: {
+					x: 0,
+					y: 50
+				},
+				name: `Humanoid Minefield #2`,
+				num: 2,
+				playerNum: 1
 			},
-			name: `Humanoid Minefield #2`,
-			num: 2,
-			playerNum: 1,
-			minefieldType: MinefieldTypeStandard,
-			numMines: 200,
-			spec: {
-				decayRate: 100,
-				radius: Math.sqrt(200),
-				canDetonate: false
-			}
-		}
+			minefieldType: MinefieldType.STANDARD,
+			numMines: 200
+		})
 	];
 
-	const xGetter = (mo: MapObject) => mo?.position?.x;
-	const yGetter = (mo: MapObject) => mo?.position?.y;
+	const xGetter = (mo: MapObjectLike) => mo?.mapObject?.position?.x;
+	const yGetter = (mo: MapObjectLike) => mo?.mapObject?.position?.y;
 
 	selectMapObject(minefields[0]);
 </script>

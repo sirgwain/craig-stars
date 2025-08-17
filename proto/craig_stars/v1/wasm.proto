@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/fleet.proto";
+import "craig_stars/v1/minefield.proto";
+import "craig_stars/v1/planet.proto";
+import "craig_stars/v1/player.proto";
+import "craig_stars/v1/race.proto";
+import "craig_stars/v1/shipdesign.proto";
+import "craig_stars/v1/tech.proto";
+
+service WasmService {
+  rpc AddWaypoint(AddWaypointRequest) returns (AddWaypointResponse) {}
+  rpc CalculateRacePoints(CalculateRacePointsRequest) returns (CalculateRacePointsResponse) {}
+  rpc ComputeMinefieldSpec(ComputeMinefieldSpecRequest) returns (ComputeMinefieldSpecResponse) {}
+  rpc ComputeRaceSpec(ComputeRaceSpecRequest) returns (ComputeRaceSpecResponse) {}
+  rpc ComputeShipDesignSpec(ComputeShipDesignSpecRequest) returns (ComputeShipDesignSpecResponse) {}
+  rpc EnableDebug(EnableDebugRequest) returns (EnableDebugResponse) {}
+  rpc EstimateProduction(EstimateProductionRequest) returns (EstimateProductionResponse) {}
+  rpc GetMaxBuildable(GetMaxBuildableRequest) returns (GetMaxBuildableResponse) {}
+  rpc GetPlanetHabitability(GetPlanetHabitabilityRequest) returns (GetPlanetHabitabilityResponse) {}
+  rpc GetResearchCost(GetResearchCostRequest) returns (GetResearchCostResponse) {}
+  rpc GetStarbaseUpgradeCost(GetStarbaseUpgradeCostRequest) returns (GetStarbaseUpgradeCostResponse) {}
+  rpc GetTechCost(GetTechCostRequest) returns (GetTechCostResponse) {}
+  rpc SetDesigns(SetDesignsRequest) returns (SetDesignsResponse) {}
+  rpc SetIntels(SetIntelsRequest) returns (SetIntelsResponse) {}
+  rpc SetPlayer(SetPlayerRequest) returns (SetPlayerResponse) {}
+  rpc UpdateWaypoint(UpdateWaypointRequest) returns (UpdateWaypointResponse) {}
+}
+
+message AddWaypointRequest {
+  Fleet fleet = 1;
+  WaypointDest dest = 2;
+  int32 current_selected_waypoint_index = 3;
+  bool fastest_waypoint = 4;
+}
+
+message AddWaypointResponse {
+  Fleet fleet = 1;
+  int32 index = 2;
+}
+
+message CalculateRacePointsRequest {
+  Race race = 1;
+}
+
+message CalculateRacePointsResponse {
+  int32 points = 1;
+}
+
+message ComputeMinefieldSpecRequest {
+  Minefield minefield = 1;
+}
+
+message ComputeMinefieldSpecResponse {
+  MinefieldSpec spec = 1;
+}
+
+message ComputeRaceSpecRequest {
+  Race race = 1;
+}
+
+message ComputeRaceSpecResponse {
+  RaceSpec spec = 1;
+}
+
+message ComputeShipDesignSpecRequest {
+  ShipDesign design = 1;
+}
+
+message ComputeShipDesignSpecResponse {
+  ShipDesignSpec spec = 1;
+}
+
+message EnableDebugRequest {
+  bool debug = 1;
+}
+
+message EnableDebugResponse {}
+
+message EstimateProductionRequest {
+  Planet planet = 1;
+}
+
+message EstimateProductionResponse {
+  Planet planet = 1;
+}
+
+message GetMaxBuildableRequest {
+  Planet planet = 1;
+  QueueItemType item_type = 2;
+}
+
+message GetMaxBuildableResponse {
+  int32 result = 1;
+}
+
+message GetPlanetHabitabilityRequest {
+  Race race = 1;
+  Hab hab = 2;
+}
+
+message GetPlanetHabitabilityResponse {
+  int32 result = 1;
+}
+
+message GetResearchCostRequest {
+  TechLevel tech_level = 1;
+}
+
+message GetResearchCostResponse {
+  int32 resources = 1;
+}
+
+message GetStarbaseUpgradeCostRequest {
+  ShipDesign design = 1;
+  ShipDesign new_design = 2;
+}
+
+message GetStarbaseUpgradeCostResponse {
+  Cost cost = 1;
+}
+
+message GetTechCostRequest {
+  Tech tech = 1;
+}
+
+message GetTechCostResponse {
+  Cost cost = 1;
+}
+
+message SetDesignsRequest {
+  repeated ShipDesign designs = 1;
+}
+
+message SetDesignsResponse {}
+
+message SetIntelsRequest {
+  Intels intels = 1;
+}
+
+message SetIntelsResponse {}
+
+message SetPlayerRequest {
+  Player player = 1;
+}
+
+message SetPlayerResponse {}
+
+message UpdateWaypointRequest {
+  Fleet fleet = 1;
+  WaypointDest dest = 2;
+  int32 current_selected_waypoint_index = 3;
+  bool fastest_waypoint = 4;
+}
+
+message UpdateWaypointResponse {
+  Fleet fleet = 1;
+  bool updated = 2;
+}

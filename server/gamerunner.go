@@ -22,6 +22,7 @@ var errNotFound = errors.New("resource was not found")
 type TurnGenerationCheckResult uint
 type DBConnection db.DBConn
 type DBClient db.Client
+type DBReadClient db.ReadClient
 
 const (
 	TurnNotGenerated TurnGenerationCheckResult = iota
@@ -885,7 +886,7 @@ func (gr *gameRunner) GenerateTurn(gameID int64) (TurnGenerationCheckResult, err
 }
 
 // load a full game
-func (gr *gameRunner) loadGame(db DBClient, gameID int64) (*cs.FullGame, error) {
+func (gr *gameRunner) loadGame(db DBReadClient, gameID int64) (*cs.FullGame, error) {
 	defer timeTrack(time.Now(), "loadGame")
 
 	fullGame, err := db.GetFullGame(gr.ctx, gameID)

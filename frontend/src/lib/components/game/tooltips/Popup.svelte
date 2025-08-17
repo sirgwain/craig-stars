@@ -12,7 +12,7 @@
 	};
 
 	export const popupComponent = writable<PopupComponentStore | undefined>();
-	export const popupLocation = writable<Vector>({ x: 0, y: 0 });
+	export const popupLocation = writable<{ x: number; y: number }>({ x: 0, y: 0 });
 
 	export const showPopup = <T extends PopupProps = PopupProps>(
 		x: number,
@@ -32,7 +32,6 @@
 
 <script lang="ts">
 	import { clickOutside } from '$lib/clickOutside';
-	import type { Vector } from '$lib/types/cs';
 
 	const minWidth = 250;
 	const minHeight = 250;

@@ -33,7 +33,6 @@ func TestMinefield_getDecayRate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			minefield := newMinefield(tt.args.player, tt.fields.MinefieldType, tt.fields.NumMines, 1, Vector{})
-			minefield.Spec = computeMinefieldSpec(tt.args.rules, tt.args.player, minefield, tt.args.numPlanets)
 			if got := minefield.getDecayRate(tt.args.rules, tt.args.player, tt.args.numPlanets); got != tt.want {
 				t.Errorf("Minefield.getDecayRate() = %v, want %v", got, tt.want)
 			}
@@ -76,7 +75,6 @@ func Test_checkForMinefieldCollision_Hit(t *testing.T) {
 	radius := 10
 	minefieldPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
 	minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{})
-	minefield.Spec = computeMinefieldSpec(&rules, minefieldPlayer, minefield, 0)
 
 	u := &Universe{
 		Minefields: []*Minefield{minefield},
@@ -117,7 +115,6 @@ func Test_checkForMinefieldCollision_Miss(t *testing.T) {
 	radius := 10
 	minefieldPlayer := NewPlayer(2, NewRace().WithSpec(&rules)).WithNum(2).withSpec(&rules)
 	minefield := newMinefield(minefieldPlayer, MinefieldTypeStandard, radius*radius, 1, Vector{})
-	minefield.Spec = computeMinefieldSpec(&rules, minefieldPlayer, minefield, 0)
 
 	u := &Universe{
 		Minefields: []*Minefield{minefield},

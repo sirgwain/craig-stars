@@ -1,15 +1,22 @@
 <script lang="ts">
 	import FleetIcon from '$lib/components/FleetIcon.svelte';
 	import CargoTransferer from '$lib/components/game/cargotransfer/CargoTransferer.svelte';
+	import {
+		CargoSchema,
+		FleetSpecSchema,
+		GameDBObjectSchema,
+		MapObjectSchema,
+		ShipDesignSpecSchema,
+		type CargoJson
+	} from '$lib/types/cs-proto';
+	import { FleetSchema, type Fleet, type ShipToken } from '$lib/types/cs-proto';
 	import type { OnCancel, OnOk, SplitFleetEvent } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { emptyCargo, totalCargo } from '$lib/types/Cargo';
-	import { type Cargo } from '$lib/types/cs';
+	import { emptyCargoJson, totalCargo } from '$lib/types/Cargo';
 	import { absoluteCargoSize, CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 	import { CommandedFleet, moveDamagedTokens } from '$lib/types/Fleet';
-	import { type ShipToken } from '$lib/types/cs';
-	import { type Fleet } from '$lib/types/cs';
+	import { clone, create } from '@bufbuild/protobuf';
 	import { ArrowLongLeft, ArrowLongRight } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import hotkeys from 'hotkeys-js';
@@ -30,11 +37,15 @@
 	let transferAmount = $state(new CargoTransferRequest());
 	let srcTokens: ShipToken[] = $state([]);
 	let destTokens: ShipToken[] = $state([]);
-	let dest = $state<Fleet>(destFleetProp ? { ...destFleetProp } : newEmptyDestFleet(src));
-	let srcFuelCapacity: number = $state(src.spec.fuelCapacity ?? 0);
-	let destFuelCapacity: number = $state(destFleetProp?.spec?.fuelCapacity ?? 0);
-	let srcCargoCapacity: number = $state(src.spec.cargoCapacity ?? 0);
-	let destCargoCapacity: number = $state(destFleetProp?.spec?.cargoCapacity ?? 0);
+	let dest = $state<Fleet>(
+		destFleetProp
+			? clone(FleetSchema, { ...destFleetProp, gameDbObject: create(GameDBObjectSchema) })
+			: newEmptyDestFleet(src)
+	);
+	let srcFuelCapacity: number = $state(src.spec.shipDesignSpec?.fuelCapacity ?? 0);
+	let destFuelCapacity: number = $state(destFleetProp?.spec?.shipDesignSpec?.fuelCapacity ?? 0);
+	let srcCargoCapacity: number = $state(src.spec.shipDesignSpec?.cargoCapacity ?? 0);
+	let destCargoCapacity: number = $state(destFleetProp?.spec?.shipDesignSpec?.cargoCapacity ?? 0);
 	let quantityModifier = $state(1);
 
 	const totalFuel = src.fuel + (destFleetProp?.fuel ?? 0);
@@ -52,12 +63,12 @@
 	// if quantity is negative, this means moving dest -> source
 	function moveToken(quantity: number, token: ShipToken, index: number) {
 		const design = $universe.getMyDesign(token.designNum);
-		if (!dest || !destTokens || !design || !quantity) {
+		if (!dest.mapObject || !destTokens || !design || !quantity) {
 			return;
 		}
 
-		const designFuelCapacity = design.spec.fuelCapacity ?? 0;
-		const designCargoCapacity = design.spec.cargoCapacity ?? 0;
+		const designFuelCapacity = design.spec?.fuelCapacity ?? 0;
+		const designCargoCapacity = design.spec?.cargoCapacity ?? 0;
 
 		// determine what percent of the total fleet's fuel belongs to these tokens
 		const fuelPercent = (designFuelCapacity * quantity) / (srcFuelCapacity + destFuelCapacity);
@@ -75,7 +86,7 @@
 			// update the dest fleet name to be the name of the first token moved
 			if (destShipQuantity == 0) {
 				dest.baseName = design.name;
-				dest.name = dest.baseName;
+				dest.mapObject.name = dest.baseName;
 			}
 			// move from left to right
 			moveDamagedTokens(srcToken, destToken, quantity);
@@ -97,8 +108,8 @@
 		if (totalCargo(src.cargo) - absoluteCargoSize(transferAmount) > srcCargoCapacity) {
 			let overload = totalCargo(src.cargo) - absoluteCargoSize(transferAmount) - srcCargoCapacity;
 
-			let key: keyof Cargo;
-			for (key in emptyCargo()) {
+			let key: keyof CargoJson;
+			for (key in emptyCargoJson()) {
 				// move over as much cargo as necessary
 				const value = (src.cargo[key] ?? 0) + transferAmount[key];
 				if ((value ?? 0) + transferAmount[key] > 0) {
@@ -113,8 +124,8 @@
 		) {
 			let overload = totalCargo(dest.cargo) + absoluteCargoSize(transferAmount) - destCargoCapacity;
 
-			let key: keyof Cargo;
-			for (key in emptyCargo()) {
+			let key: keyof CargoJson;
+			for (key in emptyCargoJson()) {
 				// move over as much cargo as necessary
 				const value = (dest.cargo[key] ?? 0) - transferAmount[key];
 				if ((value ?? 0) - transferAmount[key] > 0) {
@@ -128,17 +139,22 @@
 	}
 
 	function newEmptyDestFleet(src: CommandedFleet): Fleet {
-		const fleet: Fleet = { ...src };
-		fleet.num = 0;
-		fleet.spec = cloneDeep(src.spec);
-		fleet.name = `${fleet.baseName}`;
+		const fleet: Fleet = clone(FleetSchema, { ...src, gameDbObject: create(GameDBObjectSchema) });
+		fleet.mapObject = fleet.mapObject ?? create(MapObjectSchema);
+		fleet.mapObject.num = 0;
+		fleet.spec = clone(FleetSpecSchema, src.spec);
+		fleet.mapObject.name = `${fleet.baseName}`;
 		fleet.tokens = src.tokens.map((t) =>
 			Object.assign({}, t, { quantity: 0, quantityDamaged: 0, damage: 0 })
 		);
-		fleet.spec.fuelCapacity = 0;
-		fleet.spec.cargoCapacity = 0;
+		fleet.spec.shipDesignSpec = create(ShipDesignSpecSchema, {
+			fuelCapacity: 0,
+			cargoCapacity: 0
+		});
+
 		fleet.fuel = 0;
-		fleet.cargo = {};
+		fleet.cargo = create(CargoSchema);
+
 		return fleet;
 	}
 
@@ -197,7 +213,7 @@
 				<div class="grow flex flex-col">
 					<div class="flex flex-col place-items-center">
 						<FleetIcon fleet={src} tokens={srcTokens} />
-						<div class="h-[2rem] font-semibold text-xl">{src.name}</div>
+						<div class="h-[2rem] font-semibold text-xl">{src.mapObject.name}</div>
 					</div>
 					<div class="border border-secondary p-2">
 						{#each srcTokens as token (token)}
@@ -254,7 +270,7 @@
 				<div class="grow flex flex-col">
 					<div class="flex flex-col place-items-center">
 						<FleetIcon fleet={dest} tokens={destTokens} />
-						<div class="h-[2rem] font-semibold text-xl">{dest.name}</div>
+						<div class="h-[2rem] font-semibold text-xl">{dest.mapObject?.name}</div>
 					</div>
 					<div class="border border-secondary p-2">
 						{#each destTokens as token (token)}

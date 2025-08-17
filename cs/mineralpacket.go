@@ -7,8 +7,8 @@ import (
 
 // Starbases with Packet Throwers can build mineral packets and fling them at other planets.
 type MineralPacket struct {
-	GameDBObject      `tstype:",extends"`
-	MapObject         `tstype:",extends"`
+	GameDBObject
+	MapObject
 	TargetPlanetNum   int    `json:"targetPlanetNum"`
 	Cargo             Cargo  `json:"cargo"`
 	WarpSpeed         int    `json:"warpSpeed"`

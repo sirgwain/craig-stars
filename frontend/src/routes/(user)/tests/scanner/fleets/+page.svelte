@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { MapObject } from '$lib/types/cs';
-	import { type Fleet } from '$lib/types/cs';
+	import { FleetSchema, VectorSchema } from '$lib/types/cs-proto';
 	import { CommandedFleet } from '$lib/types/Fleet';
+	import type { MapObjectLike } from '$lib/types/MapObject';
 	import { normalized } from '$lib/types/Vector';
+	import { create } from '@bufbuild/protobuf';
 	import { LayerCake, Svg } from 'layercake';
 	import ScannerFleets from '../../../games/(game)/[id]/(main)/scanner/ScannerFleets.svelte';
 
@@ -68,30 +69,36 @@
 	let num = 1;
 	const fleets: CommandedFleet[] = fleetPlacements.map(
 		(fp) =>
-			new CommandedFleet({
-				position: {
-					x: fp.x,
-					y: fp.y
-				},
-				name: `Long Range Scout #${num + 1}`,
-				num: num++,
-				playerNum: fp.playerNum ?? 0,
-				baseName: 'Long Range Scout',
-				tokens: [
-					{
-						designNum: 1,
-						quantity: 1
-					}
-				],
-				heading: normalized({
-					x: fp.headingX,
-					y: fp.headingY
+			new CommandedFleet(
+				create(FleetSchema, {
+					mapObject: {
+						position: {
+							x: fp.x,
+							y: fp.y
+						},
+						name: `Long Range Scout #${num + 1}`,
+						num: num++,
+						playerNum: fp.playerNum ?? 0
+					},
+					baseName: 'Long Range Scout',
+					tokens: [
+						{
+							designNum: 1,
+							quantity: 1
+						}
+					],
+					heading: normalized(
+						create(VectorSchema, {
+							x: fp.headingX,
+							y: fp.headingY
+						})
+					)
 				})
-			} as Fleet)
+			)
 	);
 
-	const xGetter = (mo: MapObject) => mo?.position?.x;
-	const yGetter = (mo: MapObject) => mo?.position?.y;
+	const xGetter = (mo: MapObjectLike) => mo?.mapObject?.position?.x;
+	const yGetter = (mo: MapObjectLike) => mo?.mapObject?.position?.y;
 
 	selectMapObject(fleets[0]);
 	commandMapObject(fleets[0]);

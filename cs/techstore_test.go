@@ -14,7 +14,7 @@ func TestTechStore_GetBestEngine(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *TechEngine
+		want *TechHullComponent
 	}{
 		{"Base scout", args{testPlayer(), &Scout, FleetPurposeScout}, &QuickJump5},
 		{"Mini Colonizer", args{NewPlayer(0, NewRace().WithPRT(HE).WithSpec(&rules)).withSpec(&rules), &MiniColonyShip, FleetPurposeColonizer}, &SettlersDelight},
@@ -37,7 +37,7 @@ func TestTechStore_GetBestBattleEngine(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *TechEngine
+		want    *TechHullComponent
 		mtTechs bool
 	}{
 		{"Base scout", args{testPlayer(), &Scout}, &QuickJump5, false},

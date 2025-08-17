@@ -1,6 +1,7 @@
 <script lang="ts">
+	import type { ShipDesignSlot } from '$lib/types/cs-proto';
+	import type { TechHull, TechHullSlot } from '$lib/types/cs-proto';
 	import { techs } from '$lib/services/Stores';
-	import type { ShipDesignSlot, TechHull, TechHullSlot } from '$lib/types/cs';
 	import CargoComponent from '../../tech/hull/CargoComponent.svelte';
 	import HullComponent from '../../tech/hull/HullComponent.svelte';
 	import SpaceDockComponent from '../../tech/hull/SpaceDockComponent.svelte';
@@ -76,8 +77,8 @@
 		<div
 			class="absolute"
 			style={`left: ${
-				slot.position.x * componentSize + (containerWidth / 2 - componentSize / 2)
-			}px; top: ${slot.position.y * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
+				(slot.position?.x ?? 0) * componentSize + (containerWidth / 2 - componentSize / 2)
+			}px; top: ${(slot.position?.y ?? 0) * componentSize + (containerHeight / 2 - componentSize / 2)}px;`}
 			role="link"
 			tabindex="-1"
 			oncontextmenu={(e) =>

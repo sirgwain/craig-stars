@@ -1,17 +1,8 @@
 <script lang="ts">
 	import TextInput from '$lib/components/TextInput.svelte';
 	import type { DesignFinder } from '$lib/services/Universe';
-	import type { ProductionQueueItem } from '$lib/types/cs';
-	import {
-		QueueItemTypeAutoDefenses,
-		QueueItemTypeAutoFactories,
-		QueueItemTypeAutoMaxTerraform,
-		QueueItemTypeAutoMineralAlchemy,
-		QueueItemTypeAutoMines,
-		QueueItemTypeAutoMinTerraform,
-		type ProductionPlan
-	} from '$lib/types/cs';
-	import { fromQueueItemType } from '$lib/types/Planet';
+	import { QueueItemType, type ProductionPlan, type ProductionPlanItem } from '$lib/types/cs-proto';
+	import { planItemFromQueueItemType } from '$lib/types/Player';
 	import Production from './Production.svelte';
 
 	type Props = {
@@ -19,26 +10,41 @@
 		plan: ProductionPlan;
 	};
 
+	// plan is bindable from parent
 	let { designFinder, plan = $bindable() }: Props = $props();
 
-	let availableItems: ProductionQueueItem[] = [
-		fromQueueItemType(QueueItemTypeAutoFactories),
-		fromQueueItemType(QueueItemTypeAutoMines),
-		fromQueueItemType(QueueItemTypeAutoDefenses),
-		fromQueueItemType(QueueItemTypeAutoMineralAlchemy),
-		fromQueueItemType(QueueItemTypeAutoMaxTerraform),
-		fromQueueItemType(QueueItemTypeAutoMinTerraform)
+	// Local Svelte 5 runes state mirroring plan fields to allow binding to reactive values
+	let name: string = $state(plan.name ?? '');
+	let items: ProductionPlanItem[] = $state(plan.items ?? []);
+	let contributesOnlyLeftoverToResearch: boolean = $state(
+		plan.contributesOnlyLeftoverToResearch ?? false
+	);
+
+	// Keep parent prop in sync with local state (runes-compliant)
+	$effect(() => {
+		plan.name = name;
+		plan.items = items;
+		plan.contributesOnlyLeftoverToResearch = contributesOnlyLeftoverToResearch;
+	});
+
+	let availableItems: ProductionPlanItem[] = [
+		planItemFromQueueItemType(QueueItemType.AUTO_FACTORIES),
+		planItemFromQueueItemType(QueueItemType.AUTO_MINES),
+		planItemFromQueueItemType(QueueItemType.AUTO_DEFENSES),
+		planItemFromQueueItemType(QueueItemType.AUTO_MINERAL_ALCHEMY),
+		planItemFromQueueItemType(QueueItemType.AUTO_MAX_TERRAFORM),
+		planItemFromQueueItemType(QueueItemType.AUTO_MIN_TERRAFORM)
 	];
 </script>
 
-<TextInput name="name" bind:value={plan.name} required />
+<TextInput name="name" bind:value={name} required />
 
 <!-- edit production -->
-<Production {designFinder} {availableItems} bind:queueItems={plan.items as ProductionQueueItem[]} />
+<Production {designFinder} {availableItems} bind:queueItems={items} />
 <div class="w-1/2 mr-14">
 	<label>
 		<input
-			bind:checked={plan.contributesOnlyLeftoverToResearch}
+			bind:checked={contributesOnlyLeftoverToResearch}
 			class="checkbox checkbox-xs"
 			type="checkbox"
 		/> Contributes Only Leftover to Research

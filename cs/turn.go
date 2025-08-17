@@ -1302,7 +1302,7 @@ func (t *turnGenerator) detonateMines() {
 		}
 
 		minefieldPlayer := t.game.getPlayer(minefield.PlayerNum)
-		fleetsWithin := t.game.fleetsWithin(minefield.Position, minefield.Spec.Radius)
+		fleetsWithin := t.game.fleetsWithin(minefield.Position, minefield.Radius())
 		for _, fleet := range fleetsWithin {
 			fleetPlayer := t.game.getPlayer(fleet.PlayerNum)
 			damage := minefield.damageFleet(fleet, fleetPlayer, stats)
@@ -2429,7 +2429,7 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 					}
 					if design == nil {
 						// give the player a new design
-						design = &reward.Ship
+						design = reward.Ship
 						num := player.GetNextDesignNum(player.Designs)
 						design.PlayerNum = player.Num
 						design.Num = num
@@ -2490,12 +2490,12 @@ func (t *turnGenerator) mysteryTraderMeet() error {
 func (t *turnGenerator) decayMines() {
 	for _, minefield := range t.game.Minefields {
 		player := t.game.getPlayer(minefield.PlayerNum)
-		minefield.NumMines -= minefield.Spec.DecayRate
+		decayRate := minefield.getDecayRate(&t.game.Rules, player, NumMapObjectsWithin(t.game.Planets, minefield.Position, minefield.Radius()))
+		minefield.NumMines -= decayRate
 		if minefield.NumMines <= 10 {
 			t.game.deleteMinefield(minefield)
 			continue
 		}
-		minefield.Spec = computeMinefieldSpec(&t.game.Rules, player, minefield, t.game.Universe.numPlanetsWithin(minefield.Position, minefield.Radius()))
 
 		t.log.Debug().
 			Int("Player", minefield.PlayerNum).
@@ -2548,9 +2548,6 @@ func (t *turnGenerator) fleetLayMines() {
 					// This was taken from the FreeStars codebase (like many other things)
 					minefield.moveTowardsMineLayer(fleet.Position, minesLaid)
 				}
-
-				// TODO (performance): the radius will be computed in the spec as well. hmmmm
-				minefield.Spec = computeMinefieldSpec(&t.game.Rules, player, minefield, t.game.Universe.numPlanetsWithin(minefield.Position, minefield.Radius()))
 
 				t.log.Debug().
 					Int("Player", fleet.PlayerNum).
@@ -2773,21 +2770,11 @@ func (t *turnGenerator) fleetSweepMines() {
 						t.game.deleteMinefield(minefield)
 						continue
 					}
-
-					minefield.Spec.Radius = minefield.Radius()
 				}
 			}
 		}
 	}
 
-	// TOOD: performance
-	// computing minefield specs is intensive because we have to count planets within the minefield
-	for _, minefield := range t.game.Minefields {
-		if !minefield.Delete {
-			minefieldPlayer := t.game.getPlayer(minefield.PlayerNum)
-			minefield.Spec = computeMinefieldSpec(&t.game.Rules, minefieldPlayer, minefield, t.game.Universe.numPlanetsWithin(minefield.Position, minefield.Radius()))
-		}
-	}
 }
 
 // repair fleets and starbases

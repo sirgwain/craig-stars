@@ -1,64 +1,46 @@
 import { roundTo100 } from '$lib/services/Math';
 import type { AnyPlanet, DesignFinder } from '$lib/services/Universe';
-import type { CS } from '$lib/wasm';
-import { cloneDeep, sortBy, startCase } from 'lodash-es';
-import { population } from './Cargo';
-import type {
-	Fleet,
-	Planet,
-	PlanetSpec,
-	ProductionQueueItem,
-	ShipDesign,
-	Tags,
-	Vector
-} from './cs';
+import type { ProductionPlanItem, ShipDesign } from '$lib/types/cs-proto';
 import {
-	Infinite,
-	MapObjectTypeNone,
-	MapObjectTypePlanet,
-	None,
-	QueueItemTypeAutoDefenses,
-	QueueItemTypeAutoFactories,
-	QueueItemTypeAutoMaxTerraform,
-	QueueItemTypeAutoMineralAlchemy,
-	QueueItemTypeAutoMineralPacket,
-	QueueItemTypeAutoMines,
-	QueueItemTypeAutoMinTerraform,
-	QueueItemTypeBoraniumMineralPacket,
-	QueueItemTypeDefenses,
-	QueueItemTypeFactory,
-	QueueItemTypeGenesisDevice,
-	QueueItemTypeGermaniumMineralPacket,
-	QueueItemTypeIroniumMineralPacket,
-	QueueItemTypeMine,
-	QueueItemTypeMineralAlchemy,
-	QueueItemTypeMixedMineralPacket,
-	QueueItemTypePlanetaryScanner,
-	QueueItemTypeShipToken,
-	QueueItemTypeStarbase,
-	QueueItemTypeTerraformEnvironment,
-	UnlimitedSpaceDock,
-	type Cargo,
-	type Hab,
+	CargoSchema,
+	HabSchema,
+	MapObjectSchema,
+	MapObjectType,
+	MineralSchema,
+	PlanetOrdersSchema,
+	PlanetSchema,
+	PlanetSpecSchema,
+	ProductionQueueItemSchema,
+	QueueItemType,
+	type Fleet,
 	type Mineral,
-	type QueueItemType
-} from './cs';
+	type Planet,
+	type PlanetSpec,
+	type ProductionQueueItem
+} from '$lib/types/cs-proto';
+import type { CS } from '$lib/wasm';
+import { clone, create, merge, type UnknownField } from '@bufbuild/protobuf';
+import { sortBy } from 'lodash-es';
+import { population } from './Cargo';
+import { Infinite, None, UnlimitedSpaceDock } from './Consts';
+import { enumToString } from './Enums';
 import { totalMinerals } from './Mineral';
 
 /**
  * A planet that can be commanded and updated by the player
  */
 export class CommandedPlanet implements Planet {
-	readonly type = MapObjectTypePlanet;
-	tags: Tags = {};
+	$typeName: 'craig_stars.v1.Planet';
+	$unknown?: UnknownField[] | undefined;
+	readonly type = MapObjectType.PLANET;
 
-	gameId = 0;
-	hab: Hab = { grav: 0, temp: 0, rad: 0 };
-	baseHab: Hab = { grav: 0, temp: 0, rad: 0 };
-	terraformedAmount = { grav: 0, temp: 0, rad: 0 };
-	mineralConcentration: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
-	mineYears: Mineral = { ironium: 0, boranium: 0, germanium: 0 };
-	cargo: Cargo = { ironium: 0, boranium: 0, germanium: 0, colonists: 0 };
+	mapObject = create(MapObjectSchema);
+	hab = create(HabSchema);
+	baseHab = create(HabSchema);
+	terraformedAmount = create(HabSchema);
+	mineralConcentration = create(MineralSchema);
+	mineYears = create(MineralSchema);
+	cargo = create(CargoSchema);
 	partialPopulation = 0;
 	mines = 0;
 	factories = 0;
@@ -66,61 +48,16 @@ export class CommandedPlanet implements Planet {
 	homeworld = false;
 	scanner = false;
 	reportAge = 0;
-	position: Vector = { x: 0, y: 0 };
-	name = '';
-	num = 0;
-	playerNum = 0;
 	starbase: Fleet | undefined = undefined;
+	planetOrders = create(PlanetOrdersSchema);
+	spec: PlanetSpec = create(PlanetSpecSchema);
 
-	// orders
-	contributesOnlyLeftoverToResearch = false;
-	productionQueue: ProductionQueueItem[] = [];
-	routeTargetType = MapObjectTypeNone;
-	routeTargetNum = None;
-	routeTargetPlayerNum = None;
-	packetSpeed = 0;
-	packetTargetNum = None;
+	constructor(data?: Planet) {
+		this.$typeName = 'craig_stars.v1.Planet';
 
-	spec: PlanetSpec = {
-		habitability: 0,
-		terraformedHabitability: 0,
-		maxMines: 0,
-		maxPossibleMines: 0,
-		maxFactories: 0,
-		maxPossibleFactories: 0,
-		maxDefenses: 0,
-		populationDensity: 0,
-		maxPopulation: 0,
-		growthAmount: 0,
-		miningOutput: { ironium: 0, boranium: 0, germanium: 0 },
-		resourcesPerYear: 0,
-		resourcesPerYearAvailable: 0,
-		resourcesPerYearResearch: 0,
-		resourcesPerYearResearchEstimatedLeftover: 0,
-		defense: '',
-		defenseCoverage: 0,
-		defenseCoverageSmart: 0,
-		scanner: '',
-		scanRange: 0,
-		scanRangePen: 0,
-		canTerraform: false,
-		terraformAmount: { grav: 0, temp: 0, rad: 0 },
-		minTerraformAmount: { grav: 0, temp: 0, rad: 0 },
-		hasMassDriver: false,
-		hasStarbase: false,
-		dockCapacity: 0,
-		massDriver: '',
-		basePacketSpeed: 0,
-		safePacketSpeed: 0,
-		hasStargate: false
-	};
-
-	public get population(): number {
-		return (this.cargo.colonists ?? 0) * 100;
-	}
-
-	public set population(value: number) {
-		this.cargo.colonists = Math.trunc(value / 100);
+		if (data) {
+			merge(PlanetSchema, this, data);
+		}
 	}
 
 	/**
@@ -131,45 +68,38 @@ export class CommandedPlanet implements Planet {
 	 */
 	public getAmountInQueue(
 		type: QueueItemType,
-		queueItems: ProductionQueueItem[] = this.productionQueue
+		queueItems: ProductionQueueItem[] = this.planetOrders.productionQueue
 	): number {
-		return queueItems.reduce((count, i) => count + (i.type === type ? i.quantity : 0), 0);
+		return queueItems.reduce((count, i) => count + (i.type === type ? (i.quantity ?? 0) : 0), 0);
 	}
 
 	// update the production queue estimates for the planet's production queue
-	public updateProductionQueueEstimates(cs: CS): ProductionQueueItem[] {
-		const planetWithEstimates = cs.estimateProduction(this);
-		if (planetWithEstimates?.productionQueue?.length !== this.productionQueue.length) {
+	public async updateProductionQueueEstimates(cs: CS): Promise<ProductionQueueItem[]> {
+		const { planet: planetWithEstimates } = await cs.wasmService.estimateProduction({
+			planet: this
+		});
+		if (
+			(planetWithEstimates?.planetOrders?.productionQueue?.length ?? 0) !==
+			(this.planetOrders.productionQueue.length ?? 0)
+		) {
 			// something went wrong
-			// flag everything as never
 			console.error("failed to estimate production queue. items don't match up");
-			return this.productionQueue;
+			return this.planetOrders.productionQueue;
 		}
 
-		for (let i = 0; i < this.productionQueue.length; i++) {
-			const estimate = planetWithEstimates.productionQueue[i];
-			Object.assign(this.productionQueue[i], {
-				yearsToBuildOne: estimate.yearsToBuildOne,
-				yearsToBuildAll: estimate.yearsToBuildAll,
-				yearsToSkipAuto: estimate.yearsToSkipAuto
-			});
+		const estimatesPQ: ProductionQueueItem[] =
+			planetWithEstimates?.planetOrders?.productionQueue ?? [];
+		for (let i = 0; i < this.planetOrders.productionQueue.length; i++) {
+			const estimate = estimatesPQ[i];
+			if (estimate) {
+				Object.assign(this.planetOrders.productionQueue[i], {
+					yearsToBuildOne: estimate.queueItemCompletionEstimate?.yearsToBuildOne,
+					yearsToBuildAll: estimate.queueItemCompletionEstimate?.yearsToBuildAll,
+					yearsToSkipAuto: estimate.queueItemCompletionEstimate?.yearsToSkipAuto
+				});
+			}
 		}
-		return this.productionQueue;
-	}
-
-	// get the mineral output of a planet based on mineOutput (10 for remote mining)
-	public getMineralOutput(numMines: number, mineOutput: number): Mineral {
-		return {
-			ironium: Math.floor(
-				((((this.mineralConcentration.ironium ?? 0) / 100) * numMines) / 10) * mineOutput
-			),
-			boranium: Math.floor(
-				((((this.mineralConcentration.boranium ?? 0) / 100) * numMines) / 10) * mineOutput
-			),
-			germanium: Math.floor(
-				((((this.mineralConcentration.germanium ?? 0) / 100) * numMines) / 10) * mineOutput
-			)
-		};
+		return this.planetOrders.productionQueue;
 	}
 
 	/**
@@ -181,24 +111,28 @@ export class CommandedPlanet implements Planet {
 	public getAvailableProductionQueueShipDesigns(designs: ShipDesign[]): ProductionQueueItem[] {
 		const items: ProductionQueueItem[] = [];
 
-		if (this.spec?.dockCapacity == UnlimitedSpaceDock || (this.spec?.dockCapacity ?? 0) > 0) {
+		if (
+			this.spec?.planetStarbaseSpec?.dockCapacity == UnlimitedSpaceDock ||
+			(this.spec?.planetStarbaseSpec?.dockCapacity ?? 0) > 0
+		) {
 			sortBy(
 				designs
 					.filter(
 						(d) =>
-							this.spec?.dockCapacity == UnlimitedSpaceDock ||
-							(d.spec?.mass ?? 0) <= (this.spec?.dockCapacity ?? 0)
+							this.spec?.planetStarbaseSpec?.dockCapacity == UnlimitedSpaceDock ||
+							(d.spec?.mass ?? 0) <= (this.spec?.planetStarbaseSpec?.dockCapacity ?? 0)
 					)
 					.filter((d) => !d.spec?.starbase)
 					.filter((d) => d.originalPlayerNum == None),
 				(d) => d.name
 			).forEach((d) => {
-				items.push({
-					quantity: 1,
-					type: QueueItemTypeShipToken,
-					designNum: d.num,
-					allocated: {}
-				});
+				items.push(
+					create(ProductionQueueItemSchema, {
+						quantity: 1,
+						type: QueueItemType.SHIP_TOKEN,
+						designNum: d.num
+					})
+				);
 			});
 		}
 
@@ -214,15 +148,17 @@ export class CommandedPlanet implements Planet {
 	public getAvailableProductionQueueStarbaseDesigns(designs: ShipDesign[]): ProductionQueueItem[] {
 		// filter starbase designs
 		const items = sortBy(
-			designs.filter((d) => d.spec?.starbase && this.spec?.starbaseDesignNum !== d.num),
+			designs.filter(
+				(d) => d.spec?.starbase && this.spec?.planetStarbaseSpec?.starbaseDesignNum !== d.num
+			),
 			(d) => d.name
 		).map<ProductionQueueItem>(
-			(d: ShipDesign): ProductionQueueItem => ({
-				quantity: 1,
-				type: QueueItemTypeStarbase,
-				designNum: d.num,
-				yearsToBuildAll: 0
-			})
+			(d: ShipDesign): ProductionQueueItem =>
+				create(ProductionQueueItemSchema, {
+					quantity: 1,
+					type: QueueItemType.STARBASE,
+					designNum: d.num
+				})
 		);
 
 		return items;
@@ -240,101 +176,107 @@ export class CommandedPlanet implements Planet {
 		const items: ProductionQueueItem[] = [];
 
 		if (!innateResources) {
-			items.push(fromQueueItemType(QueueItemTypeFactory));
+			items.push(fromQueueItemType(QueueItemType.FACTORY));
 		}
 		if (!innateMining) {
-			items.push(fromQueueItemType(QueueItemTypeMine));
+			items.push(fromQueueItemType(QueueItemType.MINE));
 		}
 		if (!livesOnStarbases) {
-			items.push(fromQueueItemType(QueueItemTypeDefenses));
+			items.push(fromQueueItemType(QueueItemType.DEFENSES));
 		}
 
-		items.push(fromQueueItemType(QueueItemTypeMineralAlchemy));
+		items.push(fromQueueItemType(QueueItemType.MINERAL_ALCHEMY));
 
 		if (!this.scanner) {
-			items.push(fromQueueItemType(QueueItemTypePlanetaryScanner));
+			items.push(fromQueueItemType(QueueItemType.PLANETARY_SCANNER));
 		}
 		if (genesisDevice) {
-			items.push(fromQueueItemType(QueueItemTypeGenesisDevice));
+			items.push(fromQueueItemType(QueueItemType.GENESIS_DEVICE));
 		}
 
 		if (this.spec?.canTerraform) {
-			items.push(fromQueueItemType(QueueItemTypeTerraformEnvironment));
+			items.push(fromQueueItemType(QueueItemType.TERRAFORM_ENVIRONMENT));
 		}
 
-		if (this.spec?.hasMassDriver) {
+		if (this.spec?.planetStarbaseSpec?.hasMassDriver) {
 			items.push(
-				fromQueueItemType(QueueItemTypeIroniumMineralPacket),
-				fromQueueItemType(QueueItemTypeBoraniumMineralPacket),
-				fromQueueItemType(QueueItemTypeGermaniumMineralPacket),
-				fromQueueItemType(QueueItemTypeMixedMineralPacket)
+				fromQueueItemType(QueueItemType.IRONIUM_MINERAL_PACKET),
+				fromQueueItemType(QueueItemType.BORANIUM_MINERAL_PACKET),
+				fromQueueItemType(QueueItemType.GERMANIUM_MINERAL_PACKET),
+				fromQueueItemType(QueueItemType.MIXED_MINERAL_PACKET)
 			);
 		}
 
 		// add auto items
 		if (!innateResources) {
-			items.push(fromQueueItemType(QueueItemTypeAutoFactories));
+			items.push(fromQueueItemType(QueueItemType.AUTO_FACTORIES));
 		}
 		if (!innateMining) {
-			items.push(fromQueueItemType(QueueItemTypeAutoMines));
+			items.push(fromQueueItemType(QueueItemType.AUTO_MINES));
 		}
 		if (!livesOnStarbases) {
-			items.push(fromQueueItemType(QueueItemTypeAutoDefenses));
+			items.push(fromQueueItemType(QueueItemType.AUTO_DEFENSES));
 		}
 
 		items.push(
-			fromQueueItemType(QueueItemTypeAutoMineralAlchemy),
-			fromQueueItemType(QueueItemTypeAutoMaxTerraform),
-			fromQueueItemType(QueueItemTypeAutoMinTerraform)
+			fromQueueItemType(QueueItemType.AUTO_MINERAL_ALCHEMY),
+			fromQueueItemType(QueueItemType.AUTO_MAX_TERRAFORM),
+			fromQueueItemType(QueueItemType.AUTO_MIN_TERRAFORM)
 		);
 
-		if (this.spec?.hasMassDriver) {
-			items.push(fromQueueItemType(QueueItemTypeAutoMineralPacket));
+		if (this.spec?.planetStarbaseSpec?.hasMassDriver) {
+			items.push(fromQueueItemType(QueueItemType.AUTO_MINERAL_PACKET));
 		}
 
 		return items;
 	}
 
 	// get the estimated years to build one item
-	public getYearsToBuildOne(item: ProductionQueueItem, cs: CS): number {
-		const planetCopy = cloneDeep(this);
-		planetCopy.productionQueue = [item];
-		const planetWithEstimates = cs.estimateProduction(planetCopy);
-		return planetWithEstimates?.productionQueue?.length == 1
-			? (planetWithEstimates.productionQueue[0].yearsToBuildOne ?? Infinite)
-			: Infinite;
+	public async getYearsToBuildOne(item: ProductionQueueItem, cs: CS): Promise<number> {
+		const planetCopy = clone(PlanetSchema, this);
+		planetCopy.planetOrders = create(PlanetOrdersSchema, planetCopy.planetOrders);
+		planetCopy.planetOrders.productionQueue = [item];
+
+		const { planet: planetWithEstimates } = await cs.wasmService.estimateProduction({
+			planet: planetCopy
+		});
+		return (
+			planetWithEstimates?.planetOrders?.productionQueue[0].queueItemCompletionEstimate
+				?.yearsToBuildOne ?? Infinite
+		);
 	}
 }
 
-export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem => ({
-	type,
-	quantity: 1
-});
+export const fromQueueItemType = (type: QueueItemType): ProductionQueueItem =>
+	create(ProductionQueueItemSchema, {
+		type,
+		quantity: 1
+	});
 
 export const getQueueItemShortName = (
-	item: ProductionQueueItem,
+	item: ProductionQueueItem | ProductionPlanItem,
 	designFinder: DesignFinder
 ): string => {
 	switch (item.type) {
-		case QueueItemTypeStarbase:
-		case QueueItemTypeShipToken:
+		case QueueItemType.STARBASE:
+		case QueueItemType.SHIP_TOKEN:
 			return designFinder.getMyDesign(item.designNum)?.name ?? '';
-		case QueueItemTypeTerraformEnvironment:
+		case QueueItemType.TERRAFORM_ENVIRONMENT:
 			return 'Terraform Environment';
-		case QueueItemTypeAutoMines:
+		case QueueItemType.AUTO_MINES:
 			return 'Mine (Auto)';
-		case QueueItemTypeAutoFactories:
+		case QueueItemType.AUTO_FACTORIES:
 			return 'Factory (Auto)';
-		case QueueItemTypeAutoDefenses:
+		case QueueItemType.AUTO_DEFENSES:
 			return 'Defenses (Auto)';
-		case QueueItemTypeAutoMineralAlchemy:
+		case QueueItemType.AUTO_MINERAL_ALCHEMY:
 			return 'Alchemy (Auto)';
-		case QueueItemTypeAutoMaxTerraform:
+		case QueueItemType.AUTO_MAX_TERRAFORM:
 			return 'Max Terraform (Auto)';
-		case QueueItemTypeAutoMinTerraform:
+		case QueueItemType.AUTO_MIN_TERRAFORM:
 			return 'Min Terraform (Auto)';
 		default:
-			return `${startCase(item.type)}`;
+			return `${enumToString(QueueItemType, item.type)}`;
 	}
 };
 
@@ -351,11 +293,11 @@ export function getGrowth(planet: AnyPlanet): number {
 }
 
 export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {
-	return {
+	return create(MineralSchema, {
 		ironium: (((planet.mineralConcentration?.ironium ?? 0) * numMines) / 1000.0) * mineOutput,
 		boranium: (((planet.mineralConcentration?.boranium ?? 0) * numMines) / 1000.0) * mineOutput,
 		germanium: (((planet.mineralConcentration?.germanium ?? 0) * numMines) / 1000.0) * mineOutput
-	};
+	});
 }
 
 // planetsSortBy returns a sortBy function for planets by key. This is used by the planets report page
@@ -363,33 +305,36 @@ export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput
 export function planetsSortBy(key: string): ((a: AnyPlanet, b: AnyPlanet) => number) | undefined {
 	switch (key) {
 		case 'name':
-			return (a, b) => a.name.localeCompare(b.name);
+			return (a, b) => (a.mapObject?.name ?? '').localeCompare(b.mapObject?.name ?? '');
 		case 'production':
 			return (a, b) => {
-				if (!('productionQueue' in a && 'productionQueue' in b)) {
+				if (!('planetOrders' in a && 'planetOrders' in b)) {
 					return 0;
 				}
 				const aItem =
-					a.productionQueue && (a.productionQueue?.length ?? 0) > 0
+					a.planetOrders?.productionQueue && (a.planetOrders.productionQueue?.length ?? 0) > 0
 						? `${JSON.stringify({
-								type: a.productionQueue[0].type,
-								design: a.productionQueue[0].designNum,
-								quantity: a.productionQueue[0].quantity
+								type: a.planetOrders.productionQueue[0].type,
+								design: a.planetOrders.productionQueue[0].designNum,
+								quantity: a.planetOrders.productionQueue[0].quantity
 							})}`
 						: '';
 				const bItem =
-					b.productionQueue && (b.productionQueue?.length ?? 0) > 0
+					b.planetOrders?.productionQueue && (b.planetOrders.productionQueue?.length ?? 0) > 0
 						? `${JSON.stringify({
-								type: b.productionQueue[0].type,
-								design: b.productionQueue[0].designNum,
-								quantity: b.productionQueue[0].quantity
+								type: b.planetOrders.productionQueue[0].type,
+								design: b.planetOrders.productionQueue[0].designNum,
+								quantity: b.planetOrders.productionQueue[0].quantity
 							})}`
 						: '';
 				return aItem.localeCompare(bItem);
 			};
+
 		case 'starbase':
 			return (a, b) =>
-				(a.spec?.starbaseDesignName ?? '').localeCompare(b.spec?.starbaseDesignName ?? '');
+				(a.spec?.planetStarbaseSpec?.starbaseDesignName ?? '').localeCompare(
+					b.spec?.planetStarbaseSpec?.starbaseDesignName ?? ''
+				);
 		case 'population':
 			return (a, b) => (population(a.cargo) ?? 0) - (population(b.cargo) ?? 0);
 		case 'populationDensity':
@@ -422,6 +367,6 @@ export function planetsSortBy(key: string): ((a: AnyPlanet, b: AnyPlanet) => num
 						((b.contributesOnlyLeftoverToResearch ?? false) ? 1 : 0)
 					: 0;
 		default:
-			return (a, b) => a.num - b.num;
+			return (a, b) => (a.mapObject?.num ?? 0) - (b.mapObject?.num ?? 0);
 	}
 }

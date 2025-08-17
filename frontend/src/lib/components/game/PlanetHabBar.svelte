@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { clamp } from '$lib/services/Math';
-	import type { HabType } from '$lib/types/cs';
+	import type { HabType } from '$lib/types/Hab';
 	import { getHabValueString, HabTypeShortString, habTypeString } from '$lib/types/Hab';
 	import PlanetBaseHabPoint from './PlanetBaseHabPoint.svelte';
 	import PlanetHabPoint from './PlanetHabPoint.svelte';

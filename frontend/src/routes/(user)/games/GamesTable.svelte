@@ -1,15 +1,12 @@
 <script lang="ts">
-	import type { Game } from '$lib/types/cs';
-	import { format } from 'date-fns';
+	import type { Game } from '$lib/types/cs-proto';
+	import { compare, timestampToString } from '$lib/types/Timestamp';
 
 	type Props = {
 		games: Game[];
 	};
 	let { games }: Props = $props();
-
-	let sortedGames = $derived(
-		games.sort((a, b) => (b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0))
-	);
+	let sortedGames = $derived(games.sort((a, b) => compare(a.createdAt, b.createdAt)));
 </script>
 
 <div class="overflow-x-auto">
@@ -27,7 +24,7 @@
 					<tr
 						><td>{game.id}</td>
 						<td><a href={`/games/${game.id}`}>{game.name}</a></td><td
-							>{format(game.createdAt ?? '', 'E, MMM do yyyy hh:mm aaa')}</td
+							>{timestampToString(game.createdAt)}</td
 						></tr
 					>
 				{/each}

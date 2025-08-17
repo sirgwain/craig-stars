@@ -1,31 +1,32 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { equal, getMapObjectName } from '$lib/types/MapObject';
-	import { type MapObject } from '$lib/types/cs';
+	import { equal, getMapObjectName, type MapObjectLike } from '$lib/types/MapObject';
 	import { distance } from '$lib/types/Vector';
 
 	const { highlightedMapObject, selectedMapObject, commandedMapObject } = getGameContext();
 
-	let to: MapObject | undefined = $derived(
+	let to: MapObjectLike | undefined = $derived(
 		$highlightedMapObject ? $highlightedMapObject : $selectedMapObject
 	);
-	let from: MapObject | undefined = $derived(
+	let from: MapObjectLike | undefined = $derived(
 		$highlightedMapObject
 			? equal($selectedMapObject, $highlightedMapObject)
 				? $commandedMapObject
 				: $selectedMapObject
 			: $commandedMapObject
 	);
-	let dist = $derived(from && to ? distance(from.position, to?.position) : 0);
+	const posOf = (m: MapObjectLike | undefined) => m?.mapObject?.position;
+	const numOf = (m: MapObjectLike | undefined) => m?.mapObject?.num ?? 0;
+	let dist = $derived(from && to ? distance(posOf(from), posOf(to)) : 0);
 </script>
 
 <div class="flex flex-row justify-start gap-3 h-4 text-sm">
 	{#if to && dist}
 		<div class="w-10">
-			ID: {to.num}
+			ID: {numOf(to)}
 		</div>
 		<div class="w-20">
-			X: {to.position.x}, Y: {to.position.y}
+			X: {posOf(to)?.x ?? 0}, Y: {posOf(to)?.y ?? 0}
 		</div>
 		<div>
 			{getMapObjectName(to)}

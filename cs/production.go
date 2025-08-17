@@ -42,14 +42,14 @@ type QueueItemCompletionEstimate struct {
 }
 
 type ProductionQueueItem struct {
-	QueueItemCompletionEstimate `tstype:",extends"`
-	Type                        QueueItemType `json:"type"`
-	DesignNum                   int           `json:"designNum,omitempty"`
-	Quantity                    int           `json:"quantity"`
-	Allocated                   Cost          `json:"allocated,omitzero"`
-	Tags                        Tags          `json:"tags,omitzero"`
-	index                       int           // used for holding a place in the queue while estimating
-	design                      *ShipDesign
+	QueueItemCompletionEstimate
+	Type      QueueItemType `json:"type"`
+	DesignNum int           `json:"designNum,omitempty"`
+	Quantity  int           `json:"quantity"`
+	Allocated Cost          `json:"allocated,omitzero"`
+	Tags      Tags          `json:"tags,omitzero"`
+	index     int           // used for holding a place in the queue while estimating
+	design    *ShipDesign
 }
 
 func (item *ProductionQueueItem) SetDesign(design *ShipDesign) {

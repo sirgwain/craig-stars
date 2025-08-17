@@ -1,4 +1,5 @@
 import { test as base, expect, Page } from '@playwright/test';
+import { CreateGameResponseJson } from '../src/lib/protogen/craig_stars/v1/gameservice_pb';
 
 export const test = base.extend<{
 	authenticatedPage: Page;
@@ -35,24 +36,27 @@ export const test = base.extend<{
 		authenticatedPage.getByRole('button', { name: 'Create Game' }).click();
 		const response = await authenticatedPage.waitForResponse(
 			(response) =>
-				response.url().includes('/api/games') &&
+				response.url().includes('/api/grpc/craig_stars.v1.GameService') &&
 				response.request().method() === 'POST' &&
 				response.status() === 200
 		);
 
-		const { id } = await response.json();
+		const { game } = (await response.json()) as CreateGameResponseJson;
+		if (!game?.game?.id) {
+			throw new Error('failed to create game');
+		}
 
 		const gameLink = authenticatedPage.getByRole('link', { name: name });
 		await expect(gameLink).toBeVisible();
 		await expect(gameLink).toHaveText(`${name} - 2400`);
 
 		// do whatever our subtest wants
-		await use({ page: authenticatedPage, id, name: name });
+		await use({ page: authenticatedPage, id: game.game.id, name: name });
 
 		// delete the game
 		await authenticatedPage.goto('/');
 		const deleteButton = await authenticatedPage.locator(
-			`[data-type="delete-button"][data-id="${id}"]`
+			`[data-type="delete-button"][data-id="${game.game.id}"]`
 		);
 		await expect(deleteButton).toBeVisible();
 
@@ -76,20 +80,20 @@ export const test = base.extend<{
 		authenticatedPage.getByRole('button', { name: 'Save' }).click();
 		const response = await authenticatedPage.waitForResponse(
 			(response) =>
-				response.url().includes('/api/races') &&
+				response.url().includes('/api/grpc/craig_stars.v1.RaceService') &&
 				response.request().method() === 'POST' &&
 				response.status() === 200
 		);
 
-		const { id } = await response.json();
+		const { race } = await response.json();
 
 		// do whatever our subtest wants
-		await use({ page: authenticatedPage, id, name: name });
+		await use({ page: authenticatedPage, id: race.id, name: name });
 
 		// delete the game
 		await authenticatedPage.goto('/races');
 		const deleteButton = await authenticatedPage.locator(
-			`[data-type="delete-button"][data-id="${id}"]`
+			`[data-type="delete-button"][data-id="${race.id}"]`
 		);
 		await expect(deleteButton).toBeVisible();
 
@@ -124,7 +128,7 @@ export async function apiErrorsFailTest(page: Page, gameId: string | null) {
 		throw new Error(`invalid gameId for page ${page.url()}`);
 	}
 	page.on('response', async (response) => {
-		if (response.url().includes(`/api/games/${gameId}`) && !response.ok()) {
+		if (response.url().includes(`/api/grpc/craig_stars.v1.GameService`) && !response.ok()) {
 			// fail any api requests
 			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
 		}

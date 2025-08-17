@@ -1,6 +1,7 @@
 <script lang="ts">
+	import type { PlanetIntel } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { None, ReportAgeUnexplored, type PlanetIntel } from '$lib/types/cs';
+	import { ReportAgeUnexplored } from '$lib/types/Consts';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
@@ -53,8 +54,8 @@
 				}
 			}
 
-			if (planet.playerNum) {
-				flagColor = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
+			if (planet.mapObject?.playerNum) {
+				flagColor = $universe.getPlayerColor(planet.mapObject?.playerNum) ?? '#FF0000';
 			}
 		}
 
@@ -75,7 +76,7 @@
 {#if planet.reportAge !== ReportAgeUnexplored}
 	<MapObjectScaler mapObject={planet}>
 		<circle cx={0} cy={0} {...planetProps.circleProps} />
-		{#if planet.playerNum != None}
+		{#if planet.mapObject?.playerNum}
 			<!-- draw the flag  -->
 			<rect
 				width="12"

@@ -1,12 +1,11 @@
 <script lang="ts" module>
-	import type { Vector } from '$lib/types/cs';
 	import ScannerContextPopup from './ScannerContextPopup.svelte';
 
 	export type ScannerContextPopupProps = {
-		position: Vector;
+		position: Position;
 	} & PopupProps;
 
-	export function onScannerContextPopup(e: PointerEvent | MouseEvent, position?: Vector) {
+	export function onScannerContextPopup(e: PointerEvent | MouseEvent, position?: Position) {
 		if (position) {
 			showPopup<ScannerContextPopupProps>(e.x, e.y, ScannerContextPopup, { position });
 		}
@@ -15,15 +14,15 @@
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import { MapObjectType } from '$lib/types/cs-proto';
 	import {
-		MapObjectTypeFleet,
-		MapObjectTypeMinefield,
-		MapObjectTypePlanet,
-		None,
-		type MapObject
-	} from '$lib/types/cs';
-	import { getMapObjectName, ownedBy } from '$lib/types/MapObject';
-	import { flatten, keys } from 'lodash-es';
+		getMapObjectName,
+		ownedBy,
+		type MapObjectLike,
+		type Position
+	} from '$lib/types/MapObject';
+	import { None } from '$lib/types/Consts';
+	import { flatten } from 'lodash-es';
 	import { showPopup, type PopupProps } from './Popup.svelte';
 
 	const { player, universe, commandMapObject, selectMapObject } = getGameContext();
@@ -33,17 +32,21 @@
 	let otherMapObjectsHere = $derived($universe.getOtherMapObjectsHereByType(position));
 	let everythingElse = $derived(
 		flatten(
-			keys(otherMapObjectsHere).map((k) =>
-				k !== MapObjectTypePlanet && k !== MapObjectTypeFleet && k !== MapObjectTypeMinefield
-					? otherMapObjectsHere[k]
-					: []
-			)
+			Object.entries(otherMapObjectsHere)
+				.map(([key, value]) => [Number(key), value] as [MapObjectType, MapObjectLike[]])
+				.filter(
+					([k]) =>
+						k !== MapObjectType.PLANET && k !== MapObjectType.FLEET && k !== MapObjectType.MINEFIELD
+				)
+				.map(([, value]) => value)
 		)
 	);
-
-	function gotoTarget(mo: MapObject) {
+	function gotoTarget(mo: MapObjectLike) {
 		if (ownedBy(mo, $player.num)) {
-			if (mo.type === MapObjectTypePlanet || mo.type === MapObjectTypeFleet) {
+			if (
+				mo.mapObject?.type === MapObjectType.PLANET ||
+				mo.mapObject?.type === MapObjectType.FLEET
+			) {
 				commandMapObject(mo);
 			}
 		}
@@ -53,33 +56,33 @@
 </script>
 
 <ul class="menu overflow-y-auto px-0.5">
-	{#if otherMapObjectsHere[MapObjectTypePlanet]}
+	{#if otherMapObjectsHere[MapObjectType.PLANET]}
 		<li class="menu-title w-full">
 			Planet
 			<ul>
-				{#each otherMapObjectsHere[MapObjectTypePlanet] as mo (mo)}
+				{#each otherMapObjectsHere[MapObjectType.PLANET] as mo (mo)}
 					<li
-						style={mo.playerNum != $player.num && mo.playerNum != None
-							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
+						style={mo.mapObject?.playerNum != $player.num && mo.mapObject?.playerNum != None
+							? `color: ${$universe.getPlayerColor(mo.mapObject?.playerNum)};`
 							: ''}
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							onclick={() => gotoTarget(mo)}>{mo.name}</button
+							onclick={() => gotoTarget(mo)}>{mo.mapObject?.name}</button
 						>
 					</li>
 				{/each}
 			</ul>
 		</li>
 	{/if}
-	{#if otherMapObjectsHere[MapObjectTypeFleet]}
+	{#if otherMapObjectsHere[MapObjectType.FLEET]}
 		<li class="menu-title w-full">
 			Fleets
 			<ul>
-				{#each otherMapObjectsHere[MapObjectTypeFleet] as mo (mo)}
+				{#each otherMapObjectsHere[MapObjectType.FLEET] as mo (mo)}
 					<li
-						style={mo.playerNum != $player.num
-							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
+						style={mo.mapObject?.playerNum != $player.num
+							? `color: ${$universe.getPlayerColor(mo.mapObject?.playerNum)};`
 							: ''}
 					>
 						<button
@@ -92,21 +95,21 @@
 		</li>
 	{/if}
 
-	{#if otherMapObjectsHere[MapObjectTypeMinefield]}
+	{#if otherMapObjectsHere[MapObjectType.MINEFIELD]}
 		<li class="menu-title w-full">
 			Minefields
 			<ul>
-				{#each otherMapObjectsHere[MapObjectTypeMinefield] as mo (mo)}
+				{#each otherMapObjectsHere[MapObjectType.MINEFIELD] as mo (mo)}
 					<li
-						style={mo.playerNum != $player.num
-							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
+						style={mo.mapObject?.playerNum != $player.num
+							? `color: ${$universe.getPlayerColor(mo.mapObject?.playerNum)};`
 							: ''}
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
 							onclick={() => gotoTarget(mo)}
 						>
-							{mo.name}
+							{mo.mapObject?.name}
 						</button>
 					</li>
 				{/each}
@@ -119,13 +122,13 @@
 			<ul>
 				{#each everythingElse as mo (mo)}
 					<li
-						style={mo.playerNum != $player.num
-							? `color: ${$universe.getPlayerColor(mo.playerNum)};`
+						style={mo.mapObject?.playerNum != $player.num
+							? `color: ${$universe.getPlayerColor(mo.mapObject?.playerNum)};`
 							: ''}
 					>
 						<button
 							class="py-1 pl-0.5 w-full text-left hover:text-accent"
-							onclick={() => gotoTarget(mo)}>{mo.name}</button
+							onclick={() => gotoTarget(mo)}>{mo.mapObject?.name}</button
 						>
 					</li>
 				{/each}

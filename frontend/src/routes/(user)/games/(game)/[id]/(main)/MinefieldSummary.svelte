@@ -5,13 +5,14 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
 	import type { AnyMinefield } from '$lib/services/Universe';
+	import { type Minefield, type MinefieldSpec, MinefieldType } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
 	import { ownedBy } from '$lib/types/MapObject';
-	import { MinefieldTypeHeavy, MinefieldTypeSpeedBump, MinefieldTypeStandard } from '$lib/types/cs';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import type { ChangeEventHandler } from 'svelte/elements';
 
-	const { game, player, universe, updateMinefieldOrders } = getGameContext();
+	const { cs, game, player, universe, updateMinefieldOrders } = getGameContext();
 
 	type Props = {
 		minefield: AnyMinefield;
@@ -19,7 +20,22 @@
 
 	let { minefield = $bindable() }: Props = $props();
 
-	let stats = $derived($game.rules.minefieldStatsByType[minefield.minefieldType]);
+	let spec: MinefieldSpec | undefined = $state();
+
+	let stats = $derived(
+		$game.rules?.minefieldStatsByType
+			? $game.rules?.minefieldStatsByType[minefield.minefieldType]
+			: undefined
+	);
+
+	$effect(() => {
+		if (!(minefield as Minefield)) {
+			return;
+		}
+		cs.wasmService.computeMinefieldSpec({ minefield: minefield as Minefield }).then((resp) => {
+			spec = resp.spec;
+		});
+	});
 
 	function onTooltip(e: PointerEvent) {
 		showTooltip<TextTooltipProps>(e.x, e.y, TextTooltip, {
@@ -29,8 +45,8 @@
 
 	// update the minefield to detonate on the server
 	const minefieldDetonateChecked: ChangeEventHandler<HTMLInputElement> = async (e) => {
-		if ('detonate' in minefield) {
-			minefield.detonate = e.currentTarget.checked;
+		if ('minefieldOrders' in minefield && minefield.minefieldOrders) {
+			minefield.minefieldOrders.detonate = e.currentTarget.checked;
 			await updateMinefieldOrders(minefield);
 		} else {
 			console.error("can't detonate minefield not owned by player");
@@ -43,51 +59,51 @@
 		<div class="avatar">
 			<div class="mapobject-avatar-wrapper">
 				<div
-					class:standard-minefield={minefield.minefieldType === MinefieldTypeStandard}
-					class:heavy-minefield={minefield.minefieldType === MinefieldTypeHeavy}
-					class:speed-bump-minefield={minefield.minefieldType === MinefieldTypeSpeedBump}
+					class:standard-minefield={minefield.minefieldType === MinefieldType.STANDARD}
+					class:heavy-minefield={minefield.minefieldType === MinefieldType.HEAVY}
+					class:speed-bump-minefield={minefield.minefieldType === MinefieldType.SPEED_BUMP}
 					class="mapobject-avatar"
 				></div>
 			</div>
 		</div>
-		<div class="text-center">{$universe.getPlayerPluralName(minefield.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerPluralName(minefield.mapObject?.playerNum)}</div>
 	</div>
 
 	<div class="flex flex-col grow">
 		<div class="flex flex-row">
 			<div class="w-40">Location:</div>
 			<div>
-				({minefield.position.x}, {minefield.position.y})
+				({minefield.mapObject?.position?.x ?? 0}, {minefield.mapObject?.position?.y ?? 0})
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-40">Field Type:</div>
 			<div>
-				{minefield.minefieldType}
+				{enumToString(MinefieldType, minefield.minefieldType)}
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-40">Field Radius:</div>
 			<div>
-				{minefield.spec.radius.toFixed()} l.y. ({minefield.numMines} mines)
+				{Math.sqrt(minefield.numMines).toFixed()} l.y. ({minefield.numMines} mines)
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-40">Maximum Safe Speed:</div>
 			<div>
-				Warp {stats.maxSpeed}
+				Warp {stats?.maxSpeed ?? 0}
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-40">Chance/l.y. of a Hit:</div>
 			<div>
-				{(stats.chanceOfHit * 100).toFixed(2)}%
+				{(Number(stats?.chanceOfHit) * 100).toFixed(2)}%
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-40">Dmg done to each ship:</div>
 			<div>
-				{stats.damagePerEngine} ({stats.damagePerEngineRS}) / engine
+				{stats?.damagePerEngine} ({stats?.damagePerEngineRs}) / engine
 				<span class="cursor-help" onpointerdown={(e) => onTooltip(e)}>
 					<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 				</span>
@@ -96,24 +112,24 @@
 		<div class="flex flex-row">
 			<div class="w-40">Min damage done to fleet:</div>
 			<div>
-				{stats.minDamagePerFleet} ({stats.minDamagePerFleetRS})
+				{stats?.minDamagePerFleet} ({stats?.minDamagePerFleetRs})
 				<span class="cursor-help" onpointerdown={(e) => onTooltip(e)}>
 					<Icon src={QuestionMarkCircle} size="16" class=" cursor-help inline-block" />
 				</span>
 			</div>
 		</div>
-		{#if ownedBy(minefield, $player.num)}
+		{#if spec && ownedBy(minefield, $player.num)}
 			<div class="flex flex-row">
 				<div class="w-40">Decay Rate:</div>
 				<div>
-					{minefield.spec.decayRate} / year
+					{spec.decayRate} / year
 				</div>
 			</div>
-			{#if 'detonate' in minefield && minefield.spec.canDetonate}
+			{#if 'minefieldOrders' in minefield && spec.canDetonate}
 				<div class="flex flex-row mt-2">
 					<label>
 						<input
-							checked={minefield.detonate}
+							checked={minefield.minefieldOrders?.detonate}
 							onchange={minefieldDetonateChecked}
 							class="checkbox checkbox-xs"
 							type="checkbox"

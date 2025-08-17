@@ -2,14 +2,14 @@
 	import CheckboxInput from '$lib/components/CheckboxInput.svelte';
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
 	import TextInput from '$lib/components/TextInput.svelte';
-	import type { GameSettings } from '$lib/types/cs';
 	import {
-		Densities,
-		GameStartModeFullNames,
-		GameStartModes,
-		PlayerPositionses,
-		Sizes
-	} from '$lib/types/Game';
+		Density,
+		GameStartMode,
+		PlayerPositions,
+		Size,
+		type GameSettings
+	} from '$lib/types/cs-proto';
+	import { GameStartModeFullNames } from '$lib/types/Enums';
 	import PrivateGameLink from './PrivateGameLink.svelte';
 
 	type Props = {
@@ -25,11 +25,11 @@
 		<PrivateGameLink />
 	{/if}
 	<TextInput name="name" bind:value={settings.name} />
-	<EnumSelect name="size" options={Sizes} bind:value={settings.size} />
-	<EnumSelect name="density" options={Densities} bind:value={settings.density} />
+	<EnumSelect name="size" enumType={Size} bind:value={settings.size} />
+	<EnumSelect name="density" enumType={Density} bind:value={settings.density} />
 	<EnumSelect
 		name="playerPositions"
-		options={PlayerPositionses}
+		enumType={PlayerPositions}
 		bind:value={settings.playerPositions}
 	/>
 	<CheckboxInput name="public" bind:checked={settings.public} />
@@ -46,7 +46,7 @@
 	/>
 	<EnumSelect
 		name="startMode"
-		options={GameStartModes}
+		enumType={GameStartMode}
 		bind:value={settings.startMode}
 		typeTitle={(t) => GameStartModeFullNames[t]}
 		showEmpty={true}

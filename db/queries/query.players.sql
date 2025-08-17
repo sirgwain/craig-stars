@@ -59,8 +59,8 @@ SELECT
     d.*
 FROM
     players p
-    LEFT JOIN ship_designs d ON p.game_id = d.game_id
-    AND p.num = d.player_num
+    LEFT JOIN ship_designs d ON d.game_id = p.game_id
+    AND d.player_num = p.num
 WHERE
     p.game_id = ?
     AND p.user_id = ?

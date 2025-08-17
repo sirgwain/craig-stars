@@ -2,13 +2,13 @@
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
+	import type { Fleet } from '$lib/types/cs-proto';
 	import type { ChangeMassDriverSpeedProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
 	import type { AnyShipDesign } from '$lib/services/Universe';
 	import type { CommandedPlanet } from '$lib/types/Planet';
-	import type { Fleet } from '$lib/types/cs';
-	import { UnlimitedSpaceDock } from '$lib/types/cs';
+	import { UnlimitedSpaceDock } from '$lib/types/Consts';
 	import CommandTile from './CommandTile.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
@@ -21,11 +21,15 @@
 	let { starbase, planet, onChangeMassDriverSpeed }: Props = $props();
 
 	let stargate = $derived(
-		starbase?.spec?.stargate ? $techs.getHullComponent(starbase.spec.stargate) : undefined
+		starbase?.spec?.shipDesignSpec?.stargate
+			? $techs.getHullComponent(starbase.spec.shipDesignSpec?.stargate)
+			: undefined
 	);
 
 	let massDriver = $derived(
-		starbase?.spec?.massDriver ? $techs.getHullComponent(starbase.spec.massDriver) : undefined
+		starbase?.spec?.shipDesignSpec?.massDriver
+			? $techs.getHullComponent(starbase.spec.shipDesignSpec?.massDriver)
+			: undefined
 	);
 
 	function showDesign(e: PointerEvent) {
@@ -44,21 +48,25 @@
 		<div class="cursor-help" onpointerdown={showDesign}>
 			<div class="flex justify-between">
 				<div class="text-tile-item-title">Dock Capacity</div>
-				{#if starbase.spec.spaceDock === UnlimitedSpaceDock}
+				{#if starbase.spec.shipDesignSpec?.spaceDock === UnlimitedSpaceDock}
 					<div>Unlimited</div>
-				{:else if (starbase.spec.spaceDock ?? 0) > 0}
-					<div>{starbase.spec.spaceDock}kT</div>
+				{:else if (starbase.spec.shipDesignSpec?.spaceDock ?? 0) > 0}
+					<div>{starbase.spec.shipDesignSpec?.spaceDock}kT</div>
 				{:else}
 					<div>none</div>
 				{/if}
 			</div>
 			<div class="flex justify-between">
 				<div class="text-tile-item-title">Armor</div>
-				<div>{starbase.spec.armor}dp</div>
+				<div>{starbase.spec.shipDesignSpec?.armor}dp</div>
 			</div>
 			<div class="flex justify-between">
 				<div class="text-tile-item-title">Shields</div>
-				<div>{starbase.spec.shields ? starbase.spec.shields + 'dp' : 'none'}</div>
+				<div>
+					{starbase.spec.shipDesignSpec?.shields
+						? starbase.spec.shipDesignSpec?.shields + 'dp'
+						: 'none'}
+				</div>
 			</div>
 			{#if starbase.tokens && starbase.tokens.length > 0}
 				<div class="flex justify-between">
@@ -81,7 +89,7 @@
 				{#if stargate}
 					<div>
 						<button type="button" class="w-full h-full">
-							{stargate.name}
+							{stargate.tech?.name}
 						</button>
 					</div>
 				{:else}
@@ -96,7 +104,7 @@
 				{#if starbase.spec.hasMassDriver}
 					<div>
 						<button type="button" class="w-full h-full">
-							Warp {starbase.spec.safePacketSpeed}
+							Warp {starbase.spec.shipDesignSpec?.safePacketSpeed}
 						</button>
 					</div>
 				{:else}
@@ -107,7 +115,7 @@
 				<div class="flex justify-between">
 					<div class="text-tile-item-title">Destination</div>
 					<div>
-						{$universe.getPlanet(planet.packetTargetNum)?.name ?? 'none'}
+						{$universe.getPlanet(planet.planetOrders.packetTargetNum)?.mapObject?.name ?? 'none'}
 					</div>
 				</div>
 				<div class="flex justify-between mt-1 gap-1">
@@ -121,17 +129,18 @@
 					</div>
 					<div class="w-full my-auto">
 						<WarpSpeedGauge
-							value={planet.packetSpeed}
+							value={planet.planetOrders.packetSpeed}
 							isPacket={true}
 							min={5}
-							max={(planet.spec.basePacketSpeed ?? 0) + $game.rules.packetMaxOverwarpSpeed}
-							warnSpeed={(planet.spec.safePacketSpeed ?? 0) + 1}
-							dangerSpeed={(planet.spec.safePacketSpeed ?? 0) + 3}
+							max={(planet.spec.planetStarbaseSpec?.basePacketSpeed ?? 0) +
+								($game.rules.packetMaxOverwarpSpeed ?? 0)}
+							warnSpeed={(planet.spec.planetStarbaseSpec?.safePacketSpeed ?? 0) + 1}
+							dangerSpeed={(planet.spec.planetStarbaseSpec?.safePacketSpeed ?? 0) + 3}
 							onValueDragged={(warpSpeed) => {
-								planet.packetSpeed = warpSpeed;
+								planet.planetOrders.packetSpeed = warpSpeed;
 							}}
 							onValueChanged={(warpSpeed) => {
-								planet.packetSpeed = warpSpeed;
+								planet.planetOrders.packetSpeed = warpSpeed;
 								onChangeMassDriverSpeed?.({ planet, warpSpeed });
 							}}
 						/>

@@ -1,16 +1,11 @@
 <script lang="ts">
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import {
-		NewGamePlayerTypeAI,
-		NewGamePlayerTypeGuest,
-		NewGamePlayerTypeOpen,
-		type NewGamePlayer
-	} from '$lib/types/cs';
+	import { me } from '$lib/services/Stores';
+	import { NewGamePlayerType, type NewGamePlayer } from '$lib/types/cs-proto';
+	import { XMark } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import AiPlayer from './AIPlayer.svelte';
 	import HostPlayer from './HostPlayer.svelte';
-	import { XMark } from '@steeze-ui/heroicons';
-	import { me } from '$lib/services/Stores';
 
 	type Props = {
 		player: NewGamePlayer;
@@ -30,7 +25,7 @@
 						<div class="grow">
 							<EnumSelect
 								name="type"
-								options={[NewGamePlayerTypeGuest, NewGamePlayerTypeOpen, NewGamePlayerTypeAI]}
+								enumType={NewGamePlayerType}
 								bind:value={player.type}
 								title={`Player ${index}`}
 							/>
@@ -38,7 +33,7 @@
 					{:else}
 						<div class="text-xl mr-2 my-auto">AI Player {index}</div>
 					{/if}
-					{#if player.type === NewGamePlayerTypeAI}
+					{#if player.type === NewGamePlayerType.AI}
 						<AiPlayer bind:player />
 					{/if}
 				</div>

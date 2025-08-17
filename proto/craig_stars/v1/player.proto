@@ -1,0 +1,170 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/battle.proto";
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/fleet.proto";
+import "craig_stars/v1/intel.proto";
+import "craig_stars/v1/message.proto";
+import "craig_stars/v1/minefield.proto";
+import "craig_stars/v1/mineralpacket.proto";
+import "craig_stars/v1/planet.proto";
+import "craig_stars/v1/race.proto";
+import "craig_stars/v1/score.proto";
+import "craig_stars/v1/tech.proto";
+import "google/protobuf/timestamp.proto";
+
+enum PlayerRelation {
+  PLAYER_RELATION_UNSPECIFIED = 0;
+  PLAYER_RELATION_NEUTRAL = 1;
+  PLAYER_RELATION_FRIEND = 2;
+  PLAYER_RELATION_ENEMY = 3;
+}
+
+// A Player contains all intel, messages, tech levels, and research orders for a single empire in the game.
+// It is tied to a single User (or no user, for AI)
+message Player {
+  GameDBObject game_db_object = 1;
+  PlayerOrders player_orders = 2;
+  PlayerPlans player_plans = 3;
+  int64 user_id = 4;
+  string name = 5;
+  int32 num = 6;
+  bool ready = 7;
+  bool ai_controlled = 8;
+  AiDifficulty ai_difficulty = 9;
+  bool guest = 10;
+  bool submitted_turn = 11;
+  string color = 12;
+  int32 default_hull_set = 13;
+  Race race = 14;
+  TechLevel tech_levels = 15;
+  TechLevel tech_levels_spent = 16;
+  int32 research_spent_last_year = 17;
+  repeated PlayerRelationship relations = 18;
+  repeated PlayerMessage messages = 19;
+  repeated PlayerScore score_history = 20;
+  map<string, bool> acquired_techs = 21;
+  uint32 achieved_victory_conditions = 22;
+  bool victor = 23;
+  bool archived = 24;
+  PlayerStats stats = 25;
+  PlayerSpec spec = 26;
+}
+
+// Aggregate universe view used by SubmitTurnResponse/ForceGenerateTurnResponse/GetPlayerResponse.
+message PlayerUniverse {
+  repeated Planet planets = 1;
+  repeated Fleet fleets = 2;
+  repeated Fleet starbases = 3;
+  repeated Minefield minefields = 4;
+  repeated MineralPacket mineral_packets = 5;
+}
+
+message ByHandCargoTransfer {
+  MapObjectTarget map_object_target = 1;
+  int32 source_fleet_num = 6;
+  Cargo cargo = 7;
+}
+
+message CargoTransfers {
+  repeated ByHandCargoTransfer transfers = 1;
+}
+
+message PlayerStatus {
+  int64 id = 1;
+  google.protobuf.Timestamp updated_at = 2;
+  int64 user_id = 3;
+  string name = 4;
+  int32 num = 5;
+  bool ready = 6;
+  bool ai_controlled = 7;
+  AiDifficulty ai_difficulty = 8;
+  bool guest = 9;
+  bool submitted_turn = 10;
+  string color = 11;
+  bool victor = 12;
+  bool archived = 13;
+}
+
+message Intels {
+  repeated BattleRecord battle_records = 1;
+  repeated PlayerIntel player_intels = 2;
+  repeated ScoreIntel score_intels = 3;
+  repeated PlanetIntel planet_intels = 4;
+  repeated FleetIntel fleet_intels = 5;
+  repeated ShipDesignIntel ship_design_intels = 6;
+  repeated MineralPacketIntel mineral_packet_intels = 7;
+  repeated MinefieldIntel minefield_intels = 8;
+  repeated WormholeIntel wormhole_intels = 9;
+  repeated MysteryTraderIntel mystery_trader_intels = 10;
+  repeated SalvageIntel salvage_intels = 11;
+}
+
+message PlayerPlans {
+  repeated ProductionPlan production_plans = 1;
+  repeated BattlePlan battle_plans = 2;
+  repeated TransportPlan transport_plans = 3;
+}
+
+message PlayerOrders {
+  TechField researching = 1;
+  NextResearchField next_research_field = 2;
+  int32 research_amount = 3;
+  map<string, CargoTransfers> cargo_transfers = 4;
+}
+
+message PlayerStats {
+  int32 fleets_built = 1;
+  int32 starbases_built = 2;
+  int32 tokens_built = 3;
+  int32 planets_colonized = 4;
+}
+
+message PlayerRelationship {
+  PlayerRelation relation = 1;
+  bool share_map = 2;
+}
+
+message PlayerSpec {
+  // Embedded PlayerResearchSpec
+  int32 resources_per_year = 1;
+  int32 resources_per_year_research = 2;
+  int32 resources_per_year_research_estimated = 3;
+  int32 current_research_cost = 4;
+  repeated Tech techs_just_gained = 5;
+
+  TechPlanetaryScanner planetary_scanner = 6;
+  TechDefense defense = 7;
+  map<int32, TechTerraform> terraform = 8; // TerraformHabType as string
+}
+
+message BattlePlan {
+  int32 num = 1;
+  string name = 2;
+  BattleTarget primary_target = 3;
+  BattleTarget secondary_target = 4;
+  BattleTactic tactic = 5;
+  BattleAttackWho attack_who = 6;
+  bool dump_cargo = 7;
+}
+
+message TransportPlan {
+  int32 num = 1;
+  string name = 2;
+  WaypointTransportTasks tasks = 3;
+}
+
+message ProductionPlan {
+  int32 num = 1;
+  string name = 2;
+  repeated ProductionPlanItem items = 3;
+  bool contributes_only_leftover_to_research = 4;
+}
+
+message ProductionPlanItem {
+  QueueItemType type = 1;
+  int32 design_num = 2;
+  int32 quantity = 3;
+}

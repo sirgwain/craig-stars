@@ -1,46 +1,16 @@
-import { addError } from './services/Errors';
-import type {
-	Cost,
-	Fleet,
-	PlayerIntels,
-	QueueItemType,
-	Race,
-	Rules,
-	ShipDesign,
-	ShipDesignSpec,
-	Tech,
-	TechLevel,
-	WaypointDest
-} from './types/cs';
-import { type Planet } from './types/cs';
-import type { CommandedPlayer } from './types/Player';
+import { createClient, type Client, type Transport } from '@connectrpc/connect';
+import { createConnectTransport } from '@connectrpc/connect-web';
+import { WasmService } from './protogen/craig_stars/v1/wasm_pb';
 
+export type WasmClient = Client<typeof WasmService>;
 export type CS = {
-	enableDebug: () => void;
-	setRules: (rules: Rules) => void;
-	setPlayer: (player: CommandedPlayer) => void;
-	setDesigns: (designs: ShipDesign[]) => void;
-	setIntel: (intel: PlayerIntels) => void;
-	calculateRacePoints: (race: Race) => number | undefined;
-	getResearchCost: (techLevel: TechLevel) => number | undefined;
-	computeShipDesignSpec: (design: ShipDesign) => ShipDesignSpec | undefined;
-	starbaseUpgradeCost: (design: ShipDesign, newDesign: ShipDesign) => Cost | undefined;
-	techCost: (tech: Tech) => Cost | undefined;
-	estimateProduction: (planet: Planet) => Planet | undefined;
-	maxBuildable: (planet: Planet, itemType: QueueItemType) => number | undefined;
-	addWaypoint: (
-		fleet: Fleet,
-		dest: WaypointDest,
-		currentSelectedWaypointIndex: number,
-		fastestWaypoint: boolean
-	) => { fleet: Fleet; result: number } | undefined;
-	updateWaypoint: (
-		fleet: Fleet,
-		dest: WaypointDest,
-		currentSelectedWaypointIndex: number,
-		fastestWaypoint: boolean
-	) => { fleet: Fleet; result: boolean } | undefined;
-	updateResourcesAvailable: (planet: Planet) => number | undefined;
+	transport: Transport;
+	wasmService: WasmClient;
+	handleGrpc: (
+		path: string,
+		requestBytes: Uint8Array,
+		callback: (err: unknown, responseBytes: Uint8Array) => void
+	) => void;
 };
 
 // load a wasm module and returns a wrapper for executing functions
@@ -85,7 +55,7 @@ export async function loadWasm(): Promise<CS> {
 	const cs = new CSWasmWrapper(bridge);
 
 	if (PKG.version == '0.0.0-develop') {
-		cs.enableDebug();
+		await cs.wasmService.enableDebug({ debug: true });
 	}
 
 	return cs;
@@ -95,139 +65,32 @@ export async function loadWasm(): Promise<CS> {
 class CSWasmWrapper implements CS {
 	constructor(private wasm: CS) {}
 
-	// checkError checks if the wasm code threw an error and if so adds it as a notification
-	// and return true
-	checkError(): boolean {
-		if ('wasmError' in window) {
-			addError(`${window['wasmError']}`);
-			delete window.wasmError;
-			return true;
+	// This wasm transport used for grpc wasm calls
+	transport = createConnectTransport({
+		baseUrl: '',
+		useBinaryFormat: true,
+		fetch: async (input, init) => {
+			const reqBytes = new Uint8Array(await new Request(input, init).arrayBuffer());
+			const resBytes = await new Promise<Uint8Array>((resolve, reject) => {
+				this.wasm.handleGrpc(input.toString(), reqBytes, (err: unknown, res: Uint8Array) => {
+					if (err) reject(err);
+					else resolve(res);
+				});
+			});
+
+			return new Response(resBytes.slice().buffer, {
+				status: 200,
+				headers: { 'Content-Type': 'application/proto' }
+			});
 		}
-		return false;
-	}
+	});
 
-	async enableDebug() {
-		this.wasm.enableDebug();
-		this.checkError();
-	}
-
-	setRules(rules: Rules) {
-		this.wasm.setRules(rules);
-		this.checkError();
-	}
-
-	setPlayer(player: CommandedPlayer) {
-		this.wasm.setPlayer(player);
-		this.checkError();
-	}
-
-	setDesigns(designs: ShipDesign[]) {
-		this.wasm.setDesigns(designs);
-		this.checkError();
-	}
-
-	setIntel(intel: PlayerIntels) {
-		this.wasm.setIntel(intel);
-		this.checkError();
-	}
-
-	computeShipDesignSpec(design: ShipDesign): ShipDesignSpec | undefined {
-		const result = this.wasm.computeShipDesignSpec(design);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
-	}
-
-	starbaseUpgradeCost(design: ShipDesign, newDesign: ShipDesign): Cost | undefined {
-		const result = this.wasm.starbaseUpgradeCost(design, newDesign);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
-	}
-
-	techCost(tech: Tech): Cost | undefined {
-		const result = this.wasm.techCost(tech);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
-	}
-
-	calculateRacePoints(race: Race): number | undefined {
-		const result = this.wasm.calculateRacePoints(race);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
-	}
-
-	estimateProduction(planet: Planet): Planet | undefined {
-		const result = this.wasm.estimateProduction(planet);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
-	}
-
-	getResearchCost(techLevel: TechLevel): number | undefined {
-		const result = this.wasm.getResearchCost(techLevel);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
-	}
-
-	maxBuildable(planet: Planet, itemType: QueueItemType): number | undefined {
-		const result = this.wasm.maxBuildable(planet, itemType);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
-	}
-
-	addWaypoint(
-		fleet: Fleet,
-		dest: WaypointDest,
-		currentSelectedWaypointIndex: number,
-		fastestWaypoint: boolean
-	): { fleet: Fleet; result: number } | undefined {
-		const result = this.wasm.addWaypoint(
-			fleet,
-			dest,
-			currentSelectedWaypointIndex,
-			fastestWaypoint
-		);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
-	}
-
-	updateWaypoint(
-		fleet: Fleet,
-		dest: WaypointDest,
-		currentSelectedWaypointIndex: number,
-		fastestWaypoint: boolean
-	): { fleet: Fleet; result: boolean } | undefined {
-		const result = this.wasm.updateWaypoint(
-			fleet,
-			dest,
-			currentSelectedWaypointIndex,
-			fastestWaypoint
-		);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
-	}
-
-	updateResourcesAvailable(planet: Planet): number | undefined {
-		const result = this.wasm.updateResourcesAvailable(planet);
-		if (this.checkError()) {
-			return undefined;
-		}
-		return result;
+	wasmService = createClient(WasmService, this.transport);
+	async handleGrpc(
+		path: string,
+		requestBytes: Uint8Array,
+		callback: (err: unknown, responseBytes: Uint8Array) => void
+	) {
+		this.wasm.handleGrpc(path, requestBytes, callback);
 	}
 }

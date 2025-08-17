@@ -78,8 +78,8 @@ type Intel struct {
 }
 
 type PlanetIntel struct {
-	Intel                         `tstype:",extends"`
-	MapObject                     `tstype:",extends"`
+	Intel
+	MapObject
 	Hab                           Hab        `json:"hab,omitzero"`
 	BaseHab                       Hab        `json:"baseHab,omitzero"`
 	MineralConcentration          Mineral    `json:"mineralConcentration,omitzero"`
@@ -96,7 +96,7 @@ func (pi *PlanetIntel) GetPopulation() int {
 }
 
 type ShipDesignIntel struct {
-	Intel         `tstype:",extends"`
+	Intel
 	Name          string           `json:"name"`
 	Num           int              `json:"num"`
 	PlayerNum     int              `json:"playerNum"`
@@ -108,8 +108,8 @@ type ShipDesignIntel struct {
 }
 
 type FleetIntel struct {
-	Intel             `tstype:",extends"`
-	MapObject         `tstype:",extends"`
+	Intel
+	MapObject
 	BaseName          string      `json:"baseName"`
 	Heading           Vector      `json:"heading"`
 	OrbitingPlanetNum int         `json:"orbitingPlanetNum,omitempty"`
@@ -126,8 +126,8 @@ type FleetIntel struct {
 }
 
 type MineralPacketIntel struct {
-	Intel           `tstype:",extends"`
-	MapObject       `tstype:",extends"`
+	Intel
+	MapObject
 	WarpSpeed       int    `json:"warpSpeed"`
 	Heading         Vector `json:"heading"`
 	Cargo           Cargo  `json:"cargo"`
@@ -137,29 +137,28 @@ type MineralPacketIntel struct {
 }
 
 type SalvageIntel struct {
-	Intel     `tstype:",extends"`
-	MapObject `tstype:",extends"`
-	Cargo     Cargo `json:"cargo"`
+	Intel
+	MapObject
+	Cargo Cargo `json:"cargo"`
 }
 
 type MinefieldIntel struct {
-	Intel         `tstype:",extends"`
-	MapObject     `tstype:",extends"`
+	Intel
+	MapObject
 	NumMines      int           `json:"numMines"`
 	MinefieldType MinefieldType `json:"minefieldType"`
-	Spec          MinefieldSpec `json:"spec"`
 }
 
 type WormholeIntel struct {
-	Intel          `tstype:",extends"`
-	MapObject      `tstype:",extends"`
+	Intel
+	MapObject
 	DestinationNum int               `json:"destinationNum,omitempty"`
 	Stability      WormholeStability `json:"stability,omitempty"`
 }
 
 type MysteryTraderIntel struct {
-	Intel         `tstype:",extends"`
-	MapObject     `tstype:",extends"`
+	Intel
+	MapObject
 	WarpSpeed     int    `json:"warpSpeed"`
 	Heading       Vector `json:"heading"`
 	RequestedBoon int    `json:"requestedBoon"`
@@ -553,7 +552,6 @@ func (d *discover) discoverMinefield(minefield *Minefield) {
 	intel.Position = minefield.Position
 	intel.MinefieldType = minefield.MinefieldType
 	intel.NumMines = minefield.NumMines
-	intel.Spec.Radius = minefield.Spec.Radius
 }
 
 // discover a mineralPacket and add it to the player's mineralPacket intel
@@ -789,7 +787,7 @@ func (d *discover) discoverMysteryTrader(mysteryTrader *MysteryTrader) {
 
 // discover a player's race
 func (d *discover) discoverPlayer(player *Player) {
-	intel := &d.player.PlayerIntels.PlayerIntels[player.Num-1]
+	intel := &d.player.Intels.PlayerIntels[player.Num-1]
 
 	if !intel.Seen {
 		d.log.Debug().Msgf("player %s discovered %s", d.player.Name, player.Name)
@@ -805,7 +803,7 @@ func (d *discover) discoverPlayer(player *Player) {
 // discover a player's score history
 // TODO: Hide first 20 years of score for non-dead players
 func (d *discover) discoverPlayerScores(player *Player) {
-	intel := &d.player.PlayerIntels.ScoreIntels[player.Num-1]
+	intel := &d.player.Intels.ScoreIntels[player.Num-1]
 
 	intel.ScoreHistory = make([]PlayerScore, len(player.ScoreHistory))
 	copy(intel.ScoreHistory, player.ScoreHistory)

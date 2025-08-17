@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { getLabelForLRT, lrts } from '$lib/types/Race';
+	import type { Race } from '$lib/types/cs-proto';
 	import {
 		ARM,
 		BET,
 		CE,
+		getLabelForLRT,
 		GR,
 		IFE,
 		ISB,
+		lrts,
 		LSP,
 		MA,
 		NAS,
@@ -15,9 +17,8 @@
 		RS,
 		TT,
 		UR,
-		type LRT,
-		type Race
-	} from '$lib/types/cs';
+		type LRT
+	} from '$lib/types/Race';
 
 	type Props = {
 		race: Race;

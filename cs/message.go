@@ -27,42 +27,42 @@ func (t Target[T]) Targeting(mo MapObject) bool {
 // Messages have a type and a target (the target is focused in the UI when you click the Goto button)
 // Messages also have a Spec that is used to store specific numbers for the UI to display on the message.
 type PlayerMessage struct {
-	Target[PlayerMessageTargetType] `tstype:",extends"`
-	Type                            PlayerMessageType `json:"type"`
-	Text                            string            `json:"text,omitempty"`
-	BattleNum                       int               `json:"battleNum,omitempty"`
-	Spec                            PlayerMessageSpec `json:"spec"`
+	Target[PlayerMessageTargetType]
+	Type      PlayerMessageType `json:"type"`
+	Text      string            `json:"text,omitempty"`
+	BattleNum int               `json:"battleNum,omitempty"`
+	Spec      PlayerMessageSpec `json:"spec"`
 }
 
 // The PlayerMessageSpec contains data specific to each message, like the amount of mines built
 // or the field of research leveled up in.
 type PlayerMessageSpec struct {
 	// the thing being targeted by the message target, i.e. the planet for a fleet bombed a planet message
-	Target[MapObjectType] `tstype:",extends"`
-	Amount                int                             `json:"amount,omitempty"`
-	Amount2               int                             `json:"amount2,omitempty"`
-	Battle                BattleRecordStats               `json:"battle,omitempty"`
-	Bombing               *BombingResult                  `json:"bombing,omitempty"`
-	Cargo                 *Cargo                          `json:"cargo,omitempty"`
-	CargoTransfer         *PlayerMessageSpecCargoTransfer `json:"cargoTransfer,omitempty"`
-	Comet                 *PlayerMessageSpecComet         `json:"comet,omitempty"`
-	Cost                  *Cost                           `json:"cost,omitempty"`
-	DestPlayerNum         int                             `json:"destPlayerNum,omitempty"`
-	Field                 TechField                       `json:"field,omitempty"`
-	Invasion              *PlayerMessageSpecInvasion      `json:"invasion,omitempty"`
-	LostTargetType        MapObjectType                   `json:"lostTargetType,omitempty"`
-	MinefieldDamage       *MinefieldDamage                `json:"minefieldDamage,omitempty"`
-	Mineral               *Mineral                        `json:"mineral,omitempty"`
-	MineralPacketDamage   *MineralPacketDamage            `json:"mineralPacketDamage,omitempty"`
-	MysteryTrader         *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
-	Name                  string                          `json:"name,omitempty"`
-	NextField             TechField                       `json:"nextField,omitempty"`
-	PrevAmount            int                             `json:"prevAmount,omitempty"`
-	QueueItemType         QueueItemType                   `json:"queueItemType,omitempty"`
-	RouteTarget           Target[MapObjectType]           `json:"routeTarget,omitempty"`
-	SourcePlayerNum       int                             `json:"sourcePlayerNum,omitempty"`
-	TechGained            string                          `json:"techGained,omitempty"`
-	TerraformAmount       Hab                             `json:"terraformAmount,omitempty"`
+	Target[MapObjectType]
+	Amount              int                             `json:"amount,omitempty"`
+	Amount2             int                             `json:"amount2,omitempty"`
+	Battle              BattleRecordStats               `json:"battle,omitempty"`
+	Bombing             *BombingResult                  `json:"bombing,omitempty"`
+	Cargo               *Cargo                          `json:"cargo,omitempty"`
+	CargoTransfer       *PlayerMessageSpecCargoTransfer `json:"cargoTransfer,omitempty"`
+	Comet               *PlayerMessageSpecComet         `json:"comet,omitempty"`
+	Cost                *Cost                           `json:"cost,omitempty"`
+	DestPlayerNum       int                             `json:"destPlayerNum,omitempty"`
+	Field               TechField                       `json:"field,omitempty"`
+	Invasion            *PlayerMessageSpecInvasion      `json:"invasion,omitempty"`
+	LostTargetType      MapObjectType                   `json:"lostTargetType,omitempty"`
+	MinefieldDamage     *MinefieldDamage                `json:"minefieldDamage,omitempty"`
+	Mineral             *Mineral                        `json:"mineral,omitempty"`
+	MineralPacketDamage *MineralPacketDamage            `json:"mineralPacketDamage,omitempty"`
+	MysteryTrader       *PlayerMessageSpecMysteryTrader `json:"mysteryTrader,omitempty"`
+	Name                string                          `json:"name,omitempty"`
+	NextField           TechField                       `json:"nextField,omitempty"`
+	PrevAmount          int                             `json:"prevAmount,omitempty"`
+	QueueItemType       QueueItemType                   `json:"queueItemType,omitempty"`
+	RouteTarget         Target[MapObjectType]           `json:"routeTarget,omitempty"`
+	SourcePlayerNum     int                             `json:"sourcePlayerNum,omitempty"`
+	TechGained          string                          `json:"techGained,omitempty"`
+	TerraformAmount     Hab                             `json:"terraformAmount,omitempty"`
 }
 
 type PlayerMessageSpecComet struct {
@@ -74,8 +74,8 @@ type PlayerMessageSpecComet struct {
 }
 
 type PlayerMessageSpecMysteryTrader struct {
-	MysteryTraderReward `tstype:",extends"`
-	FleetNum            int `json:"fleetNum" bson:"fleet_num"`
+	MysteryTraderReward
+	FleetNum int `json:"fleetNum" bson:"fleet_num"`
 }
 
 type PlayerMessageSpecInvasion struct {

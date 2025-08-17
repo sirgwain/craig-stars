@@ -2,12 +2,13 @@
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { MysteryTraderIntel, PlanetIntel } from '$lib/types/cs';
-	import { None, ReportAgeUnexplored, type MapObject } from '$lib/types/cs';
 	import type { AnyFleet } from '$lib/services/Universe';
-	import { getMapObjectName, key, owned, ownedBy } from '$lib/types/MapObject';
-	import { onMount } from 'svelte';
 	import { population } from '$lib/types/Cargo';
+	import { ReportAgeUnexplored } from '$lib/types/Consts';
+	import type { MysteryTraderIntel, PlanetIntel } from '$lib/types/cs-proto';
+	import { getMapObjectName, key, owned, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
+	import { None } from '$lib/types/Consts';
+	import { onMount } from 'svelte';
 
 	const { player, universe, settings } = getGameContext();
 
@@ -15,7 +16,7 @@
 		maxPlanetResults?: number;
 		maxFleetResults?: number;
 		maxMiscResults?: number;
-		onOk?: OnOk<MapObject | undefined>;
+		onOk?: OnOk<MapObjectLike | undefined>;
 		onCancel?: OnCancel;
 	};
 
@@ -48,11 +49,13 @@
 		const mysteryTraders = $universe.mysteryTraderIntels;
 
 		// return true if a mapboject name or player matches a search term
-		const termSearch = (term: string, mo: MapObject): boolean =>
-			mo.name.toLowerCase().indexOf(term.toLowerCase()) != -1 ||
-			(mo.playerNum != None &&
-				$universe.getPlayerPluralName(mo.playerNum).toLowerCase().indexOf(term.toLowerCase()) !=
-					-1);
+		const termSearch = (term: string, mo: MapObjectLike): boolean =>
+			mo.mapObject?.name.toLowerCase().indexOf(term.toLowerCase()) != -1 ||
+			(mo.mapObject?.playerNum != None &&
+				$universe
+					.getPlayerPluralName(mo.mapObject?.playerNum)
+					.toLowerCase()
+					.indexOf(term.toLowerCase()) != -1);
 
 		return {
 			planets:
@@ -66,7 +69,7 @@
 
 			mysteryTraders:
 				mysteryTraders
-					.filter((i) => terms.every((term) => termSearch(term, i as unknown as MapObject)))
+					.filter((i) => terms.every((term) => termSearch(term, i)))
 					.slice(0, maxMiscResults) ?? []
 		};
 	}
@@ -130,9 +133,9 @@
 				? results.fleets[selectedItemIndex - results.planets.length]
 				: selectedItemIndex <
 					  results.planets.length + results.fleets.length + results.mysteryTraders.length
-					? (results.mysteryTraders[
+					? results.mysteryTraders[
 							selectedItemIndex - results.planets.length + results.fleets.length
-						] as unknown as MapObject)
+						]
 					: undefined
 	);
 </script>
@@ -157,7 +160,7 @@
 			{#if results.planets.length > 0}
 				<h3 class="text-2xl font-bold mb-1">Planets</h3>
 				<ul class="mx-1">
-					{#each results.planets as planet, index (planet.num)}
+					{#each results.planets as planet, index (planet.mapObject?.num)}
 						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 						<li
 							class="rounded-lg px-2"
@@ -166,13 +169,13 @@
 						>
 							<button class="text-xl text-left w-full" onclick={ok}>
 								<div class="flex flex-row gap-1">
-									{#if planet.playerNum != None}
-										<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
-											>{$universe.getPlayerPluralName(planet.playerNum)}</span
+									{#if planet.mapObject?.playerNum != None}
+										<span style={`color: ${$universe.getPlayerColor(planet.mapObject?.playerNum)}`}
+											>{$universe.getPlayerPluralName(planet.mapObject?.playerNum)}</span
 										>
-										{planet.name}
+										{planet.mapObject?.name}
 									{:else}
-										{planet.name}
+										{planet.mapObject?.name}
 									{/if}
 									{#if 'reportAge' in planet && planet.reportAge !== ReportAgeUnexplored}
 										{#if owned(planet)}
@@ -234,8 +237,8 @@
 							onmouseover={() => (selectedItemIndex = results.planets.length + index)}
 						>
 							<button class="text-xl text-left w-full" onclick={ok}>
-								<span style={`color: ${$universe.getPlayerColor(fleet.playerNum)}`}
-									>{$universe.getPlayerPluralName(fleet.playerNum)}</span
+								<span style={`color: ${$universe.getPlayerColor(fleet.mapObject?.playerNum)}`}
+									>{$universe.getPlayerPluralName(fleet.mapObject?.playerNum)}</span
 								>
 								{getMapObjectName(fleet)}
 							</button>
@@ -246,7 +249,7 @@
 			{#if results.mysteryTraders.length > 0}
 				<h3 class="text-2xl font-bold mb-1">Mystery Traders</h3>
 				<ul class="mx-1">
-					{#each results.mysteryTraders as mysterytrader, index (mysterytrader.num)}
+					{#each results.mysteryTraders as mysterytrader, index (mysterytrader.mapObject?.num)}
 						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
 						<li
 							class="rounded-lg px-2"
@@ -256,7 +259,7 @@
 								(selectedItemIndex = results.planets.length + results.fleets.length + index)}
 						>
 							<button class="text-xl text-left w-full" onclick={ok}>
-								<span class="text-mystery-trader"> {mysterytrader.name}</span></button
+								<span class="text-mystery-trader"> {mysterytrader.mapObject?.name}</span></button
 							>
 						</li>
 					{/each}

@@ -3,7 +3,7 @@ import type { Page } from '@sveltejs/kit';
 import hotkeys from 'hotkeys-js';
 import { get, type Readable } from 'svelte/store';
 
-export const bindNavigationHotkeys = (gameId: number, page: Readable<Page>) => {
+export const bindNavigationHotkeys = (gameId: bigint, page: Readable<Page>) => {
 	hotkeys('esc', 'root', () => {
 		goto(`/games/${gameId}`);
 	});

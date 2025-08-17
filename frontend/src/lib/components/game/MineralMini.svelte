@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { AnyPlanet } from '$lib/services/Universe';
-	import type { Mineral } from '$lib/types/cs';
 	import MineralTooltip, {
 		type MineralTooltipProps
 	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
 	import { showTooltip } from '$lib/services/Stores';
+	import type { MineralJson } from '$lib/types/cs-proto';
 
 	type Props = {
-		mineral: Mineral | undefined;
+		mineral: MineralJson | undefined;
 		planet?: AnyPlanet;
 		showUnits?: boolean;
 	};

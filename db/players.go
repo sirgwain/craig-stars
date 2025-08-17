@@ -193,6 +193,35 @@ func (c *client) GetLightPlayerForGame(ctx context.Context, gameID int64, params
 	return &player, nil
 }
 
+func (c *client) GetLightPlayerForGameWithDesigns(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error) {
+	queryParams := generated.GetLightPlayerForGameParams{
+		GameID:    gameID,
+		UserID:    nil,
+		PlayerNum: nil,
+	}
+	if params.UserID != 0 {
+		queryParams.UserID = params.UserID
+	}
+	if params.PlayerNum != 0 {
+		queryParams.PlayerNum = params.PlayerNum
+	}
+	item, err := c.reader.GetLightPlayerForGame(ctx, queryParams)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	player := c.converter.ConvertLightPlayer(item)
+
+	// load this player's designs
+	designs, err := c.reader.GetShipDesignsForPlayer(ctx, generated.GetShipDesignsForPlayerParams{GameID: gameID, PlayerNum: int64(player.Num)})
+	player.Designs = c.converter.ConvertShipDesigns(designs)
+
+	return &player, nil
+}
+
 // get a full player by id with all dependencies loaded
 func (c *client) GetFullPlayerForGame(ctx context.Context, gameID, userID int64) (*cs.FullPlayer, error) {
 

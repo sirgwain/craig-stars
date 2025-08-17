@@ -1,25 +1,22 @@
-import { userNotFound, UserSession, UserStatuses } from '$lib/types/User';
+import { userClient } from './services/connect';
 import { me } from './services/Stores';
+import { userNotFound, UserSession, UserStatuses } from '$lib/types/User';
 
 export async function authGuard(): Promise<UserSession | undefined> {
-	const response = await fetch(`/api/me`, {
-		method: 'GET',
-		headers: {
-			accept: 'application/json'
+	try {
+		const { user } = await userClient.getMe({});
+		if (!user) {
+			me.update(() => userNotFound);
+			return;
 		}
-	});
-
-	if (!response.ok) {
-		// no user
-		me.update(() => userNotFound);
-	} else {
 		// update the logged in user in the context
-		const userSession = (await response.json()) as UserSession;
-		const user = Object.assign(new UserSession(), userSession);
+		const serverMe = Object.assign(new UserSession(), user);
 
-		user.status = UserStatuses.LoggedIn;
-		me.update(() => user);
+		serverMe.status = UserStatuses.LoggedIn;
+		me.update(() => serverMe);
 
-		return user;
+		return serverMe;
+	} catch {
+		me.update(() => userNotFound);
 	}
 }

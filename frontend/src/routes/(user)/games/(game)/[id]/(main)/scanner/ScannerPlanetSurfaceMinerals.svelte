@@ -1,7 +1,7 @@
 <script lang="ts">
+	import type { PlanetIntel } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { type PlanetIntel } from '$lib/types/cs';
 	import { totalMinerals } from '$lib/types/Mineral';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
@@ -19,7 +19,7 @@
 
 	let barPercent = $derived.by(() => {
 		let max = $settings.mineralScale; // 100% concentration
-		const cargo = $universe.getPlanet(planet.num)?.cargo;
+		const cargo = $universe.getPlanet(planet.mapObject?.num)?.cargo;
 		if (!cargo) {
 			return {
 				ironium: 0,

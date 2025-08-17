@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { MapObjectType } from '$lib/types/cs-proto';
+	import type { PlanetIntel } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { MapObjectTypeFleet, ReportAgeUnexplored, type PlanetIntel } from '$lib/types/cs';
-	import { filterFleet } from '$lib/types/Filter';
 	import type { AnyFleet } from '$lib/services/Universe';
+	import { ReportAgeUnexplored } from '$lib/types/Consts';
+	import { filterFleet } from '$lib/types/Filter';
 	import { owned } from '$lib/types/MapObject';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import { getEnemiesAndFriends } from './Scanner';
@@ -18,9 +20,9 @@
 
 	let { planet, commanded = false }: Props = $props();
 
-	let hasStarbase = planet.spec?.hasStarbase;
-	let hasMassDriver = planet.spec?.hasMassDriver;
-	let hasStargate = planet.spec?.hasStargate;
+	let hasStarbase = !!planet.spec?.planetStarbaseSpec?.hasStarbase;
+	let hasMassDriver = !!planet.spec?.planetStarbaseSpec?.hasMassDriver;
+	let hasStargate = !!planet.spec?.planetStarbaseSpec?.hasStargate;
 
 	let radius = $derived(owned(planet) ? (commanded ? 6 : 3) : commanded ? 4 : 2);
 	let strokeWidth = $derived(commanded ? 1 : 0.5);
@@ -33,8 +35,8 @@
 
 	let orbitingFleets = $derived(
 		$universe
-			.getMapObjectsByPosition(planet)
-			.filter((mo) => mo.type === MapObjectTypeFleet)
+			.getMapObjectsByPosition(planet.mapObject?.position)
+			.filter((mo) => mo.mapObject?.type === MapObjectType.FLEET)
 			.filter((f) => filterFleet($player, f as AnyFleet, $settings))
 	);
 
@@ -44,11 +46,11 @@
 		let color = '#999999';
 		let strokeColor = '#999999';
 
-		if (planet.playerNum === $player.num) {
+		if (planet.mapObject?.playerNum === $player.num) {
 			color = '#00FF00';
-		} else if (planet.playerNum) {
-			color = $universe.getPlayerColor(planet.playerNum) ?? '#FF0000';
-		} else if (planet.reportAge !== ReportAgeUnexplored && !planet.playerNum) {
+		} else if (planet.mapObject?.playerNum) {
+			color = $universe.getPlayerColor(planet.mapObject?.playerNum) ?? '#FF0000';
+		} else if (planet.reportAge !== ReportAgeUnexplored && !planet.mapObject?.playerNum) {
 			color = '#FFF';
 		}
 
@@ -97,8 +99,8 @@
 	<circle {...circleProps} />
 	{#if hasStarbase}
 		<rect
-			class:starbase={planet.spec?.dockCapacity}
-			class:starbase-fort={!planet.spec?.dockCapacity}
+			class:starbase={planet.spec?.planetStarbaseSpec?.dockCapacity}
+			class:starbase-fort={!planet.spec?.planetStarbaseSpec?.dockCapacity}
 			width={starbaseWidth}
 			height={starbaseWidth}
 			rx={0.5}

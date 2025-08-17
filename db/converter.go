@@ -30,7 +30,6 @@ var c Converter
 // goverter:extend GameFleetIntelsToFleetIntels
 // goverter:extend GameFleetSpecToFleetSpec
 // goverter:extend GameMinefieldIntelsToMinefieldIntels
-// goverter:extend GameMinefieldSpecToMinefieldSpec
 // goverter:extend GameMineralPacketIntelsToMineralPacketIntels
 // goverter:extend GameMysteryTraderIntelsToMysteryTraderIntels
 // goverter:extend GameMysteryTraderPlayersRewardedToMysteryTraderPlayersRewarded
@@ -45,7 +44,6 @@ var c Converter
 // goverter:extend GamePlayerStatsToPlayerStats
 // goverter:extend GameProductionPlansToProductionPlans
 // goverter:extend GameProductionQueueItemsToProductionQueueItems
-// goverter:extend GameRaceSpecToRaceSpec
 // goverter:extend GameRaceToPlayerRace
 // goverter:extend GameSalvageIntelsToSalvageIntels
 // goverter:extend GameScoreIntelsToScoreIntels
@@ -62,7 +60,6 @@ var c Converter
 // goverter:extend IntToInt64
 // goverter:extend IntToNullInt64
 // goverter:extend MinefieldIntelsToGameMinefieldIntels
-// goverter:extend MinefieldSpecToGameMinefieldSpec
 // goverter:extend MineralPacketIntelsToGameMineralPacketIntels
 // goverter:extend MysteryTraderIntelsToGameMysteryTraderIntels
 // goverter:extend MysteryTraderPlayersRewardedToGameMysteryTraderPlayersRewarded
@@ -83,7 +80,6 @@ var c Converter
 // goverter:extend PlayerStatsToGamePlayerStats
 // goverter:extend ProductionPlansToGameProductionPlans
 // goverter:extend ProductionQueueItemsToGameProductionQueueItems
-// goverter:extend RaceSpecToGameRaceSpec
 // goverter:extend SalvageIntelsToGameSalvageIntels
 // goverter:extend ScoreIntelsToGameScoreIntels
 // goverter:extend ShipDesignIntelsToGameShipDesignIntels
@@ -119,6 +115,7 @@ type Converter interface {
 	// goverter:map . ResearchCost | ExtendResearchCost
 	// goverter:map . HabLow | ExtendHabLow
 	// goverter:map . HabHigh | ExtendHabHigh
+	// goverter:ignore Spec
 	ConvertRace(source generated.Race) cs.Race
 
 	ConvertRaces(source []generated.Race) []cs.Race
@@ -238,17 +235,7 @@ type Converter interface {
 	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
 	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords BattleRecords
-	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
-	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
-	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
-	// goverter:map PlayerIntels.FleetIntels FleetIntels
-	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
-	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MinefieldIntels MinefieldIntels
-	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
-	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
-	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
+	// goverter:autoMap Intels
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayer(source *cs.Player) generated.Player
 
@@ -266,17 +253,7 @@ type Converter interface {
 	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
 	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords BattleRecords
-	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
-	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
-	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
-	// goverter:map PlayerIntels.FleetIntels FleetIntels
-	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
-	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MinefieldIntels MinefieldIntels
-	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
-	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
-	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
+	// goverter:autoMap Intels
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayerToCreateParams(source *cs.Player) generated.CreatePlayerParams
 
@@ -294,17 +271,7 @@ type Converter interface {
 	// goverter:map TechLevelsSpent.Electronics TechLevelsSpentElectronics
 	// goverter:map TechLevelsSpent.Biotechnology TechLevelsSpentBiotechnology
 	// goverter:autoMap PlayerOrders
-	// goverter:map PlayerIntels.BattleRecords BattleRecords
-	// goverter:map PlayerIntels.PlayerIntels PlayerIntels
-	// goverter:map PlayerIntels.ScoreIntels ScoreIntels
-	// goverter:map PlayerIntels.PlanetIntels PlanetIntels
-	// goverter:map PlayerIntels.FleetIntels FleetIntels
-	// goverter:map PlayerIntels.ShipDesignIntels ShipDesignIntels
-	// goverter:map PlayerIntels.MineralPacketIntels MineralPacketIntels
-	// goverter:map PlayerIntels.MinefieldIntels MinefieldIntels
-	// goverter:map PlayerIntels.WormholeIntels WormholeIntels
-	// goverter:map PlayerIntels.MysteryTraderIntels MysteryTraderIntels
-	// goverter:map PlayerIntels.SalvageIntels SalvageIntels
+	// goverter:autoMap Intels
 	// goverter:autoMap PlayerPlans
 	ConvertGamePlayerToUpdateParams(source *cs.Player) generated.UpdatePlayerParams
 
@@ -312,7 +279,7 @@ type Converter interface {
 	// goverter:map . TechLevels | ExtendTechLevels
 	// goverter:map . TechLevelsSpent | ExtendTechLevelsSpent
 	// goverter:map . PlayerOrders
-	// goverter:map . PlayerIntels
+	// goverter:map . Intels
 	// goverter:map . PlayerPlans
 	// goverter:ignore Designs
 	ConvertPlayer(source generated.Player) cs.Player
@@ -323,7 +290,7 @@ type Converter interface {
 	// goverter:map . PlayerOrders
 	// goverter:map . PlayerPlans
 	// goverter:ignore Messages
-	// goverter:ignore PlayerIntels
+	// goverter:ignore Intels
 	// goverter:ignore Designs
 	ConvertLightPlayer(source generated.GetLightPlayerForGameRow) cs.Player
 
@@ -332,9 +299,9 @@ type Converter interface {
 	ConvertPlayerStatus(source generated.GetPlayersStatusForGameRow) cs.Player
 	ConvertPlayerStatuses(source []generated.GetPlayersStatusForGameRow) []*cs.Player
 
-	ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.PlayerStatus
-	ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.PlayerStatus
-	ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.PlayerStatus
+	ConvertGetGamesWithPlayersRowToPlayerStatus(source generated.GetGamesWithPlayersRow) cs.GamePlayer
+	ConvertGetGamesWithPlayersForUserRowToPlayerStatus(source generated.GetGamesWithPlayersForUserRow) cs.GamePlayer
+	ConvertGetGameWithPlayersRowToPlayerStatus(source generated.GetGameWithPlayersRow) cs.GamePlayer
 
 	ConvertGetPlayerForGameRowToShipDesign(source generated.GetPlayerForGameRow) generated.ShipDesign
 	ConvertGetPlayerForGameAndUserRowToShipDesign(source generated.GetPlayerForGameAndUserRow) generated.ShipDesign
@@ -690,18 +657,6 @@ func IntToInt64(source int) int64 {
 	return int64(source)
 }
 
-func RaceSpecToGameRaceSpec(source *generated.RaceSpec) cs.RaceSpec {
-	return (cs.RaceSpec)(*source)
-}
-
-func GameRaceSpecToRaceSpec(source cs.RaceSpec) *generated.RaceSpec {
-	return (*generated.RaceSpec)(&source)
-}
-
-func RaceGenSpecToGameRaceSpec(source *generated.RaceSpec) cs.RaceSpec {
-	return (cs.RaceSpec)(*source)
-}
-
 func TagsToGameTags(source *generated.Tags) cs.Tags {
 	if source == nil {
 		return cs.Tags{}
@@ -1017,14 +972,6 @@ func WaypointsToGameWaypoints(source *generated.Waypoints) []cs.Waypoint {
 
 func GameWaypointsToWaypoints(source []cs.Waypoint) *generated.Waypoints {
 	return (*generated.Waypoints)(&source)
-}
-
-func MinefieldSpecToGameMinefieldSpec(source *generated.MinefieldSpec) cs.MinefieldSpec {
-	return (cs.MinefieldSpec)(*source)
-}
-
-func GameMinefieldSpecToMinefieldSpec(source cs.MinefieldSpec) *generated.MinefieldSpec {
-	return (*generated.MinefieldSpec)(&source)
 }
 
 func ShipDesignSpecToGameShipDesignSpec(source *generated.ShipDesignSpec) cs.ShipDesignSpec {

@@ -4,10 +4,10 @@
  -->
 <script lang="ts">
 	import { radiansToDegrees } from '$lib/services/Math';
-	import type { MysteryTraderIntel } from '$lib/types/cs';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import { getScannerContext } from './Scanner';
+	import type { MysteryTraderIntel } from '$lib/types/cs-proto';
 
 	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 	const { scale } = getScannerContext();
@@ -40,7 +40,7 @@
 <polygon
 	class="fill-mystery-trader"
 	points={`0,0 0,${size} ${size},${size}`}
-	transform={`translate(${$xGet(mysteryTrader)} ${$yGet(mysteryTrader)}) rotate(${angle}) translate(${-size / 2} ${
+	transform={`translate(${$xGet(mysteryTrader.mapObject)} ${$yGet(mysteryTrader.mapObject)}) rotate(${angle}) translate(${-size / 2} ${
 		-size / 2
 	})`}
 />

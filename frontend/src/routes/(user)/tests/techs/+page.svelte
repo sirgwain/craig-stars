@@ -1,36 +1,35 @@
 <script lang="ts">
 	import TechSummary from '$lib/components/tech/TechSummary.svelte';
 	import {
-		HullSlotTypeShield,
-		IS,
-		MinefieldTypeStandard,
-		SD,
-		TechCategoryBeamWeapon,
-		TechCategoryMineLayer,
-		TechCategoryScanner,
-		TechCategoryShield,
-		type TechEngine,
+		MinefieldType,
+		Prt,
+		TechCategory,
+		TechHullComponentSchema,
 		type TechHullComponent
-	} from '$lib/types/cs';
+	} from '$lib/types/cs-proto';
 	import { CommandedPlayer } from '$lib/types/Player';
+	import { HullSlotTypeShield } from '$lib/types/Consts';
+	import { create } from '@bufbuild/protobuf';
 	import TestBreadcrumb from '../TestBreadcrumb.svelte';
 
-	const settlersDelight: TechEngine = {
-		name: "Settler's Delight",
-		cost: {
-			ironium: 1,
-			germanium: 1,
-			resources: 2
-		},
-		requirements: {
-			prtsRequired: ['HE'],
-			hullsAllowed: ['Mini-Colony Ship']
-		},
-		ranking: 69,
-		category: 'Engine',
-		tags: {
-			Engine: true,
-			Ramscoop: true
+	const settlersDelight: TechHullComponent = create(TechHullComponentSchema, {
+		tech: {
+			name: "Settler's Delight",
+			cost: {
+				ironium: 1,
+				germanium: 1,
+				resources: 2
+			},
+			requirements: {
+				prtsRequired: [Prt.HE],
+				hullsAllowed: ['Mini-Colony Ship']
+			},
+			ranking: 69,
+			category: TechCategory.ENGINE,
+			tags: {
+				Engine: true,
+				Ramscoop: true
+			}
 		},
 		hullSlotType: 2,
 		mass: 2,
@@ -38,52 +37,62 @@
 		freeSpeed: 6,
 		maxSafeSpeed: 9,
 		fuelUsage: [0, 0, 0, 0, 0, 0, 0, 150, 275, 480, 576]
-	};
+	});
 
-	const moleSkin: TechHullComponent = {
-		name: 'Mole-skin Shield',
-		cost: { ironium: 1, germanium: 1, resources: 4 },
-		requirements: {},
-		ranking: 10,
-		category: TechCategoryShield,
+	const moleSkin: TechHullComponent = create(TechHullComponentSchema, {
+		tech: {
+			name: 'Mole-skin Shield',
+			cost: { ironium: 1, germanium: 1, resources: 4 },
+			requirements: {},
+			ranking: 10,
+			category: TechCategory.SHIELD
+		},
 		hullSlotType: HullSlotTypeShield,
 		mass: 1,
 		shield: 25
-	};
+	});
 
-	const techs: (TechHullComponent | TechEngine)[] = [
-		{
-			name: 'Ferret Scanner',
-			cost: {
-				ironium: 2,
-				germanium: 8,
-				resources: 36
+	const techs: TechHullComponent[] = [
+		create(TechHullComponentSchema, {
+			tech: {
+				name: 'Ferret Scanner',
+				cost: {
+					ironium: 2,
+					germanium: 8,
+					resources: 36
+				},
+				requirements: {
+					techLevel: {
+						energy: 3,
+						electronics: 7,
+						biotechnology: 2
+					},
+					lrtsDenied: 256
+				},
+				ranking: 80,
+				category: TechCategory.SCANNER
 			},
-			requirements: {
-				energy: 3,
-				electronics: 7,
-				biotechnology: 2,
-				lrtsDenied: 256
-			},
-			ranking: 80,
-			category: TechCategoryScanner,
 			hullSlotType: 4,
 			mass: 6,
 			scanRange: 185,
 			scanRangePen: 50
-		},
-		{
-			name: 'Mini Gun',
-			cost: {
-				boranium: 6,
-				resources: 6
+		}),
+		create(TechHullComponentSchema, {
+			tech: {
+				name: 'Mini Gun',
+				cost: {
+					boranium: 6,
+					resources: 6
+				},
+				requirements: {
+					techLevel: {
+						weapons: 5
+					},
+					prtsRequired: [Prt.IS]
+				},
+				ranking: 20,
+				category: TechCategory.BEAM_WEAPON
 			},
-			requirements: {
-				weapons: 5,
-				prtsRequired: [IS]
-			},
-			ranking: 20,
-			category: TechCategoryBeamWeapon,
 			hullSlotType: 2048,
 			mass: 3,
 			power: 16,
@@ -91,40 +100,46 @@
 			initiative: 12,
 			gatling: true,
 			hitsAllTargets: true
-		},
-		{
-			name: 'Mine Dispenser 40',
-			cost: {
-				ironium: 2,
-				boranium: 9,
-				germanium: 7,
-				resources: 40
+		}),
+		create(TechHullComponentSchema, {
+			tech: {
+				name: 'Mine Dispenser 40',
+				cost: {
+					ironium: 2,
+					boranium: 9,
+					germanium: 7,
+					resources: 40
+				},
+				requirements: {
+					prtsRequired: [Prt.SD]
+				},
+				ranking: 10,
+				category: TechCategory.MINE_LAYER
 			},
-			requirements: {
-				prtsRequired: [SD]
-			},
-			ranking: 10,
-			category: TechCategoryMineLayer,
 			hullSlotType: 8192,
 			mass: 25,
-			minefieldType: MinefieldTypeStandard,
+			minefieldType: MinefieldType.STANDARD,
 			mineLayingRate: 40
-		},
-		{
-			name: 'Fuel Mizer',
-			cost: {
-				ironium: 8,
-				resources: 11
-			},
-			requirements: {
-				propulsion: 2,
-				lrtsRequired: 1
-			},
-			ranking: 65,
-			category: 'Engine',
-			tags: {
-				Engine: true,
-				Ramscoop: true
+		}),
+		create(TechHullComponentSchema, {
+			tech: {
+				name: 'Fuel Mizer',
+				cost: {
+					ironium: 8,
+					resources: 11
+				},
+				requirements: {
+					techLevel: {
+						propulsion: 2
+					},
+					lrtsRequired: 1
+				},
+				ranking: 65,
+				category: TechCategory.ENGINE,
+				tags: {
+					Engine: true,
+					Ramscoop: true
+				}
 			},
 			hullSlotType: 2,
 			mass: 6,
@@ -132,7 +147,7 @@
 			freeSpeed: 4,
 			maxSafeSpeed: 9,
 			fuelUsage: [0, 0, 0, 0, 0, 35, 120, 175, 235, 360, 420]
-		}
+		})
 	];
 
 	const testPlayer = new CommandedPlayer();
@@ -148,7 +163,7 @@
 		<TechSummary tech={moleSkin} />
 	</div>
 
-	{#each techs as tech (tech.name)}
+	{#each techs as tech (tech.tech?.name)}
 		<div>
 			<TechSummary {tech} player={testPlayer} />
 		</div>

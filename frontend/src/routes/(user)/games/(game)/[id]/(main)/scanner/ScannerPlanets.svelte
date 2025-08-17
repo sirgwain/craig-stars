@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { MapObjectType } from '$lib/types/cs-proto';
+	import type { Fleet } from '$lib/types/cs-proto';
+	import type { PlanetIntel } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { Fleet, PlanetIntel } from '$lib/types/cs';
-	import { MapObjectTypeFleet, type MapObject } from '$lib/types/cs';
+	import type { MapObjectLike } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { PlanetViewState } from '$lib/types/PlayerSettings';
 	import ScannerPlanetMineralConcentration from './ScannerPlanetMineralConcentration.svelte';
@@ -14,15 +16,15 @@
 
 	const commanded = (
 		planet: PlanetIntel,
-		commandedMapObject: MapObject | undefined,
+		commandedMapObject: MapObjectLike | undefined,
 		commandedPlanet: CommandedPlanet | undefined
 	): boolean => {
 		if (
-			commandedMapObject?.type == MapObjectTypeFleet &&
-			(commandedMapObject as Fleet).orbitingPlanetNum == planet.num
+			commandedMapObject?.mapObject?.type === MapObjectType.FLEET &&
+			(commandedMapObject as Fleet).orbitingPlanetNum === planet.mapObject?.num
 		) {
 			return true;
-		} else if (commandedPlanet?.num === planet.num) {
+		} else if (commandedPlanet?.mapObject?.num === planet.mapObject?.num) {
 			return true;
 		}
 		return false;
@@ -30,7 +32,7 @@
 </script>
 
 <!-- Planets -->
-{#each $universe.planetIntels as planet (planet.num)}
+{#each $universe.planetIntels as planet (planet.mapObject?.num)}
 	{#if $settings.planetViewState == PlanetViewState.Percent}
 		<ScannerPlanetPercent {planet} />
 	{:else if $settings.planetViewState == PlanetViewState.Population}

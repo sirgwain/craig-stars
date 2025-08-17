@@ -402,7 +402,7 @@ func testSantaMariaIFE(player *Player) *Fleet {
 
 func Test_computeFleetSpec(t *testing.T) {
 	starterHumanoidPlayer := NewPlayer(1, NewRace().WithSpec(&rules)).WithTechLevels(TechLevel{3, 3, 3, 3, 3, 3})
-	starterHumanoidPlayer.Race.Spec = computeRaceSpec(&starterHumanoidPlayer.Race, &rules)
+	starterHumanoidPlayer.Race.Spec = ComputeRaceSpec(&starterHumanoidPlayer.Race, &rules)
 
 	type args struct {
 		rules  *Rules
@@ -1147,7 +1147,7 @@ func TestFleet_repairFleet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := *player
 			p.Race.PRT = tt.args.prt
-			p.Race.Spec = computeRaceSpec(&p.Race, &rules)
+			p.Race.Spec = ComputeRaceSpec(&p.Race, &rules)
 
 			tt.args.fleet.Spec = ComputeFleetSpec(&rules, player, tt.args.fleet)
 

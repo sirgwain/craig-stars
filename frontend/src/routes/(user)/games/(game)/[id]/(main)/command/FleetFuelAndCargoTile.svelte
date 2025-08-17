@@ -32,7 +32,7 @@
 			<div class="w-12 text-tile-item-title">Fuel</div>
 			<div class="ml-1 h-full w-full">
 				<!-- TODO: add fuel transfer -->
-				<FuelBar value={fleet.fuel} capacity={fleet.spec.fuelCapacity} />
+				<FuelBar value={fleet.fuel} capacity={fleet.spec.shipDesignSpec?.fuelCapacity} />
 			</div>
 		</div>
 
@@ -43,7 +43,7 @@
 					onPointerDown={transfer}
 					canTransferCargo={canTransferCargo(fleet)}
 					value={fleet.cargo}
-					capacity={fleet.spec.cargoCapacity}
+					capacity={fleet.spec.shipDesignSpec?.cargoCapacity}
 				/>
 			</div>
 		</div>

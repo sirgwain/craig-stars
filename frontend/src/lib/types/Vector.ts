@@ -1,25 +1,24 @@
-import type { Vector } from './cs';
+import { VectorSchema, type Vector } from '$lib/types/cs-proto';
+import { create } from '@bufbuild/protobuf';
 
-export const emptyVector = { x: 0, y: 0 };
+export const emptyVector = () => create(VectorSchema, { x: 0, y: 0 });
 
-export const equal = (v1: Vector, v2: Vector) => v1.x === v2.x && v1.y === v2.y;
+export const equal = (v1: Vector | undefined, v2?: Vector | undefined) =>
+	v1?.x === v2?.x && v1?.y === v2?.y;
 
 // compute the distance between two vectors
-export const distance = (v1: Vector, v2?: Vector): number =>
-	v2 ? Math.sqrt((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y)) : 0;
-
-export const perpendicular = (v: Vector): Vector => {
-	return { x: v.y, y: -v.x };
-};
-
-// dot product of two vectors
-export const dot = (v1: Vector, v2: Vector): number => v1.x * v2.x + v1.y * v2.y;
-export const determinant = (v1: Vector, v2: Vector): number => v1.x * v2.y - v1.y * v2.x;
+export const distance = (v1: Vector | undefined, v2: Vector | undefined): number =>
+	v2 && v1
+		? Math.sqrt(
+				((v1?.x ?? 0) - (v2?.x ?? 0)) * ((v1?.x ?? 0) - (v2?.x ?? 0)) +
+					((v1?.y ?? 0) - (v2?.y ?? 0)) * ((v1?.y ?? 0) - (v2?.y ?? 0))
+			)
+		: 0;
 
 export const lengthSquared = (v: Vector): number => v.x * v.x + v.y * v.y;
 
 export const normalized = (from: Vector): Vector => {
-	const v = { x: from.x, y: from.y };
+	const v = create(VectorSchema, { x: from.x, y: from.y });
 	const lengthsq = lengthSquared(v);
 
 	if (lengthsq === 0) {
@@ -34,7 +33,7 @@ export const normalized = (from: Vector): Vector => {
 };
 
 export const subtract = (from: Vector, to: Vector): Vector => {
-	return { x: from.x - to.x, y: from.y - to.y };
+	return create(VectorSchema, { x: from.x - to.x, y: from.y - to.y });
 };
 
-export const string = (v: Vector) => `(${v.x ?? 0}, ${v.y ?? 0})`;
+export const string = (v: Vector | Vector | undefined) => `(${v?.x ?? 0}, ${v?.y ?? 0})`;

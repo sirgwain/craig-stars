@@ -1,32 +1,31 @@
 <script lang="ts">
 	import { defaultRules } from '$lib/types/Rules';
 
+	// Pull helpers from Tech.ts
+	import { getCloakPercentForCloakUnits, getLongHabName, type TechLike } from '$lib/types/Tech';
+
+	// Use Tech base type from protogen plus specific tech subtypes
 	import {
-		InfiniteGate,
-		TechCategoryArmor,
-		TechCategoryBeamWeapon,
-		TechCategoryMineLayer,
-		TechCategoryPlanetaryScanner,
-		TechCategoryShield,
-		TechCategoryShipHull,
-		TechCategoryStarbaseHull,
-		TechCategoryTerraforming,
-		TerraformHabTypeAll,
-		type Rules,
-		type Tech,
+		TechCategory,
+		TerraformHabType,
 		type TechHull,
 		type TechHullComponent,
 		type TechPlanetaryScanner,
 		type TechTerraform
-	} from '$lib/types/cs';
-	import { getCloakPercentForCloakUnits, getLongHabName } from '$lib/types/Tech';
+	} from '$lib/types/cs-proto';
+
+	// Rules type is the inferred type of defaultRules (RulesJson)
+	type Rules = typeof defaultRules;
 
 	type Props = {
-		tech: Tech;
+		tech: TechLike;
 		rules?: Rules;
 	};
 
-	let { tech, rules = defaultRules }: Props = $props();
+	let { tech: techLike, rules = defaultRules }: Props = $props();
+
+	// InfiniteGate sentinel value used for display; keep numeric sentinel
+	const InfiniteGate = Number.MAX_SAFE_INTEGER;
 
 	type Stat = {
 		label: string;
@@ -42,9 +41,13 @@
 		const stats: Stat[] = [];
 		const descriptions: string[] = [];
 		const warnings: string[] = [];
+		if (!techLike.tech) {
+			return { stats, descriptions, warnings };
+		}
 
-		if (tech.category == TechCategoryShipHull || tech.category == TechCategoryStarbaseHull) {
-			const hull = tech as TechHull;
+		const category = techLike.tech.category;
+		if (category === TechCategory.SHIP_HULL || category === TechCategory.STARBASE_HULL) {
+			const hull = techLike as TechHull;
 			if (hull) {
 				if (hull.fuelCapacity && hull.fuelCapacity > 0) {
 					stats.push({ label: 'Fuel Capacity', text: `${hull.fuelCapacity}mg` });
@@ -52,7 +55,7 @@
 				if (hull.cargoCapacity && hull.cargoCapacity > 0) {
 					stats.push({ label: 'Cargo Capacity', text: `${hull.cargoCapacity}kT` });
 				}
-				stats.push({ label: 'Armor Strength', text: hull.armor.toString() });
+				stats.push({ label: 'Armor Strength', text: hull.armor?.toString() });
 				if (hull.initiative) {
 					stats.push({ label: 'Initiative', text: hull.initiative.toString() });
 				}
@@ -77,8 +80,8 @@
 			}
 		}
 
-		if (tech.category == TechCategoryPlanetaryScanner) {
-			const planetaryScanner = tech as TechPlanetaryScanner;
+		if (category === TechCategory.PLANETARY_SCANNER) {
+			const planetaryScanner = techLike as TechPlanetaryScanner;
 
 			if (planetaryScanner.scanRange > 0) {
 				descriptions.push(
@@ -93,46 +96,46 @@
 			}
 		}
 
-		if (tech.category == TechCategoryTerraforming) {
-			const terraform = tech as TechTerraform;
+		if (category === TechCategory.TERRAFORMING) {
+			const terraform = techLike as TechTerraform;
 			descriptions.push(
 				`Allows you to modify ${
-					terraform.habType !== TerraformHabTypeAll
+					terraform.habType !== TerraformHabType.ALL
 						? `a planet's ${getLongHabName(terraform.habType)}`
 						: `all of a planet's three environmental variables`
 				} by up to ${terraform.ability}% from its original value.`
 			);
 		}
 
-		if ('hullSlotType' in tech) {
-			const hullComponent = tech as TechHullComponent;
+		if ('hullSlotType' in techLike) {
+			const hullComponent = techLike as TechHullComponent;
 			if (hullComponent) {
 				if (
-					hullComponent.category == TechCategoryMineLayer &&
+					category === TechCategory.MINE_LAYER &&
 					hullComponent.minefieldType &&
 					rules.minefieldStatsByType
 				) {
 					const minefieldStats = rules.minefieldStatsByType[hullComponent.minefieldType];
-					stats.push({ label: 'Mines laid per year', text: `${hullComponent.mineLayingRate}` });
-					stats.push({ label: 'Maximum safe speed', text: `${minefieldStats.maxSpeed}` });
+					stats.push({ label: 'Mines laid / year', text: `${hullComponent.mineLayingRate}` });
+					stats.push({ label: 'Max safe speed', text: `${minefieldStats?.maxSpeed ?? 0}` });
 					stats.push({
 						label: 'Chance/l.y. of a hit',
-						text: `${(minefieldStats.chanceOfHit * 100).toFixed(1)}%`
+						text: `${(+(minefieldStats?.chanceOfHit ?? 0) * 100).toFixed(1)}%`
 					});
 					stats.push({
 						label: 'Dmg done to each ship',
-						text: `${minefieldStats.damagePerEngine} (${minefieldStats.damagePerEngineRS}) / engine`
+						text: `${minefieldStats?.damagePerEngine ?? 0} (${minefieldStats?.damagePerEngineRs ?? 0}) / engine`
 					});
 					stats.push({
 						label: 'Min damage done to fleet',
-						text: `${minefieldStats.minDamagePerFleet} (${minefieldStats.minDamagePerFleetRS})`
+						text: `${minefieldStats?.minDamagePerFleet ?? 0} (${minefieldStats?.minDamagePerFleetRs ?? 0})`
 					});
 					descriptions.push(
 						'Numbers in parentheses are for fleets containing a ship with ram scoop engines. Note that the chance of hitting a mine goes up the % listed for EACH warp you exceed the safe speed.'
 					);
 				}
 
-				if (hullComponent.category == TechCategoryShield && (hullComponent.armor ?? 0) > 0) {
+				if (category === TechCategory.SHIELD && (hullComponent.armor ?? 0) > 0) {
 					// if this is a shield with armor, it sounds cooler to make the armor a description
 					// this also makes it clearer that they aren't affected by shield/armor % bonuses like RS
 					descriptions.push(
@@ -145,7 +148,7 @@
 					});
 				}
 
-				if ((hullComponent.category == TechCategoryArmor && hullComponent.shield) ?? 0 > 0) {
+				if ((category === TechCategory.ARMOR && hullComponent.shield) ?? 0 > 0) {
 					// if this is an armor with a shield, it sounds cooler to make the shield a description
 					descriptions.push(
 						`This armor also acts as part shield which will absorb ${hullComponent.shield} damage points.`
@@ -160,7 +163,7 @@
 				if (hullComponent.power) {
 					stats.push({ label: 'Power', text: `${hullComponent.power}` });
 				}
-				if (hullComponent.range || hullComponent.category == TechCategoryBeamWeapon) {
+				if (hullComponent.range || category === TechCategory.BEAM_WEAPON) {
 					stats.push({ label: 'Range', text: `${hullComponent.range ?? 0}` });
 				}
 				if (hullComponent.initiative) {

@@ -1,4 +1,5 @@
 import { apiErrorsFailTest, expect, test } from './setup';
+import { WaypointTaskTransportAction } from '../src/lib/protogen/craig_stars/v1/fleet_pb';
 
 test('create a new game', async ({ newGamePage }) => {
 	const { page, name } = newGamePage;
@@ -150,14 +151,25 @@ test('transport plans page', async ({ newGamePage }) => {
 	await page.getByRole('link', { name: 'Create' }).click();
 	await page.getByRole('textbox', { name: 'Name' }).fill(name);
 
-	await page.getByLabel('Action Fuel NoneLoad').selectOption('LoadOptimal');
-	await page.getByLabel('Action Ironium NoneLoad').selectOption('LoadAmount');
+	await page
+		.getByLabel('Action Fuel NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.LOAD_OPTIMAL));
+
+	await page
+		.getByLabel('Action Ironium NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.LOAD_AMOUNT));
 	await page.getByLabel('Amount Ironium').fill('1');
-	await page.getByLabel('Action Boranium NoneLoad').selectOption('UnloadAmount');
+	await page
+		.getByLabel('Action Boranium NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.UNLOAD_AMOUNT));
 	await page.getByLabel('Amount Boranium').fill('1');
-	await page.getByLabel('Action Germanium NoneLoad').selectOption('FillPercent');
+	await page
+		.getByLabel('Action Germanium NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.FILL_PERCENT));
 	await page.getByLabel('Amount Germanium').fill('3');
-	await page.getByLabel('Action Colonists NoneLoad').selectOption('SetAmountTo');
+	await page
+		.getByLabel('Action Colonists NoneLoad')
+		.selectOption(String(WaypointTaskTransportAction.SET_AMOUNT_TO));
 	await page.getByLabel('Amount Colonists').fill('10');
 
 	await page.getByRole('button', { name: 'Save' }).click();

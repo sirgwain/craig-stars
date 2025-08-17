@@ -1,20 +1,29 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import HabChance from '$lib/components/game/race/HabChance.svelte';
 	import LRTsDescriptions from '$lib/components/game/race/LRTsDescriptions.svelte';
 	import PRTDescription from '$lib/components/game/race/PRTDescription.svelte';
 	import Population from '$lib/components/icons/Population.svelte';
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import type { Race, RaceSpec } from '$lib/types/cs-proto';
+	import { Grav, Rad, Temp } from '$lib/types/Hab';
 	import { getLabelForPRT } from '$lib/types/Race';
-	import { Grav, Rad, Temp, type Race } from '$lib/types/cs';
+	import type { WasmClient } from '$lib/wasm';
 	import HabBar from './HabBar.svelte';
 	import PlanetaryProduction from './PlanetaryProduction.svelte';
 	import Research from './Research.svelte';
 
 	type Props = {
+		wasmClient: WasmClient;
 		race: Race;
 	};
 
-	let { race }: Props = $props();
+	let { wasmClient, race }: Props = $props();
+
+	let spec: RaceSpec | undefined = $state();
+
+	$effect(() => {
+		wasmClient.computeRaceSpec({ race }).then((resp) => (spec = resp.spec));
+	});
 </script>
 
 <div
@@ -24,7 +33,7 @@
 		<div class="stat-title">Growth Rate</div>
 		<div class="stat-figure"><Population class="w-8 h-8 fill-base-content" /></div>
 		<div class="stat-value">
-			{race.growthRate * (race.spec?.growthFactor ?? 0)}%
+			{race.growthRate * (spec?.growthFactor ?? 0)}%
 		</div>
 	</div>
 </div>
@@ -52,20 +61,20 @@
 <div class="flex flex-col gap-2">
 	<HabBar
 		habType={Grav}
-		habLow={race.habLow.grav}
-		habHigh={race.habHigh.grav}
+		habLow={race.habLow?.grav ?? 0}
+		habHigh={race.habHigh?.grav ?? 0}
 		immune={race.immuneGrav}
 	/>
 	<HabBar
 		habType={Temp}
-		habLow={race.habLow.temp}
-		habHigh={race.habHigh.temp}
+		habLow={race.habLow?.temp ?? 0}
+		habHigh={race.habHigh?.temp ?? 0}
 		immune={race.immuneTemp}
 	/>
 	<HabBar
 		habType={Rad}
-		habLow={race.habLow.rad}
-		habHigh={race.habHigh.rad}
+		habLow={race.habLow?.rad ?? 0}
+		habHigh={race.habHigh?.rad ?? 0}
 		immune={race.immuneRad}
 	/>
 	<HabChance {race} />

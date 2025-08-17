@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/race.proto";
+
+service RaceService {
+  rpc GetRaces(GetRacesRequest) returns (GetRacesResponse);
+  rpc GetRace(GetRaceRequest) returns (GetRaceResponse);
+  rpc CreateRace(CreateRaceRequest) returns (CreateRaceResponse);
+  rpc UpdateRace(UpdateRaceRequest) returns (UpdateRaceResponse);
+  rpc DeleteRace(DeleteRaceRequest) returns (DeleteRaceResponse);
+}
+
+message GetRacesRequest {}
+
+message GetRacesResponse {
+  repeated Race races = 1;
+}
+
+message GetRaceRequest {
+  int64 race_id = 1;
+}
+
+message GetRaceResponse {
+  Race race = 1;
+}
+
+message CreateRaceRequest {
+  Race race = 1;
+}
+
+message CreateRaceResponse {
+  Race race = 1;
+}
+
+message UpdateRaceRequest {
+  Race race = 1;
+}
+
+message UpdateRaceResponse {
+  Race race = 1;
+}
+
+message DeleteRaceRequest {
+  int64 race_id = 1;
+}
+
+message DeleteRaceResponse {}

@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { getTechIcon } from '$lib/techicon';
-	import { isHull } from '$lib/types/Tech';
-	import { type TechHull } from '$lib/types/cs';
-	import { type Tech } from '$lib/types/cs';
+	import type { TechHull } from '$lib/types/cs-proto';
+	import { isHull, type TechLike } from '$lib/types/Tech';
 	import { onTechHullTooltip } from '../game/tooltips/TechHullTooltip.svelte';
 	import { onTechTooltip } from '../game/tooltips/TechTooltip.svelte';
 
 	type Props = {
-		tech: Tech | undefined;
+		tech: TechLike | undefined;
 		hullSetNumber?: number;
 		hullTooltip?: boolean;
 	};

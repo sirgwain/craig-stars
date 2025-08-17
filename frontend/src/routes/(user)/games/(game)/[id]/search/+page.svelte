@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { ownedBy } from '$lib/types/MapObject';
-	import { type MapObject } from '$lib/types/cs';
+	import { ownedBy, type MapObjectLike } from '$lib/types/MapObject';
 	import SearchResults from './SearchResults.svelte';
 
 	const { game, player, commandMapObject, zoomToMapObject, selectMapObject } = getGameContext();
 
-	function selectSearchResult(mo: MapObject | undefined) {
+	function selectSearchResult(mo: MapObjectLike | undefined) {
 		if (mo) {
 			if (ownedBy(mo, $player.num)) {
 				commandMapObject(mo);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { WormholeIntel } from '$lib/types/cs';
-	import { startCase } from 'lodash-es';
+	import { WormholeStability, type WormholeIntel } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
 
 	const { universe } = getGameContext();
 
@@ -29,20 +29,20 @@
 		<div class="flex flex-row">
 			<div class="w-28 mr-2">Location:</div>
 			<div>
-				({wormhole.position.x.toFixed()}, {wormhole.position.y.toFixed()})
+				({wormhole.mapObject?.position?.x.toFixed()}, {wormhole.mapObject?.position?.y.toFixed()})
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-28 mr-2">Destination:</div>
 			<div>
 				{destination
-					? `(${destination.position.x.toFixed()}, ${destination.position.y.toFixed()})`
+					? `(${destination.mapObject?.position?.x.toFixed()}, ${destination.mapObject?.position?.y.toFixed()})`
 					: 'unknown'}
 			</div>
 		</div>
 		<div class="flex flex-row">
 			<div class="w-28 mr-2">Stability:</div>
-			<div>{startCase(wormhole.stability)}</div>
+			<div>{enumToString(WormholeStability, wormhole.stability)}</div>
 		</div>
 	</div>
 </div>

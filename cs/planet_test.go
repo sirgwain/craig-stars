@@ -10,7 +10,7 @@ import (
 
 func newTestPlayerPlanet() (player *Player, planet *Planet) {
 	player = NewPlayer(1, NewRace()).WithNum(1)
-	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
 	planet = &Planet{}
 	planet.PlayerNum = player.Num
 	planet.BaseHab = player.Race.HabCenter()
@@ -201,7 +201,7 @@ func TestPlanet_getGrowthAmount(t *testing.T) {
 			if tt.args.player.Race.GrowthRate == 15 {
 				tt.args.player.Race.GrowthRate = 10
 			}
-			tt.args.player.Race.Spec = computeRaceSpec(&tt.args.player.Race, &rules)
+			tt.args.player.Race.Spec = ComputeRaceSpec(&tt.args.player.Race, &rules)
 			if got := p.GetGrowthAmount(tt.args.player, tt.args.maxPopulation, rules.PopulationOvercrowdDieoffRate, rules.PopulationOvercrowdDieoffRateMax); got != tt.want {
 				t.Errorf("Planet.getGrowthAmount() = %v, want %v", got, tt.want)
 			}

@@ -12,9 +12,9 @@ import (
 // processed when a turn is generated. It is per fleet for a target. When a fleet is split or merged
 // its by hand transfers are also split and merged.
 type ByHandCargoTransfer struct {
-	MapObjectTarget `tstype:",extends"`
-	SourceFleetNum  int   `json:"sourceFleetNum,omitempty"`
-	Cargo           Cargo `json:"cargo"`
+	MapObjectTarget
+	SourceFleetNum int   `json:"sourceFleetNum,omitempty"`
+	Cargo          Cargo `json:"cargo"`
 }
 
 // CargoTransfers are per player ByHandCargoTransfers per location on the map. This makes processing

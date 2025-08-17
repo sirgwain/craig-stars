@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { type Battle, type PhaseToken } from '$lib/types/Battle';
-	import { TokenActionBeamFire, TokenActionTorpedoFire } from '$lib/types/cs';
 	import BattleBoardAction from './BattleBoardAction.svelte';
 	import BattleBoardAttack from './BattleBoardAttack.svelte';
 	import BattleBoardPhaseControls from './BattleBoardPhaseControls.svelte';
@@ -81,7 +80,7 @@
 					<div class="w-full card bg-base-200 shadow rounded-sm border-2 border-base-300 mb-2">
 						<div class="card-body p-3 gap-0">
 							<h2 class="text-lg font-semibold text-center mb-1 text-secondary">
-								{#if selectedToken.action?.type === TokenActionBeamFire || selectedToken.action?.type === TokenActionTorpedoFire}
+								{#if selectedToken.action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_BEAM_FIRE' || selectedToken.action?.type === 'BATTLE_RECORD_TOKEN_ACTION_TYPE_TORPEDO_FIRE'}
 									Attacker
 								{:else}
 									Selection

@@ -1,0 +1,186 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/tech.proto";
+
+// Ship design purposes
+enum ShipDesignPurpose {
+  // No specific purpose
+  SHIP_DESIGN_PURPOSE_UNSPECIFIED = 0;
+    
+  // Scout ship
+  SHIP_DESIGN_PURPOSE_SCOUT = 1;
+  
+  // Colonizer ship
+  SHIP_DESIGN_PURPOSE_COLONIZER = 2;
+  
+  // Bomber ship
+  SHIP_DESIGN_PURPOSE_BOMBER = 3;
+  
+  // Structure bomber ship
+  SHIP_DESIGN_PURPOSE_STRUCTURE_BOMBER = 4;
+  
+  // Smart bomber ship
+  SHIP_DESIGN_PURPOSE_SMART_BOMBER = 5;
+  
+  // Starting fighter (only used for starting designs)
+  SHIP_DESIGN_PURPOSE_STARTING_FIGHTER = 6;
+  
+  // Armed beam scout
+  SHIP_DESIGN_PURPOSE_FIGHTER_SCOUT = 7;
+  
+  // Torpedo/missile boat
+  SHIP_DESIGN_PURPOSE_TORPEDO_FIGHTER = 8;
+  
+  // Beam/sapper boat
+  SHIP_DESIGN_PURPOSE_BEAM_FIGHTER = 9;
+  
+  // Freighter ship
+  SHIP_DESIGN_PURPOSE_FREIGHTER = 10;
+  
+  // Colonist freighter
+  SHIP_DESIGN_PURPOSE_COLONIST_FREIGHTER = 11;
+  
+  // Fuel freighter
+  SHIP_DESIGN_PURPOSE_FUEL_FREIGHTER = 12;
+  
+  // Multi-purpose freighter
+  SHIP_DESIGN_PURPOSE_MULTI_PURPOSE_FREIGHTER = 13;
+  
+  // Armed freighter
+  SHIP_DESIGN_PURPOSE_ARMED_FREIGHTER = 14;
+  
+  // Miner ship
+  SHIP_DESIGN_PURPOSE_MINER = 15;
+  
+  // Terraformer ship
+  SHIP_DESIGN_PURPOSE_TERRAFORMER = 16;
+  
+  // Damage mine layer
+  SHIP_DESIGN_PURPOSE_DAMAGE_MINE_LAYER = 17;
+  
+  // Speed mine layer
+  SHIP_DESIGN_PURPOSE_SPEED_MINE_LAYER = 18;
+  
+  // Starbase
+  SHIP_DESIGN_PURPOSE_STARBASE = 19;
+  
+  // Unarmed starbase
+  SHIP_DESIGN_PURPOSE_STARBASE_UNARMED = 20;
+  
+  // Fuel depot
+  SHIP_DESIGN_PURPOSE_FUEL_DEPOT = 21;
+  
+  // Quarter starbase
+  SHIP_DESIGN_PURPOSE_STARBASE_QUARTER = 22;
+  
+  // Half starbase
+  SHIP_DESIGN_PURPOSE_STARBASE_HALF = 23;
+  
+  // Packet thrower
+  SHIP_DESIGN_PURPOSE_PACKET_THROWER = 24;
+  
+  // Stargater ship
+  SHIP_DESIGN_PURPOSE_STARGATER = 25;
+  
+  // Fort
+  SHIP_DESIGN_PURPOSE_FORT = 26;
+  
+  // Starter colony ship
+  SHIP_DESIGN_PURPOSE_STARTER_COLONY = 27;
+}
+
+// Fleets are made up of ships, and each ship has a design. Players start with designs created
+// during universe generation, and they can add new designs in the UI.
+// Deleting a design deletes all fleets associated with it.
+message ShipDesign {
+  GameDBObject game_db_object = 1;
+
+  int32 num = 2;
+  int32 player_num = 3;
+  int32 original_player_num = 4;
+  string name = 5;
+  int32 version = 6;
+  string hull = 7;
+  int32 hull_set_number = 8;
+  bool cannot_delete = 9;
+  bool mystery_trader = 10;
+  repeated ShipDesignSlot slots = 11;
+  ShipDesignPurpose purpose = 12;
+  ShipDesignSpec spec = 13;
+}
+
+message ShipDesignSlot {
+  string hull_component = 1;
+  int32 hull_slot_index = 2;
+  int32 quantity = 3;
+}
+
+message ShipDesignSpec {
+  int32 additional_mass_drivers = 1;
+  int32 armor = 2;
+  int32 base_packet_speed = 3;
+  double beam_bonus = 4;
+  double beam_defense = 5;
+  bool bomber = 6;
+  repeated Bomb bombs = 7;
+  bool can_jump = 8;
+  bool can_lay_mines = 9;
+  bool can_steal_fleet_cargo = 10;
+  bool can_steal_planet_cargo = 11;
+  int32 cargo_capacity = 12;
+  int32 cloak_percent = 13;
+  int32 cloak_percent_full_cargo = 14;
+  int32 cloak_units = 15;
+  bool colonizer = 16;
+  Cost cost = 17;
+  Engine engine = 18;
+  int32 estimated_range = 19;
+  int32 estimated_range_full = 20;
+  int32 fuel_capacity = 21;
+  int32 fuel_generation = 22;
+  bool has_weapons = 23;
+  TechHullType hull_type = 24;
+  bool immune_to_own_detonation = 25;
+  int32 initiative = 26;
+  double innate_scan_range_pen_factor = 27;
+  int32 mass = 28;
+  string mass_driver = 29;
+  int32 max_hull_mass = 30;
+  int32 max_population = 31;
+  int32 max_range = 32;
+  map<int32, int32> mine_laying_rate_by_mine_type = 33;
+  int32 mine_sweep = 34;
+  int32 mining_rate = 35;
+  int32 movement = 36;
+  double movement_bonus = 37;
+  int32 movement_full = 38;
+  int32 num_built = 39;
+  int32 num_engines = 40;
+  int32 num_instances = 41;
+  bool orbital_construction_module = 42;
+  int32 power_rating = 43;
+  bool radiating = 44;
+  double reduce_cloaking = 45;
+  int32 reduce_movement = 46;
+  double repair_bonus = 47;
+  repeated Bomb retro_bombs = 48;
+  int32 safe_hull_mass = 49;
+  int32 safe_packet_speed = 50;
+  int32 safe_range = 51;
+  bool scanner = 52;
+  int32 scan_range = 53;
+  int32 scan_range_pen = 54;
+  int32 shields = 55;
+  repeated Bomb smart_bombs = 56;
+  int32 space_dock = 57;
+  bool starbase = 58;
+  string stargate = 59;
+  TechLevel tech_level = 60;
+  int32 terraform_rate = 61;
+  double torpedo_bonus = 62;
+  double torpedo_jamming = 63;
+  repeated ShipDesignSlot weapon_slots = 64;
+}

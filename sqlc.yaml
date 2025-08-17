@@ -16,10 +16,6 @@ sql:
               type: Time
               pointer: true
           # races
-          - column: races.spec
-            go_type:
-              type: RaceSpec
-              pointer: true
           - column: races.spend_leftover_points_on
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
@@ -275,10 +271,6 @@ sql:
             go_type:
               import: "github.com/sirgwain/craig-stars/cs"
               type: MinefieldType
-              pointer: true
-          - column: minefields.spec
-            go_type:
-              type: MinefieldSpec
               pointer: true
           # mineral_ackets
           - column: mineral_packets.tags

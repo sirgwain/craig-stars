@@ -1,42 +1,33 @@
-import {
-	MapObjectTypeFleet,
-	MapObjectTypeMinefield,
-	MapObjectTypeMineralPacket,
-	MapObjectTypeMysteryTrader,
-	MapObjectTypeNone,
-	MapObjectTypePlanet,
-	MapObjectTypeWormhole,
-	TargetFleet,
-	TargetMinefield,
-	TargetMineralPacket,
-	TargetMysteryTrader,
-	TargetPlanet,
-	TargetWormhole,
-	type MapObjectType,
-	type PlayerMessage,
-	type PlayerMessageTarget
-} from './cs';
+import { MapObjectType, PlayerMessageTargetType, type PlayerMessage } from '$lib/types/cs-proto';
+import type { MapObjectTargetLike } from './MapObject';
 import type { PlayerSettings } from './PlayerSettings';
 
+export function getMapObjectTarget(message: PlayerMessage): MapObjectTargetLike {
+	return {
+		...message.target!,
+		targetType: getMapObjectTypeForMessageType(message.target?.targetType)
+	};
+}
+
 export function getMapObjectTypeForMessageType(
-	targetType: PlayerMessageTarget | MapObjectType | string | undefined
+	targetType: PlayerMessageTargetType | undefined
 ): MapObjectType {
 	switch (targetType) {
-		case TargetPlanet:
-			return MapObjectTypePlanet;
-		case TargetFleet:
-			return MapObjectTypeFleet;
-		case TargetWormhole:
-			return MapObjectTypeWormhole;
-		case TargetMinefield:
-			return MapObjectTypeMinefield;
-		case TargetMysteryTrader:
-			return MapObjectTypeMysteryTrader;
-		case TargetMineralPacket:
-			return MapObjectTypeMineralPacket;
+		case PlayerMessageTargetType.PLANET:
+			return MapObjectType.PLANET;
+		case PlayerMessageTargetType.FLEET:
+			return MapObjectType.FLEET;
+		case PlayerMessageTargetType.WORMHOLE:
+			return MapObjectType.WORMHOLE;
+		case PlayerMessageTargetType.MINEFIELD:
+			return MapObjectType.MINEFIELD;
+		case PlayerMessageTargetType.MYSTERY_TRADER:
+			return MapObjectType.MYSTERY_TRADER;
+		case PlayerMessageTargetType.MINERAL_PACKET:
+			return MapObjectType.MINERAL_PACKET;
 	}
 
-	return MapObjectTypeNone;
+	return MapObjectType.UNSPECIFIED;
 }
 
 // get the next visible message taking into account filters

@@ -8,7 +8,7 @@ import (
 // create a new test player with humanoid race and computed specs
 func testPlayer() *Player {
 	race := Humanoids()
-	race.Spec = computeRaceSpec(&race, &rules)
+	race.Spec = ComputeRaceSpec(&race, &rules)
 	return NewPlayer(1, &race).withSpec(&rules).WithRelations([]PlayerRelationship{{Relation: PlayerRelationFriend}})
 }
 

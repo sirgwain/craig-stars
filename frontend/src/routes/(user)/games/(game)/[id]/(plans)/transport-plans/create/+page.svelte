@@ -2,36 +2,43 @@
 	import { goto } from '$app/navigation';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { CSError, addError } from '$lib/services/Errors';
+	import { addError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { notify } from '$lib/services/Notifications';
-	import type { TransportPlan } from '$lib/types/cs';
-	import { TransportActionNone } from '$lib/types/cs';
+	import {
+		TransportPlanSchema,
+		WaypointTaskTransportAction,
+		type TransportPlan
+	} from '$lib/types/cs-proto';
+	import { create } from '@bufbuild/protobuf';
+	import type { ConnectError } from '@connectrpc/connect';
 	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 
 	const { game, player, createTransportPlan } = getGameContext();
 
-	let plan: TransportPlan = $state({
-		num: 0,
-		name: '',
-		tasks: {
-			fuel: {
-				action: TransportActionNone
-			},
-			ironium: {
-				action: TransportActionNone
-			},
-			boranium: {
-				action: TransportActionNone
-			},
-			germanium: {
-				action: TransportActionNone
-			},
-			colonists: {
-				action: TransportActionNone
+	let plan: TransportPlan = $state(
+		create(TransportPlanSchema, {
+			num: 0,
+			name: '',
+			tasks: {
+				fuel: {
+					action: WaypointTaskTransportAction.UNSPECIFIED
+				},
+				ironium: {
+					action: WaypointTaskTransportAction.UNSPECIFIED
+				},
+				boranium: {
+					action: WaypointTaskTransportAction.UNSPECIFIED
+				},
+				germanium: {
+					action: WaypointTaskTransportAction.UNSPECIFIED
+				},
+				colonists: {
+					action: WaypointTaskTransportAction.UNSPECIFIED
+				}
 			}
-		}
-	});
+		})
+	);
 
 	let error = $state('');
 
@@ -45,12 +52,12 @@
 				notify(`Saved ${plan.name}`);
 				goto(
 					`/games/${$game.id}/transport-plans/${
-						$player.transportPlans[$player.transportPlans.length - 1].num
+						$player.playerPlans.transportPlans[$player.playerPlans.transportPlans.length - 1].num
 					}`
 				);
 			}
 		} catch (e) {
-			addError(e as CSError);
+			addError(e as ConnectError);
 		}
 	};
 </script>

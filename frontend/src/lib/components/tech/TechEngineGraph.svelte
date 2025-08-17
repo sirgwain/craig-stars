@@ -5,10 +5,10 @@
 	import AxisX from '../graph/AxisX.html.svelte';
 	import AxisY from '../graph/AxisY.html.svelte';
 	import Line from '../graph/Line.svelte';
-	import type { TechEngine } from '$lib/types/cs';
+	import type { EngineJson } from '$lib/types/cs-proto';
 
 	type Props = {
-		engine: TechEngine;
+		engine: EngineJson;
 	};
 
 	let { engine }: Props = $props();
@@ -16,7 +16,9 @@
 	type DataType = [number, number][];
 
 	let data: DataType = $derived(
-		engine?.fuelUsage ? engine.fuelUsage.map((usage, index) => [index, usage]) : []
+		engine?.fuelUsage
+			? engine.fuelUsage.map((usage: number, index: number): [number, number] => [index, usage])
+			: []
 	);
 
 	const xGetter = (d: DataType) => d[0];
@@ -34,7 +36,7 @@
 	>
 		<Html>
 			<AxisX />
-			<AxisY ticks={[0, 25, 100, 200, 400, 800]} formatTick={(d) => `${d}%`} />
+			<AxisY ticks={[0, 25, 100, 200, 400, 800]} formatTick={(d) => `${d as number}%`} />
 		</Html>
 		<ScaledSvg>
 			<Line />

@@ -1,4 +1,4 @@
-import type { MapObject } from '$lib/types/cs';
+import type { MapObjectLike } from '$lib/types/MapObject';
 import type { CommandedPlayer } from '$lib/types/Player';
 import { find } from 'lodash-es';
 import { getContext, setContext } from 'svelte';
@@ -38,14 +38,14 @@ export function getViewportCoords(
 
 // for a list of orbiting fleets, return whether there are enemies, friends, both or neither
 export function getEnemiesAndFriends(
-	orbitingFleets: MapObject[],
+	orbitingFleets: MapObjectLike[],
 	player: CommandedPlayer
 ): { enemies: boolean; friends: boolean } {
-	const playerNums = new Set<number>(orbitingFleets.map((f) => f.playerNum));
+	const playerNums = new Set<number>(orbitingFleets.map((f) => f.mapObject?.playerNum ?? 0));
 	if (playerNums.size == 1) {
-		if (orbitingFleets[0].playerNum === player.num) {
+		if (orbitingFleets[0].mapObject?.playerNum === player.num) {
 			return { enemies: false, friends: false };
-		} else if (player.isEnemy(orbitingFleets[0].playerNum)) {
+		} else if (player.isEnemy(orbitingFleets[0].mapObject?.playerNum ?? 0)) {
 			return { enemies: true, friends: false };
 		} else {
 			return { enemies: false, friends: true };

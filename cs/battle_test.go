@@ -1093,8 +1093,8 @@ func Test_battle_runBattle2(t *testing.T) {
 	player2.Race.PluralName = AINames[1][1]
 	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
 	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
-	player1.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
-	player2.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+	player1.Intels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+	player2.Intels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
 
 	player1.Designs = append(player1.Designs,
 		NewShipDesign(player1.Num, 1).
@@ -1207,8 +1207,8 @@ func Test_battle_runBattleError(t *testing.T) {
 	player2.Race.PluralName = AINames[1][1]
 	player1.Relations = []PlayerRelationship{{Relation: PlayerRelationFriend}, {Relation: PlayerRelationEnemy}}
 	player2.Relations = []PlayerRelationship{{Relation: PlayerRelationEnemy}, {Relation: PlayerRelationFriend}}
-	player1.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
-	player2.PlayerIntels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+	player1.Intels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
+	player2.Intels.PlayerIntels = []PlayerIntel{{Num: player1.Num}, {Num: player2.Num}}
 
 	player1.Designs = append(player1.Designs,
 		NewShipDesign(player1.Num, 1).

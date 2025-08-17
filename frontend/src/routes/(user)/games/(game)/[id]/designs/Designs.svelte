@@ -63,32 +63,32 @@
 		{
 			key: 'rating',
 			title: 'Rating',
-			sortBy: (a, b) => (a.spec.powerRating ?? 0) - (b.spec.powerRating ?? 0)
+			sortBy: (a, b) => (a.spec?.powerRating ?? 0) - (b.spec?.powerRating ?? 0)
 		},
 		{
 			key: 'armor',
 			title: 'Armor',
-			sortBy: (a, b) => (a.spec.armor ?? 0) - (b.spec.armor ?? 0)
+			sortBy: (a, b) => (a.spec?.armor ?? 0) - (b.spec?.armor ?? 0)
 		},
 		{
 			key: 'shields',
 			title: 'Shields',
-			sortBy: (a, b) => (a.spec.shields ?? 0) - (b.spec.shields ?? 0)
+			sortBy: (a, b) => (a.spec?.shields ?? 0) - (b.spec?.shields ?? 0)
 		},
 		{
 			key: 'initiative',
 			title: 'Initiative',
-			sortBy: (a, b) => (a.spec.initiative ?? 0) - (b.spec.initiative ?? 0)
+			sortBy: (a, b) => (a.spec?.initiative ?? 0) - (b.spec?.initiative ?? 0)
 		},
 		{
 			key: 'movement',
 			title: 'Movement',
-			sortBy: (a, b) => (a.spec.movement ?? 0) - (b.spec.movement ?? 0)
+			sortBy: (a, b) => (a.spec?.movement ?? 0) - (b.spec?.movement ?? 0)
 		},
 		{
 			key: 'mass',
 			title: 'Mass',
-			sortBy: (a, b) => (a.spec.mass ?? 0) - (b.spec.mass ?? 0)
+			sortBy: (a, b) => (a.spec?.mass ?? 0) - (b.spec?.mass ?? 0)
 		}
 	];
 </script>
@@ -146,17 +146,17 @@
 						{$universe.getPlayerPluralName(row.playerNum)}
 					</a>
 				{:else if column.key === 'mass'}
-					{row.spec.mass ?? ''}
+					{row.spec?.mass ?? ''}
 				{:else if column.key === 'armor'}
-					{row.spec.armor ?? ''}
+					{row.spec?.armor ?? ''}
 				{:else if column.key === 'shields'}
-					{row.spec.shields ?? ''}
+					{row.spec?.shields ?? ''}
 				{:else if column.key === 'rating'}
-					{row.spec.powerRating ?? ''}
+					{row.spec?.powerRating ?? ''}
 				{:else if column.key === 'initiative'}
-					{row.spec.initiative ?? ''}
+					{row.spec?.initiative ?? ''}
 				{:else if column.key === 'movement'}
-					{row.spec.movement ?? ''}
+					{row.spec?.movement ?? ''}
 				{:else if column.key === 'hull'}
 					<button
 						class="w-full h-full cursor-help text-left"

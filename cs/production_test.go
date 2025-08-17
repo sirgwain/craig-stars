@@ -276,7 +276,7 @@ func Test_production_produceBuildToMinesFactoriesToMax(t *testing.T) {
 	// make mines/factories cheap so we can build them
 	player.Race.MineCost = 1
 	player.Race.FactoryCost = 1
-	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
 
 	// auto build with future growth taken into account
 	planet.ProductionQueue = []ProductionQueueItem{
@@ -307,7 +307,7 @@ func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
 	player.Race.LRTs = Bitmask(IFE) | Bitmask(ARM) | Bitmask(BET) | Bitmask(RS)
 	player.Race.PopEfficiency = 9
 	player.Race.FactoryOutput = 11
-	player.Race.Spec = computeRaceSpec(&player.Race, &rules)
+	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
 	player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
 
 	// add two designs, a colony ship w/fuel mizer and medium freighter w/fuel mizer

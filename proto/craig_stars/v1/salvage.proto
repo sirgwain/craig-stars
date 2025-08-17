@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+
+message Salvage {
+  GameDBObject game_db_object = 1;
+  MapObject map_object = 2;
+  Cargo cargo = 3;
+}

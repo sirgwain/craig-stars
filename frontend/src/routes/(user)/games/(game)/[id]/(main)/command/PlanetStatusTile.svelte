@@ -22,12 +22,12 @@
 	function onResourcesTooltip(e: PointerEvent) {
 		e.preventDefault();
 		showTooltip<ResourcesTooltipProps>(e.x, e.y, ResourcesTooltip, {
-			planetName: planet.name,
+			planetName: planet.mapObject.name,
 			resourcesPerYear: planet.spec.resourcesPerYear ?? 0,
 			resourcesPerYearAvailable: planet.spec.resourcesPerYearAvailable ?? 0,
 			resourcesPerYearResearch: planet.spec.resourcesPerYearResearch ?? 0,
 			resourcesPerYearResearchEstimated: planet.spec.resourcesPerYearResearchEstimatedLeftover ?? 0,
-			innateResources: $player.race.spec?.innateResources ?? false
+			innateResources: $player.race.spec.innateResources ?? false
 		});
 	}
 
@@ -42,7 +42,7 @@
 
 	function onScannerTooltip(e: PointerEvent) {
 		e.preventDefault();
-		if ($player.race.spec?.innateScanner) {
+		if ($player.race.spec.innateScanner) {
 			showTooltip(e.x, e.y, InnateScannerTooltip);
 		} else {
 			onTechTooltip(e, $techs.getTech(planet.spec.scanner ?? ''));
@@ -78,7 +78,7 @@
 			<div>{planet.spec.scanRange ?? '--'} l.y.</div>
 		</div>
 
-		{#if $player.race.spec?.canBuildDefenses}
+		{#if $player.race.spec.canBuildDefenses}
 			<div class="divider p-0 m-0"></div>
 
 			<div class="flex justify-between cursor-help" onpointerdown={onDefenseTooltip}>

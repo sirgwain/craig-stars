@@ -1,6 +1,7 @@
 import { kebabCase } from 'lodash-es';
 import type { AnyShipDesign } from './services/Universe';
-import { TechCategoryShipHull, TechCategoryStarbaseHull, type Tech } from './types/cs';
+import type { TechLike } from './types/Tech';
+import { TechCategory } from './types/cs-proto';
 
 export function getHullIcon(design: AnyShipDesign | undefined): string {
 	if (!design) {
@@ -9,14 +10,15 @@ export function getHullIcon(design: AnyShipDesign | undefined): string {
 	return `hull-${kebabCase(design.hull)}-${design.hullSetNumber ?? 0}`;
 }
 
-export function getTechIcon(tech: Tech | undefined, hullSetNumber: number): string {
-	if (!tech) {
+export function getTechIcon(techLike: TechLike | undefined, hullSetNumber: number): string {
+	if (!techLike?.tech) {
 		return '';
 	}
-	const name = kebabCase(tech?.name.replace("'", '').replace(' ', '').replace('±', ''));
-	if ([TechCategoryShipHull, TechCategoryStarbaseHull].includes(tech?.category)) {
+	const raw = (techLike.tech.name ?? '').replace("'", '').replace(' ', '').replace('±', '');
+	const name = kebabCase(raw);
+	const category = techLike.tech.category ?? TechCategory.UNSPECIFIED;
+	if (category === TechCategory.SHIP_HULL || category === TechCategory.STARBASE_HULL) {
 		return `hull-${name}-${hullSetNumber ?? 0}`;
-	} else {
-		return `${name}`;
 	}
+	return `${name}`;
 }

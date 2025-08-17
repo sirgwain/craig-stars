@@ -1,53 +1,46 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 
 	import { goto } from '$app/navigation';
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
-	import { addError, CSError } from '$lib/services/Errors';
+	import { raceClient } from '$lib/services/connect';
+	import { addError } from '$lib/services/Errors';
 	import { notify } from '$lib/services/Notifications';
-	import { RaceService } from '$lib/services/RaceService';
-	import { Service } from '$lib/services/Service';
+	import type { Race } from '$lib/types/cs-proto';
 	import { humanoid } from '$lib/types/Race';
-	import { type Race } from '$lib/types/cs';
+	import { loadWasm, type CS } from '$lib/wasm';
+	import { ConnectError } from '@connectrpc/connect';
 	import { onMount } from 'svelte';
 	import RaceEditor from './RaceEditor.svelte';
 	import RacePoints from './RacePoints.svelte';
 
-	let id = $page.params.id;
+	let id = page.params.id;
 	let race: Race = $state(humanoid());
+	let cs: CS | undefined = $state();
 
 	onMount(async () => {
+		loadWasm().then((res) => (cs = res));
 		if (id !== 'new') {
 			try {
-				race = await RaceService.get(id);
+				const resp = await raceClient.getRace({ raceId: BigInt(id) });
+				if (resp.race) {
+					race = resp.race;
+				}
 			} catch (e) {
-				addError(e as CSError);
+				addError(e as ConnectError);
 			}
 		} else {
 			// create a new humanoid
-			race = Object.assign({}, humanoid());
+			race = humanoid();
 		}
 	});
 
 	const onSubmit = async () => {
-		const body = JSON.stringify(race);
-		const create = race?.id ? false : true;
-		const response = await fetch(`/api/races${race?.id ? '/' + race.id : ''}`, {
-			method: create ? 'POST' : 'PUT',
-			headers: {
-				accept: 'application/json'
-			},
-			body
-		});
-
-		if (!response.ok) {
-			await Service.throwError(response);
-		}
-
-		race = (await response.json()) as Race;
-		// redirect to page with id
-		if (create) {
-			await goto(`/races/${race.id}`);
+		if (id === 'new') {
+			const { race: created } = await raceClient.createRace({ race });
+			await goto(`/races/${created?.id}`);
+		} else {
+			await raceClient.updateRace({ race });
 		}
 
 		notify('Saved ' + race.pluralName);
@@ -68,7 +61,13 @@
 		</div>
 
 		<ItemTitle>{race.name}</ItemTitle>
-		<RacePoints {race} onPointsUpdated={(points) => (saveDisabled = points < 0)} />
+		{#if cs}
+			<RacePoints
+				wasmClient={cs.wasmService}
+				{race}
+				onPointsUpdated={(points) => (saveDisabled = points < 0)}
+			/>
+		{/if}
 		<RaceEditor bind:race />
 	</form>
 {/if}

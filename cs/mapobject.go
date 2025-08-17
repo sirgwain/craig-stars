@@ -55,6 +55,10 @@ func (mo MapObject) String() string {
 	return fmt.Sprintf("MapObject: %s", mo.Name)
 }
 
+func (mo MapObject) GetPosition() Vector {
+	return mo.Position
+}
+
 // Owned reports whether this MapObject is owned by a player (playerNum != 0)
 func (mo *MapObject) Owned() bool {
 	return mo.PlayerNum != Unowned

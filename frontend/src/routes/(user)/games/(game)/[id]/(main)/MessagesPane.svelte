@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { getScannerTarget } from '$lib/types/Battle';
-	import type { MapObject } from '$lib/types/cs';
-	import { PlayerMessagePlayerGainTechLevel, TargetNone, type PlayerMessage } from '$lib/types/cs';
+	import type { PlayerMessage } from '$lib/types/cs-proto';
+	import { MapObjectSchema, PlayerMessageTargetType, PlayerMessageType } from '$lib/types/cs-proto';
 	import { getNextVisibleMessageNum } from '$lib/types/Message';
+	import { create } from '@bufbuild/protobuf';
 	import {
 		ArrowLongLeft,
 		ArrowLongRight,
@@ -69,11 +70,14 @@
 			return false;
 		}
 
-		if (message.targetType !== TargetNone) {
+		if (message.target?.targetType !== PlayerMessageTargetType.UNSPECIFIED) {
 			return true;
 		}
 
-		return message.type === PlayerMessagePlayerGainTechLevel;
+		return (
+			message.type === PlayerMessageType.PLAYER_GAIN_TECH_LEVEL ||
+			message.type === PlayerMessageType.BATTLE_REPORTS
+		);
 	}
 
 	const previous = (event: Event) => {
@@ -106,7 +110,9 @@
 							selectMapObject(target);
 							zoomToMapObject(target);
 						} else {
-							zoomToMapObject({ position: battle.position } as MapObject);
+							zoomToMapObject({
+								mapObject: create(MapObjectSchema, { position: battle.position })
+							});
 						}
 					}
 				}

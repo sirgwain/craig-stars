@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/game.proto";
+import "craig_stars/v1/race.proto";
+
+service GameService {
+  rpc AddPlayer(AddPlayerRequest) returns (AddPlayerResponse);
+  rpc ArchiveGame(ArchiveGameRequest) returns (ArchiveGameResponse);
+  rpc CreateGame(CreateGameRequest) returns (CreateGameResponse);
+  rpc DeleteGame(DeleteGameRequest) returns (DeleteGameResponse);
+  rpc DeletePlayerSlot(DeletePlayerSlotRequest) returns (DeletePlayerSlotResponse);
+  rpc ForceGenerateTurn(ForceGenerateTurnRequest) returns (ForceGenerateTurnResponse);
+  rpc GetGame(GetGameRequest) returns (GetGameResponse);
+  rpc GetGameByInviteHash(GetGameByInviteHashRequest) returns (GetGameByInviteHashResponse);
+  rpc GetGames(GetGamesRequest) returns (GetGamesResponse);
+  rpc GetGuestUser(GetGuestUserRequest) returns (GetGuestUserResponse);
+  rpc JoinGame(JoinGameRequest) returns (JoinGameResponse);
+  rpc KickPlayer(KickPlayerRequest) returns (KickPlayerResponse);
+  rpc LeaveGame(LeaveGameRequest) returns (LeaveGameResponse);
+  rpc StartGame(StartGameRequest) returns (StartGameResponse);
+  rpc UnarchiveGame(UnarchiveGameRequest) returns (UnarchiveGameResponse);
+  rpc UpdateGame(UpdateGameRequest) returns (UpdateGameResponse);
+}
+
+message AddPlayerRequest {
+  int64 game_id = 1;
+  PlayerType player_type = 2;
+}
+
+message AddPlayerResponse {
+  GameWithPlayers game = 1;
+}
+
+message ArchiveGameRequest {
+  int64 game_id = 1;
+}
+
+message ArchiveGameResponse {
+  GameWithPlayers game = 1;
+}
+
+message CreateGameRequest {
+  GameSettings settings = 1;
+}
+
+message CreateGameResponse {
+  GameWithPlayers game = 1;
+}
+
+message DeleteGameRequest {
+  int64 game_id = 1;
+}
+
+message DeleteGameResponse {}
+
+message DeletePlayerSlotRequest {
+  int64 game_id = 1;
+  int32 player_num = 2;
+}
+
+message DeletePlayerSlotResponse {
+  GameWithPlayers game = 1;
+}
+
+message ForceGenerateTurnRequest {
+  int64 game_id = 1;
+}
+message ForceGenerateTurnResponse {
+  GameWithPlayers game = 1;
+}
+
+message GetGameByInviteHashRequest {
+  string hash = 1;
+}
+
+message GetGameByInviteHashResponse {
+  GameWithPlayers game = 1;
+}
+
+message GetGameRequest {
+  int64 game_id = 1;
+}
+
+message GetGameResponse {
+  GameWithPlayers game = 1;
+}
+
+message GetGamesRequest {
+  bool open = 2;
+}
+
+message GetGamesResponse {
+  repeated GameWithPlayers games = 1;
+}
+
+message GetGuestUserRequest {
+  int64 game_id = 1;
+  int32 player_num = 2;
+}
+
+message GetGuestUserResponse {
+  GuestUser user = 1;
+}
+
+message GuestUser {
+  int64 id = 1;
+  string username = 2;
+  string hash = 3;
+  int64 game_id = 4;
+  int32 player_num = 5;
+}
+
+message JoinGameRequest {
+  int64 game_id = 1;
+  Race race = 2;
+  string name = 3;
+}
+
+message JoinGameResponse {}
+
+message KickPlayerRequest {
+  int64 game_id = 1;
+  int32 player_num = 2;
+}
+
+message KickPlayerResponse {
+  GameWithPlayers game = 1;
+}
+
+message LeaveGameRequest {
+  int64 game_id = 1;
+}
+
+message LeaveGameResponse {}
+
+message StartGameRequest {
+  int64 game_id = 1;
+}
+
+message StartGameResponse {}
+
+message UnarchiveGameRequest {
+  int64 game_id = 1;
+}
+
+message UnarchiveGameResponse {
+  GameWithPlayers game = 1;
+}
+
+message UpdateGameRequest {
+  int64 game_id = 1;
+  GameSettings settings = 2;
+}
+
+message UpdateGameResponse {
+  GameWithPlayers game = 1;
+}

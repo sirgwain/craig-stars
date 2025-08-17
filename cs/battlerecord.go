@@ -72,7 +72,7 @@ type BattleRecordTokenAction struct {
 type BattleRecordTokenActionType int
 
 const (
-	TokenActionFire BattleRecordTokenActionType = iota
+	TokenActionNone BattleRecordTokenActionType = iota
 	TokenActionBeamFire
 	TokenActionTorpedoFire
 	TokenActionMove
@@ -81,7 +81,7 @@ const (
 
 func (t BattleRecordTokenActionType) String() string {
 	switch t {
-	case TokenActionFire:
+	case TokenActionNone:
 		return "Fire"
 	case TokenActionBeamFire:
 		return "BeamFire"

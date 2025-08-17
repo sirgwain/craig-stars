@@ -1,49 +1,20 @@
 import { clamp } from '$lib/services/Math';
 import {
-	HullSlotTypeWeapon,
-	TechCategoryArmor,
-	TechCategoryBeamWeapon,
-	TechCategoryBomb,
-	TechCategoryElectrical,
-	TechCategoryEngine,
-	TechCategoryMechanical,
-	TechCategoryMineLayer,
-	TechCategoryMineRobot,
-	TechCategoryNone,
-	TechCategoryOrbital,
-	TechCategoryPlanetary,
-	TechCategoryPlanetaryDefense,
-	TechCategoryPlanetaryScanner,
-	TechCategoryScanner,
-	TechCategoryShield,
-	TechCategoryShipHull,
-	TechCategoryStarbaseHull,
-	TechCategoryTerraforming,
-	TechCategoryTorpedo,
-	TerraformHabTypeAll,
-	TerraformHabTypeGrav,
-	TerraformHabTypeNone,
-	TerraformHabTypeRad,
-	TerraformHabTypeTemp,
-	type HullSlotType,
+	TechCategory,
+	TerraformHabType,
+	type GetTechsResponse,
 	type Tech,
-	type TechCategory,
 	type TechDefense,
 	type TechHull,
-	type TechHullComponent,
-	type TechStore,
-	type TechTerraform,
-	type TerraformHabType
-} from './cs';
-import type { CommandedPlayer } from './Player';
+	type TechHullComponent
+} from '$lib/types/cs-proto';
+import { type HullSlotType, HullSlotTypeWeapon } from './Consts';
 
-export const TerraformHabTypes = [
-	TerraformHabTypeNone,
-	TerraformHabTypeGrav,
-	TerraformHabTypeTemp,
-	TerraformHabTypeRad,
-	TerraformHabTypeAll
-];
+export type TechLike = {
+	tech?: Tech;
+};
+
+export type TechStore = GetTechsResponse;
 
 /**
  * Return the "long-form" name of a TerraformHabType, given its abbreviated form
@@ -52,13 +23,13 @@ export const TerraformHabTypes = [
  */
 export function getLongHabName(type: TerraformHabType): string {
 	switch (type) {
-		case TerraformHabTypeGrav:
+		case TerraformHabType.GRAV:
 			return 'Gravity';
-		case TerraformHabTypeTemp:
+		case TerraformHabType.TEMP:
 			return 'Temperature';
-		case TerraformHabTypeRad:
+		case TerraformHabType.RAD:
 			return 'Radiation';
-		case TerraformHabTypeAll:
+		case TerraformHabType.ALL:
 			return 'All';
 		default:
 			return 'None';
@@ -66,25 +37,25 @@ export function getLongHabName(type: TerraformHabType): string {
 }
 
 export const TechCategories: TechCategory[] = [
-	TechCategoryNone,
-	TechCategoryArmor,
-	TechCategoryBeamWeapon,
-	TechCategoryBomb,
-	TechCategoryElectrical,
-	TechCategoryEngine,
-	TechCategoryMechanical,
-	TechCategoryMineLayer,
-	TechCategoryMineRobot,
-	TechCategoryOrbital,
-	TechCategoryPlanetary,
-	TechCategoryPlanetaryScanner,
-	TechCategoryPlanetaryDefense,
-	TechCategoryScanner,
-	TechCategoryShield,
-	TechCategoryShipHull,
-	TechCategoryStarbaseHull,
-	TechCategoryTerraforming,
-	TechCategoryTorpedo
+	TechCategory.UNSPECIFIED,
+	TechCategory.ARMOR,
+	TechCategory.BEAM_WEAPON,
+	TechCategory.BOMB,
+	TechCategory.ELECTRICAL,
+	TechCategory.ENGINE,
+	TechCategory.MECHANICAL,
+	TechCategory.MINE_LAYER,
+	TechCategory.MINE_ROBOT,
+	TechCategory.ORBITAL,
+	TechCategory.PLANETARY,
+	TechCategory.PLANETARY_SCANNER,
+	TechCategory.PLANETARY_DEFENSE,
+	TechCategory.SCANNER,
+	TechCategory.SHIELD,
+	TechCategory.SHIP_HULL,
+	TechCategory.STARBASE_HULL,
+	TechCategory.TERRAFORMING,
+	TechCategory.TORPEDO
 ];
 
 /**
@@ -94,25 +65,25 @@ export const TechCategories: TechCategory[] = [
  */
 export function isHullComponent(category: TechCategory | undefined): boolean {
 	switch (category) {
-		case TechCategoryArmor:
-		case TechCategoryBeamWeapon:
-		case TechCategoryBomb:
-		case TechCategoryElectrical:
-		case TechCategoryEngine:
-		case TechCategoryMechanical:
-		case TechCategoryMineLayer:
-		case TechCategoryMineRobot:
-		case TechCategoryOrbital:
-		case TechCategoryScanner:
-		case TechCategoryTorpedo:
-		case TechCategoryShield:
+		case TechCategory.ARMOR:
+		case TechCategory.BEAM_WEAPON:
+		case TechCategory.BOMB:
+		case TechCategory.ELECTRICAL:
+		case TechCategory.ENGINE:
+		case TechCategory.MECHANICAL:
+		case TechCategory.MINE_LAYER:
+		case TechCategory.MINE_ROBOT:
+		case TechCategory.ORBITAL:
+		case TechCategory.SCANNER:
+		case TechCategory.TORPEDO:
+		case TechCategory.SHIELD:
 			return true;
-		case TechCategoryPlanetary:
-		case TechCategoryPlanetaryScanner:
-		case TechCategoryPlanetaryDefense:
-		case TechCategoryShipHull:
-		case TechCategoryStarbaseHull:
-		case TechCategoryTerraforming:
+		case TechCategory.PLANETARY:
+		case TechCategory.PLANETARY_SCANNER:
+		case TechCategory.PLANETARY_DEFENSE:
+		case TechCategory.SHIP_HULL:
+		case TechCategory.STARBASE_HULL:
+		case TechCategory.TERRAFORMING:
 			return false;
 		default:
 			return false;
@@ -123,11 +94,13 @@ export function isHullComponent(category: TechCategory | undefined): boolean {
  * @param tech The tech to check
  * @returns true if this tech is defined and is a ship hull; false otherwise
  */
-export function isHull(tech: Tech | undefined): boolean {
+export function isHull(tech: TechLike | undefined): boolean {
 	if (!tech) {
 		return false;
 	}
-	return [TechCategoryShipHull, TechCategoryStarbaseHull].includes(tech.category);
+	return [TechCategory.SHIP_HULL, TechCategory.STARBASE_HULL].includes(
+		tech.tech?.category ?? TechCategory.UNSPECIFIED
+	);
 }
 
 /**
@@ -137,7 +110,13 @@ export function isHull(tech: Tech | undefined): boolean {
  * @param slotType - The {@linkcode HullSlotType} of the item being placed.
  * @returns `true` if the two slots are compatible, `false` otherwise.
  */
-export function canFillSlot(hcType: HullSlotType, type: HullSlotType): boolean {
+export function canFillSlot(
+	hcType: HullSlotType | undefined,
+	type: HullSlotType | undefined
+): boolean {
+	if (!hcType || !type) {
+		return false;
+	}
 	return (hcType & type) > 0;
 }
 
@@ -151,8 +130,12 @@ export function hullAllowed(hull: TechHull, hc: TechHullComponent): boolean {
 	/* nullish coaclescing makes this work - undefined is never equal to -1,
 	so a null array will be treated as allowing all or denying no hulls
 	*/
-	const hullAllowed = hc.requirements.hullsAllowed?.indexOf(hull.name) != -1;
-	const hullDenied = hc.requirements.hullsDenied?.indexOf(hull.name) == -1;
+	const hullAllowed =
+		(hc.tech?.requirements?.hullsAllowed?.length ?? 0) === 0 ||
+		hc.tech?.requirements?.hullsAllowed?.indexOf(hull.tech?.name ?? '') != -1;
+	const hullDenied =
+		(hc.tech?.requirements?.hullsDenied?.length ?? 0) > 0 &&
+		hc.tech?.requirements?.hullsDenied?.indexOf(hull.tech?.name ?? '') == -1;
 	const armedWithUnarmedPart =
 		(hc.cloakUnarmedOnly ?? false) &&
 		hull.slots.some((slot) => canFillSlot(slot.type, HullSlotTypeWeapon));
@@ -200,15 +183,4 @@ export function getCloakPercentForCloakUnits(cloakUnits: number): number {
 		default:
 			return 98;
 	}
-}
-
-export function getBestTerraform(
-	techStore: TechStore,
-	player: CommandedPlayer,
-	habType: TerraformHabType
-): TechTerraform | undefined {
-	// get the best terraform for a given type, sorted largest to smallest ranking
-	return techStore.terraforms
-		.filter((t) => player.hasTech(t) && t.habType == habType)
-		.sort((a, b) => (b.ranking ?? 0) - (a.ranking ?? 0))[0];
 }

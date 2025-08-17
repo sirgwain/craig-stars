@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+
+message Wormhole {
+  GameDBObject game_db_object = 1;
+  MapObject map_object = 2;
+
+  int32 destination_num = 3;
+  WormholeStability stability = 4;
+  int32 years_at_stability = 5;
+  WormholeSpec spec = 6;
+}
+
+enum WormholeStability {
+  WORMHOLE_STABILITY_UNSPECIFIED = 0;
+  WORMHOLE_STABILITY_ROCK_SOLID = 1;
+  WORMHOLE_STABILITY_STABLE = 2;
+  WORMHOLE_STABILITY_MOSTLY_STABLE = 3;
+  WORMHOLE_STABILITY_AVERAGE = 4;
+  WORMHOLE_STABILITY_SLIGHTLY_VOLATILE = 5;
+  WORMHOLE_STABILITY_VOLATILE = 6;
+  WORMHOLE_STABILITY_EXTREMELY_VOLATILE = 7;
+}
+
+message WormholeSpec {
+  WormholeStats stats = 1;
+}
+
+message WormholeStats {
+  int32 years_to_degrade = 1;
+  double chance_to_jump = 2;
+  int32 jiggle_distance = 3;
+}

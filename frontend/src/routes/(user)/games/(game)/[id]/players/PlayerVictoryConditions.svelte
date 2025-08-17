@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import {
-		VictoryConditionOwnPlanets,
 		VictoryConditionAttainTechLevels,
 		VictoryConditionExceedsScore,
 		VictoryConditionExceedsSecondPlaceScore,
-		VictoryConditionProductionCapacity,
+		VictoryConditionHighestScoreAfterYears,
 		VictoryConditionOwnCapitalShips,
-		VictoryConditionHighestScoreAfterYears
-	} from '$lib/types/cs';
+		VictoryConditionOwnPlanets,
+		VictoryConditionProductionCapacity
+	} from '$lib/types/Consts';
 	import { CheckBadge } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 

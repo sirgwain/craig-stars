@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+
+enum QueueItemType {
+  QUEUE_ITEM_TYPE_UNSPECIFIED = 0;
+  QUEUE_ITEM_TYPE_IRONIUM_MINERAL_PACKET = 1;
+  QUEUE_ITEM_TYPE_BORANIUM_MINERAL_PACKET = 2;
+  QUEUE_ITEM_TYPE_GERMANIUM_MINERAL_PACKET = 3;
+  QUEUE_ITEM_TYPE_MIXED_MINERAL_PACKET = 4;
+  QUEUE_ITEM_TYPE_FACTORY = 5;
+  QUEUE_ITEM_TYPE_MINE = 6;
+  QUEUE_ITEM_TYPE_DEFENSES = 7;
+  QUEUE_ITEM_TYPE_MINERAL_ALCHEMY = 8;
+  QUEUE_ITEM_TYPE_TERRAFORM_ENVIRONMENT = 9;
+  QUEUE_ITEM_TYPE_AUTO_MINES = 10;
+  QUEUE_ITEM_TYPE_AUTO_FACTORIES = 11;
+  QUEUE_ITEM_TYPE_AUTO_DEFENSES = 12;
+  QUEUE_ITEM_TYPE_AUTO_MINERAL_ALCHEMY = 13;
+  QUEUE_ITEM_TYPE_AUTO_MIN_TERRAFORM = 14;
+  QUEUE_ITEM_TYPE_AUTO_MAX_TERRAFORM = 15;
+  QUEUE_ITEM_TYPE_AUTO_MINERAL_PACKET = 16;
+  QUEUE_ITEM_TYPE_SHIP_TOKEN = 17;
+  QUEUE_ITEM_TYPE_STARBASE = 18;
+  QUEUE_ITEM_TYPE_PLANETARY_SCANNER = 19;
+  QUEUE_ITEM_TYPE_GENESIS_DEVICE = 20;
+}
+
+message Planet {
+  GameDBObject game_db_object = 1;
+  MapObject map_object = 2;
+
+  PlanetOrders planet_orders = 3;
+
+  Hab hab = 4;
+  Hab base_hab = 5;
+  Hab terraformed_amount = 6;
+  Mineral mineral_concentration = 7;
+  Mineral mine_years = 8;
+  Cargo cargo = 9;
+  int32 partial_population = 10;
+  int32 mines = 11;
+  int32 factories = 12;
+  int32 defenses = 13;
+  bool homeworld = 14;
+  bool scanner = 15;
+  PlanetSpec spec = 16;
+}
+
+message ProductionQueueItem {
+  QueueItemCompletionEstimate queue_item_completion_estimate = 1;
+  QueueItemType type = 2;
+  int32 design_num = 3;
+  int32 quantity = 4;
+  Cost allocated = 5;
+  map<string, string> tags = 6;
+}
+
+message QueueItemCompletionEstimate {
+  bool skipped = 1;
+  int32 years_to_build_one = 2;
+  int32 years_to_build_all = 3;
+  int32 years_to_skip_auto = 4;
+}
+
+message PlanetOrders {
+  bool contributes_only_leftover_to_research = 1;
+  repeated ProductionQueueItem production_queue = 2;
+  MapObjectType route_target_type = 3;
+  int32 route_target_num = 4;
+  int32 route_target_player_num = 5;
+  int32 packet_target_num = 6;
+  int32 packet_speed = 7;
+}
+
+message PlanetStarbaseSpec {
+  bool has_mass_driver = 1;
+  bool has_starbase = 2;
+  bool has_stargate = 3;
+  string starbase_design_name = 4;
+  int32 starbase_design_num = 5;
+  int32 dock_capacity = 6;
+  int32 base_packet_speed = 7;
+  int32 safe_packet_speed = 8;
+  int32 safe_hull_mass = 9;
+  int32 safe_range = 10;
+  int32 max_range = 11;
+  int32 max_hull_mass = 12;
+  string stargate = 13;
+  string mass_driver = 14;
+}
+
+message PlanetSpec {
+  PlanetStarbaseSpec planet_starbase_spec = 1;
+  bool can_terraform = 2;
+  string defense = 3;
+  double defense_coverage = 4;
+  double defense_coverage_smart = 5;
+  int32 growth_amount = 6;
+  int32 habitability = 7;
+  int32 max_defenses = 8;
+  int32 max_factories = 9;
+  int32 max_mines = 10;
+  int32 max_population = 11;
+  int32 max_possible_factories = 12;
+  int32 max_possible_mines = 13;
+  Mineral mining_output = 14;
+  double population_density = 15;
+  int32 resources_per_year = 16;
+  int32 resources_per_year_available = 17;
+  int32 resources_per_year_research = 18;
+  int32 resources_per_year_research_estimated_leftover = 19;
+  string scanner = 20;
+  int32 scan_range = 21;
+  int32 scan_range_pen = 22;
+  Hab terraform_amount = 23;
+  Hab min_terraform_amount = 24;
+  int32 terraformed_habitability = 25;
+}

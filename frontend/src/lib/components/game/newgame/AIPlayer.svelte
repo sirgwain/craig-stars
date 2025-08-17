@@ -1,7 +1,6 @@
 <script lang="ts">
 	import EnumSelect from '$lib/components/EnumSelect.svelte';
-	import { AIDifficulties } from '$lib/types/Game';
-	import { type NewGamePlayer } from '$lib/types/cs';
+	import { AiDifficulty, type NewGamePlayer } from '$lib/types/cs-proto';
 
 	type Props = {
 		player: NewGamePlayer;
@@ -14,7 +13,8 @@
 	<EnumSelect
 		name="type"
 		bind:value={player.aiDifficulty}
-		options={AIDifficulties}
+		enumType={AiDifficulty}
+		typeFilter={(t) => t === AiDifficulty.CHEATER || t === AiDifficulty.NORMAL}
 		title="Difficulty"
 	/>
 </div>

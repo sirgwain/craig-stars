@@ -68,7 +68,7 @@ const (
 )
 
 type TechRequirements struct {
-	TechLevel    `tstype:",extends"`
+	TechLevel
 	PRTsDenied   []PRT    `json:"prtsDenied,omitempty"`
 	LRTsRequired LRT      `json:"lrtsRequired,omitempty"`
 	LRTsDenied   LRT      `json:"lrtsDenied,omitempty"`
@@ -79,7 +79,8 @@ type TechRequirements struct {
 }
 
 type TechHullComponent struct {
-	Tech                      `tstype:",extends"`
+	Tech
+	Engine
 	HullSlotType              HullSlotType  `json:"hullSlotType"`
 	Mass                      int           `json:"mass"`
 	Scanner                   bool          `json:"scanner,omitempty"`
@@ -141,19 +142,14 @@ func getArmorShieldAmounts(baseArmor, baseShield float64, qty int, raceSpec Race
 }
 
 type Engine struct {
-	IdealSpeed   int     `json:"idealSpeed"`
-	FreeSpeed    int     `json:"freeSpeed"`
-	MaxSafeSpeed int     `json:"maxSafeSpeed"`
-	FuelUsage    [11]int `json:"fuelUsage"`
-}
-
-type TechEngine struct {
-	TechHullComponent `tstype:",extends"`
-	Engine            `tstype:",extends"`
+	IdealSpeed   int   `json:"idealSpeed"`
+	FreeSpeed    int   `json:"freeSpeed"`
+	MaxSafeSpeed int   `json:"maxSafeSpeed"`
+	FuelUsage    []int `json:"fuelUsage"`
 }
 
 type TechHull struct {
-	Tech                     `tstype:",extends"`
+	Tech
 	Type                     TechHullType   `json:"type"`
 	Mass                     int            `json:"mass"`
 	Armor                    int            `json:"armor"`
@@ -358,27 +354,23 @@ func (hst HullSlotType) String() string {
 }
 
 type TechPlanetary struct {
-	Tech        `tstype:",extends"`
+	Tech
 	ResetPlanet bool `json:"resetPlanet,omitempty"`
 }
 
 type TechPlanetaryScanner struct {
-	TechPlanetary `tstype:",extends"`
-	ScanRange     int `json:"scanRange"`
-	ScanRangePen  int `json:"scanRangePen"`
-}
-
-type Defense struct {
-	DefenseCoverage float64 `json:"defenseCoverage"`
+	Tech
+	ScanRange    int `json:"scanRange"`
+	ScanRangePen int `json:"scanRangePen"`
 }
 
 type TechDefense struct {
-	TechPlanetary `tstype:",extends"`
-	Defense       `tstype:",extends"`
+	Tech
+	DefenseCoverage float64 `json:"defenseCoverage"`
 }
 
 type TechTerraform struct {
-	Tech    `tstype:",extends"`
+	Tech
 	Ability int              `json:"ability"`
 	HabType TerraformHabType `json:"habType"`
 }
@@ -426,7 +418,6 @@ func NewTechWithOrigin(name string, cost Cost, requirements TechRequirements, ra
 func (t *Tech) String() string                 { return t.Name }
 func (t *TechHull) String() string             { return t.Name }
 func (t *TechHullComponent) String() string    { return t.Name }
-func (t *TechEngine) String() string           { return t.Name }
 func (t *TechPlanetaryScanner) String() string { return t.Name }
 func (t *TechDefense) String() string          { return t.Name }
 func (t *TechTerraform) String() string        { return t.Name }

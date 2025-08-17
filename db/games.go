@@ -65,7 +65,7 @@ func (c *client) GetGamesForUser(ctx context.Context, userID int64) ([]cs.GameWi
 			// convert this row into a game
 			item = row.Game
 			g := c.converter.ConvertGame(item)
-			games = append(games, cs.GameWithPlayers{Game: g, Players: []cs.PlayerStatus{}})
+			games = append(games, cs.GameWithPlayers{Game: g, Players: []cs.GamePlayer{}})
 			game = &games[len(games)-1]
 		}
 
@@ -142,7 +142,7 @@ func (c *client) getGamesWithPlayersStatus(ctx context.Context, params generated
 			// convert this row into a game
 			item = row.Game
 			g := c.converter.ConvertGame(item)
-			games = append(games, cs.GameWithPlayers{Game: g, Players: []cs.PlayerStatus{}})
+			games = append(games, cs.GameWithPlayers{Game: g, Players: []cs.GamePlayer{}})
 			game = &games[len(games)-1]
 		}
 

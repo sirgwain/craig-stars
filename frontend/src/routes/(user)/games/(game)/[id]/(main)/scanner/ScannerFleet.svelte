@@ -22,7 +22,7 @@
 	const angleOffset = 225;
 
 	function getAngle(fleet: AnyFleet): number {
-		return radiansToDegrees(Math.atan2(fleet.heading.y, fleet.heading.x)) + angleOffset;
+		return radiansToDegrees(Math.atan2(fleet.heading?.y ?? 0, fleet.heading?.x ?? 0)) + angleOffset;
 	}
 
 	function getTokenCount(fleet: AnyFleet): number {
@@ -32,7 +32,7 @@
 	let textColor = $derived(
 		ownedBy(fleet, $player.num)
 			? 'fill-orbit'
-			: $player.isFriend(fleet.playerNum)
+			: $player.isFriend(fleet.mapObject?.playerNum)
 				? 'fill-orbit-friends'
 				: 'fill-orbit-enemies'
 	);

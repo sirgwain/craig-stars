@@ -1,46 +1,44 @@
 import { battlesSortBy, getBattleRecordDetails, type BattleRecordDetails } from '$lib/types/Battle';
 import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 import type {
-	Cost,
-	FleetIntel,
-	MapObjectTarget,
+	BattleRecord,
+	Fleet,
+	Intels,
 	Minefield,
-	MinefieldIntel,
 	MineralPacket,
-	MineralPacketIntel,
-	MysteryTraderIntel,
-	PlanetIntel,
-	PlayerIntel,
-	PlayerIntels,
 	PlayerScore,
-	ProductionQueueItem,
-	SalvageIntel,
-	ScoreIntel,
 	ShipDesign,
-	ShipDesignIntel,
-	Vector,
-	WormholeIntel
-} from '$lib/types/cs';
+	Waypoint
+} from '$lib/types/cs-proto';
 import {
-	MapObjectTypeFleet,
-	MapObjectTypeMinefield,
-	MapObjectTypeMineralPacket,
-	MapObjectTypeMysteryTrader,
-	MapObjectTypePlanet,
-	MapObjectTypeSalvage,
-	MapObjectTypeWormhole,
-	type BattleRecord,
-	type Fleet,
-	type MapObject,
+	MapObjectType,
+	PlanetIntelSchema,
+	PlanetSchema,
+	type FleetIntel,
+	type MinefieldIntel,
+	type MineralPacketIntel,
+	type MysteryTraderIntel,
 	type Planet,
-	type Waypoint
-} from '$lib/types/cs';
+	type PlanetIntel,
+	type PlayerIntel,
+	type SalvageIntel,
+	type ScoreIntel,
+	type ShipDesignIntel,
+	type WormholeIntel
+} from '$lib/types/cs-proto';
+import { enumToString } from '$lib/types/Enums';
 import { fleetsSortBy } from '$lib/types/Fleet';
-import { commandable, positionKey } from '$lib/types/MapObject';
-import { CommandedPlanet, planetsSortBy } from '$lib/types/Planet';
+import {
+	commandable,
+	positionKey,
+	type MapObjectLike,
+	type MapObjectTargetLike,
+	type Position
+} from '$lib/types/MapObject';
+import { planetsSortBy } from '$lib/types/Planet';
 import type { CommandedPlayer } from '$lib/types/Player';
-import type { CS } from '$lib/wasm';
-import { groupBy, startCase } from 'lodash-es';
+import { create, fromJson, toJson } from '@bufbuild/protobuf';
+import { groupBy } from 'lodash-es';
 
 export type AnyPlanet = Planet | PlanetIntel;
 export type AnyFleet = Fleet | FleetIntel;
@@ -49,38 +47,33 @@ export type AnyMineralPacket = MineralPacket | MineralPacketIntel;
 export type AnyShipDesign = ShipDesign | ShipDesignIntel;
 
 export type PlayerUniverse = {
+	designs: ShipDesign[];
 	planets: Planet[];
 	fleets: Fleet[];
 	starbases: Fleet[];
 	minefields: Minefield[];
 	mineralPackets: MineralPacket[];
+};
+
+export type PlayerDesigns = {
 	designs: ShipDesign[];
-} & PlayerIntels;
+};
 
 export interface DesignFinder {
-	getDesign(playerNum: number, num: number): AnyShipDesign | undefined;
+	getDesign(playerNum: number | undefined, num: number | undefined): AnyShipDesign | undefined;
 	getMyDesign(num: number | undefined): ShipDesign | undefined;
 }
 
-export interface CostFinder {
-	getItemCost(
-		cs: CS,
-		item: ProductionQueueItem | undefined,
-		designFinder: DesignFinder,
-		planet?: CommandedPlanet,
-		quantity?: number
-	): Cost;
-}
-
 export interface PlayerFinder {
-	getPlayerIntel(num: number): PlayerIntel | undefined;
+	getPlayerIntel(num: number | undefined): PlayerIntel | undefined;
 	getPlayerName(playerNum: number | undefined): string;
 	getPlayerPluralName(playerNum: number | undefined): string;
 	getPlayerColor(playerNum: number | undefined): string;
 }
-const sortByNum = (a: MapObject, b: MapObject) => a.num - b.num;
+const sortByNum = (a: MapObjectLike, b: MapObjectLike) =>
+	(a.mapObject?.num ?? 0) - (b.mapObject?.num ?? 0);
 
-function addtoDict(mo: MapObject, dict: Record<string, MapObject[]>) {
+function addtoDict(mo: MapObjectLike, dict: Record<string, MapObjectLike[]>) {
 	const key = positionKey(mo);
 	if (!dict[key]) {
 		dict[key] = [];
@@ -88,7 +81,7 @@ function addtoDict(mo: MapObject, dict: Record<string, MapObject[]>) {
 	dict[key].push(mo);
 }
 
-export class Universe implements PlayerUniverse, DesignFinder {
+export class Universe implements PlayerUniverse, PlayerDesigns, DesignFinder {
 	playerNum = 0;
 	planets: Planet[] = [];
 	fleets: Fleet[] = [];
@@ -109,8 +102,8 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	mysteryTraderIntels: MysteryTraderIntel[] = [];
 	salvageIntels: SalvageIntel[] = [];
 
-	mapObjectsByPosition: Record<string, MapObject[]> = {};
-	myMapObjectsByPosition: Record<string, MapObject[]> = {};
+	mapObjectsByPosition: Record<string, MapObjectLike[]> = {};
+	myMapObjectsByPosition: Record<string, MapObjectLike[]> = {};
 	allPlanets: AnyPlanet[] = [];
 
 	public get allFleets(): AnyFleet[] {
@@ -129,44 +122,57 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		return [...this.designs, ...this.shipDesignIntels];
 	}
 
-	public setData(data: PlayerUniverse): Universe {
-		this.planets = data.planets ?? [];
-		this.fleets = data.fleets ?? [];
-		this.starbases = data.starbases ?? [];
-		this.minefields = data.minefields ?? [];
-		this.mineralPackets = data.mineralPackets ?? [];
-		this.designs = data.designs ?? [];
+	public get intels() {
+		return {
+			battleRecords: this.battleRecords,
+			playerIntels: this.playerIntels,
+			scoreIntels: this.scoreIntels,
+			planetIntels: this.planetIntels,
+			fleetIntels: this.fleetIntels,
+			shipDesignIntels: this.shipDesignIntels,
+			mineralPacketIntels: this.mineralPacketIntels,
+			minefieldIntels: this.minefieldIntels,
+			wormholeIntels: this.wormholeIntels,
+			mysteryTraderIntels: this.mysteryTraderIntels,
+			salvageIntels: this.salvageIntels
+		};
+	}
 
-		this.battleRecords = data.battleRecords ?? [];
-		this.playerIntels = data.playerIntels ?? [];
-		this.scoreIntels = data.scoreIntels ?? [];
-		this.planetIntels = data.planetIntels ?? [];
-		this.fleetIntels = data.fleetIntels ?? [];
-		this.shipDesignIntels = data.shipDesignIntels ?? [];
-		this.mineralPacketIntels = data.mineralPacketIntels ?? [];
-		this.minefieldIntels = data.minefieldIntels ?? [];
-		this.wormholeIntels = data.wormholeIntels ?? [];
-		this.mysteryTraderIntels = data.mysteryTraderIntels ?? [];
-		this.salvageIntels = data.salvageIntels ?? [];
+	public setData(playerUniverse: PlayerUniverse, intels: Intels | undefined): Universe {
+		this.planets = playerUniverse.planets ?? [];
+		this.fleets = playerUniverse.fleets ?? [];
+		this.starbases = playerUniverse.starbases ?? [];
+		this.minefields = playerUniverse.minefields ?? [];
+		this.mineralPackets = playerUniverse.mineralPackets ?? [];
+		this.designs = playerUniverse.designs ?? [];
 
-		this.allPlanets = [...this.planetIntels];
-		this.planets.forEach((planet) => (this.allPlanets[planet.num - 1] = planet));
+		// set player intel (now embedded under player.intels)
+		this.battleRecords = intels?.battleRecords ?? [];
+		this.playerIntels = intels?.playerIntels ?? [];
+		this.scoreIntels = intels?.scoreIntels ?? [];
+		this.planetIntels = intels?.planetIntels ?? [];
+		this.fleetIntels = intels?.fleetIntels ?? [];
+		this.shipDesignIntels = intels?.shipDesignIntels ?? [];
+		this.mineralPacketIntels = intels?.mineralPacketIntels ?? [];
+		this.minefieldIntels = intels?.minefieldIntels ?? [];
+		this.wormholeIntels = intels?.wormholeIntels ?? [];
+		this.mysteryTraderIntels = intels?.mysteryTraderIntels ?? [];
+		this.salvageIntels = intels?.salvageIntels ?? [];
 
+		this.resetAllPlanets();
 		this.resetMapObjectsByPosition();
 		return this;
 	}
 
 	// set the player number and update player specific internal data
-	public setPlayer(playerNum: number) {
+	public setPlayerNum(playerNum: number) {
 		this.playerNum = playerNum;
 		this.resetMyMapObjectsByPosition();
 	}
 
-	// reset all data in the universe
-	public resetData(playerNum: number, data: PlayerUniverse): Universe {
-		this.setData(data);
-		this.setPlayer(playerNum);
-		return this;
+	public resetAllPlanets() {
+		this.allPlanets = [...this.planetIntels];
+		this.planets.forEach((planet) => (this.allPlanets[(planet.mapObject?.num ?? 1) - 1] = planet));
 	}
 
 	resetMapObjectsByPosition() {
@@ -296,7 +302,8 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		return battles;
 	}
 
-	getDesign(playerNum: number, num: number): AnyShipDesign | undefined {
+	getDesign(playerNum: number | undefined, num: number | undefined): AnyShipDesign | undefined {
+		if (!playerNum || !num) return;
 		if (playerNum === this.playerNum) {
 			return this.designs.find((d) => d.num === num);
 		}
@@ -313,6 +320,17 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	getBattle(num: number | undefined): BattleRecord | undefined {
 		return this.battleRecords.find((b) => b.num === num);
+	}
+
+	validateDesign(design: ShipDesign): { valid: boolean; reason?: string } {
+		// if we have a design with this name already, it is invalid
+		const designsWithName = this.getMyDesigns().filter(
+			(d) => d.gameDbObject?.id !== design.gameDbObject?.id && d.name === design.name
+		);
+		if (designsWithName.length > 0) {
+			return { valid: false, reason: `Another design named ${design.name} exists` };
+		}
+		return { valid: true };
 	}
 
 	updateDesign(design: ShipDesign): Universe {
@@ -332,36 +350,37 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	getBattleLocation(battle: BattleRecord): string {
 		if (battle.planetNum) {
 			const planet = this.getPlanet(battle.planetNum);
-			return planet?.name ?? 'Unknown';
+			return planet?.mapObject?.name ?? 'Unknown';
 		}
-		return `Space (${battle.position.x}, ${battle.position.y})`;
+		return `Space (${battle.position?.x ?? 0}, ${battle.position?.y ?? 0})`;
 	}
 
-	getOtherMapObjectsHereByType(position: Vector) {
-		return groupBy(this.mapObjectsByPosition[positionKey(position)], (mo) => mo.type);
+	getOtherMapObjectsHereByType(position: Position | undefined) {
+		return groupBy(this.mapObjectsByPosition[positionKey(position)], (mo) => mo.mapObject?.type);
 	}
 
-	getMapObjectsByPosition(position: MapObject | Vector) {
+	getMapObjectsByPosition(position: Position | undefined) {
+		if (!position) return [];
 		return this.mapObjectsByPosition[positionKey(position)];
 	}
 
-	getCargoDestsByPosition(position: MapObject | Vector): CargoDest[] {
+	getCargoDestsByPosition(position: Position | undefined): CargoDest[] {
 		return this.mapObjectsByPosition[positionKey(position)]
 			?.filter(
 				(mo) =>
 					[
-						MapObjectTypeFleet,
-						MapObjectTypeMineralPacket,
-						MapObjectTypeSalvage,
-						MapObjectTypePlanet
-					].indexOf(mo.type) != -1
+						MapObjectType.FLEET,
+						MapObjectType.MINERAL_PACKET,
+						MapObjectType.SALVAGE,
+						MapObjectType.PLANET
+					].indexOf(mo.mapObject?.type ?? MapObjectType.UNSPECIFIED) != -1
 			)
 			.map((mo) => mo as CargoDest);
 	}
 
-	getSalvageAtPosition(position: MapObject | Vector): SalvageIntel | undefined {
+	getSalvageAtPosition(position: Position | undefined): SalvageIntel | undefined {
 		const mo = this.getMapObjectsByPosition(position)?.find(
-			(mo) => mo.type === MapObjectTypeSalvage
+			(mo) => mo.mapObject?.type === MapObjectType.SALVAGE
 		);
 		if (mo) {
 			return mo as SalvageIntel;
@@ -369,14 +388,14 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	getSalvage(num: number | undefined): SalvageIntel | undefined {
-		return this.salvageIntels.find((s) => s.num === num);
+		return this.salvageIntels.find((s) => s.mapObject?.num === num);
 	}
 
-	getMyMapObjectsByPosition(position: MapObject | Vector) {
+	getMyMapObjectsByPosition(position: Position | undefined) {
 		return this.myMapObjectsByPosition[positionKey(position)];
 	}
 
-	getCommandableMapObjectsByPosition(position: MapObject | Vector) {
+	getCommandableMapObjectsByPosition(position: Position | undefined | undefined) {
 		return (
 			this.myMapObjectsByPosition[positionKey(position)]?.filter((mo) =>
 				commandable(this.playerNum, mo)
@@ -384,33 +403,36 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		);
 	}
 
-	getMyFleetsByPosition(position: MapObject | Vector): Fleet[] {
+	getMyFleetsByPosition(position: Position | undefined): Fleet[] {
 		return (
 			(this.getMyMapObjectsByPosition(position)?.filter(
-				(mo) => mo.type === MapObjectTypeFleet
+				(mo) => mo.mapObject?.type === MapObjectType.FLEET
 			) as Fleet[]) ?? []
 		);
 	}
 
-	getFleetsByPosition(position: MapObject | Vector): AnyFleet[] {
+	getFleetsByPosition(position: Position | undefined): AnyFleet[] {
 		return (
 			(this.getMapObjectsByPosition(position)?.filter(
-				(mo) => mo.type === MapObjectTypeFleet
+				(mo) => mo.mapObject?.type === MapObjectType.FLEET
 			) as AnyFleet[]) ?? []
 		);
 	}
 
 	// getPlanet returns either the player owned planet by a number
-	getPlanet(num: number): AnyPlanet | undefined {
+	getPlanet(num: number | undefined): AnyPlanet | undefined {
+		if (!num || num > this.allPlanets.length) return;
 		return this.allPlanets[num - 1];
 	}
 
 	getFleet(playerNum: number | undefined, num: number | undefined): AnyFleet | undefined {
-		return this.allFleets.find((f) => f.playerNum === playerNum && f.num === num);
+		return this.allFleets.find(
+			(f) => f.mapObject?.playerNum === playerNum && f.mapObject?.num === num
+		);
 	}
 
 	getMyFleet(num: number | undefined): Fleet | undefined {
-		return this.fleets.find((f) => f.num === num);
+		return this.fleets.find((f) => f.mapObject?.num === num);
 	}
 
 	getMyPlanetStarbase(planetNum: number) {
@@ -418,19 +440,23 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	getWormhole(num: number) {
-		return this.wormholeIntels.find((w) => w.num === num);
+		return this.wormholeIntels.find((w) => w.mapObject?.num === num);
 	}
 
 	getMysteryTrader(num: number) {
-		return this.mysteryTraderIntels.find((mt) => mt.num === num);
+		return this.mysteryTraderIntels.find((mt) => mt.mapObject?.num === num);
 	}
 
 	getMinefield(playerNum: number | undefined, num: number | undefined) {
-		return this.minefields.find((f) => f.playerNum === playerNum && f.num === num);
+		return this.minefields.find(
+			(f) => f.mapObject?.playerNum === playerNum && f.mapObject?.num === num
+		);
 	}
 
 	getMineralPacket(playerNum: number | undefined, num: number | undefined) {
-		return this.mineralPacketIntels.find((f) => f.playerNum === playerNum && f.num === num);
+		return this.mineralPacketIntels.find(
+			(f) => f.mapObject?.playerNum === playerNum && f.mapObject?.num === num
+		);
 	}
 
 	addFleets(fleets: Fleet[]) {
@@ -439,9 +465,14 @@ export class Universe implements PlayerUniverse, DesignFinder {
 		this.resetMyMapObjectsByPosition();
 	}
 
-	updateFleet(fleet: Fleet) {
+	updateFleet(fleet: Fleet | undefined) {
+		if (!fleet) {
+			return;
+		}
 		const index = this.fleets.findIndex(
-			(f) => f.num === fleet.num && f.playerNum === fleet.playerNum
+			(f) =>
+				f.mapObject?.num === fleet.mapObject?.num &&
+				f.mapObject?.playerNum === fleet.mapObject?.playerNum
 		);
 		if (index != -1) {
 			this.fleets = [...this.fleets.slice(0, index), fleet, ...this.fleets.slice(index + 1)];
@@ -453,16 +484,25 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	updatePlanet(planet: Planet) {
 		// try and update our own planet first
 		const index = this.planets.findIndex(
-			(p) => p.num === planet.num && p.playerNum === planet.playerNum
+			(p) =>
+				p.mapObject?.num === planet.mapObject?.num &&
+				p.mapObject?.playerNum === planet.mapObject?.playerNum
 		);
 		if (index != -1) {
 			this.planets = [...this.planets.slice(0, index), planet, ...this.planets.slice(index + 1)];
 		}
 		// update intel as well
-		this.planetIntels[planet.num - 1] = { ...planet, reportAge: 0 };
+		this.planetIntels[(planet.mapObject?.num ?? 1) - 1] = create(
+			PlanetIntelSchema,
+			fromJson(
+				PlanetIntelSchema,
+				{ ...toJson(PlanetSchema, planet), reportAge: 0 },
+				{ ignoreUnknownFields: true }
+			)
+		);
 
 		this.allPlanets = [...this.planetIntels];
-		this.planets.forEach((planet) => (this.allPlanets[planet.num - 1] = planet));
+		this.planets.forEach((planet) => (this.allPlanets[(planet.mapObject?.num ?? 1) - 1] = planet));
 
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
@@ -470,7 +510,9 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	updateMinefield(minefield: Minefield) {
 		const index = this.minefields.findIndex(
-			(mf) => mf.playerNum === minefield.playerNum && mf.num === minefield.num
+			(mf) =>
+				mf.mapObject?.playerNum === minefield.mapObject?.playerNum &&
+				mf.mapObject?.num === minefield.mapObject?.num
 		);
 		if (index != -1) {
 			this.minefields = [
@@ -484,9 +526,11 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	updateMineralPacket(mineralPacket: AnyMineralPacket) {
-		if (mineralPacket.playerNum === this.playerNum) {
+		if (mineralPacket.mapObject?.playerNum === this.playerNum) {
 			const index = this.mineralPackets.findIndex(
-				(mf) => mf.playerNum === mineralPacket.playerNum && mf.num === mineralPacket.num
+				(mf) =>
+					mf.mapObject?.playerNum === mineralPacket.mapObject?.playerNum &&
+					mf.mapObject?.num === mineralPacket.mapObject?.num
 			);
 			if (index != -1) {
 				this.mineralPackets = [
@@ -497,7 +541,9 @@ export class Universe implements PlayerUniverse, DesignFinder {
 			}
 		} else {
 			const index = this.mineralPacketIntels.findIndex(
-				(mf) => mf.playerNum === mineralPacket.playerNum && mf.num === mineralPacket.num
+				(mf) =>
+					mf.mapObject?.playerNum === mineralPacket.mapObject?.playerNum &&
+					mf.mapObject?.num === mineralPacket.mapObject?.num
 			);
 			if (index != -1) {
 				this.mineralPacketIntels = [
@@ -513,7 +559,9 @@ export class Universe implements PlayerUniverse, DesignFinder {
 
 	updateSalvage(salvage: SalvageIntel) {
 		const index = this.salvageIntels.findIndex(
-			(mf) => mf.playerNum === salvage.playerNum && mf.num === salvage.num
+			(mf) =>
+				mf.mapObject?.playerNum === salvage.mapObject?.playerNum &&
+				mf.mapObject?.num === salvage.mapObject?.num
 		);
 		if (index != -1) {
 			this.salvageIntels = [
@@ -532,7 +580,7 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	}
 
 	removeFleets(fleetNums: number[]) {
-		this.fleets = this.fleets.filter((f) => fleetNums.indexOf(f.num) == -1);
+		this.fleets = this.fleets.filter((f) => fleetNums.indexOf(f.mapObject?.num ?? 0) == -1);
 		this.resetMapObjectsByPosition();
 		this.resetMyMapObjectsByPosition();
 	}
@@ -540,46 +588,57 @@ export class Universe implements PlayerUniverse, DesignFinder {
 	getTargetName(wp: Waypoint): string {
 		// first see if we can load this waypoint target as a mapobject
 		// if so, use its name
-		const mo = this.getMapObject(wp);
+		const mo = this.getMapObject(wp.mapObjectTarget);
 		if (mo) {
-			if (mo.name && mo.name !== '') {
-				return mo.name;
+			if (mo.mapObject?.name && mo.mapObject.name !== '') {
+				return mo.mapObject.name;
 			}
 
-			return `${startCase(mo.type)} #${mo.num}`;
-		} else if (wp.targetName && wp.targetName !== '') {
+			return `${enumToString(MapObjectType, mo.mapObject?.type ?? MapObjectType.UNSPECIFIED)} #${mo.mapObject?.num ?? ''}`;
+		} else if (wp.mapObjectTarget?.targetName && wp.mapObjectTarget?.targetName !== '') {
 			// we can't load it from the universe, see if the server gave us a target name
-			return wp.targetName;
+			return wp.mapObjectTarget?.targetName;
 		}
 
 		// we don't have a target name and we can't find the map object, just point it to the space location
-		return `Space: (${wp.position.x.toFixed()}, ${wp.position.y.toFixed()})`;
+		return `Space: (${wp.position?.x.toFixed()}, ${wp.position?.y.toFixed()})`;
 	}
 
 	// get a mapobject by type, number, and optionally player num
-	getMapObject(target: MapObjectTarget): MapObject | undefined {
+	getMapObject(target: MapObjectTargetLike | undefined): MapObjectLike | undefined {
+		if (!target) {
+			return;
+		}
 		switch (target.targetType) {
-			case MapObjectTypePlanet:
+			case MapObjectType.PLANET:
 				return target.targetNum ? this.getPlanet(target.targetNum) : undefined;
-			case MapObjectTypeFleet:
+			case MapObjectType.FLEET:
 				return this.allFleets.find(
-					(f) => f.num === target.targetNum && f.playerNum === target.targetPlayerNum
+					(f) =>
+						f.mapObject?.num === target.targetNum &&
+						f.mapObject?.playerNum === target.targetPlayerNum
 				);
-			case MapObjectTypeMinefield:
+			case MapObjectType.MINEFIELD:
 				return this.allMinefields.find(
-					(mf) => mf.num === target.targetNum && mf.playerNum === target.targetPlayerNum
+					(mf) =>
+						mf.mapObject?.num === target.targetNum &&
+						mf.mapObject?.playerNum === target.targetPlayerNum
 				);
-			case MapObjectTypeMineralPacket:
+			case MapObjectType.MINERAL_PACKET:
 				return this.allMineralPackets.find(
-					(p) => p.num === target.targetNum && p.playerNum === target.targetPlayerNum
+					(p) =>
+						p.mapObject?.num === target.targetNum &&
+						p.mapObject?.playerNum === target.targetPlayerNum
 				);
-			case MapObjectTypeSalvage:
+			case MapObjectType.SALVAGE:
 				return this.salvageIntels.find(
-					(s) => s.num === target.targetNum && s.playerNum === target.targetPlayerNum
+					(s) =>
+						s.mapObject?.num === target.targetNum &&
+						s.mapObject?.playerNum === target.targetPlayerNum
 				);
-			case MapObjectTypeWormhole:
+			case MapObjectType.WORMHOLE:
 				return target.targetNum ? this.getWormhole(target.targetNum) : undefined;
-			case MapObjectTypeMysteryTrader:
+			case MapObjectType.MYSTERY_TRADER:
 				return target.targetNum ? this.getMysteryTrader(target.targetNum) : undefined;
 		}
 	}

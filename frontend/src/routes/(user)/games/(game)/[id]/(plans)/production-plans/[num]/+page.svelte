@@ -2,17 +2,18 @@
 	import { page } from '$app/state';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
+	import { addError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { CSError, addError } from '$lib/services/Errors';
-	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
 	import { notify } from '$lib/services/Notifications';
-	import type { ProductionPlan } from '$lib/types/cs';
+	import type { ProductionPlan } from '$lib/types/cs-proto';
+	import type { ConnectError } from '@connectrpc/connect';
+	import ProductionPlanEditor from '../ProductionPlanEditor.svelte';
 
 	const { game, player, universe, updateProductionPlan } = getGameContext();
 	let num = parseInt(page.params.num);
 
 	let plan: ProductionPlan | undefined = $derived(
-		$player.productionPlans.find((p) => p.num == num)
+		$player.playerPlans.productionPlans.find((p) => p.num == num)
 	);
 
 	let error = $state('');
@@ -27,7 +28,7 @@
 				notify(`Saved ${plan.name}`);
 			}
 		} catch (e) {
-			addError(e as CSError);
+			addError(e as ConnectError);
 		}
 	};
 </script>

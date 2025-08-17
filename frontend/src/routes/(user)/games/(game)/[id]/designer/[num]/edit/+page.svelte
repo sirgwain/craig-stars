@@ -3,9 +3,11 @@
 	import { page } from '$app/state';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
 	import ShipDesigner from '$lib/components/game/design/ShipDesigner.svelte';
+	import { type ShipDesign } from '$lib/types/cs-proto';
+	import { addError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import type { ShipDesign } from '$lib/types/cs';
+	import type { ConnectError } from '@connectrpc/connect';
 
 	const { game, universe, updateDesign } = getGameContext();
 	let num = parseInt(page.params.num);
@@ -19,15 +21,15 @@
 
 		try {
 			if (design) {
-				const { valid } = $game.validateDesign(design);
+				const { valid } = $universe.validateDesign(design);
 				if (valid) {
 					// update this design
-					await updateDesign(design);
+					design = await updateDesign(design);
 					goto(`/games/${$game.id}/designer/${design.num}`);
 				}
 			}
-		} catch (e) {
-			error = (e as Error).message;
+		} catch (err) {
+			addError(err as ConnectError);
 		}
 	}
 </script>

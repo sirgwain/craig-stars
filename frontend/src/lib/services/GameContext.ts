@@ -2,48 +2,46 @@ import { goto } from '$app/navigation';
 import { getScannerTarget } from '$lib/types/Battle';
 import type { CargoTransferRequest } from '$lib/types/CargoTransferRequest.svelte';
 import { type CargoDest } from '$lib/types/CargoTransferRequest.svelte';
-import type {
-	CargoTransfers,
-	Game,
-	GameSettings,
-	Minefield,
-	PlayerMessageTargetType,
-	SalvageIntel,
-	ShipDesign
-} from '$lib/types/cs';
+import { None } from '$lib/types/Consts';
 import {
-	MapObjectTypeFleet,
-	MapObjectTypeMinefield,
-	MapObjectTypeMineralPacket,
-	MapObjectTypeNone,
-	MapObjectTypePlanet,
-	MapObjectTypeSalvage,
-	None,
-	PlayerMessageBattleReports,
-	PlayerMessageMysteryTraderMetWithReward,
-	PlayerMessagePlayerGainTechLevel,
-	PlayerMessagePlayerTechGained,
-	TargetNone,
+	CargoSchema,
+	FleetOrdersSchema,
+	FleetSchema,
+	MapObjectType,
+	MineralPacketSchema,
+	PlanetSchema,
+	PlayerMessageTargetType,
+	PlayerMessageType,
+	SalvageIntelSchema,
 	type BattlePlan,
+	type CargoTransfers,
 	type Fleet,
-	type MapObject,
+	type Game,
+	type GameSettings,
+	type GameWithPlayers,
+	type Minefield,
+	type MineralPacket,
 	type Planet,
 	type Player,
 	type PlayerMessage,
 	type PlayerRelationship,
 	type ProductionPlan,
-	type ShipToken,
+	type SalvageIntel,
+	type ShipDesign,
+	type ShipTokenJson as ShipToken,
 	type TransportPlan,
 	type Waypoint,
 	type WaypointDest
-} from '$lib/types/cs';
+} from '$lib/types/cs-proto';
 import { CommandedFleet } from '$lib/types/Fleet';
-import { equal, key, ownedBy } from '$lib/types/MapObject';
-import { getMapObjectTypeForMessageType } from '$lib/types/Message';
+import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '$lib/types/Game';
+import { equal, key, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
+import { getMapObjectTarget, getMapObjectTypeForMessageType } from '$lib/types/Message';
 import { CommandedPlanet } from '$lib/types/Planet';
 import { CommandedPlayer } from '$lib/types/Player';
 import { PlayerSettings } from '$lib/types/PlayerSettings';
 import type { CS } from '$lib/wasm';
+import { create } from '@bufbuild/protobuf';
 import { findIndex, kebabCase } from 'lodash-es';
 import { getContext } from 'svelte';
 import {
@@ -54,18 +52,20 @@ import {
 	type Unsubscriber,
 	type Writable
 } from 'svelte/store';
-import { BattlePlanService } from './BattlePlanService';
-import { DesignService } from './DesignService';
-import { FleetService } from './FleetService';
+import {
+	battlePlanClient,
+	fleetClient,
+	gameClient,
+	minefieldClient,
+	planetClient,
+	playerClient,
+	productionPlanClient,
+	shipDesignClient,
+	transportPlanClient
+} from './connect';
 import { FullGame } from './FullGame';
-import { GameService } from './GameService';
 import { rollover } from './Math';
-import { MinefieldService } from './MinefieldService';
-import { PlanetService } from './PlanetService';
-import { PlayerService } from './PlayerService';
-import { ProductionPlanService } from './ProductionPlanService';
-import { TransportPlanService } from './TransportPlanService';
-import { Universe, type AnyFleet, type AnyMineralPacket } from './Universe';
+import { Universe, type AnyFleet } from './Universe';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -81,38 +81,38 @@ export type GameContext = {
 	messageNum: Writable<number>;
 	commandedPlanet: Readable<CommandedPlanet | undefined>;
 	commandedFleet: Readable<CommandedFleet | undefined>;
-	commandedMapObject: Readable<MapObject | undefined>;
+	commandedMapObject: Readable<MapObjectLike | undefined>;
 	commandedMapObjectKey: Readable<string>;
-	selectedMapObject: Readable<MapObject | undefined>;
-	zoomTarget: Readable<MapObject | undefined>;
+	selectedMapObject: Readable<MapObjectLike | undefined>;
+	zoomTarget: Readable<MapObjectLike | undefined>;
 	selectedWaypoint: Readable<Waypoint | undefined>;
-	highlightedMapObject: Readable<MapObject | undefined>;
-	highlightedMapObjectPeers: Readable<MapObject[]>;
-	mostRecentMapObject: Readable<MapObject | undefined>;
+	highlightedMapObject: Readable<MapObjectLike | undefined>;
+	highlightedMapObjectPeers: Readable<MapObjectLike[]>;
+	mostRecentMapObject: Readable<MapObjectLike | undefined>;
 	currentSelectedWaypointIndex: Readable<number>;
 
 	// scanner updates
-	selectMapObject: (mo: MapObject) => void;
+	selectMapObject: (mo: MapObjectLike) => void;
 	selectNextMapObject: () => void;
 	selectWaypoint: (wp: Waypoint) => void;
-	commandMapObject: (mo: MapObject) => void;
+	commandMapObject: (mo: MapObjectLike) => void;
 	commandHomeWorld: () => void;
 	previousMapObject: () => void;
 	nextMapObject: () => void;
-	highlightMapObject: (mo: MapObject | undefined) => void;
-	zoomToMapObject: (mo: MapObject) => void;
+	highlightMapObject: (mo: MapObjectLike | undefined) => void;
+	zoomToMapObject: (mo: MapObjectLike) => void;
 
 	// message
 	gotoTarget: (
 		message: PlayerMessage,
-		gameId: number,
+		gameId: bigint,
 		playerNum: number,
 		universe: Universe
 	) => void;
 	gotoBattle: (battleNum: number) => void;
 
 	// game updates
-	updateGame: (game: FullGame | GameSettings | Game) => void;
+	updateGame: (g: FullGame | Game | GameSettings | GameWithPlayersFlat | GameWithPlayers) => void;
 	loadStatus: () => Promise<void>;
 	startPollingStatus: (interval?: number) => void;
 	stopPollingStatus: () => void;
@@ -134,7 +134,7 @@ export type GameContext = {
 	deleteTransportPlan: (num: number) => Promise<void>;
 
 	createDesign: (design: ShipDesign) => Promise<ShipDesign>;
-	updateDesign: (design: ShipDesign) => Promise<void>;
+	updateDesign: (design: ShipDesign) => Promise<ShipDesign>;
 	deleteDesign: (num: number) => Promise<void>;
 
 	// fleet waypoint updates
@@ -162,19 +162,25 @@ export type GameContext = {
 	splitAll: (fleet: CommandedFleet) => Promise<void>;
 	merge: (fleet: CommandedFleet, fleetNums: number[]) => Promise<void>;
 	setFullyLoaded: (fullyLoaded: boolean) => void;
-	resetContext: (fg: FullGame) => void;
+	resetContext: (fg: FullGame, p: CommandedPlayer, u: Universe) => Promise<void>;
 };
 
 // init the game context with empty data
 export const getGameContext = () => getContext<GameContext>(gameKey);
 
 // update the game context after a load
-export function createGameContext(cs: CS, fg: FullGame): GameContext {
+export async function createGameContext(
+	cs: CS,
+	fg: FullGame,
+	p: CommandedPlayer,
+	u: Universe
+): Promise<GameContext> {
 	// setup initial wasm state
-	cs.setRules(fg.rules);
-	cs.setPlayer(fg.player);
-	cs.setDesigns(fg.universe.getMyDesigns());
-	cs.setIntel(fg.universe);
+	const { spec: raceSpec } = await cs.wasmService.computeRaceSpec({ race: p.race });
+	p.race.spec = raceSpec ?? p.race.spec;
+	await cs.wasmService.setPlayer({ player: p });
+	await cs.wasmService.setDesigns({ designs: u.designs });
+	await cs.wasmService.setIntels({ intels: u.intels });
 
 	const gameId = fg.id;
 	const unsubscribers: Unsubscriber[] = [];
@@ -182,40 +188,36 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	const fullyLoaded = writable(false);
 
 	const game = writable(fg);
-	const player = writable(fg.player);
-	const universe = writable(fg.universe);
+	const player = writable(p);
+	const universe = writable(u);
 
-	const defaultSettings = loadSettingsOrDefault(gameId, fg.player.num);
+	const defaultSettings = loadSettingsOrDefault(gameId, p.num);
 	const settings = writable(defaultSettings);
 
 	const commandedPlanet = writable<CommandedPlanet | undefined>();
 	const commandedFleet = writable<CommandedFleet | undefined>();
-	const commandedMapObject = writable<MapObject | undefined>();
+	const commandedMapObject = writable<MapObjectLike | undefined>();
 	const commandedMapObjectKey = writable<string>(key(undefined));
-	const selectedMapObject = writable<MapObject | undefined>();
+	const selectedMapObject = writable<MapObjectLike | undefined>();
 	const selectedWaypoint = writable<Waypoint | undefined>();
-	const highlightedMapObject = writable<MapObject | undefined>();
-	const highlightedMapObjectPeers = writable<MapObject[]>([]);
-	const mostRecentMapObject = writable<MapObject | undefined>();
+	const highlightedMapObject = writable<MapObjectLike | undefined>();
+	const highlightedMapObjectPeers = writable<MapObjectLike[]>([]);
+	const mostRecentMapObject = writable<MapObjectLike | undefined>();
 
-	const zoomTarget = writable<MapObject | undefined>();
+	const zoomTarget = writable<MapObjectLike | undefined>();
 
-	const messageNum = writable(
-		getNextVisibleMessageNum(-1, false, fg.player.messages, defaultSettings)
-	);
+	const messageNum = writable(getNextVisibleMessageNum(-1, false, p.messages, defaultSettings));
 
 	// reset the GameContext for a new game
 	// this is called after a new game is loaded from the server while waiting for a turn to generate
-	function resetContext(fg: FullGame) {
-		const s = get(settings);
-		cs.setRules(fg.rules);
-		cs.setPlayer(fg.player);
-		cs.setDesigns(fg.universe.getMyDesigns());
-		cs.setIntel(fg.universe);
+	async function resetContext(fg: FullGame, p: CommandedPlayer, u: Universe) {
+		const { spec: raceSpec } = await cs.wasmService.computeRaceSpec({ race: p.race });
+		p.race.spec = raceSpec ?? p.race.spec;
+		await cs.wasmService.setPlayer({ player: p });
 
 		game.set(fg);
-		player.set(fg.player);
-		universe.set(fg.universe);
+		await updatePlayer(p);
+		universe.set(u);
 		commandedPlanet.set(undefined);
 		commandedFleet.set(undefined);
 		commandedMapObject.set(undefined);
@@ -224,7 +226,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		highlightedMapObject.set(undefined);
 		highlightedMapObjectPeers.set([]);
 		mostRecentMapObject.set(undefined);
-		messageNum.set(getNextVisibleMessageNum(-1, false, fg.player.messages, s));
+
+		const s = get(settings);
+		messageNum.set(getNextVisibleMessageNum(-1, false, p.messages, s));
 	}
 
 	function setFullyLoaded(value: boolean) {
@@ -236,9 +240,6 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		settings.subscribe((value) => {
 			value.beforeSave();
 			localStorage.setItem(value.key, JSON.stringify(value));
-		}),
-		player.subscribe((value) => {
-			cs.setPlayer(value);
 		})
 	);
 
@@ -274,12 +275,12 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			if ($commandedPlanet) {
 				return $universe
 					.getMyPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
-					.findIndex((p) => p.num === $commandedPlanet.num);
+					.findIndex((p) => (p.mapObject?.num ?? 0) === ($commandedPlanet.mapObject?.num ?? 0));
 			}
 			if ($commandedFleet) {
 				return $universe
 					.getMyFleets($settings.sortFleetsKey, $settings.sortFleetsDescending)
-					.findIndex((f) => f.num === $commandedFleet.num);
+					.findIndex((f) => (f.mapObject?.num ?? 0) === ($commandedFleet.mapObject?.num ?? 0));
 			}
 			return 0;
 		}
@@ -289,7 +290,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		[universe, selectedMapObject],
 		([$universe, $selectedMapObject]) => {
 			if ($selectedMapObject) {
-				const mos = $universe.getMapObjectsByPosition($selectedMapObject.position);
+				const mos = $universe.getMapObjectsByPosition($selectedMapObject.mapObject?.position);
 				return findIndex(mos, (mo) => equal($selectedMapObject, mo));
 			}
 			return -1;
@@ -299,47 +300,48 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	// goto a message target
 	function gotoTarget(
 		message: PlayerMessage,
-		gameId: number,
+		gameId: bigint,
 		playerNum: number,
 		universe: Universe
 	) {
-		const targetType: PlayerMessageTargetType = message.targetType ?? TargetNone;
-		let moType = MapObjectTypeNone;
+		const targetType: PlayerMessageTargetType =
+			message.target?.targetType ?? PlayerMessageTargetType.UNSPECIFIED;
+		let moType = MapObjectType.UNSPECIFIED;
 
 		if (message.battleNum) {
 			goto(`/games/${gameId}/battles/${message.battleNum}`);
 			return;
 		}
 
-		if (message.type === PlayerMessagePlayerGainTechLevel) {
+		if (message.type === PlayerMessageType.PLAYER_GAIN_TECH_LEVEL) {
 			goto(`/games/${gameId}/research`);
 			return;
 		}
 
-		if (message.type === PlayerMessageBattleReports) {
+		if (message.type === PlayerMessageType.BATTLE_REPORTS) {
 			goto(`/games/${gameId}/battles`);
 			return;
 		}
 
-		if (message.type === PlayerMessagePlayerTechGained && message.spec.techGained) {
-			goto(`/games/${gameId}/techs/${kebabCase(message.spec.techGained)}`);
+		if (message.type === PlayerMessageType.PLAYER_TECH_GAINED && message.spec?.techGained) {
+			goto(`/games/${gameId}/techs/${kebabCase(message.spec?.techGained)}`);
 			return;
 		}
 
 		if (
-			message.type === PlayerMessageMysteryTraderMetWithReward &&
-			message.spec.mysteryTrader?.tech
+			message.type === PlayerMessageType.MYSTERY_TRADER_MET_WITH_REWARD &&
+			message.spec?.mysteryTrader?.tech
 		) {
-			goto(`/games/${gameId}/techs/${kebabCase(message.spec.mysteryTrader?.tech)}`);
+			goto(`/games/${gameId}/techs/${kebabCase(message.spec?.mysteryTrader?.tech)}`);
 			return;
 		}
 
 		// the MT gave us a fleet, command it
 		if (
-			message.type === PlayerMessageMysteryTraderMetWithReward &&
-			message.spec.mysteryTrader?.fleetNum
+			message.type === PlayerMessageType.MYSTERY_TRADER_MET_WITH_REWARD &&
+			message.spec?.mysteryTrader?.fleetNum
 		) {
-			const fleet = universe.getFleet(playerNum, message.spec.mysteryTrader?.fleetNum);
+			const fleet = universe.getFleet(playerNum, message.spec?.mysteryTrader?.fleetNum);
 			if (fleet) {
 				gotoTargetFleet(fleet, playerNum, universe);
 				zoomToMapObject(fleet);
@@ -348,9 +350,12 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			}
 		}
 
-		if (message.spec.targetType === MapObjectTypeMinefield) {
-			const fleet = universe.getFleet(message.targetPlayerNum, message.targetNum);
-			const mf = universe.getMinefield(message.spec.targetPlayerNum, message.spec.targetNum);
+		if (message.spec?.target?.targetType === MapObjectType.MINEFIELD) {
+			const fleet = universe.getFleet(message.target?.targetPlayerNum, message.target?.targetNum);
+			const mf = universe.getMinefield(
+				message.spec?.target?.targetPlayerNum,
+				message.spec?.target?.targetNum
+			);
 			if (fleet) {
 				if (ownedBy(fleet, playerNum)) {
 					commandMapObject(fleet);
@@ -369,17 +374,17 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			}
 		}
 
-		if (message.targetNum) {
+		if (message.target?.targetNum) {
 			moType = getMapObjectTypeForMessageType(targetType);
 
-			if (moType != MapObjectTypeNone) {
-				const target = universe.getMapObject(message);
-				const targetTarget = universe.getMapObject(message.spec);
+			if (moType != MapObjectType.UNSPECIFIED) {
+				const target = universe.getMapObject(getMapObjectTarget(message));
+				const targetTarget = universe.getMapObject(message.spec?.target);
 				if (target) {
 					// if this is a fleet that we own, select the planet before we command the fleet
-					if (target.type == MapObjectTypeFleet) {
+					if (target.mapObject?.type === MapObjectType.FLEET) {
 						gotoTargetFleet(target, playerNum, universe);
-					} else if (target.type == MapObjectTypePlanet) {
+					} else if (target.mapObject?.type === MapObjectType.PLANET) {
 						gotoTargetPlanet(target, targetTarget, playerNum);
 					} else {
 						selectMapObject(target);
@@ -395,8 +400,8 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 	// command/select logic for a goto of a fleet
 	// will select the planet the fleet is orbiting if it has one
-	function gotoTargetFleet(target: MapObject, playerNum: number, universe: Universe) {
-		if (target.playerNum == playerNum) {
+	function gotoTargetFleet(target: MapObjectLike, playerNum: number, universe: Universe) {
+		if (target.mapObject?.playerNum == playerNum) {
 			commandMapObject(target);
 			const orbitingPlanetNum = (target as AnyFleet).orbitingPlanetNum;
 			if (orbitingPlanetNum && orbitingPlanetNum != None) {
@@ -413,11 +418,11 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	// command/select logic for a goto of a planet
 	// will select an additional target if specified, otherwise selects the planet
 	function gotoTargetPlanet(
-		target: MapObject,
-		targetTarget: MapObject | undefined,
+		target: MapObjectLike,
+		targetTarget: MapObjectLike | undefined,
 		playerNum: number
 	) {
-		if (target.playerNum == playerNum) {
+		if (target.mapObject?.playerNum == playerNum) {
 			commandMapObject(target);
 			if (targetTarget) {
 				selectMapObject(targetTarget);
@@ -429,7 +434,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			}
 		} else {
 			selectMapObject(target);
-			if (targetTarget && targetTarget.playerNum == playerNum) {
+			if (targetTarget && targetTarget.mapObject?.playerNum == playerNum) {
 				commandMapObject(targetTarget);
 			}
 		}
@@ -449,7 +454,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			selectMapObject(target);
 			zoomToMapObject(target);
 		} else {
-			zoomToMapObject({ position: battle.position } as MapObject);
+			zoomToMapObject({ position: battle.position } as MapObjectLike);
 		}
 
 		const battleMessageNum = p.messages.findIndex((m) => m.battleNum == battle.num);
@@ -462,7 +467,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		[selectedWaypoint, commandedFleet],
 		([$selectedWaypoint, $commandedFleet]) => {
 			if ($selectedWaypoint && $commandedFleet) {
-				return findIndex($commandedFleet.waypoints, (wp) => wp === $selectedWaypoint);
+				return findIndex($commandedFleet.fleetOrders?.waypoints, (wp) => wp === $selectedWaypoint);
 			}
 			return -1;
 		}
@@ -474,7 +479,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		const index = get(currentSelectedMapObjectIndex);
 
 		if (index != -1 && selected) {
-			const mos = u.getMapObjectsByPosition(selected.position);
+			const mos = u.getMapObjectsByPosition(selected.mapObject?.position);
 			if (mos) {
 				if (index >= mos.length - 1) {
 					selectMapObject(mos[0]);
@@ -493,25 +498,25 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		const s = get(settings);
 
 		if (mo) {
-			if (mo.type == MapObjectTypePlanet) {
+			if (mo.mapObject?.type === MapObjectType.PLANET) {
 				const planets = u.getMyPlanets(s.sortPlanetsKey, s.sortPlanetsDescending);
 				const prevIndex = rollover(i - 1, planets.length - 1);
 				const planet = planets[prevIndex];
 				commandMapObject(planet);
 				zoomToMapObject(planet);
 				selectMapObject(planet);
-			} else if (mo.type == MapObjectTypeFleet) {
+			} else if (mo.mapObject?.type === MapObjectType.FLEET) {
 				const fleets = u.getMyFleets(s.sortFleetsKey, s.sortFleetsDescending);
 				const prevIndex = rollover(i - 1, fleets.length - 1);
 				commandMapObject(fleets[prevIndex]);
 				zoomToMapObject(fleets[prevIndex]);
 
 				const fleet = fleets[prevIndex];
-				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
+				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum !== None) {
 					const planet = u.getMapObject({
-						targetType: MapObjectTypePlanet,
+						targetType: MapObjectType.PLANET,
 						targetNum: fleet.orbitingPlanetNum,
-						targetPosition: fleet.position
+						targetPosition: fleet.mapObject?.position
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -531,14 +536,14 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		const s = get(settings);
 
 		if (mo) {
-			if (mo.type == MapObjectTypePlanet) {
+			if (mo.mapObject?.type === MapObjectType.PLANET) {
 				const planets = u.getMyPlanets(s.sortPlanetsKey, s.sortPlanetsDescending);
 				const nextIndex = rollover(i + 1, planets.length - 1);
 				const planet = planets[nextIndex];
 				commandMapObject(planet);
 				zoomToMapObject(planet);
 				selectMapObject(planet);
-			} else if (mo.type == MapObjectTypeFleet) {
+			} else if (mo.mapObject?.type === MapObjectType.FLEET) {
 				const fleets = u.getMyFleets(s.sortFleetsKey, s.sortFleetsDescending);
 
 				const nextIndex = rollover(i + 1, fleets.length - 1);
@@ -547,9 +552,9 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 				zoomToMapObject(fleets[nextIndex]);
 				if (fleet.orbitingPlanetNum && fleet.orbitingPlanetNum != None) {
 					const planet = u.getMapObject({
-						targetType: MapObjectTypePlanet,
+						targetType: MapObjectType.PLANET,
 						targetNum: fleet.orbitingPlanetNum,
-						targetPosition: fleet.position
+						targetPosition: fleet.mapObject?.position
 					});
 					if (planet) {
 						selectMapObject(planet);
@@ -561,7 +566,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 	}
 
-	function selectMapObject(mo: MapObject) {
+	function selectMapObject(mo: MapObjectLike) {
 		selectedMapObject.update(() => mo);
 		mostRecentMapObject.update(() => mo);
 	}
@@ -570,23 +575,27 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		selectedWaypoint.update(() => wp);
 	}
 
-	function commandMapObject(mo: MapObject) {
+	function commandMapObject(mo: MapObjectLike) {
 		commandedMapObject.update(() => mo);
 		mostRecentMapObject.update(() => mo);
-		if (mo.type == MapObjectTypePlanet) {
+		if (mo.mapObject?.type === MapObjectType.PLANET) {
 			const u = get(universe);
 			// make sure this planet's production queue estimates are up to date
-			const planet = Object.assign(new CommandedPlanet(), u.getPlanet(mo.num));
+			const planet = new CommandedPlanet(u.getPlanet(mo.mapObject?.num) as Planet);
+			// ensure CommandedPlanet has mapObject when commanded
+			// TODO: await this, make async infect everything
 			planet.updateProductionQueueEstimates(cs);
 			commandedPlanet.update(() => planet);
 			commandedFleet.update(() => undefined);
-		} else if (mo.type == MapObjectTypeFleet) {
-			commandedFleet.update(() => Object.assign(new CommandedFleet(), mo));
+		} else if (mo.mapObject?.type === MapObjectType.FLEET) {
+			// Build a CommandedFleet from the selected fleet, preserving its mapObject
+			const cf = new CommandedFleet(mo as Fleet);
+			commandedFleet.update(() => cf);
 			commandedPlanet.update(() => undefined);
 			selectedWaypoint.update(() => {
 				const fleet = mo as Fleet;
-				if (fleet?.waypoints && fleet.waypoints.length) {
-					return fleet.waypoints[fleet.waypoints.length - 1];
+				if (fleet?.fleetOrders?.waypoints && fleet.fleetOrders.waypoints.length) {
+					return fleet.fleetOrders.waypoints[fleet.fleetOrders.waypoints.length - 1];
 				}
 				return undefined;
 			});
@@ -624,28 +633,48 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 	}
 
-	function highlightMapObject(mo: MapObject | undefined) {
+	function highlightMapObject(mo: MapObjectLike | undefined) {
 		highlightedMapObject.update(() => mo);
 	}
 
-	function zoomToMapObject(mo: MapObject) {
+	function zoomToMapObject(mo: MapObjectLike) {
 		zoomTarget.update(() => mo);
 		mostRecentMapObject.update(() => mo);
 	}
 
 	// update the game state from a server
-	function updateGame(g: FullGame | GameSettings | Game) {
-		game.set(Object.assign(get(game), g));
+	function updateGame(g: FullGame | Game | GameSettings | GameWithPlayersFlat | GameWithPlayers) {
+		let updated = g;
+		if ('game' in updated) {
+			// flatten the GameWithPlayers
+			updated = getGameWithPlayersFlat(g as GameWithPlayers);
+		}
+
+		game.set(Object.assign(get(game), updated));
 	}
 
-	function updatePlayer(p: CommandedPlayer | Player | undefined) {
-		player.set(Object.assign(get(player), p));
+	async function updatePlayer(p: CommandedPlayer | Player | undefined) {
+		if (!p) {
+			return;
+		}
+		// new player, recompute spec
+		const updated = Object.assign(get(player), p);
+		const { spec } = await cs.wasmService.computeRaceSpec({ race: updated.race });
+		updated.race.spec = spec!;
+		player.set(updated);
+		await cs.wasmService.setPlayer({ player: p });
 	}
 
 	// after a fleet is updated from the server, update the fleet in the universe, reset any commanded/selected
 	// state and trigger reactivity
-	function updateFleet(fleet: CommandedFleet | Fleet, updatedFleet: CommandedFleet | Fleet) {
-		fleet = Object.assign(fleet, updatedFleet);
+	function updateFleet(
+		fleet: CommandedFleet | Fleet,
+		updatedFleet: CommandedFleet | Fleet | undefined
+	) {
+		if (!updatedFleet) {
+			return;
+		}
+		fleet = new CommandedFleet(Object.assign(fleet, updatedFleet));
 		const index = get(currentSelectedWaypointIndex);
 		const u = get(universe);
 		const cf = get(commandedFleet);
@@ -656,15 +685,19 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		// if we were commanding this fleet, recommand it to trigger reactivity
 		if (equal(cf, fleet)) {
 			commandMapObject(fleet);
+			// update the selected waypoint if we just updated the commandedFleet
+			if (
+				index > -1 &&
+				fleet.fleetOrders?.waypoints &&
+				fleet.fleetOrders.waypoints.length > index
+			) {
+				selectWaypoint(fleet.fleetOrders!.waypoints[index]);
+			}
 		}
 
 		// if we were selecting this fleet, reselect it to trigger reactivity
 		if (equal(get(selectedMapObject), fleet)) {
 			selectMapObject(fleet);
-		}
-
-		if (index > -1 && fleet.waypoints && fleet.waypoints.length > index) {
-			selectWaypoint(fleet.waypoints[index]);
 		}
 
 		// trigger reactivity
@@ -676,11 +709,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	function updatePlanet(planet: CommandedPlanet | Planet, updatedPlanet: Planet) {
 		planet = Object.assign(planet, updatedPlanet);
 		const u = get(universe);
-		const cp = get(commandedPlanet);
 		u.updatePlanet(planet);
 
 		// if we were commanding this planet, recommand it to trigger reactivity
-		if (cp?.num === planet.num) {
+		if (equal(get(commandedPlanet), planet)) {
 			commandMapObject(planet);
 		}
 
@@ -711,8 +743,10 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 	// load the status of a game, but not all the universe data
 	async function loadStatus(): Promise<void> {
-		const result = await GameService.loadGame(gameId);
-		updateGame(result);
+		const resp = await gameClient.getGame({ gameId });
+		if (resp.game) {
+			updateGame(getGameWithPlayersFlat(resp.game));
+		}
 	}
 
 	// start polling the server for player status
@@ -733,172 +767,177 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		}
 	}
 
-	// game CRUD
-
 	async function submitTurn(): Promise<void> {
-		const result = await PlayerService.submitTurn(gameId);
-		if (result) {
-			updateGame(result.game);
-			updatePlayer(result.player);
-			if (result.universe) {
-				universe.set(get(universe).resetData(get(player).num, result.universe));
-			}
+		const { player, game } = await playerClient.submitTurn({ gameId });
+		await updatePlayer(player);
+		if (game) {
+			updateGame(getGameWithPlayersFlat(game));
 		}
 	}
 
 	async function forceGenerateTurn(): Promise<void> {
-		const result = await GameService.forceGenerateTurn(gameId);
-		updateGame(result.game);
-		updatePlayer(result.player);
-		if (result.universe) {
-			universe.set(get(universe).resetData(get(player).num, result.universe));
-		}
+		await gameClient.forceGenerateTurn({ gameId });
+		await loadStatus();
 	}
 
 	async function updatePlayerOrders(): Promise<void> {
-		const result = await PlayerService.updateOrders(get(player));
-		if (result) {
-			player.set(Object.assign(get(player), result.player));
+		const p = get(player);
+		const { player: updated, planets } = await playerClient.updatePlayerOrders({
+			gameId,
+			orders: p.playerOrders
+		});
+		await updatePlayer(updated);
 
-			const u = get(universe);
-			result.planets.forEach((planet) => {
-				u.updatePlanet(planet);
-				if (equal(get(selectedMapObject), planet)) {
-					selectMapObject(planet);
-				}
-			});
+		const u = get(universe);
+		u.planets = planets;
+		u.resetAllPlanets();
+		planets.forEach((planet) => {
+			if (equal(get(selectedMapObject), planet)) {
+				selectMapObject(planet);
+			}
+		});
 
-			u.resetMapObjectsByPosition();
-			u.resetMyMapObjectsByPosition();
+		u.resetMapObjectsByPosition();
+		u.resetMyMapObjectsByPosition();
 
-			universe.set(u);
-		}
+		universe.set(u);
 	}
 
 	async function updatePlayerRelations(relations: PlayerRelationship[]): Promise<void> {
 		const p = get(player);
-		p.relations = relations;
-		const result = await PlayerService.updateRelations(get(player));
-		if (result) {
-			updatePlayer(result);
-		}
+		const result = await playerClient.updatePlayerRelations({ gameId, relations: relations });
+		p.relations = result.relations;
 	}
 
 	async function createBattlePlan(plan: BattlePlan): Promise<BattlePlan> {
-		const created = await BattlePlanService.create(gameId, plan);
+		const { plan: created } = await battlePlanClient.createBattlePlan({ gameId, plan });
 		const p = get(player);
-		p.battlePlans = [...p.battlePlans, created];
-		player.set(p);
+		p.playerPlans.battlePlans = [...p.playerPlans.battlePlans, created!];
+		await updatePlayer(p);
 
-		return created;
+		return created!;
 	}
 
 	async function updateBattlePlan(plan: BattlePlan): Promise<BattlePlan> {
-		const updated = await BattlePlanService.update(gameId, plan);
+		const { plan: updated } = await battlePlanClient.updateBattlePlan({ gameId, plan });
 
 		const p = get(player);
-		for (let i = 0; i < p.battlePlans.length; i++) {
-			if (p.battlePlans[i].num === updated.num) {
-				p.battlePlans[i] = updated;
+		for (let i = 0; i < p.playerPlans.battlePlans.length; i++) {
+			if (p.playerPlans.battlePlans[i].num === updated?.num) {
+				p.playerPlans.battlePlans[i] = updated;
 			}
 		}
-		player.set(p);
-		return updated;
+		await updatePlayer(p);
+
+		return updated!;
 	}
 
 	async function deleteBattlePlan(num: number): Promise<void> {
-		const resp = await BattlePlanService.delete(gameId, num);
-		updatePlayer(resp.player);
+		const { player, fleets, starbases } = await battlePlanClient.deleteBattlePlan({ gameId, num });
+		await updatePlayer(player);
 		const u = get(universe);
-		u.fleets = resp.fleets;
-		u.starbases = resp.starbases;
+		u.fleets = fleets;
+		u.starbases = starbases;
 		universe.set(u);
 	}
 
 	async function createProductionPlan(plan: ProductionPlan): Promise<ProductionPlan> {
-		const created = await ProductionPlanService.create(gameId, plan);
+		const { plan: created } = await productionPlanClient.createProductionPlan({ gameId, plan });
 		const p = get(player);
-		p.productionPlans = [...p.productionPlans, created];
-		player.set(p);
+		p.playerPlans.productionPlans = [...p.playerPlans.productionPlans, created!];
+		await updatePlayer(p);
 
-		return created;
+		return created!;
 	}
 
 	async function updateProductionPlan(plan: ProductionPlan): Promise<ProductionPlan> {
-		const updated = await ProductionPlanService.update(gameId, plan);
+		const { plan: updated } = await productionPlanClient.updateProductionPlan({ gameId, plan });
 
 		const p = get(player);
-		for (let i = 0; i < p.productionPlans.length; i++) {
-			if (p.productionPlans[i].num === updated.num) {
-				p.productionPlans[i] = updated;
+		for (let i = 0; i < p.playerPlans.productionPlans.length; i++) {
+			if (p.playerPlans.productionPlans[i].num === updated?.num) {
+				p.playerPlans.productionPlans[i] = updated;
 			}
 		}
-		player.set(p);
-		return updated;
+		await updatePlayer(p);
+
+		return updated!;
 	}
 
 	async function deleteProductionPlan(num: number): Promise<void> {
-		const player = await ProductionPlanService.delete(gameId, num);
-		updatePlayer(player);
+		await productionPlanClient.deleteProductionPlan({ gameId, num });
+		const p = get(player);
+		p.playerPlans.productionPlans = p.playerPlans.productionPlans.filter(
+			(plan) => plan.num !== num
+		);
+		await updatePlayer(p);
 	}
 
 	async function createTransportPlan(plan: TransportPlan): Promise<TransportPlan> {
-		const created = await TransportPlanService.create(gameId, plan);
+		const { plan: created } = await transportPlanClient.createTransportPlan({ gameId, plan });
 		const p = get(player);
-		p.transportPlans = [...p.transportPlans, created];
-		player.set(p);
+		p.playerPlans.transportPlans = [...p.playerPlans.transportPlans, created!];
+		await updatePlayer(p);
 
-		return created;
+		return created!;
 	}
 
 	async function updateTransportPlan(plan: TransportPlan): Promise<TransportPlan> {
-		const updated = await TransportPlanService.update(gameId, plan);
+		const { plan: updated } = await transportPlanClient.updateTransportPlan({ gameId, plan });
 		const p = get(player);
-		for (let i = 0; i < p.transportPlans.length; i++) {
-			if (p.transportPlans[i].num === updated.num) {
-				p.transportPlans[i] = updated;
+		for (let i = 0; i < p.playerPlans.transportPlans.length; i++) {
+			if (p.playerPlans.transportPlans[i].num === updated?.num) {
+				p.playerPlans.transportPlans[i] = updated;
 			}
 		}
-		player.set(p);
-		return updated;
+		await updatePlayer(p);
+
+		return updated!;
 	}
 
 	async function deleteTransportPlan(num: number): Promise<void> {
-		const player = await TransportPlanService.delete(gameId, num);
-		updatePlayer(player);
+		await transportPlanClient.deleteTransportPlan({ gameId, num });
+		const p = get(player);
+		p.playerPlans.transportPlans = p.playerPlans.transportPlans.filter((plan) => plan.num !== num);
+		await updatePlayer(p);
 	}
 
 	async function createDesign(design: ShipDesign): Promise<ShipDesign> {
 		// update this design
-		design = await DesignService.create(gameId, design);
+		const { design: created } = await shipDesignClient.createShipDesign({ gameId, design });
 		const u = get(universe);
-		u.addDesign(design);
-		cs.setDesigns(u.getMyDesigns());
+		u.addDesign(created!);
+		await cs.wasmService.setDesigns({ designs: u.getMyDesigns() });
 		universe.set(u);
-		return design;
+
+		return created!;
 	}
 
-	async function updateDesign(design: ShipDesign): Promise<void> {
+	async function updateDesign(design: ShipDesign): Promise<ShipDesign> {
 		// update this design
-		design = await DesignService.update(gameId, design);
+		const { design: updated } = await shipDesignClient.updateShipDesign({ gameId, design });
 		const u = get(universe);
-		u.updateDesign(design);
-		cs.setDesigns(u.getMyDesigns());
+		u.updateDesign(updated!);
+		await cs.wasmService.setDesigns({ designs: u.getMyDesigns() });
 		universe.set(u);
+
+		return updated!;
 	}
 
 	async function deleteDesign(num: number): Promise<void> {
-		const { fleets, starbases } = await DesignService.delete(gameId, num);
+		const { planets, fleets, starbases } = await shipDesignClient.deleteShipDesign({ gameId, num });
 		const u = get(universe);
 		// replace our fleets and starbases (but keep intel issue #146)
 		u.fleets = fleets;
 		u.starbases = starbases;
+		u.planets = planets;
+		u.resetAllPlanets();
 		u.resetMapObjectsByPosition();
 		u.resetMyMapObjectsByPosition();
+		universe.set(u);
 
 		u.designs = u.designs.filter((d) => d.num != num);
-		cs.setDesigns(u.getMyDesigns());
-		universe.set(u);
+		await cs.wasmService.setDesigns({ designs: u.getMyDesigns() });
 
 		// reset our view to the homeworld, in case the commanded fleet had our deleted design
 		commandHomeWorld();
@@ -914,19 +953,24 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			return false;
 		}
 
-		const result = cs.addWaypoint(fleet, dest, currentIndex, fastest);
+		const result = await cs.wasmService.addWaypoint({
+			fleet,
+			dest,
+			currentSelectedWaypointIndex: currentIndex,
+			fastestWaypoint: fastest
+		});
 
-		if (!result || !result.result) {
+		if (!result.index || !result.fleet?.fleetOrders?.waypoints) {
 			return false;
 		}
 
-		fleet.waypoints = result.fleet.waypoints;
+		fleet.fleetOrders = result.fleet.fleetOrders;
 		await updateFleetOrders(fleet);
 
 		// select the new waypoint
-		selectWaypoint(fleet.waypoints[result.result]);
-		if (sw && sw.targetType && sw.targetNum) {
-			const mo = u.getMapObject(sw);
+		selectWaypoint(fleet.fleetOrders?.waypoints[result.index]);
+		if (sw && sw.mapObjectTarget?.targetType && sw.mapObjectTarget?.targetNum) {
+			const mo = u.getMapObject(sw.mapObjectTarget);
 
 			if (mo) {
 				selectMapObject(mo);
@@ -947,21 +991,35 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			return;
 		}
 
-		const result = cs.updateWaypoint(fleet, dest, currentIndex, fastest);
+		const result = await cs.wasmService.updateWaypoint({
+			fleet,
+			dest,
+			currentSelectedWaypointIndex: currentIndex,
+			fastestWaypoint: fastest
+		});
 
-		if (result?.result) {
+		if (!result.fleet) {
+			console.error('error updating fleet waypoint, no fleet returned from wasm');
+		}
+
+		if (result.updated) {
 			// update the selectedWaypoint while dragging
-			selectedWaypoint.update(() => Object.assign(sw, result.fleet.waypoints[currentIndex]));
+			selectedWaypoint.update(() =>
+				Object.assign(sw, result.fleet?.fleetOrders?.waypoints[currentIndex])
+			);
 			// check if we are done updating this waypoint and should save it to the server
 			if (done) {
 				// don't dragging, update the fleet
-				fleet.waypoints = result.fleet.waypoints;
+				(fleet as Fleet).fleetOrders =
+					result.fleet?.fleetOrders ??
+					// create a valid FleetOrders value with the correct shape
+					create(FleetOrdersSchema);
 				await updateFleetOrders(fleet);
 
 				// select the new waypoint
-				selectWaypoint(fleet.waypoints[currentIndex]);
-				if (sw && sw.targetType && sw.targetNum) {
-					const mo = u.getMapObject(sw);
+				selectWaypoint(fleet.fleetOrders?.waypoints[currentIndex]);
+				if (sw && sw.mapObjectTarget?.targetType && sw.mapObjectTarget?.targetNum) {
+					const mo = u.getMapObject(sw.mapObjectTarget);
 
 					if (mo) {
 						selectMapObject(mo);
@@ -990,13 +1048,13 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			return;
 		}
 
-		fleet.waypoints = fleet.waypoints.filter((wp) => wp != sw);
+		fleet.fleetOrders.waypoints = fleet.fleetOrders?.waypoints.filter((wp) => wp != sw);
 
 		// select the previous waypoint
-		const wp = fleet.waypoints[selectedWaypointIndex - 1];
+		const wp = fleet.fleetOrders?.waypoints[selectedWaypointIndex - 1];
 		selectWaypoint(wp);
 
-		const mo = u.getMapObject(wp);
+		const mo = u.getMapObject(wp.mapObjectTarget);
 		if (mo) {
 			selectMapObject(mo);
 		}
@@ -1005,26 +1063,50 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	}
 
 	async function updateFleetOrders(fleet: CommandedFleet): Promise<void> {
-		const updatedFleet = await FleetService.updateFleetOrders(fleet);
-		updateFleet(fleet, updatedFleet);
+		const { fleet: updatedFleet } = await fleetClient.updateFleetOrders({
+			gameId,
+			fleetNum: fleet.mapObject?.num ?? 0,
+			fleetOrders: fleet.fleetOrders
+		});
+		if (updatedFleet) {
+			updateFleet(fleet, updatedFleet);
+		}
 	}
 
 	async function renameFleet(fleet: CommandedFleet, name: string): Promise<void> {
-		const updatedFleet = await FleetService.rename(fleet, name);
-		updateFleet(fleet, updatedFleet);
+		const { fleet: updatedFleet } = await fleetClient.renameFleet({
+			gameId,
+			fleetNum: fleet.mapObject?.num ?? 0,
+			name: name
+		});
+		if (updatedFleet) {
+			updateFleet(fleet, updatedFleet);
+		}
 	}
 
 	async function updatePlanetOrders(planet: CommandedPlanet): Promise<void> {
-		const resp = await PlanetService.updatePlanetOrders(planet);
+		const resp = await planetClient.updatePlanetOrders({
+			gameId,
+			planetNum: planet.mapObject.num,
+			planetOrders: planet.planetOrders
+		});
 
-		// changing the planet orders changes the player's spec
-		updatePlayer(resp.player);
-		updatePlanet(planet, resp.planet);
+		if (resp.player && resp.planet) {
+			// changing the planet orders changes the player's spec
+			await updatePlayer(resp.player);
+			updatePlanet(planet, resp.planet);
+		}
 	}
 
 	async function updateMinefieldOrders(minefield: Minefield): Promise<void> {
-		const updatedMinefield = await MinefieldService.updateMinefieldOrders(minefield);
-		updateMinefield(minefield, updatedMinefield);
+		const { minefield: updatedMinefield } = await minefieldClient.updateMinefieldOrders({
+			gameId,
+			minefieldNum: minefield.mapObject?.num ?? 0,
+			minefieldOrders: minefield.minefieldOrders
+		});
+		if (updatedMinefield) {
+			updateMinefield(minefield, updatedMinefield);
+		}
 	}
 
 	async function transferCargo(
@@ -1032,49 +1114,53 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		dest: CargoDest,
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
-		const result = await FleetService.transferCargo(fleet, dest, transferAmount.jsonData());
+		const result = await fleetClient.transferCargo({
+			gameId,
+			fleetNum: fleet.mapObject?.num ?? 0,
+			mo: dest?.mapObject,
+			transferAmount: create(CargoSchema, transferAmount),
+			fuelTransferAmount: transferAmount.fuel
+		});
 		const u = get(universe);
 
-		if (result.player) {
-			updatePlayer(result.player);
-		}
+		await updatePlayer(result.player);
+		updateFleet(fleet, result.fleet);
 
-		if (result.dest?.type == MapObjectTypePlanet) {
-			const planet = result.dest as Planet;
+		if (result.dest?.value?.mapObject?.type === MapObjectType.PLANET) {
+			const planet = create(PlanetSchema, result.dest.value as Planet);
 			updatePlanet(dest as Planet, planet);
-		} else if (result.dest?.type == MapObjectTypeFleet) {
+		} else if (result.dest?.value?.mapObject?.type === MapObjectType.FLEET) {
 			// update the destination fleet in the universe
-			const destFleet = result.dest as Fleet;
+			const destFleet = create(FleetSchema, result.dest.value as Fleet);
 			updateFleet(dest as Fleet, destFleet);
-		} else if (result.dest?.type == MapObjectTypeMineralPacket) {
-			const destMineralPacket = result.dest as AnyMineralPacket;
+		} else if (result.dest?.value?.mapObject?.type === MapObjectType.MINERAL_PACKET) {
+			// TODO: do we need to create different mineral packets here?
+			const destMineralPacket = create(MineralPacketSchema, result.dest.value as MineralPacket);
 			u.updateMineralPacket(destMineralPacket);
-		} else if (result.dest?.type == MapObjectTypeSalvage) {
-			const destSalvage = result.dest as SalvageIntel;
+		} else if (result.dest?.value?.mapObject?.type === MapObjectType.SALVAGE) {
+			const destSalvage = create(SalvageIntelSchema, result.dest.value as SalvageIntel);
 			u.updateSalvage(destSalvage);
 		}
 
 		const smo = get(selectedMapObject);
-		if (smo && smo.type == MapObjectTypeSalvage) {
-			const salvage = u.getSalvage(smo.num);
+		if (smo && smo.mapObject?.type === MapObjectType.SALVAGE) {
+			const salvage = u.getSalvage(smo.mapObject?.num);
 			if (salvage) {
 				selectMapObject(salvage);
 			}
 		}
-		if (smo && smo.type == MapObjectTypeMineralPacket) {
-			const mineralPacket = u.getMineralPacket(smo.playerNum, smo.num);
+		if (smo && smo.mapObject?.type === MapObjectType.MINERAL_PACKET) {
+			const mineralPacket = u.getMineralPacket(smo.mapObject?.playerNum, smo.mapObject?.num);
 			if (mineralPacket) {
 				selectMapObject(mineralPacket);
 			}
 		}
-
-		updateFleet(fleet, result.fleet);
 	}
 
 	async function split(
 		src: CommandedFleet,
 		dest: Fleet | undefined,
-		srcTokens: ShipToken[],
+		sourceTokens: ShipToken[],
 		destTokens: ShipToken[],
 		transferAmount: CargoTransferRequest
 	): Promise<void> {
@@ -1082,7 +1168,16 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 			source: updatedSource,
 			dest: updatedDest,
 			cargoTransfers
-		} = await FleetService.split(src, dest, srcTokens, destTokens, transferAmount);
+		} = await fleetClient.splitFleet({
+			gameId,
+			sourceFleetNum: src.mapObject.num,
+			destFleetNum: dest?.mapObject?.num,
+			destBaseName: dest?.baseName,
+			sourceTokens,
+			destTokens,
+			transferAmount,
+			fuelTransferAmount: transferAmount.fuel
+		});
 
 		const u = get(universe);
 
@@ -1090,8 +1185,8 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 		// and we have no response.dest, this means the original source was deleted
 		// and has become the source, i.e. we moved all tokens from source to dest, creating
 		// a new fleet. Weird edge case.
-		if (src.num != updatedSource.num) {
-			u.removeFleets([src.num]);
+		if (updatedSource && src.mapObject.num !== updatedSource.mapObject?.num) {
+			u.removeFleets([src.mapObject.num]);
 			u.addFleets([updatedSource]);
 		}
 
@@ -1105,29 +1200,36 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 		// update or add the new fleets to the universe
 		if (updatedDest) {
-			if (dest?.num == 0) {
+			if (!dest?.mapObject?.num) {
 				u.addFleets([updatedDest]);
 			} else {
 				u.updateFleet(updatedDest);
 			}
 		} else {
 			// if we had a dest and it was deleted, remove it
-			if (dest) {
-				u.removeFleets([dest.num]);
+			if (dest?.mapObject?.num) {
+				u.removeFleets([dest.mapObject.num]);
 			}
 		}
 
 		const index = get(currentSelectedWaypointIndex);
-		if (index > -1 && commandedFleet.waypoints && commandedFleet.waypoints.length > index) {
-			selectWaypoint(commandedFleet.waypoints[index]);
+		if (
+			index > -1 &&
+			commandedFleet.fleetOrders?.waypoints &&
+			commandedFleet.fleetOrders?.waypoints.length > index
+		) {
+			selectWaypoint(commandedFleet.fleetOrders?.waypoints[index]);
 		}
-		updateCargoTransfers(cargoTransfers);
+		await updateCargoTransfers(cargoTransfers);
 	}
 
 	async function splitAll(fleet: CommandedFleet): Promise<void> {
-		const { fleets, cargoTransfers } = await FleetService.splitAll(fleet.gameId, fleet);
+		const { fleets, cargoTransfers } = await fleetClient.splitAllFleets({
+			gameId,
+			fleetNum: fleet.mapObject?.num ?? 0
+		});
 
-		const sourceFleet = fleets.find((f) => f.num == fleet.num);
+		const sourceFleet = fleets.find((f) => f.mapObject?.num == fleet.mapObject?.num);
 		if (sourceFleet) {
 			fleet = Object.assign(fleet, sourceFleet);
 			commandMapObject(fleet);
@@ -1137,28 +1239,34 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 
 		// update and add the new fleets to the universe
 		u.updateFleet(fleet);
-		u.addFleets(fleets.filter((f) => f.num != fleet.num));
+		u.addFleets(fleets.filter((f) => f.mapObject?.num != fleet.mapObject?.num));
 
 		const index = get(currentSelectedWaypointIndex);
-		if (index > -1 && fleet.waypoints && fleet.waypoints.length > index) {
-			selectWaypoint(fleet.waypoints[index]);
+		if (index > -1 && fleet.fleetOrders?.waypoints && fleet.fleetOrders?.waypoints.length > index) {
+			selectWaypoint(fleet.fleetOrders?.waypoints[index]);
 		}
 
-		updateCargoTransfers(cargoTransfers);
+		if (cargoTransfers) {
+			await updateCargoTransfers(cargoTransfers);
+		}
 	}
 
 	async function merge(fleet: CommandedFleet, fleetNums: number[]): Promise<void> {
-		const { fleet: updatedFleet, cargoTransfers } = await FleetService.merge(fleet, fleetNums);
+		const { fleet: updatedFleet, cargoTransfers } = await fleetClient.mergeFleets({
+			gameId,
+			fleetNum: fleet.mapObject?.num ?? 0,
+			fleetNums
+		});
 
 		get(universe).removeFleets(fleetNums);
 		updateFleet(fleet, updatedFleet);
-		updateCargoTransfers(cargoTransfers);
+		await updateCargoTransfers(cargoTransfers);
 	}
 
-	function updateCargoTransfers(cargoTransfers: CargoTransfers) {
+	async function updateCargoTransfers(cargoTransfers: { [key: string]: CargoTransfers }) {
 		const p = get(player);
-		p.cargoTransfers = cargoTransfers;
-		updatePlayer(p);
+		p.playerOrders.cargoTransfers = cargoTransfers;
+		await updatePlayer(p);
 	}
 
 	return {
@@ -1234,7 +1342,7 @@ export function createGameContext(cs: CS, fg: FullGame): GameContext {
 	};
 }
 
-function loadSettingsOrDefault(gameId: number, playerNum: number): PlayerSettings {
+function loadSettingsOrDefault(gameId: bigint, playerNum: number): PlayerSettings {
 	const key = PlayerSettings.key(gameId, playerNum);
 
 	const json = localStorage.getItem(key);
@@ -1242,12 +1350,12 @@ function loadSettingsOrDefault(gameId: number, playerNum: number): PlayerSetting
 		const settingsJSON = JSON.parse(json) as PlayerSettings;
 		if (settingsJSON) {
 			// create a new object
-			const settings = new PlayerSettings(gameId, playerNum);
+			const settings = new PlayerSettings(`${gameId}`, playerNum);
 			Object.assign(settings, settingsJSON);
 			settings.afterLoad();
 			return settings;
 		}
 	}
 
-	return new PlayerSettings(gameId, playerNum);
+	return new PlayerSettings(`${gameId}`, playerNum);
 }

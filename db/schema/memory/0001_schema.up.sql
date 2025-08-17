@@ -53,7 +53,6 @@ CREATE TABLE
     research_cost_electronics TEXT NOT NULL DEFAULT '',
     research_cost_biotechnology TEXT NOT NULL DEFAULT '',
     techs_start_high BOOLEAN NOT NULL DEFAULT 0,
-    spec TEXT NOT NULL DEFAULT '{}',
     CONSTRAINT fk_users_races FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
   );
 
@@ -372,7 +371,6 @@ CREATE TABLE
     num_mines INTEGER NOT NULL DEFAULT 0,
     detonate BOOLEAN NOT NULL DEFAULT 0,
     minefield_type TEXT NOT NULL DEFAULT '',
-    spec TEXT NOT NULL DEFAULT '{}',
     tags TEXT NOT NULL DEFAULT '{}',
     UNIQUE (game_id, player_num, num),
     CONSTRAINT fk_players_minefields FOREIGN KEY (game_id, player_num) REFERENCES players (game_id, num),

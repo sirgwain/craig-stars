@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import type { TechHull } from '$lib/types/cs-proto';
 	import { showTooltip } from '$lib/services/Stores';
 	import TechHullTooltip from './TechHullTooltip.svelte';
 
@@ -14,7 +15,6 @@
 </script>
 
 <script lang="ts">
-	import type { TechHull } from '$lib/types/cs';
 	import Hull from '../design/Hull.svelte';
 
 	let { hull }: TechHullTooltipProps = $props();

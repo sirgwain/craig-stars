@@ -108,42 +108,6 @@ func (s *server) mustGetUserSession(_ http.ResponseWriter, r *http.Request) user
 	}
 }
 
-func me(w http.ResponseWriter, r *http.Request) {
-	userInfo, err := token.GetUserInfo(r)
-	if err != nil {
-		log.Printf("failed to get user info, %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	userID, err := strconv.ParseInt(userInfo.StrAttr(attrDatabaseID), 10, 64)
-	if err != nil {
-		log.Printf("failed to get user info, %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	var discordID string
-	var discordAvatar string
-
-	if val, ok := userInfo.Attributes["discord_id"]; ok {
-		discordID = val.(string)
-	}
-	if val, ok := userInfo.Attributes["discord_avatar"]; ok {
-		discordAvatar = val.(string)
-	}
-
-	res := userSession{
-		ID:            userID,
-		Username:      userInfo.Name,
-		Role:          userInfo.Role,
-		DiscordID:     discordID,
-		DiscordAvatar: discordAvatar,
-	}
-
-	RenderJSON(w, res)
-}
-
 // create a new user from a token
 func (s *server) createNewDiscordUser(ctx context.Context, tokenUser tokenUser) (*cs.User, error) {
 

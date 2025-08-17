@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/race.proto";
+
+message PRTSpec {
+  Prt prt = 1;
+  int32 point_cost = 2;
+  TechLevel starting_tech_levels = 3;
+  repeated StartingPlanet starting_planets = 4;
+  map<int32, double> tech_cost_offset = 5;
+  int32 minerals_per_single_mineral_packet = 6;
+  int32 minerals_per_mixed_mineral_packet = 7;
+  int32 packet_resource_cost = 8;
+  double packet_mineral_cost_factor = 9;
+  double packet_receiver_factor = 10;
+  double packet_decay_factor = 11;
+  int32 packet_over_safe_warp_penalty = 12;
+  bool packet_built_in_scanner = 13;
+  bool detect_packet_destination_starbases = 14;
+  bool detect_all_packets = 15;
+  double packet_terraform_chance = 16;
+  double packet_permaform_chance = 17;
+  int32 packet_perma_terraform_size_unit = 18;
+  bool can_gate_cargo = 19;
+  bool can_detect_stargate_planets = 20;
+  bool ships_vanish_in_void = 21;
+  BuiltInScanner built_in_scanner = 22;
+  int32 techs_cost_extra_level = 23;
+  FreighterGrowth freighter_growth = 24;
+  double growth_factor = 25;
+  double max_population_offset = 26;
+  int32 built_in_cloak_units = 27;
+  StealsResearch steals_research = 28;
+  bool free_cargo_cloaking = 29;
+  bool minefields_are_scanners = 30;
+  double minefield_rate_move_factor = 31;
+  int32 minefield_safe_warp_bonus = 32;
+  double minefield_min_decay_factor = 33;
+  double minefield_base_decay_rate = 34;
+  double minefield_planet_decay_rate = 35;
+  double minefield_max_decay_rate = 36;
+  bool can_detonate_minefields = 37;
+  double minefield_detonate_decay_rate = 38;
+  bool discover_design_on_scan = 39;
+  bool can_remote_mine_own_planets = 40;
+  double invasion_attack_bonus = 41;
+  double invasion_defend_bonus = 42;
+  double movement_bonus = 43;
+  bool instaforming = 44;
+  double permaform_chance = 45;
+  int32 permaform_population = 46;
+  double repair_factor = 47;
+  double starbase_repair_factor = 48;
+  double starbase_cost_factor = 49;
+  bool innate_mining = 50;
+  double innate_mines_factor = 51;
+  bool innate_resources = 52;
+  bool innate_scanner = 53;
+  double innate_scanner_factor = 54;
+  bool can_build_defenses = 55;
+  bool lives_on_starbases = 56;
+  int32 min_hab_floor = 57;
+}
+
+message LRTSpec {
+  uint32 lrt = 1;
+  repeated StartingFleet starting_fleets = 2;
+  int32 point_cost = 3;
+  TechLevel starting_tech_levels = 4;
+  map<int32, double> tech_cost_offset = 5;
+  double new_tech_cost_factor_offset = 6;
+  double miniaturization_max = 7;
+  double miniaturization_per_level = 8;
+  bool no_advanced_scanners = 9;
+  double scan_range_factor_offset = 10;
+  double fuel_efficiency_offset = 11;
+  double max_population_offset = 12;
+  int32 mineral_alchemy_cost_offset = 13;
+  double scrap_mineral_offset = 14;
+  double scrap_mineral_offset_starbase = 15;
+  double scrap_resources_offset = 16;
+  double scrap_resources_offset_starbase = 17;
+  double starting_population_factor_delta = 18;
+  int32 starbase_built_in_cloak_units = 19;
+  double starbase_cost_factor = 20;
+  double research_factor_offset = 21;
+  double research_splash_damage = 22;
+  double shield_strength_factor_offset = 23;
+  double shield_regeneration_rate_offset = 24;
+  double armor_strength_factor_offset = 25;
+  double engine_failure_rate_offset = 26;
+  int32 engine_reliable_speed = 27;
+}

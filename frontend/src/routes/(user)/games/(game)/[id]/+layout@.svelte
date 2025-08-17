@@ -4,14 +4,17 @@
 	import ErrorPage from '$lib/components/ErrorPage.svelte';
 	import Menu from '$lib/components/Menu.svelte';
 	import { bindNavigationHotkeys, unbindNavigationHotkeys } from '$lib/navigationHotkeys';
-	import type { CSError } from '$lib/services/Errors';
-	import type { FullGame } from '$lib/services/FullGame';
+	import { gameClient, playerClient } from '$lib/services/connect';
+	import { FullGame } from '$lib/services/FullGame';
 	import { createGameContext, gameKey, type GameContext } from '$lib/services/GameContext';
-	import { GameService } from '$lib/services/GameService';
 	import { clearLoadingModalText, me, setLoadingModalText } from '$lib/services/Stores';
-	import { GameStateSetup, GameStateWaitingForPlayers, type GameState } from '$lib/types/cs';
+	import { Universe } from '$lib/services/Universe';
+	import { GameState } from '$lib/types/cs-proto';
+	import { getGameWithPlayersFlat } from '$lib/types/Game';
+	import { CommandedPlayer } from '$lib/types/Player';
 	import { wait } from '$lib/wait';
 	import { loadWasm } from '$lib/wasm';
+	import { Code, type ConnectError } from '@connectrpc/connect';
 	import hotkeys from 'hotkeys-js';
 	import { onDestroy, onMount, setContext, type Snippet } from 'svelte';
 	import type { Unsubscriber } from 'svelte/store';
@@ -30,25 +33,26 @@
 	let contextSetup = $state(false);
 
 	let unsubscribe: Unsubscriber | undefined = $state();
-	let gameState: GameState = $state(GameStateSetup);
+	let gameState: GameState = $state(GameState.SETUP);
 	let year: number = $state(2400);
 
 	onMount(async () => {
 		try {
 			setLoadingModalText('Loading game...');
-
+			const wasmResp = loadWasm();
 			// on mount, load the game and setup the context used by the rest of the children
-			const loaded = await GameService.loadFullGame(id);
-			const cs = await loadWasm();
-			context = createGameContext(cs, loaded);
-			if (loaded.state == GameStateWaitingForPlayers) {
+			const { game, universe, player } = await loadFullGame(BigInt(id));
+
+			const cs = await wasmResp;
+			context = await createGameContext(cs, game, player, universe);
+			if (game.state === GameState.WAITING_FOR_PLAYERS) {
 				context.setFullyLoaded(true);
 			}
 
 			hotkeys.setScope('root');
 		} catch (e) {
-			const err = e as CSError;
-			if (err?.statusCode === 404) {
+			const err = e as ConnectError;
+			if (err?.code === Code.NotFound) {
 				error = 'Game not found';
 			} else {
 				error = `${e}`;
@@ -64,6 +68,7 @@
 		if (!context) return;
 
 		unsubscribe?.();
+		setContext(gameKey, undefined);
 	});
 
 	// if no context is defined, create it
@@ -85,19 +90,48 @@
 		}
 	});
 
+	// load the full game with intel and universe objects
+	async function loadFullGame(gameId: bigint) {
+		const { game } = await gameClient.getGame({ gameId });
+		if (!game) {
+			throw Error('failed to load game');
+		}
+		const fg = Object.assign(new FullGame(), getGameWithPlayersFlat(game));
+
+		// create empty universe/player objects as placeholders
+		const u = new Universe();
+		const p: CommandedPlayer = new CommandedPlayer();
+		if (fg.state != GameState.SETUP) {
+			const playerResp = playerClient.getPlayer({ gameId });
+			const { universe } = await playerClient.getUniverse({ gameId });
+			const { player, intels, designs } = await playerResp;
+
+			if (!universe || !player) {
+				throw Error('failed to load player and universe');
+			}
+			// configure the universe for the player after the player is loaded
+			u.setData({ ...universe, designs }, intels);
+			u.setPlayerNum(player.num);
+
+			// update the player
+			Object.assign(p, player);
+		}
+
+		return { game: fg, player: p, universe: u };
+	}
+
 	// every time the game updates, check if we have a new year/state change
 	// and if so, reset the context
 	async function onGameChange(game: FullGame) {
 		if (!context) return;
 
 		if (gameState != game.state || year != game.year) {
-			// console.log('game state changed');
-			const loaded = await GameService.loadFullGame(id);
+			const { game, universe, player } = await loadFullGame(BigInt(id));
 
-			gameState = loaded.state;
-			year = loaded.year;
-			context.resetContext(loaded);
-			if (loaded.state == GameStateWaitingForPlayers) {
+			gameState = game.state;
+			year = game.year;
+			await context.resetContext(game, player, universe);
+			if (game.state === GameState.WAITING_FOR_PLAYERS) {
 				context.setFullyLoaded(true);
 			}
 
@@ -106,7 +140,7 @@
 
 		// if the game is active and we haven't submitted our turn
 		// bind the navigation hotkeys
-		if (gameState == GameStateWaitingForPlayers && !get(context.player).submittedTurn) {
+		if (gameState === GameState.WAITING_FOR_PLAYERS && !get(context.player).submittedTurn) {
 			// reset key bindings
 			unbindNavigationHotkeys();
 			hotkeys.unbind('F9', 'root');
@@ -128,7 +162,7 @@
 		// waiting to submit our turn
 		const g = get(context.game);
 		const p = get(context.player);
-		if (g.state != GameStateWaitingForPlayers || p.submittedTurn) {
+		if (g.state !== GameState.WAITING_FOR_PLAYERS || p.submittedTurn) {
 			return;
 		}
 

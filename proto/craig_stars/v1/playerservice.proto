@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/fleet.proto";
+import "craig_stars/v1/game.proto";
+import "craig_stars/v1/planet.proto";
+import "craig_stars/v1/player.proto";
+import "craig_stars/v1/shipdesign.proto";
+
+service PlayerService {
+  rpc GetPlayer(GetPlayerRequest) returns (GetPlayerResponse);
+  rpc GetUniverse(GetUniverseRequest) returns (GetUniverseResponse);
+  rpc SubmitTurn(SubmitTurnRequest) returns (SubmitTurnResponse);
+  rpc UnsubmitTurn(UnsubmitTurnRequest) returns (UnsubmitTurnResponse);
+  rpc UpdatePlayerOrders(UpdatePlayerOrdersRequest) returns (UpdatePlayerOrdersResponse);
+  rpc UpdatePlayerRelations(UpdatePlayerRelationsRequest) returns (UpdatePlayerRelationsResponse);
+}
+
+service BattlePlanService {
+  rpc GetBattlePlan(GetBattlePlanRequest) returns (GetBattlePlanResponse);
+  rpc CreateBattlePlan(CreateBattlePlanRequest) returns (CreateBattlePlanResponse);
+  rpc UpdateBattlePlan(UpdateBattlePlanRequest) returns (UpdateBattlePlanResponse);
+  rpc DeleteBattlePlan(DeleteBattlePlanRequest) returns (DeleteBattlePlanResponse);
+}
+
+service ProductionPlanService {
+  rpc GetProductionPlan(GetProductionPlanRequest) returns (GetProductionPlanResponse);
+  rpc CreateProductionPlan(CreateProductionPlanRequest) returns (CreateProductionPlanResponse);
+  rpc UpdateProductionPlan(UpdateProductionPlanRequest) returns (UpdateProductionPlanResponse);
+  rpc DeleteProductionPlan(DeleteProductionPlanRequest) returns (DeleteProductionPlanResponse);
+}
+
+service TransportPlanService {
+  rpc GetTransportPlan(GetTransportPlanRequest) returns (GetTransportPlanResponse);
+  rpc CreateTransportPlan(CreateTransportPlanRequest) returns (CreateTransportPlanResponse);
+  rpc UpdateTransportPlan(UpdateTransportPlanRequest) returns (UpdateTransportPlanResponse);
+  rpc DeleteTransportPlan(DeleteTransportPlanRequest) returns (DeleteTransportPlanResponse);
+}
+
+message GetPlayerRequest {
+  int64 game_id = 1;
+}
+
+message GetPlayerResponse {
+  Player player = 1;
+  Intels intels = 2;
+  repeated ShipDesign designs = 3;
+}
+
+message GetUniverseRequest {
+  int64 game_id = 1;
+}
+
+message GetUniverseResponse {
+  PlayerUniverse universe = 1;
+}
+
+message SubmitTurnRequest {
+  int64 game_id = 1;
+}
+message SubmitTurnResponse {
+  GameWithPlayers game = 1;
+  Player player = 2;
+}
+
+message UnsubmitTurnRequest {
+  int64 game_id = 1;
+}
+message UnsubmitTurnResponse {
+  Player player = 1;
+}
+
+message UpdatePlayerOrdersRequest {
+  int64 game_id = 1;
+  PlayerOrders orders = 2;
+}
+message UpdatePlayerOrdersResponse {
+  Player player = 1;
+  repeated Planet planets = 2;
+}
+
+message UpdatePlayerRelationsRequest {
+  int64 game_id = 1;
+  repeated PlayerRelationship relations = 2;
+}
+message UpdatePlayerRelationsResponse {
+  repeated PlayerRelationship relations = 1;
+}
+
+message GetBattlePlanRequest {
+  int64 game_id = 1;
+  int32 num = 2;
+}
+message GetBattlePlanResponse {
+  BattlePlan plan = 1;
+}
+message CreateBattlePlanRequest {
+  int64 game_id = 1;
+  BattlePlan plan = 2;
+}
+message CreateBattlePlanResponse {
+  BattlePlan plan = 1;
+}
+message UpdateBattlePlanRequest {
+  int64 game_id = 1;
+  BattlePlan plan = 2;
+}
+message UpdateBattlePlanResponse {
+  BattlePlan plan = 1;
+}
+message DeleteBattlePlanRequest {
+  int64 game_id = 1;
+  int32 num = 2;
+}
+message DeleteBattlePlanResponse {
+  Player player = 1;
+  repeated Fleet fleets = 2;
+  repeated Fleet starbases = 3;
+}
+
+message GetProductionPlanRequest {
+  int64 game_id = 1;
+  int32 num = 2;
+}
+message GetProductionPlanResponse {
+  ProductionPlan plan = 1;
+}
+message CreateProductionPlanRequest {
+  int64 game_id = 1;
+  ProductionPlan plan = 2;
+}
+message CreateProductionPlanResponse {
+  ProductionPlan plan = 1;
+}
+message UpdateProductionPlanRequest {
+  int64 game_id = 1;
+  ProductionPlan plan = 2;
+}
+message UpdateProductionPlanResponse {
+  ProductionPlan plan = 1;
+}
+message DeleteProductionPlanRequest {
+  int64 game_id = 1;
+  int32 num = 2;
+}
+message DeleteProductionPlanResponse {}
+message GetTransportPlanRequest {
+  int64 game_id = 1;
+  int32 num = 2;
+}
+message GetTransportPlanResponse {
+  TransportPlan plan = 1;
+}
+message CreateTransportPlanRequest {
+  int64 game_id = 1;
+  TransportPlan plan = 2;
+}
+message CreateTransportPlanResponse {
+  TransportPlan plan = 1;
+}
+message UpdateTransportPlanRequest {
+  int64 game_id = 1;
+  TransportPlan plan = 2;
+}
+message UpdateTransportPlanResponse {
+  TransportPlan plan = 1;
+}
+message DeleteTransportPlanRequest {
+  int64 game_id = 1;
+  int32 num = 2;
+}
+message DeleteTransportPlanResponse {}

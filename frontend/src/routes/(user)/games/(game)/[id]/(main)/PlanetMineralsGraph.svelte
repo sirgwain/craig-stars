@@ -3,11 +3,11 @@
 	import MineralTooltip, {
 		type MineralTooltipProps
 	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
+	import type { MineralJson } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
 	import type { AnyPlanet } from '$lib/services/Universe';
-	import type { Mineral } from '$lib/types/cs';
 
 	const { settings } = getGameContext();
 
@@ -25,7 +25,7 @@
 		divisions[i] = (i * (max / (numDivisions - 1))).toFixed();
 	}
 
-	let barPercent: Mineral = $derived(
+	let barPercent: MineralJson = $derived(
 		planet.cargo
 			? {
 					ironium: clamp(planet.cargo.ironium ? (planet.cargo.ironium / max) * 100 : 0, 0, 100),
@@ -39,7 +39,7 @@
 			: { ironium: 0, boranium: 0, germanium: 0 }
 	);
 
-	let concentrationPercent: Mineral = $derived(
+	let concentrationPercent: MineralJson = $derived(
 		planet.mineralConcentration
 			? {
 					ironium: clamp(

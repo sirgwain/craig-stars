@@ -1,16 +1,12 @@
-import type { Mineral } from './cs';
+import { MineralSchema, type CargoJson, type Mineral, type MineralJson } from '$lib/types/cs-proto';
+import { create } from '@bufbuild/protobuf';
 
-export const MineralTypes = {
-	Ironium: 0,
-	Boranium: 1,
-	Germanium: 2
-} as const;
-
-export const totalMinerals = (c: Mineral | undefined) =>
+export const totalMinerals = (c: MineralJson | CargoJson | undefined) =>
 	c ? (c.ironium ?? 0) + (c.boranium ?? 0) + (c.germanium ?? 0) : 0;
 
-export const addToAll = (m: Mineral, i: number): Mineral => ({
-	ironium: (m.ironium ?? 0) + i,
-	boranium: (m.boranium ?? 0) + i,
-	germanium: (m.germanium ?? 0) + i
-});
+export const addToAll = (m: Mineral, i: number): Mineral =>
+	create(MineralSchema, {
+		ironium: (m.ironium ?? 0) + i,
+		boranium: (m.boranium ?? 0) + i,
+		germanium: (m.germanium ?? 0) + i
+	});

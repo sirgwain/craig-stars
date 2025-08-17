@@ -1,17 +1,26 @@
 <script lang="ts">
-	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import Galaxy from '$lib/components/icons/Galaxy.svelte';
 	import Processor from '$lib/components/icons/Processor.svelte';
-	import { GameService } from '$lib/services/GameService';
-	import { PlayerService } from '$lib/services/PlayerService';
+	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import { gameClient } from '$lib/services/connect';
 	import { me } from '$lib/services/Stores';
-	import { GameStateSetup, type GameWithPlayers } from '$lib/types/cs';
+	import { GameState, type GameWithPlayers } from '$lib/types/cs-proto';
 	import { onMount } from 'svelte';
 	import ActiveGameRow from './ActiveGameRow.svelte';
 	import SetupGameRow from './SetupGameRow.svelte';
 
 	const sorter = (a: GameWithPlayers, b: GameWithPlayers) =>
-		b.createdAt && a.createdAt ? b.createdAt.localeCompare(a.createdAt) : 0;
+		b.game?.createdAt && a.game?.createdAt
+			? new Date(
+					Number(b.game.createdAt.seconds) * 1000 + Math.floor(b.game.createdAt.nanos / 1000000)
+				)
+					.toISOString()
+					.localeCompare(
+						new Date(
+							Number(a.game.createdAt.seconds) * 1000 + Math.floor(a.game.createdAt.nanos / 1000000)
+						).toISOString()
+					)
+			: 0;
 
 	let games: GameWithPlayers[] = $state([]);
 	let openGames: GameWithPlayers[] = $state([]);
@@ -19,53 +28,60 @@
 	// all games where I am a player
 	let myGames = $derived(
 		games
-			.filter((g) => !(g.archived || g.players.find((p) => p.userId == $me.id)?.archived))
+			.filter(
+				(g) => !(g.game?.archived || g.players.find((p) => p.userId == BigInt($me.id))?.archived)
+			)
 			.sort(sorter)
 	);
 	// find all multiplayer games we are part of in setup
 	let gamesWaitingToStart = $derived(
 		myGames
-			.filter((g) => g.state == GameStateSetup)
-			.filter((g) => g.players.find((p) => p.userId != $me.id))
+			.filter((g) => g.game?.state == GameState.SETUP)
+			.filter((g) => g.players.find((p) => p.userId != BigInt($me.id)))
 	);
 
 	// find all multiplayer games where we haven't submitted a turn yet
 	let newTurnGames = $derived(
 		myGames
-			.filter((g) => g.state != GameStateSetup)
-			.filter((g) => !g.players.find((p) => p.userId == $me.id)?.submittedTurn)
-			.filter((g) => g.players.find((p) => p.userId != $me.id && !p.aiControlled))
+			.filter((g) => g.game?.state != GameState.SETUP)
+			.filter((g) => !g.players.find((p) => p.userId == BigInt($me.id))?.submittedTurn)
+			.filter((g) => g.players.find((p) => p.userId != BigInt($me.id) && !p.aiControlled))
 	);
 
 	// find all single player games
 	let singlePlayerGames = $derived(
-		myGames.filter((g) => !g.players.find((p) => p.userId != $me.id && !p.aiControlled))
+		myGames.filter((g) => !g.players.find((p) => p.userId != BigInt($me.id) && !p.aiControlled))
 	);
 
 	// find all games where we've submitted our turn
 	let submittedTurnGames = $derived(
-		myGames.filter((g) => g.players.find((p) => p.userId == $me.id)?.submittedTurn)
+		myGames.filter((g) => g.players.find((p) => p.userId == BigInt($me.id))?.submittedTurn)
 	);
 
 	onMount(async () => {
-		games = await GameService.loadPlayerGames();
-		openGames = (await GameService.loadOpenGames()).filter((g) => g.hostId != $me.id).sort(sorter);
+		const playerGamesResponse = await gameClient.getGames({ open: false });
+		games = playerGamesResponse.games;
+
+		const openGamesResponse = await gameClient.getGames({ open: true });
+		openGames = openGamesResponse.games
+			.filter((g) => g.game?.hostId !== BigInt($me.id))
+			.sort(sorter);
 	});
 
 	function removeGame(game: GameWithPlayers) {
-		games = games.filter((g) => g.id !== game.id);
-		openGames = openGames.filter((g) => g.id !== game.id);
+		games = games.filter((g) => g.game?.id !== game.game?.id);
+		openGames = openGames.filter((g) => g.game?.id !== game.game?.id);
 	}
 
 	async function deleteGame(game: GameWithPlayers) {
-		if (game.id && confirm(`Are you sure you want to delete ${game.name}?`)) {
-			await GameService.deleteGame(game.id);
+		if (game.game?.id && confirm(`Are you sure you want to delete ${game.game?.name}?`)) {
+			await gameClient.deleteGame({ gameId: game.game.id });
 			removeGame(game);
 		}
 	}
 	async function archiveGame(game: GameWithPlayers) {
-		if (game.id && confirm(`Are you sure you want to archive ${game.name}?`)) {
-			await PlayerService.archiveGame(game.id);
+		if (game.game?.id && confirm(`Are you sure you want to archive ${game.game?.name}?`)) {
+			await gameClient.archiveGame({ gameId: game.game.id });
 			removeGame(game);
 		}
 	}
@@ -94,7 +110,7 @@
 			<div class="col-span-3 text-secondary">Players</div>
 			<div class="col-span-2"></div>
 
-			{#each newTurnGames as game (game.id)}
+			{#each newTurnGames as game (game.game?.id)}
 				<ActiveGameRow
 					{game}
 					onDelete={() => deleteGame(game)}
@@ -113,7 +129,7 @@
 		<div class="col-span-2 text-secondary">Year</div>
 		<div class="col-span-3 text-secondary">Players</div>
 		<div class="col-span-2"></div>
-		{#each singlePlayerGames as game (game.id)}
+		{#each singlePlayerGames as game (game.game?.id)}
 			<ActiveGameRow
 				{game}
 				showNumSubmitted={false}
@@ -133,7 +149,7 @@
 		<div class="col-span-3 text-secondary">Players</div>
 		<div class="col-span-2"></div>
 
-		{#each submittedTurnGames as game (game.id)}
+		{#each submittedTurnGames as game (game.game?.id)}
 			<ActiveGameRow {game} onDelete={() => deleteGame(game)} onArchive={() => archiveGame(game)} />
 		{/each}
 	</div>
@@ -144,7 +160,7 @@
 		<div class="col-span-5 text-secondary">Name</div>
 		<div class="col-span-5 text-secondary">Players</div>
 		<div class="col-span-2"></div>
-		{#each gamesWaitingToStart as game (game.id)}
+		{#each gamesWaitingToStart as game (game.game?.id)}
 			<SetupGameRow {game} onDelete={() => deleteGame(game)} />
 		{/each}
 	</div>
@@ -157,7 +173,7 @@
 		<div class="col-span-5 text-secondary">Players</div>
 		<div class="col-span-2"></div>
 
-		{#each openGames as game (game.id)}
+		{#each openGames as game (game.game?.id)}
 			<SetupGameRow {game} onDelete={() => deleteGame(game)} />
 		{/each}
 	</div>

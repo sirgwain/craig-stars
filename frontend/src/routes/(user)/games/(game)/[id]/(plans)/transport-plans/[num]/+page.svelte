@@ -2,16 +2,19 @@
 	import { page } from '$app/state';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
+	import { addError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { CSError, addError } from '$lib/services/Errors';
-	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 	import { notify } from '$lib/services/Notifications';
-	import type { TransportPlan } from '$lib/types/cs';
+	import type { TransportPlan } from '$lib/types/cs-proto';
+	import type { ConnectError } from '@connectrpc/connect';
+	import TransportPlanEditor from '../TransportPlanEditor.svelte';
 
 	const { game, player, updateTransportPlan } = getGameContext();
 	let num = parseInt(page.params.num);
 
-	let plan: TransportPlan | undefined = $derived($player.transportPlans.find((p) => p.num == num));
+	let plan: TransportPlan | undefined = $derived(
+		$player.playerPlans.transportPlans.find((p) => p.num == num)
+	);
 
 	let error = $state('');
 
@@ -25,7 +28,7 @@
 				notify(`Saved ${plan.name}`);
 			}
 		} catch (e) {
-			addError(e as CSError);
+			addError(e as ConnectError);
 		}
 	};
 </script>

@@ -8,19 +8,10 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-//tygo:emit
-var _ = `export type cost<T extends number = number> = {
-    ironium?: T;
-    boranium?: T;
-    germanium?: T;
-    resources?: T;
-};
-`
-
 // A Cost represents minerals and resources required to build something, like a mine, factory, or ship
 // These are by default integers, but sometimes need to be treated as floats for applying
 // discounts and miniaturization
-type cost[T number] struct {
+type CostGeneric[T number] struct {
 	Ironium   T `json:"ironium,omitempty"`
 	Boranium  T `json:"boranium,omitempty"`
 	Germanium T `json:"germanium,omitempty"`
@@ -28,10 +19,10 @@ type cost[T number] struct {
 }
 
 // An integer cost, used for most outwards-facing cost-related operations.
-type Cost = cost[int]
+type Cost = CostGeneric[int]
 
 // A floating point cost, used within internal calculations for determining unit rates.
-type CostFloat64 = cost[float64]
+type CostFloat64 = CostGeneric[float64]
 
 // An integer or floating point value.
 type number interface {
@@ -48,8 +39,8 @@ var CostTypes = [4]CostType{
 }
 
 // Create a new Cost struct with the given values.
-func NewCost[T number](ironium, boranium, germanium, resources T) cost[T] {
-	return cost[T]{
+func NewCost[T number](ironium, boranium, germanium, resources T) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   ironium,
 		Boranium:  boranium,
 		Germanium: germanium,
@@ -75,7 +66,7 @@ func NewCostFromMineralAndResources(m Mineral, resources int) Cost {
 // Ties are broken in order of precendence (I>B>G>R); tie order not affected by negative indices
 //
 // panics if ranking is 0 or if abs(ranking) is greater than 4
-func (c cost[T]) HighestType(ranking int) (costType CostType, value T) {
+func (c CostGeneric[T]) HighestType(ranking int) (costType CostType, value T) {
 	// Fun fact: this code is designed to work for any arbitrarily large struct
 	// of similarly typed comparable values, only requiring changes to the
 	// method signature, doc comment and error message
@@ -96,7 +87,7 @@ func (c cost[T]) HighestType(ranking int) (costType CostType, value T) {
 
 // Return the first valid CostType in a Cost struct with the given numerical value;
 // panics if no CostType with the corresponding value exists
-func (c cost[T]) GetTypeFromAmount(amt T) CostType {
+func (c CostGeneric[T]) GetTypeFromAmount(amt T) CostType {
 	switch amt {
 	case c.Ironium:
 		return Ironium
@@ -110,7 +101,7 @@ func (c cost[T]) GetTypeFromAmount(amt T) CostType {
 	panic(fmt.Sprintf("GetTypeFromAmount called with value %v but no corresponding costType was found in cost struct; Struct values:\n%#v", amt, c))
 }
 
-func (c cost[T]) GetAmount(costType CostType) T {
+func (c CostGeneric[T]) GetAmount(costType CostType) T {
 	switch costType {
 	case Ironium:
 		return c.Ironium
@@ -128,7 +119,7 @@ func (c cost[T]) GetAmount(costType CostType) T {
 // Set sets the value corresponding to costType to amt.
 // Unlike all the other Cost functions, this _will_ mutate the original struct's values,
 // and is best used for more complex cases not handled by other functions.
-func (c *cost[T]) Set(costType CostType, amt T) {
+func (c *CostGeneric[T]) Set(costType CostType, amt T) {
 	switch costType {
 	case Ironium:
 		c.Ironium = amt
@@ -144,7 +135,7 @@ func (c *cost[T]) Set(costType CostType, amt T) {
 }
 
 // Return the Cargo equivalent of a Cost struct, truncating values as necessary.
-func (c cost[T]) ToCargo() Cargo {
+func (c CostGeneric[T]) ToCargo() Cargo {
 	return Cargo{
 		Ironium:   int(c.Ironium),
 		Boranium:  int(c.Boranium),
@@ -153,7 +144,7 @@ func (c cost[T]) ToCargo() Cargo {
 }
 
 // Return the Mineral equivalent of a Cost struct, truncating values as necessary.
-func (c cost[T]) ToMineral() Mineral {
+func (c CostGeneric[T]) ToMineral() Mineral {
 	return Mineral{
 		Ironium:   int(c.Ironium),
 		Boranium:  int(c.Boranium),
@@ -161,7 +152,7 @@ func (c cost[T]) ToMineral() Mineral {
 	}
 }
 
-func (c cost[T]) ToSlice() [4]T {
+func (c CostGeneric[T]) ToSlice() [4]T {
 	return [4]T{
 		c.Ironium,
 		c.Boranium,
@@ -171,7 +162,7 @@ func (c cost[T]) ToSlice() [4]T {
 }
 
 // Convert an integer cost into a floating point cost.
-func (c cost[T]) ToCostFloat64() CostFloat64 {
+func (c CostGeneric[T]) ToCostFloat64() CostFloat64 {
 	return CostFloat64{
 		Ironium:   float64(c.Ironium),
 		Boranium:  float64(c.Boranium),
@@ -181,7 +172,7 @@ func (c cost[T]) ToCostFloat64() CostFloat64 {
 }
 
 // Convert a floating point cost into an integer cost by truncating its values.
-func (c cost[T]) ToCost() Cost {
+func (c CostGeneric[T]) ToCost() Cost {
 	return Cost{
 		Ironium:   int(c.Ironium),
 		Boranium:  int(c.Boranium),
@@ -191,13 +182,13 @@ func (c cost[T]) ToCost() Cost {
 }
 
 // Returns the total sum of all resources in this Cost.
-func (c cost[T]) Total() T {
+func (c CostGeneric[T]) Total() T {
 	return c.Ironium + c.Boranium + c.Germanium + c.Resources
 }
 
 // Add 2 cost structs together and return the result.
-func (c cost[T]) Add(other cost[T]) cost[T] {
-	return cost[T]{
+func (c CostGeneric[T]) Add(other CostGeneric[T]) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   c.Ironium + other.Ironium,
 		Boranium:  c.Boranium + other.Boranium,
 		Germanium: c.Germanium + other.Germanium,
@@ -206,7 +197,7 @@ func (c cost[T]) Add(other cost[T]) cost[T] {
 }
 
 // Add a number to any singular component of a Cost struct.
-func (c cost[T]) AddNum(costType CostType, amount T) cost[T] {
+func (c CostGeneric[T]) AddNum(costType CostType, amount T) CostGeneric[T] {
 	switch costType {
 	case Ironium:
 		c.Ironium += amount
@@ -224,8 +215,8 @@ func (c cost[T]) AddNum(costType CostType, amount T) cost[T] {
 
 // Add amt to all components of this Cost struct and return the result.
 // Resources are left unaffected.
-func (c cost[T]) AddToAll(amt T) cost[T] {
-	return cost[T]{
+func (c CostGeneric[T]) AddToAll(amt T) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   c.Ironium + amt,
 		Boranium:  c.Boranium + amt,
 		Germanium: c.Germanium + amt,
@@ -234,8 +225,8 @@ func (c cost[T]) AddToAll(amt T) cost[T] {
 }
 
 // Add a Mineral to a cost struct and return the result.
-func (c cost[T]) AddMineral(other Mineral) cost[T] {
-	return cost[T]{
+func (c CostGeneric[T]) AddMineral(other Mineral) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   c.Ironium + T(other.Ironium),
 		Boranium:  c.Boranium + T(other.Boranium),
 		Germanium: c.Germanium + T(other.Germanium),
@@ -245,16 +236,16 @@ func (c cost[T]) AddMineral(other Mineral) cost[T] {
 
 // Add amt to all mineral components of this Cost struct and return the result.
 // Resources are left unaffected.
-func (c cost[T]) AddToAllMineral(amt T) cost[T] {
-	return cost[T]{
+func (c CostGeneric[T]) AddToAllMineral(amt T) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   c.Ironium + amt,
 		Boranium:  c.Boranium + amt,
 		Germanium: c.Germanium + amt,
 		Resources: c.Resources,
 	}
 }
-func (c cost[T]) Subtract(other cost[T]) cost[T] {
-	return cost[T]{
+func (c CostGeneric[T]) Subtract(other CostGeneric[T]) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   c.Ironium - other.Ironium,
 		Boranium:  c.Boranium - other.Boranium,
 		Germanium: c.Germanium - other.Germanium,
@@ -262,8 +253,8 @@ func (c cost[T]) Subtract(other cost[T]) cost[T] {
 	}
 }
 
-func (c cost[T]) SubtractMineral(other Mineral) cost[T] {
-	return cost[T]{
+func (c CostGeneric[T]) SubtractMineral(other Mineral) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   c.Ironium - T(other.Ironium),
 		Boranium:  c.Boranium - T(other.Boranium),
 		Germanium: c.Germanium - T(other.Germanium),
@@ -272,8 +263,8 @@ func (c cost[T]) SubtractMineral(other Mineral) cost[T] {
 }
 
 // Multiply a cost by an int or float and return the result.
-func MultiplyCost[T number, F int | float64](c cost[T], factor F) cost[T] {
-	return cost[T]{
+func MultiplyCost[T number, F int | float64](c CostGeneric[T], factor F) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   T(float64(c.Ironium) * float64(factor)),
 		Boranium:  T(float64(c.Boranium) * float64(factor)),
 		Germanium: T(float64(c.Germanium) * float64(factor)),
@@ -284,8 +275,8 @@ func MultiplyCost[T number, F int | float64](c cost[T], factor F) cost[T] {
 // Multiply a cost by another cost and return the resulting Cost struct.
 //
 // For multiplying a cost by an integer, use [MultiplyCost] instead
-func MultiplyByCost[T, F number](c cost[T], other cost[F]) (result cost[T]) {
-	return cost[T]{
+func MultiplyByCost[T, F number](c CostGeneric[T], other CostGeneric[F]) (result CostGeneric[T]) {
+	return CostGeneric[T]{
 		Ironium:   T(float64(c.Ironium) * float64(other.Ironium)),
 		Boranium:  T(float64(c.Boranium) * float64(other.Boranium)),
 		Germanium: T(float64(c.Germanium) * float64(other.Germanium)),
@@ -294,7 +285,7 @@ func MultiplyByCost[T, F number](c cost[T], other cost[F]) (result cost[T]) {
 }
 
 // DivideCost returns how many times divisor can go into dividend as a float64.
-func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
+func (dividend CostGeneric[T]) DivideCost(divisor CostGeneric[T]) float64 {
 	quotient := CostFloat64{}
 	for _, ct := range CostTypes {
 		if divisor.GetAmount(ct) == 0 {
@@ -311,14 +302,14 @@ func (dividend cost[T]) DivideCost(divisor cost[T]) float64 {
 //
 // This will tell us if we have enough minerals to build some item
 // (and if so, how many we can make)
-func (dividend cost[T]) DivideMineral(divisor Mineral) float64 {
+func (dividend CostGeneric[T]) DivideMineral(divisor Mineral) float64 {
 	dc := divisor.ToCost()
 	return dividend.ToCost().DivideCost(dc)
 }
 
 // Return greater of 2 Cost structs for all CostTypes separately
-func (c cost[T]) Max(other cost[T]) cost[T] {
-	return cost[T]{
+func (c CostGeneric[T]) Max(other CostGeneric[T]) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   max(c.Ironium, other.Ironium),
 		Boranium:  max(c.Boranium, other.Boranium),
 		Germanium: max(c.Germanium, other.Germanium),
@@ -327,8 +318,8 @@ func (c cost[T]) Max(other cost[T]) cost[T] {
 }
 
 // Return this Cost with a minimum of zero for each value
-func (c cost[T]) MinZero() cost[T] {
-	return cost[T]{
+func (c CostGeneric[T]) MinZero() CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   max(c.Ironium, 0),
 		Boranium:  max(c.Boranium, 0),
 		Germanium: max(c.Germanium, 0),
@@ -337,13 +328,13 @@ func (c cost[T]) MinZero() cost[T] {
 }
 
 // Return the lowest numerical value in a Cost struct
-func (c cost[T]) MinAmount() T {
+func (c CostGeneric[T]) MinAmount() T {
 	return min(c.Ironium, c.Boranium, c.Germanium, c.Resources)
 }
 
 // Round a cost struct's values by calling roundFunc on each of its values in turn.
-func (c cost[T]) Round(roundFunc func(T) T) cost[T] {
-	return cost[T]{
+func (c CostGeneric[T]) Round(roundFunc func(T) T) CostGeneric[T] {
+	return CostGeneric[T]{
 		Ironium:   roundFunc(c.Ironium),
 		Boranium:  roundFunc(c.Boranium),
 		Germanium: roundFunc(c.Germanium),

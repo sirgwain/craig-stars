@@ -3,7 +3,6 @@
 	import FuelBar from '$lib/components/game/FuelBar.svelte';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { type Fleet } from '$lib/types/cs';
 	import { canTransferCargo, CommandedFleet } from '$lib/types/Fleet';
 	import { getMapObjectName, key } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
@@ -11,6 +10,7 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onMount } from 'svelte';
 	import CommandTile from './CommandTile.svelte';
+	import type { Fleet } from '$lib/types/cs-proto';
 
 	const { commandedMapObjectKey, commandMapObject } = getGameContext();
 
@@ -68,7 +68,10 @@
 		<div class="flex justify-between my-1">
 			<div class="w-12">Fuel</div>
 			<div class="ml-1 h-full w-full">
-				<FuelBar value={selectedFleet.fuel} capacity={selectedFleet.spec.fuelCapacity} />
+				<FuelBar
+					value={selectedFleet.fuel}
+					capacity={selectedFleet.spec.shipDesignSpec?.fuelCapacity}
+				/>
 			</div>
 		</div>
 
@@ -79,7 +82,7 @@
 					onPointerDown={transfer}
 					canTransferCargo={canTransferCargo(selectedFleet)}
 					value={selectedFleet.cargo}
-					capacity={selectedFleet.spec.cargoCapacity}
+					capacity={selectedFleet.spec.shipDesignSpec?.cargoCapacity}
 				/>
 			</div>
 		</div>

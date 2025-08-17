@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type HabType, Grav, Temp, Rad } from '$lib/types/cs';
+	import { type HabType, Grav, Temp, Rad } from '$lib/types/Hab';
 	import { clamp } from '$lib/services/Math';
 
 	type Props = {

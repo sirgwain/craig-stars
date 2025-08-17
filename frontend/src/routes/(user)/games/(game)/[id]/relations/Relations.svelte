@@ -2,12 +2,7 @@
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
 	import SectionHeader from '$lib/components/SectionHeader.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import {
-		PlayerRelationEnemy,
-		PlayerRelationFriend,
-		PlayerRelationNeutral,
-		type PlayerRelationship
-	} from '$lib/types/cs';
+	import { PlayerRelation, type PlayerRelationship } from '$lib/types/cs-proto';
 	import { CommandedPlayer } from '$lib/types/Player';
 
 	const { universe } = getGameContext();
@@ -38,7 +33,7 @@
 						type="radio"
 						name={`player-relation-${index + 1}`}
 						class="radio checked:bg-success"
-						value={PlayerRelationFriend}
+						value={PlayerRelation.FRIEND}
 						bind:group={relation.relation}
 						onchange={updateRelationship}
 					/>
@@ -51,7 +46,7 @@
 						type="radio"
 						name={`player-relation-${index + 1}`}
 						class="radio checked:bg-info"
-						value={PlayerRelationNeutral}
+						value={PlayerRelation.NEUTRAL}
 						bind:group={relation.relation}
 						onchange={updateRelationship}
 					/>
@@ -64,7 +59,7 @@
 						type="radio"
 						name={`player-relation-${index + 1}`}
 						class="radio checked:bg-error"
-						value={PlayerRelationEnemy}
+						value={PlayerRelation.ENEMY}
 						bind:group={relation.relation}
 						onchange={updateRelationship}
 					/>

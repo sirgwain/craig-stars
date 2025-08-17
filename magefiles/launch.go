@@ -96,26 +96,23 @@ func Generate() error {
 		return err
 	}
 
+	fmt.Println("running buf gen ./...")
+	if err := sh.RunV("go", "tool", "buf", "generate"); err != nil {
+		return err
+	}
+
 	fmt.Println("running go generate ./...")
 	if err := sh.RunV("go", "generate", "./..."); err != nil {
 		return err
 	}
 
-	fmt.Println("running tygo generate")
-	if err := sh.RunV("go", "tool", "github.com/gzuidhof/tygo", "generate"); err != nil {
-		return err
-	}
-
-	// format generated tygo file on non-CI runs
-	if !is_CI() {
-		fmt.Println("running prettier on tygo generated file")
-		cmd := exec.Command("npx", "prettier", "--write", "./src/lib/types/cs.ts")
-		cmd.Dir = "./frontend"
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			return mg.Fatalf(1, "error during npx prettier --write: \n%w", err)
-		}
+	fmt.Println("running npm generate ./...")
+	cmd := exec.Command("npm", "run", "generate")
+	cmd.Dir = "./frontend"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return mg.Fatalf(1, "error during npm run generate: %w", err)
 	}
 
 	fmt.Println("generating techs.json")

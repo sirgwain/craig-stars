@@ -1,12 +1,12 @@
 <script lang="ts">
+	import type { WaypointTransportTasks } from '$lib/types/cs-proto';
 	import type {
+		ChangeWaypointTransportTasksEvent,
 		OnCancel,
 		OnOk,
-		TransportTasksDialogEvent,
-		ChangeWaypointTransportTasksEvent
+		TransportTasksDialogEvent
 	} from '$lib/services/Events';
 	import { emptyTransportTasks } from '$lib/types/Fleet';
-	import { type WaypointTransportTasks } from '$lib/types/cs';
 	import TransportTasks from '../../(plans)/transport-plans/TransportTasks.svelte';
 
 	type Props = {

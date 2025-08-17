@@ -1,8 +1,12 @@
 <script lang="ts">
+	import {
+		QueueItemCompletionEstimateSchema,
+		type ProductionQueueItem
+	} from '$lib/protogen/craig_stars/v1/planet_pb';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { Infinite } from '$lib/types/cs';
-	import type { ProductionQueueItem } from '$lib/types/cs';
+	import { Infinite } from '$lib/types/Consts';
 	import { getFullName, getShortName, isAuto } from '$lib/types/QueueItemType';
+	import { create } from '@bufbuild/protobuf';
 	import { onShipDesignTooltip } from './tooltips/ShipDesignTooltip.svelte';
 
 	const { universe } = getGameContext();
@@ -17,9 +21,17 @@
 
 	let { index, item, selected = false, shortName = false, onQueueItemClicked }: Props = $props();
 
-	let yearsToBuildAll = $derived(isAuto(item.type) ? item.yearsToSkipAuto : item.yearsToBuildAll);
+	let estimate = $derived(
+		item.queueItemCompletionEstimate ?? create(QueueItemCompletionEstimateSchema)
+	);
+
+	let yearsToBuildAll = $derived(
+		isAuto(item.type) ? estimate.yearsToSkipAuto : estimate.yearsToBuildAll
+	);
 	let skipped = $derived(
-		isAuto(item.type) && item.yearsToBuildOne == Infinite && item.yearsToBuildAll == Infinite
+		isAuto(item.type) &&
+			estimate.yearsToBuildOne == Infinite &&
+			estimate.yearsToBuildAll == Infinite
 	);
 </script>
 
@@ -28,15 +40,15 @@
 	onclick={() => onQueueItemClicked?.(index, item)}
 	oncontextmenu={(e) => onShipDesignTooltip(e, $universe.getMyDesign(item.designNum))}
 	class:italic={isAuto(item.type)}
-	class:text-queue-item-this-year={!item.skipped &&
-		(item.yearsToBuildOne ?? 0) <= 1 &&
-		item.yearsToBuildOne != Infinite}
-	class:text-queue-item-next-year={!item.skipped &&
-		((yearsToBuildAll ?? 0) > 1 || yearsToBuildAll === Infinite) &&
-		(item.yearsToBuildOne ?? 0) <= 1 &&
-		item.yearsToBuildOne != Infinite}
+	class:text-queue-item-this-year={!estimate.skipped &&
+		estimate.yearsToBuildOne <= 1 &&
+		estimate.yearsToBuildOne != Infinite}
+	class:text-queue-item-next-year={!estimate.skipped &&
+		(yearsToBuildAll > 1 || yearsToBuildAll === Infinite) &&
+		estimate.yearsToBuildOne <= 1 &&
+		estimate.yearsToBuildOne != Infinite}
 	class:text-queue-item-skipped={skipped}
-	class:text-queue-item-never={item.yearsToBuildOne == Infinite && !skipped}
+	class:text-queue-item-never={estimate.yearsToBuildOne == Infinite && !skipped}
 	class:bg-primary={selected}
 	class="w-full text-left px-1 select-none hover:text-secondary-focus"
 >

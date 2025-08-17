@@ -1,7 +1,6 @@
 <script lang="ts">
+	import type { TechDefense } from '$lib/types/cs-proto';
 	import { getDefenseCoverage, getSmartDefenseCoverage } from '$lib/types/Tech';
-
-	import type { TechDefense } from '$lib/types/cs';
 	import { scaleOrdinal } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
 	import AxisX from '../graph/AxisX.html.svelte';

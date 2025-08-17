@@ -2,16 +2,19 @@
 	import { page } from '$app/state';
 	import FormError from '$lib/components/FormError.svelte';
 	import Breadcrumb from '$lib/components/game/Breadcrumb.svelte';
-	import { CSError, addError } from '$lib/services/Errors';
-	import BattlePlanEditor from '../BattlePlanEditor.svelte';
+	import { addError } from '$lib/services/Errors';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { notify } from '$lib/services/Notifications';
-	import type { BattlePlan } from '$lib/types/cs';
+	import type { BattlePlan } from '$lib/types/cs-proto';
+	import { ConnectError } from '@connectrpc/connect';
+	import BattlePlanEditor from '../BattlePlanEditor.svelte';
 
 	const { game, player, updateBattlePlan } = getGameContext();
 	let num = parseInt(page.params.num);
 
-	let plan: BattlePlan | undefined = $derived($player.battlePlans.find((p) => p.num == num));
+	let plan: BattlePlan | undefined = $derived(
+		$player.playerPlans.battlePlans.find((p) => p.num == num)
+	);
 	let error = $state('');
 
 	const onSubmit = async () => {
@@ -24,7 +27,7 @@
 				notify(`Saved ${plan.name}`);
 			}
 		} catch (e) {
-			addError(e as CSError);
+			addError(e as ConnectError);
 		}
 	};
 </script>

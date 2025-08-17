@@ -6,10 +6,11 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { type AnyFleet, type AnyShipDesign } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
-	import { StargateWarpSpeed, WaypointTaskNone, type Fleet } from '$lib/types/cs';
+	import { StargateWarpSpeed } from '$lib/types/Consts';
+	import { WaypointTask, type Fleet } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
 	import { canTransferCargo, CommandedFleet, getDamagePercentForToken } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
-	import { startCase } from 'lodash-es';
 
 	const { player, universe } = getGameContext();
 
@@ -18,20 +19,22 @@
 	} & ShowCargoTransferDialogProps;
 
 	let { fleet, onShowCargoTransferDialog }: Props = $props();
-	let playerFleet = $derived('waypoints' in fleet ? (fleet as Fleet) : undefined);
+	let playerFleet = $derived('fleetOrders' in fleet ? (fleet as Fleet) : undefined);
 
 	const design: AnyShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
-			return $universe.getDesign(fleet.playerNum, designNum);
+			return $universe.getDesign(fleet.mapObject?.playerNum ?? 0, designNum);
 		}
 	});
 
 	// get either warpSpeed as a number, or "stargate"
 	function getWarpSpeed(fleet: AnyFleet): string {
 		const warpSpeed: number =
-			('waypoints' in fleet && fleet.waypoints && fleet.waypoints.length > 1
-				? fleet.waypoints[1].warpSpeed
+			('fleetOrders' in fleet &&
+			fleet.fleetOrders?.waypoints &&
+			fleet.fleetOrders.waypoints.length > 1
+				? fleet.fleetOrders.waypoints[1].warpSpeed
 				: fleet.warpSpeed) ?? 0;
 
 		if (warpSpeed == StargateWarpSpeed) {
@@ -44,11 +47,11 @@
 		if ('mass' in fleet) {
 			return fleet.mass ?? 0;
 		}
-		return fleet.spec?.mass ?? 0;
+		return fleet.spec?.shipDesignSpec?.mass ?? 0;
 	}
 
 	function transfer() {
-		if (!onShowCargoTransferDialog || !('waypoints' in fleet)) {
+		if (!onShowCargoTransferDialog || !('fleetOrders' in fleet)) {
 			return;
 		}
 		const f = new CommandedFleet(fleet);
@@ -61,7 +64,7 @@
 		<div class="avatar mr-2">
 			<div
 				class="border-2 border-neutral p-2 bg-black"
-				style={`border-color: ${$universe.getPlayerColor(fleet.playerNum)};`}
+				style={`border-color: ${$universe.getPlayerColor(fleet.mapObject?.playerNum)};`}
 			>
 				{#if fleet.tokens && fleet.tokens.reduce((count, t) => count + t.quantity, 0) > 1}
 					<div class="absolute -right-2 -top-1 text-xl w-6 h-6">+</div>
@@ -77,7 +80,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="text-center">{$universe.getPlayerPluralName(fleet.playerNum)}</div>
+		<div class="text-center">{$universe.getPlayerPluralName(fleet.mapObject?.playerNum)}</div>
 	</div>
 	<div class="flex flex-col grow">
 		<div class="flex flex-row">
@@ -96,7 +99,10 @@
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Fuel:</div>
 				<div class="grow">
-					<FuelBar value={playerFleet.fuel} capacity={playerFleet.spec?.fuelCapacity ?? 0} />
+					<FuelBar
+						value={playerFleet.fuel}
+						capacity={playerFleet.spec?.shipDesignSpec?.fuelCapacity ?? 0}
+					/>
 				</div>
 			</div>
 			<div class="flex flex-row">
@@ -106,20 +112,20 @@
 						onPointerDown={() => transfer()}
 						canTransferCargo={canTransferCargo(playerFleet)}
 						value={playerFleet.cargo}
-						capacity={playerFleet.spec?.cargoCapacity}
+						capacity={playerFleet.spec?.shipDesignSpec?.cargoCapacity}
 					/>
 				</div>
 			</div>
 		{/if}
-		{#if playerFleet && playerFleet.waypoints && playerFleet.waypoints.length > 1}
+		{#if playerFleet && playerFleet.fleetOrders?.waypoints && playerFleet.fleetOrders.waypoints.length > 1}
 			<div class="flex flex-row">
 				<div class="w-32 text-tile-item-title">Next Waypoint:</div>
-				<div>{$universe.getTargetName(playerFleet.waypoints[1])}</div>
+				<div>{$universe.getTargetName(playerFleet.fleetOrders.waypoints[1])}</div>
 			</div>
-			{#if playerFleet.waypoints[1].task !== WaypointTaskNone}
+			{#if playerFleet.fleetOrders.waypoints[1].task !== WaypointTask.UNSPECIFIED}
 				<div class="flex flex-row">
 					<div class="w-32 text-tile-item-title">Task:</div>
-					<div>{startCase(playerFleet.waypoints[1].task)}</div>
+					<div>{enumToString(WaypointTask, playerFleet.fleetOrders.waypoints[1].task)}</div>
 				</div>
 			{/if}
 			<div class="flex flex-row">
@@ -144,21 +150,24 @@
 									type="button"
 									class="w-full cursor-help"
 									onpointerdown={(e) =>
-										onShipDesignTooltip(e, $universe.getDesign(fleet.playerNum, token.designNum))}
+										onShipDesignTooltip(
+											e,
+											$universe.getDesign(fleet.mapObject?.playerNum, token.designNum)
+										)}
 								>
 									<span class="flex flex-row justify-between relative">
 										{#if (token.damage ?? 0) > 0 && (token.quantityDamaged ?? 0) > 0}
 											<div
 												style={`width: ${getDamagePercentForToken(
 													token,
-													$universe.getDesign(fleet.playerNum, token.designNum)
+													$universe.getDesign(fleet.mapObject?.playerNum, token.designNum)
 												).toFixed()}%`}
 												class="damage-bar h-full absolute opacity-50"
 											></div>
 										{/if}
 
 										<span>
-											{$universe.getDesign(fleet.playerNum, token.designNum)?.name}
+											{$universe.getDesign(fleet.mapObject?.playerNum, token.designNum)?.name}
 										</span>
 										<span>
 											{token.quantity}

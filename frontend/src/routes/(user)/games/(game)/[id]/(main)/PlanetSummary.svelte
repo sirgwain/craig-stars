@@ -10,7 +10,9 @@
 	import { showTooltip } from '$lib/services/Stores';
 	import type { AnyPlanet } from '$lib/services/Universe';
 	import { population } from '$lib/types/Cargo';
-	import { Grav, None, Rad, ReportAgeUnexplored, Temp } from '$lib/types/cs';
+	import { ReportAgeUnexplored } from '$lib/types/Consts';
+	import { Grav, Rad, Temp } from '$lib/types/Hab';
+	import { None } from '$lib/types/Consts';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import MapObjectIcon from './MapObjectIcon.svelte';
@@ -101,9 +103,9 @@
 				</div>
 			</div>
 			<div>
-				{#if 'reportAge' in planet && planet.reportAge !== ReportAgeUnexplored && planet.playerNum != $player.num && planet.playerNum != None}
-					<span style={`color: ${$universe.getPlayerColor(planet.playerNum)}`}
-						>{$universe.getPlayerPluralName(planet.playerNum)}</span
+				{#if 'reportAge' in planet && planet.reportAge !== ReportAgeUnexplored && (planet.mapObject?.playerNum ?? None) != $player.num && (planet.mapObject?.playerNum ?? None) != None}
+					<span style={`color: ${$universe.getPlayerColor(planet.mapObject?.playerNum)}`}
+						>{$universe.getPlayerPluralName(planet.mapObject?.playerNum)}</span
 					>
 				{/if}
 			</div>

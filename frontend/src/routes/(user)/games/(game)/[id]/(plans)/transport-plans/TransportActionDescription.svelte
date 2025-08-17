@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { TransportActionNone, type WaypointTaskTransportAction } from '$lib/types/cs';
-	import { startCase } from 'lodash-es';
+	import { WaypointTaskTransportAction } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
 	import TransportActionIcon from './TransportActionIcon.svelte';
 
 	type Props = {
@@ -15,11 +15,14 @@
 </script>
 
 <span class="inline-block">
-	{#if (action ?? TransportActionNone) != TransportActionNone}
+	{#if (action ?? WaypointTaskTransportAction.UNSPECIFIED) !== WaypointTaskTransportAction.UNSPECIFIED}
 		<div class="flex flex-row">
 			<div class={`text-right font-semibold mr-2 w-28 ${titleTextClass}`}>{title}</div>
 			<div>
-				{startCase(action)}
+				{enumToString(
+					WaypointTaskTransportAction,
+					action ?? WaypointTaskTransportAction.UNSPECIFIED
+				)}
 				{#if amount != undefined}
 					{amount}{units}
 				{/if}

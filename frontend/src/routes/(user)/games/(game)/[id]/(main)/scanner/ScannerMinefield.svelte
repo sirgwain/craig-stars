@@ -15,9 +15,9 @@
 </script>
 
 <circle
-	cx={$xGet(minefield)}
-	cy={$yGet(minefield)}
-	r={$xScale(minefield.spec.radius)}
+	cx={$xGet(minefield.mapObject)}
+	cy={$yGet(minefield.mapObject)}
+	r={$xScale(Math.sqrt(minefield.numMines))}
 	mask="url(#mask-minefield)"
 	fill={color}
 	class:selected
@@ -28,8 +28,8 @@
 		width={$xScale(2)}
 		height={$yScale(2)}
 		rx={0.5}
-		x={$xGet(minefield) - $xScale(1)}
-		y={$yGet(minefield) - $yScale(1)}
+		x={$xGet(minefield.mapObject) - $xScale(1)}
+		y={$yGet(minefield.mapObject) - $yScale(1)}
 		fill={color}
 	/>
 {/if}

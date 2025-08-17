@@ -2,14 +2,16 @@
 	import SortableTableHeader from '$lib/components/table/SortableTableHeader.svelte';
 	import Table, { defaultSortBy, type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
-	import { AdminService } from '$lib/services/AdminService';
-	import { addError, CSError } from '$lib/services/Errors';
-	import type { GameWithPlayers } from '$lib/types/cs';
-	import type { UserSession } from '$lib/types/User';
-	import { format, parseJSON } from 'date-fns';
+	import { adminClient } from '$lib/services/connect';
+	import { addError } from '$lib/services/Errors';
+	import { Size, type User } from '$lib/types/cs-proto';
+	import { enumToString } from '$lib/types/Enums';
+	import { getGameWithPlayersFlat, type GameWithPlayersFlat } from '$lib/types/Game';
+	import { compare, timestampToString } from '$lib/types/Timestamp';
+	import type { ConnectError } from '@connectrpc/connect';
 	import { onMount } from 'svelte';
 
-	const columns: TableColumn<GameWithPlayers>[] = [
+	const columns: TableColumn<GameWithPlayersFlat>[] = [
 		{
 			key: 'id',
 			title: 'Num'
@@ -24,11 +26,13 @@
 		},
 		{
 			key: 'createdAt',
-			title: 'Created'
+			title: 'Created',
+			sortBy: (a, b) => compare(a.createdAt, b.createdAt)
 		},
 		{
 			key: 'updatedAt',
-			title: 'Updated'
+			title: 'Updated',
+			sortBy: (a, b) => compare(a.updatedAt, b.updatedAt)
 		},
 		{
 			key: 'year',
@@ -46,22 +50,22 @@
 	];
 
 	// filterable games
-	let games: GameWithPlayers[] = $state([]);
-	let usersById: Map<number, UserSession> = $state(new Map<number, UserSession>());
+	let games: GameWithPlayersFlat[] = $state([]);
+	let usersById: Map<bigint, User> = $state(new Map<bigint, User>());
 	let sortKey = $state(
 		localStorage.getItem('allGamesSortKey') ?? 'updatedAt'
-	) as keyof GameWithPlayers;
+	) as keyof GameWithPlayersFlat;
 	let sortDescending: boolean = $state(
 		(localStorage.getItem('allGamesSortDescending') ?? 'true') === 'true'
 	);
-	let filteredGames: GameWithPlayers[] = $derived(
+	let filteredGames: GameWithPlayersFlat[] = $derived(
 		games
 			?.filter((i) => i.name.toLowerCase().indexOf(search.toLowerCase()) != -1)
-			.sort((a, b) => defaultSortBy(a, b, sortKey, sortDescending))
+			.sort((a, b) => defaultSortBy(a, b, sortKey, sortDescending, columns))
 	);
 	let search = $state('');
 
-	function onSorted(column: TableColumn<GameWithPlayers>, descending: boolean) {
+	function onSorted(column: TableColumn<GameWithPlayersFlat>, descending: boolean) {
 		sortDescending = descending;
 		sortKey = column.key;
 
@@ -71,11 +75,12 @@
 
 	onMount(async () => {
 		try {
-			const users = await AdminService.loadUsers();
+			const { users } = await adminClient.getUsers({});
 			usersById = new Map(users.map((u) => [u.id, u]));
-			games = await AdminService.loadGames();
+			const resp = await adminClient.getAllGames({});
+			games = resp.games?.map((g) => getGameWithPlayersFlat(g));
 		} catch (e) {
-			addError(e as CSError);
+			addError(e as ConnectError);
 		}
 	});
 </script>
@@ -110,11 +115,13 @@
 				{#if column.key == 'name'}
 					<a class="cs-link text-xl" href="/games/{row.id}">{cell}</a>
 				{:else if column.key == 'createdAt'}
-					{format(parseJSON(row.createdAt ?? ''), 'E, MMM do yyyy hh:mm aaa')}
+					{timestampToString(row.createdAt)}
 				{:else if column.key == 'updatedAt'}
-					{format(parseJSON(row.updatedAt ?? ''), 'E, MMM do yyyy hh:mm aaa')}
+					{timestampToString(row.updatedAt)}
 				{:else if column.key == 'hostId'}
 					{usersById.get(row.hostId)?.username ?? 'unknown'}
+				{:else if column.key == 'size'}
+					{enumToString(Size, row.size)}
 				{:else if column.key == 'players'}
 					{row.players.length}
 				{:else}

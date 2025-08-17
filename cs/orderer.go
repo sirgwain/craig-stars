@@ -8,8 +8,8 @@ import (
 )
 
 type CargoTransferRequest struct {
-	Cargo `tstype:",extends"`
-	Fuel  int `json:"fuel,omitempty"`
+	Cargo
+	Fuel int `json:"fuel,omitempty"`
 }
 
 type SplitFleetRequest struct {

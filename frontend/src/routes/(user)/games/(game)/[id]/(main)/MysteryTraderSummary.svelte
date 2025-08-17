@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MysteryTraderIntel } from '$lib/types/cs';
+	import type { MysteryTraderIntel } from '$lib/types/cs-proto';
 
 	type Props = {
 		mysteryTrader: MysteryTraderIntel;

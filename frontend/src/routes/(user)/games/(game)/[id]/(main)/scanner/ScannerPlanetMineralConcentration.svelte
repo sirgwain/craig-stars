@@ -1,6 +1,7 @@
 <script lang="ts">
+	import type { PlanetIntel } from '$lib/types/cs-proto';
 	import { clamp } from '$lib/services/Math';
-	import { ReportAgeUnexplored, type PlanetIntel } from '$lib/types/cs';
+	import { ReportAgeUnexplored } from '$lib/types/Consts';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
 

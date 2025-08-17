@@ -28,7 +28,7 @@
 	<div class="flex flex-row justify-center">
 		<Hull
 			{hull}
-			cargoCapacity={design.spec.cargoCapacity ?? hull.cargoCapacity}
+			cargoCapacity={design.spec?.cargoCapacity ?? hull.cargoCapacity}
 			shipDesignSlots={design?.slots ?? []}
 		/>
 	</div>
@@ -36,10 +36,10 @@
 {#if 'spec' in design}
 	<div class="flex flex-col">
 		<div class="flex flex-col sm:flex-row gap-1 justify-between">
-			{#if design.spec.cost && total(design.spec.cost)}
+			{#if design.spec?.cost && total(design.spec?.cost)}
 				<div class="mx-2">
 					<div>Cost of one {design.name}</div>
-					<Cost cost={design.spec.cost} />
+					<Cost cost={design.spec?.cost} />
 				</div>
 			{/if}
 			<div class="mx-2 sm:mx-0">

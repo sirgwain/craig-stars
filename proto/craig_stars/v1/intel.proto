@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package craig_stars.v1;
+
+import "craig_stars/v1/common.proto";
+import "craig_stars/v1/fleet.proto";
+import "craig_stars/v1/minefield.proto";
+import "craig_stars/v1/planet.proto";
+import "craig_stars/v1/score.proto";
+import "craig_stars/v1/shipdesign.proto";
+import "craig_stars/v1/wormhole.proto";
+
+message PlanetIntel {
+  int32 report_age = 1;
+
+  MapObject map_object = 2;
+
+  Hab hab = 3;
+  Hab base_hab = 4;
+  Mineral mineral_concentration = 5;
+  Cargo cargo = 6;
+  bool cargo_discovered = 7;
+  int32 planet_habitability = 8;
+  int32 planet_habitability_terraformed = 9;
+  bool homeworld = 10;
+  PlanetSpec spec = 11;
+}
+
+message ShipDesignIntel {
+  int32 report_age = 1;
+
+  string name = 2;
+  int32 num = 3;
+  int32 player_num = 4;
+  string hull = 5;
+  int32 hull_set_number = 6;
+  int32 version = 7;
+  repeated ShipDesignSlot slots = 8;
+  ShipDesignSpec spec = 9;
+}
+
+message FleetIntel {
+  int32 report_age = 1;
+
+  MapObject map_object = 2;
+
+  string base_name = 3;
+  Vector heading = 4;
+  int32 orbiting_planet_num = 5;
+  int32 warp_speed = 6;
+  int32 fuel = 7;
+  int32 mass = 8;
+  Cargo cargo = 9;
+  bool cargo_discovered = 10;
+  bool freighter = 11;
+  int32 scan_range = 12;
+  int32 scan_range_pen = 13;
+  repeated ShipToken tokens = 14;
+  FleetSpec spec = 15;
+}
+
+message MineralPacketIntel {
+  int32 report_age = 1;
+
+  MapObject map_object = 2;
+
+  int32 warp_speed = 3;
+  Vector heading = 4;
+  Cargo cargo = 5;
+  int32 target_planet_num = 6;
+  int32 scan_range = 7;
+  int32 scan_range_pen = 8;
+}
+
+message SalvageIntel {
+  int32 report_age = 1;
+
+  MapObject map_object = 2;
+
+  Cargo cargo = 3;
+}
+
+message MinefieldIntel {
+  int32 report_age = 1;
+
+  MapObject map_object = 2;
+
+  int32 num_mines = 3;
+  MinefieldType minefield_type = 4;
+}
+
+message WormholeIntel {
+  int32 report_age = 1;
+
+  MapObject map_object = 2;
+
+  int32 destination_num = 3;
+  WormholeStability stability = 4;
+}
+
+message MysteryTraderIntel {
+  int32 report_age = 1;
+
+  MapObject map_object = 2;
+
+  int32 warp_speed = 3;
+  Vector heading = 4;
+  int32 requested_boon = 5;
+}
+
+message PlayerIntel {
+  string name = 1;
+  int32 num = 2;
+  string color = 3;
+  bool seen = 4;
+  string race_name = 5;
+  string race_plural_name = 6;
+}
+
+message ScoreIntel {
+  repeated PlayerScore score_history = 1;
+}

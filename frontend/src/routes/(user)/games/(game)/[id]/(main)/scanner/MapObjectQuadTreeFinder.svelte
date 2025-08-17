@@ -1,11 +1,13 @@
 <script lang="ts" module>
+	import type { MapObjectLike } from '$lib/types/MapObject';
+
 	/**
 	 * FinderEvents are pointer/touch/mouse events that target a MapObject in the scanner
 	 */
 	export type FinderEvent = {
 		event: PointerEvent | MouseEvent | TouchEvent;
-		position: Vector;
-		found: MapObject | undefined;
+		position: { x: number; y: number };
+		found: MapObjectLike | undefined;
 	};
 </script>
 
@@ -15,8 +17,6 @@
   This component fires events for mouse movement/down/etc
  -->
 <script lang="ts">
-	import type { MapObject } from '$lib/types/cs';
-	import type { Vector } from '$lib/types/cs';
 	import { quadtree } from 'd3-quadtree';
 	import type { ZoomTransform } from 'd3-zoom';
 	import type { LayerCake } from 'layercake';
@@ -134,13 +134,13 @@
 	}
 
 	let finder = $derived(
-		quadtree<MapObject>()
+		quadtree<MapObjectLike>()
 			.extent([
 				[-1, -1],
 				[$width + 1, $height + 1]
 			])
-			.x($xGet)
-			.y($yGet)
+			.x((d) => $xGet(d.mapObject))
+			.y((d) => $yGet(d.mapObject))
 			.addAll($data)
 	);
 </script>

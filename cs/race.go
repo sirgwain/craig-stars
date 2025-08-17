@@ -8,7 +8,7 @@ import (
 // A user can have multiple races stored in the database. Each time a game is created, a Race is copied
 // into the Player object and stored separately (so changes to the User's race don't impact running games)
 type Race struct {
-	DBObject              `tstype:",extends"`
+	DBObject
 	UserID                int64                 `json:"userId,omitempty"`
 	Name                  string                `json:"name"`
 	PluralName            string                `json:"pluralName"`
@@ -31,7 +31,7 @@ type Race struct {
 	NumMines              int                   `json:"numMines"`
 	ResearchCost          ResearchCost          `json:"researchCost"`
 	TechsStartHigh        bool                  `json:"techsStartHigh,omitempty"`
-	Spec                  RaceSpec              `json:"spec,omitzero"`
+	Spec                  RaceSpec              `json:"-"`
 }
 
 type ResearchCostLevel string
@@ -46,7 +46,7 @@ const (
 type SpendLeftoverPointsOn string
 
 const (
-	SpendLeftoverPointsOnNone                  SpendLeftoverPointsOn = "" // TODO: remove this and make surface mins the zero value
+	SpendLeftoverPointsOnNone                  SpendLeftoverPointsOn = ""
 	SpendLeftoverPointsOnSurfaceMinerals       SpendLeftoverPointsOn = "SurfaceMinerals"
 	SpendLeftoverPointsOnMineralConcentrations SpendLeftoverPointsOn = "MineralConcentrations"
 	SpendLeftoverPointsOnMines                 SpendLeftoverPointsOn = "Mines"
@@ -85,8 +85,8 @@ func (rc ResearchCost) Get(field TechField) ResearchCostLevel {
 }
 
 type RaceSpec struct {
-	MiniaturizationSpec              `tstype:",extends"`
-	ScannerSpec                      `tstype:",extends"`
+	MiniaturizationSpec
+	ScannerSpec
 	HabCenter                        Hab                    `json:"habCenter,omitzero"`
 	Costs                            map[QueueItemType]Cost `json:"costs,omitzero"`
 	StartingTechLevels               TechLevel              `json:"startingTechLevels,omitzero"`
@@ -393,7 +393,7 @@ func (r *Race) withResearchCost(researchCost ResearchCost) *Race {
 }
 
 func (r *Race) WithSpec(rules *Rules) *Race {
-	r.Spec = computeRaceSpec(r, rules)
+	r.Spec = ComputeRaceSpec(r, rules)
 	return r
 }
 
@@ -592,7 +592,7 @@ func (r *Race) GetPlanetHabitability(hab Hab) int {
 
 // Compute the spec for this Race, adding up values from each of its constituent
 // PRT & LRTs in turn.
-func computeRaceSpec(race *Race, rules *Rules) RaceSpec {
+func ComputeRaceSpec(race *Race, rules *Rules) RaceSpec {
 	prtSpec := rules.PRTSpecs[PRT(race.PRT)].clone()
 	spec := RaceSpec{
 		HabCenter:           race.HabCenter(),

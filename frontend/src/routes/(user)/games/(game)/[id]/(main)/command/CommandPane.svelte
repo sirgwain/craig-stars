@@ -81,7 +81,7 @@
 	<div class="lg:flex lg:flex-col">
 		<PlanetFleetsInOrbitTile
 			planet={$commandedPlanet}
-			fleetsInOrbit={$universe.getMyFleetsByPosition($commandedPlanet)}
+			fleetsInOrbit={$universe.getMyFleetsByPosition($commandedPlanet.mapObject?.position)}
 			{onShowCargoTransferDialog}
 		/>
 		<PlanetProductionTile
@@ -91,7 +91,7 @@
 		/>
 		<PlanetStarbaseTile
 			planet={$commandedPlanet}
-			starbase={$universe.getMyPlanetStarbase($commandedPlanet.num)}
+			starbase={$universe.getMyPlanetStarbase($commandedPlanet.mapObject?.num ?? 0)}
 			{onChangeMassDriverSpeed}
 		/>
 	</div>
@@ -106,7 +106,7 @@
 		<FleetOrbitingTile fleet={$commandedFleet} {onShowCargoTransferDialog} />
 		<FleetOtherFleetsHereTile
 			fleet={$commandedFleet}
-			cargoDestsInOrbit={$universe.getCargoDestsByPosition($commandedFleet)}
+			cargoDestsInOrbit={$universe.getCargoDestsByPosition($commandedFleet.mapObject?.position)}
 			{onShowSplitFleetDialog}
 			{onShowCargoTransferDialog}
 		/>

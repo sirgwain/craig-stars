@@ -1,6 +1,5 @@
 <script lang="ts" module>
-	import { type PlayerScore } from '$lib/types/cs';
-	export type ValueType = keyof PlayerScore;
+	export type ValueType = keyof PlayerScoreJson;
 </script>
 
 <script lang="ts">
@@ -9,6 +8,7 @@
 	import MultiLine from '$lib/components/graph/MultiLine.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 
+	import type { PlayerScoreJson } from '$lib/types/cs-proto';
 	import { scaleOrdinal } from 'd3-scale';
 	import { Html, LayerCake, ScaledSvg } from 'layercake';
 	import PlayerScoresGraphLabels from './PlayerScoresGraphLabels.svelte';
@@ -48,7 +48,7 @@
 	}
 
 	// get the number of turns passed, i.e. 2 for 2402
-	let turnsPassed = $derived($game.year - $game.rules.startingYear);
+	let turnsPassed = $derived($game.year - ($game.rules.universeGenerationRules?.startingYear ?? 0));
 
 	// get the highest value from the scores
 	let highestValue = $derived(
@@ -56,7 +56,7 @@
 			...$universe.scoreIntels
 				.map((score) => score.scoreHistory)
 				.filter((scoreHistory) => scoreHistory && scoreHistory.length > 0)
-				.map((scoreHistory) => scoreHistory as PlayerScore[]) // make the types happy
+				.map((scoreHistory) => scoreHistory as PlayerScoreJson[]) // make the types happy
 				.flat()
 				.map((scoreHistory) => scoreHistory[type] ?? 0)
 		)

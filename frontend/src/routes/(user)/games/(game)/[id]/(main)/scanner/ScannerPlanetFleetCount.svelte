@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { MapObjectType } from '$lib/types/cs-proto';
+	import type { PlanetIntel } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { filterFleet } from '$lib/types/Filter';
 	import type { AnyFleet } from '$lib/services/Universe';
-	import { MapObjectTypeFleet, type PlanetIntel } from '$lib/types/cs';
+	import { filterFleet } from '$lib/types/Filter';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import { getEnemiesAndFriends, getScannerContext } from './Scanner';
@@ -19,7 +20,9 @@
 	let { planet, yOffset }: Props = $props();
 
 	let orbitingFleets = $derived(
-		$universe.getMapObjectsByPosition(planet).filter((mo) => mo.type === MapObjectTypeFleet)
+		$universe
+			.getMapObjectsByPosition(planet.mapObject?.position)
+			.filter((mo) => mo.mapObject?.type === MapObjectType.FLEET)
 	);
 
 	let orbitingTokens = $derived(
@@ -48,7 +51,9 @@
 
 {#if $settings.showFleetTokenCounts && orbitingTokens}
 	<!-- translate the group to the location of the fleet so when we scale the text it is around the center-->
-	<g transform={`translate(${$xGet(planet)} ${$yGet(planet) + yOffset + 20 / $scale})`}>
+	<g
+		transform={`translate(${$xGet(planet.mapObject)} ${$yGet(planet.mapObject) + yOffset + 20 / $scale})`}
+	>
 		<text transform={`scale(${1 / $scale})`} text-anchor="middle" class={textColor}
 			>{orbitingTokens}</text
 		>

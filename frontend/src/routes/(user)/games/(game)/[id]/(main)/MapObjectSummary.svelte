@@ -2,19 +2,16 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import Cycle from '$lib/components/icons/Cycle.svelte';
 	import Starbase from '$lib/components/icons/Starbase.svelte';
+	import { MapObjectType } from '$lib/types/cs-proto';
+	import type {
+		MysteryTraderIntel,
+		PlanetIntel,
+		SalvageIntel,
+		WormholeIntel
+	} from '$lib/types/cs-proto';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { AnyFleet, AnyMinefield, AnyMineralPacket } from '$lib/services/Universe';
-	import type { MysteryTraderIntel, PlanetIntel, SalvageIntel, WormholeIntel } from '$lib/types/cs';
-	import {
-		MapObjectTypeFleet,
-		MapObjectTypeMinefield,
-		MapObjectTypeMineralPacket,
-		MapObjectTypeMysteryTrader,
-		MapObjectTypePlanet,
-		MapObjectTypeSalvage,
-		MapObjectTypeWormhole
-	} from '$lib/types/cs';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import FleetSummary from './FleetSummary.svelte';
 	import MinefieldSummary from './MinefieldSummary.svelte';
@@ -35,44 +32,49 @@
 	let { onShowCargoTransferDialog, hideTitle, hideCycleButton }: Props = $props();
 
 	function showStarbaseDesign(e: MouseEvent) {
-		if (selectedPlanet?.spec?.starbaseDesignNum) {
+		if (selectedPlanet?.spec?.planetStarbaseSpec?.starbaseDesignNum) {
 			onShipDesignTooltip(
 				e,
-				$universe.getDesign(selectedPlanet.playerNum, selectedPlanet.spec.starbaseDesignNum)
+				$universe.getDesign(
+					selectedPlanet.mapObject?.playerNum,
+					selectedPlanet.spec.planetStarbaseSpec.starbaseDesignNum
+				)
 			);
 		}
 	}
 
 	let selectedPlanet = $derived(
-		$selectedMapObject?.type == MapObjectTypePlanet
+		$selectedMapObject?.mapObject?.type === MapObjectType.PLANET
 			? ($selectedMapObject as PlanetIntel)
 			: undefined
 	);
 	let selectedFleet = $derived(
-		$selectedMapObject?.type == MapObjectTypeFleet ? ($selectedMapObject as AnyFleet) : undefined
+		$selectedMapObject?.mapObject?.type === MapObjectType.FLEET
+			? ($selectedMapObject as AnyFleet)
+			: undefined
 	);
 	let selectedMinefield = $derived(
-		$selectedMapObject?.type == MapObjectTypeMinefield
+		$selectedMapObject?.mapObject?.type === MapObjectType.MINEFIELD
 			? ($selectedMapObject as AnyMinefield)
 			: undefined
 	);
 	let selectedMineralPacket = $derived(
-		$selectedMapObject?.type == MapObjectTypeMineralPacket
+		$selectedMapObject?.mapObject?.type === MapObjectType.MINERAL_PACKET
 			? ($selectedMapObject as AnyMineralPacket)
 			: undefined
 	);
 	let selectedSalvage = $derived(
-		$selectedMapObject?.type == MapObjectTypeSalvage
+		$selectedMapObject?.mapObject?.type === MapObjectType.SALVAGE
 			? ($selectedMapObject as SalvageIntel)
 			: undefined
 	);
 	let selectedWormhole = $derived(
-		$selectedMapObject?.type == MapObjectTypeWormhole
+		$selectedMapObject?.mapObject?.type === MapObjectType.WORMHOLE
 			? ($selectedMapObject as WormholeIntel)
 			: undefined
 	);
 	let selectedMysteryTrader = $derived(
-		$selectedMapObject?.type == MapObjectTypeMysteryTrader
+		$selectedMapObject?.mapObject?.type === MapObjectType.MYSTERY_TRADER
 			? ($selectedMapObject as MysteryTraderIntel)
 			: undefined
 	);
@@ -91,7 +93,7 @@
 				</div>
 			{/if}
 			<div>
-				{#if selectedPlanet && selectedPlanet.spec?.hasStarbase}
+				{#if selectedPlanet && selectedPlanet.spec?.planetStarbaseSpec?.hasStarbase}
 					<button
 						type="button"
 						onpointerdown={(e) => {
