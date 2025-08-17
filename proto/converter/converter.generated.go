@@ -220,7 +220,6 @@ func (c *ProtoConverter) ConvertCSFleetSpec(source cs.FleetSpec) *v1.FleetSpec {
 	craig_starsv1FleetSpec.MassEmpty = IntToInt32(source.MassEmpty)
 	craig_starsv1FleetSpec.Purposes = ShipDesignPurposeMapToBoolMap(c, source.Purposes)
 	craig_starsv1FleetSpec.TotalShips = IntToInt32(source.TotalShips)
-	craig_starsv1FleetSpec.MineLayingRateByMineType = MinefieldTypeMapToIntMap(source.MineLayingRateByMineType)
 	return &craig_starsv1FleetSpec
 }
 func (c *ProtoConverter) ConvertCSFleets(source []*cs.Fleet) []*v1.Fleet {
@@ -1492,7 +1491,6 @@ func (c *ProtoConverter) ConvertFleetSpec(source *v1.FleetSpec) cs.FleetSpec {
 		csFleetSpec2.MassEmpty = Int32ToInt((*source).MassEmpty)
 		csFleetSpec2.Purposes = BoolMapToShipDesignPurposeMap(c, (*source).Purposes)
 		csFleetSpec2.TotalShips = Int32ToInt((*source).TotalShips)
-		csFleetSpec2.MineLayingRateByMineType = IntMapToMinefieldTypeMap((*source).MineLayingRateByMineType)
 		csFleetSpec = csFleetSpec2
 	}
 	return csFleetSpec

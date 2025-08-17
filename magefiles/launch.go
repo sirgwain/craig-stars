@@ -133,6 +133,17 @@ func Generate() error {
 		return mg.Fatalf(1, "error during os.WriteFile for rules.json: \n%w", err)
 	}
 
+	if !is_CI() {
+		fmt.Println("formatting generated json")
+		cmd := exec.Command("npx", "prettier", "--ignore-unknown", "--write", "src/lib/ssr")
+		cmd.Dir = "./frontend"
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return mg.Fatalf(1, "error during npm run generate: %w", err)
+		}
+	}
+
 	return nil
 }
 

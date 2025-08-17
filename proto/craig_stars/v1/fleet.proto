@@ -116,5 +116,4 @@ message FleetSpec {
   int32 mass_empty = 5;
   map<int32, bool> purposes = 6;
   int32 total_ships = 7;
-  map<int32, int32> mine_laying_rate_by_mine_type = 8;
 }

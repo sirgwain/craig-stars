@@ -28,7 +28,6 @@
 
 		return undefined;
 	});
-
 </script>
 
 <div class="absolute w-full h-full z-30 pointer-events-none">

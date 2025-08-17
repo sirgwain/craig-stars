@@ -796,17 +796,16 @@ func (x *WaypointTransportTask) GetAction() WaypointTaskTransportAction {
 }
 
 type FleetSpec struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	ShipDesignSpec           *ShipDesignSpec        `protobuf:"bytes,1,opt,name=ship_design_spec,json=shipDesignSpec,proto3" json:"ship_design_spec,omitempty"`
-	BaseCloakedCargo         int32                  `protobuf:"varint,2,opt,name=base_cloaked_cargo,json=baseCloakedCargo,proto3" json:"base_cloaked_cargo,omitempty"`
-	HasMassDriver            bool                   `protobuf:"varint,3,opt,name=has_mass_driver,json=hasMassDriver,proto3" json:"has_mass_driver,omitempty"`
-	HasStargate              bool                   `protobuf:"varint,4,opt,name=has_stargate,json=hasStargate,proto3" json:"has_stargate,omitempty"`
-	MassEmpty                int32                  `protobuf:"varint,5,opt,name=mass_empty,json=massEmpty,proto3" json:"mass_empty,omitempty"`
-	Purposes                 map[int32]bool         `protobuf:"bytes,6,rep,name=purposes,proto3" json:"purposes,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
-	TotalShips               int32                  `protobuf:"varint,7,opt,name=total_ships,json=totalShips,proto3" json:"total_ships,omitempty"`
-	MineLayingRateByMineType map[int32]int32        `protobuf:"bytes,8,rep,name=mine_laying_rate_by_mine_type,json=mineLayingRateByMineType,proto3" json:"mine_laying_rate_by_mine_type,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ShipDesignSpec   *ShipDesignSpec        `protobuf:"bytes,1,opt,name=ship_design_spec,json=shipDesignSpec,proto3" json:"ship_design_spec,omitempty"`
+	BaseCloakedCargo int32                  `protobuf:"varint,2,opt,name=base_cloaked_cargo,json=baseCloakedCargo,proto3" json:"base_cloaked_cargo,omitempty"`
+	HasMassDriver    bool                   `protobuf:"varint,3,opt,name=has_mass_driver,json=hasMassDriver,proto3" json:"has_mass_driver,omitempty"`
+	HasStargate      bool                   `protobuf:"varint,4,opt,name=has_stargate,json=hasStargate,proto3" json:"has_stargate,omitempty"`
+	MassEmpty        int32                  `protobuf:"varint,5,opt,name=mass_empty,json=massEmpty,proto3" json:"mass_empty,omitempty"`
+	Purposes         map[int32]bool         `protobuf:"bytes,6,rep,name=purposes,proto3" json:"purposes,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	TotalShips       int32                  `protobuf:"varint,7,opt,name=total_ships,json=totalShips,proto3" json:"total_ships,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *FleetSpec) Reset() {
@@ -888,13 +887,6 @@ func (x *FleetSpec) GetTotalShips() int32 {
 	return 0
 }
 
-func (x *FleetSpec) GetMineLayingRateByMineType() map[int32]int32 {
-	if x != nil {
-		return x.MineLayingRateByMineType
-	}
-	return nil
-}
-
 var File_craig_stars_v1_fleet_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_fleet_proto_rawDesc = "" +
@@ -954,7 +946,7 @@ const file_craig_stars_v1_fleet_proto_rawDesc = "" +
 	"\tcolonists\x18\x05 \x01(\v2%.craig_stars.v1.WaypointTransportTaskR\tcolonists\"t\n" +
 	"\x15WaypointTransportTask\x12\x16\n" +
 	"\x06amount\x18\x01 \x01(\x05R\x06amount\x12C\n" +
-	"\x06action\x18\x02 \x01(\x0e2+.craig_stars.v1.WaypointTaskTransportActionR\x06action\"\xd7\x04\n" +
+	"\x06action\x18\x02 \x01(\x0e2+.craig_stars.v1.WaypointTaskTransportActionR\x06action\"\x90\x03\n" +
 	"\tFleetSpec\x12H\n" +
 	"\x10ship_design_spec\x18\x01 \x01(\v2\x1e.craig_stars.v1.ShipDesignSpecR\x0eshipDesignSpec\x12,\n" +
 	"\x12base_cloaked_cargo\x18\x02 \x01(\x05R\x10baseCloakedCargo\x12&\n" +
@@ -964,14 +956,10 @@ const file_craig_stars_v1_fleet_proto_rawDesc = "" +
 	"mass_empty\x18\x05 \x01(\x05R\tmassEmpty\x12C\n" +
 	"\bpurposes\x18\x06 \x03(\v2'.craig_stars.v1.FleetSpec.PurposesEntryR\bpurposes\x12\x1f\n" +
 	"\vtotal_ships\x18\a \x01(\x05R\n" +
-	"totalShips\x12x\n" +
-	"\x1dmine_laying_rate_by_mine_type\x18\b \x03(\v27.craig_stars.v1.FleetSpec.MineLayingRateByMineTypeEntryR\x18mineLayingRateByMineType\x1a;\n" +
+	"totalShips\x1a;\n" +
 	"\rPurposesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\x1aK\n" +
-	"\x1dMineLayingRateByMineTypeEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01*\xc0\x02\n" +
+	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01*\xc0\x02\n" +
 	"\fWaypointTask\x12\x1d\n" +
 	"\x19WAYPOINT_TASK_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17WAYPOINT_TASK_TRANSPORT\x10\x01\x12\x1a\n" +
@@ -1027,7 +1015,7 @@ func file_craig_stars_v1_fleet_proto_rawDescGZIP() []byte {
 }
 
 var file_craig_stars_v1_fleet_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_craig_stars_v1_fleet_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_craig_stars_v1_fleet_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_craig_stars_v1_fleet_proto_goTypes = []any{
 	(WaypointTask)(0),                // 0: craig_stars.v1.WaypointTask
 	(WaypointTaskTransportAction)(0), // 1: craig_stars.v1.WaypointTaskTransportAction
@@ -1040,27 +1028,26 @@ var file_craig_stars_v1_fleet_proto_goTypes = []any{
 	(*WaypointTransportTask)(nil),    // 8: craig_stars.v1.WaypointTransportTask
 	(*FleetSpec)(nil),                // 9: craig_stars.v1.FleetSpec
 	nil,                              // 10: craig_stars.v1.FleetSpec.PurposesEntry
-	nil,                              // 11: craig_stars.v1.FleetSpec.MineLayingRateByMineTypeEntry
-	(*GameDBObject)(nil),             // 12: craig_stars.v1.GameDBObject
-	(*MapObject)(nil),                // 13: craig_stars.v1.MapObject
-	(*Cargo)(nil),                    // 14: craig_stars.v1.Cargo
-	(*Vector)(nil),                   // 15: craig_stars.v1.Vector
-	(*MapObjectTarget)(nil),          // 16: craig_stars.v1.MapObjectTarget
-	(*ShipDesignSpec)(nil),           // 17: craig_stars.v1.ShipDesignSpec
+	(*GameDBObject)(nil),             // 11: craig_stars.v1.GameDBObject
+	(*MapObject)(nil),                // 12: craig_stars.v1.MapObject
+	(*Cargo)(nil),                    // 13: craig_stars.v1.Cargo
+	(*Vector)(nil),                   // 14: craig_stars.v1.Vector
+	(*MapObjectTarget)(nil),          // 15: craig_stars.v1.MapObjectTarget
+	(*ShipDesignSpec)(nil),           // 16: craig_stars.v1.ShipDesignSpec
 }
 var file_craig_stars_v1_fleet_proto_depIdxs = []int32{
-	12, // 0: craig_stars.v1.Fleet.game_db_object:type_name -> craig_stars.v1.GameDBObject
-	13, // 1: craig_stars.v1.Fleet.map_object:type_name -> craig_stars.v1.MapObject
+	11, // 0: craig_stars.v1.Fleet.game_db_object:type_name -> craig_stars.v1.GameDBObject
+	12, // 1: craig_stars.v1.Fleet.map_object:type_name -> craig_stars.v1.MapObject
 	4,  // 2: craig_stars.v1.Fleet.fleet_orders:type_name -> craig_stars.v1.FleetOrders
-	14, // 3: craig_stars.v1.Fleet.cargo:type_name -> craig_stars.v1.Cargo
+	13, // 3: craig_stars.v1.Fleet.cargo:type_name -> craig_stars.v1.Cargo
 	5,  // 4: craig_stars.v1.Fleet.tokens:type_name -> craig_stars.v1.ShipToken
-	15, // 5: craig_stars.v1.Fleet.heading:type_name -> craig_stars.v1.Vector
-	15, // 6: craig_stars.v1.Fleet.previous_position:type_name -> craig_stars.v1.Vector
+	14, // 5: craig_stars.v1.Fleet.heading:type_name -> craig_stars.v1.Vector
+	14, // 6: craig_stars.v1.Fleet.previous_position:type_name -> craig_stars.v1.Vector
 	9,  // 7: craig_stars.v1.Fleet.spec:type_name -> craig_stars.v1.FleetSpec
 	6,  // 8: craig_stars.v1.FleetOrders.waypoints:type_name -> craig_stars.v1.Waypoint
 	2,  // 9: craig_stars.v1.FleetOrders.purpose:type_name -> craig_stars.v1.FleetPurpose
-	16, // 10: craig_stars.v1.Waypoint.map_object_target:type_name -> craig_stars.v1.MapObjectTarget
-	15, // 11: craig_stars.v1.Waypoint.position:type_name -> craig_stars.v1.Vector
+	15, // 10: craig_stars.v1.Waypoint.map_object_target:type_name -> craig_stars.v1.MapObjectTarget
+	14, // 11: craig_stars.v1.Waypoint.position:type_name -> craig_stars.v1.Vector
 	0,  // 12: craig_stars.v1.Waypoint.task:type_name -> craig_stars.v1.WaypointTask
 	7,  // 13: craig_stars.v1.Waypoint.transport_tasks:type_name -> craig_stars.v1.WaypointTransportTasks
 	8,  // 14: craig_stars.v1.WaypointTransportTasks.fuel:type_name -> craig_stars.v1.WaypointTransportTask
@@ -1069,14 +1056,13 @@ var file_craig_stars_v1_fleet_proto_depIdxs = []int32{
 	8,  // 17: craig_stars.v1.WaypointTransportTasks.germanium:type_name -> craig_stars.v1.WaypointTransportTask
 	8,  // 18: craig_stars.v1.WaypointTransportTasks.colonists:type_name -> craig_stars.v1.WaypointTransportTask
 	1,  // 19: craig_stars.v1.WaypointTransportTask.action:type_name -> craig_stars.v1.WaypointTaskTransportAction
-	17, // 20: craig_stars.v1.FleetSpec.ship_design_spec:type_name -> craig_stars.v1.ShipDesignSpec
+	16, // 20: craig_stars.v1.FleetSpec.ship_design_spec:type_name -> craig_stars.v1.ShipDesignSpec
 	10, // 21: craig_stars.v1.FleetSpec.purposes:type_name -> craig_stars.v1.FleetSpec.PurposesEntry
-	11, // 22: craig_stars.v1.FleetSpec.mine_laying_rate_by_mine_type:type_name -> craig_stars.v1.FleetSpec.MineLayingRateByMineTypeEntry
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	22, // [22:22] is the sub-list for method output_type
+	22, // [22:22] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_fleet_proto_init() }
@@ -1092,7 +1078,7 @@ func file_craig_stars_v1_fleet_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_fleet_proto_rawDesc), len(file_craig_stars_v1_fleet_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   9,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
