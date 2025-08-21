@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyMineralPacket } from '$lib/services/Universe';
+	import type { MineralPacket } from '$lib/types/cs-proto';
 	import { distance } from '$lib/types/Vector';
 
 	const { universe } = getGameContext();
 
 	type Props = {
-		mineralPacket: AnyMineralPacket;
+		mineralPacket: MineralPacket;
 	};
 
 	let { mineralPacket }: Props = $props();

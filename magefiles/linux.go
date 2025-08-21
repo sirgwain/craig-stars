@@ -1,4 +1,4 @@
-//go:build !windows && !darwin
+//go:build !wasi && !wasm && !windows && !darwin
 
 package main
 

@@ -6,15 +6,13 @@ import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegen
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Planet, PlanetJson, PlanetOrders, PlanetOrdersJson } from "./planet_pb";
 import { file_craig_stars_v1_planet } from "./planet_pb";
-import type { Player, PlayerJson } from "./player_pb";
-import { file_craig_stars_v1_player } from "./player_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file craig_stars/v1/planetservice.proto.
  */
 export const file_craig_stars_v1_planetservice: GenFile = /*@__PURE__*/
-  fileDesc("CiJjcmFpZ19zdGFycy92MS9wbGFuZXRzZXJ2aWNlLnByb3RvEg5jcmFpZ19zdGFycy52MSI3ChBHZXRQbGFuZXRSZXF1ZXN0Eg8KB2dhbWVfaWQYASABKAMSEgoKcGxhbmV0X251bRgCIAEoBSI7ChFHZXRQbGFuZXRSZXNwb25zZRImCgZwbGFuZXQYASABKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQidQoZVXBkYXRlUGxhbmV0T3JkZXJzUmVxdWVzdBIPCgdnYW1lX2lkGAEgASgDEhIKCnBsYW5ldF9udW0YAiABKAUSMwoNcGxhbmV0X29yZGVycxgEIAEoCzIcLmNyYWlnX3N0YXJzLnYxLlBsYW5ldE9yZGVycyJsChpVcGRhdGVQbGFuZXRPcmRlcnNSZXNwb25zZRImCgZwbGFuZXQYASABKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQSJgoGcGxheWVyGAIgASgLMhYuY3JhaWdfc3RhcnMudjEuUGxheWVyMs4BCg1QbGFuZXRTZXJ2aWNlElAKCUdldFBsYW5ldBIgLmNyYWlnX3N0YXJzLnYxLkdldFBsYW5ldFJlcXVlc3QaIS5jcmFpZ19zdGFycy52MS5HZXRQbGFuZXRSZXNwb25zZRJrChJVcGRhdGVQbGFuZXRPcmRlcnMSKS5jcmFpZ19zdGFycy52MS5VcGRhdGVQbGFuZXRPcmRlcnNSZXF1ZXN0GiouY3JhaWdfc3RhcnMudjEuVXBkYXRlUGxhbmV0T3JkZXJzUmVzcG9uc2ViBnByb3RvMw", [file_craig_stars_v1_planet, file_craig_stars_v1_player]);
+  fileDesc("CiJjcmFpZ19zdGFycy92MS9wbGFuZXRzZXJ2aWNlLnByb3RvEg5jcmFpZ19zdGFycy52MSI3ChBHZXRQbGFuZXRSZXF1ZXN0Eg8KB2dhbWVfaWQYASABKAMSEgoKcGxhbmV0X251bRgCIAEoBSI7ChFHZXRQbGFuZXRSZXNwb25zZRImCgZwbGFuZXQYASABKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQidQoZVXBkYXRlUGxhbmV0T3JkZXJzUmVxdWVzdBIPCgdnYW1lX2lkGAEgASgDEhIKCnBsYW5ldF9udW0YAiABKAUSMwoNcGxhbmV0X29yZGVycxgEIAEoCzIcLmNyYWlnX3N0YXJzLnYxLlBsYW5ldE9yZGVycyJEChpVcGRhdGVQbGFuZXRPcmRlcnNSZXNwb25zZRImCgZwbGFuZXQYASABKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQyzgEKDVBsYW5ldFNlcnZpY2USUAoJR2V0UGxhbmV0EiAuY3JhaWdfc3RhcnMudjEuR2V0UGxhbmV0UmVxdWVzdBohLmNyYWlnX3N0YXJzLnYxLkdldFBsYW5ldFJlc3BvbnNlEmsKElVwZGF0ZVBsYW5ldE9yZGVycxIpLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVBsYW5ldE9yZGVyc1JlcXVlc3QaKi5jcmFpZ19zdGFycy52MS5VcGRhdGVQbGFuZXRPcmRlcnNSZXNwb25zZWIGcHJvdG8z", [file_craig_stars_v1_planet]);
 
 /**
  * @generated from message craig_stars.v1.GetPlanetRequest
@@ -135,11 +133,6 @@ export type UpdatePlanetOrdersResponse = Message<"craig_stars.v1.UpdatePlanetOrd
    * @generated from field: craig_stars.v1.Planet planet = 1;
    */
   planet?: Planet;
-
-  /**
-   * @generated from field: craig_stars.v1.Player player = 2;
-   */
-  player?: Player;
 };
 
 /**
@@ -150,11 +143,6 @@ export type UpdatePlanetOrdersResponseJson = {
    * @generated from field: craig_stars.v1.Planet planet = 1;
    */
   planet?: PlanetJson;
-
-  /**
-   * @generated from field: craig_stars.v1.Player player = 2;
-   */
-  player?: PlayerJson;
 };
 
 /**

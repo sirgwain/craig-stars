@@ -2,11 +2,10 @@
 	import QuantityModifierButtons from '$lib/components/QuantityModifierButtons.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import type { AnyFleet } from '$lib/services/Universe';
 	import { add, negativeCargo, totalCargo } from '$lib/types/Cargo';
 	import type { CargoDest } from '$lib/types/CargoTransferRequest.svelte';
 	import { CargoTransferRequest, negative } from '$lib/types/CargoTransferRequest.svelte';
-	import { MapObjectTargetSchema, MapObjectType, ResourceType } from '$lib/types/cs-proto';
+	import { MapObjectTargetSchema, MapObjectType, ResourceType, type Fleet } from '$lib/types/cs-proto';
 	import { canTransferCargoType, type CommandedFleet } from '$lib/types/Fleet';
 	import { create } from '@bufbuild/protobuf';
 	import FleetTransfer from './FleetTransfer.svelte';
@@ -54,7 +53,7 @@
 	);
 
 	let destFleet = $derived(
-		dest?.mapObject?.type === MapObjectType.FLEET ? (dest as AnyFleet) : undefined
+		dest?.mapObject?.type === MapObjectType.FLEET ? (dest as Fleet) : undefined
 	);
 
 	function getCargoCapacity(dest: CargoDest): number {

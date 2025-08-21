@@ -444,7 +444,7 @@ func (m *messageClient) fleetOutOfFuel(player *Player, fleet *Fleet, warpSpeed i
 	player.Messages = append(player.Messages, PlayerMessage{Type: PlayerMessageFleetOutOfFuel, Text: text, Target: PlayerMessageTarget{TargetType: TargetFleet, TargetNum: fleet.Num, TargetPlayerNum: fleet.PlayerNum}})
 }
 
-func (m *messageClient) fleetPatrolTargeted(player *Player, fleet *Fleet, target *FleetIntel) {
+func (m *messageClient) fleetPatrolTargeted(player *Player, fleet *Fleet, target *Fleet) {
 	player.Messages = append(player.Messages, newFleetMessage(player, PlayerMessageFleetPatrolTargeted, fleet).withSpec(
 		PlayerMessageSpec{
 			Name:   fleet.Name,

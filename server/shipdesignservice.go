@@ -68,7 +68,7 @@ func (s *shipDesignService) CreateShipDesign(ctx context.Context, req *connect.R
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to load player: %w", err))
 	}
 
-	design := converter.C.ConvertShipDesign(req.Msg.Design)
+	design := converter.C.ConvertShipDesignP(req.Msg.Design)
 	if err := design.Validate(&game.Rules, player); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -109,7 +109,7 @@ func (s *shipDesignService) UpdateShipDesign(ctx context.Context, req *connect.R
 	game := contextGame(ctx)
 	gamePlayer := contextGamePlayer(ctx)
 
-	design := converter.C.ConvertShipDesign(req.Msg.Design)
+	design := converter.C.ConvertShipDesignP(req.Msg.Design)
 
 	// Load existingDesign design
 	existingDesign, err := dbClient.GetShipDesignByNum(ctx, game.ID, gamePlayer.Num, design.Num)

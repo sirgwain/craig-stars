@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package main
 
 import (
@@ -216,8 +218,13 @@ func Build_WASM() error {
 	if err := os.MkdirAll("frontend/src/lib/wasm", 0755); err != nil {
 		return mg.Fatalf(1, "error during os.MkdirAll: \n%w", err)
 	}
-	return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
-		"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
+	if is_CI() {
+		return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
+			"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "-ldflags", "-s -w", "wasm/main.go")
+	} else {
+		return sh.RunWithV(map[string]string{"GOOS": "js", "GOARCH": "wasm"},
+			"go", "build", "-o", "frontend/src/lib/wasm/cs.wasm", "wasm/main.go")
+	}
 }
 
 // Launch both backend and frontend servers simultaneously.

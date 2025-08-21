@@ -39,6 +39,8 @@ INSERT INTO
     wormholes (
         created_at,
         updated_at,
+        intel_player_num,
+        report_age,
         game_id,
         x,
         y,
@@ -63,6 +65,8 @@ VALUES
         ?,
         ?,
         ?,
+        ?,
+        ?,
         ?
     );
 
@@ -71,6 +75,8 @@ UPDATE wormholes
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
+    intel_player_num = ?,
+    report_age = ?,
     x = ?,
     y = ?,
     name = ?,

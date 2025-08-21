@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PlanetIntel } from '$lib/types/cs-proto';
+	import type { Planet } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { ReportAgeUnexplored } from '$lib/types/Consts';
 	import MapObjectScaler from './MapObjectScaler.svelte';
@@ -9,7 +9,7 @@
 	const { universe } = getGameContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: Planet;
 	};
 
 	let { planet }: Props = $props();
@@ -28,7 +28,7 @@
 		let radius = minRadius;
 		let flagColor = color;
 
-		if (planet.reportAge !== ReportAgeUnexplored) {
+		if (planet.mapObject?.reportAge !== ReportAgeUnexplored) {
 			strokeWidth = 1;
 			let habitability = planet.spec?.habitability ?? 0;
 			let habitabilityTerraformed = planet.spec?.terraformedHabitability ?? 0;
@@ -73,7 +73,7 @@
 	});
 </script>
 
-{#if planet.reportAge !== ReportAgeUnexplored}
+{#if planet.mapObject?.reportAge !== ReportAgeUnexplored}
 	<MapObjectScaler mapObject={planet}>
 		<circle cx={0} cy={0} {...planetProps.circleProps} />
 		{#if planet.mapObject?.playerNum}

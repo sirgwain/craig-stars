@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyMineralPacket } from '$lib/services/Universe';
 	import { population, totalCargo } from '$lib/types/Cargo';
-	import { MineralPacketDecayToNothing } from '$lib/types/Consts';
-	import { ReportAgeUnexplored } from '$lib/types/Consts';
-	import { PlayerMessageType, type PlayerIntel, type PlayerMessage } from '$lib/types/cs-proto';
+	import { MineralPacketDecayToNothing, ReportAgeUnexplored } from '$lib/types/Consts';
+	import {
+		PlayerMessageType,
+		type MineralPacket,
+		type PlayerIntel,
+		type PlayerMessage
+	} from '$lib/types/cs-proto';
 	import { distance } from '$lib/types/Vector';
 	import FallbackMessageDetail from './FallbackMessageDetail.svelte';
 
@@ -12,7 +15,7 @@
 
 	type Props = {
 		message: PlayerMessage;
-		mineralPacket: AnyMineralPacket;
+		mineralPacket: MineralPacket;
 		owner: PlayerIntel;
 	};
 

@@ -31,6 +31,9 @@ const (
 	// WasmServiceComputeMinefieldSpecProcedure is the fully-qualified name of the WasmService's
 	// ComputeMinefieldSpec RPC.
 	WasmServiceComputeMinefieldSpecProcedure = "/craig_stars.v1.WasmService/ComputeMinefieldSpec"
+	// WasmServiceComputePlayerResearchSpecProcedure is the fully-qualified name of the WasmService's
+	// ComputePlayerResearchSpec RPC.
+	WasmServiceComputePlayerResearchSpecProcedure = "/craig_stars.v1.WasmService/ComputePlayerResearchSpec"
 	// WasmServiceComputeRaceSpecProcedure is the fully-qualified name of the WasmService's
 	// ComputeRaceSpec RPC.
 	WasmServiceComputeRaceSpecProcedure = "/craig_stars.v1.WasmService/ComputeRaceSpec"
@@ -62,6 +65,12 @@ const (
 	WasmServiceSetIntelsProcedure = "/craig_stars.v1.WasmService/SetIntels"
 	// WasmServiceSetPlayerProcedure is the fully-qualified name of the WasmService's SetPlayer RPC.
 	WasmServiceSetPlayerProcedure = "/craig_stars.v1.WasmService/SetPlayer"
+	// WasmServiceUpdatePlanetProcedure is the fully-qualified name of the WasmService's UpdatePlanet
+	// RPC.
+	WasmServiceUpdatePlanetProcedure = "/craig_stars.v1.WasmService/UpdatePlanet"
+	// WasmServiceUpdatePlanetsProcedure is the fully-qualified name of the WasmService's UpdatePlanets
+	// RPC.
+	WasmServiceUpdatePlanetsProcedure = "/craig_stars.v1.WasmService/UpdatePlanets"
 	// WasmServiceUpdateWaypointProcedure is the fully-qualified name of the WasmService's
 	// UpdateWaypoint RPC.
 	WasmServiceUpdateWaypointProcedure = "/craig_stars.v1.WasmService/UpdateWaypoint"
@@ -72,6 +81,7 @@ type WasmServiceHandler interface {
 	AddWaypoint(context.Context, *v1.AddWaypointRequest) (*v1.AddWaypointResponse, error)
 	CalculateRacePoints(context.Context, *v1.CalculateRacePointsRequest) (*v1.CalculateRacePointsResponse, error)
 	ComputeMinefieldSpec(context.Context, *v1.ComputeMinefieldSpecRequest) (*v1.ComputeMinefieldSpecResponse, error)
+	ComputePlayerResearchSpec(context.Context, *v1.ComputePlayerResearchSpecRequest) (*v1.ComputePlayerResearchSpecResponse, error)
 	ComputeRaceSpec(context.Context, *v1.ComputeRaceSpecRequest) (*v1.ComputeRaceSpecResponse, error)
 	ComputeShipDesignSpec(context.Context, *v1.ComputeShipDesignSpecRequest) (*v1.ComputeShipDesignSpecResponse, error)
 	EnableDebug(context.Context, *v1.EnableDebugRequest) (*v1.EnableDebugResponse, error)
@@ -84,6 +94,8 @@ type WasmServiceHandler interface {
 	SetDesigns(context.Context, *v1.SetDesignsRequest) (*v1.SetDesignsResponse, error)
 	SetIntels(context.Context, *v1.SetIntelsRequest) (*v1.SetIntelsResponse, error)
 	SetPlayer(context.Context, *v1.SetPlayerRequest) (*v1.SetPlayerResponse, error)
+	UpdatePlanet(context.Context, *v1.UpdatePlanetRequest) (*v1.UpdatePlanetResponse, error)
+	UpdatePlanets(context.Context, *v1.UpdatePlanetsRequest) (*v1.UpdatePlanetsResponse, error)
 	UpdateWaypoint(context.Context, *v1.UpdateWaypointRequest) (*v1.UpdateWaypointResponse, error)
 }
 
@@ -105,6 +117,12 @@ func NewWasmServiceHandler(svc WasmServiceHandler) grpcwasm.Handler {
 			return respBytes, nil
 		case WasmServiceComputeMinefieldSpecProcedure:
 			respBytes, err := grpcwasm.HandleUnary(ctx, reqBytes, &v1.ComputeMinefieldSpecRequest{}, svc.ComputeMinefieldSpec)
+			if err != nil {
+				return nil, err
+			}
+			return respBytes, nil
+		case WasmServiceComputePlayerResearchSpecProcedure:
+			respBytes, err := grpcwasm.HandleUnary(ctx, reqBytes, &v1.ComputePlayerResearchSpecRequest{}, svc.ComputePlayerResearchSpec)
 			if err != nil {
 				return nil, err
 			}
@@ -177,6 +195,18 @@ func NewWasmServiceHandler(svc WasmServiceHandler) grpcwasm.Handler {
 			return respBytes, nil
 		case WasmServiceSetPlayerProcedure:
 			respBytes, err := grpcwasm.HandleUnary(ctx, reqBytes, &v1.SetPlayerRequest{}, svc.SetPlayer)
+			if err != nil {
+				return nil, err
+			}
+			return respBytes, nil
+		case WasmServiceUpdatePlanetProcedure:
+			respBytes, err := grpcwasm.HandleUnary(ctx, reqBytes, &v1.UpdatePlanetRequest{}, svc.UpdatePlanet)
+			if err != nil {
+				return nil, err
+			}
+			return respBytes, nil
+		case WasmServiceUpdatePlanetsProcedure:
+			respBytes, err := grpcwasm.HandleUnary(ctx, reqBytes, &v1.UpdatePlanetsRequest{}, svc.UpdatePlanets)
 			if err != nil {
 				return nil, err
 			}

@@ -7,7 +7,7 @@
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 	import { getScannerContext } from './Scanner';
-	import type { MysteryTraderIntel } from '$lib/types/cs-proto';
+	import type { MysteryTrader } from '$lib/types/cs-proto';
 
 	const { xGet, yGet } = getContext<LayerCake>('LayerCake');
 	const { scale } = getScannerContext();
@@ -16,7 +16,7 @@
 	const angleOffset = 225;
 
 	type Props = {
-		mysteryTrader: MysteryTraderIntel;
+		mysteryTrader: MysteryTrader;
 	};
 
 	let { mysteryTrader }: Props = $props();

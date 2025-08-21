@@ -1,12 +1,12 @@
 <script lang="ts">
 	import ItemTitle from '$lib/components/ItemTitle.svelte';
+	import { raceClient } from '$lib/services/connect';
+	import type { Race } from '$lib/types/cs-proto';
 	import { humanoid } from '$lib/types/Race';
+	import { loadWasm, type CS } from '$lib/wasm';
 	import { onMount } from 'svelte';
 	import RaceEditor from '../../../../routes/(user)/races/[id]/RaceEditor.svelte';
 	import RacePoints from '../../../../routes/(user)/races/[id]/RacePoints.svelte';
-	import type { Race } from '$lib/types/cs-proto';
-	import { raceClient } from '$lib/services/connect';
-	import { loadWasm, type CS } from '$lib/wasm';
 
 	type Props = {
 		raceUpdated?: (race: Race, valid: boolean) => void;

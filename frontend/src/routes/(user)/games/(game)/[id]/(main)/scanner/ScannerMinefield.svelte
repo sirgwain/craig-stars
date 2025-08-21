@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { AnyMinefield } from '$lib/services/Universe';
+	import type { Minefield } from '$lib/types/cs-proto';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
 
 	const { xGet, yGet, xScale, yScale } = getContext<LayerCake>('LayerCake');
 
 	type Props = {
-		minefield: AnyMinefield;
+		minefield: Minefield;
 		color?: string;
 		selected?: boolean;
 	};

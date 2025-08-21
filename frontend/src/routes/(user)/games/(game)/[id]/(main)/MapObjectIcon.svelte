@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyPlanet } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
-	import { MinefieldType } from '$lib/types/cs-proto';
+	import { MinefieldType, type Planet } from '$lib/types/cs-proto';
 	import { getUnderlyingMapObject, type MapObjectLike } from '$lib/types/MapObject';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
@@ -27,7 +26,7 @@
 		}
 	});
 
-	const icon = (planet: AnyPlanet) =>
+	const icon = (planet: Planet) =>
 		planet?.mapObject?.num ? `planet-${(planet.mapObject.num - 1) % 26}` : '';
 </script>
 

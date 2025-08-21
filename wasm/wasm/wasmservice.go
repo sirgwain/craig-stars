@@ -1,3 +1,5 @@
+//go:build wasi || wasm
+
 package wasm
 
 import (
@@ -19,8 +21,9 @@ import (
 // Each wasm instannce is unique to a browser session, so keep track of state so we don't have to
 // send it and serialize it for each call
 type state struct {
-	rules  *cs.Rules
-	player *cs.Player
+	rules    *cs.Rules
+	player   *cs.Player
+	universe *cs.Universe
 }
 
 var debug = false
@@ -54,6 +57,19 @@ func (s *wasmService) ComputeMinefieldSpec(ctx context.Context, req *craig_stars
 	minefield := converter.C.ConvertMinefield(req.Minefield)
 	spec := cs.ComputeMinefieldSpec(s.rules, s.player, minefield, cs.NumMapObjectsWithin(s.player.Intels.PlanetIntels, minefield.Position, minefield.Radius()))
 	return &craig_starsv1.ComputeMinefieldSpecResponse{Spec: converter.C.ConvertCSMinefieldSpec(spec)}, nil
+}
+
+func (s *wasmService) ComputePlayerResearchSpec(ctx context.Context, req *craig_starsv1.ComputePlayerResearchSpecRequest) (*craig_starsv1.ComputePlayerResearchSpecResponse, error) {
+	planets := []*cs.Planet{}
+	for _, p := range s.player.PlanetIntels {
+		if p.PlayerNum != s.player.Num {
+			continue
+		}
+		planets = append(planets, p)
+	}
+
+	spec := cs.ComputePlayerResearchSpec(s.player, s.rules, planets)
+	return &craig_starsv1.ComputePlayerResearchSpecResponse{Spec: converter.C.ConvertCSPlayerResearchSpec(spec)}, nil
 
 }
 
@@ -67,7 +83,7 @@ func (s *wasmService) ComputeRaceSpec(ctx context.Context, req *craig_starsv1.Co
 }
 
 func (s *wasmService) ComputeShipDesignSpec(ctx context.Context, req *craig_starsv1.ComputeShipDesignSpecRequest) (*craig_starsv1.ComputeShipDesignSpecResponse, error) {
-	design := converter.C.ConvertShipDesign(req.Design)
+	design := converter.C.ConvertShipDesignP(req.Design)
 	spec, err := cs.ComputeShipDesignSpec(s.rules, s.player.TechLevels, s.player.Race.Spec, design)
 	if err != nil {
 		return nil, err
@@ -86,7 +102,7 @@ func (s *wasmService) EnableDebug(ctx context.Context, req *craig_starsv1.Enable
 }
 
 func (s *wasmService) EstimateProduction(ctx context.Context, req *craig_starsv1.EstimateProductionRequest) (*craig_starsv1.EstimateProductionResponse, error) {
-	planet := converter.C.ConvertPlanet(req.Planet)
+	planet := converter.C.ConvertPlanetP(req.Planet)
 	// setup the starbase
 	if planet.Spec.HasStarbase {
 		planet.Starbase = &cs.Fleet{
@@ -114,7 +130,7 @@ func (s *wasmService) EstimateProduction(ctx context.Context, req *craig_starsv1
 }
 
 func (s *wasmService) GetMaxBuildable(ctx context.Context, req *craig_starsv1.GetMaxBuildableRequest) (*craig_starsv1.GetMaxBuildableResponse, error) {
-	planet := converter.C.ConvertPlanet(req.Planet)
+	planet := converter.C.ConvertPlanetP(req.Planet)
 	itemType := cs.QueueItemType(req.ItemType)
 
 	maxBuild := 5000
@@ -148,8 +164,8 @@ func (s *wasmService) GetResearchCost(ctx context.Context, req *craig_starsv1.Ge
 
 func (s *wasmService) GetStarbaseUpgradeCost(ctx context.Context, req *craig_starsv1.GetStarbaseUpgradeCostRequest) (*craig_starsv1.GetStarbaseUpgradeCostResponse, error) {
 	costCalculatoor := cs.NewCostCalculator()
-	design := converter.C.ConvertShipDesign(req.Design)
-	newDesign := converter.C.ConvertShipDesign(req.NewDesign)
+	design := converter.C.ConvertShipDesignP(req.Design)
+	newDesign := converter.C.ConvertShipDesignP(req.NewDesign)
 	cost, err := costCalculatoor.StarbaseUpgradeCost(s.rules, s.player.TechLevels, s.player.Race.Spec, design, newDesign)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("unable to calculate starbase upgrade cost: %v", err))
@@ -169,14 +185,9 @@ func (s *wasmService) GetTechCost(ctx context.Context, req *craig_starsv1.GetTec
 	return &craig_starsv1.GetTechCostResponse{Cost: converter.C.ConvertCSCost(cost)}, nil
 }
 
-func (s *wasmService) UpdateWaypoint(ctx context.Context, req *craig_starsv1.UpdateWaypointRequest) (*craig_starsv1.UpdateWaypointResponse, error) {
-	fleet := converter.C.ConvertFleet(req.Fleet)
-	dest := converter.C.ConvertWaypointDest(req.Dest)
-
-	fleet.InjectDesigns(s.player.Designs)
-
-	updated := fleet.UpdateWaypoint(s.player, dest, int(req.CurrentSelectedWaypointIndex), req.FastestWaypoint)
-	return &craig_starsv1.UpdateWaypointResponse{Updated: updated, Fleet: converter.C.ConvertCSFleet(fleet)}, nil
+func (s *wasmService) SetDesigns(ctx context.Context, req *craig_starsv1.SetDesignsRequest) (*craig_starsv1.SetDesignsResponse, error) {
+	s.player.Designs = converter.C.ConvertShipDesigns(req.Designs)
+	return &craig_starsv1.SetDesignsResponse{}, nil
 }
 
 func (s *wasmService) SetPlayer(ctx context.Context, req *craig_starsv1.SetPlayerRequest) (*craig_starsv1.SetPlayerResponse, error) {
@@ -196,12 +207,48 @@ func (s *wasmService) SetPlayer(ctx context.Context, req *craig_starsv1.SetPlaye
 	return &craig_starsv1.SetPlayerResponse{}, nil
 }
 
-func (s *wasmService) SetDesigns(ctx context.Context, req *craig_starsv1.SetDesignsRequest) (*craig_starsv1.SetDesignsResponse, error) {
-	s.player.Designs = converter.C.ConvertShipDesigns(req.Designs)
-	return &craig_starsv1.SetDesignsResponse{}, nil
-}
-
 func (s *wasmService) SetIntels(ctx context.Context, req *craig_starsv1.SetIntelsRequest) (*craig_starsv1.SetIntelsResponse, error) {
 	s.player.Intels = converter.C.ConvertIntels(req.Intels)
+	log.Debug().
+		Int("planets", len(s.player.PlanetIntels)).
+		Int("fleets", len(s.player.FleetIntels)).
+		Msgf("set playerIntels")
 	return &craig_starsv1.SetIntelsResponse{}, nil
+}
+
+func (s *wasmService) UpdatePlanet(ctx context.Context, req *craig_starsv1.UpdatePlanetRequest) (*craig_starsv1.UpdatePlanetResponse, error) {
+	planet := converter.C.ConvertPlanetP(req.Planet)
+
+	if planet.Num <= 0 || planet.Num > len(s.player.PlanetIntels) {
+		return nil, errors.New("planet num out of range")
+	}
+
+	// save this updated planet back to our intel
+	s.player.PlanetIntels[planet.Num-1] = planet
+	return &craig_starsv1.UpdatePlanetResponse{}, nil
+}
+
+func (s *wasmService) UpdatePlanets(ctx context.Context, req *craig_starsv1.UpdatePlanetsRequest) (*craig_starsv1.UpdatePlanetsResponse, error) {
+	planets := converter.C.ConvertPlanets(req.Planets)
+
+	for _, planet := range planets {
+		if planet.Num <= 0 || planet.Num > len(s.player.PlanetIntels) {
+			return nil, errors.New("planet num out of range")
+		}
+
+		// save this updated planet back to our intel
+		s.player.PlanetIntels[planet.Num-1] = planet
+
+	}
+	return &craig_starsv1.UpdatePlanetsResponse{}, nil
+}
+
+func (s *wasmService) UpdateWaypoint(ctx context.Context, req *craig_starsv1.UpdateWaypointRequest) (*craig_starsv1.UpdateWaypointResponse, error) {
+	fleet := converter.C.ConvertFleet(req.Fleet)
+	dest := converter.C.ConvertWaypointDest(req.Dest)
+
+	fleet.InjectDesigns(s.player.Designs)
+
+	updated := fleet.UpdateWaypoint(s.player, dest, int(req.CurrentSelectedWaypointIndex), req.FastestWaypoint)
+	return &craig_starsv1.UpdateWaypointResponse{Updated: updated, Fleet: converter.C.ConvertCSFleet(fleet)}, nil
 }

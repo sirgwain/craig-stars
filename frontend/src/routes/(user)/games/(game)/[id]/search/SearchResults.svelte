@@ -2,12 +2,10 @@
 	import MineralMini from '$lib/components/game/MineralMini.svelte';
 	import type { OnCancel, OnOk } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyFleet } from '$lib/services/Universe';
 	import { population } from '$lib/types/Cargo';
-	import { ReportAgeUnexplored } from '$lib/types/Consts';
-	import type { MysteryTraderIntel, PlanetIntel } from '$lib/types/cs-proto';
+	import { None, ReportAgeUnexplored } from '$lib/types/Consts';
+	import type { Fleet, MysteryTrader, Planet } from '$lib/types/cs-proto';
 	import { getMapObjectName, key, owned, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
-	import { None } from '$lib/types/Consts';
 	import { onMount } from 'svelte';
 
 	const { player, universe, settings } = getGameContext();
@@ -29,9 +27,9 @@
 	}: Props = $props();
 
 	type Results = {
-		planets: PlanetIntel[];
-		fleets: AnyFleet[];
-		mysteryTraders: MysteryTraderIntel[];
+		planets: Planet[];
+		fleets: Fleet[];
+		mysteryTraders: MysteryTrader[];
 	};
 
 	function getResults(search: string): Results {
@@ -46,7 +44,7 @@
 
 		const planets = $universe.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending);
 		const fleets = $universe.getAllFleets($settings.sortFleetsKey, $settings.sortFleetsDescending);
-		const mysteryTraders = $universe.mysteryTraderIntels;
+		const mysteryTraders = $universe.mysteryTraders;
 
 		// return true if a mapboject name or player matches a search term
 		const termSearch = (term: string, mo: MapObjectLike): boolean =>
@@ -177,7 +175,7 @@
 									{:else}
 										{planet.mapObject?.name}
 									{/if}
-									{#if 'reportAge' in planet && planet.reportAge !== ReportAgeUnexplored}
+									{#if planet.mapObject?.reportAge !== ReportAgeUnexplored}
 										{#if owned(planet)}
 											<div>-</div>
 											<div class="text-base my-auto">

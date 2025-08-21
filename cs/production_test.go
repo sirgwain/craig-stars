@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -128,7 +130,7 @@ func Test_production_produceDefensesToMax(t *testing.T) {
 	}
 	planet.Cargo = Cargo{5000, 5000, 5000, 1_000_000}
 	planet.Defenses = 90
-	planet.Spec = computePlanetSpec(&rules, player, planet)
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 	player.Messages = []PlayerMessage{}
 
 	// should end up with 100 defenses and the auto defenses still in the queue
@@ -217,7 +219,7 @@ func Test_production_producePartialFactoryAndMoreAuto(t *testing.T) {
 	planet.Cargo = Cargo{361, 382, 1173, 331}
 	planet.Mines = 11
 	planet.Factories = 16
-	planet.Spec = computePlanetSpec(&rules, player, planet)
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 	producer := newProducer(testLogger, &rules, planet, player)
 	producer.produce()
@@ -258,7 +260,7 @@ func Test_production_producePartialFactory(t *testing.T) {
 	planet.Cargo = Cargo{7, 2, 1, 37}
 	planet.Mines = 2
 	planet.Factories = 1
-	planet.Spec = computePlanetSpec(&rules, player, planet)
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 	// should build nothing, but queue up a mine partially done
 	producer := newProducer(testLogger, &rules, planet, player)
@@ -284,7 +286,7 @@ func Test_production_produceBuildToMinesFactoriesToMax(t *testing.T) {
 		{Type: QueueItemTypeAutoFactories, Quantity: 100},
 	}
 	planet.Cargo = Cargo{1000, 1000, 1000, 1000}
-	planet.Spec = computePlanetSpec(&rules, player, planet)
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 	// max mines for current setting
 	planet.Mines = planet.Spec.MaxMines
@@ -308,7 +310,7 @@ func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
 	player.Race.PopEfficiency = 9
 	player.Race.FactoryOutput = 11
 	player.Race.Spec = ComputeRaceSpec(&player.Race, &rules)
-	player.Spec = computePlayerSpec(player, &rules, []*Planet{planet})
+	player.Spec = ComputePlayerSpec(player, &rules, []*Planet{planet})
 
 	// add two designs, a colony ship w/fuel mizer and medium freighter w/fuel mizer
 	player.Designs = append(player.Designs, NewShipDesign(player.Num, 1).
@@ -336,7 +338,7 @@ func Test_production_produceColonizerAndPartialFreighters(t *testing.T) {
 		{Type: QueueItemTypeAutoMaxTerraform, Quantity: 10},
 	}
 	planet.Cargo = Cargo{1000, 1000, 77, 3166}
-	planet.Spec = computePlanetSpec(&rules, player, planet)
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 	// should build nothing, but queue up a mine partially done
 	producer := newProducer(testLogger, &rules, planet, player)
@@ -380,7 +382,7 @@ func Test_production_produceStarbaseUpgrade(t *testing.T) {
 		{Type: QueueItemTypeStarbase, Quantity: 1, DesignNum: 3, design: starbaseDesign2},
 	}
 	planet.Cargo = Cargo{1000, 1000, 1000, 10000}
-	planet.Spec = computePlanetSpec(&rules, player, planet)
+	planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 	// should build nothing, but queue up a mine partially done
 	producer := newProducer(testLogger, &rules, planet, player)

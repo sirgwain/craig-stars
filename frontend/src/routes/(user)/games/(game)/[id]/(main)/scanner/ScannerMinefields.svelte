@@ -3,22 +3,21 @@
   Show all minefields in the universe
  -->
 <script lang="ts">
-	import { MapObjectType } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyMinefield } from '$lib/services/Universe';
+	import { MapObjectType, type Minefield } from '$lib/types/cs-proto';
 	import { equal, key } from '$lib/types/MapObject';
 	import ScannerMinefield from './ScannerMinefield.svelte';
 
 	const { universe, selectedMapObject } = getGameContext();
 
-	function getColor(minefield: AnyMinefield) {
+	function getColor(minefield: Minefield) {
 		return $universe.getPlayerColor(minefield.mapObject?.playerNum);
 	}
 
 	let minefields = $derived($universe.allMinefields);
 	let selectedMinefield = $derived(
 		$selectedMapObject && $selectedMapObject.mapObject?.type === MapObjectType.MINEFIELD
-			? ($selectedMapObject as AnyMinefield)
+			? ($selectedMapObject as Minefield)
 			: undefined
 	);
 </script>

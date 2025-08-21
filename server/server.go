@@ -2,6 +2,7 @@
 
 // The `server` package configures webserver routes to access the database.
 // It is the "glue" that ties the [cs] and [db] packages together.
+//
 package server
 
 import (
@@ -387,11 +388,6 @@ func (s *server) contextDb(r *http.Request) DBClient {
 	return r.Context().Value(keyDb).(DBClient)
 }
 
-// create a new gameRunner for this request
-func (s *server) newGameRunner(ctx context.Context) GameRunner {
-	return NewGameRunner(s.db, s.config)
-}
-
 // create a new request logger with zerolog. Inspired by https://github.com/ironstar-io/chizerolog
 func requestLogger(logger *zerolog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -455,21 +451,6 @@ func (s *server) int64URLParam(r *http.Request, key string) (*int64, error) {
 	}
 	var num int64
 	num, err := strconv.ParseInt(param, 10, 64)
-	if err != nil {
-
-		return nil, err
-	}
-
-	return &num, nil
-}
-
-func (s *server) intURLParam(r *http.Request, key string) (*int, error) {
-	param := chi.URLParam(r, key)
-	if param == "" {
-		return nil, nil
-	}
-	var num int
-	num, err := strconv.Atoi(param)
 	if err != nil {
 
 		return nil, err

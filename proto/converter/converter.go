@@ -203,20 +203,22 @@ type Converter interface {
 	// goverter:map Race | ExtendProtoRace
 	// goverter:ignore Intels
 	// goverter:ignore Designs
+	// goverter:ignore Spec
+	// goverter:ignore TechsJustGained
 	ConvertPlayer(source *craig_starsv1.Player) *cs.Player
 
 	ConvertIntels(source *craig_starsv1.Intels) cs.Intels
 	ConvertCSIntels(source cs.Intels) *craig_starsv1.Intels
+	ConvertCSPlayerIntels(source []cs.PlayerIntel) []*craig_starsv1.PlayerIntel
+	ConvertCSScoreIntels(source []cs.ScoreIntel) []*craig_starsv1.ScoreIntel
+	ConvertCSBattleRecords(source []cs.BattleRecord) []*craig_starsv1.BattleRecord
 
 	// goverter:map Race | ExtendPlayerRace
 	ConvertCSPlayer(source *cs.Player) *craig_starsv1.Player
 	ConvertCSCargoTransfers(source cs.CargoTransfers) map[string]*craig_starsv1.CargoTransfers
 
-	// goverter:map . PlayerResearchSpec
-	ConvertPlayerSpec(source *craig_starsv1.PlayerSpec) cs.PlayerSpec
-
-	// goverter:autoMap PlayerResearchSpec
-	ConvertCSPlayerSpec(source cs.PlayerSpec) *craig_starsv1.PlayerSpec
+	ConvertPlayerResearchSpec(source *craig_starsv1.PlayerResearchSpec) cs.PlayerResearchSpec
+	ConvertCSPlayerResearchSpec(source cs.PlayerResearchSpec) *craig_starsv1.PlayerResearchSpec
 
 	ConvertByHandCargoTransfer(source *craig_starsv1.ByHandCargoTransfer) cs.ByHandCargoTransfer
 	ConvertCSByHandCargoTransfer(source cs.ByHandCargoTransfer) *craig_starsv1.ByHandCargoTransfer
@@ -234,7 +236,8 @@ type Converter interface {
 	ConvertPlayerOrders(source *craig_starsv1.PlayerOrders) cs.PlayerOrders
 
 	// goverter:ignore Delete
-	ConvertShipDesign(source *craig_starsv1.ShipDesign) *cs.ShipDesign
+	ConvertShipDesign(source craig_starsv1.ShipDesign) cs.ShipDesign
+	ConvertShipDesignP(source *craig_starsv1.ShipDesign) *cs.ShipDesign
 	ConvertShipDesigns(source []*craig_starsv1.ShipDesign) []*cs.ShipDesign
 
 	ConvertShipDesignSpec(source *craig_starsv1.ShipDesignSpec) *cs.ShipDesignSpec
@@ -258,7 +261,9 @@ type Converter interface {
 	// goverter:ignore RandomArtifact
 	// goverter:ignore Starbase
 	// goverter:ignore Dirty
-	ConvertPlanet(source *craig_starsv1.Planet) *cs.Planet
+	ConvertPlanet(source craig_starsv1.Planet) cs.Planet
+	ConvertPlanetP(source *craig_starsv1.Planet) *cs.Planet
+	ConvertPlanets(source []*craig_starsv1.Planet) []*cs.Planet
 	ConvertPlanetOrders(source *craig_starsv1.PlanetOrders) *cs.PlanetOrders
 
 	ConvertCSPlanet(source *cs.Planet) *craig_starsv1.Planet
@@ -279,54 +284,6 @@ type Converter interface {
 
 	// goverter:autoMap MysteryTraderReward
 	ConvertCSPlayerMessageSpecMysteryTrader(source *cs.PlayerMessageSpecMysteryTrader) *craig_starsv1.PlayerMessageSpecMysteryTrader
-
-	// goverter:map . Intel
-	ConvertPlanetIntel(source *craig_starsv1.PlanetIntel) cs.PlanetIntel
-
-	// goverter:autoMap Intel
-	ConvertCSPlanetIntel(source cs.PlanetIntel) *craig_starsv1.PlanetIntel
-
-	// goverter:map . Intel
-	ConvertFleetIntel(source *craig_starsv1.FleetIntel) cs.FleetIntel
-
-	// goverter:autoMap Intel
-	ConvertCSFleetIntel(source cs.FleetIntel) *craig_starsv1.FleetIntel
-
-	// goverter:map . Intel
-	ConvertShipDesignIntel(source *craig_starsv1.ShipDesignIntel) cs.ShipDesignIntel
-
-	// goverter:autoMap Intel
-	ConvertCSShipDesignIntel(source cs.ShipDesignIntel) *craig_starsv1.ShipDesignIntel
-
-	// goverter:map . Intel
-	ConvertMineralPacketIntel(source *craig_starsv1.MineralPacketIntel) cs.MineralPacketIntel
-
-	// goverter:autoMap Intel
-	ConvertCSMineralPacketIntel(source cs.MineralPacketIntel) *craig_starsv1.MineralPacketIntel
-
-	// goverter:map . Intel
-	ConvertSalvageIntel(source *craig_starsv1.SalvageIntel) cs.SalvageIntel
-
-	// goverter:autoMap Intel
-	ConvertCSSalvageIntel(source cs.SalvageIntel) *craig_starsv1.SalvageIntel
-
-	// goverter:map . Intel
-	ConvertMinefieldIntel(source *craig_starsv1.MinefieldIntel) cs.MinefieldIntel
-
-	// goverter:autoMap Intel
-	ConvertCSMinefieldIntel(source cs.MinefieldIntel) *craig_starsv1.MinefieldIntel
-
-	// goverter:map . Intel
-	ConvertWormholeIntel(source *craig_starsv1.WormholeIntel) cs.WormholeIntel
-
-	// goverter:autoMap Intel
-	ConvertCSWormholeIntel(source cs.WormholeIntel) *craig_starsv1.WormholeIntel
-
-	// goverter:map . Intel
-	ConvertMysteryTraderIntel(source *craig_starsv1.MysteryTraderIntel) cs.MysteryTraderIntel
-
-	// goverter:autoMap Intel
-	ConvertCSMysteryTraderIntel(source cs.MysteryTraderIntel) *craig_starsv1.MysteryTraderIntel
 
 	// goverter:map . Engine
 	ConvertTechHullComponent(source craig_starsv1.TechHullComponent) cs.TechHullComponent
@@ -368,9 +325,13 @@ type Converter interface {
 	ConvertCSMineralPacket(source *cs.MineralPacket) *craig_starsv1.MineralPacket
 	ConvertCSMineralPackets(source []*cs.MineralPacket) []*craig_starsv1.MineralPacket
 
+	ConvertCSMysteryTraders(source []*cs.MysteryTrader) []*craig_starsv1.MysteryTrader
+
 	ConvertWormhole(source *craig_starsv1.Wormhole) *cs.Wormhole
 	ConvertCSWormhole(source *cs.Wormhole) *craig_starsv1.Wormhole
 	ConvertCSWormholes(source []*cs.Wormhole) []*craig_starsv1.Wormhole
+
+	ConvertCSSalvage(source *cs.Salvage) *craig_starsv1.Salvage
 
 	ConvertMinefieldStats(source *craig_starsv1.MinefieldStats) cs.MinefieldStats
 	ConvertCSMinefieldStats(source cs.MinefieldStats) *craig_starsv1.MinefieldStats

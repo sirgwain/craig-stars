@@ -40,7 +40,8 @@ type Player struct {
 	Victor                    bool                 `json:"victor"`
 	Archived                  bool                 `json:"archived"`
 	Stats                     *PlayerStats         `json:"stats,omitempty"`
-	Spec                      PlayerSpec           `json:"spec"`
+	Spec                      PlayerSpec           `json:"-"`
+	TechsJustGained           []*Tech              `json:"-"`
 	leftoverResources         int
 	techLevelGained           bool
 	acquirablePartGained      bool
@@ -72,17 +73,17 @@ type GamePlayer struct {
 }
 
 type Intels struct {
-	BattleRecords       []BattleRecord       `json:"battleRecords,omitempty"`
-	PlayerIntels        []PlayerIntel        `json:"playerIntels,omitempty"`
-	ScoreIntels         []ScoreIntel         `json:"scoreIntels,omitempty"`
-	PlanetIntels        []PlanetIntel        `json:"planetIntels,omitempty"`
-	FleetIntels         []FleetIntel         `json:"fleetIntels,omitempty"`
-	ShipDesignIntels    []ShipDesignIntel    `json:"shipDesignIntels,omitempty"`
-	MineralPacketIntels []MineralPacketIntel `json:"mineralPacketIntels,omitempty"`
-	MinefieldIntels     []MinefieldIntel     `json:"minefieldIntels,omitempty"`
-	WormholeIntels      []WormholeIntel      `json:"wormholeIntels,omitempty"`
-	MysteryTraderIntels []MysteryTraderIntel `json:"mysteryTraderIntels,omitempty"`
-	SalvageIntels       []SalvageIntel       `json:"salvageIntels,omitempty"`
+	BattleRecords       []BattleRecord   `json:"battleRecords,omitempty"`
+	PlayerIntels        []PlayerIntel    `json:"playerIntels,omitempty"`
+	ScoreIntels         []ScoreIntel     `json:"scoreIntels,omitempty"`
+	PlanetIntels        []*Planet        `json:"planetIntels,omitempty"`
+	FleetIntels         []*Fleet         `json:"fleetIntels,omitempty"`
+	ShipDesignIntels    []*ShipDesign    `json:"shipDesignIntels,omitempty"`
+	MineralPacketIntels []*MineralPacket `json:"mineralPacketIntels,omitempty"`
+	MinefieldIntels     []*Minefield     `json:"minefieldIntels,omitempty"`
+	WormholeIntels      []*Wormhole      `json:"wormholeIntels,omitempty"`
+	MysteryTraderIntels []*MysteryTrader `json:"mysteryTraderIntels,omitempty"`
+	SalvageIntels       []*Salvage       `json:"salvageIntels,omitempty"`
 }
 
 type PlayerPlans struct {
@@ -119,18 +120,16 @@ const (
 )
 
 type PlayerSpec struct {
-	PlayerResearchSpec
 	PlanetaryScanner TechPlanetaryScanner                `json:"planetaryScanner"`
 	Defense          TechDefense                         `json:"defense"`
 	Terraform        map[TerraformHabType]*TechTerraform `json:"terraform"`
 }
 
 type PlayerResearchSpec struct {
-	ResourcesPerYear                  int     `json:"resourcesPerYear"`
-	ResourcesPerYearResearch          int     `json:"resourcesPerYearResearch"`
-	ResourcesPerYearResearchEstimated int     `json:"resourcesPerYearResearchEstimated"`
-	CurrentResearchCost               int     `json:"currentResearchCost"`
-	TechsJustGained                   []*Tech `json:"techsJustGained"`
+	ResourcesPerYear                  int `json:"resourcesPerYear"`
+	ResourcesPerYearResearch          int `json:"resourcesPerYearResearch"`
+	ResourcesPerYearResearchEstimated int `json:"resourcesPerYearResearchEstimated"`
+	CurrentResearchCost               int `json:"currentResearchCost"`
 }
 
 type PlayerScore struct {
@@ -309,11 +308,11 @@ func (p *Player) WithRelations(relations []PlayerRelationship) *Player {
 }
 
 func (p *Player) withSpec(rules *Rules) *Player {
-	p.Spec = computePlayerSpec(p, rules, []*Planet{})
+	p.Spec = ComputePlayerSpec(p, rules, []*Planet{})
 	return p
 }
 
-func (p *Player) withPlanetIntels(planets []PlanetIntel) *Player {
+func (p *Player) withPlanetIntels(planets []*Planet) *Player {
 	p.PlanetIntels = planets
 	return p
 }
@@ -321,7 +320,7 @@ func (p *Player) withPlanetIntels(planets []PlanetIntel) *Player {
 // Update a player's recently gained techs and message them about it
 func (p *Player) updateTechsJustGained(store *TechStore, field TechField) {
 	techsGained := store.GetTechsJustGained(p, field)
-	p.Spec.TechsJustGained = append(p.Spec.TechsJustGained, techsGained...)
+	p.TechsJustGained = append(p.TechsJustGained, techsGained...)
 	for _, tech := range techsGained {
 		messager.playerTechGained(p, field, tech)
 	}
@@ -350,10 +349,9 @@ func (p *Player) GetDesign(num int) *ShipDesign {
 	return nil
 }
 
-// Get a ShipDesignIntel, or nil if no design found
-func (p *Player) GetForeignDesign(playerNum int, num int) *ShipDesignIntel {
-	for i := range p.ShipDesignIntels {
-		design := &p.ShipDesignIntels[i]
+// Get a ShipDesign, or nil if no design found
+func (p *Player) GetForeignDesign(playerNum int, num int) *ShipDesign {
+	for _, design := range p.ShipDesignIntels {
 		if design.PlayerNum == playerNum && design.Num == num {
 			return design
 		}
@@ -430,37 +428,34 @@ func (p *Player) GetNextTransportPlanNum() int {
 
 // clear this player's transient intel
 func (p *Player) clearTransientIntel() {
-	p.FleetIntels = []FleetIntel{}
-	p.MinefieldIntels = []MinefieldIntel{}
-	p.SalvageIntels = []SalvageIntel{}
-	p.MineralPacketIntels = []MineralPacketIntel{}
-	p.MysteryTraderIntels = []MysteryTraderIntel{}
+	p.FleetIntels = []*Fleet{}
+	p.MinefieldIntels = []*Minefield{}
+	p.SalvageIntels = []*Salvage{}
+	p.MineralPacketIntels = []*MineralPacket{}
+	p.MysteryTraderIntels = []*MysteryTrader{}
 }
 
 // for reports that stick around, increment the report age
 func (p *Player) incrementReportAge() {
-	for i := range p.PlanetIntels {
-		planet := &p.PlanetIntels[i]
+	for _, planet := range p.PlanetIntels {
 		if planet.ReportAge != ReportAgeUnexplored {
 			planet.ReportAge++
 		}
 	}
 
-	for i := range p.WormholeIntels {
-		wormhole := &p.WormholeIntels[i]
+	for _, wormhole := range p.WormholeIntels {
 		if wormhole.ReportAge != ReportAgeUnexplored {
 			wormhole.ReportAge++
 		}
 	}
 }
 
-func (p *Player) GetPlanetIntel(num int) *PlanetIntel {
-	return &p.PlanetIntels[num-1]
+func (p *Player) GetPlanetIntel(num int) *Planet {
+	return p.PlanetIntels[num-1]
 }
 
-func (p *Player) GetWormholeIntel(num int) *WormholeIntel {
-	for i := range p.WormholeIntels {
-		intel := &p.WormholeIntels[i]
+func (p *Player) GetWormholeIntel(num int) *Wormhole {
+	for _, intel := range p.WormholeIntels {
 		if intel.Num == num {
 			return intel
 		}
@@ -468,9 +463,8 @@ func (p *Player) GetWormholeIntel(num int) *WormholeIntel {
 	return nil
 }
 
-func (p *Player) GetMysteryTraderIntel(num int) *MysteryTraderIntel {
-	for i := range p.MysteryTraderIntels {
-		intel := &p.MysteryTraderIntels[i]
+func (p *Player) GetMysteryTraderIntel(num int) *MysteryTrader {
+	for _, intel := range p.MysteryTraderIntels {
 		if intel.Num == num {
 			return intel
 		}
@@ -478,9 +472,8 @@ func (p *Player) GetMysteryTraderIntel(num int) *MysteryTraderIntel {
 	return nil
 }
 
-func (p *Player) GetMinefieldIntel(playerNum, num int) *MinefieldIntel {
-	for i := range p.MinefieldIntels {
-		intel := &p.MinefieldIntels[i]
+func (p *Player) GetMinefieldIntel(playerNum, num int) *Minefield {
+	for _, intel := range p.MinefieldIntels {
 		if intel.PlayerNum == playerNum && intel.Num == num {
 			return intel
 		}
@@ -489,9 +482,8 @@ func (p *Player) GetMinefieldIntel(playerNum, num int) *MinefieldIntel {
 	return nil
 }
 
-func (p *Player) GetMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
-	for i := range p.MineralPacketIntels {
-		intel := &p.MineralPacketIntels[i]
+func (p *Player) GetMineralPacketIntel(playerNum, num int) *MineralPacket {
+	for _, intel := range p.MineralPacketIntels {
 		if intel.PlayerNum == playerNum && intel.Num == num {
 			return intel
 		}
@@ -500,9 +492,8 @@ func (p *Player) GetMineralPacketIntel(playerNum, num int) *MineralPacketIntel {
 	return nil
 }
 
-func (p *Player) GetFleetIntel(playerNum, num int) *FleetIntel {
-	for i := range p.FleetIntels {
-		intel := &p.FleetIntels[i]
+func (p *Player) GetFleetIntel(playerNum, num int) *Fleet {
+	for _, intel := range p.FleetIntels {
 		if intel.PlayerNum == playerNum && intel.Num == num {
 			return intel
 		}
@@ -511,9 +502,8 @@ func (p *Player) GetFleetIntel(playerNum, num int) *FleetIntel {
 	return nil
 }
 
-func (p *Player) GetShipDesignIntel(playerNum, num int) *ShipDesignIntel {
-	for i := range p.ShipDesignIntels {
-		intel := &p.ShipDesignIntels[i]
+func (p *Player) GetShipDesignIntel(playerNum, num int) *ShipDesign {
+	for _, intel := range p.ShipDesignIntels {
 		if intel.PlayerNum == playerNum && intel.Num == num {
 			return intel
 		}
@@ -522,9 +512,8 @@ func (p *Player) GetShipDesignIntel(playerNum, num int) *ShipDesignIntel {
 	return nil
 }
 
-func (p *Player) GetSalvageIntel(num int) *SalvageIntel {
-	for i := range p.SalvageIntels {
-		intel := &p.SalvageIntels[i]
+func (p *Player) GetSalvageIntel(num int) *Salvage {
+	for _, intel := range p.SalvageIntels {
 		if intel.Num == num {
 			return intel
 		}
@@ -532,7 +521,7 @@ func (p *Player) GetSalvageIntel(num int) *SalvageIntel {
 	return nil
 }
 
-func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSpec {
+func ComputePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSpec {
 	techs := rules.techs
 	spec := PlayerSpec{
 		PlanetaryScanner: *techs.GetBestPlanetaryScanner(player),
@@ -545,10 +534,10 @@ func computePlayerSpec(player *Player, rules *Rules, planets []*Planet) PlayerSp
 		},
 	}
 
-	spec.PlayerResearchSpec = ComputePlayerResearchSpec(player, rules, planets)
 	return spec
 }
 
+// ComputePlayerResearchSpec get research estimates for a player based on the planets they own
 func ComputePlayerResearchSpec(player *Player, rules *Rules, planets []*Planet) PlayerResearchSpec {
 	researcher := newResearcher(rules)
 	spec := PlayerResearchSpec{}
@@ -803,10 +792,11 @@ func (p *Player) defaultPlayerIntels(players []*Player) []PlayerIntel {
 
 // get the default intels for a player for other players
 func (player *Player) initDefaultPlanetIntels(planets []*Planet) error {
-	player.PlanetIntels = make([]PlanetIntel, len(planets))
+	player.PlanetIntels = make([]*Planet, len(planets))
 	for j := range planets {
 		// start with some defaults
-		intel := &player.PlanetIntels[j]
+		player.PlanetIntels[j] = &Planet{}
+		intel := player.PlanetIntels[j]
 		intel.ReportAge = ReportAgeUnexplored
 		intel.Type = MapObjectTypePlanet
 		intel.PlayerNum = Unowned

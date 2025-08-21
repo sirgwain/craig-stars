@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { SalvageIntel } from '$lib/types/cs-proto';
+	import type { Salvage } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
 
 	const { universe } = getGameContext();
 
 	type Props = {
-		salvage: SalvageIntel;
+		salvage: Salvage;
 	};
 
 	let { salvage }: Props = $props();

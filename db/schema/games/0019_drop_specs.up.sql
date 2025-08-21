@@ -1,2 +1,53 @@
 -- computing spec at runtime now
-ALTER TABLE minefields DROP COLUMN spec;
+ALTER TABLE minefields
+DROP COLUMN spec;
+ALTER TABLE players
+DROP COLUMN spec;
+
+ALTER TABLE fleets
+ADD COLUMN intel_player_num INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE fleets
+ADD COLUMN report_age INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE ship_designs
+ADD COLUMN intel_player_num INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE ship_designs
+ADD COLUMN report_age INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE planets
+ADD COLUMN intel_player_num INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE planets
+ADD COLUMN report_age INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE mineral_packets
+ADD COLUMN intel_player_num INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE mineral_packets
+ADD COLUMN report_age INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE salvages
+ADD COLUMN intel_player_num INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE salvages
+ADD COLUMN report_age INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE wormholes
+ADD COLUMN intel_player_num INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE wormholes
+ADD COLUMN report_age INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE mystery_traders
+ADD COLUMN intel_player_num INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE mystery_traders
+ADD COLUMN report_age INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE minefields
+ADD COLUMN intel_player_num INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE minefields
+ADD COLUMN report_age INTEGER NOT NULL DEFAULT 0;

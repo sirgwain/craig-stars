@@ -33,7 +33,7 @@ type SplitFleetRequest struct {
 // updating planet and fleet psecs after cargo transfer, splitting and merging fleets, updating research, etc.
 type Orderer interface {
 	UpdatePlayerOrders(player *Player, playerPlanets []*Planet, order PlayerOrders, rules *Rules)
-	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error
+	UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error
 	UpdateFleetOrders(player *Player, fleet *Fleet, orders FleetOrders)
 	UpdateMinefieldOrders(player *Player, minefield *Minefield, orders MinefieldOrders) error
 	TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest CargoHolder, transferAmount CargoTransferRequest) error
@@ -79,8 +79,6 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 		}
 	}
 
-	player.Spec = computePlayerSpec(player, rules, playerPlanets)
-
 	log.Info().
 		Int64("GameID", player.GameID).
 		Int("PlayerNum", player.Num).
@@ -90,21 +88,9 @@ func (o *orders) UpdatePlayerOrders(player *Player, playerPlanets []*Planet, ord
 }
 
 // update a planet orders
-func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders, playerPlanets []*Planet) error {
+func (o *orders) UpdatePlanetOrders(rules *Rules, player *Player, planet *Planet, orders PlanetOrders) error {
 	planet.PlanetOrders = orders
 	o.updatePlanetSpec(rules, player, planet)
-
-	// update the current planet in our list of planets
-	for i, playerPlanet := range playerPlanets {
-		if playerPlanet.Num == planet.Num {
-			playerPlanets[i] = planet
-			break
-		}
-	}
-
-	// update the player spec with the change in resources for this planet
-	// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
-	player.Spec.PlayerResearchSpec = ComputePlayerResearchSpec(player, rules, playerPlanets)
 	planet.MarkDirty()
 
 	log.Info().
@@ -126,7 +112,7 @@ func (o *orders) updatePlanetSpec(rules *Rules, player *Player, planet *Planet) 
 		return err
 	}
 
-	planet.Spec = computePlanetSpec(rules, player, planet)
+	planet.Spec = ComputePlanetSpec(rules, player, planet)
 	if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 		return err
 	}
@@ -251,8 +237,6 @@ func (o *orders) TransferByHand(rules *Rules, player *Player, fleet *Fleet, dest
 		if t.PlayerNum == player.Num {
 			t.Spec = ComputeFleetSpec(rules, player, t)
 		}
-	case *FleetIntel:
-		t.Fuel -= transferAmount.Fuel
 	}
 
 	// record this call with the player

@@ -19,6 +19,8 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
+        intel_player_num,
+        report_age,
         battle_plan_num,
         x,
         y,
@@ -78,12 +80,16 @@ VALUES
         ?,
         ?,
         ?,
+        ?,
+        ?,
         ?
     )
 `
 
 type CreateFleetParams struct {
 	GameID            int64
+	IntelPlayerNum    int64
+	ReportAge         int64
 	BattlePlanNum     int64
 	X                 float64
 	Y                 float64
@@ -116,6 +122,8 @@ type CreateFleetParams struct {
 func (q *Queries) CreateFleet(ctx context.Context, arg CreateFleetParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, CreateFleet,
 		arg.GameID,
+		arg.IntelPlayerNum,
+		arg.ReportAge,
 		arg.BattlePlanNum,
 		arg.X,
 		arg.Y,
@@ -163,7 +171,7 @@ func (q *Queries) DeleteFleet(ctx context.Context, id int64) error {
 
 const GetFleet = `-- name: GetFleet :one
 SELECT
-    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
@@ -179,6 +187,8 @@ func (q *Queries) GetFleet(ctx context.Context, id int64) (Fleet, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
+		&i.IntelPlayerNum,
+		&i.ReportAge,
 		&i.BattlePlanNum,
 		&i.X,
 		&i.Y,
@@ -212,7 +222,7 @@ func (q *Queries) GetFleet(ctx context.Context, id int64) (Fleet, error) {
 
 const GetFleetByNum = `-- name: GetFleetByNum :one
 SELECT
-    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
@@ -235,6 +245,8 @@ func (q *Queries) GetFleetByNum(ctx context.Context, arg GetFleetByNumParams) (F
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
+		&i.IntelPlayerNum,
+		&i.ReportAge,
 		&i.BattlePlanNum,
 		&i.X,
 		&i.Y,
@@ -268,7 +280,7 @@ func (q *Queries) GetFleetByNum(ctx context.Context, arg GetFleetByNumParams) (F
 
 const GetFleets = `-- name: GetFleets :many
 SELECT
-    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 `
@@ -287,6 +299,8 @@ func (q *Queries) GetFleets(ctx context.Context) ([]Fleet, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.IntelPlayerNum,
+			&i.ReportAge,
 			&i.BattlePlanNum,
 			&i.X,
 			&i.Y,
@@ -330,7 +344,7 @@ func (q *Queries) GetFleets(ctx context.Context) ([]Fleet, error) {
 
 const GetFleetsByNums = `-- name: GetFleetsByNums :many
 SELECT
-    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
@@ -374,6 +388,8 @@ func (q *Queries) GetFleetsByNums(ctx context.Context, arg GetFleetsByNumsParams
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.IntelPlayerNum,
+			&i.ReportAge,
 			&i.BattlePlanNum,
 			&i.X,
 			&i.Y,
@@ -417,7 +433,7 @@ func (q *Queries) GetFleetsByNums(ctx context.Context, arg GetFleetsByNumsParams
 
 const GetFleetsForGame = `-- name: GetFleetsForGame :many
 SELECT
-    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
@@ -441,6 +457,8 @@ func (q *Queries) GetFleetsForGame(ctx context.Context, gameID int64) ([]Fleet, 
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.IntelPlayerNum,
+			&i.ReportAge,
 			&i.BattlePlanNum,
 			&i.X,
 			&i.Y,
@@ -484,7 +502,7 @@ func (q *Queries) GetFleetsForGame(ctx context.Context, gameID int64) ([]Fleet, 
 
 const GetFleetsForPlayer = `-- name: GetFleetsForPlayer :many
 SELECT
-    id, created_at, updated_at, game_id, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, battle_plan_num, x, y, name, num, player_num, tokens, waypoints, repeat_orders, planet_num, base_name, ironium, boranium, germanium, colonists, fuel, age, heading_x, heading_y, warp_speed, previous_position_x, previous_position_y, orbiting_planet_num, starbase, spec, purpose, tags
 FROM
     fleets
 WHERE
@@ -513,6 +531,8 @@ func (q *Queries) GetFleetsForPlayer(ctx context.Context, arg GetFleetsForPlayer
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.IntelPlayerNum,
+			&i.ReportAge,
 			&i.BattlePlanNum,
 			&i.X,
 			&i.Y,
@@ -559,6 +579,8 @@ UPDATE fleets
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
+    intel_player_num = ?,
+    report_age = ?,
     battle_plan_num = ?,
     x = ?,
     y = ?,
@@ -592,6 +614,8 @@ WHERE
 
 type UpdateFleetParams struct {
 	GameID            int64
+	IntelPlayerNum    int64
+	ReportAge         int64
 	BattlePlanNum     int64
 	X                 float64
 	Y                 float64
@@ -625,6 +649,8 @@ type UpdateFleetParams struct {
 func (q *Queries) UpdateFleet(ctx context.Context, arg UpdateFleetParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, UpdateFleet,
 		arg.GameID,
+		arg.IntelPlayerNum,
+		arg.ReportAge,
 		arg.BattlePlanNum,
 		arg.X,
 		arg.Y,

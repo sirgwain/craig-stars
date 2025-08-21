@@ -104,14 +104,13 @@
 		if (fg.state != GameState.SETUP) {
 			const playerResp = playerClient.getPlayer({ gameId });
 			const { universe } = await playerClient.getUniverse({ gameId });
-			const { player, intels, designs } = await playerResp;
+			const { player } = await playerResp;
 
 			if (!universe || !player) {
 				throw Error('failed to load player and universe');
 			}
 			// configure the universe for the player after the player is loaded
-			u.setData({ ...universe, designs }, intels);
-			u.setPlayerNum(player.num);
+			u.setData(player.num, universe);
 
 			// update the player
 			Object.assign(p, player);

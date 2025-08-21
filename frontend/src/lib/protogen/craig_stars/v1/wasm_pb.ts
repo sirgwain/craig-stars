@@ -12,7 +12,7 @@ import type { Minefield, MinefieldJson, MinefieldSpec, MinefieldSpecJson } from 
 import { file_craig_stars_v1_minefield } from "./minefield_pb";
 import type { Planet, PlanetJson, QueueItemType, QueueItemTypeJson } from "./planet_pb";
 import { file_craig_stars_v1_planet } from "./planet_pb";
-import type { Intels, IntelsJson, Player, PlayerJson } from "./player_pb";
+import type { Intels, IntelsJson, Player, PlayerJson, PlayerResearchSpec, PlayerResearchSpecJson } from "./player_pb";
 import { file_craig_stars_v1_player } from "./player_pb";
 import type { Race, RaceJson, RaceSpec, RaceSpecJson } from "./race_pb";
 import { file_craig_stars_v1_race } from "./race_pb";
@@ -26,7 +26,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file craig_stars/v1/wasm.proto.
  */
 export const file_craig_stars_v1_wasm: GenFile = /*@__PURE__*/
-  fileDesc("ChljcmFpZ19zdGFycy92MS93YXNtLnByb3RvEg5jcmFpZ19zdGFycy52MSKpAQoSQWRkV2F5cG9pbnRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSKgoEZGVzdBgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLldheXBvaW50RGVzdBInCh9jdXJyZW50X3NlbGVjdGVkX3dheXBvaW50X2luZGV4GAMgASgFEhgKEGZhc3Rlc3Rfd2F5cG9pbnQYBCABKAgiSgoTQWRkV2F5cG9pbnRSZXNwb25zZRIkCgVmbGVldBgBIAEoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0Eg0KBWluZGV4GAIgASgFIkAKGkNhbGN1bGF0ZVJhY2VQb2ludHNSZXF1ZXN0EiIKBHJhY2UYASABKAsyFC5jcmFpZ19zdGFycy52MS5SYWNlIi0KG0NhbGN1bGF0ZVJhY2VQb2ludHNSZXNwb25zZRIOCgZwb2ludHMYASABKAUiSwobQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXF1ZXN0EiwKCW1pbmVmaWVsZBgBIAEoCzIZLmNyYWlnX3N0YXJzLnYxLk1pbmVmaWVsZCJLChxDb21wdXRlTWluZWZpZWxkU3BlY1Jlc3BvbnNlEisKBHNwZWMYASABKAsyHS5jcmFpZ19zdGFycy52MS5NaW5lZmllbGRTcGVjIjwKFkNvbXB1dGVSYWNlU3BlY1JlcXVlc3QSIgoEcmFjZRgBIAEoCzIULmNyYWlnX3N0YXJzLnYxLlJhY2UiQQoXQ29tcHV0ZVJhY2VTcGVjUmVzcG9uc2USJgoEc3BlYxgBIAEoCzIYLmNyYWlnX3N0YXJzLnYxLlJhY2VTcGVjIkoKHENvbXB1dGVTaGlwRGVzaWduU3BlY1JlcXVlc3QSKgoGZGVzaWduGAEgASgLMhouY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnbiJNCh1Db21wdXRlU2hpcERlc2lnblNwZWNSZXNwb25zZRIsCgRzcGVjGAEgASgLMh4uY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnblNwZWMiIwoSRW5hYmxlRGVidWdSZXF1ZXN0Eg0KBWRlYnVnGAEgASgIIhUKE0VuYWJsZURlYnVnUmVzcG9uc2UiQwoZRXN0aW1hdGVQcm9kdWN0aW9uUmVxdWVzdBImCgZwbGFuZXQYASABKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQiRAoaRXN0aW1hdGVQcm9kdWN0aW9uUmVzcG9uc2USJgoGcGxhbmV0GAEgASgLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0InIKFkdldE1heEJ1aWxkYWJsZVJlcXVlc3QSJgoGcGxhbmV0GAEgASgLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0EjAKCWl0ZW1fdHlwZRgCIAEoDjIdLmNyYWlnX3N0YXJzLnYxLlF1ZXVlSXRlbVR5cGUiKQoXR2V0TWF4QnVpbGRhYmxlUmVzcG9uc2USDgoGcmVzdWx0GAEgASgFImQKHEdldFBsYW5ldEhhYml0YWJpbGl0eVJlcXVlc3QSIgoEcmFjZRgBIAEoCzIULmNyYWlnX3N0YXJzLnYxLlJhY2USIAoDaGFiGAIgASgLMhMuY3JhaWdfc3RhcnMudjEuSGFiIi8KHUdldFBsYW5ldEhhYml0YWJpbGl0eVJlc3BvbnNlEg4KBnJlc3VsdBgBIAEoBSJHChZHZXRSZXNlYXJjaENvc3RSZXF1ZXN0Ei0KCnRlY2hfbGV2ZWwYASABKAsyGS5jcmFpZ19zdGFycy52MS5UZWNoTGV2ZWwiLAoXR2V0UmVzZWFyY2hDb3N0UmVzcG9uc2USEQoJcmVzb3VyY2VzGAEgASgFInsKHUdldFN0YXJiYXNlVXBncmFkZUNvc3RSZXF1ZXN0EioKBmRlc2lnbhgBIAEoCzIaLmNyYWlnX3N0YXJzLnYxLlNoaXBEZXNpZ24SLgoKbmV3X2Rlc2lnbhgCIAEoCzIaLmNyYWlnX3N0YXJzLnYxLlNoaXBEZXNpZ24iRAoeR2V0U3RhcmJhc2VVcGdyYWRlQ29zdFJlc3BvbnNlEiIKBGNvc3QYASABKAsyFC5jcmFpZ19zdGFycy52MS5Db3N0IjgKEkdldFRlY2hDb3N0UmVxdWVzdBIiCgR0ZWNoGAEgASgLMhQuY3JhaWdfc3RhcnMudjEuVGVjaCI5ChNHZXRUZWNoQ29zdFJlc3BvbnNlEiIKBGNvc3QYASABKAsyFC5jcmFpZ19zdGFycy52MS5Db3N0IkAKEVNldERlc2lnbnNSZXF1ZXN0EisKB2Rlc2lnbnMYASADKAsyGi5jcmFpZ19zdGFycy52MS5TaGlwRGVzaWduIhQKElNldERlc2lnbnNSZXNwb25zZSI6ChBTZXRJbnRlbHNSZXF1ZXN0EiYKBmludGVscxgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLkludGVscyITChFTZXRJbnRlbHNSZXNwb25zZSI6ChBTZXRQbGF5ZXJSZXF1ZXN0EiYKBnBsYXllchgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlBsYXllciITChFTZXRQbGF5ZXJSZXNwb25zZSKsAQoVVXBkYXRlV2F5cG9pbnRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSKgoEZGVzdBgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLldheXBvaW50RGVzdBInCh9jdXJyZW50X3NlbGVjdGVkX3dheXBvaW50X2luZGV4GAMgASgFEhgKEGZhc3Rlc3Rfd2F5cG9pbnQYBCABKAgiTwoWVXBkYXRlV2F5cG9pbnRSZXNwb25zZRIkCgVmbGVldBgBIAEoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0Eg8KB3VwZGF0ZWQYAiABKAgy8AwKC1dhc21TZXJ2aWNlElgKC0FkZFdheXBvaW50EiIuY3JhaWdfc3RhcnMudjEuQWRkV2F5cG9pbnRSZXF1ZXN0GiMuY3JhaWdfc3RhcnMudjEuQWRkV2F5cG9pbnRSZXNwb25zZSIAEnAKE0NhbGN1bGF0ZVJhY2VQb2ludHMSKi5jcmFpZ19zdGFycy52MS5DYWxjdWxhdGVSYWNlUG9pbnRzUmVxdWVzdBorLmNyYWlnX3N0YXJzLnYxLkNhbGN1bGF0ZVJhY2VQb2ludHNSZXNwb25zZSIAEnMKFENvbXB1dGVNaW5lZmllbGRTcGVjEisuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXF1ZXN0GiwuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXNwb25zZSIAEmQKD0NvbXB1dGVSYWNlU3BlYxImLmNyYWlnX3N0YXJzLnYxLkNvbXB1dGVSYWNlU3BlY1JlcXVlc3QaJy5jcmFpZ19zdGFycy52MS5Db21wdXRlUmFjZVNwZWNSZXNwb25zZSIAEnYKFUNvbXB1dGVTaGlwRGVzaWduU3BlYxIsLmNyYWlnX3N0YXJzLnYxLkNvbXB1dGVTaGlwRGVzaWduU3BlY1JlcXVlc3QaLS5jcmFpZ19zdGFycy52MS5Db21wdXRlU2hpcERlc2lnblNwZWNSZXNwb25zZSIAElgKC0VuYWJsZURlYnVnEiIuY3JhaWdfc3RhcnMudjEuRW5hYmxlRGVidWdSZXF1ZXN0GiMuY3JhaWdfc3RhcnMudjEuRW5hYmxlRGVidWdSZXNwb25zZSIAEm0KEkVzdGltYXRlUHJvZHVjdGlvbhIpLmNyYWlnX3N0YXJzLnYxLkVzdGltYXRlUHJvZHVjdGlvblJlcXVlc3QaKi5jcmFpZ19zdGFycy52MS5Fc3RpbWF0ZVByb2R1Y3Rpb25SZXNwb25zZSIAEmQKD0dldE1heEJ1aWxkYWJsZRImLmNyYWlnX3N0YXJzLnYxLkdldE1heEJ1aWxkYWJsZVJlcXVlc3QaJy5jcmFpZ19zdGFycy52MS5HZXRNYXhCdWlsZGFibGVSZXNwb25zZSIAEnYKFUdldFBsYW5ldEhhYml0YWJpbGl0eRIsLmNyYWlnX3N0YXJzLnYxLkdldFBsYW5ldEhhYml0YWJpbGl0eVJlcXVlc3QaLS5jcmFpZ19zdGFycy52MS5HZXRQbGFuZXRIYWJpdGFiaWxpdHlSZXNwb25zZSIAEmQKD0dldFJlc2VhcmNoQ29zdBImLmNyYWlnX3N0YXJzLnYxLkdldFJlc2VhcmNoQ29zdFJlcXVlc3QaJy5jcmFpZ19zdGFycy52MS5HZXRSZXNlYXJjaENvc3RSZXNwb25zZSIAEnkKFkdldFN0YXJiYXNlVXBncmFkZUNvc3QSLS5jcmFpZ19zdGFycy52MS5HZXRTdGFyYmFzZVVwZ3JhZGVDb3N0UmVxdWVzdBouLmNyYWlnX3N0YXJzLnYxLkdldFN0YXJiYXNlVXBncmFkZUNvc3RSZXNwb25zZSIAElgKC0dldFRlY2hDb3N0EiIuY3JhaWdfc3RhcnMudjEuR2V0VGVjaENvc3RSZXF1ZXN0GiMuY3JhaWdfc3RhcnMudjEuR2V0VGVjaENvc3RSZXNwb25zZSIAElUKClNldERlc2lnbnMSIS5jcmFpZ19zdGFycy52MS5TZXREZXNpZ25zUmVxdWVzdBoiLmNyYWlnX3N0YXJzLnYxLlNldERlc2lnbnNSZXNwb25zZSIAElIKCVNldEludGVscxIgLmNyYWlnX3N0YXJzLnYxLlNldEludGVsc1JlcXVlc3QaIS5jcmFpZ19zdGFycy52MS5TZXRJbnRlbHNSZXNwb25zZSIAElIKCVNldFBsYXllchIgLmNyYWlnX3N0YXJzLnYxLlNldFBsYXllclJlcXVlc3QaIS5jcmFpZ19zdGFycy52MS5TZXRQbGF5ZXJSZXNwb25zZSIAEmEKDlVwZGF0ZVdheXBvaW50EiUuY3JhaWdfc3RhcnMudjEuVXBkYXRlV2F5cG9pbnRSZXF1ZXN0GiYuY3JhaWdfc3RhcnMudjEuVXBkYXRlV2F5cG9pbnRSZXNwb25zZSIAYgZwcm90bzM", [file_craig_stars_v1_common, file_craig_stars_v1_fleet, file_craig_stars_v1_minefield, file_craig_stars_v1_planet, file_craig_stars_v1_player, file_craig_stars_v1_race, file_craig_stars_v1_shipdesign, file_craig_stars_v1_tech]);
+  fileDesc("ChljcmFpZ19zdGFycy92MS93YXNtLnByb3RvEg5jcmFpZ19zdGFycy52MSKpAQoSQWRkV2F5cG9pbnRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSKgoEZGVzdBgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLldheXBvaW50RGVzdBInCh9jdXJyZW50X3NlbGVjdGVkX3dheXBvaW50X2luZGV4GAMgASgFEhgKEGZhc3Rlc3Rfd2F5cG9pbnQYBCABKAgiSgoTQWRkV2F5cG9pbnRSZXNwb25zZRIkCgVmbGVldBgBIAEoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0Eg0KBWluZGV4GAIgASgFIkAKGkNhbGN1bGF0ZVJhY2VQb2ludHNSZXF1ZXN0EiIKBHJhY2UYASABKAsyFC5jcmFpZ19zdGFycy52MS5SYWNlIi0KG0NhbGN1bGF0ZVJhY2VQb2ludHNSZXNwb25zZRIOCgZwb2ludHMYASABKAUiSwobQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXF1ZXN0EiwKCW1pbmVmaWVsZBgBIAEoCzIZLmNyYWlnX3N0YXJzLnYxLk1pbmVmaWVsZCJLChxDb21wdXRlTWluZWZpZWxkU3BlY1Jlc3BvbnNlEisKBHNwZWMYASABKAsyHS5jcmFpZ19zdGFycy52MS5NaW5lZmllbGRTcGVjIiIKIENvbXB1dGVQbGF5ZXJSZXNlYXJjaFNwZWNSZXF1ZXN0IlUKIUNvbXB1dGVQbGF5ZXJSZXNlYXJjaFNwZWNSZXNwb25zZRIwCgRzcGVjGAEgASgLMiIuY3JhaWdfc3RhcnMudjEuUGxheWVyUmVzZWFyY2hTcGVjIjwKFkNvbXB1dGVSYWNlU3BlY1JlcXVlc3QSIgoEcmFjZRgBIAEoCzIULmNyYWlnX3N0YXJzLnYxLlJhY2UiQQoXQ29tcHV0ZVJhY2VTcGVjUmVzcG9uc2USJgoEc3BlYxgBIAEoCzIYLmNyYWlnX3N0YXJzLnYxLlJhY2VTcGVjIkoKHENvbXB1dGVTaGlwRGVzaWduU3BlY1JlcXVlc3QSKgoGZGVzaWduGAEgASgLMhouY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnbiJNCh1Db21wdXRlU2hpcERlc2lnblNwZWNSZXNwb25zZRIsCgRzcGVjGAEgASgLMh4uY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnblNwZWMiIwoSRW5hYmxlRGVidWdSZXF1ZXN0Eg0KBWRlYnVnGAEgASgIIhUKE0VuYWJsZURlYnVnUmVzcG9uc2UiQwoZRXN0aW1hdGVQcm9kdWN0aW9uUmVxdWVzdBImCgZwbGFuZXQYASABKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQiRAoaRXN0aW1hdGVQcm9kdWN0aW9uUmVzcG9uc2USJgoGcGxhbmV0GAEgASgLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0InIKFkdldE1heEJ1aWxkYWJsZVJlcXVlc3QSJgoGcGxhbmV0GAEgASgLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0EjAKCWl0ZW1fdHlwZRgCIAEoDjIdLmNyYWlnX3N0YXJzLnYxLlF1ZXVlSXRlbVR5cGUiKQoXR2V0TWF4QnVpbGRhYmxlUmVzcG9uc2USDgoGcmVzdWx0GAEgASgFImQKHEdldFBsYW5ldEhhYml0YWJpbGl0eVJlcXVlc3QSIgoEcmFjZRgBIAEoCzIULmNyYWlnX3N0YXJzLnYxLlJhY2USIAoDaGFiGAIgASgLMhMuY3JhaWdfc3RhcnMudjEuSGFiIi8KHUdldFBsYW5ldEhhYml0YWJpbGl0eVJlc3BvbnNlEg4KBnJlc3VsdBgBIAEoBSJHChZHZXRSZXNlYXJjaENvc3RSZXF1ZXN0Ei0KCnRlY2hfbGV2ZWwYASABKAsyGS5jcmFpZ19zdGFycy52MS5UZWNoTGV2ZWwiLAoXR2V0UmVzZWFyY2hDb3N0UmVzcG9uc2USEQoJcmVzb3VyY2VzGAEgASgFInsKHUdldFN0YXJiYXNlVXBncmFkZUNvc3RSZXF1ZXN0EioKBmRlc2lnbhgBIAEoCzIaLmNyYWlnX3N0YXJzLnYxLlNoaXBEZXNpZ24SLgoKbmV3X2Rlc2lnbhgCIAEoCzIaLmNyYWlnX3N0YXJzLnYxLlNoaXBEZXNpZ24iRAoeR2V0U3RhcmJhc2VVcGdyYWRlQ29zdFJlc3BvbnNlEiIKBGNvc3QYASABKAsyFC5jcmFpZ19zdGFycy52MS5Db3N0IjgKEkdldFRlY2hDb3N0UmVxdWVzdBIiCgR0ZWNoGAEgASgLMhQuY3JhaWdfc3RhcnMudjEuVGVjaCI5ChNHZXRUZWNoQ29zdFJlc3BvbnNlEiIKBGNvc3QYASABKAsyFC5jcmFpZ19zdGFycy52MS5Db3N0IkAKEVNldERlc2lnbnNSZXF1ZXN0EisKB2Rlc2lnbnMYASADKAsyGi5jcmFpZ19zdGFycy52MS5TaGlwRGVzaWduIhQKElNldERlc2lnbnNSZXNwb25zZSI6ChBTZXRJbnRlbHNSZXF1ZXN0EiYKBmludGVscxgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLkludGVscyITChFTZXRJbnRlbHNSZXNwb25zZSI6ChBTZXRQbGF5ZXJSZXF1ZXN0EiYKBnBsYXllchgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlBsYXllciITChFTZXRQbGF5ZXJSZXNwb25zZSI9ChNVcGRhdGVQbGFuZXRSZXF1ZXN0EiYKBnBsYW5ldBgBIAEoCzIWLmNyYWlnX3N0YXJzLnYxLlBsYW5ldCIWChRVcGRhdGVQbGFuZXRSZXNwb25zZSI/ChRVcGRhdGVQbGFuZXRzUmVxdWVzdBInCgdwbGFuZXRzGAEgAygLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0IhcKFVVwZGF0ZVBsYW5ldHNSZXNwb25zZSKsAQoVVXBkYXRlV2F5cG9pbnRSZXF1ZXN0EiQKBWZsZWV0GAEgASgLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSKgoEZGVzdBgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLldheXBvaW50RGVzdBInCh9jdXJyZW50X3NlbGVjdGVkX3dheXBvaW50X2luZGV4GAMgASgFEhgKEGZhc3Rlc3Rfd2F5cG9pbnQYBCABKAgiTwoWVXBkYXRlV2F5cG9pbnRSZXNwb25zZRIkCgVmbGVldBgBIAEoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0Eg8KB3VwZGF0ZWQYAiABKAgysg8KC1dhc21TZXJ2aWNlElgKC0FkZFdheXBvaW50EiIuY3JhaWdfc3RhcnMudjEuQWRkV2F5cG9pbnRSZXF1ZXN0GiMuY3JhaWdfc3RhcnMudjEuQWRkV2F5cG9pbnRSZXNwb25zZSIAEnAKE0NhbGN1bGF0ZVJhY2VQb2ludHMSKi5jcmFpZ19zdGFycy52MS5DYWxjdWxhdGVSYWNlUG9pbnRzUmVxdWVzdBorLmNyYWlnX3N0YXJzLnYxLkNhbGN1bGF0ZVJhY2VQb2ludHNSZXNwb25zZSIAEnMKFENvbXB1dGVNaW5lZmllbGRTcGVjEisuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXF1ZXN0GiwuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZU1pbmVmaWVsZFNwZWNSZXNwb25zZSIAEoIBChlDb21wdXRlUGxheWVyUmVzZWFyY2hTcGVjEjAuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZVBsYXllclJlc2VhcmNoU3BlY1JlcXVlc3QaMS5jcmFpZ19zdGFycy52MS5Db21wdXRlUGxheWVyUmVzZWFyY2hTcGVjUmVzcG9uc2UiABJkCg9Db21wdXRlUmFjZVNwZWMSJi5jcmFpZ19zdGFycy52MS5Db21wdXRlUmFjZVNwZWNSZXF1ZXN0GicuY3JhaWdfc3RhcnMudjEuQ29tcHV0ZVJhY2VTcGVjUmVzcG9uc2UiABJ2ChVDb21wdXRlU2hpcERlc2lnblNwZWMSLC5jcmFpZ19zdGFycy52MS5Db21wdXRlU2hpcERlc2lnblNwZWNSZXF1ZXN0Gi0uY3JhaWdfc3RhcnMudjEuQ29tcHV0ZVNoaXBEZXNpZ25TcGVjUmVzcG9uc2UiABJYCgtFbmFibGVEZWJ1ZxIiLmNyYWlnX3N0YXJzLnYxLkVuYWJsZURlYnVnUmVxdWVzdBojLmNyYWlnX3N0YXJzLnYxLkVuYWJsZURlYnVnUmVzcG9uc2UiABJtChJFc3RpbWF0ZVByb2R1Y3Rpb24SKS5jcmFpZ19zdGFycy52MS5Fc3RpbWF0ZVByb2R1Y3Rpb25SZXF1ZXN0GiouY3JhaWdfc3RhcnMudjEuRXN0aW1hdGVQcm9kdWN0aW9uUmVzcG9uc2UiABJkCg9HZXRNYXhCdWlsZGFibGUSJi5jcmFpZ19zdGFycy52MS5HZXRNYXhCdWlsZGFibGVSZXF1ZXN0GicuY3JhaWdfc3RhcnMudjEuR2V0TWF4QnVpbGRhYmxlUmVzcG9uc2UiABJ2ChVHZXRQbGFuZXRIYWJpdGFiaWxpdHkSLC5jcmFpZ19zdGFycy52MS5HZXRQbGFuZXRIYWJpdGFiaWxpdHlSZXF1ZXN0Gi0uY3JhaWdfc3RhcnMudjEuR2V0UGxhbmV0SGFiaXRhYmlsaXR5UmVzcG9uc2UiABJkCg9HZXRSZXNlYXJjaENvc3QSJi5jcmFpZ19zdGFycy52MS5HZXRSZXNlYXJjaENvc3RSZXF1ZXN0GicuY3JhaWdfc3RhcnMudjEuR2V0UmVzZWFyY2hDb3N0UmVzcG9uc2UiABJ5ChZHZXRTdGFyYmFzZVVwZ3JhZGVDb3N0Ei0uY3JhaWdfc3RhcnMudjEuR2V0U3RhcmJhc2VVcGdyYWRlQ29zdFJlcXVlc3QaLi5jcmFpZ19zdGFycy52MS5HZXRTdGFyYmFzZVVwZ3JhZGVDb3N0UmVzcG9uc2UiABJYCgtHZXRUZWNoQ29zdBIiLmNyYWlnX3N0YXJzLnYxLkdldFRlY2hDb3N0UmVxdWVzdBojLmNyYWlnX3N0YXJzLnYxLkdldFRlY2hDb3N0UmVzcG9uc2UiABJVCgpTZXREZXNpZ25zEiEuY3JhaWdfc3RhcnMudjEuU2V0RGVzaWduc1JlcXVlc3QaIi5jcmFpZ19zdGFycy52MS5TZXREZXNpZ25zUmVzcG9uc2UiABJSCglTZXRJbnRlbHMSIC5jcmFpZ19zdGFycy52MS5TZXRJbnRlbHNSZXF1ZXN0GiEuY3JhaWdfc3RhcnMudjEuU2V0SW50ZWxzUmVzcG9uc2UiABJSCglTZXRQbGF5ZXISIC5jcmFpZ19zdGFycy52MS5TZXRQbGF5ZXJSZXF1ZXN0GiEuY3JhaWdfc3RhcnMudjEuU2V0UGxheWVyUmVzcG9uc2UiABJbCgxVcGRhdGVQbGFuZXQSIy5jcmFpZ19zdGFycy52MS5VcGRhdGVQbGFuZXRSZXF1ZXN0GiQuY3JhaWdfc3RhcnMudjEuVXBkYXRlUGxhbmV0UmVzcG9uc2UiABJeCg1VcGRhdGVQbGFuZXRzEiQuY3JhaWdfc3RhcnMudjEuVXBkYXRlUGxhbmV0c1JlcXVlc3QaJS5jcmFpZ19zdGFycy52MS5VcGRhdGVQbGFuZXRzUmVzcG9uc2UiABJhCg5VcGRhdGVXYXlwb2ludBIlLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVdheXBvaW50UmVxdWVzdBomLmNyYWlnX3N0YXJzLnYxLlVwZGF0ZVdheXBvaW50UmVzcG9uc2UiAGIGcHJvdG8z", [file_craig_stars_v1_common, file_craig_stars_v1_fleet, file_craig_stars_v1_minefield, file_craig_stars_v1_planet, file_craig_stars_v1_player, file_craig_stars_v1_race, file_craig_stars_v1_shipdesign, file_craig_stars_v1_tech]);
 
 /**
  * @generated from message craig_stars.v1.AddWaypointRequest
@@ -231,6 +231,52 @@ export const ComputeMinefieldSpecResponseSchema: GenMessage<ComputeMinefieldSpec
   messageDesc(file_craig_stars_v1_wasm, 5);
 
 /**
+ * @generated from message craig_stars.v1.ComputePlayerResearchSpecRequest
+ */
+export type ComputePlayerResearchSpecRequest = Message<"craig_stars.v1.ComputePlayerResearchSpecRequest"> & {
+};
+
+/**
+ * @generated from message craig_stars.v1.ComputePlayerResearchSpecRequest
+ */
+export type ComputePlayerResearchSpecRequestJson = {
+};
+
+/**
+ * Describes the message craig_stars.v1.ComputePlayerResearchSpecRequest.
+ * Use `create(ComputePlayerResearchSpecRequestSchema)` to create a new message.
+ */
+export const ComputePlayerResearchSpecRequestSchema: GenMessage<ComputePlayerResearchSpecRequest, {jsonType: ComputePlayerResearchSpecRequestJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 6);
+
+/**
+ * @generated from message craig_stars.v1.ComputePlayerResearchSpecResponse
+ */
+export type ComputePlayerResearchSpecResponse = Message<"craig_stars.v1.ComputePlayerResearchSpecResponse"> & {
+  /**
+   * @generated from field: craig_stars.v1.PlayerResearchSpec spec = 1;
+   */
+  spec?: PlayerResearchSpec;
+};
+
+/**
+ * @generated from message craig_stars.v1.ComputePlayerResearchSpecResponse
+ */
+export type ComputePlayerResearchSpecResponseJson = {
+  /**
+   * @generated from field: craig_stars.v1.PlayerResearchSpec spec = 1;
+   */
+  spec?: PlayerResearchSpecJson;
+};
+
+/**
+ * Describes the message craig_stars.v1.ComputePlayerResearchSpecResponse.
+ * Use `create(ComputePlayerResearchSpecResponseSchema)` to create a new message.
+ */
+export const ComputePlayerResearchSpecResponseSchema: GenMessage<ComputePlayerResearchSpecResponse, {jsonType: ComputePlayerResearchSpecResponseJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 7);
+
+/**
  * @generated from message craig_stars.v1.ComputeRaceSpecRequest
  */
 export type ComputeRaceSpecRequest = Message<"craig_stars.v1.ComputeRaceSpecRequest"> & {
@@ -255,7 +301,7 @@ export type ComputeRaceSpecRequestJson = {
  * Use `create(ComputeRaceSpecRequestSchema)` to create a new message.
  */
 export const ComputeRaceSpecRequestSchema: GenMessage<ComputeRaceSpecRequest, {jsonType: ComputeRaceSpecRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 6);
+  messageDesc(file_craig_stars_v1_wasm, 8);
 
 /**
  * @generated from message craig_stars.v1.ComputeRaceSpecResponse
@@ -282,7 +328,7 @@ export type ComputeRaceSpecResponseJson = {
  * Use `create(ComputeRaceSpecResponseSchema)` to create a new message.
  */
 export const ComputeRaceSpecResponseSchema: GenMessage<ComputeRaceSpecResponse, {jsonType: ComputeRaceSpecResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 7);
+  messageDesc(file_craig_stars_v1_wasm, 9);
 
 /**
  * @generated from message craig_stars.v1.ComputeShipDesignSpecRequest
@@ -309,7 +355,7 @@ export type ComputeShipDesignSpecRequestJson = {
  * Use `create(ComputeShipDesignSpecRequestSchema)` to create a new message.
  */
 export const ComputeShipDesignSpecRequestSchema: GenMessage<ComputeShipDesignSpecRequest, {jsonType: ComputeShipDesignSpecRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 8);
+  messageDesc(file_craig_stars_v1_wasm, 10);
 
 /**
  * @generated from message craig_stars.v1.ComputeShipDesignSpecResponse
@@ -336,7 +382,7 @@ export type ComputeShipDesignSpecResponseJson = {
  * Use `create(ComputeShipDesignSpecResponseSchema)` to create a new message.
  */
 export const ComputeShipDesignSpecResponseSchema: GenMessage<ComputeShipDesignSpecResponse, {jsonType: ComputeShipDesignSpecResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 9);
+  messageDesc(file_craig_stars_v1_wasm, 11);
 
 /**
  * @generated from message craig_stars.v1.EnableDebugRequest
@@ -363,7 +409,7 @@ export type EnableDebugRequestJson = {
  * Use `create(EnableDebugRequestSchema)` to create a new message.
  */
 export const EnableDebugRequestSchema: GenMessage<EnableDebugRequest, {jsonType: EnableDebugRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 10);
+  messageDesc(file_craig_stars_v1_wasm, 12);
 
 /**
  * @generated from message craig_stars.v1.EnableDebugResponse
@@ -382,7 +428,7 @@ export type EnableDebugResponseJson = {
  * Use `create(EnableDebugResponseSchema)` to create a new message.
  */
 export const EnableDebugResponseSchema: GenMessage<EnableDebugResponse, {jsonType: EnableDebugResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 11);
+  messageDesc(file_craig_stars_v1_wasm, 13);
 
 /**
  * @generated from message craig_stars.v1.EstimateProductionRequest
@@ -409,7 +455,7 @@ export type EstimateProductionRequestJson = {
  * Use `create(EstimateProductionRequestSchema)` to create a new message.
  */
 export const EstimateProductionRequestSchema: GenMessage<EstimateProductionRequest, {jsonType: EstimateProductionRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 12);
+  messageDesc(file_craig_stars_v1_wasm, 14);
 
 /**
  * @generated from message craig_stars.v1.EstimateProductionResponse
@@ -436,7 +482,7 @@ export type EstimateProductionResponseJson = {
  * Use `create(EstimateProductionResponseSchema)` to create a new message.
  */
 export const EstimateProductionResponseSchema: GenMessage<EstimateProductionResponse, {jsonType: EstimateProductionResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 13);
+  messageDesc(file_craig_stars_v1_wasm, 15);
 
 /**
  * @generated from message craig_stars.v1.GetMaxBuildableRequest
@@ -473,7 +519,7 @@ export type GetMaxBuildableRequestJson = {
  * Use `create(GetMaxBuildableRequestSchema)` to create a new message.
  */
 export const GetMaxBuildableRequestSchema: GenMessage<GetMaxBuildableRequest, {jsonType: GetMaxBuildableRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 14);
+  messageDesc(file_craig_stars_v1_wasm, 16);
 
 /**
  * @generated from message craig_stars.v1.GetMaxBuildableResponse
@@ -500,7 +546,7 @@ export type GetMaxBuildableResponseJson = {
  * Use `create(GetMaxBuildableResponseSchema)` to create a new message.
  */
 export const GetMaxBuildableResponseSchema: GenMessage<GetMaxBuildableResponse, {jsonType: GetMaxBuildableResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 15);
+  messageDesc(file_craig_stars_v1_wasm, 17);
 
 /**
  * @generated from message craig_stars.v1.GetPlanetHabitabilityRequest
@@ -537,7 +583,7 @@ export type GetPlanetHabitabilityRequestJson = {
  * Use `create(GetPlanetHabitabilityRequestSchema)` to create a new message.
  */
 export const GetPlanetHabitabilityRequestSchema: GenMessage<GetPlanetHabitabilityRequest, {jsonType: GetPlanetHabitabilityRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 16);
+  messageDesc(file_craig_stars_v1_wasm, 18);
 
 /**
  * @generated from message craig_stars.v1.GetPlanetHabitabilityResponse
@@ -564,7 +610,7 @@ export type GetPlanetHabitabilityResponseJson = {
  * Use `create(GetPlanetHabitabilityResponseSchema)` to create a new message.
  */
 export const GetPlanetHabitabilityResponseSchema: GenMessage<GetPlanetHabitabilityResponse, {jsonType: GetPlanetHabitabilityResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 17);
+  messageDesc(file_craig_stars_v1_wasm, 19);
 
 /**
  * @generated from message craig_stars.v1.GetResearchCostRequest
@@ -591,7 +637,7 @@ export type GetResearchCostRequestJson = {
  * Use `create(GetResearchCostRequestSchema)` to create a new message.
  */
 export const GetResearchCostRequestSchema: GenMessage<GetResearchCostRequest, {jsonType: GetResearchCostRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 18);
+  messageDesc(file_craig_stars_v1_wasm, 20);
 
 /**
  * @generated from message craig_stars.v1.GetResearchCostResponse
@@ -618,7 +664,7 @@ export type GetResearchCostResponseJson = {
  * Use `create(GetResearchCostResponseSchema)` to create a new message.
  */
 export const GetResearchCostResponseSchema: GenMessage<GetResearchCostResponse, {jsonType: GetResearchCostResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 19);
+  messageDesc(file_craig_stars_v1_wasm, 21);
 
 /**
  * @generated from message craig_stars.v1.GetStarbaseUpgradeCostRequest
@@ -655,7 +701,7 @@ export type GetStarbaseUpgradeCostRequestJson = {
  * Use `create(GetStarbaseUpgradeCostRequestSchema)` to create a new message.
  */
 export const GetStarbaseUpgradeCostRequestSchema: GenMessage<GetStarbaseUpgradeCostRequest, {jsonType: GetStarbaseUpgradeCostRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 20);
+  messageDesc(file_craig_stars_v1_wasm, 22);
 
 /**
  * @generated from message craig_stars.v1.GetStarbaseUpgradeCostResponse
@@ -682,7 +728,7 @@ export type GetStarbaseUpgradeCostResponseJson = {
  * Use `create(GetStarbaseUpgradeCostResponseSchema)` to create a new message.
  */
 export const GetStarbaseUpgradeCostResponseSchema: GenMessage<GetStarbaseUpgradeCostResponse, {jsonType: GetStarbaseUpgradeCostResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 21);
+  messageDesc(file_craig_stars_v1_wasm, 23);
 
 /**
  * @generated from message craig_stars.v1.GetTechCostRequest
@@ -709,7 +755,7 @@ export type GetTechCostRequestJson = {
  * Use `create(GetTechCostRequestSchema)` to create a new message.
  */
 export const GetTechCostRequestSchema: GenMessage<GetTechCostRequest, {jsonType: GetTechCostRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 22);
+  messageDesc(file_craig_stars_v1_wasm, 24);
 
 /**
  * @generated from message craig_stars.v1.GetTechCostResponse
@@ -736,7 +782,7 @@ export type GetTechCostResponseJson = {
  * Use `create(GetTechCostResponseSchema)` to create a new message.
  */
 export const GetTechCostResponseSchema: GenMessage<GetTechCostResponse, {jsonType: GetTechCostResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 23);
+  messageDesc(file_craig_stars_v1_wasm, 25);
 
 /**
  * @generated from message craig_stars.v1.SetDesignsRequest
@@ -763,7 +809,7 @@ export type SetDesignsRequestJson = {
  * Use `create(SetDesignsRequestSchema)` to create a new message.
  */
 export const SetDesignsRequestSchema: GenMessage<SetDesignsRequest, {jsonType: SetDesignsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 24);
+  messageDesc(file_craig_stars_v1_wasm, 26);
 
 /**
  * @generated from message craig_stars.v1.SetDesignsResponse
@@ -782,7 +828,7 @@ export type SetDesignsResponseJson = {
  * Use `create(SetDesignsResponseSchema)` to create a new message.
  */
 export const SetDesignsResponseSchema: GenMessage<SetDesignsResponse, {jsonType: SetDesignsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 25);
+  messageDesc(file_craig_stars_v1_wasm, 27);
 
 /**
  * @generated from message craig_stars.v1.SetIntelsRequest
@@ -809,7 +855,7 @@ export type SetIntelsRequestJson = {
  * Use `create(SetIntelsRequestSchema)` to create a new message.
  */
 export const SetIntelsRequestSchema: GenMessage<SetIntelsRequest, {jsonType: SetIntelsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 26);
+  messageDesc(file_craig_stars_v1_wasm, 28);
 
 /**
  * @generated from message craig_stars.v1.SetIntelsResponse
@@ -828,7 +874,7 @@ export type SetIntelsResponseJson = {
  * Use `create(SetIntelsResponseSchema)` to create a new message.
  */
 export const SetIntelsResponseSchema: GenMessage<SetIntelsResponse, {jsonType: SetIntelsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 27);
+  messageDesc(file_craig_stars_v1_wasm, 29);
 
 /**
  * @generated from message craig_stars.v1.SetPlayerRequest
@@ -855,7 +901,7 @@ export type SetPlayerRequestJson = {
  * Use `create(SetPlayerRequestSchema)` to create a new message.
  */
 export const SetPlayerRequestSchema: GenMessage<SetPlayerRequest, {jsonType: SetPlayerRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 28);
+  messageDesc(file_craig_stars_v1_wasm, 30);
 
 /**
  * @generated from message craig_stars.v1.SetPlayerResponse
@@ -874,7 +920,99 @@ export type SetPlayerResponseJson = {
  * Use `create(SetPlayerResponseSchema)` to create a new message.
  */
 export const SetPlayerResponseSchema: GenMessage<SetPlayerResponse, {jsonType: SetPlayerResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 29);
+  messageDesc(file_craig_stars_v1_wasm, 31);
+
+/**
+ * @generated from message craig_stars.v1.UpdatePlanetRequest
+ */
+export type UpdatePlanetRequest = Message<"craig_stars.v1.UpdatePlanetRequest"> & {
+  /**
+   * @generated from field: craig_stars.v1.Planet planet = 1;
+   */
+  planet?: Planet;
+};
+
+/**
+ * @generated from message craig_stars.v1.UpdatePlanetRequest
+ */
+export type UpdatePlanetRequestJson = {
+  /**
+   * @generated from field: craig_stars.v1.Planet planet = 1;
+   */
+  planet?: PlanetJson;
+};
+
+/**
+ * Describes the message craig_stars.v1.UpdatePlanetRequest.
+ * Use `create(UpdatePlanetRequestSchema)` to create a new message.
+ */
+export const UpdatePlanetRequestSchema: GenMessage<UpdatePlanetRequest, {jsonType: UpdatePlanetRequestJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 32);
+
+/**
+ * @generated from message craig_stars.v1.UpdatePlanetResponse
+ */
+export type UpdatePlanetResponse = Message<"craig_stars.v1.UpdatePlanetResponse"> & {
+};
+
+/**
+ * @generated from message craig_stars.v1.UpdatePlanetResponse
+ */
+export type UpdatePlanetResponseJson = {
+};
+
+/**
+ * Describes the message craig_stars.v1.UpdatePlanetResponse.
+ * Use `create(UpdatePlanetResponseSchema)` to create a new message.
+ */
+export const UpdatePlanetResponseSchema: GenMessage<UpdatePlanetResponse, {jsonType: UpdatePlanetResponseJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 33);
+
+/**
+ * @generated from message craig_stars.v1.UpdatePlanetsRequest
+ */
+export type UpdatePlanetsRequest = Message<"craig_stars.v1.UpdatePlanetsRequest"> & {
+  /**
+   * @generated from field: repeated craig_stars.v1.Planet planets = 1;
+   */
+  planets: Planet[];
+};
+
+/**
+ * @generated from message craig_stars.v1.UpdatePlanetsRequest
+ */
+export type UpdatePlanetsRequestJson = {
+  /**
+   * @generated from field: repeated craig_stars.v1.Planet planets = 1;
+   */
+  planets?: PlanetJson[];
+};
+
+/**
+ * Describes the message craig_stars.v1.UpdatePlanetsRequest.
+ * Use `create(UpdatePlanetsRequestSchema)` to create a new message.
+ */
+export const UpdatePlanetsRequestSchema: GenMessage<UpdatePlanetsRequest, {jsonType: UpdatePlanetsRequestJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 34);
+
+/**
+ * @generated from message craig_stars.v1.UpdatePlanetsResponse
+ */
+export type UpdatePlanetsResponse = Message<"craig_stars.v1.UpdatePlanetsResponse"> & {
+};
+
+/**
+ * @generated from message craig_stars.v1.UpdatePlanetsResponse
+ */
+export type UpdatePlanetsResponseJson = {
+};
+
+/**
+ * Describes the message craig_stars.v1.UpdatePlanetsResponse.
+ * Use `create(UpdatePlanetsResponseSchema)` to create a new message.
+ */
+export const UpdatePlanetsResponseSchema: GenMessage<UpdatePlanetsResponse, {jsonType: UpdatePlanetsResponseJson}> = /*@__PURE__*/
+  messageDesc(file_craig_stars_v1_wasm, 35);
 
 /**
  * @generated from message craig_stars.v1.UpdateWaypointRequest
@@ -931,7 +1069,7 @@ export type UpdateWaypointRequestJson = {
  * Use `create(UpdateWaypointRequestSchema)` to create a new message.
  */
 export const UpdateWaypointRequestSchema: GenMessage<UpdateWaypointRequest, {jsonType: UpdateWaypointRequestJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 30);
+  messageDesc(file_craig_stars_v1_wasm, 36);
 
 /**
  * @generated from message craig_stars.v1.UpdateWaypointResponse
@@ -968,7 +1106,7 @@ export type UpdateWaypointResponseJson = {
  * Use `create(UpdateWaypointResponseSchema)` to create a new message.
  */
 export const UpdateWaypointResponseSchema: GenMessage<UpdateWaypointResponse, {jsonType: UpdateWaypointResponseJson}> = /*@__PURE__*/
-  messageDesc(file_craig_stars_v1_wasm, 31);
+  messageDesc(file_craig_stars_v1_wasm, 37);
 
 /**
  * @generated from service craig_stars.v1.WasmService
@@ -997,6 +1135,14 @@ export const WasmService: GenService<{
     methodKind: "unary";
     input: typeof ComputeMinefieldSpecRequestSchema;
     output: typeof ComputeMinefieldSpecResponseSchema;
+  },
+  /**
+   * @generated from rpc craig_stars.v1.WasmService.ComputePlayerResearchSpec
+   */
+  computePlayerResearchSpec: {
+    methodKind: "unary";
+    input: typeof ComputePlayerResearchSpecRequestSchema;
+    output: typeof ComputePlayerResearchSpecResponseSchema;
   },
   /**
    * @generated from rpc craig_stars.v1.WasmService.ComputeRaceSpec
@@ -1093,6 +1239,22 @@ export const WasmService: GenService<{
     methodKind: "unary";
     input: typeof SetPlayerRequestSchema;
     output: typeof SetPlayerResponseSchema;
+  },
+  /**
+   * @generated from rpc craig_stars.v1.WasmService.UpdatePlanet
+   */
+  updatePlanet: {
+    methodKind: "unary";
+    input: typeof UpdatePlanetRequestSchema;
+    output: typeof UpdatePlanetResponseSchema;
+  },
+  /**
+   * @generated from rpc craig_stars.v1.WasmService.UpdatePlanets
+   */
+  updatePlanets: {
+    methodKind: "unary";
+    input: typeof UpdatePlanetsRequestSchema;
+    output: typeof UpdatePlanetsResponseSchema;
   },
   /**
    * @generated from rpc craig_stars.v1.WasmService.UpdateWaypoint

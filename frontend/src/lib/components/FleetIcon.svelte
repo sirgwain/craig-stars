@@ -1,8 +1,7 @@
 <script lang="ts">
-	import type { ShipToken } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyFleet, AnyShipDesign } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
+	import type { Fleet, ShipDesign, ShipToken } from '$lib/types/cs-proto';
 	import { NoSymbol } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { onShipDesignTooltip } from './game/tooltips/ShipDesignTooltip.svelte';
@@ -10,13 +9,13 @@
 	const { universe } = getGameContext();
 
 	type Props = {
-		fleet: AnyFleet;
+		fleet: Fleet;
 		tokens?: ShipToken[];
 	};
 
 	let { fleet, tokens = fleet.tokens ?? [] }: Props = $props();
 
-	const design: AnyShipDesign | undefined = $derived.by(() => {
+	const design: ShipDesign | undefined = $derived.by(() => {
 		const token = tokens.find((t) => t.quantity > 0);
 		if (token) {
 			return $universe.getDesign(fleet.mapObject?.playerNum, token.designNum);

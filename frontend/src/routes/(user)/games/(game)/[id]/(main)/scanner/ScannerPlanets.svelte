@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { MapObjectType } from '$lib/types/cs-proto';
 	import type { Fleet } from '$lib/types/cs-proto';
-	import type { PlanetIntel } from '$lib/types/cs-proto';
+	import type { Planet } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
 	import type { MapObjectLike } from '$lib/types/MapObject';
 	import type { CommandedPlanet } from '$lib/types/Planet';
@@ -15,7 +15,7 @@
 	const { universe, settings, commandedMapObject, commandedPlanet } = getGameContext();
 
 	const commanded = (
-		planet: PlanetIntel,
+		planet: Planet,
 		commandedMapObject: MapObjectLike | undefined,
 		commandedPlanet: CommandedPlanet | undefined
 	): boolean => {

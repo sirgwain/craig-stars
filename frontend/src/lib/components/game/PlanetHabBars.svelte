@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { AnyPlanet } from '$lib/services/Universe';
+	import type { Planet } from '$lib/types/cs-proto';
 	import { Grav, Rad, Temp } from '$lib/types/Hab';
 	import type { CommandedPlayer } from '$lib/types/Player';
 	import PlanetHabBar from './PlanetHabBar.svelte';
 
 	type Props = {
-		planet: AnyPlanet;
+		planet: Planet;
 		player: CommandedPlayer;
 		onGravityTooltip?: (e: PointerEvent) => void;
 		onTemperatureTooltip?: (e: PointerEvent) => void;

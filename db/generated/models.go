@@ -16,6 +16,8 @@ type Fleet struct {
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 	GameID            int64
+	IntelPlayerNum    int64
+	ReportAge         int64
 	BattlePlanNum     int64
 	X                 float64
 	Y                 float64
@@ -102,19 +104,21 @@ type GamePlayer struct {
 }
 
 type Minefield struct {
-	ID            int64
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	GameID        int64
-	X             float64
-	Y             float64
-	Name          string
-	Num           int64
-	PlayerNum     int64
-	NumMines      int64
-	Detonate      bool
-	MinefieldType *cs.MinefieldType
-	Tags          *Tags
+	ID             int64
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	GameID         int64
+	IntelPlayerNum int64
+	ReportAge      int64
+	X              float64
+	Y              float64
+	Name           string
+	Num            int64
+	PlayerNum      int64
+	NumMines       int64
+	Detonate       bool
+	MinefieldType  *cs.MinefieldType
+	Tags           *Tags
 }
 
 type MineralPacket struct {
@@ -122,6 +126,8 @@ type MineralPacket struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	GameID          int64
+	IntelPlayerNum  int64
+	ReportAge       int64
 	X               float64
 	Y               float64
 	Name            string
@@ -145,6 +151,8 @@ type MysteryTrader struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	GameID          int64
+	IntelPlayerNum  int64
+	ReportAge       int64
 	X               float64
 	Y               float64
 	Name            string
@@ -166,6 +174,8 @@ type Planet struct {
 	CreatedAt                         time.Time
 	UpdatedAt                         time.Time
 	GameID                            int64
+	IntelPlayerNum                    int64
+	ReportAge                         int64
 	X                                 float64
 	Y                                 float64
 	Name                              string
@@ -259,7 +269,6 @@ type Player struct {
 	ScoreHistory                 *PlayerScores
 	AchievedVictoryConditions    *cs.Bitmask
 	Victor                       bool
-	Spec                         *PlayerSpec
 	Guest                        bool
 	AiDifficulty                 *cs.AIDifficulty
 	AcquiredTechs                *AcquiredTechs
@@ -304,19 +313,21 @@ type Race struct {
 }
 
 type Salvage struct {
-	ID        int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	GameID    int64
-	X         float64
-	Y         float64
-	Name      string
-	Num       int64
-	PlayerNum int64
-	Ironium   int64
-	Boranium  int64
-	Germanium int64
-	Tags      *Tags
+	ID             int64
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	GameID         int64
+	IntelPlayerNum int64
+	ReportAge      int64
+	X              float64
+	Y              float64
+	Name           string
+	Num            int64
+	PlayerNum      int64
+	Ironium        int64
+	Boranium       int64
+	Germanium      int64
+	Tags           *Tags
 }
 
 type ShipDesign struct {
@@ -324,6 +335,7 @@ type ShipDesign struct {
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 	GameID            int64
+	IntelPlayerNum    int64
 	Num               int64
 	PlayerNum         int64
 	Name              string
@@ -368,6 +380,8 @@ type Wormhole struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	GameID           int64
+	IntelPlayerNum   int64
+	ReportAge        int64
 	X                float64
 	Y                float64
 	Name             string

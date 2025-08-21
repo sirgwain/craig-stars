@@ -2,16 +2,10 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import Cycle from '$lib/components/icons/Cycle.svelte';
 	import Starbase from '$lib/components/icons/Starbase.svelte';
-	import { MapObjectType } from '$lib/types/cs-proto';
-	import type {
-		MysteryTraderIntel,
-		PlanetIntel,
-		SalvageIntel,
-		WormholeIntel
-	} from '$lib/types/cs-proto';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyFleet, AnyMinefield, AnyMineralPacket } from '$lib/services/Universe';
+	import type { Fleet, Minefield, MineralPacket, MysteryTrader, Planet, Salvage, Wormhole } from '$lib/types/cs-proto';
+	import { MapObjectType } from '$lib/types/cs-proto';
 	import { getMapObjectName } from '$lib/types/MapObject';
 	import FleetSummary from './FleetSummary.svelte';
 	import MinefieldSummary from './MinefieldSummary.svelte';
@@ -45,37 +39,37 @@
 
 	let selectedPlanet = $derived(
 		$selectedMapObject?.mapObject?.type === MapObjectType.PLANET
-			? ($selectedMapObject as PlanetIntel)
+			? ($selectedMapObject as Planet)
 			: undefined
 	);
 	let selectedFleet = $derived(
 		$selectedMapObject?.mapObject?.type === MapObjectType.FLEET
-			? ($selectedMapObject as AnyFleet)
+			? ($selectedMapObject as Fleet)
 			: undefined
 	);
 	let selectedMinefield = $derived(
 		$selectedMapObject?.mapObject?.type === MapObjectType.MINEFIELD
-			? ($selectedMapObject as AnyMinefield)
+			? ($selectedMapObject as Minefield)
 			: undefined
 	);
 	let selectedMineralPacket = $derived(
 		$selectedMapObject?.mapObject?.type === MapObjectType.MINERAL_PACKET
-			? ($selectedMapObject as AnyMineralPacket)
+			? ($selectedMapObject as MineralPacket)
 			: undefined
 	);
 	let selectedSalvage = $derived(
 		$selectedMapObject?.mapObject?.type === MapObjectType.SALVAGE
-			? ($selectedMapObject as SalvageIntel)
+			? ($selectedMapObject as Salvage)
 			: undefined
 	);
 	let selectedWormhole = $derived(
 		$selectedMapObject?.mapObject?.type === MapObjectType.WORMHOLE
-			? ($selectedMapObject as WormholeIntel)
+			? ($selectedMapObject as Wormhole)
 			: undefined
 	);
 	let selectedMysteryTrader = $derived(
 		$selectedMapObject?.mapObject?.type === MapObjectType.MYSTERY_TRADER
-			? ($selectedMapObject as MysteryTraderIntel)
+			? ($selectedMapObject as MysteryTrader)
 			: undefined
 	);
 </script>

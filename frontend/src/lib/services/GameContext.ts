@@ -12,7 +12,7 @@ import {
 	PlanetSchema,
 	PlayerMessageTargetType,
 	PlayerMessageType,
-	SalvageIntelSchema,
+	SalvageSchema,
 	type BattlePlan,
 	type CargoTransfers,
 	type Fleet,
@@ -26,7 +26,7 @@ import {
 	type PlayerMessage,
 	type PlayerRelationship,
 	type ProductionPlan,
-	type SalvageIntel,
+	type Salvage,
 	type ShipDesign,
 	type ShipTokenJson as ShipToken,
 	type TransportPlan,
@@ -65,7 +65,7 @@ import {
 } from './connect';
 import { FullGame } from './FullGame';
 import { rollover } from './Math';
-import { Universe, type AnyFleet } from './Universe';
+import { Universe } from './Universe';
 
 export const playerFinderKey = Symbol();
 export const designFinderKey = Symbol();
@@ -403,7 +403,7 @@ export async function createGameContext(
 	function gotoTargetFleet(target: MapObjectLike, playerNum: number, universe: Universe) {
 		if (target.mapObject?.playerNum == playerNum) {
 			commandMapObject(target);
-			const orbitingPlanetNum = (target as AnyFleet).orbitingPlanetNum;
+			const orbitingPlanetNum = (target as Fleet).orbitingPlanetNum;
 			if (orbitingPlanetNum && orbitingPlanetNum != None) {
 				const orbiting = universe.getPlanet(orbitingPlanetNum);
 				if (orbiting) {
@@ -706,7 +706,7 @@ export async function createGameContext(
 
 	// after a planet is updated from the server, update the planet in the universe, reset any commanded/selected
 	// state and trigger reactivity
-	function updatePlanet(planet: CommandedPlanet | Planet, updatedPlanet: Planet) {
+	async function updatePlanet(planet: CommandedPlanet | Planet, updatedPlanet: Planet) {
 		planet = Object.assign(planet, updatedPlanet);
 		const u = get(universe);
 		u.updatePlanet(planet);
@@ -723,6 +723,8 @@ export async function createGameContext(
 
 		// trigger reactivity
 		universe.set(u);
+
+		await cs.wasmService.updatePlanet({ planet });
 	}
 
 	// after a minefield is updated from the server, update the minefield in the universe, reset any commanded/selected
@@ -787,6 +789,7 @@ export async function createGameContext(
 			orders: p.playerOrders
 		});
 		await updatePlayer(updated);
+		await cs.wasmService.updatePlanets({ planets });
 
 		const u = get(universe);
 		u.planets = planets;
@@ -1091,9 +1094,7 @@ export async function createGameContext(
 			planetOrders: planet.planetOrders
 		});
 
-		if (resp.player && resp.planet) {
-			// changing the planet orders changes the player's spec
-			await updatePlayer(resp.player);
+		if (resp.planet) {
 			updatePlanet(planet, resp.planet);
 		}
 	}
@@ -1138,7 +1139,7 @@ export async function createGameContext(
 			const destMineralPacket = create(MineralPacketSchema, result.dest.value as MineralPacket);
 			u.updateMineralPacket(destMineralPacket);
 		} else if (result.dest?.value?.mapObject?.type === MapObjectType.SALVAGE) {
-			const destSalvage = create(SalvageIntelSchema, result.dest.value as SalvageIntel);
+			const destSalvage = create(SalvageSchema, result.dest.value as Salvage);
 			u.updateSalvage(destSalvage);
 		}
 

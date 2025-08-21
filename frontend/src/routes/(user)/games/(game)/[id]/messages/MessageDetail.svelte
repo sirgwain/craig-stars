@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyFleet, AnyMineralPacket } from '$lib/services/Universe';
-	import type { PlanetIntel, PlayerMessage } from '$lib/types/cs-proto';
+	import type { Fleet, MineralPacket, Planet, PlayerMessage } from '$lib/types/cs-proto';
 	import { MapObjectType, PlayerMessageTargetType, PlayerMessageType } from '$lib/types/cs-proto';
 	import { getMapObjectTarget } from '$lib/types/Message';
 	import BattleMessageDetail from './BattleMessageDetail.svelte';
@@ -22,15 +21,13 @@
 			: undefined
 	);
 	let planet = $derived(
-		target?.mapObject?.type === MapObjectType.PLANET ? (target as PlanetIntel) : undefined
+		target?.mapObject?.type === MapObjectType.PLANET ? (target as Planet) : undefined
 	);
 	let fleet = $derived(
-		target?.mapObject?.type === MapObjectType.FLEET ? (target as AnyFleet) : undefined
+		target?.mapObject?.type === MapObjectType.FLEET ? (target as Fleet) : undefined
 	);
 	let mineralPacket = $derived(
-		target?.mapObject?.type === MapObjectType.MINERAL_PACKET
-			? (target as AnyMineralPacket)
-			: undefined
+		target?.mapObject?.type === MapObjectType.MINERAL_PACKET ? (target as MineralPacket) : undefined
 	);
 </script>
 

@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package server
 
 import (
@@ -12,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func createTestGameRunner(ctx context.Context) GameRunner {
+func createTestGameRunner(_ context.Context) GameRunner {
 	dbConn := db.NewConn()
 	cfg := &config.Config{}
 	// cfg.Database.Filename = "../data/sqlx.db"

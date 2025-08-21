@@ -53,10 +53,10 @@
 					}
 				});
 
-			$universe.mineralPacketIntels
+			$universe.mineralPackets
 				.filter(
 					(packet) =>
-						packet.mapObject?.playerNum == $player.num &&
+						packet.mapObject?.playerNum === $player.num &&
 						(packet.scanRange != NoScanner || packet.scanRangePen != NoScanner)
 				)
 				.forEach((packet) => {
@@ -91,14 +91,15 @@
 				.filter(
 					(fleet) =>
 						$player.isSharingMap(fleet.mapObject?.playerNum) &&
-						((fleet.scanRange ?? 0) > 0 || (fleet.scanRangePen ?? 0) > 0)
+						((fleet.spec?.shipDesignSpec?.scanRange ?? 0) > 0 ||
+							(fleet.spec?.shipDesignSpec?.scanRangePen ?? 0) > 0)
 				)
 				.forEach((fleet) => {
 					const key = positionKey(fleet);
 					const scanner = {
 						position: fleet.mapObject?.position ?? emptyVector(),
-						scanRange: fleet.scanRange ?? 0,
-						scanRangePen: fleet.scanRangePen ?? 0
+						scanRange: fleet.spec?.shipDesignSpec?.scanRange ?? 0,
+						scanRangePen: fleet.spec?.shipDesignSpec?.scanRangePen ?? 0
 					};
 					const existing = scannersByPosition.get(key);
 					if (existing) {
@@ -109,9 +110,10 @@
 					}
 				});
 
-			$universe.mineralPacketIntels
+			$universe.mineralPackets
 				.filter(
 					(packet) =>
+						packet.mapObject?.playerNum !== $player.num &&
 						$player.isSharingMap(packet.mapObject?.playerNum) &&
 						(packet.scanRange != NoScanner || packet.scanRangePen != NoScanner)
 				)

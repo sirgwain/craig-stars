@@ -1,5 +1,5 @@
 import { roundTo100 } from '$lib/services/Math';
-import type { AnyPlanet, DesignFinder } from '$lib/services/Universe';
+import type { DesignFinder } from '$lib/services/Universe';
 import type { ProductionPlanItem, ShipDesign } from '$lib/types/cs-proto';
 import {
 	CargoSchema,
@@ -281,18 +281,17 @@ export const getQueueItemShortName = (
 };
 
 /**
- * Return the amount this {@linkcode Planet} or {@linkcode PlanetIntel} will grow next year,
+ * Return the amount this {@linkcode Planet} or {@linkcode Planet} will grow next year,
  * truncated to the nearest multiple of 100.
  * @param planet The planet to check
- * @returns The planet's growth next year if `planet` is a {@linkcode Planet}, or 0 for a {@linkcode PlanetIntel}
+ * @returns The planet's growth next year if `planet` is a {@linkcode Planet}, or 0 for a {@linkcode Planet}
  */
-export function getGrowth(planet: AnyPlanet): number {
-	// TODO: Change once isIntel is added
-	const pPop = 'reportAge' in planet ? 0 : planet.partialPopulation;
+export function getGrowth(planet: Planet): number {
+	const pPop = planet.partialPopulation;
 	return roundTo100(planet.spec?.growthAmount ?? 0 + pPop, Math.trunc);
 }
 
-export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput: number): Mineral {
+export function getMineralOutput(planet: Planet, numMines: number, mineOutput: number): Mineral {
 	return create(MineralSchema, {
 		ironium: (((planet.mineralConcentration?.ironium ?? 0) * numMines) / 1000.0) * mineOutput,
 		boranium: (((planet.mineralConcentration?.boranium ?? 0) * numMines) / 1000.0) * mineOutput,
@@ -302,7 +301,7 @@ export function getMineralOutput(planet: AnyPlanet, numMines: number, mineOutput
 
 // planetsSortBy returns a sortBy function for planets by key. This is used by the planets report page
 // and sorting when cycling through Planets
-export function planetsSortBy(key: string): ((a: AnyPlanet, b: AnyPlanet) => number) | undefined {
+export function planetsSortBy(key: string): ((a: Planet, b: Planet) => number) | undefined {
 	switch (key) {
 		case 'name':
 			return (a, b) => (a.mapObject?.name ?? '').localeCompare(b.mapObject?.name ?? '');

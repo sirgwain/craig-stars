@@ -12,15 +12,27 @@
 	import { getGameContext } from '$lib/services/GameContext';
 	import { enumToString } from '$lib/types/Enums';
 	import { get } from '$lib/types/TechLevel';
-	import { NextResearchField, TechField, type TechLevelJson } from '$lib/types/cs-proto';
+	import {
+		NextResearchField,
+		TechField,
+		type TechLevelJson,
+		PlayerResearchSpecSchema
+	} from '$lib/types/cs-proto';
 	import FutureTechs from './FutureTechs.svelte';
+	import { create } from '@bufbuild/protobuf';
 
-	const { player } = getGameContext();
+	const { cs, player } = getGameContext();
 
 	type Props = {
 		onUpdatePlayer?: () => Promise<void>;
 	};
 	let { onUpdatePlayer }: Props = $props();
+
+	let spec = $state(create(PlayerResearchSpecSchema));
+
+	$effect(() => {
+		$player.getResearchSpec(cs).then((s) => (spec = s));
+	});
 
 	const getLevel = (player: CommandedPlayer, field: TechField): number => {
 		return get(player.techLevels, field);
@@ -31,10 +43,8 @@
 	);
 	let spent = $derived($player.techLevelsSpent[field] ?? 0);
 
-	let leftToSpend = $derived(($player.spec.currentResearchCost ?? 0) - spent);
-	let yearsLeft = $derived(
-		Math.ceil(leftToSpend / ($player.spec.resourcesPerYearResearchEstimated ?? 0))
-	);
+	let leftToSpend = $derived((spec.currentResearchCost ?? 0) - spent);
+	let yearsLeft = $derived(Math.ceil(leftToSpend / (spec.resourcesPerYearResearchEstimated ?? 0)));
 </script>
 
 <ItemTitle>Research</ItemTitle>
@@ -47,7 +57,7 @@
 			{getLevel($player, $player.playerOrders.researching) + 1}
 		</div>
 		<div class="stat-desc pt-1">
-			{spent ?? 0}/{$player.spec.currentResearchCost} resources
+			{spent ?? 0}/{spec.currentResearchCost} resources
 			{#if yearsLeft < 100}
 				, {yearsLeft.toFixed()}
 				{Math.floor(yearsLeft) > 1 ? 'years' : 'year'}
@@ -58,7 +68,7 @@
 		<div class="stat-title">Resources Available</div>
 		<div class="stat-figure"><Factory class="w-8 h-8 fill-primary" /></div>
 		<div class="stat-value">
-			{$player.spec.resourcesPerYear ?? 0}
+			{spec.resourcesPerYear ?? 0}
 		</div>
 	</div>
 </div>
@@ -74,7 +84,7 @@
 		<div class="stat-title">Estimated Spending Next Year</div>
 		<div class="stat-figure"><Microscope class="w-8 h-8 fill-warning" /></div>
 		<div class="stat-value">
-			{$player.spec.resourcesPerYearResearchEstimated ?? 0}
+			{spec.resourcesPerYearResearchEstimated ?? 0}
 		</div>
 	</div>
 </div>

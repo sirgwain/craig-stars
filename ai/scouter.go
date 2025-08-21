@@ -9,7 +9,7 @@ import (
 
 // dispatch scouts to unknown planets
 func (ai *aiPlayer) scout() error {
-	unknownPlanetsByNum := map[int]cs.PlanetIntel{}
+	unknownPlanetsByNum := map[int]*cs.Planet{}
 
 	// find all the unexplored planets
 	for _, planet := range ai.Player.PlanetIntels {
@@ -92,7 +92,7 @@ func (ai *aiPlayer) scoutPackets() error {
 	if !ai.Player.Race.Spec.PacketBuiltInScanner {
 		return nil
 	}
-	unknownPlanetsByNum := map[int]cs.PlanetIntel{}
+	unknownPlanetsByNum := map[int]*cs.Planet{}
 
 	// find all the unexplored planets
 	for _, planet := range ai.Player.PlanetIntels {
@@ -165,7 +165,7 @@ func (ai *aiPlayer) scoutPackets() error {
 		planet.ProductionQueue = append([]cs.ProductionQueueItem{{Type: queueItemType, Quantity: 1}}, planet.ProductionQueue...)
 		delete(unknownPlanetsByNum, farthest.Num)
 
-		if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders, ai.Planets); err != nil {
+		if err := ai.client.UpdatePlanetOrders(&ai.game.Rules, ai.Player, planet, planet.PlanetOrders); err != nil {
 			return err
 		}
 

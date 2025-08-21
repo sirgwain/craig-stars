@@ -400,7 +400,7 @@ func (g *FullGame) computeSpecs() error {
 	rules := &g.Rules
 	for _, player := range g.Players {
 		player.Race.Spec = ComputeRaceSpec(&player.Race, rules)
-		player.Spec = computePlayerSpec(player, rules, g.Planets)
+		player.Spec = ComputePlayerSpec(player, rules, g.Planets)
 
 		for _, design := range player.Designs {
 			if design.OriginalPlayerNum != None {
@@ -430,7 +430,7 @@ func (g *FullGame) computeSpecs() error {
 	for _, planet := range g.Planets {
 		if planet.Owned() {
 			player := g.getPlayer(planet.PlayerNum)
-			planet.Spec = computePlanetSpec(rules, player, planet)
+			planet.Spec = ComputePlanetSpec(rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 				return fmt.Errorf("planet %s unable to populate queue designs: %w", planet.Name, err)
 			}
@@ -457,10 +457,6 @@ func (g *FullGame) computeSpecs() error {
 		wormhole.Spec = computeWormholeSpec(wormhole, rules)
 	}
 
-	// compute the research specs after all the planet specs are computed
-	for _, player := range g.Players {
-		player.Spec.PlayerResearchSpec = ComputePlayerResearchSpec(player, rules, g.Planets)
-	}
 	return nil
 
 }

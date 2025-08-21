@@ -4,10 +4,10 @@ package craig_stars.v1;
 
 import "craig_stars/v1/common.proto";
 import "craig_stars/v1/fleet.proto";
-import "craig_stars/v1/intel.proto";
 import "craig_stars/v1/mineralpacket.proto";
 import "craig_stars/v1/planet.proto";
 import "craig_stars/v1/player.proto";
+import "craig_stars/v1/salvage.proto";
 
 service FleetService {
   rpc GetFleet(GetFleetRequest) returns (GetFleetResponse);
@@ -89,11 +89,8 @@ message TransferCargoResponse {
   oneof dest {
     Fleet dest_fleet = 2;
     Planet dest_planet = 3;
-    FleetIntel dest_fleet_intel = 4;
-    PlanetIntel dest_planet_intel = 5;
-    MineralPacket dest_mineral_packet = 6;
-    MineralPacketIntel dest_mineral_packet_intel = 7;
-    SalvageIntel dest_salvage = 8;
+    MineralPacket dest_mineral_packet = 4;
+    Salvage dest_salvage = 5;
   }
   Player player = 9;
 }

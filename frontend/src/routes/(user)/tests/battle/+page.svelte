@@ -4,8 +4,9 @@
 	import Tooltip from '$lib/components/game/tooltips/Tooltip.svelte';
 	import { battleClient } from '$lib/services/connect';
 	import { Universe } from '$lib/services/Universe';
-	import type { BattleRecord } from '$lib/types/cs-proto';
+	import { PlayerUniverseSchema, type BattleRecord } from '$lib/types/cs-proto';
 	import { CommandedPlayer } from '$lib/types/Player';
+	import { create } from '@bufbuild/protobuf';
 	import { onMount } from 'svelte';
 
 	let player: CommandedPlayer = $state(new CommandedPlayer());
@@ -17,17 +18,12 @@
 		player = new CommandedPlayer(resp.player);
 		battle = resp.battle;
 		universe.setData(
-			{
+			player.num,
+			create(PlayerUniverseSchema, {
 				designs: resp.designs ?? [],
-				fleets: resp.fleets ?? [],
-				planets: [],
-				minefields: [],
-				mineralPackets: [],
-				starbases: []
-			},
-			resp.intels
+				fleets: resp.fleets ?? []
+			})
 		);
-		universe.setPlayerNum(player.num);
 	});
 </script>
 

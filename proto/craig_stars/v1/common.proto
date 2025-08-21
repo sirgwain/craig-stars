@@ -183,8 +183,9 @@ message DBObject {
 message GameDBObject {
   int64 id = 1;
   int64 game_id = 2;
-  google.protobuf.Timestamp created_at = 3;
-  google.protobuf.Timestamp updated_at = 4;
+  int32 intel_player_num = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
 }
 
 message MapObject {
@@ -194,6 +195,7 @@ message MapObject {
   int32 player_num = 4;
   string name = 5;
   map<string, string> tags = 6;
+  int32 report_age = 7;
 }
 
 message MapObjectTarget {

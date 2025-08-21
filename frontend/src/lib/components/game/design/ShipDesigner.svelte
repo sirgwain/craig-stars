@@ -5,10 +5,10 @@
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
+	import { HullSlotTypeNone } from '$lib/types/Consts';
 	import { canLearnTech } from '$lib/types/Player';
 	import { canFillSlot, hullAllowed } from '$lib/types/Tech';
 	import { hasRequiredLevels } from '$lib/types/TechLevel';
-	import { HullSlotTypeNone } from '$lib/types/Consts';
 	import type { TechHull, TechHullComponent, TechHullSlot } from '$lib/types/cs-proto';
 	import {
 		CostSchema,

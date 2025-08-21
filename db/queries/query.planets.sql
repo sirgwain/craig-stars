@@ -16,6 +16,8 @@ SELECT
     f.created_at AS 'fleet.created_at',
     f.updated_at AS 'fleet.updated_at',
     f.game_id AS 'fleet.game_id',
+    f.intel_player_num AS 'fleet.intel_player_num',
+    f.report_age AS 'fleet.report_age',
     COALESCE(f.battle_plan_num, 0) AS 'fleet.battle_plan_num',
     f.x AS 'fleet.x',
     f.y AS 'fleet.y',
@@ -84,6 +86,8 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
+        intel_player_num,
+        report_age,
         x,
         y,
         name,
@@ -169,6 +173,8 @@ VALUES
         ?,
         ?,
         ?,
+        ?,
+        ?,
         ?
     );
 
@@ -177,6 +183,8 @@ UPDATE planets
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
+    intel_player_num = ?,
+    report_age = ?,
     x = ?,
     y = ?,
     name = ?,

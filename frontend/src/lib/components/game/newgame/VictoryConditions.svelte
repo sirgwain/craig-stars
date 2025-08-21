@@ -1,10 +1,5 @@
 <script lang="ts">
 	import {
-		VictoryConditionsSchema,
-		type GameSettings,
-		type VictoryConditions
-	} from '$lib/types/cs-proto';
-	import {
 		VictoryConditionAttainTechLevels,
 		VictoryConditionExceedsScore,
 		VictoryConditionExceedsSecondPlaceScore,
@@ -13,6 +8,11 @@
 		VictoryConditionOwnPlanets,
 		VictoryConditionProductionCapacity
 	} from '$lib/types/Consts';
+	import {
+		VictoryConditionsSchema,
+		type GameSettings,
+		type VictoryConditions
+	} from '$lib/types/cs-proto';
 	import { create } from '@bufbuild/protobuf';
 	import VictoryConditionCheckbox from './VictoryConditionCheckbox.svelte';
 	import VictoryConditionInput from './VictoryConditionInput.svelte';

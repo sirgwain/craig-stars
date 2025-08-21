@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package cs
 
 import (
@@ -46,7 +48,7 @@ func Test_getScanners(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// planet scanners come from the spec
 			for _, planet := range tt.args.planets {
-				planet.Spec = computePlanetSpec(&rules, player, planet)
+				planet.Spec = ComputePlanetSpec(&rules, player, planet)
 			}
 			scan := playerScanner{&Universe{
 				Planets:        tt.args.planets,
@@ -96,7 +98,7 @@ func Test_getStargateScanners(t *testing.T) {
 			}
 			planet.Starbase = starbase
 
-			planet.Spec = computePlanetSpec(&rules, player, planet)
+			planet.Spec = ComputePlanetSpec(&rules, player, planet)
 
 			scan := playerScanner{&Universe{
 				Planets: []*Planet{planet},
@@ -228,7 +230,7 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 	starbase1.Spec = ComputeFleetSpec(&rules, player1, starbase1)
 
 	planet1.Starbase = starbase1
-	planet1.Spec = computePlanetSpec(&rules, player1, planet1)
+	planet1.Spec = ComputePlanetSpec(&rules, player1, planet1)
 
 	// create a second player/planet
 	player2 := game.Players[1]
@@ -241,7 +243,7 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 	starbase2.Spec = ComputeFleetSpec(&rules, player2, starbase1)
 
 	planet2.Starbase = starbase1
-	planet2.Spec = computePlanetSpec(&rules, player2, planet2)
+	planet2.Spec = ComputePlanetSpec(&rules, player2, planet2)
 
 	scan := playerScanner{game.Universe, &rules, player1, game.Players, make(map[int]bool), newDiscoverer(testLogger, player1)}
 
@@ -267,7 +269,7 @@ func Test_scanPlanetWithStargates(t *testing.T) {
 func Test_scanWormholes(t *testing.T) {
 	type fields struct {
 		wormholes []*Wormhole
-		intel     []WormholeIntel
+		intel     []*Wormhole
 	}
 	type args struct {
 		scanners []scanner
@@ -276,30 +278,30 @@ func Test_scanWormholes(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   []WormholeIntel
+		want   []*Wormhole
 	}{
 		{
 			name:   "scan wormhole",
 			fields: fields{wormholes: []*Wormhole{newWormhole(Vector{}, 1, WormholeStabilityStable)}},
 			args:   args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
-			want:   []WormholeIntel{{MapObject: MapObject{Type: MapObjectTypeWormhole, Num: 1}, Stability: WormholeStabilityStable}},
+			want:   []*Wormhole{{MapObject: MapObject{Type: MapObjectTypeWormhole, Num: 1}, Stability: WormholeStabilityStable}},
 		},
 		{
 			name: "forget deleted wormhole",
 			fields: fields{
 				wormholes: []*Wormhole{{MapObject: MapObject{Num: 1, Type: MapObjectTypeWormhole, Delete: true}}},
-				intel:     []WormholeIntel{{MapObject: MapObject{Type: MapObjectTypeWormhole, Num: 1}, Stability: WormholeStabilityStable}},
+				intel:     []*Wormhole{{MapObject: MapObject{Type: MapObjectTypeWormhole, Num: 1}, Stability: WormholeStabilityStable}},
 			},
 			args: args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
-			want: []WormholeIntel{},
+			want: []*Wormhole{},
 		},
 		{
 			name: "forget wormhole we scanned again that no longer exists in universe",
 			fields: fields{
-				intel: []WormholeIntel{{MapObject: MapObject{Type: MapObjectTypeWormhole, Num: 1}, Stability: WormholeStabilityStable}},
+				intel: []*Wormhole{{MapObject: MapObject{Type: MapObjectTypeWormhole, Num: 1}, Stability: WormholeStabilityStable}},
 			},
 			args: args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
-			want: []WormholeIntel{},
+			want: []*Wormhole{},
 		},
 		{
 			name:   "wormhole 75%cloaked, out of range",
@@ -404,7 +406,7 @@ func Test_playerScan_fleetInScannerRange(t *testing.T) {
 func Test_scanMinefields(t *testing.T) {
 	type fields struct {
 		minefields []*Minefield
-		intel      []MinefieldIntel
+		intel      []*Minefield
 	}
 	type args struct {
 		scanners []scanner
@@ -413,13 +415,13 @@ func Test_scanMinefields(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   []MinefieldIntel
+		want   []*Minefield
 	}{
 		{
 			name:   "scan minefield, 1 mine, 1ly radius",
 			fields: fields{minefields: []*Minefield{newMinefield(testPlayer().WithNum(2), MinefieldTypeStandard, 1, 1, Vector{})}},
 			args:   args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
-			want: []MinefieldIntel{{
+			want: []*Minefield{{
 				MapObject: MapObject{
 					Type:      MapObjectTypeMinefield,
 					PlayerNum: 2, Num: 1, Name: "Humanoids Standard Minefield #1"},
@@ -440,7 +442,7 @@ func Test_scanMinefields(t *testing.T) {
 			// it is spotted even with 75% cloaking (scanner range is 2.5 instead of 10)
 			fields: fields{minefields: []*Minefield{newMinefield(testPlayer().WithNum(2), MinefieldTypeStandard, 100, 1, Vector{12, 0})}},
 			args:   args{[]scanner{{Range: 10, CloakReductionFactor: 1}}},
-			want: []MinefieldIntel{{
+			want: []*Minefield{{
 				MapObject: MapObject{
 					Type:      MapObjectTypeMinefield,
 					Position:  Vector{12, 0},

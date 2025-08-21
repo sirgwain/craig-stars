@@ -145,30 +145,6 @@ func (c *client) GetPlayerForGame(ctx context.Context, gameID int64, playerNum i
 	return &player, nil
 }
 
-func (c *client) GetPlayerForGameAndUser(ctx context.Context, gameID, userID int64) (*cs.Player, error) {
-	rows, err := c.reader.GetPlayerForGameAndUser(ctx, generated.GetPlayerForGameAndUserParams{
-		GameID: gameID,
-		UserID: userID,
-	})
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	player := c.converter.ConvertPlayer(rows[0].Player)
-	for _, row := range rows {
-		if row.ID.Valid {
-			player.Designs = append(player.Designs,
-				c.converter.ConvertShipDesign(
-					c.converter.ConvertGetPlayerForGameAndUserRowToShipDesign(row)))
-		}
-	}
-
-	return &player, nil
-}
-
 func (c *client) GetLightPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error) {
 	queryParams := generated.GetLightPlayerForGameParams{
 		GameID:    gameID,
@@ -222,66 +198,30 @@ func (c *client) GetLightPlayerForGameWithDesigns(ctx context.Context, gameID in
 	return &player, nil
 }
 
-// get a full player by id with all dependencies loaded
-func (c *client) GetFullPlayerForGame(ctx context.Context, gameID, userID int64) (*cs.FullPlayer, error) {
-
-	p, err := c.GetPlayerForGameAndUser(ctx, gameID, userID)
+func (c *client) GetPlayerIntel(ctx context.Context, gameID int64, playerNum int) (*cs.Intels, error) {
+	intels, err := c.reader.GetPlayerIntel(ctx, generated.GetPlayerIntelParams{GameID: gameID, Num: int64(playerNum)})
 	if err != nil {
 		return nil, err
 	}
 
-	player := cs.FullPlayer{
-		Player: *p,
-	}
+	return &cs.Intels{
+		BattleRecords:       *intels.BattleRecords,
+		PlayerIntels:        *intels.PlayerIntels,
+		ScoreIntels:         *intels.ScoreIntels,
+		PlanetIntels:        *intels.PlanetIntels,
+		FleetIntels:         *intels.FleetIntels,
+		ShipDesignIntels:    *intels.ShipDesignIntels,
+		MineralPacketIntels: *intels.MineralPacketIntels,
+		MinefieldIntels:     *intels.MinefieldIntels,
+		WormholeIntels:      *intels.WormholeIntels,
+		MysteryTraderIntels: *intels.MysteryTraderIntels,
+		SalvageIntels:       *intels.SalvageIntels,
+	}, nil
 
-	planets, err := c.GetPlanetsForPlayer(ctx, player.GameID, player.Num)
-	if err != nil {
-		return nil, fmt.Errorf("get player planets: %w", err)
-	}
-	player.Planets = planets
-
-	minefields, err := c.GetMinefieldsForPlayer(ctx, player.GameID, player.Num)
-	if err != nil {
-		return nil, fmt.Errorf("get player minefields: %w", err)
-	}
-	player.Minefields = minefields
-
-	mineralPackets, err := c.GetMineralPacketsForPlayer(ctx, player.GameID, player.Num)
-	if err != nil {
-		return nil, fmt.Errorf("get player mineralPackets: %w", err)
-	}
-	player.MineralPackets = mineralPackets
-
-	fleets, err := c.GetFleetsForPlayer(ctx, player.GameID, player.Num)
-	if err != nil {
-		return nil, fmt.Errorf("get player fleets: %w", err)
-	}
-
-	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
-	player.Fleets = make([]*cs.Fleet, 0, len(fleets))
-	player.Starbases = make([]*cs.Fleet, 0, len(planets))
-	for i := range fleets {
-		fleet := fleets[i]
-		if fleet.Starbase {
-			player.Starbases = append(player.Starbases, fleet)
-		} else {
-			player.Fleets = append(player.Fleets, fleet)
-		}
-	}
-
-	return &player, nil
 }
 
-func (c *client) GetPlayerMapObjects(ctx context.Context, gameID, userID int64) (*cs.PlayerMapObjects, error) {
-	num, err := c.reader.GetPlayerNum(ctx, generated.GetPlayerNumParams{GameID: gameID, UserID: userID})
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
+func (c *client) GetPlayerMapObjects(ctx context.Context, gameID int64, playerNum int) (*cs.PlayerMapObjects, error) {
 
-	playerNum := int(num)
 	mapObjects := cs.PlayerMapObjects{}
 
 	planets, err := c.GetPlanetsForPlayer(ctx, gameID, playerNum)
@@ -306,17 +246,7 @@ func (c *client) GetPlayerMapObjects(ctx context.Context, gameID, userID int64) 
 	if err != nil {
 		return nil, fmt.Errorf("get player fleets: %w", err)
 	}
-	// pre-instantiate the fleets/starbases arrays (make it a little bigger than necessary)
-	mapObjects.Fleets = make([]*cs.Fleet, 0, len(fleets))
-	mapObjects.Starbases = make([]*cs.Fleet, 0, len(planets))
-	for i := range fleets {
-		fleet := fleets[i]
-		if fleet.Starbase {
-			mapObjects.Starbases = append(mapObjects.Starbases, fleet)
-		} else {
-			mapObjects.Fleets = append(mapObjects.Fleets, fleet)
-		}
-	}
+	mapObjects.Fleets = fleets
 
 	return &mapObjects, nil
 }
@@ -355,7 +285,6 @@ func (c *client) UpdateLightPlayer(ctx context.Context, player *cs.Player) error
 		ResearchAmount:    int64(player.ResearchAmount),
 		NextResearchField: player.NextResearchField,
 		Researching:       player.Researching,
-		Spec:              (*generated.PlayerSpec)(&player.Spec),
 	})
 	return err
 }
@@ -375,7 +304,6 @@ func (c *client) UpdatePlayerOrders(ctx context.Context, player *cs.Player) erro
 		ProductionPlans:   (*generated.ProductionPlans)(&player.ProductionPlans),
 		TransportPlans:    (*generated.TransportPlans)(&player.TransportPlans),
 		Relations:         (*generated.PlayerRelationships)(&player.Relations),
-		Spec:              (*generated.PlayerSpec)(&player.Spec),
 	})
 	return err
 }
@@ -427,15 +355,6 @@ func (c *client) UpdatePlayerPlans(ctx context.Context, player *cs.Player) error
 		BattlePlans:     (*generated.BattlePlans)(&player.BattlePlans),
 		ProductionPlans: (*generated.ProductionPlans)(&player.ProductionPlans),
 		TransportPlans:  (*generated.TransportPlans)(&player.TransportPlans),
-	})
-	return err
-}
-
-// update a player's spec in the database
-func (c *client) UpdatePlayerSpec(ctx context.Context, player *cs.Player) error {
-	_, err := c.writer.UpdatePlayerSpec(ctx, generated.UpdatePlayerSpecParams{
-		ID:   player.ID,
-		Spec: (*generated.PlayerSpec)(&player.Spec),
 	})
 	return err
 }

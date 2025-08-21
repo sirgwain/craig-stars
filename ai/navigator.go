@@ -32,8 +32,8 @@ func (ai *aiPlayer) updateFleetWarpSpeed() error {
 func (ai *aiPlayer) getWarpSpeed(fleet *cs.Fleet, target cs.MapObjectTarget, fastest bool) int {
 	dist := math.Ceil(fleet.Position.DistanceTo(target.TargetPosition))
 
-	var orbiting *cs.PlanetIntel
-	var targetPlanet *cs.PlanetIntel
+	var orbiting *cs.Planet
+	var targetPlanet *cs.Planet
 	if fleet.OrbitingPlanetNum != cs.None {
 		orbiting = ai.GetPlanetIntel(fleet.OrbitingPlanetNum)
 	}

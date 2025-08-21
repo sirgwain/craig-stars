@@ -4,19 +4,20 @@
 	export type PopulationTooltipProps = {
 		playerFinder: PlayerFinder;
 		player: CommandedPlayer;
-		planet: AnyPlanet;
+		planet: Planet;
 	};
 </script>
 
 <script lang="ts">
-	import type { AnyPlanet, PlayerFinder } from '$lib/services/Universe';
-	import { owned, ownedBy } from '$lib/types/MapObject';
+	import type { PlayerFinder } from '$lib/services/Universe';
 	import { population } from '$lib/types/Cargo';
+	import { owned, ownedBy } from '$lib/types/MapObject';
 	import { getGrowth } from '$lib/types/Planet';
+	import type { Planet } from '$lib/types/cs-proto';
 
 	let { playerFinder, player, planet }: PopulationTooltipProps = $props();
 
-	let reportAge = $derived('reportAge' in planet ? (planet.reportAge ?? 0) : 0);
+	let reportAge = $derived(planet.mapObject?.reportAge ?? 0);
 	let habitability = $derived(planet.spec?.habitability ?? 0);
 	let pop = $derived(population(planet.cargo));
 	let growthAmount = $derived(getGrowth(planet));

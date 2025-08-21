@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type { AnyPlanet } from '$lib/services/Universe';
+	import type { Planet } from "$lib/types/cs-proto";
+
 
 	type Props = {
-		planet: AnyPlanet;
+		planet: Planet;
 	};
 
 	let { planet }: Props = $props();

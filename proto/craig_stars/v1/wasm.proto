@@ -15,6 +15,7 @@ service WasmService {
   rpc AddWaypoint(AddWaypointRequest) returns (AddWaypointResponse) {}
   rpc CalculateRacePoints(CalculateRacePointsRequest) returns (CalculateRacePointsResponse) {}
   rpc ComputeMinefieldSpec(ComputeMinefieldSpecRequest) returns (ComputeMinefieldSpecResponse) {}
+  rpc ComputePlayerResearchSpec(ComputePlayerResearchSpecRequest) returns (ComputePlayerResearchSpecResponse) {}
   rpc ComputeRaceSpec(ComputeRaceSpecRequest) returns (ComputeRaceSpecResponse) {}
   rpc ComputeShipDesignSpec(ComputeShipDesignSpecRequest) returns (ComputeShipDesignSpecResponse) {}
   rpc EnableDebug(EnableDebugRequest) returns (EnableDebugResponse) {}
@@ -27,6 +28,8 @@ service WasmService {
   rpc SetDesigns(SetDesignsRequest) returns (SetDesignsResponse) {}
   rpc SetIntels(SetIntelsRequest) returns (SetIntelsResponse) {}
   rpc SetPlayer(SetPlayerRequest) returns (SetPlayerResponse) {}
+  rpc UpdatePlanet(UpdatePlanetRequest) returns (UpdatePlanetResponse) {}
+  rpc UpdatePlanets(UpdatePlanetsRequest) returns (UpdatePlanetsResponse) {}
   rpc UpdateWaypoint(UpdateWaypointRequest) returns (UpdateWaypointResponse) {}
 }
 
@@ -56,6 +59,13 @@ message ComputeMinefieldSpecRequest {
 
 message ComputeMinefieldSpecResponse {
   MinefieldSpec spec = 1;
+}
+
+message ComputePlayerResearchSpecRequest {
+}
+
+message ComputePlayerResearchSpecResponse {
+  PlayerResearchSpec spec = 1;
 }
 
 message ComputeRaceSpecRequest {
@@ -148,6 +158,18 @@ message SetPlayerRequest {
 }
 
 message SetPlayerResponse {}
+
+message UpdatePlanetRequest {
+  Planet planet = 1;
+}
+
+message UpdatePlanetResponse {}
+
+message UpdatePlanetsRequest {
+  repeated Planet planets = 1;
+}
+
+message UpdatePlanetsResponse {}
 
 message UpdateWaypointRequest {
   Fleet fleet = 1;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PlanetIntel } from '$lib/types/cs-proto';
+	import type { Planet } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { totalMinerals } from '$lib/types/Mineral';
@@ -9,7 +9,7 @@
 	const { settings, universe } = getGameContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: Planet;
 	};
 
 	let { planet }: Props = $props();

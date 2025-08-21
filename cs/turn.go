@@ -48,7 +48,7 @@ func (t *turnGenerator) generateTurn() error {
 		player.leftoverResources = 0
 		player.techLevelGained = false
 		player.acquirablePartGained = false
-		player.Spec.TechsJustGained = []*Tech{}
+		player.TechsJustGained = []*Tech{}
 	}
 
 	t.computeSpecs()
@@ -379,7 +379,7 @@ func (t *turnGenerator) scrapFleet(fleet *Fleet, colonize bool) {
 				player.AcquiredTechs[acquiredPart.Name] = true
 				messager.playerAcquirablePartGainedScrappedFleet(planetPlayer, planet, fleet.Name, acquiredPart.Name)
 				if player.HasTech(acquiredPart) {
-					player.Spec.TechsJustGained = append(player.Spec.TechsJustGained, acquiredPart)
+					player.TechsJustGained = append(player.TechsJustGained, acquiredPart)
 				}
 
 				t.log.Debug().
@@ -1572,7 +1572,7 @@ func (t *turnGenerator) planetProduction() error {
 
 		// re-compute spec once for brevity
 		if result.scanner || result.reset {
-			planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+			planet.Spec = ComputePlanetSpec(&t.game.Rules, player, planet)
 		}
 
 		// log what we actually did
@@ -1819,7 +1819,7 @@ func (t *turnGenerator) playerResearch() error {
 		}
 
 		// update player spec for players who gained a level
-		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
+		player.Spec = ComputePlayerSpec(player, &t.game.Rules, t.game.Planets)
 
 		// update design spec
 		for i := range player.Designs {
@@ -1843,7 +1843,7 @@ func (t *turnGenerator) playerResearch() error {
 		if !playerGainedLevel[planet.PlayerNum] {
 			continue
 		}
-		planet.Spec = computePlanetSpec(&t.game.Rules, t.game.Players[planet.PlayerNum-1], planet)
+		planet.Spec = ComputePlanetSpec(&t.game.Rules, t.game.Players[planet.PlayerNum-1], planet)
 	}
 
 	// update fleet specs for players who gained a level
@@ -1881,7 +1881,7 @@ func (t *turnGenerator) permaform() {
 				result := terraformer.PermaformOneStep(planet, player, habType)
 
 				if result.Terraformed() {
-					planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+					planet.Spec = ComputePlanetSpec(&t.game.Rules, player, planet)
 					planet.MarkDirty()
 					messager.planetPermaform(player, planet, result.Type, result.Direction)
 
@@ -2711,7 +2711,7 @@ func (t *turnGenerator) instaform() {
 					// Instantly terraform this planet (but don't update planet.TerraformAmount, this change doesn't stick if we leave)
 					prevHab := planet.Hab
 					planet.Hab = newHab
-					planet.Spec = computePlanetSpec(&t.game.Rules, player, planet)
+					planet.Spec = ComputePlanetSpec(&t.game.Rules, player, planet)
 					messager.planetInstaform(player, planet, instaformAmount)
 
 					t.log.Debug().
@@ -2871,10 +2871,9 @@ func (t *turnGenerator) fleetPatrol(player *Player) {
 		}
 
 		closestDistance := float64(math.MaxFloat32)
-		var closest *FleetIntel
+		var closest *Fleet
 
-		for i := range player.FleetIntels {
-			enemyFleet := &player.FleetIntels[i]
+		for _, enemyFleet := range player.FleetIntels {
 			if fleet.willAttack(player, enemyFleet.PlayerNum) {
 				distSquaredToFleet := fleet.Position.DistanceSquaredTo(enemyFleet.Position)
 				if distSquaredToFleet <= rangeDistanceSquared {
@@ -2927,7 +2926,7 @@ func (t *turnGenerator) fleetPatrol(player *Player) {
 
 func (t *turnGenerator) scan() error {
 	for _, player := range t.game.Players {
-		player.Spec = computePlayerSpec(player, &t.game.Rules, t.game.Planets)
+		player.Spec = ComputePlayerSpec(player, &t.game.Rules, t.game.Planets)
 
 		scanner := newPlayerScanner(t.game.Universe, t.game.Players, &t.game.Rules, player)
 		if err := scanner.scan(); err != nil {

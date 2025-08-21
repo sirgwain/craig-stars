@@ -282,7 +282,7 @@ func (scan *playerScanner) scanWormholes(scanners []scanner) {
 		}
 	}
 
-	intels := make([]WormholeIntel, len(scan.player.WormholeIntels))
+	intels := make([]*Wormhole, len(scan.player.WormholeIntels))
 	copy(intels, scan.player.WormholeIntels)
 	for _, intel := range intels {
 		for _, scanner := range scanners {

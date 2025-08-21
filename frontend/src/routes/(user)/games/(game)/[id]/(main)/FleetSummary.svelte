@@ -4,10 +4,9 @@
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import type { ShowCargoTransferDialogProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
-	import { type AnyFleet, type AnyShipDesign } from '$lib/services/Universe';
 	import { getHullIcon } from '$lib/techicon';
 	import { StargateWarpSpeed } from '$lib/types/Consts';
-	import { WaypointTask, type Fleet } from '$lib/types/cs-proto';
+	import { WaypointTask, type Fleet, type ShipDesign } from '$lib/types/cs-proto';
 	import { enumToString } from '$lib/types/Enums';
 	import { canTransferCargo, CommandedFleet, getDamagePercentForToken } from '$lib/types/Fleet';
 	import { ownedBy } from '$lib/types/MapObject';
@@ -15,13 +14,13 @@
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		fleet: AnyFleet;
+		fleet: Fleet;
 	} & ShowCargoTransferDialogProps;
 
 	let { fleet, onShowCargoTransferDialog }: Props = $props();
 	let playerFleet = $derived('fleetOrders' in fleet ? (fleet as Fleet) : undefined);
 
-	const design: AnyShipDesign | undefined = $derived.by(() => {
+	const design: ShipDesign | undefined = $derived.by(() => {
 		if (fleet.tokens && fleet.tokens.length > 0) {
 			const designNum = fleet.tokens[0].designNum;
 			return $universe.getDesign(fleet.mapObject?.playerNum ?? 0, designNum);
@@ -29,7 +28,7 @@
 	});
 
 	// get either warpSpeed as a number, or "stargate"
-	function getWarpSpeed(fleet: AnyFleet): string {
+	function getWarpSpeed(fleet: Fleet): string {
 		const warpSpeed: number =
 			('fleetOrders' in fleet &&
 			fleet.fleetOrders?.waypoints &&
@@ -43,10 +42,7 @@
 		return `${warpSpeed}`;
 	}
 
-	function getMass(fleet: AnyFleet): number {
-		if ('mass' in fleet) {
-			return fleet.mass ?? 0;
-		}
+	function getMass(fleet: Fleet): number {
 		return fleet.spec?.shipDesignSpec?.mass ?? 0;
 	}
 

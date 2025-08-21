@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
-	import { WormholeStability, type WormholeIntel } from '$lib/types/cs-proto';
+	import { WormholeStability, type Wormhole } from '$lib/types/cs-proto';
 	import { enumToString } from '$lib/types/Enums';
 
 	const { universe } = getGameContext();
 
 	type Props = {
-		wormhole: WormholeIntel;
+		wormhole: Wormhole;
 	};
 
 	let { wormhole }: Props = $props();

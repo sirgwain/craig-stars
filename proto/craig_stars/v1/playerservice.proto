@@ -6,7 +6,6 @@ import "craig_stars/v1/fleet.proto";
 import "craig_stars/v1/game.proto";
 import "craig_stars/v1/planet.proto";
 import "craig_stars/v1/player.proto";
-import "craig_stars/v1/shipdesign.proto";
 
 service PlayerService {
   rpc GetPlayer(GetPlayerRequest) returns (GetPlayerResponse);
@@ -44,8 +43,6 @@ message GetPlayerRequest {
 
 message GetPlayerResponse {
   Player player = 1;
-  Intels intels = 2;
-  repeated ShipDesign designs = 3;
 }
 
 message GetUniverseRequest {

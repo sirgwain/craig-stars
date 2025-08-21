@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
 	import { radiansToDegrees } from '$lib/services/Math';
-	import type { AnyFleet } from '$lib/services/Universe';
+	import type { Fleet } from '$lib/types/cs-proto';
 	import { ownedBy } from '$lib/types/MapObject';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	const { settings, player } = getGameContext();
 
 	type Props = {
-		fleet: AnyFleet;
+		fleet: Fleet;
 		commanded?: boolean;
 		color?: string;
 		commandedColor?: string;
@@ -21,11 +21,11 @@
 	// identity or default is rotated 90º, or pointing up and to the right
 	const angleOffset = 225;
 
-	function getAngle(fleet: AnyFleet): number {
+	function getAngle(fleet: Fleet): number {
 		return radiansToDegrees(Math.atan2(fleet.heading?.y ?? 0, fleet.heading?.x ?? 0)) + angleOffset;
 	}
 
-	function getTokenCount(fleet: AnyFleet): number {
+	function getTokenCount(fleet: Fleet): number {
 		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
 	}
 

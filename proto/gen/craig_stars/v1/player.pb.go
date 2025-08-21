@@ -103,7 +103,6 @@ type Player struct {
 	Victor                    bool                   `protobuf:"varint,23,opt,name=victor,proto3" json:"victor,omitempty"`
 	Archived                  bool                   `protobuf:"varint,24,opt,name=archived,proto3" json:"archived,omitempty"`
 	Stats                     *PlayerStats           `protobuf:"bytes,25,opt,name=stats,proto3" json:"stats,omitempty"`
-	Spec                      *PlayerSpec            `protobuf:"bytes,26,opt,name=spec,proto3" json:"spec,omitempty"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -313,21 +312,20 @@ func (x *Player) GetStats() *PlayerStats {
 	return nil
 }
 
-func (x *Player) GetSpec() *PlayerSpec {
-	if x != nil {
-		return x.Spec
-	}
-	return nil
-}
-
 // Aggregate universe view used by SubmitTurnResponse/ForceGenerateTurnResponse/GetPlayerResponse.
 type PlayerUniverse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	Planets        []*Planet              `protobuf:"bytes,1,rep,name=planets,proto3" json:"planets,omitempty"`
-	Fleets         []*Fleet               `protobuf:"bytes,2,rep,name=fleets,proto3" json:"fleets,omitempty"`
-	Starbases      []*Fleet               `protobuf:"bytes,3,rep,name=starbases,proto3" json:"starbases,omitempty"`
-	Minefields     []*Minefield           `protobuf:"bytes,4,rep,name=minefields,proto3" json:"minefields,omitempty"`
-	MineralPackets []*MineralPacket       `protobuf:"bytes,5,rep,name=mineral_packets,json=mineralPackets,proto3" json:"mineral_packets,omitempty"`
+	BattleRecords  []*BattleRecord        `protobuf:"bytes,1,rep,name=battle_records,json=battleRecords,proto3" json:"battle_records,omitempty"`
+	PlayerIntels   []*PlayerIntel         `protobuf:"bytes,2,rep,name=player_intels,json=playerIntels,proto3" json:"player_intels,omitempty"`
+	ScoreIntels    []*ScoreIntel          `protobuf:"bytes,3,rep,name=score_intels,json=scoreIntels,proto3" json:"score_intels,omitempty"`
+	Designs        []*ShipDesign          `protobuf:"bytes,4,rep,name=designs,proto3" json:"designs,omitempty"`
+	Planets        []*Planet              `protobuf:"bytes,5,rep,name=planets,proto3" json:"planets,omitempty"`
+	Fleets         []*Fleet               `protobuf:"bytes,6,rep,name=fleets,proto3" json:"fleets,omitempty"`
+	Minefields     []*Minefield           `protobuf:"bytes,7,rep,name=minefields,proto3" json:"minefields,omitempty"`
+	MineralPackets []*MineralPacket       `protobuf:"bytes,8,rep,name=mineral_packets,json=mineralPackets,proto3" json:"mineral_packets,omitempty"`
+	MysteryTraders []*MysteryTrader       `protobuf:"bytes,9,rep,name=mystery_traders,json=mysteryTraders,proto3" json:"mystery_traders,omitempty"`
+	Salvages       []*Salvage             `protobuf:"bytes,10,rep,name=salvages,proto3" json:"salvages,omitempty"`
+	Wormholes      []*Wormhole            `protobuf:"bytes,11,rep,name=wormholes,proto3" json:"wormholes,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -362,6 +360,34 @@ func (*PlayerUniverse) Descriptor() ([]byte, []int) {
 	return file_craig_stars_v1_player_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *PlayerUniverse) GetBattleRecords() []*BattleRecord {
+	if x != nil {
+		return x.BattleRecords
+	}
+	return nil
+}
+
+func (x *PlayerUniverse) GetPlayerIntels() []*PlayerIntel {
+	if x != nil {
+		return x.PlayerIntels
+	}
+	return nil
+}
+
+func (x *PlayerUniverse) GetScoreIntels() []*ScoreIntel {
+	if x != nil {
+		return x.ScoreIntels
+	}
+	return nil
+}
+
+func (x *PlayerUniverse) GetDesigns() []*ShipDesign {
+	if x != nil {
+		return x.Designs
+	}
+	return nil
+}
+
 func (x *PlayerUniverse) GetPlanets() []*Planet {
 	if x != nil {
 		return x.Planets
@@ -376,13 +402,6 @@ func (x *PlayerUniverse) GetFleets() []*Fleet {
 	return nil
 }
 
-func (x *PlayerUniverse) GetStarbases() []*Fleet {
-	if x != nil {
-		return x.Starbases
-	}
-	return nil
-}
-
 func (x *PlayerUniverse) GetMinefields() []*Minefield {
 	if x != nil {
 		return x.Minefields
@@ -393,6 +412,27 @@ func (x *PlayerUniverse) GetMinefields() []*Minefield {
 func (x *PlayerUniverse) GetMineralPackets() []*MineralPacket {
 	if x != nil {
 		return x.MineralPackets
+	}
+	return nil
+}
+
+func (x *PlayerUniverse) GetMysteryTraders() []*MysteryTrader {
+	if x != nil {
+		return x.MysteryTraders
+	}
+	return nil
+}
+
+func (x *PlayerUniverse) GetSalvages() []*Salvage {
+	if x != nil {
+		return x.Salvages
+	}
+	return nil
+}
+
+func (x *PlayerUniverse) GetWormholes() []*Wormhole {
+	if x != nil {
+		return x.Wormholes
 	}
 	return nil
 }
@@ -646,14 +686,14 @@ type Intels struct {
 	BattleRecords       []*BattleRecord        `protobuf:"bytes,1,rep,name=battle_records,json=battleRecords,proto3" json:"battle_records,omitempty"`
 	PlayerIntels        []*PlayerIntel         `protobuf:"bytes,2,rep,name=player_intels,json=playerIntels,proto3" json:"player_intels,omitempty"`
 	ScoreIntels         []*ScoreIntel          `protobuf:"bytes,3,rep,name=score_intels,json=scoreIntels,proto3" json:"score_intels,omitempty"`
-	PlanetIntels        []*PlanetIntel         `protobuf:"bytes,4,rep,name=planet_intels,json=planetIntels,proto3" json:"planet_intels,omitempty"`
-	FleetIntels         []*FleetIntel          `protobuf:"bytes,5,rep,name=fleet_intels,json=fleetIntels,proto3" json:"fleet_intels,omitempty"`
-	ShipDesignIntels    []*ShipDesignIntel     `protobuf:"bytes,6,rep,name=ship_design_intels,json=shipDesignIntels,proto3" json:"ship_design_intels,omitempty"`
-	MineralPacketIntels []*MineralPacketIntel  `protobuf:"bytes,7,rep,name=mineral_packet_intels,json=mineralPacketIntels,proto3" json:"mineral_packet_intels,omitempty"`
-	MinefieldIntels     []*MinefieldIntel      `protobuf:"bytes,8,rep,name=minefield_intels,json=minefieldIntels,proto3" json:"minefield_intels,omitempty"`
-	WormholeIntels      []*WormholeIntel       `protobuf:"bytes,9,rep,name=wormhole_intels,json=wormholeIntels,proto3" json:"wormhole_intels,omitempty"`
-	MysteryTraderIntels []*MysteryTraderIntel  `protobuf:"bytes,10,rep,name=mystery_trader_intels,json=mysteryTraderIntels,proto3" json:"mystery_trader_intels,omitempty"`
-	SalvageIntels       []*SalvageIntel        `protobuf:"bytes,11,rep,name=salvage_intels,json=salvageIntels,proto3" json:"salvage_intels,omitempty"`
+	PlanetIntels        []*Planet              `protobuf:"bytes,4,rep,name=planet_intels,json=planetIntels,proto3" json:"planet_intels,omitempty"`
+	FleetIntels         []*Fleet               `protobuf:"bytes,5,rep,name=fleet_intels,json=fleetIntels,proto3" json:"fleet_intels,omitempty"`
+	ShipDesignIntels    []*ShipDesign          `protobuf:"bytes,6,rep,name=ship_design_intels,json=shipDesignIntels,proto3" json:"ship_design_intels,omitempty"`
+	MineralPacketIntels []*MineralPacket       `protobuf:"bytes,7,rep,name=mineral_packet_intels,json=mineralPacketIntels,proto3" json:"mineral_packet_intels,omitempty"`
+	MinefieldIntels     []*Minefield           `protobuf:"bytes,8,rep,name=minefield_intels,json=minefieldIntels,proto3" json:"minefield_intels,omitempty"`
+	WormholeIntels      []*Wormhole            `protobuf:"bytes,9,rep,name=wormhole_intels,json=wormholeIntels,proto3" json:"wormhole_intels,omitempty"`
+	MysteryTraderIntels []*MysteryTrader       `protobuf:"bytes,10,rep,name=mystery_trader_intels,json=mysteryTraderIntels,proto3" json:"mystery_trader_intels,omitempty"`
+	SalvageIntels       []*Salvage             `protobuf:"bytes,11,rep,name=salvage_intels,json=salvageIntels,proto3" json:"salvage_intels,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -709,56 +749,56 @@ func (x *Intels) GetScoreIntels() []*ScoreIntel {
 	return nil
 }
 
-func (x *Intels) GetPlanetIntels() []*PlanetIntel {
+func (x *Intels) GetPlanetIntels() []*Planet {
 	if x != nil {
 		return x.PlanetIntels
 	}
 	return nil
 }
 
-func (x *Intels) GetFleetIntels() []*FleetIntel {
+func (x *Intels) GetFleetIntels() []*Fleet {
 	if x != nil {
 		return x.FleetIntels
 	}
 	return nil
 }
 
-func (x *Intels) GetShipDesignIntels() []*ShipDesignIntel {
+func (x *Intels) GetShipDesignIntels() []*ShipDesign {
 	if x != nil {
 		return x.ShipDesignIntels
 	}
 	return nil
 }
 
-func (x *Intels) GetMineralPacketIntels() []*MineralPacketIntel {
+func (x *Intels) GetMineralPacketIntels() []*MineralPacket {
 	if x != nil {
 		return x.MineralPacketIntels
 	}
 	return nil
 }
 
-func (x *Intels) GetMinefieldIntels() []*MinefieldIntel {
+func (x *Intels) GetMinefieldIntels() []*Minefield {
 	if x != nil {
 		return x.MinefieldIntels
 	}
 	return nil
 }
 
-func (x *Intels) GetWormholeIntels() []*WormholeIntel {
+func (x *Intels) GetWormholeIntels() []*Wormhole {
 	if x != nil {
 		return x.WormholeIntels
 	}
 	return nil
 }
 
-func (x *Intels) GetMysteryTraderIntels() []*MysteryTraderIntel {
+func (x *Intels) GetMysteryTraderIntels() []*MysteryTrader {
 	if x != nil {
 		return x.MysteryTraderIntels
 	}
 	return nil
 }
 
-func (x *Intels) GetSalvageIntels() []*SalvageIntel {
+func (x *Intels) GetSalvageIntels() []*Salvage {
 	if x != nil {
 		return x.SalvageIntels
 	}
@@ -1013,35 +1053,30 @@ func (x *PlayerRelationship) GetShareMap() bool {
 	return false
 }
 
-type PlayerSpec struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Embedded PlayerResearchSpec
-	ResourcesPerYear                  int32                    `protobuf:"varint,1,opt,name=resources_per_year,json=resourcesPerYear,proto3" json:"resources_per_year,omitempty"`
-	ResourcesPerYearResearch          int32                    `protobuf:"varint,2,opt,name=resources_per_year_research,json=resourcesPerYearResearch,proto3" json:"resources_per_year_research,omitempty"`
-	ResourcesPerYearResearchEstimated int32                    `protobuf:"varint,3,opt,name=resources_per_year_research_estimated,json=resourcesPerYearResearchEstimated,proto3" json:"resources_per_year_research_estimated,omitempty"`
-	CurrentResearchCost               int32                    `protobuf:"varint,4,opt,name=current_research_cost,json=currentResearchCost,proto3" json:"current_research_cost,omitempty"`
-	TechsJustGained                   []*Tech                  `protobuf:"bytes,5,rep,name=techs_just_gained,json=techsJustGained,proto3" json:"techs_just_gained,omitempty"`
-	PlanetaryScanner                  *TechPlanetaryScanner    `protobuf:"bytes,6,opt,name=planetary_scanner,json=planetaryScanner,proto3" json:"planetary_scanner,omitempty"`
-	Defense                           *TechDefense             `protobuf:"bytes,7,opt,name=defense,proto3" json:"defense,omitempty"`
-	Terraform                         map[int32]*TechTerraform `protobuf:"bytes,8,rep,name=terraform,proto3" json:"terraform,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // TerraformHabType as string
+type PlayerResearchSpec struct {
+	state                             protoimpl.MessageState `protogen:"open.v1"`
+	ResourcesPerYear                  int32                  `protobuf:"varint,1,opt,name=resources_per_year,json=resourcesPerYear,proto3" json:"resources_per_year,omitempty"`
+	ResourcesPerYearResearch          int32                  `protobuf:"varint,2,opt,name=resources_per_year_research,json=resourcesPerYearResearch,proto3" json:"resources_per_year_research,omitempty"`
+	ResourcesPerYearResearchEstimated int32                  `protobuf:"varint,3,opt,name=resources_per_year_research_estimated,json=resourcesPerYearResearchEstimated,proto3" json:"resources_per_year_research_estimated,omitempty"`
+	CurrentResearchCost               int32                  `protobuf:"varint,4,opt,name=current_research_cost,json=currentResearchCost,proto3" json:"current_research_cost,omitempty"`
 	unknownFields                     protoimpl.UnknownFields
 	sizeCache                         protoimpl.SizeCache
 }
 
-func (x *PlayerSpec) Reset() {
-	*x = PlayerSpec{}
+func (x *PlayerResearchSpec) Reset() {
+	*x = PlayerResearchSpec{}
 	mi := &file_craig_stars_v1_player_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PlayerSpec) String() string {
+func (x *PlayerResearchSpec) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PlayerSpec) ProtoMessage() {}
+func (*PlayerResearchSpec) ProtoMessage() {}
 
-func (x *PlayerSpec) ProtoReflect() protoreflect.Message {
+func (x *PlayerResearchSpec) ProtoReflect() protoreflect.Message {
 	mi := &file_craig_stars_v1_player_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1053,65 +1088,37 @@ func (x *PlayerSpec) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PlayerSpec.ProtoReflect.Descriptor instead.
-func (*PlayerSpec) Descriptor() ([]byte, []int) {
+// Deprecated: Use PlayerResearchSpec.ProtoReflect.Descriptor instead.
+func (*PlayerResearchSpec) Descriptor() ([]byte, []int) {
 	return file_craig_stars_v1_player_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *PlayerSpec) GetResourcesPerYear() int32 {
+func (x *PlayerResearchSpec) GetResourcesPerYear() int32 {
 	if x != nil {
 		return x.ResourcesPerYear
 	}
 	return 0
 }
 
-func (x *PlayerSpec) GetResourcesPerYearResearch() int32 {
+func (x *PlayerResearchSpec) GetResourcesPerYearResearch() int32 {
 	if x != nil {
 		return x.ResourcesPerYearResearch
 	}
 	return 0
 }
 
-func (x *PlayerSpec) GetResourcesPerYearResearchEstimated() int32 {
+func (x *PlayerResearchSpec) GetResourcesPerYearResearchEstimated() int32 {
 	if x != nil {
 		return x.ResourcesPerYearResearchEstimated
 	}
 	return 0
 }
 
-func (x *PlayerSpec) GetCurrentResearchCost() int32 {
+func (x *PlayerResearchSpec) GetCurrentResearchCost() int32 {
 	if x != nil {
 		return x.CurrentResearchCost
 	}
 	return 0
-}
-
-func (x *PlayerSpec) GetTechsJustGained() []*Tech {
-	if x != nil {
-		return x.TechsJustGained
-	}
-	return nil
-}
-
-func (x *PlayerSpec) GetPlanetaryScanner() *TechPlanetaryScanner {
-	if x != nil {
-		return x.PlanetaryScanner
-	}
-	return nil
-}
-
-func (x *PlayerSpec) GetDefense() *TechDefense {
-	if x != nil {
-		return x.Defense
-	}
-	return nil
-}
-
-func (x *PlayerSpec) GetTerraform() map[int32]*TechTerraform {
-	if x != nil {
-		return x.Terraform
-	}
-	return nil
 }
 
 type BattlePlan struct {
@@ -1398,8 +1405,7 @@ var File_craig_stars_v1_player_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_player_proto_rawDesc = "" +
 	"\n" +
-	"\x1bcraig_stars/v1/player.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/battle.proto\x1a\x1bcraig_stars/v1/common.proto\x1a\x1acraig_stars/v1/fleet.proto\x1a\x1acraig_stars/v1/intel.proto\x1a\x1ccraig_stars/v1/message.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\"craig_stars/v1/mineralpacket.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1acraig_stars/v1/score.proto\x1a\x19craig_stars/v1/tech.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x99\n" +
-	"\n" +
+	"\x1bcraig_stars/v1/player.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/battle.proto\x1a\x1bcraig_stars/v1/common.proto\x1a\x1acraig_stars/v1/fleet.proto\x1a\x1acraig_stars/v1/intel.proto\x1a\x1ccraig_stars/v1/message.proto\x1a\x1ecraig_stars/v1/minefield.proto\x1a\"craig_stars/v1/mineralpacket.proto\x1a\"craig_stars/v1/mysterytrader.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x19craig_stars/v1/race.proto\x1a\x1ccraig_stars/v1/salvage.proto\x1a\x1acraig_stars/v1/score.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\x1a\x19craig_stars/v1/tech.proto\x1a\x1dcraig_stars/v1/wormhole.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe9\t\n" +
 	"\x06Player\x12B\n" +
 	"\x0egame_db_object\x18\x01 \x01(\v2\x1c.craig_stars.v1.GameDBObjectR\fgameDbObject\x12A\n" +
 	"\rplayer_orders\x18\x02 \x01(\v2\x1c.craig_stars.v1.PlayerOrdersR\fplayerOrders\x12>\n" +
@@ -1427,19 +1433,25 @@ const file_craig_stars_v1_player_proto_rawDesc = "" +
 	"\x1bachieved_victory_conditions\x18\x16 \x01(\rR\x19achievedVictoryConditions\x12\x16\n" +
 	"\x06victor\x18\x17 \x01(\bR\x06victor\x12\x1a\n" +
 	"\barchived\x18\x18 \x01(\bR\barchived\x121\n" +
-	"\x05stats\x18\x19 \x01(\v2\x1b.craig_stars.v1.PlayerStatsR\x05stats\x12.\n" +
-	"\x04spec\x18\x1a \x01(\v2\x1a.craig_stars.v1.PlayerSpecR\x04spec\x1a@\n" +
+	"\x05stats\x18\x19 \x01(\v2\x1b.craig_stars.v1.PlayerStatsR\x05stats\x1a@\n" +
 	"\x12AcquiredTechsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\"\xa9\x02\n" +
-	"\x0ePlayerUniverse\x120\n" +
-	"\aplanets\x18\x01 \x03(\v2\x16.craig_stars.v1.PlanetR\aplanets\x12-\n" +
-	"\x06fleets\x18\x02 \x03(\v2\x15.craig_stars.v1.FleetR\x06fleets\x123\n" +
-	"\tstarbases\x18\x03 \x03(\v2\x15.craig_stars.v1.FleetR\tstarbases\x129\n" +
+	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\"\xa5\x05\n" +
+	"\x0ePlayerUniverse\x12C\n" +
+	"\x0ebattle_records\x18\x01 \x03(\v2\x1c.craig_stars.v1.BattleRecordR\rbattleRecords\x12@\n" +
+	"\rplayer_intels\x18\x02 \x03(\v2\x1b.craig_stars.v1.PlayerIntelR\fplayerIntels\x12=\n" +
+	"\fscore_intels\x18\x03 \x03(\v2\x1a.craig_stars.v1.ScoreIntelR\vscoreIntels\x124\n" +
+	"\adesigns\x18\x04 \x03(\v2\x1a.craig_stars.v1.ShipDesignR\adesigns\x120\n" +
+	"\aplanets\x18\x05 \x03(\v2\x16.craig_stars.v1.PlanetR\aplanets\x12-\n" +
+	"\x06fleets\x18\x06 \x03(\v2\x15.craig_stars.v1.FleetR\x06fleets\x129\n" +
 	"\n" +
-	"minefields\x18\x04 \x03(\v2\x19.craig_stars.v1.MinefieldR\n" +
+	"minefields\x18\a \x03(\v2\x19.craig_stars.v1.MinefieldR\n" +
 	"minefields\x12F\n" +
-	"\x0fmineral_packets\x18\x05 \x03(\v2\x1d.craig_stars.v1.MineralPacketR\x0emineralPackets\"\xb9\x01\n" +
+	"\x0fmineral_packets\x18\b \x03(\v2\x1d.craig_stars.v1.MineralPacketR\x0emineralPackets\x12F\n" +
+	"\x0fmystery_traders\x18\t \x03(\v2\x1d.craig_stars.v1.MysteryTraderR\x0emysteryTraders\x123\n" +
+	"\bsalvages\x18\n" +
+	" \x03(\v2\x17.craig_stars.v1.SalvageR\bsalvages\x126\n" +
+	"\twormholes\x18\v \x03(\v2\x18.craig_stars.v1.WormholeR\twormholes\"\xb9\x01\n" +
 	"\x13ByHandCargoTransfer\x12K\n" +
 	"\x11map_object_target\x18\x01 \x01(\v2\x1f.craig_stars.v1.MapObjectTargetR\x0fmapObjectTarget\x12(\n" +
 	"\x10source_fleet_num\x18\x06 \x01(\x05R\x0esourceFleetNum\x12+\n" +
@@ -1461,20 +1473,20 @@ const file_craig_stars_v1_player_proto_rawDesc = "" +
 	" \x01(\bR\rsubmittedTurn\x12\x14\n" +
 	"\x05color\x18\v \x01(\tR\x05color\x12\x16\n" +
 	"\x06victor\x18\f \x01(\bR\x06victor\x12\x1a\n" +
-	"\barchived\x18\r \x01(\bR\barchived\"\xa6\x06\n" +
+	"\barchived\x18\r \x01(\bR\barchived\"\xfe\x05\n" +
 	"\x06Intels\x12C\n" +
 	"\x0ebattle_records\x18\x01 \x03(\v2\x1c.craig_stars.v1.BattleRecordR\rbattleRecords\x12@\n" +
 	"\rplayer_intels\x18\x02 \x03(\v2\x1b.craig_stars.v1.PlayerIntelR\fplayerIntels\x12=\n" +
-	"\fscore_intels\x18\x03 \x03(\v2\x1a.craig_stars.v1.ScoreIntelR\vscoreIntels\x12@\n" +
-	"\rplanet_intels\x18\x04 \x03(\v2\x1b.craig_stars.v1.PlanetIntelR\fplanetIntels\x12=\n" +
-	"\ffleet_intels\x18\x05 \x03(\v2\x1a.craig_stars.v1.FleetIntelR\vfleetIntels\x12M\n" +
-	"\x12ship_design_intels\x18\x06 \x03(\v2\x1f.craig_stars.v1.ShipDesignIntelR\x10shipDesignIntels\x12V\n" +
-	"\x15mineral_packet_intels\x18\a \x03(\v2\".craig_stars.v1.MineralPacketIntelR\x13mineralPacketIntels\x12I\n" +
-	"\x10minefield_intels\x18\b \x03(\v2\x1e.craig_stars.v1.MinefieldIntelR\x0fminefieldIntels\x12F\n" +
-	"\x0fwormhole_intels\x18\t \x03(\v2\x1d.craig_stars.v1.WormholeIntelR\x0ewormholeIntels\x12V\n" +
+	"\fscore_intels\x18\x03 \x03(\v2\x1a.craig_stars.v1.ScoreIntelR\vscoreIntels\x12;\n" +
+	"\rplanet_intels\x18\x04 \x03(\v2\x16.craig_stars.v1.PlanetR\fplanetIntels\x128\n" +
+	"\ffleet_intels\x18\x05 \x03(\v2\x15.craig_stars.v1.FleetR\vfleetIntels\x12H\n" +
+	"\x12ship_design_intels\x18\x06 \x03(\v2\x1a.craig_stars.v1.ShipDesignR\x10shipDesignIntels\x12Q\n" +
+	"\x15mineral_packet_intels\x18\a \x03(\v2\x1d.craig_stars.v1.MineralPacketR\x13mineralPacketIntels\x12D\n" +
+	"\x10minefield_intels\x18\b \x03(\v2\x19.craig_stars.v1.MinefieldR\x0fminefieldIntels\x12A\n" +
+	"\x0fwormhole_intels\x18\t \x03(\v2\x18.craig_stars.v1.WormholeR\x0ewormholeIntels\x12Q\n" +
 	"\x15mystery_trader_intels\x18\n" +
-	" \x03(\v2\".craig_stars.v1.MysteryTraderIntelR\x13mysteryTraderIntels\x12C\n" +
-	"\x0esalvage_intels\x18\v \x03(\v2\x1c.craig_stars.v1.SalvageIntelR\rsalvageIntels\"\xdf\x01\n" +
+	" \x03(\v2\x1d.craig_stars.v1.MysteryTraderR\x13mysteryTraderIntels\x12>\n" +
+	"\x0esalvage_intels\x18\v \x03(\v2\x17.craig_stars.v1.SalvageR\rsalvageIntels\"\xdf\x01\n" +
 	"\vPlayerPlans\x12I\n" +
 	"\x10production_plans\x18\x01 \x03(\v2\x1e.craig_stars.v1.ProductionPlanR\x0fproductionPlans\x12=\n" +
 	"\fbattle_plans\x18\x02 \x03(\v2\x1a.craig_stars.v1.BattlePlanR\vbattlePlans\x12F\n" +
@@ -1494,20 +1506,12 @@ const file_craig_stars_v1_player_proto_rawDesc = "" +
 	"\x11planets_colonized\x18\x04 \x01(\x05R\x10planetsColonized\"m\n" +
 	"\x12PlayerRelationship\x12:\n" +
 	"\brelation\x18\x01 \x01(\x0e2\x1e.craig_stars.v1.PlayerRelationR\brelation\x12\x1b\n" +
-	"\tshare_map\x18\x02 \x01(\bR\bshareMap\"\xf1\x04\n" +
-	"\n" +
-	"PlayerSpec\x12,\n" +
+	"\tshare_map\x18\x02 \x01(\bR\bshareMap\"\x87\x02\n" +
+	"\x12PlayerResearchSpec\x12,\n" +
 	"\x12resources_per_year\x18\x01 \x01(\x05R\x10resourcesPerYear\x12=\n" +
 	"\x1bresources_per_year_research\x18\x02 \x01(\x05R\x18resourcesPerYearResearch\x12P\n" +
 	"%resources_per_year_research_estimated\x18\x03 \x01(\x05R!resourcesPerYearResearchEstimated\x122\n" +
-	"\x15current_research_cost\x18\x04 \x01(\x05R\x13currentResearchCost\x12@\n" +
-	"\x11techs_just_gained\x18\x05 \x03(\v2\x14.craig_stars.v1.TechR\x0ftechsJustGained\x12Q\n" +
-	"\x11planetary_scanner\x18\x06 \x01(\v2$.craig_stars.v1.TechPlanetaryScannerR\x10planetaryScanner\x125\n" +
-	"\adefense\x18\a \x01(\v2\x1b.craig_stars.v1.TechDefenseR\adefense\x12G\n" +
-	"\tterraform\x18\b \x03(\v2).craig_stars.v1.PlayerSpec.TerraformEntryR\tterraform\x1a[\n" +
-	"\x0eTerraformEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\x05R\x03key\x123\n" +
-	"\x05value\x18\x02 \x01(\v2\x1d.craig_stars.v1.TechTerraformR\x05value:\x028\x01\"\xd5\x02\n" +
+	"\x15current_research_cost\x18\x04 \x01(\x05R\x13currentResearchCost\"\xd5\x02\n" +
 	"\n" +
 	"BattlePlan\x12\x10\n" +
 	"\x03num\x18\x01 \x01(\x05R\x03num\x12\x12\n" +
@@ -1553,7 +1557,7 @@ func file_craig_stars_v1_player_proto_rawDescGZIP() []byte {
 }
 
 var file_craig_stars_v1_player_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_craig_stars_v1_player_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_craig_stars_v1_player_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_craig_stars_v1_player_proto_goTypes = []any{
 	(PlayerRelation)(0),            // 0: craig_stars.v1.PlayerRelation
 	(*Player)(nil),                 // 1: craig_stars.v1.Player
@@ -1566,105 +1570,96 @@ var file_craig_stars_v1_player_proto_goTypes = []any{
 	(*PlayerOrders)(nil),           // 8: craig_stars.v1.PlayerOrders
 	(*PlayerStats)(nil),            // 9: craig_stars.v1.PlayerStats
 	(*PlayerRelationship)(nil),     // 10: craig_stars.v1.PlayerRelationship
-	(*PlayerSpec)(nil),             // 11: craig_stars.v1.PlayerSpec
+	(*PlayerResearchSpec)(nil),     // 11: craig_stars.v1.PlayerResearchSpec
 	(*BattlePlan)(nil),             // 12: craig_stars.v1.BattlePlan
 	(*TransportPlan)(nil),          // 13: craig_stars.v1.TransportPlan
 	(*ProductionPlan)(nil),         // 14: craig_stars.v1.ProductionPlan
 	(*ProductionPlanItem)(nil),     // 15: craig_stars.v1.ProductionPlanItem
 	nil,                            // 16: craig_stars.v1.Player.AcquiredTechsEntry
 	nil,                            // 17: craig_stars.v1.PlayerOrders.CargoTransfersEntry
-	nil,                            // 18: craig_stars.v1.PlayerSpec.TerraformEntry
-	(*GameDBObject)(nil),           // 19: craig_stars.v1.GameDBObject
-	(AiDifficulty)(0),              // 20: craig_stars.v1.AiDifficulty
-	(*Race)(nil),                   // 21: craig_stars.v1.Race
-	(*TechLevel)(nil),              // 22: craig_stars.v1.TechLevel
-	(*PlayerMessage)(nil),          // 23: craig_stars.v1.PlayerMessage
-	(*PlayerScore)(nil),            // 24: craig_stars.v1.PlayerScore
-	(*Planet)(nil),                 // 25: craig_stars.v1.Planet
-	(*Fleet)(nil),                  // 26: craig_stars.v1.Fleet
-	(*Minefield)(nil),              // 27: craig_stars.v1.Minefield
-	(*MineralPacket)(nil),          // 28: craig_stars.v1.MineralPacket
-	(*MapObjectTarget)(nil),        // 29: craig_stars.v1.MapObjectTarget
-	(*Cargo)(nil),                  // 30: craig_stars.v1.Cargo
-	(*timestamppb.Timestamp)(nil),  // 31: google.protobuf.Timestamp
-	(*BattleRecord)(nil),           // 32: craig_stars.v1.BattleRecord
-	(*PlayerIntel)(nil),            // 33: craig_stars.v1.PlayerIntel
-	(*ScoreIntel)(nil),             // 34: craig_stars.v1.ScoreIntel
-	(*PlanetIntel)(nil),            // 35: craig_stars.v1.PlanetIntel
-	(*FleetIntel)(nil),             // 36: craig_stars.v1.FleetIntel
-	(*ShipDesignIntel)(nil),        // 37: craig_stars.v1.ShipDesignIntel
-	(*MineralPacketIntel)(nil),     // 38: craig_stars.v1.MineralPacketIntel
-	(*MinefieldIntel)(nil),         // 39: craig_stars.v1.MinefieldIntel
-	(*WormholeIntel)(nil),          // 40: craig_stars.v1.WormholeIntel
-	(*MysteryTraderIntel)(nil),     // 41: craig_stars.v1.MysteryTraderIntel
-	(*SalvageIntel)(nil),           // 42: craig_stars.v1.SalvageIntel
-	(TechField)(0),                 // 43: craig_stars.v1.TechField
-	(NextResearchField)(0),         // 44: craig_stars.v1.NextResearchField
-	(*Tech)(nil),                   // 45: craig_stars.v1.Tech
-	(*TechPlanetaryScanner)(nil),   // 46: craig_stars.v1.TechPlanetaryScanner
-	(*TechDefense)(nil),            // 47: craig_stars.v1.TechDefense
-	(BattleTarget)(0),              // 48: craig_stars.v1.BattleTarget
-	(BattleTactic)(0),              // 49: craig_stars.v1.BattleTactic
-	(BattleAttackWho)(0),           // 50: craig_stars.v1.BattleAttackWho
-	(*WaypointTransportTasks)(nil), // 51: craig_stars.v1.WaypointTransportTasks
-	(QueueItemType)(0),             // 52: craig_stars.v1.QueueItemType
-	(*TechTerraform)(nil),          // 53: craig_stars.v1.TechTerraform
+	(*GameDBObject)(nil),           // 18: craig_stars.v1.GameDBObject
+	(AiDifficulty)(0),              // 19: craig_stars.v1.AiDifficulty
+	(*Race)(nil),                   // 20: craig_stars.v1.Race
+	(*TechLevel)(nil),              // 21: craig_stars.v1.TechLevel
+	(*PlayerMessage)(nil),          // 22: craig_stars.v1.PlayerMessage
+	(*PlayerScore)(nil),            // 23: craig_stars.v1.PlayerScore
+	(*BattleRecord)(nil),           // 24: craig_stars.v1.BattleRecord
+	(*PlayerIntel)(nil),            // 25: craig_stars.v1.PlayerIntel
+	(*ScoreIntel)(nil),             // 26: craig_stars.v1.ScoreIntel
+	(*ShipDesign)(nil),             // 27: craig_stars.v1.ShipDesign
+	(*Planet)(nil),                 // 28: craig_stars.v1.Planet
+	(*Fleet)(nil),                  // 29: craig_stars.v1.Fleet
+	(*Minefield)(nil),              // 30: craig_stars.v1.Minefield
+	(*MineralPacket)(nil),          // 31: craig_stars.v1.MineralPacket
+	(*MysteryTrader)(nil),          // 32: craig_stars.v1.MysteryTrader
+	(*Salvage)(nil),                // 33: craig_stars.v1.Salvage
+	(*Wormhole)(nil),               // 34: craig_stars.v1.Wormhole
+	(*MapObjectTarget)(nil),        // 35: craig_stars.v1.MapObjectTarget
+	(*Cargo)(nil),                  // 36: craig_stars.v1.Cargo
+	(*timestamppb.Timestamp)(nil),  // 37: google.protobuf.Timestamp
+	(TechField)(0),                 // 38: craig_stars.v1.TechField
+	(NextResearchField)(0),         // 39: craig_stars.v1.NextResearchField
+	(BattleTarget)(0),              // 40: craig_stars.v1.BattleTarget
+	(BattleTactic)(0),              // 41: craig_stars.v1.BattleTactic
+	(BattleAttackWho)(0),           // 42: craig_stars.v1.BattleAttackWho
+	(*WaypointTransportTasks)(nil), // 43: craig_stars.v1.WaypointTransportTasks
+	(QueueItemType)(0),             // 44: craig_stars.v1.QueueItemType
 }
 var file_craig_stars_v1_player_proto_depIdxs = []int32{
-	19, // 0: craig_stars.v1.Player.game_db_object:type_name -> craig_stars.v1.GameDBObject
+	18, // 0: craig_stars.v1.Player.game_db_object:type_name -> craig_stars.v1.GameDBObject
 	8,  // 1: craig_stars.v1.Player.player_orders:type_name -> craig_stars.v1.PlayerOrders
 	7,  // 2: craig_stars.v1.Player.player_plans:type_name -> craig_stars.v1.PlayerPlans
-	20, // 3: craig_stars.v1.Player.ai_difficulty:type_name -> craig_stars.v1.AiDifficulty
-	21, // 4: craig_stars.v1.Player.race:type_name -> craig_stars.v1.Race
-	22, // 5: craig_stars.v1.Player.tech_levels:type_name -> craig_stars.v1.TechLevel
-	22, // 6: craig_stars.v1.Player.tech_levels_spent:type_name -> craig_stars.v1.TechLevel
+	19, // 3: craig_stars.v1.Player.ai_difficulty:type_name -> craig_stars.v1.AiDifficulty
+	20, // 4: craig_stars.v1.Player.race:type_name -> craig_stars.v1.Race
+	21, // 5: craig_stars.v1.Player.tech_levels:type_name -> craig_stars.v1.TechLevel
+	21, // 6: craig_stars.v1.Player.tech_levels_spent:type_name -> craig_stars.v1.TechLevel
 	10, // 7: craig_stars.v1.Player.relations:type_name -> craig_stars.v1.PlayerRelationship
-	23, // 8: craig_stars.v1.Player.messages:type_name -> craig_stars.v1.PlayerMessage
-	24, // 9: craig_stars.v1.Player.score_history:type_name -> craig_stars.v1.PlayerScore
+	22, // 8: craig_stars.v1.Player.messages:type_name -> craig_stars.v1.PlayerMessage
+	23, // 9: craig_stars.v1.Player.score_history:type_name -> craig_stars.v1.PlayerScore
 	16, // 10: craig_stars.v1.Player.acquired_techs:type_name -> craig_stars.v1.Player.AcquiredTechsEntry
 	9,  // 11: craig_stars.v1.Player.stats:type_name -> craig_stars.v1.PlayerStats
-	11, // 12: craig_stars.v1.Player.spec:type_name -> craig_stars.v1.PlayerSpec
-	25, // 13: craig_stars.v1.PlayerUniverse.planets:type_name -> craig_stars.v1.Planet
-	26, // 14: craig_stars.v1.PlayerUniverse.fleets:type_name -> craig_stars.v1.Fleet
-	26, // 15: craig_stars.v1.PlayerUniverse.starbases:type_name -> craig_stars.v1.Fleet
-	27, // 16: craig_stars.v1.PlayerUniverse.minefields:type_name -> craig_stars.v1.Minefield
-	28, // 17: craig_stars.v1.PlayerUniverse.mineral_packets:type_name -> craig_stars.v1.MineralPacket
-	29, // 18: craig_stars.v1.ByHandCargoTransfer.map_object_target:type_name -> craig_stars.v1.MapObjectTarget
-	30, // 19: craig_stars.v1.ByHandCargoTransfer.cargo:type_name -> craig_stars.v1.Cargo
-	3,  // 20: craig_stars.v1.CargoTransfers.transfers:type_name -> craig_stars.v1.ByHandCargoTransfer
-	31, // 21: craig_stars.v1.PlayerStatus.updated_at:type_name -> google.protobuf.Timestamp
-	20, // 22: craig_stars.v1.PlayerStatus.ai_difficulty:type_name -> craig_stars.v1.AiDifficulty
-	32, // 23: craig_stars.v1.Intels.battle_records:type_name -> craig_stars.v1.BattleRecord
-	33, // 24: craig_stars.v1.Intels.player_intels:type_name -> craig_stars.v1.PlayerIntel
-	34, // 25: craig_stars.v1.Intels.score_intels:type_name -> craig_stars.v1.ScoreIntel
-	35, // 26: craig_stars.v1.Intels.planet_intels:type_name -> craig_stars.v1.PlanetIntel
-	36, // 27: craig_stars.v1.Intels.fleet_intels:type_name -> craig_stars.v1.FleetIntel
-	37, // 28: craig_stars.v1.Intels.ship_design_intels:type_name -> craig_stars.v1.ShipDesignIntel
-	38, // 29: craig_stars.v1.Intels.mineral_packet_intels:type_name -> craig_stars.v1.MineralPacketIntel
-	39, // 30: craig_stars.v1.Intels.minefield_intels:type_name -> craig_stars.v1.MinefieldIntel
-	40, // 31: craig_stars.v1.Intels.wormhole_intels:type_name -> craig_stars.v1.WormholeIntel
-	41, // 32: craig_stars.v1.Intels.mystery_trader_intels:type_name -> craig_stars.v1.MysteryTraderIntel
-	42, // 33: craig_stars.v1.Intels.salvage_intels:type_name -> craig_stars.v1.SalvageIntel
-	14, // 34: craig_stars.v1.PlayerPlans.production_plans:type_name -> craig_stars.v1.ProductionPlan
-	12, // 35: craig_stars.v1.PlayerPlans.battle_plans:type_name -> craig_stars.v1.BattlePlan
-	13, // 36: craig_stars.v1.PlayerPlans.transport_plans:type_name -> craig_stars.v1.TransportPlan
-	43, // 37: craig_stars.v1.PlayerOrders.researching:type_name -> craig_stars.v1.TechField
-	44, // 38: craig_stars.v1.PlayerOrders.next_research_field:type_name -> craig_stars.v1.NextResearchField
-	17, // 39: craig_stars.v1.PlayerOrders.cargo_transfers:type_name -> craig_stars.v1.PlayerOrders.CargoTransfersEntry
-	0,  // 40: craig_stars.v1.PlayerRelationship.relation:type_name -> craig_stars.v1.PlayerRelation
-	45, // 41: craig_stars.v1.PlayerSpec.techs_just_gained:type_name -> craig_stars.v1.Tech
-	46, // 42: craig_stars.v1.PlayerSpec.planetary_scanner:type_name -> craig_stars.v1.TechPlanetaryScanner
-	47, // 43: craig_stars.v1.PlayerSpec.defense:type_name -> craig_stars.v1.TechDefense
-	18, // 44: craig_stars.v1.PlayerSpec.terraform:type_name -> craig_stars.v1.PlayerSpec.TerraformEntry
-	48, // 45: craig_stars.v1.BattlePlan.primary_target:type_name -> craig_stars.v1.BattleTarget
-	48, // 46: craig_stars.v1.BattlePlan.secondary_target:type_name -> craig_stars.v1.BattleTarget
-	49, // 47: craig_stars.v1.BattlePlan.tactic:type_name -> craig_stars.v1.BattleTactic
-	50, // 48: craig_stars.v1.BattlePlan.attack_who:type_name -> craig_stars.v1.BattleAttackWho
-	51, // 49: craig_stars.v1.TransportPlan.tasks:type_name -> craig_stars.v1.WaypointTransportTasks
-	15, // 50: craig_stars.v1.ProductionPlan.items:type_name -> craig_stars.v1.ProductionPlanItem
-	52, // 51: craig_stars.v1.ProductionPlanItem.type:type_name -> craig_stars.v1.QueueItemType
-	4,  // 52: craig_stars.v1.PlayerOrders.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
-	53, // 53: craig_stars.v1.PlayerSpec.TerraformEntry.value:type_name -> craig_stars.v1.TechTerraform
+	24, // 12: craig_stars.v1.PlayerUniverse.battle_records:type_name -> craig_stars.v1.BattleRecord
+	25, // 13: craig_stars.v1.PlayerUniverse.player_intels:type_name -> craig_stars.v1.PlayerIntel
+	26, // 14: craig_stars.v1.PlayerUniverse.score_intels:type_name -> craig_stars.v1.ScoreIntel
+	27, // 15: craig_stars.v1.PlayerUniverse.designs:type_name -> craig_stars.v1.ShipDesign
+	28, // 16: craig_stars.v1.PlayerUniverse.planets:type_name -> craig_stars.v1.Planet
+	29, // 17: craig_stars.v1.PlayerUniverse.fleets:type_name -> craig_stars.v1.Fleet
+	30, // 18: craig_stars.v1.PlayerUniverse.minefields:type_name -> craig_stars.v1.Minefield
+	31, // 19: craig_stars.v1.PlayerUniverse.mineral_packets:type_name -> craig_stars.v1.MineralPacket
+	32, // 20: craig_stars.v1.PlayerUniverse.mystery_traders:type_name -> craig_stars.v1.MysteryTrader
+	33, // 21: craig_stars.v1.PlayerUniverse.salvages:type_name -> craig_stars.v1.Salvage
+	34, // 22: craig_stars.v1.PlayerUniverse.wormholes:type_name -> craig_stars.v1.Wormhole
+	35, // 23: craig_stars.v1.ByHandCargoTransfer.map_object_target:type_name -> craig_stars.v1.MapObjectTarget
+	36, // 24: craig_stars.v1.ByHandCargoTransfer.cargo:type_name -> craig_stars.v1.Cargo
+	3,  // 25: craig_stars.v1.CargoTransfers.transfers:type_name -> craig_stars.v1.ByHandCargoTransfer
+	37, // 26: craig_stars.v1.PlayerStatus.updated_at:type_name -> google.protobuf.Timestamp
+	19, // 27: craig_stars.v1.PlayerStatus.ai_difficulty:type_name -> craig_stars.v1.AiDifficulty
+	24, // 28: craig_stars.v1.Intels.battle_records:type_name -> craig_stars.v1.BattleRecord
+	25, // 29: craig_stars.v1.Intels.player_intels:type_name -> craig_stars.v1.PlayerIntel
+	26, // 30: craig_stars.v1.Intels.score_intels:type_name -> craig_stars.v1.ScoreIntel
+	28, // 31: craig_stars.v1.Intels.planet_intels:type_name -> craig_stars.v1.Planet
+	29, // 32: craig_stars.v1.Intels.fleet_intels:type_name -> craig_stars.v1.Fleet
+	27, // 33: craig_stars.v1.Intels.ship_design_intels:type_name -> craig_stars.v1.ShipDesign
+	31, // 34: craig_stars.v1.Intels.mineral_packet_intels:type_name -> craig_stars.v1.MineralPacket
+	30, // 35: craig_stars.v1.Intels.minefield_intels:type_name -> craig_stars.v1.Minefield
+	34, // 36: craig_stars.v1.Intels.wormhole_intels:type_name -> craig_stars.v1.Wormhole
+	32, // 37: craig_stars.v1.Intels.mystery_trader_intels:type_name -> craig_stars.v1.MysteryTrader
+	33, // 38: craig_stars.v1.Intels.salvage_intels:type_name -> craig_stars.v1.Salvage
+	14, // 39: craig_stars.v1.PlayerPlans.production_plans:type_name -> craig_stars.v1.ProductionPlan
+	12, // 40: craig_stars.v1.PlayerPlans.battle_plans:type_name -> craig_stars.v1.BattlePlan
+	13, // 41: craig_stars.v1.PlayerPlans.transport_plans:type_name -> craig_stars.v1.TransportPlan
+	38, // 42: craig_stars.v1.PlayerOrders.researching:type_name -> craig_stars.v1.TechField
+	39, // 43: craig_stars.v1.PlayerOrders.next_research_field:type_name -> craig_stars.v1.NextResearchField
+	17, // 44: craig_stars.v1.PlayerOrders.cargo_transfers:type_name -> craig_stars.v1.PlayerOrders.CargoTransfersEntry
+	0,  // 45: craig_stars.v1.PlayerRelationship.relation:type_name -> craig_stars.v1.PlayerRelation
+	40, // 46: craig_stars.v1.BattlePlan.primary_target:type_name -> craig_stars.v1.BattleTarget
+	40, // 47: craig_stars.v1.BattlePlan.secondary_target:type_name -> craig_stars.v1.BattleTarget
+	41, // 48: craig_stars.v1.BattlePlan.tactic:type_name -> craig_stars.v1.BattleTactic
+	42, // 49: craig_stars.v1.BattlePlan.attack_who:type_name -> craig_stars.v1.BattleAttackWho
+	43, // 50: craig_stars.v1.TransportPlan.tasks:type_name -> craig_stars.v1.WaypointTransportTasks
+	15, // 51: craig_stars.v1.ProductionPlan.items:type_name -> craig_stars.v1.ProductionPlanItem
+	44, // 52: craig_stars.v1.ProductionPlanItem.type:type_name -> craig_stars.v1.QueueItemType
+	4,  // 53: craig_stars.v1.PlayerOrders.CargoTransfersEntry.value:type_name -> craig_stars.v1.CargoTransfers
 	54, // [54:54] is the sub-list for method output_type
 	54, // [54:54] is the sub-list for method input_type
 	54, // [54:54] is the sub-list for extension type_name
@@ -1684,17 +1679,21 @@ func file_craig_stars_v1_player_proto_init() {
 	file_craig_stars_v1_message_proto_init()
 	file_craig_stars_v1_minefield_proto_init()
 	file_craig_stars_v1_mineralpacket_proto_init()
+	file_craig_stars_v1_mysterytrader_proto_init()
 	file_craig_stars_v1_planet_proto_init()
 	file_craig_stars_v1_race_proto_init()
+	file_craig_stars_v1_salvage_proto_init()
 	file_craig_stars_v1_score_proto_init()
+	file_craig_stars_v1_shipdesign_proto_init()
 	file_craig_stars_v1_tech_proto_init()
+	file_craig_stars_v1_wormhole_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_player_proto_rawDesc), len(file_craig_stars_v1_player_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   18,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

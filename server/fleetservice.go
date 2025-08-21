@@ -477,27 +477,9 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 
-	// update this planet and the player's research spec
-	if planet, ok := dest.(*cs.Planet); ok && planet != nil {
-		// load all a player's planets so we can recompute research estimates
-		playerPlanets, err := dbClient.GetPlanetsForPlayer(ctx, game.ID, player.Num)
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
-		}
-
-		// update the current planet in our list of planets
-		for i, playerPlanet := range playerPlanets {
-			if playerPlanet.Num == planet.Num {
-				playerPlanets[i] = planet
-				break
-			}
-		}
-
-		// update the player spec with the change in resources for this planet
-		// if we turned on/off Contribute Only Leftover Resources to Research, the amount this planet contributes to research goes up
-		player.Spec.PlayerResearchSpec = cs.ComputePlayerResearchSpec(player, &game.Rules, playerPlanets)
-	} else if intel, ok := dest.(*cs.PlanetIntel); ok {
-		player.PlanetIntels[intel.Num-1] = *intel
+	// update this planet and the player's intel
+	if planet, ok := dest.(*cs.Planet); ok && planet != nil && !planet.OwnedBy(player.Num) {
+		player.PlanetIntels[planet.Num-1] = planet
 	}
 
 	// Save changes in a transaction
@@ -518,13 +500,13 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 			}
 		}
 
-		if destFleetIntel, ok := dest.(*cs.FleetIntel); ok && destFleetIntel != nil {
+		if destFleetIntel, ok := dest.(*cs.Fleet); ok && destFleetIntel != nil {
 			if err := c.UpdatePlayerFleetIntels(ctx, player); err != nil {
 				return err
 			}
 		}
 
-		if destPlanetIntel, ok := dest.(*cs.PlanetIntel); ok && destPlanetIntel != nil {
+		if destPlanetIntel, ok := dest.(*cs.Planet); ok && destPlanetIntel != nil {
 			if err := c.UpdatePlayerPlanetIntels(ctx, player); err != nil {
 				return err
 			}
@@ -536,23 +518,19 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 			}
 		}
 
-		if destMineralPacketIntel, ok := dest.(*cs.MineralPacketIntel); ok && destMineralPacketIntel != nil {
+		if destMineralPacketIntel, ok := dest.(*cs.MineralPacket); ok && destMineralPacketIntel != nil {
 			if err := c.UpdatePlayerMineralPacketIntels(ctx, player); err != nil {
 				return err
 			}
 		}
 
-		if destSalvage, ok := dest.(*cs.SalvageIntel); ok && destSalvage != nil {
+		if destSalvage, ok := dest.(*cs.Salvage); ok && destSalvage != nil {
 			if err := c.UpdatePlayerSalvageIntels(ctx, player); err != nil {
 				return err
 			}
 		}
 
 		if err := c.UpdatePlayerCargoTransfers(ctx, player); err != nil {
-			return err
-		}
-
-		if err := c.UpdatePlayerSpec(ctx, player); err != nil {
 			return err
 		}
 
@@ -574,29 +552,17 @@ func (s *fleetService) TransferCargo(ctx context.Context, req *connect.Request[c
 		response.Dest = &craig_starsv1.TransferCargoResponse_DestFleet{
 			DestFleet: converter.C.ConvertCSFleet(destFleet),
 		}
-	} else if destFleetIntel, ok := dest.(*cs.FleetIntel); ok && destFleetIntel != nil {
-		response.Dest = &craig_starsv1.TransferCargoResponse_DestFleetIntel{
-			DestFleetIntel: converter.C.ConvertCSFleetIntel(*destFleetIntel),
-		}
 	} else if destPlanet, ok := dest.(*cs.Planet); ok && destPlanet != nil {
 		response.Dest = &craig_starsv1.TransferCargoResponse_DestPlanet{
 			DestPlanet: converter.C.ConvertCSPlanet(destPlanet),
-		}
-	} else if destPlanetIntel, ok := dest.(*cs.PlanetIntel); ok && destPlanetIntel != nil {
-		response.Dest = &craig_starsv1.TransferCargoResponse_DestPlanetIntel{
-			DestPlanetIntel: converter.C.ConvertCSPlanetIntel(*destPlanetIntel),
 		}
 	} else if destMineralPacket, ok := dest.(*cs.MineralPacket); ok && destMineralPacket != nil {
 		response.Dest = &craig_starsv1.TransferCargoResponse_DestMineralPacket{
 			DestMineralPacket: converter.C.ConvertCSMineralPacket(destMineralPacket),
 		}
-	} else if destMineralPacketIntel, ok := dest.(*cs.MineralPacketIntel); ok && destMineralPacketIntel != nil {
-		response.Dest = &craig_starsv1.TransferCargoResponse_DestMineralPacketIntel{
-			DestMineralPacketIntel: converter.C.ConvertCSMineralPacketIntel(*destMineralPacketIntel),
-		}
-	} else if destSalvage, ok := dest.(*cs.SalvageIntel); ok && destSalvage != nil {
+	} else if destSalvage, ok := dest.(*cs.Salvage); ok && destSalvage != nil {
 		response.Dest = &craig_starsv1.TransferCargoResponse_DestSalvage{
-			DestSalvage: converter.C.ConvertCSSalvageIntel(*destSalvage),
+			DestSalvage: converter.C.ConvertCSSalvage(destSalvage),
 		}
 	}
 

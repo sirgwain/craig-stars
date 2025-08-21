@@ -53,6 +53,8 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
+        intel_player_num,
+        report_age,
         x,
         y,
         name,
@@ -76,6 +78,8 @@ VALUES
         ?,
         ?,
         ?,
+        ?,
+        ?,
         ?
     );
 
@@ -84,6 +88,8 @@ UPDATE minefields
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
+    intel_player_num = ?,
+    report_age = ?,
     x = ?,
     y = ?,
     name = ?,

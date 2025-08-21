@@ -14,6 +14,7 @@
 
 <script lang="ts">
 	import { getGameContext } from '$lib/services/GameContext';
+	import { None } from '$lib/types/Consts';
 	import { MapObjectType } from '$lib/types/cs-proto';
 	import {
 		getMapObjectName,
@@ -21,7 +22,6 @@
 		type MapObjectLike,
 		type Position
 	} from '$lib/types/MapObject';
-	import { None } from '$lib/types/Consts';
 	import { flatten } from 'lodash-es';
 	import { showPopup, type PopupProps } from './Popup.svelte';
 

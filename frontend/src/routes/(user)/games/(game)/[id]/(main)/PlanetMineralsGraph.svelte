@@ -3,16 +3,15 @@
 	import MineralTooltip, {
 		type MineralTooltipProps
 	} from '$lib/components/game/tooltips/MineralTooltip.svelte';
-	import type { MineralJson } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
 	import { showTooltip } from '$lib/services/Stores';
-	import type { AnyPlanet } from '$lib/services/Universe';
+	import type { MineralJson, Planet } from '$lib/types/cs-proto';
 
 	const { settings } = getGameContext();
 
 	type Props = {
-		planet: AnyPlanet;
+		planet: Planet;
 	};
 
 	let { planet }: Props = $props();

@@ -3,7 +3,6 @@ syntax = "proto3";
 package craig_stars.v1;
 
 import "craig_stars/v1/planet.proto";
-import "craig_stars/v1/player.proto";
 
 service PlanetService {
   rpc GetPlanet(GetPlanetRequest) returns (GetPlanetResponse);
@@ -27,5 +26,4 @@ message UpdatePlanetOrdersRequest {
 
 message UpdatePlanetOrdersResponse {
   Planet planet = 1;
-  Player player = 2;
 }

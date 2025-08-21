@@ -111,6 +111,16 @@ func (c *ProtoConverter) ConvertCSBattleRecordTokenAction(source cs.BattleRecord
 	craig_starsv1BattleRecordTokenAction.TorpedoMisses = IntToInt32(source.TorpedoMisses)
 	return &craig_starsv1BattleRecordTokenAction
 }
+func (c *ProtoConverter) ConvertCSBattleRecords(source []cs.BattleRecord) []*v1.BattleRecord {
+	var pCraig_starsv1BattleRecordList []*v1.BattleRecord
+	if source != nil {
+		pCraig_starsv1BattleRecordList = make([]*v1.BattleRecord, len(source))
+		for i := 0; i < len(source); i++ {
+			pCraig_starsv1BattleRecordList[i] = c.ConvertCSBattleRecord(source[i])
+		}
+	}
+	return pCraig_starsv1BattleRecordList
+}
 func (c *ProtoConverter) ConvertCSByHandCargoTransfer(source cs.ByHandCargoTransfer) *v1.ByHandCargoTransfer {
 	var craig_starsv1ByHandCargoTransfer v1.ByHandCargoTransfer
 	craig_starsv1ByHandCargoTransfer.MapObjectTarget = c.csTargetToPCraig_starsv1MapObjectTarget(source.MapObjectTarget)
@@ -186,30 +196,6 @@ func (c *ProtoConverter) ConvertCSFleet(source *cs.Fleet) *v1.Fleet {
 		pCraig_starsv1Fleet = &craig_starsv1Fleet
 	}
 	return pCraig_starsv1Fleet
-}
-func (c *ProtoConverter) ConvertCSFleetIntel(source cs.FleetIntel) *v1.FleetIntel {
-	var craig_starsv1FleetIntel v1.FleetIntel
-	craig_starsv1FleetIntel.ReportAge = IntToInt32(source.Intel.ReportAge)
-	craig_starsv1FleetIntel.MapObject = c.csMapObjectToPCraig_starsv1MapObject(source.MapObject)
-	craig_starsv1FleetIntel.BaseName = source.BaseName
-	craig_starsv1FleetIntel.Heading = c.csVectorToPCraig_starsv1Vector(source.Heading)
-	craig_starsv1FleetIntel.OrbitingPlanetNum = IntToInt32(source.OrbitingPlanetNum)
-	craig_starsv1FleetIntel.WarpSpeed = IntToInt32(source.WarpSpeed)
-	craig_starsv1FleetIntel.Fuel = IntToInt32(source.Fuel)
-	craig_starsv1FleetIntel.Mass = IntToInt32(source.Mass)
-	craig_starsv1FleetIntel.Cargo = c.ConvertCSCargo(source.Cargo)
-	craig_starsv1FleetIntel.CargoDiscovered = source.CargoDiscovered
-	craig_starsv1FleetIntel.Freighter = source.Freighter
-	craig_starsv1FleetIntel.ScanRange = IntToInt32(source.ScanRange)
-	craig_starsv1FleetIntel.ScanRangePen = IntToInt32(source.ScanRangePen)
-	if source.Tokens != nil {
-		craig_starsv1FleetIntel.Tokens = make([]*v1.ShipToken, len(source.Tokens))
-		for i := 0; i < len(source.Tokens); i++ {
-			craig_starsv1FleetIntel.Tokens[i] = c.csShipTokenToPCraig_starsv1ShipToken(source.Tokens[i])
-		}
-	}
-	craig_starsv1FleetIntel.Spec = c.ConvertCSFleetSpec(source.Spec)
-	return &craig_starsv1FleetIntel
 }
 func (c *ProtoConverter) ConvertCSFleetSpec(source cs.FleetSpec) *v1.FleetSpec {
 	var craig_starsv1FleetSpec v1.FleetSpec
@@ -288,70 +274,20 @@ func (c *ProtoConverter) ConvertCSGamesWithPlayers(source []cs.GameWithPlayers) 
 }
 func (c *ProtoConverter) ConvertCSIntels(source cs.Intels) *v1.Intels {
 	var craig_starsv1Intels v1.Intels
-	if source.BattleRecords != nil {
-		craig_starsv1Intels.BattleRecords = make([]*v1.BattleRecord, len(source.BattleRecords))
-		for i := 0; i < len(source.BattleRecords); i++ {
-			craig_starsv1Intels.BattleRecords[i] = c.ConvertCSBattleRecord(source.BattleRecords[i])
-		}
-	}
-	if source.PlayerIntels != nil {
-		craig_starsv1Intels.PlayerIntels = make([]*v1.PlayerIntel, len(source.PlayerIntels))
-		for j := 0; j < len(source.PlayerIntels); j++ {
-			craig_starsv1Intels.PlayerIntels[j] = c.csPlayerIntelToPCraig_starsv1PlayerIntel(source.PlayerIntels[j])
-		}
-	}
-	if source.ScoreIntels != nil {
-		craig_starsv1Intels.ScoreIntels = make([]*v1.ScoreIntel, len(source.ScoreIntels))
-		for k := 0; k < len(source.ScoreIntels); k++ {
-			craig_starsv1Intels.ScoreIntels[k] = c.csScoreIntelToPCraig_starsv1ScoreIntel(source.ScoreIntels[k])
-		}
-	}
-	if source.PlanetIntels != nil {
-		craig_starsv1Intels.PlanetIntels = make([]*v1.PlanetIntel, len(source.PlanetIntels))
-		for l := 0; l < len(source.PlanetIntels); l++ {
-			craig_starsv1Intels.PlanetIntels[l] = c.ConvertCSPlanetIntel(source.PlanetIntels[l])
-		}
-	}
-	if source.FleetIntels != nil {
-		craig_starsv1Intels.FleetIntels = make([]*v1.FleetIntel, len(source.FleetIntels))
-		for m := 0; m < len(source.FleetIntels); m++ {
-			craig_starsv1Intels.FleetIntels[m] = c.ConvertCSFleetIntel(source.FleetIntels[m])
-		}
-	}
-	if source.ShipDesignIntels != nil {
-		craig_starsv1Intels.ShipDesignIntels = make([]*v1.ShipDesignIntel, len(source.ShipDesignIntels))
-		for n := 0; n < len(source.ShipDesignIntels); n++ {
-			craig_starsv1Intels.ShipDesignIntels[n] = c.ConvertCSShipDesignIntel(source.ShipDesignIntels[n])
-		}
-	}
-	if source.MineralPacketIntels != nil {
-		craig_starsv1Intels.MineralPacketIntels = make([]*v1.MineralPacketIntel, len(source.MineralPacketIntels))
-		for o := 0; o < len(source.MineralPacketIntels); o++ {
-			craig_starsv1Intels.MineralPacketIntels[o] = c.ConvertCSMineralPacketIntel(source.MineralPacketIntels[o])
-		}
-	}
-	if source.MinefieldIntels != nil {
-		craig_starsv1Intels.MinefieldIntels = make([]*v1.MinefieldIntel, len(source.MinefieldIntels))
-		for p := 0; p < len(source.MinefieldIntels); p++ {
-			craig_starsv1Intels.MinefieldIntels[p] = c.ConvertCSMinefieldIntel(source.MinefieldIntels[p])
-		}
-	}
-	if source.WormholeIntels != nil {
-		craig_starsv1Intels.WormholeIntels = make([]*v1.WormholeIntel, len(source.WormholeIntels))
-		for q := 0; q < len(source.WormholeIntels); q++ {
-			craig_starsv1Intels.WormholeIntels[q] = c.ConvertCSWormholeIntel(source.WormholeIntels[q])
-		}
-	}
-	if source.MysteryTraderIntels != nil {
-		craig_starsv1Intels.MysteryTraderIntels = make([]*v1.MysteryTraderIntel, len(source.MysteryTraderIntels))
-		for r := 0; r < len(source.MysteryTraderIntels); r++ {
-			craig_starsv1Intels.MysteryTraderIntels[r] = c.ConvertCSMysteryTraderIntel(source.MysteryTraderIntels[r])
-		}
-	}
+	craig_starsv1Intels.BattleRecords = c.ConvertCSBattleRecords(source.BattleRecords)
+	craig_starsv1Intels.PlayerIntels = c.ConvertCSPlayerIntels(source.PlayerIntels)
+	craig_starsv1Intels.ScoreIntels = c.ConvertCSScoreIntels(source.ScoreIntels)
+	craig_starsv1Intels.PlanetIntels = c.ConvertCSPlanets(source.PlanetIntels)
+	craig_starsv1Intels.FleetIntels = c.ConvertCSFleets(source.FleetIntels)
+	craig_starsv1Intels.ShipDesignIntels = c.ConvertCSShipDesigns(source.ShipDesignIntels)
+	craig_starsv1Intels.MineralPacketIntels = c.ConvertCSMineralPackets(source.MineralPacketIntels)
+	craig_starsv1Intels.MinefieldIntels = c.ConvertCSMinefields(source.MinefieldIntels)
+	craig_starsv1Intels.WormholeIntels = c.ConvertCSWormholes(source.WormholeIntels)
+	craig_starsv1Intels.MysteryTraderIntels = c.ConvertCSMysteryTraders(source.MysteryTraderIntels)
 	if source.SalvageIntels != nil {
-		craig_starsv1Intels.SalvageIntels = make([]*v1.SalvageIntel, len(source.SalvageIntels))
-		for s := 0; s < len(source.SalvageIntels); s++ {
-			craig_starsv1Intels.SalvageIntels[s] = c.ConvertCSSalvageIntel(source.SalvageIntels[s])
+		craig_starsv1Intels.SalvageIntels = make([]*v1.Salvage, len(source.SalvageIntels))
+		for i := 0; i < len(source.SalvageIntels); i++ {
+			craig_starsv1Intels.SalvageIntels[i] = c.ConvertCSSalvage(source.SalvageIntels[i])
 		}
 	}
 	return &craig_starsv1Intels
@@ -405,14 +341,6 @@ func (c *ProtoConverter) ConvertCSMinefield(source *cs.Minefield) *v1.Minefield 
 	}
 	return pCraig_starsv1Minefield
 }
-func (c *ProtoConverter) ConvertCSMinefieldIntel(source cs.MinefieldIntel) *v1.MinefieldIntel {
-	var craig_starsv1MinefieldIntel v1.MinefieldIntel
-	craig_starsv1MinefieldIntel.ReportAge = IntToInt32(source.Intel.ReportAge)
-	craig_starsv1MinefieldIntel.MapObject = c.csMapObjectToPCraig_starsv1MapObject(source.MapObject)
-	craig_starsv1MinefieldIntel.NumMines = IntToInt32(source.NumMines)
-	craig_starsv1MinefieldIntel.MinefieldType = CSMinefieldTypeToMinefieldType(source.MinefieldType)
-	return &craig_starsv1MinefieldIntel
-}
 func (c *ProtoConverter) ConvertCSMinefieldSpec(source cs.MinefieldSpec) *v1.MinefieldSpec {
 	var craig_starsv1MinefieldSpec v1.MinefieldSpec
 	craig_starsv1MinefieldSpec.Radius = source.Radius
@@ -460,18 +388,6 @@ func (c *ProtoConverter) ConvertCSMineralPacket(source *cs.MineralPacket) *v1.Mi
 	}
 	return pCraig_starsv1MineralPacket
 }
-func (c *ProtoConverter) ConvertCSMineralPacketIntel(source cs.MineralPacketIntel) *v1.MineralPacketIntel {
-	var craig_starsv1MineralPacketIntel v1.MineralPacketIntel
-	craig_starsv1MineralPacketIntel.ReportAge = IntToInt32(source.Intel.ReportAge)
-	craig_starsv1MineralPacketIntel.MapObject = c.csMapObjectToPCraig_starsv1MapObject(source.MapObject)
-	craig_starsv1MineralPacketIntel.WarpSpeed = IntToInt32(source.WarpSpeed)
-	craig_starsv1MineralPacketIntel.Heading = c.csVectorToPCraig_starsv1Vector(source.Heading)
-	craig_starsv1MineralPacketIntel.Cargo = c.ConvertCSCargo(source.Cargo)
-	craig_starsv1MineralPacketIntel.TargetPlanetNum = IntToInt32(source.TargetPlanetNum)
-	craig_starsv1MineralPacketIntel.ScanRange = IntToInt32(source.ScanRange)
-	craig_starsv1MineralPacketIntel.ScanRangePen = IntToInt32(source.ScanRangePen)
-	return &craig_starsv1MineralPacketIntel
-}
 func (c *ProtoConverter) ConvertCSMineralPackets(source []*cs.MineralPacket) []*v1.MineralPacket {
 	var pCraig_starsv1MineralPacketList []*v1.MineralPacket
 	if source != nil {
@@ -482,14 +398,15 @@ func (c *ProtoConverter) ConvertCSMineralPackets(source []*cs.MineralPacket) []*
 	}
 	return pCraig_starsv1MineralPacketList
 }
-func (c *ProtoConverter) ConvertCSMysteryTraderIntel(source cs.MysteryTraderIntel) *v1.MysteryTraderIntel {
-	var craig_starsv1MysteryTraderIntel v1.MysteryTraderIntel
-	craig_starsv1MysteryTraderIntel.ReportAge = IntToInt32(source.Intel.ReportAge)
-	craig_starsv1MysteryTraderIntel.MapObject = c.csMapObjectToPCraig_starsv1MapObject(source.MapObject)
-	craig_starsv1MysteryTraderIntel.WarpSpeed = IntToInt32(source.WarpSpeed)
-	craig_starsv1MysteryTraderIntel.Heading = c.csVectorToPCraig_starsv1Vector(source.Heading)
-	craig_starsv1MysteryTraderIntel.RequestedBoon = IntToInt32(source.RequestedBoon)
-	return &craig_starsv1MysteryTraderIntel
+func (c *ProtoConverter) ConvertCSMysteryTraders(source []*cs.MysteryTrader) []*v1.MysteryTrader {
+	var pCraig_starsv1MysteryTraderList []*v1.MysteryTrader
+	if source != nil {
+		pCraig_starsv1MysteryTraderList = make([]*v1.MysteryTrader, len(source))
+		for i := 0; i < len(source); i++ {
+			pCraig_starsv1MysteryTraderList[i] = c.pCsMysteryTraderToPCraig_starsv1MysteryTrader(source[i])
+		}
+	}
+	return pCraig_starsv1MysteryTraderList
 }
 func (c *ProtoConverter) ConvertCSPRTSpec(source cs.PRTSpec) *v1.PRTSpec {
 	var craig_starsv1PRTSpec v1.PRTSpec
@@ -581,21 +498,6 @@ func (c *ProtoConverter) ConvertCSPlanet(source *cs.Planet) *v1.Planet {
 	}
 	return pCraig_starsv1Planet
 }
-func (c *ProtoConverter) ConvertCSPlanetIntel(source cs.PlanetIntel) *v1.PlanetIntel {
-	var craig_starsv1PlanetIntel v1.PlanetIntel
-	craig_starsv1PlanetIntel.ReportAge = IntToInt32(source.Intel.ReportAge)
-	craig_starsv1PlanetIntel.MapObject = c.csMapObjectToPCraig_starsv1MapObject(source.MapObject)
-	craig_starsv1PlanetIntel.Hab = c.csHabToPCraig_starsv1Hab(source.Hab)
-	craig_starsv1PlanetIntel.BaseHab = c.csHabToPCraig_starsv1Hab(source.BaseHab)
-	craig_starsv1PlanetIntel.MineralConcentration = c.csMineralToPCraig_starsv1Mineral(source.MineralConcentration)
-	craig_starsv1PlanetIntel.Cargo = c.ConvertCSCargo(source.Cargo)
-	craig_starsv1PlanetIntel.CargoDiscovered = source.CargoDiscovered
-	craig_starsv1PlanetIntel.PlanetHabitability = IntToInt32(source.PlanetHabitability)
-	craig_starsv1PlanetIntel.PlanetHabitabilityTerraformed = IntToInt32(source.PlanetHabitabilityTerraformed)
-	craig_starsv1PlanetIntel.Homeworld = source.Homeworld
-	craig_starsv1PlanetIntel.Spec = c.ConvertCSPlanetSpec(source.Spec)
-	return &craig_starsv1PlanetIntel
-}
 func (c *ProtoConverter) ConvertCSPlanetSpec(source cs.PlanetSpec) *v1.PlanetSpec {
 	var craig_starsv1PlanetSpec v1.PlanetSpec
 	craig_starsv1PlanetSpec.PlanetStarbaseSpec = c.csPlanetStarbaseSpecToPCraig_starsv1PlanetStarbaseSpec(source.PlanetStarbaseSpec)
@@ -679,10 +581,19 @@ func (c *ProtoConverter) ConvertCSPlayer(source *cs.Player) *v1.Player {
 		craig_starsv1Player.Victor = (*source).Victor
 		craig_starsv1Player.Archived = (*source).Archived
 		craig_starsv1Player.Stats = c.pCsPlayerStatsToPCraig_starsv1PlayerStats((*source).Stats)
-		craig_starsv1Player.Spec = c.ConvertCSPlayerSpec((*source).Spec)
 		pCraig_starsv1Player = &craig_starsv1Player
 	}
 	return pCraig_starsv1Player
+}
+func (c *ProtoConverter) ConvertCSPlayerIntels(source []cs.PlayerIntel) []*v1.PlayerIntel {
+	var pCraig_starsv1PlayerIntelList []*v1.PlayerIntel
+	if source != nil {
+		pCraig_starsv1PlayerIntelList = make([]*v1.PlayerIntel, len(source))
+		for i := 0; i < len(source); i++ {
+			pCraig_starsv1PlayerIntelList[i] = c.csPlayerIntelToPCraig_starsv1PlayerIntel(source[i])
+		}
+	}
+	return pCraig_starsv1PlayerIntelList
 }
 func (c *ProtoConverter) ConvertCSPlayerMessageSpecMysteryTrader(source *cs.PlayerMessageSpecMysteryTrader) *v1.PlayerMessageSpecMysteryTrader {
 	var pCraig_starsv1PlayerMessageSpecMysteryTrader *v1.PlayerMessageSpecMysteryTrader
@@ -698,22 +609,13 @@ func (c *ProtoConverter) ConvertCSPlayerMessageSpecMysteryTrader(source *cs.Play
 	}
 	return pCraig_starsv1PlayerMessageSpecMysteryTrader
 }
-func (c *ProtoConverter) ConvertCSPlayerSpec(source cs.PlayerSpec) *v1.PlayerSpec {
-	var craig_starsv1PlayerSpec v1.PlayerSpec
-	craig_starsv1PlayerSpec.ResourcesPerYear = IntToInt32(source.PlayerResearchSpec.ResourcesPerYear)
-	craig_starsv1PlayerSpec.ResourcesPerYearResearch = IntToInt32(source.PlayerResearchSpec.ResourcesPerYearResearch)
-	craig_starsv1PlayerSpec.ResourcesPerYearResearchEstimated = IntToInt32(source.PlayerResearchSpec.ResourcesPerYearResearchEstimated)
-	craig_starsv1PlayerSpec.CurrentResearchCost = IntToInt32(source.PlayerResearchSpec.CurrentResearchCost)
-	if source.PlayerResearchSpec.TechsJustGained != nil {
-		craig_starsv1PlayerSpec.TechsJustGained = make([]*v1.Tech, len(source.PlayerResearchSpec.TechsJustGained))
-		for i := 0; i < len(source.PlayerResearchSpec.TechsJustGained); i++ {
-			craig_starsv1PlayerSpec.TechsJustGained[i] = c.pCsTechToPCraig_starsv1Tech(source.PlayerResearchSpec.TechsJustGained[i])
-		}
-	}
-	craig_starsv1PlayerSpec.PlanetaryScanner = c.csTechPlanetaryScannerToPCraig_starsv1TechPlanetaryScanner(source.PlanetaryScanner)
-	craig_starsv1PlayerSpec.Defense = c.csTechDefenseToPCraig_starsv1TechDefense(source.Defense)
-	craig_starsv1PlayerSpec.Terraform = TerraformHabTypeMapToIntMap(c, source.Terraform)
-	return &craig_starsv1PlayerSpec
+func (c *ProtoConverter) ConvertCSPlayerResearchSpec(source cs.PlayerResearchSpec) *v1.PlayerResearchSpec {
+	var craig_starsv1PlayerResearchSpec v1.PlayerResearchSpec
+	craig_starsv1PlayerResearchSpec.ResourcesPerYear = IntToInt32(source.ResourcesPerYear)
+	craig_starsv1PlayerResearchSpec.ResourcesPerYearResearch = IntToInt32(source.ResourcesPerYearResearch)
+	craig_starsv1PlayerResearchSpec.ResourcesPerYearResearchEstimated = IntToInt32(source.ResourcesPerYearResearchEstimated)
+	craig_starsv1PlayerResearchSpec.CurrentResearchCost = IntToInt32(source.CurrentResearchCost)
+	return &craig_starsv1PlayerResearchSpec
 }
 func (c *ProtoConverter) ConvertCSProductionPlan(source cs.ProductionPlan) *v1.ProductionPlan {
 	var craig_starsv1ProductionPlan v1.ProductionPlan
@@ -878,7 +780,7 @@ func (c *ProtoConverter) ConvertCSRules(source *cs.Rules) *v1.Rules {
 		if (*source).LRTSpecs != nil {
 			craig_starsv1Rules.LrtSpecs = make(map[uint32]*v1.LRTSpec, len((*source).LRTSpecs))
 			for key, value := range (*source).LRTSpecs {
-				craig_starsv1Rules.LrtSpecs[c.csLRTToUint32(key)] = c.ConvertCSLRTSpec(value)
+				craig_starsv1Rules.LrtSpecs[uint32(key)] = c.ConvertCSLRTSpec(value)
 			}
 		}
 		craig_starsv1Rules.MaxPopulation = IntToInt32((*source).MaxPopulation)
@@ -940,12 +842,26 @@ func (c *ProtoConverter) ConvertCSRules(source *cs.Rules) *v1.Rules {
 	}
 	return pCraig_starsv1Rules
 }
-func (c *ProtoConverter) ConvertCSSalvageIntel(source cs.SalvageIntel) *v1.SalvageIntel {
-	var craig_starsv1SalvageIntel v1.SalvageIntel
-	craig_starsv1SalvageIntel.ReportAge = IntToInt32(source.Intel.ReportAge)
-	craig_starsv1SalvageIntel.MapObject = c.csMapObjectToPCraig_starsv1MapObject(source.MapObject)
-	craig_starsv1SalvageIntel.Cargo = c.ConvertCSCargo(source.Cargo)
-	return &craig_starsv1SalvageIntel
+func (c *ProtoConverter) ConvertCSSalvage(source *cs.Salvage) *v1.Salvage {
+	var pCraig_starsv1Salvage *v1.Salvage
+	if source != nil {
+		var craig_starsv1Salvage v1.Salvage
+		craig_starsv1Salvage.GameDbObject = c.csGameDBObjectToPCraig_starsv1GameDBObject((*source).GameDBObject)
+		craig_starsv1Salvage.MapObject = c.csMapObjectToPCraig_starsv1MapObject((*source).MapObject)
+		craig_starsv1Salvage.Cargo = c.ConvertCSCargo((*source).Cargo)
+		pCraig_starsv1Salvage = &craig_starsv1Salvage
+	}
+	return pCraig_starsv1Salvage
+}
+func (c *ProtoConverter) ConvertCSScoreIntels(source []cs.ScoreIntel) []*v1.ScoreIntel {
+	var pCraig_starsv1ScoreIntelList []*v1.ScoreIntel
+	if source != nil {
+		pCraig_starsv1ScoreIntelList = make([]*v1.ScoreIntel, len(source))
+		for i := 0; i < len(source); i++ {
+			pCraig_starsv1ScoreIntelList[i] = c.csScoreIntelToPCraig_starsv1ScoreIntel(source[i])
+		}
+	}
+	return pCraig_starsv1ScoreIntelList
 }
 func (c *ProtoConverter) ConvertCSShipDesign(source *cs.ShipDesign) *v1.ShipDesign {
 	var pCraig_starsv1ShipDesign *v1.ShipDesign
@@ -972,24 +888,6 @@ func (c *ProtoConverter) ConvertCSShipDesign(source *cs.ShipDesign) *v1.ShipDesi
 		pCraig_starsv1ShipDesign = &craig_starsv1ShipDesign
 	}
 	return pCraig_starsv1ShipDesign
-}
-func (c *ProtoConverter) ConvertCSShipDesignIntel(source cs.ShipDesignIntel) *v1.ShipDesignIntel {
-	var craig_starsv1ShipDesignIntel v1.ShipDesignIntel
-	craig_starsv1ShipDesignIntel.ReportAge = IntToInt32(source.Intel.ReportAge)
-	craig_starsv1ShipDesignIntel.Name = source.Name
-	craig_starsv1ShipDesignIntel.Num = IntToInt32(source.Num)
-	craig_starsv1ShipDesignIntel.PlayerNum = IntToInt32(source.PlayerNum)
-	craig_starsv1ShipDesignIntel.Hull = source.Hull
-	craig_starsv1ShipDesignIntel.HullSetNumber = IntToInt32(source.HullSetNumber)
-	craig_starsv1ShipDesignIntel.Version = IntToInt32(source.Version)
-	if source.Slots != nil {
-		craig_starsv1ShipDesignIntel.Slots = make([]*v1.ShipDesignSlot, len(source.Slots))
-		for i := 0; i < len(source.Slots); i++ {
-			craig_starsv1ShipDesignIntel.Slots[i] = c.csShipDesignSlotToPCraig_starsv1ShipDesignSlot(source.Slots[i])
-		}
-	}
-	craig_starsv1ShipDesignIntel.Spec = c.ConvertCSShipDesignSpec(source.Spec)
-	return &craig_starsv1ShipDesignIntel
 }
 func (c *ProtoConverter) ConvertCSShipDesignSpec(source cs.ShipDesignSpec) *v1.ShipDesignSpec {
 	var craig_starsv1ShipDesignSpec v1.ShipDesignSpec
@@ -1349,14 +1247,6 @@ func (c *ProtoConverter) ConvertCSWormhole(source *cs.Wormhole) *v1.Wormhole {
 	}
 	return pCraig_starsv1Wormhole
 }
-func (c *ProtoConverter) ConvertCSWormholeIntel(source cs.WormholeIntel) *v1.WormholeIntel {
-	var craig_starsv1WormholeIntel v1.WormholeIntel
-	craig_starsv1WormholeIntel.ReportAge = IntToInt32(source.Intel.ReportAge)
-	craig_starsv1WormholeIntel.MapObject = c.csMapObjectToPCraig_starsv1MapObject(source.MapObject)
-	craig_starsv1WormholeIntel.DestinationNum = IntToInt32(source.DestinationNum)
-	craig_starsv1WormholeIntel.Stability = CSWormholeStabilityToWormholeStability(source.Stability)
-	return &craig_starsv1WormholeIntel
-}
 func (c *ProtoConverter) ConvertCSWormholeStats(source cs.WormholeStats) *v1.WormholeStats {
 	var craig_starsv1WormholeStats v1.WormholeStats
 	craig_starsv1WormholeStats.YearsToDegrade = IntToInt32(source.YearsToDegrade)
@@ -1439,29 +1329,6 @@ func (c *ProtoConverter) ConvertFleet(source *v1.Fleet) *cs.Fleet {
 		pCsFleet = &csFleet
 	}
 	return pCsFleet
-}
-func (c *ProtoConverter) ConvertFleetIntel(source *v1.FleetIntel) cs.FleetIntel {
-	var csFleetIntel cs.FleetIntel
-	if source != nil {
-		var csFleetIntel2 cs.FleetIntel
-		csFleetIntel2.Intel = c.craig_starsv1FleetIntelToCsIntel((*source))
-		csFleetIntel2.MapObject = c.ConvertMapObject((*source).MapObject)
-		csFleetIntel2.BaseName = (*source).BaseName
-		csFleetIntel2.Heading = c.ConvertVector((*source).Heading)
-		csFleetIntel2.OrbitingPlanetNum = Int32ToInt((*source).OrbitingPlanetNum)
-		csFleetIntel2.WarpSpeed = Int32ToInt((*source).WarpSpeed)
-		csFleetIntel2.Fuel = Int32ToInt((*source).Fuel)
-		csFleetIntel2.Mass = Int32ToInt((*source).Mass)
-		csFleetIntel2.Cargo = c.ConvertCargo((*source).Cargo)
-		csFleetIntel2.CargoDiscovered = (*source).CargoDiscovered
-		csFleetIntel2.Freighter = (*source).Freighter
-		csFleetIntel2.ScanRange = Int32ToInt((*source).ScanRange)
-		csFleetIntel2.ScanRangePen = Int32ToInt((*source).ScanRangePen)
-		csFleetIntel2.Tokens = c.ConvertShipTokens((*source).Tokens)
-		csFleetIntel2.Spec = c.ConvertFleetSpec((*source).Spec)
-		csFleetIntel = csFleetIntel2
-	}
-	return csFleetIntel
 }
 func (c *ProtoConverter) ConvertFleetOrders(source *v1.FleetOrders) *cs.FleetOrders {
 	var pCsFleetOrders *cs.FleetOrders
@@ -1585,52 +1452,42 @@ func (c *ProtoConverter) ConvertIntels(source *v1.Intels) cs.Intels {
 				csIntels2.ScoreIntels[k] = c.pCraig_starsv1ScoreIntelToCsScoreIntel((*source).ScoreIntels[k])
 			}
 		}
-		if (*source).PlanetIntels != nil {
-			csIntels2.PlanetIntels = make([]cs.PlanetIntel, len((*source).PlanetIntels))
-			for l := 0; l < len((*source).PlanetIntels); l++ {
-				csIntels2.PlanetIntels[l] = c.ConvertPlanetIntel((*source).PlanetIntels[l])
-			}
-		}
+		csIntels2.PlanetIntels = c.ConvertPlanets((*source).PlanetIntels)
 		if (*source).FleetIntels != nil {
-			csIntels2.FleetIntels = make([]cs.FleetIntel, len((*source).FleetIntels))
-			for m := 0; m < len((*source).FleetIntels); m++ {
-				csIntels2.FleetIntels[m] = c.ConvertFleetIntel((*source).FleetIntels[m])
+			csIntels2.FleetIntels = make([]*cs.Fleet, len((*source).FleetIntels))
+			for l := 0; l < len((*source).FleetIntels); l++ {
+				csIntels2.FleetIntels[l] = c.ConvertFleet((*source).FleetIntels[l])
 			}
 		}
-		if (*source).ShipDesignIntels != nil {
-			csIntels2.ShipDesignIntels = make([]cs.ShipDesignIntel, len((*source).ShipDesignIntels))
-			for n := 0; n < len((*source).ShipDesignIntels); n++ {
-				csIntels2.ShipDesignIntels[n] = c.ConvertShipDesignIntel((*source).ShipDesignIntels[n])
-			}
-		}
+		csIntels2.ShipDesignIntels = c.ConvertShipDesigns((*source).ShipDesignIntels)
 		if (*source).MineralPacketIntels != nil {
-			csIntels2.MineralPacketIntels = make([]cs.MineralPacketIntel, len((*source).MineralPacketIntels))
-			for o := 0; o < len((*source).MineralPacketIntels); o++ {
-				csIntels2.MineralPacketIntels[o] = c.ConvertMineralPacketIntel((*source).MineralPacketIntels[o])
+			csIntels2.MineralPacketIntels = make([]*cs.MineralPacket, len((*source).MineralPacketIntels))
+			for m := 0; m < len((*source).MineralPacketIntels); m++ {
+				csIntels2.MineralPacketIntels[m] = c.ConvertMineralPacket((*source).MineralPacketIntels[m])
 			}
 		}
 		if (*source).MinefieldIntels != nil {
-			csIntels2.MinefieldIntels = make([]cs.MinefieldIntel, len((*source).MinefieldIntels))
-			for p := 0; p < len((*source).MinefieldIntels); p++ {
-				csIntels2.MinefieldIntels[p] = c.ConvertMinefieldIntel((*source).MinefieldIntels[p])
+			csIntels2.MinefieldIntels = make([]*cs.Minefield, len((*source).MinefieldIntels))
+			for n := 0; n < len((*source).MinefieldIntels); n++ {
+				csIntels2.MinefieldIntels[n] = c.ConvertMinefield((*source).MinefieldIntels[n])
 			}
 		}
 		if (*source).WormholeIntels != nil {
-			csIntels2.WormholeIntels = make([]cs.WormholeIntel, len((*source).WormholeIntels))
-			for q := 0; q < len((*source).WormholeIntels); q++ {
-				csIntels2.WormholeIntels[q] = c.ConvertWormholeIntel((*source).WormholeIntels[q])
+			csIntels2.WormholeIntels = make([]*cs.Wormhole, len((*source).WormholeIntels))
+			for o := 0; o < len((*source).WormholeIntels); o++ {
+				csIntels2.WormholeIntels[o] = c.ConvertWormhole((*source).WormholeIntels[o])
 			}
 		}
 		if (*source).MysteryTraderIntels != nil {
-			csIntels2.MysteryTraderIntels = make([]cs.MysteryTraderIntel, len((*source).MysteryTraderIntels))
-			for r := 0; r < len((*source).MysteryTraderIntels); r++ {
-				csIntels2.MysteryTraderIntels[r] = c.ConvertMysteryTraderIntel((*source).MysteryTraderIntels[r])
+			csIntels2.MysteryTraderIntels = make([]*cs.MysteryTrader, len((*source).MysteryTraderIntels))
+			for p := 0; p < len((*source).MysteryTraderIntels); p++ {
+				csIntels2.MysteryTraderIntels[p] = c.pCraig_starsv1MysteryTraderToPCsMysteryTrader((*source).MysteryTraderIntels[p])
 			}
 		}
 		if (*source).SalvageIntels != nil {
-			csIntels2.SalvageIntels = make([]cs.SalvageIntel, len((*source).SalvageIntels))
-			for s := 0; s < len((*source).SalvageIntels); s++ {
-				csIntels2.SalvageIntels[s] = c.ConvertSalvageIntel((*source).SalvageIntels[s])
+			csIntels2.SalvageIntels = make([]*cs.Salvage, len((*source).SalvageIntels))
+			for q := 0; q < len((*source).SalvageIntels); q++ {
+				csIntels2.SalvageIntels[q] = c.pCraig_starsv1SalvageToPCsSalvage((*source).SalvageIntels[q])
 			}
 		}
 		csIntels = csIntels2
@@ -1687,6 +1544,7 @@ func (c *ProtoConverter) ConvertMapObject(source *v1.MapObject) cs.MapObject {
 		csMapObject2.PlayerNum = Int32ToInt((*source).PlayerNum)
 		csMapObject2.Name = (*source).Name
 		csMapObject2.Tags = c.mapStringStringToCsTags((*source).Tags)
+		csMapObject2.ReportAge = Int32ToInt((*source).ReportAge)
 		csMapObject = csMapObject2
 	}
 	return csMapObject
@@ -1703,18 +1561,6 @@ func (c *ProtoConverter) ConvertMinefield(source *v1.Minefield) *cs.Minefield {
 		pCsMinefield = &csMinefield
 	}
 	return pCsMinefield
-}
-func (c *ProtoConverter) ConvertMinefieldIntel(source *v1.MinefieldIntel) cs.MinefieldIntel {
-	var csMinefieldIntel cs.MinefieldIntel
-	if source != nil {
-		var csMinefieldIntel2 cs.MinefieldIntel
-		csMinefieldIntel2.Intel = c.craig_starsv1MinefieldIntelToCsIntel((*source))
-		csMinefieldIntel2.MapObject = c.ConvertMapObject((*source).MapObject)
-		csMinefieldIntel2.NumMines = Int32ToInt((*source).NumMines)
-		csMinefieldIntel2.MinefieldType = MinefieldTypeToCSMinefieldType((*source).MinefieldType)
-		csMinefieldIntel = csMinefieldIntel2
-	}
-	return csMinefieldIntel
 }
 func (c *ProtoConverter) ConvertMinefieldOrders(source *v1.MinefieldOrders) *cs.MinefieldOrders {
 	var pCsMinefieldOrders *cs.MinefieldOrders
@@ -1758,35 +1604,6 @@ func (c *ProtoConverter) ConvertMineralPacket(source *v1.MineralPacket) *cs.Mine
 		pCsMineralPacket = &csMineralPacket
 	}
 	return pCsMineralPacket
-}
-func (c *ProtoConverter) ConvertMineralPacketIntel(source *v1.MineralPacketIntel) cs.MineralPacketIntel {
-	var csMineralPacketIntel cs.MineralPacketIntel
-	if source != nil {
-		var csMineralPacketIntel2 cs.MineralPacketIntel
-		csMineralPacketIntel2.Intel = c.craig_starsv1MineralPacketIntelToCsIntel((*source))
-		csMineralPacketIntel2.MapObject = c.ConvertMapObject((*source).MapObject)
-		csMineralPacketIntel2.WarpSpeed = Int32ToInt((*source).WarpSpeed)
-		csMineralPacketIntel2.Heading = c.ConvertVector((*source).Heading)
-		csMineralPacketIntel2.Cargo = c.ConvertCargo((*source).Cargo)
-		csMineralPacketIntel2.TargetPlanetNum = Int32ToInt((*source).TargetPlanetNum)
-		csMineralPacketIntel2.ScanRange = Int32ToInt((*source).ScanRange)
-		csMineralPacketIntel2.ScanRangePen = Int32ToInt((*source).ScanRangePen)
-		csMineralPacketIntel = csMineralPacketIntel2
-	}
-	return csMineralPacketIntel
-}
-func (c *ProtoConverter) ConvertMysteryTraderIntel(source *v1.MysteryTraderIntel) cs.MysteryTraderIntel {
-	var csMysteryTraderIntel cs.MysteryTraderIntel
-	if source != nil {
-		var csMysteryTraderIntel2 cs.MysteryTraderIntel
-		csMysteryTraderIntel2.Intel = c.craig_starsv1MysteryTraderIntelToCsIntel((*source))
-		csMysteryTraderIntel2.MapObject = c.ConvertMapObject((*source).MapObject)
-		csMysteryTraderIntel2.WarpSpeed = Int32ToInt((*source).WarpSpeed)
-		csMysteryTraderIntel2.Heading = c.ConvertVector((*source).Heading)
-		csMysteryTraderIntel2.RequestedBoon = Int32ToInt((*source).RequestedBoon)
-		csMysteryTraderIntel = csMysteryTraderIntel2
-	}
-	return csMysteryTraderIntel
 }
 func (c *ProtoConverter) ConvertPRTSpec(source *v1.PRTSpec) cs.PRTSpec {
 	var csPRTSpec cs.PRTSpec
@@ -1858,48 +1675,25 @@ func (c *ProtoConverter) ConvertPRTSpec(source *v1.PRTSpec) cs.PRTSpec {
 	}
 	return csPRTSpec
 }
-func (c *ProtoConverter) ConvertPlanet(source *v1.Planet) *cs.Planet {
-	var pCsPlanet *cs.Planet
-	if source != nil {
-		var csPlanet cs.Planet
-		csPlanet.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
-		csPlanet.MapObject = c.ConvertMapObject((*source).MapObject)
-		csPlanet.PlanetOrders = c.pCraig_starsv1PlanetOrdersToCsPlanetOrders((*source).PlanetOrders)
-		csPlanet.Hab = c.ConvertHab((*source).Hab)
-		csPlanet.BaseHab = c.ConvertHab((*source).BaseHab)
-		csPlanet.TerraformedAmount = c.ConvertHab((*source).TerraformedAmount)
-		csPlanet.MineralConcentration = c.pCraig_starsv1MineralToCsMineral((*source).MineralConcentration)
-		csPlanet.MineYears = c.pCraig_starsv1MineralToCsMineral((*source).MineYears)
-		csPlanet.Cargo = c.ConvertCargo((*source).Cargo)
-		csPlanet.PartialPopulation = Int32ToInt((*source).PartialPopulation)
-		csPlanet.Mines = Int32ToInt((*source).Mines)
-		csPlanet.Factories = Int32ToInt((*source).Factories)
-		csPlanet.Defenses = Int32ToInt((*source).Defenses)
-		csPlanet.Homeworld = (*source).Homeworld
-		csPlanet.Scanner = (*source).Scanner
-		csPlanet.Spec = c.ConvertPlanetSpec((*source).Spec)
-		pCsPlanet = &csPlanet
-	}
-	return pCsPlanet
-}
-func (c *ProtoConverter) ConvertPlanetIntel(source *v1.PlanetIntel) cs.PlanetIntel {
-	var csPlanetIntel cs.PlanetIntel
-	if source != nil {
-		var csPlanetIntel2 cs.PlanetIntel
-		csPlanetIntel2.Intel = c.craig_starsv1PlanetIntelToCsIntel((*source))
-		csPlanetIntel2.MapObject = c.ConvertMapObject((*source).MapObject)
-		csPlanetIntel2.Hab = c.ConvertHab((*source).Hab)
-		csPlanetIntel2.BaseHab = c.ConvertHab((*source).BaseHab)
-		csPlanetIntel2.MineralConcentration = c.pCraig_starsv1MineralToCsMineral((*source).MineralConcentration)
-		csPlanetIntel2.Cargo = c.ConvertCargo((*source).Cargo)
-		csPlanetIntel2.CargoDiscovered = (*source).CargoDiscovered
-		csPlanetIntel2.PlanetHabitability = Int32ToInt((*source).PlanetHabitability)
-		csPlanetIntel2.PlanetHabitabilityTerraformed = Int32ToInt((*source).PlanetHabitabilityTerraformed)
-		csPlanetIntel2.Homeworld = (*source).Homeworld
-		csPlanetIntel2.Spec = c.ConvertPlanetSpec((*source).Spec)
-		csPlanetIntel = csPlanetIntel2
-	}
-	return csPlanetIntel
+func (c *ProtoConverter) ConvertPlanet(source v1.Planet) cs.Planet {
+	var csPlanet cs.Planet
+	csPlanet.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject(source.GameDbObject)
+	csPlanet.MapObject = c.ConvertMapObject(source.MapObject)
+	csPlanet.PlanetOrders = c.pCraig_starsv1PlanetOrdersToCsPlanetOrders(source.PlanetOrders)
+	csPlanet.Hab = c.ConvertHab(source.Hab)
+	csPlanet.BaseHab = c.ConvertHab(source.BaseHab)
+	csPlanet.TerraformedAmount = c.ConvertHab(source.TerraformedAmount)
+	csPlanet.MineralConcentration = c.pCraig_starsv1MineralToCsMineral(source.MineralConcentration)
+	csPlanet.MineYears = c.pCraig_starsv1MineralToCsMineral(source.MineYears)
+	csPlanet.Cargo = c.ConvertCargo(source.Cargo)
+	csPlanet.PartialPopulation = Int32ToInt(source.PartialPopulation)
+	csPlanet.Mines = Int32ToInt(source.Mines)
+	csPlanet.Factories = Int32ToInt(source.Factories)
+	csPlanet.Defenses = Int32ToInt(source.Defenses)
+	csPlanet.Homeworld = source.Homeworld
+	csPlanet.Scanner = source.Scanner
+	csPlanet.Spec = c.ConvertPlanetSpec(source.Spec)
+	return csPlanet
 }
 func (c *ProtoConverter) ConvertPlanetOrders(source *v1.PlanetOrders) *cs.PlanetOrders {
 	var pCsPlanetOrders *cs.PlanetOrders
@@ -1920,6 +1714,14 @@ func (c *ProtoConverter) ConvertPlanetOrders(source *v1.PlanetOrders) *cs.Planet
 		pCsPlanetOrders = &csPlanetOrders
 	}
 	return pCsPlanetOrders
+}
+func (c *ProtoConverter) ConvertPlanetP(source *v1.Planet) *cs.Planet {
+	var pCsPlanet *cs.Planet
+	if source != nil {
+		csPlanet := c.ConvertPlanet((*source))
+		pCsPlanet = &csPlanet
+	}
+	return pCsPlanet
 }
 func (c *ProtoConverter) ConvertPlanetSpec(source *v1.PlanetSpec) cs.PlanetSpec {
 	var csPlanetSpec cs.PlanetSpec
@@ -1953,6 +1755,16 @@ func (c *ProtoConverter) ConvertPlanetSpec(source *v1.PlanetSpec) cs.PlanetSpec 
 		csPlanetSpec = csPlanetSpec2
 	}
 	return csPlanetSpec
+}
+func (c *ProtoConverter) ConvertPlanets(source []*v1.Planet) []*cs.Planet {
+	var pCsPlanetList []*cs.Planet
+	if source != nil {
+		pCsPlanetList = make([]*cs.Planet, len(source))
+		for i := 0; i < len(source); i++ {
+			pCsPlanetList[i] = c.ConvertPlanetP(source[i])
+		}
+	}
+	return pCsPlanetList
 }
 func (c *ProtoConverter) ConvertPlayer(source *v1.Player) *cs.Player {
 	var pCsPlayer *cs.Player
@@ -1993,7 +1805,6 @@ func (c *ProtoConverter) ConvertPlayer(source *v1.Player) *cs.Player {
 		csPlayer.Victor = (*source).Victor
 		csPlayer.Archived = (*source).Archived
 		csPlayer.Stats = c.pCraig_starsv1PlayerStatsToPCsPlayerStats((*source).Stats)
-		csPlayer.Spec = c.ConvertPlayerSpec((*source).Spec)
 		pCsPlayer = &csPlayer
 	}
 	return pCsPlayer
@@ -2030,17 +1841,17 @@ func (c *ProtoConverter) ConvertPlayerRelations(source []*v1.PlayerRelationship)
 	}
 	return csPlayerRelationshipList
 }
-func (c *ProtoConverter) ConvertPlayerSpec(source *v1.PlayerSpec) cs.PlayerSpec {
-	var csPlayerSpec cs.PlayerSpec
+func (c *ProtoConverter) ConvertPlayerResearchSpec(source *v1.PlayerResearchSpec) cs.PlayerResearchSpec {
+	var csPlayerResearchSpec cs.PlayerResearchSpec
 	if source != nil {
-		var csPlayerSpec2 cs.PlayerSpec
-		csPlayerSpec2.PlayerResearchSpec = c.craig_starsv1PlayerSpecToCsPlayerResearchSpec((*source))
-		csPlayerSpec2.PlanetaryScanner = c.pCraig_starsv1TechPlanetaryScannerToCsTechPlanetaryScanner((*source).PlanetaryScanner)
-		csPlayerSpec2.Defense = c.pCraig_starsv1TechDefenseToCsTechDefense((*source).Defense)
-		csPlayerSpec2.Terraform = IntMapToTerraformHabTypeMap(c, (*source).Terraform)
-		csPlayerSpec = csPlayerSpec2
+		var csPlayerResearchSpec2 cs.PlayerResearchSpec
+		csPlayerResearchSpec2.ResourcesPerYear = Int32ToInt((*source).ResourcesPerYear)
+		csPlayerResearchSpec2.ResourcesPerYearResearch = Int32ToInt((*source).ResourcesPerYearResearch)
+		csPlayerResearchSpec2.ResourcesPerYearResearchEstimated = Int32ToInt((*source).ResourcesPerYearResearchEstimated)
+		csPlayerResearchSpec2.CurrentResearchCost = Int32ToInt((*source).CurrentResearchCost)
+		csPlayerResearchSpec = csPlayerResearchSpec2
 	}
-	return csPlayerSpec
+	return csPlayerResearchSpec
 }
 func (c *ProtoConverter) ConvertPlayerStatus(source *v1.PlayerStatus) cs.GamePlayer {
 	var csGamePlayer cs.GamePlayer
@@ -2210,64 +2021,35 @@ func (c *ProtoConverter) ConvertRules(source *v1.Rules) *cs.Rules {
 	}
 	return pCsRules
 }
-func (c *ProtoConverter) ConvertSalvageIntel(source *v1.SalvageIntel) cs.SalvageIntel {
-	var csSalvageIntel cs.SalvageIntel
-	if source != nil {
-		var csSalvageIntel2 cs.SalvageIntel
-		csSalvageIntel2.Intel = c.craig_starsv1SalvageIntelToCsIntel((*source))
-		csSalvageIntel2.MapObject = c.ConvertMapObject((*source).MapObject)
-		csSalvageIntel2.Cargo = c.ConvertCargo((*source).Cargo)
-		csSalvageIntel = csSalvageIntel2
+func (c *ProtoConverter) ConvertShipDesign(source v1.ShipDesign) cs.ShipDesign {
+	var csShipDesign cs.ShipDesign
+	csShipDesign.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject(source.GameDbObject)
+	csShipDesign.Num = Int32ToInt(source.Num)
+	csShipDesign.PlayerNum = Int32ToInt(source.PlayerNum)
+	csShipDesign.OriginalPlayerNum = Int32ToInt(source.OriginalPlayerNum)
+	csShipDesign.Name = source.Name
+	csShipDesign.Version = Int32ToInt(source.Version)
+	csShipDesign.Hull = source.Hull
+	csShipDesign.HullSetNumber = Int32ToInt(source.HullSetNumber)
+	csShipDesign.CannotDelete = source.CannotDelete
+	csShipDesign.MysteryTrader = source.MysteryTrader
+	if source.Slots != nil {
+		csShipDesign.Slots = make([]cs.ShipDesignSlot, len(source.Slots))
+		for i := 0; i < len(source.Slots); i++ {
+			csShipDesign.Slots[i] = c.pCraig_starsv1ShipDesignSlotToCsShipDesignSlot(source.Slots[i])
+		}
 	}
-	return csSalvageIntel
+	csShipDesign.Purpose = ShipDesignPurposeToCSShipDesignPurpose(source.Purpose)
+	csShipDesign.Spec = c.pCraig_starsv1ShipDesignSpecToCsShipDesignSpec(source.Spec)
+	return csShipDesign
 }
-func (c *ProtoConverter) ConvertShipDesign(source *v1.ShipDesign) *cs.ShipDesign {
+func (c *ProtoConverter) ConvertShipDesignP(source *v1.ShipDesign) *cs.ShipDesign {
 	var pCsShipDesign *cs.ShipDesign
 	if source != nil {
-		var csShipDesign cs.ShipDesign
-		csShipDesign.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
-		csShipDesign.Num = Int32ToInt((*source).Num)
-		csShipDesign.PlayerNum = Int32ToInt((*source).PlayerNum)
-		csShipDesign.OriginalPlayerNum = Int32ToInt((*source).OriginalPlayerNum)
-		csShipDesign.Name = (*source).Name
-		csShipDesign.Version = Int32ToInt((*source).Version)
-		csShipDesign.Hull = (*source).Hull
-		csShipDesign.HullSetNumber = Int32ToInt((*source).HullSetNumber)
-		csShipDesign.CannotDelete = (*source).CannotDelete
-		csShipDesign.MysteryTrader = (*source).MysteryTrader
-		if (*source).Slots != nil {
-			csShipDesign.Slots = make([]cs.ShipDesignSlot, len((*source).Slots))
-			for i := 0; i < len((*source).Slots); i++ {
-				csShipDesign.Slots[i] = c.pCraig_starsv1ShipDesignSlotToCsShipDesignSlot((*source).Slots[i])
-			}
-		}
-		csShipDesign.Purpose = ShipDesignPurposeToCSShipDesignPurpose((*source).Purpose)
-		csShipDesign.Spec = c.pCraig_starsv1ShipDesignSpecToCsShipDesignSpec((*source).Spec)
+		csShipDesign := c.ConvertShipDesign((*source))
 		pCsShipDesign = &csShipDesign
 	}
 	return pCsShipDesign
-}
-func (c *ProtoConverter) ConvertShipDesignIntel(source *v1.ShipDesignIntel) cs.ShipDesignIntel {
-	var csShipDesignIntel cs.ShipDesignIntel
-	if source != nil {
-		var csShipDesignIntel2 cs.ShipDesignIntel
-		csShipDesignIntel2.Intel = c.craig_starsv1ShipDesignIntelToCsIntel((*source))
-		csShipDesignIntel2.Name = (*source).Name
-		csShipDesignIntel2.Num = Int32ToInt((*source).Num)
-		csShipDesignIntel2.PlayerNum = Int32ToInt((*source).PlayerNum)
-		csShipDesignIntel2.Hull = (*source).Hull
-		csShipDesignIntel2.HullSetNumber = Int32ToInt((*source).HullSetNumber)
-		csShipDesignIntel2.Version = Int32ToInt((*source).Version)
-		if (*source).Slots != nil {
-			csShipDesignIntel2.Slots = make([]cs.ShipDesignSlot, len((*source).Slots))
-			for i := 0; i < len((*source).Slots); i++ {
-				csShipDesignIntel2.Slots[i] = c.pCraig_starsv1ShipDesignSlotToCsShipDesignSlot((*source).Slots[i])
-			}
-		}
-		csShipDesignIntel2.Spec = c.pCraig_starsv1ShipDesignSpecToCsShipDesignSpec((*source).Spec)
-		csShipDesignIntel = csShipDesignIntel2
-	}
-	return csShipDesignIntel
 }
 func (c *ProtoConverter) ConvertShipDesignSpec(source *v1.ShipDesignSpec) *cs.ShipDesignSpec {
 	var pCsShipDesignSpec *cs.ShipDesignSpec
@@ -2366,7 +2148,7 @@ func (c *ProtoConverter) ConvertShipDesigns(source []*v1.ShipDesign) []*cs.ShipD
 	if source != nil {
 		pCsShipDesignList = make([]*cs.ShipDesign, len(source))
 		for i := 0; i < len(source); i++ {
-			pCsShipDesignList[i] = c.ConvertShipDesign(source[i])
+			pCsShipDesignList[i] = c.ConvertShipDesignP(source[i])
 		}
 	}
 	return pCsShipDesignList
@@ -2658,18 +2440,6 @@ func (c *ProtoConverter) ConvertWormhole(source *v1.Wormhole) *cs.Wormhole {
 	}
 	return pCsWormhole
 }
-func (c *ProtoConverter) ConvertWormholeIntel(source *v1.WormholeIntel) cs.WormholeIntel {
-	var csWormholeIntel cs.WormholeIntel
-	if source != nil {
-		var csWormholeIntel2 cs.WormholeIntel
-		csWormholeIntel2.Intel = c.craig_starsv1WormholeIntelToCsIntel((*source))
-		csWormholeIntel2.MapObject = c.ConvertMapObject((*source).MapObject)
-		csWormholeIntel2.DestinationNum = Int32ToInt((*source).DestinationNum)
-		csWormholeIntel2.Stability = WormholeStabilityToCSWormholeStability((*source).Stability)
-		csWormholeIntel = csWormholeIntel2
-	}
-	return csWormholeIntel
-}
 func (c *ProtoConverter) ConvertWormholeStats(source *v1.WormholeStats) cs.WormholeStats {
 	var csWormholeStats cs.WormholeStats
 	if source != nil {
@@ -2681,11 +2451,6 @@ func (c *ProtoConverter) ConvertWormholeStats(source *v1.WormholeStats) cs.Wormh
 	}
 	return csWormholeStats
 }
-func (c *ProtoConverter) craig_starsv1FleetIntelToCsIntel(source v1.FleetIntel) cs.Intel {
-	var csIntel cs.Intel
-	csIntel.ReportAge = Int32ToInt(source.ReportAge)
-	return csIntel
-}
 func (c *ProtoConverter) craig_starsv1GameToCsDBObject(source v1.Game) cs.DBObject {
 	var csDBObject cs.DBObject
 	csDBObject.ID = source.Id
@@ -2693,48 +2458,14 @@ func (c *ProtoConverter) craig_starsv1GameToCsDBObject(source v1.Game) cs.DBObje
 	csDBObject.UpdatedAt = TimestampToTime(source.UpdatedAt)
 	return csDBObject
 }
-func (c *ProtoConverter) craig_starsv1MinefieldIntelToCsIntel(source v1.MinefieldIntel) cs.Intel {
-	var csIntel cs.Intel
-	csIntel.ReportAge = Int32ToInt(source.ReportAge)
-	return csIntel
-}
-func (c *ProtoConverter) craig_starsv1MineralPacketIntelToCsIntel(source v1.MineralPacketIntel) cs.Intel {
-	var csIntel cs.Intel
-	csIntel.ReportAge = Int32ToInt(source.ReportAge)
-	return csIntel
-}
-func (c *ProtoConverter) craig_starsv1MysteryTraderIntelToCsIntel(source v1.MysteryTraderIntel) cs.Intel {
-	var csIntel cs.Intel
-	csIntel.ReportAge = Int32ToInt(source.ReportAge)
-	return csIntel
-}
-func (c *ProtoConverter) craig_starsv1PlanetIntelToCsIntel(source v1.PlanetIntel) cs.Intel {
-	var csIntel cs.Intel
-	csIntel.ReportAge = Int32ToInt(source.ReportAge)
-	return csIntel
-}
 func (c *ProtoConverter) craig_starsv1PlayerMessageSpecMysteryTraderToCsMysteryTraderReward(source v1.PlayerMessageSpecMysteryTrader) cs.MysteryTraderReward {
 	var csMysteryTraderReward cs.MysteryTraderReward
 	csMysteryTraderReward.Type = MysteryTraderRewardTypeToCSMysteryTraderRewardType(source.Type)
 	csMysteryTraderReward.TechLevels = c.ConvertTechLevel(source.TechLevels)
 	csMysteryTraderReward.Tech = source.Tech
-	csMysteryTraderReward.Ship = c.ConvertShipDesign(source.Ship)
+	csMysteryTraderReward.Ship = c.ConvertShipDesignP(source.Ship)
 	csMysteryTraderReward.ShipCount = Int32ToInt(source.ShipCount)
 	return csMysteryTraderReward
-}
-func (c *ProtoConverter) craig_starsv1PlayerSpecToCsPlayerResearchSpec(source v1.PlayerSpec) cs.PlayerResearchSpec {
-	var csPlayerResearchSpec cs.PlayerResearchSpec
-	csPlayerResearchSpec.ResourcesPerYear = Int32ToInt(source.ResourcesPerYear)
-	csPlayerResearchSpec.ResourcesPerYearResearch = Int32ToInt(source.ResourcesPerYearResearch)
-	csPlayerResearchSpec.ResourcesPerYearResearchEstimated = Int32ToInt(source.ResourcesPerYearResearchEstimated)
-	csPlayerResearchSpec.CurrentResearchCost = Int32ToInt(source.CurrentResearchCost)
-	if source.TechsJustGained != nil {
-		csPlayerResearchSpec.TechsJustGained = make([]*cs.Tech, len(source.TechsJustGained))
-		for i := 0; i < len(source.TechsJustGained); i++ {
-			csPlayerResearchSpec.TechsJustGained[i] = c.pCraig_starsv1TechToPCsTech(source.TechsJustGained[i])
-		}
-	}
-	return csPlayerResearchSpec
 }
 func (c *ProtoConverter) craig_starsv1RaceToCsDBObject(source v1.Race) cs.DBObject {
 	var csDBObject cs.DBObject
@@ -2742,16 +2473,6 @@ func (c *ProtoConverter) craig_starsv1RaceToCsDBObject(source v1.Race) cs.DBObje
 	csDBObject.CreatedAt = TimestampToTime(source.CreatedAt)
 	csDBObject.UpdatedAt = TimestampToTime(source.UpdatedAt)
 	return csDBObject
-}
-func (c *ProtoConverter) craig_starsv1SalvageIntelToCsIntel(source v1.SalvageIntel) cs.Intel {
-	var csIntel cs.Intel
-	csIntel.ReportAge = Int32ToInt(source.ReportAge)
-	return csIntel
-}
-func (c *ProtoConverter) craig_starsv1ShipDesignIntelToCsIntel(source v1.ShipDesignIntel) cs.Intel {
-	var csIntel cs.Intel
-	csIntel.ReportAge = Int32ToInt(source.ReportAge)
-	return csIntel
 }
 func (c *ProtoConverter) craig_starsv1TechHullComponentToCsEngine(source v1.TechHullComponent) cs.Engine {
 	var csEngine cs.Engine
@@ -2777,11 +2498,6 @@ func (c *ProtoConverter) craig_starsv1UserToCsUserSettings(source v1.User) cs.Us
 	var csUserSettings cs.UserSettings
 	csUserSettings.DiscordWebhookURL = source.DiscordWebhookUrl
 	return csUserSettings
-}
-func (c *ProtoConverter) craig_starsv1WormholeIntelToCsIntel(source v1.WormholeIntel) cs.Intel {
-	var csIntel cs.Intel
-	csIntel.ReportAge = Int32ToInt(source.ReportAge)
-	return csIntel
 }
 func (c *ProtoConverter) csBattleRecordDestroyedTokenToPCraig_starsv1BattleRecordDestroyedToken(source cs.BattleRecordDestroyedToken) *v1.BattleRecordDestroyedToken {
 	var craig_starsv1BattleRecordDestroyedToken v1.BattleRecordDestroyedToken
@@ -2927,6 +2643,7 @@ func (c *ProtoConverter) csGameDBObjectToPCraig_starsv1GameDBObject(source cs.Ga
 	var craig_starsv1GameDBObject v1.GameDBObject
 	craig_starsv1GameDBObject.Id = source.ID
 	craig_starsv1GameDBObject.GameId = source.GameID
+	craig_starsv1GameDBObject.IntelPlayerNum = IntToInt32(source.IntelPlayerNum)
 	craig_starsv1GameDBObject.CreatedAt = TimeToTimestamp(source.CreatedAt)
 	craig_starsv1GameDBObject.UpdatedAt = TimeToTimestamp(source.UpdatedAt)
 	return &craig_starsv1GameDBObject
@@ -2983,6 +2700,7 @@ func (c *ProtoConverter) csMapObjectToPCraig_starsv1MapObject(source cs.MapObjec
 	craig_starsv1MapObject.PlayerNum = IntToInt32(source.PlayerNum)
 	craig_starsv1MapObject.Name = source.Name
 	craig_starsv1MapObject.Tags = c.csTagsToMapStringString(source.Tags)
+	craig_starsv1MapObject.ReportAge = IntToInt32(source.ReportAge)
 	return &craig_starsv1MapObject
 }
 func (c *ProtoConverter) csMinefieldOrdersToPCraig_starsv1MinefieldOrders(source cs.MinefieldOrders) *v1.MinefieldOrders {
@@ -3030,6 +2748,11 @@ func (c *ProtoConverter) csMysteryTraderRulesToPCraig_starsv1MysteryTraderRules(
 		}
 	}
 	return &craig_starsv1MysteryTraderRules
+}
+func (c *ProtoConverter) csMysteryTraderSpecToPCraig_starsv1MysteryTraderSpec(source cs.MysteryTraderSpec) *v1.MysteryTraderSpec {
+	var craig_starsv1MysteryTraderSpec v1.MysteryTraderSpec
+	_ = source
+	return &craig_starsv1MysteryTraderSpec
 }
 func (c *ProtoConverter) csMysteryTraderTechBoonMineralsRewardToPCraig_starsv1MysteryTraderTechBoonMineralsReward(source cs.MysteryTraderTechBoonMineralsReward) *v1.MysteryTraderTechBoonMineralsReward {
 	var craig_starsv1MysteryTraderTechBoonMineralsReward v1.MysteryTraderTechBoonMineralsReward
@@ -3802,6 +3525,7 @@ func (c *ProtoConverter) pCraig_starsv1GameDBObjectToCsGameDBObject(source *v1.G
 		var csGameDBObject2 cs.GameDBObject
 		csGameDBObject2.ID = (*source).Id
 		csGameDBObject2.GameID = (*source).GameId
+		csGameDBObject2.IntelPlayerNum = Int32ToInt((*source).IntelPlayerNum)
 		csGameDBObject2.CreatedAt = TimestampToTime((*source).CreatedAt)
 		csGameDBObject2.UpdatedAt = TimestampToTime((*source).UpdatedAt)
 		csGameDBObject = csGameDBObject2
@@ -3915,6 +3639,15 @@ func (c *ProtoConverter) pCraig_starsv1MysteryTraderRulesToCsMysteryTraderRules(
 	}
 	return csMysteryTraderRules
 }
+func (c *ProtoConverter) pCraig_starsv1MysteryTraderSpecToCsMysteryTraderSpec(source *v1.MysteryTraderSpec) cs.MysteryTraderSpec {
+	var csMysteryTraderSpec cs.MysteryTraderSpec
+	if source != nil {
+		var csMysteryTraderSpec2 cs.MysteryTraderSpec
+		_ = (*source)
+		csMysteryTraderSpec = csMysteryTraderSpec2
+	}
+	return csMysteryTraderSpec
+}
 func (c *ProtoConverter) pCraig_starsv1MysteryTraderTechBoonMineralsRewardToCsMysteryTraderTechBoonMineralsReward(source *v1.MysteryTraderTechBoonMineralsReward) cs.MysteryTraderTechBoonMineralsReward {
 	var csMysteryTraderTechBoonMineralsReward cs.MysteryTraderTechBoonMineralsReward
 	if source != nil {
@@ -3939,6 +3672,28 @@ func (c *ProtoConverter) pCraig_starsv1MysteryTraderTechBoonRulesToCsMysteryTrad
 		csMysteryTraderTechBoonRules = csMysteryTraderTechBoonRules2
 	}
 	return csMysteryTraderTechBoonRules
+}
+func (c *ProtoConverter) pCraig_starsv1MysteryTraderToPCsMysteryTrader(source *v1.MysteryTrader) *cs.MysteryTrader {
+	var pCsMysteryTrader *cs.MysteryTrader
+	if source != nil {
+		var csMysteryTrader cs.MysteryTrader
+		csMysteryTrader.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
+		csMysteryTrader.MapObject = c.ConvertMapObject((*source).MapObject)
+		csMysteryTrader.WarpSpeed = Int32ToInt((*source).WarpSpeed)
+		csMysteryTrader.Destination = c.ConvertVector((*source).Destination)
+		csMysteryTrader.RequestedBoon = Int32ToInt((*source).RequestedBoon)
+		csMysteryTrader.RewardType = MysteryTraderRewardTypeToCSMysteryTraderRewardType((*source).RewardType)
+		csMysteryTrader.Heading = c.ConvertVector((*source).Heading)
+		if (*source).PlayersRewarded != nil {
+			csMysteryTrader.PlayersRewarded = make(map[int]bool, len((*source).PlayersRewarded))
+			for key, value := range (*source).PlayersRewarded {
+				csMysteryTrader.PlayersRewarded[Int32ToInt(key)] = value
+			}
+		}
+		csMysteryTrader.Spec = c.pCraig_starsv1MysteryTraderSpecToCsMysteryTraderSpec((*source).Spec)
+		pCsMysteryTrader = &csMysteryTrader
+	}
+	return pCsMysteryTrader
 }
 func (c *ProtoConverter) pCraig_starsv1NewGamePlayerToCsNewGamePlayer(source *v1.NewGamePlayer) cs.NewGamePlayer {
 	var csNewGamePlayer cs.NewGamePlayer
@@ -4217,6 +3972,17 @@ func (c *ProtoConverter) pCraig_starsv1ResearchCostToCsResearchCost(source *v1.R
 	}
 	return csResearchCost
 }
+func (c *ProtoConverter) pCraig_starsv1SalvageToPCsSalvage(source *v1.Salvage) *cs.Salvage {
+	var pCsSalvage *cs.Salvage
+	if source != nil {
+		var csSalvage cs.Salvage
+		csSalvage.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
+		csSalvage.MapObject = c.ConvertMapObject((*source).MapObject)
+		csSalvage.Cargo = c.ConvertCargo((*source).Cargo)
+		pCsSalvage = &csSalvage
+	}
+	return pCsSalvage
+}
 func (c *ProtoConverter) pCraig_starsv1ScoreIntelToCsScoreIntel(source *v1.ScoreIntel) cs.ScoreIntel {
 	var csScoreIntel cs.ScoreIntel
 	if source != nil {
@@ -4396,16 +4162,6 @@ func (c *ProtoConverter) pCraig_starsv1StealsResearchToCsStealsResearch(source *
 	}
 	return csStealsResearch
 }
-func (c *ProtoConverter) pCraig_starsv1TechDefenseToCsTechDefense(source *v1.TechDefense) cs.TechDefense {
-	var csTechDefense cs.TechDefense
-	if source != nil {
-		var csTechDefense2 cs.TechDefense
-		csTechDefense2.Tech = c.ConvertTech((*source).Tech)
-		csTechDefense2.DefenseCoverage = (*source).DefenseCoverage
-		csTechDefense = csTechDefense2
-	}
-	return csTechDefense
-}
 func (c *ProtoConverter) pCraig_starsv1TechHullSlotToCsTechHullSlot(source *v1.TechHullSlot) cs.TechHullSlot {
 	var csTechHullSlot cs.TechHullSlot
 	if source != nil {
@@ -4417,17 +4173,6 @@ func (c *ProtoConverter) pCraig_starsv1TechHullSlotToCsTechHullSlot(source *v1.T
 		csTechHullSlot = csTechHullSlot2
 	}
 	return csTechHullSlot
-}
-func (c *ProtoConverter) pCraig_starsv1TechPlanetaryScannerToCsTechPlanetaryScanner(source *v1.TechPlanetaryScanner) cs.TechPlanetaryScanner {
-	var csTechPlanetaryScanner cs.TechPlanetaryScanner
-	if source != nil {
-		var csTechPlanetaryScanner2 cs.TechPlanetaryScanner
-		csTechPlanetaryScanner2.Tech = c.ConvertTech((*source).Tech)
-		csTechPlanetaryScanner2.ScanRange = Int32ToInt((*source).ScanRange)
-		csTechPlanetaryScanner2.ScanRangePen = Int32ToInt((*source).ScanRangePen)
-		csTechPlanetaryScanner = csTechPlanetaryScanner2
-	}
-	return csTechPlanetaryScanner
 }
 func (c *ProtoConverter) pCraig_starsv1TechRequirementsToCsTechRequirements(source *v1.TechRequirements) cs.TechRequirements {
 	var csTechRequirements cs.TechRequirements
@@ -4454,21 +4199,6 @@ func (c *ProtoConverter) pCraig_starsv1TechRequirementsToCsTechRequirements(sour
 		csTechRequirements = csTechRequirements2
 	}
 	return csTechRequirements
-}
-func (c *ProtoConverter) pCraig_starsv1TechToPCsTech(source *v1.Tech) *cs.Tech {
-	var pCsTech *cs.Tech
-	if source != nil {
-		var csTech cs.Tech
-		csTech.Name = (*source).Name
-		csTech.Cost = c.ConvertCost((*source).Cost)
-		csTech.Requirements = c.pCraig_starsv1TechRequirementsToCsTechRequirements((*source).Requirements)
-		csTech.Ranking = Int32ToInt((*source).Ranking)
-		csTech.Category = TechCategoryToCSTechCategory((*source).Category)
-		csTech.Origin = TechOriginToCSTechOrigin((*source).Origin)
-		csTech.Tags = c.mapStringBoolToCsTechTags((*source).Tags)
-		pCsTech = &csTech
-	}
-	return pCsTech
 }
 func (c *ProtoConverter) pCraig_starsv1UniverseGenerationRulesToCsUniverseGenerationRules(source *v1.UniverseGenerationRules) cs.UniverseGenerationRules {
 	var csUniverseGenerationRules cs.UniverseGenerationRules
@@ -4631,6 +4361,28 @@ func (c *ProtoConverter) pCsMineralToPCraig_starsv1Mineral(source *cs.Mineral) *
 	}
 	return pCraig_starsv1Mineral
 }
+func (c *ProtoConverter) pCsMysteryTraderToPCraig_starsv1MysteryTrader(source *cs.MysteryTrader) *v1.MysteryTrader {
+	var pCraig_starsv1MysteryTrader *v1.MysteryTrader
+	if source != nil {
+		var craig_starsv1MysteryTrader v1.MysteryTrader
+		craig_starsv1MysteryTrader.GameDbObject = c.csGameDBObjectToPCraig_starsv1GameDBObject((*source).GameDBObject)
+		craig_starsv1MysteryTrader.MapObject = c.csMapObjectToPCraig_starsv1MapObject((*source).MapObject)
+		craig_starsv1MysteryTrader.WarpSpeed = IntToInt32((*source).WarpSpeed)
+		craig_starsv1MysteryTrader.Destination = c.csVectorToPCraig_starsv1Vector((*source).Destination)
+		craig_starsv1MysteryTrader.RequestedBoon = IntToInt32((*source).RequestedBoon)
+		craig_starsv1MysteryTrader.RewardType = CSMysteryTraderRewardTypeToMysteryTraderRewardType((*source).RewardType)
+		craig_starsv1MysteryTrader.Heading = c.csVectorToPCraig_starsv1Vector((*source).Heading)
+		if (*source).PlayersRewarded != nil {
+			craig_starsv1MysteryTrader.PlayersRewarded = make(map[int32]bool, len((*source).PlayersRewarded))
+			for key, value := range (*source).PlayersRewarded {
+				craig_starsv1MysteryTrader.PlayersRewarded[IntToInt32(key)] = value
+			}
+		}
+		craig_starsv1MysteryTrader.Spec = c.csMysteryTraderSpecToPCraig_starsv1MysteryTraderSpec((*source).Spec)
+		pCraig_starsv1MysteryTrader = &craig_starsv1MysteryTrader
+	}
+	return pCraig_starsv1MysteryTrader
+}
 func (c *ProtoConverter) pCsPlayerMessageSpecCargoTransferToPCraig_starsv1PlayerMessageSpecCargoTransfer(source *cs.PlayerMessageSpecCargoTransfer) *v1.PlayerMessageSpecCargoTransfer {
 	var pCraig_starsv1PlayerMessageSpecCargoTransfer *v1.PlayerMessageSpecCargoTransfer
 	if source != nil {
@@ -4693,21 +4445,6 @@ func (c *ProtoConverter) pCsShipTokenToPCraig_starsv1ShipToken(source *cs.ShipTo
 		pCraig_starsv1ShipToken = &craig_starsv1ShipToken
 	}
 	return pCraig_starsv1ShipToken
-}
-func (c *ProtoConverter) pCsTechToPCraig_starsv1Tech(source *cs.Tech) *v1.Tech {
-	var pCraig_starsv1Tech *v1.Tech
-	if source != nil {
-		var craig_starsv1Tech v1.Tech
-		craig_starsv1Tech.Name = (*source).Name
-		craig_starsv1Tech.Cost = c.ConvertCSCost((*source).Cost)
-		craig_starsv1Tech.Requirements = c.csTechRequirementsToPCraig_starsv1TechRequirements((*source).Requirements)
-		craig_starsv1Tech.Ranking = IntToInt32((*source).Ranking)
-		craig_starsv1Tech.Category = CSTechCategoryToTechCategory((*source).Category)
-		craig_starsv1Tech.Origin = CSTechOriginToTechOrigin((*source).Origin)
-		craig_starsv1Tech.Tags = c.csTechTagsToMapStringBool((*source).Tags)
-		pCraig_starsv1Tech = &craig_starsv1Tech
-	}
-	return pCraig_starsv1Tech
 }
 func (c *ProtoConverter) pCsVectorToPCraig_starsv1Vector(source *cs.Vector) *v1.Vector {
 	var pCraig_starsv1Vector *v1.Vector

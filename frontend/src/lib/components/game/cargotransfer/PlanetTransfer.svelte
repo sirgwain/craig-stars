@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Cargo } from '$lib/types/cs-proto';
 	import { emptyCargo } from '$lib/types/Cargo';
+	import type { Cargo } from '$lib/types/cs-proto';
 
 	type Props = {
 		cargo?: Cargo;

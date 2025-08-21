@@ -4,17 +4,17 @@
 	import type { SelectWaypointProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { clamp } from '$lib/services/Math';
-	import { type AnyFleet } from '$lib/services/Universe';
+	import { None } from '$lib/types/Consts';
 	import {
 		MapObjectType,
 		VectorSchema,
 		WaypointDestSchema,
+		type Fleet,
 		type Vector,
 		type WaypointDest
 	} from '$lib/types/cs-proto';
 	import { filterFleet } from '$lib/types/Filter';
 	import { emptyMapObject, type MapObjectLike, type Position } from '$lib/types/MapObject';
-	import { None } from '$lib/types/Consts';
 	import { equal } from '$lib/types/Vector';
 	import { create } from '@bufbuild/protobuf';
 	import { scaleLinear } from 'd3-scale';
@@ -308,7 +308,7 @@
 
 		if (
 			found?.mapObject?.type === MapObjectType.FLEET &&
-			!filterFleet($player, found as AnyFleet, $settings)
+			!filterFleet($player, found as Fleet, $settings)
 		) {
 			// this object we clicked is filtered out, don't do anything
 			return;
@@ -496,13 +496,11 @@
 		...u
 			.getAllFleets()
 			.filter((f) => f.orbitingPlanetNum === None || f.orbitingPlanetNum === undefined),
-		...u.mysteryTraderIntels,
+		...u.mysteryTraders,
+		...u.salvages,
+		...u.wormholes,
 		...u.mineralPackets,
-		...u.mineralPacketIntels,
-		...u.salvageIntels,
-		...u.wormholeIntels,
-		...u.minefields,
-		...u.minefieldIntels,
+		...u.allMinefields,
 		...u.allPlanets
 	]);
 

@@ -7,8 +7,8 @@ import {
 	PlayerOrdersSchema,
 	PlayerPlansSchema,
 	PlayerRelation,
+	PlayerResearchSpecSchema,
 	PlayerSchema,
-	PlayerSpecSchema,
 	PlayerStatsSchema,
 	ProductionPlanItemSchema,
 	Prt,
@@ -25,6 +25,7 @@ import {
 	type Player,
 	type PlayerMessage,
 	type PlayerRelationship,
+	type PlayerResearchSpec,
 	type PlayerScore,
 	type ProductionPlan,
 	type ProductionPlanItem,
@@ -82,7 +83,6 @@ export class CommandedPlayer implements Player {
 	achievedVictoryConditions = 0;
 	victor = false;
 	archived = false;
-	spec = create(PlayerSpecSchema);
 	stats = create(PlayerStatsSchema, {});
 
 	constructor(data?: Player) {
@@ -175,6 +175,13 @@ export class CommandedPlayer implements Player {
 			}
 		});
 		return allies;
+	}
+
+	// compute the research spec for this player
+	public async getResearchSpec(cs: CS): Promise<PlayerResearchSpec> {
+		const { spec } = await cs.wasmService.computePlayerResearchSpec({});
+
+		return spec ?? create(PlayerResearchSpecSchema);
 	}
 
 	public async getItemCost(

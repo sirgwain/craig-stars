@@ -180,7 +180,6 @@ func (x *UpdatePlanetOrdersRequest) GetPlanetOrders() *PlanetOrders {
 type UpdatePlanetOrdersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Planet        *Planet                `protobuf:"bytes,1,opt,name=planet,proto3" json:"planet,omitempty"`
-	Player        *Player                `protobuf:"bytes,2,opt,name=player,proto3" json:"player,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -222,18 +221,11 @@ func (x *UpdatePlanetOrdersResponse) GetPlanet() *Planet {
 	return nil
 }
 
-func (x *UpdatePlanetOrdersResponse) GetPlayer() *Player {
-	if x != nil {
-		return x.Player
-	}
-	return nil
-}
-
 var File_craig_stars_v1_planetservice_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_planetservice_proto_rawDesc = "" +
 	"\n" +
-	"\"craig_stars/v1/planetservice.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1bcraig_stars/v1/player.proto\"J\n" +
+	"\"craig_stars/v1/planetservice.proto\x12\x0ecraig_stars.v1\x1a\x1bcraig_stars/v1/planet.proto\"J\n" +
 	"\x10GetPlanetRequest\x12\x17\n" +
 	"\agame_id\x18\x01 \x01(\x03R\x06gameId\x12\x1d\n" +
 	"\n" +
@@ -244,10 +236,9 @@ const file_craig_stars_v1_planetservice_proto_rawDesc = "" +
 	"\agame_id\x18\x01 \x01(\x03R\x06gameId\x12\x1d\n" +
 	"\n" +
 	"planet_num\x18\x02 \x01(\x05R\tplanetNum\x12A\n" +
-	"\rplanet_orders\x18\x04 \x01(\v2\x1c.craig_stars.v1.PlanetOrdersR\fplanetOrders\"|\n" +
+	"\rplanet_orders\x18\x04 \x01(\v2\x1c.craig_stars.v1.PlanetOrdersR\fplanetOrders\"L\n" +
 	"\x1aUpdatePlanetOrdersResponse\x12.\n" +
-	"\x06planet\x18\x01 \x01(\v2\x16.craig_stars.v1.PlanetR\x06planet\x12.\n" +
-	"\x06player\x18\x02 \x01(\v2\x16.craig_stars.v1.PlayerR\x06player2\xce\x01\n" +
+	"\x06planet\x18\x01 \x01(\v2\x16.craig_stars.v1.PlanetR\x06planet2\xce\x01\n" +
 	"\rPlanetService\x12P\n" +
 	"\tGetPlanet\x12 .craig_stars.v1.GetPlanetRequest\x1a!.craig_stars.v1.GetPlanetResponse\x12k\n" +
 	"\x12UpdatePlanetOrders\x12).craig_stars.v1.UpdatePlanetOrdersRequest\x1a*.craig_stars.v1.UpdatePlanetOrdersResponseB\xc5\x01\n" +
@@ -273,22 +264,20 @@ var file_craig_stars_v1_planetservice_proto_goTypes = []any{
 	(*UpdatePlanetOrdersResponse)(nil), // 3: craig_stars.v1.UpdatePlanetOrdersResponse
 	(*Planet)(nil),                     // 4: craig_stars.v1.Planet
 	(*PlanetOrders)(nil),               // 5: craig_stars.v1.PlanetOrders
-	(*Player)(nil),                     // 6: craig_stars.v1.Player
 }
 var file_craig_stars_v1_planetservice_proto_depIdxs = []int32{
 	4, // 0: craig_stars.v1.GetPlanetResponse.planet:type_name -> craig_stars.v1.Planet
 	5, // 1: craig_stars.v1.UpdatePlanetOrdersRequest.planet_orders:type_name -> craig_stars.v1.PlanetOrders
 	4, // 2: craig_stars.v1.UpdatePlanetOrdersResponse.planet:type_name -> craig_stars.v1.Planet
-	6, // 3: craig_stars.v1.UpdatePlanetOrdersResponse.player:type_name -> craig_stars.v1.Player
-	0, // 4: craig_stars.v1.PlanetService.GetPlanet:input_type -> craig_stars.v1.GetPlanetRequest
-	2, // 5: craig_stars.v1.PlanetService.UpdatePlanetOrders:input_type -> craig_stars.v1.UpdatePlanetOrdersRequest
-	1, // 6: craig_stars.v1.PlanetService.GetPlanet:output_type -> craig_stars.v1.GetPlanetResponse
-	3, // 7: craig_stars.v1.PlanetService.UpdatePlanetOrders:output_type -> craig_stars.v1.UpdatePlanetOrdersResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	0, // 3: craig_stars.v1.PlanetService.GetPlanet:input_type -> craig_stars.v1.GetPlanetRequest
+	2, // 4: craig_stars.v1.PlanetService.UpdatePlanetOrders:input_type -> craig_stars.v1.UpdatePlanetOrdersRequest
+	1, // 5: craig_stars.v1.PlanetService.GetPlanet:output_type -> craig_stars.v1.GetPlanetResponse
+	3, // 6: craig_stars.v1.PlanetService.UpdatePlanetOrders:output_type -> craig_stars.v1.UpdatePlanetOrdersResponse
+	5, // [5:7] is the sub-list for method output_type
+	3, // [3:5] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_planetservice_proto_init() }
@@ -297,7 +286,6 @@ func file_craig_stars_v1_planetservice_proto_init() {
 		return
 	}
 	file_craig_stars_v1_planet_proto_init()
-	file_craig_stars_v1_player_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

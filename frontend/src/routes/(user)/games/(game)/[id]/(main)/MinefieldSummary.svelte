@@ -4,7 +4,6 @@
 	} from '$lib/components/game/tooltips/TextTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
-	import type { AnyMinefield } from '$lib/services/Universe';
 	import { type Minefield, type MinefieldSpec, MinefieldType } from '$lib/types/cs-proto';
 	import { enumToString } from '$lib/types/Enums';
 	import { ownedBy } from '$lib/types/MapObject';
@@ -15,7 +14,7 @@
 	const { cs, game, player, universe, updateMinefieldOrders } = getGameContext();
 
 	type Props = {
-		minefield: AnyMinefield;
+		minefield: Minefield;
 	};
 
 	let { minefield = $bindable() }: Props = $props();

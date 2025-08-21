@@ -10,7 +10,7 @@ import type { AiDifficulty, AiDifficultyJson, BattleAttackWho, BattleAttackWhoJs
 import { file_craig_stars_v1_common } from "./common_pb";
 import type { Fleet, FleetJson, WaypointTransportTasks, WaypointTransportTasksJson } from "./fleet_pb";
 import { file_craig_stars_v1_fleet } from "./fleet_pb";
-import type { FleetIntel, FleetIntelJson, MinefieldIntel, MinefieldIntelJson, MineralPacketIntel, MineralPacketIntelJson, MysteryTraderIntel, MysteryTraderIntelJson, PlanetIntel, PlanetIntelJson, PlayerIntel, PlayerIntelJson, SalvageIntel, SalvageIntelJson, ScoreIntel, ScoreIntelJson, ShipDesignIntel, ShipDesignIntelJson, WormholeIntel, WormholeIntelJson } from "./intel_pb";
+import type { PlayerIntel, PlayerIntelJson, ScoreIntel, ScoreIntelJson } from "./intel_pb";
 import { file_craig_stars_v1_intel } from "./intel_pb";
 import type { PlayerMessage, PlayerMessageJson } from "./message_pb";
 import { file_craig_stars_v1_message } from "./message_pb";
@@ -18,14 +18,21 @@ import type { Minefield, MinefieldJson } from "./minefield_pb";
 import { file_craig_stars_v1_minefield } from "./minefield_pb";
 import type { MineralPacket, MineralPacketJson } from "./mineralpacket_pb";
 import { file_craig_stars_v1_mineralpacket } from "./mineralpacket_pb";
+import type { MysteryTrader, MysteryTraderJson } from "./mysterytrader_pb";
+import { file_craig_stars_v1_mysterytrader } from "./mysterytrader_pb";
 import type { Planet, PlanetJson, QueueItemType, QueueItemTypeJson } from "./planet_pb";
 import { file_craig_stars_v1_planet } from "./planet_pb";
 import type { Race, RaceJson } from "./race_pb";
 import { file_craig_stars_v1_race } from "./race_pb";
+import type { Salvage, SalvageJson } from "./salvage_pb";
+import { file_craig_stars_v1_salvage } from "./salvage_pb";
 import type { PlayerScore, PlayerScoreJson } from "./score_pb";
 import { file_craig_stars_v1_score } from "./score_pb";
-import type { Tech, TechDefense, TechDefenseJson, TechJson, TechPlanetaryScanner, TechPlanetaryScannerJson, TechTerraform, TechTerraformJson } from "./tech_pb";
+import type { ShipDesign, ShipDesignJson } from "./shipdesign_pb";
+import { file_craig_stars_v1_shipdesign } from "./shipdesign_pb";
 import { file_craig_stars_v1_tech } from "./tech_pb";
+import type { Wormhole, WormholeJson } from "./wormhole_pb";
+import { file_craig_stars_v1_wormhole } from "./wormhole_pb";
 import type { Timestamp, TimestampJson } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { Message } from "@bufbuild/protobuf";
@@ -34,7 +41,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file craig_stars/v1/player.proto.
  */
 export const file_craig_stars_v1_player: GenFile = /*@__PURE__*/
-  fileDesc("ChtjcmFpZ19zdGFycy92MS9wbGF5ZXIucHJvdG8SDmNyYWlnX3N0YXJzLnYxItsHCgZQbGF5ZXISNAoOZ2FtZV9kYl9vYmplY3QYASABKAsyHC5jcmFpZ19zdGFycy52MS5HYW1lREJPYmplY3QSMwoNcGxheWVyX29yZGVycxgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLlBsYXllck9yZGVycxIxCgxwbGF5ZXJfcGxhbnMYAyABKAsyGy5jcmFpZ19zdGFycy52MS5QbGF5ZXJQbGFucxIPCgd1c2VyX2lkGAQgASgDEgwKBG5hbWUYBSABKAkSCwoDbnVtGAYgASgFEg0KBXJlYWR5GAcgASgIEhUKDWFpX2NvbnRyb2xsZWQYCCABKAgSMwoNYWlfZGlmZmljdWx0eRgJIAEoDjIcLmNyYWlnX3N0YXJzLnYxLkFpRGlmZmljdWx0eRINCgVndWVzdBgKIAEoCBIWCg5zdWJtaXR0ZWRfdHVybhgLIAEoCBINCgVjb2xvchgMIAEoCRIYChBkZWZhdWx0X2h1bGxfc2V0GA0gASgFEiIKBHJhY2UYDiABKAsyFC5jcmFpZ19zdGFycy52MS5SYWNlEi4KC3RlY2hfbGV2ZWxzGA8gASgLMhkuY3JhaWdfc3RhcnMudjEuVGVjaExldmVsEjQKEXRlY2hfbGV2ZWxzX3NwZW50GBAgASgLMhkuY3JhaWdfc3RhcnMudjEuVGVjaExldmVsEiAKGHJlc2VhcmNoX3NwZW50X2xhc3RfeWVhchgRIAEoBRI1CglyZWxhdGlvbnMYEiADKAsyIi5jcmFpZ19zdGFycy52MS5QbGF5ZXJSZWxhdGlvbnNoaXASLwoIbWVzc2FnZXMYEyADKAsyHS5jcmFpZ19zdGFycy52MS5QbGF5ZXJNZXNzYWdlEjIKDXNjb3JlX2hpc3RvcnkYFCADKAsyGy5jcmFpZ19zdGFycy52MS5QbGF5ZXJTY29yZRJBCg5hY3F1aXJlZF90ZWNocxgVIAMoCzIpLmNyYWlnX3N0YXJzLnYxLlBsYXllci5BY3F1aXJlZFRlY2hzRW50cnkSIwobYWNoaWV2ZWRfdmljdG9yeV9jb25kaXRpb25zGBYgASgNEg4KBnZpY3RvchgXIAEoCBIQCghhcmNoaXZlZBgYIAEoCBIqCgVzdGF0cxgZIAEoCzIbLmNyYWlnX3N0YXJzLnYxLlBsYXllclN0YXRzEigKBHNwZWMYGiABKAsyGi5jcmFpZ19zdGFycy52MS5QbGF5ZXJTcGVjGjQKEkFjcXVpcmVkVGVjaHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAg6AjgBIvEBCg5QbGF5ZXJVbml2ZXJzZRInCgdwbGFuZXRzGAEgAygLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0EiUKBmZsZWV0cxgCIAMoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0EigKCXN0YXJiYXNlcxgDIAMoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0Ei0KCm1pbmVmaWVsZHMYBCADKAsyGS5jcmFpZ19zdGFycy52MS5NaW5lZmllbGQSNgoPbWluZXJhbF9wYWNrZXRzGAUgAygLMh0uY3JhaWdfc3RhcnMudjEuTWluZXJhbFBhY2tldCKRAQoTQnlIYW5kQ2FyZ29UcmFuc2ZlchI6ChFtYXBfb2JqZWN0X3RhcmdldBgBIAEoCzIfLmNyYWlnX3N0YXJzLnYxLk1hcE9iamVjdFRhcmdldBIYChBzb3VyY2VfZmxlZXRfbnVtGAYgASgFEiQKBWNhcmdvGAcgASgLMhUuY3JhaWdfc3RhcnMudjEuQ2FyZ28iSAoOQ2FyZ29UcmFuc2ZlcnMSNgoJdHJhbnNmZXJzGAEgAygLMiMuY3JhaWdfc3RhcnMudjEuQnlIYW5kQ2FyZ29UcmFuc2ZlciKpAgoMUGxheWVyU3RhdHVzEgoKAmlkGAEgASgDEi4KCnVwZGF0ZWRfYXQYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg8KB3VzZXJfaWQYAyABKAMSDAoEbmFtZRgEIAEoCRILCgNudW0YBSABKAUSDQoFcmVhZHkYBiABKAgSFQoNYWlfY29udHJvbGxlZBgHIAEoCBIzCg1haV9kaWZmaWN1bHR5GAggASgOMhwuY3JhaWdfc3RhcnMudjEuQWlEaWZmaWN1bHR5Eg0KBWd1ZXN0GAkgASgIEhYKDnN1Ym1pdHRlZF90dXJuGAogASgIEg0KBWNvbG9yGAsgASgJEg4KBnZpY3RvchgMIAEoCBIQCghhcmNoaXZlZBgNIAEoCCL1BAoGSW50ZWxzEjQKDmJhdHRsZV9yZWNvcmRzGAEgAygLMhwuY3JhaWdfc3RhcnMudjEuQmF0dGxlUmVjb3JkEjIKDXBsYXllcl9pbnRlbHMYAiADKAsyGy5jcmFpZ19zdGFycy52MS5QbGF5ZXJJbnRlbBIwCgxzY29yZV9pbnRlbHMYAyADKAsyGi5jcmFpZ19zdGFycy52MS5TY29yZUludGVsEjIKDXBsYW5ldF9pbnRlbHMYBCADKAsyGy5jcmFpZ19zdGFycy52MS5QbGFuZXRJbnRlbBIwCgxmbGVldF9pbnRlbHMYBSADKAsyGi5jcmFpZ19zdGFycy52MS5GbGVldEludGVsEjsKEnNoaXBfZGVzaWduX2ludGVscxgGIAMoCzIfLmNyYWlnX3N0YXJzLnYxLlNoaXBEZXNpZ25JbnRlbBJBChVtaW5lcmFsX3BhY2tldF9pbnRlbHMYByADKAsyIi5jcmFpZ19zdGFycy52MS5NaW5lcmFsUGFja2V0SW50ZWwSOAoQbWluZWZpZWxkX2ludGVscxgIIAMoCzIeLmNyYWlnX3N0YXJzLnYxLk1pbmVmaWVsZEludGVsEjYKD3dvcm1ob2xlX2ludGVscxgJIAMoCzIdLmNyYWlnX3N0YXJzLnYxLldvcm1ob2xlSW50ZWwSQQoVbXlzdGVyeV90cmFkZXJfaW50ZWxzGAogAygLMiIuY3JhaWdfc3RhcnMudjEuTXlzdGVyeVRyYWRlckludGVsEjQKDnNhbHZhZ2VfaW50ZWxzGAsgAygLMhwuY3JhaWdfc3RhcnMudjEuU2FsdmFnZUludGVsIrEBCgtQbGF5ZXJQbGFucxI4ChBwcm9kdWN0aW9uX3BsYW5zGAEgAygLMh4uY3JhaWdfc3RhcnMudjEuUHJvZHVjdGlvblBsYW4SMAoMYmF0dGxlX3BsYW5zGAIgAygLMhouY3JhaWdfc3RhcnMudjEuQmF0dGxlUGxhbhI2Cg90cmFuc3BvcnRfcGxhbnMYAyADKAsyHS5jcmFpZ19zdGFycy52MS5UcmFuc3BvcnRQbGFuIrkCCgxQbGF5ZXJPcmRlcnMSLgoLcmVzZWFyY2hpbmcYASABKA4yGS5jcmFpZ19zdGFycy52MS5UZWNoRmllbGQSPgoTbmV4dF9yZXNlYXJjaF9maWVsZBgCIAEoDjIhLmNyYWlnX3N0YXJzLnYxLk5leHRSZXNlYXJjaEZpZWxkEhcKD3Jlc2VhcmNoX2Ftb3VudBgDIAEoBRJJCg9jYXJnb190cmFuc2ZlcnMYBCADKAsyMC5jcmFpZ19zdGFycy52MS5QbGF5ZXJPcmRlcnMuQ2FyZ29UcmFuc2ZlcnNFbnRyeRpVChNDYXJnb1RyYW5zZmVyc0VudHJ5EgsKA2tleRgBIAEoCRItCgV2YWx1ZRgCIAEoCzIeLmNyYWlnX3N0YXJzLnYxLkNhcmdvVHJhbnNmZXJzOgI4ASJtCgtQbGF5ZXJTdGF0cxIUCgxmbGVldHNfYnVpbHQYASABKAUSFwoPc3RhcmJhc2VzX2J1aWx0GAIgASgFEhQKDHRva2Vuc19idWlsdBgDIAEoBRIZChFwbGFuZXRzX2NvbG9uaXplZBgEIAEoBSJZChJQbGF5ZXJSZWxhdGlvbnNoaXASMAoIcmVsYXRpb24YASABKA4yHi5jcmFpZ19zdGFycy52MS5QbGF5ZXJSZWxhdGlvbhIRCglzaGFyZV9tYXAYAiABKAgiygMKClBsYXllclNwZWMSGgoScmVzb3VyY2VzX3Blcl95ZWFyGAEgASgFEiMKG3Jlc291cmNlc19wZXJfeWVhcl9yZXNlYXJjaBgCIAEoBRItCiVyZXNvdXJjZXNfcGVyX3llYXJfcmVzZWFyY2hfZXN0aW1hdGVkGAMgASgFEh0KFWN1cnJlbnRfcmVzZWFyY2hfY29zdBgEIAEoBRIvChF0ZWNoc19qdXN0X2dhaW5lZBgFIAMoCzIULmNyYWlnX3N0YXJzLnYxLlRlY2gSPwoRcGxhbmV0YXJ5X3NjYW5uZXIYBiABKAsyJC5jcmFpZ19zdGFycy52MS5UZWNoUGxhbmV0YXJ5U2Nhbm5lchIsCgdkZWZlbnNlGAcgASgLMhsuY3JhaWdfc3RhcnMudjEuVGVjaERlZmVuc2USPAoJdGVycmFmb3JtGAggAygLMikuY3JhaWdfc3RhcnMudjEuUGxheWVyU3BlYy5UZXJyYWZvcm1FbnRyeRpPCg5UZXJyYWZvcm1FbnRyeRILCgNrZXkYASABKAUSLAoFdmFsdWUYAiABKAsyHS5jcmFpZ19zdGFycy52MS5UZWNoVGVycmFmb3JtOgI4ASKMAgoKQmF0dGxlUGxhbhILCgNudW0YASABKAUSDAoEbmFtZRgCIAEoCRI0Cg5wcmltYXJ5X3RhcmdldBgDIAEoDjIcLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVRhcmdldBI2ChBzZWNvbmRhcnlfdGFyZ2V0GAQgASgOMhwuY3JhaWdfc3RhcnMudjEuQmF0dGxlVGFyZ2V0EiwKBnRhY3RpYxgFIAEoDjIcLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVRhY3RpYxIzCgphdHRhY2tfd2hvGAYgASgOMh8uY3JhaWdfc3RhcnMudjEuQmF0dGxlQXR0YWNrV2hvEhIKCmR1bXBfY2FyZ28YByABKAgiYQoNVHJhbnNwb3J0UGxhbhILCgNudW0YASABKAUSDAoEbmFtZRgCIAEoCRI1CgV0YXNrcxgDIAEoCzImLmNyYWlnX3N0YXJzLnYxLldheXBvaW50VHJhbnNwb3J0VGFza3MijQEKDlByb2R1Y3Rpb25QbGFuEgsKA251bRgBIAEoBRIMCgRuYW1lGAIgASgJEjEKBWl0ZW1zGAMgAygLMiIuY3JhaWdfc3RhcnMudjEuUHJvZHVjdGlvblBsYW5JdGVtEi0KJWNvbnRyaWJ1dGVzX29ubHlfbGVmdG92ZXJfdG9fcmVzZWFyY2gYBCABKAgiZwoSUHJvZHVjdGlvblBsYW5JdGVtEisKBHR5cGUYASABKA4yHS5jcmFpZ19zdGFycy52MS5RdWV1ZUl0ZW1UeXBlEhIKCmRlc2lnbl9udW0YAiABKAUSEAoIcXVhbnRpdHkYAyABKAUqhQEKDlBsYXllclJlbGF0aW9uEh8KG1BMQVlFUl9SRUxBVElPTl9VTlNQRUNJRklFRBAAEhsKF1BMQVlFUl9SRUxBVElPTl9ORVVUUkFMEAESGgoWUExBWUVSX1JFTEFUSU9OX0ZSSUVORBACEhkKFVBMQVlFUl9SRUxBVElPTl9FTkVNWRADYgZwcm90bzM", [file_craig_stars_v1_battle, file_craig_stars_v1_common, file_craig_stars_v1_fleet, file_craig_stars_v1_intel, file_craig_stars_v1_message, file_craig_stars_v1_minefield, file_craig_stars_v1_mineralpacket, file_craig_stars_v1_planet, file_craig_stars_v1_race, file_craig_stars_v1_score, file_craig_stars_v1_tech, file_google_protobuf_timestamp]);
+  fileDesc("ChtjcmFpZ19zdGFycy92MS9wbGF5ZXIucHJvdG8SDmNyYWlnX3N0YXJzLnYxIrEHCgZQbGF5ZXISNAoOZ2FtZV9kYl9vYmplY3QYASABKAsyHC5jcmFpZ19zdGFycy52MS5HYW1lREJPYmplY3QSMwoNcGxheWVyX29yZGVycxgCIAEoCzIcLmNyYWlnX3N0YXJzLnYxLlBsYXllck9yZGVycxIxCgxwbGF5ZXJfcGxhbnMYAyABKAsyGy5jcmFpZ19zdGFycy52MS5QbGF5ZXJQbGFucxIPCgd1c2VyX2lkGAQgASgDEgwKBG5hbWUYBSABKAkSCwoDbnVtGAYgASgFEg0KBXJlYWR5GAcgASgIEhUKDWFpX2NvbnRyb2xsZWQYCCABKAgSMwoNYWlfZGlmZmljdWx0eRgJIAEoDjIcLmNyYWlnX3N0YXJzLnYxLkFpRGlmZmljdWx0eRINCgVndWVzdBgKIAEoCBIWCg5zdWJtaXR0ZWRfdHVybhgLIAEoCBINCgVjb2xvchgMIAEoCRIYChBkZWZhdWx0X2h1bGxfc2V0GA0gASgFEiIKBHJhY2UYDiABKAsyFC5jcmFpZ19zdGFycy52MS5SYWNlEi4KC3RlY2hfbGV2ZWxzGA8gASgLMhkuY3JhaWdfc3RhcnMudjEuVGVjaExldmVsEjQKEXRlY2hfbGV2ZWxzX3NwZW50GBAgASgLMhkuY3JhaWdfc3RhcnMudjEuVGVjaExldmVsEiAKGHJlc2VhcmNoX3NwZW50X2xhc3RfeWVhchgRIAEoBRI1CglyZWxhdGlvbnMYEiADKAsyIi5jcmFpZ19zdGFycy52MS5QbGF5ZXJSZWxhdGlvbnNoaXASLwoIbWVzc2FnZXMYEyADKAsyHS5jcmFpZ19zdGFycy52MS5QbGF5ZXJNZXNzYWdlEjIKDXNjb3JlX2hpc3RvcnkYFCADKAsyGy5jcmFpZ19zdGFycy52MS5QbGF5ZXJTY29yZRJBCg5hY3F1aXJlZF90ZWNocxgVIAMoCzIpLmNyYWlnX3N0YXJzLnYxLlBsYXllci5BY3F1aXJlZFRlY2hzRW50cnkSIwobYWNoaWV2ZWRfdmljdG9yeV9jb25kaXRpb25zGBYgASgNEg4KBnZpY3RvchgXIAEoCBIQCghhcmNoaXZlZBgYIAEoCBIqCgVzdGF0cxgZIAEoCzIbLmNyYWlnX3N0YXJzLnYxLlBsYXllclN0YXRzGjQKEkFjcXVpcmVkVGVjaHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAg6AjgBIqAECg5QbGF5ZXJVbml2ZXJzZRI0Cg5iYXR0bGVfcmVjb3JkcxgBIAMoCzIcLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVJlY29yZBIyCg1wbGF5ZXJfaW50ZWxzGAIgAygLMhsuY3JhaWdfc3RhcnMudjEuUGxheWVySW50ZWwSMAoMc2NvcmVfaW50ZWxzGAMgAygLMhouY3JhaWdfc3RhcnMudjEuU2NvcmVJbnRlbBIrCgdkZXNpZ25zGAQgAygLMhouY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnbhInCgdwbGFuZXRzGAUgAygLMhYuY3JhaWdfc3RhcnMudjEuUGxhbmV0EiUKBmZsZWV0cxgGIAMoCzIVLmNyYWlnX3N0YXJzLnYxLkZsZWV0Ei0KCm1pbmVmaWVsZHMYByADKAsyGS5jcmFpZ19zdGFycy52MS5NaW5lZmllbGQSNgoPbWluZXJhbF9wYWNrZXRzGAggAygLMh0uY3JhaWdfc3RhcnMudjEuTWluZXJhbFBhY2tldBI2Cg9teXN0ZXJ5X3RyYWRlcnMYCSADKAsyHS5jcmFpZ19zdGFycy52MS5NeXN0ZXJ5VHJhZGVyEikKCHNhbHZhZ2VzGAogAygLMhcuY3JhaWdfc3RhcnMudjEuU2FsdmFnZRIrCgl3b3JtaG9sZXMYCyADKAsyGC5jcmFpZ19zdGFycy52MS5Xb3JtaG9sZSKRAQoTQnlIYW5kQ2FyZ29UcmFuc2ZlchI6ChFtYXBfb2JqZWN0X3RhcmdldBgBIAEoCzIfLmNyYWlnX3N0YXJzLnYxLk1hcE9iamVjdFRhcmdldBIYChBzb3VyY2VfZmxlZXRfbnVtGAYgASgFEiQKBWNhcmdvGAcgASgLMhUuY3JhaWdfc3RhcnMudjEuQ2FyZ28iSAoOQ2FyZ29UcmFuc2ZlcnMSNgoJdHJhbnNmZXJzGAEgAygLMiMuY3JhaWdfc3RhcnMudjEuQnlIYW5kQ2FyZ29UcmFuc2ZlciKpAgoMUGxheWVyU3RhdHVzEgoKAmlkGAEgASgDEi4KCnVwZGF0ZWRfYXQYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg8KB3VzZXJfaWQYAyABKAMSDAoEbmFtZRgEIAEoCRILCgNudW0YBSABKAUSDQoFcmVhZHkYBiABKAgSFQoNYWlfY29udHJvbGxlZBgHIAEoCBIzCg1haV9kaWZmaWN1bHR5GAggASgOMhwuY3JhaWdfc3RhcnMudjEuQWlEaWZmaWN1bHR5Eg0KBWd1ZXN0GAkgASgIEhYKDnN1Ym1pdHRlZF90dXJuGAogASgIEg0KBWNvbG9yGAsgASgJEg4KBnZpY3RvchgMIAEoCBIQCghhcmNoaXZlZBgNIAEoCCLNBAoGSW50ZWxzEjQKDmJhdHRsZV9yZWNvcmRzGAEgAygLMhwuY3JhaWdfc3RhcnMudjEuQmF0dGxlUmVjb3JkEjIKDXBsYXllcl9pbnRlbHMYAiADKAsyGy5jcmFpZ19zdGFycy52MS5QbGF5ZXJJbnRlbBIwCgxzY29yZV9pbnRlbHMYAyADKAsyGi5jcmFpZ19zdGFycy52MS5TY29yZUludGVsEi0KDXBsYW5ldF9pbnRlbHMYBCADKAsyFi5jcmFpZ19zdGFycy52MS5QbGFuZXQSKwoMZmxlZXRfaW50ZWxzGAUgAygLMhUuY3JhaWdfc3RhcnMudjEuRmxlZXQSNgoSc2hpcF9kZXNpZ25faW50ZWxzGAYgAygLMhouY3JhaWdfc3RhcnMudjEuU2hpcERlc2lnbhI8ChVtaW5lcmFsX3BhY2tldF9pbnRlbHMYByADKAsyHS5jcmFpZ19zdGFycy52MS5NaW5lcmFsUGFja2V0EjMKEG1pbmVmaWVsZF9pbnRlbHMYCCADKAsyGS5jcmFpZ19zdGFycy52MS5NaW5lZmllbGQSMQoPd29ybWhvbGVfaW50ZWxzGAkgAygLMhguY3JhaWdfc3RhcnMudjEuV29ybWhvbGUSPAoVbXlzdGVyeV90cmFkZXJfaW50ZWxzGAogAygLMh0uY3JhaWdfc3RhcnMudjEuTXlzdGVyeVRyYWRlchIvCg5zYWx2YWdlX2ludGVscxgLIAMoCzIXLmNyYWlnX3N0YXJzLnYxLlNhbHZhZ2UisQEKC1BsYXllclBsYW5zEjgKEHByb2R1Y3Rpb25fcGxhbnMYASADKAsyHi5jcmFpZ19zdGFycy52MS5Qcm9kdWN0aW9uUGxhbhIwCgxiYXR0bGVfcGxhbnMYAiADKAsyGi5jcmFpZ19zdGFycy52MS5CYXR0bGVQbGFuEjYKD3RyYW5zcG9ydF9wbGFucxgDIAMoCzIdLmNyYWlnX3N0YXJzLnYxLlRyYW5zcG9ydFBsYW4iuQIKDFBsYXllck9yZGVycxIuCgtyZXNlYXJjaGluZxgBIAEoDjIZLmNyYWlnX3N0YXJzLnYxLlRlY2hGaWVsZBI+ChNuZXh0X3Jlc2VhcmNoX2ZpZWxkGAIgASgOMiEuY3JhaWdfc3RhcnMudjEuTmV4dFJlc2VhcmNoRmllbGQSFwoPcmVzZWFyY2hfYW1vdW50GAMgASgFEkkKD2NhcmdvX3RyYW5zZmVycxgEIAMoCzIwLmNyYWlnX3N0YXJzLnYxLlBsYXllck9yZGVycy5DYXJnb1RyYW5zZmVyc0VudHJ5GlUKE0NhcmdvVHJhbnNmZXJzRW50cnkSCwoDa2V5GAEgASgJEi0KBXZhbHVlGAIgASgLMh4uY3JhaWdfc3RhcnMudjEuQ2FyZ29UcmFuc2ZlcnM6AjgBIm0KC1BsYXllclN0YXRzEhQKDGZsZWV0c19idWlsdBgBIAEoBRIXCg9zdGFyYmFzZXNfYnVpbHQYAiABKAUSFAoMdG9rZW5zX2J1aWx0GAMgASgFEhkKEXBsYW5ldHNfY29sb25pemVkGAQgASgFIlkKElBsYXllclJlbGF0aW9uc2hpcBIwCghyZWxhdGlvbhgBIAEoDjIeLmNyYWlnX3N0YXJzLnYxLlBsYXllclJlbGF0aW9uEhEKCXNoYXJlX21hcBgCIAEoCCKjAQoSUGxheWVyUmVzZWFyY2hTcGVjEhoKEnJlc291cmNlc19wZXJfeWVhchgBIAEoBRIjChtyZXNvdXJjZXNfcGVyX3llYXJfcmVzZWFyY2gYAiABKAUSLQolcmVzb3VyY2VzX3Blcl95ZWFyX3Jlc2VhcmNoX2VzdGltYXRlZBgDIAEoBRIdChVjdXJyZW50X3Jlc2VhcmNoX2Nvc3QYBCABKAUijAIKCkJhdHRsZVBsYW4SCwoDbnVtGAEgASgFEgwKBG5hbWUYAiABKAkSNAoOcHJpbWFyeV90YXJnZXQYAyABKA4yHC5jcmFpZ19zdGFycy52MS5CYXR0bGVUYXJnZXQSNgoQc2Vjb25kYXJ5X3RhcmdldBgEIAEoDjIcLmNyYWlnX3N0YXJzLnYxLkJhdHRsZVRhcmdldBIsCgZ0YWN0aWMYBSABKA4yHC5jcmFpZ19zdGFycy52MS5CYXR0bGVUYWN0aWMSMwoKYXR0YWNrX3dobxgGIAEoDjIfLmNyYWlnX3N0YXJzLnYxLkJhdHRsZUF0dGFja1dobxISCgpkdW1wX2NhcmdvGAcgASgIImEKDVRyYW5zcG9ydFBsYW4SCwoDbnVtGAEgASgFEgwKBG5hbWUYAiABKAkSNQoFdGFza3MYAyABKAsyJi5jcmFpZ19zdGFycy52MS5XYXlwb2ludFRyYW5zcG9ydFRhc2tzIo0BCg5Qcm9kdWN0aW9uUGxhbhILCgNudW0YASABKAUSDAoEbmFtZRgCIAEoCRIxCgVpdGVtcxgDIAMoCzIiLmNyYWlnX3N0YXJzLnYxLlByb2R1Y3Rpb25QbGFuSXRlbRItCiVjb250cmlidXRlc19vbmx5X2xlZnRvdmVyX3RvX3Jlc2VhcmNoGAQgASgIImcKElByb2R1Y3Rpb25QbGFuSXRlbRIrCgR0eXBlGAEgASgOMh0uY3JhaWdfc3RhcnMudjEuUXVldWVJdGVtVHlwZRISCgpkZXNpZ25fbnVtGAIgASgFEhAKCHF1YW50aXR5GAMgASgFKoUBCg5QbGF5ZXJSZWxhdGlvbhIfChtQTEFZRVJfUkVMQVRJT05fVU5TUEVDSUZJRUQQABIbChdQTEFZRVJfUkVMQVRJT05fTkVVVFJBTBABEhoKFlBMQVlFUl9SRUxBVElPTl9GUklFTkQQAhIZChVQTEFZRVJfUkVMQVRJT05fRU5FTVkQA2IGcHJvdG8z", [file_craig_stars_v1_battle, file_craig_stars_v1_common, file_craig_stars_v1_fleet, file_craig_stars_v1_intel, file_craig_stars_v1_message, file_craig_stars_v1_minefield, file_craig_stars_v1_mineralpacket, file_craig_stars_v1_mysterytrader, file_craig_stars_v1_planet, file_craig_stars_v1_race, file_craig_stars_v1_salvage, file_craig_stars_v1_score, file_craig_stars_v1_shipdesign, file_craig_stars_v1_tech, file_craig_stars_v1_wormhole, file_google_protobuf_timestamp]);
 
 /**
  * A Player contains all intel, messages, tech levels, and research orders for a single empire in the game.
@@ -167,11 +174,6 @@ export type Player = Message<"craig_stars.v1.Player"> & {
    * @generated from field: craig_stars.v1.PlayerStats stats = 25;
    */
   stats?: PlayerStats;
-
-  /**
-   * @generated from field: craig_stars.v1.PlayerSpec spec = 26;
-   */
-  spec?: PlayerSpec;
 };
 
 /**
@@ -305,11 +307,6 @@ export type PlayerJson = {
    * @generated from field: craig_stars.v1.PlayerStats stats = 25;
    */
   stats?: PlayerStatsJson;
-
-  /**
-   * @generated from field: craig_stars.v1.PlayerSpec spec = 26;
-   */
-  spec?: PlayerSpecJson;
 };
 
 /**
@@ -326,29 +323,59 @@ export const PlayerSchema: GenMessage<Player, {jsonType: PlayerJson}> = /*@__PUR
  */
 export type PlayerUniverse = Message<"craig_stars.v1.PlayerUniverse"> & {
   /**
-   * @generated from field: repeated craig_stars.v1.Planet planets = 1;
+   * @generated from field: repeated craig_stars.v1.BattleRecord battle_records = 1;
+   */
+  battleRecords: BattleRecord[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.PlayerIntel player_intels = 2;
+   */
+  playerIntels: PlayerIntel[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.ScoreIntel score_intels = 3;
+   */
+  scoreIntels: ScoreIntel[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.ShipDesign designs = 4;
+   */
+  designs: ShipDesign[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.Planet planets = 5;
    */
   planets: Planet[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.Fleet fleets = 2;
+   * @generated from field: repeated craig_stars.v1.Fleet fleets = 6;
    */
   fleets: Fleet[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.Fleet starbases = 3;
-   */
-  starbases: Fleet[];
-
-  /**
-   * @generated from field: repeated craig_stars.v1.Minefield minefields = 4;
+   * @generated from field: repeated craig_stars.v1.Minefield minefields = 7;
    */
   minefields: Minefield[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.MineralPacket mineral_packets = 5;
+   * @generated from field: repeated craig_stars.v1.MineralPacket mineral_packets = 8;
    */
   mineralPackets: MineralPacket[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.MysteryTrader mystery_traders = 9;
+   */
+  mysteryTraders: MysteryTrader[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.Salvage salvages = 10;
+   */
+  salvages: Salvage[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.Wormhole wormholes = 11;
+   */
+  wormholes: Wormhole[];
 };
 
 /**
@@ -358,29 +385,59 @@ export type PlayerUniverse = Message<"craig_stars.v1.PlayerUniverse"> & {
  */
 export type PlayerUniverseJson = {
   /**
-   * @generated from field: repeated craig_stars.v1.Planet planets = 1;
+   * @generated from field: repeated craig_stars.v1.BattleRecord battle_records = 1;
+   */
+  battleRecords?: BattleRecordJson[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.PlayerIntel player_intels = 2;
+   */
+  playerIntels?: PlayerIntelJson[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.ScoreIntel score_intels = 3;
+   */
+  scoreIntels?: ScoreIntelJson[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.ShipDesign designs = 4;
+   */
+  designs?: ShipDesignJson[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.Planet planets = 5;
    */
   planets?: PlanetJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.Fleet fleets = 2;
+   * @generated from field: repeated craig_stars.v1.Fleet fleets = 6;
    */
   fleets?: FleetJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.Fleet starbases = 3;
-   */
-  starbases?: FleetJson[];
-
-  /**
-   * @generated from field: repeated craig_stars.v1.Minefield minefields = 4;
+   * @generated from field: repeated craig_stars.v1.Minefield minefields = 7;
    */
   minefields?: MinefieldJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.MineralPacket mineral_packets = 5;
+   * @generated from field: repeated craig_stars.v1.MineralPacket mineral_packets = 8;
    */
   mineralPackets?: MineralPacketJson[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.MysteryTrader mystery_traders = 9;
+   */
+  mysteryTraders?: MysteryTraderJson[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.Salvage salvages = 10;
+   */
+  salvages?: SalvageJson[];
+
+  /**
+   * @generated from field: repeated craig_stars.v1.Wormhole wormholes = 11;
+   */
+  wormholes?: WormholeJson[];
 };
 
 /**
@@ -631,44 +688,44 @@ export type Intels = Message<"craig_stars.v1.Intels"> & {
   scoreIntels: ScoreIntel[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.PlanetIntel planet_intels = 4;
+   * @generated from field: repeated craig_stars.v1.Planet planet_intels = 4;
    */
-  planetIntels: PlanetIntel[];
+  planetIntels: Planet[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.FleetIntel fleet_intels = 5;
+   * @generated from field: repeated craig_stars.v1.Fleet fleet_intels = 5;
    */
-  fleetIntels: FleetIntel[];
+  fleetIntels: Fleet[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.ShipDesignIntel ship_design_intels = 6;
+   * @generated from field: repeated craig_stars.v1.ShipDesign ship_design_intels = 6;
    */
-  shipDesignIntels: ShipDesignIntel[];
+  shipDesignIntels: ShipDesign[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.MineralPacketIntel mineral_packet_intels = 7;
+   * @generated from field: repeated craig_stars.v1.MineralPacket mineral_packet_intels = 7;
    */
-  mineralPacketIntels: MineralPacketIntel[];
+  mineralPacketIntels: MineralPacket[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.MinefieldIntel minefield_intels = 8;
+   * @generated from field: repeated craig_stars.v1.Minefield minefield_intels = 8;
    */
-  minefieldIntels: MinefieldIntel[];
+  minefieldIntels: Minefield[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.WormholeIntel wormhole_intels = 9;
+   * @generated from field: repeated craig_stars.v1.Wormhole wormhole_intels = 9;
    */
-  wormholeIntels: WormholeIntel[];
+  wormholeIntels: Wormhole[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.MysteryTraderIntel mystery_trader_intels = 10;
+   * @generated from field: repeated craig_stars.v1.MysteryTrader mystery_trader_intels = 10;
    */
-  mysteryTraderIntels: MysteryTraderIntel[];
+  mysteryTraderIntels: MysteryTrader[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.SalvageIntel salvage_intels = 11;
+   * @generated from field: repeated craig_stars.v1.Salvage salvage_intels = 11;
    */
-  salvageIntels: SalvageIntel[];
+  salvageIntels: Salvage[];
 };
 
 /**
@@ -691,44 +748,44 @@ export type IntelsJson = {
   scoreIntels?: ScoreIntelJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.PlanetIntel planet_intels = 4;
+   * @generated from field: repeated craig_stars.v1.Planet planet_intels = 4;
    */
-  planetIntels?: PlanetIntelJson[];
+  planetIntels?: PlanetJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.FleetIntel fleet_intels = 5;
+   * @generated from field: repeated craig_stars.v1.Fleet fleet_intels = 5;
    */
-  fleetIntels?: FleetIntelJson[];
+  fleetIntels?: FleetJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.ShipDesignIntel ship_design_intels = 6;
+   * @generated from field: repeated craig_stars.v1.ShipDesign ship_design_intels = 6;
    */
-  shipDesignIntels?: ShipDesignIntelJson[];
+  shipDesignIntels?: ShipDesignJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.MineralPacketIntel mineral_packet_intels = 7;
+   * @generated from field: repeated craig_stars.v1.MineralPacket mineral_packet_intels = 7;
    */
-  mineralPacketIntels?: MineralPacketIntelJson[];
+  mineralPacketIntels?: MineralPacketJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.MinefieldIntel minefield_intels = 8;
+   * @generated from field: repeated craig_stars.v1.Minefield minefield_intels = 8;
    */
-  minefieldIntels?: MinefieldIntelJson[];
+  minefieldIntels?: MinefieldJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.WormholeIntel wormhole_intels = 9;
+   * @generated from field: repeated craig_stars.v1.Wormhole wormhole_intels = 9;
    */
-  wormholeIntels?: WormholeIntelJson[];
+  wormholeIntels?: WormholeJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.MysteryTraderIntel mystery_trader_intels = 10;
+   * @generated from field: repeated craig_stars.v1.MysteryTrader mystery_trader_intels = 10;
    */
-  mysteryTraderIntels?: MysteryTraderIntelJson[];
+  mysteryTraderIntels?: MysteryTraderJson[];
 
   /**
-   * @generated from field: repeated craig_stars.v1.SalvageIntel salvage_intels = 11;
+   * @generated from field: repeated craig_stars.v1.Salvage salvage_intels = 11;
    */
-  salvageIntels?: SalvageIntelJson[];
+  salvageIntels?: SalvageJson[];
 };
 
 /**
@@ -937,12 +994,10 @@ export const PlayerRelationshipSchema: GenMessage<PlayerRelationship, {jsonType:
   messageDesc(file_craig_stars_v1_player, 9);
 
 /**
- * @generated from message craig_stars.v1.PlayerSpec
+ * @generated from message craig_stars.v1.PlayerResearchSpec
  */
-export type PlayerSpec = Message<"craig_stars.v1.PlayerSpec"> & {
+export type PlayerResearchSpec = Message<"craig_stars.v1.PlayerResearchSpec"> & {
   /**
-   * Embedded PlayerResearchSpec
-   *
    * @generated from field: int32 resources_per_year = 1;
    */
   resourcesPerYear: number;
@@ -961,37 +1016,13 @@ export type PlayerSpec = Message<"craig_stars.v1.PlayerSpec"> & {
    * @generated from field: int32 current_research_cost = 4;
    */
   currentResearchCost: number;
-
-  /**
-   * @generated from field: repeated craig_stars.v1.Tech techs_just_gained = 5;
-   */
-  techsJustGained: Tech[];
-
-  /**
-   * @generated from field: craig_stars.v1.TechPlanetaryScanner planetary_scanner = 6;
-   */
-  planetaryScanner?: TechPlanetaryScanner;
-
-  /**
-   * @generated from field: craig_stars.v1.TechDefense defense = 7;
-   */
-  defense?: TechDefense;
-
-  /**
-   * TerraformHabType as string
-   *
-   * @generated from field: map<int32, craig_stars.v1.TechTerraform> terraform = 8;
-   */
-  terraform: { [key: number]: TechTerraform };
 };
 
 /**
- * @generated from message craig_stars.v1.PlayerSpec
+ * @generated from message craig_stars.v1.PlayerResearchSpec
  */
-export type PlayerSpecJson = {
+export type PlayerResearchSpecJson = {
   /**
-   * Embedded PlayerResearchSpec
-   *
    * @generated from field: int32 resources_per_year = 1;
    */
   resourcesPerYear?: number;
@@ -1010,35 +1041,13 @@ export type PlayerSpecJson = {
    * @generated from field: int32 current_research_cost = 4;
    */
   currentResearchCost?: number;
-
-  /**
-   * @generated from field: repeated craig_stars.v1.Tech techs_just_gained = 5;
-   */
-  techsJustGained?: TechJson[];
-
-  /**
-   * @generated from field: craig_stars.v1.TechPlanetaryScanner planetary_scanner = 6;
-   */
-  planetaryScanner?: TechPlanetaryScannerJson;
-
-  /**
-   * @generated from field: craig_stars.v1.TechDefense defense = 7;
-   */
-  defense?: TechDefenseJson;
-
-  /**
-   * TerraformHabType as string
-   *
-   * @generated from field: map<int32, craig_stars.v1.TechTerraform> terraform = 8;
-   */
-  terraform?: { [key: number]: TechTerraformJson };
 };
 
 /**
- * Describes the message craig_stars.v1.PlayerSpec.
- * Use `create(PlayerSpecSchema)` to create a new message.
+ * Describes the message craig_stars.v1.PlayerResearchSpec.
+ * Use `create(PlayerResearchSpecSchema)` to create a new message.
  */
-export const PlayerSpecSchema: GenMessage<PlayerSpec, {jsonType: PlayerSpecJson}> = /*@__PURE__*/
+export const PlayerResearchSpecSchema: GenMessage<PlayerResearchSpec, {jsonType: PlayerResearchSpecJson}> = /*@__PURE__*/
   messageDesc(file_craig_stars_v1_player, 10);
 
 /**

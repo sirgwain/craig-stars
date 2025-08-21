@@ -2,13 +2,12 @@
 	import WarpSpeedGauge from '$lib/components/game/WarpSpeedGauge.svelte';
 	import { onShipDesignTooltip } from '$lib/components/game/tooltips/ShipDesignTooltip.svelte';
 	import { onTechTooltip } from '$lib/components/game/tooltips/TechTooltip.svelte';
-	import type { Fleet } from '$lib/types/cs-proto';
 	import type { ChangeMassDriverSpeedProps } from '$lib/services/Events';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { techs } from '$lib/services/Stores';
-	import type { AnyShipDesign } from '$lib/services/Universe';
-	import type { CommandedPlanet } from '$lib/types/Planet';
 	import { UnlimitedSpaceDock } from '$lib/types/Consts';
+	import type { CommandedPlanet } from '$lib/types/Planet';
+	import type { Fleet, ShipDesign } from '$lib/types/cs-proto';
 	import CommandTile from './CommandTile.svelte';
 
 	const { game, player, universe, settings } = getGameContext();
@@ -37,7 +36,7 @@
 		if (starbase?.tokens && starbase.tokens.length > 0) {
 			onShipDesignTooltip(
 				e,
-				$universe.getDesign($player.num, starbase?.tokens[0].designNum) as AnyShipDesign | undefined
+				$universe.getDesign($player.num, starbase?.tokens[0].designNum) as ShipDesign | undefined
 			);
 		}
 	}

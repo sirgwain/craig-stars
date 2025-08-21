@@ -17,7 +17,6 @@
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip, techs } from '$lib/services/Stores';
-	import { type AnyPlanet, type AnyShipDesign } from '$lib/services/Universe';
 	import { population } from '$lib/types/Cargo';
 	import { ReportAgeUnexplored } from '$lib/types/Consts';
 	import { owned, ownedBy, type MapObjectLike } from '$lib/types/MapObject';
@@ -26,8 +25,8 @@
 	import { Check } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import ProductionQueueDialog from '../dialogs/production/ProductionQueueDialog.svelte';
-	import { MapObjectTargetSchema, type Fleet } from '$lib/types/cs-proto';
-	import type { Planet } from '$lib/types/cs-proto';
+	import { MapObjectTargetSchema, MineralSchema, type Fleet } from '$lib/types/cs-proto';
+	import type { Planet, ShipDesign } from '$lib/types/cs-proto';
 	import { create } from '@bufbuild/protobuf';
 
 	const {
@@ -50,17 +49,17 @@
 	// production queue dialog
 	let showProductionQueueDialog = $state(false);
 
-	let filteredPlanets: AnyPlanet[] = $derived(
+	let filteredPlanets: Planet[] = $derived(
 		$settings.showAllPlanets
 			? ($universe
 					.getPlanets($settings.sortPlanetsKey, $settings.sortPlanetsDescending)
-					.map<TablePlanet>( // convert PlanetIntel to a TablePlanet, so populate all the planet fields as empty
+					.map<TablePlanet>( // convert Planet to a TablePlanet, so populate all the planet fields as empty
 						(r) =>
 							({
 								...r,
 								mines: 0,
 								factories: 0,
-								mineYears: 0,
+								mineYears: create(MineralSchema),
 								defenses: 0
 							}) as TablePlanet
 					)
@@ -80,7 +79,7 @@
 	);
 
 	// columns change based on whether we are showing all planets or just the player planets
-	type TablePlanet = AnyPlanet & {
+	type TablePlanet = Planet & {
 		name?: never;
 		owner?: never;
 		population?: never;
@@ -223,7 +222,7 @@
 		showProductionQueueDialog = true;
 	}
 
-	function onPopulationTooltip(e: PointerEvent, planet: AnyPlanet) {
+	function onPopulationTooltip(e: PointerEvent, planet: Planet) {
 		showTooltip<PopulationTooltipProps>(e.x, e.y, PopulationTooltip, {
 			playerFinder: $universe,
 			player: $player,
@@ -253,18 +252,18 @@
 		});
 	}
 
-	function showDesign(e: PointerEvent, planet: AnyPlanet) {
+	function showDesign(e: PointerEvent, planet: Planet) {
 		e.preventDefault();
 		onShipDesignTooltip(
 			e,
 			$universe.getDesign(
 				planet.mapObject?.playerNum ?? 0,
 				planet.spec?.planetStarbaseSpec?.starbaseDesignNum ?? 0
-			) as AnyShipDesign | undefined
+			) as ShipDesign | undefined
 		);
 	}
 
-	function onDefenseTooltip(e: PointerEvent, planet: AnyPlanet) {
+	function onDefenseTooltip(e: PointerEvent, planet: Planet) {
 		e.preventDefault();
 		onTechTooltip(e, $techs.getTech(planet.spec?.defense ?? ''));
 	}
@@ -347,13 +346,13 @@
 					<span style={`color: ${$universe.getPlayerColor(row.mapObject?.playerNum)};`}>
 						{owned(row) ? ($universe.getPlayerPluralName(row.mapObject?.playerNum) ?? '') : ''}
 					</span>
-				{:else if column.key == 'reportAge' && 'reportAge' in row}
-					{#if row.reportAge == 0 || row.reportAge === undefined}
+				{:else if column.key == 'reportAge'}
+					{#if row.mapObject?.reportAge === 0 || row.mapObject?.reportAge === undefined}
 						current
-					{:else if row.reportAge == ReportAgeUnexplored}
+					{:else if row.mapObject?.reportAge === ReportAgeUnexplored}
 						unexplored
 					{:else}
-						{row.reportAge} years old
+						{row.mapObject?.reportAge} years old
 					{/if}
 				{:else if column.key == 'starbase'}
 					{#if row.spec?.planetStarbaseSpec?.starbaseDesignName}

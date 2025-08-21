@@ -546,7 +546,7 @@ func (p *Planet) GetGrowthAmount(player *Player, maxPopulation int, populationOv
 }
 
 // compute a planet's PlanetSpec.
-func computePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec {
+func ComputePlanetSpec(rules *Rules, player *Player, planet *Planet) PlanetSpec {
 	spec := PlanetSpec{}
 	race := &player.Race
 

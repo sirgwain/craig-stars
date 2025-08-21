@@ -11,6 +11,6 @@
 </script>
 
 <!-- Salvages -->
-{#each $universe.salvageIntels as salvage (key(salvage))}
+{#each $universe.salvages as salvage (key(salvage))}
 	<ScannerSalvage {salvage} />
 {/each}

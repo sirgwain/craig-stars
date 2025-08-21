@@ -3,12 +3,12 @@
 	import Hull from '$lib/components/game/design/Hull.svelte';
 	import TechAvatar from '$lib/components/tech/TechAvatar.svelte';
 	import { techs } from '$lib/services/Stores';
-	import type { AnyShipDesign } from '$lib/services/Universe';
 	import { total } from '$lib/types/Cost';
+	import type { ShipDesign } from '$lib/types/cs-proto';
 	import DesignStats from '../DesignStats.svelte';
 
 	type Props = {
-		design: AnyShipDesign;
+		design: ShipDesign;
 	};
 
 	let { design }: Props = $props();

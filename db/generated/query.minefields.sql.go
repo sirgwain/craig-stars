@@ -17,6 +17,8 @@ INSERT INTO
         created_at,
         updated_at,
         game_id,
+        intel_player_num,
+        report_age,
         x,
         y,
         name,
@@ -40,26 +42,32 @@ VALUES
         ?,
         ?,
         ?,
+        ?,
+        ?,
         ?
     )
 `
 
 type CreateMinefieldParams struct {
-	GameID        int64
-	X             float64
-	Y             float64
-	Name          string
-	Num           int64
-	PlayerNum     int64
-	Tags          *Tags
-	MinefieldType *cs.MinefieldType
-	NumMines      int64
-	Detonate      bool
+	GameID         int64
+	IntelPlayerNum int64
+	ReportAge      int64
+	X              float64
+	Y              float64
+	Name           string
+	Num            int64
+	PlayerNum      int64
+	Tags           *Tags
+	MinefieldType  *cs.MinefieldType
+	NumMines       int64
+	Detonate       bool
 }
 
 func (q *Queries) CreateMinefield(ctx context.Context, arg CreateMinefieldParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, CreateMinefield,
 		arg.GameID,
+		arg.IntelPlayerNum,
+		arg.ReportAge,
 		arg.X,
 		arg.Y,
 		arg.Name,
@@ -92,7 +100,7 @@ func (q *Queries) DeleteMinefield(ctx context.Context, id int64) (int64, error) 
 
 const GetMinefield = `-- name: GetMinefield :one
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
 FROM
     minefields
 WHERE
@@ -108,6 +116,8 @@ func (q *Queries) GetMinefield(ctx context.Context, id int64) (Minefield, error)
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
+		&i.IntelPlayerNum,
+		&i.ReportAge,
 		&i.X,
 		&i.Y,
 		&i.Name,
@@ -123,7 +133,7 @@ func (q *Queries) GetMinefield(ctx context.Context, id int64) (Minefield, error)
 
 const GetMinefieldByNum = `-- name: GetMinefieldByNum :one
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
 FROM
     minefields
 WHERE
@@ -146,6 +156,8 @@ func (q *Queries) GetMinefieldByNum(ctx context.Context, arg GetMinefieldByNumPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.GameID,
+		&i.IntelPlayerNum,
+		&i.ReportAge,
 		&i.X,
 		&i.Y,
 		&i.Name,
@@ -161,7 +173,7 @@ func (q *Queries) GetMinefieldByNum(ctx context.Context, arg GetMinefieldByNumPa
 
 const GetMinefields = `-- name: GetMinefields :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
 FROM
     minefields
 `
@@ -180,6 +192,8 @@ func (q *Queries) GetMinefields(ctx context.Context) ([]Minefield, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.IntelPlayerNum,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -205,7 +219,7 @@ func (q *Queries) GetMinefields(ctx context.Context) ([]Minefield, error) {
 
 const GetMinefieldsForGame = `-- name: GetMinefieldsForGame :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
 FROM
     minefields
 WHERE
@@ -229,6 +243,8 @@ func (q *Queries) GetMinefieldsForGame(ctx context.Context, gameID int64) ([]Min
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.IntelPlayerNum,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -254,7 +270,7 @@ func (q *Queries) GetMinefieldsForGame(ctx context.Context, gameID int64) ([]Min
 
 const GetMinefieldsForPlayer = `-- name: GetMinefieldsForPlayer :many
 SELECT
-    id, created_at, updated_at, game_id, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
+    id, created_at, updated_at, game_id, intel_player_num, report_age, x, y, name, num, player_num, num_mines, detonate, minefield_type, tags
 FROM
     minefields
 WHERE
@@ -283,6 +299,8 @@ func (q *Queries) GetMinefieldsForPlayer(ctx context.Context, arg GetMinefieldsF
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.GameID,
+			&i.IntelPlayerNum,
+			&i.ReportAge,
 			&i.X,
 			&i.Y,
 			&i.Name,
@@ -311,6 +329,8 @@ UPDATE minefields
 SET
     updated_at = CURRENT_TIMESTAMP,
     game_id = ?,
+    intel_player_num = ?,
+    report_age = ?,
     x = ?,
     y = ?,
     name = ?,
@@ -325,22 +345,26 @@ WHERE
 `
 
 type UpdateMinefieldParams struct {
-	GameID        int64
-	X             float64
-	Y             float64
-	Name          string
-	Num           int64
-	PlayerNum     int64
-	Tags          *Tags
-	MinefieldType *cs.MinefieldType
-	NumMines      int64
-	Detonate      bool
-	ID            int64
+	GameID         int64
+	IntelPlayerNum int64
+	ReportAge      int64
+	X              float64
+	Y              float64
+	Name           string
+	Num            int64
+	PlayerNum      int64
+	Tags           *Tags
+	MinefieldType  *cs.MinefieldType
+	NumMines       int64
+	Detonate       bool
+	ID             int64
 }
 
 func (q *Queries) UpdateMinefield(ctx context.Context, arg UpdateMinefieldParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, UpdateMinefield,
 		arg.GameID,
+		arg.IntelPlayerNum,
+		arg.ReportAge,
 		arg.X,
 		arg.Y,
 		arg.Name,

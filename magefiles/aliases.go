@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package main
 
 var Aliases = map[string]any{

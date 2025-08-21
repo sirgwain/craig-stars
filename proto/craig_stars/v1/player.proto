@@ -9,10 +9,13 @@ import "craig_stars/v1/intel.proto";
 import "craig_stars/v1/message.proto";
 import "craig_stars/v1/minefield.proto";
 import "craig_stars/v1/mineralpacket.proto";
+import "craig_stars/v1/mysterytrader.proto";
 import "craig_stars/v1/planet.proto";
 import "craig_stars/v1/race.proto";
+import "craig_stars/v1/salvage.proto";
 import "craig_stars/v1/score.proto";
-import "craig_stars/v1/tech.proto";
+import "craig_stars/v1/shipdesign.proto";
+import "craig_stars/v1/wormhole.proto";
 import "google/protobuf/timestamp.proto";
 
 enum PlayerRelation {
@@ -50,16 +53,21 @@ message Player {
   bool victor = 23;
   bool archived = 24;
   PlayerStats stats = 25;
-  PlayerSpec spec = 26;
 }
 
 // Aggregate universe view used by SubmitTurnResponse/ForceGenerateTurnResponse/GetPlayerResponse.
 message PlayerUniverse {
-  repeated Planet planets = 1;
-  repeated Fleet fleets = 2;
-  repeated Fleet starbases = 3;
-  repeated Minefield minefields = 4;
-  repeated MineralPacket mineral_packets = 5;
+  repeated BattleRecord battle_records = 1;
+  repeated PlayerIntel player_intels = 2;
+  repeated ScoreIntel score_intels = 3;
+  repeated ShipDesign designs = 4;
+  repeated Planet planets = 5;
+  repeated Fleet fleets = 6;
+  repeated Minefield minefields = 7;
+  repeated MineralPacket mineral_packets = 8;
+  repeated MysteryTrader mystery_traders = 9;
+  repeated Salvage salvages = 10;
+  repeated Wormhole wormholes = 11;
 }
 
 message ByHandCargoTransfer {
@@ -92,14 +100,14 @@ message Intels {
   repeated BattleRecord battle_records = 1;
   repeated PlayerIntel player_intels = 2;
   repeated ScoreIntel score_intels = 3;
-  repeated PlanetIntel planet_intels = 4;
-  repeated FleetIntel fleet_intels = 5;
-  repeated ShipDesignIntel ship_design_intels = 6;
-  repeated MineralPacketIntel mineral_packet_intels = 7;
-  repeated MinefieldIntel minefield_intels = 8;
-  repeated WormholeIntel wormhole_intels = 9;
-  repeated MysteryTraderIntel mystery_trader_intels = 10;
-  repeated SalvageIntel salvage_intels = 11;
+  repeated Planet planet_intels = 4;
+  repeated Fleet fleet_intels = 5;
+  repeated ShipDesign ship_design_intels = 6;
+  repeated MineralPacket mineral_packet_intels = 7;
+  repeated Minefield minefield_intels = 8;
+  repeated Wormhole wormhole_intels = 9;
+  repeated MysteryTrader mystery_trader_intels = 10;
+  repeated Salvage salvage_intels = 11;
 }
 
 message PlayerPlans {
@@ -127,17 +135,11 @@ message PlayerRelationship {
   bool share_map = 2;
 }
 
-message PlayerSpec {
-  // Embedded PlayerResearchSpec
+message PlayerResearchSpec {
   int32 resources_per_year = 1;
   int32 resources_per_year_research = 2;
   int32 resources_per_year_research_estimated = 3;
   int32 current_research_cost = 4;
-  repeated Tech techs_just_gained = 5;
-
-  TechPlanetaryScanner planetary_scanner = 6;
-  TechDefense defense = 7;
-  map<int32, TechTerraform> terraform = 8; // TerraformHabType as string
 }
 
 message BattlePlan {

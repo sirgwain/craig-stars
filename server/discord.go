@@ -150,7 +150,7 @@ func (d *discordNotifier) SendTestWebhook(ctx context.Context, webhookURL, disco
 }
 
 // sendWebhookMessage sends a message to a Discord webhook
-func (d *discordNotifier) sendWebhookMessage(ctx context.Context, hook discordWebhook, message discord.WebhookMessageCreate) {
+func (d *discordNotifier) sendWebhookMessage(_ context.Context, hook discordWebhook, message discord.WebhookMessageCreate) {
 	// construct new webhook client
 	// https://discord.com/api/webhooks/<id>/<token>
 	id, err := snowflake.Parse(hook.id)

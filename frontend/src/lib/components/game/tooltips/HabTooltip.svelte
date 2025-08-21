@@ -1,15 +1,17 @@
 <script lang="ts" module>
 	import type { HabType } from '$lib/types/Hab';
 	import type { CommandedPlayer } from '$lib/types/Player';
+	import type { Planet } from '$lib/types/cs-proto';
+
 	export type HabTooltipProps = {
 		player: CommandedPlayer;
-		planet: AnyPlanet;
+		planet: Planet;
 		habType: HabType;
 	};
 </script>
 
 <script lang="ts">
-	import type { AnyPlanet } from '$lib/services/Universe';
+	import { getGameContext } from '$lib/services/GameContext';
 	import {
 		add,
 		emptyHab,
@@ -19,7 +21,6 @@
 		withHabValue
 	} from '$lib/types/Hab';
 	import { isImmune } from '$lib/types/Race';
-	import { getGameContext } from '$lib/services/GameContext';
 
 	const { cs } = getGameContext();
 	let { player, planet, habType }: HabTooltipProps = $props();

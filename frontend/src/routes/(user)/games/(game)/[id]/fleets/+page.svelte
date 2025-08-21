@@ -6,7 +6,6 @@
 	import Table, { type TableColumn } from '$lib/components/table/Table.svelte';
 	import TableSearchInput from '$lib/components/table/TableSearchInput.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyFleet } from '$lib/services/Universe';
 	import { WaypointTask, type Fleet } from '$lib/types/cs-proto';
 	import { enumToString } from '$lib/types/Enums';
 	import { fleetsSortBy, getEta, getLocation } from '$lib/types/Fleet';
@@ -59,7 +58,7 @@
 			.filter((i) => i.mapObject?.name.toLowerCase().indexOf(search.toLowerCase()) != -1) ?? []
 	);
 
-	type TableFleet = AnyFleet & {
+	type TableFleet = Fleet & {
 		name?: never;
 		num?: never;
 		battlePlanNum?: never;

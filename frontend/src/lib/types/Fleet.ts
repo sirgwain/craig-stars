@@ -1,4 +1,4 @@
-import type { AnyFleet, AnyPlanet, AnyShipDesign, Universe } from '$lib/services/Universe';
+import type { Universe } from '$lib/services/Universe';
 import {
 	CargoSchema,
 	type Fleet,
@@ -8,7 +8,9 @@ import {
 	FleetSpecSchema,
 	MapObjectSchema,
 	MapObjectType,
+	type Planet,
 	ResourceType,
+	type ShipDesign,
 	type ShipToken,
 	type ShipTokenJson,
 	type Vector,
@@ -20,13 +22,12 @@ import {
 } from '$lib/types/cs-proto';
 import { create, merge, type UnknownField } from '@bufbuild/protobuf';
 import { get as pluck } from 'lodash-es';
-import { totalCargo } from './Cargo';
+import { type CargoType, totalCargo } from './Cargo';
 import type { CargoDest } from './CargoTransferRequest.svelte';
-import { type MapObjectLike, owned } from './MapObject';
 import { None, StargateWarpSpeed } from './Consts';
+import { type MapObjectLike, owned } from './MapObject';
 import type { CommandedPlayer } from './Player';
 import { distance, emptyVector } from './Vector';
-import { type CargoType } from './Cargo';
 
 export const WaypointTasks: WaypointTask[] = [
 	WaypointTask.UNSPECIFIED,
@@ -133,7 +134,7 @@ export class CommandedFleet implements Fleet {
 	 * @param targetPlanet the planet the fleet is targeting
 	 * @returns true if the fleet will refuel at this planet
 	 */
-	canFuel(player: CommandedPlayer, targetPlanet: AnyPlanet | undefined): boolean {
+	canFuel(player: CommandedPlayer, targetPlanet: Planet | undefined): boolean {
 		return !!(
 			targetPlanet &&
 			owned(targetPlanet) &&
@@ -191,10 +192,7 @@ export class CommandedFleet implements Fleet {
 	}
 }
 
-export function getDamagePercentForToken(
-	token: ShipToken,
-	design: AnyShipDesign | undefined
-): number {
+export function getDamagePercentForToken(token: ShipToken, design: ShipDesign | undefined): number {
 	const armor = design?.spec?.armor ?? 0;
 	const totalArmor = armor * token.quantity;
 	const quantityDamaged =
@@ -274,7 +272,7 @@ export const isUnloadAction = (action: WaypointTaskTransportAction) =>
 		action
 	) != -1;
 
-export const getLocation = (fleet: AnyFleet, universe: Universe) =>
+export const getLocation = (fleet: Fleet, universe: Universe) =>
 	fleet.orbitingPlanetNum
 		? (universe.getPlanet(fleet.orbitingPlanetNum)?.mapObject?.name ?? 'unknown')
 		: `Space: (${fleet.mapObject?.position?.x ?? 0}, ${fleet.mapObject?.position?.y ?? 0})`;
@@ -306,7 +304,7 @@ export const getEta = (fleet: Fleet) => {
 
 export function getTokenCount(mo: MapObjectLike) {
 	if (mo.mapObject?.type === MapObjectType.FLEET) {
-		const fleet = mo as AnyFleet;
+		const fleet = mo as Fleet;
 		return fleet.tokens ? fleet.tokens.reduce((count, t) => count + t.quantity, 0) : 0;
 	}
 	return 0;
@@ -317,11 +315,8 @@ export function hasDestination(mo: MapObjectLike): boolean {
 	return (fleet?.fleetOrders?.waypoints?.length ?? 0) > 1;
 }
 
-// get the mass of a fleet or fleetintel
-export function getMass(fleet: AnyFleet) {
-	if ('mass' in fleet) {
-		return fleet.mass ?? 0;
-	}
+// get the mass of a fleet or Fleet
+export function getMass(fleet: Fleet): number {
 	return fleet.spec?.shipDesignSpec?.mass ?? 0;
 }
 
@@ -330,7 +325,7 @@ export function getMass(fleet: AnyFleet) {
 export function fleetsSortBy(
 	key: string,
 	universe: Universe
-): ((a: AnyFleet, b: AnyFleet) => number) | undefined {
+): ((a: Fleet, b: Fleet) => number) | undefined {
 	switch (key) {
 		case 'name':
 			return (a, b) => (a.mapObject?.name ?? '').localeCompare(b.mapObject?.name ?? '');

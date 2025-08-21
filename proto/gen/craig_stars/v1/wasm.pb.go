@@ -317,6 +317,86 @@ func (x *ComputeMinefieldSpecResponse) GetSpec() *MinefieldSpec {
 	return nil
 }
 
+type ComputePlayerResearchSpecRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ComputePlayerResearchSpecRequest) Reset() {
+	*x = ComputePlayerResearchSpecRequest{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ComputePlayerResearchSpecRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ComputePlayerResearchSpecRequest) ProtoMessage() {}
+
+func (x *ComputePlayerResearchSpecRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ComputePlayerResearchSpecRequest.ProtoReflect.Descriptor instead.
+func (*ComputePlayerResearchSpecRequest) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{6}
+}
+
+type ComputePlayerResearchSpecResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Spec          *PlayerResearchSpec    `protobuf:"bytes,1,opt,name=spec,proto3" json:"spec,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ComputePlayerResearchSpecResponse) Reset() {
+	*x = ComputePlayerResearchSpecResponse{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ComputePlayerResearchSpecResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ComputePlayerResearchSpecResponse) ProtoMessage() {}
+
+func (x *ComputePlayerResearchSpecResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ComputePlayerResearchSpecResponse.ProtoReflect.Descriptor instead.
+func (*ComputePlayerResearchSpecResponse) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ComputePlayerResearchSpecResponse) GetSpec() *PlayerResearchSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
 type ComputeRaceSpecRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Race          *Race                  `protobuf:"bytes,1,opt,name=race,proto3" json:"race,omitempty"`
@@ -326,7 +406,7 @@ type ComputeRaceSpecRequest struct {
 
 func (x *ComputeRaceSpecRequest) Reset() {
 	*x = ComputeRaceSpecRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[6]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -338,7 +418,7 @@ func (x *ComputeRaceSpecRequest) String() string {
 func (*ComputeRaceSpecRequest) ProtoMessage() {}
 
 func (x *ComputeRaceSpecRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[6]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -351,7 +431,7 @@ func (x *ComputeRaceSpecRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ComputeRaceSpecRequest.ProtoReflect.Descriptor instead.
 func (*ComputeRaceSpecRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{6}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ComputeRaceSpecRequest) GetRace() *Race {
@@ -370,7 +450,7 @@ type ComputeRaceSpecResponse struct {
 
 func (x *ComputeRaceSpecResponse) Reset() {
 	*x = ComputeRaceSpecResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[7]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -382,7 +462,7 @@ func (x *ComputeRaceSpecResponse) String() string {
 func (*ComputeRaceSpecResponse) ProtoMessage() {}
 
 func (x *ComputeRaceSpecResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[7]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -395,7 +475,7 @@ func (x *ComputeRaceSpecResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ComputeRaceSpecResponse.ProtoReflect.Descriptor instead.
 func (*ComputeRaceSpecResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{7}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ComputeRaceSpecResponse) GetSpec() *RaceSpec {
@@ -414,7 +494,7 @@ type ComputeShipDesignSpecRequest struct {
 
 func (x *ComputeShipDesignSpecRequest) Reset() {
 	*x = ComputeShipDesignSpecRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[8]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -426,7 +506,7 @@ func (x *ComputeShipDesignSpecRequest) String() string {
 func (*ComputeShipDesignSpecRequest) ProtoMessage() {}
 
 func (x *ComputeShipDesignSpecRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[8]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -439,7 +519,7 @@ func (x *ComputeShipDesignSpecRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ComputeShipDesignSpecRequest.ProtoReflect.Descriptor instead.
 func (*ComputeShipDesignSpecRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{8}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ComputeShipDesignSpecRequest) GetDesign() *ShipDesign {
@@ -458,7 +538,7 @@ type ComputeShipDesignSpecResponse struct {
 
 func (x *ComputeShipDesignSpecResponse) Reset() {
 	*x = ComputeShipDesignSpecResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[9]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -470,7 +550,7 @@ func (x *ComputeShipDesignSpecResponse) String() string {
 func (*ComputeShipDesignSpecResponse) ProtoMessage() {}
 
 func (x *ComputeShipDesignSpecResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[9]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -483,7 +563,7 @@ func (x *ComputeShipDesignSpecResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ComputeShipDesignSpecResponse.ProtoReflect.Descriptor instead.
 func (*ComputeShipDesignSpecResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{9}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ComputeShipDesignSpecResponse) GetSpec() *ShipDesignSpec {
@@ -502,7 +582,7 @@ type EnableDebugRequest struct {
 
 func (x *EnableDebugRequest) Reset() {
 	*x = EnableDebugRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[10]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -514,7 +594,7 @@ func (x *EnableDebugRequest) String() string {
 func (*EnableDebugRequest) ProtoMessage() {}
 
 func (x *EnableDebugRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[10]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -527,7 +607,7 @@ func (x *EnableDebugRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableDebugRequest.ProtoReflect.Descriptor instead.
 func (*EnableDebugRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{10}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *EnableDebugRequest) GetDebug() bool {
@@ -545,7 +625,7 @@ type EnableDebugResponse struct {
 
 func (x *EnableDebugResponse) Reset() {
 	*x = EnableDebugResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[11]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -557,7 +637,7 @@ func (x *EnableDebugResponse) String() string {
 func (*EnableDebugResponse) ProtoMessage() {}
 
 func (x *EnableDebugResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[11]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -570,7 +650,7 @@ func (x *EnableDebugResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableDebugResponse.ProtoReflect.Descriptor instead.
 func (*EnableDebugResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{11}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{13}
 }
 
 type EstimateProductionRequest struct {
@@ -582,7 +662,7 @@ type EstimateProductionRequest struct {
 
 func (x *EstimateProductionRequest) Reset() {
 	*x = EstimateProductionRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[12]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -594,7 +674,7 @@ func (x *EstimateProductionRequest) String() string {
 func (*EstimateProductionRequest) ProtoMessage() {}
 
 func (x *EstimateProductionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[12]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -607,7 +687,7 @@ func (x *EstimateProductionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EstimateProductionRequest.ProtoReflect.Descriptor instead.
 func (*EstimateProductionRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{12}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *EstimateProductionRequest) GetPlanet() *Planet {
@@ -626,7 +706,7 @@ type EstimateProductionResponse struct {
 
 func (x *EstimateProductionResponse) Reset() {
 	*x = EstimateProductionResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[13]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -638,7 +718,7 @@ func (x *EstimateProductionResponse) String() string {
 func (*EstimateProductionResponse) ProtoMessage() {}
 
 func (x *EstimateProductionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[13]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -651,7 +731,7 @@ func (x *EstimateProductionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EstimateProductionResponse.ProtoReflect.Descriptor instead.
 func (*EstimateProductionResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{13}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *EstimateProductionResponse) GetPlanet() *Planet {
@@ -671,7 +751,7 @@ type GetMaxBuildableRequest struct {
 
 func (x *GetMaxBuildableRequest) Reset() {
 	*x = GetMaxBuildableRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[14]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -683,7 +763,7 @@ func (x *GetMaxBuildableRequest) String() string {
 func (*GetMaxBuildableRequest) ProtoMessage() {}
 
 func (x *GetMaxBuildableRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[14]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -696,7 +776,7 @@ func (x *GetMaxBuildableRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMaxBuildableRequest.ProtoReflect.Descriptor instead.
 func (*GetMaxBuildableRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{14}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetMaxBuildableRequest) GetPlanet() *Planet {
@@ -722,7 +802,7 @@ type GetMaxBuildableResponse struct {
 
 func (x *GetMaxBuildableResponse) Reset() {
 	*x = GetMaxBuildableResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[15]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -734,7 +814,7 @@ func (x *GetMaxBuildableResponse) String() string {
 func (*GetMaxBuildableResponse) ProtoMessage() {}
 
 func (x *GetMaxBuildableResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[15]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -747,7 +827,7 @@ func (x *GetMaxBuildableResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMaxBuildableResponse.ProtoReflect.Descriptor instead.
 func (*GetMaxBuildableResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{15}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetMaxBuildableResponse) GetResult() int32 {
@@ -767,7 +847,7 @@ type GetPlanetHabitabilityRequest struct {
 
 func (x *GetPlanetHabitabilityRequest) Reset() {
 	*x = GetPlanetHabitabilityRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[16]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -779,7 +859,7 @@ func (x *GetPlanetHabitabilityRequest) String() string {
 func (*GetPlanetHabitabilityRequest) ProtoMessage() {}
 
 func (x *GetPlanetHabitabilityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[16]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -792,7 +872,7 @@ func (x *GetPlanetHabitabilityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPlanetHabitabilityRequest.ProtoReflect.Descriptor instead.
 func (*GetPlanetHabitabilityRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{16}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetPlanetHabitabilityRequest) GetRace() *Race {
@@ -818,7 +898,7 @@ type GetPlanetHabitabilityResponse struct {
 
 func (x *GetPlanetHabitabilityResponse) Reset() {
 	*x = GetPlanetHabitabilityResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[17]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -830,7 +910,7 @@ func (x *GetPlanetHabitabilityResponse) String() string {
 func (*GetPlanetHabitabilityResponse) ProtoMessage() {}
 
 func (x *GetPlanetHabitabilityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[17]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -843,7 +923,7 @@ func (x *GetPlanetHabitabilityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPlanetHabitabilityResponse.ProtoReflect.Descriptor instead.
 func (*GetPlanetHabitabilityResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{17}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetPlanetHabitabilityResponse) GetResult() int32 {
@@ -862,7 +942,7 @@ type GetResearchCostRequest struct {
 
 func (x *GetResearchCostRequest) Reset() {
 	*x = GetResearchCostRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[18]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -874,7 +954,7 @@ func (x *GetResearchCostRequest) String() string {
 func (*GetResearchCostRequest) ProtoMessage() {}
 
 func (x *GetResearchCostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[18]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -887,7 +967,7 @@ func (x *GetResearchCostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResearchCostRequest.ProtoReflect.Descriptor instead.
 func (*GetResearchCostRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{18}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetResearchCostRequest) GetTechLevel() *TechLevel {
@@ -906,7 +986,7 @@ type GetResearchCostResponse struct {
 
 func (x *GetResearchCostResponse) Reset() {
 	*x = GetResearchCostResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[19]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -918,7 +998,7 @@ func (x *GetResearchCostResponse) String() string {
 func (*GetResearchCostResponse) ProtoMessage() {}
 
 func (x *GetResearchCostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[19]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -931,7 +1011,7 @@ func (x *GetResearchCostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResearchCostResponse.ProtoReflect.Descriptor instead.
 func (*GetResearchCostResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{19}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetResearchCostResponse) GetResources() int32 {
@@ -951,7 +1031,7 @@ type GetStarbaseUpgradeCostRequest struct {
 
 func (x *GetStarbaseUpgradeCostRequest) Reset() {
 	*x = GetStarbaseUpgradeCostRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[20]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -963,7 +1043,7 @@ func (x *GetStarbaseUpgradeCostRequest) String() string {
 func (*GetStarbaseUpgradeCostRequest) ProtoMessage() {}
 
 func (x *GetStarbaseUpgradeCostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[20]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +1056,7 @@ func (x *GetStarbaseUpgradeCostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStarbaseUpgradeCostRequest.ProtoReflect.Descriptor instead.
 func (*GetStarbaseUpgradeCostRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{20}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetStarbaseUpgradeCostRequest) GetDesign() *ShipDesign {
@@ -1002,7 +1082,7 @@ type GetStarbaseUpgradeCostResponse struct {
 
 func (x *GetStarbaseUpgradeCostResponse) Reset() {
 	*x = GetStarbaseUpgradeCostResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[21]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1014,7 +1094,7 @@ func (x *GetStarbaseUpgradeCostResponse) String() string {
 func (*GetStarbaseUpgradeCostResponse) ProtoMessage() {}
 
 func (x *GetStarbaseUpgradeCostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[21]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1027,7 +1107,7 @@ func (x *GetStarbaseUpgradeCostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStarbaseUpgradeCostResponse.ProtoReflect.Descriptor instead.
 func (*GetStarbaseUpgradeCostResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{21}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetStarbaseUpgradeCostResponse) GetCost() *Cost {
@@ -1046,7 +1126,7 @@ type GetTechCostRequest struct {
 
 func (x *GetTechCostRequest) Reset() {
 	*x = GetTechCostRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[22]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1058,7 +1138,7 @@ func (x *GetTechCostRequest) String() string {
 func (*GetTechCostRequest) ProtoMessage() {}
 
 func (x *GetTechCostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[22]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1071,7 +1151,7 @@ func (x *GetTechCostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTechCostRequest.ProtoReflect.Descriptor instead.
 func (*GetTechCostRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{22}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetTechCostRequest) GetTech() *Tech {
@@ -1090,7 +1170,7 @@ type GetTechCostResponse struct {
 
 func (x *GetTechCostResponse) Reset() {
 	*x = GetTechCostResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[23]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1102,7 +1182,7 @@ func (x *GetTechCostResponse) String() string {
 func (*GetTechCostResponse) ProtoMessage() {}
 
 func (x *GetTechCostResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[23]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1115,7 +1195,7 @@ func (x *GetTechCostResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTechCostResponse.ProtoReflect.Descriptor instead.
 func (*GetTechCostResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{23}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetTechCostResponse) GetCost() *Cost {
@@ -1134,7 +1214,7 @@ type SetDesignsRequest struct {
 
 func (x *SetDesignsRequest) Reset() {
 	*x = SetDesignsRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[24]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1146,7 +1226,7 @@ func (x *SetDesignsRequest) String() string {
 func (*SetDesignsRequest) ProtoMessage() {}
 
 func (x *SetDesignsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[24]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1159,7 +1239,7 @@ func (x *SetDesignsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDesignsRequest.ProtoReflect.Descriptor instead.
 func (*SetDesignsRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{24}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *SetDesignsRequest) GetDesigns() []*ShipDesign {
@@ -1177,7 +1257,7 @@ type SetDesignsResponse struct {
 
 func (x *SetDesignsResponse) Reset() {
 	*x = SetDesignsResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[25]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1189,7 +1269,7 @@ func (x *SetDesignsResponse) String() string {
 func (*SetDesignsResponse) ProtoMessage() {}
 
 func (x *SetDesignsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[25]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1202,7 +1282,7 @@ func (x *SetDesignsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDesignsResponse.ProtoReflect.Descriptor instead.
 func (*SetDesignsResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{25}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{27}
 }
 
 type SetIntelsRequest struct {
@@ -1214,7 +1294,7 @@ type SetIntelsRequest struct {
 
 func (x *SetIntelsRequest) Reset() {
 	*x = SetIntelsRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[26]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1226,7 +1306,7 @@ func (x *SetIntelsRequest) String() string {
 func (*SetIntelsRequest) ProtoMessage() {}
 
 func (x *SetIntelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[26]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1239,7 +1319,7 @@ func (x *SetIntelsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetIntelsRequest.ProtoReflect.Descriptor instead.
 func (*SetIntelsRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{26}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *SetIntelsRequest) GetIntels() *Intels {
@@ -1257,7 +1337,7 @@ type SetIntelsResponse struct {
 
 func (x *SetIntelsResponse) Reset() {
 	*x = SetIntelsResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[27]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1269,7 +1349,7 @@ func (x *SetIntelsResponse) String() string {
 func (*SetIntelsResponse) ProtoMessage() {}
 
 func (x *SetIntelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[27]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1282,7 +1362,7 @@ func (x *SetIntelsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetIntelsResponse.ProtoReflect.Descriptor instead.
 func (*SetIntelsResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{27}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{29}
 }
 
 type SetPlayerRequest struct {
@@ -1294,7 +1374,7 @@ type SetPlayerRequest struct {
 
 func (x *SetPlayerRequest) Reset() {
 	*x = SetPlayerRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[28]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1306,7 +1386,7 @@ func (x *SetPlayerRequest) String() string {
 func (*SetPlayerRequest) ProtoMessage() {}
 
 func (x *SetPlayerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[28]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1319,7 +1399,7 @@ func (x *SetPlayerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetPlayerRequest.ProtoReflect.Descriptor instead.
 func (*SetPlayerRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{28}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SetPlayerRequest) GetPlayer() *Player {
@@ -1337,7 +1417,7 @@ type SetPlayerResponse struct {
 
 func (x *SetPlayerResponse) Reset() {
 	*x = SetPlayerResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[29]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1349,7 +1429,7 @@ func (x *SetPlayerResponse) String() string {
 func (*SetPlayerResponse) ProtoMessage() {}
 
 func (x *SetPlayerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[29]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1362,7 +1442,167 @@ func (x *SetPlayerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetPlayerResponse.ProtoReflect.Descriptor instead.
 func (*SetPlayerResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{29}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{31}
+}
+
+type UpdatePlanetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Planet        *Planet                `protobuf:"bytes,1,opt,name=planet,proto3" json:"planet,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePlanetRequest) Reset() {
+	*x = UpdatePlanetRequest{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePlanetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePlanetRequest) ProtoMessage() {}
+
+func (x *UpdatePlanetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePlanetRequest.ProtoReflect.Descriptor instead.
+func (*UpdatePlanetRequest) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *UpdatePlanetRequest) GetPlanet() *Planet {
+	if x != nil {
+		return x.Planet
+	}
+	return nil
+}
+
+type UpdatePlanetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePlanetResponse) Reset() {
+	*x = UpdatePlanetResponse{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePlanetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePlanetResponse) ProtoMessage() {}
+
+func (x *UpdatePlanetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePlanetResponse.ProtoReflect.Descriptor instead.
+func (*UpdatePlanetResponse) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{33}
+}
+
+type UpdatePlanetsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Planets       []*Planet              `protobuf:"bytes,1,rep,name=planets,proto3" json:"planets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePlanetsRequest) Reset() {
+	*x = UpdatePlanetsRequest{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePlanetsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePlanetsRequest) ProtoMessage() {}
+
+func (x *UpdatePlanetsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePlanetsRequest.ProtoReflect.Descriptor instead.
+func (*UpdatePlanetsRequest) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *UpdatePlanetsRequest) GetPlanets() []*Planet {
+	if x != nil {
+		return x.Planets
+	}
+	return nil
+}
+
+type UpdatePlanetsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePlanetsResponse) Reset() {
+	*x = UpdatePlanetsResponse{}
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePlanetsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePlanetsResponse) ProtoMessage() {}
+
+func (x *UpdatePlanetsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePlanetsResponse.ProtoReflect.Descriptor instead.
+func (*UpdatePlanetsResponse) Descriptor() ([]byte, []int) {
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{35}
 }
 
 type UpdateWaypointRequest struct {
@@ -1377,7 +1617,7 @@ type UpdateWaypointRequest struct {
 
 func (x *UpdateWaypointRequest) Reset() {
 	*x = UpdateWaypointRequest{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[30]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1389,7 +1629,7 @@ func (x *UpdateWaypointRequest) String() string {
 func (*UpdateWaypointRequest) ProtoMessage() {}
 
 func (x *UpdateWaypointRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[30]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1402,7 +1642,7 @@ func (x *UpdateWaypointRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWaypointRequest.ProtoReflect.Descriptor instead.
 func (*UpdateWaypointRequest) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{30}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *UpdateWaypointRequest) GetFleet() *Fleet {
@@ -1443,7 +1683,7 @@ type UpdateWaypointResponse struct {
 
 func (x *UpdateWaypointResponse) Reset() {
 	*x = UpdateWaypointResponse{}
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[31]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1455,7 +1695,7 @@ func (x *UpdateWaypointResponse) String() string {
 func (*UpdateWaypointResponse) ProtoMessage() {}
 
 func (x *UpdateWaypointResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_craig_stars_v1_wasm_proto_msgTypes[31]
+	mi := &file_craig_stars_v1_wasm_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1468,7 +1708,7 @@ func (x *UpdateWaypointResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateWaypointResponse.ProtoReflect.Descriptor instead.
 func (*UpdateWaypointResponse) Descriptor() ([]byte, []int) {
-	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{31}
+	return file_craig_stars_v1_wasm_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *UpdateWaypointResponse) GetFleet() *Fleet {
@@ -1505,7 +1745,10 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\x1bComputeMinefieldSpecRequest\x127\n" +
 	"\tminefield\x18\x01 \x01(\v2\x19.craig_stars.v1.MinefieldR\tminefield\"Q\n" +
 	"\x1cComputeMinefieldSpecResponse\x121\n" +
-	"\x04spec\x18\x01 \x01(\v2\x1d.craig_stars.v1.MinefieldSpecR\x04spec\"B\n" +
+	"\x04spec\x18\x01 \x01(\v2\x1d.craig_stars.v1.MinefieldSpecR\x04spec\"\"\n" +
+	" ComputePlayerResearchSpecRequest\"[\n" +
+	"!ComputePlayerResearchSpecResponse\x126\n" +
+	"\x04spec\x18\x01 \x01(\v2\".craig_stars.v1.PlayerResearchSpecR\x04spec\"B\n" +
 	"\x16ComputeRaceSpecRequest\x12(\n" +
 	"\x04race\x18\x01 \x01(\v2\x14.craig_stars.v1.RaceR\x04race\"G\n" +
 	"\x17ComputeRaceSpecResponse\x12,\n" +
@@ -1554,7 +1797,13 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\x11SetIntelsResponse\"B\n" +
 	"\x10SetPlayerRequest\x12.\n" +
 	"\x06player\x18\x01 \x01(\v2\x16.craig_stars.v1.PlayerR\x06player\"\x13\n" +
-	"\x11SetPlayerResponse\"\xe8\x01\n" +
+	"\x11SetPlayerResponse\"E\n" +
+	"\x13UpdatePlanetRequest\x12.\n" +
+	"\x06planet\x18\x01 \x01(\v2\x16.craig_stars.v1.PlanetR\x06planet\"\x16\n" +
+	"\x14UpdatePlanetResponse\"H\n" +
+	"\x14UpdatePlanetsRequest\x120\n" +
+	"\aplanets\x18\x01 \x03(\v2\x16.craig_stars.v1.PlanetR\aplanets\"\x17\n" +
+	"\x15UpdatePlanetsResponse\"\xe8\x01\n" +
 	"\x15UpdateWaypointRequest\x12+\n" +
 	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x120\n" +
 	"\x04dest\x18\x02 \x01(\v2\x1c.craig_stars.v1.WaypointDestR\x04dest\x12E\n" +
@@ -1562,11 +1811,12 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\x10fastest_waypoint\x18\x04 \x01(\bR\x0ffastestWaypoint\"_\n" +
 	"\x16UpdateWaypointResponse\x12+\n" +
 	"\x05fleet\x18\x01 \x01(\v2\x15.craig_stars.v1.FleetR\x05fleet\x12\x18\n" +
-	"\aupdated\x18\x02 \x01(\bR\aupdated2\xf0\f\n" +
+	"\aupdated\x18\x02 \x01(\bR\aupdated2\xb2\x0f\n" +
 	"\vWasmService\x12X\n" +
 	"\vAddWaypoint\x12\".craig_stars.v1.AddWaypointRequest\x1a#.craig_stars.v1.AddWaypointResponse\"\x00\x12p\n" +
 	"\x13CalculateRacePoints\x12*.craig_stars.v1.CalculateRacePointsRequest\x1a+.craig_stars.v1.CalculateRacePointsResponse\"\x00\x12s\n" +
-	"\x14ComputeMinefieldSpec\x12+.craig_stars.v1.ComputeMinefieldSpecRequest\x1a,.craig_stars.v1.ComputeMinefieldSpecResponse\"\x00\x12d\n" +
+	"\x14ComputeMinefieldSpec\x12+.craig_stars.v1.ComputeMinefieldSpecRequest\x1a,.craig_stars.v1.ComputeMinefieldSpecResponse\"\x00\x12\x82\x01\n" +
+	"\x19ComputePlayerResearchSpec\x120.craig_stars.v1.ComputePlayerResearchSpecRequest\x1a1.craig_stars.v1.ComputePlayerResearchSpecResponse\"\x00\x12d\n" +
 	"\x0fComputeRaceSpec\x12&.craig_stars.v1.ComputeRaceSpecRequest\x1a'.craig_stars.v1.ComputeRaceSpecResponse\"\x00\x12v\n" +
 	"\x15ComputeShipDesignSpec\x12,.craig_stars.v1.ComputeShipDesignSpecRequest\x1a-.craig_stars.v1.ComputeShipDesignSpecResponse\"\x00\x12X\n" +
 	"\vEnableDebug\x12\".craig_stars.v1.EnableDebugRequest\x1a#.craig_stars.v1.EnableDebugResponse\"\x00\x12m\n" +
@@ -1579,7 +1829,9 @@ const file_craig_stars_v1_wasm_proto_rawDesc = "" +
 	"\n" +
 	"SetDesigns\x12!.craig_stars.v1.SetDesignsRequest\x1a\".craig_stars.v1.SetDesignsResponse\"\x00\x12R\n" +
 	"\tSetIntels\x12 .craig_stars.v1.SetIntelsRequest\x1a!.craig_stars.v1.SetIntelsResponse\"\x00\x12R\n" +
-	"\tSetPlayer\x12 .craig_stars.v1.SetPlayerRequest\x1a!.craig_stars.v1.SetPlayerResponse\"\x00\x12a\n" +
+	"\tSetPlayer\x12 .craig_stars.v1.SetPlayerRequest\x1a!.craig_stars.v1.SetPlayerResponse\"\x00\x12[\n" +
+	"\fUpdatePlanet\x12#.craig_stars.v1.UpdatePlanetRequest\x1a$.craig_stars.v1.UpdatePlanetResponse\"\x00\x12^\n" +
+	"\rUpdatePlanets\x12$.craig_stars.v1.UpdatePlanetsRequest\x1a%.craig_stars.v1.UpdatePlanetsResponse\"\x00\x12a\n" +
 	"\x0eUpdateWaypoint\x12%.craig_stars.v1.UpdateWaypointRequest\x1a&.craig_stars.v1.UpdateWaypointResponse\"\x00B\xbc\x01\n" +
 	"\x12com.craig_stars.v1B\tWasmProtoP\x01ZFgithub.com/sirgwain/craig-stars/proto/gen/craig_stars/v1;craig_starsv1\xa2\x02\x03CXX\xaa\x02\rCraigStars.V1\xca\x02\rCraigStars\\V1\xe2\x02\x19CraigStars\\V1\\GPBMetadata\xea\x02\x0eCraigStars::V1b\x06proto3"
 
@@ -1595,123 +1847,139 @@ func file_craig_stars_v1_wasm_proto_rawDescGZIP() []byte {
 	return file_craig_stars_v1_wasm_proto_rawDescData
 }
 
-var file_craig_stars_v1_wasm_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
+var file_craig_stars_v1_wasm_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
 var file_craig_stars_v1_wasm_proto_goTypes = []any{
-	(*AddWaypointRequest)(nil),             // 0: craig_stars.v1.AddWaypointRequest
-	(*AddWaypointResponse)(nil),            // 1: craig_stars.v1.AddWaypointResponse
-	(*CalculateRacePointsRequest)(nil),     // 2: craig_stars.v1.CalculateRacePointsRequest
-	(*CalculateRacePointsResponse)(nil),    // 3: craig_stars.v1.CalculateRacePointsResponse
-	(*ComputeMinefieldSpecRequest)(nil),    // 4: craig_stars.v1.ComputeMinefieldSpecRequest
-	(*ComputeMinefieldSpecResponse)(nil),   // 5: craig_stars.v1.ComputeMinefieldSpecResponse
-	(*ComputeRaceSpecRequest)(nil),         // 6: craig_stars.v1.ComputeRaceSpecRequest
-	(*ComputeRaceSpecResponse)(nil),        // 7: craig_stars.v1.ComputeRaceSpecResponse
-	(*ComputeShipDesignSpecRequest)(nil),   // 8: craig_stars.v1.ComputeShipDesignSpecRequest
-	(*ComputeShipDesignSpecResponse)(nil),  // 9: craig_stars.v1.ComputeShipDesignSpecResponse
-	(*EnableDebugRequest)(nil),             // 10: craig_stars.v1.EnableDebugRequest
-	(*EnableDebugResponse)(nil),            // 11: craig_stars.v1.EnableDebugResponse
-	(*EstimateProductionRequest)(nil),      // 12: craig_stars.v1.EstimateProductionRequest
-	(*EstimateProductionResponse)(nil),     // 13: craig_stars.v1.EstimateProductionResponse
-	(*GetMaxBuildableRequest)(nil),         // 14: craig_stars.v1.GetMaxBuildableRequest
-	(*GetMaxBuildableResponse)(nil),        // 15: craig_stars.v1.GetMaxBuildableResponse
-	(*GetPlanetHabitabilityRequest)(nil),   // 16: craig_stars.v1.GetPlanetHabitabilityRequest
-	(*GetPlanetHabitabilityResponse)(nil),  // 17: craig_stars.v1.GetPlanetHabitabilityResponse
-	(*GetResearchCostRequest)(nil),         // 18: craig_stars.v1.GetResearchCostRequest
-	(*GetResearchCostResponse)(nil),        // 19: craig_stars.v1.GetResearchCostResponse
-	(*GetStarbaseUpgradeCostRequest)(nil),  // 20: craig_stars.v1.GetStarbaseUpgradeCostRequest
-	(*GetStarbaseUpgradeCostResponse)(nil), // 21: craig_stars.v1.GetStarbaseUpgradeCostResponse
-	(*GetTechCostRequest)(nil),             // 22: craig_stars.v1.GetTechCostRequest
-	(*GetTechCostResponse)(nil),            // 23: craig_stars.v1.GetTechCostResponse
-	(*SetDesignsRequest)(nil),              // 24: craig_stars.v1.SetDesignsRequest
-	(*SetDesignsResponse)(nil),             // 25: craig_stars.v1.SetDesignsResponse
-	(*SetIntelsRequest)(nil),               // 26: craig_stars.v1.SetIntelsRequest
-	(*SetIntelsResponse)(nil),              // 27: craig_stars.v1.SetIntelsResponse
-	(*SetPlayerRequest)(nil),               // 28: craig_stars.v1.SetPlayerRequest
-	(*SetPlayerResponse)(nil),              // 29: craig_stars.v1.SetPlayerResponse
-	(*UpdateWaypointRequest)(nil),          // 30: craig_stars.v1.UpdateWaypointRequest
-	(*UpdateWaypointResponse)(nil),         // 31: craig_stars.v1.UpdateWaypointResponse
-	(*Fleet)(nil),                          // 32: craig_stars.v1.Fleet
-	(*WaypointDest)(nil),                   // 33: craig_stars.v1.WaypointDest
-	(*Race)(nil),                           // 34: craig_stars.v1.Race
-	(*Minefield)(nil),                      // 35: craig_stars.v1.Minefield
-	(*MinefieldSpec)(nil),                  // 36: craig_stars.v1.MinefieldSpec
-	(*RaceSpec)(nil),                       // 37: craig_stars.v1.RaceSpec
-	(*ShipDesign)(nil),                     // 38: craig_stars.v1.ShipDesign
-	(*ShipDesignSpec)(nil),                 // 39: craig_stars.v1.ShipDesignSpec
-	(*Planet)(nil),                         // 40: craig_stars.v1.Planet
-	(QueueItemType)(0),                     // 41: craig_stars.v1.QueueItemType
-	(*Hab)(nil),                            // 42: craig_stars.v1.Hab
-	(*TechLevel)(nil),                      // 43: craig_stars.v1.TechLevel
-	(*Cost)(nil),                           // 44: craig_stars.v1.Cost
-	(*Tech)(nil),                           // 45: craig_stars.v1.Tech
-	(*Intels)(nil),                         // 46: craig_stars.v1.Intels
-	(*Player)(nil),                         // 47: craig_stars.v1.Player
+	(*AddWaypointRequest)(nil),                // 0: craig_stars.v1.AddWaypointRequest
+	(*AddWaypointResponse)(nil),               // 1: craig_stars.v1.AddWaypointResponse
+	(*CalculateRacePointsRequest)(nil),        // 2: craig_stars.v1.CalculateRacePointsRequest
+	(*CalculateRacePointsResponse)(nil),       // 3: craig_stars.v1.CalculateRacePointsResponse
+	(*ComputeMinefieldSpecRequest)(nil),       // 4: craig_stars.v1.ComputeMinefieldSpecRequest
+	(*ComputeMinefieldSpecResponse)(nil),      // 5: craig_stars.v1.ComputeMinefieldSpecResponse
+	(*ComputePlayerResearchSpecRequest)(nil),  // 6: craig_stars.v1.ComputePlayerResearchSpecRequest
+	(*ComputePlayerResearchSpecResponse)(nil), // 7: craig_stars.v1.ComputePlayerResearchSpecResponse
+	(*ComputeRaceSpecRequest)(nil),            // 8: craig_stars.v1.ComputeRaceSpecRequest
+	(*ComputeRaceSpecResponse)(nil),           // 9: craig_stars.v1.ComputeRaceSpecResponse
+	(*ComputeShipDesignSpecRequest)(nil),      // 10: craig_stars.v1.ComputeShipDesignSpecRequest
+	(*ComputeShipDesignSpecResponse)(nil),     // 11: craig_stars.v1.ComputeShipDesignSpecResponse
+	(*EnableDebugRequest)(nil),                // 12: craig_stars.v1.EnableDebugRequest
+	(*EnableDebugResponse)(nil),               // 13: craig_stars.v1.EnableDebugResponse
+	(*EstimateProductionRequest)(nil),         // 14: craig_stars.v1.EstimateProductionRequest
+	(*EstimateProductionResponse)(nil),        // 15: craig_stars.v1.EstimateProductionResponse
+	(*GetMaxBuildableRequest)(nil),            // 16: craig_stars.v1.GetMaxBuildableRequest
+	(*GetMaxBuildableResponse)(nil),           // 17: craig_stars.v1.GetMaxBuildableResponse
+	(*GetPlanetHabitabilityRequest)(nil),      // 18: craig_stars.v1.GetPlanetHabitabilityRequest
+	(*GetPlanetHabitabilityResponse)(nil),     // 19: craig_stars.v1.GetPlanetHabitabilityResponse
+	(*GetResearchCostRequest)(nil),            // 20: craig_stars.v1.GetResearchCostRequest
+	(*GetResearchCostResponse)(nil),           // 21: craig_stars.v1.GetResearchCostResponse
+	(*GetStarbaseUpgradeCostRequest)(nil),     // 22: craig_stars.v1.GetStarbaseUpgradeCostRequest
+	(*GetStarbaseUpgradeCostResponse)(nil),    // 23: craig_stars.v1.GetStarbaseUpgradeCostResponse
+	(*GetTechCostRequest)(nil),                // 24: craig_stars.v1.GetTechCostRequest
+	(*GetTechCostResponse)(nil),               // 25: craig_stars.v1.GetTechCostResponse
+	(*SetDesignsRequest)(nil),                 // 26: craig_stars.v1.SetDesignsRequest
+	(*SetDesignsResponse)(nil),                // 27: craig_stars.v1.SetDesignsResponse
+	(*SetIntelsRequest)(nil),                  // 28: craig_stars.v1.SetIntelsRequest
+	(*SetIntelsResponse)(nil),                 // 29: craig_stars.v1.SetIntelsResponse
+	(*SetPlayerRequest)(nil),                  // 30: craig_stars.v1.SetPlayerRequest
+	(*SetPlayerResponse)(nil),                 // 31: craig_stars.v1.SetPlayerResponse
+	(*UpdatePlanetRequest)(nil),               // 32: craig_stars.v1.UpdatePlanetRequest
+	(*UpdatePlanetResponse)(nil),              // 33: craig_stars.v1.UpdatePlanetResponse
+	(*UpdatePlanetsRequest)(nil),              // 34: craig_stars.v1.UpdatePlanetsRequest
+	(*UpdatePlanetsResponse)(nil),             // 35: craig_stars.v1.UpdatePlanetsResponse
+	(*UpdateWaypointRequest)(nil),             // 36: craig_stars.v1.UpdateWaypointRequest
+	(*UpdateWaypointResponse)(nil),            // 37: craig_stars.v1.UpdateWaypointResponse
+	(*Fleet)(nil),                             // 38: craig_stars.v1.Fleet
+	(*WaypointDest)(nil),                      // 39: craig_stars.v1.WaypointDest
+	(*Race)(nil),                              // 40: craig_stars.v1.Race
+	(*Minefield)(nil),                         // 41: craig_stars.v1.Minefield
+	(*MinefieldSpec)(nil),                     // 42: craig_stars.v1.MinefieldSpec
+	(*PlayerResearchSpec)(nil),                // 43: craig_stars.v1.PlayerResearchSpec
+	(*RaceSpec)(nil),                          // 44: craig_stars.v1.RaceSpec
+	(*ShipDesign)(nil),                        // 45: craig_stars.v1.ShipDesign
+	(*ShipDesignSpec)(nil),                    // 46: craig_stars.v1.ShipDesignSpec
+	(*Planet)(nil),                            // 47: craig_stars.v1.Planet
+	(QueueItemType)(0),                        // 48: craig_stars.v1.QueueItemType
+	(*Hab)(nil),                               // 49: craig_stars.v1.Hab
+	(*TechLevel)(nil),                         // 50: craig_stars.v1.TechLevel
+	(*Cost)(nil),                              // 51: craig_stars.v1.Cost
+	(*Tech)(nil),                              // 52: craig_stars.v1.Tech
+	(*Intels)(nil),                            // 53: craig_stars.v1.Intels
+	(*Player)(nil),                            // 54: craig_stars.v1.Player
 }
 var file_craig_stars_v1_wasm_proto_depIdxs = []int32{
-	32, // 0: craig_stars.v1.AddWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
-	33, // 1: craig_stars.v1.AddWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
-	32, // 2: craig_stars.v1.AddWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
-	34, // 3: craig_stars.v1.CalculateRacePointsRequest.race:type_name -> craig_stars.v1.Race
-	35, // 4: craig_stars.v1.ComputeMinefieldSpecRequest.minefield:type_name -> craig_stars.v1.Minefield
-	36, // 5: craig_stars.v1.ComputeMinefieldSpecResponse.spec:type_name -> craig_stars.v1.MinefieldSpec
-	34, // 6: craig_stars.v1.ComputeRaceSpecRequest.race:type_name -> craig_stars.v1.Race
-	37, // 7: craig_stars.v1.ComputeRaceSpecResponse.spec:type_name -> craig_stars.v1.RaceSpec
-	38, // 8: craig_stars.v1.ComputeShipDesignSpecRequest.design:type_name -> craig_stars.v1.ShipDesign
-	39, // 9: craig_stars.v1.ComputeShipDesignSpecResponse.spec:type_name -> craig_stars.v1.ShipDesignSpec
-	40, // 10: craig_stars.v1.EstimateProductionRequest.planet:type_name -> craig_stars.v1.Planet
-	40, // 11: craig_stars.v1.EstimateProductionResponse.planet:type_name -> craig_stars.v1.Planet
-	40, // 12: craig_stars.v1.GetMaxBuildableRequest.planet:type_name -> craig_stars.v1.Planet
-	41, // 13: craig_stars.v1.GetMaxBuildableRequest.item_type:type_name -> craig_stars.v1.QueueItemType
-	34, // 14: craig_stars.v1.GetPlanetHabitabilityRequest.race:type_name -> craig_stars.v1.Race
-	42, // 15: craig_stars.v1.GetPlanetHabitabilityRequest.hab:type_name -> craig_stars.v1.Hab
-	43, // 16: craig_stars.v1.GetResearchCostRequest.tech_level:type_name -> craig_stars.v1.TechLevel
-	38, // 17: craig_stars.v1.GetStarbaseUpgradeCostRequest.design:type_name -> craig_stars.v1.ShipDesign
-	38, // 18: craig_stars.v1.GetStarbaseUpgradeCostRequest.new_design:type_name -> craig_stars.v1.ShipDesign
-	44, // 19: craig_stars.v1.GetStarbaseUpgradeCostResponse.cost:type_name -> craig_stars.v1.Cost
-	45, // 20: craig_stars.v1.GetTechCostRequest.tech:type_name -> craig_stars.v1.Tech
-	44, // 21: craig_stars.v1.GetTechCostResponse.cost:type_name -> craig_stars.v1.Cost
-	38, // 22: craig_stars.v1.SetDesignsRequest.designs:type_name -> craig_stars.v1.ShipDesign
-	46, // 23: craig_stars.v1.SetIntelsRequest.intels:type_name -> craig_stars.v1.Intels
-	47, // 24: craig_stars.v1.SetPlayerRequest.player:type_name -> craig_stars.v1.Player
-	32, // 25: craig_stars.v1.UpdateWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
-	33, // 26: craig_stars.v1.UpdateWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
-	32, // 27: craig_stars.v1.UpdateWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
-	0,  // 28: craig_stars.v1.WasmService.AddWaypoint:input_type -> craig_stars.v1.AddWaypointRequest
-	2,  // 29: craig_stars.v1.WasmService.CalculateRacePoints:input_type -> craig_stars.v1.CalculateRacePointsRequest
-	4,  // 30: craig_stars.v1.WasmService.ComputeMinefieldSpec:input_type -> craig_stars.v1.ComputeMinefieldSpecRequest
-	6,  // 31: craig_stars.v1.WasmService.ComputeRaceSpec:input_type -> craig_stars.v1.ComputeRaceSpecRequest
-	8,  // 32: craig_stars.v1.WasmService.ComputeShipDesignSpec:input_type -> craig_stars.v1.ComputeShipDesignSpecRequest
-	10, // 33: craig_stars.v1.WasmService.EnableDebug:input_type -> craig_stars.v1.EnableDebugRequest
-	12, // 34: craig_stars.v1.WasmService.EstimateProduction:input_type -> craig_stars.v1.EstimateProductionRequest
-	14, // 35: craig_stars.v1.WasmService.GetMaxBuildable:input_type -> craig_stars.v1.GetMaxBuildableRequest
-	16, // 36: craig_stars.v1.WasmService.GetPlanetHabitability:input_type -> craig_stars.v1.GetPlanetHabitabilityRequest
-	18, // 37: craig_stars.v1.WasmService.GetResearchCost:input_type -> craig_stars.v1.GetResearchCostRequest
-	20, // 38: craig_stars.v1.WasmService.GetStarbaseUpgradeCost:input_type -> craig_stars.v1.GetStarbaseUpgradeCostRequest
-	22, // 39: craig_stars.v1.WasmService.GetTechCost:input_type -> craig_stars.v1.GetTechCostRequest
-	24, // 40: craig_stars.v1.WasmService.SetDesigns:input_type -> craig_stars.v1.SetDesignsRequest
-	26, // 41: craig_stars.v1.WasmService.SetIntels:input_type -> craig_stars.v1.SetIntelsRequest
-	28, // 42: craig_stars.v1.WasmService.SetPlayer:input_type -> craig_stars.v1.SetPlayerRequest
-	30, // 43: craig_stars.v1.WasmService.UpdateWaypoint:input_type -> craig_stars.v1.UpdateWaypointRequest
-	1,  // 44: craig_stars.v1.WasmService.AddWaypoint:output_type -> craig_stars.v1.AddWaypointResponse
-	3,  // 45: craig_stars.v1.WasmService.CalculateRacePoints:output_type -> craig_stars.v1.CalculateRacePointsResponse
-	5,  // 46: craig_stars.v1.WasmService.ComputeMinefieldSpec:output_type -> craig_stars.v1.ComputeMinefieldSpecResponse
-	7,  // 47: craig_stars.v1.WasmService.ComputeRaceSpec:output_type -> craig_stars.v1.ComputeRaceSpecResponse
-	9,  // 48: craig_stars.v1.WasmService.ComputeShipDesignSpec:output_type -> craig_stars.v1.ComputeShipDesignSpecResponse
-	11, // 49: craig_stars.v1.WasmService.EnableDebug:output_type -> craig_stars.v1.EnableDebugResponse
-	13, // 50: craig_stars.v1.WasmService.EstimateProduction:output_type -> craig_stars.v1.EstimateProductionResponse
-	15, // 51: craig_stars.v1.WasmService.GetMaxBuildable:output_type -> craig_stars.v1.GetMaxBuildableResponse
-	17, // 52: craig_stars.v1.WasmService.GetPlanetHabitability:output_type -> craig_stars.v1.GetPlanetHabitabilityResponse
-	19, // 53: craig_stars.v1.WasmService.GetResearchCost:output_type -> craig_stars.v1.GetResearchCostResponse
-	21, // 54: craig_stars.v1.WasmService.GetStarbaseUpgradeCost:output_type -> craig_stars.v1.GetStarbaseUpgradeCostResponse
-	23, // 55: craig_stars.v1.WasmService.GetTechCost:output_type -> craig_stars.v1.GetTechCostResponse
-	25, // 56: craig_stars.v1.WasmService.SetDesigns:output_type -> craig_stars.v1.SetDesignsResponse
-	27, // 57: craig_stars.v1.WasmService.SetIntels:output_type -> craig_stars.v1.SetIntelsResponse
-	29, // 58: craig_stars.v1.WasmService.SetPlayer:output_type -> craig_stars.v1.SetPlayerResponse
-	31, // 59: craig_stars.v1.WasmService.UpdateWaypoint:output_type -> craig_stars.v1.UpdateWaypointResponse
-	44, // [44:60] is the sub-list for method output_type
-	28, // [28:44] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	38, // 0: craig_stars.v1.AddWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
+	39, // 1: craig_stars.v1.AddWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
+	38, // 2: craig_stars.v1.AddWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
+	40, // 3: craig_stars.v1.CalculateRacePointsRequest.race:type_name -> craig_stars.v1.Race
+	41, // 4: craig_stars.v1.ComputeMinefieldSpecRequest.minefield:type_name -> craig_stars.v1.Minefield
+	42, // 5: craig_stars.v1.ComputeMinefieldSpecResponse.spec:type_name -> craig_stars.v1.MinefieldSpec
+	43, // 6: craig_stars.v1.ComputePlayerResearchSpecResponse.spec:type_name -> craig_stars.v1.PlayerResearchSpec
+	40, // 7: craig_stars.v1.ComputeRaceSpecRequest.race:type_name -> craig_stars.v1.Race
+	44, // 8: craig_stars.v1.ComputeRaceSpecResponse.spec:type_name -> craig_stars.v1.RaceSpec
+	45, // 9: craig_stars.v1.ComputeShipDesignSpecRequest.design:type_name -> craig_stars.v1.ShipDesign
+	46, // 10: craig_stars.v1.ComputeShipDesignSpecResponse.spec:type_name -> craig_stars.v1.ShipDesignSpec
+	47, // 11: craig_stars.v1.EstimateProductionRequest.planet:type_name -> craig_stars.v1.Planet
+	47, // 12: craig_stars.v1.EstimateProductionResponse.planet:type_name -> craig_stars.v1.Planet
+	47, // 13: craig_stars.v1.GetMaxBuildableRequest.planet:type_name -> craig_stars.v1.Planet
+	48, // 14: craig_stars.v1.GetMaxBuildableRequest.item_type:type_name -> craig_stars.v1.QueueItemType
+	40, // 15: craig_stars.v1.GetPlanetHabitabilityRequest.race:type_name -> craig_stars.v1.Race
+	49, // 16: craig_stars.v1.GetPlanetHabitabilityRequest.hab:type_name -> craig_stars.v1.Hab
+	50, // 17: craig_stars.v1.GetResearchCostRequest.tech_level:type_name -> craig_stars.v1.TechLevel
+	45, // 18: craig_stars.v1.GetStarbaseUpgradeCostRequest.design:type_name -> craig_stars.v1.ShipDesign
+	45, // 19: craig_stars.v1.GetStarbaseUpgradeCostRequest.new_design:type_name -> craig_stars.v1.ShipDesign
+	51, // 20: craig_stars.v1.GetStarbaseUpgradeCostResponse.cost:type_name -> craig_stars.v1.Cost
+	52, // 21: craig_stars.v1.GetTechCostRequest.tech:type_name -> craig_stars.v1.Tech
+	51, // 22: craig_stars.v1.GetTechCostResponse.cost:type_name -> craig_stars.v1.Cost
+	45, // 23: craig_stars.v1.SetDesignsRequest.designs:type_name -> craig_stars.v1.ShipDesign
+	53, // 24: craig_stars.v1.SetIntelsRequest.intels:type_name -> craig_stars.v1.Intels
+	54, // 25: craig_stars.v1.SetPlayerRequest.player:type_name -> craig_stars.v1.Player
+	47, // 26: craig_stars.v1.UpdatePlanetRequest.planet:type_name -> craig_stars.v1.Planet
+	47, // 27: craig_stars.v1.UpdatePlanetsRequest.planets:type_name -> craig_stars.v1.Planet
+	38, // 28: craig_stars.v1.UpdateWaypointRequest.fleet:type_name -> craig_stars.v1.Fleet
+	39, // 29: craig_stars.v1.UpdateWaypointRequest.dest:type_name -> craig_stars.v1.WaypointDest
+	38, // 30: craig_stars.v1.UpdateWaypointResponse.fleet:type_name -> craig_stars.v1.Fleet
+	0,  // 31: craig_stars.v1.WasmService.AddWaypoint:input_type -> craig_stars.v1.AddWaypointRequest
+	2,  // 32: craig_stars.v1.WasmService.CalculateRacePoints:input_type -> craig_stars.v1.CalculateRacePointsRequest
+	4,  // 33: craig_stars.v1.WasmService.ComputeMinefieldSpec:input_type -> craig_stars.v1.ComputeMinefieldSpecRequest
+	6,  // 34: craig_stars.v1.WasmService.ComputePlayerResearchSpec:input_type -> craig_stars.v1.ComputePlayerResearchSpecRequest
+	8,  // 35: craig_stars.v1.WasmService.ComputeRaceSpec:input_type -> craig_stars.v1.ComputeRaceSpecRequest
+	10, // 36: craig_stars.v1.WasmService.ComputeShipDesignSpec:input_type -> craig_stars.v1.ComputeShipDesignSpecRequest
+	12, // 37: craig_stars.v1.WasmService.EnableDebug:input_type -> craig_stars.v1.EnableDebugRequest
+	14, // 38: craig_stars.v1.WasmService.EstimateProduction:input_type -> craig_stars.v1.EstimateProductionRequest
+	16, // 39: craig_stars.v1.WasmService.GetMaxBuildable:input_type -> craig_stars.v1.GetMaxBuildableRequest
+	18, // 40: craig_stars.v1.WasmService.GetPlanetHabitability:input_type -> craig_stars.v1.GetPlanetHabitabilityRequest
+	20, // 41: craig_stars.v1.WasmService.GetResearchCost:input_type -> craig_stars.v1.GetResearchCostRequest
+	22, // 42: craig_stars.v1.WasmService.GetStarbaseUpgradeCost:input_type -> craig_stars.v1.GetStarbaseUpgradeCostRequest
+	24, // 43: craig_stars.v1.WasmService.GetTechCost:input_type -> craig_stars.v1.GetTechCostRequest
+	26, // 44: craig_stars.v1.WasmService.SetDesigns:input_type -> craig_stars.v1.SetDesignsRequest
+	28, // 45: craig_stars.v1.WasmService.SetIntels:input_type -> craig_stars.v1.SetIntelsRequest
+	30, // 46: craig_stars.v1.WasmService.SetPlayer:input_type -> craig_stars.v1.SetPlayerRequest
+	32, // 47: craig_stars.v1.WasmService.UpdatePlanet:input_type -> craig_stars.v1.UpdatePlanetRequest
+	34, // 48: craig_stars.v1.WasmService.UpdatePlanets:input_type -> craig_stars.v1.UpdatePlanetsRequest
+	36, // 49: craig_stars.v1.WasmService.UpdateWaypoint:input_type -> craig_stars.v1.UpdateWaypointRequest
+	1,  // 50: craig_stars.v1.WasmService.AddWaypoint:output_type -> craig_stars.v1.AddWaypointResponse
+	3,  // 51: craig_stars.v1.WasmService.CalculateRacePoints:output_type -> craig_stars.v1.CalculateRacePointsResponse
+	5,  // 52: craig_stars.v1.WasmService.ComputeMinefieldSpec:output_type -> craig_stars.v1.ComputeMinefieldSpecResponse
+	7,  // 53: craig_stars.v1.WasmService.ComputePlayerResearchSpec:output_type -> craig_stars.v1.ComputePlayerResearchSpecResponse
+	9,  // 54: craig_stars.v1.WasmService.ComputeRaceSpec:output_type -> craig_stars.v1.ComputeRaceSpecResponse
+	11, // 55: craig_stars.v1.WasmService.ComputeShipDesignSpec:output_type -> craig_stars.v1.ComputeShipDesignSpecResponse
+	13, // 56: craig_stars.v1.WasmService.EnableDebug:output_type -> craig_stars.v1.EnableDebugResponse
+	15, // 57: craig_stars.v1.WasmService.EstimateProduction:output_type -> craig_stars.v1.EstimateProductionResponse
+	17, // 58: craig_stars.v1.WasmService.GetMaxBuildable:output_type -> craig_stars.v1.GetMaxBuildableResponse
+	19, // 59: craig_stars.v1.WasmService.GetPlanetHabitability:output_type -> craig_stars.v1.GetPlanetHabitabilityResponse
+	21, // 60: craig_stars.v1.WasmService.GetResearchCost:output_type -> craig_stars.v1.GetResearchCostResponse
+	23, // 61: craig_stars.v1.WasmService.GetStarbaseUpgradeCost:output_type -> craig_stars.v1.GetStarbaseUpgradeCostResponse
+	25, // 62: craig_stars.v1.WasmService.GetTechCost:output_type -> craig_stars.v1.GetTechCostResponse
+	27, // 63: craig_stars.v1.WasmService.SetDesigns:output_type -> craig_stars.v1.SetDesignsResponse
+	29, // 64: craig_stars.v1.WasmService.SetIntels:output_type -> craig_stars.v1.SetIntelsResponse
+	31, // 65: craig_stars.v1.WasmService.SetPlayer:output_type -> craig_stars.v1.SetPlayerResponse
+	33, // 66: craig_stars.v1.WasmService.UpdatePlanet:output_type -> craig_stars.v1.UpdatePlanetResponse
+	35, // 67: craig_stars.v1.WasmService.UpdatePlanets:output_type -> craig_stars.v1.UpdatePlanetsResponse
+	37, // 68: craig_stars.v1.WasmService.UpdateWaypoint:output_type -> craig_stars.v1.UpdateWaypointResponse
+	50, // [50:69] is the sub-list for method output_type
+	31, // [31:50] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_wasm_proto_init() }
@@ -1733,7 +2001,7 @@ func file_craig_stars_v1_wasm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_craig_stars_v1_wasm_proto_rawDesc), len(file_craig_stars_v1_wasm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   32,
+			NumMessages:   38,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

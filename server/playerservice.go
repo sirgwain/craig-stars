@@ -33,32 +33,57 @@ func (s *playerService) GetPlayer(ctx context.Context, req *connect.Request[crai
 	c := contextDb(ctx)
 	gamePlayer := contextGamePlayer(ctx)
 
-	player, err := c.GetPlayerForGame(ctx, req.Msg.GameId, gamePlayer.Num)
+	player, err := c.GetLightPlayerForGame(ctx, req.Msg.GameId, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player from database: %w", err))
 	}
 	return connect.NewResponse(&craig_starsv1.GetPlayerResponse{
-		Player:  converter.C.ConvertCSPlayer(player),
-		Designs: converter.C.ConvertCSShipDesigns(player.Designs),
-		Intels:  converter.C.ConvertCSIntels(player.Intels),
+		Player: converter.C.ConvertCSPlayer(player),
 	}), nil
 }
 
 func (s *playerService) GetUniverse(ctx context.Context, req *connect.Request[craig_starsv1.GetUniverseRequest]) (*connect.Response[craig_starsv1.GetUniverseResponse], error) {
 	c := contextDb(ctx)
-	user := contextUserSession(ctx)
+	gamePlayer := contextGamePlayer(ctx)
 
-	pmos, err := c.GetPlayerMapObjects(ctx, req.Msg.GameId, user.ID)
+	pmos, err := c.GetPlayerMapObjects(ctx, req.Msg.GameId, gamePlayer.Num)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player from database: %w", err))
 	}
+
+	intels, err := c.GetPlayerIntel(ctx, req.Msg.GameId, gamePlayer.Num)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player intels from database: %w", err))
+	}
+
+	playerDesigns, err := c.GetShipDesignsForPlayer(ctx, req.Msg.GameId, gamePlayer.Num)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to get player intels from database: %w", err))
+	}
+
+	designs := append(playerDesigns, intels.ShipDesignIntels...)
+	fleets := append(pmos.Fleets, intels.FleetIntels...)
+	minefields := append(pmos.Minefields, intels.MinefieldIntels...)
+	mineralPackets := append(pmos.MineralPackets, intels.MineralPacketIntels...)
+
+	// replace intel with the actual planet from the DB
+	planets := intels.PlanetIntels
+	for _, planet := range pmos.Planets {
+		planets[planet.Num-1] = planet
+	}
+
 	return connect.NewResponse(&craig_starsv1.GetUniverseResponse{
 		Universe: &craig_starsv1.PlayerUniverse{
-			Planets:        converter.C.ConvertCSPlanets(pmos.Planets),
-			Fleets:         converter.C.ConvertCSFleets(pmos.Fleets),
-			Starbases:      converter.C.ConvertCSFleets(pmos.Starbases),
-			Minefields:     converter.C.ConvertCSMinefields(pmos.Minefields),
-			MineralPackets: converter.C.ConvertCSMineralPackets(pmos.MineralPackets),
+			BattleRecords:  converter.C.ConvertCSBattleRecords(intels.BattleRecords),
+			PlayerIntels:   converter.C.ConvertCSPlayerIntels(intels.PlayerIntels),
+			ScoreIntels:    converter.C.ConvertCSScoreIntels(intels.ScoreIntels),
+			Designs:        converter.C.ConvertCSShipDesigns(designs),
+			Planets:        converter.C.ConvertCSPlanets(planets),
+			Fleets:         converter.C.ConvertCSFleets(fleets),
+			Minefields:     converter.C.ConvertCSMinefields(minefields),
+			MineralPackets: converter.C.ConvertCSMineralPackets(mineralPackets),
+			MysteryTraders: converter.C.ConvertCSMysteryTraders(intels.MysteryTraderIntels),
+			Wormholes:      converter.C.ConvertCSWormholes(intels.WormholeIntels),
 		},
 	}), nil
 }
@@ -182,7 +207,6 @@ func (s *playerService) UpdatePlayerOrders(ctx context.Context, req *connect.Req
 
 		for _, planet := range planets {
 			if planet.Dirty {
-				// TODO: only update the planet spec? that's all that changes
 				if err := c.UpdatePlanetSpec(ctx, planet); err != nil {
 					log.Error().Err(err).Int64("ID", player.ID).Msg("updating player planet in database")
 					return err

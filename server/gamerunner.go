@@ -1,3 +1,5 @@
+//go:build !wasi && !wasm
+
 package server
 
 import (
@@ -59,7 +61,6 @@ type GameRunner interface {
 	AddAIPlayer(game *cs.GameWithPlayers) (*cs.Player, error)
 	DeletePlayerSlot(gameID int64, playerNum int) error
 	StartGame(game *cs.Game) error
-	LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPlayers, *cs.FullPlayer, error)
 	SubmitTurn(gameID int64, userID int64) error
 	CheckAndGenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
 	GenerateTurn(gameID int64) (TurnGenerationCheckResult, error)
@@ -130,7 +131,8 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 		cheaterAIPlayerNumber := 0
 
 		for i, playerSetting := range settings.Players {
-			if playerSetting.Type == cs.NewGamePlayerTypeHost {
+			switch playerSetting.Type {
+			case cs.NewGamePlayerTypeHost:
 
 				log.Debug().Int64("hostID", hostID).Msg("Adding host to game")
 				player := gr.client.NewPlayer(hostID, playerSetting.Race, &game.Rules)
@@ -141,7 +143,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				player.DefaultHullSet = playerSetting.DefaultHullSet
 				player.Ready = true
 				players = append(players, player)
-			} else if playerSetting.Type == cs.NewGamePlayerTypeAI {
+			case cs.NewGamePlayerTypeAI:
 				log.Debug().Int64("hostID", hostID).Msg("Adding ai player to game")
 				var race cs.Race
 				if playerSetting.AIDifficulty == cs.AIDifficultyCheater {
@@ -164,7 +166,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				player.DefaultHullSet = playerSetting.DefaultHullSet
 				player.Ready = true
 				players = append(players, player)
-			} else if playerSetting.Type == cs.NewGamePlayerTypeOpen {
+			case cs.NewGamePlayerTypeOpen:
 				log.Debug().Int("openPlayerSlots", game.OpenPlayerSlots).Msg("Added open player slot to game")
 				race := cs.NewRace()
 				player := gr.client.NewPlayer(0, *race, &game.Rules)
@@ -175,7 +177,7 @@ func (gr *gameRunner) HostGame(hostID int64, settings *cs.GameSettings) (*cs.Ful
 				player.DefaultHullSet = playerSetting.DefaultHullSet
 				players = append(players, player)
 				game.OpenPlayerSlots++
-			} else if playerSetting.Type == cs.NewGamePlayerTypeGuest {
+			case cs.NewGamePlayerTypeGuest:
 				// create a new guest user for this game
 				playerNum := i + 1
 				// username is based on game/number
@@ -786,35 +788,6 @@ func (gr *gameRunner) StartGame(game *cs.Game) error {
 	}
 
 	return nil
-}
-
-// load a player and the light version of the player game
-func (gr *gameRunner) LoadPlayerGame(gameID int64, userID int64) (*cs.GameWithPlayers, *cs.FullPlayer, error) {
-
-	readClient := gr.dbConn.NewReadClient()
-	game, err := readClient.GetGame(gr.ctx, gameID)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if game.Rules.TechsID == 0 {
-		game.Rules.SetTechStore(&cs.StaticTechStore)
-	} else {
-		techs, err := readClient.GetTechStore(gr.ctx, game.Rules.TechsID)
-		if err != nil {
-			return nil, nil, err
-		}
-		game.Rules.SetTechStore(techs)
-	}
-
-	player, err := readClient.GetFullPlayerForGame(gr.ctx, gameID, userID)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return game, player, nil
 }
 
 // submit a turn for a player

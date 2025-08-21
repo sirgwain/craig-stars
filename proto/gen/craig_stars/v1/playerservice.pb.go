@@ -68,8 +68,6 @@ func (x *GetPlayerRequest) GetGameId() int64 {
 type GetPlayerResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Player        *Player                `protobuf:"bytes,1,opt,name=player,proto3" json:"player,omitempty"`
-	Intels        *Intels                `protobuf:"bytes,2,opt,name=intels,proto3" json:"intels,omitempty"`
-	Designs       []*ShipDesign          `protobuf:"bytes,3,rep,name=designs,proto3" json:"designs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -107,20 +105,6 @@ func (*GetPlayerResponse) Descriptor() ([]byte, []int) {
 func (x *GetPlayerResponse) GetPlayer() *Player {
 	if x != nil {
 		return x.Player
-	}
-	return nil
-}
-
-func (x *GetPlayerResponse) GetIntels() *Intels {
-	if x != nil {
-		return x.Intels
-	}
-	return nil
-}
-
-func (x *GetPlayerResponse) GetDesigns() []*ShipDesign {
-	if x != nil {
-		return x.Designs
 	}
 	return nil
 }
@@ -1753,13 +1737,11 @@ var File_craig_stars_v1_playerservice_proto protoreflect.FileDescriptor
 
 const file_craig_stars_v1_playerservice_proto_rawDesc = "" +
 	"\n" +
-	"\"craig_stars/v1/playerservice.proto\x12\x0ecraig_stars.v1\x1a\x1acraig_stars/v1/fleet.proto\x1a\x19craig_stars/v1/game.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1bcraig_stars/v1/player.proto\x1a\x1fcraig_stars/v1/shipdesign.proto\"+\n" +
+	"\"craig_stars/v1/playerservice.proto\x12\x0ecraig_stars.v1\x1a\x1acraig_stars/v1/fleet.proto\x1a\x19craig_stars/v1/game.proto\x1a\x1bcraig_stars/v1/planet.proto\x1a\x1bcraig_stars/v1/player.proto\"+\n" +
 	"\x10GetPlayerRequest\x12\x17\n" +
-	"\agame_id\x18\x01 \x01(\x03R\x06gameId\"\xa9\x01\n" +
+	"\agame_id\x18\x01 \x01(\x03R\x06gameId\"C\n" +
 	"\x11GetPlayerResponse\x12.\n" +
-	"\x06player\x18\x01 \x01(\v2\x16.craig_stars.v1.PlayerR\x06player\x12.\n" +
-	"\x06intels\x18\x02 \x01(\v2\x16.craig_stars.v1.IntelsR\x06intels\x124\n" +
-	"\adesigns\x18\x03 \x03(\v2\x1a.craig_stars.v1.ShipDesignR\adesigns\"-\n" +
+	"\x06player\x18\x01 \x01(\v2\x16.craig_stars.v1.PlayerR\x06player\"-\n" +
 	"\x12GetUniverseRequest\x12\x17\n" +
 	"\agame_id\x18\x01 \x01(\x03R\x06gameId\"Q\n" +
 	"\x13GetUniverseResponse\x12:\n" +
@@ -1920,90 +1902,86 @@ var file_craig_stars_v1_playerservice_proto_goTypes = []any{
 	(*DeleteTransportPlanRequest)(nil),    // 34: craig_stars.v1.DeleteTransportPlanRequest
 	(*DeleteTransportPlanResponse)(nil),   // 35: craig_stars.v1.DeleteTransportPlanResponse
 	(*Player)(nil),                        // 36: craig_stars.v1.Player
-	(*Intels)(nil),                        // 37: craig_stars.v1.Intels
-	(*ShipDesign)(nil),                    // 38: craig_stars.v1.ShipDesign
-	(*PlayerUniverse)(nil),                // 39: craig_stars.v1.PlayerUniverse
-	(*GameWithPlayers)(nil),               // 40: craig_stars.v1.GameWithPlayers
-	(*PlayerOrders)(nil),                  // 41: craig_stars.v1.PlayerOrders
-	(*Planet)(nil),                        // 42: craig_stars.v1.Planet
-	(*PlayerRelationship)(nil),            // 43: craig_stars.v1.PlayerRelationship
-	(*BattlePlan)(nil),                    // 44: craig_stars.v1.BattlePlan
-	(*Fleet)(nil),                         // 45: craig_stars.v1.Fleet
-	(*ProductionPlan)(nil),                // 46: craig_stars.v1.ProductionPlan
-	(*TransportPlan)(nil),                 // 47: craig_stars.v1.TransportPlan
+	(*PlayerUniverse)(nil),                // 37: craig_stars.v1.PlayerUniverse
+	(*GameWithPlayers)(nil),               // 38: craig_stars.v1.GameWithPlayers
+	(*PlayerOrders)(nil),                  // 39: craig_stars.v1.PlayerOrders
+	(*Planet)(nil),                        // 40: craig_stars.v1.Planet
+	(*PlayerRelationship)(nil),            // 41: craig_stars.v1.PlayerRelationship
+	(*BattlePlan)(nil),                    // 42: craig_stars.v1.BattlePlan
+	(*Fleet)(nil),                         // 43: craig_stars.v1.Fleet
+	(*ProductionPlan)(nil),                // 44: craig_stars.v1.ProductionPlan
+	(*TransportPlan)(nil),                 // 45: craig_stars.v1.TransportPlan
 }
 var file_craig_stars_v1_playerservice_proto_depIdxs = []int32{
 	36, // 0: craig_stars.v1.GetPlayerResponse.player:type_name -> craig_stars.v1.Player
-	37, // 1: craig_stars.v1.GetPlayerResponse.intels:type_name -> craig_stars.v1.Intels
-	38, // 2: craig_stars.v1.GetPlayerResponse.designs:type_name -> craig_stars.v1.ShipDesign
-	39, // 3: craig_stars.v1.GetUniverseResponse.universe:type_name -> craig_stars.v1.PlayerUniverse
-	40, // 4: craig_stars.v1.SubmitTurnResponse.game:type_name -> craig_stars.v1.GameWithPlayers
-	36, // 5: craig_stars.v1.SubmitTurnResponse.player:type_name -> craig_stars.v1.Player
-	36, // 6: craig_stars.v1.UnsubmitTurnResponse.player:type_name -> craig_stars.v1.Player
-	41, // 7: craig_stars.v1.UpdatePlayerOrdersRequest.orders:type_name -> craig_stars.v1.PlayerOrders
-	36, // 8: craig_stars.v1.UpdatePlayerOrdersResponse.player:type_name -> craig_stars.v1.Player
-	42, // 9: craig_stars.v1.UpdatePlayerOrdersResponse.planets:type_name -> craig_stars.v1.Planet
-	43, // 10: craig_stars.v1.UpdatePlayerRelationsRequest.relations:type_name -> craig_stars.v1.PlayerRelationship
-	43, // 11: craig_stars.v1.UpdatePlayerRelationsResponse.relations:type_name -> craig_stars.v1.PlayerRelationship
-	44, // 12: craig_stars.v1.GetBattlePlanResponse.plan:type_name -> craig_stars.v1.BattlePlan
-	44, // 13: craig_stars.v1.CreateBattlePlanRequest.plan:type_name -> craig_stars.v1.BattlePlan
-	44, // 14: craig_stars.v1.CreateBattlePlanResponse.plan:type_name -> craig_stars.v1.BattlePlan
-	44, // 15: craig_stars.v1.UpdateBattlePlanRequest.plan:type_name -> craig_stars.v1.BattlePlan
-	44, // 16: craig_stars.v1.UpdateBattlePlanResponse.plan:type_name -> craig_stars.v1.BattlePlan
-	36, // 17: craig_stars.v1.DeleteBattlePlanResponse.player:type_name -> craig_stars.v1.Player
-	45, // 18: craig_stars.v1.DeleteBattlePlanResponse.fleets:type_name -> craig_stars.v1.Fleet
-	45, // 19: craig_stars.v1.DeleteBattlePlanResponse.starbases:type_name -> craig_stars.v1.Fleet
-	46, // 20: craig_stars.v1.GetProductionPlanResponse.plan:type_name -> craig_stars.v1.ProductionPlan
-	46, // 21: craig_stars.v1.CreateProductionPlanRequest.plan:type_name -> craig_stars.v1.ProductionPlan
-	46, // 22: craig_stars.v1.CreateProductionPlanResponse.plan:type_name -> craig_stars.v1.ProductionPlan
-	46, // 23: craig_stars.v1.UpdateProductionPlanRequest.plan:type_name -> craig_stars.v1.ProductionPlan
-	46, // 24: craig_stars.v1.UpdateProductionPlanResponse.plan:type_name -> craig_stars.v1.ProductionPlan
-	47, // 25: craig_stars.v1.GetTransportPlanResponse.plan:type_name -> craig_stars.v1.TransportPlan
-	47, // 26: craig_stars.v1.CreateTransportPlanRequest.plan:type_name -> craig_stars.v1.TransportPlan
-	47, // 27: craig_stars.v1.CreateTransportPlanResponse.plan:type_name -> craig_stars.v1.TransportPlan
-	47, // 28: craig_stars.v1.UpdateTransportPlanRequest.plan:type_name -> craig_stars.v1.TransportPlan
-	47, // 29: craig_stars.v1.UpdateTransportPlanResponse.plan:type_name -> craig_stars.v1.TransportPlan
-	0,  // 30: craig_stars.v1.PlayerService.GetPlayer:input_type -> craig_stars.v1.GetPlayerRequest
-	2,  // 31: craig_stars.v1.PlayerService.GetUniverse:input_type -> craig_stars.v1.GetUniverseRequest
-	4,  // 32: craig_stars.v1.PlayerService.SubmitTurn:input_type -> craig_stars.v1.SubmitTurnRequest
-	6,  // 33: craig_stars.v1.PlayerService.UnsubmitTurn:input_type -> craig_stars.v1.UnsubmitTurnRequest
-	8,  // 34: craig_stars.v1.PlayerService.UpdatePlayerOrders:input_type -> craig_stars.v1.UpdatePlayerOrdersRequest
-	10, // 35: craig_stars.v1.PlayerService.UpdatePlayerRelations:input_type -> craig_stars.v1.UpdatePlayerRelationsRequest
-	12, // 36: craig_stars.v1.BattlePlanService.GetBattlePlan:input_type -> craig_stars.v1.GetBattlePlanRequest
-	14, // 37: craig_stars.v1.BattlePlanService.CreateBattlePlan:input_type -> craig_stars.v1.CreateBattlePlanRequest
-	16, // 38: craig_stars.v1.BattlePlanService.UpdateBattlePlan:input_type -> craig_stars.v1.UpdateBattlePlanRequest
-	18, // 39: craig_stars.v1.BattlePlanService.DeleteBattlePlan:input_type -> craig_stars.v1.DeleteBattlePlanRequest
-	20, // 40: craig_stars.v1.ProductionPlanService.GetProductionPlan:input_type -> craig_stars.v1.GetProductionPlanRequest
-	22, // 41: craig_stars.v1.ProductionPlanService.CreateProductionPlan:input_type -> craig_stars.v1.CreateProductionPlanRequest
-	24, // 42: craig_stars.v1.ProductionPlanService.UpdateProductionPlan:input_type -> craig_stars.v1.UpdateProductionPlanRequest
-	26, // 43: craig_stars.v1.ProductionPlanService.DeleteProductionPlan:input_type -> craig_stars.v1.DeleteProductionPlanRequest
-	28, // 44: craig_stars.v1.TransportPlanService.GetTransportPlan:input_type -> craig_stars.v1.GetTransportPlanRequest
-	30, // 45: craig_stars.v1.TransportPlanService.CreateTransportPlan:input_type -> craig_stars.v1.CreateTransportPlanRequest
-	32, // 46: craig_stars.v1.TransportPlanService.UpdateTransportPlan:input_type -> craig_stars.v1.UpdateTransportPlanRequest
-	34, // 47: craig_stars.v1.TransportPlanService.DeleteTransportPlan:input_type -> craig_stars.v1.DeleteTransportPlanRequest
-	1,  // 48: craig_stars.v1.PlayerService.GetPlayer:output_type -> craig_stars.v1.GetPlayerResponse
-	3,  // 49: craig_stars.v1.PlayerService.GetUniverse:output_type -> craig_stars.v1.GetUniverseResponse
-	5,  // 50: craig_stars.v1.PlayerService.SubmitTurn:output_type -> craig_stars.v1.SubmitTurnResponse
-	7,  // 51: craig_stars.v1.PlayerService.UnsubmitTurn:output_type -> craig_stars.v1.UnsubmitTurnResponse
-	9,  // 52: craig_stars.v1.PlayerService.UpdatePlayerOrders:output_type -> craig_stars.v1.UpdatePlayerOrdersResponse
-	11, // 53: craig_stars.v1.PlayerService.UpdatePlayerRelations:output_type -> craig_stars.v1.UpdatePlayerRelationsResponse
-	13, // 54: craig_stars.v1.BattlePlanService.GetBattlePlan:output_type -> craig_stars.v1.GetBattlePlanResponse
-	15, // 55: craig_stars.v1.BattlePlanService.CreateBattlePlan:output_type -> craig_stars.v1.CreateBattlePlanResponse
-	17, // 56: craig_stars.v1.BattlePlanService.UpdateBattlePlan:output_type -> craig_stars.v1.UpdateBattlePlanResponse
-	19, // 57: craig_stars.v1.BattlePlanService.DeleteBattlePlan:output_type -> craig_stars.v1.DeleteBattlePlanResponse
-	21, // 58: craig_stars.v1.ProductionPlanService.GetProductionPlan:output_type -> craig_stars.v1.GetProductionPlanResponse
-	23, // 59: craig_stars.v1.ProductionPlanService.CreateProductionPlan:output_type -> craig_stars.v1.CreateProductionPlanResponse
-	25, // 60: craig_stars.v1.ProductionPlanService.UpdateProductionPlan:output_type -> craig_stars.v1.UpdateProductionPlanResponse
-	27, // 61: craig_stars.v1.ProductionPlanService.DeleteProductionPlan:output_type -> craig_stars.v1.DeleteProductionPlanResponse
-	29, // 62: craig_stars.v1.TransportPlanService.GetTransportPlan:output_type -> craig_stars.v1.GetTransportPlanResponse
-	31, // 63: craig_stars.v1.TransportPlanService.CreateTransportPlan:output_type -> craig_stars.v1.CreateTransportPlanResponse
-	33, // 64: craig_stars.v1.TransportPlanService.UpdateTransportPlan:output_type -> craig_stars.v1.UpdateTransportPlanResponse
-	35, // 65: craig_stars.v1.TransportPlanService.DeleteTransportPlan:output_type -> craig_stars.v1.DeleteTransportPlanResponse
-	48, // [48:66] is the sub-list for method output_type
-	30, // [30:48] is the sub-list for method input_type
-	30, // [30:30] is the sub-list for extension type_name
-	30, // [30:30] is the sub-list for extension extendee
-	0,  // [0:30] is the sub-list for field type_name
+	37, // 1: craig_stars.v1.GetUniverseResponse.universe:type_name -> craig_stars.v1.PlayerUniverse
+	38, // 2: craig_stars.v1.SubmitTurnResponse.game:type_name -> craig_stars.v1.GameWithPlayers
+	36, // 3: craig_stars.v1.SubmitTurnResponse.player:type_name -> craig_stars.v1.Player
+	36, // 4: craig_stars.v1.UnsubmitTurnResponse.player:type_name -> craig_stars.v1.Player
+	39, // 5: craig_stars.v1.UpdatePlayerOrdersRequest.orders:type_name -> craig_stars.v1.PlayerOrders
+	36, // 6: craig_stars.v1.UpdatePlayerOrdersResponse.player:type_name -> craig_stars.v1.Player
+	40, // 7: craig_stars.v1.UpdatePlayerOrdersResponse.planets:type_name -> craig_stars.v1.Planet
+	41, // 8: craig_stars.v1.UpdatePlayerRelationsRequest.relations:type_name -> craig_stars.v1.PlayerRelationship
+	41, // 9: craig_stars.v1.UpdatePlayerRelationsResponse.relations:type_name -> craig_stars.v1.PlayerRelationship
+	42, // 10: craig_stars.v1.GetBattlePlanResponse.plan:type_name -> craig_stars.v1.BattlePlan
+	42, // 11: craig_stars.v1.CreateBattlePlanRequest.plan:type_name -> craig_stars.v1.BattlePlan
+	42, // 12: craig_stars.v1.CreateBattlePlanResponse.plan:type_name -> craig_stars.v1.BattlePlan
+	42, // 13: craig_stars.v1.UpdateBattlePlanRequest.plan:type_name -> craig_stars.v1.BattlePlan
+	42, // 14: craig_stars.v1.UpdateBattlePlanResponse.plan:type_name -> craig_stars.v1.BattlePlan
+	36, // 15: craig_stars.v1.DeleteBattlePlanResponse.player:type_name -> craig_stars.v1.Player
+	43, // 16: craig_stars.v1.DeleteBattlePlanResponse.fleets:type_name -> craig_stars.v1.Fleet
+	43, // 17: craig_stars.v1.DeleteBattlePlanResponse.starbases:type_name -> craig_stars.v1.Fleet
+	44, // 18: craig_stars.v1.GetProductionPlanResponse.plan:type_name -> craig_stars.v1.ProductionPlan
+	44, // 19: craig_stars.v1.CreateProductionPlanRequest.plan:type_name -> craig_stars.v1.ProductionPlan
+	44, // 20: craig_stars.v1.CreateProductionPlanResponse.plan:type_name -> craig_stars.v1.ProductionPlan
+	44, // 21: craig_stars.v1.UpdateProductionPlanRequest.plan:type_name -> craig_stars.v1.ProductionPlan
+	44, // 22: craig_stars.v1.UpdateProductionPlanResponse.plan:type_name -> craig_stars.v1.ProductionPlan
+	45, // 23: craig_stars.v1.GetTransportPlanResponse.plan:type_name -> craig_stars.v1.TransportPlan
+	45, // 24: craig_stars.v1.CreateTransportPlanRequest.plan:type_name -> craig_stars.v1.TransportPlan
+	45, // 25: craig_stars.v1.CreateTransportPlanResponse.plan:type_name -> craig_stars.v1.TransportPlan
+	45, // 26: craig_stars.v1.UpdateTransportPlanRequest.plan:type_name -> craig_stars.v1.TransportPlan
+	45, // 27: craig_stars.v1.UpdateTransportPlanResponse.plan:type_name -> craig_stars.v1.TransportPlan
+	0,  // 28: craig_stars.v1.PlayerService.GetPlayer:input_type -> craig_stars.v1.GetPlayerRequest
+	2,  // 29: craig_stars.v1.PlayerService.GetUniverse:input_type -> craig_stars.v1.GetUniverseRequest
+	4,  // 30: craig_stars.v1.PlayerService.SubmitTurn:input_type -> craig_stars.v1.SubmitTurnRequest
+	6,  // 31: craig_stars.v1.PlayerService.UnsubmitTurn:input_type -> craig_stars.v1.UnsubmitTurnRequest
+	8,  // 32: craig_stars.v1.PlayerService.UpdatePlayerOrders:input_type -> craig_stars.v1.UpdatePlayerOrdersRequest
+	10, // 33: craig_stars.v1.PlayerService.UpdatePlayerRelations:input_type -> craig_stars.v1.UpdatePlayerRelationsRequest
+	12, // 34: craig_stars.v1.BattlePlanService.GetBattlePlan:input_type -> craig_stars.v1.GetBattlePlanRequest
+	14, // 35: craig_stars.v1.BattlePlanService.CreateBattlePlan:input_type -> craig_stars.v1.CreateBattlePlanRequest
+	16, // 36: craig_stars.v1.BattlePlanService.UpdateBattlePlan:input_type -> craig_stars.v1.UpdateBattlePlanRequest
+	18, // 37: craig_stars.v1.BattlePlanService.DeleteBattlePlan:input_type -> craig_stars.v1.DeleteBattlePlanRequest
+	20, // 38: craig_stars.v1.ProductionPlanService.GetProductionPlan:input_type -> craig_stars.v1.GetProductionPlanRequest
+	22, // 39: craig_stars.v1.ProductionPlanService.CreateProductionPlan:input_type -> craig_stars.v1.CreateProductionPlanRequest
+	24, // 40: craig_stars.v1.ProductionPlanService.UpdateProductionPlan:input_type -> craig_stars.v1.UpdateProductionPlanRequest
+	26, // 41: craig_stars.v1.ProductionPlanService.DeleteProductionPlan:input_type -> craig_stars.v1.DeleteProductionPlanRequest
+	28, // 42: craig_stars.v1.TransportPlanService.GetTransportPlan:input_type -> craig_stars.v1.GetTransportPlanRequest
+	30, // 43: craig_stars.v1.TransportPlanService.CreateTransportPlan:input_type -> craig_stars.v1.CreateTransportPlanRequest
+	32, // 44: craig_stars.v1.TransportPlanService.UpdateTransportPlan:input_type -> craig_stars.v1.UpdateTransportPlanRequest
+	34, // 45: craig_stars.v1.TransportPlanService.DeleteTransportPlan:input_type -> craig_stars.v1.DeleteTransportPlanRequest
+	1,  // 46: craig_stars.v1.PlayerService.GetPlayer:output_type -> craig_stars.v1.GetPlayerResponse
+	3,  // 47: craig_stars.v1.PlayerService.GetUniverse:output_type -> craig_stars.v1.GetUniverseResponse
+	5,  // 48: craig_stars.v1.PlayerService.SubmitTurn:output_type -> craig_stars.v1.SubmitTurnResponse
+	7,  // 49: craig_stars.v1.PlayerService.UnsubmitTurn:output_type -> craig_stars.v1.UnsubmitTurnResponse
+	9,  // 50: craig_stars.v1.PlayerService.UpdatePlayerOrders:output_type -> craig_stars.v1.UpdatePlayerOrdersResponse
+	11, // 51: craig_stars.v1.PlayerService.UpdatePlayerRelations:output_type -> craig_stars.v1.UpdatePlayerRelationsResponse
+	13, // 52: craig_stars.v1.BattlePlanService.GetBattlePlan:output_type -> craig_stars.v1.GetBattlePlanResponse
+	15, // 53: craig_stars.v1.BattlePlanService.CreateBattlePlan:output_type -> craig_stars.v1.CreateBattlePlanResponse
+	17, // 54: craig_stars.v1.BattlePlanService.UpdateBattlePlan:output_type -> craig_stars.v1.UpdateBattlePlanResponse
+	19, // 55: craig_stars.v1.BattlePlanService.DeleteBattlePlan:output_type -> craig_stars.v1.DeleteBattlePlanResponse
+	21, // 56: craig_stars.v1.ProductionPlanService.GetProductionPlan:output_type -> craig_stars.v1.GetProductionPlanResponse
+	23, // 57: craig_stars.v1.ProductionPlanService.CreateProductionPlan:output_type -> craig_stars.v1.CreateProductionPlanResponse
+	25, // 58: craig_stars.v1.ProductionPlanService.UpdateProductionPlan:output_type -> craig_stars.v1.UpdateProductionPlanResponse
+	27, // 59: craig_stars.v1.ProductionPlanService.DeleteProductionPlan:output_type -> craig_stars.v1.DeleteProductionPlanResponse
+	29, // 60: craig_stars.v1.TransportPlanService.GetTransportPlan:output_type -> craig_stars.v1.GetTransportPlanResponse
+	31, // 61: craig_stars.v1.TransportPlanService.CreateTransportPlan:output_type -> craig_stars.v1.CreateTransportPlanResponse
+	33, // 62: craig_stars.v1.TransportPlanService.UpdateTransportPlan:output_type -> craig_stars.v1.UpdateTransportPlanResponse
+	35, // 63: craig_stars.v1.TransportPlanService.DeleteTransportPlan:output_type -> craig_stars.v1.DeleteTransportPlanResponse
+	46, // [46:64] is the sub-list for method output_type
+	28, // [28:46] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_craig_stars_v1_playerservice_proto_init() }
@@ -2015,7 +1993,6 @@ func file_craig_stars_v1_playerservice_proto_init() {
 	file_craig_stars_v1_game_proto_init()
 	file_craig_stars_v1_planet_proto_init()
 	file_craig_stars_v1_player_proto_init()
-	file_craig_stars_v1_shipdesign_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

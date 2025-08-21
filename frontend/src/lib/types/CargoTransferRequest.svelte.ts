@@ -1,11 +1,10 @@
+import type { Fleet, MineralPacket, Planet, Salvage } from '$lib/types/cs-proto';
 import { CargoSchema, type Cargo, type CargoJson } from '$lib/types/cs-proto';
-import type { SalvageIntel } from '$lib/types/cs-proto';
-import type { AnyFleet, AnyMineralPacket, AnyPlanet } from '$lib/services/Universe';
 import { create } from '@bufbuild/protobuf';
 import { negativeCargo } from './Cargo';
 
 // a destination that cargo can be transferred to/from
-export type CargoDest = AnyFleet | AnyPlanet | AnyMineralPacket | SalvageIntel | undefined;
+export type CargoDest = Fleet | Planet | MineralPacket | Salvage | undefined;
 
 export class CargoTransferRequest {
 	ironium = $state(0);

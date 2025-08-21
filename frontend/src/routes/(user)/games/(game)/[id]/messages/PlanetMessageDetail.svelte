@@ -6,7 +6,7 @@
 	import {
 		CometSize,
 		PlayerMessageType,
-		type PlanetIntel,
+		type Planet,
 		type PlayerIntel,
 		type PlayerMessage
 	} from '$lib/types/cs-proto';
@@ -16,7 +16,7 @@
 
 	type Props = {
 		message: PlayerMessage;
-		planet: PlanetIntel;
+		planet: Planet;
 		owner: PlayerIntel | undefined;
 	};
 

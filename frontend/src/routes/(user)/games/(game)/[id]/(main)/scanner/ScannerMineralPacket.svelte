@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { AnyMineralPacket } from '$lib/services/Universe';
+	import type { MineralPacket } from '$lib/types/cs-proto';
 	import MapObjectScaler from './MapObjectScaler.svelte';
 
 	type Props = {
-		mineralPacket: AnyMineralPacket;
+		mineralPacket: MineralPacket;
 		color?: string;
 	};
 

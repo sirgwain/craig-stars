@@ -188,7 +188,7 @@
 	{:else if waypoint.task === WaypointTask.REMOTE_MINING}
 		{#if selectedWaypointPlanet}
 			<!-- if this waypoint is owned -->
-			{#if 'reportAge' in selectedWaypointPlanet && selectedWaypointPlanet.reportAge === ReportAgeUnexplored}
+			{#if selectedWaypointPlanet.mapObject?.reportAge === ReportAgeUnexplored}
 				<span class="text-warning"
 					>Warning: This planet is unexplored. We have no way of knowing if we can mine it.</span
 				>

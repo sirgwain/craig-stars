@@ -43,6 +43,7 @@ func (s *planetService) GetPlanet(ctx context.Context, req *connect.Request[crai
 
 func (s *planetService) UpdatePlanetOrders(ctx context.Context, req *connect.Request[craig_starsv1.UpdatePlanetOrdersRequest]) (*connect.Response[craig_starsv1.UpdatePlanetOrdersResponse], error) {
 	dbClient := contextDb(ctx)
+	dbClientWrite := contextDbWrite(ctx)
 	game := contextGame(ctx)
 	gamePlayer := contextGamePlayer(ctx)
 
@@ -56,45 +57,25 @@ func (s *planetService) UpdatePlanetOrders(ctx context.Context, req *connect.Req
 	}
 
 	// load the full player to update planet production estimates
-	player, err := dbClient.GetPlayerForGame(ctx, game.ID, gamePlayer.Num)
+	player, err := dbClient.GetLightPlayerForGameWithDesigns(ctx, game.ID, db.GetPlayerParams{PlayerNum: gamePlayer.Num})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	player.Race.Spec = cs.ComputeRaceSpec(&player.Race, &game.Rules)
 
-	// load all a player's planets so we can recompute research estimates
-	planets, err := dbClient.GetPlanetsForPlayer(ctx, game.ID, player.Num)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
-	}
-
 	orders := converter.C.ConvertPlanetOrders(req.Msg.PlanetOrders)
 	orderer := cs.NewOrderer()
-	if err := orderer.UpdatePlanetOrders(&game.Rules, player, planet, *orders, planets); err != nil {
+	if err := orderer.UpdatePlanetOrders(&game.Rules, player, planet, *orders); err != nil {
 		log.Error().Err(err).Int64("GameID", game.ID).Int("PlayerNum", player.Num).Str("Planet", planet.Name).Msg("update planet orders")
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	// update this planet and the player's spec in the database
-	if err := s.db.WrapInTransaction(func(c db.Client) error {
-		if err := c.SavePlanet(ctx, planet); err != nil {
-			log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
-			return err
-		}
-
-		// update the player spec as well because changes in planet orders impact resources
-		// available for research
-		if err := c.UpdatePlayerSpec(ctx, player); err != nil {
-			log.Error().Err(err).Int64("ID", planet.ID).Msg("update player spec in database")
-			return err
-		}
-		return nil
-	}); err != nil {
+	if err := dbClientWrite.SavePlanet(ctx, planet); err != nil {
+		log.Error().Err(err).Int64("ID", planet.ID).Msg("update planet in database")
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	return connect.NewResponse(&craig_starsv1.UpdatePlanetOrdersResponse{
 		Planet: converter.C.ConvertCSPlanet(planet),
-		Player: converter.C.ConvertCSPlayer(player),
 	}), nil
 }

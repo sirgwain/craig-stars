@@ -4,12 +4,12 @@
 	import MapObjectScaler from './MapObjectScaler.svelte';
 	import ScannerFleetCount from './ScannerPlanetFleetCount.svelte';
 	import ScannerPlanetNormal from './ScannerPlanetNormal.svelte';
-	import type { PlanetIntel } from '$lib/types/cs-proto';
+	import type { Planet } from '$lib/types/cs-proto';
 
 	const { universe } = getGameContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: Planet;
 	};
 
 	let { planet }: Props = $props();

@@ -1,10 +1,12 @@
-import {
-	type AnyFleet,
-	type AnyMinefield,
-	type AnyMineralPacket,
-	type AnyPlanet
-} from '$lib/services/Universe';
-import type { MysteryTraderIntel, SalvageIntel, WormholeIntel } from '$lib/types/cs-proto';
+import type {
+	Fleet,
+	Minefield,
+	MineralPacket,
+	MysteryTrader,
+	Planet,
+	Salvage,
+	Wormhole
+} from '$lib/types/cs-proto';
 import {
 	type MapObject,
 	MapObjectSchema,
@@ -15,8 +17,8 @@ import {
 	type VectorJson
 } from '$lib/types/cs-proto';
 import { create } from '@bufbuild/protobuf';
-import { getTokenCount, hasDestination } from './Fleet';
 import { None } from './Consts';
+import { getTokenCount, hasDestination } from './Fleet';
 
 export type MapObjectLike = {
 	mapObject?: MapObject;
@@ -51,14 +53,14 @@ export const emptyMapObject = (): MapObject => {
  * @param mo The MapObject or fleet to check
  * @returns String containing name of object/fleet
  */
-export function getMapObjectName(mo: MapObjectLike | AnyFleet | undefined): string {
+export function getMapObjectName(mo: MapObjectLike | Fleet | undefined): string {
 	if (!mo) {
 		return '';
 	}
 
 	// for fleets, we want the name to indicate if it has ships
-	if ('tokens' in (mo as AnyFleet)) {
-		const fleet = mo as AnyFleet;
+	if ('tokens' in (mo as Fleet)) {
+		const fleet = mo as Fleet;
 		const numShips = getTokenCount(fleet);
 		const numTokens = fleet.tokens?.length;
 		let name = fleet.mapObject?.name ?? '';
@@ -77,13 +79,13 @@ export function getMapObjectName(mo: MapObjectLike | AnyFleet | undefined): stri
 export function getUnderlyingMapObject(mo: MapObjectLike | undefined) {
 	const t = mo?.mapObject?.type ?? '';
 	return {
-		planet: t === MapObjectType.PLANET ? (mo as AnyPlanet) : undefined,
-		fleet: t === MapObjectType.FLEET ? (mo as AnyFleet) : undefined,
-		wormhole: t === MapObjectType.WORMHOLE ? (mo as WormholeIntel) : undefined,
-		minefield: t === MapObjectType.MINEFIELD ? (mo as AnyMinefield) : undefined,
-		mysteryTrader: t === MapObjectType.MYSTERY_TRADER ? (mo as MysteryTraderIntel) : undefined,
-		salvage: t === MapObjectType.SALVAGE ? (mo as SalvageIntel) : undefined,
-		mineralPacket: t === MapObjectType.MINERAL_PACKET ? (mo as AnyMineralPacket) : undefined
+		planet: t === MapObjectType.PLANET ? (mo as Planet) : undefined,
+		fleet: t === MapObjectType.FLEET ? (mo as Fleet) : undefined,
+		wormhole: t === MapObjectType.WORMHOLE ? (mo as Wormhole) : undefined,
+		minefield: t === MapObjectType.MINEFIELD ? (mo as Minefield) : undefined,
+		mysteryTrader: t === MapObjectType.MYSTERY_TRADER ? (mo as MysteryTrader) : undefined,
+		salvage: t === MapObjectType.SALVAGE ? (mo as Salvage) : undefined,
+		mineralPacket: t === MapObjectType.MINERAL_PACKET ? (mo as MineralPacket) : undefined
 	};
 }
 

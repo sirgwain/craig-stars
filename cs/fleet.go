@@ -1224,7 +1224,7 @@ func (fleet *Fleet) colonizePlanet(rules *Rules, player *Player, planet *Planet)
 		planet.Scanner = true
 	}
 
-	planet.Spec = computePlanetSpec(rules, player, planet)
+	planet.Spec = ComputePlanetSpec(rules, player, planet)
 }
 
 // get the minerals and resources recovered from a scrapped fleet
@@ -1387,22 +1387,22 @@ type WaypointDest struct {
 }
 
 // CanColonize returns true if this fleet can colonize the planet
-func (f *Fleet) CanColonize(planet *PlanetIntel) bool {
+func (f *Fleet) CanColonize(planet *Planet) bool {
 	return f.Spec.Colonizer && f.Cargo.Colonists > 0 && planet != nil && !planet.Owned() && planet.Spec.TerraformedHabitability > 0
 }
 
 // CanFuel returns true if this fleet will refuel at the planet
-func (f *Fleet) CanFuel(player *Player, planet *PlanetIntel) bool {
+func (f *Fleet) CanFuel(player *Player, planet *Planet) bool {
 	return planet != nil && planet.Owned() && planet.Spec.DockCapacity != 0 && player.IsFriend(planet.PlayerNum)
 }
 
 // CanRemoteMine returns true if this fleet can remote mine the planet
-func (f *Fleet) CanRemoteMine(player *Player, planet *PlanetIntel) bool {
+func (f *Fleet) CanRemoteMine(player *Player, planet *Planet) bool {
 	return f.Spec.MiningRate > 0 && planet != nil && !planet.Owned() || (player.Race.Spec.CanRemoteMineOwnPlanets && planet.OwnedBy(player.Num))
 }
 
 // CanRemoteMine returns true if this fleet can remote mine the planet
-func (f *Fleet) CanJump(player *Player, dist float64, orbiting *PlanetIntel, target *PlanetIntel) bool {
+func (f *Fleet) CanJump(player *Player, dist float64, orbiting *Planet, target *Planet) bool {
 	if target == nil {
 		return false
 	}
@@ -1500,7 +1500,7 @@ func (f *Fleet) AddWaypoint(
 		return 0 // don't add duplicate waypoint
 	}
 
-	var targetPlanet *PlanetIntel
+	var targetPlanet *Planet
 	if dest.MO.Type == MapObjectTypePlanet {
 		targetPlanet = player.GetPlanetIntel(dest.MO.Num)
 	}
@@ -1510,7 +1510,7 @@ func (f *Fleet) AddWaypoint(
 	canRemoteMine := f.CanRemoteMine(player, targetPlanet)
 
 	fuelAlreadyAllocated := f.GetFuelAllocated(player, index)
-	var orbiting *PlanetIntel
+	var orbiting *Planet
 	if selectedWaypoint.TargetType == MapObjectTypePlanet {
 		orbiting = player.GetPlanetIntel(selectedWaypoint.TargetNum)
 	}
@@ -1596,12 +1596,12 @@ func (f *Fleet) UpdateWaypoint(
 	// get the fuel allocated up to but not including this waypoint since we're moving it around
 	fuelAlreadyAllocated := f.GetFuelAllocated(player, waypointIndex-1)
 
-	var orbiting *PlanetIntel
+	var orbiting *Planet
 	if previousWaypoint.TargetType == MapObjectTypePlanet {
 		orbiting = player.GetPlanetIntel(previousWaypoint.TargetNum)
 	}
 
-	var targetPlanet *PlanetIntel
+	var targetPlanet *Planet
 	if dest.MO.Type == MapObjectTypePlanet {
 		targetPlanet = player.GetPlanetIntel(dest.MO.Num)
 	}
@@ -1645,7 +1645,7 @@ func (f *Fleet) GetFuelAllocated(player *Player, waypointIndex int) int {
 		wp := f.Waypoints[i]
 		fuelAllocated += wp.EstFuelUsage
 
-		var targetPlanet *PlanetIntel
+		var targetPlanet *Planet
 		if wp.TargetType == MapObjectTypePlanet {
 			targetPlanet = player.GetPlanetIntel(wp.TargetNum)
 			if targetPlanet != nil && f.CanFuel(player, targetPlanet) {
@@ -1661,8 +1661,8 @@ func (f *Fleet) GetFuelAllocated(player *Player, waypointIndex int) int {
 func (f *Fleet) GetWarpSpeed(
 	player *Player,
 	dist float64,
-	orbiting *PlanetIntel,
-	targetPlanet *PlanetIntel,
+	orbiting *Planet,
+	targetPlanet *Planet,
 	fuelAlreadyAllocated int,
 	fastestWaypoint bool,
 ) int {

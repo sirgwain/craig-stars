@@ -63,7 +63,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 	}
 
 	for _, player := range ug.Players {
-		player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+		player.Spec = ComputePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
 
 		// compute tech levels
 		for _, design := range player.Designs {
@@ -77,7 +77,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 	for _, planet := range ug.Universe.Planets {
 		if planet.Owned() {
 			player := ug.Players[planet.PlayerNum-1]
-			planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
+			planet.Spec = ComputePlanetSpec(&ug.Rules, player, planet)
 			if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 				return fmt.Errorf("planet %s failed to populate queue design: %w", planet, err)
 			}
@@ -95,7 +95,7 @@ func (ug *universeGenerator) GenerateWithUniverse(universe *Universe) error {
 
 	// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
 	for _, player := range ug.Players {
-		player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+		player.Spec = ComputePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
 	}
 
 	// do one scan run
@@ -155,13 +155,13 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 		ug.computeSpecs()
 	} else {
 		for _, player := range ug.Players {
-			player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+			player.Spec = ComputePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
 		}
 
 		for _, planet := range ug.Universe.Planets {
 			if planet.Owned() {
 				player := ug.Players[planet.PlayerNum-1]
-				planet.Spec = computePlanetSpec(&ug.Rules, player, planet)
+				planet.Spec = ComputePlanetSpec(&ug.Rules, player, planet)
 				if err := planet.PopulateProductionQueueDesigns(player); err != nil {
 					return nil, fmt.Errorf("planet %s failed to populate queue design: %w", planet, err)
 				}
@@ -174,7 +174,7 @@ func (ug *universeGenerator) Generate() (*Universe, error) {
 
 	// TODO: chicken and egg problem. Player spec needs planet spec for resources, planet spec needs player spec for defense/scanner
 	for _, player := range ug.Players {
-		player.Spec = computePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
+		player.Spec = ComputePlayerSpec(player, &ug.Rules, ug.Universe.Planets)
 	}
 
 	// do one scan run

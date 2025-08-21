@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { MapObjectType } from '$lib/types/cs-proto';
-	import type { PlanetIntel } from '$lib/types/cs-proto';
 	import { getGameContext } from '$lib/services/GameContext';
-	import type { AnyFleet } from '$lib/services/Universe';
+	import type { Fleet, Planet } from '$lib/types/cs-proto';
+	import { MapObjectType } from '$lib/types/cs-proto';
 	import { filterFleet } from '$lib/types/Filter';
 	import type { LayerCake } from 'layercake';
 	import { getContext } from 'svelte';
@@ -13,7 +12,7 @@
 	const { scale } = getScannerContext();
 
 	type Props = {
-		planet: PlanetIntel;
+		planet: Planet;
 		yOffset: number;
 	};
 
@@ -27,8 +26,8 @@
 
 	let orbitingTokens = $derived(
 		orbitingFleets
-			.map((of) => of as AnyFleet)
-			.filter((f: AnyFleet) => filterFleet($player, f, $settings))
+			.map((of) => of as Fleet)
+			.filter((f: Fleet) => filterFleet($player, f, $settings))
 			.reduce(
 				(count, f) =>
 					count + (f.tokens ? f.tokens.reduce((tokenCount, t) => tokenCount + t.quantity, 0) : 0),

@@ -8,11 +8,11 @@
 	} from '$lib/components/game/tooltips/PopulationTooltip.svelte';
 	import { getGameContext } from '$lib/services/GameContext';
 	import { showTooltip } from '$lib/services/Stores';
-	import type { AnyPlanet } from '$lib/services/Universe';
 	import { population } from '$lib/types/Cargo';
-	import { ReportAgeUnexplored } from '$lib/types/Consts';
+	import { None, ReportAgeUnexplored } from '$lib/types/Consts';
+	import type { Planet } from '$lib/types/cs-proto';
 	import { Grav, Rad, Temp } from '$lib/types/Hab';
-	import { None } from '$lib/types/Consts';
+	import { ownedBy } from '$lib/types/MapObject';
 	import { QuestionMarkCircle } from '@steeze-ui/heroicons';
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import MapObjectIcon from './MapObjectIcon.svelte';
@@ -21,7 +21,7 @@
 	const { player, universe } = getGameContext();
 
 	type Props = {
-		planet: AnyPlanet;
+		planet: Planet;
 	};
 
 	let { planet }: Props = $props();
@@ -64,7 +64,7 @@
 </script>
 
 <div class="flex flex-col md:min-h-[11rem] select-none w-full">
-	{#if 'reportAge' in planet && planet.reportAge === ReportAgeUnexplored}
+	{#if planet.mapObject?.reportAge === ReportAgeUnexplored}
 		<div class="relative w-full m-auto">
 			<!-- Icon on the left -->
 			<div class="absolute top-1/2 -translate-y-1/2">
@@ -89,21 +89,19 @@
 		<div class="flex justify-between">
 			<div class="ml-[5.5rem]">
 				<div>
-					{#if 'reportAge' in planet}
-						{#if (planet.reportAge ?? 0) == 0}
-							Report is current
-						{:else if planet.reportAge == 1}
-							Report is 1 year old
-						{:else}
-							Report is {planet.reportAge} years old
-						{/if}
-					{:else}
+					{#if ownedBy(planet, $player.num)}
 						Report is current
+					{:else if planet.mapObject?.reportAge === 0}
+						Report is current
+					{:else if planet.mapObject?.reportAge === 1}
+						Report is 1 year old
+					{:else}
+						Report is {planet.mapObject?.reportAge} years old
 					{/if}
 				</div>
 			</div>
 			<div>
-				{#if 'reportAge' in planet && planet.reportAge !== ReportAgeUnexplored && (planet.mapObject?.playerNum ?? None) != $player.num && (planet.mapObject?.playerNum ?? None) != None}
+				{#if planet.mapObject?.reportAge !== ReportAgeUnexplored && (planet.mapObject?.playerNum ?? None) != $player.num && (planet.mapObject?.playerNum ?? None) != None}
 					<span style={`color: ${$universe.getPlayerColor(planet.mapObject?.playerNum)}`}
 						>{$universe.getPlayerPluralName(planet.mapObject?.playerNum)}</span
 					>

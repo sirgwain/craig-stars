@@ -52,16 +52,6 @@ func Test_client_explainQuery(t *testing.T) {
 			},
 		},
 		{
-			name:      "GetPlayerForGameAndUser",
-			query:     generated.GetPlayerForGameAndUser,
-			queryArgs: []any{1, 1, 1},
-			want: []string{
-				"SEARCH d USING INDEX idx_ship_designs_gameid_playernum (game_id=? AND player_num=?) LEFT-JOIN",
-				"SEARCH p USING INDEX idx_players_userid_gameid (user_id=? AND game_id=?)",
-				"USE TEMP B-TREE FOR ORDER BY",
-			},
-		},
-		{
 			name:      "GetPlayersWithDesignsForGame",
 			query:     generated.GetPlayersWithDesignsForGame,
 			queryArgs: []any{1},

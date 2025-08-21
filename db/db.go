@@ -60,13 +60,12 @@ type ReadClient interface {
 	GetGamesWithPlayers(ctx context.Context) ([]cs.GameWithPlayers, error)
 	GetOpenGames(ctx context.Context) ([]cs.GameWithPlayers, error)
 
-	GetFullPlayerForGame(ctx context.Context, gameID, userID int64) (*cs.FullPlayer, error)
 	GetLightPlayerForGame(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error)
 	GetLightPlayerForGameWithDesigns(ctx context.Context, gameID int64, params GetPlayerParams) (*cs.Player, error)
 	GetPlayer(ctx context.Context, id int64) (*cs.Player, error)
 	GetPlayerForGame(ctx context.Context, gameID int64, playerNum int) (*cs.Player, error)
-	GetPlayerForGameAndUser(ctx context.Context, gameID int64, userID int64) (*cs.Player, error)
-	GetPlayerMapObjects(ctx context.Context, gameID, userID int64) (*cs.PlayerMapObjects, error)
+	GetPlayerIntel(ctx context.Context, gameID int64, playerNum int) (*cs.Intels, error)
+	GetPlayerMapObjects(ctx context.Context, gameID int64, playerNum int) (*cs.PlayerMapObjects, error)
 	GetPlayers(ctx context.Context) ([]*cs.Player, error)
 	GetPlayersForUser(ctx context.Context, userID int64) ([]*cs.Player, error)
 	GetPlayersStatusForGame(ctx context.Context, gameID int64) ([]*cs.Player, error)
@@ -133,7 +132,6 @@ type WriteClient interface {
 	UpdatePlayerPlans(ctx context.Context, player *cs.Player) error
 	UpdatePlayerRelations(ctx context.Context, player *cs.Player) error
 	UpdatePlayerSalvageIntels(ctx context.Context, player *cs.Player) error
-	UpdatePlayerSpec(ctx context.Context, player *cs.Player) error
 	UpdatePlayerUserID(ctx context.Context, player *cs.Player) error
 
 	DeleteShipDesign(ctx context.Context, id int64) error
