@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -314,11 +313,11 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 	var err error
 	techStore := ug.Rules.techs
 	for _, player := range ug.Players {
-		designNames := mapset.NewSet[string]()
+		designNames := map[string]bool{}
 		num := 1
 		for _, startingPlanet := range player.Race.Spec.StartingPlanets {
 			for _, startingFleet := range startingPlanet.StartingFleets {
-				if designNames.Contains(startingFleet.Name) {
+				if designNames[startingFleet.Name] {
 					// only create one design per name, i.e. Scout, Armed Probe
 					// multiple starting fleets will use the same design
 					continue
@@ -333,7 +332,7 @@ func (ug *universeGenerator) generatePlayerShipDesigns() error {
 					return fmt.Errorf("DesignShip returned error %w", err)
 				}
 				player.Designs = append(player.Designs, design)
-				designNames.Add(design.Name)
+				designNames[design.Name] = true
 				num++
 			}
 		}

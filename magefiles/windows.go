@@ -1,4 +1,4 @@
-//go:build !wasi && !wasm && windows
+//go:build windows
 
 package main
 

@@ -6,12 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"time"
 
-	"connectrpc.com/connect"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/sirgwain/craig-stars/cs"
 	"github.com/sirgwain/craig-stars/proto/converter"
 	craig_starsv1 "github.com/sirgwain/craig-stars/proto/gen/craig_stars/v1"
@@ -94,10 +89,8 @@ func (s *wasmService) ComputeShipDesignSpec(ctx context.Context, req *craig_star
 }
 
 func (s *wasmService) EnableDebug(ctx context.Context, req *craig_starsv1.EnableDebugRequest) (*craig_starsv1.EnableDebugResponse, error) {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.DateTime, NoColor: true})
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	debug = req.Debug
-	log.Debug().Msg("enabled debug mode")
+	EnableDebug()
 	return &craig_starsv1.EnableDebugResponse{}, nil
 }
 
@@ -115,11 +108,11 @@ func (s *wasmService) EstimateProduction(ctx context.Context, req *craig_starsv1
 	// make sure if we have a starbase, it has a design so we can compute
 	// upgrade costs
 	if err := planet.PopulateStarbaseDesign(s.player); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to populate %s starbase with player design.: %v", planet.Name, err))
+		return nil, fmt.Errorf("failed to populate %s starbase with player design.: %v", planet.Name, err)
 	}
 
 	if err := planet.PopulateProductionQueueDesigns(s.player); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to populate %s production queue designs.: %v", planet.Name, err))
+		return nil, fmt.Errorf("failed to populate %s production queue designs.: %v", planet.Name, err)
 	}
 
 	planet.PopulateProductionQueueEstimates(s.rules, s.player)
@@ -168,7 +161,7 @@ func (s *wasmService) GetStarbaseUpgradeCost(ctx context.Context, req *craig_sta
 	newDesign := converter.C.ConvertShipDesignP(req.NewDesign)
 	cost, err := costCalculatoor.StarbaseUpgradeCost(s.rules, s.player.TechLevels, s.player.Race.Spec, design, newDesign)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("unable to calculate starbase upgrade cost: %v", err))
+		return nil, fmt.Errorf("unable to calculate starbase upgrade cost: %v", err)
 	}
 	return &craig_starsv1.GetStarbaseUpgradeCostResponse{
 		Cost: converter.C.ConvertCSCost(cost),
@@ -177,7 +170,7 @@ func (s *wasmService) GetStarbaseUpgradeCost(ctx context.Context, req *craig_sta
 
 func (s *wasmService) GetTechCost(ctx context.Context, req *craig_starsv1.GetTechCostRequest) (*craig_starsv1.GetTechCostResponse, error) {
 	if s.player == nil {
-		return nil, connect.NewError(connect.CodeInternal, errors.New("no player, can't calculate tech cost"))
+		return nil, errors.New("no player, can't calculate tech cost")
 	}
 	costCalculatoor := cs.NewCostCalculator()
 
@@ -209,10 +202,6 @@ func (s *wasmService) SetPlayer(ctx context.Context, req *craig_starsv1.SetPlaye
 
 func (s *wasmService) SetIntels(ctx context.Context, req *craig_starsv1.SetIntelsRequest) (*craig_starsv1.SetIntelsResponse, error) {
 	s.player.Intels = converter.C.ConvertIntels(req.Intels)
-	log.Debug().
-		Int("planets", len(s.player.PlanetIntels)).
-		Int("fleets", len(s.player.FleetIntels)).
-		Msgf("set playerIntels")
 	return &craig_starsv1.SetIntelsResponse{}, nil
 }
 

@@ -1,5 +1,3 @@
-//go:build !wasi && !wasm
-
 package server
 
 import (

@@ -2,7 +2,10 @@ go 1.24.2
 
 use (
 	.
+	./cs
 	./generators/enum-mapper-gen
 	./generators/protoc-gen-wasm-go
 	./proto-wasm
+	./test
+	./wasm
 )

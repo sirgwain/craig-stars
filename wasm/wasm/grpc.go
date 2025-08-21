@@ -26,9 +26,7 @@ func HandleGRPCCall(args []js.Value) any {
 		resBytes, err := serviceHandler.Call(context.Background(), method, reqBytes)
 
 		if err != nil {
-			log.Err(err).
-				Int("size", len(reqBytes)).
-				Msgf("failed to process %s", method)
+			println("failed to process method", method, "size", len(reqBytes), err)
 			jsErr := js.Global().Get("Error").New(err.Error())
 			cb.Invoke(jsErr, js.Null()) // reject
 			return

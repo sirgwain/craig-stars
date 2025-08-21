@@ -2,10 +2,12 @@ package grpcwasm
 
 import (
 	"context"
-	"fmt"
-
-	"google.golang.org/protobuf/proto"
 )
+
+type VTProtoMessage interface {
+	MarshalVT() (dAtA []byte, err error)
+	UnmarshalVT(dAtA []byte) error
+}
 
 // Handler is a generic WASM-style interface for calling RPCs using raw bytes.
 type Handler interface {
@@ -19,23 +21,24 @@ func (f HandlerFunc) Call(ctx context.Context, method string, req []byte) ([]byt
 	return f(ctx, method, req)
 }
 
-func HandleUnary[Req proto.Message, Res proto.Message](
+func HandleUnary[Req, Res VTProtoMessage](
 	ctx context.Context,
 	reqBytes []byte,
 	req Req,
 	handler func(context.Context, Req) (Res, error),
 ) ([]byte, error) {
-	if err := proto.Unmarshal(reqBytes, req); err != nil {
-		return nil, fmt.Errorf("unmarshal request: %w", err)
+
+	if err := req.UnmarshalVT(reqBytes); err != nil {
+		return nil, err
 	}
 
 	resp, err := handler(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	respBytes, err := proto.Marshal(resp)
+	respBytes, err := resp.MarshalVT()
 	if err != nil {
-		return nil, fmt.Errorf("marshal response: %w", err)
+		return nil, err
 	}
 	return respBytes, nil
 }
