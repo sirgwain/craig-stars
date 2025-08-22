@@ -81,6 +81,7 @@ func (s *playerService) GetUniverse(ctx context.Context, req *connect.Request[cr
 			Minefields:     converter.C.ConvertCSMinefields(minefields),
 			MineralPackets: converter.C.ConvertCSMineralPackets(mineralPackets),
 			MysteryTraders: converter.C.ConvertCSMysteryTraders(intels.MysteryTraderIntels),
+			Salvages:       converter.C.ConvertCSSalvages(intels.SalvageIntels),
 			Wormholes:      converter.C.ConvertCSWormholes(intels.WormholeIntels),
 		},
 	}), nil

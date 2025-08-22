@@ -1,4 +1,5 @@
 import { apiErrorsFailTest, expect, loadGamePage, test } from './setup';
+import { MapObjectType } from '../src/lib/protogen/craig_stars/v1/common_pb';
 
 test('Cargo Transfer Planet Owned', async ({ authenticatedPage }) => {
 	const { page, gameId } = await loadGamePage(authenticatedPage, 'Cargo Transfer Planet Owned');
@@ -330,4 +331,85 @@ test('Cargo Transfer Salvage', async ({ authenticatedPage }) => {
 	await expect(mapObjectSummary.getByText('Ironium 41kT').first()).toBeVisible();
 	await expect(mapObjectSummary.getByText('Boranium 42kT').first()).toBeVisible();
 	await expect(mapObjectSummary.getByText('Germanium 43kT').first()).toBeVisible();
+});
+
+test('Cargo Transfer MineralPacket', async ({ authenticatedPage }) => {
+	const name = 'Cargo Transfer MineralPacket';
+	const { page, gameId } = await loadGamePage(authenticatedPage, name);
+	apiErrorsFailTest(page, gameId);
+
+	const otherFleetsHereTile = await page
+		.locator('[data-type="command-tile"][data-id="Other Entities Here"]')
+		.first();
+
+	await otherFleetsHereTile.getByRole('button', { name: 'Transfer' }).first().click();
+
+	await page
+		.locator('[data-id="ironium"][data-type="transfer-to-source-button"]')
+		.click({ clickCount: 1 });
+	await page
+		.locator('[data-id="boranium"][data-type="transfer-to-source-button"]')
+		.click({ clickCount: 2 });
+	await page
+		.locator('[data-id="germanium"][data-type="transfer-to-source-button"]')
+		.click({ clickCount: 3 });
+	await page.getByRole('button', { name: 'Ok' }).click();
+
+	// select the mineralPacket in the map object summary
+	let mapObjectSummary = await page.locator('[data-type="map-object-summary"]').first();
+	await mapObjectSummary.locator('[data-type="cycle-selected-map-object-button"]').first().click();
+
+	// MineralPacket #1 should be selected
+	await expect(
+		mapObjectSummary
+			.locator('div')
+			.filter({ hasText: /^Humanoids Mineral Packet #1$/ })
+			.first()
+	).toBeVisible();
+
+	// mineralPacket cargo should be updated
+	await mapObjectSummary
+		.getByText('Location: (0, 0) Traveling at')
+		.first()
+		.scrollIntoViewIfNeeded();
+	await expect(mapObjectSummary.getByText('Ironium 49kT').first()).toBeVisible();
+	await expect(mapObjectSummary.getByText('Boranium 48kT').first()).toBeVisible();
+	await expect(mapObjectSummary.getByText('Germanium 47kT').first()).toBeVisible();
+
+	// submit turn
+	await page.getByRole('button', { name: 'Submit Turn' }).click();
+
+	// wait for turn submit to finish
+	await page.locator('#loading-modal').waitFor({ state: 'visible' }); // wait for loading modal to show up
+	await expect(page.locator('#loading-modal')).not.toHaveClass(/modal-open/); // ensure submit is done
+
+	// fleet cargo should be updated
+	const fuelAndCargoTile = await page
+		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
+		.first();
+	await expect(fuelAndCargoTile.getByText('Ironium 11kT').first()).toBeVisible();
+	await expect(fuelAndCargoTile.getByText('Boranium 12kT').first()).toBeVisible();
+	await expect(fuelAndCargoTile.getByText('Germanium 13kT').first()).toBeVisible();
+
+	// click the mineral packet
+	await page.locator(`[data-id="${MapObjectType.MINERAL_PACKET}-1-1"]`).click({ force: true });
+
+	// select the mineralPacket in the map object summary
+	mapObjectSummary = await page.locator('[data-type="map-object-summary"]').first();
+
+	// select mineralPacket #1 and check it
+	await expect(
+		mapObjectSummary
+			.locator('div')
+			.filter({ hasText: /^Humanoids Mineral Packet #1$/ })
+			.first()
+	).toBeVisible();
+	await mapObjectSummary
+		.getByText('Location: (25, 0) Traveling at')
+		.first()
+		.scrollIntoViewIfNeeded();
+	// mineralPacket cargo should be decayed but also updated
+	await expect(mapObjectSummary.getByText('Ironium 25kT').first()).toBeVisible();
+	await expect(mapObjectSummary.getByText('Boranium 24kT').first()).toBeVisible();
+	await expect(mapObjectSummary.getByText('Germanium 24kT').first()).toBeVisible();
 });

@@ -331,7 +331,9 @@ type Converter interface {
 	ConvertCSWormhole(source *cs.Wormhole) *craig_starsv1.Wormhole
 	ConvertCSWormholes(source []*cs.Wormhole) []*craig_starsv1.Wormhole
 
+	ConvertSalvage(source *craig_starsv1.Salvage) *cs.Salvage
 	ConvertCSSalvage(source *cs.Salvage) *craig_starsv1.Salvage
+	ConvertCSSalvages(source []*cs.Salvage) []*craig_starsv1.Salvage
 
 	ConvertMinefieldStats(source *craig_starsv1.MinefieldStats) cs.MinefieldStats
 	ConvertCSMinefieldStats(source cs.MinefieldStats) *craig_starsv1.MinefieldStats

@@ -284,12 +284,7 @@ func (c *ProtoConverter) ConvertCSIntels(source cs.Intels) *v1.Intels {
 	craig_starsv1Intels.MinefieldIntels = c.ConvertCSMinefields(source.MinefieldIntels)
 	craig_starsv1Intels.WormholeIntels = c.ConvertCSWormholes(source.WormholeIntels)
 	craig_starsv1Intels.MysteryTraderIntels = c.ConvertCSMysteryTraders(source.MysteryTraderIntels)
-	if source.SalvageIntels != nil {
-		craig_starsv1Intels.SalvageIntels = make([]*v1.Salvage, len(source.SalvageIntels))
-		for i := 0; i < len(source.SalvageIntels); i++ {
-			craig_starsv1Intels.SalvageIntels[i] = c.ConvertCSSalvage(source.SalvageIntels[i])
-		}
-	}
+	craig_starsv1Intels.SalvageIntels = c.ConvertCSSalvages(source.SalvageIntels)
 	return &craig_starsv1Intels
 }
 func (c *ProtoConverter) ConvertCSLRTSpec(source cs.LRTSpec) *v1.LRTSpec {
@@ -852,6 +847,16 @@ func (c *ProtoConverter) ConvertCSSalvage(source *cs.Salvage) *v1.Salvage {
 		pCraig_starsv1Salvage = &craig_starsv1Salvage
 	}
 	return pCraig_starsv1Salvage
+}
+func (c *ProtoConverter) ConvertCSSalvages(source []*cs.Salvage) []*v1.Salvage {
+	var pCraig_starsv1SalvageList []*v1.Salvage
+	if source != nil {
+		pCraig_starsv1SalvageList = make([]*v1.Salvage, len(source))
+		for i := 0; i < len(source); i++ {
+			pCraig_starsv1SalvageList[i] = c.ConvertCSSalvage(source[i])
+		}
+	}
+	return pCraig_starsv1SalvageList
 }
 func (c *ProtoConverter) ConvertCSScoreIntels(source []cs.ScoreIntel) []*v1.ScoreIntel {
 	var pCraig_starsv1ScoreIntelList []*v1.ScoreIntel
@@ -1487,7 +1492,7 @@ func (c *ProtoConverter) ConvertIntels(source *v1.Intels) cs.Intels {
 		if (*source).SalvageIntels != nil {
 			csIntels2.SalvageIntels = make([]*cs.Salvage, len((*source).SalvageIntels))
 			for q := 0; q < len((*source).SalvageIntels); q++ {
-				csIntels2.SalvageIntels[q] = c.pCraig_starsv1SalvageToPCsSalvage((*source).SalvageIntels[q])
+				csIntels2.SalvageIntels[q] = c.ConvertSalvage((*source).SalvageIntels[q])
 			}
 		}
 		csIntels = csIntels2
@@ -2020,6 +2025,17 @@ func (c *ProtoConverter) ConvertRules(source *v1.Rules) *cs.Rules {
 		pCsRules = &csRules
 	}
 	return pCsRules
+}
+func (c *ProtoConverter) ConvertSalvage(source *v1.Salvage) *cs.Salvage {
+	var pCsSalvage *cs.Salvage
+	if source != nil {
+		var csSalvage cs.Salvage
+		csSalvage.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
+		csSalvage.MapObject = c.ConvertMapObject((*source).MapObject)
+		csSalvage.Cargo = c.ConvertCargo((*source).Cargo)
+		pCsSalvage = &csSalvage
+	}
+	return pCsSalvage
 }
 func (c *ProtoConverter) ConvertShipDesign(source v1.ShipDesign) cs.ShipDesign {
 	var csShipDesign cs.ShipDesign
@@ -3971,17 +3987,6 @@ func (c *ProtoConverter) pCraig_starsv1ResearchCostToCsResearchCost(source *v1.R
 		csResearchCost = csResearchCost2
 	}
 	return csResearchCost
-}
-func (c *ProtoConverter) pCraig_starsv1SalvageToPCsSalvage(source *v1.Salvage) *cs.Salvage {
-	var pCsSalvage *cs.Salvage
-	if source != nil {
-		var csSalvage cs.Salvage
-		csSalvage.GameDBObject = c.pCraig_starsv1GameDBObjectToCsGameDBObject((*source).GameDbObject)
-		csSalvage.MapObject = c.ConvertMapObject((*source).MapObject)
-		csSalvage.Cargo = c.ConvertCargo((*source).Cargo)
-		pCsSalvage = &csSalvage
-	}
-	return pCsSalvage
 }
 func (c *ProtoConverter) pCraig_starsv1ScoreIntelToCsScoreIntel(source *v1.ScoreIntel) cs.ScoreIntel {
 	var csScoreIntel cs.ScoreIntel
