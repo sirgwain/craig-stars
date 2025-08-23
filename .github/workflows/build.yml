@@ -115,6 +115,11 @@ jobs:
         run: npx playwright install --with-deps
         working-directory: ./frontend
 
+      - name: Run svelte-kit check
+        run: npm run check
+        working-directory: ./frontend
+        id: svelte-check
+
       - name: Run Playwright tests
         run: npx playwright test
         working-directory: ./frontend
