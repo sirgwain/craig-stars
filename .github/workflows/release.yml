@@ -37,6 +37,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.24.x]
+        tinygo-version: [0.39.0]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     needs: tag
@@ -56,6 +57,10 @@ jobs:
           go-version: ${{ matrix.go-version }}
           check-latest: true
           cache: true
+      - name: Setup tinygo
+        uses: acifani/setup-tinygo@v2
+        with:
+          tinygo-version: ${{ matrix.tinygo-version }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

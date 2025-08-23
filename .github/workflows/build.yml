@@ -83,9 +83,10 @@ jobs:
           go-version: ${{ env.go-version }}
           check-latest: true
           cache: true
-      - uses: acifani/setup-tinygo@v2
+      - name: Setup tinygo
+        uses: acifani/setup-tinygo@v2
         with:
-          tinygo-version: ${{ tinygo-version }}
+          tinygo-version: ${{ env.tinygo-version }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
