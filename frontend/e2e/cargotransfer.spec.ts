@@ -1,4 +1,4 @@
-import { apiErrorsFailTest, expect, loadGamePage, test } from './setup';
+import { apiErrorsFailTest, expect, loadGamePage, submitTurn, test } from './setup';
 import { MapObjectType } from '../src/lib/protogen/craig_stars/v1/common_pb';
 
 test('Cargo Transfer Planet Owned', async ({ authenticatedPage }) => {
@@ -37,8 +37,7 @@ test('Cargo Transfer Planet Owned', async ({ authenticatedPage }) => {
 	await expect(fuelAndCargoTile.getByText('Germanium 1kT').first()).toBeVisible();
 	await expect(fuelAndCargoTile.getByText('Colonists 1kT').first()).toBeVisible();
 
-	// submit turn and make sure it "sticks"
-	await page.getByRole('button', { name: 'Submit Turn' }).click();
+	await submitTurn(page);
 
 	// verify cargo
 	const mineralsOnHandTile = await page
@@ -108,7 +107,7 @@ test('Cargo Transfer Fleets', async ({ authenticatedPage }) => {
 	await expect(fuelAndCargoTile.getByText('Fuel 11 of 200mg').first().first()).toBeVisible();
 
 	// submit turn and make sure it "sticks"
-	await page.getByRole('button', { name: 'Submit Turn' }).click();
+	await submitTurn(page);
 
 	// verify cargo
 	fuelAndCargoTile = await page
@@ -175,7 +174,7 @@ test('Cargo Transfer Split', async ({ authenticatedPage }) => {
 	await page.getByRole('button', { name: 'Ok' }).click();
 
 	// submit turn
-	await page.getByRole('button', { name: 'Submit Turn' }).click();
+	await submitTurn(page);
 
 	fuelAndCargoTile = await page
 		.locator('[data-type="command-tile"][data-id="Fuel & Cargo"]')
@@ -224,7 +223,7 @@ test('Cargo Transfer Jettison', async ({ authenticatedPage }) => {
 	await expect(fuelAndCargoTile.getByText('Germanium 20kT').first()).toBeVisible();
 
 	// submit turn
-	await page.getByRole('button', { name: 'Submit Turn' }).click();
+	await submitTurn(page);
 
 	// fleet cargo should be updated
 	fuelAndCargoTile = await page
@@ -301,7 +300,7 @@ test('Cargo Transfer Salvage', async ({ authenticatedPage }) => {
 	await expect(mapObjectSummary.getByText('Germanium 53kT').first()).toBeVisible();
 
 	// submit turn
-	await page.getByRole('button', { name: 'Submit Turn' }).click();
+	await submitTurn(page);
 
 	// fleet cargo should be updated
 	const fuelAndCargoTile = await page

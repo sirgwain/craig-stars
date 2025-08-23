@@ -214,6 +214,8 @@ export async function createGameContext(
 		const { spec: raceSpec } = await cs.wasmService.computeRaceSpec({ race: p.race });
 		p.race.spec = raceSpec ?? p.race.spec;
 		await cs.wasmService.setPlayer({ player: p });
+		await cs.wasmService.setDesigns({ designs: u.designs });
+		await cs.wasmService.setIntels({ intels: u.intels });
 
 		game.set(fg);
 		await updatePlayer(p);

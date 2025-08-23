@@ -142,14 +142,14 @@ func (s *gameService) UpdateGame(ctx context.Context, req *connect.Request[craig
 	// Update game settings from proto request
 	game.Name = req.Msg.Settings.Name
 	game.Public = req.Msg.Settings.Public
-	game.Size = cs.Size(req.Msg.Settings.Size)
-	game.Density = cs.Density(req.Msg.Settings.Density)
-	game.PlayerPositions = cs.PlayerPositions(req.Msg.Settings.PlayerPositions)
+	game.Size = converter.SizeToCSSize(req.Msg.Settings.Size)
+	game.Density = converter.DensityToCSDensity(req.Msg.Settings.Density)
+	game.PlayerPositions = converter.PlayerPositionsToCSPlayerPositions(req.Msg.Settings.PlayerPositions)
 	game.RandomEvents = req.Msg.Settings.RandomEvents
 	game.ComputerPlayersFormAlliances = req.Msg.Settings.ComputerPlayersFormAlliances
 	game.PublicPlayerScores = req.Msg.Settings.PublicPlayerScores
 	game.MaxMinerals = req.Msg.Settings.MaxMinerals
-	game.StartMode = cs.GameStartMode(req.Msg.Settings.StartMode)
+	game.StartMode = converter.GameStartModeToCSGameStartMode(req.Msg.Settings.StartMode)
 	game.QuickStartTurns = int(req.Msg.Settings.QuickStartTurns)
 	game.VictoryConditions = converter.C.ConvertVictoryConditions(req.Msg.Settings.VictoryConditions)
 

@@ -1,9 +1,29 @@
+import { fromJson } from '@bufbuild/protobuf';
 import { test as base, expect, Page } from '@playwright/test';
-import { CreateGameResponseJson } from '../src/lib/protogen/craig_stars/v1/gameservice_pb';
+import { type GameWithPlayers } from '../src/lib/protogen/craig_stars/v1/game_pb';
+import {
+	CreateGameResponseJson,
+	CreateGameResponseSchema
+} from '../src/lib/protogen/craig_stars/v1/gameservice_pb';
+import { type PlayerUniverse } from '../src/lib/protogen/craig_stars/v1/player_pb';
+import {
+	GetPlayerResponseSchema,
+	GetUniverseResponseJson,
+	GetUniverseResponseSchema,
+	SubmitTurnResponseSchema,
+	type GetPlayerResponseJson,
+	type SubmitTurnResponseJson
+} from '../src/lib/protogen/craig_stars/v1/playerservice_pb';
 
 export const test = base.extend<{
 	authenticatedPage: Page;
-	newGamePage: { page: Page; id: string; name: string };
+	newGamePage: {
+		page: Page;
+		id: string;
+		name: string;
+		game: GameWithPlayers;
+		universe: PlayerUniverse;
+	};
 	newRacePage: { page: Page; id: string; name: string };
 }>({
 	authenticatedPage: async ({ page }, use) => {
@@ -41,9 +61,27 @@ export const test = base.extend<{
 				response.status() === 200
 		);
 
-		const { game } = (await response.json()) as CreateGameResponseJson;
+		const { game } = fromJson(
+			CreateGameResponseSchema,
+			(await response.json()) as CreateGameResponseJson
+		);
 		if (!game?.game?.id) {
 			throw new Error('failed to create game');
+		}
+
+		const universeResponse = await authenticatedPage.waitForResponse(
+			(resp) =>
+				resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetUniverse') &&
+				resp.request().method() === 'POST' &&
+				resp.status() === 200
+		);
+
+		const { universe } = fromJson(
+			GetUniverseResponseSchema,
+			(await universeResponse.json()) as GetUniverseResponseJson
+		);
+		if (!universe) {
+			throw new Error('failed to get universe for game');
 		}
 
 		const gameLink = authenticatedPage.getByRole('link', { name: name });
@@ -51,7 +89,13 @@ export const test = base.extend<{
 		await expect(gameLink).toHaveText(`${name} - 2400`);
 
 		// do whatever our subtest wants
-		await use({ page: authenticatedPage, id: game.game.id, name: name });
+		await use({
+			page: authenticatedPage,
+			id: `${game.game.id}`,
+			name: name,
+			game: game,
+			universe: universe
+		});
 
 		// delete the game
 		await authenticatedPage.goto('/');
@@ -118,9 +162,37 @@ export async function loadGamePage(page: Page, name: string) {
 
 	// open the game
 	await gameLink.click();
+
+	const playerResponse = await page.waitForResponse(
+		(resp) =>
+			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetPlayer') &&
+			resp.request().method() === 'POST' &&
+			resp.status() === 200
+	);
+
+	const universeResponse = await page.waitForResponse(
+		(resp) =>
+			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetUniverse') &&
+			resp.request().method() === 'POST' &&
+			resp.status() === 200
+	);
+
+	const { universe } = fromJson(
+		GetUniverseResponseSchema,
+		(await universeResponse.json()) as GetUniverseResponseJson
+	);
+
+	const { player } = fromJson(
+		GetPlayerResponseSchema,
+		(await playerResponse.json()) as GetPlayerResponseJson
+	);
+
+	if (!player || !universe) {
+		throw new Error('failed to load universe and player');
+	}
 	await expect(page.locator(`[data-type="game-view"][data-id="${gameId}"]`)).toBeVisible();
 
-	return { page, gameId };
+	return { page, gameId, universe, player };
 }
 
 export async function apiErrorsFailTest(page: Page, gameId: string | null) {
@@ -133,6 +205,53 @@ export async function apiErrorsFailTest(page: Page, gameId: string | null) {
 			throw new Error(`API request failed: ${response.url()} - Status: ${response.status()}`);
 		}
 	});
+}
+
+export async function submitTurn(page: Page) {
+	await page.getByRole('button', { name: 'Submit Turn' }).click();
+
+	// wait for turn submit to finish
+	const submitTurnResponse = await page.waitForResponse(
+		(resp) =>
+			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/SubmitTurn') &&
+			resp.request().method() === 'POST' &&
+			resp.status() === 200
+	);
+
+	const universeResponse = await page.waitForResponse(
+		(resp) =>
+			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetUniverse') &&
+			resp.request().method() === 'POST' &&
+			resp.status() === 200
+	);
+
+	const playerResponse = await page.waitForResponse(
+		(resp) =>
+			resp.url().includes('/api/grpc/craig_stars.v1.PlayerService/GetPlayer') &&
+			resp.request().method() === 'POST' &&
+			resp.status() === 200
+	);
+
+	const { game } = fromJson(
+		SubmitTurnResponseSchema,
+		(await submitTurnResponse.json()) as SubmitTurnResponseJson
+	);
+
+	const { universe } = fromJson(
+		GetUniverseResponseSchema,
+		(await universeResponse.json()) as GetUniverseResponseJson
+	);
+
+	const { player } = fromJson(
+		GetPlayerResponseSchema,
+		(await playerResponse.json()) as GetPlayerResponseJson
+	);
+
+	// wait for turn submit to finish
+	await page.locator('#loading-modal').waitFor({ state: 'visible' }); // wait for loading modal to show up
+	await expect(page.locator('#loading-modal')).not.toHaveClass(/modal-open/); // ensure submit is done
+
+	return { game, player, universe };
 }
 
 // no js errors allowed

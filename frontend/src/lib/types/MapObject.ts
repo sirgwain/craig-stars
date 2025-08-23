@@ -19,6 +19,7 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { None } from './Consts';
 import { getTokenCount, hasDestination } from './Fleet';
+import { distance } from './Vector';
 
 export type MapObjectLike = {
 	mapObject?: MapObject;
@@ -183,4 +184,22 @@ export function targetsEqual(
 		mo1?.targetNum === mo2?.targetNum &&
 		mo1?.targetPlayerNum === mo2?.targetPlayerNum
 	);
+}
+
+export function nearest(mo: MapObjectLike, mapObjects: MapObjectLike[]): MapObjectLike | undefined {
+	let nearest: MapObjectLike | undefined;
+	let nearestDist = Number.MAX_VALUE;
+
+	mapObjects.forEach((other) => {
+		if (equal(mo, other)) {
+			return;
+		}
+		const dist = distance(other.mapObject?.position, mo.mapObject?.position);
+		if (dist < nearestDist) {
+			nearest = other;
+			nearestDist = dist;
+		}
+	});
+
+	return nearest;
 }

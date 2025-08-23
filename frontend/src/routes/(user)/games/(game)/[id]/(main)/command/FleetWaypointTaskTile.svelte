@@ -131,6 +131,8 @@
 		<div class="my-auto text-tile-item-title">Task</div>
 		<div>
 			<select
+				data-type="select-waypoint-task"
+				data-id="waypoint-task"
 				class="select select-outline select-secondary select-sm text-sm w-36"
 				value={selectedWaypointTask}
 				onchange={(e) => {

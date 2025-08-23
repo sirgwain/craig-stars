@@ -42,7 +42,7 @@
 </script>
 
 {#if $selectedMapObject}
-	<MapObjectScaler mapObject={$selectedMapObject}>
+	<MapObjectScaler mapObject={$selectedMapObject} hideDataId={true}>
 		<SelectedMapObject x={-size / 2} y={size * 0.5} width={size} height={size} />
 	</MapObjectScaler>
 {/if}
