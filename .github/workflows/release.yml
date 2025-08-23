@@ -81,7 +81,7 @@ jobs:
       - name: Tar up the binary for publish
         run: tar -cvf ./dist/craig-stars.tgz -C ./dist ./craig-stars
       - name: Copy wasm_exec into frontend folder for the node build step
-        run: mage copy_wasm_exec
+        run: mage copy_wasm_exec_tinygo
 
       # set the version in package.json and build the frontend
       - run: jq ".version = \"${{ needs.tag.outputs.version }}\"" package.json > package.json.tmp && mv package.json.tmp package.json

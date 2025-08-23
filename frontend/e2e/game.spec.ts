@@ -256,7 +256,7 @@ test('designs report page', async ({ newGamePage }) => {
 
 	// sort
 	await page.getByRole('button', { name: 'Player' }).click();
-	await page.getByRole('button', { name: 'ID' }).click();
+	await page.getByRole('button', { name: 'ID', exact: true }).first().click();
 	await page.getByRole('button', { name: 'Name' }).click();
 	await page.getByRole('button', { name: 'Hull' }).click();
 	await page.getByRole('button', { name: 'Rating' }).click();

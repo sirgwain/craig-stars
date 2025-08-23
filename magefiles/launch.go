@@ -241,7 +241,12 @@ func build_backend(buildArgs ...string) error {
 		return err
 	}
 
-	mg.Deps(Build_WASM)
+	// use tinygo for real builds
+	if is_CI() {
+		mg.Deps(Build_WASM_TinyGo())
+	} else {
+		mg.Deps(Build_WASM())
+	}
 	return nil
 }
 
